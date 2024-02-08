@@ -52,9 +52,7 @@ async function handler(req: NextApiRequest & { userId?: number }, res: NextApiRe
       noEmail: false,
     };
 
-    const firstBookingResult = await handleNewBooking(recurringEventReq, {
-      isNotAnApiCall: true,
-    });
+    const firstBookingResult = await handleNewBooking(recurringEventReq);
     luckyUsers = firstBookingResult.luckyUsers?.map((user) => user.id);
   }
 
@@ -92,12 +90,8 @@ async function handler(req: NextApiRequest & { userId?: number }, res: NextApiRe
       luckyUsers,
     };
 
-    const promiseEachRecurringBooking: ReturnType<typeof handleNewBooking> = handleNewBooking(
-      recurringEventReq,
-      {
-        isNotAnApiCall: true,
-      }
-    );
+    const promiseEachRecurringBooking: ReturnType<typeof handleNewBooking> =
+      handleNewBooking(recurringEventReq);
 
     const eachRecurringBooking = await promiseEachRecurringBooking;
 

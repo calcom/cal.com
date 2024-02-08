@@ -591,19 +591,16 @@ async function getOriginalRescheduledBooking(uid: string, seatsEventType?: boole
   });
 }
 
-export async function getBookingData({
+export async function getBookingData<T extends z.ZodType>({
   req,
-  isNotAnApiCall,
   eventType,
+  schema,
 }: {
   req: NextApiRequest;
-  isNotAnApiCall: boolean;
   eventType: Awaited<ReturnType<typeof getEventTypesFromDB>>;
+  schema: T;
 }) {
-  const bookingDataSchema = getBookingDataSchema(req.body?.rescheduleUid, isNotAnApiCall, eventType);
-
-  const reqBody = await bookingDataSchema.parseAsync(req.body);
-
+  const reqBody = await schema.parseAsync(req.body);
   const reqBodyWithEnd = (reqBody: ReqBodyWithoutEnd): reqBody is ReqBodyWithEnd => {
     // Use the event length to auto-set the event end time.
     if (!Object.prototype.hasOwnProperty.call(reqBody, "end")) {
@@ -615,11 +612,9 @@ export async function getBookingData({
     throw new Error(ErrorCode.RequestBodyWithouEnd);
   }
   // reqBody.end is no longer an optional property.
-  if ("customInputs" in reqBody) {
-    if (reqBody.customInputs) {
-      // Check if required custom inputs exist
-      handleCustomInputs(eventType.customInputs as EventTypeCustomInput[], reqBody.customInputs);
-    }
+  if (reqBody.customInputs) {
+    // Check if required custom inputs exist
+    handleCustomInputs(eventType.customInputs as EventTypeCustomInput[], reqBody.customInputs);
     const reqBodyWithLegacyProps = bookingCreateSchemaLegacyPropsForApi.parse(reqBody);
     return {
       ...reqBody,
@@ -630,31 +625,36 @@ export async function getBookingData({
       smsReminderNumber: reqBodyWithLegacyProps.smsReminderNumber,
       notes: reqBodyWithLegacyProps.notes,
       rescheduleReason: reqBodyWithLegacyProps.rescheduleReason,
-    };
-  } else {
-    if (!reqBody.responses) {
-      throw new Error("`responses` must not be nullish");
-    }
-    const responses = reqBody.responses;
-
-    const { userFieldsResponses: calEventUserFieldsResponses, responses: calEventResponses } =
-      getCalEventResponses({
-        bookingFields: eventType.bookingFields,
-        responses,
-      });
-    return {
-      ...reqBody,
-      name: responses.name,
-      email: responses.email,
-      guests: responses.guests ? responses.guests : [],
-      location: responses.location?.optionValue || responses.location?.value || "",
-      smsReminderNumber: responses.smsReminderNumber,
-      notes: responses.notes || "",
-      calEventUserFieldsResponses,
-      rescheduleReason: responses.rescheduleReason,
-      calEventResponses,
+      // So TS doesn't complain about unknown properties
+      calEventUserFieldsResponses: undefined,
+      calEventResponses: undefined,
+      customInputs: undefined,
     };
   }
+  if (!reqBody.responses) {
+    throw new Error("`responses` must not be nullish");
+  }
+  const responses = reqBody.responses;
+
+  const { userFieldsResponses: calEventUserFieldsResponses, responses: calEventResponses } =
+    getCalEventResponses({
+      bookingFields: eventType.bookingFields,
+      responses,
+    });
+  return {
+    ...reqBody,
+    name: responses.name,
+    email: responses.email,
+    guests: responses.guests ? responses.guests : [],
+    location: responses.location?.optionValue || responses.location?.value || "",
+    smsReminderNumber: responses.smsReminderNumber,
+    notes: responses.notes || "",
+    calEventUserFieldsResponses,
+    rescheduleReason: responses.rescheduleReason,
+    calEventResponses,
+    // So TS doesn't complain about unknown properties
+    customInputs: undefined,
+  };
 }
 
 async function createBooking({
@@ -841,13 +841,10 @@ export function getCustomInputsResponses(
   eventTypeCustomInputs: Awaited<ReturnType<typeof getEventTypesFromDB>>["customInputs"]
 ) {
   const customInputsResponses = {} as NonNullable<CalendarEvent["customInputs"]>;
-  if ("customInputs" in reqBody) {
-    const reqCustomInputsResponses = reqBody.customInputs || [];
-    if (reqCustomInputsResponses?.length > 0) {
-      reqCustomInputsResponses.forEach(({ label, value }) => {
-        customInputsResponses[label] = value;
-      });
-    }
+  if (reqBody.customInputs && (reqBody.customInputs.length || 0) > 0) {
+    reqBody.customInputs.forEach(({ label, value }) => {
+      customInputsResponses[label] = value;
+    });
   } else {
     const responses = reqBody.responses || {};
     // Backward Compatibility: Map new `responses` to old `customInputs` format so that webhooks can still receive same values.
@@ -994,15 +991,13 @@ export const findBookingQuery = async (bookingId: number) => {
   return foundBooking;
 };
 
+type BookingDataSchemaGetter =
+  | typeof getBookingDataSchema
+  | typeof import("@calcom/features/bookings/lib/getBookingDataSchemaForApi").default;
+
 async function handler(
   req: NextApiRequest & { userId?: number | undefined },
-  {
-    isNotAnApiCall = false,
-  }: {
-    isNotAnApiCall?: boolean;
-  } = {
-    isNotAnApiCall: false,
-  }
+  bookingDataSchemaGetter: BookingDataSchemaGetter = getBookingDataSchema
 ) {
   const { userId } = req;
 
@@ -1016,6 +1011,17 @@ async function handler(
     ...eventType,
     bookingFields: getBookingFieldsWithSystemFields(eventType),
   };
+
+  const bookingDataSchema = bookingDataSchemaGetter({
+    view: req.body?.rescheduleUid ? "reschedule" : "booking",
+    bookingFields: eventType.bookingFields,
+  });
+  const bookingData = await getBookingData({
+    req,
+    eventType,
+    schema: bookingDataSchema,
+  });
+
   const {
     recurringCount,
     noEmail,
@@ -1033,11 +1039,7 @@ async function handler(
     rescheduleReason,
     luckyUsers,
     ...reqBody
-  } = await getBookingData({
-    req,
-    isNotAnApiCall,
-    eventType,
-  });
+  } = bookingData;
 
   const loggerWithEventDetails = createLoggerWithEventDetails(eventTypeId, reqBody.user, eventTypeSlug);
 
@@ -1199,7 +1201,10 @@ async function handler(
     Object.prototype.hasOwnProperty.call(eventType, "durationLimits")
   ) {
     const startAsDate = dayjs(reqBody.start).toDate();
-    if (eventType.bookingLimits) {
+    if (
+      eventType.bookingLimits &&
+      /* Empty object is truthy */ Object.keys(eventType.bookingLimits).length > 0
+    ) {
       await checkBookingLimits(
         eventType.bookingLimits as IntervalLimit,
         startAsDate,
@@ -1507,7 +1512,7 @@ async function handler(
 
   const attendeesList = [...invitee, ...guests];
 
-  const responses = "responses" in reqBody ? reqBody.responses : null;
+  const responses = reqBody.responses || null;
 
   const evtName = !eventType?.isDynamic ? eventType.eventName : responses?.title;
   const eventNameObject = {
@@ -1523,9 +1528,6 @@ async function handler(
     bookingFields: { ...responses },
     t: tOrganizer,
   };
-
-  const calEventUserFieldsResponses =
-    "calEventUserFieldsResponses" in reqBody ? reqBody.calEventUserFieldsResponses : null;
 
   const iCalUID = getICalUID({
     event: { iCalUID: originalRescheduledBooking?.iCalUID, uid: originalRescheduledBooking?.uid },
@@ -1563,8 +1565,8 @@ async function handler(
       language: { translate: tOrganizer, locale: organizerUser.locale ?? "en" },
       timeFormat: getTimeFormatStringFromUserTimeFormat(organizerUser.timeFormat),
     },
-    responses: "calEventResponses" in reqBody ? reqBody.calEventResponses : null,
-    userFieldsResponses: calEventUserFieldsResponses,
+    responses: reqBody.calEventResponses || null,
+    userFieldsResponses: reqBody.calEventUserFieldsResponses || null,
     attendees: attendeesList,
     location: bookingLocation, // Will be processed by the EventManager later.
     conferenceCredentialId,
