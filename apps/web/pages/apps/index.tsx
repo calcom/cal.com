@@ -3,7 +3,7 @@
 import type { ChangeEventHandler } from "react";
 import { useState } from "react";
 
-import { getLayout } from "@calcom/features/MainLayout";
+import Shell from "@calcom/features/shell/Shell";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
@@ -103,4 +103,14 @@ export default function Apps({
 export { getServerSideProps };
 
 Apps.PageWrapper = PageWrapper;
-Apps.getLayout = getLayout;
+Apps.getLayout = (page: React.ReactElement) => {
+  return (
+    <Shell
+      title="Apps Store"
+      description="Create forms to direct attendees to the correct destinations."
+      withoutMain={true}
+      hideHeadingOnMobile>
+      {page}
+    </Shell>
+  );
+};

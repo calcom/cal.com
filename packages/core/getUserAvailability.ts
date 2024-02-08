@@ -24,6 +24,7 @@ import type {
   IntervalLimit,
   IntervalLimitUnit,
 } from "@calcom/types/Calendar";
+import type { TimeRange } from "@calcom/types/schedule";
 
 import { getBusyTimes } from "./getBusyTimes";
 import monitorCallbackAsync, { monitorCallbackSync } from "./sentryWrapper";
@@ -40,6 +41,7 @@ const availabilitySchema = z
     beforeEventBuffer: z.number().optional(),
     duration: z.number().optional(),
     withSource: z.boolean().optional(),
+    returnDateOverrides: z.boolean(),
   })
   .refine((data) => !!data.username || !!data.userId, "Either username or userId should be filled in.");
 
@@ -161,6 +163,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     afterEventBuffer?: number;
     beforeEventBuffer?: number;
     duration?: number;
+    returnDateOverrides: boolean;
   },
   initialData?: {
     user?: User;
@@ -179,8 +182,17 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     busyTimesFromLimitsBookings: EventBusyDetails[];
   }
 ) {
-  const { username, userId, dateFrom, dateTo, eventTypeId, afterEventBuffer, beforeEventBuffer, duration } =
-    availabilitySchema.parse(query);
+  const {
+    username,
+    userId,
+    dateFrom,
+    dateTo,
+    eventTypeId,
+    afterEventBuffer,
+    beforeEventBuffer,
+    duration,
+    returnDateOverrides,
+  } = availabilitySchema.parse(query);
 
   if (!dateFrom.isValid() || !dateTo.isValid()) {
     throw new HttpError({ statusCode: 400, message: "Invalid time range given." });
@@ -294,16 +306,30 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
 
   const endGetWorkingHours = performance.now();
 
-  const dateOverrides = availability
-    .filter((availability) => !!availability.date)
-    .map((override) => {
+  const dateOverrides: TimeRange[] = [];
+  // NOTE: getSchedule is currently calling this function for every user in a team event
+  // but not using these values at all, wasting CPU. Adding this check here temporarily to avoid a larger refactor
+  // since other callers do using this data.
+  if (returnDateOverrides) {
+    const availabilityWithDates = availability.filter((availability) => !!availability.date);
+
+    for (let i = 0; i < availabilityWithDates.length; i++) {
+      const override = availabilityWithDates[i];
       const startTime = dayjs.utc(override.startTime);
       const endTime = dayjs.utc(override.endTime);
-      return {
-        start: dayjs.utc(override.date).hour(startTime.hour()).minute(startTime.minute()).toDate(),
-        end: dayjs.utc(override.date).hour(endTime.hour()).minute(endTime.minute()).toDate(),
-      };
-    });
+      const overrideStartDate = dayjs.utc(override.date).hour(startTime.hour()).minute(startTime.minute());
+      const overrideEndDate = dayjs.utc(override.date).hour(endTime.hour()).minute(endTime.minute());
+      if (
+        overrideStartDate.isBetween(dateFrom, dateTo, null, "[]") ||
+        overrideEndDate.isBetween(dateFrom, dateTo, null, "[]")
+      ) {
+        dateOverrides.push({
+          start: overrideStartDate.toDate(),
+          end: overrideEndDate.toDate(),
+        });
+      }
+    }
+  }
 
   const dateRanges = buildDateRanges({
     dateFrom,
