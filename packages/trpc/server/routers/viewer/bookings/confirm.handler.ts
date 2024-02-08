@@ -49,6 +49,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       eventTypeId: true,
       responses: true,
       metadata: true,
+      userPrimaryEmail: true,
       eventType: {
         select: {
           id: true,
