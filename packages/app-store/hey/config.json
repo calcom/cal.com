@@ -1,0 +1,16 @@
+{
+  "/*": "Don't modify slug - If required, do it using cli edit command",
+  "name": "HEY",
+  "slug": "hey",
+  "type": "hey_calendar",
+  "logo": "icon.svg",
+  "url": "https://example.com/link",
+  "variant": "calendar",
+  "categories": ["calendar"],
+  "publisher": "Cal.com, Inc.",
+  "email": "support@cal.com",
+  "description": "The all-new HEY Calendar puts time on your side.\r",
+  "isTemplate": false,
+  "__createdUsingCli": true,
+  "__template": "basic"
+}
