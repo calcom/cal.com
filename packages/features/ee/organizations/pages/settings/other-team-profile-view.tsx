@@ -11,6 +11,7 @@ import { z } from "zod";
 
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
+import { trackFormbricksAction } from "@calcom/lib/formbricks-client";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import { md } from "@calcom/lib/markdownIt";
@@ -126,6 +127,7 @@ const OtherTeamProfileView = () => {
       await utils.viewer.organizations.listOtherTeams.invalidate();
       showToast(t("your_team_disbanded_successfully"), "success");
       router.push(`${WEBAPP_URL}/teams`);
+      trackFormbricksAction("team_disbanded");
     },
   });
 
@@ -324,7 +326,9 @@ const OtherTeamProfileView = () => {
               variety="danger"
               title={t("disband_team")}
               confirmBtnText={t("confirm_disband_team")}
-              onConfirm={deleteTeam}>
+              onConfirm={() => {
+                deleteTeam();
+              }}>
               {t("disband_team_confirmation_message")}
             </ConfirmationDialogContent>
           </Dialog>

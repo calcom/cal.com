@@ -1,20 +1,54 @@
-import { CalendarsService } from "@/ee/calendars/services/calendars.service";
+import { CalendarBusyTimesInput } from "@/ee/calendars/inputs/calendar-busy-times.input";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
+import { Controller, Get, Logger, UseGuards, Body } from "@nestjs/common";
+import { User } from "@prisma/client";
 import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
-import { Controller, Get, UseGuards } from "@nestjs/common";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { Calendars } from "@calcom/platform-libraries";
 import { ApiResponse } from "@calcom/platform-types";
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { ApiResponse } from "@calcom/platform-types";
+import { EventBusyDate } from "@calcom/types/Calendar";
+import { CalendarsService } from "@/ee/calendars/services/calendars";
 
 @Controller({
-  path: "calendars",
+  path: "ee/overlay-calendars",
   version: "2",
 })
 @UseGuards(AccessTokenGuard)
-export class CalendarsController {
-  constructor(private readonly calendarsService: CalendarsService) {}
+export class CalendarController {
+  private readonly logger = new Logger("ee overlay calendars controller");
 
+  constructor(private readonly overlayCalendarsService: CalendarsService) {}
+
+  @Get("/busy-times")
+  async getBusyTimes(
+    @Body() body: CalendarBusyTimesInput,
+    @GetUser() user: User
+  ): Promise<ApiResponse<EventBusyDate[]>> {
+    const { loggedInUsersTz, dateFrom, dateTo, calendarsToLoad } = body;
+    if (!dateFrom || !dateTo) {
+      return {
+        status: SUCCESS_STATUS,
+        data: [],
+      };
+    }
+
+    const busyTimes = await this.overlayCalendarsService.getBusyTimes(
+      calendarsToLoad,
+      user.id,
+      dateFrom,
+      dateTo,
+      loggedInUsersTz
+    );
+
+    return {
+      status: SUCCESS_STATUS,
+      data: busyTimes,
+    };
+  }
+  
   @Get("/")
   async getCalendars(@GetUser("id") userId: number): Promise<ApiResponse<{ calendars: Calendars }>> {
     const calendars = await this.calendarsService.getCalendars(userId);
@@ -24,6 +58,6 @@ export class CalendarsController {
       data: {
         calendars,
       },
-    };
+    }
   }
 }

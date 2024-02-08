@@ -11,3 +11,13 @@ export type { EventType } from "@calcom/lib/getEventTypeById";
 export { getConnectedDestinationCalendars } from "@calcom/lib/getConnectedDestinationCalendars";
 export type { Calendars } from "./getConnectedDestinationCalendars";
 export { getBusyCalendarTimes } from "@calcom/core/CalendarManager";
+
+export {
+  transformWorkingHoursForClient,
+  transformAvailabilityForClient,
+  transformDateOverridesForClient,
+} from "@calcom/lib/schedules/client/transformers";
+export type {
+  ScheduleWithAvailabilities,
+  ScheduleWithAvailabilitiesForWeb,
+} from "@calcom/lib/schedules/client/transformers";
