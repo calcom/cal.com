@@ -10,7 +10,7 @@ import { DateTime } from "luxon";
 import { getBusyCalendarTimes } from "@calcom/platform-libraries";
 
 @Injectable()
-export class CalendarsService {
+export class OverlayCalendarsService {
   constructor(private readonly credentialsRepository: CredentialsRepository) {}
 
   async getUniqCalendarCredentials(calendarsToLoad: Calendar[], userId: User["id"]) {
