@@ -61,21 +61,28 @@ export function processWorkingHours({
   return results;
 }
 
-export function processDateOverride({ item, timeZone }: { item: DateOverride; timeZone: string }) {
-  const startDate = dayjs
-    .utc(item.date)
-    .startOf("day")
+export function processDateOverride({
+  item,
+  itemDateAsUtc,
+  timeZone,
+}: {
+  item: DateOverride;
+  itemDateAsUtc: Dayjs;
+  timeZone: string;
+}) {
+  const itemDateStartOfDay = itemDateAsUtc.startOf("day");
+  const startDate = itemDateStartOfDay
     .add(item.startTime.getUTCHours(), "hours")
     .add(item.startTime.getUTCMinutes(), "minutes")
     .second(0)
     .tz(timeZone, true);
-  const endDate = dayjs
-    .utc(item.date)
-    .startOf("day")
+
+  const endDate = itemDateStartOfDay
     .add(item.endTime.getUTCHours(), "hours")
     .add(item.endTime.getUTCMinutes(), "minutes")
     .second(0)
     .tz(timeZone, true);
+
   return {
     start: startDate,
     end: endDate,
@@ -104,10 +111,14 @@ export function buildDateRanges({
       return processed;
     }, [])
   );
+
   const groupedDateOverrides = groupByDate(
     availability.reduce((processed: DateRange[], item) => {
       if ("date" in item && !!item.date) {
-        processed.push(processDateOverride({ item, timeZone }));
+        const itemDateAsUtc = dayjs.utc(item.date);
+        if (itemDateAsUtc.isBetween(dateFrom, dateTo, null, "[]")) {
+          processed.push(processDateOverride({ item, itemDateAsUtc, timeZone }));
+        }
       }
       return processed;
     }, [])

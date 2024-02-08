@@ -1,5 +1,6 @@
 import { useState } from "react";
 
+import { trackFormbricksAction } from "@calcom/lib/formbricks-client";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
@@ -32,6 +33,7 @@ export default function TeamList(props: Props) {
     async onSuccess() {
       await utils.viewer.teams.list.invalidate();
       await utils.viewer.teams.hasTeamPlan.invalidate();
+      trackFormbricksAction("team_disbanded");
     },
     async onError(err) {
       showToast(err.message, "error");

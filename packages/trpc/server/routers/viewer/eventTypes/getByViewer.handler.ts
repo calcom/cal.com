@@ -115,7 +115,7 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
           })
       )
     ),
-    metadata: eventType.metadata ? EventTypeMetaDataSchema.parse(eventType.metadata) : undefined,
+    metadata: eventType.metadata ? EventTypeMetaDataSchema.parse(eventType.metadata) : null,
     children: await Promise.all(
       (eventType.children || []).map(async (c) => ({
         ...c,
