@@ -146,6 +146,7 @@ export type FormValues = {
   multipleDurationEnabled: boolean;
   users: EventTypeSetup["users"];
   assignAllTeamMembers: boolean;
+  useEventTypeDestinationCalendarEmail: boolean;
 };
 
 export type CustomInputParsed = typeof customInputSchema._output;
