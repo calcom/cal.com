@@ -126,8 +126,8 @@ export type FormValues = {
   scheduleName: string;
   minimumBookingNotice: number;
   minimumBookingNoticeInDurationType: number;
-  beforeBufferTime: number;
-  afterBufferTime: number;
+  beforeEventBuffer: number;
+  afterEventBuffer: number;
   slotInterval: number | null;
   metadata: z.infer<typeof EventTypeMetaDataSchema>;
   destinationCalendar: {
@@ -455,8 +455,8 @@ const EventTypePage = (props: EventTypeSetupProps) => {
     const {
       periodDates,
       periodCountCalendarDays,
-      beforeBufferTime,
-      afterBufferTime,
+      beforeEventBuffer,
+      afterEventBuffer,
       seatsPerTimeSlot,
       seatsShowAttendees,
       seatsShowAvailabilityCount,
@@ -527,8 +527,8 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       periodEndDate: periodDates.endDate,
       periodCountCalendarDays: periodCountCalendarDays === "1",
       id: eventType.id,
-      beforeEventBuffer: beforeBufferTime,
-      afterEventBuffer: afterBufferTime,
+      beforeEventBuffer,
+      afterEventBuffer,
       bookingLimits,
       onlyShowFirstAvailableSlot,
       durationLimits,
@@ -595,8 +595,8 @@ const EventTypePage = (props: EventTypeSetupProps) => {
             const {
               periodDates,
               periodCountCalendarDays,
-              beforeBufferTime,
-              afterBufferTime,
+              beforeEventBuffer,
+              afterEventBuffer,
               seatsPerTimeSlot,
               seatsShowAttendees,
               seatsShowAvailabilityCount,
@@ -657,8 +657,8 @@ const EventTypePage = (props: EventTypeSetupProps) => {
               periodEndDate: periodDates.endDate,
               periodCountCalendarDays: periodCountCalendarDays === "1",
               id: eventType.id,
-              beforeEventBuffer: beforeBufferTime,
-              afterEventBuffer: afterBufferTime,
+              beforeEventBuffer,
+              afterEventBuffer,
               bookingLimits,
               onlyShowFirstAvailableSlot,
               durationLimits,

@@ -225,7 +225,10 @@ export async function getEmailsReceivedByUser({
   if (!emails) return null;
   const matchingEmails = await emails.search(userEmail, "to");
   if (!matchingEmails?.total) {
-    console.log(`No emails received by ${userEmail}`);
+    console.log(
+      `No emails received by ${userEmail}. All emails sent to:`,
+      (await emails.messages())?.items.map((e) => e.to)
+    );
   }
   return matchingEmails;
 }
@@ -293,6 +296,7 @@ export const createUserWithLimits = ({
 async function createUserWithSeatedEvent(users: Fixtures["users"]) {
   const slug = "seats";
   const user = await users.create({
+    name: "Seated event user",
     eventTypes: [
       {
         title: "Seated event",
@@ -357,6 +361,9 @@ export async function doOnOrgDomain(
     "x-cal-force-slug": orgSlug,
   });
   await callback({ page });
+  await page.setExtraHTTPHeaders({
+    "x-cal-force-slug": "",
+  });
 }
 
 // When App directory is there, this is the 404 page text. We should work on fixing the 404 page as it changed due to app directory.

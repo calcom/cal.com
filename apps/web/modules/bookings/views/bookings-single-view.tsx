@@ -14,6 +14,7 @@ import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
 import type { getEventLocationValue } from "@calcom/app-store/locations";
 import { getSuccessPageLocationMessage, guessEventLocationType } from "@calcom/app-store/locations";
 import { getEventTypeAppData } from "@calcom/app-store/utils";
+import type { nameObjectSchema } from "@calcom/core/event";
 import { getEventName } from "@calcom/core/event";
 import type { ConfigType } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
@@ -90,6 +91,7 @@ export default function Success(props: PageProps) {
   const routerQuery = useRouterQuery();
   const pathname = usePathname();
   const searchParams = useCompatSearchParams();
+  const { eventType, bookingInfo, requiresLoginToUpdate } = props;
   const {
     allRemainingBookings,
     isSuccessBookingPage,
@@ -99,35 +101,28 @@ export default function Success(props: PageProps) {
     seatReferenceUid,
   } = querySchema.parse(routerQuery);
 
-  const attendeeTimeZone = props?.bookingInfo?.attendees.find(
-    (attendee) => attendee.email === email
-  )?.timeZone;
+  const attendeeTimeZone = bookingInfo?.attendees.find((attendee) => attendee.email === email)?.timeZone;
 
   const tz = props.tz ? props.tz : isSuccessBookingPage && attendeeTimeZone ? attendeeTimeZone : timeZone();
 
-  const location = props.bookingInfo.location as ReturnType<typeof getEventLocationValue>;
+  const location = bookingInfo.location as ReturnType<typeof getEventLocationValue>;
   let rescheduleLocation: string | undefined;
   if (
-    typeof props.bookingInfo.responses.location === "object" &&
-    "optionValue" in props.bookingInfo.responses.location
+    typeof bookingInfo.responses?.location === "object" &&
+    "optionValue" in bookingInfo.responses.location
   ) {
-    rescheduleLocation = props.bookingInfo.responses.location.optionValue;
+    rescheduleLocation = bookingInfo.responses.location.optionValue;
   }
 
   const locationVideoCallUrl: string | undefined = bookingMetadataSchema.parse(
-    props?.bookingInfo?.metadata || {}
+    bookingInfo?.metadata || {}
   )?.videoCallUrl;
 
-  const status = props.bookingInfo?.status;
-  const reschedule = props.bookingInfo.status === BookingStatus.ACCEPTED;
-  const cancellationReason = props.bookingInfo.cancellationReason || props.bookingInfo.rejectionReason;
+  const status = bookingInfo?.status;
+  const reschedule = bookingInfo.status === BookingStatus.ACCEPTED;
+  const cancellationReason = bookingInfo.cancellationReason || bookingInfo.rejectionReason;
 
-  const attendeeName =
-    typeof props?.bookingInfo?.attendees?.[0]?.name === "string"
-      ? props?.bookingInfo?.attendees?.[0]?.name
-      : "Nameless";
-
-  const attendees = props?.bookingInfo?.attendees;
+  const attendees = bookingInfo?.attendees;
 
   const isGmail = !!attendees.find((attendee) => attendee.email.includes("gmail.com"));
 
@@ -136,15 +131,14 @@ export default function Success(props: PageProps) {
   );
   const { data: session } = useSession();
 
-  const [date, setDate] = useState(dayjs.utc(props.bookingInfo.startTime));
-  const { eventType, bookingInfo } = props;
+  const [date, setDate] = useState(dayjs.utc(bookingInfo.startTime));
 
   const isBackgroundTransparent = useIsBackgroundTransparent();
   const isEmbed = useIsEmbed();
   const shouldAlignCentrallyInEmbed = useEmbedNonStylesConfig("align") !== "left";
   const shouldAlignCentrally = !isEmbed || shouldAlignCentrallyInEmbed;
   const [calculatedDuration, setCalculatedDuration] = useState<number | undefined>(undefined);
-  const { requiresLoginToUpdate } = props;
+
   function setIsCancellationMode(value: boolean) {
     const _searchParams = new URLSearchParams(searchParams ?? undefined);
 
@@ -159,13 +153,13 @@ export default function Success(props: PageProps) {
     router.replace(`${pathname}?${_searchParams.toString()}`);
   }
 
-  let evtName = props.eventType.eventName;
+  let evtName = eventType.eventName;
   if (eventType.isDynamic && bookingInfo.responses?.title) {
     evtName = bookingInfo.responses.title as string;
   }
   const eventNameObject = {
-    attendeeName,
-    eventType: props.eventType.title,
+    attendeeName: bookingInfo.responses.name as z.infer<typeof nameObjectSchema> | string,
+    eventType: eventType.title,
     eventName: evtName,
     host: props.profile.name || "Nameless",
     location: location,
@@ -223,9 +217,7 @@ export default function Success(props: PageProps) {
   }, [eventType, needsConfirmation]);
 
   useEffect(() => {
-    setCalculatedDuration(
-      dayjs(props.bookingInfo.endTime).diff(dayjs(props.bookingInfo.startTime), "minutes")
-    );
+    setCalculatedDuration(dayjs(bookingInfo.endTime).diff(dayjs(bookingInfo.startTime), "minutes"));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -245,7 +237,7 @@ export default function Success(props: PageProps) {
       ],
       startInputType: "utc",
       title: eventName,
-      description: props.eventType.description ? props.eventType.description : undefined,
+      description: eventType.description ? eventType.description : undefined,
       /** formatted to required type of description ^ */
       duration: {
         minutes: calculatedDuration,
@@ -424,7 +416,7 @@ export default function Success(props: PageProps) {
                       {reschedule && !!formerTime && (
                         <p className="line-through">
                           <RecurringBookings
-                            eventType={props.eventType}
+                            eventType={eventType}
                             duration={calculatedDuration}
                             recurringBookings={props.recurringBookings}
                             allRemainingBookings={allRemainingBookings}
@@ -436,7 +428,7 @@ export default function Success(props: PageProps) {
                         </p>
                       )}
                       <RecurringBookings
-                        eventType={props.eventType}
+                        eventType={eventType}
                         duration={calculatedDuration}
                         recurringBookings={props.recurringBookings}
                         allRemainingBookings={allRemainingBookings}
@@ -638,15 +630,15 @@ export default function Success(props: PageProps) {
                               .add(calculatedDuration, "minute")
                               .utc()
                               .format("YYYYMMDDTHHmmss[Z]")}&text=${eventName}&details=${
-                              props.eventType.description
+                              eventType.description
                             }${
                               typeof locationVideoCallUrl === "string"
                                 ? `&location=${encodeURIComponent(locationVideoCallUrl)}`
                                 : ""
                             }${
-                              props.eventType.recurringEvent
+                              eventType.recurringEvent
                                 ? `&recur=${encodeURIComponent(
-                                    new RRule(props.eventType.recurringEvent).toString()
+                                    new RRule(eventType.recurringEvent).toString()
                                   )}`
                                 : ""
                             }`}
@@ -664,7 +656,7 @@ export default function Success(props: PageProps) {
                             href={
                               encodeURI(
                                 `https://outlook.live.com/calendar/0/deeplink/compose?body=${
-                                  props.eventType.description
+                                  eventType.description
                                 }&enddt=${date
                                   .add(calculatedDuration, "minute")
                                   .utc()
@@ -691,7 +683,7 @@ export default function Success(props: PageProps) {
                             href={
                               encodeURI(
                                 `https://outlook.office.com/calendar/0/deeplink/compose?body=${
-                                  props.eventType.description
+                                  eventType.description
                                 }&enddt=${date
                                   .add(calculatedDuration, "minute")
                                   .utc()
@@ -717,7 +709,7 @@ export default function Success(props: PageProps) {
                           <Link
                             href={`data:text/calendar,${eventLink()}`}
                             className="border-subtle text-default mx-2 h-10 w-10 rounded-sm border px-3 py-2"
-                            download={`${props.eventType.title}.ics`}>
+                            download={`${eventType.title}.ics`}>
                             <svg
                               version="1.1"
                               fill="currentColor"

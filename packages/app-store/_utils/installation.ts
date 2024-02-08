@@ -2,6 +2,7 @@ import type { Prisma } from "@prisma/client";
 
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
+import type { UserProfile } from "@calcom/types/UserProfile";
 
 export async function checkInstalled(slug: string, userId: number) {
   const alreadyInstalled = await prisma.credential.findFirst({
@@ -17,7 +18,10 @@ export async function checkInstalled(slug: string, userId: number) {
 
 type InstallationArgs = {
   appType: string;
-  userId: number;
+  user: {
+    id: number;
+    profile: UserProfile;
+  };
   slug: string;
   key?: Prisma.InputJsonValue;
   teamId?: number;
@@ -28,7 +32,7 @@ type InstallationArgs = {
 
 export async function createDefaultInstallation({
   appType,
-  userId,
+  user,
   slug,
   key = {},
   teamId,
@@ -40,7 +44,7 @@ export async function createDefaultInstallation({
     data: {
       type: appType,
       key,
-      ...(teamId ? { teamId } : { userId }),
+      ...(teamId ? { teamId } : { userId: user.id }),
       appId: slug,
       subscriptionId,
       paymentStatus,
