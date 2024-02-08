@@ -6,6 +6,7 @@ import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
+import { Prisma } from "@calcom/prisma/client";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
@@ -71,15 +72,6 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
       }
     }
 
-    const credential = await prisma.credential.create({
-      data: {
-        type: "google_calendar",
-        key,
-        userId: req.session.user.id,
-        appId: "google-calendar",
-      },
-    });
-
     // Set the primary calendar as the first selected calendar
 
     // We can ignore this type error because we just validated the key when we init oAuth2Client
@@ -93,10 +85,23 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     });
 
     const cals = await calendar.calendarList.list({ fields: "items(id,summary,primary,accessRole)" });
-
     const primaryCal = cals.data.items?.find((cal) => cal.primary);
+    // Primary calendar won't be null, this check satisfies typescript.
+    if (!primaryCal?.id) {
+      throw new HttpError({ message: "Internal Error", statusCode: 500 });
+    }
 
-    if (primaryCal?.id) {
+    const credential = await prisma.credential.create({
+      data: {
+        type: "google_calendar",
+        key,
+        userId: req.session.user.id,
+        appId: "google-calendar",
+      },
+    });
+    // Wrapping in a try/catch to reduce chance of race conditions-
+    // also this improves performance for most of the happy-paths.
+    try {
       await prisma.selectedCalendar.create({
         data: {
           userId: req.session.user.id,
@@ -105,6 +110,19 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
           integration: "google_calendar",
         },
       });
+    } catch (error) {
+      await prisma.credential.delete({ where: { id: credential.id } });
+      let errorMessage = "something_went_wrong";
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+        errorMessage = "account_already_linked";
+      }
+      res.redirect(
+        `${
+          getSafeRedirectUrl(state?.onErrorReturnTo) ??
+          getInstalledAppPath({ variant: "calendar", slug: "google-calendar" })
+        }?error=${errorMessage}`
+      );
+      return;
     }
   }
 
