@@ -1,11 +1,13 @@
-import handleNewBooking from "bookings/lib/handleNewBooking";
-import type { RecurringBookingCreateBody, BookingResponse } from "bookings/types";
 import type { NextApiRequest } from "next";
 
+import handleNewBooking from "@calcom/features/bookings/lib/handleNewBooking";
+import type { RecurringBookingCreateBody, BookingResponse } from "@calcom/features/bookings/types";
 import { SchedulingType } from "@calcom/prisma/client";
 import type { AppsStatus } from "@calcom/types/Calendar";
 
-export const handleNewRecurringBooking = async (req: NextApiRequest & { userId?: number }) => {
+export const handleNewRecurringBooking = async (
+  req: NextApiRequest & { userId?: number }
+): Promise<BookingResponse[]> => {
   const data: RecurringBookingCreateBody[] = req.body;
   const createdBookings: BookingResponse[] = [];
   const allRecurringDates: { start: string | undefined; end: string | undefined }[] = data.map((booking) => {
