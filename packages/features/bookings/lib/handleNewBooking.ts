@@ -342,6 +342,7 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
       durationLimits: true,
       assignAllTeamMembers: true,
       parentId: true,
+      useEventTypeDestinationCalendarEmail: true,
       owner: {
         select: {
           hideBranding: true,
@@ -739,7 +740,7 @@ async function createBooking({
 
   const newBookingData: Prisma.BookingCreateInput = {
     uid,
-    userPrimaryEmail: organizerUser.email,
+    userPrimaryEmail: evt.organizer.email,
     responses: responses === null || evt.seatsPerTimeSlot ? Prisma.JsonNull : responses,
     title: evt.title,
     startTime: dayjs.utc(evt.startTime).toDate(),
@@ -1497,10 +1498,9 @@ async function handler(
       teamDestinationCalendars.push(user.destinationCalendar);
     }
 
-    const destinationEmail = user?.destinationCalendar?.primaryEmail;
     return {
       id: user.id,
-      email: destinationEmail ?? user.email ?? "",
+      email: user.email ?? "",
       name: user.name ?? "",
       firstName: "",
       lastName: "",
@@ -1550,11 +1550,14 @@ async function handler(
     ? await getBookerBaseUrl(eventType.team.parentId)
     : await getBookerBaseUrl(organizerOrganizationId ?? null);
 
-  const destinationCalendar = eventType.destinationCalendar
-    ? [eventType.destinationCalendar]
-    : organizerUser.destinationCalendar
-    ? [organizerUser.destinationCalendar]
-    : null;
+  const destinationCalendar =
+    eventType.useEventTypeDestinationCalendarEmail && !eventType.team
+      ? eventType.destinationCalendar
+        ? [eventType.destinationCalendar]
+        : organizerUser.destinationCalendar
+        ? [organizerUser.destinationCalendar]
+        : null
+      : null;
 
   let evt: CalendarEvent = {
     bookerUrl,

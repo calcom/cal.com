@@ -296,6 +296,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       hosts: eventType.hosts,
       successRedirectUrl: eventType.successRedirectUrl || "",
       users: eventType.users,
+      useEventTypeDestinationCalendarEmail: eventType.useEventTypeDestinationCalendarEmail,
       children: eventType.children.map((ch) => ({
         ...ch,
         created: true,
