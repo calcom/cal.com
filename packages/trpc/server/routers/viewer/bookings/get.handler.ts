@@ -304,13 +304,17 @@ async function getBookings({
       where: {
         OR: [
           {
-            eventType: {
-              team: {
-                members: {
-                  some: {
-                    userId: user.id,
-                    role: {
-                      in: ["ADMIN", "OWNER"],
+            user: {
+              teams: {
+                some: {
+                  team: {
+                    members: {
+                      some: {
+                        userId: user.id,
+                        role: {
+                          in: ["ADMIN", "OWNER"],
+                        },
+                      },
                     },
                   },
                 },
