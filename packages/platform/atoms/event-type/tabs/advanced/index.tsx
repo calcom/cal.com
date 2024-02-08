@@ -1,9 +1,9 @@
-import { Edit } from "lucide-react";
+import { OfferSeatsPerTimeSlot } from "event-type/components/offer-seats-per-time-slot";
+import { UserSelectedDestinationCalendar } from "event-type/components/user-selected-destination-calendar";
 import { useState } from "react";
-import { Controller, useFormContext } from "react-hook-form";
+import { useFormContext } from "react-hook-form";
 
 import getLocationsOptionsForSelect from "@calcom/features/bookings/lib/getLocationOptionsForSelect";
-import DestinationCalendarSelector from "@calcom/features/calendars/DestinationCalendarSelector";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import {
   allowDisablingAttendeeConfirmationEmails,
@@ -11,12 +11,11 @@ import {
 } from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
 import { FormBuilder } from "@calcom/features/form-builder/FormBuilder";
 import { BookerLayoutSelector } from "@calcom/features/settings/BookerLayoutSelector";
+import { CAL_URL } from "@calcom/lib/constants";
 import type { Prisma } from "@calcom/prisma/client";
-import { Button, Label, TextField } from "@calcom/ui";
 
 import { DisableStandardEmailsConfirmation } from "../../components/disable-standard-emails-confirmation/index";
 import { EnablePrivateURL } from "../../components/enable-private-url/index";
-import { EventCalendarView } from "../../components/event-calendar-view/index";
 import { HideCalendarNotes } from "../../components/hide-calendar-notes/index";
 import { LockTimeZoneToggleOnBookingPage } from "../../components/lock-timezone-on-booking-page/index";
 import { RedirectOnBooking } from "../../components/redirect-on-booking/index";
@@ -43,73 +42,49 @@ export function Advanced({ eventType, team, userTheme, userConnectedCalendars }:
     "This option was locked by the team admin"
   );
   const successRedirectUrlLocked = shouldLockDisableProps("successRedirectUrl");
+  const seatsLocked = shouldLockDisableProps("seatsPerTimeSlotEnabled");
+  const noShowFeeEnabled =
+    formMethods.getValues("metadata")?.apps?.stripe?.enabled === true &&
+    formMethods.getValues("metadata")?.apps?.stripe?.paymentOption === "HOLD";
   const workflows = eventType.workflows.map((workflowOnEventType) => workflowOnEventType.workflow);
 
   const [showEventNameTip, setShowEventNameTip] = useState(false);
-  const [hashedLinkVisible, setHashedLinkVisible] = useState(!!eventType.hashedLink);
   const [redirectUrlVisible, setRedirectUrlVisible] = useState(!!eventType.successRedirectUrl);
   const [hashedUrl, setHashedUrl] = useState(eventType.hashedLink?.link);
   const [requiresConfirmation, setRequiresConfirmation] = useState(eventType.requiresConfirmation);
 
+  const placeholderHashedLink = `${CAL_URL}/d/${hashedUrl}/${formMethods.getValues("slug")}`;
+
+  const toggleGuests = (enabled: boolean) => {
+    const bookingFields = formMethods.getValues("bookingFields");
+    formMethods.setValue(
+      "bookingFields",
+      bookingFields.map((field) => {
+        if (field.name === "guests") {
+          return {
+            ...field,
+            hidden: !enabled,
+            editable: (!enabled ? "system-but-hidden" : "system-but-optional") as z.infer<
+              typeof EditableSchema
+            >,
+          };
+        }
+        return field;
+      })
+    );
+  };
+
   return (
     <div className="flex flex-col space-y-4">
-      <div className="border-subtle space-y-6 rounded-lg border p-6">
-        {!!userConnectedCalendars.length && !team && (
-          <div className="flex flex-col">
-            <div className="flex justify-between">
-              <div>
-                <Label className="text-emphasis mb-0 font-medium">Add to calendar</Label>
-              </div>
-              <a
-                href="/apps/categories/calendar"
-                target="_blank"
-                className="hover:text-emphasis text-default text-sm">
-                Add another calendar
-              </a>
-            </div>
-            <Controller
-              control={formMethods.control}
-              name="destinationCalendar"
-              defaultValue={eventType.destinationCalendar || undefined}
-              render={({ field: { onChange, value } }) => (
-                <DestinationCalendarSelector
-                  destinationCalendar={eventType.destinationCalendar}
-                  value={value ? value.externalId : undefined}
-                  onChange={onChange}
-                  hidePlaceholder
-                  hideAdvancedText
-                />
-              )}
-            />
-            <p className="text-subtle text-sm">Select which calendar to add bookings to</p>
-          </div>
-        )}
-        <div className="w-full">
-          <TextField
-            label="Event name in calendar"
-            type="text"
-            {...shouldLockDisableProps("eventName")}
-            placeholder={eventNamePlaceholder}
-            defaultValue={eventType.eventName || ""}
-            {...formMethods.register("eventName")}
-            addOnSuffix={
-              <Button
-                color="minimal"
-                size="sm"
-                aria-label="edit custom name"
-                className="hover:stroke-3 hover:text-emphasis min-w-fit !py-0 px-0 hover:bg-transparent"
-                onClick={() => setShowEventNameTip((old) => !old)}>
-                <Edit className="h-4 w-4" />
-              </Button>
-            }
-          />
-        </div>
-      </div>
-      <EventCalendarView
+      <UserSelectedDestinationCalendar
+        eventType={eventType}
         formMethods={formMethods}
-        team={team}
-        userConnectedCalendars={userConnectedCalendars}
         shouldLockDisableProps={shouldLockDisableProps}
+        isConnectedConnectedPresent={!!userConnectedCalendars.length}
+        isTeamPresent={!team}
+        toggleEventNameTip={() => setShowEventNameTip((old) => !old)}
+        // TODO: figure this part out
+        eventNamePlaceholder=""
       />
 
       <BookerLayoutSelector fallbackToUserSettings isDark={selectedThemeIsDark} isOuterBorder={true} />
@@ -154,7 +129,31 @@ export function Advanced({ eventType, team, userTheme, userConnectedCalendars }:
       />
 
       {/* Enable private URL controller comes here */}
-      <EnablePrivateURL />
+      <EnablePrivateURL
+        formMethods={formMethods}
+        isHashedLinkVisible={!!formMethods.getValues("hashedLink")}
+        hashedUrl={hashedUrl}
+        hashedLink={formMethods.getValues("hashedLink")}
+        shouldLockDisableProps={shouldLockDisableProps}
+        placeholderHashedLink={placeholderHashedLink}
+      />
+
+      {/*seatsPerTimeSlotEnabled controller goes here*/}
+      <OfferSeatsPerTimeSlot
+        seatsLocked={seatsLocked}
+        isNoShowFeeEnabled={noShowFeeEnabled}
+        enableRequiresConfirmation={() => {
+          toggleGuests(false);
+          formMethods.setValue("requiresConfirmation", false);
+          setRequiresConfirmation(false);
+          formMethods.setValue("metadata.multipleDuration", undefined);
+          formMethods.setValue("seatsPerTimeSlot", eventType.seatsPerTimeSlot ?? 2);
+        }}
+        disableRequiresConfirmation={() => {
+          formMethods.setValue("seatsPerTimeSlot", null);
+          toggleGuests(true);
+        }}
+      />
 
       {/* Lock timezone on booking page controller comes here */}
       <LockTimeZoneToggleOnBookingPage
