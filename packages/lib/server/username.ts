@@ -86,7 +86,7 @@ const usernameHandler =
   (handler: CustomNextApiHandler) =>
   async (req: RequestWithUsernameStatus, res: NextApiResponse): Promise<void> => {
     const username = slugify(req.body.username);
-    const check = await usernameCheck(username);
+    const check = await usernameCheckForSignup({ username, email: req.body.email });
 
     let result: Parameters<typeof processResult>[0] = "ok";
     if (check.premium) result = "is_premium";
@@ -116,7 +116,11 @@ const usernameCheck = async (usernameRaw: string) => {
   const username = slugify(usernameRaw);
 
   const user = await prisma.user.findFirst({
-    where: { username, organizationId: null },
+    where: {
+      username,
+      // Simply remove it when we drop organizationId column
+      organizationId: null,
+    },
     select: {
       id: true,
       username: true,
@@ -124,6 +128,70 @@ const usernameCheck = async (usernameRaw: string) => {
   });
 
   if (user) {
+    response.available = false;
+  }
+
+  if (await isPremiumUserName(username)) {
+    response.premium = true;
+  }
+
+  // get list of similar usernames in the db
+  const users = await prisma.user.findMany({
+    where: {
+      username: {
+        contains: username,
+      },
+    },
+    select: {
+      username: true,
+    },
+  });
+
+  // We only need suggestedUsername if the username is not available
+  if (!response.available) {
+    response.suggestedUsername = await generateUsernameSuggestion(
+      users.map((user) => user.username).filter(notEmpty),
+      username
+    );
+  }
+
+  return response;
+};
+
+/**
+ * It is a bit different from usernameCheck because it also check if the user signing up is the same user that has a pending invitation to organization
+ * So, it uses email to uniquely identify the user and then also checks if the username requested by that user is available for taking or not.
+ * TODO: We should reuse `usernameCheck` and then do the additional thing in here.
+ */
+const usernameCheckForSignup = async ({
+  username: usernameRaw,
+  email,
+}: {
+  username: string;
+  email: string;
+}) => {
+  const response = {
+    available: true,
+    premium: false,
+    suggestedUsername: "",
+  };
+
+  const username = slugify(usernameRaw);
+
+  const user = await prisma.user.findFirst({
+    where: {
+      email,
+      // Simply remove it when we drop organizationId column
+      organizationId: null,
+    },
+    select: {
+      id: true,
+      username: true,
+    },
+  });
+
+  if (user) {
+    // TODO: When supporting multiple profiles of a user, we would need to check if the user has a membership with the correct organization
     const userIsAMemberOfAnOrg = await prisma.membership.findFirst({
       where: {
         userId: user.id,
@@ -135,6 +203,7 @@ const usernameCheck = async (usernameRaw: string) => {
         },
       },
     });
+
     // When we invite an email, that doesn't match the orgAutoAcceptEmail, we create a user with organizationId=null.
     // The only way to differentiate b/w 'a new email that was invited to an Org' and 'a user that was created using regular signup' is to check if the user is a member of an org.
     if (!userIsAMemberOfAnOrg) {
@@ -169,4 +238,4 @@ const usernameCheck = async (usernameRaw: string) => {
   return response;
 };
 
-export { usernameHandler, usernameCheck };
+export { usernameHandler, usernameCheck, usernameCheckForSignup };

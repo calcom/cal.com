@@ -18,8 +18,10 @@ import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Button, showToast, useCalcomTheme } from "@calcom/ui";
 
 import FormInputFields from "../../components/FormInputFields";
+import { getAbsoluteEventTypeRedirectUrl } from "../../getEventTypeRedirectUrl";
 import getFieldIdentifier from "../../lib/getFieldIdentifier";
 import { processRoute } from "../../lib/processRoute";
+import { substituteVariables } from "../../lib/substituteVariables";
 import transformResponse from "../../lib/transformResponse";
 import type { Response, Route } from "../../types/types";
 import { getServerSideProps } from "./getServerSideProps";
@@ -101,7 +103,14 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
       if (decidedAction.type === "customPageMessage") {
         setCustomPageMessage(decidedAction.value);
       } else if (decidedAction.type === "eventTypeRedirectUrl") {
-        await router.push(`/${decidedAction.value}?${allURLSearchParams}`);
+        const eventTypeUrlWithResolvedVariables = substituteVariables(decidedAction.value, response, fields);
+        router.push(
+          getAbsoluteEventTypeRedirectUrl({
+            form,
+            eventTypeRedirectUrl: eventTypeUrlWithResolvedVariables,
+            allURLSearchParams,
+          })
+        );
       } else if (decidedAction.type === "externalRedirectUrl") {
         window.parent.location.href = `${decidedAction.value}?${allURLSearchParams}`;
       }
@@ -142,7 +151,7 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
 
                   <form onSubmit={handleOnSubmit}>
                     <div className="mb-8">
-                      <h1 className="font-cal text-emphasis  mb-1 text-xl font-bold tracking-wide">
+                      <h1 className="font-cal text-emphasis mb-1 text-xl font-bold tracking-wide">
                         {form.name}
                       </h1>
                       {form.description ? (
@@ -153,7 +162,7 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
                     <div className="mt-4 flex justify-end space-x-2 rtl:space-x-reverse">
                       <Button
                         className="dark:bg-darkmodebrand dark:text-darkmodebrandcontrast dark:hover:border-darkmodebrandcontrast dark:border-transparent"
-                        loading={responseMutation.isLoading}
+                        loading={responseMutation.isPending}
                         type="submit"
                         color="primary">
                         {t("submit")}

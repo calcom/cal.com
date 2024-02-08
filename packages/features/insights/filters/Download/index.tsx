@@ -11,7 +11,7 @@ const Download = () => {
 
   const { t } = useLocale();
 
-  const { data, isLoading } = trpc.viewer.insights.rawData.useQuery(
+  const { data, isPending } = trpc.viewer.insights.rawData.useQuery(
     {
       startDate: filter.dateRange[0].toISOString(),
       endDate: filter.dateRange[1].toISOString(),
@@ -60,7 +60,7 @@ const Download = () => {
         <Button
           EndIcon={FileDownIcon}
           color="secondary"
-          {...(isLoading && { loading: isLoading })}
+          {...(isPending && { loading: isPending })}
           className="self-end sm:self-baseline">
           {t("download")}
         </Button>

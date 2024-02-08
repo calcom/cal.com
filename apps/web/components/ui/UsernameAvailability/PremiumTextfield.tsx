@@ -293,7 +293,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
             {usernameChangeCondition === UsernameChangeStatusEnum.UPGRADE && (
               <Button
                 type="button"
-                loading={updateUsername.isLoading}
+                loading={updateUsername.isPending}
                 data-testid="go-to-billing"
                 href={paymentLink}>
                 <>
@@ -305,7 +305,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
             {usernameChangeCondition !== UsernameChangeStatusEnum.UPGRADE && (
               <Button
                 type="button"
-                loading={updateUsername.isLoading}
+                loading={updateUsername.isPending}
                 data-testid="save-username"
                 onClick={() => {
                   saveUsername();

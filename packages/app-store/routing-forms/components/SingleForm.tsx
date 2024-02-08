@@ -65,7 +65,7 @@ const Actions = ({
 }: {
   form: RoutingFormWithResponseCount;
   mutation: {
-    isLoading: boolean;
+    isPending: boolean;
   };
 }) => {
   const { t } = useLocale();
@@ -218,7 +218,7 @@ const Actions = ({
         </FormActionsDropdown>
       </div>
       <VerticalDivider />
-      <Button data-testid="update-form" loading={mutation.isLoading} type="submit" color="primary">
+      <Button data-testid="update-form" loading={mutation.isPending} type="submit" color="primary">
         {t("save")}
       </Button>
     </div>
@@ -518,7 +518,7 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
 }
 
 export default function SingleFormWrapper({ form: _form, ...props }: SingleFormComponentProps) {
-  const { data: form, isLoading } = trpc.viewer.appRoutingForms.formQuery.useQuery(
+  const { data: form, isPending } = trpc.viewer.appRoutingForms.formQuery.useQuery(
     { id: _form.id },
     {
       initialData: _form,
@@ -527,7 +527,7 @@ export default function SingleFormWrapper({ form: _form, ...props }: SingleFormC
   );
   const { t } = useLocale();
 
-  if (isLoading) {
+  if (isPending) {
     // It shouldn't be possible because we are passing the data from SSR to it as initialData. So, no need for skeleton here
     return null;
   }

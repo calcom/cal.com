@@ -15,7 +15,7 @@ import { trpc } from "@calcom/trpc/react";
 import { EmptyScreen, showToast, ToggleGroup } from "@calcom/ui";
 import { Clock } from "@calcom/ui/components/icon";
 
-import { withQuery } from "@lib/QueryCell";
+import { QueryCell } from "@lib/QueryCell";
 
 import PageWrapper from "@components/PageWrapper";
 import SkeletonLoader from "@components/availability/SkeletonLoader";
@@ -136,8 +136,17 @@ export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availab
   );
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const WithQuery = withQuery(trpc.viewer.availability.list as any);
+function AvailabilityListWithQuery() {
+  const query = trpc.viewer.availability.list.useQuery();
+
+  return (
+    <QueryCell
+      query={query}
+      success={({ data }) => <AvailabilityList {...data} />}
+      customLoader={<SkeletonLoader />}
+    />
+  );
+}
 
 export default function AvailabilityPage() {
   const { t } = useLocale();
@@ -179,14 +188,7 @@ export default function AvailabilityPage() {
             <NewScheduleButton />
           </div>
         }>
-        {searchParams?.get("type") === "team" ? (
-          <AvailabilitySliderTable />
-        ) : (
-          <WithQuery
-            success={({ data }) => <AvailabilityList {...data} />}
-            customLoader={<SkeletonLoader />}
-          />
-        )}
+        {searchParams?.get("type") === "team" ? <AvailabilitySliderTable /> : <AvailabilityListWithQuery />}
       </ShellMain>
     </div>
   );

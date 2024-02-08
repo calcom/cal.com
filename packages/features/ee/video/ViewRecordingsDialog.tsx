@@ -1,5 +1,5 @@
 import { useRouter } from "next/navigation";
-import { useState, Suspense } from "react";
+import { useState, Suspense, useEffect } from "react";
 
 import dayjs from "@calcom/dayjs";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
@@ -64,18 +64,21 @@ const useRecordingDownload = () => {
     },
     {
       enabled: !!recordingId,
-      cacheTime: 0,
+      gcTime: 0,
       refetchOnWindowFocus: false,
       refetchOnReconnect: false,
       retry: false,
-      onSuccess: (data) => {
-        if (data && data.download_link) {
-          window.location.href = data.download_link;
-        }
-      },
     }
   );
 
+  useEffect(
+    function refactorMeWithoutEffect() {
+      if (data && data.download_link) {
+        window.location.href = data.download_link;
+      }
+    },
+    [data]
+  );
   return {
     setRecordingId: (newRecordingId: string) => {
       // may be a way to do this by default, but this is easy enough.
@@ -157,7 +160,7 @@ export const ViewRecordingsDialog = (props: IViewRecordingsDialog) => {
   const { t, i18n } = useLocale();
   const { isOpenDialog, setIsOpenDialog, booking, timeFormat } = props;
 
-  const { hasTeamPlan, isLoading: isTeamPlanStatusLoading } = useHasTeamPlan();
+  const { hasTeamPlan, isPending: isTeamPlanStatusLoading } = useHasTeamPlan();
 
   const roomName =
     booking?.references?.find((reference: PartialReference) => reference.type === "daily_video")?.meetingId ??

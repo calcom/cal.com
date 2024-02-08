@@ -30,8 +30,8 @@ export const VerifyCodeDialog = ({
   isUserSessionRequiredToVerify?: boolean;
 }) => {
   const { t } = useLocale();
-  // Not using the mutation isLoading flag because after verifying we submit the underlying org creation form
-  const [isLoading, setIsLoading] = useState(false);
+  // Not using the mutation isPending flag because after verifying we submit the underlying org creation form
+  const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState("");
   const [value, setValue] = useState("");
   const [hasVerified, setHasVerified] = useState(false);
@@ -49,11 +49,11 @@ export const VerifyCodeDialog = ({
 
   const verifyCodeMutationUserSessionRequired = trpc.viewer.organizations.verifyCode.useMutation({
     onSuccess: (data) => {
-      setIsLoading(false);
+      setIsPending(false);
       onSuccess(data);
     },
     onError: (err) => {
-      setIsLoading(false);
+      setIsPending(false);
       setHasVerified(false);
       if (err.message === "invalid_code") {
         setError(t("code_provided_invalid"));
@@ -63,11 +63,11 @@ export const VerifyCodeDialog = ({
 
   const verifyCodeMutationUserSessionNotRequired = trpc.viewer.auth.verifyCodeUnAuthenticated.useMutation({
     onSuccess: (data) => {
-      setIsLoading(false);
+      setIsPending(false);
       onSuccess(data);
     },
     onError: (err) => {
-      setIsLoading(false);
+      setIsPending(false);
       setHasVerified(false);
       if (err.message === "invalid_code") {
         setError(t("code_provided_invalid"));
@@ -77,7 +77,7 @@ export const VerifyCodeDialog = ({
 
   const verifyCode = useCallback(() => {
     setError("");
-    setIsLoading(true);
+    setIsPending(true);
     if (isUserSessionRequiredToVerify) {
       verifyCodeMutationUserSessionRequired.mutate({
         code: value,
@@ -102,10 +102,10 @@ export const VerifyCodeDialog = ({
     // trim the input value because "react-digit-input" creates a string of the given length,
     // even when some digits are missing. And finally we use regex to check if the value consists
     // of 6 non-empty digits.
-    if (hasVerified || error || isLoading || !/^\d{6}$/.test(value.trim())) return;
+    if (hasVerified || error || isPending || !/^\d{6}$/.test(value.trim())) return;
 
     verifyCode();
-  }, [error, isLoading, value, verifyCode, hasVerified]);
+  }, [error, isPending, value, verifyCode, hasVerified]);
 
   useEffect(() => setValue(""), [isOpenDialog]);
 
@@ -149,7 +149,7 @@ export const VerifyCodeDialog = ({
             )}
             <DialogFooter>
               <DialogClose />
-              <Button type="submit" onClick={verifyCode} loading={isLoading}>
+              <Button type="submit" onClick={verifyCode} loading={isPending}>
                 {t("submit")}
               </Button>
             </DialogFooter>

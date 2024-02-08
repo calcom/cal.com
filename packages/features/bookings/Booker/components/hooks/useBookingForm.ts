@@ -27,7 +27,7 @@ export const useBookingForm = ({ event }: IUseBookingForm) => {
     .object({
       responses: event?.data
         ? getBookingResponsesSchema({
-            eventType: event?.data,
+            bookingFields: event.data.bookingFields,
             view: rescheduleUid ? "reschedule" : "booking",
           })
         : // Fallback until event is loaded.

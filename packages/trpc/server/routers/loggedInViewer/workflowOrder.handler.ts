@@ -98,11 +98,13 @@ export const workflowOrderHandler = async ({ ctx, input }: RoutingFormOrderOptio
   );
 };
 
+type SupportedFilters = Omit<NonNullable<NonNullable<TFormSchema>["filters"]>, "upIds"> | undefined;
+
 export function getPrismaWhereFromFilters(
   user: {
     id: number;
   },
-  filters: NonNullable<TFormSchema>["filters"]
+  filters: SupportedFilters
 ) {
   const where = {
     OR: [] as Prisma.App_RoutingForms_FormWhereInput[],

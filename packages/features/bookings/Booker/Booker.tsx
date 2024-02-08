@@ -1,4 +1,5 @@
 import { LazyMotion, m, AnimatePresence } from "framer-motion";
+import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
 import { useSearchParams } from "next/navigation";
 import { usePathname, useRouter } from "next/navigation";
@@ -20,6 +21,7 @@ import { AvailableTimeSlots } from "./components/AvailableTimeSlots";
 import { BookEventForm } from "./components/BookEventForm";
 import { BookFormAsModal } from "./components/BookEventForm/BookFormAsModal";
 import { EventMeta } from "./components/EventMeta";
+import { HavingTroubleFindingTime } from "./components/HavingTroubleFindingTime";
 import { Header } from "./components/Header";
 import { InstantBooking } from "./components/InstantBooking";
 import { LargeCalendar } from "./components/LargeCalendar";
@@ -70,6 +72,7 @@ const BookerComponent = ({
     shallow
   );
   const event = useEvent();
+  const session = useSession();
   const { selectedTimeslot, setSelectedTimeslot } = useSlots(event);
 
   const {
@@ -84,6 +87,9 @@ const BookerComponent = ({
     isEmbed,
     bookerLayouts,
   } = useBookerLayout(event.data);
+
+  const [dayCount, setDayCount] = useBookerStore((state) => [state.dayCount, state.setDayCount], shallow);
+
   const date = dayjs(selectedDate).format("YYYY-MM-DD");
 
   const prefetchNextMonth =
@@ -100,6 +106,8 @@ const BookerComponent = ({
       ? 2
       : undefined;
 
+  const searchParams = useSearchParams();
+
   /**
    * Prioritize dateSchedule load
    * Component will render but use data already fetched from here, and no duplicate requests will be made
@@ -108,9 +116,11 @@ const BookerComponent = ({
     prefetchNextMonth,
     username,
     monthCount,
+    dayCount,
     eventSlug,
     month,
     duration,
+    selectedDate: searchParams?.get("date"),
   });
 
   const nonEmptyScheduleDays = useNonEmptyScheduleDays(schedule?.data?.slots).filter(
@@ -128,6 +138,7 @@ const BookerComponent = ({
   if (nonEmptyScheduleDays.length !== 0)
     columnViewExtraDays.current =
       Math.abs(dayjs(selectedDate).diff(availableSlots[availableSlots.length - 2], "day")) + addonDays;
+
   const nextSlots =
     Math.abs(dayjs(selectedDate).diff(availableSlots[availableSlots.length - 1], "day")) + addonDays;
 
@@ -142,7 +153,6 @@ const BookerComponent = ({
 
   const { t } = useLocale();
 
-  const searchParams = useSearchParams();
   const isRedirect = searchParams?.get("redirected") === "true" || false;
   const fromUserNameRedirected = searchParams?.get("username") || "";
 
@@ -207,7 +217,7 @@ const BookerComponent = ({
   } = useCalendars();
 
   useEffect(() => {
-    if (event.isLoading) return setBookerState("loading");
+    if (event.isPending) return setBookerState("loading");
     if (!selectedDate) return setBookerState("selecting_date");
     if (!selectedTimeslot) return setBookerState("selecting_time");
     return setBookerState("booking");
@@ -362,7 +372,7 @@ const BookerComponent = ({
                     "bg-default dark:bg-muted sticky top-0 z-10"
                 )}>
                 <Header
-                  isMyLink={Boolean(username === event?.data?.owner?.username)}
+                  isMyLink={Boolean(username === session?.data?.user.username)}
                   eventSlug={eventSlug}
                   enabledLayouts={bookerLayouts.enabledLayouts}
                   extraDays={layout === BookerLayouts.COLUMN_VIEW ? columnViewExtraDays.current : extraDays}
@@ -399,7 +409,7 @@ const BookerComponent = ({
               <BookerSection
                 area="meta"
                 className="max-w-screen flex w-full flex-col md:w-[var(--booker-meta-width)]">
-                <EventMeta event={event.data} isLoading={event.isLoading} />
+                <EventMeta event={event.data} isPending={event.isPending} />
                 {layout !== BookerLayouts.MONTH_VIEW &&
                   !(layout === "mobile" && bookerState === "booking") && (
                     <div className="mt-auto px-5 py-3 ">
@@ -434,7 +444,7 @@ const BookerComponent = ({
               visible={layout === BookerLayouts.WEEK_VIEW}
               className="border-subtle sticky top-0 ml-[-1px] h-full md:border-l"
               {...fadeInLeft}>
-              <LargeCalendar extraDays={extraDays} schedule={schedule.data} isLoading={schedule.isLoading} />
+              <LargeCalendar extraDays={extraDays} schedule={schedule.data} isLoading={schedule.isPending} />
             </BookerSection>
 
             <BookerSection
@@ -456,7 +466,7 @@ const BookerComponent = ({
                 extraDays={extraDays}
                 limitHeight={layout === BookerLayouts.MONTH_VIEW}
                 schedule={schedule?.data}
-                isLoading={schedule.isLoading}
+                isLoading={schedule.isPending}
                 seatsPerTimeSlot={event.data?.seatsPerTimeSlot}
                 showAvailableSeatsCount={event.data?.seatsShowAvailabilityCount}
               />
@@ -464,15 +474,26 @@ const BookerComponent = ({
           </AnimatePresence>
         </div>
 
-        <m.span
-          key="logo"
-          className={classNames(
-            "-z-10 mb-6 mt-auto pt-6 [&_img]:h-[15px]",
-            hasDarkBackground ? "dark" : "",
-            layout === BookerLayouts.MONTH_VIEW ? "block" : "hidden"
-          )}>
-          {!hideBranding ? <PoweredBy logoOnly /> : null}
-        </m.span>
+        <HavingTroubleFindingTime
+          visible={bookerState !== "booking" && layout === BookerLayouts.MONTH_VIEW && !isMobile}
+          dayCount={dayCount}
+          isScheduleLoading={schedule.isLoading}
+          onButtonClick={() => {
+            setDayCount(null);
+          }}
+        />
+
+        {!hideBranding && (
+          <m.span
+            key="logo"
+            className={classNames(
+              "-z-10 mb-6 mt-auto pt-6 [&_img]:h-[15px]",
+              hasDarkBackground ? "dark" : "",
+              layout === BookerLayouts.MONTH_VIEW ? "block" : "hidden"
+            )}>
+            <PoweredBy logoOnly />
+          </m.span>
+        )}
       </div>
 
       <BookFormAsModal

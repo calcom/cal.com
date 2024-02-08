@@ -155,7 +155,7 @@ const OutOfOfficeSection = () => {
           <Button
             color="primary"
             type="submit"
-            disabled={createOutOfOfficeEntry.isLoading}
+            disabled={createOutOfOfficeEntry.isPending}
             data-testid="create-entry-ooo-redirect">
             {t("create_entry")}
           </Button>
@@ -168,7 +168,7 @@ const OutOfOfficeSection = () => {
 const OutOfOfficeEntriesList = () => {
   const { t } = useLocale();
   const utils = trpc.useContext();
-  const { data, isLoading } = trpc.viewer.outOfOfficeEntriesList.useQuery();
+  const { data, isPending } = trpc.viewer.outOfOfficeEntriesList.useQuery();
   const deleteOutOfOfficeEntryMutation = trpc.viewer.outOfOfficeEntryDelete.useMutation({
     onSuccess: () => {
       showToast(t("success_deleted_entry_out_of_office"), "success");
@@ -207,7 +207,7 @@ const OutOfOfficeEntriesList = () => {
                   type="button"
                   color="minimal"
                   variant="icon"
-                  disabled={deleteOutOfOfficeEntryMutation.isLoading}
+                  disabled={deleteOutOfOfficeEntryMutation.isPending}
                   StartIcon={Trash2}
                   onClick={() => {
                     deleteOutOfOfficeEntryMutation.mutate({ outOfOfficeUid: item.uuid });
@@ -216,7 +216,7 @@ const OutOfOfficeEntriesList = () => {
               </TableCell>
             </TableRow>
           ))}
-          {isLoading && (
+          {isPending && (
             <TableRow>
               {new Array(6).fill(0).map((_, index) => (
                 <TableCell key={index}>
@@ -226,7 +226,7 @@ const OutOfOfficeEntriesList = () => {
             </TableRow>
           )}
 
-          {!isLoading && (data === undefined || data.length === 0) && (
+          {!isPending && (data === undefined || data.length === 0) && (
             <TableRow>
               <TableCell colSpan={6} className="text-center">
                 <p className="text-subtle text-sm">{t("no_redirects_found")}</p>

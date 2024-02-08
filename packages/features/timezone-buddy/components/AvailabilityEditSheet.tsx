@@ -75,12 +75,12 @@ export function AvailabilityEditSheet(props: Props) {
   const { t } = useLocale();
   const utils = trpc.useContext();
 
-  const { data: hasEditPermission, isLoading: loadingPermissions } =
+  const { data: hasEditPermission, isPending: loadingPermissions } =
     trpc.viewer.teams.hasEditPermissionForUser.useQuery({
       memberId: userId,
     });
 
-  const { data, isLoading } = trpc.viewer.availability.schedule.getScheduleByUserId.useQuery({
+  const { data, isPending } = trpc.viewer.availability.schedule.getScheduleByUserId.useQuery({
     userId: userId,
   });
 
@@ -133,7 +133,7 @@ export function AvailabilityEditSheet(props: Props) {
                 disabled={!hasEditPermission || !data?.hasDefaultSchedule}
                 className="w-full justify-center"
                 type="submit"
-                loading={updateMutation.isLoading}
+                loading={updateMutation.isPending}
                 form="availability-form">
                 {t("save")}
               </Button>
@@ -146,7 +146,7 @@ export function AvailabilityEditSheet(props: Props) {
               })}
             </SheetTitle>
           </SheetHeader>
-          {!data?.hasDefaultSchedule && !isLoading && hasEditPermission && (
+          {!data?.hasDefaultSchedule && !isPending && hasEditPermission && (
             <div className="my-2">
               <Alert severity="warning" title={t("view_only_edit_availability_not_onboarded")} />
             </div>

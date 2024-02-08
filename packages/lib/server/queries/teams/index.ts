@@ -2,12 +2,19 @@ import { Prisma } from "@prisma/client";
 
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import prisma, { baseEventTypeSelect } from "@calcom/prisma";
+import type { Team } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
-import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import { _EventTypeModel } from "@calcom/prisma/zod";
+import {
+  EventTypeMetaDataSchema,
+  allManagedEventTypeProps,
+  unlockedManagedEventTypeProps,
+} from "@calcom/prisma/zod-utils";
 
 import { WEBAPP_URL } from "../../../constants";
 import { getBookerBaseUrlSync } from "../../../getBookerUrl/client";
 import { getTeam, getOrg } from "../../repository/team";
+import { UserRepository } from "../../repository/user";
 
 export type TeamWithMembers = Awaited<ReturnType<typeof getTeamWithMembers>>;
 
@@ -18,12 +25,13 @@ export async function getTeamWithMembers(args: {
   orgSlug?: string | null;
   includeTeamLogo?: boolean;
   isTeamView?: boolean;
+  currentOrg?: Team | null;
   /**
    * If true, means that you are fetching an organization and not a team
    */
   isOrgView?: boolean;
 }) {
-  const { id, slug, userId, orgSlug, isTeamView, isOrgView, includeTeamLogo } = args;
+  const { id, slug, currentOrg, userId, orgSlug, isTeamView, isOrgView, includeTeamLogo } = args;
 
   // This should improve performance saving already app data found.
   const appDataMap = new Map();
@@ -31,14 +39,9 @@ export async function getTeamWithMembers(args: {
     username: true,
     email: true,
     name: true,
+    avatarUrl: true,
     id: true,
     bio: true,
-    organizationId: true,
-    organization: {
-      select: {
-        slug: true,
-      },
-    },
     teams: {
       select: {
         team: {
@@ -145,11 +148,24 @@ export async function getTeamWithMembers(args: {
 
   if (!teamOrOrg) return null;
 
-  const members = teamOrOrg.members.map((m) => {
-    const { credentials, ...restUser } = m.user;
+  const teamOrOrgMemberships = [];
+  for (const membership of teamOrOrg.members) {
+    teamOrOrgMemberships.push({
+      ...membership,
+      user: await UserRepository.enrichUserWithItsProfile({
+        user: membership.user,
+      }),
+    });
+  }
+  const members = teamOrOrgMemberships.map((m) => {
+    const { credentials, profile, ...restUser } = m.user;
     return {
       ...restUser,
+      username: profile?.username ?? restUser.username,
       role: m.role,
+      profile: profile,
+      organizationId: profile?.organizationId ?? null,
+      organization: profile?.organization,
       accepted: m.accepted,
       disableImpersonation: m.disableImpersonation,
       subteams: orgSlug
@@ -158,7 +174,7 @@ export async function getTeamWithMembers(args: {
             .map((membership) => membership.team.slug)
         : null,
       avatar: `${WEBAPP_URL}/${m.user.username}/avatar.png`,
-      bookerUrl: getBookerBaseUrlSync(m.user.organization?.slug || ""),
+      bookerUrl: getBookerBaseUrlSync(profile?.organization?.slug || ""),
       connectedApps: !isTeamView
         ? credentials?.map((cred) => {
             const appSlug = cred.app?.slug;
@@ -182,10 +198,26 @@ export async function getTeamWithMembers(args: {
     };
   });
 
-  const eventTypes = teamOrOrg.eventTypes.map((eventType) => ({
+  const eventTypesWithUsersUserProfile = [];
+  for (const eventType of teamOrOrg.eventTypes) {
+    const usersWithUserProfile = [];
+    for (const user of eventType.users) {
+      usersWithUserProfile.push(
+        await UserRepository.enrichUserWithItsProfile({
+          user,
+        })
+      );
+    }
+    eventTypesWithUsersUserProfile.push({
+      ...eventType,
+      users: usersWithUserProfile,
+    });
+  }
+  const eventTypes = eventTypesWithUsersUserProfile.map((eventType) => ({
     ...eventType,
     metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
   }));
+
   // Don't leak invite tokens to the frontend
   const { inviteTokens, ...teamWithoutInviteTokens } = teamOrOrg;
 
@@ -246,4 +278,68 @@ export async function isTeamMember(userId: number, teamId: number) {
       accepted: true,
     },
   }));
+}
+
+export async function updateNewTeamMemberEventTypes(userId: number, teamId: number) {
+  const eventTypesToAdd = await prisma.eventType.findMany({
+    where: {
+      team: { id: teamId },
+      assignAllTeamMembers: true,
+    },
+    select: {
+      ...allManagedEventTypeProps,
+      id: true,
+      schedulingType: true,
+    },
+  });
+
+  const allManagedEventTypePropsZod = _EventTypeModel.pick(allManagedEventTypeProps);
+
+  eventTypesToAdd.length > 0 &&
+    (await prisma.$transaction(
+      eventTypesToAdd.map((eventType) => {
+        if (eventType.schedulingType === "MANAGED") {
+          const managedEventTypeValues = allManagedEventTypePropsZod
+            .omit(unlockedManagedEventTypeProps)
+            .parse(eventType);
+
+          // Define the values for unlocked properties to use on creation, not updation
+          const unlockedEventTypeValues = allManagedEventTypePropsZod
+            .pick(unlockedManagedEventTypeProps)
+            .parse(eventType);
+
+          // Calculate if there are new workflows for which assigned members will get too
+          const currentWorkflowIds = eventType.workflows?.map((wf) => wf.workflowId);
+
+          return prisma.eventType.create({
+            data: {
+              ...managedEventTypeValues,
+              ...unlockedEventTypeValues,
+              bookingLimits:
+                (managedEventTypeValues.bookingLimits as unknown as Prisma.InputJsonObject) ?? undefined,
+              recurringEvent:
+                (managedEventTypeValues.recurringEvent as unknown as Prisma.InputJsonValue) ?? undefined,
+              metadata: (managedEventTypeValues.metadata as Prisma.InputJsonValue) ?? undefined,
+              bookingFields: (managedEventTypeValues.bookingFields as Prisma.InputJsonValue) ?? undefined,
+              durationLimits: (managedEventTypeValues.durationLimits as Prisma.InputJsonValue) ?? undefined,
+              onlyShowFirstAvailableSlot: managedEventTypeValues.onlyShowFirstAvailableSlot ?? false,
+              userId,
+              users: {
+                connect: [{ id: userId }],
+              },
+              parentId: eventType.parentId,
+              hidden: false,
+              workflows: currentWorkflowIds && {
+                create: currentWorkflowIds.map((wfId) => ({ workflowId: wfId })),
+              },
+            },
+          });
+        } else {
+          return prisma.eventType.update({
+            where: { id: eventType.id },
+            data: { hosts: { create: [{ userId, isFixed: eventType.schedulingType === "COLLECTIVE" }] } },
+          });
+        }
+      })
+    ));
 }

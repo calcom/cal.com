@@ -113,10 +113,7 @@ export async function selectSecondAvailableTimeSlotNextMonth(page: Page) {
   await page.locator('[data-testid="time"]').nth(0).click();
 }
 
-export async function bookEventOnThisPage(page: Page, goTo?: string) {
-  if (goTo) {
-    await page.goto(goTo);
-  }
+export async function bookEventOnThisPage(page: Page) {
   await selectFirstAvailableTimeSlotNextMonth(page);
   await bookTimeSlot(page);
 
@@ -296,6 +293,7 @@ export const createUserWithLimits = ({
 async function createUserWithSeatedEvent(users: Fixtures["users"]) {
   const slug = "seats";
   const user = await users.create({
+    name: "Seated event user",
     eventTypes: [
       {
         title: "Seated event",

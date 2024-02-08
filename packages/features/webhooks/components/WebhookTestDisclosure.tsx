@@ -27,7 +27,7 @@ export default function WebhookTestDisclosure() {
         <Button
           type="button"
           color="secondary"
-          disabled={mutation.isLoading || !subscriberUrl}
+          disabled={mutation.isPending || !subscriberUrl}
           StartIcon={Activity}
           onClick={() => {
             try {

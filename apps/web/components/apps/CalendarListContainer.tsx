@@ -28,7 +28,7 @@ type Props = {
   onChanged: () => unknown | Promise<unknown>;
   fromOnboarding?: boolean;
   destinationCalendarId?: string;
-  isLoading?: boolean;
+  isPending?: boolean;
 };
 
 function CalendarList(props: Props) {
@@ -74,7 +74,7 @@ function ConnectedCalendarsList(props: Props) {
     suspense: true,
     refetchOnWindowFocus: false,
   });
-  const { fromOnboarding, isLoading } = props;
+  const { fromOnboarding, isPending } = props;
   return (
     <QueryCell
       query={query}
@@ -97,7 +97,7 @@ function ConnectedCalendarsList(props: Props) {
                 <div className="flex flex-col xl:flex-row xl:space-x-5">
                   {!!data.connectedCalendars.length && (
                     <div className="flex items-center">
-                      <AdditionalCalendarSelector isLoading={isLoading} />
+                      <AdditionalCalendarSelector isPending={isPending} />
                     </div>
                   )}
                 </div>
@@ -229,7 +229,7 @@ export function CalendarListContainer(props: { heading?: boolean; fromOnboarding
                               hidePlaceholder
                               value={data.destinationCalendar?.externalId}
                               onChange={mutation.mutate}
-                              isLoading={mutation.isLoading}
+                              isPending={mutation.isPending}
                             />
                           </div>
                         </div>
@@ -239,7 +239,7 @@ export function CalendarListContainer(props: { heading?: boolean; fromOnboarding
                       onChanged={onChanged}
                       fromOnboarding={fromOnboarding}
                       destinationCalendarId={data.destinationCalendar?.externalId}
-                      isLoading={mutation.isLoading}
+                      isPending={mutation.isPending}
                     />
                   </>
                 )}

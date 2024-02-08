@@ -68,11 +68,15 @@ function BasePhoneInput({ name, className = "", onChange, ...rest }: PhoneInputP
 
 const useDefaultCountry = () => {
   const [defaultCountry, setDefaultCountry] = useState("us");
-  trpc.viewer.public.countryCode.useQuery(undefined, {
+  const query = trpc.viewer.public.countryCode.useQuery(undefined, {
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
     retry: false,
-    onSuccess: (data) => {
+  });
+
+  useEffect(
+    function refactorMeWithoutEffect() {
+      const data = query.data;
       if (!data?.countryCode) {
         return;
       }
@@ -81,7 +85,8 @@ const useDefaultCountry = () => {
         ? setDefaultCountry(data.countryCode.toLowerCase())
         : setDefaultCountry(navigator.language.split("-")[1]?.toLowerCase() || "us");
     },
-  });
+    [query.data]
+  );
 
   return defaultCountry;
 };

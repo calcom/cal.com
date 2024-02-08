@@ -34,7 +34,7 @@ export const InstallAppButtonWithoutPlanCheck = (
           onClick: () => {
             mutation.mutate({ type: props.type });
           },
-          loading: mutation.isLoading,
+          loading: mutation.isPending,
         })}
       </>
     );
@@ -56,10 +56,10 @@ export const InstallAppButton = (
     disableInstall?: boolean;
   } & InstallAppButtonProps
 ) => {
-  const { isLoading: isUserLoading, data: user } = trpc.viewer.me.useQuery();
+  const { isPending: isUserLoading, data: user } = trpc.viewer.me.useQuery();
   const router = useRouter();
   const proProtectionElementRef = useRef<HTMLDivElement | null>(null);
-  const { isLoading: isTeamPlanStatusLoading, hasTeamPlan } = useHasTeamPlan();
+  const { isPending: isTeamPlanStatusLoading, hasTeamPlan } = useHasTeamPlan();
 
   useEffect(() => {
     const el = proProtectionElementRef.current;

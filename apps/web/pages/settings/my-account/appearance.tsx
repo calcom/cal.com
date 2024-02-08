@@ -317,7 +317,7 @@ const AppearanceView = ({
       <SettingsToggle
         toggleSwitchAtTheEnd={true}
         title={t("disable_cal_branding", { appName: APP_NAME })}
-        disabled={!hasPaidPlan || mutation?.isLoading}
+        disabled={!hasPaidPlan || mutation?.isPending}
         description={t("removes_cal_branding", { appName: APP_NAME })}
         checked={hasPaidPlan ? hideBrandingValue : false}
         Badge={<UpgradeTeamsBadge />}
@@ -332,12 +332,12 @@ const AppearanceView = ({
 };
 
 const AppearanceViewWrapper = () => {
-  const { data: user, isLoading } = trpc.viewer.me.useQuery();
-  const { isLoading: isTeamPlanStatusLoading, hasPaidPlan } = useHasPaidPlan();
+  const { data: user, isPending } = trpc.viewer.me.useQuery();
+  const { isPending: isTeamPlanStatusLoading, hasPaidPlan } = useHasPaidPlan();
 
   const { t } = useLocale();
 
-  if (isLoading || isTeamPlanStatusLoading || !user)
+  if (isPending || isTeamPlanStatusLoading || !user)
     return <SkeletonLoader title={t("appearance")} description={t("appearance_description")} />;
 
   return <AppearanceView user={user} hasPaidPlan={hasPaidPlan} />;

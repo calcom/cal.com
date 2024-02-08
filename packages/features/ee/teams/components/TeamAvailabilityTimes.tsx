@@ -22,7 +22,7 @@ interface Props {
 export default function TeamAvailabilityTimes(props: Props) {
   const { t } = useLocale();
 
-  const { data, isLoading } = trpc.viewer.teams.getMemberAvailability.useQuery(
+  const { data, isPending } = trpc.viewer.teams.getMemberAvailability.useQuery(
     {
       teamId: props.teamId,
       memberId: props.memberId,
@@ -35,7 +35,7 @@ export default function TeamAvailabilityTimes(props: Props) {
     }
   );
 
-  const slots = !isLoading
+  const slots = !isPending
     ? getSlots({
         frequency: props.frequency,
         inviteeDate: props.selectedDate,
@@ -50,13 +50,13 @@ export default function TeamAvailabilityTimes(props: Props) {
   return (
     <div className={classNames("min-w-60 flex-grow pl-0", props.className)}>
       {props.HeaderComponent}
-      {isLoading && slots.length === 0 && <SkeletonLoader />}
-      {!isLoading && slots.length === 0 ? (
+      {isPending && slots.length === 0 && <SkeletonLoader />}
+      {!isPending && slots.length === 0 ? (
         <div className="flex flex-col items-center justify-center pt-4">
           <span className="text-subtle text-sm">{t("no_available_slots")}</span>
         </div>
       ) : (
-        <>{!isLoading && <p className="text-default mb-3 text-sm">{t("time_available")}</p>}</>
+        <>{!isPending && <p className="text-default mb-3 text-sm">{t("time_available")}</p>}</>
       )}
       <div className="max-h-[390px] overflow-scroll">
         {slots.map((slot) => (

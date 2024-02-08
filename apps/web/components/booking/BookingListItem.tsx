@@ -139,7 +139,7 @@ function BookingListItem(booking: BookingItemProps) {
         setRejectionDialogIsOpen(true);
       },
       icon: Ban,
-      disabled: mutation.isLoading,
+      disabled: mutation.isPending,
     },
     // For bookings with payment, only confirm if the booking is paid for
     ...((isPending && !paymentAppData.enabled) ||
@@ -153,7 +153,7 @@ function BookingListItem(booking: BookingItemProps) {
               bookingConfirm(true);
             },
             icon: Check,
-            disabled: mutation.isLoading,
+            disabled: mutation.isPending,
           },
         ]
       : []),
@@ -293,7 +293,7 @@ function BookingListItem(booking: BookingItemProps) {
         setViewRecordingsDialogIsOpen(true);
       },
       color: showCheckRecordingButton ? "secondary" : "primary",
-      disabled: mutation.isLoading,
+      disabled: mutation.isPending,
     },
   ];
 
@@ -348,7 +348,7 @@ function BookingListItem(booking: BookingItemProps) {
           <DialogFooter>
             <DialogClose />
             <Button
-              disabled={mutation.isLoading}
+              disabled={mutation.isPending}
               data-testid="rejection-confirm"
               onClick={() => {
                 bookingConfirm(false);

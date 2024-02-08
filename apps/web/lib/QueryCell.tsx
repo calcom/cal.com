@@ -1,20 +1,14 @@
 import type {
-  QueryObserverLoadingErrorResult,
-  QueryObserverLoadingResult,
+  QueryObserverPendingResult,
   QueryObserverRefetchErrorResult,
   QueryObserverSuccessResult,
+  QueryObserverLoadingErrorResult,
   UseQueryResult,
 } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { TRPCClientErrorLike } from "@calcom/trpc/client";
-import type { DecorateProcedure } from "@calcom/trpc/react/shared";
-import type { AnyQueryProcedure, inferProcedureInput, inferProcedureOutput } from "@calcom/trpc/server";
-import type { AppRouter } from "@calcom/trpc/server/routers/_app";
 import { Alert, Loader } from "@calcom/ui";
-
-import type { UseTRPCQueryOptions } from "@trpc/react-query/shared";
 
 type ErrorLike = {
   message: string;
@@ -27,7 +21,7 @@ interface QueryCellOptionsBase<TData, TError extends ErrorLike> {
   error?: (
     query: QueryObserverLoadingErrorResult<TData, TError> | QueryObserverRefetchErrorResult<TData, TError>
   ) => JSXElementOrNull;
-  loading?: (query: QueryObserverLoadingResult<TData, TError> | null) => JSXElementOrNull;
+  loading?: (query: QueryObserverPendingResult<TData, TError> | null) => JSXElementOrNull;
 }
 
 interface QueryCellOptionsNoEmpty<TData, TError extends ErrorLike>
@@ -58,8 +52,11 @@ export function QueryCell<TData, TError extends ErrorLike>(
   const { isLocaleReady } = useLocale();
   const StatusLoader = opts.customLoader || <Loader />; // Fixes edge case where this can return null form query cell
 
-  if (query.status === "loading" || !isLocaleReady) {
-    return opts.loading?.(query.status === "loading" ? query : null) ?? StatusLoader;
+  if (!isLocaleReady) {
+    return opts.loading?.(query.status === "pending" ? query : null) ?? StatusLoader;
+  }
+  if (query.status === "pending") {
+    return opts.loading?.(query) ?? StatusLoader;
   }
 
   if (query.status === "success") {
@@ -81,28 +78,3 @@ export function QueryCell<TData, TError extends ErrorLike>(
   // impossible state
   return null;
 }
-
-type TError = TRPCClientErrorLike<AppRouter>;
-
-const withQuery = <
-  TQuery extends AnyQueryProcedure,
-  TInput = inferProcedureInput<TQuery>,
-  TOutput = inferProcedureOutput<TQuery>
->(
-  queryProcedure: DecorateProcedure<TQuery, inferProcedureInput<TQuery>, inferProcedureOutput<TQuery>>,
-
-  input?: TInput,
-  params?: UseTRPCQueryOptions<TQuery, TInput, TOutput, TOutput, TError>
-) => {
-  return function WithQuery(
-    opts: Omit<
-      Partial<QueryCellOptionsWithEmpty<TOutput, TError>> & QueryCellOptionsNoEmpty<TOutput, TError>,
-      "query"
-    >
-  ) {
-    const query = queryProcedure.useQuery(input, params);
-    return <QueryCell query={query} {...opts} />;
-  };
-};
-
-export { withQuery };

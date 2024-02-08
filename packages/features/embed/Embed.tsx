@@ -221,7 +221,7 @@ const EmailEmbed = ({ eventType, username }: { eventType?: EventType; username: 
           <CollapsibleContent>
             <div className="text-default text-sm">{t("select_date")}</div>
             <DatePicker
-              isLoading={schedule.isLoading}
+              isPending={schedule.isPending}
               onChange={(date: Dayjs | null) => {
                 setSelectedDate(date === null ? date : date.format("YYYY-MM-DD"));
               }}
