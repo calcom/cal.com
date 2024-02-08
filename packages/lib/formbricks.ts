@@ -10,11 +10,11 @@ enum Rating {
 }
 
 export const sendFeedbackFormbricks = async (userId: number, feedback: Feedback) => {
-  if (!process.env.FORMBRICKS_HOST_URL || !process.env.FORMBRICKS_ENVIRONMENT_ID)
+  if (!process.env.NEXT_PUBLIC_FORMBRICKS_HOST_URL || !process.env.NEXT_PUBLIC_FORMBRICKS_ENVIRONMENT_ID)
     throw new Error("Missing FORMBRICKS_HOST_URL or FORMBRICKS_ENVIRONMENT_ID env variable");
   const api = new FormbricksAPI({
-    apiHost: process.env.FORMBRICKS_HOST_URL,
-    environmentId: process.env.FORMBRICKS_ENVIRONMENT_ID,
+    apiHost: process.env.NEXT_PUBLIC_FORMBRICKS_HOST_URL,
+    environmentId: process.env.NEXT_PUBLIC_FORMBRICKS_ENVIRONMENT_ID,
   });
   if (process.env.FORMBRICKS_FEEDBACK_SURVEY_ID) {
     const formbricksUserId = userId.toString();

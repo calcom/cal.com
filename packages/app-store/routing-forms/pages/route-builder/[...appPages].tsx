@@ -92,6 +92,8 @@ const Route = ({
   appUrl: string;
   disabled?: boolean;
 }) => {
+  const { t } = useLocale();
+
   const index = routes.indexOf(route);
 
   const { data: eventTypesByGroup } = trpc.viewer.eventTypes.getByViewer.useQuery({
@@ -127,6 +129,16 @@ const Route = ({
       });
     });
   });
+
+  // /team/{TEAM_SLUG}/{EVENT_SLUG} -> /team/{TEAM_SLUG}
+  const eventTypePrefix =
+    eventOptions.length !== 0
+      ? eventOptions[0].value.substring(0, eventOptions[0].value.lastIndexOf("/") + 1)
+      : "";
+
+  const [customEventTypeSlug, setCustomEventTypeSlug] = useState(
+    !isRouter(route) ? route.action.value.split("/").pop() : ""
+  );
 
   const onChange = (route: Route, immutableTree: ImmutableTree, config: QueryBuilderUpdatedConfig) => {
     const jsonTree = QbUtils.getTree(immutableTree);
@@ -199,7 +211,7 @@ const Route = ({
           <div>
             <div className="text-emphasis flex w-full items-center text-sm">
               <div className="flex flex-grow-0 whitespace-nowrap">
-                <span>Send Booker to</span>
+                <span>{t("send_booker_to")}</span>
               </div>
               <Select
                 isDisabled={disabled}
@@ -257,15 +269,50 @@ const Route = ({
                     <Select
                       required
                       isDisabled={disabled}
-                      options={eventOptions}
+                      options={
+                        eventOptions.length !== 0
+                          ? eventOptions.concat({ label: t("Custom"), value: "custom" })
+                          : []
+                      }
                       onChange={(option) => {
                         if (!option) {
                           return;
                         }
-                        setRoute(route.id, { action: { ...route.action, value: option.value } });
+                        if (option.value !== "custom") {
+                          setRoute(route.id, { action: { ...route.action, value: option.value } });
+                        } else {
+                          setRoute(route.id, { action: { ...route.action, value: "custom" } });
+                          setCustomEventTypeSlug("");
+                        }
                       }}
-                      value={eventOptions.find((eventOption) => eventOption.value === route.action.value)}
+                      value={
+                        eventOptions.length !== 0 && route.action.value !== ""
+                          ? eventOptions.find((eventOption) => eventOption.value === route.action.value) || {
+                              label: t("custom"),
+                              value: "custom",
+                            }
+                          : undefined
+                      }
                     />
+                    {eventOptions.length !== 0 &&
+                      route.action.value !== "" &&
+                      !eventOptions.find((eventOption) => eventOption.value === route.action.value) && (
+                        <TextField
+                          disabled={disabled}
+                          className="border-default flex w-full flex-grow text-sm"
+                          containerClassName="w-full mt-2"
+                          addOnLeading={eventTypePrefix}
+                          required
+                          value={customEventTypeSlug}
+                          onChange={(e) => {
+                            setCustomEventTypeSlug(e.target.value);
+                            setRoute(route.id, {
+                              action: { ...route.action, value: `${eventTypePrefix}${e.target.value}` },
+                            });
+                          }}
+                          placeholder="event-url"
+                        />
+                      )}
                   </div>
                 )
               ) : null}

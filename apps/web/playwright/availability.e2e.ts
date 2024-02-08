@@ -3,6 +3,7 @@ import { expect } from "@playwright/test";
 import dayjs from "@calcom/dayjs";
 
 import { test } from "./lib/fixtures";
+import { localize } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
 
@@ -20,37 +21,31 @@ test.describe("Availablity tests", () => {
   });
 
   test("Date Overrides", async ({ page }) => {
-    await test.step("Can add a date override", async () => {
-      await page.locator('[data-testid="schedules"] > li a').click();
-      await page.locator('[data-testid="add-override"]').click();
-      await page.locator('[id="modal-title"]').waitFor();
-      await page.locator('[data-testid="incrementMonth"]').click();
-      await page.locator('[data-testid="day"][data-disabled="false"]').nth(0).click();
-      await page.locator('[data-testid="date-override-mark-unavailable"]').click();
-      await page.locator('[data-testid="add-override-submit-btn"]').click();
-      await page.locator('[data-testid="dialog-rejection"]').click();
-      await expect(page.locator('[data-testid="date-overrides-list"] > li')).toHaveCount(1);
-      await page.locator('[form="availability-form"][type="submit"]').click();
-    });
-
-    await test.step("Date override is displayed in troubleshooter", async () => {
-      const response = await page.waitForResponse("**/api/trpc/availability/schedule.update?batch=1");
-      const json = await response.json();
-      // @ts-expect-error trust me bro
-      const date = json[0].result.data.json.schedule.availability.find((a) => !!a.date);
-      const troubleshooterURL = `/availability/troubleshoot?date=${dayjs(date.date).format("YYYY-MM-DD")}`;
-      await page.goto(troubleshooterURL);
-      await page.waitForLoadState("networkidle");
-      await expect(page.locator('[data-testid="troubleshooter-busy-time"]')).toHaveCount(1);
-    });
+    await page.getByTestId("schedules").first().click();
+    await page.getByTestId("add-override").click();
+    await page.locator('[id="modal-title"]').waitFor();
+    await page.getByTestId("incrementMonth").click();
+    await page.locator('[data-testid="day"][data-disabled="false"]').first().click();
+    await page.getByTestId("date-override-mark-unavailable").click();
+    await page.getByTestId("add-override-submit-btn").click();
+    await page.getByTestId("dialog-rejection").click();
+    await expect(page.locator('[data-testid="date-overrides-list"] > li')).toHaveCount(1);
+    await page.locator('[form="availability-form"][type="submit"]').click();
+    const response = await page.waitForResponse("**/api/trpc/availability/schedule.update?batch=1");
+    const json = await response.json();
+    const nextMonth = dayjs().add(1, "month").startOf("month");
+    const troubleshooterURL = `/availability/troubleshoot?date=${nextMonth.format("YYYY-MM-DD")}`;
+    await page.goto(troubleshooterURL);
+    await page.waitForLoadState("networkidle");
+    await expect(page.locator('[data-testid="troubleshooter-busy-time"]')).toHaveCount(1);
   });
 
-  test("Availability pages", async ({ page }) => {
+  test("Schedule listing", async ({ page }) => {
     await test.step("Can add a new schedule", async () => {
-      await page.locator('[data-testid="new-schedule"]').click();
+      await page.getByTestId("new-schedule").click();
       await page.locator('[id="name"]').fill("More working hours");
       page.locator('[type="submit"]').click();
-      await expect(page.locator("[data-testid=availablity-title]")).toHaveValue("More working hours");
+      await expect(page.getByTestId("availablity-title")).toHaveValue("More working hours");
     });
     await test.step("Can delete a schedule", async () => {
       await page.getByRole("button", { name: /Go Back/i }).click();
@@ -61,7 +56,7 @@ test.describe("Availablity tests", () => {
 
       await expect(page.locator('[data-testid="schedules"] > li').nth(1)).toHaveCount(0);
     });
-    await test.step("Cannot delete a schedule if a single schedule is present", async () => {
+    await test.step("Cannot delete the last schedule", async () => {
       await page.locator('[data-testid="schedules"] > li').nth(0).getByTestId("schedule-more").click();
       await page.locator('[data-testid="delete-schedule"]').click();
       const toast = await page.waitForSelector('[data-testid="toast-error"]');
@@ -69,5 +64,64 @@ test.describe("Availablity tests", () => {
 
       await expect(page.locator('[data-testid="schedules"] > li').nth(0)).toHaveCount(1);
     });
+  });
+
+  test("Can manage single schedule", async ({ page }) => {
+    await page.getByTestId("schedules").first().click();
+
+    const sunday = (await localize("en"))("sunday");
+    const monday = (await localize("en"))("monday");
+    const wednesday = (await localize("en"))("wednesday");
+    const saturday = (await localize("en"))("saturday");
+    const save = (await localize("en"))("save");
+    const copyTimesTo = (await localize("en"))("copy_times_to");
+
+    await page.getByTestId("availablity-title").click();
+    // change availability name
+    await page.getByTestId("availablity-title").fill("Working Hours test");
+    await expect(page.getByTestId("subtitle")).toBeVisible();
+    await page.getByTestId(sunday).getByRole("switch").click();
+    await page.getByTestId(monday).first().click();
+    await page.getByTestId(wednesday).getByRole("switch").click();
+    await page.getByTestId(saturday).getByRole("switch").click();
+    await page
+      .locator("div")
+      .filter({ hasText: "Sunday9:00am - 5:00pm" })
+      .getByTestId("add-time-availability")
+      .first()
+      .click();
+    await expect(page.locator("div").filter({ hasText: "6:00pm" }).nth(1)).toBeVisible();
+    await page.getByRole("button", { name: save }).click();
+    await expect(page.getByText("Sun - Tue, Thu - Sat, 9:00 AM - 5:00 PM")).toBeVisible();
+    await expect(page.getByText("Sun, 5:00 PM - 6:00 PM")).toBeVisible();
+    await page
+      .locator("div")
+      .filter({ hasText: "Sunday9:00am - 5:00pm" })
+      .getByTestId("copy-button")
+      .first()
+      .click();
+    await expect(page.getByText(copyTimesTo)).toBeVisible();
+    await page.getByRole("checkbox", { name: monday }).check();
+    await page.getByRole("button", { name: "Apply" }).click();
+    await page.getByRole("button", { name: save }).click();
+    await page
+      .locator("#availability-form div")
+      .filter({ hasText: "TimezoneEurope/London" })
+      .locator("svg")
+      .click();
+
+    await page.locator("[id=timeZone-lg-viewport]").fill("bras");
+    await page.getByTestId("select-option-America/Sao_Paulo").click();
+    await page.getByRole("button", { name: save }).click();
+    await expect(page.getByTestId("toast-success").last()).toBeVisible();
+    await page.getByTestId("add-override").click();
+    await page.getByTestId("incrementMonth").click();
+    await page.getByRole("button", { name: "20" }).click();
+    await page.getByTestId("date-override-mark-unavailable").click();
+    await page.getByTestId("add-override-submit-btn").click();
+    await page.getByTestId("dialog-rejection").click();
+    await page.getByTestId("date-overrides-list").getByRole("button").nth(1).click();
+    await page.getByRole("button", { name: save }).click();
+    await expect(page.getByTestId("toast-success").last()).toBeVisible();
   });
 });

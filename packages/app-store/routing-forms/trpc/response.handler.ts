@@ -24,7 +24,12 @@ export const responseHandler = async ({ ctx, input }: ResponseHandlerOptions) =>
         id: formId,
       },
       include: {
-        user: true,
+        user: {
+          select: {
+            id: true,
+            email: true,
+          },
+        },
       },
     });
     if (!form) {
