@@ -1,3 +1,4 @@
+import { BookingsModule } from "@/ee/bookings/bookings.module";
 import { CalendarsModule } from "@/ee/calendars/calendars";
 import { EventTypesModule } from "@/ee/event-types/event-types.module";
 import { GcalModule } from "@/ee/gcal/gcal.module";
@@ -8,7 +9,15 @@ import type { MiddlewareConsumer, NestModule } from "@nestjs/common";
 import { Module } from "@nestjs/common";
 
 @Module({
-  imports: [GcalModule, ProviderModule, SchedulesModule, MeModule, EventTypesModule, CalendarsModule],
+  imports: [
+    GcalModule,
+    ProviderModule,
+    SchedulesModule,
+    MeModule,
+    EventTypesModule,
+    CalendarsModule,
+    BookingsModule,
+  ],
 })
 export class PlatformEndpointsModule implements NestModule {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

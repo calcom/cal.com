@@ -9,3 +9,5 @@ export { handleNewBooking };
 export { getAvailableSlots } from "@calcom/trpc/server/routers/viewer/slots/util";
 export type { EventType } from "@calcom/lib/getEventTypeById";
 export { getBusyCalendarTimes } from "@calcom/core/CalendarManager";
+export type { BookingCreateBody, BookingResponse } from "@calcom/features/bookings/types";
+export { HttpError } from "@calcom/lib/http-error";
