@@ -57,7 +57,6 @@ const Reschedule = async (bookingUid: string, cancellationReason: string) => {
     const event = await prisma.eventType.findFirstOrThrow({
       select: {
         title: true,
-        users: true,
         schedulingType: true,
       },
       where: {
