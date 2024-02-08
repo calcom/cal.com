@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "clean": "rm -rf .turbo && rm -rf node_modules",
+    "build": "yarn prisma migrate deploy || true",
     "db-deploy": "yarn prisma migrate deploy",
     "db-migrate": "yarn prisma migrate dev",
     "db-nuke": "docker compose down --volumes --remove-orphans || docker-compose down --volumes --remove-orphans",

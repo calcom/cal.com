@@ -5,6 +5,7 @@ import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import { MembershipRole, UserPermissionRole } from "@calcom/prisma/enums";
 import { createContext } from "@calcom/trpc/server/createContext";
 import { viewerTeamsRouter } from "@calcom/trpc/server/routers/viewer/teams/_router";
+import type { UserProfile } from "@calcom/types/UserProfile";
 
 import { TRPCError } from "@trpc/server";
 import { getHTTPStatusCodeFromError } from "@trpc/server/http";
@@ -21,9 +22,17 @@ const patchHandler = async (req: NextApiRequest, res: NextApiResponse) => {
         id: req.userId,
         username: "" /* Not used in this context */,
         role: req.isAdmin ? UserPermissionRole.ADMIN : UserPermissionRole.USER,
+        profile: {
+          id: null,
+          organizationId: null,
+          organization: null,
+          username: "",
+          upId: "",
+        } satisfies UserProfile,
       },
       hasValidLicense: true /* To comply with TS signature */,
       expires: "" /* Not used in this context */,
+      upId: "",
     };
   }
   /** @see https://trpc.io/docs/server-side-calls */
