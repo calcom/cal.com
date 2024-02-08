@@ -5915,17 +5915,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@faker-js/faker@npm:^6.2.0":
-  version: 6.3.1
-  resolution: "@faker-js/faker@npm:6.3.1"
-  checksum: 05071e952248f4565218a95b089ef8f616130c6ff914bb416ba7c891f81d123b637c2abe8aa2eb7b207b5d4b8bd9c75c8c2133019d2d11db4176948737a95813
-  languageName: node
-  linkType: hard
-
 "@faker-js/faker@npm:^7.3.0":
   version: 7.4.0
   resolution: "@faker-js/faker@npm:7.4.0"
   checksum: 1acebb84bfb142c08e6ba2942910d16bd92ea147fa585fa2fa9ce9983f7a8c7c016002beb7fc20ef6f7aef6c4ae9cb3fa680b275823402e34802b8489d2b980d
+  languageName: node
+  linkType: hard
+
+"@faker-js/faker@npm:^8.0.2":
+  version: 8.4.1
+  resolution: "@faker-js/faker@npm:8.4.1"
+  checksum: d802d531f8929562715adc279cfec763c9a4bc596ec67b0ce43fd0ae61b285d2b0eec6f1f4aa852452a63721a842fe7e81926dce7bd92acca94b01e2a1f55f5a
   languageName: node
   linkType: hard
 
@@ -11610,14 +11610,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@snaplet/copycat@npm:^0.3.0":
-  version: 0.3.0
-  resolution: "@snaplet/copycat@npm:0.3.0"
+"@snaplet/copycat@npm:^4.1.0":
+  version: 4.1.0
+  resolution: "@snaplet/copycat@npm:4.1.0"
   dependencies:
-    "@faker-js/faker": ^6.2.0
-    fictional: ^0.4.13
+    "@faker-js/faker": ^8.0.2
+    fictional: ^1.0.0
+    string-argv: ^0.3.2
     uuid: ^8.3.2
-  checksum: 41f937feb871ec12c9f9008580691a0544f4b37db700fc361701137a3762d0286ba7ffb122d9c2ae6cfd5dc7e7732d5ff77e6908cf4895b8e28cb6a73498d1eb
+  checksum: c345a12cf59d1c2e73d37af3200b19f4cb493bb445befdbf5d1534c965dadb6b9ced69811e752b9db01eb66fec58c443be9dc0d9a4388ba39d16052b07d8f08a
   languageName: node
   linkType: hard
 
@@ -16929,7 +16930,7 @@ __metadata:
     "@changesets/cli": ^2.26.1
     "@deploysentinel/playwright": ^0.3.3
     "@playwright/test": ^1.31.2
-    "@snaplet/copycat": ^0.3.0
+    "@snaplet/copycat": ^4.1.0
     "@testing-library/jest-dom": ^5.16.5
     "@types/jsdom": ^21.1.3
     "@types/jsonwebtoken": ^9.0.3
@@ -19029,7 +19030,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"decimal.js@npm:^10.4.3":
+"decimal.js@npm:^10.4.0, decimal.js@npm:^10.4.3":
   version: 10.4.3
   resolution: "decimal.js@npm:10.4.3"
   checksum: 796404dcfa9d1dbfdc48870229d57f788b48c21c603c3f6554a1c17c10195fc1024de338b0cf9e1efe0c7c167eeb18f04548979bcc5fdfabebb7cc0ae3287bae
@@ -21595,14 +21596,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fictional@npm:^0.4.13":
-  version: 0.4.13
-  resolution: "fictional@npm:0.4.13"
+"fictional@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "fictional@npm:1.0.0"
   dependencies:
+    decimal.js: ^10.4.0
     fast-json-stable-stringify: ^2.1.0
-    md5: ^2.3.0
-    string-hash: ^1.1.3
-  checksum: f8c2fafe8919444176c158e7b5289a53a06f26db2f68c537fea9783f985e49054621d3c09c91ca0800b595f53f1e79ea26d0dd32b777b10bf2ee8c926d2d234b
+    fnv-plus: ^1.3.1
+    siphash: ^1.1.0
+  checksum: 8dc61334e9fca880ec5b026aaa918997ca63223becc20a3ad6f104b5ca6c4f366f15331ba1544518442bb5e6331f38c80c6a64f0d63c25acfcb12f2c65e46baf
   languageName: node
   linkType: hard
 
@@ -21808,6 +21810,13 @@ __metadata:
   version: 0.223.3
   resolution: "flow-parser@npm:0.223.3"
   checksum: 4c0df178ff2e9140f57b5e7321b11e1cb827e00fbad6f342742c5834bd313f1bb0fe84d919d36e0c593e916c4ae5c8a93fcdb42c4328d6c5d77d75c8eed12090
+  languageName: node
+  linkType: hard
+
+"fnv-plus@npm:^1.3.1":
+  version: 1.3.1
+  resolution: "fnv-plus@npm:1.3.1"
+  checksum: 4d3de8026d538ffab13dfa38ac0662b045b2ad0f920efa54f1ca65f59ad1a49b4d62482c5fcdc9cce0a18d9852df1db97c618937089d85678ce03f2e76b07e8b
   languageName: node
   linkType: hard
 
@@ -35004,6 +35013,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"siphash@npm:^1.1.0":
+  version: 1.1.0
+  resolution: "siphash@npm:1.1.0"
+  checksum: c0e49fde39c9f07ec065a301d60f6a12cb6e0f39181986dca9cbb36d0de9c1c6ba5ca6ee0bf11227bcdfdb7f6cdd95537814770d3135f541028686c2390588cc
+  languageName: node
+  linkType: hard
+
 "sirv@npm:^1.0.7":
   version: 1.0.19
   resolution: "sirv@npm:1.0.19"
@@ -35597,17 +35613,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"string-argv@npm:^0.3.2":
+  version: 0.3.2
+  resolution: "string-argv@npm:0.3.2"
+  checksum: 8703ad3f3db0b2641ed2adbb15cf24d3945070d9a751f9e74a924966db9f325ac755169007233e8985a39a6a292f14d4fee20482989b89b96e473c4221508a0f
+  languageName: node
+  linkType: hard
+
 "string-env-interpolation@npm:^1.0.1":
   version: 1.0.1
   resolution: "string-env-interpolation@npm:1.0.1"
   checksum: d126329587f635bee65300e4451e7352b9b67e03daeb62f006ca84244cac12a1f6e45176b018653ba0c3ec3b5d980f9ca59d2eeed99cf799501cdaa7f871dc6f
-  languageName: node
-  linkType: hard
-
-"string-hash@npm:^1.1.3":
-  version: 1.1.3
-  resolution: "string-hash@npm:1.1.3"
-  checksum: 104b8667a5e0dc71bfcd29fee09cb88c6102e27bfb07c55f95535d90587d016731d52299380052e514266f4028a7a5172e0d9ac58e2f8f5001be61dc77c0754d
   languageName: node
   linkType: hard
 
