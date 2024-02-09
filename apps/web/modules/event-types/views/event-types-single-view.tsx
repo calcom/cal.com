@@ -405,14 +405,10 @@ const EventTypePage = (props: EventTypeSetupProps) => {
         .passthrough()
     ),
   });
-  console.log("dirty", formMethods.formState.dirtyFields);
-  useEffect(() => {
-    if (!formMethods.formState.isDirty) {
-      //TODO: What's the best way to sync the form with backend
-      formMethods.setValue("bookingFields", defaultValues.bookingFields);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [defaultValues]);
+
+  const {
+    formState: { isDirty: isFormDirty, dirtyFields },
+  } = formMethods;
 
   const appsMetadata = formMethods.getValues("metadata")?.apps;
   const availability = formMethods.watch("availability");
@@ -463,16 +459,13 @@ const EventTypePage = (props: EventTypeSetupProps) => {
   };
 
   const isFieldDirty = (fieldName: keyof FormValues) => {
-    const dirtyFields = formMethods.formState.dirtyFields;
     // If the field itself is directly marked as dirty
-
     if (dirtyFields[fieldName] === true) {
       return true;
     }
 
     // Check if the field is an object or an array
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const fieldValue: any = dirtyFields[fieldName];
     if (isObject(fieldValue)) {
       for (const key in fieldValue) {
@@ -517,21 +510,21 @@ const EventTypePage = (props: EventTypeSetupProps) => {
   };
 
   const getDirtyFields = (values: FormValues): Partial<FormValues> => {
-    if (formMethods.formState.isDirty) {
-      const updatedFields: Partial<FormValues> = {};
-      Object.keys(formMethods.formState.dirtyFields).forEach((key) => {
-        const typedKey = key as keyof typeof formMethods.formState.dirtyFields;
-        updatedFields[typedKey] = undefined;
-        const isDirty = isFieldDirty(typedKey);
-        if (isDirty) {
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore
-          updatedFields[typedKey] = values[typedKey];
-        }
-      });
-      return updatedFields;
+    if (!isFormDirty) {
+      return {};
     }
-    return {};
+    const updatedFields: Partial<FormValues> = {};
+    Object.keys(dirtyFields).forEach((key) => {
+      const typedKey = key as keyof typeof dirtyFields;
+      updatedFields[typedKey] = undefined;
+      const isDirty = isFieldDirty(typedKey);
+      if (isDirty) {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        updatedFields[typedKey] = values[typedKey];
+      }
+    });
+    return updatedFields;
   };
 
   const handleSubmit = async (values: FormValues) => {
