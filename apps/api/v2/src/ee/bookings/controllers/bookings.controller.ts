@@ -26,21 +26,6 @@ import {
 } from "@calcom/platform-libraries";
 import { ApiResponse } from "@calcom/platform-types";
 
-const handleBookingErrors = (err: Error | HttpError | unknown, type?: "recurring" | `instant`): void => {
-  const errMsg = `Error while creating ${type ? type + " " : ""}booking.`;
-  if (err instanceof HttpError) {
-    const httpError = err as HttpError;
-    throw new HttpException(httpError?.message ?? errMsg, httpError?.statusCode ?? 500);
-  }
-
-  if (err instanceof Error) {
-    const error = err as Error;
-    throw new InternalServerErrorException(error?.message ?? errMsg);
-  }
-
-  throw new InternalServerErrorException(errMsg);
-};
-
 @Controller({
   path: "ee/bookings",
   version: "2",
@@ -49,7 +34,7 @@ const handleBookingErrors = (err: Error | HttpError | unknown, type?: "recurring
 export class BookingsController {
   private readonly logger = new Logger("ee bookings controller");
 
-  @Post("/create")
+  @Post("/")
   async createBooking(
     @Req() req: Request & { userId?: number },
     @Body() _: CreateBookingInput,
@@ -68,7 +53,7 @@ export class BookingsController {
     throw new InternalServerErrorException("Could not create booking.");
   }
 
-  @Post("/reccuring/create")
+  @Post("/reccuring")
   async createReccuringBooking(
     @Req() req: Request & { userId?: number },
     @Body() _: CreateReccuringBookingInput[],
@@ -89,7 +74,7 @@ export class BookingsController {
     throw new InternalServerErrorException("Could not create recurring booking.");
   }
 
-  @Post("/instant/create")
+  @Post("/instant")
   async createInstantBooking(
     @Req() req: Request & { userId?: number },
     @Body() _: CreateBookingInput,
@@ -109,4 +94,19 @@ export class BookingsController {
     }
     throw new InternalServerErrorException("Could not create instant booking.");
   }
+}
+
+function handleBookingErrors(err: Error | HttpError | unknown, type?: "recurring" | `instant`): void {
+  const errMsg = `Error while creating ${type ? type + " " : ""}booking.`;
+  if (err instanceof HttpError) {
+    const httpError = err as HttpError;
+    throw new HttpException(httpError?.message ?? errMsg, httpError?.statusCode ?? 500);
+  }
+
+  if (err instanceof Error) {
+    const error = err as Error;
+    throw new InternalServerErrorException(error?.message ?? errMsg);
+  }
+
+  throw new InternalServerErrorException(errMsg);
 }
