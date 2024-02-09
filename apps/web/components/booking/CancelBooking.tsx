@@ -1,4 +1,4 @@
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -26,6 +26,7 @@ type Props = {
 };
 
 export default function CancelBooking(props: Props) {
+  const searchParams = useSearchParams();
   const [cancellationReason, setCancellationReason] = useState<string>("");
   const { t } = useLocale();
   const router = useRouter();
@@ -83,11 +84,15 @@ export default function CancelBooking(props: Props) {
 
                   telemetry.event(telemetryEventTypes.bookingCancelled, collectPageParameters());
 
+                  const metadata = searchParams?.get("metadata") ?? "";
                   const res = await fetch("/api/cancel", {
                     body: JSON.stringify({
                       uid: booking?.uid,
                       cancellationReason: cancellationReason,
                       allRemainingBookings,
+                      metadata: {
+                        a: metadata,
+                      },
                       // @NOTE: very important this shouldn't cancel with number ID use uid instead
                       seatReferenceUid,
                     }),
