@@ -17,8 +17,29 @@ import { Request } from "express";
 import { NextApiRequest } from "next/types";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { handleNewBooking, BookingResponse, HttpError, AppsStatus } from "@calcom/platform-libraries";
+import {
+  handleNewBooking,
+  BookingResponse,
+  HttpError,
+  handleNewRecurringBooking,
+  handleInstantMeeting,
+} from "@calcom/platform-libraries";
 import { ApiResponse } from "@calcom/platform-types";
+
+const handleBookingErrors = (err: Error | HttpError | unknown, type?: "recurring" | `instant`): void => {
+  const errMsg = `Error while creating ${type ? type + " " : ""}booking.`;
+  if (err instanceof HttpError) {
+    const httpError = err as HttpError;
+    throw new HttpException(httpError?.message ?? errMsg, httpError?.statusCode ?? 500);
+  }
+
+  if (err instanceof Error) {
+    const error = err as Error;
+    throw new InternalServerErrorException(error?.message ?? errMsg);
+  }
+
+  throw new InternalServerErrorException(errMsg);
+};
 
 @Controller({
   path: "ee/bookings",
@@ -36,101 +57,56 @@ export class BookingsController {
   ): Promise<ApiResponse<BookingResponse>> {
     req.userId = user.id;
     try {
-      const booking = await handleNewBooking(req as unknown as NextApiRequest & { userId?: number }, {
-        isNotAnApiCall: true,
-      });
+      const booking = await handleNewBooking(req as unknown as NextApiRequest & { userId?: number });
       return {
         status: SUCCESS_STATUS,
         data: booking,
       };
     } catch (err) {
-      if (err instanceof HttpError) {
-        const httpError = err as HttpError;
-        throw new HttpException(
-          httpError?.message ?? "Error while creating booking",
-          httpError?.statusCode ?? 500
-        );
-      }
-      throw new InternalServerErrorException(
-        err instanceof Error ? err?.message : "Could not create booking"
-      );
+      handleBookingErrors(err);
     }
+    throw new InternalServerErrorException("Could not create booking.");
   }
 
   @Post("/reccuring/create")
   async createReccuringBooking(
     @Req() req: Request & { userId?: number },
-    @Body() body: CreateReccuringBookingInput[],
+    @Body() _: CreateReccuringBookingInput[],
     @GetUser() user: User
   ): Promise<ApiResponse<BookingResponse[]>> {
     req.userId = user.id;
-
     try {
-      const createdBookings: BookingResponse[] = [];
-      const allRecurringDates: { start: string | undefined; end: string | undefined }[] = body.map(
-        (booking) => {
-          return { start: booking.start, end: booking.end };
-        }
+      const createdBookings: BookingResponse[] = await handleNewRecurringBooking(
+        req as unknown as NextApiRequest & { userId?: number }
       );
-      const appsStatus: AppsStatus[] | undefined = undefined;
-      const numSlotsToCheckForAvailability = 2;
-      let thirdPartyRecurringEventId = null;
-      for (let key = 0; key < body.length; key++) {
-        const booking = body[key];
-
-        const recurringEventReq: NextApiRequest & { userId?: number } = req as unknown as NextApiRequest & {
-          userId?: number;
-        };
-
-        recurringEventReq.body = {
-          ...booking,
-          appsStatus,
-          allRecurringDates,
-          isFirstRecurringSlot: key == 0,
-          thirdPartyRecurringEventId,
-          numSlotsToCheckForAvailability,
-          currentRecurringIndex: key,
-          noEmail: key !== 0,
-        };
-
-        const promiseEachRecurringBooking: ReturnType<typeof handleNewBooking> = handleNewBooking(
-          recurringEventReq,
-          {
-            isNotAnApiCall: true,
-          }
-        );
-
-        const eachRecurringBooking = await promiseEachRecurringBooking;
-
-        createdBookings.push(eachRecurringBooking);
-
-        if (!thirdPartyRecurringEventId) {
-          if (eachRecurringBooking.references && eachRecurringBooking.references.length > 0) {
-            for (const reference of eachRecurringBooking.references!) {
-              if (reference.thirdPartyRecurringEventId) {
-                thirdPartyRecurringEventId = reference.thirdPartyRecurringEventId;
-                break;
-              }
-            }
-          }
-        }
-      }
-
       return {
         status: SUCCESS_STATUS,
         data: createdBookings,
       };
     } catch (err) {
-      if (err instanceof HttpError) {
-        const httpError = err as HttpError;
-        throw new HttpException(
-          httpError?.message ?? "Error while creating booking",
-          httpError?.statusCode ?? 500
-        );
-      }
-      throw new InternalServerErrorException(
-        err instanceof Error ? err?.message : "Could not create booking"
-      );
+      handleBookingErrors(err, "recurring");
     }
+    throw new InternalServerErrorException("Could not create recurring booking.");
+  }
+
+  @Post("/instant/create")
+  async createInstantBooking(
+    @Req() req: Request & { userId?: number },
+    @Body() _: CreateBookingInput,
+    @GetUser() user: User
+  ): Promise<ApiResponse<Awaited<ReturnType<typeof handleInstantMeeting>>>> {
+    req.userId = user.id;
+    try {
+      const instantMeeting = await handleInstantMeeting(
+        req as unknown as NextApiRequest & { userId?: number }
+      );
+      return {
+        status: SUCCESS_STATUS,
+        data: instantMeeting,
+      };
+    } catch (err) {
+      handleBookingErrors(err, "instant");
+    }
+    throw new InternalServerErrorException("Could not create instant booking.");
   }
 }
