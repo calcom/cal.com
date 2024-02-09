@@ -1,4 +1,3 @@
-import useIsAppEnabled from "_utils/useIsAppEnabled";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 
@@ -9,6 +8,7 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import checkForMultiplePaymentApps from "../../_utils/payments/checkForMultiplePaymentApps";
+import useIsAppEnabled from "../../_utils/useIsAppEnabled";
 import type { appDataSchema } from "../zod";
 import EventTypeAppSettingsInterface from "./EventTypeAppSettingsInterface";
 
