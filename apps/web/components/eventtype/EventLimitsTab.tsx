@@ -571,7 +571,7 @@ const IntervalLimitsManager = <K extends "durationLimits" | "bookingLimits">({
   textFieldSuffix,
   disabled,
 }: IntervalLimitsManagerProps<K>) => {
-  const { watch, setValue, getValues, control } = useFormContext<FormValues>();
+  const { watch, setValue, control } = useFormContext<FormValues>();
   const watchIntervalLimits = watch(propertyName);
   const { t } = useLocale();
 
@@ -630,10 +630,10 @@ const IntervalLimitsManager = <K extends "durationLimits" | "bookingLimits">({
                       selectOptions={INTERVAL_LIMIT_OPTIONS.filter(
                         (option) => !Object.keys(currentIntervalLimits).includes(option.value)
                       )}
-                      onLimitChange={(intervalLimitKey, val) => {
+                      onLimitChange={(intervalLimitKey, val) =>
                         // @ts-expect-error FIXME Fix these typings
-                        setValue(`${propertyName}.${intervalLimitKey}`, val, { shouldDirty: true });
-                      }}
+                        setValue(`${propertyName}.${intervalLimitKey}`, val, { shouldDirty: true })
+                      }
                       onDelete={(intervalLimitKey) => {
                         const current = currentIntervalLimits;
                         delete current[intervalLimitKey];

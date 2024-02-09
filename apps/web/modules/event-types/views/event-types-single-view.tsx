@@ -189,20 +189,17 @@ const EventTypePage = (props: EventTypeSetupProps) => {
   const [animationParentRef] = useAutoAnimate<HTMLDivElement>();
   const updateMutation = trpc.viewer.eventTypes.update.useMutation({
     onSuccess: async () => {
-      // Get current form values
       const currentValues = formMethods.getValues();
 
-      // Optionally modify values if necessary
       currentValues.children = currentValues.children.map((child) => ({
         ...child,
         created: true,
       }));
       currentValues.assignAllTeamMembers = currentValues.assignAllTeamMembers || false;
 
-      // Reset the form with these values as new default values
+      // Reset the form with these values as new default values to ensure the correct comparison for dirtyFields eval
       formMethods.reset(currentValues);
 
-      // Show success toast
       showToast(t("event_type_updated_successfully", { eventTypeTitle: eventType.title }), "success");
     },
     async onSettled() {
@@ -292,7 +289,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       offsetStart: eventType.offsetStart,
       bookingFields: eventType.bookingFields,
       periodType: eventType.periodType,
-      periodCountCalendarDays: eventType.periodCountCalendarDays,
+      periodCountCalendarDays: eventType.periodCountCalendarDays ? true : false,
       schedulingType: eventType.schedulingType,
       requiresConfirmation: eventType.requiresConfirmation,
       slotInterval: eventType.slotInterval,
@@ -579,9 +576,12 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       if (metadata?.multipleDuration.length < 1) {
         throw new Error(t("event_setup_multiple_duration_error"));
       } else {
-        if (!length && !metadata?.multipleDuration?.includes(eventType.length)) {
-          //This would work but it leaves the potential of this check being useless. Need to check against length and not eventType.length, but length can be undefined
-          throw new Error(t("event_setup_multiple_duration_default_error"));
+        // if length is unchanged, we skip this check
+        if (length !== undefined) {
+          if (!length && !metadata?.multipleDuration?.includes(length)) {
+            //This would work but it leaves the potential of this check being useless. Need to check against length and not eventType.length, but length can be undefined
+            throw new Error(t("event_setup_multiple_duration_default_error"));
+          }
         }
       }
     }
@@ -728,9 +728,11 @@ const EventTypePage = (props: EventTypeSetupProps) => {
               if (metadata?.multipleDuration.length < 1) {
                 throw new Error(t("event_setup_multiple_duration_error"));
               } else {
-                if (!length && !metadata?.multipleDuration?.includes(eventType.length)) {
-                  //This would work but it leaves the potential of this check being useless. Need to check against length and not eventType.length, but length can be undefined
-                  throw new Error(t("event_setup_multiple_duration_default_error"));
+                if (length !== undefined) {
+                  if (!length && !metadata?.multipleDuration?.includes(length)) {
+                    //This would work but it leaves the potential of this check being useless. Need to check against length and not eventType.length, but length can be undefined
+                    throw new Error(t("event_setup_multiple_duration_default_error"));
+                  }
                 }
               }
             }
