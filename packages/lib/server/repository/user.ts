@@ -337,22 +337,6 @@ export class UserRepository {
     };
   }
 
-  static enrichUserWithItsProfileBuiltFromUser<T extends { id: number; username: string | null }>({
-    user,
-  }: {
-    user: T;
-  }): T & {
-    nonProfileUsername: string | null;
-    profile: UserProfile;
-  } {
-    // If no organization profile exists, use the personal profile so that the returned user is normalized to have a profile always
-    return {
-      ...user,
-      nonProfileUsername: user.username,
-      profile: ProfileRepository.buildPersonalProfileFromUser({ user }),
-    };
-  }
-
   static async enrichEntityWithProfile<
     T extends
       | {

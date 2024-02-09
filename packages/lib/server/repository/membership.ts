@@ -38,9 +38,6 @@ const userSelect = Prisma.validator<Prisma.UserSelect>()({
   avatarUrl: true,
   username: true,
   id: true,
-  email: true,
-  locale: true,
-  defaultScheduleId: true,
 });
 
 export class MembershipRepository {
@@ -109,12 +106,6 @@ export class MembershipRepository {
                 team: {
                   select: {
                     id: true,
-                    eventTypes: {
-                      select: {
-                        id: true,
-                        users: { select: userSelect },
-                      },
-                    },
                   },
                 },
                 hashedLink: true,
