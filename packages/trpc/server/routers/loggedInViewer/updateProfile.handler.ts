@@ -5,6 +5,8 @@ import { v4 as uuidv4 } from "uuid";
 import stripe from "@calcom/app-store/stripepayment/lib/server";
 import { getPremiumMonthlyPlanPriceId } from "@calcom/app-store/stripepayment/lib/utils";
 import { passwordResetRequest } from "@calcom/features/auth/lib/passwordResetRequest";
+import { sendChangeOfEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
+import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
@@ -61,6 +63,8 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
   const { user } = ctx;
   const userMetadata = handleUserMetadata({ ctx, input });
   const locale = input.locale || user.locale;
+  const flags = await getFeatureFlagMap(prisma);
+
   const data: Prisma.UserUpdateInput = {
     ...input,
     // DO NOT OVERWRITE AVATAR.
@@ -126,23 +130,36 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
   }
   const hasEmailBeenChanged = data.email && user.email !== data.email;
 
-  if (hasEmailBeenChanged) {
-    data.emailVerified = null;
-  }
-
   // check if we are changing email and identity provider is not CAL
   const hasEmailChangedOnNonCalProvider =
     hasEmailBeenChanged && user.identityProvider !== IdentityProvider.CAL;
   const hasEmailChangedOnCalProvider = hasEmailBeenChanged && user.identityProvider === IdentityProvider.CAL;
 
+  const sendEmailVerification = flags["email-verification"];
+
+  if (hasEmailBeenChanged) {
+    if (sendEmailVerification && hasEmailChangedOnCalProvider) {
+      // Set metadata of the user so we can set it to this updated email once it is confirmed
+      data.metadata = {
+        ...userMetadata,
+        emailChangeWaitingForVerification: input.email,
+      };
+
+      // Check to ensure this email isnt in use
+      // Don't include email in the data payload if we need to verify
+      delete data.email;
+    } else {
+      log.warn("Profile Update - Email verification is disabled - Skipping");
+      data.emailVerified = null;
+    }
+  }
+
   if (hasEmailChangedOnNonCalProvider) {
     // Only validate if we're changing email
     data.identityProvider = IdentityProvider.CAL;
     data.identityProviderId = null;
-  } else if (hasEmailChangedOnCalProvider) {
-    // when the email changes, the user needs to sign in again.
-    signOutUser = true;
   }
+
   // if defined AND a base 64 string, upload and set the avatar URL
   if (input.avatar && input.avatar.startsWith("data:image/png;base64,")) {
     const avatar = await resizeBase64Image(input.avatar);
@@ -250,10 +267,30 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
     });
   }
 
+  if (updatedUser && hasEmailChangedOnCalProvider) {
+    await sendChangeOfEmailVerification({
+      user: {
+        username: updatedUser.username ?? "Nameless User",
+        emailFrom: user.email,
+        // We know email has been changed here so we can use input
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        emailTo: input.email!,
+      },
+    });
+  }
+
   // don't return avatar, we don't need it anymore.
   delete input.avatar;
 
-  return { ...input, signOutUser, passwordReset, avatarUrl: updatedUser.avatarUrl };
+  return {
+    ...input,
+    email: sendEmailVerification && hasEmailChangedOnCalProvider ? user.email : input.email,
+    signOutUser,
+    passwordReset,
+    avatarUrl: updatedUser.avatarUrl,
+    hasEmailBeenChanged,
+    sendEmailVerification,
+  };
 };
 
 const cleanMetadataAllowedUpdateKeys = (metadata: TUpdateProfileInputSchema["metadata"]) => {

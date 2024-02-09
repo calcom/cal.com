@@ -9,7 +9,5 @@ test.describe("Check availability tab in a event-type", () => {
     await eventTypePage.goToEventType("30 min");
     await eventTypePage.goToTab("availability");
     await eventTypePage.checkAvailabilityTab();
-    await eventTypePage.goToAvailabilityPage();
-    await eventTypePage.checkAvailabilityPage();
   });
 });

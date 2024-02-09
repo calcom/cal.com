@@ -1,10 +1,12 @@
-import type { Prisma, EventType as PrismaEventType } from "@prisma/client";
+import type { EventType as PrismaEventType } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
 import type { Ensure } from "@calcom/types/utils";
 
 import { safeStringify } from "../../safeStringify";
+import { eventTypeSelect } from "../eventTypeSelect";
 import { LookupTarget, ProfileRepository } from "./profile";
 
 const log = logger.getSubLogger({ prefix: ["repository/eventType"] });
@@ -21,6 +23,13 @@ type IEventType = Ensure<
   >,
   "title" | "slug" | "length"
 >;
+
+const userSelect = Prisma.validator<Prisma.UserSelect>()({
+  name: true,
+  avatarUrl: true,
+  username: true,
+  id: true,
+});
 
 export class EventTypeRepository {
   static async create(data: IEventType) {
@@ -87,48 +96,81 @@ export class EventTypeRepository {
   ) {
     if (!upId) return [];
     const lookupTarget = ProfileRepository.getLookupTarget(upId);
-    const eventTypeWhere = {
-      ...(lookupTarget.type === LookupTarget.User
-        ? {
-            userId: lookupTarget.id,
-          }
-        : {
-            profileId: lookupTarget.id,
-          }),
-      ...where,
+    const profileId = lookupTarget.type === LookupTarget.User ? null : lookupTarget.id;
+    const select = {
+      ...eventTypeSelect,
+      // TODO:  As required by getByViewHandler - Make it configurable
+      team: {
+        select: {
+          id: true,
+        },
+      },
+      hashedLink: true,
+      users: { select: userSelect },
+      children: {
+        include: {
+          users: { select: userSelect },
+        },
+      },
+      hosts: {
+        include: {
+          user: { select: userSelect },
+        },
+      },
     };
+
     log.debug(
       "findAllByUpId",
       safeStringify({
         upId,
         orderBy,
         argumentWhere: where,
-        where: eventTypeWhere,
       })
     );
-    return await prisma.eventType.findMany({
-      where: eventTypeWhere,
-      include: {
-        // TODO:  As required by getByViewHandler - Make it configurable
-        team: {
-          include: {
-            eventTypes: true,
-          },
+
+    if (!profileId) {
+      // Lookup is by userId
+      return await prisma.eventType.findMany({
+        where: {
+          userId: lookupTarget.id,
+          ...where,
         },
-        hashedLink: true,
-        users: true,
-        children: {
-          include: {
-            users: true,
-          },
+        select,
+        orderBy,
+      });
+    }
+
+    const profile = await ProfileRepository.findById(profileId);
+    if (profile?.movedFromUser) {
+      // Because the user has been moved to this profile, we need to get all user events except those that belong to some other profile
+      // This is because those event-types that are created after moving to profile would have profileId but existing event-types would have profileId set to null
+      return await prisma.eventType.findMany({
+        where: {
+          OR: [
+            // Existing events
+            {
+              userId: profile.movedFromUser.id,
+              profileId: null,
+            },
+            // New events
+            {
+              profileId,
+            },
+          ],
+          ...where,
         },
-        hosts: {
-          include: {
-            user: true,
-          },
+        select,
+        orderBy,
+      });
+    } else {
+      return await prisma.eventType.findMany({
+        where: {
+          profileId,
+          ...where,
         },
-      },
-      orderBy,
-    });
+        select,
+        orderBy,
+      });
+    }
   }
 }

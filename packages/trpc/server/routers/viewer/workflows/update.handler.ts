@@ -147,7 +147,11 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         id: newEventTypeId,
       },
       include: {
-        users: true,
+        users: {
+          select: {
+            id: true,
+          },
+        },
         team: {
           include: {
             members: true,
