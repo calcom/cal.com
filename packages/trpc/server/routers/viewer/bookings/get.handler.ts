@@ -189,6 +189,19 @@ async function getBookings({
       ],
     },
   };
+  const userTeam = await prisma.user.findFirst({
+    where: {
+      id: user.id,
+    },
+    select: {
+      teams: {
+        select: {
+          teamId: true,
+        },
+      },
+    },
+  });
+  const userTeamIds: number[] = userTeam?.teams.map((item) => item.teamId) || [];
 
   const filtersCombined: Prisma.BookingWhereInput[] = !filters
     ? []
@@ -308,14 +321,23 @@ async function getBookings({
               teams: {
                 some: {
                   team: {
-                    members: {
-                      some: {
-                        userId: user.id,
-                        role: {
-                          in: ["ADMIN", "OWNER"],
+                    AND: [
+                      {
+                        members: {
+                          some: {
+                            userId: user.id,
+                            role: {
+                              in: ["ADMIN", "OWNER"],
+                            },
+                          },
                         },
                       },
-                    },
+                      {
+                        id: {
+                          in: userTeamIds,
+                        },
+                      },
+                    ],
                   },
                 },
               },
