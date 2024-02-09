@@ -88,11 +88,11 @@ const Route = ({
   setRoute: (id: string, route: Partial<Route>) => void;
   config: QueryBuilderUpdatedConfig;
   setRoutes: React.Dispatch<React.SetStateAction<Route[]>>;
+  fieldIdentifiers: string[];
   moveUp?: { fn: () => void; check: () => boolean } | null;
   moveDown?: { fn: () => void; check: () => boolean } | null;
   appUrl: string;
   disabled?: boolean;
-  fieldIdentifiers: string[];
 }) => {
   const { t } = useLocale();
 
@@ -138,7 +138,7 @@ const Route = ({
       ? eventOptions[0].value.substring(0, eventOptions[0].value.lastIndexOf("/") + 1)
       : "";
 
-  const [customEventTypeSlug, setCustomEventTypeSlug] = useState(
+  const [customEventTypeSlug, setCustomEventTypeSlug] = useState<string>(
     !isRouter(route) ? route.action.value.split("/").pop() : ""
   );
 
@@ -524,7 +524,9 @@ const Routes = ({
 
   hookForm.setValue("routes", routesToSave);
 
-  const fieldIdentifiers = hookForm.getValues("fields").map((field) => field.identifier ?? field.label);
+  const fields = hookForm.getValues("fields");
+
+  const fieldIdentifiers = fields ? fields.map((field) => field.identifier ?? field.label) : [];
 
   return (
     <div className="bg-default border-subtle flex flex-col-reverse rounded-md border p-8 md:flex-row">
@@ -537,7 +539,7 @@ const Routes = ({
               key={route.id}
               config={config}
               route={route}
-              fieldIdentifiers={fieldIdentifiers || []}
+              fieldIdentifiers={fieldIdentifiers}
               moveUp={{
                 check: () => key !== 0,
                 fn: () => {
