@@ -166,6 +166,7 @@ export class EventTypeRepository {
       return await prisma.eventType.findMany({
         where: {
           profileId,
+          ...where,
         },
         select,
         orderBy,
