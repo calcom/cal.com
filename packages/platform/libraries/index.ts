@@ -21,3 +21,13 @@ export type {
 } from "@calcom/features/bookings/types";
 export { HttpError } from "@calcom/lib/http-error";
 export type { AppsStatus } from "@calcom/types/Calendar";
+
+export {
+  transformWorkingHoursForClient,
+  transformAvailabilityForClient,
+  transformDateOverridesForClient,
+} from "@calcom/lib/schedules/client/transformers";
+export type {
+  ScheduleWithAvailabilities,
+  ScheduleWithAvailabilitiesForWeb,
+} from "@calcom/lib/schedules/client/transformers";
