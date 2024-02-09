@@ -61,7 +61,7 @@ export function Calendar(props: CalendarComponentProps) {
         {props.isPending && <Spinner />}
         <div
           ref={container}
-          className="bg-default dark:bg-muted relative isolate flex h-screen flex-auto flex-col overflow-y-auto">
+          className="bg-default dark:bg-muted relative isolate flex h-screen flex-auto flex-col overflow-y-auto overflow-x-hidden">
           <div
             style={{ width: "165%" }}
             className="flex h-full max-w-full flex-none flex-col sm:max-w-none md:max-w-full">
