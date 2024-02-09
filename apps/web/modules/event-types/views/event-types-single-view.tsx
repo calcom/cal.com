@@ -629,7 +629,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
     }, {});
 
     if (dirtyFieldExists) {
-      updateMutation.mutate({ ...filteredPayload });
+      updateMutation.mutate({ ...filteredPayload, id: eventType.id });
     }
   };
 
@@ -772,7 +772,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
             }, {});
 
             if (dirtyFieldExists) {
-              updateMutation.mutate({ ...filteredPayload });
+              updateMutation.mutate({ ...filteredPayload, id: eventType.id });
             }
           }}>
           <div ref={animationParentRef}>{tabMap[tabName]}</div>
