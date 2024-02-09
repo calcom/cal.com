@@ -4,6 +4,7 @@ import { GcalModule } from "@/ee/gcal/gcal.module";
 import { MeModule } from "@/ee/me/me.module";
 import { ProviderModule } from "@/ee/provider/provider.module";
 import { SchedulesModule } from "@/ee/schedules/schedules.module";
+import { EventsModule } from "@/modules/events/events.module";
 import { SlotsModule } from "@/modules/slots/slots.module";
 import type { MiddlewareConsumer, NestModule } from "@nestjs/common";
 import { Module } from "@nestjs/common";
@@ -16,6 +17,7 @@ import { Module } from "@nestjs/common";
     MeModule,
     EventTypesModule,
     CalendarsModule,
+    EventsModule,
     SlotsModule,
   ],
 })
