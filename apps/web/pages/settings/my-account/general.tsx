@@ -6,6 +6,8 @@ import { Controller, useForm } from "react-hook-form";
 
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
+import { classNames } from "@calcom/lib";
+import { formatLocalizedDateTime } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localeOptions } from "@calcom/lib/i18n";
 import { nameOfDay } from "@calcom/lib/weekday";
@@ -24,6 +26,7 @@ import {
   TimezoneSelect,
   SettingsToggle,
 } from "@calcom/ui";
+import { Plus, Trash2 } from "@calcom/ui/components/icon";
 
 import PageWrapper from "@components/PageWrapper";
 import ScheduleTimezoneChangeModal from "@components/settings/ScheduleTimezoneChangeModal";
@@ -83,7 +86,10 @@ const GeneralQueryView = () => {
 
 const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
   const utils = trpc.useContext();
-  const { t } = useLocale();
+  const {
+    t,
+    i18n: { language },
+  } = useLocale();
   const { update } = useSession();
   const [isUpdateBtnLoading, setIsUpdateBtnLoading] = useState<boolean>(false);
   const [isTZScheduleOpen, setIsTZScheduleOpen] = useState<boolean>(false);
@@ -155,6 +161,8 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
     !!user.receiveMonthlyDigestEmail
   );
 
+  const watchedTzSchedules = formMethods.watch("timezoneSchedules");
+
   return (
     <div>
       <Form
@@ -204,9 +212,65 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
               </>
             )}
           />
-          <Button color="minimal" className="mt-2" onClick={() => setIsTZScheduleOpen(true)}>
-            {t("schedule_timezone_change")}
-          </Button>
+          {watchedTzSchedules ? (
+            <Button color="minimal" className="mt-2" onClick={() => setIsTZScheduleOpen(true)}>
+              {t("schedule_timezone_change")}
+            </Button>
+          ) : (
+            <div className="bg-muted border-subtle mt-2 rounded-md border p-4">
+              <Label>{t("travel_schedule")}</Label>
+              <div className="border-subtle mt-4 rounded-md border bg-white text-sm">
+                {watchedTzSchedules.map((schedule, index) => {
+                  return (
+                    <div
+                      className={classNames(
+                        "flex items-center p-4",
+                        index !== 0 ? "border-subtle border-t" : ""
+                      )}
+                      key={index}>
+                      <div>
+                        <></>
+                        <div className="text-emphasis font-semibold">{`${formatLocalizedDateTime(
+                          schedule.startDate,
+                          { day: "numeric", month: "long" },
+                          language
+                        )} ${
+                          schedule.endDate
+                            ? `- ${formatLocalizedDateTime(
+                                schedule.endDate,
+                                { day: "numeric", month: "long" },
+                                language
+                              )}`
+                            : ``
+                        }`}</div>
+                        <div className="text-subtle">{schedule.timezone}</div>
+                      </div>
+                      <Button
+                        color="secondary"
+                        className="ml-auto"
+                        variant="icon"
+                        StartIcon={Trash2}
+                        onClick={() => {
+                          const updatedSchedules = getValues("timezoneSchedules").filter(
+                            (schedule, i) => i !== index
+                          );
+                          formMethods.setValue("timezoneSchedules", updatedSchedules);
+                        }}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+              <Button
+                StartIcon={Plus}
+                color="secondary"
+                className="mt-4"
+                onClick={() => setIsTZScheduleOpen(true)}>
+                {t("add")}
+              </Button>
+            </div>
+          )}
+
           <Controller
             name="timeFormat"
             control={formMethods.control}
@@ -297,7 +361,7 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
         open={isTZScheduleOpen}
         onOpenChange={() => setIsTZScheduleOpen(false)}
         setValue={formMethods.setValue}
-        existingSchedules={formMethods.getValues("timezoneSchedules")}
+        existingSchedules={formMethods.getValues("timezoneSchedules") ?? []}
       />
     </div>
   );
