@@ -123,7 +123,6 @@ export const getPublicEvent = async (
       usernameList,
       orgSlug: org,
     });
-    console.log("getPublicEvent - dynamic", usersInOrgContext);
     const users = usersInOrgContext;
 
     const defaultEvent = getDefaultEvent(eventSlug);
