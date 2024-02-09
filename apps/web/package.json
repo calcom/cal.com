@@ -24,7 +24,7 @@
     "yarn": "3.4.1"
   },
   "dependencies": {
-    "@boxyhq/saml-jackson": "1.8.2",
+    "@boxyhq/saml-jackson": "1.18.6",
     "@calcom/app-store": "*",
     "@calcom/app-store-cli": "*",
     "@calcom/core": "*",
