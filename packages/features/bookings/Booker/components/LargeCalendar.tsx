@@ -73,19 +73,21 @@ export const LargeCalendar = ({
 
   return (
     <div className="relative h-full w-full [--calendar-dates-sticky-offset:0px]">
-      <Calendar
-        isPending={isLoading}
-        availableTimeslots={availableSlots}
-        startHour={0}
-        endHour={23}
-        events={overlayEventsForDate}
-        startDate={startDate}
-        endDate={endDate}
-        onEmptyCellClick={(date) => setSelectedTimeslot(date.toISOString())}
-        gridCellsPerHour={60 / eventDuration}
-        hoverEventDuration={eventDuration}
-        hideHeader
-      />
+      <div className="absolute w-full">
+        <Calendar
+          isPending={isLoading}
+          availableTimeslots={availableSlots}
+          startHour={0}
+          endHour={23}
+          events={overlayEventsForDate}
+          startDate={startDate}
+          endDate={endDate}
+          onEmptyCellClick={(date) => setSelectedTimeslot(date.toISOString())}
+          gridCellsPerHour={60 / eventDuration}
+          hoverEventDuration={eventDuration}
+          hideHeader
+        />
+      </div>
     </div>
   );
 };
