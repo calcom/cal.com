@@ -529,6 +529,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
 
   const handleSubmit = async (values: FormValues) => {
     const dirtyValues = getDirtyFields(values);
+    const dirtyFieldExists = Object.keys(dirtyValues).length !== 0;
     const {
       periodDates,
       periodCountCalendarDays,
@@ -626,7 +627,10 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       }
       return acc;
     }, {});
-    updateMutation.mutate({ ...filteredPayload, id: eventType.id });
+
+    if (dirtyFieldExists) {
+      updateMutation.mutate({ ...filteredPayload });
+    }
   };
 
   const [slugExistsChildrenDialogOpen, setSlugExistsChildrenDialogOpen] = useState<ChildrenEventType[]>([]);
@@ -680,6 +684,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
           id="event-type-form"
           handleSubmit={async (values) => {
             const dirtyValues = getDirtyFields(values);
+            const dirtyFieldExists = Object.keys(dirtyValues).length !== 0;
             const {
               periodDates,
               periodCountCalendarDays,
@@ -765,7 +770,10 @@ const EventTypePage = (props: EventTypeSetupProps) => {
               }
               return acc;
             }, {});
-            updateMutation.mutate({ ...filteredPayload, id: eventType.id });
+
+            if (dirtyFieldExists) {
+              updateMutation.mutate({ ...filteredPayload });
+            }
           }}>
           <div ref={animationParentRef}>{tabMap[tabName]}</div>
         </Form>
