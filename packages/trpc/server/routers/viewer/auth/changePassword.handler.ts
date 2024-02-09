@@ -34,7 +34,7 @@ export const changePasswordHandler = async ({ input, ctx }: ChangePasswordOption
     },
   });
 
-  const currentPassword = currentPasswordQuery?.password;
+  const currentPassword = currentPasswordQuery?.password?.hash;
 
   if (!currentPassword) {
     throw new TRPCError({ code: "NOT_FOUND", message: "MISSING_PASSWORD" });
@@ -54,12 +54,12 @@ export const changePasswordHandler = async ({ input, ctx }: ChangePasswordOption
   }
 
   const hashedPassword = await hashPassword(newPassword);
-  await prisma.user.update({
+  await prisma.userPassword.update({
     where: {
-      id: user.id,
+      userId: user.id,
     },
     data: {
-      password: hashedPassword,
+      hash: hashedPassword,
     },
   });
 };
