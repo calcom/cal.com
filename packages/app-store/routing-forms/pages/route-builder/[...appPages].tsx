@@ -139,7 +139,7 @@ const Route = ({
       : "";
 
   const [customEventTypeSlug, setCustomEventTypeSlug] = useState<string>(
-    !isRouter(route) ? route.action.value.split("/").pop() : ""
+    !isRouter(route) ? route.action.value.split("/").pop() ?? "" : ""
   );
 
   const onChange = (route: Route, immutableTree: ImmutableTree, config: QueryBuilderUpdatedConfig) => {
@@ -612,6 +612,7 @@ const Routes = ({
             setRoute={setRoute}
             setRoutes={setRoutes}
             appUrl={appUrl}
+            fieldIdentifiers={fieldIdentifiers}
           />
         </div>
       </div>
