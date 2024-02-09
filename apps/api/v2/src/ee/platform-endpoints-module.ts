@@ -1,3 +1,4 @@
+import { BookingsModule } from "@/ee/bookings/bookings.module";
 import { CalendarsModule } from "@/ee/calendars/calendars";
 import { EventTypesModule } from "@/ee/event-types/event-types.module";
 import { GcalModule } from "@/ee/gcal/gcal.module";
@@ -17,6 +18,7 @@ import { Module } from "@nestjs/common";
     MeModule,
     EventTypesModule,
     CalendarsModule,
+    BookingsModule,
     EventsModule,
     SlotsModule,
   ],
