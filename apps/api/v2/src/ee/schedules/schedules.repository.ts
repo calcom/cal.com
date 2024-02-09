@@ -130,4 +130,12 @@ export class SchedulesRepository {
       },
     });
   }
+
+  async getUserSchedulesCount(userId: number) {
+    return this.dbRead.prisma.schedule.count({
+      where: {
+        userId,
+      },
+    });
+  }
 }

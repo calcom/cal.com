@@ -19,6 +19,13 @@ export class EventTypesRepository {
     });
   }
 
+  async getEventTypeWithSeats(eventTypeId: number) {
+    return this.dbRead.prisma.eventType.findUnique({
+      where: { id: eventTypeId },
+      select: { users: { select: { id: true } }, seatsPerTimeSlot: true },
+    });
+  }
+
   async getUserEventType(userId: number, eventTypeId: number) {
     return this.dbRead.prisma.eventType.findFirst({
       where: {
