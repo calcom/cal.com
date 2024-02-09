@@ -1,5 +1,6 @@
 import type { NextApiRequest } from "next";
 
+import getBookingDataSchemaForApi from "@calcom/features/bookings/lib/getBookingDataSchemaForApi";
 import handleNewBooking from "@calcom/features/bookings/lib/handleNewBooking";
 import { defaultResponder } from "@calcom/lib/server";
 
@@ -206,7 +207,7 @@ async function handler(req: NextApiRequest) {
   const { userId, isAdmin } = req;
   if (isAdmin) req.userId = req.body.userId || userId;
 
-  return await handleNewBooking(req);
+  return await handleNewBooking(req, getBookingDataSchemaForApi);
 }
 
 export default defaultResponder(handler);

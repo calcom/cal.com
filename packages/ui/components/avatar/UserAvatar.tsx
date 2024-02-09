@@ -1,6 +1,7 @@
 import { classNames } from "@calcom/lib";
 import { getOrgAvatarUrl, getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import type { User } from "@calcom/prisma/client";
+import type { UserProfile } from "@calcom/types/UserProfile";
 import { Avatar } from "@calcom/ui";
 
 type Organization = {
@@ -11,12 +12,14 @@ type Organization = {
 };
 
 type UserAvatarProps = Omit<React.ComponentProps<typeof Avatar>, "alt" | "imageSrc"> & {
-  user: Pick<User, "organizationId" | "name" | "username">;
+  user: Pick<User, "name" | "username" | "avatarUrl"> & {
+    profile: Omit<UserProfile, "upId">;
+  };
+  noOrganizationIndicator?: boolean;
   /**
    * Useful when allowing the user to upload their own avatar and showing the avatar before it's uploaded
    */
   previewSrc?: string | null;
-  organization?: Organization | null;
   alt?: string | null;
 };
 
@@ -42,13 +45,14 @@ function OrganizationIndicator({
  * It is aware of the user's organization to correctly show the avatar from the correct URL
  */
 export function UserAvatar(props: UserAvatarProps) {
-  const { user, previewSrc = getUserAvatarUrl(user), ...rest } = props;
-
-  const indicator = props.organization ? (
-    <OrganizationIndicator size={props.size} organization={props.organization} user={props.user} />
-  ) : (
-    props.indicator
-  );
+  const { user, previewSrc = getUserAvatarUrl(user), noOrganizationIndicator, ...rest } = props;
+  const organization = user.profile?.organization ?? null;
+  const indicator =
+    organization && !noOrganizationIndicator ? (
+      <OrganizationIndicator size={props.size} organization={organization} user={props.user} />
+    ) : (
+      props.indicator
+    );
 
   return <Avatar {...rest} alt={user.name || "Nameless User"} imageSrc={previewSrc} indicator={indicator} />;
 }

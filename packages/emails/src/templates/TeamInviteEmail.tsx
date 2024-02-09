@@ -11,6 +11,7 @@ type TeamInvite = {
   teamName: string;
   joinLink: string;
   isCalcomMember: boolean;
+  isAutoJoin: boolean;
   isOrg: boolean;
   parentTeamName: string | undefined;
 };
@@ -75,7 +76,9 @@ export const TeamInviteEmail = (
       </p>
       <div style={{ display: "flex", justifyContent: "center" }}>
         <CallToAction
-          label={props.language(props.isCalcomMember ? "email_user_cta" : "create_your_account")}
+          label={props.language(
+            props.isCalcomMember ? (props.isAutoJoin ? "login" : "email_user_cta") : "create_your_account"
+          )}
           href={props.joinLink}
           endIconName="linkIcon"
         />
@@ -161,36 +164,5 @@ export const TeamInviteEmail = (
         </p>
       </div>
     </V2BaseEmailHtml>
-  );
-};
-
-const EmailStep = (props: { translationString: string; iconsrc: string }) => {
-  return (
-    <div style={{ display: "flex", alignItems: "center" }}>
-      <div
-        style={{
-          backgroundColor: "#E5E7EB",
-          borderRadius: "48px",
-          minHeight: "48px",
-          minWidth: "48px",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          color: "white",
-          marginRight: "16px",
-        }}>
-        <img src={props.iconsrc} alt="#" style={{ height: "24px", width: "auto" }} />
-      </div>
-      <p
-        style={{
-          fontStyle: "normal",
-          fontWeight: 500,
-          fontSize: "18px",
-          lineHeight: "20px",
-          color: "#black",
-        }}>
-        <>{props.translationString}</>
-      </p>
-    </div>
   );
 };
