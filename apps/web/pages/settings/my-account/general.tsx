@@ -26,6 +26,28 @@ import {
 } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
+import ScheduleTimezoneChangeModal from "@components/settings/ScheduleTimezoneChangeModal";
+
+export type FormValues = {
+  locale: {
+    value: string;
+    label: string;
+  };
+  timeZone: string;
+  timeFormat: {
+    value: number;
+    label: string | number;
+  };
+  weekStart: {
+    value: string;
+    label: string;
+  };
+  timezoneSchedules: {
+    startDate: Date;
+    endDate?: Date;
+    timezone: string;
+  }[];
+};
 
 const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
   return (
@@ -64,6 +86,7 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
   const { t } = useLocale();
   const { update } = useSession();
   const [isUpdateBtnLoading, setIsUpdateBtnLoading] = useState<boolean>(false);
+  const [isTZScheduleOpen, setIsTZScheduleOpen] = useState<boolean>(false);
 
   const mutation = trpc.viewer.updateProfile.useMutation({
     onSuccess: async (res) => {
@@ -100,7 +123,7 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
     { value: "Saturday", label: nameOfDay(localeProp, 6) },
   ];
 
-  const formMethods = useForm({
+  const formMethods = useForm<FormValues>({
     defaultValues: {
       locale: {
         value: localeProp || "",
@@ -181,6 +204,9 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
               </>
             )}
           />
+          <Button color="minimal" className="mt-2" onClick={() => setIsTZScheduleOpen(true)}>
+            {t("schedule_timezone_change")}
+          </Button>
           <Controller
             name="timeFormat"
             control={formMethods.control}
@@ -266,6 +292,12 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
           mutation.mutate({ receiveMonthlyDigestEmail: checked });
         }}
         switchContainerClassName="mt-6"
+      />
+      <ScheduleTimezoneChangeModal
+        open={isTZScheduleOpen}
+        onOpenChange={() => setIsTZScheduleOpen(false)}
+        setValue={formMethods.setValue}
+        existingSchedules={formMethods.getValues("timezoneSchedules")}
       />
     </div>
   );

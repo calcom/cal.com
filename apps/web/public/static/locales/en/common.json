@@ -2259,5 +2259,9 @@
   "priority_for_user": "Priority for {{userName}}",
   "change_priority": "change priority",
   "account_already_linked": "Account is already linked",
+  "travel_schedule": "Travel Schedule",
+  "travel_schedule_description":  "Plan your trip ahead to keep your existing schedule in a different timezone and prevent being booked at midnight.",
+  "schedule_timezone_change": "Schedule timezone change",
+  "date": "Date",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
