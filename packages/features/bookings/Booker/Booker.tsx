@@ -13,7 +13,6 @@ import { getQueryParam } from "@calcom/features/bookings/Booker/utils/query-para
 import { useNonEmptyScheduleDays } from "@calcom/features/schedules";
 import classNames from "@calcom/lib/classNames";
 import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR } from "@calcom/lib/constants";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 
 import { VerifyCodeDialog } from "../components/VerifyCodeDialog";
@@ -150,11 +149,6 @@ const BookerComponent = ({
     typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("rescheduleUid") : null;
   const bookingUid =
     typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("bookingUid") : null;
-
-  const { t } = useLocale();
-
-  const isRedirect = searchParams?.get("redirected") === "true" || false;
-  const fromUserNameRedirected = searchParams?.get("username") || "";
 
   useBrandColors({
     brandColor: event.data?.profile.brandColor ?? DEFAULT_LIGHT_BRAND_COLOR,
@@ -330,26 +324,6 @@ const BookerComponent = ({
           "text-default flex min-h-full w-full flex-col items-center",
           layout === BookerLayouts.MONTH_VIEW ? "overflow-visible" : "overflow-clip"
         )}>
-        {/* redirect from other user profile */}
-        {isRedirect && (
-          <div className="mb-8 rounded-md bg-blue-100 p-4 dark:border dark:bg-transparent">
-            <h2 className="text-default mb-2 text-sm font-semibold">
-              {t("user_redirect_title", {
-                username: fromUserNameRedirected,
-              })}{" "}
-              🏝️
-            </h2>
-            <p className="text-default text-sm">
-              {t("user_redirect_description", {
-                profile: {
-                  username: username,
-                },
-                username: fromUserNameRedirected,
-              })}{" "}
-              😄
-            </p>
-          </div>
-        )}
         <div
           ref={animationScope}
           className={classNames(

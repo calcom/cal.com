@@ -3,7 +3,7 @@ import { countBy } from "lodash";
 import { v4 as uuid } from "uuid";
 
 import { getAggregatedAvailability } from "@calcom/core/getAggregatedAvailability";
-import type { CurrentSeats } from "@calcom/core/getUserAvailability";
+import type { CurrentSeats, IOutOfOfficeData } from "@calcom/core/getUserAvailability";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
@@ -267,7 +267,17 @@ export function getRegularOrDynamicEventType(
     : getEventType(input, organizationDetails);
 }
 
-export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
+export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<{
+  slots: Record<
+    string,
+    {
+      time: string;
+      attendees?: number | undefined;
+      bookingUid?: string | undefined;
+    }[]
+  >;
+  datesOutOfOffice: IOutOfOfficeData;
+}> {
   const orgDetails = orgDomainConfig(ctx?.req);
   if (process.env.INTEGRATION_TEST_MODE === "true") {
     logger.settings.minLevel = 2;
@@ -394,6 +404,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
         dateRanges,
         currentSeats: _currentSeats,
         timeZone,
+        datesOutOfOffice,
       } = await getUserAvailability(
         {
           userId: currentUser.id,
@@ -426,6 +437,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
         dateRanges,
         busy,
         user: currentUser,
+        datesOutOfOffice,
       };
     })
   );
@@ -612,6 +624,8 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
 
   return {
     slots: computedAvailableSlots,
+    // @TODO: this only gets one, but we should consider more users outOfOffice?
+    datesOutOfOffice: userAvailability[0]?.datesOutOfOffice || undefined,
   };
 }
 

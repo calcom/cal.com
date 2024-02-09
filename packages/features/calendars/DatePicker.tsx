@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { shallow } from "zustand/shallow";
 
+import type { IOutOfOfficeData } from "@calcom/core/getUserAvailability";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { useEmbedStyles } from "@calcom/embed-core/embed-iframe";
@@ -39,20 +40,25 @@ export type DatePickerProps = {
   isPending?: boolean;
   /** used to query the multiple selected dates */
   eventSlug?: string;
+  /** To identify days that are not available and should display OOO and redirect if toUser exists */
+  datesOutOfOffice?: IOutOfOfficeData;
 };
 
 export const Day = ({
   date,
   active,
   disabled,
+  away,
   ...props
 }: JSX.IntrinsicElements["button"] & {
   active: boolean;
   date: Dayjs;
+  away?: boolean;
 }) => {
   const { t } = useLocale();
   const enabledDateButtonEmbedStyles = useEmbedStyles("enabledDateButton");
   const disabledDateButtonEmbedStyles = useEmbedStyles("disabledDateButton");
+
   return (
     <button
       type="button"
@@ -69,7 +75,8 @@ export const Day = ({
       data-disabled={disabled}
       disabled={disabled}
       {...props}>
-      {date.date()}
+      {away && <span>🏝️</span>}
+      {!away && date.date()}
       {date.isToday() && (
         <span
           className={classNames(
@@ -112,6 +119,7 @@ const Days = ({
   month,
   nextMonthButton,
   eventSlug,
+  datesOutOfOffice,
   ...props
 }: Omit<DatePickerProps, "locale" | "className" | "weekStart"> & {
   DayComponent?: React.FC<React.ComponentProps<typeof Day>>;
@@ -164,10 +172,14 @@ const Days = ({
 
   const daysToRenderForTheMonth = days.map((day) => {
     if (!day) return { day: null, disabled: true };
+    const disabled =
+      (includedDates && !includedDates.includes(yyyymmdd(day))) || excludedDates.includes(yyyymmdd(day));
+    const away = datesOutOfOffice?.hasOwnProperty(yyyymmdd(day));
     return {
       day: day,
-      disabled:
-        (includedDates && !includedDates.includes(yyyymmdd(day))) || excludedDates.includes(yyyymmdd(day)),
+      /** if away is true disabled should be false */
+      disabled: disabled && !away,
+      away,
     };
   });
 
@@ -202,7 +214,7 @@ const Days = ({
 
   return (
     <>
-      {daysToRenderForTheMonth.map(({ day, disabled }, idx) => (
+      {daysToRenderForTheMonth.map(({ day, disabled, away }, idx) => (
         <div key={day === null ? `e-${idx}` : `day-${day.format()}`} className="relative w-full pt-[100%]">
           {day === null ? (
             <div key={`e-${idx}`} />
@@ -221,6 +233,7 @@ const Days = ({
               }}
               disabled={disabled}
               active={isActive(day)}
+              away={away}
             />
           )}
         </div>
@@ -309,6 +322,7 @@ const DatePicker = ({
           browsingDate={browsingDate}
           month={month}
           nextMonthButton={() => changeMonth(+1)}
+          datesOutOfOffice={passThroughProps.datesOutOfOffice}
         />
       </div>
     </div>
