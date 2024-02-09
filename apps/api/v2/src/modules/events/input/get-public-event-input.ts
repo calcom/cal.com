@@ -1,5 +1,5 @@
 import { Transform } from "class-transformer";
-import { IsBoolean, IsString } from "class-validator";
+import { IsBoolean, IsOptional, IsString } from "class-validator";
 
 export class GetPublicEventInput {
   @IsString()
@@ -10,8 +10,10 @@ export class GetPublicEventInput {
   eventSlug!: string;
 
   @IsBoolean()
+  @IsOptional()
   isTeamEvent?: boolean;
 
   @IsString()
-  org!: string | null;
+  @IsOptional()
+  org?: string;
 }

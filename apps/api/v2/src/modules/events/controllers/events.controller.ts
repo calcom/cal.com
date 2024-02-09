@@ -17,7 +17,7 @@ export class EventsController {
       input.username,
       input.eventSlug,
       input.isTeamEvent,
-      input.org,
+      input.org || null,
       this.prismaReadService.prisma as unknown as PrismaClient
     );
 
