@@ -123,7 +123,6 @@ export const getPublicEvent = async (
       usernameList,
       orgSlug: org,
     });
-    console.log("getPublicEvent - dynamic", usersInOrgContext);
     const users = usersInOrgContext;
 
     const defaultEvent = getDefaultEvent(eventSlug);
@@ -196,6 +195,7 @@ export const getPublicEvent = async (
                   profiles: {
                     some: {
                       organization: orgQuery,
+                      username: username,
                     },
                   },
                 }

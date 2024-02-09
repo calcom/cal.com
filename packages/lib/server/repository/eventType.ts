@@ -6,6 +6,7 @@ import { prisma } from "@calcom/prisma";
 import type { Ensure } from "@calcom/types/utils";
 
 import { safeStringify } from "../../safeStringify";
+import { eventTypeSelect } from "../eventTypeSelect";
 import { LookupTarget, ProfileRepository } from "./profile";
 
 const log = logger.getSubLogger({ prefix: ["repository/eventType"] });
@@ -28,9 +29,6 @@ const userSelect = Prisma.validator<Prisma.UserSelect>()({
   avatarUrl: true,
   username: true,
   id: true,
-  email: true,
-  locale: true,
-  defaultScheduleId: true,
 });
 
 export class EventTypeRepository {
@@ -99,15 +97,12 @@ export class EventTypeRepository {
     if (!upId) return [];
     const lookupTarget = ProfileRepository.getLookupTarget(upId);
     const profileId = lookupTarget.type === LookupTarget.User ? null : lookupTarget.id;
-    const include = {
+    const select = {
+      ...eventTypeSelect,
       // TODO:  As required by getByViewHandler - Make it configurable
       team: {
-        include: {
-          eventTypes: {
-            include: {
-              users: { select: userSelect },
-            },
-          },
+        select: {
+          id: true,
         },
       },
       hashedLink: true,
@@ -140,7 +135,7 @@ export class EventTypeRepository {
           userId: lookupTarget.id,
           ...where,
         },
-        include,
+        select,
         orderBy,
       });
     }
@@ -164,15 +159,16 @@ export class EventTypeRepository {
           ],
           ...where,
         },
-        include,
+        select,
         orderBy,
       });
     } else {
       return await prisma.eventType.findMany({
         where: {
           profileId,
+          ...where,
         },
-        include,
+        select,
         orderBy,
       });
     }
