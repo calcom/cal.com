@@ -189,20 +189,6 @@ async function getBookings({
       ],
     },
   };
-  const userTeam = await prisma.user.findFirst({
-    where: {
-      id: user.id,
-    },
-    select: {
-      teams: {
-        select: {
-          teamId: true,
-        },
-      },
-    },
-  });
-  const userTeamIds: number[] = userTeam?.teams.map((item) => item.teamId) || [];
-
   const filtersCombined: Prisma.BookingWhereInput[] = !filters
     ? []
     : Object.keys(filters)
@@ -275,7 +261,8 @@ async function getBookings({
     // Note that because we are applying `take` to individual queries, we will usually get more bookings then we need. It is okay to have more bookings faster than having what we need slower
     bookingsQueryUserId,
     bookingsQueryAttendees,
-    bookingsQueryTeamMember,
+    bookingsQueryTeamEvents,
+    bookingsQueryTeamUsersPersonalEvents,
     bookingsQuerySeatReference,
     //////////////////////////
 
@@ -313,31 +300,35 @@ async function getBookings({
       take: take + 1,
       skip,
     }),
+    // get team bookings (managed + collective + round-robin) of current user's teams
     prisma.booking.findMany({
       where: {
         OR: [
           {
-            user: {
-              teams: {
-                some: {
-                  team: {
-                    AND: [
-                      {
-                        members: {
-                          some: {
-                            userId: user.id,
-                            role: {
-                              in: ["ADMIN", "OWNER"],
-                            },
-                          },
-                        },
+            eventType: {
+              team: {
+                members: {
+                  some: {
+                    userId: user.id,
+                    role: {
+                      in: ["ADMIN", "OWNER"],
+                    },
+                  },
+                },
+              },
+            },
+          },
+          {
+            eventType: {
+              parent: {
+                team: {
+                  members: {
+                    some: {
+                      userId: user.id,
+                      role: {
+                        in: ["ADMIN", "OWNER"],
                       },
-                      {
-                        id: {
-                          in: userTeamIds,
-                        },
-                      },
-                    ],
+                    },
                   },
                 },
               },
@@ -345,6 +336,46 @@ async function getBookings({
           },
         ],
         AND: [passedBookingsStatusFilter, ...filtersCombined],
+      },
+      orderBy,
+      take: take + 1,
+      skip,
+    }),
+    // only get personal bookings of current user's team members
+    prisma.booking.findMany({
+      where: {
+        AND: [
+          {
+            user: {
+              teams: {
+                some: {
+                  team: {
+                    members: {
+                      some: {
+                        userId: user.id,
+                        role: {
+                          in: ["ADMIN", "OWNER"],
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          {
+            eventType: {
+              teamId: null,
+            },
+          },
+          {
+            eventType: {
+              parentId: null,
+            },
+          },
+          passedBookingsStatusFilter,
+          ...filtersCombined,
+        ],
       },
       orderBy,
       take: take + 1,
@@ -433,7 +464,8 @@ async function getBookings({
     // It's going to mess up the orderBy as we are concatenating independent queries results
     bookingsQueryUserId
       .concat(bookingsQueryAttendees)
-      .concat(bookingsQueryTeamMember)
+      .concat(bookingsQueryTeamEvents)
+      .concat(bookingsQueryTeamUsersPersonalEvents)
       .concat(bookingsQuerySeatReference)
   );
 
