@@ -124,7 +124,7 @@ export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
   }, [busyEvents, calendarToColorMap]);
 
   return (
-    <div className="h-full [--calendar-dates-sticky-offset:66px]">
+    <div className="h-full [--calendar-dates-sticky-offset:34px]">
       <Calendar
         sortEvents
         startHour={0}
