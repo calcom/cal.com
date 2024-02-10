@@ -1,5 +1,6 @@
 import { useRef } from "react";
 
+import type { IOutOfOfficeData } from "@calcom/core/getUserAvailability";
 import dayjs from "@calcom/dayjs";
 import { AvailableTimes, AvailableTimesSkeleton } from "@calcom/features/bookings";
 import { useNonEmptyScheduleDays } from "@calcom/features/schedules";
@@ -10,6 +11,7 @@ import { BookerLayouts } from "@calcom/prisma/zod-utils";
 import { AvailableTimesHeader } from "../../components/AvailableTimesHeader";
 import { useBookerStore } from "../store";
 import type { useScheduleForEventReturnType } from "../utils/event";
+import { OutOfOfficeInSlots } from "./OutOfOfficeInSlots";
 
 type AvailableTimeSlotsProps = {
   extraDays?: number;
@@ -18,6 +20,7 @@ type AvailableTimeSlotsProps = {
   isLoading: boolean;
   seatsPerTimeSlot?: number | null;
   showAvailableSeatsCount?: boolean | null;
+  datesOutOfOffice?: IOutOfOfficeData;
 };
 
 /**
@@ -34,6 +37,7 @@ export const AvailableTimeSlots = ({
   showAvailableSeatsCount,
   schedule,
   isLoading,
+  datesOutOfOffice,
 }: AvailableTimeSlotsProps) => {
   const selectedDate = useBookerStore((state) => state.selectedDate);
   const setSelectedTimeslot = useBookerStore((state) => state.setSelectedTimeslot);
@@ -75,7 +79,7 @@ export const AvailableTimeSlots = ({
     : [];
 
   const slotsPerDay = useSlotsForAvailableDates(dates, schedule?.slots);
-
+  const isSelectedDateInOutOfOffice = !!datesOutOfOffice?.[date];
   return (
     <>
       <div className="flex">
@@ -97,28 +101,37 @@ export const AvailableTimeSlots = ({
           ))
         )}
       </div>
-      <div
-        ref={containerRef}
-        className={classNames(
-          limitHeight && "scroll-bar flex-grow overflow-auto md:h-[400px]",
-          !limitHeight && "flex h-full w-full flex-row gap-4"
-        )}>
-        {isLoading
-          ? // Shows exact amount of days as skeleton.
-            Array.from({ length: 1 + (extraDays ?? 0) }).map((_, i) => <AvailableTimesSkeleton key={i} />)
-          : slotsPerDay.length > 0 &&
-            slotsPerDay.map((slots) => (
-              <AvailableTimes
-                className="scroll-bar w-full overflow-y-auto overflow-x-hidden"
-                key={slots.date}
-                showTimeFormatToggle={!isColumnView}
-                onTimeSelect={onTimeSelect}
-                slots={slots.slots}
-                seatsPerTimeSlot={seatsPerTimeSlot}
-                showAvailableSeatsCount={showAvailableSeatsCount}
-              />
-            ))}
-      </div>
+      {isSelectedDateInOutOfOffice && (
+        <OutOfOfficeInSlots
+          returnDate="demo"
+          fromUser={datesOutOfOffice[date].user}
+          toUser={datesOutOfOffice[date].toUser}
+        />
+      )}
+      {!isSelectedDateInOutOfOffice && (
+        <div
+          ref={containerRef}
+          className={classNames(
+            limitHeight && "scroll-bar flex-grow overflow-auto md:h-[400px]",
+            !limitHeight && "flex h-full w-full flex-row gap-4"
+          )}>
+          {isLoading
+            ? // Shows exact amount of days as skeleton.
+              Array.from({ length: 1 + (extraDays ?? 0) }).map((_, i) => <AvailableTimesSkeleton key={i} />)
+            : slotsPerDay.length > 0 &&
+              slotsPerDay.map((slots) => (
+                <AvailableTimes
+                  className="scroll-bar w-full overflow-y-auto overflow-x-hidden"
+                  key={slots.date}
+                  showTimeFormatToggle={!isColumnView}
+                  onTimeSelect={onTimeSelect}
+                  slots={slots.slots}
+                  seatsPerTimeSlot={seatsPerTimeSlot}
+                  showAvailableSeatsCount={showAvailableSeatsCount}
+                />
+              ))}
+        </div>
+      )}
     </>
   );
 };

@@ -443,6 +443,7 @@ const BookerComponent = ({
                 isLoading={schedule.isPending}
                 seatsPerTimeSlot={event.data?.seatsPerTimeSlot}
                 showAvailableSeatsCount={event.data?.seatsShowAvailabilityCount}
+                datesOutOfOffice={schedule?.data?.datesOutOfOffice}
               />
             </BookerSection>
           </AnimatePresence>

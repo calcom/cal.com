@@ -684,10 +684,8 @@ const _getOutOfOfficeDays = async ({
   const outOfOfficeDays = await prisma.outOfOfficeEntry.findMany({
     where: {
       userId,
-      // I want to fetch all out of office days that
-      // at least start or end is between dateFrom and dateTo
-      // and start is lte dateTo and end is gte dateFrom
       OR: [
+        // outside of range
         // (start <= 'dateTo' AND end >= 'dateFrom')
         {
           start: {
@@ -697,39 +695,32 @@ const _getOutOfOfficeDays = async ({
             gte: dateFrom.toISOString(),
           },
         },
-        // (start >= 'dateFrom' OR start <= 'dateTo')
+        // start is between dateFrom and dateTo but end is outside of range
+        // (start <= 'dateTo' AND end >= 'dateTo')
         {
-          OR: [
-            {
-              start: {
-                gte: dateFrom.toISOString(),
-              },
-            },
-            {
-              start: {
-                lte: dateTo.toISOString(),
-              },
-            },
-          ],
+          start: {
+            lte: dateTo.toISOString(),
+          },
+
+          end: {
+            gte: dateTo.toISOString(),
+          },
         },
-        // (end >= 'dateFrom' OR end <= 'dateTo')
+        // end is between dateFrom and dateTo but start is outside of range
+        // (start <= 'dateFrom' OR end <= 'dateTo')
         {
-          OR: [
-            {
-              end: {
-                gte: dateFrom.toISOString(),
-              },
-            },
-            {
-              end: {
-                lte: dateTo.toISOString(),
-              },
-            },
-          ],
+          start: {
+            lte: dateFrom.toISOString(),
+          },
+
+          end: {
+            lte: dateTo.toISOString(),
+          },
         },
       ],
     },
     select: {
+      id: true,
       start: true,
       end: true,
       user: {
@@ -751,7 +742,7 @@ const _getOutOfOfficeDays = async ({
     return {};
   }
 
-  return outOfOfficeDays.reduce((acc: IOutOfOfficeData, { start, end }, index) => {
+  return outOfOfficeDays.reduce((acc: IOutOfOfficeData, { start, end, toUser, user }) => {
     // here we should use startDate or today if start is before today
     // consider timezone in start and end date range
     const startDateRange = dayjs(start).utc().isBefore(dayjs().startOf("day").utc())
@@ -762,6 +753,11 @@ const _getOutOfOfficeDays = async ({
     const [flattenDays] = availability.map((a) => ("days" in a ? a.days : []));
     const endDateRange = dayjs(end).utc().endOf("day");
 
+    // Return date is kinda tricky to obtain but basically is the first available date after the end date
+    // We need to take into account user may have multiple availability ranges
+    // So we need to check every range and consider the first available date after the end date keeping in mind the next range
+    // finally we need to go beyond the end date to find the first available date using availability days.
+
     for (let date = startDateRange; date.isBefore(endDateRange); date = date.add(1, "day")) {
       const dayNumberOnWeek = date.day();
 
@@ -769,7 +765,6 @@ const _getOutOfOfficeDays = async ({
         continue; // Skip to the next iteration if day not found in flattenDays
       }
 
-      const { toUser, user } = outOfOfficeDays[index];
       acc[date.format("YYYY-MM-DD")] = {
         // @TODO:  would be good having start and end availability time here, but for now should be good
         // you can obtain that from user availability defined outside of here
@@ -778,6 +773,9 @@ const _getOutOfOfficeDays = async ({
         toUser: !!toUser ? { id: toUser.id, displayName: toUser.name, username: toUser.username } : null,
       };
     }
+
     return acc;
   }, {});
 };
+
+// const obtainNearestAvailableReturnDate = (availabilityDaysInWeek, outOfOfficeDays) => {};
