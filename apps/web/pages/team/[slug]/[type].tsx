@@ -1,9 +1,8 @@
 "use client";
 
-import { useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 
 import { Booker } from "@calcom/atoms";
-import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import { getBookerWrapperClasses } from "@calcom/features/bookings/Booker/utils/getBookerWrapperClasses";
 import { BookerSeo } from "@calcom/features/bookings/components/BookerSeo";
 
@@ -17,6 +16,15 @@ export type PageProps = inferSSRProps<typeof getServerSideProps> & EmbedProps;
 
 export { getServerSideProps };
 
+export const getMultipleDurationValue = (
+  multipleDurationConfig: number[] | undefined,
+  queryDuration: string | string[] | null | undefined,
+  defaultValue: number
+) => {
+  if (!multipleDurationConfig) return null;
+  if (multipleDurationConfig.includes(Number(queryDuration))) return Number(queryDuration);
+  return defaultValue;
+};
 export default function Type({
   slug,
   user,
@@ -24,16 +32,11 @@ export default function Type({
   away,
   isEmbed,
   isBrandingHidden,
-  entity,
-  duration,
+  eventData,
   isInstantMeeting,
 }: PageProps) {
-  const setSelectedDuration = useBookerStore((state) => state.setSelectedDuration);
-  useEffect(() => {
-    if (!!duration) {
-      setSelectedDuration(duration);
-    }
-  });
+  const searchParams = useSearchParams();
+
   return (
     <main className={getBookerWrapperClasses({ isEmbed: !!isEmbed })}>
       <BookerSeo
@@ -42,7 +45,7 @@ export default function Type({
         rescheduleUid={booking?.uid}
         hideBranding={isBrandingHidden}
         isTeamEvent
-        entity={entity}
+        entity={eventData.entity}
         bookingData={booking}
       />
       <Booker
@@ -53,8 +56,16 @@ export default function Type({
         isInstantMeeting={isInstantMeeting}
         hideBranding={isBrandingHidden}
         isTeamEvent
-        entity={entity}
-        duration={duration}
+        entity={eventData.entity}
+        durationConfig={eventData.metadata?.multipleDuration}
+        /* TODO: Currently unused, evaluate it is needed-
+         *       Possible alternative approach is to have onDurationChange.
+         */
+        duration={getMultipleDurationValue(
+          eventData.metadata?.multipleDuration,
+          searchParams?.get("duration"),
+          eventData.length
+        )}
       />
     </main>
   );
