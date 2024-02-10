@@ -1,10 +1,12 @@
-import type { Prisma, EventType as PrismaEventType } from "@prisma/client";
+import type { EventType as PrismaEventType } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
 import type { Ensure } from "@calcom/types/utils";
 
 import { safeStringify } from "../../safeStringify";
+import { eventTypeSelect } from "../eventTypeSelect";
 import { LookupTarget, ProfileRepository } from "./profile";
 
 const log = logger.getSubLogger({ prefix: ["repository/eventType"] });
@@ -21,6 +23,13 @@ type IEventType = Ensure<
   >,
   "title" | "slug" | "length"
 >;
+
+const userSelect = Prisma.validator<Prisma.UserSelect>()({
+  name: true,
+  avatarUrl: true,
+  username: true,
+  id: true,
+});
 
 export class EventTypeRepository {
   static async create(data: IEventType) {
@@ -88,23 +97,24 @@ export class EventTypeRepository {
     if (!upId) return [];
     const lookupTarget = ProfileRepository.getLookupTarget(upId);
     const profileId = lookupTarget.type === LookupTarget.User ? null : lookupTarget.id;
-    const include = {
+    const select = {
+      ...eventTypeSelect,
       // TODO:  As required by getByViewHandler - Make it configurable
       team: {
-        include: {
-          eventTypes: true,
+        select: {
+          id: true,
         },
       },
       hashedLink: true,
-      users: true,
+      users: { select: userSelect },
       children: {
         include: {
-          users: true,
+          users: { select: userSelect },
         },
       },
       hosts: {
         include: {
-          user: true,
+          user: { select: userSelect },
         },
       },
     };
@@ -125,7 +135,7 @@ export class EventTypeRepository {
           userId: lookupTarget.id,
           ...where,
         },
-        include,
+        select,
         orderBy,
       });
     }
@@ -149,15 +159,16 @@ export class EventTypeRepository {
           ],
           ...where,
         },
-        include,
+        select,
         orderBy,
       });
     } else {
       return await prisma.eventType.findMany({
         where: {
           profileId,
+          ...where,
         },
-        include,
+        select,
         orderBy,
       });
     }

@@ -1,8 +1,10 @@
 import { prisma } from "@calcom/prisma";
-import type { Prisma, MembershipRole } from "@calcom/prisma/client";
+import type { MembershipRole } from "@calcom/prisma/client";
+import { Prisma } from "@calcom/prisma/client";
 
 import logger from "../../logger";
 import { safeStringify } from "../../safeStringify";
+import { eventTypeSelect } from "../eventTypeSelect";
 import { LookupTarget, ProfileRepository } from "./profile";
 
 const log = logger.getSubLogger({ prefix: ["repository/membership"] });
@@ -13,6 +15,30 @@ type IMembership = {
   accepted: boolean;
   role: MembershipRole;
 };
+
+const membershipSelect = Prisma.validator<Prisma.MembershipSelect>()({
+  id: true,
+  teamId: true,
+  userId: true,
+  accepted: true,
+  role: true,
+  disableImpersonation: true,
+});
+
+const teamParentSelect = Prisma.validator<Prisma.TeamSelect>()({
+  id: true,
+  name: true,
+  slug: true,
+  logoUrl: true,
+  parentId: true,
+});
+
+const userSelect = Prisma.validator<Prisma.UserSelect>()({
+  name: true,
+  avatarUrl: true,
+  username: true,
+  id: true,
+});
 
 export class MembershipRepository {
   static async create(data: IMembership) {
@@ -68,25 +94,30 @@ export class MembershipRepository {
       include: {
         team: {
           include: {
-            members: true,
-            parent: true,
+            members: {
+              select: membershipSelect,
+            },
+            parent: {
+              select: teamParentSelect,
+            },
             eventTypes: {
-              include: {
+              select: {
+                ...eventTypeSelect,
                 team: {
-                  include: {
-                    eventTypes: true,
+                  select: {
+                    id: true,
                   },
                 },
                 hashedLink: true,
-                users: true,
-                hosts: {
-                  include: {
-                    user: true,
-                  },
-                },
+                users: { select: userSelect },
                 children: {
                   include: {
-                    users: true,
+                    users: { select: userSelect },
+                  },
+                },
+                hosts: {
+                  include: {
+                    user: { select: userSelect },
                   },
                 },
               },

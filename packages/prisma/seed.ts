@@ -13,6 +13,7 @@ import type { Ensure } from "@calcom/types/utils";
 
 import prisma from ".";
 import mainAppStore from "./seed-app-store";
+import mainHugeEventTypesSeed from "./seed-huge-event-types";
 import { createUserAndEventType } from "./seed-utils";
 import type { teamMetadataSchema } from "./zod-utils";
 
@@ -120,6 +121,7 @@ async function createOrganizationAndAddMembersAndTeams({
         ...(await prisma.user.create({
           data: {
             ...member.memberData,
+            emailVerified: new Date(),
             password: await hashPassword(member.memberData.password),
           },
         })),
@@ -146,6 +148,7 @@ async function createOrganizationAndAddMembersAndTeams({
           username: user.username,
           name: user.name,
           email: user.email,
+          emailVerified: new Date(),
           password: await hashPassword(user.username),
         },
       });
@@ -253,6 +256,7 @@ async function createOrganizationAndAddMembersAndTeams({
           data: {
             ...nonOrgMember,
             password: await hashPassword(nonOrgMember.password),
+            emailVerified: new Date(),
           },
         })
       );
@@ -910,6 +914,7 @@ async function main() {
 
 main()
   .then(() => mainAppStore())
+  .then(() => mainHugeEventTypesSeed())
   .catch((e) => {
     console.error(e);
     process.exit(1);

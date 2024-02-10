@@ -103,8 +103,8 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
   );
 
   type UserEventTypes = (typeof profileEventTypes)[number];
-  type TeamEventTypeChildren = NonNullable<(typeof profileEventTypes)[number]["team"]>["eventTypes"][number];
-  const mapEventType = async (eventType: UserEventTypes & Partial<TeamEventTypeChildren>) => ({
+
+  const mapEventType = async (eventType: UserEventTypes) => ({
     ...eventType,
     safeDescription: eventType?.description ? markdownToSafeHTML(eventType.description) : undefined,
     users: await Promise.all(
@@ -115,7 +115,7 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
           })
       )
     ),
-    metadata: eventType.metadata ? EventTypeMetaDataSchema.parse(eventType.metadata) : undefined,
+    metadata: eventType.metadata ? EventTypeMetaDataSchema.parse(eventType.metadata) : null,
     children: await Promise.all(
       (eventType.children || []).map(async (c) => ({
         ...c,
@@ -279,7 +279,7 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
     )
   );
 
-  return {
+  const denormalizedPayload = {
     eventTypeGroups,
     // so we can show a dropdown when the user has teams
     profiles: eventTypeGroups.map((group) => ({
@@ -289,4 +289,38 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
       membershipRole: group.membershipRole,
     })),
   };
+
+  return normalizePayload(denormalizedPayload);
+
+  /**
+   * Reduces the size of payload
+   */
+  function normalizePayload(payload: typeof denormalizedPayload) {
+    const allUsersAcrossAllEventTypes = new Map<
+      number,
+      EventTypeGroup["eventTypes"][number]["users"][number]
+    >();
+    const eventTypeGroups = payload.eventTypeGroups.map((group) => {
+      return {
+        ...group,
+        eventTypes: group.eventTypes.map((eventType) => {
+          const { users, ...rest } = eventType;
+          return {
+            ...rest,
+            // Send userIds per event and keep the actual users object outside
+            userIds: users.map((user) => {
+              allUsersAcrossAllEventTypes.set(user.id, user);
+              return user.id;
+            }),
+          };
+        }),
+      };
+    });
+
+    return {
+      ...payload,
+      allUsersAcrossAllEventTypes,
+      eventTypeGroups,
+    };
+  }
 };
