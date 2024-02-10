@@ -16,6 +16,9 @@ const BookEventFormWrapper = ({ children }: { onCancel: () => void; children: Re
   const { data } = useEvent();
   const parsedSelectedTimeslot = dayjs(selectedTimeslot);
   const { timeFormat, timezone } = useTimePreferences();
+  if (!selectedTimeslot) {
+    return null;
+  }
   return (
     <>
       <h1 className="font-cal text-emphasis text-xl leading-5">{t("confirm_your_details")} </h1>
