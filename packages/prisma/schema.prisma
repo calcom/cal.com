@@ -41,6 +41,7 @@ model Host {
   eventType   EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
   eventTypeId Int
   isFixed     Boolean   @default(false)
+  priority    Int?
 
   @@id([userId, eventTypeId])
   @@index([userId])
