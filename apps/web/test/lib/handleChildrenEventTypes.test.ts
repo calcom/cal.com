@@ -175,14 +175,14 @@ describe("handleChildrenEventTypes", () => {
         connectedLink: null,
         prisma: prismaMock,
         profileId: null,
-        updatedValues: {},
+        updatedValues: {
+          bookingLimits: undefined,
+        },
       });
       expect(prismaMock.eventType.update).toHaveBeenCalledWith({
         data: {
-          ...evType,
+          hidden: false,
           bookingLimits: undefined,
-          durationLimits: undefined,
-          recurringEvent: undefined,
           hashedLink: { create: { link: expect.any(String) } },
         },
         where: {
@@ -322,15 +322,15 @@ describe("handleChildrenEventTypes", () => {
         connectedLink: null,
         prisma: prismaMock,
         profileId: null,
-        updatedValues: {},
+        updatedValues: {
+          length: 30,
+        },
       });
       expect(prismaMock.eventType.update).toHaveBeenCalledWith({
         data: {
-          ...evType,
-          bookingLimits: undefined,
-          durationLimits: undefined,
-          recurringEvent: undefined,
-          scheduleId: undefined,
+          hidden: false,
+          length: 30,
+          hashedLink: undefined,
         },
         where: {
           userId_parentId: {

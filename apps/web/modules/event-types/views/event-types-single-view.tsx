@@ -525,6 +525,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
   };
 
   const handleSubmit = async (values: FormValues) => {
+    const { children } = values;
     const dirtyValues = getDirtyFields(values);
     const dirtyFieldExists = Object.keys(dirtyValues).length !== 0;
     const {
@@ -542,7 +543,6 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       locations,
       metadata,
       customInputs,
-      children,
       assignAllTeamMembers,
       // We don't need to send send these values to the backend
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -556,7 +556,6 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       length,
       ...input
     } = dirtyValues;
-
     if (!Number(length)) throw new Error(t("event_setup_length_error"));
 
     if (bookingLimits) {
@@ -683,6 +682,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
           form={formMethods}
           id="event-type-form"
           handleSubmit={async (values) => {
+            const { children } = values;
             const dirtyValues = getDirtyFields(values);
             const dirtyFieldExists = Object.keys(dirtyValues).length !== 0;
             const {
@@ -746,6 +746,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
             const { availability, users, scheduleName, ...rest } = input;
             const payload = {
               ...rest,
+              children,
               length,
               locations,
               recurringEvent,
