@@ -122,7 +122,11 @@ async function createOrganizationAndAddMembersAndTeams({
           data: {
             ...member.memberData,
             emailVerified: new Date(),
-            password: await hashPassword(member.memberData.password),
+            password: {
+              create: {
+                hash: await hashPassword(member.memberData.password.create?.hash || ""),
+              },
+            },
           },
         })),
         inTeams: member.inTeams,
