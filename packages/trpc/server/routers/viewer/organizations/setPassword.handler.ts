@@ -24,10 +24,8 @@ export const setPasswordHandler = async ({ ctx, input }: UpdateOptions) => {
       id: ctx.user.id,
     },
     select: {
-      email: true,
-    },
-    include: {
       password: true,
+      email: true,
     },
   });
 

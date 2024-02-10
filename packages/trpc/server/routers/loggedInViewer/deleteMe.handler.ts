@@ -29,11 +29,11 @@ export const deleteMeHandler = async ({ ctx, input }: DeleteMeOptions) => {
       identityProvider: true,
       twoFactorEnabled: true,
       twoFactorSecret: true,
+      password: true,
       email: true,
       metadata: true,
       id: true,
     },
-    include: { password: true },
   });
   if (!user) {
     throw new HttpError({ statusCode: 404, message: ErrorCode.UserNotFound });

@@ -21,7 +21,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     },
     select: {
       id: true,
-      password: { select: { hash: true } },
+      password: true,
       identityProvider: true,
     },
   });
