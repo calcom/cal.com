@@ -87,6 +87,7 @@ interface EventTypeListHeadingProps {
   membershipCount: number;
   teamId?: number | null;
   bookerUrl: string;
+  isOrganization?: boolean;
 }
 
 type EventTypeGroup = EventTypeGroups[number];
@@ -730,6 +731,7 @@ const EventTypeListHeading = ({
   membershipCount,
   teamId,
   bookerUrl,
+  isOrganization,
 }: EventTypeListHeadingProps): JSX.Element => {
   const { t } = useLocale();
   const router = useRouter();
