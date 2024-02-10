@@ -53,7 +53,7 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
     sortByMostPopular,
     appId,
   } = input;
-  let credentials = await getUsersCredentials(user.id);
+  let credentials = await getUsersCredentials(user);
   let userTeams: TeamQuery[] = [];
 
   if (includeTeamInstalledApps || teamId) {

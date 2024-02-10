@@ -8,6 +8,7 @@ import { getTeamAvatarUrl, getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
+import { UserRepository } from "@calcom/lib/server/repository/user";
 import type { PrismaClient } from "@calcom/prisma";
 import { baseEventTypeSelect } from "@calcom/prisma";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
@@ -32,6 +33,7 @@ const userSelect = Prisma.validator<Prisma.UserSelect>()({
   username: true,
   name: true,
   organizationId: true,
+  avatarUrl: true,
 });
 
 const userEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
@@ -91,7 +93,7 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
     rateLimitingType: "common",
   });
 
-  const user = await prisma.user.findUnique({
+  const unenrichedUser = await prisma.user.findUnique({
     where: {
       id: ctx.user.id,
     },
@@ -103,6 +105,7 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
       endTime: true,
       bufferTime: true,
       avatar: true,
+      avatarUrl: true,
       organizationId: true,
       teams: {
         where: {
@@ -158,9 +161,10 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
     },
   });
 
-  if (!user) {
+  if (!unenrichedUser) {
     throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
   }
+  const user = UserRepository.enrichUserWithItsProfileBuiltFromUser({ user: unenrichedUser });
 
   const memberships = user.teams.map((membership) => ({
     ...membership,
@@ -173,13 +177,21 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
   type UserEventTypes = (typeof user.eventTypes)[number];
   type TeamEventTypeChildren = (typeof user.teams)[number]["team"]["eventTypes"][number];
 
-  const mapEventType = (eventType: UserEventTypes & Partial<TeamEventTypeChildren>) => ({
-    ...eventType,
-    safeDescription: eventType?.description ? markdownToSafeHTML(eventType.description) : undefined,
-    users: !!eventType?.hosts?.length ? eventType?.hosts.map((host) => host.user) : eventType.users,
-    metadata: eventType.metadata ? EventTypeMetaDataSchema.parse(eventType.metadata) : undefined,
-    children: eventType.children,
-  });
+  const mapEventType = (eventType: UserEventTypes & Partial<TeamEventTypeChildren>) => {
+    const users = !!eventType?.hosts?.length ? eventType?.hosts.map((host) => host.user) : eventType.users;
+    return {
+      ...eventType,
+      safeDescription: eventType?.description ? markdownToSafeHTML(eventType.description) : undefined,
+      users: users.map((user) => UserRepository.enrichUserWithItsProfileBuiltFromUser({ user })),
+      metadata: eventType.metadata ? EventTypeMetaDataSchema.parse(eventType.metadata) : null,
+      children: eventType.children?.map((child) => {
+        return {
+          ...child,
+          users: child.users.map((user) => UserRepository.enrichUserWithItsProfileBuiltFromUser({ user })),
+        };
+      }),
+    };
+  };
 
   const userEventTypes = user.eventTypes.map(mapEventType);
 
@@ -207,7 +219,7 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
   );
 
   if (!input?.filters || !hasFilter(input?.filters) || input?.filters?.userIds?.includes(user.id)) {
-    const bookerUrl = await getBookerBaseUrl(user);
+    const bookerUrl = await getBookerBaseUrl(user.profile.organizationId);
     eventTypeGroups.push({
       teamId: null,
       bookerUrl,
@@ -215,7 +227,7 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
       profile: {
         slug: user.username,
         name: user.name,
-        image: getUserAvatarUrl({ username: user.username, organizationId: user.organizationId }),
+        image: getUserAvatarUrl(user),
       },
       eventTypes: orderBy(unmanagedEventTypes, ["position", "id"], ["desc", "asc"]),
       metadata: {
