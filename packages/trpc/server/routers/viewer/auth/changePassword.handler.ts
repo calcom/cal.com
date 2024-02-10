@@ -25,16 +25,11 @@ export const changePasswordHandler = async ({ input, ctx }: ChangePasswordOption
     throw new TRPCError({ code: "FORBIDDEN", message: "THIRD_PARTY_IDENTITY_PROVIDER_ENABLED" });
   }
 
-  const currentPasswordQuery = await prisma.user.findFirst({
-    where: {
-      id: user.id,
-    },
-    select: {
-      password: true,
-    },
+  const currentPasswordQuery = await prisma.userPassword.findFirst({
+    where: { userId: user.id },
   });
 
-  const currentPassword = currentPasswordQuery?.password?.hash;
+  const currentPassword = currentPasswordQuery?.hash;
 
   if (!currentPassword) {
     throw new TRPCError({ code: "NOT_FOUND", message: "MISSING_PASSWORD" });
