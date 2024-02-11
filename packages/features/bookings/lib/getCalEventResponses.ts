@@ -43,7 +43,7 @@ export const getCalEventResponses = ({
       const label = field.label || field.defaultLabel;
       if (!label) {
         //TODO: This error must be thrown while saving event-type as well so that such an event-type can't be saved
-        throw new Error('Missing label for booking field "' + field.name + '"');
+        throw new Error(`Missing label for booking field "${field.name}"`);
       }
 
       // If the guests field is hidden (disableGuests is set on the event type) don't try and infer guests from attendees list

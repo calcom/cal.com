@@ -39,7 +39,7 @@ export async function deleteHandler(req: NextApiRequest) {
   const { prisma, query } = req;
   const { id } = schemaQueryIdAsString.parse(query);
   await prisma.webhook.delete({ where: { id } });
-  return { message: `Schedule with id: ${id} deleted successfully` };
+  return { message: `Webhook with id: ${id} deleted successfully` };
 }
 
 export default defaultResponder(deleteHandler);

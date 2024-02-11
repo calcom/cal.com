@@ -43,8 +43,7 @@ export const CreateANewTeamForm = () => {
   const orgBranding = useOrgBranding();
 
   const returnToParam =
-    (parsedQuery.success ? getSafeRedirectUrl(parsedQuery.data.returnTo) : "/settings/teams") ||
-    "/settings/teams";
+    (parsedQuery.success ? getSafeRedirectUrl(parsedQuery.data.returnTo) : "/teams") || "/teams";
 
   const newTeamFormMethods = useForm<NewTeamFormValues>({
     defaultValues: {
@@ -109,6 +108,7 @@ export const CreateANewTeamForm = () => {
                     }
                   }}
                   autoComplete="off"
+                  data-testid="team-name"
                 />
               </>
             )}
@@ -157,7 +157,8 @@ export const CreateANewTeamForm = () => {
             color="primary"
             EndIcon={ArrowRight}
             type="submit"
-            className="w-full justify-center">
+            className="w-full justify-center"
+            data-testid="continue-button">
             {t(flag.submitLabel)}
           </Button>
         </div>

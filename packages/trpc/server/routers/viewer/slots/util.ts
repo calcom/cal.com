@@ -3,16 +3,19 @@ import { countBy } from "lodash";
 import { v4 as uuid } from "uuid";
 
 import { getAggregatedAvailability } from "@calcom/core/getAggregatedAvailability";
+import { getBusyTimesForLimitChecks } from "@calcom/core/getBusyTimes";
 import type { CurrentSeats } from "@calcom/core/getUserAvailability";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { getSlugOrRequestedSlug, orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
+import { parseBookingLimit, parseDurationLimit } from "@calcom/lib";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import isTimeOutOfBounds from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
 import { performance } from "@calcom/lib/server/perfObserver";
+import { UserRepository } from "@calcom/lib/server/repository/user";
 import getSlots from "@calcom/lib/slots";
 import prisma, { availabilityUserSelect } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
@@ -153,6 +156,7 @@ export async function getEventType(
       afterEventBuffer: true,
       bookingLimits: true,
       durationLimits: true,
+      assignAllTeamMembers: true,
       schedulingType: true,
       periodType: true,
       periodStartDate: true,
@@ -225,17 +229,16 @@ export async function getDynamicEventType(
     });
   }
   const dynamicEventType = getDefaultEvent(input.eventTypeSlug);
+  const { where } = await UserRepository._getWhereClauseForFindingUsersByUsername({
+    orgSlug: isValidOrgDomain ? currentOrgDomain : null,
+    usernameList: Array.isArray(input.usernameList)
+      ? input.usernameList
+      : input.usernameList
+      ? [input.usernameList]
+      : [],
+  });
   const users = await prisma.user.findMany({
-    where: {
-      username: {
-        in: Array.isArray(input.usernameList)
-          ? input.usernameList
-          : input.usernameList
-          ? [input.usernameList]
-          : [],
-      },
-      organization: isValidOrgDomain && currentOrgDomain ? getSlugOrRequestedSlug(currentOrgDomain) : null,
-    },
+    where,
     select: {
       allowDynamicBooking: true,
       ...availabilityUserSelect,
@@ -335,6 +338,8 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
     },
   };
 
+  const allUserIds = usersWithCredentials.map((user) => user.id);
+
   const currentBookingsAllUsers = await prisma.booking.findMany({
     where: {
       OR: [
@@ -342,7 +347,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
         {
           ...sharedQuery,
           userId: {
-            in: usersWithCredentials.map((user) => user.id),
+            in: allUserIds,
           },
         },
         // The current user has a different booking at this time he/she attends
@@ -385,8 +390,24 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
     },
   });
 
+  const bookingLimits = parseBookingLimit(eventType?.bookingLimits);
+  const durationLimits = parseDurationLimit(eventType?.durationLimits);
+  let busyTimesFromLimitsBookingsAllUsers: Awaited<ReturnType<typeof getBusyTimesForLimitChecks>> = [];
+
+  if (eventType && (bookingLimits || durationLimits)) {
+    busyTimesFromLimitsBookingsAllUsers = await getBusyTimesForLimitChecks({
+      userIds: allUserIds,
+      eventTypeId: eventType.id,
+      startDate: startTime.format(),
+      endDate: endTime.format(),
+      rescheduleUid: input.rescheduleUid,
+      bookingLimits,
+      durationLimits,
+    });
+  }
+
   /* We get all users working hours and busy slots */
-  const userAvailability = await Promise.all(
+  const allUsersAvailability = await Promise.all(
     usersWithCredentials.map(async (currentUser) => {
       const {
         busy,
@@ -403,6 +424,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
           afterEventBuffer: eventType.afterEventBuffer,
           beforeEventBuffer: eventType.beforeEventBuffer,
           duration: input.duration || 0,
+          returnDateOverrides: false,
         },
         {
           user: currentUser,
@@ -417,6 +439,9 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
               const { attendees: _attendees, ...bookingWithoutAttendees } = bookings;
               return bookingWithoutAttendees;
             }),
+          busyTimesFromLimitsBookings: busyTimesFromLimitsBookingsAllUsers.filter(
+            (b) => b.userId === currentUser.id
+          ),
         }
       );
       if (!currentSeats && _currentSeats) currentSeats = _currentSeats;
@@ -447,15 +472,17 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
   const checkForAvailabilityTime = 0;
   const getSlotsCount = 0;
   const checkForAvailabilityCount = 0;
+  const aggregatedAvailability = getAggregatedAvailability(allUsersAvailability, eventType.schedulingType);
 
   const timeSlots = getSlots({
     inviteeDate: startTime,
     eventLength: input.duration || eventType.length,
     offsetStart: eventType.offsetStart,
-    dateRanges: getAggregatedAvailability(userAvailability, eventType.schedulingType),
+    dateRanges: aggregatedAvailability,
     minimumBookingNotice: eventType.minimumBookingNotice,
     frequency: eventType.slotInterval || input.duration || eventType.length,
-    organizerTimeZone: eventType.timeZone || eventType?.schedule?.timeZone || userAvailability?.[0]?.timeZone,
+    organizerTimeZone:
+      eventType.timeZone || eventType?.schedule?.timeZone || allUsersAvailability?.[0]?.timeZone,
   });
 
   let availableTimeSlots: typeof timeSlots = [];
@@ -619,14 +646,10 @@ async function getUserIdFromUsername(
   organizationDetails: { currentOrgDomain: string | null; isValidOrgDomain: boolean }
 ) {
   const { currentOrgDomain, isValidOrgDomain } = organizationDetails;
-  const user = await prisma.user.findFirst({
-    where: {
-      username,
-      organization: isValidOrgDomain && currentOrgDomain ? getSlugOrRequestedSlug(currentOrgDomain) : null,
-    },
-    select: {
-      id: true,
-    },
+
+  const [user] = await UserRepository.findUsersByUsername({
+    usernameList: [username],
+    orgSlug: isValidOrgDomain ? currentOrgDomain : null,
   });
   return user?.id;
 }

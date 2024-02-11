@@ -1,7 +1,11 @@
 import { randomBytes, createHash } from "crypto";
 import { totp } from "otplib";
 
-import { sendEmailVerificationCode, sendEmailVerificationLink } from "@calcom/emails/email-manager";
+import {
+  sendEmailVerificationCode,
+  sendEmailVerificationLink,
+  sendChangeOfEmailVerificationLink,
+} from "@calcom/emails/email-manager";
 import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -71,6 +75,55 @@ export const sendEmailVerificationByCode = async ({ email, language, username }:
     user: {
       email,
       name: username,
+    },
+  });
+
+  return { ok: true, skipped: false };
+};
+
+interface ChangeOfEmail {
+  user: {
+    username: string;
+    emailFrom: string;
+    emailTo: string;
+  };
+  language?: string;
+}
+
+export const sendChangeOfEmailVerification = async ({ user, language }: ChangeOfEmail) => {
+  const token = randomBytes(32).toString("hex");
+  const translation = await getTranslation(language ?? "en", "common");
+  const flags = await getFeatureFlagMap(prisma);
+
+  if (!flags["email-verification"]) {
+    log.warn("Email verification is disabled - Skipping");
+    return { ok: true, skipped: true };
+  }
+
+  await checkRateLimitAndThrowError({
+    rateLimitingType: "core",
+    identifier: user.emailFrom,
+  });
+
+  await prisma.verificationToken.create({
+    data: {
+      identifier: user.emailFrom, // We use from as this is the email use to get the metadata from
+      token,
+      expires: new Date(Date.now() + 24 * 3600 * 1000), // +1 day
+    },
+  });
+
+  const params = new URLSearchParams({
+    token,
+  });
+
+  await sendChangeOfEmailVerificationLink({
+    language: translation,
+    verificationEmailLink: `${WEBAPP_URL}/auth/verify-email-change?${params.toString()}`,
+    user: {
+      emailFrom: user.emailFrom,
+      emailTo: user.emailTo,
+      name: user.username,
     },
   });
 
