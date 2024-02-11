@@ -17,7 +17,7 @@ export async function getHandler(req: NextApiRequest) {
 
   let encrypted;
   try {
-    encrypted = symmetricEncrypt(JSON.stringify({ api_key }), process.env.CALENDSO_ENCRYPTION_KEY || "");
+    encrypted = symmetricEncrypt(JSON.stringify({ api_key }));
   } catch (reason) {
     logger.error("Could not add Sendgrid app", reason);
     throw new HttpError({ statusCode: 500, message: "Invalid length - CALENDSO_ENCRYPTION_KEY" });

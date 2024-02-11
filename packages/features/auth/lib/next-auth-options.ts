@@ -6,6 +6,7 @@ import type { Provider } from "next-auth/providers";
 import CredentialsProvider from "next-auth/providers/credentials";
 import EmailProvider from "next-auth/providers/email";
 import GoogleProvider from "next-auth/providers/google";
+import { z } from "zod";
 
 import checkLicense from "@calcom/features/ee/common/server/checkLicense";
 import ImpersonationProvider from "@calcom/features/ee/impersonation/lib/ImpersonationProvider";
@@ -151,9 +152,14 @@ const providers: Provider[] = [
 
         if (!user.backupCodes) throw new Error(ErrorCode.MissingBackupCodes);
 
-        const backupCodes = JSON.parse(
-          symmetricDecrypt(user.backupCodes, process.env.CALENDSO_ENCRYPTION_KEY)
-        );
+        const backupCodes = symmetricDecrypt(user.backupCodes, {
+          schema: z.array(z.string()),
+          onShouldUpdate: async (result) =>
+            await prisma.user.update({
+              where: { id: user.id },
+              data: { backupCodes: symmetricEncrypt(result) },
+            }),
+        });
 
         // check if user-supplied code matches one
         const index = backupCodes.indexOf(credentials.backupCode.replaceAll("-", ""));
@@ -166,7 +172,7 @@ const providers: Provider[] = [
             id: user.id,
           },
           data: {
-            backupCodes: symmetricEncrypt(JSON.stringify(backupCodes), process.env.CALENDSO_ENCRYPTION_KEY),
+            backupCodes: symmetricEncrypt(JSON.stringify(backupCodes)),
           },
         });
       } else if (user.twoFactorEnabled) {
@@ -180,11 +186,18 @@ const providers: Provider[] = [
         }
 
         if (!process.env.CALENDSO_ENCRYPTION_KEY) {
-          console.error(`"Missing encryption key; cannot proceed with two factor login."`);
+          console.error("Missing encryption key; cannot proceed with two factor login.");
           throw new Error(ErrorCode.InternalServerError);
         }
 
-        const secret = symmetricDecrypt(user.twoFactorSecret, process.env.CALENDSO_ENCRYPTION_KEY);
+        const secret = symmetricDecrypt(user.twoFactorSecret, {
+          schema: z.string(),
+          onShouldUpdate: async (result) =>
+            await prisma.user.update({
+              where: { id: user.id },
+              data: { twoFactorSecret: symmetricEncrypt(result) },
+            }),
+        });
         if (secret.length !== 32) {
           console.error(
             `Two factor secret decryption failed. Expected key with length 32 but got ${secret.length}`

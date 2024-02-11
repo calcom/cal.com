@@ -43,6 +43,7 @@ jobs:
         env:
           ALLOWED_HOSTNAMES: ${{ vars.CI_ALLOWED_HOSTNAMES }}
           CALENDSO_ENCRYPTION_KEY: ${{ secrets.CI_CALENDSO_ENCRYPTION_KEY }}
+          CALENDSO_OlD_ENCRYPTION_KEY: ${{ secrets.CI_CALENDSO_OlD_ENCRYPTION_KEY }}
           DATABASE_URL: ${{ secrets.CI_DATABASE_URL }}
           DATABASE_DIRECT_URL: ${{ secrets.CI_DATABASE_URL }}
           DEPLOYSENTINEL_API_KEY: ${{ secrets.DEPLOYSENTINEL_API_KEY }}
