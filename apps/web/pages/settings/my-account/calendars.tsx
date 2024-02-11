@@ -46,7 +46,7 @@ const CalendarsView = () => {
         title={t("calendars")}
         description={t("calendars_description")}
         CTA={<AddCalendarButton />}
-        borderInShellHeader={false}
+        borderInShellHeader={true}
       />
       <div className="mt-8">
         <CalendarListContainer />
