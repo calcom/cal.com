@@ -75,6 +75,7 @@ export default function RequiresConfirmationController({
               )}
               childrenClassName="lg:ml-0"
               title={t("requires_confirmation")}
+              data-testid="requires-confirmation"
               disabled={seatsEnabled || requiresConfirmationLockedProps.disabled}
               tooltip={seatsEnabled ? t("seat_options_doesnt_support_confirmation") : undefined}
               description={t("requires_confirmation_description")}

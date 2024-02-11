@@ -68,6 +68,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       where: {
         id: foundToken.teamId,
       },
+      include: {
+        parent: true,
+      },
     });
     if (team) {
       const teamMetadata = teamMetadataSchema.parse(team?.metadata);
@@ -97,10 +100,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       closeComUpsertTeamUser(team, user, membership.role);
 
       // Accept any child team invites for orgs.
-      if (team.parentId) {
+      if (team.parent) {
         await joinAnyChildTeamOnOrgInvite({
           userId: user.id,
-          orgId: team.parentId,
+          org: team.parent,
         });
       }
     }

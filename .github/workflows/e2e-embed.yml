@@ -11,6 +11,9 @@ jobs:
     services:
       postgres:
         image: postgres:12.1
+        credentials:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
         env:
           POSTGRES_USER: postgres
           POSTGRES_DB: calendso
@@ -18,6 +21,9 @@ jobs:
           - 5432:5432
       mailhog:
         image: mailhog/mailhog:v1.0.1
+        credentials:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
         ports:
           - 8025:8025
           - 1025:1025
@@ -44,6 +50,7 @@ jobs:
           ALLOWED_HOSTNAMES: ${{ vars.CI_ALLOWED_HOSTNAMES }}
           CALENDSO_ENCRYPTION_KEY: ${{ secrets.CI_CALENDSO_ENCRYPTION_KEY }}
           DATABASE_URL: ${{ secrets.CI_DATABASE_URL }}
+          DATABASE_DIRECT_URL: ${{ secrets.CI_DATABASE_URL }}
           DEPLOYSENTINEL_API_KEY: ${{ secrets.DEPLOYSENTINEL_API_KEY }}
           E2E_TEST_APPLE_CALENDAR_EMAIL: ${{ secrets.E2E_TEST_APPLE_CALENDAR_EMAIL }}
           E2E_TEST_APPLE_CALENDAR_PASSWORD: ${{ secrets.E2E_TEST_APPLE_CALENDAR_PASSWORD }}

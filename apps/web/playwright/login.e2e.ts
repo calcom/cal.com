@@ -20,9 +20,7 @@ testBothFutureAndLegacyRoutes.describe("user can login & logout succesfully", as
       await user.login();
 
       const shellLocator = page.locator(`[data-testid=dashboard-shell]`);
-
-      // expects the home page for an authorized user
-      await page.goto("/");
+      await page.waitForURL("/event-types");
       await expect(shellLocator).toBeVisible();
     });
 
@@ -33,7 +31,7 @@ testBothFutureAndLegacyRoutes.describe("user can login & logout succesfully", as
 
       // disclose and click the sign out button from the user dropdown
       await userDropdownDisclose();
-      const signOutBtn = await page.locator(`text=${signOutLabel}`);
+      const signOutBtn = page.locator(`text=${signOutLabel}`);
       await signOutBtn.click();
 
       await page.locator("[data-testid=logout-btn]").click();
