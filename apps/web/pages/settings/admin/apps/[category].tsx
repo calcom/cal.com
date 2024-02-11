@@ -11,7 +11,7 @@ function AdminAppsView() {
   const { t } = useLocale();
   return (
     <>
-      <Meta title={t("apps")} description={t("admin_apps_description")} />
+      <Meta title={t("apps")} description={t("admin_apps_description")} borderInShellHeader={true} />
       <AdminAppsList baseURL="/settings/admin/apps" />
     </>
   );

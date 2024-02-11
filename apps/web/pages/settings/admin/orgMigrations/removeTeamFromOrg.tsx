@@ -22,6 +22,7 @@ function Wrapper({ children }: { children: React.ReactNode }) {
       <Meta
         title="Organization Migration: Revert a team"
         description="Reverts a migration of a team to an organization"
+        borderInShellHeader={true}
       />
       {children}
     </div>

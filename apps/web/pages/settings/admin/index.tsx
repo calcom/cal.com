@@ -8,7 +8,7 @@ import { getLayout } from "@components/auth/layouts/AdminLayout";
 function AdminAppsView() {
   return (
     <>
-      <Meta title="Admin" description="admin_description" />
+      <Meta title="Admin" description="admin_description" borderInShellHeader={true} />
       <h1>Admin index</h1>
     </>
   );

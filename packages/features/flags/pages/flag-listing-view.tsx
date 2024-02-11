@@ -19,7 +19,7 @@ const SkeletonLoader = () => {
 export const FlagListingView = () => {
   return (
     <>
-      <Meta title="Feature Flags" description="Here you can toggle your Cal.com instance features." />
+      <Meta title="Feature Flags" description="Here you can toggle your Cal.com instance features." borderInShellHeader={true} />
       <NoSSR>
         <Suspense fallback={<SkeletonLoader />}>
           <FlagAdminList />

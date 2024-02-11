@@ -170,7 +170,7 @@ const OtherTeamProfileView = () => {
 
   return (
     <>
-      <Meta title={t("profile")} description={t("profile_team_description")} />
+      <Meta title={t("profile")} description={t("profile_team_description")} borderInShellHeader={true} />
       {!isPending ? (
         <>
           {isAdmin ? (

@@ -44,7 +44,7 @@ const UsersEditView = ({ userId }: { userId: number }) => {
   });
   return (
     <LicenseRequired>
-      <Meta title={`Editing user: ${user.username}`} description="Here you can edit a current user." />
+      <Meta title={`Editing user: ${user.username}`} description="Here you can edit a current user." borderInShellHeader={true} />
       <NoSSR>
         <UserForm
           key={JSON.stringify(user)}

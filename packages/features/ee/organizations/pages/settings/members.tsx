@@ -20,7 +20,7 @@ const MembersView = () => {
 
   return (
     <LicenseRequired>
-      <Meta title={t("organization_members")} description={t("organization_description")} />
+      <Meta title={t("organization_members")} description={t("organization_description")} borderInShellHeader={true} />
       <div>
         {((currentOrg?.isPrivate && isOrgAdminOrOwner) || isOrgAdminOrOwner || !currentOrg?.isPrivate) && (
           <UserListTable />

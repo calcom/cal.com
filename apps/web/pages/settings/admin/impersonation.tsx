@@ -15,7 +15,7 @@ function AdminView() {
 
   return (
     <>
-      <Meta title={t("admin")} description={t("impersonation")} />
+      <Meta title={t("admin")} description={t("impersonation")} borderInShellHeader={true} />
       <form
         className="mb-6 w-full sm:w-1/2"
         onSubmit={(e) => {

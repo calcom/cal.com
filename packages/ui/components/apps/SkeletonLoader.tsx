@@ -14,7 +14,7 @@ export function SkeletonLoader({
   return (
     <>
       <ShellSubHeading title={<div className="bg-subtle h-6 w-32" />} {...{ className }} />
-      {title && description && <Meta title={title} description={description} />}
+      {title && description && <Meta title={title} description={description} borderInShellHeader={true}/>}
 
       <ul className="bg-default border-subtle divide-subtle -mx-4 animate-pulse divide-y rounded-md border sm:mx-0 sm:overflow-hidden">
         <SkeletonItem />

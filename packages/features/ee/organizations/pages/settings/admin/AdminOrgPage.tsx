@@ -219,7 +219,7 @@ const AdminOrgList = () => {
   const { t } = useLocale();
   return (
     <LicenseRequired>
-      <Meta title={t("organizations")} description={t("orgs_page_description")} />
+      <Meta title={t("organizations")} description={t("orgs_page_description")} borderInShellHeader={true} />
       <NoSSR>
         <AdminOrgTable />
       </NoSSR>

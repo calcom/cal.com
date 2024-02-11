@@ -19,6 +19,7 @@ const OnboardTeamMembersPage = () => {
       <Meta
         title={t("invite_organization_admins")}
         description={t("invite_organization_admins_description")}
+        borderInShellHeader={true}
       />
       <AddNewTeamMembers isOrg={true} />
     </>

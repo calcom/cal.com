@@ -27,6 +27,7 @@ function Wrapper({ children }: { children: React.ReactNode }) {
       <Meta
         title="Organization Migration: Move a user"
         description="Migrates a user to an organization along with the user's teams. But the teams' users are not migrated"
+        borderInShellHeader={true}
       />
       {children}
     </div>

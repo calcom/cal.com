@@ -28,7 +28,7 @@ export const getFormSchema = (t: TFunction) => {
 function Wrapper({ children }: { children: React.ReactNode }) {
   return (
     <div>
-      <Meta title="Organization Migration: Move a team" description="Migrates a team to an organization" />
+      <Meta title="Organization Migration: Move a team" description="Migrates a team to an organization" borderInShellHeader={true} />
       {children}
     </div>
   );

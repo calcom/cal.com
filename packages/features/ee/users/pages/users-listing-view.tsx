@@ -19,6 +19,7 @@ const DeploymentUsersListPage = () => {
             <Button href="/settings/admin/users/add">Add user</Button>
           </div>
         }
+        borderInShellHeader={true}
       />
       <NoSSR>
         <UsersTable />

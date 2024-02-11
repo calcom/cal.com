@@ -10,7 +10,7 @@ const TeamListingView = () => {
   const { t } = useLocale();
   return (
     <>
-      <Meta title={t("teams")} description={t("create_manage_teams_collaborative")} />
+      <Meta title={t("teams")} description={t("create_manage_teams_collaborative")} borderInShellHeader={true} />
       <TeamsListing />
     </>
   );

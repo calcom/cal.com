@@ -35,7 +35,7 @@ export default function OAuthView() {
 
   return (
     <div>
-      <Meta title="OAuth" description="Add new OAuth Clients" />
+      <Meta title="OAuth" description="Add new OAuth Clients" borderInShellHeader={true} />
       {!clientId ? (
         <Form
           form={oAuthForm}
