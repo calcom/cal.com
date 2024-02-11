@@ -152,12 +152,13 @@ const providers: Provider[] = [
 
         if (!user.backupCodes) throw new Error(ErrorCode.MissingBackupCodes);
 
-        const backupCodes = symmetricDecrypt(user.backupCodes, {
+        const backupCodes: string[] = symmetricDecrypt(user.backupCodes, {
           schema: z.array(z.string()),
+          // Re-encrypt backup codes with new key
           onShouldUpdate: async (result) =>
             await prisma.user.update({
               where: { id: user.id },
-              data: { backupCodes: symmetricEncrypt(result) },
+              data: { backupCodes: symmetricEncrypt(JSON.stringify(result)) },
             }),
         });
 
@@ -166,7 +167,7 @@ const providers: Provider[] = [
         if (index === -1) throw new Error(ErrorCode.IncorrectBackupCode);
 
         // delete verified backup code and re-encrypt remaining
-        backupCodes[index] = null;
+        backupCodes.splice(index, 1);
         await prisma.user.update({
           where: {
             id: user.id,
