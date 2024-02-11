@@ -15,10 +15,10 @@ const AddNewTeamsPage = () => {
   const { t } = useLocale();
   return (
     <>
-      <Meta 
-        title={t("create_your_teams")} 
-        description={t("create_your_teams_description")} 
-        borderInShellHeader={true} 
+      <Meta
+        title={t("create_your_teams")}
+        description={t("create_your_teams_description")}
+        borderInShellHeader={true}
       />
       <AddNewTeamsForm />
     </>
