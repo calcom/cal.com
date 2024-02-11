@@ -12,7 +12,11 @@ const SetPasswordPage = () => {
   const { t } = useLocale();
   return (
     <>
-      <Meta title={t("set_a_password")} description={t("set_a_password_description")} borderInShellHeader={true}/>
+      <Meta 
+        title={t("set_a_password")} 
+        description={t("set_a_password_description")} 
+        borderInShellHeader={true}
+      />
       <SetPasswordForm />
     </>
   );

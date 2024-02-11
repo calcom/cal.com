@@ -14,7 +14,11 @@ const CreateNewOrganizationPage = ({ querySlug }: inferSSRProps<typeof getServer
   const { t } = useLocale();
   return (
     <LicenseRequired>
-      <Meta title={t("set_up_your_organization")} description={t("organizations_description")} borderInShellHeader={true} />
+      <Meta 
+        title={t("set_up_your_organization")} 
+        description={t("organizations_description")} 
+        borderInShellHeader={true} 
+      />
       <CreateANewOrganizationForm slug={querySlug} />
     </LicenseRequired>
   );
