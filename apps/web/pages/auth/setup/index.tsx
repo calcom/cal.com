@@ -130,7 +130,7 @@ export function Setup(props: inferSSRProps<typeof getServerSideProps>) {
 
   return (
     <>
-      <Meta title={t("setup")} description={t("setup_description")} borderInShellHeader={true} />
+      <Meta title={t("setup")} description={t("setup_description")} />
       <main className="bg-subtle flex items-center print:h-full md:h-screen">
         <WizardForm
           href="/auth/setup"

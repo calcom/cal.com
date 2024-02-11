@@ -142,7 +142,6 @@ const MembersView = () => {
       <Meta
         title={t("team_members")}
         description={t("members_team_description")}
-        borderInShellHeader={true}
         CTA={
           isAdmin || isOrgAdminOrOwner ? (
             <Button

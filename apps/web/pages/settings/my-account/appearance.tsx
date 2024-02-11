@@ -36,7 +36,7 @@ import PageWrapper from "@components/PageWrapper";
 const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
   return (
     <SkeletonContainer>
-      <Meta title={title} description={description} borderInShellHeader={true} />
+      <Meta title={title} description={description} borderInShellHeader={false} />
       <div className="border-subtle mt-6 flex items-center rounded-t-xl border p-6 text-sm">
         <SkeletonText className="h-8 w-1/3" />
       </div>
@@ -143,7 +143,7 @@ const AppearanceView = ({
 
   return (
     <div>
-      <Meta title={t("appearance")} description={t("appearance_description")} borderInShellHeader={true} />
+      <Meta title={t("appearance")} description={t("appearance_description")} borderInShellHeader={false} />
       <div className="border-subtle mt-6 flex items-center rounded-t-lg border p-6 text-sm">
         <div>
           <p className="text-default text-base font-semibold">{t("theme")}</p>

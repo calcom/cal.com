@@ -31,7 +31,7 @@ const UsersAddView = () => {
   });
   return (
     <LicenseRequired>
-      <Meta title="Add new user" description="Here you can add a new user." borderInShellHeader={true} />
+      <Meta title="Add new user" description="Here you can add a new user." />
       <UserForm
         submitLabel="Add user"
         onSubmit={async (values) => {

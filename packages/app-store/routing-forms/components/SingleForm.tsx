@@ -305,7 +305,7 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
           });
         }}>
         <FormActionsProvider appUrl={appUrl}>
-          <Meta title={form.name} description={form.description || ""} borderInShellHeader={true} />
+          <Meta title={form.name} description={form.description || ""} />
           <ShellMain
             heading={
               <div className="flex">

@@ -82,7 +82,7 @@ const OrgAppearanceView = ({
       <Meta
         title={t("appearance")}
         description={t("appearance_org_description")}
-        borderInShellHeader={true}
+        borderInShellHeader={false}
       />
       {isAdminOrOwner ? (
         <div>

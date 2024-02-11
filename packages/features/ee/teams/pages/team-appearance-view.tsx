@@ -83,7 +83,7 @@ const ProfileView = ({ team }: ProfileViewProps) => {
       <Meta
         title={t("booking_appearance")}
         description={t("appearance_team_description")}
-        borderInShellHeader={true}
+        borderInShellHeader={false}
       />
       {isAdmin ? (
         <>
