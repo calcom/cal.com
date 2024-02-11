@@ -2258,6 +2258,8 @@
   "set_priority": "הגדרת עדיפות",
   "priority_for_user": "העדיפות של {{userName}}",
   "change_priority": "שינוי עדיפות",
+  "field_identifiers_as_variables": "להשתמש במזהי השדות כמשתנים להפניות האירועים בהתאמה אישית",
+  "field_identifiers_as_variables_with_example": "להשתמש במזהי השדות כמשתנים להפניות האירועים בהתאמה אישית (למשל: {{variable}})",
   "account_already_linked": "החשבון כבר מקושר",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
