@@ -4,6 +4,7 @@ import { SlotsService } from "@/modules/slots/services/slots.service";
 import { Body, Controller, Post, Req, Res, UseGuards } from "@nestjs/common";
 import { Response as ExpressResponse, Request as ExpressRequest } from "express";
 
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { ApiResponse } from "@calcom/platform-types";
 
 @Controller({
@@ -24,7 +25,7 @@ export class SlotsController {
 
     res.cookie("uid", uid);
     return {
-      status: "success",
+      status: SUCCESS_STATUS,
       data: uid,
     };
   }
