@@ -43,5 +43,6 @@ lerna-debug.log*
 !.env.example
 !.env.appStore.example
 
-# documentation artifacts
-openapi.json
+# fern
+fern
+generated
