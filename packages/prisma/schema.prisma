@@ -354,7 +354,7 @@ model Team {
   instantMeetingTokens InstantMeetingToken[]
   orgProfiles          Profile[]
   pendingPayment       Boolean                 @default(false)
-  scimDirectory        scimDirectory?
+  dSyncData            DSyncData?
 
   @@unique([slug, parentId])
 }
@@ -1116,10 +1116,10 @@ model OutOfOfficeEntry {
   @@index([start, end])
 }
 
-model scimDirectory {
+model DSyncData {
   id          Int    @id @default(autoincrement())
   directoryId String
   tenant      String
-  teamId      Int    @unique
-  team        Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamId      Int?   @unique
+  team        Team?  @relation(fields: [teamId], references: [id], onDelete: Cascade)
 }
