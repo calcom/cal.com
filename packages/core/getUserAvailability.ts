@@ -313,10 +313,11 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
   });
 
   const formattedBusyTimes = detailedBusyTimes.map((busy) => ({
-    start: dayjs(busy.start),
-    end: dayjs(busy.end),
+    start: dayjs(busy.start).tz(timeZone),
+    end: dayjs(busy.end).tz(timeZone),
   }));
 
+  //INFO  formattedBusyTimes need to be in the same tz as dateRanges to subtract correctly.
   const dateRangesInWhichUserIsAvailable = subtract(dateRanges, formattedBusyTimes);
 
   log.debug(
@@ -492,6 +493,7 @@ const _getBusyTimesFromLimits = async (
     performance.measure(`checking duration limits took $1'`, "durationLimitsStart", "durationLimitsEnd");
   }
   const busyTimes = limitManager.getBusyTimes();
+  busyTimes.toSorted((a, b) => (dayjs(a).isBefore(b) ? -1 : 1));
   if (eventType.seatsPerTimeSlot) {
     const bookingsWithRemainingSeats = bookings.filter(
       (booking) =>
@@ -513,7 +515,7 @@ const _getBusyTimesFromLimits = async (
               end: dayjs(booking.start).subtract(1, "ms").toISOString(),
             },
             {
-              start: booking.end,
+              start: booking.end.toISOString(),
               end: busyTime.end,
             }
           );

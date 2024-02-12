@@ -4,6 +4,7 @@ import prismock from "../../../../tests/libs/__mocks__/prisma";
 import { diff } from "jest-diff";
 import { describe, expect, vi, beforeEach, afterEach, test } from "vitest";
 
+import { appStoreMetadata } from "@calcom/app-store/apps.metadata.generated";
 import dayjs from "@calcom/dayjs";
 import type { BookingStatus } from "@calcom/prisma/enums";
 import type { Slot } from "@calcom/trpc/server/routers/viewer/slots/types";
@@ -13,6 +14,7 @@ import {
   getDate,
   getGoogleCalendarCredential,
   createBookingScenario,
+  getMockBookingAttendee,
 } from "../utils/bookingScenario/bookingScenario";
 
 vi.mock("@calcom/lib/constants", () => ({
@@ -1062,13 +1064,59 @@ describe("getSchedule", () => {
             startTime: `${plus2DateString}T08:00:00.000Z`,
             endTime: `${plus2DateString}T09:00:00.000Z`,
             status: "ACCEPTED" as BookingStatus,
+            references: [
+              {
+                type: appStoreMetadata.dailyvideo.type,
+                uid: "MOCK_ID",
+                meetingId: "MOCK_ID",
+                meetingPassword: "MOCK_PASS",
+                meetingUrl: "http://mock-dailyvideo.example.com",
+                credentialId: null,
+              },
+            ],
+            attendees: [
+              getMockBookingAttendee({
+                id: 10,
+                name: "Seat 1",
+                email: "seat1@test.com",
+                locale: "en",
+                timeZone: "America/Toronto",
+                bookingSeat: {
+                  referenceUid: "booking-seat-1",
+                  data: {},
+                },
+              }),
+            ],
           },
           {
             userId: 101,
             eventTypeId: 2,
-            startTime: `${plus2DateString}T08:00:00.000Z`,
-            endTime: `${plus2DateString}T09:00:00.000Z`,
+            startTime: `${plus2DateString}T09:00:00.000Z`,
+            endTime: `${plus2DateString}T10:00:00.000Z`,
             status: "ACCEPTED" as BookingStatus,
+            references: [
+              {
+                type: appStoreMetadata.dailyvideo.type,
+                uid: "MOCK_ID",
+                meetingId: "MOCK_ID",
+                meetingPassword: "MOCK_PASS",
+                meetingUrl: "http://mock-dailyvideo.example.com",
+                credentialId: null,
+              },
+            ],
+            attendees: [
+              getMockBookingAttendee({
+                id: 10,
+                name: "Seat 1",
+                email: "seat1@test.com",
+                locale: "en",
+                timeZone: "America/Toronto",
+                bookingSeat: {
+                  referenceUid: "booking-seat-1",
+                  data: {},
+                },
+              }),
+            ],
           },
         ],
       };
@@ -1112,7 +1160,7 @@ describe("getSchedule", () => {
           availableSlotsInTz.push(dayjs(timeObj.time).tz(Timezones["+6:00"]));
         });
       }
-      expect(availableSlotsInTz.filter((slot) => slot.format().startsWith(plus2DateString)).length).toBe(24);
+      expect(availableSlotsInTz.filter((slot) => slot.format().startsWith(plus2DateString)).length).toBe(23);
     });
 
     test("test that duration limit is working correctly for seated event if user is all day available", async () => {
@@ -1183,13 +1231,59 @@ describe("getSchedule", () => {
             startTime: `${plus2DateString}T08:00:00.000Z`,
             endTime: `${plus2DateString}T09:00:00.000Z`,
             status: "ACCEPTED" as BookingStatus,
+            references: [
+              {
+                type: appStoreMetadata.dailyvideo.type,
+                uid: "MOCK_ID",
+                meetingId: "MOCK_ID",
+                meetingPassword: "MOCK_PASS",
+                meetingUrl: "http://mock-dailyvideo.example.com",
+                credentialId: null,
+              },
+            ],
+            attendees: [
+              getMockBookingAttendee({
+                id: 10,
+                name: "Seat 1",
+                email: "seat1@test.com",
+                locale: "en",
+                timeZone: "America/Toronto",
+                bookingSeat: {
+                  referenceUid: "booking-seat-1",
+                  data: {},
+                },
+              }),
+            ],
           },
           {
             userId: 101,
             eventTypeId: 2,
-            startTime: `${plus2DateString}T08:00:00.000Z`,
-            endTime: `${plus2DateString}T09:00:00.000Z`,
+            startTime: `${plus2DateString}T09:00:00.000Z`,
+            endTime: `${plus2DateString}T10:00:00.000Z`,
             status: "ACCEPTED" as BookingStatus,
+            references: [
+              {
+                type: appStoreMetadata.dailyvideo.type,
+                uid: "MOCK_ID",
+                meetingId: "MOCK_ID",
+                meetingPassword: "MOCK_PASS",
+                meetingUrl: "http://mock-dailyvideo.example.com",
+                credentialId: null,
+              },
+            ],
+            attendees: [
+              getMockBookingAttendee({
+                id: 10,
+                name: "Seat 1",
+                email: "seat1@test.com",
+                locale: "en",
+                timeZone: "America/Toronto",
+                bookingSeat: {
+                  referenceUid: "booking-seat-1",
+                  data: {},
+                },
+              }),
+            ],
           },
         ],
       };
@@ -1233,7 +1327,7 @@ describe("getSchedule", () => {
           availableSlotsInTz.push(dayjs(timeObj.time).tz(Timezones["+6:00"]));
         });
       }
-      expect(availableSlotsInTz.filter((slot) => slot.format().startsWith(plus2DateString)).length).toBe(24);
+      expect(availableSlotsInTz.filter((slot) => slot.format().startsWith(plus2DateString)).length).toBe(23);
     });
   });
 
