@@ -80,6 +80,7 @@ const Route = ({
   moveDown,
   appUrl,
   disabled = false,
+  fieldIdentifiers,
 }: {
   form: inferSSRProps<typeof getServerSideProps>["form"];
   route: Route;
@@ -87,6 +88,7 @@ const Route = ({
   setRoute: (id: string, route: Partial<Route>) => void;
   config: QueryBuilderUpdatedConfig;
   setRoutes: React.Dispatch<React.SetStateAction<Route[]>>;
+  fieldIdentifiers: string[];
   moveUp?: { fn: () => void; check: () => boolean } | null;
   moveDown?: { fn: () => void; check: () => boolean } | null;
   appUrl: string;
@@ -136,8 +138,8 @@ const Route = ({
       ? eventOptions[0].value.substring(0, eventOptions[0].value.lastIndexOf("/") + 1)
       : "";
 
-  const [customEventTypeSlug, setCustomEventTypeSlug] = useState(
-    !isRouter(route) ? route.action.value.split("/").pop() : ""
+  const [customEventTypeSlug, setCustomEventTypeSlug] = useState<string>(
+    !isRouter(route) ? route.action.value.split("/").pop() ?? "" : ""
   );
 
   const onChange = (route: Route, immutableTree: ImmutableTree, config: QueryBuilderUpdatedConfig) => {
@@ -271,7 +273,7 @@ const Route = ({
                       isDisabled={disabled}
                       options={
                         eventOptions.length !== 0
-                          ? eventOptions.concat({ label: t("Custom"), value: "custom" })
+                          ? [{ label: t("custom"), value: "custom" }].concat(eventOptions)
                           : []
                       }
                       onChange={(option) => {
@@ -280,6 +282,7 @@ const Route = ({
                         }
                         if (option.value !== "custom") {
                           setRoute(route.id, { action: { ...route.action, value: option.value } });
+                          setCustomEventTypeSlug("");
                         } else {
                           setRoute(route.id, { action: { ...route.action, value: "custom" } });
                           setCustomEventTypeSlug("");
@@ -287,7 +290,10 @@ const Route = ({
                       }}
                       value={
                         eventOptions.length !== 0 && route.action.value !== ""
-                          ? eventOptions.find((eventOption) => eventOption.value === route.action.value) || {
+                          ? eventOptions.find(
+                              (eventOption) =>
+                                eventOption.value === route.action.value && !customEventTypeSlug.length
+                            ) || {
                               label: t("custom"),
                               value: "custom",
                             }
@@ -295,8 +301,10 @@ const Route = ({
                       }
                     />
                     {eventOptions.length !== 0 &&
-                      route.action.value !== "" &&
-                      !eventOptions.find((eventOption) => eventOption.value === route.action.value) && (
+                    route.action.value !== "" &&
+                    (!eventOptions.find((eventOption) => eventOption.value === route.action.value) ||
+                      customEventTypeSlug.length) ? (
+                      <>
                         <TextField
                           disabled={disabled}
                           className="border-default flex w-full flex-grow text-sm"
@@ -312,7 +320,19 @@ const Route = ({
                           }}
                           placeholder="event-url"
                         />
-                      )}
+                        <div className="mt-2 ">
+                          <p className="text-subtle text-xs">
+                            {fieldIdentifiers.length
+                              ? t("field_identifiers_as_variables_with_example", {
+                                  variable: `{${fieldIdentifiers[0]}}`,
+                                })
+                              : t("field_identifiers_as_variables")}
+                          </p>
+                        </div>
+                      </>
+                    ) : (
+                      <></>
+                    )}
                   </div>
                 )
               ) : null}
@@ -504,6 +524,10 @@ const Routes = ({
 
   hookForm.setValue("routes", routesToSave);
 
+  const fields = hookForm.getValues("fields");
+
+  const fieldIdentifiers = fields ? fields.map((field) => field.identifier ?? field.label) : [];
+
   return (
     <div className="bg-default border-subtle flex flex-col-reverse rounded-md border p-8 md:flex-row">
       <div ref={animationRef} className="w-full ltr:mr-2 rtl:ml-2">
@@ -515,6 +539,7 @@ const Routes = ({
               key={route.id}
               config={config}
               route={route}
+              fieldIdentifiers={fieldIdentifiers}
               moveUp={{
                 check: () => key !== 0,
                 fn: () => {
@@ -587,6 +612,7 @@ const Routes = ({
             setRoute={setRoute}
             setRoutes={setRoutes}
             appUrl={appUrl}
+            fieldIdentifiers={fieldIdentifiers}
           />
         </div>
       </div>
