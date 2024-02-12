@@ -492,8 +492,9 @@ const _getBusyTimesFromLimits = async (
     performance.mark("durationLimitsEnd");
     performance.measure(`checking duration limits took $1'`, "durationLimitsStart", "durationLimitsEnd");
   }
-  const busyTimes = limitManager.getBusyTimes();
-  busyTimes.toSorted((a, b) => (dayjs(a).isBefore(b) ? -1 : 1));
+
+  const busyTimes = limitManager.getBusyTimes().sort((a, b) => (dayjs(a.start).isBefore(b.start) ? -1 : 1));
+
   if (eventType.seatsPerTimeSlot) {
     const bookingsWithRemainingSeats = bookings.filter(
       (booking) =>
