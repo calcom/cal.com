@@ -9,7 +9,7 @@ import Switch from "./Switch";
 type Props = {
   children?: ReactNode;
   title: string;
-  description?: string;
+  description?: string | React.ReactNode;
   checked: boolean;
   disabled?: boolean;
   LockedIcon?: React.ReactNode;
@@ -21,6 +21,7 @@ type Props = {
   childrenClassName?: string;
   switchContainerClassName?: string;
   labelClassName?: string;
+  descriptionClassName?: string;
 };
 
 function SettingsToggle({
@@ -37,6 +38,7 @@ function SettingsToggle({
   childrenClassName,
   switchContainerClassName,
   labelClassName,
+  descriptionClassName,
   ...rest
 }: Props) {
   const [animateRef] = useAutoAnimate<HTMLDivElement>();
@@ -63,7 +65,10 @@ function SettingsToggle({
                 </div>
                 {description && (
                   <p
-                    className="text-default -mt-1.5 text-sm leading-normal"
+                    className={classNames(
+                      "text-default -mt-1.5 text-sm leading-normal",
+                      descriptionClassName
+                    )}
                     data-testid={`${rest["data-testid"]}-description`}>
                     {description}
                   </p>
@@ -92,7 +97,8 @@ function SettingsToggle({
               />
 
               <div>
-                <Label className="text-emphasis text-sm font-semibold leading-none">
+                <Label
+                  className={classNames("text-emphasis text-sm font-semibold leading-none", labelClassName)}>
                   {title}
                   {LockedIcon}
                 </Label>
