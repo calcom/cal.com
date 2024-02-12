@@ -25,9 +25,11 @@ import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
+import type { User } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc, TRPCClientError } from "@calcom/trpc/react";
+import type { UserProfile } from "@calcom/types/UserProfile";
 import {
   Alert,
   Avatar,
@@ -76,6 +78,7 @@ import useMeQuery from "@lib/hooks/useMeQuery";
 import SkeletonLoader from "@components/eventtype/SkeletonLoader";
 
 type EventTypeGroups = RouterOutputs["viewer"]["eventTypes"]["getByViewer"]["eventTypeGroups"];
+
 type EventTypeGroupProfile = EventTypeGroups[number]["profile"];
 type GetByViewerResponse = RouterOutputs["viewer"]["eventTypes"]["getByViewer"] | undefined;
 
@@ -89,16 +92,27 @@ interface EventTypeListHeadingProps {
 type EventTypeGroup = EventTypeGroups[number];
 type EventType = EventTypeGroup["eventTypes"][number];
 
+type DeNormalizedEventType = Omit<EventType, "userIds"> & {
+  users: (Pick<User, "id" | "name" | "username" | "avatarUrl"> & {
+    nonProfileUsername: string | null;
+    profile: UserProfile;
+  })[];
+};
+
+type DeNormalizedEventTypeGroup = Omit<EventTypeGroup, "eventTypes"> & {
+  eventTypes: DeNormalizedEventType[];
+};
+
 interface EventTypeListProps {
-  group: EventTypeGroup;
+  group: DeNormalizedEventTypeGroup;
   groupIndex: number;
   readOnly: boolean;
   bookerUrl: string | null;
-  types: EventType[];
+  types: DeNormalizedEventType[];
 }
 
 interface MobileTeamsTabProps {
-  eventTypeGroups: EventTypeGroups;
+  eventTypeGroups: DeNormalizedEventTypeGroup[];
 }
 
 const querySchema = z.object({
@@ -136,7 +150,15 @@ const MobileTeamsTab: FC<MobileTeamsTabProps> = (props) => {
   );
 };
 
-const Item = ({ type, group, readOnly }: { type: EventType; group: EventTypeGroup; readOnly: boolean }) => {
+const Item = ({
+  type,
+  group,
+  readOnly,
+}: {
+  type: DeNormalizedEventType;
+  group: DeNormalizedEventTypeGroup;
+  readOnly: boolean;
+}) => {
   const { t } = useLocale();
 
   const content = () => (
@@ -238,7 +260,7 @@ export const EventTypeList = ({
       await utils.viewer.eventTypes.getByViewer.cancel();
       const previousValue = utils.viewer.eventTypes.getByViewer.getData();
       if (previousValue) {
-        const newList = [...types];
+        const newList = [...types.map(normalizeEventType)];
         const itemIndex = newList.findIndex((item) => item.id === id);
         if (itemIndex !== -1 && newList[itemIndex]) {
           newList[itemIndex].hidden = !newList[itemIndex].hidden;
@@ -267,13 +289,13 @@ export const EventTypeList = ({
   });
 
   async function moveEventType(index: number, increment: 1 | -1) {
-    const newList = [...types];
+    const newList = [...types.map(normalizeEventType)];
 
     const type = types[index];
     const tmp = types[index + increment];
     if (tmp) {
-      newList[index] = tmp;
-      newList[index + increment] = type;
+      newList[index] = normalizeEventType(tmp);
+      newList[index + increment] = normalizeEventType(type);
     }
 
     await utils.viewer.eventTypes.getByViewer.cancel();
@@ -301,7 +323,7 @@ export const EventTypeList = ({
   }
 
   // inject selection data into url for correct router history
-  const openDuplicateModal = (eventType: EventType, group: EventTypeGroup) => {
+  const openDuplicateModal = (eventType: DeNormalizedEventType, group: DeNormalizedEventTypeGroup) => {
     const newSearchParams = new URLSearchParams(searchParams ?? undefined);
     function setParamsIfDefined(key: string, value: string | number | boolean | null | undefined) {
       if (value) newSearchParams.set(key, value.toString());
@@ -326,7 +348,7 @@ export const EventTypeList = ({
       await utils.viewer.eventTypes.getByViewer.cancel();
       const previousValue = utils.viewer.eventTypes.getByViewer.getData();
       if (previousValue) {
-        const newList = types.filter((item) => item.id !== id);
+        const newList = types.filter((item) => item.id !== id).map(normalizeEventType);
 
         utils.viewer.eventTypes.getByViewer.setData(undefined, {
           ...previousValue,
@@ -811,12 +833,12 @@ const CTA = ({ data }: { data: GetByViewerResponse }) => {
 const Actions = () => {
   return (
     <div className="hidden items-center md:flex">
-      <TeamsFilter popoverTriggerClassNames="mb-0" showVerticalDivider={true} />
+      <TeamsFilter useProfileFilter popoverTriggerClassNames="mb-0" showVerticalDivider={true} />
     </div>
   );
 };
 
-const EmptyEventTypeList = ({ group }: { group: EventTypeGroup }) => {
+const EmptyEventTypeList = ({ group }: { group: DeNormalizedEventTypeGroup }) => {
   const { t } = useLocale();
   return (
     <>
@@ -838,7 +860,7 @@ const EmptyEventTypeList = ({ group }: { group: EventTypeGroup }) => {
 const Main = ({
   status,
   errorMessage,
-  data,
+  data: rawData,
   filters,
 }: {
   status: string;
@@ -849,7 +871,7 @@ const Main = ({
   const isMobile = useMediaQuery("(max-width: 768px)");
   const searchParams = useCompatSearchParams();
 
-  if (!data || status === "pending") {
+  if (!rawData || status === "pending") {
     return <SkeletonLoader />;
   }
 
@@ -858,7 +880,11 @@ const Main = ({
   }
 
   const isFilteredByOnlyOneItem =
-    (filters?.teamIds?.length === 1 || filters?.userIds?.length === 1) && data.eventTypeGroups.length === 1;
+    (filters?.teamIds?.length === 1 || filters?.userIds?.length === 1) &&
+    rawData.eventTypeGroups.length === 1;
+
+  const data = denormalizePayload(rawData);
+
   return (
     <>
       {data.eventTypeGroups.length > 1 || isFilteredByOnlyOneItem ? (
@@ -866,7 +892,7 @@ const Main = ({
           {isMobile ? (
             <MobileTeamsTab eventTypeGroups={data.eventTypeGroups} />
           ) : (
-            data.eventTypeGroups.map((group: EventTypeGroup, index: number) => (
+            data.eventTypeGroups.map((group, index: number) => (
               <div
                 className="mt-4 flex flex-col"
                 data-testid={`slug-${group.profile.slug}`}
@@ -968,3 +994,34 @@ const EventTypesPage: React.FC & {
 };
 
 export default EventTypesPage;
+
+function normalizeEventType(eventType: DeNormalizedEventType): EventType {
+  return {
+    ...eventType,
+    userIds: eventType.users.map((user) => user.id),
+  };
+}
+
+function denormalizePayload(data: NonNullable<GetByViewerResponse>) {
+  return {
+    ...data,
+    eventTypeGroups: data.eventTypeGroups.map((eventTypeGroup) => {
+      return {
+        ...eventTypeGroup,
+        eventTypes: eventTypeGroup.eventTypes.map((eventType) => {
+          const { userIds, ...rest } = eventType;
+          return {
+            ...rest,
+            users: userIds.map((userId) => {
+              const user = data.allUsersAcrossAllEventTypes.get(userId);
+              if (!user) {
+                throw new Error(`User with id ${userId} not found in allUsersAcrossAllEventTypes`);
+              }
+              return user;
+            }),
+          };
+        }),
+      };
+    }),
+  };
+}
