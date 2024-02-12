@@ -343,7 +343,7 @@ function EventTypeSingleLayout({
                       id="hiddenSwitch"
                       checked={!formMethods.watch("hidden")}
                       onCheckedChange={(e) => {
-                        formMethods.setValue("hidden", !e);
+                        formMethods.setValue("hidden", !e, { shouldDirty: true });
                       }}
                     />
                   </div>
@@ -459,7 +459,7 @@ function EventTypeSingleLayout({
                   id="hiddenSwitch"
                   checked={!formMethods.watch("hidden")}
                   onCheckedChange={(e) => {
-                    formMethods.setValue("hidden", !e);
+                    formMethods.setValue("hidden", !e, { shouldDirty: true });
                   }}
                 />
               </div>
