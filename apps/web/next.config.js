@@ -208,6 +208,10 @@ const nextConfig = {
     unoptimized: true,
   },
   webpack: (config, { webpack, buildId, isServer }) => {
+    // https://github.com/getsentry/sentry-javascript/issues/10468#issuecomment-1935854545
+    if (isServer) {
+      config.devtool = "source-map";
+    }
     if (isServer) {
       // Module not found fix @see https://github.com/boxyhq/jackson/issues/1535#issuecomment-1704381612
       config.plugins.push(
