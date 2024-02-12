@@ -51,6 +51,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     ...rest
   } = input;
 
+  //FIXME:: prefer to capture all necessary fields for updateChildrenEventTypes from here
   const eventType = await ctx.prisma.eventType.findUniqueOrThrow({
     where: { id },
     select: {

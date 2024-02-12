@@ -409,13 +409,8 @@ describe("handleChildrenEventTypes", () => {
       });
       expect(prismaMock.eventType.update).toHaveBeenCalledWith({
         data: {
-          ...evType,
-          bookingLimits: undefined,
-          durationLimits: undefined,
-          recurringEvent: undefined,
+          hidden: false,
           hashedLink: undefined,
-          workflows: undefined,
-          scheduleId: undefined,
         },
         where: {
           userId_parentId: {

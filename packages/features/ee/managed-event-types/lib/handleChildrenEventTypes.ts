@@ -86,7 +86,7 @@ const checkExistentEventTypes = async ({
     return deletedReplacedEventTypes;
   }
 };
-// FIXME:: Go through each var here to confirm what the purpose is and improve the parameters (make it efficient)
+
 export default async function handleChildrenEventTypes({
   eventTypeId: parentId,
   oldEventType,
@@ -231,9 +231,9 @@ export default async function handleChildrenEventTypes({
             },
           },
           data: {
-            hidden: children?.find((ch) => ch.owner.id === userId)?.hidden ?? false,
             ...updatedValues,
             hashedLink: hashedLinkQuery(userId),
+            hidden: children?.find((ch) => ch.owner.id === userId)?.hidden ?? false,
           },
         });
       })
