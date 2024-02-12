@@ -1,0 +1,9 @@
+default-group: local
+groups:
+  local:
+    generators:
+      - name: fernapi/fern-typescript-node-sdk
+        version: 0.9.5
+        output:
+          location: local-file-system
+          path: ../generated/sdks/typescript

@@ -23,8 +23,8 @@
     "generate-schemas": "yarn prisma generate && yarn prisma format",
     "generate-openapi": "ts-node -r tsconfig-paths/register generate-openapi.ts",
     "init-fern": "yarn generate-openapi && rm -rf fern && fern init --openapi openapi.json && fern check --warnings",
-    "generate-fern-sdk": "yarn init-fern && rm openapi.json && fern generate",
-    "generate-fern-docs": "yarn init-fern && rm openapi.json && fern generate --docs"
+    "generate-fern-sdk": "yarn init-fern && fern generate",
+    "generate-fern-docs": "yarn init-fern && fern generate --docs"
   },
   "dependencies": {
     "@calcom/platform-constants": "*",
