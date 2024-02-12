@@ -35,18 +35,18 @@ export default function OAuthView() {
 
   return (
     <div>
-      <Meta title="OAuth" description="Add new OAuth Clients" borderInShellHeader />
-      <div className="border-subtle rounded-lg rounded-t-none border border-t-0 px-4 py-8">
-        {!clientId ? (
-          <Form
-            form={oAuthForm}
-            handleSubmit={(values) => {
-              mutation.mutate({
-                name: values.name,
-                redirectUri: values.redirectUri,
-                logo: values.logo,
-              });
-            }}>
+      <Meta title="OAuth" description="Add new OAuth Clients" />
+      {!clientId ? (
+        <Form
+          form={oAuthForm}
+          handleSubmit={(values) => {
+            mutation.mutate({
+              name: values.name,
+              redirectUri: values.redirectUri,
+              logo: values.logo,
+            });
+          }}>
+          <div className="">
             <TextField
               {...oAuthForm.register("name")}
               label="Client name"
@@ -83,71 +83,71 @@ export default function OAuthView() {
                 imageSrc={logo}
               />
             </div>
-            <Button type="submit" className="mt-3">
-              {t("add_client")}
-            </Button>
-          </Form>
-        ) : (
-          <div>
-            <div className="text-emphasis mb-5 text-xl font-semibold">{oAuthForm.getValues("name")}</div>
-            <div className="mb-2 font-medium">Client Id</div>
-            <div className="flex">
-              <code className="bg-subtle text-default w-full truncate rounded-md rounded-r-none py-[6px] pl-2 pr-2 align-middle font-mono">
-                {" "}
-                {clientId}
-              </code>
-              <Tooltip side="top" content="Copy to Clipboard">
-                <Button
-                  onClick={() => {
-                    navigator.clipboard.writeText(clientId);
-                    showToast("Client ID copied!", "success");
-                  }}
-                  type="button"
-                  className="rounded-l-none text-base"
-                  StartIcon={Clipboard}>
-                  {t("copy")}
-                </Button>
-              </Tooltip>
-            </div>
-            {clientSecret ? (
-              <>
-                <div className="mb-2 mt-4 font-medium">Client Secret</div>
-                <div className="flex">
-                  <code className="bg-subtle text-default w-full truncate rounded-md rounded-r-none py-[6px] pl-2 pr-2 align-middle font-mono">
-                    {" "}
-                    {clientSecret}
-                  </code>
-                  <Tooltip side="top" content="Copy to Clipboard">
-                    <Button
-                      onClick={() => {
-                        navigator.clipboard.writeText(clientSecret);
-                        setClientSecret("");
-                        showToast("Client secret copied!", "success");
-                      }}
-                      type="button"
-                      className="rounded-l-none text-base"
-                      StartIcon={Clipboard}>
-                      {t("copy")}
-                    </Button>
-                  </Tooltip>
-                </div>
-                <div className="text-subtle text-sm">{t("copy_client_secret_info")}</div>
-              </>
-            ) : (
-              <></>
-            )}
-            <Button
-              onClick={() => {
-                setClientId("");
-                setLogo("");
-                oAuthForm.reset();
-              }}
-              className="mt-5">
-              {t("add_new_client")}
-            </Button>
           </div>
-        )}
-      </div>
+          <Button type="submit" className="mt-3">
+            {t("add_client")}
+          </Button>
+        </Form>
+      ) : (
+        <div>
+          <div className="text-emphasis mb-5 text-xl font-semibold">{oAuthForm.getValues("name")}</div>
+          <div className="mb-2 font-medium">Client Id</div>
+          <div className="flex">
+            <code className="bg-subtle text-default w-full truncate rounded-md rounded-r-none py-[6px] pl-2 pr-2 align-middle font-mono">
+              {" "}
+              {clientId}
+            </code>
+            <Tooltip side="top" content="Copy to Clipboard">
+              <Button
+                onClick={() => {
+                  navigator.clipboard.writeText(clientId);
+                  showToast("Client ID copied!", "success");
+                }}
+                type="button"
+                className="rounded-l-none text-base"
+                StartIcon={Clipboard}>
+                {t("copy")}
+              </Button>
+            </Tooltip>
+          </div>
+          {clientSecret ? (
+            <>
+              <div className="mb-2 mt-4 font-medium">Client Secret</div>
+              <div className="flex">
+                <code className="bg-subtle text-default w-full truncate rounded-md rounded-r-none py-[6px] pl-2 pr-2 align-middle font-mono">
+                  {" "}
+                  {clientSecret}
+                </code>
+                <Tooltip side="top" content="Copy to Clipboard">
+                  <Button
+                    onClick={() => {
+                      navigator.clipboard.writeText(clientSecret);
+                      setClientSecret("");
+                      showToast("Client secret copied!", "success");
+                    }}
+                    type="button"
+                    className="rounded-l-none text-base"
+                    StartIcon={Clipboard}>
+                    {t("copy")}
+                  </Button>
+                </Tooltip>
+              </div>
+              <div className="text-subtle text-sm">{t("copy_client_secret_info")}</div>
+            </>
+          ) : (
+            <></>
+          )}
+          <Button
+            onClick={() => {
+              setClientId("");
+              setLogo("");
+              oAuthForm.reset();
+            }}
+            className="mt-5">
+            {t("add_new_client")}
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

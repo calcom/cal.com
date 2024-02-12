@@ -641,7 +641,7 @@ export default function SettingsLayout({
       TopNavContainer={
         <MobileSettingsContainer onSideContainerOpen={() => setSideContainerOpen(!sideContainerOpen)} />
       }>
-      <div className="flex flex-1 [&>*]:flex-1">
+      <div className="my-10 flex flex-1 [&>*]:flex-1">
         <div className="mx-auto max-w-full justify-center lg:max-w-4xl">
           <ShellHeader />
           <ErrorBoundary>
