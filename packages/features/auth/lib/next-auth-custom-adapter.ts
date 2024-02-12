@@ -75,21 +75,5 @@ export default function CalComAdapter(prismaClient: PrismaClient) {
     // @NOTE: All methods below here are not being used but leaved if they are required
     unlinkAccount: (provider_providerAccountId: Prisma.AccountProviderProviderAccountIdCompoundUniqueInput) =>
       prismaClient.account.delete({ where: { provider_providerAccountId } }),
-    async getSessionAndUser(sessionToken: string) {
-      const userAndSession = await prismaClient.session.findUnique({
-        where: { sessionToken },
-        include: { user: true },
-      });
-      if (!userAndSession) return null;
-      const { user, ...session } = userAndSession;
-      return { user, session };
-    },
-    createSession: (data: Prisma.SessionCreateInput) => prismaClient.session.create({ data }),
-    updateSession: (data: Prisma.SessionUpdateInput) =>
-      prismaClient.session.update({
-        where: { sessionToken: typeof data.sessionToken === "string" ? data.sessionToken : undefined },
-        data,
-      }),
-    deleteSession: (sessionToken: string) => prismaClient.session.delete({ where: { sessionToken } }),
   };
 }

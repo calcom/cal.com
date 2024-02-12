@@ -435,16 +435,7 @@ const BookerComponent = ({
               {...fadeInLeft}
               initial="visible"
               className="md:border-subtle ml-[-1px] h-full flex-shrink px-5 py-3 md:border-l lg:w-[var(--booker-main-width)]">
-              <div className="relative">
-                <HavingTroubleFindingTime
-                  dayCount={dayCount}
-                  isScheduleLoading={schedule.isLoading}
-                  onButtonClick={() => {
-                    setDayCount(null);
-                  }}
-                />
-                <DatePicker event={event} schedule={schedule} />
-              </div>
+              <DatePicker event={event} schedule={schedule} />
             </BookerSection>
 
             <BookerSection
@@ -483,15 +474,26 @@ const BookerComponent = ({
           </AnimatePresence>
         </div>
 
-        <m.span
-          key="logo"
-          className={classNames(
-            "-z-10 mb-6 mt-auto pt-6 [&_img]:h-[15px]",
-            hasDarkBackground ? "dark" : "",
-            layout === BookerLayouts.MONTH_VIEW ? "block" : "hidden"
-          )}>
-          {!hideBranding ? <PoweredBy logoOnly /> : null}
-        </m.span>
+        <HavingTroubleFindingTime
+          visible={bookerState !== "booking" && layout === BookerLayouts.MONTH_VIEW && !isMobile}
+          dayCount={dayCount}
+          isScheduleLoading={schedule.isLoading}
+          onButtonClick={() => {
+            setDayCount(null);
+          }}
+        />
+
+        {!hideBranding && (
+          <m.span
+            key="logo"
+            className={classNames(
+              "-z-10 mb-6 mt-auto pt-6 [&_img]:h-[15px]",
+              hasDarkBackground ? "dark" : "",
+              layout === BookerLayouts.MONTH_VIEW ? "block" : "hidden"
+            )}>
+            <PoweredBy logoOnly />
+          </m.span>
+        )}
       </div>
 
       <BookFormAsModal

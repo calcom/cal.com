@@ -14,6 +14,7 @@ type GetOptions = {
 
 export const getHandler = ({ ctx, input }: GetOptions) => {
   return getEventTypeById({
+    currentOrganizationId: ctx.user.profile?.organizationId ?? null,
     eventTypeId: input.id,
     userId: ctx.user.id,
     prisma: ctx.prisma,
