@@ -585,13 +585,38 @@ const nextConfig = {
 
 if (!!process.env.NEXT_PUBLIC_SENTRY_DSN) {
   nextConfig["sentry"] = {
+    // For all available options, see:
+    // https://github.com/getsentry/sentry-webpack-plugin#options
     autoInstrumentServerFunctions: true,
     hideSourceMaps: true,
     // disable source map generation for the server code
     disableServerWebpackPlugin: !!process.env.SENTRY_DISABLE_SERVER_WEBPACK_PLUGIN,
+    // Suppresses source map uploading logs during build
+    silent: true,
   };
 
-  plugins.push(withSentryConfig);
+  plugins.push((nc) =>
+    withSentryConfig(
+      nc,
+      {
+        ignore: ["node_modules"],
+      },
+      {
+        // Upload a larger set of source maps for prettier stack traces (increases build time)
+        widenClientFileUpload: true,
+        // Transpiles SDK to be compatible with IE11 (increases bundle size)
+        transpileClientSDK: false,
+        // Routes browser requests to Sentry through a Next.js rewrite to circumvent ad-blockers (increases server load)
+        // TODO: Use tunneling when is resolved
+        // https://github.com/getsentry/sentry-javascript/issues/8293
+        // tunnelRoute: "/web/monitoring",
+        // Hides source maps from generated client bundles
+        hideSourceMaps: true,
+        // Automatically tree-shake Sentry logger statements to reduce bundle size
+        disableLogger: true,
+      }
+    )
+  );
 }
 
 module.exports = () => plugins.reduce((acc, next) => next(acc), nextConfig);
