@@ -26,6 +26,6 @@ SELECT
 FROM
   users u;
 
--- AlterTable
+-- We rename instead of dropping the column to avoid possible data loss, will be dropped in the next migration.
 ALTER TABLE "users"
-DROP COLUMN "password";
+RENAME COLUMN "password" TO "password_deprecated";
