@@ -1,4 +1,4 @@
-import * as Sentry from "@sentry/nextjs";
+import { captureException as SentryCaptureException } from "@sentry/nextjs";
 
 import { redactError } from "@calcom/lib/redactError";
 
@@ -11,7 +11,7 @@ const captureErrorsMiddleware = middleware(async ({ next }) => {
     if (!cause) {
       return result;
     }
-    Sentry.captureException(cause);
+    SentryCaptureException(cause);
     throw redactError(cause);
   }
   return result;

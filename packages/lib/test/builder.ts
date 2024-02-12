@@ -105,6 +105,7 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     scheduleId: null,
     bookingLimits: null,
     durationLimits: null,
+    assignAllTeamMembers: false,
     price: 0,
     currency: "usd",
     slotInterval: null,
@@ -112,6 +113,7 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     successRedirectUrl: null,
     bookingFields: [],
     parentId: null,
+    profileId: null,
     ...eventType,
   };
 };
@@ -188,7 +190,9 @@ type UserPayload = Prisma.UserGetPayload<{
     schedules: true;
   };
 }>;
-export const buildUser = <T extends Partial<UserPayload>>(user?: T): UserPayload => {
+export const buildUser = <T extends Partial<UserPayload>>(
+  user?: T & { priority?: number }
+): UserPayload & { priority: number | null } => {
   return {
     locked: false,
     name: faker.name.firstName(),
@@ -235,6 +239,8 @@ export const buildUser = <T extends Partial<UserPayload>>(user?: T): UserPayload
     organizationId: null,
     allowSEOIndexing: null,
     receiveMonthlyDigestEmail: null,
+    movedToProfileId: null,
+    priority: user?.priority ?? null,
     ...user,
   };
 };

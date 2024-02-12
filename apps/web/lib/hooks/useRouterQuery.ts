@@ -11,7 +11,12 @@ export default function useRouterQuery<T extends string>(name: T) {
   const setQuery = useCallback(
     (newValue: string | number | null | undefined) => {
       const _searchParams = new URLSearchParams(searchParams ?? undefined);
-      _searchParams.set(name, newValue as string);
+      if (typeof newValue === "undefined") {
+        // when newValue is of type undefined, clear the search param.
+        _searchParams.delete(name);
+      } else {
+        _searchParams.set(name, newValue as string);
+      }
       router.replace(`${pathname}?${_searchParams.toString()}`);
     },
     [name, pathname, router, searchParams]

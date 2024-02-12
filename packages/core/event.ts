@@ -1,10 +1,23 @@
 import type { TFunction } from "next-i18next";
+import z from "zod";
 
 import { guessEventLocationType } from "@calcom/app-store/locations";
 import type { Prisma } from "@calcom/prisma/client";
 
+export const nameObjectSchema = z.object({
+  firstName: z.string(),
+  lastName: z.string().optional(),
+});
+
+function parseName(name: z.infer<typeof nameObjectSchema> | string | undefined) {
+  if (typeof name === "string") return name;
+  else if (typeof name === "object" && nameObjectSchema.parse(name))
+    return `${name.firstName} ${name.lastName}`.trim();
+  else return "Nameless";
+}
+
 export type EventNameObjectType = {
-  attendeeName: string;
+  attendeeName: z.infer<typeof nameObjectSchema> | string;
   eventType: string;
   eventName?: string | null;
   teamName?: string | null;
@@ -15,11 +28,13 @@ export type EventNameObjectType = {
 };
 
 export function getEventName(eventNameObj: EventNameObjectType, forAttendeeView = false) {
+  const attendeeName = parseName(eventNameObj.attendeeName);
+
   if (!eventNameObj.eventName)
     return eventNameObj.t("event_between_users", {
       eventName: eventNameObj.eventType,
       host: eventNameObj.teamName || eventNameObj.host,
-      attendeeName: eventNameObj.attendeeName,
+      attendeeName,
       interpolation: {
         escapeValue: false,
       },
@@ -40,12 +55,12 @@ export function getEventName(eventNameObj: EventNameObjectType, forAttendeeView 
   let dynamicEventName = eventName
     // Need this for compatibility with older event names
     .replaceAll("{Event type title}", eventNameObj.eventType)
-    .replaceAll("{Scheduler}", eventNameObj.attendeeName)
+    .replaceAll("{Scheduler}", attendeeName)
     .replaceAll("{Organiser}", eventNameObj.host)
-    .replaceAll("{USER}", eventNameObj.attendeeName)
-    .replaceAll("{ATTENDEE}", eventNameObj.attendeeName)
+    .replaceAll("{USER}", attendeeName)
+    .replaceAll("{ATTENDEE}", attendeeName)
     .replaceAll("{HOST}", eventNameObj.host)
-    .replaceAll("{HOST/ATTENDEE}", forAttendeeView ? eventNameObj.host : eventNameObj.attendeeName);
+    .replaceAll("{HOST/ATTENDEE}", forAttendeeView ? eventNameObj.host : attendeeName);
 
   const customInputvariables = dynamicEventName.match(/\{(.+?)}/g)?.map((variable) => {
     return variable.replace("{", "").replace("}", "");

@@ -2096,5 +2096,6 @@
   "description_lock_timezone_toggle_on_booking_page": "Для блокування часового поясу на сторінці бронювання (корисне для окремих заходів)",
   "extensive_whitelabeling": "Технічна підтримка й підтримка під час ознайомлення",
   "need_help": "Потрібна допомога?",
+  "show_more": "Більше",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

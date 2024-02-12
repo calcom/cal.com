@@ -1,3 +1,6 @@
+import { createAProfileForAnExistingUser } from "@calcom/lib/createAProfileForAnExistingUser";
+import { isOrganization } from "@calcom/lib/entityPermissionUtils";
+import { updateNewTeamMemberEventTypes } from "@calcom/lib/server/queries";
 import { closeComUpsertTeamUser } from "@calcom/lib/sync/SyncServiceManager";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -14,7 +17,7 @@ type AcceptOrLeaveOptions = {
 
 export const acceptOrLeaveHandler = async ({ ctx, input }: AcceptOrLeaveOptions) => {
   if (input.accept) {
-    const membership = await prisma.membership.update({
+    const teamMembership = await prisma.membership.update({
       where: {
         userId_teamId: { userId: ctx.user.id, teamId: input.teamId },
       },
@@ -26,11 +29,38 @@ export const acceptOrLeaveHandler = async ({ ctx, input }: AcceptOrLeaveOptions)
       },
     });
 
-    closeComUpsertTeamUser(membership.team, ctx.user, membership.role);
+    const team = teamMembership.team;
+
+    if (team.parentId) {
+      await prisma.membership.update({
+        where: {
+          userId_teamId: { userId: ctx.user.id, teamId: team.parentId },
+        },
+        data: {
+          accepted: true,
+        },
+        include: {
+          team: true,
+        },
+      });
+    }
+
+    const isAnOrganization = isOrganization({ team });
+    const isASubteam = team.parentId !== null;
+    const idOfOrganizationInContext = isAnOrganization ? team.id : isASubteam ? team.parentId : null;
+    const needProfileUpdate = !!idOfOrganizationInContext;
+    if (needProfileUpdate) {
+      await createAProfileForAnExistingUser({
+        user: ctx.user,
+        organizationId: idOfOrganizationInContext,
+      });
+    }
+    await updateNewTeamMemberEventTypes(ctx.user.id, input.teamId);
+    closeComUpsertTeamUser(team, ctx.user, teamMembership.role);
   } else {
     try {
       //get team owner so we can alter their subscription seat count
-      const teamOwner = await prisma.membership.findFirst({
+      const ownerMembership = await prisma.membership.findFirst({
         where: { teamId: input.teamId, role: MembershipRole.OWNER },
         include: { team: true },
       });
@@ -39,10 +69,21 @@ export const acceptOrLeaveHandler = async ({ ctx, input }: AcceptOrLeaveOptions)
         where: {
           userId_teamId: { userId: ctx.user.id, teamId: input.teamId },
         },
+        include: {
+          team: true,
+        },
       });
 
+      if (membership.team.parentId) {
+        await prisma.membership.delete({
+          where: {
+            userId_teamId: { userId: ctx.user.id, teamId: membership.team.parentId },
+          },
+        });
+      }
+
       // Sync Services: Close.com
-      if (teamOwner) closeComUpsertTeamUser(teamOwner.team, ctx.user, membership.role);
+      if (ownerMembership) closeComUpsertTeamUser(ownerMembership.team, ctx.user, membership.role);
     } catch (e) {
       console.log(e);
     }

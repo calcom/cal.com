@@ -16,8 +16,17 @@ let client_secret = "";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { code } = req.query;
+  const state = decodeOAuthState(req);
 
   if (typeof code !== "string") {
+    if (state?.onErrorReturnTo || state?.returnTo) {
+      res.redirect(
+        getSafeRedirectUrl(state.onErrorReturnTo) ??
+          getSafeRedirectUrl(state?.returnTo) ??
+          `${WEBAPP_URL}/apps/installed`
+      );
+      return;
+    }
     res.status(400).json({ message: "No code returned" });
     return;
   }
@@ -95,7 +104,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   await createOAuthAppCredential({ appId: "msteams", type: "office365_video" }, responseBody, req);
 
-  const state = decodeOAuthState(req);
   return res.redirect(
     getSafeRedirectUrl(state?.returnTo) ?? getInstalledAppPath({ variant: "conferencing", slug: "msteams" })
   );

@@ -53,6 +53,7 @@ export const apiHandlers = {
   roam: import("./roam/api"),
   "routing-forms": import("./routing-forms/api"),
   salesforce: import("./salesforce/api"),
+  salesroom: import("./salesroom/api"),
   sendgrid: import("./sendgrid/api"),
   shimmervideo: import("./shimmervideo/api"),
   signal: import("./signal/api"),
