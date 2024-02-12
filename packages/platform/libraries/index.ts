@@ -31,3 +31,5 @@ export type {
 } from "@calcom/features/bookings/types";
 export { HttpError } from "@calcom/lib/http-error";
 export type { AppsStatus } from "@calcom/types/Calendar";
+
+export { MINUTES_TO_BOOK } from "@calcom/lib/constants";
