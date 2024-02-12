@@ -3,7 +3,6 @@ import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 import type { InferGetStaticPropsType } from "next";
 
-import { getLayout } from "@calcom/features/MainLayoutAppDir";
 import { APP_NAME } from "@calcom/lib/constants";
 
 import { validStatuses } from "~/bookings/lib/validStatuses";
@@ -23,6 +22,6 @@ export const generateStaticParams = async () => {
   return validStatuses.map((status) => ({ status }));
 };
 
-export default WithLayout({ getLayout, getData, Page })<"P">;
+export default WithLayout({ getLayout: null, getData, Page })<"P">;
 
 export const dynamic = "force-static";
