@@ -40,7 +40,11 @@ export async function createUserAndEventType({
 }) {
   const userData = {
     ...user,
-    password: await hashPassword(user.password),
+    password: {
+      create: {
+        hash: await hashPassword(user.password),
+      },
+    },
     emailVerified: new Date(),
     completedOnboarding: user.completedOnboarding ?? true,
     locale: "en",
