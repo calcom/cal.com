@@ -58,7 +58,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
   } catch (error) {
     console.error(`Two factor secret decryption failed. ${error}`);
-    return null;
+    secret = null;
   }
 
   if (!secret) {
