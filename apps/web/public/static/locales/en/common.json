@@ -2258,6 +2258,8 @@
   "set_priority": "Set Priority",
   "priority_for_user": "Priority for {{userName}}",
   "change_priority": "change priority",
+  "field_identifiers_as_variables": "Use field identifiers as variables for your custom event redirect",
+  "field_identifiers_as_variables_with_example": "Use field identifiers as variables for your custom event redirect (e.g. {{variable}})",
   "account_already_linked": "Account is already linked",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
