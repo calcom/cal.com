@@ -233,6 +233,8 @@ const BookerComponent = ({
     return null;
   }
 
+  const orgBanner = "https://pbs.twimg.com/profile_banners/1063089191565905920/1685635865/1500x500";
+
   return (
     <>
       {event.data ? <BookingPageTagManager eventType={event.data} /> : null}
@@ -338,6 +340,8 @@ const BookerComponent = ({
               <BookerSection
                 area="meta"
                 className="max-w-screen flex w-full flex-col md:w-[var(--booker-meta-width)]">
+                <img className="-mb-9 rounded-tl-md" src={orgBanner} />
+
                 <EventMeta event={event.data} isPending={event.isPending} />
                 {layout !== BookerLayouts.MONTH_VIEW &&
                   !(layout === "mobile" && bookerState === "booking") && (
