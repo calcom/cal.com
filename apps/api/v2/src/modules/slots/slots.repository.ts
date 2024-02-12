@@ -3,7 +3,7 @@ import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { ReserveSlotInput } from "@/modules/slots/inputs/reserve-slot.input";
 import { DateTime } from "luxon";
 
-import { MINUTES_TO_BOOK } from "@calcom/lib/constants";
+import { MINUTES_TO_BOOK } from "@calcom/platform-libraries";
 
 export class SlotsRepository {
   constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
