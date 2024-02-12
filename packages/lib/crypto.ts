@@ -52,22 +52,25 @@ export const symmetricDecrypt = function <TOut>(
   opts: {
     schema: z.ZodSchema<TOut>;
     key?: string;
-    encoding?: BufferEncoding;
     onShouldUpdate?: (result: TOut) => void;
   }
 ): TOut {
-  const { encoding = "base64", schema } = opts;
-
+  // If no key is specified, default to CALENDSO_ENCRYPTION_KEY
   const key = opts.key || CALENDSO_ENCRYPTION_KEY;
-  const _key = Buffer.from(key, encoding);
 
+  // If the key is 32 characters, it's a latin1 string (legacy key), otherwise it's a base64 string
+  const encoding = key.length === 32 ? "latin1" : "base64";
+
+  const _key = Buffer.from(key, encoding);
   const components = text.split(":");
   const iv_from_ciphertext = Buffer.from(components.shift() || "", OUTPUT_ENCODING);
   const decipher = crypto.createDecipheriv(ALGORITHM, _key, iv_from_ciphertext);
+
   let deciphered = decipher.update(components.join(":"), OUTPUT_ENCODING, INPUT_ENCODING);
   deciphered += decipher.final(INPUT_ENCODING);
 
   // Parsing the deciphered result using the specified schema
+  const { schema } = opts;
   const result = schema.safeParse(
     schema instanceof z.ZodObject || schema instanceof z.ZodArray ? JSON.parse(deciphered) : deciphered
   );
@@ -87,7 +90,6 @@ export const symmetricDecrypt = function <TOut>(
     return symmetricDecrypt(text, {
       schema: schema,
       key: CALENDSO_OLD_ENCRYPTION_KEY,
-      encoding: "latin1",
     });
   }
 
