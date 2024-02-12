@@ -368,6 +368,7 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
       hosts: {
         select: {
           isFixed: true,
+          priority: true,
           user: {
             select: {
               credentials: {
@@ -404,6 +405,7 @@ type IsFixedAwareUser = User & {
   isFixed: boolean;
   credentials: CredentialPayload[];
   organization: { slug: string };
+  priority?: number;
 };
 
 const loadUsers = async (eventType: NewBookingEventType, dynamicUserList: string[], req: IncomingMessage) => {
@@ -426,9 +428,10 @@ const loadUsers = async (eventType: NewBookingEventType, dynamicUserList: string
       throw new Error("eventType.hosts is not properly defined.");
     }
 
-    const users = hosts.map(({ user, isFixed }) => ({
+    const users = hosts.map(({ user, isFixed, priority }) => ({
       ...user,
       isFixed,
+      priority,
     }));
 
     return users.length ? users : eventType.users;
@@ -449,7 +452,6 @@ export async function ensureAvailableUsers(
 ) {
   const availableUsers: IsFixedAwareUser[] = [];
   const duration = dayjs(input.dateTo).diff(input.dateFrom, "minute");
-
   const originalBookingDuration = input.originalRescheduledBooking
     ? dayjs(input.originalRescheduledBooking.endTime).diff(
         dayjs(input.originalRescheduledBooking.startTime),
@@ -1327,7 +1329,6 @@ async function handler(
         },
         loggerWithEventDetails
       );
-
       const luckyUsers: typeof users = [];
       const luckyUserPool = availableUsers.filter((user) => !user.isFixed);
       const notAvailableLuckyUsers: typeof users = [];

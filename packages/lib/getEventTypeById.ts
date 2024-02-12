@@ -167,6 +167,7 @@ export default async function getEventTypeById({
         select: {
           isFixed: true,
           userId: true,
+          priority: true,
         },
       },
       userId: true,

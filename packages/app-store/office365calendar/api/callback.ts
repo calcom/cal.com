@@ -5,6 +5,7 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { handleErrorsJson } from "@calcom/lib/errors";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import prisma from "@calcom/prisma";
+import { Prisma } from "@calcom/prisma/client";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
@@ -76,15 +77,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   responseBody.expiry_date = Math.round(+new Date() / 1000 + responseBody.expires_in); // set expiry date in seconds
   delete responseBody.expires_in;
 
-  const credential = await prisma.credential.create({
-    data: {
-      type: "office365_calendar",
-      key: responseBody,
-      userId: req.session?.user.id,
-      appId: "office365-calendar",
-    },
-  });
-
   // Set the isDefaultCalendar as selectedCalendar
   // If a user has multiple calendars, keep on making calls until we find the default calendar
   let defaultCalendar: OfficeCalendar | undefined = undefined;
@@ -119,14 +111,39 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (defaultCalendar?.id && req.session?.user?.id) {
-    await prisma.selectedCalendar.create({
+    const credential = await prisma.credential.create({
       data: {
+        type: "office365_calendar",
+        key: responseBody,
         userId: req.session?.user.id,
-        integration: "office365_calendar",
-        externalId: defaultCalendar.id,
-        credentialId: credential.id,
+        appId: "office365-calendar",
       },
     });
+    // Wrapping in a try/catch to reduce chance of race conditions-
+    // also this improves performance for most of the happy-paths.
+    try {
+      await prisma.selectedCalendar.create({
+        data: {
+          userId: req.session?.user.id,
+          integration: "office365_calendar",
+          externalId: defaultCalendar.id,
+          credentialId: credential.id,
+        },
+      });
+    } catch (error) {
+      await prisma.credential.delete({ where: { id: credential.id } });
+      let errorMessage = "something_went_wrong";
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+        errorMessage = "account_already_linked";
+      }
+      res.redirect(
+        `${
+          getSafeRedirectUrl(state?.onErrorReturnTo) ??
+          getInstalledAppPath({ variant: "calendar", slug: "office365-calendar" })
+        }?error=${errorMessage}`
+      );
+      return;
+    }
   }
 
   return res.redirect(
