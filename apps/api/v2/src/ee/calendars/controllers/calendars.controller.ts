@@ -2,7 +2,7 @@ import { CalendarBusyTimesInput } from "@/ee/calendars/inputs/calendar-busy-time
 import { CalendarsService } from "@/ee/calendars/services/calendars";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
-import { Controller, Get, Logger, UseGuards, Body, Query } from "@nestjs/common";
+import { Controller, Get, Logger, UseGuards, Query } from "@nestjs/common";
 import { User } from "@prisma/client";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
