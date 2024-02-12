@@ -42,3 +42,6 @@ lerna-debug.log*
 .env.*
 !.env.example
 !.env.appStore.example
+
+# documentation artifacts
+openapi.json
