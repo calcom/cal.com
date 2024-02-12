@@ -1,6 +1,6 @@
 import { GetPublicEventInput } from "@/modules/events/input/get-public-event-input";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
-import { Body, Controller, Get, VERSION_NEUTRAL, Version } from "@nestjs/common";
+import { Query, Controller, Get, VERSION_NEUTRAL, Version } from "@nestjs/common";
 
 import { getPublicEvent } from "@calcom/platform-libraries";
 import { ApiResponse } from "@calcom/platform-types";
@@ -12,12 +12,12 @@ export class EventsController {
 
   @Get("/")
   @Version(VERSION_NEUTRAL)
-  async getPublicEvent(@Body() input: GetPublicEventInput): Promise<ApiResponse> {
+  async getPublicEvent(@Query() queryParams: GetPublicEventInput): Promise<ApiResponse> {
     const event = await getPublicEvent(
-      input.username,
-      input.eventSlug,
-      input.isTeamEvent,
-      input.org || null,
+      queryParams.username,
+      queryParams.eventSlug,
+      queryParams.isTeamEvent,
+      queryParams.org || null,
       this.prismaReadService.prisma as unknown as PrismaClient
     );
 
