@@ -346,6 +346,7 @@ model Team {
   instantMeetingTokens InstantMeetingToken[]
   orgProfiles          Profile[]
   pendingPayment       Boolean                 @default(false)
+  scimDirectory        scimDirectory?
 
   @@unique([slug, parentId])
 }
@@ -1105,4 +1106,12 @@ model OutOfOfficeEntry {
   @@index([userId])
   @@index([toUserId])
   @@index([start, end])
+}
+
+model scimDirectory {
+  id          Int    @id @default(autoincrement())
+  directoryId String
+  tenant      String
+  teamId      Int    @unique
+  team        Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
 }
