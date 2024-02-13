@@ -111,6 +111,44 @@ test.describe("Bookings list view", () => {
     await bookingVisibleFor({ user: owner2, pageFixture: page, eventType, shouldBeVisible: false });
     await bookingVisibleFor({ user: commonUser, pageFixture: page, eventType, shouldBeVisible: true });
   });
+  test("round-robin eventType booking should be visible to team admin", async ({ page, users, bookings }) => {
+    const { owner1, owner2, commonUser, team1_teammate1 } = await createTeams(users);
+
+    const { team: team1 } = await owner1.getFirstTeamMembership();
+    const scenario = {
+      schedulingType: SchedulingType.ROUND_ROBIN,
+      teamEventTitle: `round-robin-team-event`,
+      teamEventSlug: slugify(`round-robin-team-event-${randomString(5)}`),
+    };
+
+    const eventType = await createTeamEventType(owner1, team1, scenario);
+    const { id: eventId } = eventType;
+
+    await prisma.host.createMany({
+      data: [
+        {
+          userId: commonUser.id,
+          eventTypeId: eventId,
+        },
+        {
+          userId: team1_teammate1.id,
+          eventTypeId: eventId,
+        },
+      ],
+    });
+
+    await prisma.host.deleteMany({
+      where: {
+        userId: owner1.id,
+        eventTypeId: eventId,
+      },
+    });
+
+    await bookEvent({ pageFixture: page, eventType, team: team1 });
+
+    await bookingVisibleFor({ user: owner1, pageFixture: page, eventType, shouldBeVisible: true });
+    await bookingVisibleFor({ user: owner2, pageFixture: page, eventType, shouldBeVisible: false });
+  });
 });
 
 async function createBooking({
