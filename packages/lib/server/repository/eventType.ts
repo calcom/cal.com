@@ -29,9 +29,6 @@ const userSelect = Prisma.validator<Prisma.UserSelect>()({
   avatarUrl: true,
   username: true,
   id: true,
-  email: true,
-  locale: true,
-  defaultScheduleId: true,
 });
 
 export class EventTypeRepository {
@@ -106,12 +103,6 @@ export class EventTypeRepository {
       team: {
         select: {
           id: true,
-          eventTypes: {
-            select: {
-              id: true,
-              users: { select: userSelect },
-            },
-          },
         },
       },
       hashedLink: true,
@@ -175,6 +166,7 @@ export class EventTypeRepository {
       return await prisma.eventType.findMany({
         where: {
           profileId,
+          ...where,
         },
         select,
         orderBy,

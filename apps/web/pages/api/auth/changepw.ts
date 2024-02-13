@@ -38,7 +38,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const oldPassword = req.body.oldPassword;
   const newPassword = req.body.newPassword;
 
-  const currentPassword = user.password;
+  const currentPassword = user.password?.hash;
   if (!currentPassword) {
     return res.status(400).json({ error: ErrorCode.UserMissingPassword });
   }
@@ -53,12 +53,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   const hashedPassword = await hashPassword(newPassword);
-  await prisma.user.update({
+  await prisma.userPassword.update({
     where: {
-      id: user.id,
+      userId: user.id,
     },
     data: {
-      password: hashedPassword,
+      hash: hashedPassword,
     },
   });
 
