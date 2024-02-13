@@ -1120,6 +1120,6 @@ model DSyncData {
   id          Int    @id @default(autoincrement())
   directoryId String
   tenant      String
-  teamId      Int?   @unique
-  team        Team?  @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  orgId       Int?   @unique
+  org         Team?  @relation(fields: [orgId], references: [id], onDelete: Cascade)
 }
