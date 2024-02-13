@@ -1,4 +1,4 @@
-import { getConnectedDestinationCalendars } from "@calcom/lib";
+import { getConnectedDestinationCalendars } from "@calcom/lib/getConnectedDestinationCalendars";
 import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
