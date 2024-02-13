@@ -930,30 +930,6 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                           <div className="text-default text-sm">{t("hide_eventtype_details")}</div>
                         </div>
                       ) : null}
-                      {[
-                        { name: "brandColor", title: "Brand Color" },
-                        // { name: "lightColor", title: "Light Color" },
-                        // { name: "lighterColor", title: "Lighter Color" },
-                        // { name: "lightestColor", title: "Lightest Color" },
-                        // { name: "highlightColor", title: "Highlight Color" },
-                        // { name: "medianColor", title: "Median Color" },
-                      ].map((palette) => (
-                        <Label key={palette.name} className="mb-6">
-                          <div className="mb-2">{palette.title}</div>
-                          <div className="w-full">
-                            <ColorPicker
-                              popoverAlign="start"
-                              container={dialogContentRef?.current ?? undefined}
-                              defaultValue="#000000"
-                              onChange={(color) => {
-                                addToPalette({
-                                  [palette.name as keyof (typeof previewState)["palette"]]: color,
-                                });
-                              }}
-                            />
-                          </div>
-                        </Label>
-                      ))}
                       <Label className="mb-6">
                         <div className="mb-2">{t("layout")}</div>
                         <Select
@@ -980,6 +956,35 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                           options={layoutOptions}
                         />
                       </Label>
+                      {[
+                        { name: "brandColor", title: "Brand Color" },
+                        { name: "text", title: "Text Color" },
+                        { name: "textEmphasis", title: "Text Emphasis Color" },
+                        { name: "textMuted", title: "Text Muted Color" },
+                        { name: "border", title: "Border Emphasis Color" },
+                        { name: "borderDefault", title: "Border Default Color" },
+                        { name: "borderSubtle", title: "Border Subtle Color" },
+                        { name: "borderBooker", title: "Border Booker Color" },
+                        { name: "borderEmphasis", title: "Text Emphasis Color" },
+                        { name: "textError", title: "Text Error Color" },
+                        { name: "bgEmphasis", title: "Background Emphasis Color" },
+                      ].map((palette) => (
+                        <Label key={palette.name} className="mb-6">
+                          <div className="mb-2">{palette.title}</div>
+                          <div className="w-full">
+                            <ColorPicker
+                              popoverAlign="start"
+                              container={dialogContentRef?.current ?? undefined}
+                              defaultValue="#000000"
+                              onChange={(color) => {
+                                addToPalette({
+                                  [palette.name as keyof (typeof previewState)["palette"]]: color,
+                                });
+                              }}
+                            />
+                          </div>
+                        </Label>
+                      ))}
                     </div>
                   </CollapsibleContent>
                 </Collapsible>
