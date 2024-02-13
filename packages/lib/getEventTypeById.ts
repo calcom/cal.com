@@ -229,6 +229,7 @@ export default async function getEventTypeById({
                   },
                 },
               },
+              // eslint-disable-next-line @calcom/eslint/no-prisma-include-true
               steps: true,
             },
           },
