@@ -29,7 +29,7 @@ import {
 import { Plus, Trash2 } from "@calcom/ui/components/icon";
 
 import PageWrapper from "@components/PageWrapper";
-import ScheduleTimezoneChangeModal from "@components/settings/ScheduleTimezoneChangeModal";
+import TravelScheduleModal from "@components/settings/TravelScheduleModal";
 
 export type FormValues = {
   locale: {
@@ -45,10 +45,11 @@ export type FormValues = {
     value: string;
     label: string;
   };
-  timezoneSchedules: {
+  travelSchedules: {
+    id?: number;
     startDate: Date;
     endDate?: Date;
-    timezone: string;
+    timeZone: string;
   }[];
 };
 
@@ -144,6 +145,15 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
         value: user.weekStart,
         label: nameOfDay(localeProp, user.weekStart === "Sunday" ? 0 : 1),
       },
+      travelSchedules:
+        user.travelSchedules.map((schedule) => {
+          return {
+            id: schedule.id,
+            startDate: schedule.startDate,
+            endDate: schedule.endDate ?? undefined,
+            timeZone: schedule.timeZone,
+          };
+        }) || [],
     },
   });
   const {
@@ -161,7 +171,7 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
     !!user.receiveMonthlyDigestEmail
   );
 
-  const watchedTzSchedules = formMethods.watch("timezoneSchedules");
+  const watchedTzSchedules = formMethods.watch("travelSchedules");
 
   return (
     <div>
@@ -212,7 +222,7 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
               </>
             )}
           />
-          {!watchedTzSchedules ? (
+          {!watchedTzSchedules.length ? (
             <Button color="minimal" className="mt-2" onClick={() => setIsTZScheduleOpen(true)}>
               {t("schedule_timezone_change")}
             </Button>
@@ -243,7 +253,7 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
                               )}`
                             : ``
                         }`}</div>
-                        <div className="text-subtle">{schedule.timezone}</div>
+                        <div className="text-subtle">{schedule.timeZone}</div>
                       </div>
                       <Button
                         color="secondary"
@@ -251,10 +261,8 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
                         variant="icon"
                         StartIcon={Trash2}
                         onClick={() => {
-                          const updatedSchedules = getValues("timezoneSchedules").filter(
-                            (schedule, i) => i !== index
-                          );
-                          formMethods.setValue("timezoneSchedules", updatedSchedules, { shouldDirty: true });
+                          const updatedSchedules = getValues("travelSchedules").filter((i) => i !== index);
+                          formMethods.setValue("travelSchedules", updatedSchedules, { shouldDirty: true });
                         }}
                       />
                     </div>
@@ -357,11 +365,11 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
         }}
         switchContainerClassName="mt-6"
       />
-      <ScheduleTimezoneChangeModal
+      <TravelScheduleModal
         open={isTZScheduleOpen}
         onOpenChange={() => setIsTZScheduleOpen(false)}
         setValue={formMethods.setValue}
-        existingSchedules={formMethods.getValues("timezoneSchedules") ?? []}
+        existingSchedules={formMethods.getValues("travelSchedules") ?? []}
       />
     </div>
   );

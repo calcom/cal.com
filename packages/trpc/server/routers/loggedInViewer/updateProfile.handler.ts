@@ -65,8 +65,9 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
   const locale = input.locale || user.locale;
   const flags = await getFeatureFlagMap(prisma);
 
+  const { travelSchedules, ...rest } = input;
   const data: Prisma.UserUpdateInput = {
-    ...input,
+    ...rest,
     // DO NOT OVERWRITE AVATAR.
     avatar: undefined,
     metadata: userMetadata,
@@ -175,6 +176,33 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
   if ("" === input.avatar) {
     data.avatarUrl = null;
     data.avatar = null;
+  }
+
+  if (input.travelSchedules) {
+    await prisma.travelSchedule.createMany({
+      data: input.travelSchedules
+        .filter((schedule) => !schedule.id)
+        .map((schedule) => {
+          return {
+            userId: user.id,
+            startDate: schedule.startDate,
+            endDate: schedule.endDate,
+            timeZone: schedule.timeZone,
+          };
+        }),
+    });
+
+    //todo
+    await prisma.travelSchedule.deleteMany({
+      where: {
+        userId: user.id,
+        id: {
+          in: input.travelSchedules
+            .filter((schedule) => !!schedule.id)
+            .map((schedule) => schedule.id) as number[],
+        },
+      },
+    });
   }
 
   const updatedUserSelect = Prisma.validator<Prisma.UserDefaultArgs>()({

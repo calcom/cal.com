@@ -17,34 +17,34 @@ import {
   DatePicker,
 } from "@calcom/ui";
 
-interface ScheduleTimezoneChangeModalProps {
+interface TravelScheduleModalProps {
   open: boolean;
   onOpenChange: () => void;
   setValue: UseFormSetValue<FormValues>;
-  existingSchedules: FormValues["timezoneSchedules"];
+  existingSchedules: FormValues["travelSchedules"];
 }
 
-const ScheduleTimezoneChangeModal = ({
+const TravelScheduleModal = ({
   open,
   onOpenChange,
   setValue,
   existingSchedules,
-}: ScheduleTimezoneChangeModalProps) => {
+}: TravelScheduleModalProps) => {
   const { t } = useLocale();
 
   const [startDate, setStartDate] = useState<Date>(new Date());
   const [endDate, setEndDate] = useState<Date | undefined>(new Date());
 
-  const [selectedTimezone, setSelectedTimezone] = useState(useTimePreferences().timezone);
+  const [selectedTimeZone, setSelectedTimeZone] = useState(useTimePreferences().timezone);
   const [isNoEndDate, setIsNoEndDate] = useState(false);
 
   const createNewSchedule = () => {
     const newSchedule = {
       startDate,
       endDate,
-      timezone: selectedTimezone,
+      timeZone: selectedTimeZone,
     };
-    setValue("timezoneSchedules", existingSchedules.concat(newSchedule), { shouldDirty: true });
+    setValue("travelSchedules", existingSchedules.concat(newSchedule), { shouldDirty: true });
   };
 
   return (
@@ -94,8 +94,8 @@ const ScheduleTimezoneChangeModal = ({
           <Label className="mt-6">{t("timezone")}</Label>
           <TimezoneSelect
             id="timeZone"
-            value={selectedTimezone}
-            onChange={({ value }) => setSelectedTimezone(value)}
+            value={selectedTimeZone}
+            onChange={({ value }) => setSelectedTimeZone(value)}
             className="mb-11 mt-2 w-full rounded-md text-sm"
           />
         </div>
@@ -114,4 +114,4 @@ const ScheduleTimezoneChangeModal = ({
   );
 };
 
-export default ScheduleTimezoneChangeModal;
+export default TravelScheduleModal;
