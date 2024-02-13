@@ -271,8 +271,8 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
                   <div className="ms-4">
                     <div className="flex gap-2">
                       <ImageUploader
-                        target="avatar"
-                        id="avatar-upload"
+                        target="banner"
+                        id="banner-upload"
                         buttonMsg={t("upload_banner")}
                         handleAvatarChange={(newBanner) => {
                           form.setValue("banner", newBanner, { shouldDirty: true });
