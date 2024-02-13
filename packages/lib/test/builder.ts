@@ -190,7 +190,9 @@ type UserPayload = Prisma.UserGetPayload<{
     schedules: true;
   };
 }>;
-export const buildUser = <T extends Partial<UserPayload>>(user?: T): UserPayload => {
+export const buildUser = <T extends Partial<UserPayload>>(
+  user?: T & { priority?: number }
+): UserPayload & { priority: number | null } => {
   return {
     locked: false,
     name: faker.name.firstName(),
@@ -222,7 +224,6 @@ export const buildUser = <T extends Partial<UserPayload>>(user?: T): UserPayload
     invitedTo: null,
     locale: "en",
     metadata: null,
-    password: null,
     role: "USER",
     schedules: [],
     selectedCalendars: [],
@@ -238,6 +239,7 @@ export const buildUser = <T extends Partial<UserPayload>>(user?: T): UserPayload
     allowSEOIndexing: null,
     receiveMonthlyDigestEmail: null,
     movedToProfileId: null,
+    priority: user?.priority ?? null,
     ...user,
   };
 };

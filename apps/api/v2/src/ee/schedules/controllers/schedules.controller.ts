@@ -57,9 +57,11 @@ export class SchedulesController {
   async getDefaultSchedule(
     @GetUser() user: User,
     @ForAtom() forAtom: boolean
-  ): Promise<ApiResponse<{ schedule: ScheduleResponse | ScheduleWithAvailabilitiesForWeb }>> {
+  ): Promise<ApiResponse<{ schedule: ScheduleResponse | ScheduleWithAvailabilitiesForWeb | null }>> {
     const schedule = await this.schedulesService.getUserScheduleDefault(user.id);
-    const scheduleFormatted = await this.schedulesResponseService.formatSchedule(forAtom, user, schedule);
+    const scheduleFormatted = schedule
+      ? await this.schedulesResponseService.formatSchedule(forAtom, user, schedule)
+      : null;
 
     return {
       status: SUCCESS_STATUS,
