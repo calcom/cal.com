@@ -2,14 +2,17 @@ import type { DirectorySyncEvent, DirectorySyncRequest, User } from "@boxyhq/sam
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import jackson from "@calcom/features/ee/sso/lib/jackson";
+import { createAProfileForAnExistingUser } from "@calcom/lib/createAProfileForAnExistingUser";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
+import type { UserWithMembership } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
 import {
   sendSignupToOrganizationEmail,
   getTeamOrThrow,
+  sendExistingUserTeamInviteEmails,
 } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
 
 // This is the handler for the SCIM API requests
@@ -82,7 +85,17 @@ const handleEvents = async (event: DirectorySyncEvent) => {
         },
         select: {
           id: true,
+          email: true,
+          username: true,
           organizationId: true,
+          completedOnboarding: true,
+          identityProvider: true,
+          profiles: true,
+          password: {
+            select: {
+              hash: true,
+            },
+          },
         },
       });
 
@@ -98,9 +111,12 @@ const handleEvents = async (event: DirectorySyncEvent) => {
       }
 
       // If user already in DB, automatically add them to the org
-
       if (user) {
-        // Add user to team/org
+        await createAProfileForAnExistingUser({
+          user,
+          organizationId: orgId,
+        });
+
         await prisma.membership.create({
           data: {
             teamId: orgId,
@@ -110,6 +126,18 @@ const handleEvents = async (event: DirectorySyncEvent) => {
             accepted: true,
           },
         });
+
+        await sendExistingUserTeamInviteEmails({
+          currentUserName: user.username,
+          currentUserTeamName: org.name,
+          existingUsersWithMembersips: [user as UserWithMembership],
+          language: translation,
+          isOrg: true,
+          teamId: orgId,
+          isAutoJoin: true,
+          currentUserParentTeamName: org?.parent?.name,
+        });
+
         // If user is not in DB, create user and add to the org
       } else {
         const [emailUser, emailDomain] = userEmail.split("@");
