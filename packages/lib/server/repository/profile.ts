@@ -349,7 +349,7 @@ export class ProfileRepository {
         movedFromUser: {
           select: {
             id: true,
-          }
+          },
         },
         organization: {
           include: {
