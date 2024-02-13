@@ -161,7 +161,10 @@ export const buildSubscriberEvent = (booking?: Partial<Booking>) => {
   };
 };
 
-export const buildCalendarEvent = (event?: Partial<CalendarEvent>): CalendarEvent => {
+export const buildCalendarEvent = (
+  event?: Partial<CalendarEvent>,
+  omitVideoCallData?: boolean
+): CalendarEvent => {
   const uid = faker.datatype.uuid();
   return {
     uid,
@@ -176,7 +179,7 @@ export const buildCalendarEvent = (event?: Partial<CalendarEvent>): CalendarEven
     customInputs: {},
     additionalNotes: faker.lorem.paragraph(),
     organizer: buildPerson(),
-    videoCallData: buildVideoCallData(),
+    ...(!omitVideoCallData && { videoCallData: buildVideoCallData() }),
     ...event,
   };
 };

@@ -4327,15 +4327,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@calcom/skiff@workspace:packages/app-store/skiff":
-  version: 0.0.0-use.local
-  resolution: "@calcom/skiff@workspace:packages/app-store/skiff"
-  dependencies:
-    "@calcom/lib": "*"
-    "@calcom/types": "*"
-  languageName: unknown
-  linkType: soft
-
 "@calcom/storybook@workspace:apps/storybook":
   version: 0.0.0-use.local
   resolution: "@calcom/storybook@workspace:apps/storybook"
