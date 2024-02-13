@@ -40,12 +40,14 @@ import { useOrgBranding } from "../../../organizations/context/provider";
 const orgProfileFormSchema = z.object({
   name: z.string(),
   logo: z.string().nullable(),
+  banner: z.string().nullable(),
   bio: z.string(),
 });
 
 type FormValues = {
   name: string;
   logo: string | null;
+  banner: string | null;
   bio: string;
   slug: string;
 };
@@ -110,6 +112,7 @@ const OrgProfileView = () => {
   const defaultValues: FormValues = {
     name: currentOrganisation?.name || "",
     logo: currentOrganisation?.logo || "",
+    banner: currentOrganisation?.banner || "",
     bio: currentOrganisation?.bio || "",
     slug:
       currentOrganisation?.slug ||
@@ -238,6 +241,50 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
                           color="secondary"
                           onClick={() => {
                             form.setValue("logo", null, { shouldDirty: true });
+                          }}>
+                          {t("remove")}
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </>
+              );
+            }}
+          />
+        </div>
+
+        <div className="flex items-center">
+          <Controller
+            control={form.control}
+            name="banner"
+            render={({ field: { value } }) => {
+              const showRemoveBannerButton = !!value;
+
+              return (
+                <>
+                  <Avatar
+                    data-testid="profile-upload-banner"
+                    alt={`${defaultValues.name} Banner` || ""}
+                    imageSrc=""
+                    size="lg"
+                  />
+                  <div className="ms-4">
+                    <div className="flex gap-2">
+                      <ImageUploader
+                        target="avatar"
+                        id="avatar-upload"
+                        buttonMsg={t("upload_banner")}
+                        handleAvatarChange={(newBanner) => {
+                          form.setValue("banner", newBanner, { shouldDirty: true });
+                        }}
+                        imageSrc={value || undefined}
+                        triggerButtonColor={showRemoveBannerButton ? "secondary" : "primary"}
+                      />
+                      {showRemoveBannerButton && (
+                        <Button
+                          color="secondary"
+                          onClick={() => {
+                            form.setValue("banner", null, { shouldDirty: true });
                           }}>
                           {t("remove")}
                         </Button>
