@@ -14,7 +14,7 @@ import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-u
 
 import { TRPCError } from "@trpc/server";
 
-import { CAL_URL } from "./constants";
+import { WEBSITE_URL } from "./constants";
 import { getBookerBaseUrl } from "./getBookerUrl/server";
 
 interface getEventTypeByIdProps {
@@ -304,7 +304,7 @@ export default async function getEventTypeById({
       ? await getBookerBaseUrl(restEventType.team.parentId)
       : restEventType.owner
       ? await getBookerBaseUrl(currentOrganizationId)
-      : CAL_URL,
+      : WEBSITE_URL,
     children: childrenWithUserProfile.flatMap((ch) =>
       ch.owner !== null
         ? {
