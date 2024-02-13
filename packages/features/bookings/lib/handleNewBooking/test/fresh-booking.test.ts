@@ -12,7 +12,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { describe, expect } from "vitest";
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
-import { CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
+import { WEBSITE_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { resetTestEmails } from "@calcom/lib/testEmails";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -219,7 +219,7 @@ describe("handleNewBooking", () => {
         expectSuccessfulBookingCreationEmails({
           booking: {
             uid: createdBooking.uid!,
-            urlOrigin: org ? org.urlOrigin : CAL_URL,
+            urlOrigin: org ? org.urlOrigin : WEBSITE_URL,
           },
           booker,
           organizer,
