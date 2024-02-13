@@ -96,7 +96,7 @@ const generateIcsString = ({
           }))
         : []),
     ],
-    location,
+    location: location ?? undefined,
     method: "REQUEST",
     status,
   });
