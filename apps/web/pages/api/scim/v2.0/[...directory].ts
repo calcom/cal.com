@@ -7,7 +7,10 @@ import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
-import { sendSignupToOrganizationEmail } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
+import {
+  sendSignupToOrganizationEmail,
+  getTeamOrThrow,
+} from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
 
 // This is the handler for the SCIM API requests
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -31,11 +34,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       filter: req.query.filter as string,
     },
   };
-  console.log("🚀 ~ handler ~ request:", request);
 
   const { status, data } = await dsyncController.requests.handle(request, handleEvents);
-  console.log("🚀 ~ handler ~ data:", data);
-  console.log("🚀 ~ handler ~ status:", status);
 
   res.status(status).json(data);
 }
@@ -58,11 +58,6 @@ const handleEvents = async (event: DirectorySyncEvent) => {
     },
     select: {
       orgId: true,
-      org: {
-        include: {
-          parent: true,
-        },
-      },
     },
   });
 
@@ -79,7 +74,7 @@ const handleEvents = async (event: DirectorySyncEvent) => {
     const userEmail = eventData.email;
     const translation = await getTranslation("en", "common");
     // If orgId then it is for a org else for the entire app
-    if (dSyncData.org && orgId) {
+    if (orgId) {
       // Check if user exists in DB
       const user = await prisma.user.findFirst({
         where: {
@@ -94,6 +89,12 @@ const handleEvents = async (event: DirectorySyncEvent) => {
       // User is already a part of that org
       if (user?.organizationId) {
         return;
+      }
+
+      const org = await getTeamOrThrow(orgId, true);
+
+      if (!org) {
+        throw new Error("Org not found");
       }
 
       // If user already in DB, automatically add them to the org
@@ -145,9 +146,9 @@ const handleEvents = async (event: DirectorySyncEvent) => {
 
         sendSignupToOrganizationEmail({
           usernameOrEmail: userEmail,
-          team: dSyncData.org,
+          team: org,
           translation,
-          inviterName: dSyncData.org?.name,
+          inviterName: org.name,
           input: {
             teamId: orgId,
             role: MembershipRole.MEMBER,
