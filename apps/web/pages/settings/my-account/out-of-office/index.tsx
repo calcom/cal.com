@@ -4,7 +4,7 @@ import { Controller, useForm, useFormState } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
-import Shell from "@calcom/features/shell/Shell";
+import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { useHasTeamPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -244,14 +244,13 @@ const OutOfOfficePage = () => {
   return (
     <>
       <Meta title={t("out_of_office")} description={t("out_of_office_description")} borderInShellHeader />
-      <Shell withoutMain={false} withoutSeo>
-        <OutOfOfficeSection />
-        <OutOfOfficeEntriesList />
-      </Shell>
+      <OutOfOfficeSection />
+      <OutOfOfficeEntriesList />
     </>
   );
 };
 
+OutOfOfficePage.getLayout = getLayout;
 OutOfOfficePage.PageWrapper = PageWrapper;
 
 export default OutOfOfficePage;

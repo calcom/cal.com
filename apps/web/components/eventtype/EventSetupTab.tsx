@@ -11,7 +11,7 @@ import type { EventLocationType } from "@calcom/app-store/locations";
 import { getEventLocationType, MeetLocationType } from "@calcom/app-store/locations";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
-import { CAL_URL } from "@calcom/lib/constants";
+import { WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
 import { slugify } from "@calcom/lib/slugify";
@@ -401,7 +401,7 @@ export const EventSetupTab = (
                   The “Add to calendar” for this event type needs to be a Google Calendar for Meet to work.
                   Change it{" "}
                   <Link
-                    href={`${CAL_URL}/event-types/${formMethods.getValues("id")}?tabName=advanced`}
+                    href={`${WEBAPP_URL}/event-types/${formMethods.getValues("id")}?tabName=advanced`}
                     className="underline">
                     here.
                   </Link>{" "}
@@ -412,7 +412,7 @@ export const EventSetupTab = (
           {isChildrenManagedEventType && !locationAvailable && locationDetails && (
             <p className="pl-1 text-sm leading-none text-red-600">
               {t("app_not_connected", { appName: locationDetails.name })}{" "}
-              <a className="underline" href={`${CAL_URL}/apps/${locationDetails.slug}`}>
+              <a className="underline" href={`${WEBAPP_URL}/apps/${locationDetails.slug}`}>
                 {t("connect_now")}
               </a>
             </p>
@@ -444,9 +444,10 @@ export const EventSetupTab = (
 
   const lengthLockedProps = shouldLockDisableProps("length");
   const descriptionLockedProps = shouldLockDisableProps("description");
+
   const urlPrefix = orgBranding
     ? orgBranding?.fullDomain.replace(/^(https?:|)\/\//, "")
-    : `${CAL_URL?.replace(/^(https?:|)\/\//, "")}`;
+    : `${WEBSITE_URL?.replace(/^(https?:|)\/\//, "")}`;
 
   return (
     <div>

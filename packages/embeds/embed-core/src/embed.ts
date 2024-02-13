@@ -439,10 +439,6 @@ class CalApi {
     elementOrSelector: string | HTMLElement;
     config?: PrefillAndIframeAttrsConfig;
   }) {
-    if (this.cal.inlineEl) {
-      console.warn("Inline embed already exists. Ignoring this call");
-      return;
-    }
     // eslint-disable-next-line prefer-rest-params
     validate(arguments[0], {
       required: true,
