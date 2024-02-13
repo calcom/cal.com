@@ -44,7 +44,7 @@ const ScheduleTimezoneChangeModal = ({
       endDate,
       timezone: selectedTimezone,
     };
-    setValue("timezoneSchedules", existingSchedules.concat(newSchedule));
+    setValue("timezoneSchedules", existingSchedules.concat(newSchedule), { shouldDirty: true });
   };
 
   return (

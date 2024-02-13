@@ -212,7 +212,7 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
               </>
             )}
           />
-          {watchedTzSchedules ? (
+          {!watchedTzSchedules ? (
             <Button color="minimal" className="mt-2" onClick={() => setIsTZScheduleOpen(true)}>
               {t("schedule_timezone_change")}
             </Button>
@@ -254,7 +254,7 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
                           const updatedSchedules = getValues("timezoneSchedules").filter(
                             (schedule, i) => i !== index
                           );
-                          formMethods.setValue("timezoneSchedules", updatedSchedules);
+                          formMethods.setValue("timezoneSchedules", updatedSchedules, { shouldDirty: true });
                         }}
                       />
                     </div>
