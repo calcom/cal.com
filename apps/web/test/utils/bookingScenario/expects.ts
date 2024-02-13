@@ -8,7 +8,7 @@ import { expect, vi } from "vitest";
 import "vitest-fetch-mock";
 
 import dayjs from "@calcom/dayjs";
-import { CAL_URL } from "@calcom/lib/constants";
+import { WEBSITE_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -382,7 +382,7 @@ export function expectSuccessfulBookingCreationEmails({
   bookingTimeRange?: { start: Date; end: Date };
   booking: { uid: string; urlOrigin?: string };
 }) {
-  const bookingUrlOrigin = booking.urlOrigin || CAL_URL;
+  const bookingUrlOrigin = booking.urlOrigin || WEBSITE_URL;
   expect(emails).toHaveEmail(
     {
       titleTag: "confirmed_event_type_subject",
@@ -742,7 +742,7 @@ export function expectBookingRequestRescheduledEmails({
   booking: { uid: string; urlOrigin?: string };
   bookNewTimePath: string;
 }) {
-  const bookingUrlOrigin = booking.urlOrigin || CAL_URL;
+  const bookingUrlOrigin = booking.urlOrigin || WEBSITE_URL;
 
   expect(emails).toHaveEmail(
     {
