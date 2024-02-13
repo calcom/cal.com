@@ -31,7 +31,7 @@ export class UsersRepository {
   }
 
   async findByIdWithCalendars(userId: number) {
-    const user = await this.dbRead.prisma.user.findUnique({
+    return this.dbRead.prisma.user.findUnique({
       where: {
         id: userId,
       },
@@ -40,12 +40,6 @@ export class UsersRepository {
         destinationCalendar: true,
       },
     });
-
-    if (user) {
-      return this.sanitize(user, ["password"]);
-    }
-
-    return null;
   }
 
   async findByEmail(email: string) {
