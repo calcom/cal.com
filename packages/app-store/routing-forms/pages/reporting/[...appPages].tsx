@@ -166,7 +166,7 @@ const Reporter = ({ form }: { form: inferSSRProps<typeof getServerSideProps>["fo
     []
   );
   return (
-    <div className="flex flex-col-reverse md:flex-row">
+    <div className="fixed inset-0 flex flex-col-reverse md:flex-row">
       <div className="cal-query-builder bg-default w-full ltr:mr-2 rtl:ml-2">
         <Query
           {...config}
