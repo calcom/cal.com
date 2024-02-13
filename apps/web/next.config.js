@@ -584,22 +584,19 @@ const nextConfig = {
 };
 
 if (!!process.env.NEXT_PUBLIC_SENTRY_DSN) {
-  nextConfig["sentry"] = {
-    // For all available options, see:
-    // https://github.com/getsentry/sentry-webpack-plugin#options
-    autoInstrumentServerFunctions: true,
-    hideSourceMaps: true,
-    // disable source map generation for the server code
-    disableServerWebpackPlugin: !!process.env.SENTRY_DISABLE_SERVER_WEBPACK_PLUGIN,
-    // Suppresses source map uploading logs during build
-    silent: true,
-  };
-
   plugins.push((nc) =>
     withSentryConfig(
       nc,
       {
         ignore: ["node_modules"],
+        // For all available options, see:
+        // https://github.com/getsentry/sentry-webpack-plugin#options
+        autoInstrumentServerFunctions: true,
+        hideSourceMaps: true,
+        // disable source map generation for the server code
+        disableServerWebpackPlugin: !!process.env.SENTRY_DISABLE_SERVER_WEBPACK_PLUGIN,
+        // Suppresses source map uploading logs during build
+        silent: true,
       },
       {
         // Upload a larger set of source maps for prettier stack traces (increases build time)
