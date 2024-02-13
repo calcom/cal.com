@@ -166,18 +166,16 @@ const Reporter = ({ form }: { form: inferSSRProps<typeof getServerSideProps>["fo
     []
   );
   return (
-    <div className="fixed inset-0 flex flex-col-reverse md:flex-row">
-      <div className="cal-query-builder bg-default w-full ltr:mr-2 rtl:ml-2">
-        <Query
-          {...config}
-          value={query.state.tree}
-          onChange={(immutableTree, config) => {
-            onChange(immutableTree, config as QueryBuilderUpdatedConfig);
-          }}
-          renderBuilder={renderBuilder}
-        />
-        <Result formId={form.id} jsonLogicQuery={jsonLogicQuery as JsonLogicQuery} />
-      </div>
+    <div className="cal-query-builder bg-default fixed inset-0 w-full overflow-scroll ltr:mr-2 rtl:ml-2">
+      <Query
+        {...config}
+        value={query.state.tree}
+        onChange={(immutableTree, config) => {
+          onChange(immutableTree, config as QueryBuilderUpdatedConfig);
+        }}
+        renderBuilder={renderBuilder}
+      />
+      <Result formId={form.id} jsonLogicQuery={jsonLogicQuery as JsonLogicQuery} />
     </div>
   );
 };
