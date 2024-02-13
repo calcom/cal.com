@@ -120,7 +120,7 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
         usernameOrEmail,
         team,
         translation,
-        ctx,
+        inviterName: ctx.user.name ?? "",
         input,
       });
     });
