@@ -35,7 +35,7 @@ export default function MemberListItem(props: Props) {
       <div className="my-4 flex justify-between">
         <div className="flex w-full flex-col justify-between overflow-hidden sm:flex-row">
           <div className="flex">
-            <UserAvatar size="sm" user={user} className="h-10 w-10 rounded-full" />
+            <UserAvatar noOrganizationIndicator size="sm" user={user} className="h-10 w-10 rounded-full" />
 
             <div className="ms-3 inline-block overflow-hidden">
               <div className="mb-1 flex">
