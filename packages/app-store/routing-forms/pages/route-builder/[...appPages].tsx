@@ -2,7 +2,7 @@
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import Link from "next/link";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useState, useEffect } from "react";
 import { Query, Builder, Utils as QbUtils } from "react-awesome-query-builder";
 // types
 import type { JsonTree, ImmutableTree, BuilderProps } from "react-awesome-query-builder";
@@ -98,7 +98,7 @@ const Route = ({
 
   const index = routes.indexOf(route);
 
-  const { data: eventTypesByGroup } = trpc.viewer.eventTypes.getByViewer.useQuery({
+  const { data: eventTypesByGroup, isLoading } = trpc.viewer.eventTypes.getByViewer.useQuery({
     forRoutingForms: true,
   });
 
@@ -138,9 +138,15 @@ const Route = ({
       ? eventOptions[0].value.substring(0, eventOptions[0].value.lastIndexOf("/") + 1)
       : "";
 
-  const [customEventTypeSlug, setCustomEventTypeSlug] = useState<string>(
-    !isRouter(route) ? route.action.value.split("/").pop() ?? "" : ""
-  );
+  const [customEventTypeSlug, setCustomEventTypeSlug] = useState<string>("");
+
+  useEffect(() => {
+    if (!isLoading) {
+      const isCustom =
+        !isRouter(route) && !eventOptions.find((eventOption) => eventOption.value === route.action.value);
+      setCustomEventTypeSlug(isCustom && !isRouter(route) ? route.action.value.split("/").pop() ?? "" : "");
+    }
+  }, [isLoading]);
 
   const onChange = (route: Route, immutableTree: ImmutableTree, config: QueryBuilderUpdatedConfig) => {
     const jsonTree = QbUtils.getTree(immutableTree);
