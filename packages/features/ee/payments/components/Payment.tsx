@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
 
 import getStripe from "@calcom/app-store/stripepayment/lib/client";
 import { getBookingRedirectExtraParams, useBookingSuccessRedirect } from "@calcom/lib/bookingSuccessRedirect";
-import { CAL_URL } from "@calcom/lib/constants";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, CheckboxField } from "@calcom/ui";
@@ -48,7 +48,7 @@ type States =
 
 const getReturnUrl = (props: Props) => {
   if (!props.eventType.successRedirectUrl) {
-    return `${CAL_URL}/booking/${props.booking.uid}`;
+    return `${WEBAPP_URL}/booking/${props.booking.uid}`;
   }
 
   const returnUrl = new URL(props.eventType.successRedirectUrl);
