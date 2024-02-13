@@ -4,6 +4,7 @@ import { Prisma } from "@calcom/prisma/client";
 
 import logger from "../../logger";
 import { safeStringify } from "../../safeStringify";
+import { eventTypeSelect } from "../eventTypeSelect";
 import { LookupTarget, ProfileRepository } from "./profile";
 
 const log = logger.getSubLogger({ prefix: ["repository/membership"] });
@@ -37,9 +38,6 @@ const userSelect = Prisma.validator<Prisma.UserSelect>()({
   avatarUrl: true,
   username: true,
   id: true,
-  email: true,
-  locale: true,
-  defaultScheduleId: true,
 });
 
 export class MembershipRepository {
@@ -103,14 +101,11 @@ export class MembershipRepository {
               select: teamParentSelect,
             },
             eventTypes: {
-              include: {
+              select: {
+                ...eventTypeSelect,
                 team: {
-                  include: {
-                    eventTypes: {
-                      include: {
-                        users: { select: userSelect },
-                      },
-                    },
+                  select: {
+                    id: true,
                   },
                 },
                 hashedLink: true,
