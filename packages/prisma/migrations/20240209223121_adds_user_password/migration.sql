@@ -24,7 +24,9 @@ SELECT
   u."password",
   u.id
 FROM
-  users u;
+  users u
+WHERE
+  u."password" IS NOT NULL;
 
 -- TODO for next migration.
 -- ALTER TABLE "users" DROP COLUMN "password";
