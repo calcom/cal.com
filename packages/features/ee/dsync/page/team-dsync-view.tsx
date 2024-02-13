@@ -18,14 +18,16 @@ const DirectorySync = () => {
 
   const teamId = Number(params.id);
 
-  const { data: team, isLoading } = trpc.viewer.teams.get.useQuery(
-    { teamId },
-    {
-      onError: (err) => {
-        showToast(err.message, "error");
-      },
-    }
-  );
+  const {
+    data: currentOrg,
+    isLoading,
+    isPending,
+    error,
+  } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {
+    onError: (err) => {
+      showToast(err.message, "error");
+    },
+  });
 
   useEffect(() => {
     if (!HOSTED_CAL_FEATURES) {
@@ -37,14 +39,14 @@ const DirectorySync = () => {
     return <SkeletonLoader />;
   }
 
-  if (!team) {
+  if (!currentOrg) {
     router.push("/404");
   }
 
   return (
     <div className="bg-default w-full sm:mx-0 xl:mt-0">
       <Meta title={t("directory_sync")} description={t("directory_sync_description")} />
-      {HOSTED_CAL_FEATURES && <ConfigureDirectorySync teamId={teamId} />}
+      {HOSTED_CAL_FEATURES && <ConfigureDirectorySync orgId={currentOrg.id} />}
     </div>
   );
 };

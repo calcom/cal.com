@@ -19,14 +19,14 @@ import { AlertTriangle, Trash2 } from "@calcom/ui/components/icon";
 import CreateDirectory from "./CreateDirectory";
 import DirectoryInfo from "./DirectoryInfo";
 
-const ConfigureDirectorySync = ({ teamId }: { teamId: number | null }) => {
+const ConfigureDirectorySync = ({ orgId }: { orgId: number | null }) => {
   const { t } = useLocale();
   const utils = trpc.useContext();
   const [error, setError] = useState<string | null>(null);
   const [deleteDirectoryOpen, setDeleteDirectoryOpen] = useState(false);
 
   const { data, isLoading } = trpc.viewer.dsync.get.useQuery(
-    { teamId },
+    { orgId },
     {
       onError: (err) => {
         setError(err.message);
@@ -55,7 +55,7 @@ const ConfigureDirectorySync = ({ teamId }: { teamId: number | null }) => {
       return;
     }
 
-    deleteMutation.mutate({ teamId, directoryId: directory.id });
+    deleteMutation.mutate({ orgId, directoryId: directory.id });
   };
 
   if (error) {
@@ -69,7 +69,7 @@ const ConfigureDirectorySync = ({ teamId }: { teamId: number | null }) => {
   return (
     <div>
       {!directory ? (
-        <CreateDirectory teamId={teamId} />
+        <CreateDirectory orgId={orgId} />
       ) : (
         <>
           <DirectoryInfo directory={directory} />

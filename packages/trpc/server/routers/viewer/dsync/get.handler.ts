@@ -17,7 +17,7 @@ type Options = {
 export const getHandler = async ({ ctx, input }: Options) => {
   const { dsyncController } = await jackson();
 
-  const { message, access } = await canAccess(ctx.user, input.teamId);
+  const { message, access } = await canAccess(ctx.user, input.orgId);
 
   if (!access) {
     throw new TRPCError({
@@ -26,7 +26,7 @@ export const getHandler = async ({ ctx, input }: Options) => {
     });
   }
 
-  const tenant = input.teamId ? `${tenantPrefix}${input.teamId}` : (samlTenantID as string);
+  const tenant = input.orgId ? `${tenantPrefix}${input.orgId}` : (samlTenantID as string);
 
   const { data, error } = await dsyncController.directories.getByTenantAndProduct(tenant, samlProductID);
 

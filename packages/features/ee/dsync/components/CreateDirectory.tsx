@@ -21,7 +21,7 @@ const defaultValues = {
   provider: directoryProviders[0].value,
 };
 
-const CreateDirectory = ({ teamId }: { teamId: number | null }) => {
+const CreateDirectory = ({ orgId }: { orgId: number | null }) => {
   const { t } = useLocale();
   const utils = trpc.useContext();
   const form = useForm({ defaultValues });
@@ -57,7 +57,7 @@ const CreateDirectory = ({ teamId }: { teamId: number | null }) => {
             handleSubmit={(values) => {
               mutation.mutate({
                 ...values,
-                teamId,
+                orgId,
               });
             }}>
             <div className="mb-5 mt-1">
