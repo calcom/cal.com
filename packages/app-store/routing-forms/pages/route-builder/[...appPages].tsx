@@ -142,7 +142,8 @@ const Route = ({
 
   useEffect(() => {
     if (!isLoading) {
-      const isCustom = !eventOptions.find((eventOption) => eventOption.value === route.action.value);
+      const isCustom =
+        !isRouter(route) && !eventOptions.find((eventOption) => eventOption.value === route.action.value);
       setCustomEventTypeSlug(isCustom && !isRouter(route) ? route.action.value.split("/").pop() ?? "" : "");
     }
   }, [isLoading]);
