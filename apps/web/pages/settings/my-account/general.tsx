@@ -261,7 +261,9 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
                         variant="icon"
                         StartIcon={Trash2}
                         onClick={() => {
-                          const updatedSchedules = getValues("travelSchedules").filter((i) => i !== index);
+                          const updatedSchedules = watchedTzSchedules.filter(
+                            (s, filterIndex) => filterIndex !== index
+                          );
                           formMethods.setValue("travelSchedules", updatedSchedules, { shouldDirty: true });
                         }}
                       />

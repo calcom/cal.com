@@ -179,6 +179,27 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
   }
 
   if (input.travelSchedules) {
+    const existingSchedules = await prisma.travelSchedule.findMany({
+      where: {
+        userId: user.id,
+      },
+    });
+
+    const schedulesToDelete = existingSchedules.filter(
+      (schedule) =>
+        !input.travelSchedules ||
+        !input.travelSchedules.find((scheduleInput) => scheduleInput.id === schedule.id)
+    );
+
+    await prisma.travelSchedule.deleteMany({
+      where: {
+        userId: user.id,
+        id: {
+          in: schedulesToDelete.map((schedule) => schedule.id) as number[],
+        },
+      },
+    });
+
     await prisma.travelSchedule.createMany({
       data: input.travelSchedules
         .filter((schedule) => !schedule.id)
@@ -190,18 +211,6 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
             timeZone: schedule.timeZone,
           };
         }),
-    });
-
-    //todo
-    await prisma.travelSchedule.deleteMany({
-      where: {
-        userId: user.id,
-        id: {
-          in: input.travelSchedules
-            .filter((schedule) => !!schedule.id)
-            .map((schedule) => schedule.id) as number[],
-        },
-      },
     });
   }
 
