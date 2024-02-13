@@ -272,7 +272,7 @@ const FixedHosts = ({
               const rrHosts = getValues("hosts")
                 .filter((host) => !host.isFixed)
                 .sort((a, b) => (b.priority ?? 2) - (a.priority ?? 2));
-              setValue("hosts", rrHosts);
+              setValue("hosts", rrHosts, { shouldDirty: true });
             }
             setIsDisabled(checked);
           }}
@@ -293,7 +293,8 @@ const FixedHosts = ({
                     isFixed: true,
                     userId: parseInt(teamMember.value, 10),
                     priority: 2,
-                  }))
+                  })),
+                  { shouldDirty: true }
                 )
               }
             />
@@ -335,7 +336,7 @@ const AddMembersWithSwitch = ({
               assignAllTeamMembers={assignAllTeamMembers}
               setAssignAllTeamMembers={setAssignAllTeamMembers}
               onActive={onActive}
-              onInactive={() => setValue("hosts", [])}
+              onInactive={() => setValue("hosts", [], { shouldDirty: true })}
             />
           </div>
         ) : (
@@ -398,7 +399,8 @@ const RoundRobinHosts = ({
                   userId: parseInt(teamMember.value, 10),
                   priority: 2,
                 }))
-                .sort((a, b) => b.priority - a.priority)
+                .sort((a, b) => b.priority - a.priority),
+              { shouldDirty: true }
             )
           }
         />
