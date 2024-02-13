@@ -210,7 +210,9 @@ describe("Tests the slot logic", () => {
       inviteeDate: dayjs().add(1, "day"),
       frequency: 20,
       minimumBookingNotice: 0,
-      dateRanges: [{ start: dayjs("2021-06-21T00:00:00.000Z"), end: dayjs("2021-06-21T23:45:00.000Z") }],
+      dateRanges: [
+        { start: dayjs("2021-06-21T00:00:00.000Z").utc(), end: dayjs("2021-06-21T23:45:00.000Z").utc() },
+      ],
       /*workingHours: [
         {
           userId: 1,
