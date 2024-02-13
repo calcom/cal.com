@@ -41,14 +41,15 @@ export function HintsOrErrors<T extends FieldValues = FieldValues>(props: {
       <div className="text-gray text-default mt-2 flex items-center text-sm">
         <ul className="ml-2">
           {hintErrors.map((key: string) => {
-            const submitted = formState.isSubmitted;
             const error = fieldErrors[key] || fieldErrors.message;
+            const dirty = formState.dirtyFields[fieldName];
+
             return (
               <li
                 key={key}
-                className={error !== undefined ? (submitted ? "text-red-700" : "") : "text-green-600"}>
+                className={error !== undefined ? (dirty ? "text-red-700" : "") : "text-green-600"}>
                 {error !== undefined ? (
-                  submitted ? (
+                  dirty ? (
                     <X size="12" strokeWidth="3" className="-ml-1 inline-block ltr:mr-2 rtl:ml-2" />
                   ) : (
                     <Circle fill="currentColor" size="5" className="inline-block ltr:mr-2 rtl:ml-2" />

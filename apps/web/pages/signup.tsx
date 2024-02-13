@@ -1,4 +1,3 @@
-import { zodResolver } from "@hookform/resolvers/zod";
 import type { GetServerSidePropsContext } from "next";
 import { signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
@@ -25,12 +24,48 @@ import PageWrapper from "@components/PageWrapper";
 import { IS_GOOGLE_LOGIN_ENABLED } from "../server/lib/constants";
 import { ssrInit } from "../server/lib/ssr";
 
+const MIN = "min";
+const NUM = "num";
+const CAPLOW = "caplow";
+
+const customPasswordValidator = (value: string, ctx: z.ZodContext) => {
+  const hasNumber = /[0-9]/.test(value);
+  const hasUpper = /[A-Z]/.test(value);
+  const hasLower = /[a-z]/.test(value);
+
+  if (value.length < 7) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.too_small,
+      minimum: 7,
+      type: "string",
+      inclusive: true,
+      path: [MIN],
+    });
+  }
+
+  if (!hasNumber) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Password must contain at least one number.",
+      path: [NUM],
+    });
+  }
+
+  if (!hasUpper || !hasLower) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Password must contain at least one uppercase and one lowercase letter.",
+      path: [CAPLOW],
+    });
+  }
+};
+
 const signupSchema = z.object({
   username: z.string().refine((value) => !value.includes("+"), {
     message: "String should not contain a plus symbol (+).",
   }),
   email: z.string().email(),
-  password: z.string().min(7),
+  password: z.string().superRefine(customPasswordValidator),
   language: z.string().optional(),
   token: z.string().optional(),
   apiError: z.string().optional(), // Needed to display API errors doesnt get passed to the API
@@ -45,8 +80,32 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
   const telemetry = useTelemetry();
   const { t, i18n } = useLocale();
   const flags = useFlagMap();
+
+  const customZodResolver = (schema: z.ZodSchema) => async (values: any) => {
+    try {
+      schema.parse(values);
+      return { values, errors: {} };
+    } catch (errors: any) {
+      const fieldErrors: any = { password: {} };
+
+      errors?.issues?.forEach((err: any) => {
+        const fieldName = err.path[0];
+
+        if (fieldName === "password") {
+          const errorType = err.path[1];
+          fieldErrors["password"][errorType] = err;
+        } else {
+          fieldErrors[fieldName] = err;
+        }
+      });
+
+      return { values, errors: fieldErrors };
+    }
+  };
+
   const methods = useForm<FormValues>({
-    resolver: zodResolver(signupSchema),
+    mode: "onChange",
+    resolver: customZodResolver(signupSchema),
     defaultValues: prepopulateFormValues,
   });
   const {
@@ -148,7 +207,7 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
                       className: "block text-sm font-medium text-default",
                     }}
                     {...register("password")}
-                    hintErrors={["caplow", "min", "num"]}
+                    hintErrors={[CAPLOW, MIN, NUM]}
                     className="border-default mt-1 block w-full rounded-md border px-3 py-2 shadow-sm focus:border-black focus:outline-none focus:ring-black sm:text-sm"
                   />
                 </div>
