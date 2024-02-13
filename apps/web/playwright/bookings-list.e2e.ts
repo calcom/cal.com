@@ -1,9 +1,16 @@
+import type { APIResponse } from "@playwright/test";
 import { expect } from "@playwright/test";
 
+import { randomString } from "@calcom/lib/random";
+import slugify from "@calcom/lib/slugify";
+import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/client";
+import { SchedulingType } from "@calcom/prisma/enums";
 
+import { createTeamEventType } from "./fixtures/users";
 import type { Fixtures } from "./lib/fixtures";
 import { test } from "./lib/fixtures";
+import { testName, bookTimeSlot, selectFirstAvailableTimeSlotNextMonth } from "./lib/testUtils";
 
 test.afterEach(({ users }) => users.deleteAll());
 
@@ -64,6 +71,48 @@ test.describe("Bookings", () => {
   });
 });
 
+test.describe("Bookings list view", () => {
+  test("collective eventType booking should be visible to team admin", async ({ page, users, bookings }) => {
+    const { owner1, owner2, commonUser, team1_teammate1 } = await createTeams(users);
+
+    const { team: team1 } = await owner1.getFirstTeamMembership();
+    const scenario = {
+      schedulingType: SchedulingType.COLLECTIVE,
+      teamEventTitle: `collective-team-event`,
+      teamEventSlug: slugify(`collective-team-event-${randomString(5)}`),
+    };
+
+    const eventType = await createTeamEventType(owner1, team1, scenario);
+    const { id: eventId } = eventType;
+
+    await prisma.host.createMany({
+      data: [
+        {
+          userId: commonUser.id,
+          eventTypeId: eventId,
+        },
+        {
+          userId: team1_teammate1.id,
+          eventTypeId: eventId,
+        },
+      ],
+    });
+
+    await prisma.host.deleteMany({
+      where: {
+        userId: owner1.id,
+        eventTypeId: eventId,
+      },
+    });
+
+    await bookEvent({ pageFixture: page, eventType, team: team1 });
+
+    await bookingVisibleFor({ user: owner1, pageFixture: page, eventType, shouldBeVisible: true });
+    await bookingVisibleFor({ user: owner2, pageFixture: page, eventType, shouldBeVisible: false });
+    await bookingVisibleFor({ user: commonUser, pageFixture: page, eventType, shouldBeVisible: true });
+  });
+});
+
 async function createBooking({
   bookingsFixture,
   organizer,
@@ -111,3 +160,138 @@ async function createBooking({
     },
   });
 }
+
+const createTeams = async (userFixture: Fixtures["users"]) => {
+  const owner1 = await userFixture.create({ username: "team-owner-1", name: "team-owner-1" });
+  const owner2 = await userFixture.create({ username: "team-owner-2", name: "team-owner-2" });
+  const commonUser = await userFixture.create({ name: "commonUser" });
+  const team1_teammate1 = await userFixture.create({ name: "team1_teammate1" });
+  const team1_teammate2 = await userFixture.create({ name: "team1_teammate2" });
+  const team2_teammate1 = await userFixture.create({ name: "team2_teammate1" });
+  const teamOne = await prisma.team.create({
+    data: {
+      name: "bookings-test-team-1",
+      slug: slugify(`bookings-test-team-2-${randomString(5)}`),
+    },
+  });
+
+  const teamTwo = await prisma.team.create({
+    data: {
+      name: "bookings-test-team-2",
+      slug: slugify(`bookings-test-team-2-${randomString(5)}`),
+    },
+  });
+
+  // create memberships
+  await prisma.membership.createMany({
+    data: [
+      {
+        userId: owner1.id,
+        teamId: teamOne.id,
+        accepted: true,
+        role: "OWNER",
+      },
+      {
+        userId: commonUser.id,
+        teamId: teamOne.id,
+        accepted: true,
+        role: "MEMBER",
+      },
+      {
+        userId: team1_teammate1.id,
+        teamId: teamOne.id,
+        accepted: true,
+        role: "MEMBER",
+      },
+      {
+        userId: team1_teammate2.id,
+        teamId: teamOne.id,
+        accepted: true,
+        role: "MEMBER",
+      },
+      {
+        userId: owner2.id,
+        teamId: teamTwo.id,
+        accepted: true,
+        role: "OWNER",
+      },
+      {
+        userId: commonUser.id,
+        teamId: teamTwo.id,
+        accepted: true,
+        role: "MEMBER",
+      },
+      {
+        userId: team2_teammate1.id,
+        teamId: teamTwo.id,
+        accepted: true,
+        role: "MEMBER",
+      },
+    ],
+  });
+  return {
+    owner1,
+    owner2,
+    commonUser,
+    team1_teammate1,
+    team1_teammate2,
+    team2_teammate1,
+    teamOne,
+    teamTwo,
+  };
+};
+
+const bookEvent = async ({
+  pageFixture,
+  team,
+  eventType,
+}: {
+  pageFixture: Fixtures["page"];
+  team: {
+    id: number;
+    slug: string | null;
+    name: string;
+  };
+  eventType: {
+    id: number;
+    title: string;
+    slug: string;
+  };
+}) => {
+  await pageFixture.goto(`/team/${team.slug}/${eventType.slug}/`);
+  await selectFirstAvailableTimeSlotNextMonth(pageFixture);
+  await bookTimeSlot(pageFixture);
+  await expect(pageFixture.locator("[data-testid=success-page]")).toBeVisible();
+
+  // The title of the booking
+  const BookingTitle = `${eventType.title} between ${team.name} and ${testName}`;
+  await expect(pageFixture.locator("[data-testid=booking-title]")).toHaveText(BookingTitle);
+  // The booker should be in the attendee list
+  await expect(pageFixture.locator(`[data-testid="attendee-name-${testName}"]`)).toHaveText(testName);
+};
+
+const bookingVisibleFor = async ({
+  user,
+  pageFixture,
+  eventType,
+  shouldBeVisible,
+}: {
+  user: { apiLogin: () => Promise<APIResponse> };
+  pageFixture: Fixtures["page"];
+  eventType: { title: string };
+  shouldBeVisible: boolean;
+}) => {
+  await user.apiLogin();
+  await pageFixture.goto(`/bookings/upcoming`);
+  const upcomingBookings = pageFixture.locator('[data-testid="upcoming-bookings"]');
+  const upcomingBookingList = upcomingBookings.locator('[data-testid="booking-item"]').nth(0);
+  shouldBeVisible
+    ? await expect(
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        upcomingBookingList.locator(`text=${eventType.title}`)
+      ).toBeVisible()
+    : await expect(
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        upcomingBookingList.locator(`text=${eventType.title}`)
+      ).toBeHidden();
+};
