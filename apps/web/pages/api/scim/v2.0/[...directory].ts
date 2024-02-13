@@ -1,4 +1,4 @@
-import type { DirectorySyncEvent, DirectorySyncRequest } from "@boxyhq/saml-jackson";
+import type { DirectorySyncEvent, DirectorySyncRequest, User } from "@boxyhq/saml-jackson";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import jackson from "@calcom/features/ee/sso/lib/jackson";
@@ -31,8 +31,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       filter: req.query.filter as string,
     },
   };
+  console.log("🚀 ~ handler ~ request:", request);
 
   const { status, data } = await dsyncController.requests.handle(request, handleEvents);
+  console.log("🚀 ~ handler ~ data:", data);
+  console.log("🚀 ~ handler ~ status:", status);
 
   res.status(status).json(data);
 }
@@ -55,7 +58,11 @@ const handleEvents = async (event: DirectorySyncEvent) => {
     },
     select: {
       orgId: true,
-      org: true,
+      org: {
+        include: {
+          parent: true,
+        },
+      },
     },
   });
 
@@ -65,42 +72,52 @@ const handleEvents = async (event: DirectorySyncEvent) => {
 
   const { orgId } = dSyncData;
 
-  if (event.event === "user.created") {
-    const userEmail = event.data?.email;
-    const translation = await getTranslation(event.data?.language ?? "en", "common");
+  console.log(typeof event.event);
+
+  if (event.event === "user.created" || event.event === "user.updated") {
+    const eventData = event.data as User;
+    const userEmail = eventData.email;
+    const translation = await getTranslation("en", "common");
     // If orgId then it is for a org else for the entire app
-    if (orgId) {
-      // Check if the user already exits in the team
-      const doesUserAlreadyExist = await prisma.membership.findFirst({
+    if (dSyncData.org && orgId) {
+      // Check if user exists in DB
+      const user = await prisma.user.findFirst({
         where: {
-          teamId: orgId,
-          user: {
-            email: userEmail,
-          },
+          email: userEmail,
+        },
+        select: {
+          id: true,
+          organizationId: true,
         },
       });
 
-      // If user already in DB, automatically add them to the team/org
-      // If user is not in DB, create user and add to the team/org
-      if (doesUserAlreadyExist) {
+      // User is already a part of that org
+      if (user?.organizationId) {
+        return;
+      }
+
+      // If user already in DB, automatically add them to the org
+
+      if (user) {
         // Add user to team/org
         await prisma.membership.create({
           data: {
             teamId: orgId,
-            userId: doesUserAlreadyExist.userId,
+            userId: user.id,
             role: "MEMBER",
             // Since coming from directory assume it'll be verified
             accepted: true,
           },
         });
+        // If user is not in DB, create user and add to the org
       } else {
         const [emailUser, emailDomain] = userEmail.split("@");
         const username = slugify(`${emailUser}-${emailDomain.split(".")[0]}`);
-        // Create user
-        const user = await prisma.user.create({
+        await prisma.user.create({
           data: {
             username,
             email: userEmail,
+            // name: event.data?.givenName,
             // Assume verified since coming from directory
             verified: true,
             invitedTo: orgId,
