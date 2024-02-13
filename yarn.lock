@@ -123,9 +123,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@anthropic-ai/sdk@npm:^0.5.7":
-  version: 0.5.10
-  resolution: "@anthropic-ai/sdk@npm:0.5.10"
+"@anthropic-ai/sdk@npm:^0.9.1":
+  version: 0.9.1
+  resolution: "@anthropic-ai/sdk@npm:0.9.1"
   dependencies:
     "@types/node": ^18.11.18
     "@types/node-fetch": ^2.6.4
@@ -135,7 +135,8 @@ __metadata:
     form-data-encoder: 1.7.2
     formdata-node: ^4.3.2
     node-fetch: ^2.6.7
-  checksum: 4f70b06be7be7e9baee0d2b85648f17643a58c89003331a9b38dea8e3eaea3519d60ac5ef2074b903897214f53358b92c6e87e7ea4f22787410cccb85d5a8b1b
+    web-streams-polyfill: ^3.2.1
+  checksum: 0ec50abc0ffc694d903d516f4ac110aafa3a588438791851dd2c3d220da49ceaf2723e218b7f1bc13e737fee1561b18ad8c3b4cc4347e8212131f69637216413
   languageName: node
   linkType: hard
 
@@ -3374,9 +3375,11 @@ __metadata:
   resolution: "@calcom/ai@workspace:apps/ai"
   dependencies:
     "@calcom/prisma": "*"
+    "@langchain/core": ^0.1.26
+    "@langchain/openai": ^0.0.14
     "@t3-oss/env-nextjs": ^0.6.1
     "@types/mailparser": ^3.4.0
-    langchain: ^0.0.131
+    langchain: ^0.1.17
     mailparser: ^3.6.5
     next: ^13.5.4
     supports-color: 8.1.1
@@ -6197,28 +6200,28 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@graphql-codegen/add@npm:^5.0.1":
-  version: 5.0.1
-  resolution: "@graphql-codegen/add@npm:5.0.1"
+"@graphql-codegen/add@npm:^5.0.2":
+  version: 5.0.2
+  resolution: "@graphql-codegen/add@npm:5.0.2"
   dependencies:
-    "@graphql-codegen/plugin-helpers": ^5.0.2
+    "@graphql-codegen/plugin-helpers": ^5.0.3
     tslib: ~2.6.0
   peerDependencies:
     graphql: ^0.8.0 || ^0.9.0 || ^0.10.0 || ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0 || ^16.0.0
-  checksum: d95fe9a396a11e10c328300203807751b608e1217fa0904b6f7b4ff85844ea1a4425289f8c8cddf524dcd3116b0946fa8467c097a95b17d5267c72f5fcbbc359
+  checksum: ce214dfe274ab953b727355e39d0c08f8f5bcc1fad4d867d30321b80efaee3fa8325f012e8c929d4030bea4766e100f1a66393f8a71e58261adbed798646778a
   languageName: node
   linkType: hard
 
 "@graphql-codegen/cli@npm:^5.0.0":
-  version: 5.0.1
-  resolution: "@graphql-codegen/cli@npm:5.0.1"
+  version: 5.0.2
+  resolution: "@graphql-codegen/cli@npm:5.0.2"
   dependencies:
     "@babel/generator": ^7.18.13
     "@babel/template": ^7.18.10
     "@babel/types": ^7.18.13
-    "@graphql-codegen/client-preset": ^4.2.0
-    "@graphql-codegen/core": ^4.0.1
-    "@graphql-codegen/plugin-helpers": ^5.0.2
+    "@graphql-codegen/client-preset": ^4.2.2
+    "@graphql-codegen/core": ^4.0.2
+    "@graphql-codegen/plugin-helpers": ^5.0.3
     "@graphql-tools/apollo-engine-loader": ^8.0.0
     "@graphql-tools/code-file-loader": ^8.0.0
     "@graphql-tools/git-loader": ^8.0.0
@@ -6259,65 +6262,65 @@ __metadata:
     graphql-code-generator: cjs/bin.js
     graphql-codegen: cjs/bin.js
     graphql-codegen-esm: esm/bin.js
-  checksum: 63539e80153369bac47aca062fb26b3b84b65c4188a954d9b8e6b3830ddca2ba233c0abc48795c80eea2a02a2bd0f05172ba4796cec0cb8bd4191205e8097bc3
+  checksum: 82c9a26ffeeee620d6e6863280efb6302d6ac4bdccfd80e27bf811677e58bbf4ece7767e43a999194b0b8922f32226eb7a3c21e0a8e2bebc04a3abc64a981786
   languageName: node
   linkType: hard
 
-"@graphql-codegen/client-preset@npm:^4.2.0":
-  version: 4.2.0
-  resolution: "@graphql-codegen/client-preset@npm:4.2.0"
+"@graphql-codegen/client-preset@npm:^4.2.2":
+  version: 4.2.2
+  resolution: "@graphql-codegen/client-preset@npm:4.2.2"
   dependencies:
     "@babel/helper-plugin-utils": ^7.20.2
     "@babel/template": ^7.20.7
-    "@graphql-codegen/add": ^5.0.1
-    "@graphql-codegen/gql-tag-operations": 4.0.2
-    "@graphql-codegen/plugin-helpers": ^5.0.2
-    "@graphql-codegen/typed-document-node": ^5.0.2
-    "@graphql-codegen/typescript": ^4.0.2
-    "@graphql-codegen/typescript-operations": ^4.1.0
-    "@graphql-codegen/visitor-plugin-common": ^4.1.0
+    "@graphql-codegen/add": ^5.0.2
+    "@graphql-codegen/gql-tag-operations": 4.0.4
+    "@graphql-codegen/plugin-helpers": ^5.0.3
+    "@graphql-codegen/typed-document-node": ^5.0.4
+    "@graphql-codegen/typescript": ^4.0.4
+    "@graphql-codegen/typescript-operations": ^4.1.2
+    "@graphql-codegen/visitor-plugin-common": ^4.1.2
     "@graphql-tools/documents": ^1.0.0
     "@graphql-tools/utils": ^10.0.0
     "@graphql-typed-document-node/core": 3.2.0
     tslib: ~2.6.0
   peerDependencies:
     graphql: ^0.8.0 || ^0.9.0 || ^0.10.0 || ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0 || ^16.0.0
-  checksum: a10908d7ec657455c96ac627e461c9ad775d6b5ec7e57065678f2b8dd34748084ce14f5225a2f44057dd61b20510b5e0811b660aa025919c9ac00e9b6740b5bd
+  checksum: acacf4f1a5089e06dd8ffd56dec274bf3eb444c0048e621b8721bdb51cc6f6e78f164726aafaf648b7b53775f8b3e51e1a9750b78f552a790f66c6a998ffb4e1
   languageName: node
   linkType: hard
 
-"@graphql-codegen/core@npm:^4.0.1":
-  version: 4.0.1
-  resolution: "@graphql-codegen/core@npm:4.0.1"
+"@graphql-codegen/core@npm:^4.0.2":
+  version: 4.0.2
+  resolution: "@graphql-codegen/core@npm:4.0.2"
   dependencies:
-    "@graphql-codegen/plugin-helpers": ^5.0.2
+    "@graphql-codegen/plugin-helpers": ^5.0.3
     "@graphql-tools/schema": ^10.0.0
     "@graphql-tools/utils": ^10.0.0
     tslib: ~2.6.0
   peerDependencies:
     graphql: ^0.8.0 || ^0.9.0 || ^0.10.0 || ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0 || ^16.0.0
-  checksum: 1211015ff8d8ff1e08660cd17f0e6741434abebcfb35c8e16c94a90da69891d70a7592f2b0d794af7c15a91923a443c5bdeb7c27c69cdbb2901f42c769bc8a92
+  checksum: 5fda4e843174aacd4a481b73b4d259fa2df7ffe4200bd06e95ecd4b3f43aa5969deeaeb51f6cf15a542e99ee5756c3e02a29d9d2ff9891af40e234a8f68ead4d
   languageName: node
   linkType: hard
 
-"@graphql-codegen/gql-tag-operations@npm:4.0.2":
-  version: 4.0.2
-  resolution: "@graphql-codegen/gql-tag-operations@npm:4.0.2"
+"@graphql-codegen/gql-tag-operations@npm:4.0.4":
+  version: 4.0.4
+  resolution: "@graphql-codegen/gql-tag-operations@npm:4.0.4"
   dependencies:
-    "@graphql-codegen/plugin-helpers": ^5.0.2
-    "@graphql-codegen/visitor-plugin-common": 4.1.0
+    "@graphql-codegen/plugin-helpers": ^5.0.3
+    "@graphql-codegen/visitor-plugin-common": 4.1.2
     "@graphql-tools/utils": ^10.0.0
     auto-bind: ~4.0.0
     tslib: ~2.6.0
   peerDependencies:
     graphql: ^0.8.0 || ^0.9.0 || ^0.10.0 || ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0 || ^16.0.0
-  checksum: ccdfe45a467f8e9855a48e248d3d30ae6d6f070a062b40df83044ee8252a481c79efdbf5e607e059fd0cfe24c28c509ffd3fc495575c89d2e76c44daf100a16d
+  checksum: 149d4d236bd84fafb6f222b6dc258fbb472982c42c27a9385152dceacbfb6d5b9a67e16f85d04540d314ea54c6af4e4156dff714e8c41ccaf4e67a398643ab08
   languageName: node
   linkType: hard
 
-"@graphql-codegen/plugin-helpers@npm:^5.0.2":
-  version: 5.0.2
-  resolution: "@graphql-codegen/plugin-helpers@npm:5.0.2"
+"@graphql-codegen/plugin-helpers@npm:^5.0.3":
+  version: 5.0.3
+  resolution: "@graphql-codegen/plugin-helpers@npm:5.0.3"
   dependencies:
     "@graphql-tools/utils": ^10.0.0
     change-case-all: 1.0.15
@@ -6327,73 +6330,73 @@ __metadata:
     tslib: ~2.6.0
   peerDependencies:
     graphql: ^0.8.0 || ^0.9.0 || ^0.10.0 || ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0 || ^16.0.0
-  checksum: 6f817e1fb9fd05e6da159138e81e53ea0d0fe43e074aa6870d09569d12ed918cc1e49a738219942e142090dd642067e2f23c8a30ff07826fd05d0dd99cb73179
+  checksum: 7116745edd88cabc61aa192c2a3632844950f00e33040f68f0ccc41bb2d6bf3a14fbeaa67d6d5ea01193ef1e709a9b5bd09860c3b3e262dacea0f1127ee61789
   languageName: node
   linkType: hard
 
-"@graphql-codegen/schema-ast@npm:^4.0.1":
-  version: 4.0.1
-  resolution: "@graphql-codegen/schema-ast@npm:4.0.1"
+"@graphql-codegen/schema-ast@npm:^4.0.2":
+  version: 4.0.2
+  resolution: "@graphql-codegen/schema-ast@npm:4.0.2"
   dependencies:
-    "@graphql-codegen/plugin-helpers": ^5.0.2
+    "@graphql-codegen/plugin-helpers": ^5.0.3
     "@graphql-tools/utils": ^10.0.0
     tslib: ~2.6.0
   peerDependencies:
     graphql: ^0.8.0 || ^0.9.0 || ^0.10.0 || ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0 || ^16.0.0
-  checksum: 78c974a899c72cfd87dc0cb451b5f36c80e55a4dd69c8a91d3206d8bf34e406f559d26876c0b56ce7e5c61587f3ab19ca3de7ded8cf718e3b0b2016b4121d95a
+  checksum: f6097ceac7ef1266487c4937c916c6c67034c3decad3f714daa5370d5a4d68996be70f850a8765ccc71fa234ddb7f1ba7ffc02ba97a761930859196a96348e01
   languageName: node
   linkType: hard
 
-"@graphql-codegen/typed-document-node@npm:^5.0.1, @graphql-codegen/typed-document-node@npm:^5.0.2":
-  version: 5.0.2
-  resolution: "@graphql-codegen/typed-document-node@npm:5.0.2"
+"@graphql-codegen/typed-document-node@npm:^5.0.1, @graphql-codegen/typed-document-node@npm:^5.0.4":
+  version: 5.0.4
+  resolution: "@graphql-codegen/typed-document-node@npm:5.0.4"
   dependencies:
-    "@graphql-codegen/plugin-helpers": ^5.0.2
-    "@graphql-codegen/visitor-plugin-common": 4.1.0
+    "@graphql-codegen/plugin-helpers": ^5.0.3
+    "@graphql-codegen/visitor-plugin-common": 4.1.2
     auto-bind: ~4.0.0
     change-case-all: 1.0.15
     tslib: ~2.6.0
   peerDependencies:
     graphql: ^0.8.0 || ^0.9.0 || ^0.10.0 || ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0 || ^16.0.0
-  checksum: 3ef46e79b16894b83fde20aafad84d0ad98ec8d511c3e22a74176f4de193679707d5120fea48da4fb422264c79036da7dd6fc045b552416dccf9d95bc0e6b7b7
+  checksum: 9a781d40165cf028da13822e035225a46fcfe4035f1e3937b3428597ad71a4162af052f62097b085a783993cfab368ee342cb76fd591438729234e34433bcdb1
   languageName: node
   linkType: hard
 
-"@graphql-codegen/typescript-operations@npm:^4.0.1, @graphql-codegen/typescript-operations@npm:^4.1.0":
-  version: 4.1.0
-  resolution: "@graphql-codegen/typescript-operations@npm:4.1.0"
+"@graphql-codegen/typescript-operations@npm:^4.0.1, @graphql-codegen/typescript-operations@npm:^4.1.2":
+  version: 4.1.2
+  resolution: "@graphql-codegen/typescript-operations@npm:4.1.2"
   dependencies:
-    "@graphql-codegen/plugin-helpers": ^5.0.2
-    "@graphql-codegen/typescript": ^4.0.2
-    "@graphql-codegen/visitor-plugin-common": 4.1.0
+    "@graphql-codegen/plugin-helpers": ^5.0.3
+    "@graphql-codegen/typescript": ^4.0.4
+    "@graphql-codegen/visitor-plugin-common": 4.1.2
     auto-bind: ~4.0.0
     tslib: ~2.6.0
   peerDependencies:
     graphql: ^0.8.0 || ^0.9.0 || ^0.10.0 || ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0 || ^16.0.0
-  checksum: 9f9b72df80519b0153d11686eae734629a2b9e651e90a609cfeeb59525539d80031f3643bd8d56739670381430aafedcd6023b679bf5557cd5219ce8639afd1b
+  checksum: 13f23f439c525d4c40d18cb1c810c41945e83f072b91eb515f4dc3e87564c1f01ba1ae5886e37396f351a774eb45b84b6c42f9ad6db7dc06f05d8fb222e10609
   languageName: node
   linkType: hard
 
-"@graphql-codegen/typescript@npm:^4.0.1, @graphql-codegen/typescript@npm:^4.0.2":
-  version: 4.0.2
-  resolution: "@graphql-codegen/typescript@npm:4.0.2"
+"@graphql-codegen/typescript@npm:^4.0.1, @graphql-codegen/typescript@npm:^4.0.4":
+  version: 4.0.4
+  resolution: "@graphql-codegen/typescript@npm:4.0.4"
   dependencies:
-    "@graphql-codegen/plugin-helpers": ^5.0.2
-    "@graphql-codegen/schema-ast": ^4.0.1
-    "@graphql-codegen/visitor-plugin-common": 4.1.0
+    "@graphql-codegen/plugin-helpers": ^5.0.3
+    "@graphql-codegen/schema-ast": ^4.0.2
+    "@graphql-codegen/visitor-plugin-common": 4.1.2
     auto-bind: ~4.0.0
     tslib: ~2.6.0
   peerDependencies:
     graphql: ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0 || ^16.0.0
-  checksum: 859c7e0e671d800ad430d07aabde64de304add5a5f3c6bb67e90d01112ca0de4819f5dac16994ca45f311a76ec2e02de70df77865391c5a50382c31d9c0af06d
+  checksum: 9190f26823fbe65bf0405c91e4be62fb4e6d774257a262f3735826ba0f16e427dec4704680112bce93d607d2e4e957d09b540858c85896656c4f4b286f6f823f
   languageName: node
   linkType: hard
 
-"@graphql-codegen/visitor-plugin-common@npm:4.1.0, @graphql-codegen/visitor-plugin-common@npm:^4.1.0":
-  version: 4.1.0
-  resolution: "@graphql-codegen/visitor-plugin-common@npm:4.1.0"
+"@graphql-codegen/visitor-plugin-common@npm:4.1.2, @graphql-codegen/visitor-plugin-common@npm:^4.1.2":
+  version: 4.1.2
+  resolution: "@graphql-codegen/visitor-plugin-common@npm:4.1.2"
   dependencies:
-    "@graphql-codegen/plugin-helpers": ^5.0.2
+    "@graphql-codegen/plugin-helpers": ^5.0.3
     "@graphql-tools/optimize": ^2.0.0
     "@graphql-tools/relay-operation-optimizer": ^7.0.0
     "@graphql-tools/utils": ^10.0.0
@@ -6405,7 +6408,7 @@ __metadata:
     tslib: ~2.6.0
   peerDependencies:
     graphql: ^0.8.0 || ^0.9.0 || ^0.10.0 || ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0 || ^16.0.0
-  checksum: cfd6cbecbb991bd28ac2bd1ef352ddfd3fbd0339631593fa25f16cf5ed8a390335c3ddd5e01b2a5978db96c26ddec91dcc9c9a7a8513b47ef8368c6c22f8de1e
+  checksum: 3e4c7ce1a714353d6592a74d697408b42ca3187ddf67fd887c04ed1eec4adf47372195445793110447dba82e128c37171f1859c3cb17bdc86d10c94490c36881
   languageName: node
   linkType: hard
 
@@ -7603,6 +7606,297 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@langchain/community@npm:~0.0.20":
+  version: 0.0.26
+  resolution: "@langchain/community@npm:0.0.26"
+  dependencies:
+    "@langchain/core": ~0.1.16
+    "@langchain/openai": ~0.0.10
+    flat: ^5.0.2
+    langsmith: ~0.0.48
+    uuid: ^9.0.0
+    zod: ^3.22.3
+  peerDependencies:
+    "@aws-crypto/sha256-js": ^5.0.0
+    "@aws-sdk/client-bedrock-agent-runtime": ^3.485.0
+    "@aws-sdk/client-bedrock-runtime": ^3.422.0
+    "@aws-sdk/client-dynamodb": ^3.310.0
+    "@aws-sdk/client-kendra": ^3.352.0
+    "@aws-sdk/client-lambda": ^3.310.0
+    "@aws-sdk/client-sagemaker-runtime": ^3.310.0
+    "@aws-sdk/client-sfn": ^3.310.0
+    "@aws-sdk/credential-provider-node": ^3.388.0
+    "@azure/search-documents": ^12.0.0
+    "@clickhouse/client": ^0.2.5
+    "@cloudflare/ai": "*"
+    "@datastax/astra-db-ts": ^0.1.4
+    "@elastic/elasticsearch": ^8.4.0
+    "@getmetal/metal-sdk": "*"
+    "@getzep/zep-js": ^0.9.0
+    "@gomomento/sdk": ^1.51.1
+    "@gomomento/sdk-core": ^1.51.1
+    "@google-ai/generativelanguage": ^0.2.1
+    "@gradientai/nodejs-sdk": ^1.2.0
+    "@huggingface/inference": ^2.6.4
+    "@mozilla/readability": "*"
+    "@opensearch-project/opensearch": "*"
+    "@pinecone-database/pinecone": "*"
+    "@planetscale/database": ^1.8.0
+    "@qdrant/js-client-rest": ^1.2.0
+    "@raycast/api": ^1.55.2
+    "@rockset/client": ^0.9.1
+    "@smithy/eventstream-codec": ^2.0.5
+    "@smithy/protocol-http": ^3.0.6
+    "@smithy/signature-v4": ^2.0.10
+    "@smithy/util-utf8": ^2.0.0
+    "@supabase/postgrest-js": ^1.1.1
+    "@supabase/supabase-js": ^2.10.0
+    "@tensorflow-models/universal-sentence-encoder": "*"
+    "@tensorflow/tfjs-converter": "*"
+    "@tensorflow/tfjs-core": "*"
+    "@upstash/redis": ^1.20.6
+    "@vercel/kv": ^0.2.3
+    "@vercel/postgres": ^0.5.0
+    "@writerai/writer-sdk": ^0.40.2
+    "@xata.io/client": ^0.28.0
+    "@xenova/transformers": ^2.5.4
+    "@zilliz/milvus2-sdk-node": ">=2.2.7"
+    cassandra-driver: ^4.7.2
+    chromadb: "*"
+    closevector-common: 0.1.0-alpha.1
+    closevector-node: 0.1.0-alpha.10
+    closevector-web: 0.1.0-alpha.16
+    cohere-ai: "*"
+    convex: ^1.3.1
+    discord.js: ^14.14.1
+    faiss-node: ^0.5.1
+    firebase-admin: ^11.9.0
+    google-auth-library: ^8.9.0
+    googleapis: ^126.0.1
+    hnswlib-node: ^1.4.2
+    html-to-text: ^9.0.5
+    ioredis: ^5.3.2
+    jsdom: "*"
+    llmonitor: ^0.5.9
+    lodash: ^4.17.21
+    lunary: ^0.6.11
+    mongodb: ^5.2.0
+    mysql2: ^3.3.3
+    neo4j-driver: "*"
+    node-llama-cpp: "*"
+    pg: ^8.11.0
+    pg-copy-streams: ^6.0.5
+    pickleparser: ^0.2.1
+    portkey-ai: ^0.1.11
+    redis: ^4.6.4
+    replicate: ^0.18.0
+    typeorm: ^0.3.12
+    typesense: ^1.5.3
+    usearch: ^1.1.1
+    vectordb: ^0.1.4
+    voy-search: 0.6.2
+    weaviate-ts-client: ^1.4.0
+    web-auth-library: ^1.0.3
+    ws: ^8.14.2
+  peerDependenciesMeta:
+    "@aws-crypto/sha256-js":
+      optional: true
+    "@aws-sdk/client-bedrock-agent-runtime":
+      optional: true
+    "@aws-sdk/client-bedrock-runtime":
+      optional: true
+    "@aws-sdk/client-dynamodb":
+      optional: true
+    "@aws-sdk/client-kendra":
+      optional: true
+    "@aws-sdk/client-lambda":
+      optional: true
+    "@aws-sdk/client-sagemaker-runtime":
+      optional: true
+    "@aws-sdk/client-sfn":
+      optional: true
+    "@aws-sdk/credential-provider-node":
+      optional: true
+    "@azure/search-documents":
+      optional: true
+    "@clickhouse/client":
+      optional: true
+    "@cloudflare/ai":
+      optional: true
+    "@datastax/astra-db-ts":
+      optional: true
+    "@elastic/elasticsearch":
+      optional: true
+    "@getmetal/metal-sdk":
+      optional: true
+    "@getzep/zep-js":
+      optional: true
+    "@gomomento/sdk":
+      optional: true
+    "@gomomento/sdk-core":
+      optional: true
+    "@google-ai/generativelanguage":
+      optional: true
+    "@gradientai/nodejs-sdk":
+      optional: true
+    "@huggingface/inference":
+      optional: true
+    "@mozilla/readability":
+      optional: true
+    "@opensearch-project/opensearch":
+      optional: true
+    "@pinecone-database/pinecone":
+      optional: true
+    "@planetscale/database":
+      optional: true
+    "@qdrant/js-client-rest":
+      optional: true
+    "@raycast/api":
+      optional: true
+    "@rockset/client":
+      optional: true
+    "@smithy/eventstream-codec":
+      optional: true
+    "@smithy/protocol-http":
+      optional: true
+    "@smithy/signature-v4":
+      optional: true
+    "@smithy/util-utf8":
+      optional: true
+    "@supabase/postgrest-js":
+      optional: true
+    "@supabase/supabase-js":
+      optional: true
+    "@tensorflow-models/universal-sentence-encoder":
+      optional: true
+    "@tensorflow/tfjs-converter":
+      optional: true
+    "@tensorflow/tfjs-core":
+      optional: true
+    "@upstash/redis":
+      optional: true
+    "@vercel/kv":
+      optional: true
+    "@vercel/postgres":
+      optional: true
+    "@writerai/writer-sdk":
+      optional: true
+    "@xata.io/client":
+      optional: true
+    "@xenova/transformers":
+      optional: true
+    "@zilliz/milvus2-sdk-node":
+      optional: true
+    cassandra-driver:
+      optional: true
+    chromadb:
+      optional: true
+    closevector-common:
+      optional: true
+    closevector-node:
+      optional: true
+    closevector-web:
+      optional: true
+    cohere-ai:
+      optional: true
+    convex:
+      optional: true
+    discord.js:
+      optional: true
+    faiss-node:
+      optional: true
+    firebase-admin:
+      optional: true
+    google-auth-library:
+      optional: true
+    googleapis:
+      optional: true
+    hnswlib-node:
+      optional: true
+    html-to-text:
+      optional: true
+    ioredis:
+      optional: true
+    jsdom:
+      optional: true
+    llmonitor:
+      optional: true
+    lodash:
+      optional: true
+    lunary:
+      optional: true
+    mongodb:
+      optional: true
+    mysql2:
+      optional: true
+    neo4j-driver:
+      optional: true
+    node-llama-cpp:
+      optional: true
+    pg:
+      optional: true
+    pg-copy-streams:
+      optional: true
+    pickleparser:
+      optional: true
+    portkey-ai:
+      optional: true
+    redis:
+      optional: true
+    replicate:
+      optional: true
+    typeorm:
+      optional: true
+    typesense:
+      optional: true
+    usearch:
+      optional: true
+    vectordb:
+      optional: true
+    voy-search:
+      optional: true
+    weaviate-ts-client:
+      optional: true
+    web-auth-library:
+      optional: true
+    ws:
+      optional: true
+  checksum: 6d45127dcab33813d8423447749a1067be47b23efab0c1e69bb3d9344ecdd51308dc81d5b02a22084b26b6c8840fa80929db192a2b348fee26e34101bb86440e
+  languageName: node
+  linkType: hard
+
+"@langchain/core@npm:^0.1.26, @langchain/core@npm:~0.1.13, @langchain/core@npm:~0.1.16, @langchain/core@npm:~0.1.25":
+  version: 0.1.26
+  resolution: "@langchain/core@npm:0.1.26"
+  dependencies:
+    ansi-styles: ^5.0.0
+    camelcase: 6
+    decamelize: 1.2.0
+    js-tiktoken: ^1.0.8
+    langsmith: ~0.0.48
+    ml-distance: ^4.0.0
+    p-queue: ^6.6.2
+    p-retry: 4
+    uuid: ^9.0.0
+    zod: ^3.22.4
+    zod-to-json-schema: ^3.22.3
+  checksum: 565c3d809fc857c277d5f87b500d618e5180322767b90eae130a15dbfdff6e65b5b2c1e6fce39248b8c2f90f29571953627531e6f93e6f6a85a4fcbe69a156ce
+  languageName: node
+  linkType: hard
+
+"@langchain/openai@npm:^0.0.14, @langchain/openai@npm:~0.0.10, @langchain/openai@npm:~0.0.12":
+  version: 0.0.14
+  resolution: "@langchain/openai@npm:0.0.14"
+  dependencies:
+    "@langchain/core": ~0.1.13
+    js-tiktoken: ^1.0.7
+    openai: ^4.26.0
+    zod: ^3.22.4
+    zod-to-json-schema: ^3.22.3
+  checksum: bfaf344580d493e8296344da63d9227bf896d3755d36cb8c29ac6c9ac087f1de83e2520078d32f24f7a95bf78ff64c338e411423c734382106d90676ae035b7f
+  languageName: node
+  linkType: hard
+
 "@lexical/clipboard@npm:0.9.1":
   version: 0.9.1
   resolution: "@lexical/clipboard@npm:0.9.1"
@@ -8797,15 +9091,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@prisma/generator-helper@npm:^5.0.0":
-  version: 5.9.1
-  resolution: "@prisma/generator-helper@npm:5.9.1"
-  dependencies:
-    "@prisma/debug": 5.9.1
-  checksum: 9af8e27e92c7ec6a73476dbeefbcebd1154632c7416034e36749fce310ac278a0b783f44b72c559ec3a36410889b37d6eafc2389b39df0026b6a17f33eb104b4
-  languageName: node
-  linkType: hard
-
 "@prisma/generator-helper@npm:^5.4.2":
   version: 5.4.2
   resolution: "@prisma/generator-helper@npm:5.4.2"
@@ -8815,6 +9100,15 @@ __metadata:
     cross-spawn: 7.0.3
     kleur: 4.1.5
   checksum: 49ed1e8b44a45bfeee40e7da3886d70a69b64116c8d2543834fd5d844d3f4ebd053f60d4ff4e3f25a82ab2e6b28d042eb65874b9595bad45486ff3fd69df5225
+  languageName: node
+  linkType: hard
+
+"@prisma/generator-helper@npm:^5.9.1":
+  version: 5.9.1
+  resolution: "@prisma/generator-helper@npm:5.9.1"
+  dependencies:
+    "@prisma/debug": 5.9.1
+  checksum: 9af8e27e92c7ec6a73476dbeefbcebd1154632c7416034e36749fce310ac278a0b783f44b72c559ec3a36410889b37d6eafc2389b39df0026b6a17f33eb104b4
   languageName: node
   linkType: hard
 
@@ -13007,11 +13301,11 @@ __metadata:
   linkType: hard
 
 "@trpc/client@npm:^10.0.0":
-  version: 10.45.0
-  resolution: "@trpc/client@npm:10.45.0"
+  version: 10.45.1
+  resolution: "@trpc/client@npm:10.45.1"
   peerDependencies:
-    "@trpc/server": 10.45.0
-  checksum: 7eb48d4f3fd5404180c046052c2771d222a50ed9cc2a37be40948d9d48108c11ee5cba3819d719a44e4e461b0ff6d37a7442e7301d2d4c125414e89e1e521e5f
+    "@trpc/server": 10.45.1
+  checksum: 14fd5d7d6e659303797459975780636ef16045d21f642b51730e61fcba9e871d5a4656b244f38dff9f391d0ad67ff40cea201688613a08a4c31207ab9dc4abc4
   languageName: node
   linkType: hard
 
@@ -13056,9 +13350,9 @@ __metadata:
   linkType: hard
 
 "@trpc/server@npm:^10.0.0":
-  version: 10.45.0
-  resolution: "@trpc/server@npm:10.45.0"
-  checksum: 48a1c8337853639919d2696321cf87d76eaa6273fc7987022b9f12ced3c688af81a2a065f2dbf93f9e51ac593be8858cc165fa147a3a556956b419d0284e043a
+  version: 10.45.1
+  resolution: "@trpc/server@npm:10.45.1"
+  checksum: 62317ce75c14fd6a5701341e85448e2706412a95a008a50a78a78503e09bad3448e0b11c423676529ec060c3565f2e31893555161b72c166c45a5920c137c848
   languageName: node
   linkType: hard
 
@@ -14922,15 +15216,15 @@ __metadata:
   linkType: hard
 
 "@whatwg-node/node-fetch@npm:^0.5.5":
-  version: 0.5.5
-  resolution: "@whatwg-node/node-fetch@npm:0.5.5"
+  version: 0.5.6
+  resolution: "@whatwg-node/node-fetch@npm:0.5.6"
   dependencies:
     "@kamilkisiela/fast-url-parser": ^1.1.4
     "@whatwg-node/events": ^0.1.0
     busboy: ^1.6.0
     fast-querystring: ^1.1.1
     tslib: ^2.3.1
-  checksum: 5f3b12f6b3e2317997db5b57a3883b87a6d18ff62defe422442ac9682bbb3da1390e41deef2e60fe75f9b6897fde07f30dd413e8a0911570bbca7a06cf995855
+  checksum: 7814b4221b6644d1ab318a8630f3e8a622b62868ff6f6b8a17e16e7ab8b6fcda629551b486fe7e788383b6a7095b00938d865ee14d72c8af25ffd13ed312c8b7
   languageName: node
   linkType: hard
 
@@ -19016,7 +19310,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"decamelize@npm:^1.1.0, decamelize@npm:^1.2.0":
+"decamelize@npm:1.2.0, decamelize@npm:^1.1.0, decamelize@npm:^1.2.0":
   version: 1.2.0
   resolution: "decamelize@npm:1.2.0"
   checksum: ad8c51a7e7e0720c70ec2eeb1163b66da03e7616d7b98c9ef43cce2416395e84c1e9548dd94f5f6ffecfee9f8b94251fc57121a8b021f2ff2469b2bae247b8aa
@@ -24033,7 +24327,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"immer@npm:^10.0.2":
+"immer@npm:^10.0.3":
   version: 10.0.3
   resolution: "immer@npm:10.0.3"
   checksum: 76acabe6f40e752028313762ba477a5d901e57b669f3b8fb406b87b9bb9b14e663a6fbbf5a6d1ab323737dd38f4b2494a4e28002045b88948da8dbf482309f28
@@ -25424,7 +25718,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jose@npm:5.2.1, jose@npm:^5.0.0":
+"jose@npm:5.2.1":
   version: 5.2.1
   resolution: "jose@npm:5.2.1"
   checksum: 5e3f28b2b6f230fd8ed14150dd48adbd127ec7b2b4ed49b16f390d12db8cc13195af001ef804191b76dadafee9658b9bc808e4756111bd9725000158cec1646e
@@ -25449,6 +25743,13 @@ __metadata:
   version: 4.15.4
   resolution: "jose@npm:4.15.4"
   checksum: dccad91cb3357f36423774a0b89ad830dd84b31090de65cd139b85488439f16a00f8c59c0773825e8a1adb0dd9d13ad725ad66e6ea33880ecb3959bb99e1ea5b
+  languageName: node
+  linkType: hard
+
+"jose@npm:^5.0.0":
+  version: 5.2.2
+  resolution: "jose@npm:5.2.2"
+  checksum: d23def3c1df8aae1ae59d1c027a073804034fe8b971dafe51f0452ca8f6eb7e5cd3e3c90b6e544776443e01e58c8f8eefbd1984dbcde378e693e0ebbd176584d
   languageName: node
   linkType: hard
 
@@ -25500,6 +25801,15 @@ __metadata:
   dependencies:
     base64-js: ^1.5.1
   checksum: 4856641fed816e618c8a693db0a5478995c598914dec2ba9ccd69719a88a14756d5aec2eed0fba7a4999e603b277ba9a58fd7b2af98e8b638b39b436bbfb7060
+  languageName: node
+  linkType: hard
+
+"js-tiktoken@npm:^1.0.8":
+  version: 1.0.10
+  resolution: "js-tiktoken@npm:1.0.10"
+  dependencies:
+    base64-js: ^1.5.1
+  checksum: 94810d3b903d4ec6b1fbaf91b98870ee2c9f0b38de1d7924a0dfa17baaa083af84f31c37c3b1914bf37e6a012b099e922f548072ddf0c06d95511f9b72c8296d
   languageName: node
   linkType: hard
 
@@ -26058,113 +26368,80 @@ __metadata:
   languageName: node
   linkType: hard
 
-"langchain@npm:^0.0.131":
-  version: 0.0.131
-  resolution: "langchain@npm:0.0.131"
+"langchain@npm:^0.1.17":
+  version: 0.1.17
+  resolution: "langchain@npm:0.1.17"
   dependencies:
-    "@anthropic-ai/sdk": ^0.5.7
-    ansi-styles: ^5.0.0
+    "@anthropic-ai/sdk": ^0.9.1
+    "@langchain/community": ~0.0.20
+    "@langchain/core": ~0.1.25
+    "@langchain/openai": ~0.0.12
     binary-extensions: ^2.2.0
-    camelcase: 6
-    decamelize: ^1.2.0
     expr-eval: ^2.0.2
-    flat: ^5.0.2
     js-tiktoken: ^1.0.7
     js-yaml: ^4.1.0
     jsonpointer: ^5.0.1
-    langsmith: ~0.0.16
+    langchainhub: ~0.0.6
+    langsmith: ~0.0.59
     ml-distance: ^4.0.0
-    object-hash: ^3.0.0
-    openai: ^3.3.0
     openapi-types: ^12.1.3
-    p-queue: ^6.6.2
     p-retry: 4
     uuid: ^9.0.0
     yaml: ^2.2.1
-    zod: ^3.21.4
-    zod-to-json-schema: ^3.20.4
+    zod: ^3.22.4
+    zod-to-json-schema: ^3.22.3
   peerDependencies:
-    "@aws-crypto/sha256-js": ^5.0.0
-    "@aws-sdk/client-dynamodb": ^3.310.0
-    "@aws-sdk/client-kendra": ^3.352.0
-    "@aws-sdk/client-lambda": ^3.310.0
     "@aws-sdk/client-s3": ^3.310.0
     "@aws-sdk/client-sagemaker-runtime": ^3.310.0
     "@aws-sdk/client-sfn": ^3.310.0
     "@aws-sdk/credential-provider-node": ^3.388.0
-    "@aws-sdk/protocol-http": ^3.374.0
-    "@aws-sdk/signature-v4": ^3.374.0
     "@azure/storage-blob": ^12.15.0
-    "@clickhouse/client": ^0.0.14
-    "@elastic/elasticsearch": ^8.4.0
-    "@getmetal/metal-sdk": "*"
-    "@getzep/zep-js": ^0.6.3
-    "@gomomento/sdk": ^1.23.0
+    "@gomomento/sdk": ^1.51.1
+    "@gomomento/sdk-core": ^1.51.1
+    "@gomomento/sdk-web": ^1.51.1
     "@google-ai/generativelanguage": ^0.2.1
     "@google-cloud/storage": ^6.10.1
-    "@huggingface/inference": ^1.5.1
-    "@mozilla/readability": "*"
-    "@notionhq/client": ^2.2.5
-    "@opensearch-project/opensearch": "*"
+    "@notionhq/client": ^2.2.10
     "@pinecone-database/pinecone": "*"
-    "@planetscale/database": ^1.8.0
-    "@qdrant/js-client-rest": ^1.2.0
-    "@raycast/api": ^1.55.2
-    "@supabase/postgrest-js": ^1.1.1
     "@supabase/supabase-js": ^2.10.0
-    "@tensorflow-models/universal-sentence-encoder": "*"
-    "@tensorflow/tfjs-converter": "*"
-    "@tensorflow/tfjs-core": "*"
-    "@tigrisdata/vector": ^1.1.0
-    "@upstash/redis": ^1.20.6
-    "@xata.io/client": ^0.25.1
-    "@zilliz/milvus2-sdk-node": ">=2.2.7"
+    "@vercel/kv": ^0.2.3
+    "@xata.io/client": ^0.28.0
     apify-client: ^2.7.1
+    assemblyai: ^4.0.0
     axios: "*"
     cheerio: ^1.0.0-rc.12
-    chromadb: ^1.5.3
-    cohere-ai: ^5.0.2
+    chromadb: "*"
+    convex: ^1.3.1
     d3-dsv: ^2.0.0
     epub2: ^3.0.1
-    faiss-node: ^0.3.0
-    firebase-admin: ^11.9.0
+    fast-xml-parser: ^4.2.7
     google-auth-library: ^8.9.0
-    hnswlib-node: ^1.4.2
+    handlebars: ^4.7.8
     html-to-text: ^9.0.5
     ignore: ^5.2.0
     ioredis: ^5.3.2
     jsdom: "*"
-    mammoth: "*"
+    mammoth: ^1.6.0
     mongodb: ^5.2.0
-    mysql2: ^3.3.3
+    node-llama-cpp: "*"
     notion-to-md: ^3.1.0
+    officeparser: ^4.0.4
     pdf-parse: 1.1.1
     peggy: ^3.0.2
-    pg: ^8.11.0
-    pg-copy-streams: ^6.0.5
-    pickleparser: ^0.1.0
     playwright: ^1.32.1
     puppeteer: ^19.7.2
+    pyodide: ^0.24.1
     redis: ^4.6.4
-    replicate: ^0.12.3
     sonix-speech-recognition: ^2.1.1
-    srt-parser-2: ^1.2.2
+    srt-parser-2: ^1.2.3
     typeorm: ^0.3.12
-    typesense: ^1.5.3
-    usearch: ^1.1.1
     vectordb: ^0.1.4
     weaviate-ts-client: ^1.4.0
+    web-auth-library: ^1.0.3
+    ws: ^8.14.2
     youtube-transcript: ^1.0.6
     youtubei.js: ^5.8.0
   peerDependenciesMeta:
-    "@aws-crypto/sha256-js":
-      optional: true
-    "@aws-sdk/client-dynamodb":
-      optional: true
-    "@aws-sdk/client-kendra":
-      optional: true
-    "@aws-sdk/client-lambda":
-      optional: true
     "@aws-sdk/client-s3":
       optional: true
     "@aws-sdk/client-sagemaker-runtime":
@@ -26173,61 +26450,31 @@ __metadata:
       optional: true
     "@aws-sdk/credential-provider-node":
       optional: true
-    "@aws-sdk/protocol-http":
-      optional: true
-    "@aws-sdk/signature-v4":
-      optional: true
     "@azure/storage-blob":
       optional: true
-    "@clickhouse/client":
-      optional: true
-    "@elastic/elasticsearch":
-      optional: true
-    "@getmetal/metal-sdk":
-      optional: true
-    "@getzep/zep-js":
-      optional: true
     "@gomomento/sdk":
+      optional: true
+    "@gomomento/sdk-core":
+      optional: true
+    "@gomomento/sdk-web":
       optional: true
     "@google-ai/generativelanguage":
       optional: true
     "@google-cloud/storage":
       optional: true
-    "@huggingface/inference":
-      optional: true
-    "@mozilla/readability":
-      optional: true
     "@notionhq/client":
-      optional: true
-    "@opensearch-project/opensearch":
       optional: true
     "@pinecone-database/pinecone":
       optional: true
-    "@planetscale/database":
-      optional: true
-    "@qdrant/js-client-rest":
-      optional: true
-    "@raycast/api":
-      optional: true
-    "@supabase/postgrest-js":
-      optional: true
     "@supabase/supabase-js":
       optional: true
-    "@tensorflow-models/universal-sentence-encoder":
-      optional: true
-    "@tensorflow/tfjs-converter":
-      optional: true
-    "@tensorflow/tfjs-core":
-      optional: true
-    "@tigrisdata/vector":
-      optional: true
-    "@upstash/redis":
+    "@vercel/kv":
       optional: true
     "@xata.io/client":
       optional: true
-    "@zilliz/milvus2-sdk-node":
-      optional: true
     apify-client:
+      optional: true
+    assemblyai:
       optional: true
     axios:
       optional: true
@@ -26235,7 +26482,7 @@ __metadata:
       optional: true
     chromadb:
       optional: true
-    cohere-ai:
+    convex:
       optional: true
     d3-dsv:
       optional: true
@@ -26243,11 +26490,11 @@ __metadata:
       optional: true
     faiss-node:
       optional: true
-    firebase-admin:
+    fast-xml-parser:
       optional: true
     google-auth-library:
       optional: true
-    hnswlib-node:
+    handlebars:
       optional: true
     html-to-text:
       optional: true
@@ -26261,27 +26508,23 @@ __metadata:
       optional: true
     mongodb:
       optional: true
-    mysql2:
+    node-llama-cpp:
       optional: true
     notion-to-md:
+      optional: true
+    officeparser:
       optional: true
     pdf-parse:
       optional: true
     peggy:
       optional: true
-    pg:
-      optional: true
-    pg-copy-streams:
-      optional: true
-    pickleparser:
-      optional: true
     playwright:
       optional: true
     puppeteer:
       optional: true
-    redis:
+    pyodide:
       optional: true
-    replicate:
+    redis:
       optional: true
     sonix-speech-recognition:
       optional: true
@@ -26289,25 +26532,32 @@ __metadata:
       optional: true
     typeorm:
       optional: true
-    typesense:
-      optional: true
-    usearch:
-      optional: true
     vectordb:
       optional: true
     weaviate-ts-client:
+      optional: true
+    web-auth-library:
+      optional: true
+    ws:
       optional: true
     youtube-transcript:
       optional: true
     youtubei.js:
       optional: true
-  checksum: 106e798e365508f7b958bf11ebb71e644007c75868a685fa4ff81902134583cb8d065f444ef347b3ed336624f51690217c5af2e2475f884a8ecff9aa99660c6a
+  checksum: 712639657d4ea7ca153e6a092f02506c6878b2d9b2988a88715ee766a6513a488aa9d87a76bfd55d99516394a884383d0dbe4c4a0d02d6c608cd32ebdc4f0a82
   languageName: node
   linkType: hard
 
-"langsmith@npm:~0.0.16":
-  version: 0.0.26
-  resolution: "langsmith@npm:0.0.26"
+"langchainhub@npm:~0.0.6":
+  version: 0.0.6
+  resolution: "langchainhub@npm:0.0.6"
+  checksum: f771e5375b7ae9cc6fc59d5e2b1fd35c29e5759f4595617e3a235142bc2ca12c4135aa1631d85ee4e25c89968696242dd6380f6b90e87ffbc9006efc3cdc53c4
+  languageName: node
+  linkType: hard
+
+"langsmith@npm:~0.0.48, langsmith@npm:~0.0.59":
+  version: 0.0.68
+  resolution: "langsmith@npm:0.0.68"
   dependencies:
     "@types/uuid": ^9.0.1
     commander: ^10.0.1
@@ -26316,7 +26566,7 @@ __metadata:
     uuid: ^9.0.0
   bin:
     langsmith: dist/cli/main.cjs
-  checksum: 5b155ae09e6c0b09bdef25a2af93728bf994944d7a487a3943b69a0aa74a51ee3758cf145acebae1b2687b363aa8cf5fd99e147588fb1b4152ecb0e69ba62baf
+  checksum: 63d5000dcbbe26b1bbfcf3f38011f294f6a8c69ac7aa64ee3ea60ef9b033d154641430dd11c0394e970fb5392c83f4c102f9fa3a7fdf2879c4ad85d1f13a4974
   languageName: node
   linkType: hard
 
@@ -27624,8 +27874,8 @@ __metadata:
   linkType: hard
 
 "mdast-util-mdx-jsx@npm:^3.0.0":
-  version: 3.0.0
-  resolution: "mdast-util-mdx-jsx@npm:3.0.0"
+  version: 3.1.0
+  resolution: "mdast-util-mdx-jsx@npm:3.1.0"
   dependencies:
     "@types/estree-jsx": ^1.0.0
     "@types/hast": ^3.0.0
@@ -27640,7 +27890,7 @@ __metadata:
     unist-util-remove-position: ^5.0.0
     unist-util-stringify-position: ^4.0.0
     vfile-message: ^4.0.0
-  checksum: 48fe1ba617205f3776ca2030d195adbdb42bb6c53326534db3f5bdd28abe7895103af8c4dfda7cbe2911e8cd71921bc8a82fe40856565e57af8b4f8a79c8c126
+  checksum: b38636d003cd8ae74a87c933474bc44571606957dea5de065b7fbcc0af6c9159b35ac250a5c6bd331dc2a54acb64985afb32708711763d51c18b0d439fe50694
   languageName: node
   linkType: hard
 
@@ -30211,13 +30461,22 @@ __metadata:
   languageName: node
   linkType: hard
 
-"openai@npm:^3.3.0":
-  version: 3.3.0
-  resolution: "openai@npm:3.3.0"
+"openai@npm:^4.26.0":
+  version: 4.27.0
+  resolution: "openai@npm:4.27.0"
   dependencies:
-    axios: ^0.26.0
-    form-data: ^4.0.0
-  checksum: 28ccff8c09b6f47828c9583bb3bafc38a8459c76ea10eb9e08ca880f65523c5a9cc6c5f3c7669dded6f4c93e7cf49dd5c4dbfd12732a0f958c923117740d677b
+    "@types/node": ^18.11.18
+    "@types/node-fetch": ^2.6.4
+    abort-controller: ^3.0.0
+    agentkeepalive: ^4.2.1
+    digest-fetch: ^1.3.0
+    form-data-encoder: 1.7.2
+    formdata-node: ^4.3.2
+    node-fetch: ^2.6.7
+    web-streams-polyfill: ^3.2.1
+  bin:
+    openai: bin/cli
+  checksum: e7c1e20c05db8b9f713f74006c89efc6c94c97847b79a337b52b71a94ee373e6bf9effe2e92479aa98fda37af4920dacfb9aa21f4f737feb4ad338815065c0b5
   languageName: node
   linkType: hard
 
@@ -31783,20 +32042,20 @@ __metadata:
   linkType: hard
 
 "prisma-field-encryption@npm:^1.4.0":
-  version: 1.5.1
-  resolution: "prisma-field-encryption@npm:1.5.1"
+  version: 1.5.2
+  resolution: "prisma-field-encryption@npm:1.5.2"
   dependencies:
     "@47ng/cloak": ^1.1.0
-    "@prisma/generator-helper": ^5.0.0
+    "@prisma/generator-helper": ^5.9.1
     debug: ^4.3.4
-    immer: ^10.0.2
+    immer: ^10.0.3
     object-path: ^0.11.8
-    zod: ^3.21.4
+    zod: ^3.22.4
   peerDependencies:
     "@prisma/client": ">= 4.7"
   bin:
     prisma-field-encryption: dist/generator/main.js
-  checksum: 9c6175d70e0ba41b958c8bb0bf716ab53601b7bde26554df45b12999c29fe1ef121dfa7c3e4125d58542b0c3f6841a6326aae80714896e458c419896b21442ee
+  checksum: 22c04c16af2a3f0f4cd1b6b31172a17b758619cd5e1fb6bed469147fa0d840fc072f59c8da836c64181796778959fd512d2054f5f5d985921b4c91e3c18d4453
   languageName: node
   linkType: hard
 
@@ -32604,12 +32863,12 @@ __metadata:
   linkType: hard
 
 "react-fast-marquee@npm:^1.3.5":
-  version: 1.6.3
-  resolution: "react-fast-marquee@npm:1.6.3"
+  version: 1.6.4
+  resolution: "react-fast-marquee@npm:1.6.4"
   peerDependencies:
     react: ">= 16.8.0 || 18.0.0"
     react-dom: ">= 16.8.0 || 18.0.0"
-  checksum: 7dc54eb0ab073796bb33fb62e89db3db3f487b68142cebe7be656b54696db67b6b684b4339ed07cfc2d22b62a7b79cf4406148e5f21dbf580897898bfe138801
+  checksum: 30bb2c967b5162e7de130cccfcf51654ac1e29ecbf82116225a13958a05a79bc0ec11d72c49f172fa8c4d1f226b51cc93f9db5cb595c5a3529de8b41f60cbc2c
   languageName: node
   linkType: hard
 
@@ -33819,9 +34078,9 @@ __metadata:
   linkType: hard
 
 "remeda@npm:^1.24.1":
-  version: 1.40.0
-  resolution: "remeda@npm:1.40.0"
-  checksum: 1d53cbafadcd2051d2aa13fac0650f8aa3676849689ab7125da3ef4a02ccd2a7dab7803951d41f3f52b7a45ee85e08e0a65ebf4f1c5adc02df65517897a94242
+  version: 1.40.1
+  resolution: "remeda@npm:1.40.1"
+  checksum: 24c4a4ccdc1896f57f6dd70ab6c0701362c139f41055aafba673a57a13090eadcca3a0c0c9e0c2bf89c64e345d2ad98a6153f29a444616cb52ae49cd60f982b3
   languageName: node
   linkType: hard
 
@@ -36947,9 +37206,9 @@ __metadata:
   linkType: hard
 
 "trough@npm:^2.0.0":
-  version: 2.1.0
-  resolution: "trough@npm:2.1.0"
-  checksum: a577bb561c2b401cc0e1d9e188fcfcdf63b09b151ff56a668da12197fe97cac15e3d77d5b51f426ccfd94255744a9118e9e9935afe81a3644fa1be9783c82886
+  version: 2.2.0
+  resolution: "trough@npm:2.2.0"
+  checksum: 6097df63169aca1f9b08c263b1b501a9b878387f46e161dde93f6d0bba7febba93c95f876a293c5ea370f6cb03bcb687b2488c8955c3cfb66c2c0161ea8c00f6
   languageName: node
   linkType: hard
 
@@ -39781,19 +40040,26 @@ __metadata:
   languageName: node
   linkType: hard
 
-"zod-to-json-schema@npm:^3.20.4":
-  version: 3.21.4
-  resolution: "zod-to-json-schema@npm:3.21.4"
+"zod-to-json-schema@npm:^3.22.3":
+  version: 3.22.4
+  resolution: "zod-to-json-schema@npm:3.22.4"
   peerDependencies:
-    zod: ^3.21.4
-  checksum: 899c1f461fb6547c0b08a265c82040c250be9b88d3f408f2f3ff77a418fdfad7549077e589d418fccb312c1f6d555c3c7217b199cc9072762e1fab20716dd2a6
+    zod: ^3.22.4
+  checksum: 22f89d505cc3d93020de38e4471362fbecd73a8df58017553ad57fb14e69b6f2f88bcdfe9f84b291442ed0654f97344d517af291d23848e43e6e208ee23dac2b
   languageName: node
   linkType: hard
 
-"zod@npm:^3.21.4, zod@npm:^3.22.2":
+"zod@npm:^3.22.2":
   version: 3.22.2
   resolution: "zod@npm:3.22.2"
   checksum: 231e2180c8eabb56e88680d80baff5cf6cbe6d64df3c44c50ebe52f73081ecd0229b1c7215b9552537f537a36d9e36afac2737ddd86dc14e3519bdbc777e82b9
+  languageName: node
+  linkType: hard
+
+"zod@npm:^3.22.3, zod@npm:^3.22.4":
+  version: 3.22.4
+  resolution: "zod@npm:3.22.4"
+  checksum: 80bfd7f8039b24fddeb0718a2ec7c02aa9856e4838d6aa4864335a047b6b37a3273b191ef335bf0b2002e5c514ef261ffcda5a589fb084a48c336ffc4cdbab7f
   languageName: node
   linkType: hard
 

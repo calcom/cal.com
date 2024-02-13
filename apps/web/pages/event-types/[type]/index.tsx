@@ -8,6 +8,7 @@ export type {
   EventTypeSetup,
   EventTypeSetupProps,
   FormValues,
+  Host,
 } from "~/event-types/views/event-types-single-view";
 
 EventTypePageWrapper.PageWrapper = PageWrapper;
