@@ -1,3 +1,4 @@
+import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
@@ -15,9 +16,11 @@ type UserAvatarProps = Omit<React.ComponentProps<typeof AvatarGroup>, "items"> &
 
 export function UserAvatarGroupWithOrg(props: UserAvatarProps) {
   const { users, organization, ...rest } = props;
+  const isEmbed = useIsEmbed();
+
   const items = [
     {
-      href: getBookerBaseUrlSync(organization.slug),
+      href: isEmbed ? null : getBookerBaseUrlSync(organization.slug),
       image: `${WEBAPP_URL}/team/${organization.slug}/avatar.png`,
       alt: organization.name || undefined,
       title: organization.name,
