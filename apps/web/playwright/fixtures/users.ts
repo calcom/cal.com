@@ -196,6 +196,9 @@ export const createUsersFixture = (
         password: opts?.password ?? uname,
       };
     },
+    /**
+     * In case organizationId is passed, it simulates a scenario where a nonexistent user is added to an organization.
+     */
     create: async (
       opts?:
         | (CustomUserOpts & {
@@ -649,7 +652,6 @@ type SupportedTestWorkflows = PrismaType.WorkflowCreateInput;
 
 type CustomUserOptsKeys =
   | "username"
-  | "password"
   | "completedOnboarding"
   | "locale"
   | "name"
@@ -666,6 +668,7 @@ type CustomUserOpts = Partial<Pick<Prisma.User, CustomUserOptsKeys>> & {
   useExactUsername?: boolean;
   roleInOrganization?: MembershipRole;
   schedule?: Schedule;
+  password?: string | null;
 };
 
 // creates the actual user in the db.
@@ -687,7 +690,11 @@ const createUser = (
     username: uname,
     name: opts?.name,
     email: opts?.email ?? `${uname}@example.com`,
-    password: hashPassword(uname),
+    password: {
+      create: {
+        hash: hashPassword(uname),
+      },
+    },
     emailVerified: new Date(),
     completedOnboarding: opts?.completedOnboarding ?? true,
     timeZone: opts?.timeZone ?? TimeZoneEnum.UK,
@@ -726,6 +733,7 @@ const createUser = (
       throw new Error("Missing role for user in organization");
     }
     return {
+      organizationId,
       profiles: {
         create: {
           uid: ProfileRepository.generateProfileUid(),
@@ -787,7 +795,7 @@ async function confirmPendingPayment(page: Page) {
 
 // login using a replay of an E2E routine.
 export async function login(
-  user: Pick<Prisma.User, "username"> & Partial<Pick<Prisma.User, "password" | "email">>,
+  user: Pick<Prisma.User, "username"> & Partial<Pick<Prisma.User, "email">> & { password?: string | null },
   page: Page
 ) {
   // get locators
@@ -808,7 +816,7 @@ export async function login(
 }
 
 export async function apiLogin(
-  user: Pick<Prisma.User, "username"> & Partial<Pick<Prisma.User, "password" | "email">>,
+  user: Pick<Prisma.User, "username"> & Partial<Pick<Prisma.User, "email">> & { password: string | null },
   page: Page
 ) {
   const csrfToken = await page

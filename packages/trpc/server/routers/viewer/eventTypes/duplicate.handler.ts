@@ -1,5 +1,6 @@
 import { Prisma } from "@prisma/client";
 
+import { generateHashedLink } from "@calcom/lib/generateHashedLink";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import { prisma } from "@calcom/prisma";
 
@@ -40,6 +41,7 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
         team: true,
         workflows: true,
         webhooks: true,
+        hashedLink: true,
         destinationCalendar: true,
       },
     });
@@ -73,6 +75,7 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
       durationLimits,
       metadata,
       workflows,
+      hashedLink,
       destinationCalendar,
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       id: _id,
@@ -116,6 +119,17 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
       });
       await prisma.eventTypeCustomInput.createMany({
         data: customInputsData,
+      });
+    }
+
+    if (hashedLink) {
+      await prisma.hashedLink.create({
+        data: {
+          link: generateHashedLink(users[0]?.id ?? newEventType.teamId),
+          eventType: {
+            connect: { id: newEventType.id },
+          },
+        },
       });
     }
 

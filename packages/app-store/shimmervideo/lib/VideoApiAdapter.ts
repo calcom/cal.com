@@ -180,7 +180,7 @@ const ShimmerDailyVideoApiAdapter = (): VideoApiAdapter => {
     },
     getRecordingDownloadLink: async (recordingId: string): Promise<GetAccessLinkResponseSchema> => {
       try {
-        const res = await fetcher(`/recordings/${recordingId}/access-link?valid_for_secs=172800`).then(
+        const res = await fetcher(`/recordings/${recordingId}/access-link?valid_for_secs=43200`).then(
           getAccessLinkResponseSchema.parse
         );
         return Promise.resolve(res);

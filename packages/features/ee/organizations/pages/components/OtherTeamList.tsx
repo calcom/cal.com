@@ -1,5 +1,6 @@
 import { useState } from "react";
 
+import { trackFormbricksAction } from "@calcom/lib/formbricks-client";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { showToast } from "@calcom/ui";
@@ -27,6 +28,7 @@ export default function OtherTeamList(props: Props) {
   const deleteTeamMutation = trpc.viewer.organizations.deleteTeam.useMutation({
     async onSuccess() {
       await utils.viewer.organizations.listOtherTeams.invalidate();
+      trackFormbricksAction("team_disbanded");
     },
     async onError(err) {
       showToast(err.message, "error");
