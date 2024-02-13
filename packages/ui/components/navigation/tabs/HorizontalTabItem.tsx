@@ -12,7 +12,7 @@ export type HorizontalTabItemProps = {
   name: string;
   disabled?: boolean;
   className?: string;
-  target?: "_blank" | "_self";
+  target?: string;
   href: string;
   linkShallow?: boolean;
   linkScroll?: boolean;
