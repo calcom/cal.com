@@ -13,6 +13,7 @@ import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR } from "@calcom/lib
 import { checkWCAGContrastColor } from "@calcom/lib/getBrandColours";
 import { useHasPaidPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import useTheme from "@calcom/lib/hooks/useTheme";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import type { userMetadata } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
@@ -77,6 +78,7 @@ const AppearanceView = ({
     user?.brandColor !== DEFAULT_LIGHT_BRAND_COLOR || user?.darkBrandColor !== DEFAULT_DARK_BRAND_COLOR
   );
   const [hideBrandingValue, setHideBrandingValue] = useState(user?.hideBranding ?? false);
+  useTheme(user?.appTheme);
 
   const userAppThemeFormMethods = useForm({
     defaultValues: {
@@ -161,17 +163,18 @@ const AppearanceView = ({
       <Meta title={t("appearance")} description={t("appearance_description")} borderInShellHeader={false} />
       <div className="border-subtle mt-6 flex items-center rounded-t-lg border p-6 text-sm">
         <div>
-          <p className="text-default text-base font-semibold">{t("theme")}</p>
-          <p className="text-default">{t("theme_applies_note")}</p>
+          <p className="text-default text-base font-semibold">{t("App_theme")}</p>
+          <p className="text-default">{t("App_theme_applies_note")}</p>
         </div>
       </div>
       <Form
-        form={userThemeFormMethods}
+        form={userAppThemeFormMethods}
         handleSubmit={(values) => {
           mutation.mutate({
             // Radio values don't support null as values, therefore we convert an empty string
             // back to null here.
-            theme: values.theme ?? null,
+PeerRich marked this conversation as resolved.
+            appTheme: values.theme ?? null,
           });
         }}>
         <div className="border-subtle flex flex-col justify-between border-x px-6 py-8 sm:flex-row">
@@ -179,28 +182,27 @@ const AppearanceView = ({
             variant="system"
             value={undefined}
             label={t("theme_system")}
-            defaultChecked={user.theme === null}
-            register={userThemeFormMethods.register}
+            defaultChecked={user.appTheme === null}
+            register={userAppThemeFormMethods.register}
           />
           <ThemeLabel
             variant="light"
             value="light"
             label={t("light")}
-            defaultChecked={user.theme === "light"}
-            register={userThemeFormMethods.register}
+            defaultChecked={user.appTheme === "light"}
+            register={userAppThemeFormMethods.register}
           />
           <ThemeLabel
             variant="dark"
             value="dark"
             label={t("dark")}
-            defaultChecked={user.theme === "dark"}
-            register={userThemeFormMethods.register}
+            defaultChecked={user.appTheme === "dark"}
+            register={userAppThemeFormMethods.register}
           />
         </div>
         <SectionBottomActions className="mb-6" align="end">
           <Button
-            loading={mutation.isPending}
-            disabled={isUserThemeSubmitting || !isUserThemeDirty}
+            disabled={isUserAppThemeSubmitting || !isUserAppThemeDirty}
             type="submit"
             data-testid="update-theme-btn"
             color="primary">
@@ -208,7 +210,12 @@ const AppearanceView = ({
           </Button>
         </SectionBottomActions>
       </Form>
-
+      <div className="border-subtle mt-6 flex items-center rounded-t-lg border p-6 text-sm">
+        <div>
+          <p className="text-default text-base font-semibold">{t("theme")}</p>
+          <p className="text-default">{t("theme_applies_note")}</p>
+        </div>
+      </div>
       <Form
         form={bookerLayoutFormMethods}
         handleSubmit={(values) => {
@@ -323,8 +330,8 @@ const AppearanceView = ({
         </div>
       </Form>
 
-      {/* TODO future PR to preview brandColors */}
-      {/* <Button
+      {/* TODO future PR to preview brandColors */ }
+  {/* <Button
         color="secondary"
         EndIcon={ExternalLink}
         className="mt-6"
@@ -332,20 +339,20 @@ const AppearanceView = ({
         Preview
       </Button> */}
 
-      <SettingsToggle
-        toggleSwitchAtTheEnd={true}
-        title={t("disable_cal_branding", { appName: APP_NAME })}
-        disabled={!hasPaidPlan || mutation?.isPending}
-        description={t("removes_cal_branding", { appName: APP_NAME })}
-        checked={hasPaidPlan ? hideBrandingValue : false}
-        Badge={<UpgradeTeamsBadge />}
-        onCheckedChange={(checked) => {
-          setHideBrandingValue(checked);
-          mutation.mutate({ hideBranding: checked });
-        }}
-        switchContainerClassName="mt-6"
-      />
-    </div>
+  <SettingsToggle
+    toggleSwitchAtTheEnd={true}
+    title={t("disable_cal_branding", { appName: APP_NAME })}
+    disabled={!hasPaidPlan || mutation?.isPending}
+    description={t("removes_cal_branding", { appName: APP_NAME })}
+    checked={hasPaidPlan ? hideBrandingValue : false}
+    Badge={<UpgradeTeamsBadge />}
+    onCheckedChange={(checked) => {
+      setHideBrandingValue(checked);
+      mutation.mutate({ hideBranding: checked });
+    }}
+    switchContainerClassName="mt-6"
+  />
+    </div >
   );
 };
 
