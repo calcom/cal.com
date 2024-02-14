@@ -1,12 +1,4 @@
-import {
-  IS_ISO8601,
-  IsArray,
-  IsBoolean,
-  IsDateString,
-  IsNumber,
-  IsOptional,
-  IsString,
-} from "class-validator";
+import { IsArray, IsBoolean, IsDateString, IsNumber, IsOptional, IsString } from "class-validator";
 
 export class GetAvailableSlotsInput {
   @IsDateString()
@@ -19,8 +11,8 @@ export class GetAvailableSlotsInput {
   @IsOptional()
   eventTypeId?: number;
 
-  @IsArray({ each: true })
-  @IsString()
+  @IsArray()
+  @IsString({ each: true })
   usernameList?: string[];
 
   @IsBoolean()
@@ -30,7 +22,4 @@ export class GetAvailableSlotsInput {
   @IsNumber()
   @IsOptional()
   duration?: number;
-
-  @IsBoolean()
-  isTeamEvent!: boolean;
 }

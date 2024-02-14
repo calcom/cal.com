@@ -37,10 +37,15 @@ export class SlotsController {
     @Query() query: GetAvailableSlotsInput,
     @Req() req: ExpressRequest
   ): Promise<ApiResponse> {
+    const isTeamEvent = await this.slotsService.checkIfIsTeamEvent(query.eventTypeId);
+
     const availableSlots = await getAvailableSlots({
-      input: query,
+      input: {
+        ...query,
+        isTeamEvent,
+      },
       ctx: {
-        req: req,
+        req,
       },
     });
 
