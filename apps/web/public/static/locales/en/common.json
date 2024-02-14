@@ -807,6 +807,7 @@
   "additional_input_description": "Require scheduler to input additional inputs prior the booking is confirmed",
   "label": "Label",
   "placeholder": "Placeholder",
+  "display_add_to_calendar_organizer":"Display 'Add to calendar' email as the organizer",
   "type": "Type",
   "edit": "Edit",
   "add_input": "Add an Input",
