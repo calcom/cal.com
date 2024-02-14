@@ -39,6 +39,7 @@ export const connectedCalendarsHandler = async ({ ctx, input }: ConnectedCalenda
     user.selectedCalendars,
     user.destinationCalendar?.externalId
   );
+
   let toggledCalendarDetails:
     | {
         externalId: string;
@@ -59,7 +60,12 @@ export const connectedCalendarsHandler = async ({ ctx, input }: ConnectedCalenda
       There are connected calendars, but no destination calendar
       So create a default destination calendar with the first primary connected calendar
       */
-    const { integration = "", externalId = "", credentialId } = connectedCalendars[0].primary ?? {};
+    const {
+      integration = "",
+      externalId = "",
+      credentialId,
+      email: primaryEmail,
+    } = connectedCalendars[0].primary ?? {};
     // Select the first calendar matching the primary by default since that will also be the destination calendar
     if (onboarding && externalId) {
       const calendarIndex = (connectedCalendars[0].calendars || []).findIndex(
@@ -79,6 +85,7 @@ export const connectedCalendarsHandler = async ({ ctx, input }: ConnectedCalenda
         integration,
         externalId,
         credentialId,
+        primaryEmail,
       },
     });
   } else {
@@ -94,7 +101,7 @@ export const connectedCalendarsHandler = async ({ ctx, input }: ConnectedCalenda
 
     if (!destinationCal) {
       // If destinationCalendar is out of date, update it with the first primary connected calendar
-      const { integration = "", externalId = "" } = connectedCalendars[0].primary ?? {};
+      const { integration = "", externalId = "", email: primaryEmail } = connectedCalendars[0].primary ?? {};
       // Select the first calendar matching the primary by default since that will also be the destination calendar
       if (onboarding && externalId) {
         const calendarIndex = (connectedCalendars[0].calendars || []).findIndex(
@@ -113,6 +120,7 @@ export const connectedCalendarsHandler = async ({ ctx, input }: ConnectedCalenda
         data: {
           integration,
           externalId,
+          primaryEmail,
         },
       });
     } else if (onboarding && !destinationCal.isSelected) {
