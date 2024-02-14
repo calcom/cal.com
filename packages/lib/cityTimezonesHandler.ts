@@ -1,3 +1,5 @@
+export type CityTimezones = Awaited<ReturnType<typeof cityTimezonesHandler>>;
+
 export const cityTimezonesHandler = async () => {
   /**
    * Lazy loads third party dependency to avoid loading 1.5Mb for ALL tRPC procedures.
