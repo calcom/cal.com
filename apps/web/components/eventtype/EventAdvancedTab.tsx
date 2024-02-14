@@ -3,8 +3,6 @@ import Link from "next/link";
 import type { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
 import { useEffect, useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
-import short from "short-uuid";
-import { v5 as uuidv5 } from "uuid";
 import type { z } from "zod";
 
 import type { EventNameObjectType } from "@calcom/core/event";
@@ -20,8 +18,8 @@ import { FormBuilder } from "@calcom/features/form-builder/FormBuilder";
 import type { EditableSchema } from "@calcom/features/form-builder/schema";
 import { BookerLayoutSelector } from "@calcom/features/settings/BookerLayoutSelector";
 import { classNames } from "@calcom/lib";
-import { APP_NAME, CAL_URL } from "@calcom/lib/constants";
-import { IS_VISUAL_REGRESSION_TESTING } from "@calcom/lib/constants";
+import { APP_NAME, IS_VISUAL_REGRESSION_TESTING, WEBSITE_URL } from "@calcom/lib/constants";
+import { generateHashedLink } from "@calcom/lib/generateHashedLink";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { Prisma } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
@@ -32,6 +30,7 @@ import {
   Label,
   SettingsToggle,
   showToast,
+  Switch,
   TextField,
   Tooltip,
 } from "@calcom/ui";
@@ -41,22 +40,17 @@ import RequiresConfirmationController from "./RequiresConfirmationController";
 
 const CustomEventTypeModal = dynamic(() => import("@components/eventtype/CustomEventTypeModal"));
 
-const generateHashedLink = (id: number) => {
-  const translator = short();
-  const seed = `${id}:${new Date().getTime()}`;
-  const uid = translator.fromUUID(uuidv5(seed, uuidv5.URL));
-  return uid;
-};
-
 export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, "eventType" | "team">) => {
   const connectedCalendarsQuery = trpc.viewer.connectedCalendars.useQuery();
   const { data: user } = trpc.viewer.me.useQuery();
   const formMethods = useFormContext<FormValues>();
   const { t } = useLocale();
-
   const [showEventNameTip, setShowEventNameTip] = useState(false);
   const [hashedLinkVisible, setHashedLinkVisible] = useState(!!formMethods.getValues("hashedLink"));
   const [redirectUrlVisible, setRedirectUrlVisible] = useState(!!formMethods.getValues("successRedirectUrl"));
+  const [useEventTypeDestinationCalendarEmail, setUseEventTypeDestinationCalendarEmail] = useState(
+    formMethods.getValues("useEventTypeDestinationCalendarEmail")
+  );
   const [hashedUrl, setHashedUrl] = useState(eventType.hashedLink?.link);
 
   const bookingFields: Prisma.JsonObject = {};
@@ -82,7 +76,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
   const [requiresConfirmation, setRequiresConfirmation] = useState(
     formMethods.getValues("requiresConfirmation")
   );
-  const placeholderHashedLink = `${CAL_URL}/d/${hashedUrl}/${formMethods.getValues("slug")}`;
+  const placeholderHashedLink = `${WEBSITE_URL}/d/${hashedUrl}/${formMethods.getValues("slug")}`;
   const seatsEnabled = formMethods.watch("seatsPerTimeSlotEnabled");
   const noShowFeeEnabled =
     formMethods.getValues("metadata")?.apps?.stripe?.enabled === true &&
@@ -125,6 +119,8 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
   const seatsLocked = shouldLockDisableProps("seatsPerTimeSlotEnabled");
 
   const closeEventNameTip = () => setShowEventNameTip(false);
+  const displayDestinationCalendarSelector =
+    !!connectedCalendarsQuery.data?.connectedCalendars.length && !team;
 
   return (
     <div className="flex flex-col space-y-4">
@@ -134,7 +130,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
        * This will fallback to each user selected destination calendar.
        */}
       <div className="border-subtle space-y-6 rounded-lg border p-6">
-        {!!connectedCalendarsQuery.data?.connectedCalendars.length && !team && (
+        {displayDestinationCalendarSelector && (
           <div className="flex flex-col">
             <div className="flex justify-between">
               <div>
@@ -180,6 +176,18 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
             }
           />
         </div>
+        {displayDestinationCalendarSelector && (
+          <div className="w-full">
+            <Switch
+              label={t("display_add_to_calendar_organizer")}
+              checked={useEventTypeDestinationCalendarEmail}
+              onCheckedChange={(val) => {
+                setUseEventTypeDestinationCalendarEmail(val);
+                formMethods.setValue("useEventTypeDestinationCalendarEmail", val);
+              }}
+            />
+          </div>
+        )}
       </div>
 
       <BookerLayoutSelector fallbackToUserSettings isDark={selectedThemeIsDark} isOuterBorder={true} />

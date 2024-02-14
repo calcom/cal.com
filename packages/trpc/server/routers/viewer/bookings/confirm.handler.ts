@@ -49,6 +49,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       eventTypeId: true,
       responses: true,
       metadata: true,
+      userPrimaryEmail: true,
       eventType: {
         select: {
           id: true,
@@ -100,7 +101,11 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
         schedulingType: SchedulingType.COLLECTIVE,
       },
       select: {
-        users: true,
+        users: {
+          select: {
+            id: true,
+          },
+        },
       },
     });
 
@@ -164,7 +169,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     startTime: booking.startTime.toISOString(),
     endTime: booking.endTime.toISOString(),
     organizer: {
-      email: user.email,
+      email: booking.userPrimaryEmail ?? user.email,
       name: user.name || "Unnamed",
       username: user.username || undefined,
       timeZone: user.timeZone,
@@ -219,7 +224,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
   }
 
   if (confirmed) {
-    const credentials = await getUsersCredentials(user.id);
+    const credentials = await getUsersCredentials(user);
     const userWithCredentials = {
       ...user,
       credentials,

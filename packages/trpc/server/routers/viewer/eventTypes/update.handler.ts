@@ -221,10 +221,14 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     }
     data.hosts = {
       deleteMany: {},
-      create: hosts.map((host) => ({
-        ...host,
-        isFixed: data.schedulingType === SchedulingType.COLLECTIVE || host.isFixed,
-      })),
+      create: hosts.map((host) => {
+        const { ...rest } = host;
+        return {
+          ...rest,
+          isFixed: data.schedulingType === SchedulingType.COLLECTIVE || host.isFixed,
+          priority: host.priority ?? 2, // default to medium priority
+        };
+      }),
     };
   }
 
@@ -347,6 +351,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     connectedLink,
     updatedEventType,
     children,
+    profileId: ctx.user.profile.id,
     prisma: ctx.prisma,
   });
 
