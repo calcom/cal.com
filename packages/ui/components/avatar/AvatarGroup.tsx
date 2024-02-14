@@ -8,7 +8,7 @@ export type AvatarGroupProps = {
     image: string;
     title?: string;
     alt?: string;
-    href?: string;
+    href?: string | null;
   }[];
   className?: string;
   truncateAfter?: number;
