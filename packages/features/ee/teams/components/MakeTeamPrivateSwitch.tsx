@@ -46,6 +46,52 @@ const MakeTeamPrivateSwitch = ({
         switchContainerClassName="mt-6"
         data-testid="make-team-private-check"
       />
+      {/* TODO: add mutations and logic
+      {isOrg && (
+        <>
+          <SettingsToggle
+            toggleSwitchAtTheEnd={true}
+            title={t("hide_all_teams")}
+            disabled={disabled || mutation?.isPending}
+            description={t("hide_all_teams_description")}
+            checked={isTeamPrivate}
+            onCheckedChange={(checked) => {
+              setTeamPrivate(checked);
+              mutation.mutate({ id: teamId, isPrivate: checked });
+            }}
+            switchContainerClassName="mt-6"
+            data-testid="hide-all-team-check"
+          />
+
+          <SettingsToggle
+            toggleSwitchAtTheEnd={true}
+            title={t("hide_all_team_events")}
+            disabled={disabled || mutation?.isPending}
+            description={t("hide_all_team_events_description")}
+            checked={isTeamPrivate}
+            onCheckedChange={(checked) => {
+              setTeamPrivate(checked);
+              mutation.mutate({ id: teamId, isPrivate: checked });
+            }}
+            switchContainerClassName="mt-6"
+            data-testid="hide-team-events-check"
+          />
+
+          <SettingsToggle
+            toggleSwitchAtTheEnd={true}
+            title={t("hide_all_team_members")}
+            disabled={disabled || mutation?.isPending}
+            description={t("hide_all_team_members_description")}
+            checked={isTeamPrivate}
+            onCheckedChange={(checked) => {
+              setTeamPrivate(checked);
+              mutation.mutate({ id: teamId, isPrivate: checked });
+            }}
+            switchContainerClassName="mt-6"
+            data-testid="hide-team-members-check"
+          />
+        </>
+      )} */}
     </>
   );
 };
