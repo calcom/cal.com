@@ -729,6 +729,7 @@ const NavigationItem: React.FC<{
     <Fragment>
       <Tooltip side="right" content={t(item.name)} className="lg:hidden">
         <Link
+          data-test-id={item.name}
           href={item.href}
           aria-label={t(item.name)}
           className={classNames(
