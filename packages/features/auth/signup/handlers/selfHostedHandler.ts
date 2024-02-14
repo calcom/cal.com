@@ -79,19 +79,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         where: { email: userEmail },
         update: {
           username: correctedUsername,
-          password: {
-            upsert: {
-              create: { hash: hashedPassword },
-              update: { hash: hashedPassword },
-            },
-          },
+          password: hashedPassword,
           emailVerified: new Date(Date.now()),
           identityProvider: IdentityProvider.CAL,
         },
         create: {
           username: correctedUsername,
           email: userEmail,
-          password: { create: { hash: hashedPassword } },
+          password: hashedPassword,
           identityProvider: IdentityProvider.CAL,
         },
       });
@@ -133,19 +128,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       where: { email: userEmail },
       update: {
         username: correctedUsername,
-        password: {
-          upsert: {
-            create: { hash: hashedPassword },
-            update: { hash: hashedPassword },
-          },
-        },
+        password: hashedPassword,
         emailVerified: new Date(Date.now()),
         identityProvider: IdentityProvider.CAL,
       },
       create: {
         username: correctedUsername,
         email: userEmail,
-        password: { create: { hash: hashedPassword } },
+        password: hashedPassword,
         identityProvider: IdentityProvider.CAL,
       },
     });

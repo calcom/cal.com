@@ -119,7 +119,7 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
           username: slugify(adminUsername),
           email: adminEmail,
           emailVerified: new Date(),
-          password: { create: { hash: hashedPassword } },
+          password: hashedPassword,
           organizationId: organization.id,
           // Default schedule
           schedules: {
