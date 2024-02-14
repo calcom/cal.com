@@ -1,7 +1,7 @@
 import { useSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import { usePathname, useRouter } from "next/navigation";
-import { useCallback, useMemo } from "react";
+import { useMemo, useCallback } from "react";
 import { shallow } from "zustand/shallow";
 
 import dayjs from "@calcom/dayjs";
@@ -33,7 +33,7 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
     layout: bookerLayout.defaultLayout,
   });
   const [bookerState, _] = useBookerStore((state) => [state.state, state.setState], shallow);
-
+  const [dayCount] = useBookerStore((state) => [state.dayCount, state.setDayCount], shallow);
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -51,7 +51,6 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
       }),
       {}
     );
-
   const prefillFormParams = useMemo(() => {
     return {
       name:
@@ -70,23 +69,19 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
     extraOptions: routerQuery,
     prefillFormParams,
   });
-
   const bookings = useBookings({
     event,
     hashedLink: props.hashedLink,
     bookingForm: bookerForm.bookingForm,
     metadata: metadata ?? {},
   });
-
   const calendars = useCalendars({ hasSession });
-
   const verifyEmail = useVerifyEmail({
     email: bookerForm.formEmail,
     name: bookerForm.formName,
     requiresBookerEmailVerification: event?.data?.requiresBookerEmailVerification,
     onVerifyEmail: bookerForm.beforeVerifyEmail,
   });
-
   const slots = useSlots(event);
 
   const selectedDate = searchParams?.get("date");
@@ -96,28 +91,6 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
     typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("rescheduleUid") : null;
   const bookingUid =
     typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("bookingUid") : null;
-
-  // Toggle query param for overlay calendar
-  const onOverlaySwitchStateChange = useCallback(
-    (state: boolean) => {
-      const current = new URLSearchParams(Array.from(searchParams?.entries() ?? []));
-      if (state) {
-        current.set("overlayCalendar", "true");
-        localStorage.setItem("overlayCalendarSwitchDefault", "true");
-      } else {
-        current.delete("overlayCalendar");
-        localStorage.removeItem("overlayCalendarSwitchDefault");
-      }
-      // cast to string
-      const value = current.toString();
-      const query = value ? `?${value}` : "";
-      router.push(`${pathname}${query}`);
-    },
-    [searchParams, pathname, router]
-  );
-
-  const [dayCount] = useBookerStore((state) => [state.dayCount, state.setDayCount], shallow);
-
   const date = dayjs(selectedDate).format("YYYY-MM-DD");
 
   const prefetchNextMonth =
@@ -134,7 +107,6 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
       dayjs(date).add(bookerLayout.columnViewExtraDays.current, "day").month()
       ? 2
       : undefined;
-
   /**
    * Prioritize dateSchedule load
    * Component will render but use data already fetched from here, and no duplicate requests will be made
@@ -157,6 +129,25 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
       bookings.handleBookEvent();
     },
   });
+
+  // Toggle query param for overlay calendar
+  const onOverlaySwitchStateChange = useCallback(
+    (state: boolean) => {
+      const current = new URLSearchParams(Array.from(searchParams?.entries() ?? []));
+      if (state) {
+        current.set("overlayCalendar", "true");
+        localStorage.setItem("overlayCalendarSwitchDefault", "true");
+      } else {
+        current.delete("overlayCalendar");
+        localStorage.removeItem("overlayCalendarSwitchDefault");
+      }
+      // cast to string
+      const value = current.toString();
+      const query = value ? `?${value}` : "";
+      router.push(`${pathname}${query}`);
+    },
+    [searchParams, pathname, router]
+  );
 
   return (
     <BookerComponent
