@@ -38,7 +38,7 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
     where: {
       OR: [
         {
-          uid: rescheduleUid,
+          uid: rescheduleUid || reqBookingUid,
         },
 
         {

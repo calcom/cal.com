@@ -1546,6 +1546,7 @@ async function handler(
   if (eventType.seatsPerTimeSlot) {
     const newBooking = await handleSeats({
       rescheduleUid,
+      reqBookingUid: reqBody.bookingUid,
       eventType,
       evt,
       invitee,
