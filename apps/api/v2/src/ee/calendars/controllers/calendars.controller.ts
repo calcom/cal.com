@@ -1,6 +1,5 @@
 import { CalendarBusyTimesInput } from "@/ee/calendars/inputs/calendar-busy-times.input";
 import { CalendarsService } from "@/ee/calendars/services/calendars.service";
-import { OverlayCalendarsService } from "@/ee/calendars/services/overlay-calendars.service";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
 import { Controller, Get, Logger, UseGuards, Body } from "@nestjs/common";
@@ -19,10 +18,7 @@ import { EventBusyDate } from "@calcom/types/Calendar";
 export class CalendarsController {
   private readonly logger = new Logger("ee overlay calendars controller");
 
-  constructor(
-    private readonly calendarsService: CalendarsService,
-    private readonly overlayCalendarsService: OverlayCalendarsService
-  ) {}
+  constructor(private readonly calendarsService: CalendarsService) {}
 
   @Get("/busy-times")
   async getBusyTimes(
@@ -37,7 +33,7 @@ export class CalendarsController {
       };
     }
 
-    const busyTimes = await this.overlayCalendarsService.getBusyTimes(
+    const busyTimes = await this.calendarsService.getBusyTimes(
       calendarsToLoad,
       user.id,
       dateFrom,
