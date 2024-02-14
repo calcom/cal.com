@@ -100,6 +100,8 @@ const OrgProfileView = () => {
     return <SkeletonLoader title={t("profile")} description={t("profile_org_description")} />;
   }
 
+  console.log("currentOrganisation", currentOrganisation);
+
   const isOrgAdminOrOwner =
     currentOrganisation.user.role === MembershipRole.OWNER ||
     currentOrganisation.user.role === MembershipRole.ADMIN;
@@ -112,7 +114,7 @@ const OrgProfileView = () => {
   const defaultValues: FormValues = {
     name: currentOrganisation?.name || "",
     logo: currentOrganisation?.logo || "",
-    banner: currentOrganisation?.banner || "",
+    banner: currentOrganisation?.bannerUrl || "",
     bio: currentOrganisation?.bio || "",
     slug:
       currentOrganisation?.slug ||
@@ -253,7 +255,7 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
           />
         </div>
 
-        <div className="flex items-center">
+        <div className="mt-2 flex items-center">
           <Controller
             control={form.control}
             name="banner"
@@ -265,12 +267,13 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
                   <Avatar
                     data-testid="profile-upload-banner"
                     alt={`${defaultValues.name} Banner` || ""}
-                    imageSrc=""
+                    imageSrc={value}
                     size="lg"
                   />
                   <div className="ms-4">
                     <div className="flex gap-2">
                       <ImageUploader
+                        maxImageSize={1500}
                         target="banner"
                         id="banner-upload"
                         buttonMsg={t("upload_banner")}

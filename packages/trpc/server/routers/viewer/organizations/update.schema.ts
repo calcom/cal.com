@@ -22,6 +22,11 @@ export const ZUpdateInputSchema = z.object({
     .optional()
     .nullable()
     .transform((v) => v || null),
+  banner: z
+    .string()
+    .optional()
+    .nullable()
+    .transform((v) => v || null),
   slug: z.string().optional(),
   hideBranding: z.boolean().optional(),
   hideBookATeamMember: z.boolean().optional(),

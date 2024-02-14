@@ -3,6 +3,7 @@ import type { Prisma } from "@prisma/client";
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import { getMetadataHelpers } from "@calcom/lib/getMetadataHelpers";
 import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
+import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
 import { uploadLogo } from "@calcom/lib/server/uploadLogo";
 import { closeComUpdateTeam } from "@calcom/lib/sync/SyncServiceManager";
 import { prisma } from "@calcom/prisma";
@@ -19,6 +20,30 @@ type UpdateOptions = {
     user: NonNullable<TrpcSessionUser>;
   };
   input: TUpdateInputSchema;
+};
+
+const uploadBanner = async ({ teamId, banner: data }: { teamId: number; banner: string }) => {
+  const objectKey = uuidv4();
+
+  await prisma.avatar.upsert({
+    where: {
+      teamId_userId: {
+        teamId,
+        userId: 0,
+      },
+    },
+    create: {
+      teamId: teamId,
+      data,
+      objectKey,
+    },
+    update: {
+      data,
+      objectKey,
+    },
+  });
+
+  return `/api/avatar/${objectKey}.png`;
 };
 
 export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
@@ -57,6 +82,18 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   });
 
   if (!prevOrganisation) throw new TRPCError({ code: "NOT_FOUND", message: "Organisation not found." });
+
+  let bannerUrl = prevOrganisation.bannerUrl;
+  if (input.banner && input.banner.startsWith("data:image/png;base64,")) {
+    const banner = await resizeBase64Image(input.avatar, { maxSize: 1500 });
+    bannerUrl = await uploadBanner({
+      avatar: banner,
+      teamId: currentOrgId,
+    });
+  } else if (input.banner === "") {
+    bannerUrl = null;
+  }
+
   const { mergeMetadata } = getMetadataHelpers(teamMetadataSchema.unwrap(), prevOrganisation.metadata);
 
   const data: Prisma.TeamUpdateArgs["data"] = {
@@ -72,6 +109,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     weekStart: input.weekStart,
     timeFormat: input.timeFormat,
     metadata: mergeMetadata({ ...input.metadata }),
+    bannerUrl,
   };
 
   if (input.logo && input.logo.startsWith("data:image/png;base64,")) {
