@@ -1,10 +1,12 @@
 import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
+import { GetAvailableSlotsInput } from "@/modules/slots/inputs/get-available-slots.input";
 import { ReserveSlotInput } from "@/modules/slots/inputs/reserve-slot.input";
 import { SlotsService } from "@/modules/slots/services/slots.service";
-import { Body, Controller, Post, Req, Res, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Post, Query, Req, Res, UseGuards } from "@nestjs/common";
 import { Response as ExpressResponse, Request as ExpressRequest } from "express";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { getAvailableSlots } from "@calcom/platform-libraries";
 import { ApiResponse } from "@calcom/platform-types";
 
 @Controller({
@@ -27,6 +29,24 @@ export class SlotsController {
     return {
       status: SUCCESS_STATUS,
       data: uid,
+    };
+  }
+
+  @Get("/available")
+  async getAvailableSlots(
+    @Query() query: GetAvailableSlotsInput,
+    @Req() req: ExpressRequest
+  ): Promise<ApiResponse> {
+    const availableSlots = await getAvailableSlots({
+      input: query,
+      ctx: {
+        req: req,
+      },
+    });
+
+    return {
+      data: availableSlots,
+      status: "success",
     };
   }
 }
