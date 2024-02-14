@@ -404,7 +404,6 @@ const EventTypePage = (props: EventTypeSetupProps) => {
         .passthrough()
     ),
   });
-
   const {
     formState: { isDirty: isFormDirty, dirtyFields },
   } = formMethods;
@@ -464,7 +463,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
 
     // Check if the field is an object or an array
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const fieldValue: any = dirtyFields[fieldName];
+    const fieldValue: any = getNestedField(dirtyFields, fieldName);
     if (isObject(fieldValue)) {
       for (const key in fieldValue) {
         if (fieldValue[key] === true) {
@@ -480,7 +479,6 @@ const EventTypePage = (props: EventTypeSetupProps) => {
         }
       }
     }
-
     if (isArray(fieldValue)) {
       for (const element of fieldValue) {
         // If element is an object, check each property of the object
@@ -505,6 +503,20 @@ const EventTypePage = (props: EventTypeSetupProps) => {
     }
 
     return false;
+  };
+
+  const getNestedField = (obj: typeof dirtyFields, path: string) => {
+    const keys = path.split(".");
+    let current = obj;
+
+    for (let i = 0; i < keys.length; i++) {
+      // @ts-expect-error /—— currentKey could be any deeply nested fields thanks to recursion
+      const currentKey = current[keys[i]];
+      if (currentKey === undefined) return undefined;
+      current = currentKey;
+    }
+
+    return current;
   };
 
   const getDirtyFields = (values: FormValues): Partial<FormValues> => {

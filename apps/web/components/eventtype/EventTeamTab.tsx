@@ -246,14 +246,12 @@ const FixedHosts = ({
               onActive={() =>
                 setValue(
                   "hosts",
-                  teamMembers.map(
-                    (teamMember) => ({
-                      isFixed: true,
-                      userId: parseInt(teamMember.value, 10),
-                      priority: 2,
-                    }),
-                    { shouldDirty: true }
-                  )
+                  teamMembers.map((teamMember) => ({
+                    isFixed: true,
+                    userId: parseInt(teamMember.value, 10),
+                    priority: 2,
+                  })),
+                  { shouldDirty: true }
                 )
               }
             />
