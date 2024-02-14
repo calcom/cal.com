@@ -9,6 +9,7 @@ import { ShellMain } from "@calcom/features/shell/Shell";
 import useApp from "@calcom/lib/hooks/useApp";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
+import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import {
   Alert,
   Badge,
@@ -38,6 +39,7 @@ import {
   MessageCircle,
 } from "@calcom/ui/components/icon";
 
+import { getAbsoluteEventTypeRedirectUrl } from "../getEventTypeRedirectUrl";
 import { RoutingPages } from "../lib/RoutingPages";
 import { isFallbackRoute } from "../lib/isFallbackRoute";
 import { processRoute } from "../lib/processRoute";
@@ -225,8 +227,7 @@ const Actions = ({
   );
 };
 
-type SingleFormComponentProps = {
-  form: RoutingFormWithResponseCount;
+type SingleFormComponentProps = Pick<inferSSRProps<typeof getServerSidePropsForSingleFormView>, "form"> & {
   appUrl: string;
   Page: React.FC<{
     form: RoutingFormWithResponseCount;
@@ -243,9 +244,19 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
   const [response, setResponse] = useState<Response>({});
   const [decidedAction, setDecidedAction] = useState<Route["action"] | null>(null);
   const [skipFirstUpdate, setSkipFirstUpdate] = useState(true);
+  const [eventTypeUrl, setEventTypeUrl] = useState("");
 
   function testRouting() {
     const action = processRoute({ form, response });
+    if (action.type === "eventTypeRedirectUrl") {
+      setEventTypeUrl(
+        getAbsoluteEventTypeRedirectUrl({
+          eventTypeRedirectUrl: action.value,
+          form,
+          allURLSearchParams: new URLSearchParams(),
+        })
+      );
+    }
     setDecidedAction(action);
   }
 
@@ -358,7 +369,7 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
                   {form.routers.length ? (
                     <div className="mt-6">
                       <div className="text-emphasis mb-2 block text-sm font-semibold leading-none ">
-                        Routers
+                        {t("routers")}
                       </div>
                       <p className="text-default -mt-1 text-xs leading-normal">
                         {t("modifications_in_fields_warning")}
@@ -455,9 +466,9 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
                       {RoutingPages.map((page) => {
                         if (page.value !== decidedAction.type) return null;
                         return (
-                          <div key={page.value} data-testid="test-routing-result-type">
+                          <span key={page.value} data-testid="test-routing-result-type">
                             {page.label}
-                          </div>
+                          </span>
                         );
                       })}
                       :{" "}
@@ -484,7 +495,7 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
                         <span className="text-default underline">
                           <a
                             target="_blank"
-                            href={`/${decidedAction.value}`}
+                            href={eventTypeUrl}
                             rel="noreferrer"
                             data-testid="test-routing-result">
                             {decidedAction.value}
