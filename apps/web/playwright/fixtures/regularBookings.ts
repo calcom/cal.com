@@ -4,7 +4,8 @@ import dayjs from "@calcom/dayjs";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import type { MembershipRole } from "@calcom/prisma/enums";
 
-import { localize } from "../lib/testUtils";
+import { getEmailsReceivedByUser, localize } from "../lib/testUtils";
+import type { createEmailsFixture } from "./emails";
 import type { createUsersFixture } from "./users";
 
 const reschedulePlaceholderText = "Let others know why you need to reschedule";
@@ -45,6 +46,7 @@ type fillAndConfirmBookingParams = {
 };
 
 type UserFixture = ReturnType<typeof createUsersFixture>;
+type EmailFixture = ReturnType<typeof createEmailsFixture>;
 
 function isLastDayOfMonth(): boolean {
   const today = dayjs();
@@ -748,6 +750,30 @@ export function createBookingPageFixture(page: Page) {
 
       await eventTypePage.getByLabel(emailLabel).fill(EMAIL);
       await eventTypePage.getByLabel(nameLabel).fill("testuser");
+    },
+    assertUniqueLocation: async (eventTypePage: Page, locationTitle: string) => {
+      await expect(eventTypePage.getByTestId("unique-location")).toHaveText(locationTitle);
+    },
+    assertCalVideoLink: async (eventTypePage: Page, users: UserFixture, emails: EmailFixture) => {
+      console.debug(users.get());
+      const user = users.get()[0];
+      const receivedEmails = await getEmailsReceivedByUser({
+        emails,
+        userEmail: user.email,
+      });
+
+      expect(receivedEmails?.total).toBe(1);
+
+      const whereLinkElement = eventTypePage.getByText("Cal Video");
+      await whereLinkElement.click();
+
+      const calVideoPromise = eventTypePage.waitForEvent("popup");
+      const calVideoPage = await calVideoPromise;
+      await calVideoPage.waitForLoadState();
+
+      const verifyEmail = receivedEmails?.items[0];
+      // @ts-expect-error the Message type present in typescript differs from the actual return of the object
+      expect(verifyEmail?.Content.Body).toContain(calVideoPage.url());
     },
   };
 }
