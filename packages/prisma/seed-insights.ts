@@ -78,7 +78,11 @@ async function main() {
     insightsAdmin = await prisma.user.create({
       data: {
         email: "insights@example.com",
-        password: await hashPassword("insightsinsightsinsights...!"),
+        password: {
+          create: {
+            hash: await hashPassword("insightsinsightsinsights...!"),
+          },
+        },
         name: "Insights Admin",
         role: "ADMIN",
         username: "insights-admin",
@@ -102,7 +106,11 @@ async function main() {
     insightsUser = await prisma.user.create({
       data: {
         email: "insightsuser@example.com",
-        password: await hashPassword("insightsuser"),
+        password: {
+          create: {
+            hash: await hashPassword("insightsuser"),
+          },
+        },
         name: "Insights User",
         role: "USER",
         username: "insights-user",
@@ -415,7 +423,11 @@ async function createPerformanceData() {
       const email = `insightsuser${timestamp}@example.com`;
       const insightsUser = {
         email,
-        password: await hashPassword("insightsuser"),
+        password: {
+          create: {
+            hash: await hashPassword("insightsuser"),
+          },
+        },
         name: `Insights User ${timestamp}`,
         username: `insights-user-${timestamp}`,
         completedOnboarding: true,
