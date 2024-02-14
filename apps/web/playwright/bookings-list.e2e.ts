@@ -83,17 +83,19 @@ test.describe("Bookings", () => {
       };
 
       const eventType = await createTeamEventType(owner1, team1, scenario);
-      const { id: eventId } = eventType;
+      const { id: eventId, slug: evnetSlug } = eventType;
 
       await prisma.host.createMany({
         data: [
           {
             userId: commonUser.id,
             eventTypeId: eventId,
+            isFixed: true,
           },
           {
             userId: team1_teammate1.id,
             eventTypeId: eventId,
+            isFixed: true,
           },
         ],
       });
@@ -267,8 +269,8 @@ async function createBooking({
 }
 
 const createTeams = async (userFixture: Fixtures["users"]) => {
-  const owner1 = await userFixture.create({ username: "team-owner-1", name: "team-owner-1" });
-  const owner2 = await userFixture.create({ username: "team-owner-2", name: "team-owner-2" });
+  const owner1 = await userFixture.create({ name: "team-owner-1" });
+  const owner2 = await userFixture.create({ name: "team-owner-2" });
   const commonUser = await userFixture.create({ name: "commonUser" });
   const team1_teammate1 = await userFixture.create({ name: "team1_teammate1" });
   const team2_teammate1 = await userFixture.create({ name: "team2_teammate1" });
