@@ -71,7 +71,9 @@ export function Avatar(props: AvatarProps) {
 
   return title ? (
     <TooltipPrimitiveProvider>
-      <Tooltip content={title}>{avatar}</Tooltip>
+      <Tooltip side="right" content={title}>
+        {avatar}
+      </Tooltip>
     </TooltipPrimitiveProvider>
   ) : (
     <>{avatar}</>
