@@ -68,128 +68,138 @@ test.describe("Bookings", () => {
         secondUpcomingBooking.locator(`text=${bookingWhereFirstUserIsOrganizer!.title}`)
       ).toBeVisible();
     });
-  });
-});
+    test("collective eventType booking should be visible to team admin", async ({
+      page,
+      users,
+      bookings,
+    }) => {
+      const { owner1, owner2, commonUser, team1_teammate1 } = await createTeams(users);
 
-test.describe("Bookings list view", () => {
-  test("collective eventType booking should be visible to team admin", async ({ page, users, bookings }) => {
-    const { owner1, owner2, commonUser, team1_teammate1 } = await createTeams(users);
+      const { team: team1 } = await owner1.getFirstTeamMembership();
+      const scenario = {
+        schedulingType: SchedulingType.COLLECTIVE,
+        teamEventTitle: `collective-team-event`,
+        teamEventSlug: slugify(`collective-team-event-${randomString(5)}`),
+      };
 
-    const { team: team1 } = await owner1.getFirstTeamMembership();
-    const scenario = {
-      schedulingType: SchedulingType.COLLECTIVE,
-      teamEventTitle: `collective-team-event`,
-      teamEventSlug: slugify(`collective-team-event-${randomString(5)}`),
-    };
+      const eventType = await createTeamEventType(owner1, team1, scenario);
+      const { id: eventId } = eventType;
 
-    const eventType = await createTeamEventType(owner1, team1, scenario);
-    const { id: eventId } = eventType;
+      await prisma.host.createMany({
+        data: [
+          {
+            userId: commonUser.id,
+            eventTypeId: eventId,
+          },
+          {
+            userId: team1_teammate1.id,
+            eventTypeId: eventId,
+          },
+        ],
+      });
 
-    await prisma.host.createMany({
-      data: [
-        {
-          userId: commonUser.id,
+      await prisma.host.deleteMany({
+        where: {
+          userId: owner1.id,
           eventTypeId: eventId,
         },
-        {
-          userId: team1_teammate1.id,
+      });
+
+      await bookEvent({ pageFixture: page, eventType, team: team1 });
+
+      await bookingVisibleFor({ user: owner1, pageFixture: page, eventType, shouldBeVisible: true });
+      await bookingVisibleFor({ user: owner2, pageFixture: page, eventType, shouldBeVisible: false });
+      await bookingVisibleFor({ user: commonUser, pageFixture: page, eventType, shouldBeVisible: true });
+    });
+    test("round-robin eventType booking should be visible to team admin", async ({
+      page,
+      users,
+      bookings,
+    }) => {
+      const { owner1, owner2, commonUser, team1_teammate1 } = await createTeams(users);
+
+      const { team: team1 } = await owner1.getFirstTeamMembership();
+      const scenario = {
+        schedulingType: SchedulingType.ROUND_ROBIN,
+        teamEventTitle: `round-robin-team-event`,
+        teamEventSlug: slugify(`round-robin-team-event-${randomString(5)}`),
+      };
+
+      const eventType = await createTeamEventType(owner1, team1, scenario);
+      const { id: eventId } = eventType;
+
+      await prisma.host.createMany({
+        data: [
+          {
+            userId: commonUser.id,
+            eventTypeId: eventId,
+          },
+          {
+            userId: team1_teammate1.id,
+            eventTypeId: eventId,
+          },
+        ],
+      });
+
+      await prisma.host.deleteMany({
+        where: {
+          userId: owner1.id,
           eventTypeId: eventId,
         },
-      ],
+      });
+
+      await bookEvent({ pageFixture: page, eventType, team: team1 });
+
+      await bookingVisibleFor({ user: owner1, pageFixture: page, eventType, shouldBeVisible: true });
+      await bookingVisibleFor({ user: owner2, pageFixture: page, eventType, shouldBeVisible: false });
     });
+    test("managed eventType booking should be visible to team admin", async ({ page, users, bookings }) => {
+      const { owner1, owner2, commonUser, team1_teammate1 } = await createTeams(users);
 
-    await prisma.host.deleteMany({
-      where: {
-        userId: owner1.id,
-        eventTypeId: eventId,
-      },
+      const { team: team1 } = await owner1.getFirstTeamMembership();
+
+      await owner1.apiLogin();
+      await page.goto(`/event-types?dialog=new&eventPage=team%2F${team1.slug}&teamId=${team1.id}`);
+      await page.getByTestId("managed-event-type").click();
+      await page.getByTestId("event-type-quick-chat").click();
+      await page.getByTestId("event-type-quick-chat").fill("managed-event");
+      await page.getByRole("button", { name: "Continue" }).click();
+      await page.getByTestId("vertical-tab-assignment").click();
+
+      await page.locator("span:nth-child(3) > .bg-default > div > .text-emphasis").nth(0).click();
+      await page.getByRole("combobox", { name: "assignment-dropdown" }).fill("commonUser");
+      await page.getByRole("combobox", { name: "assignment-dropdown" }).press("Enter");
+      await page.getByRole("combobox", { name: "assignment-dropdown" }).fill("team1_teammate1");
+      await page.getByRole("combobox", { name: "assignment-dropdown" }).press("Enter");
+      await page.getByTestId("update-eventtype").click();
+
+      const eventType = await owner1.getFirstTeamEvent(team1.id);
+
+      await bookEvent({ pageFixture: page, eventType, user: commonUser });
+
+      await bookingVisibleFor({ user: owner1, pageFixture: page, eventType, shouldBeVisible: true });
+      await bookingVisibleFor({ user: owner2, pageFixture: page, eventType, shouldBeVisible: false });
+      await bookingVisibleFor({ user: commonUser, pageFixture: page, eventType, shouldBeVisible: true });
+      await bookingVisibleFor({
+        user: team1_teammate1,
+        pageFixture: page,
+        eventType,
+        shouldBeVisible: false,
+      });
     });
+    test("individual team members booking should be visible to team admin", async ({
+      page,
+      users,
+      bookings,
+    }) => {
+      const { owner1, owner2, commonUser, team1_teammate1 } = await createTeams(users);
 
-    await bookEvent({ pageFixture: page, eventType, team: team1 });
-
-    await bookingVisibleFor({ user: owner1, pageFixture: page, eventType, shouldBeVisible: true });
-    await bookingVisibleFor({ user: owner2, pageFixture: page, eventType, shouldBeVisible: false });
-    await bookingVisibleFor({ user: commonUser, pageFixture: page, eventType, shouldBeVisible: true });
-  });
-  test("round-robin eventType booking should be visible to team admin", async ({ page, users, bookings }) => {
-    const { owner1, owner2, commonUser, team1_teammate1 } = await createTeams(users);
-
-    const { team: team1 } = await owner1.getFirstTeamMembership();
-    const scenario = {
-      schedulingType: SchedulingType.ROUND_ROBIN,
-      teamEventTitle: `round-robin-team-event`,
-      teamEventSlug: slugify(`round-robin-team-event-${randomString(5)}`),
-    };
-
-    const eventType = await createTeamEventType(owner1, team1, scenario);
-    const { id: eventId } = eventType;
-
-    await prisma.host.createMany({
-      data: [
-        {
-          userId: commonUser.id,
-          eventTypeId: eventId,
-        },
-        {
-          userId: team1_teammate1.id,
-          eventTypeId: eventId,
-        },
-      ],
+      const eventType = await commonUser.getFirstEventAsOwner();
+      await bookEvent({ pageFixture: page, eventType, user: commonUser });
+      await bookingVisibleFor({ user: owner1, pageFixture: page, eventType, shouldBeVisible: true });
+      await bookingVisibleFor({ user: commonUser, pageFixture: page, eventType, shouldBeVisible: true });
+      await bookingVisibleFor({ user: owner2, pageFixture: page, eventType, shouldBeVisible: true });
     });
-
-    await prisma.host.deleteMany({
-      where: {
-        userId: owner1.id,
-        eventTypeId: eventId,
-      },
-    });
-
-    await bookEvent({ pageFixture: page, eventType, team: team1 });
-
-    await bookingVisibleFor({ user: owner1, pageFixture: page, eventType, shouldBeVisible: true });
-    await bookingVisibleFor({ user: owner2, pageFixture: page, eventType, shouldBeVisible: false });
-  });
-  test("managed eventType booking should be visible to team admin", async ({ page, users, bookings }) => {
-    const { owner1, owner2, commonUser, team1_teammate1 } = await createTeams(users);
-
-    const { team: team1 } = await owner1.getFirstTeamMembership();
-
-    await owner1.apiLogin();
-    await page.goto(`/event-types?dialog=new&eventPage=team%2F${team1.slug}&teamId=${team1.id}`);
-    await page.getByTestId("managed-event-type").click();
-    await page.getByTestId("event-type-quick-chat").click();
-    await page.getByTestId("event-type-quick-chat").fill("managed-event");
-    await page.getByRole("button", { name: "Continue" }).click();
-    await page.getByTestId("vertical-tab-assignment").click();
-
-    await page.locator("span:nth-child(3) > .bg-default > div > .text-emphasis").nth(0).click();
-    await page.getByRole("combobox", { name: "assignment-dropdown" }).fill("commonUser");
-    await page.getByRole("combobox", { name: "assignment-dropdown" }).press("Enter");
-    await page.getByRole("combobox", { name: "assignment-dropdown" }).fill("team1_teammate1");
-    await page.getByRole("combobox", { name: "assignment-dropdown" }).press("Enter");
-    await page.getByTestId("update-eventtype").click();
-
-    const eventType = await owner1.getFirstTeamEvent(team1.id);
-
-    await bookEvent({ pageFixture: page, eventType, user: commonUser });
-
-    await bookingVisibleFor({ user: owner1, pageFixture: page, eventType, shouldBeVisible: true });
-    await bookingVisibleFor({ user: owner2, pageFixture: page, eventType, shouldBeVisible: false });
-    await bookingVisibleFor({ user: commonUser, pageFixture: page, eventType, shouldBeVisible: true });
-    await bookingVisibleFor({ user: team1_teammate1, pageFixture: page, eventType, shouldBeVisible: false });
-  });
-  test("individual team members booking should be visible to team admin", async ({
-    page,
-    users,
-    bookings,
-  }) => {
-    const { owner1, owner2, commonUser, team1_teammate1 } = await createTeams(users);
-
-    const eventType = await commonUser.getFirstEventAsOwner();
-    await bookEvent({ pageFixture: page, eventType, user: commonUser });
-    await bookingVisibleFor({ user: owner1, pageFixture: page, eventType, shouldBeVisible: true });
-    await bookingVisibleFor({ user: commonUser, pageFixture: page, eventType, shouldBeVisible: true });
-    await bookingVisibleFor({ user: owner2, pageFixture: page, eventType, shouldBeVisible: true });
   });
 });
 
@@ -246,7 +256,6 @@ const createTeams = async (userFixture: Fixtures["users"]) => {
   const owner2 = await userFixture.create({ username: "team-owner-2", name: "team-owner-2" });
   const commonUser = await userFixture.create({ name: "commonUser" });
   const team1_teammate1 = await userFixture.create({ name: "team1_teammate1" });
-  const team1_teammate2 = await userFixture.create({ name: "team1_teammate2" });
   const team2_teammate1 = await userFixture.create({ name: "team2_teammate1" });
   const teamOne = await prisma.team.create({
     data: {
@@ -284,12 +293,6 @@ const createTeams = async (userFixture: Fixtures["users"]) => {
         role: "MEMBER",
       },
       {
-        userId: team1_teammate2.id,
-        teamId: teamOne.id,
-        accepted: true,
-        role: "MEMBER",
-      },
-      {
         userId: owner2.id,
         teamId: teamTwo.id,
         accepted: true,
@@ -314,7 +317,6 @@ const createTeams = async (userFixture: Fixtures["users"]) => {
     owner2,
     commonUser,
     team1_teammate1,
-    team1_teammate2,
     team2_teammate1,
     teamOne,
     teamTwo,
