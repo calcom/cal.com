@@ -12,7 +12,7 @@ import { ApiResponse } from "@calcom/platform-types";
 import { EventBusyDate } from "@calcom/types/Calendar";
 
 @Controller({
-  path: "ee/overlay-calendars",
+  path: "ee/calendars",
   version: "2",
 })
 @UseGuards(AccessTokenGuard)
