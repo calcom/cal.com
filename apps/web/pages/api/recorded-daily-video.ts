@@ -230,7 +230,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       startTime: booking.startTime.toISOString(),
       endTime: booking.endTime.toISOString(),
       organizer: {
-        email: booking.user?.email || "Email-less",
+        email: booking?.userPrimaryEmail || booking.user?.email || "Email-less",
         name: booking.user?.name || "Nameless",
         timeZone: booking.user?.timeZone || "Europe/London",
         language: { translate: t, locale: booking?.user?.locale ?? "en" },
