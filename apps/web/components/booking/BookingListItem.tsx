@@ -676,6 +676,9 @@ const Attendee = ({ email, name }: AttendeeProps) => {
   const [noShow, setNoShow] = useState(false);
 
   function toggleNoShow(noShow: boolean, event: React.MouseEvent<HTMLButtonElement>) {
+    // TODO: backend call to update noShow status peer attendee
+
+    // TODO: optimistically update UI, likely without useState
     setNoShow(!noShow);
     event.preventDefault();
     event.stopPropagation();
