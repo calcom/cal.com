@@ -13,6 +13,7 @@ import type { Ensure } from "@calcom/types/utils";
 
 import prisma from ".";
 import mainAppStore from "./seed-app-store";
+import mainHugeEventTypesSeed from "./seed-huge-event-types";
 import { createUserAndEventType } from "./seed-utils";
 import type { teamMetadataSchema } from "./zod-utils";
 
@@ -121,7 +122,11 @@ async function createOrganizationAndAddMembersAndTeams({
           data: {
             ...member.memberData,
             emailVerified: new Date(),
-            password: await hashPassword(member.memberData.password),
+            password: {
+              create: {
+                hash: await hashPassword(member.memberData.password.create?.hash || ""),
+              },
+            },
           },
         })),
         inTeams: member.inTeams,
@@ -148,7 +153,11 @@ async function createOrganizationAndAddMembersAndTeams({
           name: user.name,
           email: user.email,
           emailVerified: new Date(),
-          password: await hashPassword(user.username),
+          password: {
+            create: {
+              hash: await hashPassword(user.username),
+            },
+          },
         },
       });
     }),
@@ -254,7 +263,11 @@ async function createOrganizationAndAddMembersAndTeams({
         await prisma.user.create({
           data: {
             ...nonOrgMember,
-            password: await hashPassword(nonOrgMember.password),
+            password: {
+              create: {
+                hash: await hashPassword(nonOrgMember.username),
+              },
+            },
             emailVerified: new Date(),
           },
         })
@@ -806,7 +819,11 @@ async function main() {
         {
           memberData: {
             email: "owner1-acme@example.com",
-            password: "owner1-acme",
+            password: {
+              create: {
+                hash: "owner1-acme",
+              },
+            },
             username: "owner1-acme",
             name: "Owner 1",
           },
@@ -835,7 +852,11 @@ async function main() {
         nonOrgMembers: [
           {
             email: "non-acme-member-1@example.com",
-            password: "non-acme-member-1",
+            password: {
+              create: {
+                hash: "non-acme-member-1",
+              },
+            },
             username: "non-acme-member-1",
             name: "NonAcme Member1",
           },
@@ -865,7 +886,11 @@ async function main() {
         {
           memberData: {
             email: "owner1-dunder@example.com",
-            password: "owner1-dunder",
+            password: {
+              create: {
+                hash: "owner1-dunder",
+              },
+            },
             username: "owner1-dunder",
             name: "Owner 1",
           },
@@ -894,7 +919,11 @@ async function main() {
         nonOrgMembers: [
           {
             email: "non-dunder-member-1@example.com",
-            password: "non-dunder-member-1",
+            password: {
+              create: {
+                hash: "non-dunder-member-1",
+              },
+            },
             username: "non-dunder-member-1",
             name: "NonDunder Member1",
           },
@@ -913,6 +942,7 @@ async function main() {
 
 main()
   .then(() => mainAppStore())
+  .then(() => mainHugeEventTypesSeed())
   .catch((e) => {
     console.error(e);
     process.exit(1);

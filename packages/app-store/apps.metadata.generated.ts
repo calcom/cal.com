@@ -58,7 +58,6 @@ import sendgrid_config_json from "./sendgrid/config.json";
 import shimmervideo_config_json from "./shimmervideo/config.json";
 import signal_config_json from "./signal/config.json";
 import sirius_video_config_json from "./sirius_video/config.json";
-import skiff_config_json from "./skiff/config.json";
 import { metadata as stripepayment__metadata_ts } from "./stripepayment/_metadata";
 import sylapsvideo_config_json from "./sylapsvideo/config.json";
 import { metadata as tandemvideo__metadata_ts } from "./tandemvideo/_metadata";
@@ -141,7 +140,6 @@ export const appStoreMetadata = {
   shimmervideo: shimmervideo_config_json,
   signal: signal_config_json,
   sirius_video: sirius_video_config_json,
-  skiff: skiff_config_json,
   stripepayment: stripepayment__metadata_ts,
   sylapsvideo: sylapsvideo_config_json,
   tandemvideo: tandemvideo__metadata_ts,

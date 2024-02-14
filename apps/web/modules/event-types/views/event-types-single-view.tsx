@@ -15,7 +15,7 @@ import { validateCustomEventName } from "@calcom/core/event";
 import type { EventLocationType } from "@calcom/core/location";
 import type { ChildrenEventType } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
 import { validateIntervalLimitOrder } from "@calcom/lib";
-import { CAL_URL } from "@calcom/lib/constants";
+import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
@@ -82,6 +82,8 @@ const EventWebhooksTab = dynamic(() =>
 
 const ManagedEventTypeDialog = dynamic(() => import("@components/eventtype/ManagedEventDialog"));
 
+export type Host = { isFixed: boolean; userId: number; priority: number };
+
 export type FormValues = {
   id: number;
   title: string;
@@ -139,13 +141,14 @@ export type FormValues = {
   bookingLimits?: IntervalLimit;
   onlyShowFirstAvailableSlot: boolean;
   children: ChildrenEventType[];
-  hosts: { userId: number; isFixed: boolean }[];
+  hosts: Host[];
   bookingFields: z.infer<typeof eventTypeBookingFields>;
   availability?: AvailabilityOption;
   bookerLayouts: BookerLayoutSettings;
   multipleDurationEnabled: boolean;
   users: EventTypeSetup["users"];
   assignAllTeamMembers: boolean;
+  useEventTypeDestinationCalendarEmail: boolean;
 };
 
 export type CustomInputParsed = typeof customInputSchema._output;
@@ -296,6 +299,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       hosts: eventType.hosts,
       successRedirectUrl: eventType.successRedirectUrl || "",
       users: eventType.users,
+      useEventTypeDestinationCalendarEmail: eventType.useEventTypeDestinationCalendarEmail,
       children: eventType.children.map((ch) => ({
         ...ch,
         created: true,
@@ -421,10 +425,9 @@ const EventTypePage = (props: EventTypeSetupProps) => {
     ).length;
   }
 
-  const permalink = `${CAL_URL}/${team ? `team/${team.slug}` : eventType.users[0].username}/${
+  const permalink = `${WEBSITE_URL}/${team ? `team/${team.slug}` : eventType.users[0].username}/${
     eventType.slug
   }`;
-
   const tabMap = {
     setup: (
       <EventSetupTab
