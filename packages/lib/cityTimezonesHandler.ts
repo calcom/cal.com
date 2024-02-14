@@ -1,11 +1,8 @@
+import { cityMapping as allCities } from "city-timezones";
+
 export type CityTimezones = Awaited<ReturnType<typeof cityTimezonesHandler>>;
 
 export const cityTimezonesHandler = async () => {
-  /**
-   * Lazy loads third party dependency to avoid loading 1.5Mb for ALL tRPC procedures.
-   * Thanks @roae for the tip 🙏
-   **/
-  const allCities = await import("city-timezones").then((mod) => mod.cityMapping);
   /**
    * Filter out all cities that have the same "city" key and only use the one with the highest population.
    * This way we return a new array of cities without running the risk of having more than one city
