@@ -15,7 +15,7 @@ export type AvatarProps = {
   imageSrc?: Maybe<string>;
   title?: string;
   alt: string;
-  href?: string;
+  href?: string | null;
   fallback?: React.ReactNode;
   accepted?: boolean;
   asChild?: boolean; // Added to ignore the outer span on the fallback component - messes up styling

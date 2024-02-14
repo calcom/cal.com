@@ -203,7 +203,7 @@ export default function Success(props: PageProps) {
       duration: calculatedDuration,
       organizer: {
         name: users[0].name || "Nameless",
-        email: users[0].email || "Email-less",
+        email: bookingInfo?.userPrimaryEmail || users[0].email || "Email-less",
         timeZone: users[0].timeZone,
       },
       confirmed: !needsConfirmation,
@@ -450,7 +450,9 @@ export default function Success(props: PageProps) {
                                 </span>
                                 <Badge variant="blue">{t("Host")}</Badge>
                               </div>
-                              <p className="text-default">{bookingInfo.user.email}</p>
+                              <p className="text-default">
+                                {bookingInfo?.userPrimaryEmail ?? bookingInfo.user.email}
+                              </p>
                             </div>
                           )}
                           {bookingInfo?.attendees.map((attendee) => (
