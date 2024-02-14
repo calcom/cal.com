@@ -697,6 +697,7 @@ const Attendee = ({ email, name }: AttendeeProps) => {
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
+        {/* TODO: figure out how to close the dropdown after clicking, since we are stopping propagation due to the <Link> */}
         <DropdownMenuItem className="focus:outline-none">
           {/* TODO: add subject: title */}
           <DropdownItem StartIcon={Mail} href={`mailto:${email}`} onClick={(e) => e.stopPropagation()}>
