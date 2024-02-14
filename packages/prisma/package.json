@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "clean": "rm -rf .turbo && rm -rf node_modules",
-    "build": "yarn prisma migrate deploy || true",
+    "build": "yarn prisma migrate deploy && yarn post-build || true",
+    "post-build": "yarn prisma db execute --file scripts/post-migration.sql",
     "db-deploy": "yarn prisma migrate deploy",
     "db-migrate": "yarn prisma migrate dev",
     "db-nuke": "docker compose down --volumes --remove-orphans || docker-compose down --volumes --remove-orphans",
@@ -14,8 +15,9 @@
     "db-studio": "yarn prisma studio",
     "db-up": "docker compose up -d || docker-compose up -d",
     "dx": "yarn db-setup",
+    "generate-post-migration-script": "ts-node --transpile-only ./generate-post-migration-script",
     "generate-schemas": "prisma generate && prisma format",
-    "post-install": "yarn generate-schemas",
+    "post-install": "yarn generate-schemas && yarn generate-post-migration-script",
     "seed-app-store": "ts-node --transpile-only ./seed-app-store.ts",
     "delete-app": "ts-node --transpile-only ./delete-app.ts",
     "seed-insights": "ts-node --transpile-only ./seed-insights.ts"

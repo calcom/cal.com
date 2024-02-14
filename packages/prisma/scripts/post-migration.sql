@@ -1,0 +1,2 @@
+-- THIS IS AN AUTO-GENERATED FILE. DO NOT MODIFY THIS FILE DIRECTLY.
+-- See generate-post-migration-script.ts for more information.
