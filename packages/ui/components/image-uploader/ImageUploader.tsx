@@ -1,6 +1,5 @@
-import * as SliderPrimitive from "@radix-ui/react-slider";
 import type { FormEvent } from "react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import Cropper from "react-easy-crop";
 
 import checkIfItFallbackImage from "@calcom/lib/checkIfItFallbackImage";
@@ -9,13 +8,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { ButtonColor } from "../..";
 import { Button, Dialog, DialogClose, DialogContent, DialogTrigger, DialogFooter } from "../..";
 import { showToast } from "../toast";
-
-type ReadAsMethod = "readAsText" | "readAsDataURL" | "readAsArrayBuffer" | "readAsBinaryString";
-
-type UseFileReaderProps = {
-  method: ReadAsMethod;
-  onLoad?: (result: unknown) => void;
-};
+import { Slider } from "./Slider";
+import { useFileReader, createImage } from "./common.ts";
 
 type Area = {
   width: number;
@@ -24,42 +18,7 @@ type Area = {
   y: number;
 };
 
-const MAX_IMAGE_SIZE = 512;
-
-const useFileReader = (options: UseFileReaderProps) => {
-  const { method = "readAsText", onLoad } = options;
-  const [file, setFile] = useState<File | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<DOMException | null>(null);
-  const [result, setResult] = useState<string | ArrayBuffer | null>(null);
-
-  useEffect(() => {
-    if (!file && result) {
-      setResult(null);
-    }
-  }, [file, result]);
-
-  useEffect(() => {
-    if (!file) {
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onloadstart = () => setLoading(true);
-    reader.onloadend = () => setLoading(false);
-    reader.onerror = () => setError(reader.error);
-
-    reader.onload = (e: ProgressEvent<FileReader>) => {
-      setResult(e.target?.result ?? null);
-      if (onLoad) {
-        onLoad(e.target?.result ?? null);
-      }
-    };
-    reader[method](file);
-  }, [file, method, onLoad]);
-
-  return [{ result, error, file, loading }, setFile] as const;
-};
+const DEFAULT_MAX_IMAGE_SIZE = 512;
 
 type ImageUploaderProps = {
   id: string;
@@ -70,6 +29,7 @@ type ImageUploaderProps = {
   triggerButtonColor?: ButtonColor;
   uploadInstruction?: string;
   disabled?: boolean;
+  maxImageSize?: number;
 };
 
 interface FileEvent<T = Element> extends FormEvent<T> {
@@ -99,7 +59,7 @@ function CropContainer({
           image={imageSrc}
           crop={crop}
           zoom={zoom}
-          aspect={1}
+          aspect={3}
           onCropChange={setCrop}
           onCropComplete={(croppedArea, croppedAreaPixels) => onCropComplete(croppedAreaPixels)}
           onZoomChange={setZoom}
@@ -126,9 +86,11 @@ export default function ImageUploader({
   imageSrc,
   uploadInstruction,
   disabled = false,
+  maxImageSize = DEFAULT_MAX_IMAGE_SIZE,
 }: ImageUploaderProps) {
   const { t } = useLocale();
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
+  console.log("maxImageSize", maxImageSize);
 
   const [{ result }, setFile] = useFileReader({
     method: "readAsDataURL",
@@ -155,7 +117,8 @@ export default function ImageUploader({
         if (!croppedAreaPixels) return;
         const croppedImage = await getCroppedImg(
           result as string /* result is always string when using readAsDataUrl */,
-          croppedAreaPixels
+          croppedAreaPixels,
+          maxImageSize
         );
         handleAvatarChange(croppedImage);
       } catch (e) {
@@ -194,7 +157,7 @@ export default function ImageUploader({
                   </p>
                 ) : (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img className="h-20 w-20 rounded-full" src={imageSrc} alt={target} />
+                  <img className="h-20 w-80 rounded-full" src={imageSrc} alt={target} />
                 )}
               </div>
             )}
@@ -231,28 +194,26 @@ export default function ImageUploader({
   );
 }
 
-const createImage = (url: string) =>
-  new Promise<HTMLImageElement>((resolve, reject) => {
-    const image = new Image();
-    image.addEventListener("load", () => resolve(image));
-    image.addEventListener("error", (error) => reject(error));
-    image.setAttribute("crossOrigin", "anonymous"); // needed to avoid cross-origin issues on CodeSandbox
-    image.src = url;
-  });
-
-async function getCroppedImg(imageSrc: string, pixelCrop: Area): Promise<string> {
+// TODO
+async function getCroppedImg(imageSrc: string, pixelCrop: Area, maxImageSize: number): Promise<string> {
   const image = await createImage(imageSrc);
   const canvas = document.createElement("canvas");
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("Context is null, this should never happen.");
 
   const maxSize = Math.max(image.naturalWidth, image.naturalHeight);
-  const resizeRatio = MAX_IMAGE_SIZE / maxSize < 1 ? Math.max(MAX_IMAGE_SIZE / maxSize, 0.75) : 1;
+  // const resizeRatio = maxImageSize / maxSize < 1 ? Math.max(maxImageSize / maxSize, 0.75) : 1;
+  const resizeRatio = 3;
+
   // huh, what? - Having this turned off actually improves image quality as otherwise anti-aliasing is applied
   // this reduces the quality of the image overall because it anti-aliases the existing, copied image; blur results
   ctx.imageSmoothingEnabled = false;
   // pixelCrop is always 1:1 - width = height
-  canvas.width = canvas.height = Math.min(maxSize * resizeRatio, pixelCrop.width);
+  // canvas.width = canvas.height = Math.min(maxSize * resizeRatio, pixelCrop.width);
+  canvas.width = 1500;
+  canvas.height = 500;
+
+  console.log("pixelCrop", pixelCrop);
 
   ctx.drawImage(
     image,
@@ -269,36 +230,17 @@ async function getCroppedImg(imageSrc: string, pixelCrop: Area): Promise<string>
   // on very low ratios, the quality of the resize becomes awful. For this reason the resizeRatio is limited to 0.75
   if (resizeRatio <= 0.75) {
     // With a smaller image, thus improved ratio. Keep doing this until the resizeRatio > 0.75.
-    return getCroppedImg(canvas.toDataURL("image/png"), {
-      width: canvas.width,
-      height: canvas.height,
-      x: 0,
-      y: 0,
-    });
+    return getCroppedImg(
+      canvas.toDataURL("image/png"),
+      {
+        width: canvas.width,
+        height: canvas.height,
+        x: 0,
+        y: 0,
+      },
+      maxImageSize
+    );
   }
 
   return canvas.toDataURL("image/png");
 }
-
-const Slider = ({
-  value,
-  label,
-  changeHandler,
-  ...props
-}: Omit<SliderPrimitive.SliderProps, "value"> & {
-  value: number;
-  label: string;
-  changeHandler: (value: number) => void;
-}) => (
-  <SliderPrimitive.Root
-    className="slider mt-2"
-    value={[value]}
-    aria-label={label}
-    onValueChange={(value: number[]) => changeHandler(value[0] ?? value)}
-    {...props}>
-    <SliderPrimitive.Track className="slider-track">
-      <SliderPrimitive.Range className="slider-range" />
-    </SliderPrimitive.Track>
-    <SliderPrimitive.Thumb className="slider-thumb" />
-  </SliderPrimitive.Root>
-);

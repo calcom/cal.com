@@ -343,7 +343,8 @@ const BookerComponent = ({
                 className="max-w-screen flex w-full flex-col md:w-[var(--booker-meta-width)]">
                 {orgBannerUrl && (
                   <img
-                    className="-mb-9 max-h-56 rounded-tl-md md:max-h-36 "
+                    loading="eager"
+                    className="-mb-9 max-h-24 rounded-tl-md"
                     alt="org banner"
                     src={orgBannerUrl}
                   />

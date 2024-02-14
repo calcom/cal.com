@@ -4,7 +4,6 @@ import { v4 as uuidv4 } from "uuid";
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import { getMetadataHelpers } from "@calcom/lib/getMetadataHelpers";
 import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
-import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
 import { uploadLogo } from "@calcom/lib/server/uploadLogo";
 import { closeComUpdateTeam } from "@calcom/lib/sync/SyncServiceManager";
 import { prisma } from "@calcom/prisma";
@@ -87,9 +86,9 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
   let bannerUrl = prevOrganisation.bannerUrl;
   if (input.banner && input.banner.startsWith("data:image/png;base64,")) {
-    const banner = await resizeBase64Image(input.banner, { maxSize: 1500 });
+    // const banner = await resizeBase64Image(input.banner, { maxSize: 1500 });
     bannerUrl = await uploadBanner({
-      banner,
+      banner: input.banner,
       teamId: currentOrgId,
     });
   } else if (input.banner === "") {
