@@ -9,7 +9,7 @@ type UserWithCalendars = Pick<User, "id"> & {
   destinationCalendar: DestinationCalendar | null;
 };
 
-export type Calendars = Awaited<ReturnType<typeof getConnectedCalendars>>;
+export type ConnectedDestinationCalendars = Awaited<ReturnType<typeof getConnectedDestinationCalendars>>;
 
 export async function getConnectedDestinationCalendars(
   user: UserWithCalendars,

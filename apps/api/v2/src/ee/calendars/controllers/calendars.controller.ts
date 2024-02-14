@@ -6,7 +6,7 @@ import { Controller, Get, Logger, UseGuards, Body } from "@nestjs/common";
 import { User } from "@prisma/client";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { Calendars } from "@calcom/platform-libraries";
+import { ConnectedDestinationCalendars } from "@calcom/platform-libraries";
 import { ApiResponse } from "@calcom/platform-types";
 import { EventBusyDate } from "@calcom/types/Calendar";
 
@@ -48,7 +48,9 @@ export class CalendarsController {
   }
 
   @Get("/")
-  async getCalendars(@GetUser("id") userId: number): Promise<ApiResponse<{ calendars: Calendars }>> {
+  async getCalendars(
+    @GetUser("id") userId: number
+  ): Promise<ApiResponse<{ calendars: ConnectedDestinationCalendars }>> {
     const calendars = await this.calendarsService.getCalendars(userId);
 
     return {

@@ -16,6 +16,7 @@ import { DateTime } from "luxon";
 
 import { getConnectedDestinationCalendars } from "@calcom/platform-libraries";
 import { getBusyCalendarTimes } from "@calcom/platform-libraries";
+import { PrismaClient } from "@calcom/prisma";
 
 @Injectable()
 export class CalendarsService {
@@ -31,7 +32,11 @@ export class CalendarsService {
       throw new NotFoundException("User not found");
     }
 
-    return getConnectedDestinationCalendars(userWithCalendars, false, this.dbRead.prisma);
+    return getConnectedDestinationCalendars(
+      userWithCalendars,
+      false,
+      this.dbRead.prisma as unknown as PrismaClient
+    );
   }
 
   async getBusyTimes(
