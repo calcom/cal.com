@@ -78,6 +78,17 @@ const AppearanceView = ({
   );
   const [hideBrandingValue, setHideBrandingValue] = useState(user?.hideBranding ?? false);
 
+  const userAppThemeFormMethods = useForm({
+    defaultValues: {
+      appTheme: user.appTheme,
+    },
+  });
+
+  const {
+    formState: { isSubmitting: isUserAppThemeSubmitting, isDirty: isUserAppThemeDirty },
+    reset: resetUserAppThemeReset,
+  } = userAppThemeFormMethods;
+
   const userThemeFormMethods = useForm({
     defaultValues: {
       theme: user.theme,
@@ -131,6 +142,7 @@ const AppearanceView = ({
       resetBrandColorsThemeReset({ brandColor: data.brandColor, darkBrandColor: data.darkBrandColor });
       resetBookerLayoutThemeReset({ metadata: data.metadata });
       resetUserThemeReset({ theme: data.theme });
+      resetUserAppThemeReset({ appTheme: data.appTheme });
     },
     onError: (error) => {
       if (error.message) {
