@@ -4,7 +4,7 @@ import { orderBy } from "lodash";
 import { hasFilter } from "@calcom/features/filters/lib/hasFilter";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { isOrganization } from "@calcom/lib/entityPermissionUtils";
-import { getTeamAvatarUrl, getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
+import { getOrgAvatarUrl, getTeamAvatarUrl, getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import logger from "@calcom/lib/logger";
@@ -245,11 +245,17 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
                 ? orgMembership
                 : membership.role,
             profile: {
-              image: getTeamAvatarUrl({
-                slug: team.slug,
-                requestedSlug: team.metadata?.requestedSlug ?? null,
-                organizationId: team.parentId,
-              }),
+              image: team.parentId
+                ? getOrgAvatarUrl({
+                    slug: team.parent?.slug || null,
+                    logoUrl: team.parent?.logoUrl,
+                    requestedSlug: team.slug,
+                  })
+                : getTeamAvatarUrl({
+                    slug: team.slug,
+                    requestedSlug: team.metadata?.requestedSlug ?? null,
+                    organizationId: team.parentId,
+                  }),
               name: team.name,
               slug,
             },
