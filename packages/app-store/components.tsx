@@ -5,7 +5,6 @@ import { useEffect, useRef } from "react";
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import classNames from "@calcom/lib/classNames";
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import { CAL_URL } from "@calcom/lib/constants";
 import { deriveAppDictKeyFromType } from "@calcom/lib/deriveAppDictKeyFromType";
 import { useHasTeamPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -156,7 +155,7 @@ export const AppDependencyComponent = ({
                     <div>
                       <>
                         <Link
-                          href={`${CAL_URL}/apps/${dependency.slug}`}
+                          href={`${WEBAPP_URL}/apps/${dependency.slug}`}
                           className="text-info flex items-center underline">
                           <span className="mr-1">
                             {t("connect_app", { dependencyName: dependency.name })}
