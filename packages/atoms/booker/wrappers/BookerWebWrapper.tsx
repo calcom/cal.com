@@ -24,19 +24,31 @@ import type { AtomsGlobalConfigProps } from "../../types";
 type BookerWebWrapperAtomProps = BookerProps & AtomsGlobalConfigProps;
 
 export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
-  const event = useEvent();
-  const bookerLayout = useBookerLayout(event.data);
-  useInitializeBookerStore({
-    ...props,
-    eventId: event?.data?.id,
-    org: props.entity.orgSlug,
-    layout: bookerLayout.defaultLayout,
-  });
-  const [bookerState, _] = useBookerStore((state) => [state.state, state.setState], shallow);
-  const [dayCount] = useBookerStore((state) => [state.dayCount, state.setDayCount], shallow);
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const event = useEvent();
+  const bookerLayout = useBookerLayout(event.data);
+
+  const selectedDate = searchParams?.get("date");
+  const isRedirect = searchParams?.get("redirected") === "true" || false;
+  const fromUserNameRedirected = searchParams?.get("username") || "";
+  const rescheduleUid =
+    typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("rescheduleUid") : null;
+  const bookingUid =
+    typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("bookingUid") : null;
+  const date = dayjs(selectedDate).format("YYYY-MM-DD");
+
+  useInitializeBookerStore({
+    ...props,
+    eventId: event?.data?.id,
+    rescheduleUid,
+    bookingUid: bookingUid,
+    layout: bookerLayout.defaultLayout,
+  });
+
+  const [bookerState, _] = useBookerStore((state) => [state.state, state.setState], shallow);
+  const [dayCount] = useBookerStore((state) => [state.dayCount, state.setDayCount], shallow);
   const { data: session } = useSession();
   const routerQuery = useRouterQuery();
   const hasSession = !!session;
@@ -83,15 +95,6 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
     onVerifyEmail: bookerForm.beforeVerifyEmail,
   });
   const slots = useSlots(event);
-
-  const selectedDate = searchParams?.get("date");
-  const isRedirect = searchParams?.get("redirected") === "true" || false;
-  const fromUserNameRedirected = searchParams?.get("username") || "";
-  const rescheduleUid =
-    typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("rescheduleUid") : null;
-  const bookingUid =
-    typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("bookingUid") : null;
-  const date = dayjs(selectedDate).format("YYYY-MM-DD");
 
   const prefetchNextMonth =
     (bookerLayout.layout === BookerLayouts.WEEK_VIEW &&
