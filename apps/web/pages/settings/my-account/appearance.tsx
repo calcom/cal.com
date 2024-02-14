@@ -207,7 +207,7 @@ PeerRich marked this conversation as resolved.
           <Button
             disabled={isUserAppThemeSubmitting || !isUserAppThemeDirty}
             type="submit"
-            data-testid="update-theme-btn"
+            data-testid="update-app-theme-btn"
             color="primary">
             {t("update")}
           </Button>
