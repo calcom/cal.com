@@ -227,16 +227,20 @@ const Actions = ({
   );
 };
 
-type SingleFormComponentProps = Pick<inferSSRProps<typeof getServerSidePropsForSingleFormView>, "form"> & {
+type SingleFormComponentProps = {
+  form: RoutingFormWithResponseCount;
   appUrl: string;
   Page: React.FC<{
     form: RoutingFormWithResponseCount;
     appUrl: string;
     hookForm: UseFormReturn<RoutingFormWithResponseCount>;
   }>;
+  enrichedWithUserProfileForm?: inferSSRProps<
+    typeof getServerSidePropsForSingleFormView
+  >["enrichedWithUserProfileForm"];
 };
 
-function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
+function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleFormComponentProps) {
   const utils = trpc.useContext();
   const { t } = useLocale();
 
@@ -250,11 +254,13 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
     const action = processRoute({ form, response });
     if (action.type === "eventTypeRedirectUrl") {
       setEventTypeUrl(
-        getAbsoluteEventTypeRedirectUrl({
-          eventTypeRedirectUrl: action.value,
-          form,
-          allURLSearchParams: new URLSearchParams(),
-        })
+        enrichedWithUserProfileForm
+          ? getAbsoluteEventTypeRedirectUrl({
+              eventTypeRedirectUrl: action.value,
+              form: enrichedWithUserProfileForm,
+              allURLSearchParams: new URLSearchParams(),
+            })
+          : ""
       );
     }
     setDecidedAction(action);
