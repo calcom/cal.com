@@ -4,6 +4,7 @@ import { z } from "zod";
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { handleWatchCalendar } from "@calcom/features/calendar-cache/lib/handleWatchCalendar";
 import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
@@ -46,14 +47,6 @@ async function authMiddleware(req: CustomNextApiRequest) {
   return userWithCredentials;
 }
 
-const watchCalendarSchema = z.object({
-  kind: z.literal("api#channel"),
-  id: z.string(),
-  resourceId: z.string(),
-  resourceUri: z.string(),
-  expiration: z.string(),
-});
-
 type CustomNextApiRequest = NextApiRequest & {
   userWithCredentials?: Awaited<ReturnType<typeof authMiddleware>>;
 };
@@ -62,7 +55,7 @@ async function postHandler(req: CustomNextApiRequest) {
   if (!req.userWithCredentials) throw new HttpError({ statusCode: 401, message: "Not authenticated" });
   const { credentials: _, ...user } = req.userWithCredentials;
   const { integration, externalId, credentialId } = selectedCalendarSelectSchema.parse(req.body);
-  const response = await handleWatchCalendar(req);
+  const response = await handleWatchCalendarFromReq(req);
 
   await prisma.selectedCalendar.upsert({
     where: {
@@ -157,25 +150,11 @@ async function getCalendarForRequest(req: NextApiRequest, query: any) {
   return { calendar, externalId };
 }
 
-async function handleWatchCalendar(req: NextApiRequest) {
+export async function handleWatchCalendarFromReq(req: NextApiRequest) {
   const result = await getCalendarForRequest(req, req.body);
   if (!result) return;
   const { calendar, externalId } = result;
-  if (typeof calendar?.watchCalendar !== "function") {
-    logger.info(
-      '[handleWatchCalendar] Skipping watching calendar due to calendar not having "watchCalendar" method'
-    );
-    return;
-  }
-  const response = await calendar.watchCalendar({ calendarId: externalId });
-  const parsedResponse = watchCalendarSchema.safeParse(response);
-  if (!parsedResponse.success) {
-    logger.info(
-      "[handleWatchCalendar] Received invalid response from calendar.watchCalendar, skipping watching calendar"
-    );
-    return;
-  }
-  return parsedResponse.data;
+  return handleWatchCalendar(calendar, externalId);
 }
 
 async function handleUnwatchCalendar(req: NextApiRequest) {

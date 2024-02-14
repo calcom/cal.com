@@ -1,17 +1,35 @@
 import { google } from "googleapis";
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import { handleWatchCalendar } from "@calcom/features/calendar-cache/lib/handleWatchCalendar";
+import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
 import { WEBAPP_URL, WEBAPP_URL_FOR_OAUTH } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { HttpError } from "@calcom/lib/http-error";
+import logger from "@calcom/lib/logger";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
+import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
+import { getCalendar } from "../../_utils/getCalendar";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
 import { getGoogleAppKeys } from "../lib/getGoogleAppKeys";
 import { scopes } from "./add";
+
+async function getWatchedCalendar(credential: Parameters<typeof getCalendar>[0], externalId: string) {
+  const flags = await getFeatureFlagMap(prisma);
+  if (!flags["calendar-cache"]) {
+    logger.info(
+      '[getWatchedCalendar] Skipping watching calendar due to "calendar-cache" flag being disabled'
+    );
+    return;
+  }
+  const calendar = await getCalendar(credential);
+  if (!calendar) return;
+  return handleWatchCalendar(calendar, externalId);
+}
 
 async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   const { code } = req.query;
@@ -90,17 +108,23 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
         userId: req.session.user.id,
         appId: "google-calendar",
       },
+      select: credentialForCalendarServiceSelect,
     });
     // Wrapping in a try/catch to reduce chance of race conditions-
     // also this improves performance for most of the happy-paths.
     try {
-      // TODO: Watch Google Calendar for changes and sync with our system
+      const watchedCalendar = await getWatchedCalendar(credential, primaryCal.id);
       await prisma.selectedCalendar.create({
         data: {
           userId: req.session.user.id,
           externalId: primaryCal.id,
           credentialId: credential.id,
           integration: "google_calendar",
+          googleChannelId: watchedCalendar?.id,
+          googleChannelKind: watchedCalendar?.kind,
+          googleChannelResourceId: watchedCalendar?.resourceId,
+          googleChannelResourceUri: watchedCalendar?.resourceUri,
+          googleChannelExpiration: watchedCalendar?.expiration,
         },
       });
     } catch (error) {
