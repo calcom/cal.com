@@ -45,6 +45,7 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
     rescheduleUid,
     bookingUid: bookingUid,
     layout: bookerLayout.defaultLayout,
+    org: props.entity.orgSlug,
   });
 
   const [bookerState, _] = useBookerStore((state) => [state.state, state.setState], shallow);
