@@ -25,7 +25,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(500).json({ error: ErrorCode.InternalServerError });
   }
 
-  const user = await prisma.user.findUnique({ where: { id: session.user.id }, include: { password: true } });
+  const user = await prisma.user.findUnique({ where: { id: session.user.id } });
   if (!user) {
     console.error(`Session references user that no longer exists.`);
     return res.status(401).json({ message: "Not authenticated" });
@@ -35,7 +35,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(400).json({ error: ErrorCode.ThirdPartyIdentityProviderEnabled });
   }
 
-  if (!user.password?.hash) {
+  if (!user.password) {
     return res.status(400).json({ error: ErrorCode.UserMissingPassword });
   }
 
@@ -48,7 +48,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(500).json({ error: ErrorCode.InternalServerError });
   }
 
-  const isCorrectPassword = await verifyPassword(req.body.password, user.password.hash);
+  const isCorrectPassword = await verifyPassword(req.body.password, user.password);
   if (!isCorrectPassword) {
     return res.status(400).json({ error: ErrorCode.IncorrectPassword });
   }

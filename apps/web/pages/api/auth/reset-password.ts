@@ -41,11 +41,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         email: maybeRequest.email,
       },
       data: {
-        password: {
-          update: {
-            hash: hashedPassword,
-          },
-        },
+        password: hashedPassword,
         emailVerified: new Date(),
       },
     });

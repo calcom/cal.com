@@ -43,11 +43,11 @@ export const deleteMeHandler = async ({ ctx, input }: DeleteMeOptions) => {
     throw new HttpError({ statusCode: 400, message: ErrorCode.ThirdPartyIdentityProviderEnabled });
   }
 
-  if (!user.password?.hash) {
+  if (!user.password) {
     throw new HttpError({ statusCode: 400, message: ErrorCode.UserMissingPassword });
   }
 
-  const isCorrectPassword = await verifyPassword(input.password, user.password.hash);
+  const isCorrectPassword = await verifyPassword(input.password, user.password);
   if (!isCorrectPassword) {
     throw new HttpError({ statusCode: 403, message: ErrorCode.IncorrectPassword });
   }

@@ -73,6 +73,7 @@ export const removeMemberHandler = async ({ ctx, input }: RemoveMemberOptions) =
         id: true,
         movedToProfileId: true,
         email: true,
+        password: true,
         username: true,
         completedOnboarding: true,
       },

@@ -122,11 +122,7 @@ async function createOrganizationAndAddMembersAndTeams({
           data: {
             ...member.memberData,
             emailVerified: new Date(),
-            password: {
-              create: {
-                hash: await hashPassword(member.memberData.password.create?.hash || ""),
-              },
-            },
+            password: await hashPassword(member.memberData.password),
           },
         })),
         inTeams: member.inTeams,
@@ -153,11 +149,7 @@ async function createOrganizationAndAddMembersAndTeams({
           name: user.name,
           email: user.email,
           emailVerified: new Date(),
-          password: {
-            create: {
-              hash: await hashPassword(user.username),
-            },
-          },
+          password: await hashPassword(user.username),
         },
       });
     }),
@@ -263,11 +255,7 @@ async function createOrganizationAndAddMembersAndTeams({
         await prisma.user.create({
           data: {
             ...nonOrgMember,
-            password: {
-              create: {
-                hash: await hashPassword(nonOrgMember.username),
-              },
-            },
+            password: await hashPassword(nonOrgMember.password),
             emailVerified: new Date(),
           },
         })
@@ -819,11 +807,7 @@ async function main() {
         {
           memberData: {
             email: "owner1-acme@example.com",
-            password: {
-              create: {
-                hash: "owner1-acme",
-              },
-            },
+            password: "owner1-acme",
             username: "owner1-acme",
             name: "Owner 1",
           },
@@ -852,11 +836,7 @@ async function main() {
         nonOrgMembers: [
           {
             email: "non-acme-member-1@example.com",
-            password: {
-              create: {
-                hash: "non-acme-member-1",
-              },
-            },
+            password: "non-acme-member-1",
             username: "non-acme-member-1",
             name: "NonAcme Member1",
           },
@@ -886,11 +866,7 @@ async function main() {
         {
           memberData: {
             email: "owner1-dunder@example.com",
-            password: {
-              create: {
-                hash: "owner1-dunder",
-              },
-            },
+            password: "owner1-dunder",
             username: "owner1-dunder",
             name: "Owner 1",
           },
@@ -919,11 +895,7 @@ async function main() {
         nonOrgMembers: [
           {
             email: "non-dunder-member-1@example.com",
-            password: {
-              create: {
-                hash: "non-dunder-member-1",
-              },
-            },
+            password: "non-dunder-member-1",
             username: "non-dunder-member-1",
             name: "NonDunder Member1",
           },

@@ -23,13 +23,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(500).json({ error: ErrorCode.InternalServerError });
   }
 
-  const user = await prisma.user.findUnique({ where: { id: session.user.id }, include: { password: true } });
+  const user = await prisma.user.findUnique({ where: { id: session.user.id } });
   if (!user) {
     console.error(`Session references user that no longer exists.`);
     return res.status(401).json({ message: "Not authenticated" });
   }
 
-  if (!user.password?.hash && user.identityProvider === IdentityProvider.CAL) {
+  if (!user.password && user.identityProvider === IdentityProvider.CAL) {
     return res.status(400).json({ error: ErrorCode.UserMissingPassword });
   }
 
@@ -37,8 +37,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.json({ message: "Two factor disabled" });
   }
 
-  if (user.password?.hash && user.identityProvider === IdentityProvider.CAL) {
-    const isCorrectPassword = await verifyPassword(req.body.password, user.password.hash);
+  if (user.password && user.identityProvider === IdentityProvider.CAL) {
+    const isCorrectPassword = await verifyPassword(req.body.password, user.password);
     if (!isCorrectPassword) {
       return res.status(400).json({ error: ErrorCode.IncorrectPassword });
     }
