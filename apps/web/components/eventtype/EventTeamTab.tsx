@@ -452,7 +452,7 @@ const Hosts = ({
   const { t } = useLocale();
   const {
     control,
-    resetField,
+    setValue,
     getValues,
     formState: { submitCount },
   } = useFormContext<FormValues>();
@@ -472,10 +472,12 @@ const Hosts = ({
       initialValue.current = { hosts: getValues("hosts"), schedulingType, submitCount };
       return;
     }
-    resetField("hosts", {
-      defaultValue: initialValue.current.schedulingType === schedulingType ? initialValue.current.hosts : [],
-    });
-  }, [schedulingType, resetField, getValues, submitCount]);
+    setValue(
+      "hosts",
+      initialValue.current.schedulingType === schedulingType ? initialValue.current.hosts : [],
+      { shouldDirty: true }
+    );
+  }, [schedulingType, setValue, getValues, submitCount]);
 
   return (
     <Controller<FormValues>
