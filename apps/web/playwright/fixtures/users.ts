@@ -652,6 +652,7 @@ type SupportedTestWorkflows = PrismaType.WorkflowCreateInput;
 
 type CustomUserOptsKeys =
   | "username"
+  | "password"
   | "completedOnboarding"
   | "locale"
   | "name"
@@ -668,7 +669,6 @@ type CustomUserOpts = Partial<Pick<Prisma.User, CustomUserOptsKeys>> & {
   useExactUsername?: boolean;
   roleInOrganization?: MembershipRole;
   schedule?: Schedule;
-  password?: string | null;
 };
 
 // creates the actual user in the db.
@@ -690,11 +690,7 @@ const createUser = (
     username: uname,
     name: opts?.name,
     email: opts?.email ?? `${uname}@example.com`,
-    password: {
-      create: {
-        hash: hashPassword(uname),
-      },
-    },
+    password: hashPassword(uname),
     emailVerified: new Date(),
     completedOnboarding: opts?.completedOnboarding ?? true,
     timeZone: opts?.timeZone ?? TimeZoneEnum.UK,
@@ -795,7 +791,7 @@ async function confirmPendingPayment(page: Page) {
 
 // login using a replay of an E2E routine.
 export async function login(
-  user: Pick<Prisma.User, "username"> & Partial<Pick<Prisma.User, "email">> & { password?: string | null },
+  user: Pick<Prisma.User, "username"> & Partial<Pick<Prisma.User, "password" | "email">>,
   page: Page
 ) {
   // get locators
@@ -816,7 +812,7 @@ export async function login(
 }
 
 export async function apiLogin(
-  user: Pick<Prisma.User, "username"> & Partial<Pick<Prisma.User, "email">> & { password: string | null },
+  user: Pick<Prisma.User, "username"> & Partial<Pick<Prisma.User, "password" | "email">>,
   page: Page
 ) {
   const csrfToken = await page
