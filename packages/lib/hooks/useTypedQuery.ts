@@ -33,11 +33,7 @@ export const queryStringArray = z
   .preprocess((a) => z.string().parse(a).split(","), z.string().array())
   .or(z.string().array());
 
-export function useTypedQuery<T extends z.AnyZodObject>(
-  schema: T,
-  useLocalStorage = false,
-  localStorageKey = ""
-) {
+export function useTypedQuery<T extends z.AnyZodObject>(schema: T, localStorageKey: string | null = null) {
   type Output = z.infer<typeof schema>;
   type FullOutput = Required<Output>;
   type OutputKeys = Required<keyof FullOutput>;
@@ -48,7 +44,7 @@ export function useTypedQuery<T extends z.AnyZodObject>(
   const unparsedQuery = useRouterQuery();
   const pathname = usePathname();
   const parsedQuerySchema = schema.safeParse(unparsedQuery);
-
+  const useLocalStorage = !!localStorageKey;
   let parsedQuery: Output = useMemo(() => {
     return {} as Output;
   }, []);

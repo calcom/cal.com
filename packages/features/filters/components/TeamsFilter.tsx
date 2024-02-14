@@ -20,7 +20,7 @@ export type IEventTypeFilter = IEventTypesFilters[0];
 export const TEAMS_FILTER_KEY = "TEAMS_FILTER_KEY";
 function useFilterQuery() {
   // passthrough allows additional params to not be removed
-  return useTypedQuery(filterQuerySchema.passthrough(), true, TEAMS_FILTER_KEY);
+  return useTypedQuery(filterQuerySchema.passthrough(), TEAMS_FILTER_KEY);
 }
 
 export const TeamsFilter = ({
