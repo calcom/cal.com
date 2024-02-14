@@ -79,7 +79,7 @@ const useBrandColors = (
     lightVal: brandColor,
     darkVal: darkBrandColor,
   });
-  const selectedTheme = currentTheme ? brandTheme[currentTheme] : {};
+  const selectedTheme = currentTheme ? brandTheme[currentTheme as "light" | "dark"] : {};
   useCalcomTheme({
     root: selectedTheme,
   });
@@ -92,7 +92,7 @@ const AppearanceView = ({
 }: {
   user: RouterOutputs["viewer"]["me"];
   hasPaidPlan: boolean;
-}) => {
+}): void => {
   const { t } = useLocale();
   const utils = trpc.useContext();
   const [darkModeError, setDarkModeError] = useState(false);
