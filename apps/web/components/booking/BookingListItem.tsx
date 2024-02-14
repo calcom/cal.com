@@ -200,22 +200,28 @@ function BookingListItem(booking: BookingItemProps) {
     },
   ];
 
-  const isAdminOrOwner =
-    isOrgAdminOrOwner ||
-    !!booking.eventType.team.members.find(
-      (member) => userId === member.userId && (member.role === "ADMIN" || member.role === "OWNER")
-    );
+  if (booking.eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
+    const isUserAttendingRREvent =
+      booking.user.id === booking.loggedInUser.userId ||
+      booking.attendees.some((attendee) => attendee.email === booking.loggedInUser.userEmail);
 
-  if (booking.eventType.schedulingType === SchedulingType.ROUND_ROBIN && isAdminOrOwner) {
+    const isAdminOrOwner =
+      isOrgAdminOrOwner ||
+      !!booking.eventType.team.members.find(
+        (member) => userId === member.userId && (member.role === "ADMIN" || member.role === "OWNER")
+      );
+
     //only add for team admin or owner
-    editBookingActions.push({
-      id: "reassign ",
-      label: t("reassign"),
-      onClick: () => {
-        setIsOpenReassignDialog(true);
-      },
-      icon: Users,
-    });
+    if (isUserAttendingRREvent || isAdminOrOwner) {
+      editBookingActions.push({
+        id: "reassign ",
+        label: t("reassign"),
+        onClick: () => {
+          setIsOpenReassignDialog(true);
+        },
+        icon: Users,
+      });
+    }
   }
 
   let bookedActions: ActionType[] = [
