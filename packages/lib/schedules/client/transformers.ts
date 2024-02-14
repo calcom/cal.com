@@ -53,18 +53,27 @@ export function transformDateOverridesForClient(schedule: ScheduleWithAvailabili
         .minute(override.endTime.getUTCMinutes())
         .toDate(),
     };
-    const dayRangeIndex = acc.findIndex(
-      // early return prevents override.date from ever being empty.
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      (item) => yyyymmdd(item.ranges[0].start) === yyyymmdd(override.date!)
+
+    // Create a new date string for the current override
+    // early return prevents override.date from ever being empty.
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const overrideDateString = yyyymmdd(override.date!);
+
+    // Check if there's a range with the day of the override date, to append a new range to it
+    const existingDayIndex = acc.findIndex(
+      (item) => yyyymmdd(dayjs(item.day)) === dayjs(override.date).format("YYYY-MM-DD")
     );
-    if (dayRangeIndex === -1) {
-      acc.push({ ranges: [newValue] });
+
+    if (existingDayIndex > -1) {
+      acc[existingDayIndex].ranges.push(newValue);
       return acc;
     }
-    acc[dayRangeIndex].ranges.push(newValue);
+
+    // If the date string exists, create a new day range for the current override
+    acc.push({ day: overrideDateString, ranges: [newValue] });
+
     return acc;
-  }, [] as { ranges: TimeRange[] }[]);
+  }, [] as { day: string; ranges: TimeRange[] }[]);
 }
 
 export const transformScheduleToAvailabilityForClient = (
