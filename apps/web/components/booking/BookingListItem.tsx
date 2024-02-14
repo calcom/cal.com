@@ -34,8 +34,25 @@ import {
   TableActions,
   TextAreaField,
   Tooltip,
+  Dropdown,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+  DropdownMenuItem,
+  DropdownItem,
 } from "@calcom/ui";
-import { Ban, Check, Clock, CreditCard, MapPin, RefreshCcw, Send, X } from "@calcom/ui/components/icon";
+import {
+  Ban,
+  Check,
+  Clock,
+  CreditCard,
+  MapPin,
+  RefreshCcw,
+  Send,
+  Clipboard,
+  X,
+  EyeOff,
+  Mail,
+} from "@calcom/ui/components/icon";
 
 import { ChargeCardDialog } from "@components/dialog/ChargeCardDialog";
 import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
@@ -654,10 +671,30 @@ type AttendeeProps = {
 };
 
 const Attendee = ({ email, name }: AttendeeProps) => {
+  const { t } = useLocale();
   return (
-    <a className="hover:text-blue-500" href={`mailto:${email}`} onClick={(e) => e.stopPropagation()}>
-      {name || email}
-    </a>
+    <Dropdown>
+      <DropdownMenuTrigger asChild>
+        <button onClick={(e) => e.stopPropagation()} className="hover:text-blue-500">
+          {name || email}
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent>
+        <DropdownMenuItem className="focus:outline-none">
+          <DropdownItem StartIcon={Mail} href={`mailto:${email}`} onClick={(e) => e.stopPropagation()}>
+            <a href={`mailto:${email}`}>{t("email")}</a>
+          </DropdownItem>
+        </DropdownMenuItem>
+        <DropdownMenuItem className="focus:outline-none">
+          <DropdownItem StartIcon={Clipboard} href={`mailto:${email}`} onClick={(e) => e.stopPropagation()}>
+            <a href={`mailto:${email}`}>{t("copy_to_clipboard")}</a>
+          </DropdownItem>
+        </DropdownMenuItem>
+        <DropdownMenuItem className="focus:outline-none">
+          <DropdownItem StartIcon={EyeOff}>{t("mark_as_no_show")}</DropdownItem>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </Dropdown>
   );
 };
 
