@@ -138,22 +138,18 @@ async function handler(req: RequestWithUsernameStatus, res: NextApiResponse) {
         where: { email },
         update: {
           username,
+          password: hashedPassword,
           emailVerified: new Date(Date.now()),
           identityProvider: IdentityProvider.CAL,
-          password: {
-            upsert: {
-              create: { hash: hashedPassword },
-              update: { hash: hashedPassword },
-            },
-          },
         },
         create: {
           username,
           email,
+          password: hashedPassword,
           identityProvider: IdentityProvider.CAL,
-          password: { create: { hash: hashedPassword } },
         },
       });
+
       // Wrapping in a transaction as if one fails we want to rollback the whole thing to preventa any data inconsistencies
       const { membership } = await createOrUpdateMemberships({
         teamMetadata,
@@ -184,7 +180,7 @@ async function handler(req: RequestWithUsernameStatus, res: NextApiResponse) {
       data: {
         username,
         email,
-        password: { create: { hash: hashedPassword } },
+        password: hashedPassword,
         metadata: {
           stripeCustomerId: customer.id,
           checkoutSessionId,
