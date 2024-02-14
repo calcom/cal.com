@@ -167,6 +167,9 @@ const usernameCheck = async (usernameRaw: string, currentOrgDomain?: string | nu
   return response;
 };
 
+/**
+ * Should be used when in global namespace(i.e. outside of an organization)
+ */
 export const isUsernameReservedDueToMigration = async (username: string) =>
   !!(await prisma.tempOrgRedirect.findUnique({
     where: {
