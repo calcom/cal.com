@@ -93,8 +93,6 @@ const ProfileView = () => {
   const updateProfileMutation = trpc.viewer.updateProfile.useMutation({
     onSuccess: async (res) => {
       await update(res);
-      showToast(t("settings_updated_successfully"), "success");
-
       // signout user only in case of password reset
       if (res.signOutUser && tempFormValues && res.passwordReset) {
         showToast(t("password_reset_email", { email: tempFormValues.email }), "success");
@@ -103,6 +101,12 @@ const ProfileView = () => {
         utils.viewer.me.invalidate();
         utils.viewer.avatar.invalidate();
         utils.viewer.shouldVerifyEmail.invalidate();
+      }
+
+      if (res.hasEmailBeenChanged && res.sendEmailVerification) {
+        showToast(t("change_of_email_toast", { email: tempFormValues?.email }), "success");
+      } else {
+        showToast(t("settings_updated_successfully"), "success");
       }
 
       setConfirmAuthEmailChangeWarningDialogOpen(false);
@@ -230,7 +234,10 @@ const ProfileView = () => {
 
   const defaultValues = {
     username: user.username || "",
-    avatar: getUserAvatarUrl(user),
+    avatar: getUserAvatarUrl({
+      ...user,
+      profile: user.profile,
+    }),
     name: user.name || "",
     email: user.email || "",
     bio: user.bio || "",
@@ -339,6 +346,20 @@ const ProfileView = () => {
           type="creation"
           Icon={AlertTriangle}>
           <div className="mb-10">
+            <div className="mb-4 grid gap-2 md:grid-cols-2">
+              <div>
+                <span className="text-emphasis mb-2 block text-sm font-medium leading-none">
+                  {t("old_email_address")}
+                </span>
+                <p className="text-subtle leading-none">{user.email}</p>
+              </div>
+              <div>
+                <span className="text-emphasis mb-2 block text-sm font-medium leading-none">
+                  {t("new_email_address")}
+                </span>
+                <p className="text-subtle leading-none">{tempFormValues?.email}</p>
+              </div>
+            </div>
             <PasswordField
               data-testid="password"
               name="password"
@@ -353,6 +374,7 @@ const ProfileView = () => {
           </div>
           <DialogFooter showDivider>
             <Button
+              data-testId="profile-update-email-submit-button"
               color="primary"
               loading={confirmPasswordMutation.isPending}
               onClick={(e) => onConfirmPassword(e)}>
@@ -443,20 +465,14 @@ const ProfileForm = ({
               const organization =
                 userOrganization && userOrganization.id
                   ? {
-                      ...(userOrganization as Ensure<typeof user.organization, "id">),
+                      ...(userOrganization as Ensure<NonNullable<typeof user.organization>, "id">),
                       slug: userOrganization.slug || null,
                       requestedSlug: userOrganization.metadata?.requestedSlug || null,
                     }
                   : null;
               return (
                 <>
-                  <UserAvatar
-                    data-testid="profile-upload-avatar"
-                    previewSrc={value}
-                    size="lg"
-                    user={user}
-                    organization={organization}
-                  />
+                  <UserAvatar data-testid="profile-upload-avatar" previewSrc={value} size="lg" user={user} />
                   <div className="ms-4">
                     <h2 className="mb-2 text-sm font-medium">{t("profile_picture")}</h2>
                     <div className="flex gap-2">
@@ -492,7 +508,12 @@ const ProfileForm = ({
           <TextField label={t("full_name")} {...formMethods.register("name")} />
         </div>
         <div className="mt-6">
-          <TextField label={t("email")} hint={t("change_email_hint")} {...formMethods.register("email")} />
+          <TextField
+            label={t("email")}
+            hint={t("change_email_hint")}
+            data-testId="profile-form-email"
+            {...formMethods.register("email")}
+          />
         </div>
         <div className="mt-6">
           <Label>{t("about")}</Label>
@@ -509,7 +530,12 @@ const ProfileForm = ({
         </div>
       </div>
       <SectionBottomActions align="end">
-        <Button loading={isPending} disabled={isDisabled} color="primary" type="submit">
+        <Button
+          loading={isPending}
+          disabled={isDisabled}
+          color="primary"
+          type="submit"
+          data-testId="profile-submit-button">
           {t("update")}
         </Button>
       </SectionBottomActions>

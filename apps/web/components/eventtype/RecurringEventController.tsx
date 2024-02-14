@@ -19,11 +19,10 @@ export default function RecurringEventController({
   paymentEnabled,
 }: RecurringEventControllerProps) {
   const { t } = useLocale();
-  const [recurringEventState, setRecurringEventState] = useState<RecurringEvent | null>(
-    eventType.recurringEvent
-  );
   const formMethods = useFormContext<FormValues>();
-
+  const [recurringEventState, setRecurringEventState] = useState<RecurringEvent | null>(
+    formMethods.getValues("recurringEvent")
+  );
   /* Just yearly-0, monthly-1 and weekly-2 */
   const recurringEventFreqOptions = Object.entries(Frequency)
     .filter(([key, value]) => isNaN(Number(key)) && Number(value) < 3)

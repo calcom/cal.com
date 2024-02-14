@@ -8,9 +8,11 @@ type UseScheduleWithCacheArgs = {
   eventId?: number | null;
   month?: string | null;
   timezone?: string | null;
+  selectedDate?: string | null;
   prefetchNextMonth?: boolean;
   duration?: number | null;
   monthCount?: number | null;
+  dayCount?: number | null;
   rescheduleUid?: string | null;
   isTeamEvent?: boolean;
 };
@@ -21,17 +23,39 @@ export const useSchedule = ({
   username,
   eventSlug,
   eventId,
+  selectedDate,
   prefetchNextMonth,
   duration,
   monthCount,
+  dayCount,
   rescheduleUid,
   isTeamEvent,
 }: UseScheduleWithCacheArgs) => {
-  const monthDayjs = month ? dayjs(month) : dayjs();
+  const now = dayjs();
+  const monthDayjs = month ? dayjs(month) : now;
   const nextMonthDayjs = monthDayjs.add(monthCount ? monthCount : 1, "month");
   // Why the non-null assertions? All of these arguments are checked in the enabled condition,
   // and the query will not run if they are null. However, the check in `enabled` does
   // no satisfy typescript.
+  let startTime;
+  let endTime;
+
+  if (!!dayCount && dayCount > 0) {
+    if (selectedDate) {
+      startTime = dayjs(selectedDate).toISOString();
+      endTime = dayjs(selectedDate).add(dayCount, "day").toISOString();
+    } else if (monthDayjs.month() === now.month()) {
+      startTime = now.startOf("day").toISOString();
+      endTime = now.startOf("day").add(dayCount, "day").toISOString();
+    } else {
+      startTime = monthDayjs.startOf("month").toISOString();
+      endTime = monthDayjs.startOf("month").add(dayCount, "day").toISOString();
+    }
+  } else {
+    startTime = monthDayjs.startOf("month").toISOString();
+    endTime = (prefetchNextMonth ? nextMonthDayjs : monthDayjs).endOf("month").toISOString();
+  }
+
   return trpc.viewer.public.slots.getSchedule.useQuery(
     {
       isTeamEvent,
@@ -42,9 +66,9 @@ export const useSchedule = ({
       ...(eventSlug ? { eventTypeSlug: eventSlug } : { eventTypeId: eventId ?? 0 }),
       // @TODO: Old code fetched 2 days ago if we were fetching the current month.
       // Do we want / need to keep that behavior?
-      startTime: monthDayjs.startOf("month").toISOString(),
+      startTime,
       // if `prefetchNextMonth` is true, two months are fetched at once.
-      endTime: (prefetchNextMonth ? nextMonthDayjs : monthDayjs).endOf("month").toISOString(),
+      endTime,
       timeZone: timezone!,
       duration: duration ? `${duration}` : undefined,
       rescheduleUid,

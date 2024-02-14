@@ -5,8 +5,9 @@ import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/or
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 
-import { getServerSideProps as GSSUserTypePage } from "@lib/[user]/[type]/getServerSideProps";
 import { getServerSideProps as GSSTeamTypePage } from "@lib/team/[slug]/[type]/getServerSideProps";
+
+import { getServerSideProps as GSSUserTypePage } from "~/users/views/users-type-public-view.getServerSideProps";
 
 const paramsSchema = z.object({
   orgSlug: z.string().transform((s) => slugify(s)),

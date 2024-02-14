@@ -1,6 +1,7 @@
 import { expect, type Page } from "@playwright/test";
 
 import dayjs from "@calcom/dayjs";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import type { MembershipRole } from "@calcom/prisma/enums";
 
 import { localize } from "../lib/testUtils";
@@ -24,6 +25,8 @@ type BookingOptions = {
 interface QuestionActions {
   [key: string]: () => Promise<void>;
 }
+
+type teamBookingtypes = { isManagedType?: boolean; isRoundRobinType?: boolean; isCollectiveType?: boolean };
 
 type customLocators = {
   shouldChangeSelectLocator: boolean;
@@ -204,8 +207,22 @@ export function createBookingPageFixture(page: Page) {
     goToEventType: async (eventType: string) => {
       await page.getByRole("link", { name: eventType }).click();
     },
+    goToPage: async (pageName: string, page: Page) => {
+      await page.getByRole("link", { name: pageName }).click();
+    },
+    backToBookings: async (page: Page) => {
+      await page.getByTestId("back-to-bookings").click();
+    },
     goToTab: async (tabName: string) => {
       await page.getByTestId(`vertical-tab-${tabName}`).click();
+    },
+
+    goToEventTypesPage: async () => {
+      await page.goto("/event-types");
+    },
+
+    setResolution: async (width: number, height: number) => {
+      await page.setViewportSize({ width: width, height: height });
     },
     addQuestion: async (
       questionType: string,
@@ -249,16 +266,21 @@ export function createBookingPageFixture(page: Page) {
     },
     updateEventType: async () => {
       await page.getByTestId("update-eventtype").click();
+      const toast = await page.waitForSelector('[data-testid="toast-success"]');
+      expect(toast).toBeTruthy();
     },
+
     previewEventType: async () => {
       const eventtypePromise = page.waitForEvent("popup");
       await page.getByTestId("preview-button").click();
       return eventtypePromise;
     },
+
     selectTimeSlot: async (eventTypePage: Page) => {
       await goToNextMonthIfNoAvailabilities(eventTypePage);
       await eventTypePage.getByTestId("time").first().click();
     },
+
     clickReschedule: async () => {
       await page.getByText("Reschedule").click();
     },
@@ -286,6 +308,7 @@ export function createBookingPageFixture(page: Page) {
       await page.getByTestId("cancel_reason").fill("Test cancel");
       await page.getByTestId("confirm_cancel").click();
     },
+
     assertBookingCanceled: async (page: Page) => {
       await expect(page.getByTestId("cancelled-headline")).toBeVisible();
     },
@@ -323,6 +346,12 @@ export function createBookingPageFixture(page: Page) {
       await eventTypePage.getByTestId("cancel_reason").fill("Test cancel");
       await eventTypePage.getByTestId("confirm_cancel").click();
       await expect(eventTypePage.getByTestId("cancelled-headline")).toBeVisible();
+    },
+
+    confirmBooking: async (eventTypePage: Page) => {
+      await eventTypePage.getByTestId("confirm-book-button").click();
+      await eventTypePage.waitForURL("booking/**");
+      await expect(eventTypePage.getByText(scheduleSuccessfullyText)).toBeVisible();
     },
 
     fillAndConfirmBooking: async ({
@@ -378,25 +407,195 @@ export function createBookingPageFixture(page: Page) {
       await scheduleSuccessfullyPage.waitFor({ state: "visible" });
       await expect(scheduleSuccessfullyPage).toBeVisible();
     },
-    checkField: async (question: string) => {
-      await expect(page.getByTestId(`field-${question}-test`)).toBeVisible();
-    },
+
     fillAllQuestions: async (eventTypePage: Page, questions: string[], options: BookingOptions) => {
       const confirmButton = options.isReschedule ? "confirm-reschedule-button" : "confirm-book-button";
       await fillAllQuestions(eventTypePage, questions, options);
       await eventTypePage.getByTestId(confirmButton).click();
-      await eventTypePage.waitForTimeout(400);
-      if (await eventTypePage.getByRole("heading", { name: "Could not book the meeting." }).isVisible()) {
-        await eventTypePage.getByTestId("back").click();
-        await eventTypePage.getByTestId("time").last().click();
-        await fillAllQuestions(eventTypePage, questions, options);
-        await eventTypePage.getByTestId(confirmButton).click();
-      }
       const scheduleSuccessfullyPage = eventTypePage.getByText(scheduleSuccessfullyText);
       await scheduleSuccessfullyPage.waitFor({ state: "visible" });
       await expect(scheduleSuccessfullyPage).toBeVisible();
     },
+    addGuests: async (eventTypePage: Page, options: { guests: string[] }) => {
+      await eventTypePage.getByTestId("add-guests").click();
+      for (const guest of options.guests) {
+        await eventTypePage.getByPlaceholder("Email").fill(guest);
+      }
+    },
+    createTeam: async (name: string) => {
+      await page.getByTestId("teams-test").click();
+      await page.getByTestId("new-team-btn").click();
+      await page.getByPlaceholder("Acme Inc.").click();
+      await page.getByPlaceholder("Acme Inc.").fill(name);
+      await page.getByTestId("continue-button").click();
+      await page.getByTestId("publish-button").click();
 
+      await page.getByTestId("vertical-tab-Back").click();
+    },
+
+    createTeamEventType: async (name: string, options: teamBookingtypes) => {
+      await page.getByTestId("new-event-type").click();
+      await page.getByTestId("option-0").click();
+
+      // We first simulate to create a default event type to check if managed option is not available
+
+      const managedEventDescription = (await localize("en"))("managed_event_description");
+      const roundRobinEventDescription = (await localize("en"))("round_robin_description");
+      const collectiveEventDescription = (await localize("en"))("collective_description");
+      const quickChatText = (await localize("en"))("quick_chat");
+      await expect(page.locator("div").filter({ hasText: managedEventDescription })).toBeHidden();
+      await page.getByTestId("dialog-rejection").click();
+
+      await page.getByTestId("new-event-type").click();
+      await page.getByTestId("option-team-1").click();
+      await page.getByPlaceholder(quickChatText).fill(name);
+      if (options.isCollectiveType) {
+        await page
+          .locator("div")
+          .filter({ hasText: `Collective${collectiveEventDescription}` })
+          .getByRole("radio")
+          .first()
+          .click();
+      }
+
+      if (options.isRoundRobinType) {
+        await page
+          .locator("div")
+          .filter({ hasText: `Round Robin${roundRobinEventDescription}` })
+          .getByRole("radio")
+          .nth(1)
+          .click();
+      }
+
+      if (options.isManagedType) {
+        await page
+          .locator("div")
+          .filter({ hasText: `Managed Event${managedEventDescription}` })
+          .getByRole("radio")
+          .last()
+          .click();
+
+        const managedEventClarification = (await localize("en"))("managed_event_url_clarification");
+        await expect(page.getByText(managedEventClarification)).toBeVisible();
+      }
+
+      const continueText = (await localize("en"))("continue");
+      const toast = page.getByTestId("toast-success");
+
+      await page.getByRole("button", { name: continueText }).click();
+      expect(toast).toBeTruthy();
+      await page.getByTestId("update-eventtype").click();
+    },
+    assertLabelWithCorrectTeamName: async (page: Page, teamName: string) => {
+      await expect(page.getByRole("link", { name: teamName }).first()).toBeVisible();
+    },
+    assertBookingWithCorrectTitleAndDescription: async (
+      page: Page,
+      options: { profileName: string; bookingName: string; teamName: string; aditionalGuestEmail?: string }
+    ) => {
+      options.aditionalGuestEmail
+        ? await expect(
+            page.getByRole("link", {
+              name: `${options.bookingName} between ${options.teamName} and ${options.profileName} You , ${options.profileName} and ${options.aditionalGuestEmail}`,
+            })
+          ).toBeVisible()
+        : await expect(
+            page.getByRole("link", {
+              name: `${options.bookingName} between ${options.teamName} and ${options.profileName} You and ${options.profileName}`,
+            })
+          ).toBeVisible();
+    },
+    clickOnBooking: async (page: Page, teamName: string) => {
+      await page.getByRole("link", { name: teamName }).first().click();
+    },
+
+    checkField: async (question: string, options?: { isOptional: boolean }) => {
+      if (options?.isOptional) {
+        await expect(page.getByTestId(`field-${question}-test`).getByTestId("optional")).toBeVisible();
+      } else {
+        await expect(page.getByTestId(`field-${question}-test`).getByTestId("required")).toBeVisible();
+      }
+      await expect(page.getByTestId(`field-${question}-test`)).toBeVisible();
+    },
+
+    checkRequiresConfirmation: async () => {
+      // Check existence of the icon
+      await expect(page.getByTestId("requires-confirmation-title").locator("svg")).toBeVisible();
+
+      const confirmationSwitch = page.getByTestId("requires-confirmation");
+      await expect(confirmationSwitch).toBeVisible();
+      await confirmationSwitch.click();
+    },
+
+    checkRequiresBookerEmailVerification: async () => {
+      await expect(page.getByTestId("requires-booker-email-verification-title").locator("svg")).toBeVisible();
+
+      const emailSwitch = page.getByTestId("requires-booker-email-verification");
+
+      await expect(emailSwitch).toBeVisible();
+      await emailSwitch.click();
+    },
+
+    checkHideNotes: async () => {
+      await expect(page.getByTestId("disable-notes-title").locator("svg")).toBeVisible();
+
+      const hideNotesSwitch = page.getByTestId("disable-notes");
+
+      await expect(hideNotesSwitch).toBeVisible();
+      await hideNotesSwitch.click();
+    },
+
+    checkRedirectOnBooking: async () => {
+      await expect(page.getByTestId("redirect-success-booking-title").locator("svg")).toBeVisible();
+
+      const redirectSwitch = page.getByTestId("redirect-success-booking");
+      await expect(redirectSwitch).toBeVisible();
+      await redirectSwitch.click();
+      await expect(page.getByTestId("external-redirect-url")).toBeVisible();
+      await page.getByTestId("external-redirect-url").fill("https://cal.com");
+      await expect(page.getByTestId("redirect-url-warning")).toBeVisible();
+    },
+
+    checkEnablePrivateUrl: async () => {
+      await expect(page.getByTestId("hashedLinkCheck-title").locator("label div")).toBeVisible();
+
+      await expect(page.getByTestId("hashedLinkCheck-info")).toBeVisible();
+      await expect(page.getByTestId("hashedLinkCheck")).toBeVisible();
+      await page.getByTestId("hashedLinkCheck").click();
+      await expect(page.getByTestId("generated-hash-url")).toBeVisible();
+    },
+
+    toggleOfferSeats: async () => {
+      await expect(page.getByTestId("offer-seats-toggle-title").locator("svg")).toBeVisible();
+
+      await page.getByTestId("offer-seats-toggle").click();
+
+      const seatSwitchField = page.getByTestId("seats-per-time-slot");
+      await seatSwitchField.fill("3");
+      await expect(seatSwitchField).toHaveValue("3");
+      await expect(page.getByTestId("show-attendees")).toBeVisible();
+    },
+
+    checkLockTimezone: async () => {
+      await expect(page.getByTestId("lock-timezone-toggle-title").locator("svg")).toBeVisible();
+
+      const lockSwitch = page.getByTestId("lock-timezone-toggle");
+
+      await expect(lockSwitch).toBeVisible();
+      await lockSwitch.click();
+    },
+
+    checkEventType: async () => {
+      await expect(page.getByTestId("requires-confirmation-badge").last()).toBeVisible();
+    },
+
+    assertBookingIsVisible: async (name: string) => {
+      await expect(
+        page.getByRole("link", {
+          name,
+        })
+      ).toBeVisible();
+    },
     checkBufferTime: async () => {
       const minutes = (await localize("en"))("minutes");
       const fieldPlaceholder = page.getByPlaceholder("0");
@@ -489,6 +688,51 @@ export function createBookingPageFixture(page: Page) {
 
     checkTimeSlotsCount: async (eventTypePage: Page, count: number) => {
       await expect(eventTypePage.getByTestId("time")).toHaveCount(count);
+    },
+    createBookingWebhook: async (webhookReceiver: { url: string }, eventTitle: string) => {
+      const events = [
+        "Booking Canceled",
+        "Booking Created",
+        "Booking Rejected",
+        "Booking Requested",
+        "Booking Payment Initiated",
+        "Booking Rescheduled",
+        "Meeting Ended",
+        "Booking Paid",
+        "Recording Download Link Ready",
+      ];
+      await page.goto(`${WEBAPP_URL}/event-types`);
+      await page.getByText(eventTitle).click();
+
+      await page.getByTestId("vertical-tab-webhooks").click();
+
+      await page.getByTestId("new_webhook").click();
+      await page.getByLabel("Subscriber URL").fill(webhookReceiver.url);
+      await page.getByRole("button", { name: "Ping test" }).click();
+      page
+        .getByTestId("dialog-creation")
+        .locator("div")
+        .filter({ hasText: '{ "ok": true, "status": 200, "message": "{}" }' })
+        .nth(2);
+      await page.getByRole("button", { name: "Create Webhook" }).click();
+
+      page.getByText(webhookReceiver.url);
+      events.forEach((event) => {
+        page.getByText(event);
+      });
+    },
+    rejectFirstBooking: async () => {
+      await page.goto("/bookings/unconfirmed");
+      await page.getByTestId("horizontal-tab-unconfirmed").click();
+      await page.getByTestId("booking-item").first().getByText("Reject").click();
+      await page.getByTestId("rejection-confirm").click();
+    },
+    fillEmailAndName: async (eventTypePage: Page) => {
+      const emailLabel = (await localize("en"))("email_address");
+      const nameLabel = (await localize("en"))("your_name");
+
+      await eventTypePage.getByLabel(emailLabel).fill(EMAIL);
+      await eventTypePage.getByLabel(nameLabel).fill("testuser");
     },
   };
 }

@@ -194,7 +194,12 @@ const MembersView = () => {
             )}
 
             {team && (isAdmin || isOrgAdminOrOwner) && (
-              <MakeTeamPrivateSwitch teamId={team.id} isPrivate={team.isPrivate} disabled={isInviteOpen} />
+              <MakeTeamPrivateSwitch
+                isOrg={false}
+                teamId={team.id}
+                isPrivate={team.isPrivate}
+                disabled={isInviteOpen}
+              />
             )}
           </div>
           {showMemberInvitationModal && team && (

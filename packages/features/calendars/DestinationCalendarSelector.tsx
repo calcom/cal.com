@@ -54,7 +54,6 @@ const DestinationCalendarSelector = ({
   hidePlaceholder,
   hideAdvancedText,
   maxWidth,
-  destinationCalendar,
 }: Props): JSX.Element | null => {
   const { t } = useLocale();
   const query = trpc.viewer.connectedCalendars.useQuery();
