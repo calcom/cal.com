@@ -1,5 +1,4 @@
-import type { useEventReturnType } from "bookings/Booker/utils/event";
-
+import type { useEventReturnType } from "@calcom/features/bookings/Booker/utils/event";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { Button, UserAvatarGroupWithOrg } from "@calcom/ui";
