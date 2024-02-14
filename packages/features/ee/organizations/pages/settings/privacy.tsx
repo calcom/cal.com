@@ -19,7 +19,7 @@ const PrivacyView = () => {
 
   return (
     <LicenseRequired>
-      <Meta title={t("privacy")} description={t("organization_description")} />
+      <Meta title={t("privacy")} description={t("privacy_organization_description")} />
       <div>
         {currentOrg && isOrgAdminOrOwner && (
           <MakeTeamPrivateSwitch
