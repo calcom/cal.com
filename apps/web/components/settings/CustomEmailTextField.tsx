@@ -59,12 +59,12 @@ const CustomEmailTextField = ({
         />
         <div className="flex items-center pr-2">
           {emailPrimary && (
-            <Badge variant="blue" size="sm">
+            <Badge variant="blue" size="sm" data-testId={`${dataTestId}-primary-badge`}>
               {t("primary")}
             </Badge>
           )}
           {!emailVerified && (
-            <Badge variant="orange" size="sm" className="ml-2">
+            <Badge variant="orange" size="sm" className="ml-2" data-testId={`${dataTestId}-unverified-badge`}>
               {t("unverified")}
             </Badge>
           )}
@@ -76,6 +76,7 @@ const CustomEmailTextField = ({
                 size="sm"
                 color="secondary"
                 className="ml-2 rounded-md"
+                data-testId="secondary-email-action-group-button"
               />
             </DropdownMenuTrigger>
             <DropdownMenuContent>
@@ -85,7 +86,8 @@ const CustomEmailTextField = ({
                   color="secondary"
                   className="disabled:opacity-40"
                   onClick={handleChangePrimary}
-                  disabled={!emailVerified || emailPrimary}>
+                  disabled={!emailVerified || emailPrimary}
+                  data-testId="secondary-email-make-primary-button">
                   {t("make_primary")}
                 </DropdownItem>
               </DropdownMenuItem>
@@ -107,7 +109,8 @@ const CustomEmailTextField = ({
                   color="destructive"
                   className="disabled:opacity-40"
                   onClick={handleItemDelete}
-                  disabled={emailPrimary}>
+                  disabled={emailPrimary}
+                  data-testId="secondary-email-delete-button">
                   {t("delete")}
                 </DropdownItem>
               </DropdownMenuItem>

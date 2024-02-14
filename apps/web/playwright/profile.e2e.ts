@@ -180,4 +180,136 @@ test.describe("Update Profile", () => {
 
     expect(await emailInputUpdated.inputValue()).toEqual(email);
   });
+  test("Can add a new email as a secondary email", async ({ page, users, prisma, features }) => {
+    const user = await users.create({
+      name: "update-profile-user",
+    });
+
+    const [emailInfo, emailDomain] = user.email.split("@");
+    const email = `${emailInfo}@${emailDomain}`;
+
+    await user.apiLogin();
+    await page.goto("/settings/my-account/profile");
+
+    await page.getByTestId("add-secondary-email").click();
+
+    const secondaryEmailAddDialog = await page.waitForSelector('[data-testId="secondary-email-add-dialog"]');
+    expect(await secondaryEmailAddDialog.isVisible()).toBe(true);
+
+    const secondaryEmail = `${emailInfo}-secondary-email@${emailDomain}`;
+    const secondaryEmailInput = page.getByTestId("secondary-email-input");
+    await secondaryEmailInput.fill(secondaryEmail);
+
+    await page.getByTestId("add-secondary-email-button").click();
+
+    const secondaryEmailConfirmDialog = await page.waitForSelector(
+      '[data-testId="secondary-email-confirm-dialog"]'
+    );
+    expect(await secondaryEmailConfirmDialog.isVisible()).toBe(true);
+
+    const textContent = await secondaryEmailConfirmDialog.textContent();
+    expect(textContent).toContain(secondaryEmail);
+
+    await page.getByTestId("secondary-email-confirm-done-button").click();
+    expect(await secondaryEmailConfirmDialog.isVisible()).toBe(false);
+
+    const primaryEmail = page.getByTestId("profile-form-email-0");
+    expect(await primaryEmail.inputValue()).toEqual(user.email);
+
+    const newlyAddedSecondaryEmail = page.getByTestId("profile-form-email-1");
+    expect(await newlyAddedSecondaryEmail.inputValue()).toEqual(secondaryEmail);
+  });
+  const createSecondaryEmail = async ({ page, users }) => {
+    const user = await users.create({
+      name: "update-profile-user",
+    });
+
+    const [emailInfo, emailDomain] = user.email.split("@");
+    const email = `${emailInfo}@${emailDomain}`;
+
+    await user.apiLogin();
+    await page.goto("/settings/my-account/profile");
+
+    await page.getByTestId("add-secondary-email").click();
+
+    const secondaryEmail = `${emailInfo}-secondary-email@${emailDomain}`;
+    const secondaryEmailInput = page.getByTestId("secondary-email-input");
+    await secondaryEmailInput.fill(secondaryEmail);
+
+    await page.getByTestId("add-secondary-email-button").click();
+
+    await page.getByTestId("secondary-email-confirm-done-button").click();
+
+    return { user, email, secondaryEmail };
+  };
+  test("Newly added secondary email should show as Unverified", async ({ page, users, prisma, features }) => {
+    await createSecondaryEmail({ page, users });
+
+    expect(await page.getByTestId("profile-form-email-0-primary-badge").isVisible()).toEqual(true);
+    expect(await page.getByTestId("profile-form-email-0-unverified-badge").isVisible()).toEqual(false);
+
+    expect(await page.getByTestId("profile-form-email-1-primary-badge").isVisible()).toEqual(false);
+    expect(await page.getByTestId("profile-form-email-1-unverified-badge").isVisible()).toEqual(true);
+  });
+  test("Can verify the newly added secondary email", async ({ page, users, prisma, features }) => {
+    const { secondaryEmail } = await createSecondaryEmail({ page, users });
+
+    expect(await page.getByTestId("profile-form-email-1-primary-badge").isVisible()).toEqual(false);
+    expect(await page.getByTestId("profile-form-email-1-unverified-badge").isVisible()).toEqual(true);
+    // Instead of dealing with emails in e2e lets just get the token and navigate to it
+    const verificationToken = await prisma.verificationToken.findFirst({
+      where: {
+        identifier: secondaryEmail,
+      },
+    });
+
+    const params = new URLSearchParams({
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      token: verificationToken!.token,
+    });
+
+    const verifyUrl = `${WEBAPP_URL}/api/auth/verify-secondary-email?${params.toString()}`;
+
+    await page.goto(verifyUrl);
+
+    expect(await page.getByTestId("profile-form-email-1-primary-badge").isVisible()).toEqual(false);
+    expect(await page.getByTestId("profile-form-email-1-unverified-badge").isVisible()).toEqual(false);
+  });
+  test("Can delete the newly added secondary email", async ({ page, users, prisma, features }) => {
+    await createSecondaryEmail({ page, users });
+
+    await page.getByTestId("secondary-email-action-group-button").nth(1).click();
+    await page.getByTestId("secondary-email-delete-button").click();
+
+    expect(await page.getByTestId("profile-form-email-1").isVisible()).toEqual(false);
+  });
+  test("Can make the newly added secondary email as the primary email and login", async ({
+    page,
+    users,
+    prisma,
+    features,
+  }) => {
+    const { secondaryEmail } = await createSecondaryEmail({ page, users });
+
+    // Instead of dealing with emails in e2e lets just get the token and navigate to it
+    const verificationToken = await prisma.verificationToken.findFirst({
+      where: {
+        identifier: secondaryEmail,
+      },
+    });
+
+    const params = new URLSearchParams({
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      token: verificationToken!.token,
+    });
+
+    const verifyUrl = `${WEBAPP_URL}/api/auth/verify-secondary-email?${params.toString()}`;
+
+    await page.goto(verifyUrl);
+    await page.getByTestId("secondary-email-action-group-button").nth(1).click();
+    await page.getByTestId("secondary-email-make-primary-button").click();
+
+    expect(await page.getByTestId("profile-form-email-1-primary-badge").isVisible()).toEqual(true);
+    expect(await page.getByTestId("profile-form-email-1-unverified-badge").isVisible()).toEqual(false);
+  });
 });

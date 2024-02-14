@@ -26,12 +26,20 @@ const SecondaryEmailModal = ({ isLoading, handleAddEmail, onCancel }: SecondaryE
 
   return (
     <Dialog open={true}>
-      <DialogContent title={t("add_email")} description={t("add_email_description")} type="creation">
+      <DialogContent
+        title={t("add_email")}
+        description={t("add_email_description")}
+        type="creation"
+        data-testId="secondary-email-add-dialog">
         <Form form={formMethods} handleSubmit={handleAddEmail}>
-          <TextField label={t("email_address")} {...formMethods.register("email")} />
+          <TextField
+            label={t("email_address")}
+            data-testId="secondary-email-input"
+            {...formMethods.register("email")}
+          />
           <DialogFooter showDivider className="mt-10">
             <DialogClose onClick={onCancel}>{t("cancel")}</DialogClose>
-            <Button type="submit" disabled={isLoading}>
+            <Button type="submit" data-testId="add-secondary-email-button" disabled={isLoading}>
               {t("add_email")}
             </Button>
           </DialogFooter>

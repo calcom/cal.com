@@ -662,7 +662,12 @@ const ProfileForm = ({
             />
           ))}
           <div className="text-default mt-2 flex items-center text-sm">{t("change_email_hint")}</div>
-          <Button color="minimal" StartIcon={Plus} className="mt-2" onClick={() => handleAddSecondaryEmail()}>
+          <Button
+            color="minimal"
+            StartIcon={Plus}
+            className="mt-2"
+            onClick={() => handleAddSecondaryEmail()}
+            data-testId="add-secondary-email">
             {t("add_email")}
           </Button>
         </div>
