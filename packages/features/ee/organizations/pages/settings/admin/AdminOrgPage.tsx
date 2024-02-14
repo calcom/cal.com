@@ -260,7 +260,7 @@ const DeleteOrgDialog = ({
         onConfirm={onConfirm}>
         <Trans
           i18nKey="admin_delete_organization_description"
-          components={{ li: <li />, ul: <ul className="ml-4 list-disc" /> }}>
+          components={{ li: <li />, ul: <ul className="ml-4 mt-5 list-disc space-y-2" /> }}>
           <ul>
             <li>
               Teams that are member of this organization will also be deleted along with their event-types
