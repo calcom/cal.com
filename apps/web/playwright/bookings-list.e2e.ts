@@ -149,6 +149,35 @@ test.describe("Bookings list view", () => {
     await bookingVisibleFor({ user: owner1, pageFixture: page, eventType, shouldBeVisible: true });
     await bookingVisibleFor({ user: owner2, pageFixture: page, eventType, shouldBeVisible: false });
   });
+  test("managed eventType booking should be visible to team admin", async ({ page, users, bookings }) => {
+    const { owner1, owner2, commonUser, team1_teammate1 } = await createTeams(users);
+
+    const { team: team1 } = await owner1.getFirstTeamMembership();
+
+    await owner1.apiLogin();
+    await page.goto(`/event-types?dialog=new&eventPage=team%2F${team1.slug}&teamId=${team1.id}`);
+    await page.getByTestId("managed-event-type").click();
+    await page.getByTestId("event-type-quick-chat").click();
+    await page.getByTestId("event-type-quick-chat").fill("managed-event");
+    await page.getByRole("button", { name: "Continue" }).click();
+    await page.getByTestId("vertical-tab-assignment").click();
+
+    await page.locator("span:nth-child(3) > .bg-default > div > .text-emphasis").nth(0).click();
+    await page.getByRole("combobox", { name: "assignment-dropdown" }).fill("commonUser");
+    await page.getByRole("combobox", { name: "assignment-dropdown" }).press("Enter");
+    await page.getByRole("combobox", { name: "assignment-dropdown" }).fill("team1_teammate1");
+    await page.getByRole("combobox", { name: "assignment-dropdown" }).press("Enter");
+    await page.getByTestId("update-eventtype").click();
+
+    const eventType = await owner1.getFirstTeamEvent(team1.id);
+
+    await bookEvent({ pageFixture: page, eventType, user: commonUser });
+
+    await bookingVisibleFor({ user: owner1, pageFixture: page, eventType, shouldBeVisible: true });
+    await bookingVisibleFor({ user: owner2, pageFixture: page, eventType, shouldBeVisible: false });
+    await bookingVisibleFor({ user: commonUser, pageFixture: page, eventType, shouldBeVisible: true });
+    await bookingVisibleFor({ user: team1_teammate1, pageFixture: page, eventType, shouldBeVisible: false });
+  });
 });
 
 async function createBooking({
@@ -283,12 +312,18 @@ const bookEvent = async ({
   pageFixture,
   team,
   eventType,
+  user,
 }: {
   pageFixture: Fixtures["page"];
-  team: {
+  team?: {
     id: number;
     slug: string | null;
     name: string;
+  };
+  user?: {
+    id: number;
+    name: string | null;
+    username: string | null;
   };
   eventType: {
     id: number;
@@ -296,13 +331,22 @@ const bookEvent = async ({
     slug: string;
   };
 }) => {
-  await pageFixture.goto(`/team/${team.slug}/${eventType.slug}/`);
+  if (team?.slug) {
+    await pageFixture.goto(`/team/${team.slug}/${eventType.slug}/`);
+  } else if (user?.username) {
+    await pageFixture.goto(`/${user.username}/${eventType.slug}/`);
+  }
   await selectFirstAvailableTimeSlotNextMonth(pageFixture);
   await bookTimeSlot(pageFixture);
   await expect(pageFixture.locator("[data-testid=success-page]")).toBeVisible();
 
   // The title of the booking
-  const BookingTitle = `${eventType.title} between ${team.name} and ${testName}`;
+  let BookingTitle = "";
+  if (team?.name) {
+    BookingTitle = `${eventType.title} between ${team.name} and ${testName}`;
+  } else if (user?.name) {
+    BookingTitle = `${eventType.title} between ${user.name} and ${testName}`;
+  }
   await expect(pageFixture.locator("[data-testid=booking-title]")).toHaveText(BookingTitle);
   // The booker should be in the attendee list
   await expect(pageFixture.locator(`[data-testid="attendee-name-${testName}"]`)).toHaveText(testName);
