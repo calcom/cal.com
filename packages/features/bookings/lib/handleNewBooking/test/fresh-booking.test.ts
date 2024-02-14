@@ -82,6 +82,9 @@ describe("handleNewBooking", () => {
           name: "Booker",
         });
 
+        const organizerOtherEmail = "organizer2@example.com";
+        const organizerDestinationCalendarEmailOnEventType = "organizerEventTypeEmail@example.com";
+
         const organizer = getOrganizer({
           name: "Organizer",
           email: "organizer@example.com",
@@ -92,6 +95,7 @@ describe("handleNewBooking", () => {
           destinationCalendar: {
             integration: "google_calendar",
             externalId: "organizer@google-calendar.com",
+            primaryEmail: organizerOtherEmail,
           },
         });
 
@@ -122,6 +126,7 @@ describe("handleNewBooking", () => {
                   id: 1,
                   slotInterval: 30,
                   length: 30,
+                  useEventTypeDestinationCalendarEmail: true,
                   users: [
                     {
                       id: 101,
@@ -130,6 +135,7 @@ describe("handleNewBooking", () => {
                   destinationCalendar: {
                     integration: "google_calendar",
                     externalId: "event-type-1@google-calendar.com",
+                    primaryEmail: organizerDestinationCalendarEmailOnEventType,
                   },
                 },
               ],
@@ -208,7 +214,11 @@ describe("handleNewBooking", () => {
           iCalUID: createdBooking.iCalUID,
         });
 
-        expectWorkflowToBeTriggered({ organizer, emails });
+        expectWorkflowToBeTriggered({
+          organizer,
+          emails,
+          destinationEmail: organizerDestinationCalendarEmailOnEventType,
+        });
         expectSuccessfulCalendarEventCreationInCalendar(calendarMock, {
           calendarId: "event-type-1@google-calendar.com",
           videoCallUrl: "http://mock-dailyvideo.example.com/meeting-1",
@@ -225,6 +235,7 @@ describe("handleNewBooking", () => {
           organizer,
           emails,
           iCalUID,
+          destinationEmail: organizerDestinationCalendarEmailOnEventType,
         });
 
         expectBookingCreatedWebhookToHaveBeenFired({
