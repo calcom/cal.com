@@ -1,4 +1,5 @@
 import type { Prisma } from "@prisma/client";
+import { v4 as uuidv4 } from "uuid";
 
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import { getMetadataHelpers } from "@calcom/lib/getMetadataHelpers";
@@ -78,6 +79,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       metadata: true,
       name: true,
       slug: true,
+      bannerUrl: true,
     },
   });
 
@@ -85,9 +87,9 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
   let bannerUrl = prevOrganisation.bannerUrl;
   if (input.banner && input.banner.startsWith("data:image/png;base64,")) {
-    const banner = await resizeBase64Image(input.avatar, { maxSize: 1500 });
+    const banner = await resizeBase64Image(input.banner, { maxSize: 1500 });
     bannerUrl = await uploadBanner({
-      avatar: banner,
+      banner,
       teamId: currentOrgId,
     });
   } else if (input.banner === "") {

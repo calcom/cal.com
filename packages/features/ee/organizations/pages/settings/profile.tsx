@@ -183,6 +183,7 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
         name: (res.data?.name || "") as string,
         bio: (res.data?.bio || "") as string,
         slug: defaultValues["slug"],
+        banner: (res.data?.bannerUrl || "") as string,
       });
       await utils.viewer.teams.get.invalidate();
       await utils.viewer.organizations.listCurrent.invalidate();
@@ -206,6 +207,7 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
           name: values.name,
           slug: values.slug,
           bio: values.bio,
+          banner: values.banner,
         };
 
         mutation.mutate(variables);
@@ -273,7 +275,6 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
                   <div className="ms-4">
                     <div className="flex gap-2">
                       <ImageUploader
-                        maxImageSize={1500}
                         target="banner"
                         id="banner-upload"
                         buttonMsg={t("upload_banner")}
@@ -285,9 +286,9 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
                       />
                       {showRemoveBannerButton && (
                         <Button
-                          color="secondary"
+                          color="destructive"
                           onClick={() => {
-                            form.setValue("banner", null, { shouldDirty: true });
+                            form.setValue("banner", "", { shouldDirty: true });
                           }}>
                           {t("remove")}
                         </Button>

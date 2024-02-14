@@ -81,6 +81,7 @@ const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
         select: {
           slug: true,
           name: true,
+          bannerUrl: true,
         },
       },
     },
