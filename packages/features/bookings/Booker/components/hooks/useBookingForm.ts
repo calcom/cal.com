@@ -87,7 +87,6 @@ export const useBookingForm = ({
   });
 
   useEffect(() => {
-    console.log("HERE");
     // initialValues would be null initially as the async schema parsing is happening. Let's show the form in first render without any prefill values
     // But ensure that when initialValues is available, the form is reset and rerendered with the prefill values
     bookingForm.reset(initialValues);

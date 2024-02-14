@@ -38,7 +38,6 @@ export function useInitialFormValues({
   const bookingData = useBookerStore((state) => state.bookingData);
   const formValues = useBookerStore((state) => state.formValues);
   useEffect(() => {
-    console.log("HELLO INITIAL FORM VALUES");
     (async function () {
       if (Object.keys(formValues).length) {
         setDefaultValues(formValues);
