@@ -13,7 +13,7 @@ import { UserRepository } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
 import type { Membership, Team } from "@calcom/prisma/client";
-import { Prisma, type User as UserType, type UserPassword } from "@calcom/prisma/client";
+import { Prisma, type User as UserType } from "@calcom/prisma/client";
 import type { Profile as ProfileType } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
@@ -27,13 +27,12 @@ import type { InviteMemberOptions, TeamWithParent } from "./types";
 const log = logger.getSubLogger({ prefix: ["inviteMember.utils"] });
 export type Invitee = Pick<
   UserType,
-  "id" | "email" | "username" | "identityProvider" | "completedOnboarding"
+  "id" | "email" | "username" | "password" | "identityProvider" | "completedOnboarding"
 >;
 
 export type UserWithMembership = Invitee & {
   teams?: Pick<Membership, "userId" | "teamId" | "accepted" | "role">[];
   profiles: ProfileType[];
-  password: UserPassword | null;
 };
 
 export async function checkPermissions({
@@ -571,7 +570,7 @@ export const sendExistingUserTeamInviteEmails = async ({
        * Here we want to redirect to a different place if onboarding has been completed or not. This prevents the flash of going to teams -> Then to onboarding - also show a different email template.
        * This only changes if the user is a CAL user and has not completed onboarding and has no password
        */
-      if (!user.completedOnboarding && !user.password?.hash && user.identityProvider === "CAL") {
+      if (!user.completedOnboarding && !user.password && user.identityProvider === "CAL") {
         const token = randomBytes(32).toString("hex");
         await prisma.verificationToken.create({
           data: {

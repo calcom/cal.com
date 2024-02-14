@@ -42,8 +42,8 @@ const ORGANIZATIONS_AUTOLINK =
 
 const usernameSlug = (username: string) => `${slugify(username)}-${randomString(6).toLowerCase()}`;
 
-const loginWithTotp = async (email: string) =>
-  `/auth/login?totp=${await (await import("./signJwt")).default({ email })}`;
+const loginWithTotp = async (user: { email: string }) =>
+  `/auth/login?totp=${await (await import("./signJwt")).default({ email: user.email })}`;
 
 type UserTeams = {
   teams: (Membership & {
@@ -126,18 +126,18 @@ const providers: Provider[] = [
       if (user.identityProvider !== IdentityProvider.CAL && !credentials.totpCode) {
         throw new Error(ErrorCode.ThirdPartyIdentityProviderEnabled);
       }
-      if (!user.password?.hash && user.identityProvider == IdentityProvider.CAL) {
+      if (!user.password && user.identityProvider == IdentityProvider.CAL) {
         throw new Error(ErrorCode.IncorrectEmailPassword);
       }
-      if (!user.password?.hash && user.identityProvider !== IdentityProvider.CAL && !credentials.totpCode) {
+      if (!user.password && user.identityProvider !== IdentityProvider.CAL && !credentials.totpCode) {
         throw new Error(ErrorCode.IncorrectEmailPassword);
       }
 
-      if (user.password?.hash && !credentials.totpCode) {
-        if (!user.password?.hash) {
+      if (user.password && !credentials.totpCode) {
+        if (!user.password) {
           throw new Error(ErrorCode.IncorrectEmailPassword);
         }
-        const isCorrectPassword = await verifyPassword(credentials.password, user.password.hash);
+        const isCorrectPassword = await verifyPassword(credentials.password, user.password);
         if (!isCorrectPassword) {
           throw new Error(ErrorCode.IncorrectEmailPassword);
         }
@@ -717,7 +717,7 @@ export const AUTH_OPTIONS: AuthOptions = {
               }
             }
             if (existingUser.twoFactorEnabled && existingUser.identityProvider === idP) {
-              return loginWithTotp(existingUser.email);
+              return loginWithTotp(existingUser);
             } else {
               return true;
             }
@@ -733,7 +733,7 @@ export const AUTH_OPTIONS: AuthOptions = {
           if (!userWithNewEmail) {
             await prisma.user.update({ where: { id: existingUser.id }, data: { email: user.email } });
             if (existingUser.twoFactorEnabled) {
-              return loginWithTotp(existingUser.email);
+              return loginWithTotp(existingUser);
             } else {
               return true;
             }
@@ -752,9 +752,6 @@ export const AUTH_OPTIONS: AuthOptions = {
               mode: "insensitive",
             },
           },
-          include: {
-            password: true,
-          },
         });
 
         if (existingUserWithEmail) {
@@ -765,7 +762,7 @@ export const AUTH_OPTIONS: AuthOptions = {
             existingUserWithEmail.identityProvider !== IdentityProvider.CAL
           ) {
             if (existingUserWithEmail.twoFactorEnabled) {
-              return loginWithTotp(existingUserWithEmail.email);
+              return loginWithTotp(existingUserWithEmail);
             } else {
               return true;
             }
@@ -773,7 +770,7 @@ export const AUTH_OPTIONS: AuthOptions = {
 
           // check if user was invited
           if (
-            !existingUserWithEmail.password?.hash &&
+            !existingUserWithEmail.password &&
             !existingUserWithEmail.emailVerified &&
             !existingUserWithEmail.username
           ) {
@@ -795,7 +792,7 @@ export const AUTH_OPTIONS: AuthOptions = {
             });
 
             if (existingUserWithEmail.twoFactorEnabled) {
-              return loginWithTotp(existingUserWithEmail.email);
+              return loginWithTotp(existingUserWithEmail);
             } else {
               return true;
             }
@@ -810,16 +807,14 @@ export const AUTH_OPTIONS: AuthOptions = {
               where: { email: existingUserWithEmail.email },
               // also update email to the IdP email
               data: {
-                password: {
-                  delete: true,
-                },
+                password: null,
                 email: user.email,
                 identityProvider: idP,
                 identityProviderId: account.providerAccountId,
               },
             });
             if (existingUserWithEmail.twoFactorEnabled) {
-              return loginWithTotp(existingUserWithEmail.email);
+              return loginWithTotp(existingUserWithEmail);
             } else {
               return true;
             }
@@ -858,7 +853,7 @@ export const AUTH_OPTIONS: AuthOptions = {
         await calcomAdapter.linkAccount(linkAccountNewUserData);
 
         if (account.twoFactorEnabled) {
-          return loginWithTotp(newUser.email);
+          return loginWithTotp(newUser);
         } else {
           return true;
         }
