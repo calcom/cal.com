@@ -1,6 +1,6 @@
 import { LazyMotion, m, AnimatePresence } from "framer-motion";
 import dynamic from "next/dynamic";
-import { useEffect, useRef, useMemo } from "react";
+import { useEffect, useRef } from "react";
 import StickyBox from "react-sticky-box";
 import { shallow } from "zustand/shallow";
 
@@ -128,7 +128,6 @@ const BookerComponent = ({
     isEmailVerificationModalVisible,
     setEmailVerificationModalVisible,
     handleVerifyEmail,
-    setVerifiedEmail,
     renderConfirmNotVerifyEmailButtonCond,
   } = verifyEmail;
 
@@ -147,78 +146,51 @@ const BookerComponent = ({
     return setBookerState("booking");
   }, [event, selectedDate, selectedTimeslot, setBookerState]);
 
-  const EventBooker = useMemo(
-    () =>
-      bookerState === "booking" ? (
-        <BookEventForm
-          key={key}
-          onCancel={() => {
-            setSelectedTimeslot(null);
-            if (seatedEventData.bookingUid) {
-              setSeatedEventData({ ...seatedEventData, bookingUid: undefined, attendees: undefined });
-            }
-          }}
-          onSubmit={renderConfirmNotVerifyEmailButtonCond ? handleBookEvent : handleVerifyEmail}
-          errorRef={bookerFormErrorRef}
-          errors={{ ...formErrors, ...errors }}
-          loadingStates={loadingStates}
-          renderConfirmNotVerifyEmailButtonCond={renderConfirmNotVerifyEmailButtonCond}
-          bookingForm={bookingForm}
-          eventQuery={event}
-          extraOptions={extraOptions}
-          rescheduleUid={rescheduleUid}>
-          <>
-            <VerifyCodeDialog
-              isOpenDialog={isEmailVerificationModalVisible}
-              setIsOpenDialog={setEmailVerificationModalVisible}
-              email={formEmail}
-              isUserSessionRequiredToVerify={false}
-              verifyCodeWithSessionNotRequired={verifyCode.verifyCodeWithSessionNotRequired}
-              verifyCodeWithSessionRequired={verifyCode.verifyCodeWithSessionRequired}
-              error={verifyCode.error}
-              resetErrors={verifyCode.resetErrors}
-              isPending={verifyCode.isPending}
-              setIsPending={verifyCode.setIsPending}
-            />
-            <RedirectToInstantMeetingModal
-              expiryTime={expiryTime}
-              hasInstantMeetingTokenExpired={hasInstantMeetingTokenExpired}
-              bookingId={parseInt(getQueryParam("bookingId") || "0")}
-              onGoBack={() => {
-                onGoBackInstantMeeting();
-              }}
-            />
-          </>
-        </BookEventForm>
-      ) : (
-        <></>
-      ),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [
-      bookerFormErrorRef,
-      bookerState,
-      bookingForm,
-      errors,
-      event,
-      formEmail,
-      formErrors,
-      handleBookEvent,
-      handleVerifyEmail,
-      hasInstantMeetingTokenExpired,
-      isEmailVerificationModalVisible,
-      key,
-      loadingStates,
-      renderConfirmNotVerifyEmailButtonCond,
-      rescheduleUid,
-      seatedEventData,
-      setEmailVerificationModalVisible,
-      setSeatedEventData,
-      setSelectedTimeslot,
-      setVerifiedEmail,
-      expiryTime,
-      onGoBackInstantMeeting,
-    ]
-  );
+  const EventBooker =
+    bookerState === "booking" ? (
+      <BookEventForm
+        key={key}
+        onCancel={() => {
+          setSelectedTimeslot(null);
+          if (seatedEventData.bookingUid) {
+            setSeatedEventData({ ...seatedEventData, bookingUid: undefined, attendees: undefined });
+          }
+        }}
+        onSubmit={renderConfirmNotVerifyEmailButtonCond ? handleBookEvent : handleVerifyEmail}
+        errorRef={bookerFormErrorRef}
+        errors={{ ...formErrors, ...errors }}
+        loadingStates={loadingStates}
+        renderConfirmNotVerifyEmailButtonCond={renderConfirmNotVerifyEmailButtonCond}
+        bookingForm={bookingForm}
+        eventQuery={event}
+        extraOptions={extraOptions}
+        rescheduleUid={rescheduleUid}>
+        <>
+          <VerifyCodeDialog
+            isOpenDialog={isEmailVerificationModalVisible}
+            setIsOpenDialog={setEmailVerificationModalVisible}
+            email={formEmail}
+            isUserSessionRequiredToVerify={false}
+            verifyCodeWithSessionNotRequired={verifyCode.verifyCodeWithSessionNotRequired}
+            verifyCodeWithSessionRequired={verifyCode.verifyCodeWithSessionRequired}
+            error={verifyCode.error}
+            resetErrors={verifyCode.resetErrors}
+            isPending={verifyCode.isPending}
+            setIsPending={verifyCode.setIsPending}
+          />
+          <RedirectToInstantMeetingModal
+            expiryTime={expiryTime}
+            hasInstantMeetingTokenExpired={hasInstantMeetingTokenExpired}
+            bookingId={parseInt(getQueryParam("bookingId") || "0")}
+            onGoBack={() => {
+              onGoBackInstantMeeting();
+            }}
+          />
+        </>
+      </BookEventForm>
+    ) : (
+      <></>
+    );
 
   if (entity.isUnpublished) {
     return <UnpublishedEntity {...entity} />;
