@@ -19,9 +19,15 @@ interface VerifyEmailType {
   username?: string;
   email: string;
   language?: string;
+  isSecondary?: boolean;
 }
 
-export const sendEmailVerification = async ({ email, language, username }: VerifyEmailType) => {
+export const sendEmailVerification = async ({
+  email,
+  language,
+  username,
+  isSecondary = false,
+}: VerifyEmailType) => {
   const token = randomBytes(32).toString("hex");
   const translation = await getTranslation(language ?? "en", "common");
   const flags = await getFeatureFlagMap(prisma);
@@ -50,7 +56,9 @@ export const sendEmailVerification = async ({ email, language, username }: Verif
 
   await sendEmailVerificationLink({
     language: translation,
-    verificationEmailLink: `${WEBAPP_URL}/api/auth/verify-email?${params.toString()}`,
+    verificationEmailLink: `${WEBAPP_URL}/api/auth/verify-${
+      isSecondary ? "secondary-" : ""
+    }email?${params.toString()}`,
     user: {
       email,
       name: username,

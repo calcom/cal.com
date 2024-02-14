@@ -48,7 +48,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
 
-    if (existingUser) {
+    // Ensure this email isn't being added by another user as secondary email
+    const existingSecondaryUser = await prisma.secondaryEmail.findUnique({
+      where: {
+        email: userMetadataParsed?.emailChangeWaitingForVerification,
+        NOT: {
+          userId: user.id,
+        },
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (existingUser || existingSecondaryUser) {
       return res.status(401).json({ message: "A User already exists with this email" });
     }
 
@@ -67,6 +80,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     await cleanUpVerificationTokens(foundToken.id);
+
+    const secondaryEmail = await prisma.secondaryEmail.findUnique({
+      where: {
+        userId: user.id,
+        email: updatedEmail,
+      },
+    });
+
+    if (secondaryEmail) {
+      await prisma.secondaryEmail.update({
+        where: {
+          id: secondaryEmail.id,
+        },
+        data: {
+          email: user.email,
+          emailVerified: user.emailVerified,
+        },
+      });
+    }
 
     return res.status(200).json({
       updatedEmail,
@@ -87,7 +119,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   return res.redirect(`${WEBAPP_URL}/${hasCompletedOnboarding ? "/event-types" : "/getting-started"}`);
 }
 
-async function cleanUpVerificationTokens(id: number) {
+export async function cleanUpVerificationTokens(id: number) {
   // Delete token from DB after it has been used
   await prisma.verificationToken.delete({
     where: {

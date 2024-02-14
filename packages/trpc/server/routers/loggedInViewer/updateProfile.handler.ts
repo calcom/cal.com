@@ -1,4 +1,6 @@
 import { Prisma } from "@prisma/client";
+// eslint-disable-next-line no-restricted-imports
+import { keyBy, omit } from "lodash";
 import type { GetServerSidePropsContext, NextApiResponse } from "next";
 import { v4 as uuidv4 } from "uuid";
 
@@ -65,8 +67,11 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
   const locale = input.locale || user.locale;
   const flags = await getFeatureFlagMap(prisma);
 
+  const secondaryEmails = input?.secondaryEmails || [];
+  delete input.secondaryEmails;
+
   const data: Prisma.UserUpdateInput = {
-    ...input,
+    ...omit(input, "secondaryEmails"),
     // DO NOT OVERWRITE AVATAR.
     avatar: undefined,
     metadata: userMetadata,
@@ -281,6 +286,53 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
 
   // don't return avatar, we don't need it anymore.
   delete input.avatar;
+
+  if (secondaryEmails.length) {
+    const recordsToDelete = secondaryEmails
+      .filter((secondaryEmail) => secondaryEmail.isDeleted)
+      .map((secondaryEmail) => secondaryEmail.id);
+    if (recordsToDelete.length) {
+      await prisma.secondaryEmail.deleteMany({
+        where: {
+          id: {
+            in: recordsToDelete,
+          },
+          userId: updatedUser.id,
+        },
+      });
+    }
+
+    const secondaryEmailsFromDB = await prisma.secondaryEmail.findMany({
+      where: {
+        id: {
+          in: secondaryEmails.map((secondaryEmail) => secondaryEmail.id),
+        },
+        userId: updatedUser.id,
+      },
+    });
+    const keyedSecondaryEmailsFromDB = keyBy(secondaryEmailsFromDB, "id");
+
+    const modifiedRecords = secondaryEmails.filter((secondaryEmail) => !secondaryEmail.isDeleted);
+    if (modifiedRecords.length) {
+      const updatedRows = modifiedRecords.filter(
+        (secondaryEmail) => secondaryEmail.email !== keyedSecondaryEmailsFromDB[secondaryEmail.id].email
+      );
+      const recordsToModifyQueue = updatedRows.map((updated) =>
+        prisma.secondaryEmail.update({
+          where: {
+            id: updated.id,
+            userId: updatedUser.id,
+          },
+          data: {
+            email: updated.email,
+            emailVerified: keyedSecondaryEmailsFromDB[updated.id].emailVerified,
+          },
+        })
+      );
+
+      await prisma.$transaction(recordsToModifyQueue);
+    }
+  }
 
   return {
     ...input,
