@@ -8,6 +8,7 @@ import { createOrUpdateMemberships } from "@calcom/features/auth/signup/utils/cr
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getLocaleFromRequest } from "@calcom/lib/getLocaleFromRequest";
 import { HttpError } from "@calcom/lib/http-error";
+import logger from "@calcom/lib/logger";
 import { usernameHandler, type RequestWithUsernameStatus } from "@calcom/lib/server/username";
 import { createWebUser as syncServicesCreateWebUser } from "@calcom/lib/sync/SyncServiceManager";
 import { closeComUpsertTeamUser } from "@calcom/lib/sync/SyncServiceManager";
@@ -23,6 +24,8 @@ import {
   validateAndGetCorrectedUsernameForTeam,
 } from "../utils/token";
 
+const log = logger.getSubLogger({ prefix: ["signupCalcomHandler"] });
+
 async function handler(req: RequestWithUsernameStatus, res: NextApiResponse) {
   const {
     email: _email,
@@ -35,6 +38,9 @@ async function handler(req: RequestWithUsernameStatus, res: NextApiResponse) {
       token: true,
     })
     .parse(req.body);
+
+  log.debug("handler", { email: _email });
+
   let username: string | null = req.usernameStatus.requestedUserName;
   let checkoutSessionId: string | null = null;
 

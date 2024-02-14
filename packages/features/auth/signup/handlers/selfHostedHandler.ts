@@ -5,7 +5,9 @@ import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
 import { createOrUpdateMemberships } from "@calcom/features/auth/signup/utils/createOrUpdateMemberships";
 import { IS_PREMIUM_USERNAME_ENABLED } from "@calcom/lib/constants";
+import { isOrganization } from "@calcom/lib/entityPermissionUtils";
 import logger from "@calcom/lib/logger";
+import { isUsernameReservedDueToMigration } from "@calcom/lib/server/username";
 import slugify from "@calcom/lib/slugify";
 import { closeComUpsertTeamUser } from "@calcom/lib/sync/SyncServiceManager";
 import { validateAndGetCorrectedUsernameAndEmail } from "@calcom/lib/validateUsername";
@@ -72,8 +74,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         parent: true,
       },
     });
+
     if (team) {
+      const isInviteForOrganization = isOrganization({
+        team: {
+          metadata: team.metadata,
+        },
+      });
+      const isInviteForATeamInOrganization = team.parent;
+      const isCheckingUsernameInGlobalNamespace = !isInviteForOrganization && !isInviteForATeamInOrganization;
+
       const teamMetadata = teamMetadataSchema.parse(team?.metadata);
+
+      if (isCheckingUsernameInGlobalNamespace) {
+        const isUsernameAvailable = !(await isUsernameReservedDueToMigration(correctedUsername));
+        if (!isUsernameAvailable) {
+          res.status(409).json({ message: "A user exists with that username" });
+          return;
+        }
+      }
 
       const user = await prisma.user.upsert({
         where: { email: userEmail },
@@ -120,6 +139,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
   } else {
+    const isUsernameAvailable = !(await isUsernameReservedDueToMigration(correctedUsername));
+    if (!isUsernameAvailable) {
+      res.status(409).json({ message: "A user exists with that username" });
+      return;
+    }
     if (IS_PREMIUM_USERNAME_ENABLED) {
       const checkUsername = await checkPremiumUsername(correctedUsername);
       if (checkUsername.premium) {
