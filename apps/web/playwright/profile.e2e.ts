@@ -48,7 +48,7 @@ test.describe("Update Profile", () => {
     await user.apiLogin();
     await page.goto("/settings/my-account/profile");
 
-    const emailInput = page.getByTestId("profile-form-email");
+    const emailInput = page.getByTestId("profile-form-email-0");
 
     await emailInput.fill(email);
 
@@ -89,7 +89,7 @@ test.describe("Update Profile", () => {
     expect(errorLocator).toBeDefined();
 
     await page.goto("/settings/my-account/profile");
-    const emailInputUpdated = page.getByTestId("profile-form-email");
+    const emailInputUpdated = page.getByTestId("profile-form-email-0");
     expect(await emailInputUpdated.inputValue()).toEqual(user.email);
   });
 
@@ -108,7 +108,7 @@ test.describe("Update Profile", () => {
     await user.apiLogin();
     await page.goto("/settings/my-account/profile");
 
-    const emailInput = page.getByTestId("profile-form-email");
+    const emailInput = page.getByTestId("profile-form-email-0");
 
     await emailInput.fill(email);
 
@@ -144,7 +144,7 @@ test.describe("Update Profile", () => {
 
     expect(await successLocator.textContent()).toContain(email);
     await page.goto("/settings/my-account/profile");
-    const emailInputUpdated = page.getByTestId("profile-form-email");
+    const emailInputUpdated = page.getByTestId("profile-form-email-0");
     expect(await emailInputUpdated.inputValue()).toEqual(email);
   });
   test("Can update a users email (verification disabled)", async ({ page, users, prisma, features }) => {
@@ -162,7 +162,7 @@ test.describe("Update Profile", () => {
     await user.apiLogin();
     await page.goto("/settings/my-account/profile");
 
-    const emailInput = page.getByTestId("profile-form-email");
+    const emailInput = page.getByTestId("profile-form-email-0");
 
     await emailInput.fill(email);
 
@@ -176,7 +176,7 @@ test.describe("Update Profile", () => {
 
     expect(await toastLocator.isVisible()).toBe(true);
 
-    const emailInputUpdated = page.getByTestId("profile-form-email");
+    const emailInputUpdated = page.getByTestId("profile-form-email-0");
 
     expect(await emailInputUpdated.inputValue()).toEqual(email);
   });
