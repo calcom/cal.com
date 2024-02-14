@@ -98,6 +98,7 @@ test.describe("Bookings", () => {
         ],
       });
 
+      // to test if booking is visible to team admin/owner even if he is not part of the booking
       await prisma.host.deleteMany({
         where: {
           userId: owner1.id,
@@ -107,9 +108,14 @@ test.describe("Bookings", () => {
 
       await bookEvent({ pageFixture: page, eventType, team: team1 });
 
+      // booking should be visible for the team host even though he is not part of the booking
       await bookingVisibleFor({ user: owner1, pageFixture: page, eventType, shouldBeVisible: true });
+      // booking should not be visible for other team host
       await bookingVisibleFor({ user: owner2, pageFixture: page, eventType, shouldBeVisible: false });
+      // booking should be visible for commonUser as he is part of the booking
       await bookingVisibleFor({ user: commonUser, pageFixture: page, eventType, shouldBeVisible: true });
+      // booking should be visible for team1_teammate1 as he is part of the booking
+      await bookingVisibleFor({ user: team1_teammate1, pageFixture: page, eventType, shouldBeVisible: true });
     });
     test("round-robin eventType booking should be visible to team admin", async ({
       page,
@@ -150,7 +156,9 @@ test.describe("Bookings", () => {
 
       await bookEvent({ pageFixture: page, eventType, team: team1 });
 
+      // booking should be visible for the team host even though he is not part of the booking
       await bookingVisibleFor({ user: owner1, pageFixture: page, eventType, shouldBeVisible: true });
+      // bookings should not be visible for other team host
       await bookingVisibleFor({ user: owner2, pageFixture: page, eventType, shouldBeVisible: false });
     });
     test("managed eventType booking should be visible to team admin", async ({ page, users, bookings }) => {
@@ -177,9 +185,13 @@ test.describe("Bookings", () => {
 
       await bookEvent({ pageFixture: page, eventType, user: commonUser });
 
+      // booking should be visible for the team host even though he is not part of the booking
       await bookingVisibleFor({ user: owner1, pageFixture: page, eventType, shouldBeVisible: true });
+      // booking should not be visible for other team host
       await bookingVisibleFor({ user: owner2, pageFixture: page, eventType, shouldBeVisible: false });
+      // booking should be visible for commonUser as he is part of the booking
       await bookingVisibleFor({ user: commonUser, pageFixture: page, eventType, shouldBeVisible: true });
+      // booking should not be visible for team1_teammate1 as we booked for commonUser
       await bookingVisibleFor({
         user: team1_teammate1,
         pageFixture: page,
@@ -196,9 +208,12 @@ test.describe("Bookings", () => {
 
       const eventType = await commonUser.getFirstEventAsOwner();
       await bookEvent({ pageFixture: page, eventType, user: commonUser });
+      // booking should be visible for the team host even though he is not part of the booking
       await bookingVisibleFor({ user: owner1, pageFixture: page, eventType, shouldBeVisible: true });
-      await bookingVisibleFor({ user: commonUser, pageFixture: page, eventType, shouldBeVisible: true });
+      // non-team bookings should not be visible for other team host as well even though he is not part of the booking
       await bookingVisibleFor({ user: owner2, pageFixture: page, eventType, shouldBeVisible: true });
+      // booking should be visible for commonUser as he is part of the booking
+      await bookingVisibleFor({ user: commonUser, pageFixture: page, eventType, shouldBeVisible: true });
     });
   });
 });
