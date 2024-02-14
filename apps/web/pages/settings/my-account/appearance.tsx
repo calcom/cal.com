@@ -163,8 +163,8 @@ const AppearanceView = ({
       <Meta title={t("appearance")} description={t("appearance_description")} borderInShellHeader={false} />
       <div className="border-subtle mt-6 flex items-center rounded-t-lg border p-6 text-sm">
         <div>
-          <p className="text-default text-base font-semibold">{t("App_theme")}</p>
-          <p className="text-default">{t("App_theme_applies_note")}</p>
+          <p className="text-default text-base font-semibold">{t("app_theme")}</p>
+          <p className="text-default">{t("app_theme_applies_note")}</p>
         </div>
       </div>
       <Form
