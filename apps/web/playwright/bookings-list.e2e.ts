@@ -178,6 +178,19 @@ test.describe("Bookings list view", () => {
     await bookingVisibleFor({ user: commonUser, pageFixture: page, eventType, shouldBeVisible: true });
     await bookingVisibleFor({ user: team1_teammate1, pageFixture: page, eventType, shouldBeVisible: false });
   });
+  test("individual team members booking should be visible to team admin", async ({
+    page,
+    users,
+    bookings,
+  }) => {
+    const { owner1, owner2, commonUser, team1_teammate1 } = await createTeams(users);
+
+    const eventType = await commonUser.getFirstEventAsOwner();
+    await bookEvent({ pageFixture: page, eventType, user: commonUser });
+    await bookingVisibleFor({ user: owner1, pageFixture: page, eventType, shouldBeVisible: true });
+    await bookingVisibleFor({ user: commonUser, pageFixture: page, eventType, shouldBeVisible: true });
+    await bookingVisibleFor({ user: owner2, pageFixture: page, eventType, shouldBeVisible: true });
+  });
 });
 
 async function createBooking({
