@@ -1,12 +1,14 @@
-import type { UseBookerLayoutType } from "bookings/Booker/components/hooks/useBookerLayout";
-import type { UseBookingFormReturnType } from "bookings/Booker/components/hooks/useBookingForm";
-import type { UseBookingsReturnType } from "bookings/Booker/components/hooks/useBookings";
-import type { UseCalendarsReturnType } from "bookings/Booker/components/hooks/useCalendars";
-import type { UseSlotsReturnType } from "bookings/Booker/components/hooks/useSlots";
-import type { UseVerifyCodeReturnType } from "bookings/Booker/components/hooks/useVerifyCode";
-import type { UseVerifyEmailReturnType } from "bookings/Booker/components/hooks/useVerifyEmail";
-import type { useEventReturnType, useScheduleForEventReturnType } from "bookings/Booker/utils/event";
-
+import type { UseBookerLayoutType } from "@calcom/features/bookings/Booker/components/hooks/useBookerLayout";
+import type { UseBookingFormReturnType } from "@calcom/features/bookings/Booker/components/hooks/useBookingForm";
+import type { UseBookingsReturnType } from "@calcom/features/bookings/Booker/components/hooks/useBookings";
+import type { UseCalendarsReturnType } from "@calcom/features/bookings/Booker/components/hooks/useCalendars";
+import type { UseSlotsReturnType } from "@calcom/features/bookings/Booker/components/hooks/useSlots";
+import type { UseVerifyCodeReturnType } from "@calcom/features/bookings/Booker/components/hooks/useVerifyCode";
+import type { UseVerifyEmailReturnType } from "@calcom/features/bookings/Booker/components/hooks/useVerifyEmail";
+import type {
+  useEventReturnType,
+  useScheduleForEventReturnType,
+} from "@calcom/features/bookings/Booker/utils/event";
 import type { BookerLayouts } from "@calcom/prisma/zod-utils";
 
 import type { GetBookingType } from "../lib/get-booking";
