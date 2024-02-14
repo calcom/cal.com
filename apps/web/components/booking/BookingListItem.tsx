@@ -45,6 +45,7 @@ import {
   Check,
   Clock,
   CreditCard,
+  Eye,
   MapPin,
   RefreshCcw,
   Send,
@@ -672,26 +673,52 @@ type AttendeeProps = {
 
 const Attendee = ({ email, name }: AttendeeProps) => {
   const { t } = useLocale();
+  const [noShow, setNoShow] = useState(false);
+
+  function toggleNoShow(noShow: boolean, event: React.MouseEvent<HTMLButtonElement>) {
+    setNoShow(!noShow);
+    event.preventDefault();
+    event.stopPropagation();
+  }
+
   return (
     <Dropdown>
       <DropdownMenuTrigger asChild>
-        <button onClick={(e) => e.stopPropagation()} className="hover:text-blue-500">
-          {name || email}
+        <button
+          onClick={(e) => e.stopPropagation()}
+          className="radix-state-open:text-blue-500 hover:text-blue-500">
+          {noShow ? (
+            <s>
+              {name || email} <EyeOff className="inline h-4" />
+            </s>
+          ) : (
+            <>{name || email}</>
+          )}
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
         <DropdownMenuItem className="focus:outline-none">
+          {/* TODO: add subject: title */}
           <DropdownItem StartIcon={Mail} href={`mailto:${email}`} onClick={(e) => e.stopPropagation()}>
             <a href={`mailto:${email}`}>{t("email")}</a>
           </DropdownItem>
         </DropdownMenuItem>
         <DropdownMenuItem className="focus:outline-none">
+          {/* TODO: add copy to clipboard functionality */}
           <DropdownItem StartIcon={Clipboard} href={`mailto:${email}`} onClick={(e) => e.stopPropagation()}>
             <a href={`mailto:${email}`}>{t("copy_to_clipboard")}</a>
           </DropdownItem>
         </DropdownMenuItem>
         <DropdownMenuItem className="focus:outline-none">
-          <DropdownItem StartIcon={EyeOff}>{t("mark_as_no_show")}</DropdownItem>
+          {noShow ? (
+            <DropdownItem onClick={(e) => toggleNoShow(noShow, e)} StartIcon={Eye}>
+              {t("unmark_as_no_show")}
+            </DropdownItem>
+          ) : (
+            <DropdownItem onClick={(e) => toggleNoShow(noShow, e)} StartIcon={EyeOff}>
+              {t("mark_as_no_show")}
+            </DropdownItem>
+          )}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </Dropdown>
