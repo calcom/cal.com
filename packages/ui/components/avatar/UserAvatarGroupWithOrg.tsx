@@ -20,6 +20,7 @@ export function UserAvatarGroupWithOrg(props: UserAvatarProps) {
 
   const items = [
     {
+      // We don't want booker to be able to see the list of other users or teams inside the embed
       href: isEmbed ? null : getBookerBaseUrlSync(organization.slug),
       image: `${WEBAPP_URL}/team/${organization.slug}/avatar.png`,
       alt: organization.name || undefined,
