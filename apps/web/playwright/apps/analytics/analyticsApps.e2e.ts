@@ -6,6 +6,7 @@ test.describe("Check analytics Apps", () => {
   test.beforeEach(async ({ page, users }) => {
     const user = await users.create();
     await user.apiLogin();
+    await page.goto("/apps/");
   });
   test("Check analytics Apps", async ({ appsPage }) => {
     await appsPage.goToAppsCategory("analytics");
