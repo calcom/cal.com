@@ -1,0 +1,45 @@
+---
+title: Embed instructions
+---
+{% label /%}
+
+An instruction is how you configure the embed. These instructions can be added immediately after the embed snippet.
+
+An instruction is technically a function with the same name, that would be called with the given arguments. 
+
+You would not normally need to learn about these instructions in detail, as the **Embed Snippet Generator** automatically updates the snippet with these instructions in the way you configure it but still they could be useful.
+
+#### Inline
+
+Appends embed `inline` as the child of the element.
+
+```js
+<script>
+  Cal("inline", { elementOrSelector, calLink });
+</script>
+```
+- `elementOrSelector` - Give it either a valid CSS selector or an HTMLElement instance directly
+- `calLink` - Cal Link that you want to embed e.g. john. Just give the username. No need to give the full URL https://cal.com/john. It makes it easy to configure the calendar host once and use as many links you want with just usernames
+
+#### UI
+
+Configure `ui` for embed. Make it look part of your webpage.
+
+```js
+<script>
+  Cal("ui", { styles });
+</script>
+```
+- `styles` - It supports styling for body and eventTypeListItem. Right now we support just background on these two.
+
+#### Preload
+
+To open cal link on some action, make it pop open instantly by using `preload`.
+
+```js
+<script>
+  Cal("preload", { calLink });
+</script>
+```
+
+- `calLink` - Cal Link that you want to embed e.g. john. Just give the username. No need to give the full URL https://cal.com/john

@@ -1,0 +1,29 @@
+---
+title: "Bookings"
+---
+
+These routes allow you to CRUD bookings within Cal.com.
+
+## Find all bookings
+
+{% openapidoc method="GET" url="https://api.cal.com/docs" path="/bookings" /%}
+
+{% note %}
+Please note that the use of userId for filtering the bookings in the GET request is an ADMIN only call. This will not yeild the filtering for non-admin API calls
+{% /note %}
+
+## Create a new booking
+
+{% openapidoc method="POST" url="https://api.cal.com/docs" path="/bookings" /%}
+
+## Find a booking
+
+{% openapidoc method="GET" url="https://api.cal.com/docs" path="/bookings/{id}" /%}
+
+## Edit an existing booking
+
+{% openapidoc method="PATCH" url="https://api.cal.com/docs" path="/bookings/{id}" /%}
+
+## Remove an existing booking
+
+{% openapidoc method="DELETE" url="https://api.cal.com/docs" path="/bookings/{id}/cancel" /%}

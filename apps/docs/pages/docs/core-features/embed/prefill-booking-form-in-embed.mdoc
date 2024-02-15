@@ -1,0 +1,98 @@
+---
+title: Prefill booking form in Embed
+---
+{% label /%}
+
+Booking form inside an embed can be prefilled as well.
+
+## Inline Embed
+
+```js
+// Prefill Name, Email and Attendee Address - React.
+// You can specify config property to do prefilling
+// React Demo Link - https://codesandbox.io/s/react-prefill-attendee-address-email-sqhf7r
+<Cal
+  // .... other props in here
+  config={{
+    name: "Name",
+    email: "booker@example.org",
+    location: JSON.stringify({
+      value: "attendeeInPerson",
+      // It can be any string that defines an address where the meeting would occur
+      optionValue: "New York"
+    })
+  }}
+></Cal>
+```
+
+```js
+// Prefill Name, Email and Attendee Address - Vanilla JS
+// You can use 'inline' instruction to do the prefill
+// VanillaJS Demo link - https://codesandbox.io/s/prefill-embed-fields-vanilla-js-zft44w?file=/index.html
+Cal("inline", {
+  config: {
+    name: "Name",
+    email: "booker@example.org",
+    location: JSON.stringify({
+      value: "attendeeInPerson",
+      // It can be any string that defines an address where the meeting would occur
+      optionValue: "New York"
+    })
+  }
+});
+```
+
+```js
+// Prefill Name, Email and Attendee Phonenumber - React
+<Cal
+  // .... other props in here
+  config={{
+    name: "Name",
+    email: "booker@example.org",
+    location: JSON.stringify({
+      value: "phone",
+      // Any valid phonenumber in here
+      optionValue: "+919999999999"
+    })
+  }}
+></Cal>
+```
+
+```js
+// Prefill Name, Email and Attendee Phone - Vanilla JS
+// You can use 'inline' instruction to do the prefill
+Cal("inline", {
+  config: {
+    name: "Name",
+    email: "booker@example.org",
+    location: JSON.stringify({
+      value: "phone",
+      // Any valid phonenumber in here
+      optionValue: "+919999999999"
+    })
+  }
+});
+```
+
+
+## Floating button popup
+```js
+// Prefill Name, Email and Attendee Phone - Vanilla JS
+// You can use 'floatingButton' instruction to do the prefill
+// This is common for React and VanillaJS embeds.
+// Note that for React, Cal is not Cal component here it is Cal API.
+Cal("floatingButton", {
+  config: {
+    name: "Name",
+    email: "booker@example.org",
+    location: JSON.stringify({
+      value: "phone",
+      // Any valid phonenumber in here
+      optionValue: "+919999999999"
+    })
+  }
+});
+```
+
+Other location types and other fields can be prefilled in the similar way. You can find the correct value to give from [here](https://cal.com/docs/core-features/bookings/prefill-fields#fields-with-multiple-values) 
+

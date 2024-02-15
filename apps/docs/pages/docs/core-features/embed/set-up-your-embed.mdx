@@ -1,0 +1,14 @@
+import { useEffect } from "react"
+
+export const Redirect = () => {
+  useEffect(() => {
+    {/* Only perform the redirect on the published site (no need in the preview) */}
+    if (window.location.pathname?.startsWith('/docs/core-features/embed/set-up-your-embed')) {
+      window.location.href = "https://cal.com/docs/core-features/embed/embed-instructions";
+    }
+  }, [])
+  
+  return <></>
+}
+
+<Redirect />

@@ -1,0 +1,25 @@
+---
+title: "Selected calendars"
+---
+
+You can use selected-calendars endpoint in Cal.com's API suite to keep track of which calendars should be checked for conflicts.
+
+## Find all selected calendars
+
+{% openapidoc method="GET" url="https://api.cal.com/docs" path="/selected-calendars" /%}
+
+## Create a new selected calendar
+
+{% openapidoc method="POST" url="https://api.cal.com/docs" path="/selected-calendars" /%}
+
+## Find a selected calendar
+
+{% openapidoc method="GET" url="https://api.cal.com/docs" path="/selected-calendars/{userId}_{integration}_{externalId}" /%}
+
+## Edit an existing selected calendar
+
+{% openapidoc method="PATCH" url="https://api.cal.com/docs" path="/selected-calendars/{userId}_{integration}_{externalId}" /%}
+
+## Remove an existing selected calendar
+
+{% openapidoc method="DELETE" url="https://api.cal.com/docs" path="/selected-calendars/{userId}_{integration}_{externalId}" /%}

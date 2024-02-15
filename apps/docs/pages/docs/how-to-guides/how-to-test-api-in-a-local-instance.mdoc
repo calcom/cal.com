@@ -1,0 +1,19 @@
+---
+title: "How to test API in a local instance"
+---
+
+To test API in your local instance, you have the following pre-requisites:
+
+1. Cal.com repo clone. You can get it by following the instructions provided in [Installation](/docs/introduction/quick-start/self-hosting/installation)
+2. A staging license key that goes in as value for `CALCOM_LICENSE_KEY` in your root `.env` file.
+    
+    You can use the following as staging license key
+    ```
+    1a1f8138-0bfc-4f37-b4af-1e24fd145839
+    ```
+    
+3. Next, you need to install API submodule by following the instructions provided in [API submodule](/docs/introduction/quick-start/self-hosting/installation/platform/api-submodule)
+4. Start the cal.com server using `yarn dev` on localhost and create the test API keys by visiting `/settings/developer/api-keys`
+5. Start the API server by running `yarn workspace @calcom/api dev` and start testing your API locally
+
+{% note type="info" %}By default, the app server runs on port 3000 and the API server runs on port 3002{% /note %}

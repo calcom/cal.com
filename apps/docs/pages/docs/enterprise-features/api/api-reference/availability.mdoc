@@ -1,0 +1,17 @@
+---
+title: "Availabilities"
+---
+
+You can use the availability endpoint to get freebusy and schedule data of any user. 
+
+{% note %}
+In your request query, it is essential to include at least one of the following properties: **username** or **userId** for user availability. Please note that your request won't be processed unless at least one of these properties is provided. Choose the most suitable property based on the context of your request. 
+{% /note %}
+
+## Get a user's availability
+
+{% openapidoc method="GET" url="https://api.cal.com/docs" path="/availability" /%}
+
+## Get a team's availability
+
+{% openapidoc method="GET" url="https://api.cal.com/docs" path="/teams/{teamId}/availability" /%}

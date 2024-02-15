@@ -1,0 +1,62 @@
+---
+title: Embed Events
+---
+{% label /%}
+
+## Actions
+
+You can listen to an action that occurs in embedded cal link as follows. You can think of them as DOM events. We are avoiding the term "events" to not confuse it with Cal Events.
+
+```js
+<script>
+  Cal("on", {
+    action: "ANY_ACTION_NAME",
+    callback: (e)=>{
+      // `data` is properties for the event.
+      // `type` is the name of the action(You can also call it type of the action.) This would be same as "ANY_ACTION_NAME" except when ANY_ACTION_NAME="*" which listens to all the events.
+      // `namespace` tells you the Cal namespace for which the event is fired/
+      const {data, type, namespace} = e.detail;
+    }
+  })
+</script>
+```
+
+## Following are the list of supported actions.
+
+{% table %}
+* Action
+* Description
+* Properties
+---
+* eventTypeSelected	
+* When user chooses an event-type from the listing.
+* eventType:object // Event Type that has been selected"
+---
+* bookingSuccessful
+* When the booking is successfully done. It might not be confirmed.
+* confirmed: boolean; //Whether confirmation from organizer is pending or not eventType: "Object for Event Type that has been booked"; date: string; // Date of Event duration: number; //Duration of booked Event organizer: object //Organizer details like name, timezone, email
+---
+* linkReady	
+* Tells that the link is ready to be shown now.
+* None
+---
+* linkFailed
+* Fired if link fails to load
+* code: number; // Error Code msg: string; //Human Readable msg data: object // More details to debug the error
+---
+* __iframeReady
+* It is fired when the embedded iframe is ready to communicate with parent snippet. This is mostly for internal use by Embed Snippet
+* None
+---
+* __windowLoadComplete
+* Tells that window load for iframe is complete
+* None
+---
+* __dimensionChanged
+* Tells that dimensions of the content inside the iframe changed.
+* iframeWidth:number, iframeHeight:number
+{% /table %}
+
+{% note type="info" %}Actions that start with __ are internal.{% /note %}
+
+To get more details on how Embed actually works, you can refer to this [Embed Flowchart](https://www.figma.com/file/zZ5oaUpg12Fuu5mGZrPlP5/Embed-Flowchart).

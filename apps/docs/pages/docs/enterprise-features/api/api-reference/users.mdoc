@@ -1,0 +1,27 @@
+---
+title: "Users"
+---
+
+The users endpoint allows you to CRUD users within your Cal.com instance.
+
+In self-hosted enterprise instances, user endpoints are exclusively designated for performing Create, Read, Update, and Delete (CRUD) operations. Please note that these endpoints are not accessible on our hosted platform, as they are primarily reserved for administrative API requests. The only exception is the GET request, which permits retrieval of individual user information (non-admin) associated with the originating request.
+
+## Find all users
+
+{% openapidoc method="GET" url="https://api.cal.com/docs" path="/users" /%}
+
+## Find a user
+
+{% openapidoc method="GET" url="https://api.cal.com/docs" path="/users/{userId}" /%}
+
+## Edit an existing user
+
+{% openapidoc method="PATCH" url="https://api.cal.com/docs" path="/users/{userId}" /%}
+
+## Remove an existing user
+
+{% openapidoc method="DELETE" url="https://api.cal.com/docs" path="/users/{userId}" /%}
+
+### Create a new user
+
+{% openapidoc method="POST" url="https://api.cal.com/docs" path="/users" /%}

@@ -1,0 +1,21 @@
+---
+title: "API"
+---
+{% label type="free-cloud"/%}
+
+The Cal.com API is a REST-styled API that gives control over almost the entire Cal.com platform by providing all the resources available to our customers, exposed as simple HTTP endpoints. Whether you need to create an event type, modify it, fetch it, or remove it from your account, you can do all that with simple API requests. This isn't restricted to event types alone. You can do it all with the other resources as well, such as, bookings, availabilities, integrated calendars, schedules, team memberships, payments and much more without ever need to use the UI.
+
+
+### API Server Specifications
+
+All requests must be encoded as JSON with the `Content-Type: application/json` header. If not otherwise specified, responses from the Cal.com API, including errors, are encoded exclusively as JSON as well.
+
+- The API supports HTTP versions 1, 1.1, and 2, although HTTP/2 is preferred.
+- TLS versions 1.2 and 1.3 are supported, with resumption.
+
+The Cal.com API is organized around REST. Our API has predictable resource-oriented URLs, accepts JSON-encoded request bodies, returns JSON-encoded responses, and uses standard HTTP response codes, authentication, and verbs.
+
+{% note type="info" %}We also provide an option for **Application Admin API** requests for some of our endpoints. {% /note %}
+{% note type="warning" %}
+**Please note:** Only Application Admins have access to the Admin API key for elevated requests. This privilege is not extended to Team Admins.
+{% /note %}

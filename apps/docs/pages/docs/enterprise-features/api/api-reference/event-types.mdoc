@@ -1,0 +1,51 @@
+---
+title: "Event types"
+---
+
+These routes allow you to CRUD event types within Cal.com.
+
+## Find all event types
+
+{% openapidoc method="GET" url="https://api.cal.com/docs" path="/event-types" /%}
+
+## Find all team event types
+
+{% openapidoc method="GET" url="https://api.cal.com/docs" path="/teams/{teamId}/event-types" /%}
+
+## Create a new event type
+
+{% openapidoc method="POST" url="https://api.cal.com/docs" path="/event-types" /%}
+
+## Find an event type
+
+{% openapidoc method="GET" url="https://api.cal.com/docs" path="/event-types/{id}" /%}
+
+## Edit an existing event type
+
+{% openapidoc method="PATCH" url="https://api.cal.com/docs" path="/event-types/{id}" /%}
+
+## Remove an existing event type
+
+{% openapidoc method="DELETE" url="https://api.cal.com/docs" path="/event-types/{id}" /%}
+
+## Managed Event Types
+
+To create a Managed Event Type via API, pass in a request of similar structure as a team event type, except the following:
+  - `schedulingType` should be set to `MANAGED`
+  - `metadata` should contain something like
+  ```js
+      {
+        "config": {
+          "useHostSchedulesForTeamEvent": false
+        },
+        "managedEventConfig": {
+          "unlockedFields": {
+            "locations": true,
+            "scheduleId": true,
+            "destinationCalendar": true
+          }
+        }
+      }
+  ```
+This should create a parent event type of scheduling type `MANAGED`. Next, create a child event type which essentially connects to this parent event-type, but is of an individual user instead of being a team event. The request should be pretty much the same, except without a `teamId` or `schedulingType` and with a `userId`.
+

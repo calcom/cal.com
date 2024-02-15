@@ -1,0 +1,1 @@
+export const IFrame = ({ src, className }) => <iframe src={src} className={className} allowfullscreen=""></iframe>
