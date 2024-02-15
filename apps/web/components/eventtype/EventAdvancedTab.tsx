@@ -183,7 +183,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
               checked={useEventTypeDestinationCalendarEmail}
               onCheckedChange={(val) => {
                 setUseEventTypeDestinationCalendarEmail(val);
-                formMethods.setValue("useEventTypeDestinationCalendarEmail", val);
+                formMethods.setValue("useEventTypeDestinationCalendarEmail", val, { shouldDirty: true });
               }}
             />
           </div>
