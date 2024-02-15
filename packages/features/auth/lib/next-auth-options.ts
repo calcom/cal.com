@@ -828,8 +828,9 @@ export const AUTH_OPTIONS: AuthOptions = {
                 (err.code === "P2025" || err.code === "P2016")
               ) {
                 log.warn("UserPassword not found for user", safeStringify(existingUserWithEmail));
+              } else {
+                log.warn("Could not delete UserPassword for user", safeStringify(existingUserWithEmail));
               }
-              log.warn("Could not delete UserPassword for user", safeStringify(existingUserWithEmail));
             }
 
             if (existingUserWithEmail.twoFactorEnabled) {
