@@ -250,7 +250,7 @@ describe("buildDateRanges", () => {
     const dateTo = dayjs("2023-06-15T00:00:00Z");
 
     const timeZone = "America/New_York";
-
+    //add tarvelScheduels
     const results = buildDateRanges({ availability: items, timeZone, dateFrom, dateTo });
     // [
     //  { s: '2023-06-13T10:00:00-04:00', e: '2023-06-13T15:00:00-04:00' },
@@ -287,6 +287,7 @@ describe("buildDateRanges", () => {
 
     const dateFrom = dayjs.tz("2023-08-15", "Europe/Brussels").startOf("day");
     const dateTo = dayjs.tz("2023-08-15", "Europe/Brussels").endOf("day");
+    //add tarvelScheduels
 
     const result = buildDateRanges({ availability: item, timeZone, dateFrom, dateTo });
     // this happened only on Europe/Brussels, Europe/Amsterdam was 2023-08-15T17:00:00-10:00 (as it should be)
@@ -309,6 +310,7 @@ describe("buildDateRanges", () => {
 
     const dateFrom = dayjs("2023-06-13T00:00:00Z");
     const dateTo = dayjs("2023-06-15T00:00:00Z");
+    //add tarvelScheduels
 
     const results = buildDateRanges({ availability: items, timeZone, dateFrom, dateTo });
 
@@ -329,6 +331,7 @@ describe("buildDateRanges", () => {
 
     const dateFrom = dayjs("2023-06-13T10:00:00Z");
     const dateTo = dayjs("2023-06-13T10:30:00Z");
+    //add tarvelScheduels
 
     const results = buildDateRanges({ availability: items, timeZone, dateFrom, dateTo });
 
@@ -354,6 +357,7 @@ describe("buildDateRanges", () => {
 
     const dateFrom = dayjs("2023-06-13T00:00:00Z");
     const dateTo = dayjs("2023-06-15T00:00:00Z");
+    //add tarvelScheduels
 
     const results = buildDateRanges({ availability: items, timeZone, dateFrom, dateTo });
 

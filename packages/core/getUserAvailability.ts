@@ -336,8 +336,15 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     dateTo,
     availability,
     timeZone,
+    travelSchedules: user.travelSchedules.map((schedule) => {
+      return {
+        startDate: dayjs(schedule.startDate),
+        endDate: schedule.endDate ? dayjs(schedule.endDate) : undefined,
+        timeZone: schedule.timeZone,
+      };
+    }),
   });
-
+  console.log(`date ragens ${JSON.stringify(dateRanges)}`);
   const formattedBusyTimes = detailedBusyTimes.map((busy) => ({
     start: dayjs(busy.start),
     end: dayjs(busy.end),

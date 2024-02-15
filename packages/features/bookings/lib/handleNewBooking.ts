@@ -419,7 +419,6 @@ const loadUsers = async (eventType: NewBookingEventType, dynamicUserList: string
         usernameList: dynamicUserList,
         orgSlug: isValidOrgDomain ? currentOrgDomain : null,
       });
-
       return users;
     }
     const hosts = eventType.hosts || [];
