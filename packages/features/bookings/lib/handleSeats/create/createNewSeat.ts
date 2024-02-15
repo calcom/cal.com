@@ -4,6 +4,7 @@ import { uuid } from "short-uuid";
 
 import EventManager from "@calcom/core/EventManager";
 import { sendScheduledSeatsEmails } from "@calcom/emails";
+import { refreshCredentials } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/refreshCredentials";
 import {
   allowDisablingAttendeeConfirmationEmails,
   allowDisablingHostConfirmationEmails,
@@ -14,7 +15,6 @@ import { handlePayment } from "@calcom/lib/payment/handlePayment";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 
-import { refreshCredentials } from "../../../../../../modules/credentials/refreshCredentials";
 import type { IEventTypePaymentCredentialType } from "../../handleNewBooking";
 import { findBookingQuery } from "../../handleNewBooking";
 import type { SeatedBooking, NewSeatedBookingObject, HandleSeatsResultBooking } from "../types";

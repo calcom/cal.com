@@ -84,7 +84,6 @@ import {
   EventTypeMetaDataSchema,
   userMetadata as userMetadataSchema,
 } from "@calcom/prisma/zod-utils";
-import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
 import type {
   AdditionalInformation,
   AppsStatus,
@@ -95,10 +94,10 @@ import type {
 import type { CredentialPayload } from "@calcom/types/Credential";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 
-import { checkForConflicts } from "../../../../modules/conflictChecker/checkForConflicts";
-import { getAllCredentials } from "../../../../modules/credentials/getAllCredentials";
-import { refreshCredentials } from "../../../../modules/credentials/refreshCredentials";
 import type { EventTypeInfo } from "../../webhooks/lib/sendPayload";
+import { checkForConflicts } from "./conflictChecker/checkForConflicts";
+import { getAllCredentials } from "./getAllCredentialsForUsersOnEvent/getAllCredentials";
+import { refreshCredentials } from "./getAllCredentialsForUsersOnEvent/refreshCredentials";
 import getBookingDataSchema from "./getBookingDataSchema";
 import handleSeats from "./handleSeats/handleSeats";
 import type { BookingSeat } from "./handleSeats/types";
@@ -107,7 +106,6 @@ const translator = short();
 const log = logger.getSubLogger({ prefix: ["[api] book:user"] });
 
 type User = Prisma.UserGetPayload<typeof userSelect>;
-type BufferedBusyTimes = BufferedBusyTime[];
 type BookingType = Prisma.PromiseReturnType<typeof getOriginalRescheduledBooking>;
 export type Booking = Prisma.PromiseReturnType<typeof createBooking>;
 export type NewBookingEventType =
