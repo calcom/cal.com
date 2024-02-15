@@ -194,6 +194,13 @@ enum UserPermissionRole {
   ADMIN
 }
 
+// It holds the password of a User, separate from the User model to avoid leaking the password hash
+model UserPassword {
+  hash   String
+  userId Int    @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
 // It holds Personal Profiles of a User plus it has email, password and other core things
 model User {
   id                  Int                  @id @default(autoincrement())
@@ -202,7 +209,7 @@ model User {
   /// @zod.email()
   email               String
   emailVerified       DateTime?
-  password            String?
+  password            UserPassword?
   bio                 String?
   avatar              String?
   avatarUrl           String?
