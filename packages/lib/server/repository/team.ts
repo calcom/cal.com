@@ -166,6 +166,8 @@ const teamSelect = Prisma.validator<Prisma.TeamSelect>()({
   logoUrl: true,
   parentId: true,
   metadata: true,
+  isOrganization: true,
+  organizationSettings: true,
 });
 
 export class TeamRepository {

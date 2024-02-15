@@ -57,5 +57,8 @@ export async function createOrgInDb({
           : null),
       },
     },
+    include: {
+      organizationSettings: true,
+    },
   });
 }

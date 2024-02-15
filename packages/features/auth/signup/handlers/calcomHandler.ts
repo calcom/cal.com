@@ -128,7 +128,14 @@ async function handler(req: RequestWithUsernameStatus, res: NextApiResponse) {
         id: foundToken.teamId,
       },
       include: {
-        parent: true,
+        parent: {
+          select: {
+            id: true,
+            slug: true,
+            organizationSettings: true,
+          },
+        },
+        organizationSettings: true,
       },
     });
     if (team) {

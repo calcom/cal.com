@@ -73,10 +73,11 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
             select: {
               slug: true,
               isOrganization: true,
+              organizationSettings: true,
             },
           },
           slug: true,
-          isOrganization: true,
+          organizationSettings: true,
         },
       },
     },
