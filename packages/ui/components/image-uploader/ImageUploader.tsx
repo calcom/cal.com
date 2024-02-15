@@ -46,7 +46,7 @@ function CropContainer({
           image={imageSrc}
           crop={crop}
           zoom={zoom}
-          aspect={3}
+          aspect={1}
           onCropChange={setCrop}
           onCropComplete={(croppedArea, croppedAreaPixels) => onCropComplete(croppedAreaPixels)}
           onZoomChange={setZoom}
@@ -141,7 +141,7 @@ export default function ImageUploader({
                   </p>
                 ) : (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img className="h-20 w-80 rounded-full" src={imageSrc} alt={target} />
+                  <img className="h-20 w-20 rounded-full" src={imageSrc} alt={target} />
                 )}
               </div>
             )}
