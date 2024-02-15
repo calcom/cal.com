@@ -332,8 +332,7 @@ const assertBookingVisibleFor = async (
 ) => {
   await user.apiLogin();
   await pageFixture.goto(`/bookings/upcoming`);
-  const upcomingBookings = pageFixture.locator('[data-testid="upcoming-bookings"]');
-  const upcomingBookingList = upcomingBookings.locator('[data-testid="booking-item"]').nth(0);
+  const upcomingBookingList = pageFixture.locator('[data-testid="booking-item"]');
   shouldBeVisible
     ? await expect(upcomingBookingList.locator(`text=${eventType.title}`)).toBeVisible()
     : await expect(upcomingBookingList.locator(`text=${eventType.title}`)).toBeHidden();
