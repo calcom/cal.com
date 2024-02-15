@@ -260,7 +260,7 @@ test.describe("Routing Forms", () => {
         ["external-redirect", ""],
         ["custom-page", ""],
       ]);
-      
+
       await page.goto(`apps/routing-forms/route-builder/${routingForm.id}`);
       const [download] = await Promise.all([
         // Start waiting for the download

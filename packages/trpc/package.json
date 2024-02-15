@@ -17,6 +17,6 @@
     "@trpc/react-query": "11.0.0-next-beta.222",
     "@trpc/server": "11.0.0-next-beta.222",
     "superjson": "1.9.1",
-    "zod": "^3.22.2"
+    "zod": "^3.22.4"
   }
 }
