@@ -810,14 +810,23 @@ export const AUTH_OPTIONS: AuthOptions = {
               where: { email: existingUserWithEmail.email },
               // also update email to the IdP email
               data: {
-                password: {
-                  delete: true,
-                },
                 email: user.email,
                 identityProvider: idP,
                 identityProviderId: account.providerAccountId,
               },
             });
+
+            // safely delete password from UserPassword table if it exists
+            try {
+              await prisma.userPassword.delete({
+                where: { email: existingUserWithEmail.email },
+              });
+            } catch (err) {
+              if (e.code === "P2025" || e.code === "P2016") {
+                log.warn("UserPassword not found for user", safeStringify(existingUserWithEmail));
+              }
+            }
+
             if (existingUserWithEmail.twoFactorEnabled) {
               return loginWithTotp(existingUserWithEmail.email);
             } else {
