@@ -146,7 +146,7 @@ const ProfileView = () => {
       utils.viewer.me.invalidate();
     },
     onError: (error) => {
-      showToast(`Error: ${error.message}`, "error");
+      setSecondaryEmailAddErrorMessage(error?.message || "");
     },
   });
 
@@ -158,6 +158,7 @@ const ProfileView = () => {
   const [confirmAuthEmailChangeWarningDialogOpen, setConfirmAuthEmailChangeWarningDialogOpen] =
     useState(false);
   const [showSecondaryEmailModalOpen, setShowSecondaryEmailModalOpen] = useState(false);
+  const [secondaryEmailAddErrorMessage, setSecondaryEmailAddErrorMessage] = useState("");
   const [newlyAddedSecondaryEmail, setNewlyAddedSecondaryEmail] = useState<undefined | string>(undefined);
 
   const [deleteAccountOpen, setDeleteAccountOpen] = useState(false);
@@ -457,8 +458,19 @@ const ProfileView = () => {
       {showSecondaryEmailModalOpen && (
         <SecondaryEmailModal
           isLoading={addSecondaryEmailMutation.isPending}
-          handleAddEmail={(values) => addSecondaryEmailMutation.mutate(values)}
-          onCancel={() => setShowSecondaryEmailModalOpen(false)}
+          errorMessage={secondaryEmailAddErrorMessage}
+          handleAddEmail={(values) => {
+            setSecondaryEmailAddErrorMessage("");
+            addSecondaryEmailMutation.mutate(values);
+          }}
+          onCancel={() => {
+            setSecondaryEmailAddErrorMessage("");
+            setShowSecondaryEmailModalOpen(false);
+          }}
+          clearErrorMessage={() => {
+            addSecondaryEmailMutation.reset();
+            setSecondaryEmailAddErrorMessage("");
+          }}
         />
       )}
       {!!newlyAddedSecondaryEmail && (
