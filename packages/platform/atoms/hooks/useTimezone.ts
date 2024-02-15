@@ -1,18 +1,18 @@
 import { useEffect } from "react";
 
-import { useApiKey } from "../hooks/useApiKeys";
 import { useMe } from "./useMe";
 
 export const useTimezone = (
   onTimeZoneChange: (currentTimezone: string) => void,
   currentTimezone: string = new Intl.DateTimeFormat().resolvedOptions().timeZone
 ) => {
-  const { key } = useApiKey();
-  const { timeZone: preferredTimezone } = useMe(key);
+  const user = useMe();
+  const preferredTimezone = user?.data.user.timeZone;
 
   useEffect(() => {
-    if (preferredTimezone !== currentTimezone) {
-      onTimeZoneChange(currentTimezone);
+    if (preferredTimezone && preferredTimezone !== currentTimezone) {
+      // TODO: figure out how to do patch request correctly in axios
+      // onTimeZoneChange(currentTimezone);
     }
   }, [currentTimezone, preferredTimezone, onTimeZoneChange]);
 };
