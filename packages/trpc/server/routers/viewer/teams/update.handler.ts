@@ -56,9 +56,11 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     theme: input.theme,
   };
 
-  if (input.logo) {
+  if (input.logo && input.logo.startsWith("data:image/png;base64,")) {
     data.logo = input.logo;
     data.logoUrl = await uploadLogo({ teamId: input.id, logo: input.logo });
+  } else if (typeof input.logo !== "undefined" && !input.logo) {
+    data.logo = data.logoUrl = null;
   }
 
   if (
