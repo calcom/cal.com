@@ -2,6 +2,9 @@ import type { Page } from "@playwright/test";
 
 export function createAppsFixture(page: Page) {
   return {
+    goToAppsPage: async () => {
+      await page.goto("/apps");
+    },
     goToAppsCategory: async (category: string) => {
       await page.getByTestId(`app-store-category-${category}`).nth(1).click();
       await page.goto("apps/categories/analytics");
