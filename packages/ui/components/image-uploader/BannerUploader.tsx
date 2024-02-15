@@ -117,7 +117,9 @@ export default function BannerUploader({
 
   useEffect(() => {
     const checkDimensions = async () => {
-      const image = await createImage(result);
+      const image = await createImage(
+        result as string /* result is always string when using readAsDataUrl */
+      );
       if (image.naturalWidth !== width || image.naturalHeight !== height) {
         showToast(t("org_banner_instructions", { height, width }), "warning");
       }
