@@ -50,6 +50,7 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
 
   const isOrg = team.isOrganization;
 
+  // Only owners can award owner role in an organization.
   if (isOrg && input.role === MembershipRole.OWNER && !(await isOrganisationOwner(ctx.user.id, input.teamId)))
     throw new TRPCError({ code: "UNAUTHORIZED" });
 
@@ -61,7 +62,6 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
   });
 
   const { autoAcceptEmailDomain, orgVerified } = getIsOrgVerified(isOrg, team);
-  // Only owners can award owner role in an organization.
 
   const usernameOrEmailsToInvite = await getUsernameOrEmailsToInvite(input.usernameOrEmail);
   const orgConnectInfoByUsernameOrEmail = usernameOrEmailsToInvite.reduce((acc, usernameOrEmail) => {
