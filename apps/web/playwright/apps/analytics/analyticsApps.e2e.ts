@@ -7,18 +7,26 @@ test.describe("Check analytics Apps", () => {
     const user = await users.create();
     await user.apiLogin();
   });
-
   test("Check analytics Apps", async ({ appsPage }) => {
-    ALL_APPS.forEach(async (app, index) => {
-      await appsPage.goToAppsPage();
-      await appsPage.goToAppsCategory("analytics");
-      await appsPage.goToApp(app);
-      await appsPage.goToEventTypesPage();
-      await appsPage.goToEventType("30 min");
-      await appsPage.goToAppsTab();
+    await appsPage.goToAppsCategory("analytics");
+    await appsPage.goToApp("fathom");
+    await appsPage.goBackToAppsPage();
+    await appsPage.goToApp("matomo");
+    await appsPage.goBackToAppsPage();
+    await appsPage.goToApp("plausible");
+    await appsPage.goBackToAppsPage();
+    await appsPage.goToApp("ga4");
+    await appsPage.goBackToAppsPage();
+    await appsPage.goToApp("gtm");
+    await appsPage.goBackToAppsPage();
+    await appsPage.goToApp("metapixel");
+    await appsPage.goToEventTypesPage();
+    await appsPage.goToEventType("30 min");
+    await appsPage.goToAppsTab();
+    await appsPage.verifyAppsInfo(0);
+    ALL_APPS.forEach(async (app) => {
       await appsPage.checkAndFillApp(app);
-      await appsPage.verifyAppsInfo(index + 1);
-      await appsPage.goBackToAppsPage();
     });
+    await appsPage.verifyAppsInfo(6);
   });
 });
