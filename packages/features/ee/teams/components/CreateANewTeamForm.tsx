@@ -43,8 +43,7 @@ export const CreateANewTeamForm = () => {
   const orgBranding = useOrgBranding();
 
   const returnToParam =
-    (parsedQuery.success ? getSafeRedirectUrl(parsedQuery.data.returnTo) : "/settings/teams") ||
-    "/settings/teams";
+    (parsedQuery.success ? getSafeRedirectUrl(parsedQuery.data.returnTo) : "/teams") || "/teams";
 
   const newTeamFormMethods = useForm<NewTeamFormValues>({
     defaultValues: {

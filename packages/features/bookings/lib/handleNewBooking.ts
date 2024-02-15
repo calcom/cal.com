@@ -208,6 +208,7 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
       durationLimits: true,
       assignAllTeamMembers: true,
       parentId: true,
+      useEventTypeDestinationCalendarEmail: true,
       owner: {
         select: {
           hideBranding: true,
@@ -233,6 +234,7 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
       hosts: {
         select: {
           isFixed: true,
+          priority: true,
           user: {
             select: {
               credentials: {
@@ -269,6 +271,7 @@ type IsFixedAwareUser = User & {
   isFixed: boolean;
   credentials: CredentialPayload[];
   organization: { slug: string };
+  priority?: number;
 };
 
 const loadUsers = async (eventType: NewBookingEventType, dynamicUserList: string[], req: IncomingMessage) => {
@@ -291,9 +294,10 @@ const loadUsers = async (eventType: NewBookingEventType, dynamicUserList: string
       throw new Error("eventType.hosts is not properly defined.");
     }
 
-    const users = hosts.map(({ user, isFixed }) => ({
+    const users = hosts.map(({ user, isFixed, priority }) => ({
       ...user,
       isFixed,
+      priority,
     }));
 
     return users.length ? users : eventType.users;
@@ -314,7 +318,6 @@ export async function ensureAvailableUsers(
 ) {
   const availableUsers: IsFixedAwareUser[] = [];
   const duration = dayjs(input.dateTo).diff(input.dateFrom, "minute");
-
   const originalBookingDuration = input.originalRescheduledBooking
     ? dayjs(input.originalRescheduledBooking.endTime).diff(
         dayjs(input.originalRescheduledBooking.startTime),
@@ -605,6 +608,7 @@ async function createBooking({
 
   const newBookingData: Prisma.BookingCreateInput = {
     uid,
+    userPrimaryEmail: evt.organizer.email,
     responses: responses === null || evt.seatsPerTimeSlot ? Prisma.JsonNull : responses,
     title: evt.title,
     startTime: dayjs.utc(evt.startTime).toDate(),
@@ -1191,7 +1195,6 @@ async function handler(
         },
         loggerWithEventDetails
       );
-
       const luckyUsers: typeof users = [];
       const luckyUserPool = availableUsers.filter((user) => !user.isFixed);
       const notAvailableLuckyUsers: typeof users = [];
@@ -1361,6 +1364,7 @@ async function handler(
     if (isTeamEventType && eventType.schedulingType === "COLLECTIVE" && user.destinationCalendar) {
       teamDestinationCalendars.push(user.destinationCalendar);
     }
+
     return {
       id: user.id,
       email: user.email ?? "",
@@ -1413,6 +1417,12 @@ async function handler(
     ? await getBookerBaseUrl(eventType.team.parentId)
     : await getBookerBaseUrl(organizerOrganizationId ?? null);
 
+  const destinationCalendar = eventType.destinationCalendar
+    ? [eventType.destinationCalendar]
+    : organizerUser.destinationCalendar
+    ? [organizerUser.destinationCalendar]
+    : null;
+
   let evt: CalendarEvent = {
     bookerUrl,
     type: eventType.slug,
@@ -1425,7 +1435,10 @@ async function handler(
     organizer: {
       id: organizerUser.id,
       name: organizerUser.name || "Nameless",
-      email: organizerUser.email || "Email-less",
+      email:
+        eventType.useEventTypeDestinationCalendarEmail && destinationCalendar?.[0]?.primaryEmail
+          ? destinationCalendar[0].primaryEmail
+          : organizerUser.email || "Email-less",
       username: organizerUser.username || undefined,
       timeZone: organizerUser.timeZone,
       language: { translate: tOrganizer, locale: organizerUser.locale ?? "en" },
@@ -1436,11 +1449,7 @@ async function handler(
     attendees: attendeesList,
     location: bookingLocation, // Will be processed by the EventManager later.
     conferenceCredentialId,
-    destinationCalendar: eventType.destinationCalendar
-      ? [eventType.destinationCalendar]
-      : organizerUser.destinationCalendar
-      ? [organizerUser.destinationCalendar]
-      : null,
+    destinationCalendar,
     hideCalendarNotes: eventType.hideCalendarNotes,
     requiresConfirmation: !isConfirmedByDefault,
     eventTypeId: eventType.id,

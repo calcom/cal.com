@@ -11,6 +11,9 @@ jobs:
     services:
       postgres:
         image: postgres:12.1
+        credentials:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
         env:
           POSTGRES_USER: postgres
           POSTGRES_DB: calendso
@@ -18,6 +21,9 @@ jobs:
           - 5432:5432
       mailhog:
         image: mailhog/mailhog:v1.0.1
+        credentials:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
         ports:
           - 8025:8025
           - 1025:1025

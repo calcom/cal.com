@@ -42,6 +42,8 @@ test.describe("2FA Tests", async () => {
       await fillOtp({ page, secret: "123456", noRetry: true });
       await expect(page.locator('[data-testid="error-submitting-code"]')).toBeVisible();
 
+      await removeOtpInput(page);
+
       await fillOtp({
         page,
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -161,6 +163,14 @@ test.describe("2FA Tests", async () => {
     });
   });
 });
+
+async function removeOtpInput(page: Page) {
+  await page.locator('input[name="2fa6"]').waitFor({ state: "visible", timeout: 30_000 });
+
+  // Remove one OTP input
+  await page.locator('input[name="2fa6"]').focus();
+  await page.keyboard.press("Backspace");
+}
 
 async function fillOtp({ page, secret, noRetry }: { page: Page; secret: string; noRetry?: boolean }) {
   let token = authenticator.generate(secret);
