@@ -1,4 +1,6 @@
 import { expect } from "@playwright/test";
+import type { Page } from "@playwright/test";
+import type { createUsersFixture } from "playwright/fixtures/users";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 
@@ -219,7 +221,13 @@ test.describe("Update Profile", () => {
     const newlyAddedSecondaryEmail = page.getByTestId("profile-form-email-1");
     expect(await newlyAddedSecondaryEmail.inputValue()).toEqual(secondaryEmail);
   });
-  const createSecondaryEmail = async ({ page, users }) => {
+  const createSecondaryEmail = async ({
+    page,
+    users,
+  }: {
+    page: Page;
+    users: ReturnType<typeof createUsersFixture>;
+  }) => {
     const user = await users.create({
       name: "update-profile-user",
     });
