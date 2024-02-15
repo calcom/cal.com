@@ -351,10 +351,10 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
         let emailVerified = keyedSecondaryEmailsFromDB[updated.id].emailVerified;
         if (secondaryEmail?.id === updated.id) {
           emailVerified = primaryEmailVerified;
-        }
-        if (updated.email !== keyedSecondaryEmailsFromDB[updated.id].email) {
+        } else if (updated.email !== keyedSecondaryEmailsFromDB[updated.id].email) {
           emailVerified = null;
         }
+
         return prisma.secondaryEmail.update({
           where: {
             id: updated.id,
