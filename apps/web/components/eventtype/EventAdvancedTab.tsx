@@ -30,6 +30,7 @@ import {
   Label,
   SettingsToggle,
   showToast,
+  Switch,
   TextField,
   Tooltip,
 } from "@calcom/ui";
@@ -44,10 +45,12 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
   const { data: user } = trpc.viewer.me.useQuery();
   const formMethods = useFormContext<FormValues>();
   const { t } = useLocale();
-
   const [showEventNameTip, setShowEventNameTip] = useState(false);
   const [hashedLinkVisible, setHashedLinkVisible] = useState(!!formMethods.getValues("hashedLink"));
   const [redirectUrlVisible, setRedirectUrlVisible] = useState(!!formMethods.getValues("successRedirectUrl"));
+  const [useEventTypeDestinationCalendarEmail, setUseEventTypeDestinationCalendarEmail] = useState(
+    formMethods.getValues("useEventTypeDestinationCalendarEmail")
+  );
   const [hashedUrl, setHashedUrl] = useState(eventType.hashedLink?.link);
 
   const bookingFields: Prisma.JsonObject = {};
@@ -116,6 +119,8 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
   const seatsLocked = shouldLockDisableProps("seatsPerTimeSlotEnabled");
 
   const closeEventNameTip = () => setShowEventNameTip(false);
+  const displayDestinationCalendarSelector =
+    !!connectedCalendarsQuery.data?.connectedCalendars.length && !team;
 
   return (
     <div className="flex flex-col space-y-4">
@@ -125,7 +130,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
        * This will fallback to each user selected destination calendar.
        */}
       <div className="border-subtle space-y-6 rounded-lg border p-6">
-        {!!connectedCalendarsQuery.data?.connectedCalendars.length && !team && (
+        {displayDestinationCalendarSelector && (
           <div className="flex flex-col">
             <div className="flex justify-between">
               <div>
@@ -171,6 +176,18 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
             }
           />
         </div>
+        {displayDestinationCalendarSelector && (
+          <div className="w-full">
+            <Switch
+              label={t("display_add_to_calendar_organizer")}
+              checked={useEventTypeDestinationCalendarEmail}
+              onCheckedChange={(val) => {
+                setUseEventTypeDestinationCalendarEmail(val);
+                formMethods.setValue("useEventTypeDestinationCalendarEmail", val);
+              }}
+            />
+          </div>
+        )}
       </div>
 
       <BookerLayoutSelector fallbackToUserSettings isDark={selectedThemeIsDark} isOuterBorder={true} />

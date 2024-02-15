@@ -3383,7 +3383,7 @@ __metadata:
     mailparser: ^3.6.5
     next: ^13.5.4
     supports-color: 8.1.1
-    zod: ^3.22.2
+    zod: ^3.22.4
   languageName: unknown
   linkType: soft
 
@@ -3436,7 +3436,7 @@ __metadata:
     typescript: ^4.9.4
     tzdata: ^1.0.30
     uuid: ^8.3.2
-    zod: ^3.22.2
+    zod: ^3.22.4
   languageName: unknown
   linkType: soft
 
@@ -3745,7 +3745,7 @@ __metadata:
     "@sendgrid/mail": ^7.6.2
     libphonenumber-js: ^1.10.51
     twilio: ^3.80.1
-    zod: ^3.22.2
+    zod: ^3.22.4
   languageName: unknown
   linkType: soft
 
@@ -4214,7 +4214,7 @@ __metadata:
     npm-run-all: ^4.1.5
     prisma: ^5.4.2
     ts-node: ^10.9.1
-    zod: ^3.22.2
+    zod: ^3.22.4
     zod-prisma: ^0.5.4
   languageName: unknown
   linkType: soft
@@ -4393,7 +4393,7 @@ __metadata:
     stripe: ^9.16.0
     ts-node: ^10.9.1
     uuid: ^8.3.2
-    zod: ^3.22.2
+    zod: ^3.22.4
   languageName: unknown
   linkType: soft
 
@@ -4453,7 +4453,7 @@ __metadata:
     "@trpc/react-query": 11.0.0-next-beta.222
     "@trpc/server": 11.0.0-next-beta.222
     superjson: 1.9.1
-    zod: ^3.22.2
+    zod: ^3.22.4
   languageName: unknown
   linkType: soft
 
@@ -4699,7 +4699,7 @@ __metadata:
     turndown: ^7.1.1
     typescript: ^4.9.4
     uuid: ^8.3.2
-    zod: ^3.22.2
+    zod: ^3.22.4
   languageName: unknown
   linkType: soft
 
