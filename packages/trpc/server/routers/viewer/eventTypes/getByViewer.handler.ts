@@ -198,7 +198,7 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
     if (!input?.filters || !hasFilter(input?.filters)) {
       return true;
     }
-    return input?.filters?.teamIds?.includes(eventType?.team?.id || 0) ?? false;
+    return input?.filters?.teamIds?.includes(eventType?.teamId || 0) ?? false;
   };
   eventTypeGroups = ([] as EventTypeGroup[]).concat(
     eventTypeGroups,
@@ -253,6 +253,7 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
                   })
                 : getTeamAvatarUrl({
                     slug: team.slug,
+                    logoUrl: team.logoUrl,
                     requestedSlug: team.metadata?.requestedSlug ?? null,
                     organizationId: team.parentId,
                   }),

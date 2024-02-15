@@ -1,4 +1,5 @@
 import type { Prisma } from "@prisma/client";
+import { v4 as uuidv4 } from "uuid";
 
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import { getMetadataHelpers } from "@calcom/lib/getMetadataHelpers";
@@ -18,6 +19,30 @@ type UpdateOptions = {
     user: NonNullable<TrpcSessionUser>;
   };
   input: TUpdateInputSchema;
+};
+
+export const uploadLogo = async ({ teamId, logo: data }: { teamId: number; logo: string }) => {
+  const objectKey = uuidv4();
+
+  await prisma.avatar.upsert({
+    where: {
+      teamId_userId: {
+        teamId,
+        userId: 0,
+      },
+    },
+    create: {
+      teamId,
+      data,
+      objectKey,
+    },
+    update: {
+      data,
+      objectKey,
+    },
+  });
+
+  return `/api/avatar/${objectKey}.png`;
 };
 
 export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
@@ -60,7 +85,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
   const data: Prisma.TeamUpdateArgs["data"] = {
     name: input.name,
-    logo: input.logo,
     calVideoLogo: input.calVideoLogo,
     bio: input.bio,
     hideBranding: input.hideBranding,
@@ -73,6 +97,14 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     timeFormat: input.timeFormat,
     metadata: mergeMetadata({ ...input.metadata }),
   };
+
+  if (input.logo) {
+    data.logo = input.logo;
+    data.logoUrl = await uploadLogo({
+      logo: input.logo,
+      teamId: currentOrgId,
+    });
+  }
 
   if (input.slug) {
     if (

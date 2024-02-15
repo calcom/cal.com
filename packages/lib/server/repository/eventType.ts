@@ -99,12 +99,6 @@ export class EventTypeRepository {
     const profileId = lookupTarget.type === LookupTarget.User ? null : lookupTarget.id;
     const select = {
       ...eventTypeSelect,
-      // TODO:  As required by getByViewHandler - Make it configurable
-      team: {
-        select: {
-          id: true,
-        },
-      },
       hashedLink: true,
       users: { select: userSelect },
       children: {

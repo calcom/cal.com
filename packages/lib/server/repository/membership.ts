@@ -103,11 +103,6 @@ export class MembershipRepository {
             eventTypes: {
               select: {
                 ...eventTypeSelect,
-                team: {
-                  select: {
-                    id: true,
-                  },
-                },
                 hashedLink: true,
                 users: { select: userSelect },
                 children: {
