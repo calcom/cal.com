@@ -1,4 +1,5 @@
 import type { Membership, Team, UserPermissionRole } from "@prisma/client";
+import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import type { AuthOptions, Session } from "next-auth";
 import type { JWT } from "next-auth/jwt";
 import { encode } from "next-auth/jwt";
@@ -806,7 +807,7 @@ export const AUTH_OPTIONS: AuthOptions = {
             existingUserWithEmail.identityProvider === IdentityProvider.CAL &&
             (idP === IdentityProvider.GOOGLE || idP === IdentityProvider.SAML)
           ) {
-            await prisma.user.update({
+            const updatedUser = await prisma.user.update({
               where: { email: existingUserWithEmail.email },
               // also update email to the IdP email
               data: {
@@ -819,12 +820,16 @@ export const AUTH_OPTIONS: AuthOptions = {
             // safely delete password from UserPassword table if it exists
             try {
               await prisma.userPassword.delete({
-                where: { email: existingUserWithEmail.email },
+                where: { userId: updatedUser.id },
               });
             } catch (err) {
-              if (e.code === "P2025" || e.code === "P2016") {
+              if (
+                err instanceof PrismaClientKnownRequestError &&
+                (err.code === "P2025" || err.code === "P2016")
+              ) {
                 log.warn("UserPassword not found for user", safeStringify(existingUserWithEmail));
               }
+              log.warn("Could not delete UserPassword for user", safeStringify(existingUserWithEmail));
             }
 
             if (existingUserWithEmail.twoFactorEnabled) {
