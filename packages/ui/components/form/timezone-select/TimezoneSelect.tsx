@@ -13,18 +13,29 @@ export interface ICity {
   timezone: string;
 }
 
-export function TimezoneSelect({
+export function TimezoneSelect(props: SelectProps & { variant?: "default" | "minimal" }) {
+  const { data, isPending } = trpc.viewer.public.cityTimezones.useQuery(undefined, {
+    trpc: { context: { skipBatch: true } },
+  });
+
+  return <TimezoneSelectComponent data={data} isPending={isPending} {...props} />;
+}
+
+export function TimezoneSelectComponent({
   className,
   classNames: timezoneClassNames,
   components,
   variant = "default",
+  data,
+  isPending,
   value,
   ...props
-}: SelectProps & { variant?: "default" | "minimal" }) {
+}: SelectProps & {
+  variant?: "default" | "minimal";
+  isPending: boolean;
+  data: ICity[] | undefined;
+}) {
   const [cities, setCities] = useState<ICity[]>([]);
-  const { data, isPending } = trpc.viewer.public.cityTimezones.useQuery(undefined, {
-    trpc: { context: { skipBatch: true } },
-  });
   const handleInputChange = (tz: string) => {
     if (data) setCities(filterByCities(tz, data));
   };
