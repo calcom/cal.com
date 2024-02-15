@@ -179,7 +179,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
         {displayDestinationCalendarSelector && (
           <div className="w-full">
             <Switch
-              label={t("display_add_to_calendar_organizer")}
+              label={`${t("display_add_to_calendar_organizer")}. ${t("reconnect_calendar_to_use")} `}
               checked={useEventTypeDestinationCalendarEmail}
               onCheckedChange={(val) => {
                 setUseEventTypeDestinationCalendarEmail(val);
