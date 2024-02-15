@@ -127,24 +127,31 @@ async function handler(req: RequestWithUsernameStatus, res: NextApiResponse) {
       where: {
         id: foundToken.teamId,
       },
+      include: {
+        parent: true,
+      },
     });
     if (team) {
       const user = await prisma.user.upsert({
         where: { email },
         update: {
           username,
-          password: hashedPassword,
           emailVerified: new Date(Date.now()),
           identityProvider: IdentityProvider.CAL,
+          password: {
+            upsert: {
+              create: { hash: hashedPassword },
+              update: { hash: hashedPassword },
+            },
+          },
         },
         create: {
           username,
           email,
-          password: hashedPassword,
           identityProvider: IdentityProvider.CAL,
+          password: { create: { hash: hashedPassword } },
         },
       });
-
       // Wrapping in a transaction as if one fails we want to rollback the whole thing to preventa any data inconsistencies
       const { membership } = await createOrUpdateMemberships({
         user,
@@ -154,10 +161,10 @@ async function handler(req: RequestWithUsernameStatus, res: NextApiResponse) {
       closeComUpsertTeamUser(team, user, membership.role);
 
       // Accept any child team invites for orgs.
-      if (team.parentId) {
+      if (team.parent) {
         await joinAnyChildTeamOnOrgInvite({
           userId: user.id,
-          orgId: team.parentId,
+          org: team.parent,
         });
       }
     }
@@ -174,7 +181,7 @@ async function handler(req: RequestWithUsernameStatus, res: NextApiResponse) {
       data: {
         username,
         email,
-        password: hashedPassword,
+        password: { create: { hash: hashedPassword } },
         metadata: {
           stripeCustomerId: customer.id,
           checkoutSessionId,

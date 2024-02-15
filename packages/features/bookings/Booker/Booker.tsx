@@ -21,6 +21,7 @@ import { AvailableTimeSlots } from "./components/AvailableTimeSlots";
 import { BookEventForm } from "./components/BookEventForm";
 import { BookFormAsModal } from "./components/BookEventForm/BookFormAsModal";
 import { EventMeta } from "./components/EventMeta";
+import { HavingTroubleFindingTime } from "./components/HavingTroubleFindingTime";
 import { Header } from "./components/Header";
 import { InstantBooking } from "./components/InstantBooking";
 import { LargeCalendar } from "./components/LargeCalendar";
@@ -86,6 +87,9 @@ const BookerComponent = ({
     isEmbed,
     bookerLayouts,
   } = useBookerLayout(event.data);
+
+  const [dayCount, setDayCount] = useBookerStore((state) => [state.dayCount, state.setDayCount], shallow);
+
   const date = dayjs(selectedDate).format("YYYY-MM-DD");
 
   const prefetchNextMonth =
@@ -102,6 +106,8 @@ const BookerComponent = ({
       ? 2
       : undefined;
 
+  const searchParams = useSearchParams();
+
   /**
    * Prioritize dateSchedule load
    * Component will render but use data already fetched from here, and no duplicate requests will be made
@@ -110,9 +116,11 @@ const BookerComponent = ({
     prefetchNextMonth,
     username,
     monthCount,
+    dayCount,
     eventSlug,
     month,
     duration,
+    selectedDate: searchParams?.get("date"),
   });
 
   const nonEmptyScheduleDays = useNonEmptyScheduleDays(schedule?.data?.slots).filter(
@@ -130,6 +138,7 @@ const BookerComponent = ({
   if (nonEmptyScheduleDays.length !== 0)
     columnViewExtraDays.current =
       Math.abs(dayjs(selectedDate).diff(availableSlots[availableSlots.length - 2], "day")) + addonDays;
+
   const nextSlots =
     Math.abs(dayjs(selectedDate).diff(availableSlots[availableSlots.length - 1], "day")) + addonDays;
 
@@ -144,7 +153,6 @@ const BookerComponent = ({
 
   const { t } = useLocale();
 
-  const searchParams = useSearchParams();
   const isRedirect = searchParams?.get("redirected") === "true" || false;
   const fromUserNameRedirected = searchParams?.get("username") || "";
 
@@ -466,15 +474,26 @@ const BookerComponent = ({
           </AnimatePresence>
         </div>
 
-        <m.span
-          key="logo"
-          className={classNames(
-            "-z-10 mb-6 mt-auto pt-6 [&_img]:h-[15px]",
-            hasDarkBackground ? "dark" : "",
-            layout === BookerLayouts.MONTH_VIEW ? "block" : "hidden"
-          )}>
-          {!hideBranding ? <PoweredBy logoOnly /> : null}
-        </m.span>
+        <HavingTroubleFindingTime
+          visible={bookerState !== "booking" && layout === BookerLayouts.MONTH_VIEW && !isMobile}
+          dayCount={dayCount}
+          isScheduleLoading={schedule.isLoading}
+          onButtonClick={() => {
+            setDayCount(null);
+          }}
+        />
+
+        {!hideBranding && (
+          <m.span
+            key="logo"
+            className={classNames(
+              "-z-10 mb-6 mt-auto pt-6 [&_img]:h-[15px]",
+              hasDarkBackground ? "dark" : "",
+              layout === BookerLayouts.MONTH_VIEW ? "block" : "hidden"
+            )}>
+            <PoweredBy logoOnly />
+          </m.span>
+        )}
       </div>
 
       <BookFormAsModal

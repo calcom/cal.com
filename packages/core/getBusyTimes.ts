@@ -3,13 +3,15 @@ import type { Booking, EventType } from "@prisma/client";
 import { getBusyCalendarTimes } from "@calcom/core/CalendarManager";
 import dayjs from "@calcom/dayjs";
 import { subtract } from "@calcom/lib/date-ranges";
+import { intervalLimitKeyToUnit } from "@calcom/lib/intervalLimit";
 import logger from "@calcom/lib/logger";
 import { getPiiFreeBooking } from "@calcom/lib/piiFreeData";
 import { performance } from "@calcom/lib/server/perfObserver";
 import prisma from "@calcom/prisma";
 import type { Prisma, SelectedCalendar } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
-import type { EventBusyDetails } from "@calcom/types/Calendar";
+import { stringToDayjs } from "@calcom/prisma/zod-utils";
+import type { EventBusyDetails, IntervalLimit } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
 export async function getBusyTimes(params: {
@@ -261,32 +263,57 @@ export async function getBusyTimes(params: {
 }
 
 export async function getBusyTimesForLimitChecks(params: {
-  userId: number;
+  userIds: number[];
   eventTypeId: number;
-  startDate: Date;
-  endDate: Date;
+  startDate: string;
+  endDate: string;
   rescheduleUid?: string | null;
+  bookingLimits?: IntervalLimit | null;
+  durationLimits?: IntervalLimit | null;
 }) {
-  const { userId, eventTypeId, startDate, endDate, rescheduleUid } = params;
+  const { userIds, eventTypeId, startDate, endDate, rescheduleUid, bookingLimits, durationLimits } = params;
+  const startTimeAsDayJs = stringToDayjs(startDate);
+  const endTimeAsDayJs = stringToDayjs(endDate);
+
+  performance.mark("getBusyTimesForLimitChecksStart");
+
+  let busyTimes: EventBusyDetails[] = [];
+
+  if (!bookingLimits && !durationLimits) {
+    return busyTimes;
+  }
+
+  let limitDateFrom = stringToDayjs(startDate);
+  let limitDateTo = stringToDayjs(endDate);
+
+  // expand date ranges by absolute minimum required to apply limits
+  // (yearly limits are handled separately for performance)
+  for (const key of ["PER_MONTH", "PER_WEEK", "PER_DAY"] as Exclude<keyof IntervalLimit, "PER_YEAR">[]) {
+    if (bookingLimits?.[key] || durationLimits?.[key]) {
+      const unit = intervalLimitKeyToUnit(key);
+      limitDateFrom = dayjs.min(limitDateFrom, startTimeAsDayJs.startOf(unit));
+      limitDateTo = dayjs.max(limitDateTo, endTimeAsDayJs.endOf(unit));
+    }
+  }
   logger.silly(
-    `Fetch limit checks bookings in range ${startDate} to ${endDate} for input ${JSON.stringify({
-      userId,
+    `Fetch limit checks bookings in range ${limitDateFrom} to ${limitDateTo} for input ${JSON.stringify({
       eventTypeId,
       status: BookingStatus.ACCEPTED,
     })}`
   );
-  performance.mark("getBusyTimesForLimitChecksStart");
 
   const where: Prisma.BookingWhereInput = {
-    userId,
+    userId: {
+      in: userIds,
+    },
     eventTypeId,
     status: BookingStatus.ACCEPTED,
     // FIXME: bookings that overlap on one side will never be counted
     startTime: {
-      gte: startDate,
+      gte: limitDateFrom.toDate(),
     },
     endTime: {
-      lte: endDate,
+      lte: limitDateTo.toDate(),
     },
   };
 
@@ -308,14 +335,16 @@ export async function getBusyTimesForLimitChecks(params: {
         },
       },
       title: true,
+      userId: true,
     },
   });
 
-  const busyTimes = bookings.map(({ id, startTime, endTime, eventType, title }) => ({
+  busyTimes = bookings.map(({ id, startTime, endTime, eventType, title, userId }) => ({
     start: dayjs(startTime).toDate(),
     end: dayjs(endTime).toDate(),
     title,
     source: `eventType-${eventType?.id}-booking-${id}`,
+    userId,
   }));
 
   logger.silly(`Fetch limit checks bookings for eventId: ${eventTypeId} ${JSON.stringify(busyTimes)}`);

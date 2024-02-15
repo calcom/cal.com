@@ -67,20 +67,28 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       where: {
         id: foundToken.teamId,
       },
+      include: {
+        parent: true,
+      },
     });
     if (team) {
       const user = await prisma.user.upsert({
         where: { email: userEmail },
         update: {
           username: correctedUsername,
-          password: hashedPassword,
+          password: {
+            upsert: {
+              create: { hash: hashedPassword },
+              update: { hash: hashedPassword },
+            },
+          },
           emailVerified: new Date(Date.now()),
           identityProvider: IdentityProvider.CAL,
         },
         create: {
           username: correctedUsername,
           email: userEmail,
-          password: hashedPassword,
+          password: { create: { hash: hashedPassword } },
           identityProvider: IdentityProvider.CAL,
         },
       });
@@ -93,10 +101,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       closeComUpsertTeamUser(team, user, membership.role);
 
       // Accept any child team invites for orgs.
-      if (team.parentId) {
+      if (team.parent) {
         await joinAnyChildTeamOnOrgInvite({
           userId: user.id,
-          orgId: team.parentId,
+          org: team.parent,
         });
       }
     }
@@ -121,14 +129,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       where: { email: userEmail },
       update: {
         username: correctedUsername,
-        password: hashedPassword,
+        password: {
+          upsert: {
+            create: { hash: hashedPassword },
+            update: { hash: hashedPassword },
+          },
+        },
         emailVerified: new Date(Date.now()),
         identityProvider: IdentityProvider.CAL,
       },
       create: {
         username: correctedUsername,
         email: userEmail,
-        password: hashedPassword,
+        password: { create: { hash: hashedPassword } },
         identityProvider: IdentityProvider.CAL,
       },
     });

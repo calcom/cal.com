@@ -78,7 +78,7 @@ export const SEO_IMG_DEFAULT = `${WEBSITE_URL}/og-image.png`;
 // This results in a 80% smaller image 🤯. It is however important that for the query
 // parameters you pass to the /api/social/og/image endpoint, you wrap them in encodeURIComponent
 // as well, otherwise the URL won't be valid.
-export const SEO_IMG_OGIMG = `${CAL_URL}/_next/image?w=1200&q=100&url=${encodeURIComponent(
+export const SEO_IMG_OGIMG = `${WEBAPP_URL}/_next/image?w=1200&q=100&url=${encodeURIComponent(
   "/api/social/og/image"
 )}`;
 export const SEO_IMG_OGIMG_VIDEO = `${WEBSITE_URL}/video-og-image.png`;
@@ -91,7 +91,7 @@ export const IS_STRIPE_ENABLED = !!(
 export const IS_TEAM_BILLING_ENABLED = IS_STRIPE_ENABLED && HOSTED_CAL_FEATURES;
 export const FULL_NAME_LENGTH_MAX_LIMIT = 50;
 export const MINUTES_TO_BOOK = process.env.NEXT_PUBLIC_MINUTES_TO_BOOK || "5";
-
+export const ENABLE_PROFILE_SWITCHER = process.env.NEXT_PUBLIC_ENABLE_PROFILE_SWITCHER === "1";
 // Needed for orgs
 export const ALLOWED_HOSTNAMES = JSON.parse(`[${process.env.ALLOWED_HOSTNAMES || ""}]`) as string[];
 export const RESERVED_SUBDOMAINS = JSON.parse(`[${process.env.RESERVED_SUBDOMAINS || ""}]`) as string[];
@@ -126,5 +126,12 @@ export const IS_PREMIUM_USERNAME_ENABLED =
 export const MAX_NB_INVITES = 100;
 
 export const URL_PROTOCOL_REGEX = /(^\w+:|^)\/\//;
+export const FUTURE_ROUTES_OVERRIDE_COOKIE_NAME = "x-calcom-future-routes-override";
+export const FUTURE_ROUTES_ENABLED_COOKIE_NAME = "x-calcom-future-routes-enabled";
 
 export const IS_VISUAL_REGRESSION_TESTING = Boolean(globalThis.window?.Meticulous?.isRunningAsTest);
+
+export const BOOKER_NUMBER_OF_DAYS_TO_LOAD = parseInt(
+  process.env.NEXT_PUBLIC_BOOKER_NUMBER_OF_DAYS_TO_LOAD ?? "0",
+  0
+);

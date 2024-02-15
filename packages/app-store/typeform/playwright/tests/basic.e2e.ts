@@ -5,7 +5,7 @@ import {
   addForm as addRoutingForm,
   addOneFieldAndDescriptionAndSaveForm,
 } from "@calcom/app-store/routing-forms/playwright/tests/testUtils";
-import { CAL_URL } from "@calcom/lib/constants";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import type { Fixtures } from "@calcom/web/playwright/lib/fixtures";
 import { test } from "@calcom/web/playwright/lib/fixtures";
 
@@ -46,7 +46,7 @@ test.describe("Typeform App", () => {
       const text = await page.evaluate(async () => {
         return navigator.clipboard.readText();
       });
-      expect(text).toBe(`${CAL_URL}/router?form=${formId}&test={Recalled_Response_For_This_Field}`);
+      expect(text).toBe(`${WEBAPP_URL}/router?form=${formId}&test={Recalled_Response_For_This_Field}`);
     });
 
     test("should copy link in RoutingForms list", async ({ page, context, users }) => {
@@ -66,7 +66,7 @@ test.describe("Typeform App", () => {
       const text = await page.evaluate(async () => {
         return navigator.clipboard.readText();
       });
-      expect(text).toBe(`${CAL_URL}/router?form=${formId}&test={Recalled_Response_For_This_Field}`);
+      expect(text).toBe(`${WEBAPP_URL}/router?form=${formId}&test={Recalled_Response_For_This_Field}`);
     });
   });
 });

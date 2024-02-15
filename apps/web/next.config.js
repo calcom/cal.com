@@ -155,6 +155,7 @@ const matcherConfigUserTypeEmbedRoute = {
 /** @type {import("next").NextConfig} */
 const nextConfig = {
   experimental: {
+    // externalize server-side node_modules with size > 1mb, to improve dev mode performance/RAM usage
     serverComponentsExternalPackages: ["next-i18next"],
   },
   i18n: {
@@ -206,7 +207,17 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  webpack: (config, { webpack, buildId }) => {
+  webpack: (config, { webpack, buildId, isServer }) => {
+    if (isServer) {
+      // Module not found fix @see https://github.com/boxyhq/jackson/issues/1535#issuecomment-1704381612
+      config.plugins.push(
+        new webpack.IgnorePlugin({
+          resourceRegExp:
+            /(^@google-cloud\/spanner|^@mongodb-js\/zstd|^@sap\/hana-client\/extension\/Stream$|^@sap\/hana-client|^@sap\/hana-client$|^aws-crt|^aws4$|^better-sqlite3$|^bson-ext$|^cardinal$|^cloudflare:sockets$|^hdb-pool$|^ioredis$|^kerberos$|^mongodb-client-encryption$|^mysql$|^oracledb$|^pg-native$|^pg-query-stream$|^react-native-sqlite-storage$|^snappy\/package\.json$|^snappy$|^sql.js$|^sqlite3$|^typeorm-aurora-data-api-driver$)/,
+        })
+      );
+    }
+
     config.plugins.push(
       new CopyWebpackPlugin({
         patterns: [

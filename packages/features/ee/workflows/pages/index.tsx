@@ -5,8 +5,7 @@ import { useRouter } from "next/navigation";
 import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 
-import { getLayout } from "@calcom/features/MainLayout";
-import { ShellMain } from "@calcom/features/shell/Shell";
+import Shell from "@calcom/features/shell/Shell";
 import { classNames } from "@calcom/lib";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -52,10 +51,12 @@ function WorkflowsPage() {
   });
 
   return (
-    <ShellMain
+    <Shell
+      withoutMain={false}
       heading={t("workflows")}
-      title={t("workflows")}
       subtitle={t("workflows_to_automate_notifications")}
+      title="Workflows"
+      description="Create workflows to automate notifications and reminders."
       hideHeadingOnMobile
       CTA={
         session.data?.hasValidLicense ? (
@@ -95,7 +96,7 @@ function WorkflowsPage() {
           </FilterResults>
         </>
       </LicenseRequired>
-    </ShellMain>
+    </Shell>
   );
 }
 
@@ -221,7 +222,5 @@ const Filter = (props: {
     </div>
   );
 };
-
-WorkflowsPage.getLayout = getLayout;
 
 export default WorkflowsPage;

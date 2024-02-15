@@ -32,9 +32,9 @@ WHERE
 INSERT INTO "OrganizationSettings" ("organizationId", "isOrganizationConfigured", "orgAutoAcceptEmail", "isOrganizationVerified")
 SELECT
 	t.id,
-	(t.metadata ->> 'isOrganizationConfigured')::BOOLEAN AS "isOrganizationConfigured",
+	COALESCE((t.metadata ->> 'isOrganizationConfigured')::BOOLEAN, false) AS "isOrganizationConfigured",
 	t.metadata ->> 'orgAutoAcceptEmail' AS "orgAutoAcceptEmail",
-	(t.metadata ->> 'isOrganizationVerified')::BOOLEAN AS "isOrganizationVerified"
+	COALESCE((t.metadata ->> 'isOrganizationVerified')::BOOLEAN, false) AS "isOrganizationVerified"
 FROM (
 	SELECT
 		id,

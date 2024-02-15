@@ -2,7 +2,7 @@ import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import { getBookingForReschedule, getMultipleDurationValue } from "@calcom/features/bookings/lib/get-booking";
+import { getBookingForReschedule } from "@calcom/features/bookings/lib/get-booking";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
@@ -82,12 +82,11 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   return {
     props: {
-      entity: eventData.entity,
-      duration: getMultipleDurationValue(
-        eventData.metadata?.multipleDuration,
-        queryDuration,
-        eventData.length
-      ),
+      eventData: {
+        entity: eventData.entity,
+        length: eventData.length,
+        metadata: eventData.metadata,
+      },
       booking,
       away: false,
       user: teamSlug,
