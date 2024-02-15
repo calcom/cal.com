@@ -288,7 +288,7 @@ test.describe("Organization", () => {
         return { existingUser };
       });
 
-      await test.step("Try signing up with the username that got migrated", async () => {
+      await test.step("Signing up with the previous username of the migrated user - shouldn't be allowed", async () => {
         await page.goto("/signup");
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         await page.locator('input[name="username"]').fill(existingUser.username!);
@@ -297,7 +297,6 @@ test.describe("Organization", () => {
           .fill(`${existingUser.username}-differnet-email@example.com`);
         await page.locator('input[name="password"]').fill("Password99!");
         await page.waitForLoadState("networkidle");
-        // Submit form
         await expect(page.locator('button[type="submit"]')).toBeDisabled();
       });
     });
