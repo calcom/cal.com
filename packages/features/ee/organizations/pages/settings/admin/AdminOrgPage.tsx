@@ -73,7 +73,7 @@ function AdminOrgTable() {
     });
   };
 
-  const [orgToDelete, setOrgToDelete] = useState<number | null>(null);
+  const [orgToDelete, setOrgToDelete] = useState<(typeof data)[number] | null>(null);
   return (
     <div>
       <Table>
@@ -189,7 +189,7 @@ function AdminOrgTable() {
                         id: "delete",
                         label: t("delete"),
                         onClick: () => {
-                          setOrgToDelete(org.id);
+                          setOrgToDelete(org);
                         },
                         icon: Trash,
                       },
@@ -202,12 +202,12 @@ function AdminOrgTable() {
         </Body>
       </Table>
       <DeleteOrgDialog
-        orgId={orgToDelete}
+        org={orgToDelete}
         onClose={() => setOrgToDelete(null)}
         onConfirm={() => {
           if (!orgToDelete) return;
           deleteMutation.mutate({
-            orgId: orgToDelete,
+            orgId: orgToDelete.id,
           });
         }}
       />
@@ -232,28 +232,35 @@ AdminOrgList.getLayout = getLayout;
 export default AdminOrgList;
 
 const DeleteOrgDialog = ({
-  orgId,
+  org,
   onConfirm,
   onClose,
 }: {
-  orgId: number | null;
+  org: {
+    id: number;
+    name: string;
+  } | null;
   onConfirm: () => void;
   onClose: () => void;
 }) => {
   const { t } = useLocale();
-
+  if (!org) {
+    return null;
+  }
   return (
     // eslint-disable-next-line @typescript-eslint/no-empty-function -- noop
-    <Dialog name="delete-user" open={!!orgId} onOpenChange={(open) => (open ? () => {} : onClose())}>
+    <Dialog name="delete-user" open={!!org.id} onOpenChange={(open) => (open ? () => {} : onClose())}>
       <ConfirmationDialogContent
-        title={t("admin_delete_organization_title")}
+        title={t("admin_delete_organization_title", {
+          organizationName: org.name,
+        })}
         confirmBtnText={t("delete")}
         cancelBtnText={t("cancel")}
         variety="danger"
         onConfirm={onConfirm}>
         <Trans
           i18nKey="admin_delete_organization_description"
-          components={{ li: <li />, ul: <ul className="ml-4 list-disc" /> }}>
+          components={{ li: <li />, ul: <ul className="ml-4 mt-5 list-disc space-y-2" /> }}>
           <ul>
             <li>
               Teams that are member of this organization will also be deleted along with their event-types
