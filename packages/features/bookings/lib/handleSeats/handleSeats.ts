@@ -17,6 +17,7 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
     eventType,
     reqBodyUser,
     rescheduleUid,
+    reqBookingUid,
     invitee,
     bookerEmail,
     smsReminderNumber,
