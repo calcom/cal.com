@@ -19,14 +19,24 @@ type AddSecondaryEmailOptions = {
 export const addSecondaryEmailHandler = async ({ ctx, input }: AddSecondaryEmailOptions) => {
   const { user } = ctx;
 
-  const exisingPrimaryEmail = await prisma.user.findUnique({
+  const existingPrimaryEmail = await prisma.user.findUnique({
     where: {
       email: input.email,
     },
   });
 
-  if (exisingPrimaryEmail) {
-    throw new TRPCError({ code: "BAD_REQUEST", message: "Email already used" });
+  if (existingPrimaryEmail) {
+    throw new TRPCError({ code: "BAD_REQUEST", message: "Email already taken" });
+  }
+
+  const existingSecondaryEmail = await prisma.secondaryEmail.findUnique({
+    where: {
+      email: input.email,
+    },
+  });
+
+  if (existingSecondaryEmail) {
+    throw new TRPCError({ code: "BAD_REQUEST", message: "Email already taken" });
   }
 
   const updatedData = await prisma.secondaryEmail.create({
