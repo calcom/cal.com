@@ -2266,5 +2266,6 @@
   "travel_schedule_description":  "Plan your trip ahead to keep your existing schedule in a different timezone and prevent being booked at midnight.",
   "schedule_timezone_change": "Schedule timezone change",
   "date": "Date",
+  "overlaps_with_existing_schedule": "This overlaps with an existing schedule. Please select a different date.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

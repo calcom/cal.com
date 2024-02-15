@@ -2,6 +2,7 @@ import type { FormValues } from "@pages/settings/my-account/general";
 import { useState } from "react";
 import type { UseFormSetValue } from "react-hook-form";
 
+import dayjs from "@calcom/dayjs";
 import { useTimePreferences } from "@calcom/features/bookings/lib/timePreferences";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import {
@@ -37,6 +38,31 @@ const TravelScheduleModal = ({
 
   const [selectedTimeZone, setSelectedTimeZone] = useState(useTimePreferences().timezone);
   const [isNoEndDate, setIsNoEndDate] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+
+  const isOverlapping = (newSchedule: { startDate: Date; endDate?: Date }) => {
+    const newStart = dayjs(newSchedule.startDate);
+    const newEnd = newSchedule.endDate ? dayjs(newSchedule.endDate) : null;
+
+    for (const schedule of existingSchedules) {
+      const start = dayjs(schedule.startDate);
+      const end = schedule.endDate ? dayjs(schedule.endDate) : null;
+
+      if (!newEnd) {
+        // if the start date is after or on the existing schedule's start date and before the existing schedule's end date (if it has one)
+        if (newStart.isSame(start) || newStart.isAfter(start)) {
+          if (!end || newStart.isSame(end) || newStart.isBefore(end)) return true;
+        }
+      } else {
+        // For schedules with an end date, check for any overlap
+        if (newStart.isSame(end) || newStart.isBefore(end) || end === null) {
+          if (newEnd.isSame(start) || newEnd.isAfter(start)) {
+            return true;
+          }
+        }
+      }
+    }
+  };
 
   const createNewSchedule = () => {
     const newSchedule = {
@@ -44,7 +70,13 @@ const TravelScheduleModal = ({
       endDate,
       timeZone: selectedTimeZone,
     };
-    setValue("travelSchedules", existingSchedules.concat(newSchedule), { shouldDirty: true });
+
+    if (!isOverlapping(newSchedule)) {
+      setValue("travelSchedules", existingSchedules.concat(newSchedule), { shouldDirty: true });
+      onOpenChange();
+    } else {
+      setErrorMessage(t("overlaps_with_existing_schedule"));
+    }
   };
 
   return (
@@ -63,6 +95,7 @@ const TravelScheduleModal = ({
                 onDatesChange={({ startDate: newStartDate, endDate: newEndDate }) => {
                   setStartDate(newStartDate);
                   setEndDate(newEndDate);
+                  setErrorMessage("");
                 }}
               />
             </>
@@ -75,10 +108,12 @@ const TravelScheduleModal = ({
                 className="w-56"
                 onDatesChange={(newDate) => {
                   setStartDate(newDate);
+                  setErrorMessage("");
                 }}
               />
             </>
           )}
+          <div className="text-error mt-1 text-sm">{errorMessage}</div>
 
           <div className="mt-3">
             <SettingsToggle
@@ -88,6 +123,7 @@ const TravelScheduleModal = ({
               onCheckedChange={(e) => {
                 setEndDate(!e ? startDate : undefined);
                 setIsNoEndDate(e);
+                setErrorMessage("");
               }}
             />
           </div>
@@ -104,7 +140,6 @@ const TravelScheduleModal = ({
           <Button
             onClick={() => {
               createNewSchedule();
-              onOpenChange();
             }}>
             {t("add")}
           </Button>
