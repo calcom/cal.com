@@ -42,14 +42,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
       data: {
         password: {
-          update: {
-            hash: hashedPassword,
+          upsert: {
+            create: { hash: hashedPassword },
+            update: { hash: hashedPassword },
           },
         },
         emailVerified: new Date(),
       },
     });
   } catch (e) {
+    console.error("Error updating password", e);
     return res.status(404).end();
   }
 
