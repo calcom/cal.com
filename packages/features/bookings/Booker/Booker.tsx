@@ -1,6 +1,6 @@
 import { LazyMotion, m, AnimatePresence } from "framer-motion";
 import dynamic from "next/dynamic";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useMemo } from "react";
 import StickyBox from "react-sticky-box";
 import { shallow } from "zustand/shallow";
 
@@ -146,8 +146,8 @@ const BookerComponent = ({
     return setBookerState("booking");
   }, [event, selectedDate, selectedTimeslot, setBookerState]);
 
-  const EventBooker =
-    bookerState === "booking" ? (
+  const EventBooker = useMemo(() => {
+    return bookerState === "booking" ? (
       <BookEventForm
         key={key}
         onCancel={() => {
@@ -191,6 +191,36 @@ const BookerComponent = ({
     ) : (
       <></>
     );
+  }, [
+    bookerFormErrorRef,
+    bookerState,
+    bookingForm,
+    errors,
+    event,
+    expiryTime,
+    extraOptions,
+    formEmail,
+    formErrors,
+    handleBookEvent,
+    handleVerifyEmail,
+    hasInstantMeetingTokenExpired,
+    isEmailVerificationModalVisible,
+    key,
+    loadingStates,
+    onGoBackInstantMeeting,
+    renderConfirmNotVerifyEmailButtonCond,
+    rescheduleUid,
+    seatedEventData,
+    setEmailVerificationModalVisible,
+    setSeatedEventData,
+    setSelectedTimeslot,
+    verifyCode.error,
+    verifyCode.isPending,
+    verifyCode.resetErrors,
+    verifyCode.setIsPending,
+    verifyCode.verifyCodeWithSessionNotRequired,
+    verifyCode.verifyCodeWithSessionRequired,
+  ]);
 
   if (entity.isUnpublished) {
     return <UnpublishedEntity {...entity} />;
