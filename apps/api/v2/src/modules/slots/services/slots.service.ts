@@ -40,4 +40,11 @@ export class SlotsService {
 
     return uid;
   }
+
+  async checkIfIsTeamEvent(eventTypeId?: number) {
+    if (!eventTypeId) return false;
+
+    const event = await this.eventTypeRepo.getEventTypeById(eventTypeId);
+    return !!event?.teamId;
+  }
 }
