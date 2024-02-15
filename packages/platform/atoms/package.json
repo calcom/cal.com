@@ -41,6 +41,7 @@
   "dependencies": {
     "@calcom/platform-constants": "*",
     "@calcom/ui": "*",
+    "@radix-ui/react-dialog": "^1.0.5",
     "@radix-ui/react-slot": "^1.0.2",
     "@tanstack/react-query": "^5.17.19",
     "class-variance-authority": "^0.7.0",
