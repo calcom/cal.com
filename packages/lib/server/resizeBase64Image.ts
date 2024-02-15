@@ -1,5 +1,4 @@
 import jimp from "jimp";
-import "server-only";
 
 export async function resizeBase64Image(
   base64OrUrl: string,
