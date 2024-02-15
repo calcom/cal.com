@@ -91,6 +91,8 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
       throw new HttpError({ message: "Internal Error", statusCode: 500 });
     }
 
+    await updateProfilePhoto(oAuth2Client, req.session.user.id);
+
     const credential = await prisma.credential.create({
       data: {
         type: "google_calendar",
@@ -154,6 +156,23 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     getSafeRedirectUrl(state?.returnTo) ??
       getInstalledAppPath({ variant: "calendar", slug: "google-calendar" })
   );
+}
+
+async function updateProfilePhoto(oAuth2Client: Auth.OAuth2Client, userId: number) {
+  try {
+    const oauth2 = google.oauth2({ version: "v2", auth: oAuth2Client });
+    const userDetails = await oauth2.userinfo.get();
+    if (userDetails.data?.picture) {
+      await prisma.user.updateMany({
+        where: { id: userId, avatarUrl: null, avatar: null },
+        data: {
+          avatarUrl: userDetails.data.picture,
+        },
+      });
+    }
+  } catch (error) {
+    logger.error("Error updating avatarUrl from google calendar connect", error);
+  }
 }
 
 export default defaultHandler({
