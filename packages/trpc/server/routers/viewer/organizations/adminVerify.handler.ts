@@ -63,12 +63,18 @@ export const adminVerifyHandler = async ({ input }: AdminVerifyOptions) => {
       id: true,
       username: true,
       email: true,
+      profiles: {
+        where: {
+          organizationId: foundOrg.id,
+        },
+      },
     },
   });
 
   const users = foundUsersWithMatchingEmailDomain;
   const userIds = users.map((user) => user.id);
 
+  const usersNotHavingProfileWithTheOrg = users.filter((user) => user.profiles.length === 0);
   await prisma.$transaction([
     prisma.membership.updateMany({
       where: {
@@ -103,7 +109,7 @@ export const adminVerifyHandler = async ({ input }: AdminVerifyOptions) => {
     }),
 
     ProfileRepository.createMany({
-      users: users.map((user) => {
+      users: usersNotHavingProfileWithTheOrg.map((user) => {
         return {
           id: user.id,
           username: user.username || user.email.split("@")[0],
