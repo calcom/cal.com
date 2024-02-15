@@ -30,13 +30,12 @@ export const setPasswordHandler = async ({ ctx, input }: UpdateOptions) => {
   });
 
   if (!user) throw new TRPCError({ code: "BAD_REQUEST", message: "User not found" });
-  if (!user.password?.hash)
-    throw new TRPCError({ code: "BAD_REQUEST", message: "Password not set by default" });
+  if (!user.password) throw new TRPCError({ code: "BAD_REQUEST", message: "Password not set by default" });
 
   const generatedPassword = createHash("md5")
     .update(`${user?.email ?? ""}${process.env.CALENDSO_ENCRYPTION_KEY}`)
     .digest("hex");
-  const isCorrectPassword = await verifyPassword(generatedPassword, user.password.hash);
+  const isCorrectPassword = await verifyPassword(generatedPassword, user?.password);
 
   if (!isCorrectPassword)
     throw new TRPCError({
@@ -45,16 +44,12 @@ export const setPasswordHandler = async ({ ctx, input }: UpdateOptions) => {
     });
 
   const hashedPassword = await hashPassword(newPassword);
-  await prisma.userPassword.upsert({
+  await prisma.user.update({
     where: {
-      userId: ctx.user.id,
+      id: ctx.user.id,
     },
-    create: {
-      hash: hashedPassword,
-      userId: ctx.user.id,
-    },
-    update: {
-      hash: hashedPassword,
+    data: {
+      password: hashedPassword,
     },
   });
 

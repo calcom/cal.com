@@ -67,7 +67,9 @@ const authedAdminProcedureWithRequestedUser = authedAdminProcedure.use(async ({ 
   return next({
     ctx: {
       user: ctx.user,
-      requestedUser: user,
+      requestedUser:
+        /** Don't leak the password */
+        exclude(user, ["password"]),
     },
   });
 });
@@ -82,7 +84,8 @@ export const userAdminRouter = router({
     // TODO: Add search, pagination, etc.
     const users = await prisma.user.findMany();
     return users.map((user) => ({
-      ...user,
+      /** Don't leak the password */
+      ...exclude(user, ["password"]),
       /**
        * FIXME: This should be either a prisma extension or middleware
        * @see https://www.prisma.io/docs/concepts/components/prisma-client/middleware
