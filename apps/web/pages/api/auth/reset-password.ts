@@ -51,7 +51,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
   } catch (e) {
-    console.error("Error updating password", e);
     return res.status(404).end();
   }
 
