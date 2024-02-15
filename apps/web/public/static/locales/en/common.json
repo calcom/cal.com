@@ -2195,7 +2195,7 @@
   "create_your_org_description": "Upgrade to Enterprise and receive a subdomain, unified billing, Insights, extensive whitelabeling and more",
   "other_payment_app_enabled": "You can only enable one payment app per event type",
   "admin_delete_organization_description": "<ul><li>Teams that are member of this organization will also be deleted along with their event-types</li><li>Users that were part of the organization will not be deleted and their event-types will also remain intact.</li><li>Usernames would be changed to allow them to exist outside the organization</li></ul>",
-  "admin_delete_organization_title": "Delete organization?",
+  "admin_delete_organization_title": "Delete {{organizationName}}?",
   "published": "Published",
   "unpublished": "Unpublished",
   "publish": "Publish",
