@@ -808,6 +808,7 @@
   "label": "Label",
   "placeholder": "Placeholder",
   "display_add_to_calendar_organizer":"Display 'Add to calendar' email as the organizer",
+  "reconnect_calendar_to_use": "Please note that you may need to disconnect and then reconnect your calendar to use this feature.",
   "type": "Type",
   "edit": "Edit",
   "add_input": "Add an Input",

@@ -17,9 +17,10 @@ import { filterQuerySchema } from "../lib/getTeamsFiltersFromQuery";
 export type IEventTypesFilters = RouterOutputs["viewer"]["eventTypes"]["listWithTeam"];
 export type IEventTypeFilter = IEventTypesFilters[0];
 
+export const TEAMS_FILTER_KEY = "TEAMS_FILTER_KEY";
 function useFilterQuery() {
   // passthrough allows additional params to not be removed
-  return useTypedQuery(filterQuerySchema.passthrough());
+  return useTypedQuery(filterQuerySchema.passthrough(), TEAMS_FILTER_KEY);
 }
 
 export const TeamsFilter = ({
