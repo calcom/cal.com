@@ -1,11 +1,13 @@
 import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
+import { GetAvailableSlotsInput } from "@/modules/slots/inputs/get-available-slots.input";
 import { RemoveSelectedSlotInput } from "@/modules/slots/inputs/remove-selected-slot.input";
 import { ReserveSlotInput } from "@/modules/slots/inputs/reserve-slot.input";
 import { SlotsService } from "@/modules/slots/services/slots.service";
-import { Body, Controller, Delete, Post, Req, Res, UseGuards } from "@nestjs/common";
+import { Query, Body, Controller, Get, Delete, Post, Req, Res, UseGuards } from "@nestjs/common";
 import { Response as ExpressResponse, Request as ExpressRequest } from "express";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { getAvailableSlots } from "@calcom/platform-libraries";
 import { ApiResponse } from "@calcom/platform-types";
 
 @Controller({
@@ -42,6 +44,29 @@ export class SlotsController {
 
     return {
       status: SUCCESS_STATUS,
+    };
+  }
+
+  @Get("/available")
+  async getAvailableSlots(
+    @Query() query: GetAvailableSlotsInput,
+    @Req() req: ExpressRequest
+  ): Promise<ApiResponse> {
+    const isTeamEvent = await this.slotsService.checkIfIsTeamEvent(query.eventTypeId);
+
+    const availableSlots = await getAvailableSlots({
+      input: {
+        ...query,
+        isTeamEvent,
+      },
+      ctx: {
+        req,
+      },
+    });
+
+    return {
+      data: availableSlots,
+      status: "success",
     };
   }
 }

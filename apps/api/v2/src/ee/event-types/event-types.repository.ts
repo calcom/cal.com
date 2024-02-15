@@ -51,4 +51,8 @@ export class EventTypesRepository {
       throw new NotFoundException(`User with id ${user.id} has no event type with id ${eventTypeId}`);
     }
   }
+
+  async getEventTypeById(eventTypeId: number) {
+    return this.dbRead.prisma.eventType.findUnique({ where: { id: eventTypeId } });
+  }
 }
