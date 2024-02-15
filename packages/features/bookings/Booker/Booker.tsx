@@ -344,7 +344,7 @@ const BookerComponent = ({
                 {orgBannerUrl && (
                   <img
                     loading="eager"
-                    className="-mb-9 max-h-24 rounded-tl-md"
+                    className="-mb-9 h-40 max-h-40 rounded-tl-md sm:max-h-24"
                     alt="org banner"
                     src={orgBannerUrl}
                   />

@@ -22,6 +22,7 @@ import {
   Button,
   Form,
   ImageUploader,
+  BannerUploader,
   Label,
   Meta,
   showToast,
@@ -99,8 +100,6 @@ const OrgProfileView = () => {
   if (isPending || !orgBranding || !currentOrganisation) {
     return <SkeletonLoader title={t("profile")} description={t("profile_org_description")} />;
   }
-
-  console.log("currentOrganisation", currentOrganisation);
 
   const isOrgAdminOrOwner =
     currentOrganisation.user.role === MembershipRole.OWNER ||
@@ -274,9 +273,11 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
                   />
                   <div className="ms-4">
                     <div className="flex gap-2">
-                      <ImageUploader
-                        maxImageSize={1500}
+                      <BannerUploader
+                        height={500}
+                        width={1500}
                         target="banner"
+                        uploadInstruction={t("org_banner_instructions", { height: 500, width: 1500 })}
                         id="banner-upload"
                         buttonMsg={t("upload_banner")}
                         handleAvatarChange={(newBanner) => {

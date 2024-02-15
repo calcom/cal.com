@@ -1,4 +1,3 @@
-import type { FormEvent } from "react";
 import { useCallback, useState } from "react";
 import Cropper from "react-easy-crop";
 
@@ -8,17 +7,10 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { ButtonColor } from "../..";
 import { Button, Dialog, DialogClose, DialogContent, DialogTrigger, DialogFooter } from "../..";
 import { showToast } from "../toast";
-import { Slider } from "./Slider";
-import { useFileReader, createImage } from "./common.ts";
+import { useFileReader, createImage, Slider } from "./Common";
+import type { FileEvent, Area } from "./Common";
 
-type Area = {
-  width: number;
-  height: number;
-  x: number;
-  y: number;
-};
-
-const DEFAULT_MAX_IMAGE_SIZE = 512;
+const MAX_IMAGE_SIZE = 512;
 
 type ImageUploaderProps = {
   id: string;
@@ -29,12 +21,7 @@ type ImageUploaderProps = {
   triggerButtonColor?: ButtonColor;
   uploadInstruction?: string;
   disabled?: boolean;
-  maxImageSize?: number;
 };
-
-interface FileEvent<T = Element> extends FormEvent<T> {
-  target: EventTarget & T;
-}
 
 // This is separate to prevent loading the component until file upload
 function CropContainer({
@@ -86,11 +73,9 @@ export default function ImageUploader({
   imageSrc,
   uploadInstruction,
   disabled = false,
-  maxImageSize = DEFAULT_MAX_IMAGE_SIZE,
 }: ImageUploaderProps) {
   const { t } = useLocale();
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
-  console.log("maxImageSize", maxImageSize);
 
   const [{ result }, setFile] = useFileReader({
     method: "readAsDataURL",
@@ -117,8 +102,7 @@ export default function ImageUploader({
         if (!croppedAreaPixels) return;
         const croppedImage = await getCroppedImg(
           result as string /* result is always string when using readAsDataUrl */,
-          croppedAreaPixels,
-          maxImageSize
+          croppedAreaPixels
         );
         handleAvatarChange(croppedImage);
       } catch (e) {
@@ -194,26 +178,20 @@ export default function ImageUploader({
   );
 }
 
-// TODO
-async function getCroppedImg(imageSrc: string, pixelCrop: Area, maxImageSize: number): Promise<string> {
+async function getCroppedImg(imageSrc: string, pixelCrop: Area): Promise<string> {
   const image = await createImage(imageSrc);
   const canvas = document.createElement("canvas");
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("Context is null, this should never happen.");
 
   const maxSize = Math.max(image.naturalWidth, image.naturalHeight);
-  // const resizeRatio = maxImageSize / maxSize < 1 ? Math.max(maxImageSize / maxSize, 0.75) : 1;
-  const resizeRatio = 3;
+  const resizeRatio = MAX_IMAGE_SIZE / maxSize < 1 ? Math.max(MAX_IMAGE_SIZE / maxSize, 0.75) : 1;
 
   // huh, what? - Having this turned off actually improves image quality as otherwise anti-aliasing is applied
   // this reduces the quality of the image overall because it anti-aliases the existing, copied image; blur results
   ctx.imageSmoothingEnabled = false;
   // pixelCrop is always 1:1 - width = height
-  // canvas.width = canvas.height = Math.min(maxSize * resizeRatio, pixelCrop.width);
-  canvas.width = 1500;
-  canvas.height = 500;
-
-  console.log("pixelCrop", pixelCrop);
+  canvas.width = canvas.height = Math.min(maxSize * resizeRatio, pixelCrop.width);
 
   ctx.drawImage(
     image,
@@ -230,16 +208,12 @@ async function getCroppedImg(imageSrc: string, pixelCrop: Area, maxImageSize: nu
   // on very low ratios, the quality of the resize becomes awful. For this reason the resizeRatio is limited to 0.75
   if (resizeRatio <= 0.75) {
     // With a smaller image, thus improved ratio. Keep doing this until the resizeRatio > 0.75.
-    return getCroppedImg(
-      canvas.toDataURL("image/png"),
-      {
-        width: canvas.width,
-        height: canvas.height,
-        x: 0,
-        y: 0,
-      },
-      maxImageSize
-    );
+    return getCroppedImg(canvas.toDataURL("image/png"), {
+      width: canvas.width,
+      height: canvas.height,
+      x: 0,
+      y: 0,
+    });
   }
 
   return canvas.toDataURL("image/png");
