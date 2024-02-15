@@ -295,7 +295,7 @@ model User {
   @@map(name: "users")
 }
 
-// It holds Organization Profiles
+// It holds Organization Profiles as of now, but it will hold Personal Profile as well in future.
 model Profile {
   id             Int         @id @default(autoincrement())
   // uid allows us to set an identifier chosen by us which is helpful in migration when we create the Profile from User directly.
