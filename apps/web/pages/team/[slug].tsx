@@ -196,7 +196,7 @@ function TeamPage({
             </>
           )}
         </div>
-        {team?.isOrganization ? (
+        {team.isOrganization ? (
           <SubTeams />
         ) : (
           <>

@@ -6,7 +6,7 @@ import { signIn } from "next-auth/react";
 import { Trans } from "next-i18next";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import type { SubmitHandler } from "react-hook-form";
 import { useForm, useFormContext } from "react-hook-form";
 import { Toaster } from "react-hot-toast";
@@ -18,7 +18,7 @@ import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getO
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { classNames } from "@calcom/lib";
-import { APP_NAME, IS_CALCOM, URL_PROTOCOL_REGEX, WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
+import { APP_NAME, URL_PROTOCOL_REGEX, IS_CALCOM, WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
 import { fetchUsername } from "@calcom/lib/fetchUsername";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
@@ -26,7 +26,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { signupSchema as apiSignupSchema } from "@calcom/prisma/zod-utils";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
-import { Alert, Button, Form, HeadSeo, PasswordField, showToast, TextField } from "@calcom/ui";
+import { Button, HeadSeo, PasswordField, TextField, Form, Alert, showToast } from "@calcom/ui";
 
 import { getServerSideProps } from "@lib/signup/getServerSideProps";
 

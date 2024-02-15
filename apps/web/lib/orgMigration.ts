@@ -62,7 +62,7 @@ export async function moveUserToOrg({
   if (!targetOrgUsername) {
     targetOrgUsername = getOrgUsernameFromEmail(
       userToMoveToOrg.email,
-      team.organizationSettings?.orgAutoAcceptEmail || ""
+      targetOrganization.organizationSettings?.orgAutoAcceptEmail || ""
     );
   }
 
