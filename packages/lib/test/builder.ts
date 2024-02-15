@@ -229,7 +229,6 @@ export const buildUser = <T extends Partial<UserPayload>>(
     invitedTo: null,
     locale: "en",
     metadata: null,
-    password: null,
     role: "USER",
     schedules: [],
     selectedCalendars: [],

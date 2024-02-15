@@ -1,9 +1,11 @@
+import type { Auth } from "googleapis";
 import { google } from "googleapis";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { WEBAPP_URL_FOR_OAUTH, WEBAPP_URL } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { HttpError } from "@calcom/lib/http-error";
+import logger from "@calcom/lib/logger";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
@@ -91,6 +93,10 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
       throw new HttpError({ message: "Internal Error", statusCode: 500 });
     }
 
+    // Update the user's profile photo with google profile photo if it's null
+    // Since we don't want to block the user from using the app if this fails, we don't await this
+    updateProfilePhoto(oAuth2Client, req.session.user.id);
+
     const credential = await prisma.credential.create({
       data: {
         type: "google_calendar",
@@ -154,6 +160,23 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     getSafeRedirectUrl(state?.returnTo) ??
       getInstalledAppPath({ variant: "calendar", slug: "google-calendar" })
   );
+}
+
+async function updateProfilePhoto(oAuth2Client: Auth.OAuth2Client, userId: number) {
+  try {
+    const oauth2 = google.oauth2({ version: "v2", auth: oAuth2Client });
+    const userDetails = await oauth2.userinfo.get();
+    if (userDetails.data?.picture) {
+      await prisma.user.update({
+        where: { id: userId, avatarUrl: null, avatar: null },
+        data: {
+          avatarUrl: userDetails.data.picture,
+        },
+      });
+    }
+  } catch (error) {
+    logger.error("Error updating avatarUrl from google calendar connect", error);
+  }
 }
 
 export default defaultHandler({
