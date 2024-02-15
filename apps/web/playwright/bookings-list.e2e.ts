@@ -10,7 +10,8 @@ import { SchedulingType } from "@calcom/prisma/enums";
 import { createTeamEventType } from "./fixtures/users";
 import type { Fixtures } from "./lib/fixtures";
 import { test } from "./lib/fixtures";
-import { testName, bookTimeSlot, selectFirstAvailableTimeSlotNextMonth } from "./lib/testUtils";
+import type { EventType } from "./lib/testUtils";
+import { bookTeamEvent, bookUserEvent } from "./lib/testUtils";
 
 test.afterEach(({ users }) => users.deleteAll());
 
@@ -68,11 +69,7 @@ test.describe("Bookings", () => {
         secondUpcomingBooking.locator(`text=${bookingWhereFirstUserIsOrganizer!.title}`)
       ).toBeVisible();
     });
-    test("collective eventType booking should be visible to team admin", async ({
-      page,
-      users,
-      bookings,
-    }) => {
+    test("collective eventType booking should be visible to team admin", async ({ page, users }) => {
       const { owner1, owner2, commonUser, team1_teammate1 } = await createTeams(users);
 
       const { team: team1 } = await owner1.getFirstTeamMembership();
@@ -108,32 +105,18 @@ test.describe("Bookings", () => {
         },
       });
 
-      await bookEvent({ pageFixture: page, eventType, team: team1 });
+      await bookTeamEvent(page, team1, eventType);
 
       // booking should be visible for the team host even though he is not part of the booking
-      await assertBookingVisibleFor({ user: owner1, pageFixture: page, eventType, shouldBeVisible: true });
+      await assertBookingVisibleFor(owner1, page, eventType, true);
       // booking should not be visible for other team host
-      await assertBookingVisibleFor({ user: owner2, pageFixture: page, eventType, shouldBeVisible: false });
+      await assertBookingVisibleFor(owner2, page, eventType, false);
       // booking should be visible for commonUser as he is part of the booking
-      await assertBookingVisibleFor({
-        user: commonUser,
-        pageFixture: page,
-        eventType,
-        shouldBeVisible: true,
-      });
+      await assertBookingVisibleFor(commonUser, page, eventType, true);
       // booking should be visible for team1_teammate1 as he is part of the booking
-      await assertBookingVisibleFor({
-        user: team1_teammate1,
-        pageFixture: page,
-        eventType,
-        shouldBeVisible: true,
-      });
+      await assertBookingVisibleFor(team1_teammate1, page, eventType, true);
     });
-    test("round-robin eventType booking should be visible to team admin", async ({
-      page,
-      users,
-      bookings,
-    }) => {
+    test("round-robin eventType booking should be visible to team admin", async ({ page, users }) => {
       const { owner1, owner2, commonUser, team1_teammate1 } = await createTeams(users);
 
       const { team: team1 } = await owner1.getFirstTeamMembership();
@@ -166,14 +149,14 @@ test.describe("Bookings", () => {
         },
       });
 
-      await bookEvent({ pageFixture: page, eventType, team: team1 });
+      await bookTeamEvent(page, team1, eventType);
 
       // booking should be visible for the team host even though he is not part of the booking
-      await assertBookingVisibleFor({ user: owner1, pageFixture: page, eventType, shouldBeVisible: true });
+      await assertBookingVisibleFor(owner1, page, eventType, true);
       // bookings should not be visible for other team host
-      await assertBookingVisibleFor({ user: owner2, pageFixture: page, eventType, shouldBeVisible: false });
+      await assertBookingVisibleFor(owner2, page, eventType, false);
     });
-    test("managed eventType booking should be visible to team admin", async ({ page, users, bookings }) => {
+    test("managed eventType booking should be visible to team admin", async ({ page, users }) => {
       const { owner1, owner2, commonUser, team1_teammate1 } = await createTeams(users);
 
       const { team: team1 } = await owner1.getFirstTeamMembership();
@@ -195,47 +178,28 @@ test.describe("Bookings", () => {
 
       const eventType = await owner1.getFirstTeamEvent(team1.id);
 
-      await bookEvent({ pageFixture: page, eventType, user: commonUser });
+      await bookUserEvent(page, commonUser, eventType);
 
       // booking should be visible for the team host even though he is not part of the booking
-      await assertBookingVisibleFor({ user: owner1, pageFixture: page, eventType, shouldBeVisible: true });
+      await assertBookingVisibleFor(owner1, page, eventType, true);
       // booking should not be visible for other team host
-      await assertBookingVisibleFor({ user: owner2, pageFixture: page, eventType, shouldBeVisible: false });
+      await assertBookingVisibleFor(owner2, page, eventType, false);
       // booking should be visible for commonUser as he is part of the booking
-      await assertBookingVisibleFor({
-        user: commonUser,
-        pageFixture: page,
-        eventType,
-        shouldBeVisible: true,
-      });
+      await assertBookingVisibleFor(commonUser, page, eventType, true);
       // booking should not be visible for team1_teammate1 as we booked for commonUser
-      await assertBookingVisibleFor({
-        user: team1_teammate1,
-        pageFixture: page,
-        eventType,
-        shouldBeVisible: false,
-      });
+      await assertBookingVisibleFor(team1_teammate1, page, eventType, false);
     });
-    test("individual team members booking should be visible to team admin", async ({
-      page,
-      users,
-      bookings,
-    }) => {
+    test("individual team members booking should be visible to team admin", async ({ page, users }) => {
       const { owner1, owner2, commonUser, team1_teammate1 } = await createTeams(users);
 
       const eventType = await commonUser.getFirstEventAsOwner();
-      await bookEvent({ pageFixture: page, eventType, user: commonUser });
+      await bookUserEvent(page, commonUser, eventType);
       // booking should be visible for the team host even though he is not part of the booking
-      await assertBookingVisibleFor({ user: owner1, pageFixture: page, eventType, shouldBeVisible: true });
+      await assertBookingVisibleFor(owner1, page, eventType, true);
       // non-team bookings should not be visible for other team host as well even though he is not part of the booking
-      await assertBookingVisibleFor({ user: owner2, pageFixture: page, eventType, shouldBeVisible: true });
+      await assertBookingVisibleFor(owner2, page, eventType, true);
       // booking should be visible for commonUser as he is part of the booking
-      await assertBookingVisibleFor({
-        user: commonUser,
-        pageFixture: page,
-        eventType,
-        shouldBeVisible: true,
-      });
+      await assertBookingVisibleFor(commonUser, page, eventType, true);
     });
   });
 });
@@ -360,72 +324,17 @@ const createTeams = async (userFixture: Fixtures["users"]) => {
   };
 };
 
-const bookEvent = async ({
-  pageFixture,
-  team,
-  eventType,
-  user,
-}: {
-  pageFixture: Fixtures["page"];
-  team?: {
-    id: number;
-    slug: string | null;
-    name: string;
-  };
-  user?: {
-    id: number;
-    name: string | null;
-    username: string | null;
-  };
-  eventType: {
-    id: number;
-    title: string;
-    slug: string;
-  };
-}) => {
-  if (team?.slug) {
-    await pageFixture.goto(`/team/${team.slug}/${eventType.slug}/`);
-  } else if (user?.username) {
-    await pageFixture.goto(`/${user.username}/${eventType.slug}/`);
-  }
-  await selectFirstAvailableTimeSlotNextMonth(pageFixture);
-  await bookTimeSlot(pageFixture);
-  await expect(pageFixture.locator("[data-testid=success-page]")).toBeVisible();
-
-  // The title of the booking
-  let BookingTitle = "";
-  if (team?.name) {
-    BookingTitle = `${eventType.title} between ${team.name} and ${testName}`;
-  } else if (user?.name) {
-    BookingTitle = `${eventType.title} between ${user.name} and ${testName}`;
-  }
-  await expect(pageFixture.locator("[data-testid=booking-title]")).toHaveText(BookingTitle);
-  // The booker should be in the attendee list
-  await expect(pageFixture.locator(`[data-testid="attendee-name-${testName}"]`)).toHaveText(testName);
-};
-
-const assertBookingVisibleFor = async ({
-  user,
-  pageFixture,
-  eventType,
-  shouldBeVisible,
-}: {
-  user: { apiLogin: () => Promise<APIResponse> };
-  pageFixture: Fixtures["page"];
-  eventType: { title: string };
-  shouldBeVisible: boolean;
-}) => {
+const assertBookingVisibleFor = async (
+  user: { apiLogin: () => Promise<APIResponse> },
+  pageFixture: Fixtures["page"],
+  eventType: EventType,
+  shouldBeVisible: boolean
+) => {
   await user.apiLogin();
   await pageFixture.goto(`/bookings/upcoming`);
   const upcomingBookings = pageFixture.locator('[data-testid="upcoming-bookings"]');
   const upcomingBookingList = upcomingBookings.locator('[data-testid="booking-item"]').nth(0);
   shouldBeVisible
-    ? await expect(
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        upcomingBookingList.locator(`text=${eventType.title}`)
-      ).toBeVisible()
-    : await expect(
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        upcomingBookingList.locator(`text=${eventType.title}`)
-      ).toBeHidden();
+    ? await expect(upcomingBookingList.locator(`text=${eventType.title}`)).toBeVisible()
+    : await expect(upcomingBookingList.locator(`text=${eventType.title}`)).toBeHidden();
 };
