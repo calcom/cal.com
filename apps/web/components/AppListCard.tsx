@@ -92,6 +92,11 @@ export default function AppListCard(props: AppListCardProps) {
           <TopBanner
             text={`Oh no! Looks like permission expired or was revoked. Please reinstall again. `}
             variant="warning"
+            actions={
+              <a href={`/apps/${slug}`} className="border-b border-b-black">
+                Go to App
+              </a>
+            }
           />
         </div>
       )}
