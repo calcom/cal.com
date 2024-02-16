@@ -339,15 +339,29 @@ export async function ensureAvailableUsers(
     });
   }
 
+  const getStartTime = (startTimeInput: string, timeZone?: string) => {
+    return timeZone === "Etc/GMT" ? dayjs.utc(startTimeInput) : dayjs(startTimeInput).tz(timeZone).utc();
+  };
+
+  const startTime = getStartTime(input.dateFrom, input.timeZone);
+  const endTime =
+    input.timeZone === "Etc/GMT" ? dayjs.utc(input.dateTo) : dayjs(input.dateTo).tz(input.timeZone).utc();
+
+  console.log("-------startTime", startTime);
+  console.log("-------endTime", endTime);
+  console.log("-------input.timeZone", input.timeZone);
+
   /** Let's start checking for availability */
   for (const user of eventType.users) {
     const { dateRanges, busy: bufferedBusyTimes } = await getUserAvailability(
       {
+        ...input,
         userId: user.id,
         eventTypeId: eventType.id,
         duration: originalBookingDuration,
         returnDateOverrides: false,
-        ...input,
+        dateFrom: startTime.format(),
+        dateTo: endTime.format(),
       },
       {
         user,
