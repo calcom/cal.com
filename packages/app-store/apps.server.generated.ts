@@ -14,6 +14,7 @@ export const apiHandlers = {
   closecom: import("./closecom/api"),
   cron: import("./cron/api"),
   deel: import("./deel/api"),
+  demodesk: import("./demodesk/api"),
   discord: import("./discord/api"),
   eightxeight: import("./eightxeight/api"),
   "element-call": import("./element-call/api"),
