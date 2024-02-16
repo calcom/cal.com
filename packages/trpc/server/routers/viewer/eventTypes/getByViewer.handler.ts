@@ -65,6 +65,7 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
       ? EventTypeRepository.findAllByUpId(
           {
             upId: lightProfile.upId,
+            userId: ctx.user.id,
           },
           {
             where: {
@@ -131,7 +132,15 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
     ),
   });
 
-  const userEventTypes = await Promise.all(profileEventTypes.map(mapEventType));
+  const userEventTypes = (await Promise.all(profileEventTypes.map(mapEventType))).filter((eventType) => {
+    const isAChildEvent = eventType.parentId;
+    // A child event only has one user
+    const childEventAssignee = eventType.users[0];
+    if (isAChildEvent && childEventAssignee.id != ctx.user.id) {
+      return false;
+    }
+    return true;
+  });
 
   type EventTypeGroup = {
     teamId?: number | null;
@@ -198,7 +207,7 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
     if (!input?.filters || !hasFilter(input?.filters)) {
       return true;
     }
-    return input?.filters?.teamIds?.includes(eventType?.team?.id || 0) ?? false;
+    return input?.filters?.teamIds?.includes(eventType?.teamId || 0) ?? false;
   };
   eventTypeGroups = ([] as EventTypeGroup[]).concat(
     eventTypeGroups,
@@ -253,6 +262,7 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
                   })
                 : getTeamAvatarUrl({
                     slug: team.slug,
+                    logoUrl: team.logoUrl,
                     requestedSlug: team.metadata?.requestedSlug ?? null,
                     organizationId: team.parentId,
                   }),
