@@ -14,7 +14,7 @@ export interface ICity {
 }
 
 export function TimezoneSelect(props: SelectProps & { variant?: "default" | "minimal" }) {
-  const { data, isPending } = trpc.viewer.public.cityTimezones.useQuery(undefined, {
+  const { data, isPending } = trpc.viewer.timezones.cityTimezones.useQuery(undefined, {
     trpc: { context: { skipBatch: true } },
   });
 
