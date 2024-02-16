@@ -21,6 +21,7 @@ import { User } from "@prisma/client";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import type { ScheduleWithAvailabilitiesForWeb } from "@calcom/platform-libraries";
+import type { CityTimezones } from "@calcom/platform-libraries";
 import { ApiResponse } from "@calcom/platform-types";
 
 import { CreateScheduleInput } from "../inputs/create-schedule.input";
@@ -67,6 +68,18 @@ export class SchedulesController {
       status: SUCCESS_STATUS,
       data: {
         schedule: scheduleFormatted,
+      },
+    };
+  }
+
+  @Get("/time-zones")
+  async getTimeZones(): Promise<ApiResponse<{ timeZones: CityTimezones }>> {
+    const timeZones = await this.schedulesService.getSchedulePossibleTimeZones();
+
+    return {
+      status: SUCCESS_STATUS,
+      data: {
+        timeZones,
       },
     };
   }

@@ -1,6 +1,5 @@
-import { IsBoolean, IsNumber, IsString, IsOptional, IsArray } from "class-validator";
-
-import { TimeZone } from "@calcom/platform-constants";
+import { IsTimeZone } from "@/modules/users/inputs/validators/is-time-zone";
+import { IsBoolean, IsNumber, IsString, IsOptional, IsArray, Validate } from "class-validator";
 
 export class CreateBookingInput {
   @IsString()
@@ -26,7 +25,8 @@ export class CreateBookingInput {
   recurringEventId?: string;
 
   @IsString()
-  timeZone!: TimeZone;
+  @Validate(IsTimeZone)
+  timeZone!: string;
 
   @IsOptional()
   @IsArray()

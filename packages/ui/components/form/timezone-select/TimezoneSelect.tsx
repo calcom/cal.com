@@ -26,8 +26,8 @@ export function TimezoneSelectComponent({
   classNames: timezoneClassNames,
   components,
   variant = "default",
-  data,
-  isPending,
+  // data,
+  // isPending,
   value,
   ...props
 }: SelectProps & {
@@ -36,6 +36,9 @@ export function TimezoneSelectComponent({
   data: ICity[] | undefined;
 }) {
   const [cities, setCities] = useState<ICity[]>([]);
+  const { data, isPending } = trpc.viewer.timezones.cityTimezones.useQuery(undefined, {
+    trpc: { context: { skipBatch: true } },
+  });
   const handleInputChange = (tz: string) => {
     if (data) setCities(filterByCities(tz, data));
   };
