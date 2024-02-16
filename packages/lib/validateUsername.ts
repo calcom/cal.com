@@ -56,9 +56,7 @@ export const validateAndGetCorrectedUsernameAndEmail = async ({
             {
               OR: [
                 { emailVerified: { not: null } },
-                {
-                  AND: [{ password: { not: null } }, { username: { not: null } }],
-                },
+                { AND: [{ password: { isNot: null } }, { username: { not: null } }] },
               ],
             },
           ],

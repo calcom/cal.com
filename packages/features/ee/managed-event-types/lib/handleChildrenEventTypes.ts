@@ -36,6 +36,7 @@ interface handleChildrenEventTypesProps {
       }[]
     | undefined;
   prisma: PrismaClient | DeepMockProxy<PrismaClient>;
+  updatedValues: Prisma.EventTypeUpdateInput;
 }
 
 const sendAllSlugReplacementEmails = async (
@@ -95,6 +96,7 @@ export default async function handleChildrenEventTypes({
   children,
   prisma,
   profileId,
+  updatedValues,
 }: handleChildrenEventTypesProps) {
   // Check we are dealing with a managed event type
   if (updatedEventType?.schedulingType !== SchedulingType.MANAGED)
@@ -114,8 +116,12 @@ export default async function handleChildrenEventTypes({
       message: "Missing event type",
     };
 
-  // Define what values are expected to be changed from a managed event type
-  const allManagedEventTypePropsZod = _EventTypeModel.pick(allManagedEventTypeProps);
+  // bookingFields is expected to be filled by the _EventTypeModel but is null at create event
+  const _ManagedEventTypeModel = _EventTypeModel.extend({
+    bookingFields: _EventTypeModel.shape.bookingFields.nullish(),
+  });
+
+  const allManagedEventTypePropsZod = _ManagedEventTypeModel.pick(allManagedEventTypeProps); //FIXME
   const managedEventTypeValues = allManagedEventTypePropsZod
     .omit(unlockedManagedEventTypeProps)
     .parse(eventType);
@@ -130,14 +136,12 @@ export default async function handleChildrenEventTypes({
   const unlockedEventTypeValues = allManagedEventTypePropsZod
     .pick(unlockedManagedEventTypeProps)
     .parse(eventType);
-
   // Calculate if there are new/existent/deleted children users for which the event type needs to be created/updated/deleted
   const previousUserIds = oldEventType.children?.flatMap((ch) => ch.userId ?? []);
   const currentUserIds = children?.map((ch) => ch.owner.id);
   const deletedUserIds = previousUserIds?.filter((id) => !currentUserIds?.includes(id));
   const newUserIds = currentUserIds?.filter((id) => !previousUserIds?.includes(id));
   const oldUserIds = currentUserIds?.filter((id) => previousUserIds?.includes(id));
-
   // Calculate if there are new workflows for which assigned members will get too
   const currentWorkflowIds = eventType.workflows?.map((wf) => wf.workflowId);
 
@@ -227,18 +231,9 @@ export default async function handleChildrenEventTypes({
             },
           },
           data: {
-            ...managedEventTypeValues,
-            profileId: profileId ?? null,
-            hidden: children?.find((ch) => ch.owner.id === userId)?.hidden ?? false,
-            bookingLimits:
-              (managedEventTypeValues.bookingLimits as unknown as Prisma.InputJsonObject) ?? undefined,
-            onlyShowFirstAvailableSlot: managedEventTypeValues.onlyShowFirstAvailableSlot ?? false,
-            recurringEvent:
-              (managedEventTypeValues.recurringEvent as unknown as Prisma.InputJsonValue) ?? undefined,
-            metadata: (managedEventTypeValues.metadata as Prisma.InputJsonValue) ?? undefined,
-            bookingFields: (managedEventTypeValues.bookingFields as Prisma.InputJsonValue) ?? undefined,
-            durationLimits: (managedEventTypeValues.durationLimits as Prisma.InputJsonValue) ?? undefined,
+            ...updatedValues,
             hashedLink: hashedLinkQuery(userId),
+            hidden: children?.find((ch) => ch.owner.id === userId)?.hidden ?? false,
           },
         });
       })
