@@ -1,4 +1,3 @@
-import { useSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 import { shallow } from "zustand/shallow";
@@ -12,7 +11,10 @@ import { useOverlayCalendarStore } from "../OverlayCalendar/store";
 import { useLocalSet } from "./useLocalSet";
 
 export type UseCalendarsReturnType = ReturnType<typeof useCalendars>;
-export const useCalendars = () => {
+type UseCalendarsProps = {
+  hasSession: boolean;
+};
+export const useCalendars = ({ hasSession }: UseCalendarsProps) => {
   const searchParams = useSearchParams();
   const selectedDate = useBookerStore((state) => state.selectedDate);
   const { timezone } = useTimePreferences();
@@ -24,7 +26,6 @@ export const useCalendars = () => {
     externalId: string;
   }>("toggledConnectedCalendars", []);
   const utils = trpc.useContext();
-  const { data: session } = useSession();
 
   const [calendarSettingsOverlay] = useOverlayCalendarStore(
     (state) => [state.calendarSettingsOverlayModal, state.setCalendarSettingsOverlayModal],
@@ -42,7 +43,7 @@ export const useCalendars = () => {
       })),
     },
     {
-      enabled: !!session && set.size > 0 && switchEnabled,
+      enabled: hasSession && set.size > 0 && switchEnabled,
     }
   );
 
