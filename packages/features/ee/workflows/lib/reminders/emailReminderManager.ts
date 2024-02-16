@@ -117,7 +117,6 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
   const uid = evt.uid as string;
   const currentDate = dayjs();
   const timeUnit: timeUnitLowerCase | undefined = timeSpan.timeUnit?.toLocaleLowerCase() as timeUnitLowerCase;
-
   let scheduledDate = null;
 
   if (triggerEvent === WorkflowTriggerEvents.BEFORE_EVENT) {
@@ -286,6 +285,7 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
       !scheduledDate.isAfter(currentDate.add(72, "hour"))
     ) {
       try {
+        console.log("Trigger for when booking is created");
         // If sendEmail failed then workflowReminer will not be created, failing E2E tests
         await sendEmail(
           {
@@ -323,6 +323,7 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
         log.error(`Error scheduling email with error ${error}`);
       }
     } else if (scheduledDate.isAfter(currentDate.add(72, "hour"))) {
+      console.log("Trigger for reminder");
       // Write to DB and send to CRON if scheduled reminder date is past 72 hours
       if (!isMandatoryReminder) {
         await prisma.workflowReminder.create({

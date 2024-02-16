@@ -2,11 +2,13 @@ import EventManager from "@calcom/core/EventManager";
 import dayjs from "@calcom/dayjs";
 import { sendRoundRobinCancelledEmails, sendRoundRobinScheduledEmails } from "@calcom/emails";
 import { ensureAvailableUsers } from "@calcom/features/bookings/lib/handleNewBooking";
+import { scheduleEmailReminder } from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
 import logger from "@calcom/lib/logger";
 import { getLuckyUser } from "@calcom/lib/server";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
+import { WorkflowActions, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
@@ -244,6 +246,58 @@ export const roundRobinReassignHandler = async ({ ctx, input }: RoundRobinReassi
   sendRoundRobinCancelledEmails(evt, [
     { ...ctx.user, language: { translate: luckyUserT, locale: ctx.user.locale || "en" } },
   ]);
+
+  // Handle only email host workflows
+  const workflows = await prisma.workflow.findMany({
+    where: {
+      OR: [
+        {
+          trigger: WorkflowTriggerEvents.NEW_EVENT,
+        },
+        {
+          trigger: WorkflowTriggerEvents.BEFORE_EVENT,
+        },
+      ],
+      activeOn: {
+        some: {
+          eventTypeId: eventType.id,
+        },
+      },
+      steps: {
+        some: {
+          action: WorkflowActions.EMAIL_HOST,
+        },
+      },
+    },
+    include: {
+      steps: true,
+    },
+  });
+
+  for (const workflow of workflows) {
+    // Only trigger new host step
+    workflow.steps = workflow.steps.filter((step) => step.action === WorkflowActions.EMAIL_HOST);
+
+    for (const step of workflow.steps) {
+      await scheduleEmailReminder({
+        evt: {
+          ...evt,
+          eventType,
+        },
+        action: WorkflowActions.EMAIL_HOST,
+        triggerEvent: workflow.trigger,
+        timeSpan: {
+          time: workflow.time,
+          timeUnit: workflow.timeUnit,
+        },
+        sendTo: luckyUser.email,
+        template: step.template,
+      });
+    }
+  }
+
+  // TODO create relationship between reminder and userId in order to determine which one to delete
+  // deleteScheduledEmailReminder(reminder.id, reminder.referenceId);
 
   return;
 };
