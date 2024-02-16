@@ -239,8 +239,6 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
   // TODO: only query what we need after applying limits (shrink date range)
   const getBusyTimesStart = dateFrom.toISOString();
   const getBusyTimesEnd = dateTo.toISOString();
-  console.log("----------getBusyTimesStart", getBusyTimesStart);
-  console.log("----------getBusyTimesEnd", getBusyTimesEnd);
 
   const busyTimes = await getBusyTimes({
     credentials: user.credentials,
