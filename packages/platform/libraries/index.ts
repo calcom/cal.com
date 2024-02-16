@@ -35,3 +35,8 @@ export { HttpError } from "@calcom/lib/http-error";
 export type { AppsStatus } from "@calcom/types/Calendar";
 
 export { MINUTES_TO_BOOK } from "@calcom/lib/constants";
+
+export { cityTimezonesHandler } from "@calcom/lib/cityTimezonesHandler";
+export type { CityTimezones } from "@calcom/lib/cityTimezonesHandler";
+
+export { addCitiesToDropdown } from "@calcom/lib/timezone";

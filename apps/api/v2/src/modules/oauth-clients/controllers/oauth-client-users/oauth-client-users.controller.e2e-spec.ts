@@ -114,6 +114,19 @@ describe("OAuth Client Users Endpoints", () => {
       expect(oAuthClient).toBeDefined();
     });
 
+    it(`should fail /POST with incorrect timeZone`, async () => {
+      const requestBody: CreateUserInput = {
+        email: "oauth-client-user@gmail.com",
+        timeZone: "incorrect-time-zone",
+      };
+
+      await request(app.getHttpServer())
+        .post(`/api/v2/oauth-clients/${oAuthClient.id}/users`)
+        .set("x-cal-secret-key", oAuthClient.secret)
+        .send(requestBody)
+        .expect(400);
+    });
+
     it(`/POST`, async () => {
       const requestBody: CreateUserInput = {
         email: "oauth-client-user@gmail.com",

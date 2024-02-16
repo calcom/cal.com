@@ -7,6 +7,7 @@ import { insightsRouter } from "@calcom/features/insights/server/trpc-router";
 import { mergeRouters, router } from "../../trpc";
 import { loggedInViewerRouter } from "../loggedInViewer/_router";
 import { publicViewerRouter } from "../publicViewer/_router";
+import { timezonesRouter } from "../publicViewer/timezones/_router";
 import { adminRouter } from "./admin/_router";
 import { apiKeysRouter } from "./apiKeys/_router";
 import { appsRouter } from "./apps/_router";
@@ -27,6 +28,7 @@ import { workflowsRouter } from "./workflows/_router";
 
 export const viewerRouter = mergeRouters(
   loggedInViewerRouter,
+
   router({
     loggedInViewerRouter,
     public: publicViewerRouter,
@@ -36,6 +38,7 @@ export const viewerRouter = mergeRouters(
     eventTypes: eventTypesRouter,
     availability: availabilityRouter,
     teams: viewerTeamsRouter,
+    timezones: timezonesRouter,
     organizations: viewerOrganizationsRouter,
     webhook: webhookRouter,
     apiKeys: apiKeysRouter,

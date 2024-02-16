@@ -1,15 +1,15 @@
 import { CreateAvailabilityInput } from "@/modules/availabilities/inputs/create-availability.input";
+import { IsTimeZone } from "@/modules/users/inputs/validators/is-time-zone";
 import { Type } from "class-transformer";
-import { IsArray, IsBoolean, IsOptional, IsString, ValidateNested } from "class-validator";
-
-import { TimeZone } from "@calcom/platform-constants";
+import { IsArray, IsBoolean, IsOptional, IsString, Validate, ValidateNested } from "class-validator";
 
 export class CreateScheduleInput {
   @IsString()
   name!: string;
 
   @IsString()
-  timeZone!: TimeZone;
+  @Validate(IsTimeZone)
+  timeZone!: string;
 
   @IsArray()
   @ValidateNested({ each: true })
