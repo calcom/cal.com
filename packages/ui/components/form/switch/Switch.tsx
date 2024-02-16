@@ -1,6 +1,7 @@
 import { useId } from "@radix-ui/react-id";
 import * as Label from "@radix-ui/react-label";
 import * as PrimitiveSwitch from "@radix-ui/react-switch";
+import type { ReactNode } from "react";
 import React from "react";
 
 import cx from "@calcom/lib/classNames";
@@ -15,7 +16,7 @@ const Wrapper = ({ children, tooltip }: { tooltip?: string; children: React.Reac
 };
 const Switch = (
   props: React.ComponentProps<typeof PrimitiveSwitch.Root> & {
-    label?: string;
+    label?: string | ReactNode;
     fitToHeight?: boolean;
     disabled?: boolean;
     tooltip?: string;
@@ -44,7 +45,7 @@ const Switch = (
           className={cx(
             isChecked ? "bg-brand-default dark:bg-brand-emphasis" : "bg-emphasis",
             primitiveProps.disabled && "cursor-not-allowed",
-            "focus:ring-brand-default focus:border-subtle h-5 w-[34px] rounded-full shadow-none focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:ring-offset-1",
+            "focus:ring-brand-default focus:border-subtle h-5 w-[34px] min-w-[34px] rounded-full shadow-none focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:ring-offset-1",
             props.className
           )}
           {...primitiveProps}>

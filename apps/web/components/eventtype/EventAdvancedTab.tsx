@@ -1,3 +1,4 @@
+import { InfoIcon } from "lucide-react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import type { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
@@ -179,11 +180,20 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
         {displayDestinationCalendarSelector && (
           <div className="w-full">
             <Switch
-              label={`${t("display_add_to_calendar_organizer")}. ${t("reconnect_calendar_to_use")} `}
+              tooltip={t("reconnect_calendar_to_use")}
+              label={
+                <>
+                  {t("display_add_to_calendar_organizer")}
+                  <InfoIcon className="text-default hover:text-attention hover:bg-attention ms-1 inline h-4 w-4 rounded-md" />
+                </>
+              }
               checked={useEventTypeDestinationCalendarEmail}
               onCheckedChange={(val) => {
                 setUseEventTypeDestinationCalendarEmail(val);
                 formMethods.setValue("useEventTypeDestinationCalendarEmail", val, { shouldDirty: true });
+                if (val) {
+                  showToast(t("reconnect_calendar_to_use"), "warning");
+                }
               }}
             />
           </div>
