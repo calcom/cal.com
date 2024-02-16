@@ -36,13 +36,6 @@ export const publicViewerRouter = router({
     );
     return handler(opts);
   }),
-  cityTimezones: publicProcedure.query(async () => {
-    const handler = await importHandler(
-      namespaced("cityTimezones"),
-      () => import("@calcom/lib/cityTimezonesHandler")
-    );
-    return handler();
-  }),
   // REVIEW: This router is part of both the public and private viewer router?
   slots: slotsRouter,
   event,
