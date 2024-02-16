@@ -65,6 +65,7 @@ const _getEventType = async (id: number) => {
       metadata: true,
       schedule: {
         select: {
+          id: true,
           availability: {
             select: {
               days: true,
@@ -275,6 +276,8 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
   const useHostSchedulesForTeamEvent = eventType?.metadata?.config?.useHostSchedulesForTeamEvent;
   const schedule = !useHostSchedulesForTeamEvent && eventType?.schedule ? eventType.schedule : userSchedule;
 
+  const isDefaultSchedule = userSchedule.id === schedule.id;
+
   log.debug(
     "Using schedule:",
     safeStringify({
@@ -336,13 +339,15 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     dateTo,
     availability,
     timeZone,
-    travelSchedules: user.travelSchedules.map((schedule) => {
-      return {
-        startDate: dayjs(schedule.startDate),
-        endDate: schedule.endDate ? dayjs(schedule.endDate) : undefined,
-        timeZone: schedule.timeZone,
-      };
-    }),
+    travelSchedules: isDefaultSchedule
+      ? user.travelSchedules.map((schedule) => {
+          return {
+            startDate: dayjs(schedule.startDate),
+            endDate: schedule.endDate ? dayjs(schedule.endDate) : undefined,
+            timeZone: schedule.timeZone,
+          };
+        })
+      : [],
   });
   console.log(`date ragens ${JSON.stringify(dateRanges)}`);
   const formattedBusyTimes = detailedBusyTimes.map((busy) => ({

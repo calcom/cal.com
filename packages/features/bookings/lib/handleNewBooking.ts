@@ -225,6 +225,7 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
       timeZone: true,
       schedule: {
         select: {
+          id: true,
           availability: true,
           timeZone: true,
         },
