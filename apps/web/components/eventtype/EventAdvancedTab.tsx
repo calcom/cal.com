@@ -59,7 +59,6 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
   const selectedThemeIsDark =
     user?.theme === "dark" ||
     (!user?.theme && typeof document !== "undefined" && document.documentElement.classList.contains("dark"));
-
   formMethods.getValues().bookingFields.forEach(({ name }) => {
     bookingFields[name] = `${name} input`;
   });
@@ -101,7 +100,8 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
           };
         }
         return field;
-      })
+      }),
+      { shouldDirty: true }
     );
   };
 
@@ -183,7 +183,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
               checked={useEventTypeDestinationCalendarEmail}
               onCheckedChange={(val) => {
                 setUseEventTypeDestinationCalendarEmail(val);
-                formMethods.setValue("useEventTypeDestinationCalendarEmail", val);
+                formMethods.setValue("useEventTypeDestinationCalendarEmail", val, { shouldDirty: true });
               }}
             />
           </div>
@@ -319,7 +319,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
         description={t("private_link_description", { appName: APP_NAME })}
         checked={hashedLinkVisible}
         onCheckedChange={(e) => {
-          formMethods.setValue("hashedLink", e ? hashedUrl : undefined);
+          formMethods.setValue("hashedLink", e ? hashedUrl : undefined, { shouldDirty: true });
           setHashedLinkVisible(e);
         }}>
         <div className="border-subtle rounded-b-lg border border-t-0 p-6">
@@ -383,10 +383,12 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
                 // Enabling seats will disable guests and requiring confirmation until fully supported
                 if (e) {
                   toggleGuests(false);
-                  formMethods.setValue("requiresConfirmation", false);
+                  formMethods.setValue("requiresConfirmation", false, { shouldDirty: true });
                   setRequiresConfirmation(false);
-                  formMethods.setValue("metadata.multipleDuration", undefined);
-                  formMethods.setValue("seatsPerTimeSlot", eventType.seatsPerTimeSlot ?? 2);
+                  formMethods.setValue("metadata.multipleDuration", undefined, { shouldDirty: true });
+                  formMethods.setValue("seatsPerTimeSlot", eventType.seatsPerTimeSlot ?? 2, {
+                    shouldDirty: true,
+                  });
                 } else {
                   formMethods.setValue("seatsPerTimeSlot", null);
                   toggleGuests(true);
@@ -506,7 +508,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
       {showEventNameTip && (
         <CustomEventTypeModal
           close={closeEventNameTip}
-          setValue={(val: string) => formMethods.setValue("eventName", val)}
+          setValue={(val: string) => formMethods.setValue("eventName", val, { shouldDirty: true })}
           defaultValue={formMethods.getValues("eventName")}
           placeHolder={eventNamePlaceholder}
           event={eventNameObject}
