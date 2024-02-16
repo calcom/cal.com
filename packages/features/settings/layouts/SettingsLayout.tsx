@@ -6,6 +6,7 @@ import type { ComponentProps } from "react";
 import React, { Suspense, useEffect, useState } from "react";
 
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
+import { InitIntercom } from "@calcom/features/ee/support/lib/intercom/IntercomMenuItem";
 import Shell from "@calcom/features/shell/Shell";
 import { classNames } from "@calcom/lib";
 import { HOSTED_CAL_FEATURES, WEBAPP_URL } from "@calcom/lib/constants";
@@ -278,6 +279,7 @@ const SettingsSidebarContainer = ({
       )}
       aria-label="Tabs">
       <>
+        <InitIntercom />
         <BackButtonInSidebar name={t("back")} />
         {tabsWithPermissions.map((tab) => {
           return (

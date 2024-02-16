@@ -24,3 +24,14 @@ export default function IntercomMenuItem(props: IntercomMenuItemProps) {
     </button>
   );
 }
+
+export function InitIntercom() {
+  const { open } = useIntercom();
+  // eslint-disable-next-line turbo/no-undeclared-env-vars
+  if (!process.env.NEXT_PUBLIC_INTERCOM_APP_ID) {
+    return null;
+  } else {
+    open();
+  }
+  return <></>;
+}
