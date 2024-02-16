@@ -52,9 +52,9 @@ export function BaseCalProvider({ clientId, accessToken, options, children }: Ca
           isInit && !error && clientId && !isRefreshing && currentAccessToken && http.getAuthorizationHeader()
         ),
       }}>
-      {children}
+      <div dir="rtl">{children}</div>
     </AtomsContext.Provider>
   ) : (
-    <>{children}</>
+    <div dir="rtl">{children}</div>
   );
 }
