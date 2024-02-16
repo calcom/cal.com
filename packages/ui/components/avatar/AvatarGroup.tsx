@@ -44,13 +44,13 @@ export const AvatarGroup = function AvatarGroup(props: AvatarGroupProps) {
       {numTruncatedAvatars > 0 && (
         <li
           className={classNames(
-            "bg-inverted relative -mr-[4px] mb-1 inline-flex justify-center overflow-hidden rounded-full",
+            "bg-inverted relative -mr-[4px] inline-flex justify-center overflow-hidden rounded-full",
             props.size === "sm" ? "min-w-6 h-6" : "min-w-16 h-16"
           )}>
           <span
             className={classNames(
-              "text-inverted m-auto px-1 text-center",
-              props.size === "sm" ? "text-[12px]" : "text-2xl"
+              "text-inverted m-auto px-1 py-0.5 text-center",
+              props.size === "sm" ? "min-w-6 h-6 text-[12px]" : "min-w-16 h-16 text-2xl"
             )}>
             +{numTruncatedAvatars}
           </span>
