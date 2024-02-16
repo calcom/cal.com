@@ -31,7 +31,7 @@ const isExpired = (entry: CacheEntry): boolean => {
 export const getFeatureFlag = async (
   prisma: PrismaClient,
   slug: keyof AppFlags,
-  options?: CacheOptions = { ttl: 5 * 60 * 1000 }
+  options: CacheOptions = { ttl: 5 * 60 * 1000 }
 ): Promise<boolean> => {
   const cacheEntry = featureFlagCache.get(slug);
 

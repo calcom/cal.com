@@ -282,12 +282,12 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
 
   return {
     ...input,
-    email: sendEmailVerification && hasEmailChangedOnCalProvider ? user.email : input.email,
+    email: emailVerification && hasEmailChangedOnCalProvider ? user.email : input.email,
     signOutUser,
     passwordReset,
     avatarUrl: updatedUser.avatarUrl,
     hasEmailBeenChanged,
-    sendEmailVerification,
+    sendEmailVerification: emailVerification,
   };
 };
 
