@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
@@ -93,9 +94,9 @@ export default function AppListCard(props: AppListCardProps) {
             text={`Oh no! Looks like permission expired or was revoked. Please reinstall again. `}
             variant="warning"
             actions={
-              <a href={`/apps/${slug}`} className="border-b border-b-black">
+              <Link href={`/apps/${slug}`} className="border-b border-b-black">
                 Go to App
-              </a>
+              </Link>
             }
           />
         </div>
