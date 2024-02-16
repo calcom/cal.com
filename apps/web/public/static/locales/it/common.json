@@ -67,6 +67,8 @@
   "light_theme_contrast_error": "Il colore del tema chiaro non supera il controllo del contrasto. Ti consigliamo di cambiare questo colore in modo che i pulsanti siano più visibili.",
   "payment_not_created_error": "Non è stato possibile creare il pagamento",
   "couldnt_charge_card_error": "Non è stato possibile addebitare la carta per il pagamento",
+  "no_available_users_found_error": "Nessun utente disponibile. Puoi provare un altro intervallo temporale?",
+  "request_body_end_time_internal_error": "Errore interno. La richiesta non contiene l'ora finale",
   "create_calendar_event_error": "Impossibile creare l'evento nel calendario dell'organizzatore",
   "update_calendar_event_error": "Impossibile aggiornare l'evento nel calendario.",
   "delete_calendar_event_error": "Impossibile eliminare l'evento dal calendario.",
