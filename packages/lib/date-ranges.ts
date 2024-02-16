@@ -35,15 +35,18 @@ export function processWorkingHours({
     let adjustedTimzone = timeZone;
 
     //make sure this is exact
-    if (date.isAfter(travelSchedules.startDate) || date.isSame(travelSchedules.startDate)) {
-      if (
-        !travelSchedules.endDate ||
-        date.isBefore(travelSchedules.endDate) ||
-        date.isSame(travelSchedules.endDate)
-      ) {
-        adjustedTimzone = travelSchedules.timeZone;
+    travelSchedules.forEach((travelSchedule) => {
+      if (date.isAfter(travelSchedule.startDate) || date.isSame(travelSchedule.startDate)) {
+        if (
+          !travelSchedule.endDate ||
+          date.isBefore(travelSchedule.endDate) ||
+          date.isSame(travelSchedule.endDate)
+        ) {
+          adjustedTimzone = travelSchedule.timeZone;
+        }
       }
-    }
+    });
+
     const offset = date.tz(adjustedTimzone).utcOffset();
 
     // it always has to be start of the day (midnight) even when DST changes
@@ -99,28 +102,29 @@ export function processDateOverride({
   let adjustedTimzoneEndDate = timeZone;
 
   const itemStart = dayjs(item.startTime);
-
-  if (itemStart.isAfter(travelSchedules.startDate) || itemStart.isSame(travelSchedules.startDate)) {
-    if (
-      !travelSchedules.endDate ||
-      itemStart.isBefore(travelSchedules.endDate) ||
-      itemStart.isSame(travelSchedules.endDate)
-    ) {
-      adjustedTimzoneStartDate = travelSchedules.timeZone;
-    }
-  }
-
   const itemEnd = dayjs(item.endTime);
 
-  if (itemEnd.isAfter(travelSchedules.startDate) || itemEnd.isSame(travelSchedules.startDate)) {
-    if (
-      !travelSchedules.endDate ||
-      itemEnd.isBefore(travelSchedules.endDate) ||
-      itemEnd.isSame(travelSchedules.endDate)
-    ) {
-      adjustedTimzoneEndDate = travelSchedules.timeZone;
+  travelSchedules.forEach((travelSchedule) => {
+    if (itemStart.isAfter(travelSchedule.startDate) || itemStart.isSame(travelSchedule.startDate)) {
+      if (
+        !travelSchedule.endDate ||
+        itemStart.isBefore(travelSchedule.endDate) ||
+        itemStart.isSame(travelSchedule.endDate)
+      ) {
+        adjustedTimzoneStartDate = travelSchedule.timeZone;
+      }
     }
-  }
+
+    if (itemEnd.isAfter(travelSchedule.startDate) || itemEnd.isSame(travelSchedule.startDate)) {
+      if (
+        !travelSchedule.endDate ||
+        itemEnd.isBefore(travelSchedule.endDate) ||
+        itemEnd.isSame(travelSchedule.endDate)
+      ) {
+        adjustedTimzoneEndDate = travelSchedule.timeZone;
+      }
+    }
+  });
 
   const itemDateStartOfDay = itemDateAsUtc.startOf("day");
   const startDate = itemDateStartOfDay
