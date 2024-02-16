@@ -11,6 +11,7 @@ import { encodeOAuthState } from "../../_utils/oauth/encodeOAuthState";
 export const scopes = [
   "https://www.googleapis.com/auth/calendar.readonly",
   "https://www.googleapis.com/auth/calendar.events",
+  "https://www.googleapis.com/auth/userinfo.profile",
 ];
 
 let client_id = "";
