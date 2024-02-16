@@ -178,7 +178,7 @@ const usernameCheckForSignup = async ({
 
   const username = slugify(usernameRaw);
 
-  const user = await prisma.user.findFirst({
+  const user = await prisma.user.findUnique({
     where: {
       email,
     },
