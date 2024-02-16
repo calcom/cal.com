@@ -1,3 +1,4 @@
+import { checkRegularUsername } from "@calcom/lib/server/checkRegularUsername";
 import { isOrganisationAdmin, isOrganisationOwner } from "@calcom/lib/server/queries/organisations";
 import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
 import { prisma } from "@calcom/prisma";
@@ -32,6 +33,7 @@ const applyRoleToAllTeams = async (userId: number, teamIds: number[], role: Memb
 export const updateUserHandler = async ({ ctx, input }: UpdateUserOptions) => {
   const { user } = ctx;
   const { id: userId, organizationId } = user;
+
   if (!organizationId)
     throw new TRPCError({ code: "UNAUTHORIZED", message: "You must be a memeber of an organizaiton" });
 
@@ -80,6 +82,16 @@ export const updateUserHandler = async ({ ctx, input }: UpdateUserOptions) => {
   if (!requestedMember)
     throw new TRPCError({ code: "UNAUTHORIZED", message: "User does not belong to your organization" });
 
+  if (input.username && input.username !== requestedMember.username) {
+    const checkRegularUsernameRes = await checkRegularUsername(
+      input.username,
+      ctx.user.profile.organization.slug
+    );
+    if (!checkRegularUsernameRes.available) {
+      throw new TRPCError({ code: "BAD_REQUEST", message: checkRegularUsernameRes.message });
+    }
+  }
+
   let avatar = input.avatar;
   if (input.avatar) {
     avatar = await resizeBase64Image(input.avatar);
@@ -96,6 +108,7 @@ export const updateUserHandler = async ({ ctx, input }: UpdateUserOptions) => {
         email: input.email,
         name: input.name,
         timeZone: input.timeZone,
+        username: input.username,
         avatar,
       },
     }),
