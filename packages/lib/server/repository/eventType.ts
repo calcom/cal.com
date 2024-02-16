@@ -88,7 +88,7 @@ export class EventTypeRepository {
   }
 
   static async findAllByUpId(
-    { upId }: { upId: string },
+    { upId, userId }: { upId: string; userId: number },
     {
       orderBy,
       where = {},
@@ -156,6 +156,13 @@ export class EventTypeRepository {
             {
               profileId,
             },
+            // Fetch children event-types by userId because profileId is wrong
+            {
+              userId,
+              parentId: {
+                not: null,
+              },
+            },
           ],
           ...where,
         },
@@ -165,7 +172,18 @@ export class EventTypeRepository {
     } else {
       return await prisma.eventType.findMany({
         where: {
-          profileId,
+          OR: [
+            {
+              profileId,
+            },
+            // Fetch children event-types by userId because profileId is wrong
+            {
+              userId: userId,
+              parentId: {
+                not: null,
+              },
+            },
+          ],
           ...where,
         },
         select,
