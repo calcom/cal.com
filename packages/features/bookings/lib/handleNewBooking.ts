@@ -347,10 +347,6 @@ export async function ensureAvailableUsers(
   const endTime =
     input.timeZone === "Etc/GMT" ? dayjs.utc(input.dateTo) : dayjs(input.dateTo).tz(input.timeZone).utc();
 
-  console.log("-------startTime", startTime);
-  console.log("-------endTime", endTime);
-  console.log("-------input.timeZone", input.timeZone);
-
   /** Let's start checking for availability */
   for (const user of eventType.users) {
     const { dateRanges, busy: bufferedBusyTimes } = await getUserAvailability(
