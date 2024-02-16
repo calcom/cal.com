@@ -45,11 +45,15 @@ export const setPasswordHandler = async ({ ctx, input }: UpdateOptions) => {
     });
 
   const hashedPassword = await hashPassword(newPassword);
-  await prisma.userPassword.update({
+  await prisma.userPassword.upsert({
     where: {
       userId: ctx.user.id,
     },
-    data: {
+    create: {
+      hash: hashedPassword,
+      userId: ctx.user.id,
+    },
+    update: {
       hash: hashedPassword,
     },
   });
