@@ -29,7 +29,7 @@ export function getTeamAvatarUrl(
   team: Pick<Team, "slug"> & {
     organizationId?: number | null;
     logoUrl?: string | null;
-    requestedSlug: string | null;
+    requestedSlug?: string | null;
   }
 ) {
   if (team.logoUrl) {
@@ -42,7 +42,7 @@ export function getTeamAvatarUrl(
 export const getOrgAvatarUrl = (
   org: Pick<Team, "slug"> & {
     logoUrl?: string | null;
-    requestedSlug: string | null;
+    requestedSlug?: string | null;
   }
 ) => {
   if (org.logoUrl) {

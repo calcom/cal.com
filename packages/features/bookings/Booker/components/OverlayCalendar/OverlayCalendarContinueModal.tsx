@@ -1,5 +1,4 @@
 import { CalendarSearch } from "lucide-react";
-import { useRouter } from "next/navigation";
 
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -8,10 +7,10 @@ import { Button, Dialog, DialogContent, DialogFooter } from "@calcom/ui";
 interface IOverlayCalendarContinueModalProps {
   open?: boolean;
   onClose?: (state: boolean) => void;
+  onContinue: () => void;
 }
 
 export function OverlayCalendarContinueModal(props: IOverlayCalendarContinueModalProps) {
-  const router = useRouter();
   const { t } = useLocale();
   return (
     <>
@@ -24,12 +23,7 @@ export function OverlayCalendarContinueModal(props: IOverlayCalendarContinueModa
             <Button
               data-testid="overlay-calendar-continue-button"
               onClick={() => {
-                const currentUrl = new URL(window.location.href);
-                currentUrl.pathname = "/login/";
-                currentUrl.searchParams.set("callbackUrl", window.location.pathname);
-                currentUrl.searchParams.set("overlayCalendar", "true");
-
-                router.push(currentUrl.toString());
+                props.onContinue();
               }}
               className="gap w-full items-center justify-center font-semibold"
               StartIcon={CalendarSearch}>
