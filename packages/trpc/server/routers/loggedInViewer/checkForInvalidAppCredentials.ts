@@ -1,8 +1,7 @@
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import { type InvalidAppCredentialBannerProps } from "@calcom/features/users/components/InvalidAppCredentialsBanner";
 import { prisma } from "@calcom/prisma";
-
-import type { TrpcSessionUser } from "../../../trpc";
+import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 type checkInvalidAppCredentialsOptions = {
   ctx: {
