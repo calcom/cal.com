@@ -12,3 +12,14 @@ export async function getFeatureFlagMap(prisma: PrismaClient) {
     return acc;
   }, {} as Partial<AppFlags>);
 }
+
+export const getFeatureFlag = async (prisma: PrismaClient, slug: keyof AppFlags): Promise<boolean> => {
+  const flag = await prisma.feature.findUnique({
+    where: {
+      slug,
+    },
+    cacheStrategy: { swr: 300, ttl: 300 },
+  });
+
+  return Boolean(flag && flag.enabled);
+};
