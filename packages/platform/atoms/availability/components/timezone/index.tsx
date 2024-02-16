@@ -2,7 +2,11 @@ import { Controller } from "react-hook-form";
 
 import { Skeleton, Label, TimezoneSelectComponent, SelectSkeletonLoader } from "@calcom/ui";
 
+import useGetCityTimezones from "../../hooks/useGetCityTimezones";
+
 export function Timezone({ title = "Timezone" }: { title?: string }) {
+  const { isLoading, data } = useGetCityTimezones();
+
   return (
     <div>
       <Skeleton
@@ -17,8 +21,8 @@ export function Timezone({ title = "Timezone" }: { title?: string }) {
         render={({ field: { onChange, value } }) =>
           value ? (
             <TimezoneSelectComponent
-              isPending={false}
-              data={[{ city: "London", timezone: "Europe/London" }]}
+              isPending={isLoading}
+              data={data?.data.timeZones}
               value={value}
               className="focus:border-brand-default border-default mt-1 block w-72 rounded-md text-sm"
               onChange={(timezone) => onChange(timezone.value)}
