@@ -166,7 +166,7 @@ type BannerTypeProps = {
   adminPasswordBanner: AdminPasswordBannerProps;
   impersonationBanner: ImpersonatingBannerProps;
   calendarCredentialBanner: CalendarCredentialBannerProps;
-  InvalidAppCredentialBanners: InvalidAppCredentialBannersProps;
+  invalidAppCredentialBanners: InvalidAppCredentialBannersProps;
 };
 
 type BannerType = keyof BannerTypeProps;
