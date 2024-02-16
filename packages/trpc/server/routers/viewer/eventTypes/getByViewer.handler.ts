@@ -65,6 +65,7 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
       ? EventTypeRepository.findAllByUpId(
           {
             upId: lightProfile.upId,
+            userId: ctx.user.id,
           },
           {
             where: {
@@ -131,7 +132,15 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
     ),
   });
 
-  const userEventTypes = await Promise.all(profileEventTypes.map(mapEventType));
+  const userEventTypes = (await Promise.all(profileEventTypes.map(mapEventType))).filter((eventType) => {
+    const isAChildEvent = eventType.parentId;
+    // A child event only has one user
+    const childEventAssignee = eventType.users[0];
+    if (isAChildEvent && childEventAssignee.id != ctx.user.id) {
+      return false;
+    }
+    return true;
+  });
 
   type EventTypeGroup = {
     teamId?: number | null;
