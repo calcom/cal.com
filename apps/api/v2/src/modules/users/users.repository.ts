@@ -12,7 +12,7 @@ export class UsersRepository {
   async create(user: CreateUserInput, oAuthClientId: string) {
     this.formatInput(user);
 
-    const newUser = await this.dbRead.prisma.user.create({
+    return this.dbRead.prisma.user.create({
       data: {
         ...user,
         platformOAuthClients: {
@@ -20,62 +20,49 @@ export class UsersRepository {
         },
       },
     });
-
-    return this.sanitize(newUser, ["password"]);
   }
 
   async findById(userId: number) {
-    const user = await this.dbRead.prisma.user.findUnique({
+    return this.dbRead.prisma.user.findUnique({
       where: {
         id: userId,
       },
     });
+  }
 
-    if (user) {
-      return this.sanitize(user, ["password"]);
-    }
-
-    return null;
+  async findByIdWithCalendars(userId: number) {
+    return this.dbRead.prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+      include: {
+        selectedCalendars: true,
+        destinationCalendar: true,
+      },
+    });
   }
 
   async findByEmail(email: string) {
-    const user = await this.dbRead.prisma.user.findUnique({
+    return this.dbRead.prisma.user.findUnique({
       where: {
         email,
       },
     });
-
-    if (user) {
-      return this.sanitize(user, ["password"]);
-    }
-
-    return null;
   }
 
   async update(userId: number, updateData: UpdateUserInput) {
     this.formatInput(updateData);
 
-    const updatedUser = await this.dbWrite.prisma.user.update({
+    return this.dbWrite.prisma.user.update({
       where: { id: userId },
       data: updateData,
     });
-    return this.sanitize(updatedUser, ["password"]);
   }
 
   async delete(userId: number): Promise<User> {
     return this.dbWrite.prisma.user.delete({
       where: { id: userId },
     });
-  }
-
-  sanitize<T extends keyof User>(user: User, keys: T[]): Omit<User, T> {
-    const sanitizedUser = { ...user };
-
-    keys.forEach((key) => {
-      delete sanitizedUser[key];
-    });
-
-    return sanitizedUser;
   }
 
   formatInput(userInput: CreateUserInput | UpdateUserInput) {
