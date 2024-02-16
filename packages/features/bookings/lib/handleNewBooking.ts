@@ -1,6 +1,5 @@
 import type { App, DestinationCalendar, EventTypeCustomInput } from "@prisma/client";
 import { Prisma } from "@prisma/client";
-import async from "async";
 import type { IncomingMessage } from "http";
 import { isValidPhoneNumber } from "libphonenumber-js";
 // eslint-disable-next-line no-restricted-imports
@@ -85,7 +84,6 @@ import {
   EventTypeMetaDataSchema,
   userMetadata as userMetadataSchema,
 } from "@calcom/prisma/zod-utils";
-import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
 import type {
   AdditionalInformation,
   AppsStatus,
@@ -97,6 +95,9 @@ import type { CredentialPayload } from "@calcom/types/Credential";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 
 import type { EventTypeInfo } from "../../webhooks/lib/sendPayload";
+import { checkForConflicts } from "./conflictChecker/checkForConflicts";
+import { getAllCredentials } from "./getAllCredentialsForUsersOnEvent/getAllCredentials";
+import { refreshCredentials } from "./getAllCredentialsForUsersOnEvent/refreshCredentials";
 import getBookingDataSchema from "./getBookingDataSchema";
 import handleSeats from "./handleSeats/handleSeats";
 import type { BookingSeat } from "./handleSeats/types";
@@ -105,7 +106,6 @@ const translator = short();
 const log = logger.getSubLogger({ prefix: ["[api] book:user"] });
 
 type User = Prisma.UserGetPayload<typeof userSelect>;
-type BufferedBusyTimes = BufferedBusyTime[];
 type BookingType = Prisma.PromiseReturnType<typeof getOriginalRescheduledBooking>;
 export type Booking = Prisma.PromiseReturnType<typeof createBooking>;
 export type NewBookingEventType =
@@ -151,142 +151,6 @@ export interface IEventTypePaymentCredentialType {
     dirName: string;
   };
   key: Prisma.JsonValue;
-}
-
-/**
- * Refreshes a Credential with fresh data from the database.
- *
- * @param credential
- */
-async function refreshCredential(credential: CredentialPayload): Promise<CredentialPayload> {
-  const newCredential = await prisma.credential.findUnique({
-    where: {
-      id: credential.id,
-    },
-    select: credentialForCalendarServiceSelect,
-  });
-
-  if (!newCredential) {
-    return credential;
-  } else {
-    return newCredential;
-  }
-}
-
-/**
- * Refreshes the given set of credentials.
- *
- * @param credentials
- */
-export async function refreshCredentials(
-  credentials: Array<CredentialPayload>
-): Promise<Array<CredentialPayload>> {
-  return await async.mapLimit(credentials, 5, refreshCredential);
-}
-
-/**
- * Gets credentials from the user, team, and org if applicable
- *
- */
-const getAllCredentials = async (
-  user: User & { credentials: CredentialPayload[] },
-  eventType: Awaited<ReturnType<typeof getEventTypesFromDB>>
-) => {
-  const allCredentials = user.credentials;
-
-  // If it's a team event type query for team credentials
-  if (eventType.team?.id) {
-    const teamCredentialsQuery = await prisma.credential.findMany({
-      where: {
-        teamId: eventType.team.id,
-      },
-      select: credentialForCalendarServiceSelect,
-    });
-    allCredentials.push(...teamCredentialsQuery);
-  }
-
-  // If it's a managed event type, query for the parent team's credentials
-  if (eventType.parentId) {
-    const teamCredentialsQuery = await prisma.team.findFirst({
-      where: {
-        eventTypes: {
-          some: {
-            id: eventType.parentId,
-          },
-        },
-      },
-      select: {
-        credentials: {
-          select: credentialForCalendarServiceSelect,
-        },
-      },
-    });
-    if (teamCredentialsQuery?.credentials) {
-      allCredentials.push(...teamCredentialsQuery?.credentials);
-    }
-  }
-
-  const { profile } = await UserRepository.enrichUserWithItsProfile({
-    user: user,
-  });
-
-  // If the user is a part of an organization, query for the organization's credentials
-  if (profile?.organizationId) {
-    const org = await prisma.team.findUnique({
-      where: {
-        id: profile.organizationId,
-      },
-      select: {
-        credentials: {
-          select: credentialForCalendarServiceSelect,
-        },
-      },
-    });
-
-    if (org?.credentials) {
-      allCredentials.push(...org.credentials);
-    }
-  }
-
-  return allCredentials;
-};
-
-// if true, there are conflicts.
-function checkForConflicts(busyTimes: BufferedBusyTimes, time: dayjs.ConfigType, length: number) {
-  // Early return
-  if (!Array.isArray(busyTimes) || busyTimes.length < 1) {
-    return false; // guaranteed no conflicts when there is no busy times.
-  }
-
-  for (const busyTime of busyTimes) {
-    const startTime = dayjs(busyTime.start);
-    const endTime = dayjs(busyTime.end);
-    // Check if time is between start and end times
-    if (dayjs(time).isBetween(startTime, endTime, null, "[)")) {
-      log.error(
-        `NAUF: start between a busy time slot ${safeStringify({
-          ...busyTime,
-          time: dayjs(time).format(),
-        })}`
-      );
-      return true;
-    }
-    // Check if slot end time is between start and end time
-    if (dayjs(time).add(length, "minutes").isBetween(startTime, endTime)) {
-      log.error(
-        `NAUF: Ends between a busy time slot ${safeStringify({
-          ...busyTime,
-          time: dayjs(time).add(length, "minutes").format(),
-        })}`
-      );
-      return true;
-    }
-    // Check if startTime is between slot
-    if (startTime.isBetween(dayjs(time), dayjs(time).add(length, "minutes"))) {
-      return true;
-    }
-  }
-  return false;
 }
 
 export const getEventTypesFromDB = async (eventTypeId: number) => {
