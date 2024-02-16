@@ -14,7 +14,6 @@ export function createAppsFixture(page: Page) {
       await page.getByTestId("add-apps").click();
     },
     goToEventTypesPage: async () => {
-      await page.getByTestId("event_types_page_title").click();
       await page.goto("/event-types");
     },
     goToEventType: async (eventType: string) => {
