@@ -1,30 +1,31 @@
 import { CalendarBusyTimesInput } from "@/ee/calendars/inputs/calendar-busy-times.input";
-import { CalendarsService } from "@/ee/calendars/services/calendars";
+import { CalendarsService } from "@/ee/calendars/services/calendars.service";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
-import { Controller, Get, Logger, UseGuards, Body } from "@nestjs/common";
+import { Controller, Get, Logger, UseGuards, Query } from "@nestjs/common";
 import { User } from "@prisma/client";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { ConnectedDestinationCalendars } from "@calcom/platform-libraries";
 import { ApiResponse } from "@calcom/platform-types";
 import { EventBusyDate } from "@calcom/types/Calendar";
 
 @Controller({
-  path: "ee/overlay-calendars",
+  path: "ee/calendars",
   version: "2",
 })
 @UseGuards(AccessTokenGuard)
-export class CalendarController {
+export class CalendarsController {
   private readonly logger = new Logger("ee overlay calendars controller");
 
-  constructor(private readonly overlayCalendarsService: CalendarsService) {}
+  constructor(private readonly calendarsService: CalendarsService) {}
 
   @Get("/busy-times")
   async getBusyTimes(
-    @Body() body: CalendarBusyTimesInput,
+    @Query() queryParams: CalendarBusyTimesInput,
     @GetUser() user: User
   ): Promise<ApiResponse<EventBusyDate[]>> {
-    const { loggedInUsersTz, dateFrom, dateTo, calendarsToLoad } = body;
+    const { loggedInUsersTz, dateFrom, dateTo, calendarsToLoad } = queryParams;
     if (!dateFrom || !dateTo) {
       return {
         status: SUCCESS_STATUS,
@@ -32,7 +33,7 @@ export class CalendarController {
       };
     }
 
-    const busyTimes = await this.overlayCalendarsService.getBusyTimes(
+    const busyTimes = await this.calendarsService.getBusyTimes(
       calendarsToLoad,
       user.id,
       dateFrom,
@@ -43,6 +44,20 @@ export class CalendarController {
     return {
       status: SUCCESS_STATUS,
       data: busyTimes,
+    };
+  }
+
+  @Get("/")
+  async getCalendars(
+    @GetUser("id") userId: number
+  ): Promise<ApiResponse<{ calendars: ConnectedDestinationCalendars }>> {
+    const calendars = await this.calendarsService.getCalendars(userId);
+
+    return {
+      status: SUCCESS_STATUS,
+      data: {
+        calendars,
+      },
     };
   }
 }

@@ -13,6 +13,8 @@ export { getAvailableSlots } from "@calcom/trpc/server/routers/viewer/slots/util
 export { handleNewRecurringBooking } from "@calcom/features/bookings/lib/handleNewRecurringBooking";
 
 export type { EventType } from "@calcom/lib/getEventTypeById";
+export { getConnectedDestinationCalendars } from "@calcom/lib/getConnectedDestinationCalendars";
+export type { ConnectedDestinationCalendars } from "@calcom/lib/getConnectedDestinationCalendars";
 export { getBusyCalendarTimes } from "@calcom/core/CalendarManager";
 
 export {

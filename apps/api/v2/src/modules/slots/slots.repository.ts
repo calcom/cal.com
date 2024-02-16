@@ -43,4 +43,10 @@ export class SlotsRepository {
       },
     });
   }
+
+  async deleteSelectedSlots(uid: string) {
+    return this.dbWrite.prisma.selectedSlots.deleteMany({
+      where: { uid: { equals: uid } },
+    });
+  }
 }

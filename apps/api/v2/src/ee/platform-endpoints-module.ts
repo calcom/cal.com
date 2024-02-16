@@ -1,5 +1,5 @@
 import { BookingsModule } from "@/ee/bookings/bookings.module";
-import { CalendarsModule } from "@/ee/calendars/calendars";
+import { CalendarsModule } from "@/ee/calendars/calendars.module";
 import { EventTypesModule } from "@/ee/event-types/event-types.module";
 import { GcalModule } from "@/ee/gcal/gcal.module";
 import { MeModule } from "@/ee/me/me.module";
