@@ -1,6 +1,7 @@
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import { type InvalidAppCredentialBannerProps } from "@calcom/features/users/components/InvalidAppCredentialsBanner";
 import { prisma } from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/client";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 type checkInvalidAppCredentialsOptions = {
@@ -10,29 +11,42 @@ type checkInvalidAppCredentialsOptions = {
 };
 
 export const checkInvalidAppCredentials = async ({ ctx }: checkInvalidAppCredentialsOptions) => {
+  const userId = ctx.user.id;
+
   const apps = await prisma.credential.findMany({
     where: {
-      userId: ctx.user.id,
+      OR: [
+        {
+          userId: userId,
+        },
+        {
+          team: {
+            members: {
+              some: {
+                userId: userId,
+                accepted: true,
+                role: { in: [MembershipRole.ADMIN, MembershipRole.OWNER] },
+              },
+            },
+          },
+        },
+      ],
       invalid: true,
     },
     select: {
-      app: {
-        select: {
-          slug: true,
-        },
-      },
+      appId: true,
     },
   });
 
   const appNamesAndSlugs: InvalidAppCredentialBannerProps[] = [];
-
-  for (const e of apps) {
-    if (e.app) {
-      const slug = e.app.slug;
-      const appMeta = await getAppFromSlug(slug);
-      const name = appMeta ? appMeta.name : slug;
-      appNamesAndSlugs.push({ slug, name });
+  for (const app of apps) {
+    if (app.appId) {
+      const appId = app.appId;
+      const appMeta = await getAppFromSlug(appId);
+      const name = appMeta ? appMeta.name : appId;
+      appNamesAndSlugs.push({ slug: appId, name });
     }
   }
+
   return appNamesAndSlugs;
 };

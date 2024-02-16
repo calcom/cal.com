@@ -1599,7 +1599,7 @@
   "attendee_email_variable": "Attendee email",
   "attendee_email_info": "The person booking's email",
   "kbar_search_placeholder": "Type a command or search...",
-  "invalid_credential": "looks like permissions/credentials expired or were revoked for",
+  "invalid_credential": "It looks like permissions expired or were revoked for {{appName}}.",
   "invalid_credential_action": "reinstall app",
   "reschedule_reason": "Reschedule reason",
   "choose_common_schedule_team_event": "Choose a common schedule",

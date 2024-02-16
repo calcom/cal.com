@@ -13,8 +13,6 @@ export function InvalidAppCredentialBanners({ data }: InvalidAppCredentialBanner
     return null; // No need to show banner if the array is empty
   }
 
-  console.log("banner data: ", data);
-
   return (
     <div>
       {data.map((app) => (
@@ -39,7 +37,7 @@ export function InvalidAppCredentialBanner({ name, slug }: InvalidAppCredentialB
 
   return (
     <TopBanner
-      text={` ${t("invalid_credential")} ${name} -`}
+      text={` ${t("invalid_credential", { appName: name })} `}
       variant="warning"
       actions={
         <button className="border-b border-b-black" onClick={handleClick}>
