@@ -1,3 +1,4 @@
+import EventManager from "@calcom/core/EventManager";
 import dayjs from "@calcom/dayjs";
 import { sendRoundRobinCancelledEmails, sendRoundRobinScheduledEmails } from "@calcom/emails";
 import { ensureAvailableUsers } from "@calcom/features/bookings/lib/handleNewBooking";
@@ -35,6 +36,7 @@ export const roundRobinReassignHandler = async ({ ctx, input }: RoundRobinReassi
       availability: true,
       slug: true,
       description: true,
+      destinationCalendar: true,
       hosts: {
         select: {
           user: {
@@ -46,6 +48,11 @@ export const roundRobinReassignHandler = async ({ ctx, input }: RoundRobinReassi
               },
             },
           },
+        },
+      },
+      users: {
+        select: {
+          id: true,
         },
       },
       team: {
@@ -75,12 +82,18 @@ export const roundRobinReassignHandler = async ({ ctx, input }: RoundRobinReassi
       userId: true,
       customInputs: true,
       responses: true,
+      destinationCalendar: true,
       attendees: {
         select: {
           email: true,
           name: true,
           timeZone: true,
           locale: true,
+        },
+      },
+      references: {
+        select: {
+          credentialId: true,
         },
       },
     },
@@ -106,53 +119,63 @@ export const roundRobinReassignHandler = async ({ ctx, input }: RoundRobinReassi
   });
 
   // See if user is the assigned user or an attendee
-  if (booking.userId === ctx.user.id) {
-    booking = await prisma.booking.update({
-      where: {
-        id: bookingId,
-      },
-      data: {
-        userId: luckyUser.id,
-      },
-      include: {
-        attendees: true,
-      },
+
+  booking = await prisma.booking.update({
+    where: {
+      id: bookingId,
+    },
+    data: {
+      userId: luckyUser.id,
+    },
+    include: {
+      attendees: true,
+      references: true,
+      destinationCalendar: true,
+    },
+  });
+
+  const luckyUserT = await getTranslation(luckyUser.locale || "en", "common");
+
+  const teamMemberPromises = [];
+  for (const teamMember of eventType.hosts) {
+    const user = teamMember.user;
+    // Need to skip over the reassigned user and the lucky user
+    if (user.email === luckyUser.email || user.email === ctx.user.email) {
+      continue;
+    }
+    const tTeamMember = await getTranslation(user.locale ?? "en", "common");
+
+    teamMemberPromises.push({
+      id: user.id,
+      email: user.email,
+      name: user.name || "",
+      timeZone: user.timeZone,
+      language: { translate: tTeamMember, locale: user.locale ?? "en" },
     });
-  } else if (booking.attendees.some((attendee) => attendee.email === ctx.user.email)) {
-    console.log("booking is connected to attendee");
-  } else {
-    console.log("user is not in the booking");
   }
 
-  const t = await getTranslation(luckyUser.locale || "en", "common");
+  const teamMembers = await Promise.all(teamMemberPromises);
 
-  const teamMembers = await Promise.all(
-    eventType.hosts.map(async (teamMember) => {
-      const user = teamMember.user;
-      const tTeamMember = await getTranslation(user.locale ?? "en", "common");
+  const attendeePromises = [];
+  for (const attendee of booking.attendees) {
+    if (
+      attendee.email === luckyUser.email ||
+      attendee.email === ctx.user.email ||
+      teamMembers.some((member) => member.email === attendee.email)
+    ) {
+      continue;
+    }
+    const tAttendee = getTranslation(attendee.locale ?? "en", "common");
 
-      return {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        timeZone: user.timeZone,
-        language: { translate: tTeamMember, locale: user.locale ?? "en" },
-      };
-    })
-  );
+    attendeePromises.push({
+      email: attendee.email,
+      name: attendee.name,
+      timeZone: attendee.timeZone,
+      language: { translate: tAttendee, locale: attendee.locale ?? "en" },
+    });
+  }
 
-  const attendeeList = await Promise.all(
-    booking.attendees.map(async (attendee) => {
-      const tAttendee = await getTranslation(attendee.locale ?? "en", "common");
-
-      return {
-        email: attendee.email,
-        name: attendee.name,
-        timeZone: attendee.timeZone,
-        language: { translate: tAttendee, locale: attendee.locale ?? "en" },
-      };
-    })
-  );
+  const attendeeList = await Promise.all(attendeePromises);
 
   const evt: CalendarEvent = {
     organizer: {
@@ -160,7 +183,7 @@ export const roundRobinReassignHandler = async ({ ctx, input }: RoundRobinReassi
       email: luckyUser.email,
       language: {
         locale: luckyUser.locale || "en",
-        translate: t,
+        translate: luckyUserT,
       },
       timeZone: luckyUser.timeZone,
       timeFormat: getTimeFormatStringFromUserTimeFormat(luckyUser.timeFormat),
@@ -172,23 +195,54 @@ export const roundRobinReassignHandler = async ({ ctx, input }: RoundRobinReassi
     description: eventType.description,
     attendees: attendeeList,
     uid: booking.uid,
+    destinationCalendar: [booking.destinationCalendar] || [eventType.destinationCalendar] || null,
     team: {
       members: teamMembers,
-      name: eventType.team?.name,
-      id: eventType.team?.id,
+      name: eventType.team?.name || "",
+      id: eventType.team?.id || 0,
     },
     customInputs: booking.customInputs,
     userFieldsResponses: booking.responses,
     // TODO complete this evt object
   };
 
+  // If changed owner, also change destination calendar
+  const newDestinationCalendar = await prisma.destinationCalendar.findFirst({
+    where: {
+      userId: luckyUser.id,
+    },
+  });
+
+  if (!newDestinationCalendar) {
+    throw new TRPCError({ code: "NOT_FOUND" });
+  }
+
+  const credentials = await prisma.credential.findMany({
+    where: {
+      userId: luckyUser.id,
+    },
+    include: {
+      user: {
+        select: {
+          email: true,
+        },
+      },
+    },
+  });
+
+  // TODO: update calendar event
+  // See if the reassigned member is the organizer
+  const eventManager = new EventManager({ ...luckyUser, credentials: [...credentials] });
+
+  await eventManager.reschedule(evt, booking.uid, undefined, true, [newDestinationCalendar]);
+
   // Send to new RR host
   sendRoundRobinScheduledEmails(evt, [
-    { ...luckyUser, language: { translate: t, locale: luckyUser.locale || "en" } },
+    { ...luckyUser, language: { translate: luckyUserT, locale: luckyUser.locale || "en" } },
   ]);
   // Send to cancelled RR host
   sendRoundRobinCancelledEmails(evt, [
-    { ...ctx.user, language: { translate: t, locale: ctx.user.locale || "en" } },
+    { ...ctx.user, language: { translate: luckyUserT, locale: ctx.user.locale || "en" } },
   ]);
 
   return;
