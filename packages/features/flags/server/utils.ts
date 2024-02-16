@@ -18,7 +18,6 @@ export const getFeatureFlag = async (prisma: PrismaClient, slug: keyof AppFlags)
     where: {
       slug,
     },
-    cacheStrategy: { swr: 300, ttl: 300 },
   });
 
   return Boolean(flag && flag.enabled);
