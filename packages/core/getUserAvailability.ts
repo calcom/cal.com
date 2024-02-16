@@ -194,9 +194,6 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     returnDateOverrides,
   } = availabilitySchema.parse(query);
 
-  console.log("------query", query);
-  console.log("------dateFrom", dateFrom);
-  console.log("------dateTo", dateTo);
   if (!dateFrom.isValid() || !dateTo.isValid()) {
     throw new HttpError({ statusCode: 400, message: "Invalid time range given." });
   }
