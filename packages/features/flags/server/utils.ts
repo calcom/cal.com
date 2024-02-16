@@ -18,13 +18,21 @@ interface CacheEntry {
   expiry: number;
 }
 
+interface CacheOptions {
+  ttl: number; // time in ms/
+}
+
 const featureFlagCache = new Map<keyof AppFlags, CacheEntry>();
 
 const isExpired = (entry: CacheEntry): boolean => {
   return Date.now() > entry.expiry;
 };
 
-export const getFeatureFlag = async (prisma: PrismaClient, slug: keyof AppFlags): Promise<boolean> => {
+export const getFeatureFlag = async (
+  prisma: PrismaClient,
+  slug: keyof AppFlags,
+  options?: CacheOptions = { ttl: 5 * 60 * 1000 }
+): Promise<boolean> => {
   const cacheEntry = featureFlagCache.get(slug);
 
   // Check if the flag is in the cache and not expired
@@ -41,8 +49,7 @@ export const getFeatureFlag = async (prisma: PrismaClient, slug: keyof AppFlags)
 
   const isEnabled = Boolean(flag && flag.enabled);
 
-  // Calculate expiry time (current time + 5 minutes)
-  const expiry = Date.now() + 5 * 60 * 1000; // 5 minutes in milliseconds
+  const expiry = Date.now() + options.ttl;
 
   // Store the flag in the cache with its expiry time
   featureFlagCache.set(slug, { value: isEnabled, expiry });
