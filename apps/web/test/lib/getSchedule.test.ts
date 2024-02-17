@@ -539,8 +539,8 @@ describe("getSchedule", () => {
 
       CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue([
         {
-          start: `${plus3DateString}T04:00:00.000Z`,
-          end: `${plus3DateString}T05:59:59.000Z`,
+          start: `${plus3DateString}T04:00:00.000Z`, // Day 3 9:30 PM IST
+          end: `${plus3DateString}T05:59:59.000Z`, // Day 3 11:30 IST
         },
       ]);
 
@@ -576,8 +576,8 @@ describe("getSchedule", () => {
         input: {
           eventTypeId: 1,
           eventTypeSlug: "",
-          startTime: `${plus2DateString}T18:30:00.000Z`,
-          endTime: `${plus3DateString}T18:29:59.999Z`,
+          startTime: `${plus2DateString}T18:30:00.000Z`, // Day 3 0 AM IST
+          endTime: `${plus3DateString}T18:29:59.999Z`, // Day 3 23:59 PM IST
           timeZone: Timezones["+5:30"],
           isTeamEvent: false,
         },
@@ -585,11 +585,11 @@ describe("getSchedule", () => {
 
       expect(scheduleForEventOnADayWithNonCalBooking).toHaveTimeSlots(
         [
-          // `04:00:00.000Z`, // - 4 AM is booked
-          // `06:00:00.000Z`, // - 6 AM is not available because 08:00AM slot has a `beforeEventBuffer`
-          `08:00:00.000Z`, // - 8 AM is available because of availability of 06:00 - 07:59
-          `10:00:00.000Z`,
-          `12:00:00.000Z`,
+          // `04:00:00.000Z`, // 4 AM UTC (9:30 AM IST) is booked
+          // `06:00:00.000Z`, // 6 AM UTC (11:30 AM IST) is not available because 4 AM UTC (9:30 AM IST) slot has a `afterEventBuffer`
+          // `08:00:00.000Z`, // 8 AM UTC (1:30 PM IST) is not available because of slot interval being 60 minutes & in IST current time is 1:30 PM
+          `08:30:00.000Z`, // 8:30 AM UTC (2:00 PM IST)
+          `10:30:00.000Z`, // 10:30 AM UTC (4:00 PM IST)
         ],
         {
           dateString: plus3DateString,
@@ -604,8 +604,8 @@ describe("getSchedule", () => {
 
       CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue([
         {
-          start: `${plus3DateString}T04:00:00.000Z`,
-          end: `${plus3DateString}T05:59:59.000Z`,
+          start: `${plus3DateString}T04:00:00.000Z`, // Day 3 9:30 AM IST
+          end: `${plus3DateString}T05:59:59.000Z`, // Day 3 11:30 AM IST
         },
       ]);
 
@@ -636,8 +636,8 @@ describe("getSchedule", () => {
           {
             userId: 101,
             eventTypeId: 1,
-            startTime: `${plus2DateString}T04:00:00.000Z`,
-            endTime: `${plus2DateString}T05:59:59.000Z`,
+            startTime: `${plus2DateString}T04:00:00.000Z`, // Day 2 9:30 AM IST
+            endTime: `${plus2DateString}T05:59:59.000Z`, // Day 2 11:30 AM IST
             status: "ACCEPTED" as BookingStatus,
           },
         ],
@@ -650,8 +650,8 @@ describe("getSchedule", () => {
         input: {
           eventTypeId: 1,
           eventTypeSlug: "",
-          startTime: `${plus1DateString}T18:30:00.000Z`,
-          endTime: `${plus2DateString}T18:29:59.999Z`,
+          startTime: `${plus1DateString}T18:30:00.000Z`, // Day 2 0 AM IST
+          endTime: `${plus2DateString}T18:29:59.999Z`, // Day 2 23:59 PM IST
           timeZone: Timezones["+5:30"],
           isTeamEvent: false,
         },
@@ -659,11 +659,11 @@ describe("getSchedule", () => {
 
       expect(scheduleForEventOnADayWithCalBooking).toHaveTimeSlots(
         [
-          // `04:00:00.000Z`, // - 4 AM is booked
-          // `06:00:00.000Z`, // - 6 AM is not available because of afterBuffer(120 mins) of the existing booking(4-5:59AM slot)
-          // `08:00:00.000Z`, // - 8 AM is not available because of beforeBuffer(120mins) of possible booking at 08:00
-          `10:00:00.000Z`,
-          `12:00:00.000Z`,
+          // `04:00:00.000Z`, // 4 AM UTC (9:30 AM IST) is booked
+          // `06:00:00.000Z`, // 6 AM UTC (11:30 AM IST) is not available because of afterBuffer(120 mins) of the existing booking(4-5:59AM UTC slot)
+          // `08:00:00.000Z`, // 8 AM UTC (1:30 PM IST) is not available because of beforeBuffer(120mins) of possible booking at 10AM UTC slot
+          // `10:00:00.000Z`, // 10:00 AM UTC (3:30 PM IST) is not available because of slot interval being 60 minutes & in IST current time is 3:30 PM
+          `10:30:00.000Z`, // 10:30 AM UTC (4:00 PM IST) is available
         ],
         {
           dateString: plus2DateString,
