@@ -397,7 +397,7 @@ export async function ensureAvailableUsers(
     }
 
     try {
-      foundConflict = checkForConflicts(bufferedBusyTimes, endTime, duration);
+      foundConflict = checkForConflicts(bufferedBusyTimes, startTime, duration);
     } catch {
       log.debug({
         message: "Unable set isAvailableToBeBooked. Using true. ",
