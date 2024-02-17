@@ -1,8 +1,11 @@
+import type { Prisma, PrismaPromise, User, Membership, Profile } from "@prisma/client";
+
 import { checkRegularUsername } from "@calcom/lib/server/checkRegularUsername";
 import { isOrganisationAdmin, isOrganisationOwner } from "@calcom/lib/server/queries/organisations";
 import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
+import { uploadAvatar } from "@calcom/trpc/server/routers/loggedInViewer/updateProfile.handler";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
@@ -76,41 +79,58 @@ export const updateUserHandler = async ({ ctx, input }: UpdateUserOptions) => {
           },
         },
       },
+      user: {
+        select: {
+          username: true,
+        },
+      },
     },
   });
 
   if (!requestedMember)
     throw new TRPCError({ code: "UNAUTHORIZED", message: "User does not belong to your organization" });
 
-  if (input.username && input.username !== requestedMember.username) {
+  const hasUsernameUpdated = input.username !== requestedMember.user.username;
+
+  if (input.username && hasUsernameUpdated && user.profile.organization?.slug) {
     const checkRegularUsernameRes = await checkRegularUsername(
       input.username,
-      ctx.user.profile.organization.slug
+      user.profile.organization.slug
     );
     if (!checkRegularUsernameRes.available) {
       throw new TRPCError({ code: "BAD_REQUEST", message: checkRegularUsernameRes.message });
     }
   }
 
-  let avatar = input.avatar;
-  if (input.avatar) {
-    avatar = await resizeBase64Image(input.avatar);
+  const data: Prisma.UserUpdateInput = {
+    bio: input.bio,
+    email: input.email,
+    name: input.name,
+    timeZone: input.timeZone,
+    username: input.username,
+    avatar: undefined,
+  };
+
+  if (input.avatar && input.avatar.startsWith("data:image/png;base64,")) {
+    const avatar = await resizeBase64Image(input.avatar);
+    data.avatarUrl = await uploadAvatar({
+      avatar,
+      userId: user.id,
+    });
+    data.avatar = avatar;
+  }
+  if (input.avatar === "") {
+    data.avatarUrl = null;
+    data.avatar = null;
   }
 
   // Update user
-  await prisma.$transaction([
+  const transactions: PrismaPromise<User | Membership | Profile>[] = [
     prisma.user.update({
       where: {
         id: input.userId,
       },
-      data: {
-        bio: input.bio,
-        email: input.email,
-        name: input.name,
-        timeZone: input.timeZone,
-        username: input.username,
-        avatar,
-      },
+      data,
     }),
     prisma.membership.update({
       where: {
@@ -123,7 +143,25 @@ export const updateUserHandler = async ({ ctx, input }: UpdateUserOptions) => {
         role: input.role,
       },
     }),
-  ]);
+  ];
+
+  if (hasUsernameUpdated) {
+    transactions.push(
+      prisma.profile.update({
+        where: {
+          userId_organizationId: {
+            userId: input.userId,
+            organizationId,
+          },
+        },
+        data: {
+          username: input.username,
+        },
+      })
+    );
+  }
+
+  await prisma.$transaction(transactions);
 
   if (input.role === MembershipRole.ADMIN || input.role === MembershipRole.OWNER) {
     const teamIds = requestedMember.team.children

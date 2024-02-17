@@ -14,7 +14,7 @@ export async function checkRegularUsername(_username: string, currentOrgDomain?:
       })
     : null;
 
-  const user = profiles.length ? profiles[0].user : null;
+  const user = profiles?.length ? profiles[0].user : null;
 
   if (user) {
     return {
