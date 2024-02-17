@@ -297,7 +297,8 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
   );
   const getStartTime = (startTimeInput: string, timeZone?: string) => {
     const startTimeMin = dayjs.utc().add(eventType.minimumBookingNotice || 1, "minutes");
-    const startTime = timeZone === "Etc/GMT" ? dayjs.utc(startTimeInput) : dayjs(startTimeInput).tz(timeZone);
+    const startTime =
+      timeZone === "Etc/GMT" ? dayjs.utc(startTimeInput) : dayjs(startTimeInput).tz(timeZone).utc();
 
     return startTimeMin.isAfter(startTime) ? startTimeMin.tz(timeZone) : startTime;
   };
