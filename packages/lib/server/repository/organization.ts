@@ -52,5 +52,6 @@ export class OrganizationRepository {
         teamId: organization.id,
       },
     });
+    return organization;
   }
 }

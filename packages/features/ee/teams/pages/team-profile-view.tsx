@@ -12,6 +12,7 @@ import { z } from "zod";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
+import { trackFormbricksAction } from "@calcom/lib/formbricks-client";
 import { getTeamUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
@@ -124,6 +125,7 @@ const ProfileView = () => {
       await utils.viewer.teams.list.invalidate();
       showToast(t("your_team_disbanded_successfully"), "success");
       router.push(`${WEBAPP_URL}/teams`);
+      trackFormbricksAction("team_disbanded");
     },
   });
 
@@ -217,7 +219,9 @@ const ProfileView = () => {
             variety="danger"
             title={t("disband_team")}
             confirmBtnText={t("confirm_disband_team")}
-            onConfirm={deleteTeam}>
+            onConfirm={() => {
+              deleteTeam();
+            }}>
             {t("disband_team_confirmation_message")}
           </ConfirmationDialogContent>
         </Dialog>
@@ -321,7 +325,7 @@ const TeamProfileForm = ({ team }: TeamProfileFormProps) => {
             <Controller
               control={form.control}
               name="logo"
-              render={({ field: { value } }) => {
+              render={({ field: { value, onChange } }) => {
                 const showRemoveLogoButton = !!value;
 
                 return (
@@ -336,9 +340,7 @@ const TeamProfileForm = ({ team }: TeamProfileFormProps) => {
                         target="avatar"
                         id="avatar-upload"
                         buttonMsg={t("upload_logo")}
-                        handleAvatarChange={(newLogo) => {
-                          form.setValue("logo", newLogo, { shouldDirty: true });
-                        }}
+                        handleAvatarChange={onChange}
                         triggerButtonColor={showRemoveLogoButton ? "secondary" : "primary"}
                         imageSrc={value ?? undefined}
                       />
@@ -346,7 +348,7 @@ const TeamProfileForm = ({ team }: TeamProfileFormProps) => {
                         <Button
                           color="secondary"
                           onClick={() => {
-                            form.setValue("logo", null, { shouldDirty: true });
+                            onChange(null);
                           }}>
                           {t("remove")}
                         </Button>

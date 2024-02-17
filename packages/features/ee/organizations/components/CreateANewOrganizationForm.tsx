@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
+import { useVerifyCode } from "@calcom/features/bookings/Booker/components/hooks/useVerifyCode";
 import { VerifyCodeDialog } from "@calcom/features/bookings/components/VerifyCodeDialog";
 import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -81,6 +82,17 @@ export const CreateANewOrganizationForm = ({ slug }: { slug?: string }) => {
 
   const isAdmin = session.data?.user.role === UserPermissionRole.ADMIN;
   const isImpersonated = session.data?.user.impersonatedBy;
+  const verifyCode = useVerifyCode({
+    onSuccess: (isVerified) => {
+      if (isVerified) {
+        createOrganizationMutation.mutate({
+          ...newOrganizationFormMethods.getValues(),
+          language: i18n.language,
+          check: false,
+        });
+      }
+    },
+  });
 
   return (
     <>
@@ -274,15 +286,12 @@ export const CreateANewOrganizationForm = ({ slug }: { slug?: string }) => {
         isOpenDialog={showVerifyCode}
         setIsOpenDialog={setShowVerifyCode}
         email={watchAdminEmail}
-        onSuccess={(isVerified) => {
-          if (isVerified) {
-            createOrganizationMutation.mutate({
-              ...newOrganizationFormMethods.getValues(),
-              language: i18n.language,
-              check: false,
-            });
-          }
-        }}
+        verifyCodeWithSessionNotRequired={verifyCode.verifyCodeWithSessionNotRequired}
+        verifyCodeWithSessionRequired={verifyCode.verifyCodeWithSessionRequired}
+        error={verifyCode.error}
+        resetErrors={verifyCode.resetErrors}
+        isPending={verifyCode.isPending}
+        setIsPending={verifyCode.setIsPending}
       />
     </>
   );

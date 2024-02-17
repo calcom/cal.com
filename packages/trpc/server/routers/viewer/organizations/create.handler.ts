@@ -63,8 +63,6 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
     throw new Error("Inviting a new user to be the owner of the organization is not supported yet");
   }
 
-  const emailDomain = orgOwnerEmail.split("@")[1];
-
   const t = await getTranslation(ctx.user.locale ?? "en", "common");
   let isOrganizationConfigured = false;
 
@@ -92,7 +90,7 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
     }
   }
 
-  await OrganizationRepository.createWithOwner({
+  const organization = await OrganizationRepository.createWithOwner({
     orgData: {
       name,
       slug,
