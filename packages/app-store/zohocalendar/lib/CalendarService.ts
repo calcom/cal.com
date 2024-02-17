@@ -1,5 +1,4 @@
 import { stringify } from "querystring";
-import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
 import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
@@ -16,11 +15,7 @@ import type { CredentialPayload } from "@calcom/types/Credential";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import type { ZohoAuthCredentials, FreeBusy, ZohoCalendarListResp } from "../types/ZohoCalendar";
-
-const zohoKeysSchema = z.object({
-  client_id: z.string(),
-  client_secret: z.string(),
-});
+import { appKeysSchema as zohoKeysSchema } from "../zod";
 
 export default class ZohoCalendarService implements Calendar {
   private integrationName = "";
@@ -41,7 +36,7 @@ export default class ZohoCalendarService implements Calendar {
     const refreshAccessToken = async () => {
       try {
         const appKeys = await getAppKeysFromSlug("zohocalendar");
-        const { client_id, client_secret } = zohoKeysSchema.parse(appKeys);
+        const { client_id, client_secret, server_location } = zohoKeysSchema.parse(appKeys);
 
         const params = {
           client_id,
@@ -52,7 +47,7 @@ export default class ZohoCalendarService implements Calendar {
 
         const query = stringify(params);
 
-        const res = await fetch(`https://accounts.zoho.com/oauth/v2/token?${query}`, {
+        const res = await fetch(`https://accounts.zoho.${server_location}/oauth/v2/token?${query}`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json; charset=utf-8",
@@ -87,8 +82,9 @@ export default class ZohoCalendarService implements Calendar {
 
   private fetcher = async (endpoint: string, init?: RequestInit | undefined) => {
     const credentials = await this.auth.getToken();
-
-    return fetch(`https://calendar.zoho.com/api/v1${endpoint}`, {
+    const appKeys = await getAppKeysFromSlug("zohocalendar");
+    const { server_location } = zohoKeysSchema.parse(appKeys);
+    return fetch(`https://calendar.zoho.${server_location}/api/v1${endpoint}`, {
       method: "GET",
       ...init,
       headers: {
@@ -101,8 +97,9 @@ export default class ZohoCalendarService implements Calendar {
 
   private getUserInfo = async () => {
     const credentials = await this.auth.getToken();
-
-    const response = await fetch(`https://accounts.zoho.com/oauth/user/info`, {
+    const appKeys = await getAppKeysFromSlug("zohocalendar");
+    const { server_location } = zohoKeysSchema.parse(appKeys);
+    const response = await fetch(`https://accounts.zoho.${server_location}/oauth/user/info`, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${credentials.access_token}`,
