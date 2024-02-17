@@ -18,6 +18,7 @@ import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Button, showToast, useCalcomTheme } from "@calcom/ui";
 
 import FormInputFields from "../../components/FormInputFields";
+import { getAbsoluteEventTypeRedirectUrl } from "../../getEventTypeRedirectUrl";
 import getFieldIdentifier from "../../lib/getFieldIdentifier";
 import { processRoute } from "../../lib/processRoute";
 import { substituteVariables } from "../../lib/substituteVariables";
@@ -102,9 +103,14 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
       if (decidedAction.type === "customPageMessage") {
         setCustomPageMessage(decidedAction.value);
       } else if (decidedAction.type === "eventTypeRedirectUrl") {
-        const eventTypeUrlWithVariables = substituteVariables(decidedAction.value, response, fields);
-
-        await router.push(`/${eventTypeUrlWithVariables}?${allURLSearchParams}`);
+        const eventTypeUrlWithResolvedVariables = substituteVariables(decidedAction.value, response, fields);
+        router.push(
+          getAbsoluteEventTypeRedirectUrl({
+            form,
+            eventTypeRedirectUrl: eventTypeUrlWithResolvedVariables,
+            allURLSearchParams,
+          })
+        );
       } else if (decidedAction.type === "externalRedirectUrl") {
         window.parent.location.href = `${decidedAction.value}?${allURLSearchParams}`;
       }

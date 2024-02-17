@@ -377,7 +377,7 @@ async function signupFromInviteLink({
   return { email };
 }
 
-async function signupFromEmailInviteLink({
+export async function signupFromEmailInviteLink({
   browser,
   inviteLink,
   expectedUsername,
@@ -385,8 +385,8 @@ async function signupFromEmailInviteLink({
 }: {
   browser: Browser;
   inviteLink: string;
-  expectedUsername: string;
-  expectedEmail: string;
+  expectedUsername?: string;
+  expectedEmail?: string;
 }) {
   // Follow invite link in new window
   const context = await browser.newContext();
@@ -396,10 +396,14 @@ async function signupFromEmailInviteLink({
   await signupPage.locator(`[data-testid="signup-usernamefield"]`).waitFor({ state: "visible" });
   await expect(signupPage.locator(`[data-testid="signup-usernamefield"]`)).toBeDisabled();
   // await for value. initial value is ""
-  await expect(signupPage.locator(`[data-testid="signup-usernamefield"]`)).toHaveValue(expectedUsername);
+  if (expectedUsername) {
+    await expect(signupPage.locator(`[data-testid="signup-usernamefield"]`)).toHaveValue(expectedUsername);
+  }
 
   await expect(signupPage.locator(`[data-testid="signup-emailfield"]`)).toBeDisabled();
-  await expect(signupPage.locator(`[data-testid="signup-emailfield"]`)).toHaveValue(expectedEmail);
+  if (expectedEmail) {
+    await expect(signupPage.locator(`[data-testid="signup-emailfield"]`)).toHaveValue(expectedEmail);
+  }
 
   await signupPage.waitForLoadState("networkidle");
   // Check required fields
