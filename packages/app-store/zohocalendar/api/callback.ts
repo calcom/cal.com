@@ -11,7 +11,7 @@ import { Prisma } from "@calcom/prisma/client";
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
-import updateAppServerUrl from "../../_utils/updateAppServerLocation";
+import updateAppServerLocation from "../../_utils/updateAppServerLocation";
 import config from "../config.json";
 import type { ZohoAuthCredentials } from "../types/ZohoCalendar";
 import { appKeysSchema as zohoKeysSchema } from "../zod";
@@ -37,7 +37,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   }
 
   if (location && typeof location === "string") {
-    updateAppServerUrl(config.slug, location);
+    updateAppServerLocation(config.slug, location);
   }
 
   const appKeys = await getAppKeysFromSlug(config.slug);
