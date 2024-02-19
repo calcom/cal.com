@@ -1,6 +1,7 @@
-import { IsYearMonthDays } from "@/ee/calendars/inputs/validators/isYearMonthDays";
 import { Type } from "class-transformer";
 import { IsNumber, IsString, IsOptional, IsArray, ValidateNested, Validate } from "class-validator";
+
+import { IsYearMonthDays } from "./validators/isYearMonthDays";
 
 export class Calendar {
   @IsNumber()

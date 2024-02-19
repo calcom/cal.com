@@ -1,4 +1,3 @@
-import { CalendarBusyTimesInput } from "@/ee/calendars/inputs/calendar-busy-times.input";
 import { CalendarsService } from "@/ee/calendars/services/calendars.service";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
@@ -7,6 +6,7 @@ import { User } from "@prisma/client";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { ConnectedDestinationCalendars } from "@calcom/platform-libraries";
+import { CalendarBusyTimesInput } from "@calcom/platform-types";
 import { ApiResponse } from "@calcom/platform-types";
 import { EventBusyDate } from "@calcom/types/Calendar";
 
