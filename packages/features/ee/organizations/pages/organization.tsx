@@ -6,7 +6,7 @@ import { MembershipRole } from "@calcom/prisma/client";
 
 export const getServerSideProps = async ({ req, res }: GetServerSidePropsContext) => {
   const prisma = await import("@calcom/prisma").then((mod) => mod.default);
-  const organizationsEnabled = await getFeatureFlag(prisma, "orgnizations");
+  const organizationsEnabled = await getFeatureFlag(prisma, "organizations");
   // Check if organizations are enabled
   if (!organizationsEnabled) {
     return {
