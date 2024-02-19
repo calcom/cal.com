@@ -11,6 +11,7 @@ import {
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { getPublicEvent } from "@calcom/platform-libraries";
+import type { PublicEventType } from "@calcom/platform-libraries";
 import { ApiResponse, GetPublicEventInput } from "@calcom/platform-types";
 import { PrismaClient } from "@calcom/prisma";
 
@@ -20,9 +21,7 @@ export class EventsController {
 
   @Get("/")
   @Version(VERSION_NEUTRAL)
-  async getPublicEvent(
-    @Query() queryParams: GetPublicEventInput
-  ): Promise<ApiResponse<Awaited<ReturnType<typeof getPublicEvent>>>> {
+  async getPublicEvent(@Query() queryParams: GetPublicEventInput): Promise<ApiResponse<PublicEventType>> {
     try {
       const event = await getPublicEvent(
         queryParams.username,
