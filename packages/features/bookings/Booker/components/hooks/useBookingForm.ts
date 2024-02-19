@@ -13,11 +13,28 @@ import { useInitialFormValues } from "./useInitialFormValues";
 
 export interface IUseBookingForm {
   event: useEventReturnType;
+  sessionEmail?: string | null;
+  sessionName?: string | null;
+  sessionUsername?: string | null;
+  hasSession: boolean;
+  extraOptions: Record<string, string | string[]>;
+  prefillFormParams: {
+    guests: string[];
+    name: string | null;
+  };
 }
 
-export type useBookingFormReturnType = ReturnType<typeof useBookingForm>;
+export type UseBookingFormReturnType = ReturnType<typeof useBookingForm>;
 
-export const useBookingForm = ({ event }: IUseBookingForm) => {
+export const useBookingForm = ({
+  event,
+  sessionEmail,
+  sessionName,
+  sessionUsername,
+  hasSession,
+  extraOptions,
+  prefillFormParams,
+}: IUseBookingForm) => {
   const rescheduleUid = useBookerStore((state) => state.rescheduleUid);
   const bookingData = useBookerStore((state) => state.bookingData);
   const { t } = useLocale();
@@ -48,6 +65,12 @@ export const useBookingForm = ({ event }: IUseBookingForm) => {
     eventType: event.data,
     rescheduleUid,
     isRescheduling,
+    email: sessionEmail,
+    name: sessionName,
+    username: sessionUsername,
+    hasSession,
+    extraOptions,
+    prefillFormParams,
   });
 
   const bookingForm = useForm<BookingFormValues>({

@@ -1,4 +1,4 @@
-import { CAL_URL } from "@calcom/lib/constants";
+import { WEBSITE_URL } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 
 import type { TextComponent } from "../lib";
@@ -9,11 +9,11 @@ import type { TextComponent } from "../lib";
  * @returns boolean
  */
 export async function isValidCalURL(url: string) {
-  const regex = new RegExp(`^${CAL_URL}/`, `i`);
+  const regex = new RegExp(`^${WEBSITE_URL}/`, `i`);
 
   const error: TextComponent = {
     type: "text",
-    text: `This is not a valid ${CAL_URL.replace("https://", "")} link`,
+    text: `This is not a valid ${WEBSITE_URL.replace("https://", "")} link`,
     style: "error",
     align: "left",
   };

@@ -143,8 +143,12 @@ test.describe("Update Profile", () => {
     const successLocator = await page.waitForSelector('[data-testId="toast-success"]');
 
     expect(await successLocator.textContent()).toContain(email);
+
+    // After email verification is successfull. user is sent to /event-types
+    await page.waitForURL("/event-types");
+
     await page.goto("/settings/my-account/profile");
-    const emailInputUpdated = page.getByTestId("profile-form-email");
+    const emailInputUpdated = await page.getByTestId("profile-form-email");
     expect(await emailInputUpdated.inputValue()).toEqual(email);
   });
   test("Can update a users email (verification disabled)", async ({ page, users, prisma, features }) => {
