@@ -4,7 +4,6 @@ import localFont from "next/font/local";
 import { headers, cookies } from "next/headers";
 import React from "react";
 
-import RawHtml from "@calcom/emails/src/components/RawHtml";
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
 
 import { prepareRootMetadata } from "@lib/metadata";
@@ -68,7 +67,15 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       style={embedColorScheme ? { colorScheme: embedColorScheme as string } : undefined}
       data-nextjs-router="app">
       <head nonce={nonce}>
-        {process.env.NEXT_PUBLIC_HEAD_SCRIPTS && <RawHtml html={process.env.NEXT_PUBLIC_HEAD_SCRIPTS} />}
+        {process.env.NEXT_PUBLIC_HEAD_SCRIPTS && (
+          <script
+            nonce={nonce}
+            id="injected-head-scripts"
+            dangerouslySetInnerHTML={{
+              __html: process.env.NEXT_PUBLIC_HEAD_SCRIPTS,
+            }}
+          />
+        )}
         <style>{`
           :root {
             --font-inter: ${interFont.style.fontFamily.replace(/\'/g, "")};
@@ -90,7 +97,15 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               }
             : {}
         }>
-        {process.env.NEXT_PUBLIC_BODY_SCRIPTS && <RawHtml html={process.env.NEXT_PUBLIC_BODY_SCRIPTS} />}
+        {process.env.NEXT_PUBLIC_BODY_SCRIPTS && (
+          <script
+            nonce={nonce}
+            id="injected-head-scripts"
+            dangerouslySetInnerHTML={{
+              __html: process.env.NEXT_PUBLIC_BODY_SCRIPTS,
+            }}
+          />
+        )}
         {children}
       </body>
     </html>
