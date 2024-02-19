@@ -69,6 +69,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       style={embedColorScheme ? { colorScheme: embedColorScheme as string } : undefined}
       data-nextjs-router="app">
       <head nonce={nonce}>
+        {process.env.NEXT_PUBLIC_HEAD_SCRIPTS}
+
         {!IS_PRODUCTION && process.env.VERCEL_ENV === "preview" && (
           // eslint-disable-next-line @next/next/no-sync-scripts
           <Script
