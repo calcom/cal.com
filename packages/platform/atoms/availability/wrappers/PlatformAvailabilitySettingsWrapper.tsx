@@ -7,6 +7,7 @@ import { showToast } from "@calcom/ui";
 import { useMe } from "../../hooks/useMe";
 import useClientSchedule from "../hooks/useClientSchedule";
 import useDeleteSchedule from "../hooks/useDeleteSchedule";
+import useUpdateSchedule from "../hooks/useUpdateSchedule";
 import { daysInAWeek } from "../lib/daysInAWeek";
 import { PlatformAvailabilitySettings } from "../settings/index";
 import type { AvailabilityFormValues } from "../types";
@@ -38,24 +39,19 @@ export const PlatformAvailabilitySettingsWrapper = ({
   const { timeFormat } = user?.data.user || { timeFormat: null };
   const [openSidebar, setOpenSidebar] = useState(false);
 
-  // console.log("----");
-  // console.log("user", user?.data.user);
-  // console.log("user schedule", userSchedule);
-  // console.log("userWeekStart", userWeekStart);
-  // console.log("timeFormat", timeFormat);
-  // console.log("----");
-
-  // console.log("|||||");
-  // console.log("user availability", userSchedule);
-  // console.log("|||||");
-
   const { mutateAsync, isPending: isDeletionInProgress } = useDeleteSchedule({
     onSuccess: () => {
       showToast("Scheduled deleted successfully", "success");
     },
   });
 
-  const handleDelete = async (id: string) => {
+  const { mutateAsync: mutateAsyncUpdation, isPending: isSavingInProgress } = useUpdateSchedule({
+    onSuccess: () => {
+      showToast("Scheduled updated successfully", "success");
+    },
+  });
+
+  const handleDelete = async (id: number) => {
     if (schedule.id === user.defaultScheduleId) {
       showToast("You are required to have at least one schedule", "error");
     } else {
@@ -63,8 +59,8 @@ export const PlatformAvailabilitySettingsWrapper = ({
     }
   };
 
-  const handleDuplicate = async () => {
-    // duplication function goes here
+  const handleUpdation = async (id: number, body: AvailabilityFormValues) => {
+    mutateAsyncUpdation({ id, body });
   };
 
   const form = useForm<AvailabilityFormValues>({
@@ -79,6 +75,10 @@ export const PlatformAvailabilitySettingsWrapper = ({
   return (
     <PlatformAvailabilitySettings
       labels={labels.tooltips}
+      onScheduleDeletion={async () => {
+        userSchedule.id && handleDelete(userSchedule.id);
+      }}
+      onScheduleUpdation={handleUpdation}
       weekStart="Sunday"
       timeFormat={timeFormat}
       isHeadingReady={!isLoading}

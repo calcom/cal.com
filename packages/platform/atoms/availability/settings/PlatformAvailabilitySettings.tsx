@@ -33,6 +33,8 @@ type PlatformAvailabilitySettingsProps = {
     timeZone: string;
     schedule: UserSchedule[] | [];
   };
+  onScheduleDeletion: () => void;
+  onScheduleUpdation: (id: number, schedule: AvailabilityFormValues) => void;
 };
 
 export function PlatformAvailabilitySettings({
@@ -41,8 +43,11 @@ export function PlatformAvailabilitySettings({
   timeFormat,
   weekStart,
   labels,
+  onScheduleDeletion,
+  onScheduleUpdation,
 }: PlatformAvailabilitySettingsProps) {
   const userWeekStart = daysInAWeek.indexOf(weekStart) as typeof daysInNumbers;
+  const [dropdownOpen, setDropdownOpen] = useState(false);
 
   const form = useForm<AvailabilityFormValues>({
     values: schedule && {
@@ -50,8 +55,6 @@ export function PlatformAvailabilitySettings({
       schedule: schedule?.availability || [],
     },
   });
-
-  const [dropdownOpen, setDropdownOpen] = useState(false);
 
   return (
     <div className="flex flex-col px-10 py-4">
@@ -64,13 +67,9 @@ export function PlatformAvailabilitySettings({
         />
         <PlatformAvailabilitySettingsCTA
           largeScreenCTA={{
-            // isButtonDisabled: schedule?.isDefault || false,
+            isButtonDisabled: schedule?.isDefault || false,
             isSwitchDisabled: schedule?.isDefault || false,
-            isButtonDisabled: false,
-            onDeleteConfirmation: () => {
-              console.log("deleting");
-              console.log("is scheule default", schedule?.isDefault, "schedule id", schedule?.id);
-            },
+            onDeleteConfirmation: onScheduleDeletion,
           }}
         />
       </div>
@@ -79,10 +78,8 @@ export function PlatformAvailabilitySettings({
           form={form}
           id="availability-form"
           className="flex flex-col sm:mx-0 xl:flex-row xl:space-x-6"
-          handleSubmit={(values) => {
-            console.log("form values", values);
-
-            console.log("form submitted");
+          handleSubmit={(values: AvailabilityFormValues) => {
+            schedule?.id && onScheduleUpdation(schedule.id, values);
           }}>
           <div className="flex-1 flex-row xl:mr-0">
             <div className="border-subtle mb-6 rounded-md border">
