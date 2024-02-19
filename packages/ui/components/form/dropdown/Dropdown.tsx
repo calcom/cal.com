@@ -6,7 +6,6 @@ import { forwardRef } from "react";
 import { classNames } from "@calcom/lib";
 import type { SVGComponent } from "@calcom/types/SVGComponent";
 import { CheckCircle } from "@calcom/ui/components/icon";
-import type { LucideIcon } from "@calcom/ui/components/icon";
 
 import type { ButtonColor } from "../../button/Button";
 
@@ -106,8 +105,8 @@ DropdownMenuRadioItem.displayName = "DropdownMenuRadioItem";
 type DropdownItemProps = {
   children: React.ReactNode;
   color?: ButtonColor;
-  StartIcon?: SVGComponent | LucideIcon;
-  EndIcon?: SVGComponent | LucideIcon;
+  StartIcon?: SVGComponent;
+  EndIcon?: SVGComponent;
   href?: string;
   disabled?: boolean;
   childrenClassName?: string;
