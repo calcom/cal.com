@@ -2,7 +2,12 @@ import { expect } from "@playwright/test";
 
 import { loginUser } from "./fixtures/regularBookings";
 import { test } from "./lib/fixtures";
-import { bookEventOnThisPage, bookTimeSlot, selectFirstAvailableTimeSlotNextMonth } from "./lib/testUtils";
+import {
+  bookEventOnThisPage,
+  bookTimeSlot,
+  localize,
+  selectFirstAvailableTimeSlotNextMonth,
+} from "./lib/testUtils";
 
 test.describe("Test Cal Video App", async () => {
   test.beforeEach(({ users }) => users.deleteAll());
@@ -15,7 +20,7 @@ test.describe("Test Cal Video App", async () => {
     await loginUser(users);
     await page.goto("/event-types");
     await bookingPage.goToEventType("30 min");
-    await bookingPage.addLocation("Cal Video (Global)");
+    await bookingPage.addLocationToEventType("Cal Video (Global)");
     await bookingPage.updateEventType();
 
     const eventTypePage = await bookingPage.previewEventType();
@@ -45,8 +50,8 @@ test.describe("Test Cal Video App", async () => {
   }) => {
     await loginUser(users);
     await bookingPage.createEventType("CalVideo");
-    await bookingPage.addLocation("In Person (Attendee Address)");
-    await bookingPage.addNewLocation("Cal Video (Global)");
+    await bookingPage.addLocationToEventType(await (await localize("en"))("in_person_attendee_address"));
+    await bookingPage.addNewLocationToEventType("Cal Video (Global)");
     await bookingPage.updateEventType();
 
     const eventTypePage = await bookingPage.previewEventType();

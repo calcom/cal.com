@@ -698,11 +698,11 @@ export function createBookingPageFixture(page: Page) {
       await page.getByRole("button", { name: "Continue" }).click();
       await page.waitForURL("http://localhost:3000/event-types/**");
     },
-    addLocation: async (locationText: string) => {
-      await page.locator("#location-select").click();
+    addLocationToEventType: async (locationText: string) => {
+      await page.getByTestId("location-select").click();
       await page.getByText(locationText, { exact: true }).click();
     },
-    addNewLocation: async (locationText: string) => {
+    addNewLocationToEventType: async (locationText: string) => {
       await page.getByTestId("add-location").click();
       await page.getByText(locationText, { exact: true }).click();
     },
@@ -755,7 +755,6 @@ export function createBookingPageFixture(page: Page) {
       await expect(eventTypePage.getByTestId("unique-location")).toHaveText(locationTitle);
     },
     assertCalVideoLink: async (eventTypePage: Page, users: UserFixture, emails: EmailFixture) => {
-      console.debug(users.get());
       const user = users.get()[0];
       const receivedEmails = await getEmailsReceivedByUser({
         emails,
