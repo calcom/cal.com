@@ -1,4 +1,3 @@
-import loaderCss from "../loader.css?inline";
 import { getErrorString } from "../utils";
 import inlineHtml from "./inlineHtml";
 
@@ -37,6 +36,6 @@ export class Inline extends HTMLElement {
     super();
     this.attachShadow({ mode: "open" });
     this.assertHasShadowRoot();
-    this.shadowRoot.innerHTML = `<style>${window.Cal.__css}</style><style>${loaderCss}</style>${inlineHtml}`;
+    this.shadowRoot.innerHTML = `<style>${window.Cal.__css}</style>${inlineHtml}`;
   }
 }
