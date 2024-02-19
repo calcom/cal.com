@@ -83,7 +83,7 @@ const DescriptionEditor = ({ isEditable }: { isEditable: boolean }) => {
   return mounted ? (
     <Editor
       getText={() => md.render(formMethods.getValues("description") || "")}
-      setText={(value: string) => formMethods.setValue("description", turndown(value))}
+      setText={(value: string) => formMethods.setValue("description", turndown(value), { shouldDirty: true })}
       excludedToolbarItems={["blockType"]}
       placeholder={t("quick_video_meeting")}
       editable={isEditable}
@@ -512,16 +512,16 @@ export const EventSetupTab = (
                     if (!newOptions.find((opt) => opt.value === defaultDuration?.value)) {
                       if (newOptions.length > 0) {
                         setDefaultDuration(newOptions[0]);
-                        formMethods.setValue("length", newOptions[0].value);
+                        formMethods.setValue("length", newOptions[0].value, { shouldDirty: true });
                       } else {
                         setDefaultDuration(null);
                       }
                     }
                     if (newOptions.length === 1 && defaultDuration === null) {
                       setDefaultDuration(newOptions[0]);
-                      formMethods.setValue("length", newOptions[0].value);
+                      formMethods.setValue("length", newOptions[0].value, { shouldDirty: true });
                     }
-                    formMethods.setValue("metadata.multipleDuration", values);
+                    formMethods.setValue("metadata.multipleDuration", values, { shouldDirty: true });
                   }}
                 />
               </div>
@@ -542,7 +542,7 @@ export const EventSetupTab = (
                     setDefaultDuration(
                       selectedMultipleDuration.find((opt) => opt.value === option?.value) ?? null
                     );
-                    if (option) formMethods.setValue("length", option.value);
+                    if (option) formMethods.setValue("length", option.value, { shouldDirty: true });
                   }}
                 />
               </div>
@@ -571,12 +571,12 @@ export const EventSetupTab = (
                     setMultipleDuration(undefined);
                     setSelectedMultipleDuration([]);
                     setDefaultDuration(null);
-                    formMethods.setValue("metadata.multipleDuration", undefined);
-                    formMethods.setValue("length", eventType.length);
+                    formMethods.setValue("metadata.multipleDuration", undefined, { shouldDirty: true });
+                    formMethods.setValue("length", eventType.length, { shouldDirty: true });
                   } else {
                     setMultipleDuration([]);
-                    formMethods.setValue("metadata.multipleDuration", []);
-                    formMethods.setValue("length", 0);
+                    formMethods.setValue("metadata.multipleDuration", [], { shouldDirty: true });
+                    formMethods.setValue("length", 0, { shouldDirty: true });
                   }
                 }}
               />
