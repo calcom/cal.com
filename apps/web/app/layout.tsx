@@ -2,11 +2,10 @@ import { dir } from "i18next";
 import { Inter } from "next/font/google";
 import localFont from "next/font/local";
 import { headers, cookies } from "next/headers";
-import Script from "next/script";
 import React from "react";
 
+import RawHtml from "@calcom/emails/src/components/RawHtml";
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
-import { IS_PRODUCTION } from "@calcom/lib/constants";
 
 import { prepareRootMetadata } from "@lib/metadata";
 
@@ -69,15 +68,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       style={embedColorScheme ? { colorScheme: embedColorScheme as string } : undefined}
       data-nextjs-router="app">
       <head nonce={nonce}>
-        {process.env.NEXT_PUBLIC_HEAD_SCRIPTS}
-
-        {!IS_PRODUCTION && process.env.VERCEL_ENV === "preview" && (
-          // eslint-disable-next-line @next/next/no-sync-scripts
-          <Script
-            data-project-id="KjpMrKTnXquJVKfeqmjdTffVPf1a6Unw2LZ58iE4"
-            src="https://snippet.meticulous.ai/v1/stagingMeticulousSnippet.js"
-          />
-        )}
+        {process.env.NEXT_PUBLIC_HEAD_SCRIPTS && <RawHtml html={process.env.NEXT_PUBLIC_HEAD_SCRIPTS} />}
         <style>{`
           :root {
             --font-inter: ${interFont.style.fontFamily.replace(/\'/g, "")};
