@@ -1600,7 +1600,7 @@
   "attendee_email_info": "The person booking's email",
   "kbar_search_placeholder": "Type a command or search...",
   "invalid_credential": "It looks like permissions expired or were revoked for {{appName}}.",
-  "invalid_credential_action": "reinstall app",
+  "invalid_credential_action": "Reinstall app",
   "reschedule_reason": "Reschedule reason",
   "choose_common_schedule_team_event": "Choose a common schedule",
   "choose_common_schedule_team_event_description": "Enable this if you want to use a common schedule between hosts. When disabled, each host will be booked based on their default schedule.",
