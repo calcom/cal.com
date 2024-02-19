@@ -19,9 +19,7 @@ import { useEvent, useScheduleForEvent } from "@calcom/features/bookings/Booker/
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 
-import type { AtomsGlobalConfigProps } from "../../types";
-
-type BookerWebWrapperAtomProps = BookerProps & AtomsGlobalConfigProps;
+type BookerWebWrapperAtomProps = BookerProps;
 
 export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
   const router = useRouter();
