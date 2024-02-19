@@ -93,13 +93,15 @@ export async function getUsernameOrEmailsToInvite(usernameOrEmail: string | stri
   return emailsToInvite;
 }
 
-export function validateInviteeEligibility(invitee: UserWithMembership, team: TeamWithParent) {
+export function canBeInvited(invitee: UserWithMembership, team: TeamWithParent) {
   const alreadyInvited = invitee.teams?.find(({ teamId: membershipTeamId }) => team.id === membershipTeamId);
   if (alreadyInvited) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: `${invitee.email} has already been invited.`,
-    });
+    // throw new TRPCError({
+    //   code: "BAD_REQUEST",
+    //   message: `${invitee.email} has already been invited.`,
+    // });
+
+    return false;
   }
 
   const orgMembership = invitee.teams?.find((membersip) => membersip.teamId === team.parentId);
@@ -108,15 +110,16 @@ export function validateInviteeEligibility(invitee: UserWithMembership, team: Te
     team.parentId &&
     UserRepository.isAMemberOfOrganization({ user: invitee, organizationId: team.parentId })
   ) {
-    return;
+    return true;
   }
 
   // user invited to join a team inside an org, but has not accepted invite to org yet
   if (team.parentId && orgMembership && !orgMembership.accepted) {
-    throw new TRPCError({
-      code: "FORBIDDEN",
-      message: `User ${invitee.username} needs to accept the invitation to join your organization first.`,
-    });
+    return false;
+    // throw new TRPCError({
+    //   code: "FORBIDDEN",
+    //   message: `User ${invitee.username} needs to accept the invitation to join your organization first.`,
+    // });
   }
 
   // user is invited to join a team in an organization where he isn't a member
@@ -124,11 +127,13 @@ export function validateInviteeEligibility(invitee: UserWithMembership, team: Te
     !ENABLE_PROFILE_SWITCHER &&
     invitee.profiles.find((profile) => profile.organizationId != team.parentId)
   ) {
-    throw new TRPCError({
-      code: "FORBIDDEN",
-      message: `User ${invitee.username} is already a member of another organization.`,
-    });
+    // throw new TRPCError({
+    //   code: "FORBIDDEN",
+    //   message: `User ${invitee.username} is already a member of another organization.`,
+    // });
+    return false;
   }
+  return true;
 }
 
 export async function getUsersToInvite({
@@ -139,7 +144,7 @@ export async function getUsersToInvite({
   usernamesOrEmails: string[];
   isInvitedToOrg: boolean;
   team: TeamWithParent;
-}): Promise<UserWithMembership[]> {
+}) {
   const memberships = [];
   if (isInvitedToOrg) {
     memberships.push({ teamId: team.id });
@@ -177,10 +182,12 @@ export async function getUsersToInvite({
   });
 
   // Check if the users found in the database can be invited to join the team/org
-  invitees.forEach((invitee) => {
-    validateInviteeEligibility(invitee, team);
+  return invitees.map((invitee) => {
+    return {
+      ...invitee,
+      canBeInvited: canBeInvited(invitee, team),
+    };
   });
-  return invitees;
 }
 
 export function getOrgConnectionInfo({

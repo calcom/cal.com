@@ -76,19 +76,24 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
       }),
     };
   }, {} as Record<string, ReturnType<typeof getOrgConnectionInfo>>);
-  const existingUsersWithMembersips = await getUsersToInvite({
+  const existingUsersWithMemberships = await getUsersToInvite({
     usernamesOrEmails: usernameOrEmailsToInvite,
     isInvitedToOrg: input.isOrg,
     team,
   });
 
-  const existingUsersEmailsAndUsernames = existingUsersWithMembersips.reduce(
+  const existingUsersWithMembershipsThatNeedToBeInvited = existingUsersWithMemberships.filter(
+    (invitee) => invitee.canBeInvited
+  );
+
+  const existingUsersEmailsAndUsernames = existingUsersWithMemberships.reduce(
     (acc, user) => ({
       emails: user.email ? [...acc.emails, user.email] : acc.emails,
       usernames: user.username ? [...acc.usernames, user.username] : acc.usernames,
     }),
     { emails: [], usernames: [] } as { emails: string[]; usernames: string[] }
   );
+
   const newUsersEmailsOrUsernames = usernameOrEmailsToInvite.filter(
     (usernameOrEmail) =>
       !existingUsersEmailsAndUsernames.emails.includes(usernameOrEmail) &&
@@ -100,7 +105,8 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
     safeStringify({
       usernameOrEmailsToInvite,
       orgConnectInfoByUsernameOrEmail,
-      existingUsersWithMembersips,
+      existingUsersWithMembershipsThatNeedToBeInvited: existingUsersWithMembershipsThatNeedToBeInvited,
+      existingUsersWithMemberships,
       existingUsersEmailsAndUsernames,
       newUsersEmailsOrUsernames,
     })
@@ -129,7 +135,7 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
 
   // deal with existing users invited to join the team/org
   await handleExistingUsersInvites({
-    existingUsersWithMembersips,
+    existingUsersWithMembersips: existingUsersWithMembershipsThatNeedToBeInvited,
     team,
     orgConnectInfoByUsernameOrEmail,
     input,

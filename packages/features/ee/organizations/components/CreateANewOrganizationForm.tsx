@@ -1,12 +1,11 @@
-import { signIn } from "next-auth/react";
 import { useSession } from "next-auth/react";
+import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
-import { useVerifyCode } from "@calcom/features/bookings/Booker/components/hooks/useVerifyCode";
-import { VerifyCodeDialog } from "@calcom/features/bookings/components/VerifyCodeDialog";
 import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { MINIMUM_NUMBER_OF_ORG_SEATS } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
 import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
@@ -30,7 +29,8 @@ export const CreateANewOrganizationForm = ({ slug }: { slug?: string }) => {
   const telemetry = useTelemetry();
   const session = useSession();
   const [serverErrorMessage, setServerErrorMessage] = useState<string | null>(null);
-  const [showVerifyCode, setShowVerifyCode] = useState(false);
+  const isAdmin = session.data?.user.role === UserPermissionRole.ADMIN;
+  const isImpersonated = session.data?.user.impersonatedBy;
 
   const newOrganizationFormMethods = useForm<{
     name: string;
@@ -44,22 +44,21 @@ export const CreateANewOrganizationForm = ({ slug }: { slug?: string }) => {
       slug: `${slug ?? ""}`,
     },
   });
-  const watchAdminEmail = newOrganizationFormMethods.watch("adminEmail");
 
   const createOrganizationMutation = trpc.viewer.organizations.create.useMutation({
     onSuccess: async (data) => {
-      if (data.checked) {
-        setShowVerifyCode(true);
-      } else if (data.user) {
-        telemetry.event(telemetryEventTypes.org_created);
-        await signIn("credentials", {
-          redirect: false,
-          callbackUrl: "/",
-          email: data.user.email,
-          password: data.user.password,
+      telemetry.event(telemetryEventTypes.org_created);
+      // This is necessary so that server token has the updated upId
+      await session.update({
+        upId: data.upId,
+      });
+      if (isAdmin && data.userId !== session.data?.user.id) {
+        signIn("impersonation-auth", {
+          username: data.email,
+          callbackUrl: `/settings/organizations/${data.organizationId}/about`,
         });
-        router.push(`/settings/organizations/${data.user.organizationId}/set-password`);
       }
+      router.push(`/settings/organizations/${data.organizationId}/about`);
     },
     onError: (err) => {
       if (err.message === "admin_email_taken") {
@@ -76,20 +75,6 @@ export const CreateANewOrganizationForm = ({ slug }: { slug?: string }) => {
         });
       } else {
         setServerErrorMessage(err.message);
-      }
-    },
-  });
-
-  const isAdmin = session.data?.user.role === UserPermissionRole.ADMIN;
-  const isImpersonated = session.data?.user.impersonatedBy;
-  const verifyCode = useVerifyCode({
-    onSuccess: (isVerified) => {
-      if (isVerified) {
-        createOrganizationMutation.mutate({
-          ...newOrganizationFormMethods.getValues(),
-          language: i18n.language,
-          check: false,
-        });
       }
     },
   });
@@ -216,17 +201,18 @@ export const CreateANewOrganizationForm = ({ slug }: { slug?: string }) => {
                 <Controller
                   name="seats"
                   control={newOrganizationFormMethods.control}
-                  render={({ field: { value } }) => (
+                  render={({ field: { value, onChange } }) => (
                     <div className="flex">
                       <TextField
                         containerClassName="w-full"
-                        placeholder="37"
+                        placeholder="30"
                         name="seats"
                         type="number"
                         label="Seats (optional)"
-                        defaultValue={value}
+                        min={MINIMUM_NUMBER_OF_ORG_SEATS}
+                        defaultValue={value || MINIMUM_NUMBER_OF_ORG_SEATS}
                         onChange={(e) => {
-                          null;
+                          onChange(+e.target.value);
                         }}
                         autoComplete="off"
                       />
@@ -243,7 +229,7 @@ export const CreateANewOrganizationForm = ({ slug }: { slug?: string }) => {
                 <Controller
                   name="pricePerSeat"
                   control={newOrganizationFormMethods.control}
-                  render={({ field: { value } }) => (
+                  render={({ field: { value, onChange } }) => (
                     <div className="flex">
                       <TextField
                         containerClassName="w-full"
@@ -254,7 +240,7 @@ export const CreateANewOrganizationForm = ({ slug }: { slug?: string }) => {
                         label="Price per seat (optional)"
                         defaultValue={value}
                         onChange={(e) => {
-                          null;
+                          onChange(+e.target.value);
                         }}
                         autoComplete="off"
                       />
@@ -282,17 +268,6 @@ export const CreateANewOrganizationForm = ({ slug }: { slug?: string }) => {
           </Button>
         </div>
       </Form>
-      <VerifyCodeDialog
-        isOpenDialog={showVerifyCode}
-        setIsOpenDialog={setShowVerifyCode}
-        email={watchAdminEmail}
-        verifyCodeWithSessionNotRequired={verifyCode.verifyCodeWithSessionNotRequired}
-        verifyCodeWithSessionRequired={verifyCode.verifyCodeWithSessionRequired}
-        error={verifyCode.error}
-        resetErrors={verifyCode.resetErrors}
-        isPending={verifyCode.isPending}
-        setIsPending={verifyCode.setIsPending}
-      />
     </>
   );
 };

@@ -13,7 +13,7 @@ import {
   getUsernameOrEmailsToInvite,
   getIsOrgVerified,
   getOrgConnectionInfo,
-  validateInviteeEligibility,
+  canBeInvited,
   getAutoJoinStatus,
   checkInputEmailIsValid,
 } from "./utils";
@@ -284,7 +284,7 @@ describe("Invite Member Utils", () => {
     });
   });
 
-  describe("validateInviteeEligibility: Check if user can be invited to the team/org", () => {
+  describe("canBeInvited: Check if user can be invited to the team/org", () => {
     const invitee: UserWithMembership = {
       ...mockUser,
       id: 1,
@@ -303,7 +303,7 @@ describe("Invite Member Utils", () => {
         ...mockedRegularTeam,
         parentId: 2,
       };
-      expect(() => validateInviteeEligibility(inviteeWithOrg, teamWithOrg)).not.toThrow();
+      expect(() => canBeInvited(inviteeWithOrg, teamWithOrg)).not.toThrow();
     });
 
     it("should throw a TRPCError when inviting a user who is already a member of the team", () => {
@@ -316,15 +316,15 @@ describe("Invite Member Utils", () => {
         ...mockedRegularTeam,
         id: 1,
       };
-      expect(() => validateInviteeEligibility(inviteeWithOrg, teamWithOrg)).toThrow(TRPCError);
+      expect(() => canBeInvited(inviteeWithOrg, teamWithOrg)).toThrow(TRPCError);
     });
 
     it("should not throw any error if the invitee already exists in Cal.com and is being invited to an organization", () => {
-      expect(() => validateInviteeEligibility(invitee, mockedRegularTeam)).not.toThrow();
+      expect(() => canBeInvited(invitee, mockedRegularTeam)).not.toThrow();
     });
 
     it("should not throw an error if the invitee does not already belong to another organization and is not being invited to an organization", () => {
-      expect(() => validateInviteeEligibility(invitee, mockedRegularTeam)).not.toThrow();
+      expect(() => canBeInvited(invitee, mockedRegularTeam)).not.toThrow();
     });
   });
   describe("shouldAutoJoinIfInOrg", () => {

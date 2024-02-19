@@ -7,8 +7,9 @@ export const ZCreateInputSchema = z.object({
   slug: z.string().transform((val) => slugify(val.trim())),
   adminEmail: z.string().email(),
   adminUsername: z.string(),
-  check: z.boolean().default(true),
   language: z.string().optional(),
+  seats: z.number().optional(),
+  pricePerSeat: z.number().optional(),
 });
 
 export type TCreateInputSchema = z.infer<typeof ZCreateInputSchema>;

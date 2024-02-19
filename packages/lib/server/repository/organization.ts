@@ -13,7 +13,9 @@ export class OrganizationRepository {
       name: string;
       slug: string;
       isOrganizationConfigured: boolean;
-      autoAcceptEmail: boolean;
+      autoAcceptEmail: string;
+      seats: number | null;
+      pricePerSeat: number | null;
     };
     owner: {
       id: number;
@@ -31,6 +33,8 @@ export class OrganizationRepository {
           isOrganizationVerified: true,
           isOrganizationConfigured: orgData.isOrganizationConfigured,
           orgAutoAcceptEmail: orgData.autoAcceptEmail,
+          orgSeats: orgData.seats,
+          orgPricePerSeat: orgData.pricePerSeat,
         },
       },
     });

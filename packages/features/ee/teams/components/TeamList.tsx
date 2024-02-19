@@ -49,6 +49,7 @@ export default function TeamList(props: Props) {
   }
 
   if (!user) return null;
+  // TODO: Derive it
   const hasOrgPlan = false;
   const isUserAlreadyInAnOrganization = user.profile.organization;
   return (

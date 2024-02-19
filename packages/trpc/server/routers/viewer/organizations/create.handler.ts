@@ -5,6 +5,7 @@ import { RESERVED_SUBDOMAINS, WEBAPP_URL } from "@calcom/lib/constants";
 import { createDomain } from "@calcom/lib/domainManager/organization";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
+import { UserRepository } from "@calcom/lib/server/repository/user";
 import { prisma } from "@calcom/prisma";
 import { UserPermissionRole } from "@calcom/prisma/enums";
 
@@ -30,7 +31,14 @@ const getIPAddress = async (url: string): Promise<string> => {
 };
 
 export const createHandler = async ({ input, ctx }: CreateOptions) => {
-  const { slug, name, adminEmail: orgOwnerEmail, adminUsername: orgOwnerUsername, check } = input;
+  const {
+    slug,
+    name,
+    adminEmail: orgOwnerEmail,
+    adminUsername: orgOwnerUsername,
+    seats,
+    pricePerSeat,
+  } = input;
 
   const orgOwner = await prisma.user.findUnique({
     where: {
@@ -90,12 +98,15 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
     }
   }
 
+  const autoAcceptEmail = orgOwnerEmail.split("@")[1];
   const organization = await OrganizationRepository.createWithOwner({
     orgData: {
       name,
       slug,
       isOrganizationConfigured,
-      autoAcceptEmail: true,
+      autoAcceptEmail,
+      seats: seats ?? null,
+      pricePerSeat: pricePerSeat ?? null,
     },
     owner: {
       id: orgOwner.id,
@@ -105,8 +116,10 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
   });
 
   if (!organization.id) throw Error("User not created");
-
-  return { user: { ...orgOwner, organizationId: organization.id } };
+  const user = await UserRepository.enrichUserWithItsProfile({
+    user: { ...orgOwner, organizationId: organization.id },
+  });
+  return { userId: user.id, email: user.email, organizationId: user.organizationId, upId: user.profile.upId };
 
   // Sync Services: Close.com
   //closeComUpsertOrganizationUser(createTeam, ctx.user, MembershipRole.OWNER);

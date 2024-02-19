@@ -135,3 +135,5 @@ export const BOOKER_NUMBER_OF_DAYS_TO_LOAD = parseInt(
   process.env.NEXT_PUBLIC_BOOKER_NUMBER_OF_DAYS_TO_LOAD ?? "0",
   0
 );
+
+export const MINIMUM_NUMBER_OF_ORG_SEATS = 30;

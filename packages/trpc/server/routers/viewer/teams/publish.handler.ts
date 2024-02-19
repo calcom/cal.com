@@ -2,7 +2,7 @@ import type { Prisma } from "@prisma/client";
 
 import { getRequestedSlugError } from "@calcom/app-store/stripepayment/lib/team-billing";
 import {
-  purchaseTeamSubscription,
+  purchaseTeamOrOrgSubscription,
   updateQuantitySubscriptionFromStripe,
 } from "@calcom/features/ee/teams/lib/payments";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
@@ -43,7 +43,7 @@ const generateCheckoutSession = async ({
 }) => {
   if (!IS_TEAM_BILLING_ENABLED) return;
 
-  const checkoutSession = await purchaseTeamSubscription({
+  const checkoutSession = await purchaseTeamOrOrgSubscription({
     teamId,
     seats,
     userId,

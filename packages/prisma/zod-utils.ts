@@ -354,6 +354,8 @@ export const teamMetadataSchema = z
     isOrganization: z.boolean().nullable(),
     isOrganizationVerified: z.boolean().nullable(),
     isOrganizationConfigured: z.boolean().nullable(),
+    orgSeats: z.number().nullable(),
+    orgPricePerSeat: z.number().nullable(),
     orgAutoAcceptEmail: z.string().nullable(),
     migratedToOrgFrom: z
       .object({
