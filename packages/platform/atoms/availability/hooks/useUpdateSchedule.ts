@@ -5,6 +5,7 @@ import { BASE_URL, API_VERSION, V2_ENDPOINTS } from "@calcom/platform-constants"
 import type { ApiResponse } from "@calcom/platform-types";
 
 import http from "../../lib/http";
+import type { AvailabilityFormValues } from "../types";
 
 interface IPUpdateOAuthClient {
   onSuccess?: () => void;
@@ -12,8 +13,8 @@ interface IPUpdateOAuthClient {
 }
 
 type UpdateScheduleInput = {
-  id: string;
-  body: any;
+  id: number;
+  body: AvailabilityFormValues;
 };
 
 const useUpdateSchedule = (
@@ -30,12 +31,12 @@ const useUpdateSchedule = (
 
   const mutation = useMutation<ApiResponse<undefined>, unknown, UpdateScheduleInput>({
     mutationFn: (data) => {
-      const { id } = data;
+      const { id, body } = data;
       endpoint.pathname = `api/${API_VERSION}/${V2_ENDPOINTS.availability}/${id}`;
       endpoint.searchParams.set("for", "atom");
 
       // user data needs to be sent back in body
-      return http?.patch(endpoint.toString(), {}).then((res) => res.data);
+      return http?.patch(endpoint.toString(), { body }).then((res) => res.data);
     },
     onSuccess: (data) => {
       if (data.status === SUCCESS_STATUS) {

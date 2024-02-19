@@ -12,7 +12,7 @@ interface IPDeleteOAuthClient {
 }
 
 type DeleteScheduleInput = {
-  id: string;
+  id: number;
 };
 
 const useDeleteSchedule = (
