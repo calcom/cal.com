@@ -47,12 +47,10 @@ export const getFeatureFlag = async (
 
   const cacheEntry = featureFlagCache.get(slug);
 
-  // Check if the flag is in the cache and not expired
   if (cacheEntry && !isExpired(cacheEntry)) {
     return cacheEntry.value;
   }
 
-  // Fetch from the database if not in cache or cache is expired
   const flag = await prisma.feature.findUnique({
     where: {
       slug,
@@ -60,10 +58,8 @@ export const getFeatureFlag = async (
   });
 
   const isEnabled = Boolean(flag && flag.enabled);
-
   const expiry = Date.now() + options.ttl;
 
-  // Store the flag in the cache with its expiry time
   featureFlagCache.set(slug, { value: isEnabled, expiry });
 
   return isEnabled;
