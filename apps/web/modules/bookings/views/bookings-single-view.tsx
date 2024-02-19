@@ -19,7 +19,6 @@ import { getEventName } from "@calcom/core/event";
 import type { ConfigType } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import {
-  sdkActionManager,
   useEmbedNonStylesConfig,
   useIsBackgroundTransparent,
   useIsEmbed,
@@ -193,22 +192,22 @@ export default function Success(props: PageProps) {
   }, [telemetry]); */
 
   useEffect(() => {
-    const users = eventType.users;
-    if (!sdkActionManager) return;
-    // TODO: We should probably make it consistent with Webhook payload. Some data is not available here, as and when requirement comes we can add
-    sdkActionManager.fire("bookingSuccessful", {
-      booking: bookingInfo,
-      eventType,
-      date: date.toString(),
-      duration: calculatedDuration,
-      organizer: {
-        name: users[0].name || "Nameless",
-        email: bookingInfo?.userPrimaryEmail || users[0].email || "Email-less",
-        timeZone: users[0].timeZone,
-      },
-      confirmed: !needsConfirmation,
-      // TODO: Add payment details
-    });
+    // const users = eventType.users;
+    // if (!sdkActionManager) return;
+    // // TODO: We should probably make it consistent with Webhook payload. Some data is not available here, as and when requirement comes we can add
+    // sdkActionManager.fire("bookingSuccessful", {
+    //   booking: bookingInfo,
+    //   eventType,
+    //   date: date.toString(),
+    //   duration: calculatedDuration,
+    //   organizer: {
+    //     name: users[0].name || "Nameless",
+    //     email: bookingInfo?.userPrimaryEmail || users[0].email || "Email-less",
+    //     timeZone: users[0].timeZone,
+    //   },
+    //   confirmed: !needsConfirmation,
+    //   // TODO: Add payment details
+    // });
     setDate(
       date.tz(localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess() || "Europe/London")
     );
@@ -610,6 +609,11 @@ export default function Success(props: PageProps) {
                         theme={isSuccessBookingPage ? props.profile.theme : "light"}
                         allRemainingBookings={allRemainingBookings}
                         seatReferenceUid={seatReferenceUid}
+                        organizer={{
+                          name: eventType.users[0].name || "Nameless",
+                          email: bookingInfo?.userPrimaryEmail || eventType.users[0].email || "Email-less",
+                          timeZone: eventType.users[0].timeZone,
+                        }}
                       />
                     </>
                   ))}

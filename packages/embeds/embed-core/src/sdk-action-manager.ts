@@ -35,6 +35,28 @@ export type EventDataMap = {
     };
     confirmed: boolean;
   };
+  rescheduleBookingSuccessful: {
+    // TODO: Shouldn't send the entire booking and eventType objects, we should send specific fields from them.
+    booking: unknown;
+    eventType: unknown;
+    date: string;
+    duration: number | undefined;
+    organizer: {
+      name: string;
+      email: string;
+      timeZone: string;
+    };
+    confirmed: boolean;
+  };
+  bookingCancelled: {
+    bookingId?: number;
+    bookingUid?: string;
+    organizer: {
+      name: string;
+      email: string;
+      timeZone: string;
+    };
+  };
   "*": Record<string, unknown>;
   __routeChanged: Record<string, never>;
   __windowLoadComplete: Record<string, never>;

@@ -1,6 +1,7 @@
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 
+import { sdkActionManager } from "@calcom/embed-core/embed-iframe";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import type { RecurringEvent } from "@calcom/types/Calendar";
@@ -23,13 +24,18 @@ type Props = {
   theme: string | null;
   allRemainingBookings: boolean;
   seatReferenceUid?: string;
+  organizer: {
+    name: string;
+    email: string;
+    timeZone: string;
+  };
 };
 
 export default function CancelBooking(props: Props) {
   const [cancellationReason, setCancellationReason] = useState<string>("");
   const { t } = useLocale();
   const router = useRouter();
-  const { booking, allRemainingBookings, seatReferenceUid } = props;
+  const { booking, allRemainingBookings, seatReferenceUid, organizer } = props;
   const [loading, setLoading] = useState(false);
   const telemetry = useTelemetry();
   const [error, setError] = useState<string | null>(booking ? null : t("booking_already_cancelled"));
@@ -99,6 +105,11 @@ export default function CancelBooking(props: Props) {
 
                   if (res.status >= 200 && res.status < 300) {
                     // tested by apps/web/playwright/booking-pages.e2e.ts
+                    sdkActionManager?.fire("bookingCancelled", {
+                      bookingUid: booking?.uid,
+                      bookingId: booking?.id,
+                      organizer,
+                    });
                     router.refresh();
                   } else {
                     setLoading(false);
