@@ -17,12 +17,12 @@ export class CalendarBusyTimesInput {
   @IsString()
   @IsOptional()
   @Validate(IsYearMonthDays)
-  dateFrom!: string | null;
+  dateFrom?: string | null;
 
   @IsString()
   @IsOptional()
   @Validate(IsYearMonthDays)
-  dateTo!: string | null;
+  dateTo?: string | null;
 
   @IsArray()
   @ValidateNested({ each: true })
