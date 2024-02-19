@@ -48,16 +48,12 @@ export class CalendarsController {
   }
 
   @Get("/")
-  async getCalendars(
-    @GetUser("id") userId: number
-  ): Promise<ApiResponse<{ calendars: ConnectedDestinationCalendars }>> {
+  async getCalendars(@GetUser("id") userId: number): Promise<ApiResponse<ConnectedDestinationCalendars>> {
     const calendars = await this.calendarsService.getCalendars(userId);
 
     return {
       status: SUCCESS_STATUS,
-      data: {
-        calendars,
-      },
+      data: calendars,
     };
   }
 }
