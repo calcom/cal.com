@@ -98,30 +98,18 @@ export function processDateOverride({
     timeZone: string;
   }[];
 }) {
-  let adjustedTimzoneStartDate = timeZone;
-  let adjustedTimzoneEndDate = timeZone;
+  let adjustedTimzone = timeZone;
 
-  const itemStart = dayjs(item.startTime);
-  const itemEnd = dayjs(item.endTime);
+  const overrideDate = dayjs(item.date);
 
   travelSchedules.forEach((travelSchedule) => {
-    if (itemStart.isAfter(travelSchedule.startDate) || itemStart.isSame(travelSchedule.startDate)) {
+    if (overrideDate.isAfter(travelSchedule.startDate) || overrideDate.isSame(travelSchedule.startDate)) {
       if (
         !travelSchedule.endDate ||
-        itemStart.isBefore(travelSchedule.endDate) ||
-        itemStart.isSame(travelSchedule.endDate)
+        overrideDate.isBefore(travelSchedule.endDate) ||
+        overrideDate.isSame(travelSchedule.endDate)
       ) {
-        adjustedTimzoneStartDate = travelSchedule.timeZone;
-      }
-    }
-
-    if (itemEnd.isAfter(travelSchedule.startDate) || itemEnd.isSame(travelSchedule.startDate)) {
-      if (
-        !travelSchedule.endDate ||
-        itemEnd.isBefore(travelSchedule.endDate) ||
-        itemEnd.isSame(travelSchedule.endDate)
-      ) {
-        adjustedTimzoneEndDate = travelSchedule.timeZone;
+        adjustedTimzone = travelSchedule.timeZone;
       }
     }
   });
@@ -131,13 +119,13 @@ export function processDateOverride({
     .add(item.startTime.getUTCHours(), "hours")
     .add(item.startTime.getUTCMinutes(), "minutes")
     .second(0)
-    .tz(adjustedTimzoneStartDate, true);
+    .tz(adjustedTimzone, true);
 
   const endDate = itemDateStartOfDay
     .add(item.endTime.getUTCHours(), "hours")
     .add(item.endTime.getUTCMinutes(), "minutes")
     .second(0)
-    .tz(adjustedTimzoneEndDate, true);
+    .tz(adjustedTimzone, true);
 
   return {
     start: startDate,
