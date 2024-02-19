@@ -2,6 +2,7 @@ import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 import { v4 as uuidv4 } from "uuid";
 
+import { DailyLocationType } from "@calcom/app-store/locations";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/client";
@@ -749,7 +750,7 @@ test.describe("Webhook tests", async () => {
         ],
         uid: "[redacted/dynamic]",
         bookingId: "[redacted/dynamic]",
-        location: "",
+        location: DailyLocationType,
         destinationCalendar: null,
         seatsPerTimeSlot: null,
         seatsShowAttendees: true,
