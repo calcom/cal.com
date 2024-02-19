@@ -47,7 +47,7 @@ const html = `<style>
   <div class="body">
     <div id="wrapper" class="z-[999999999999] absolute flex w-full items-center">
         <div class="bg-default dark:bg-muted relative mx-auto h-screen max-h-[460px] w-full max-w-[760px] rounded-lg border">
-          <div class="grid h-screen grid-cols-1 sm:grid-cols-2">
+          <div class="grid h-screen grid-cols-1 sm:grid-cols-3">
             <div class="h-screen max-h-[460px] border-0 p-4 sm:border-r">
               <div class="h-6 w-6 animate-pulse rounded-full"></div>
               <div class="mt-2">
@@ -74,7 +74,7 @@ const html = `<style>
               </div>
             </div>
 
-            <div class="p-4">
+            <div class="col-span-2 px-10 pt-4">
               <div class="mt-2">
                 <div class="bg-emphasis inline-block h-4 w-12 animate-pulse rounded-md"></div>
                 <div class="bg-emphasis inline-block h-4 w-20 animate-pulse rounded-md"></div>
