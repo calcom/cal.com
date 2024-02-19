@@ -586,7 +586,7 @@ describe("getSchedule", () => {
       expect(scheduleForEventOnADayWithNonCalBooking).toHaveTimeSlots(
         [
           // `04:00:00.000Z`, // 4 AM UTC (9:30 AM IST) is booked
-          // `06:00:00.000Z`, // 6 AM UTC (11:30 AM IST) is not available because 4 AM UTC (9:30 AM IST) slot has a `afterEventBuffer`
+          // `06:00:00.000Z`, // 6 AM UTC (11:30 AM IST) is not available because 8 AM UTC (1:30 PM IST) slot has a `beforeEventBuffer`
           // `08:00:00.000Z`, // 8 AM UTC (1:30 PM IST) is not available because of slot interval being 60 minutes & in IST current time is 1:30 PM
           `08:30:00.000Z`, // 8:30 AM UTC (2:00 PM IST)
           `10:30:00.000Z`, // 10:30 AM UTC (4:00 PM IST)
