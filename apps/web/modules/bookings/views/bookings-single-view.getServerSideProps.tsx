@@ -82,6 +82,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       cancellationReason: true,
       responses: true,
       rejectionReason: true,
+      userPrimaryEmail: true,
       user: {
         select: {
           id: true,

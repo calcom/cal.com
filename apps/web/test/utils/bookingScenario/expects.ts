@@ -307,16 +307,18 @@ export function expectWebhookToHaveBeenCalledWith(
 export function expectWorkflowToBeTriggered({
   emails,
   organizer,
+  destinationEmail,
 }: {
   emails: Fixtures["emails"];
   organizer: { email: string; name: string; timeZone: string };
+  destinationEmail?: string;
 }) {
   const subjectPattern = /^Reminder: /i;
   expect(emails.get()).toEqual(
     expect.arrayContaining([
       expect.objectContaining({
         subject: expect.stringMatching(subjectPattern),
-        to: organizer.email,
+        to: destinationEmail ?? organizer.email,
       }),
     ])
   );
@@ -370,6 +372,7 @@ export function expectSuccessfulBookingCreationEmails({
   recurrence,
   bookingTimeRange,
   booking,
+  destinationEmail,
 }: {
   emails: Fixtures["emails"];
   organizer: { email: string; name: string; timeZone: string };
@@ -381,6 +384,7 @@ export function expectSuccessfulBookingCreationEmails({
   eventDomain?: string;
   bookingTimeRange?: { start: Date; end: Date };
   booking: { uid: string; urlOrigin?: string };
+  destinationEmail?: string;
 }) {
   const bookingUrlOrigin = booking.urlOrigin || WEBSITE_URL;
   expect(emails).toHaveEmail(
@@ -409,7 +413,7 @@ export function expectSuccessfulBookingCreationEmails({
             },
           }
         : null),
-      to: `${organizer.email}`,
+      to: `${destinationEmail ?? organizer.email}`,
       ics: {
         filename: "event.ics",
         iCalUID: `${iCalUID}`,
@@ -417,7 +421,7 @@ export function expectSuccessfulBookingCreationEmails({
         method: "REQUEST",
       },
     },
-    `${organizer.email}`
+    `${destinationEmail ?? organizer.email}`
   );
 
   expect(emails).toHaveEmail(
