@@ -1,8 +1,8 @@
 import classNames from "classnames";
 import type { ReactNode } from "react";
 import { forwardRef } from "react";
-import type { IconType } from "react-icons";
 
+import type { LucideIcon as IconType } from "@calcom/ui/components/icon";
 import { CheckCircle2, Info, XCircle, AlertTriangle } from "@calcom/ui/components/icon";
 
 export interface AlertProps {

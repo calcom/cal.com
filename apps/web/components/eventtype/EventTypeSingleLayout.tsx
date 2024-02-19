@@ -1,4 +1,3 @@
-import { Webhook as TbWebhook } from "lucide-react";
 import type { TFunction } from "next-i18next";
 import { Trans } from "next-i18next";
 import { useRouter } from "next/navigation";
@@ -35,6 +34,7 @@ import {
   VerticalDivider,
   VerticalTabs,
 } from "@calcom/ui";
+import { Webhook as TbWebhook } from "@calcom/ui/components/icon";
 import {
   Link as LinkIcon,
   Calendar,

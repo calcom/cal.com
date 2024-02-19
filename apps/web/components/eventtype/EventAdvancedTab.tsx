@@ -1,4 +1,3 @@
-import { InfoIcon } from "lucide-react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import type { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
@@ -30,12 +29,12 @@ import {
   CheckboxField,
   Label,
   SettingsToggle,
-  showToast,
   Switch,
   TextField,
   Tooltip,
+  showToast,
 } from "@calcom/ui";
-import { Copy, Edit, Info } from "@calcom/ui/components/icon";
+import { Copy, Edit, Info, Info as InfoIcon } from "@calcom/ui/components/icon";
 
 import RequiresConfirmationController from "./RequiresConfirmationController";
 

@@ -1,5 +1,4 @@
 import type { Table } from "@tanstack/react-table";
-import { Users, Check } from "lucide-react";
 import { useState } from "react";
 
 import classNames from "@calcom/lib/classNames";
@@ -18,6 +17,7 @@ import {
   PopoverTrigger,
   showToast,
 } from "@calcom/ui";
+import { Users, Check } from "@calcom/ui/components/icon";
 
 import type { User } from "../UserListTable";
 

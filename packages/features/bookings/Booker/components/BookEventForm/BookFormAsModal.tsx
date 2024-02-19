@@ -1,9 +1,9 @@
-import { Calendar, Clock } from "lucide-react";
 import type { ReactNode } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Badge, Dialog, DialogContent } from "@calcom/ui";
+import { Calendar, Clock } from "@calcom/ui/components/icon";
 
 import { useTimePreferences } from "../../../lib";
 import { useBookerStore } from "../../store";

@@ -1,6 +1,5 @@
 import { keepPreviousData } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
-import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { useMemo, useRef, useCallback, useEffect, useState } from "react";
 
 import dayjs from "@calcom/dayjs";
@@ -12,6 +11,7 @@ import { trpc } from "@calcom/trpc";
 import type { UserProfile } from "@calcom/types/UserProfile";
 import { Button, ButtonGroup, DataTable } from "@calcom/ui";
 import { UserAvatar } from "@calcom/ui";
+import { ChevronLeft as ChevronLeftIcon, ChevronRight as ChevronRightIcon } from "@calcom/ui/components/icon";
 
 import { UpgradeTip } from "../../tips/UpgradeTip";
 import { TBContext, createTimezoneBuddyStore } from "../store";

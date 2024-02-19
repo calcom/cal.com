@@ -1,7 +1,6 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { CalendarHeart, Info, Link2, ShieldCheckIcon, StarIcon, Users } from "lucide-react";
 import { signIn } from "next-auth/react";
 import { Trans } from "next-i18next";
 import Link from "next/link";
@@ -27,6 +26,14 @@ import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calco
 import { signupSchema as apiSignupSchema } from "@calcom/prisma/zod-utils";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Button, HeadSeo, PasswordField, TextField, Form, Alert, showToast } from "@calcom/ui";
+import {
+  CalendarHeart,
+  Info,
+  Link2,
+  ShieldCheck as ShieldCheckIcon,
+  Star as StarIcon,
+  Users,
+} from "@calcom/ui/components/icon";
 
 import { getServerSideProps } from "@lib/signup/getServerSideProps";
 

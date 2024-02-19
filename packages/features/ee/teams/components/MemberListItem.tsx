@@ -1,5 +1,4 @@
 import classNames from "classnames";
-import { SendIcon } from "lucide-react";
 import { signIn } from "next-auth/react";
 import { useState } from "react";
 
@@ -25,9 +24,16 @@ import {
   DropdownMenuTrigger,
   showToast,
   Tooltip,
+  UserAvatar,
 } from "@calcom/ui";
-import { UserAvatar } from "@calcom/ui";
-import { ExternalLink, MoreHorizontal, Edit2, Lock, UserX } from "@calcom/ui/components/icon";
+import {
+  Edit2,
+  ExternalLink,
+  Lock,
+  MoreHorizontal,
+  Send as SendIcon,
+  UserX,
+} from "@calcom/ui/components/icon";
 
 import MemberChangeRoleModal from "./MemberChangeRoleModal";
 import TeamAvailabilityModal from "./TeamAvailabilityModal";

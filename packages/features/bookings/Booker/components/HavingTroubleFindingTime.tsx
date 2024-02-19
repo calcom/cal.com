@@ -1,8 +1,8 @@
-import { ArrowRight, InfoIcon } from "lucide-react";
 import { useState } from "react";
 
 import { BOOKER_NUMBER_OF_DAYS_TO_LOAD } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { ArrowRight, Info as InfoIcon } from "@calcom/ui/components/icon";
 
 type Props = {
   onButtonClick: () => void;

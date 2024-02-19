@@ -5,14 +5,13 @@ import classNames from "classnames";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
-import { FaGoogle } from "react-icons/fa";
 import { z } from "zod";
 
 import { SAMLLogin } from "@calcom/features/auth/SAMLLogin";
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
-import { WEBAPP_URL, WEBSITE_URL, HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
+import { HOSTED_CAL_FEATURES, WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -39,6 +38,10 @@ interface LoginValues {
   backupCode: string;
   csrfToken: string;
 }
+
+const GoogleIcon = () => (
+  <img className={classNames("text-subtle  mr-2 h-4 w-4 dark:invert")} src="/google-icon.svg" alt="" />
+);
 export default function Login({
   csrfToken,
   isGoogleLoginEnabled,
@@ -244,7 +247,7 @@ inferSSRProps<typeof getServerSideProps> & WithNonceProps<{}>) {
                     className="w-full justify-center"
                     disabled={formState.isSubmitting}
                     data-testid="google"
-                    StartIcon={FaGoogle}
+                    StartIcon={GoogleIcon}
                     onClick={async (e) => {
                       e.preventDefault();
                       await signIn("google");

@@ -1,10 +1,11 @@
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
 import React from "react";
-import { GoPrimitiveDot } from "react-icons/go";
 
 import classNames from "@calcom/lib/classNames";
 import type { SVGComponent } from "@calcom/types/SVGComponent";
+
+import { Dot as GoPrimitiveDot } from "../icon";
 
 export const badgeStyles = cva("font-medium inline-flex items-center justify-center rounded gap-x-1", {
   variants: {

@@ -2,7 +2,6 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { Prisma } from "@prisma/client";
-import { LinkIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useLayoutEffect, useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -33,6 +32,7 @@ import {
   SkeletonContainer,
   SkeletonText,
 } from "@calcom/ui";
+import { Link as LinkIcon } from "@calcom/ui/components/icon";
 
 import { getLayout } from "../../../../settings/layouts/SettingsLayout";
 import { useOrgBranding } from "../../../organizations/context/provider";

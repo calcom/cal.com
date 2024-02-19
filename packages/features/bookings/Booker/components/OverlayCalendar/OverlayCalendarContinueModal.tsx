@@ -1,8 +1,7 @@
-import { CalendarSearch } from "lucide-react";
-
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, Dialog, DialogContent, DialogFooter } from "@calcom/ui";
+import { CalendarSearch } from "@calcom/ui/components/icon";
 
 interface IOverlayCalendarContinueModalProps {
   open?: boolean;

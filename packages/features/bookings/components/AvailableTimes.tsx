@@ -1,7 +1,6 @@
 // We do not need to worry about importing framer-motion here as it is lazy imported in Booker.
 import * as HoverCard from "@radix-ui/react-hover-card";
 import { AnimatePresence, m } from "framer-motion";
-import { CalendarX2, ChevronRight } from "lucide-react";
 import { useCallback, useState } from "react";
 
 import dayjs from "@calcom/dayjs";
@@ -10,6 +9,7 @@ import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localStorage } from "@calcom/lib/webstorage";
 import { Button, SkeletonText } from "@calcom/ui";
+import { CalendarX2, ChevronRight } from "@calcom/ui/components/icon";
 
 import { useBookerStore } from "../Booker/store";
 import { useEvent } from "../Booker/utils/event";

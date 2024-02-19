@@ -1,9 +1,9 @@
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useMemo } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, ButtonGroup } from "@calcom/ui";
+import { ChevronLeft, ChevronRight } from "@calcom/ui/components/icon";
 
 import { useTroubleshooterStore } from "../store";
 

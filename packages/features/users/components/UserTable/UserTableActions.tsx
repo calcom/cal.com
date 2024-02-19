@@ -1,4 +1,3 @@
-import { ExternalLink, MoreHorizontal, Edit2, UserX, Lock, SendIcon } from "lucide-react";
 import { useSession } from "next-auth/react";
 
 import { classNames } from "@calcom/lib";
@@ -16,6 +15,14 @@ import {
   DropdownMenuSeparator,
   showToast,
 } from "@calcom/ui";
+import {
+  ExternalLink,
+  MoreHorizontal,
+  Edit2,
+  UserX,
+  Lock,
+  Send as SendIcon,
+} from "@calcom/ui/components/icon";
 
 import type { Action } from "./UserListTable";
 import type { User } from "./UserListTable";

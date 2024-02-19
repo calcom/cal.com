@@ -1,5 +1,4 @@
-import { CreditCard } from "lucide-react";
-
+import { CreditCard } from "@calcom/ui/components/icon";
 import { SatSymbol } from "@calcom/ui/components/icon/SatSymbol";
 
 export function getPriceIcon(currency: string): React.FC<{ className: string }> | string {

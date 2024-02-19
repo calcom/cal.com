@@ -1,4 +1,3 @@
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useCallback, useMemo } from "react";
 import { shallow } from "zustand/shallow";
 
@@ -8,6 +7,7 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 import { Button, ButtonGroup, ToggleGroup, Tooltip } from "@calcom/ui";
+import { ChevronLeft, ChevronRight } from "@calcom/ui/components/icon";
 import { Calendar, Columns, Grid } from "@calcom/ui/components/icon";
 
 import { TimeFormatToggle } from "../../components/TimeFormatToggle";

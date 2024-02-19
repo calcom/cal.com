@@ -184,7 +184,7 @@ const nextConfig = {
     "@calcom/prisma",
     "@calcom/trpc",
     "@calcom/ui",
-    "lucide-react",
+    // "lucide-react",
   ],
   modularizeImports: {
     "@calcom/ui/components/icon": {

@@ -1,6 +1,7 @@
-import type { LucideIcon as IconType } from "lucide-react";
 import type { FC } from "react";
 import React from "react";
+
+import type { LucideIcon as IconType } from "@calcom/ui/components/icon";
 
 import type { ButtonBaseProps } from "../button";
 import { Button } from "../button";
