@@ -3,8 +3,21 @@
  * When using this component in any Cal project, the globals are automatically imported
  * in that project.
  */
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+ @tailwind base;
+ @tailwind components;
+ @tailwind utilities;
+ 
+ @import "../ui/styles/shared-globals.css";
 
-@import "../ui/styles/shared-globals.css";
+ ::-webkit-scrollbar{
+    width: 10px; 
+  }
+  
+  ::-webkit-scrollbar-track{
+    background-color: aliceblue;
+  }
+  
+  ::-webkit-scrollbar-thumb{
+    background-color: black;
+    border-radius: 6px;
+  }
