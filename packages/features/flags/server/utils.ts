@@ -19,7 +19,7 @@ interface CacheEntry {
 }
 
 interface CacheOptions {
-  ttl: number; // time in ms/
+  ttl: number; // time in ms
 }
 
 const featureFlagCache = new Map<keyof AppFlags, CacheEntry>();
@@ -33,6 +33,18 @@ export const getFeatureFlag = async (
   slug: keyof AppFlags,
   options: CacheOptions = { ttl: 5 * 60 * 1000 }
 ): Promise<boolean> => {
+  // pre-compute all app flags, each one will independelty reload it's own state after expiry.
+
+  if (featureFlagCache.size === 0) {
+    const flags = await prisma.feature.findMany({ orderBy: { slug: "asc" } });
+    flags.forEach((flag) => {
+      featureFlagCache.set(flag.slug as keyof AppFlags, {
+        value: flag.enabled,
+        expiry: Date.now() + options.ttl,
+      });
+    });
+  }
+
   const cacheEntry = featureFlagCache.get(slug);
 
   // Check if the flag is in the cache and not expired
