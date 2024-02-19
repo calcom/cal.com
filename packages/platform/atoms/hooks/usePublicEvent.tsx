@@ -6,6 +6,7 @@ import type { ApiResponse, GetPublicEventInput } from "@calcom/platform-types";
 import http from "../lib/http";
 
 export const QUERY_KEY = "get-public-event";
+export type UsePublicEventReturnType = ReturnType<typeof usePublicEvent>;
 export const usePublicEvent = (props: GetPublicEventInput) => {
   const event = useQuery({
     queryKey: [QUERY_KEY],
