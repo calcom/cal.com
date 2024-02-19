@@ -90,6 +90,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               }
             : {}
         }>
+        {process.env.NEXT_PUBLIC_BODY_SCRIPTS && <RawHtml html={process.env.NEXT_PUBLIC_BODY_SCRIPTS} />}
+
         {children}
       </body>
     </html>
