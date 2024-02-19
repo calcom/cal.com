@@ -21,6 +21,7 @@ export default function AppCard({
   teamId,
   disableSwitch,
   switchTooltip,
+  hideSettingsIcon = false,
 }: {
   app: RouterOutputs["viewer"]["integrations"]["items"][number] & { credentialOwner?: CredentialOwner };
   description?: React.ReactNode;
@@ -32,6 +33,7 @@ export default function AppCard({
   LockedIcon?: React.ReactNode;
   disableSwitch?: boolean;
   switchTooltip?: string;
+  hideSettingsIcon?: boolean;
 }) {
   const { t } = useTranslation();
   const [animationRef] = useAutoAnimate<HTMLDivElement>();
@@ -124,9 +126,11 @@ export default function AppCard({
         {app?.isInstalled && switchChecked ? (
           app.isSetupAlready === undefined || app.isSetupAlready ? (
             <div className="relative p-4 pt-5 text-sm [&_input]:mb-0 [&_input]:leading-4">
-              <Link href={`/apps/${app.slug}/setup`} className="absolute right-4 top-4">
-                <Settings className="text-default h-4 w-4" aria-hidden="true" />
-              </Link>
+              {!hideSettingsIcon && (
+                <Link href={`/apps/${app.slug}/setup`} className="absolute right-4 top-4">
+                  <Settings className="text-default h-4 w-4" aria-hidden="true" />
+                </Link>
+              )}
               {children}
             </div>
           ) : (

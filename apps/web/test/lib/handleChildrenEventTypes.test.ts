@@ -41,6 +41,8 @@ describe("handleChildrenEventTypes", () => {
         hashedLink: undefined,
         connectedLink: null,
         prisma: prismaMock,
+        profileId: null,
+        updatedValues: {},
       });
       expect(result.newUserIds).toEqual(undefined);
       expect(result.oldUserIds).toEqual(undefined);
@@ -60,6 +62,8 @@ describe("handleChildrenEventTypes", () => {
         hashedLink: undefined,
         connectedLink: null,
         prisma: prismaMock,
+        profileId: null,
+        updatedValues: {},
       });
       expect(result.newUserIds).toEqual(undefined);
       expect(result.oldUserIds).toEqual(undefined);
@@ -85,6 +89,8 @@ describe("handleChildrenEventTypes", () => {
         hashedLink: undefined,
         connectedLink: null,
         prisma: prismaMock,
+        profileId: null,
+        updatedValues: {},
       });
       expect(result.newUserIds).toEqual(undefined);
       expect(result.oldUserIds).toEqual(undefined);
@@ -105,6 +111,7 @@ describe("handleChildrenEventTypes", () => {
         timeZone,
         requiresBookerEmailVerification,
         lockTimeZoneToggleOnBookingPage,
+        useEventTypeDestinationCalendarEmail,
         ...evType
       } = mockFindFirstEventType({
         id: 123,
@@ -120,6 +127,8 @@ describe("handleChildrenEventTypes", () => {
         hashedLink: undefined,
         connectedLink: null,
         prisma: prismaMock,
+        profileId: null,
+        updatedValues: {},
       });
       expect(prismaMock.eventType.create).toHaveBeenCalledWith({
         data: {
@@ -152,6 +161,7 @@ describe("handleChildrenEventTypes", () => {
         scheduleId,
         requiresBookerEmailVerification,
         lockTimeZoneToggleOnBookingPage,
+        useEventTypeDestinationCalendarEmail,
         ...evType
       } = mockFindFirstEventType({
         metadata: { managedEventConfig: {} },
@@ -166,13 +176,15 @@ describe("handleChildrenEventTypes", () => {
         hashedLink: "somestring",
         connectedLink: null,
         prisma: prismaMock,
+        profileId: null,
+        updatedValues: {
+          bookingLimits: undefined,
+        },
       });
       expect(prismaMock.eventType.update).toHaveBeenCalledWith({
         data: {
-          ...evType,
+          hidden: false,
           bookingLimits: undefined,
-          durationLimits: undefined,
-          recurringEvent: undefined,
           hashedLink: { create: { link: expect.any(String) } },
         },
         where: {
@@ -199,6 +211,8 @@ describe("handleChildrenEventTypes", () => {
         hashedLink: undefined,
         connectedLink: null,
         prisma: prismaMock,
+        profileId: null,
+        updatedValues: {},
       });
       expect(result.newUserIds).toEqual([]);
       expect(result.oldUserIds).toEqual([]);
@@ -223,6 +237,8 @@ describe("handleChildrenEventTypes", () => {
         hashedLink: undefined,
         connectedLink: null,
         prisma: prismaMock,
+        profileId: null,
+        updatedValues: {},
       });
       // Have been called
       expect(result.newUserIds).toEqual([5]);
@@ -243,6 +259,7 @@ describe("handleChildrenEventTypes", () => {
         timeZone,
         requiresBookerEmailVerification,
         lockTimeZoneToggleOnBookingPage,
+        useEventTypeDestinationCalendarEmail,
         ...evType
       } = mockFindFirstEventType({
         id: 123,
@@ -259,6 +276,8 @@ describe("handleChildrenEventTypes", () => {
         hashedLink: undefined,
         connectedLink: null,
         prisma: prismaMock,
+        profileId: null,
+        updatedValues: {},
       });
       expect(prismaMock.eventType.create).toHaveBeenCalledWith({
         data: {
@@ -290,6 +309,7 @@ describe("handleChildrenEventTypes", () => {
         userId,
         requiresBookerEmailVerification,
         lockTimeZoneToggleOnBookingPage,
+        useEventTypeDestinationCalendarEmail,
         ...evType
       } = mockFindFirstEventType({
         metadata: { managedEventConfig: {} },
@@ -305,14 +325,16 @@ describe("handleChildrenEventTypes", () => {
         hashedLink: undefined,
         connectedLink: null,
         prisma: prismaMock,
+        profileId: null,
+        updatedValues: {
+          length: 30,
+        },
       });
       expect(prismaMock.eventType.update).toHaveBeenCalledWith({
         data: {
-          ...evType,
-          bookingLimits: undefined,
-          durationLimits: undefined,
-          recurringEvent: undefined,
-          scheduleId: undefined,
+          hidden: false,
+          length: 30,
+          hashedLink: undefined,
         },
         where: {
           userId_parentId: {
@@ -341,6 +363,7 @@ describe("handleChildrenEventTypes", () => {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         requiresBookerEmailVerification,
         lockTimeZoneToggleOnBookingPage,
+        useEventTypeDestinationCalendarEmail,
         ...evType
       } = mockFindFirstEventType({
         metadata: { managedEventConfig: {} },
@@ -364,6 +387,8 @@ describe("handleChildrenEventTypes", () => {
         hashedLink: undefined,
         connectedLink: null,
         prisma: prismaMock,
+        profileId: null,
+        updatedValues: {},
       });
       expect(prismaMock.eventType.create).toHaveBeenCalledWith({
         data: {
@@ -389,13 +414,8 @@ describe("handleChildrenEventTypes", () => {
       });
       expect(prismaMock.eventType.update).toHaveBeenCalledWith({
         data: {
-          ...evType,
-          bookingLimits: undefined,
-          durationLimits: undefined,
-          recurringEvent: undefined,
+          hidden: false,
           hashedLink: undefined,
-          workflows: undefined,
-          scheduleId: undefined,
         },
         where: {
           userId_parentId: {

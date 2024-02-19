@@ -2,7 +2,7 @@
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import Link from "next/link";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useState, useEffect } from "react";
 import { Query, Builder, Utils as QbUtils } from "react-awesome-query-builder";
 // types
 import type { JsonTree, ImmutableTree, BuilderProps } from "react-awesome-query-builder";
@@ -80,6 +80,7 @@ const Route = ({
   moveDown,
   appUrl,
   disabled = false,
+  fieldIdentifiers,
 }: {
   form: inferSSRProps<typeof getServerSideProps>["form"];
   route: Route;
@@ -87,14 +88,17 @@ const Route = ({
   setRoute: (id: string, route: Partial<Route>) => void;
   config: QueryBuilderUpdatedConfig;
   setRoutes: React.Dispatch<React.SetStateAction<Route[]>>;
+  fieldIdentifiers: string[];
   moveUp?: { fn: () => void; check: () => boolean } | null;
   moveDown?: { fn: () => void; check: () => boolean } | null;
   appUrl: string;
   disabled?: boolean;
 }) => {
+  const { t } = useLocale();
+
   const index = routes.indexOf(route);
 
-  const { data: eventTypesByGroup } = trpc.viewer.eventTypes.getByViewer.useQuery({
+  const { data: eventTypesByGroup, isLoading } = trpc.viewer.eventTypes.getByViewer.useQuery({
     forRoutingForms: true,
   });
 
@@ -127,6 +131,22 @@ const Route = ({
       });
     });
   });
+
+  // /team/{TEAM_SLUG}/{EVENT_SLUG} -> /team/{TEAM_SLUG}
+  const eventTypePrefix =
+    eventOptions.length !== 0
+      ? eventOptions[0].value.substring(0, eventOptions[0].value.lastIndexOf("/") + 1)
+      : "";
+
+  const [customEventTypeSlug, setCustomEventTypeSlug] = useState<string>("");
+
+  useEffect(() => {
+    if (!isLoading) {
+      const isCustom =
+        !isRouter(route) && !eventOptions.find((eventOption) => eventOption.value === route.action.value);
+      setCustomEventTypeSlug(isCustom && !isRouter(route) ? route.action.value.split("/").pop() ?? "" : "");
+    }
+  }, [isLoading]);
 
   const onChange = (route: Route, immutableTree: ImmutableTree, config: QueryBuilderUpdatedConfig) => {
     const jsonTree = QbUtils.getTree(immutableTree);
@@ -199,7 +219,7 @@ const Route = ({
           <div>
             <div className="text-emphasis flex w-full items-center text-sm">
               <div className="flex flex-grow-0 whitespace-nowrap">
-                <span>Send Booker to</span>
+                <span>{t("send_booker_to")}</span>
               </div>
               <Select
                 isDisabled={disabled}
@@ -257,15 +277,68 @@ const Route = ({
                     <Select
                       required
                       isDisabled={disabled}
-                      options={eventOptions}
+                      options={
+                        eventOptions.length !== 0
+                          ? [{ label: t("custom"), value: "custom" }].concat(eventOptions)
+                          : []
+                      }
                       onChange={(option) => {
                         if (!option) {
                           return;
                         }
-                        setRoute(route.id, { action: { ...route.action, value: option.value } });
+                        if (option.value !== "custom") {
+                          setRoute(route.id, { action: { ...route.action, value: option.value } });
+                          setCustomEventTypeSlug("");
+                        } else {
+                          setRoute(route.id, { action: { ...route.action, value: "custom" } });
+                          setCustomEventTypeSlug("");
+                        }
                       }}
-                      value={eventOptions.find((eventOption) => eventOption.value === route.action.value)}
+                      value={
+                        eventOptions.length !== 0 && route.action.value !== ""
+                          ? eventOptions.find(
+                              (eventOption) =>
+                                eventOption.value === route.action.value && !customEventTypeSlug.length
+                            ) || {
+                              label: t("custom"),
+                              value: "custom",
+                            }
+                          : undefined
+                      }
                     />
+                    {eventOptions.length !== 0 &&
+                    route.action.value !== "" &&
+                    (!eventOptions.find((eventOption) => eventOption.value === route.action.value) ||
+                      customEventTypeSlug.length) ? (
+                      <>
+                        <TextField
+                          disabled={disabled}
+                          className="border-default flex w-full flex-grow text-sm"
+                          containerClassName="w-full mt-2"
+                          addOnLeading={eventTypePrefix}
+                          required
+                          value={customEventTypeSlug}
+                          onChange={(e) => {
+                            setCustomEventTypeSlug(e.target.value);
+                            setRoute(route.id, {
+                              action: { ...route.action, value: `${eventTypePrefix}${e.target.value}` },
+                            });
+                          }}
+                          placeholder="event-url"
+                        />
+                        <div className="mt-2 ">
+                          <p className="text-subtle text-xs">
+                            {fieldIdentifiers.length
+                              ? t("field_identifiers_as_variables_with_example", {
+                                  variable: `{${fieldIdentifiers[0]}}`,
+                                })
+                              : t("field_identifiers_as_variables")}
+                          </p>
+                        </div>
+                      </>
+                    ) : (
+                      <></>
+                    )}
                   </div>
                 )
               ) : null}
@@ -457,6 +530,10 @@ const Routes = ({
 
   hookForm.setValue("routes", routesToSave);
 
+  const fields = hookForm.getValues("fields");
+
+  const fieldIdentifiers = fields ? fields.map((field) => field.identifier ?? field.label) : [];
+
   return (
     <div className="bg-default border-subtle flex flex-col-reverse rounded-md border p-8 md:flex-row">
       <div ref={animationRef} className="w-full ltr:mr-2 rtl:ml-2">
@@ -468,6 +545,7 @@ const Routes = ({
               key={route.id}
               config={config}
               route={route}
+              fieldIdentifiers={fieldIdentifiers}
               moveUp={{
                 check: () => key !== 0,
                 fn: () => {
@@ -540,6 +618,7 @@ const Routes = ({
             setRoute={setRoute}
             setRoutes={setRoutes}
             appUrl={appUrl}
+            fieldIdentifiers={fieldIdentifiers}
           />
         </div>
       </div>

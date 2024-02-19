@@ -5,11 +5,16 @@ import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { md } from "@calcom/lib/markdownIt";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import type { TeamWithMembers } from "@calcom/lib/server/queries/teams";
+import type { UserProfile } from "@calcom/types/UserProfile";
 import { UserAvatar } from "@calcom/ui";
 
 type TeamType = Omit<NonNullable<TeamWithMembers>, "inviteToken">;
 type MembersType = TeamType["members"];
-type MemberType = Pick<MembersType[number], "id" | "name" | "bio" | "username" | "organizationId"> & {
+type MemberType = Pick<
+  MembersType[number],
+  "id" | "name" | "bio" | "username" | "organizationId" | "avatarUrl"
+> & {
+  profile: Omit<UserProfile, "upId">;
   safeBio: string | null;
   bookerUrl: string;
 };
@@ -27,7 +32,7 @@ const Member = ({ member, teamName }: { member: MemberType; teamName: string | n
       key={member.id}
       href={{ pathname: `${member.bookerUrl}/${member.username}`, query: queryParamsToForward }}>
       <div className="sm:min-w-80 sm:max-w-80 bg-default hover:bg-muted border-subtle group flex min-h-full flex-col space-y-2 rounded-md border p-4 hover:cursor-pointer">
-        <UserAvatar size="md" user={member} />
+        <UserAvatar noOrganizationIndicator size="md" user={member} />
         <section className="mt-2 line-clamp-4 w-full space-y-1">
           <p className="text-default font-medium">{member.name}</p>
           <div className="text-subtle line-clamp-3 overflow-ellipsis text-sm font-normal">

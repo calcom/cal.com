@@ -221,10 +221,14 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     }
     data.hosts = {
       deleteMany: {},
-      create: hosts.map((host) => ({
-        ...host,
-        isFixed: data.schedulingType === SchedulingType.COLLECTIVE || host.isFixed,
-      })),
+      create: hosts.map((host) => {
+        const { ...rest } = host;
+        return {
+          ...rest,
+          isFixed: data.schedulingType === SchedulingType.COLLECTIVE || host.isFixed,
+          priority: host.priority ?? 2, // default to medium priority
+        };
+      }),
     };
   }
 
@@ -337,6 +341,13 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     }
     throw e;
   }
+  const updatedValues = Object.entries(data).reduce((acc, [key, value]) => {
+    if (value !== undefined) {
+      // @ts-expect-error Element implicitly has any type
+      acc[key] = value;
+    }
+    return acc;
+  }, {});
 
   // Handling updates to children event types (managed events types)
   await updateChildrenEventTypes({
@@ -347,7 +358,9 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     connectedLink,
     updatedEventType,
     children,
+    profileId: ctx.user.profile.id,
     prisma: ctx.prisma,
+    updatedValues,
   });
 
   const res = ctx.res as NextApiResponse;
