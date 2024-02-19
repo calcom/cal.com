@@ -227,22 +227,29 @@ export async function createNewUsersConnectToOrgIfExists({
 }) {
   // fail if we have invalid emails
   usernamesOrEmails.forEach((usernameOrEmail) => checkInputEmailIsValid(usernameOrEmail));
-
   // from this point we know usernamesOrEmails contains only emails
   await prisma.$transaction(
     async (tx) => {
       for (let index = 0; index < usernamesOrEmails.length; index++) {
         const usernameOrEmail = usernamesOrEmails[index];
+        // Weird but orgId is defined only if the invited user email matches orgAutoAcceptEmail
         const { orgId, autoAccept } = connectionInfoMap[usernameOrEmail];
         const [emailUser, emailDomain] = usernameOrEmail.split("@");
-        const username =
+
+        // An org member can't change username during signup, so we set the username
+        const orgMemberUsername =
           emailDomain === autoAcceptEmailDomain
             ? slugify(emailUser)
             : slugify(`${emailUser}-${emailDomain.split(".")[0]}`);
 
+        // As a regular team member is allowed to change username during signup, we don't set any username for him
+        const regularTeamMemberUsername = null;
+
+        const isBecomingAnOrgMember = parentId || input.isOrg;
+
         const createdUser = await tx.user.create({
           data: {
-            username,
+            username: isBecomingAnOrgMember ? orgMemberUsername : regularTeamMemberUsername,
             email: usernameOrEmail,
             verified: true,
             invitedTo: input.teamId,
@@ -254,7 +261,7 @@ export async function createNewUsersConnectToOrgIfExists({
                       data: [
                         {
                           uid: ProfileRepository.generateProfileUid(),
-                          username,
+                          username: orgMemberUsername,
                           organizationId: orgId,
                         },
                       ],
