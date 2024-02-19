@@ -55,6 +55,6 @@ export function BaseCalProvider({ clientId, accessToken, options, children }: Ca
       {children}
     </AtomsContext.Provider>
   ) : (
-    { children }
+    <>{children}</>
   );
 }
