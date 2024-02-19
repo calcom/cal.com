@@ -1,8 +1,11 @@
 import * as newBookingMethods from "@calcom/features/bookings/lib/handleNewBooking";
+import { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
 import * as instantMeetingMethods from "@calcom/features/instant-meeting/handleInstantMeeting";
 
 export { getEventTypeById } from "@calcom/lib/getEventTypeById";
-export { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
+
+export type PublicEventType = Awaited<ReturnType<typeof getPublicEvent>>;
+export { getPublicEvent };
 export { getUsernameList } from "@calcom/lib/defaultEvents";
 
 const handleNewBooking = newBookingMethods.default;

@@ -1,4 +1,3 @@
-import { GetPublicEventInput } from "@/modules/events/input/get-public-event-input";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import {
   Controller,
@@ -12,7 +11,8 @@ import {
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { getPublicEvent } from "@calcom/platform-libraries";
-import { ApiResponse } from "@calcom/platform-types";
+import type { PublicEventType } from "@calcom/platform-libraries";
+import { ApiResponse, GetPublicEventInput } from "@calcom/platform-types";
 import { PrismaClient } from "@calcom/prisma";
 
 @Controller("events")
@@ -21,7 +21,7 @@ export class EventsController {
 
   @Get("/")
   @Version(VERSION_NEUTRAL)
-  async getPublicEvent(@Query() queryParams: GetPublicEventInput): Promise<ApiResponse> {
+  async getPublicEvent(@Query() queryParams: GetPublicEventInput): Promise<ApiResponse<PublicEventType>> {
     try {
       const event = await getPublicEvent(
         queryParams.username,
