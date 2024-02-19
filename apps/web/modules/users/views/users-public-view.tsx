@@ -155,7 +155,7 @@ export function UserPage(props: InferGetServerSidePropsType<typeof getServerSide
                     <Link
                       prefetch={false}
                       href={{
-                        pathname: `/${user.username}/${type.slug}`,
+                        pathname: `/${user.profile.username}/${type.slug}`,
                         query,
                       }}
                       passHref
