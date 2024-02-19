@@ -27,16 +27,16 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   const flags = await getFeatureFlagMap(prisma);
   const ssr = await ssrInit(ctx);
   const token = z.string().optional().parse(ctx.query.token);
-  const redirectUrl = z
+  const redirectUrlData = z
     .string()
     .refine((value) => value.startsWith(WEBAPP_URL), {
       params: (value: string) => ({ value }),
       message: "Redirect URL must start with 'cal.com'",
     })
     .optional()
-    .parse(ctx.query.redirect);
+    .safeParse(ctx.query.redirect);
 
-  console.log({ redirectUrl, rawRedirectUrl: ctx.query.redirect });
+  const redirectUrl = redirectUrlData.success ? redirectUrlData.data : undefined;
 
   const props = {
     redirectUrl,
