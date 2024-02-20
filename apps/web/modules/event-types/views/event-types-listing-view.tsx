@@ -425,7 +425,7 @@ export const EventTypeList = ({
                   <MemoizedItem type={type} group={group} readOnly={readOnly} />
                   <div className="mt-4 hidden sm:mt-0 sm:flex">
                     <div className="flex justify-between space-x-2 rtl:space-x-reverse">
-                      {type.team && !isManagedEventType && (
+                      {!!type.teamId && !isManagedEventType && (
                         <UserAvatarGroup
                           className="relative right-3"
                           size="sm"

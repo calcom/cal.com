@@ -807,6 +807,8 @@
   "additional_input_description": "דרוש מהמתזמן להזין נתונים נוספים לפני אישור התזמון",
   "label": "תווית",
   "placeholder": "מציין מיקום",
+  "display_add_to_calendar_organizer": "הצגת דוא״ל ‚הוספה ללוח השנה’ כגוף מארגן",
+  "reconnect_calendar_to_use": "נא לשים לב שכנראה צריך להתנתק ואז להתחבר ללוח השנה שלך מחדש כדי להשתמש ביכולת הזאת.",
   "type": "סוג",
   "edit": "עריכה",
   "add_input": "הוספת קלט",
