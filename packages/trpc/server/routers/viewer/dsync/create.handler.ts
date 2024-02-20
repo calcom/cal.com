@@ -43,7 +43,6 @@ export const createHandler = async ({ ctx, input }: Options) => {
     console.error("Error creating directory sync connection", error);
     throw new TRPCError({ code: "BAD_REQUEST", message: error.message });
   }
-  console.log("🚀 ~ createHandler ~ data:", data);
 
   await prisma.dSyncData.create({
     data: {

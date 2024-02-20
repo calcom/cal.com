@@ -14,7 +14,7 @@ import {
   showToast,
 } from "@calcom/ui";
 
-import { directoryProviders } from "../lib/utils";
+import { directoryProviders } from "../lib/directoryProviders";
 
 const defaultValues = {
   name: "",
