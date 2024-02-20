@@ -273,12 +273,11 @@ const InstallAppButtonChild = ({
                 type="button"
                 disabled={isInstalledTeamOrUser}
                 key={team.id}
-                StartIcon={(props) => (
+                StartIcon={() => (
                   <Avatar
                     alt={team.logo || ""}
                     imageSrc={team.logo || `${WEBAPP_URL}/${team.logo}/avatar.png`} // if no image, use default avatar
                     size="sm"
-                    {...props}
                   />
                 )}
                 onClick={() => {

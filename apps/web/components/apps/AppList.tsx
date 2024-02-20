@@ -10,7 +10,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AppCategories } from "@calcom/prisma/enums";
 import { trpc, type RouterOutputs } from "@calcom/trpc";
 import type { App } from "@calcom/types/App";
-import type { SVGComponent } from "@calcom/types/SVGComponent";
 import {
   Dropdown,
   DropdownItem,
@@ -91,7 +90,7 @@ export const AppList = ({ data, handleDisconnect, variant, listClassName }: AppL
                       <DropdownItem
                         type="button"
                         color="secondary"
-                        StartIcon={Video as SVGComponent}
+                        StartIcon={Video}
                         onClick={() => {
                           const locationType = getEventLocationTypeFromApp(item?.locationOption?.value ?? "");
                           if (locationType?.linkType === "static") {
@@ -204,7 +203,7 @@ function ConnectOrDisconnectIntegrationMenuItem(props: {
           color="destructive"
           onClick={() => handleDisconnect(credentialId, teamId)}
           disabled={isGlobal}
-          StartIcon={Trash as SVGComponent}>
+          StartIcon={Trash}>
           {t("remove_app")}
         </DropdownItem>
       </DropdownMenuItem>

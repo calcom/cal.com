@@ -111,9 +111,7 @@ export function CreateButton(props: CreateBtnProps) {
                 <DropdownItem
                   type="button"
                   data-testid={`option${option.teamId ? "-team" : ""}-${idx}`}
-                  StartIcon={(props) => (
-                    <Avatar alt={option.label || ""} imageSrc={option.image} size="sm" {...props} />
-                  )}
+                  StartIcon={() => <Avatar alt={option.label || ""} imageSrc={option.image} size="sm" />}
                   onClick={() =>
                     !!CreateDialog
                       ? openModal(option)

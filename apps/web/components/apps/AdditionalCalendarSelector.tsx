@@ -3,7 +3,6 @@ import type { FunctionComponent, SVGProps } from "react";
 import { InstallAppButton } from "@calcom/app-store/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import type { SVGComponent } from "@calcom/types/SVGComponent";
 import {
   Button,
   Dropdown,
@@ -51,10 +50,7 @@ const AdditionalCalendarSelector = ({ isPending }: AdditionalCalendarSelectorPro
               {options.map((data) => (
                 <DropdownMenuItem key={data.slug} className="focus:outline-none">
                   {data.slug === "add-new" ? (
-                    <DropdownItem
-                      StartIcon={Plus as SVGComponent}
-                      color="minimal"
-                      href="/apps/categories/calendar">
+                    <DropdownItem StartIcon={Plus} color="minimal" href="/apps/categories/calendar">
                       {t("install_new_calendar_app")}
                     </DropdownItem>
                   ) : (

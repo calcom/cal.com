@@ -490,9 +490,7 @@ function UserDropdown({ small }: UserDropdownProps) {
                 <DropdownMenuItem>
                   <DropdownItem
                     type="button"
-                    StartIcon={(props) => (
-                      <UserIcon className={classNames("text-default", props.className)} aria-hidden="true" />
-                    )}
+                    StartIcon={() => <UserIcon className={classNames("text-default")} aria-hidden="true" />}
                     href="/settings/my-account/profile">
                     {t("my_profile")}
                   </DropdownItem>
@@ -500,9 +498,7 @@ function UserDropdown({ small }: UserDropdownProps) {
                 <DropdownMenuItem>
                   <DropdownItem
                     type="button"
-                    StartIcon={(props) => (
-                      <Settings className={classNames("text-default", props.className)} aria-hidden="true" />
-                    )}
+                    StartIcon={() => <Settings className={classNames("text-default")} aria-hidden="true" />}
                     href="/settings/my-account/general">
                     {t("my_settings")}
                   </DropdownItem>
@@ -510,9 +506,7 @@ function UserDropdown({ small }: UserDropdownProps) {
                 <DropdownMenuItem>
                   <DropdownItem
                     type="button"
-                    StartIcon={(props) => (
-                      <Moon className={classNames("text-default", props.className)} aria-hidden="true" />
-                    )}
+                    StartIcon={() => <Moon className={classNames("text-default")} aria-hidden="true" />}
                     href="/settings/my-account/out-of-office">
                     {t("out_of_office")}
                   </DropdownItem>
@@ -535,7 +529,7 @@ function UserDropdown({ small }: UserDropdownProps) {
                 <DropdownMenuItem>
                   <DropdownItem
                     type="button"
-                    StartIcon={(props) => <HelpCircle aria-hidden="true" {...props} />}
+                    StartIcon={() => <HelpCircle aria-hidden="true" />}
                     onClick={() => setHelpOpen(true)}>
                     {t("help")}
                   </DropdownItem>
@@ -551,7 +545,7 @@ function UserDropdown({ small }: UserDropdownProps) {
                 <DropdownMenuItem>
                   <DropdownItem
                     type="button"
-                    StartIcon={(props) => <LogOut aria-hidden="true" {...props} />}
+                    StartIcon={() => <LogOut aria-hidden="true" />}
                     onClick={() => signOut({ callbackUrl: "/auth/logout" })}>
                     {t("sign_out")}
                   </DropdownItem>
