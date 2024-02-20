@@ -3,8 +3,6 @@ import Link from "next/link";
 import type { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
 import { useEffect, useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
-import short from "short-uuid";
-import { v5 as uuidv5 } from "uuid";
 import type { z } from "zod";
 
 import type { EventNameObjectType } from "@calcom/core/event";
@@ -22,6 +20,7 @@ import { BookerLayoutSelector } from "@calcom/features/settings/BookerLayoutSele
 import { classNames } from "@calcom/lib";
 import { APP_NAME, CAL_URL } from "@calcom/lib/constants";
 import { IS_VISUAL_REGRESSION_TESTING } from "@calcom/lib/constants";
+import { generateHashedLink } from "@calcom/lib/generateHashedLink";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { Prisma } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
@@ -40,13 +39,6 @@ import { Copy, Edit, Info } from "@calcom/ui/components/icon";
 import RequiresConfirmationController from "./RequiresConfirmationController";
 
 const CustomEventTypeModal = dynamic(() => import("@components/eventtype/CustomEventTypeModal"));
-
-const generateHashedLink = (id: number) => {
-  const translator = short();
-  const seed = `${id}:${new Date().getTime()}`;
-  const uid = translator.fromUUID(uuidv5(seed, uuidv5.URL));
-  return uid;
-};
 
 export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, "eventType" | "team">) => {
   const connectedCalendarsQuery = trpc.viewer.connectedCalendars.useQuery();
@@ -215,6 +207,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
             toggleSwitchAtTheEnd={true}
             switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
             title={t("requires_booker_email_verification")}
+            data-testid="requires-booker-email-verification"
             {...shouldLockDisableProps("requiresBookerEmailVerification")}
             description={t("description_requires_booker_email_verification")}
             checked={value}
@@ -231,6 +224,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
             toggleSwitchAtTheEnd={true}
             switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
             title={t("disable_notes")}
+            data-testid="disable-notes"
             {...shouldLockDisableProps("hideCalendarNotes")}
             description={t("disable_notes_description")}
             checked={value}
@@ -252,6 +246,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
               )}
               childrenClassName="lg:ml-0"
               title={t("redirect_success_booking")}
+              data-testid="redirect-success-booking"
               {...successRedirectUrlLocked}
               description={t("redirect_url_description")}
               checked={redirectUrlVisible}
@@ -266,6 +261,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
                   labelSrOnly
                   disabled={successRedirectUrlLocked.disabled}
                   placeholder={t("external_redirect_url")}
+                  data-testid="external-redirect-url"
                   required={redirectUrlVisible}
                   type="text"
                   {...formMethods.register("successRedirectUrl")}
@@ -274,7 +270,8 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
                   className={classNames(
                     "p-1 text-sm text-orange-600",
                     formMethods.getValues("successRedirectUrl") ? "block" : "hidden"
-                  )}>
+                  )}
+                  data-testid="redirect-url-warning">
                   {t("redirect_url_warning")}
                 </div>
               </div>
@@ -295,6 +292,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
         title={t("enable_private_url")}
         Badge={
           <a
+            data-testid="hashedLinkCheck-info"
             target="_blank"
             rel="noreferrer"
             href="https://cal.com/docs/core-features/event-types/single-use-private-links">
@@ -398,12 +396,14 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
                         onChange={(e) => {
                           onChange(Math.abs(Number(e.target.value)));
                         }}
+                        data-testid="seats-per-time-slot"
                       />
                       <div className="mt-4">
                         <Controller
                           name="seatsShowAttendees"
                           render={({ field: { value, onChange } }) => (
                             <CheckboxField
+                              data-testid="show-attendees"
                               description={t("show_attendees")}
                               disabled={seatsLocked.disabled}
                               onChange={(e) => onChange(e)}
@@ -446,6 +446,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
             description={t("description_lock_timezone_toggle_on_booking_page")}
             checked={value}
             onCheckedChange={(e) => onChange(e)}
+            data-testid="lock-timezone-toggle"
           />
         )}
       />

@@ -162,6 +162,7 @@ const translateAbleKeys = [
   "attendee_phone_number",
   "link_meeting",
   "organizer_phone_number",
+  "organizer_default_conferencing_app",
 ];
 
 export type LocationObject = {

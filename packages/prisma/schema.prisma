@@ -2,8 +2,9 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DATABASE_DIRECT_URL")
 }
 
 generator client {
@@ -40,6 +41,7 @@ model Host {
   eventType   EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
   eventTypeId Int
   isFixed     Boolean   @default(false)
+  priority    Int?
 
   @@id([userId, eventTypeId])
   @@index([userId])
@@ -47,23 +49,27 @@ model Host {
 }
 
 model EventType {
-  id                              Int                     @id @default(autoincrement())
+  id          Int     @id @default(autoincrement())
   /// @zod.min(1)
-  title                           String
+  title       String
   /// @zod.custom(imports.eventTypeSlug)
-  slug                            String
-  description                     String?
-  position                        Int                     @default(0)
+  slug        String
+  description String?
+  position    Int     @default(0)
   /// @zod.custom(imports.eventTypeLocations)
-  locations                       Json?
+  locations   Json?
   /// @zod.min(1)
-  length                          Int
-  offsetStart                     Int                     @default(0)
-  hidden                          Boolean                 @default(false)
-  hosts                           Host[]
-  users                           User[]                  @relation("user_eventtype")
-  owner                           User?                   @relation("owner", fields: [userId], references: [id], onDelete: Cascade)
-  userId                          Int?
+  length      Int
+  offsetStart Int     @default(0)
+  hidden      Boolean @default(false)
+  hosts       Host[]
+  users       User[]  @relation("user_eventtype")
+  owner       User?   @relation("owner", fields: [userId], references: [id], onDelete: Cascade)
+  userId      Int?
+
+  profileId Int?
+  profile   Profile? @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
   team                            Team?                   @relation(fields: [teamId], references: [id], onDelete: Cascade)
   teamId                          Int?
   hashedLink                      HashedLink?
@@ -119,6 +125,7 @@ model EventType {
   /// @zod.custom(imports.intervalLimitsType)
   durationLimits                  Json?
   isInstantEvent                  Boolean                 @default(false)
+  assignAllTeamMembers            Boolean                 @default(false)
 
   @@unique([userId, slug])
   @@unique([teamId, slug])
@@ -184,6 +191,7 @@ enum UserPermissionRole {
   ADMIN
 }
 
+// It holds Personal Profiles of a User plus it has email, password and other core things
 model User {
   id                  Int                  @id @default(autoincrement())
   username            String?
@@ -261,22 +269,43 @@ model User {
   accessCodes          AccessCode[]
   bookingRedirects     OutOfOfficeEntry[]
   bookingRedirectsTo   OutOfOfficeEntry[]      @relation(name: "toUser")
-  // Linking account code for orgs v2
-  //linkedByUserId       Int?
-  //linkedBy             User?                   @relation("linked_account", fields: [linkedByUserId], references: [id], onDelete: Cascade)
-  //linkedUsers          User[]                  @relation("linked_account")*/
 
   // Used to lock the user account
-  locked Boolean @default(false)
+  locked           Boolean   @default(false)
+  profiles         Profile[]
+  movedToProfileId Int?
+  movedToProfile   Profile?  @relation("moved_to_profile", fields: [movedToProfileId], references: [id], onDelete: SetNull)
 
   @@unique([email])
   @@unique([email, username])
   @@unique([username, organizationId])
+  @@unique([movedToProfileId])
   @@index([username])
   @@index([emailVerified])
   @@index([identityProvider])
   @@index([identityProviderId])
   @@map(name: "users")
+}
+
+// It holds Organization Profiles
+model Profile {
+  id             Int         @id @default(autoincrement())
+  // uid allows us to set an identifier chosen by us which is helpful in migration when we create the Profile from User directly.
+  uid            String
+  userId         Int
+  user           User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organizationId Int
+  organization   Team        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  username       String
+  eventTypes     EventType[]
+  movedFromUser  User?       @relation("moved_to_profile")
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  @@unique([userId, organizationId])
+  @@index([uid])
+  @@index([userId])
+  @@index([organizationId])
 }
 
 model Team {
@@ -318,6 +347,7 @@ model Team {
   credentials          Credential[]
   accessCodes          AccessCode[]
   instantMeetingTokens InstantMeetingToken[]
+  orgProfiles          Profile[]
   pendingPayment       Boolean                 @default(false)
 
   @@unique([slug, parentId])
@@ -903,6 +933,7 @@ model BookingSeat {
   booking      Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
   attendeeId   Int      @unique
   attendee     Attendee @relation(fields: [attendeeId], references: [id], onDelete: Cascade)
+  /// @zod.custom(imports.bookingSeatDataSchema)
   data         Json?
 
   @@index([bookingId])

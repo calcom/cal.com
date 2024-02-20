@@ -3,7 +3,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { noop } from "lodash";
 import { useCallback, useState } from "react";
 import { Controller, FormProvider, useForm, useFormState } from "react-hook-form";
-import * as z from "zod";
+import { z } from "zod";
 
 import { classNames } from "@calcom/lib";
 import { CONSOLE_URL } from "@calcom/lib/constants";

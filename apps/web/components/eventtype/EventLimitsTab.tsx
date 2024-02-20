@@ -146,9 +146,9 @@ export const EventLimitsTab = () => {
       <div className="border-subtle space-y-6 rounded-lg border p-6">
         <div className="flex flex-col space-y-4 lg:flex-row lg:space-x-4 lg:space-y-0">
           <div className="w-full">
-            <Label htmlFor="beforeBufferTime">{t("before_event")}</Label>
+            <Label htmlFor="beforeEventBuffer">{t("before_event")}</Label>
             <Controller
-              name="beforeBufferTime"
+              name="beforeEventBuffer"
               render={({ field: { onChange, value } }) => {
                 const beforeBufferOptions = [
                   {
@@ -176,9 +176,9 @@ export const EventLimitsTab = () => {
             />
           </div>
           <div className="w-full">
-            <Label htmlFor="afterBufferTime">{t("after_event")}</Label>
+            <Label htmlFor="afterEventBuffer">{t("after_event")}</Label>
             <Controller
-              name="afterBufferTime"
+              name="afterEventBuffer"
               render={({ field: { onChange, value } }) => {
                 const afterBufferOptions = [
                   {

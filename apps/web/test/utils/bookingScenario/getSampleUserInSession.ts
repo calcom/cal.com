@@ -8,7 +8,10 @@ export const getSampleUserInSession = function () {
     organization: {
       isOrgAdmin: false,
       metadata: null,
+      id: 1,
+      requestedSlug: null,
     },
+    profile: null,
     defaultScheduleId: null,
     name: "",
     defaultBookerLayouts: null,

@@ -1,9 +1,10 @@
-import LegacyPage from "@pages/video/no-meeting-found";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 import type { GetServerSidePropsContext } from "next";
 
 import { ssrInit } from "@server/lib/ssr";
+
+import NoMeetingFound from "~/videos/views/videos-no-meeting-found-single-view";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
@@ -20,4 +21,4 @@ const getData = async (context: GetServerSidePropsContext) => {
   };
 };
 
-export default WithLayout({ getData, Page: LegacyPage, getLayout: null })<"P">;
+export default WithLayout({ getData, Page: NoMeetingFound, getLayout: null })<"P">;
