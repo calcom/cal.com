@@ -807,6 +807,8 @@
   "additional_input_description": "Require scheduler to input additional inputs prior the booking is confirmed",
   "label": "Label",
   "placeholder": "Placeholder",
+  "display_add_to_calendar_organizer":"Display 'Add to calendar' email as the organizer",
+  "reconnect_calendar_to_use": "Please note that you may need to disconnect and then reconnect your 'Add to Calendar' account to use this feature.",
   "type": "Type",
   "edit": "Edit",
   "add_input": "Add an Input",
@@ -2196,7 +2198,7 @@
   "create_your_org_description": "Upgrade to Enterprise and receive a subdomain, unified billing, Insights, extensive whitelabeling and more",
   "other_payment_app_enabled": "You can only enable one payment app per event type",
   "admin_delete_organization_description": "<ul><li>Teams that are member of this organization will also be deleted along with their event-types</li><li>Users that were part of the organization will not be deleted and their event-types will also remain intact.</li><li>Usernames would be changed to allow them to exist outside the organization</li></ul>",
-  "admin_delete_organization_title": "Delete organization?",
+  "admin_delete_organization_title": "Delete {{organizationName}}?",
   "published": "Published",
   "unpublished": "Unpublished",
   "publish": "Publish",
@@ -2260,6 +2262,8 @@
   "set_priority": "Set Priority",
   "priority_for_user": "Priority for {{userName}}",
   "change_priority": "change priority",
+  "field_identifiers_as_variables": "Use field identifiers as variables for your custom event redirect",
+  "field_identifiers_as_variables_with_example": "Use field identifiers as variables for your custom event redirect (e.g. {{variable}})",
   "account_already_linked": "Account is already linked",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
