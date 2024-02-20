@@ -14,7 +14,6 @@ export interface MeetingImageProps {
   title: string;
   profile: { name: string; image?: string | null };
   users?: { name: string; username: string }[];
-  orgSlug?: string;
 }
 
 export interface AppImageProps {
