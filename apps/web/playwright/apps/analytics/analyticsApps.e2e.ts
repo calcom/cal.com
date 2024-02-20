@@ -8,7 +8,7 @@ test.describe("Check analytics Apps", () => {
     await user.apiLogin();
     await page.goto("/apps/");
   });
-  test("Check analytics Apps", async ({ appsPage }) => {
+  test("Check analytics Apps", async ({ appsPage, page }) => {
     await appsPage.goToAppsCategory("analytics");
     await appsPage.goToApp("fathom");
     await appsPage.goBackToAppsPage();
@@ -21,7 +21,7 @@ test.describe("Check analytics Apps", () => {
     await appsPage.goToApp("gtm");
     await appsPage.goBackToAppsPage();
     await appsPage.goToApp("metapixel");
-    await appsPage.goToEventTypesPage();
+    await page.goto("/event-types");
     await appsPage.goToEventType("30 min");
     await appsPage.goToAppsTab();
     await appsPage.verifyAppsInfo(0);
