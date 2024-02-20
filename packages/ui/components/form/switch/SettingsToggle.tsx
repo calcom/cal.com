@@ -55,7 +55,7 @@ function SettingsToggle({
                 switchContainerClassName
               )}>
               <div>
-                <div className="flex items-center" data-testid={`${rest["data-testid"]}-title`}>
+                <div className="flex items-center gap-x-2" data-testid={`${rest["data-testid"]}-title`}>
                   <Label
                     className={classNames("mt-0.5 text-base font-semibold leading-none", labelClassName)}>
                     {title}
