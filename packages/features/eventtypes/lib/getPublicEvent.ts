@@ -34,7 +34,6 @@ const userSelect = {
   darkBrandColor: true,
   theme: true,
   metadata: true,
-  timeZone: true,
 };
 
 const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
