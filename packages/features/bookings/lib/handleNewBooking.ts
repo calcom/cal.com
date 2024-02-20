@@ -316,7 +316,9 @@ export async function ensureAvailableUsers(
 ) {
   const availableUsers: IsFixedAwareUser[] = [];
   const getStartDateTimeUtc = (startDateTimeInput: string, timeZone?: string) => {
-    return timeZone === "Etc/GMT" ? dayjs.utc(startDateTimeInput) : dayjs(startDateTimeInput).tz(timeZone).utc();
+    return timeZone === "Etc/GMT"
+      ? dayjs.utc(startDateTimeInput)
+      : dayjs(startDateTimeInput).tz(timeZone).utc();
   };
 
   const startDateTimeUtc = getStartDateTimeUtc(input.dateFrom, input.timeZone);
@@ -347,7 +349,6 @@ export async function ensureAvailableUsers(
     });
   }
 
-  /** Let's start checking for availability */
   for (const user of eventType.users) {
     const { dateRanges, busy: bufferedBusyTimes } = await getUserAvailability(
       {
@@ -373,7 +374,14 @@ export async function ensureAvailableUsers(
     );
 
     if (!dateRanges.length) {
-      // user does not have availability at this time, skip user.
+      loggerWithEventDetails.error(
+        `User does not have availability at this time.`,
+        safeStringify({
+          startDateTimeUtc,
+          endDateTimeUtc,
+          timeZone: input.timeZone,
+        })
+      );
       continue;
     }
 
@@ -393,15 +401,21 @@ export async function ensureAvailableUsers(
     }
 
     if (!dateRangeForBooking) {
+      loggerWithEventDetails.error(
+        `No date range for booking.`,
+        safeStringify({
+          startDateTimeUtc,
+          endDateTimeUtc,
+          timeZone: input.timeZone,
+        })
+      );
       continue;
     }
 
     try {
       foundConflict = checkForConflicts(bufferedBusyTimes, startDateTimeUtc, duration);
-    } catch {
-      log.debug({
-        message: "Unable set isAvailableToBeBooked. Using true. ",
-      });
+    } catch (error) {
+      loggerWithEventDetails.error("Unable set isAvailableToBeBooked. Using true. ", error);
     }
     // no conflicts found, add to available users.
     if (!foundConflict) {
@@ -409,7 +423,14 @@ export async function ensureAvailableUsers(
     }
   }
   if (!availableUsers.length) {
-    loggerWithEventDetails.error(`No available users found.`);
+    loggerWithEventDetails.error(
+      `No available users found.`,
+      safeStringify({
+        startDateTimeUtc,
+        endDateTimeUtc,
+        timeZone: input.timeZone,
+      })
+    );
     throw new Error(ErrorCode.NoAvailableUsersFound);
   }
   return availableUsers;
@@ -936,7 +957,7 @@ async function handler(
     !!eventType.schedulingType && ["COLLECTIVE", "ROUND_ROBIN"].includes(eventType.schedulingType);
 
   const paymentAppData = getPaymentAppData(eventType);
-  loggerWithEventDetails.debug(
+  loggerWithEventDetails.info(
     `Booking eventType ${eventTypeId} started`,
     safeStringify({
       reqBody: {
@@ -947,6 +968,7 @@ async function handler(
         endTime: reqBody.end,
         rescheduleUid: reqBody.rescheduleUid,
         location: location,
+        timeZone: reqBody.timeZone,
       },
       isTeamEventType,
       eventType: getPiiFreeEventType(eventType),
