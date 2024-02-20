@@ -1,15 +1,21 @@
 import * as newBookingMethods from "@calcom/features/bookings/lib/handleNewBooking";
+import { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
 import * as instantMeetingMethods from "@calcom/features/instant-meeting/handleInstantMeeting";
+import { getAvailableSlots } from "@calcom/trpc/server/routers/viewer/slots/util";
 
 export { getEventTypeById } from "@calcom/lib/getEventTypeById";
-export { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
+
+export type PublicEventType = Awaited<ReturnType<typeof getPublicEvent>>;
+export { getPublicEvent };
 export { getUsernameList } from "@calcom/lib/defaultEvents";
 
 const handleNewBooking = newBookingMethods.default;
 export { handleNewBooking };
 const handleInstantMeeting = instantMeetingMethods.default;
 export { handleInstantMeeting };
-export { getAvailableSlots } from "@calcom/trpc/server/routers/viewer/slots/util";
+
+export { getAvailableSlots };
+export type AvailableSlotsType = Awaited<ReturnType<typeof getAvailableSlots>>;
 export { handleNewRecurringBooking } from "@calcom/features/bookings/lib/handleNewRecurringBooking";
 
 export type { EventType } from "@calcom/lib/getEventTypeById";

@@ -1,6 +1,7 @@
-import { IsYearMonthDays } from "@/ee/calendars/inputs/validators/isYearMonthDays";
 import { Type } from "class-transformer";
 import { IsNumber, IsString, IsOptional, IsArray, ValidateNested, Validate } from "class-validator";
+
+import { IsYearMonthDays } from "./validators/isYearMonthDays";
 
 export class Calendar {
   @IsNumber()
@@ -17,12 +18,12 @@ export class CalendarBusyTimesInput {
   @IsString()
   @IsOptional()
   @Validate(IsYearMonthDays)
-  dateFrom!: string | null;
+  dateFrom?: string | null;
 
   @IsString()
   @IsOptional()
   @Validate(IsYearMonthDays)
-  dateTo!: string | null;
+  dateTo?: string | null;
 
   @IsArray()
   @ValidateNested({ each: true })

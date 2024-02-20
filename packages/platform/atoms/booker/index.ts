@@ -1,1 +1,1 @@
-export { Booker } from "./Booker";
+export { BookerWebWrapper } from "./BookerWebWrapper";

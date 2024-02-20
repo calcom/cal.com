@@ -114,6 +114,7 @@ export const getEventTypeById = async ({
       successRedirectUrl: true,
       currency: true,
       bookingFields: true,
+      useEventTypeDestinationCalendarEmail: true,
       owner: {
         select: {
           id: true,

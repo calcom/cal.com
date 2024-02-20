@@ -1,4 +1,5 @@
-import { ValidatorConstraint, ValidatorConstraintInterface } from "class-validator";
+import type { ValidatorConstraintInterface } from "class-validator";
+import { ValidatorConstraint } from "class-validator";
 import { DateTime } from "luxon";
 
 @ValidatorConstraint({ name: "IsYearMonthDays", async: false })

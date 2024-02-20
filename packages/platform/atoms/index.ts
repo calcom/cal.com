@@ -1,2 +1,2 @@
-export { Booker } from "./booker/Booker";
+export { BookerWebWrapper as Booker } from "./booker";
 export { CalProvider } from "./cal-provider/CalProvider";

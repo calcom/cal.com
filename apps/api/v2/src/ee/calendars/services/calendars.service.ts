@@ -1,4 +1,3 @@
-import { Calendar } from "@/ee/calendars/inputs/calendar-busy-times.input";
 import {
   CredentialsRepository,
   CredentialsWithUserEmail,
@@ -16,6 +15,7 @@ import { DateTime } from "luxon";
 
 import { getConnectedDestinationCalendars } from "@calcom/platform-libraries";
 import { getBusyCalendarTimes } from "@calcom/platform-libraries";
+import { Calendar } from "@calcom/platform-types";
 import { PrismaClient } from "@calcom/prisma";
 
 @Injectable()

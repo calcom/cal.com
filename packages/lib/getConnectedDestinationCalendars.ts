@@ -53,10 +53,15 @@ export async function getConnectedDestinationCalendars(
     }
   } else if (!user.destinationCalendar) {
     /*
-        There are connected calendars, but no destination calendar
-        So create a default destination calendar with the first primary connected calendar
-        */
-    const { integration = "", externalId = "", credentialId } = connectedCalendars[0].primary ?? {};
+      There are connected calendars, but no destination calendar
+      So create a default destination calendar with the first primary connected calendar
+      */
+    const {
+      integration = "",
+      externalId = "",
+      credentialId,
+      email: primaryEmail,
+    } = connectedCalendars[0].primary ?? {};
     // Select the first calendar matching the primary by default since that will also be the destination calendar
     if (onboarding && externalId) {
       const calendarIndex = (connectedCalendars[0].calendars || []).findIndex(
@@ -76,6 +81,7 @@ export async function getConnectedDestinationCalendars(
         integration,
         externalId,
         credentialId,
+        primaryEmail,
       },
     });
   } else {
@@ -91,7 +97,7 @@ export async function getConnectedDestinationCalendars(
 
     if (!destinationCal) {
       // If destinationCalendar is out of date, update it with the first primary connected calendar
-      const { integration = "", externalId = "" } = connectedCalendars[0].primary ?? {};
+      const { integration = "", externalId = "", email: primaryEmail } = connectedCalendars[0].primary ?? {};
       // Select the first calendar matching the primary by default since that will also be the destination calendar
       if (onboarding && externalId) {
         const calendarIndex = (connectedCalendars[0].calendars || []).findIndex(
@@ -110,6 +116,7 @@ export async function getConnectedDestinationCalendars(
         data: {
           integration,
           externalId,
+          primaryEmail,
         },
       });
     } else if (onboarding && !destinationCal.isSelected) {

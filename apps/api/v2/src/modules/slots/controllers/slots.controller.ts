@@ -1,5 +1,4 @@
 import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
-import { GetAvailableSlotsInput } from "@/modules/slots/inputs/get-available-slots.input";
 import { RemoveSelectedSlotInput } from "@/modules/slots/inputs/remove-selected-slot.input";
 import { ReserveSlotInput } from "@/modules/slots/inputs/reserve-slot.input";
 import { SlotsService } from "@/modules/slots/services/slots.service";
@@ -8,7 +7,8 @@ import { Response as ExpressResponse, Request as ExpressRequest } from "express"
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { getAvailableSlots } from "@calcom/platform-libraries";
-import { ApiResponse } from "@calcom/platform-types";
+import type { AvailableSlotsType } from "@calcom/platform-libraries";
+import { ApiResponse, GetAvailableSlotsInput } from "@calcom/platform-types";
 
 @Controller({
   path: "slots",
@@ -51,7 +51,7 @@ export class SlotsController {
   async getAvailableSlots(
     @Query() query: GetAvailableSlotsInput,
     @Req() req: ExpressRequest
-  ): Promise<ApiResponse> {
+  ): Promise<ApiResponse<AvailableSlotsType>> {
     const isTeamEvent = await this.slotsService.checkIfIsTeamEvent(query.eventTypeId);
 
     const availableSlots = await getAvailableSlots({
