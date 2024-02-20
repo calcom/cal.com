@@ -22,10 +22,9 @@ import DirectoryInfo from "./DirectoryInfo";
 const ConfigureDirectorySync = ({ orgId }: { orgId: number | null }) => {
   const { t } = useLocale();
   const utils = trpc.useContext();
-  const [error, setError] = useState<string | null>(null);
   const [deleteDirectoryOpen, setDeleteDirectoryOpen] = useState(false);
 
-  const { data, isLoading, isError } = trpc.viewer.dsync.get.useQuery({ orgId });
+  const { data, isLoading, isError, error } = trpc.viewer.dsync.get.useQuery({ orgId });
 
   const deleteMutation = trpc.viewer.dsync.delete.useMutation({
     async onSuccess() {
@@ -51,10 +50,14 @@ const ConfigureDirectorySync = ({ orgId }: { orgId: number | null }) => {
     deleteMutation.mutate({ orgId, directoryId: directory.id });
   };
 
-  if (isError) {
+  if (error || isError) {
     return (
       <div>
-        <EmptyScreen headline="Error" description={t(error)} Icon={AlertTriangle} />
+        <EmptyScreen
+          headline="Error"
+          description={error.message || "Error getting dsync data"}
+          Icon={AlertTriangle}
+        />
       </div>
     );
   }
