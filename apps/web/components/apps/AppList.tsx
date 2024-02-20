@@ -204,7 +204,7 @@ function ConnectOrDisconnectIntegrationMenuItem(props: {
           color="destructive"
           onClick={() => handleDisconnect(credentialId, teamId)}
           disabled={isGlobal}
-          StartIcon={Trash}>
+          StartIcon={Trash as SVGComponent}>
           {t("remove_app")}
         </DropdownItem>
       </DropdownMenuItem>
