@@ -1,13 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
 
-import type { RemoveSelectedSlotInput, ApiResponse } from "@calcom/platform-types";
+import type { ReserveSlotInput, ApiResponse } from "@calcom/platform-types";
 
 import http from "../lib/http";
 
-export const QUERY_KEY = "delete-selected-slot";
+export const QUERY_KEY = "reserve-slot";
 
-export const useReserveSlot = (props: RemoveSelectedSlotInput) => {
-  const deletedSlot = useQuery({
+export const useReserveSlot = (props: ReserveSlotInput) => {
+  const reserveSlot = useQuery({
     queryKey: [QUERY_KEY],
     queryFn: () => {
       return http
@@ -17,5 +17,5 @@ export const useReserveSlot = (props: RemoveSelectedSlotInput) => {
         .then((res) => res.data);
     },
   });
-  return deletedSlot;
+  return reserveSlot;
 };
