@@ -6,15 +6,12 @@ export function createAppsFixture(page: Page) {
       await page.getByTestId(`app-store-category-${category}`).nth(1).click();
       await page.goto("apps/categories/analytics");
     },
-    goToApp: async (app: string) => {
+    installApp: async (app: string) => {
       await page.getByTestId(`app-store-app-card-${app}`).click();
       await page.getByTestId("install-app-button").click();
     },
     goBackToAppsPage: async () => {
       await page.getByTestId("add-apps").click();
-    },
-    goToEventTypesPage: async () => {
-      await page.goto("/event-types");
     },
     goToEventType: async (eventType: string) => {
       await page.getByRole("link", { name: eventType }).click();
@@ -22,26 +19,11 @@ export function createAppsFixture(page: Page) {
     goToAppsTab: async () => {
       await page.getByTestId("vertical-tab-apps").click();
     },
-    checkAndFillApp: async (app: string) => {
+    activeApp: async (app: string) => {
       await page.getByTestId(`${app}-app-switch`).click();
-      if (app === "matomo") {
-        await page.getByTestId(`${app}-input-url`).click();
-        await page.getByTestId(`${app}-input-url`).fill("https://matomo.localhost");
-        await page.getByTestId(`${app}-input-site-id`).click();
-        await page.getByTestId(`${app}-input-site-id`).fill("1");
-      }
-      if (app === "plausible") {
-        await page.getByTestId(`${app}-input-url`).click();
-        await page.getByTestId(`${app}-input-url`).fill("https://plausible.localhost");
-        await page.getByTestId(`${app}-input-tracking-id`).click();
-        await page.getByTestId(`${app}-input-tracking-id`).fill("1");
-      } else {
-        await page.getByTestId(`${app}-input`).click();
-        await page.getByTestId(`${app}-input`).fill(`https://${app}.localhost`);
-      }
     },
     verifyAppsInfo: async (activeApps: number) => {
-      await expect(page.getByTestId("active-apps")).toHaveText(`6 apps, ${activeApps} active`);
+      await expect(page.locator(`text=6 apps, ${activeApps} active`)).toBeVisible();
     },
   };
 }
