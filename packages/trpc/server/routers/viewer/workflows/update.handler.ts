@@ -288,7 +288,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
                 ? {
                     language: { locale: booking.user.locale || defaultLocale },
                     name: booking.user.name || "",
-                    email: booking.user.email,
+                    email: booking?.userPrimaryEmail ?? booking.user.email,
                     timeZone: booking.user.timeZone,
                     timeFormat: getTimeFormatStringFromUserTimeFormat(booking.user.timeFormat),
                   }
@@ -525,7 +525,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
               ? {
                   language: { locale: booking.user.locale || defaultLocale },
                   name: booking.user.name || "",
-                  email: booking.user.email,
+                  email: booking?.userPrimaryEmail ?? booking.user.email,
                   timeZone: booking.user.timeZone,
                   timeFormat: getTimeFormatStringFromUserTimeFormat(booking.user.timeFormat),
                 }
@@ -669,7 +669,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
               organizer: booking.user
                 ? {
                     name: booking.user.name || "",
-                    email: booking.user.email,
+                    email: booking?.userPrimaryEmail ?? booking.user.email,
                     timeZone: booking.user.timeZone,
                     timeFormat: getTimeFormatStringFromUserTimeFormat(booking.user.timeFormat),
                     language: { locale: booking.user.locale || defaultLocale },

@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { Booker } from "./Booker";
+import { BookerWebWrapper as Booker } from "./wrappers/BookerWebWrapper";
 
 const meta: Meta<typeof Booker> = {
   component: Booker,

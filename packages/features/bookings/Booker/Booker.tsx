@@ -1,8 +1,5 @@
 import { LazyMotion, m, AnimatePresence } from "framer-motion";
-import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
-import { useSearchParams } from "next/navigation";
-import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useMemo } from "react";
 import StickyBox from "react-sticky-box";
 import { shallow } from "zustand/shallow";
@@ -29,16 +26,9 @@ import { OverlayCalendar } from "./components/OverlayCalendar/OverlayCalendar";
 import { RedirectToInstantMeetingModal } from "./components/RedirectToInstantMeetingModal";
 import { BookerSection } from "./components/Section";
 import { Away, NotFound } from "./components/Unavailable";
-import { useBookerLayout } from "./components/hooks/useBookerLayout";
-import { useBookingForm } from "./components/hooks/useBookingForm";
-import { useBookings } from "./components/hooks/useBookings";
-import { useCalendars } from "./components/hooks/useCalendars";
-import { useSlots } from "./components/hooks/useSlots";
-import { useVerifyEmail } from "./components/hooks/useVerifyEmail";
 import { fadeInLeft, getBookerSizeClassNames, useBookerResizeAnimation } from "./config";
-import { useBookerStore, useInitializeBookerStore } from "./store";
-import type { BookerProps } from "./types";
-import { useEvent, useScheduleForEvent } from "./utils/event";
+import { useBookerStore } from "./store";
+import type { BookerProps, WrappedBookerProps } from "./types";
 import { useBrandColors } from "./utils/use-brand-colors";
 
 const loadFramerFeatures = () => import("./framer-features").then((res) => res.default);
@@ -53,28 +43,32 @@ const DatePicker = dynamic(() => import("./components/DatePicker").then((mod) =>
 const BookerComponent = ({
   username,
   eventSlug,
-  month,
-  bookingData,
   hideBranding = false,
-  isTeamEvent,
   entity,
-  durationConfig,
-  duration,
-  hashedLink,
   isInstantMeeting = false,
-}: BookerProps) => {
-  const router = useRouter();
-  const pathname = usePathname();
+  onGoBackInstantMeeting,
+  onConnectNowInstantMeeting,
+  onOverlayClickNoCalendar,
+  onClickOverlayContinue,
+  onOverlaySwitchStateChange,
+  sessionUsername,
+  isRedirect,
+  fromUserNameRedirected,
+  rescheduleUid,
+  hasSession,
+  extraOptions,
+  bookings,
+  verifyEmail,
+  slots,
+  calendars,
+  bookerForm,
+  event,
+  bookerLayout,
+  schedule,
+  verifyCode,
+}: BookerProps & WrappedBookerProps) => {
   const [bookerState, setBookerState] = useBookerStore((state) => [state.state, state.setState], shallow);
   const selectedDate = useBookerStore((state) => state.selectedDate);
-  const [seatedEventData, setSeatedEventData] = useBookerStore(
-    (state) => [state.seatedEventData, state.setSeatedEventData],
-    shallow
-  );
-  const event = useEvent();
-  const session = useSession();
-  const { selectedTimeslot, setSelectedTimeslot } = useSlots(event);
-
   const {
     shouldShowFormInDialog,
     hasDarkBackground,
@@ -82,46 +76,18 @@ const BookerComponent = ({
     columnViewExtraDays,
     isMobile,
     layout,
-    defaultLayout,
     hideEventTypeDetails,
     isEmbed,
     bookerLayouts,
-  } = useBookerLayout(event.data);
+  } = bookerLayout;
+
+  const [seatedEventData, setSeatedEventData] = useBookerStore(
+    (state) => [state.seatedEventData, state.setSeatedEventData],
+    shallow
+  );
+  const { selectedTimeslot, setSelectedTimeslot } = slots;
 
   const [dayCount, setDayCount] = useBookerStore((state) => [state.dayCount, state.setDayCount], shallow);
-
-  const date = dayjs(selectedDate).format("YYYY-MM-DD");
-
-  const prefetchNextMonth =
-    (layout === BookerLayouts.WEEK_VIEW &&
-      !!extraDays &&
-      dayjs(date).month() !== dayjs(date).add(extraDays, "day").month()) ||
-    (layout === BookerLayouts.COLUMN_VIEW &&
-      dayjs(date).month() !== dayjs(date).add(columnViewExtraDays.current, "day").month());
-
-  const monthCount =
-    ((layout !== BookerLayouts.WEEK_VIEW && bookerState === "selecting_time") ||
-      layout === BookerLayouts.COLUMN_VIEW) &&
-    dayjs(date).add(1, "month").month() !== dayjs(date).add(columnViewExtraDays.current, "day").month()
-      ? 2
-      : undefined;
-
-  const searchParams = useSearchParams();
-
-  /**
-   * Prioritize dateSchedule load
-   * Component will render but use data already fetched from here, and no duplicate requests will be made
-   * */
-  const schedule = useScheduleForEvent({
-    prefetchNextMonth,
-    username,
-    monthCount,
-    dayCount,
-    eventSlug,
-    month,
-    duration,
-    selectedDate: searchParams?.get("date"),
-  });
 
   const nonEmptyScheduleDays = useNonEmptyScheduleDays(schedule?.data?.slots).filter(
     (slot) => dayjs(selectedDate).diff(slot, "day") <= 0
@@ -146,15 +112,8 @@ const BookerComponent = ({
 
   const timeslotsRef = useRef<HTMLDivElement>(null);
   const StickyOnDesktop = isMobile ? "div" : StickyBox;
-  const rescheduleUid =
-    typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("rescheduleUid") : null;
-  const bookingUid =
-    typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("bookingUid") : null;
 
   const { t } = useLocale();
-
-  const isRedirect = searchParams?.get("redirected") === "true" || false;
-  const fromUserNameRedirected = searchParams?.get("username") || "";
 
   useBrandColors({
     brandColor: event.data?.profile.brandColor ?? DEFAULT_LIGHT_BRAND_COLOR,
@@ -162,51 +121,15 @@ const BookerComponent = ({
     theme: event.data?.profile.theme,
   });
 
-  useInitializeBookerStore({
-    username,
-    eventSlug,
-    month,
-    eventId: event?.data?.id,
-    rescheduleUid,
-    bookingUid,
-    bookingData,
-    layout: defaultLayout,
-    isTeamEvent,
-    org: entity.orgSlug,
-    durationConfig,
-    isInstantMeeting,
-  });
+  const { bookerFormErrorRef, key, formEmail, bookingForm, errors: formErrors } = bookerForm;
 
-  const {
-    bookerFormErrorRef,
-    key,
-    formEmail,
-    formName,
-    bookingForm,
-    beforeVerifyEmail,
-    errors: formErrors,
-  } = useBookingForm({
-    event,
-  });
-
-  const { handleBookEvent, hasInstantMeetingTokenExpired, errors, loadingStates, expiryTime } = useBookings({
-    event,
-    hashedLink,
-    bookingForm,
-  });
-
+  const { handleBookEvent, hasInstantMeetingTokenExpired, errors, loadingStates, expiryTime } = bookings;
   const {
     isEmailVerificationModalVisible,
     setEmailVerificationModalVisible,
     handleVerifyEmail,
-    setVerifiedEmail,
     renderConfirmNotVerifyEmailButtonCond,
-  } = useVerifyEmail({
-    email: formEmail,
-    name: formName,
-    requiresBookerEmailVerification: event?.data?.requiresBookerEmailVerification,
-    onVerifyEmail: beforeVerifyEmail,
-  });
+  } = verifyEmail;
 
   const {
     overlayBusyDates,
@@ -214,7 +137,7 @@ const BookerComponent = ({
     connectedCalendars,
     loadingConnectedCalendar,
     onToggleCalendar,
-  } = useCalendars();
+  } = calendars;
 
   useEffect(() => {
     if (event.isPending) return setBookerState("loading");
@@ -223,76 +146,81 @@ const BookerComponent = ({
     return setBookerState("booking");
   }, [event, selectedDate, selectedTimeslot, setBookerState]);
 
-  const EventBooker = useMemo(
-    () =>
-      bookerState === "booking" ? (
-        <BookEventForm
-          key={key}
-          onCancel={() => {
-            setSelectedTimeslot(null);
-            if (seatedEventData.bookingUid) {
-              setSeatedEventData({ ...seatedEventData, bookingUid: undefined, attendees: undefined });
-            }
-          }}
-          onSubmit={renderConfirmNotVerifyEmailButtonCond ? handleBookEvent : handleVerifyEmail}
-          errorRef={bookerFormErrorRef}
-          errors={{ ...formErrors, ...errors }}
-          loadingStates={loadingStates}
-          renderConfirmNotVerifyEmailButtonCond={renderConfirmNotVerifyEmailButtonCond}
-          bookingForm={bookingForm}
-          eventQuery={event}
-          rescheduleUid={rescheduleUid}>
-          <>
-            <VerifyCodeDialog
-              isOpenDialog={isEmailVerificationModalVisible}
-              setIsOpenDialog={setEmailVerificationModalVisible}
-              email={formEmail}
-              onSuccess={() => {
-                setVerifiedEmail(formEmail);
-                setEmailVerificationModalVisible(false);
-                handleBookEvent();
-              }}
-              isUserSessionRequiredToVerify={false}
-            />
-            <RedirectToInstantMeetingModal
-              expiryTime={expiryTime}
-              hasInstantMeetingTokenExpired={hasInstantMeetingTokenExpired}
-              bookingId={parseInt(getQueryParam("bookingId") || "0")}
-              onGoBack={() => {
-                // Prevent null on app directory
-                if (pathname) window.location.href = pathname;
-              }}
-            />
-          </>
-        </BookEventForm>
-      ) : (
-        <></>
-      ),
-    [
-      bookerFormErrorRef,
-      bookerState,
-      bookingForm,
-      errors,
-      event,
-      formEmail,
-      formErrors,
-      handleBookEvent,
-      handleVerifyEmail,
-      hasInstantMeetingTokenExpired,
-      isEmailVerificationModalVisible,
-      key,
-      loadingStates,
-      pathname,
-      renderConfirmNotVerifyEmailButtonCond,
-      rescheduleUid,
-      seatedEventData,
-      setEmailVerificationModalVisible,
-      setSeatedEventData,
-      setSelectedTimeslot,
-      setVerifiedEmail,
-      expiryTime,
-    ]
-  );
+  const EventBooker = useMemo(() => {
+    return bookerState === "booking" ? (
+      <BookEventForm
+        key={key}
+        onCancel={() => {
+          setSelectedTimeslot(null);
+          if (seatedEventData.bookingUid) {
+            setSeatedEventData({ ...seatedEventData, bookingUid: undefined, attendees: undefined });
+          }
+        }}
+        onSubmit={renderConfirmNotVerifyEmailButtonCond ? handleBookEvent : handleVerifyEmail}
+        errorRef={bookerFormErrorRef}
+        errors={{ ...formErrors, ...errors }}
+        loadingStates={loadingStates}
+        renderConfirmNotVerifyEmailButtonCond={renderConfirmNotVerifyEmailButtonCond}
+        bookingForm={bookingForm}
+        eventQuery={event}
+        extraOptions={extraOptions}
+        rescheduleUid={rescheduleUid}>
+        <>
+          <VerifyCodeDialog
+            isOpenDialog={isEmailVerificationModalVisible}
+            setIsOpenDialog={setEmailVerificationModalVisible}
+            email={formEmail}
+            isUserSessionRequiredToVerify={false}
+            verifyCodeWithSessionNotRequired={verifyCode.verifyCodeWithSessionNotRequired}
+            verifyCodeWithSessionRequired={verifyCode.verifyCodeWithSessionRequired}
+            error={verifyCode.error}
+            resetErrors={verifyCode.resetErrors}
+            isPending={verifyCode.isPending}
+            setIsPending={verifyCode.setIsPending}
+          />
+          <RedirectToInstantMeetingModal
+            expiryTime={expiryTime}
+            hasInstantMeetingTokenExpired={hasInstantMeetingTokenExpired}
+            bookingId={parseInt(getQueryParam("bookingId") || "0")}
+            onGoBack={() => {
+              onGoBackInstantMeeting();
+            }}
+          />
+        </>
+      </BookEventForm>
+    ) : (
+      <></>
+    );
+  }, [
+    bookerFormErrorRef,
+    bookerState,
+    bookingForm,
+    errors,
+    event,
+    expiryTime,
+    extraOptions,
+    formEmail,
+    formErrors,
+    handleBookEvent,
+    handleVerifyEmail,
+    hasInstantMeetingTokenExpired,
+    isEmailVerificationModalVisible,
+    key,
+    loadingStates,
+    onGoBackInstantMeeting,
+    renderConfirmNotVerifyEmailButtonCond,
+    rescheduleUid,
+    seatedEventData,
+    setEmailVerificationModalVisible,
+    setSeatedEventData,
+    setSelectedTimeslot,
+    verifyCode.error,
+    verifyCode.isPending,
+    verifyCode.resetErrors,
+    verifyCode.setIsPending,
+    verifyCode.verifyCodeWithSessionNotRequired,
+    verifyCode.verifyCodeWithSessionRequired,
+  ]);
 
   if (entity.isUnpublished) {
     return <UnpublishedEntity {...entity} />;
@@ -317,8 +245,7 @@ const BookerComponent = ({
           <InstantBooking
             event={event.data}
             onConnectNow={() => {
-              const newPath = `${pathname}?isInstantMeeting=true`;
-              router.push(newPath);
+              onConnectNowInstantMeeting();
             }}
           />
         </div>
@@ -372,7 +299,7 @@ const BookerComponent = ({
                     "bg-default dark:bg-muted sticky top-0 z-10"
                 )}>
                 <Header
-                  isMyLink={Boolean(username === session?.data?.user.username)}
+                  isMyLink={Boolean(username === sessionUsername)}
                   eventSlug={eventSlug}
                   enabledLayouts={bookerLayouts.enabledLayouts}
                   extraDays={layout === BookerLayouts.COLUMN_VIEW ? columnViewExtraDays.current : extraDays}
@@ -389,8 +316,11 @@ const BookerComponent = ({
                           loadingConnectedCalendar={loadingConnectedCalendar}
                           overlayBusyDates={overlayBusyDates}
                           onToggleCalendar={onToggleCalendar}
+                          hasSession={hasSession}
+                          handleClickContinue={onClickOverlayContinue}
+                          handleSwitchStateChange={onOverlaySwitchStateChange}
                           handleClickNoCalendar={() => {
-                            router.push("/apps/categories/calendar");
+                            onOverlayClickNoCalendar();
                           }}
                         />
                       </>
@@ -444,7 +374,12 @@ const BookerComponent = ({
               visible={layout === BookerLayouts.WEEK_VIEW}
               className="border-subtle sticky top-0 ml-[-1px] h-full md:border-l"
               {...fadeInLeft}>
-              <LargeCalendar extraDays={extraDays} schedule={schedule.data} isLoading={schedule.isPending} />
+              <LargeCalendar
+                extraDays={extraDays}
+                schedule={schedule.data}
+                isLoading={schedule.isPending}
+                event={event}
+              />
             </BookerSection>
 
             <BookerSection
@@ -505,7 +440,7 @@ const BookerComponent = ({
   );
 };
 
-export const Booker = (props: BookerProps) => {
+export const Booker = (props: BookerProps & WrappedBookerProps) => {
   if (props.isAway) return <Away />;
 
   return (
