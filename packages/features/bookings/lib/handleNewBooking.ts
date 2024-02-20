@@ -957,7 +957,7 @@ async function handler(
     !!eventType.schedulingType && ["COLLECTIVE", "ROUND_ROBIN"].includes(eventType.schedulingType);
 
   const paymentAppData = getPaymentAppData(eventType);
-  loggerWithEventDetails.warn(
+  loggerWithEventDetails.info(
     `Booking eventType ${eventTypeId} started`,
     safeStringify({
       reqBody: {
