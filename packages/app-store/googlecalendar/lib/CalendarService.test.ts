@@ -12,6 +12,7 @@ vi.mock("@calcom/features/flags/server/utils", () => ({
   getFeatureFlagMap: vi.fn().mockResolvedValue({
     "calendar-cache": true,
   }),
+  getFeatureFlag: vi.fn().mockImplementation((flagName, _prisma) => flagName === "calendar-cache"),
 }));
 
 vi.mock("./getGoogleAppKeys", () => ({
