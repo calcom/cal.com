@@ -204,11 +204,6 @@ describe("handleNewBooking", () => {
       timeout
     );
 
-    // TODO: Make this test pass. Currently, when creating date overrides, we
-    // don't allow you to select midnight as the end time for the override. Instead,
-    // you must select 11:59PM. Because of this, the getUserAvailability function
-    // is not able to properly calculate that you are actually available for that time slot
-    // eslint-disable-next-line playwright/no-skipped-test
     test(
       `should be able to book the last slot before midnight`,
       async ({ emails }) => {
