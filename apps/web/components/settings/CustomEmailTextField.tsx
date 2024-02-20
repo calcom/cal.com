@@ -98,7 +98,8 @@ const CustomEmailTextField = ({
                     color="secondary"
                     className="disabled:opacity-40"
                     onClick={handleVerifyEmail}
-                    disabled={emailVerified}>
+                    disabled={emailVerified}
+                    data-testId="resend-verify-email-button">
                     {t("verify_email_email_button")}
                   </DropdownItem>
                 </DropdownMenuItem>

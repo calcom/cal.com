@@ -2,9 +2,13 @@ import { expect } from "@playwright/test";
 import type { Page } from "@playwright/test";
 import type { createUsersFixture } from "playwright/fixtures/users";
 
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
+import type { PrismaClient } from "@calcom/prisma";
 
+import type { createEmailsFixture } from "./fixtures/emails";
 import { test } from "./lib/fixtures";
+import { getEmailsReceivedByUser } from "./lib/testUtils";
+import { expectInvitationEmailToBeReceived } from "./team/expects";
 
 test.describe.configure({ mode: "parallel" });
 
@@ -153,6 +157,7 @@ test.describe("Update Profile", () => {
     const emailInputUpdated = await page.getByTestId("profile-form-email-0");
     expect(await emailInputUpdated.inputValue()).toEqual(email);
   });
+
   test("Can update a users email (verification disabled)", async ({ page, users, prisma, features }) => {
     const emailVerificationEnabled = features.get("email-verification");
     // eslint-disable-next-line playwright/no-conditional-in-test, playwright/no-skipped-test
@@ -186,13 +191,44 @@ test.describe("Update Profile", () => {
 
     expect(await emailInputUpdated.inputValue()).toEqual(email);
   });
-  test("Can add a new email as a secondary email", async ({ page, users, prisma, features }) => {
+
+  const testEmailVerificationLink = async ({
+    page,
+    prisma,
+    emails,
+    secondaryEmail,
+  }: {
+    page: Page;
+    prisma: PrismaClient;
+    emails: ReturnType<typeof createEmailsFixture>;
+    secondaryEmail: string;
+  }) => {
+    await test.step("the user receives the correct invitation link", async () => {
+      await page.waitForLoadState("networkidle");
+      const verificationToken = await prisma.verificationToken.findFirst({
+        where: {
+          identifier: secondaryEmail,
+        },
+      });
+      const inviteLink = await expectInvitationEmailToBeReceived(
+        page,
+        emails,
+        secondaryEmail,
+        `${APP_NAME}: Verify your account`,
+        "verify-secondary-email"
+      );
+      expect(inviteLink).toEqual(
+        `${WEBAPP_URL}/api/auth/verify-secondary-email?token=${verificationToken?.token}`
+      );
+    });
+  };
+
+  test("Can add a new email as a secondary email", async ({ page, users, prisma, emails }) => {
     const user = await users.create({
       name: "update-profile-user",
     });
 
     const [emailInfo, emailDomain] = user.email.split("@");
-    const email = `${emailInfo}@${emailDomain}`;
 
     await user.apiLogin();
     await page.goto("/settings/my-account/profile");
@@ -219,12 +255,32 @@ test.describe("Update Profile", () => {
     await page.getByTestId("secondary-email-confirm-done-button").click();
     expect(await secondaryEmailConfirmDialog.isVisible()).toBe(false);
 
+    await test.step("the user receives the correct invitation link", async () => {
+      await page.waitForLoadState("networkidle");
+      const verificationToken = await prisma.verificationToken.findFirst({
+        where: {
+          identifier: secondaryEmail,
+        },
+      });
+      const inviteLink = await expectInvitationEmailToBeReceived(
+        page,
+        emails,
+        secondaryEmail,
+        `${APP_NAME}: Verify your account`,
+        "verify-secondary-email"
+      );
+      expect(
+        inviteLink?.endsWith(`/api/auth/verify-secondary-email?token=${verificationToken?.token}`)
+      ).toEqual(true);
+    });
+
     const primaryEmail = page.getByTestId("profile-form-email-0");
     expect(await primaryEmail.inputValue()).toEqual(user.email);
 
     const newlyAddedSecondaryEmail = page.getByTestId("profile-form-email-1");
     expect(await newlyAddedSecondaryEmail.inputValue()).toEqual(secondaryEmail);
   });
+
   const createSecondaryEmail = async ({
     page,
     users,
@@ -254,7 +310,8 @@ test.describe("Update Profile", () => {
 
     return { user, email, secondaryEmail };
   };
-  test("Newly added secondary email should show as Unverified", async ({ page, users, prisma, features }) => {
+
+  test("Newly added secondary email should show as Unverified", async ({ page, users }) => {
     await createSecondaryEmail({ page, users });
 
     expect(await page.getByTestId("profile-form-email-0-primary-badge").isVisible()).toEqual(true);
@@ -263,7 +320,8 @@ test.describe("Update Profile", () => {
     expect(await page.getByTestId("profile-form-email-1-primary-badge").isVisible()).toEqual(false);
     expect(await page.getByTestId("profile-form-email-1-unverified-badge").isVisible()).toEqual(true);
   });
-  test("Can verify the newly added secondary email", async ({ page, users, prisma, features }) => {
+
+  test("Can verify the newly added secondary email", async ({ page, users, prisma }) => {
     const { secondaryEmail } = await createSecondaryEmail({ page, users });
 
     expect(await page.getByTestId("profile-form-email-1-primary-badge").isVisible()).toEqual(false);
@@ -287,7 +345,8 @@ test.describe("Update Profile", () => {
     expect(await page.getByTestId("profile-form-email-1-primary-badge").isVisible()).toEqual(false);
     expect(await page.getByTestId("profile-form-email-1-unverified-badge").isVisible()).toEqual(false);
   });
-  test("Can delete the newly added secondary email", async ({ page, users, prisma, features }) => {
+
+  test("Can delete the newly added secondary email", async ({ page, users }) => {
     await createSecondaryEmail({ page, users });
 
     await page.getByTestId("secondary-email-action-group-button").nth(1).click();
@@ -295,11 +354,11 @@ test.describe("Update Profile", () => {
 
     expect(await page.getByTestId("profile-form-email-1").isVisible()).toEqual(false);
   });
+
   test("Can make the newly added secondary email as the primary email and login", async ({
     page,
     users,
     prisma,
-    features,
   }) => {
     const { secondaryEmail } = await createSecondaryEmail({ page, users });
 
@@ -322,6 +381,35 @@ test.describe("Update Profile", () => {
     await page.getByTestId("secondary-email-make-primary-button").click();
 
     expect(await page.getByTestId("profile-form-email-1-primary-badge").isVisible()).toEqual(true);
+    expect(await page.getByTestId("profile-form-email-1-unverified-badge").isVisible()).toEqual(false);
+  });
+
+  test("Can resend verification link if the secondary email is unverified", async ({
+    page,
+    users,
+    prisma,
+    emails,
+  }) => {
+    const { secondaryEmail } = await createSecondaryEmail({ page, users });
+    // When a user is created a link is sent, we will delete it manually to make sure verification link works fine
+    await prisma.verificationToken.deleteMany({
+      where: {
+        identifier: secondaryEmail,
+      },
+    });
+    const receivedEmails = await getEmailsReceivedByUser({ emails, userEmail: secondaryEmail });
+    if (receivedEmails?.items?.[0]?.ID) {
+      await emails.deleteMessage(receivedEmails.items[0].ID);
+    }
+
+    expect(await page.getByTestId("profile-form-email-1-unverified-badge").isVisible()).toEqual(true);
+    await page.getByTestId("secondary-email-action-group-button").nth(1).click();
+    expect(await page.locator("button[data-testid=resend-verify-email-button]").isDisabled()).toEqual(false);
+    await page.getByTestId("resend-verify-email-button").click();
+
+    await testEmailVerificationLink({ page, prisma, emails, secondaryEmail });
+
+    expect(await page.locator("button[data-testid=resend-verify-email-button]").isDisabled()).toEqual(true);
     expect(await page.getByTestId("profile-form-email-1-unverified-badge").isVisible()).toEqual(false);
   });
 });
