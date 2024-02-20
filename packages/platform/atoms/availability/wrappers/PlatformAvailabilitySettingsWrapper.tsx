@@ -38,7 +38,6 @@ export const PlatformAvailabilitySettingsWrapper = ({
   const userWeekStart = daysInAWeek.indexOf(user?.data.user.weekStart) as 0 | 1 | 2 | 3 | 4 | 5 | 6;
   const { timeFormat } = user?.data.user || { timeFormat: null };
   const [openSidebar, setOpenSidebar] = useState(false);
-  console.log(userSchedule?.id, typeof userSchedule?.id);
 
   const { mutateAsync, isPending: isDeletionInProgress } = useDeleteSchedule({
     onSuccess: () => {
