@@ -27,9 +27,9 @@ test.describe("Check analytics Apps", () => {
     await appsPage.goToEventType("30 min");
     await appsPage.goToAppsTab();
     await appsPage.verifyAppsInfo(0);
-    ALL_APPS.forEach(async (app) => {
+    for (const app of ALL_APPS) {
       await appsPage.activeApp(app);
-    });
+    }
     await appsPage.verifyAppsInfo(6);
   });
 });
