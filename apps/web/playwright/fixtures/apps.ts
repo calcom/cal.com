@@ -41,7 +41,7 @@ export function createAppsFixture(page: Page) {
       }
     },
     verifyAppsInfo: async (activeApps: number) => {
-      await expect(page.getByTestId("active-apps")).toHaveText(`6 apps, ${activeApps.toString()} active`);
+      await expect(page.getByTestId("active-apps")).toHaveText(`6 apps, ${activeApps} active`);
     },
   };
 }
