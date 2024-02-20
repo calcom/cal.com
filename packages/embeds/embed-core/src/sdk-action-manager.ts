@@ -36,7 +36,6 @@ export type EventDataMap = {
     confirmed: boolean;
   };
   rescheduleBookingSuccessful: {
-    // TODO: Shouldn't send the entire booking and eventType objects, we should send specific fields from them.
     booking: unknown;
     eventType: unknown;
     date: string;
