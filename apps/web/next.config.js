@@ -184,7 +184,7 @@ const nextConfig = {
     "@calcom/prisma",
     "@calcom/trpc",
     "@calcom/ui",
-    // "lucide-react",
+    "lucide-react",
   ],
   modularizeImports: {
     "@calcom/ui/components/icon": {
@@ -208,10 +208,6 @@ const nextConfig = {
     unoptimized: true,
   },
   webpack: (config, { webpack, buildId, isServer }) => {
-    // https://github.com/getsentry/sentry-javascript/issues/10468#issuecomment-1935854545
-    if (isServer) {
-      config.devtool = "source-map";
-    }
     if (isServer) {
       // Module not found fix @see https://github.com/boxyhq/jackson/issues/1535#issuecomment-1704381612
       config.plugins.push(
@@ -584,36 +580,14 @@ const nextConfig = {
 };
 
 if (!!process.env.NEXT_PUBLIC_SENTRY_DSN) {
-  plugins.push((nc) =>
-    withSentryConfig(
-      nc,
-      {
-        ignore: ["node_modules"],
-        // For all available options, see:
-        // https://github.com/getsentry/sentry-webpack-plugin#options
-        autoInstrumentServerFunctions: true,
-        hideSourceMaps: true,
-        // disable source map generation for the server code
-        disableServerWebpackPlugin: !!process.env.SENTRY_DISABLE_SERVER_WEBPACK_PLUGIN,
-        // Suppresses source map uploading logs during build
-        silent: true,
-      },
-      {
-        // Upload a larger set of source maps for prettier stack traces (increases build time)
-        widenClientFileUpload: false,
-        // Transpiles SDK to be compatible with IE11 (increases bundle size)
-        transpileClientSDK: false,
-        // Routes browser requests to Sentry through a Next.js rewrite to circumvent ad-blockers (increases server load)
-        // TODO: Use tunneling when is resolved
-        // https://github.com/getsentry/sentry-javascript/issues/8293
-        // tunnelRoute: "/web/monitoring",
-        // Hides source maps from generated client bundles
-        hideSourceMaps: true,
-        // Automatically tree-shake Sentry logger statements to reduce bundle size
-        disableLogger: true,
-      }
-    )
-  );
+  nextConfig["sentry"] = {
+    autoInstrumentServerFunctions: true,
+    hideSourceMaps: true,
+    // disable source map generation for the server code
+    disableServerWebpackPlugin: !!process.env.SENTRY_DISABLE_SERVER_WEBPACK_PLUGIN,
+  };
+
+  plugins.push(withSentryConfig);
 }
 
 module.exports = () => plugins.reduce((acc, next) => next(acc), nextConfig);
