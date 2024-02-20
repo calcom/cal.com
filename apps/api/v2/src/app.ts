@@ -60,5 +60,7 @@ export const bootstrap = (app: NestExpressApplication): NestExpressApplication =
   });
 
   app.use(cookieParser());
+  app.enableCors();
+
   return app;
 };
