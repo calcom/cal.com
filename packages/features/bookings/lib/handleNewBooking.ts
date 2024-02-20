@@ -316,7 +316,7 @@ export async function ensureAvailableUsers(
 ) {
   const availableUsers: IsFixedAwareUser[] = [];
   const getStartDateTimeUtc = (startDateTimeInput: string, timeZone?: string) => {
-    return timeZone === "Etc/GMT" ? dayjs.utc(startTimeInput) : dayjs(startTimeInput).tz(timeZone).utc();
+    return timeZone === "Etc/GMT" ? dayjs.utc(startDateTimeInput) : dayjs(startDateTimeInput).tz(timeZone).utc();
   };
 
   const startDateTimeUtc = getStartDateTimeUtc(input.dateFrom, input.timeZone);
