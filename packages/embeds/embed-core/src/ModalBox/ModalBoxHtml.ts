@@ -45,7 +45,7 @@ const html = `<style>
 </div>
 <div class="modal-box">
   <div class="body">
-    <div id="wrapper" class="z-[999999999999] absolute flex w-full items-center">
+    <div id="wrapper" class="">
         <div class="loader bg-default dark:bg-muted relative mx-auto h-screen max-h-[460px] w-full max-w-[760px] rounded-lg border">
           <div class="grid h-screen grid-cols-1 sm:grid-cols-3">
             <div class="h-screen max-h-[460px] border-0 p-4 sm:border-r">

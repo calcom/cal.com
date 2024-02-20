@@ -1,4 +1,4 @@
-const html = `<div id="wrapper" style="top:50%; left:50%;transform:translate(-50%,-50%)" class="absolute z-highest">
+const html = `<div id="wrapper">
 <div class="loader bg-default dark:bg-muted relative mx-auto h-screen max-h-[460px] w-full max-w-[760px] rounded-lg border">
 	<div class="grid h-screen grid-cols-1 sm:grid-cols-3">
 	<div class="h-screen max-h-[460px] border-0 p-4 sm:border-r">
