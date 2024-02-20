@@ -371,7 +371,7 @@ export const AppPage = ({
                 rel="noreferrer"
                 className="text-emphasis font-normal no-underline hover:underline"
                 href={privacy}>
-                <Icon name="shiled" className="text-subtle -mt-px mr-1 inline h-4 w-4" />
+                <Icon name="shield" className="text-subtle -mt-px mr-1 inline h-4 w-4" />
                 {t("privacy_policy")}
               </a>
             </li>
