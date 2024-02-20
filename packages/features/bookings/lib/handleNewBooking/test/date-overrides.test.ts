@@ -44,12 +44,7 @@ describe("handleNewBooking", () => {
 
   describe("Booking for slot only available by date override:", () => {
     test(
-      `should create a successful booking in the first connected calendar i.e. using the first credential(in the scenario when there is no event-type or organizer destination calendar)
-          1. Should create a booking in the database
-          2. Should send emails to the booker as well as organizer
-          3. Should fallback to creating the booking in the first connected Calendar when neither event nor organizer has a destination calendar - This doesn't practically happen because organizer is always required to have a schedule set
-          3. Should trigger BOOKING_CREATED webhook
-    `,
+      `should be able to create a booking for the exact slot overridden`,
       async ({ emails }) => {
         const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
         const newYorkTimeZone = Timezones["-05:00"];
