@@ -20,8 +20,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (
-    req.headers[process.env.CALCOM_WEBHOOK_HEADER_NAME || "calcom-webhook-secret"] !==
-    process.env.CALCOM_WEBHOOK_SECRET
+    req.headers[process.env.CALCOM_CREDENTIAL_SYNC_HEADER_NAME || "calcom-webhook-secret"] !==
+    process.env.CALCOM_CREDENTIAL_SYNC_SECRET
   ) {
     return res.status(403).json({ message: "Invalid webhook secret" });
   }
