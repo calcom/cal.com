@@ -82,10 +82,6 @@ async function getTeamOrOrg<TeamSelect extends Prisma.TeamSelect>({
     where,
   });
 
-  // teamSelect extends Prisma.TeamSelect but still teams doesn't contain a valid team as per TypeScript and thus it doesn't consider it having team.metadata, team.id and other fields
-  // This is the reason below code is using a lot of assertions.
-  const select = teamSelect;
-
   const teams = await prisma.team.findMany({
     where,
     select: teamSelect,
@@ -93,8 +89,6 @@ async function getTeamOrOrg<TeamSelect extends Prisma.TeamSelect>({
 
   const teamsWithParsedMetadata = teams
     .map((team) => {
-      const teamX = team;
-
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore ts types are way too complciated for this now
       const parsedMetadata = teamMetadataSchema.parse(team.metadata ?? {});

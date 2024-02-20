@@ -27,6 +27,7 @@ export const listHandler = async ({ ctx, input }: ListOptions) => {
           name: true,
           slug: true,
           logo: true,
+          logoUrl: true,
           isOrganization: true,
           metadata: true,
           inviteTokens: true,
@@ -43,10 +44,11 @@ export const listHandler = async ({ ctx, input }: ListOptions) => {
       if (input?.includeOrgs) return true;
       return !mmship.team.isOrganization;
     })
-    .map(({ team: { inviteTokens, ..._team }, ...membership }) => ({
+    .map(({ team: { inviteTokens, logo, logoUrl, ..._team }, ...membership }) => ({
       role: membership.role,
       accepted: membership.accepted,
       ..._team,
+      logo: logoUrl || logo,
       metadata: teamMetadataSchema.parse(_team.metadata),
       /** To prevent breaking we only return non-email attached token here, if we have one */
       inviteToken: inviteTokens.find((token) => token.identifier === `invite-link-for-teamId-${_team.id}`),

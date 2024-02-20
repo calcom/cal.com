@@ -53,8 +53,8 @@ export const adminUpdateHandler = async ({ input }: AdminUpdateOptions) => {
     });
   }
 
-  const updatedOrganisation = await prisma.$transaction(async (tx) => {
-    const updatedOrganisation = await tx.team.update({
+  const updatedOrganization = await prisma.$transaction(async (tx) => {
+    const updatedOrganization = await tx.team.update({
       where: { id },
       data,
     });
@@ -62,7 +62,7 @@ export const adminUpdateHandler = async ({ input }: AdminUpdateOptions) => {
     if (organizationSettings || existingOrg.organizationSettings) {
       await tx.organizationSettings.update({
         where: {
-          organizationId: updatedOrganisation.id,
+          organizationId: updatedOrganization.id,
         },
         data: {
           isOrganizationConfigured:
@@ -76,10 +76,10 @@ export const adminUpdateHandler = async ({ input }: AdminUpdateOptions) => {
         },
       });
     }
-    return updatedOrganisation;
+    return updatedOrganization;
   });
 
-  return updatedOrganisation;
+  return updatedOrganization;
 };
 
 export default adminUpdateHandler;

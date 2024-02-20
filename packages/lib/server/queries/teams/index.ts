@@ -88,6 +88,7 @@ export async function getTeamWithMembers(args: {
       slug: true,
       isOrganization: true,
       ...(!!includeTeamLogo ? { logo: true } : {}),
+      logoUrl: true,
       bio: true,
       hideBranding: true,
       hideBookATeamMember: true,
@@ -233,6 +234,7 @@ export async function getTeamWithMembers(args: {
 
   return {
     ...teamWithoutInviteTokens,
+    ...(teamWithoutInviteTokens.logoUrl ? { logo: teamWithoutInviteTokens.logoUrl } : {}),
     /** To prevent breaking we only return non-email attached token here, if we have one */
     inviteToken: inviteTokens.find(
       (token) =>
