@@ -315,6 +315,14 @@ export async function ensureAvailableUsers(
   loggerWithEventDetails: Logger<unknown>
 ) {
   const availableUsers: IsFixedAwareUser[] = [];
+  const getStartDateTimeUtc = (startDateTimeInput: string, timeZone?: string) => {
+    return timeZone === "Etc/GMT" ? dayjs.utc(startDateTimeInput) : dayjs(startDateTimeInput).tz(timeZone).utc();
+  };
+
+  const startDateTimeUtc = getStartDateTimeUtc(input.dateFrom, input.timeZone);
+  const endDateTimeUtc =
+    input.timeZone === "Etc/GMT" ? dayjs.utc(input.dateTo) : dayjs(input.dateTo).tz(input.timeZone).utc();
+
   const duration = dayjs(input.dateTo).diff(input.dateFrom, "minute");
   const originalBookingDuration = input.originalRescheduledBooking
     ? dayjs(input.originalRescheduledBooking.endTime).diff(
@@ -331,8 +339,8 @@ export async function ensureAvailableUsers(
     busyTimesFromLimitsBookingsAllUsers = await getBusyTimesForLimitChecks({
       userIds: eventType.users.map((u) => u.id),
       eventTypeId: eventType.id,
-      startDate: input.dateFrom,
-      endDate: input.dateTo,
+      startDate: startDateTimeUtc.format(),
+      endDate: endDateTimeUtc.format(),
       rescheduleUid: input.originalRescheduledBooking?.uid ?? null,
       bookingLimits,
       durationLimits,
@@ -343,11 +351,13 @@ export async function ensureAvailableUsers(
   for (const user of eventType.users) {
     const { dateRanges, busy: bufferedBusyTimes } = await getUserAvailability(
       {
+        ...input,
         userId: user.id,
         eventTypeId: eventType.id,
         duration: originalBookingDuration,
         returnDateOverrides: false,
-        ...input,
+        dateFrom: startDateTimeUtc.format(),
+        dateTo: endDateTimeUtc.format(),
       },
       {
         user,
@@ -374,9 +384,8 @@ export async function ensureAvailableUsers(
     //check if event time is within the date range
     for (const dateRange of dateRanges) {
       if (
-        (dayjs.utc(input.dateFrom).isAfter(dateRange.start) ||
-          dayjs.utc(input.dateFrom).isSame(dateRange.start)) &&
-        (dayjs.utc(input.dateTo).isBefore(dateRange.end) || dayjs.utc(input.dateTo).isSame(dateRange.end))
+        (startDateTimeUtc.isAfter(dateRange.start) || startDateTimeUtc.isSame(dateRange.start)) &&
+        (endDateTimeUtc.isBefore(dateRange.end) || endDateTimeUtc.isSame(dateRange.end))
       ) {
         dateRangeForBooking = true;
         break;
@@ -388,7 +397,7 @@ export async function ensureAvailableUsers(
     }
 
     try {
-      foundConflict = checkForConflicts(bufferedBusyTimes, input.dateFrom, duration);
+      foundConflict = checkForConflicts(bufferedBusyTimes, startDateTimeUtc, duration);
     } catch {
       log.debug({
         message: "Unable set isAvailableToBeBooked. Using true. ",
