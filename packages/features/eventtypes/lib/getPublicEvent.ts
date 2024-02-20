@@ -163,7 +163,10 @@ export const getPublicEvent = async (
         username: users[0].username,
         name: users[0].name,
         weekStart: users[0].weekStart,
-        image: `/${users[0].username}/avatar.png`,
+        image: getUserAvatarUrl({
+          ...user,
+          profile: user.profile,
+        }),
         brandColor: users[0].brandColor,
         darkBrandColor: users[0].darkBrandColor,
         theme: null,
