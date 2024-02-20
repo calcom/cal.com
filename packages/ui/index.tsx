@@ -183,3 +183,4 @@ export {
 export { Popover, PopoverContent, PopoverTrigger } from "./components/popover";
 
 export { StorybookTrpcProvider } from "./components/mocks/trpc";
+export { default as Icon } from "./components/icon/LazyIcon";
