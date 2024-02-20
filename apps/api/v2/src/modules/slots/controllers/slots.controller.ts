@@ -1,6 +1,4 @@
 import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
-import { RemoveSelectedSlotInput } from "@/modules/slots/inputs/remove-selected-slot.input";
-import { ReserveSlotInput } from "@/modules/slots/inputs/reserve-slot.input";
 import { SlotsService } from "@/modules/slots/services/slots.service";
 import { Query, Body, Controller, Get, Delete, Post, Req, Res, UseGuards } from "@nestjs/common";
 import { Response as ExpressResponse, Request as ExpressRequest } from "express";
@@ -8,6 +6,7 @@ import { Response as ExpressResponse, Request as ExpressRequest } from "express"
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { getAvailableSlots } from "@calcom/platform-libraries";
 import type { AvailableSlotsType } from "@calcom/platform-libraries";
+import { RemoveSelectedSlotInput, ReserveSlotInput } from "@calcom/platform-types";
 import { ApiResponse, GetAvailableSlotsInput } from "@calcom/platform-types";
 
 @Controller({

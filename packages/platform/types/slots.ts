@@ -1,4 +1,13 @@
-import { IsArray, IsBoolean, IsDateString, IsNumber, IsOptional, IsString } from "class-validator";
+import {
+  IsArray,
+  IsBoolean,
+  IsDateString,
+  IsInt,
+  IsNumber,
+  IsOptional,
+  IsString,
+  IsDate,
+} from "class-validator";
 
 export class GetAvailableSlotsInput {
   @IsDateString()
@@ -22,4 +31,25 @@ export class GetAvailableSlotsInput {
   @IsNumber()
   @IsOptional()
   duration?: number;
+}
+
+export class RemoveSelectedSlotInput {
+  @IsString()
+  @IsOptional()
+  uid?: string;
+}
+
+export class ReserveSlotInput {
+  @IsInt()
+  eventTypeId!: number;
+
+  @IsDate()
+  slotUtcStartDate!: string;
+
+  @IsDate()
+  slotUtcEndDate!: string;
+
+  @IsString()
+  @IsOptional()
+  bookingUid?: string;
 }
