@@ -124,8 +124,8 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata }: IUseBo
           duration: validDuration,
           organizer: {
             name: users?.[0].name || "Nameless",
-            email: responseData?.userPrimaryEmail || users?.[0]?.email || "Email-less",
-            timeZone: users?.[0]?.timeZone,
+            email: responseData?.userPrimaryEmail || responseData.user?.email || "Email-less",
+            timeZone: responseData.user?.timeZone || "Europe/London",
           },
           confirmed: !(responseData.status === BookingStatus.PENDING && event.data?.requiresConfirmation),
         });
@@ -137,8 +137,8 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata }: IUseBo
           duration: validDuration,
           organizer: {
             name: users?.[0].name || "Nameless",
-            email: responseData?.userPrimaryEmail || users?.[0]?.email || "Email-less",
-            timeZone: users?.[0]?.timeZone,
+            email: responseData?.userPrimaryEmail || responseData.user?.email || "Email-less",
+            timeZone: responseData.user?.timeZone || "Europe/London",
           },
           confirmed: !(responseData.status === BookingStatus.PENDING && event.data?.requiresConfirmation),
         });
