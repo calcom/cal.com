@@ -132,7 +132,8 @@ const tabs: VerticalTabItemProps[] = [
 tabs.find((tab) => {
   if (tab.name === "security" && !HOSTED_CAL_FEATURES) {
     tab.children?.push({ name: "sso_configuration", href: "/settings/security/sso" });
-    tab.children?.push({ name: "directory_sync", href: "/settings/security/dsync" });
+    // TODO: Enable dsync for self hosters
+    // tab.children?.push({ name: "directory_sync", href: "/settings/security/dsync" });
   }
 });
 
