@@ -4,6 +4,7 @@ import prismock from "../../../../tests/libs/__mocks__/prisma";
 import { diff } from "jest-diff";
 import { describe, expect, vi, beforeEach, afterEach, test } from "vitest";
 
+import { appStoreMetadata } from "@calcom/app-store/bookerApps.metadata.generated";
 import dayjs from "@calcom/dayjs";
 import type { BookingStatus } from "@calcom/prisma/enums";
 import type { Slot } from "@calcom/trpc/server/routers/viewer/slots/types";
@@ -662,6 +663,163 @@ describe("getSchedule", () => {
           // `08:00:00.000Z`, // - 8 AM is not available because of beforeBuffer(120mins) of possible booking at 08:00
           `10:00:00.000Z`,
           `12:00:00.000Z`,
+        ],
+        {
+          dateString: plus2DateString,
+        }
+      );
+    });
+
+    test("afterBuffer and beforeBuffer tests for seated event - Non Cal Busy Time", async () => {
+      const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
+      const { dateString: plus3DateString } = getDate({ dateIncrement: 3 });
+
+      CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue([
+        {
+          start: `${plus3DateString}T04:30:00.000Z`, // 10AM IST
+          end: `${plus3DateString}T06:29:59.000Z`, // 12 PM IST
+        },
+      ]);
+
+      const scenarioData = {
+        eventTypes: [
+          {
+            id: 1,
+            length: 120,
+            beforeEventBuffer: 120,
+            afterEventBuffer: 120,
+            seatsPerTimeSlot: 2,
+            users: [
+              {
+                id: 101,
+              },
+            ],
+          },
+        ],
+        users: [
+          {
+            ...TestData.users.example,
+            id: 101,
+            schedules: [TestData.schedules.IstWorkHours],
+            credentials: [getGoogleCalendarCredential()],
+            selectedCalendars: [TestData.selectedCalendars.google],
+          },
+        ],
+        apps: [TestData.apps.googleCalendar],
+      };
+
+      await createBookingScenario(scenarioData);
+
+      const scheduleForEventOnADayWithNonCalBooking = await getSchedule({
+        input: {
+          eventTypeId: 1,
+          eventTypeSlug: "",
+          startTime: `${plus2DateString}T18:30:00.000Z`, // 0 AM IST - Day 3
+          endTime: `${plus3DateString}T18:29:59.999Z`, // 11:59 PM IST - Day 2
+          timeZone: Timezones["+5:30"],
+          isTeamEvent: false,
+        },
+      });
+
+      expect(scheduleForEventOnADayWithNonCalBooking).toHaveTimeSlots(
+        [
+          // `04:00:00.000Z`  // - 4:00 Am (9:30AN IST) is not available because of not enought time for the event.
+          // `04:30:00.000Z`, // - 4:30 AM (10AM IST) is booked
+          // `06:30:00.000Z`, // - 6:30 AM (12PM IST) AM is not available because 08:30AM slot has a `beforeEventBuffer`
+          `08:30:00.000Z`, // - 8:30 AM is available because of availability of 06:30 - 08:29
+          `10:30:00.000Z`, // 10:30AM (4PM IST) is available
+          // `12:30:00.000Z`, // 10:30AM (6PM IST) is not available because of 9 - 5 working hours
+        ],
+        {
+          dateString: plus3DateString,
+        }
+      );
+    });
+
+    test("afterBuffer and beforeBuffer tests for seated event - Cal Busy Time", async () => {
+      const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+      const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
+      const { dateString: plus3DateString } = getDate({ dateIncrement: 3 });
+
+      CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue([
+        {
+          start: `${plus3DateString}T04:30:00.000Z`, // 10 AM IST
+          end: `${plus3DateString}T06:29:59.000Z`, // 12 PM IST
+        },
+      ]);
+
+      const scenarioData = {
+        eventTypes: [
+          {
+            id: 1,
+            length: 120,
+            beforeEventBuffer: 120,
+            afterEventBuffer: 120,
+            seatsPerTimeSlot: 2,
+            users: [
+              {
+                id: 101,
+              },
+            ],
+          },
+        ],
+        users: [
+          {
+            ...TestData.users.example,
+            id: 101,
+            schedules: [TestData.schedules.IstWorkHours],
+            credentials: [getGoogleCalendarCredential()],
+            selectedCalendars: [TestData.selectedCalendars.google],
+          },
+        ],
+        bookings: [
+          {
+            id: 1,
+            userId: 101,
+            eventTypeId: 1,
+            startTime: `${plus2DateString}T04:30:00.000Z`, // 10 AM IST
+            endTime: `${plus2DateString}T06:29:59.000Z`, // 12 PM IST
+            status: "ACCEPTED" as BookingStatus,
+            references: [
+              {
+                type: appStoreMetadata.dailyvideo.type,
+                uid: "MOCK_ID",
+                meetingId: "MOCK_ID",
+                meetingPassword: "MOCK_PASS",
+                meetingUrl: "http://mock-dailyvideo.example.com",
+                credentialId: null,
+              },
+            ],
+          },
+        ],
+        apps: [TestData.apps.googleCalendar],
+      };
+
+      await createBookingScenario(scenarioData);
+
+      const scheduleForEventOnADayWithCalBooking = await getSchedule({
+        input: {
+          eventTypeId: 1,
+          eventTypeSlug: "",
+          startTime: `${plus1DateString}T18:30:00.000Z`, // 0 AM IST - Day 2
+          endTime: `${plus2DateString}T18:29:59.999Z`, // 11:59 PM IST - Day 2
+          timeZone: Timezones["+5:30"],
+          isTeamEvent: false,
+        },
+      });
+      console.log(
+        "🚀 ~ test ~ scheduleForEventOnADayWithCalBooking.slots:",
+        scheduleForEventOnADayWithCalBooking.slots
+      );
+
+      expect(scheduleForEventOnADayWithCalBooking).toHaveTimeSlots(
+        [
+          // `04:00:00.000Z`, // - 4 AM AM (9:30AM IST)is not available because of beforeEventBuffer of the existing booking at 4:30 AM (10AM IST)
+          `04:30:00.000Z`, // - 4:30 AM (10AM IST) is booked but has 1 seat left
+          // `06:30:00.000Z`, // - 6:30 AM (12PM IST) is not available because of afterBuffer(120 mins) of the existing booking at 4:30 AM (10AM IST)
+          // `08:30:00.000Z`, // - 8:30 AM (2PM IST) is not available because of beforeBuffer(120mins) of possible booking at 10:30
+          `10:30:00.000Z`,
+          // `12:30:00.000Z`, // 10:30AM (6PM IST) is not available because of 9 - 5 working hours
         ],
         {
           dateString: plus2DateString,
