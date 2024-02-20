@@ -17,7 +17,7 @@ describe("processWorkingHours", () => {
     const dateFrom = dayjs.utc().startOf("day").day(2).add(1, "week");
     const dateTo = dayjs.utc().endOf("day").day(3).add(1, "week");
 
-    const results = processWorkingHours({ item, timeZone, dateFrom, dateTo });
+    const results = processWorkingHours({ item, timeZone, dateFrom, dateTo, travelSchedules: [] });
 
     expect(results.length).toBe(2); // There should be two working days between the range
     // "America/New_York" day shifts -1, so we need to add a day to correct this shift.
@@ -42,7 +42,7 @@ describe("processWorkingHours", () => {
     const dateFrom = dayjs().month(9).date(24); // starts before DST change
     const dateTo = dayjs().startOf("day").month(10).date(1); // first day of November
 
-    const results = processWorkingHours({ item, timeZone, dateFrom, dateTo });
+    const results = processWorkingHours({ item, timeZone, dateFrom, dateTo, travelSchedules: [] });
 
     const lastAvailableSlot = results[results.length - 1];
 
@@ -63,7 +63,7 @@ describe("processWorkingHours", () => {
     const dateFrom = dayjs();
     const dateTo = dayjs().endOf("month");
 
-    const results = processWorkingHours({ item, timeZone, dateFrom, dateTo });
+    const results = processWorkingHours({ item, timeZone, dateFrom, dateTo, travelSchedules: [] });
 
     expect(results).toStrictEqual([
       {
@@ -167,7 +167,7 @@ describe("processWorkingHours", () => {
     const dateFrom = dayjs().month(10).date(1).startOf("day");
     const dateTo = dayjs().month(10).endOf("month");
 
-    const results = processWorkingHours({ item, timeZone, dateFrom, dateTo });
+    const results = processWorkingHours({ item, timeZone, dateFrom, dateTo, travelSchedules: [] });
 
     const allDSTStartAt12 = results
       .filter((res) => res.start.isBefore(firstSundayOfNovember))
@@ -191,7 +191,7 @@ describe("processWorkingHours", () => {
     const dateFrom = dayjs("2023-11-07T00:00:00Z").tz(timeZone); // 2023-11-07T00:00:00 (America/New_York)
     const dateTo = dayjs("2023-11-08T00:00:00Z").tz(timeZone); // 2023-11-08T00:00:00 (America/New_York)
 
-    const results = processWorkingHours({ item, timeZone, dateFrom, dateTo });
+    const results = processWorkingHours({ item, timeZone, dateFrom, dateTo, travelSchedules: [] });
 
     expect(results).toEqual([]);
   });
@@ -207,7 +207,7 @@ describe("processWorkingHours", () => {
     const dateFrom = dayjs("2023-11-07T00:00:00Z").tz(timeZone); // 2023-11-07T00:00:00 (America/New_York)
     const dateTo = dayjs("2023-11-07T23:59:59Z").tz(timeZone); // 2023-11-07T23:59:59 (America/New_York)
 
-    const results = processWorkingHours({ item, timeZone, dateFrom, dateTo });
+    const results = processWorkingHours({ item, timeZone, dateFrom, dateTo, travelSchedules: [] });
 
     expect(results).toEqual([]);
   });
@@ -224,7 +224,12 @@ describe("processDateOverrides", () => {
     // 2023-06-12T20:00:00-04:00 (America/New_York)
     const timeZone = "America/New_York";
 
-    const result = processDateOverride({ item, itemDateAsUtc: dayjs.utc(item.date), timeZone });
+    const result = processDateOverride({
+      item,
+      itemDateAsUtc: dayjs.utc(item.date),
+      timeZone,
+      travelSchedules: [],
+    });
 
     expect(result.start.format()).toEqual(dayjs("2023-06-12T12:00:00Z").tz(timeZone).format());
     expect(result.end.format()).toEqual(dayjs("2023-06-12T21:00:00Z").tz(timeZone).format());
@@ -251,7 +256,7 @@ describe("buildDateRanges", () => {
 
     const timeZone = "America/New_York";
     //add tarvelScheduels
-    const results = buildDateRanges({ availability: items, timeZone, dateFrom, dateTo });
+    const results = buildDateRanges({ availability: items, timeZone, dateFrom, dateTo, travelSchedules: [] });
     // [
     //  { s: '2023-06-13T10:00:00-04:00', e: '2023-06-13T15:00:00-04:00' },
     //  { s: '2023-06-14T08:00:00-04:00', e: '2023-06-14T17:00:00-04:00' }
@@ -289,7 +294,7 @@ describe("buildDateRanges", () => {
     const dateTo = dayjs.tz("2023-08-15", "Europe/Brussels").endOf("day");
     //add tarvelScheduels
 
-    const result = buildDateRanges({ availability: item, timeZone, dateFrom, dateTo });
+    const result = buildDateRanges({ availability: item, timeZone, dateFrom, dateTo, travelSchedules: [] });
     // this happened only on Europe/Brussels, Europe/Amsterdam was 2023-08-15T17:00:00-10:00 (as it should be)
     expect(result[0].end.format()).not.toBe("2023-08-14T17:00:00-10:00");
   });
@@ -312,7 +317,7 @@ describe("buildDateRanges", () => {
     const dateTo = dayjs("2023-06-15T00:00:00Z");
     //add tarvelScheduels
 
-    const results = buildDateRanges({ availability: items, timeZone, dateFrom, dateTo });
+    const results = buildDateRanges({ availability: items, timeZone, dateFrom, dateTo, travelSchedules: [] });
 
     expect(results[0]).toEqual({
       start: dayjs("2023-06-14T07:00:00Z").tz(timeZone),
@@ -333,7 +338,7 @@ describe("buildDateRanges", () => {
     const dateTo = dayjs("2023-06-13T10:30:00Z");
     //add tarvelScheduels
 
-    const results = buildDateRanges({ availability: items, timeZone, dateFrom, dateTo });
+    const results = buildDateRanges({ availability: items, timeZone, dateFrom, dateTo, travelSchedules: [] });
 
     expect(results[0]).toEqual({
       start: dayjs("2023-06-13T08:00:00Z").tz(timeZone),
@@ -359,7 +364,7 @@ describe("buildDateRanges", () => {
     const dateTo = dayjs("2023-06-15T00:00:00Z");
     //add tarvelScheduels
 
-    const results = buildDateRanges({ availability: items, timeZone, dateFrom, dateTo });
+    const results = buildDateRanges({ availability: items, timeZone, dateFrom, dateTo, travelSchedules: [] });
 
     expect(results[0]).toEqual({
       start: dayjs("2023-06-14T02:00:00Z").tz(timeZone),
