@@ -23,7 +23,7 @@ export const bootstrap = (app: NestExpressApplication): NestExpressApplication =
 
   app.enableCors({
     origin: "*",
-    methods: ["GET", "HEAD", "POST", "PUT", "OPTIONS"],
+    methods: ["GET", "PATCH", "DELETE", "HEAD", "POST", "PUT", "OPTIONS"],
     allowedHeaders: ["Accept", "Authorization", "Content-Type", "Origin"],
     maxAge: 86_400,
   });
@@ -60,7 +60,6 @@ export const bootstrap = (app: NestExpressApplication): NestExpressApplication =
   });
 
   app.use(cookieParser());
-  app.enableCors();
 
   return app;
 };
