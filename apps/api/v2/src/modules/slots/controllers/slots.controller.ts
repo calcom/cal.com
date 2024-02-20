@@ -34,10 +34,10 @@ export class SlotsController {
 
   @Delete("/selected-slot")
   async deleteSelectedSlot(
-    @Body() body: RemoveSelectedSlotInput,
+    @Query() params: RemoveSelectedSlotInput,
     @Req() req: ExpressRequest
   ): Promise<ApiResponse> {
-    const uid = req.cookies?.uid || body.uid;
+    const uid = req.cookies?.uid || params.uid;
 
     await this.slotsService.deleteSelectedslot(uid);
 
