@@ -22,7 +22,7 @@ const DirectorySync = () => {
   return (
     <div className="bg-default w-full sm:mx-0 xl:mt-0">
       <Meta title={t("directory_sync")} description={t("directory_sync_description")} />
-      {!HOSTED_CAL_FEATURES && <ConfigureDirectorySync teamId={null} />}
+      {!HOSTED_CAL_FEATURES && <ConfigureDirectorySync orgId={null} />}
     </div>
   );
 };

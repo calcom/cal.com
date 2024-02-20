@@ -5,7 +5,7 @@ import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import { trpc } from "@calcom/trpc/react";
-import { Meta, showToast, SkeletonLoader } from "@calcom/ui";
+import { Meta, SkeletonLoader } from "@calcom/ui";
 
 import { getLayout } from "../../../settings/layouts/SettingsLayout";
 import ConfigureDirectorySync from "../components/ConfigureDirectorySync";
@@ -18,16 +18,7 @@ const DirectorySync = () => {
 
   const teamId = Number(params.id);
 
-  const {
-    data: currentOrg,
-    isLoading,
-    isPending,
-    error,
-  } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {
-    onError: (err) => {
-      showToast(err.message, "error");
-    },
-  });
+  const { data: currentOrg, isLoading, isPending, error } = trpc.viewer.organizations.listCurrent.useQuery();
 
   useEffect(() => {
     if (!HOSTED_CAL_FEATURES) {
@@ -41,6 +32,10 @@ const DirectorySync = () => {
 
   if (!currentOrg) {
     router.push("/404");
+  }
+
+  if (error) {
+    showToast(error.message, "error");
   }
 
   return (
