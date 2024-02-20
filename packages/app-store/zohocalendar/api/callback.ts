@@ -106,7 +106,13 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
       if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
         // it is possible a selectedCalendar was orphaned, in this situation-
         // we want to recover by connecting the existing selectedCalendar to the new Credential.
-        if (await renewSelectedCalendarCredentialId(selectedCalendarWhereUnique, credential.id)) return;
+        if (await renewSelectedCalendarCredentialId(selectedCalendarWhereUnique, credential.id)) {
+          res.redirect(
+            getSafeRedirectUrl(state?.returnTo) ??
+              getInstalledAppPath({ variant: "calendar", slug: config.slug })
+          );
+          return;
+        }
         // else
         errorMessage = "account_already_linked";
       }
