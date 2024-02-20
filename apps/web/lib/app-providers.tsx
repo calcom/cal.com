@@ -212,8 +212,6 @@ function getThemeProviderProps({
     ? ThemeSupport.None
     : ThemeSupport.App;
 
-  console.log({ themeSupport, isBookingPage });
-
   const isBookingPageThemeSupportRequired = themeSupport === ThemeSupport.Booking;
   const themeBasis = props.themeBasis;
 
@@ -286,8 +284,6 @@ const AppProviders = (props: AppPropsWithChildren) => {
     },
     ...rest,
   };
-
-  console.log("IS BOOKING PAGE", props.Component.isBookingPage);
 
   const RemainingProviders = (
     <EventCollectionProvider options={{ apiPath: "/api/collect-events" }}>
