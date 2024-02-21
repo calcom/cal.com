@@ -25,6 +25,18 @@ import {
 } from "@calcom/prisma/zod-utils";
 import type { UserProfile } from "@calcom/types/UserProfile";
 
+const userSelect = {
+  id: true,
+  avatarUrl: true,
+  username: true,
+  name: true,
+  weekStart: true,
+  brandColor: true,
+  darkBrandColor: true,
+  theme: true,
+  metadata: true,
+};
+
 const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   id: true,
   title: true,
@@ -78,32 +90,12 @@ const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   hosts: {
     select: {
       user: {
-        select: {
-          id: true,
-          avatarUrl: true,
-          username: true,
-          name: true,
-          weekStart: true,
-          brandColor: true,
-          darkBrandColor: true,
-          theme: true,
-          metadata: true,
-        },
+        select: userSelect,
       },
     },
   },
   owner: {
-    select: {
-      id: true,
-      avatarUrl: true,
-      weekStart: true,
-      username: true,
-      name: true,
-      theme: true,
-      metadata: true,
-      brandColor: true,
-      darkBrandColor: true,
-    },
+    select: userSelect,
   },
   hidden: true,
   assignAllTeamMembers: true,
