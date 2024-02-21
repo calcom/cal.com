@@ -6,7 +6,7 @@ import { RRule } from "rrule";
 
 import { MeetLocationType } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
-import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
+import { getFeatureFlag } from "@calcom/features/flags/server/utils";
 import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
 import type CalendarService from "@calcom/lib/CalendarService";
 import logger from "@calcom/lib/logger";
@@ -461,10 +461,10 @@ export default class GoogleCalendarService implements Calendar {
     items: { id: string }[];
   }): Promise<EventBusyDate[] | null> {
     const calendar = await this.authedCalendar();
-    const flags = await getFeatureFlagMap(prisma);
+    const calendarCacheEnabled = await getFeatureFlag(prisma, "calendar-cache");
 
     let freeBusyResult: calendar_v3.Schema$FreeBusyResponse = {};
-    if (!flags["calendar-cache"]) {
+    if (!calendarCacheEnabled) {
       this.log.warn("Calendar Cache is disabled - Skipping");
       const { timeMin, timeMax, items } = args;
       const apires = await calendar.freebusy.query({
