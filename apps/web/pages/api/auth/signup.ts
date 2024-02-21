@@ -36,6 +36,7 @@ function ensureReqIsPost(req: RequestWithUsernameStatus) {
 }
 
 export default async function handler(req: RequestWithUsernameStatus, res: NextApiResponse) {
+  console.log(req.body);
   // Use a try catch instead of returning res every time
   try {
     ensureReqIsPost(req);
