@@ -1289,7 +1289,7 @@ async function handler(
       }
       // Pushing fixed user before the luckyUser guarantees the (first) fixed user as the organizer.
       users = [...availableUsers.filter((user) => user.isFixed), ...luckyUsers];
-      luckyUserResponse = { luckyUsers };
+      luckyUserResponse = { luckyUsers: luckyUsers.map((u) => u.id) };
     } else if (req.body.allRecurringDates && eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
       // all recurring slots except the first one
       const luckyUsersFromFirstBooking = luckyUsers
@@ -1582,13 +1582,6 @@ async function handler(
           ...newBooking.user,
           email: null,
         },
-      };
-
-      luckyUserResponse = {
-        luckyUsers: luckyUserResponse.luckyUsers.map((u) => ({
-          ...u,
-          email: null,
-        })),
       };
 
       return {
@@ -2198,13 +2191,6 @@ async function handler(
       },
     };
 
-    luckyUserResponse = {
-      luckyUsers: luckyUserResponse.luckyUsers.map((u) => ({
-        ...u,
-        email: null,
-      })),
-    };
-
     return {
       ...bookingReponse,
       ...luckyUserResponse,
@@ -2343,13 +2329,6 @@ async function handler(
       ...booking.user,
       email: null,
     },
-  };
-
-  luckyUserResponse = {
-    luckyUsers: luckyUserResponse.luckyUsers.map((u) => ({
-      ...u,
-      email: null,
-    })),
   };
 
   return {
