@@ -72,7 +72,7 @@ export default class BaseEmail {
         `subject: ${"subject" in payloadWithUnEscapedSubject ? payloadWithUnEscapedSubject.subject : ""}`,
         e
       )
-    ); //her is error printed and thrown
+    );
     return new Promise((resolve) => resolve("send mail async"));
   }
   protected getMailerOptions() {
