@@ -1576,7 +1576,25 @@ async function handler(
     });
     if (newBooking) {
       req.statusCode = 201;
-      return { ...newBooking, ...luckyUserResponse };
+      const bookingResponse = {
+        ...newBooking,
+        user: {
+          ...newBooking.user,
+          email: null,
+        },
+      };
+
+      luckyUserResponse = {
+        luckyUsers: luckyUserResponse.luckyUsers.map((u) => ({
+          ...u,
+          email: null,
+        })),
+      };
+
+      return {
+        ...bookingResponse,
+        ...luckyUserResponse,
+      };
     }
   }
   if (isTeamEventType) {
@@ -2172,15 +2190,23 @@ async function handler(
     req.statusCode = 201;
     // TODO: Refactor better so this booking object is not passed
     // all around and instead the individual fields are sent as args.
-    const bookingToReturn = {
+    const bookingReponse = {
       ...booking,
       user: {
         ...booking.user,
         email: null,
       },
     };
+
+    luckyUserResponse = {
+      luckyUsers: luckyUserResponse.luckyUsers.map((u) => ({
+        ...u,
+        email: null,
+      })),
+    };
+
     return {
-      ...bookingToReturn,
+      ...bookingReponse,
       ...luckyUserResponse,
       message: "Payment required",
       paymentUid: payment?.uid,
@@ -2311,7 +2337,7 @@ async function handler(
 
   // TODO: Refactor better so this booking object is not passed
   // all around and instead the individual fields are sent as args.
-  const bookingToReturn = {
+  const bookingResponse = {
     ...booking,
     user: {
       ...booking.user,
@@ -2319,8 +2345,15 @@ async function handler(
     },
   };
 
+  luckyUserResponse = {
+    luckyUsers: luckyUserResponse.luckyUsers.map((u) => ({
+      ...u,
+      email: null,
+    })),
+  };
+
   return {
-    ...bookingToReturn,
+    ...bookingResponse,
     ...luckyUserResponse,
     references: referencesToCreate,
     seatReferenceUid: evt.attendeeSeatId,
