@@ -52,6 +52,7 @@ export const ScheduleDay = <TFieldValues extends FieldValues>({
   disabled,
   labels,
   userTimeFormat,
+  className,
 }: {
   name: ArrayPath<TFieldValues>;
   weekday: string;
@@ -60,15 +61,31 @@ export const ScheduleDay = <TFieldValues extends FieldValues>({
   disabled?: boolean;
   labels?: ScheduleLabelsType;
   userTimeFormat: number | null;
+  className?: {
+    scheduleDay?: string;
+    dayRanges?: string;
+    timeRangeField?: string;
+    labelAndSwitchContainer?: string;
+  };
 }) => {
   const { watch, setValue } = useFormContext();
   const watchDayRange = watch(name);
 
   return (
     // add classnames prop for this outer div as schedule day classnames or sum
-    <div className="mb-4 flex w-full flex-col gap-4 last:mb-0 sm:flex-row sm:px-0" data-testid={weekday}>
+    // border here
+    <div
+      className={classNames(
+        "mb-4 flex w-full flex-col gap-4 last:mb-0 sm:flex-row sm:px-0",
+        className?.scheduleDay
+      )}
+      data-testid={weekday}>
       {/* Label & switch container */}
-      <div className="flex h-[36px] items-center justify-between sm:w-32">
+      <div
+        className={classNames(
+          "flex h-[36px] items-center justify-between sm:w-32",
+          className?.labelAndSwitchContainer
+        )}>
         <div>
           <label className="text-default flex flex-row items-center space-x-2 rtl:space-x-reverse">
             <div>
@@ -94,6 +111,10 @@ export const ScheduleDay = <TFieldValues extends FieldValues>({
               control={control}
               name={name}
               disabled={disabled}
+              className={{
+                dayRanges: className?.dayRanges,
+                timeRangeField: className?.timeRangeField,
+              }}
             />
             {!!watchDayRange.length && !disabled && <div className="block">{CopyButton}</div>}
           </div>
@@ -176,6 +197,7 @@ export const ScheduleComponent = <
   weekStart = 0,
   labels,
   userTimeFormat,
+  className,
 }: {
   name: TPath;
   control: Control<TFieldValues>;
@@ -183,17 +205,30 @@ export const ScheduleComponent = <
   disabled?: boolean;
   labels?: ScheduleLabelsType;
   userTimeFormat: number | null;
+  className?: {
+    schedule?: string;
+    scheduleDay?: string;
+    dayRanges?: string;
+    timeRanges?: string;
+    labelAndSwitchContainer?: string;
+  };
 }) => {
   const { i18n } = useLocale();
 
   return (
-    <div className="p-4">
+    <div className={classNames("p-4", className?.schedule)}>
       {/* First iterate for each day */}
       {weekdayNames(i18n.language, weekStart, "long").map((weekday, num) => {
         const weekdayIndex = (num + weekStart) % 7;
         const dayRangeName = `${name}.${weekdayIndex}` as ArrayPath<TFieldValues>;
         return (
           <ScheduleDay
+            className={{
+              scheduleDay: className?.scheduleDay,
+              dayRanges: className?.dayRanges,
+              timeRangeField: className?.timeRanges,
+              labelAndSwitchContainer: className?.labelAndSwitchContainer,
+            }}
             userTimeFormat={userTimeFormat}
             labels={labels}
             disabled={disabled}
@@ -218,12 +253,17 @@ export const DayRanges = <TFieldValues extends FieldValues>({
   control,
   labels,
   userTimeFormat,
+  className,
 }: {
   name: ArrayPath<TFieldValues>;
   control?: Control<TFieldValues>;
   disabled?: boolean;
   labels?: ScheduleLabelsType;
   userTimeFormat: number | null;
+  className?: {
+    dayRanges?: string;
+    timeRangeField?: string;
+  };
 }) => {
   const { t } = useLocale();
   const { getValues } = useFormContext();
@@ -234,14 +274,18 @@ export const DayRanges = <TFieldValues extends FieldValues>({
   });
 
   return (
-    <div>
+    <div className={classNames("", className?.dayRanges)}>
       {fields.map((field, index: number) => (
         <Fragment key={field.id}>
           <div className="mb-2 flex last:mb-0">
             <Controller
               name={`${name}.${index}`}
               render={({ field }) => (
-                <TimeRangeField className="gap-3" userTimeFormat={userTimeFormat} {...field} />
+                <TimeRangeField
+                  className={className?.timeRangeField}
+                  userTimeFormat={userTimeFormat}
+                  {...field}
+                />
               )}
             />
             {index === 0 && (
