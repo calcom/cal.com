@@ -52,7 +52,7 @@ export type EventDataMap = {
     organizer: {
       name: string;
       email: string;
-      timeZone: string | undefined;
+      timeZone?: string | undefined;
     };
     eventType: unknown;
   };
