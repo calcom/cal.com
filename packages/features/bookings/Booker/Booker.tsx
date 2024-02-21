@@ -358,7 +358,6 @@ const BookerComponent = ({
                 event={event}
               />
             </BookerSection>
-
             <BookerSection
               key="timeslots"
               area={{ default: "main", month_view: "timeslots" }}
@@ -381,7 +380,6 @@ const BookerComponent = ({
                 isLoading={schedule.isPending}
                 seatsPerTimeSlot={event.data?.seatsPerTimeSlot}
                 showAvailableSeatsCount={event.data?.seatsShowAvailabilityCount}
-                datesOutOfOffice={schedule?.data?.datesOutOfOffice}
               />
             </BookerSection>
           </AnimatePresence>

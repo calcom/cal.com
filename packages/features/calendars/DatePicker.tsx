@@ -172,13 +172,19 @@ const Days = ({
 
   const daysToRenderForTheMonth = days.map((day) => {
     if (!day) return { day: null, disabled: true };
-    const disabled =
-      (includedDates && !includedDates.includes(yyyymmdd(day))) || excludedDates.includes(yyyymmdd(day));
-    const away = datesOutOfOffice?.hasOwnProperty(yyyymmdd(day));
+    const dateKey = yyyymmdd(day);
+    const oooInfo = datesOutOfOffice?.[dateKey];
+
+    const included = includedDates?.includes(dateKey);
+    const excluded = excludedDates.includes(dateKey);
+
+    const away = !!oooInfo;
+
+    const disabled = away ? oooInfo?.toUser === null : !included || excluded;
+
     return {
       day: day,
-      /** if away is true disabled should be false */
-      disabled: disabled && !away,
+      disabled,
       away,
     };
   });

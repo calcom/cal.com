@@ -2,18 +2,20 @@ import type { IOutOfOfficeData } from "@calcom/core/getUserAvailability";
 import { Button } from "@calcom/ui";
 
 interface IOutOfOfficeInSlotsProps {
-  fromUser: IOutOfOfficeData["anyDate"]["user"];
+  fromUser?: IOutOfOfficeData["anyDate"]["user"];
   returnDate: string;
   toUser?: IOutOfOfficeData["anyDate"]["toUser"];
+  emojiStatus?: string;
 }
 
 export const OutOfOfficeInSlots = (props: IOutOfOfficeInSlotsProps) => {
-  const { fromUser, returnDate, toUser } = props;
+  const { fromUser, returnDate, toUser, emojiStatus = "🏝️" } = props;
+
   if (!fromUser || !returnDate) return null;
   return (
     <div className="mx-1 my-6 flex flex-col items-center justify-center rounded-md border border-dashed px-6 py-6">
       <div className="flex h-14 w-14 flex-col items-center justify-center rounded-full bg-gray-400 text-center text-2xl">
-        🏝️
+        {emojiStatus}
       </div>
       <div className="space-y-2 text-center">
         <h1 className="text-md mt-2 font-bold">{fromUser.displayName} is OOO</h1>

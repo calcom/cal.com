@@ -651,12 +651,12 @@ interface GetUserAvailabilityParamsDTO {
   availability: (DateOverride | WorkingHours)[];
 }
 
-interface FromUser {
+export interface IFromUser {
   id: number;
   displayName: string | null;
 }
 
-interface ToUser {
+export interface IToUser {
   id: number;
   username: string | null;
   displayName: string | null;
@@ -664,8 +664,8 @@ interface ToUser {
 
 export interface IOutOfOfficeData {
   [key: string]: {
-    user: FromUser;
-    toUser?: ToUser | null;
+    user: IFromUser | null;
+    toUser?: IToUser | null;
   };
 }
 
