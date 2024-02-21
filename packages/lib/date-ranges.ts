@@ -77,11 +77,19 @@ export function processDateOverride({
     .second(0)
     .tz(timeZone, true);
 
-  const endDate = itemDateStartOfDay
-    .add(item.endTime.getUTCHours(), "hours")
-    .add(item.endTime.getUTCMinutes(), "minutes")
-    .second(0)
-    .tz(timeZone, true);
+  let endDate = itemDateStartOfDay;
+  const endTimeHours = item.endTime.getUTCHours();
+  const endTimeMinutes = item.endTime.getUTCMinutes();
+
+  if (endTimeHours === 23 && endTimeMinutes === 59) {
+    endDate = endDate.add(1, "day").tz(timeZone, true);
+  } else {
+    endDate = itemDateStartOfDay
+      .add(endTimeHours, "hours")
+      .add(endTimeMinutes, "minutes")
+      .second(0)
+      .tz(timeZone, true);
+  }
 
   return {
     start: startDate,
@@ -116,7 +124,19 @@ export function buildDateRanges({
     availability.reduce((processed: DateRange[], item) => {
       if ("date" in item && !!item.date) {
         const itemDateAsUtc = dayjs.utc(item.date);
-        if (itemDateAsUtc.isBetween(dateFrom.startOf("day"), dateTo.endOf("day"), null, "[]")) {
+        // TODO: Remove the .subtract(1, "day") and .add(1, "day") part and
+        // refactor this to actually work with correct dates.
+        // As of 2024-02-20, there are mismatches between local and UTC dates for overrides
+        // and the dateFrom and dateTo fields, resulting in this if not returning true, which
+        // results in "no available users found" errors.
+        if (
+          itemDateAsUtc.isBetween(
+            dateFrom.subtract(1, "day").startOf("day"),
+            dateTo.add(1, "day").endOf("day"),
+            null,
+            "[]"
+          )
+        ) {
           processed.push(processDateOverride({ item, itemDateAsUtc, timeZone }));
         }
       }
