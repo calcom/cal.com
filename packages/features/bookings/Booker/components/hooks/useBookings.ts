@@ -1,5 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useRef, useState, useEffect } from "react";
 
 import { createPaymentLink } from "@calcom/app-store/stripepayment/lib/client";
@@ -18,17 +18,17 @@ import {
 import { getFullName } from "@calcom/features/form-builder/utils";
 import { useBookingSuccessRedirect } from "@calcom/lib/bookingSuccessRedirect";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc";
 import { showToast } from "@calcom/ui";
 
-import type { useBookingFormReturnType } from "./useBookingForm";
+import type { UseBookingFormReturnType } from "./useBookingForm";
 
 export interface IUseBookings {
   event: useEventReturnType;
   hashedLink?: string | null;
-  bookingForm: useBookingFormReturnType["bookingForm"];
+  bookingForm: UseBookingFormReturnType["bookingForm"];
+  metadata: Record<string, string>;
 }
 
 export interface IUseBookingLoadingStates {
@@ -41,8 +41,9 @@ export interface IUseBookingErrors {
   hasDataErrors: boolean;
   dataErrors: unknown;
 }
+export type UseBookingsReturnType = ReturnType<typeof useBookings>;
 
-export const useBookings = ({ event, hashedLink, bookingForm }: IUseBookings) => {
+export const useBookings = ({ event, hashedLink, bookingForm, metadata }: IUseBookings) => {
   const router = useRouter();
   const eventSlug = useBookerStore((state) => state.eventSlug);
   const setFormValues = useBookerStore((state) => state.setFormValues);
@@ -59,8 +60,6 @@ export const useBookings = ({ event, hashedLink, bookingForm }: IUseBookings) =>
   const duration = useBookerStore((state) => state.selectedDuration);
   const { timezone } = useTimePreferences();
   const username = useBookerStore((state) => state.username);
-  const routerQuery = useRouterQuery();
-  const searchParams = useSearchParams();
 
   const isRescheduling = !!rescheduleUid && !!bookingData;
 
@@ -220,15 +219,7 @@ export const useBookings = ({ event, hashedLink, bookingForm }: IUseBookings) =>
         rescheduleUid: rescheduleUid || undefined,
         bookingUid: (bookingData && bookingData.uid) || seatedEventData?.bookingUid || undefined,
         username: username || "",
-        metadata: Object.keys(routerQuery)
-          .filter((key) => key.startsWith("metadata"))
-          .reduce(
-            (metadata, key) => ({
-              ...metadata,
-              [key.substring("metadata[".length, key.length - 1)]: searchParams?.get(key),
-            }),
-            {}
-          ),
+        metadata: metadata,
         hashedLink,
       };
 

@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/package.json",
   "private": true,
-  "name": "@calcom/skiff",
+  "name": "@calcom/linear",
   "version": "0.0.0",
   "main": "./index.ts",
   "dependencies": {
@@ -10,5 +10,5 @@
   "devDependencies": {
     "@calcom/types": "*"
   },
-  "description": "End-to-end encrypted, private calendar, email, notes, and drive."
+  "description": "Connect your calendar to automate your status"
 }

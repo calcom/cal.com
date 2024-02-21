@@ -752,8 +752,10 @@ const NavigationItem: React.FC<{
             />
           )}
           {isLocaleReady ? (
-            <span className="hidden w-full justify-between lg:flex" data-testid={`${item.name}-test`}>
-              <div className="flex">{t(item.name)}</div>
+            <span
+              className="hidden w-full justify-between truncate text-ellipsis lg:flex"
+              data-testid={`${item.name}-test`}>
+              {t(item.name)}
               {item.badge && item.badge}
             </span>
           ) : (
