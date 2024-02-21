@@ -48,13 +48,13 @@ export type EventDataMap = {
     confirmed: boolean;
   };
   bookingCancelled: {
-    bookingId?: number;
-    bookingUid?: string;
+    booking: unknown;
     organizer: {
       name: string;
       email: string;
       timeZone: string;
     };
+    eventType: unknown;
   };
   "*": Record<string, unknown>;
   __routeChanged: Record<string, never>;

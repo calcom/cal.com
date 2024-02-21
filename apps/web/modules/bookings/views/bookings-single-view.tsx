@@ -277,6 +277,16 @@ export default function Success(props: PageProps) {
   const providerName = guessEventLocationType(location)?.label;
   const rescheduleProviderName = guessEventLocationType(rescheduleLocation)?.label;
 
+  const bookingCancelledEventProps = {
+    booking: bookingInfo,
+    organizer: {
+      name: eventType.users[0].name || "Nameless",
+      email: bookingInfo?.userPrimaryEmail || eventType.users[0].email || "Email-less",
+      timeZone: eventType.users[0].timeZone,
+    },
+    eventType,
+  };
+
   return (
     <div className={isEmbed ? "" : "h-screen"} data-testid="success-page">
       {!isEmbed && (
@@ -593,11 +603,7 @@ export default function Success(props: PageProps) {
                         theme={isSuccessBookingPage ? props.profile.theme : "light"}
                         allRemainingBookings={allRemainingBookings}
                         seatReferenceUid={seatReferenceUid}
-                        organizer={{
-                          name: eventType.users[0].name || "Nameless",
-                          email: bookingInfo?.userPrimaryEmail || eventType.users[0].email || "Email-less",
-                          timeZone: eventType.users[0].timeZone,
-                        }}
+                        bookingCancelledEventProps={bookingCancelledEventProps}
                       />
                     </>
                   ))}

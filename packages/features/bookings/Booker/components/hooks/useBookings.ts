@@ -118,7 +118,7 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata }: IUseBo
 
       if (isRescheduling) {
         sdkActionManager?.fire("rescheduleBookingSuccessful", {
-          booking: bookingData,
+          booking: responseData,
           eventType: event.data,
           date: responseData?.startTime?.toString() || "",
           duration: validDuration,
