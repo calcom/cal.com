@@ -27,8 +27,19 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   const signupDisabled = await getFeatureFlag(prisma, "disable-signup");
   const ssr = await ssrInit(ctx);
   const token = z.string().optional().parse(ctx.query.token);
+  const redirectUrlData = z
+    .string()
+    .refine((value) => value.startsWith(WEBAPP_URL), {
+      params: (value: string) => ({ value }),
+      message: "Redirect URL must start with 'cal.com'",
+    })
+    .optional()
+    .safeParse(ctx.query.redirect);
+
+  const redirectUrl = redirectUrlData.success ? redirectUrlData.data : undefined;
 
   const props = {
+    redirectUrl,
     isGoogleLoginEnabled: IS_GOOGLE_LOGIN_ENABLED,
     isSAMLLoginEnabled,
     trpcState: ssr.dehydrate(),
