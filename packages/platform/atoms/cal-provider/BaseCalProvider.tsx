@@ -1,3 +1,4 @@
+import { Toaster } from "@/components/ui/toaster";
 import { useState } from "react";
 import { useCallback } from "react";
 
@@ -53,8 +54,12 @@ export function BaseCalProvider({ clientId, accessToken, options, children }: Ca
         ),
       }}>
       {children}
+      <Toaster />
     </AtomsContext.Provider>
   ) : (
-    <>{children}</>
+    <>
+      {children}
+      <Toaster />
+    </>
   );
 }
