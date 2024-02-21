@@ -197,7 +197,13 @@ function TeamPage({
           )}
         </div>
         {metadata?.isOrganization ? (
-          <SubTeams />
+          !team.isPrivate ? (
+            <SubTeams />
+          ) : (
+            <div className="w-full text-center">
+              <h2 className="text-emphasis font-semibold">You cannot see teams of a private org.</h2>
+            </div>
+          )
         ) : (
           <>
             {(showMembers.isOn || !team.eventTypes?.length) &&

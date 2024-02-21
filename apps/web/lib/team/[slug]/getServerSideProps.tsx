@@ -107,10 +107,12 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   team.eventTypes =
     team.eventTypes?.map((type) => ({
       ...type,
-      users: type.users.map((user) => ({
-        ...user,
-        avatar: `/${user.username}/avatar.png`,
-      })),
+      users: !team.isPrivate
+        ? type.users.map((user) => ({
+            ...user,
+            avatar: `/${user.username}/avatar.png`,
+          }))
+        : [],
       descriptionAsSafeHTML: markdownToSafeHTML(type.description),
     })) ?? null;
 
@@ -140,7 +142,13 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   return {
     props: {
-      team: { ...serializableTeam, safeBio, members, metadata },
+      team: {
+        ...serializableTeam,
+        safeBio,
+        members,
+        metadata,
+        children: team.isPrivate ? [] : team.children,
+      },
       themeBasis: serializableTeam.slug,
       trpcState: ssr.dehydrate(),
       markdownStrippedBio,
