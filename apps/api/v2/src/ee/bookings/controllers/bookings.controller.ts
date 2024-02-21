@@ -1,18 +1,15 @@
 import { CreateBookingInput } from "@/ee/bookings/inputs/create-booking.input";
 import { CreateReccuringBookingInput } from "@/ee/bookings/inputs/create-reccuring-booking.input";
-import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
-import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
+import { OAuthFlowService } from "@/modules/oauth-clients/services/oauth-flow.service";
 import {
   Controller,
   Post,
   Logger,
-  UseGuards,
   Req,
   InternalServerErrorException,
   Body,
   HttpException,
 } from "@nestjs/common";
-import { User } from "@prisma/client";
 import { Request } from "express";
 import { NextApiRequest } from "next/types";
 
@@ -30,17 +27,17 @@ import { ApiResponse } from "@calcom/platform-types";
   path: "ee/bookings",
   version: "2",
 })
-@UseGuards(AccessTokenGuard)
 export class BookingsController {
   private readonly logger = new Logger("ee bookings controller");
+
+  constructor(private readonly oAuthFlowService: OAuthFlowService) {}
 
   @Post("/")
   async createBooking(
     @Req() req: Request & { userId?: number },
-    @Body() _: CreateBookingInput,
-    @GetUser() user: User
+    @Body() _: CreateBookingInput
   ): Promise<ApiResponse<BookingResponse>> {
-    req.userId = user.id;
+    req.userId = await this.getOwnerId(req);
     try {
       const booking = await handleNewBooking(req as unknown as NextApiRequest & { userId?: number });
       return {
@@ -56,10 +53,9 @@ export class BookingsController {
   @Post("/reccuring")
   async createReccuringBooking(
     @Req() req: Request & { userId?: number },
-    @Body() _: CreateReccuringBookingInput[],
-    @GetUser() user: User
+    @Body() _: CreateReccuringBookingInput[]
   ): Promise<ApiResponse<BookingResponse[]>> {
-    req.userId = user.id;
+    req.userId = await this.getOwnerId(req);
     try {
       const createdBookings: BookingResponse[] = await handleNewRecurringBooking(
         req as unknown as NextApiRequest & { userId?: number }
@@ -77,10 +73,9 @@ export class BookingsController {
   @Post("/instant")
   async createInstantBooking(
     @Req() req: Request & { userId?: number },
-    @Body() _: CreateBookingInput,
-    @GetUser() user: User
+    @Body() _: CreateBookingInput
   ): Promise<ApiResponse<Awaited<ReturnType<typeof handleInstantMeeting>>>> {
-    req.userId = user.id;
+    req.userId = await this.getOwnerId(req);
     try {
       const instantMeeting = await handleInstantMeeting(
         req as unknown as NextApiRequest & { userId?: number }
@@ -93,6 +88,17 @@ export class BookingsController {
       handleBookingErrors(err, "instant");
     }
     throw new InternalServerErrorException("Could not create instant booking.");
+  }
+
+  async getOwnerId(req: Request): Promise<number | undefined> {
+    try {
+      const accessToken = req.get("Authorization")?.replace("Bearer ", "");
+      if (accessToken) {
+        return this.oAuthFlowService.getOwnerId(accessToken);
+      }
+    } catch (err) {
+      this.logger.error(err);
+    }
   }
 }
 
