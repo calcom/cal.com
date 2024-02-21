@@ -46,80 +46,80 @@ const html = `<style>
 <div class="modal-box">
   <div class="body">
     <div id="wrapper" class="">
-        <div style="transform: translateY(25%) translateX(0);" class="loader bg-default dark:bg-muted mx-auto h-screen max-h-[450px] w-full max-w-[760px] rounded-lg border">
+        <div style="transform: translateY(25%) translateX(0);" class="loader bg-white dark:bg-gray-800 dark:bg-muted mx-auto h-screen max-h-[450px] w-full max-w-[760px] rounded-lg border">
           <div class="block h-screen sm:flex">
-            <div class="max-w-[280px] w-full h-screen max-h-[450px] border-0 border-default p-4 sm:border-r">
+            <div class="max-w-[280px] w-full h-screen max-h-[450px] border-0 border-gray-200 p-4 sm:border-r">
               <div class="h-6 w-6 animate-pulse rounded-full"></div>
               <div class="mt-2">
-                <div class="bg-emphasis inline-block h-4 w-32 animate-pulse rounded-md"></div>
-                <div class="bg-emphasis inline-block h-4 w-20 animate-pulse rounded-md"></div>
+                <div class="bg-gray-200 inline-block h-4 w-32 animate-pulse rounded-md"></div>
+                <div class="bg-gray-200 inline-block h-4 w-20 animate-pulse rounded-md"></div>
               </div>
               <div>
-                <div class="bg-emphasis mt-1 inline-block h-6 w-20 animate-pulse rounded-md"></div>
+                <div class="bg-gray-200 mt-1 inline-block h-6 w-20 animate-pulse rounded-md"></div>
               </div>
               <div class="mt-4">
-                <div class="bg-emphasis inline-block h-24 w-full animate-pulse rounded-md"></div>
+                <div class="bg-gray-200 inline-block h-24 w-full animate-pulse rounded-md"></div>
               </div>
               <div class="mt-4">
-                <div class="bg-emphasis inline-block h-4 w-4 animate-pulse rounded-full"></div>
-                <div class="bg-emphasis inline-block h-4 w-20 animate-pulse rounded-md"></div>
+                <div class="bg-gray-200 inline-block h-4 w-4 animate-pulse rounded-full"></div>
+                <div class="bg-gray-200 inline-block h-4 w-20 animate-pulse rounded-md"></div>
               </div>
               <div class="mt-1">
-                <div class="bg-emphasis inline-block h-4 w-4 animate-pulse rounded-full"></div>
-                <div class="bg-emphasis inline-block h-4 w-24 animate-pulse rounded-md"></div>
+                <div class="bg-gray-200 inline-block h-4 w-4 animate-pulse rounded-full"></div>
+                <div class="bg-gray-200 inline-block h-4 w-24 animate-pulse rounded-md"></div>
               </div>
               <div class="mt-1">
-                <div class="bg-emphasis inline-block h-4 w-4 animate-pulse rounded-full"></div>
-                <div class="bg-emphasis inline-block h-4 w-12 animate-pulse rounded-md"></div>
+                <div class="bg-gray-200 inline-block h-4 w-4 animate-pulse rounded-full"></div>
+                <div class="bg-gray-200 inline-block h-4 w-12 animate-pulse rounded-md"></div>
               </div>
             </div>
 
-            <div class="px-10 pt-4">
+            <div class="px-6 pt-4">
               <div class="mt-2">
-                <div class="bg-emphasis inline-block h-4 w-12 animate-pulse rounded-md"></div>
-                <div class="bg-emphasis inline-block h-4 w-20 animate-pulse rounded-md"></div>
+                <div class="bg-gray-200 inline-block h-4 w-12 animate-pulse rounded-md"></div>
+                <div class="bg-gray-200 inline-block h-4 w-20 animate-pulse rounded-md"></div>
               </div>
 
-              <div class="text-emphasis my-4 grid grid-cols-7 gap-4 text-xs font-medium uppercase tracking-widest text-gray-600">
-                <div class="bg-emphasis inline-block h-4 w-full animate-pulse rounded-md"></div>
-                <div class="bg-emphasis inline-block h-4 w-full animate-pulse rounded-md"></div>
-                <div class="bg-emphasis inline-block h-4 w-full animate-pulse rounded-md"></div>
-                <div class="bg-emphasis inline-block h-4 w-full animate-pulse rounded-md"></div>
-                <div class="bg-emphasis inline-block h-4 w-full animate-pulse rounded-md"></div>
-                <div class="bg-emphasis inline-block h-4 w-full animate-pulse rounded-md"></div>
-                <div class="bg-emphasis inline-block h-4 w-full animate-pulse rounded-md"></div>
+              <div class="my-4 grid grid-cols-7 gap-4 text-xs font-medium uppercase tracking-widest text-gray-600">
+                <div class="bg-gray-200 inline-block h-4 w-full animate-pulse rounded-md"></div>
+                <div class="bg-gray-200 inline-block h-4 w-full animate-pulse rounded-md"></div>
+                <div class="bg-gray-200 inline-block h-4 w-full animate-pulse rounded-md"></div>
+                <div class="bg-gray-200 inline-block h-4 w-full animate-pulse rounded-md"></div>
+                <div class="bg-gray-200 inline-block h-4 w-full animate-pulse rounded-md"></div>
+                <div class="bg-gray-200 inline-block h-4 w-full animate-pulse rounded-md"></div>
+                <div class="bg-gray-200 inline-block h-4 w-full animate-pulse rounded-md"></div>
               </div>
               <div class="grid grid-cols-7 gap-4">
                 <div class="inline-block h-10 w-10 animate-pulse rounded-md bg-transparent"></div>
                 <div class="inline-block h-10 w-10 animate-pulse rounded-md bg-transparent"></div>
-                <div class="bg-emphasis inline-block h-10 w-10 animate-pulse rounded-md opacity-30"></div>
-                <div class="bg-emphasis inline-block h-10 w-10 animate-pulse rounded-md opacity-30"></div>
-                <div class="bg-emphasis inline-block h-10 w-10 animate-pulse rounded-md opacity-30"></div>
-                <div class="bg-emphasis inline-block h-10 w-10 animate-pulse rounded-md"></div>
-                <div class="bg-emphasis inline-block h-10 w-10 animate-pulse rounded-md"></div>
-                <div class="bg-emphasis inline-block h-10 w-10 animate-pulse rounded-md"></div>
-                <div class="bg-emphasis inline-block h-10 w-10 animate-pulse rounded-md"></div>
-                <div class="bg-emphasis inline-block h-10 w-10 animate-pulse rounded-md"></div>
-                <div class="bg-emphasis inline-block h-10 w-10 animate-pulse rounded-md"></div>
-                <div class="bg-emphasis inline-block h-10 w-10 animate-pulse rounded-md"></div>
-                <div class="bg-emphasis inline-block h-10 w-10 animate-pulse rounded-md"></div>
-                <div class="bg-emphasis inline-block h-10 w-10 animate-pulse rounded-md"></div>
-                <div class="bg-emphasis inline-block h-10 w-10 animate-pulse rounded-md"></div>
-                <div class="bg-emphasis inline-block h-10 w-10 animate-pulse rounded-md"></div>
-                <div class="bg-emphasis inline-block h-10 w-10 animate-pulse rounded-md"></div>
-                <div class="bg-emphasis inline-block h-10 w-10 animate-pulse rounded-md"></div>
-                <div class="bg-emphasis inline-block h-10 w-10 animate-pulse rounded-md"></div>
-                <div class="bg-emphasis inline-block h-10 w-10 animate-pulse rounded-md"></div>
-                <div class="bg-emphasis inline-block h-10 w-10 animate-pulse rounded-md"></div>
-                <div class="bg-emphasis inline-block h-10 w-10 animate-pulse rounded-md"></div>
-                <div class="bg-emphasis inline-block h-10 w-10 animate-pulse rounded-md"></div>
-                <div class="bg-emphasis inline-block h-10 w-10 animate-pulse rounded-md"></div>
-                <div class="bg-emphasis inline-block h-10 w-10 animate-pulse rounded-md"></div>
-                <div class="bg-emphasis inline-block h-10 w-10 animate-pulse rounded-md"></div>
-                <div class="bg-emphasis inline-block h-10 w-10 animate-pulse rounded-md"></div>
-                <div class="bg-emphasis inline-block h-10 w-10 animate-pulse rounded-md"></div>
-                <div class="bg-emphasis inline-block h-10 w-10 animate-pulse rounded-md opacity-30"></div>
-                <div class="bg-emphasis inline-block h-10 w-10 animate-pulse rounded-md opacity-30"></div>
+                <div class="bg-gray-200 inline-block h-10 w-10 animate-pulse rounded-md opacity-30"></div>
+                <div class="bg-gray-200 inline-block h-10 w-10 animate-pulse rounded-md opacity-30"></div>
+                <div class="bg-gray-200 inline-block h-10 w-10 animate-pulse rounded-md opacity-30"></div>
+                <div class="bg-gray-200 inline-block h-10 w-10 animate-pulse rounded-md"></div>
+                <div class="bg-gray-200 inline-block h-10 w-10 animate-pulse rounded-md"></div>
+                <div class="bg-gray-200 inline-block h-10 w-10 animate-pulse rounded-md"></div>
+                <div class="bg-gray-200 inline-block h-10 w-10 animate-pulse rounded-md"></div>
+                <div class="bg-gray-200 inline-block h-10 w-10 animate-pulse rounded-md"></div>
+                <div class="bg-gray-200 inline-block h-10 w-10 animate-pulse rounded-md"></div>
+                <div class="bg-gray-200 inline-block h-10 w-10 animate-pulse rounded-md"></div>
+                <div class="bg-gray-200 inline-block h-10 w-10 animate-pulse rounded-md"></div>
+                <div class="bg-gray-200 inline-block h-10 w-10 animate-pulse rounded-md"></div>
+                <div class="bg-gray-200 inline-block h-10 w-10 animate-pulse rounded-md"></div>
+                <div class="bg-gray-200 inline-block h-10 w-10 animate-pulse rounded-md"></div>
+                <div class="bg-gray-200 inline-block h-10 w-10 animate-pulse rounded-md"></div>
+                <div class="bg-gray-200 inline-block h-10 w-10 animate-pulse rounded-md"></div>
+                <div class="bg-gray-200 inline-block h-10 w-10 animate-pulse rounded-md"></div>
+                <div class="bg-gray-200 inline-block h-10 w-10 animate-pulse rounded-md"></div>
+                <div class="bg-gray-200 inline-block h-10 w-10 animate-pulse rounded-md"></div>
+                <div class="bg-gray-200 inline-block h-10 w-10 animate-pulse rounded-md"></div>
+                <div class="bg-gray-200 inline-block h-10 w-10 animate-pulse rounded-md"></div>
+                <div class="bg-gray-200 inline-block h-10 w-10 animate-pulse rounded-md"></div>
+                <div class="bg-gray-200 inline-block h-10 w-10 animate-pulse rounded-md"></div>
+                <div class="bg-gray-200 inline-block h-10 w-10 animate-pulse rounded-md"></div>
+                <div class="bg-gray-200 inline-block h-10 w-10 animate-pulse rounded-md"></div>
+                <div class="bg-gray-200 inline-block h-10 w-10 animate-pulse rounded-md"></div>
+                <div class="bg-gray-200 inline-block h-10 w-10 animate-pulse rounded-md opacity-30"></div>
+                <div class="bg-gray-200 inline-block h-10 w-10 animate-pulse rounded-md opacity-30"></div>
               </div>
             </div>
           </div>
