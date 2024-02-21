@@ -32,6 +32,15 @@ const inviteExistingUserToOrg = async ({
     },
   });
 
+  await prisma.user.update({
+    where: {
+      id: user.id,
+    },
+    data: {
+      organizationId: org.id,
+    },
+  });
+
   await sendExistingUserTeamInviteEmails({
     currentUserName: user.username,
     currentUserTeamName: org.name,
