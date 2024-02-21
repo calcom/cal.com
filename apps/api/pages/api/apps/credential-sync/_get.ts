@@ -21,15 +21,27 @@ const getCredentialsBodySchema = z.object({
  *         schema:
  *           type: string
  *         description: Your API key
+ *     requestBody:
+ *       description: Create a new booking related to one of your event-types
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - userId
+ *             properties:
+ *              userId:
+ *               type: integer
+ *               description: If of the user on your instance of Cal.com
+ *             appSlug:
+ *              type: string
+ *              description: (optional) Slug of the specific app. Can be found in the app metadata under packages/app-store
  *     tags:
- *     - attendees
+ *     - credentials
  *     responses:
  *       200:
  *         description: OK
- *       401:
- *        description: Authorization information is missing or invalid.
- *       404:
- *         description: No attendees were found
  */
 async function handler(req: NextApiRequest) {
   const { prisma } = req;
