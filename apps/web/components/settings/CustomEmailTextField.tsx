@@ -100,7 +100,7 @@ const CustomEmailTextField = ({
                     onClick={handleVerifyEmail}
                     disabled={emailVerified}
                     data-testId="resend-verify-email-button">
-                    {t("verify_email_email_button")}
+                    {t("resend_email")}
                   </DropdownItem>
                 </DropdownMenuItem>
               )}
