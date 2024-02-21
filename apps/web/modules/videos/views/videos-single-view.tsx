@@ -1,6 +1,8 @@
 "use client";
 
+import type { DailyCall } from "@daily-co/daily-js";
 import DailyIframe from "@daily-co/daily-js";
+import { DailyProvider } from "@daily-co/daily-react";
 import Head from "next/head";
 import { useState, useEffect, useRef } from "react";
 
@@ -17,6 +19,8 @@ import { type PageProps } from "./videos-single-view.getServerSideProps";
 export default function JoinCall(props: PageProps) {
   const { t } = useLocale();
   const { meetingUrl, meetingPassword, booking } = props;
+  const [calAiEnabled, setCalAiEnabled] = useState(false);
+  const [daily, setDaily] = useState<DailyCall | null>(null);
 
   useEffect(() => {
     const callFrame = DailyIframe.createFrame({
@@ -42,8 +46,28 @@ export default function JoinCall(props: PageProps) {
       },
       url: meetingUrl,
       ...(typeof meetingPassword === "string" && { token: meetingPassword }),
+      customTrayButtons: {
+        "cal-ai": {
+          label: t("cal_ai_assistant"),
+          tooltip: t("discard_cal_ai_assistant"),
+          iconPath: "https://unpkg.com/lucide-static@0.335.0/icons/sparkles.svg",
+          iconPathDarkMode: "https://unpkg.com/lucide-static@0.335.0/icons/sparkles.svg",
+        },
+      },
     });
+
+    setDaily(callFrame);
+
+    callFrame.on("custom-button-click", (event) => {
+      if (event?.button_id !== "cal-ai") {
+        return;
+      }
+
+      console.log("button clicked");
+    });
+
     callFrame.join();
+
     return () => {
       callFrame.destroy();
     };
@@ -67,30 +91,32 @@ export default function JoinCall(props: PageProps) {
         <meta property="twitter:title" content={`${APP_NAME} Video`} />
         <meta property="twitter:description" content={t("quick_video_meeting")} />
       </Head>
-      <div style={{ zIndex: 2, position: "relative" }}>
-        {booking?.user?.organization?.calVideoLogo ? (
-          <img
-            className="min-w-16 min-h-16 fixed z-10 hidden aspect-square h-16 w-16 rounded-full sm:inline-block"
-            src={booking.user.organization.calVideoLogo}
-            alt="My Org Logo"
-            style={{
-              top: 32,
-              left: 32,
-            }}
-          />
-        ) : (
-          <img
-            className="fixed z-10 hidden sm:inline-block"
-            src={`${WEBSITE_URL}/cal-logo-word-dark.svg`}
-            alt="Logo"
-            style={{
-              top: 32,
-              left: 32,
-            }}
-          />
-        )}
-      </div>
-      <VideoMeetingInfo booking={booking} />
+      <DailyProvider callObject={daily}>
+        <div style={{ zIndex: 2, position: "relative" }}>
+          {booking?.user?.organization?.calVideoLogo ? (
+            <img
+              className="min-w-16 min-h-16 fixed z-10 hidden aspect-square h-16 w-16 rounded-full sm:inline-block"
+              src={booking.user.organization.calVideoLogo}
+              alt="My Org Logo"
+              style={{
+                top: 32,
+                left: 32,
+              }}
+            />
+          ) : (
+            <img
+              className="fixed z-10 hidden sm:inline-block"
+              src={`${WEBSITE_URL}/cal-logo-word-dark.svg`}
+              alt="Logo"
+              style={{
+                top: 32,
+                left: 32,
+              }}
+            />
+          )}
+        </div>
+        <VideoMeetingInfo booking={booking} />
+      </DailyProvider>
     </>
   );
 }

@@ -5233,6 +5233,7 @@ __metadata:
     "@calcom/types": "*"
     "@calcom/ui": "*"
     "@daily-co/daily-js": ^0.37.0
+    "@daily-co/daily-react": ^0.17.2
     "@formkit/auto-animate": 1.0.0-beta.5
     "@glidejs/glide": ^3.5.2
     "@hookform/error-message": ^2.0.0
@@ -5878,6 +5879,20 @@ __metadata:
     fast-equals: ^1.6.3
     lodash: ^4.17.15
   checksum: 7264f9719b6b3747597d0096113eafea3a8c8ccf368bf967fdbd39a4929188940460510436360898cc870a9153ca950897624ea669fd7dc06070c39cecfc5786
+  languageName: node
+  linkType: hard
+
+"@daily-co/daily-react@npm:^0.17.2":
+  version: 0.17.2
+  resolution: "@daily-co/daily-react@npm:0.17.2"
+  dependencies:
+    fast-deep-equal: ^3.1.3
+    lodash.throttle: ^4.1.1
+  peerDependencies:
+    "@daily-co/daily-js": ">=0.45.0 <1"
+    react: ">=16.13.1"
+    recoil: ^0.7.0
+  checksum: 87f679e6a3f28d2de5dbee4d5d8f97140fa6f3067e13615533dfcfde8d5496a7c48f3f9f916993c36cd90d7854d611ac69ae5243a973664a163c0d534496219c
   languageName: node
   linkType: hard
 
@@ -27092,6 +27107,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"glob@npm:^7.2.3":
+  version: 7.2.3
+  resolution: "glob@npm:7.2.3"
+  dependencies:
+    fs.realpath: ^1.0.0
+    inflight: ^1.0.4
+    inherits: 2
+    minimatch: ^3.1.1
+    once: ^1.3.0
+    path-is-absolute: ^1.0.0
+  checksum: 29452e97b38fa704dabb1d1045350fb2467cf0277e155aa9ff7077e90ad81d1ea9d53d3ee63bd37c05b09a065e90f16aec4a65f5b8de401d1dac40bc5605d133
+  languageName: node
+  linkType: hard
+
 "glob@npm:^8.0.1, glob@npm:^8.0.3":
   version: 8.1.0
   resolution: "glob@npm:8.1.0"
@@ -28633,13 +28662,6 @@ __metadata:
   version: 5.2.0
   resolution: "ignore@npm:5.2.0"
   checksum: 6b1f926792d614f64c6c83da3a1f9c83f6196c2839aa41e1e32dd7b8d174cef2e329d75caabb62cb61ce9dc432f75e67d07d122a037312db7caa73166a1bdb77
-  languageName: node
-  linkType: hard
-
-"ignore@npm:^5.2.4":
-  version: 5.3.1
-  resolution: "ignore@npm:5.3.1"
-  checksum: 71d7bb4c1dbe020f915fd881108cbe85a0db3d636a0ea3ba911393c53946711d13a9b1143c7e70db06d571a5822c0a324a6bcde5c9904e7ca5047f01f1bf8cd3
   languageName: node
   linkType: hard
 
@@ -31156,13 +31178,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"json-buffer@npm:3.0.1":
-  version: 3.0.1
-  resolution: "json-buffer@npm:3.0.1"
-  checksum: 9026b03edc2847eefa2e37646c579300a1f3a4586cfb62bf857832b60c852042d0d6ae55d1afb8926163fa54c2b01d83ae24705f34990348bdac6273a29d4581
-  languageName: node
-  linkType: hard
-
 "json-logic-js@npm:^2.0.2":
   version: 2.0.2
   resolution: "json-logic-js@npm:2.0.2"
@@ -32561,6 +32576,13 @@ __metadata:
   version: 4.2.1
   resolution: "lodash.startswith@npm:4.2.1"
   checksum: 1847371cbf6f32c4125a555847aff8a1ff1a977f40882b0ad4e2656a32e364793cfa7602915c9165cc0bba61fbd802e561888126d242faadcf3fc77215bab19b
+  languageName: node
+  linkType: hard
+
+"lodash.throttle@npm:^4.1.1":
+  version: 4.1.1
+  resolution: "lodash.throttle@npm:4.1.1"
+  checksum: 129c0a28cee48b348aef146f638ef8a8b197944d4e9ec26c1890c19d9bf5a5690fe11b655c77a4551268819b32d27f4206343e30c78961f60b561b8608c8c805
   languageName: node
   linkType: hard
 
@@ -38762,13 +38784,6 @@ __metadata:
   version: 4.0.1
   resolution: "quick-lru@npm:4.0.1"
   checksum: bea46e1abfaa07023e047d3cf1716a06172c4947886c053ede5c50321893711577cb6119360f810cc3ffcd70c4d7db4069c3cee876b358ceff8596e062bd1154
-  languageName: node
-  linkType: hard
-
-"quick-lru@npm:^5.1.1":
-  version: 5.1.1
-  resolution: "quick-lru@npm:5.1.1"
-  checksum: a516faa25574be7947969883e6068dbe4aa19e8ef8e8e0fd96cddd6d36485e9106d85c0041a27153286b0770b381328f4072aa40d3b18a19f5f7d2b78b94b5ed
   languageName: node
   linkType: hard
 
