@@ -1,8 +1,8 @@
+import { useToast } from "@/components/ui/use-toast";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 
 import type { ScheduleLabelsType } from "@calcom/features/schedules/components/Schedule";
-import { showToast } from "@calcom/ui";
 
 import { useMe } from "../../hooks/useMe";
 import useClientSchedule from "../hooks/useClientSchedule";
@@ -38,25 +38,26 @@ export const PlatformAvailabilitySettingsWrapper = ({
   const userWeekStart = daysInAWeek.indexOf(user?.data.user.weekStart) as 0 | 1 | 2 | 3 | 4 | 5 | 6;
   const { timeFormat } = user?.data.user || { timeFormat: null };
   const [openSidebar, setOpenSidebar] = useState(false);
+  const { toast } = useToast();
 
   const { mutateAsync, isPending: isDeletionInProgress } = useDeleteSchedule({
     onSuccess: () => {
-      showToast("Scheduled deleted successfully", "success");
+      toast({
+        description: "Schedule deleted successfully",
+      });
     },
   });
 
   const { mutateAsync: mutateAsyncUpdation, isPending: isSavingInProgress } = useUpdateSchedule({
     onSuccess: () => {
-      showToast("Scheduled updated successfully", "success");
+      toast({
+        description: "Schedule updated successfully",
+      });
     },
   });
 
   const handleDelete = async (id: number) => {
-    if (schedule.id === user.defaultScheduleId) {
-      showToast("You are required to have at least one schedule", "error");
-    } else {
-      await mutateAsync({ id });
-    }
+    await mutateAsync({ id });
   };
 
   const handleUpdation = async (id: number, body: AvailabilityFormValues) => {
@@ -71,6 +72,8 @@ export const PlatformAvailabilitySettingsWrapper = ({
   });
 
   if (isLoading) return <div className="px-10 py-4 text-xl">Loading...</div>;
+
+  if (userSchedule === null) return <div className="px-10 py-4 text-xl">No user schedule present</div>;
 
   return (
     <PlatformAvailabilitySettings
