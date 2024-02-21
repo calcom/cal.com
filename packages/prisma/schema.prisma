@@ -221,7 +221,9 @@ model User {
   // </DEPRECATED>
   bufferTime          Int                  @default(0)
   hideBranding        Boolean              @default(false)
+  // TODO: should be renamed since it only affects the booking page
   theme               String?
+  appTheme            String?
   createdDate         DateTime             @default(now()) @map(name: "created")
   trialEndsAt         DateTime?
   eventTypes          EventType[]          @relation("user_eventtype")
