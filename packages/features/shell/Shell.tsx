@@ -48,6 +48,7 @@ import { useFormbricks } from "@calcom/lib/formbricks-client";
 import getBrandColours from "@calcom/lib/getBrandColours";
 import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import useTheme from "@calcom/lib/hooks/useTheme";
 import { isKeyInObject } from "@calcom/lib/isKeyInObject";
 import type { User } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
@@ -329,13 +330,14 @@ type LayoutProps = {
   hideHeadingOnMobile?: boolean;
 };
 
-const useBrandColors = () => {
+const useAppTheme = () => {
   const { data: user } = useMeQuery();
   const brandTheme = getBrandColours({
     lightVal: user?.brandColor,
     darkVal: user?.darkBrandColor,
   });
   useCalcomTheme(brandTheme);
+  useTheme(user?.appTheme);
 };
 
 const KBarWrapper = ({ children, withKBar = false }: { withKBar: boolean; children: React.ReactNode }) =>
@@ -361,9 +363,7 @@ export default function Shell(props: LayoutProps) {
   // if a page is unauthed and isPublic is true, the redirect does not happen.
   useRedirectToLoginIfUnauthenticated(props.isPublic);
   useRedirectToOnboardingIfNeeded();
-  // System Theme is automatically supported using ThemeProvider. If we intend to use user theme throughout the app we need to uncomment this.
-  // useTheme(profile.theme);
-  useBrandColors();
+  useAppTheme();
 
   return !props.isPublic ? (
     <KBarWrapper withKBar>

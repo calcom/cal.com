@@ -34,6 +34,7 @@ export const apiHandlers = {
   intercom: import("./intercom/api"),
   jitsivideo: import("./jitsivideo/api"),
   larkcalendar: import("./larkcalendar/api"),
+  linear: import("./linear/api"),
   make: import("./make/api"),
   matomo: import("./matomo/api"),
   metapixel: import("./metapixel/api"),
