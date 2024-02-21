@@ -121,8 +121,6 @@ export function buildDateRanges({
         processed = processed.concat(
           processWorkingHours({ item, timeZone, dateFrom: dateFromOrganizerTZ, dateTo })
         );
-
-        console.log("-------------processed", processed);
       }
       return processed;
     }, [])
