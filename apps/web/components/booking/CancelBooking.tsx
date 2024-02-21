@@ -29,7 +29,7 @@ type Props = {
     organizer: {
       name: string;
       email: string;
-      timeZone: string;
+      timeZone?: string;
     };
     eventType: unknown;
   };
