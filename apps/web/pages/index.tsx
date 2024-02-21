@@ -13,7 +13,7 @@ export async function getServerSideProps({ req, res }: GetServerSidePropsContext
     return { redirect: { permanent: false, destination: "/auth/login" } };
   }
 
-  return { redirect: { permanent: false, destination: "/event-types" } };
+  return { redirect: { permanent: false, destination: `/${session.user.homeView}` || "event-types" } };
 }
 
 export default RedirectPage;

@@ -40,6 +40,7 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
       avatarUrl: true,
       timeZone: true,
       weekStart: true,
+      homeView: true,
       startTime: true,
       endTime: true,
       defaultScheduleId: true,

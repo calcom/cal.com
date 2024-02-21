@@ -100,6 +100,12 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
     { value: "Saturday", label: nameOfDay(localeProp, 6) },
   ];
 
+  const homeViewOptions = [
+    { value: "event-types", label: "EventTypes" },
+    { value: "bookings", label: "Bookings" },
+    { value: "insights", label: "Insights" },
+  ];
+
   const formMethods = useForm({
     defaultValues: {
       locale: {
@@ -114,6 +120,10 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
       weekStart: {
         value: user.weekStart,
         label: nameOfDay(localeProp, user.weekStart === "Sunday" ? 0 : 1),
+      },
+      homeView: {
+        value: user.homeView,
+        label: homeViewOptions.find((option) => option.value === user.homeView)?.label || "EventTypes",
       },
     },
   });
@@ -143,6 +153,7 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
             locale: values.locale.value,
             timeFormat: values.timeFormat.value,
             weekStart: values.weekStart.value,
+            homeView: values.homeView.value,
           });
         }}>
         <Meta title={t("general")} description={t("general_description")} borderInShellHeader={true} />
@@ -215,6 +226,22 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
                   options={weekStartOptions}
                   onChange={(event) => {
                     if (event) formMethods.setValue("weekStart", { ...event }, { shouldDirty: true });
+                  }}
+                />
+              </>
+            )}
+          />
+          <Controller
+            name="homeView"
+            control={formMethods.control}
+            render={({ field: { value } }) => (
+              <>
+                <Label className="text-emphasis mt-6">Default home view</Label>
+                <Select
+                  value={value}
+                  options={homeViewOptions}
+                  onChange={(event) => {
+                    if (event) formMethods.setValue("homeView", { ...event }, { shouldDirty: true });
                   }}
                 />
               </>

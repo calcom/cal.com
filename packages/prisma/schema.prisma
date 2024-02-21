@@ -215,6 +215,7 @@ model User {
   avatarUrl           String?
   timeZone            String               @default("Europe/London")
   weekStart           String               @default("Sunday")
+  homeView            String               @default("event-types")
   // DEPRECATED - TO BE REMOVED
   startTime           Int                  @default(0)
   endTime             Int                  @default(1440)
