@@ -1,0 +1,13 @@
+{
+  "name": "@calcom/sdk",
+  "description": "Cal.com platform SDK.",
+  "packageManager": "yarn@3.4.1",
+  "devDependencies": {
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "axios": "^1.6.7",
+    "axios-retry": "^4.0.0",
+    "zod": "^3.22.4"
+  }
+}
