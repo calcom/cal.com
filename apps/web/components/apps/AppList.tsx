@@ -83,7 +83,7 @@ export const AppList = ({ data, handleDisconnect, variant, listClassName }: AppL
               <Dropdown modal={false}>
                 <DropdownMenuTrigger asChild>
                   <Button
-                    StartIcon={() => <Icon name="more-horizontal" />}
+                    StartIcon={(props) => <Icon {...props} name="more-horizontal" />}
                     variant="icon"
                     color="secondary"
                   />
@@ -94,7 +94,7 @@ export const AppList = ({ data, handleDisconnect, variant, listClassName }: AppL
                       <DropdownItem
                         type="button"
                         color="secondary"
-                        StartIcon={() => <Icon name="video" />}
+                        StartIcon={(props) => <Icon {...props} name="video" />}
                         onClick={() => {
                           const locationType = getEventLocationTypeFromApp(item?.locationOption?.value ?? "");
                           if (locationType?.linkType === "static") {
@@ -207,7 +207,7 @@ function ConnectOrDisconnectIntegrationMenuItem(props: {
           color="destructive"
           onClick={() => handleDisconnect(credentialId, teamId)}
           disabled={isGlobal}
-          StartIcon={() => <Icon name="trash" />}>
+          StartIcon={(props) => <Icon {...props} name="trash" />}>
           {t("remove_app")}
         </DropdownItem>
       </DropdownMenuItem>

@@ -10,8 +10,7 @@ import type { EventTypeAppsList } from "@calcom/app-store/utils";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Button, EmptyScreen, Alert } from "@calcom/ui";
-import { Grid, Lock } from "@calcom/ui/components/icon";
+import { Alert, Button, EmptyScreen, Icon } from "@calcom/ui";
 
 export type EventType = Pick<EventTypeSetupProps, "eventType">["eventType"] &
   EventTypeAppCardComponentProps["eventType"];
@@ -143,12 +142,12 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
           )}
           {!isPending && !installedApps?.length ? (
             <EmptyScreen
-              Icon={Grid}
+              Icon={(props) => <Icon {...props} name="grid-3x3" />}
               headline={t("empty_installed_apps_headline")}
               description={t("empty_installed_apps_description")}
               buttonRaw={
                 isChildrenManagedEventType && !isManagedEventType ? (
-                  <Button StartIcon={Lock} color="secondary" disabled>
+                  <Button StartIcon={(props) => <Icon {...props} name="lock" />} color="secondary" disabled>
                     {t("locked_by_admin")}
                   </Button>
                 ) : (

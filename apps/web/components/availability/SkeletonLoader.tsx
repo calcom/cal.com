@@ -28,7 +28,7 @@ function SkeletonItem() {
           type="button"
           variant="icon"
           color="secondary"
-          StartIcon={() => <Icon name="more-horizontal" />}
+          StartIcon={(props) => <Icon {...props} name="more-horizontal" />}
           disabled
         />
       </div>

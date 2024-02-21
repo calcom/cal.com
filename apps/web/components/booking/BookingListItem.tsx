@@ -31,12 +31,11 @@ import {
   DialogFooter,
   Icon,
   MeetingTimeInTimezones,
-  showToast,
   TableActions,
   TextAreaField,
   Tooltip,
+  showToast,
 } from "@calcom/ui";
-import { RefreshCcw, Send } from "@calcom/ui/components/icon";
 
 import { ChargeCardDialog } from "@components/dialog/ChargeCardDialog";
 import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
@@ -227,7 +226,11 @@ function BookingListItem(booking: BookingItemProps) {
 
   const RequestSentMessage = () => {
     return (
-      <Badge startIcon={Send} size="md" variant="gray" data-testid="request_reschedule_sent">
+      <Badge
+        startIcon={(props) => <Icon {...props} name="send" />}
+        size="md"
+        variant="gray"
+        data-testid="request_reschedule_sent">
         {t("reschedule_request_sent")}
       </Badge>
     );
@@ -598,7 +601,8 @@ const RecurringBookingsTooltip = ({
                 );
               })}>
               <div className="text-default">
-                <RefreshCcw
+                <Icon
+                  name="refresh-ccw"
                   strokeWidth="3"
                   className="text-muted float-left mr-1 mt-1.5 inline-block h-3 w-3"
                 />

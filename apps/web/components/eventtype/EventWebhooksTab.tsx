@@ -12,8 +12,7 @@ import { subscriberUrlReserved } from "@calcom/features/webhooks/lib/subscriberU
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Alert, Button, Dialog, DialogContent, EmptyScreen, showToast } from "@calcom/ui";
-import { Lock, Plus, Webhook as TbWebhook } from "@calcom/ui/components/icon";
+import { Alert, Button, Dialog, DialogContent, EmptyScreen, Icon, showToast } from "@calcom/ui";
 
 export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "eventType">) => {
   const { t } = useLocale();
@@ -88,7 +87,7 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
       <Button
         color="secondary"
         data-testid="new_webhook"
-        StartIcon={Plus}
+        StartIcon={(props) => <Icon {...props} name="plus" />}
         onClick={() => setCreateModalOpen(true)}>
         {t("new_webhook")}
       </Button>
@@ -156,12 +155,15 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
                   </>
                 ) : (
                   <EmptyScreen
-                    Icon={TbWebhook}
+                    Icon={(props) => <Icon {...props} name="webhook" />}
                     headline={t("create_your_first_webhook")}
                     description={t("first_event_type_webhook_description")}
                     buttonRaw={
                       isChildrenManagedEventType && !isManagedEventType ? (
-                        <Button StartIcon={Lock} color="secondary" disabled>
+                        <Button
+                          StartIcon={(props) => <Icon {...props} name="lock" />}
+                          color="secondary"
+                          disabled>
                           {t("locked_by_admin")}
                         </Button>
                       ) : (

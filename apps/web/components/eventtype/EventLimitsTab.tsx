@@ -15,8 +15,16 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { ascendingLimitKeys, intervalLimitKeyToUnit } from "@calcom/lib/intervalLimit";
 import type { PeriodType } from "@calcom/prisma/enums";
 import type { IntervalLimit } from "@calcom/types/Calendar";
-import { Button, DateRangePicker, InputField, Label, Select, SettingsToggle, TextField } from "@calcom/ui";
-import { Plus, Trash2 } from "@calcom/ui/components/icon";
+import {
+  Button,
+  DateRangePicker,
+  Icon,
+  InputField,
+  Label,
+  Select,
+  SettingsToggle,
+  TextField,
+} from "@calcom/ui";
 
 const MinimumBookingNoticeInput = React.forwardRef<
   HTMLInputElement,
@@ -546,7 +554,7 @@ const IntervalLimitItem = ({
       {hasDeleteButton && !disabled && (
         <Button
           variant="icon"
-          StartIcon={Trash2}
+          StartIcon={(props) => <Icon {...props} name="trash-2" />}
           color="destructive"
           className="border-none"
           onClick={() => onDelete(limitKey)}
@@ -656,7 +664,10 @@ const IntervalLimitsManager = <K extends "durationLimits" | "bookingLimits">({
                   );
                 })}
             {currentIntervalLimits && Object.keys(currentIntervalLimits).length <= 3 && !disabled && (
-              <Button color="minimal" StartIcon={Plus} onClick={addLimit}>
+              <Button
+                color="minimal"
+                StartIcon={(props) => <Icon {...props} name="plus" />}
+                onClick={addLimit}>
                 {t("add_limit")}
               </Button>
             )}

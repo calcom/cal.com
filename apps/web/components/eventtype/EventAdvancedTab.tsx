@@ -27,6 +27,7 @@ import {
   Alert,
   Button,
   CheckboxField,
+  Icon,
   Label,
   SettingsToggle,
   Switch,
@@ -34,7 +35,6 @@ import {
   Tooltip,
   showToast,
 } from "@calcom/ui";
-import { Copy, Edit, Info, Info as InfoIcon } from "@calcom/ui/components/icon";
 
 import RequiresConfirmationController from "./RequiresConfirmationController";
 
@@ -171,7 +171,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
                 aria-label="edit custom name"
                 className="hover:stroke-3 hover:text-emphasis min-w-fit !py-0 px-0 hover:bg-transparent"
                 onClick={() => setShowEventNameTip((old) => !old)}>
-                <Edit className="h-4 w-4" />
+                <Icon name="edit" className="h-4 w-4" />
               </Button>
             }
           />
@@ -183,7 +183,10 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
               label={
                 <>
                   {t("display_add_to_calendar_organizer")}
-                  <InfoIcon className="text-default hover:text-attention hover:bg-attention ms-1 inline h-4 w-4 rounded-md" />
+                  <Icon
+                    name="info"
+                    className="text-default hover:text-attention hover:bg-attention ms-1 inline h-4 w-4 rounded-md"
+                  />
                 </>
               }
               checked={useEventTypeDestinationCalendarEmail}
@@ -321,7 +324,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
             target="_blank"
             rel="noreferrer"
             href="https://cal.com/docs/core-features/event-types/single-use-private-links">
-            <Info className="ml-1.5 h-4 w-4 cursor-pointer" />
+            <Icon name="info" className="ml-1.5 h-4 w-4 cursor-pointer" />
           </a>
         }
         {...shouldLockDisableProps("hashedLinkCheck")}
@@ -361,7 +364,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
                         showToast(t("enabled_after_update_description"), "warning");
                       }
                     }}>
-                    <Copy className="h-4 w-4" />
+                    <Icon name="copy" className="h-4 w-4" />
                   </Button>
                 </Tooltip>
               }

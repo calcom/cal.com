@@ -28,7 +28,7 @@ function Teams() {
           <Button
             data-testid="new-team-btn"
             variant="fab"
-            StartIcon={() => <Icon name="plus" />}
+            StartIcon={(props) => <Icon {...props} name="plus" />}
             type="button"
             href={`${WEBAPP_URL}/settings/teams/new?returnTo=${WEBAPP_URL}/teams`}>
             {t("new")}

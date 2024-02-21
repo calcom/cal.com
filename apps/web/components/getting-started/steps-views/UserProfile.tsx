@@ -9,8 +9,7 @@ import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import turndown from "@calcom/lib/turndownService";
 import { trpc } from "@calcom/trpc/react";
 import { Button, Editor, ImageUploader, Label, showToast } from "@calcom/ui";
-import { UserAvatar } from "@calcom/ui";
-import { ArrowRight } from "@calcom/ui/components/icon";
+import { Icon, UserAvatar } from "@calcom/ui";
 
 type FormData = {
   bio: string;
@@ -143,7 +142,10 @@ const UserProfile = () => {
         />
         <p className="text-default mt-2 font-sans text-sm font-normal">{t("few_sentences_about_yourself")}</p>
       </fieldset>
-      <Button EndIcon={ArrowRight} type="submit" className="mt-8 w-full items-center justify-center">
+      <Button
+        EndIcon={(props) => <Icon {...props} name="arrow-right" />}
+        type="submit"
+        className="mt-8 w-full items-center justify-center">
         {t("finish")}
       </Button>
     </form>

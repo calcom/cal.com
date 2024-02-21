@@ -43,7 +43,7 @@ const AdditionalCalendarSelector = ({ isPending }: AdditionalCalendarSelectorPro
           <Dropdown modal={false}>
             <DropdownMenuTrigger asChild>
               <Button
-                StartIcon={() => <Icon name="plus" />}
+                StartIcon={(props) => <Icon {...props} name="plus" />}
                 color="secondary"
                 {...(isPending && { loading: isPending })}>
                 {t("add")}
@@ -54,7 +54,7 @@ const AdditionalCalendarSelector = ({ isPending }: AdditionalCalendarSelectorPro
                 <DropdownMenuItem key={data.slug} className="focus:outline-none">
                   {data.slug === "add-new" ? (
                     <DropdownItem
-                      StartIcon={() => <Icon name="plus" />}
+                      StartIcon={(props) => <Icon {...props} name="plus" />}
                       color="minimal"
                       href="/apps/categories/calendar">
                       {t("install_new_calendar_app")}

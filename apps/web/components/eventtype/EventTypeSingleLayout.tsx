@@ -27,6 +27,7 @@ import {
   DropdownMenuTrigger,
   HorizontalTabs,
   Label,
+  Icon,
   showToast,
   Skeleton,
   Switch,
@@ -34,23 +35,6 @@ import {
   VerticalDivider,
   VerticalTabs,
 } from "@calcom/ui";
-import { Webhook as TbWebhook } from "@calcom/ui/components/icon";
-import {
-  Link as LinkIcon,
-  Calendar,
-  Clock,
-  Sliders,
-  Repeat,
-  Grid,
-  Zap,
-  Users,
-  ExternalLink,
-  Code,
-  Trash,
-  PhoneCall,
-  MoreHorizontal,
-  Loader,
-} from "@calcom/ui/components/icon";
 
 import type { AvailabilityOption } from "@components/eventtype/EventAvailabilityTab";
 
@@ -97,38 +81,38 @@ function getNavigation({
     {
       name: "event_setup_tab_title",
       href: `/event-types/${id}?tabName=setup`,
-      icon: LinkIcon,
+      icon: (props) => <Icon {...props} name="link" />,
       info: `${duration} ${t("minute_timeUnit")}`, // TODO: Get this from props
     },
     {
       name: "event_limit_tab_title",
       href: `/event-types/${id}?tabName=limits`,
-      icon: Clock,
+      icon: (props) => <Icon {...props} name="clock" />,
       info: `event_limit_tab_description`,
     },
     {
       name: "event_advanced_tab_title",
       href: `/event-types/${id}?tabName=advanced`,
-      icon: Sliders,
+      icon: (props) => <Icon {...props} name="sliders" />,
       info: `event_advanced_tab_description`,
     },
     {
       name: "recurring",
       href: `/event-types/${id}?tabName=recurring`,
-      icon: Repeat,
+      icon: (props) => <Icon {...props} name="repeat" />,
       info: `recurring_event_tab_description`,
     },
     {
       name: "apps",
       href: `/event-types/${id}?tabName=apps`,
-      icon: Grid,
+      icon: (props) => <Icon {...props} name="grid-3x3" />,
       //TODO: Handle proper translation with count handling
       info: `${installedAppsNumber} apps, ${enabledAppsNumber} ${t("active")}`,
     },
     {
       name: "workflows",
       href: `/event-types/${id}?tabName=workflows`,
-      icon: Zap,
+      icon: (props) => <Icon {...props} name="zap" />,
       info: `${enabledWorkflowsNumber} ${t("active")}`,
     },
   ];
@@ -240,7 +224,7 @@ function EventTypeSingleLayout({
     navigation.splice(1, 0, {
       name: "availability",
       href: `/event-types/${formMethods.getValues("id")}?tabName=availability`,
-      icon: Calendar,
+      icon: (props) => <Icon {...props} name="calendar" />,
       info:
         isManagedEventType || isChildrenManagedEventType
           ? formMethods.getValues("schedule") === null
@@ -259,7 +243,7 @@ function EventTypeSingleLayout({
       navigation.splice(2, 0, {
         name: "assignment",
         href: `/event-types/${formMethods.getValues("id")}?tabName=team`,
-        icon: Users,
+        icon: (props) => <Icon {...props} name="users" />,
         info: `${t(watchSchedulingType?.toLowerCase() ?? "")}${
           isManagedEventType ? ` - ${t("number_member", { count: watchChildrenCount || 0 })}` : ""
         }`,
@@ -271,14 +255,14 @@ function EventTypeSingleLayout({
         navigation.push({
           name: "instant_tab_title",
           href: `/event-types/${eventType.id}?tabName=instant`,
-          icon: PhoneCall,
+          icon: (props) => <Icon {...props} name="phone-call" />,
           info: `instant_event_tab_description`,
         });
       }
       navigation.push({
         name: "webhooks",
         href: `/event-types/${formMethods.getValues("id")}?tabName=webhooks`,
-        icon: TbWebhook,
+        icon: (props) => <Icon {...props} name="webhook" />,
         info: `${activeWebhooksNumber} ${t("active")}`,
       });
     }
@@ -366,14 +350,14 @@ function EventTypeSingleLayout({
                     variant="icon"
                     href={permalink}
                     rel="noreferrer"
-                    StartIcon={ExternalLink}
+                    StartIcon={(props) => <Icon {...props} name="external-link" />}
                   />
                 </Tooltip>
 
                 <Button
                   color="secondary"
                   variant="icon"
-                  StartIcon={LinkIcon}
+                  StartIcon={(props) => <Icon {...props} name="link" />}
                   tooltip={t("copy_link")}
                   tooltipSide="bottom"
                   tooltipOffset={4}
@@ -384,7 +368,7 @@ function EventTypeSingleLayout({
                 />
                 <EventTypeEmbedButton
                   embedUrl={encodeURIComponent(embedLink)}
-                  StartIcon={Code}
+                  StartIcon={(props) => <Icon {...props} name="code" />}
                   color="secondary"
                   variant="icon"
                   namespace=""
@@ -399,7 +383,7 @@ function EventTypeSingleLayout({
               <Button
                 color="destructive"
                 variant="icon"
-                StartIcon={Trash}
+                StartIcon={(props) => <Icon {...props} name="trash" />}
                 tooltip={t("delete")}
                 tooltipSide="bottom"
                 tooltipOffset={4}
@@ -413,14 +397,19 @@ function EventTypeSingleLayout({
 
           <Dropdown>
             <DropdownMenuTrigger asChild>
-              <Button className="lg:hidden" StartIcon={MoreHorizontal} variant="icon" color="secondary" />
+              <Button
+                className="lg:hidden"
+                StartIcon={(props) => <Icon {...props} name="more-horizontal" />}
+                variant="icon"
+                color="secondary"
+              />
             </DropdownMenuTrigger>
             <DropdownMenuContent style={{ minWidth: "200px" }}>
               <DropdownMenuItem className="focus:ring-muted">
                 <DropdownItem
                   target="_blank"
                   type="button"
-                  StartIcon={ExternalLink}
+                  StartIcon={(props) => <Icon {...props} name="external-link" />}
                   href={permalink}
                   rel="noreferrer">
                   {t("preview")}
@@ -429,7 +418,7 @@ function EventTypeSingleLayout({
               <DropdownMenuItem className="focus:ring-muted">
                 <DropdownItem
                   type="button"
-                  StartIcon={LinkIcon}
+                  StartIcon={(props) => <Icon {...props} name="link" />}
                   onClick={() => {
                     navigator.clipboard.writeText(permalink);
                     showToast("Link copied!", "success");
@@ -441,7 +430,7 @@ function EventTypeSingleLayout({
                 <DropdownItem
                   type="button"
                   color="destructive"
-                  StartIcon={Trash}
+                  StartIcon={(props) => <Icon {...props} name="trash" />}
                   disabled={!hasPermsToDelete}
                   onClick={() => setDeleteDialogOpen(true)}>
                   {t("delete")}
@@ -477,7 +466,7 @@ function EventTypeSingleLayout({
           </Button>
         </div>
       }>
-      <Suspense fallback={<Loader />}>
+      <Suspense fallback={<Icon name="loader" />}>
         <div className="flex flex-col xl:flex-row xl:space-x-6">
           <div className="hidden xl:block">
             <VerticalTabs

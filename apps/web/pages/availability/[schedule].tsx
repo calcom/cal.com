@@ -20,6 +20,7 @@ import {
   Dialog,
   DialogTrigger,
   Form,
+  Icon,
   Label,
   showToast,
   Skeleton,
@@ -29,7 +30,6 @@ import {
   Tooltip,
   VerticalDivider,
 } from "@calcom/ui";
-import { Info, MoreVertical, ArrowLeft, Plus, Trash } from "@calcom/ui/components/icon";
 
 import PageWrapper from "@components/PageWrapper";
 import { SelectSkeletonLoader } from "@components/availability/SkeletonLoader";
@@ -55,7 +55,7 @@ const DateOverride = ({ workingHours }: { workingHours: WorkingHours[] }) => {
         {t("date_overrides")}{" "}
         <Tooltip content={t("date_overrides_info")}>
           <span className="inline-block align-middle">
-            <Info className="h-4 w-4" />
+            <Icon name="info" className="h-4 w-4" />
           </span>
         </Tooltip>
       </h3>
@@ -73,7 +73,10 @@ const DateOverride = ({ workingHours }: { workingHours: WorkingHours[] }) => {
           excludedDates={excludedDates}
           onChange={(ranges) => ranges.forEach((range) => append({ ranges: [range] }))}
           Trigger={
-            <Button color="secondary" StartIcon={Plus} data-testid="add-override">
+            <Button
+              color="secondary"
+              StartIcon={(props) => <Icon {...props} name="plus" />}
+              data-testid="add-override">
               {t("add_an_override")}
             </Button>
           }
@@ -200,7 +203,7 @@ export default function Availability() {
           <Dialog>
             <DialogTrigger asChild>
               <Button
-                StartIcon={Trash}
+                StartIcon={(props) => <Icon {...props} name="trash" />}
                 variant="icon"
                 color="destructive"
                 aria-label={t("delete")}
@@ -234,12 +237,16 @@ export default function Availability() {
                 openSidebar ? "translate-x-0 opacity-100" : "translate-x-full opacity-0"
               )}>
               <div className="flex flex-row items-center pt-5">
-                <Button StartIcon={ArrowLeft} color="minimal" onClick={() => setOpenSidebar(false)} />
+                <Button
+                  StartIcon={(props) => <Icon {...props} name="arrow-left" />}
+                  color="minimal"
+                  onClick={() => setOpenSidebar(false)}
+                />
                 <p className="-ml-2">{t("availability_settings")}</p>
                 <Dialog>
                   <DialogTrigger asChild>
                     <Button
-                      StartIcon={Trash}
+                      StartIcon={(props) => <Icon {...props} name="trash" />}
                       variant="icon"
                       color="destructive"
                       aria-label={t("delete")}
@@ -343,7 +350,7 @@ export default function Availability() {
           </Button>
           <Button
             className="ml-3 sm:hidden"
-            StartIcon={MoreVertical}
+            StartIcon={(props) => <Icon {...props} name="more-vertical" />}
             variant="icon"
             color="secondary"
             onClick={() => setOpenSidebar(true)}

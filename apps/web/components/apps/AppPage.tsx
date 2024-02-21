@@ -195,7 +195,7 @@ export const AppPage = ({
           isGlobal ||
           (existingCredentials.length > 0 && allowedMultipleInstalls ? (
             <div className="flex space-x-3">
-              <Button StartIcon={() => <Icon name="check" />} color="secondary" disabled>
+              <Button StartIcon={(props) => <Icon {...props} name="check" />} color="secondary" disabled>
                 {existingCredentials.length > 0
                   ? t("active_install", { count: existingCredentials.length })
                   : t("default")}

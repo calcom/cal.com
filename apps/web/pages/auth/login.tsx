@@ -112,7 +112,7 @@ inferSSRProps<typeof getServerSideProps> & WithNonceProps<{}>) {
           }
           setErrorMessage(null);
         }}
-        StartIcon={() => <Icon name="arrow-left" />}
+        StartIcon={(props) => <Icon {...props} name="arrow-left" />}
         color="minimal">
         {t("go_back")}
       </Button>
@@ -123,7 +123,7 @@ inferSSRProps<typeof getServerSideProps> & WithNonceProps<{}>) {
             setErrorMessage(null);
             methods.setValue("totpCode", "");
           }}
-          StartIcon={() => <Icon name="lock" />}
+          StartIcon={(props) => <Icon {...props} name="lock" />}
           color="minimal">
           {t("lost_access")}
         </Button>

@@ -6,8 +6,7 @@ import DisconnectIntegrationModal from "@calcom/features/apps/components/Disconn
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Button, EmptyScreen, Meta, SkeletonContainer, SkeletonText } from "@calcom/ui";
-import { Calendar, Plus } from "@calcom/ui/components/icon";
+import { Button, Icon, EmptyScreen, Meta, SkeletonContainer, SkeletonText } from "@calcom/ui";
 
 import { QueryCell } from "@lib/QueryCell";
 
@@ -30,7 +29,10 @@ const AddConferencingButton = () => {
   const { t } = useLocale();
 
   return (
-    <Button color="secondary" StartIcon={Plus} href="/apps/categories/conferencing">
+    <Button
+      color="secondary"
+      StartIcon={(props) => <Icon {...props} name="plus" />}
+      href="/apps/categories/conferencing">
       {t("add")}
     </Button>
   );
@@ -84,7 +86,7 @@ const ConferencingLayout = () => {
             if (!data.items.length) {
               return (
                 <EmptyScreen
-                  Icon={Calendar}
+                  Icon={(props) => <Icon {...props} name="calendar" />}
                   headline={t("no_category_apps", {
                     category: t("conferencing").toLowerCase(),
                   })}
