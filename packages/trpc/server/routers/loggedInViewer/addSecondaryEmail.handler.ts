@@ -47,7 +47,7 @@ export const addSecondaryEmailHandler = async ({ ctx, input }: AddSecondaryEmail
     email: updatedData.email,
     username: user?.username ?? undefined,
     language: user.locale,
-    isSecondary: true,
+    secondaryEmailId: updatedData.id,
   });
 
   return {

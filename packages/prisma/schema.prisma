@@ -384,19 +384,22 @@ model Membership {
 }
 
 model VerificationToken {
-  id            Int      @id @default(autoincrement())
-  identifier    String
-  token         String   @unique
-  expires       DateTime
-  expiresInDays Int?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  teamId        Int?
-  team          Team?    @relation(fields: [teamId], references: [id])
+  id               Int             @id @default(autoincrement())
+  identifier       String
+  token            String          @unique
+  expires          DateTime
+  expiresInDays    Int?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  teamId           Int?
+  team             Team?           @relation(fields: [teamId], references: [id])
+  secondaryEmailId Int?
+  secondaryEmail   SecondaryEmail? @relation(fields: [secondaryEmailId], references: [id])
 
   @@unique([identifier, token])
   @@index([token])
   @@index([teamId])
+  @@index([secondaryEmailId])
 }
 
 model InstantMeetingToken {
@@ -1123,11 +1126,12 @@ model OutOfOfficeEntry {
 }
 
 model SecondaryEmail {
-  id            Int       @id @default(autoincrement())
-  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId        Int
-  email         String
-  emailVerified DateTime?
+  id                 Int                 @id @default(autoincrement())
+  user               User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId             Int
+  email              String
+  emailVerified      DateTime?
+  verificationTokens VerificationToken[]
 
   @@unique([email])
   @@unique([userId, email])

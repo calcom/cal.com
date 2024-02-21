@@ -51,7 +51,7 @@ export const resendVerifyEmail = async ({ input, ctx }: ResendEmailOptions) => {
     email: emailToVerify,
     username: ctx.user?.username ?? undefined,
     language: ctx.user.locale,
-    isSecondary: !!secondaryEmail,
+    secondaryEmailId: secondaryEmail?.id,
   });
 
   return email;

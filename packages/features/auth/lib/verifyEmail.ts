@@ -19,14 +19,14 @@ interface VerifyEmailType {
   username?: string;
   email: string;
   language?: string;
-  isSecondary?: boolean;
+  secondaryEmailId?: number;
 }
 
 export const sendEmailVerification = async ({
   email,
   language,
   username,
-  isSecondary = false,
+  secondaryEmailId,
 }: VerifyEmailType) => {
   const token = randomBytes(32).toString("hex");
   const translation = await getTranslation(language ?? "en", "common");
@@ -47,6 +47,7 @@ export const sendEmailVerification = async ({
       identifier: email,
       token,
       expires: new Date(Date.now() + 24 * 3600 * 1000), // +1 day
+      secondaryEmailId: secondaryEmailId || null,
     },
   });
 
@@ -56,9 +57,7 @@ export const sendEmailVerification = async ({
 
   await sendEmailVerificationLink({
     language: translation,
-    verificationEmailLink: `${WEBAPP_URL}/api/auth/verify-${
-      isSecondary ? "secondary-" : ""
-    }email?${params.toString()}`,
+    verificationEmailLink: `${WEBAPP_URL}/api/auth/verify-email?${params.toString()}`,
     user: {
       email,
       name: username,
