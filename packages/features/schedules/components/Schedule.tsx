@@ -72,8 +72,6 @@ export const ScheduleDay = <TFieldValues extends FieldValues>({
   const watchDayRange = watch(name);
 
   return (
-    // add classnames prop for this outer div as schedule day classnames or sum
-    // border here
     <div
       className={classNames(
         "mb-4 flex w-full flex-col gap-4 last:mb-0 sm:flex-row sm:px-0",
@@ -246,7 +244,6 @@ export const ScheduleComponent = <
   );
 };
 
-// add classnames prop in here for the time range field classname and then pass it down
 export const DayRanges = <TFieldValues extends FieldValues>({
   name,
   disabled,
