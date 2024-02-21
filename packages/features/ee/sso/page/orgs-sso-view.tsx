@@ -39,8 +39,6 @@ const SAMLSSO = () => {
   const isAdminOrOwner =
     currentOrg.user.role === MembershipRole.OWNER || currentOrg.user.role === MembershipRole.ADMIN;
 
-  console.log({ currentOrg });
-
   return isAdminOrOwner ? (
     <div className="bg-default w-full sm:mx-0 xl:mt-0">
       <Meta title={t("sso_configuration")} description={t("sso_configuration_description_orgs")} />
