@@ -3,12 +3,12 @@ items:
   - 1.jpg
   - 2.jpg
   - 3.jpg
-
 ---
 
 {DESCRIPTION}
 
 Roam makes companies:
+
 - more productive with shorter meetings
 - more connected with a map that gives a feeling of working together without meeting
 - & Roam saves companies money with our all-in-one bundle

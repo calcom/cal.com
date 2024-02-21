@@ -80,7 +80,7 @@ const BadSelect = (props) => (
 );
 
 // Good: Custom component declared outside of the Select scope
-const Control = <IconLeading icon={Plus} />;
+const Control = <IconLeading icon={() => <Icon name="plus" />} />;
 
 const GoodSelect = (props) => <Select {...props} components={{ Control }} />;
 ```

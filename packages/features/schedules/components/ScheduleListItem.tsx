@@ -84,7 +84,7 @@ export function ScheduleListItem({
               type="button"
               variant="icon"
               color="secondary"
-              StartIcon={MoreHorizontal}
+              StartIcon={(props) => <Icon {...props} name="more-horizontal" />}
             />
           </DropdownMenuTrigger>
           {!isPending && data && (

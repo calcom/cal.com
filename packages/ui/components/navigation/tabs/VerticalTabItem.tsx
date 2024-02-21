@@ -6,7 +6,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useUrlMatchesCurrentUrl } from "@calcom/lib/hooks/useUrlMatchesCurrentUrl";
 import type { SVGComponent } from "@calcom/types/SVGComponent";
 
-import { ChevronRight, ExternalLink } from "../../icon";
+import { Icon } from "../../..";
 import { Skeleton } from "../../skeleton";
 
 export type VerticalTabItemProps = {
@@ -75,7 +75,7 @@ const VerticalTabItem = ({
                 <Skeleton title={t(name)} as="p" className="max-w-36 min-h-4 mt-px truncate">
                   {t(name)}
                 </Skeleton>
-                {props.isExternalLink ? <ExternalLink data-testid="external-link" /> : null}
+                {props.isExternalLink ? <Icon name="external-link" data-testid="external-link" /> : null}
               </span>
               {info && (
                 <Skeleton as="p" title={t(info)} className="max-w-44 mt-1 truncate text-xs font-normal">
@@ -85,7 +85,8 @@ const VerticalTabItem = ({
             </div>
             {!disableChevron && isCurrent && (
               <div className="ml-auto self-center">
-                <ChevronRight
+                <Icon
+                  name="chevron-right"
                   width={20}
                   height={20}
                   className="text-default h-auto w-[20px] stroke-[1.5px]"

@@ -94,7 +94,7 @@ export default function OtherTeamListItem(props: Props) {
                     type="button"
                     color="secondary"
                     variant="icon"
-                    StartIcon={MoreHorizontal}
+                    StartIcon={(props) => <Icon {...props} name="more-horizontal" />}
                   />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent hidden={hideDropdown}>

@@ -82,7 +82,7 @@ export default function MemberListItem(props: Props) {
             <div className="flex md:hidden">
               <Dropdown>
                 <DropdownMenuTrigger asChild>
-                  <Button type="button" variant="icon" color="minimal" StartIcon={MoreHorizontal} />
+                  <Button type="button" variant="icon" color="minimal" StartIcon={(props) => <Icon {...props} name="more-horizontal" />} />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
                   <DropdownMenuItem className="outline-none">

@@ -187,10 +187,6 @@ const nextConfig = {
     "lucide-react",
   ],
   modularizeImports: {
-    "@calcom/ui/components/icon": {
-      transform: "lucide-react/dist/esm/icons/{{ kebabCase member }}",
-      preventFullImport: true,
-    },
     "@calcom/features/insights/components": {
       transform: "@calcom/features/insights/components/{{member}}",
       skipDefaultConversion: true,

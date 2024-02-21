@@ -221,7 +221,7 @@ export default function TeamListItem(props: Props) {
               <div className="block sm:hidden">
                 <Dropdown>
                   <DropdownMenuTrigger asChild>
-                    <Button type="button" color="minimal" variant="icon" StartIcon={MoreHorizontal} />
+                    <Button type="button" color="minimal" variant="icon" StartIcon={(props) => <Icon {...props} name="more-horizontal" />} />
                   </DropdownMenuTrigger>
                   <DropdownMenuContent>
                     <DropdownMenuItem>
@@ -230,7 +230,7 @@ export default function TeamListItem(props: Props) {
                       </DropdownItem>
                     </DropdownMenuItem>
                     <DropdownMenuItem>
-                      <DropdownItem color="destructive" type="button" StartIcon={X} onClick={declineInvite}>
+                      <DropdownItem color="destructive" type="button" StartIcon={(props) => <Icon {...props} name="x" />} onClick={declineInvite}>
                         {t("reject")}
                       </DropdownItem>
                     </DropdownMenuItem>
@@ -267,7 +267,7 @@ export default function TeamListItem(props: Props) {
                       type="button"
                       color="secondary"
                       variant="icon"
-                      StartIcon={MoreHorizontal}
+                      StartIcon={(props) => <Icon {...props} name="more-horizontal" />}
                     />
                   </DropdownMenuTrigger>
                   <DropdownMenuContent hidden={hideDropdown}>

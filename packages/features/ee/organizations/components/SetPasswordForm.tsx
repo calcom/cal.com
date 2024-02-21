@@ -9,7 +9,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { trpc } from "@calcom/trpc/react";
 import { Alert, Button, Form, PasswordField } from "@calcom/ui";
-import { ArrowRight } from "@calcom/ui/components/icon";
+import { Icon } from "@calcom/ui";
 
 const querySchema = z.object({
   id: z.string(),
@@ -99,7 +99,7 @@ export const SetPasswordForm = () => {
           <Button
             disabled={setPasswordFormMethods.formState.isSubmitting || setPasswordMutation.isPending}
             color="primary"
-            EndIcon={ArrowRight}
+            EndIcon={(props) => <Icon {...props} name="arrow-right" />}
             type="submit"
             className="w-full justify-center">
             {t("continue")}

@@ -114,7 +114,7 @@ export function Header({
             className="group rtl:ml-1 rtl:rotate-180"
             variant="icon"
             color="minimal"
-            StartIcon={ChevronLeft}
+            StartIcon={(props) => <Icon {...props} name="chevron-left" />}
             aria-label="Previous Day"
             onClick={() => addToSelectedDate(layout === BookerLayouts.COLUMN_VIEW ? -nextSlots : -extraDays)}
           />

@@ -20,7 +20,7 @@ import {
   Skeleton,
   TextField,
 } from "@calcom/ui";
-import { Plus, FileText, X, ArrowUp, ArrowDown } from "@calcom/ui/components/icon";
+import { FileText, X, ArrowUp, ArrowDown } from "@calcom/ui/components/icon";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -298,7 +298,7 @@ function Field({
                             type="button"
                             onClick={() => handleRemoveOptions(index)}
                             aria-label={t("remove")}>
-                            <X className="h-4 w-4" />
+                            <Icon name="x" className="h-4 w-4" />
                           </button>
                         }
                       />
@@ -311,7 +311,7 @@ function Field({
                   data-testid="add-attribute"
                   className="border-none"
                   type="button"
-                  StartIcon={Plus}
+                  StartIcon={(props) => <Icon {...props} name="plus" />}
                   color="secondary"
                   onClick={handleAddOptions}>
                   Add an option
@@ -425,7 +425,7 @@ const FormEdit = ({
             <Button
               data-testid="add-field"
               type="button"
-              StartIcon={Plus}
+              StartIcon={(props) => <Icon {...props} name="plus" />}
               color="secondary"
               onClick={addField}>
               Add field

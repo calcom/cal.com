@@ -264,7 +264,7 @@ export const Components: Record<FieldType, Component> = {
                         !readOnly ? (
                           <Tooltip content="Remove email">
                             <button className="m-1" type="button">
-                              <X width={12} className="text-default" />
+                              <Icon name="x" width={12} className="text-default" />
                             </button>
                           </Tooltip>
                         ) : null

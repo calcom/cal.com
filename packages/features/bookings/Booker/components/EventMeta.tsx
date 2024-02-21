@@ -86,7 +86,7 @@ export const EventMeta = ({
           )}
           <div className="space-y-4 font-medium rtl:-mr-2">
             {rescheduleUid && bookingData && (
-              <EventMetaBlock icon={Calendar}>
+              <EventMetaBlock icon={(props) => <Icon {...props} name="calendar" />}>
                 {t("former_time")}
                 <br />
                 <span className="line-through" data-testid="former_time_p">
@@ -101,7 +101,7 @@ export const EventMeta = ({
               </EventMetaBlock>
             )}
             {selectedTimeslot && (
-              <EventMetaBlock icon={Calendar}>
+              <EventMetaBlock icon={(props) => <Icon {...props} name="calendar" />}>
                 <FromToTime
                   date={selectedTimeslot}
                   duration={selectedDuration || event.length}

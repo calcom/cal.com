@@ -15,7 +15,7 @@ import {
   Switch,
   Tooltip,
 } from "@calcom/ui";
-import { Edit, MoreHorizontal, Trash, Zap } from "@calcom/ui/components/icon";
+import { Edit, Trash, Zap } from "@calcom/ui/components/icon";
 
 type WebhookProps = {
   id: string;
@@ -129,7 +129,12 @@ export default function WebhookListItem(props: {
 
           <Dropdown>
             <DropdownMenuTrigger asChild>
-              <Button className="lg:hidden" StartIcon={MoreHorizontal} variant="icon" color="secondary" />
+              <Button
+                className="lg:hidden"
+                StartIcon={(props) => <Icon {...props} name="more-horizontal" />}
+                variant="icon"
+                color="secondary"
+              />
             </DropdownMenuTrigger>
             <DropdownMenuContent>
               <DropdownMenuItem>

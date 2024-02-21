@@ -19,7 +19,6 @@ import {
   showToast,
   Alert,
 } from "@calcom/ui";
-import { Plus } from "@calcom/ui/components/icon";
 
 import type { SliderUser } from "./AvailabilitySliderTable";
 
@@ -59,7 +58,11 @@ const DateOverride = ({ workingHours, disabled }: { workingHours: WorkingHours[]
           excludedDates={excludedDates}
           onChange={(ranges) => ranges.forEach((range) => append({ ranges: [range] }))}
           Trigger={
-            <Button color="secondary" StartIcon={Plus} data-testid="add-override" disabled={disabled}>
+            <Button
+              color="secondary"
+              StartIcon={(props) => <Icon {...props} name="plus" />}
+              data-testid="add-override"
+              disabled={disabled}>
               {t("add_an_override")}
             </Button>
           }

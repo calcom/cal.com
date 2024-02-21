@@ -38,11 +38,13 @@ export async function createUserAndEventType({
     appId: string;
   } | null)[];
 }) {
+  const hashedPassword = await hashPassword(user.password);
   const userData = {
     ...user,
     password: {
-      create: {
-        hash: await hashPassword(user.password),
+      upsert: {
+        create: { hash: hashedPassword },
+        update: { hash: hashedPassword },
       },
     },
     emailVerified: new Date(),

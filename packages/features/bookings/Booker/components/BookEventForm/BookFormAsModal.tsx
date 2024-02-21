@@ -23,7 +23,7 @@ const BookEventFormWrapper = ({ children }: { onCancel: () => void; children: Re
     <>
       <h1 className="font-cal text-emphasis text-xl leading-5">{t("confirm_your_details")} </h1>
       <div className="my-4 flex space-x-2 rounded-md leading-none">
-        <Badge variant="grayWithoutHover" startIcon={Calendar} size="lg">
+        <Badge variant="grayWithoutHover" startIcon={(props) => <Icon {...props} name="calendar" />} size="lg">
           <span>
             {parsedSelectedTimeslot.format("LL")} {parsedSelectedTimeslot.tz(timezone).format(timeFormat)}
           </span>

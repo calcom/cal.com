@@ -6,7 +6,7 @@ import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { Avatar, Badge, Button, ButtonGroup, Select, Switch, Tooltip } from "@calcom/ui";
-import { ExternalLink, X } from "@calcom/ui/components/icon";
+import { ExternalLink } from "@calcom/ui/components/icon";
 
 export type ChildrenEventType = {
   value: string;
@@ -119,7 +119,7 @@ export const ChildrenEventTypeSelect = ({
                         onClick={() =>
                           props.onChange(value.filter((item) => item.owner.id !== children.owner.id))
                         }
-                        StartIcon={X}
+                        StartIcon={(props) => <Icon {...props} name="x" />}
                       />
                     </Tooltip>
                   </ButtonGroup>

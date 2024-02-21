@@ -1,6 +1,6 @@
 import type { Table } from "@tanstack/react-table";
 
-import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "@calcom/ui/components/icon";
+import { ChevronRight, ChevronsLeft, ChevronsRight } from "@calcom/ui/components/icon";
 
 import { Button } from "../button";
 
@@ -34,7 +34,7 @@ export function DataTablePagination<TData>({ table }: DataTablePaginationProps<T
             className="h-8 w-8 p-0"
             onClick={() => table.previousPage()}
             disabled={!table.getCanPreviousPage()}
-            StartIcon={ChevronLeft}>
+            StartIcon={(props) => <Icon {...props} name="chevron-left" />}>
             <span className="sr-only">Go to previous page</span>
           </Button>
           <Button

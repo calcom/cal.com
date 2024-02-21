@@ -84,7 +84,7 @@ export default function ICSFeedSetup() {
                   onClick={() => {
                     setUrls((urls) => urls.concat(""));
                   }}>
-                  {t("add")} <Plus size={16} />
+                  {t("add")} <Icon name="plus" size={16} />
                 </button>
 
                 {errorMessage && (

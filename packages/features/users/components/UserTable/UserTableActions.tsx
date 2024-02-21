@@ -15,14 +15,7 @@ import {
   DropdownMenuSeparator,
   showToast,
 } from "@calcom/ui";
-import {
-  ExternalLink,
-  MoreHorizontal,
-  Edit2,
-  UserX,
-  Lock,
-  Send as SendIcon,
-} from "@calcom/ui/components/icon";
+import { ExternalLink, Edit2, UserX, Lock, Send as SendIcon } from "@calcom/ui/components/icon";
 
 import type { Action } from "./UserListTable";
 import type { User } from "./UserListTable";
@@ -80,7 +73,7 @@ export function TableActions({
                 className="radix-state-open:rounded-r-md"
                 color="secondary"
                 variant="icon"
-                StartIcon={MoreHorizontal}
+                StartIcon={(props) => <Icon {...props} name="more-horizontal" />}
               />
             </DropdownMenuTrigger>
             <DropdownMenuContent>
@@ -166,7 +159,12 @@ export function TableActions({
       <div className="flex md:hidden">
         <Dropdown>
           <DropdownMenuTrigger asChild>
-            <Button type="button" variant="icon" color="minimal" StartIcon={MoreHorizontal} />
+            <Button
+              type="button"
+              variant="icon"
+              color="minimal"
+              StartIcon={(props) => <Icon {...props} name="more-horizontal" />}
+            />
           </DropdownMenuTrigger>
           <DropdownMenuContent>
             <DropdownMenuItem className="outline-none">

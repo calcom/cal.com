@@ -115,7 +115,7 @@ The `Dropdown` component can be used to display a menu to the user.
   <Example title="Button Icon">
     <Dropdown>
       <DropdownMenuTrigger asChild>
-        <Button StartIcon={Plus} />
+        <Button StartIcon={(props) => <Icon {...props} name="plus" />} />
       </DropdownMenuTrigger>
       <DropdownMenuContent>
         <DropdownMenuItem>
@@ -269,7 +269,7 @@ The `Dropdown` component can be used to display a menu to the user.
           <DropdownItem StartIcon={Trash}>First</DropdownItem>
         </DropdownMenuItem>
         <DropdownMenuItem>
-          <DropdownItem StartIcon={Plus}>Second</DropdownItem>
+          <DropdownItem StartIcon={(props) => <Icon {...props} name="plus" />}>Second</DropdownItem>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem>
@@ -347,7 +347,7 @@ The `Dropdown` component can be used to display a menu to the user.
                 <DropdownItem StartIcon={Trash}>First</DropdownItem>
               </DropdownMenuItem>
               <DropdownMenuItem>
-                <DropdownItem StartIcon={Plus}>Second</DropdownItem>
+                <DropdownItem StartIcon={(props) => <Icon {...props} name="plus" />}>Second</DropdownItem>
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <DropdownItem StartIcon={Copy}>Third</DropdownItem>

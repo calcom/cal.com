@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 
-import { ArrowDown } from "@calcom/ui/components/icon";
+import { Icon } from "@calcom/ui";
 
 import { TopBanner } from "./TopBanner";
 
@@ -23,7 +23,7 @@ describe("Tests for TopBanner component", () => {
   });
 
   test("Should render the default variant", () => {
-    render(<TopBanner text="the banner test" Icon={ArrowDown} />);
+    render(<TopBanner text="the banner test" Icon={(props) => <Icon {...props} name="arrow-down" />} />);
 
     const variant = screen.getByTestId("variant-default");
     expect(variant).toBeInTheDocument();

@@ -13,7 +13,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@calcom/ui";
-import { Plus } from "@calcom/ui/components/icon";
+import { Icon } from "@calcom/ui";
 
 export interface Option {
   teamId: number | null | undefined; // if undefined, then it's a profile
@@ -84,7 +84,7 @@ export function CreateButton(props: CreateBtnProps) {
               : null
           }
           data-testid="create-button"
-          StartIcon={Plus}
+          StartIcon={(props) => <Icon {...props} name="plus" />}
           loading={isPending}
           variant={disableMobileButton ? "button" : "fab"}
           {...restProps}>
@@ -95,7 +95,7 @@ export function CreateButton(props: CreateBtnProps) {
           <DropdownMenuTrigger asChild>
             <Button
               variant={disableMobileButton ? "button" : "fab"}
-              StartIcon={Plus}
+              StartIcon={(props) => <Icon {...props} name="plus" />}
               data-testid="create-button-dropdown"
               loading={isPending}
               {...restProps}>

@@ -69,7 +69,7 @@ export const BookEventForm = ({
       <EmptyScreen
         headline={t("timeslot_missing_title")}
         description={t("timeslot_missing_description")}
-        Icon={Calendar}
+        Icon={(props) => <Icon {...props} name="calendar" />}
         buttonText={t("timeslot_missing_cta")}
         buttonOnClick={onCancel}
       />

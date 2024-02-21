@@ -41,7 +41,7 @@ export function HavingTroubleFindingTime(props: Props) {
           props.onButtonClick();
           setInternalClick(true);
         }}>
-        {t("show_more")} <ArrowRight className="h-4 w-4" />
+        {t("show_more")} <Icon name="arrow-right" className="h-4 w-4" />
       </button>
     </div>
   );

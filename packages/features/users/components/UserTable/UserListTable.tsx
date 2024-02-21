@@ -8,7 +8,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
 import { Avatar, Badge, Button, Checkbox, DataTable } from "@calcom/ui";
-import { Plus } from "@calcom/ui/components/icon";
 
 import { useOrgBranding } from "../../../ee/organizations/context/provider";
 import { DeleteBulkUsers } from "./BulkActions/DeleteBulkUsers";
@@ -312,7 +311,7 @@ export function UserListTable() {
             <Button
               type="button"
               color="primary"
-              StartIcon={Plus}
+              StartIcon={(props) => <Icon {...props} name="plus" />}
               size="sm"
               className="rounded-md"
               onClick={() =>

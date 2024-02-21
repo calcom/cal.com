@@ -24,7 +24,7 @@ import {
   Switch,
   showToast,
 } from "@calcom/ui";
-import { ArrowDown, ArrowUp, X, Plus, Trash2 } from "@calcom/ui/components/icon";
+import { ArrowDown, ArrowUp, Trash2 } from "@calcom/ui/components/icon";
 
 import { fieldTypesConfigMap } from "./fieldTypes";
 import { fieldsThatSupportLabelAsSafeHtml } from "./fieldsThatSupportLabelAsSafeHtml";
@@ -243,7 +243,7 @@ export const FormBuilder = function FormBuilder({
             data-testid="add-field"
             onClick={addField}
             className="mt-4"
-            StartIcon={Plus}>
+            StartIcon={(props) => <Icon {...props} name="plus" />}>
             {addFieldLabel}
           </Button>
         )}
@@ -352,7 +352,7 @@ function Options({
                     className="-ml-8 mb-2 hover:!bg-transparent focus:!bg-transparent focus:!outline-none focus:!ring-0"
                     size="sm"
                     color="minimal"
-                    StartIcon={X}
+                    StartIcon={(props) => <Icon {...props} name="x" />}
                     onClick={() => {
                       if (!value) {
                         return;
@@ -374,7 +374,7 @@ function Options({
               value.push({ label: "", value: "" });
               onChange(value);
             }}
-            StartIcon={Plus}>
+            StartIcon={(props) => <Icon {...props} name="plus" />}>
             Add an Option
           </Button>
         )}

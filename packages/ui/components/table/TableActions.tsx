@@ -52,7 +52,7 @@ export const DropdownActions = ({
             type="button"
             color="secondary"
             variant="icon"
-            StartIcon={() => <Icon name="more-horizontal" />}
+            StartIcon={(props) => <Icon {...props} name="more-horizontal" />}
           />
         </DropdownMenuTrigger>
       ) : (

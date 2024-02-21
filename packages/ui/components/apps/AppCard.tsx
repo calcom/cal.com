@@ -22,10 +22,10 @@ import {
   DropdownItem,
   Avatar,
   Badge,
+  Icon,
 } from "@calcom/ui";
 
 import { Button } from "../button";
-import { Plus } from "../icon";
 import { showToast } from "../toast";
 
 interface AppCardProps {
@@ -214,7 +214,7 @@ const InstallAppButtonChild = ({
       <Button
         color="secondary"
         className="[@media(max-width:260px)]:w-full [@media(max-width:260px)]:justify-center"
-        StartIcon={Plus}
+        StartIcon={(props) => <Icon {...props} name="plus" />}
         data-testid="install-app-button"
         {...props}>
         {paid.trial ? t("start_paid_trial") : t("subscribe")}
@@ -230,7 +230,7 @@ const InstallAppButtonChild = ({
       <Button
         color="secondary"
         className="[@media(max-width:260px)]:w-full [@media(max-width:260px)]:justify-center"
-        StartIcon={Plus}
+        StartIcon={(props) => <Icon {...props} name="plus" />}
         data-testid="install-app-button"
         {...props}>
         {t("install")}
@@ -244,7 +244,7 @@ const InstallAppButtonChild = ({
         <Button
           color="secondary"
           className="[@media(max-width:260px)]:w-full [@media(max-width:260px)]:justify-center"
-          StartIcon={Plus}
+          StartIcon={(props) => <Icon {...props} name="plus" />}
           data-testid="install-app-button"
           {...props}>
           {t("install")}

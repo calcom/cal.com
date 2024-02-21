@@ -56,7 +56,7 @@ export function HintsOrErrors<T extends FieldValues = FieldValues>({
                 }>
                 {error !== undefined ? (
                   submitted ? (
-                    <X size="12" strokeWidth="3" className="-ml-1 inline-block ltr:mr-2 rtl:ml-2" />
+                    <Icon name="x" size="12" strokeWidth="3" className="-ml-1 inline-block ltr:mr-2 rtl:ml-2" />
                   ) : (
                     <Circle fill="currentColor" size="5" className="inline-block ltr:mr-2 rtl:ml-2" />
                   )

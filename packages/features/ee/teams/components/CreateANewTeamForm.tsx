@@ -11,7 +11,7 @@ import slugify from "@calcom/lib/slugify";
 import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { trpc } from "@calcom/trpc/react";
 import { Alert, Button, Form, TextField } from "@calcom/ui";
-import { ArrowRight } from "@calcom/ui/components/icon";
+import { Icon } from "@calcom/ui";
 
 import { useOrgBranding } from "../../organizations/context/provider";
 import { subdomainSuffix } from "../../organizations/lib/orgDomains";
@@ -155,7 +155,7 @@ export const CreateANewTeamForm = () => {
           <Button
             disabled={newTeamFormMethods.formState.isSubmitting || createTeamMutation.isPending}
             color="primary"
-            EndIcon={ArrowRight}
+            EndIcon={(props) => <Icon {...props} name="arrow-right" />}
             type="submit"
             className="w-full justify-center"
             data-testid="continue-button">
