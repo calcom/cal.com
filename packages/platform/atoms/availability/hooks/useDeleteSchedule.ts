@@ -1,4 +1,4 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { BASE_URL, API_VERSION, V2_ENDPOINTS } from "@calcom/platform-constants";
@@ -26,6 +26,7 @@ const useDeleteSchedule = (
   }
 ) => {
   const endpoint = new URL(BASE_URL);
+  const queryClient = useQueryClient();
 
   const mutation = useMutation<ApiResponse<undefined>, unknown, DeleteScheduleInput>({
     mutationFn: (data) => {
@@ -44,6 +45,9 @@ const useDeleteSchedule = (
     },
     onError: () => {
       onError?.();
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["user-schedule"] });
     },
   });
 
