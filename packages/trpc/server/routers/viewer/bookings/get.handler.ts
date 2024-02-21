@@ -350,18 +350,53 @@ async function getBookings({
               teams: {
                 some: {
                   team: {
-                    members: {
-                      some: {
-                        userId: user.id,
-                        role: {
-                          in: ["ADMIN", "OWNER"],
+                    parentId: { gt: 0 },
+                  },
+                },
+              },
+            },
+          },
+          {
+            OR: [
+              {
+                user: {
+                  teams: {
+                    some: {
+                      team: {
+                        parent: {
+                          members: {
+                            some: {
+                              userId: user.id,
+                              role: {
+                                in: ["ADMIN", "OWNER"],
+                              },
+                            },
+                          },
                         },
                       },
                     },
                   },
                 },
               },
-            },
+              {
+                user: {
+                  teams: {
+                    some: {
+                      team: {
+                        members: {
+                          some: {
+                            userId: user.id,
+                            role: {
+                              in: ["ADMIN", "OWNER"],
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            ],
           },
           {
             eventType: {
