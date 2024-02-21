@@ -379,7 +379,7 @@ export async function ensureAvailableUsers(
         safeStringify({
           startDateTimeUtc,
           endDateTimeUtc,
-          timeZone: input.timeZone,
+          input,
         })
       );
       continue;
@@ -406,7 +406,7 @@ export async function ensureAvailableUsers(
         safeStringify({
           startDateTimeUtc,
           endDateTimeUtc,
-          timeZone: input.timeZone,
+          input,
         })
       );
       continue;
@@ -428,7 +428,7 @@ export async function ensureAvailableUsers(
       safeStringify({
         startDateTimeUtc,
         endDateTimeUtc,
-        timeZone: input.timeZone,
+        input,
       })
     );
     throw new Error(ErrorCode.NoAvailableUsersFound);
