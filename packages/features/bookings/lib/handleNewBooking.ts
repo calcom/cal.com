@@ -315,6 +315,16 @@ export async function ensureAvailableUsers(
   loggerWithEventDetails: Logger<unknown>
 ) {
   const availableUsers: IsFixedAwareUser[] = [];
+  const getStartDateTimeUtc = (startDateTimeInput: string, timeZone?: string) => {
+    return timeZone === "Etc/GMT"
+      ? dayjs.utc(startDateTimeInput)
+      : dayjs(startDateTimeInput).tz(timeZone).utc();
+  };
+
+  const startDateTimeUtc = getStartDateTimeUtc(input.dateFrom, input.timeZone);
+  const endDateTimeUtc =
+    input.timeZone === "Etc/GMT" ? dayjs.utc(input.dateTo) : dayjs(input.dateTo).tz(input.timeZone).utc();
+
   const duration = dayjs(input.dateTo).diff(input.dateFrom, "minute");
   const originalBookingDuration = input.originalRescheduledBooking
     ? dayjs(input.originalRescheduledBooking.endTime).diff(
@@ -331,23 +341,24 @@ export async function ensureAvailableUsers(
     busyTimesFromLimitsBookingsAllUsers = await getBusyTimesForLimitChecks({
       userIds: eventType.users.map((u) => u.id),
       eventTypeId: eventType.id,
-      startDate: input.dateFrom,
-      endDate: input.dateTo,
+      startDate: startDateTimeUtc.format(),
+      endDate: endDateTimeUtc.format(),
       rescheduleUid: input.originalRescheduledBooking?.uid ?? null,
       bookingLimits,
       durationLimits,
     });
   }
 
-  /** Let's start checking for availability */
   for (const user of eventType.users) {
     const { dateRanges, busy: bufferedBusyTimes } = await getUserAvailability(
       {
+        ...input,
         userId: user.id,
         eventTypeId: eventType.id,
         duration: originalBookingDuration,
         returnDateOverrides: false,
-        ...input,
+        dateFrom: startDateTimeUtc.format(),
+        dateTo: endDateTimeUtc.format(),
       },
       {
         user,
@@ -363,7 +374,14 @@ export async function ensureAvailableUsers(
     );
 
     if (!dateRanges.length) {
-      // user does not have availability at this time, skip user.
+      loggerWithEventDetails.error(
+        `User does not have availability at this time.`,
+        safeStringify({
+          startDateTimeUtc,
+          endDateTimeUtc,
+          input,
+        })
+      );
       continue;
     }
 
@@ -374,9 +392,8 @@ export async function ensureAvailableUsers(
     //check if event time is within the date range
     for (const dateRange of dateRanges) {
       if (
-        (dayjs.utc(input.dateFrom).isAfter(dateRange.start) ||
-          dayjs.utc(input.dateFrom).isSame(dateRange.start)) &&
-        (dayjs.utc(input.dateTo).isBefore(dateRange.end) || dayjs.utc(input.dateTo).isSame(dateRange.end))
+        (startDateTimeUtc.isAfter(dateRange.start) || startDateTimeUtc.isSame(dateRange.start)) &&
+        (endDateTimeUtc.isBefore(dateRange.end) || endDateTimeUtc.isSame(dateRange.end))
       ) {
         dateRangeForBooking = true;
         break;
@@ -384,15 +401,21 @@ export async function ensureAvailableUsers(
     }
 
     if (!dateRangeForBooking) {
+      loggerWithEventDetails.error(
+        `No date range for booking.`,
+        safeStringify({
+          startDateTimeUtc,
+          endDateTimeUtc,
+          input,
+        })
+      );
       continue;
     }
 
     try {
-      foundConflict = checkForConflicts(bufferedBusyTimes, input.dateFrom, duration);
-    } catch {
-      log.debug({
-        message: "Unable set isAvailableToBeBooked. Using true. ",
-      });
+      foundConflict = checkForConflicts(bufferedBusyTimes, startDateTimeUtc, duration);
+    } catch (error) {
+      loggerWithEventDetails.error("Unable set isAvailableToBeBooked. Using true. ", error);
     }
     // no conflicts found, add to available users.
     if (!foundConflict) {
@@ -400,7 +423,14 @@ export async function ensureAvailableUsers(
     }
   }
   if (!availableUsers.length) {
-    loggerWithEventDetails.error(`No available users found.`);
+    loggerWithEventDetails.error(
+      `No available users found.`,
+      safeStringify({
+        startDateTimeUtc,
+        endDateTimeUtc,
+        input,
+      })
+    );
     throw new Error(ErrorCode.NoAvailableUsersFound);
   }
   return availableUsers;
@@ -927,7 +957,7 @@ async function handler(
     !!eventType.schedulingType && ["COLLECTIVE", "ROUND_ROBIN"].includes(eventType.schedulingType);
 
   const paymentAppData = getPaymentAppData(eventType);
-  loggerWithEventDetails.debug(
+  loggerWithEventDetails.info(
     `Booking eventType ${eventTypeId} started`,
     safeStringify({
       reqBody: {
@@ -938,6 +968,7 @@ async function handler(
         endTime: reqBody.end,
         rescheduleUid: reqBody.rescheduleUid,
         location: location,
+        timeZone: reqBody.timeZone,
       },
       isTeamEventType,
       eventType: getPiiFreeEventType(eventType),

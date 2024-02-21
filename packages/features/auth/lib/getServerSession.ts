@@ -4,7 +4,7 @@ import type { AuthOptions, Session } from "next-auth";
 import { getToken } from "next-auth/jwt";
 
 import checkLicense from "@calcom/features/ee/common/server/checkLicense";
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { UserRepository } from "@calcom/lib/server/repository/user";
@@ -94,7 +94,10 @@ export async function getServerSession(options: {
       emailVerified: user.emailVerified,
       email_verified: user.emailVerified !== null,
       role: user.role,
-      image: `${WEBAPP_URL}/${user.username}/avatar.png`,
+      image: getUserAvatarUrl({
+        ...user,
+        profile: user.profile,
+      }),
       belongsToActiveTeam: token.belongsToActiveTeam,
       org: token.org,
       locale: user.locale ?? undefined,
