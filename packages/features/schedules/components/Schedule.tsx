@@ -65,7 +65,8 @@ export const ScheduleDay = <TFieldValues extends FieldValues>({
   const watchDayRange = watch(name);
 
   return (
-    <div className="mb-4 flex w-full flex-col last:mb-0 sm:flex-row sm:px-0" data-testid={weekday}>
+    // add classnames prop for this outer div as schedule day classnames or sum
+    <div className="mb-4 flex w-full flex-col gap-4 last:mb-0 sm:flex-row sm:px-0" data-testid={weekday}>
       {/* Label & switch container */}
       <div className="flex h-[36px] items-center justify-between sm:w-32">
         <div>
@@ -210,6 +211,7 @@ export const ScheduleComponent = <
   );
 };
 
+// add classnames prop in here for the time range field classname and then pass it down
 export const DayRanges = <TFieldValues extends FieldValues>({
   name,
   disabled,
@@ -238,7 +240,9 @@ export const DayRanges = <TFieldValues extends FieldValues>({
           <div className="mb-2 flex last:mb-0">
             <Controller
               name={`${name}.${index}`}
-              render={({ field }) => <TimeRangeField userTimeFormat={userTimeFormat} {...field} />}
+              render={({ field }) => (
+                <TimeRangeField className="gap-3" userTimeFormat={userTimeFormat} {...field} />
+              )}
             />
             {index === 0 && (
               <Button
