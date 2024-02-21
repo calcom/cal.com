@@ -89,6 +89,14 @@
         "operationId": "OAuthClientUsersController_getUserById",
         "parameters": [
           {
+            "name": "clientId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "userId",
             "required": true,
             "in": "path",
@@ -113,6 +121,14 @@
       "patch": {
         "operationId": "OAuthClientUsersController_updateUser",
         "parameters": [
+          {
+            "name": "clientId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "userId",
             "required": true,
@@ -148,6 +164,14 @@
       "delete": {
         "operationId": "OAuthClientUsersController_deleteUser",
         "parameters": [
+          {
+            "name": "clientId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "userId",
             "required": true,
@@ -1085,14 +1109,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "start",
-          "eventTypeId",
-          "timeZone",
-          "language",
-          "metadata",
-          "hashedLink"
-        ]
+        "required": ["start", "eventTypeId", "timeZone", "language", "metadata", "hashedLink"]
       },
       "CreateUserInput": {
         "type": "object",
@@ -1113,9 +1130,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "email"
-        ]
+        "required": ["email"]
       },
       "UpdateUserInput": {
         "type": "object",
@@ -1166,9 +1181,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "redirectUri"
-        ]
+        "required": ["redirectUri"]
       },
       "ExchangeAuthorizationCodeInput": {
         "type": "object",
@@ -1177,9 +1190,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "clientSecret"
-        ]
+        "required": ["clientSecret"]
       },
       "RefreshTokenInput": {
         "type": "object",
@@ -1188,9 +1199,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "refreshToken"
-        ]
+        "required": ["refreshToken"]
       },
       "CreateEventTypeInput": {
         "type": "object",
@@ -1206,11 +1215,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "length",
-          "slug",
-          "title"
-        ]
+        "required": ["length", "slug", "title"]
       },
       "CreateAvailabilityInput": {
         "type": "object",
@@ -1230,11 +1235,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "days",
-          "startTime",
-          "endTime"
-        ]
+        "required": ["days", "startTime", "endTime"]
       },
       "CreateScheduleInput": {
         "type": "object",
@@ -1256,11 +1257,7 @@
             "default": true
           }
         },
-        "required": [
-          "name",
-          "timeZone",
-          "isDefault"
-        ]
+        "required": ["name", "timeZone", "isDefault"]
       },
       "UpdateScheduleInput": {
         "type": "object",
