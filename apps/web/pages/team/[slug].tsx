@@ -201,7 +201,7 @@ function TeamPage({
             <SubTeams />
           ) : (
             <div className="w-full text-center">
-              <h2 className="text-emphasis font-semibold">You cannot see teams of a private org.</h2>
+              <h2 className="text-emphasis font-semibold">{t("you_cannot_see_teams_of_org")}</h2>
             </div>
           )
         ) : (
