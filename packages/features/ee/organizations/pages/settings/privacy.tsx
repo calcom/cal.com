@@ -11,24 +11,29 @@ import { Meta } from "@calcom/ui";
 const PrivacyView = () => {
   const { t } = useLocale();
   const { data: currentOrg } = trpc.viewer.organizations.listCurrent.useQuery();
-
-  const isInviteOpen = !currentOrg?.user.accepted;
   const isOrgAdminOrOwner =
     currentOrg &&
     (currentOrg.user.role === MembershipRole.OWNER || currentOrg.user.role === MembershipRole.ADMIN);
+  const isInviteOpen = !currentOrg?.user.accepted;
+
+  const isDisabled = isInviteOpen || !isOrgAdminOrOwner;
+
+  if (!currentOrg) return null;
 
   return (
     <LicenseRequired>
-      <Meta title={t("privacy")} description={t("privacy_organization_description")} />
+      <Meta
+        borderInShellHeader={false}
+        title={t("privacy")}
+        description={t("privacy_organization_description")}
+      />
       <div>
-        {currentOrg && isOrgAdminOrOwner && (
-          <MakeTeamPrivateSwitch
-            isOrg={true}
-            teamId={currentOrg.id}
-            isPrivate={currentOrg.isPrivate}
-            disabled={isInviteOpen}
-          />
-        )}
+        <MakeTeamPrivateSwitch
+          isOrg={true}
+          teamId={currentOrg.id}
+          isPrivate={currentOrg.isPrivate}
+          disabled={isDisabled}
+        />
       </div>
     </LicenseRequired>
   );
