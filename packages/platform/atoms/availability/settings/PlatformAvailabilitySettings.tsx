@@ -87,6 +87,10 @@ export function PlatformAvailabilitySettings({
                 {weekStart && (
                   <TooltipProvider>
                     <ScheduleComponent
+                      className={{
+                        labelAndSwitchContainer: "w-32",
+                        timeRanges: "gap-3",
+                      }}
                       userTimeFormat={timeFormat}
                       labels={labels}
                       control={form.control as unknown as Control<FieldValues, any>}
