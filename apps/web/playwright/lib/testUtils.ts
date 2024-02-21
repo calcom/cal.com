@@ -1,4 +1,5 @@
 import type { Frame, Page } from "@playwright/test";
+import type { APIResponse } from "@playwright/test";
 import { expect } from "@playwright/test";
 import { createHash } from "crypto";
 import EventEmitter from "events";
@@ -405,3 +406,17 @@ export async function assertBookingIsCorrect(page: Page, bookingTitle: string) {
   // The booker should be in the attendee list
   await expect(page.locator(`[data-testid="attendee-name-${testName}"]`)).toHaveText(testName);
 }
+
+export const assertBookingVisibleFor = async (
+  user: { apiLogin: () => Promise<APIResponse> },
+  pageFixture: Fixtures["page"],
+  eventType: EventType,
+  shouldBeVisible: boolean
+) => {
+  await user.apiLogin();
+  await pageFixture.goto(`/bookings/upcoming`);
+  const upcomingBookingList = pageFixture.locator('[data-testid="booking-item"]');
+  shouldBeVisible
+    ? await expect(upcomingBookingList.locator(`text=${eventType.title}`)).toBeVisible()
+    : await expect(upcomingBookingList.locator(`text=${eventType.title}`)).toBeHidden();
+};
