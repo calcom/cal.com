@@ -280,9 +280,9 @@ export default function Success(props: PageProps) {
   const bookingCancelledEventProps = {
     booking: bookingInfo,
     organizer: {
-      name: eventType.users[0].name || "Nameless",
-      email: bookingInfo?.userPrimaryEmail || eventType.users[0].email || "Email-less",
-      timeZone: eventType.users[0].timeZone,
+      name: bookingInfo?.user?.name || "Nameless",
+      email: bookingInfo?.userPrimaryEmail || bookingInfo?.user?.email || "Email-less",
+      timeZone: bookingInfo?.user?.timeZone,
     },
     eventType,
   };
