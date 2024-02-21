@@ -2170,8 +2170,17 @@ async function handler(
     });
 
     req.statusCode = 201;
-    return {
+    // TODO: Refactor better so this booking object is not passed
+    // all around and instead the individual fields are sent as args.
+    const bookingToReturn = {
       ...booking,
+      user: {
+        ...booking.user,
+        email: null,
+      },
+    };
+    return {
+      ...bookingToReturn,
       ...luckyUserResponse,
       message: "Payment required",
       paymentUid: payment?.uid,
@@ -2299,8 +2308,19 @@ async function handler(
 
   // booking successful
   req.statusCode = 201;
-  return {
+
+  // TODO: Refactor better so this booking object is not passed
+  // all around and instead the individual fields are sent as args.
+  const bookingToReturn = {
     ...booking,
+    user: {
+      ...booking.user,
+      email: null,
+    },
+  };
+
+  return {
+    ...bookingToReturn,
     ...luckyUserResponse,
     references: referencesToCreate,
     seatReferenceUid: evt.attendeeSeatId,
