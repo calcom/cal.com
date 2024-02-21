@@ -8,21 +8,34 @@ import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/
 import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { isRecurringEvent, parseRecurringEvent } from "@calcom/lib";
 import { getDefaultEvent, getUsernameList } from "@calcom/lib/defaultEvents";
+import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import type { PrismaClient } from "@calcom/prisma";
 import type { BookerLayoutSettings } from "@calcom/prisma/zod-utils";
 import {
-  bookerLayoutOptions,
-  EventTypeMetaDataSchema,
-  customInputSchema,
-  userMetadata as userMetadataSchema,
-  bookerLayouts as bookerLayoutsSchema,
   BookerLayouts,
+  EventTypeMetaDataSchema,
+  bookerLayoutOptions,
+  bookerLayouts as bookerLayoutsSchema,
+  customInputSchema,
   teamMetadataSchema,
+  userMetadata as userMetadataSchema,
 } from "@calcom/prisma/zod-utils";
 import type { UserProfile } from "@calcom/types/UserProfile";
+
+const userSelect = {
+  id: true,
+  avatarUrl: true,
+  username: true,
+  name: true,
+  weekStart: true,
+  brandColor: true,
+  darkBrandColor: true,
+  theme: true,
+  metadata: true,
+};
 
 const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   id: true,
@@ -77,32 +90,12 @@ const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   hosts: {
     select: {
       user: {
-        select: {
-          id: true,
-          avatarUrl: true,
-          username: true,
-          name: true,
-          weekStart: true,
-          brandColor: true,
-          darkBrandColor: true,
-          theme: true,
-          metadata: true,
-        },
+        select: userSelect,
       },
     },
   },
   owner: {
-    select: {
-      id: true,
-      avatarUrl: true,
-      weekStart: true,
-      username: true,
-      name: true,
-      theme: true,
-      metadata: true,
-      brandColor: true,
-      darkBrandColor: true,
-    },
+    select: userSelect,
   },
   hidden: true,
   assignAllTeamMembers: true,
@@ -163,7 +156,10 @@ export const getPublicEvent = async (
         username: users[0].username,
         name: users[0].name,
         weekStart: users[0].weekStart,
-        image: `/${users[0].username}/avatar.png`,
+        image: getUserAvatarUrl({
+          ...users[0],
+          profile: users[0].profile,
+        }),
         brandColor: users[0].brandColor,
         darkBrandColor: users[0].darkBrandColor,
         theme: null,
