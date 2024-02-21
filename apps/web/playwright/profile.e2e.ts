@@ -215,11 +215,9 @@ test.describe("Update Profile", () => {
         emails,
         secondaryEmail,
         `${APP_NAME}: Verify your account`,
-        "verify-secondary-email"
+        "verify-email"
       );
-      expect(inviteLink).toEqual(
-        `${WEBAPP_URL}/api/auth/verify-secondary-email?token=${verificationToken?.token}`
-      );
+      expect(inviteLink).toEqual(`${WEBAPP_URL}/api/auth/verify-email?token=${verificationToken?.token}`);
     });
   };
 
@@ -267,11 +265,9 @@ test.describe("Update Profile", () => {
         emails,
         secondaryEmail,
         `${APP_NAME}: Verify your account`,
-        "verify-secondary-email"
+        "verify-email"
       );
-      expect(
-        inviteLink?.endsWith(`/api/auth/verify-secondary-email?token=${verificationToken?.token}`)
-      ).toEqual(true);
+      expect(inviteLink?.endsWith(`/api/auth/verify-email?token=${verificationToken?.token}`)).toEqual(true);
     });
 
     const primaryEmail = page.getByTestId("profile-form-email-0");
@@ -338,7 +334,7 @@ test.describe("Update Profile", () => {
       token: verificationToken!.token,
     });
 
-    const verifyUrl = `${WEBAPP_URL}/api/auth/verify-secondary-email?${params.toString()}`;
+    const verifyUrl = `${WEBAPP_URL}/api/auth/verify-email?${params.toString()}`;
 
     await page.goto(verifyUrl);
 
@@ -374,7 +370,7 @@ test.describe("Update Profile", () => {
       token: verificationToken!.token,
     });
 
-    const verifyUrl = `${WEBAPP_URL}/api/auth/verify-secondary-email?${params.toString()}`;
+    const verifyUrl = `${WEBAPP_URL}/api/auth/verify-email?${params.toString()}`;
 
     await page.goto(verifyUrl);
     await page.getByTestId("secondary-email-action-group-button").nth(1).click();
