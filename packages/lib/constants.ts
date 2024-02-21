@@ -32,7 +32,11 @@ export const SENDER_NAME = process.env.NEXT_PUBLIC_SENDGRID_SENDER_NAME || "Cal.
 // This is the URL from which all Cal Links and their assets are served.
 // Use website URL to make links shorter(cal.com and not app.cal.com)
 // As website isn't setup for preview environments, use the webapp url instead
-export const CAL_URL = new URL(WEBAPP_URL).hostname.endsWith(".vercel.app") ? WEBAPP_URL : WEBSITE_URL;
+// If it's a .vercel.app domain, keep it.
+// Else use the website url if defined and finally fallback to the webapp url
+export const CAL_URL = new URL(WEBAPP_URL).hostname.endsWith(".vercel.app")
+  ? WEBAPP_URL
+  : process.env.NEXT_PUBLIC_WEBSITE_URL || WEBAPP_URL;
 
 export const IS_CALCOM =
   WEBAPP_URL &&
@@ -73,15 +77,15 @@ export const JOIN_DISCORD = "https://go.cal.com/discord";
 export const POWERED_BY_URL = `${WEBSITE_URL}/?utm_source=embed&utm_medium=powered-by-button`;
 export const DOCS_URL = "https://cal.com/docs";
 export const DEVELOPER_DOCS = "https://developer.cal.com";
-export const SEO_IMG_DEFAULT = `${WEBSITE_URL}/og-image.png`;
+export const SEO_IMG_DEFAULT = `${CAL_URL}/og-image.png`;
 // The Dynamic OG Image is passed through Next's Image API to further optimize it.
 // This results in a 80% smaller image 🤯. It is however important that for the query
 // parameters you pass to the /api/social/og/image endpoint, you wrap them in encodeURIComponent
 // as well, otherwise the URL won't be valid.
-export const SEO_IMG_OGIMG = `${WEBAPP_URL}/_next/image?w=1200&q=100&url=${encodeURIComponent(
+export const SEO_IMG_OGIMG = `${CAL_URL}/_next/image?w=1200&q=100&url=${encodeURIComponent(
   "/api/social/og/image"
 )}`;
-export const SEO_IMG_OGIMG_VIDEO = `${WEBSITE_URL}/video-og-image.png`;
+export const SEO_IMG_OGIMG_VIDEO = `${CAL_URL}/video-og-image.png`;
 export const IS_STRIPE_ENABLED = !!(
   process.env.STRIPE_CLIENT_ID &&
   process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY &&

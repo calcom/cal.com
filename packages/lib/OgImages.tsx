@@ -1,6 +1,6 @@
 import React from "react";
 
-import { LOGO, WEBAPP_URL } from "./constants";
+import { CAL_URL, LOGO, WEBAPP_URL } from "./constants";
 
 // Ensures tw prop is typed.
 declare module "react" {
@@ -62,7 +62,7 @@ export const constructMeetingImage = (
     `?type=meeting`,
     `&title=${encodeURIComponent(title)}`,
     `&meetingProfileName=${encodeURIComponent(profile.name)}`,
-    profile.image && `&meetingImage=${encodeURIComponent(WEBAPP_URL + profile.image)}`,
+    profile.image && `&meetingImage=${encodeURIComponent(profile.image)}`,
     `${users.map((user) => `&names=${encodeURIComponent(user.name)}`).join("")}`,
     `${users.map((user) => `&usernames=${encodeURIComponent(user.username)}`).join("")}`,
     // Joining a multiline string for readability.
@@ -125,7 +125,7 @@ export const Meeting = ({ title, users = [], profile }: MeetingImageProps) => {
   const avatars = attendees
     .map((user) => {
       if ("image" in user && user?.image) return user.image;
-      if ("username" in user && user?.username) return `${WEBAPP_URL}/${user.username}/avatar.png`;
+      if ("username" in user && user?.username) return `${CAL_URL}/${user.username}/avatar.png`;
       return null;
     })
     .filter(Boolean) as string[];
