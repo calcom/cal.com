@@ -1,9 +1,12 @@
 import "@/styles/globals.css";
 import type { AppProps } from "next/app";
+import { Poppins } from "next/font/google";
 import { useEffect, useState } from "react";
 
 import { CalProvider } from "@calcom/platform-atoms/components";
 import "@calcom/platform-atoms/dist/globals.min.css";
+
+const poppins = Poppins({ subsets: ["latin"], weight: ["400", "800"] });
 
 function generateRandomEmail() {
   const localPartLength = 10;
@@ -35,7 +38,7 @@ export default function App({ Component, pageProps }: AppProps) {
     });
   }, []);
   return (
-    <div>
+    <div className={`${poppins.className}`}>
       <CalProvider
         accessToken={accessToken}
         // eslint-disable-next-line turbo/no-undeclared-env-vars
