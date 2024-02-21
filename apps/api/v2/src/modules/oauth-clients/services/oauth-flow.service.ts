@@ -20,6 +20,10 @@ export class OAuthFlowService {
     return void 0;
   }
 
+  async getOwnerId(accessToken: string) {
+    return this.tokensRepository.getAccessTokenOwnerId(accessToken);
+  }
+
   async validateAccessToken(secret: string) {
     // status can be "CACHE_HIT" or "CACHE_MISS", MISS will most likely mean the token has expired
     // but we need to check the SQL db for it anyways.
