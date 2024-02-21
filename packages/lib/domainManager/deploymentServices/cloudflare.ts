@@ -80,9 +80,13 @@ export const deleteDnsRecord = async (domain: string) => {
   assertCloudflareEnvVars(process.env);
 
   const dnsRecordToDelete = await getDnsRecordToDelete();
-  await deleteDnsRecord(dnsRecordToDelete);
+  if (dnsRecordToDelete) {
+    await deleteDnsRecord(dnsRecordToDelete);
+    log.info(`Deleted dns-record in Cloudflare: ${domain}`);
+  } else {
+    log.info(`CNAME not found in Cloudflare: ${domain}. Nothing to delete`);
+  }
 
-  log.info(`Deleted dns-record in Cloudflare: ${domain}`);
   return true;
 
   async function getDnsRecordToDelete() {
@@ -134,7 +138,7 @@ export const deleteDnsRecord = async (domain: string) => {
       });
     }
 
-    return searchResult.result[0];
+    return searchResult.result[0] as (typeof searchResult.result)[0] | null;
   }
 
   async function deleteDnsRecord(dnsRecordToDelete: { id: string }) {

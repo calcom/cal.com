@@ -7,13 +7,12 @@ import type { FieldError } from "react-hook-form";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { Alert, Button, EmptyScreen, Form } from "@calcom/ui";
 import { Calendar } from "@calcom/ui/components/icon";
 
 import { useBookerStore } from "../../store";
 import type { useEventReturnType } from "../../utils/event";
-import type { useBookingFormReturnType } from "../hooks/useBookingForm";
+import type { UseBookingFormReturnType } from "../hooks/useBookingForm";
 import type { IUseBookingErrors, IUseBookingLoadingStates } from "../hooks/useBookings";
 import { BookingFields } from "./BookingFields";
 import { FormSkeleton } from "./Skeleton";
@@ -22,11 +21,12 @@ type BookEventFormProps = {
   onCancel?: () => void;
   onSubmit: () => void;
   errorRef: React.RefObject<HTMLDivElement>;
-  errors: useBookingFormReturnType["errors"] & IUseBookingErrors;
+  errors: UseBookingFormReturnType["errors"] & IUseBookingErrors;
   loadingStates: IUseBookingLoadingStates;
   children?: React.ReactNode;
-  bookingForm: useBookingFormReturnType["bookingForm"];
+  bookingForm: UseBookingFormReturnType["bookingForm"];
   renderConfirmNotVerifyEmailButtonCond: boolean;
+  extraOptions: Record<string, string | string[]>;
 };
 
 export const BookEventForm = ({
@@ -40,12 +40,12 @@ export const BookEventForm = ({
   renderConfirmNotVerifyEmailButtonCond,
   bookingForm,
   children,
+  extraOptions,
 }: Omit<BookEventFormProps, "event"> & {
   eventQuery: useEventReturnType;
   rescheduleUid: string | null;
 }) => {
   const eventType = eventQuery.data;
-  const routerQuery = useRouterQuery();
   const setFormValues = useBookerStore((state) => state.setFormValues);
   const bookingData = useBookerStore((state) => state.bookingData);
   const timeslot = useBookerStore((state) => state.selectedTimeslot);
@@ -76,7 +76,7 @@ export const BookEventForm = ({
     );
 
   if (!eventType) {
-    console.warn("No event type found for event", routerQuery);
+    console.warn("No event type found for event", extraOptions);
     return <Alert severity="warning" message={t("error_booking_event")} />;
   }
 
