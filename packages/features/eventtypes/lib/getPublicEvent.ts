@@ -25,6 +25,26 @@ import {
 } from "@calcom/prisma/zod-utils";
 import type { UserProfile } from "@calcom/types/UserProfile";
 
+const userSelect = Prisma.validator<Prisma.UserSelect>()({
+  id: true,
+  avatarUrl: true,
+  username: true,
+  name: true,
+  weekStart: true,
+  brandColor: true,
+  darkBrandColor: true,
+  theme: true,
+  metadata: true,
+  organization: {
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+      calVideoLogo: true,
+    },
+  },
+});
+
 const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   id: true,
   title: true,
@@ -78,32 +98,12 @@ const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   hosts: {
     select: {
       user: {
-        select: {
-          id: true,
-          avatarUrl: true,
-          username: true,
-          name: true,
-          weekStart: true,
-          brandColor: true,
-          darkBrandColor: true,
-          theme: true,
-          metadata: true,
-        },
+        select: userSelect,
       },
     },
   },
   owner: {
-    select: {
-      id: true,
-      avatarUrl: true,
-      weekStart: true,
-      username: true,
-      name: true,
-      theme: true,
-      metadata: true,
-      brandColor: true,
-      darkBrandColor: true,
-    },
+    select: userSelect,
   },
   hidden: true,
   assignAllTeamMembers: true,
@@ -291,12 +291,12 @@ type Event = Prisma.EventTypeGetPayload<typeof eventData>;
 
 function getProfileFromEvent(event: Event) {
   const { team, hosts, owner } = event;
-  const profile = team || hosts?.[0]?.user || owner;
+  const nonTeamprofile = hosts?.[0]?.user || owner;
+  const profile = team || nonTeamprofile;
   if (!profile) throw new Error("Event has no owner");
 
   const username = "username" in profile ? profile.username : team?.slug;
   const weekStart = hosts?.[0]?.user?.weekStart || owner?.weekStart || "Monday";
-  const basePath = team ? `/team/${username}` : `/${username}`;
   const eventMetaData = EventTypeMetaDataSchema.parse(event.metadata || {});
   const userMetaData = userMetadataSchema.parse(profile.metadata || {});
 
@@ -304,7 +304,22 @@ function getProfileFromEvent(event: Event) {
     username,
     name: profile.name,
     weekStart,
-    image: team ? undefined : `${basePath}/avatar.png`,
+    image: team
+      ? undefined
+      : // TODO: There must be a better way to do this, maybe a prisma middleware?
+        // This should come pre-proccessed from the database IMO instead of replacing everywhere
+        getUserAvatarUrl({
+          username: username || "",
+          profile: {
+            id: nonTeamprofile?.id || null,
+            username: username || null,
+            organizationId: nonTeamprofile?.organization?.id || null,
+            organization: nonTeamprofile?.organization
+              ? { ...nonTeamprofile?.organization, requestedSlug: null }
+              : null,
+          },
+          avatarUrl: nonTeamprofile?.avatarUrl,
+        }),
     logo: !team ? undefined : team.logo,
     brandColor: profile.brandColor,
     darkBrandColor: profile.darkBrandColor,
