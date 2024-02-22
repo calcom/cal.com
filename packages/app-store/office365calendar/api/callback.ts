@@ -1,6 +1,7 @@
 import type { Calendar as OfficeCalendar } from "@microsoft/microsoft-graph-types-beta";
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import { renewSelectedCalendarCredentialId } from "@calcom/lib/connectedCalendar";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { handleErrorsJson } from "@calcom/lib/errors";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
@@ -119,23 +120,36 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         appId: "office365-calendar",
       },
     });
+    const selectedCalendarWhereUnique = {
+      userId: req.session?.user.id,
+      integration: "office365_calendar",
+      externalId: defaultCalendar.id,
+    };
     // Wrapping in a try/catch to reduce chance of race conditions-
     // also this improves performance for most of the happy-paths.
     try {
       await prisma.selectedCalendar.create({
         data: {
-          userId: req.session?.user.id,
-          integration: "office365_calendar",
-          externalId: defaultCalendar.id,
+          ...selectedCalendarWhereUnique,
           credentialId: credential.id,
         },
       });
     } catch (error) {
-      await prisma.credential.delete({ where: { id: credential.id } });
       let errorMessage = "something_went_wrong";
       if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+        // it is possible a selectedCalendar was orphaned, in this situation-
+        // we want to recover by connecting the existing selectedCalendar to the new Credential.
+        if (await renewSelectedCalendarCredentialId(selectedCalendarWhereUnique, credential.id)) {
+          res.redirect(
+            getSafeRedirectUrl(state?.returnTo) ??
+              getInstalledAppPath({ variant: "calendar", slug: "office365-calendar" })
+          );
+          return;
+        }
+        // else
         errorMessage = "account_already_linked";
       }
+      await prisma.credential.delete({ where: { id: credential.id } });
       res.redirect(
         `${
           getSafeRedirectUrl(state?.onErrorReturnTo) ??
@@ -146,8 +160,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
   }
 
-  return res.redirect(
+  res.redirect(
     getSafeRedirectUrl(state?.returnTo) ??
       getInstalledAppPath({ variant: "calendar", slug: "office365-calendar" })
   );
+  return;
 }
