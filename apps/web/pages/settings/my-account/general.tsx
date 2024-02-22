@@ -101,7 +101,7 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
   ];
 
   const homeViewOptions = [
-    { value: "event-types", label: "EventTypes" },
+    { value: "event_types", label: "EventTypes" },
     { value: "bookings", label: "Bookings" },
     { value: "insights", label: "Insights" },
   ];
@@ -122,7 +122,7 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
         label: nameOfDay(localeProp, user.weekStart === "Sunday" ? 0 : 1),
       },
       homeView: {
-        value: user.homeView,
+        value: user.homeView as string,
         label: homeViewOptions.find((option) => option.value === user.homeView)?.label || "EventTypes",
       },
     },
@@ -236,7 +236,10 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
             control={formMethods.control}
             render={({ field: { value } }) => (
               <>
-                <Label className="text-emphasis mt-6">Default home view</Label>
+                <Label className="text-emphasis mt-6">
+                  {" "}
+                  <>{t("default_home_view")}</>
+                </Label>
                 <Select
                   value={value}
                   options={homeViewOptions}

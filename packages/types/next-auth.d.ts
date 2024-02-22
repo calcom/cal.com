@@ -34,7 +34,6 @@ declare module "next-auth" {
     role?: PrismaUser["role"] | "INACTIVE_ADMIN";
     locale?: string | null;
     profile: UserProfile;
-    homeView: PrismaUser["homeView"];
   }
 }
 
