@@ -3,6 +3,7 @@ import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { NextAuthGuard } from "@/modules/auth/guards/next-auth/next-auth.guard";
 import { OrganizationRolesGuard } from "@/modules/auth/guards/organization-roles/organization-roles.guard";
+import { CreateOAuthClientResponseDto } from "@/modules/oauth-clients/controllers/oauth-clients/responses/CreateOAuthClientResponse";
 import { UpdateOAuthClientInput } from "@/modules/oauth-clients/inputs/update-oauth-client.input";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import {
@@ -23,6 +24,7 @@ import {
   ApiTags as DocsTags,
   ApiExcludeController as DocsExcludeController,
   ApiOperation as DocsOperation,
+  ApiCreatedResponse as DocsCreatedResponse,
 } from "@nestjs/swagger";
 import { MembershipRole, PlatformOAuthClient } from "@prisma/client";
 
@@ -49,10 +51,14 @@ export class OAuthClientsController {
   @HttpCode(HttpStatus.CREATED)
   @Roles([MembershipRole.ADMIN, MembershipRole.OWNER])
   @DocsOperation({ description: AUTH_DOCUMENTATION })
+  @DocsCreatedResponse({
+    description: "Create an OAuth client",
+    type: CreateOAuthClientResponseDto,
+  })
   async createOAuthClient(
     @GetUser("organizationId") organizationId: number,
     @Body() body: CreateOAuthClientInput
-  ): Promise<ApiResponse<{ clientId: string; clientSecret: string }>> {
+  ): Promise<CreateOAuthClientResponseDto> {
     this.logger.log(
       `For organisation ${organizationId} creating OAuth Client with data: ${JSON.stringify(body)}`
     );

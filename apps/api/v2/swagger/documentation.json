@@ -185,17 +185,19 @@
         },
         "responses": {
           "201": {
-            "description": "",
+            "description": "Create an OAuth client",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/CreateOAuthClientResponseDto"
                 }
               }
             }
           }
         },
-        "tags": ["Development only"]
+        "tags": [
+          "Development only"
+        ]
       },
       "get": {
         "operationId": "OAuthClientsController_getOAuthClients",
@@ -214,7 +216,9 @@
             }
           }
         },
-        "tags": ["Development only"]
+        "tags": [
+          "Development only"
+        ]
       }
     },
     "/api/v2/oauth-clients/{clientId}": {
@@ -244,7 +248,9 @@
             }
           }
         },
-        "tags": ["Development only"]
+        "tags": [
+          "Development only"
+        ]
       },
       "patch": {
         "operationId": "OAuthClientsController_updateOAuthClient",
@@ -282,7 +288,9 @@
             }
           }
         },
-        "tags": ["Development only"]
+        "tags": [
+          "Development only"
+        ]
       },
       "delete": {
         "operationId": "OAuthClientsController_deleteOAuthClient",
@@ -310,7 +318,9 @@
             }
           }
         },
-        "tags": ["Development only"]
+        "tags": [
+          "Development only"
+        ]
       }
     },
     "/api/v2/oauth/{clientId}/authorize": {
@@ -341,7 +351,9 @@
             "description": ""
           }
         },
-        "tags": ["Development only"]
+        "tags": [
+          "Development only"
+        ]
       }
     },
     "/api/v2/oauth/{clientId}/exchange": {
@@ -387,7 +399,9 @@
             }
           }
         },
-        "tags": ["Development only"]
+        "tags": [
+          "Development only"
+        ]
       }
     },
     "/api/v2/oauth/{clientId}/refresh": {
@@ -433,7 +447,9 @@
             }
           }
         },
-        "tags": ["Development only"]
+        "tags": [
+          "Development only"
+        ]
       }
     },
     "/api/v2/event-types": {
@@ -1071,7 +1087,9 @@
             "type": "string"
           }
         },
-        "required": ["email"]
+        "required": [
+          "email"
+        ]
       },
       "UpdateUserInput": {
         "type": "object",
@@ -1096,6 +1114,51 @@
       "CreateOAuthClientInput": {
         "type": "object",
         "properties": {}
+      },
+      "DataDto": {
+        "type": "object",
+        "properties": {
+          "clientId": {
+            "type": "string",
+            "example": "clsx38nbl0001vkhlwin9fmt0"
+          },
+          "clientSecret": {
+            "type": "string",
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoib2F1dGgtY2xpZW50Iiwi"
+          }
+        },
+        "required": [
+          "clientId",
+          "clientSecret"
+        ]
+      },
+      "CreateOAuthClientResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "example": {
+              "clientId": "clsx38nbl0001vkhlwin9fmt0",
+              "clientSecret": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoib2F1dGgtY2xpZW50Iiwi"
+            },
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DataDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
       },
       "UpdateOAuthClientInput": {
         "type": "object",
@@ -1122,7 +1185,9 @@
             "type": "string"
           }
         },
-        "required": ["redirectUri"]
+        "required": [
+          "redirectUri"
+        ]
       },
       "ExchangeAuthorizationCodeInput": {
         "type": "object",
@@ -1131,7 +1196,9 @@
             "type": "string"
           }
         },
-        "required": ["clientSecret"]
+        "required": [
+          "clientSecret"
+        ]
       },
       "RefreshTokenInput": {
         "type": "object",
@@ -1140,7 +1207,9 @@
             "type": "string"
           }
         },
-        "required": ["refreshToken"]
+        "required": [
+          "refreshToken"
+        ]
       },
       "CreateEventTypeInput": {
         "type": "object",
@@ -1156,7 +1225,11 @@
             "type": "string"
           }
         },
-        "required": ["length", "slug", "title"]
+        "required": [
+          "length",
+          "slug",
+          "title"
+        ]
       },
       "CreateAvailabilityInput": {
         "type": "object",
@@ -1176,7 +1249,11 @@
             "type": "string"
           }
         },
-        "required": ["days", "startTime", "endTime"]
+        "required": [
+          "days",
+          "startTime",
+          "endTime"
+        ]
       },
       "CreateScheduleInput": {
         "type": "object",
@@ -1198,7 +1275,11 @@
             "default": true
           }
         },
-        "required": ["name", "timeZone", "isDefault"]
+        "required": [
+          "name",
+          "timeZone",
+          "isDefault"
+        ]
       },
       "UpdateScheduleInput": {
         "type": "object",
@@ -1267,7 +1348,14 @@
             "type": "string"
           }
         },
-        "required": ["start", "eventTypeId", "timeZone", "language", "metadata", "hashedLink"]
+        "required": [
+          "start",
+          "eventTypeId",
+          "timeZone",
+          "language",
+          "metadata",
+          "hashedLink"
+        ]
       },
       "ReserveSlotInput": {
         "type": "object",
