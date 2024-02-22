@@ -3,6 +3,7 @@ import { router } from "../../../trpc";
 import { ZCreateInputSchema } from "./create.schema";
 import { ZDeleteInputSchema } from "./delete.schema";
 import { ZGetInputSchema } from "./get.schema";
+import { teamGroupMappingRouter } from "./teamGroupMapping/_router";
 
 type DsyncRouterHandlerCache = {
   create?: typeof import("./create.handler").createHandler;
@@ -63,4 +64,6 @@ export const dsyncRouter = router({
       input,
     });
   }),
+
+  teamGroupMapping: teamGroupMappingRouter,
 });
