@@ -1,8 +1,6 @@
 #!/bin/bash
 
-echo "VERCEL_ENV: $VERCEL_ENV"
-echo "APP_ROUTER_EVENT_TYPES_ENABLED: $APP_ROUTER_EVENT_TYPES_ENABLED"
-
+# Only deploy to production
 if [ "$VERCEL_ENV" != "production" ]; then exit 0; fi
 
 # These conditionals are used to remove directories from the build that are not needed in production
