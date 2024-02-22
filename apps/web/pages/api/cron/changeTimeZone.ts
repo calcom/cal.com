@@ -20,6 +20,19 @@ const travelScheduleSelect = {
 };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const apiKey = req.headers.authorization || req.query.apiKey;
+  if (process.env.CRON_API_KEY !== apiKey) {
+    res.status(401).json({ message: "Not authenticated" });
+    return;
+  }
+
+  if (req.method !== "POST") {
+    res.status(405).json({ message: "Invalid method" });
+    return;
+  }
+
+  let timeZonesChanged = 0;
+
   const setNewTimeZone = async (timeZone: string, user: { id: number; defaultScheduleId: number | null }) => {
     await prisma.user.update({
       where: {
@@ -53,6 +66,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         timeZone: timeZone,
       },
     });
+    timeZonesChanged++;
   };
 
   /* travelSchedules should be deleted automatically when timezone is set back to original tz,
@@ -63,13 +77,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       OR: [
         {
           startDate: {
-            lt: dayjs().subtract(1, "day").toDate(),
+            lt: dayjs.utc().subtract(1, "day").toDate(),
           },
           endDate: null, //test if this works as expected
         },
         {
           endDate: {
-            lt: dayjs().subtract(1, "day").toDate(),
+            lt: dayjs.utc().subtract(1, "day").toDate(),
           },
         },
       ],
@@ -79,7 +93,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   for (const travelSchedule of schedulesToDelete) {
     if (travelSchedule.prevTimeZone) {
-      setNewTimeZone(travelSchedule.prevTimeZone, travelSchedule.user);
+      await setNewTimeZone(travelSchedule.prevTimeZone, travelSchedule.user);
     }
     await prisma.travelSchedule.delete({
       where: {
@@ -93,14 +107,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       OR: [
         {
           startDate: {
-            gte: dayjs().subtract(1, "day").toDate(),
-            lte: dayjs().add(1, "day").toDate(),
+            gte: dayjs.utc().subtract(1, "day").toDate(),
+            lte: dayjs.utc().add(1, "day").toDate(),
           },
         },
         {
           endDate: {
-            gte: dayjs().subtract(1, "day").toDate(),
-            lte: dayjs().add(1, "day").toDate(),
+            gte: dayjs.utc().subtract(1, "day").toDate(),
+            lte: dayjs.utc().add(1, "day").toDate(),
           },
         },
       ],
@@ -109,19 +123,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   });
 
   for (const travelSchedule of travelSchedulesCloseToCurrentDate) {
-    const userTz = travelSchedule.user.timeZone;
-    const offset = dayjs().tz(userTz).utcOffset();
+    const startDateUTC = dayjs(travelSchedule.startDate).utc();
+    const endDateUTC = dayjs(travelSchedule.endDate).utc();
 
-    // midnight in user's time zone
-    const startDateUserTz = dayjs(travelSchedule.startDate).subtract(offset, "minute").tz(userTz);
-    // 23:59 in user's time zone
-    const endDateUserTz = dayjs(travelSchedule.endDate).subtract(offset, "minute").tz(userTz);
-
-    if (dayjs().isAfter(startDateUserTz) && !travelSchedule.prevTimeZone) {
+    if (dayjs.utc().isAfter(startDateUTC) && !travelSchedule.prevTimeZone) {
       // travel schedule has started and new timezone wasn't set yet
-      setNewTimeZone(travelSchedule.timeZone, travelSchedule.user);
+      await setNewTimeZone(travelSchedule.timeZone, travelSchedule.user);
 
-      if (!endDateUserTz) {
+      if (!endDateUTC) {
         await prisma.travelSchedule.delete({
           where: {
             id: travelSchedule.id,
@@ -133,20 +142,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             id: travelSchedule.id,
           },
           data: {
-            prevTimeZone: userTz,
+            prevTimeZone: travelSchedule.user.timeZone,
           },
         });
       }
     }
-    if (dayjs().isAfter(endDateUserTz))
+    if (dayjs.utc().isAfter(endDateUTC)) {
       if (travelSchedule.prevTimeZone) {
         // travel schedule ended, change back to original timezone
-        setNewTimeZone(travelSchedule.prevTimeZone, travelSchedule.user);
+        await setNewTimeZone(travelSchedule.prevTimeZone, travelSchedule.user);
       }
-    await prisma.travelSchedule.delete({
-      where: {
-        id: travelSchedule.id,
-      },
-    });
+      await prisma.travelSchedule.delete({
+        where: {
+          id: travelSchedule.id,
+        },
+      });
+    }
   }
+  res.status(200).json({ timeZonesChanged });
 }
