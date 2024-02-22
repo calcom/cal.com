@@ -36,7 +36,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     .optional()
     .safeParse(ctx.query.redirect);
 
-  const redirectUrl = redirectUrlData.success ? redirectUrlData.data : undefined;
+  const redirectUrl = redirectUrlData.success && redirectUrlData.data ? redirectUrlData.data : null;
 
   const props = {
     redirectUrl,
