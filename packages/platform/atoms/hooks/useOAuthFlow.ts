@@ -24,18 +24,26 @@ export const useOAuthFlow = ({ accessToken, refreshUrl, clientId, onError }: use
             const originalRequest = err.config as AxiosRequestConfig & { _retry?: boolean };
             if (refreshUrl && err.response?.status === 498 && !isRefreshing) {
               setIsRefreshing(true);
-              originalRequest._retry = true;
               const refreshedToken = await http.refreshTokens(refreshUrl);
-
-              if (refreshedToken) setClientAccessToken(refreshedToken);
-              else onError?.("Invalid Refresh Token.");
+              http.setAuthorizationHeader(refreshedToken);
+              if (refreshedToken) {
+                setClientAccessToken(refreshedToken);
+                originalRequest._retry = true;
+              } else {
+                onError?.("Invalid Refresh Token.");
+                originalRequest._retry = false;
+              }
 
               setIsRefreshing(false);
 
-              if (!originalRequest._retry) {
-                return http.instance(originalRequest);
+              if (originalRequest._retry) {
+                return http.instance({
+                  ...originalRequest,
+                  headers: { ...originalRequest.headers, Authorization: `Bearer ${refreshedToken}` },
+                });
               }
             }
+            return Promise.reject(err.response);
           })
         : "";
 

@@ -1,6 +1,5 @@
 import { UpdateScheduleInput } from "@/ee/schedules/inputs/update-schedule.input";
 import { ResponseService } from "@/ee/schedules/services/response/response.service";
-import { ScheduleResponse } from "@/ee/schedules/services/response/zod/response";
 import { SchedulesService } from "@/ee/schedules/services/schedules.service";
 import { ForAtom } from "@/lib/atoms/decorators/for-atom.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
@@ -22,6 +21,7 @@ import { User } from "@prisma/client";
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import type { ScheduleWithAvailabilitiesForWeb } from "@calcom/platform-libraries";
 import type { CityTimezones } from "@calcom/platform-libraries";
+import { ScheduleResponse } from "@calcom/platform-types";
 import { ApiResponse } from "@calcom/platform-types";
 
 import { CreateScheduleInput } from "../inputs/create-schedule.input";

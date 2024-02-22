@@ -1,5 +1,4 @@
 import { SchedulesRepository } from "@/ee/schedules/schedules.repository";
-import { ScheduleResponse, schemaScheduleResponse } from "@/ee/schedules/services/response/zod/response";
 import { Injectable } from "@nestjs/common";
 import { User } from "@prisma/client";
 
@@ -12,6 +11,7 @@ import type {
   ScheduleWithAvailabilities,
   ScheduleWithAvailabilitiesForWeb,
 } from "@calcom/platform-libraries";
+import { ScheduleResponse, schemaScheduleResponse } from "@calcom/platform-types";
 
 @Injectable()
 export class ResponseService {

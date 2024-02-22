@@ -48,7 +48,7 @@ export const PlatformAvailabilitySettingsWrapper = ({
     },
   });
 
-  const { mutateAsync: mutateAsyncUpdation, isPending: isSavingInProgress } = useUpdateSchedule({
+  const { mutateAsync: updateSchedule, isPending: isSavingInProgress } = useUpdateSchedule({
     onSuccess: () => {
       toast({
         description: "Schedule updated successfully",
@@ -61,7 +61,7 @@ export const PlatformAvailabilitySettingsWrapper = ({
   };
 
   const handleUpdation = async (id: number, body: AvailabilityFormValues) => {
-    await mutateAsyncUpdation({ id, body });
+    await updateSchedule({ id, ...body });
   };
 
   const form = useForm<AvailabilityFormValues>({

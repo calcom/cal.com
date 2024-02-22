@@ -8,7 +8,7 @@ const http = (function () {
     headers: {},
   });
   let refreshUrl = "";
-
+  let accessToken = "";
   return {
     instance: instance,
     get: instance.get,
@@ -29,8 +29,8 @@ const http = (function () {
     getUrl: () => {
       return instance.defaults.baseURL;
     },
-    setAuthorizationHeader: (accessToken: string) => {
-      instance.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`;
+    setAuthorizationHeader: (token?: string) => {
+      instance.defaults.headers.common["Authorization"] = `Bearer ${token ?? accessToken}`;
     },
     getAuthorizationHeader: () => {
       return instance.defaults.headers.common?.["Authorization"]?.toString() ?? "";
@@ -45,7 +45,7 @@ const http = (function () {
       });
       const res = await response.json();
       if (res.accessToken) {
-        http.setAuthorizationHeader(res.accessToken);
+        accessToken = res.accessToken;
         return res.accessToken;
       }
       return "";
