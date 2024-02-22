@@ -5,7 +5,7 @@ export type Availability = {
   userId: number | null;
   eventTypeId: number | null;
   days: number[];
-  startTime: Date;
+  startTime: string;
   endTime: Date;
   date: Date | null;
   scheduleId: number | null;

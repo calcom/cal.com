@@ -1,3 +1,4 @@
-export { PlatformAvailabilityWrapper } from "./wrappers";
-export { PlatformAvailabilitySettingsWrapper } from "./wrappers";
+export { PlatformAvailabilitySettingsWrapper } from "./wrappers/PlatformAvailabilitySettingsWrapper";
+export { AvailabilitySettings } from "./AvailabilitySettings";
+
 export * from "../types";

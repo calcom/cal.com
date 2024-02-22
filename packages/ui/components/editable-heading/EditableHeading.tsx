@@ -1,10 +1,10 @@
-import { Edit2 } from "lucide-react";
+import classNames from "classnames";
 import { useState } from "react";
 import type { ControllerRenderProps } from "react-hook-form";
 
-import { classNames } from "@calcom/lib";
+import { Edit2 } from "@calcom/ui/components/icon";
 
-export function EditableHeading({
+export const EditableHeading = function EditableHeading({
   value,
   onChange,
   isReady,
@@ -15,7 +15,6 @@ export function EditableHeading({
   ControllerRenderProps) {
   const [isEditing, setIsEditing] = useState(false);
   const enableEditing = () => setIsEditing(true);
-
   return (
     <div
       className="group pointer-events-none relative truncate sm:pointer-events-auto"
@@ -48,4 +47,4 @@ export function EditableHeading({
       </div>
     </div>
   );
-}
+};

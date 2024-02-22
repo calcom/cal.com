@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 
 import { BASE_URL, API_VERSION } from "@calcom/platform-constants";
 
-import http from "../../lib/http";
+import http from "../lib/http";
 
 const useGetCityTimezones = () => {
   const endpoint = new URL(BASE_URL);

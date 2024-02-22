@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 
 import { BASE_URL, API_VERSION, V2_ENDPOINTS } from "@calcom/platform-constants";
 
-import http from "../../lib/http";
+import http from "../lib/http";
 
 const useClientSchedule = (id?: string) => {
   const endpoint = new URL(BASE_URL);

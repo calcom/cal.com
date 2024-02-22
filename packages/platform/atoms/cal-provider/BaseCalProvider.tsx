@@ -1,4 +1,5 @@
 import { Toaster } from "@/components/ui/toaster";
+import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { useState } from "react";
 import { useCallback } from "react";
 
@@ -53,7 +54,7 @@ export function BaseCalProvider({ clientId, accessToken, options, children }: Ca
           isInit && !error && clientId && !isRefreshing && currentAccessToken && http.getAuthorizationHeader()
         ),
       }}>
-      {children}
+      <TooltipProvider>{children}</TooltipProvider>
       <Toaster />
     </AtomsContext.Provider>
   ) : (

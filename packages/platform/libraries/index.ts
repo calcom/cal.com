@@ -1,8 +1,10 @@
 import * as newBookingMethods from "@calcom/features/bookings/lib/handleNewBooking";
 import { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
 import * as instantMeetingMethods from "@calcom/features/instant-meeting/handleInstantMeeting";
+import { updateHandler as updateScheduleHandler } from "@calcom/trpc/server/routers/viewer/availability/schedule/update.handler";
 import { getAvailableSlots } from "@calcom/trpc/server/routers/viewer/slots/util";
 
+export { updateScheduleHandler };
 export { getEventTypeById } from "@calcom/lib/getEventTypeById";
 
 export type PublicEventType = Awaited<ReturnType<typeof getPublicEvent>>;
