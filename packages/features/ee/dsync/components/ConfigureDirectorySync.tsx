@@ -18,6 +18,7 @@ import { AlertTriangle, Trash2 } from "@calcom/ui/components/icon";
 
 import CreateDirectory from "./CreateDirectory";
 import DirectoryInfo from "./DirectoryInfo";
+import GroupTeamMappingTable from "./GroupTeamMappingTable";
 
 const ConfigureDirectorySync = ({ orgId }: { orgId: number | null }) => {
   const { t } = useLocale();
@@ -69,6 +70,8 @@ const ConfigureDirectorySync = ({ orgId }: { orgId: number | null }) => {
       ) : (
         <>
           <DirectoryInfo directory={directory} />
+          <GroupTeamMappingTable />
+
           <hr className="border-subtle my-6" />
           <Label>{t("danger_zone")}</Label>
           {/* Delete directory sync connection */}
