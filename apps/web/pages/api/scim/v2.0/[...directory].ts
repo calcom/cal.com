@@ -94,7 +94,7 @@ const handleEvents = async (event: DirectorySyncEvent) => {
     });
 
     // User is already a part of that org
-    if (user?.organizationId) {
+    if (user?.organizationId && eventData.active) {
       return;
     }
 
