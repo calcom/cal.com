@@ -19,34 +19,6 @@
         }
       }
     },
-    "/api/booking": {
-      "post": {
-        "operationId": "BookingsController_createBooking",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateBookingInput"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/v2/oauth-clients/{clientId}/users": {
       "post": {
         "operationId": "OAuthClientUsersController_createUser",
@@ -1062,55 +1034,6 @@
   "servers": [],
   "components": {
     "schemas": {
-      "CreateBookingInput": {
-        "type": "object",
-        "properties": {
-          "end": {
-            "type": "string"
-          },
-          "start": {
-            "type": "string"
-          },
-          "eventTypeId": {
-            "type": "number"
-          },
-          "eventTypeSlug": {
-            "type": "string"
-          },
-          "rescheduleUid": {
-            "type": "string"
-          },
-          "recurringEventId": {
-            "type": "string"
-          },
-          "timeZone": {
-            "type": "string"
-          },
-          "user": {
-            "type": "object"
-          },
-          "language": {
-            "type": "string"
-          },
-          "bookingUid": {
-            "type": "string"
-          },
-          "metadata": {
-            "type": "object"
-          },
-          "hasHashedBookingLink": {
-            "type": "boolean"
-          },
-          "hashedLink": {
-            "type": "string",
-            "nullable": true
-          },
-          "seatReferenceUid": {
-            "type": "string"
-          }
-        },
-        "required": ["start", "eventTypeId", "timeZone", "language", "metadata", "hashedLink"]
-      },
       "CreateUserInput": {
         "type": "object",
         "properties": {
@@ -1278,6 +1201,55 @@
             "type": "boolean"
           }
         }
+      },
+      "CreateBookingInput": {
+        "type": "object",
+        "properties": {
+          "end": {
+            "type": "string"
+          },
+          "start": {
+            "type": "string"
+          },
+          "eventTypeId": {
+            "type": "number"
+          },
+          "eventTypeSlug": {
+            "type": "string"
+          },
+          "rescheduleUid": {
+            "type": "string"
+          },
+          "recurringEventId": {
+            "type": "string"
+          },
+          "timeZone": {
+            "type": "string"
+          },
+          "user": {
+            "type": "object"
+          },
+          "language": {
+            "type": "string"
+          },
+          "bookingUid": {
+            "type": "string"
+          },
+          "metadata": {
+            "type": "object"
+          },
+          "hasHashedBookingLink": {
+            "type": "boolean"
+          },
+          "hashedLink": {
+            "type": "string",
+            "nullable": true
+          },
+          "seatReferenceUid": {
+            "type": "string"
+          }
+        },
+        "required": ["start", "eventTypeId", "timeZone", "language", "metadata", "hashedLink"]
       },
       "ReserveSlotInput": {
         "type": "object",
