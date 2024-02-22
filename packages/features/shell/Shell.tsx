@@ -463,7 +463,9 @@ function UserDropdown({ small }: UserDropdownProps) {
           {!small && (
             <span className="flex flex-grow items-center gap-2">
               <span className="line-clamp-1 flex-grow text-sm leading-none">
-                <span className="text-emphasis block font-medium">{user.name || "Nameless User"}</span>
+                <span className="text-emphasis block font-medium">
+                  {user.name?.length > 15 ? `${user.name.slice(0, 15)}...` : user.name || "Nameless User"}
+                </span>
               </span>
               <ChevronDown
                 className="group-hover:text-subtle text-muted h-4 w-4 flex-shrink-0 rtl:mr-4"
