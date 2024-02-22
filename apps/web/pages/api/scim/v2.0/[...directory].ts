@@ -2,8 +2,8 @@ import type { DirectorySyncEvent, DirectorySyncRequest, User } from "@boxyhq/sam
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import createUserAndInviteToOrg from "@calcom/features/ee/dsync/lib/createUserAndInviteToOrg";
-import removeUserFromOrg from "@calcom/features/ee/dsync/lib/createUserAndInviteToOrg";
 import inviteExistingUserToOrg from "@calcom/features/ee/dsync/lib/inviteExistingUserToOrg";
+import removeUserFromOrg from "@calcom/features/ee/dsync/lib/removeUserFromOrg";
 import jackson from "@calcom/features/ee/sso/lib/jackson";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
