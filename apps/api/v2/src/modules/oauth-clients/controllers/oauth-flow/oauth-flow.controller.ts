@@ -1,3 +1,4 @@
+import { getEnv } from "@/env";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { NextAuthGuard } from "@/modules/auth/guards/next-auth/next-auth.guard";
 import { OAuthClientCredentialsGuard } from "@/modules/oauth-clients/guards/oauth-client-credentials/oauth-client-credentials.guard";
@@ -19,7 +20,7 @@ import {
   Response,
   UseGuards,
 } from "@nestjs/common";
-import { ApiTags } from "@nestjs/swagger";
+import { ApiTags as DocsTags, ApiExcludeController as DocsExcludeController } from "@nestjs/swagger";
 import { Response as ExpressResponse } from "express";
 
 import { SUCCESS_STATUS, X_CAL_SECRET_KEY } from "@calcom/platform-constants";
@@ -29,7 +30,8 @@ import { ApiResponse } from "@calcom/platform-types";
   path: "oauth/:clientId",
   version: "2",
 })
-@ApiTags("internal use")
+@DocsExcludeController(getEnv("NODE_ENV") === "production")
+@DocsTags("Development only")
 export class OAuthFlowController {
   constructor(
     private readonly oauthClientRepository: OAuthClientRepository,

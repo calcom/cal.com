@@ -194,7 +194,7 @@
           }
         },
         "tags": [
-          "internal use"
+          "Development only"
         ]
       },
       "get": {
@@ -213,7 +213,7 @@
           }
         },
         "tags": [
-          "internal use"
+          "Development only"
         ]
       }
     },
@@ -243,7 +243,7 @@
           }
         },
         "tags": [
-          "internal use"
+          "Development only"
         ]
       },
       "patch": {
@@ -281,7 +281,7 @@
           }
         },
         "tags": [
-          "internal use"
+          "Development only"
         ]
       },
       "delete": {
@@ -309,7 +309,7 @@
           }
         },
         "tags": [
-          "internal use"
+          "Development only"
         ]
       }
     },
@@ -342,7 +342,7 @@
           }
         },
         "tags": [
-          "internal use"
+          "Development only"
         ]
       }
     },
@@ -390,7 +390,7 @@
           }
         },
         "tags": [
-          "internal use"
+          "Development only"
         ]
       }
     },
@@ -438,7 +438,7 @@
           }
         },
         "tags": [
-          "internal use"
+          "Development only"
         ]
       }
     },

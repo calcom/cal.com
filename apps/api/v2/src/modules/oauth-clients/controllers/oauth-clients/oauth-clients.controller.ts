@@ -1,3 +1,4 @@
+import { getEnv } from "@/env";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { NextAuthGuard } from "@/modules/auth/guards/next-auth/next-auth.guard";
@@ -18,7 +19,7 @@ import {
   UseGuards,
   NotFoundException,
 } from "@nestjs/common";
-import { ApiTags } from "@nestjs/swagger";
+import { ApiTags as DocsTags, ApiExcludeController as DocsExcludeController } from "@nestjs/swagger";
 import { MembershipRole, PlatformOAuthClient } from "@prisma/client";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
@@ -30,7 +31,8 @@ import type { ApiResponse } from "@calcom/platform-types";
   version: "2",
 })
 @UseGuards(NextAuthGuard, OrganizationRolesGuard)
-@ApiTags("internal use")
+@DocsExcludeController(getEnv("NODE_ENV") === "production")
+@DocsTags("Development only")
 export class OAuthClientsController {
   private readonly logger = new Logger("OAuthClientController");
 
