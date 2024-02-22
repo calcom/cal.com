@@ -70,6 +70,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
     // DO NOT OVERWRITE AVATAR.
     avatar: undefined,
     metadata: userMetadata,
+    homeView: user?.homeView,
   };
 
   // some actions can invalidate a user session.
