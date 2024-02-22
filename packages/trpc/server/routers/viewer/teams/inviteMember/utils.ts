@@ -285,7 +285,7 @@ export async function createNewUsersConnectToOrgIfExists({
             data: {
               teamId: parentId,
               userId: createdUser.id,
-              role: input.role as MembershipRole,
+              role: MembershipRole.MEMBER,
               accepted: autoAccept,
             },
           });
@@ -332,7 +332,7 @@ export async function createMemberships({
             accepted,
             teamId: parentId,
             userId: invitee.id,
-            role: input.role as MembershipRole,
+            role: MembershipRole.MEMBER,
           });
         }
         return data;
