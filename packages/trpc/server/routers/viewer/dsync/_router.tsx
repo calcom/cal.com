@@ -1,4 +1,4 @@
-import authedProcedure from "../../../procedures/authedProcedure";
+import authedOrgAdminProcedure from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
 import { ZCreateInputSchema } from "./create.schema";
 import { ZDeleteInputSchema } from "./delete.schema";
@@ -14,7 +14,7 @@ const UNSTABLE_HANDLER_CACHE: DsyncRouterHandlerCache = {};
 
 export const dsyncRouter = router({
   // Create directory sync connection
-  create: authedProcedure.input(ZCreateInputSchema).mutation(async ({ ctx, input }) => {
+  create: authedOrgAdminProcedure.input(ZCreateInputSchema).mutation(async ({ ctx, input }) => {
     if (!UNSTABLE_HANDLER_CACHE.create) {
       UNSTABLE_HANDLER_CACHE.create = await import("./create.handler").then((mod) => mod.createHandler);
     }
@@ -31,7 +31,7 @@ export const dsyncRouter = router({
   }),
 
   // Get directory sync connection
-  get: authedProcedure.input(ZGetInputSchema).query(async ({ ctx, input }) => {
+  get: authedOrgAdminProcedure.input(ZGetInputSchema).query(async ({ ctx, input }) => {
     if (!UNSTABLE_HANDLER_CACHE.get) {
       UNSTABLE_HANDLER_CACHE.get = await import("./get.handler").then((mod) => mod.getHandler);
     }
@@ -48,7 +48,7 @@ export const dsyncRouter = router({
   }),
 
   // Delete directory sync connection
-  delete: authedProcedure.input(ZDeleteInputSchema).mutation(async ({ ctx, input }) => {
+  delete: authedOrgAdminProcedure.input(ZDeleteInputSchema).mutation(async ({ ctx, input }) => {
     if (!UNSTABLE_HANDLER_CACHE.delete) {
       UNSTABLE_HANDLER_CACHE.delete = await import("./delete.handler").then((mod) => mod.deleteHandler);
     }
