@@ -159,6 +159,7 @@ export default function Signup({
   isGoogleLoginEnabled,
   isSAMLLoginEnabled,
   orgAutoAcceptEmail,
+  redirectUrl,
 }: SignupProps) {
   const [premiumUsername, setPremiumUsername] = useState(false);
   const [usernameTaken, setUsernameTaken] = useState(false);
@@ -179,6 +180,12 @@ export default function Signup({
     watch,
     formState: { isSubmitting, errors, isSubmitSuccessful },
   } = formMethods;
+
+  useEffect(() => {
+    if (redirectUrl) {
+      localStorage.setItem("onBoardingRedirect", redirectUrl);
+    }
+  }, [redirectUrl]);
 
   const loadingSubmitState = isSubmitSuccessful || isSubmitting;
 
