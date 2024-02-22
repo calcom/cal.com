@@ -158,13 +158,13 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
           <div className="flex flex-row">
             <div className="mb-4 w-full pt-1">
               <div className="bg-subtle flex w-full flex-wrap gap-6 rounded-sm px-2 py-3 text-sm">
-                <div>
+                <div className="overflow-hidden overflow-y-scroll">
                   <p className="text-subtle">{t("current_username")}</p>
                   <p className="text-emphasis mt-1" data-testid="current-username">
                     {currentUsername}
                   </p>
                 </div>
-                <div>
+                <div className="overflow-hidden overflow-y-scroll">
                   <p className="text-subtle" data-testid="new-username">
                     {t("new_username")}
                   </p>
