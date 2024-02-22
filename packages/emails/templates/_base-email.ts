@@ -65,7 +65,14 @@ export default class BaseEmail {
           }
         }
       )
-    ).catch((e) => console.error("sendEmail", e));
+    ).catch((e) =>
+      console.error(
+        "sendEmail",
+        `from: ${"from" in payloadWithUnEscapedSubject ? payloadWithUnEscapedSubject.from : ""}`,
+        `subject: ${"subject" in payloadWithUnEscapedSubject ? payloadWithUnEscapedSubject.subject : ""}`,
+        e
+      )
+    );
     return new Promise((resolve) => resolve("send mail async"));
   }
   protected getMailerOptions() {
