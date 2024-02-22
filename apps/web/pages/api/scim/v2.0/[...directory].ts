@@ -106,16 +106,17 @@ const handleEvents = async (event: DirectorySyncEvent) => {
 
     if (user) {
       // If data.active is true then provision the user into the org
-      await inviteExistingUserToOrg({
-        user: user as UserWithMembership,
-        org,
-        translation,
-      });
-      // If data.active is false then remove the user from the org
-      await removeUserFromOrg({
-        userId: user.id,
-        orgId,
-      });
+      eventData.active
+        ? await inviteExistingUserToOrg({
+            user: user as UserWithMembership,
+            org,
+            translation,
+          })
+        : // If data.active is false then remove the user from the org
+          await removeUserFromOrg({
+            userId: user.id,
+            orgId,
+          });
 
       // If user is not in DB, create user and add to the org
     } else {
