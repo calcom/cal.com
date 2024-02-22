@@ -22,6 +22,7 @@ const removeMember = async ({
       team: true,
     },
   });
+  console.log("🚀 ~ membership:", membership);
 
   // remove user as host from team events associated with this membership
   await prisma.host.deleteMany({
@@ -37,8 +38,11 @@ const removeMember = async ({
     log.debug("Removing a member from the organization");
 
     // Deleting membership from all child teams
-    const foundUser = await prisma.user.findUnique({
+    const foundUser = await prisma.user.update({
       where: { id: memberId },
+      data: {
+        organizationId: null,
+      },
       select: {
         id: true,
         movedToProfileId: true,
