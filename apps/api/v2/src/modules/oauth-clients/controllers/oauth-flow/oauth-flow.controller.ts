@@ -19,6 +19,7 @@ import {
   Response,
   UseGuards,
 } from "@nestjs/common";
+import { ApiTags } from "@nestjs/swagger";
 import { Response as ExpressResponse } from "express";
 
 import { SUCCESS_STATUS, X_CAL_SECRET_KEY } from "@calcom/platform-constants";
@@ -28,6 +29,7 @@ import { ApiResponse } from "@calcom/platform-types";
   path: "oauth/:clientId",
   version: "2",
 })
+@ApiTags("internal use")
 export class OAuthFlowController {
   constructor(
     private readonly oauthClientRepository: OAuthClientRepository,

@@ -18,6 +18,7 @@ import {
   UseGuards,
   NotFoundException,
 } from "@nestjs/common";
+import { ApiTags } from "@nestjs/swagger";
 import { MembershipRole, PlatformOAuthClient } from "@prisma/client";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
@@ -29,6 +30,7 @@ import type { ApiResponse } from "@calcom/platform-types";
   version: "2",
 })
 @UseGuards(NextAuthGuard, OrganizationRolesGuard)
+@ApiTags("internal use")
 export class OAuthClientsController {
   private readonly logger = new Logger("OAuthClientController");
 

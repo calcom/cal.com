@@ -192,7 +192,10 @@
               }
             }
           }
-        }
+        },
+        "tags": [
+          "internal use"
+        ]
       },
       "get": {
         "operationId": "OAuthClientsController_getOAuthClients",
@@ -208,7 +211,10 @@
               }
             }
           }
-        }
+        },
+        "tags": [
+          "internal use"
+        ]
       }
     },
     "/api/v2/oauth-clients/{clientId}": {
@@ -235,7 +241,10 @@
               }
             }
           }
-        }
+        },
+        "tags": [
+          "internal use"
+        ]
       },
       "patch": {
         "operationId": "OAuthClientsController_updateOAuthClient",
@@ -270,7 +279,10 @@
               }
             }
           }
-        }
+        },
+        "tags": [
+          "internal use"
+        ]
       },
       "delete": {
         "operationId": "OAuthClientsController_deleteOAuthClient",
@@ -295,7 +307,10 @@
               }
             }
           }
-        }
+        },
+        "tags": [
+          "internal use"
+        ]
       }
     },
     "/api/v2/oauth/{clientId}/authorize": {
@@ -325,7 +340,10 @@
           "200": {
             "description": ""
           }
-        }
+        },
+        "tags": [
+          "internal use"
+        ]
       }
     },
     "/api/v2/oauth/{clientId}/exchange": {
@@ -370,7 +388,10 @@
               }
             }
           }
-        }
+        },
+        "tags": [
+          "internal use"
+        ]
       }
     },
     "/api/v2/oauth/{clientId}/refresh": {
@@ -415,7 +436,10 @@
               }
             }
           }
-        }
+        },
+        "tags": [
+          "internal use"
+        ]
       }
     },
     "/api/v2/event-types": {
@@ -1053,7 +1077,9 @@
             "type": "string"
           }
         },
-        "required": ["email"]
+        "required": [
+          "email"
+        ]
       },
       "UpdateUserInput": {
         "type": "object",
@@ -1104,7 +1130,9 @@
             "type": "string"
           }
         },
-        "required": ["redirectUri"]
+        "required": [
+          "redirectUri"
+        ]
       },
       "ExchangeAuthorizationCodeInput": {
         "type": "object",
@@ -1113,7 +1141,9 @@
             "type": "string"
           }
         },
-        "required": ["clientSecret"]
+        "required": [
+          "clientSecret"
+        ]
       },
       "RefreshTokenInput": {
         "type": "object",
@@ -1122,7 +1152,9 @@
             "type": "string"
           }
         },
-        "required": ["refreshToken"]
+        "required": [
+          "refreshToken"
+        ]
       },
       "CreateEventTypeInput": {
         "type": "object",
@@ -1138,7 +1170,11 @@
             "type": "string"
           }
         },
-        "required": ["length", "slug", "title"]
+        "required": [
+          "length",
+          "slug",
+          "title"
+        ]
       },
       "CreateAvailabilityInput": {
         "type": "object",
@@ -1158,7 +1194,11 @@
             "type": "string"
           }
         },
-        "required": ["days", "startTime", "endTime"]
+        "required": [
+          "days",
+          "startTime",
+          "endTime"
+        ]
       },
       "CreateScheduleInput": {
         "type": "object",
@@ -1180,7 +1220,11 @@
             "default": true
           }
         },
-        "required": ["name", "timeZone", "isDefault"]
+        "required": [
+          "name",
+          "timeZone",
+          "isDefault"
+        ]
       },
       "UpdateScheduleInput": {
         "type": "object",
@@ -1249,7 +1293,14 @@
             "type": "string"
           }
         },
-        "required": ["start", "eventTypeId", "timeZone", "language", "metadata", "hashedLink"]
+        "required": [
+          "start",
+          "eventTypeId",
+          "timeZone",
+          "language",
+          "metadata",
+          "hashedLink"
+        ]
       },
       "ReserveSlotInput": {
         "type": "object",
