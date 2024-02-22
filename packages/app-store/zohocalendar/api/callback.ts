@@ -107,10 +107,11 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
         // it is possible a selectedCalendar was orphaned, in this situation-
         // we want to recover by connecting the existing selectedCalendar to the new Credential.
         if (await renewSelectedCalendarCredentialId(selectedCalendarWhereUnique, credential.id)) {
-          return res.redirect(
+          res.redirect(
             getSafeRedirectUrl(state?.returnTo) ??
               getInstalledAppPath({ variant: "calendar", slug: config.slug })
           );
+          return;
         }
         // else
         errorMessage = "account_already_linked";
