@@ -2,6 +2,7 @@ import type { DirectorySyncEvent, DirectorySyncRequest, User } from "@boxyhq/sam
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import createUserAndInviteToOrg from "@calcom/features/ee/dsync/lib/createUserAndInviteToOrg";
+import removeUserFromOrg from "@calcom/features/ee/dsync/lib/createUserAndInviteToOrg";
 import inviteExistingUserToOrg from "@calcom/features/ee/dsync/lib/inviteExistingUserToOrg";
 import jackson from "@calcom/features/ee/sso/lib/jackson";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -103,16 +104,22 @@ const handleEvents = async (event: DirectorySyncEvent) => {
       throw new Error("Org not found");
     }
 
-    // If user already in DB, automatically add them to the org
     if (user) {
-      inviteExistingUserToOrg({
+      // If data.active is true then provision the user into the org
+      await inviteExistingUserToOrg({
         user: user as UserWithMembership,
         org,
         translation,
       });
+      // If data.active is false then remove the user from the org
+      await removeUserFromOrg({
+        userId: user.id,
+        orgId,
+      });
+
       // If user is not in DB, create user and add to the org
     } else {
-      createUserAndInviteToOrg({
+      await createUserAndInviteToOrg({
         userEmail,
         org,
         translation,
