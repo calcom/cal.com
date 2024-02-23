@@ -6,6 +6,7 @@ import type { PeriodType, SchedulingType } from "@calcom/prisma/enums";
 import type { BookerLayoutSettings, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { customInputSchema } from "@calcom/prisma/zod-utils";
 import type { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
+import type { RouterOutputs } from "@calcom/trpc/react";
 import type { IntervalLimit, RecurringEvent } from "@calcom/types/Calendar";
 
 export type CustomInputParsed = typeof customInputSchema._output;
@@ -16,16 +17,22 @@ export type AvailabilityOption = {
   isDefault: boolean;
   isManaged?: boolean;
 };
+export type EventTypeSetupProps = RouterOutputs["viewer"]["eventTypes"]["get"];
+export type EventTypeSetup = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"];
+export type Host = { isFixed: boolean; userId: number; priority: number };
 
 export type FormValues = {
+  id: number;
   title: string;
   eventTitle: string;
   eventName: string;
   slug: string;
+  isInstantEvent: boolean;
   length: number;
   offsetStart: number;
   description: string;
   disableGuests: boolean;
+  lockTimeZoneToggleOnBookingPage: boolean;
   requiresConfirmation: boolean;
   requiresBookerEmailVerification: boolean;
   recurringEvent: RecurringEvent | null;
@@ -49,16 +56,17 @@ export type FormValues = {
   schedule: number | null;
   periodType: PeriodType;
   periodDays: number;
-  periodCountCalendarDays: "1" | "0";
+  periodCountCalendarDays: boolean;
   periodDates: { startDate: Date; endDate: Date };
   seatsPerTimeSlot: number | null;
   seatsShowAttendees: boolean | null;
   seatsShowAvailabilityCount: boolean | null;
   seatsPerTimeSlotEnabled: boolean;
+  scheduleName: string;
   minimumBookingNotice: number;
   minimumBookingNoticeInDurationType: number;
-  beforeBufferTime: number;
-  afterBufferTime: number;
+  beforeEventBuffer: number;
+  afterEventBuffer: number;
   slotInterval: number | null;
   metadata: z.infer<typeof EventTypeMetaDataSchema>;
   destinationCalendar: {
@@ -68,13 +76,14 @@ export type FormValues = {
   successRedirectUrl: string;
   durationLimits?: IntervalLimit;
   bookingLimits?: IntervalLimit;
+  onlyShowFirstAvailableSlot: boolean;
   children: ChildrenEventType[];
-  hosts: { userId: number; isFixed: boolean }[];
+  hosts: Host[];
   bookingFields: z.infer<typeof eventTypeBookingFields>;
   availability?: AvailabilityOption;
   bookerLayouts: BookerLayoutSettings;
   multipleDurationEnabled: boolean;
-  isInstantEvent: boolean;
-  lockTimeZoneToggleOnBookingPage: boolean;
-  onlyShowFirstAvailableSlot: boolean;
+  users: EventTypeSetup["users"];
+  assignAllTeamMembers: boolean;
+  useEventTypeDestinationCalendarEmail: boolean;
 };

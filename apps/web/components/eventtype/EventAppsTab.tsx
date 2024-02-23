@@ -77,7 +77,7 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
 
   const { shouldLockDisableProps, isManagedEventType, isChildrenManagedEventType } = useLockedFieldsManager(
     eventType,
-    methods,
+    formMethods,
     t
   );
   const appsDisableProps = shouldLockDisableProps("apps", { simple: true });

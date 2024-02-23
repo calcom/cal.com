@@ -110,7 +110,7 @@ const MinimumBookingNoticeInput = React.forwardRef<
   );
 });
 
-export const EventLimitsTab = () => {
+export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventType">) => {
   const { t, i18n } = useLocale();
   const formMethods = useFormContext<FormValues>();
 
@@ -405,7 +405,9 @@ export const EventLimitsTab = () => {
               <div className="border-subtle rounded-b-lg border border-t-0 p-6">
                 <RadioGroup.Root
                   value={watchPeriodType}
-                  onValueChange={(val) => formMethods.setValue("periodType", val as PeriodType, { shouldDirty: true })}>
+                  onValueChange={(val) =>
+                    formMethods.setValue("periodType", val as PeriodType, { shouldDirty: true })
+                  }>
                   {PERIOD_TYPES.filter((opt) =>
                     periodTypeLocked.disabled ? watchPeriodType === opt.type : true
                   ).map((period) => {
@@ -446,8 +448,8 @@ export const EventLimitsTab = () => {
                                   "periodCountCalendarDays",
                                   opt?.value === 1 ? true : false,
                                   { shouldDirty: true }
-                                )
-                              }
+                                );
+                              }}
                               name="periodCoundCalendarDays"
                               value={optionsPeriod.find((opt) => {
                                 opt.value ===
