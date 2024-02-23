@@ -82,7 +82,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
 
-    if (existingSecondaryUser?.userId !== user.id) {
+    if (existingSecondaryUser && existingSecondaryUser.userId !== user.id) {
       return res.status(401).json({ message: USER_ALREADY_EXISTING_MESSAGE });
     }
 

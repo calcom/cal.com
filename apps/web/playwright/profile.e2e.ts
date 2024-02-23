@@ -297,7 +297,7 @@ test.describe("Update Profile", () => {
     await page.getByTestId("add-secondary-email").click();
 
     const secondaryEmail = `${emailInfo}-secondary-email@${emailDomain}`;
-    const secondaryEmailInput = page.getByTestId("secondary-email-input");
+    const secondaryEmailInput = await page.getByTestId("secondary-email-input");
     await secondaryEmailInput.fill(secondaryEmail);
 
     await page.getByTestId("add-secondary-email-button").click();
@@ -405,7 +405,15 @@ test.describe("Update Profile", () => {
 
     await testEmailVerificationLink({ page, prisma, emails, secondaryEmail });
 
-    expect(await page.locator("button[data-testid=resend-verify-email-button]").isDisabled()).toEqual(true);
+    const verificationToken = await prisma.verificationToken.findFirst({
+      where: {
+        identifier: secondaryEmail,
+      },
+    });
+    await page.goto(`${WEBAPP_URL}/api/auth/verify-email?token=${verificationToken?.token}`);
+
+    await page.getByTestId("secondary-email-action-group-button").nth(1).click();
+    expect(await page.locator("button[data-testid=resend-verify-email-button]").isVisible()).toEqual(false);
     expect(await page.getByTestId("profile-form-email-1-unverified-badge").isVisible()).toEqual(false);
   });
 });
