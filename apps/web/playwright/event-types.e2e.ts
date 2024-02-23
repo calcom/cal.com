@@ -383,7 +383,7 @@ async function gotoBookingPage(page: Page) {
 /**
  * Adds n+1 location to the event type
  */
-export async function addAnotherLocation(page: Page, locationOptionText: string) {
+async function addAnotherLocation(page: Page, locationOptionText: string) {
   await page.locator("[data-testid=add-location]").click();
   // When adding another location, the dropdown opens automatically. So, we don't need to open it here.
   //

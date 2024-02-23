@@ -145,7 +145,7 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
     };
   };
 
-  async function createInstantMeeting(endTime: string) {
+  async function createInstantMeeting(endTime: string | number) {
     // added a 1 hour buffer for room expiration
     const exp = Math.round(new Date(endTime).getTime() / 1000) + 60 * 60;
 
@@ -197,7 +197,7 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
         throw new Error("Something went wrong! Unable to get recording");
       }
     },
-    createInstantCalVideoRoom: (endTime: string) => createInstantMeeting(endTime),
+    createInstantCalVideoRoom: (endTime: string | number) => createInstantMeeting(endTime),
     getRecordingDownloadLink: async (recordingId: string): Promise<GetAccessLinkResponseSchema> => {
       try {
         const res = await fetcher(`/recordings/${recordingId}/access-link?valid_for_secs=43200`).then(
