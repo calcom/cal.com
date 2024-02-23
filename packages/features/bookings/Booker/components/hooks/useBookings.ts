@@ -4,6 +4,7 @@ import { useRef, useState, useEffect } from "react";
 
 import { createPaymentLink } from "@calcom/app-store/stripepayment/lib/client";
 import dayjs from "@calcom/dayjs";
+import { sdkActionManager } from "@calcom/embed-core/embed-iframe";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import type { useEventReturnType } from "@calcom/features/bookings/Booker/utils/event";
 import { updateQueryParam, getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
@@ -18,6 +19,7 @@ import {
 import { getFullName } from "@calcom/features/form-builder/utils";
 import { useBookingSuccessRedirect } from "@calcom/lib/bookingSuccessRedirect";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { BookingStatus } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc";
 import { showToast } from "@calcom/ui";
@@ -103,6 +105,45 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata }: IUseBo
     onSuccess: (responseData) => {
       const { uid, paymentUid } = responseData;
       const fullName = getFullName(bookingForm.getValues("responses.name"));
+
+      const users = !!event.data?.hosts?.length
+        ? event.data?.hosts.map((host) => host.user)
+        : event.data?.users;
+
+      const validDuration = event.data?.isDynamic
+        ? duration || event.data?.length
+        : duration && event.data?.metadata?.multipleDuration?.includes(duration)
+        ? duration
+        : event.data?.length;
+
+      if (isRescheduling) {
+        sdkActionManager?.fire("rescheduleBookingSuccessful", {
+          booking: responseData,
+          eventType: event.data,
+          date: responseData?.startTime?.toString() || "",
+          duration: validDuration,
+          organizer: {
+            name: users?.[0].name || "Nameless",
+            email: responseData?.userPrimaryEmail || responseData.user?.email || "Email-less",
+            timeZone: responseData.user?.timeZone || "Europe/London",
+          },
+          confirmed: !(responseData.status === BookingStatus.PENDING && event.data?.requiresConfirmation),
+        });
+      } else {
+        sdkActionManager?.fire("bookingSuccessful", {
+          booking: responseData,
+          eventType: event.data,
+          date: responseData?.startTime?.toString() || "",
+          duration: validDuration,
+          organizer: {
+            name: users?.[0].name || "Nameless",
+            email: responseData?.userPrimaryEmail || responseData.user?.email || "Email-less",
+            timeZone: responseData.user?.timeZone || "Europe/London",
+          },
+          confirmed: !(responseData.status === BookingStatus.PENDING && event.data?.requiresConfirmation),
+        });
+      }
+
       if (paymentUid) {
         router.push(
           createPaymentLink({
