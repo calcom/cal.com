@@ -12,6 +12,8 @@ type FormValues = {
   name: string;
   logo?: string;
   redirectUri: string;
+  redirectUriTwo?: string;
+  redirectUriThree?: string;
   redirectUris: string[];
   permissions: number;
   eventTypeRead: boolean;
@@ -20,13 +22,15 @@ type FormValues = {
   bookingWrite: boolean;
   scheduleRead: boolean;
   scheduleWrite: boolean;
+  appsRead: boolean;
+  appsWrite: boolean;
 };
 
 export const OAuthClientForm: FC = () => {
   const { register, handleSubmit, control, setValue } = useForm<FormValues>({});
   const router = useRouter();
 
-  const { mutateAsync, isLoading } = useCreateOAuthClient({
+  const { mutateAsync, isPending } = useCreateOAuthClient({
     onSuccess: () => {
       showToast("OAuth client created successfully", "success");
       router.push("/settings/organizations/platform/oauth-clients");
@@ -57,15 +61,16 @@ export const OAuthClientForm: FC = () => {
 
   const permissionsCheckboxes = Object.keys(PERMISSIONS_GROUPED_MAP).map((key) => {
     const entity = key as keyof typeof PERMISSIONS_GROUPED_MAP;
-    const label = PERMISSIONS_GROUPED_MAP[entity].key;
+    const permissionKey = PERMISSIONS_GROUPED_MAP[entity].key;
+    const permissionLabel = PERMISSIONS_GROUPED_MAP[entity].label;
 
     return (
       <div className="mt-3" key={key}>
-        <p className="text-sm font-semibold">{label}</p>
+        <p className="text-sm font-semibold">{permissionLabel}</p>
         <div className="mt-1 flex gap-x-5">
           <div className="flex items-center gap-x-2">
             <input
-              {...register(`${label}Read`)}
+              {...register(`${permissionKey}Read`)}
               className="bg-default border-default h-4 w-4 shrink-0 rounded-[4px] border ring-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed"
               type="checkbox"
             />
@@ -73,7 +78,7 @@ export const OAuthClientForm: FC = () => {
           </div>
           <div className="flex items-center gap-x-2">
             <input
-              {...register(`${label}Write`)}
+              {...register(`${permissionKey}Write`)}
               className="bg-default border-default h-4 w-4 shrink-0 rounded-[4px] border ring-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed"
               type="checkbox"
             />
@@ -128,13 +133,13 @@ export const OAuthClientForm: FC = () => {
           />
         </div> */}
         <div className="mt-6">
-          <TextField label="Redirect uri" required={true} {...register("redirectUri")} />
+          <TextField type="url" label="Redirect uri" required={true} {...register("redirectUri")} />
         </div>
         <div className="mt-6">
           <h1 className="text-base font-semibold underline">Permissions</h1>
           <div>{permissionsCheckboxes}</div>
         </div>
-        <Button className="mt-6" type="submit" loading={isLoading}>
+        <Button className="mt-6" type="submit" loading={isPending}>
           Submit
         </Button>
       </form>
