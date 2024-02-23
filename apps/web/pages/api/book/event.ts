@@ -40,7 +40,7 @@ async function handler(req: NextApiRequest & { userId?: number }, res: NextApiRe
     await redis.del(idempotencyKey);
 
     return booking;
-  } catch (err) {
+  } catch (err: unknown) {
     // Extract error information
     const responseData = { message: err?.message ?? "Internal Server Error" };
     const statusCode = err?.statusCode ?? 500;
