@@ -12,7 +12,6 @@ import inviteExistingUserToOrg from "./users/inviteExistingUserToOrg";
 const handleUserEvents = async (event: DirectorySyncEvent, orgId: number) => {
   const eventData = event.data as User;
   const userEmail = eventData.email;
-  const translation = await getTranslation("en", "common");
   // Check if user exists in DB
   const user = await prisma.user.findFirst({
     where: {
@@ -26,6 +25,7 @@ const handleUserEvents = async (event: DirectorySyncEvent, orgId: number) => {
       completedOnboarding: true,
       identityProvider: true,
       profiles: true,
+      locale: true,
       password: {
         select: {
           hash: true,
@@ -38,6 +38,8 @@ const handleUserEvents = async (event: DirectorySyncEvent, orgId: number) => {
   if (user?.organizationId && eventData.active) {
     return;
   }
+
+  const translation = await getTranslation(user?.locale || "en", "common");
 
   const org = await getTeamOrThrow(orgId, true);
 
