@@ -345,11 +345,12 @@ if (isSAMLLoginEnabled) {
 
         const { id, firstName, lastName, email } = userInfo;
         const user = await UserRepository.findByEmailAndIncludeProfilesAndPassword({ email });
+        let profile = null;
         if (!user) {
-          throw new Error(ErrorCode.UserNotFound);
+          // throw new Error(ErrorCode.UserNotFound);
+          console.log("no user found", firstName, id, lastName, email);
         }
-
-        const [profile] = user.allProfiles;
+        if (user) [profile] = user?.allProfiles;
 
         return {
           id: id as unknown as number,
