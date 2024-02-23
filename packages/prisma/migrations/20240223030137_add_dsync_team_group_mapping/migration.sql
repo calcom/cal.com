@@ -4,6 +4,7 @@ CREATE TABLE "DSyncTeamGroupMapping" (
     "orgId" INTEGER NOT NULL,
     "teamId" INTEGER NOT NULL,
     "directoryId" TEXT NOT NULL,
+    "groupName" TEXT NOT NULL,
 
     CONSTRAINT "DSyncTeamGroupMapping_pkey" PRIMARY KEY ("id")
 );

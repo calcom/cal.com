@@ -1143,4 +1143,5 @@ model DSyncTeamGroupMapping {
   teamId      Int
   team        Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
   directoryId String
+  groupName   String
 }
