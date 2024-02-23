@@ -163,7 +163,6 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
           <TextField
             label={t("event_name_in_calendar")}
             type="text"
-            isDisabled={shouldLockDisableProps("eventName").disabled}
             {...shouldLockDisableProps("eventName")}
             placeholder={eventNamePlaceholder}
             {...formMethods.register("eventName")}
@@ -320,7 +319,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
           </a>
         }
         {...(isManagedEventType || isChildrenManagedEventType ? { disabled: true } : {})}
-        {...(isChildrenManagedEventType ? { LockedIcon: shouldLockIndicator("hashedLink", false) } : {})}
+        {...(isChildrenManagedEventType ? { LockedIcon: shouldLockIndicator("hashedLink") } : {})}
         description={t("private_link_description", { appName: APP_NAME })}
         checked={hashedLinkVisible}
         onCheckedChange={(e) => {

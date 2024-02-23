@@ -215,7 +215,7 @@ export const EventSetupTab = (
               return (
                 <PhoneInput
                   required
-                  isDisabled={shouldLockDisableProps("locations").disabled}
+                  disabled={shouldLockDisableProps("locations").disabled}
                   placeholder={t(eventLocationType.organizerInputPlaceholder || "")}
                   name={`locations[${index}].${eventLocationType.defaultValueVariable}`}
                   value={value}
@@ -329,7 +329,7 @@ export const EventSetupTab = (
                       <CheckboxField
                         name={`locations[${index}].displayLocationPublicly`}
                         data-testid="display-location"
-                        isDisabled={shouldLockDisableProps("locations").disabled}
+                        disabled={shouldLockDisableProps("locations").disabled}
                         defaultChecked={defaultLocation?.displayLocationPublicly}
                         description={t("display_location_label")}
                         onChange={(e) => {
