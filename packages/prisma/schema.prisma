@@ -128,12 +128,16 @@ model EventType {
   assignAllTeamMembers                 Boolean                 @default(false)
   useEventTypeDestinationCalendarEmail Boolean                 @default(false)
 
+  secondaryEmailId Int?
+  secondaryEmail   SecondaryEmail? @relation(fields: [secondaryEmailId], references: [id], onDelete: Cascade)
+
   @@unique([userId, slug])
   @@unique([teamId, slug])
   @@unique([userId, parentId])
   @@index([userId])
   @@index([teamId])
   @@index([scheduleId])
+  @@index([secondaryEmailId])
 }
 
 model Credential {
@@ -1134,6 +1138,7 @@ model SecondaryEmail {
   email              String
   emailVerified      DateTime?
   verificationTokens VerificationToken[]
+  eventTypes         EventType[]
 
   @@unique([email])
   @@unique([userId, email])

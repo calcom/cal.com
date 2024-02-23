@@ -321,6 +321,25 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
   data.assignAllTeamMembers = assignAllTeamMembers ?? false;
 
+  // Validate the secondary email
+  if (data.secondaryEmailId) {
+    const secondaryEmail = await ctx.prisma.secondaryEmail.findUnique({
+      where: {
+        id: data.secondaryEmailId,
+        userId: ctx.user.id,
+      },
+    });
+    // Make sure the secondary email id belongs to the current user and its a verified one, else delete the data
+    if (!secondaryEmail || !secondaryEmail.emailVerified) {
+      // Delete the data if the user selected his original email to send the events to, which means the value coming will be -1
+      if (data.secondaryEmailId === -1) {
+        data.secondaryEmailId = null;
+      } else {
+        delete data.secondaryEmailId;
+      }
+    }
+  }
+
   const updatedEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
     slug: true,
     schedulingType: true,
