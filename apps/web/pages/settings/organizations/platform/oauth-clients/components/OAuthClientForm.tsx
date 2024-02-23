@@ -11,7 +11,7 @@ import { Meta, Button, TextField } from "@calcom/ui";
 type FormValues = {
   name: string;
   logo?: string;
-  redirectUri: string;
+  redirectUriOne: string;
   redirectUriTwo?: string;
   redirectUriThree?: string;
   redirectUris: string[];
@@ -42,6 +42,12 @@ export const OAuthClientForm: FC = () => {
 
   const onSubmit = (data: FormValues) => {
     let userPermissions = 0;
+    const userRedirectUris = [data.redirectUriOne];
+
+    // check if more than one redirect urls are present and add them accordingly
+    data.redirectUriTwo && userRedirectUris.push(data.redirectUriTwo);
+    data.redirectUriThree && userRedirectUris.push(data.redirectUriThree);
+
     Object.keys(PERMISSIONS_GROUPED_MAP).forEach((key) => {
       const entity = key as keyof typeof PERMISSIONS_GROUPED_MAP;
       const entityKey = PERMISSIONS_GROUPED_MAP[entity].key;
@@ -55,7 +61,7 @@ export const OAuthClientForm: FC = () => {
       name: data.name,
       permissions: userPermissions,
       // logo: data.logo,
-      redirectUris: [data.redirectUri],
+      redirectUris: userRedirectUris,
     });
   };
 
@@ -133,7 +139,13 @@ export const OAuthClientForm: FC = () => {
           />
         </div> */}
         <div className="mt-6">
-          <TextField type="url" label="Redirect uri" required={true} {...register("redirectUri")} />
+          <TextField type="url" label="Redirect uri one" required={true} {...register("redirectUriOne")} />
+        </div>
+        <div className="mt-6">
+          <TextField type="url" label="Redirect uri two" {...register("redirectUriTwo")} />
+        </div>
+        <div className="mt-6">
+          <TextField type="url" label="Redirect uri three" {...register("redirectUriThree")} />
         </div>
         <div className="mt-6">
           <h1 className="text-base font-semibold underline">Permissions</h1>
