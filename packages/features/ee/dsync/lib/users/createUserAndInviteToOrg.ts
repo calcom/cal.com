@@ -16,9 +16,7 @@ const createUserAndInviteToOrg = async ({
   org: Awaited<ReturnType<typeof getTeamOrThrow>>;
   translation: TFunction;
 }) => {
-  console.log("🚀 ~ org:", org);
   const orgId = org.id;
-  console.log("🚀 ~ orgId:", orgId);
   const [emailUser, emailDomain] = userEmail.split("@");
   const username = slugify(`${emailUser}-${emailDomain.split(".")[0]}`);
   await prisma.user.create({

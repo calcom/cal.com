@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Meta, SkeletonLoader, SettingsToggle, showToast, Button } from "@calcom/ui";
+import { Meta, SkeletonLoader, showToast } from "@calcom/ui";
 
 import { getLayout } from "../../../settings/layouts/SettingsLayout";
 import ConfigureDirectorySync from "../components/ConfigureDirectorySync";
@@ -38,32 +38,19 @@ const DirectorySync = () => {
     <div className="bg-default w-full sm:mx-0 xl:mt-0">
       <Meta title={t("directory_sync")} description={t("directory_sync_description")} />
       {HOSTED_CAL_FEATURES && <ConfigureDirectorySync orgId={currentOrg?.id || null} />}
-      <SettingsToggle
+      {/* <SettingsToggle
         toggleSwitchAtTheEnd={true}
         title="Map groups to teams 1:1"
         description="Members will be auto assigned to teams with the same name as their group."
-        // disabled={mutation.isPending}
-        // checked={isAllowDynamicBookingChecked}
-        // onCheckedChange={(checked) => {
-        //   setIsAllowDynamicBookingChecked(checked);
-        //   mutation.mutate({ allowDynamicBooking: checked });
-        // }}
         switchContainerClassName="mt-6"
       />
       <SettingsToggle
         toggleSwitchAtTheEnd={true}
         title="Create new teams based on groups"
         description="Automatically create new teams if a new group is pushed"
-        // disabled={mutation.isPending}
-        // checked={isAllowDynamicBookingChecked}
-        // onCheckedChange={(checked) => {
-        //   setIsAllowDynamicBookingChecked(checked);
-        //   mutation.mutate({ allowDynamicBooking: checked });
-        // }}
         switchContainerClassName="mt-6"
       />
-      <Button>Default team config</Button>
-      <Button>Group teams mapping</Button>
+      <Button>Default team config</Button> */}
     </div>
   );
 };
