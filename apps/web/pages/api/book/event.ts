@@ -31,14 +31,13 @@ async function handler(req: NextApiRequest & { userId?: number }, res: NextApiRe
   const idempotencyKey = generateHash(requestBody);
 
   try {
-    const checkIfKeyExist = await redis.exists(idempotencyKey);
-    if (checkIfKeyExist) {
+    const keyExists = await redis.exists(idempotencyKey);
+    if (keyExists) {
       return res.status(429).json({ message: "Request Already Processing" });
     }
 
     await redis.set(idempotencyKey, "1");
     const booking = await handleNewBooking(req);
-    await redis.del(idempotencyKey);
 
     return booking;
   } catch (_err) {
@@ -47,10 +46,10 @@ async function handler(req: NextApiRequest & { userId?: number }, res: NextApiRe
     const responseData = { message: err?.message ?? "Internal Server Error" };
     const statusCode = err?.statusCode ?? 500;
 
-    await redis.del(idempotencyKey);
-
     // Send the exact error and status code in the response
     return res.status(statusCode).json(responseData);
+  } finally {
+    await redis.del(idempotencyKey);
   }
 }
 
