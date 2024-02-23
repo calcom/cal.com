@@ -193,6 +193,14 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     },
   });
 
+  // Removing hidden fields from responses
+  for (const key in bookingInfo.responses) {
+    const field = eventTypeRaw.bookingFields.find((field) => field.name === key);
+    if (field && !!field.hidden) {
+      delete bookingInfo.responses[key];
+    }
+  }
+
   return {
     props: {
       themeBasis: eventType.team ? eventType.team.slug : eventType.users[0]?.username,
