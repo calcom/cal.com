@@ -1,3 +1,4 @@
+import type { IOutOfOfficeData } from "@calcom/core/getUserAvailability";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import type { WorkingHours, TimeRange as DateOverride } from "@calcom/types/schedule";
@@ -16,6 +17,7 @@ export type GetSlots = {
   eventLength: number;
   offsetStart?: number;
   organizerTimeZone: string;
+  datesOutOfOffice?: IOutOfOfficeData;
 };
 export type TimeFrame = { userIds?: number[]; startTime: number; endTime: number };
 
@@ -147,6 +149,7 @@ function buildSlotsWithDateRanges({
   minimumBookingNotice,
   organizerTimeZone,
   offsetStart,
+  datesOutOfOffice,
 }: {
   dateRanges: DateRange[];
   frequency: number;
@@ -155,14 +158,17 @@ function buildSlotsWithDateRanges({
   minimumBookingNotice: number;
   organizerTimeZone: string;
   offsetStart?: number;
+  datesOutOfOffice?: IOutOfOfficeData;
 }) {
   // keep the old safeguards in; may be needed.
   frequency = minimumOfOne(frequency);
   eventLength = minimumOfOne(eventLength);
   offsetStart = offsetStart ? minimumOfOne(offsetStart) : 0;
   const slots: { time: Dayjs; userIds?: number[] }[] = [];
-
+  console.log("datesOutOfOffice", datesOutOfOffice);
   dateRanges.forEach((range) => {
+    const dateYYYYMMDD = range.start.format("YYYY-MM-DD");
+
     const startTimeWithMinNotice = dayjs.utc().add(minimumBookingNotice, "minute");
 
     let slotStartTime = range.start.utc().isAfter(startTimeWithMinNotice)
@@ -194,6 +200,17 @@ function buildSlotsWithDateRanges({
 
     slotStartTime = slotStartTime.add(offsetStart ?? 0, "minutes").tz(timeZone);
 
+    if (datesOutOfOffice?.[dateYYYYMMDD]) {
+      slots.push({
+        time: slotStartTime,
+        away: true,
+        toUser: datesOutOfOffice[dateYYYYMMDD].toUser,
+        fromUser: datesOutOfOffice[dateYYYYMMDD].user,
+        returnDate: "example",
+      });
+      return;
+    }
+
     while (!slotStartTime.add(eventLength, "minutes").subtract(1, "second").utc().isAfter(rangeEnd)) {
       slots.push({
         time: slotStartTime,
@@ -221,6 +238,7 @@ const getSlots = ({
   eventLength,
   offsetStart = 0,
   organizerTimeZone,
+  datesOutOfOffice,
 }: GetSlots) => {
   if (dateRanges) {
     const slots = buildSlotsWithDateRanges({
@@ -231,6 +249,7 @@ const getSlots = ({
       minimumBookingNotice,
       organizerTimeZone,
       offsetStart,
+      datesOutOfOffice,
     });
     return slots;
   }

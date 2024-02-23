@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 
-import type { IFromUser, IOutOfOfficeData, IToUser } from "@calcom/core/getUserAvailability";
+import type { IFromUser, IToUser } from "@calcom/core/getUserAvailability";
 
 import type { Slots } from "./types";
 
@@ -21,10 +21,9 @@ export const useSlotsForDate = (date: string | null, slots?: Slots) => {
 
 export const useSlotsForAvailableDates = (
   dates: string[] | null,
-  slots?: Slots,
-  datesOutOfOffice?: IOutOfOfficeData
+  slots?: Slots
 ): {
-  slots: { time: string; attendees?: number | undefined; bookingUid?: string | undefined }[];
+  slots: Slots;
   date: string | null;
   away: boolean;
   toUser?: IToUser | null;
@@ -32,47 +31,14 @@ export const useSlotsForAvailableDates = (
   returnDate: string | null;
 }[] => {
   const slotsForDates = useMemo(() => {
-    let datesCopy = !!dates ? dates.slice() : [];
-    // first remove datesOutOfOffice that don't have toUser
-    const datesOOOKeys = datesOutOfOffice !== undefined ? Object.keys(datesOutOfOffice) : [];
-    const filteredOOOKeys: string[] = [];
-    if (datesOutOfOffice) {
-      datesOOOKeys.forEach((date) => {
-        if (datesOutOfOffice[date]?.toUser?.id) {
-          filteredOOOKeys.push(date);
-        }
-      });
-    }
-
-    if (slots === undefined && filteredOOOKeys && filteredOOOKeys.length === 0) return [];
-
-    // Add datesOOOKeys to dates array
-    datesCopy = datesCopy.concat(filteredOOOKeys);
-    // sort dates
-    datesCopy.sort((a, b) => (a === null ? 1 : b === null ? -1 : a.localeCompare(b)));
-
-    return datesCopy
-      .filter((date) => date !== null)
+    return dates
+      ?.filter((date) => date !== null)
       .map((date) => {
-        if (date === null)
-          return {
-            slots: [] as { time: string; attendees?: number | undefined; bookingUid?: string | undefined }[],
-            date: null,
-            away: false,
-            toUser: null,
-            returnDate: null,
-          };
-        const datesOOOExists = datesOutOfOffice !== undefined && datesOutOfOffice[date] !== undefined;
         return {
           slots: slots?.hasOwnProperty(date)
             ? slots[date]
             : ([] as { time: string; attendees?: number | undefined; bookingUid?: string | undefined }[]),
           date,
-          away: !!datesOOOExists,
-          toUser: !!datesOOOExists ? datesOutOfOffice[date].toUser : null,
-          fromUser: !!datesOOOExists ? datesOutOfOffice[date].user : null,
-          // @TODO: Remove this when we have a proper return date
-          returnDate: !!datesOOOExists ? "Demo Return Date" : null,
         };
       });
   }, [dates, slots]);

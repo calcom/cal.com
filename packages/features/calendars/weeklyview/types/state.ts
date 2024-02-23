@@ -54,7 +54,15 @@ export type CalendarPrivateActions = {
 export type CalendarAvailableTimeslots = {
   // Key is the date in YYYY-MM-DD format
   // start and end are ISOstring
-  [key: string]: TimeRange[];
+  [key: string]: TimeRange[] & {
+    away?: boolean;
+    fromUser?: {
+      displayName: string;
+      id: string;
+    };
+    toUser?: { id: number; displayName: string };
+    returnDate?: string;
+  };
 };
 
 export type CalendarState = {

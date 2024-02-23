@@ -74,7 +74,7 @@ export const AvailableTimeSlots = ({
     ? nonEmptyScheduleDaysFromSelectedDate.slice(0, extraDays)
     : [];
 
-  const slotsPerDay = useSlotsForAvailableDates(dates, schedule?.slots, schedule?.datesOutOfOffice);
+  const slotsPerDay = useSlotsForAvailableDates(dates, schedule?.slots);
   const datesOutOfOffice = schedule?.datesOutOfOffice;
   const isSelectedDateInOutOfOffice = !!datesOutOfOffice?.[date];
   return (
@@ -98,7 +98,7 @@ export const AvailableTimeSlots = ({
           ))
         )}
       </div>
-      {JSON.stringify(schedule)}
+
       <div
         ref={containerRef}
         className={classNames(
@@ -110,11 +110,11 @@ export const AvailableTimeSlots = ({
         {!isLoading &&
           slotsPerDay.length > 0 &&
           slotsPerDay.map((slots) => (
-            <div key={slots.date} className="scroll-bar w-full overflow-y-auto overflow-x-hidden">
+            <div key={slots.date} className="scroll-bar h-full w-full overflow-y-auto overflow-x-hidden">
               <AvailableTimes
                 showTimeFormatToggle={!isColumnView}
                 onTimeSelect={onTimeSelect}
-                slots={slots}
+                slots={slots.slots}
                 seatsPerTimeSlot={seatsPerTimeSlot}
                 showAvailableSeatsCount={showAvailableSeatsCount}
                 datesOutOfOffice={datesOutOfOffice}

@@ -6,6 +6,7 @@ import dayjs from "@calcom/dayjs";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import { classNames } from "@calcom/lib";
 
+import { OutOfOfficeInSlots } from "../../../../bookings/Booker/components/OutOfOfficeInSlots";
 import { useCalendarStore } from "../../state/store";
 import type { CalendarAvailableTimeslots } from "../../types/state";
 import type { GridCellToDateProps } from "../../utils";
@@ -26,9 +27,9 @@ export function EmptyCell(props: EmptyCellProps) {
     timezone: props.timezone,
   });
 
-  const minuesFromStart = (cellToDate.hour() - props.startHour) * 60 + cellToDate.minute();
+  const minutesFromStart = (cellToDate.hour() - props.startHour) * 60 + cellToDate.minute();
 
-  return <Cell topOffsetMinutes={minuesFromStart} timeSlot={dayjs(cellToDate).tz(props.timezone)} />;
+  return <Cell topOffsetMinutes={minutesFromStart} timeSlot={dayjs(cellToDate).tz(props.timezone)} />;
 }
 
 type AvailableCellProps = {
@@ -39,8 +40,9 @@ type AvailableCellProps = {
 
 export function AvailableCellsForDay({ availableSlots, day, startHour }: AvailableCellProps) {
   const { timezone } = useTimePreferences();
-
-  const slotsForToday = availableSlots && availableSlots[dayjs(day).format("YYYY-MM-DD")];
+  const date = dayjs(day);
+  const dateFormatted = date.format("YYYY-MM-DD");
+  const slotsForToday = availableSlots && availableSlots[dateFormatted];
 
   const slots = useMemo(
     () =>
@@ -54,13 +56,30 @@ export function AvailableCellsForDay({ availableSlots, day, startHour }: Availab
 
   if (!availableSlots) return null;
 
+  const [firstSlot] = availableSlots[dateFormatted] || [];
+
+  if (firstSlot?.away) {
+    return (
+      <CustomCell timeSlot={dayjs(firstSlot.start).tz(timezone)} topOffsetMinutes={slots[0].topOffsetMinutes}>
+        <OutOfOfficeInSlots
+          fromUser={firstSlot?.fromUser}
+          toUser={firstSlot?.toUser}
+          returnDate="2022-01-01"
+          emojiStatus="🏖️"
+          borderDashed={false}
+        />
+      </CustomCell>
+    );
+  }
+
   return (
     <>
       {slots?.map((slot, index) => {
+        const { slot: slotData } = slot;
         return (
           <Cell
             key={index}
-            timeSlot={dayjs(slot.slot.start).tz(timezone)}
+            timeSlot={dayjs(slotData.start).tz(timezone)}
             topOffsetMinutes={slot.topOffsetMinutes}
           />
         );
@@ -122,6 +141,34 @@ function Cell({ isDisabled, topOffsetMinutes, timeSlot }: CellProps) {
           <div className="overflow-ellipsis leading-[0]">{timeSlot.format(timeFormat)}</div>
         </div>
       )}
+    </div>
+  );
+}
+
+function CustomCell({ timeSlot, children, topOffsetMinutes }: CellProps & { children: React.ReactNode }) {
+  return (
+    <div
+      className={classNames("bg-default dark:bg-muted flex w-[calc(100%-1px)] items-center justify-center")}
+      data-slot={timeSlot.toISOString()}
+      style={{
+        height: `100%`,
+        overflow: "visible",
+        top: topOffsetMinutes ? `calc(${topOffsetMinutes}*var(--one-minute-height))` : undefined,
+      }}
+      onClick={() => {
+        console.log("clicked");
+      }}>
+      <div
+        className={classNames(
+          "dark:border-emphasis bg-default dark:bg-muted absolute cursor-pointer rounded-[4px] p-[6px] text-xs font-semibold leading-5 dark:text-white"
+        )}
+        style={{
+          height: `100%`,
+          zIndex: 80,
+          width: "calc(100% - 2px)",
+        }}>
+        {children}
+      </div>
     </div>
   );
 }

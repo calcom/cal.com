@@ -276,6 +276,17 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
       time: string;
       attendees?: number | undefined;
       bookingUid?: string | undefined;
+      outOfOffice?: {
+        fromUser: {
+          id: number;
+          displayName: string;
+        };
+        toUser?: {
+          id: number;
+          displayName: string;
+        };
+        returnDate?: string;
+      };
     }[]
   >;
   datesOutOfOffice: IOutOfOfficeData;
@@ -495,6 +506,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
     frequency: eventType.slotInterval || input.duration || eventType.length,
     organizerTimeZone:
       eventType.timeZone || eventType?.schedule?.timeZone || allUsersAvailability?.[0]?.timeZone,
+    datesOutOfOffice: allUsersAvailability[0]?.datesOutOfOffice,
   });
 
   let availableTimeSlots: typeof timeSlots = [];

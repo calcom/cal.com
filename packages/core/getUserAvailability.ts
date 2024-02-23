@@ -351,10 +351,14 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     availability,
   });
 
-  const formattedOutOfOfficeDays = Object.keys(datesOutOfOffice).map((date) => ({
-    start: dayjs(date).startOf("day"),
-    end: dayjs(date).endOf("day"),
-  }));
+  // If the user is OOO with a forward to a member that day should be displayed as available
+  // So we filter those days without toUser
+  const formattedOutOfOfficeDays = Object.keys(datesOutOfOffice)
+    .filter((date) => !datesOutOfOffice[date].toUser)
+    .map((date) => ({
+      start: dayjs(date).startOf("day"),
+      end: dayjs(date).endOf("day"),
+    }));
 
   const dateRangesInWhichUserIsAvailable = subtract(dateRanges, [
     ...formattedBusyTimes,

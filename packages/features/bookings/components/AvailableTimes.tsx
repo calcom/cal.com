@@ -3,12 +3,11 @@ import * as HoverCard from "@radix-ui/react-hover-card";
 import { AnimatePresence, m } from "framer-motion";
 import { CalendarX2, ChevronRight } from "lucide-react";
 import { useCallback, useState } from "react";
-import type { useSlotsForAvailableDates } from "schedules/lib/use-schedule/useSlotsForDate";
+import type { Slots } from "schedules/lib/use-schedule";
 
 import type { IOutOfOfficeData } from "@calcom/core/getUserAvailability";
 import dayjs from "@calcom/dayjs";
 import { OutOfOfficeInSlots } from "@calcom/features/bookings/Booker/components/OutOfOfficeInSlots";
-import type { Slots } from "@calcom/features/schedules";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localStorage } from "@calcom/lib/webstorage";
@@ -28,10 +27,10 @@ type TOnTimeSelect = (
   bookingUid?: string
 ) => void;
 
-type TSlotsItem = ReturnType<typeof useSlotsForAvailableDates> extends (infer T)[] ? T : never;
+// type TSlotsItem = ReturnType<typeof useSlotsForAvailableDates> extends (infer T)[] ? T : never;
 
 type AvailableTimesProps = {
-  slots: TSlotsItem;
+  slots: Slots;
   onTimeSelect: TOnTimeSelect;
   seatsPerTimeSlot?: number | null;
   showAvailableSeatsCount?: boolean | null;
@@ -195,18 +194,21 @@ export const AvailableTimes = ({
   selectedSlots,
 }: AvailableTimesProps) => {
   const { t } = useLocale();
-  const { slots: slotsForDate, away } = slots;
+
+  if (slots[0] && slots[0].away) {
+    return (
+      <OutOfOfficeInSlots
+        toUser={slots[0].toUser}
+        returnDate={slots[0].returnDate || ""}
+        fromUser={slots[0].fromUser}
+      />
+    );
+  }
+
   return (
     <div className={classNames("text-default flex flex-col", className)}>
       <div className="h-full pb-4">
-        {slots.away && (
-          <OutOfOfficeInSlots
-            toUser={slots.toUser}
-            returnDate={slots.returnDate || ""}
-            fromUser={slots.fromUser}
-          />
-        )}
-        {!slotsForDate.length && !away && (
+        {!slots.length && (
           <div className="bg-subtle border-subtle flex h-full flex-col items-center rounded-md border p-6 dark:bg-transparent">
             <CalendarX2 className="text-muted mb-2 h-4 w-4" />
             <p className={classNames("text-muted", showTimeFormatToggle ? "-mt-1 text-lg" : "text-sm")}>
@@ -214,7 +216,7 @@ export const AvailableTimes = ({
             </p>
           </div>
         )}
-        {slotsForDate.map((slot) => (
+        {slots.map((slot) => (
           <SlotItem
             key={slot.time}
             onTimeSelect={onTimeSelect}
