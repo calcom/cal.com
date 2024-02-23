@@ -300,10 +300,28 @@ async function getBookings({
       take: take + 1,
       skip,
     }),
-    // get team bookings (managed + collective + round-robin) of current user's teams
+    // get team bookings (managed + collective + round-robin)
     prisma.booking.findMany({
       where: {
         OR: [
+          // all (collective + round-robin) team bookings should be visible to org-owner and org-admins
+          {
+            eventType: {
+              team: {
+                parent: {
+                  members: {
+                    some: {
+                      userId: user.id,
+                      role: {
+                        in: ["ADMIN", "OWNER"],
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          // all (collective + round-robin) team bookings should be visible to team-owner and team-admins
           {
             eventType: {
               team: {
@@ -318,6 +336,8 @@ async function getBookings({
               },
             },
           },
+
+          // all managed team bookings should be visible to team-owner and team-admins
           {
             eventType: {
               parent: {
@@ -334,6 +354,25 @@ async function getBookings({
               },
             },
           },
+          // all managed team bookings should be visible to org-owner and org-admins
+          {
+            eventType: {
+              parent: {
+                team: {
+                  parent: {
+                    members: {
+                      some: {
+                        userId: user.id,
+                        role: {
+                          in: ["ADMIN", "OWNER"],
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
         ],
         AND: [passedBookingsStatusFilter, ...filtersCombined],
       },
@@ -341,10 +380,11 @@ async function getBookings({
       take: take + 1,
       skip,
     }),
-    // only get personal bookings of current user's team members
+    // only get personal bookings
     prisma.booking.findMany({
       where: {
         AND: [
+          // only show personal booking to org-owner and org-admins
           {
             user: {
               teams: {
@@ -398,11 +438,13 @@ async function getBookings({
               },
             ],
           },
+          // filter out all (collective + round-robin) event bookings
           {
             eventType: {
               teamId: null,
             },
           },
+          // filter out all (managed) event bookings
           {
             eventType: {
               parentId: null,
