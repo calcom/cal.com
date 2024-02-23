@@ -77,18 +77,24 @@ export const OAuthClientForm: FC = () => {
           <div className="flex items-center gap-x-2">
             <input
               {...register(`${permissionKey}Read`)}
+              id={`${permissionKey}Read`}
               className="bg-default border-default h-4 w-4 shrink-0 rounded-[4px] border ring-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed"
               type="checkbox"
             />
-            <label className="text-sm">Read</label>
+            <label htmlFor={`${permissionKey}Read`} className="cursor-pointer text-sm">
+              Read
+            </label>
           </div>
           <div className="flex items-center gap-x-2">
             <input
               {...register(`${permissionKey}Write`)}
+              id={`${permissionKey}Write`}
               className="bg-default border-default h-4 w-4 shrink-0 rounded-[4px] border ring-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed"
               type="checkbox"
             />
-            <label className="text-sm">Write</label>
+            <label htmlFor={`${permissionKey}Write`} className="cursor-pointer text-sm">
+              Write
+            </label>
           </div>
         </div>
       </div>
