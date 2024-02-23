@@ -29,9 +29,9 @@ const columns = [
     id: "group",
     header: "Group Name",
     cell: ({ row }) => {
-      const { groupNames } = row.original;
+      const { id, groupNames, directoryId } = row.original;
 
-      return <GroupNameCell groupNames={groupNames} />;
+      return <GroupNameCell groupNames={groupNames} teamId={id} directoryId={directoryId} />;
     },
   },
 ];
@@ -39,8 +39,7 @@ const columns = [
 const GroupTeamMappingTable = () => {
   const [createTeamDialogOpen, setCreateTeamDialogOpen] = useState(false);
 
-  const { data, isLoading } = trpc.viewer.dsync.teamGroupMapping.get.useQuery({ orgId: 1 });
-  console.log("🚀 ~ GroupTeamMappingTable ~ data:", data);
+  const { data } = trpc.viewer.dsync.teamGroupMapping.get.useQuery({ orgId: 1 });
 
   const tableContainerRef = useRef<HTMLDivElement>(null);
   return (

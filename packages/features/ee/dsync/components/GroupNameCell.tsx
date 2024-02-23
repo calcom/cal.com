@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 import { classNames } from "@calcom/lib";
+import { trpc } from "@calcom/trpc/react";
 import { Badge, TextField } from "@calcom/ui";
 import { X, Plus } from "@calcom/ui/components/icon";
 
@@ -9,10 +10,16 @@ const GroupNameCell = (props) => {
   const [showTextInput, setShowTextInput] = useState(false);
   const [newGroupName, setNewGroupName] = useState("");
 
-  const addGroupName = (groupName) => {
-    setGroupNames([...groupNames, groupName]);
-    setShowTextInput(false);
-    setNewGroupName("");
+  const createMutation = trpc.viewer.dsync.teamGroupMapping.create.useMutation({
+    onSuccess: (data) => {
+      setGroupNames([...groupNames, data.newGroupName]);
+      setShowTextInput(false);
+      setNewGroupName("");
+    },
+  });
+
+  const addGroupName = (groupName: string) => {
+    createMutation.mutate({ teamId: props.teamId, name: groupName, directoryId: props.directoryId });
   };
 
   return (
