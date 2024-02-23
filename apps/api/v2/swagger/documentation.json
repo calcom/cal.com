@@ -210,7 +210,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/GetOAuthClientsResponseDto"
                 }
               }
             }
@@ -242,7 +242,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/GetOAuthClientResponseDto"
                 }
               }
             }
@@ -282,7 +282,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/GetOAuthClientResponseDto"
                 }
               }
             }
@@ -312,7 +312,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/GetOAuthClientResponseDto"
                 }
               }
             }
@@ -1153,6 +1153,101 @@
                 "$ref": "#/components/schemas/DataDto"
               }
             ]
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "PlatformOAuthClientDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "clsx38nbl0001vkhlwin9fmt0"
+          },
+          "name": {
+            "type": "string",
+            "example": "MyClient"
+          },
+          "secret": {
+            "type": "string",
+            "example": "secretValue"
+          },
+          "permissions": {
+            "type": "number",
+            "example": 3
+          },
+          "logo": {
+            "type": "object",
+            "example": "https://example.com/logo.png"
+          },
+          "redirectUris": {
+            "example": [
+              "https://example.com/callback"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "organizationId": {
+            "type": "number",
+            "example": 1
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2024-02-23T08:56:21.485Z"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "secret",
+          "permissions",
+          "redirectUris",
+          "organizationId",
+          "createdAt"
+        ]
+      },
+      "GetOAuthClientsResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PlatformOAuthClientDto"
+            }
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "GetOAuthClientResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/PlatformOAuthClientDto"
           }
         },
         "required": [
