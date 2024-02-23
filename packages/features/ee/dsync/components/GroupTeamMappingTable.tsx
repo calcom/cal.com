@@ -4,6 +4,7 @@ import { trpc } from "@calcom/trpc/react";
 import { DataTable, Button } from "@calcom/ui";
 
 import CreateTeamDialog from "./CreateTeamDialog";
+import GroupNameCell from "./GroupNameCell";
 
 const columns = [
   {
@@ -27,7 +28,11 @@ const columns = [
   {
     id: "group",
     header: "Group Name",
-    cell: ({ row }) => <p>{row.id}</p>,
+    cell: ({ row }) => {
+      const { groupNames } = row.original;
+
+      return <GroupNameCell groupNames={groupNames} />;
+    },
   },
 ];
 
