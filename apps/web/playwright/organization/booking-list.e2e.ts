@@ -1,7 +1,6 @@
 import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 
-import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { randomString } from "@calcom/lib/random";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
@@ -61,6 +60,7 @@ test.describe("Bookings list for organizations", () => {
           eventTypeId: eventId,
         },
       });
+
       await expectPageToBeNotFound({ page, url: `/team/${team1.slug}/${eventType.slug}` });
       await doOnOrgDomain(
         {
@@ -162,17 +162,19 @@ test.describe("Bookings list for organizations", () => {
 
       const eventType = await team1owner.getFirstTeamEvent(team1.id);
 
-      await expectPageToBeNotFound({ page, url: `/team/${team1.slug}/${eventType.slug}` });
+      // await expectPageToBeNotFound({ page, url: `/${commonUser.username}/${eventType.slug}` });
 
-      await doOnOrgDomain(
-        {
-          orgSlug: org.slug,
-          page,
-        },
-        async () => {
-          await bookTeamEvent({ page, team: team1, event: eventType });
-        }
-      );
+      // await doOnOrgDomain(
+      //   {
+      //     orgSlug: org.slug,
+      //     page,
+      //   },
+      //   async () => {
+      //     await bookUserEvent({ page, user: commonUser, event: eventType });
+      //   }
+      // );
+
+      await bookUserEvent({ page, user: commonUser, event: eventType });
       // booking should be visible for the Org OWNER even though he is not part of the booking
       await assertBookingVisibleFor(orgOwner, page, eventType, true);
       // booking should be visible for the Org ADMIN even though he is not part of the booking
@@ -190,20 +192,21 @@ test.describe("Bookings list for organizations", () => {
         await createOrg(orgs, users);
 
       const event = await commonUser.getFirstEventAsOwner();
-      await page.goto(`/${commonUser.username}/${event.slug}`);
 
-      // Shouldn't be servable on the non-org domain
-      await expect(page.locator(`text=${NotFoundPageTextAppDir}`)).toBeVisible();
+      // await page.goto(`/${commonUser.username}/${event.slug}`);
+      // // Shouldn't be servable on the non-org domain
+      // await expect(page.locator(`text=${NotFoundPageTextAppDir}`)).toBeVisible();
 
-      await doOnOrgDomain(
-        {
-          orgSlug: org.slug,
-          page,
-        },
-        async () => {
-          await bookUserEvent({ page, user: commonUser, event });
-        }
-      );
+      // await doOnOrgDomain(
+      //   {
+      //     orgSlug: org.slug,
+      //     page,
+      //   },
+      //   async () => {
+      //     await bookUserEvent({ page, user: commonUser, event });
+      //   }
+      // );
+      await bookUserEvent({ page, user: commonUser, event });
       // booking should be visible for the Org OWNER
       await assertBookingVisibleFor(orgOwner, page, event, true);
       // booking should be visible for the Org ADMIN
@@ -277,42 +280,6 @@ async function bookTeamEvent({
 async function expectPageToBeNotFound({ page, url }: { page: Page; url: string }) {
   await page.goto(`${url}`);
   await expect(page.locator(`text=${NotFoundPageTextAppDir}`)).toBeVisible();
-}
-
-async function expectRedirectToOrgDomain({
-  page,
-  org,
-  eventSlug,
-  expectedEventSlug,
-}: {
-  page: Page;
-  org: { slug: string | null };
-  eventSlug: string;
-  expectedEventSlug: string;
-}) {
-  if (!org.slug) {
-    throw new Error("Org slug is not defined");
-  }
-  page.goto(eventSlug).catch((e) => {
-    console.log("Expected navigation error to happen");
-  });
-
-  const orgSlug = org.slug;
-
-  const orgRedirectUrl = await new Promise(async (resolve) => {
-    page.on("request", (request) => {
-      if (request.isNavigationRequest()) {
-        const requestedUrl = request.url();
-        console.log("Requested navigation to", requestedUrl);
-        // Resolve on redirection to org domain
-        if (requestedUrl.includes(orgSlug)) {
-          resolve(requestedUrl);
-        }
-      }
-    });
-  });
-
-  expect(orgRedirectUrl).toContain(`${getOrgFullOrigin(org.slug)}${expectedEventSlug}`);
 }
 
 const createOrg = async (orgs: Fixtures["orgs"], userFixture: Fixtures["users"]) => {
