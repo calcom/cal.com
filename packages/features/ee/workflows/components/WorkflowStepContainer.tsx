@@ -614,7 +614,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           <Button
                             color="secondary"
                             className="-ml-[3px] h-[36px] min-w-fit py-0 sm:block sm:rounded-bl-none sm:rounded-tl-none "
-                            disabled={verifyPhoneNumberMutation.isLoading || props.readOnly}
+                            disabled={verifyPhoneNumberMutation.isPending || props.readOnly}
                             onClick={() => {
                               verifyPhoneNumberMutation.mutate({
                                 phoneNumber: form.getValues(`steps.${step.stepNumber - 1}.sendTo`) || "",

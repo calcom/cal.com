@@ -132,7 +132,7 @@ export const AddNewTeamsForm = () => {
           <Button
             StartIcon={Plus}
             color="secondary"
-            disabled={createTeamsMutation.isLoading}
+            disabled={createTeamsMutation.isPending}
             onClick={handleCounterIncrease}
             aria-label={t("add_a_team")}
             className="my-1">
@@ -143,7 +143,7 @@ export const AddNewTeamsForm = () => {
           EndIcon={ArrowRight}
           color="primary"
           className="mt-6 w-full justify-center"
-          disabled={!formState.isValid || createTeamsMutation.isLoading || createTeamsMutation.isSuccess}
+          disabled={!formState.isValid || createTeamsMutation.isPending || createTeamsMutation.isSuccess}
           onClick={handleFormSubmit}>
           {t("continue")}
         </Button>

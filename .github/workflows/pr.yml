@@ -12,14 +12,6 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  login:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
   changes:
     name: Detect changes
     runs-on: buildjet-4vcpu-ubuntu-2204

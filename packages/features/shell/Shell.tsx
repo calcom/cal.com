@@ -29,15 +29,26 @@ import AdminPasswordBanner, {
 import CalendarCredentialBanner, {
   type CalendarCredentialBannerProps,
 } from "@calcom/features/users/components/CalendarCredentialBanner";
+import UserV2OptInBanner from "@calcom/features/users/components/UserV2OptInBanner";
 import VerifyEmailBanner, {
   type VerifyEmailBannerProps,
 } from "@calcom/features/users/components/VerifyEmailBanner";
 import classNames from "@calcom/lib/classNames";
-import { TOP_BANNER_HEIGHT } from "@calcom/lib/constants";
-import { APP_NAME, DESKTOP_APP_LINK, JOIN_DISCORD, ROADMAP, WEBAPP_URL } from "@calcom/lib/constants";
+import {
+  APP_NAME,
+  DESKTOP_APP_LINK,
+  JOIN_DISCORD,
+  ROADMAP,
+  WEBAPP_URL,
+  IS_VISUAL_REGRESSION_TESTING,
+  TOP_BANNER_HEIGHT,
+  ENABLE_PROFILE_SWITCHER,
+} from "@calcom/lib/constants";
+import { useFormbricks } from "@calcom/lib/formbricks-client";
 import getBrandColours from "@calcom/lib/getBrandColours";
 import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import useTheme from "@calcom/lib/hooks/useTheme";
 import { isKeyInObject } from "@calcom/lib/isKeyInObject";
 import type { User } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
@@ -86,9 +97,9 @@ import {
   User as UserIcon,
   Users,
   Zap,
+  Check,
 } from "@calcom/ui/components/icon";
 import { Discord } from "@calcom/ui/components/icon/Discord";
-import { IS_VISUAL_REGRESSION_TESTING } from "@calcom/web/constants";
 
 import { useOrgBranding } from "../ee/organizations/context/provider";
 import FreshChatProvider from "../ee/support/lib/freshchat/FreshChatProvider";
@@ -111,7 +122,9 @@ export const ONBOARDING_NEXT_REDIRECT = {
 } as const;
 
 export const shouldShowOnboarding = (
-  user: Pick<User, "createdDate" | "completedOnboarding" | "organizationId">
+  user: Pick<User, "createdDate" | "completedOnboarding"> & {
+    organizationId: number | null;
+  }
 ) => {
   return (
     !user.completedOnboarding &&
@@ -194,13 +207,13 @@ function useRedirectToOnboardingIfNeeded() {
 type allBannerProps = { [Key in BannerType]: BannerTypeProps[Key]["data"] };
 
 const useBanners = () => {
-  const { data: getUserTopBanners, isLoading } = trpc.viewer.getUserTopBanners.useQuery();
+  const { data: getUserTopBanners, isPending } = trpc.viewer.getUserTopBanners.useQuery();
   const { data: userSession } = useSession();
 
-  if (isLoading || !userSession) return null;
+  if (isPending || !userSession) return null;
 
   const isUserInactiveAdmin = userSession?.user.role === "INACTIVE_ADMIN";
-  const userImpersonatedByUID = userSession?.user.impersonatedByUID;
+  const userImpersonatedByUID = userSession?.user.impersonatedBy?.id;
 
   const userSessionBanners = {
     adminPasswordBanner: isUserInactiveAdmin ? userSession : null,
@@ -226,12 +239,14 @@ const Layout = (props: LayoutProps) => {
     return (activeBanners?.length ?? 0) * TOP_BANNER_HEIGHT;
   }, [banners]);
 
+  useFormbricks();
+
   return (
     <>
       {!props.withoutSeo && (
         <HeadSeo
           title={pageTitle ?? APP_NAME}
-          description={props.subtitle ? props.subtitle?.toString() : ""}
+          description={props.description ?? props.subtitle?.toString() ?? ""}
         />
       )}
       <div>
@@ -243,6 +258,7 @@ const Layout = (props: LayoutProps) => {
       <div className="flex min-h-screen flex-col">
         {banners && (
           <div className="sticky top-0 z-10 w-full divide-y divide-black">
+            <UserV2OptInBanner />
             {Object.keys(banners).map((key) => {
               if (key === "teamUpgradeBanner") {
                 const Banner = BannerComponent[key];
@@ -287,6 +303,7 @@ type DrawerState = [isOpen: boolean, setDrawerOpen: Dispatch<SetStateAction<bool
 type LayoutProps = {
   centered?: boolean;
   title?: string;
+  description?: string;
   heading?: ReactNode;
   subtitle?: ReactNode;
   headerClassName?: string;
@@ -313,13 +330,14 @@ type LayoutProps = {
   hideHeadingOnMobile?: boolean;
 };
 
-const useBrandColors = () => {
+const useAppTheme = () => {
   const { data: user } = useMeQuery();
   const brandTheme = getBrandColours({
     lightVal: user?.brandColor,
     darkVal: user?.darkBrandColor,
   });
   useCalcomTheme(brandTheme);
+  useTheme(user?.appTheme);
 };
 
 const KBarWrapper = ({ children, withKBar = false }: { withKBar: boolean; children: React.ReactNode }) =>
@@ -345,9 +363,7 @@ export default function Shell(props: LayoutProps) {
   // if a page is unauthed and isPublic is true, the redirect does not happen.
   useRedirectToLoginIfUnauthenticated(props.isPublic);
   useRedirectToOnboardingIfNeeded();
-  // System Theme is automatically supported using ThemeProvider. If we intend to use user theme throughout the app we need to uncomment this.
-  // useTheme(profile.theme);
-  useBrandColors();
+  useAppTheme();
 
   return !props.isPublic ? (
     <KBarWrapper withKBar>
@@ -432,7 +448,7 @@ function UserDropdown({ small }: UserDropdownProps) {
             )}>
             <Avatar
               size={small ? "xs" : "xsm"}
-              imageSrc={`${bookerUrl}/${user.username}/avatar.png`}
+              imageSrc={`${user.avatarUrl || user.avatar}`}
               alt={user.username || "Nameless User"}
               className="overflow-hidden"
             />
@@ -713,6 +729,7 @@ const NavigationItem: React.FC<{
     <Fragment>
       <Tooltip side="right" content={t(item.name)} className="lg:hidden">
         <Link
+          data-test-id={item.name}
           href={item.href}
           aria-label={t(item.name)}
           className={classNames(
@@ -736,8 +753,10 @@ const NavigationItem: React.FC<{
             />
           )}
           {isLocaleReady ? (
-            <span className="hidden w-full justify-between lg:flex">
-              <div className="flex">{t(item.name)}</div>
+            <span
+              className="hidden w-full justify-between truncate text-ellipsis lg:flex"
+              data-testid={`${item.name}-test`}>
+              {t(item.name)}
               {item.badge && item.badge}
             </span>
           ) : (
@@ -765,7 +784,7 @@ const MobileNavigation = () => {
     <>
       <nav
         className={classNames(
-          "pwa:pb-[max(0.625rem,env(safe-area-inset-bottom))] pwa:-mx-2 bg-muted border-subtle fixed bottom-0 z-30 -mx-4 flex w-full border-t bg-opacity-40 px-1 shadow backdrop-blur-md md:hidden",
+          "pwa:pb-[max(0.625rem,env(safe-area-inset-bottom))] pwa:-mx-2 bg-muted border-subtle fixed bottom-0 left-0 z-30 flex w-full border-t bg-opacity-40 px-1 shadow backdrop-blur-md md:hidden",
           isEmbed && "hidden"
         )}>
         {mobileNavigationBottomItems.map((item) => (
@@ -892,18 +911,22 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
         <div className="flex h-full flex-col justify-between py-3 lg:pt-4">
           <header className="todesktop:-mt-3 todesktop:flex-col-reverse todesktop:[-webkit-app-region:drag] items-center justify-between md:hidden lg:flex">
             {orgBranding ? (
-              <Link href="/settings/organizations/profile" className="mt-3 w-full px-1.5">
-                <div className="flex items-center gap-2 font-medium">
-                  <Avatar
-                    alt={`${orgBranding.name} logo`}
-                    imageSrc={`${orgBranding.fullDomain}/org/${orgBranding.slug}/avatar.png`}
-                    size="xsm"
-                  />
-                  <p className="text line-clamp-1 text-sm">
-                    <span>{orgBranding.name}</span>
-                  </p>
-                </div>
-              </Link>
+              !ENABLE_PROFILE_SWITCHER ? (
+                <Link href="/settings/organizations/profile" className="w-full px-1.5">
+                  <div className="flex items-center gap-2 font-medium">
+                    <Avatar
+                      alt={`${orgBranding.name} logo`}
+                      imageSrc={`${orgBranding.fullDomain}/org/${orgBranding.slug}/avatar.png`}
+                      size="xsm"
+                    />
+                    <p className="text line-clamp-1 text-sm">
+                      <span>{orgBranding.name}</span>
+                    </p>
+                  </div>
+                </Link>
+              ) : (
+                <ProfileDropdown />
+              )
             ) : (
               <div data-testid="user-dropdown-trigger" className="todesktop:mt-4 w-full">
                 <span className="hidden lg:inline">
@@ -914,7 +937,7 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
                 </span>
               </div>
             )}
-            <div className="flex w-full justify-end space-x-2 rtl:space-x-reverse">
+            <div className="flex justify-end rtl:space-x-reverse">
               <button
                 color="minimal"
                 onClick={() => window.history.back()}
@@ -1030,7 +1053,7 @@ export function ShellMain(props: LayoutProps) {
                   </h3>
                 )}
                 {props.subtitle && (
-                  <p className="text-default hidden text-sm md:block">
+                  <p className="text-default hidden text-sm md:block" data-testid="subtitle">
                     {!isLocaleReady ? <SkeletonText invisible /> : props.subtitle}
                   </p>
                 )}
@@ -1121,3 +1144,93 @@ export const MobileNavigationMoreItems = () => (
     ))}
   </ul>
 );
+
+function ProfileDropdown() {
+  const { update, data: sessionData } = useSession();
+  const { data } = trpc.viewer.me.useQuery();
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  if (!data || !ENABLE_PROFILE_SWITCHER || !sessionData) {
+    return null;
+  }
+  const options = data.profiles.map((profile) => {
+    let label;
+    if (profile.organization) {
+      label = profile.organization.name;
+    } else {
+      label = sessionData.user.name;
+    }
+
+    return {
+      label,
+      value: profile.upId,
+    };
+  });
+
+  const currentOption = options.find((option) => option.value === sessionData.upId) || options[0];
+
+  return (
+    <Dropdown open={menuOpen}>
+      <DropdownMenuTrigger asChild onClick={() => setMenuOpen((menuOpen) => !menuOpen)}>
+        <button
+          data-testid="user-dropdown-trigger-button"
+          className={classNames(
+            "hover:bg-emphasis todesktop:!bg-transparent group mx-0 flex w-full cursor-pointer appearance-none items-center rounded-full px-2 py-1.5 text-left outline-none transition focus:outline-none focus:ring-0 md:rounded-none lg:rounded"
+          )}>
+          <span className="flex w-full flex-grow items-center justify-around gap-2 text-sm font-medium leading-none">
+            <Avatar alt={currentOption.label || ""} size="xsm" />
+            <span className="block w-20 overflow-hidden overflow-ellipsis whitespace-nowrap">
+              {currentOption.label}
+            </span>
+            <ChevronDown
+              className="group-hover:text-subtle text-muted h-4 w-4 flex-shrink-0 rtl:mr-4"
+              aria-hidden="true"
+            />
+          </span>
+        </button>
+      </DropdownMenuTrigger>
+
+      <DropdownMenuPortal>
+        <DropdownMenuContent
+          align="start"
+          onInteractOutside={() => {
+            setMenuOpen(false);
+          }}
+          className="min-w-56 hariom group overflow-hidden rounded-md">
+          <DropdownMenuItem className="p-3 uppercase">
+            <span>Switch to</span>
+          </DropdownMenuItem>
+          {options.map((option) => {
+            const isSelected = currentOption.value === option.value;
+            return (
+              <DropdownMenuItem
+                key={option.value}
+                onClick={() => {
+                  setMenuOpen(false);
+                  if (isSelected) return;
+                  update({
+                    upId: option.value,
+                  }).then(() => {
+                    window.location.reload();
+                  });
+                }}
+                className={classNames("flex w-full", isSelected ? "bg-subtle text-emphasis" : "")}>
+                <DropdownItem
+                  type="button"
+                  childrenClassName={classNames("flex w-full justify-between items-center")}>
+                  <span>
+                    <Avatar alt={option.label || ""} size="xsm" />
+                    <span className="ml-2">{option.label}</span>
+                  </span>
+                  {isSelected ? <Check className="ml-2 inline h-4 w-4" aria-hidden="true" /> : null}
+                </DropdownItem>
+              </DropdownMenuItem>
+            );
+          })}
+
+          {/* <DropdownMenuSeparator /> */}
+        </DropdownMenuContent>
+      </DropdownMenuPortal>
+    </Dropdown>
+  );
+}

@@ -4,12 +4,14 @@ import type { Team } from "@prisma/client";
 import { Prisma as PrismaType } from "@prisma/client";
 import { hashSync as hash } from "bcryptjs";
 import { uuid } from "short-uuid";
+import { v4 } from "uuid";
 
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { prisma } from "@calcom/prisma";
-import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
+import { MembershipRole, SchedulingType, TimeUnit, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { Schedule } from "@calcom/types/schedule";
 
@@ -27,6 +29,7 @@ type UserFixture = ReturnType<typeof createUserFixture>;
 
 const userIncludes = PrismaType.validator<PrismaType.UserInclude>()({
   eventTypes: true,
+  workflows: true,
   credentials: true,
   routingForms: true,
 });
@@ -41,6 +44,19 @@ const seededForm = {
 };
 
 type UserWithIncludes = PrismaType.UserGetPayload<typeof userWithEventTypes>;
+
+const createTeamWorkflow = async (user: { id: number }, team: { id: number }) => {
+  return await prisma.workflow.create({
+    data: {
+      name: "Team Workflow",
+      trigger: WorkflowTriggerEvents.BEFORE_EVENT,
+      time: 24,
+      timeUnit: TimeUnit.HOUR,
+      userId: user.id,
+      teamId: team.id,
+    },
+  });
+};
 
 const createTeamEventType = async (
   user: { id: number },
@@ -120,9 +136,24 @@ const createTeamAndAddUser = async (
   if (isOrg && hasSubteam) {
     const team = await createTeamAndAddUser({ user }, workerInfo);
     await createTeamEventType(user, team);
+    await createTeamWorkflow(user, team);
     data.children = { connect: [{ id: team.id }] };
   }
-  data.orgUsers = isOrg ? { connect: [{ id: user.id }] } : undefined;
+  data.orgProfiles = isOrg
+    ? {
+        create: [
+          {
+            uid: ProfileRepository.generateProfileUid(),
+            username: user.username ?? user.email.split("@")[0],
+            user: {
+              connect: {
+                id: user.id,
+              },
+            },
+          },
+        ],
+      }
+    : undefined;
   data.parent = organizationId ? { connect: { id: organizationId } } : undefined;
   const team = await prisma.team.create({
     data,
@@ -165,11 +196,19 @@ export const createUsersFixture = (
         password: opts?.password ?? uname,
       };
     },
+    /**
+     * In case organizationId is passed, it simulates a scenario where a nonexistent user is added to an organization.
+     */
     create: async (
-      opts?: CustomUserOpts | null,
+      opts?:
+        | (CustomUserOpts & {
+            organizationId?: number | null;
+          })
+        | null,
       scenario: {
         seedRoutingForms?: boolean;
         hasTeam?: true;
+        teamRole?: MembershipRole;
         teammates?: CustomUserOpts[];
         schedulingType?: SchedulingType;
         teamEventTitle?: string;
@@ -183,6 +222,9 @@ export const createUsersFixture = (
     ) => {
       const _user = await prisma.user.create({
         data: createUser(workerInfo, opts),
+        include: {
+          profiles: true,
+        },
       });
 
       let defaultEventTypes: SupportedTestEventTypes[] = [
@@ -196,8 +238,23 @@ export const createUsersFixture = (
       for (const eventTypeData of defaultEventTypes) {
         eventTypeData.owner = { connect: { id: _user.id } };
         eventTypeData.users = { connect: { id: _user.id } };
+        if (_user.profiles[0]) {
+          eventTypeData.profile = { connect: { id: _user.profiles[0].id } };
+        }
         await prisma.eventType.create({
           data: eventTypeData,
+        });
+      }
+
+      const workflows: SupportedTestWorkflows[] = [
+        { name: "Default Workflow", trigger: "NEW_EVENT" },
+        { name: "Test Workflow", trigger: "EVENT_CANCELLED" },
+        ...(opts?.workflows || []),
+      ];
+      for (const workflowData of workflows) {
+        workflowData.user = { connect: { id: _user.id } };
+        await prisma.workflow.create({
+          data: workflowData,
         });
       }
 
@@ -324,7 +381,12 @@ export const createUsersFixture = (
       if (scenario.hasTeam) {
         const team = await createTeamAndAddUser(
           {
-            user: { id: user.id, email: user.email, username: user.username, role: "OWNER" },
+            user: {
+              id: user.id,
+              email: user.email,
+              username: user.username,
+              role: scenario.teamRole || "OWNER",
+            },
             isUnpublished: scenario.isUnpublished,
             isOrg: scenario.isOrg,
             isOrgVerified: scenario.isOrgVerified,
@@ -337,7 +399,7 @@ export const createUsersFixture = (
         const teamEvent = await createTeamEventType(user, team, scenario);
         if (scenario.teammates) {
           // Create Teammate users
-          const teamMatesIds = [];
+          const teamMates = [];
           for (const teammateObj of scenario.teammates) {
             const teamUser = await prisma.user.create({
               data: createUser(workerInfo, teammateObj),
@@ -369,19 +431,49 @@ export const createUsersFixture = (
               }),
               store.page
             );
-            teamMatesIds.push(teamUser.id);
+            teamMates.push(teamUser);
             store.users.push(teammateFixture);
           }
           // Add Teammates to OrgUsers
           if (scenario.isOrg) {
+            const orgProfilesCreate = teamMates
+              .map((teamUser) => ({
+                user: {
+                  connect: {
+                    id: teamUser.id,
+                  },
+                },
+                uid: v4(),
+                username: teamUser.username || teamUser.email.split("@")[0],
+              }))
+              .concat([
+                {
+                  user: { connect: { id: user.id } },
+                  uid: v4(),
+                  username: user.username || user.email.split("@")[0],
+                },
+              ]);
+
+            const existingProfiles = await prisma.profile.findMany({
+              where: {
+                userId: _user.id,
+              },
+            });
+
             await prisma.team.update({
               where: {
                 id: team.id,
               },
               data: {
-                orgUsers: {
-                  connect: teamMatesIds.map((userId) => ({ id: userId })).concat([{ id: user.id }]),
-                },
+                orgProfiles: _user.profiles.length
+                  ? {
+                      connect: _user.profiles.map((profile) => ({ id: profile.id })),
+                    }
+                  : {
+                      create: orgProfilesCreate.filter(
+                        (profile) => !existingProfiles.map((p) => p.userId).includes(profile.user.connect.id)
+                      ),
+                    },
               },
             });
           }
@@ -555,28 +647,38 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
 type SupportedTestEventTypes = PrismaType.EventTypeCreateInput & {
   _bookings?: PrismaType.BookingCreateInput[];
 };
+
+type SupportedTestWorkflows = PrismaType.WorkflowCreateInput;
+
 type CustomUserOptsKeys =
   | "username"
-  | "password"
   | "completedOnboarding"
   | "locale"
   | "name"
   | "email"
   | "organizationId"
+  | "twoFactorEnabled"
+  | "disableImpersonation"
   | "role";
 type CustomUserOpts = Partial<Pick<Prisma.User, CustomUserOptsKeys>> & {
   timeZone?: TimeZoneEnum;
   eventTypes?: SupportedTestEventTypes[];
+  workflows?: SupportedTestWorkflows[];
   // ignores adding the worker-index after username
   useExactUsername?: boolean;
   roleInOrganization?: MembershipRole;
   schedule?: Schedule;
+  password?: string | null;
 };
 
 // creates the actual user in the db.
 const createUser = (
   workerInfo: WorkerInfo,
-  opts?: CustomUserOpts | null
+  opts?:
+    | (CustomUserOpts & {
+        organizationId?: number | null;
+      })
+    | null
 ): PrismaType.UserUncheckedCreateInput => {
   // build a unique name for our user
   const uname =
@@ -588,12 +690,18 @@ const createUser = (
     username: uname,
     name: opts?.name,
     email: opts?.email ?? `${uname}@example.com`,
-    password: hashPassword(uname),
+    password: {
+      create: {
+        hash: hashPassword(uname),
+      },
+    },
     emailVerified: new Date(),
     completedOnboarding: opts?.completedOnboarding ?? true,
     timeZone: opts?.timeZone ?? TimeZoneEnum.UK,
     locale: opts?.locale ?? "en",
     role: opts?.role ?? "USER",
+    twoFactorEnabled: opts?.twoFactorEnabled ?? false,
+    disableImpersonation: opts?.disableImpersonation ?? false,
     ...getOrganizationRelatedProps({ organizationId: opts?.organizationId, role: opts?.roleInOrganization }),
     schedules:
       opts?.completedOnboarding ?? true
@@ -625,25 +733,32 @@ const createUser = (
       throw new Error("Missing role for user in organization");
     }
     return {
-      organizationId: organizationId || null,
-      ...(organizationId
-        ? {
-            teams: {
-              // Create membership
-              create: [
-                {
-                  team: {
-                    connect: {
-                      id: organizationId,
-                    },
-                  },
-                  accepted: true,
-                  role: MembershipRole.ADMIN,
-                },
-              ],
+      organizationId,
+      profiles: {
+        create: {
+          uid: ProfileRepository.generateProfileUid(),
+          username: uname,
+          organization: {
+            connect: {
+              id: organizationId,
             },
-          }
-        : null),
+          },
+        },
+      },
+      teams: {
+        // Create membership
+        create: [
+          {
+            team: {
+              connect: {
+                id: organizationId,
+              },
+            },
+            accepted: true,
+            role: MembershipRole.ADMIN,
+          },
+        ],
+      },
     };
   }
 };
@@ -680,7 +795,7 @@ async function confirmPendingPayment(page: Page) {
 
 // login using a replay of an E2E routine.
 export async function login(
-  user: Pick<Prisma.User, "username"> & Partial<Pick<Prisma.User, "password" | "email">>,
+  user: Pick<Prisma.User, "username"> & Partial<Pick<Prisma.User, "email">> & { password?: string | null },
   page: Page
 ) {
   // get locators
@@ -701,7 +816,7 @@ export async function login(
 }
 
 export async function apiLogin(
-  user: Pick<Prisma.User, "username"> & Partial<Pick<Prisma.User, "password" | "email">>,
+  user: Pick<Prisma.User, "username"> & Partial<Pick<Prisma.User, "email">> & { password: string | null },
   page: Page
 ) {
   const csrfToken = await page

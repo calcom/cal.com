@@ -286,7 +286,7 @@ test.describe("Organization", () => {
           page,
           emails,
           invitedUserEmail,
-          `${team.name}'s admin invited you to join the organization ${org.name} on Cal.com`,
+          `${team.name}'s admin invited you to join the team ${team.name} of organization ${org.name} on Cal.com`,
           "signup?token"
         );
 
@@ -377,7 +377,7 @@ async function signupFromInviteLink({
   return { email };
 }
 
-async function signupFromEmailInviteLink({
+export async function signupFromEmailInviteLink({
   browser,
   inviteLink,
   expectedUsername,
@@ -385,8 +385,8 @@ async function signupFromEmailInviteLink({
 }: {
   browser: Browser;
   inviteLink: string;
-  expectedUsername: string;
-  expectedEmail: string;
+  expectedUsername?: string;
+  expectedEmail?: string;
 }) {
   // Follow invite link in new window
   const context = await browser.newContext();
@@ -395,11 +395,15 @@ async function signupFromEmailInviteLink({
   signupPage.goto(inviteLink);
   await signupPage.locator(`[data-testid="signup-usernamefield"]`).waitFor({ state: "visible" });
   await expect(signupPage.locator(`[data-testid="signup-usernamefield"]`)).toBeDisabled();
-  expect(await signupPage.locator(`[data-testid="signup-usernamefield"]`).inputValue()).toBe(
-    expectedUsername
-  );
+  // await for value. initial value is ""
+  if (expectedUsername) {
+    await expect(signupPage.locator(`[data-testid="signup-usernamefield"]`)).toHaveValue(expectedUsername);
+  }
+
   await expect(signupPage.locator(`[data-testid="signup-emailfield"]`)).toBeDisabled();
-  expect(await signupPage.locator(`[data-testid="signup-emailfield"]`).inputValue()).toBe(expectedEmail);
+  if (expectedEmail) {
+    await expect(signupPage.locator(`[data-testid="signup-emailfield"]`)).toHaveValue(expectedEmail);
+  }
 
   await signupPage.waitForLoadState("networkidle");
   // Check required fields

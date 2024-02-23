@@ -2,13 +2,13 @@ import NotFoundPage from "@pages/404";
 import { WithLayout } from "app/layoutHOC";
 import type { GetStaticPropsContext } from "next";
 
-import { ssgInit } from "@server/lib/ssg";
+import { getTranslations } from "@server/lib/getTranslations";
 
 const getData = async (context: GetStaticPropsContext) => {
-  const ssg = await ssgInit(context);
+  const i18n = await getTranslations(context);
 
   return {
-    dehydratedState: ssg.dehydrate(),
+    i18n,
   };
 };
 

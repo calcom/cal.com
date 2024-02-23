@@ -1,6 +1,6 @@
 import LegacyPage, {
   buildWrappedOnboardTeamMembersPage,
-} from "@pages/settings/organizations/[id]/onboard-admins";
+} from "@pages/settings/organizations/[id]/onboard-members";
 import { type Params } from "app/_types";
 import { _generateMetadata } from "app/_utils";
 import { headers } from "next/headers";

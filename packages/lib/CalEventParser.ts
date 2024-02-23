@@ -14,7 +14,7 @@ const translator = short();
 export const getWhat = (calEvent: CalendarEvent, t: TFunction) => {
   return `
 ${t("what")}:
-${calEvent.type}
+${calEvent.title}
   `;
 };
 
@@ -52,7 +52,7 @@ ${calEvent.organizer.email}
   const teamMembers = calEvent.team?.members
     ? calEvent.team.members.map((member) => {
         return `
-${member.name} - ${t("team_member")} 
+${member.name} - ${t("team_member")}
 ${member.email}
     `;
       })

@@ -1,3 +1,5 @@
+"use client";
+
 import { MailOpenIcon } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
@@ -42,7 +44,7 @@ function VerifyEmailPage() {
               <Button
                 color="minimal"
                 className="underline"
-                loading={mutation.isLoading}
+                loading={mutation.isPending}
                 onClick={() => {
                   showToast("Send email", "success");
                   mutation.mutate();

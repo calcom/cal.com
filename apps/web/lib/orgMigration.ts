@@ -3,6 +3,7 @@ import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomai
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import prisma from "@calcom/prisma";
 import type { Team, User } from "@calcom/prisma/client";
 import { RedirectType } from "@calcom/prisma/client";
@@ -232,9 +233,13 @@ export async function moveTeamToOrg({
  */
 export async function removeTeamFromOrg({ targetOrgId, teamId }: { targetOrgId: number; teamId: number }) {
   const removedTeam = await dbRemoveTeamFromOrg({ teamId });
-
   await removeTeamRedirect(removedTeam.slug);
-
+  for (const membership of removedTeam.members) {
+    await removeUserFromOrg({
+      userId: membership.userId,
+      targetOrgId,
+    });
+  }
   log.debug(`Successfully removed team ${teamId} from org ${targetOrgId}`);
 }
 
@@ -323,7 +328,7 @@ async function setOrgSlugIfNotSet(
     slug: string | null;
   },
   orgMetadata: {
-    requestedSlug?: string | undefined;
+    requestedSlug?: string | null | undefined;
   },
   targetOrgId: number
 ) {
@@ -344,7 +349,7 @@ async function setOrgSlugIfNotSet(
 
 function assertUserPartOfOrgAndRemigrationAllowed(
   userToMoveToOrg: {
-    organizationId: User["organizationId"];
+    organizationId: number | null;
   },
   targetOrgId: number,
   targetOrgUsername: string,
@@ -380,7 +385,7 @@ async function getTeamOrThrowError(targetOrgId: number) {
 
 function assertUserPartOfOtherOrg(
   userToMoveToOrg: {
-    organizationId: User["organizationId"];
+    organizationId: number | null;
   } | null,
   userName: string | undefined,
   userId: number | undefined,
@@ -590,6 +595,35 @@ async function dbMoveUserToOrg({
       },
     },
   });
+
+  await prisma.profile.upsert({
+    create: {
+      uid: ProfileRepository.generateProfileUid(),
+      userId: userToMoveToOrg.id,
+      organizationId: targetOrgId,
+      username: targetOrgUsername,
+      movedFromUser: {
+        connect: {
+          id: userToMoveToOrg.id,
+        },
+      },
+    },
+    update: {
+      organizationId: targetOrgId,
+      username: targetOrgUsername,
+      movedFromUser: {
+        connect: {
+          id: userToMoveToOrg.id,
+        },
+      },
+    },
+    where: {
+      userId_organizationId: {
+        userId: userToMoveToOrg.id,
+        organizationId: targetOrgId,
+      },
+    },
+  });
 }
 
 async function moveTeamsWithoutMembersToOrg({
@@ -745,8 +779,8 @@ async function dbRemoveTeamFromOrg({ teamId }: { teamId: number }) {
           },
         },
       },
-      select: {
-        slug: true,
+      include: {
+        members: true,
       },
     });
   } catch (e) {
@@ -836,6 +870,10 @@ async function dbRemoveUserFromOrg({
         },
       },
     },
+  });
+
+  await ProfileRepository.deleteMany({
+    userIds: [userToRemoveFromOrg.id],
   });
 }
 

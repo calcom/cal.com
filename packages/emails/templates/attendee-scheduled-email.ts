@@ -41,7 +41,7 @@ export default class AttendeeScheduledEmail extends BaseEmail {
             ? this.t("your_event_has_been_scheduled_recurring")
             : this.t("your_event_has_been_scheduled"),
           role: "attendee",
-          subtitle: "emailed_you_and_any_other_attendees",
+          subtitle: this.t("emailed_you_and_any_other_attendees"),
           status: "CONFIRMED",
         }),
         method: "REQUEST",

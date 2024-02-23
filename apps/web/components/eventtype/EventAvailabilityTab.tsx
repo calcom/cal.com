@@ -79,7 +79,7 @@ const EventTypeScheduleDetails = memo(
     const { watch } = useFormContext<FormValues>();
 
     const scheduleId = watch("schedule");
-    const { isLoading, data: schedule } = trpc.viewer.availability.schedule.get.useQuery(
+    const { isPending, data: schedule } = trpc.viewer.availability.schedule.get.useQuery(
       {
         scheduleId:
           scheduleId || loggedInUser?.defaultScheduleId || selectedScheduleValue?.value || undefined,
@@ -106,7 +106,7 @@ const EventTypeScheduleDetails = memo(
                     )}>
                     {day}
                   </span>
-                  {isLoading ? (
+                  {isPending ? (
                     <SkeletonText className="block h-5 w-60" />
                   ) : isAvailable ? (
                     <div className="space-y-3 text-right">
@@ -136,7 +136,7 @@ const EventTypeScheduleDetails = memo(
           {!!schedule?.id && !schedule.isManaged && !schedule.readOnly && (
             <Button
               href={`/availability/${schedule.id}`}
-              disabled={isLoading}
+              disabled={isPending}
               color="minimal"
               EndIcon={ExternalLink}
               target="_blank"
@@ -161,8 +161,15 @@ const EventTypeSchedule = ({ eventType }: { eventType: EventTypeSetup }) => {
   const watchSchedule = watch("schedule");
   const [options, setOptions] = useState<AvailabilityOption[]>([]);
 
-  const { isLoading } = trpc.viewer.availability.list.useQuery(undefined, {
-    onSuccess: ({ schedules }) => {
+  const { data, isPending } = trpc.viewer.availability.list.useQuery(undefined);
+
+  useEffect(
+    function refactorMeWithoutEffect() {
+      if (!data) {
+        return;
+      }
+      const schedules = data.schedules;
+
       const options = schedules.map((schedule) => ({
         value: schedule.id,
         label: schedule.name,
@@ -215,15 +222,15 @@ const EventTypeSchedule = ({ eventType }: { eventType: EventTypeSetup }) => {
           : option.value === schedules.find((schedule) => schedule.isDefault)?.id
       );
 
-      setValue("availability", value);
+      setValue("availability", value, { shouldDirty: true });
     },
-  });
-
+    [data]
+  );
   const availabilityValue = watch("availability");
 
   useEffect(() => {
     if (!availabilityValue?.value) return;
-    setValue("schedule", availabilityValue.value);
+    setValue("schedule", availabilityValue.value, { shouldDirty: true });
   }, [availabilityValue, setValue]);
 
   return (
@@ -233,8 +240,8 @@ const EventTypeSchedule = ({ eventType }: { eventType: EventTypeSetup }) => {
           {t("availability")}
           {(isManagedEventType || isChildrenManagedEventType) && shouldLockIndicator("availability")}
         </label>
-        {isLoading && <SelectSkeletonLoader />}
-        {!isLoading && (
+        {isPending && <SelectSkeletonLoader />}
+        {!isPending && (
           <Controller
             name="schedule"
             render={({ field }) => {
@@ -246,7 +253,7 @@ const EventTypeSchedule = ({ eventType }: { eventType: EventTypeSetup }) => {
                   isSearchable={false}
                   onChange={(selected) => {
                     field.onChange(selected?.value || null);
-                    if (selected?.value) setValue("availability", selected);
+                    if (selected?.value) setValue("availability", selected, { shouldDirty: true });
                   }}
                   className="block w-full min-w-0 flex-1 rounded-sm text-sm"
                   value={availabilityValue}
@@ -284,7 +291,7 @@ const UseCommonScheduleSettingsToggle = ({ eventType }: { eventType: EventTypeSe
           onCheckedChange={(checked) => {
             onChange(!checked);
             if (!checked) {
-              setValue("schedule", null);
+              setValue("schedule", null, { shouldDirty: true });
             }
           }}
           title={t("choose_common_schedule_team_event")}

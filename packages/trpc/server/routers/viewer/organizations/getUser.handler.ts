@@ -25,7 +25,7 @@ export async function getUserHandler({ input, ctx }: AdminVerifyOptions) {
   // get requested user from database and ensure they are in the same organization
   const [requestedUser, membership, teams] = await prisma.$transaction([
     prisma.user.findFirst({
-      where: { id: input.userId, organizationId: currentUser.organizationId },
+      where: { id: input.userId },
       select: {
         id: true,
         email: true,

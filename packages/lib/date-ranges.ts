@@ -46,7 +46,13 @@ export function processWorkingHours({
     end = end.add(offsetDiff, "minute");
 
     const startResult = dayjs.max(start, dateFrom);
-    const endResult = dayjs.min(end, dateTo.tz(timeZone));
+    let endResult = dayjs.min(end, dateTo.tz(timeZone));
+
+    // INFO: We only allow users to set availability up to 11:59PM which ends up not making them available
+    // up to midnight.
+    if (endResult.hour() === 23 && endResult.minute() === 59) {
+      endResult = endResult.add(1, "minute");
+    }
 
     if (endResult.isBefore(startResult)) {
       // if an event ends before start, it's not a result.
@@ -61,21 +67,36 @@ export function processWorkingHours({
   return results;
 }
 
-export function processDateOverride({ item, timeZone }: { item: DateOverride; timeZone: string }) {
-  const startDate = dayjs
-    .utc(item.date)
-    .startOf("day")
+export function processDateOverride({
+  item,
+  itemDateAsUtc,
+  timeZone,
+}: {
+  item: DateOverride;
+  itemDateAsUtc: Dayjs;
+  timeZone: string;
+}) {
+  const itemDateStartOfDay = itemDateAsUtc.startOf("day");
+  const startDate = itemDateStartOfDay
     .add(item.startTime.getUTCHours(), "hours")
     .add(item.startTime.getUTCMinutes(), "minutes")
     .second(0)
     .tz(timeZone, true);
-  const endDate = dayjs
-    .utc(item.date)
-    .startOf("day")
-    .add(item.endTime.getUTCHours(), "hours")
-    .add(item.endTime.getUTCMinutes(), "minutes")
-    .second(0)
-    .tz(timeZone, true);
+
+  let endDate = itemDateStartOfDay;
+  const endTimeHours = item.endTime.getUTCHours();
+  const endTimeMinutes = item.endTime.getUTCMinutes();
+
+  if (endTimeHours === 23 && endTimeMinutes === 59) {
+    endDate = endDate.add(1, "day").tz(timeZone, true);
+  } else {
+    endDate = itemDateStartOfDay
+      .add(endTimeHours, "hours")
+      .add(endTimeMinutes, "minutes")
+      .second(0)
+      .tz(timeZone, true);
+  }
+
   return {
     start: startDate,
     end: endDate,
@@ -104,10 +125,26 @@ export function buildDateRanges({
       return processed;
     }, [])
   );
+
   const groupedDateOverrides = groupByDate(
     availability.reduce((processed: DateRange[], item) => {
       if ("date" in item && !!item.date) {
-        processed.push(processDateOverride({ item, timeZone }));
+        const itemDateAsUtc = dayjs.utc(item.date);
+        // TODO: Remove the .subtract(1, "day") and .add(1, "day") part and
+        // refactor this to actually work with correct dates.
+        // As of 2024-02-20, there are mismatches between local and UTC dates for overrides
+        // and the dateFrom and dateTo fields, resulting in this if not returning true, which
+        // results in "no available users found" errors.
+        if (
+          itemDateAsUtc.isBetween(
+            dateFrom.subtract(1, "day").startOf("day"),
+            dateTo.add(1, "day").endOf("day"),
+            null,
+            "[]"
+          )
+        ) {
+          processed.push(processDateOverride({ item, itemDateAsUtc, timeZone }));
+        }
       }
       return processed;
     }, [])

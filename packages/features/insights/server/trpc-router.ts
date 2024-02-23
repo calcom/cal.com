@@ -17,8 +17,8 @@ const UserBelongsToTeamInput = z.object({
   isAll: z.boolean().optional(),
 });
 
-const userBelongsToTeamProcedure = authedProcedure.use(async ({ ctx, next, rawInput }) => {
-  const parse = UserBelongsToTeamInput.safeParse(rawInput);
+const userBelongsToTeamProcedure = authedProcedure.use(async ({ ctx, next, getRawInput }) => {
+  const parse = UserBelongsToTeamInput.safeParse(await getRawInput());
   if (!parse.success) {
     throw new TRPCError({ code: "BAD_REQUEST" });
   }
@@ -39,6 +39,7 @@ const userBelongsToTeamProcedure = authedProcedure.use(async ({ ctx, next, rawIn
     where: membershipWhereConditional,
   });
 
+  let isOwnerAdminOfParentTeam = false;
   // Probably we couldn't find a membership because the user is not a direct member of the team
   // So that would mean ctx.user.organization is present
   if ((parse.data.isAll && ctx.user.organizationId) || (!membership && ctx.user.organizationId)) {
@@ -56,19 +57,17 @@ const userBelongsToTeamProcedure = authedProcedure.use(async ({ ctx, next, rawIn
     if (!membershipOrg) {
       throw new TRPCError({ code: "UNAUTHORIZED" });
     }
-
-    return next({
-      ctx: {
-        ...ctx,
-        user: {
-          ...ctx.user,
-          isOwnerAdminOfParentTeam: true,
-        },
-      },
-    });
+    isOwnerAdminOfParentTeam = true;
   }
 
-  return next();
+  return next({
+    ctx: {
+      user: {
+        ...ctx.user,
+        isOwnerAdminOfParentTeam,
+      },
+    },
+  });
 });
 
 const UserSelect = {

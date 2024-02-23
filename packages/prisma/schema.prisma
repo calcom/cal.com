@@ -2,8 +2,9 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DATABASE_DIRECT_URL")
 }
 
 generator client {
@@ -40,6 +41,7 @@ model Host {
   eventType   EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
   eventTypeId Int
   isFixed     Boolean   @default(false)
+  priority    Int?
 
   @@id([userId, eventTypeId])
   @@index([userId])
@@ -47,78 +49,84 @@ model Host {
 }
 
 model EventType {
-  id                              Int                     @id @default(autoincrement())
+  id          Int     @id @default(autoincrement())
   /// @zod.min(1)
-  title                           String
+  title       String
   /// @zod.custom(imports.eventTypeSlug)
-  slug                            String
-  description                     String?
-  position                        Int                     @default(0)
+  slug        String
+  description String?
+  position    Int     @default(0)
   /// @zod.custom(imports.eventTypeLocations)
-  locations                       Json?
+  locations   Json?
   /// @zod.min(1)
-  length                          Int
-  offsetStart                     Int                     @default(0)
-  hidden                          Boolean                 @default(false)
-  hosts                           Host[]
-  users                           User[]                  @relation("user_eventtype")
-  owner                           User?                   @relation("owner", fields: [userId], references: [id], onDelete: Cascade)
-  userId                          Int?
-  team                            Team?                   @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  teamId                          Int?
-  hashedLink                      HashedLink?
-  bookings                        Booking[]
-  availability                    Availability[]
-  webhooks                        Webhook[]
-  destinationCalendar             DestinationCalendar?
-  eventName                       String?
-  customInputs                    EventTypeCustomInput[]
-  parentId                        Int?
-  parent                          EventType?              @relation("managed_eventtype", fields: [parentId], references: [id], onDelete: Cascade)
-  children                        EventType[]             @relation("managed_eventtype")
+  length      Int
+  offsetStart Int     @default(0)
+  hidden      Boolean @default(false)
+  hosts       Host[]
+  users       User[]  @relation("user_eventtype")
+  owner       User?   @relation("owner", fields: [userId], references: [id], onDelete: Cascade)
+  userId      Int?
+
+  profileId Int?
+  profile   Profile? @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  team                                 Team?                   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamId                               Int?
+  hashedLink                           HashedLink?
+  bookings                             Booking[]
+  availability                         Availability[]
+  webhooks                             Webhook[]
+  destinationCalendar                  DestinationCalendar?
+  eventName                            String?
+  customInputs                         EventTypeCustomInput[]
+  parentId                             Int?
+  parent                               EventType?              @relation("managed_eventtype", fields: [parentId], references: [id], onDelete: Cascade)
+  children                             EventType[]             @relation("managed_eventtype")
   /// @zod.custom(imports.eventTypeBookingFields)
-  bookingFields                   Json?
-  timeZone                        String?
-  periodType                      PeriodType              @default(UNLIMITED)
+  bookingFields                        Json?
+  timeZone                             String?
+  periodType                           PeriodType              @default(UNLIMITED)
   /// @zod.custom(imports.coerceToDate)
-  periodStartDate                 DateTime?
+  periodStartDate                      DateTime?
   /// @zod.custom(imports.coerceToDate)
-  periodEndDate                   DateTime?
-  periodDays                      Int?
-  periodCountCalendarDays         Boolean?
-  lockTimeZoneToggleOnBookingPage Boolean                 @default(false)
-  requiresConfirmation            Boolean                 @default(false)
-  requiresBookerEmailVerification Boolean                 @default(false)
+  periodEndDate                        DateTime?
+  periodDays                           Int?
+  periodCountCalendarDays              Boolean?
+  lockTimeZoneToggleOnBookingPage      Boolean                 @default(false)
+  requiresConfirmation                 Boolean                 @default(false)
+  requiresBookerEmailVerification      Boolean                 @default(false)
   /// @zod.custom(imports.recurringEventType)
-  recurringEvent                  Json?
-  disableGuests                   Boolean                 @default(false)
-  hideCalendarNotes               Boolean                 @default(false)
+  recurringEvent                       Json?
+  disableGuests                        Boolean                 @default(false)
+  hideCalendarNotes                    Boolean                 @default(false)
   /// @zod.min(0)
-  minimumBookingNotice            Int                     @default(120)
-  beforeEventBuffer               Int                     @default(0)
-  afterEventBuffer                Int                     @default(0)
-  seatsPerTimeSlot                Int?
-  onlyShowFirstAvailableSlot      Boolean                 @default(false)
-  seatsShowAttendees              Boolean?                @default(false)
-  seatsShowAvailabilityCount      Boolean?                @default(true)
-  schedulingType                  SchedulingType?
-  schedule                        Schedule?               @relation(fields: [scheduleId], references: [id])
-  scheduleId                      Int?
+  minimumBookingNotice                 Int                     @default(120)
+  beforeEventBuffer                    Int                     @default(0)
+  afterEventBuffer                     Int                     @default(0)
+  seatsPerTimeSlot                     Int?
+  onlyShowFirstAvailableSlot           Boolean                 @default(false)
+  seatsShowAttendees                   Boolean?                @default(false)
+  seatsShowAvailabilityCount           Boolean?                @default(true)
+  schedulingType                       SchedulingType?
+  schedule                             Schedule?               @relation(fields: [scheduleId], references: [id])
+  scheduleId                           Int?
   // price is deprecated. It has now moved to metadata.apps.stripe.price. Plan to drop this column.
-  price                           Int                     @default(0)
+  price                                Int                     @default(0)
   // currency is deprecated. It has now moved to metadata.apps.stripe.currency. Plan to drop this column.
-  currency                        String                  @default("usd")
-  slotInterval                    Int?
+  currency                             String                  @default("usd")
+  slotInterval                         Int?
   /// @zod.custom(imports.EventTypeMetaDataSchema)
-  metadata                        Json?
+  metadata                             Json?
   /// @zod.custom(imports.successRedirectUrl)
-  successRedirectUrl              String?
-  workflows                       WorkflowsOnEventTypes[]
+  successRedirectUrl                   String?
+  workflows                            WorkflowsOnEventTypes[]
   /// @zod.custom(imports.intervalLimitsType)
-  bookingLimits                   Json?
+  bookingLimits                        Json?
   /// @zod.custom(imports.intervalLimitsType)
-  durationLimits                  Json?
-  isInstantEvent                  Boolean                 @default(false)
+  durationLimits                       Json?
+  isInstantEvent                       Boolean                 @default(false)
+  assignAllTeamMembers                 Boolean                 @default(false)
+  useEventTypeDestinationCalendarEmail Boolean                 @default(false)
 
   @@unique([userId, slug])
   @@unique([teamId, slug])
@@ -166,6 +174,8 @@ model DestinationCalendar {
   id           Int         @id @default(autoincrement())
   integration  String
   externalId   String
+  /// @zod.email()
+  primaryEmail String?
   user         User?       @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId       Int?        @unique
   booking      Booking[]
@@ -184,6 +194,14 @@ enum UserPermissionRole {
   ADMIN
 }
 
+// It holds the password of a User, separate from the User model to avoid leaking the password hash
+model UserPassword {
+  hash   String
+  userId Int    @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// It holds Personal Profiles of a User plus it has email, password and other core things
 model User {
   id                  Int                  @id @default(autoincrement())
   username            String?
@@ -191,7 +209,7 @@ model User {
   /// @zod.email()
   email               String
   emailVerified       DateTime?
-  password            String?
+  password            UserPassword?
   bio                 String?
   avatar              String?
   avatarUrl           String?
@@ -203,7 +221,9 @@ model User {
   // </DEPRECATED>
   bufferTime          Int                  @default(0)
   hideBranding        Boolean              @default(false)
+  // TODO: should be renamed since it only affects the booking page
   theme               String?
+  appTheme            String?
   createdDate         DateTime             @default(now()) @map(name: "created")
   trialEndsAt         DateTime?
   eventTypes          EventType[]          @relation("user_eventtype")
@@ -259,22 +279,43 @@ model User {
   accessCodes          AccessCode[]
   bookingRedirects     OutOfOfficeEntry[]
   bookingRedirectsTo   OutOfOfficeEntry[]      @relation(name: "toUser")
-  // Linking account code for orgs v2
-  //linkedByUserId       Int?
-  //linkedBy             User?                   @relation("linked_account", fields: [linkedByUserId], references: [id], onDelete: Cascade)
-  //linkedUsers          User[]                  @relation("linked_account")*/
 
   // Used to lock the user account
-  locked Boolean @default(false)
+  locked           Boolean   @default(false)
+  profiles         Profile[]
+  movedToProfileId Int?
+  movedToProfile   Profile?  @relation("moved_to_profile", fields: [movedToProfileId], references: [id], onDelete: SetNull)
 
   @@unique([email])
   @@unique([email, username])
   @@unique([username, organizationId])
+  @@unique([movedToProfileId])
   @@index([username])
   @@index([emailVerified])
   @@index([identityProvider])
   @@index([identityProviderId])
   @@map(name: "users")
+}
+
+// It holds Organization Profiles
+model Profile {
+  id             Int         @id @default(autoincrement())
+  // uid allows us to set an identifier chosen by us which is helpful in migration when we create the Profile from User directly.
+  uid            String
+  userId         Int
+  user           User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organizationId Int
+  organization   Team        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  username       String
+  eventTypes     EventType[]
+  movedFromUser  User?       @relation("moved_to_profile")
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  @@unique([userId, organizationId])
+  @@index([uid])
+  @@index([userId])
+  @@index([organizationId])
 }
 
 model Team {
@@ -316,6 +357,8 @@ model Team {
   credentials          Credential[]
   accessCodes          AccessCode[]
   instantMeetingTokens InstantMeetingToken[]
+  orgProfiles          Profile[]
+  pendingPayment       Boolean                 @default(false)
 
   @@unique([slug, parentId])
 }
@@ -373,19 +416,20 @@ model InstantMeetingToken {
 }
 
 model BookingReference {
-  id                 Int      @id @default(autoincrement())
+  id                         Int      @id @default(autoincrement())
   /// @zod.min(1)
-  type               String
+  type                       String
   /// @zod.min(1)
-  uid                String
-  meetingId          String?
-  meetingPassword    String?
-  meetingUrl         String?
-  booking            Booking? @relation(fields: [bookingId], references: [id], onDelete: Cascade)
-  bookingId          Int?
-  externalCalendarId String?
-  deleted            Boolean?
-  credentialId       Int?
+  uid                        String
+  meetingId                  String?
+  thirdPartyRecurringEventId String?
+  meetingPassword            String?
+  meetingUrl                 String?
+  booking                    Booking? @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  bookingId                  Int?
+  externalCalendarId         String?
+  deleted                    Boolean?
+  credentialId               Int?
 
   @@index([bookingId])
   @@index([credentialId])
@@ -420,6 +464,9 @@ model Booking {
   uid                   String               @unique
   user                  User?                @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId                Int?
+  // User's email at the time of booking
+  /// @zod.email()
+  userPrimaryEmail      String?
   references            BookingReference[]
   eventType             EventType?           @relation(fields: [eventTypeId], references: [id])
   eventTypeId           Int?
@@ -899,6 +946,7 @@ model BookingSeat {
   booking      Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
   attendeeId   Int      @unique
   attendee     Attendee @relation(fields: [attendeeId], references: [id], onDelete: Cascade)
+  /// @zod.custom(imports.bookingSeatDataSchema)
   data         Json?
 
   @@index([bookingId])

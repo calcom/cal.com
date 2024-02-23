@@ -22,7 +22,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     const { usernameList, ...rest } = req.query;
     let slugs = usernameList;
     if (!Array.isArray(usernameList)) {
-      slugs = usernameList ? [usernameList] : [];
+      slugs = usernameList ? [usernameList] : undefined;
     }
     const input = getScheduleSchema.parse({ usernameList: slugs, ...rest });
     const timeZoneSupported = input.timeZone ? isSupportedTimeZone(input.timeZone) : false;
@@ -38,9 +38,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           },
           {}
         )
-      : availableSlots;
+      : availableSlots.slots;
 
-    return slotsInProvidedTimeZone;
+    return { slots: slotsInProvidedTimeZone };
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (cause) {
     if (cause instanceof TRPCError) {

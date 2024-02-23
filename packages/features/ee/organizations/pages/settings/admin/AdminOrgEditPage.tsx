@@ -98,7 +98,7 @@ const OrgForm = ({
         required
         {...form.register("metadata.orgAutoAcceptEmail")}
       />
-      <Button type="submit" color="primary" loading={mutation.isLoading}>
+      <Button type="submit" color="primary" loading={mutation.isPending}>
         {t("save")}
       </Button>
     </Form>

@@ -3,7 +3,6 @@ import { useState, useEffect, useCallback } from "react";
 import useDigitInput from "react-digit-input";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc } from "@calcom/trpc/react";
 import {
   Button,
   Dialog,
@@ -20,19 +19,26 @@ export const VerifyCodeDialog = ({
   isOpenDialog,
   setIsOpenDialog,
   email,
-  onSuccess,
   isUserSessionRequiredToVerify = true,
+  verifyCodeWithSessionNotRequired,
+  verifyCodeWithSessionRequired,
+  resetErrors,
+  setIsPending,
+  isPending,
+  error,
 }: {
   isOpenDialog: boolean;
   setIsOpenDialog: Dispatch<SetStateAction<boolean>>;
   email: string;
-  onSuccess: (isVerified: boolean) => void;
   isUserSessionRequiredToVerify?: boolean;
+  verifyCodeWithSessionNotRequired: (code: string, email: string) => void;
+  verifyCodeWithSessionRequired: (code: string, email: string) => void;
+  resetErrors: () => void;
+  isPending: boolean;
+  setIsPending: (status: boolean) => void;
+  error: string;
 }) => {
   const { t } = useLocale();
-  // Not using the mutation isLoading flag because after verifying we submit the underlying org creation form
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
   const [value, setValue] = useState("");
   const [hasVerified, setHasVerified] = useState(false);
 
@@ -42,70 +48,38 @@ export const VerifyCodeDialog = ({
     value,
     onChange: useCallback((value: string) => {
       // whenever there's a change in the input, we reset the error value.
-      setError("");
+      resetErrors();
       setValue(value);
     }, []),
   });
 
-  const verifyCodeMutationUserSessionRequired = trpc.viewer.organizations.verifyCode.useMutation({
-    onSuccess: (data) => {
-      setIsLoading(false);
-      onSuccess(data);
-    },
-    onError: (err) => {
-      setIsLoading(false);
-      setHasVerified(false);
-      if (err.message === "invalid_code") {
-        setError(t("code_provided_invalid"));
-      }
-    },
-  });
-
-  const verifyCodeMutationUserSessionNotRequired = trpc.viewer.auth.verifyCodeUnAuthenticated.useMutation({
-    onSuccess: (data) => {
-      setIsLoading(false);
-      onSuccess(data);
-    },
-    onError: (err) => {
-      setIsLoading(false);
-      setHasVerified(false);
-      if (err.message === "invalid_code") {
-        setError(t("code_provided_invalid"));
-      }
-    },
-  });
-
   const verifyCode = useCallback(() => {
-    setError("");
-    setIsLoading(true);
+    resetErrors();
+    setIsPending(true);
     if (isUserSessionRequiredToVerify) {
-      verifyCodeMutationUserSessionRequired.mutate({
-        code: value,
-        email,
-      });
+      verifyCodeWithSessionRequired(value, email);
     } else {
-      verifyCodeMutationUserSessionNotRequired.mutate({
-        code: value,
-        email,
-      });
+      verifyCodeWithSessionNotRequired(value, email);
     }
     setHasVerified(true);
   }, [
-    email,
+    resetErrors,
+    setIsPending,
     isUserSessionRequiredToVerify,
+    verifyCodeWithSessionRequired,
     value,
-    verifyCodeMutationUserSessionNotRequired,
-    verifyCodeMutationUserSessionRequired,
+    email,
+    verifyCodeWithSessionNotRequired,
   ]);
 
   useEffect(() => {
     // trim the input value because "react-digit-input" creates a string of the given length,
     // even when some digits are missing. And finally we use regex to check if the value consists
     // of 6 non-empty digits.
-    if (hasVerified || error || isLoading || !/^\d{6}$/.test(value.trim())) return;
+    if (hasVerified || error || isPending || !/^\d{6}$/.test(value.trim())) return;
 
     verifyCode();
-  }, [error, isLoading, value, verifyCode, hasVerified]);
+  }, [error, isPending, value, verifyCode, hasVerified]);
 
   useEffect(() => setValue(""), [isOpenDialog]);
 
@@ -116,7 +90,7 @@ export const VerifyCodeDialog = ({
       open={isOpenDialog}
       onOpenChange={(open) => {
         setValue("");
-        setError("");
+        resetErrors();
         setIsOpenDialog(open);
       }}>
       <DialogContent className="sm:max-w-md">
@@ -149,7 +123,7 @@ export const VerifyCodeDialog = ({
             )}
             <DialogFooter>
               <DialogClose />
-              <Button type="submit" onClick={verifyCode} loading={isLoading}>
+              <Button type="submit" onClick={verifyCode} loading={isPending}>
                 {t("submit")}
               </Button>
             </DialogFooter>

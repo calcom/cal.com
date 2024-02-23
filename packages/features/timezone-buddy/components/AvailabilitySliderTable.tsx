@@ -1,3 +1,4 @@
+import { keepPreviousData } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { useMemo, useRef, useCallback, useEffect, useState } from "react";
@@ -8,6 +9,7 @@ import type { DateRange } from "@calcom/lib/date-ranges";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
+import type { UserProfile } from "@calcom/types/UserProfile";
 import { Button, ButtonGroup, DataTable } from "@calcom/ui";
 import { UserAvatar } from "@calcom/ui";
 
@@ -21,11 +23,13 @@ export interface SliderUser {
   username: string | null;
   name: string | null;
   organizationId: number;
+  avatarUrl: string | null;
   email: string;
   timeZone: string;
   role: MembershipRole;
   defaultScheduleId: number | null;
   dateRanges: DateRange[];
+  profile: UserProfile;
 }
 
 function UpgradeTeamTip() {
@@ -56,13 +60,12 @@ function UpgradeTeamTip() {
 }
 
 export function AvailabilitySliderTable() {
-  const { t } = useLocale();
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const [browsingDate, setBrowsingDate] = useState(dayjs());
   const [editSheetOpen, setEditSheetOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<SliderUser | null>(null);
 
-  const { data, isLoading, fetchNextPage, isFetching } = trpc.viewer.availability.listTeam.useInfiniteQuery(
+  const { data, isPending, fetchNextPage, isFetching } = trpc.viewer.availability.listTeam.useInfiniteQuery(
     {
       limit: 10,
       loggedInUsersTz: dayjs.tz.guess() || "Europe/London",
@@ -71,7 +74,7 @@ export function AvailabilitySliderTable() {
     },
     {
       getNextPageParam: (lastPage) => lastPage.nextCursor,
-      keepPreviousData: true,
+      placeholderData: keepPreviousData,
     }
   );
 
@@ -82,7 +85,7 @@ export function AvailabilitySliderTable() {
         accessorFn: (data) => data.email,
         header: "Member",
         cell: ({ row }) => {
-          const { username, email, timeZone, name, organizationId } = row.original;
+          const { username, email, timeZone, name, avatarUrl, profile } = row.original;
           return (
             <div className="max-w-64 flex flex-shrink-0 items-center gap-2 overflow-hidden">
               <UserAvatar
@@ -90,7 +93,8 @@ export function AvailabilitySliderTable() {
                 user={{
                   username,
                   name,
-                  organizationId,
+                  avatarUrl,
+                  profile,
                 }}
               />
               <div className="">
@@ -203,7 +207,7 @@ export function AvailabilitySliderTable() {
               setSelectedUser(row.original);
             }}
             data={flatData}
-            isLoading={isLoading}
+            isPending={isPending}
             // tableOverlay={<HoverOverview />}
             onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}
           />

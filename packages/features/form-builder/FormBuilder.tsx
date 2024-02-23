@@ -181,7 +181,9 @@ export const FormBuilder = function FormBuilder({
                         // Hidden field can't be required, so we don't need to show the Optional badge
                         <Badge variant="grayWithoutHover">{t("hidden")}</Badge>
                       ) : (
-                        <Badge variant="grayWithoutHover">{isRequired ? t("required") : t("optional")}</Badge>
+                        <Badge variant="grayWithoutHover" data-testid={isRequired ? "required" : "optional"}>
+                          {isRequired ? t("required") : t("optional")}
+                        </Badge>
                       )}
                       {Object.entries(groupedBySourceLabel).map(([sourceLabel, sources], key) => (
                         // We don't know how to pluralize `sourceLabel` because it can be anything
@@ -211,6 +213,7 @@ export const FormBuilder = function FormBuilder({
                     )}
                     {isUserField && (
                       <Button
+                        data-testid="delete-field-action"
                         color="destructive"
                         disabled={!isUserField}
                         variant="icon"
@@ -433,7 +436,7 @@ function FieldEditDialog({
                 if (!value) {
                   return;
                 }
-                fieldForm.setValue("type", value);
+                fieldForm.setValue("type", value, { shouldDirty: true });
               }}
               value={fieldTypesConfigMap[fieldForm.getValues("type")]}
               options={fieldTypes.filter((f) => !f.systemOnly)}
@@ -448,7 +451,9 @@ function FieldEditDialog({
                       {...fieldForm.register("name")}
                       containerClassName="mt-6"
                       onChange={(e) => {
-                        fieldForm.setValue("name", getFieldIdentifier(e.target.value || ""));
+                        fieldForm.setValue("name", getFieldIdentifier(e.target.value || ""), {
+                          shouldDirty: true,
+                        });
                       }}
                       disabled={
                         fieldForm.getValues("editable") === "system" ||

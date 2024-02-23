@@ -1,19 +1,14 @@
 "use client";
 
-import type { GetServerSidePropsContext } from "next";
-import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Head from "next/head";
 import { usePathname, useRouter } from "next/navigation";
 import { Suspense } from "react";
 import { z } from "zod";
 
-import { getLocale } from "@calcom/features/auth/lib/getLocale";
-import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { classNames } from "@calcom/lib";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
-import prisma from "@calcom/prisma";
 import { trpc } from "@calcom/trpc";
 import { Button, StepCard, Steps } from "@calcom/ui";
 import { Loader } from "@calcom/ui/components/icon";
@@ -25,7 +20,7 @@ import { SetupAvailability } from "@components/getting-started/steps-views/Setup
 import UserProfile from "@components/getting-started/steps-views/UserProfile";
 import { UserSettings } from "@components/getting-started/steps-views/UserSettings";
 
-import { ssrInit } from "@server/lib/ssr";
+export { getServerSideProps } from "@lib/getting-started/[[...step]]/getServerSideProps";
 
 const INITIAL_STEP = "user-settings";
 const steps = [
@@ -181,57 +176,6 @@ const OnboardingPage = () => {
       </div>
     </div>
   );
-};
-
-export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  const { req, res } = context;
-
-  const session = await getServerSession({ req, res });
-
-  if (!session?.user?.id) {
-    return { redirect: { permanent: false, destination: "/auth/login" } };
-  }
-
-  const ssr = await ssrInit(context);
-
-  await ssr.viewer.me.prefetch();
-
-  const user = await prisma.user.findUnique({
-    where: {
-      id: session.user.id,
-    },
-    select: {
-      completedOnboarding: true,
-      teams: {
-        select: {
-          accepted: true,
-          team: {
-            select: {
-              id: true,
-              name: true,
-              logo: true,
-            },
-          },
-        },
-      },
-    },
-  });
-
-  if (!user) {
-    throw new Error("User from session not found");
-  }
-
-  if (user.completedOnboarding) {
-    return { redirect: { permanent: false, destination: "/event-types" } };
-  }
-  const locale = await getLocale(context.req);
-  return {
-    props: {
-      ...(await serverSideTranslations(locale, ["common"])),
-      trpcState: ssr.dehydrate(),
-      hasPendingInvites: user.teams.find((team) => team.accepted === false) ?? false,
-    },
-  };
 };
 
 OnboardingPage.PageWrapper = PageWrapper;

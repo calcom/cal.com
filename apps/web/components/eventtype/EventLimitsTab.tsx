@@ -4,7 +4,7 @@ import type { EventTypeSetupProps } from "pages/event-types/[type]";
 import type { Key } from "react";
 import React, { useEffect, useState } from "react";
 import type { UseFormRegisterReturn } from "react-hook-form";
-import { Controller, useFormContext, useWatch } from "react-hook-form";
+import { Controller, useFormContext } from "react-hook-form";
 import type { SingleValue } from "react-select";
 
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
@@ -63,7 +63,8 @@ const MinimumBookingNoticeInput = React.forwardRef<
         minimumBookingNoticeDisplayValues.type,
         "minutes",
         minimumBookingNoticeDisplayValues.value
-      )
+      ),
+      { shouldDirty: true }
     );
   }, [minimumBookingNoticeDisplayValues, setValue, passThroughProps.name]);
 
@@ -109,7 +110,7 @@ const MinimumBookingNoticeInput = React.forwardRef<
   );
 });
 
-export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventType">) => {
+export const EventLimitsTab = () => {
   const { t, i18n } = useLocale();
   const formMethods = useFormContext<FormValues>();
 
@@ -128,19 +129,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
     },
   ];
 
-  const periodType =
-    PERIOD_TYPES.find((s) => s.type === eventType.periodType) ||
-    PERIOD_TYPES.find((s) => s.type === "UNLIMITED");
-
-  const [periodDates] = useState<{ startDate: Date; endDate: Date }>({
-    startDate: new Date(eventType.periodStartDate || Date.now()),
-    endDate: new Date(eventType.periodEndDate || Date.now()),
-  });
-  const watchPeriodType = useWatch({
-    control: formMethods.control,
-    name: "periodType",
-    defaultValue: periodType?.type,
-  });
+  const watchPeriodType = formMethods.watch("periodType");
 
   const { shouldLockIndicator, shouldLockDisableProps } = useLockedFieldsManager(eventType, formMethods, t);
 
@@ -151,21 +140,17 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
   const offsetStartLockedProps = shouldLockDisableProps("offsetStart");
 
   const optionsPeriod = [
-    { value: 1, label: t("calendar_days") },
     { value: 0, label: t("business_days") },
+    { value: 1, label: t("calendar_days") },
   ];
 
-  // offsetStart toggle is client-side only, opened by default if offsetStart is set
-  const offsetStartValue = useWatch({
-    control: formMethods.control,
-    name: "offsetStart",
-  });
-  const [offsetToggle, setOffsetToggle] = useState(() => offsetStartValue > 0);
+  const [offsetToggle, setOffsetToggle] = useState(formMethods.getValues("offsetStart") > 0);
 
   // Preview how the offset will affect start times
+  const watchOffsetStartValue = formMethods.watch("offsetStart");
   const offsetOriginalTime = new Date();
   offsetOriginalTime.setHours(9, 0, 0, 0);
-  const offsetAdjustedTime = new Date(offsetOriginalTime.getTime() + offsetStartValue * 60 * 1000);
+  const offsetAdjustedTime = new Date(offsetOriginalTime.getTime() + watchOffsetStartValue * 60 * 1000);
 
   return (
     <div>
@@ -177,9 +162,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
               {shouldLockIndicator("beforeBufferTime")}
             </Label>
             <Controller
-              name="beforeBufferTime"
-              control={formMethods.control}
-              defaultValue={eventType.beforeEventBuffer || 0}
+              name="beforeEventBuffer"
               render={({ field: { onChange, value } }) => {
                 const beforeBufferOptions = [
                   {
@@ -213,9 +196,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
               {shouldLockIndicator("afterBufferTime")}
             </Label>
             <Controller
-              name="afterBufferTime"
-              control={formMethods.control}
-              defaultValue={eventType.afterEventBuffer || 0}
+              name="afterEventBuffer"
               render={({ field: { onChange, value } }) => {
                 const afterBufferOptions = [
                   {
@@ -262,7 +243,6 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
             </Label>
             <Controller
               name="slotInterval"
-              control={formMethods.control}
               render={() => {
                 const slotIntervalOptions = [
                   {
@@ -279,11 +259,14 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
                     isSearchable={false}
                     isDisabled={shouldLockDisableProps("slotInterval").disabled}
                     onChange={(val) => {
-                      formMethods.setValue("slotInterval", val && (val.value || 0) > 0 ? val.value : null);
+                      formMethods.setValue("slotInterval", val && (val.value || 0) > 0 ? val.value : null, {
+                        shouldDirty: true,
+                      });
                     }}
                     defaultValue={
-                      slotIntervalOptions.find((option) => option.value === eventType.slotInterval) ||
-                      slotIntervalOptions[0]
+                      slotIntervalOptions.find(
+                        (option) => option.value === formMethods.getValues("slotInterval")
+                      ) || slotIntervalOptions[0]
                     }
                     options={slotIntervalOptions}
                   />
@@ -295,7 +278,6 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
       </div>
       <Controller
         name="bookingLimits"
-        control={formMethods.control}
         render={({ field: { value } }) => {
           const isChecked = Object.keys(value ?? {}).length > 0;
           return (
@@ -308,11 +290,15 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
               checked={isChecked}
               onCheckedChange={(active) => {
                 if (active) {
-                  formMethods.setValue("bookingLimits", {
-                    PER_DAY: 1,
-                  });
+                  formMethods.setValue(
+                    "bookingLimits",
+                    {
+                      PER_DAY: 1,
+                    },
+                    { shouldDirty: true }
+                  );
                 } else {
-                  formMethods.setValue("bookingLimits", {});
+                  formMethods.setValue("bookingLimits", {}, { shouldDirty: true });
                 }
               }}
               switchContainerClassName={classNames(
@@ -334,8 +320,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
       />
       <Controller
         name="onlyShowFirstAvailableSlot"
-        control={formMethods.control}
-        render={({ field: { value } }) => {
+        render={({ field: { onChange, value } }) => {
           const isChecked = value;
           return (
             <SettingsToggle
@@ -346,7 +331,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
               checked={isChecked}
               {...onlyFirstAvailableSlotLocked}
               onCheckedChange={(active) => {
-                formMethods.setValue("onlyShowFirstAvailableSlot", active ?? false);
+                onChange(active ?? false);
               }}
               switchContainerClassName={classNames(
                 "border-subtle mt-6 rounded-lg border py-6 px-4 sm:px-6",
@@ -358,8 +343,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
       />
       <Controller
         name="durationLimits"
-        control={formMethods.control}
-        render={({ field: { value } }) => {
+        render={({ field: { onChange, value } }) => {
           const isChecked = Object.keys(value ?? {}).length > 0;
           return (
             <SettingsToggle
@@ -376,11 +360,11 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
               checked={isChecked}
               onCheckedChange={(active) => {
                 if (active) {
-                  formMethods.setValue("durationLimits", {
+                  onChange({
                     PER_DAY: 60,
                   });
                 } else {
-                  formMethods.setValue("durationLimits", {});
+                  onChange({});
                 }
               }}>
               <div className="border-subtle rounded-b-lg border border-t-0 p-6">
@@ -398,8 +382,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
       />
       <Controller
         name="periodType"
-        control={formMethods.control}
-        render={({ field: { value } }) => {
+        render={({ field: { onChange, value } }) => {
           const isChecked = value && value !== "UNLIMITED";
 
           return (
@@ -415,12 +398,14 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
               description={t("limit_future_bookings_description")}
               {...periodTypeLocked}
               checked={isChecked}
-              onCheckedChange={(bool) => formMethods.setValue("periodType", bool ? "ROLLING" : "UNLIMITED")}>
+              onCheckedChange={(bool) =>
+                // formMethods.setValue("periodType", bool ? "ROLLING" : "UNLIMITED", { shouldDirty: true })
+                onChange(bool ? "ROLLING" : "UNLIMITED")
+              }>
               <div className="border-subtle rounded-b-lg border border-t-0 p-6">
                 <RadioGroup.Root
-                  defaultValue={watchPeriodType}
                   value={watchPeriodType}
-                  onValueChange={(val) => formMethods.setValue("periodType", val as PeriodType)}>
+                  onValueChange={(val) => formMethods.setValue("periodType", val as PeriodType, { shouldDirty: true })}>
                   {PERIOD_TYPES.filter((opt) =>
                     periodTypeLocked.disabled ? watchPeriodType === opt.type : true
                   ).map((period) => {
@@ -451,7 +436,6 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
                               placeholder="30"
                               disabled={periodTypeLocked.disabled}
                               {...formMethods.register("periodDays", { valueAsNumber: true })}
-                              defaultValue={eventType.periodDays || 30}
                             />
                             <Select
                               options={optionsPeriod}
@@ -460,14 +444,20 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
                               onChange={(opt) => {
                                 formMethods.setValue(
                                   "periodCountCalendarDays",
-                                  opt?.value.toString() as "0" | "1"
-                                );
-                              }}
-                              defaultValue={
-                                optionsPeriod.find(
-                                  (opt) => opt.value === (eventType.periodCountCalendarDays ? 1 : 0)
-                                ) ?? optionsPeriod[0]
+                                  opt?.value === 1 ? true : false,
+                                  { shouldDirty: true }
+                                )
                               }
+                              name="periodCoundCalendarDays"
+                              value={optionsPeriod.find((opt) => {
+                                opt.value ===
+                                  (formMethods.getValues("periodCountCalendarDays") === true ? 1 : 0);
+                              })}
+                              defaultValue={optionsPeriod.find(
+                                (opt) =>
+                                  opt.value ===
+                                  (formMethods.getValues("periodCountCalendarDays") === true ? 1 : 0)
+                              )}
                             />
                           </div>
                         )}
@@ -475,15 +465,13 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
                           <div className="me-2 ms-2 inline-flex space-x-2 rtl:space-x-reverse">
                             <Controller
                               name="periodDates"
-                              control={formMethods.control}
-                              defaultValue={periodDates}
-                              render={() => (
+                              render={({ field: { onChange } }) => (
                                 <DateRangePicker
                                   startDate={formMethods.getValues("periodDates").startDate}
                                   endDate={formMethods.getValues("periodDates").endDate}
                                   disabled={periodTypeLocked.disabled}
                                   onDatesChange={({ startDate, endDate }) => {
-                                    formMethods.setValue("periodDates", {
+                                    onChange({
                                       startDate,
                                       endDate,
                                     });
@@ -518,7 +506,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
         onCheckedChange={(active) => {
           setOffsetToggle(active);
           if (!active) {
-            formMethods.setValue("offsetStart", 0);
+            formMethods.setValue("offsetStart", 0, { shouldDirty: true });
           }
         }}>
         <div className="border-subtle rounded-b-lg border border-t-0 p-6">
@@ -528,7 +516,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
             containerClassName="max-w-80"
             {...offsetStartLockedProps}
             label={t("offset_start")}
-            {...formMethods.register("offsetStart")}
+            {...formMethods.register("offsetStart", { setValueAs: (value) => Number(value) })}
             addOnSuffix={<>{t("minutes")}</>}
             hint={t("offset_start_description", {
               originalTime: offsetOriginalTime.toLocaleTimeString(i18n.language, { timeStyle: "short" }),
@@ -575,7 +563,10 @@ const IntervalLimitItem = ({
   onIntervalSelect,
 }: IntervalLimitItemProps) => {
   return (
-    <div className="mb-4 flex max-h-9 items-center space-x-2 text-sm rtl:space-x-reverse" key={limitKey}>
+    <div
+      data-testid="add-limit"
+      className="mb-4 flex max-h-9 items-center space-x-2 text-sm rtl:space-x-reverse"
+      key={limitKey}>
       <TextField
         required
         type="number"
@@ -647,11 +638,16 @@ const IntervalLimitsManager = <K extends "durationLimits" | "bookingLimits">({
           );
           if (!rest || !currentKeys.length) return;
           //currentDurationLimits is always defined so can be casted
-          // @ts-expect-error FIXME Fix these typings
-          setValue(propertyName, {
-            ...watchIntervalLimits,
-            [rest.value]: defaultLimit,
-          });
+
+          setValue(
+            propertyName,
+            // @ts-expect-error FIXME Fix these typings
+            {
+              ...watchIntervalLimits,
+              [rest.value]: defaultLimit,
+            },
+            { shouldDirty: true }
+          );
         };
 
         return (
@@ -681,7 +677,7 @@ const IntervalLimitsManager = <K extends "durationLimits" | "bookingLimits">({
                       )}
                       onLimitChange={(intervalLimitKey, val) =>
                         // @ts-expect-error FIXME Fix these typings
-                        setValue(`${propertyName}.${intervalLimitKey}`, val)
+                        setValue(`${propertyName}.${intervalLimitKey}`, val, { shouldDirty: true })
                       }
                       onDelete={(intervalLimitKey) => {
                         const current = currentIntervalLimits;

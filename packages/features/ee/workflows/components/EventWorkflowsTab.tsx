@@ -244,7 +244,7 @@ function EventWorkflowsTab(props: Props) {
         : activeWorkflows.concat(disabledWorkflows);
       setSortedWorkflows(allSortedWorkflows);
     }
-  }, [isLoading]);
+  }, [isPending]);
 
   const createMutation = trpc.viewer.workflows.create.useMutation({
     onSuccess: async ({ workflow }) => {
@@ -265,7 +265,7 @@ function EventWorkflowsTab(props: Props) {
 
   return (
     <LicenseRequired>
-      {!isLoading ? (
+      {!isPending ? (
         <>
           {(isManagedEventType || isChildrenManagedEventType) && (
             <Alert
@@ -317,7 +317,7 @@ function EventWorkflowsTab(props: Props) {
                     target="_blank"
                     color="secondary"
                     onClick={() => createMutation.mutate({ teamId: eventType.team?.id })}
-                    loading={createMutation.isLoading}>
+                    loading={createMutation.isPending}>
                     {t("create_workflow")}
                   </Button>
                 }

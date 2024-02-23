@@ -134,12 +134,14 @@ export const outOfOfficeCreate = async ({ ctx, input }: TBookingRedirect) => {
   if (existingOutOfOfficeEntry) {
     throw new TRPCError({ code: "BAD_REQUEST", message: "booking_redirect_infinite_not_allowed" });
   }
+  const startDateUtc = dayjs.utc(startDate).add(input.offset, "minute");
+  const endDateUtc = dayjs.utc(endDate).add(input.offset, "minute");
 
   const createdRedirect = await prisma.outOfOfficeEntry.create({
     data: {
       uuid: uuidv4(),
-      start: dayjs(startDate).startOf("day").toISOString(),
-      end: dayjs(endDate).endOf("day").toISOString(),
+      start: startDateUtc.startOf("day").toISOString(),
+      end: endDateUtc.endOf("day").toISOString(),
       userId: ctx.user.id,
       toUserId: toUserId,
       createdAt: new Date(),

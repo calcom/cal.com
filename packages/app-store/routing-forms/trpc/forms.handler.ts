@@ -71,11 +71,13 @@ export const formsHandler = async ({ ctx, input }: FormsHandlerOptions) => {
 };
 
 export default formsHandler;
+type SupportedFilters = Omit<NonNullable<NonNullable<TFormSchema>["filters"]>, "upIds"> | undefined;
+
 export function getPrismaWhereFromFilters(
   user: {
     id: number;
   },
-  filters: NonNullable<TFormSchema>["filters"]
+  filters: SupportedFilters
 ) {
   const where = {
     OR: [] as Prisma.App_RoutingForms_FormWhereInput[],

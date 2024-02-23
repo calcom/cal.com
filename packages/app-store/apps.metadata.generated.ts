@@ -22,6 +22,7 @@ import { metadata as exchange2016calendar__metadata_ts } from "./exchange2016cal
 import exchangecalendar_config_json from "./exchangecalendar/config.json";
 import facetime_config_json from "./facetime/config.json";
 import fathom_config_json from "./fathom/config.json";
+import { metadata as feishucalendar__metadata_ts } from "./feishucalendar/_metadata";
 import ga4_config_json from "./ga4/config.json";
 import { metadata as giphy__metadata_ts } from "./giphy/_metadata";
 import { metadata as googlecalendar__metadata_ts } from "./googlecalendar/_metadata";
@@ -29,9 +30,11 @@ import { metadata as googlevideo__metadata_ts } from "./googlevideo/_metadata";
 import gtm_config_json from "./gtm/config.json";
 import { metadata as hubspot__metadata_ts } from "./hubspot/_metadata";
 import { metadata as huddle01video__metadata_ts } from "./huddle01video/_metadata";
+import ics_feedcalendar_config_json from "./ics-feedcalendar/config.json";
 import intercom_config_json from "./intercom/config.json";
 import { metadata as jitsivideo__metadata_ts } from "./jitsivideo/_metadata";
 import { metadata as larkcalendar__metadata_ts } from "./larkcalendar/_metadata";
+import linear_config_json from "./linear/config.json";
 import make_config_json from "./make/config.json";
 import matomo_config_json from "./matomo/config.json";
 import metapixel_config_json from "./metapixel/config.json";
@@ -51,11 +54,11 @@ import riverside_config_json from "./riverside/config.json";
 import roam_config_json from "./roam/config.json";
 import routing_forms_config_json from "./routing-forms/config.json";
 import salesforce_config_json from "./salesforce/config.json";
+import salesroom_config_json from "./salesroom/config.json";
 import sendgrid_config_json from "./sendgrid/config.json";
 import shimmervideo_config_json from "./shimmervideo/config.json";
 import signal_config_json from "./signal/config.json";
 import sirius_video_config_json from "./sirius_video/config.json";
-import skiff_config_json from "./skiff/config.json";
 import { metadata as stripepayment__metadata_ts } from "./stripepayment/_metadata";
 import sylapsvideo_config_json from "./sylapsvideo/config.json";
 import { metadata as tandemvideo__metadata_ts } from "./tandemvideo/_metadata";
@@ -102,6 +105,7 @@ export const appStoreMetadata = {
   exchangecalendar: exchangecalendar_config_json,
   facetime: facetime_config_json,
   fathom: fathom_config_json,
+  feishucalendar: feishucalendar__metadata_ts,
   ga4: ga4_config_json,
   giphy: giphy__metadata_ts,
   googlecalendar: googlecalendar__metadata_ts,
@@ -109,9 +113,11 @@ export const appStoreMetadata = {
   gtm: gtm_config_json,
   hubspot: hubspot__metadata_ts,
   huddle01video: huddle01video__metadata_ts,
+  "ics-feedcalendar": ics_feedcalendar_config_json,
   intercom: intercom_config_json,
   jitsivideo: jitsivideo__metadata_ts,
   larkcalendar: larkcalendar__metadata_ts,
+  linear: linear_config_json,
   make: make_config_json,
   matomo: matomo_config_json,
   metapixel: metapixel_config_json,
@@ -131,11 +137,11 @@ export const appStoreMetadata = {
   roam: roam_config_json,
   "routing-forms": routing_forms_config_json,
   salesforce: salesforce_config_json,
+  salesroom: salesroom_config_json,
   sendgrid: sendgrid_config_json,
   shimmervideo: shimmervideo_config_json,
   signal: signal_config_json,
   sirius_video: sirius_video_config_json,
-  skiff: skiff_config_json,
   stripepayment: stripepayment__metadata_ts,
   sylapsvideo: sylapsvideo_config_json,
   tandemvideo: tandemvideo__metadata_ts,

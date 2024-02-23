@@ -81,7 +81,7 @@ export function BulkEditDefaultConferencingModal(props: { open: boolean; setOpen
                 utils.viewer.getUsersDefaultConferencingApp.invalidate();
               }}
             />
-            <Button type="submit" color="primary" loading={updateLocationsMutation.isLoading}>
+            <Button type="submit" color="primary" loading={updateLocationsMutation.isPending}>
               {t("update")}
             </Button>
           </DialogFooter>

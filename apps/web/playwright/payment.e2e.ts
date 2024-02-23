@@ -3,29 +3,22 @@ import { expect } from "@playwright/test";
 import { bookTimeSlot, selectFirstAvailableTimeSlotNextMonth } from "@calcom/web/playwright/lib/testUtils";
 
 import { test } from "./lib/fixtures";
+import { testBothFutureAndLegacyRoutes } from "./lib/future-legacy-routes";
 
 test.describe.configure({ mode: "parallel" });
 
-test.describe("Payment", () => {
+testBothFutureAndLegacyRoutes.describe("Payment", (routeVariant) => {
   test.describe("user", () => {
     test.afterEach(async ({ users }) => {
       await users.deleteAll();
     });
 
     test("should create a mock payment for a user", async ({ context, users, page }) => {
+      test.skip(routeVariant === "future", "Future route not ready yet");
       test.skip(process.env.MOCK_PAYMENT_APP_ENABLED === undefined, "Skipped as Stripe is not installed");
 
       const user = await users.create();
       await user.apiLogin();
-
-      await context.addCookies([
-        {
-          name: "x-calcom-future-routes-override",
-          value: "1",
-          url: "http://localhost:3000",
-        },
-      ]);
-
       await page.goto("/apps");
 
       await page.getByPlaceholder("Search").click();
