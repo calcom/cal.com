@@ -1,4 +1,4 @@
-import { PlatformOAuthClientDto } from "@/modules/oauth-clients/controllers/oauth-clients/responses/GetOAuthClientResponse";
+import { PlatformOAuthClientDto } from "@/modules/oauth-clients/controllers/oauth-clients/responses/GetOAuthClientResponse.dto";
 import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { IsArray, ValidateNested, IsEnum } from "class-validator";

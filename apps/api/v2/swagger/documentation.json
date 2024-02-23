@@ -326,6 +326,8 @@
     "/api/v2/oauth/{clientId}/authorize": {
       "post": {
         "operationId": "OAuthFlowController_authorize",
+        "summary": "Authorize an OAuth client",
+        "description": "Redirects the user to the specified 'redirect_uri' with an authorization code in query parameter if the client is authorized successfully. The code is then exchanged for access and refresh tokens via the `/exchange` endpoint.",
         "parameters": [
           {
             "name": "clientId",
@@ -348,7 +350,10 @@
         },
         "responses": {
           "200": {
-            "description": ""
+            "description": "The user is redirected to the 'redirect_uri' with an authorization code in query parameter e.g. `redirectUri?code=secretcode.`"
+          },
+          "400": {
+            "description": "Bad request if the OAuth client is not found, if the redirect URI is invalid, or if the user has already authorized the client."
           }
         },
         "tags": [
@@ -359,6 +364,8 @@
     "/api/v2/oauth/{clientId}/exchange": {
       "post": {
         "operationId": "OAuthFlowController_exchange",
+        "summary": "Exchange authorization code for access tokens",
+        "description": "Exchanges the authorization code received from the `/authorize` endpoint for access and refresh tokens. The authorization code should be provided in the 'Authorization' header prefixed with 'Bearer '.",
         "parameters": [
           {
             "name": "Authorization",
@@ -389,14 +396,17 @@
         },
         "responses": {
           "200": {
-            "description": "",
+            "description": "Successfully exchanged authorization code for access and refresh tokens.",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/KeysResponseDto"
                 }
               }
             }
+          },
+          "400": {
+            "description": "Bad request if the authorization code is missing, invalid, or if the client ID and secret do not match."
           }
         },
         "tags": [
@@ -441,7 +451,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/KeysResponseDto"
                 }
               }
             }
@@ -1199,7 +1209,7 @@
           "createdAt": {
             "format": "date-time",
             "type": "string",
-            "example": "2024-02-23T08:56:21.485Z"
+            "example": "2024-02-23T09:25:23.564Z"
           }
         },
         "required": [
@@ -1293,6 +1303,43 @@
         },
         "required": [
           "clientSecret"
+        ]
+      },
+      "KeysDto": {
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string",
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
+          },
+          "refreshToken": {
+            "type": "string",
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
+          }
+        },
+        "required": [
+          "accessToken",
+          "refreshToken"
+        ]
+      },
+      "KeysResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/KeysDto"
+          }
+        },
+        "required": [
+          "status",
+          "data"
         ]
       },
       "RefreshTokenInput": {
