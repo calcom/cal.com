@@ -2,7 +2,7 @@ import { useState } from "react";
 
 import { classNames } from "@calcom/lib";
 import { trpc } from "@calcom/trpc/react";
-import { Badge, TextField } from "@calcom/ui";
+import { Badge, TextField, showToast } from "@calcom/ui";
 import { X, Plus } from "@calcom/ui/components/icon";
 
 const GroupNameCell = (props) => {
@@ -16,10 +16,35 @@ const GroupNameCell = (props) => {
       setShowTextInput(false);
       setNewGroupName("");
     },
+    onError: (error) => {
+      showToast(`Error adding group name${error.message}`, "error");
+    },
+  });
+
+  const deleteMutation = trpc.viewer.dsync.teamGroupMapping.delete.useMutation({
+    onSuccess: (data) => {
+      setGroupNames(groupNames.filter((groupName) => data.deletedGroupName !== groupName));
+    },
+    onError: (error) => {
+      showToast(`Error removing group name${error.message}`, "error");
+    },
   });
 
   const addGroupName = (groupName: string) => {
+    if (groupNames.some((name: string) => name === groupName)) {
+      showToast(`Group name already added`, "error");
+      return;
+    }
+
     createMutation.mutate({ teamId: props.teamId, name: groupName, directoryId: props.directoryId });
+  };
+
+  const removeGroupName = (groupName: string) => {
+    deleteMutation.mutate({
+      teamId: props.teamId,
+      groupName: name,
+      directoryId: props.directoryId,
+    });
   };
 
   return (
@@ -33,12 +58,12 @@ const GroupNameCell = (props) => {
               onClick={() => {
                 setGroupNames(groupNames.filter((groupName) => groupName !== name));
               }}>
-              <X className="h-4 w-4 stroke-[3px]" />
+              <X className="h-4 w-4 stroke-[3px]" onClick={() => removeGroupName(name)} />
             </div>
           </div>
         </Badge>
       ))}
-      <Badge variant="gray" size="lg" className={classNames(" ", !showTextInput && "hover:bg-emphasis")}>
+      <Badge variant="gray" size="lg" className={classNames(!showTextInput && "hover:bg-emphasis")}>
         <div
           className="flex items-center space-x-1"
           onClick={() => {

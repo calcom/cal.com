@@ -2,10 +2,12 @@ import authedOrgAdminProcedure from "@calcom/trpc/server/procedures/authedProced
 import { router } from "@calcom/trpc/server/trpc";
 
 import { ZCreateInputSchema } from "./create.schema";
+import { ZDeleteInputSchema } from "./delete.schema";
 
 type TeamGroupMappingHandlerCache = {
   get?: typeof import("./get.handler").getHandler;
-  create?: typeof import("./create.handler").getHandler;
+  create?: typeof import("./create.handler").createHandler;
+  delete?: typeof import("./delete.handler").deleteHandler;
 };
 
 const UNSTABLE_HANDLER_CACHE: TeamGroupMappingHandlerCache = {};
@@ -37,6 +39,22 @@ export const teamGroupMappingRouter = router({
     }
 
     return UNSTABLE_HANDLER_CACHE.create({
+      ctx,
+      input,
+    });
+  }),
+
+  delete: authedOrgAdminProcedure.input(ZDeleteInputSchema).mutation(async ({ ctx, input }) => {
+    if (!UNSTABLE_HANDLER_CACHE.delete) {
+      UNSTABLE_HANDLER_CACHE.delete = await import("./delete.handler").then((mod) => mod.deleteHandler);
+    }
+
+    // Unreachable code but required for type safety
+    if (!UNSTABLE_HANDLER_CACHE.delete) {
+      throw new Error("Failed to load handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.delete({
       ctx,
       input,
     });
