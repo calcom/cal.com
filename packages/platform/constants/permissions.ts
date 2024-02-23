@@ -51,7 +51,7 @@ export const PERMISSIONS_GROUPED_MAP = {
   APPS: {
     read: APPS_READ,
     write: APPS_WRITE,
-    key: "app",
-    label: "App",
+    key: "apps",
+    label: "Apps",
   },
 } as const;
