@@ -1462,7 +1462,7 @@ async function handler(
   let organizerEmail = organizerUser.email || "Email-less";
   if (eventType.useEventTypeDestinationCalendarEmail && destinationCalendar?.[0]?.primaryEmail) {
     organizerEmail = destinationCalendar[0].primaryEmail;
-  } else if (eventType.secondaryEmailId) {
+  } else if (eventType.secondaryEmailId && eventType.secondaryEmail?.email) {
     organizerEmail = eventType.secondaryEmail.email;
   }
 
