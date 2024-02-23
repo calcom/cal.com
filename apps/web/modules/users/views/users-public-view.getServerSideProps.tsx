@@ -6,6 +6,7 @@ import type { z } from "zod";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { DEFAULT_DARK_BRAND_COLOR, DEFAULT_LIGHT_BRAND_COLOR } from "@calcom/lib/constants";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
+import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import logger from "@calcom/lib/logger";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -194,7 +195,10 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
 
   const profile = {
     name: user.name || user.username || "",
-    image: user.avatar,
+    image: getUserAvatarUrl({
+      ...user,
+      profile: user.profile,
+    }),
     theme: user.theme,
     brandColor: user.brandColor ?? DEFAULT_LIGHT_BRAND_COLOR,
     avatarUrl: user.avatarUrl,
