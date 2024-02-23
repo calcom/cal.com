@@ -5,6 +5,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import handleNewBooking from "@calcom/features/bookings/lib/handleNewBooking";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
+import { getErrorFromUnknown } from "@calcom/lib/errors";
 import getIP from "@calcom/lib/getIP";
 import { defaultResponder } from "@calcom/lib/server";
 
@@ -40,7 +41,8 @@ async function handler(req: NextApiRequest & { userId?: number }, res: NextApiRe
     await redis.del(idempotencyKey);
 
     return booking;
-  } catch (err: unknown) {
+  } catch (_err) {
+    const err = getErrorFromUnknown(_err);
     // Extract error information
     const responseData = { message: err?.message ?? "Internal Server Error" };
     const statusCode = err?.statusCode ?? 500;
