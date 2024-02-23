@@ -1447,6 +1447,8 @@
   "copy_link_to_form": "将链接复制到表格",
   "theme": "主题",
   "theme_applies_note": "这仅适用于您的公开预约页面",
+  "app_theme": "仪表板主题",
+  "app_theme_applies_note": "这仅在您登录仪表板时适用",
   "theme_system": "系统默认设置",
   "add_a_team": "添加团队",
   "add_webhook_description": "当 {{appName}} 上有活动时实时接收会议数据",
