@@ -27,8 +27,6 @@ const handleGroupEvents = async (event: DirectorySyncEvent, orgId: number) => {
     },
   });
 
-  const groupData = await dsyncController.groups.get(eventData.id);
-
   const org = await getTeamOrThrow(orgId, true);
 
   if (!org) {

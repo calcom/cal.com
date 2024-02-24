@@ -15,6 +15,7 @@ const GroupNameCell = (props) => {
       setGroupNames([...groupNames, data.newGroupName]);
       setShowTextInput(false);
       setNewGroupName("");
+      showToast(`Group added`, "success");
     },
     onError: (error) => {
       showToast(`Error adding group name${error.message}`, "error");
@@ -24,6 +25,7 @@ const GroupNameCell = (props) => {
   const deleteMutation = trpc.viewer.dsync.teamGroupMapping.delete.useMutation({
     onSuccess: (data) => {
       setGroupNames(groupNames.filter((groupName) => data.deletedGroupName !== groupName));
+      showToast(`Group removed`, "success");
     },
     onError: (error) => {
       showToast(`Error removing group name${error.message}`, "error");

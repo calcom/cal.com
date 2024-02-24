@@ -70,7 +70,9 @@ const ConfigureDirectorySync = ({ orgId }: { orgId: number | null }) => {
       ) : (
         <>
           <DirectoryInfo directory={directory} />
-          <GroupTeamMappingTable />
+          <div className="mt-4">
+            <GroupTeamMappingTable />
+          </div>
 
           <hr className="border-subtle my-6" />
           <Label>{t("danger_zone")}</Label>
