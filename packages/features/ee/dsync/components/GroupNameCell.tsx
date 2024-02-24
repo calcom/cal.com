@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 import { classNames } from "@calcom/lib";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Badge, TextField, showToast } from "@calcom/ui";
 import { X, Plus } from "@calcom/ui/components/icon";
@@ -9,6 +10,7 @@ const GroupNameCell = (props) => {
   const [groupNames, setGroupNames] = useState(props.groupNames);
   const [showTextInput, setShowTextInput] = useState(false);
   const [newGroupName, setNewGroupName] = useState("");
+  const { t } = useLocale();
 
   const createMutation = trpc.viewer.dsync.teamGroupMapping.create.useMutation({
     onSuccess: (data) => {
@@ -87,7 +89,7 @@ const GroupNameCell = (props) => {
               }}
             />
           ) : (
-            <p>Add Group Name</p>
+            <p>{t("add_group_name")}</p>
           )}
           <div className={classNames("rounded p-1", showTextInput && "hover:bg-emphasis ml-2")}>
             <Plus className="h-4 w-4 stroke-[3px]" onClick={() => addGroupName(newGroupName)} />
