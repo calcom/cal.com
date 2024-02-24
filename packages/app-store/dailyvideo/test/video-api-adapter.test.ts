@@ -236,7 +236,7 @@ describe("Daily Video API Adapter", () => {
     test("should create a instant room", async () => {
       fetchMocker.mockClear();
       commonSetup({ mainFetchEndpoint: "/rooms" });
-      const result = await DailyVideoApiAdapter()?.createInstantCalVideoRoom?.(event.endTime);
+      const result = await DailyVideoApiAdapter()?.createInstantCalVideoRoom?.(new Date().toISOString());
       await assertRequests(true);
       expect(result).toStrictEqual(createAndUpdateResult);
     });
