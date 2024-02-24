@@ -21,7 +21,8 @@ const CreateTeamDialog = (props: CreateTeamDialogProps) => {
           submitLabel="Create"
           onCancel={() => onOpenChange(false)}
           onSuccess={async () => {
-            await utils.viewer.connectedCalendars.invalidate();
+            await utils.viewer.dsync.teamGroupMapping.get.invalidate();
+            await utils.viewer.teams.list.invalidate();
             onOpenChange(false);
           }}
         />
