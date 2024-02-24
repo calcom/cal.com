@@ -42,7 +42,7 @@ const GroupNameCell = (props) => {
   const removeGroupName = (groupName: string) => {
     deleteMutation.mutate({
       teamId: props.teamId,
-      groupName: name,
+      groupName: groupName,
       directoryId: props.directoryId,
     });
   };
