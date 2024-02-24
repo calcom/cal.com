@@ -19,7 +19,7 @@ const createUserAndInviteToOrg = async ({
   const orgId = org.id;
   const [emailUser, emailDomain] = userEmail.split("@");
   const username = slugify(`${emailUser}-${emailDomain.split(".")[0]}`);
-  await prisma.user.create({
+  const user = await prisma.user.create({
     data: {
       username,
       email: userEmail,
@@ -47,6 +47,21 @@ const createUserAndInviteToOrg = async ({
         },
       },
     },
+    select: {
+      id: true,
+      email: true,
+      username: true,
+      organizationId: true,
+      completedOnboarding: true,
+      identityProvider: true,
+      profiles: true,
+      locale: true,
+      password: {
+        select: {
+          hash: true,
+        },
+      },
+    },
   });
 
   sendSignupToOrganizationEmail({
@@ -62,6 +77,8 @@ const createUserAndInviteToOrg = async ({
       isOrg: true,
     },
   });
+
+  return user;
 };
 
 export default createUserAndInviteToOrg;

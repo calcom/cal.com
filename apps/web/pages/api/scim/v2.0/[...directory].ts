@@ -1,6 +1,7 @@
 import type { DirectorySyncEvent, DirectorySyncRequest } from "@boxyhq/saml-jackson";
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import handleGroupEvents from "@calcom/features/ee/dsync/lib/handleGroupEvents";
 import handleUserEvents from "@calcom/features/ee/dsync/lib/handleUserEvents";
 import jackson from "@calcom/features/ee/sso/lib/jackson";
 import prisma from "@calcom/prisma";
@@ -42,7 +43,6 @@ export const extractAuthToken = (req: NextApiRequest): string | null => {
 
 // Handle the SCIM events
 const handleEvents = async (event: DirectorySyncEvent) => {
-  console.log("Received event", event);
   const dSyncData = await prisma.dSyncData.findFirst({
     where: {
       directoryId: event.directory_id,
@@ -64,7 +64,7 @@ const handleEvents = async (event: DirectorySyncEvent) => {
   }
 
   if (event.event.includes("group")) {
-    return;
+    handleGroupEvents(event, orgId);
   }
 
   if (event.event === "user.created" || event.event === "user.updated") {
