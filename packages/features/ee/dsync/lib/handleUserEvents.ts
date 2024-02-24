@@ -7,6 +7,7 @@ import { getTeamOrThrow } from "@calcom/trpc/server/routers/viewer/teams/inviteM
 import type { UserWithMembership } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
 
 import createUserAndInviteToOrg from "./users/createUserAndInviteToOrg";
+import dSyncUserSelect from "./users/dSyncUserSelect";
 import inviteExistingUserToOrg from "./users/inviteExistingUserToOrg";
 
 const handleUserEvents = async (event: DirectorySyncEvent, orgId: number) => {
@@ -17,21 +18,7 @@ const handleUserEvents = async (event: DirectorySyncEvent, orgId: number) => {
     where: {
       email: userEmail,
     },
-    select: {
-      id: true,
-      email: true,
-      username: true,
-      organizationId: true,
-      completedOnboarding: true,
-      identityProvider: true,
-      profiles: true,
-      locale: true,
-      password: {
-        select: {
-          hash: true,
-        },
-      },
-    },
+    select: dSyncUserSelect,
   });
 
   // User is already a part of that org
