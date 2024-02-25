@@ -37,6 +37,19 @@ function ensureReqIsPost(req: RequestWithUsernameStatus) {
 
 export default async function handler(req: RequestWithUsernameStatus, res: NextApiResponse) {
   console.log(req.body);
+  const form = new URLSearchParams();
+  form.append("secret", process.env.CLOUDFLARE_TURNSTILE_SECRET);
+  form.append("response", req.body["cf-turnstile-response"]);
+  form.append("remoteip", req.headers["x-forwarded-for"] as string);
+
+  const result = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
+    method: "POST",
+    body: form,
+  });
+  const json = await result.json();
+
+  console.log(json);
+
   // Use a try catch instead of returning res every time
   try {
     ensureReqIsPost(req);

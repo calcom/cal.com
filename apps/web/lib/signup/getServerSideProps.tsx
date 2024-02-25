@@ -10,7 +10,6 @@ import slugify from "@calcom/lib/slugify";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { IS_GOOGLE_LOGIN_ENABLED } from "@server/lib/constants";
-import { ssrInit } from "@server/lib/ssr";
 
 const checkValidEmail = (email: string) => z.string().email().safeParse(email).success;
 
@@ -25,13 +24,11 @@ const querySchema = z.object({
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   const prisma = await import("@calcom/prisma").then((mod) => mod.default);
   const flags = await getFeatureFlagMap(prisma);
-  const ssr = await ssrInit(ctx);
   const token = z.string().optional().parse(ctx.query.token);
 
   const props = {
     isGoogleLoginEnabled: IS_GOOGLE_LOGIN_ENABLED,
     isSAMLLoginEnabled,
-    trpcState: ssr.dehydrate(),
     prepopulateFormValues: undefined,
   };
 

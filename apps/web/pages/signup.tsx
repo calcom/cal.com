@@ -4,9 +4,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { CalendarHeart, Info, Link2, ShieldCheckIcon, StarIcon, Users } from "lucide-react";
 import { signIn } from "next-auth/react";
 import { Trans } from "next-i18next";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import Script from "next/script";
 import { useState, useEffect } from "react";
 import type { SubmitHandler } from "react-hook-form";
 import { useForm, useFormContext } from "react-hook-form";
@@ -19,14 +19,7 @@ import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getO
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { classNames } from "@calcom/lib";
-import {
-  APP_NAME,
-  URL_PROTOCOL_REGEX,
-  IS_CALCOM,
-  WEBAPP_URL,
-  WEBSITE_URL,
-  CLOUDFLARE_SITE_ID,
-} from "@calcom/lib/constants";
+import { APP_NAME, URL_PROTOCOL_REGEX, IS_CALCOM, WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
 import { fetchUsername } from "@calcom/lib/fetchUsername";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
@@ -43,6 +36,8 @@ import PageWrapper from "@components/PageWrapper";
 const signupSchema = apiSignupSchema.extend({
   apiError: z.string().optional(), // Needed to display API errors doesnt get passed to the API
 });
+
+const TurnstileCaptcha = dynamic(() => import("@components/auth/Turnstile"), { ssr: false });
 
 type FormValues = z.infer<typeof signupSchema>;
 
@@ -258,7 +253,6 @@ export default function Signup({
 
   return (
     <>
-      <Script src="https://challenges.cloudflare.com/turnstile/v0/api.js" strategy="afterInteractive" />
       <div
         className={classNames(
           "light bg-muted 2xl:bg-default flex min-h-screen w-full flex-col items-center justify-center [--cal-brand:#111827] dark:[--cal-brand:#FFFFFF]",
@@ -339,7 +333,7 @@ export default function Signup({
                   hintErrors={["caplow", "min", "num"]}
                 />
                 {/* Cloudflare Turnstile Captcha */}
-                <div className="cf-turnstile" data-sitekey={CLOUDFLARE_SITE_ID} />
+                <TurnstileCaptcha />
 
                 <Button
                   type="submit"
@@ -474,14 +468,14 @@ export default function Signup({
                       className="text-emphasis hover:underline"
                       href={`${WEBSITE_URL}/terms`}
                       target="_blank">
-                      <a>Terms</a>
+                      Terms
                     </Link>{" "}
                     and{" "}
                     <Link
                       className="text-emphasis hover:underline"
                       href={`${WEBSITE_URL}/privacy`}
                       target="_blank">
-                      <a>Privacy Policy</a>
+                      Privacy Policy
                     </Link>
                     .
                   </Trans>
