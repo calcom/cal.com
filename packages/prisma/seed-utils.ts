@@ -40,11 +40,6 @@ export async function createUserAndEventType({
 }) {
   const userData = {
     ...user,
-    password: {
-      create: {
-        hash: await hashPassword(user.password),
-      },
-    },
     emailVerified: new Date(),
     completedOnboarding: user.completedOnboarding ?? true,
     locale: "en",
@@ -65,8 +60,22 @@ export async function createUserAndEventType({
 
   const theUser = await prisma.user.upsert({
     where: { email_username: { email: user.email, username: user.username } },
-    update: userData,
-    create: userData,
+    update: {
+      ...userData,
+      password: {
+        update: {
+          hash: await hashPassword(userData.password),
+        },
+      },
+    },
+    create: {
+      ...userData,
+      password: {
+        create: {
+          hash: await hashPassword(userData.password),
+        },
+      },
+    },
   });
 
   console.log(
