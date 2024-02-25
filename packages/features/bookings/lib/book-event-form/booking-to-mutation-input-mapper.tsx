@@ -31,6 +31,7 @@ export const mapBookingToMutationInput = ({
   rescheduleUid,
   username,
   metadata,
+  bookingUid,
   seatReferenceUid,
   hashedLink,
 }: BookingOptions): BookingCreateBody => {
@@ -49,6 +50,7 @@ export const mapBookingToMutationInput = ({
     rescheduleUid,
     metadata: metadata || {},
     hasHashedBookingLink: hashedLink ? true : false,
+    bookingUid,
     seatReferenceUid,
     hashedLink,
   };
@@ -74,7 +76,7 @@ export const mapRecurringBookingToMutationInput = (
     booking.language
   );
 
-  const input = mapBookingToMutationInput(booking);
+  const input = mapBookingToMutationInput({ ...booking, bookingUid: undefined });
 
   return recurringDates.map((recurringDate) => ({
     ...input,
