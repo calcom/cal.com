@@ -5,9 +5,10 @@ export const formatPrice = (price: number, currency: string | undefined, locale 
     case "BTC":
       return `${price} sats`;
     default:
+      currency = currency?.toUpperCase() || "USD";
       return `${Intl.NumberFormat(locale, {
         style: "currency",
-        currency: currency?.toUpperCase() || "USD",
+        currency: currency,
       }).format(convertFromSmallestToPresentableCurrencyUnit(price, currency))}`;
   }
 };
