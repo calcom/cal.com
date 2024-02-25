@@ -123,7 +123,8 @@ const BookerComponent = ({
 
   const { bookerFormErrorRef, key, formEmail, bookingForm, errors: formErrors } = bookerForm;
 
-  const { handleBookEvent, hasInstantMeetingTokenExpired, errors, loadingStates, expiryTime } = bookings;
+  const { handleBookEvent, errors, loadingStates, expiryTime } = bookings;
+
   const {
     isEmailVerificationModalVisible,
     setEmailVerificationModalVisible,
@@ -180,7 +181,6 @@ const BookerComponent = ({
           />
           <RedirectToInstantMeetingModal
             expiryTime={expiryTime}
-            hasInstantMeetingTokenExpired={hasInstantMeetingTokenExpired}
             bookingId={parseInt(getQueryParam("bookingId") || "0")}
             onGoBack={() => {
               onGoBackInstantMeeting();
@@ -203,7 +203,6 @@ const BookerComponent = ({
     formErrors,
     handleBookEvent,
     handleVerifyEmail,
-    hasInstantMeetingTokenExpired,
     isEmailVerificationModalVisible,
     key,
     loadingStates,
