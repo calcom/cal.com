@@ -2221,7 +2221,7 @@
   "user_redirect_title": "{{username}} is currently away for a brief period of time.",
   "user_redirect_description": "In the meantime, {{profile.username}} will be in charge of all the new scheduled meetings on behalf of {{username}}.",
   "out_of_office": "Out of office",
-  "out_of_office_description": "Configure actions in your profile while you are away.",
+  "out_of_office_description": "Let your booker know when you're OOO.",
   "send_request": "Send request",
   "start_date_and_end_date_required": "Start date and end date are required",
   "start_date_must_be_before_end_date": "Start date must be before end date",

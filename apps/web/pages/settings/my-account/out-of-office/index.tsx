@@ -1,9 +1,8 @@
-import { Trash2 } from "lucide-react";
+import { Clock, Plus, Trash2 } from "lucide-react";
 import React, { useState } from "react";
 import { Controller, useForm, useFormState } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
-import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { useHasTeamPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -18,6 +17,10 @@ import {
   UpgradeTeamsBadge,
   Switch,
   DateRangePicker,
+  Dialog,
+  DialogHeader,
+  DialogContent,
+  DialogFooter,
 } from "@calcom/ui";
 import { TableNew, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@calcom/ui";
 
@@ -85,25 +88,28 @@ const OutOfOfficeSection = () => {
           setValue("toTeamUserId", null);
           setSelectedMember(null);
         })}>
-        <div className="border-subtle flex flex-col border border-b-0 border-t-0 p-6 px-6 py-8 text-sm">
-          {/* Add startDate and end date inputs */}
-          {/* Add toggle to enable/disable redirect */}
-          <div className="flex flex-row">
-            <Switch
-              disabled={!hasTeamPlan}
-              data-testid="profile-redirect-switch"
-              checked={profileRedirect}
-              id="profile-redirect-switch"
-              onCheckedChange={(state) => {
-                setProfileRedirect(state);
-              }}
-              label={hasTeamPlan ? t("redirect_team_enabled") : t("redirect_team_disabled")}
-            />
-            {!hasTeamPlan && (
-              <div className="mx-2" data-testid="upgrade-team-badge">
-                <UpgradeTeamsBadge />
-              </div>
-            )}
+        <div className="">
+          <div>
+            <p className="text-emphasis mb-1 block text-sm font-medium">{t("time_range")}</p>
+            <div>
+              <Controller
+                name="dateRange"
+                control={control}
+                defaultValue={dateRange}
+                render={() => (
+                  <DateRangePicker
+                    startDate={getValues("dateRange").startDate}
+                    endDate={getValues("dateRange").endDate}
+                    onDatesChange={({ startDate, endDate }) => {
+                      setValue("dateRange", {
+                        startDate,
+                        endDate,
+                      });
+                    }}
+                  />
+                )}
+              />
+            </div>
           </div>
           <div className="mt-4 grid grid-rows-2 gap-2 md:grid-cols-2">
             {profileRedirect && (
@@ -126,41 +132,51 @@ const OutOfOfficeSection = () => {
                 />
               </div>
             )}
-            <div>
-              <p className="text-emphasis mb-1 block text-sm font-medium">{t("time_range")}</p>
-              <div>
-                <Controller
-                  name="dateRange"
-                  control={control}
-                  defaultValue={dateRange}
-                  render={() => (
-                    <DateRangePicker
-                      startDate={getValues("dateRange").startDate}
-                      endDate={getValues("dateRange").endDate}
-                      onDatesChange={({ startDate, endDate }) => {
-                        setValue("dateRange", {
-                          startDate,
-                          endDate,
-                        });
-                      }}
-                    />
-                  )}
-                />
+          </div>
+          <div className="flex flex-row">
+            <Switch
+              disabled={!hasTeamPlan}
+              data-testid="profile-redirect-switch"
+              checked={profileRedirect}
+              id="profile-redirect-switch"
+              onCheckedChange={(state) => {
+                setProfileRedirect(state);
+              }}
+              label={hasTeamPlan ? t("redirect_team_enabled") : t("redirect_team_disabled")}
+            />
+            {!hasTeamPlan && (
+              <div className="mx-2" data-testid="upgrade-team-badge">
+                <UpgradeTeamsBadge />
               </div>
-            </div>
+            )}
           </div>
         </div>
-        <SectionBottomActions className="mb-6" align="end">
-          <Button
-            color="primary"
-            type="submit"
-            disabled={createOutOfOfficeEntry.isPending}
-            data-testid="create-entry-ooo-redirect">
-            {t("create_entry")}
-          </Button>
-        </SectionBottomActions>
+
+        <Button
+          color="primary"
+          type="submit"
+          disabled={createOutOfOfficeEntry.isPending}
+          data-testid="create-entry-ooo-redirect">
+          {t("create_entry")}
+        </Button>
       </form>
     </>
+  );
+};
+
+const CreateOutOfOfficeEntryModal = () => {
+  return (
+    <Dialog open={true}>
+      <DialogHeader title="Create Out of Office Entry" />
+      <DialogContent>
+        <OutOfOfficeSection />
+      </DialogContent>
+      <DialogFooter>
+        <Button color="minimal" type="button" onClick={() => console.log("close")}>
+          Cancel
+        </Button>
+      </DialogFooter>
+    </Dialog>
   );
 };
 
@@ -178,7 +194,7 @@ const OutOfOfficeEntriesList = () => {
       showToast(`An error ocurred`, "error");
     },
   });
-  if (data === null || data?.length === 0 || data === undefined) return null;
+  if (data === null || data?.length === 0 || data === undefined) return <EmptyOOO />;
   return (
     <div className="border-subtle mt-6 rounded-lg border">
       <TableNew className="border-0">
@@ -243,10 +259,52 @@ const OutOfOfficePage = () => {
 
   return (
     <>
-      <Meta title={t("out_of_office")} description={t("out_of_office_description")} borderInShellHeader />
-      <OutOfOfficeSection />
+      <Meta
+        title={t("out_of_office")}
+        description={t("out_of_office_description")}
+        borderInShellHeader={false}
+        CTA={
+          <Button
+            color="primary"
+            href="/settings/my-account"
+            className="flex w-20 items-center justify-between px-4">
+            <Plus size={16} /> Add
+          </Button>
+        }
+      />
+      {/* @NOTE: layout has a bigger width ratio, so when that it's fixed we should remove this width */}
+      {/* <OutOfOfficeSection /> */}
+      <CreateOutOfOfficeEntryModal />
       <OutOfOfficeEntriesList />
     </>
+  );
+};
+
+const EmptyOOO = () => {
+  const { t } = useLocale();
+  return (
+    <div className="mt-10 flex h-full flex-col items-center justify-center rounded-lg border border-dashed p-2 md:p-0">
+      <div className="relative mt-14">
+        <div className="dark:bg-darkgray-50 absolute -left-3 -top-3 -z-20 h-[70px] w-[70px] -rotate-[24deg] rounded-3xl border-2 border-[#e5e7eb] p-8 opacity-40 dark:opacity-80">
+          <div className="w-12" />
+        </div>
+        <div className="dark:bg-darkgray-50 absolute -top-3 left-3 -z-10 h-[70px] w-[70px] rotate-[24deg] rounded-3xl border-2 border-[#e5e7eb] p-8 opacity-60 dark:opacity-90">
+          <div className="w-12" />
+        </div>
+        <div className="dark:bg-darkgray-50 relative z-0 flex h-[70px] w-[70px] items-center justify-center rounded-3xl border-2 border-[#e5e7eb] bg-white">
+          <Clock size={28} />
+          <div className="dark:bg-darkgray-50 absolute right-4 top-5 h-[12px] w-[12px] rotate-[56deg] bg-white text-lg font-bold" />
+          <span className="absolute right-4 top-3 font-sans text-sm font-extrabold">z</span>
+        </div>
+      </div>
+      <div className="mb-10 mt-5 w-full md:w-[460px]">
+        <p className="font-cal text-center text-xl font-bold dark:text-white">Create an OOO</p>
+        <p className="text-subtle mt-2 text-center text-sm">
+          Communicate to your bookers when you&apos;re not available to take bookings. They can still book you
+          upon your return.
+        </p>
+      </div>
+    </div>
   );
 };
 
