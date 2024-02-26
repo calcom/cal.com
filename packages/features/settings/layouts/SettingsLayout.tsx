@@ -16,7 +16,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { IdentityProvider, MembershipRole, UserPermissionRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { VerticalTabItemProps } from "@calcom/ui";
-import { Badge, Button, ErrorBoundary, Skeleton, useMeta, VerticalTabItem } from "@calcom/ui";
+import { Badge, Button, ErrorBoundary, Skeleton, VerticalTabItem, useMeta } from "@calcom/ui";
 import {
   ArrowLeft,
   ChevronDown,
@@ -102,12 +102,12 @@ const tabs: VerticalTabItemProps[] = [
       },
     ],
   },
-  {
-    name: "teams",
-    href: "/teams",
-    icon: Users,
-    children: [],
-  },
+  // {
+  //   name: "teams",
+  //   href: "/teams",
+  //   icon: Users,
+  //   children: [],
+  // },
   {
     name: "admin",
     href: "/settings/admin",

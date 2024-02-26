@@ -4,7 +4,7 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import type { Dispatch, ReactElement, ReactNode, SetStateAction } from "react";
-import React, { cloneElement, Fragment, useEffect, useMemo, useState } from "react";
+import React, { Fragment, cloneElement, useEffect, useMemo, useState } from "react";
 import { Toaster } from "react-hot-toast";
 
 import dayjs from "@calcom/dayjs";
@@ -37,11 +37,11 @@ import classNames from "@calcom/lib/classNames";
 import {
   APP_NAME,
   DESKTOP_APP_LINK,
+  IS_VISUAL_REGRESSION_TESTING,
   JOIN_DISCORD,
   ROADMAP,
-  WEBAPP_URL,
-  IS_VISUAL_REGRESSION_TESTING,
   TOP_BANNER_HEIGHT,
+  WEBAPP_URL,
 } from "@calcom/lib/constants";
 import getBrandColours from "@calcom/lib/getBrandColours";
 import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
@@ -67,22 +67,20 @@ import {
   ErrorBoundary,
   HeadSeo,
   Logo,
-  showToast,
   SkeletonText,
   Tooltip,
+  showToast,
   useCalcomTheme,
 } from "@calcom/ui";
 import {
   ArrowLeft,
   ArrowRight,
-  BarChart,
   Calendar,
   ChevronDown,
   Clock,
   Copy,
   Download,
   ExternalLink,
-  FileText,
   Grid,
   HelpCircle,
   Link as LinkIcon,
@@ -92,14 +90,12 @@ import {
   MoreHorizontal,
   Settings,
   User as UserIcon,
-  Users,
   Zap,
 } from "@calcom/ui/components/icon";
 import { Discord } from "@calcom/ui/components/icon/Discord";
 
 import { useOrgBranding } from "../ee/organizations/context/provider";
 import FreshChatProvider from "../ee/support/lib/freshchat/FreshChatProvider";
-import { TeamInviteBadge } from "./TeamInviteBadge";
 
 // need to import without ssr to prevent hydration errors
 const Tips = dynamic(() => import("@calcom/features/tips").then((mod) => mod.Tips), {
@@ -600,13 +596,13 @@ const navigation: NavigationItemType[] = [
     href: "/availability",
     icon: Clock,
   },
-  {
-    name: "teams",
-    href: "/teams",
-    icon: Users,
-    onlyDesktop: true,
-    badge: <TeamInviteBadge />,
-  },
+  // {
+  //   name: "teams",
+  //   href: "/teams",
+  //   icon: Users,
+  //   onlyDesktop: true,
+  //   badge: <TeamInviteBadge />,
+  // },
   {
     name: "apps",
     href: "/apps",
@@ -642,22 +638,22 @@ const navigation: NavigationItemType[] = [
     href: "/more",
     icon: MoreHorizontal,
   },
-  {
-    name: "Routing Forms",
-    href: "/apps/routing-forms/forms",
-    icon: FileText,
-    isCurrent: ({ pathname }) => pathname?.startsWith("/apps/routing-forms/") ?? false,
-  },
+  // {
+  //   name: "Routing Forms",
+  //   href: "/apps/routing-forms/forms",
+  //   icon: FileText,
+  //   isCurrent: ({ pathname }) => pathname?.startsWith("/apps/routing-forms/") ?? false,
+  // },
   {
     name: "workflows",
     href: "/workflows",
     icon: Zap,
   },
-  {
-    name: "insights",
-    href: "/insights",
-    icon: BarChart,
-  },
+  // {
+  //   name: "insights",
+  //   href: "/insights",
+  //   icon: BarChart,
+  // },
 ];
 
 const moreSeparatorIndex = navigation.findIndex((item) => item.name === MORE_SEPARATOR_NAME);

@@ -267,6 +267,9 @@ model User {
   // Used to lock the user account
   locked Boolean @default(false)
 
+  // Used to connect funnelhub account with cal.com user
+  funnelHubUserId String?
+
   @@unique([email])
   @@unique([email, username])
   @@unique([username, organizationId])

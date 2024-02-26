@@ -9,6 +9,7 @@
     "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf .next",
     "dev": "PORT=3003 next dev --experimental-https",
     "dx": "yarn dev",
+    "local": "yarn dev",
     "test-codegen": "yarn playwright codegen http://localhost:3000",
     "type-check": "tsc --pretty --noEmit",
     "type-check:ci": "tsc-absolute --pretty --noEmit",

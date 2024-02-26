@@ -417,7 +417,7 @@ export const AUTH_OPTIONS: AuthOptions = {
       return encode({ secret, token, maxAge });
     },
   },
-  cookies: defaultCookies(WEBAPP_URL?.startsWith("https://")),
+  cookies: defaultCookies(),
   pages: {
     signIn: "/auth/login",
     signOut: "/auth/logout",

@@ -88,7 +88,8 @@
         "STRIPE_SUPPORT_TABLE",
         "MOTIFLAND_REST_ENDPOINT",
         "MOTIFLAND_DOCS_API_KEY",
-        "MOTIFLAND_DOCS_PROJECT_ID"
+        "MOTIFLAND_DOCS_PROJECT_ID",
+        "DOMAIN_URL"
       ]
     },
     "build": {
@@ -114,6 +115,9 @@
     },
     "dx": {
       "dependsOn": ["//#env-check:common", "//#env-check:app-store"],
+      "cache": false
+    },
+    "local": {
       "cache": false
     },
     "lint": {

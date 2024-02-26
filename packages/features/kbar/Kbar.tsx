@@ -1,3 +1,4 @@
+import type { Action } from "kbar";
 import {
   KBarAnimator,
   KBarPortal,
@@ -9,7 +10,6 @@ import {
   useMatches,
   useRegisterActions,
 } from "kbar";
-import type { Action } from "kbar";
 import { useRouter } from "next/navigation";
 import { useMemo } from "react";
 
@@ -19,7 +19,7 @@ import { isMac } from "@calcom/lib/isMac";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { Tooltip } from "@calcom/ui";
-import { Search, ArrowUp, ArrowDown, CornerDownLeft, Command } from "@calcom/ui/components/icon";
+import { ArrowDown, ArrowUp, Command, CornerDownLeft, Search } from "@calcom/ui/components/icon";
 
 type shortcutArrayType = {
   shortcuts?: string[];
@@ -163,13 +163,13 @@ export const KBarRoot = ({ children }: { children: React.ReactNode }) => {
         keywords: "change modify brand color",
         perform: () => router.push("/settings/my-account/appearance"),
       },
-      {
-        id: "teams",
-        name: "teams",
-        shortcut: ["t", "s"],
-        keywords: "add manage modify team",
-        perform: () => router.push("/settings/teams"),
-      },
+      // {
+      //   id: "teams",
+      //   name: "teams",
+      //   shortcut: ["t", "s"],
+      //   keywords: "add manage modify team",
+      //   perform: () => router.push("/settings/teams"),
+      // },
       {
         id: "password",
         name: "change_password",

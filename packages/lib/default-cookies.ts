@@ -1,6 +1,6 @@
 import type { CookieOption, CookiesOptions } from "next-auth";
 
-import { isENVDev } from "@calcom/lib/env";
+import { DOMAIN_URL } from "./constants";
 
 /**
  * Copy from 'https://github.com/nextauthjs/next-auth/blob/227ff2259f/src/core/lib/cookie.ts' as we can't import it directly
@@ -14,24 +14,14 @@ import { isENVDev } from "@calcom/lib/env";
  *
  */
 
-const NEXTAUTH_COOKIE_DOMAIN = process.env.NEXTAUTH_COOKIE_DOMAIN || "";
-
-export function defaultCookies(useSecureCookies: boolean): CookiesOptions {
-  const cookiePrefix = useSecureCookies ? "__Secure-" : "";
+export function defaultCookies(): CookiesOptions {
+  const cookiePrefix = "__Secure-";
 
   const defaultOptions: CookieOption["options"] = {
-    domain: isENVDev
-      ? process.env.ORGANIZATIONS_ENABLED
-        ? //FIXME: This is causing login to not work if someone uses anything other .cal.local for testing
-          ".cal.local"
-        : undefined
-      : NEXTAUTH_COOKIE_DOMAIN,
-    // To enable cookies on widgets,
-    // https://stackoverflow.com/questions/45094712/iframe-not-reading-cookies-in-chrome
-    // But we need to set it as `lax` in development
-    sameSite: useSecureCookies ? "none" : "lax",
+    domain: DOMAIN_URL,
+    sameSite: "none",
     path: "/",
-    secure: useSecureCookies,
+    secure: true,
   };
   return {
     sessionToken: {
@@ -72,7 +62,7 @@ export function defaultCookies(useSecureCookies: boolean): CookiesOptions {
         httpOnly: true,
         sameSite: "lax",
         path: "/",
-        secure: useSecureCookies,
+        secure: true,
       },
     },
   };
