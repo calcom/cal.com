@@ -1,7 +1,7 @@
-import type { CalSdk } from "../cal";
-import { SlotsEndpoints } from "../lib/endpoints";
-import { encodeArgsAsQueryString } from "../lib/query-string";
-import type { BasicPlatformResponse, ResponseStatus } from "../types";
+import type { CalSdk } from "../../cal";
+import { SlotsEndpoints } from "../../lib/endpoints";
+import { ApiVersion, type BasicPlatformResponse, type ResponseStatus } from "../../types";
+import { EndpointHandler } from "../endpoint-handler";
 import type {
   AvailableSlots,
   GetAvaialbleSlotsArgs,
@@ -10,8 +10,10 @@ import type {
   SlotUID,
 } from "./types";
 
-export class Slots {
-  constructor(private readonly sdk: CalSdk) {}
+export class Slots extends EndpointHandler {
+  constructor(private readonly sdk: CalSdk) {
+    super("slots", sdk, ApiVersion.V2);
+  }
 
   async reserveSlot(args: ReserveSlotArgs): Promise<SlotUID> {
     const { data } = await this.sdk.httpCaller.post<BasicPlatformResponse<SlotUID>>(
@@ -23,14 +25,14 @@ export class Slots {
 
   async removeSelectedSlot(args: RemoveSelectedSlotArgs): Promise<ResponseStatus> {
     const { status } = await this.sdk.httpCaller.delete<BasicPlatformResponse>(
-      `${SlotsEndpoints.DELETE_SELECTED_SLOT}?${encodeArgsAsQueryString(args)}`
+      `${SlotsEndpoints.DELETE_SELECTED_SLOT}?${this.encodeArgsAsQueryString(args)}`
     );
     return status === "success" ? "success" : "error";
   }
 
   async getAvailableSlots(args: GetAvaialbleSlotsArgs): Promise<AvailableSlots> {
     const { data } = await this.sdk.httpCaller.get<BasicPlatformResponse<AvailableSlots>>(
-      `${SlotsEndpoints.AVAILABLE_SLOTS}?${encodeArgsAsQueryString(args)}`
+      `${SlotsEndpoints.AVAILABLE_SLOTS}?${this.encodeArgsAsQueryString(args)}`
     );
     return data;
   }

@@ -1,9 +1,9 @@
 import axios from "axios";
 import axiosRetry from "axios-retry";
 
-import { Bookings } from "./bookings";
+import { Bookings } from "./endpoints/bookings";
+import { Slots } from "./endpoints/slots";
 import { HttpCaller } from "./lib/http-caller";
-import { Slots } from "./slots";
 import type { CalSdkConstructorOptions } from "./types";
 
 /**
@@ -16,9 +16,9 @@ export class CalSdk {
   bookings: Bookings;
 
   constructor(
-    private readonly clientId: string,
-    private readonly clientSecret: string,
-    private readonly options: CalSdkConstructorOptions = {
+    protected readonly clientId: string,
+    protected readonly clientSecret: string,
+    protected readonly options: CalSdkConstructorOptions = {
       baseUrl: "https://api.cal.com/v2",
     }
   ) {
