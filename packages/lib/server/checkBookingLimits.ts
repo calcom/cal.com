@@ -12,7 +12,7 @@ export async function checkBookingLimits(
   bookingLimits: IntervalLimit,
   eventStartDate: Date,
   eventId: number,
-  rescheduleUid: string | undefined,
+  rescheduleUid?: string | undefined,
   timeZone?: string | null
 ) {
   const parsedBookingLimits = parseBookingLimit(bookingLimits);
@@ -49,7 +49,7 @@ export async function checkBookingLimit({
   eventId: number;
   key: keyof IntervalLimit;
   limitingNumber: number | undefined;
-  rescheduleUid: string | undefined;
+  rescheduleUid?: string | undefined;
   timeZone?: string | null;
 }) {
   {
