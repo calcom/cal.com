@@ -23,6 +23,7 @@ type PartialBooking =
       | "responses"
       | "uid"
       | "attendees"
+      | "userPrimaryEmail"
     > & { eventType: Partial<EventType> | null } & { user: Partial<User> | null })
   | null;
 
