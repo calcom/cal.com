@@ -16,7 +16,9 @@ export function bookingIdempotencyKeyExtension() {
             uniqueEmailJoinInput.push(...args.data.attendees?.createMany.data.map((record) => record.email));
           }
           const idempotencyKey = uuidv5(
-            `${args.data.eventType?.connect?.id}.${args.data.startTime.valueOf()}.${uniqueEmailJoinInput.join(
+            `${
+              args.data.eventType?.connect?.id
+            }.${args.data.startTime.valueOf()}.${args.data.endTime.valueOf()}.${uniqueEmailJoinInput.join(
               ","
             )}`,
             uuidv5.URL
