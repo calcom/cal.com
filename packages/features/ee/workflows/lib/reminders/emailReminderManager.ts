@@ -5,6 +5,7 @@ import type { DateArray } from "ics";
 import { RRule } from "rrule";
 import { v4 as uuidv4 } from "uuid";
 
+import { guessEventLocationType } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
 import { preprocessNameFieldDataWithVariant } from "@calcom/features/form-builder/utils";
 import logger from "@calcom/lib/logger";
@@ -33,6 +34,13 @@ function getiCalEventAsString(evt: BookingInfo, status?: ParticipationStatus) {
     recurrenceRule = new RRule(evt.eventType.recurringEvent).toString().replace("RRULE:", "");
   }
 
+  let location = evt.location || "";
+  const videoCallUrl = evt?.metadata?.videoCallUrl;
+  if (videoCallUrl) {
+    location = videoCallUrl;
+  } else {
+    location = guessEventLocationType(location)?.label || location;
+  }
   const icsEvent = createEvent({
     uid,
     startInputType: "utc",
@@ -44,7 +52,7 @@ function getiCalEventAsString(evt: BookingInfo, status?: ParticipationStatus) {
     duration: { minutes: dayjs(evt.endTime).diff(dayjs(evt.startTime), "minute") },
     title: evt.title,
     description: evt.additionalNotes || "",
-    location: evt.location || "",
+    location,
     organizer: { email: evt.organizer.email || "", name: evt.organizer.name },
     attendees: [
       {
