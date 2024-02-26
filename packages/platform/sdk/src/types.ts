@@ -16,8 +16,9 @@ export interface BasicPlatformResponse<T = unknown> {
 }
 
 export enum ApiVersion {
-  V1 = "v1",
-  V2 = "v2",
+  V1 = "v1/",
+  V2 = "v2/",
+  NEUTRAL = "/",
 }
 
 export * from "./endpoints/slots/types";

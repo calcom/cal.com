@@ -3,7 +3,7 @@ import { z } from "zod";
 export type SlotUID = string;
 
 type Slot = Record<
-  string,
+  SlotUID,
   {
     time: string;
     attendees?: number;

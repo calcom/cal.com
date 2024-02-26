@@ -19,7 +19,7 @@ export class CalSdk {
     protected readonly clientId: string,
     protected readonly clientSecret: string,
     protected readonly options: CalSdkConstructorOptions = {
-      baseUrl: "https://api.cal.com/v2",
+      baseUrl: "https://api.cal.com/", // don't set api version here as endpoints may have version-neutral or specific values.
     }
   ) {
     this.httpCaller = new HttpCaller(this._createAxiosClientBase());
