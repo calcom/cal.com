@@ -23,6 +23,7 @@ import { TeamsUpgradeBanner, type TeamsUpgradeBannerProps } from "@calcom/featur
 import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { KBarContent, KBarRoot, KBarTrigger } from "@calcom/features/kbar/Kbar";
 import TimezoneChangeDialog from "@calcom/features/settings/TimezoneChangeDialog";
+import { FunnelHubSidebar } from "@calcom/features/sidebar";
 import AdminPasswordBanner, {
   type AdminPasswordBannerProps,
 } from "@calcom/features/users/components/AdminPasswordBanner";
@@ -270,14 +271,15 @@ const Layout = (props: LayoutProps) => {
         )}
 
         <div className="flex flex-1" data-testid="dashboard-shell">
+          <FunnelHubSidebar />
+          <div className="flex w-0 flex-1 flex-col">
+            <MainContainer {...props} />
+          </div>
           {props.SidebarContainer ? (
             cloneElement(props.SidebarContainer, { bannersHeight })
           ) : (
             <SideBarContainer bannersHeight={bannersHeight} />
           )}
-          <div className="flex w-0 flex-1 flex-col">
-            <MainContainer {...props} />
-          </div>
         </div>
       </div>
     </>
