@@ -7,6 +7,7 @@
   "authors": "Cal.com, Inc.",
   "version": "0.0.0",
   "scripts": {
+    "build-types": "tsc --build --force tsconfig.json",
     "build": "node build.mjs",
     "vite-dev": "yarn vite build --watch & npx tailwindcss -i ./globals.css -o ./globals.min.css --postcss --minify --watch",
     "vite-build": "yarn vite build && npx tailwindcss -i ./globals.css -o ./globals.min.css --postcss --minify"
