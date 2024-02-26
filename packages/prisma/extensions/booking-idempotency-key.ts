@@ -16,10 +16,11 @@ export function bookingIdempotencyKeyExtension() {
             uniqueEmailJoinInput.push(...args.data.attendees?.createMany.data.map((record) => record.email));
           }
           const idempotencyKey = uuidv5(
-            `${args.data.eventTypeId}.${args.data.startTime.valueOf()}.${uniqueEmailJoinInput.join(",")}`,
+            `${args.data.eventType?.connect?.id}.${args.data.startTime.valueOf()}.${uniqueEmailJoinInput.join(
+              ","
+            )}`,
             uuidv5.URL
           );
-          // set idempotencyKey
           args.data.idempotencyKey = idempotencyKey;
           return query(args);
         },

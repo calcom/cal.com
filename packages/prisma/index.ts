@@ -33,6 +33,7 @@ bookingReferenceMiddleware(prismaWithoutClientExtensions);
 // Specifically we get errors like `Type 'string | Date | null | undefined' is not assignable to type 'Exact<string | Date | null | undefined, string | Date | null | undefined>'`
 const prismaWithClientExtensions = prismaWithoutClientExtensions
   .$extends(excludePendingPaymentsExtension())
+  .$extends(bookingIdempotencyKeyExtension())
   .$extends(withAccelerate());
 
 export const prisma = globalForPrisma.prismaWithClientExtensions || prismaWithClientExtensions;
