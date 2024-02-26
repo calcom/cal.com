@@ -274,7 +274,7 @@ export function UserListTable() {
     ];
 
     return cols;
-  }, [session?.user.id, adminOrOwner, dispatch, domain]);
+  }, [session?.user.id, adminOrOwner, dispatch, domain, totalDBRowCount]);
 
   //we must flatten the array of arrays from the useInfiniteQuery hook
   const flatData = useMemo(() => data?.pages?.flatMap((page) => page.rows) ?? [], [data]) as User[];
