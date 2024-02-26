@@ -37,6 +37,7 @@ export const getSampleUserInSession = function () {
     disableImpersonation: false,
     organizationId: null,
     theme: "",
+    appTheme: "",
     createdDate: new Date(),
     trialEndsAt: new Date(),
     completedOnboarding: false,

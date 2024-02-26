@@ -10,7 +10,7 @@ import type { OrderedResponses } from "../types/types";
 import type { Response, SerializableForm } from "../types/types";
 
 export async function onFormSubmission(
-  form: Ensure<SerializableForm<App_RoutingForms_Form> & { user: User }, "fields">,
+  form: Ensure<SerializableForm<App_RoutingForms_Form> & { user: Pick<User, "id" | "email"> }, "fields">,
   response: Response
 ) {
   const fieldResponsesByName: Record<

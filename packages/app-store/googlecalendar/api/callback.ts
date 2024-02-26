@@ -1,11 +1,15 @@
+import type { Auth } from "googleapis";
 import { google } from "googleapis";
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import { renewSelectedCalendarCredentialId } from "@calcom/lib/connectedCalendar";
 import { WEBAPP_URL_FOR_OAUTH, WEBAPP_URL } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { HttpError } from "@calcom/lib/http-error";
+import logger from "@calcom/lib/logger";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
+import { Prisma } from "@calcom/prisma/client";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
@@ -71,15 +75,6 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
       }
     }
 
-    const credential = await prisma.credential.create({
-      data: {
-        type: "google_calendar",
-        key,
-        userId: req.session.user.id,
-        appId: "google-calendar",
-      },
-    });
-
     // Set the primary calendar as the first selected calendar
 
     // We can ignore this type error because we just validated the key when we init oAuth2Client
@@ -93,18 +88,63 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     });
 
     const cals = await calendar.calendarList.list({ fields: "items(id,summary,primary,accessRole)" });
-
     const primaryCal = cals.data.items?.find((cal) => cal.primary);
+    // Primary calendar won't be null, this check satisfies typescript.
+    if (!primaryCal?.id) {
+      throw new HttpError({ message: "Internal Error", statusCode: 500 });
+    }
 
-    if (primaryCal?.id) {
+    // Update the user's profile photo with google profile photo if it's null
+    // Since we don't want to block the user from using the app if this fails, we don't await this
+    updateProfilePhoto(oAuth2Client, req.session.user.id);
+
+    const credential = await prisma.credential.create({
+      data: {
+        type: "google_calendar",
+        key,
+        userId: req.session.user.id,
+        appId: "google-calendar",
+      },
+    });
+
+    const selectedCalendarWhereUnique = {
+      userId: req.session.user.id,
+      externalId: primaryCal.id,
+      integration: "google_calendar",
+    };
+
+    // Wrapping in a try/catch to reduce chance of race conditions-
+    // also this improves performance for most of the happy-paths.
+    try {
       await prisma.selectedCalendar.create({
         data: {
-          userId: req.session.user.id,
-          externalId: primaryCal.id,
           credentialId: credential.id,
-          integration: "google_calendar",
+          ...selectedCalendarWhereUnique,
         },
       });
+    } catch (error) {
+      let errorMessage = "something_went_wrong";
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+        // it is possible a selectedCalendar was orphaned, in this situation-
+        // we want to recover by connecting the existing selectedCalendar to the new Credential.
+        if (await renewSelectedCalendarCredentialId(selectedCalendarWhereUnique, credential.id)) {
+          res.redirect(
+            getSafeRedirectUrl(state?.returnTo) ??
+              getInstalledAppPath({ variant: "calendar", slug: "google-calendar" })
+          );
+          return;
+        }
+        // else
+        errorMessage = "account_already_linked";
+      }
+      await prisma.credential.delete({ where: { id: credential.id } });
+      res.redirect(
+        `${
+          getSafeRedirectUrl(state?.onErrorReturnTo) ??
+          getInstalledAppPath({ variant: "calendar", slug: "google-calendar" })
+        }?error=${errorMessage}`
+      );
+      return;
     }
   }
 
@@ -136,6 +176,23 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     getSafeRedirectUrl(state?.returnTo) ??
       getInstalledAppPath({ variant: "calendar", slug: "google-calendar" })
   );
+}
+
+async function updateProfilePhoto(oAuth2Client: Auth.OAuth2Client, userId: number) {
+  try {
+    const oauth2 = google.oauth2({ version: "v2", auth: oAuth2Client });
+    const userDetails = await oauth2.userinfo.get();
+    if (userDetails.data?.picture) {
+      await prisma.user.update({
+        where: { id: userId, avatarUrl: null, avatar: null },
+        data: {
+          avatarUrl: userDetails.data.picture,
+        },
+      });
+    }
+  } catch (error) {
+    logger.error("Error updating avatarUrl from google calendar connect", error);
+  }
 }
 
 export default defaultHandler({

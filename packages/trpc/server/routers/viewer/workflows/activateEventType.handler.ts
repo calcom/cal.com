@@ -169,7 +169,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
         organizer: booking.user
           ? {
               name: booking.user.name || "",
-              email: booking.user.email,
+              email: booking?.userPrimaryEmail ?? booking.user.email,
               timeZone: booking.user.timeZone,
               timeFormat: getTimeFormatStringFromUserTimeFormat(booking.user.timeFormat),
               language: { locale: booking.user.locale || defaultLocale },

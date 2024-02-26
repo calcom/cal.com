@@ -4,7 +4,7 @@ import { orderBy } from "lodash";
 import { hasFilter } from "@calcom/features/filters/lib/hasFilter";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { isOrganization } from "@calcom/lib/entityPermissionUtils";
-import { getTeamAvatarUrl, getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
+import { getOrgAvatarUrl, getTeamAvatarUrl, getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import logger from "@calcom/lib/logger";
@@ -65,6 +65,7 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
       ? EventTypeRepository.findAllByUpId(
           {
             upId: lightProfile.upId,
+            userId: ctx.user.id,
           },
           {
             where: {
@@ -103,8 +104,8 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
   );
 
   type UserEventTypes = (typeof profileEventTypes)[number];
-  type TeamEventTypeChildren = NonNullable<(typeof profileEventTypes)[number]["team"]>["eventTypes"][number];
-  const mapEventType = async (eventType: UserEventTypes & Partial<TeamEventTypeChildren>) => ({
+
+  const mapEventType = async (eventType: UserEventTypes) => ({
     ...eventType,
     safeDescription: eventType?.description ? markdownToSafeHTML(eventType.description) : undefined,
     users: await Promise.all(
@@ -115,7 +116,7 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
           })
       )
     ),
-    metadata: eventType.metadata ? EventTypeMetaDataSchema.parse(eventType.metadata) : undefined,
+    metadata: eventType.metadata ? EventTypeMetaDataSchema.parse(eventType.metadata) : null,
     children: await Promise.all(
       (eventType.children || []).map(async (c) => ({
         ...c,
@@ -131,7 +132,15 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
     ),
   });
 
-  const userEventTypes = await Promise.all(profileEventTypes.map(mapEventType));
+  const userEventTypes = (await Promise.all(profileEventTypes.map(mapEventType))).filter((eventType) => {
+    const isAChildEvent = eventType.parentId;
+    // A child event only has one user
+    const childEventAssignee = eventType.users[0];
+    if (isAChildEvent && childEventAssignee.id != ctx.user.id) {
+      return false;
+    }
+    return true;
+  });
 
   type EventTypeGroup = {
     teamId?: number | null;
@@ -198,7 +207,7 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
     if (!input?.filters || !hasFilter(input?.filters)) {
       return true;
     }
-    return input?.filters?.teamIds?.includes(eventType?.team?.id || 0) ?? false;
+    return input?.filters?.teamIds?.includes(eventType?.teamId || 0) ?? false;
   };
   eventTypeGroups = ([] as EventTypeGroup[]).concat(
     eventTypeGroups,
@@ -245,11 +254,18 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
                 ? orgMembership
                 : membership.role,
             profile: {
-              image: getTeamAvatarUrl({
-                slug: team.slug,
-                requestedSlug: team.metadata?.requestedSlug ?? null,
-                organizationId: team.parentId,
-              }),
+              image: team.parentId
+                ? getOrgAvatarUrl({
+                    slug: team.parent?.slug || null,
+                    logoUrl: team.parent?.logoUrl,
+                    requestedSlug: team.slug,
+                  })
+                : getTeamAvatarUrl({
+                    slug: team.slug,
+                    logoUrl: team.logoUrl,
+                    requestedSlug: team.metadata?.requestedSlug ?? null,
+                    organizationId: team.parentId,
+                  }),
               name: team.name,
               slug,
             },
@@ -279,7 +295,7 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
     )
   );
 
-  return {
+  const denormalizedPayload = {
     eventTypeGroups,
     // so we can show a dropdown when the user has teams
     profiles: eventTypeGroups.map((group) => ({
@@ -289,4 +305,38 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
       membershipRole: group.membershipRole,
     })),
   };
+
+  return normalizePayload(denormalizedPayload);
+
+  /**
+   * Reduces the size of payload
+   */
+  function normalizePayload(payload: typeof denormalizedPayload) {
+    const allUsersAcrossAllEventTypes = new Map<
+      number,
+      EventTypeGroup["eventTypes"][number]["users"][number]
+    >();
+    const eventTypeGroups = payload.eventTypeGroups.map((group) => {
+      return {
+        ...group,
+        eventTypes: group.eventTypes.map((eventType) => {
+          const { users, ...rest } = eventType;
+          return {
+            ...rest,
+            // Send userIds per event and keep the actual users object outside
+            userIds: users.map((user) => {
+              allUsersAcrossAllEventTypes.set(user.id, user);
+              return user.id;
+            }),
+          };
+        }),
+      };
+    });
+
+    return {
+      ...payload,
+      allUsersAcrossAllEventTypes,
+      eventTypeGroups,
+    };
+  }
 };
