@@ -227,7 +227,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
                   html: emailContent.emailBody,
                   batchId: batchId,
                   sendAt: dayjs(reminder.scheduledDate).unix(),
-                  replyTo: reminder.booking.user?.email,
+                  replyTo: reminder.booking?.userPrimaryEmail ?? reminder.booking.user?.email,
                   attachments: reminder.workflowStep.includeCalendarEvent
                     ? [
                         {
@@ -297,7 +297,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
                 html: emailContent.emailBody,
                 batchId: batchId,
                 sendAt: dayjs(reminder.scheduledDate).unix(),
-                replyTo: reminder.booking.user?.email,
+                replyTo: reminder.booking?.userPrimaryEmail ?? reminder.booking.user?.email,
               },
               { sender: reminder.workflowStep?.sender }
             )
