@@ -318,7 +318,7 @@ export const EventSetupTab = (
                         />
                       </div>
                       <ErrorMessage
-                        errors={formMethods.formState.errors.locations?.[index]}
+                        errors={formMethods.formState.errors?.locations?.[index]}
                         name={eventLocationType.defaultValueVariable}
                         className="text-error my-1 ml-6 text-sm"
                         as="div"
