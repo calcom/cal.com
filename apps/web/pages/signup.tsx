@@ -33,6 +33,8 @@ import { getServerSideProps } from "@lib/signup/getServerSideProps";
 
 import PageWrapper from "@components/PageWrapper";
 
+// import TurnstileCaptcha from "@components/auth/Turnstile";
+
 const signupSchema = apiSignupSchema.extend({
   apiError: z.string().optional(), // Needed to display API errors doesnt get passed to the API
 });
@@ -239,18 +241,6 @@ export default function Signup({
       });
   };
 
-  // // Since we need this only for this page - we defer
-  // useEffect(() => {
-  //   const script = document.createElement("script");
-  //   script.src = "";
-  //   script.defer = true;
-  //   document.body.appendChild(script);
-
-  //   return () => {
-  //     document.body.removeChild(script);
-  //   };
-  // }, []);
-
   return (
     <>
       <div
@@ -333,7 +323,12 @@ export default function Signup({
                   hintErrors={["caplow", "min", "num"]}
                 />
                 {/* Cloudflare Turnstile Captcha */}
-                <TurnstileCaptcha />
+                <TurnstileCaptcha
+                  onVerify={(token) => {
+                    formMethods.setValue("token", token);
+                  }}
+                  onError={() => console.log("error")}
+                />
 
                 <Button
                   type="submit"

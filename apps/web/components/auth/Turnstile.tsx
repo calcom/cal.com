@@ -1,10 +1,12 @@
-import Script from "next/script";
+import type { TurnstileProps } from "react-turnstile";
+import Turnstile from "react-turnstile";
 
-export default function Turnstile() {
-  return (
-    <>
-      <Script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async={true} defer={true} />
-      <div className="cf-turnstile" data-sitekey={process.env.NEXT_PUBLIC_CLOUDFLARE_SITEKEY} />
-    </>
-  );
+import { CLOUDFLARE_SITE_ID } from "@calcom/lib/constants";
+
+type Props = Omit<TurnstileProps, "sitekey">;
+
+export default function TurnstileWidget(props: Props) {
+  if (!CLOUDFLARE_SITE_ID) return null;
+
+  return <Turnstile {...props} sitekey={CLOUDFLARE_SITE_ID} />;
 }
