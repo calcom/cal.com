@@ -63,7 +63,7 @@ COPY --from=build /app/apps/web/next-i18next.config.js ./apps/web/next-i18next.c
 COPY --from=build /app/apps/web/public/static/locales ./apps/web/public/static/locales
 COPY --from=build /app/apps/web/package.json ./apps/web/package.json
 # Expose port 80
-EXPOSE 80
+EXPOSE 3003
 
 # Start cmd, called when docker image is mounted
-CMD [ "yarn", "workspace", "@calcom/api", "docker-start-api"]
+CMD [ "yarn", "start", "@calcom/web", "docker-start-api"]

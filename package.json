@@ -74,6 +74,8 @@
     "type-check:ci": "turbo run type-check:ci --log-prefix=none",
     "web": "yarn workspace @calcom/web",
     "docker-build-api": "docker build -t cal-api -f ./infra/docker/api/Dockerfile .",
+    "docker-build-web": "docker build -t cal-web -f ./infra/docker/web/Dockerfile .",
+    "docker-run-web": "docker run -p 3003:3003 cal-web",
     "docker-run-api": "docker run -p 80:80 cal-api",
     "docker-stop-api": "docker ps --filter 'ancestor=cal-api' -q | xargs docker stop"
   },
