@@ -96,10 +96,7 @@ export async function getUsernameOrEmailsToInvite(usernameOrEmail: string | stri
 export function validateInviteeEligibility(invitee: UserWithMembership, team: TeamWithParent) {
   const alreadyInvited = invitee.teams?.find(({ teamId: membershipTeamId }) => team.id === membershipTeamId);
   if (alreadyInvited) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: `${invitee.email} has already been invited.`,
-    });
+    return;
   }
 
   const orgMembership = invitee.teams?.find((membersip) => membersip.teamId === team.parentId);

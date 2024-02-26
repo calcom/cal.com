@@ -76,7 +76,7 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
       }),
     };
   }, {} as Record<string, ReturnType<typeof getOrgConnectionInfo>>);
-  const existingUsersWithMembersips = await getUsersToInvite({
+  let existingUsersWithMembersips = await getUsersToInvite({
     usernamesOrEmails: usernameOrEmailsToInvite,
     isInvitedToOrg: input.isOrg,
     team,
@@ -126,6 +126,10 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
     });
     sendEmails(sendVerifEmailsPromises);
   }
+  // filtering already invited users
+  existingUsersWithMembersips = existingUsersWithMembersips.filter((user) => {
+    return !user.teams?.find(({ teamId: membershipTeamId }) => team.id === membershipTeamId);
+  });
 
   // deal with existing users invited to join the team/org
   await handleExistingUsersInvites({
