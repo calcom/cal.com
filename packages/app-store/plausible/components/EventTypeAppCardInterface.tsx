@@ -23,6 +23,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
       teamId={eventType.team?.id || undefined}>
       <div className="flex flex-col gap-2">
         <TextField
+          dataTestid={`${app.slug}-url`}
           name="Plausible URL"
           defaultValue="https://plausible.io/js/script.js"
           placeholder="https://plausible.io/js/script.js"
@@ -33,6 +34,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
           }}
         />
         <TextField
+          dataTestid={`${app.slug}-tracking-id`}
           disabled={disabled}
           name="Tracked Domain"
           placeholder="yourdomain.com"
