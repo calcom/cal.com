@@ -56,7 +56,7 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata }: IUseBo
   const { t, i18n } = useLocale();
   const bookingSuccessRedirect = useBookingSuccessRedirect();
   const bookerFormErrorRef = useRef<HTMLDivElement>(null);
-  const [expiryTime, setExpiryTime] = useState<Date | undefined>();
+  const [instantMeetingTokenExpiryTime, setExpiryTime] = useState<Date | undefined>();
   const recurringEventCount = useBookerStore((state) => state.recurringEventCount);
   const isInstantMeeting = useBookerStore((state) => state.isInstantMeeting);
   const duration = useBookerStore((state) => state.selectedDuration);
@@ -66,13 +66,13 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata }: IUseBo
   const isRescheduling = !!rescheduleUid && !!bookingData;
 
   const bookingId = parseInt(getQueryParam("bookingId") || "0");
-  const hasInstantMeetingTokenExpired = expiryTime && new Date(expiryTime) < new Date();
+
   const _instantBooking = trpc.viewer.bookings.getInstantBookingLocation.useQuery(
     {
       bookingId: bookingId,
     },
     {
-      enabled: !!bookingId && !hasInstantMeetingTokenExpired,
+      enabled: !!bookingId,
       refetchInterval: 2000,
       refetchIntervalInBackground: true,
     }
@@ -80,6 +80,7 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata }: IUseBo
   useEffect(
     function refactorMeWithoutEffect() {
       const data = _instantBooking.data;
+
       if (!data) return;
       try {
         showToast(t("something_went_wrong_on_our_end"), "error");
@@ -301,11 +302,10 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata }: IUseBo
 
   return {
     handleBookEvent,
-    expiryTime,
+    expiryTime: instantMeetingTokenExpiryTime,
     bookingForm,
     bookerFormErrorRef,
     errors,
     loadingStates,
-    hasInstantMeetingTokenExpired: Boolean(hasInstantMeetingTokenExpired),
   };
 };
