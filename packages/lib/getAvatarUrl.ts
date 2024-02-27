@@ -16,7 +16,11 @@ export const getUserAvatarUrl = (
     | undefined
 ) => {
   if (user?.avatarUrl) {
-    return CAL_URL + user.avatarUrl;
+    if (user.avatarUrl.startsWith("/")) {
+      return CAL_URL + user.avatarUrl;
+    } else {
+      return user.avatarUrl;
+    }
   }
   if (!user?.username) return CAL_URL + AVATAR_FALLBACK;
   // avatar.png automatically redirects to fallback avatar if user doesn't have one
