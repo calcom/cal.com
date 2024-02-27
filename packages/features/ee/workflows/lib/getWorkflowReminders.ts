@@ -23,6 +23,7 @@ type PartialBooking =
       | "responses"
       | "uid"
       | "attendees"
+      | "userPrimaryEmail"
     > & { eventType: Partial<EventType> | null } & { user: Partial<User> | null })
   | null;
 
@@ -134,6 +135,7 @@ export async function getAllUnscheduledReminders(): Promise<PartialWorkflowRemin
         endTime: true,
         location: true,
         description: true,
+        userPrimaryEmail: true,
         user: {
           select: {
             email: true,
