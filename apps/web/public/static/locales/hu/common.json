@@ -1,4 +1,5 @@
 {
+  "identity_provider": "Azonosítás szolgáltató",
   "trial_days_left": "Még $t(day, {\"count\": {{days}} }) maradt a PRO próbaidőszakodból",
   "day_one": "{{count}} nap",
   "day_other": "{{count}} nap",
@@ -7,6 +8,7 @@
   "upgrade_now": "Frissíts most",
   "accept_invitation": "Meghívó elfogadása",
   "have_any_questions": "Van kérdésed? Itt vagyunk hogy segítsünk.",
+  "verify_email_email_button": "Email igazolása",
   "organizer": "Szervező",
   "rejection_reason": "Lemondás oka",
   "help": "Segítség",
@@ -160,7 +162,7 @@
   "yearly_one": "év",
   "yearly_other": "év",
   "name": "Név",
-  "logo": "Logo",
+  "logo": "Logó",
   "error": "Hiba",
   "type": "Típus",
   "edit": "Szerkesztés",
