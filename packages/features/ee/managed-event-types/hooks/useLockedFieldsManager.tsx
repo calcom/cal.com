@@ -98,12 +98,16 @@ const useLockedFieldsManager = (
     if (!metaUnlockedFields) return;
     if (val === undefined) {
       delete metaUnlockedFields[fieldName as keyof typeof metaUnlockedFields];
-      formMethods.setValue(path, { ...metaUnlockedFields });
+      formMethods.setValue(path, { ...metaUnlockedFields }, { shouldDirty: true });
     } else {
-      formMethods.setValue(path, {
-        ...metaUnlockedFields,
-        [fieldName]: val,
-      });
+      formMethods.setValue(
+        path,
+        {
+          ...metaUnlockedFields,
+          [fieldName]: val,
+        },
+        { shouldDirty: true }
+      );
     }
   };
 

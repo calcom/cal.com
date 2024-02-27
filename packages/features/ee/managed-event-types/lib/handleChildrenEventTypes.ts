@@ -119,6 +119,7 @@ export default async function handleChildrenEventTypes({
   // bookingFields is expected to be filled by the _EventTypeModel but is null at create event
   const _ManagedEventTypeModel = _EventTypeModel.extend({
     bookingFields: _EventTypeModel.shape.bookingFields.nullish(),
+    locations: _EventTypeModel.shape.locations.nullish(),
   });
 
   const allManagedEventTypePropsZod = _ManagedEventTypeModel.pick(allManagedEventTypeProps); //FIXME
@@ -167,7 +168,6 @@ export default async function handleChildrenEventTypes({
       userIds: newUserIds,
       teamName: oldEventType.team?.name ?? null,
     });
-
     // Create event types for new users added
     await prisma.$transaction(
       newUserIds.map((userId) => {
