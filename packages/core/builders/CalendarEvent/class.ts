@@ -18,7 +18,7 @@ class CalendarEventClass implements CalendarEvent {
   organizer!: Person;
   attendees!: Person[];
   description?: string | null;
-  team?: { name: string; members: Person[]; id: number };
+  team?: { name: string; members: Person[]; id: number; slug: string };
   location?: string | null;
   conferenceData?: ConferenceData;
   additionalInformation?: AdditionalInformation;
