@@ -5,14 +5,14 @@ import classNames from "classnames";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { FaGoogle } from "react-icons/fa";
 import { z } from "zod";
 
 import { SAMLLogin } from "@calcom/features/auth/SAMLLogin";
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
-import { WEBAPP_URL, WEBSITE_URL, HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
+import { HOSTED_CAL_FEATURES, WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -20,9 +20,6 @@ import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calco
 import { trpc } from "@calcom/trpc/react";
 import { Alert, Button, EmailField, PasswordField } from "@calcom/ui";
 import { ArrowLeft, Lock } from "@calcom/ui/components/icon";
-
-import type { inferSSRProps } from "@lib/types/inferSSRProps";
-import type { WithNonceProps } from "@lib/withNonce";
 
 import AddToHomescreen from "@components/AddToHomescreen";
 import PageWrapper from "@components/PageWrapper";
@@ -46,8 +43,7 @@ export default function Login({
   samlTenantID,
   samlProductID,
   totpEmail,
-}: // eslint-disable-next-line @typescript-eslint/ban-types
-inferSSRProps<typeof getServerSideProps> & WithNonceProps<{}>) {
+}: any) {
   const searchParams = useCompatSearchParams();
   const { t } = useLocale();
   const router = useRouter();
