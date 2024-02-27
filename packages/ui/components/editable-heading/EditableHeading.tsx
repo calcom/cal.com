@@ -31,7 +31,8 @@ export const EditableHeading = function EditableHeading({
             value={value}
             required
             className={classNames(
-              "text-emphasis hover:text-default focus:text-emphasis absolute left-0 top-0 w-full cursor-pointer truncate border-none bg-transparent p-0 align-top text-xl focus:outline-none focus:ring-0"
+              "text-emphasis hover:text-default focus:text-emphasis absolute left-0 top-0 w-full cursor-pointer truncate border-none bg-transparent p-0 align-top text-xl focus:outline-none focus:ring-0",
+              passThroughProps.className
             )}
             onFocus={(e) => {
               setIsEditing(true);

@@ -3,7 +3,6 @@ import { AppModule } from "@/app.module";
 import { SchedulesRepository } from "@/ee/schedules/schedules.repository";
 import { SchedulesService } from "@/ee/schedules/services/schedules.service";
 import { AvailabilitiesModule } from "@/modules/availabilities/availabilities.module";
-import { UserResponse } from "@/modules/oauth-clients/controllers/oauth-client-users/zod/response/response";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { UpdateUserInput } from "@/modules/users/inputs/update-user.input";
 import { UsersModule } from "@/modules/users/users.module";
@@ -16,6 +15,7 @@ import { UserRepositoryFixture } from "test/fixtures/repository/users.repository
 import { withAccessTokenAuth } from "test/utils/withAccessTokenAuth";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { UserResponse } from "@calcom/platform-types";
 import { ApiSuccessResponse } from "@calcom/platform-types";
 
 describe("Me Endpoints", () => {
