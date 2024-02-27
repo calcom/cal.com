@@ -462,6 +462,8 @@ enum BookingStatus {
 model Booking {
   id                    Int                  @id @default(autoincrement())
   uid                   String               @unique
+  // (optional) UID based on slot start/end time & email against duplicates
+  idempotencyKey        String?              @unique
   user                  User?                @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId                Int?
   // User's email at the time of booking
