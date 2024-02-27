@@ -1596,7 +1596,7 @@ async function handler(
       members: teamMembers,
       name: eventType.team?.name || "Nameless",
       id: eventType.team?.id ?? 0,
-      slug: eventType.team?.slug,
+      slug: eventType.team?.slug || "",
     };
   }
 
