@@ -54,6 +54,11 @@ export type BookingInfo = {
   additionalNotes?: string | null;
   responses?: CalEventResponses | null;
   metadata?: Prisma.JsonValue;
+  team?: {
+    id: number;
+    member: unknown;
+    name: string | null;
+  };
 };
 
 export type ScheduleTextReminderAction = Extract<
