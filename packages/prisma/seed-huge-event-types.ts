@@ -31,13 +31,15 @@ async function createTeamsWithEventTypes({
   owner,
   numberOfTeams,
   numberOfEventTypes,
+  numberOfTeamMembers,
 }: {
   owner: { id: number; username: string | null };
   numberOfTeams: number;
   numberOfEventTypes: number;
+  numberOfTeamMembers: number;
 }) {
   const members = [owner];
-  for (let i = 0; i < 10; i++) {
+  for (let i = 0; i < numberOfTeamMembers; i++) {
     members.push(
       await createUserAndEventType({
         user: {
@@ -88,7 +90,7 @@ export default async function main() {
       theme: "light",
       avatar,
     },
-    eventTypes: getEventTypes(100),
+    eventTypes: getEventTypes(5),
   });
-  await createTeamsWithEventTypes({ owner, numberOfTeams: 10, numberOfEventTypes: 100 });
+  await createTeamsWithEventTypes({ owner, numberOfTeams: 2, numberOfEventTypes: 4, numberOfTeamMembers: 3 });
 }
