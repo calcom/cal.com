@@ -52,7 +52,10 @@ describe("handleChildrenEventTypes", () => {
     });
 
     it("Returns message 'No managed event metadata'", async () => {
-      mockFindFirstEventType();
+      mockFindFirstEventType({
+        metadata: {},
+        locations: [],
+      });
       const result = await updateChildrenEventTypes({
         eventTypeId: 1,
         oldEventType: { children: [], team: { name: "" } },
@@ -135,6 +138,8 @@ describe("handleChildrenEventTypes", () => {
           ...evType,
           parentId: 1,
           users: { connect: [{ id: 4 }] },
+          lockTimeZoneToggleOnBookingPage: false,
+          requiresBookerEmailVerification: false,
           bookingLimits: undefined,
           durationLimits: undefined,
           recurringEvent: undefined,
@@ -288,7 +293,10 @@ describe("handleChildrenEventTypes", () => {
           durationLimits: undefined,
           recurringEvent: undefined,
           hashedLink: undefined,
+          lockTimeZoneToggleOnBookingPage: false,
+          requiresBookerEmailVerification: false,
           userId: 4,
+          workflows: undefined,
         },
       });
       expect(result.newUserIds).toEqual([4]);
@@ -398,6 +406,8 @@ describe("handleChildrenEventTypes", () => {
           recurringEvent: undefined,
           hashedLink: undefined,
           locations: [],
+          lockTimeZoneToggleOnBookingPage: false,
+          requiresBookerEmailVerification: false,
           parentId: 1,
           userId: 5,
           users: {
