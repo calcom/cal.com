@@ -155,9 +155,6 @@ function CustomCell({ timeSlot, children, topOffsetMinutes }: CellProps & { chil
         height: `100%`,
         overflow: "visible",
         top: topOffsetMinutes ? `calc(${topOffsetMinutes}*var(--one-minute-height))` : undefined,
-      }}
-      onClick={() => {
-        console.log("clicked");
       }}>
       <div
         className={classNames(

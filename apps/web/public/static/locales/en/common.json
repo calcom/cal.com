@@ -2270,5 +2270,12 @@
   "ooo_reasons_travel": "Travel",
   "ooo_reasons_sick_leave": "Sick leave",
   "ooo_reasons_public_holiday": "Public holiday",
+  "ooo_forwarding_to": "Forwarding to <span className='text-subtle font-bold'>{{username}}</span>",
+  "ooo_not_forwarding": "No forwarding",
+  "ooo_empty_title": "Create an OOO",
+  "ooo_empty_description": "Communicate to your bookers when you&apos;re not available to take bookings. They can still book you upon your return.",
+  "ooo_user_is_ooo": "{{displayName}} is OOO",
+  "ooo_slots_returning": "<0>{{displayName}}</0> can take their meetings while they are away.",
+  "ooo_slots_book_with": "Book with {{displayName}}",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

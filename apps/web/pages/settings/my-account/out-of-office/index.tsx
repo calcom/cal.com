@@ -244,11 +244,9 @@ const OutOfOfficeEntriesList = () => {
                     </p>
                     <p className="px-2">
                       {item.toUser?.username ? (
-                        <>
-                          Forwarding to <span className="text-subtle font-bold">{item.toUser.username}</span>
-                        </>
+                        <>{t("ooo_forwarding_to", { username: item.toUser?.username })}</>
                       ) : (
-                        "No forwarding"
+                        <>{t("ooo_not_forwarding")}</>
                       )}
                     </p>
                   </div>
@@ -305,7 +303,7 @@ const OutOfOfficePage = () => {
             color="primary"
             className="flex w-20 items-center justify-between px-4"
             onClick={() => setOpenModal(true)}>
-            <Plus size={16} /> Add
+            <Plus size={16} /> {t("add")}
           </Button>
         }
       />
@@ -333,11 +331,8 @@ const EmptyOOO = () => {
         </div>
       </div>
       <div className="mb-10 mt-5 w-full md:w-[460px]">
-        <p className="font-cal text-center text-xl font-bold dark:text-white">Create an OOO</p>
-        <p className="text-subtle mt-2 text-center text-sm">
-          Communicate to your bookers when you&apos;re not available to take bookings. They can still book you
-          upon your return.
-        </p>
+        <p className="font-cal text-center text-xl font-bold dark:text-white">{t("ooo_empty_title")}</p>
+        <p className="text-subtle mt-2 text-center text-sm">{t("ooo_empty_description")}</p>
       </div>
     </div>
   );

@@ -660,8 +660,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
 
   return {
     slots: computedAvailableSlots,
-    // @TODO: this only gets one, but we should consider more users outOfOffice?
-    datesOutOfOffice: allUsersAvailability[0]?.datesOutOfOffice || undefined,
+    datesOutOfOffice: allUsersAvailability.flatMap((user) => user.datesOutOfOffice),
   };
 }
 
