@@ -355,17 +355,20 @@ export function createBookingPageFixture(page: Page) {
     },
 
     fillAndConfirmBooking: async ({
-      eventTypePage,
+      eventTypePage: page,
       placeholderText,
       question,
       fillText,
       secondQuestion,
       options,
     }: fillAndConfirmBookingParams) => {
+      await page.fill('[name="name"]', "Test User");
+      await page.fill('[name="email"]', "test@example.com");
+
       const confirmButton = options.isReschedule ? "confirm-reschedule-button" : "confirm-book-button";
 
-      await expect(eventTypePage.getByText(`${secondQuestion} test`).first()).toBeVisible();
-      await eventTypePage.getByPlaceholder(placeholderText).fill(fillText);
+      await expect(page.getByText(`${secondQuestion} test`).first()).toBeVisible();
+      await page.getByPlaceholder(placeholderText).fill(fillText);
 
       // Change the selector for specifics cases related to select question
       const shouldChangeSelectLocator = (question: string, secondQuestion: string): boolean =>
@@ -389,23 +392,14 @@ export function createBookingPageFixture(page: Page) {
       };
 
       // Fill the first question
-      await fillQuestion(eventTypePage, question, customLocators);
+      await fillQuestion(page, question, customLocators);
 
       // Fill the second question if is required
-      options.isRequired && (await fillQuestion(eventTypePage, secondQuestion, customLocators));
+      options.isRequired && (await fillQuestion(page, secondQuestion, customLocators));
 
-      await eventTypePage.getByTestId(confirmButton).click();
-      await eventTypePage.waitForTimeout(400);
-      if (await eventTypePage.getByRole("heading", { name: "Could not book the meeting." }).isVisible()) {
-        await eventTypePage.getByTestId("back").click();
-        await eventTypePage.getByTestId("time").last().click();
-        await fillQuestion(eventTypePage, question, customLocators);
-        options.isRequired && (await fillQuestion(eventTypePage, secondQuestion, customLocators));
-        await eventTypePage.getByTestId(confirmButton).click();
-      }
-      const scheduleSuccessfullyPage = eventTypePage.getByText(scheduleSuccessfullyText);
-      await scheduleSuccessfullyPage.waitFor({ state: "visible" });
-      await expect(scheduleSuccessfullyPage).toBeVisible();
+      await page.getByTestId(confirmButton).click();
+
+      await expect(page.getByText(scheduleSuccessfullyText)).toBeVisible();
     },
 
     fillAllQuestions: async (eventTypePage: Page, questions: string[], options: BookingOptions) => {
