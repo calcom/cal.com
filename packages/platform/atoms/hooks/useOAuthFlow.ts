@@ -60,8 +60,7 @@ export const useOAuthFlow = ({ accessToken, refreshUrl, clientId, onError, onSuc
         http
           .get<ApiResponse>(`/platform/provider/${clientId}/access-token`)
           .catch(async (err: AxiosError) => {
-            if (err.response?.status === 401) onError?.("Invalid Access Token.");
-            if (err.response?.status === 498 && refreshUrl) {
+            if ((err.response?.status === 498 || err.response?.status === 401) && refreshUrl) {
               setIsRefreshing(true);
               const refreshedToken = await http.refreshTokens(refreshUrl);
               if (refreshedToken) {
