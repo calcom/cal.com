@@ -26,14 +26,6 @@ type PlatformAvailabilitySettingsWrapperProps = {
   onDeleteError?: (err: ApiErrorResponse) => void;
 };
 
-const defaultLabels = {
-  tooltips: {
-    addTime: "Add new time slot",
-    copyTime: "Copy times to …",
-    deleteTime: "Delete",
-  },
-} as const;
-
 const defaultTranslations: TranslationsType = {
   availability: "Availability",
   set_to_default: "Set to default",
@@ -47,14 +39,13 @@ const defaultTranslations: TranslationsType = {
   name: "Name",
   something_doesnt_look_right: "Something doesn't look right",
   add_an_override: "Add an override",
-  add_time_availability: "Add time availability",
-  copy_times_to: "Copy times to",
+  add_time_availability: "Add new time slot",
+  copy_times_to: "Copy times to …",
   save: "Save",
 } as const;
 
 export const PlatformAvailabilitySettingsWrapper = ({
   id,
-  labels = defaultLabels,
   translations = defaultTranslations,
   customClassNames,
   onDeleteError,
