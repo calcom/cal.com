@@ -1,9 +1,10 @@
 import { useCreateOAuthClient } from "@pages/settings/organizations/platform/oauth-clients/hooks/usePersistOAuthClient";
 import { useRouter } from "next/router";
 import type { FC } from "react";
-import React from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { PERMISSIONS_GROUPED_MAP } from "@calcom/platform-constants/permissions";
 import { showToast } from "@calcom/ui";
 import { Meta, Button, TextField } from "@calcom/ui";
@@ -27,8 +28,24 @@ type FormValues = {
 };
 
 export const OAuthClientForm: FC = () => {
-  const { register, handleSubmit, control, setValue } = useForm<FormValues>({});
+  const { t } = useLocale();
   const router = useRouter();
+  const { register, handleSubmit, setValue, getValues } = useForm<FormValues>({});
+  const [isSelectAllPermissionsChecked, setIsSelectAllPermissionsChecked] = useState(false);
+
+  const selectAllPermissions = () => {
+    const allInputValues = getValues();
+
+    Object.keys(allInputValues).forEach((input) => {
+      if (!isSelectAllPermissionsChecked && (input.includes("Read") || input.includes("Write"))) {
+        setValue(input, true);
+      } else if (input.includes("Read") || input.includes("Write")) {
+        setValue(input, false);
+      }
+    });
+
+    setIsSelectAllPermissionsChecked((preValue) => !preValue);
+  };
 
   const { mutateAsync, isPending } = useCreateOAuthClient({
     onSuccess: () => {
@@ -78,7 +95,7 @@ export const OAuthClientForm: FC = () => {
             <input
               {...register(`${permissionKey}Read`)}
               id={`${permissionKey}Read`}
-              className="bg-default border-default h-4 w-4 shrink-0 rounded-[4px] border ring-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed"
+              className="bg-default border-default h-4 w-4 shrink-0 cursor-pointer rounded-[4px] border ring-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed"
               type="checkbox"
             />
             <label htmlFor={`${permissionKey}Read`} className="cursor-pointer text-sm">
@@ -89,7 +106,7 @@ export const OAuthClientForm: FC = () => {
             <input
               {...register(`${permissionKey}Write`)}
               id={`${permissionKey}Write`}
-              className="bg-default border-default h-4 w-4 shrink-0 rounded-[4px] border ring-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed"
+              className="bg-default border-default h-4 w-4 shrink-0 cursor-pointer rounded-[4px] border ring-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed"
               type="checkbox"
             />
             <label htmlFor={`${permissionKey}Write`} className="cursor-pointer text-sm">
@@ -104,8 +121,8 @@ export const OAuthClientForm: FC = () => {
   return (
     <div>
       <Meta
-        title="OAuth client creation form"
-        description="This is a form to create a new OAuth client"
+        title={t("oauth_form_title")}
+        description={t("oauth_form_description")}
         borderInShellHeader={true}
       />
       <form
@@ -154,7 +171,12 @@ export const OAuthClientForm: FC = () => {
           <TextField type="url" label="Redirect uri three" {...register("redirectUriThree")} />
         </div>
         <div className="mt-6">
-          <h1 className="text-base font-semibold underline">Permissions</h1>
+          <div className="flex justify-between">
+            <h1 className="text-base font-semibold underline">Permissions</h1>
+            <Button type="button" onClick={selectAllPermissions}>
+              Select all
+            </Button>
+          </div>
           <div>{permissionsCheckboxes}</div>
         </div>
         <Button className="mt-6" type="submit" loading={isPending}>
