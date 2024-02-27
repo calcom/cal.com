@@ -266,7 +266,12 @@ async function handler(req: CustomRequest) {
       : [],
     cancellationReason: cancellationReason,
     ...(teamMembers && {
-      team: { name: bookingToDelete?.eventType?.team?.name || "Nameless", members: teamMembers, id: teamId! },
+      team: {
+        name: bookingToDelete?.eventType?.team?.name || "Nameless",
+        members: teamMembers,
+        id: teamId!,
+        slug: "",
+      },
     }),
     seatsPerTimeSlot: bookingToDelete.eventType?.seatsPerTimeSlot,
     seatsShowAttendees: bookingToDelete.eventType?.seatsShowAttendees,
