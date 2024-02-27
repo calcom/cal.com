@@ -30,14 +30,22 @@ export function BaseCalProvider({ clientId, accessToken, options, children }: Ca
     apiUrl: options.apiUrl,
     refreshUrl: options.refreshUrl,
     onError: setError,
+    onSuccess: () => {
+      setError("");
+    },
   });
 
   const { isRefreshing, currentAccessToken } = useOAuthFlow({
     accessToken,
     refreshUrl: options.refreshUrl,
     onError: setError,
+    onSuccess: () => {
+      setError("");
+    },
     clientId,
   });
+
+  console.log(isInit, error, clientId, isRefreshing, currentAccessToken, http.getAuthorizationHeader());
 
   return isInit ? (
     <AtomsContext.Provider
@@ -50,9 +58,7 @@ export function BaseCalProvider({ clientId, accessToken, options, children }: Ca
         isRefreshing: isRefreshing,
         isInit: isInit,
         isValidClient: Boolean(!error && clientId && isInit),
-        isAuth: Boolean(
-          isInit && !error && clientId && !isRefreshing && currentAccessToken && http.getAuthorizationHeader()
-        ),
+        isAuth: Boolean(isInit && !error && clientId && currentAccessToken && http.getAuthorizationHeader()),
       }}>
       <TooltipProvider>{children}</TooltipProvider>
       <Toaster />

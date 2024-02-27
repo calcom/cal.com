@@ -19,6 +19,7 @@ export const GcalConnect: FC<GcalConnectProps> = ({
   className,
 }) => {
   const { isAuth } = useAtomsContext();
+  console.log(isAuth);
 
   const { allowConnect, checked, redirectToGcalOAuth } = useGcal({ isAuth });
 

@@ -7,7 +7,7 @@ import type { ApiResponse, ApiErrorResponse } from "@calcom/platform-types";
 import http from "../lib/http";
 import { QUERY_KEY } from "./useClientSchedule";
 
-interface IPDeleteOAuthClient {
+interface IUseDeleteScheduleProps {
   onSuccess?: (res: ApiResponse) => void;
   onError?: (err: ApiErrorResponse) => void;
 }
@@ -17,7 +17,7 @@ type DeleteScheduleInput = {
 };
 
 const useDeleteSchedule = (
-  { onSuccess, onError }: IPDeleteOAuthClient = {
+  { onSuccess, onError }: IUseDeleteScheduleProps = {
     onSuccess: () => {
       return;
     },
