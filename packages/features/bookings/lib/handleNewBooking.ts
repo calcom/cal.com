@@ -176,6 +176,7 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
           id: true,
           name: true,
           parentId: true,
+          slug: true,
         },
       },
       bookingFields: true,
@@ -1595,6 +1596,7 @@ async function handler(
       members: teamMembers,
       name: eventType.team?.name || "Nameless",
       id: eventType.team?.id ?? 0,
+      slug: eventType.team?.slug,
     };
   }
 

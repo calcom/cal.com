@@ -58,6 +58,7 @@ export type BookingInfo = {
     name: string;
     members: TeamMember[];
     id: number;
+    slug: string;
   };
 };
 
