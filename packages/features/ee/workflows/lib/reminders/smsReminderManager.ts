@@ -56,7 +56,7 @@ export type BookingInfo = {
   metadata?: Prisma.JsonValue;
   team?: {
     name: string;
-    member: TeamMember[];
+    members: TeamMember[];
     id: number;
   };
 };
