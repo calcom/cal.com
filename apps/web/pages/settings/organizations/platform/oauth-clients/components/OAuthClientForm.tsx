@@ -1,7 +1,7 @@
 import { useCreateOAuthClient } from "@pages/settings/organizations/platform/oauth-clients/hooks/usePersistOAuthClient";
 import { useRouter } from "next/router";
 import type { FC } from "react";
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -25,27 +25,27 @@ type FormValues = {
   scheduleWrite: boolean;
   appsRead: boolean;
   appsWrite: boolean;
+  profileRead: boolean;
+  profileWrite: boolean;
 };
 
 export const OAuthClientForm: FC = () => {
   const { t } = useLocale();
   const router = useRouter();
-  const { register, handleSubmit, setValue, getValues } = useForm<FormValues>({});
+  const { register, handleSubmit, setValue } = useForm<FormValues>({});
   const [isSelectAllPermissionsChecked, setIsSelectAllPermissionsChecked] = useState(false);
 
-  const selectAllPermissions = () => {
-    const allInputValues = getValues();
+  const selectAllPermissions = useCallback(() => {
+    Object.keys(PERMISSIONS_GROUPED_MAP).forEach((key) => {
+      const entity = key as keyof typeof PERMISSIONS_GROUPED_MAP;
+      const permissionKey = PERMISSIONS_GROUPED_MAP[entity].key;
 
-    Object.keys(allInputValues).forEach((input) => {
-      if (!isSelectAllPermissionsChecked && (input.includes("Read") || input.includes("Write"))) {
-        setValue(input, true);
-      } else if (input.includes("Read") || input.includes("Write")) {
-        setValue(input, false);
-      }
+      setValue(`${permissionKey}Read`, !isSelectAllPermissionsChecked);
+      setValue(`${permissionKey}Write`, !isSelectAllPermissionsChecked);
     });
 
     setIsSelectAllPermissionsChecked((preValue) => !preValue);
-  };
+  }, [isSelectAllPermissionsChecked, setValue]);
 
   const { mutateAsync, isPending } = useCreateOAuthClient({
     onSuccess: () => {
@@ -88,7 +88,7 @@ export const OAuthClientForm: FC = () => {
     const permissionLabel = PERMISSIONS_GROUPED_MAP[entity].label;
 
     return (
-      <div className="mt-3" key={key}>
+      <div className="my-3" key={key}>
         <p className="text-sm font-semibold">{permissionLabel}</p>
         <div className="mt-1 flex gap-x-5">
           <div className="flex items-center gap-x-2">
@@ -174,7 +174,7 @@ export const OAuthClientForm: FC = () => {
           <div className="flex justify-between">
             <h1 className="text-base font-semibold underline">Permissions</h1>
             <Button type="button" onClick={selectAllPermissions}>
-              Select all
+              {!isSelectAllPermissionsChecked ? "Select all" : "Discard all"}
             </Button>
           </div>
           <div>{permissionsCheckboxes}</div>
