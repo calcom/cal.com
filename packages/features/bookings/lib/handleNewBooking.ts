@@ -1627,6 +1627,19 @@ async function handler(
     })
   );
 
+  // update original rescheduled booking (no seats event)
+  if (!eventType.seatsPerTimeSlot && originalRescheduledBooking?.uid) {
+    await prisma.booking.update({
+      where: {
+        id: originalRescheduledBooking.id,
+      },
+      data: {
+        rescheduled: true,
+        status: BookingStatus.CANCELLED,
+      },
+    });
+  }
+
   try {
     booking = await createBooking({
       originalRescheduledBooking,
@@ -1694,7 +1707,7 @@ async function handler(
       err.message
     );
     if (err.code === "P2002") {
-      throw new HttpError({ statusCode: 409, message: "booking.conflict" });
+      throw new HttpError({ statusCode: 409, message: "booking_conflict" });
     }
     throw err;
   }
@@ -1720,20 +1733,7 @@ async function handler(
 
     evt = addVideoCallDataToEvent(originalRescheduledBooking.references, evt);
 
-    //update original rescheduled booking (no seats event)
-    if (!eventType.seatsPerTimeSlot) {
-      await prisma.booking.update({
-        where: {
-          id: originalRescheduledBooking.id,
-        },
-        data: {
-          rescheduled: true,
-          status: BookingStatus.CANCELLED,
-        },
-      });
-    }
-
-    const newDesinationCalendar = evt.destinationCalendar;
+    const newDestinationCalendar = evt.destinationCalendar;
 
     evt.destinationCalendar = originalRescheduledBooking?.destinationCalendar
       ? [originalRescheduledBooking?.destinationCalendar]
@@ -1752,7 +1752,7 @@ async function handler(
       originalRescheduledBooking.uid,
       undefined,
       changedOrganizer,
-      newDesinationCalendar
+      newDestinationCalendar
     );
 
     // This gets overridden when updating the event - to check if notes have been hidden or not. We just reset this back
