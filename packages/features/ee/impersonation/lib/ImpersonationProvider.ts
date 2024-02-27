@@ -212,8 +212,6 @@ async function isReturningToSelf({ session, creds }: { session: Session | null; 
     },
   });
 
-  console.log({ profiles: returningUser?.profiles });
-
   if (returningUser) {
     // Skip for none org users
     const inOrg =
