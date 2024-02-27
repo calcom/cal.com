@@ -1,38 +1,58 @@
-ARG NODE_VERSION=18
-FROM node:${NODE_VERSION}-slim as base
+FROM node:18 as builder
 
-WORKDIR /app
+WORKDIR /calcom
 
-ENV NODE_ENV='production'
+ARG MAX_OLD_SPACE_SIZE=4096
 
-FROM base as build
+ENV NEXT_PUBLIC_WEBAPP_URL=https://NEXT_PUBLIC_WEBAPP_URL_PLACEHOLDER \
+    NODE_OPTIONS=--max-old-space-size=${MAX_OLD_SPACE_SIZE}
 
-COPY package.json yarn.lock .yarnrc.yml playwright.config.ts turbo.json git-init.sh git-setup.sh ./
-COPY /.yarn ./.yarn
-COPY ./packages ./packages
+
+COPY ./package.json ./yarn.lock ./.yarnrc.yml ./playwright.config.ts ./turbo.json ./git-init.sh ./git-setup.sh ./
+COPY ./.yarn ./.yarn
 COPY ./apps/web ./apps/web
+COPY ./packages ./packages
+RUN rm -rf apps/web/test apps/web/playwright
 
-RUN set -eux; \
-    apt-get update -qq && \
-    apt-get install -y build-essential openssl pkg-config python-is-python3 && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists /var/cache/apt/archives && \
-    yarn config set httpTimeout 1200000 && \
+RUN yarn config set httpTimeout 1200000 && \ 
     npx turbo prune --scope=@calcom/web --docker && \
-    yarn install && \
-    yarn turbo run build --filter=@calcom/web
+    yarn install
 
-# Final stage
-FROM base
-WORKDIR /app
+RUN yarn turbo run build --filter=@calcom/web
 
-# Install packages needed for deployment
-RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y openssl && \
-    rm -rf /var/lib/apt/lists /var/cache/apt/archives
+RUN rm -rf node_modules/.cache .yarn/cache apps/web/.next/cache apps/web/test apps/web/abTest apps/web/playwright
 
-COPY --from=build /app/apps/web ./apps/web
+FROM node:18 as builder-two
 
-EXPOSE 3003
+WORKDIR /calcom
+ARG NEXT_PUBLIC_WEBAPP_URL=https://calendar.funnelhub.io
 
-CMD [ "yarn", "start"]
+ENV NODE_ENV production
+
+COPY ./package.json ./.yarnrc.yml ./yarn.lock ./turbo.json ./
+COPY ./.yarn ./.yarn
+COPY --from=builder /calcom/node_modules ./node_modules
+COPY --from=builder /calcom/packages ./packages
+COPY --from=builder /calcom/apps/web ./apps/web
+COPY --from=builder /calcom/packages/prisma/schema.prisma ./prisma/schema.prisma
+COPY scripts scripts
+
+ENV NEXT_PUBLIC_WEBAPP_URL=$NEXT_PUBLIC_WEBAPP_URL \
+    BUILT_NEXT_PUBLIC_WEBAPP_URL=$NEXT_PUBLIC_WEBAPP_URL
+
+FROM node:18 as runner
+
+
+WORKDIR /calcom
+COPY --from=builder-two /calcom ./
+ARG NEXT_PUBLIC_WEBAPP_URL=https://calendar.funnelhub.io
+ENV NEXT_PUBLIC_WEBAPP_URL=$NEXT_PUBLIC_WEBAPP_URL
+
+ENV NODE_ENV production
+EXPOSE 3000
+
+HEALTHCHECK --interval=30s --timeout=30s --retries=5 \
+    CMD wget --spider https://calendar.funnelhub.io || exit 1
+
+RUN chmod +777 /calcom/scripts/start.sh
+CMD ["/calcom/scripts/start.sh"]
