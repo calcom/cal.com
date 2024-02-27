@@ -1,4 +1,3 @@
-import type { Prisma } from "@prisma/client";
 import type { MailData } from "@sendgrid/helpers/classes/mail";
 import { createEvent } from "ics";
 import type { ParticipationStatus } from "ics";
@@ -35,12 +34,12 @@ function getiCalEventAsString(evt: BookingInfo, status?: ParticipationStatus) {
     recurrenceRule = new RRule(evt.eventType.recurringEvent).toString().replace("RRULE:", "");
   }
 
-  let location = evt.location || "";
-  if (evt?.metadata && typeof evt.metadata === "object" && "videoCallUrl" in evt.metadata) {
-    location = (evt?.metadata as Prisma.JsonObject).videoCallUrl as string;
-  } else {
-    location = guessEventLocationType(location)?.label || location;
+  let location = bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl;
+
+  if (!location) {
+    location = guessEventLocationType(location)?.label || evt.location || "";
   }
+
   const icsEvent = createEvent({
     uid,
     startInputType: "utc",
