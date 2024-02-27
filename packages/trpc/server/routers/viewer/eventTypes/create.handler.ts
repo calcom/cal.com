@@ -83,6 +83,22 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
       },
     };
     data.schedulingType = schedulingType;
+
+    if (!isManagedEventType) {
+      data.hosts = {
+        create: [
+          {
+            user: {
+              connect: {
+                id: userId,
+              },
+            },
+            isFixed: data.schedulingType === SchedulingType.COLLECTIVE,
+            priority: 2, //default
+          },
+        ],
+      };
+    }
   }
 
   const profile = ctx.user.profile;
