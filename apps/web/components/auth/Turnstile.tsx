@@ -8,5 +8,5 @@ type Props = Omit<TurnstileProps, "sitekey">;
 export default function TurnstileWidget(props: Props) {
   if (!CLOUDFLARE_SITE_ID) return null;
 
-  return <Turnstile {...props} sitekey={CLOUDFLARE_SITE_ID} />;
+  return <Turnstile {...props} sitekey={CLOUDFLARE_SITE_ID} theme="auto" />;
 }

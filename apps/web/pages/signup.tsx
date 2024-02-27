@@ -19,7 +19,14 @@ import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getO
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { classNames } from "@calcom/lib";
-import { APP_NAME, URL_PROTOCOL_REGEX, IS_CALCOM, WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
+import {
+  APP_NAME,
+  URL_PROTOCOL_REGEX,
+  IS_CALCOM,
+  WEBAPP_URL,
+  WEBSITE_URL,
+  CLOUDFLARE_SITE_ID,
+} from "@calcom/lib/constants";
 import { fetchUsername } from "@calcom/lib/fetchUsername";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
@@ -37,6 +44,7 @@ import PageWrapper from "@components/PageWrapper";
 
 const signupSchema = apiSignupSchema.extend({
   apiError: z.string().optional(), // Needed to display API errors doesnt get passed to the API
+  cfToken: z.string().optional(),
 });
 
 const TurnstileCaptcha = dynamic(() => import("@components/auth/Turnstile"), { ssr: false });
@@ -207,7 +215,8 @@ export default function Signup({
 
   const isOrgInviteByLink = orgSlug && !prepopulateFormValues?.username;
 
-  const signUp: SubmitHandler<FormValues> = async (data) => {
+  const signUp: SubmitHandler<FormValues> = async (_data) => {
+    const { cfToken, ...data } = _data;
     await fetch("/api/auth/signup", {
       body: JSON.stringify({
         ...data,
@@ -216,6 +225,7 @@ export default function Signup({
       }),
       headers: {
         "Content-Type": "application/json",
+        "cf-access-token": cfToken ?? "invalid-token",
       },
       method: "POST",
     })
@@ -323,12 +333,19 @@ export default function Signup({
                   hintErrors={["caplow", "min", "num"]}
                 />
                 {/* Cloudflare Turnstile Captcha */}
-                <TurnstileCaptcha
-                  onVerify={(token) => {
-                    formMethods.setValue("token", token);
-                  }}
-                  onError={() => console.log("error")}
-                />
+                {CLOUDFLARE_SITE_ID ? (
+                  <div
+                    style={{
+                      height: "65px",
+                    }}>
+                    <TurnstileCaptcha
+                      onVerify={(token) => {
+                        formMethods.setValue("token", token);
+                      }}
+                      onError={() => console.log("error")}
+                    />
+                  </div>
+                ) : null}
 
                 <Button
                   type="submit"
@@ -339,6 +356,7 @@ export default function Signup({
                     !!formMethods.formState.errors.email ||
                     !formMethods.getValues("email") ||
                     !formMethods.getValues("password") ||
+                    (CLOUDFLARE_SITE_ID && !formMethods.getValues("token")) ||
                     isSubmitting ||
                     usernameTaken
                   }>
