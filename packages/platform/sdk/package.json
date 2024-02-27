@@ -8,6 +8,7 @@
   "dependencies": {
     "axios": "^1.6.7",
     "axios-retry": "^4.0.0",
+    "lodash": "^4.17.21",
     "zod": "^3.22.4"
   }
 }

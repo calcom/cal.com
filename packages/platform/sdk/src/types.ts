@@ -1,3 +1,7 @@
+type Without<T, U> = { [P in Exclude<keyof T, keyof U>]?: never };
+
+export type XOR<T, Tcopy> = T extends object ? Without<Exclude<Tcopy, T>, T> & T : T;
+
 export interface CalSdkConstructorOptions {
   baseUrl?: string;
   handleRefresh?: boolean;
@@ -20,5 +24,10 @@ export enum ApiVersion {
   V2 = "v2/",
   NEUTRAL = "/",
 }
+
+export type SdkAuthOptions = {
+  clientSecret?: string;
+  accessToken?: string;
+};
 
 export * from "./endpoints/slots/types";

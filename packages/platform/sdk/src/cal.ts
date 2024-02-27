@@ -3,8 +3,9 @@ import axiosRetry from "axios-retry";
 
 import { Bookings } from "./endpoints/bookings";
 import { Slots } from "./endpoints/slots";
+import { SdkInitializationError } from "./lib/errors/sdk-initialization-error";
 import { HttpCaller } from "./lib/http-caller";
-import type { CalSdkConstructorOptions } from "./types";
+import type { CalSdkConstructorOptions, SdkAuthOptions } from "./types";
 
 /**
  * Helper class to interact with the Cal.com V2 API.
@@ -17,12 +18,16 @@ export class CalSdk {
 
   constructor(
     protected readonly clientId: string,
-    protected readonly clientSecret: string,
+    protected readonly authOptions: SdkAuthOptions,
     protected readonly options: CalSdkConstructorOptions = {
       baseUrl: "https://api.cal.com/", // don't set api version here as endpoints may have version-neutral or specific values.
     }
   ) {
-    this.httpCaller = new HttpCaller(this._createAxiosClientBase());
+    if (!authOptions.accessToken && !authOptions.clientSecret) {
+      throw new SdkInitializationError("Either 'accessToken' or 'clientSecret' are required in authOptions");
+    }
+
+    this.httpCaller = new HttpCaller(this._createAxiosClientBase(), this.authOptions);
 
     this.slots = new Slots(this);
     this.bookings = new Bookings(this);
