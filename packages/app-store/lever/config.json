@@ -1,0 +1,17 @@
+{
+  "/*": "Don't modify slug - If required, do it using cli edit command",
+  "name": "Lever",
+  "slug": "lever",
+  "type": "lever_other",
+  "logo": "icon.svg",
+  "url": "https://www.lever.co",
+  "variant": "other",
+  "categories": ["other"],
+  "publisher": "Suyash Srivastava",
+  "email": "suyashsrivastava5053@gmail.com",
+  "description": "Improve your hiring quality, efficiency, and productivity with our modern ATS + CRM",
+  "isTemplate": false,
+  "__createdUsingCli": true,
+  "__template": "basic",
+  "dirName": "lever"
+}
