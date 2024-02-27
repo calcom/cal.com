@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import z from "zod";
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
+import { CREDENTIAL_SYNC_SECRET, CREDENTIAL_SYNC_SECRET_HEADER_NAME } from "@calcom/lib/constants";
 import { APP_CREDENTIAL_SHARING_ENABLED } from "@calcom/lib/constants";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import prisma from "@calcom/prisma";
@@ -19,10 +20,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(403).json({ message: "Credential sharing is not enabled" });
   }
 
-  if (
-    req.headers[process.env.CALCOM_WEBHOOK_HEADER_NAME || "calcom-webhook-secret"] !==
-    process.env.CALCOM_WEBHOOK_SECRET
-  ) {
+  if (req.headers[CREDENTIAL_SYNC_SECRET_HEADER_NAME] !== CREDENTIAL_SYNC_SECRET) {
     return res.status(403).json({ message: "Invalid webhook secret" });
   }
 
