@@ -1,3 +1,4 @@
+import type { Prisma } from "@prisma/client";
 import type { MailData } from "@sendgrid/helpers/classes/mail";
 import { createEvent } from "ics";
 import type { ParticipationStatus } from "ics";
@@ -35,9 +36,8 @@ function getiCalEventAsString(evt: BookingInfo, status?: ParticipationStatus) {
   }
 
   let location = evt.location || "";
-  const videoCallUrl = evt?.metadata?.videoCallUrl;
-  if (videoCallUrl) {
-    location = videoCallUrl;
+  if (evt?.metadata && typeof evt.metadata === "object" && "videoCallUrl" in evt.metadata) {
+    location = (evt?.metadata as Prisma.JsonObject).videoCallUrl as string;
   } else {
     location = guessEventLocationType(location)?.label || location;
   }
