@@ -45,8 +45,6 @@ export function BaseCalProvider({ clientId, accessToken, options, children }: Ca
     clientId,
   });
 
-  console.log(isInit, error, clientId, isRefreshing, currentAccessToken, http.getAuthorizationHeader());
-
   return isInit ? (
     <AtomsContext.Provider
       value={{

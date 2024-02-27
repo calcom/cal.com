@@ -8,9 +8,6 @@ const http = (function () {
     headers: {},
   });
   let refreshUrl = "";
-  let expiredToken = "";
-  const accessToken = "";
-  console.log(instance.defaults.headers.common["Authorization"]);
   return {
     instance: instance,
     get: instance.get,
@@ -32,7 +29,6 @@ const http = (function () {
       return instance.defaults.baseURL;
     },
     setAuthorizationHeader: (accessToken: string) => {
-      accessToken = accessToken;
       instance.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`;
     },
     getAuthorizationHeader: () => {
@@ -47,10 +43,7 @@ const http = (function () {
         },
       });
       const res = await response.json();
-      console.log("HERE", res.accessToken, response.status);
       if (res.accessToken) {
-        expiredToken = accessToken;
-        console.log("UPDATE TOKEN");
         http.setAuthorizationHeader(res.accessToken);
         return res.accessToken;
       }
