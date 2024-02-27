@@ -67,6 +67,7 @@ export function AvailableCellsForDay({ availableSlots, day, startHour }: Availab
           returnDate="2022-01-01"
           emojiStatus="🏖️"
           borderDashed={false}
+          date={dateFormatted}
         />
       </CustomCell>
     );

@@ -2240,8 +2240,8 @@
   "booking_redirect_request_title": "Booking Redirect Request",
   "select_team_member": "Select team member",
   "going_away_title": "Going away? Simply mark your profile link as unavailable for a period of time.",
-  "redirect_team_enabled": "Redirect your profile to another team member",
-  "redirect_team_disabled": "Redirect your profile to another team member (Team plan required)",
+  "redirect_team_enabled": "Provide a link to a team member when OOO",
+  "redirect_team_disabled": "Provide a link to a team member when OOO (Team plan required)",
   "out_of_office_unavailable_list": "Out of office unavailability list",
   "success_deleted_entry_out_of_office": "Successfully deleted entry",
   "temporarily_out_of_office":"Temporarily Out-Of-Office?",
@@ -2265,5 +2265,10 @@
   "field_identifiers_as_variables": "Use field identifiers as variables for your custom event redirect",
   "field_identifiers_as_variables_with_example": "Use field identifiers as variables for your custom event redirect (e.g. {{variable}})",
   "account_already_linked": "Account is already linked",
+  "ooo_reasons_unspecified": "Unspecified",
+  "ooo_reasons_vacation": "Vacation",
+  "ooo_reasons_travel": "Travel",
+  "ooo_reasons_sick_leave": "Sick leave",
+  "ooo_reasons_public_holiday": "Public holiday",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

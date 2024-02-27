@@ -1,5 +1,8 @@
+import { useRouter } from "next/router";
+
 import type { IOutOfOfficeData } from "@calcom/core/getUserAvailability";
 import { classNames } from "@calcom/lib";
+import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { Button } from "@calcom/ui";
 
 interface IOutOfOfficeInSlotsProps {
@@ -8,10 +11,13 @@ interface IOutOfOfficeInSlotsProps {
   toUser?: IOutOfOfficeData["anyDate"]["toUser"];
   emojiStatus?: string;
   borderDashed?: boolean;
+  date: string;
 }
 
 export const OutOfOfficeInSlots = (props: IOutOfOfficeInSlotsProps) => {
-  const { fromUser, returnDate, toUser, emojiStatus = "🏝️", borderDashed = true } = props;
+  const { fromUser, returnDate, toUser, emojiStatus = "🏝️", borderDashed = true, date } = props;
+  const searchParams = useCompatSearchParams();
+  const router = useRouter();
 
   if (!fromUser || !returnDate) return null;
   return (
@@ -35,7 +41,21 @@ export const OutOfOfficeInSlots = (props: IOutOfOfficeInSlotsProps) => {
           )}
         </div>
         {toUser?.id && (
-          <Button className="mt-8 max-w-[90%]" variant="button" color="secondary">
+          <Button
+            className="mt-8 max-w-[90%]"
+            variant="button"
+            color="secondary"
+            onClick={() => {
+              // grab current dates and query params from URL
+
+              const month = searchParams.get("month");
+              const layout = searchParams.get("layout");
+              const date = searchParams.get("date") || date;
+              // go to the booking page with the selected user and correct search params
+              // @TODO: should we make an api or server function to automatically generate the correct URL using user id considering orgs
+
+              router.push(`/${toUser.username}?month=${month}&layout=${layout}&date=${date}`);
+            }}>
             <span className="block overflow-hidden text-ellipsis whitespace-nowrap">
               Book with {toUser.displayName}
             </span>

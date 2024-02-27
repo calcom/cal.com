@@ -201,6 +201,7 @@ export const AvailableTimes = ({
         toUser={slots[0].toUser}
         returnDate={slots[0].returnDate || ""}
         fromUser={slots[0].fromUser}
+        date={slots[0].date}
       />
     );
   }

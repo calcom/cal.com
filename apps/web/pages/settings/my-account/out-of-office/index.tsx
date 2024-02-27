@@ -22,7 +22,7 @@ import {
   DialogContent,
   DialogFooter,
 } from "@calcom/ui";
-import { TableNew, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@calcom/ui";
+import { TableNew, TableBody, TableCell, TableRow } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
 
@@ -32,10 +32,17 @@ export type BookingRedirectForm = {
   toTeamUserId: number | null;
 };
 
-const OutOfOfficeSection = () => {
+const CreateOutOfOfficeEntryModal = ({
+  openModal,
+  closeModal,
+}: {
+  openModal: boolean;
+  closeModal: () => void;
+}) => {
   const { t } = useLocale();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
 
+  const [selectedReason, setSelectedReason] = useState<{ label: string; value: string } | null>(null);
   const [profileRedirect, setProfileRedirect] = useState(false);
   const [selectedMember, setSelectedMember] = useState<{ label: string; value: number | null } | null>(null);
 
@@ -43,6 +50,20 @@ const OutOfOfficeSection = () => {
     startDate: dayjs().startOf("d").toDate(),
     endDate: dayjs().add(1, "d").endOf("d").toDate(),
   });
+
+  const { hasTeamPlan } = useHasTeamPlan();
+  const { data: listMembers } = trpc.viewer.teams.listMembers.useQuery({});
+  const me = useMeQuery();
+  const memberListOptions: {
+    value: number | null;
+    label: string;
+  }[] =
+    listMembers
+      ?.filter((member) => me?.data?.id !== member.id)
+      .map((member) => ({
+        value: member.id || null,
+        label: member.name || "",
+      })) || [];
 
   const { handleSubmit, setValue, getValues, control } = useForm<BookingRedirectForm>({
     defaultValues: {
@@ -66,123 +87,135 @@ const OutOfOfficeSection = () => {
     },
   });
 
-  const { hasTeamPlan } = useHasTeamPlan();
-  const { data: listMembers } = trpc.viewer.teams.listMembers.useQuery({});
-  const me = useMeQuery();
-  const memberListOptions: {
-    value: number | null;
-    label: string;
-  }[] =
-    listMembers
-      ?.filter((member) => me?.data?.id !== member.id)
-      .map((member) => ({
-        value: member.id || null,
-        label: member.name || "",
-      })) || [];
-
   return (
-    <>
-      <form
-        onSubmit={handleSubmit((data) => {
-          createOutOfOfficeEntry.mutate(data);
-          setValue("toTeamUserId", null);
-          setSelectedMember(null);
-        })}>
-        <div className="">
+    <Dialog open={openModal}>
+      <DialogContent
+        onOpenAutoFocus={(event) => {
+          event.preventDefault();
+        }}>
+        <form
+          id="create-ooo-form"
+          onSubmit={handleSubmit((data) => {
+            createOutOfOfficeEntry.mutate(data);
+            setValue("toTeamUserId", null);
+            setSelectedMember(null);
+          })}>
+          <DialogHeader title="Create an Out of Office" />
           <div>
-            <p className="text-emphasis mb-1 block text-sm font-medium">{t("time_range")}</p>
             <div>
-              <Controller
-                name="dateRange"
-                control={control}
-                defaultValue={dateRange}
-                render={() => (
-                  <DateRangePicker
-                    startDate={getValues("dateRange").startDate}
-                    endDate={getValues("dateRange").endDate}
-                    onDatesChange={({ startDate, endDate }) => {
-                      setValue("dateRange", {
-                        startDate,
-                        endDate,
-                      });
-                    }}
-                  />
-                )}
-              />
-            </div>
-          </div>
-          <div className="mt-4 grid grid-rows-2 gap-2 md:grid-cols-2">
-            {profileRedirect && (
+              <p className="text-emphasis mb-1 block text-sm font-medium capitalize">{t("dates")}</p>
               <div>
-                <p className="text-emphasis block text-sm font-medium">{t("team_member")}</p>
+                <Controller
+                  name="dateRange"
+                  control={control}
+                  defaultValue={dateRange}
+                  render={() => (
+                    <DateRangePicker
+                      startDate={getValues("dateRange").startDate}
+                      endDate={getValues("dateRange").endDate}
+                      onDatesChange={({ startDate, endDate }) => {
+                        setValue("dateRange", {
+                          startDate,
+                          endDate,
+                        });
+                      }}
+                    />
+                  )}
+                />
+              </div>
+            </div>
+
+            {/* Reason Select */}
+            <div className="mt-5 w-full">
+              <div className="">
+                <p className="text-emphasis block text-sm font-medium">{t("reason")}</p>
                 <Select
                   className="mt-1 h-4 text-white"
-                  name="toTeamUsername"
-                  data-testid="team_username_select"
-                  value={selectedMember}
-                  placeholder={t("select_team_member")}
-                  isSearchable
-                  options={memberListOptions}
+                  name="reason"
+                  data-testid="reason_select"
+                  value={selectedReason}
+                  placeholder="Select reason"
+                  options={[
+                    { label: `🕒 ${t("ooo_reasons_unspecified")}`, value: "ooo_reasons_unspecified" },
+                    { label: `🏝️ ${t("ooo_reasons_vacation")}`, value: "ooo_reason_vacation" },
+                    { label: `🛫 ${t("ooo_reasons_travel")}`, value: "ooo_reason_travel" },
+                    { label: `🤒 ${t("ooo_reasons_sick_leave")}`, value: "ooo_reason_sick_leave" },
+                    { label: `📆 ${t("ooo_reasons_public_holiday")}`, value: "ooo_reason_public_holiday" },
+                  ]}
                   onChange={(selectedOption) => {
-                    if (selectedOption?.value) {
-                      setSelectedMember(selectedOption);
-                      setValue("toTeamUserId", selectedOption?.value);
-                    }
+                    setSelectedReason(selectedOption);
                   }}
                 />
               </div>
-            )}
-          </div>
-          <div className="flex flex-row">
-            <Switch
-              disabled={!hasTeamPlan}
-              data-testid="profile-redirect-switch"
-              checked={profileRedirect}
-              id="profile-redirect-switch"
-              onCheckedChange={(state) => {
-                setProfileRedirect(state);
-              }}
-              label={hasTeamPlan ? t("redirect_team_enabled") : t("redirect_team_disabled")}
-            />
-            {!hasTeamPlan && (
-              <div className="mx-2" data-testid="upgrade-team-badge">
-                <UpgradeTeamsBadge />
+            </div>
+
+            <div className="mt-12 rounded-lg bg-[#f9fafb] p-4 dark:bg-transparent">
+              <div className="flex flex-row">
+                <Switch
+                  disabled={!hasTeamPlan}
+                  data-testid="profile-redirect-switch"
+                  checked={profileRedirect}
+                  id="profile-redirect-switch"
+                  onCheckedChange={(state) => {
+                    setProfileRedirect(state);
+                  }}
+                  label={hasTeamPlan ? t("redirect_team_enabled") : t("redirect_team_disabled")}
+                />
+                {!hasTeamPlan && (
+                  <div className="mx-2" data-testid="upgrade-team-badge">
+                    <UpgradeTeamsBadge />
+                  </div>
+                )}
               </div>
-            )}
+
+              {profileRedirect && (
+                <div className="mt-4">
+                  <div className="h-16">
+                    <p className="text-emphasis block text-sm font-medium">{t("team_member")}</p>
+                    <Select
+                      className="mt-1 h-4 text-white"
+                      name="toTeamUsername"
+                      data-testid="team_username_select"
+                      value={selectedMember}
+                      placeholder={t("select_team_member")}
+                      isSearchable
+                      options={memberListOptions}
+                      onChange={(selectedOption) => {
+                        if (selectedOption?.value) {
+                          setSelectedMember(selectedOption);
+                          setValue("toTeamUserId", selectedOption?.value);
+                        }
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
-
-        <Button
-          color="primary"
-          type="submit"
-          disabled={createOutOfOfficeEntry.isPending}
-          data-testid="create-entry-ooo-redirect">
-          {t("create_entry")}
-        </Button>
-      </form>
-    </>
-  );
-};
-
-const CreateOutOfOfficeEntryModal = () => {
-  return (
-    <Dialog open={true}>
-      <DialogHeader title="Create Out of Office Entry" />
-      <DialogContent>
-        <OutOfOfficeSection />
+          <DialogFooter>
+            <div className="flex">
+              <Button color="minimal" type="button" onClick={() => closeModal()} className="mr-1">
+                Cancel
+              </Button>
+              <Button
+                form="create-ooo-form"
+                color="primary"
+                type="submit"
+                disabled={createOutOfOfficeEntry.isPending}
+                data-testid="create-entry-ooo-redirect">
+                {t("create")}
+              </Button>
+            </div>
+          </DialogFooter>
+        </form>
       </DialogContent>
-      <DialogFooter>
-        <Button color="minimal" type="button" onClick={() => console.log("close")}>
-          Cancel
-        </Button>
-      </DialogFooter>
     </Dialog>
   );
 };
 
 const OutOfOfficeEntriesList = () => {
   const { t } = useLocale();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const { data, isPending } = trpc.viewer.outOfOfficeEntriesList.useQuery();
   const deleteOutOfOfficeEntryMutation = trpc.viewer.outOfOfficeEntryDelete.useMutation({
     onSuccess: () => {
@@ -198,27 +231,31 @@ const OutOfOfficeEntriesList = () => {
   return (
     <div className="border-subtle mt-6 rounded-lg border">
       <TableNew className="border-0">
-        <TableHeader className="md:z-1">
-          <TableRow>
-            <TableHead className="rounded-tl-lg font-normal capitalize">{t("time_range")}</TableHead>
-            <TableHead className="font-normal">{t("redirect_to")}</TableHead>
-
-            <TableHead className="rounded-tr-lg font-normal">{t("action")}</TableHead>
-          </TableRow>
-        </TableHeader>
         <TableBody>
           {data?.map((item) => (
             <TableRow key={item.id} data-testid={`table-redirect-${item.toUser?.username || "n-a"}`}>
-              <TableCell>
-                <p className="px-2">
-                  {dayjs.utc(item.start).format("ll")} - {dayjs.utc(item.end).format("ll")}
-                </p>
-              </TableCell>
-              <TableCell>
-                <p className="px-2">{item.toUser?.username || "N/A"}</p>
-              </TableCell>
-              <TableCell className="px-4">
+              <TableCell className="flex flex-row justify-between p-4">
+                <div className="flex flex-row">
+                  <div className="flex w-10 items-center justify-center rounded-full bg-gray-50">🏝️</div>
+
+                  <div className="ml-2 flex flex-col">
+                    <p className="px-2 font-bold">
+                      {dayjs.utc(item.start).format("ll")} - {dayjs.utc(item.end).format("ll")}
+                    </p>
+                    <p className="px-2">
+                      {item.toUser?.username ? (
+                        <>
+                          Forwarding to <span className="text-subtle font-bold">{item.toUser.username}</span>
+                        </>
+                      ) : (
+                        "No forwarding"
+                      )}
+                    </p>
+                  </div>
+                </div>
+
                 <Button
+                  className="self-center rounded-lg border"
                   type="button"
                   color="minimal"
                   variant="icon"
@@ -256,7 +293,7 @@ const OutOfOfficeEntriesList = () => {
 
 const OutOfOfficePage = () => {
   const { t } = useLocale();
-
+  const [openModal, setOpenModal] = useState(false);
   return (
     <>
       <Meta
@@ -266,15 +303,13 @@ const OutOfOfficePage = () => {
         CTA={
           <Button
             color="primary"
-            href="/settings/my-account"
-            className="flex w-20 items-center justify-between px-4">
+            className="flex w-20 items-center justify-between px-4"
+            onClick={() => setOpenModal(true)}>
             <Plus size={16} /> Add
           </Button>
         }
       />
-      {/* @NOTE: layout has a bigger width ratio, so when that it's fixed we should remove this width */}
-      {/* <OutOfOfficeSection /> */}
-      <CreateOutOfOfficeEntryModal />
+      <CreateOutOfOfficeEntryModal openModal={openModal} closeModal={() => setOpenModal(false)} />
       <OutOfOfficeEntriesList />
     </>
   );
