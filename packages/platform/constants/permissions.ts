@@ -6,8 +6,8 @@ export const SCHEDULE_READ = 16; // 2^4
 export const SCHEDULE_WRITE = 32; // 2^5
 export const APPS_READ = 64; // 2^6
 export const APPS_WRITE = 128; // 2^7
-export const PROFILE_READ = 256; //2^8;
-export const PROFILE_WRITE = 512; //2^9;
+export const PROFILE_READ = 256; // 2^8;
+export const PROFILE_WRITE = 512; // 2^9;
 
 export const PERMISSIONS = [
   EVENT_TYPE_READ,
