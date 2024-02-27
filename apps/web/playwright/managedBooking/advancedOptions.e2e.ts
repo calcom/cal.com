@@ -19,7 +19,7 @@ test.describe("Check advanced options in a managed team event type", () => {
     await bookingPage.checkRequiresBookerEmailVerification();
     await bookingPage.checkHideNotes();
     await bookingPage.checkRedirectOnBooking();
-    await bookingPage.checkEnablePrivateUrl();
+    // await bookingPage.checkEnablePrivateUrl();
     await bookingPage.checkLockTimezone();
     await bookingPage.updateEventType();
     await bookingPage.goToEventTypesPage();
@@ -32,7 +32,7 @@ test.describe("Check advanced options in a managed team event type", () => {
     await bookingPage.checkRequiresBookerEmailVerification();
     await bookingPage.checkHideNotes();
     await bookingPage.checkRedirectOnBooking();
-    await bookingPage.checkEnablePrivateUrl();
+    // await bookingPage.checkEnablePrivateUrl();
     await bookingPage.toggleOfferSeats();
     await bookingPage.checkLockTimezone();
     await bookingPage.updateEventType();

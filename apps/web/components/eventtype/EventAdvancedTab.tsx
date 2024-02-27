@@ -231,6 +231,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
             toggleSwitchAtTheEnd={true}
             switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
             title={t("requires_booker_email_verification")}
+            data-testid="requires-booker-email-verification"
             {...requiresBookerEmailVerificationProps}
             description={t("description_requires_booker_email_verification")}
             checked={value}
@@ -245,6 +246,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
             labelClassName="text-sm"
             toggleSwitchAtTheEnd={true}
             switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
+            data-testid="disable-notes"
             title={t("disable_notes")}
             {...hideCalendarNotesLocked}
             description={t("disable_notes_description")}
