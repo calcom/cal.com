@@ -23,7 +23,7 @@ export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
 
   if (IS_TEAM_BILLING_ENABLED) await cancelTeamSubscriptionFromStripe(input.teamId);
 
-  await prisma.$transaction(async (tx) => {
+  const deletedTeam = await prisma.$transaction(async (tx) => {
     // delete all memberships
     await tx.membership.deleteMany({
       where: {
@@ -36,14 +36,15 @@ export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
         id: input.teamId,
       },
     });
-
-    const deletedTeamMetadata = teamMetadataSchema.parse(deletedTeam.metadata);
-
-    if (deletedTeamMetadata?.isOrganization && deletedTeam.slug) deleteDomain(deletedTeam.slug);
-
-    // Sync Services: Close.cm
-    closeComDeleteTeam(deletedTeam);
+    return deletedTeam;
   });
+
+  const deletedTeamMetadata = teamMetadataSchema.parse(deletedTeam.metadata);
+
+  if (deletedTeamMetadata?.isOrganization && deletedTeam.slug) deleteDomain(deletedTeam.slug);
+
+  // Sync Services: Close.cm
+  closeComDeleteTeam(deletedTeam);
 };
 
 export default deleteHandler;
