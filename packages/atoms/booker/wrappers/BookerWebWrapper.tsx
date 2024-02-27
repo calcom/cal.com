@@ -69,7 +69,7 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
       name:
         searchParams?.get("name") ||
         (firstNameQueryParam ? `${firstNameQueryParam} ${lastNameQueryParam}` : null),
-      guests: searchParams?.getAll("guests") || searchParams?.getAll("guest"),
+      guests: (searchParams?.getAll("guests") || searchParams?.getAll("guest")) ?? [],
     };
   }, [searchParams, firstNameQueryParam, lastNameQueryParam]);
 

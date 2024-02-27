@@ -3,7 +3,7 @@ import { createTransport } from "nodemailer";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
-import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
+import { getFeatureFlag } from "@calcom/features/flags/server/utils";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { serverConfig } from "@calcom/lib/serverConfig";
 import { setTestEmail } from "@calcom/lib/testEmails";
@@ -28,9 +28,9 @@ export default class BaseEmail {
     return {};
   }
   public async sendEmail() {
-    const featureFlags = await getFeatureFlagMap(prisma);
+    const emailsDisabled = await getFeatureFlag(prisma, "emails");
     /** If email kill switch exists and is active, we prevent emails being sent. */
-    if (featureFlags.emails) {
+    if (emailsDisabled) {
       console.warn("Skipped Sending Email due to active Kill Switch");
       return new Promise((r) => r("Skipped Sending Email due to active Kill Switch"));
     }
@@ -65,7 +65,14 @@ export default class BaseEmail {
           }
         }
       )
-    ).catch((e) => console.error("sendEmail", e));
+    ).catch((e) =>
+      console.error(
+        "sendEmail",
+        `from: ${"from" in payloadWithUnEscapedSubject ? payloadWithUnEscapedSubject.from : ""}`,
+        `subject: ${"subject" in payloadWithUnEscapedSubject ? payloadWithUnEscapedSubject.subject : ""}`,
+        e
+      )
+    );
     return new Promise((resolve) => resolve("send mail async"));
   }
   protected getMailerOptions() {
