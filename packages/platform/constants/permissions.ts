@@ -6,6 +6,8 @@ export const SCHEDULE_READ = 16; // 2^4
 export const SCHEDULE_WRITE = 32; // 2^5
 export const APPS_READ = 64; // 2^6
 export const APPS_WRITE = 128; // 2^7
+export const PROFILE_READ = 256; //2^8;
+export const PROFILE_WRITE = 512; //2^9;
 
 export const PERMISSIONS = [
   EVENT_TYPE_READ,
@@ -16,6 +18,8 @@ export const PERMISSIONS = [
   SCHEDULE_WRITE,
   APPS_READ,
   APPS_WRITE,
+  PROFILE_READ,
+  PROFILE_WRITE,
 ] as const;
 
 export const PERMISSION_MAP = {
@@ -27,6 +31,8 @@ export const PERMISSION_MAP = {
   SCHEDULE_WRITE,
   APPS_READ,
   APPS_WRITE,
+  PROFILE_READ,
+  PROFILE_WRITE,
 } as const;
 
 export const PERMISSIONS_GROUPED_MAP = {
@@ -53,5 +59,11 @@ export const PERMISSIONS_GROUPED_MAP = {
     write: APPS_WRITE,
     key: "apps",
     label: "Apps",
+  },
+  PROFILE: {
+    read: PROFILE_READ,
+    write: PROFILE_WRITE,
+    key: "profile",
+    label: "Profile",
   },
 } as const;
