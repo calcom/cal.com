@@ -515,22 +515,20 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
     );
     if (occupiedSeats?.length) {
       const addedToCurrentSeats: string[] = [];
-      if (typeof availabilityCheckProps.currentSeats !== undefined) {
-        availabilityCheckProps.currentSeats = (availabilityCheckProps.currentSeats as CurrentSeats).map(
-          (item) => {
-            const attendees =
-              occupiedSeats.filter(
-                (seat) => seat.slotUtcStartDate.toISOString() === item.startTime.toISOString()
-              )?.length || 0;
-            if (attendees) addedToCurrentSeats.push(item.startTime.toISOString());
-            return {
-              ...item,
-              _count: {
-                attendees: item._count.attendees + attendees,
-              },
-            };
-          }
-        ) as CurrentSeats;
+      if (typeof availabilityCheckProps.currentSeats !== "undefined") {
+        availabilityCheckProps.currentSeats = availabilityCheckProps.currentSeats.map((item) => {
+          const attendees =
+            occupiedSeats.filter(
+              (seat) => seat.slotUtcStartDate.toISOString() === item.startTime.toISOString()
+            )?.length || 0;
+          if (attendees) addedToCurrentSeats.push(item.startTime.toISOString());
+          return {
+            ...item,
+            _count: {
+              attendees: item._count.attendees + attendees,
+            },
+          };
+        });
         occupiedSeats = occupiedSeats.filter(
           (item) => !addedToCurrentSeats.includes(item.slotUtcStartDate.toISOString())
         );
