@@ -211,6 +211,61 @@ describe("processWorkingHours", () => {
 
     expect(results).toEqual([]);
   });
+
+  it("should show working hours in correct timezone if existing travel schedule", () => {
+    vi.useFakeTimers().setSystemTime(new Date("2023-01-01T00:00:00.000Z"));
+
+    const item = {
+      days: [0, 1, 2, 3, 4, 5, 6], // Monday to Sunday
+      startTime: new Date(Date.UTC(2023, 5, 12, 8, 0)), // 8 AM
+      endTime: new Date(Date.UTC(2023, 5, 12, 17, 0)), // 5 PM
+    };
+
+    const timeZone = "Europe/Berlin";
+
+    const dateFrom = dayjs().startOf("day");
+    const dateTo = dayjs().add(1, "week").startOf("day");
+
+    const travelSchedules = [
+      {
+        startDate: dayjs().add(2, "day").startOf("day"),
+        endDate: dayjs().add(2, "day").endOf("day"),
+        timeZone: "America/New_York",
+      },
+    ];
+
+    const resultsWithTravelSchedule = processWorkingHours({
+      item,
+      timeZone,
+      dateFrom,
+      dateTo,
+      travelSchedules,
+    });
+
+    const resultFromDaysWithOriginalTz = resultsWithTravelSchedule.filter((result) => {
+      return (
+        result.start.isBefore(travelSchedules[0].startDate) ||
+        result.start.isAfter(travelSchedules[0].endDate)
+      );
+    });
+
+    expect(resultFromDaysWithOriginalTz.length).toBe(6);
+
+    const resultFromDaysWithtravelScheduleTz = resultsWithTravelSchedule.filter(
+      (result) => !resultFromDaysWithOriginalTz.find((day) => day.start.isSame(result.start))
+    );
+    expect(
+      resultFromDaysWithOriginalTz.every(
+        (result) => result.start.utc().hour() === 7 && result.end.utc().hour() === 16
+      )
+    ).toBeTruthy();
+
+    expect(
+      resultFromDaysWithtravelScheduleTz.every((result) => {
+        return result.start.utc().hour() === 13 && result.end.utc().hour() === 22;
+      })
+    ).toBeTruthy();
+  });
 });
 
 describe("processDateOverrides", () => {
