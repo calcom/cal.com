@@ -58,7 +58,7 @@ test.describe("Update Profile", () => {
 
     await page.getByTestId("profile-update-email-submit-button").click();
 
-    const toastLocator = await page.waitForSelector('[data-testId="toast-success"]');
+    const toastLocator = await page.getByTestId("toast-success");
 
     const textContent = await toastLocator.textContent();
 
@@ -84,7 +84,7 @@ test.describe("Update Profile", () => {
 
     await page.goto(verifyUrl);
 
-    const errorLocator = await page.waitForSelector('[data-testId="toast-error"]');
+    const errorLocator = await page.getByTestId("toast-error");
 
     expect(errorLocator).toBeDefined();
 
@@ -118,11 +118,7 @@ test.describe("Update Profile", () => {
 
     await page.getByTestId("profile-update-email-submit-button").click();
 
-    const toastLocator = await page.waitForSelector('[data-testId="toast-success"]');
-
-    const textContent = await toastLocator.textContent();
-
-    expect(textContent).toContain(email);
+    expect(await page.getByTestId("toast-success").textContent()).toContain(email);
 
     // Instead of dealing with emails in e2e lets just get the token and navigate to it
     const verificationToken = await prisma.verificationToken.findFirst({
@@ -140,9 +136,7 @@ test.describe("Update Profile", () => {
 
     await page.goto(verifyUrl);
 
-    const successLocator = await page.waitForSelector('[data-testId="toast-success"]');
-
-    expect(await successLocator.textContent()).toContain(email);
+    expect(await page.getByTestId("toast-success").textContent()).toContain(email);
 
     // After email verification is successfull. user is sent to /event-types
     await page.waitForURL("/event-types");
@@ -176,9 +170,7 @@ test.describe("Update Profile", () => {
 
     await page.getByTestId("profile-update-email-submit-button").click();
 
-    const toastLocator = await page.waitForSelector('[data-testId="toast-success"]');
-
-    expect(await toastLocator.isVisible()).toBe(true);
+    expect(await page.getByTestId("toast-success").isVisible()).toBe(true);
 
     const emailInputUpdated = page.getByTestId("profile-form-email");
 
