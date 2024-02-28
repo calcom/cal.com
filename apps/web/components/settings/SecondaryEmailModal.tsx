@@ -54,17 +54,17 @@ const SecondaryEmailModal = ({
         title={t("add_email")}
         description={t("add_email_description")}
         type="creation"
-        data-testId="secondary-email-add-dialog">
+        data-testid="secondary-email-add-dialog">
         <Form form={formMethods} handleSubmit={handleAddEmail}>
           <TextField
             label={t("email_address")}
-            data-testId="secondary-email-input"
+            data-testid="secondary-email-input"
             {...formMethods.register("email")}
           />
           {errorMessage && <InputError message={errorMessage} />}
           <DialogFooter showDivider className="mt-10">
             <DialogClose onClick={onCancel}>{t("cancel")}</DialogClose>
-            <Button type="submit" data-testId="add-secondary-email-button" disabled={isLoading}>
+            <Button type="submit" data-testid="add-secondary-email-button" disabled={isLoading}>
               {t("add_email")}
             </Button>
           </DialogFooter>

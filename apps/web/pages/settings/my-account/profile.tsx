@@ -423,7 +423,7 @@ const ProfileView = () => {
           </div>
           <DialogFooter showDivider>
             <Button
-              data-testId="profile-update-email-submit-button"
+              data-testid="profile-update-email-submit-button"
               color="primary"
               loading={confirmPasswordMutation.isPending}
               onClick={(e) => onConfirmPassword(e)}>
@@ -679,7 +679,7 @@ const ProfileForm = ({
             StartIcon={Plus}
             className="mt-2"
             onClick={() => handleAddSecondaryEmail()}
-            data-testId="add-secondary-email">
+            data-testid="add-secondary-email">
             {t("add_email")}
           </Button>
         </div>
@@ -703,7 +703,7 @@ const ProfileForm = ({
           disabled={isDisabled}
           color="primary"
           type="submit"
-          data-testId="profile-submit-button">
+          data-testid="profile-submit-button">
           {t("update")}
         </Button>
       </SectionBottomActions>

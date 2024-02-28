@@ -17,9 +17,9 @@ const SecondaryEmailConfirmModal = ({ email, onCancel }: SecondaryEmailConfirmMo
         title={t("confirm_email")}
         description={<Trans i18nKey="confirm_email_description" values={{ email }} />}
         type="creation"
-        data-testId="secondary-email-confirm-dialog">
+        data-testid="secondary-email-confirm-dialog">
         <DialogFooter>
-          <DialogClose color="primary" onClick={onCancel} data-testId="secondary-email-confirm-done-button">
+          <DialogClose color="primary" onClick={onCancel} data-testid="secondary-email-confirm-done-button">
             {t("done")}
           </DialogClose>
         </DialogFooter>

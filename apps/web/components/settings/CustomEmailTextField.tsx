@@ -53,18 +53,18 @@ const CustomEmailTextField = ({
           label=""
           containerClassName="flex flex-1 items-center"
           className="mb-0 border-none outline-none focus:ring-0"
-          data-testId={dataTestId}
+          data-testid={dataTestId}
           onFocus={() => setInputFocus(true)}
           onBlur={() => setInputFocus(false)}
         />
         <div className="flex items-center pr-2">
           {emailPrimary && (
-            <Badge variant="blue" size="sm" data-testId={`${dataTestId}-primary-badge`}>
+            <Badge variant="blue" size="sm" data-testid={`${dataTestId}-primary-badge`}>
               {t("primary")}
             </Badge>
           )}
           {!emailVerified && (
-            <Badge variant="orange" size="sm" className="ml-2" data-testId={`${dataTestId}-unverified-badge`}>
+            <Badge variant="orange" size="sm" className="ml-2" data-testid={`${dataTestId}-unverified-badge`}>
               {t("unverified")}
             </Badge>
           )}
@@ -76,7 +76,7 @@ const CustomEmailTextField = ({
                 size="sm"
                 color="secondary"
                 className="ml-2 rounded-md"
-                data-testId="secondary-email-action-group-button"
+                data-testid="secondary-email-action-group-button"
               />
             </DropdownMenuTrigger>
             <DropdownMenuContent>
@@ -87,7 +87,7 @@ const CustomEmailTextField = ({
                   className="disabled:opacity-40"
                   onClick={handleChangePrimary}
                   disabled={!emailVerified || emailPrimary}
-                  data-testId="secondary-email-make-primary-button">
+                  data-testid="secondary-email-make-primary-button">
                   {t("make_primary")}
                 </DropdownItem>
               </DropdownMenuItem>
@@ -99,7 +99,7 @@ const CustomEmailTextField = ({
                     className="disabled:opacity-40"
                     onClick={handleVerifyEmail}
                     disabled={emailVerified}
-                    data-testId="resend-verify-email-button">
+                    data-testid="resend-verify-email-button">
                     {t("resend_email")}
                   </DropdownItem>
                 </DropdownMenuItem>
@@ -111,7 +111,7 @@ const CustomEmailTextField = ({
                   className="disabled:opacity-40"
                   onClick={handleItemDelete}
                   disabled={emailPrimary}
-                  data-testId="secondary-email-delete-button">
+                  data-testid="secondary-email-delete-button">
                   {t("delete")}
                 </DropdownItem>
               </DropdownMenuItem>
