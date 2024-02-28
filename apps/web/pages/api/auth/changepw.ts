@@ -53,11 +53,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   const hashedPassword = await hashPassword(newPassword);
-  await prisma.userPassword.update({
+  await prisma.userPassword.upsert({
     where: {
       userId: user.id,
     },
-    data: {
+    create: {
+      hash: hashedPassword,
+      userId: user.id,
+    },
+    update: {
       hash: hashedPassword,
     },
   });

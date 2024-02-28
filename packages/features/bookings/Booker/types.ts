@@ -1,3 +1,14 @@
+import type { UseBookerLayoutType } from "@calcom/features/bookings/Booker/components/hooks/useBookerLayout";
+import type { UseBookingFormReturnType } from "@calcom/features/bookings/Booker/components/hooks/useBookingForm";
+import type { UseBookingsReturnType } from "@calcom/features/bookings/Booker/components/hooks/useBookings";
+import type { UseCalendarsReturnType } from "@calcom/features/bookings/Booker/components/hooks/useCalendars";
+import type { UseSlotsReturnType } from "@calcom/features/bookings/Booker/components/hooks/useSlots";
+import type { UseVerifyCodeReturnType } from "@calcom/features/bookings/Booker/components/hooks/useVerifyCode";
+import type { UseVerifyEmailReturnType } from "@calcom/features/bookings/Booker/components/hooks/useVerifyEmail";
+import type {
+  useEventReturnType,
+  useScheduleForEventReturnType,
+} from "@calcom/features/bookings/Booker/utils/event";
 import type { BookerLayouts } from "@calcom/prisma/zod-utils";
 
 import type { GetBookingType } from "../lib/get-booking";
@@ -74,6 +85,30 @@ export interface BookerProps {
   hashedLink?: string | null;
   isInstantMeeting?: boolean;
 }
+
+export type WrappedBookerProps = {
+  sessionUsername?: string | null;
+  rescheduleUid: string | null;
+  bookingUid: string | null;
+  isRedirect: boolean;
+  fromUserNameRedirected: string;
+  hasSession: boolean;
+  onGoBackInstantMeeting: () => void;
+  onConnectNowInstantMeeting: () => void;
+  onOverlayClickNoCalendar: () => void;
+  onClickOverlayContinue: () => void;
+  onOverlaySwitchStateChange: (state: boolean) => void;
+  extraOptions: Record<string, string | string[]>;
+  bookings: UseBookingsReturnType;
+  slots: UseSlotsReturnType;
+  calendars: UseCalendarsReturnType;
+  verifyEmail: UseVerifyEmailReturnType;
+  bookerForm: UseBookingFormReturnType;
+  event: useEventReturnType;
+  schedule: useScheduleForEventReturnType;
+  bookerLayout: UseBookerLayoutType;
+  verifyCode: UseVerifyCodeReturnType;
+};
 
 export type BookerState = "loading" | "selecting_date" | "selecting_time" | "booking";
 export type BookerLayout = BookerLayouts | "mobile";

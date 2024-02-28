@@ -3383,7 +3383,7 @@ __metadata:
     mailparser: ^3.6.5
     next: ^13.5.4
     supports-color: 8.1.1
-    zod: ^3.22.2
+    zod: ^3.22.4
   languageName: unknown
   linkType: soft
 
@@ -3436,7 +3436,7 @@ __metadata:
     typescript: ^4.9.4
     tzdata: ^1.0.30
     uuid: ^8.3.2
-    zod: ^3.22.2
+    zod: ^3.22.4
   languageName: unknown
   linkType: soft
 
@@ -3745,7 +3745,7 @@ __metadata:
     "@sendgrid/mail": ^7.6.2
     libphonenumber-js: ^1.10.51
     twilio: ^3.80.1
-    zod: ^3.22.2
+    zod: ^3.22.4
   languageName: unknown
   linkType: soft
 
@@ -4083,6 +4083,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/linear@workspace:packages/app-store/linear":
+  version: 0.0.0-use.local
+  resolution: "@calcom/linear@workspace:packages/app-store/linear"
+  dependencies:
+    "@calcom/lib": "*"
+    "@calcom/types": "*"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/make@workspace:packages/app-store/make":
   version: 0.0.0-use.local
   resolution: "@calcom/make@workspace:packages/app-store/make"
@@ -4214,7 +4223,7 @@ __metadata:
     npm-run-all: ^4.1.5
     prisma: ^5.4.2
     ts-node: ^10.9.1
-    zod: ^3.22.2
+    zod: ^3.22.4
     zod-prisma: ^0.5.4
   languageName: unknown
   linkType: soft
@@ -4327,15 +4336,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@calcom/skiff@workspace:packages/app-store/skiff":
-  version: 0.0.0-use.local
-  resolution: "@calcom/skiff@workspace:packages/app-store/skiff"
-  dependencies:
-    "@calcom/lib": "*"
-    "@calcom/types": "*"
-  languageName: unknown
-  linkType: soft
-
 "@calcom/storybook@workspace:apps/storybook":
   version: 0.0.0-use.local
   resolution: "@calcom/storybook@workspace:apps/storybook"
@@ -4402,7 +4402,7 @@ __metadata:
     stripe: ^9.16.0
     ts-node: ^10.9.1
     uuid: ^8.3.2
-    zod: ^3.22.2
+    zod: ^3.22.4
   languageName: unknown
   linkType: soft
 
@@ -4413,6 +4413,7 @@ __metadata:
     "@types/node": 16.9.1
     "@types/react": 18.0.26
     "@types/react-dom": ^18.0.9
+    "@types/swagger-ui-react": ^4.18.3
     highlight.js: ^11.6.0
     isarray: 2.0.5
     next: ^13.5.4
@@ -4462,7 +4463,7 @@ __metadata:
     "@trpc/react-query": 11.0.0-next-beta.222
     "@trpc/server": 11.0.0-next-beta.222
     superjson: 1.9.1
-    zod: ^3.22.2
+    zod: ^3.22.4
   languageName: unknown
   linkType: soft
 
@@ -4708,7 +4709,7 @@ __metadata:
     turndown: ^7.1.1
     typescript: ^4.9.4
     uuid: ^8.3.2
-    zod: ^3.22.2
+    zod: ^3.22.4
   languageName: unknown
   linkType: soft
 
@@ -14487,6 +14488,15 @@ __metadata:
   dependencies:
     stripe: "*"
   checksum: 9ce7a189ef35d10da2b0a1947a53526024d62a7475f97dcf937c447dbc625b93ef4aeff1748b7ff661e68ef5380f72d5b2d5d08b70d36e878ac736d5c85d7bb8
+  languageName: node
+  linkType: hard
+
+"@types/swagger-ui-react@npm:^4.18.3":
+  version: 4.18.3
+  resolution: "@types/swagger-ui-react@npm:4.18.3"
+  dependencies:
+    "@types/react": "*"
+  checksum: 4927314f1b0d68edf200ef15bca7555f12ec1bb8cc699fa397ef2f4e1e1873d17880b663bbc6d70e30149e50c3e7055178c1e0aad110520dfb31d781ab326dcb
   languageName: node
   linkType: hard
 
@@ -27516,6 +27526,15 @@ __metadata:
   peerDependencies:
     react: ^16.5.1 || ^17.0.0 || ^18.0.0
   checksum: 768ffe368c52a518ee339203d86ff4479989ab4d79c0716f721900c4bb7392ef6ff7a14807f6a685abd74d27f4c1778170bff77a0ab4c3e06c17944b557d8300
+  languageName: node
+  linkType: hard
+
+"lucide-react@npm:^0.334.0":
+  version: 0.334.0
+  resolution: "lucide-react@npm:0.334.0"
+  peerDependencies:
+    react: ^16.5.1 || ^17.0.0 || ^18.0.0
+  checksum: b355bcc8d5be80603ce27a5e72376dca47f59d56ed14db17c8e4970ec4bf17b965ed1810134ce6b3d404b37e0ea476034efb91749efe1a249af0b63013aa2d1f
   languageName: node
   linkType: hard
 

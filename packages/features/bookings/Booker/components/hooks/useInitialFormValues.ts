@@ -1,5 +1,3 @@
-import { useSession } from "next-auth/react";
-import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import type { z } from "zod";
 
@@ -7,25 +5,38 @@ import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import type { useEvent } from "@calcom/features/bookings/Booker/utils/event";
 import type getBookingResponsesSchema from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import { getBookingResponsesPartialSchema } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
-import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 
 export type useInitialFormValuesReturnType = ReturnType<typeof useInitialFormValues>;
+
+type UseInitialFormValuesProps = {
+  eventType: ReturnType<typeof useEvent>["data"];
+  rescheduleUid: string | null;
+  isRescheduling: boolean;
+  email?: string | null;
+  name?: string | null;
+  username?: string | null;
+  hasSession: boolean;
+  extraOptions: Record<string, string | string[]>;
+  prefillFormParams: {
+    guests: string[];
+    name: string | null;
+  };
+};
 
 export function useInitialFormValues({
   eventType,
   rescheduleUid,
   isRescheduling,
-}: {
-  eventType: ReturnType<typeof useEvent>["data"];
-  rescheduleUid: string | null;
-  isRescheduling: boolean;
-}) {
+  email,
+  name,
+  username,
+  hasSession,
+  extraOptions,
+  prefillFormParams,
+}: UseInitialFormValuesProps) {
   const [initialValues, setDefaultValues] = useState<Record<string, unknown>>({});
   const bookingData = useBookerStore((state) => state.bookingData);
   const formValues = useBookerStore((state) => state.formValues);
-  const searchParams = useSearchParams();
-  const routerQuery = useRouterQuery();
-  const session = useSession();
   useEffect(() => {
     (async function () {
       if (Object.keys(formValues).length) {
@@ -41,19 +52,12 @@ export function useInitialFormValues({
         view: rescheduleUid ? "reschedule" : "booking",
       });
 
-      // Routing Forms don't support Split full name(because no Form Builder in there), so user needs to create two fields in there themselves. If they name these fields, `firstName` and `lastName`, we can prefill the Booking Form with them
-      // Once we support formBuilder in Routing Forms, we should be able to forward JSON form of name field value to Booking Form and prefill it there without having these two query params separately.
-      const firstNameQueryParam = searchParams?.get("firstName");
-      const lastNameQueryParam = searchParams?.get("lastName");
-
       const parsedQuery = await querySchema.parseAsync({
-        ...routerQuery,
-        name:
-          searchParams?.get("name") ||
-          (firstNameQueryParam ? `${firstNameQueryParam} ${lastNameQueryParam}` : null),
+        ...extraOptions,
+        name: prefillFormParams.name,
         // `guest` because we need to support legacy URL with `guest` query param support
         // `guests` because the `name` of the corresponding bookingField is `guests`
-        guests: searchParams?.getAll("guests") || searchParams?.getAll("guest"),
+        guests: prefillFormParams.guests,
       });
 
       const defaultUserValues = {
@@ -62,13 +66,13 @@ export function useInitialFormValues({
             ? bookingData?.attendees[0].email
             : !!parsedQuery["email"]
             ? parsedQuery["email"]
-            : session.data?.user?.email ?? "",
+            : email ?? "",
         name:
           rescheduleUid && bookingData && bookingData.attendees.length > 0
             ? bookingData?.attendees[0].name
             : !!parsedQuery["name"]
             ? parsedQuery["name"]
-            : session.data?.user?.name ?? session.data?.user?.username ?? "",
+            : name ?? username ?? "",
       };
 
       if (!isRescheduling) {
@@ -115,7 +119,7 @@ export function useInitialFormValues({
       };
       setDefaultValues(defaults);
     })();
-    // do not add routerQuery as a dependency, it will cause infinite loop
+    // do not add extraOptions as a dependency, it will cause infinite loop
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     eventType?.bookingFields,
@@ -123,14 +127,14 @@ export function useInitialFormValues({
     isRescheduling,
     bookingData,
     rescheduleUid,
-    searchParams,
-    session.data?.user?.email,
-    session.data?.user?.name,
-    session.data?.user?.username,
+    email,
+    name,
+    username,
+    prefillFormParams,
   ]);
 
   // When initialValues is available(after doing async schema parsing) or session is available(so that we can prefill logged-in user email and name), we need to reset the form with the initialValues
-  const key = `${Object.keys(initialValues).length}_${session ? 1 : 0}`;
+  const key = `${Object.keys(initialValues).length}_${hasSession ? 1 : 0}`;
 
   return { initialValues, key };
 }
