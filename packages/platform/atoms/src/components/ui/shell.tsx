@@ -1,6 +1,6 @@
-import { cn } from "@/lib/utils";
-
 import type { LayoutProps } from "@calcom/features/shell/Shell";
+
+import { cn } from "../../lib/utils";
 
 export const Shell = (props: LayoutProps) => {
   return (
