@@ -4,7 +4,7 @@ import { z } from "zod";
 import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getOrgUsernameFromEmail";
 import { checkPremiumUsername } from "@calcom/features/ee/common/lib/checkPremiumUsername";
 import { isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
-import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
+import { getFeatureFlag } from "@calcom/features/flags/server/utils";
 import { IS_SELF_HOSTED, WEBAPP_URL } from "@calcom/lib/constants";
 import slugify from "@calcom/lib/slugify";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
@@ -24,11 +24,22 @@ const querySchema = z.object({
 
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   const prisma = await import("@calcom/prisma").then((mod) => mod.default);
-  const flags = await getFeatureFlagMap(prisma);
+  const signupDisabled = await getFeatureFlag(prisma, "disable-signup");
   const ssr = await ssrInit(ctx);
   const token = z.string().optional().parse(ctx.query.token);
+  const redirectUrlData = z
+    .string()
+    .refine((value) => value.startsWith(WEBAPP_URL), {
+      params: (value: string) => ({ value }),
+      message: "Redirect URL must start with 'cal.com'",
+    })
+    .optional()
+    .safeParse(ctx.query.redirect);
+
+  const redirectUrl = redirectUrlData.success && redirectUrlData.data ? redirectUrlData.data : null;
 
   const props = {
+    redirectUrl,
     isGoogleLoginEnabled: IS_GOOGLE_LOGIN_ENABLED,
     isSAMLLoginEnabled,
     trpcState: ssr.dehydrate(),
@@ -38,7 +49,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   // username + email prepopulated from query params
   const { username: preFillusername, email: prefilEmail } = querySchema.parse(ctx.query);
 
-  if ((process.env.NEXT_PUBLIC_DISABLE_SIGNUP === "true" && !token) || flags["disable-signup"]) {
+  if ((process.env.NEXT_PUBLIC_DISABLE_SIGNUP === "true" && !token) || signupDisabled) {
     return {
       notFound: true,
     } as const;

@@ -230,7 +230,7 @@ const EventTypeSchedule = ({ eventType }: { eventType: EventTypeSetup }) => {
           : option.value === schedules.find((schedule) => schedule.isDefault)?.id
       );
 
-      setValue("availability", value);
+      setValue("availability", value, { shouldDirty: true });
     },
     [data]
   );
@@ -238,7 +238,7 @@ const EventTypeSchedule = ({ eventType }: { eventType: EventTypeSetup }) => {
 
   useEffect(() => {
     if (!availabilityValue?.value) return;
-    setValue("schedule", availabilityValue.value);
+    setValue("schedule", availabilityValue.value, { shouldDirty: true });
   }, [availabilityValue, setValue]);
 
   return (
@@ -260,7 +260,7 @@ const EventTypeSchedule = ({ eventType }: { eventType: EventTypeSetup }) => {
                   isSearchable={false}
                   onChange={(selected) => {
                     field.onChange(selected?.value || null);
-                    if (selected?.value) setValue("availability", selected);
+                    if (selected?.value) setValue("availability", selected, { shouldDirty: true });
                   }}
                   className="block w-full min-w-0 flex-1 rounded-sm text-sm"
                   value={availabilityValue}
@@ -298,7 +298,7 @@ const UseCommonScheduleSettingsToggle = ({ eventType }: { eventType: EventTypeSe
           onCheckedChange={(checked) => {
             onChange(!checked);
             if (!checked) {
-              setValue("schedule", null);
+              setValue("schedule", null, { shouldDirty: true });
             }
           }}
           title={t("choose_common_schedule_team_event")}
