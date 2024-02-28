@@ -81,10 +81,10 @@ export default function InstantEventController({
                   data-testid="instant-event-check"
                   onCheckedChange={(e) => {
                     if (!e) {
-                      formMethods.setValue("isInstantEvent", false);
+                      formMethods.setValue("isInstantEvent", false, { shouldDirty: true });
                       setInstantEventState(false);
                     } else {
-                      formMethods.setValue("isInstantEvent", true);
+                      formMethods.setValue("isInstantEvent", true, { shouldDirty: true });
                       setInstantEventState(true);
                     }
                   }}>

@@ -6,7 +6,7 @@ import stripe from "@calcom/app-store/stripepayment/lib/server";
 import { getPremiumMonthlyPlanPriceId } from "@calcom/app-store/stripepayment/lib/utils";
 import { passwordResetRequest } from "@calcom/features/auth/lib/passwordResetRequest";
 import { sendChangeOfEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
-import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
+import { getFeatureFlag } from "@calcom/features/flags/server/utils";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
@@ -63,7 +63,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
   const { user } = ctx;
   const userMetadata = handleUserMetadata({ ctx, input });
   const locale = input.locale || user.locale;
-  const flags = await getFeatureFlagMap(prisma);
+  const emailVerification = await getFeatureFlag(prisma, "email-verification");
 
   const data: Prisma.UserUpdateInput = {
     ...input,
@@ -135,10 +135,8 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
     hasEmailBeenChanged && user.identityProvider !== IdentityProvider.CAL;
   const hasEmailChangedOnCalProvider = hasEmailBeenChanged && user.identityProvider === IdentityProvider.CAL;
 
-  const sendEmailVerification = flags["email-verification"];
-
   if (hasEmailBeenChanged) {
-    if (sendEmailVerification && hasEmailChangedOnCalProvider) {
+    if (emailVerification && hasEmailChangedOnCalProvider) {
       // Set metadata of the user so we can set it to this updated email once it is confirmed
       data.metadata = {
         ...userMetadata,
@@ -284,12 +282,12 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
 
   return {
     ...input,
-    email: sendEmailVerification && hasEmailChangedOnCalProvider ? user.email : input.email,
+    email: emailVerification && hasEmailChangedOnCalProvider ? user.email : input.email,
     signOutUser,
     passwordReset,
     avatarUrl: updatedUser.avatarUrl,
     hasEmailBeenChanged,
-    sendEmailVerification,
+    sendEmailVerification: emailVerification,
   };
 };
 

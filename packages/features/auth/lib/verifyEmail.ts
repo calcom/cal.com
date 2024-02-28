@@ -6,7 +6,7 @@ import {
   sendEmailVerificationLink,
   sendChangeOfEmailVerificationLink,
 } from "@calcom/emails/email-manager";
-import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
+import { getFeatureFlag } from "@calcom/features/flags/server/utils";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
@@ -24,9 +24,9 @@ interface VerifyEmailType {
 export const sendEmailVerification = async ({ email, language, username }: VerifyEmailType) => {
   const token = randomBytes(32).toString("hex");
   const translation = await getTranslation(language ?? "en", "common");
-  const flags = await getFeatureFlagMap(prisma);
+  const emailVerification = await getFeatureFlag(prisma, "email-verification");
 
-  if (!flags["email-verification"]) {
+  if (!emailVerification) {
     log.warn("Email verification is disabled - Skipping");
     return { ok: true, skipped: true };
   }
@@ -93,9 +93,9 @@ interface ChangeOfEmail {
 export const sendChangeOfEmailVerification = async ({ user, language }: ChangeOfEmail) => {
   const token = randomBytes(32).toString("hex");
   const translation = await getTranslation(language ?? "en", "common");
-  const flags = await getFeatureFlagMap(prisma);
+  const emailVerification = await getFeatureFlag(prisma, "email-verification");
 
-  if (!flags["email-verification"]) {
+  if (!emailVerification) {
     log.warn("Email verification is disabled - Skipping");
     return { ok: true, skipped: true };
   }
