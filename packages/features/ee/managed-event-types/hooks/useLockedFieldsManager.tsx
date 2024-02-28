@@ -116,7 +116,7 @@ const useLockedFieldsManager = (
     const unlockedFieldList = formMethods.getValues("metadata")?.managedEventConfig?.unlockedFields;
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     //@ts-ignore
-    const fieldIsUnlocked = unlockedFieldList[fieldName] === true;
+    const fieldIsUnlocked = unlockedFieldList && unlockedFieldList[fieldName] === true;
     if (fieldName.includes(".")) {
       locked = locked && get(unlockedFields, fieldName) === undefined;
     } else {
