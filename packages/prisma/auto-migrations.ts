@@ -13,7 +13,7 @@ const exec = promisify(execCb);
  */
 async function main(): Promise<void> {
   if (!process.env.DATABASE_DIRECT_URL) {
-    console.info("No DATABASE_DIRECT_URL found, skipping migration");
+    console.info("No DATABASE_DIRECT_URL found, skipping migrations");
     return;
   }
   // throws an error if migration fails
