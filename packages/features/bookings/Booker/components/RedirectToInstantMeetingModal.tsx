@@ -12,18 +12,17 @@ const handleBeforeUnload = (event: BeforeUnloadEvent) => {
 };
 
 export const RedirectToInstantMeetingModal = ({
-  hasInstantMeetingTokenExpired,
   bookingId,
   onGoBack,
   expiryTime,
 }: {
-  hasInstantMeetingTokenExpired: boolean;
   bookingId: number;
   onGoBack: () => void;
   expiryTime?: Date;
 }) => {
   const { t } = useLocale();
   const [timeRemaining, setTimeRemaining] = useState(calculateTimeRemaining());
+  const [hasInstantMeetingTokenExpired, setHasInstantMeetingTokenExpired] = useState(false);
 
   function calculateTimeRemaining() {
     const now = dayjs();
@@ -37,6 +36,7 @@ export const RedirectToInstantMeetingModal = ({
 
     const timer = setInterval(() => {
       setTimeRemaining(calculateTimeRemaining());
+      setHasInstantMeetingTokenExpired(expiryTime && new Date(expiryTime) < new Date());
     }, 1000);
 
     return () => {
