@@ -38,6 +38,7 @@ export const buildBooking = (booking?: Partial<Booking>): Booking => {
     uid,
     userId: null,
     eventTypeId: null,
+    idempotencyKey: null,
     userPrimaryEmail: null,
     title: faker.lorem.sentence(),
     description: faker.lorem.paragraph(),
