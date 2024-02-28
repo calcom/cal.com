@@ -67,8 +67,8 @@ export const useScheduleForEvent = ({
 } = {}) => {
   const { timezone } = useTimePreferences();
   const event = useEvent();
-  const [usernameFromStore, eventSlugFromStore, monthFromStore, durationFromStore, org] = useBookerStore(
-    (state) => [state.username, state.eventSlug, state.month, state.selectedDuration, state.org],
+  const [usernameFromStore, eventSlugFromStore, monthFromStore, durationFromStore] = useBookerStore(
+    (state) => [state.username, state.eventSlug, state.month, state.selectedDuration],
     shallow
   );
 
