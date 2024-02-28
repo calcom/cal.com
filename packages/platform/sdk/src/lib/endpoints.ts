@@ -10,6 +10,7 @@ export enum Endpoints {
   RESERVE_SLOT = "RESERVE_SLOT",
   DELETE_SELECTED_SLOT = "DELETE_SELECTED_SLOT",
   AVAILABLE_SLOTS = "AVAILABLE_SLOTS",
+  GET_PUBLIC_EVENT = "GET_PUBLIC_EVENT",
 }
 
 const publicEndpoint = (uri: string, version = ApiVersion.NEUTRAL): EndpointDeclaration => {
@@ -24,6 +25,7 @@ const ENDPOINTS: Record<Endpoints, EndpointDeclaration> = {
   RESERVE_SLOT: publicEndpoint("slots/reserve", ApiVersion.V2),
   AVAILABLE_SLOTS: publicEndpoint("slots/available", ApiVersion.V2),
   DELETE_SELECTED_SLOT: publicEndpoint("slots/delete", ApiVersion.V2),
+  GET_PUBLIC_EVENT: publicEndpoint("events/"),
 } as const;
 
 export const getEndpointData = (endpoint: Endpoints): EndpointDeclaration => {

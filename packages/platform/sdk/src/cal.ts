@@ -2,6 +2,7 @@ import axios from "axios";
 import axiosRetry from "axios-retry";
 
 import { Bookings } from "./endpoints/bookings";
+import { Events } from "./endpoints/events";
 import { Slots } from "./endpoints/slots";
 import { SdkInitializationError } from "./lib/errors/sdk-initialization-error";
 import { HttpCaller } from "./lib/http-caller";
@@ -15,6 +16,7 @@ export class CalSdk {
 
   slots: Slots;
   bookings: Bookings;
+  events: Events;
 
   constructor(
     protected readonly clientId: string,
@@ -31,6 +33,7 @@ export class CalSdk {
 
     this.slots = new Slots(this);
     this.bookings = new Bookings(this);
+    this.events = new Events(this);
   }
 
   private _createAxiosClientBase() {
