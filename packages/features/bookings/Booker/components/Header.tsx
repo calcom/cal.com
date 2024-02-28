@@ -55,13 +55,6 @@ export function Header({
 
   if (isMobile || !enabledLayouts) return null;
 
-  // Only reason we create this component, is because it is used 3 times in this component,
-  // and this way we can't forget to update one of the props in all places :)
-  const LayoutToggleWithData = () => {
-    return enabledLayouts.length <= 1 ? null : (
-      <LayoutToggle onLayoutToggle={onLayoutToggle} layout={layout} enabledLayouts={enabledLayouts} />
-    );
-  };
   // In month view we only show the layout toggle.
   if (isMonthView) {
     return (
@@ -78,7 +71,11 @@ export function Header({
         ) : (
           renderOverlay?.()
         )}
-        <LayoutToggleWithData />
+        <LayoutToggleWithData
+          layout={layout}
+          enabledLayouts={enabledLayouts}
+          onLayoutToggle={onLayoutToggle}
+        />
       </div>
     );
   }
@@ -140,7 +137,11 @@ export function Header({
         {renderOverlay?.()}
         <TimeFormatToggle />
         <div className="fixed top-4 ltr:right-4 rtl:left-4">
-          <LayoutToggleWithData />
+          <LayoutToggleWithData
+            layout={layout}
+            enabledLayouts={enabledLayouts}
+            onLayoutToggle={onLayoutToggle}
+          />
         </div>
         {/*
           This second layout toggle is hidden, but needed to reserve the correct spot in the DIV
@@ -150,7 +151,11 @@ export function Header({
           while it actually already was on place. That's why we have this element twice.
         */}
         <div className="pointer-events-none opacity-0" aria-hidden>
-          <LayoutToggleWithData />
+          <LayoutToggleWithData
+            layout={layout}
+            enabledLayouts={enabledLayouts}
+            onLayoutToggle={onLayoutToggle}
+          />
         </div>
       </div>
     </div>
@@ -197,4 +202,18 @@ const LayoutToggle = ({
   }
 
   return <ToggleGroup onValueChange={onLayoutToggle} defaultValue={layout} options={layoutOptions} />;
+};
+
+const LayoutToggleWithData = ({
+  enabledLayouts,
+  onLayoutToggle,
+  layout,
+}: {
+  enabledLayouts: BookerLayouts[];
+  onLayoutToggle: (layout: string) => void;
+  layout: string;
+}) => {
+  return enabledLayouts.length <= 1 ? null : (
+    <LayoutToggle onLayoutToggle={onLayoutToggle} layout={layout} enabledLayouts={enabledLayouts} />
+  );
 };
