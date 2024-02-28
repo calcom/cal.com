@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { CAL_URL } from "@calcom/lib/constants";
+import { WEBSITE_URL } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 
 import type {
@@ -94,7 +94,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     return {
-      id: `${CAL_URL}/${slug}/${eventType.slug}`,
+      id: `${WEBSITE_URL}/${slug}/${eventType.slug}`,
       type: "item",
       title: eventType.title,
       subtitle: `${slug}/${eventType.slug}`,

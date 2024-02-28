@@ -14,6 +14,7 @@ import closecom_config_json from "./closecom/config.json";
 import cron_config_json from "./cron/config.json";
 import { metadata as dailyvideo__metadata_ts } from "./dailyvideo/_metadata";
 import deel_config_json from "./deel/config.json";
+import demodesk_config_json from "./demodesk/config.json";
 import discord_config_json from "./discord/config.json";
 import eightxeight_config_json from "./eightxeight/config.json";
 import element_call_config_json from "./element-call/config.json";
@@ -34,6 +35,7 @@ import ics_feedcalendar_config_json from "./ics-feedcalendar/config.json";
 import intercom_config_json from "./intercom/config.json";
 import { metadata as jitsivideo__metadata_ts } from "./jitsivideo/_metadata";
 import { metadata as larkcalendar__metadata_ts } from "./larkcalendar/_metadata";
+import linear_config_json from "./linear/config.json";
 import make_config_json from "./make/config.json";
 import matomo_config_json from "./matomo/config.json";
 import metapixel_config_json from "./metapixel/config.json";
@@ -58,7 +60,6 @@ import sendgrid_config_json from "./sendgrid/config.json";
 import shimmervideo_config_json from "./shimmervideo/config.json";
 import signal_config_json from "./signal/config.json";
 import sirius_video_config_json from "./sirius_video/config.json";
-import skiff_config_json from "./skiff/config.json";
 import { metadata as stripepayment__metadata_ts } from "./stripepayment/_metadata";
 import sylapsvideo_config_json from "./sylapsvideo/config.json";
 import { metadata as tandemvideo__metadata_ts } from "./tandemvideo/_metadata";
@@ -97,6 +98,7 @@ export const appStoreMetadata = {
   cron: cron_config_json,
   dailyvideo: dailyvideo__metadata_ts,
   deel: deel_config_json,
+  demodesk: demodesk_config_json,
   discord: discord_config_json,
   eightxeight: eightxeight_config_json,
   "element-call": element_call_config_json,
@@ -117,6 +119,7 @@ export const appStoreMetadata = {
   intercom: intercom_config_json,
   jitsivideo: jitsivideo__metadata_ts,
   larkcalendar: larkcalendar__metadata_ts,
+  linear: linear_config_json,
   make: make_config_json,
   matomo: matomo_config_json,
   metapixel: metapixel_config_json,
@@ -141,7 +144,6 @@ export const appStoreMetadata = {
   shimmervideo: shimmervideo_config_json,
   signal: signal_config_json,
   sirius_video: sirius_video_config_json,
-  skiff: skiff_config_json,
   stripepayment: stripepayment__metadata_ts,
   sylapsvideo: sylapsvideo_config_json,
   tandemvideo: tandemvideo__metadata_ts,

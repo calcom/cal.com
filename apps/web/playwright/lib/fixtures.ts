@@ -4,6 +4,7 @@ import { test as base } from "@playwright/test";
 import prisma from "@calcom/prisma";
 
 import type { ExpectedUrlDetails } from "../../../../playwright.config";
+import { createAppsFixture } from "../fixtures/apps";
 import { createBookingsFixture } from "../fixtures/bookings";
 import { createEmailsFixture } from "../fixtures/emails";
 import { createEmbedsFixture } from "../fixtures/embeds";
@@ -32,6 +33,7 @@ export interface Fixtures {
   workflowPage: ReturnType<typeof createWorkflowPageFixture>;
   features: ReturnType<typeof createFeatureFixture>;
   eventTypePage: ReturnType<typeof createEventTypeFixture>;
+  appsPage: ReturnType<typeof createAppsFixture>;
 }
 
 declare global {
@@ -103,5 +105,9 @@ export const test = base.extend<Fixtures>({
   eventTypePage: async ({ page }, use) => {
     const eventTypePage = createEventTypeFixture(page);
     await use(eventTypePage);
+  },
+  appsPage: async ({ page }, use) => {
+    const appsPage = createAppsFixture(page);
+    await use(appsPage);
   },
 });

@@ -38,6 +38,8 @@ export const buildBooking = (booking?: Partial<Booking>): Booking => {
     uid,
     userId: null,
     eventTypeId: null,
+    idempotencyKey: null,
+    userPrimaryEmail: null,
     title: faker.lorem.sentence(),
     description: faker.lorem.paragraph(),
     customInputs: null,
@@ -82,6 +84,7 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     userId: null,
     teamId: null,
     requiresBookerEmailVerification: false,
+    useEventTypeDestinationCalendarEmail: false,
     eventName: faker.lorem.words(),
     timeZone: null,
     periodType: "UNLIMITED",
@@ -161,7 +164,10 @@ export const buildSubscriberEvent = (booking?: Partial<Booking>) => {
   };
 };
 
-export const buildCalendarEvent = (event?: Partial<CalendarEvent>): CalendarEvent => {
+export const buildCalendarEvent = (
+  event?: Partial<CalendarEvent>,
+  omitVideoCallData?: boolean
+): CalendarEvent => {
   const uid = faker.datatype.uuid();
   return {
     uid,
@@ -176,7 +182,7 @@ export const buildCalendarEvent = (event?: Partial<CalendarEvent>): CalendarEven
     customInputs: {},
     additionalNotes: faker.lorem.paragraph(),
     organizer: buildPerson(),
-    videoCallData: buildVideoCallData(),
+    ...(!omitVideoCallData && { videoCallData: buildVideoCallData() }),
     ...event,
   };
 };
@@ -224,12 +230,12 @@ export const buildUser = <T extends Partial<UserPayload>>(
     invitedTo: null,
     locale: "en",
     metadata: null,
-    password: null,
     role: "USER",
     schedules: [],
     selectedCalendars: [],
     startTime: 0,
     theme: null,
+    appTheme: null,
     timeFormat: null,
     trialEndsAt: null,
     twoFactorEnabled: false,
