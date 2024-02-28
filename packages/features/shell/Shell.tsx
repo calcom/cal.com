@@ -462,8 +462,10 @@ function UserDropdown({ small }: UserDropdownProps) {
           </span>
           {!small && (
             <span className="flex flex-grow items-center gap-2">
-              <span className="line-clamp-1 flex-grow text-sm leading-none">
-                <span className="text-emphasis block font-medium">{user.name || "Nameless User"}</span>
+              <span className="w-24 flex-shrink-0 text-sm leading-none">
+                <span className="text-emphasis block truncate font-medium">
+                  {user.name || "Nameless User"}
+                </span>
               </span>
               <ChevronDown
                 className="group-hover:text-subtle text-muted h-4 w-4 flex-shrink-0 rtl:mr-4"
@@ -729,6 +731,7 @@ const NavigationItem: React.FC<{
     <Fragment>
       <Tooltip side="right" content={t(item.name)} className="lg:hidden">
         <Link
+          data-test-id={item.name}
           href={item.href}
           aria-label={t(item.name)}
           className={classNames(

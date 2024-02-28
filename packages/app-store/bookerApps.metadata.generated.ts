@@ -5,6 +5,7 @@
 import around_config_json from "./around/config.json";
 import campfire_config_json from "./campfire/config.json";
 import { metadata as dailyvideo__metadata_ts } from "./dailyvideo/_metadata";
+import demodesk_config_json from "./demodesk/config.json";
 import discord_config_json from "./discord/config.json";
 import eightxeight_config_json from "./eightxeight/config.json";
 import element_call_config_json from "./element-call/config.json";
@@ -41,6 +42,7 @@ export const appStoreMetadata = {
   around: around_config_json,
   campfire: campfire_config_json,
   dailyvideo: dailyvideo__metadata_ts,
+  demodesk: demodesk_config_json,
   discord: discord_config_json,
   eightxeight: eightxeight_config_json,
   "element-call": element_call_config_json,

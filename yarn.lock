@@ -4009,6 +4009,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/linear@workspace:packages/app-store/linear":
+  version: 0.0.0-use.local
+  resolution: "@calcom/linear@workspace:packages/app-store/linear"
+  dependencies:
+    "@calcom/lib": "*"
+    "@calcom/types": "*"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/make@workspace:packages/app-store/make":
   version: 0.0.0-use.local
   resolution: "@calcom/make@workspace:packages/app-store/make"
@@ -4401,6 +4410,7 @@ __metadata:
     "@types/node": 16.9.1
     "@types/react": 18.0.26
     "@types/react-dom": ^18.0.9
+    "@types/swagger-ui-react": ^4.18.3
     highlight.js: ^11.6.0
     isarray: 2.0.5
     next: ^13.5.4
@@ -14503,22 +14513,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/superagent@npm:*":
-  version: 4.1.24
-  resolution: "@types/superagent@npm:4.1.24"
+"@types/swagger-ui-react@npm:^4.18.3":
+  version: 4.18.3
+  resolution: "@types/swagger-ui-react@npm:4.18.3"
   dependencies:
-    "@types/cookiejar": "*"
-    "@types/node": "*"
-  checksum: bb3bbc2d0f601339f0f79eacf46d43882c6bc18b5b509be856ad5eb00dd31c6e59212a2508a04f41ef2da231f1a28635f4dd2c9f974a2cb9973d18001f924417
-  languageName: node
-  linkType: hard
-
-"@types/supertest@npm:^2.0.12":
-  version: 2.0.16
-  resolution: "@types/supertest@npm:2.0.16"
-  dependencies:
-    "@types/superagent": "*"
-  checksum: 2fc998ea698e0467cdbe3bea0ebce2027ea3a45a13e51a6cecb0435f44b486faecf99c34d8702d2d7fe033e6e09fdd2b374af52ecc8d0c69a1deec66b8c0dd52
+    "@types/react": "*"
+  checksum: 4927314f1b0d68edf200ef15bca7555f12ec1bb8cc699fa397ef2f4e1e1873d17880b663bbc6d70e30149e50c3e7055178c1e0aad110520dfb31d781ab326dcb
   languageName: node
   linkType: hard
 
@@ -28238,12 +28238,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lucide-react@npm:^0.293.0":
-  version: 0.293.0
-  resolution: "lucide-react@npm:0.293.0"
+"lucide-react@npm:^0.334.0":
+  version: 0.334.0
+  resolution: "lucide-react@npm:0.334.0"
   peerDependencies:
     react: ^16.5.1 || ^17.0.0 || ^18.0.0
-  checksum: 576bda3a7fc31352b1e65ade93f268b1a9f85b4a02f24cf02bb26ac4a879686692f463c56f04682fe7c31f517d62fde2f90769d3f083aa4fb0f0b26780a2dc8b
+  checksum: b355bcc8d5be80603ce27a5e72376dca47f59d56ed14db17c8e4970ec4bf17b965ed1810134ce6b3d404b37e0ea476034efb91749efe1a249af0b63013aa2d1f
   languageName: node
   linkType: hard
 

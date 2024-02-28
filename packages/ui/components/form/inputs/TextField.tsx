@@ -81,6 +81,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
     onClickAddon,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     t: __t,
+    dataTestid,
     ...passThrough
   } = props;
 
@@ -114,6 +115,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
             </Addon>
           )}
           <Input
+            data-testid={`${dataTestid}-input` ?? "input-field"}
             id={id}
             type={type}
             placeholder={placeholder}

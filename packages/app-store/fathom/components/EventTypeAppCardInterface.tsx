@@ -21,6 +21,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
       switchChecked={enabled}
       teamId={eventType.team?.id || undefined}>
       <TextField
+        dataTestid={app.slug}
         name="Tracking ID"
         value={trackingId}
         disabled={disabled}
