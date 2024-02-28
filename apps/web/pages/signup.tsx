@@ -40,8 +40,6 @@ import { getServerSideProps } from "@lib/signup/getServerSideProps";
 
 import PageWrapper from "@components/PageWrapper";
 
-// import TurnstileCaptcha from "@components/auth/Turnstile";
-
 const signupSchema = apiSignupSchema.extend({
   apiError: z.string().optional(), // Needed to display API errors doesnt get passed to the API
   cfToken: z.string().optional(),
