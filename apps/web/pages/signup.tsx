@@ -340,7 +340,7 @@ export default function Signup({
                     }}>
                     <TurnstileCaptcha
                       onVerify={(token) => {
-                        formMethods.setValue("token", token);
+                        formMethods.setValue("cfToken", token);
                       }}
                       onError={() => console.log("error")}
                     />
@@ -356,7 +356,7 @@ export default function Signup({
                     !!formMethods.formState.errors.email ||
                     !formMethods.getValues("email") ||
                     !formMethods.getValues("password") ||
-                    (CLOUDFLARE_SITE_ID && !formMethods.getValues("token")) ||
+                    (CLOUDFLARE_SITE_ID && !formMethods.getValues("cfToken")) ||
                     isSubmitting ||
                     usernameTaken
                   }>
