@@ -11,6 +11,7 @@ import dayjs from "@calcom/dayjs";
 import { getSlugOrRequestedSlug, orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import { parseBookingLimit, parseDurationLimit } from "@calcom/lib";
+import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import isTimeOutOfBounds from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
@@ -270,7 +271,11 @@ export function getRegularOrDynamicEventType(
 }
 
 export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
-  const orgDetails = orgDomainConfig(ctx?.req);
+  const orgDetails = orgDomainConfig(ctx?.req) ?? {
+    currentOrgDomain: input?.orgSlug,
+    isValidOrgDomain: !!input?.orgSlug && !RESERVED_SUBDOMAINS.includes(input.orgSlug),
+  };
+
   if (process.env.INTEGRATION_TEST_MODE === "true") {
     logger.settings.minLevel = 2;
   }

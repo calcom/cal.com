@@ -52,6 +52,7 @@ export const useScheduleForEvent = ({
   monthCount,
   dayCount,
   selectedDate,
+  orgSlug,
 }: {
   prefetchNextMonth?: boolean;
   username?: string | null;
@@ -62,13 +63,15 @@ export const useScheduleForEvent = ({
   monthCount?: number;
   dayCount?: number | null;
   selectedDate?: string | null;
+  orgSlug?: string;
 } = {}) => {
   const { timezone } = useTimePreferences();
   const event = useEvent();
-  const [usernameFromStore, eventSlugFromStore, monthFromStore, durationFromStore] = useBookerStore(
-    (state) => [state.username, state.eventSlug, state.month, state.selectedDuration],
+  const [usernameFromStore, eventSlugFromStore, monthFromStore, durationFromStore, org] = useBookerStore(
+    (state) => [state.username, state.eventSlug, state.month, state.selectedDuration, state.org],
     shallow
   );
+
   const searchParams = useCompatSearchParams();
   const rescheduleUid = searchParams?.get("rescheduleUid");
 
@@ -89,5 +92,6 @@ export const useScheduleForEvent = ({
     month: monthFromStore ?? month,
     duration: durationFromStore ?? duration,
     isTeamEvent: pathname?.indexOf("/team/") !== -1 || isTeam,
+    orgSlug,
   });
 };
