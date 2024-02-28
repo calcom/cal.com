@@ -3538,7 +3538,7 @@ __metadata:
     "@types/react": 18.0.26
     "@types/react-dom": ^18.0.9
     eslint: ^8.34.0
-    eslint-config-next: ^14.0.4
+    eslint-config-next: ^13.2.1
     next: ^14.1.0
     next-auth: ^4.22.1
     postcss: ^8.4.18
@@ -3613,10 +3613,9 @@ __metadata:
     "@typescript-eslint/eslint-plugin": ^5.52.0
     "@typescript-eslint/parser": ^5.52.0
     eslint: ^8.34.0
-    eslint-config-next: ^14.0.4
+    eslint-config-next: ^13.2.1
     eslint-config-prettier: ^8.6.0
     eslint-config-turbo: ^0.0.7
-    eslint-plugin-jsx-a11y: ^6.7.1
     eslint-plugin-playwright: ^0.12.0
     eslint-plugin-prettier: ^4.2.1
     eslint-plugin-unused-imports: ^2.0.0
@@ -4655,7 +4654,7 @@ __metadata:
     dotenv-cli: ^6.0.0
     entities: ^4.4.0
     env-cmd: ^10.1.0
-    eslint-config-next: ^14.0.4
+    eslint-config-next: ^13.2.1
     googleapis: ^84.0.0
     gray-matter: ^4.0.3
     handlebars: ^4.7.7
@@ -8281,12 +8280,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@next/eslint-plugin-next@npm:14.1.0":
-  version: 14.1.0
-  resolution: "@next/eslint-plugin-next@npm:14.1.0"
+"@next/eslint-plugin-next@npm:13.5.6":
+  version: 13.5.6
+  resolution: "@next/eslint-plugin-next@npm:13.5.6"
   dependencies:
-    glob: 10.3.10
-  checksum: 7cd6789f27da102314b5784d4a4ba1a1789349f0c227bf5a90afcbd307bea98ea43b4cb1924fe9e67e11d48d3280eec1a1ca81558b6149e0122545fa37f00470
+    glob: 7.1.7
+  checksum: 58b5ef15d8298c112c72bbbc34a7a5f63637b5a02af7937d86f26223d370c6bd7c8de0eab737851a17dff52c620068a72179eb72b565add071841b720110490f
   languageName: node
   linkType: hard
 
@@ -21225,11 +21224,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint-config-next@npm:^14.0.4":
-  version: 14.1.0
-  resolution: "eslint-config-next@npm:14.1.0"
+"eslint-config-next@npm:^13.2.1":
+  version: 13.5.6
+  resolution: "eslint-config-next@npm:13.5.6"
   dependencies:
-    "@next/eslint-plugin-next": 14.1.0
+    "@next/eslint-plugin-next": 13.5.6
     "@rushstack/eslint-patch": ^1.3.3
     "@typescript-eslint/parser": ^5.4.2 || ^6.0.0
     eslint-import-resolver-node: ^0.3.6
@@ -21244,7 +21243,7 @@ __metadata:
   peerDependenciesMeta:
     typescript:
       optional: true
-  checksum: 6275f6bd05d0db34e11bda22efc88f56a3f10e2620cbaaad001016497d87b9cf9814ca9ddbf8f4ecd1456e6a2a486e5f12806602aac488b167a240488fe07611
+  checksum: 3399d3c18d48d01a2e662b9da699d36641d32b859d5bc7541f9fb063de49f5fbefb8cb2226d3906c268cc667bc536e353fce6c7334953961eb030c73547fa0f9
   languageName: node
   linkType: hard
 
@@ -23320,21 +23319,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"glob@npm:10.3.10, glob@npm:^10.0.0, glob@npm:^10.3.10":
-  version: 10.3.10
-  resolution: "glob@npm:10.3.10"
-  dependencies:
-    foreground-child: ^3.1.0
-    jackspeak: ^2.3.5
-    minimatch: ^9.0.1
-    minipass: ^5.0.0 || ^6.0.2 || ^7.0.0
-    path-scurry: ^1.10.1
-  bin:
-    glob: dist/esm/bin.mjs
-  checksum: 4f2fe2511e157b5a3f525a54092169a5f92405f24d2aed3142f4411df328baca13059f4182f1db1bf933e2c69c0bd89e57ae87edd8950cba8c7ccbe84f721cf3
-  languageName: node
-  linkType: hard
-
 "glob@npm:7.1.6":
   version: 7.1.6
   resolution: "glob@npm:7.1.6"
@@ -23346,6 +23330,35 @@ __metadata:
     once: ^1.3.0
     path-is-absolute: ^1.0.0
   checksum: 351d549dd90553b87c2d3f90ce11aed9e1093c74130440e7ae0592e11bbcd2ce7f0ebb8ba6bfe63aaf9b62166a7f4c80cb84490ae5d78408bb2572bf7d4ee0a6
+  languageName: node
+  linkType: hard
+
+"glob@npm:7.1.7":
+  version: 7.1.7
+  resolution: "glob@npm:7.1.7"
+  dependencies:
+    fs.realpath: ^1.0.0
+    inflight: ^1.0.4
+    inherits: 2
+    minimatch: ^3.0.4
+    once: ^1.3.0
+    path-is-absolute: ^1.0.0
+  checksum: b61f48973bbdcf5159997b0874a2165db572b368b931135832599875919c237fc05c12984e38fe828e69aa8a921eb0e8a4997266211c517c9cfaae8a93988bb8
+  languageName: node
+  linkType: hard
+
+"glob@npm:^10.0.0, glob@npm:^10.3.10":
+  version: 10.3.10
+  resolution: "glob@npm:10.3.10"
+  dependencies:
+    foreground-child: ^3.1.0
+    jackspeak: ^2.3.5
+    minimatch: ^9.0.1
+    minipass: ^5.0.0 || ^6.0.2 || ^7.0.0
+    path-scurry: ^1.10.1
+  bin:
+    glob: dist/esm/bin.mjs
+  checksum: 4f2fe2511e157b5a3f525a54092169a5f92405f24d2aed3142f4411df328baca13059f4182f1db1bf933e2c69c0bd89e57ae87edd8950cba8c7ccbe84f721cf3
   languageName: node
   linkType: hard
 
