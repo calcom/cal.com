@@ -98,7 +98,20 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           bookingFields: reminder.booking.eventType?.bookingFields ?? null,
           booking: reminder.booking,
         });
-
+        let rescheduleLink = "";
+        if (reminder.booking.eventType?.teamId) {
+          const team = await prisma.team.findUnique({
+            where: {
+              id: reminder.booking.eventType?.teamId,
+            },
+            select: {
+              slug: true,
+              metadata: true,
+            },
+          });
+          const isTeamAOrg = team?.metadata;
+          rescheduleLink = isTeamAOrg ? "org" : "team";
+        }
         const variables: VariablesType = {
           eventName: reminder.booking?.eventType?.title,
           organizerName: reminder.booking?.user?.name || "",
@@ -112,7 +125,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           responses: responses,
           meetingUrl: bookingMetadataSchema.parse(reminder.booking?.metadata || {})?.videoCallUrl,
           cancelLink: `/booking/${reminder.booking.uid}?cancel=true`,
-          rescheduleLink: `/${reminder.booking.user?.username}/${reminder.booking.eventType?.slug}?rescheduleUid=${reminder.booking.uid}`,
+          // rescheduleLink: `/${reminder.booking.user?.username}/${reminder.booking.eventType?.slug}?rescheduleUid=${reminder.booking.uid}`,
+          rescheduleLink: rescheduleLink,
         };
         const customMessage = customTemplate(
           reminder.workflowStep.reminderBody || "",
