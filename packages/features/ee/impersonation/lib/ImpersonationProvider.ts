@@ -215,7 +215,7 @@ async function isReturningToSelf({ session, creds }: { session: Session | null; 
   if (returningUser) {
     // Skip for none org users
     const inOrg =
-      !returningUser.organizationId || // Keep for backwards compatability
+      returningUser.organizationId || // Keep for backwards compatability
       returningUser.profiles.some((profile) => profile.organizationId !== undefined); // New way of seeing if the user has a profile in orgs.
     if (returningUser.role !== "ADMIN" && !inOrg) return;
 
