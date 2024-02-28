@@ -11,6 +11,7 @@ import { appDataSchema as ga4_zod_ts } from "./ga4/zod";
 import { appDataSchema as giphy_zod_ts } from "./giphy/zod";
 import { appDataSchema as googlecalendar_zod_ts } from "./googlecalendar/zod";
 import { appDataSchema as gtm_zod_ts } from "./gtm/zod";
+import { appDataSchema as hubspot_revert_zod_ts } from "./hubspot-revert/zod";
 import { appDataSchema as hubspot_zod_ts } from "./hubspot/zod";
 import { appDataSchema as intercom_zod_ts } from "./intercom/zod";
 import { appDataSchema as jelly_zod_ts } from "./jelly/zod";
@@ -53,6 +54,7 @@ export const appDataSchemas = {
   googlecalendar: googlecalendar_zod_ts,
   gtm: gtm_zod_ts,
   hubspot: hubspot_zod_ts,
+  "hubspot-revert": hubspot_revert_zod_ts,
   intercom: intercom_zod_ts,
   jelly: jelly_zod_ts,
   jitsivideo: jitsivideo_zod_ts,

@@ -9,6 +9,7 @@ const appStore = {
   googlecalendar: () => import("./googlecalendar"),
   googlevideo: () => import("./googlevideo"),
   hubspot: () => import("./hubspot"),
+  "hubspot-revert": () => import("./hubspot-revert"),
   huddle01video: () => import("./huddle01video"),
   "ics-feedcalendar": () => import("./ics-feedcalendar"),
   jellyconferencing: () => import("./jelly"),
