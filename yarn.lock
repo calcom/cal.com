@@ -3723,6 +3723,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/demodesk@workspace:packages/app-store/demodesk":
+  version: 0.0.0-use.local
+  resolution: "@calcom/demodesk@workspace:packages/app-store/demodesk"
+  dependencies:
+    "@calcom/lib": "*"
+    "@calcom/types": "*"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/discord@workspace:packages/app-store/discord":
   version: 0.0.0-use.local
   resolution: "@calcom/discord@workspace:packages/app-store/discord"
@@ -4793,7 +4802,7 @@ __metadata:
     i18n-unused: ^0.13.0
     iframe-resizer-react: ^1.1.0
     keen-slider: ^6.8.0
-    lucide-react: ^0.171.0
+    lucide-react: ^0.334.0
     micro: ^10.0.1
     next: ^13.5.4
     next-auth: ^4.22.1
