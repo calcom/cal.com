@@ -9,6 +9,28 @@ services:
     command: redis-server --appendonly yes
     volumes:
       - redis_data:/data
+    networks:
+      - calcom_network
+
+  api:
+    build:
+      context: ../../../
+      dockerfile: apps/api/v2/Dockerfile
+      args:
+        - DATABASE_URL=postgresql://postgres:@postgres:5432/cal-saml
+        - DATABASE_DIRECT_URL=postgresql://postgres:@postgres:5432/cal-saml
+    depends_on:
+      - redis
+    ports:
+      - "80:80"
+    volumes:
+      - ../../../:/calcom
+    networks:
+      - calcom_network
 
 volumes:
   redis_data:
+
+networks:
+  calcom_network:
+    external: true

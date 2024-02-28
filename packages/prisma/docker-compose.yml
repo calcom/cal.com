@@ -18,6 +18,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - calcom_network
   postgres_is_ready:
     image: postgres
     depends_on:
@@ -25,3 +27,7 @@ services:
         condition: service_healthy
 volumes:
   db_data:
+
+networks:
+  calcom_network:
+    driver: bridge
