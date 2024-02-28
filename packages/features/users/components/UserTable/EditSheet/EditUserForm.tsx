@@ -30,6 +30,7 @@ type MembershipOption = {
 
 const editSchema = z.object({
   name: z.string(),
+  username: z.string(),
   email: z.string().email(),
   avatar: z.string(),
   bio: z.string(),
@@ -59,6 +60,7 @@ export function EditForm({
     resolver: zodResolver(editSchema),
     defaultValues: {
       name: selectedUser?.name ?? "",
+      username: selectedUser?.username ?? "",
       email: selectedUser?.email ?? "",
       avatar: avatarUrl,
       bio: selectedUser?.bio ?? "",
@@ -121,6 +123,7 @@ export function EditForm({
         mutation.mutate({
           userId: selectedUser?.id ?? "",
           role: values.role,
+          username: values.username,
           name: values.name,
           email: values.email,
           avatar: values.avatar,
@@ -157,6 +160,7 @@ export function EditForm({
         </div>
       </div>
       <div className="mt-6 flex flex-col space-y-3">
+        <TextField label={t("username")} {...form.register("username")} />
         <TextField label={t("name")} {...form.register("name")} />
         <TextField label={t("email")} {...form.register("email")} />
 
