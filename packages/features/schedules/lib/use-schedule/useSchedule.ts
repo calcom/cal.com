@@ -74,10 +74,7 @@ export const useSchedule = ({
       timeZone: timezone!,
       duration: duration ? `${duration}` : undefined,
       rescheduleUid,
-      orgDetails: orgSlug && {
-        currentOrgDomain: orgSlug,
-        isValidOrgDomain: true,
-      },
+      orgSlug,
     },
     {
       trpc: {
