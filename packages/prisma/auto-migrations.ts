@@ -1,0 +1,31 @@
+import dotEnv from "dotenv";
+import { exec as execCb } from "node:child_process";
+import { promisify } from "node:util";
+
+dotEnv.config({ path: "../../.env" });
+
+const exec = promisify(execCb);
+
+/**
+ * TODO: re-write this when Prisma.io gets a programmatic migration API
+ * Thanks to @olalonde for the idea.
+ * @see https://github.com/prisma/prisma/issues/4703#issuecomment-1447354363
+ */
+async function main(): Promise<void> {
+  if (!process.env.DATABASE_DIRECT_URL) {
+    console.info("No DATABASE_DIRECT_URL found, skipping migration");
+    return;
+  }
+  // throws an error if migration fails
+  const { stdout } = await exec("yarn prisma migrate deploy", {
+    env: {
+      ...process.env,
+    },
+  });
+  console.log(stdout);
+}
+
+main().catch((e) => {
+  console.error(e.stdout);
+  process.exit(1);
+});
