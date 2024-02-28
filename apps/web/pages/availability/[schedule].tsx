@@ -29,11 +29,11 @@ import {
   Tooltip,
   VerticalDivider,
 } from "@calcom/ui";
+import { EditableHeading } from "@calcom/ui/EditableHeading";
 import { Info, MoreVertical, ArrowLeft, Plus, Trash } from "@calcom/ui/components/icon";
 
 import PageWrapper from "@components/PageWrapper";
 import { SelectSkeletonLoader } from "@components/availability/SkeletonLoader";
-import EditableHeading from "@components/ui/EditableHeading";
 
 type AvailabilityFormValues = {
   name: string;
