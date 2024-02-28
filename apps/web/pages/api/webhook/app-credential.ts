@@ -21,7 +21,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (req.headers[CREDENTIAL_SYNC_SECRET_HEADER_NAME] !== CREDENTIAL_SYNC_SECRET) {
-    return res.status(403).json({ message: "Invalid webhook secret" });
+    return res.status(403).json({ message: "Invalid credential sync secret" });
   }
 
   const reqBody = appCredentialWebhookRequestBodySchema.parse(req.body);
