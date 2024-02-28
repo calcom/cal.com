@@ -11,7 +11,7 @@ const handler: AppDeclarativeHandler = {
   handlerType: "add",
   redirect: {
     newTab: true,
-    url: "https://skiff.com/blog/skiff-cal-com-launch",
+    url: "https://linear.app/settings/integrations/google-calendar",
   },
   createCredential: ({ appType, user, slug, teamId }) =>
     createDefaultInstallation({ appType, user: user, slug, key: {}, teamId }),

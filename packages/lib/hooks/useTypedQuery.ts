@@ -4,6 +4,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useMemo, useEffect } from "react";
 import { z } from "zod";
 
+import { localStorage } from "../webstorage";
 import { useRouterQuery } from "./useRouterQuery";
 
 type OptionalKeys<T> = {
@@ -32,7 +33,7 @@ export const queryStringArray = z
   .preprocess((a) => z.string().parse(a).split(","), z.string().array())
   .or(z.string().array());
 
-export function useTypedQuery<T extends z.AnyZodObject>(schema: T) {
+export function useTypedQuery<T extends z.AnyZodObject>(schema: T, localStorageKey: string | null = null) {
   type Output = z.infer<typeof schema>;
   type FullOutput = Required<Output>;
   type OutputKeys = Required<keyof FullOutput>;
@@ -43,7 +44,7 @@ export function useTypedQuery<T extends z.AnyZodObject>(schema: T) {
   const unparsedQuery = useRouterQuery();
   const pathname = usePathname();
   const parsedQuerySchema = schema.safeParse(unparsedQuery);
-
+  const useLocalStorage = !!localStorageKey;
   let parsedQuery: Output = useMemo(() => {
     return {} as Output;
   }, []);
@@ -73,6 +74,39 @@ export function useTypedQuery<T extends z.AnyZodObject>(schema: T) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [parsedQuery, router]
   );
+  //If the value for {localStorageKey} exist in localStorage set it to queryParams
+  useEffect(() => {
+    if (!useLocalStorage) return;
+    const storedValueString = localStorage.getItem(localStorageKey);
+    if (!storedValueString || storedValueString == "{}") return;
+    const storedValue: Output = JSON.parse(storedValueString);
+    if (storedValue) {
+      const searchParams = new URLSearchParams();
+      for (const [key, value] of Object.entries(storedValue)) {
+        searchParams.set(String(key), String(value));
+      }
+      router.replace(`${pathname}?${searchParams.toString()}`);
+    }
+  }, []);
+
+  function setLocalStorage<J extends OutputKeys>(key: J, value: Output[J]) {
+    if (!useLocalStorage) return;
+    const storedValue: Output = JSON.parse(localStorage.getItem(localStorageKey) || "{}");
+    const newValue = { ...storedValue, [key]: value };
+    localStorage.setItem(localStorageKey, JSON.stringify(newValue));
+  }
+  function removeByKeyFromLocalStorage(key: OutputOptionalKeys) {
+    if (!useLocalStorage) return;
+    const storedValue: Output = JSON.parse(localStorage.getItem(localStorageKey) || "{}");
+    const newValue = storedValue;
+    delete newValue[key];
+    localStorage.setItem(localStorageKey, JSON.stringify(newValue));
+  }
+  //Remove {localStorageKey} from the localStorage
+  function removeAllValuesFromLocalStorage() {
+    if (!useLocalStorage) return;
+    localStorage.removeItem(localStorageKey);
+  }
 
   // Delete a key from the query
   function removeByKey(key: OutputOptionalKeys) {
@@ -88,9 +122,13 @@ export function useTypedQuery<T extends z.AnyZodObject>(schema: T) {
       if (existingValue.includes(value)) return; // prevent adding the same value to the array
       // @ts-expect-error this is too much for TS it seems
       setQuery(key, [...existingValue, value]);
+      // @ts-expect-error this is too much for TS it seems
+      setLocalStorage(key, [...existingValue, value]);
     } else {
       // @ts-expect-error this is too much for TS it seems
       setQuery(key, [value]);
+      // @ts-expect-error this is too much for TS it seems
+      setLocalStorage(key, [value]);
     }
   }
 
@@ -101,9 +139,12 @@ export function useTypedQuery<T extends z.AnyZodObject>(schema: T) {
       // @ts-expect-error this is too much for TS it seems
       const newValue = existingValue.filter((item) => item !== value);
       setQuery(key, newValue);
+      setLocalStorage(key, newValue);
     } else {
       // @ts-expect-error this is too much for TS it seems
       removeByKey(key);
+      //@ts-expect-error this is too much for TS it seems
+      removeByKeyFromLocalStorage(key);
     }
   }
 
@@ -111,6 +152,7 @@ export function useTypedQuery<T extends z.AnyZodObject>(schema: T) {
   function removeAllQueryParams() {
     if (pathname !== null) {
       router.replace(pathname);
+      removeAllValuesFromLocalStorage();
     }
   }
 

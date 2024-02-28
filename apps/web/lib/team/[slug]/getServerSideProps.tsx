@@ -1,7 +1,7 @@
 import type { GetServerSidePropsContext } from "next";
 
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
-import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
+import { getFeatureFlag } from "@calcom/features/flags/server/utils";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import logger from "@calcom/lib/logger";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
@@ -37,12 +37,11 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   // Provided by Rewrite from next.config.js
   const isOrgProfile = context.query?.isOrgProfile === "1";
-  const flags = await getFeatureFlagMap(prisma);
-  const isOrganizationFeatureEnabled = flags["organizations"];
+  const organizationsEnabled = await getFeatureFlag(prisma, "organizations");
 
   log.debug("getServerSideProps", {
     isOrgProfile,
-    isOrganizationFeatureEnabled,
+    isOrganizationFeatureEnabled: organizationsEnabled,
     isValidOrgDomain,
     currentOrgDomain,
   });
@@ -74,7 +73,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   if (
     (!isValidOrgDomain && team?.parent) ||
     (!isValidOrgDomain && !!metadata?.isOrganization) ||
-    !isOrganizationFeatureEnabled
+    !organizationsEnabled
   ) {
     return { notFound: true } as const;
   }
