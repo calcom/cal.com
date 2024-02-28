@@ -3,9 +3,11 @@ FROM node:18 as builder
 WORKDIR /calcom
 
 ARG MAX_OLD_SPACE_SIZE=4096
+ARG DISABLE_ESLINT_PLUGIN=true
 
 ENV NEXT_PUBLIC_WEBAPP_URL=https://NEXT_PUBLIC_WEBAPP_URL_PLACEHOLDER \
-    NODE_OPTIONS=--max-old-space-size=${MAX_OLD_SPACE_SIZE}
+    NODE_OPTIONS=--max-old-space-size=${MAX_OLD_SPACE_SIZE} \
+    DISABLE_ESLINT_PLUGIN=${DISABLE_ESLINT_PLUGIN}
 
 
 COPY ./package.json ./yarn.lock ./.yarnrc.yml ./playwright.config.ts ./turbo.json ./git-init.sh ./git-setup.sh ./
