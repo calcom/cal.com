@@ -113,11 +113,14 @@ const useLockedFieldsManager = (
 
   const getLockedInitState = (fieldName: string): boolean => {
     let locked = isManagedEventType || isChildrenManagedEventType;
-    // Supports "metadata.fieldName"
+    const unlockedFieldList = formMethods.getValues("metadata")?.managedEventConfig?.unlockedFields;
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    //@ts-ignore
+    const fieldIsUnlocked = unlockedFieldList[fieldName] === true;
     if (fieldName.includes(".")) {
       locked = locked && get(unlockedFields, fieldName) === undefined;
     } else {
-      locked = locked && unlockedFields[fieldName as keyof Omit<Prisma.EventTypeSelect, "id">] === undefined;
+      locked = locked && !fieldIsUnlocked;
     }
     return locked;
   };
