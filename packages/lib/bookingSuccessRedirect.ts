@@ -63,7 +63,12 @@ export const useBookingSuccessRedirect = () => {
         },
         searchParams: searchParams ?? undefined,
       });
-      window.parent.location.href = `${url.toString()}?${newSearchParams.toString()}`;
+
+      if (newSearchParams?.toString().indexOf("?") <= -1) {
+        window.parent.location.href = `${url.toString()}?${newSearchParams.toString()}`;
+      } else {
+        window.parent.location.href = `${url.toString()}${newSearchParams.toString()}`;
+      }
       return;
     }
     const newSearchParams = getNewSeachParams({ query });
