@@ -17,12 +17,13 @@ async function main(): Promise<void> {
     return;
   }
   // throws an error if migration fails
-  const { stdout } = await exec("yarn prisma migrate deploy", {
+  const { stdout, stderr } = await exec("yarn prisma migrate deploy", {
     env: {
       ...process.env,
     },
   });
   console.log(stdout);
+  console.error(stderr);
 }
 
 main().catch((e) => {
