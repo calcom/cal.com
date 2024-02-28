@@ -1,5 +1,3 @@
-import { useToast } from "@/components/ui/use-toast";
-
 import type { ScheduleLabelsType } from "@calcom/features/schedules/components/Schedule";
 import type { UpdateScheduleOutputType } from "@calcom/platform-libraries";
 import type { ApiErrorResponse, ApiResponse } from "@calcom/platform-types";
@@ -8,6 +6,7 @@ import useClientSchedule from "../../hooks/useClientSchedule";
 import useDeleteSchedule from "../../hooks/useDeleteSchedule";
 import { useMe } from "../../hooks/useMe";
 import useUpdateSchedule from "../../hooks/useUpdateSchedule";
+import { useToast } from "../../src/components/ui/use-toast";
 import type { Schedule } from "../AvailabilitySettings";
 import type { CustomClassNames, TranslationsType } from "../AvailabilitySettings";
 import { AvailabilitySettings } from "../AvailabilitySettings";

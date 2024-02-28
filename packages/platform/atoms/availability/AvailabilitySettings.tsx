@@ -1,7 +1,3 @@
-import { ConfirmationDialogContent as PlatformConfirmationDialogContent } from "@/components/ui/confirmation-dialog-content";
-import { Dialog as PlatformDialog, DialogTrigger as PlatformDialogTrigger } from "@/components/ui/dialog";
-import { Shell as PlatformShell } from "@/components/ui/shell";
-import { cn } from "@/lib/utils";
 import { useMemo, useState } from "react";
 import { useForm, Controller, useFieldArray } from "react-hook-form";
 
@@ -34,6 +30,13 @@ import {
 } from "@calcom/ui";
 import { MoreVertical, ArrowLeft, Trash, Info, Plus } from "@calcom/ui/components/icon";
 
+import { ConfirmationDialogContent as PlatformConfirmationDialogContent } from "../src/components/ui/confirmation-dialog-content";
+import {
+  Dialog as PlatformDialog,
+  DialogTrigger as PlatformDialogTrigger,
+} from "../src/components/ui/dialog";
+import { Shell as PlatformShell } from "../src/components/ui/shell";
+import { cn } from "../src/lib/utils";
 import { Timezone as PlatformTimzoneSelect } from "../timezone/index";
 import type { AvailabilityFormValues } from "./types";
 
