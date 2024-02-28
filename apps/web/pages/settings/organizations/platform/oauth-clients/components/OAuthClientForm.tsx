@@ -2,20 +2,17 @@ import { useCreateOAuthClient } from "@pages/settings/organizations/platform/oau
 import { useRouter } from "next/router";
 import type { FC } from "react";
 import React, { useState, useCallback } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useFieldArray } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { PERMISSIONS_GROUPED_MAP } from "@calcom/platform-constants/permissions";
 import { showToast } from "@calcom/ui";
-import { Meta, Button, TextField } from "@calcom/ui";
+import { Meta, Button, TextField, Label } from "@calcom/ui";
+import { Plus, Trash } from "@calcom/ui/components/icon";
 
 type FormValues = {
   name: string;
   logo?: string;
-  redirectUriOne: string;
-  redirectUriTwo?: string;
-  redirectUriThree?: string;
-  redirectUris: string[];
   permissions: number;
   eventTypeRead: boolean;
   eventTypeWrite: boolean;
@@ -27,12 +24,23 @@ type FormValues = {
   appsWrite: boolean;
   profileRead: boolean;
   profileWrite: boolean;
+  redirectUris: {
+    uri: string;
+  }[];
 };
 
 export const OAuthClientForm: FC = () => {
   const { t } = useLocale();
   const router = useRouter();
-  const { register, handleSubmit, setValue } = useForm<FormValues>({});
+  const { register, control, handleSubmit, setValue } = useForm<FormValues>({
+    defaultValues: {
+      redirectUris: [{ uri: "" }],
+    },
+  });
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: "redirectUris",
+  });
   const [isSelectAllPermissionsChecked, setIsSelectAllPermissionsChecked] = useState(false);
 
   const selectAllPermissions = useCallback(() => {
@@ -59,11 +67,7 @@ export const OAuthClientForm: FC = () => {
 
   const onSubmit = (data: FormValues) => {
     let userPermissions = 0;
-    const userRedirectUris = [data.redirectUriOne];
-
-    // check if more than one redirect urls are present and add them accordingly
-    data.redirectUriTwo && userRedirectUris.push(data.redirectUriTwo);
-    data.redirectUriThree && userRedirectUris.push(data.redirectUriThree);
+    const userRedirectUris = data.redirectUris.map((uri) => uri.uri).filter((uri) => !!uri);
 
     Object.keys(PERMISSIONS_GROUPED_MAP).forEach((key) => {
       const entity = key as keyof typeof PERMISSIONS_GROUPED_MAP;
@@ -131,6 +135,50 @@ export const OAuthClientForm: FC = () => {
         <div className="mt-6">
           <TextField required={true} label="Client name" {...register("name")} />
         </div>
+        <div className="mt-6">
+          <Label>Redirect uris</Label>
+          {fields.map((field, index) => {
+            return (
+              <div className="flex items-end" key={field.id}>
+                <div className="w-[80vw]">
+                  <TextField
+                    type="url"
+                    required={index === 0}
+                    className="w-[100%]"
+                    label=""
+                    {...register(`redirectUris.${index}.uri` as const)}
+                  />
+                </div>
+                <div className="flex">
+                  <Button
+                    tooltip="Add url"
+                    type="button"
+                    color="minimal"
+                    variant="icon"
+                    StartIcon={Plus}
+                    className="text-default mx-2 mb-2"
+                    onClick={() => {
+                      append({ uri: "" });
+                    }}
+                  />
+                  {index > 0 && (
+                    <Button
+                      tooltip="Remove url"
+                      type="button"
+                      color="destructive"
+                      variant="icon"
+                      StartIcon={Trash}
+                      className="text-default mx-2 mb-2"
+                      onClick={() => {
+                        remove(index);
+                      }}
+                    />
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
         {/** <div className="mt-6">
           <Controller
             control={control}
@@ -161,15 +209,6 @@ export const OAuthClientForm: FC = () => {
             )}
           />
         </div> */}
-        <div className="mt-6">
-          <TextField type="url" label="Redirect uri one" required={true} {...register("redirectUriOne")} />
-        </div>
-        <div className="mt-6">
-          <TextField type="url" label="Redirect uri two" {...register("redirectUriTwo")} />
-        </div>
-        <div className="mt-6">
-          <TextField type="url" label="Redirect uri three" {...register("redirectUriThree")} />
-        </div>
         <div className="mt-6">
           <div className="flex justify-between">
             <h1 className="text-base font-semibold underline">Permissions</h1>
