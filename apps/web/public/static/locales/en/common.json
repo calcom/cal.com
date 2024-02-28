@@ -2181,7 +2181,6 @@
   "locked": "Locked",
   "unlocked": "Unlocked",
   "join_event_location": "Join  {{eventLocationType}}",
-  "join_meeting": "Join Meeting",
   "troubleshooting":"Troubleshooting",
   "calendars_were_checking_for_conflicts":"Calendars we’re checking for conflicts",
   "availabilty_schedules":"Availability schedules",
