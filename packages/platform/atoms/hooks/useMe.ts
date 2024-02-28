@@ -1,22 +1,27 @@
 import { useQuery } from "@tanstack/react-query";
 
-import { BASE_URL, API_VERSION, V2_ENDPOINTS } from "@calcom/platform-constants";
+import { BASE_URL, API_VERSION, V2_ENDPOINTS, SUCCESS_STATUS } from "@calcom/platform-constants";
+import type { ApiResponse, UserResponse } from "@calcom/platform-types";
 
-export const useMe = (key: string) => {
+import http from "../lib/http";
+
+export const QUERY_KEY = "get-me";
+export const useMe = () => {
   const endpoint = new URL(BASE_URL);
 
-  endpoint.pathname = `${API_VERSION}/${V2_ENDPOINTS.me}`;
-  endpoint.searchParams.set("apiKey", key);
+  endpoint.pathname = `api/${API_VERSION}/${V2_ENDPOINTS.me}`;
 
-  const { data } = useQuery({
-    queryKey: ["get-user-timezone"],
+  const me = useQuery({
+    queryKey: [QUERY_KEY],
     queryFn: () => {
-      return fetch(endpoint.toString(), {
-        method: "get",
-        headers: { "Content-type": "application/json" },
-      }).then((res) => res.json());
+      return http?.get<ApiResponse<{ user: UserResponse }>>(endpoint.toString()).then((res) => {
+        if (res.data.status === SUCCESS_STATUS) {
+          return res.data;
+        }
+        throw new Error(res.data.error.message);
+      });
     },
   });
 
-  return data;
+  return me;
 };

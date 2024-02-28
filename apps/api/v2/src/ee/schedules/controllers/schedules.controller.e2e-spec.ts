@@ -1,7 +1,6 @@
 import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
 import { SchedulesRepository } from "@/ee/schedules/schedules.repository";
-import { ScheduleResponse } from "@/ee/schedules/services/response/zod/response";
 import { SchedulesService } from "@/ee/schedules/services/schedules.service";
 import { AvailabilitiesModule } from "@/modules/availabilities/availabilities.module";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
@@ -17,6 +16,7 @@ import { withAccessTokenAuth } from "test/utils/withAccessTokenAuth";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { ScheduleWithAvailabilities, ScheduleWithAvailabilitiesForWeb } from "@calcom/platform-libraries";
+import { ScheduleResponse } from "@calcom/platform-types";
 import { ApiSuccessResponse } from "@calcom/platform-types";
 
 describe("Schedules Endpoints", () => {
