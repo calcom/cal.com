@@ -118,6 +118,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
   const requiresBookerEmailVerificationProps = shouldLockDisableProps("requiresBookerEmailVerification");
   const hideCalendarNotesLocked = shouldLockDisableProps("hideCalendarNotes");
   const lockTimeZoneToggleOnBookingPageLocked = shouldLockDisableProps("lockTimeZoneToggleOnBookingPage");
+  // const hashedLinkLocked = shouldLockDisableProps("hashedLink");
 
   const closeEventNameTip = () => setShowEventNameTip(false);
   const displayDestinationCalendarSelector =
@@ -320,51 +321,52 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
             <Info className="ml-1.5 h-4 w-4 cursor-pointer" />
           </a>
         }
-        {...(isManagedEventType || isChildrenManagedEventType ? { disabled: true } : {})}
-        {...(isChildrenManagedEventType ? { LockedIcon: shouldLockIndicator("hashedLink") } : {})}
+        {...shouldLockDisableProps("hashedLink")}
         description={t("private_link_description", { appName: APP_NAME })}
         checked={hashedLinkVisible}
         onCheckedChange={(e) => {
           formMethods.setValue("hashedLink", e ? hashedUrl : undefined, { shouldDirty: true });
           setHashedLinkVisible(e);
         }}>
-        <div className="border-subtle rounded-b-lg border border-t-0 p-6">
-          {!IS_VISUAL_REGRESSION_TESTING && (
-            <TextField
-              disabled
-              name="hashedLink"
-              label={t("private_link_label")}
-              data-testid="generated-hash-url"
-              labelSrOnly
-              type="text"
-              hint={t("private_link_hint")}
-              defaultValue={placeholderHashedLink}
-              addOnSuffix={
-                <Tooltip
-                  content={
-                    formMethods.getValues("hashedLink") ? t("copy_to_clipboard") : t("enabled_after_update")
-                  }>
-                  <Button
-                    color="minimal"
-                    size="sm"
-                    type="button"
-                    className="hover:stroke-3 hover:text-emphasis min-w-fit !py-0 px-0 hover:bg-transparent"
-                    aria-label="copy link"
-                    onClick={() => {
-                      navigator.clipboard.writeText(placeholderHashedLink);
-                      if (formMethods.getValues("hashedLink")) {
-                        showToast(t("private_link_copied"), "success");
-                      } else {
-                        showToast(t("enabled_after_update_description"), "warning");
-                      }
-                    }}>
-                    <Copy className="h-4 w-4" />
-                  </Button>
-                </Tooltip>
-              }
-            />
-          )}
-        </div>
+        {!isManagedEventType && (
+          <div className="border-subtle rounded-b-lg border border-t-0 p-6">
+            {!IS_VISUAL_REGRESSION_TESTING && (
+              <TextField
+                disabled
+                name="hashedLink"
+                label={t("private_link_label")}
+                data-testid="generated-hash-url"
+                labelSrOnly
+                type="text"
+                hint={t("private_link_hint")}
+                defaultValue={placeholderHashedLink}
+                addOnSuffix={
+                  <Tooltip
+                    content={
+                      formMethods.getValues("hashedLink") ? t("copy_to_clipboard") : t("enabled_after_update")
+                    }>
+                    <Button
+                      color="minimal"
+                      size="sm"
+                      type="button"
+                      className="hover:stroke-3 hover:text-emphasis min-w-fit !py-0 px-0 hover:bg-transparent"
+                      aria-label="copy link"
+                      onClick={() => {
+                        navigator.clipboard.writeText(placeholderHashedLink);
+                        if (formMethods.getValues("hashedLink")) {
+                          showToast(t("private_link_copied"), "success");
+                        } else {
+                          showToast(t("enabled_after_update_description"), "warning");
+                        }
+                      }}>
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                  </Tooltip>
+                }
+              />
+            )}
+          </div>
+        )}
       </SettingsToggle>
       <Controller
         name="seatsPerTimeSlotEnabled"
