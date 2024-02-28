@@ -18,6 +18,7 @@ import { performance } from "@calcom/lib/server/perfObserver";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import getSlots from "@calcom/lib/slots";
 import prisma, { availabilityUserSelect } from "@calcom/prisma";
+import { Prisma } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
@@ -269,6 +270,31 @@ export function getRegularOrDynamicEventType(
     : getEventType(input, organizationDetails);
 }
 
+const selectSelectedSlots = Prisma.validator<Prisma.SelectedSlotsDefaultArgs>()({
+  select: {
+    id: true,
+    slotUtcStartDate: true,
+    slotUtcEndDate: true,
+    userId: true,
+    isSeat: true,
+    eventTypeId: true,
+  },
+});
+
+type SelectedSlots = Prisma.SelectedSlotsGetPayload<typeof selectSelectedSlots>;
+
+function applyOccupiedSeatsToCurrentSeats(currentSeats: CurrentSeats, occupiedSeats: SelectedSlots[]) {
+  const occupiedSeatsCount = countBy(occupiedSeats, (item) => item.slotUtcStartDate.toISOString());
+  Object.keys(occupiedSeatsCount).forEach((date) => {
+    currentSeats.push({
+      uid: uuid(),
+      startTime: dayjs(date).toDate(),
+      _count: { attendees: occupiedSeatsCount[date] },
+    });
+  });
+  return currentSeats;
+}
+
 export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
   const orgDetails = orgDomainConfig(ctx?.req);
   if (process.env.INTEGRATION_TEST_MODE === "true") {
@@ -494,14 +520,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
         userId: { in: usersWithCredentials.map((user) => user.id) },
         releaseAt: { gt: dayjs.utc().format() },
       },
-      select: {
-        id: true,
-        slotUtcStartDate: true,
-        slotUtcEndDate: true,
-        userId: true,
-        isSeat: true,
-        eventTypeId: true,
-      },
+      ...selectSelectedSlots,
     })) || [];
   await prisma.selectedSlots.deleteMany({
     where: { eventTypeId: { equals: eventType.id }, id: { notIn: selectedSlots.map((item) => item.id) } },
@@ -534,16 +553,11 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
         );
       }
 
-      if (occupiedSeats?.length && typeof availabilityCheckProps.currentSeats === undefined)
-        availabilityCheckProps.currentSeats = [];
-      const occupiedSeatsCount = countBy(occupiedSeats, (item) => item.slotUtcStartDate.toISOString());
-      Object.keys(occupiedSeatsCount).forEach((date) => {
-        (availabilityCheckProps.currentSeats as CurrentSeats).push({
-          uid: uuid(),
-          startTime: dayjs(date).toDate(),
-          _count: { attendees: occupiedSeatsCount[date] },
-        });
-      });
+      availabilityCheckProps.currentSeats = applyOccupiedSeatsToCurrentSeats(
+        availabilityCheckProps.currentSeats || [],
+        occupiedSeats
+      );
+
       currentSeats = availabilityCheckProps.currentSeats;
     }
     availableTimeSlots = availableTimeSlots
