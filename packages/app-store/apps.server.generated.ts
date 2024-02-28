@@ -32,6 +32,7 @@ export const apiHandlers = {
   googlevideo: import("./googlevideo/api"),
   gtm: import("./gtm/api"),
   hubspot: import("./hubspot/api"),
+  "hubspot-revert": import("./hubspot-revert/api"),
   huddle01video: import("./huddle01video/api"),
   "ics-feedcalendar": import("./ics-feedcalendar/api"),
   intercom: import("./intercom/api"),
