@@ -1,17 +1,11 @@
+import LegacyPage, { getStaticProps } from "@pages/workflows/[workflow]";
+import { withAppDirSsg } from "app/WithAppDirSsg";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 import { type GetServerSidePropsContext } from "next";
 import { headers, cookies } from "next/headers";
-import { notFound } from "next/navigation";
-import { z } from "zod";
-
-import LegacyPage from "@calcom/features/ee/workflows/pages/workflow";
 
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
-
-const querySchema = z.object({
-  workflow: z.string(),
-});
 
 export const generateMetadata = async ({
   params,
@@ -20,7 +14,7 @@ export const generateMetadata = async ({
   params: Record<string, string | string[]>;
   searchParams: { [key: string]: string | string[] | undefined };
 }) => {
-  const { workflow } = await getProps(
+  const { workflow } = await getData(
     buildLegacyCtx(headers(), cookies(), params, searchParams) as unknown as GetServerSidePropsContext
   );
   return await _generateMetadata(
@@ -29,19 +23,12 @@ export const generateMetadata = async ({
   );
 };
 
-async function getProps(context: GetServerSidePropsContext) {
-  const safeParams = querySchema.safeParse(context.params);
-
-  console.log("Built workflow page:", safeParams);
-  if (!safeParams.success) {
-    return notFound();
-  }
-  return { workflow: safeParams.data.workflow };
-}
+const getData = withAppDirSsg(getStaticProps);
 
 export const generateStaticParams = () => [];
 
-export default WithLayout({ getLayout: null, getData: getProps, Page: LegacyPage })<"P">;
+// @ts-expect-error TODO: fix this
+export default WithLayout({ getLayout: null, getData, Page: LegacyPage })<"P">;
 export const dynamic = "force-static";
 // generate segments on demand
 export const dynamicParams = true;

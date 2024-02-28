@@ -13,13 +13,13 @@ import { useEffect } from "react";
 
 import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import EventTypeDescription from "@calcom/features/eventtypes/components/EventTypeDescription";
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import { getOrgAvatarUrl, getTeamAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
-import { Avatar, Button, HeadSeo, UnpublishedEntity } from "@calcom/ui";
+import { Avatar, Button, HeadSeo, UnpublishedEntity, UserAvatarGroup } from "@calcom/ui";
 import { ArrowRight } from "@calcom/ui/components/icon";
 
 import { useToggleQuery } from "@lib/hooks/useToggleQuery";
@@ -28,7 +28,6 @@ import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import PageWrapper from "@components/PageWrapper";
 import Team from "@components/team/screens/Team";
-import { UserAvatarGroup } from "@components/ui/avatar/UserAvatarGroup";
 
 export { getServerSideProps };
 
@@ -124,7 +123,7 @@ function TeamPage({
             (mem) => mem.subteams?.includes(ch.slug) && mem.accepted
           ).length;
           return (
-            <li key={i} className="hover:bg-muted w-full">
+            <li key={i} className="hover:bg-muted w-full rounded-md">
               <Link href={`/${ch.slug}`} className="flex items-center justify-between">
                 <div className="flex items-center px-5 py-5">
                   <div className="ms-3 inline-block truncate">
@@ -158,6 +157,11 @@ function TeamPage({
       </div>
     );
 
+  const profileImageSrc =
+    isValidOrgDomain || team.metadata?.isOrganization
+      ? getOrgAvatarUrl({ slug: currentOrgDomain, logoUrl: team.logoUrl })
+      : getTeamAvatarUrl({ slug: team.slug, logoUrl: team.logoUrl, organizationId: team.parent?.id });
+
   return (
     <>
       <HeadSeo
@@ -167,22 +171,14 @@ function TeamPage({
           title: markdownStrippedBio,
           profile: {
             name: `${team.name}`,
-            image: `${WEBAPP_URL}/${team.metadata?.isOrganization ? "org" : "team"}/${team.slug}/avatar.png`,
+            image: profileImageSrc,
           },
         }}
       />
       <main className="dark:bg-darkgray-50 bg-subtle mx-auto max-w-3xl rounded-md px-4 pb-12 pt-12">
         <div className="mx-auto mb-8 max-w-3xl text-center">
           <div className="relative">
-            <Avatar
-              alt={teamName}
-              imageSrc={
-                isValidOrgDomain
-                  ? `/org/${currentOrgDomain}/avatar.png`
-                  : `${WEBAPP_URL}/${team.metadata?.isOrganization ? "org" : "team"}/${team.slug}/avatar.png`
-              }
-              size="lg"
-            />
+            <Avatar alt={teamName} imageSrc={profileImageSrc} size="lg" />
           </div>
           <p className="font-cal  text-emphasis mb-2 text-2xl tracking-wider" data-testid="team-name">
             {team.parent && `${team.parent.name} `}

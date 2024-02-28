@@ -1,5 +1,6 @@
 import { get } from "@vercel/edge-config";
 import { collectEvents } from "next-collect/server";
+import { cookies } from "next/headers";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
@@ -9,6 +10,14 @@ import { extendEventData, nextCollectBasicSettings } from "@calcom/lib/telemetry
 import { csp } from "@lib/csp";
 
 import { abTestMiddlewareFactory } from "./abTest/middlewareFactory";
+
+const safeGet = async <T = any>(key: string): Promise<T | undefined> => {
+  try {
+    return get<T>(key);
+  } catch (error) {
+    // Don't crash if EDGE_CONFIG env var is missing
+  }
+};
 
 const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
   const url = req.nextUrl;
@@ -23,18 +32,12 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
     //
     //     - For this reason our matchers are sufficient for an app-wide maintenance page.
     //
-    try {
-      // Check whether the maintenance page should be shown
-      const isInMaintenanceMode = await get<boolean>("isInMaintenanceMode");
-      // If is in maintenance mode, point the url pathname to the maintenance page
-      if (isInMaintenanceMode) {
-        req.nextUrl.pathname = `/maintenance`;
-        return NextResponse.rewrite(req.nextUrl);
-      }
-    } catch (error) {
-      // show the default page if EDGE_CONFIG env var is missing,
-      // but log the error to the console
-      // console.error(error);
+    // Check whether the maintenance page should be shown
+    const isInMaintenanceMode = await safeGet<boolean>("isInMaintenanceMode");
+    // If is in maintenance mode, point the url pathname to the maintenance page
+    if (isInMaintenanceMode) {
+      req.nextUrl.pathname = `/maintenance`;
+      return NextResponse.rewrite(req.nextUrl);
     }
   }
 
@@ -59,6 +62,14 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
     requestHeaders.set("x-cal-timezone", req.headers.get("x-vercel-ip-timezone") ?? "");
   }
 
+  if (url.pathname.startsWith("/api/auth/signup")) {
+    const isSignupDisabled = await safeGet<boolean>("isSignupDisabled");
+    // If is in maintenance mode, point the url pathname to the maintenance page
+    if (isSignupDisabled) {
+      return NextResponse.json({ error: "Signup is disabled" }, { status: 503 });
+    }
+  }
+
   if (url.pathname.startsWith("/auth/login") || url.pathname.startsWith("/login")) {
     // Use this header to actually enforce CSP, otherwise it is running in Report Only mode on all pages.
     requestHeaders.set("x-csp-enforce", "true");
@@ -79,6 +90,10 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
       nextUrl.pathname = validPathname;
       return NextResponse.redirect(nextUrl, { headers: requestHeaders });
     }
+  }
+
+  if (url.pathname.startsWith("/future/auth/logout")) {
+    cookies().delete("next-auth.session-token");
   }
 
   requestHeaders.set("x-pathname", url.pathname);
@@ -109,13 +124,16 @@ export const config = {
   // https://github.com/vercel/next.js/discussions/42458
   matcher: [
     "/:path*/embed",
+    "/api/auth/signup",
     "/api/trpc/:path*",
     "/login",
     "/auth/login",
+    "/future/auth/login",
     /**
      * Paths required by routingForms.handle
      */
     "/apps/routing_forms/:path*",
+
     "/event-types",
     "/future/event-types/",
     "/settings/admin/:path*",

@@ -13,6 +13,8 @@
   "reset_password_subject": "{{appName}}: інструкції зі скидання пароля",
   "verify_email_subject": "{{appName}}: підтвердьте свій обліковий запис",
   "check_your_email": "Перевірте свою електронну пошту",
+  "old_email_address": "Стара адреса електронної пошти",
+  "new_email_address": "Нова адреса електронної пошти",
   "verify_email_page_body": "Ми надіслали лист на адресу {{email}}. Підтвердьте свою електронну адресу, щоб уникнути проблем із доставкою листів і даних календаря із застосунку {{appName}}.",
   "verify_email_banner_body": "Підтвердьте свою електронну адресу, щоб уникнути проблем із доставкою листів і даних календаря",
   "verify_email_email_header": "Підтвердьте свою електронну адресу",
@@ -2096,5 +2098,6 @@
   "description_lock_timezone_toggle_on_booking_page": "Для блокування часового поясу на сторінці бронювання (корисне для окремих заходів)",
   "extensive_whitelabeling": "Технічна підтримка й підтримка під час ознайомлення",
   "need_help": "Потрібна допомога?",
+  "show_more": "Більше",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

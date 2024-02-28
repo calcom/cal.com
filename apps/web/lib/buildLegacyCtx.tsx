@@ -32,22 +32,18 @@ export const buildLegacyCtx = (
   params: Params,
   searchParams: SearchParams
 ) => {
-  return new Proxy<Record<string, any>>(
-    {
-      query: { ...searchParams, ...params },
-      params,
-      req: { headers: buildLegacyHeaders(headers), cookies: buildLegacyCookies(cookies) },
-    },
-    {
-      get(obj, prop) {
-        if (prop === "res") {
-          throw new Error(
-            "You are trying to access the 'res' property of the context, which is not supported in app dir"
-          );
-        }
-
-        return obj[prop as keyof typeof obj];
+  return {
+    query: { ...searchParams, ...params },
+    params,
+    req: { headers: buildLegacyHeaders(headers), cookies: buildLegacyCookies(cookies) },
+    res: new Proxy(Object.create(null), {
+      // const { req, res } = ctx - valid
+      // res.anything - throw
+      get() {
+        throw new Error(
+          "You are trying to access the 'res' property of the context, which is not supported in app dir"
+        );
       },
-    }
-  ) as unknown as GetServerSidePropsContext;
+    }),
+  } as unknown as GetServerSidePropsContext;
 };

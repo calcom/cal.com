@@ -1,5 +1,7 @@
 import type { Membership, Team, UserPermissionRole } from "@prisma/client";
+import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import type { AuthOptions, Session } from "next-auth";
+import type { JWT } from "next-auth/jwt";
 import { encode } from "next-auth/jwt";
 import type { Provider } from "next-auth/providers";
 import CredentialsProvider from "next-auth/providers/credentials";
@@ -11,11 +13,15 @@ import ImpersonationProvider from "@calcom/features/ee/impersonation/lib/Imperso
 import { getOrgFullOrigin, subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { clientSecretVerifier, hostedCal, isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
-import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
+import { ENABLE_PROFILE_SWITCHER, IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { symmetricDecrypt, symmetricEncrypt } from "@calcom/lib/crypto";
 import { defaultCookies } from "@calcom/lib/default-cookies";
 import { isENVDev } from "@calcom/lib/env";
+import logger from "@calcom/lib/logger";
 import { randomString } from "@calcom/lib/random";
+import { safeStringify } from "@calcom/lib/safeStringify";
+import { ProfileRepository } from "@calcom/lib/server/repository/profile";
+import { UserRepository } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import { IdentityProvider, MembershipRole } from "@calcom/prisma/enums";
@@ -26,6 +32,7 @@ import { isPasswordValid } from "./isPasswordValid";
 import CalComAdapter from "./next-auth-custom-adapter";
 import { verifyPassword } from "./verifyPassword";
 
+const log = logger.getSubLogger({ prefix: ["next-auth-options"] });
 const GOOGLE_API_CREDENTIALS = process.env.GOOGLE_API_CREDENTIALS || "{}";
 const { client_id: GOOGLE_CLIENT_ID, client_secret: GOOGLE_CLIENT_SECRET } =
   JSON.parse(GOOGLE_API_CREDENTIALS)?.web || {};
@@ -36,12 +43,12 @@ const ORGANIZATIONS_AUTOLINK =
 
 const usernameSlug = (username: string) => `${slugify(username)}-${randomString(6).toLowerCase()}`;
 
-const loginWithTotp = async (user: { email: string }) =>
-  `/auth/login?totp=${await (await import("./signJwt")).default({ email: user.email })}`;
+const loginWithTotp = async (email: string) =>
+  `/auth/login?totp=${await (await import("./signJwt")).default({ email })}`;
 
 type UserTeams = {
   teams: (Membership & {
-    team: Team;
+    team: Pick<Team, "metadata">;
   })[];
 };
 
@@ -100,38 +107,9 @@ const providers: Provider[] = [
         throw new Error(ErrorCode.InternalServerError);
       }
 
-      const user = await prisma.user.findUnique({
-        where: {
-          email: credentials.email.toLowerCase(),
-        },
-        select: {
-          locked: true,
-          role: true,
-          id: true,
-          username: true,
-          name: true,
-          email: true,
-          metadata: true,
-          identityProvider: true,
-          password: true,
-          organizationId: true,
-          twoFactorEnabled: true,
-          twoFactorSecret: true,
-          backupCodes: true,
-          locale: true,
-          organization: {
-            select: {
-              id: true,
-            },
-          },
-          teams: {
-            include: {
-              team: true,
-            },
-          },
-        },
+      const user = await UserRepository.findByEmailAndIncludeProfilesAndPassword({
+        email: credentials.email,
       });
-
       // Don't leak information about it being username or password that is invalid
       if (!user) {
         throw new Error(ErrorCode.IncorrectEmailPassword);
@@ -149,18 +127,18 @@ const providers: Provider[] = [
       if (user.identityProvider !== IdentityProvider.CAL && !credentials.totpCode) {
         throw new Error(ErrorCode.ThirdPartyIdentityProviderEnabled);
       }
-      if (!user.password && user.identityProvider == IdentityProvider.CAL) {
+      if (!user.password?.hash && user.identityProvider == IdentityProvider.CAL) {
         throw new Error(ErrorCode.IncorrectEmailPassword);
       }
-      if (!user.password && user.identityProvider !== IdentityProvider.CAL && !credentials.totpCode) {
+      if (!user.password?.hash && user.identityProvider !== IdentityProvider.CAL && !credentials.totpCode) {
         throw new Error(ErrorCode.IncorrectEmailPassword);
       }
 
-      if (user.password && !credentials.totpCode) {
-        if (!user.password) {
+      if (user.password?.hash && !credentials.totpCode) {
+        if (!user.password?.hash) {
           throw new Error(ErrorCode.IncorrectEmailPassword);
         }
-        const isCorrectPassword = await verifyPassword(credentials.password, user.password);
+        const isCorrectPassword = await verifyPassword(credentials.password, user.password.hash);
         if (!isCorrectPassword) {
           throw new Error(ErrorCode.IncorrectEmailPassword);
         }
@@ -253,8 +231,8 @@ const providers: Provider[] = [
         name: user.name,
         role: validateRole(user.role),
         belongsToActiveTeam: hasActiveTeams,
-        organizationId: user.organizationId,
         locale: user.locale,
+        profile: user.allProfiles[0],
       };
     },
   }),
@@ -291,15 +269,30 @@ if (isSAMLLoginEnabled) {
       params: { grant_type: "authorization_code" },
     },
     userinfo: `${WEBAPP_URL}/api/auth/saml/userinfo`,
-    profile: (profile) => {
+    profile: async (profile: {
+      id?: number;
+      firstName?: string;
+      lastName?: string;
+      email?: string;
+      locale?: string;
+    }) => {
+      const user = await UserRepository.findByEmailAndIncludeProfilesAndPassword({
+        email: profile.email || "",
+      });
+      if (!user) {
+        throw new Error(ErrorCode.UserNotFound);
+      }
+
+      const [userProfile] = user.allProfiles;
       return {
-        id: profile.id || "",
+        id: profile.id || 0,
         firstName: profile.firstName || "",
         lastName: profile.lastName || "",
         email: profile.email || "",
         name: `${profile.firstName || ""} ${profile.lastName || ""}`.trim(),
         email_verified: true,
         locale: profile.locale,
+        profile: userProfile,
       };
     },
     options: {
@@ -351,6 +344,12 @@ if (isSAMLLoginEnabled) {
         }
 
         const { id, firstName, lastName, email } = userInfo;
+        const user = await UserRepository.findByEmailAndIncludeProfilesAndPassword({ email });
+        if (!user) {
+          throw new Error(ErrorCode.UserNotFound);
+        }
+
+        const [profile] = user.allProfiles;
 
         return {
           id: id as unknown as number,
@@ -359,6 +358,7 @@ if (isSAMLLoginEnabled) {
           email,
           name: `${firstName} ${lastName}`.trim(),
           email_verified: true,
+          profile,
         };
       },
     })
@@ -427,15 +427,31 @@ export const AUTH_OPTIONS: AuthOptions = {
   },
   providers,
   callbacks: {
-    async jwt({ token, user, account, trigger, session }) {
+    async jwt({
+      // Always available but with a little difference in value
+      token,
+      // Available only in case of signIn, signUp or useSession().update call.
+      trigger,
+      // Available when useSession().update is called. The value will be the POST data
+      session,
+      // Available only in the first call once the user signs in. Not available in subsequent calls
+      user,
+      // Available only in the first call once the user signs in. Not available in subsequent calls
+      account,
+    }) {
+      log.debug("callbacks:jwt", safeStringify({ token, user, account, trigger, session }));
+
+      // The data available in 'session' depends on what data was supplied in update method call of session
       if (trigger === "update") {
         return {
           ...token,
+          profileId: session?.profileId ?? token.profileId ?? null,
+          upId: session?.upId ?? token.upId ?? null,
           locale: session?.locale ?? token.locale ?? "en",
           name: session?.name ?? token.name,
           username: session?.username ?? token.username,
           email: session?.email ?? token.email,
-        };
+        } as JWT;
       }
       const autoMergeIdentities = async () => {
         const existingUser = await prisma.user.findFirst({
@@ -446,16 +462,9 @@ export const AUTH_OPTIONS: AuthOptions = {
             username: true,
             name: true,
             email: true,
-            organization: {
-              select: {
-                id: true,
-                name: true,
-                slug: true,
-                metadata: true,
-              },
-            },
             role: true,
             locale: true,
+            movedToProfileId: true,
             teams: {
               include: {
                 team: true,
@@ -470,24 +479,41 @@ export const AUTH_OPTIONS: AuthOptions = {
 
         // Check if the existingUser has any active teams
         const belongsToActiveTeam = checkIfUserBelongsToActiveTeam(existingUser);
-        const { teams: _teams, organization, ...existingUserWithoutTeamsField } = existingUser;
+        const { teams: _teams, ...existingUserWithoutTeamsField } = existingUser;
+        const allProfiles = await ProfileRepository.findAllProfilesForUserIncludingMovedUser(existingUser);
+        log.debug(
+          "callbacks:jwt:autoMergeIdentities",
+          safeStringify({
+            allProfiles,
+          })
+        );
+        const { upId } = determineProfile({ profiles: allProfiles, token });
 
-        const parsedOrgMetadata = teamMetadataSchema.parse(organization?.metadata ?? {});
+        const profile = await ProfileRepository.findByUpId(upId);
+        if (!profile) {
+          throw new Error("Profile not found");
+        }
+
+        const profileOrg = profile?.organization;
 
         return {
           ...existingUserWithoutTeamsField,
           ...token,
+          profileId: profile.id,
+          upId,
           belongsToActiveTeam,
-          org: organization
+          // All organizations in the token would be too big to store. It breaks the sessions request.
+          // So, we just set the currently switched organization only here.
+          org: profileOrg
             ? {
-                id: organization.id,
-                name: organization.name,
-                slug: organization.slug ?? parsedOrgMetadata?.requestedSlug ?? "",
-                fullDomain: getOrgFullOrigin(organization.slug ?? parsedOrgMetadata?.requestedSlug ?? ""),
+                id: profileOrg.id,
+                name: profileOrg.name,
+                slug: profileOrg.slug ?? profileOrg.requestedSlug ?? "",
+                fullDomain: getOrgFullOrigin(profileOrg.slug ?? profileOrg.requestedSlug ?? ""),
                 domainSuffix: subdomainSuffix(),
               }
-            : undefined,
-        };
+            : null,
+        } as JWT;
       };
       if (!user) {
         return await autoMergeIdentities();
@@ -512,7 +538,9 @@ export const AUTH_OPTIONS: AuthOptions = {
           belongsToActiveTeam: user?.belongsToActiveTeam,
           org: user?.org,
           locale: user?.locale,
-        };
+          profileId: user.profile?.id ?? token.profileId ?? null,
+          upId: user.profile?.upId ?? token.upId ?? null,
+        } as JWT;
       }
 
       // The arguments above are from the provider so we need to look up the
@@ -551,15 +579,23 @@ export const AUTH_OPTIONS: AuthOptions = {
           belongsToActiveTeam: token?.belongsToActiveTeam as boolean,
           org: token?.org,
           locale: existingUser.locale,
-        };
+        } as JWT;
+      }
+
+      if (account.type === "email") {
+        return await autoMergeIdentities();
       }
 
       return token;
     },
-    async session({ session, token }) {
+    async session({ session, token, user }) {
+      log.debug("callbacks:session - Session callback called", safeStringify({ session, token, user }));
       const hasValidLicense = await checkLicense(prisma);
+      const profileId = token.profileId;
       const calendsoSession: Session = {
         ...session,
+        profileId,
+        upId: token.upId || session.upId,
         hasValidLicense,
         user: {
           ...session.user,
@@ -576,7 +612,19 @@ export const AUTH_OPTIONS: AuthOptions = {
       return calendsoSession;
     },
     async signIn(params) {
-      const { user, account, profile } = params;
+      const {
+        /**
+         * Available when Credentials provider is used - Has the value returned by authorize callback
+         */
+        user,
+        /**
+         * Available when Credentials provider is used - Has the value submitted as the body of the HTTP POST submission
+         */
+        profile,
+        account,
+      } = params;
+
+      log.debug("callbacks:signin", safeStringify(params));
 
       if (account?.provider === "email") {
         return true;
@@ -670,7 +718,7 @@ export const AUTH_OPTIONS: AuthOptions = {
               }
             }
             if (existingUser.twoFactorEnabled && existingUser.identityProvider === idP) {
-              return loginWithTotp(existingUser);
+              return loginWithTotp(existingUser.email);
             } else {
               return true;
             }
@@ -686,7 +734,7 @@ export const AUTH_OPTIONS: AuthOptions = {
           if (!userWithNewEmail) {
             await prisma.user.update({ where: { id: existingUser.id }, data: { email: user.email } });
             if (existingUser.twoFactorEnabled) {
-              return loginWithTotp(existingUser);
+              return loginWithTotp(existingUser.email);
             } else {
               return true;
             }
@@ -705,6 +753,9 @@ export const AUTH_OPTIONS: AuthOptions = {
               mode: "insensitive",
             },
           },
+          include: {
+            password: true,
+          },
         });
 
         if (existingUserWithEmail) {
@@ -715,7 +766,7 @@ export const AUTH_OPTIONS: AuthOptions = {
             existingUserWithEmail.identityProvider !== IdentityProvider.CAL
           ) {
             if (existingUserWithEmail.twoFactorEnabled) {
-              return loginWithTotp(existingUserWithEmail);
+              return loginWithTotp(existingUserWithEmail.email);
             } else {
               return true;
             }
@@ -723,7 +774,7 @@ export const AUTH_OPTIONS: AuthOptions = {
 
           // check if user was invited
           if (
-            !existingUserWithEmail.password &&
+            !existingUserWithEmail.password?.hash &&
             !existingUserWithEmail.emailVerified &&
             !existingUserWithEmail.username
           ) {
@@ -745,7 +796,7 @@ export const AUTH_OPTIONS: AuthOptions = {
             });
 
             if (existingUserWithEmail.twoFactorEnabled) {
-              return loginWithTotp(existingUserWithEmail);
+              return loginWithTotp(existingUserWithEmail.email);
             } else {
               return true;
             }
@@ -756,18 +807,34 @@ export const AUTH_OPTIONS: AuthOptions = {
             existingUserWithEmail.identityProvider === IdentityProvider.CAL &&
             (idP === IdentityProvider.GOOGLE || idP === IdentityProvider.SAML)
           ) {
-            await prisma.user.update({
+            const updatedUser = await prisma.user.update({
               where: { email: existingUserWithEmail.email },
               // also update email to the IdP email
               data: {
-                password: null,
                 email: user.email,
                 identityProvider: idP,
                 identityProviderId: account.providerAccountId,
               },
             });
+
+            // safely delete password from UserPassword table if it exists
+            try {
+              await prisma.userPassword.delete({
+                where: { userId: updatedUser.id },
+              });
+            } catch (err) {
+              if (
+                err instanceof PrismaClientKnownRequestError &&
+                (err.code === "P2025" || err.code === "P2016")
+              ) {
+                log.warn("UserPassword not found for user", safeStringify(existingUserWithEmail));
+              } else {
+                log.warn("Could not delete UserPassword for user", safeStringify(existingUserWithEmail));
+              }
+            }
+
             if (existingUserWithEmail.twoFactorEnabled) {
-              return loginWithTotp(existingUserWithEmail);
+              return loginWithTotp(existingUserWithEmail.email);
             } else {
               return true;
             }
@@ -788,6 +855,7 @@ export const AUTH_OPTIONS: AuthOptions = {
             username: orgId ? slugify(orgUsername) : usernameSlug(user.name),
             emailVerified: new Date(Date.now()),
             name: user.name,
+            ...(user.image && { avatarUrl: user.image }),
             email: user.email,
             identityProvider: idP,
             identityProviderId: account.providerAccountId,
@@ -805,7 +873,7 @@ export const AUTH_OPTIONS: AuthOptions = {
         await calcomAdapter.linkAccount(linkAccountNewUserData);
 
         if (account.twoFactorEnabled) {
-          return loginWithTotp(newUser);
+          return loginWithTotp(newUser.email);
         } else {
           return true;
         }
@@ -813,6 +881,9 @@ export const AUTH_OPTIONS: AuthOptions = {
 
       return false;
     },
+    /**
+     * Used to handle the navigation right after successful login or logout
+     */
     async redirect({ url, baseUrl }) {
       // Allows relative callback URLs
       if (url.startsWith("/")) return `${baseUrl}${url}`;
@@ -821,4 +892,28 @@ export const AUTH_OPTIONS: AuthOptions = {
       return baseUrl;
     },
   },
+};
+
+/**
+ * Identifies the profile the user should be logged into.
+ */
+const determineProfile = ({
+  token,
+  profiles,
+}: {
+  token: JWT;
+  profiles: { id: number | null; upId: string }[];
+}) => {
+  // If profile switcher is disabled, we can only show the first profile.
+  if (!ENABLE_PROFILE_SWITCHER) {
+    return profiles[0];
+  }
+
+  if (token.upId) {
+    // Otherwise use what's in the token
+    return { profileId: token.profileId, upId: token.upId as string };
+  }
+
+  // If there is just one profile it has to be the one we want to log into.
+  return profiles[0];
 };

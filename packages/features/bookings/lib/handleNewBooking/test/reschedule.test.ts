@@ -100,8 +100,8 @@ describe("handleNewBooking", () => {
               eventTypes: [
                 {
                   id: 1,
-                  slotInterval: 45,
-                  length: 45,
+                  slotInterval: 15,
+                  length: 15,
                   users: [
                     {
                       id: 101,
@@ -337,8 +337,8 @@ describe("handleNewBooking", () => {
               eventTypes: [
                 {
                   id: 1,
-                  slotInterval: 45,
-                  length: 45,
+                  slotInterval: 15,
+                  length: 15,
                   users: [
                     {
                       id: 101,
@@ -549,8 +549,8 @@ describe("handleNewBooking", () => {
               eventTypes: [
                 {
                   id: 1,
-                  slotInterval: 45,
-                  length: 45,
+                  slotInterval: 30,
+                  length: 30,
                   users: [
                     {
                       id: 101,
@@ -564,7 +564,7 @@ describe("handleNewBooking", () => {
                   eventTypeId: 1,
                   status: BookingStatus.ACCEPTED,
                   startTime: `${plus1DateString}T05:00:00.000Z`,
-                  endTime: `${plus1DateString}T05:15:00.000Z`,
+                  endTime: `${plus1DateString}T05:30:00.000Z`,
                   metadata: {
                     videoCallUrl: "https://existing-daily-video-call-url.example.com",
                   },
@@ -732,9 +732,9 @@ describe("handleNewBooking", () => {
               eventTypes: [
                 {
                   id: 1,
-                  slotInterval: 45,
+                  slotInterval: 15,
                   requiresConfirmation: true,
-                  length: 45,
+                  length: 15,
                   users: [
                     {
                       id: 101,
@@ -940,8 +940,8 @@ describe("handleNewBooking", () => {
                   {
                     id: 1,
                     requiresConfirmation: true,
-                    slotInterval: 45,
-                    length: 45,
+                    slotInterval: 15,
+                    length: 15,
                     users: [
                       {
                         id: 101,
@@ -1190,9 +1190,9 @@ describe("handleNewBooking", () => {
               eventTypes: [
                 {
                   id: 1,
-                  slotInterval: 45,
+                  slotInterval: 15,
                   requiresConfirmation: true,
-                  length: 45,
+                  length: 15,
                   users: [
                     {
                       id: 101,
@@ -1403,8 +1403,8 @@ describe("handleNewBooking", () => {
                   {
                     id: 1,
                     requiresConfirmation: true,
-                    slotInterval: 45,
-                    length: 45,
+                    slotInterval: 15,
+                    length: 15,
                     users: [
                       {
                         id: 101,
@@ -1650,8 +1650,8 @@ describe("handleNewBooking", () => {
               eventTypes: [
                 {
                   id: 1,
-                  slotInterval: 45,
-                  length: 45,
+                  slotInterval: 15,
+                  length: 15,
                   users: [
                     {
                       id: 101,
@@ -1803,8 +1803,8 @@ describe("handleNewBooking", () => {
               eventTypes: [
                 {
                   id: 1,
-                  slotInterval: 45,
-                  length: 45,
+                  slotInterval: 15,
+                  length: 15,
                   users: [
                     {
                       id: 101,

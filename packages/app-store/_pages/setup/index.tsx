@@ -9,6 +9,7 @@ export const AppSetupMap = {
   "exchange2013-calendar": dynamic(() => import("../../exchange2013calendar/pages/setup")),
   "exchange2016-calendar": dynamic(() => import("../../exchange2016calendar/pages/setup")),
   "caldav-calendar": dynamic(() => import("../../caldavcalendar/pages/setup")),
+  "ics-feed": dynamic(() => import("../../ics-feedcalendar/pages/setup")),
   zapier: dynamic(() => import("../../zapier/pages/setup")),
   make: dynamic(() => import("../../make/pages/setup")),
   closecom: dynamic(() => import("../../closecom/pages/setup")),

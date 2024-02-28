@@ -1,5 +1,7 @@
-import EventTypes from "@pages/event-types";
 import { _generateMetadata } from "app/_utils";
+import { WithLayout } from "app/layoutHOC";
+
+import EventTypes from "~/event-types/views/event-types-listing-view";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
@@ -7,4 +9,4 @@ export const generateMetadata = async () =>
     (t) => t("event_types_page_subtitle")
   );
 
-export default EventTypes;
+export default WithLayout({ getLayout: null, Page: EventTypes })<"P">;

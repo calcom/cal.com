@@ -6,11 +6,11 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { ssrInit } from "@server/lib/ssr";
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  const { req, res } = context;
+  const { req } = context;
 
   const ssr = await ssrInit(context);
 
-  const session = await getServerSession({ req, res });
+  const session = await getServerSession({ req });
 
   let appStore;
   if (session?.user?.id) {

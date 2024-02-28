@@ -9,7 +9,6 @@ export const withAppDirSsr =
     if ("redirect" in ssrResponse) {
       redirect(ssrResponse.redirect.destination);
     }
-
     if ("notFound" in ssrResponse) {
       notFound();
     }

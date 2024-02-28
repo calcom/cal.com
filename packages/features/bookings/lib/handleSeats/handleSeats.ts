@@ -28,8 +28,9 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
     eventTypeId,
     subscriberOptions,
     eventTrigger,
+    evt,
   } = newSeatedBookingObject;
-  const { evt } = newSeatedBookingObject;
+
   const loggerWithEventDetails = createLoggerWithEventDetails(eventType.id, reqBodyUser, eventType.slug);
 
   let resultBooking: HandleSeatsResultBooking = null;
@@ -40,9 +41,10 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
         {
           uid: rescheduleUid || reqBookingUid,
         },
+
         {
           eventTypeId: eventType.id,
-          startTime: evt.startTime,
+          startTime: new Date(evt.startTime),
         },
       ],
       status: BookingStatus.ACCEPTED,
@@ -62,8 +64,13 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
     },
   });
 
-  if (!seatedBooking) {
+  if (!seatedBooking && rescheduleUid) {
     throw new HttpError({ statusCode: 404, message: ErrorCode.BookingNotFound });
+  }
+
+  // We might be trying to create a new booking
+  if (!seatedBooking) {
+    return;
   }
 
   // See if attendee is already signed up for timeslot

@@ -15,7 +15,8 @@ import { getStaticProps } from "@lib/apps/categories/[category]/getStaticProps";
 
 import PageWrapper from "@components/PageWrapper";
 
-export default function Apps({ apps }: InferGetStaticPropsType<typeof getStaticProps>) {
+export type PageProps = InferGetStaticPropsType<typeof getStaticProps>;
+export default function Apps({ apps }: PageProps) {
   const searchParams = useCompatSearchParams();
   const { t, isLocaleReady } = useLocale();
   const category = searchParams?.get("category");
@@ -25,6 +26,8 @@ export default function Apps({ apps }: InferGetStaticPropsType<typeof getStaticP
       <Shell
         isPublic
         backPath="/apps"
+        title="Apps Store"
+        description="Connecting people, technology and the workplace."
         smallHeading
         heading={
           <>
@@ -44,7 +47,7 @@ export default function Apps({ apps }: InferGetStaticPropsType<typeof getStaticP
         <div className="mb-16">
           <div className="grid-col-1 grid grid-cols-1 gap-3 md:grid-cols-3">
             {apps
-              .sort((a, b) => (b.installCount || 0) - (a.installCount || 0))
+              ?.sort((a, b) => (b.installCount || 0) - (a.installCount || 0))
               .map((app) => {
                 return <AppCard key={app.slug} app={app} />;
               })}

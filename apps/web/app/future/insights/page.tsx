@@ -1,10 +1,10 @@
 import LegacyPage from "@pages/insights/index";
+import { withAppDirSsr } from "app/WithAppDirSsr";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
-import { notFound } from "next/navigation";
 
-import { getLayout } from "@calcom/features/MainLayoutAppDir";
-import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
+import { getServerSideProps } from "@lib/insights/getServerSideProps";
+import { type inferSSRProps } from "@lib/types/inferSSRProps";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
@@ -12,15 +12,6 @@ export const generateMetadata = async () =>
     (t) => t("insights_subtitle")
   );
 
-async function getData() {
-  const prisma = await import("@calcom/prisma").then((mod) => mod.default);
-  const flags = await getFeatureFlagMap(prisma);
+const getData = withAppDirSsr<inferSSRProps<typeof getServerSideProps>>(getServerSideProps);
 
-  if (flags.insights === false) {
-    return notFound();
-  }
-
-  return {};
-}
-
-export default WithLayout({ getLayout, getData, Page: LegacyPage });
+export default WithLayout({ getLayout: null, getData, Page: LegacyPage });

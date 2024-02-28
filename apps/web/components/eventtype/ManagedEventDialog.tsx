@@ -8,18 +8,18 @@ interface ManagedEventDialogProps {
   slugExistsChildrenDialogOpen: ChildrenEventType[];
   slug: string;
   onOpenChange: () => void;
-  isLoading: boolean;
+  isPending: boolean;
   onConfirm: (e: { preventDefault: () => void }) => void;
 }
 
 export default function ManagedEventDialog(props: ManagedEventDialogProps) {
   const { t } = useLocale();
-  const { slugExistsChildrenDialogOpen, slug, onOpenChange, isLoading, onConfirm } = props;
+  const { slugExistsChildrenDialogOpen, slug, onOpenChange, isPending, onConfirm } = props;
 
   return (
     <Dialog open={slugExistsChildrenDialogOpen.length > 0} onOpenChange={onOpenChange}>
       <ConfirmationDialogContent
-        isLoading={isLoading}
+        isPending={isPending}
         variety="warning"
         title={t("managed_event_dialog_title", {
           slug,

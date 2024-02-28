@@ -22,7 +22,7 @@ export function TimezoneSelect({
   ...props
 }: SelectProps & { variant?: "default" | "minimal" }) {
   const [cities, setCities] = useState<ICity[]>([]);
-  const { data, isLoading } = trpc.viewer.public.cityTimezones.useQuery(undefined, {
+  const { data, isPending } = trpc.viewer.public.cityTimezones.useQuery(undefined, {
     trpc: { context: { skipBatch: true } },
   });
   const handleInputChange = (tz: string) => {
@@ -39,8 +39,8 @@ export function TimezoneSelect({
     <BaseSelect
       value={value}
       className={className}
-      isLoading={isLoading}
-      isDisabled={isLoading}
+      isLoading={isPending}
+      isDisabled={isPending}
       {...reactSelectProps}
       timezones={{
         ...(data ? addCitiesToDropdown(data) : {}),

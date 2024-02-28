@@ -103,13 +103,17 @@
   background-color: var(--cal-bg-subtle);
 }
 
+.react-daterange-picker { 
+  width: 100%;
+}
+
 .react-daterange-picker > .react-daterange-picker__wrapper {
   padding: 0.625rem 0.75rem;
   font-size: 0.875rem;
   line-height: 1.25rem;
   border-radius: 0.375rem;
+  width: 100%;
   border-color: var(--cal-border);
-  width: 360px;
   display: flex;
   flex-direction: row;
   align-items: center;

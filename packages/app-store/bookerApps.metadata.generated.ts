@@ -5,6 +5,7 @@
 import around_config_json from "./around/config.json";
 import campfire_config_json from "./campfire/config.json";
 import { metadata as dailyvideo__metadata_ts } from "./dailyvideo/_metadata";
+import demodesk_config_json from "./demodesk/config.json";
 import discord_config_json from "./discord/config.json";
 import eightxeight_config_json from "./eightxeight/config.json";
 import element_call_config_json from "./element-call/config.json";
@@ -23,6 +24,7 @@ import ping_config_json from "./ping/config.json";
 import plausible_config_json from "./plausible/config.json";
 import riverside_config_json from "./riverside/config.json";
 import roam_config_json from "./roam/config.json";
+import salesroom_config_json from "./salesroom/config.json";
 import shimmervideo_config_json from "./shimmervideo/config.json";
 import signal_config_json from "./signal/config.json";
 import sirius_video_config_json from "./sirius_video/config.json";
@@ -40,6 +42,7 @@ export const appStoreMetadata = {
   around: around_config_json,
   campfire: campfire_config_json,
   dailyvideo: dailyvideo__metadata_ts,
+  demodesk: demodesk_config_json,
   discord: discord_config_json,
   eightxeight: eightxeight_config_json,
   "element-call": element_call_config_json,
@@ -58,6 +61,7 @@ export const appStoreMetadata = {
   plausible: plausible_config_json,
   riverside: riverside_config_json,
   roam: roam_config_json,
+  salesroom: salesroom_config_json,
   shimmervideo: shimmervideo_config_json,
   signal: signal_config_json,
   sirius_video: sirius_video_config_json,

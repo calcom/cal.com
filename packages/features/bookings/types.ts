@@ -4,6 +4,8 @@ import type { BookingCreateBody } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import type { AppsStatus } from "@calcom/types/Calendar";
 
+import type { SchedulingType } from ".prisma/client";
+
 export type PublicEvent = NonNullable<RouterOutputs["viewer"]["public"]["event"]>;
 export type ValidationErrors<T extends object> = { key: FieldPath<T>; error: ErrorOption }[];
 
@@ -27,12 +29,13 @@ export type RecurringBookingCreateBody = BookingCreateBody & {
   appsStatus?: AppsStatus[] | undefined;
   allRecurringDates?: Record<string, string>[];
   currentRecurringIndex?: number;
+  schedulingType?: SchedulingType;
 };
 
 export type BookingResponse = Awaited<
   ReturnType<typeof import("@calcom/features/bookings/lib/handleNewBooking").default>
 >;
 
-export type InstatBookingResponse = Awaited<
+export type InstantBookingResponse = Awaited<
   ReturnType<typeof import("@calcom/features/instant-meeting/handleInstantMeeting").default>
 >;

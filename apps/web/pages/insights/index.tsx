@@ -1,7 +1,5 @@
 "use client";
 
-import { getLayout } from "@calcom/features/MainLayout";
-import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
 import {
   AverageEventDurationChart,
   BookingKPICards,
@@ -12,13 +10,15 @@ import {
 } from "@calcom/features/insights/components";
 import { FiltersProvider } from "@calcom/features/insights/context/FiltersProvider";
 import { Filters } from "@calcom/features/insights/filters";
-import { ShellMain } from "@calcom/features/shell/Shell";
+import Shell from "@calcom/features/shell/Shell";
 import { UpgradeTip } from "@calcom/features/tips";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import { Button, ButtonGroup } from "@calcom/ui";
 import { RefreshCcw, UserPlus, Users } from "@calcom/ui/components/icon";
+
+import { getServerSideProps } from "@lib/insights/getServerSideProps";
 
 import PageWrapper from "@components/PageWrapper";
 
@@ -46,7 +46,12 @@ export default function InsightsPage() {
 
   return (
     <div>
-      <ShellMain heading="Insights" subtitle={t("insights_subtitle")}>
+      <Shell
+        withoutMain={false}
+        heading="Insights"
+        subtitle={t("insights_subtitle")}
+        title="Insights"
+        description="View booking insights across your events.">
         <UpgradeTip
           plan="team"
           title={t("make_informed_decisions")}
@@ -98,26 +103,11 @@ export default function InsightsPage() {
             </FiltersProvider>
           )}
         </UpgradeTip>
-      </ShellMain>
+      </Shell>
     </div>
   );
 }
 
 InsightsPage.PageWrapper = PageWrapper;
-InsightsPage.getLayout = getLayout;
 
-// If feature flag is disabled, return not found on getServerSideProps
-export const getServerSideProps = async () => {
-  const prisma = await import("@calcom/prisma").then((mod) => mod.default);
-  const flags = await getFeatureFlagMap(prisma);
-
-  if (flags.insights === false) {
-    return {
-      notFound: true,
-    };
-  }
-
-  return {
-    props: {},
-  };
-};
+export { getServerSideProps };

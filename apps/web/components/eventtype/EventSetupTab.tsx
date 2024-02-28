@@ -11,7 +11,7 @@ import type { EventLocationType } from "@calcom/app-store/locations";
 import { getEventLocationType, MeetLocationType } from "@calcom/app-store/locations";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
-import { CAL_URL } from "@calcom/lib/constants";
+import { WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
 import { slugify } from "@calcom/lib/slugify";
@@ -48,21 +48,19 @@ const getLocationFromType = (
   }
 };
 
-const getLocationInfo = (props: Pick<EventTypeSetupProps, "eventType" | "locationOptions">) => {
+const getLocationInfo = ({
+  eventType,
+  locationOptions,
+}: Pick<EventTypeSetupProps, "eventType" | "locationOptions">) => {
   const locationAvailable =
-    props.eventType.locations &&
-    props.eventType.locations.length > 0 &&
-    props.locationOptions.some((op) =>
-      op.options.find((opt) => opt.value === props.eventType.locations[0].type)
-    );
-  const locationDetails = props.eventType.locations &&
-    props.eventType.locations.length > 0 &&
+    eventType.locations &&
+    eventType.locations.length > 0 &&
+    locationOptions.some((op) => op.options.find((opt) => opt.value === eventType.locations[0].type));
+  const locationDetails = eventType.locations &&
+    eventType.locations.length > 0 &&
     !locationAvailable && {
-      slug: props.eventType.locations[0].type
-        .replace("integrations:", "")
-        .replace(":", "-")
-        .replace("_video", ""),
-      name: props.eventType.locations[0].type
+      slug: eventType.locations[0].type.replace("integrations:", "").replace(":", "-").replace("_video", ""),
+      name: eventType.locations[0].type
         .replace("integrations:", "")
         .replace(":", " ")
         .replace("_video", "")
@@ -72,16 +70,11 @@ const getLocationInfo = (props: Pick<EventTypeSetupProps, "eventType" | "locatio
     };
   return { locationAvailable, locationDetails };
 };
-interface DescriptionEditorProps {
-  description?: string | null;
-  editable?: boolean;
-}
 
-const DescriptionEditor = (props: DescriptionEditorProps) => {
+const DescriptionEditor = ({ isEditable }: { isEditable: boolean }) => {
   const formMethods = useFormContext<FormValues>();
   const [mounted, setIsMounted] = useState(false);
   const { t } = useLocale();
-  const { description } = props;
   const [firstRender, setFirstRender] = useState(true);
   useEffect(() => {
     setIsMounted(true);
@@ -89,11 +82,11 @@ const DescriptionEditor = (props: DescriptionEditorProps) => {
 
   return mounted ? (
     <Editor
-      getText={() => md.render(formMethods.getValues("description") || description || "")}
-      setText={(value: string) => formMethods.setValue("description", turndown(value))}
+      getText={() => md.render(formMethods.getValues("description") || "")}
+      setText={(value: string) => formMethods.setValue("description", turndown(value), { shouldDirty: true })}
       excludedToolbarItems={["blockType"]}
       placeholder={t("quick_video_meeting")}
-      editable={props.editable}
+      editable={isEditable}
       firstRender={firstRender}
       setFirstRender={setFirstRender}
     />
@@ -113,7 +106,9 @@ export const EventSetupTab = (
   const { t } = useLocale();
   const formMethods = useFormContext<FormValues>();
   const { eventType, team, destinationCalendar } = props;
-  const [multipleDuration, setMultipleDuration] = useState(eventType.metadata?.multipleDuration);
+  const [multipleDuration, setMultipleDuration] = useState(
+    formMethods.getValues("metadata")?.multipleDuration
+  );
   const orgBranding = useOrgBranding();
   const seatsEnabled = formMethods.watch("seatsPerTimeSlotEnabled");
 
@@ -143,12 +138,12 @@ export const EventSetupTab = (
     }>
   >(multipleDurationOptions.filter((mdOpt) => multipleDuration?.includes(mdOpt.value)));
   const [defaultDuration, setDefaultDuration] = useState(
-    selectedMultipleDuration.find((opt) => opt.value === eventType.length) ?? null
+    selectedMultipleDuration.find((opt) => opt.value === formMethods.getValues("length")) ?? null
   );
 
   const { isChildrenManagedEventType, isManagedEventType, shouldLockIndicator, shouldLockDisableProps } =
     useLockedFieldsManager(
-      eventType,
+      formMethods.getValues(),
       t("locked_fields_admin_description"),
       t("locked_fields_member_description")
     );
@@ -195,7 +190,6 @@ export const EventSetupTab = (
         return (
           <Controller
             name={`locations.${index}.${eventLocationType.defaultValueVariable}`}
-            control={formMethods.control}
             defaultValue={defaultValue}
             render={({ field: { onChange, value } }) => {
               return (
@@ -219,7 +213,6 @@ export const EventSetupTab = (
         return (
           <Controller
             name={`locations.${index}.${eventLocationType.defaultValueVariable}`}
-            control={formMethods.control}
             defaultValue={defaultValue}
             render={({ field: { onChange, value } }) => {
               return (
@@ -325,7 +318,7 @@ export const EventSetupTab = (
                         />
                       </div>
                       <ErrorMessage
-                        errors={formMethods.formState.errors.locations?.[index]}
+                        errors={formMethods.formState.errors?.locations?.[index]}
                         name={eventLocationType.defaultValueVariable}
                         className="text-error my-1 ml-6 text-sm"
                         as="div"
@@ -339,7 +332,7 @@ export const EventSetupTab = (
                         defaultChecked={defaultLocation?.displayLocationPublicly}
                         description={t("display_location_label")}
                         onChange={(e) => {
-                          const fieldValues = formMethods.getValues().locations[index];
+                          const fieldValues = formMethods.getValues("locations")[index];
                           updateLocationField(index, {
                             ...fieldValues,
                             displayLocationPublicly: e.target.checked,
@@ -408,7 +401,7 @@ export const EventSetupTab = (
                   The “Add to calendar” for this event type needs to be a Google Calendar for Meet to work.
                   Change it{" "}
                   <Link
-                    href={`${CAL_URL}/event-types/${eventType.id}?tabName=advanced`}
+                    href={`${WEBAPP_URL}/event-types/${formMethods.getValues("id")}?tabName=advanced`}
                     className="underline">
                     here.
                   </Link>{" "}
@@ -419,7 +412,7 @@ export const EventSetupTab = (
           {isChildrenManagedEventType && !locationAvailable && locationDetails && (
             <p className="pl-1 text-sm leading-none text-red-600">
               {t("app_not_connected", { appName: locationDetails.name })}{" "}
-              <a className="underline" href={`${CAL_URL}/apps/${locationDetails.slug}`}>
+              <a className="underline" href={`${WEBAPP_URL}/apps/${locationDetails.slug}`}>
                 {t("connect_now")}
               </a>
             </p>
@@ -451,9 +444,10 @@ export const EventSetupTab = (
 
   const lengthLockedProps = shouldLockDisableProps("length");
   const descriptionLockedProps = shouldLockDisableProps("description");
+
   const urlPrefix = orgBranding
     ? orgBranding?.fullDomain.replace(/^(https?:|)\/\//, "")
-    : `${CAL_URL?.replace(/^(https?:|)\/\//, "")}`;
+    : `${WEBSITE_URL?.replace(/^(https?:|)\/\//, "")}`;
 
   return (
     <div>
@@ -463,7 +457,6 @@ export const EventSetupTab = (
             required
             label={t("title")}
             {...shouldLockDisableProps("title")}
-            defaultValue={eventType.title}
             {...formMethods.register("title")}
           />
           <div>
@@ -471,23 +464,19 @@ export const EventSetupTab = (
               {t("description")}
               {shouldLockIndicator("description")}
             </Label>
-            <DescriptionEditor
-              description={eventType?.description}
-              editable={!descriptionLockedProps.disabled}
-            />
+            <DescriptionEditor isEditable={!descriptionLockedProps.disabled} />
           </div>
           <TextField
             required
             label={t("URL")}
             {...shouldLockDisableProps("slug")}
-            defaultValue={eventType.slug}
             addOnLeading={
               <>
                 {urlPrefix}/
                 {!isManagedEventType
                   ? team
                     ? (orgBranding ? "" : "team/") + team.slug
-                    : eventType.users[0].username
+                    : formMethods.getValues("users")[0].username
                   : t("username_placeholder")}
                 /
               </>
@@ -523,16 +512,16 @@ export const EventSetupTab = (
                     if (!newOptions.find((opt) => opt.value === defaultDuration?.value)) {
                       if (newOptions.length > 0) {
                         setDefaultDuration(newOptions[0]);
-                        formMethods.setValue("length", newOptions[0].value);
+                        formMethods.setValue("length", newOptions[0].value, { shouldDirty: true });
                       } else {
                         setDefaultDuration(null);
                       }
                     }
                     if (newOptions.length === 1 && defaultDuration === null) {
                       setDefaultDuration(newOptions[0]);
-                      formMethods.setValue("length", newOptions[0].value);
+                      formMethods.setValue("length", newOptions[0].value, { shouldDirty: true });
                     }
-                    formMethods.setValue("metadata.multipleDuration", values);
+                    formMethods.setValue("metadata.multipleDuration", values, { shouldDirty: true });
                   }}
                 />
               </div>
@@ -553,7 +542,7 @@ export const EventSetupTab = (
                     setDefaultDuration(
                       selectedMultipleDuration.find((opt) => opt.value === option?.value) ?? null
                     );
-                    if (option) formMethods.setValue("length", option.value);
+                    if (option) formMethods.setValue("length", option.value, { shouldDirty: true });
                   }}
                 />
               </div>
@@ -564,7 +553,7 @@ export const EventSetupTab = (
               type="number"
               {...lengthLockedProps}
               label={t("duration")}
-              defaultValue={eventType.length ?? 15}
+              defaultValue={formMethods.getValues("length") ?? 15}
               {...formMethods.register("length")}
               addOnSuffix={<>{t("minutes")}</>}
               min={1}
@@ -580,12 +569,14 @@ export const EventSetupTab = (
                 onCheckedChange={() => {
                   if (multipleDuration !== undefined) {
                     setMultipleDuration(undefined);
-                    formMethods.setValue("metadata.multipleDuration", undefined);
-                    formMethods.setValue("length", eventType.length);
+                    setSelectedMultipleDuration([]);
+                    setDefaultDuration(null);
+                    formMethods.setValue("metadata.multipleDuration", undefined, { shouldDirty: true });
+                    formMethods.setValue("length", eventType.length, { shouldDirty: true });
                   } else {
                     setMultipleDuration([]);
-                    formMethods.setValue("metadata.multipleDuration", []);
-                    formMethods.setValue("length", 0);
+                    formMethods.setValue("metadata.multipleDuration", [], { shouldDirty: true });
+                    formMethods.setValue("length", 0, { shouldDirty: true });
                   }
                 }}
               />
@@ -600,12 +591,7 @@ export const EventSetupTab = (
               {shouldLockIndicator("locations")}
             </Skeleton>
 
-            <Controller
-              name="locations"
-              control={formMethods.control}
-              defaultValue={eventType.locations || []}
-              render={() => <Locations />}
-            />
+            <Controller name="locations" render={() => <Locations />} />
           </div>
         </div>
       </div>

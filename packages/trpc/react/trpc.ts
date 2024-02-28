@@ -1,17 +1,19 @@
 import type { NextPageContext } from "next/types";
 import superjson from "superjson";
 
-import { httpBatchLink } from "../client/links/httpBatchLink";
-import { httpLink } from "../client/links/httpLink";
-import { loggerLink } from "../client/links/loggerLink";
-import { splitLink } from "../client/links/splitLink";
+import { httpBatchLink } from "../client";
+import { httpLink } from "../client";
+import { loggerLink } from "../client";
+import { splitLink } from "../client";
 import { createTRPCNext } from "../next";
 // ℹ️ Type-only import:
 // https://www.typescriptlang.org/docs/handbook/release-notes/typescript-3-8.html#type-only-imports-and-export
 import type { TRPCClientErrorLike } from "../react";
-import type { inferRouterInputs, inferRouterOutputs, Maybe } from "../server";
+import type { inferRouterInputs, inferRouterOutputs } from "../server";
 import type { AppRouter } from "../server/routers/_app";
 import { ENDPOINTS } from "./shared";
+
+type Maybe<T> = T | null | undefined;
 
 /**
  * We deploy our tRPC router on multiple lambdas to keep number of imports as small as possible
@@ -47,7 +49,7 @@ const resolveEndpoint = (links: any) => {
  * A set of strongly-typed React hooks from your `AppRouter` type signature with `createTRPCReact`.
  * @link https://trpc.io/docs/v10/react#2-create-trpc-hooks
  */
-export const trpc = createTRPCNext<AppRouter, NextPageContext, "ExperimentalSuspense">({
+export const trpc = createTRPCNext<AppRouter, NextPageContext>({
   config() {
     const url =
       typeof window !== "undefined"

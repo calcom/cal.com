@@ -14,7 +14,7 @@ import {
   rescheduleEvent,
 } from "../lib/testUtils";
 
-// in parallel mode sometimes handleNewBooking endpoint throws "No available users found" error, this never happens in serial mode. 
+// in parallel mode sometimes handleNewBooking endpoint throws "No available users found" error, this never happens in serial mode.
 test.describe.configure({ mode: "serial" });
 
 async function bookFirstFreeUserEventThroughEmbed({

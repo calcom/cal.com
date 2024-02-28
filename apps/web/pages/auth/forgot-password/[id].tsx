@@ -1,22 +1,21 @@
-import type { GetServerSidePropsContext } from "next";
-import { getCsrfToken } from "next-auth/react";
-import { serverSideTranslations } from "next-i18next/serverSideTranslations";
+"use client";
+
 import Link from "next/link";
 import type { CSSProperties } from "react";
 import { useForm } from "react-hook-form";
 
-import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import prisma from "@calcom/prisma";
 import { Button, PasswordField, Form } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
 import AuthContainer from "@components/ui/AuthContainer";
 
+import { getServerSideProps } from "@server/lib/forgot-password/[id]/getServerSideProps";
+
 type Props = {
   requestId: string;
   isRequestExpired: boolean;
-  csrfToken: string;
+  csrfToken: string | undefined;
 };
 
 export default function Page({ requestId, isRequestExpired, csrfToken }: Props) {
@@ -143,33 +142,4 @@ export default function Page({ requestId, isRequestExpired, csrfToken }: Props) 
 }
 
 Page.PageWrapper = PageWrapper;
-export async function getServerSideProps(context: GetServerSidePropsContext) {
-  const id = context.params?.id as string;
-
-  let resetPasswordRequest = await prisma.resetPasswordRequest.findFirst({
-    where: {
-      id,
-      expires: {
-        gt: new Date(),
-      },
-    },
-    select: {
-      email: true,
-    },
-  });
-  try {
-    resetPasswordRequest &&
-      (await prisma.user.findUniqueOrThrow({ where: { email: resetPasswordRequest.email } }));
-  } catch (e) {
-    resetPasswordRequest = null;
-  }
-  const locale = await getLocale(context.req);
-  return {
-    props: {
-      isRequestExpired: !resetPasswordRequest,
-      requestId: id,
-      csrfToken: await getCsrfToken({ req: context.req }),
-      ...(await serverSideTranslations(locale, ["common"])),
-    },
-  };
-}
+export { getServerSideProps };

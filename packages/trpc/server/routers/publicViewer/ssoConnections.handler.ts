@@ -1,16 +1,17 @@
-import { samlProductID, samlTenantID } from "@calcom/features/ee/sso/lib/saml";
+import jackson from "@calcom/features/ee/sso/lib/jackson";
+import { isSAMLLoginEnabled, samlProductID, samlTenantID } from "@calcom/features/ee/sso/lib/saml";
 import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
 
 import { TRPCError } from "@trpc/server";
 
 export const handler = async () => {
   try {
-    if (HOSTED_CAL_FEATURES) {
+    if (HOSTED_CAL_FEATURES || !isSAMLLoginEnabled) {
       return {
         connectionExists: null,
       };
     }
-    const jackson = (await import("@calcom/features/ee/sso/lib/jackson")).default;
+
     const { connectionController } = await jackson();
 
     const connections = await connectionController.getConnections({
