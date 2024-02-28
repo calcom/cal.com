@@ -1,4 +1,4 @@
-import type { AxiosRequestConfig } from "axios";
+import type { AxiosError, AxiosRequestConfig } from "axios";
 import { type AxiosInstance } from "axios";
 // eslint-disable-next-line no-restricted-imports
 import merge from "lodash/merge";
@@ -6,6 +6,7 @@ import merge from "lodash/merge";
 import type { SdkAuthOptions } from "../types";
 import type { Endpoints } from "./endpoints";
 import { getEndpointData } from "./endpoints";
+import { CalApiError } from "./errors/cal-api-error";
 
 interface HttpCallerOptions {
   shouldHandleRefresh?: boolean;
@@ -18,20 +19,35 @@ export class HttpCaller {
     private readonly clientId: string,
     private readonly axiosClient: AxiosInstance,
     private readonly authOptions: SdkAuthOptions,
-    private readonly options?: HttpCallerOptions
+    options?: HttpCallerOptions
   ) {
     if (options?.shouldHandleRefresh) {
       // TODO handle refresh pre-call.
-      axiosClient.interceptors.request.use((config) => {
+      this.axiosClient.interceptors.request.use((config) => {
         return config;
       });
     }
+
+    this.axiosClient.interceptors.response.use(
+      (response) => response,
+      (error: AxiosError) => {
+        if (error.response) {
+          // The request was made and the server responded with a status code
+          // that falls out of the range of 2xx
+          throw new CalApiError(error.response.statusText, error.response.status);
+        } else if (error.request) {
+          throw new Error("The request was made but no response was received");
+        } else {
+          throw new Error("An error occurred during the request setup");
+        }
+      }
+    );
   }
 
-  async post<T>(endpoint: Endpoints, input?: unknown, config?: AxiosRequestConfig<unknown>): Promise<T> {
+  async post<T>(endpoint: Endpoints, body?: unknown, config?: AxiosRequestConfig<unknown>): Promise<T> {
     const { data } = await this.axiosClient.post<T>(
       this.createCallUrl(endpoint),
-      input,
+      body,
       this.wrapConfigWithAuth(endpoint, config)
     );
     return data;
@@ -50,6 +66,16 @@ export class HttpCaller {
       this.createCallUrl(endpoint),
       this.wrapConfigWithAuth(endpoint, config)
     );
+    return data;
+  }
+
+  async patch<T>(endpoint: Endpoints, body?: unknown, config?: AxiosRequestConfig<unknown>): Promise<T> {
+    const { data } = await this.axiosClient.patch<T>(
+      this.createCallUrl(endpoint),
+      body,
+      this.wrapConfigWithAuth(endpoint, config)
+    );
+
     return data;
   }
 

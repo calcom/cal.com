@@ -21,9 +21,9 @@ const publicEndpoint = (uri: string, version = ApiVersion.NEUTRAL): EndpointDecl
 };
 
 const ENDPOINTS: Record<Endpoints, EndpointDeclaration> = {
-  RESERVE_SLOT: publicEndpoint("slots/reserve"),
-  AVAILABLE_SLOTS: publicEndpoint("slots/available"),
-  DELETE_SELECTED_SLOT: publicEndpoint("slots/delete"),
+  RESERVE_SLOT: publicEndpoint("slots/reserve", ApiVersion.V2),
+  AVAILABLE_SLOTS: publicEndpoint("slots/available", ApiVersion.V2),
+  DELETE_SELECTED_SLOT: publicEndpoint("slots/delete", ApiVersion.V2),
 } as const;
 
 export const getEndpointData = (endpoint: Endpoints): EndpointDeclaration => {

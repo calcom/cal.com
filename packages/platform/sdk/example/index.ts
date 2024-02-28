@@ -1,12 +1,13 @@
 import { CalSdk } from "../src/cal";
 
-async () => {
+(async () => {
   const sdk = new CalSdk(
     "whategver",
     {
-      accessToken: "",
+      accessToken: "test",
     },
     {
+      baseUrl: "https://api.cal.com",
       handleRefresh: true,
       httpRetries: {
         maxAmount: 5,
@@ -22,4 +23,4 @@ async () => {
     eventTypeId: 5,
     usernameList: [],
   });
-};
+})();

@@ -27,7 +27,7 @@ export class CalSdk {
       throw new SdkInitializationError("Either 'accessToken' or 'clientSecret' are required in authOptions");
     }
 
-    this.httpCaller = new HttpCaller(this._createAxiosClientBase(), this.authOptions);
+    this.httpCaller = new HttpCaller(this.clientId, this._createAxiosClientBase(), this.authOptions);
 
     this.slots = new Slots(this);
     this.bookings = new Bookings(this);
