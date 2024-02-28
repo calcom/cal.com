@@ -1,5 +1,6 @@
 import { useSession } from "next-auth/react";
 import { signIn } from "next-auth/react";
+import type { SessionContextValue } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -11,6 +12,7 @@ import slugify from "@calcom/lib/slugify";
 import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { UserPermissionRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
+import type { Ensure } from "@calcom/types/utils";
 import { Button, Form, TextField, Alert } from "@calcom/ui";
 import { ArrowRight } from "@calcom/ui/components/icon";
 
@@ -24,14 +26,27 @@ function extractDomainFromEmail(email: string) {
 }
 
 export const CreateANewOrganizationForm = ({ slug }: { slug?: string }) => {
-  const { t, i18n } = useLocale();
+  const session = useSession();
+  if (!session.data) {
+    return null;
+  }
+  return <CreateANewOrganizationFormChild slug={slug} session={session} />;
+};
+
+const CreateANewOrganizationFormChild = ({
+  slug,
+  session,
+}: {
+  slug?: string;
+  session: Ensure<SessionContextValue, "data">;
+}) => {
+  const { t } = useLocale();
   const router = useRouter();
   const telemetry = useTelemetry();
-  const session = useSession();
   const [serverErrorMessage, setServerErrorMessage] = useState<string | null>(null);
-  const isAdmin = session.data?.user.role === UserPermissionRole.ADMIN;
-  const isImpersonated = session.data?.user.impersonatedBy;
-
+  const isAdmin = session.data.user.role === UserPermissionRole.ADMIN;
+  const isImpersonated = session.data.user.impersonatedBy;
+  const defaultAdminEmail = session.data.user.email ?? "";
   const newOrganizationFormMethods = useForm<{
     name: string;
     seats: number;
@@ -41,7 +56,9 @@ export const CreateANewOrganizationForm = ({ slug }: { slug?: string }) => {
     adminUsername: string;
   }>({
     defaultValues: {
-      slug: `${slug ?? ""}`,
+      slug: deriveSlugFromEmail(defaultAdminEmail),
+      adminEmail: defaultAdminEmail,
+      name: deriveOrgNameFromEmail(defaultAdminEmail),
     },
   });
 
@@ -100,7 +117,6 @@ export const CreateANewOrganizationForm = ({ slug }: { slug?: string }) => {
           <Controller
             name="adminEmail"
             control={newOrganizationFormMethods.control}
-            defaultValue={session.data?.user.email ?? ""}
             rules={{
               required: t("must_enter_organization_admin_email"),
             }}
@@ -114,19 +130,14 @@ export const CreateANewOrganizationForm = ({ slug }: { slug?: string }) => {
                   label={t("admin_email")}
                   defaultValue={value}
                   onChange={(e) => {
-                    const domain = extractDomainFromEmail(e?.target.value);
-                    newOrganizationFormMethods.setValue("adminEmail", e?.target.value.trim());
-                    newOrganizationFormMethods.setValue(
-                      "adminUsername",
-                      e?.target.value.split("@")[0].trim()
-                    );
+                    const email = e?.target.value;
+                    const slug = deriveSlugFromEmail(email);
+                    newOrganizationFormMethods.setValue("adminEmail", email.trim());
+                    newOrganizationFormMethods.setValue("adminUsername", email.split("@")[0].trim());
                     if (newOrganizationFormMethods.getValues("slug") === "") {
-                      newOrganizationFormMethods.setValue("slug", domain);
+                      newOrganizationFormMethods.setValue("slug", slug);
                     }
-                    newOrganizationFormMethods.setValue(
-                      "name",
-                      domain.charAt(0).toUpperCase() + domain.slice(1)
-                    );
+                    newOrganizationFormMethods.setValue("name", deriveOrgNameFromEmail(email));
                   }}
                   autoComplete="off"
                 />
@@ -271,3 +282,15 @@ export const CreateANewOrganizationForm = ({ slug }: { slug?: string }) => {
     </>
   );
 };
+
+function deriveSlugFromEmail(email: string) {
+  const domain = extractDomainFromEmail(email);
+
+  return domain;
+}
+
+function deriveOrgNameFromEmail(email: string) {
+  const domain = extractDomainFromEmail(email);
+
+  return domain.charAt(0).toUpperCase() + domain.slice(1);
+}

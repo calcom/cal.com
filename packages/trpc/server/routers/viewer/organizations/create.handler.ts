@@ -1,6 +1,7 @@
 import { lookup } from "dns";
 
-import { sendAdminOrganizationNotification } from "@calcom/emails";
+import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
+import { sendAdminOrganizationNotification, sendOrganizationCreationEmail } from "@calcom/emails";
 import { RESERVED_SUBDOMAINS, WEBAPP_URL } from "@calcom/lib/constants";
 import { createDomain } from "@calcom/lib/domainManager/organization";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -31,14 +32,7 @@ const getIPAddress = async (url: string): Promise<string> => {
 };
 
 export const createHandler = async ({ input, ctx }: CreateOptions) => {
-  const {
-    slug,
-    name,
-    adminEmail: orgOwnerEmail,
-    adminUsername: orgOwnerUsername,
-    seats,
-    pricePerSeat,
-  } = input;
+  const { slug, name, adminEmail: orgOwnerEmail, seats, pricePerSeat } = input;
 
   const orgOwner = await prisma.user.findUnique({
     where: {
@@ -71,6 +65,11 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
     throw new Error("Inviting a new user to be the owner of the organization is not supported yet");
   }
 
+  // If we are making the loggedIn user the owner of the organization and he is already a part of an organization, we don't allow it
+  if (ctx.user.profile.organizationId && orgOwner.id !== ctx.user.id) {
+    throw new TRPCError({ code: "FORBIDDEN", message: "You are a part of an organization already" });
+  }
+
   const t = await getTranslation(ctx.user.locale ?? "en", "common");
   let isOrganizationConfigured = false;
 
@@ -83,6 +82,7 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
       where: { role: UserPermissionRole.ADMIN },
       select: { email: true },
     });
+    // throw new Error("here01");
     if (instanceAdmins.length) {
       await sendAdminOrganizationNotification({
         instanceAdmins,
@@ -99,7 +99,8 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
   }
 
   const autoAcceptEmail = orgOwnerEmail.split("@")[1];
-  const organization = await OrganizationRepository.createWithOwner({
+  const nonOrgUsernameForOwner = ctx.user.profile.username || "";
+  const { organization, ownerProfile } = await OrganizationRepository.createWithOwner({
     orgData: {
       name,
       slug,
@@ -111,14 +112,27 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
     owner: {
       id: orgOwner.id,
       email: orgOwnerEmail,
-      username: orgOwnerUsername,
+      nonOrgUsername: nonOrgUsernameForOwner,
     },
+  });
+
+  const translation = await getTranslation(input.language ?? "en", "common");
+
+  await sendOrganizationCreationEmail({
+    language: translation,
+    from: ctx.user.name ?? `${organization.name}'s admin`,
+    to: orgOwnerEmail,
+    ownerNewUsername: ownerProfile.username,
+    ownerOldUsername: nonOrgUsernameForOwner,
+    orgDomain: getOrgFullOrigin(slug, { protocol: false }),
+    orgName: organization.name,
   });
 
   if (!organization.id) throw Error("User not created");
   const user = await UserRepository.enrichUserWithItsProfile({
     user: { ...orgOwner, organizationId: organization.id },
   });
+
   return { userId: user.id, email: user.email, organizationId: user.organizationId, upId: user.profile.upId };
 
   // Sync Services: Close.com

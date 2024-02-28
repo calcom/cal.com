@@ -63,9 +63,10 @@ export const generateTeamCheckoutSession = async ({
     customer_update: {
       address: "auto",
     },
-    automatic_tax: {
-      enabled: true,
-    },
+    // You can comment it out when testing locally as usually developer doesn't setup Tax in Stripe Test mode
+    // automatic_tax: {
+    //   enabled: true,
+    // },
     metadata: {
       teamName,
       teamSlug,

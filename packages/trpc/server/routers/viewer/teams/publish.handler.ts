@@ -47,6 +47,7 @@ const generateCheckoutSession = async ({
     teamId,
     seats,
     userId,
+    pricePerSeat: null,
   });
   if (!checkoutSession.url)
     throw new TRPCError({

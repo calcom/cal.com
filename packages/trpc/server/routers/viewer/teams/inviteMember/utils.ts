@@ -1,6 +1,7 @@
 import { randomBytes } from "crypto";
 import type { TFunction } from "next-i18next";
 
+import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
 import { sendTeamInviteEmail } from "@calcom/emails";
 import { ENABLE_PROFILE_SWITCHER, WEBAPP_URL } from "@calcom/lib/constants";
 import { isOrganization } from "@calcom/lib/entityPermissionUtils";
@@ -408,6 +409,7 @@ export async function sendSignupToOrganizationEmail({
     isOrg: input.isOrg,
     parentTeamName: team?.parent?.name,
     isAutoJoin: false,
+    isExistingUserMovedToOrg: false,
   });
 }
 
@@ -502,7 +504,11 @@ export const groupUsersByJoinability = ({
   connectionInfoMap,
 }: {
   team: TeamWithParent;
-  existingUsersWithMembersips: UserWithMembership[];
+  existingUsersWithMembersips: (UserWithMembership & {
+    profile: {
+      username: string;
+    } | null;
+  })[];
   connectionInfoMap: Record<string, ReturnType<typeof getOrgConnectionInfo>>;
 }) => {
   const usersToAutoJoin = [];
@@ -535,7 +541,7 @@ export const sendEmails = async (emailPromises: Promise<void>[]) => {
   const sentEmails = await Promise.allSettled(emailPromises);
   sentEmails.forEach((sentEmail) => {
     if (sentEmail.status === "rejected") {
-      logger.error("Could not send email to user");
+      logger.error("Could not send email to user. Reason:", sentEmail.reason);
     }
   });
 };
@@ -549,19 +555,24 @@ export const sendExistingUserTeamInviteEmails = async ({
   isOrg,
   teamId,
   isAutoJoin,
+  orgSlug,
 }: {
   language: TFunction;
   isAutoJoin: boolean;
-  existingUsersWithMembersips: UserWithMembership[];
+  existingUsersWithMembersips: (UserWithMembership & {
+    profile: {
+      username: string;
+    } | null;
+  })[];
   currentUserTeamName?: string;
   currentUserParentTeamName: string | undefined;
   currentUserName?: string | null;
   isOrg: boolean;
   teamId: number;
+  orgSlug: string | null;
 }) => {
   const sendEmailsPromises = existingUsersWithMembersips.map(async (user) => {
     let sendTo = user.email;
-
     if (!isEmail(user.email)) {
       sendTo = user.email;
     }
@@ -613,6 +624,9 @@ export const sendExistingUserTeamInviteEmails = async ({
         ...inviteTeamOptions,
         isOrg: isOrg,
         parentTeamName: currentUserParentTeamName,
+        isExistingUserMovedToOrg: true,
+        prevLink: `${getOrgFullOrigin("")}/${user.username || ""}`,
+        newLink: user.profile ? `${getOrgFullOrigin(orgSlug ?? "")}/${user.profile.username}` : null,
       });
     }
   });

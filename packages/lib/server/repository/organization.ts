@@ -1,4 +1,6 @@
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
+import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
@@ -20,9 +22,10 @@ export class OrganizationRepository {
     owner: {
       id: number;
       email: string;
-      username: string;
+      nonOrgUsername: string;
     };
   }) {
+    logger.debug("Creating organization with owner", safeStringify({ orgData, owner }));
     const organization = await prisma.team.create({
       data: {
         name: orgData.name,
@@ -39,11 +42,11 @@ export class OrganizationRepository {
       },
     });
 
-    await createAProfileForAnExistingUser({
+    const ownerProfile = await createAProfileForAnExistingUser({
       user: {
         id: owner.id,
         email: owner.email,
-        currentUsername: owner.username,
+        currentUsername: owner.nonOrgUsername,
       },
       organizationId: organization.id,
     });
@@ -56,6 +59,6 @@ export class OrganizationRepository {
         teamId: organization.id,
       },
     });
-    return organization;
+    return { organization, ownerProfile };
   }
 }

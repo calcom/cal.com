@@ -52,7 +52,7 @@ export const buildWrappedOnboardTeamMembersPage = (
       currentStep={4}
       maxSteps={5}
       isOptionalCallback={() => {
-        redirect(`/settings/organizations/${id}/add-teams?orgSlug=${id}`);
+        redirect(`/settings/organizations/${id}/add-teams`);
       }}>
       {page}
     </WizardLayoutAppDir>

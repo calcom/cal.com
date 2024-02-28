@@ -6,7 +6,6 @@ export const ZCreateInputSchema = z.object({
   name: z.string(),
   slug: z.string().transform((val) => slugify(val.trim())),
   adminEmail: z.string().email(),
-  adminUsername: z.string(),
   language: z.string().optional(),
   seats: z.number().optional(),
   pricePerSeat: z.number().optional(),

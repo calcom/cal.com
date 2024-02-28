@@ -1,5 +1,6 @@
 import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
 import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
@@ -12,6 +13,7 @@ import type { TrpcSessionUser } from "../../../trpc";
 import inviteMemberHandler from "../teams/inviteMember/inviteMember.handler";
 import type { TCreateTeamsSchema } from "./createTeams.schema";
 
+const log = logger.getSubLogger({ prefix: ["viewer/organizations/createTeams.handler"] });
 type CreateTeamsOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
@@ -102,6 +104,7 @@ export const createTeamsHandler = async ({ ctx, input }: CreateTeamsOptions) => 
   if (duplicatedSlugs.length === teamNames.length) {
     return { duplicatedSlugs };
   }
+
   await prisma.$transaction(
     teamNames.flatMap((name) => {
       if (!duplicatedSlugs.includes(slugify(name))) {
@@ -168,8 +171,9 @@ async function moveTeam({
     id: number;
     slug: string | null;
   };
-  ctx;
+  ctx: CreateTeamsOptions["ctx"];
 }) {
+  log.debug("Moving team", safeStringify({ teamId, newSlug, org }));
   const team = await prisma.team.findUnique({
     where: {
       id: teamId,
@@ -211,6 +215,7 @@ async function moveTeam({
   await Promise.all(
     // TODO: Support different role for different members in usernameOrEmail list and then remove this map
     team.members.map(async (membership) => {
+      // Invite team members to the new org. They are already members of the team.
       await inviteMemberHandler({
         ctx,
         input: {

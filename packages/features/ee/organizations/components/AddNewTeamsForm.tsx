@@ -31,29 +31,42 @@ const schema = z.object({
 
 export const AddNewTeamsForm = () => {
   const { data: teams } = trpc.viewer.teams.list.useQuery();
+  const routerQuery = useRouterQuery();
 
-  if (!teams) {
+  const { id: orgId } = querySchema.parse(routerQuery);
+
+  const { data: org } = trpc.viewer.teams.get.useQuery({ teamId: orgId, isOrg: true });
+
+  if (!teams || !org) {
     return null;
   }
 
+  const orgWithRequestedSlug = {
+    ...org,
+    requestedSlug: org.metadata.requestedSlug ?? null,
+  };
+
   const regularTeams = teams.filter((team) => !team.parentId);
-  return <AddNewTeamsFormChild teams={regularTeams} />;
+  return <AddNewTeamsFormChild org={orgWithRequestedSlug} teams={regularTeams} />;
 };
 
-const AddNewTeamsFormChild = ({ teams }: { teams: { id: number; name: string; slug: string | null }[] }) => {
+const AddNewTeamsFormChild = ({
+  teams,
+  org,
+}: {
+  org: { id: number; slug: string | null; requestedSlug: string | null };
+  teams: { id: number; name: string; slug: string | null }[];
+}) => {
   const { t } = useLocale();
   const router = useRouter();
-  const routerQuery = useRouterQuery();
-  const { id: orgId } = querySchema.parse(routerQuery);
   const [counter, setCounter] = useState(1);
-  const org = trpc.viewer.teams.get.useQuery({ teamId: orgId, isOrg: true });
   const form = useForm({
     defaultValues: {
       teams: [{ name: "" }],
       moveTeams: teams.map((team) => ({
         id: team.id,
         shouldMove: false,
-        newSlug: getSuggestedSlug({ teamSlug: team.slug, orgSlug: org.slug }),
+        newSlug: getSuggestedSlug({ teamSlug: team.slug, orgSlug: org.slug || org.requestedSlug }),
       })),
     }, // Set initial values
     resolver: async (data) => {
@@ -112,7 +125,7 @@ const AddNewTeamsFormChild = ({ teams }: { teams: { id: number; name: string; sl
   const handleFormSubmit = () => {
     const fields = getValues("teams");
     const moveTeams = getValues("moveTeams");
-    createTeamsMutation.mutate({ orgId, moveTeams, teamNames: fields.map((field) => field.name) });
+    createTeamsMutation.mutate({ orgId: org.id, moveTeams, teamNames: fields.map((field) => field.name) });
   };
 
   const moveTeams = watch("moveTeams");
@@ -206,9 +219,10 @@ const AddNewTeamsFormChild = ({ teams }: { teams: { id: number; name: string; sl
 };
 
 const getSuggestedSlug = ({ teamSlug, orgSlug }: { teamSlug: string | null; orgSlug: string | null }) => {
-  if (!teamSlug) {
+  // If there is no orgSlug, we can't suggest a slug
+  if (!teamSlug || !orgSlug) {
     return teamSlug;
   }
-  orgSlug = orgSlug ?? "";
+
   return teamSlug.replace(`${orgSlug}-`, "").replace(`-${orgSlug}`, "");
 };

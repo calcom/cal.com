@@ -77,6 +77,8 @@ export const createAProfileForAnExistingUser = async ({
         toUrl: `${orgUrl}/${usernameInOrg}`,
       },
     });
+  } else {
+    log.debug(`Skipping redirect setup as ${user.id} doesn't have a username`);
   }
   return profile;
 };
