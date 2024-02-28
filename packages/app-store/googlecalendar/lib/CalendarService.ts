@@ -264,6 +264,7 @@ export default class GoogleCalendarService implements Calendar {
             calendarId: selectedCalendar,
             eventId: event.id || "",
             requestBody: {
+              location: getLocation(calEventRaw),
               description: getRichDescription({
                 ...calEventRaw,
               }),
