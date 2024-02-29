@@ -1307,7 +1307,7 @@ describe("getSchedule", () => {
           timeZone: "Europe/London",
           isTeamEvent: false,
           orgSlug: "acme",
-          usernameList: Timezones["+5:30"],
+          usernameList: [organizer.username],
         },
       });
 
