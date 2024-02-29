@@ -1,6 +1,6 @@
-import appStoreMock from "../../libs/__mocks__/app-store";
-import i18nMock from "../../libs/__mocks__/libServerI18n";
-import prismock from "../../libs/__mocks__/prisma";
+import appStoreMock from "../../../../tests/libs/__mocks__/app-store";
+import i18nMock from "../../../../tests/libs/__mocks__/libServerI18n";
+import prismock from "../../../../tests/libs/__mocks__/prisma";
 
 import type { BookingReference, Attendee, Booking, Membership } from "@prisma/client";
 import type { Prisma } from "@prisma/client";
