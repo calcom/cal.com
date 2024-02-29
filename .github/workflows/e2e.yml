@@ -76,6 +76,7 @@ jobs:
           SENDGRID_EMAIL: ${{ secrets.CI_SENDGRID_EMAIL }}
           TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
           TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
+          DAILY_API_KEY: ${{ secrets.CI_DAILY_API_KEY }}
       - name: Upload Test Results
         if: ${{ always() }}
         uses: actions/upload-artifact@v4
