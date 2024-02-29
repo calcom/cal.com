@@ -194,6 +194,13 @@ enum UserPermissionRole {
   ADMIN
 }
 
+// It holds the password of a User, separate from the User model to avoid leaking the password hash
+model UserPassword {
+  hash   String
+  userId Int    @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
 // It holds Personal Profiles of a User plus it has email, password and other core things
 model User {
   id                  Int                  @id @default(autoincrement())
@@ -202,7 +209,7 @@ model User {
   /// @zod.email()
   email               String
   emailVerified       DateTime?
-  password            String?
+  password            UserPassword?
   bio                 String?
   avatar              String?
   avatarUrl           String?
@@ -214,7 +221,9 @@ model User {
   // </DEPRECATED>
   bufferTime          Int                  @default(0)
   hideBranding        Boolean              @default(false)
+  // TODO: should be renamed since it only affects the booking page
   theme               String?
+  appTheme            String?
   createdDate         DateTime             @default(now()) @map(name: "created")
   trialEndsAt         DateTime?
   eventTypes          EventType[]          @relation("user_eventtype")
@@ -453,6 +462,8 @@ enum BookingStatus {
 model Booking {
   id                    Int                  @id @default(autoincrement())
   uid                   String               @unique
+  // (optional) UID based on slot start/end time & email against duplicates
+  idempotencyKey        String?              @unique
   user                  User?                @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId                Int?
   // User's email at the time of booking

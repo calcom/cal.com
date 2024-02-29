@@ -32,7 +32,7 @@ function OrganizationIndicator({
   return (
     <div className={classNames("absolute bottom-0 right-0 z-10", size === "lg" ? "h-6 w-6" : "h-10 w-10")}>
       <img
-        data-testId="organization-logo"
+        data-testid="organization-logo"
         src={organizationUrl}
         alt={user.username || ""}
         className="flex h-full items-center justify-center rounded-full"

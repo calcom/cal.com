@@ -11,7 +11,7 @@ export interface IUseVerifyEmailProps {
   name?: string | { firstName: string; lastname?: string };
   requiresBookerEmailVerification?: boolean;
 }
-
+export type UseVerifyEmailReturnType = ReturnType<typeof useVerifyEmail>;
 export const useVerifyEmail = ({
   email,
   name,
