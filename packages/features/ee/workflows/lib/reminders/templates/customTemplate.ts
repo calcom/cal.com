@@ -44,7 +44,7 @@ const customTemplate = (
   }
 
   const cancelLink = variables.cancelLink ? `${WEBAPP_URL}${variables.cancelLink}` : "";
-  const rescheduleLink = variables.rescheduleLink ? `${WEBAPP_URL}${variables.rescheduleLink}` : "";
+  const rescheduleLink = variables.rescheduleLink ? variables.rescheduleLink : "";
 
   const currentTimeFormat = timeFormat || TimeFormat.TWELVE_HOUR;
 

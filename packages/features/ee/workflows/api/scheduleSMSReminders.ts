@@ -1,13 +1,15 @@
 /* Schedule any workflow reminder that falls within 7 days for SMS */
+import { getOrgWebAppUrl } from "ee/workflows/utils";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import dayjs from "@calcom/dayjs";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { defaultHandler } from "@calcom/lib/server";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import { WorkflowActions, WorkflowMethods, WorkflowTemplates } from "@calcom/prisma/enums";
-import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
+import { bookingMetadataSchema, teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { getSenderId } from "../lib/alphanumericSenderIdSupport";
 import * as twilio from "../lib/reminders/providers/twilioProvider";
@@ -98,20 +100,38 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           bookingFields: reminder.booking.eventType?.bookingFields ?? null,
           booking: reminder.booking,
         });
-        let rescheduleLink = "";
-        if (reminder.booking.eventType?.teamId) {
+
+        // checks whether booking belongs to a organization and updates rescheduleLink.
+        let rescheduleLink = WEBAPP_URL;
+        if (reminder.booking.user?.organizationId) {
           const team = await prisma.team.findUnique({
             where: {
-              id: reminder.booking.eventType?.teamId,
+              id: reminder.booking.user.organizationId,
             },
             select: {
               slug: true,
               metadata: true,
             },
           });
-          const isTeamAOrg = team?.metadata;
-          rescheduleLink = isTeamAOrg ? "org" : "team";
+          const metaData = teamMetadataSchema.parse(team?.metadata);
+          if (metaData?.isOrganization) {
+            rescheduleLink = getOrgWebAppUrl(team?.slug || "app", rescheduleLink);
+          }
         }
+
+        // checks whether booking belongs to a team and updates rescheduleLink.
+
+        if (reminder.booking.eventType?.teamId) {
+          const team = await prisma.team.findUnique({
+            where: { id: reminder.booking.eventType.teamId },
+            select: { slug: true },
+          });
+
+          rescheduleLink = `${rescheduleLink}/${team?.slug}/`;
+        } else {
+          rescheduleLink = `${rescheduleLink}/${reminder.booking.user?.username}/${reminder.booking.eventType?.slug}?rescheduleUid=${reminder.booking.uid}`;
+        }
+        rescheduleLink = `${rescheduleLink}?rescheduleUid=${reminder.booking.uid}`;
         const variables: VariablesType = {
           eventName: reminder.booking?.eventType?.title,
           organizerName: reminder.booking?.user?.name || "",
