@@ -56,8 +56,8 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
     ...rest,
     owner: teamId ? undefined : { connect: { id: userId } },
     metadata: (metadata as Prisma.InputJsonObject) ?? undefined,
-    // Only connecting the current user for non-managed event type
-    users: isManagedEventType ? undefined : { connect: { id: userId } },
+    // Only connecting the current user for non-managed event types and non team event types
+    users: isManagedEventType || schedulingType ? undefined : { connect: { id: userId } },
     locations,
   };
 
@@ -83,22 +83,6 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
       },
     };
     data.schedulingType = schedulingType;
-
-    if (!isManagedEventType) {
-      data.hosts = {
-        create: [
-          {
-            user: {
-              connect: {
-                id: userId,
-              },
-            },
-            isFixed: data.schedulingType === SchedulingType.COLLECTIVE,
-            priority: 2, //default
-          },
-        ],
-      };
-    }
   }
 
   const profile = ctx.user.profile;
