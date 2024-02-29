@@ -297,10 +297,12 @@ function applyOccupiedSeatsToCurrentSeats(currentSeats: CurrentSeats, occupiedSe
 }
 
 export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
-  const orgDetails = orgDomainConfig(ctx?.req) ?? {
-    currentOrgDomain: input?.orgSlug,
-    isValidOrgDomain: !!input?.orgSlug && !RESERVED_SUBDOMAINS.includes(input.orgSlug),
-  };
+  const orgDetails = input?.orgSlug
+    ? {
+        currentOrgDomain: input.orgSlug,
+        isValidOrgDomain: !!input.orgSlug && !RESERVED_SUBDOMAINS.includes(input.orgSlug),
+      }
+    : orgDomainConfig(ctx?.req);
 
   if (process.env.INTEGRATION_TEST_MODE === "true") {
     logger.settings.minLevel = 2;
