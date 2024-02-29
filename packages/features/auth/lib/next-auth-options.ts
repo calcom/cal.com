@@ -571,6 +571,9 @@ export const AUTH_OPTIONS: AuthOptions = {
           belongsToActiveTeam: token?.belongsToActiveTeam as boolean,
           org: token?.org,
           locale: token.locale,
+          currentWorkspace: token.user.currentWorkspace,
+          funnelhubId: token.user.id,
+          funnelhubToken: token.user.apiToken,
         },
       };
       return calendsoSession;

@@ -29,6 +29,14 @@ declare module "next-auth" {
     username?: PrismaUser["username"];
     role?: PrismaUser["role"] | "INACTIVE_ADMIN";
     locale?: string | null;
+    currentWorkspace: {
+      id: string;
+      role: string;
+      accessType: string[];
+      lastActivityAt: string;
+    };
+    funnelhubId: string;
+    funnelhubToken: string;
   }
 }
 

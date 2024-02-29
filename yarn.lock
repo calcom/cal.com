@@ -4439,7 +4439,7 @@ __metadata:
     "@calcom/ui": "*"
     "@daily-co/daily-js": ^0.37.0
     "@formkit/auto-animate": 1.0.0-beta.5
-    "@funnelhub/sidebar": 1.1.1
+    "@funnelhub/sidebar": 1.1.2
     "@glidejs/glide": ^3.5.2
     "@hookform/error-message": ^2.0.0
     "@hookform/resolvers": ^2.9.7
@@ -7224,9 +7224,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@funnelhub/sidebar@npm:1.1.1":
-  version: 1.1.1
-  resolution: "@funnelhub/sidebar@npm:1.1.1"
+"@funnelhub/sidebar@npm:1.1.2":
+  version: 1.1.2
+  resolution: "@funnelhub/sidebar@npm:1.1.2"
   dependencies:
     "@chakra-ui/anatomy": ^2.2.1
     "@chakra-ui/color-mode": ^2.2.0
@@ -7245,7 +7245,7 @@ __metadata:
     next: 13.5.6
     react: ^18
     react-dom: ^18
-  checksum: 13c0de29e95d58aa88d2012e49dc7fb13b4b5d71f2dc04fe130aba6932df943ebfcecce73ec1157f1e65ea370bd91e268d921095f1320881103e3cd27beef951
+  checksum: e47c66f73650edc5f83346014bb78229dd3ecb1792705466f687904e7d74a607739af88dae58a92509461306654396367e9abc8ccb307db70673dab7275a71eb
   languageName: node
   linkType: hard
 

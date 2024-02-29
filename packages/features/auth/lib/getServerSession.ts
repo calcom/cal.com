@@ -75,6 +75,9 @@ export async function getServerSession(options: {
       belongsToActiveTeam: token.belongsToActiveTeam,
       org: token.org,
       locale: user.locale ?? undefined,
+      currentWorkspace: token.user.currentWorkspace,
+      funnelhubId: token.user.id,
+      funnelhubToken: token.user.apiToken,
     },
   };
 
