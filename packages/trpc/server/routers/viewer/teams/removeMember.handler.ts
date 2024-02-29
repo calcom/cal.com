@@ -43,25 +43,26 @@ export const removeMemberHandler = async ({ ctx, input }: RemoveMemberOptions) =
       message: "You can not remove yourself from a team you own.",
     });
 
-  const membership = await ctx.prisma.membership.delete({
-    where: {
-      userId_teamId: { userId: input.memberId, teamId: input.teamId },
-    },
-    include: {
-      user: true,
-      team: true,
-    },
-  });
-
-  // remove user as host from team events associated with this membership
-  await ctx.prisma.host.deleteMany({
-    where: {
-      userId: input.memberId,
-      eventType: {
-        teamId: input.teamId,
+  const [membership] = await ctx.prisma.$transaction([
+    ctx.prisma.membership.delete({
+      where: {
+        userId_teamId: { userId: input.memberId, teamId: input.teamId },
       },
-    },
-  });
+      include: {
+        user: true,
+        team: true,
+      },
+    }),
+    // remove user as host from team events associated with this membership
+    ctx.prisma.host.deleteMany({
+      where: {
+        userId: input.memberId,
+        eventType: {
+          teamId: input.teamId,
+        },
+      },
+    }),
+  ]);
 
   if (input.isOrg) {
     log.debug("Removing a member from the organization");

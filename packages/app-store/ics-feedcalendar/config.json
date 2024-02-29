@@ -2,6 +2,7 @@
   "name": "ICS Feed",
   "title": "ICS Feed",
   "slug": "ics-feed",
+  "dirName":"ics-feedcalendar",
   "type": "ics-feed_calendar",
   "logo": "icon.svg",
   "variant": "calendar",
