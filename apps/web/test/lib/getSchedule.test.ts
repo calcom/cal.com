@@ -13,11 +13,15 @@ import {
   getDate,
   getGoogleCalendarCredential,
   createBookingScenario,
+  createOrganization,
+  getOrganizer,
+  getScenarioData,
 } from "../utils/bookingScenario/bookingScenario";
 
 vi.mock("@calcom/lib/constants", () => ({
   IS_PRODUCTION: true,
   WEBAPP_URL: "http://localhost:3000",
+  RESERVED_SUBDOMAINS: ["auth", "docs"],
 }));
 
 declare global {
@@ -1254,6 +1258,60 @@ describe("getSchedule", () => {
         ],
         { dateString: plus3DateString }
       );
+    });
+
+    test("getSchedule can get slots of org's member event type when orgSlug, eventTypeSlug passed as input", async () => {
+      const org = await createOrganization({ name: "acme", slug: "acme" });
+
+      const organizer = getOrganizer({
+        name: "Organizer",
+        email: "organizer@example.com",
+        id: 101,
+        // So, that it picks the first schedule from the list
+        defaultScheduleId: null,
+        organizationId: org.id,
+        // Has morning shift with some overlap with morning shift
+        schedules: [TestData.schedules.IstWorkHours],
+      });
+
+      const scenario = await createBookingScenario(
+        getScenarioData(
+          {
+            eventTypes: [
+              {
+                id: 1,
+
+                slotInterval: 45,
+                length: 45,
+                users: [
+                  {
+                    id: 101,
+                  },
+                ],
+              },
+            ],
+            organizer,
+          },
+          { id: org.id }
+        )
+      );
+
+      const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+      const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
+
+      const getScheduleRes = await getSchedule({
+        input: {
+          eventTypeSlug: scenario.eventTypes[0]?.slug,
+          startTime: `${plus1DateString}T18:30:00.000Z`,
+          endTime: `${plus2DateString}T18:29:59.999Z`,
+          timeZone: "Europe/London",
+          isTeamEvent: false,
+          orgSlug: "acme",
+          usernameList: Timezones["+5:30"],
+        },
+      });
+
+      expect(getScheduleRes).toBeDefined();
     });
   });
 });
