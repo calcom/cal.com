@@ -154,6 +154,50 @@ test.describe("Managed Event Types", () => {
       await page.waitForURL("event-types/**");
 
       await expect(page.locator('input[name="title"]')).toBeEditable();
+      await page.waitForLoadState("networkidle");
+
+      await page.goto("/auth/logout");
+    });
+
+    await test.step("Managed event type should only update the fields modified by Admin", async () => {
+      await memberUser.apiLogin();
+      await page.goto("/event-types");
+
+      await page.getByTestId("event-types").locator('a[title="managed"]').click();
+      await page.waitForURL("event-types/**");
+
+      await expect(page.locator('input[name="title"]')).toBeEditable();
+      await page.locator('input[name="title"]').fill(`Managed Event Title`);
+      // Save changes
+      await page.locator('[type="submit"]').click();
+      await page.getByTestId("toast-success").waitFor();
+      await page.waitForLoadState("networkidle");
+
+      await page.goto("/auth/logout");
+
+      await adminUser.apiLogin();
+      await page.goto("/event-types");
+      await page.getByTestId("event-types").locator('a[title="managed"]').click();
+      await page.waitForURL("event-types/**");
+
+      await page.locator('input[name="length"]').fill(`45`);
+      // Save changes
+      await page.locator('[type="submit"]').click();
+      await page.getByTestId("toast-success").waitFor();
+      await page.waitForLoadState("networkidle");
+
+      await page.goto("/auth/logout");
+
+      await memberUser.apiLogin();
+      await page.goto("/event-types");
+
+      await page.getByTestId("event-types").locator('a[title="Managed Event Title"]').click();
+      await page.waitForURL("event-types/**");
+
+      //match length
+      expect(await page.locator("[data-testid=duration]").getAttribute("value")).toBe("45");
+      //ensure description didn't update
+      expect(await page.locator(`input[name="title"]`).getAttribute("value")).toBe(`Managed Event Title`);
     });
   });
 });

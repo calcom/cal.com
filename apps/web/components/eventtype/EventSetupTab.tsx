@@ -556,6 +556,7 @@ export const EventSetupTab = (
             <TextField
               required
               type="number"
+              data-testid="duration"
               {...(isManagedEventType || isChildrenManagedEventType ? lengthLockedProps : {})}
               label={t("duration")}
               defaultValue={formMethods.getValues("length") ?? 15}
