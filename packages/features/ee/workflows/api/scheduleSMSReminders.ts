@@ -1,9 +1,9 @@
 /* Schedule any workflow reminder that falls within 7 days for SMS */
-import { getOrgWebAppUrl } from "ee/workflows/utils";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import dayjs from "@calcom/dayjs";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
+import { getOrgWebAppUrl } from "@calcom/features/ee/workflows/utils";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { defaultHandler } from "@calcom/lib/server";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
