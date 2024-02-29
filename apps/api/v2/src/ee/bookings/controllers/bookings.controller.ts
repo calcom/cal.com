@@ -36,7 +36,7 @@ export class BookingsController {
   async createBooking(
     @Req() req: Request & { userId?: number },
     @Body() _: CreateBookingInput
-  ): Promise<ApiResponse<BookingResponse>> {
+  ): Promise<ApiResponse<unknown>> {
     req.userId = await this.getOwnerId(req);
     try {
       const booking = await handleNewBooking(req as unknown as NextApiRequest & { userId?: number });

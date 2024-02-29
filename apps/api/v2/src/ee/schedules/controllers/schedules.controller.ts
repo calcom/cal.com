@@ -1,6 +1,4 @@
-import { UpdateScheduleInput } from "@/ee/schedules/inputs/update-schedule.input";
 import { ResponseService } from "@/ee/schedules/services/response/response.service";
-import { ScheduleResponse } from "@/ee/schedules/services/response/zod/response";
 import { SchedulesService } from "@/ee/schedules/services/schedules.service";
 import { ForAtom } from "@/lib/atoms/decorators/for-atom.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
@@ -22,6 +20,9 @@ import { User } from "@prisma/client";
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import type { ScheduleWithAvailabilitiesForWeb } from "@calcom/platform-libraries";
 import type { CityTimezones } from "@calcom/platform-libraries";
+import { updateScheduleHandler } from "@calcom/platform-libraries";
+import type { UpdateScheduleOutputType } from "@calcom/platform-libraries";
+import { ScheduleResponse, UpdateScheduleInput } from "@calcom/platform-types";
 import { ApiResponse } from "@calcom/platform-types";
 
 import { CreateScheduleInput } from "../inputs/create-schedule.input";
@@ -58,7 +59,7 @@ export class SchedulesController {
   async getDefaultSchedule(
     @GetUser() user: User,
     @ForAtom() forAtom: boolean
-  ): Promise<ApiResponse<{ schedule: ScheduleResponse | ScheduleWithAvailabilitiesForWeb | null }>> {
+  ): Promise<ApiResponse<ScheduleResponse | ScheduleWithAvailabilitiesForWeb | null>> {
     const schedule = await this.schedulesService.getUserScheduleDefault(user.id);
     const scheduleFormatted = schedule
       ? await this.schedulesResponseService.formatSchedule(forAtom, user, schedule)
@@ -66,9 +67,7 @@ export class SchedulesController {
 
     return {
       status: SUCCESS_STATUS,
-      data: {
-        schedule: scheduleFormatted,
-      },
+      data: scheduleFormatted,
     };
   }
 
@@ -89,7 +88,7 @@ export class SchedulesController {
     @GetUser() user: User,
     @Param("scheduleId") scheduleId: number,
     @ForAtom() forAtom: boolean
-  ): Promise<ApiResponse<{ schedule: ScheduleResponse | ScheduleWithAvailabilitiesForWeb }>> {
+  ): Promise<ApiResponse<ScheduleResponse | ScheduleWithAvailabilitiesForWeb>> {
     const schedule = await this.schedulesService.getUserSchedule(user.id, scheduleId);
     const scheduleFormatted = await this.schedulesResponseService.formatSchedule(forAtom, user, schedule);
 
@@ -116,22 +115,19 @@ export class SchedulesController {
       },
     };
   }
-
   @Patch("/:scheduleId")
   async updateSchedule(
     @GetUser() user: User,
-    @Param("scheduleId") scheduleId: number,
-    @Body() bodySchedule: UpdateScheduleInput,
-    @ForAtom() forAtom: boolean
-  ): Promise<ApiResponse<{ schedule: ScheduleResponse | ScheduleWithAvailabilitiesForWeb }>> {
-    const schedule = await this.schedulesService.updateUserSchedule(user.id, scheduleId, bodySchedule);
-    const scheduleFormatted = await this.schedulesResponseService.formatSchedule(forAtom, user, schedule);
+    @Body() bodySchedule: UpdateScheduleInput
+  ): Promise<ApiResponse<unknown>> {
+    const updatedSchedule: UpdateScheduleOutputType = await updateScheduleHandler({
+      input: bodySchedule,
+      ctx: { user },
+    });
 
     return {
       status: SUCCESS_STATUS,
-      data: {
-        schedule: scheduleFormatted,
-      },
+      data: updatedSchedule,
     };
   }
 

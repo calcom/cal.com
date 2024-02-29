@@ -360,10 +360,12 @@ export const EventLimitsTab = () => {
               title={t("limit_future_bookings")}
               description={t("limit_future_bookings_description")}
               checked={isChecked}
-              onCheckedChange={(bool) =>
-                // formMethods.setValue("periodType", bool ? "ROLLING" : "UNLIMITED", { shouldDirty: true })
-                onChange(bool ? "ROLLING" : "UNLIMITED")
-              }>
+              onCheckedChange={(bool) => {
+                if (bool && !formMethods.getValues("periodDays")) {
+                  formMethods.setValue("periodDays", 30, { shouldDirty: true });
+                }
+                return onChange(bool ? "ROLLING" : "UNLIMITED");
+              }}>
               <div className="border-subtle rounded-b-lg border border-t-0 p-6">
                 <RadioGroup.Root
                   value={watchPeriodType}

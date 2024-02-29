@@ -11,8 +11,9 @@ export interface useOAuthClientProps {
   apiUrl?: string;
   refreshUrl?: string;
   onError: (error: string) => void;
+  onSuccess: () => void;
 }
-export const useOAuthClient = ({ clientId, apiUrl, refreshUrl, onError }: useOAuthClientProps) => {
+export const useOAuthClient = ({ clientId, apiUrl, refreshUrl, onError, onSuccess }: useOAuthClientProps) => {
   const prevClientId = usePrevious(clientId);
   const [isInit, setIsInit] = useState<boolean>(false);
 
@@ -32,13 +33,15 @@ export const useOAuthClient = ({ clientId, apiUrl, refreshUrl, onError }: useOAu
         http.get<ApiResponse>(`/platform/provider/${clientId}`).catch((err: AxiosError) => {
           if (err.response?.status === 401) {
             onError("Invalid oAuth Client.");
+          } else {
+            onSuccess();
           }
         });
       } catch (err) {
         console.error(err);
       }
     }
-  }, [clientId, onError, prevClientId]);
+  }, [clientId, onError, prevClientId, onSuccess]);
 
   return { isInit };
 };
