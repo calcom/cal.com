@@ -193,7 +193,7 @@ export default function AvailabilityPage() {
           </div>
         }>
         {searchParams?.get("type") === "team" ? (
-          <AvailabilitySliderTable userTimeFormat={me.data.timeFormat} />
+          <AvailabilitySliderTable userTimeFormat={me?.data?.timeFormat ?? null} />
         ) : (
           <AvailabilityListWithQuery />
         )}
