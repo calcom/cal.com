@@ -403,7 +403,9 @@ export function AvailabilitySettings({
             </div>
             {!isPlatform ? (
               <div className="border-subtle my-6 rounded-md border">
-                {schedule?.workingHours && <DateOverride workingHours={schedule.workingHours} />}
+                {schedule?.workingHours && (
+                  <DateOverride workingHours={schedule.workingHours} userTimeFormat={timeFormat} />
+                )}
               </div>
             ) : (
               <></>
@@ -467,7 +469,13 @@ export function AvailabilitySettings({
   );
 }
 
-const DateOverride = ({ workingHours }: { workingHours: WorkingHours[] }) => {
+const DateOverride = ({
+  workingHours,
+  userTimeFormat,
+}: {
+  workingHours: WorkingHours[];
+  userTimeFormat: number | null;
+}) => {
   const { remove, append, replace, fields } = useFieldArray<AvailabilityFormValues, "dateOverrides">({
     name: "dateOverrides",
   });
@@ -491,11 +499,13 @@ const DateOverride = ({ workingHours }: { workingHours: WorkingHours[] }) => {
           replace={replace}
           items={fields}
           workingHours={workingHours}
+          userTimeFormat={userTimeFormat}
         />
         <DateOverrideInputDialog
           workingHours={workingHours}
           excludedDates={excludedDates}
           onChange={(ranges) => ranges.forEach((range) => append({ ranges: [range] }))}
+          userTimeFormat={userTimeFormat}
           Trigger={
             <Button color="secondary" StartIcon={Plus} data-testid="add-override">
               {t("add_an_override")}
