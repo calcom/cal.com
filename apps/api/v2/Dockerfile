@@ -1,10 +1,16 @@
 FROM node:18-alpine as build
 
+ARG DATABASE_DIRECT_URL
+ARG DATABASE_URL
+
 WORKDIR /calcom
 
 RUN set -eux;
 
+
 ENV NODE_OPTIONS="--max-old-space-size=8192"
+ENV DATABASE_DIRECT_URL=${DATABASE_DIRECT_URL}
+ENV DATABASE_URL=${DATABASE_URL}
 
 COPY ./apps/api/v2 ./apps/api/v2
 COPY ./apps/storybook ./apps/storybook
@@ -31,6 +37,7 @@ COPY package.json yarn.lock .yarnrc.yml turbo.json ./
 COPY /.yarn ./.yarn
 
 RUN yarn install
+
 RUN yarn turbo run build --filter=@calcom/api-v2
 
 
