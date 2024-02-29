@@ -1,4 +1,4 @@
-import prismaMock from "../../../../tests/libs/__mocks__/prisma";
+import prismaMock from "../../../../../tests/libs/__mocks__/prisma";
 
 import type { Payment, Prisma, PaymentOption, Booking } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
