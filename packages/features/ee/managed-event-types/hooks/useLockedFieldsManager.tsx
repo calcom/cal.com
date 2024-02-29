@@ -34,6 +34,7 @@ export const LockedSwitch = (
 };
 
 export const LockedIndicator = (
+  isChildrenManagedEventType: boolean,
   isManagedEventType: boolean,
   [isLocked, setIsLocked]: [boolean, Dispatch<SetStateAction<boolean>>],
   t: TFunction,
@@ -45,34 +46,37 @@ export const LockedIndicator = (
   const tooltipText = t(
     `${isLocked ? "locked" : "unlocked"}_fields_${isManagedEventType ? "admin" : "member"}_description`
   );
+
   return (
-    <Tooltip content={<>{tooltipText}</>}>
-      <div className="inline">
-        <Badge variant={isLocked ? "gray" : "green"} className="ml-2 transform gap-1.5 p-1">
-          {!options.simple && (
-            <>
-              {isLocked ? (
-                <Lock className="text-subtle h-3 w-3" />
-              ) : (
-                <Unlock className="text-subtle h-3 w-3" />
-              )}
-              <span className="font-medium">{stateText}</span>
-            </>
-          )}
-          {isManagedEventType && (
-            <Switch
-              data-testid={`locked-indicator-${fieldName}`}
-              onCheckedChange={(enabled) => {
-                setIsLocked(enabled);
-                setUnlockedFields(fieldName, !enabled || undefined);
-              }}
-              checked={isLocked}
-              small={!options.simple}
-            />
-          )}
-        </Badge>
-      </div>
-    </Tooltip>
+    (isManagedEventType || isChildrenManagedEventType) && (
+      <Tooltip content={<>{tooltipText}</>}>
+        <div className="inline">
+          <Badge variant={isLocked ? "gray" : "green"} className="ml-2 transform gap-1.5 p-1">
+            {!options.simple && (
+              <>
+                {isLocked ? (
+                  <Lock className="text-subtle h-3 w-3" />
+                ) : (
+                  <Unlock className="text-subtle h-3 w-3" />
+                )}
+                <span className="font-medium">{stateText}</span>
+              </>
+            )}
+            {isManagedEventType && (
+              <Switch
+                data-testid={`locked-indicator-${fieldName}`}
+                onCheckedChange={(enabled) => {
+                  setIsLocked(enabled);
+                  setUnlockedFields(fieldName, !enabled || undefined);
+                }}
+                checked={isLocked}
+                small={!options.simple}
+              />
+            )}
+          </Badge>
+        </div>
+      </Tooltip>
+    )
   );
 };
 
@@ -132,6 +136,7 @@ const useLockedFieldsManager = (
     }
 
     return LockedIndicator(
+      isChildrenManagedEventType,
       isManagedEventType,
       fieldStates[fieldName],
       translate,
