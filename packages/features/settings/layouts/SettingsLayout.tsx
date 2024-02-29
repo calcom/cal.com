@@ -21,8 +21,6 @@ import {
   ArrowLeft,
   ChevronDown,
   ChevronRight,
-  CreditCard,
-  Key,
   Loader,
   Lock,
   Menu,
@@ -48,22 +46,22 @@ const tabs: VerticalTabItemProps[] = [
       // { name: "referrals", href: "/settings/my-account/referrals" },
     ],
   },
-  {
-    name: "security",
-    href: "/settings/security",
-    icon: Key,
-    children: [
-      { name: "password", href: "/settings/security/password" },
-      { name: "impersonation", href: "/settings/security/impersonation" },
-      { name: "2fa_auth", href: "/settings/security/two-factor-auth" },
-    ],
-  },
-  {
-    name: "billing",
-    href: "/settings/billing",
-    icon: CreditCard,
-    children: [{ name: "manage_billing", href: "/settings/billing" }],
-  },
+  // {
+  //   name: "security",
+  //   href: "/settings/security",
+  //   icon: Key,
+  //   children: [
+  //     { name: "password", href: "/settings/security/password" },
+  //     { name: "impersonation", href: "/settings/security/impersonation" },
+  //     { name: "2fa_auth", href: "/settings/security/two-factor-auth" },
+  //   ],
+  // },
+  // {
+  //   name: "billing",
+  //   href: "/settings/billing",
+  //   icon: CreditCard,
+  //   children: [{ name: "manage_billing", href: "/settings/billing" }],
+  // },
   {
     name: "developer",
     href: "/settings/developer",
@@ -71,7 +69,7 @@ const tabs: VerticalTabItemProps[] = [
     children: [
       //
       { name: "webhooks", href: "/settings/developer/webhooks" },
-      { name: "api_keys", href: "/settings/developer/api-keys" },
+      // { name: "api_keys", href: "/settings/developer/api-keys" },
       // TODO: Add profile level for embeds
       // { name: "embeds", href: "/v2/settings/developer/embeds" },
     ],

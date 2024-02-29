@@ -81,7 +81,6 @@ import {
   Copy,
   Download,
   ExternalLink,
-  Grid,
   HelpCircle,
   Link as LinkIcon,
   LogOut,
@@ -90,7 +89,6 @@ import {
   MoreHorizontal,
   Settings,
   User as UserIcon,
-  Zap,
 } from "@calcom/ui/components/icon";
 import { Discord } from "@calcom/ui/components/icon/Discord";
 
@@ -603,36 +601,36 @@ const navigation: NavigationItemType[] = [
   //   onlyDesktop: true,
   //   badge: <TeamInviteBadge />,
   // },
-  {
-    name: "apps",
-    href: "/apps",
-    icon: Grid,
-    isCurrent: ({ pathname: path, item }) => {
-      // During Server rendering path is /v2/apps but on client it becomes /apps(weird..)
-      return (path?.startsWith(item.href) ?? false) && !(path?.includes("routing-forms/") ?? false);
-    },
-    child: [
-      {
-        name: "app_store",
-        href: "/apps",
-        isCurrent: ({ pathname: path, item }) => {
-          // During Server rendering path is /v2/apps but on client it becomes /apps(weird..)
-          return (
-            (path?.startsWith(item.href) ?? false) &&
-            !(path?.includes("routing-forms/") ?? false) &&
-            !(path?.includes("/installed") ?? false)
-          );
-        },
-      },
-      {
-        name: "installed_apps",
-        href: "/apps/installed/calendar",
-        isCurrent: ({ pathname: path }) =>
-          (path?.startsWith("/apps/installed/") ?? false) ||
-          (path?.startsWith("/v2/apps/installed/") ?? false),
-      },
-    ],
-  },
+  // {
+  //   name: "apps",
+  //   href: "/apps",
+  //   icon: Grid,
+  //   isCurrent: ({ pathname: path, item }) => {
+  //     // During Server rendering path is /v2/apps but on client it becomes /apps(weird..)
+  //     return (path?.startsWith(item.href) ?? false) && !(path?.includes("routing-forms/") ?? false);
+  //   },
+  //   child: [
+  //     {
+  //       name: "app_store",
+  //       href: "/apps",
+  //       isCurrent: ({ pathname: path, item }) => {
+  //         // During Server rendering path is /v2/apps but on client it becomes /apps(weird..)
+  //         return (
+  //           (path?.startsWith(item.href) ?? false) &&
+  //           !(path?.includes("routing-forms/") ?? false) &&
+  //           !(path?.includes("/installed") ?? false)
+  //         );
+  //       },
+  //     },
+  //     {
+  //       name: "installed_apps",
+  //       href: "/apps/installed/calendar",
+  //       isCurrent: ({ pathname: path }) =>
+  //         (path?.startsWith("/apps/installed/") ?? false) ||
+  //         (path?.startsWith("/v2/apps/installed/") ?? false),
+  //     },
+  //   ],
+  // },
   {
     name: MORE_SEPARATOR_NAME,
     href: "/more",
@@ -644,11 +642,11 @@ const navigation: NavigationItemType[] = [
   //   icon: FileText,
   //   isCurrent: ({ pathname }) => pathname?.startsWith("/apps/routing-forms/") ?? false,
   // },
-  {
-    name: "workflows",
-    href: "/workflows",
-    icon: Zap,
-  },
+  // {
+  //   name: "workflows",
+  //   href: "/workflows",
+  //   icon: Zap,
+  // },
   // {
   //   name: "insights",
   //   href: "/insights",
@@ -949,7 +947,7 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
         </div>
 
         <div>
-          <Tips />
+          {/* <Tips /> */}
           {bottomNavItems.map(({ icon: Icon, ...item }, index) => (
             <Tooltip side="right" content={t(item.name)} className="lg:hidden" key={item.name}>
               <ButtonOrLink

@@ -67,14 +67,14 @@ export const KBarRoot = ({ children }: { children: React.ReactNode }) => {
       perform: () => router.push(`/apps/${item.id}`),
     }));
     return [
-      {
-        id: "workflows",
-        name: "workflows",
-        section: "workflows",
-        shortcut: ["w", "f"],
-        keywords: "workflows automation",
-        perform: () => router.push("/workflows"),
-      },
+      // {
+      //   id: "workflows",
+      //   name: "workflows",
+      //   section: "workflows",
+      //   shortcut: ["w", "f"],
+      //   keywords: "workflows automation",
+      //   perform: () => router.push("/workflows"),
+      // },
       {
         id: "event-types",
         name: "event_types_page_title",
@@ -170,22 +170,22 @@ export const KBarRoot = ({ children }: { children: React.ReactNode }) => {
       //   keywords: "add manage modify team",
       //   perform: () => router.push("/settings/teams"),
       // },
-      {
-        id: "password",
-        name: "change_password",
-        section: "security",
-        shortcut: ["c", "p"],
-        keywords: "change modify password",
-        perform: () => router.push("/settings/security/password"),
-      },
-      {
-        id: "two-factor",
-        name: "two_factor_auth",
-        section: "security",
-        shortcut: ["t", "f", "a"],
-        keywords: "two factor authentication",
-        perform: () => router.push("/settings/security/two-factor-auth"),
-      },
+      // {
+      //   id: "password",
+      //   name: "change_password",
+      //   section: "security",
+      //   shortcut: ["c", "p"],
+      //   keywords: "change modify password",
+      //   perform: () => router.push("/settings/security/password"),
+      // },
+      // {
+      //   id: "two-factor",
+      //   name: "two_factor_auth",
+      //   section: "security",
+      //   shortcut: ["t", "f", "a"],
+      //   keywords: "two factor authentication",
+      //   perform: () => router.push("/settings/security/two-factor-auth"),
+      // },
       {
         id: "impersonation",
         name: "user_impersonation_heading",
@@ -218,14 +218,14 @@ export const KBarRoot = ({ children }: { children: React.ReactNode }) => {
         keywords: "api keys",
         perform: () => router.push("/settings/developer/api-keys"),
       },
-      {
-        id: "billing",
-        name: "manage_billing",
-        section: "billing",
-        shortcut: ["m", "b"],
-        keywords: "billing view manage",
-        perform: () => router.push("/settings/billing"),
-      },
+      // {
+      //   id: "billing",
+      //   name: "manage_billing",
+      //   section: "billing",
+      //   shortcut: ["m", "b"],
+      //   keywords: "billing view manage",
+      //   perform: () => router.push("/settings/billing"),
+      // },
       ...appStoreActions,
     ];
     // eslint-disable-next-line react-hooks/exhaustive-deps
