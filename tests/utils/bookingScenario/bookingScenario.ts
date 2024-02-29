@@ -16,7 +16,6 @@ import { weekdayToWeekIndex, type WeekDays } from "@calcom/lib/date-fns";
 import type { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import type { WorkflowActions, WorkflowTemplates, WorkflowTriggerEvents } from "@calcom/prisma/client";
 import type { SchedulingType } from "@calcom/prisma/enums";
 import type { BookingStatus } from "@calcom/prisma/enums";
@@ -49,15 +48,11 @@ type InputWorkflow = {
   action: WorkflowActions;
   template: WorkflowTemplates;
 };
-
-type InputHost = {
-  userId: number;
-  isFixed?: boolean;
-};
 /**
  * Data to be mocked
  */
 export type ScenarioData = {
+  // hosts: { id: number; eventTypeId?: number; userId?: number; isFixed?: boolean }[];
   /**
    * Prisma would return these eventTypes
    */
@@ -109,7 +104,6 @@ type InputUser = Omit<typeof TestData.users.example, "defaultScheduleId"> & {
   }[];
   destinationCalendar?: Prisma.DestinationCalendarCreateInput;
   weekStart?: string;
-  profiles?: Prisma.ProfileUncheckedCreateWithoutUserInput[];
 };
 
 export type InputEventType = {
@@ -123,7 +117,7 @@ export type InputEventType = {
    * These user ids are `ScenarioData["users"]["id"]`
    */
   users?: { id: number }[];
-  hosts?: InputHost[];
+  hosts?: { id: number }[];
   schedulingType?: SchedulingType;
   beforeEventBuffer?: number;
   afterEventBuffer?: number;
@@ -133,7 +127,6 @@ export type InputEventType = {
   schedule?: InputUser["schedules"][number];
   bookingLimits?: IntervalLimit;
   durationLimits?: IntervalLimit;
-  owner?: number;
 } & Partial<Omit<Prisma.EventTypeCreateInput, "users" | "schedule" | "bookingLimits" | "durationLimits">>;
 
 type AttendeeBookingSeatInput = Pick<Prisma.BookingSeatCreateInput, "referenceUid" | "data">;
@@ -164,20 +157,6 @@ export const Timezones = {
   "+5:30": "Asia/Kolkata",
   "+6:00": "Asia/Dhaka",
 };
-
-async function addHostsToDb(eventTypes: InputEventType[]) {
-  for (const eventType of eventTypes) {
-    if (eventType.hosts && eventType.hosts.length > 0) {
-      await prismock.host.createMany({
-        data: eventType.hosts.map((host) => ({
-          userId: host.userId,
-          eventTypeId: eventType.id,
-          isFixed: host.isFixed ?? false,
-        })),
-      });
-    }
-  }
-}
 
 async function addEventTypesToDb(
   eventTypes: (Omit<
@@ -300,8 +279,6 @@ async function addEventTypes(eventTypes: InputEventType[], usersStore: InputUser
             },
           }
         : eventType.schedule,
-      owner: eventType.owner ? { connect: { id: eventType.owner } } : undefined,
-      schedulingType: eventType.schedulingType,
     };
   });
   log.silly("TestData: Creating EventType", JSON.stringify(eventTypesWithUsers));
@@ -476,7 +453,6 @@ async function addUsersToDb(users: (Prisma.UserCreateInput & { schedules: Prisma
         include: {
           credentials: true,
           teams: true,
-          profiles: true,
           schedules: {
             include: {
               availability: true,
@@ -567,15 +543,6 @@ async function addUsers(users: InputUser[]) {
         },
       };
     }
-    if (user.profiles) {
-      newUser.profiles = {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-expect-error Not sure why this is not working
-        createMany: {
-          data: user.profiles,
-        },
-      };
-    }
 
     prismaUsersCreate.push(newUser);
   }
@@ -605,7 +572,6 @@ export async function createBookingScenario(data: ScenarioData) {
     );
   }
   const eventTypes = await addEventTypes(data.eventTypes, data.users);
-  await addHostsToDb(data.eventTypes);
 
   data.bookings = data.bookings || [];
   // allowSuccessfulBookingCreation();
@@ -969,7 +935,6 @@ export function getOrganizer({
     weekStart,
     teams,
     organizationId,
-    profiles: [],
     metadata,
   };
 }
@@ -983,7 +948,8 @@ export function getScenarioData(
     webhooks,
     workflows,
     bookings,
-  }: {
+  }: // hosts = [],
+  {
     organizer: ReturnType<typeof getOrganizer>;
     eventTypes: ScenarioData["eventTypes"];
     apps?: ScenarioData["apps"];
@@ -991,23 +957,14 @@ export function getScenarioData(
     webhooks?: ScenarioData["webhooks"];
     workflows?: ScenarioData["workflows"];
     bookings?: ScenarioData["bookings"];
+    // hosts?: ScenarioData["hosts"];
   },
   org?: { id: number | null } | undefined | null
 ) {
   const users = [organizer, ...usersApartFromOrganizer];
   if (org) {
-    const orgId = org.id;
-    if (!orgId) {
-      throw new Error("If org is specified org.id is required");
-    }
     users.forEach((user) => {
-      user.profiles = [
-        {
-          organizationId: orgId,
-          username: user.username || "",
-          uid: ProfileRepository.generateProfileUid(),
-        },
-      ];
+      user.organizationId = org.id;
     });
   }
 
@@ -1021,6 +978,7 @@ export function getScenarioData(
     }
   });
   return {
+    // hosts: [...hosts],
     eventTypes: eventTypes.map((eventType, index) => {
       return {
         ...eventType,

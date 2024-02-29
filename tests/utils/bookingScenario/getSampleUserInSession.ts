@@ -8,10 +8,7 @@ export const getSampleUserInSession = function () {
     organization: {
       isOrgAdmin: false,
       metadata: null,
-      id: 1,
-      requestedSlug: null,
     },
-    profile: null,
     defaultScheduleId: null,
     name: "",
     defaultBookerLayouts: null,
@@ -37,7 +34,6 @@ export const getSampleUserInSession = function () {
     disableImpersonation: false,
     organizationId: null,
     theme: "",
-    appTheme: "",
     createdDate: new Date(),
     trialEndsAt: new Date(),
     completedOnboarding: false,

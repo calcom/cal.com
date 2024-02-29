@@ -8,7 +8,7 @@ import { expect, vi } from "vitest";
 import "vitest-fetch-mock";
 
 import dayjs from "@calcom/dayjs";
-import { WEBSITE_URL } from "@calcom/lib/constants";
+import { CAL_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -307,18 +307,16 @@ export function expectWebhookToHaveBeenCalledWith(
 export function expectWorkflowToBeTriggered({
   emails,
   organizer,
-  destinationEmail,
 }: {
   emails: Fixtures["emails"];
   organizer: { email: string; name: string; timeZone: string };
-  destinationEmail?: string;
 }) {
   const subjectPattern = /^Reminder: /i;
   expect(emails.get()).toEqual(
     expect.arrayContaining([
       expect.objectContaining({
         subject: expect.stringMatching(subjectPattern),
-        to: destinationEmail ?? organizer.email,
+        to: organizer.email,
       }),
     ])
   );
@@ -372,7 +370,6 @@ export function expectSuccessfulBookingCreationEmails({
   recurrence,
   bookingTimeRange,
   booking,
-  destinationEmail,
 }: {
   emails: Fixtures["emails"];
   organizer: { email: string; name: string; timeZone: string };
@@ -384,9 +381,8 @@ export function expectSuccessfulBookingCreationEmails({
   eventDomain?: string;
   bookingTimeRange?: { start: Date; end: Date };
   booking: { uid: string; urlOrigin?: string };
-  destinationEmail?: string;
 }) {
-  const bookingUrlOrigin = booking.urlOrigin || WEBSITE_URL;
+  const bookingUrlOrigin = booking.urlOrigin || CAL_URL;
   expect(emails).toHaveEmail(
     {
       titleTag: "confirmed_event_type_subject",
@@ -413,7 +409,7 @@ export function expectSuccessfulBookingCreationEmails({
             },
           }
         : null),
-      to: `${destinationEmail ?? organizer.email}`,
+      to: `${organizer.email}`,
       ics: {
         filename: "event.ics",
         iCalUID: `${iCalUID}`,
@@ -421,7 +417,7 @@ export function expectSuccessfulBookingCreationEmails({
         method: "REQUEST",
       },
     },
-    `${destinationEmail ?? organizer.email}`
+    `${organizer.email}`
   );
 
   expect(emails).toHaveEmail(
@@ -746,7 +742,7 @@ export function expectBookingRequestRescheduledEmails({
   booking: { uid: string; urlOrigin?: string };
   bookNewTimePath: string;
 }) {
-  const bookingUrlOrigin = booking.urlOrigin || WEBSITE_URL;
+  const bookingUrlOrigin = booking.urlOrigin || CAL_URL;
 
   expect(emails).toHaveEmail(
     {
