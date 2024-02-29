@@ -1018,6 +1018,16 @@ describe("getSchedule", () => {
                 id: 102,
               },
             ],
+            hosts: [
+              {
+                userId: 101,
+                isFixed: true,
+              },
+              {
+                userId: 102,
+                isFixed: true,
+              },
+            ],
           },
           {
             id: 2,
@@ -1143,6 +1153,14 @@ describe("getSchedule", () => {
               },
             ],
             schedulingType: "ROUND_ROBIN",
+            hosts: [
+              {
+                userId: 101,
+              },
+              {
+                userId: 102,
+              },
+            ],
           },
           {
             id: 2,
