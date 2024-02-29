@@ -118,7 +118,6 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
   const requiresBookerEmailVerificationProps = shouldLockDisableProps("requiresBookerEmailVerification");
   const hideCalendarNotesLocked = shouldLockDisableProps("hideCalendarNotes");
   const lockTimeZoneToggleOnBookingPageLocked = shouldLockDisableProps("lockTimeZoneToggleOnBookingPage");
-  // const hashedLinkLocked = shouldLockDisableProps("hashedLink");
 
   const closeEventNameTip = () => setShowEventNameTip(false);
   const displayDestinationCalendarSelector =

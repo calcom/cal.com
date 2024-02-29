@@ -12,7 +12,6 @@ import {
 } from "./lib/testUtils";
 
 test.afterAll(({ users }) => users.deleteAll());
-test.setTimeout(120000);
 
 test.describe("Managed Event Types", () => {
   test("Can create managed event type", async ({ page, users }) => {

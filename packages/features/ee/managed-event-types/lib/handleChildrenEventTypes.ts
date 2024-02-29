@@ -218,7 +218,6 @@ export default async function handleChildrenEventTypes({
     });
 
     // Update event types for old users
-    // TODO::Only update the changed properties
     const oldEventTypes = await prisma.$transaction(
       oldUserIds.map((userId) => {
         return prisma.eventType.update({
