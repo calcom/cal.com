@@ -331,7 +331,10 @@ export const userMetadata = z
       })
       .optional(),
     defaultBookerLayouts: bookerLayouts.optional(),
-    emailChangeWaitingForVerification: z.string().optional(),
+    emailChangeWaitingForVerification: z
+      .string()
+      .transform((data) => data.toLowerCase())
+      .optional(),
     migratedToOrgFrom: z
       .object({
         username: z.string().or(z.null()).optional(),
