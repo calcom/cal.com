@@ -2,7 +2,7 @@ import { expect } from "@playwright/test";
 import type { Page } from "@playwright/test";
 import type { createUsersFixture } from "playwright/fixtures/users";
 
-import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import type { PrismaClient } from "@calcom/prisma";
 
 import type { createEmailsFixture } from "./fixtures/emails";
@@ -206,7 +206,7 @@ test.describe("Update Profile", () => {
         page,
         emails,
         secondaryEmail,
-        `${APP_NAME}: Verify your account`,
+        "Verify your email address",
         "verify-email"
       );
       expect(inviteLink).toEqual(`${WEBAPP_URL}/api/auth/verify-email?token=${verificationToken?.token}`);
@@ -256,7 +256,7 @@ test.describe("Update Profile", () => {
         page,
         emails,
         secondaryEmail,
-        `${APP_NAME}: Verify your account`,
+        "Verify your email address",
         "verify-email"
       );
       expect(inviteLink?.endsWith(`/api/auth/verify-email?token=${verificationToken?.token}`)).toEqual(true);
