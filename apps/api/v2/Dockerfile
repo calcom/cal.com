@@ -7,7 +7,7 @@ WORKDIR /calcom
 
 RUN set -eux;
 
-
+ENV NODE_ENV="production"
 ENV NODE_OPTIONS="--max-old-space-size=8192"
 ENV DATABASE_DIRECT_URL=${DATABASE_DIRECT_URL}
 ENV DATABASE_URL=${DATABASE_URL}

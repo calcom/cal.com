@@ -30,4 +30,5 @@ volumes:
 
 networks:
   calcom_network:
+    name: calcom_network
     driver: bridge
