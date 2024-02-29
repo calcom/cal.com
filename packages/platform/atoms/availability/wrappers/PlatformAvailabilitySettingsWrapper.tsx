@@ -1,6 +1,6 @@
 import type { ScheduleLabelsType } from "@calcom/features/schedules/components/Schedule";
-import type { UpdateScheduleOutputType } from "@calcom/platform-libraries";
-import type { ApiErrorResponse, ApiResponse } from "@calcom/platform-types";
+import type { ScheduleWithAvailabilitiesForWeb, UpdateScheduleOutputType } from "@calcom/platform-libraries";
+import type { ApiErrorResponse, ApiResponse, ApiSuccessResponse } from "@calcom/platform-types";
 
 import useClientSchedule from "../../hooks/useClientSchedule";
 import useDeleteSchedule from "../../hooks/useDeleteSchedule";
@@ -53,8 +53,9 @@ export const PlatformAvailabilitySettingsWrapper = ({
   onUpdateSuccess,
 }: PlatformAvailabilitySettingsWrapperProps) => {
   const { isLoading, data: schedule } = useClientSchedule(id);
+  const mySchedule = schedule as ApiSuccessResponse<ScheduleWithAvailabilitiesForWeb>;
   const { data: me } = useMe();
-  const userSchedule = schedule?.data;
+  const userSchedule = mySchedule?.data;
   const { timeFormat } = me?.data.user || { timeFormat: null };
   const { toast } = useToast();
 
@@ -124,7 +125,7 @@ export const PlatformAvailabilitySettingsWrapper = ({
               availability: userSchedule.availability,
               schedule:
                 userSchedule.schedule.reduce(
-                  (acc, avail) => [
+                  (acc: Schedule[], avail: Schedule) => [
                     ...acc,
                     { ...avail, startTime: new Date(avail.startTime), endTime: new Date(avail.endTime) },
                   ],

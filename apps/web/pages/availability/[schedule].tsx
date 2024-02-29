@@ -28,8 +28,8 @@ import {
   TimezoneSelect,
   Tooltip,
   VerticalDivider,
+  EditableHeading,
 } from "@calcom/ui";
-import { EditableHeading } from "@calcom/ui/EditableHeading";
 import { Info, MoreVertical, ArrowLeft, Plus, Trash } from "@calcom/ui/components/icon";
 
 import PageWrapper from "@components/PageWrapper";
@@ -43,7 +43,13 @@ type AvailabilityFormValues = {
   isDefault: boolean;
 };
 
-const DateOverride = ({ workingHours }: { workingHours: WorkingHours[] }) => {
+const DateOverride = ({
+  workingHours,
+  userTimeFormat,
+}: {
+  workingHours: WorkingHours[];
+  userTimeFormat: number | null;
+}) => {
   const { remove, append, replace, fields } = useFieldArray<AvailabilityFormValues, "dateOverrides">({
     name: "dateOverrides",
   });
@@ -67,8 +73,10 @@ const DateOverride = ({ workingHours }: { workingHours: WorkingHours[] }) => {
           replace={replace}
           items={fields}
           workingHours={workingHours}
+          userTimeFormat={userTimeFormat}
         />
         <DateOverrideInputDialog
+          userTimeFormat={userTimeFormat}
           workingHours={workingHours}
           excludedDates={excludedDates}
           onChange={(ranges) => ranges.forEach((range) => append({ ranges: [range] }))}
@@ -380,7 +388,9 @@ export default function Availability() {
               </div>
             </div>
             <div className="border-subtle my-6 rounded-md border">
-              {schedule?.workingHours && <DateOverride workingHours={schedule.workingHours} />}
+              {schedule?.workingHours && (
+                <DateOverride userTimeFormat={timeFormat} workingHours={schedule.workingHours} />
+              )}
             </div>
           </div>
           <div className="min-w-40 col-span-3 hidden space-y-2 md:block lg:col-span-1">
