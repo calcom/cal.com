@@ -62,6 +62,7 @@ export const sendEmailVerification = async ({
       email,
       name: username,
     },
+    isSecondaryEmailVerification: !!secondaryEmailId,
   });
 
   return { ok: true, skipped: false };
