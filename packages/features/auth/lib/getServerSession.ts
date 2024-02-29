@@ -31,10 +31,10 @@ export async function getServerSession(options: {
 }) {
   const { req, authOptions: { secret } = {} } = options;
 
-  const token = await getToken({
+  const token = (await getToken({
     req,
     secret,
-  });
+  })) as any;
 
   if (!token || !token.email || !token.sub) {
     return null;

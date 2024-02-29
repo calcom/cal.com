@@ -4,7 +4,7 @@ import { useSession } from "next-auth/react";
 type sidebarConfigProps = {
   userId: string;
   token: string;
-  workspaceId: string;
+  workspaceId?: string;
 };
 
 export function sidebarConfig({ token, userId, workspaceId }: sidebarConfigProps) {
@@ -16,7 +16,7 @@ export function sidebarConfig({ token, userId, workspaceId }: sidebarConfigProps
 }
 
 export const FunnelHubSidebar = () => {
-  const session = useSession();
+  const session = useSession() as any;
   return (
     <>
       {session.data?.user?.currentWorkspace && (
