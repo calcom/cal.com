@@ -198,6 +198,10 @@ test.describe("Managed Event Types", () => {
       expect(await page.locator("[data-testid=duration]").getAttribute("value")).toBe("45");
       //ensure description didn't update
       expect(await page.locator(`input[name="title"]`).getAttribute("value")).toBe(`Managed Event Title`);
+      await page.locator('input[name="title"]').fill(`managed`);
+      // Save changes
+      await page.locator('[type="submit"]').click();
+      await page.getByTestId("toast-success").waitFor();
     });
   });
 });
