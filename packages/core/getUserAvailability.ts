@@ -276,7 +276,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
   const useHostSchedulesForTeamEvent = eventType?.metadata?.config?.useHostSchedulesForTeamEvent;
   const schedule = !useHostSchedulesForTeamEvent && eventType?.schedule ? eventType.schedule : userSchedule;
 
-  const isDefaultSchedule = userSchedule.id === schedule.id;
+  const isDefaultSchedule = userSchedule && userSchedule.id === schedule.id;
 
   log.debug(
     "Using schedule:",
