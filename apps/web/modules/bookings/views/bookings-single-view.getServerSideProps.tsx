@@ -193,11 +193,17 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     },
   });
 
-  // Removing hidden fields from responses
-  for (const key in bookingInfo.responses) {
-    const field = eventTypeRaw.bookingFields.find((field) => field.name === key);
-    if (field && !!field.hidden) {
-      delete bookingInfo.responses[key];
+  const userId = session?.user?.id;
+  const isLoggedInUserHost =
+    eventType.users.some((user) => user.id === userId) || eventType.hosts.some((user) => user.id === userId);
+
+  if (!isLoggedInUserHost) {
+    // Removing hidden fields from responses
+    for (const key in bookingInfo.responses) {
+      const field = eventTypeRaw.bookingFields.find((field) => field.name === key);
+      if (field && !!field.hidden) {
+        delete bookingInfo.responses[key];
+      }
     }
   }
 
