@@ -226,11 +226,16 @@ describe("processWorkingHours", () => {
     const dateFrom = dayjs().startOf("day");
     const dateTo = dayjs().add(1, "week").startOf("day");
 
+    // with end date
     const travelSchedules = [
       {
         startDate: dayjs().add(2, "day").startOf("day"),
-        endDate: dayjs().add(2, "day").endOf("day"),
+        endDate: dayjs().add(3, "day").endOf("day"),
         timeZone: "America/New_York",
+      },
+      {
+        startDate: dayjs().add(5, "day").startOf("day"),
+        timeZone: "Asia/Kolkata",
       },
     ];
 
@@ -242,27 +247,43 @@ describe("processWorkingHours", () => {
       travelSchedules,
     });
 
-    const resultFromDaysWithOriginalTz = resultsWithTravelSchedule.filter((result) => {
+    const resultWithOriginalTz = resultsWithTravelSchedule.filter((result) => {
       return (
         result.start.isBefore(travelSchedules[0].startDate) ||
-        result.start.isAfter(travelSchedules[0].endDate)
+        (result.start.isAfter(travelSchedules[0].endDate) &&
+          result.start.isBefore(travelSchedules[1].startDate))
       );
     });
 
-    expect(resultFromDaysWithOriginalTz.length).toBe(6);
-
-    const resultFromDaysWithtravelScheduleTz = resultsWithTravelSchedule.filter(
-      (result) => !resultFromDaysWithOriginalTz.find((day) => day.start.isSame(result.start))
+    const resultsWithNewYorkTz = resultsWithTravelSchedule.filter(
+      (result) =>
+        !result.start.isBefore(travelSchedules[0].startDate) &&
+        !result.start.isAfter(travelSchedules[0].endDate)
     );
+    const resultsWithKolkataTz = resultsWithTravelSchedule.filter(
+      (result) => !result.start.isBefore(travelSchedules[1].startDate)
+    );
+
+    // 8AM in Europe/Berlin is 7AM in UTC, 5PM in Europe/Berlin is 4PM in UTC
     expect(
-      resultFromDaysWithOriginalTz.every(
+      resultWithOriginalTz.every(
         (result) => result.start.utc().hour() === 7 && result.end.utc().hour() === 16
       )
     ).toBeTruthy();
 
+    // 8AM in America/New_York is 1AM in UTC, 5PM in America/New_York is 10PM in UTC
     expect(
-      resultFromDaysWithtravelScheduleTz.every((result) => {
+      resultsWithNewYorkTz.every((result) => {
         return result.start.utc().hour() === 13 && result.end.utc().hour() === 22;
+      })
+    ).toBeTruthy();
+
+    // 8AM in America/New_York is 2AM in UTC, 5PM in America/New_York is 10PM in UTC
+    expect(
+      resultsWithKolkataTz.every((result) => {
+        const correctStartTime = result.start.utc().hour() === 2 && result.start.utc().minute() === 30;
+        const correctEndTime = result.end.utc().hour() === 11 && result.end.utc().minute() === 30;
+        return correctStartTime && correctEndTime;
       })
     ).toBeTruthy();
   });
@@ -310,7 +331,7 @@ describe("buildDateRanges", () => {
     const dateTo = dayjs("2023-06-15T00:00:00Z");
 
     const timeZone = "America/New_York";
-    //add tarvelScheduels
+
     const results = buildDateRanges({ availability: items, timeZone, dateFrom, dateTo, travelSchedules: [] });
     // [
     //  { s: '2023-06-13T10:00:00-04:00', e: '2023-06-13T15:00:00-04:00' },
