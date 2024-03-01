@@ -1,11 +1,11 @@
 import { HttpError } from "../http-error";
 
-const TUNRSTILE_SECRET_ID = process.env.CLOUDFLARE_TURNSTILE_SECRET;
+const TURNSTILE_SECRET_ID = process.env.CLOUDFLARE_TURNSTILE_SECRET;
 
 export async function checkCfTurnstileToken({ token, remoteIp }: { token?: string; remoteIp: string }) {
   // This means the instant doesnt have turnstile enabled - we skip the check and just return success.
   // OR the instance is running in CI so we skip these checks also
-  if (!TUNRSTILE_SECRET_ID || !!process.env.NEXT_PUBLIC_IS_E2E) {
+  if (!TURNSTILE_SECRET_ID || !!process.env.NEXT_PUBLIC_IS_E2E) {
     return {
       success: true,
     };
