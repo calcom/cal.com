@@ -13,35 +13,33 @@ const removeMember = async ({
   teamId: number;
   isOrg: boolean;
 }) => {
-  const membership = await prisma.membership.delete({
-    where: {
-      userId_teamId: { userId: memberId, teamId: teamId },
-    },
-    include: {
-      user: true,
-      team: true,
-    },
-  });
-
-  // remove user as host from team events associated with this membership
-  await prisma.host.deleteMany({
-    where: {
-      userId: memberId,
-      eventType: {
-        teamId: teamId,
+  const [membership] = await prisma.$transaction([
+    prisma.membership.delete({
+      where: {
+        userId_teamId: { userId: memberId, teamId: teamId },
       },
-    },
-  });
+      include: {
+        user: true,
+        team: true,
+      },
+    }),
+    // remove user as host from team events associated with this membership
+    prisma.host.deleteMany({
+      where: {
+        userId: memberId,
+        eventType: {
+          teamId: teamId,
+        },
+      },
+    }),
+  ]);
 
   if (isOrg) {
     log.debug("Removing a member from the organization");
 
     // Deleting membership from all child teams
-    const foundUser = await prisma.user.update({
+    const foundUser = await prisma.user.findUnique({
       where: { id: memberId },
-      data: {
-        organizationId: null,
-      },
       select: {
         id: true,
         movedToProfileId: true,
@@ -51,17 +49,18 @@ const removeMember = async ({
       },
     });
 
-    if (!foundUser) throw new Error(`Could not find user with member id ${memberId}`);
-
     const orgInfo = await prisma.team.findUnique({
       where: { id: teamId },
       select: {
+        isOrganization: true,
+        organizationSettings: true,
         id: true,
         metadata: true,
       },
     });
+    const orgMetadata = orgInfo?.organizationSettings;
 
-    if (!orgInfo) throw new Error(`Could not find org with team id ${teamId}`);
+    if (!foundUser || !orgInfo) throw new TRPCError({ code: "NOT_FOUND" });
 
     // Delete all sub-team memberships where this team is the organization
     await prisma.membership.deleteMany({
