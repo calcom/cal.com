@@ -23,7 +23,6 @@ const JellyVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter =>
         },
       });
       const jellyLinkData = await jellyLink.json();
-      console.log("jelly API response: ", jellyLinkData, jellyLink);
 
       return {
         type: "jelly_conferencing",
