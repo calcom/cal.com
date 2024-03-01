@@ -108,13 +108,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         {
           startDate: {
             gte: dayjs.utc().subtract(1, "day").toDate(),
-            lte: dayjs.utc().add(2, "day").toDate(),
+            lte: dayjs.utc().add(1, "day").toDate(),
           },
         },
         {
           endDate: {
             gte: dayjs.utc().subtract(1, "day").toDate(),
-            lte: dayjs.utc().add(2, "day").toDate(),
+            lte: dayjs.utc().add(1, "day").toDate(),
           },
         },
       ],
@@ -126,15 +126,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const userTz = travelSchedule.user.timeZone;
     const offset = dayjs().tz(userTz).utcOffset();
 
-    // midnight in user's time zone
+    // midnight in user's time zone but we use utc time
     const startDateUTC = dayjs(travelSchedule.startDate).subtract(offset, "minute");
-    // 23:59 in user's time zone
+    // 23:59 in user's time zone but we use utc time
     const endDateUTC = dayjs(travelSchedule.endDate).subtract(offset, "minute");
     if (
       (dayjs.utc().isSame(startDateUTC) || dayjs.utc().isAfter(startDateUTC)) &&
+      !dayjs.utc().isAfter(endDateUTC) &&
       !travelSchedule.prevTimeZone
     ) {
-      // travel schedule has started and new timezone wasn't set yet
+      // if travel schedule has started and prevTimeZone is not yet set, we need to change time zone
       await setNewTimeZone(travelSchedule.timeZone, travelSchedule.user);
 
       if (!travelSchedule.endDate) {
