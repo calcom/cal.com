@@ -10,11 +10,9 @@ export type DateRange = {
 export type DateOverride = Pick<Availability, "date" | "startTime" | "endTime">;
 export type WorkingHours = Pick<Availability, "days" | "startTime" | "endTime">;
 
-function getAdjustedTimezone(
-  date: Dayjs,
-  timeZone: string,
-  travelSchedules: { startDate: Dayjs; endDate?: Dayjs; timeZone: string }[]
-) {
+type TravelSchedule = { startDate: Dayjs; endDate?: Dayjs; timeZone: string };
+
+function getAdjustedTimezone(date: Dayjs, timeZone: string, travelSchedules: TravelSchedule[]) {
   let adjustedTimezone = timeZone;
 
   travelSchedules.forEach((travelSchedule) => {
@@ -38,11 +36,7 @@ export function processWorkingHours({
   timeZone: string;
   dateFrom: Dayjs;
   dateTo: Dayjs;
-  travelSchedules: {
-    startDate: Dayjs;
-    endDate?: Dayjs;
-    timeZone: string;
-  }[];
+  travelSchedules: TravelSchedule[];
 }) {
   const utcDateTo = dateTo.utc();
   const results = [];
@@ -102,11 +96,7 @@ export function processDateOverride({
   item: DateOverride;
   itemDateAsUtc: Dayjs;
   timeZone: string;
-  travelSchedules: {
-    startDate: Dayjs;
-    endDate?: Dayjs;
-    timeZone: string;
-  }[];
+  travelSchedules: TravelSchedule[];
 }) {
   const overrideDate = dayjs(item.date);
 
@@ -150,11 +140,7 @@ export function buildDateRanges({
   availability: (DateOverride | WorkingHours)[];
   dateFrom: Dayjs;
   dateTo: Dayjs;
-  travelSchedules: {
-    startDate: Dayjs;
-    endDate?: Dayjs;
-    timeZone: string;
-  }[];
+  travelSchedules: TravelSchedule[];
 }): DateRange[] {
   const dateFromOrganizerTZ = dateFrom.tz(timeZone);
   const groupedWorkingHours = groupByDate(
