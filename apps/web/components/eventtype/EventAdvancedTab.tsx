@@ -121,7 +121,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
 
   const closeEventNameTip = () => setShowEventNameTip(false);
   const displayDestinationCalendarSelector =
-    !!connectedCalendarsQuery.data?.connectedCalendars.length && !team;
+    !!connectedCalendarsQuery.data?.connectedCalendars.length && (!team || isChildrenManagedEventType);
 
   const setEventName = (value: string) => formMethods.setValue("eventName", value);
   return (
