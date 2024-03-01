@@ -9,6 +9,7 @@ import type Stripe from "stripe";
 import type { getMockRequestDataForBooking } from "test/utils/bookingScenario/getMockRequestDataForBooking";
 import { v4 as uuidv4 } from "uuid";
 import "vitest-fetch-mock";
+import type { z } from "zod";
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { handleStripePaymentSuccess } from "@calcom/features/ee/payments/api/webhook";
