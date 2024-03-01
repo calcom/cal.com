@@ -30,15 +30,16 @@ export type BiginToken = {
 };
 
 export type BiginContact = {
-  email: string;
+  Email: string;
 };
 
 export default class BiginCalendarService implements Calendar {
   private readonly integrationName = "zoho-bigin";
   private readonly auth: { getToken: () => Promise<BiginToken> };
   private log: typeof logger;
-  private eventsSlug = "/bigin/v1/Events";
-  private contactsSlug = "/bigin/v1/Contacts";
+  private eventsSlug = "/bigin/v2/Events";
+  private contactsSlug = "/bigin/v2/Contacts";
+  private eventTag = "Calcom";
 
   constructor(credential: CredentialPayload) {
     this.auth = this.biginAuth(credential);
@@ -129,6 +130,7 @@ export default class BiginCalendarService implements Calendar {
         First_Name: firstName,
         Last_Name: lastName,
         Email: attendee.email,
+        Tag: [{ name: this.eventTag }],
       };
     });
 
@@ -148,19 +150,60 @@ export default class BiginCalendarService implements Calendar {
    */
   private async contactSearch(event: CalendarEvent) {
     const token = await this.auth.getToken();
-    const searchCriteria = `(${event.attendees
-      .map((attendee) => `(Email:equals:${encodeURI(attendee.email)})`)
-      .join("or")})`;
+    const attendeeEmail = event.responses?.email.value;
 
     return await axios({
       method: "get",
-      url: `${token.api_domain}${this.contactsSlug}/search?criteria=${searchCriteria}`,
+      url: `${token.api_domain}${this.contactsSlug}/search?email=${attendeeEmail}`,
       headers: {
         authorization: `Zoho-oauthtoken ${token.access_token}`,
       },
     })
       .then((data) => data.data)
       .catch((e) => this.log.error("Error searching contact:", JSON.stringify(e), e.response?.data));
+  }
+
+  /**
+   * Generates a description from the event data which includes the Agenda,Reschedule Reason, additional notes, attendees, and user fields.
+   */
+  private getDescription(event: CalendarEvent) {
+    const description = [];
+    if (
+      event.responses?.rescheduleReason?.value &&
+      typeof event.responses.rescheduleReason.value === "string"
+    ) {
+      description.push(`Reschedule Reason: ${event.responses.rescheduleReason.value}`);
+    }
+    if (event.responses?.title?.value && typeof event.responses.title.value === "string") {
+      description.push(`Agenda: ${event.responses.title.value}`);
+    }
+    if (event.additionalNotes) {
+      description.push(`Additional Notes: ${event.additionalNotes}`);
+    }
+    if (event.attendees.length > 1) {
+      description.push(`Attendees: ${event.attendees.map((attendee) => attendee.email).join(", ")}`);
+    }
+    if (
+      Object.entries(
+        event.userFieldsResponses as Record<
+          string,
+          {
+            label: string;
+            value: string;
+          }
+        >
+      ).length > 0
+    ) {
+      Object.entries(event.userFieldsResponses as Record<string, { label: string; value: string }>).forEach(
+        ([_key, value]) => {
+          if (typeof value.value === "string" && value.value) {
+            description.push(`${value.label}: ${value.value}`);
+          }
+        }
+      );
+    }
+
+    return description.join("\n");
   }
 
   /***
@@ -172,8 +215,9 @@ export default class BiginCalendarService implements Calendar {
       Event_Title: event.title,
       Start_DateTime: toISO8601String(new Date(event.startTime)),
       End_DateTime: toISO8601String(new Date(event.endTime)),
-      Description: event.additionalNotes,
-      Location: getLocation(event),
+      Description: this.getDescription(event),
+      Venue: getLocation(event),
+      Tag: [{ name: this.eventTag }],
     };
 
     return axios({
@@ -217,25 +261,27 @@ export default class BiginCalendarService implements Calendar {
    * Initially creates all new attendees as contacts, then creates the event.
    */
   async createEvent(event: CalendarEvent): Promise<NewCalendarEventType> {
-    const contacts = (await this.contactSearch(event))?.data || [];
+    try {
+      const contacts = (await this.contactSearch(event))?.data || [];
 
-    const existingContacts = contacts.map((contact: BiginContact) => contact.email);
-    const newContacts: Person[] = event.attendees.filter(
-      (attendee) => !existingContacts.includes(attendee.email)
-    );
+      const existingContact = contacts[0]?.Email;
 
-    if (newContacts.length === 0) {
-      return await this.handleEventCreation(event, event.attendees);
+      if (existingContact) {
+        return await this.handleEventCreation(event, event.attendees);
+      }
+
+      const createContacts = await this.createContacts([event.attendees[0]]);
+      if (createContacts.data?.data[0].status === "success") {
+        return await this.handleEventCreation(event, event.attendees);
+      }
+      return Promise.reject({
+        calError: "Something went wrong when creating non-existing attendees in Zoho Bigin",
+      });
+    } catch (e) {
+      return Promise.reject({
+        calError: "Something went wrong when creating non-existing attendees in Zoho Bigin",
+      });
     }
-
-    const createContacts = await this.createContacts(newContacts);
-    if (createContacts.data?.data[0].status === "success") {
-      return await this.handleEventCreation(event, event.attendees);
-    }
-
-    return Promise.reject({
-      calError: "Something went wrong when creating non-existing attendees in Zoho Bigin",
-    });
   }
 
   /***
@@ -249,8 +295,9 @@ export default class BiginCalendarService implements Calendar {
       Event_Title: event.title,
       Start_DateTime: toISO8601String(new Date(event.startTime)),
       End_DateTime: toISO8601String(new Date(event.endTime)),
-      Description: event.additionalNotes,
-      Location: getLocation(event),
+      Description: this.getDescription(event),
+      Venue: getLocation(event),
+      tag: [{ name: this.eventTag }],
     };
 
     return axios
