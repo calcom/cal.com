@@ -14,7 +14,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const { code } = req.query;
   const { client_id, client_secret } = await getAppKeysFromSlug("jelly");
 
-  const result = await fetch(`https://jellyjelly.com/login/oauth/access_token`, {
+  const result = await fetch(`https://www.jellyjelly.com/login/oauth/access_token`, {
     method: "POST",
     body: JSON.stringify({ code, client_id, client_secret }),
   });
