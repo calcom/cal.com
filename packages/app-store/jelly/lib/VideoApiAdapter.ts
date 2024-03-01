@@ -12,7 +12,6 @@ const JellyVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter =>
       // get keys from slug
       const keys = credential.key as JellyToken;
       const { access_token } = keys;
-      console.log("jelly access token: ", access_token);
       // create jelly link
       const jellyLink = await fetch("https://www.jellyjelly.com/api/ti/start_jelly", {
         method: "POST",
