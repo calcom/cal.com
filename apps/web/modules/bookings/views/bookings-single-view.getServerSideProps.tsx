@@ -195,7 +195,9 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const userId = session?.user?.id;
   const isLoggedInUserHost =
-    eventType.users.some((user) => user.id === userId) || eventType.hosts.some((user) => user.id === userId);
+    userId &&
+    (eventType.users.some((user) => user.id === userId) ||
+      eventType.hosts.some(({ user }) => user.id === userId));
 
   if (!isLoggedInUserHost) {
     // Removing hidden fields from responses
