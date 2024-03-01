@@ -176,7 +176,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
     data.avatar = null;
   }
 
-  if (input.travelSchedules) {
+  if (travelSchedules) {
     const existingSchedules = await prisma.travelSchedule.findMany({
       where: {
         userId: user.id,
@@ -185,8 +185,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
 
     const schedulesToDelete = existingSchedules.filter(
       (schedule) =>
-        !input.travelSchedules ||
-        !input.travelSchedules.find((scheduleInput) => scheduleInput.id === schedule.id)
+        !travelSchedules || !travelSchedules.find((scheduleInput) => scheduleInput.id === schedule.id)
     );
 
     await prisma.travelSchedule.deleteMany({
@@ -199,7 +198,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
     });
 
     await prisma.travelSchedule.createMany({
-      data: input.travelSchedules
+      data: travelSchedules
         .filter((schedule) => !schedule.id)
         .map((schedule) => {
           return {

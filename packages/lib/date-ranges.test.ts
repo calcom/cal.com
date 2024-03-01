@@ -212,7 +212,7 @@ describe("processWorkingHours", () => {
     expect(results).toEqual([]);
   });
 
-  it("should show working hours in correct timezone if existing travel schedule", () => {
+  it("should show working hours in correct timezone with existing travel schedules", () => {
     vi.useFakeTimers().setSystemTime(new Date("2023-01-01T00:00:00.000Z"));
 
     const item = {
@@ -226,7 +226,6 @@ describe("processWorkingHours", () => {
     const dateFrom = dayjs().startOf("day");
     const dateTo = dayjs().add(1, "week").startOf("day");
 
-    // with end date
     const travelSchedules = [
       {
         startDate: dayjs().add(2, "day").startOf("day"),
@@ -271,14 +270,14 @@ describe("processWorkingHours", () => {
       )
     ).toBeTruthy();
 
-    // 8AM in America/New_York is 1AM in UTC, 5PM in America/New_York is 10PM in UTC
+    // 8AM in America/New_York is 1PM in UTC, 5PM in America/New_York is 10PM in UTC
     expect(
       resultsWithNewYorkTz.every((result) => {
         return result.start.utc().hour() === 13 && result.end.utc().hour() === 22;
       })
     ).toBeTruthy();
 
-    // 8AM in America/New_York is 2AM in UTC, 5PM in America/New_York is 10PM in UTC
+    // 8AM in America/Kolkata is 2:30AM in UTC, 5PM in America/Kolkata is 11:30AM in UTC
     expect(
       resultsWithKolkataTz.every((result) => {
         const correctStartTime = result.start.utc().hour() === 2 && result.start.utc().minute() === 30;
@@ -309,6 +308,9 @@ describe("processDateOverrides", () => {
 
     expect(result.start.format()).toEqual(dayjs("2023-06-12T12:00:00Z").tz(timeZone).format());
     expect(result.end.format()).toEqual(dayjs("2023-06-12T21:00:00Z").tz(timeZone).format());
+  });
+  it("should show date overrides in correct timezone with existing travel schedules", () => {
+    //todo
   });
 });
 

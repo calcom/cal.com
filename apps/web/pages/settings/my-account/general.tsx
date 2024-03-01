@@ -239,7 +239,6 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
                       )}
                       key={index}>
                       <div>
-                        <></>
                         <div className="text-emphasis font-semibold">{`${formatLocalizedDateTime(
                           schedule.startDate,
                           { day: "numeric", month: "long" },

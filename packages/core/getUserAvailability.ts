@@ -349,7 +349,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
         })
       : [],
   });
-  console.log(`date ragens ${JSON.stringify(dateRanges)}`);
+
   const formattedBusyTimes = detailedBusyTimes.map((busy) => ({
     start: dayjs(busy.start),
     end: dayjs(busy.end),
