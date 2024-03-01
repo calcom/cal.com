@@ -31,7 +31,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   const responseBody = await result.json();
-  console.log(responseBody);
   if (responseBody.error) {
     res.status(400).json({ message: responseBody.error });
     return;
