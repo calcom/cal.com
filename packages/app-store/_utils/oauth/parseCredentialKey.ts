@@ -10,12 +10,12 @@ const minimumTokenResponseSchema = z.object({
   [z.string().optional().toString()]: z.unknown().optional(),
 });
 
-export type ParseRefreshTokenResponse<S extends z.ZodTypeAny> =
+export type ParseCredentialKeyRefreshResponse<S extends z.ZodTypeAny> =
   | z.infer<S>
   | z.infer<typeof minimumTokenResponseSchema>;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const parseRefreshTokenResponse = (response: any, schema: z.ZodTypeAny) => {
+const parseCredentialKey = (response: any, schema: z.ZodTypeAny) => {
   let refreshTokenResponse;
   const credentialSyncingEnabled =
     APP_CREDENTIAL_SHARING_ENABLED && process.env.CALCOM_CREDENTIAL_SYNC_ENDPOINT;
@@ -36,4 +36,4 @@ const parseRefreshTokenResponse = (response: any, schema: z.ZodTypeAny) => {
   return refreshTokenResponse.data;
 };
 
-export default parseRefreshTokenResponse;
+export default parseCredentialKey;
