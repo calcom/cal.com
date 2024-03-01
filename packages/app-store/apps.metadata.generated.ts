@@ -58,6 +58,7 @@ import raycast_config_json from "./raycast/config.json";
 import riverside_config_json from "./riverside/config.json";
 import roam_config_json from "./roam/config.json";
 import routing_forms_config_json from "./routing-forms/config.json";
+import salesforce_revert_config_json from "./salesforce-revert/config.json";
 import salesforce_config_json from "./salesforce/config.json";
 import salesroom_config_json from "./salesroom/config.json";
 import sendgrid_config_json from "./sendgrid/config.json";
@@ -147,6 +148,7 @@ export const appStoreMetadata = {
   roam: roam_config_json,
   "routing-forms": routing_forms_config_json,
   salesforce: salesforce_config_json,
+  "salesforce-revert": salesforce_revert_config_json,
   salesroom: salesroom_config_json,
   sendgrid: sendgrid_config_json,
   shimmervideo: shimmervideo_config_json,
