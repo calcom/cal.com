@@ -37,9 +37,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return;
   }
 
-  responseBody.expiry_date = Math.round(Date.now() + responseBody.expires_in * 1000);
-  delete responseBody.expires_in;
-
   /**
    * With this we take care of no duplicate jelly key for a single user
    * when creating a room using deleteMany if there is already a jelly key
