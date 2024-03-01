@@ -518,7 +518,6 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
             required
             type="number"
             containerClassName="max-w-80"
-            {...offsetStartLockedProps}
             label={t("offset_start")}
             {...formMethods.register("offsetStart", { setValueAs: (value) => Number(value) })}
             addOnSuffix={<>{t("minutes")}</>}

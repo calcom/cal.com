@@ -170,6 +170,7 @@ export const EventSetupTab = (
     const defaultValue = isManagedEventType
       ? locationOptions.find((op) => op.label === t("default"))?.options[0]
       : undefined;
+    console.log({ defaultValue });
 
     const { locationDetails, locationAvailable } = getLocationInfo(props);
 
@@ -179,7 +180,6 @@ export const EventSetupTab = (
       index: number;
     }) => {
       const { eventLocationType, index, ...remainingProps } = props;
-
       if (eventLocationType?.organizerInputType === "text") {
         const { defaultValue, ...rest } = remainingProps;
 
@@ -231,7 +231,10 @@ export const EventSetupTab = (
     };
 
     const [showEmptyLocationSelect, setShowEmptyLocationSelect] = useState(false);
-    const [selectedNewOption, setSelectedNewOption] = useState<SingleValueLocationOption | null>(null);
+    const defaultInitialLocation = defaultValue || null;
+    const [selectedNewOption, setSelectedNewOption] = useState<SingleValueLocationOption | null>(
+      defaultInitialLocation
+    );
 
     return (
       <div className="w-full">
@@ -503,6 +506,7 @@ export const EventSetupTab = (
                   defaultValue={selectedMultipleDuration}
                   name="metadata.multipleDuration"
                   isSearchable={false}
+                  isDisabled={lengthLockedProps.disabled}
                   className="h-auto !min-h-[36px] text-sm"
                   options={multipleDurationOptions}
                   value={selectedMultipleDuration}

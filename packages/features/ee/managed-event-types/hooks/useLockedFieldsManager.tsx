@@ -51,16 +51,18 @@ export const LockedIndicator = (
     (isManagedEventType || isChildrenManagedEventType) && (
       <Tooltip content={<>{tooltipText}</>}>
         <div className="inline">
-          <Badge variant={isLocked ? "gray" : "green"} className="ml-2 transform gap-1.5 p-1">
+          <Badge
+            variant={isLocked ? "gray" : "green"}
+            className="ml-2 w-28 transform justify-between gap-1.5 p-1">
             {!options.simple && (
-              <>
+              <span className="inline-flex">
                 {isLocked ? (
                   <Lock className="text-subtle h-3 w-3" />
                 ) : (
                   <Unlock className="text-subtle h-3 w-3" />
                 )}
-                <span className="font-medium">{stateText}</span>
-              </>
+                <span className="ml-1 font-medium">{stateText}</span>
+              </span>
             )}
             {isManagedEventType && (
               <Switch
