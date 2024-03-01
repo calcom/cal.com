@@ -13,7 +13,12 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
-import type { Schedule as ScheduleType, TimeRange, WorkingHours } from "@calcom/types/schedule";
+import type {
+  Schedule as ScheduleType,
+  TimeRange,
+  WorkingHours,
+  TravelSchedule,
+} from "@calcom/types/schedule";
 import {
   Button,
   ConfirmationDialogContent,
@@ -43,7 +48,12 @@ type AvailabilityFormValues = {
   isDefault: boolean;
 };
 
-const DateOverride = ({ workingHours }: { workingHours: WorkingHours[] }) => {
+type DateOverrideProps = {
+  workingHours: WorkingHours[];
+  travelSchedules?: TravelSchedule[];
+};
+
+const DateOverride = ({ workingHours, travelSchedules }: DateOverrideProps) => {
   const { remove, append, replace, fields } = useFieldArray<AvailabilityFormValues, "dateOverrides">({
     name: "dateOverrides",
   });
@@ -67,6 +77,7 @@ const DateOverride = ({ workingHours }: { workingHours: WorkingHours[] }) => {
           replace={replace}
           items={fields}
           workingHours={workingHours}
+          travelSchedules={travelSchedules}
         />
         <DateOverrideInputDialog
           workingHours={workingHours}
@@ -380,7 +391,12 @@ export default function Availability() {
               </div>
             </div>
             <div className="border-subtle my-6 rounded-md border">
-              {schedule?.workingHours && <DateOverride workingHours={schedule.workingHours} />}
+              {schedule?.workingHours && (
+                <DateOverride
+                  workingHours={schedule.workingHours}
+                  travelSchedules={me.data?.travelSchedules}
+                />
+              )}
             </div>
           </div>
           <div className="min-w-40 col-span-3 hidden space-y-2 md:block lg:col-span-1">

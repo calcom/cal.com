@@ -1,8 +1,9 @@
 import type { UseFieldArrayRemove } from "react-hook-form";
 
+import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
-import type { TimeRange, WorkingHours } from "@calcom/types/schedule";
+import type { TimeRange, WorkingHours, TravelSchedule } from "@calcom/types/schedule";
 import { Button, DialogTrigger, Tooltip } from "@calcom/ui";
 import { Edit2, Trash2 } from "@calcom/ui/components/icon";
 
@@ -26,6 +27,7 @@ const DateOverrideList = ({
   replace,
   workingHours,
   excludedDates = [],
+  travelSchedules = [],
 }: {
   remove: UseFieldArrayRemove;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -33,6 +35,7 @@ const DateOverrideList = ({
   items: { ranges: TimeRange[]; id: string }[];
   workingHours: WorkingHours[];
   excludedDates?: string[];
+  travelSchedules?: TravelSchedule[];
 }) => {
   const { t, i18n } = useLocale();
   const { hour12 } = useSettings();
@@ -53,6 +56,7 @@ const DateOverrideList = ({
       new Date(end.toISOString().slice(0, -1))
     )}`;
   };
+  console.log(`items ${JSON.stringify(items)}`);
 
   return (
     <ul className="border-subtle rounded border" data-testid="date-overrides-list">
@@ -72,7 +76,15 @@ const DateOverrideList = ({
             ) : (
               item.ranges.map((range, i) => (
                 <p key={i} className="text-subtle text-xs">
-                  {timeSpan(range)}
+                  {`${timeSpan(range)} ${
+                    travelSchedules.find(
+                      (travelSchedule) =>
+                        !dayjs(item.ranges[0].start).isBefore(travelSchedule.startDate) &&
+                        (!dayjs(item.ranges[0].end).isAfter(travelSchedule.endDate) ||
+                          !travelSchedule.endDate)
+                    )?.timeZone || ""
+                  }`}
+                  <></>
                 </p>
               ))
             )}
