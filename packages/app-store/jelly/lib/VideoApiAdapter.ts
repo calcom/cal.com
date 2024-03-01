@@ -5,10 +5,6 @@ import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapt
 
 type JellyToken = {
   access_token: string;
-  token_type: string;
-  expires_in: number;
-  refresh_token: string;
-  scope: string;
 };
 const JellyVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => {
   return {
