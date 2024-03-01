@@ -75,6 +75,22 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   });
 
   if (!eventData) {
+    const eventTypeByPreviousSlug = await prisma.eventType.findUnique({
+      where: {
+        teamId_previousSlug: {
+          teamId: team.id,
+          previousSlug: meetingSlug,
+        },
+      },
+    });
+    if (eventTypeByPreviousSlug) {
+      return {
+        redirect: {
+          destination: `/team/${teamSlug}/${eventTypeByPreviousSlug.slug}`,
+          permanent: true,
+        },
+      };
+    }
     return {
       notFound: true,
     } as const;

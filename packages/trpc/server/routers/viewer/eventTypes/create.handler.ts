@@ -4,6 +4,7 @@ import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import getAppKeysFromSlug from "@calcom/app-store/_utils/getAppKeysFromSlug";
 import { DailyLocationType } from "@calcom/app-store/locations";
 import getApps from "@calcom/app-store/utils";
+import { removePreviousSlug } from "@calcom/features/eventtypes/lib/previousSlugManager";
 import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import type { PrismaClient } from "@calcom/prisma";
@@ -24,7 +25,7 @@ type CreateOptions = {
 };
 
 export const createHandler = async ({ ctx, input }: CreateOptions) => {
-  const { schedulingType, teamId, metadata, ...rest } = input;
+  const { schedulingType, teamId, slug, metadata, ...rest } = input;
 
   const userId = ctx.user.id;
   const isManagedEventType = schedulingType === SchedulingType.MANAGED;
@@ -59,6 +60,7 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
     // Only connecting the current user for non-managed event type
     users: isManagedEventType ? undefined : { connect: { id: userId } },
     locations,
+    slug,
   };
 
   if (teamId && schedulingType) {
@@ -84,6 +86,7 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
     };
     data.schedulingType = schedulingType;
   }
+  await removePreviousSlug({ userId, teamId, previousSlug: slug });
 
   const profile = ctx.user.profile;
   try {

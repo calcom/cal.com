@@ -2,6 +2,7 @@ import type { Prisma } from "@prisma/client";
 import type { DeepMockProxy } from "vitest-mock-extended";
 
 import { sendSlugReplacementEmail } from "@calcom/emails/email-manager";
+import { removePreviousSlug } from "@calcom/features/eventtypes/lib/previousSlugManager";
 import { generateHashedLink } from "@calcom/lib/generateHashedLink";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import type { PrismaClient } from "@calcom/prisma";
@@ -18,10 +19,13 @@ interface handleChildrenEventTypesProps {
   };
   currentUserId: number;
   oldEventType: {
+    slug: string;
+    previousSlug: string | null;
     children?: { userId: number | null }[] | null | undefined;
     team: { name: string } | null;
     workflows?: { workflowId: number }[];
   } | null;
+  shouldRedirectFromPreviousSlug?: boolean;
   hashedLink: string | undefined;
   connectedLink: { id: number } | null;
   children:
@@ -91,6 +95,7 @@ export default async function handleChildrenEventTypes({
   eventTypeId: parentId,
   oldEventType,
   updatedEventType,
+  shouldRedirectFromPreviousSlug = true,
   hashedLink,
   connectedLink,
   children,
@@ -155,6 +160,10 @@ export default async function handleChildrenEventTypes({
       ? { delete: true }
       : undefined;
   };
+  await removePreviousSlug({
+    userId: [...(newUserIds ?? []), ...(oldUserIds ?? [])],
+    previousSlug: managedEventTypeValues.slug,
+  });
 
   // Store result for existent event types deletion process
   let deletedExistentEventTypes = undefined;
@@ -178,6 +187,7 @@ export default async function handleChildrenEventTypes({
             profileId: profileId ?? null,
             ...managedEventTypeValues,
             ...unlockedEventTypeValues,
+            previousSlug: null,
             bookingLimits:
               (managedEventTypeValues.bookingLimits as unknown as Prisma.InputJsonObject) ?? undefined,
             recurringEvent:
@@ -231,6 +241,11 @@ export default async function handleChildrenEventTypes({
             },
           },
           data: {
+            previousSlug: shouldRedirectFromPreviousSlug
+              ? updatedEventType.slug === oldEventType.slug
+                ? oldEventType.previousSlug
+                : oldEventType.slug
+              : null,
             ...updatedValues,
             hashedLink: hashedLinkQuery(userId),
             hidden: children?.find((ch) => ch.owner.id === userId)?.hidden ?? false,

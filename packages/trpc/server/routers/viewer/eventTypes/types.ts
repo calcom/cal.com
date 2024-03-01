@@ -7,6 +7,7 @@ import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 export const EventTypeUpdateInput = _EventTypeModel
   /** Optional fields */
   .extend({
+    shouldRedirectFromPreviousSlug: z.boolean().optional(),
     isInstantEvent: z.boolean().optional(),
     customInputs: z.array(customInputSchema).optional(),
     destinationCalendar: _DestinationCalendarModel

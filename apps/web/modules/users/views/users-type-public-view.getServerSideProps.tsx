@@ -9,6 +9,7 @@ import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomain
 import { getUsernameList } from "@calcom/lib/defaultEvents";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
+import prisma from "@calcom/prisma";
 import { RedirectType } from "@calcom/prisma/client";
 
 import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
@@ -160,6 +161,22 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
   });
 
   if (!eventData) {
+    const eventTypeByPreviousSlug = await prisma.eventType.findUnique({
+      where: {
+        userId_previousSlug: {
+          userId: user.id,
+          previousSlug: slug,
+        },
+      },
+    });
+    if (eventTypeByPreviousSlug) {
+      return {
+        redirect: {
+          destination: `/${username}/${eventTypeByPreviousSlug.slug}`,
+          permanent: true,
+        },
+      };
+    }
     return {
       notFound: true,
     } as const;

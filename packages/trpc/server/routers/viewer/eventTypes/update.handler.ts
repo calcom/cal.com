@@ -3,6 +3,7 @@ import type { NextApiResponse, GetServerSidePropsContext } from "next";
 
 import type { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
 import updateChildrenEventTypes from "@calcom/features/ee/managed-event-types/lib/handleChildrenEventTypes";
+import { removePreviousSlug } from "@calcom/features/eventtypes/lib/previousSlugManager";
 import { validateIntervalLimitOrder } from "@calcom/lib";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server";
@@ -48,12 +49,16 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     userId,
     bookingFields,
     offsetStart,
+    slug,
+    shouldRedirectFromPreviousSlug,
     ...rest
   } = input;
 
   const eventType = await ctx.prisma.eventType.findUniqueOrThrow({
     where: { id },
     select: {
+      slug: true,
+      previousSlug: true,
       children: {
         select: {
           userId: true,
@@ -108,6 +113,12 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
   const data: Prisma.EventTypeUpdateInput = {
     ...rest,
+    slug,
+    previousSlug: shouldRedirectFromPreviousSlug
+      ? slug === eventType.slug
+        ? eventType.previousSlug
+        : eventType.slug
+      : null,
     bookingFields,
     metadata: rest.metadata === null ? Prisma.DbNull : (rest.metadata as Prisma.InputJsonObject),
   };
@@ -318,6 +329,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       });
     }
   }
+  if (slug) await removePreviousSlug({ userId: ctx.user.id, teamId, previousSlug: slug });
 
   data.assignAllTeamMembers = assignAllTeamMembers ?? false;
 
@@ -354,6 +366,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     eventTypeId: id,
     currentUserId: ctx.user.id,
     oldEventType: eventType,
+    shouldRedirectFromPreviousSlug,
     hashedLink,
     connectedLink,
     updatedEventType,
