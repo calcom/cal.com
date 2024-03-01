@@ -160,7 +160,7 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
               <div className="bg-subtle flex w-full flex-wrap gap-6 rounded-sm px-2 py-3 text-sm">
                 <div>
                   <p className="text-subtle">{t("current_username")}</p>
-                  <p className="text-emphasis mt-1" data-testid="current-username">
+                  <p className="text-emphasis mt-1 break-all" data-testid="current-username">
                     {currentUsername}
                   </p>
                 </div>
@@ -168,7 +168,7 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
                   <p className="text-subtle" data-testid="new-username">
                     {t("new_username")}
                   </p>
-                  <p className="text-emphasis mt-1">{inputUsernameValue}</p>
+                  <p className="text-emphasis mt-1 break-all">{inputUsernameValue}</p>
                 </div>
               </div>
             </div>
