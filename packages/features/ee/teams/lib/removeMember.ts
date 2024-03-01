@@ -22,7 +22,6 @@ const removeMember = async ({
       team: true,
     },
   });
-  console.log("🚀 ~ membership:", membership);
 
   // remove user as host from team events associated with this membership
   await prisma.host.deleteMany({
