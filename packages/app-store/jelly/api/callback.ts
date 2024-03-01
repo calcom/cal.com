@@ -7,6 +7,10 @@ import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import createOAuthAppCredential from "../../_utils/oauth/createOAuthAppCredential";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const userId = req.session?.user.id;
+  if (!userId) {
+    return res.status(404).json({ message: "No user found" });
+  }
   const { code } = req.query;
   const { client_id, client_secret } = await getAppKeysFromSlug("jelly");
 
@@ -36,10 +40,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   responseBody.expiry_date = Math.round(Date.now() + responseBody.expires_in * 1000);
   delete responseBody.expires_in;
 
-  const userId = req.session?.user.id;
-  if (!userId) {
-    return res.status(404).json({ message: "No user found" });
-  }
   /**
    * With this we take care of no duplicate jelly key for a single user
    * when creating a room we only do findFirst so the if they have more than 1
