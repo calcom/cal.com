@@ -48,10 +48,7 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
     where: {
       slug: slug,
       parentId: null,
-      metadata: {
-        path: ["isOrganization"],
-        equals: true,
-      },
+      isOrganization: true,
     },
   });
 
@@ -103,13 +100,17 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
       const organization = await tx.team.create({
         data: {
           name,
+          isOrganization: true,
           ...(!IS_TEAM_BILLING_ENABLED ? { slug } : {}),
+          organizationSettings: {
+            create: {
+              isOrganizationVerified: true,
+              isOrganizationConfigured,
+              orgAutoAcceptEmail: emailDomain,
+            },
+          },
           metadata: {
             ...(IS_TEAM_BILLING_ENABLED ? { requestedSlug: slug } : {}),
-            isOrganization: true,
-            isOrganizationVerified: true,
-            isOrganizationConfigured,
-            orgAutoAcceptEmail: emailDomain,
           },
         },
       });
