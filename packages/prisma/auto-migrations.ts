@@ -2,6 +2,8 @@ import dotEnv from "dotenv";
 import { exec as execCb } from "node:child_process";
 import { promisify } from "node:util";
 
+import { isPrismaAvailableCheck } from "./is-prisma-available-check";
+
 dotEnv.config({ path: "../../.env" });
 
 const exec = promisify(execCb);
@@ -18,6 +20,10 @@ async function main(): Promise<void> {
   }
   if (!process.env.DATABASE_DIRECT_URL) {
     console.info("No DATABASE_DIRECT_URL found, skipping migrations");
+    return;
+  }
+  if (!(await isPrismaAvailableCheck())) {
+    console.info("Prisma can't be initialized, skipping migrations");
     return;
   }
   // throws an error if migration fails
