@@ -3790,7 +3790,7 @@ __metadata:
     "@calcom/lib": "*"
     "@calcom/trpc": "*"
     "@calcom/ui": "*"
-    "@funnelhub/sidebar": 1.1.0
+    "@funnelhub/sidebar": 1.1.2
     "@lexical/react": ^0.9.0
     "@tanstack/react-table": ^8.9.3
     "@testing-library/react-hooks": ^8.0.1
@@ -7196,31 +7196,6 @@ __metadata:
   version: 1.0.0-beta.5
   resolution: "@formkit/auto-animate@npm:1.0.0-beta.5"
   checksum: 479a4f694d91e7272b2d8bdf2051fd1ae2dd5fbb522612406eaef55d88b7131402a7d5f683df8eb4e7c00810ebec8d3048483a774b0864c299d2d7af81262eb2
-  languageName: node
-  linkType: hard
-
-"@funnelhub/sidebar@npm:1.1.0":
-  version: 1.1.0
-  resolution: "@funnelhub/sidebar@npm:1.1.0"
-  dependencies:
-    "@chakra-ui/anatomy": ^2.2.1
-    "@chakra-ui/color-mode": ^2.2.0
-    "@chakra-ui/icons": ^2.1.1
-    "@chakra-ui/layout": ^2.3.1
-    "@chakra-ui/react": ^2.8.1
-    "@chakra-ui/shared-utils": ^2.0.5
-    "@chakra-ui/theme-tools": ^2.1.1
-    "@emotion/react": ^11.11.1
-    "@emotion/styled": ^11.11.0
-    "@refinedev/core": ^4.44.9
-    antd: ^5.10.2
-    framer-motion: ^10.16.4
-    react-icons: ^4.11.0
-  peerDependencies:
-    next: 13.5.6
-    react: ^18
-    react-dom: ^18
-  checksum: fbbd2902dffd14870fd96927cd7dbc04918fc2188591ce9c69b5c3382c2fd1efb412c548077fa7549abdaf2906ef348af152e82084c7a29f5eb2b503b06c2b52
   languageName: node
   linkType: hard
 

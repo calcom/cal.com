@@ -1,5 +1,5 @@
 import type { User as UserAuth } from "next-auth";
-import { signOut, useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -34,15 +34,7 @@ import VerifyEmailBanner, {
   type VerifyEmailBannerProps,
 } from "@calcom/features/users/components/VerifyEmailBanner";
 import classNames from "@calcom/lib/classNames";
-import {
-  APP_NAME,
-  DESKTOP_APP_LINK,
-  IS_VISUAL_REGRESSION_TESTING,
-  JOIN_DISCORD,
-  ROADMAP,
-  TOP_BANNER_HEIGHT,
-  WEBAPP_URL,
-} from "@calcom/lib/constants";
+import { APP_NAME, IS_VISUAL_REGRESSION_TESTING, TOP_BANNER_HEIGHT, WEBAPP_URL } from "@calcom/lib/constants";
 import getBrandColours from "@calcom/lib/getBrandColours";
 import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -62,7 +54,6 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuPortal,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
   ErrorBoundary,
   HeadSeo,
@@ -79,18 +70,13 @@ import {
   ChevronDown,
   Clock,
   Copy,
-  Download,
   ExternalLink,
-  HelpCircle,
   Link as LinkIcon,
-  LogOut,
-  Map,
   Moon,
   MoreHorizontal,
   Settings,
   User as UserIcon,
 } from "@calcom/ui/components/icon";
-import { Discord } from "@calcom/ui/components/icon/Discord";
 
 import { useOrgBranding } from "../ee/organizations/context/provider";
 import FreshChatProvider from "../ee/support/lib/freshchat/FreshChatProvider";
@@ -381,29 +367,6 @@ function UserDropdown({ small }: UserDropdownProps) {
         screenResolution: `${screen.width}x${screen.height}`,
       });
   });
-  const mutation = trpc.viewer.away.useMutation({
-    onMutate: async ({ away }) => {
-      await utils.viewer.me.cancel();
-
-      const previousValue = utils.viewer.me.getData();
-
-      if (previousValue) {
-        utils.viewer.me.setData(undefined, { ...previousValue, away });
-      }
-
-      return { previousValue };
-    },
-    onError: (_, __, context) => {
-      if (context?.previousValue) {
-        utils.viewer.me.setData(undefined, context.previousValue);
-      }
-
-      showToast(t("toggle_away_error"), "error");
-    },
-    onSettled() {
-      utils.viewer.me.invalidate();
-    },
-  });
   const [helpOpen, setHelpOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -501,45 +464,6 @@ function UserDropdown({ small }: UserDropdownProps) {
                     )}
                     href="/settings/my-account/out-of-office">
                     {t("out_of_office")}
-                  </DropdownItem>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem>
-                  <DropdownItem
-                    StartIcon={() => <Discord className="text-default h-4 w-4" />}
-                    target="_blank"
-                    rel="noreferrer"
-                    href={JOIN_DISCORD}>
-                    {t("join_our_discord")}
-                  </DropdownItem>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <DropdownItem StartIcon={Map} target="_blank" href={ROADMAP}>
-                    {t("visit_roadmap")}
-                  </DropdownItem>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <DropdownItem
-                    type="button"
-                    StartIcon={(props) => <HelpCircle aria-hidden="true" {...props} />}
-                    onClick={() => setHelpOpen(true)}>
-                    {t("help")}
-                  </DropdownItem>
-                </DropdownMenuItem>
-                <DropdownMenuItem className="todesktop:hidden hidden lg:flex">
-                  <DropdownItem StartIcon={Download} target="_blank" rel="noreferrer" href={DESKTOP_APP_LINK}>
-                    {t("download_desktop_app")}
-                  </DropdownItem>
-                </DropdownMenuItem>
-
-                <DropdownMenuSeparator />
-
-                <DropdownMenuItem>
-                  <DropdownItem
-                    type="button"
-                    StartIcon={(props) => <LogOut aria-hidden="true" {...props} />}
-                    onClick={() => signOut({ callbackUrl: "/auth/logout" })}>
-                    {t("sign_out")}
                   </DropdownItem>
                 </DropdownMenuItem>
               </>
