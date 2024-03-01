@@ -1280,7 +1280,6 @@ describe("getSchedule", () => {
             eventTypes: [
               {
                 id: 1,
-
                 slotInterval: 45,
                 length: 45,
                 users: [
@@ -1304,14 +1303,29 @@ describe("getSchedule", () => {
           eventTypeSlug: scenario.eventTypes[0]?.slug,
           startTime: `${plus1DateString}T18:30:00.000Z`,
           endTime: `${plus2DateString}T18:29:59.999Z`,
-          timeZone: "Europe/London",
+          timeZone: Timezones["+5:30"],
           isTeamEvent: false,
           orgSlug: "acme",
           usernameList: [organizer.username],
         },
       });
 
-      expect(getScheduleRes).toBeDefined();
+      expect(getScheduleRes).toHaveTimeSlots(
+        [
+          `04:00:00.000Z`,
+          `04:45:00.000Z`,
+          `05:30:00.000Z`,
+          `06:15:00.000Z`,
+          `07:00:00.000Z`,
+          `07:45:00.000Z`,
+          `08:30:00.000Z`,
+          `09:15:00.000Z`,
+          `10:00:00.000Z`,
+          `10:45:00.000Z`,
+          `11:30:00.000Z`,
+        ],
+        { dateString: plus2DateString }
+      );
     });
   });
 });
