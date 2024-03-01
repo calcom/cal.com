@@ -2255,5 +2255,12 @@
   "medium": "moyen",
   "high": "élevé",
   "Highest": "le plus élevé",
+  "send_booker_to": "Envoyer un utilisateur vers",
+  "set_priority": "Définir la priorité",
+  "priority_for_user": "Priorité pour {{userName}}",
+  "change_priority": "changer la priorité",
+  "field_identifiers_as_variables": "Utiliser les identifiants de champs comme variables pour la redirection de votre événement personnalisé",
+  "field_identifiers_as_variables_with_example": "Utiliser les identifiants de champs comme variables pour la redirection de votre événement personnalisé (par ex. : {{variable}})",
+  "account_already_linked": "Le compte est déjà associé",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Ajoutez vos nouvelles chaînes ci-dessus ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

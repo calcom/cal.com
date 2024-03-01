@@ -266,7 +266,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       beforeEventBuffer: eventType.beforeEventBuffer,
       eventName: eventType.eventName || "",
       scheduleName: eventType.scheduleName,
-      periodDays: eventType.periodDays || 30,
+      periodDays: eventType.periodDays,
       requiresBookerEmailVerification: eventType.requiresBookerEmailVerification,
       seatsPerTimeSlot: eventType.seatsPerTimeSlot,
       seatsShowAttendees: eventType.seatsShowAttendees,
