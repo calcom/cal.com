@@ -11,7 +11,6 @@ const JellyVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter =>
     createMeeting: async (event: CalendarEvent): Promise<VideoCallData> => {
       // get keys from slug
       const keys = credential.key as JellyToken;
-      console.log("jelly API keys: ", keys);
       const { access_token } = keys;
       console.log("jelly access token: ", access_token);
       // create jelly link
