@@ -17,6 +17,7 @@ model User {
   email String  @unique
   name  String?
   calcomUserId Int? @unique
+  calcomUsername String? @unique
   refreshToken String? @unique
   accessToken String? @unique
   createdAt DateTime @default(now())

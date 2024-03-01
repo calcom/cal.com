@@ -14,6 +14,7 @@ export class EventTypesRepository {
     return this.dbWrite.prisma.eventType.create({
       data: {
         ...body,
+        metadata: {},
         userId,
         users: { connect: { id: userId } },
       },

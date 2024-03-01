@@ -21,6 +21,7 @@ import {
   Delete,
 } from "@nestjs/common";
 import { User } from "@prisma/client";
+import * as crypto from "crypto";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { ApiResponse } from "@calcom/platform-types";
@@ -46,14 +47,17 @@ export class OAuthClientUsersController {
     this.logger.log(
       `Creating user with data: ${JSON.stringify(body, null, 2)} for OAuth Client with ID ${oAuthClientId}`
     );
-
     const existingUser = await this.userRepository.findByEmail(body.email);
 
     if (existingUser) {
       throw new BadRequestException("A user with the provided email already exists.");
     }
-
-    const { user, tokens } = await this.oAuthClientUsersService.createOauthClientUser(oAuthClientId, body);
+    const username = generateShortHash(body.email, oAuthClientId);
+    const { user, tokens } = await this.oAuthClientUsersService.createOauthClientUser(
+      oAuthClientId,
+      body,
+      username
+    );
 
     return {
       status: SUCCESS_STATUS,
@@ -61,6 +65,7 @@ export class OAuthClientUsersController {
         user: {
           id: user.id,
           email: user.email,
+          username: user.username,
         },
         accessToken: tokens.accessToken,
         refreshToken: tokens.refreshToken,
@@ -89,6 +94,7 @@ export class OAuthClientUsersController {
       data: {
         id: user.id,
         email: user.email,
+        username: user.username,
       },
     };
   }
@@ -114,6 +120,7 @@ export class OAuthClientUsersController {
       data: {
         id: user.id,
         email: user.email,
+        username: user.username,
       },
     };
   }
@@ -148,11 +155,25 @@ export class OAuthClientUsersController {
       data: {
         id: user.id,
         email: user.email,
+        username: user.username,
       },
     };
   }
 }
 
-export type UserReturned = Pick<User, "id" | "email">;
+export type UserReturned = Pick<User, "id" | "email" | "username">;
 
 export type CreateUserResponse = { user: UserReturned; accessToken: string; refreshToken: string };
+
+function generateShortHash(email: string, clientId: string): string {
+  // Get the current timestamp
+  const timestamp = Date.now().toString();
+
+  // Concatenate the timestamp and email
+  const data = timestamp + email + clientId;
+
+  // Create a SHA256 hash
+  const hash = crypto.createHash("sha256").update(data).digest("base64");
+
+  return hash.toLowerCase();
+}

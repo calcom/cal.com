@@ -18,7 +18,7 @@ const useClientSchedule = (id?: string) => {
   endpoint.searchParams.set("for", "atom");
 
   const { isLoading, error, data } = useQuery({
-    queryKey: [QUERY_KEY],
+    queryKey: [QUERY_KEY, id],
     queryFn: () => {
       return http.get<ApiResponse<ScheduleWithAvailabilitiesForWeb>>(endpoint.toString()).then((res) => {
         if (res.data.status === SUCCESS_STATUS) {

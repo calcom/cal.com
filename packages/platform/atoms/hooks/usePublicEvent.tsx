@@ -17,11 +17,11 @@ export const usePublicEvent = () => {
   const org = useBookerStore((state) => state.org);
 
   const event = useQuery({
-    queryKey: [QUERY_KEY],
+    queryKey: [QUERY_KEY, username, eventSlug],
     queryFn: () => {
       return http
-        .get<ApiResponse<PublicEventType>>("/events", {
-          params: { username: username ?? "", eventSlug: eventSlug ?? "", isTeamEvent, org: org ?? null },
+        .get<ApiResponse<PublicEventType>>("/events/public", {
+          params: { username, eventSlug, isTeamEvent, org: org ?? null },
         })
         .then((res) => {
           if (res.data.status === SUCCESS_STATUS) {

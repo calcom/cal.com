@@ -12,8 +12,8 @@ export class OAuthClientUsersService {
     private readonly eventTypesService: EventTypesService
   ) {}
 
-  async createOauthClientUser(oAuthClientId: string, body: CreateUserInput) {
-    const user = await this.userRepository.create(body, oAuthClientId);
+  async createOauthClientUser(oAuthClientId: string, body: CreateUserInput, username: string) {
+    const user = await this.userRepository.create(body, username, oAuthClientId);
     await this.eventTypesService.createUserDefaultEventTypes(user.id);
 
     const { accessToken, refreshToken } = await this.tokensRepository.createOAuthTokens(

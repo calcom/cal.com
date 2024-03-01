@@ -1,5 +1,3 @@
-import { useSearchParams } from "next/navigation";
-import { usePathname, useRouter } from "next/navigation";
 import { shallow } from "zustand/shallow";
 
 import type { BookerProps } from "@calcom/features/bookings/Booker";
@@ -10,7 +8,7 @@ import { useBookerStore, useInitializeBookerStore } from "@calcom/features/booki
 import { useMe } from "../hooks/useMe";
 import { usePublicEvent } from "../hooks/usePublicEvent";
 
-type BookerPlatformWrapperAtomProps = BookerProps & {
+type BookerPlatformWrapperAtomProps = Omit<BookerProps, "entity"> & {
   rescheduleUid?: string;
   bookingUid?: string;
   firstName?: string;
@@ -20,9 +18,7 @@ type BookerPlatformWrapperAtomProps = BookerProps & {
 };
 
 export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => {
-  const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
+  console.log(props);
   const event = usePublicEvent();
 
   const bookerLayout = useBookerLayout(event.data);
@@ -33,7 +29,7 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
     rescheduleUid: props.rescheduleUid ?? null,
     bookingUid: props.bookingUid ?? null,
     layout: bookerLayout.defaultLayout,
-    org: props.entity.orgSlug,
+    org: event.data?.entity.orgSlug,
   });
   const [bookerState, _] = useBookerStore((state) => [state.state, state.setState], shallow);
   const [dayCount] = useBookerStore((state) => [state.dayCount, state.setDayCount], shallow);
