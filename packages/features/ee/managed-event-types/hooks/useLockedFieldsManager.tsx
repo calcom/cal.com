@@ -7,6 +7,7 @@ import type { UseFormReturn } from "react-hook-form";
 import type z from "zod";
 
 import type { FormValues } from "@calcom/features/eventtypes/lib/types";
+import { classNames } from "@calcom/lib";
 import type { Prisma } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { _EventTypeModel } from "@calcom/prisma/zod/eventtype";
@@ -53,7 +54,10 @@ export const LockedIndicator = (
         <div className="inline">
           <Badge
             variant={isLocked ? "gray" : "green"}
-            className="ml-2 w-28 transform justify-between gap-1.5 p-1">
+            className={classNames(
+              "ml-2 transform justify-between gap-1.5 p-1",
+              isManagedEventType && "w-28"
+            )}>
             {!options.simple && (
               <span className="inline-flex">
                 {isLocked ? (
