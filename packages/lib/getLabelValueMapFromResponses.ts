@@ -3,7 +3,7 @@ import type z from "zod";
 import type { bookingResponse } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
-export default function getLabelValueMapFromResponses(calEvent: CalendarEvent, isOrganizer: boolean) {
+export default function getLabelValueMapFromResponses(calEvent: CalendarEvent, isOrganizer = false) {
   const { customInputs, userFieldsResponses } = calEvent;
 
   let labelValueMap: Record<string, z.infer<typeof bookingResponse>> = {};
