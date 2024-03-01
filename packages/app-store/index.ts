@@ -21,6 +21,7 @@ const appStore = {
   paypal: () => import("./paypal"),
   "pipedrive-crm": () => import("./pipedrive-crm"),
   salesforce: () => import("./salesforce"),
+  "salesforce-revert": () => import("./salesforce-revert"),
   zohocrm: () => import("./zohocrm"),
   sendgrid: () => import("./sendgrid"),
   stripepayment: () => import("./stripepayment"),
