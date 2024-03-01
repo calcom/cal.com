@@ -19,12 +19,11 @@ const JellyVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter =>
       const { access_token } = keys;
       console.log("jelly access token: ", access_token);
       // create jelly link
-      const jellyLink = await fetch("https://jellyjelly.com/api/ti/start_jelly", {
+      const jellyLink = await fetch("https://www.jellyjelly.com/api/ti/start_jelly", {
         method: "POST",
-        body: JSON.stringify({ event }),
         headers: {
-          "Content-Type": "application/json",
           Authorization: `Bearer ${access_token}`,
+          "Content-Type": "application/json",
         },
       });
       const jellyLinkData = await jellyLink.json();
