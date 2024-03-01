@@ -4,7 +4,6 @@ import { z } from "zod";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
-import prisma from "@calcom/prisma";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import { encodeOAuthState } from "../../_utils/oauth/encodeOAuthState";
@@ -21,14 +20,10 @@ export const getJellyAppKeys = async () => {
 
 async function handler(req: NextApiRequest) {
   // Get user
-  await prisma.user.findFirstOrThrow({
-    where: {
-      id: req.session?.user?.id,
-    },
-    select: {
-      id: true,
-    },
-  });
+  const user = req?.session?.user;
+  if (!user) {
+    return { status: 401, body: { error: "Unauthorized" } };
+  }
 
   const { client_id } = await getJellyAppKeys();
   const state = encodeOAuthState(req);
