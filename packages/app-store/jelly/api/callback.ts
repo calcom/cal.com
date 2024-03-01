@@ -42,25 +42,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   /**
    * With this we take care of no duplicate jelly key for a single user
-   * when creating a room we only do findFirst so the if they have more than 1
-   * others get ignored
+   * when creating a room using deleteMany if there is already a jelly key
    * */
-  const existingCredentialJelly = await prisma.credential.findMany({
-    select: {
-      id: true,
-    },
+  await prisma.credential.deleteMany({
     where: {
       type: "jelly_conferencing",
-      userId: req.session?.user.id,
+      userId,
       appId: "jelly",
     },
   });
-
-  // Making sure we only delete jelly credentials
-  const credentialIdsToDelete = existingCredentialJelly.map((item) => item.id);
-  if (credentialIdsToDelete.length > 0) {
-    await prisma.credential.deleteMany({ where: { id: { in: credentialIdsToDelete }, userId } });
-  }
 
   await createOAuthAppCredential(
     { appId: "jelly", type: "jelly_conferencing" },
