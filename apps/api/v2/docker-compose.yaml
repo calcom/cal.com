@@ -22,7 +22,6 @@ services:
         API_PORT: 80
     depends_on:
       - redis
-      - postgres
     ports:
       - "80:80"
     networks:
