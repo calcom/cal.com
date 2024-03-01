@@ -1,5 +1,6 @@
+import { ChatPromptTemplate } from "@langchain/core/prompts";
 import { ChatOpenAI } from "@langchain/openai";
-import { initializeAgentExecutorWithOptions } from "langchain/agents";
+import { AgentExecutor, createOpenAIFunctionsAgent } from "langchain/agents";
 
 import { env } from "../env.mjs";
 import createBookingIfAvailable from "../tools/createBooking";
@@ -47,67 +48,72 @@ const agent = async (
   /**
    * Initialize the agent executor with arguments.
    */
-  const executor = await initializeAgentExecutorWithOptions(tools, model, {
-    agentArgs: {
-      prefix: `You are Cal.ai - a bleeding edge scheduling assistant that interfaces via email.
-Make sure your final answers are definitive, complete and well formatted.
-Sometimes, tools return errors. In this case, try to handle the error intelligently or ask the user for more information.
-Tools will always handle times in UTC, but times sent to users should be formatted per that user's timezone.
-In responses to users, always summarize necessary context and open the door to follow ups. For example "I have booked your chat with @username for 3pm on Wednesday, December 20th, 2023 EST. Please let me know if you need to reschedule."
-If you can't find a referenced user, ask the user for their email or @username. Make sure to specify that usernames require the @username format. Users don't know other users' userIds.
+  const prompt =
+    ChatPromptTemplate.fromTemplate(`You are Cal.ai - a bleeding edge scheduling assistant that interfaces via email.
+  Make sure your final answers are definitive, complete and well formatted.
+  Sometimes, tools return errors. In this case, try to handle the error intelligently or ask the user for more information.
+  Tools will always handle times in UTC, but times sent to users should be formatted per that user's timezone.
+  In responses to users, always summarize necessary context and open the door to follow ups. For example "I have booked your chat with @username for 3pm on Wednesday, December 20th, 2023 EST. Please let me know if you need to reschedule."
+  If you can't find a referenced user, ask the user for their email or @username. Make sure to specify that usernames require the @username format. Users don't know other users' userIds.
+  
+  The primary user's id is: ${userId}
+  The primary user's username is: ${user.username}
+  The current time in the primary user's timezone is: ${now(user.timeZone, {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "numeric",
+    minute: "numeric",
+  })}
+  The primary user's time zone is: ${user.timeZone}
+  The primary user's event types are: ${user.eventTypes
+    .map((e: EventType) => `ID: ${e.id}, Slug: ${e.slug}, Title: ${e.title}, Length: ${e.length};`)
+    .join("\n")}
+  The primary user's working hours are: ${user.workingHours
+    .map(
+      (w: WorkingHours) =>
+        `Days: ${w.days.join(", ")}, Start Time (minutes in UTC): ${
+          w.startTime
+        }, End Time (minutes in UTC): ${w.endTime};`
+    )
+    .join("\n")}
+  ${
+    users.length
+      ? `The email references the following @usernames and emails: ${users
+          .map(
+            (u) =>
+              `${
+                (u.id ? `, id: ${u.id}` : "id: (non user)") +
+                (u.username
+                  ? u.type === "fromUsername"
+                    ? `, username: @${u.username}`
+                    : ", username: REDACTED"
+                  : ", (no username)") +
+                (u.email
+                  ? u.type === "fromEmail"
+                    ? `, email: ${u.email}`
+                    : ", email: REDACTED"
+                  : ", (no email)")
+              };`
+          )
+          .join("\n")}`
+      : ""
+  }`);
+  const agent = await createOpenAIFunctionsAgent({
+    llm: model,
+    prompt,
+    tools,
+  });
 
-The primary user's id is: ${userId}
-The primary user's username is: ${user.username}
-The current time in the primary user's timezone is: ${now(user.timeZone, {
-        weekday: "long",
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-        hour: "numeric",
-        minute: "numeric",
-      })}
-The primary user's time zone is: ${user.timeZone}
-The primary user's event types are: ${user.eventTypes
-        .map((e: EventType) => `ID: ${e.id}, Slug: ${e.slug}, Title: ${e.title}, Length: ${e.length};`)
-        .join("\n")}
-The primary user's working hours are: ${user.workingHours
-        .map(
-          (w: WorkingHours) =>
-            `Days: ${w.days.join(", ")}, Start Time (minutes in UTC): ${
-              w.startTime
-            }, End Time (minutes in UTC): ${w.endTime};`
-        )
-        .join("\n")}
-${
-  users.length
-    ? `The email references the following @usernames and emails: ${users
-        .map(
-          (u) =>
-            `${
-              (u.id ? `, id: ${u.id}` : "id: (non user)") +
-              (u.username
-                ? u.type === "fromUsername"
-                  ? `, username: @${u.username}`
-                  : ", username: REDACTED"
-                : ", (no username)") +
-              (u.email
-                ? u.type === "fromEmail"
-                  ? `, email: ${u.email}`
-                  : ", email: REDACTED"
-                : ", (no email)")
-            };`
-        )
-        .join("\n")}`
-    : ""
-}
-            `,
-    },
-    agentType: "openai-functions",
+  const executor = new AgentExecutor({
+    agent,
+    tools,
     returnIntermediateSteps: env.NODE_ENV === "development",
     verbose: env.NODE_ENV === "development",
   });
 
-  const result = await executor.call({ input });
+  const result = await executor.invoke({ input });
   const { output } = result;
 
   return output;
