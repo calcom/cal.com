@@ -17,13 +17,12 @@ services:
       context: ../../../
       dockerfile: apps/api/v2/Dockerfile
       args:
-        DATABASE_URL: postgresql://postgres:@postgres:5432/cal-saml
-        DATABASE_DIRECT_URL: postgresql://postgres:@postgres:5432/cal-saml
-        DATABASE_READ_URL: postgresql://postgres:@postgres:5432/cal-saml
-        DATABASE_WRITE_URL: postgresql://postgres:@postgres:5432/cal-saml
+        DATABASE_URL: postgresql://postgres:@postgres:5432/calendso
+        DATABASE_DIRECT_URL: postgresql://postgres:@postgres:5432/calendso
         API_PORT: 80
     depends_on:
       - redis
+      - postgres
     ports:
       - "80:80"
     networks:
