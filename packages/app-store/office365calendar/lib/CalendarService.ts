@@ -17,8 +17,8 @@ import type {
 } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
-import type { ParseRefreshTokenResponse } from "../../_utils/oauth/parseRefreshTokenResponse";
-import parseRefreshTokenResponse from "../../_utils/oauth/parseRefreshTokenResponse";
+import type { ParseCredentialKeyRefreshResponse } from "../../_utils/oauth/parseCredentialKey";
+import parseCredentialKey from "../../_utils/oauth/parseCredentialKey";
 import refreshOAuthTokens from "../../_utils/oauth/refreshOAuthTokens";
 import type { O365AuthCredentials } from "../types/Office365Calendar";
 import { getOfficeAppKeys } from "./getOfficeAppKeys";
@@ -261,8 +261,8 @@ export default class Office365CalendarService implements Calendar {
         credential.userId
       );
       const responseJson = await handleErrorsJson(response);
-      const tokenResponse: ParseRefreshTokenResponse<typeof refreshTokenResponseSchema> =
-        parseRefreshTokenResponse(responseJson, refreshTokenResponseSchema);
+      const tokenResponse: ParseCredentialKeyRefreshResponse<typeof refreshTokenResponseSchema> =
+        parseCredentialKey(responseJson, refreshTokenResponseSchema);
       o365AuthCredentials = { ...o365AuthCredentials, ...tokenResponse };
       await prisma.credential.update({
         where: {
@@ -277,7 +277,7 @@ export default class Office365CalendarService implements Calendar {
 
     return {
       getToken: () =>
-        refreshTokenResponseSchema.safeParse(o365AuthCredentials).success &&
+        parseCredentialKey(o365AuthCredentials, refreshTokenResponseSchema) &&
         !isExpired(o365AuthCredentials.expires_in)
           ? Promise.resolve(o365AuthCredentials.access_token)
           : refreshAccessToken(o365AuthCredentials),
