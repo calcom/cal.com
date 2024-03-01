@@ -56,7 +56,7 @@ export const LockedIndicator = (
             variant={isLocked ? "gray" : "green"}
             className={classNames(
               "ml-2 transform justify-between gap-1.5 p-1",
-              isManagedEventType && "w-28"
+              isManagedEventType && !options.simple && "w-28"
             )}>
             {!options.simple && (
               <span className="inline-flex">
