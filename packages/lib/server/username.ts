@@ -195,10 +195,7 @@ const usernameCheckForSignup = async ({
       where: {
         userId: user.id,
         team: {
-          metadata: {
-            path: ["isOrganization"],
-            equals: true,
-          },
+          isOrganization: true,
         },
       },
     });
