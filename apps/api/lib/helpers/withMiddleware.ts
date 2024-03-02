@@ -1,7 +1,5 @@
 import { label } from "next-api-middleware";
 
-import { verifyCredentialSyncEnabled } from "~/lib/helpers/verifyCredentialSyncEnabled";
-
 import { addRequestId } from "./addRequestid";
 import { captureErrors } from "./captureErrors";
 import { customPrismaClient } from "./customPrisma";
@@ -16,6 +14,7 @@ import {
 } from "./httpMethods";
 import { rateLimitApiKey } from "./rateLimitApiKey";
 import { verifyApiKey } from "./verifyApiKey";
+import { verifyCredentialSyncEnabled } from "./verifyCredentialSyncEnabled";
 import { withPagination } from "./withPagination";
 
 const middleware = {
