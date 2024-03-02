@@ -12,11 +12,23 @@ async function handler(req: NextApiRequest) {
 
   const userId = req.query.userId ? extractUserIdsFromQuery(req)[0] : reqUserId;
 
-  const credentials = await prisma.credential.findMany({
+  let credentials = await prisma.credential.findMany({
     where: {
       userId: userId,
       ...(appSlug && { appId: appSlug }),
     },
+    select: {
+      id: true,
+      appId: true,
+    },
+  });
+
+  //   For apps we're transitioning to using the term slug to keep things consistent
+  credentials = credentials.map((credential) => {
+    return {
+      ...credential,
+      appSlug: credential.appId,
+    };
   });
 
   return credentials;
