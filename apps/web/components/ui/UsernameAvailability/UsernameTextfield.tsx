@@ -178,7 +178,6 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
                     }}>
                     {inputUsernameValue}
                   </p>
-
                 </div>
               </div>
             </div>
