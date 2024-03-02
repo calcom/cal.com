@@ -1,3 +1,4 @@
+/* eslint-disable no-restricted-imports */
 import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 
@@ -13,6 +14,9 @@ import {
   deleteAllBookingsByEmail,
   rescheduleEvent,
 } from "../lib/testUtils";
+
+// in parallel mode sometimes handleNewBooking endpoint throws "No available users found" error, this never happens in serial mode.
+test.describe.configure({ mode: "serial" });
 
 async function bookFirstFreeUserEventThroughEmbed({
   addEmbedListeners,

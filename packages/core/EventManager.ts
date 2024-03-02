@@ -173,6 +173,7 @@ export default class EventManager {
 
     // References can be any type: calendar/video
     const referencesToCreate = results.map((result) => {
+      let thirdPartyRecurringEventId;
       let createdEventObj: createdEventSchema | null = null;
       if (typeof result?.createdEvent === "string") {
         createdEventObj = createdEventSchema.parse(JSON.parse(result.createdEvent));
@@ -180,11 +181,13 @@ export default class EventManager {
       const isCalendarType = isCalendarResult(result);
       if (isCalendarType) {
         evt.iCalUID = result.iCalUID || event.iCalUID || undefined;
+        thirdPartyRecurringEventId = result.createdEvent?.thirdPartyRecurringEventId;
       }
 
       return {
         type: result.type,
         uid: createdEventObj ? createdEventObj.id : result.createdEvent?.id?.toString() ?? "",
+        thirdPartyRecurringEventId: isCalendarType ? thirdPartyRecurringEventId : undefined,
         meetingId: createdEventObj ? createdEventObj.id : result.createdEvent?.id?.toString(),
         meetingPassword: createdEventObj ? createdEventObj.password : result.createdEvent?.password,
         meetingUrl: createdEventObj ? createdEventObj.onlineMeetingUrl : result.createdEvent?.url,

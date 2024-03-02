@@ -3,6 +3,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
+import { useVerifyCode } from "@calcom/features/bookings/Booker/components/hooks/useVerifyCode";
 import { VerifyCodeDialog } from "@calcom/features/bookings/components/VerifyCodeDialog";
 import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -74,13 +75,25 @@ export const CreateANewOrganizationForm = ({ slug }: { slug?: string }) => {
     },
   });
 
+  const verifyCode = useVerifyCode({
+    onSuccess: (isVerified) => {
+      if (isVerified) {
+        createOrganizationMutation.mutate({
+          ...newOrganizationFormMethods.getValues(),
+          language: i18n.language,
+          check: false,
+        });
+      }
+    },
+  });
+
   return (
     <>
       <Form
         form={newOrganizationFormMethods}
         id="createOrg"
         handleSubmit={(v) => {
-          if (!createOrganizationMutation.isLoading) {
+          if (!createOrganizationMutation.isPending) {
             setServerErrorMessage(null);
             createOrganizationMutation.mutate(v);
           }
@@ -188,7 +201,7 @@ export const CreateANewOrganizationForm = ({ slug }: { slug?: string }) => {
         <div className="flex space-x-2 rtl:space-x-reverse">
           <Button
             disabled={
-              newOrganizationFormMethods.formState.isSubmitting || createOrganizationMutation.isLoading
+              newOrganizationFormMethods.formState.isSubmitting || createOrganizationMutation.isPending
             }
             color="primary"
             EndIcon={ArrowRight}
@@ -203,15 +216,12 @@ export const CreateANewOrganizationForm = ({ slug }: { slug?: string }) => {
         isOpenDialog={showVerifyCode}
         setIsOpenDialog={setShowVerifyCode}
         email={watchAdminEmail}
-        onSuccess={(isVerified) => {
-          if (isVerified) {
-            createOrganizationMutation.mutate({
-              ...newOrganizationFormMethods.getValues(),
-              language: i18n.language,
-              check: false,
-            });
-          }
-        }}
+        verifyCodeWithSessionNotRequired={verifyCode.verifyCodeWithSessionNotRequired}
+        verifyCodeWithSessionRequired={verifyCode.verifyCodeWithSessionRequired}
+        error={verifyCode.error}
+        resetErrors={verifyCode.resetErrors}
+        isPending={verifyCode.isPending}
+        setIsPending={verifyCode.setIsPending}
       />
     </>
   );

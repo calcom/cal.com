@@ -226,3 +226,15 @@ export const isInDST = (date: Dayjs) => {
 
   return timeZoneWithDST(timeZone) && date.utcOffset() === getUTCOffsetInDST(timeZone);
 };
+
+/**
+ * Get UTC offset of given time zone
+ * @param timeZone Time Zone Name (Ex. America/Mazatlan)
+ * @param date
+ * @returns
+ */
+export function getUTCOffsetByTimezone(timeZone: string, date?: string | Date | Dayjs) {
+  if (!timeZone) return null;
+
+  return dayjs(date).tz(timeZone).utcOffset();
+}

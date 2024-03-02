@@ -5,6 +5,7 @@ import type { CalendarEvent } from "@calcom/types/Calendar";
 import { test } from "@calcom/web/test/fixtures/fixtures";
 
 import { buildCalendarEvent, buildPerson } from "../../../lib/test/builder";
+import { buildVideoCallData } from "../../../lib/test/builder";
 import generateIcsString from "../generateIcsString";
 
 const assertHasIcsString = (icsString: string | undefined) => {
@@ -49,89 +50,145 @@ const testIcsStringContains = ({
 };
 
 describe("generateIcsString", () => {
-  test("when bookingAction is Create", () => {
-    const event = buildCalendarEvent({
-      iCalSequence: 0,
-      attendees: [buildPerson()],
+  describe("booking actions", () => {
+    test("when bookingAction is Create", () => {
+      const event = buildCalendarEvent({
+        iCalSequence: 0,
+        attendees: [buildPerson()],
+      });
+
+      const title = "new_event_scheduled_recurring";
+      const subtitle = "emailed_you_and_any_other_attendees";
+      const status = "CONFIRMED";
+
+      const icsString = generateIcsString({
+        event: event,
+        title,
+        subtitle,
+        role: "organizer",
+        status,
+      });
+
+      const assertedIcsString = assertHasIcsString(icsString);
+
+      testIcsStringContains({ icsString: assertedIcsString, event, status });
     });
+    test("when bookingAction is Cancel", () => {
+      const event = buildCalendarEvent({
+        iCalSequence: 0,
+        attendees: [buildPerson()],
+      });
+      const title = "event_request_cancelled";
+      const subtitle = "emailed_you_and_any_other_attendees";
+      const status = "CANCELLED";
 
-    const title = "new_event_scheduled_recurring";
-    const subtitle = "emailed_you_and_any_other_attendees";
-    const status = "CONFIRMED";
+      const icsString = generateIcsString({
+        event: event,
+        title,
+        subtitle,
+        role: "organizer",
+        status,
+      });
 
-    const icsString = generateIcsString({
-      event: event,
-      title,
-      subtitle,
-      role: "organizer",
-      status,
+      const assertedIcsString = assertHasIcsString(icsString);
+
+      testIcsStringContains({ icsString: assertedIcsString, event, status });
     });
+    test("when bookingAction is Reschedule", () => {
+      const event = buildCalendarEvent({
+        iCalSequence: 0,
+        attendees: [buildPerson()],
+      });
+      const title = "event_type_has_been_rescheduled";
+      const subtitle = "emailed_you_and_any_other_attendees";
+      const status = "CONFIRMED";
 
-    const assertedIcsString = assertHasIcsString(icsString);
+      const icsString = generateIcsString({
+        event: event,
+        title,
+        subtitle,
+        role: "organizer",
+        status,
+      });
 
-    testIcsStringContains({ icsString: assertedIcsString, event, status });
+      const assertedIcsString = assertHasIcsString(icsString);
+
+      testIcsStringContains({ icsString: assertedIcsString, event, status });
+    });
+    test("when bookingAction is RequestReschedule", () => {
+      const event = buildCalendarEvent({
+        iCalSequence: 0,
+        attendees: [buildPerson()],
+      });
+      const title = "request_reschedule_title_organizer";
+      const subtitle = "request_reschedule_subtitle_organizer";
+      const status = "CANCELLED";
+
+      const icsString = generateIcsString({
+        event: event,
+        title,
+        subtitle,
+        role: "organizer",
+        status,
+      });
+
+      const assertedIcsString = assertHasIcsString(icsString);
+
+      testIcsStringContains({ icsString: assertedIcsString, event, status });
+    });
   });
-  test("when bookingAction is Cancel", () => {
-    const event = buildCalendarEvent({
-      iCalSequence: 0,
-      attendees: [buildPerson()],
+  describe("set location", () => {
+    test("Location is a video link", () => {
+      const videoCallData = buildVideoCallData();
+      const event = buildCalendarEvent(
+        {
+          iCalSequence: 0,
+          attendees: [buildPerson()],
+          videoCallData,
+        },
+        true
+      );
+      const title = "request_reschedule_title_organizer";
+      const subtitle = "request_reschedule_subtitle_organizer";
+      const status = "CANCELLED";
+
+      const icsString = generateIcsString({
+        event: event,
+        title,
+        subtitle,
+        role: "organizer",
+        status,
+      });
+
+      const assertedIcsString = assertHasIcsString(icsString);
+
+      expect(icsString).toEqual(expect.stringContaining(`LOCATION:${videoCallData.url}`));
     });
-    const title = "event_request_cancelled";
-    const subtitle = "emailed_you_and_any_other_attendees";
-    const status = "CANCELLED";
+    // Could be custom link, address, or phone number
+    test("Location is a string", () => {
+      const event = buildCalendarEvent(
+        {
+          iCalSequence: 0,
+          attendees: [buildPerson()],
+          location: "+1234567890",
+        },
+        true
+      );
+      const title = "request_reschedule_title_organizer";
+      const subtitle = "request_reschedule_subtitle_organizer";
+      const status = "CANCELLED";
 
-    const icsString = generateIcsString({
-      event: event,
-      title,
-      subtitle,
-      role: "organizer",
-      status,
+      const icsString = generateIcsString({
+        event: event,
+        title,
+        subtitle,
+        role: "organizer",
+        status,
+      });
+
+      const assertedIcsString = assertHasIcsString(icsString);
+
+      expect(icsString).toEqual(expect.stringContaining(`LOCATION:${event.location}`));
     });
-
-    const assertedIcsString = assertHasIcsString(icsString);
-
-    testIcsStringContains({ icsString: assertedIcsString, event, status });
-  });
-  test("when bookingAction is Reschedule", () => {
-    const event = buildCalendarEvent({
-      iCalSequence: 0,
-      attendees: [buildPerson()],
-    });
-    const title = "event_type_has_been_rescheduled";
-    const subtitle = "emailed_you_and_any_other_attendees";
-    const status = "CONFIRMED";
-
-    const icsString = generateIcsString({
-      event: event,
-      title,
-      subtitle,
-      role: "organizer",
-      status,
-    });
-
-    const assertedIcsString = assertHasIcsString(icsString);
-
-    testIcsStringContains({ icsString: assertedIcsString, event, status });
-  });
-  test("when bookingAction is RequestReschedule", () => {
-    const event = buildCalendarEvent({
-      iCalSequence: 0,
-      attendees: [buildPerson()],
-    });
-    const title = "request_reschedule_title_organizer";
-    const subtitle = "request_reschedule_subtitle_organizer";
-    const status = "CANCELLED";
-
-    const icsString = generateIcsString({
-      event: event,
-      title,
-      subtitle,
-      role: "organizer",
-      status,
-    });
-
-    const assertedIcsString = assertHasIcsString(icsString);
-
-    testIcsStringContains({ icsString: assertedIcsString, event, status });
   });
 });

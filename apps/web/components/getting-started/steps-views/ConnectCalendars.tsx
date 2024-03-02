@@ -31,7 +31,7 @@ const ConnectedCalendars = (props: IConnectCalendarsProps) => {
   return (
     <>
       {/* Already connected calendars  */}
-      {!queryConnectedCalendars.isLoading &&
+      {!queryConnectedCalendars.isPending &&
         firstCalendar &&
         firstCalendar.integration &&
         firstCalendar.integration.title &&
@@ -76,7 +76,7 @@ const ConnectedCalendars = (props: IConnectCalendarsProps) => {
         </List>
       )}
 
-      {queryIntegrations.isLoading && <StepConnectionLoader />}
+      {queryIntegrations.isPending && <StepConnectionLoader />}
 
       <button
         type="button"

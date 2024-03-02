@@ -1,7 +1,9 @@
+"use client";
+
 import withEmbedSsr from "@lib/withEmbedSsr";
 
-import { getServerSideProps as _getServerSideProps } from "../[type]";
+import { getServerSideProps as _getServerSideProps } from ".";
 
-export { default } from "../[type]";
+export { default, type PageProps } from ".";
 
 export const getServerSideProps = withEmbedSsr(_getServerSideProps);

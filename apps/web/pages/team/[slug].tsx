@@ -1,3 +1,5 @@
+"use client";
+
 // This route is reachable by
 // 1. /team/[slug]
 // 2. / (when on org domain e.g. http://calcom.cal.com/. This is through a rewrite from next.config.js)
@@ -5,45 +7,31 @@
 // 1. org/[orgSlug]/team/[slug]
 // 2. org/[orgSlug]/[user]/[type]
 import classNames from "classnames";
-import type { GetServerSidePropsContext } from "next";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 
 import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
-import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import EventTypeDescription from "@calcom/features/eventtypes/components/EventTypeDescription";
-import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
-import { WEBAPP_URL } from "@calcom/lib/constants";
-import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
+import { getOrgAvatarUrl, getTeamAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import useTheme from "@calcom/lib/hooks/useTheme";
-import logger from "@calcom/lib/logger";
-import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
-import { getTeamWithMembers } from "@calcom/lib/server/queries/teams";
-import slugify from "@calcom/lib/slugify";
-import { stripMarkdown } from "@calcom/lib/stripMarkdown";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
-import prisma from "@calcom/prisma";
-import { RedirectType } from "@calcom/prisma/client";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
-import { Avatar, Button, HeadSeo, UnpublishedEntity } from "@calcom/ui";
+import { Avatar, Button, HeadSeo, UnpublishedEntity, UserAvatarGroup } from "@calcom/ui";
 import { ArrowRight } from "@calcom/ui/components/icon";
 
 import { useToggleQuery } from "@lib/hooks/useToggleQuery";
+import { getServerSideProps } from "@lib/team/[slug]/getServerSideProps";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import PageWrapper from "@components/PageWrapper";
 import Team from "@components/team/screens/Team";
-import { UserAvatarGroup } from "@components/ui/avatar/UserAvatarGroup";
 
-import { ssrInit } from "@server/lib/ssr";
-
-import { getTemporaryOrgRedirect } from "../../lib/getTemporaryOrgRedirect";
+export { getServerSideProps };
 
 export type PageProps = inferSSRProps<typeof getServerSideProps>;
-const log = logger.getSubLogger({ prefix: ["team/[slug]"] });
 function TeamPage({
   team,
   isUnpublished,
@@ -135,7 +123,7 @@ function TeamPage({
             (mem) => mem.subteams?.includes(ch.slug) && mem.accepted
           ).length;
           return (
-            <li key={i} className="hover:bg-muted w-full">
+            <li key={i} className="hover:bg-muted w-full rounded-md">
               <Link href={`/${ch.slug}`} className="flex items-center justify-between">
                 <div className="flex items-center px-5 py-5">
                   <div className="ms-3 inline-block truncate">
@@ -169,6 +157,11 @@ function TeamPage({
       </div>
     );
 
+  const profileImageSrc =
+    isValidOrgDomain || team.metadata?.isOrganization
+      ? getOrgAvatarUrl({ slug: currentOrgDomain, logoUrl: team.logoUrl })
+      : getTeamAvatarUrl({ slug: team.slug, logoUrl: team.logoUrl, organizationId: team.parent?.id });
+
   return (
     <>
       <HeadSeo
@@ -178,22 +171,14 @@ function TeamPage({
           title: markdownStrippedBio,
           profile: {
             name: `${team.name}`,
-            image: `${WEBAPP_URL}/${team.metadata?.isOrganization ? "org" : "team"}/${team.slug}/avatar.png`,
+            image: profileImageSrc,
           },
         }}
       />
       <main className="dark:bg-darkgray-50 bg-subtle mx-auto max-w-3xl rounded-md px-4 pb-12 pt-12">
         <div className="mx-auto mb-8 max-w-3xl text-center">
           <div className="relative">
-            <Avatar
-              alt={teamName}
-              imageSrc={
-                isValidOrgDomain
-                  ? `/org/${currentOrgDomain}/avatar.png`
-                  : `${WEBAPP_URL}/${team.metadata?.isOrganization ? "org" : "team"}/${team.slug}/avatar.png`
-              }
-              size="lg"
-            />
+            <Avatar alt={teamName} imageSrc={profileImageSrc} size="lg" />
           </div>
           <p className="font-cal  text-emphasis mb-2 text-2xl tracking-wider" data-testid="team-name">
             {team.parent && `${team.parent.name} `}
@@ -267,124 +252,6 @@ function TeamPage({
     </>
   );
 }
-
-export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  const slug = Array.isArray(context.query?.slug) ? context.query.slug.pop() : context.query.slug;
-  const { isValidOrgDomain, currentOrgDomain } = orgDomainConfig(context.req, context.params?.orgSlug);
-  const isOrgContext = isValidOrgDomain && currentOrgDomain;
-
-  // Provided by Rewrite from next.config.js
-  const isOrgProfile = context.query?.isOrgProfile === "1";
-  const flags = await getFeatureFlagMap(prisma);
-  const isOrganizationFeatureEnabled = flags["organizations"];
-
-  log.debug("getServerSideProps", {
-    isOrgProfile,
-    isOrganizationFeatureEnabled,
-    isValidOrgDomain,
-    currentOrgDomain,
-  });
-
-  const team = await getTeamWithMembers({
-    slug: slugify(slug ?? ""),
-    orgSlug: currentOrgDomain,
-    isTeamView: true,
-    isOrgView: isValidOrgDomain && isOrgProfile,
-  });
-
-  if (!isOrgContext && slug) {
-    const redirect = await getTemporaryOrgRedirect({
-      slug: slug,
-      redirectType: RedirectType.Team,
-      eventTypeSlug: null,
-      currentQuery: context.query,
-    });
-
-    if (redirect) {
-      return redirect;
-    }
-  }
-
-  const ssr = await ssrInit(context);
-  const metadata = teamMetadataSchema.parse(team?.metadata ?? {});
-
-  // Taking care of sub-teams and orgs
-  if (
-    (!isValidOrgDomain && team?.parent) ||
-    (!isValidOrgDomain && !!metadata?.isOrganization) ||
-    !isOrganizationFeatureEnabled
-  ) {
-    return { notFound: true } as const;
-  }
-
-  if (!team || (team.parent && !team.parent.slug)) {
-    const unpublishedTeam = await prisma.team.findFirst({
-      where: {
-        ...(team?.parent
-          ? { id: team.parent.id }
-          : {
-              metadata: {
-                path: ["requestedSlug"],
-                equals: slug,
-              },
-            }),
-      },
-    });
-
-    if (!unpublishedTeam) return { notFound: true } as const;
-
-    return {
-      props: {
-        isUnpublished: true,
-        team: { ...unpublishedTeam, createdAt: null },
-        trpcState: ssr.dehydrate(),
-      },
-    } as const;
-  }
-
-  team.eventTypes =
-    team.eventTypes?.map((type) => ({
-      ...type,
-      users: type.users.map((user) => ({
-        ...user,
-        avatar: `/${user.username}/avatar.png`,
-      })),
-      descriptionAsSafeHTML: markdownToSafeHTML(type.description),
-    })) ?? null;
-
-  const safeBio = markdownToSafeHTML(team.bio) || "";
-
-  const members = !team.isPrivate
-    ? team.members.map((member) => {
-        return {
-          name: member.name,
-          id: member.id,
-          bio: member.bio,
-          subteams: member.subteams,
-          username: member.username,
-          accepted: member.accepted,
-          organizationId: member.organizationId,
-          safeBio: markdownToSafeHTML(member.bio || ""),
-          bookerUrl: getBookerBaseUrlSync(member.organization?.slug || ""),
-        };
-      })
-    : [];
-
-  const markdownStrippedBio = stripMarkdown(team?.bio || "");
-
-  const { inviteToken: _inviteToken, ...serializableTeam } = team;
-
-  return {
-    props: {
-      team: { ...serializableTeam, safeBio, members, metadata },
-      themeBasis: serializableTeam.slug,
-      trpcState: ssr.dehydrate(),
-      markdownStrippedBio,
-      isValidOrgDomain,
-      currentOrgDomain,
-    },
-  } as const;
-};
 
 TeamPage.isBookingPage = true;
 TeamPage.PageWrapper = PageWrapper;

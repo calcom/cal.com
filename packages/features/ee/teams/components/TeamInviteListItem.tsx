@@ -27,7 +27,7 @@ interface Props {
   };
   key: number;
   onActionSelect: (text: string) => void;
-  isLoading?: boolean;
+  isPending?: boolean;
   hideDropdown: boolean;
   setHideDropdown: (value: boolean) => void;
 }

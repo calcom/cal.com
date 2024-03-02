@@ -16,11 +16,10 @@ import { Clock, Users, RefreshCw, Clipboard, Plus, User, Lock } from "@calcom/ui
 export type EventTypeDescriptionProps = {
   eventType: Pick<
     z.infer<typeof EventTypeModel>,
-    Exclude<keyof typeof baseEventTypeSelect, "recurringEvent"> | "metadata"
+    Exclude<keyof typeof baseEventTypeSelect, "recurringEvent"> | "metadata" | "seatsPerTimeSlot"
   > & {
     descriptionAsSafeHTML?: string | null;
     recurringEvent: Prisma.JsonValue;
-    seatsPerTimeSlot?: number;
   };
   className?: string;
   shortenDescription?: boolean;
@@ -86,7 +85,7 @@ export const EventTypeDescription = ({
             </Badge>
           )}
           {recurringEvent?.count && recurringEvent.count > 0 && (
-            <li className="hidden xl:block">
+            <li className="hidden xl:block" data-testid="repeat-eventtype">
               <Badge variant="gray" startIcon={RefreshCw}>
                 {t("repeats_up_to", {
                   count: recurringEvent.count,
@@ -106,7 +105,7 @@ export const EventTypeDescription = ({
             </li>
           )}
           {eventType.requiresConfirmation && (
-            <li className="hidden xl:block">
+            <li className="hidden xl:block" data-testid="requires-confirmation-badge">
               <Badge variant="gray" startIcon={Clipboard}>
                 {eventType.metadata?.requiresConfirmationThreshold
                   ? t("may_require_confirmation")

@@ -1,10 +1,13 @@
 import { Prisma } from "@prisma/client";
 
+import { generateHashedLink } from "@calcom/lib/generateHashedLink";
+import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import { prisma } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../trpc";
+import { setDestinationCalendarHandler } from "../../loggedInViewer/setDestinationCalendar.handler";
 import type { TDuplicateInputSchema } from "./duplicate.schema";
 
 type DuplicateOptions = {
@@ -30,10 +33,16 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
       include: {
         customInputs: true,
         schedule: true,
-        users: true,
+        users: {
+          select: {
+            id: true,
+          },
+        },
         team: true,
         workflows: true,
         webhooks: true,
+        hashedLink: true,
+        destinationCalendar: true,
       },
     });
 
@@ -66,6 +75,8 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
       durationLimits,
       metadata,
       workflows,
+      hashedLink,
+      destinationCalendar,
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       id: _id,
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -94,7 +105,7 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
       bookingFields: eventType.bookingFields === null ? Prisma.DbNull : eventType.bookingFields,
     };
 
-    const newEventType = await prisma.eventType.create({ data });
+    const newEventType = await EventTypeRepository.create(data);
 
     // Create custom inputs
     if (customInputs) {
@@ -111,6 +122,17 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
       });
     }
 
+    if (hashedLink) {
+      await prisma.hashedLink.create({
+        data: {
+          link: generateHashedLink(users[0]?.id ?? newEventType.teamId),
+          eventType: {
+            connect: { id: newEventType.id },
+          },
+        },
+      });
+    }
+
     if (workflows.length > 0) {
       const relationCreateData = workflows.map((workflow) => {
         return { eventTypeId: newEventType.id, workflowId: workflow.workflowId };
@@ -118,6 +140,15 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
 
       await prisma.workflowsOnEventTypes.createMany({
         data: relationCreateData,
+      });
+    }
+    if (destinationCalendar) {
+      await setDestinationCalendarHandler({
+        ctx,
+        input: {
+          ...destinationCalendar,
+          eventTypeId: newEventType.id,
+        },
       });
     }
 

@@ -32,7 +32,7 @@ const NewWebhookView = () => {
 
   const teamId = searchParams?.get("teamId") ? Number(searchParams.get("teamId")) : undefined;
 
-  const { data: installedApps, isLoading } = trpc.viewer.integrations.useQuery(
+  const { data: installedApps, isPending } = trpc.viewer.integrations.useQuery(
     { variant: "other", onlyInstalled: true },
     {
       suspense: true,
@@ -83,7 +83,7 @@ const NewWebhookView = () => {
     });
   };
 
-  if (isLoading)
+  if (isPending)
     return (
       <SkeletonLoader
         title={t("add_webhook")}

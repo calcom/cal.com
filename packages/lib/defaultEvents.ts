@@ -49,7 +49,6 @@ const user: User & { credentials: CredentialPayload[] } = {
   darkBrandColor: "#efefef",
   allowDynamicBooking: true,
   timeFormat: 12,
-  organizationId: null,
 };
 
 const customInputs: CustomInputSchema[] = [];
@@ -101,17 +100,20 @@ const commons = {
   hosts: [],
   metadata: EventTypeMetaDataSchema.parse({}),
   bookingFields: [],
+  assignAllTeamMembers: false,
+  useEventTypeDestinationCalendarEmail: false,
 };
 
 const dynamicEvent = {
   length: 30,
   slug: "dynamic",
-  title: "Dynamic",
-  eventName: "Dynamic Event",
-  description: "",
+  title: "Group Meeting",
+  eventName: "Group Meeting",
+  description: "Join us for a meeting with multiple people",
   descriptionAsSafeHTML: "",
   position: 0,
   ...commons,
+  metadata: EventTypeMetaDataSchema.parse({ multipleDuration: [15, 30, 60, 90] }),
 };
 
 const defaultEvents = [dynamicEvent];

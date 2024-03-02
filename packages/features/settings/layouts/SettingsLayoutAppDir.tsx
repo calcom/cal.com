@@ -105,7 +105,7 @@ const tabs: VerticalTabItemProps[] = [
   },
   {
     name: "teams",
-    href: "/settings/teams",
+    href: "/teams",
     icon: Users,
     children: [],
   },

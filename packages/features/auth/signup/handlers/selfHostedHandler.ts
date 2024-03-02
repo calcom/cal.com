@@ -15,6 +15,7 @@ import { signupSchema } from "@calcom/prisma/zod-utils";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { joinAnyChildTeamOnOrgInvite } from "../utils/organization";
+import { prefillAvatar } from "../utils/prefillAvatar";
 import {
   findTokenByToken,
   throwIfTokenExpired,
@@ -67,6 +68,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       where: {
         id: foundToken.teamId,
       },
+      include: {
+        parent: true,
+      },
     });
     if (team) {
       const teamMetadata = teamMetadataSchema.parse(team?.metadata);
@@ -75,14 +79,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         where: { email: userEmail },
         update: {
           username: correctedUsername,
-          password: hashedPassword,
+          password: {
+            upsert: {
+              create: { hash: hashedPassword },
+              update: { hash: hashedPassword },
+            },
+          },
           emailVerified: new Date(Date.now()),
           identityProvider: IdentityProvider.CAL,
         },
         create: {
           username: correctedUsername,
           email: userEmail,
-          password: hashedPassword,
+          password: { create: { hash: hashedPassword } },
           identityProvider: IdentityProvider.CAL,
         },
       });
@@ -96,10 +105,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       closeComUpsertTeamUser(team, user, membership.role);
 
       // Accept any child team invites for orgs.
-      if (team.parentId) {
+      if (team.parent) {
         await joinAnyChildTeamOnOrgInvite({
           userId: user.id,
-          orgId: team.parentId,
+          org: team.parent,
         });
       }
     }
@@ -124,17 +133,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       where: { email: userEmail },
       update: {
         username: correctedUsername,
-        password: hashedPassword,
+        password: {
+          upsert: {
+            create: { hash: hashedPassword },
+            update: { hash: hashedPassword },
+          },
+        },
         emailVerified: new Date(Date.now()),
         identityProvider: IdentityProvider.CAL,
       },
       create: {
         username: correctedUsername,
         email: userEmail,
-        password: hashedPassword,
+        password: { create: { hash: hashedPassword } },
         identityProvider: IdentityProvider.CAL,
       },
     });
+
+    if (process.env.AVATARAPI_USERNAME && process.env.AVATARAPI_PASSWORD) {
+      await prefillAvatar({ email: userEmail });
+    }
+
     await sendEmailVerification({
       email: userEmail,
       username: correctedUsername,

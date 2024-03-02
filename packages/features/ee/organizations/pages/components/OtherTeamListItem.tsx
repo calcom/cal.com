@@ -24,7 +24,7 @@ interface Props {
   team: RouterOutputs["viewer"]["organizations"]["listOtherTeams"][number];
   key: number;
   onActionSelect: (text: string) => void;
-  isLoading?: boolean;
+  isPending?: boolean;
   hideDropdown: boolean;
   setHideDropdown: (value: boolean) => void;
 }
@@ -140,7 +140,7 @@ export default function OtherTeamListItem(props: Props) {
                         variety="danger"
                         title={t("disband_team")}
                         confirmBtnText={t("confirm_disband_team")}
-                        isLoading={props.isLoading}
+                        isPending={props.isPending}
                         onConfirm={() => {
                           props.onActionSelect("disband");
                         }}>

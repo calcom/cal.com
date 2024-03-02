@@ -161,7 +161,7 @@ const DuplicateDialog = () => {
           </div>
           <DialogFooter showDivider className="mt-10">
             <DialogClose />
-            <Button type="submit" loading={duplicateMutation.isLoading}>
+            <Button type="submit" loading={duplicateMutation.isPending}>
               {t("continue")}
             </Button>
           </DialogFooter>

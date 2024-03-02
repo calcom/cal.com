@@ -16,10 +16,9 @@ import { useBookerStore, useInitializeBookerStore } from "@calcom/features/booki
 import { useEvent, useScheduleForEvent } from "@calcom/features/bookings/Booker/utils/event";
 import { useTimePreferences } from "@calcom/features/bookings/lib/timePreferences";
 import DatePicker from "@calcom/features/calendars/DatePicker";
-import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { useNonEmptyScheduleDays } from "@calcom/features/schedules";
 import { useSlotsForDate } from "@calcom/features/schedules/lib/use-schedule/useSlotsForDate";
-import { APP_NAME, CAL_URL } from "@calcom/lib/constants";
+import { APP_NAME, WEBSITE_URL } from "@calcom/lib/constants";
 import { weekdayToWeekIndex } from "@calcom/lib/date-fns";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -222,7 +221,7 @@ const EmailEmbed = ({ eventType, username }: { eventType?: EventType; username: 
           <CollapsibleContent>
             <div className="text-default text-sm">{t("select_date")}</div>
             <DatePicker
-              isLoading={schedule.isLoading}
+              isPending={schedule.isPending}
               onChange={(date: Dayjs | null) => {
                 setSelectedDate(date === null ? date : date.format("YYYY-MM-DD"));
               }}
@@ -401,7 +400,7 @@ const EmailEmbedPreview = ({
                                   <tr style={{ height: "25px" }}>
                                     {selectedDateAndTime[key]?.length > 0 &&
                                       selectedDateAndTime[key].map((time) => {
-                                        const bookingURL = `${CAL_URL}/${username}/${eventType.slug}?duration=${eventType.length}&date=${key}&month=${month}&slot=${time}`;
+                                        const bookingURL = `${WEBSITE_URL}/${username}/${eventType.slug}?duration=${eventType.length}&date=${key}&month=${month}&slot=${time}`;
                                         return (
                                           <td
                                             key={time}
@@ -464,7 +463,7 @@ const EmailEmbedPreview = ({
               <div style={{ marginTop: "13px" }}>
                 <a
                   className="more"
-                  href={`${CAL_URL}/${username}/${eventType.slug}`}
+                  href={`${WEBSITE_URL}/${username}/${eventType.slug}`}
                   style={{
                     textDecoration: "none",
                     cursor: "pointer",
@@ -515,8 +514,6 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   const { goto, removeQueryParams } = useRouterHelpers();
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const dialogContentRef = useRef<HTMLDivElement>(null);
-  const flags = useFlagMap();
-  const isBookerLayoutsEnabled = flags["booker-layouts"] === true;
   const emailContentRef = useRef<HTMLDivElement>(null);
   const { data } = useSession();
   const [month, selectedDatesAndTimes] = useBookerStore(
@@ -957,34 +954,32 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                           </div>
                         </Label>
                       ))}
-                      {isBookerLayoutsEnabled && (
-                        <Label className="mb-6">
-                          <div className="mb-2">{t("layout")}</div>
-                          <Select
-                            className="w-full"
-                            defaultValue={layoutOptions[0]}
-                            onChange={(option) => {
-                              if (!option) {
-                                return;
-                              }
-                              setPreviewState((previewState) => {
-                                const config = {
-                                  ...(previewState.floatingPopup.config ?? {}),
-                                  layout: option.value,
-                                };
-                                return {
-                                  ...previewState,
-                                  floatingPopup: {
-                                    config,
-                                  },
-                                  layout: option.value,
-                                };
-                              });
-                            }}
-                            options={layoutOptions}
-                          />
-                        </Label>
-                      )}
+                      <Label className="mb-6">
+                        <div className="mb-2">{t("layout")}</div>
+                        <Select
+                          className="w-full"
+                          defaultValue={layoutOptions[0]}
+                          onChange={(option) => {
+                            if (!option) {
+                              return;
+                            }
+                            setPreviewState((previewState) => {
+                              const config = {
+                                ...(previewState.floatingPopup.config ?? {}),
+                                layout: option.value,
+                              };
+                              return {
+                                ...previewState,
+                                floatingPopup: {
+                                  config,
+                                },
+                                layout: option.value,
+                              };
+                            });
+                          }}
+                          options={layoutOptions}
+                        />
+                      </Label>
                     </div>
                   </CollapsibleContent>
                 </Collapsible>

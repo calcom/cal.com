@@ -12,7 +12,9 @@ import { ZGetMembershipbyUserInputSchema } from "./getMembershipbyUser.schema";
 import { ZHasEditPermissionForUserSchema } from "./hasEditPermissionForUser.schema";
 import { ZInviteMemberInputSchema } from "./inviteMember/inviteMember.schema";
 import { ZInviteMemberByTokenSchemaInputSchema } from "./inviteMemberByToken.schema";
+import { ZGetListSchema } from "./list.schema";
 import { ZListMembersInputSchema } from "./listMembers.schema";
+import { hasTeamPlan } from "./procedures/hasTeamPlan";
 import { ZPublishInputSchema } from "./publish.schema";
 import { ZRemoveMemberInputSchema } from "./removeMember.schema";
 import { ZResendInvitationInputSchema } from "./resendInvitation.schema";
@@ -30,7 +32,7 @@ export const viewerTeamsRouter = router({
     return handler(opts);
   }),
   // Returns teams I a member of
-  list: authedProcedure.query(async (opts) => {
+  list: authedProcedure.input(ZGetListSchema).query(async (opts) => {
     const handler = await importHandler(namespaced("list"), () => import("./list.handler"));
     return handler(opts);
   }),
@@ -111,10 +113,7 @@ export const viewerTeamsRouter = router({
     const handler = await importHandler(namespaced("listMembers"), () => import("./listMembers.handler"));
     return handler(opts);
   }),
-  hasTeamPlan: authedProcedure.query(async (opts) => {
-    const handler = await importHandler(namespaced("hasTeamPlan"), () => import("./hasTeamPlan.handler"));
-    return handler(opts);
-  }),
+  hasTeamPlan,
   listInvites: authedProcedure.query(async (opts) => {
     const handler = await importHandler(namespaced("listInvites"), () => import("./listInvites.handler"));
     return handler(opts);

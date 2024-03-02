@@ -8,7 +8,7 @@ import { z } from "zod";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { RoutingFormEmbedButton, RoutingFormEmbedDialog } from "@calcom/features/embed/RoutingFormEmbed";
 import { classNames } from "@calcom/lib";
-import { CAL_URL } from "@calcom/lib/constants";
+import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
@@ -147,7 +147,7 @@ function NewFormDialog({ appUrl }: { appUrl: string }) {
           </div>
           <DialogFooter showDivider className="mt-12">
             <DialogClose />
-            <Button loading={mutation.isLoading} data-testid="add-form" type="submit">
+            <Button loading={mutation.isPending} data-testid="add-form" type="submit">
               {t("continue")}
             </Button>
           </DialogFooter>
@@ -234,7 +234,7 @@ function Dialogs({
       <RoutingFormEmbedDialog />
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <ConfirmationDialogContent
-          isLoading={deleteMutation.isLoading}
+          isPending={deleteMutation.isPending}
           variety="danger"
           title={t("delete_form")}
           confirmBtnText={t("delete_form_action")}
@@ -264,12 +264,12 @@ const actionsCtx = createContext({
   _delete: {
     // eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars
     onAction: (_arg: { routingForm: RoutingForm | null }) => {},
-    isLoading: false,
+    isPending: false,
   },
   toggle: {
     // eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars
     onAction: (_arg: { routingForm: RoutingForm | null; checked: boolean }) => {},
-    isLoading: false,
+    isPending: false,
   },
 });
 
@@ -332,7 +332,7 @@ export function FormActionsProvider({ appUrl, children }: { appUrl: string; chil
               setDeleteDialogOpen(true);
               setDeleteDialogFormId(routingForm.id);
             },
-            isLoading: false,
+            isPending: false,
           },
           toggle: {
             onAction: ({ routingForm, checked }) => {
@@ -344,7 +344,7 @@ export function FormActionsProvider({ appUrl, children }: { appUrl: string; chil
                 disabled: !checked,
               });
             },
-            isLoading: toggleMutation.isLoading,
+            isPending: toggleMutation.isPending,
           },
         }}>
         {children}
@@ -405,8 +405,8 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
   const embedLink = `forms/${routingForm?.id}`;
   const orgBranding = useOrgBranding();
 
-  const formLink = `${orgBranding?.fullDomain ?? CAL_URL}/${embedLink}`;
-  let redirectUrl = `${orgBranding?.fullDomain ?? CAL_URL}/router?form=${routingForm?.id}`;
+  const formLink = `${orgBranding?.fullDomain ?? WEBSITE_URL}/${embedLink}`;
+  let redirectUrl = `${orgBranding?.fullDomain ?? WEBSITE_URL}/router?form=${routingForm?.id}`;
 
   routingForm?.fields?.forEach((field) => {
     redirectUrl += `&${getFieldIdentifier(field)}={Recalled_Response_For_This_Field}`;
@@ -446,7 +446,7 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
     },
     _delete: {
       onClick: () => _delete.onAction({ routingForm }),
-      loading: _delete.isLoading,
+      loading: _delete.isPending,
     },
     create: {
       onClick: () => openModal({ action: "new", target: "" }),
@@ -479,7 +479,7 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
           </div>
         );
       },
-      loading: toggle.isLoading,
+      loading: toggle.isPending,
     },
   };
 

@@ -1,6 +1,6 @@
 {
   "name": "@calcom/web",
-  "version": "3.6.1",
+  "version": "3.8.5",
   "private": true,
   "scripts": {
     "analyze": "ANALYZE=true next build",
@@ -24,7 +24,7 @@
     "yarn": "3.4.1"
   },
   "dependencies": {
-    "@boxyhq/saml-jackson": "1.8.2",
+    "@boxyhq/saml-jackson": "1.18.6",
     "@calcom/app-store": "*",
     "@calcom/app-store-cli": "*",
     "@calcom/core": "*",
@@ -39,7 +39,7 @@
     "@calcom/tsconfig": "*",
     "@calcom/ui": "*",
     "@daily-co/daily-js": "^0.37.0",
-    "@formkit/auto-animate": "^1.0.0-beta.5",
+    "@formkit/auto-animate": "1.0.0-beta.5",
     "@glidejs/glide": "^3.5.2",
     "@hookform/error-message": "^2.0.0",
     "@hookform/resolvers": "^2.9.7",
@@ -60,7 +60,7 @@
     "@sentry/nextjs": "^7.73.0",
     "@stripe/react-stripe-js": "^1.10.0",
     "@stripe/stripe-js": "^1.35.0",
-    "@tanstack/react-query": "^4.3.9",
+    "@tanstack/react-query": "^5.17.15",
     "@tremor/react": "^2.0.0",
     "@types/turndown": "^5.0.1",
     "@upstash/ratelimit": "^0.4.3",
@@ -91,7 +91,7 @@
     "memory-cache": "^0.2.0",
     "micro": "^10.0.1",
     "mime-types": "^2.1.35",
-    "next": "^13.4.6",
+    "next": "^13.5.4",
     "next-auth": "^4.22.1",
     "next-axiom": "^0.17.0",
     "next-collect": "^0.2.1",
@@ -130,7 +130,7 @@
     "tailwindcss-radix": "^2.6.0",
     "turndown": "^7.1.1",
     "uuid": "^8.3.2",
-    "zod": "^3.22.2"
+    "zod": "^3.22.4"
   },
   "devDependencies": {
     "@babel/core": "^7.19.6",

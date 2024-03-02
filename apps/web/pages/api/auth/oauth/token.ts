@@ -3,14 +3,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import prisma from "@calcom/prisma";
 import { generateSecret } from "@calcom/trpc/server/routers/viewer/oAuth/addClient.handler";
-
-export type OAuthTokenPayload = {
-  userId?: number | null;
-  teamId?: number | null;
-  token_type: string;
-  scope: string[];
-  clientId: string;
-};
+import type { OAuthTokenPayload } from "@calcom/types/oauth";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {

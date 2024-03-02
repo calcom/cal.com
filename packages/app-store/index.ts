@@ -10,6 +10,7 @@ const appStore = {
   googlevideo: () => import("./googlevideo"),
   hubspot: () => import("./hubspot"),
   huddle01video: () => import("./huddle01video"),
+  "ics-feedcalendar": () => import("./ics-feedcalendar"),
   jitsivideo: () => import("./jitsivideo"),
   larkcalendar: () => import("./larkcalendar"),
   office365calendar: () => import("./office365calendar"),
@@ -41,4 +42,12 @@ const appStore = {
   shimmervideo: () => import("./shimmervideo"),
 };
 
-export default appStore;
+const exportedAppStore: typeof appStore & {
+  ["mock-payment-app"]?: () => Promise<typeof import("./mock-payment-app/index")>;
+} = appStore;
+
+if (process.env.MOCK_PAYMENT_APP_ENABLED !== undefined) {
+  exportedAppStore["mock-payment-app"] = () => import("./mock-payment-app/index");
+}
+
+export default exportedAppStore;

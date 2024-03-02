@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useCallback, useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 
-import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookerLayouts, defaultBookerLayoutSettings } from "@calcom/prisma/zod-utils";
@@ -32,7 +31,7 @@ type BookerLayoutSelectorProps = {
    * to this boolean.
    */
   isDark?: boolean;
-
+  isLoading?: boolean;
   isDisabled?: boolean;
   isOuterBorder?: boolean;
 };
@@ -47,14 +46,12 @@ export const BookerLayoutSelector = ({
   isDark,
   isDisabled = false,
   isOuterBorder = false,
+  isLoading = false,
 }: BookerLayoutSelectorProps) => {
   const { control, getValues } = useFormContext();
   const { t } = useLocale();
   // Only fallback if event current does not have any settings, and the fallbackToUserSettings boolean is set.
   const shouldShowUserSettings = (fallbackToUserSettings && !getValues(name || defaultFieldName)) || false;
-
-  const flags = useFlagMap();
-  if (flags["booker-layouts"] !== true) return null;
 
   return (
     <div className={classNames(isOuterBorder && "border-subtle rounded-lg border p-6")}>
@@ -83,7 +80,7 @@ export const BookerLayoutSelector = ({
             />
             {!isOuterBorder && (
               <SectionBottomActions align="end">
-                <Button type="submit" disabled={isDisabled} color="primary">
+                <Button loading={isLoading} type="submit" disabled={isDisabled} color="primary">
                   {t("update")}
                 </Button>
               </SectionBottomActions>
@@ -113,7 +110,7 @@ const BookerLayoutFields = ({
   isOuterBorder,
 }: BookerLayoutFieldsProps) => {
   const { t } = useLocale();
-  const { isLoading: isUserLoading, data: user } = useMeQuery();
+  const { isPending: isUserLoading, data: user } = useMeQuery();
   const [isOverridingSettings, setIsOverridingSettings] = useState(false);
 
   const disableFields = showUserSettings && !isOverridingSettings;

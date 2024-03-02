@@ -3,6 +3,8 @@ import type { NextMiddleware, NextRequest } from "next/server";
 import { NextResponse, URLPattern } from "next/server";
 import z from "zod";
 
+import { FUTURE_ROUTES_ENABLED_COOKIE_NAME, FUTURE_ROUTES_OVERRIDE_COOKIE_NAME } from "@calcom/lib/constants";
+
 const ROUTES: [URLPattern, boolean][] = [
   ["/event-types", process.env.APP_ROUTER_EVENT_TYPES_ENABLED === "1"] as const,
   ["/settings/admin/:path*", process.env.APP_ROUTER_SETTINGS_ADMIN_ENABLED === "1"] as const,
@@ -17,15 +19,13 @@ const ROUTES: [URLPattern, boolean][] = [
   ["/apps", process.env.APP_ROUTER_APPS_ENABLED === "1"] as const,
   ["/bookings/:status", process.env.APP_ROUTER_BOOKINGS_STATUS_ENABLED === "1"] as const,
   ["/video/:path*", process.env.APP_ROUTER_VIDEO_ENABLED === "1"] as const,
+  ["/teams", process.env.APP_ROUTER_TEAMS_ENABLED === "1"] as const,
 ].map(([pathname, enabled]) => [
   new URLPattern({
     pathname,
   }),
   enabled,
 ]);
-
-const FUTURE_ROUTES_OVERRIDE_COOKIE_NAME = "x-calcom-future-routes-override";
-const FUTURE_ROUTES_ENABLED_COOKIE_NAME = "x-calcom-future-routes-enabled";
 
 const bucketSchema = z.union([z.literal("legacy"), z.literal("future")]);
 

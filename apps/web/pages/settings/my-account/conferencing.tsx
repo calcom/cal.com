@@ -1,3 +1,5 @@
+"use client";
+
 import { useReducer } from "react";
 
 import DisconnectIntegrationModal from "@calcom/features/apps/components/DisconnectIntegrationModal";

@@ -96,7 +96,8 @@ export async function getBooking(bookingId: number) {
       bookingFields: booking.eventType?.bookingFields || null,
     }),
     organizer: {
-      email: user.email,
+      email: booking?.userPrimaryEmail ?? user.email,
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       name: user.name!,
       timeZone: user.timeZone,
       timeFormat: getTimeFormatStringFromUserTimeFormat(user.timeFormat),

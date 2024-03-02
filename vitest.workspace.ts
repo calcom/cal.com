@@ -35,8 +35,12 @@ const workspaces = packagedEmbedTestsOnly
       {
         test: {
           include: ["packages/**/*.{test,spec}.{ts,js}", "apps/**/*.{test,spec}.{ts,js}"],
-          // TODO: Ignore the api until tests are fixed
-          exclude: ["**/node_modules/**/*", "packages/embeds/**/*", "packages/lib/hooks/**/*"],
+          exclude: [
+            "**/node_modules/**/*",
+            "**/.next/**/*",
+            "packages/embeds/**/*",
+            "packages/lib/hooks/**/*",
+          ],
           setupFiles: ["setupVitest.ts"],
         },
       },

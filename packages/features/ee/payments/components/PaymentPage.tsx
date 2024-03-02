@@ -1,3 +1,5 @@
+"use client";
+
 import classNames from "classnames";
 import dynamic from "next/dynamic";
 import Head from "next/head";

@@ -12,7 +12,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { describe, expect } from "vitest";
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import { WEBSITE_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { resetTestEmails } from "@calcom/lib/testEmails";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -82,6 +82,9 @@ describe("handleNewBooking", () => {
           name: "Booker",
         });
 
+        const organizerOtherEmail = "organizer2@example.com";
+        const organizerDestinationCalendarEmailOnEventType = "organizerEventTypeEmail@example.com";
+
         const organizer = getOrganizer({
           name: "Organizer",
           email: "organizer@example.com",
@@ -92,6 +95,7 @@ describe("handleNewBooking", () => {
           destinationCalendar: {
             integration: "google_calendar",
             externalId: "organizer@google-calendar.com",
+            primaryEmail: organizerOtherEmail,
           },
         });
 
@@ -120,8 +124,9 @@ describe("handleNewBooking", () => {
               eventTypes: [
                 {
                   id: 1,
-                  slotInterval: 45,
-                  length: 45,
+                  slotInterval: 30,
+                  length: 30,
+                  useEventTypeDestinationCalendarEmail: true,
                   users: [
                     {
                       id: 101,
@@ -130,6 +135,7 @@ describe("handleNewBooking", () => {
                   destinationCalendar: {
                     integration: "google_calendar",
                     externalId: "event-type-1@google-calendar.com",
+                    primaryEmail: organizerDestinationCalendarEmailOnEventType,
                   },
                 },
               ],
@@ -157,6 +163,7 @@ describe("handleNewBooking", () => {
 
         const mockBookingData = getMockRequestDataForBooking({
           data: {
+            user: organizer.username,
             eventTypeId: 1,
             responses: {
               email: booker.email,
@@ -207,7 +214,11 @@ describe("handleNewBooking", () => {
           iCalUID: createdBooking.iCalUID,
         });
 
-        expectWorkflowToBeTriggered({ organizer, emails });
+        expectWorkflowToBeTriggered({
+          organizer,
+          emails,
+          destinationEmail: organizerDestinationCalendarEmailOnEventType,
+        });
         expectSuccessfulCalendarEventCreationInCalendar(calendarMock, {
           calendarId: "event-type-1@google-calendar.com",
           videoCallUrl: "http://mock-dailyvideo.example.com/meeting-1",
@@ -218,12 +229,13 @@ describe("handleNewBooking", () => {
         expectSuccessfulBookingCreationEmails({
           booking: {
             uid: createdBooking.uid!,
-            urlOrigin: org ? org.urlOrigin : WEBAPP_URL,
+            urlOrigin: org ? org.urlOrigin : WEBSITE_URL,
           },
           booker,
           organizer,
           emails,
           iCalUID,
+          destinationEmail: organizerDestinationCalendarEmailOnEventType,
         });
 
         expectBookingCreatedWebhookToHaveBeenFired({
@@ -285,8 +297,8 @@ describe("handleNewBooking", () => {
               eventTypes: [
                 {
                   id: 1,
-                  slotInterval: 45,
-                  length: 45,
+                  slotInterval: 30,
+                  length: 30,
                   users: [
                     {
                       id: 101,
@@ -448,8 +460,8 @@ describe("handleNewBooking", () => {
               eventTypes: [
                 {
                   id: 1,
-                  slotInterval: 45,
-                  length: 45,
+                  slotInterval: 30,
+                  length: 30,
                   users: [
                     {
                       id: 101,
@@ -603,8 +615,8 @@ describe("handleNewBooking", () => {
               eventTypes: [
                 {
                   id: 1,
-                  slotInterval: 45,
-                  length: 45,
+                  slotInterval: 30,
+                  length: 30,
                   users: [
                     {
                       id: 101,
@@ -724,8 +736,8 @@ describe("handleNewBooking", () => {
               eventTypes: [
                 {
                   id: 1,
-                  slotInterval: 45,
-                  length: 45,
+                  slotInterval: 30,
+                  length: 30,
                   users: [
                     {
                       id: 101,
@@ -889,8 +901,8 @@ describe("handleNewBooking", () => {
               eventTypes: [
                 {
                   id: 1,
-                  slotInterval: 45,
-                  length: 45,
+                  slotInterval: 30,
+                  length: 30,
                   users: [
                     {
                       id: 101,
@@ -1023,8 +1035,8 @@ describe("handleNewBooking", () => {
               eventTypes: [
                 {
                   id: 1,
-                  slotInterval: 45,
-                  length: 45,
+                  slotInterval: 30,
+                  length: 30,
                   users: [
                     {
                       id: 101,
@@ -1111,8 +1123,8 @@ describe("handleNewBooking", () => {
               eventTypes: [
                 {
                   id: 1,
-                  slotInterval: 45,
-                  length: 45,
+                  slotInterval: 30,
+                  length: 30,
                   users: [
                     {
                       id: 101,
@@ -1167,6 +1179,66 @@ describe("handleNewBooking", () => {
       );
     });
 
+    describe("Event length check during booking", () => {
+      test(
+        `should fail if the time difference between a booking's start and end times is not equal to the event length.`,
+        async () => {
+          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+
+          const booker = getBooker({
+            email: "booker@example.com",
+            name: "Booker",
+          });
+
+          const organizer = getOrganizer({
+            name: "Organizer",
+            email: "organizer@example.com",
+            id: 101,
+            schedules: [TestData.schedules.IstWorkHours],
+          });
+
+          await createBookingScenario(
+            getScenarioData({
+              eventTypes: [
+                {
+                  id: 1,
+                  slotInterval: 30,
+                  length: 30,
+                  users: [
+                    {
+                      id: 101,
+                    },
+                  ],
+                },
+              ],
+              organizer,
+            })
+          );
+
+          const mockBookingData = getMockRequestDataForBooking({
+            data: {
+              start: `${getDate({ dateIncrement: 1 }).dateString}T05:00:00.000Z`,
+              end: `${getDate({ dateIncrement: 1 }).dateString}T05:15:00.000Z`,
+              eventTypeId: 1,
+              responses: {
+                email: booker.email,
+                name: booker.name,
+                location: { optionValue: "", value: "New York" },
+              },
+            },
+          });
+
+          const { req } = createMockNextJsRequest({
+            method: "POST",
+            body: mockBookingData,
+          });
+
+          await expect(async () => await handleNewBooking(req)).rejects.toThrowError("Invalid event length");
+        },
+        timeout
+      );
+    });
+
     describe(
       "Availability Check during booking",
       () => {
@@ -1196,8 +1268,8 @@ describe("handleNewBooking", () => {
                 eventTypes: [
                   {
                     id: 1,
-                    slotInterval: 45,
-                    length: 45,
+                    slotInterval: 30,
+                    length: 30,
                     users: [
                       {
                         id: 101,
@@ -1212,7 +1284,7 @@ describe("handleNewBooking", () => {
                     userId: 101,
                     status: BookingStatus.ACCEPTED,
                     startTime: `${plus1DateString}T05:00:00.000Z`,
-                    endTime: `${plus1DateString}T05:15:00.000Z`,
+                    endTime: `${plus1DateString}T05:30:00.000Z`,
                   },
                 ],
                 organizer,
@@ -1221,7 +1293,7 @@ describe("handleNewBooking", () => {
 
             const mockBookingData = getMockRequestDataForBooking({
               data: {
-                start: `${getDate({ dateIncrement: 1 }).dateString}T04:00:00.000Z`,
+                start: `${getDate({ dateIncrement: 1 }).dateString}T05:00:00.000Z`,
                 end: `${getDate({ dateIncrement: 1 }).dateString}T05:30:00.000Z`,
                 eventTypeId: 1,
                 responses: {
@@ -1279,8 +1351,8 @@ describe("handleNewBooking", () => {
                 eventTypes: [
                   {
                     id: 1,
-                    slotInterval: 45,
-                    length: 45,
+                    slotInterval: 30,
+                    length: 30,
                     users: [
                       {
                         id: 101,
@@ -1308,7 +1380,7 @@ describe("handleNewBooking", () => {
 
             const mockBookingData = getMockRequestDataForBooking({
               data: {
-                start: `${getDate({ dateIncrement: 1 }).dateString}T04:00:00.000Z`,
+                start: `${getDate({ dateIncrement: 1 }).dateString}T05:00:00.000Z`,
                 end: `${getDate({ dateIncrement: 1 }).dateString}T05:30:00.000Z`,
                 eventTypeId: 1,
                 responses: {
@@ -1380,9 +1452,9 @@ describe("handleNewBooking", () => {
             eventTypes: [
               {
                 id: 1,
-                slotInterval: 45,
+                slotInterval: 30,
                 requiresConfirmation: true,
-                length: 45,
+                length: 30,
                 users: [
                   {
                     id: 101,
@@ -1506,9 +1578,9 @@ describe("handleNewBooking", () => {
             eventTypes: [
               {
                 id: 1,
-                slotInterval: 45,
+                slotInterval: 30,
                 requiresConfirmation: true,
-                length: 45,
+                length: 30,
                 users: [
                   {
                     id: 101,
@@ -1630,7 +1702,7 @@ describe("handleNewBooking", () => {
               eventTypes: [
                 {
                   id: 1,
-                  slotInterval: 45,
+                  slotInterval: 30,
                   requiresConfirmation: true,
                   metadata: {
                     requiresConfirmationThreshold: {
@@ -1638,7 +1710,7 @@ describe("handleNewBooking", () => {
                       unit: "minutes",
                     },
                   },
-                  length: 45,
+                  length: 30,
                   users: [
                     {
                       id: 101,
@@ -1762,7 +1834,7 @@ describe("handleNewBooking", () => {
             eventTypes: [
               {
                 id: 1,
-                slotInterval: 45,
+                slotInterval: 30,
                 requiresConfirmation: true,
                 metadata: {
                   requiresConfirmationThreshold: {
@@ -1770,7 +1842,7 @@ describe("handleNewBooking", () => {
                     unit: "hours",
                   },
                 },
-                length: 45,
+                length: 30,
                 users: [
                   {
                     id: 101,
@@ -1856,8 +1928,8 @@ describe("handleNewBooking", () => {
           eventTypes: [
             {
               id: 1,
-              slotInterval: 45,
-              length: 45,
+              slotInterval: 30,
+              length: 30,
               users: [
                 {
                   id: 101,
@@ -1931,6 +2003,7 @@ describe("handleNewBooking", () => {
 
         const mockBookingData = getMockRequestDataForBooking({
           data: {
+            user: organizer.username,
             eventTypeId: 1,
             responses: {
               email: booker.email,
@@ -1968,8 +2041,8 @@ describe("handleNewBooking", () => {
           eventTypes: [
             {
               id: 1,
-              slotInterval: 45,
-              length: 45,
+              slotInterval: 30,
+              length: 30,
               users: [
                 {
                   id: 101,
@@ -2076,7 +2149,7 @@ describe("handleNewBooking", () => {
                 id: 1,
                 title: "Paid Event",
                 description: "It's a test Paid Event",
-                slotInterval: 45,
+                slotInterval: 30,
                 requiresConfirmation: false,
                 metadata: {
                   apps: {
@@ -2088,7 +2161,7 @@ describe("handleNewBooking", () => {
                     },
                   },
                 },
-                length: 45,
+                length: 30,
                 users: [
                   {
                     id: 101,
@@ -2233,7 +2306,7 @@ describe("handleNewBooking", () => {
             eventTypes: [
               {
                 id: 1,
-                slotInterval: 45,
+                slotInterval: 30,
                 requiresConfirmation: true,
                 metadata: {
                   apps: {
@@ -2244,7 +2317,7 @@ describe("handleNewBooking", () => {
                     },
                   },
                 },
-                length: 45,
+                length: 30,
                 users: [
                   {
                     id: 101,
