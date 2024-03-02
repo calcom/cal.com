@@ -303,7 +303,7 @@ const FixedHosts = ({
   );
 };
 
-const AddMembersWithSwitch = ({
+export const AddMembersWithSwitch = ({
   teamMembers,
   value,
   onChange,
@@ -312,6 +312,8 @@ const AddMembersWithSwitch = ({
   automaticAddAllEnabled,
   onActive,
   isFixed,
+  placeholder = "",
+  containerClassName = "",
 }: {
   value: Host[];
   onChange: (hosts: Host[]) => void;
@@ -321,13 +323,15 @@ const AddMembersWithSwitch = ({
   automaticAddAllEnabled: boolean;
   onActive: () => void;
   isFixed: boolean;
+  placeholder?: string;
+  containerClassName?: string;
 }) => {
   const { t } = useLocale();
   const { setValue } = useFormContext<FormValues>();
 
   return (
     <div className="rounded-md ">
-      <div className="flex flex-col rounded-md px-6 pb-2 pt-6">
+      <div className={`flex flex-col rounded-md px-6 pb-2 pt-6 ${containerClassName}`}>
         {automaticAddAllEnabled ? (
           <div className="mb-2">
             <AssignAllTeamMembers
@@ -346,7 +350,7 @@ const AddMembersWithSwitch = ({
             onChange={onChange}
             isFixed={isFixed}
             options={teamMembers.sort(sortByLabel)}
-            placeholder={t("add_attendees")}
+            placeholder={placeholder ?? t("add_attendees")}
           />
         ) : (
           <></>

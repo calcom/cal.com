@@ -2,7 +2,7 @@ import type { App_RoutingForms_Form, Team } from "@prisma/client";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
-import { Controller, useFormContext } from "react-hook-form";
+import { useFormContext } from "react-hook-form";
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { ShellMain } from "@calcom/features/shell/Shell";
@@ -22,7 +22,6 @@ import {
   DropdownMenuSeparator,
   Form,
   Meta,
-  SettingsToggle,
   showToast,
   TextAreaField,
   TextField,
@@ -37,6 +36,7 @@ import {
   Trash,
   MessageCircle,
 } from "@calcom/ui/components/icon";
+import { AddMembersWithSwitch } from "@calcom/web/components/eventtype/EventTeamTab";
 
 import { RoutingPages } from "../lib/RoutingPages";
 import { isFallbackRoute } from "../lib/isFallbackRoute";
@@ -238,11 +238,14 @@ type SingleFormComponentProps = {
 function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
   const utils = trpc.useContext();
   const { t } = useLocale();
+  const { data: teamMembers } = trpc.viewer.teams.listMembers.useQuery({});
 
   const [isTestPreviewOpen, setIsTestPreviewOpen] = useState(false);
   const [response, setResponse] = useState<Response>({});
   const [decidedAction, setDecidedAction] = useState<Route["action"] | null>(null);
   const [skipFirstUpdate, setSkipFirstUpdate] = useState(true);
+  const [selectedMembers, setSelectedMembers] = useState([]);
+  const [assignAllTeamMembers, setAssignAllTeamMembers] = useState(false);
 
   function testRouting() {
     const action = processRoute({ form, response });
@@ -339,7 +342,37 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
                   />
 
                   <div className="mt-6">
-                    <Controller
+                    <AddMembersWithSwitch
+                      teamMembers={(teamMembers || []).map((member) => ({
+                        value: member.id.toString(),
+                        label: member.name,
+                        avatar: member.avatarUrl,
+                        email: member.email,
+                        isFixed: true,
+                      }))}
+                      value={selectedMembers}
+                      onChange={(value: any) => {
+                        console.log("onChange", value);
+                      }}
+                      assignAllTeamMembers={assignAllTeamMembers}
+                      setAssignAllTeamMembers={setAssignAllTeamMembers}
+                      automaticAddAllEnabled={true}
+                      isFixed={true}
+                      onActive={() =>
+                        hookForm.setValue(
+                          "settings.sendUpdatesTo",
+                          (teamMembers || []).map((teamMember) => ({
+                            isFixed: true,
+                            userId: teamMember.id,
+                            priority: 2,
+                          })),
+                          { shouldDirty: true }
+                        )
+                      }
+                      placeholder={t("select_members")}
+                      containerClassName="!px-0 !pb-0 !pt-0"
+                    />
+                    {/* <Controller
                       name="settings.emailOwnerOnSubmission"
                       control={hookForm.control}
                       render={({ field: { value, onChange } }) => {
@@ -352,7 +385,7 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
                           />
                         );
                       }}
-                    />
+                    /> */}
                   </div>
 
                   {form.routers.length ? (

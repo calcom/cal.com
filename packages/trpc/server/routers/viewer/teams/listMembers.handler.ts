@@ -36,6 +36,8 @@ export const listMembersHandler = async ({ ctx, input }: ListMembersOptions) => 
               id: true,
               name: true,
               username: true,
+              email: true,
+              avatarUrl: true,
             },
           },
           accepted: true,
