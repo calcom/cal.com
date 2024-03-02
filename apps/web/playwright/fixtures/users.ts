@@ -521,6 +521,7 @@ export const createUsersFixture = (
       // Delete all users that were tracked by email(if they were created)
       await prisma.user.deleteMany({ where: { email: { in: store.trackedEmails.map((e) => e.email) } } });
       await prisma.team.deleteMany({ where: { id: { in: store.teams.map((org) => org.id) } } });
+      await prisma.secondaryEmail.deleteMany({ where: { userId: { in: ids } } });
       store.users = [];
       store.teams = [];
       store.trackedEmails = [];
