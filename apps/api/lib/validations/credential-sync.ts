@@ -4,6 +4,7 @@ import { minimumTokenResponseSchema } from "@calcom/app-store/_utils/oauth/parse
 
 const userId = z.string();
 const appSlug = z.string();
+const credentialId = z.string();
 
 export const schemaCredentialGetParams = z.object({
   userId,
@@ -21,9 +22,14 @@ export const schemaCredentialPostBody = z.object({
 
 export const schemaCredentialPatchParams = z.object({
   userId,
-  credentialId: z.string(),
+  credentialId,
 });
 
 export const schemaCredentialPatchBody = z.object({
   key: minimumTokenResponseSchema,
+});
+
+export const schemaCredentialDeleteParams = z.object({
+  userId,
+  credentialId,
 });

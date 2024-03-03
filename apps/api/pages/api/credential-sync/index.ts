@@ -7,5 +7,6 @@ export default withMiddleware("verifyCredentialSyncEnabled")(
     GET: import("./_get"),
     POST: import("./_post"),
     PATCH: import("./_patch"),
+    DELETE: import("./_delete"),
   })
 );
