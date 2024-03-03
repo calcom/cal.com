@@ -5,6 +5,7 @@ import { withMiddleware } from "~/lib/helpers/withMiddleware";
 export default withMiddleware("verifyCredentialSyncEnabled")(
   defaultHandler({
     GET: import("./_get"),
-    // POST: import("./_post"),
+    POST: import("./_post"),
+    PATCH: import("./_patch"),
   })
 );
