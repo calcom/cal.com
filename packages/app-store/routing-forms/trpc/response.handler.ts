@@ -46,7 +46,7 @@ export const responseHandler = async ({ ctx, input }: ResponseHandlerOptions) =>
       });
     }
 
-    const serializableFormWithFields = {
+    let serializableFormWithFields = {
       ...serializableForm,
       fields: serializableForm.fields,
     };
@@ -92,6 +92,28 @@ export const responseHandler = async ({ ctx, input }: ResponseHandlerOptions) =>
     const dbFormResponse = await prisma.app_RoutingForms_FormResponse.create({
       data: input,
     });
+
+    if (form.teamId && form.settings?.sendUpdatesTo?.length) {
+      const userEmails = await prisma.membership.findMany({
+        where: {
+          teamId: form.teamId,
+          userId: {
+            in: form.settings.sendUpdatesTo,
+          },
+        },
+        include: {
+          user: {
+            select: {
+              email: true,
+            },
+          },
+        },
+      });
+      serializableFormWithFields = {
+        ...serializableFormWithFields,
+        userEmails: userEmails.map((userEmail) => userEmail.user.email),
+      };
+    }
 
     await onFormSubmission(serializableFormWithFields, dbFormResponse.response as Response);
     return dbFormResponse;
