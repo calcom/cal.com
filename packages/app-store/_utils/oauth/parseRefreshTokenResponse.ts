@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import { APP_CREDENTIAL_SHARING_ENABLED } from "@calcom/lib/constants";
 
-const minimumTokenResponseSchema = z.object({
+export const minimumTokenResponseSchema = z.object({
   access_token: z.string(),
   //   Assume that any property with a number is the expiry
   [z.string().toString()]: z.number(),
