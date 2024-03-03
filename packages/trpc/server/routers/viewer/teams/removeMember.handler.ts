@@ -82,10 +82,13 @@ export const removeMemberHandler = async ({ ctx, input }: RemoveMemberOptions) =
     const orgInfo = await ctx.prisma.team.findUnique({
       where: { id: input.teamId },
       select: {
+        isOrganization: true,
+        organizationSettings: true,
         id: true,
         metadata: true,
       },
     });
+    const orgMetadata = orgInfo?.organizationSettings;
 
     if (!foundUser || !orgInfo) throw new TRPCError({ code: "NOT_FOUND" });
 
