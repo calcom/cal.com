@@ -9,6 +9,15 @@ export const schemaCredentialGetParams = z.object({
 
 export const schemaCredentialPostParams = z.object({
   userId: z.string(),
+});
+
+export const schemaCredentialPostBody = z.object({
   appSlug: z.string().optional(),
+  key: minimumTokenResponseSchema,
+});
+
+export const schemaCredentialPutParams = z.object({
+  userId: z.string(),
+  credentialId: z.string(),
   key: minimumTokenResponseSchema,
 });

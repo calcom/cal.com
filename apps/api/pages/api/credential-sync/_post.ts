@@ -4,12 +4,14 @@ import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
 
-import { schemaCredentialPostParams } from "~/lib/validations/credential-sync";
+import { schemaCredentialPostParams, schemaCredentialPostBody } from "~/lib/validations/credential-sync";
 
 async function handler(req: NextApiRequest) {
   const { prisma } = req;
 
-  const { appSlug, key, userId: reqUserId } = schemaCredentialPostParams.parse(req.query);
+  const { userId: reqUserId } = schemaCredentialPostParams.parse(req.query);
+
+  const { appSlug, key } = schemaCredentialPostBody.parse(req.body);
 
   const userId = parseInt(reqUserId);
 
