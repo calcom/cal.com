@@ -31,7 +31,7 @@ async function handler(req: NextApiRequest) {
     };
   });
 
-  return credentials;
+  return { credentials };
 }
 
 export default defaultResponder(handler);
