@@ -30,6 +30,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       funnelHubUserId,
       emailVerified: new Date(),
       timeZone: "America/Sao_Paulo",
+      locale: "pt-BR",
     },
   });
 

@@ -42,6 +42,9 @@ COPY scripts scripts
 ENV NEXT_PUBLIC_WEBAPP_URL=$NEXT_PUBLIC_WEBAPP_URL \
     BUILT_NEXT_PUBLIC_WEBAPP_URL=$NEXT_PUBLIC_WEBAPP_URL
 
+RUN chmod +777 /calcom/scripts/replace-placeholder.sh
+RUN /calcom/scripts/replace-placeholder.sh https://NEXT_PUBLIC_WEBAPP_URL_PLACEHOLDER ${NEXT_PUBLIC_WEBAPP_URL}
+
 FROM node:18 as runner
 
 
