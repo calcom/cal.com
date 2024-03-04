@@ -1,5 +1,8 @@
 import { CreateBookingInput } from "@/ee/bookings/inputs/create-booking.input";
 import { CreateReccuringBookingInput } from "@/ee/bookings/inputs/create-reccuring-booking.input";
+import { BookingsService } from "@/ee/bookings/services/bookings.service";
+import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
+import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
 import { OAuthFlowService } from "@/modules/oauth-clients/services/oauth-flow.service";
 import {
   Controller,
@@ -9,7 +12,11 @@ import {
   InternalServerErrorException,
   Body,
   HttpException,
+  Param,
+  Get,
+  UseGuards,
 } from "@nestjs/common";
+import { User } from "@prisma/client";
 import { Request } from "express";
 import { NextApiRequest } from "next/types";
 
@@ -30,7 +37,37 @@ import { ApiResponse } from "@calcom/platform-types";
 export class BookingsController {
   private readonly logger = new Logger("ee bookings controller");
 
-  constructor(private readonly oAuthFlowService: OAuthFlowService) {}
+  constructor(
+    private readonly oAuthFlowService: OAuthFlowService,
+    private readonly bookingsService: BookingsService
+  ) {}
+
+  @Get("/")
+  @UseGuards(AccessTokenGuard)
+  async getBookings(@GetUser() user: User): Promise<ApiResponse<unknown>> {
+    const bookings = this.bookingsService.getUserBookings(user.id);
+
+    return {
+      status: SUCCESS_STATUS,
+      data: {
+        bookings,
+      },
+    };
+  }
+
+  @Get("/:bookingId")
+  @UseGuards(AccessTokenGuard)
+  async getBooking(
+    @GetUser() user: User,
+    @Param("bookingId") bookingId: number
+  ): Promise<ApiResponse<unknown>> {
+    const booking = this.bookingsService.getBookingById(bookingId);
+
+    return {
+      status: SUCCESS_STATUS,
+      data: { booking },
+    };
+  }
 
   @Post("/")
   async createBooking(
