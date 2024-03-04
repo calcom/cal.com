@@ -251,6 +251,13 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
           days: true,
         },
       },
+      secondaryEmailId: true,
+      secondaryEmail: {
+        select: {
+          id: true,
+          email: true,
+        },
+      },
     },
   });
 
@@ -1452,6 +1459,13 @@ async function handler(
     ? [organizerUser.destinationCalendar]
     : null;
 
+  let organizerEmail = organizerUser.email || "Email-less";
+  if (eventType.useEventTypeDestinationCalendarEmail && destinationCalendar?.[0]?.primaryEmail) {
+    organizerEmail = destinationCalendar[0].primaryEmail;
+  } else if (eventType.secondaryEmailId && eventType.secondaryEmail?.email) {
+    organizerEmail = eventType.secondaryEmail.email;
+  }
+
   let evt: CalendarEvent = {
     bookerUrl,
     type: eventType.slug,
@@ -1464,10 +1478,7 @@ async function handler(
     organizer: {
       id: organizerUser.id,
       name: organizerUser.name || "Nameless",
-      email:
-        eventType.useEventTypeDestinationCalendarEmail && destinationCalendar?.[0]?.primaryEmail
-          ? destinationCalendar[0].primaryEmail
-          : organizerUser.email || "Email-less",
+      email: organizerEmail,
       username: organizerUser.username || undefined,
       timeZone: organizerUser.timeZone,
       language: { translate: tOrganizer, locale: organizerUser.locale ?? "en" },
