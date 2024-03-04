@@ -18,6 +18,7 @@ const calFont = localFont({
   variable: "--font-cal",
   preload: true,
   display: "block",
+  weight: "600",
 });
 
 export const generateMetadata = () =>
