@@ -20,8 +20,13 @@ export { InputField, Input, TextField } from "./inputs/TextField";
 export { Form } from "./inputs/Form";
 export { Label } from "./inputs/Label";
 export { Select, SelectField, SelectWithValidation, getReactSelectProps } from "./select";
-export { TimezoneSelect } from "./timezone-select";
-export type { ITimezone, ITimezoneOption } from "./timezone-select";
+export { TimezoneSelect, TimezoneSelectComponent } from "./timezone-select";
+export type {
+  ITimezone,
+  ITimezoneOption,
+  TimezoneSelectComponentProps,
+  TimezoneSelectProps,
+} from "./timezone-select";
 export { DateRangePickerLazy as DateRangePicker } from "./date-range-picker";
 export { BooleanToggleGroup, BooleanToggleGroupField, ToggleGroup } from "./toggleGroup";
 export { DatePicker } from "./datepicker";

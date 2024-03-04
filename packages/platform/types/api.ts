@@ -26,7 +26,6 @@ export type ApiRedirectResponseType = {
 
 export type Response<T = unknown> = BaseResponse<ApiResponse<T>>;
 
-export type ApiResponse<T = unknown> =
-  | ApiErrorResponse
-  | ApiSuccessResponse<T>
-  | ApiSuccessResponseWithoutData;
+export type ApiResponse<T = undefined> = T extends undefined
+  ? ApiSuccessResponseWithoutData | ApiErrorResponse
+  : ApiSuccessResponse<T> | ApiErrorResponse;

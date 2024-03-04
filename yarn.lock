@@ -3637,6 +3637,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/demodesk@workspace:packages/app-store/demodesk":
+  version: 0.0.0-use.local
+  resolution: "@calcom/demodesk@workspace:packages/app-store/demodesk"
+  dependencies:
+    "@calcom/lib": "*"
+    "@calcom/types": "*"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/discord@workspace:packages/app-store/discord":
   version: 0.0.0-use.local
   resolution: "@calcom/discord@workspace:packages/app-store/discord"
@@ -13561,7 +13570,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/cookiejar@npm:*":
+"@types/cookiejar@npm:^2.1.5":
   version: 2.1.5
   resolution: "@types/cookiejar@npm:2.1.5"
   checksum: 04d5990e87b6387532d15a87d9ec9b2eb783039291193863751dcfd7fc723a3b3aa30ce4c06b03975cba58632e933772f1ff031af23eaa3ac7f94e71afa6e073
@@ -14108,6 +14117,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/methods@npm:^1.1.4":
+  version: 1.1.4
+  resolution: "@types/methods@npm:1.1.4"
+  checksum: ad2a7178486f2fd167750f3eb920ab032a947ff2e26f55c86670a6038632d790b46f52e5b6ead5823f1e53fc68028f1e9ddd15cfead7903e04517c88debd72b1
+  languageName: node
+  linkType: hard
+
 "@types/micro@npm:7.3.7":
   version: 7.3.7
   resolution: "@types/micro@npm:7.3.7"
@@ -14456,12 +14472,13 @@ __metadata:
   linkType: hard
 
 "@types/superagent@npm:*":
-  version: 4.1.24
-  resolution: "@types/superagent@npm:4.1.24"
+  version: 8.1.4
+  resolution: "@types/superagent@npm:8.1.4"
   dependencies:
-    "@types/cookiejar": "*"
+    "@types/cookiejar": ^2.1.5
+    "@types/methods": ^1.1.4
     "@types/node": "*"
-  checksum: bb3bbc2d0f601339f0f79eacf46d43882c6bc18b5b509be856ad5eb00dd31c6e59212a2508a04f41ef2da231f1a28635f4dd2c9f974a2cb9973d18001f924417
+  checksum: e1c47f20c93a87cf14a016fa1a154b538291b0ed370f6eb4255ca58a693a6d0470896079d86e58e3489e3107e5796370b6208a983e90696549709c43cc51bfdf
   languageName: node
   linkType: hard
 

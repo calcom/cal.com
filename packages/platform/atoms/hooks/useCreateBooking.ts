@@ -6,10 +6,6 @@ import type { BookingCreateBody } from "@calcom/prisma/zod-utils";
 
 import http from "../lib/http";
 
-export type BookingResponse = Awaited<
-  ReturnType<typeof import("@calcom/features/bookings/lib/handleNewBooking").default>
->;
-
 export const useCreateBooking = (props: BookingCreateBody) => {
   const createBooking = useMutation({
     mutationFn: () => {
