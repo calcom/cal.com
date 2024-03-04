@@ -86,4 +86,5 @@ export type FormValues = {
   users: EventTypeSetup["users"];
   assignAllTeamMembers: boolean;
   useEventTypeDestinationCalendarEmail: boolean;
+  secondaryEmailId?: number;
 };
