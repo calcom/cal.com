@@ -198,7 +198,7 @@ export default class SalesforceRevertCalendarService implements Calendar {
 
     if (contacts && contacts.length) {
       if (contacts.length === event.attendees.length) {
-        // all contacts are in Pipedrive CRM already.
+        // all contacts are in Salesforce CRM already.
         this.log.debug("contact:search:all", { event, contacts: contacts });
         const existingPeople = contacts.map((c) => {
           return {
@@ -211,7 +211,7 @@ export default class SalesforceRevertCalendarService implements Calendar {
         });
         return await this.handleEventCreation(event, existingPeople);
       } else {
-        // Some attendees don't exist in PipedriveCRM
+        // Some attendees don't exist in SalesforceCRM
         // Get the existing contacts' email to filter out
         this.log.debug("contact:search:notAll", { event, contacts });
         const existingContacts = contacts.map((contact) => contact.results[0].email);
@@ -221,10 +221,10 @@ export default class SalesforceRevertCalendarService implements Calendar {
           (attendee) => !existingContacts.includes(attendee.email)
         );
         this.log.debug("contact:filter:nonExisting", { nonExistingContacts });
-        // Only create contacts in PipedriveCRM that were not present in the previous contact search
+        // Only create contacts in SalesforceCRM that were not present in the previous contact search
         const createdContacts = await this.createContacts(nonExistingContacts);
         this.log.debug("contact:created", { createdContacts });
-        // Continue with event creation and association only when all contacts are present in Pipedrive
+        // Continue with event creation and association only when all contacts are present in Salesforce
         if (createdContacts[0] && createdContacts[0].status === "ok") {
           this.log.debug("contact:creation:ok");
           const existingPeople = contacts.map((c) => {
@@ -284,6 +284,16 @@ export default class SalesforceRevertCalendarService implements Calendar {
   }
 
   async updateEvent(uid: string, event: CalendarEvent): Promise<NewCalendarEventType> {
+    let contacts = await this.contactSearch(event);
+    contacts = contacts.filter((c) => c.results.length >= 1);
+    //store emails only
+    const existingContacts = contacts.map((contact) => contact.results[0].email);
+
+    const nonExistingContacts = event.attendees.filter(
+      (attendee) => !existingContacts.includes(attendee.email)
+    );
+
+    await this.createContacts(nonExistingContacts);
     const meetingEvent = await (await this.updateMeeting(uid, event)).json();
     if (meetingEvent && meetingEvent.status === "ok") {
       this.log.debug("event:updation:ok", { meetingEvent });
