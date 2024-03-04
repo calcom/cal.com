@@ -108,16 +108,14 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       data,
     });
 
-    if (input.lockEventTypeCreation) {
-      tx.organizationSettings.update({
-        where: {
-          id: currentOrgId,
-        },
-        data: {
-          lockEventTypeCreationForUsers: true,
-        },
-      });
-    }
+    await tx.organizationSettings.update({
+      where: {
+        organizationId: currentOrgId,
+      },
+      data: {
+        lockEventTypeCreationForUsers: !!input.lockEventTypeCreation,
+      },
+    });
 
     return updatedOrganisation;
   });
