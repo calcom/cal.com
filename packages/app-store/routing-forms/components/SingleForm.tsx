@@ -240,7 +240,9 @@ type SingleFormComponentProps = {
 function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
   const utils = trpc.useContext();
   const { t } = useLocale();
-  const { data: teamMembers } = trpc.viewer.teams.listMembers.useQuery({});
+  const { data: teamMembers } = form.teamId
+    ? trpc.viewer.teams.listMembers.useQuery({ teamIds: [form.teamId] })
+    : null;
 
   const [isTestPreviewOpen, setIsTestPreviewOpen] = useState(false);
   const [response, setResponse] = useState<Response>({});
