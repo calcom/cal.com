@@ -443,6 +443,14 @@ const SettingsSidebarContainer = ({
                                           textClassNames="px-3 text-emphasis font-medium text-sm"
                                           disableChevron
                                         />
+                                        {HOSTED_CAL_FEATURES && (
+                                          <VerticalTabItem
+                                            name={t("saml_config")}
+                                            href={`/settings/teams/${team.id}/sso`}
+                                            textClassNames="px-3 text-emphasis font-medium text-sm"
+                                            disableChevron
+                                          />
+                                        )}
                                       </>
                                     ) : null}
                                   </>
@@ -701,7 +709,7 @@ export function ShellHeader() {
           )}
           <div>
             {meta.title && isLocaleReady ? (
-              <h1 className="font-cal text-emphasis mb-1 text-xl font-bold leading-5 tracking-wide">
+              <h1 className="font-cal text-emphasis mb-1 text-xl font-semibold leading-5 tracking-wide">
                 {t(meta.title)}
               </h1>
             ) : (

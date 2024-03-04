@@ -24,6 +24,7 @@ const calFont = localFont({
   variable: "--font-cal",
   preload: true,
   display: "swap",
+  weight: "600",
 });
 
 function PageWrapper(props: AppProps) {

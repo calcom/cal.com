@@ -52,6 +52,7 @@ const CreateNewTeamPage = () => {
         <meta name="description" content={t("create_new_team_description")} />
       </Head>
       <CreateANewTeamForm
+        slug={parsedQuery.success ? parsedQuery.data.slug : ""}
         onCancel={() => router.push(returnToParam)}
         submitLabel={flag.submitLabel}
         onSuccess={onSuccess}
