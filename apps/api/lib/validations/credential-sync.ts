@@ -1,10 +1,9 @@
 import { z } from "zod";
 
-import { minimumTokenResponseSchema } from "@calcom/app-store/_utils/oauth/parseRefreshTokenResponse";
-
 const userId = z.string();
 const appSlug = z.string();
 const credentialId = z.string();
+const encryptedKey = z.string();
 
 export const schemaCredentialGetParams = z.object({
   userId,
@@ -17,7 +16,7 @@ export const schemaCredentialPostParams = z.object({
 
 export const schemaCredentialPostBody = z.object({
   appSlug,
-  key: minimumTokenResponseSchema,
+  encryptedKey,
 });
 
 export const schemaCredentialPatchParams = z.object({
@@ -26,7 +25,7 @@ export const schemaCredentialPatchParams = z.object({
 });
 
 export const schemaCredentialPatchBody = z.object({
-  key: minimumTokenResponseSchema,
+  encryptedKey,
 });
 
 export const schemaCredentialDeleteParams = z.object({

@@ -12,7 +12,13 @@ async function handler(req: NextApiRequest) {
   const userId = parseInt(reqUserId);
   const credentialId = parseInt(reqCredentialId);
 
-  const { key } = schemaCredentialPatchBody.parse(req.body);
+  const { encryptedKey } = schemaCredentialPatchBody.parse(req.body);
+
+  const decryptedKey = JSON.parse(
+    symmetricDecrypt(encryptedKey, process.env.CALCOM_APP_CREDENTIAL_ENCRYPTION_KEY)
+  );
+
+  const key = minimumTokenResponseSchema.parse(decryptedKey);
 
   const credential = await prisma.credential.update({
     where: {
