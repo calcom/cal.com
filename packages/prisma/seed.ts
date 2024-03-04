@@ -8,7 +8,7 @@ import googleMeetMeta from "@calcom/app-store/googlevideo/_metadata";
 import zoomMeta from "@calcom/app-store/zoomvideo/_metadata";
 import dayjs from "@calcom/dayjs";
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
-import { BookingStatus, MembershipRole } from "@calcom/prisma/enums";
+import { BookingStatus, MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 import type { Ensure } from "@calcom/types/utils";
 
 import prisma from ".";
@@ -309,8 +309,9 @@ async function createOrganizationAndAddMembersAndTeams({
     // Create event for each team
     await prisma.eventType.create({
       data: {
-        title: `${team.teamData.name} Event1`,
+        title: `${team.teamData.name} Event 1`,
         slug: `${team.teamData.slug}-event-1`,
+        schedulingType: SchedulingType.ROUND_ROBIN,
         length: 15,
         team: {
           connect: {
