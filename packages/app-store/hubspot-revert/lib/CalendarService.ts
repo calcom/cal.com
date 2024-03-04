@@ -78,43 +78,42 @@ export default class HubspotRevertCalendarService implements Calendar {
   };
 
   private contactSearch = async (event: CalendarEvent) => {
-    const result = event.attendees.map(async (attendee) => {
-      const headers = new Headers();
-      headers.append("x-revert-api-token", this.revertApiKey);
-      headers.append("x-revert-t-id", this.tenantId);
-      headers.append("Content-Type", "application/json");
+    const attendeeEmails = event.attendees.map((attendee) => attendee.email);
 
-      const bodyRaw = JSON.stringify({
-        searchCriteria: {
-          filterGroups: [
-            {
-              filters: [
-                {
-                  propertyName: "email",
-                  operator: "EQ",
-                  value: attendee.email,
-                },
-              ],
-            },
-          ],
-        },
-      });
+    const headers = new Headers();
+    headers.append("x-revert-api-token", this.revertApiKey);
+    headers.append("x-revert-t-id", this.tenantId);
+    headers.append("Content-Type", "application/json");
 
-      const requestOptions = {
-        method: "POST",
-        headers: headers,
-        body: bodyRaw,
-      };
-
-      try {
-        const response = await fetch(`${this.revertApiUrl}crm/contacts/search`, requestOptions);
-        const result = (await response.json()) as ContactSearchResult;
-        return result;
-      } catch (error) {
-        return { status: "error", results: [] };
-      }
+    const bodyRaw = JSON.stringify({
+      searchCriteria: {
+        filterGroups: [
+          {
+            filters: [
+              {
+                propertyName: "email",
+                operator: "IN",
+                values: attendeeEmails,
+              },
+            ],
+          },
+        ],
+      },
     });
-    return await Promise.all(result);
+
+    const requestOptions = {
+      method: "POST",
+      headers: headers,
+      body: bodyRaw,
+    };
+
+    try {
+      const response = await fetch(`${this.revertApiUrl}crm/contacts/search`, requestOptions);
+      const result = (await response.json()) as ContactSearchResult;
+      return result;
+    } catch (error) {
+      return { status: "error", results: [] };
+    }
   };
 
   private getMeetingBody = (event: CalendarEvent): string => {
@@ -205,18 +204,17 @@ export default class HubspotRevertCalendarService implements Calendar {
   }
 
   async createEvent(event: CalendarEvent): Promise<NewCalendarEventType> {
-    let contacts = await this.contactSearch(event);
-    contacts = contacts.filter((c) => c.results.length >= 1);
+    const contacts = await this.contactSearch(event);
 
-    if (contacts && contacts.length) {
-      if (contacts.length === event.attendees.length) {
-        // all contacts are in Pipedrive CRM already.
+    if (contacts && contacts.results.length) {
+      if (contacts.results.length === event.attendees.length) {
+        // all contacts are in hubspot CRM already.
         this.log.debug("contact:search:all", { event, contacts: contacts });
-        const existingPeople = contacts.map((c) => {
+        const existingPeople = contacts.results.map((c) => {
           return {
-            id: Number(c.results[0].id),
-            name: `${c.results[0].firstName} ${c.results[0].lastName}`,
-            email: c.results[0].email,
+            id: Number(c.id),
+            name: `${c.firstName} ${c.lastName}`,
+            email: c.email,
             timeZone: event.attendees[0].timeZone,
             language: event.attendees[0].language,
           };
@@ -226,7 +224,7 @@ export default class HubspotRevertCalendarService implements Calendar {
         // Some attendees don't exist in PipedriveCRM
         // Get the existing contacts' email to filter out
         this.log.debug("contact:search:notAll", { event, contacts });
-        const existingContacts = contacts.map((contact) => contact.results[0].email);
+        const existingContacts = contacts.results.map((contact) => contact.email);
         this.log.debug("contact:filter:existing", { existingContacts });
         // Get non existing contacts filtering out existing from attendees
         const nonExistingContacts: Person[] = event.attendees.filter(
@@ -236,14 +234,14 @@ export default class HubspotRevertCalendarService implements Calendar {
         // Only create contacts in PipedriveCRM that were not present in the previous contact search
         const createdContacts = await this.createContacts(nonExistingContacts);
         this.log.debug("contact:created", { createdContacts });
-        // Continue with event creation and association only when all contacts are present in Pipedrive
+        // Continue with event creation and association only when all contacts are present in hubspot
         if (createdContacts[0] && createdContacts[0].status === "ok") {
           this.log.debug("contact:creation:ok");
-          const existingPeople = contacts.map((c) => {
+          const existingPeople = contacts.results.map((c) => {
             return {
-              id: Number(c.results[0].id),
-              name: c.results[0].name,
-              email: c.results[0].email,
+              id: Number(c.id),
+              name: c.name,
+              email: c.email,
               timeZone: nonExistingContacts[0].timeZone,
               language: nonExistingContacts[0].language,
             };
@@ -294,6 +292,16 @@ export default class HubspotRevertCalendarService implements Calendar {
   }
 
   async updateEvent(uid: string, event: CalendarEvent): Promise<NewCalendarEventType> {
+    const contacts = await this.contactSearch(event);
+
+    const existingContacts = contacts.results.map((contact) => contact.email);
+    const nonExistingContacts = event.attendees.filter(
+      (contact) => !existingContacts.includes(contact.email)
+    );
+    if (nonExistingContacts && nonExistingContacts.length >= 1) {
+      await this.createContacts(nonExistingContacts);
+    }
+
     const meetingEvent = await (await this.updateMeeting(uid, event)).json();
     if (meetingEvent && meetingEvent.status === "ok") {
       this.log.debug("event:updation:ok", { meetingEvent });
