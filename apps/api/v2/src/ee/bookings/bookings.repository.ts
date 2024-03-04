@@ -6,7 +6,6 @@ export class BookingsRepository {
   constructor(private readonly dbRead: PrismaReadService) {}
 
   async getBookingsByUserId(userId: number) {
-    // return the last 50 bookings of user associated with access token
     const bookings = await this.dbRead.prisma.booking.findMany({
       where: {
         userId,
@@ -21,7 +20,6 @@ export class BookingsRepository {
   }
 
   async getBookingsById(bookingId: number) {
-    // get booking by ID of user associated with access token
     const booking = await this.dbRead.prisma.booking.findUnique({
       where: { id: bookingId },
     });
