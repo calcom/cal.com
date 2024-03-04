@@ -2,6 +2,8 @@ import logger from "@calcom/lib/logger";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import prisma from "@calcom/prisma";
 
+import { TRPCError } from "@trpc/server";
+
 const log = logger.getSubLogger({ prefix: ["removeMember"] });
 
 const removeMember = async ({
