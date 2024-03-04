@@ -4,6 +4,7 @@ import { Controller, useForm } from "react-hook-form";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
 import { trpc } from "@calcom/trpc/react";
+import type { RouterOutputs } from "@calcom/trpc/react";
 import { Alert, Button, Form, TextField, DialogFooter } from "@calcom/ui";
 import { ArrowRight } from "@calcom/ui/components/icon";
 
@@ -14,7 +15,7 @@ import type { NewTeamFormValues } from "../lib/types";
 interface CreateANewTeamFormProps {
   onCancel: () => void;
   submitLabel: string;
-  onSuccess: (...args: any[]) => void;
+  onSuccess: (data: RouterOutputs["viewer"]["teams"]["create"][number]) => void;
   inDialog?: boolean;
   slug?: string;
 }
