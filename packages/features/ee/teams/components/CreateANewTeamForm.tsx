@@ -15,7 +15,7 @@ import type { NewTeamFormValues } from "../lib/types";
 interface CreateANewTeamFormProps {
   onCancel: () => void;
   submitLabel: string;
-  onSuccess: (data: RouterOutputs["viewer"]["teams"]["create"][number]) => void;
+  onSuccess: (data: RouterOutputs["viewer"]["teams"]["create"]) => void;
   inDialog?: boolean;
   slug?: string;
 }
