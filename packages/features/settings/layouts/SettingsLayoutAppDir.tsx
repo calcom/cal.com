@@ -703,7 +703,7 @@ export function ShellHeader() {
           )}
           <div>
             {meta.title && isLocaleReady ? (
-              <h1 className="font-cal text-emphasis mb-1 text-xl font-bold leading-5 tracking-wide">
+              <h1 className="font-cal text-emphasis mb-1 text-xl font-semibold leading-5 tracking-wide">
                 {t(meta.title)}
               </h1>
             ) : (
