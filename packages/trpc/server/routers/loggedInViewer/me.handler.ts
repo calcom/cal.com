@@ -3,6 +3,7 @@ import type { Session } from "next-auth";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { UserRepository } from "@calcom/lib/server/repository/user";
+import prisma from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 type MeOptions = {
@@ -26,6 +27,17 @@ export const meHandler = async ({ ctx }: MeOptions) => {
     upId: session.upId,
   });
 
+  const secondaryEmails = await prisma.secondaryEmail.findMany({
+    where: {
+      userId: user.id,
+    },
+    select: {
+      id: true,
+      email: true,
+      emailVerified: true,
+    },
+  });
+
   // Destructuring here only makes it more illegible
   // pick only the part we want to expose in the API
   return {
@@ -33,6 +45,7 @@ export const meHandler = async ({ ctx }: MeOptions) => {
     name: user.name,
     email: user.email,
     emailMd5: crypto.createHash("md5").update(user.email).digest("hex"),
+    emailVerified: user.emailVerified,
     startTime: user.startTime,
     endTime: user.endTime,
     bufferTime: user.bufferTime,
@@ -66,5 +79,6 @@ export const meHandler = async ({ ctx }: MeOptions) => {
     username: user.profile?.username ?? user.username ?? null,
     profile: user.profile ?? null,
     profiles: allUserEnrichedProfiles,
+    secondaryEmails,
   };
 };
