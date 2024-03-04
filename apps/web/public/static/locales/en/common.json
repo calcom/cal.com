@@ -2266,5 +2266,12 @@
   "field_identifiers_as_variables": "Use field identifiers as variables for your custom event redirect",
   "field_identifiers_as_variables_with_example": "Use field identifiers as variables for your custom event redirect (e.g. {{variable}})",
   "account_already_linked": "Account is already linked",
+  "primary": "Primary",
+  "make_primary": "Make primary",
+  "add_email": "Add Email",
+  "add_email_description": "Add an email address to replace your primary or to use as an alternative email on your event types.",
+  "confirm_email": "Confirm your email",
+  "confirm_email_description": "We sent an email to <strong>{{email}}</strong>. Click the link in the email to verify this address.",
+  "send_event_details_to": "Send event details to",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

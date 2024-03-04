@@ -127,7 +127,15 @@ const ChooseEmbedTypesDialogContent = ({ types }: { types: EmbedTypes }) => {
   );
 };
 
-const EmailEmbed = ({ eventType, username }: { eventType?: EventType; username: string }) => {
+const EmailEmbed = ({
+  eventType,
+  username,
+  orgSlug,
+}: {
+  eventType?: EventType;
+  username: string;
+  orgSlug?: string;
+}) => {
   const { t, i18n } = useLocale();
 
   const [timezone] = useTimePreferences((state) => [state.timezone]);
@@ -153,7 +161,7 @@ const EmailEmbed = ({ eventType, username }: { eventType?: EventType; username: 
     shallow
   );
   const event = useEvent();
-  const schedule = useScheduleForEvent();
+  const schedule = useScheduleForEvent({ orgSlug });
   const nonEmptyScheduleDays = useNonEmptyScheduleDays(schedule?.data?.slots);
 
   const onTimeSelect = (time: string) => {
@@ -516,6 +524,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   const dialogContentRef = useRef<HTMLDivElement>(null);
   const emailContentRef = useRef<HTMLDivElement>(null);
   const { data } = useSession();
+
   const [month, selectedDatesAndTimes] = useBookerStore(
     (state) => [state.month, state.selectedDatesAndTimes],
     shallow
@@ -710,7 +719,11 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
           </h3>
           <h4 className="text-subtle mb-6 text-sm font-normal">{embed.subtitle}</h4>
           {eventTypeData?.eventType && embedType === "email" ? (
-            <EmailEmbed eventType={eventTypeData?.eventType} username={data?.user.username as string} />
+            <EmailEmbed
+              eventType={eventTypeData?.eventType}
+              username={data?.user.username as string}
+              orgSlug={data?.user?.org?.slug}
+            />
           ) : (
             <div className="flex flex-col">
               <div className={classNames("font-medium", embedType === "element-click" ? "hidden" : "")}>
