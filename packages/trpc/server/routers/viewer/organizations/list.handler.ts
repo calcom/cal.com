@@ -31,7 +31,7 @@ export const listHandler = async ({ ctx }: ListHandlerInput) => {
 
   const organizationSettings = await ctx.prisma.organizationSettings.findUnique({
     where: {
-      id: ctx.user.organization.id,
+      organizationId: ctx.user.organization.id,
     },
     select: {
       lockEventTypeCreationForUsers: true,
