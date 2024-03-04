@@ -15,6 +15,7 @@ type UseScheduleWithCacheArgs = {
   dayCount?: number | null;
   rescheduleUid?: string | null;
   isTeamEvent?: boolean;
+  orgSlug?: string;
 };
 
 export const useSchedule = ({
@@ -30,6 +31,7 @@ export const useSchedule = ({
   dayCount,
   rescheduleUid,
   isTeamEvent,
+  orgSlug,
 }: UseScheduleWithCacheArgs) => {
   const now = dayjs();
   const monthDayjs = month ? dayjs(month) : now;
@@ -72,6 +74,7 @@ export const useSchedule = ({
       timeZone: timezone!,
       duration: duration ? `${duration}` : undefined,
       rescheduleUid,
+      orgSlug,
     },
     {
       trpc: {
