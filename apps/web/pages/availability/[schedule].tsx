@@ -51,9 +51,10 @@ type AvailabilityFormValues = {
 type DateOverrideProps = {
   workingHours: WorkingHours[];
   travelSchedules?: TravelSchedule[];
+  isDefaultSchedule: boolean;
 };
 
-const DateOverride = ({ workingHours, travelSchedules }: DateOverrideProps) => {
+const DateOverride = ({ workingHours, travelSchedules, isDefaultSchedule }: DateOverrideProps) => {
   const { remove, append, replace, fields } = useFieldArray<AvailabilityFormValues, "dateOverrides">({
     name: "dateOverrides",
   });
@@ -78,6 +79,7 @@ const DateOverride = ({ workingHours, travelSchedules }: DateOverrideProps) => {
           items={fields}
           workingHours={workingHours}
           travelSchedules={travelSchedules}
+          isDefaultSchedule={isDefaultSchedule}
         />
         <DateOverrideInputDialog
           workingHours={workingHours}
@@ -110,6 +112,8 @@ export default function Availability() {
       enabled: !!scheduleId,
     }
   );
+
+  const isDefaultSchedule = me.data?.defaultScheduleId === scheduleId;
 
   const form = useForm<AvailabilityFormValues>({
     values: schedule && {
@@ -395,6 +399,7 @@ export default function Availability() {
                 <DateOverride
                   workingHours={schedule.workingHours}
                   travelSchedules={me.data?.travelSchedules}
+                  isDefaultSchedule={isDefaultSchedule}
                 />
               )}
             </div>

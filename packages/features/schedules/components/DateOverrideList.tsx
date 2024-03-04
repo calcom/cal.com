@@ -28,6 +28,7 @@ const DateOverrideList = ({
   workingHours,
   excludedDates = [],
   travelSchedules = [],
+  isDefaultSchedule = false,
 }: {
   remove: UseFieldArrayRemove;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -36,6 +37,7 @@ const DateOverrideList = ({
   workingHours: WorkingHours[];
   excludedDates?: string[];
   travelSchedules?: TravelSchedule[];
+  isDefaultSchedule?: boolean;
 }) => {
   const { t, i18n } = useLocale();
   const { hour12 } = useSettings();
@@ -77,12 +79,14 @@ const DateOverrideList = ({
               item.ranges.map((range, i) => (
                 <p key={i} className="text-subtle text-xs">
                   {`${timeSpan(range)} ${
-                    travelSchedules.find(
-                      (travelSchedule) =>
-                        !dayjs(item.ranges[0].start).isBefore(travelSchedule.startDate) &&
-                        (!dayjs(item.ranges[0].end).isAfter(travelSchedule.endDate) ||
-                          !travelSchedule.endDate)
-                    )?.timeZone || ""
+                    isDefaultSchedule
+                      ? travelSchedules.find(
+                          (travelSchedule) =>
+                            !dayjs(item.ranges[0].start).isBefore(travelSchedule.startDate) &&
+                            (!dayjs(item.ranges[0].end).isAfter(travelSchedule.endDate) ||
+                              !travelSchedule.endDate)
+                        )?.timeZone || ""
+                      : ""
                   }`}
                   <></>
                 </p>
