@@ -2273,5 +2273,7 @@
   "confirm_email": "Confirm your email",
   "confirm_email_description": "We sent an email to <strong>{{email}}</strong>. Click the link in the email to verify this address.",
   "send_event_details_to": "Send event details to",
+  "lock_event_types_modal_header":"Existing Event Types",
+  "lock_event_types_modal_description":"Users in your organization have existing event types. What should we do with them?",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
