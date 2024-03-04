@@ -3,16 +3,16 @@ import { type AxiosInstance } from "axios";
 // eslint-disable-next-line no-restricted-imports
 import merge from "lodash/merge";
 
-import type { SdkAuthOptions } from "../types";
 import type { Endpoints } from "./endpoints";
 import { getEndpointData } from "./endpoints";
 import { CalApiError } from "./errors/cal-api-error";
+import type { SdkSecrets } from "./sdk-secrets";
 
 interface HttpCallerOptions {
   shouldHandleRefresh?: boolean;
 }
 
-const X_CAL_SECRET_KEY = "x-cal-secret-key";
+export const X_CAL_SECRET_KEY = "x-cal-secret-key";
 
 type CallOptions = {
   urlParams?: Record<string, string> | string[];
@@ -20,15 +20,21 @@ type CallOptions = {
 };
 
 export class HttpCaller {
+  awaitingRefresh = false;
+
+  secrets: SdkSecrets | null = null;
+
   constructor(
     private readonly clientId: string,
     private readonly axiosClient: AxiosInstance,
-    private readonly authOptions: SdkAuthOptions,
     options?: HttpCallerOptions
   ) {
     if (options?.shouldHandleRefresh) {
       // TODO handle refresh pre-call.
-      this.axiosClient.interceptors.request.use((config) => {
+      this.axiosClient.interceptors.request.use(async (config) => {
+        if (this.awaitingRefresh && this.secrets) {
+          await this.secrets.refreshAccessToken(this.clientId);
+        }
         return config;
       });
     }
@@ -36,6 +42,11 @@ export class HttpCaller {
     this.axiosClient.interceptors.response.use(
       (response) => response,
       (error: AxiosError) => {
+        if (error.status === 498) {
+          // tell HttpCaller to attempt a refresh on the subsequent request.
+          this.awaitingRefresh = true;
+        }
+
         if (error.response) {
           // The request was made and the server responded with a status code
           // that falls out of the range of 2xx
@@ -108,12 +119,12 @@ export class HttpCaller {
     const headers: Record<string, unknown> = {};
     const params: Record<string, unknown> = {};
 
-    if (this.authOptions.accessToken && auth === "access_token") {
-      headers["Authorization"] = `Bearer ${this.authOptions.accessToken}`;
+    if (this.secrets?.getAccessToken() && auth === "access_token") {
+      headers["Authorization"] = `Bearer ${this.secrets.getAccessToken()}`;
     }
 
-    if (this.authOptions.clientSecret && auth === "secret") {
-      headers[X_CAL_SECRET_KEY] = this.authOptions.clientSecret;
+    if (this.secrets?.getClientSecret() && auth === "secret") {
+      headers[X_CAL_SECRET_KEY] = this.secrets.getClientSecret();
       params["clientId"] = this.clientId;
     }
 

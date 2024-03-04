@@ -30,6 +30,7 @@ export enum Endpoints {
   AVAILABLE_SLOTS = "AVAILABLE_SLOTS",
   GET_PUBLIC_EVENT = "GET_PUBLIC_EVENT",
   EXCHANGE_OAUTH_AUTH_TOKEN = "EXCHANGE_OAUTH_AUTH_TOKEN",
+  REFRESH_OAUTH_TOKEN = "REFRESH_OAUTH_TOKEN",
 }
 
 const publicEndpoint = (uri: string, version = ApiVersion.NEUTRAL): EndpointDeclaration => ({
@@ -54,38 +55,59 @@ const ENDPOINTS: Record<Endpoints, EndpointDeclaration> = {
   DELETE_SELECTED_SLOT: publicEndpoint("slots/delete", ApiVersion.V2),
   GET_PUBLIC_EVENT: publicEndpoint("events/"),
   EXCHANGE_OAUTH_AUTH_TOKEN: publicEndpointConstructor<string[]>(
-    (params) => `oauth/token/${params.join("/")}`,
+    ([clientId]) => `oauth/${clientId}/exchange`,
+    ApiVersion.NEUTRAL
+  ),
+  REFRESH_OAUTH_TOKEN: publicEndpointConstructor<string[]>(
+    ([clientId]) => `oauth/${clientId}/refresh`,
     ApiVersion.NEUTRAL
   ),
 } as const;
 
-// Assuming getEndpointData is defined to accept both types
+const isParamsRecord = (params: unknown): params is Record<string, string> => {
+  return params !== null && typeof params === "object" && !Array.isArray(params);
+};
+
 export const getEndpointData = (
   endpoint: Endpoints,
   params?: Record<string, string> | string[]
 ): {
   uri: string;
   version: ApiVersion;
-  auth: string; // Simplified for illustration
+  auth: EndpointDeclaration["auth"];
 } => {
   const endpointData = ENDPOINTS[endpoint];
 
-  // Assume all dynamic endpoints require string[] for simplicity
-  if ("constructUri" in endpointData && Array.isArray(params)) {
+  // Determine if the endpoint expects a dynamic URI construction
+  if (typeof endpointData.constructUri === "function") {
+    if (!params) {
+      throw new Error("Parameters are required for dynamic endpoints.");
+    }
+
+    // Here, we need to determine the correct type of params at runtime
+    let constructedUri: string;
+    if (isParamsRecord(params)) {
+      // Params is a Record<string, string>, handle accordingly
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      constructedUri = endpointData.constructUri(params as Record<string, string>);
+    } else if (Array.isArray(params)) {
+      // Params is string[], handle accordingly
+      constructedUri = endpointData.constructUri(params as string[]);
+    } else {
+      throw new Error("Invalid parameter type for dynamic endpoint.");
+    }
+
     return {
       version: endpointData.apiVersion,
-      uri: endpointData.constructUri!(params),
+      uri: constructedUri,
       auth: endpointData.auth,
     };
-  } else if ("constructUri" in endpointData && typeof params === "object") {
-    // This branch is for Record<string, string>, but you'd need a different approach or assumption
-    // Perhaps call a different or adapted constructUri function that can handle Record<string, string>
-    throw new Error("Unsupported parameter type for this endpoint.");
-  } else if ("uri" in endpointData) {
-    // Static URI handling
+  } else if (endpointData.uri) {
+    // Handle static URIs
     return {
       version: endpointData.apiVersion,
-      uri: endpointData.uri!,
+      uri: endpointData.uri,
       auth: endpointData.auth,
     };
   } else {

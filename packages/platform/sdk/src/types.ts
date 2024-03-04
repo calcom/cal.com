@@ -28,6 +28,7 @@ export enum ApiVersion {
 export type SdkAuthOptions = {
   clientSecret?: string;
   accessToken?: string;
+  refreshToken?: string;
 };
 
 export * from "./endpoints/slots/types";
