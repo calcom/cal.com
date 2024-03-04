@@ -66,6 +66,7 @@ export {
   Stepper,
   Switch,
   NumberInput,
+  InputError,
 } from "./components/form";
 export type { ITimezone, ITimezoneOption } from "./components/form";
 export {
