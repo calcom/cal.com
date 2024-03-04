@@ -6,6 +6,7 @@ import { Events } from "./endpoints/events";
 import { Slots } from "./endpoints/slots";
 import { SdkInitializationError } from "./lib/errors/sdk-initialization-error";
 import { HttpCaller } from "./lib/http-caller";
+import { SdkSecrets } from "./lib/sdk-secrets";
 import type { CalSdkConstructorOptions, SdkAuthOptions } from "./types";
 
 /**
@@ -17,9 +18,10 @@ export class CalSdk {
   slots: Slots;
   bookings: Bookings;
   events: Events;
+  _secrets: SdkSecrets;
 
   constructor(
-    protected readonly clientId: string,
+    public readonly clientId: string,
     protected readonly authOptions: SdkAuthOptions,
     protected readonly options: CalSdkConstructorOptions = {
       baseUrl: "https://api.cal.com/", // don't set api version here as endpoints may have version-neutral or specific values.
@@ -28,6 +30,8 @@ export class CalSdk {
     if (!authOptions.accessToken && !authOptions.clientSecret) {
       throw new SdkInitializationError("Either 'accessToken' or 'clientSecret' are required in authOptions");
     }
+
+    this._secrets = new SdkSecrets(authOptions.clientSecret ?? "", authOptions.accessToken ?? "");
 
     this.httpCaller = new HttpCaller(this.clientId, this._createAxiosClientBase(), this.authOptions);
 

@@ -14,6 +14,11 @@ interface HttpCallerOptions {
 
 const X_CAL_SECRET_KEY = "x-cal-secret-key";
 
+type CallOptions = {
+  urlParams?: Record<string, string> | string[];
+  config?: AxiosRequestConfig<unknown>;
+};
+
 export class HttpCaller {
   constructor(
     private readonly clientId: string,
@@ -44,44 +49,54 @@ export class HttpCaller {
     );
   }
 
-  async post<T>(endpoint: Endpoints, body?: unknown, config?: AxiosRequestConfig<unknown>): Promise<T> {
+  async post<T>(
+    endpoint: Endpoints,
+    options: CallOptions & {
+      body?: unknown;
+    }
+  ): Promise<T> {
     const { data } = await this.axiosClient.post<T>(
-      this.createCallUrl(endpoint),
-      body,
-      this.wrapConfigWithAuth(endpoint, config)
+      this.createCallUrl(endpoint, options.urlParams),
+      options.body,
+      this.wrapConfigWithAuth(endpoint, options.config)
     );
     return data;
   }
 
-  async get<T>(endpoint: Endpoints, config?: AxiosRequestConfig<unknown>): Promise<T> {
+  async get<T>(endpoint: Endpoints, options: CallOptions): Promise<T> {
     const { data } = await this.axiosClient.get<T>(
-      this.createCallUrl(endpoint),
-      this.wrapConfigWithAuth(endpoint, config)
+      this.createCallUrl(endpoint, options.urlParams),
+      this.wrapConfigWithAuth(endpoint, options.config)
     );
     return data;
   }
 
-  async delete<T>(endpoint: Endpoints, config?: AxiosRequestConfig<unknown>): Promise<T> {
+  async delete<T>(endpoint: Endpoints, options: CallOptions): Promise<T> {
     const { data } = await this.axiosClient.delete<T>(
-      this.createCallUrl(endpoint),
-      this.wrapConfigWithAuth(endpoint, config)
+      this.createCallUrl(endpoint, options.urlParams),
+      this.wrapConfigWithAuth(endpoint, options.config)
     );
     return data;
   }
 
-  async patch<T>(endpoint: Endpoints, body?: unknown, config?: AxiosRequestConfig<unknown>): Promise<T> {
+  async patch<T>(
+    endpoint: Endpoints,
+    options: CallOptions & {
+      body?: unknown;
+    }
+  ): Promise<T> {
     const { data } = await this.axiosClient.patch<T>(
-      this.createCallUrl(endpoint),
-      body,
-      this.wrapConfigWithAuth(endpoint, config)
+      this.createCallUrl(endpoint, options.urlParams),
+      options.body,
+      this.wrapConfigWithAuth(endpoint, options.config)
     );
 
     return data;
   }
 
-  private createCallUrl(endpoint: Endpoints): string {
-    const { apiVersion, uri } = getEndpointData(endpoint);
-    return `${apiVersion}${uri}`;
+  private createCallUrl(endpoint: Endpoints, params?: Record<string, string> | string[]): string {
+    const { version, uri } = getEndpointData(endpoint, params);
+    return `${version}${uri}`;
   }
 
   private wrapConfigWithAuth(

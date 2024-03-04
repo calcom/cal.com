@@ -9,6 +9,7 @@
     "axios": "^1.6.7",
     "axios-retry": "^4.0.0",
     "lodash": "^4.17.21",
+    "ts-essentials": "^9.4.1",
     "zod": "^3.22.4"
   }
 }

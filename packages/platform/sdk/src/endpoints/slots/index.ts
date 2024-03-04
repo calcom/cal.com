@@ -16,17 +16,18 @@ export class Slots extends EndpointHandler {
   }
 
   async reserveSlot(args: ReserveSlotArgs): Promise<SlotUID> {
-    const { data } = await this.sdk.httpCaller.post<BasicPlatformResponse<SlotUID>>(
-      Endpoints.RESERVE_SLOT,
-      args
-    );
+    const { data } = await this.sdk.httpCaller.post<BasicPlatformResponse<SlotUID>>(Endpoints.RESERVE_SLOT, {
+      body: args,
+    });
     return data;
   }
 
   async removeSelectedSlot(args: RemoveSelectedSlotArgs): Promise<ResponseStatus> {
     const { status } = await this.sdk.httpCaller.delete<BasicPlatformResponse>(
       Endpoints.DELETE_SELECTED_SLOT,
-      { params: args }
+      {
+        config: { params: args },
+      }
     );
     return status === "success" ? "success" : "error";
   }
@@ -35,7 +36,9 @@ export class Slots extends EndpointHandler {
     const { data } = await this.sdk.httpCaller.get<BasicPlatformResponse<AvailableSlots>>(
       Endpoints.AVAILABLE_SLOTS,
       {
-        params: args,
+        config: {
+          params: args,
+        },
       }
     );
     return data;
