@@ -120,18 +120,21 @@ const createTeamAndAddUser = async (
   const slug = `${isOrg ? "org" : "team"}-${workerInfo.workerIndex}-${Date.now()}`;
   const data: PrismaType.TeamCreateInput = {
     name: `user-id-${user.id}'s ${isOrg ? "Org" : "Team"}`,
+    isOrganization: isOrg,
   };
   data.metadata = {
     ...(isUnpublished ? { requestedSlug: slug } : {}),
-    ...(isOrg
-      ? {
-          isOrganization: true,
-          isOrganizationVerified: !!isOrgVerified,
-          orgAutoAcceptEmail: user.email.split("@")[1],
-          isOrganizationConfigured: false,
-        }
-      : {}),
   };
+  if (isOrg) {
+    data.organizationSettings = {
+      create: {
+        isOrganizationVerified: !!isOrgVerified,
+        orgAutoAcceptEmail: user.email.split("@")[1],
+        isOrganizationConfigured: false,
+      },
+    };
+  }
+
   data.slug = !isUnpublished ? slug : undefined;
   if (isOrg && hasSubteam) {
     const team = await createTeamAndAddUser({ user }, workerInfo);
@@ -518,6 +521,7 @@ export const createUsersFixture = (
       // Delete all users that were tracked by email(if they were created)
       await prisma.user.deleteMany({ where: { email: { in: store.trackedEmails.map((e) => e.email) } } });
       await prisma.team.deleteMany({ where: { id: { in: store.teams.map((org) => org.id) } } });
+      await prisma.secondaryEmail.deleteMany({ where: { userId: { in: ids } } });
       store.users = [];
       store.teams = [];
       store.trackedEmails = [];
@@ -593,7 +597,7 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
             },
           };
         })
-        .find((membership) => !membership.team?.metadata?.isOrganization);
+        .find((membership) => !membership.team.isOrganization);
       if (!membership) {
         throw new Error("No team found for user");
       }
@@ -604,10 +608,7 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
         where: {
           userId: user.id,
           team: {
-            metadata: {
-              path: ["isOrganization"],
-              equals: true,
-            },
+            isOrganization: true,
           },
         },
         include: { team: { include: { children: true } } },

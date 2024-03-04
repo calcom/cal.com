@@ -20,6 +20,8 @@ const teamSelect = Prisma.validator<Prisma.TeamSelect>()({
   slug: true,
   metadata: true,
   logoUrl: true,
+  organizationSettings: true,
+  isOrganization: true,
 });
 
 const userSelect = Prisma.validator<Prisma.UserSelect>()({

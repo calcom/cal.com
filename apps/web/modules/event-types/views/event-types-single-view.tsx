@@ -149,6 +149,7 @@ export type FormValues = {
   users: EventTypeSetup["users"];
   assignAllTeamMembers: boolean;
   useEventTypeDestinationCalendarEmail: boolean;
+  secondaryEmailId?: number;
 };
 
 export type CustomInputParsed = typeof customInputSchema._output;
@@ -266,7 +267,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       beforeEventBuffer: eventType.beforeEventBuffer,
       eventName: eventType.eventName || "",
       scheduleName: eventType.scheduleName,
-      periodDays: eventType.periodDays || 30,
+      periodDays: eventType.periodDays,
       requiresBookerEmailVerification: eventType.requiresBookerEmailVerification,
       seatsPerTimeSlot: eventType.seatsPerTimeSlot,
       seatsShowAttendees: eventType.seatsShowAttendees,
@@ -302,6 +303,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       successRedirectUrl: eventType.successRedirectUrl || "",
       users: eventType.users,
       useEventTypeDestinationCalendarEmail: eventType.useEventTypeDestinationCalendarEmail,
+      secondaryEmailId: eventType?.secondaryEmailId || -1,
       children: eventType.children.map((ch) => ({
         ...ch,
         created: true,

@@ -251,6 +251,13 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
           days: true,
         },
       },
+      secondaryEmailId: true,
+      secondaryEmail: {
+        select: {
+          id: true,
+          email: true,
+        },
+      },
     },
   });
 
@@ -1452,6 +1459,13 @@ async function handler(
     ? [organizerUser.destinationCalendar]
     : null;
 
+  let organizerEmail = organizerUser.email || "Email-less";
+  if (eventType.useEventTypeDestinationCalendarEmail && destinationCalendar?.[0]?.primaryEmail) {
+    organizerEmail = destinationCalendar[0].primaryEmail;
+  } else if (eventType.secondaryEmailId && eventType.secondaryEmail?.email) {
+    organizerEmail = eventType.secondaryEmail.email;
+  }
+
   let evt: CalendarEvent = {
     bookerUrl,
     type: eventType.slug,
@@ -1464,10 +1478,7 @@ async function handler(
     organizer: {
       id: organizerUser.id,
       name: organizerUser.name || "Nameless",
-      email:
-        eventType.useEventTypeDestinationCalendarEmail && destinationCalendar?.[0]?.primaryEmail
-          ? destinationCalendar[0].primaryEmail
-          : organizerUser.email || "Email-less",
+      email: organizerEmail,
       username: organizerUser.username || undefined,
       timeZone: organizerUser.timeZone,
       language: { translate: tOrganizer, locale: organizerUser.locale ?? "en" },
@@ -1627,6 +1638,19 @@ async function handler(
     })
   );
 
+  // update original rescheduled booking (no seats event)
+  if (!eventType.seatsPerTimeSlot && originalRescheduledBooking?.uid) {
+    await prisma.booking.update({
+      where: {
+        id: originalRescheduledBooking.id,
+      },
+      data: {
+        rescheduled: true,
+        status: BookingStatus.CANCELLED,
+      },
+    });
+  }
+
   try {
     booking = await createBooking({
       originalRescheduledBooking,
@@ -1694,7 +1718,7 @@ async function handler(
       err.message
     );
     if (err.code === "P2002") {
-      throw new HttpError({ statusCode: 409, message: "booking.conflict" });
+      throw new HttpError({ statusCode: 409, message: "booking_conflict" });
     }
     throw err;
   }
@@ -1720,20 +1744,7 @@ async function handler(
 
     evt = addVideoCallDataToEvent(originalRescheduledBooking.references, evt);
 
-    //update original rescheduled booking (no seats event)
-    if (!eventType.seatsPerTimeSlot) {
-      await prisma.booking.update({
-        where: {
-          id: originalRescheduledBooking.id,
-        },
-        data: {
-          rescheduled: true,
-          status: BookingStatus.CANCELLED,
-        },
-      });
-    }
-
-    const newDesinationCalendar = evt.destinationCalendar;
+    const newDestinationCalendar = evt.destinationCalendar;
 
     evt.destinationCalendar = originalRescheduledBooking?.destinationCalendar
       ? [originalRescheduledBooking?.destinationCalendar]
@@ -1752,7 +1763,7 @@ async function handler(
       originalRescheduledBooking.uid,
       undefined,
       changedOrganizer,
-      newDesinationCalendar
+      newDestinationCalendar
     );
 
     // This gets overridden when updating the event - to check if notes have been hidden or not. We just reset this back
@@ -2291,8 +2302,7 @@ async function handler(
     loggerWithEventDetails.error("Error while creating booking references", JSON.stringify({ error }));
   }
 
-  const metadataFromEvent = videoCallUrl ? { videoCallUrl } : undefined;
-  const evtWithMetadata = { ...evt, metadata: metadataFromEvent, eventType: { slug: eventType.slug } };
+  const evtWithMetadata = { ...evt, metadata, eventType: { slug: eventType.slug } };
 
   await scheduleMandatoryReminder(
     evtWithMetadata,
