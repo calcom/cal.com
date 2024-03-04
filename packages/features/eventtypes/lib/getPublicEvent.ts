@@ -244,10 +244,15 @@ export const getPublicEvent = async (
     hosts: hosts,
   };
 
-  const users = getUsersFromEvent(eventWithUserProfiles) || (await getOwnerFromUsersArray(prisma, event.id));
+  let users = getUsersFromEvent(eventWithUserProfiles) || (await getOwnerFromUsersArray(prisma, event.id));
 
   if (users === null) {
     throw new Error("Event has no owner");
+  }
+
+  // For backward compatibility when team event type has users[] but not hosts[]
+  if (!users.length) {
+    users = await getOwnerFromUsersArray(prisma, event.id);
   }
 
   return {

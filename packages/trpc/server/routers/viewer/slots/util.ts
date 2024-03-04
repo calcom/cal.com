@@ -346,10 +346,6 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
     usersWithCredentials = eventType.hosts.map(({ isFixed, user }) => ({ isFixed, ...user }));
   }
 
-  if (eventType.schedulingType && !eventType.hosts?.length) {
-    throw new TRPCError({ message: "No user is assigned.", code: "NOT_FOUND" });
-  }
-
   const durationToUse = input.duration || 0;
 
   const startTimeDate =
