@@ -33,6 +33,7 @@ export const apiHandlers = {
   huddle01video: import("./huddle01video/api"),
   "ics-feedcalendar": import("./ics-feedcalendar/api"),
   intercom: import("./intercom/api"),
+  jelly: import("./jelly/api"),
   jitsivideo: import("./jitsivideo/api"),
   larkcalendar: import("./larkcalendar/api"),
   linear: import("./linear/api"),
