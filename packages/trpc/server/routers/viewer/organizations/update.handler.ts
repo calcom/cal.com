@@ -102,9 +102,24 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     }
   }
 
-  const updatedOrganisation = await prisma.team.update({
-    where: { id: currentOrgId },
-    data,
+  const updatedOrganisation = await prisma.$transaction(async (tx) => {
+    const updatedOrganisation = await tx.team.update({
+      where: { id: currentOrgId },
+      data,
+    });
+
+    if (input.lockEventTypeCreation) {
+      tx.organizationSettings.update({
+        where: {
+          id: currentOrgId,
+        },
+        data: {
+          lockEventTypeCreationForUsers: true,
+        },
+      });
+    }
+
+    return updatedOrganisation;
   });
 
   // Sync Services: Close.com
