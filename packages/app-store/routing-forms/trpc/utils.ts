@@ -11,7 +11,7 @@ import type { Response, SerializableForm } from "../types/types";
 
 export async function onFormSubmission(
   form: Ensure<
-    SerializableForm<App_RoutingForms_Form> & { user: Pick<User, "id" | "email">; userEmails?: string[] },
+    SerializableForm<App_RoutingForms_Form> & { user: Pick<User, "id" | "email">; userWithEmails?: string[] },
     "fields"
   >,
   response: Response
@@ -75,13 +75,11 @@ export async function onFormSubmission(
       `Preparing to send Form Response email for Form:${form.id} to form owner: ${form.user.email}`
     );
     await sendResponseEmail(form, orderedResponses, [form.user.email]);
-  } else if (form.userEmails?.length) {
+  } else if (form.userWithEmails?.length) {
     logger.debug(
-      `Preparing to send Form Response email for Form:${
-        form.id
-      } to users with ids: ${form.settings.sendUpdatesTo.join(",")}`
+      `Preparing to send Form Response email for Form:${form.id} to users: ${form.userWithEmails.join(",")}`
     );
-    await sendResponseEmail(form, orderedResponses, form.userEmails);
+    await sendResponseEmail(form, orderedResponses, form.userWithEmails);
   }
 }
 
