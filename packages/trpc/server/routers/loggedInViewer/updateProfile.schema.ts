@@ -39,6 +39,15 @@ export const ZUpdateProfileInputSchema = z.object({
       })
     )
     .optional(),
+  secondaryEmails: z
+    .array(
+      z.object({
+        id: z.number(),
+        email: z.string(),
+        isDeleted: z.boolean().default(false),
+      })
+    )
+    .optional(),
 });
 
 export type TUpdateProfileInputSchema = z.infer<typeof ZUpdateProfileInputSchema>;
