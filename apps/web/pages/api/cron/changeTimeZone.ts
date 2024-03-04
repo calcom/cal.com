@@ -57,7 +57,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
 
-    // set new tz to default schedule (same as we do in updateProfile.handler.ts)
     await prisma.schedule.updateMany({
       where: {
         id: defaultScheduleId,
@@ -126,13 +125,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const userTz = travelSchedule.user.timeZone;
     const offset = dayjs().tz(userTz).utcOffset();
 
-    // midnight in user's time zone but we use utc time
+    // midnight of user's time zone in utc time
     const startDateUTC = dayjs(travelSchedule.startDate).subtract(offset, "minute");
-    // 23:59 in user's time zone but we use utc time
+    // 23:59 of user's time zone in utc time
     const endDateUTC = dayjs(travelSchedule.endDate).subtract(offset, "minute");
     if (
-      (dayjs.utc().isSame(startDateUTC) || dayjs.utc().isAfter(startDateUTC)) &&
-      !dayjs.utc().isAfter(endDateUTC) &&
+      !dayjs.utc().isBefore(startDateUTC) &&
+      dayjs.utc().isBefore(endDateUTC) &&
       !travelSchedule.prevTimeZone
     ) {
       // if travel schedule has started and prevTimeZone is not yet set, we need to change time zone
@@ -155,7 +154,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         });
       }
     }
-    if (dayjs().utc().isSame(endDateUTC) || dayjs.utc().isAfter(endDateUTC)) {
+    if (!dayjs().utc().isBefore(endDateUTC)) {
       if (travelSchedule.prevTimeZone) {
         // travel schedule ended, change back to original timezone
         await setNewTimeZone(travelSchedule.prevTimeZone, travelSchedule.user);
