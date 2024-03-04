@@ -246,13 +246,13 @@ export const getPublicEvent = async (
 
   let users = getUsersFromEvent(eventWithUserProfiles) || (await getOwnerFromUsersArray(prisma, event.id));
 
-  if (users === null) {
-    throw new Error("Event has no owner");
+  // For backward compatibility when team event type has users[] but not hosts[]
+  if (!!event.team && Array.isArray(users) && !users.length) {
+    users = (await getOwnerFromUsersArray(prisma, event.id)) ?? [];
   }
 
-  // For backward compatibility when team event type has users[] but not hosts[]
-  if (!users.length) {
-    users = await getOwnerFromUsersArray(prisma, event.id);
+  if (users === null) {
+    throw new Error("Event has no owner");
   }
 
   return {
