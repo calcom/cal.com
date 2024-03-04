@@ -4,7 +4,7 @@ import { type AxiosInstance } from "axios";
 import merge from "lodash/merge";
 
 import type { Endpoints } from "./endpoints";
-import { getEndpointData } from "./endpoints";
+import { getEndpointData, getEndpointDefinition } from "./endpoints";
 import { CalApiError } from "./errors/cal-api-error";
 import type { SdkSecrets } from "./sdk-secrets";
 
@@ -19,8 +19,12 @@ type CallOptions = {
   config?: AxiosRequestConfig<unknown>;
 };
 
+type CallOptionsWithBody<T = unknown> = CallOptions & {
+  body: T;
+};
+
 export class HttpCaller {
-  awaitingRefresh = false;
+  private awaitingRefresh = false;
 
   secrets: SdkSecrets | null = null;
 
@@ -30,10 +34,10 @@ export class HttpCaller {
     options?: HttpCallerOptions
   ) {
     if (options?.shouldHandleRefresh) {
-      // TODO handle refresh pre-call.
       this.axiosClient.interceptors.request.use(async (config) => {
         if (this.awaitingRefresh && this.secrets) {
           await this.secrets.refreshAccessToken(this.clientId);
+          this.awaitingRefresh = false;
         }
         return config;
       });
@@ -44,6 +48,8 @@ export class HttpCaller {
       (error: AxiosError) => {
         if (error.status === 498) {
           // tell HttpCaller to attempt a refresh on the subsequent request.
+          // If options.shouldHandleRefresh is not set, the user will have to
+          // handle the refreshing on their own.
           this.awaitingRefresh = true;
         }
 
@@ -60,12 +66,7 @@ export class HttpCaller {
     );
   }
 
-  async post<T>(
-    endpoint: Endpoints,
-    options: CallOptions & {
-      body?: unknown;
-    }
-  ): Promise<T> {
+  async post<T>(endpoint: Endpoints, options: CallOptionsWithBody): Promise<T> {
     const { data } = await this.axiosClient.post<T>(
       this.createCallUrl(endpoint, options.urlParams),
       options.body,
@@ -90,12 +91,7 @@ export class HttpCaller {
     return data;
   }
 
-  async patch<T>(
-    endpoint: Endpoints,
-    options: CallOptions & {
-      body?: unknown;
-    }
-  ): Promise<T> {
+  async patch<T>(endpoint: Endpoints, options: CallOptionsWithBody): Promise<T> {
     const { data } = await this.axiosClient.patch<T>(
       this.createCallUrl(endpoint, options.urlParams),
       options.body,
@@ -114,7 +110,7 @@ export class HttpCaller {
     endpoint: Endpoints,
     config?: AxiosRequestConfig<unknown>
   ): AxiosRequestConfig<unknown> {
-    const { auth } = getEndpointData(endpoint);
+    const { auth } = getEndpointDefinition(endpoint);
 
     const headers: Record<string, unknown> = {};
     const params: Record<string, unknown> = {};
@@ -132,5 +128,9 @@ export class HttpCaller {
       headers,
       params,
     });
+  }
+
+  isAwaitingRefresh() {
+    return this.awaitingRefresh;
   }
 }

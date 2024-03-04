@@ -3,22 +3,22 @@ import axiosRetry from "axios-retry";
 
 import { Bookings } from "./endpoints/bookings";
 import { Events } from "./endpoints/events";
+import { OAuthFlow } from "./endpoints/oauth-flow";
 import { Slots } from "./endpoints/slots";
 import { SdkInitializationError } from "./lib/errors/sdk-initialization-error";
 import { HttpCaller } from "./lib/http-caller";
 import { SdkSecrets } from "./lib/sdk-secrets";
 import type { CalSdkConstructorOptions, SdkAuthOptions } from "./types";
 
-/**
- * Helper class to interact with the Cal.com V2 API.
- */
 export class CalSdk {
   public httpCaller: HttpCaller;
 
   slots: Slots;
   bookings: Bookings;
   events: Events;
-  _secrets: SdkSecrets;
+  oauth: OAuthFlow;
+
+  private _secrets: SdkSecrets;
 
   constructor(
     public readonly clientId: string,
@@ -39,12 +39,13 @@ export class CalSdk {
       this.httpCaller
     );
 
-    // avoidinc cyclic referencing.
+    // avoid cyclic referencing.
     this.httpCaller.secrets = this._secrets;
 
     this.slots = new Slots(this);
     this.bookings = new Bookings(this);
     this.events = new Events(this);
+    this.oauth = new OAuthFlow(this);
   }
 
   private _createAxiosClientBase() {
@@ -60,5 +61,9 @@ export class CalSdk {
     });
 
     return axiosClient;
+  }
+
+  public _internalSecrets() {
+    return this._secrets;
   }
 }

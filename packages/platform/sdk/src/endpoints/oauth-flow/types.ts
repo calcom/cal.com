@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 const ExchangeCodeSchema = z.object({
-  tokenId: z.string(),
+  authorizationCode: z.string(),
 });
 
 export type ExchangeCodeParams = z.infer<typeof ExchangeCodeSchema>;

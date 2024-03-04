@@ -42,7 +42,7 @@ const publicEndpoint = (uri: string, version = ApiVersion.NEUTRAL): EndpointDecl
 // Adjust the constructor to use generics for flexible parameter typing
 const publicEndpointConstructor = <ParamsType extends Record<string, string> | string[]>(
   constructUri: (params: ParamsType) => string,
-  version: ApiVersion.NEUTRAL
+  version = ApiVersion.NEUTRAL
 ): EndpointDeclaration<ParamsType> => ({
   constructUri,
   auth: "public",
@@ -56,16 +56,20 @@ const ENDPOINTS: Record<Endpoints, EndpointDeclaration> = {
   GET_PUBLIC_EVENT: publicEndpoint("events/"),
   EXCHANGE_OAUTH_AUTH_TOKEN: publicEndpointConstructor<string[]>(
     ([clientId]) => `oauth/${clientId}/exchange`,
-    ApiVersion.NEUTRAL
+    ApiVersion.V2
   ),
   REFRESH_OAUTH_TOKEN: publicEndpointConstructor<string[]>(
     ([clientId]) => `oauth/${clientId}/refresh`,
-    ApiVersion.NEUTRAL
+    ApiVersion.V2
   ),
 } as const;
 
 const isParamsRecord = (params: unknown): params is Record<string, string> => {
   return params !== null && typeof params === "object" && !Array.isArray(params);
+};
+
+export const getEndpointDefinition = (endpoint: Endpoints): BaseEndpointDeclaration => {
+  return ENDPOINTS[endpoint];
 };
 
 export const getEndpointData = (

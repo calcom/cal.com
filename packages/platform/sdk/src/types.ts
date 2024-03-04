@@ -1,7 +1,3 @@
-type Without<T, U> = { [P in Exclude<keyof T, keyof U>]?: never };
-
-export type XOR<T, Y> = T extends object ? Without<Exclude<Y, T>, T> & T : T;
-
 export interface CalSdkConstructorOptions {
   baseUrl?: string;
   handleRefresh?: boolean;
