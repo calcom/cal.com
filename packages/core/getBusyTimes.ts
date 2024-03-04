@@ -146,7 +146,7 @@ export async function getBusyTimes(params: {
   const bookingSeatCountMap: { [x: string]: number } = {};
   const busyTimes = bookings.reduce(
     (aggregate: EventBusyDetails[], { id, startTime, endTime, eventType, title, ...rest }) => {
-      if (rest._count?.seatsReferences) {
+      if (eventType?.seatsPerTimeSlot) {
         const bookedAt = `${dayjs(startTime).utc().format()}<>${dayjs(endTime).utc().format()}`;
         bookingSeatCountMap[bookedAt] = bookingSeatCountMap[bookedAt] || 0;
         bookingSeatCountMap[bookedAt]++;
@@ -336,15 +336,17 @@ export async function getBusyTimesForLimitChecks(params: {
       },
       title: true,
       userId: true,
+      attendees: true,
     },
   });
 
-  busyTimes = bookings.map(({ id, startTime, endTime, eventType, title, userId }) => ({
+  busyTimes = bookings.map(({ id, startTime, endTime, eventType, title, userId, attendees }) => ({
     start: dayjs(startTime).toDate(),
     end: dayjs(endTime).toDate(),
     title,
     source: `eventType-${eventType?.id}-booking-${id}`,
     userId,
+    attendeesCount: attendees.length,
   }));
 
   logger.silly(`Fetch limit checks bookings for eventId: ${eventTypeId} ${JSON.stringify(busyTimes)}`);
