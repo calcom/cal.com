@@ -4,6 +4,53 @@ import { defaultResponder } from "@calcom/lib/server";
 
 import { schemaCredentialPatchParams, schemaCredentialPatchBody } from "~/lib/validations/credential-sync";
 
+/**
+ * @swagger
+ * /credential-sync:
+ *   patch:
+ *     operationId: updateUserAppCredential
+ *     summary: Update a credential record for a user
+ *     parameters:
+ *       - in: query
+ *         name: apiKey
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Your API key
+ *       - in: query
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID of the user to fetch the credentials for
+ *       - in: query
+ *         name: credentialId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID of the credential to update
+ *     tags:
+ *     - credentials
+ *     requestBody:
+ *       description: Update a new credential
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - encryptedKey
+ *             properties:
+ *               encryptedKey:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: OK
+ *       401:
+ *        description: Authorization information is missing or invalid.
+ *       505:
+ *        description: Credential syncing not enabled
+ */
 async function handler(req: NextApiRequest) {
   const { prisma } = req;
 
