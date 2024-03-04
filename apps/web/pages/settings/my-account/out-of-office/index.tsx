@@ -1,4 +1,5 @@
 import { Clock, Plus, Trash2 } from "lucide-react";
+import { Trans } from "next-i18next";
 import React, { useState } from "react";
 import { Controller, useForm, useFormState } from "react-hook-form";
 
@@ -227,7 +228,7 @@ const OutOfOfficeEntriesList = () => {
       showToast(`An error ocurred`, "error");
     },
   });
-  if (data === null || data?.length === 0 || data === undefined) return <EmptyOOO />;
+  if (data === null || data?.length === 0 || (data === undefined && !isPending)) return <EmptyOOO />;
   return (
     <div className="border-subtle mt-6 rounded-lg border">
       <TableNew className="border-0">
@@ -244,7 +245,15 @@ const OutOfOfficeEntriesList = () => {
                     </p>
                     <p className="px-2">
                       {item.toUser?.username ? (
-                        <>{t("ooo_forwarding_to", { username: item.toUser?.username })}</>
+                        <Trans
+                          i18nKey="ooo_forwarding_to"
+                          values={{
+                            username: item.toUser?.username,
+                          }}
+                          components={{
+                            span: <span className="text-subtle font-bold" />,
+                          }}
+                        />
                       ) : (
                         <>{t("ooo_not_forwarding")}</>
                       )}
@@ -267,13 +276,15 @@ const OutOfOfficeEntriesList = () => {
             </TableRow>
           ))}
           {isPending && (
-            <TableRow>
-              {new Array(6).fill(0).map((_, index) => (
-                <TableCell key={index}>
-                  <SkeletonText className="h-8 w-full" />
-                </TableCell>
+            <>
+              {new Array(2).fill(0).map((_, index) => (
+                <TableRow key={index}>
+                  <TableCell>
+                    <SkeletonText className="h-12 w-full" />
+                  </TableCell>
+                </TableRow>
               ))}
-            </TableRow>
+            </>
           )}
 
           {!isPending && (data === undefined || data.length === 0) && (
