@@ -115,6 +115,7 @@ describe("handleChildrenEventTypes", () => {
         requiresBookerEmailVerification,
         lockTimeZoneToggleOnBookingPage,
         useEventTypeDestinationCalendarEmail,
+        secondaryEmailId,
         ...evType
       } = mockFindFirstEventType({
         id: 123,
@@ -167,6 +168,7 @@ describe("handleChildrenEventTypes", () => {
         requiresBookerEmailVerification,
         lockTimeZoneToggleOnBookingPage,
         useEventTypeDestinationCalendarEmail,
+        secondaryEmailId,
         ...evType
       } = mockFindFirstEventType({
         metadata: { managedEventConfig: {} },
@@ -265,6 +267,7 @@ describe("handleChildrenEventTypes", () => {
         requiresBookerEmailVerification,
         lockTimeZoneToggleOnBookingPage,
         useEventTypeDestinationCalendarEmail,
+        secondaryEmailId,
         ...evType
       } = mockFindFirstEventType({
         id: 123,
@@ -318,6 +321,7 @@ describe("handleChildrenEventTypes", () => {
         requiresBookerEmailVerification,
         lockTimeZoneToggleOnBookingPage,
         useEventTypeDestinationCalendarEmail,
+        secondaryEmailId,
         ...evType
       } = mockFindFirstEventType({
         metadata: { managedEventConfig: {} },
@@ -372,6 +376,7 @@ describe("handleChildrenEventTypes", () => {
         requiresBookerEmailVerification,
         lockTimeZoneToggleOnBookingPage,
         useEventTypeDestinationCalendarEmail,
+        secondaryEmailId,
         ...evType
       } = mockFindFirstEventType({
         metadata: { managedEventConfig: {} },

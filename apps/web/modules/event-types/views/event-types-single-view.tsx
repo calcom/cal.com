@@ -228,6 +228,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       successRedirectUrl: eventType.successRedirectUrl || "",
       users: eventType.users,
       useEventTypeDestinationCalendarEmail: eventType.useEventTypeDestinationCalendarEmail,
+      secondaryEmailId: eventType?.secondaryEmailId || -1,
       children: eventType.children.map((ch) => ({
         ...ch,
         created: true,

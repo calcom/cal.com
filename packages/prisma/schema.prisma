@@ -128,12 +128,16 @@ model EventType {
   assignAllTeamMembers                 Boolean                 @default(false)
   useEventTypeDestinationCalendarEmail Boolean                 @default(false)
 
+  secondaryEmailId Int?
+  secondaryEmail   SecondaryEmail? @relation(fields: [secondaryEmailId], references: [id], onDelete: Cascade)
+
   @@unique([userId, slug])
   @@unique([teamId, slug])
   @@unique([userId, parentId])
   @@index([userId])
   @@index([teamId])
   @@index([scheduleId])
+  @@index([secondaryEmailId])
 }
 
 model Credential {
@@ -281,10 +285,11 @@ model User {
   bookingRedirectsTo   OutOfOfficeEntry[]      @relation(name: "toUser")
 
   // Used to lock the user account
-  locked           Boolean   @default(false)
+  locked           Boolean          @default(false)
   profiles         Profile[]
   movedToProfileId Int?
-  movedToProfile   Profile?  @relation("moved_to_profile", fields: [movedToProfileId], references: [id], onDelete: SetNull)
+  movedToProfile   Profile?         @relation("moved_to_profile", fields: [movedToProfileId], references: [id], onDelete: SetNull)
+  secondaryEmails  SecondaryEmail[]
 
   @@unique([email])
   @@unique([email, username])
@@ -396,19 +401,22 @@ model Membership {
 }
 
 model VerificationToken {
-  id            Int      @id @default(autoincrement())
-  identifier    String
-  token         String   @unique
-  expires       DateTime
-  expiresInDays Int?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  teamId        Int?
-  team          Team?    @relation(fields: [teamId], references: [id])
+  id               Int             @id @default(autoincrement())
+  identifier       String
+  token            String          @unique
+  expires          DateTime
+  expiresInDays    Int?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  teamId           Int?
+  team             Team?           @relation(fields: [teamId], references: [id])
+  secondaryEmailId Int?
+  secondaryEmail   SecondaryEmail? @relation(fields: [secondaryEmailId], references: [id])
 
   @@unique([identifier, token])
   @@index([token])
   @@index([teamId])
+  @@index([secondaryEmailId])
 }
 
 model InstantMeetingToken {
@@ -1134,4 +1142,18 @@ model OutOfOfficeEntry {
   @@index([userId])
   @@index([toUserId])
   @@index([start, end])
+}
+
+model SecondaryEmail {
+  id                 Int                 @id @default(autoincrement())
+  user               User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId             Int
+  email              String
+  emailVerified      DateTime?
+  verificationTokens VerificationToken[]
+  eventTypes         EventType[]
+
+  @@unique([email])
+  @@unique([userId, email])
+  @@index([userId])
 }

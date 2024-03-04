@@ -29,6 +29,15 @@ export const ZUpdateProfileInputSchema = z.object({
   timeFormat: z.number().optional(),
   disableImpersonation: z.boolean().optional(),
   metadata: userMetadata.optional(),
+  secondaryEmails: z
+    .array(
+      z.object({
+        id: z.number(),
+        email: z.string(),
+        isDeleted: z.boolean().default(false),
+      })
+    )
+    .optional(),
 });
 
 export type TUpdateProfileInputSchema = z.infer<typeof ZUpdateProfileInputSchema>;

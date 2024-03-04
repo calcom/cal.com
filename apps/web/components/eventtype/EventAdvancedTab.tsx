@@ -28,8 +28,10 @@ import { trpc } from "@calcom/trpc/react";
 import {
   Alert,
   Button,
+  Badge,
   CheckboxField,
   Label,
+  SelectField,
   SettingsToggle,
   showToast,
   Switch,
@@ -123,6 +125,17 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
   const displayDestinationCalendarSelector =
     !!connectedCalendarsQuery.data?.connectedCalendars.length && (!team || isChildrenManagedEventType);
 
+  const verifiedSecondaryEmails = [
+    {
+      label: user?.email || "",
+      value: -1,
+    },
+    ...(user?.secondaryEmails || [])
+      .filter((secondaryEmail) => !!secondaryEmail.emailVerified)
+      .map((secondaryEmail) => ({ label: secondaryEmail.email, value: secondaryEmail.id })),
+  ];
+  const selectedSecondaryEmailId = formMethods.getValues("secondaryEmailId") || -1;
+
   const setEventName = (value: string) => formMethods.setValue("eventName", value);
   return (
     <div className="flex flex-col space-y-4">
@@ -197,6 +210,28 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
                   showToast(t("reconnect_calendar_to_use"), "warning");
                 }
               }}
+            />
+          </div>
+        )}
+        {!useEventTypeDestinationCalendarEmail && verifiedSecondaryEmails.length > 0 && (
+          <div className="w-full">
+            <SelectField
+              label={t("send_event_details_to")}
+              placeholder={
+                selectedSecondaryEmailId === -1 && (
+                  <span className="text-default min-w-0 overflow-hidden truncate whitespace-nowrap">
+                    <Badge variant="blue">Default</Badge> {user?.email || ""}
+                  </span>
+                )
+              }
+              onChange={(option) =>
+                formMethods.setValue("secondaryEmailId", option?.value, { shouldDirty: true })
+              }
+              value={verifiedSecondaryEmails.find(
+                (secondaryEmail) =>
+                  selectedSecondaryEmailId !== -1 && secondaryEmail.value === selectedSecondaryEmailId
+              )}
+              options={verifiedSecondaryEmails}
             />
           </div>
         )}
