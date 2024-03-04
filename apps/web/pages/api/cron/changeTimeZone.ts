@@ -77,13 +77,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       OR: [
         {
           startDate: {
-            lt: dayjs.utc().add(2, "day").toDate(),
+            lt: dayjs.utc().subtract(2, "day").toDate(),
           },
-          endDate: null, //test if this works as expected
+          endDate: null,
         },
         {
           endDate: {
-            lt: dayjs.utc().add(2, "day").toDate(),
+            lt: dayjs.utc().subtract(2, "day").toDate(),
           },
         },
       ],
