@@ -85,7 +85,9 @@ async function createOrganizationAndAddMembersAndTeams({
   usersOutsideOrg,
 }: {
   org: {
-    orgData: Ensure<Partial<Prisma.TeamCreateInput>, "name" | "slug">;
+    orgData: Ensure<Partial<Prisma.TeamCreateInput>, "name" | "slug"> & {
+      organizationSettings: Prisma.OrganizationSettingsCreateWithoutOrganizationInput;
+    };
     members: {
       memberData: Ensure<Partial<Prisma.UserCreateInput>, "username" | "name" | "email" | "password">;
       orgMembership: Partial<Membership>;
@@ -181,6 +183,11 @@ async function createOrganizationAndAddMembersAndTeams({
             },
           },
         })),
+      },
+      organizationSettings: {
+        create: {
+          ...orgData.organizationSettings,
+        },
       },
       members: {
         create: orgMembersInDb.map((member) => ({
@@ -810,7 +817,7 @@ async function main() {
       orgData: {
         name: "Acme Inc",
         slug: "acme",
-        metadata: {
+        organizationSettings: {
           isOrganizationVerified: true,
           orgAutoAcceptEmail: "acme.com",
         },
@@ -877,7 +884,7 @@ async function main() {
       orgData: {
         name: "Dunder Mifflin",
         slug: "dunder-mifflin",
-        metadata: {
+        organizationSettings: {
           isOrganizationVerified: true,
           orgAutoAcceptEmail: "dunder-mifflin.com",
         },
