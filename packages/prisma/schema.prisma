@@ -371,12 +371,13 @@ model Team {
 }
 
 model OrganizationSettings {
-  id                       Int     @id @default(autoincrement())
-  organization             Team    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  organizationId           Int     @unique
-  isOrganizationConfigured Boolean @default(false)
-  isOrganizationVerified   Boolean @default(false)
-  orgAutoAcceptEmail       String
+  id                            Int     @id @default(autoincrement())
+  organization                  Team    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId                Int     @unique
+  isOrganizationConfigured      Boolean @default(false)
+  isOrganizationVerified        Boolean @default(false)
+  orgAutoAcceptEmail            String
+  lockEventTypeCreationForUsers Boolean @default(false)
 }
 
 enum MembershipRole {
