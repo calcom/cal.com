@@ -310,7 +310,34 @@ describe("processDateOverrides", () => {
     expect(result.end.format()).toEqual(dayjs("2023-06-12T21:00:00Z").tz(timeZone).format());
   });
   it("should show date overrides in correct timezone with existing travel schedules", () => {
-    //todo
+    const item = {
+      date: new Date(Date.UTC(2023, 5, 12, 8, 0)),
+      startTime: new Date(Date.UTC(2023, 5, 12, 8, 0)), // 8 AM
+      endTime: new Date(Date.UTC(2023, 5, 12, 17, 0)), // 5 PM
+    };
+
+    // 2023-06-12T20:00:00-04:00 (America/New_York)
+    const timeZone = "America/New_York";
+
+    const travelScheduleTz = "Europe/Berlin";
+
+    const travelSchedules = [
+      {
+        startDate: dayjs(new Date(Date.UTC(2023, 5, 11, 8, 0))).startOf("day"),
+        endDate: dayjs(new Date(Date.UTC(2023, 5, 15, 8, 0))).endOf("day"),
+        timeZone: travelScheduleTz,
+      },
+    ];
+
+    const result = processDateOverride({
+      item,
+      itemDateAsUtc: dayjs.utc(item.date),
+      timeZone,
+      travelSchedules: travelSchedules,
+    });
+
+    expect(result.start.format()).toEqual(dayjs("2023-06-12T06:00:00Z").tz(travelScheduleTz).format());
+    expect(result.end.format()).toEqual(dayjs("2023-06-12T15:00:00Z").tz(travelScheduleTz).format());
   });
 });
 
