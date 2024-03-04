@@ -100,7 +100,6 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
           app={app}
           eventType={eventType}
           eventTypeFormMetadata={eventTypeFormMetadata}
-          {...shouldLockDisableProps("apps")}
         />
       );
     }
@@ -124,7 +123,7 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
             }}
             eventType={eventType}
             eventTypeFormMetadata={eventTypeFormMetadata}
-            {...shouldLockDisableProps("apps")}
+            disabled={shouldLockDisableProps("apps").disabled}
           />
         );
       }
@@ -193,7 +192,6 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
                   app={app}
                   eventType={eventType}
                   eventTypeFormMetadata={eventTypeFormMetadata}
-                  {...shouldLockDisableProps("apps")}
                 />
               );
           })}

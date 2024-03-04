@@ -239,9 +239,10 @@ function EventWorkflowsTab(props: Props) {
             })
             .includes(workflow.id)
       );
-      const allSortedWorkflows = workflowsDisableProps.isLocked
-        ? activeWorkflows
-        : activeWorkflows.concat(disabledWorkflows);
+      const allSortedWorkflows =
+        workflowsDisableProps.isLocked && !isManagedEventType
+          ? activeWorkflows
+          : activeWorkflows.concat(disabledWorkflows);
       setSortedWorkflows(allSortedWorkflows);
     }
   }, [isPending]);
