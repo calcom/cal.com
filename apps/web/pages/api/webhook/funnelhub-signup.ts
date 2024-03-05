@@ -1,4 +1,5 @@
 /* eslint-disable turbo/no-undeclared-env-vars */
+import crypto from "crypto";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 
@@ -9,6 +10,13 @@ export const FunnelhubSignupSchema = z.object({
   name: z.string().min(3),
   funnelHubUserId: z.string(),
 });
+
+const generateRandomString = (length: number) => {
+  return crypto
+    .randomBytes(Math.ceil(length / 2))
+    .toString("hex") // Convert to hexadecimal format
+    .slice(0, length); // Trim to desired length
+};
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const funnelHubToken = process.env.FUNNELHUB_API_TOKEN;
@@ -31,6 +39,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       emailVerified: new Date(),
       timeZone: "America/Sao_Paulo",
       locale: "pt-BR",
+      username: `${name.toLowerCase().replace(" ", "-")}-${generateRandomString(5)}`,
     },
   });
 
