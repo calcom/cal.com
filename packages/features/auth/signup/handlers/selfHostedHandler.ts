@@ -78,16 +78,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           },
         },
         organizationSettings: true,
+        isOrganization: true,
       },
     });
 
     if (team) {
-      const isInviteForOrganization = isOrganization({
-        team: {
-          metadata: team.metadata,
-        },
-      });
-      const isInviteForATeamInOrganization = team.parent;
+      const isInviteForOrganization = isOrganization(team);
+      const isInviteForATeamInOrganization = !!team.parent;
       const isCheckingUsernameInGlobalNamespace = !isInviteForOrganization && !isInviteForATeamInOrganization;
 
       if (isCheckingUsernameInGlobalNamespace) {
