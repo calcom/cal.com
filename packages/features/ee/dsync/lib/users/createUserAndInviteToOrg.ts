@@ -7,7 +7,7 @@ import { MembershipRole } from "@calcom/prisma/enums";
 import type { getTeamOrThrow } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
 import { sendSignupToOrganizationEmail } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
 
-import dSyncUserSelect from "./users/dSyncUserSelect";
+import dSyncUserSelect from "./dSyncUserSelect";
 
 const createUserAndInviteToOrg = async ({
   userEmail,
