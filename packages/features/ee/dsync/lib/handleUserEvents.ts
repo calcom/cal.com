@@ -28,7 +28,7 @@ const handleUserEvents = async (event: DirectorySyncEvent, orgId: number) => {
 
   const translation = await getTranslation(user?.locale || "en", "common");
 
-  const org = await getTeamOrThrow(orgId, true);
+  const org = await getTeamOrThrow(orgId);
 
   if (!org) {
     throw new Error("Org not found");
