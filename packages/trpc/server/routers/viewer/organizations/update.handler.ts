@@ -117,6 +117,44 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       },
     });
 
+    if (input.lockEventTypeCreation) {
+      switch (input.lockEventTypeCreationOptions) {
+        case "HIDE":
+          await tx.eventType.updateMany({
+            where: {
+              parentId: null, // Not a managed event type
+              owner: {
+                profiles: {
+                  some: {
+                    organizationId: currentOrgId,
+                  },
+                },
+              },
+            },
+            data: {
+              hidden: true,
+            },
+          });
+          break;
+        case "DELETE":
+          await tx.eventType.deleteMany({
+            where: {
+              parentId: null, // Not a managed event type
+              owner: {
+                profiles: {
+                  some: {
+                    organizationId: currentOrgId,
+                  },
+                },
+              },
+            },
+          });
+          break;
+        default:
+          break;
+      }
+    }
+
     return updatedOrganisation;
   });
 
