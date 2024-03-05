@@ -96,6 +96,7 @@ export const LockEventTypeSwitch = ({ currentOrg, isAdminOrOwner }: GeneralViewP
               setLockEventTypeCreationForUsers(
                 !!currentOrg.organizationSettings.lockEventTypeCreationForUsers
               );
+              setShowModal(false);
             }
           }}>
           <DialogContent enableOverflow>
@@ -123,13 +124,13 @@ export const LockEventTypeSwitch = ({ currentOrg, isAdminOrOwner }: GeneralViewP
                       checked={currentLockedOption === CurrentEventTypeOptions.HIDE}
                       value={CurrentEventTypeOptions.HIDE}
                       className={classNames("h-full text-sm")}>
-                      <strong className="mb-1 block">{t("hide")}</strong>
+                      <strong className="mb-1 block">{t("hide_eventtypes")}</strong>
                       <p>{t("org_hide_event_types_org_admin")}</p>
                     </RadioArea.Item>
                     <RadioArea.Item
                       checked={currentLockedOption === CurrentEventTypeOptions.DELETE}
                       value={CurrentEventTypeOptions.DELETE}
-                      className={classNames("h-full text-sm")}>
+                      className={classNames("[&:has(input:checked)]:border-error h-full text-sm")}>
                       <strong className="mb-1 block">{t("delete")}</strong>
                       <p>{t("org_delete_event_types_org_admin")}</p>
                     </RadioArea.Item>

@@ -2277,5 +2277,6 @@
   "lock_event_types_modal_description":"Users in your organization have existing event types. What should we do with them?",
   "org_delete_event_types_org_admin":"All of your members individual event types (except managed ones) will be permanently deleted. They will not be able to create new ones",
   "org_hide_event_types_org_admin":"Your members individual event types will be hidden (except managed ones) from profiles but the links will still be active. They will not be able to create new ones.  ",
+  "hide_eventtypes":"Hide All Event Types",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
