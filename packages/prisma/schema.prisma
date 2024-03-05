@@ -368,6 +368,7 @@ model Team {
   pendingPayment       Boolean                 @default(false)
 
   @@unique([slug, parentId])
+  @@index([parentId])
 }
 
 model OrganizationSettings {

@@ -2266,5 +2266,12 @@
   "field_identifiers_as_variables": "להשתמש במזהי השדות כמשתנים להפניות האירועים בהתאמה אישית",
   "field_identifiers_as_variables_with_example": "להשתמש במזהי השדות כמשתנים להפניות האירועים בהתאמה אישית (למשל: {{variable}})",
   "account_already_linked": "החשבון כבר מקושר",
+  "primary": "עיקרי",
+  "make_primary": "הפיכה לעיקרי",
+  "add_email": "הוספת כתובת דוא״ל",
+  "add_email_description": "אפשר להוסיף כתובת דוא״ל כדי להחליף את הכתובת העיקרית שלך או ככתובת חלופית לסוגי האירועים שלך.",
+  "confirm_email": "אישור כתובת הדוא״ל שלך",
+  "confirm_email_description": "שלחנו הודעה בדוא״ל אל <strong>{{email}}</strong>. נא ללחוץ על הקישור בהודעה כדי לאמת את הכתובת הזאת.",
+  "send_event_details_to": "שליחת פרטי האירוע אל",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

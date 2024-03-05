@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState, useMemo } from "react";
 import type { FieldError } from "react-hook-form";
 
-import { WEBSITE_URL } from "@calcom/lib/constants";
+import { IS_CALCOM, WEBSITE_URL } from "@calcom/lib/constants";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Alert, Button, EmptyScreen, Form } from "@calcom/ui";
@@ -112,19 +112,21 @@ export const BookEventForm = ({
             />
           </div>
         )}
-        <div className="text-subtle my-3 w-full text-xs opacity-80">
-          <Trans i18nKey="signing_up_terms">
-            By proceeding, you agree to our{" "}
-            <Link className="text-emphasis hover:underline" href={`${WEBSITE_URL}/terms`} target="_blank">
-              <a>Terms</a>
-            </Link>{" "}
-            and{" "}
-            <Link className="text-emphasis hover:underline" href={`${WEBSITE_URL}/privacy`} target="_blank">
-              <a>Privacy Policy</a>
-            </Link>
-            .
-          </Trans>
-        </div>
+        {IS_CALCOM && (
+          <div className="text-subtle my-3 w-full text-xs opacity-80">
+            <Trans i18nKey="signing_up_terms">
+              By proceeding, you agree to our{" "}
+              <Link className="text-emphasis hover:underline" href={`${WEBSITE_URL}/terms`} target="_blank">
+                <a>Terms</a>
+              </Link>{" "}
+              and{" "}
+              <Link className="text-emphasis hover:underline" href={`${WEBSITE_URL}/privacy`} target="_blank">
+                <a>Privacy Policy</a>
+              </Link>
+              .
+            </Trans>
+          </div>
+        )}
         <div className="modalsticky mt-auto flex justify-end space-x-2 rtl:space-x-reverse">
           {isInstantMeeting ? (
             <Button type="submit" color="primary" loading={loadingStates.creatingInstantBooking}>
