@@ -122,15 +122,23 @@ describe("Daily Video API Adapter", () => {
         fetchMocker.mockClear();
       });
 
-      test.each([
-        [false, false],
-        [false, true],
-        [true, false],
-        [true, true],
-      ])("should create meeting with scalePlan: %s and teamPlan: %s", async (scalePlan, teamPlan) => {
-        await testCreateMeeting(scalePlan, teamPlan);
+      test("should create meeting with scalePlan: true and teamPlan: true", async () => {
+        await testCreateMeeting(true, true);
+      });
+
+      test("should create meeting with scalePlan: true and teamPlan: false", async () => {
+        await testCreateMeeting(true, false);
+      });
+
+      test("should create meeting with scalePlan: false and teamPlan: true", async () => {
+        await testCreateMeeting(false, true);
+      });
+
+      test("should create meeting with scalePlan: false and teamPlan: false", async () => {
+        await testCreateMeeting(false, false);
       });
     });
+
     describe("updateMeeting", () => {
       beforeEach(() => {
         fetchMocker.mockClear();
