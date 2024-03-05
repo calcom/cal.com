@@ -9,7 +9,9 @@ type sidebarConfigProps = {
 
 export function sidebarConfig({ token, userId, workspaceId }: sidebarConfigProps) {
   return {
-    url: `${process.env.NEXT_PUBLIC_FUNNELHUB_URL}/api/v1/users/${userId}/workspaces/${workspaceId}/profile`,
+    url: `${
+      process.env.NEXT_PUBLIC_FUNNELHUB_URL ?? "https://hub.funnelhub.io"
+    }/api/v1/users/${userId}/workspaces/${workspaceId}/profile`,
     token,
     method: "GET",
   };
