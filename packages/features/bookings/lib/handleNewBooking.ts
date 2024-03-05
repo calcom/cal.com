@@ -251,6 +251,13 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
           days: true,
         },
       },
+      secondaryEmailId: true,
+      secondaryEmail: {
+        select: {
+          id: true,
+          email: true,
+        },
+      },
     },
   });
 
@@ -315,6 +322,16 @@ export async function ensureAvailableUsers(
   loggerWithEventDetails: Logger<unknown>
 ) {
   const availableUsers: IsFixedAwareUser[] = [];
+  const getStartDateTimeUtc = (startDateTimeInput: string, timeZone?: string) => {
+    return timeZone === "Etc/GMT"
+      ? dayjs.utc(startDateTimeInput)
+      : dayjs(startDateTimeInput).tz(timeZone).utc();
+  };
+
+  const startDateTimeUtc = getStartDateTimeUtc(input.dateFrom, input.timeZone);
+  const endDateTimeUtc =
+    input.timeZone === "Etc/GMT" ? dayjs.utc(input.dateTo) : dayjs(input.dateTo).tz(input.timeZone).utc();
+
   const duration = dayjs(input.dateTo).diff(input.dateFrom, "minute");
   const originalBookingDuration = input.originalRescheduledBooking
     ? dayjs(input.originalRescheduledBooking.endTime).diff(
@@ -331,23 +348,24 @@ export async function ensureAvailableUsers(
     busyTimesFromLimitsBookingsAllUsers = await getBusyTimesForLimitChecks({
       userIds: eventType.users.map((u) => u.id),
       eventTypeId: eventType.id,
-      startDate: input.dateFrom,
-      endDate: input.dateTo,
+      startDate: startDateTimeUtc.format(),
+      endDate: endDateTimeUtc.format(),
       rescheduleUid: input.originalRescheduledBooking?.uid ?? null,
       bookingLimits,
       durationLimits,
     });
   }
 
-  /** Let's start checking for availability */
   for (const user of eventType.users) {
     const { dateRanges, busy: bufferedBusyTimes } = await getUserAvailability(
       {
+        ...input,
         userId: user.id,
         eventTypeId: eventType.id,
         duration: originalBookingDuration,
         returnDateOverrides: false,
-        ...input,
+        dateFrom: startDateTimeUtc.format(),
+        dateTo: endDateTimeUtc.format(),
       },
       {
         user,
@@ -363,7 +381,14 @@ export async function ensureAvailableUsers(
     );
 
     if (!dateRanges.length) {
-      // user does not have availability at this time, skip user.
+      loggerWithEventDetails.error(
+        `User does not have availability at this time.`,
+        safeStringify({
+          startDateTimeUtc,
+          endDateTimeUtc,
+          input,
+        })
+      );
       continue;
     }
 
@@ -374,9 +399,8 @@ export async function ensureAvailableUsers(
     //check if event time is within the date range
     for (const dateRange of dateRanges) {
       if (
-        (dayjs.utc(input.dateFrom).isAfter(dateRange.start) ||
-          dayjs.utc(input.dateFrom).isSame(dateRange.start)) &&
-        (dayjs.utc(input.dateTo).isBefore(dateRange.end) || dayjs.utc(input.dateTo).isSame(dateRange.end))
+        (startDateTimeUtc.isAfter(dateRange.start) || startDateTimeUtc.isSame(dateRange.start)) &&
+        (endDateTimeUtc.isBefore(dateRange.end) || endDateTimeUtc.isSame(dateRange.end))
       ) {
         dateRangeForBooking = true;
         break;
@@ -384,15 +408,21 @@ export async function ensureAvailableUsers(
     }
 
     if (!dateRangeForBooking) {
+      loggerWithEventDetails.error(
+        `No date range for booking.`,
+        safeStringify({
+          startDateTimeUtc,
+          endDateTimeUtc,
+          input,
+        })
+      );
       continue;
     }
 
     try {
-      foundConflict = checkForConflicts(bufferedBusyTimes, input.dateFrom, duration);
-    } catch {
-      log.debug({
-        message: "Unable set isAvailableToBeBooked. Using true. ",
-      });
+      foundConflict = checkForConflicts(bufferedBusyTimes, startDateTimeUtc, duration);
+    } catch (error) {
+      loggerWithEventDetails.error("Unable set isAvailableToBeBooked. Using true. ", error);
     }
     // no conflicts found, add to available users.
     if (!foundConflict) {
@@ -400,7 +430,14 @@ export async function ensureAvailableUsers(
     }
   }
   if (!availableUsers.length) {
-    loggerWithEventDetails.error(`No available users found.`);
+    loggerWithEventDetails.error(
+      `No available users found.`,
+      safeStringify({
+        startDateTimeUtc,
+        endDateTimeUtc,
+        input,
+      })
+    );
     throw new Error(ErrorCode.NoAvailableUsersFound);
   }
   return availableUsers;
@@ -927,7 +964,7 @@ async function handler(
     !!eventType.schedulingType && ["COLLECTIVE", "ROUND_ROBIN"].includes(eventType.schedulingType);
 
   const paymentAppData = getPaymentAppData(eventType);
-  loggerWithEventDetails.debug(
+  loggerWithEventDetails.info(
     `Booking eventType ${eventTypeId} started`,
     safeStringify({
       reqBody: {
@@ -938,6 +975,7 @@ async function handler(
         endTime: reqBody.end,
         rescheduleUid: reqBody.rescheduleUid,
         location: location,
+        timeZone: reqBody.timeZone,
       },
       isTeamEventType,
       eventType: getPiiFreeEventType(eventType),
@@ -1258,7 +1296,7 @@ async function handler(
       }
       // Pushing fixed user before the luckyUser guarantees the (first) fixed user as the organizer.
       users = [...availableUsers.filter((user) => user.isFixed), ...luckyUsers];
-      luckyUserResponse = { luckyUsers };
+      luckyUserResponse = { luckyUsers: luckyUsers.map((u) => u.id) };
     } else if (req.body.allRecurringDates && eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
       // all recurring slots except the first one
       const luckyUsersFromFirstBooking = luckyUsers
@@ -1421,6 +1459,13 @@ async function handler(
     ? [organizerUser.destinationCalendar]
     : null;
 
+  let organizerEmail = organizerUser.email || "Email-less";
+  if (eventType.useEventTypeDestinationCalendarEmail && destinationCalendar?.[0]?.primaryEmail) {
+    organizerEmail = destinationCalendar[0].primaryEmail;
+  } else if (eventType.secondaryEmailId && eventType.secondaryEmail?.email) {
+    organizerEmail = eventType.secondaryEmail.email;
+  }
+
   let evt: CalendarEvent = {
     bookerUrl,
     type: eventType.slug,
@@ -1433,10 +1478,7 @@ async function handler(
     organizer: {
       id: organizerUser.id,
       name: organizerUser.name || "Nameless",
-      email:
-        eventType.useEventTypeDestinationCalendarEmail && destinationCalendar?.[0]?.primaryEmail
-          ? destinationCalendar[0].primaryEmail
-          : organizerUser.email || "Email-less",
+      email: organizerEmail,
       username: organizerUser.username || undefined,
       timeZone: organizerUser.timeZone,
       language: { translate: tOrganizer, locale: organizerUser.locale ?? "en" },
@@ -1545,7 +1587,18 @@ async function handler(
     });
     if (newBooking) {
       req.statusCode = 201;
-      return { ...newBooking, ...luckyUserResponse };
+      const bookingResponse = {
+        ...newBooking,
+        user: {
+          ...newBooking.user,
+          email: null,
+        },
+      };
+
+      return {
+        ...bookingResponse,
+        ...luckyUserResponse,
+      };
     }
   }
   if (isTeamEventType) {
@@ -1584,6 +1637,19 @@ async function handler(
       userReschedulingIsOwner,
     })
   );
+
+  // update original rescheduled booking (no seats event)
+  if (!eventType.seatsPerTimeSlot && originalRescheduledBooking?.uid) {
+    await prisma.booking.update({
+      where: {
+        id: originalRescheduledBooking.id,
+      },
+      data: {
+        rescheduled: true,
+        status: BookingStatus.CANCELLED,
+      },
+    });
+  }
 
   try {
     booking = await createBooking({
@@ -1652,7 +1718,7 @@ async function handler(
       err.message
     );
     if (err.code === "P2002") {
-      throw new HttpError({ statusCode: 409, message: "booking.conflict" });
+      throw new HttpError({ statusCode: 409, message: "booking_conflict" });
     }
     throw err;
   }
@@ -1678,20 +1744,7 @@ async function handler(
 
     evt = addVideoCallDataToEvent(originalRescheduledBooking.references, evt);
 
-    //update original rescheduled booking (no seats event)
-    if (!eventType.seatsPerTimeSlot) {
-      await prisma.booking.update({
-        where: {
-          id: originalRescheduledBooking.id,
-        },
-        data: {
-          rescheduled: true,
-          status: BookingStatus.CANCELLED,
-        },
-      });
-    }
-
-    const newDesinationCalendar = evt.destinationCalendar;
+    const newDestinationCalendar = evt.destinationCalendar;
 
     evt.destinationCalendar = originalRescheduledBooking?.destinationCalendar
       ? [originalRescheduledBooking?.destinationCalendar]
@@ -1710,7 +1763,7 @@ async function handler(
       originalRescheduledBooking.uid,
       undefined,
       changedOrganizer,
-      newDesinationCalendar
+      newDestinationCalendar
     );
 
     // This gets overridden when updating the event - to check if notes have been hidden or not. We just reset this back
@@ -2139,8 +2192,18 @@ async function handler(
     });
 
     req.statusCode = 201;
-    return {
+    // TODO: Refactor better so this booking object is not passed
+    // all around and instead the individual fields are sent as args.
+    const bookingReponse = {
       ...booking,
+      user: {
+        ...booking.user,
+        email: null,
+      },
+    };
+
+    return {
+      ...bookingReponse,
       ...luckyUserResponse,
       message: "Payment required",
       paymentUid: payment?.uid,
@@ -2239,8 +2302,7 @@ async function handler(
     loggerWithEventDetails.error("Error while creating booking references", JSON.stringify({ error }));
   }
 
-  const metadataFromEvent = videoCallUrl ? { videoCallUrl } : undefined;
-  const evtWithMetadata = { ...evt, metadata: metadataFromEvent, eventType: { slug: eventType.slug } };
+  const evtWithMetadata = { ...evt, metadata, eventType: { slug: eventType.slug } };
 
   await scheduleMandatoryReminder(
     evtWithMetadata,
@@ -2268,8 +2330,19 @@ async function handler(
 
   // booking successful
   req.statusCode = 201;
-  return {
+
+  // TODO: Refactor better so this booking object is not passed
+  // all around and instead the individual fields are sent as args.
+  const bookingResponse = {
     ...booking,
+    user: {
+      ...booking.user,
+      email: null,
+    },
+  };
+
+  return {
+    ...bookingResponse,
     ...luckyUserResponse,
     references: referencesToCreate,
     seatReferenceUid: evt.attendeeSeatId,

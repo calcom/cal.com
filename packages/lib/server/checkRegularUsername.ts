@@ -4,6 +4,7 @@ import { ProfileRepository } from "./repository/profile";
 
 export async function checkRegularUsername(_username: string, currentOrgDomain?: string | null) {
   const username = slugify(_username);
+
   const premium = !!process.env.NEXT_PUBLIC_IS_E2E && username.length < 5;
 
   const profiles = currentOrgDomain
@@ -13,7 +14,7 @@ export async function checkRegularUsername(_username: string, currentOrgDomain?:
       })
     : null;
 
-  const user = profiles ? profiles[0].user : null;
+  const user = profiles?.length ? profiles[0].user : null;
 
   if (user) {
     return {

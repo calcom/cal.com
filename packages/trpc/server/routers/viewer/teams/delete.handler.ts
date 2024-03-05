@@ -4,7 +4,6 @@ import { deleteDomain } from "@calcom/lib/domainManager/organization";
 import { isTeamOwner } from "@calcom/lib/server/queries/teams";
 import { closeComDeleteTeam } from "@calcom/lib/sync/SyncServiceManager";
 import { prisma } from "@calcom/prisma";
-import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
 
@@ -23,22 +22,23 @@ export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
 
   if (IS_TEAM_BILLING_ENABLED) await cancelTeamSubscriptionFromStripe(input.teamId);
 
-  // delete all memberships
-  await prisma.membership.deleteMany({
-    where: {
-      teamId: input.teamId,
-    },
+  const deletedTeam = await prisma.$transaction(async (tx) => {
+    // delete all memberships
+    await tx.membership.deleteMany({
+      where: {
+        teamId: input.teamId,
+      },
+    });
+
+    const deletedTeam = await tx.team.delete({
+      where: {
+        id: input.teamId,
+      },
+    });
+    return deletedTeam;
   });
 
-  const deletedTeam = await prisma.team.delete({
-    where: {
-      id: input.teamId,
-    },
-  });
-
-  const deletedTeamMetadata = teamMetadataSchema.parse(deletedTeam.metadata);
-
-  if (deletedTeamMetadata?.isOrganization && deletedTeam.slug) deleteDomain(deletedTeam.slug);
+  if (deletedTeam?.isOrganization && deletedTeam.slug) deleteDomain(deletedTeam.slug);
 
   // Sync Services: Close.cm
   closeComDeleteTeam(deletedTeam);

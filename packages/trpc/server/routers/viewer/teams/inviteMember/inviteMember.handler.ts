@@ -46,23 +46,23 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
   await checkRateLimitAndThrowError({
     identifier: `invitedBy:${ctx.user.id}`,
   });
+  const team = await getTeamOrThrow(input.teamId);
+
+  const isOrg = team.isOrganization;
+
+  // Only owners can award owner role in an organization.
+  if (isOrg && input.role === MembershipRole.OWNER && !(await isOrganisationOwner(ctx.user.id, input.teamId)))
+    throw new TRPCError({ code: "UNAUTHORIZED" });
+
   await checkPermissions({
     userId: ctx.user.id,
     teamId:
       ctx.user.organization.id && ctx.user.organization.isOrgAdmin ? ctx.user.organization.id : input.teamId,
-    isOrg: input.isOrg,
+    isOrg,
   });
 
-  // Only owners can award owner role in an organization.
-  if (
-    input.isOrg &&
-    input.role === MembershipRole.OWNER &&
-    !(await isOrganisationOwner(ctx.user.id, input.teamId))
-  )
-    throw new TRPCError({ code: "UNAUTHORIZED" });
+  const { autoAcceptEmailDomain, orgVerified } = getIsOrgVerified(isOrg, team);
 
-  const team = await getTeamOrThrow(input.teamId, input.isOrg);
-  const { autoAcceptEmailDomain, orgVerified } = getIsOrgVerified(input.isOrg, team);
   const usernameOrEmailsToInvite = await getUsernameOrEmailsToInvite(input.usernameOrEmail);
   const orgConnectInfoByUsernameOrEmail = usernameOrEmailsToInvite.reduce((acc, usernameOrEmail) => {
     return {
@@ -72,13 +72,13 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
         orgAutoAcceptDomain: autoAcceptEmailDomain,
         usersEmail: usernameOrEmail,
         team,
-        isOrg: input.isOrg,
+        isOrg: isOrg,
       }),
     };
   }, {} as Record<string, ReturnType<typeof getOrgConnectionInfo>>);
   const existingUsersWithMembersips = await getUsersToInvite({
     usernamesOrEmails: usernameOrEmailsToInvite,
-    isInvitedToOrg: input.isOrg,
+    isInvitedToOrg: isOrg,
     team,
   });
 
