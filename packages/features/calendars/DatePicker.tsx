@@ -49,11 +49,13 @@ export const Day = ({
   active,
   disabled,
   away,
+  emoji,
   ...props
 }: JSX.IntrinsicElements["button"] & {
   active: boolean;
   date: Dayjs;
   away?: boolean;
+  emoji?: string | null;
 }) => {
   const { t } = useLocale();
   const enabledDateButtonEmbedStyles = useEmbedStyles("enabledDateButton");
@@ -75,7 +77,7 @@ export const Day = ({
       data-disabled={disabled}
       disabled={disabled}
       {...props}>
-      {away && <span>🏝️</span>}
+      {away && <span>{emoji}</span>}
       {!away && date.date()}
       {date.isToday() && (
         <span
@@ -174,7 +176,6 @@ const Days = ({
     if (!day) return { day: null, disabled: true };
     const dateKey = yyyymmdd(day);
     const oooInfo = datesOutOfOffice?.[dateKey];
-
     const included = includedDates?.includes(dateKey);
     const excluded = excludedDates.includes(dateKey);
 
@@ -186,6 +187,7 @@ const Days = ({
       day: day,
       disabled,
       away,
+      emoji: oooInfo?.emoji,
     };
   });
 
@@ -220,7 +222,7 @@ const Days = ({
 
   return (
     <>
-      {daysToRenderForTheMonth.map(({ day, disabled, away }, idx) => (
+      {daysToRenderForTheMonth.map(({ day, disabled, away, emoji }, idx) => (
         <div key={day === null ? `e-${idx}` : `day-${day.format()}`} className="relative w-full pt-[100%]">
           {day === null ? (
             <div key={`e-${idx}`} />
@@ -240,6 +242,7 @@ const Days = ({
               disabled={disabled}
               active={isActive(day)}
               away={away}
+              emoji={emoji}
             />
           )}
         </div>

@@ -3,14 +3,15 @@ import * as HoverCard from "@radix-ui/react-hover-card";
 import { AnimatePresence, m } from "framer-motion";
 import { CalendarX2, ChevronRight } from "lucide-react";
 import { useCallback, useState } from "react";
-import type { Slots } from "schedules/lib/use-schedule";
 
 import type { IOutOfOfficeData } from "@calcom/core/getUserAvailability";
 import dayjs from "@calcom/dayjs";
 import { OutOfOfficeInSlots } from "@calcom/features/bookings/Booker/components/OutOfOfficeInSlots";
+import type { Slots } from "@calcom/features/schedules";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localStorage } from "@calcom/lib/webstorage";
+import type { IGetAvailableSlots } from "@calcom/trpc/server/routers/viewer/slots/util";
 import { Button, SkeletonText } from "@calcom/ui";
 
 import { useBookerStore } from "../Booker/store";
@@ -27,10 +28,8 @@ type TOnTimeSelect = (
   bookingUid?: string
 ) => void;
 
-// type TSlotsItem = ReturnType<typeof useSlotsForAvailableDates> extends (infer T)[] ? T : never;
-
 type AvailableTimesProps = {
-  slots: Slots;
+  slots: IGetAvailableSlots["slots"][string];
   onTimeSelect: TOnTimeSelect;
   seatsPerTimeSlot?: number | null;
   showAvailableSeatsCount?: boolean | null;
@@ -167,7 +166,7 @@ const SlotItem = ({
             </HoverCard.Trigger>
             <HoverCard.Portal>
               <HoverCard.Content side="top" align="end" sideOffset={2}>
-                <div className="text-emphasis bg-inverted text-inverted w-[var(--booker-timeslots-width)] rounded-md p-3">
+                <div className="text-emphasis bg-inverted w-[var(--booker-timeslots-width)] rounded-md p-3">
                   <div className="flex items-center gap-2">
                     <p>Busy</p>
                   </div>
@@ -196,12 +195,14 @@ export const AvailableTimes = ({
   const { t } = useLocale();
 
   if (slots[0] && slots[0].away) {
+    const { toUser, fromUser, reason, emoji } = slots[0];
     return (
       <OutOfOfficeInSlots
-        toUser={slots[0].toUser}
-        returnDate={slots[0].returnDate || ""}
-        fromUser={slots[0].fromUser}
-        date={slots[0].date}
+        toUser={toUser}
+        fromUser={fromUser}
+        date={dayjs(slots[0].time).format("YYYY-MM-DD")}
+        reason={reason}
+        emoji={emoji}
       />
     );
   }

@@ -4,7 +4,7 @@ import { v4 as uuid } from "uuid";
 
 import { getAggregatedAvailability } from "@calcom/core/getAggregatedAvailability";
 import { getBusyTimesForLimitChecks } from "@calcom/core/getBusyTimes";
-import type { CurrentSeats, IOutOfOfficeData } from "@calcom/core/getUserAvailability";
+import type { CurrentSeats, IFromUser, IOutOfOfficeData, IToUser } from "@calcom/core/getUserAvailability";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
@@ -296,28 +296,24 @@ function applyOccupiedSeatsToCurrentSeats(currentSeats: CurrentSeats, occupiedSe
   return currentSeats;
 }
 
-export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<{
+export interface IGetAvailableSlots {
   slots: Record<
     string,
     {
       time: string;
       attendees?: number | undefined;
       bookingUid?: string | undefined;
-      outOfOffice?: {
-        fromUser: {
-          id: number;
-          displayName: string;
-        };
-        toUser?: {
-          id: number;
-          displayName: string;
-        };
-        returnDate?: string;
-      };
+      away?: boolean | undefined;
+      fromUser?: IFromUser | undefined;
+      toUser?: IToUser | undefined;
+      reason?: string | undefined;
+      emoji?: string | undefined;
     }[]
   >;
-  datesOutOfOffice: IOutOfOfficeData[];
-}> {
+  datesOutOfOffice: IOutOfOfficeData;
+}
+
+export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<IGetAvailableSlots> {
   const orgDetails = input?.orgSlug
     ? {
         currentOrgDomain: input.orgSlug,
@@ -681,7 +677,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
 
   return {
     slots: computedAvailableSlots,
-    datesOutOfOffice: allUsersAvailability.map((user) => user.datesOutOfOffice),
+    datesOutOfOffice: allUsersAvailability[0].datesOutOfOffice,
   };
 }
 

@@ -64,8 +64,8 @@ export function AvailableCellsForDay({ availableSlots, day, startHour }: Availab
         <OutOfOfficeInSlots
           fromUser={firstSlot?.fromUser}
           toUser={firstSlot?.toUser}
-          returnDate="2022-01-01"
-          emojiStatus="🏖️"
+          reason={firstSlot?.reason}
+          emoji={firstSlot?.emoji}
           borderDashed={false}
           date={dateFormatted}
         />

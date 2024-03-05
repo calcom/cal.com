@@ -7,6 +7,7 @@ export const ZOutOfOfficeInputSchema = z.object({
   }),
   offset: z.number(),
   toTeamUserId: z.number().nullable(),
+  reasonId: z.number(),
 });
 
 export type TOutOfOfficeInputSchema = z.infer<typeof ZOutOfOfficeInputSchema>;

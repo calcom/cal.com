@@ -8,21 +8,21 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui";
 
 interface IOutOfOfficeInSlotsProps {
-  fromUser?: IOutOfOfficeData["anyDate"]["user"];
-  returnDate: string;
-  toUser?: IOutOfOfficeData["anyDate"]["toUser"];
-  emojiStatus?: string;
-  borderDashed?: boolean;
   date: string;
+  fromUser?: IOutOfOfficeData["anyDate"]["fromUser"];
+  toUser?: IOutOfOfficeData["anyDate"]["toUser"];
+  emoji?: string;
+  reason?: string;
+  borderDashed?: boolean;
 }
 
 export const OutOfOfficeInSlots = (props: IOutOfOfficeInSlotsProps) => {
   const { t } = useLocale();
-  const { fromUser, returnDate, toUser, emojiStatus = "🏝️", borderDashed = true, date } = props;
+  const { fromUser, toUser, emoji = "🏝️", borderDashed = true, date } = props;
   const searchParams = useCompatSearchParams();
   const router = useRouter();
 
-  if (!fromUser || !returnDate) return null;
+  if (!fromUser) return null;
   return (
     <div className="h-full pb-2">
       <div
@@ -30,13 +30,13 @@ export const OutOfOfficeInSlots = (props: IOutOfOfficeInSlotsProps) => {
           "z-10 flex h-full flex-col items-center justify-start rounded-md border bg-white px-4 py-4 dark:bg-transparent",
           borderDashed && "border-dashed"
         )}>
-        <div className="flex h-14 w-14 flex-col items-center justify-center rounded-full bg-gray-400 text-center text-2xl">
-          {emojiStatus}
+        <div className="flex h-14 w-14 flex-col items-center justify-center rounded-full bg-gray-400">
+          <span className="h-11 text-center text-3xl">{emoji}</span>
         </div>
         <div className="space-y-2 text-center">
-          <h1 className="text-md mt-2 font-bold">
+          <p className="mt-2 text-base font-bold">
             {t("ooo_user_is_ooo", { displayName: fromUser.displayName })}
-          </h1>
+          </p>
 
           {fromUser?.displayName && toUser?.displayName && (
             <p className="text-center text-sm">

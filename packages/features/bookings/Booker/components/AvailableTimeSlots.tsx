@@ -76,7 +76,6 @@ export const AvailableTimeSlots = ({
 
   const slotsPerDay = useSlotsForAvailableDates(dates, schedule?.slots);
   const datesOutOfOffice = schedule?.datesOutOfOffice;
-  const isSelectedDateInOutOfOffice = !!datesOutOfOffice?.[date];
   return (
     <>
       <div className="flex">
@@ -117,7 +116,6 @@ export const AvailableTimeSlots = ({
                 slots={slots.slots}
                 seatsPerTimeSlot={seatsPerTimeSlot}
                 showAvailableSeatsCount={showAvailableSeatsCount}
-                datesOutOfOffice={datesOutOfOffice}
               />
             </div>
           ))}

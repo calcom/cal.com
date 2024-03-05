@@ -1,4 +1,4 @@
-import type { IOutOfOfficeData } from "@calcom/core/getUserAvailability";
+import type { IFromUser, IOutOfOfficeData, IToUser } from "@calcom/core/getUserAvailability";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import type { WorkingHours, TimeRange as DateOverride } from "@calcom/types/schedule";
@@ -164,7 +164,15 @@ function buildSlotsWithDateRanges({
   frequency = minimumOfOne(frequency);
   eventLength = minimumOfOne(eventLength);
   offsetStart = offsetStart ? minimumOfOne(offsetStart) : 0;
-  const slots: { time: Dayjs; userIds?: number[] }[] = [];
+  const slots: {
+    time: Dayjs;
+    userIds?: number[];
+    away?: boolean;
+    fromUser?: IFromUser;
+    toUser?: IToUser;
+    reason?: string;
+    emoji?: string;
+  }[] = [];
   dateRanges.forEach((range) => {
     const dateYYYYMMDD = range.start.format("YYYY-MM-DD");
 
@@ -198,14 +206,17 @@ function buildSlotsWithDateRanges({
       : range.end;
 
     slotStartTime = slotStartTime.add(offsetStart ?? 0, "minutes").tz(timeZone);
+    const dateOutOfOfficeExists = datesOutOfOffice?.[dateYYYYMMDD];
+    if (dateOutOfOfficeExists) {
+      const { toUser, fromUser, reason, emoji } = dateOutOfOfficeExists;
 
-    if (datesOutOfOffice?.[dateYYYYMMDD]) {
       slots.push({
         time: slotStartTime,
         away: true,
-        toUser: datesOutOfOffice[dateYYYYMMDD].toUser,
-        fromUser: datesOutOfOffice[dateYYYYMMDD].user,
-        returnDate: "example",
+        ...(fromUser && { fromUser }),
+        ...(toUser && { toUser }),
+        ...(reason && { reason }),
+        ...(emoji && { emoji }),
       });
       return;
     }

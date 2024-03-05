@@ -668,8 +668,10 @@ export interface IToUser {
 
 export interface IOutOfOfficeData {
   [key: string]: {
-    user: IFromUser | null;
+    fromUser: IFromUser | null;
     toUser?: IToUser | null;
+    reason?: string | null;
+    emoji?: string | null;
   };
 }
 
@@ -740,13 +742,20 @@ const _getOutOfOfficeDays = async ({
           name: true,
         },
       },
+      reason: {
+        select: {
+          id: true,
+          emoji: true,
+          reason: true,
+        },
+      },
     },
   });
   if (!outOfOfficeDays.length) {
     return {};
   }
 
-  return outOfOfficeDays.reduce((acc: IOutOfOfficeData, { start, end, toUser, user }) => {
+  return outOfOfficeDays.reduce((acc: IOutOfOfficeData, { start, end, toUser, user, reason }) => {
     // here we should use startDate or today if start is before today
     // consider timezone in start and end date range
     const startDateRange = dayjs(start).utc().isBefore(dayjs().startOf("day").utc())
@@ -772,9 +781,11 @@ const _getOutOfOfficeDays = async ({
       acc[date.format("YYYY-MM-DD")] = {
         // @TODO:  would be good having start and end availability time here, but for now should be good
         // you can obtain that from user availability defined outside of here
-        user: { id: user.id, displayName: user.name },
+        fromUser: { id: user.id, displayName: user.name },
         // optional chaining destructuring toUser
         toUser: !!toUser ? { id: toUser.id, displayName: toUser.name, username: toUser.username } : null,
+        reason: !!reason ? reason.reason : null,
+        emoji: !!reason ? reason.emoji : null,
       };
     }
 

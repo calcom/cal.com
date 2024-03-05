@@ -31,6 +31,7 @@ export type BookingRedirectForm = {
   dateRange: { startDate: Date; endDate: Date };
   offset: number;
   toTeamUserId: number | null;
+  reasonId: number;
 };
 
 const CreateOutOfOfficeEntryModal = ({
@@ -43,7 +44,7 @@ const CreateOutOfOfficeEntryModal = ({
   const { t } = useLocale();
   const utils = trpc.useUtils();
 
-  const [selectedReason, setSelectedReason] = useState<{ label: string; value: string } | null>(null);
+  const [selectedReason, setSelectedReason] = useState<{ label: string; value: number } | null>(null);
   const [profileRedirect, setProfileRedirect] = useState(false);
   const [selectedMember, setSelectedMember] = useState<{ label: string; value: number | null } | null>(null);
 
@@ -74,6 +75,7 @@ const CreateOutOfOfficeEntryModal = ({
       },
       offset: dayjs().utcOffset(),
       toTeamUserId: null,
+      reasonId: 1,
     },
   });
 
@@ -82,11 +84,21 @@ const CreateOutOfOfficeEntryModal = ({
       showToast(t("success_entry_created"), "success");
       utils.viewer.outOfOfficeEntriesList.invalidate();
       setProfileRedirect(false);
+      closeModal();
     },
     onError: (error) => {
       showToast(t(error.message), "error");
     },
   });
+
+  const { data: outOfOfficeReasonList } = trpc.viewer.outOfOfficeReasonList.useQuery();
+
+  const reasonList = [
+    ...(outOfOfficeReasonList || []).map((reason) => ({
+      label: `${reason.emoji} ${reason.userId === null ? t(reason.reason) : reason.reason}`,
+      value: reason.id,
+    })),
+  ];
 
   return (
     <Dialog open={openModal}>
@@ -136,15 +148,12 @@ const CreateOutOfOfficeEntryModal = ({
                   data-testid="reason_select"
                   value={selectedReason}
                   placeholder="Select reason"
-                  options={[
-                    { label: `🕒 ${t("ooo_reasons_unspecified")}`, value: "ooo_reasons_unspecified" },
-                    { label: `🏝️ ${t("ooo_reasons_vacation")}`, value: "ooo_reason_vacation" },
-                    { label: `🛫 ${t("ooo_reasons_travel")}`, value: "ooo_reason_travel" },
-                    { label: `🤒 ${t("ooo_reasons_sick_leave")}`, value: "ooo_reason_sick_leave" },
-                    { label: `📆 ${t("ooo_reasons_public_holiday")}`, value: "ooo_reason_public_holiday" },
-                  ]}
+                  options={reasonList}
                   onChange={(selectedOption) => {
-                    setSelectedReason(selectedOption);
+                    if (selectedOption?.value) {
+                      setSelectedReason(selectedOption);
+                      setValue("reasonId", selectedOption?.value);
+                    }
                   }}
                 />
               </div>
@@ -237,7 +246,9 @@ const OutOfOfficeEntriesList = () => {
             <TableRow key={item.id} data-testid={`table-redirect-${item.toUser?.username || "n-a"}`}>
               <TableCell className="flex flex-row justify-between p-4">
                 <div className="flex flex-row">
-                  <div className="flex w-10 items-center justify-center rounded-full bg-gray-50">🏝️</div>
+                  <div className="flex w-10 items-center justify-center rounded-full bg-gray-50">
+                    {item?.reason?.emoji || "🏝️"}
+                  </div>
 
                   <div className="ml-2 flex flex-col">
                     <p className="px-2 font-bold">

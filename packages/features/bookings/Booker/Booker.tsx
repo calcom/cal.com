@@ -51,8 +51,6 @@ const BookerComponent = ({
   onClickOverlayContinue,
   onOverlaySwitchStateChange,
   sessionUsername,
-  isRedirect,
-  fromUserNameRedirected,
   rescheduleUid,
   hasSession,
   extraOptions,
