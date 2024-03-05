@@ -14,7 +14,6 @@ import { validateAndGetCorrectedUsernameAndEmail } from "@calcom/lib/validateUse
 import prisma from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
 import { signupSchema } from "@calcom/prisma/zod-utils";
-import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { joinAnyChildTeamOnOrgInvite } from "../utils/organization";
 import { prefillAvatar } from "../utils/prefillAvatar";
@@ -71,7 +70,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         id: foundToken.teamId,
       },
       include: {
-        parent: true,
+        parent: {
+          select: {
+            id: true,
+            slug: true,
+            organizationSettings: true,
+          },
+        },
+        organizationSettings: true,
       },
     });
 
@@ -116,7 +122,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
 
       const { membership } = await createOrUpdateMemberships({
-        teamMetadata,
         user,
         team,
       });

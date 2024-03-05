@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 export const ZUpdateInputSchema = z.object({
@@ -13,9 +14,9 @@ export const ZUpdateInputSchema = z.object({
   bio: z.string().optional(),
   logo: z
     .string()
+    .transform(async (val) => await resizeBase64Image(val))
     .optional()
-    .nullable()
-    .transform((v) => v || null),
+    .nullable(),
   calVideoLogo: z
     .string()
     .optional()
@@ -30,7 +31,7 @@ export const ZUpdateInputSchema = z.object({
   timeZone: z.string().optional(),
   weekStart: z.string().optional(),
   timeFormat: z.number().optional(),
-  metadata: teamMetadataSchema.unwrap().pick({ isOrganizationConfigured: true }).optional(),
+  metadata: teamMetadataSchema.unwrap().optional(),
 });
 
 export type TUpdateInputSchema = z.infer<typeof ZUpdateInputSchema>;

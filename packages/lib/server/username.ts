@@ -201,7 +201,7 @@ const usernameCheckForSignup = async ({
 
   const username = slugify(usernameRaw);
 
-  const user = await prisma.user.findFirst({
+  const user = await prisma.user.findUnique({
     where: {
       email,
     },
@@ -218,10 +218,7 @@ const usernameCheckForSignup = async ({
       where: {
         userId: user.id,
         team: {
-          metadata: {
-            path: ["isOrganization"],
-            equals: true,
-          },
+          isOrganization: true,
         },
       },
     });
@@ -230,8 +227,10 @@ const usernameCheckForSignup = async ({
     // The only way to differentiate b/w 'a new email that was invited to an Org' and 'a user that was created using regular signup' is to check if the user is a member of an org.
     // If username is in global namespace
     if (!userIsAMemberOfAnOrg) {
-      response.available = false;
-      // There are premium users outside an organization only
+      const isClaimingAlreadySetUsername = user.username === username;
+      const isClaimingUnsetUsername = !user.username;
+      response.available = isClaimingUnsetUsername || isClaimingAlreadySetUsername;
+      /// There are premium users outside an organization only
       response.premium = await isPremiumUserName(username);
     }
     // If user isn't found, it's a direct signup and that can't be of an organization
