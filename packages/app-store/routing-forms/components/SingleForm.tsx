@@ -242,7 +242,7 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
   const { t } = useLocale();
   const { data: teamMembers } = form.teamId
     ? trpc.viewer.teams.listMembers.useQuery({ teamIds: [form.teamId] })
-    : null;
+    : { data: [] };
 
   const [isTestPreviewOpen, setIsTestPreviewOpen] = useState(false);
   const [response, setResponse] = useState<Response>({});
