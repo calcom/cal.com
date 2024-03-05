@@ -29,10 +29,6 @@ const handleGroupEvents = async (event: DirectorySyncEvent, orgId: number) => {
 
   const org = await getTeamOrThrow(orgId);
 
-  if (!org) {
-    throw new Error("Org not found");
-  }
-
   const userIdsToCreateMemberships: number[] = [];
 
   for (const member of eventData.raw.members) {
