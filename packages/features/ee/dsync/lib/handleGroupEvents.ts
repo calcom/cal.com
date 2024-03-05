@@ -27,7 +27,7 @@ const handleGroupEvents = async (event: DirectorySyncEvent, orgId: number) => {
     },
   });
 
-  const org = await getTeamOrThrow(orgId, true);
+  const org = await getTeamOrThrow(orgId);
 
   if (!org) {
     throw new Error("Org not found");
