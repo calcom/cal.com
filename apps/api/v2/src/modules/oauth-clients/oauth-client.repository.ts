@@ -3,6 +3,7 @@ import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { Injectable } from "@nestjs/common";
 import type { PlatformOAuthClient } from "@prisma/client";
+import { randomBytes } from "crypto";
 
 import type { CreateOAuthClientInput } from "@calcom/platform-types";
 
@@ -15,11 +16,14 @@ export class OAuthClientRepository {
   ) {}
 
   async createOAuthClient(organizationId: number, data: CreateOAuthClientInput) {
+    const id = "cal_pla_" + randomBytes(28).toString("hex");
+
     return this.dbWrite.prisma.platformOAuthClient.create({
       data: {
         ...data,
         secret: this.jwtService.sign(data),
         organizationId,
+        id,
       },
     });
   }

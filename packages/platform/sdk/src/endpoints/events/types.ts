@@ -20,7 +20,7 @@ type TeamParent = {
 
 type Team = {
   parentId: string;
-  metadata: Record<string, unknown>; // Use a more specific type if possible
+  metadata: Record<string, unknown>;
   brandColor: string;
   darkBrandColor: string;
   slug: string;

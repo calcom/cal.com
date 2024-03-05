@@ -28,34 +28,66 @@ export class HttpCaller {
 
   secrets: SdkSecrets | null = null;
 
+  private requestQueue: Array<() => void> = [];
+
   constructor(
     private readonly clientId: string,
     private readonly axiosClient: AxiosInstance,
-    options?: HttpCallerOptions
+    private readonly options?: HttpCallerOptions
   ) {
-    if (options?.shouldHandleRefresh) {
-      this.axiosClient.interceptors.request.use(async (config) => {
-        if (this.awaitingRefresh && this.secrets) {
-          await this.secrets.refreshAccessToken(this.clientId);
-          this.awaitingRefresh = false;
-        }
-        return config;
-      });
+    this.setupInterceptors();
+  }
+
+  private async retryQueuedRequests() {
+    while (this.requestQueue.length > 0) {
+      const retryRequest = this.requestQueue.shift();
+      if (retryRequest) {
+        retryRequest();
+      }
     }
+  }
+
+  private setupInterceptors() {
+    this.axiosClient.interceptors.request.use(async (config) => {
+      if (this.awaitingRefresh) {
+        // Return a new promise that resolves when the refresh is complete
+        // and then retries the request.
+        return new Promise((resolve) => {
+          this.requestQueue.push(() => resolve(config));
+        });
+      }
+      return config;
+    });
 
     this.axiosClient.interceptors.response.use(
       (response) => response,
-      (error: AxiosError) => {
-        if (error.status === 498) {
-          // tell HttpCaller to attempt a refresh on the subsequent request.
-          // If options.shouldHandleRefresh is not set, the user will have to
-          // handle the refreshing on their own.
-          this.awaitingRefresh = true;
+      async (error: AxiosError) => {
+        if (error.response?.status === 498) {
+          if (!this.awaitingRefresh) {
+            this.awaitingRefresh = true;
+
+            try {
+              await this.secrets?.refreshAccessToken(this.clientId);
+              this.retryQueuedRequests();
+            } catch (refreshError) {
+              console.error("Failed to refresh token:", refreshError);
+              // Optionally, clear the queue on failure to prevent hanging requests
+              this.requestQueue = [];
+            } finally {
+              this.awaitingRefresh = false;
+            }
+          }
+
+          // Re-queue the failed request for retry after refresh
+          return new Promise((resolve, reject) => {
+            this.requestQueue.push(() => {
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+              this.axiosClient.request(error.config!).then(resolve).catch(reject);
+            });
+          });
         }
 
         if (error.response) {
-          // The request was made and the server responded with a status code
-          // that falls out of the range of 2xx
           throw new CalApiError(error.response.statusText, error.response.status);
         } else if (error.request) {
           throw new Error("The request was made but no response was received");

@@ -31,6 +31,10 @@ export enum Endpoints {
   GET_PUBLIC_EVENT = "GET_PUBLIC_EVENT",
   EXCHANGE_OAUTH_AUTH_TOKEN = "EXCHANGE_OAUTH_AUTH_TOKEN",
   REFRESH_OAUTH_TOKEN = "REFRESH_OAUTH_TOKEN",
+  CREATE_EVENT_TYPE = "CREATE_EVENT_TYPE",
+  GET_EVENT_TYPE_BY_ID = "GET_EVENT_TYPE_BY_ID",
+  CREATE_SCHEDULE = "CREATE_SCHEDULE",
+  GET_DEFAULT_SCHEDULE = "GET_DEFAULT_SCHEDULE",
 }
 
 const publicEndpoint = (uri: string, version = ApiVersion.NEUTRAL): EndpointDeclaration => ({
@@ -62,6 +66,28 @@ const ENDPOINTS: Record<Endpoints, EndpointDeclaration> = {
     ([clientId]) => `oauth/${clientId}/refresh`,
     ApiVersion.V2
   ),
+  CREATE_EVENT_TYPE: {
+    apiVersion: ApiVersion.V2,
+    auth: "access_token",
+    uri: `event-types`,
+  },
+  GET_EVENT_TYPE_BY_ID: {
+    apiVersion: ApiVersion.V2,
+    auth: "access_token",
+    constructUri([eventTypeId]) {
+      return `event-types/${eventTypeId}`;
+    },
+  },
+  CREATE_SCHEDULE: {
+    apiVersion: ApiVersion.V2,
+    auth: "access_token",
+    uri: "schedules",
+  },
+  GET_DEFAULT_SCHEDULE: {
+    apiVersion: ApiVersion.V2,
+    auth: "access_token",
+    uri: "schedules/default",
+  },
 } as const;
 
 const isParamsRecord = (params: unknown): params is Record<string, string> => {

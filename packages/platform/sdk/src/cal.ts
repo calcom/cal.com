@@ -3,7 +3,9 @@ import axiosRetry from "axios-retry";
 
 import { Bookings } from "./endpoints/bookings";
 import { Events } from "./endpoints/events";
+import { EventTypes } from "./endpoints/events/event-types";
 import { OAuthFlow } from "./endpoints/oauth-flow";
+import { Schedules } from "./endpoints/schedules";
 import { Slots } from "./endpoints/slots";
 import { SdkInitializationError } from "./lib/errors/sdk-initialization-error";
 import { HttpCaller } from "./lib/http-caller";
@@ -17,6 +19,8 @@ export class CalSdk {
   bookings: Bookings;
   events: Events;
   oauth: OAuthFlow;
+  eventTypes: EventTypes;
+  schedules: Schedules;
 
   private _secrets: SdkSecrets;
 
@@ -46,6 +50,8 @@ export class CalSdk {
     this.bookings = new Bookings(this);
     this.events = new Events(this);
     this.oauth = new OAuthFlow(this);
+    this.eventTypes = new EventTypes(this);
+    this.schedules = new Schedules(this);
   }
 
   private _createAxiosClientBase() {

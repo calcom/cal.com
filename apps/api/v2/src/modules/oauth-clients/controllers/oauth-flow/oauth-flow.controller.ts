@@ -14,6 +14,7 @@ import {
   Headers,
   HttpCode,
   HttpStatus,
+  Logger,
   Param,
   Post,
   Response,
@@ -29,6 +30,8 @@ import { ApiResponse } from "@calcom/platform-types";
   version: "2",
 })
 export class OAuthFlowController {
+  private logger = new Logger("OAuthFlowController");
+
   constructor(
     private readonly oauthClientRepository: OAuthClientRepository,
     private readonly tokensRepository: TokensRepository,

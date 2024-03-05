@@ -39,7 +39,7 @@ export class SlotsController {
   ): Promise<ApiResponse> {
     const uid = req.cookies?.uid || params.uid;
 
-    await this.slotsService.deleteSelectedslot(uid);
+    await this.slotsService.deleteSelectedSlot(uid);
 
     return {
       status: SUCCESS_STATUS,

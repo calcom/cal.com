@@ -16,6 +16,14 @@ export class SdkSecrets {
     this.refreshedAt = null;
   }
 
+  updateAccessToken(accessToken: string, refreshToken?: string) {
+    this.accessToken = accessToken;
+
+    if (refreshToken) {
+      this.refreshToken = refreshToken;
+    }
+  }
+
   async refreshAccessToken(clientId: string) {
     const { data } = await this.httpCaller.post<BasicPlatformResponse<ExchangeCodeResponse>>(
       Endpoints.REFRESH_OAUTH_TOKEN,
@@ -44,6 +52,10 @@ export class SdkSecrets {
 
   public getClientSecret(): Readonly<string> {
     return this.clientSecret;
+  }
+
+  public isAccessTokenSet(): boolean {
+    return !!this.accessToken;
   }
 
   public _debug() {

@@ -42,7 +42,7 @@ export class SlotsService {
     return uid;
   }
 
-  async deleteSelectedslot(uid?: string) {
+  async deleteSelectedSlot(uid?: string) {
     if (!uid) return;
 
     return this.slotsRepo.deleteSelectedSlots(uid);
