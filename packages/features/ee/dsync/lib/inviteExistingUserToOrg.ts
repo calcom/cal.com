@@ -22,22 +22,20 @@ const inviteExistingUserToOrg = async ({
     organizationId: org.id,
   });
 
-  await prisma.membership.create({
-    data: {
-      teamId: org.id,
-      userId: user.id,
-      role: "MEMBER",
-      // Since coming from directory assume it'll be verified
-      accepted: true,
-    },
-  });
-
   await prisma.user.update({
     where: {
       id: user.id,
     },
     data: {
       organizationId: org.id,
+      teams: {
+        create: {
+          teamId: org.id,
+          role: "MEMBER",
+          // Since coming from directory assume it'll be verified
+          accepted: true,
+        },
+      },
     },
   });
 
