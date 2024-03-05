@@ -2,7 +2,6 @@ import type { TFunction } from "next-i18next";
 
 import { createAProfileForAnExistingUser } from "@calcom/lib/createAProfileForAnExistingUser";
 import prisma from "@calcom/prisma";
-import { sendExistingUserTeamInviteEmails } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
 import type { UserWithMembership } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
 
 /**
@@ -41,16 +40,7 @@ const inviteExistingUserToOrg = async ({
     },
   });
 
-  await sendExistingUserTeamInviteEmails({
-    currentUserName: user.username,
-    currentUserTeamName: org.name,
-    existingUsersWithMembersips: [user],
-    language: translation,
-    isOrg: true,
-    teamId: org.id,
-    isAutoJoin: true,
-    currentUserParentTeamName: org?.parent?.name,
-  });
+  return user;
 };
 
 export default inviteExistingUserToOrg;

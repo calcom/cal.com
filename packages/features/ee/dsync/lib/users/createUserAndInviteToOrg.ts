@@ -5,7 +5,6 @@ import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { getTeamOrThrow } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
-import { sendSignupToOrganizationEmail } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
 
 import dSyncUserSelect from "./dSyncUserSelect";
 
@@ -50,20 +49,6 @@ const createUserAndInviteToOrg = async ({
       },
     },
     select: dSyncUserSelect,
-  });
-
-  sendSignupToOrganizationEmail({
-    usernameOrEmail: userEmail,
-    team: org,
-    translation,
-    inviterName: org.name,
-    input: {
-      teamId: orgId,
-      role: MembershipRole.MEMBER,
-      usernameOrEmail: userEmail,
-      language: "en",
-      isOrg: true,
-    },
   });
 
   return user;
