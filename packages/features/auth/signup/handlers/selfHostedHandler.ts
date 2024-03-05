@@ -90,8 +90,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const isInviteForATeamInOrganization = team.parent;
       const isCheckingUsernameInGlobalNamespace = !isInviteForOrganization && !isInviteForATeamInOrganization;
 
-      const teamMetadata = teamMetadataSchema.parse(team?.metadata);
-
       if (isCheckingUsernameInGlobalNamespace) {
         const isUsernameAvailable = !(await isUsernameReservedDueToMigration(correctedUsername));
         if (!isUsernameAvailable) {

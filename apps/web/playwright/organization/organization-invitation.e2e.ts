@@ -269,7 +269,7 @@ test.describe("Organization", () => {
       const { existingUser } = await test.step("Invite an existing user to an organization", async () => {
         const existingUser = await users.create({
           username: "john",
-          emailDomain: org.metadata?.orgAutoAcceptEmail ?? "",
+          emailDomain: org.organizationSettings?.orgAutoAcceptEmail ?? "",
           name: "John Outside Organization",
         });
 

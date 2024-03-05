@@ -127,7 +127,7 @@ test.describe("Change username on settings", () => {
 
         const existingUser = await users.create({
           username: "john",
-          emailDomain: org.metadata?.orgAutoAcceptEmail ?? "",
+          emailDomain: org.organizationSettings?.orgAutoAcceptEmail ?? "",
           name: "John Outside Organization",
         });
 
