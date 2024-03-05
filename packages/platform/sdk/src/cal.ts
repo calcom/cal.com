@@ -69,7 +69,7 @@ export class CalSdk {
     return axiosClient;
   }
 
-  public _internalSecrets() {
+  public secrets() {
     return this._secrets;
   }
 }

@@ -29,9 +29,7 @@ export class EventTypes extends EndpointHandler {
       Endpoints.GET_EVENT_TYPE_BY_ID,
       {
         urlParams: [args.id],
-        ...(args.forAtom && {
-          config: this.withForAtom(),
-        }),
+        config: this.withForAtomParam(args.forAtom ?? false),
       }
     );
 

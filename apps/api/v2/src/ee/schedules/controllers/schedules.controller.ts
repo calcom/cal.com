@@ -31,7 +31,6 @@ import { CreateScheduleInput } from "../inputs/create-schedule.input";
   path: "schedules",
   version: "2",
 })
-@UseGuards(AccessTokenGuard)
 export class SchedulesController {
   constructor(
     private readonly schedulesService: SchedulesService,
@@ -39,6 +38,7 @@ export class SchedulesController {
   ) {}
 
   @Post("/")
+  @UseGuards(AccessTokenGuard)
   async createSchedule(
     @GetUser() user: User,
     @Body() bodySchedule: CreateScheduleInput,
@@ -54,6 +54,7 @@ export class SchedulesController {
   }
 
   @Get("/default")
+  @UseGuards(AccessTokenGuard)
   async getDefaultSchedule(
     @GetUser() user: User,
     @ForAtom() forAtom: boolean
@@ -80,6 +81,7 @@ export class SchedulesController {
   }
 
   @Get("/:scheduleId")
+  @UseGuards(AccessTokenGuard)
   async getSchedule(
     @GetUser() user: User,
     @Param("scheduleId") scheduleId: number,
@@ -95,6 +97,7 @@ export class SchedulesController {
   }
 
   @Get("/")
+  @UseGuards(AccessTokenGuard)
   async getSchedules(
     @GetUser() user: User,
     @ForAtom() forAtom: boolean
@@ -109,6 +112,7 @@ export class SchedulesController {
   }
 
   @Patch("/:scheduleId")
+  @UseGuards(AccessTokenGuard)
   async updateSchedule(
     @GetUser() user: User,
     @Body() bodySchedule: UpdateScheduleInput
@@ -126,6 +130,7 @@ export class SchedulesController {
 
   @Delete("/:scheduleId")
   @HttpCode(HttpStatus.OK)
+  @UseGuards(AccessTokenGuard)
   async deleteSchedule(
     @GetUser("id") userId: number,
     @Param("scheduleId") scheduleId: number

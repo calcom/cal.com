@@ -24,8 +24,6 @@ export class AccessTokenStrategy extends PassportStrategy(BaseStrategy, "access-
     try {
       const accessToken = request.get("Authorization")?.replace("Bearer ", "");
 
-      this.logger.log("access token req invalid", accessToken, request.get("Authorization"));
-
       if (!accessToken) {
         throw new UnauthorizedException(INVALID_ACCESS_TOKEN);
       }

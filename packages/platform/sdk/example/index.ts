@@ -27,41 +27,27 @@ import { CalSdk } from "../src/cal";
 
     console.log("finalized oauth", oauth.accessToken);
 
-    sdk._internalSecrets().updateAccessToken(oauth.accessToken, oauth.refreshToken);
-
-    // console.log("updated internal secrets");
-
-    // const _createdEvent = await sdk.eventTypes.createEventType({
-    //   length: 15,
-    //   slug: `test-event-rand-${randomBytes(8).toString("hex")}`,
-    //   title: "Test Event Random SDK",
-    // });
-
-    // console.log("created event", _createdEvent);
-
-    // const event = await sdk.eventTypes.getEventType({
-    //   id: _createdEvent.id,
-    // });
-
-    // console.log(event);
+    // force updating
+    sdk.secrets().updateAccessToken(oauth.accessToken, oauth.refreshToken);
 
     const schedule = await sdk.schedules.createSchedule({
-      isDefault: true,
       availabilities: [
         {
-          days: [1, 2, 3, 4, 5],
-          startTime: "11:00:00",
+          days: [1, 2, 3, 4, 5, 6],
+          startTime: "10:00:00",
           endTime: "14:00:00",
         },
       ],
-      name: "test schedule",
+      isDefault: true,
+      name: "Default Schedule Test",
       timeZone: "America/Argentina/Buenos_Aires",
     });
 
     console.log(schedule);
 
-    const defaultSchedule = await sdk.schedules.getDefaultSchedule();
-    console.log(defaultSchedule);
+    const deleted = await sdk.schedules.deleteSchedule(schedule.id);
+
+    console.log(deleted);
   } catch (err) {
     console.log("error", err);
   }

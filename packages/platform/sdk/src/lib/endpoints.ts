@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { ApiVersion } from "../types";
 
-// Define a base type with common properties
 type BaseEndpointDeclaration = {
   auth: "public" | "access_token" | "secret";
   apiVersion: ApiVersion;
@@ -35,6 +34,11 @@ export enum Endpoints {
   GET_EVENT_TYPE_BY_ID = "GET_EVENT_TYPE_BY_ID",
   CREATE_SCHEDULE = "CREATE_SCHEDULE",
   GET_DEFAULT_SCHEDULE = "GET_DEFAULT_SCHEDULE",
+  GET_ALL_SCHEDULES = "GET_ALL_SCHEDULES",
+  GET_SCHEDULE_BY_ID = "GET_SCHEDULE_BY_ID",
+  GET_SUPPORTED_TIMEZONES = "GET_SUPPORTED_TIMEZONES",
+  UPDATE_SCHEDULE_BY_ID = "UPDATE_SCHEDULE_BY_ID",
+  DELETE_SCHEDULE_BY_ID = "DELETE_SCHEDULE_BY_ID",
 }
 
 const publicEndpoint = (uri: string, version = ApiVersion.NEUTRAL): EndpointDeclaration => ({
@@ -88,6 +92,33 @@ const ENDPOINTS: Record<Endpoints, EndpointDeclaration> = {
     auth: "access_token",
     uri: "schedules/default",
   },
+  GET_ALL_SCHEDULES: {
+    apiVersion: ApiVersion.V2,
+    auth: "access_token",
+    uri: "schedules",
+  },
+  GET_SCHEDULE_BY_ID: {
+    apiVersion: ApiVersion.V2,
+    auth: "access_token",
+    constructUri([scheduleId]) {
+      return `schedules/${scheduleId}`;
+    },
+  },
+  GET_SUPPORTED_TIMEZONES: publicEndpoint("schedules/time-zones", ApiVersion.V2),
+  UPDATE_SCHEDULE_BY_ID: {
+    apiVersion: ApiVersion.V2,
+    auth: "access_token",
+    constructUri([scheduleId]) {
+      return `schedules/${scheduleId}`;
+    },
+  },
+  DELETE_SCHEDULE_BY_ID: {
+    apiVersion: ApiVersion.V2,
+    auth: "access_token",
+    constructUri([scheduleId]) {
+      return `schedules/${scheduleId}`;
+    },
+  },
 } as const;
 
 const isParamsRecord = (params: unknown): params is Record<string, string> => {
@@ -111,7 +142,7 @@ export const getEndpointData = (
   // Determine if the endpoint expects a dynamic URI construction
   if (typeof endpointData.constructUri === "function") {
     if (!params) {
-      throw new Error("Parameters are required for dynamic endpoints.");
+      throw new Error(`Parameters are required for dynamic ${endpoint} endpoint.`);
     }
 
     // Here, we need to determine the correct type of params at runtime
@@ -134,13 +165,12 @@ export const getEndpointData = (
       auth: endpointData.auth,
     };
   } else if (endpointData.uri) {
-    // Handle static URIs
     return {
       version: endpointData.apiVersion,
       uri: endpointData.uri,
       auth: endpointData.auth,
     };
   } else {
-    throw new Error("Endpoint configuration error.");
+    throw new Error(`Endpoint configuration error for ${endpoint}`);
   }
 };

@@ -107,18 +107,18 @@ export class HttpCaller {
     return data;
   }
 
-  async get<T>(endpoint: Endpoints, options: CallOptions): Promise<T> {
+  async get<T>(endpoint: Endpoints, options?: CallOptions): Promise<T> {
     const { data } = await this.axiosClient.get<T>(
-      this.createCallUrl(endpoint, options.urlParams),
-      this.wrapConfigWithAuth(endpoint, options.config)
+      this.createCallUrl(endpoint, options?.urlParams),
+      this.wrapConfigWithAuth(endpoint, options?.config)
     );
     return data;
   }
 
-  async delete<T>(endpoint: Endpoints, options: CallOptions): Promise<T> {
+  async delete<T>(endpoint: Endpoints, options?: CallOptions): Promise<T> {
     const { data } = await this.axiosClient.delete<T>(
-      this.createCallUrl(endpoint, options.urlParams),
-      this.wrapConfigWithAuth(endpoint, options.config)
+      this.createCallUrl(endpoint, options?.urlParams),
+      this.wrapConfigWithAuth(endpoint, options?.config)
     );
     return data;
   }

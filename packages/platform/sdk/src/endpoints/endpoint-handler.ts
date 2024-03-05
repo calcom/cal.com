@@ -8,7 +8,9 @@ import type { CalSdk } from "../cal";
 export abstract class EndpointHandler {
   constructor(private readonly key: string, private readonly calSdk: CalSdk) {}
 
-  withForAtom(config?: AxiosRequestConfig<unknown>) {
+  withForAtomParam(forAtom: boolean, config?: AxiosRequestConfig<unknown>) {
+    if (!forAtom) return config;
+
     return merge(config, {
       params: {
         for: "atom",
@@ -18,8 +20,15 @@ export abstract class EndpointHandler {
 
   protected assertAccessToken(methodName: string) {
     assert(
-      this.calSdk._internalSecrets().isAccessTokenSet(),
-      `Access token must be set to call the ${methodName} function.`
+      this.calSdk.secrets().isAccessTokenSet(),
+      `Access token must be set to call the ${this.key}/${methodName} function.`
+    );
+  }
+
+  protected assertClientSecret(methodName: string) {
+    assert(
+      !!this.calSdk.secrets().getClientSecret(),
+      `Client secret must be set to use the ${this.key}/${methodName} function.`
     );
   }
 }
