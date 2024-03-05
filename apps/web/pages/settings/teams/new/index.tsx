@@ -10,6 +10,7 @@ import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
+import type { RouterOutputs } from "@calcom/trpc/react";
 import { WizardLayout } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
@@ -40,7 +41,7 @@ const CreateNewTeamPage = () => {
   const returnToParam =
     (parsedQuery.success ? getSafeRedirectUrl(parsedQuery.data.returnTo) : "/teams") || "/teams";
 
-  const onSuccess = (data) => {
+  const onSuccess = (data: RouterOutputs["viewer"]["teams"]["create"]) => {
     telemetry.event(flag.telemetryEvent);
     router.push(data.url);
   };

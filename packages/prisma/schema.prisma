@@ -370,6 +370,7 @@ model Team {
   dsyncTeamGroupMapping DSyncTeamGroupMapping[]
 
   @@unique([slug, parentId])
+  @@index([parentId])
 }
 
 model OrganizationSettings {
