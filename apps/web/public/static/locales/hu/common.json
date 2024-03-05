@@ -129,6 +129,8 @@
   "user_needs_to_confirm_or_reject_booking": "{{user}} még mindig vissza kell igazolni vagy elutasítania a foglalást.",
   "user_needs_to_confirm_or_reject_booking_recurring": "{{user}} résztvevőnek még mindig vissza kell igazolnia vagy elutasítania a foglalást az ismétlődő találkozóra.",
   "meeting_is_scheduled": "Találkozó sikeresen lefoglalva",
+  "booking_submitted": "A foglalásod be lett küldve",
+  "booking_confirmed": "A foglalásod vissza lett igazolva",
   "try_again": "Próbáld újra",
   "login": "Bejelentkezés",
   "success": "Siker",
