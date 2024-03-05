@@ -611,7 +611,14 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
             isOrganization: true,
           },
         },
-        include: { team: { include: { children: true } } },
+        include: {
+          team: {
+            include: {
+              children: true,
+              organizationSettings: true,
+            },
+          },
+        },
       });
       if (!membership) {
         return membership;
