@@ -63,12 +63,15 @@ export const useBookingSuccessRedirect = () => {
         },
         searchParams: searchParams ?? undefined,
       });
-
-      if (newSearchParams?.toString().indexOf("?") <= -1) {
-        window.parent.location.href = `${url.toString()}?${newSearchParams.toString()}`;
-      } else {
-        window.parent.location.href = `${url.toString()}${newSearchParams.toString()}`;
+      const input=`${url.toString()}?${newSearchParams.toString()}`;
+      const firstIndex = input.indexOf('?');
+      if (firstIndex === -1) {
+        // No "?" found in the string
+        return window.parent.location.href =`${url.toString()}?${newSearchParams.toString()}`;
       }
+       // Keep the first occurrence and remove subsequent ones
+      const resultURL = input.slice(0, firstIndex + 1) + input.slice(firstIndex + 1).replace(/\?/g, '')
+      window.parent.location.href = resultURL;
       return;
     }
     const newSearchParams = getNewSeachParams({ query });
