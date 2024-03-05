@@ -67,7 +67,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       style={embedColorScheme ? { colorScheme: embedColorScheme as string } : undefined}
       data-nextjs-router="app">
       <head nonce={nonce}>
-        {process.env.NEXT_PUBLIC_HEAD_SCRIPTS && (
+        {!!process.env.NEXT_PUBLIC_HEAD_SCRIPTS && (
           <script
             nonce={nonce}
             id="injected-head-scripts"
