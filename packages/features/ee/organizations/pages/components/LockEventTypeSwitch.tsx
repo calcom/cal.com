@@ -17,7 +17,6 @@ import {
   Button,
   RadioGroup as RadioArea,
 } from "@calcom/ui";
-import { Lock } from "@calcom/ui/components/icon";
 
 enum CurrentEventTypeOptions {
   DELETE = "DELETE",
@@ -102,9 +101,6 @@ export const LockEventTypeSwitch = ({ currentOrg, isAdminOrOwner }: GeneralViewP
           <DialogContent enableOverflow>
             <Form form={formMethods} handleSubmit={onSubmit}>
               <div className="flex flex-row space-x-3">
-                <div className="bg-subtle flex h-10 w-10 flex-shrink-0 justify-center rounded-full ">
-                  <Lock className="m-auto h-6 w-6" />
-                </div>
                 <div className="w-full pt-1">
                   <DialogHeader title={t("lock_event_types_modal_header")} />
                   <RadioArea.Group
