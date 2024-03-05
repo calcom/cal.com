@@ -1,5 +1,3 @@
-import type { UseFieldArrayRemove } from "react-hook-form";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import type { TimeRange, WorkingHours } from "@calcom/types/schedule";
@@ -20,29 +18,28 @@ const useSettings = () => {
   };
 };
 
+// I would like this to be decoupled, but RHF really doesn't support this.
 const DateOverrideList = ({
-  items,
-  remove,
-  replace,
   workingHours,
   excludedDates = [],
+  replace,
+  fields,
 }: {
-  remove: UseFieldArrayRemove;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   replace: any;
-  items: { ranges: TimeRange[]; id: string }[];
+  fields: { ranges: TimeRange[]; id: string }[];
   workingHours: WorkingHours[];
   excludedDates?: string[];
 }) => {
   const { t, i18n } = useLocale();
   const { hour12 } = useSettings();
 
-  const unsortedFieldArrayMap = items.reduce(
+  const unsortedFieldArrayMap = fields.reduce(
     (map: { [id: string]: number }, { id }, index) => ({ ...map, [id]: index }),
     {}
   );
 
-  if (!items.length) {
+  if (!fields.length) {
     return <></>;
   }
 
@@ -56,7 +53,7 @@ const DateOverrideList = ({
 
   return (
     <ul className="border-subtle rounded border" data-testid="date-overrides-list">
-      {items.sort(sortByDate).map((item) => (
+      {fields.sort(sortByDate).map((item) => (
         <li key={item.id} className="border-subtle flex justify-between border-b px-5 py-4 last:border-b-0">
           <div>
             <h3 className="text-emphasis text-sm">
@@ -84,7 +81,7 @@ const DateOverrideList = ({
               value={item.ranges}
               onChange={(ranges) => {
                 // update has very weird side-effects with sorting.
-                replace([...items.filter((currentItem) => currentItem.id !== item.id), { ranges }]);
+                replace([...fields.filter((currentItem) => currentItem.id !== item.id), { ranges }]);
                 delete unsortedFieldArrayMap[item.id];
               }}
               Trigger={
@@ -105,7 +102,9 @@ const DateOverrideList = ({
                 color="destructive"
                 variant="icon"
                 StartIcon={Trash2}
-                onClick={() => remove(unsortedFieldArrayMap[item.id])}
+                onClick={() => {
+                  replace([...fields.filter((currentItem) => currentItem.id !== item.id)]);
+                }}
               />
             </Tooltip>
           </div>
