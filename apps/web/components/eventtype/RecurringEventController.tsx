@@ -66,7 +66,7 @@ export default function RecurringEventController({
               data-testid="recurring-event-check"
               onCheckedChange={(e) => {
                 if (!e) {
-                  formMethods.setValue("recurringEvent", null);
+                  formMethods.setValue("recurringEvent", null, { shouldDirty: true });
                   setRecurringEventState(null);
                 } else {
                   const newVal = eventType.recurringEvent || {
@@ -74,7 +74,7 @@ export default function RecurringEventController({
                     count: 12,
                     freq: Frequency.WEEKLY,
                   };
-                  formMethods.setValue("recurringEvent", newVal);
+                  formMethods.setValue("recurringEvent", newVal, { shouldDirty: true });
                   setRecurringEventState(newVal);
                 }
               }}>
@@ -95,7 +95,7 @@ export default function RecurringEventController({
                             ...recurringEventState,
                             interval: parseInt(event?.target.value),
                           };
-                          formMethods.setValue("recurringEvent", newVal);
+                          formMethods.setValue("recurringEvent", newVal, { shouldDirty: true });
                           setRecurringEventState(newVal);
                         }}
                       />
@@ -110,7 +110,7 @@ export default function RecurringEventController({
                             ...recurringEventState,
                             freq: parseInt(event?.value || `${Frequency.WEEKLY}`),
                           };
-                          formMethods.setValue("recurringEvent", newVal);
+                          formMethods.setValue("recurringEvent", newVal, { shouldDirty: true });
                           setRecurringEventState(newVal);
                         }}
                       />
@@ -129,7 +129,7 @@ export default function RecurringEventController({
                             ...recurringEventState,
                             count: parseInt(event?.target.value),
                           };
-                          formMethods.setValue("recurringEvent", newVal);
+                          formMethods.setValue("recurringEvent", newVal, { shouldDirty: true });
                           setRecurringEventState(newVal);
                         }}
                       />

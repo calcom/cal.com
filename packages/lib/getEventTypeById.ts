@@ -112,6 +112,7 @@ export default async function getEventTypeById({
       successRedirectUrl: true,
       currency: true,
       bookingFields: true,
+      useEventTypeDestinationCalendarEmail: true,
       owner: {
         select: {
           id: true,
@@ -234,6 +235,7 @@ export default async function getEventTypeById({
           },
         },
       },
+      secondaryEmailId: true,
     },
   });
 

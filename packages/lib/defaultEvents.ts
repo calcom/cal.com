@@ -101,6 +101,9 @@ const commons = {
   metadata: EventTypeMetaDataSchema.parse({}),
   bookingFields: [],
   assignAllTeamMembers: false,
+  useEventTypeDestinationCalendarEmail: false,
+  secondaryEmailId: null,
+  secondaryEmail: null,
 };
 
 const dynamicEvent = {

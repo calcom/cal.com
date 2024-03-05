@@ -38,6 +38,8 @@ export const buildBooking = (booking?: Partial<Booking>): Booking => {
     uid,
     userId: null,
     eventTypeId: null,
+    idempotencyKey: null,
+    userPrimaryEmail: null,
     title: faker.lorem.sentence(),
     description: faker.lorem.paragraph(),
     customInputs: null,
@@ -82,6 +84,7 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     userId: null,
     teamId: null,
     requiresBookerEmailVerification: false,
+    useEventTypeDestinationCalendarEmail: false,
     eventName: faker.lorem.words(),
     timeZone: null,
     periodType: "UNLIMITED",
@@ -114,6 +117,7 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     bookingFields: [],
     parentId: null,
     profileId: null,
+    secondaryEmailId: null,
     ...eventType,
   };
 };
@@ -232,6 +236,7 @@ export const buildUser = <T extends Partial<UserPayload>>(
     selectedCalendars: [],
     startTime: 0,
     theme: null,
+    appTheme: null,
     timeFormat: null,
     trialEndsAt: null,
     twoFactorEnabled: false,
