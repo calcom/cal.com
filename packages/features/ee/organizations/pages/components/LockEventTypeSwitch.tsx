@@ -72,9 +72,9 @@ export const LockEventTypeSwitch = ({ currentOrg, isAdminOrOwner }: GeneralViewP
     <>
       <SettingsToggle
         toggleSwitchAtTheEnd={true}
-        title={t("lock_users_eventtypes")}
+        title={t("lock_org_users_eventtypes")}
         disabled={mutation?.isPending || !isAdminOrOwner}
-        description={t("lock_users_eventtypes_description")}
+        description={t("lock_org_users_eventtypes_description")}
         checked={lockEventTypeCreationForUsers}
         onCheckedChange={(checked) => {
           if (!checked) {
@@ -106,14 +106,7 @@ export const LockEventTypeSwitch = ({ currentOrg, isAdminOrOwner }: GeneralViewP
                   <Lock className="m-auto h-6 w-6" />
                 </div>
                 <div className="w-full pt-1">
-                  <DialogHeader
-                    title={t("lock_event_types_modal_header")}
-                    subtitle={
-                      <label htmlFor="currentEventTypeOptions">
-                        {t("lock_event_types_modal_description")}
-                      </label>
-                    }
-                  />
+                  <DialogHeader title={t("lock_event_types_modal_header")} />
                   <RadioArea.Group
                     id="currentEventTypeOptions"
                     onValueChange={(val: CurrentEventTypeOptions) => {
@@ -124,14 +117,14 @@ export const LockEventTypeSwitch = ({ currentOrg, isAdminOrOwner }: GeneralViewP
                       checked={currentLockedOption === CurrentEventTypeOptions.HIDE}
                       value={CurrentEventTypeOptions.HIDE}
                       className={classNames("h-full text-sm")}>
-                      <strong className="mb-1 block">{t("hide_eventtypes")}</strong>
+                      <strong className="mb-1 block">{t("hide_org_eventtypes")}</strong>
                       <p>{t("org_hide_event_types_org_admin")}</p>
                     </RadioArea.Item>
                     <RadioArea.Item
                       checked={currentLockedOption === CurrentEventTypeOptions.DELETE}
                       value={CurrentEventTypeOptions.DELETE}
                       className={classNames("[&:has(input:checked)]:border-error h-full text-sm")}>
-                      <strong className="mb-1 block">{t("delete")}</strong>
+                      <strong className="mb-1 block">{t("delete_org_eventtypes")}</strong>
                       <p>{t("org_delete_event_types_org_admin")}</p>
                     </RadioArea.Item>
                   </RadioArea.Group>
