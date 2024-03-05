@@ -63,14 +63,14 @@ export const useBookingSuccessRedirect = () => {
         },
         searchParams: searchParams ?? undefined,
       });
-      const input=`${url.toString()}?${newSearchParams.toString()}`;
-      const firstIndex = input.indexOf('?');
+      const input = `${url.toString()}?${newSearchParams.toString()}`;
+      const firstIndex = input.indexOf("?");
       if (firstIndex === -1) {
         // No "?" found in the string
-        return window.parent.location.href =`${url.toString()}?${newSearchParams.toString()}`;
+        return (window.parent.location.href = `${url.toString()}?${newSearchParams.toString()}`);
       }
-       // Keep the first occurrence and remove subsequent ones
-      const resultURL = input.slice(0, firstIndex + 1) + input.slice(firstIndex + 1).replace(/\?/g, '')
+      // Keep the first occurrence and remove subsequent ones
+      const resultURL = input.slice(0, firstIndex + 1) + input.slice(firstIndex + 1).replace(/\?/g, "");
       window.parent.location.href = resultURL;
       return;
     }
