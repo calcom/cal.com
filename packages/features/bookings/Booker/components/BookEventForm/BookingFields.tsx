@@ -105,7 +105,6 @@ export const BookingFields = ({
               optionInput.placeholder = option.inputPlaceholder;
             }
           });
-
           field.options = options.filter(
             (location): location is NonNullable<(typeof options)[number]> => !!location
           );

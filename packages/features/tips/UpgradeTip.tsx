@@ -29,11 +29,11 @@ export function UpgradeTip({
   plan: "team" | "enterprise";
 }) {
   const { t } = useLocale();
-  const { isLoading, hasTeamPlan } = useHasTeamPlan();
+  const { isPending, hasTeamPlan } = useHasTeamPlan();
   const { data } = trpc.viewer.teams.getUpgradeable.useQuery();
 
   const hasEnterprisePlan = false;
-  //const { isLoading , hasEnterprisePlan } = useHasEnterprisePlan();
+  //const { isPending , hasEnterprisePlan } = useHasEnterprisePlan();
 
   const hasUnpublishedTeam = !!data?.[0];
 
@@ -41,7 +41,7 @@ export function UpgradeTip({
 
   if (plan === "enterprise" && hasEnterprisePlan) return children;
 
-  if (isLoading) return <>{isParentLoading}</>;
+  if (isPending) return <>{isParentLoading}</>;
 
   return (
     <>

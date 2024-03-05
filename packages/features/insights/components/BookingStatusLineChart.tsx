@@ -29,7 +29,7 @@ export const BookingStatusLineChart = () => {
   const {
     data: eventsTimeLine,
     isSuccess,
-    isLoading,
+    isPending,
   } = trpc.viewer.insights.eventsTimeline.useQuery(
     {
       timeView: selectedTimeView,
@@ -49,7 +49,7 @@ export const BookingStatusLineChart = () => {
     }
   );
 
-  if (isLoading) return <LoadingInsight />;
+  if (isPending) return <LoadingInsight />;
 
   if (!isSuccess) return null;
 

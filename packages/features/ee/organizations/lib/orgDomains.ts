@@ -1,7 +1,7 @@
 import type { Prisma } from "@prisma/client";
 import type { IncomingMessage } from "http";
 
-import { IS_PRODUCTION } from "@calcom/lib/constants";
+import { IS_PRODUCTION, WEBSITE_URL } from "@calcom/lib/constants";
 import { ALLOWED_HOSTNAMES, RESERVED_SUBDOMAINS, WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import slugify from "@calcom/lib/slugify";
@@ -100,9 +100,10 @@ export function subdomainSuffix() {
 }
 
 export function getOrgFullOrigin(slug: string, options: { protocol: boolean } = { protocol: true }) {
-  if (!slug) return options.protocol ? WEBAPP_URL : WEBAPP_URL.replace("https://", "").replace("http://", "");
+  if (!slug)
+    return options.protocol ? WEBSITE_URL : WEBSITE_URL.replace("https://", "").replace("http://", "");
   const orgFullOrigin = `${
-    options.protocol ? `${new URL(WEBAPP_URL).protocol}//` : ""
+    options.protocol ? `${new URL(WEBSITE_URL).protocol}//` : ""
   }${slug}.${subdomainSuffix()}`;
   return orgFullOrigin;
 }

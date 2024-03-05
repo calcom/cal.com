@@ -2,10 +2,11 @@
 import type { Prisma } from "@prisma/client";
 import type { calendar_v3 } from "googleapis";
 import { google } from "googleapis";
+import { RRule } from "rrule";
 
 import { MeetLocationType } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
-import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
+import { getFeatureFlag } from "@calcom/features/flags/server/utils";
 import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
 import type CalendarService from "@calcom/lib/CalendarService";
 import logger from "@calcom/lib/logger";
@@ -209,6 +210,16 @@ export default class GoogleCalendarService implements Calendar {
       payload["location"] = getLocation(calEventRaw);
     }
 
+    if (calEventRaw.recurringEvent) {
+      const rule = new RRule({
+        freq: calEventRaw.recurringEvent.freq,
+        interval: calEventRaw.recurringEvent.interval,
+        count: calEventRaw.recurringEvent.count,
+      });
+
+      payload["recurrence"] = [rule.toString()];
+    }
+
     if (calEventRaw.conferenceData && calEventRaw.location === MeetLocationType) {
       payload["conferenceData"] = calEventRaw.conferenceData;
     }
@@ -220,22 +231,71 @@ export default class GoogleCalendarService implements Calendar {
       "primary";
 
     try {
-      const event = await calendar.events.insert({
-        calendarId: selectedCalendar,
-        requestBody: payload,
-        conferenceDataVersion: 1,
-        sendUpdates: "none",
-      });
+      let event;
+      let recurringEventId = null;
+      if (calEventRaw.existingRecurringEvent) {
+        recurringEventId = calEventRaw.existingRecurringEvent.recurringEventId;
+        const recurringEventInstances = await calendar.events.instances({
+          calendarId: selectedCalendar,
+          eventId: calEventRaw.existingRecurringEvent.recurringEventId,
+        });
+        if (recurringEventInstances.data.items) {
+          const calComEventStartTime = dayjs(calEventRaw.startTime).format();
+          for (let i = 0; i < recurringEventInstances.data.items.length; i++) {
+            const instance = recurringEventInstances.data.items[i];
+            const instanceStartTime = dayjs(instance.start?.dateTime)
+              .tz(instance.start?.timeZone == null ? undefined : instance.start?.timeZone)
+              .format();
 
-      if (event && event.data.id && event.data.hangoutLink) {
+            if (instanceStartTime === calComEventStartTime) {
+              event = instance;
+              break;
+            }
+          }
+
+          if (!event) {
+            event = recurringEventInstances.data.items[0];
+            this.log.error(
+              "Unable to find matching event amongst recurring event instances",
+              safeStringify({ selectedCalendar, credentialId })
+            );
+          }
+          await calendar.events.patch({
+            calendarId: selectedCalendar,
+            eventId: event.id || "",
+            requestBody: {
+              location: getLocation(calEventRaw),
+              description: getRichDescription({
+                ...calEventRaw,
+              }),
+            },
+          });
+        }
+      } else {
+        const eventResponse = await calendar.events.insert({
+          calendarId: selectedCalendar,
+          requestBody: payload,
+          conferenceDataVersion: 1,
+          sendUpdates: "none",
+        });
+        event = eventResponse.data;
+        if (event.recurrence) {
+          if (event.recurrence.length > 0) {
+            recurringEventId = event.id;
+            event = await this.getFirstEventInRecurrence(recurringEventId, selectedCalendar, calendar);
+          }
+        }
+      }
+
+      if (event && event.id && event.hangoutLink) {
         await calendar.events.patch({
           // Update the same event but this time we know the hangout link
           calendarId: selectedCalendar,
-          eventId: event.data.id || "",
+          eventId: event.id || "",
           requestBody: {
             description: getRichDescription({
               ...calEventRaw,
-              additionalInformation: { hangoutLink: event.data.hangoutLink },
+              additionalInformation: { hangoutLink: event.hangoutLink },
             }),
           },
         });
@@ -243,14 +303,16 @@ export default class GoogleCalendarService implements Calendar {
 
       return {
         uid: "",
-        ...event.data,
-        id: event.data.id || "",
+        ...event,
+        id: event?.id || "",
+        thirdPartyRecurringEventId: recurringEventId,
         additionalInfo: {
-          hangoutLink: event.data.hangoutLink || "",
+          hangoutLink: event?.hangoutLink || "",
         },
         type: "google_calendar",
         password: "",
         url: "",
+        iCalUID: event?.iCalUID,
       };
     } catch (error) {
       this.log.error(
@@ -258,6 +320,22 @@ export default class GoogleCalendarService implements Calendar {
         safeStringify({ error, selectedCalendar, credentialId })
       );
       throw error;
+    }
+  }
+  async getFirstEventInRecurrence(
+    recurringEventId: string | null | undefined,
+    selectedCalendar: string,
+    calendar: calendar_v3.Calendar
+  ): Promise<calendar_v3.Schema$Event> {
+    const recurringEventInstances = await calendar.events.instances({
+      calendarId: selectedCalendar,
+      eventId: recurringEventId || "",
+    });
+
+    if (recurringEventInstances.data.items) {
+      return recurringEventInstances.data.items[0];
+    } else {
+      return {} as calendar_v3.Schema$Event;
     }
   }
 
@@ -384,10 +462,10 @@ export default class GoogleCalendarService implements Calendar {
     items: { id: string }[];
   }): Promise<EventBusyDate[] | null> {
     const calendar = await this.authedCalendar();
-    const flags = await getFeatureFlagMap(prisma);
+    const calendarCacheEnabled = await getFeatureFlag(prisma, "calendar-cache");
 
     let freeBusyResult: calendar_v3.Schema$FreeBusyResponse = {};
-    if (!flags["calendar-cache"]) {
+    if (!calendarCacheEnabled) {
       this.log.warn("Calendar Cache is disabled - Skipping");
       const { timeMin, timeMax, items } = args;
       const apires = await calendar.freebusy.query({

@@ -16,10 +16,10 @@ import { Plus } from "@calcom/ui/components/icon";
 import { QueryCell } from "@lib/QueryCell";
 
 interface AdditionalCalendarSelectorProps {
-  isLoading?: boolean;
+  isPending?: boolean;
 }
 
-const AdditionalCalendarSelector = ({ isLoading }: AdditionalCalendarSelectorProps): JSX.Element | null => {
+const AdditionalCalendarSelector = ({ isPending }: AdditionalCalendarSelectorProps): JSX.Element | null => {
   const { t } = useLocale();
   const query = trpc.viewer.integrations.useQuery({ variant: "calendar", onlyInstalled: true });
 
@@ -42,7 +42,7 @@ const AdditionalCalendarSelector = ({ isLoading }: AdditionalCalendarSelectorPro
         return (
           <Dropdown modal={false}>
             <DropdownMenuTrigger asChild>
-              <Button StartIcon={Plus} color="secondary" {...(isLoading && { loading: isLoading })}>
+              <Button StartIcon={Plus} color="secondary" {...(isPending && { loading: isPending })}>
                 {t("add")}
               </Button>
             </DropdownMenuTrigger>

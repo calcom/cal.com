@@ -1,3 +1,5 @@
+"use client";
+
 import { usePathname } from "next/navigation";
 
 import { useIntercom } from "@calcom/features/ee/support/lib/intercom/useIntercom";

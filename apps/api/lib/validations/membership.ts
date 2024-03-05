@@ -30,6 +30,7 @@ export const membershipEditBodySchema = Membership.omit({
   /** To avoid complication, let's avoid updating these, instead you can delete and create a new invite */
   teamId: true,
   userId: true,
+  id: true,
 })
   .partial({
     accepted: true,

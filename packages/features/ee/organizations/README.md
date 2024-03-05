@@ -37,7 +37,35 @@ Browsers do not allow camera/mic access on any non-HTTPS hosts except for localh
 
 For eg:- Use  `http://localhost:3000/video/nAjnkjejuzis99NhN72rGt` instead of  `http://app.cal.local:3000/video/nAjnkjejuzis99NhN72rGt`.
 
-You can also use `ngrok` or you can generate SSL certificate for your local domain using `mkcert`.
+To get an HTTPS URL for localhost, you can use a tunneling tool such as `ngrok` or [Tunnelmole](https://github.com/robbie-cahill/tunnelmole-client) . Alternatively, you can generate an SSL certificate for your local domain using `mkcert`. Turn off any SSL certificate validation in your HTTPS client (be sure to do this for local only, otherwise its a security risk).
+
+#### Tunnelmole - Open Source Tunnelling Tool:
+
+To install Tunnelmole, execute the command: 
+
+```
+curl -O https://install.tunnelmole.com/8dPBw/install && sudo bash install
+```
+
+After a successful installation, you can run Tunnelmole using the following command, replacing `8000` with your actual port number if it is different:
+
+```
+tmole 8000
+```
+
+In the output, you'll see two URLs, one HTTP and an HTTPS URL. For privacy and security reasons, it is recommended to use the HTTPS URL.
+
+View the Tunnelmole [README](https://github.com/robbie-cahill/tunnelmole-client) for additional information and other installation methods such as `npm` or building your own binaries from source.
+
+#### ngrok - Closed Source Tunnelling Tool:
+
+ngrok is a popular closed source tunneling tool. You can run ngrok using the same port, using the format `ngrok http <port>` replacing `<port>` with your actual port number. For example: 
+
+```
+ngrok http 8000
+```
+
+This will generate a public URL that you can use to access your localhost server.
 
 
 ## DNS setup

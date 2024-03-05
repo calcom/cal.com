@@ -31,8 +31,11 @@ function AdminView() {
             ref={usernameRef}
             hint={t("impersonate_user_tip")}
             defaultValue={undefined}
+            data-testid="admin-impersonation-input"
           />
-          <Button type="submit">{t("impersonate")}</Button>
+          <Button type="submit" data-testid="impersonation-submit">
+            {t("impersonate")}
+          </Button>
         </div>
       </form>
     </>

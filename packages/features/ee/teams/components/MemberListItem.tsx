@@ -26,8 +26,8 @@ import {
   showToast,
   Tooltip,
 } from "@calcom/ui";
+import { UserAvatar } from "@calcom/ui";
 import { ExternalLink, MoreHorizontal, Edit2, Lock, UserX } from "@calcom/ui/components/icon";
-import { UserAvatar } from "@calcom/web/components/ui/avatar/UserAvatar";
 
 import MemberChangeRoleModal from "./MemberChangeRoleModal";
 import TeamAvailabilityModal from "./TeamAvailabilityModal";
@@ -138,12 +138,18 @@ export default function MemberListItem(props: Props) {
       )
     ) : null;
   });
+
   return (
     <li className="divide-subtle divide-y px-5">
       <div className="my-4 flex justify-between">
         <div className="flex w-full flex-col justify-between truncate sm:flex-row">
           <div className="flex">
-            <UserAvatar size="sm" user={props.member} className="h-10 w-10 rounded-full" />
+            <UserAvatar
+              noOrganizationIndicator
+              size="sm"
+              user={props.member}
+              className="h-10 w-10 rounded-full"
+            />
             <div className="ms-3 inline-block">
               <div className="mb-1 flex" data-testid={`member-${props.member.username}`}>
                 <span data-testid="member-name" className="text-default mr-2 text-sm font-bold leading-4">

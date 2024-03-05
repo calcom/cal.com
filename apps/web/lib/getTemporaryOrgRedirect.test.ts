@@ -1,10 +1,18 @@
 import prismaMock from "../../../tests/libs/__mocks__/prismaMock";
 
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 
 import { RedirectType } from "@calcom/prisma/client";
 
 import { getTemporaryOrgRedirect } from "./getTemporaryOrgRedirect";
+
+const mockData = {
+  redirects: [] as {
+    toUrl: string;
+    from: string;
+    redirectType: RedirectType;
+  }[],
+};
 
 function mockARedirectInDB({
   toUrl,
@@ -15,28 +23,38 @@ function mockARedirectInDB({
   slug: string;
   redirectType: RedirectType;
 }) {
+  mockData.redirects.push({
+    toUrl,
+    from: slug,
+    redirectType,
+  });
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   //@ts-ignore
-  prismaMock.tempOrgRedirect.findUnique.mockImplementation(({ where }) => {
+  prismaMock.tempOrgRedirect.findMany.mockImplementation(({ where }) => {
     return new Promise((resolve) => {
-      if (
-        where.from_type_fromOrgId.type === redirectType &&
-        where.from_type_fromOrgId.from === slug &&
-        where.from_type_fromOrgId.fromOrgId === 0
-      ) {
-        resolve({ toUrl });
-      } else {
-        resolve(null);
-      }
+      const tempOrgRedirects: typeof mockData.redirects = [];
+      where.from.in.forEach((whereSlug: string) => {
+        const matchingRedirect = mockData.redirects.find((redirect) => {
+          return where.type === redirect.redirectType && whereSlug === redirect.from && where.fromOrgId === 0;
+        });
+        if (matchingRedirect) {
+          tempOrgRedirects.push(matchingRedirect);
+        }
+      });
+      resolve(tempOrgRedirects);
     });
   });
 }
+
+beforeEach(() => {
+  mockData.redirects = [];
+});
 
 describe("getTemporaryOrgRedirect", () => {
   it("should generate event-type URL without existing query params", async () => {
     mockARedirectInDB({ slug: "slug", toUrl: "https://calcom.cal.com", redirectType: RedirectType.User });
     const redirect = await getTemporaryOrgRedirect({
-      slug: "slug",
+      slugs: "slug",
       redirectType: RedirectType.User,
       eventTypeSlug: "30min",
       currentQuery: {},
@@ -54,7 +72,7 @@ describe("getTemporaryOrgRedirect", () => {
     mockARedirectInDB({ slug: "slug", toUrl: "https://calcom.cal.com", redirectType: RedirectType.User });
 
     const redirect = await getTemporaryOrgRedirect({
-      slug: "slug",
+      slugs: "slug",
       redirectType: RedirectType.User,
       eventTypeSlug: "30min",
       currentQuery: {
@@ -74,7 +92,7 @@ describe("getTemporaryOrgRedirect", () => {
     mockARedirectInDB({ slug: "slug", toUrl: "https://calcom.cal.com", redirectType: RedirectType.User });
 
     const redirect = await getTemporaryOrgRedirect({
-      slug: "slug",
+      slugs: "slug",
       redirectType: RedirectType.User,
       eventTypeSlug: null,
       currentQuery: {
@@ -98,7 +116,7 @@ describe("getTemporaryOrgRedirect", () => {
     });
 
     const redirect = await getTemporaryOrgRedirect({
-      slug: "seeded-team",
+      slugs: "seeded-team",
       redirectType: RedirectType.Team,
       eventTypeSlug: null,
       currentQuery: {
@@ -122,7 +140,7 @@ describe("getTemporaryOrgRedirect", () => {
     });
 
     const redirect = await getTemporaryOrgRedirect({
-      slug: "seeded-team",
+      slugs: "seeded-team",
       redirectType: RedirectType.Team,
       eventTypeSlug: "30min",
       currentQuery: {
@@ -146,7 +164,7 @@ describe("getTemporaryOrgRedirect", () => {
     });
 
     const redirect = await getTemporaryOrgRedirect({
-      slug: "seeded-team",
+      slugs: "seeded-team",
       redirectType: RedirectType.Team,
       eventTypeSlug: "30min",
       currentQuery: {},
@@ -156,6 +174,159 @@ describe("getTemporaryOrgRedirect", () => {
       redirect: {
         permanent: false,
         destination: "https://calcom.cal.com/30min",
+      },
+    });
+  });
+
+  it("should generate Dynamic Group Booking Profile Url", async () => {
+    mockARedirectInDB({
+      slug: "first",
+      toUrl: "https://calcom.cal.com/first-in-org1",
+      redirectType: RedirectType.Team,
+    });
+    mockARedirectInDB({
+      slug: "second",
+      toUrl: "https://calcom.cal.com/second-in-org1",
+      redirectType: RedirectType.Team,
+    });
+
+    const redirect = await getTemporaryOrgRedirect({
+      slugs: ["first", "second"],
+      redirectType: RedirectType.Team,
+      eventTypeSlug: null,
+      currentQuery: {},
+    });
+
+    expect(redirect).toEqual({
+      redirect: {
+        permanent: false,
+        destination: "https://calcom.cal.com/first-in-org1+second-in-org1",
+      },
+    });
+  });
+
+  it("should generate Dynamic Group Booking Profile Url - same order", async () => {
+    mockARedirectInDB({
+      slug: "second",
+      toUrl: "https://calcom.cal.com/second-in-org1",
+      redirectType: RedirectType.Team,
+    });
+    mockARedirectInDB({
+      slug: "first",
+      toUrl: "https://calcom.cal.com/first-in-org1",
+      redirectType: RedirectType.Team,
+    });
+
+    const redirect = await getTemporaryOrgRedirect({
+      slugs: ["first", "second"],
+      redirectType: RedirectType.Team,
+      eventTypeSlug: null,
+      currentQuery: {},
+    });
+
+    expect(redirect).toEqual({
+      redirect: {
+        permanent: false,
+        destination: "https://calcom.cal.com/first-in-org1+second-in-org1",
+      },
+    });
+
+    const redirect1 = await getTemporaryOrgRedirect({
+      slugs: ["second", "first"],
+      redirectType: RedirectType.Team,
+      eventTypeSlug: null,
+      currentQuery: {},
+    });
+
+    expect(redirect1).toEqual({
+      redirect: {
+        permanent: false,
+        destination: "https://calcom.cal.com/second-in-org1+first-in-org1",
+      },
+    });
+  });
+
+  it("should generate Dynamic Group Booking Profile Url with query params", async () => {
+    mockARedirectInDB({
+      slug: "first",
+      toUrl: "https://calcom.cal.com/first-in-org1",
+      redirectType: RedirectType.Team,
+    });
+    mockARedirectInDB({
+      slug: "second",
+      toUrl: "https://calcom.cal.com/second-in-org1",
+      redirectType: RedirectType.Team,
+    });
+
+    const redirect = await getTemporaryOrgRedirect({
+      slugs: ["first", "second"],
+      redirectType: RedirectType.Team,
+      eventTypeSlug: null,
+      currentQuery: {
+        abc: "1",
+      },
+    });
+
+    expect(redirect).toEqual({
+      redirect: {
+        permanent: false,
+        destination: "https://calcom.cal.com/first-in-org1+second-in-org1?abc=1",
+      },
+    });
+  });
+
+  it("should generate Dynamic Group Booking EventType Url", async () => {
+    mockARedirectInDB({
+      slug: "first",
+      toUrl: "https://calcom.cal.com/first-in-org1",
+      redirectType: RedirectType.Team,
+    });
+    mockARedirectInDB({
+      slug: "second",
+      toUrl: "https://calcom.cal.com/second-in-org1",
+      redirectType: RedirectType.Team,
+    });
+
+    const redirect = await getTemporaryOrgRedirect({
+      slugs: ["first", "second"],
+      redirectType: RedirectType.Team,
+      eventTypeSlug: "30min",
+      currentQuery: {},
+    });
+
+    expect(redirect).toEqual({
+      redirect: {
+        permanent: false,
+        destination: "https://calcom.cal.com/first-in-org1+second-in-org1/30min",
+      },
+    });
+  });
+
+  it("should generate Dynamic Group Booking EventType Url with query params", async () => {
+    mockARedirectInDB({
+      slug: "first",
+      toUrl: "https://calcom.cal.com/first-in-org1",
+      redirectType: RedirectType.Team,
+    });
+    mockARedirectInDB({
+      slug: "second",
+      toUrl: "https://calcom.cal.com/second-in-org1",
+      redirectType: RedirectType.Team,
+    });
+
+    const redirect = await getTemporaryOrgRedirect({
+      slugs: ["first", "second"],
+      redirectType: RedirectType.Team,
+      eventTypeSlug: "30min",
+      currentQuery: {
+        abc: "1",
+      },
+    });
+
+    expect(redirect).toEqual({
+      redirect: {
+        permanent: false,
+        destination: "https://calcom.cal.com/first-in-org1+second-in-org1/30min?abc=1",
       },
     });
   });

@@ -7,14 +7,14 @@ import { MembershipRole } from "@calcom/prisma/enums";
 import { TRPCError } from "@trpc/server";
 
 import type { TeamWithParent } from "./types";
-import type { Invitee, UserWithMembership } from "./utils";
+import type { UserWithMembership } from "./utils";
 import {
   checkPermissions,
   getUsernameOrEmailsToInvite,
   getIsOrgVerified,
   getOrgConnectionInfo,
   validateInviteeEligibility,
-  shouldAutoJoinIfInOrg,
+  getAutoJoinStatus,
   checkInputEmailIsValid,
 } from "./utils";
 
@@ -37,9 +37,33 @@ const mockedReturnSuccessCheckPerms = {
   role: MembershipRole.ADMIN,
   userId: 1,
   teamId: 1,
+  team: {
+    id: 1,
+    name: "Team A",
+    slug: null,
+    logo: null,
+    appLogo: null,
+    appIconLogo: null,
+    bio: null,
+    hideBranding: false,
+    hideBookATeamMember: false,
+    createdAt: new Date(),
+    brandColor: "#292929",
+    darkBrandColor: "#fafafa",
+    timeZone: "Europe/London",
+    weekStart: "Sunday",
+    theme: null,
+    timeFormat: null,
+    metadata: null,
+    parentId: null,
+    parent: null,
+    isPrivate: false,
+    logoUrl: "",
+    calVideoLogo: "",
+  },
 };
 
-const mockedTeam: TeamWithParent = {
+const mockedRegularTeam: TeamWithParent = {
   id: 1,
   name: "Team A",
   slug: null,
@@ -48,6 +72,7 @@ const mockedTeam: TeamWithParent = {
   appIconLogo: null,
   bio: null,
   hideBranding: false,
+  pendingPayment: false,
   hideBookATeamMember: false,
   createdAt: new Date(),
   brandColor: "#292929",
@@ -61,26 +86,32 @@ const mockedTeam: TeamWithParent = {
   parent: null,
   isPrivate: false,
   logoUrl: "",
+  calVideoLogo: "",
 };
 
-const mockUser: Invitee = {
+const mockedSubTeam = {
+  ...mockedRegularTeam,
+  parentId: 1000,
+};
+
+const mockUser: UserWithMembership = {
   id: 4,
   username: "pro",
   email: "pro@example.com",
   password: "",
   completedOnboarding: true,
   identityProvider: "CAL",
-  organizationId: null,
+  profiles: [],
 };
 
 const userInTeamAccepted: UserWithMembership = {
   ...mockUser,
-  teams: [{ teamId: mockedTeam.id, accepted: true, userId: mockUser.id }],
+  teams: [{ teamId: mockedRegularTeam.id, accepted: true, userId: mockUser.id, role: "MEMBER" }],
 };
 
 const userInTeamNotAccepted: UserWithMembership = {
   ...mockUser,
-  teams: [{ teamId: mockedTeam.id, accepted: false, userId: mockUser.id }],
+  teams: [{ teamId: mockedRegularTeam.id, accepted: false, userId: mockUser.id, role: "MEMBER" }],
 };
 
 describe("Invite Member Utils", () => {
@@ -141,7 +172,7 @@ describe("Invite Member Utils", () => {
         orgVerified: true,
         usersEmail,
         team: {
-          ...mockedTeam,
+          ...mockedRegularTeam,
           parentId: 2,
         },
         isOrg: false,
@@ -154,7 +185,7 @@ describe("Invite Member Utils", () => {
         orgAutoAcceptDomain,
         usersEmail: "user@other.com",
         team: {
-          ...mockedTeam,
+          ...mockedRegularTeam,
           parentId: 2,
         },
         isOrg: false,
@@ -167,7 +198,7 @@ describe("Invite Member Utils", () => {
         orgAutoAcceptDomain,
         orgVerified: false,
         usersEmail,
-        team: { ...mockedTeam },
+        team: { ...mockedRegularTeam },
         isOrg: false,
       });
       expect(result).toEqual({ orgId: undefined, autoAccept: false });
@@ -178,7 +209,7 @@ describe("Invite Member Utils", () => {
         orgAutoAcceptDomain,
         orgVerified: true,
         usersEmail,
-        team: { ...mockedTeam, parentId: null },
+        team: { ...mockedRegularTeam, parentId: null },
         isOrg: true,
       });
       expect(result).toEqual({ orgId: 1, autoAccept: true });
@@ -188,7 +219,7 @@ describe("Invite Member Utils", () => {
       const result = getOrgConnectionInfo({
         orgAutoAcceptDomain,
         usersEmail: "user@other.com",
-        team: { ...mockedTeam, parentId: null },
+        team: { ...mockedRegularTeam, parentId: null },
         isOrg: true,
       });
       expect(result).toEqual({ orgId: undefined, autoAccept: false });
@@ -199,10 +230,10 @@ describe("Invite Member Utils", () => {
         orgAutoAcceptDomain,
         orgVerified: false,
         usersEmail,
-        team: { ...mockedTeam, parentId: null },
+        team: { ...mockedRegularTeam, parentId: null },
         isOrg: true,
       });
-      expect(result).toEqual({ orgId: mockedTeam.id, autoAccept: false });
+      expect(result).toEqual({ orgId: mockedRegularTeam.id, autoAccept: false });
     });
   });
   describe("getIsOrgVerified", () => {
@@ -214,7 +245,7 @@ describe("Invite Member Utils", () => {
         },
         parent: null,
       };
-      const result = getIsOrgVerified(true, { ...mockedTeam, ...team });
+      const result = getIsOrgVerified(true, { ...mockedRegularTeam, ...team });
       expect(result).toEqual({
         isInOrgScope: true,
         orgVerified: true,
@@ -226,14 +257,14 @@ describe("Invite Member Utils", () => {
       const team = {
         metadata: {},
         parent: {
-          ...mockedTeam,
+          ...mockedRegularTeam,
           metadata: {
             isOrganizationVerified: false,
             orgAutoAcceptEmail: "example.com",
           },
         },
       };
-      const result = getIsOrgVerified(false, { ...mockedTeam, ...team });
+      const result = getIsOrgVerified(false, { ...mockedRegularTeam, ...team });
       expect(result).toEqual({
         isInOrgScope: true,
         orgVerified: false,
@@ -246,7 +277,7 @@ describe("Invite Member Utils", () => {
         metadata: {},
         parent: null,
       };
-      const result = getIsOrgVerified(false, { ...mockedTeam, ...team });
+      const result = getIsOrgVerified(false, { ...mockedRegularTeam, ...team });
       expect(result).toEqual({
         isInOrgScope: false,
       });
@@ -254,103 +285,167 @@ describe("Invite Member Utils", () => {
   });
 
   describe("validateInviteeEligibility: Check if user can be invited to the team/org", () => {
-    const invitee: Invitee = {
+    const invitee: UserWithMembership = {
       ...mockUser,
       id: 1,
       username: "testuser",
       email: "testuser@example.com",
-      organizationId: null,
+      profiles: [],
     };
     const isOrg = false;
 
     it("should not throw when inviting to an organization's team an existing org user", () => {
-      const inviteeWithOrg: Invitee = {
+      const inviteeWithOrg: UserWithMembership = {
         ...invitee,
-        organizationId: 2,
+        profiles: [getSampleProfile({ organizationId: 2 })],
       };
       const teamWithOrg = {
-        ...mockedTeam,
+        ...mockedRegularTeam,
         parentId: 2,
       };
-      expect(() => validateInviteeEligibility(inviteeWithOrg, teamWithOrg, isOrg)).not.toThrow();
-    });
-
-    it("should throw a TRPCError when inviting a user who is already a member of the org", () => {
-      const inviteeWithOrg: Invitee = {
-        ...invitee,
-        organizationId: 1,
-      };
-      const teamWithOrg = {
-        ...mockedTeam,
-        id: 1,
-      };
-      expect(() => validateInviteeEligibility(inviteeWithOrg, teamWithOrg, isOrg)).toThrow(TRPCError);
+      expect(() => validateInviteeEligibility(inviteeWithOrg, teamWithOrg)).not.toThrow();
     });
 
     it("should throw a TRPCError when inviting a user who is already a member of the team", () => {
       const inviteeWithOrg: UserWithMembership = {
         ...invitee,
-        organizationId: null,
-        teams: [{ teamId: 1, accepted: true, userId: invitee.id }],
+        profiles: [getSampleProfile()],
+        teams: [{ teamId: 1, accepted: true, userId: invitee.id, role: "ADMIN" }],
       };
       const teamWithOrg = {
-        ...mockedTeam,
+        ...mockedRegularTeam,
         id: 1,
       };
-      expect(() => validateInviteeEligibility(inviteeWithOrg, teamWithOrg, isOrg)).toThrow(TRPCError);
+      expect(() => validateInviteeEligibility(inviteeWithOrg, teamWithOrg)).toThrow(TRPCError);
     });
 
-    it("should throw a TRPCError with code FORBIDDEN if the invitee is already a member of another organization", () => {
-      const inviteeWithOrg: Invitee = {
-        ...invitee,
-        organizationId: 2,
-      };
-      const teamWithOrg = {
-        ...mockedTeam,
-        parentId: 3,
-      };
-      expect(() => validateInviteeEligibility(inviteeWithOrg, teamWithOrg, isOrg)).toThrow(TRPCError);
-    });
-
-    it("should throw a TRPCError with code FORBIDDEN if the invitee already exists in Cal.com and is being invited to an organization", () => {
-      const isOrg = true;
-      expect(() => validateInviteeEligibility(invitee, mockedTeam, isOrg)).toThrow(TRPCError);
+    it("should not throw any error if the invitee already exists in Cal.com and is being invited to an organization", () => {
+      expect(() => validateInviteeEligibility(invitee, mockedRegularTeam)).not.toThrow();
     });
 
     it("should not throw an error if the invitee does not already belong to another organization and is not being invited to an organization", () => {
-      expect(() => validateInviteeEligibility(invitee, mockedTeam, isOrg)).not.toThrow();
+      expect(() => validateInviteeEligibility(invitee, mockedRegularTeam)).not.toThrow();
     });
   });
   describe("shouldAutoJoinIfInOrg", () => {
-    it("should return autoJoined: false if the user is not in the same organization as the team", async () => {
-      const result = await shouldAutoJoinIfInOrg({
-        team: mockedTeam,
+    it("should return autoAccept: false if the team is a sub-team but not in the user's organization", async () => {
+      const result = getAutoJoinStatus({
+        team: mockedSubTeam,
         invitee: userInTeamAccepted,
+        connectionInfoMap: {
+          [userInTeamAccepted.email]: {
+            orgId: mockedRegularTeam.id,
+            autoAccept: false,
+          },
+        },
       });
-      expect(result).toEqual(false);
+      expect(result).toEqual({
+        autoAccept: false,
+        needToCreateOrgMembership: true,
+        needToCreateProfile: false,
+      });
     });
 
-    it("should return autoJoined: false if the team does not have a parent organization", async () => {
-      const result = await shouldAutoJoinIfInOrg({
-        team: { ...mockedTeam, parentId: null },
+    it("should return autoAccept: true in case email is auto-acceptable even if the team is a sub-team but not in the user's organization ", async () => {
+      const result = getAutoJoinStatus({
+        team: mockedSubTeam,
         invitee: userInTeamAccepted,
+        connectionInfoMap: {
+          [userInTeamAccepted.email]: {
+            orgId: mockedRegularTeam.id,
+            autoAccept: true,
+          },
+        },
       });
-      expect(result).toEqual(false);
+      expect(result).toEqual({
+        autoAccept: true,
+        needToCreateOrgMembership: true,
+        needToCreateProfile: true,
+      });
     });
 
-    it("should return `autoJoined: false` if team has parent organization and invitee has not accepted membership to organization", async () => {
-      const result = await shouldAutoJoinIfInOrg({
-        team: { ...mockedTeam, parentId: mockedTeam.id },
-        invitee: { ...userInTeamNotAccepted, organizationId: mockedTeam.id },
+    it("should return autoAccept: false if the team is neither a sub-team, nor an organization. It is a regular team ", async () => {
+      const result = getAutoJoinStatus({
+        team: {
+          ...mockedRegularTeam,
+          parentId: null,
+        },
+        invitee: userInTeamAccepted,
+        connectionInfoMap: {
+          [userInTeamAccepted.email]: {
+            orgId: mockedRegularTeam.id,
+            autoAccept: false,
+          },
+        },
       });
-      expect(result).toEqual(false);
+      expect(result).toEqual({
+        autoAccept: false,
+        needToCreateOrgMembership: null,
+        needToCreateProfile: null,
+      });
     });
-    it("should return `autoJoined: true` if team has parent organization and invitee has accepted membership to organization", async () => {
-      const result = await shouldAutoJoinIfInOrg({
-        team: { ...mockedTeam, parentId: mockedTeam.id },
-        invitee: { ...userInTeamAccepted, organizationId: mockedTeam.id },
+
+    it("should return `autoAccept: false` if team has parent organization and invitee has not accepted membership to organization - even if email is autoAcceptable", async () => {
+      const result = getAutoJoinStatus({
+        team: { ...mockedRegularTeam, parentId: mockedRegularTeam.id },
+        invitee: {
+          ...userInTeamNotAccepted,
+          profiles: [getSampleProfile({ organizationId: mockedRegularTeam.id })],
+        },
+        connectionInfoMap: {
+          [userInTeamAccepted.email]: {
+            orgId: mockedRegularTeam.id,
+            autoAccept: true,
+          },
+        },
       });
-      expect(result).toEqual(true);
+      expect(result).toEqual({
+        autoAccept: false,
+        needToCreateOrgMembership: false,
+        needToCreateProfile: false,
+      });
+    });
+
+    it("should return `autoAccept: true` if team has parent organization and invitee has accepted membership to organization", async () => {
+      const result = getAutoJoinStatus({
+        team: { ...mockedRegularTeam, parentId: mockedRegularTeam.id },
+        invitee: {
+          ...userInTeamAccepted,
+          profiles: [getSampleProfile()],
+        },
+        connectionInfoMap: {
+          [userInTeamAccepted.email]: {
+            orgId: mockedRegularTeam.id,
+            autoAccept: false,
+          },
+        },
+      });
+      expect(result).toEqual({
+        autoAccept: true,
+        needToCreateOrgMembership: false,
+        needToCreateProfile: false,
+      });
     });
   });
 });
+function getSampleProfile({ organizationId }: { organizationId?: number } = {}): {
+  id: number;
+  uid: string;
+  userId: number;
+  organizationId: number;
+  username: string;
+  createdAt: Date;
+  updatedAt: Date;
+  movedFromUserId: number | null;
+} {
+  return {
+    id: 1,
+    uid: "1",
+    userId: 1,
+    organizationId: organizationId ?? 1,
+    username: "",
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    movedFromUserId: null,
+  };
+}

@@ -58,12 +58,44 @@ export async function patchHandler(req: NextApiRequest) {
   const { prisma, body, userId } = req;
   const data = schemaTeamUpdateBodyParams.parse(body);
   const { teamId } = schemaQueryTeamId.parse(req.query);
+
   /** Only OWNERS and ADMINS can edit teams */
   const _team = await prisma.team.findFirst({
     include: { members: true },
     where: { id: teamId, members: { some: { userId, role: { in: ["OWNER", "ADMIN"] } } } },
   });
   if (!_team) throw new HttpError({ statusCode: 401, message: "Unauthorized: OWNER or ADMIN required" });
+
+  const slugAlreadyExists = await prisma.team.findFirst({
+    where: {
+      slug: {
+        mode: "insensitive",
+        equals: data.slug,
+      },
+    },
+  });
+
+  if (slugAlreadyExists && data.slug !== _team.slug)
+    throw new HttpError({ statusCode: 409, message: "Team slug already exists" });
+
+  // Check if parentId is related to this user
+  if (data.parentId && data.parentId === teamId) {
+    throw new HttpError({
+      statusCode: 400,
+      message: "Bad request: Parent id cannot be the same as the team id.",
+    });
+  }
+  if (data.parentId) {
+    const parentTeam = await prisma.team.findFirst({
+      where: { id: data.parentId, members: { some: { userId, role: { in: ["OWNER", "ADMIN"] } } } },
+    });
+    if (!parentTeam)
+      throw new HttpError({
+        statusCode: 401,
+        message: "Unauthorized: Invalid parent id. You can only use parent id of your own teams.",
+      });
+  }
+
   let paymentUrl;
   if (_team.slug === null && data.slug) {
     data.metadata = {

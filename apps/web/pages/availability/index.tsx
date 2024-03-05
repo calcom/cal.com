@@ -1,10 +1,10 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
+import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { useCallback } from "react";
 
-import { getLayout } from "@calcom/features/MainLayout";
 import { NewScheduleButton, ScheduleListItem } from "@calcom/features/schedules";
-import { ShellMain } from "@calcom/features/shell/Shell";
+import Shell from "@calcom/features/shell/Shell";
 import { AvailabilitySliderTable } from "@calcom/features/timezone-buddy/components/AvailabilitySliderTable";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -14,7 +14,7 @@ import { trpc } from "@calcom/trpc/react";
 import { EmptyScreen, showToast, ToggleGroup } from "@calcom/ui";
 import { Clock } from "@calcom/ui/components/icon";
 
-import { withQuery } from "@lib/QueryCell";
+import { QueryCell } from "@lib/QueryCell";
 
 import PageWrapper from "@components/PageWrapper";
 import SkeletonLoader from "@components/availability/SkeletonLoader";
@@ -104,31 +104,48 @@ export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availab
           />
         </div>
       ) : (
-        <div className="border-subtle bg-default mb-16 overflow-hidden rounded-md border">
-          <ul className="divide-subtle divide-y" data-testid="schedules" ref={animationParentRef}>
-            {schedules.map((schedule) => (
-              <ScheduleListItem
-                displayOptions={{
-                  hour12: meQuery.data?.timeFormat ? meQuery.data.timeFormat === 12 : undefined,
-                  timeZone: meQuery.data?.timeZone,
-                }}
-                key={schedule.id}
-                schedule={schedule}
-                isDeletable={schedules.length !== 1}
-                updateDefault={updateMutation.mutate}
-                deleteFunction={deleteMutation.mutate}
-                duplicateFunction={duplicateMutation.mutate}
-              />
-            ))}
-          </ul>
-        </div>
+        <>
+          <div className="border-subtle bg-default overflow-hidden rounded-md border">
+            <ul className="divide-subtle divide-y" data-testid="schedules" ref={animationParentRef}>
+              {schedules.map((schedule) => (
+                <ScheduleListItem
+                  displayOptions={{
+                    hour12: meQuery.data?.timeFormat ? meQuery.data.timeFormat === 12 : undefined,
+                    timeZone: meQuery.data?.timeZone,
+                  }}
+                  key={schedule.id}
+                  schedule={schedule}
+                  isDeletable={schedules.length !== 1}
+                  updateDefault={updateMutation.mutate}
+                  deleteFunction={deleteMutation.mutate}
+                  duplicateFunction={duplicateMutation.mutate}
+                />
+              ))}
+            </ul>
+          </div>
+          <div className="text-default mb-16 mt-4 hidden text-center text-sm md:block">
+            {t("temporarily_out_of_office")}{" "}
+            <Link href="settings/my-account/out-of-office" className="underline">
+              {t("add_a_redirect")}
+            </Link>
+          </div>
+        </>
       )}
     </>
   );
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const WithQuery = withQuery(trpc.viewer.availability.list as any);
+function AvailabilityListWithQuery() {
+  const query = trpc.viewer.availability.list.useQuery();
+
+  return (
+    <QueryCell
+      query={query}
+      success={({ data }) => <AvailabilityList {...data} />}
+      customLoader={<SkeletonLoader />}
+    />
+  );
+}
 
 export default function AvailabilityPage() {
   const { t } = useLocale();
@@ -149,9 +166,12 @@ export default function AvailabilityPage() {
   );
   return (
     <div>
-      <ShellMain
+      <Shell
         heading={t("availability")}
+        title="Availability"
+        description="Configure times when you are available for bookings."
         hideHeadingOnMobile
+        withoutMain={false}
         subtitle={t("configure_availability")}
         CTA={
           <div className="flex gap-2">
@@ -170,19 +190,10 @@ export default function AvailabilityPage() {
             <NewScheduleButton />
           </div>
         }>
-        {searchParams?.get("type") === "team" ? (
-          <AvailabilitySliderTable />
-        ) : (
-          <WithQuery
-            success={({ data }) => <AvailabilityList {...data} />}
-            customLoader={<SkeletonLoader />}
-          />
-        )}
-      </ShellMain>
+        {searchParams?.get("type") === "team" ? <AvailabilitySliderTable /> : <AvailabilityListWithQuery />}
+      </Shell>
     </div>
   );
 }
-
-AvailabilityPage.getLayout = getLayout;
 
 AvailabilityPage.PageWrapper = PageWrapper;

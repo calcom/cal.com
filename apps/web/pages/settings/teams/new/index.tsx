@@ -1,3 +1,5 @@
+"use client";
+
 import Head from "next/head";
 
 import { CreateANewTeamForm } from "@calcom/features/ee/teams/components";
@@ -18,7 +20,7 @@ const CreateNewTeamPage = () => {
     </>
   );
 };
-const LayoutWrapper = (page: React.ReactElement) => {
+export const LayoutWrapper = (page: React.ReactElement) => {
   return (
     <WizardLayout currentStep={1} maxSteps={2}>
       {page}

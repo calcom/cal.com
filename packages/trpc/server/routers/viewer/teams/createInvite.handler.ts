@@ -41,6 +41,7 @@ export const createInviteHandler = async ({ ctx, input }: CreateInviteOptions) =
       identifier: `invite-link-for-teamId-${teamId}`,
       token,
       expires: new Date(new Date().setHours(168)), // +1 week,
+      expiresInDays: 7,
       teamId,
     },
   });

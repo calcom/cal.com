@@ -1,5 +1,4 @@
 /* Schedule any workflow reminder that falls within 72 hours for email */
-import client from "@sendgrid/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { v4 as uuidv4 } from "uuid";
 
@@ -19,7 +18,12 @@ import {
   getAllUnscheduledReminders,
 } from "../lib/getWorkflowReminders";
 import { getiCalEventAsString } from "../lib/getiCalEventAsString";
-import { sendSendgridMail } from "../lib/reminders/providers/sendgridProvider";
+import {
+  cancelScheduledEmail,
+  deleteScheduledSend,
+  getBatchId,
+  sendSendgridMail,
+} from "../lib/reminders/providers/sendgridProvider";
 import type { VariablesType } from "../lib/reminders/templates/customTemplate";
 import customTemplate from "../lib/reminders/templates/customTemplate";
 import emailReminderTemplate from "../lib/reminders/templates/emailReminderTemplate";
@@ -42,10 +46,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   const deletePromises: Promise<any>[] = [];
 
   for (const reminder of remindersToDelete) {
-    const deletePromise = client.request({
-      url: `/v3/user/scheduled_sends/${reminder.referenceId}`,
-      method: "DELETE",
-    });
+    const deletePromise = deleteScheduledSend(reminder.referenceId);
     deletePromises.push(deletePromise);
   }
 
@@ -73,14 +74,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   const cancelUpdatePromises: Promise<any>[] = [];
 
   for (const reminder of remindersToCancel) {
-    const cancelPromise = client.request({
-      url: "/v3/user/scheduled_sends",
-      method: "POST",
-      body: {
-        batch_id: reminder.referenceId,
-        status: "cancel",
-      },
-    });
+    const cancelPromise = cancelScheduledEmail(reminder.referenceId);
 
     const updatePromise = prisma.workflowReminder.update({
       where: {
@@ -122,7 +116,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
         switch (reminder.workflowStep.action) {
           case WorkflowActions.EMAIL_HOST:
-            sendTo = reminder.booking.user?.email;
+            sendTo = reminder.booking?.userPrimaryEmail ?? reminder.booking.user?.email;
             break;
           case WorkflowActions.EMAIL_ATTENDEE:
             sendTo = reminder.booking.attendees[0].email;
@@ -222,12 +216,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         }
 
         if (emailContent.emailSubject.length > 0 && !emailBodyEmpty && sendTo) {
-          const batchIdResponse = await client.request({
-            url: "/v3/mail/batch",
-            method: "POST",
-          });
-
-          const batchId = batchIdResponse[1].batch_id;
+          const batchId = await getBatchId();
 
           if (reminder.workflowStep.action !== WorkflowActions.EMAIL_ADDRESS) {
             sendEmailPromises.push(
@@ -238,7 +227,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
                   html: emailContent.emailBody,
                   batchId: batchId,
                   sendAt: dayjs(reminder.scheduledDate).unix(),
-                  replyTo: reminder.booking.user?.email,
+                  replyTo: reminder.booking?.userPrimaryEmail ?? reminder.booking.user?.email,
                   attachments: reminder.workflowStep.includeCalendarEvent
                     ? [
                         {
@@ -298,12 +287,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           !!reminder.booking.user?.hideBranding
         );
         if (emailContent.emailSubject.length > 0 && !emailBodyEmpty && sendTo) {
-          const batchIdResponse = await client.request({
-            url: "/v3/mail/batch",
-            method: "POST",
-          });
-
-          const batchId = batchIdResponse[1].batch_id;
+          const batchId = await getBatchId();
 
           sendEmailPromises.push(
             sendSendgridMail(
@@ -313,7 +297,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
                 html: emailContent.emailBody,
                 batchId: batchId,
                 sendAt: dayjs(reminder.scheduledDate).unix(),
-                replyTo: reminder.booking.user?.email,
+                replyTo: reminder.booking?.userPrimaryEmail ?? reminder.booking.user?.email,
               },
               { sender: reminder.workflowStep?.sender }
             )
@@ -343,7 +327,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     });
   });
 
-  res.status(200).json({ message: `${unscheduledReminders.length} Emails scheduled` });
+  res.status(200).json({ message: `${unscheduledReminders.length} Emails to schedule` });
 }
 
 export default defaultHandler({

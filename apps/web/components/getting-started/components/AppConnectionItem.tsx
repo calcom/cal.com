@@ -28,7 +28,7 @@ const AppConnectionItem = (props: IAppConnectionItem) => {
             color="secondary"
             disabled={installed}
             type="button"
-            loading={buttonProps?.isLoading}
+            loading={buttonProps?.isPending}
             onClick={(event) => {
               // Save cookie key to return url step
               document.cookie = `return-to=${window.location.href};path=/;max-age=3600;SameSite=Lax`;

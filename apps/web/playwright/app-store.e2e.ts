@@ -1,13 +1,29 @@
 import { expect } from "@playwright/test";
 
 import { test } from "./lib/fixtures";
+import { testBothFutureAndLegacyRoutes } from "./lib/future-legacy-routes";
 import { installAppleCalendar } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
 
 test.afterEach(({ users }) => users.deleteAll());
 
-test.describe("App Store - Authed", () => {
+testBothFutureAndLegacyRoutes.describe("App Store - Authed", (routeVariant) => {
+  test("should render /apps page", async ({ page, users, context }) => {
+    test.skip(routeVariant === "future", "Future route not ready yet");
+    const user = await users.create();
+
+    await user.apiLogin();
+
+    await page.goto("/apps/");
+
+    await page.waitForLoadState();
+
+    const locator = page.getByRole("heading", { name: "App Store" });
+
+    await expect(locator).toBeVisible();
+  });
+
   test("Browse apple-calendar and try to install", async ({ page, users }) => {
     const pro = await users.create();
     await pro.apiLogin();

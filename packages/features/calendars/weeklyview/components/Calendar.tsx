@@ -58,7 +58,7 @@ export function Calendar(props: CalendarComponentProps) {
           } as React.CSSProperties // This can't live in the css file because it's a dynamic value and css variable gets super
         }>
         {hideHeader !== true && <SchedulerHeading />}
-        {props.isLoading && <Spinner />}
+        {props.isPending && <Spinner />}
         <div
           ref={container}
           className="bg-default dark:bg-muted relative isolate flex h-full flex-auto flex-col">

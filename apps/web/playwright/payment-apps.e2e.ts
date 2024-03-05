@@ -13,9 +13,7 @@ test.describe("Payment app", () => {
     const user = await users.create();
     await user.apiLogin();
     const paymentEvent = user.eventTypes.find((item) => item.slug === "paid");
-    if (!paymentEvent) {
-      throw new Error("No payment event found");
-    }
+    expect(paymentEvent).not.toBeNull();
     await prisma.credential.create({
       data: {
         type: "alby_payment",
@@ -30,7 +28,7 @@ test.describe("Payment app", () => {
       },
     });
 
-    await page.goto(`event-types/${paymentEvent.id}?tabName=apps`);
+    await page.goto(`event-types/${paymentEvent?.id}?tabName=apps`);
 
     await page.locator("#event-type-form").getByRole("switch").click();
     await page.getByPlaceholder("Price").click();
@@ -38,7 +36,7 @@ test.describe("Payment app", () => {
     await page.getByText("SatoshissatsCurrencyBTCPayment optionCollect payment on booking").click();
     await page.getByTestId("update-eventtype").click();
 
-    await page.goto(`${user.username}/${paymentEvent.slug}`);
+    await page.goto(`${user.username}/${paymentEvent?.slug}`);
 
     // expect 200 sats to be displayed in page
     expect(await page.locator("text=200 sats").first()).toBeTruthy();
@@ -55,9 +53,7 @@ test.describe("Payment app", () => {
     const user = await users.create();
     await user.apiLogin();
     const paymentEvent = user.eventTypes.find((item) => item.slug === "paid");
-    if (!paymentEvent) {
-      throw new Error("No payment event found");
-    }
+    expect(paymentEvent).not.toBeNull();
     await prisma.credential.create({
       data: {
         type: "stripe_payment",
@@ -75,7 +71,7 @@ test.describe("Payment app", () => {
       },
     });
 
-    await page.goto(`event-types/${paymentEvent.id}?tabName=apps`);
+    await page.goto(`event-types/${paymentEvent?.id}?tabName=apps`);
     await page.locator("#event-type-form").getByRole("switch").click();
     await page.getByTestId("stripe-currency-select").click();
     await page.getByTestId("select-option-usd").click();
@@ -84,7 +80,7 @@ test.describe("Payment app", () => {
     await page.getByTestId("stripe-price-input").fill("350");
     await page.getByTestId("update-eventtype").click();
 
-    await page.goto(`${user.username}/${paymentEvent.slug}`);
+    await page.goto(`${user.username}/${paymentEvent?.slug}`);
 
     // expect 200 sats to be displayed in page
     expect(await page.locator("text=350").first()).toBeTruthy();
@@ -101,9 +97,7 @@ test.describe("Payment app", () => {
     const user = await users.create();
     await user.apiLogin();
     const paymentEvent = user.eventTypes.find((item) => item.slug === "paid");
-    if (!paymentEvent) {
-      throw new Error("No payment event found");
-    }
+    expect(paymentEvent).not.toBeNull();
     await prisma.credential.create({
       data: {
         type: "paypal_payment",
@@ -116,7 +110,7 @@ test.describe("Payment app", () => {
       },
     });
 
-    await page.goto(`event-types/${paymentEvent.id}?tabName=apps`);
+    await page.goto(`event-types/${paymentEvent?.id}?tabName=apps`);
 
     await page.locator("#event-type-form").getByRole("switch").click();
 
@@ -131,7 +125,7 @@ test.describe("Payment app", () => {
     await page.getByText("$MXNCurrencyMexican pesoPayment option").click();
     await page.getByTestId("update-eventtype").click();
 
-    await page.goto(`${user.username}/${paymentEvent.slug}`);
+    await page.goto(`${user.username}/${paymentEvent?.slug}`);
 
     // expect 150 to be displayed in page
     expect(await page.locator("text=MX$150.00").first()).toBeTruthy();
@@ -149,9 +143,7 @@ test.describe("Payment app", () => {
     const user = await users.create();
     await user.apiLogin();
     const paymentEvent = user.eventTypes.find((item) => item.slug === "paid");
-    if (!paymentEvent) {
-      throw new Error("No payment event found");
-    }
+    expect(paymentEvent).not.toBeNull();
     await prisma.credential.create({
       data: {
         type: "alby_payment",
@@ -160,7 +152,7 @@ test.describe("Payment app", () => {
       },
     });
 
-    await page.goto(`event-types/${paymentEvent.id}?tabName=apps`);
+    await page.goto(`event-types/${paymentEvent?.id}?tabName=apps`);
 
     await page.locator("#event-type-form").getByRole("switch").click();
 
@@ -177,9 +169,7 @@ test.describe("Payment app", () => {
     const user = await users.create();
     await user.apiLogin();
     const paymentEvent = user.eventTypes.find((item) => item.slug === "paid");
-    if (!paymentEvent) {
-      throw new Error("No payment event found");
-    }
+    expect(paymentEvent).not.toBeNull();
     await prisma.credential.create({
       data: {
         type: "paypal_payment",
@@ -188,7 +178,7 @@ test.describe("Payment app", () => {
       },
     });
 
-    await page.goto(`event-types/${paymentEvent.id}?tabName=apps`);
+    await page.goto(`event-types/${paymentEvent?.id}?tabName=apps`);
 
     await page.locator("#event-type-form").getByRole("switch").click();
 
@@ -211,9 +201,7 @@ test.describe("Payment app", () => {
     await user.apiLogin();
     // Any event should work here
     const paymentEvent = user.eventTypes.find((item) => item.slug === "paid");
-    if (!paymentEvent) {
-      throw new Error("No payment event found");
-    }
+    expect(paymentEvent).not.toBeNull();
 
     await prisma.credential.create({
       data: {
@@ -225,7 +213,7 @@ test.describe("Payment app", () => {
       },
     });
 
-    await page.goto(`event-types/${paymentEvent.id}?tabName=apps`);
+    await page.goto(`event-types/${paymentEvent?.id}?tabName=apps`);
 
     await page.locator("#event-type-form").getByRole("switch").click();
     // make sure Tracking ID is displayed

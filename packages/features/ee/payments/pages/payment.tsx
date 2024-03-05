@@ -1,7 +1,7 @@
-import type { Payment } from "@prisma/client";
 import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
+import { getClientSecretFromPayment } from "@calcom/features/ee/payments/pages/getClientSecretFromPayment";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
@@ -86,7 +86,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     },
   });
 
-  if (!rawPayment) return { notFound: true };
+  if (!rawPayment) return { notFound: true } as const;
 
   const { data, booking: _booking, ...restPayment } = rawPayment;
 
@@ -95,7 +95,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     data: data as Record<string, unknown>,
   };
 
-  if (!_booking) return { notFound: true };
+  if (!_booking) return { notFound: true } as const;
 
   const { startTime, endTime, eventType, ...restBooking } = _booking;
   const booking = {
@@ -104,9 +104,9 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     endTime: endTime.toString(),
   };
 
-  if (!eventType) return { notFound: true };
+  if (!eventType) return { notFound: true } as const;
 
-  if (eventType.users.length === 0 && !!!eventType.team) return { notFound: true };
+  if (eventType.users.length === 0 && !!!eventType.team) return { notFound: true } as const;
 
   const [user] = eventType?.users.length
     ? eventType.users
@@ -145,23 +145,3 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     },
   };
 };
-
-function hasStringProp<T extends string>(x: unknown, key: T): x is { [key in T]: string } {
-  return !!x && typeof x === "object" && key in x;
-}
-
-function getClientSecretFromPayment(
-  payment: Omit<Partial<Payment>, "data"> & { data: Record<string, unknown> }
-) {
-  if (
-    payment.paymentOption === "HOLD" &&
-    hasStringProp(payment.data, "setupIntent") &&
-    hasStringProp(payment.data.setupIntent, "client_secret")
-  ) {
-    return payment.data.setupIntent.client_secret;
-  }
-  if (hasStringProp(payment.data, "client_secret")) {
-    return payment.data.client_secret;
-  }
-  return "";
-}

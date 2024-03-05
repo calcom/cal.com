@@ -2,18 +2,20 @@ import { Webhook as TbWebhook } from "lucide-react";
 import type { TFunction } from "next-i18next";
 import { Trans } from "next-i18next";
 import { useRouter } from "next/navigation";
-import type { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
+import type { EventTypeSetupProps } from "pages/event-types/[type]";
 import { useMemo, useState, Suspense } from "react";
 import type { UseFormReturn } from "react-hook-form";
 
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import { EventTypeEmbedButton, EventTypeEmbedDialog } from "@calcom/features/embed/EventTypeEmbed";
+import type { FormValues, AvailabilityOption } from "@calcom/features/eventtypes/lib/types";
 import Shell from "@calcom/features/shell/Shell";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { trpc, TRPCClientError } from "@calcom/trpc/react";
+import type { DialogProps } from "@calcom/ui";
 import {
   Button,
   ButtonGroup,
@@ -51,8 +53,6 @@ import {
   Loader,
 } from "@calcom/ui/components/icon";
 
-import type { AvailabilityOption } from "@components/eventtype/EventAvailabilityTab";
-
 type Props = {
   children: React.ReactNode;
   eventType: EventTypeSetupProps["eventType"];
@@ -67,59 +67,124 @@ type Props = {
   availability?: AvailabilityOption;
   isUserOrganizationAdmin: boolean;
   bookerUrl: string;
+  activeWebhooksNumber: number;
 };
 
-function getNavigation(props: {
+type getNavigationProps = {
   t: TFunction;
-  eventType: Props["eventType"];
+  length: number;
+  id: number;
+  multipleDuration?: EventTypeSetupProps["eventType"]["metadata"]["multipleDuration"];
   enabledAppsNumber: number;
   enabledWorkflowsNumber: number;
   installedAppsNumber: number;
   availability: AvailabilityOption | undefined;
-}) {
-  const { eventType, t, enabledAppsNumber, installedAppsNumber, enabledWorkflowsNumber } = props;
-  const duration =
-    eventType.metadata?.multipleDuration?.map((duration) => ` ${duration}`) || eventType.length;
+};
+
+function getNavigation({
+  length,
+  id,
+  multipleDuration,
+  t,
+  enabledAppsNumber,
+  installedAppsNumber,
+  enabledWorkflowsNumber,
+}: getNavigationProps) {
+  const duration = multipleDuration?.map((duration) => ` ${duration}`) || length;
 
   return [
     {
       name: "event_setup_tab_title",
-      href: `/event-types/${eventType.id}?tabName=setup`,
+      href: `/event-types/${id}?tabName=setup`,
       icon: LinkIcon,
       info: `${duration} ${t("minute_timeUnit")}`, // TODO: Get this from props
     },
     {
       name: "event_limit_tab_title",
-      href: `/event-types/${eventType.id}?tabName=limits`,
+      href: `/event-types/${id}?tabName=limits`,
       icon: Clock,
       info: `event_limit_tab_description`,
     },
     {
       name: "event_advanced_tab_title",
-      href: `/event-types/${eventType.id}?tabName=advanced`,
+      href: `/event-types/${id}?tabName=advanced`,
       icon: Sliders,
       info: `event_advanced_tab_description`,
     },
     {
       name: "recurring",
-      href: `/event-types/${eventType.id}?tabName=recurring`,
+      href: `/event-types/${id}?tabName=recurring`,
       icon: Repeat,
       info: `recurring_event_tab_description`,
     },
     {
       name: "apps",
-      href: `/event-types/${eventType.id}?tabName=apps`,
+      href: `/event-types/${id}?tabName=apps`,
       icon: Grid,
       //TODO: Handle proper translation with count handling
       info: `${installedAppsNumber} apps, ${enabledAppsNumber} ${t("active")}`,
     },
     {
       name: "workflows",
-      href: `/event-types/${eventType.id}?tabName=workflows`,
-      icon: PhoneCall,
+      href: `/event-types/${id}?tabName=workflows`,
+      icon: Zap,
       info: `${enabledWorkflowsNumber} ${t("active")}`,
     },
   ];
+}
+
+function DeleteDialog({
+  isManagedEvent,
+  eventTypeId,
+  open,
+  onOpenChange,
+}: { isManagedEvent: string; eventTypeId: number } & Pick<DialogProps, "open" | "onOpenChange">) {
+  const utils = trpc.useContext();
+  const { t } = useLocale();
+  const router = useRouter();
+  const deleteMutation = trpc.viewer.eventTypes.delete.useMutation({
+    onSuccess: async () => {
+      await utils.viewer.eventTypes.invalidate();
+      showToast(t("event_type_deleted_successfully"), "success");
+      router.push("/event-types");
+      onOpenChange?.(false);
+    },
+    onError: (err) => {
+      if (err instanceof HttpError) {
+        const message = `${err.statusCode}: ${err.message}`;
+        showToast(message, "error");
+        onOpenChange?.(false);
+      } else if (err instanceof TRPCClientError) {
+        showToast(err.message, "error");
+      }
+    },
+  });
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <ConfirmationDialogContent
+        isPending={deleteMutation.isPending}
+        variety="danger"
+        title={t(`delete${isManagedEvent}_event_type`)}
+        confirmBtnText={t(`confirm_delete_event_type`)}
+        loadingText={t(`confirm_delete_event_type`)}
+        onConfirm={(e) => {
+          e.preventDefault();
+          deleteMutation.mutate({ id: eventTypeId });
+        }}>
+        <p className="mt-5">
+          <Trans
+            i18nKey={`delete${isManagedEvent}_event_type_description`}
+            components={{ li: <li />, ul: <ul className="ml-4 list-disc" /> }}>
+            <ul>
+              <li>Members assigned to this event type will also have their event types deleted.</li>
+              <li>Anyone who they&apos;ve shared their link with will no longer be able to book using it.</li>
+            </ul>
+          </Trans>
+        </p>
+      </ConfirmationDialogContent>
+    </Dialog>
+  );
 }
 
 function EventTypeSingleLayout({
@@ -136,47 +201,35 @@ function EventTypeSingleLayout({
   availability,
   isUserOrganizationAdmin,
   bookerUrl,
+  activeWebhooksNumber,
 }: Props) {
-  const utils = trpc.useContext();
   const { t } = useLocale();
-  const router = useRouter();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const hasPermsToDelete =
     currentUserMembership?.role !== "MEMBER" ||
     !currentUserMembership ||
-    eventType.schedulingType === SchedulingType.MANAGED ||
+    formMethods.getValues("schedulingType") === SchedulingType.MANAGED ||
     isUserOrganizationAdmin;
-
-  const deleteMutation = trpc.viewer.eventTypes.delete.useMutation({
-    onSuccess: async () => {
-      await utils.viewer.eventTypes.invalidate();
-      showToast(t("event_type_deleted_successfully"), "success");
-      router.push("/event-types");
-      setDeleteDialogOpen(false);
-    },
-    onError: (err) => {
-      if (err instanceof HttpError) {
-        const message = `${err.statusCode}: ${err.message}`;
-        showToast(message, "error");
-        setDeleteDialogOpen(false);
-      } else if (err instanceof TRPCClientError) {
-        showToast(err.message, "error");
-      }
-    },
-  });
 
   const { isManagedEventType, isChildrenManagedEventType } = useLockedFieldsManager(
     eventType,
-    t("locked_fields_admin_description"),
-    t("locked_fields_member_description")
+    formMethods,
+    t
   );
 
+  const length = formMethods.watch("length");
+  const multipleDuration = formMethods.watch("metadata")?.multipleDuration;
+
+  const watchSchedulingType = formMethods.watch("schedulingType");
+  const watchChildrenCount = formMethods.watch("children").length;
   // Define tab navigation here
   const EventTypeTabs = useMemo(() => {
     const navigation = getNavigation({
       t,
-      eventType,
+      length,
+      multipleDuration,
+      id: formMethods.getValues("id"),
       enabledAppsNumber,
       installedAppsNumber,
       enabledWorkflowsNumber,
@@ -185,31 +238,29 @@ function EventTypeSingleLayout({
 
     navigation.splice(1, 0, {
       name: "availability",
-      href: `/event-types/${eventType.id}?tabName=availability`,
+      href: `/event-types/${formMethods.getValues("id")}?tabName=availability`,
       icon: Calendar,
       info:
         isManagedEventType || isChildrenManagedEventType
-          ? eventType.schedule === null
+          ? formMethods.getValues("schedule") === null
             ? "members_default_schedule"
             : isChildrenManagedEventType
             ? `${
-                eventType.scheduleName
-                  ? `${eventType.scheduleName} - ${t("managed")}`
+                formMethods.getValues("scheduleName")
+                  ? `${formMethods.getValues("scheduleName")} - ${t("managed")}`
                   : `default_schedule_name`
               }`
-            : eventType.scheduleName ?? `default_schedule_name`
-          : eventType.scheduleName ?? `default_schedule_name`,
+            : formMethods.getValues("scheduleName") ?? `default_schedule_name`
+          : formMethods.getValues("scheduleName") ?? `default_schedule_name`,
     });
     // If there is a team put this navigation item within the tabs
     if (team) {
       navigation.splice(2, 0, {
         name: "assignment",
-        href: `/event-types/${eventType.id}?tabName=team`,
+        href: `/event-types/${formMethods.getValues("id")}?tabName=team`,
         icon: Users,
-        info: `${t(eventType.schedulingType?.toLowerCase() ?? "")}${
-          isManagedEventType
-            ? ` - ${t("number_member", { count: formMethods.watch("children").length || 0 })}`
-            : ""
+        info: `${t(watchSchedulingType?.toLowerCase() ?? "")}${
+          isManagedEventType ? ` - ${t("number_member", { count: watchChildrenCount || 0 })}` : ""
         }`,
       });
     }
@@ -219,21 +270,20 @@ function EventTypeSingleLayout({
         navigation.push({
           name: "instant_tab_title",
           href: `/event-types/${eventType.id}?tabName=instant`,
-          icon: Zap,
+          icon: PhoneCall,
           info: `instant_event_tab_description`,
         });
       }
       navigation.push({
         name: "webhooks",
-        href: `/event-types/${eventType.id}?tabName=webhooks`,
+        href: `/event-types/${formMethods.getValues("id")}?tabName=webhooks`,
         icon: TbWebhook,
-        info: `${eventType.webhooks.filter((webhook) => webhook.active).length} ${t("active")}`,
+        info: `${activeWebhooksNumber} ${t("active")}`,
       });
     }
     return navigation;
   }, [
     t,
-    eventType,
     enabledAppsNumber,
     installedAppsNumber,
     enabledWorkflowsNumber,
@@ -241,16 +291,23 @@ function EventTypeSingleLayout({
     isManagedEventType,
     isChildrenManagedEventType,
     team,
-    formMethods,
+    length,
+    multipleDuration,
+    formMethods.getValues("id"),
+    watchSchedulingType,
+    watchChildrenCount,
+    activeWebhooksNumber,
   ]);
 
   const permalink = `${bookerUrl}/${
-    team ? `${!team.parentId ? "team/" : ""}${team.slug}` : eventType.users[0].username
+    team ? `${!team.parentId ? "team/" : ""}${team.slug}` : formMethods.getValues("users")[0].username
   }/${eventType.slug}`;
 
-  const embedLink = `${team ? `team/${team.slug}` : eventType.users[0].username}/${eventType.slug}`;
-  const isManagedEvent = eventType.schedulingType === SchedulingType.MANAGED ? "_managed" : "";
-
+  const embedLink = `${
+    team ? `team/${team.slug}` : formMethods.getValues("users")[0].username
+  }/${formMethods.getValues("slug")}`;
+  const isManagedEvent = formMethods.getValues("schedulingType") === SchedulingType.MANAGED ? "_managed" : "";
+  // const title = formMethods.watch("title");
   return (
     <Shell
       backPath="/event-types"
@@ -258,7 +315,7 @@ function EventTypeSingleLayout({
       heading={eventType.title}
       CTA={
         <div className="flex items-center justify-end">
-          {!eventType.metadata?.managedEventConfig && (
+          {!formMethods.getValues("metadata")?.managedEventConfig && (
             <>
               <div
                 className={classNames(
@@ -285,7 +342,7 @@ function EventTypeSingleLayout({
                       id="hiddenSwitch"
                       checked={!formMethods.watch("hidden")}
                       onCheckedChange={(e) => {
-                        formMethods.setValue("hidden", !e);
+                        formMethods.setValue("hidden", !e, { shouldDirty: true });
                       }}
                     />
                   </div>
@@ -329,11 +386,11 @@ function EventTypeSingleLayout({
                   StartIcon={Code}
                   color="secondary"
                   variant="icon"
-                  namespace={eventType.slug}
+                  namespace=""
                   tooltip={t("embed")}
                   tooltipSide="bottom"
                   tooltipOffset={4}
-                  eventId={eventType.id}
+                  eventId={formMethods.getValues("id")}
                 />
               </>
             )}
@@ -401,7 +458,7 @@ function EventTypeSingleLayout({
                   id="hiddenSwitch"
                   checked={!formMethods.watch("hidden")}
                   onCheckedChange={(e) => {
-                    formMethods.setValue("hidden", !e);
+                    formMethods.setValue("hidden", !e, { shouldDirty: true });
                   }}
                 />
               </div>
@@ -412,6 +469,7 @@ function EventTypeSingleLayout({
             className="ml-4 lg:ml-0"
             type="submit"
             loading={isUpdateMutationLoading}
+            disabled={!formMethods.formState.isDirty}
             data-testid="update-eventtype"
             form="event-type-form">
             {t("save")}
@@ -444,31 +502,13 @@ function EventTypeSingleLayout({
           </div>
         </div>
       </Suspense>
-      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <ConfirmationDialogContent
-          isLoading={deleteMutation.isLoading}
-          variety="danger"
-          title={t(`delete${isManagedEvent}_event_type`)}
-          confirmBtnText={t(`confirm_delete_event_type`)}
-          loadingText={t(`confirm_delete_event_type`)}
-          onConfirm={(e) => {
-            e.preventDefault();
-            deleteMutation.mutate({ id: eventType.id });
-          }}>
-          <p className="mt-5">
-            <Trans
-              i18nKey={`delete${isManagedEvent}_event_type_description`}
-              components={{ li: <li />, ul: <ul className="ml-4 list-disc" /> }}>
-              <ul>
-                <li>Members assigned to this event type will also have their event types deleted.</li>
-                <li>
-                  Anyone who they&apos;ve shared their link with will no longer be able to book using it.
-                </li>
-              </ul>
-            </Trans>
-          </p>
-        </ConfirmationDialogContent>
-      </Dialog>
+      <DeleteDialog
+        eventTypeId={eventType.id}
+        isManagedEvent={isManagedEvent}
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+      />
+
       <EventTypeEmbedDialog />
     </Shell>
   );

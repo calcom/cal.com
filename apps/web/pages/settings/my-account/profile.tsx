@@ -1,3 +1,5 @@
+"use client";
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signOut, useSession } from "next-auth/react";
 import type { BaseSyntheticEvent } from "react";
@@ -6,7 +8,6 @@ import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
-import OrganizationMemberAvatar from "@calcom/features/ee/organizations/components/OrganizationMemberAvatar";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { APP_NAME, FULL_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
@@ -41,6 +42,7 @@ import {
   SkeletonText,
   TextField,
 } from "@calcom/ui";
+import { UserAvatar } from "@calcom/ui";
 import { AlertTriangle, Trash2 } from "@calcom/ui/components/icon";
 
 import PageWrapper from "@components/PageWrapper";
@@ -82,17 +84,15 @@ const ProfileView = () => {
   const { t } = useLocale();
   const utils = trpc.useContext();
   const { update } = useSession();
-  const { data: user, isLoading } = trpc.viewer.me.useQuery();
+  const { data: user, isPending } = trpc.viewer.me.useQuery();
 
   const { data: avatarData } = trpc.viewer.avatar.useQuery(undefined, {
-    enabled: !isLoading && !user?.avatarUrl,
+    enabled: !isPending && !user?.avatarUrl,
   });
 
   const updateProfileMutation = trpc.viewer.updateProfile.useMutation({
     onSuccess: async (res) => {
       await update(res);
-      showToast(t("settings_updated_successfully"), "success");
-
       // signout user only in case of password reset
       if (res.signOutUser && tempFormValues && res.passwordReset) {
         showToast(t("password_reset_email", { email: tempFormValues.email }), "success");
@@ -101,6 +101,12 @@ const ProfileView = () => {
         utils.viewer.me.invalidate();
         utils.viewer.avatar.invalidate();
         utils.viewer.shouldVerifyEmail.invalidate();
+      }
+
+      if (res.hasEmailBeenChanged && res.sendEmailVerification) {
+        showToast(t("change_of_email_toast", { email: tempFormValues?.email }), "success");
+      } else {
+        showToast(t("settings_updated_successfully"), "success");
       }
 
       setConfirmAuthEmailChangeWarningDialogOpen(false);
@@ -220,7 +226,7 @@ const ProfileView = () => {
     [ErrorCode.ThirdPartyIdentityProviderEnabled]: t("account_created_with_identity_provider"),
   };
 
-  if (isLoading || !user) {
+  if (isPending || !user) {
     return (
       <SkeletonLoader title={t("profile")} description={t("profile_description", { appName: APP_NAME })} />
     );
@@ -228,7 +234,10 @@ const ProfileView = () => {
 
   const defaultValues = {
     username: user.username || "",
-    avatar: getUserAvatarUrl(user),
+    avatar: getUserAvatarUrl({
+      ...user,
+      profile: user.profile,
+    }),
     name: user.name || "",
     email: user.email || "",
     bio: user.bio || "",
@@ -244,7 +253,7 @@ const ProfileView = () => {
       <ProfileForm
         key={JSON.stringify(defaultValues)}
         defaultValues={defaultValues}
-        isLoading={updateProfileMutation.isLoading}
+        isPending={updateProfileMutation.isPending}
         isFallbackImg={!user.avatarUrl && !avatarData?.avatar}
         user={user}
         userOrganization={user.organization}
@@ -337,6 +346,20 @@ const ProfileView = () => {
           type="creation"
           Icon={AlertTriangle}>
           <div className="mb-10">
+            <div className="mb-4 grid gap-2 md:grid-cols-2">
+              <div>
+                <span className="text-emphasis mb-2 block text-sm font-medium leading-none">
+                  {t("old_email_address")}
+                </span>
+                <p className="text-subtle leading-none">{user.email}</p>
+              </div>
+              <div>
+                <span className="text-emphasis mb-2 block text-sm font-medium leading-none">
+                  {t("new_email_address")}
+                </span>
+                <p className="text-subtle leading-none">{tempFormValues?.email}</p>
+              </div>
+            </div>
             <PasswordField
               data-testid="password"
               name="password"
@@ -351,8 +374,9 @@ const ProfileView = () => {
           </div>
           <DialogFooter showDivider>
             <Button
+              data-testid="profile-update-email-submit-button"
               color="primary"
-              loading={confirmPasswordMutation.isLoading}
+              loading={confirmPasswordMutation.isPending}
               onClick={(e) => onConfirmPassword(e)}>
               {t("confirm")}
             </Button>
@@ -373,7 +397,7 @@ const ProfileView = () => {
           <DialogFooter>
             <Button
               color="primary"
-              loading={updateProfileMutation.isLoading}
+              loading={updateProfileMutation.isPending}
               onClick={(e) => onConfirmAuthEmailChange(e)}>
               {t("confirm")}
             </Button>
@@ -389,7 +413,7 @@ const ProfileForm = ({
   defaultValues,
   onSubmit,
   extraField,
-  isLoading = false,
+  isPending = false,
   isFallbackImg,
   user,
   userOrganization,
@@ -397,7 +421,7 @@ const ProfileForm = ({
   defaultValues: FormValues;
   onSubmit: (values: FormValues) => void;
   extraField?: React.ReactNode;
-  isLoading: boolean;
+  isPending: boolean;
   isFallbackImg: boolean;
   user: RouterOutputs["viewer"]["me"];
   userOrganization: RouterOutputs["viewer"]["me"]["organization"];
@@ -441,19 +465,14 @@ const ProfileForm = ({
               const organization =
                 userOrganization && userOrganization.id
                   ? {
-                      ...(userOrganization as Ensure<typeof user.organization, "id">),
+                      ...(userOrganization as Ensure<NonNullable<typeof user.organization>, "id">),
                       slug: userOrganization.slug || null,
                       requestedSlug: userOrganization.metadata?.requestedSlug || null,
                     }
                   : null;
               return (
                 <>
-                  <OrganizationMemberAvatar
-                    previewSrc={value}
-                    size="lg"
-                    user={user}
-                    organization={organization}
-                  />
+                  <UserAvatar data-testid="profile-upload-avatar" previewSrc={value} size="lg" user={user} />
                   <div className="ms-4">
                     <h2 className="mb-2 text-sm font-medium">{t("profile_picture")}</h2>
                     <div className="flex gap-2">
@@ -489,7 +508,12 @@ const ProfileForm = ({
           <TextField label={t("full_name")} {...formMethods.register("name")} />
         </div>
         <div className="mt-6">
-          <TextField label={t("email")} hint={t("change_email_hint")} {...formMethods.register("email")} />
+          <TextField
+            label={t("email")}
+            hint={t("change_email_hint")}
+            data-testid="profile-form-email"
+            {...formMethods.register("email")}
+          />
         </div>
         <div className="mt-6">
           <Label>{t("about")}</Label>
@@ -506,7 +530,12 @@ const ProfileForm = ({
         </div>
       </div>
       <SectionBottomActions align="end">
-        <Button loading={isLoading} disabled={isDisabled} color="primary" type="submit">
+        <Button
+          loading={isPending}
+          disabled={isDisabled}
+          color="primary"
+          type="submit"
+          data-testid="profile-submit-button">
           {t("update")}
         </Button>
       </SectionBottomActions>

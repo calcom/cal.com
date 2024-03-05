@@ -1,6 +1,8 @@
+"use client";
+
 import { SetPasswordForm } from "@calcom/features/ee/organizations/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Meta, WizardLayout } from "@calcom/ui";
+import { Meta, WizardLayout, WizardLayoutAppDir } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
 
@@ -20,6 +22,14 @@ const LayoutWrapper = (page: React.ReactElement) => {
     <WizardLayout currentStep={2} maxSteps={5}>
       {page}
     </WizardLayout>
+  );
+};
+
+export const WrappedSetPasswordPage = (page: React.ReactElement) => {
+  return (
+    <WizardLayoutAppDir currentStep={2} maxSteps={5}>
+      {page}
+    </WizardLayoutAppDir>
   );
 };
 

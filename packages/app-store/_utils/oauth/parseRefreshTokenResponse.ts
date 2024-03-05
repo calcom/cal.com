@@ -14,6 +14,7 @@ export type ParseRefreshTokenResponse<S extends z.ZodTypeAny> =
   | z.infer<S>
   | z.infer<typeof minimumTokenResponseSchema>;
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const parseRefreshTokenResponse = (response: any, schema: z.ZodTypeAny) => {
   let refreshTokenResponse;
   const credentialSyncingEnabled =

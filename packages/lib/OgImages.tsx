@@ -1,6 +1,6 @@
 import React from "react";
 
-import { CAL_URL, LOGO } from "./constants";
+import { CAL_URL, LOGO, WEBAPP_URL } from "./constants";
 
 // Ensures tw prop is typed.
 declare module "react" {
@@ -46,6 +46,8 @@ const joinMultipleNames = (names: string[] = []) => {
   return `${names.length > 0 ? `${names.join(", ")} & ${lastName}` : lastName}`;
 };
 
+const makeAbsoluteUrl = (url: string) => (/^https?:\/\//.test(url) ? url : `${CAL_URL}${url}`);
+
 /**
  * Test urls:
  * 1. 1 user http://localhost:3000/api/social/og/image?type=meeting&title=super%20long%20event%20title%20for%20testing%20purposes&meetingProfileName=Pro%20Example&meetingImage=http://localhost:3000/pro/avatar.png&names=Pro%20Example&usernames=pro
@@ -62,7 +64,7 @@ export const constructMeetingImage = (
     `?type=meeting`,
     `&title=${encodeURIComponent(title)}`,
     `&meetingProfileName=${encodeURIComponent(profile.name)}`,
-    profile.image && `&meetingImage=${encodeURIComponent(CAL_URL + profile.image)}`,
+    profile.image && `&meetingImage=${encodeURIComponent(makeAbsoluteUrl(profile.image))}`,
     `${users.map((user) => `&names=${encodeURIComponent(user.name)}`).join("")}`,
     `${users.map((user) => `&usernames=${encodeURIComponent(user.username)}`).join("")}`,
     // Joining a multiline string for readability.
@@ -103,7 +105,7 @@ const Wrapper = ({ children, variant = "light", rotateBackground }: WrapperProps
     <img
       tw="flex absolute left-0 top-0 w-full h-[110%]"
       style={rotateBackground ? { transform: "rotate(180deg)" } : undefined}
-      src={`${CAL_URL}/social-bg-${variant}-lines.jpg`}
+      src={`${WEBAPP_URL}/social-bg-${variant}-lines.jpg`}
       alt="background"
       width="1200"
       height="600"
@@ -117,7 +119,7 @@ export const Meeting = ({ title, users = [], profile }: MeetingImageProps) => {
   // Users ALWAYS have an image (albeit a gray empty person avatar), so this mainly filters out
   // any non existing images for dynamic collectives, while at the same time removing them from
   // the names list, because the profile name of that event is a concatenation of all names.
-  const attendees = (profile?.image ? [profile, ...users] : users).filter(
+  const attendees = (profile.image ? [profile, ...users] : users).filter(
     (value, index, self) => self.findIndex((v) => v.name === value.name) == index
   );
 
@@ -138,7 +140,7 @@ export const Meeting = ({ title, users = [], profile }: MeetingImageProps) => {
     <Wrapper variant="dark">
       <div tw="h-full flex flex-col justify-start">
         <div tw="flex items-center justify-center" style={{ fontFamily: "cal", fontWeight: 300 }}>
-          <img src={`${CAL_URL}/${LOGO}`} width="350" alt="Logo" />
+          <img src={`${WEBAPP_URL}/${LOGO}`} width="350" alt="Logo" />
           {avatars.length > 0 && (
             <div style={{ color: "#111827" }} tw="font-bold text-[92px] mx-8 bottom-2">
               /
@@ -191,7 +193,7 @@ const VisualBlur = ({ visualSlug }: { visualSlug: string }) => {
         style={{
           filter: "blur(98px)",
           backgroundColor: "rgba(255, 255, 255, 0.7)",
-          backgroundImage: `url(${CAL_URL}${visualSlug})`,
+          backgroundImage: `url(${WEBAPP_URL}${visualSlug})`,
           backgroundSize: "400px 400px",
         }}
       />
@@ -202,7 +204,7 @@ const VisualBlur = ({ visualSlug }: { visualSlug: string }) => {
         style={{
           filter: "blur(150px)",
           backgroundColor: "rgba(255, 255, 255, 0.7)",
-          backgroundImage: `url(${CAL_URL}${visualSlug})`,
+          backgroundImage: `url(${WEBAPP_URL}${visualSlug})`,
           backgroundSize: "630px 630px",
         }}
       />
@@ -212,13 +214,13 @@ const VisualBlur = ({ visualSlug }: { visualSlug: string }) => {
 
 export const App = ({ name, description, slug }: AppImageProps) => (
   <Wrapper>
-    <img src={`${CAL_URL}/${LOGO}`} width="150" alt="Logo" tw="absolute right-[48px] top-[48px]" />
+    <img src={`${WEBAPP_URL}/${LOGO}`} width="150" alt="Logo" tw="absolute right-[48px] top-[48px]" />
 
     <VisualBlur visualSlug={slug} />
 
     <div tw="flex items-center w-full">
       <div tw="flex">
-        <img src={`${CAL_URL}${slug}`} alt="App icon" width="172" />
+        <img src={`${WEBAPP_URL}${slug}`} alt="App icon" width="172" />
       </div>
     </div>
     <div style={{ color: "#111827" }} tw="flex mt-auto w-full flex-col">
@@ -236,7 +238,7 @@ export const Generic = ({ title, description }: GenericImageProps) => (
   <Wrapper>
     <div tw="h-full flex flex-col justify-start">
       <div tw="flex items-center justify-center" style={{ fontFamily: "cal", fontWeight: 300 }}>
-        <img src={`${CAL_URL}/cal-logo-word-black.svg`} width="350" alt="Logo" />
+        <img src={`${WEBAPP_URL}/cal-logo-word-black.svg`} width="350" alt="Logo" />
       </div>
 
       <div style={{ color: "#111827" }} tw="relative flex text-[54px] w-full flex-col mt-auto">

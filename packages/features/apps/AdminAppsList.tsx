@@ -270,7 +270,7 @@ const AdminAppsListContainer = () => {
   const { t } = useLocale();
   const category = searchParams?.get("category") || AppCategories.calendar;
 
-  const { data: apps, isLoading } = trpc.viewer.appsRouter.listLocal.useQuery(
+  const { data: apps, isPending } = trpc.viewer.appsRouter.listLocal.useQuery(
     { category },
     { enabled: searchParams !== null }
   );
@@ -291,7 +291,7 @@ const AdminAppsListContainer = () => {
 
   const handleModelOpen = (data: EditModalState) => setModalState({ ...data });
 
-  if (isLoading) return <SkeletonLoader />;
+  if (isPending) return <SkeletonLoader />;
 
   if (!apps || apps.length === 0) {
     return (

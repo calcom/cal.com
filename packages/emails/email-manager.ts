@@ -24,7 +24,11 @@ import AttendeeScheduledEmail from "./templates/attendee-scheduled-email";
 import type { EmailVerifyCode } from "./templates/attendee-verify-email";
 import AttendeeVerifyEmail from "./templates/attendee-verify-email";
 import AttendeeWasRequestedToRescheduleEmail from "./templates/attendee-was-requested-to-reschedule-email";
+import BookingRedirectEmailNotification from "./templates/booking-redirect-notification";
+import type { IBookingRedirect } from "./templates/booking-redirect-notification";
 import BrokenIntegrationEmail from "./templates/broken-integration-email";
+import type { ChangeOfEmailVerifyLink } from "./templates/change-account-email-verify";
+import ChangeOfEmailVerifyEmail from "./templates/change-account-email-verify";
 import DisabledAppEmail from "./templates/disabled-app-email";
 import type { Feedback } from "./templates/feedback-email";
 import FeedbackEmail from "./templates/feedback-email";
@@ -335,6 +339,10 @@ export const sendEmailVerificationCode = async (verificationInput: EmailVerifyCo
   await sendEmail(() => new AttendeeVerifyEmail(verificationInput));
 };
 
+export const sendChangeOfEmailVerificationLink = async (verificationInput: ChangeOfEmailVerifyLink) => {
+  await sendEmail(() => new ChangeOfEmailVerifyEmail(verificationInput));
+};
+
 export const sendRequestRescheduleEmail = async (
   calEvent: CalendarEvent,
   metadata: { rescheduleLink: string }
@@ -436,4 +444,8 @@ export const sendMonthlyDigestEmails = async (eventData: MonthlyDigestEmailData)
 
 export const sendAdminOrganizationNotification = async (input: OrganizationNotification) => {
   await sendEmail(() => new AdminOrganizationNotification(input));
+};
+
+export const sendBookingRedirectNotification = async (bookingRedirect: IBookingRedirect) => {
+  await sendEmail(() => new BookingRedirectEmailNotification(bookingRedirect));
 };

@@ -1,7 +1,9 @@
 import { useBrandColors } from "@calcom/embed-core/embed-iframe";
 
-const BRAND_COLOR = "#292929";
-const DARK_BRAND_COLOR = "#fafafa";
+import { DEFAULT_DARK_BRAND_COLOR, DEFAULT_LIGHT_BRAND_COLOR } from "./constants";
+
+const BRAND_COLOR = DEFAULT_LIGHT_BRAND_COLOR;
+const DARK_BRAND_COLOR = DEFAULT_DARK_BRAND_COLOR;
 
 type Rgb = {
   r: number;

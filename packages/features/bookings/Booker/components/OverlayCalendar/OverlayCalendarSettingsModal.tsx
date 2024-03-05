@@ -1,10 +1,8 @@
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import { Fragment, useEffect, useState } from "react";
+import { Fragment } from "react";
 
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc } from "@calcom/trpc/react";
 import {
   Alert,
   Dialog,
@@ -20,12 +18,16 @@ import {
 } from "@calcom/ui";
 import { Calendar } from "@calcom/ui/components/icon";
 
-import { useLocalSet } from "../hooks/useLocalSet";
-import { useOverlayCalendarStore } from "./store";
+import type { UseCalendarsReturnType } from "../hooks/useCalendars";
 
-interface IOverlayCalendarContinueModalProps {
+interface IOverlayCalendarSettingsModalProps {
   open?: boolean;
   onClose?: (state: boolean) => void;
+  onClickNoCalendar?: () => void;
+  isLoading: boolean;
+  connectedCalendars: UseCalendarsReturnType["connectedCalendars"];
+  onToggleConnectedCalendar: (externalCalendarId: string, credentialId: number) => void;
+  checkIsCalendarToggled: (externalCalendarId: string, credentialId: number) => boolean;
 }
 
 const SkeletonLoader = () => {
@@ -41,40 +43,20 @@ const SkeletonLoader = () => {
   );
 };
 
-export function OverlayCalendarSettingsModal(props: IOverlayCalendarContinueModalProps) {
-  const utils = trpc.useContext();
-  const [initalised, setInitalised] = useState(false);
-  const searchParams = useSearchParams();
-  const setOverlayBusyDates = useOverlayCalendarStore((state) => state.setOverlayBusyDates);
-  const { data, isLoading } = trpc.viewer.connectedCalendars.useQuery(undefined, {
-    enabled: !!props.open || Boolean(searchParams?.get("overlayCalendar")),
-  });
-  const { toggleValue, hasItem, set } = useLocalSet<{
-    credentialId: number;
-    externalId: string;
-  }>("toggledConnectedCalendars", []);
-
-  const router = useRouter();
+export function OverlayCalendarSettingsModal({
+  connectedCalendars,
+  isLoading,
+  open,
+  onClose,
+  onClickNoCalendar,
+  onToggleConnectedCalendar,
+  checkIsCalendarToggled,
+}: IOverlayCalendarSettingsModalProps) {
   const { t } = useLocale();
-
-  useEffect(() => {
-    if (data?.connectedCalendars && set.size === 0 && !initalised) {
-      data?.connectedCalendars.forEach((item) => {
-        item.calendars?.forEach((cal) => {
-          const id = { credentialId: item.credentialId, externalId: cal.externalId };
-          if (cal.primary) {
-            toggleValue(id);
-          }
-        });
-      });
-      setInitalised(true);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, hasItem, set, initalised]);
 
   return (
     <>
-      <Dialog open={props.open} onOpenChange={props.onClose}>
+      <Dialog open={open} onOpenChange={onClose}>
         <DialogContent
           enableOverflow
           type="creation"
@@ -86,17 +68,17 @@ export function OverlayCalendarSettingsModal(props: IOverlayCalendarContinueModa
               <SkeletonLoader />
             ) : (
               <>
-                {data?.connectedCalendars.length === 0 ? (
+                {connectedCalendars.length === 0 ? (
                   <EmptyScreen
                     Icon={Calendar}
                     headline={t("no_calendar_installed")}
                     description={t("no_calendar_installed_description")}
                     buttonText={t("add_a_calendar")}
-                    buttonOnClick={() => router.push("/apps/categories/calendar")}
+                    buttonOnClick={onClickNoCalendar}
                   />
                 ) : (
                   <>
-                    {data?.connectedCalendars.map((item) => (
+                    {connectedCalendars.map((item) => (
                       <Fragment key={item.credentialId}>
                         {item.error && !item.calendars && (
                           <Alert severity="error" title={item.error.message} />
@@ -134,17 +116,9 @@ export function OverlayCalendarSettingsModal(props: IOverlayCalendarContinueModa
                                     <li className="flex gap-3" key={id}>
                                       <Switch
                                         id={id}
-                                        checked={hasItem({
-                                          credentialId: item.credentialId,
-                                          externalId: cal.externalId,
-                                        })}
+                                        checked={checkIsCalendarToggled(cal.externalId, item.credentialId)}
                                         onCheckedChange={() => {
-                                          toggleValue({
-                                            credentialId: item.credentialId,
-                                            externalId: cal.externalId,
-                                          });
-                                          setOverlayBusyDates([]);
-                                          utils.viewer.availability.calendarOverlay.reset();
+                                          onToggleConnectedCalendar(cal.externalId, item.credentialId);
                                         }}
                                       />
                                       <label htmlFor={id}>{cal.name}</label>

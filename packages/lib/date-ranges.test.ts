@@ -224,7 +224,7 @@ describe("processDateOverrides", () => {
     // 2023-06-12T20:00:00-04:00 (America/New_York)
     const timeZone = "America/New_York";
 
-    const result = processDateOverride({ item, timeZone });
+    const result = processDateOverride({ item, itemDateAsUtc: dayjs.utc(item.date), timeZone });
 
     expect(result.start.format()).toEqual(dayjs("2023-06-12T12:00:00Z").tz(timeZone).format());
     expect(result.end.format()).toEqual(dayjs("2023-06-12T21:00:00Z").tz(timeZone).format());
@@ -315,6 +315,26 @@ describe("buildDateRanges", () => {
     expect(results[0]).toEqual({
       start: dayjs("2023-06-14T07:00:00Z").tz(timeZone),
       end: dayjs("2023-06-14T16:00:00Z").tz(timeZone),
+    });
+  });
+  it("should return correct date ranges for specific time slot in date override", () => {
+    const items = [
+      {
+        date: new Date(Date.UTC(2023, 5, 13)),
+        startTime: new Date(Date.UTC(0, 0, 0, 9, 0)),
+        endTime: new Date(Date.UTC(0, 0, 0, 14, 0)),
+      },
+    ];
+    const timeZone = "Europe/London";
+
+    const dateFrom = dayjs("2023-06-13T10:00:00Z");
+    const dateTo = dayjs("2023-06-13T10:30:00Z");
+
+    const results = buildDateRanges({ availability: items, timeZone, dateFrom, dateTo });
+
+    expect(results[0]).toEqual({
+      start: dayjs("2023-06-13T08:00:00Z").tz(timeZone),
+      end: dayjs("2023-06-13T13:00:00Z").tz(timeZone),
     });
   });
   it("should return correct date ranges if date override would already already be the next day in utc timezone", () => {

@@ -1,0 +1,27 @@
+name: Cron - mark stale for inactive issues
+
+permissions:
+  issues: write
+  pull-requests: write
+
+on:
+  # "Scheduled workflows run on the latest commit on the default or base branch."
+  # — https://docs.github.com/en/actions/learn-github-actions/events-that-trigger-workflows#schedule
+  schedule:
+    # Runs "At 00:00." every day (see https://crontab.guru)
+    - cron: "0 0 * * *"
+  workflow_dispatch:
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/stale@v7
+        with:
+          days-before-close: -1
+          days-before-issue-stale: 60
+          days-before-issue-close: -1
+          days-before-pr-stale: 14
+          days-before-pr-close: -1
+          stale-pr-message: "This PR is being marked as stale due to inactivity."
+          close-pr-message: "This PR is being closed due to inactivity. Please reopen if work is intended to be continued."
+          operations-per-run: 100

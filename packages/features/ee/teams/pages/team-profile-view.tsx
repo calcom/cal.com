@@ -1,15 +1,18 @@
+"use client";
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { Prisma } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useLayoutEffect, useState } from "react";
+import { useLayoutEffect, useState, useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
+import { trackFormbricksAction } from "@calcom/lib/formbricks-client";
 import { getTeamUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
@@ -91,16 +94,25 @@ const ProfileView = () => {
     document.body.focus();
   }, []);
 
-  const { data: team, isLoading } = trpc.viewer.teams.get.useQuery(
+  const {
+    data: team,
+    isPending,
+    error,
+  } = trpc.viewer.teams.get.useQuery(
     { teamId, includeTeamLogo: true },
     {
       enabled: !!teamId,
-      onError: () => {
-        router.push("/settings");
-      },
     }
   );
 
+  useEffect(
+    function refactorMeWithoutEffect() {
+      if (error) {
+        router.push("/settings");
+      }
+    },
+    [error]
+  );
   const isAdmin =
     team && (team.membership.role === MembershipRole.OWNER || team.membership.role === MembershipRole.ADMIN);
 
@@ -113,6 +125,7 @@ const ProfileView = () => {
       await utils.viewer.teams.list.invalidate();
       showToast(t("your_team_disbanded_successfully"), "success");
       router.push(`${WEBAPP_URL}/teams`);
+      trackFormbricksAction("team_disbanded");
     },
   });
 
@@ -140,7 +153,7 @@ const ProfileView = () => {
       });
   }
 
-  if (isLoading) {
+  if (isPending) {
     return <SkeletonLoader title={t("profile")} description={t("profile_team_description")} />;
   }
 
@@ -151,7 +164,7 @@ const ProfileView = () => {
       {isAdmin ? (
         <TeamProfileForm team={team} />
       ) : (
-        <div className="flex">
+        <div className="border-subtle flex rounded-b-xl border border-t-0 px-4 py-8 sm:px-6">
           <div className="flex-grow">
             <div>
               <Label className="text-emphasis">{t("team_name")}</Label>
@@ -167,7 +180,7 @@ const ProfileView = () => {
               </>
             )}
           </div>
-          <div className="">
+          <div>
             <Link href={permalink} passHref={true} target="_blank">
               <LinkIconButton Icon={ExternalLink}>{t("preview")}</LinkIconButton>
             </Link>
@@ -206,7 +219,9 @@ const ProfileView = () => {
             variety="danger"
             title={t("disband_team")}
             confirmBtnText={t("confirm_disband_team")}
-            onConfirm={deleteTeam}>
+            onConfirm={() => {
+              deleteTeam();
+            }}>
             {t("disband_team_confirmation_message")}
           </ConfirmationDialogContent>
         </Dialog>
@@ -310,7 +325,7 @@ const TeamProfileForm = ({ team }: TeamProfileFormProps) => {
             <Controller
               control={form.control}
               name="logo"
-              render={({ field: { value } }) => {
+              render={({ field: { value, onChange } }) => {
                 const showRemoveLogoButton = !!value;
 
                 return (
@@ -325,9 +340,7 @@ const TeamProfileForm = ({ team }: TeamProfileFormProps) => {
                         target="avatar"
                         id="avatar-upload"
                         buttonMsg={t("upload_logo")}
-                        handleAvatarChange={(newLogo) => {
-                          form.setValue("logo", newLogo, { shouldDirty: true });
-                        }}
+                        handleAvatarChange={onChange}
                         triggerButtonColor={showRemoveLogoButton ? "secondary" : "primary"}
                         imageSrc={value ?? undefined}
                       />
@@ -335,7 +348,7 @@ const TeamProfileForm = ({ team }: TeamProfileFormProps) => {
                         <Button
                           color="secondary"
                           onClick={() => {
-                            form.setValue("logo", null, { shouldDirty: true });
+                            onChange(null);
                           }}>
                           {t("remove")}
                         </Button>
@@ -403,7 +416,7 @@ const TeamProfileForm = ({ team }: TeamProfileFormProps) => {
         <p className="text-default mt-2 text-sm">{t("team_description")}</p>
       </div>
       <SectionBottomActions align="end">
-        <Button color="primary" type="submit" loading={mutation.isLoading} disabled={isDisabled}>
+        <Button color="primary" type="submit" loading={mutation.isPending} disabled={isDisabled}>
           {t("update")}
         </Button>
         {IS_TEAM_BILLING_ENABLED &&

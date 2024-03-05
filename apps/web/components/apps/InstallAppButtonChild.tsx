@@ -2,7 +2,7 @@ import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import { doesAppSupportTeamInstall } from "@calcom/app-store/utils";
 import { Spinner } from "@calcom/features/calendars/weeklyview/components/spinner/Spinner";
 import type { UserAdminTeams } from "@calcom/features/ee/teams/lib/getUserAdminTeams";
-import { CAL_URL } from "@calcom/lib/constants";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import type { AppFrontendPayload } from "@calcom/types/App";
@@ -100,9 +100,9 @@ export const InstallAppButtonChild = ({
         <DropdownMenuContent
           className="w-auto"
           onInteractOutside={(event) => {
-            if (mutation.isLoading) event.preventDefault();
+            if (mutation.isPending) event.preventDefault();
           }}>
-          {mutation.isLoading && (
+          {mutation.isPending && (
             <div className="z-1 fixed inset-0 flex items-center justify-center">
               <Spinner />
             </div>
@@ -125,7 +125,7 @@ export const InstallAppButtonChild = ({
                 StartIcon={(props) => (
                   <Avatar
                     alt={team.logo || ""}
-                    imageSrc={team.logo || `${CAL_URL}/${team.logo}/avatar.png`} // if no image, use default avatar
+                    imageSrc={team.logo || `${WEBAPP_URL}/${team.logo}/avatar.png`} // if no image, use default avatar
                     size="sm"
                     {...props}
                   />
