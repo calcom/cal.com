@@ -23,14 +23,9 @@ import {
   SkeletonContainer,
   SkeletonText,
   TimezoneSelect,
-  SettingsToggle,
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
 } from "@calcom/ui";
-import { Lock } from "@calcom/ui/components/icon";
+
+import { LockEventTypeSwitch } from "../components/LockEventTypeSwitch";
 
 const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
   return (
@@ -89,11 +84,7 @@ const OrgGeneralView = () => {
         localeProp={user?.locale ?? "en"}
       />
 
-      <LimitUsersView
-        currentOrg={currentOrg}
-        isAdminOrOwner={isAdminOrOwner}
-        localeProp={user?.locale ?? "en"}
-      />
+      <LockEventTypeSwitch currentOrg={currentOrg} isAdminOrOwner={isAdminOrOwner} />
     </LicenseRequired>
   );
 };
@@ -227,125 +218,6 @@ const GeneralView = ({ currentOrg, isAdminOrOwner, localeProp }: GeneralViewProp
           {t("update")}
         </Button>
       </SectionBottomActions>
-    </Form>
-  );
-};
-
-type CurrentEventTypeOptions = "DELETE" | "HIDE" | "LEAVE_ON_PROFILE";
-
-const LimitUsersView = ({ currentOrg, isAdminOrOwner }: GeneralViewProps) => {
-  const { t } = useLocale();
-
-  const mutation = trpc.viewer.organizations.update.useMutation({
-    onSuccess: async () => {
-      reset(getValues());
-      showToast(t("settings_updated_successfully"), "success");
-    },
-    onError: () => {
-      showToast(t("error_updating_settings"), "error");
-    },
-  });
-
-  const currentEventTypeOptions = [
-    { value: "DELETE", label: t("delete_event_types_from_profile") },
-    { value: "HIDE", label: t("hide_event_types_from_profile") },
-    { value: "LEAVE_ON_PROFILE", label: t("leave_event_types_from_profile") },
-  ] as { value: CurrentEventTypeOptions; label: string }[];
-
-  const formMethods = useForm<{
-    lockEventTypeCreationForUsers: boolean;
-    currentEventTypeOptions: CurrentEventTypeOptions;
-  }>({
-    defaultValues: {
-      lockEventTypeCreationForUsers: !!currentOrg.organizationSettings.lockEventTypeCreationForUsers,
-      currentEventTypeOptions: "LEAVE_ON_PROFILE",
-    },
-  });
-
-  const lockEventTypeCreationForUsers = formMethods.watch("lockEventTypeCreationForUsers");
-
-  const {
-    formState: { isDirty, isSubmitting, isSubmitSuccessful },
-    reset,
-    getValues,
-  } = formMethods;
-  const isDisabled = isSubmitting || !isDirty || !isAdminOrOwner;
-
-  const modalOpen =
-    lockEventTypeCreationForUsers &&
-    !currentOrg.organizationSettings.lockEventTypeCreationForUsers &&
-    !isSubmitSuccessful;
-
-  return (
-    <Form
-      form={formMethods}
-      handleSubmit={(value) => {
-        console.log(value);
-      }}>
-      <SettingsToggle
-        toggleSwitchAtTheEnd={true}
-        title={t("lock_users_eventtypes")}
-        disabled={mutation?.isPending}
-        description={t("lock_users_eventtypes_description")}
-        checked={lockEventTypeCreationForUsers}
-        onCheckedChange={(checked) => {
-          formMethods.setValue("lockEventTypeCreationForUsers", checked);
-        }}
-        switchContainerClassName="mt-6"
-      />
-      {modalOpen && (
-        <Dialog
-          open={modalOpen}
-          onOpenChange={(e) => {
-            if (!e) {
-              formMethods.setValue(
-                "lockEventTypeCreationForUsers",
-                !!currentOrg.organizationSettings.lockEventTypeCreationForUsers
-              );
-            }
-          }}>
-          <DialogContent enableOverflow>
-            <div className="flex flex-row space-x-3">
-              <div className="bg-subtle flex h-10 w-10 flex-shrink-0 justify-center rounded-full ">
-                <Lock className="m-auto h-6 w-6" />
-              </div>
-              <div className="w-full pt-1">
-                <DialogHeader
-                  title={t("lock_event_types_modal_header")}
-                  subtitle={t("lock_event_types_modal_description")}
-                />
-                <Controller
-                  name="currentEventTypeOptions"
-                  control={formMethods.control}
-                  render={({ field: { value } }) => (
-                    <>
-                      <Label className="text-emphasis mt-6">
-                        <>{t("options")}</>
-                      </Label>
-                      <Select
-                        className="mb-2"
-                        value={value}
-                        // @ts-expect-error react-select types not liking the static strings being used
-                        options={currentEventTypeOptions}
-                        onChange={(e) => {
-                          if (e) formMethods.setValue("currentEventTypeOptions", e);
-                        }}
-                      />
-                    </>
-                  )}
-                />
-
-                <DialogFooter>
-                  <DialogClose />
-                  <Button type="submit" disabled={isDisabled}>
-                    {t("submit")}
-                  </Button>
-                </DialogFooter>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
-      )}
     </Form>
   );
 };
