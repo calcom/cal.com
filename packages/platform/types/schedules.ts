@@ -63,10 +63,9 @@ export class UpdateScheduleInput {
   @IsOptional()
   isDefault?: boolean;
 
-  @IsOptional()
   @ValidateNested({ each: true })
   @Type(() => ScheduleItem)
-  schedule?: ScheduleItem[][];
+  schedule!: ScheduleItem[][];
 
   @IsOptional()
   @ValidateNested({ each: true })

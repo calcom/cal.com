@@ -43,15 +43,13 @@ export class SchedulesController {
     @GetUser() user: User,
     @Body() bodySchedule: CreateScheduleInput,
     @ForAtom() forAtom: boolean
-  ): Promise<ApiResponse<{ schedule: ScheduleResponse | ScheduleWithAvailabilitiesForWeb }>> {
+  ): Promise<ApiResponse<ScheduleResponse>> {
     const schedule = await this.schedulesService.createUserSchedule(user.id, bodySchedule);
     const scheduleFormatted = await this.schedulesResponseService.formatSchedule(forAtom, user, schedule);
 
     return {
       status: SUCCESS_STATUS,
-      data: {
-        schedule: scheduleFormatted,
-      },
+      data: scheduleFormatted,
     };
   }
 
@@ -72,14 +70,12 @@ export class SchedulesController {
   }
 
   @Get("/time-zones")
-  async getTimeZones(): Promise<ApiResponse<{ timeZones: CityTimezones }>> {
+  async getTimeZones(): Promise<ApiResponse<CityTimezones>> {
     const timeZones = await this.schedulesService.getSchedulePossibleTimeZones();
 
     return {
       status: SUCCESS_STATUS,
-      data: {
-        timeZones,
-      },
+      data: timeZones,
     };
   }
 
@@ -94,9 +90,7 @@ export class SchedulesController {
 
     return {
       status: SUCCESS_STATUS,
-      data: {
-        schedule: scheduleFormatted,
-      },
+      data: scheduleFormatted,
     };
   }
 
@@ -104,22 +98,22 @@ export class SchedulesController {
   async getSchedules(
     @GetUser() user: User,
     @ForAtom() forAtom: boolean
-  ): Promise<ApiResponse<{ schedules: ScheduleResponse[] | ScheduleWithAvailabilitiesForWeb[] }>> {
+  ): Promise<ApiResponse<ScheduleResponse[] | ScheduleWithAvailabilitiesForWeb[]>> {
     const schedules = await this.schedulesService.getUserSchedules(user.id);
     const schedulesFormatted = await this.schedulesResponseService.formatSchedules(forAtom, user, schedules);
 
     return {
       status: SUCCESS_STATUS,
-      data: {
-        schedules: schedulesFormatted,
-      },
+      data: schedulesFormatted,
     };
   }
+
+  // note(Lauris): currently this endpoint is atoms only
   @Patch("/:scheduleId")
   async updateSchedule(
     @GetUser() user: User,
     @Body() bodySchedule: UpdateScheduleInput
-  ): Promise<ApiResponse<unknown>> {
+  ): Promise<ApiResponse<UpdateScheduleOutputType>> {
     const updatedSchedule: UpdateScheduleOutputType = await updateScheduleHandler({
       input: bodySchedule,
       ctx: { user },
