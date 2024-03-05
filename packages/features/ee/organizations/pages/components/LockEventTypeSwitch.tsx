@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { classNames } from "@calcom/lib";
@@ -21,7 +22,6 @@ import { Lock } from "@calcom/ui/components/icon";
 enum CurrentEventTypeOptions {
   DELETE = "DELETE",
   HIDE = "HIDE",
-  LEAVE_ON_PROFILE = "LEAVE_ON_PROFILE",
 }
 
 interface GeneralViewProps {
@@ -29,7 +29,15 @@ interface GeneralViewProps {
   isAdminOrOwner: boolean;
 }
 
+interface FormValues {
+  currentEventTypeOptions: CurrentEventTypeOptions;
+}
+
 export const LockEventTypeSwitch = ({ currentOrg, isAdminOrOwner }: GeneralViewProps) => {
+  const [lockEventTypeCreationForUsers, setLockEventTypeCreationForUsers] = useState(
+    !!currentOrg.organizationSettings.lockEventTypeCreationForUsers
+  );
+  const [showModal, setShowModal] = useState(false);
   const { t } = useLocale();
 
   const mutation = trpc.viewer.organizations.update.useMutation({
@@ -42,115 +50,103 @@ export const LockEventTypeSwitch = ({ currentOrg, isAdminOrOwner }: GeneralViewP
     },
   });
 
-  const formMethods = useForm<{
-    lockEventTypeCreationForUsers: boolean;
-    currentEventTypeOptions: CurrentEventTypeOptions;
-  }>({
+  const formMethods = useForm<FormValues>({
     defaultValues: {
-      lockEventTypeCreationForUsers: !!currentOrg.organizationSettings.lockEventTypeCreationForUsers,
       currentEventTypeOptions: CurrentEventTypeOptions.HIDE,
     },
   });
 
-  const lockEventTypeCreationForUsers = formMethods.watch("lockEventTypeCreationForUsers");
+  const currentLockedOption = formMethods.watch("currentEventTypeOptions");
 
-  const {
-    formState: { isDirty, isSubmitting, isSubmitSuccessful },
-    reset,
-    getValues,
-    register,
-  } = formMethods;
-  const isDisabled = isSubmitting || !isDirty || !isAdminOrOwner;
+  const { reset, getValues } = formMethods;
 
-  const modalOpen =
-    lockEventTypeCreationForUsers &&
-    !currentOrg.organizationSettings.lockEventTypeCreationForUsers &&
-    !isSubmitSuccessful;
+  const onSubmit = (values: FormValues) => {
+    mutation.mutate({
+      lockEventTypeCreation: lockEventTypeCreationForUsers,
+      lockEventTypeCreationOptions: values.currentEventTypeOptions,
+    });
+    setShowModal(false);
+  };
 
   return (
-    <Form
-      form={formMethods}
-      handleSubmit={(value) => {
-        console.log(value);
-      }}>
+    <>
       <SettingsToggle
         toggleSwitchAtTheEnd={true}
         title={t("lock_users_eventtypes")}
-        disabled={mutation?.isPending}
+        disabled={mutation?.isPending || !isAdminOrOwner}
         description={t("lock_users_eventtypes_description")}
         checked={lockEventTypeCreationForUsers}
         onCheckedChange={(checked) => {
-          console.log({ checked });
-          formMethods.setValue("lockEventTypeCreationForUsers", checked);
           if (!checked) {
             mutation.mutate({
               lockEventTypeCreation: checked,
             });
+          } else {
+            setShowModal(true);
           }
+          setLockEventTypeCreationForUsers(checked);
         }}
         switchContainerClassName="mt-6"
       />
-      {modalOpen && (
+      {showModal && (
         <Dialog
-          open={modalOpen}
+          open={showModal}
           onOpenChange={(e) => {
             if (!e) {
-              formMethods.setValue(
-                "lockEventTypeCreationForUsers",
+              setLockEventTypeCreationForUsers(
                 !!currentOrg.organizationSettings.lockEventTypeCreationForUsers
               );
             }
           }}>
           <DialogContent enableOverflow>
-            <div className="flex flex-row space-x-3">
-              <div className="bg-subtle flex h-10 w-10 flex-shrink-0 justify-center rounded-full ">
-                <Lock className="m-auto h-6 w-6" />
-              </div>
-              <div className="w-full pt-1">
-                <DialogHeader
-                  title={t("lock_event_types_modal_header")}
-                  subtitle={
-                    <label htmlFor="currentEventTypeOptions">{t("lock_event_types_modal_description")}</label>
-                  }
-                />
-                <RadioArea.Group
-                  id="currentEventTypeOptions"
-                  onValueChange={(val: CurrentEventTypeOptions) => {
-                    formMethods.setValue("currentEventTypeOptions", val);
-                  }}
-                  className={classNames("min-h-24 mt-1 flex flex-col gap-4")}>
-                  <RadioArea.Item
-                    {...register("currentEventTypeOptions")}
-                    value={CurrentEventTypeOptions.HIDE}
-                    className={classNames("h-full text-sm")}>
-                    <strong className="mb-1 block">{t("hide")}</strong>
-                  </RadioArea.Item>
-                  <RadioArea.Item
-                    {...register("currentEventTypeOptions")}
-                    value={CurrentEventTypeOptions.DELETE}
-                    className={classNames("h-full text-sm")}>
-                    <strong className="mb-1 block">{t("delete")}</strong>
-                  </RadioArea.Item>
-                  <RadioArea.Item
-                    {...register("currentEventTypeOptions")}
-                    value={CurrentEventTypeOptions.LEAVE_ON_PROFILE}
-                    className={classNames("h-full text-sm")}>
-                    <strong className="mb-1 block">{t("leave_on_profile")}</strong>
-                    <p>{t("round_robin_description")}</p>
-                  </RadioArea.Item>
-                </RadioArea.Group>
+            <Form form={formMethods} handleSubmit={onSubmit}>
+              <div className="flex flex-row space-x-3">
+                <div className="bg-subtle flex h-10 w-10 flex-shrink-0 justify-center rounded-full ">
+                  <Lock className="m-auto h-6 w-6" />
+                </div>
+                <div className="w-full pt-1">
+                  <DialogHeader
+                    title={t("lock_event_types_modal_header")}
+                    subtitle={
+                      <label htmlFor="currentEventTypeOptions">
+                        {t("lock_event_types_modal_description")}
+                      </label>
+                    }
+                  />
+                  <RadioArea.Group
+                    id="currentEventTypeOptions"
+                    onValueChange={(val: CurrentEventTypeOptions) => {
+                      formMethods.setValue("currentEventTypeOptions", val);
+                    }}
+                    className={classNames("min-h-24 mt-1 flex flex-col gap-4")}>
+                    <RadioArea.Item
+                      checked={currentLockedOption === CurrentEventTypeOptions.HIDE}
+                      value={CurrentEventTypeOptions.HIDE}
+                      className={classNames("h-full text-sm")}>
+                      <strong className="mb-1 block">{t("hide")}</strong>
+                      <p>{t("org_hide_event_types_org_admin")}</p>
+                    </RadioArea.Item>
+                    <RadioArea.Item
+                      checked={currentLockedOption === CurrentEventTypeOptions.DELETE}
+                      value={CurrentEventTypeOptions.DELETE}
+                      className={classNames("h-full text-sm")}>
+                      <strong className="mb-1 block">{t("delete")}</strong>
+                      <p>{t("org_delete_event_types_org_admin")}</p>
+                    </RadioArea.Item>
+                  </RadioArea.Group>
 
-                <DialogFooter>
-                  <DialogClose />
-                  <Button type="submit" disabled={isDisabled}>
-                    {t("submit")}
-                  </Button>
-                </DialogFooter>
+                  <DialogFooter>
+                    <DialogClose />
+                    <Button disabled={!isAdminOrOwner} type="submit">
+                      {t("submit")}
+                    </Button>
+                  </DialogFooter>
+                </div>
               </div>
-            </div>
+            </Form>
           </DialogContent>
         </Dialog>
       )}
-    </Form>
+    </>
   );
 };
