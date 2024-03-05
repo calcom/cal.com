@@ -38,6 +38,7 @@ const DirectorySync = () => {
     <div className="bg-default w-full sm:mx-0 xl:mt-0">
       <Meta title={t("directory_sync")} description={t("directory_sync_description")} />
       {HOSTED_CAL_FEATURES && <ConfigureDirectorySync orgId={currentOrg?.id || null} />}
+      {/* TODO add additional settings for dsync */}
       {/* <SettingsToggle
         toggleSwitchAtTheEnd={true}
         title="Map groups to teams 1:1"
