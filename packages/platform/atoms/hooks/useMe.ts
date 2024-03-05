@@ -14,7 +14,7 @@ export const useMe = () => {
   const me = useQuery({
     queryKey: [QUERY_KEY],
     queryFn: () => {
-      return http?.get<ApiResponse<{ user: UserResponse }>>(endpoint.toString()).then((res) => {
+      return http?.get<ApiResponse<UserResponse>>(endpoint.toString()).then((res) => {
         if (res.data.status === SUCCESS_STATUS) {
           return res.data;
         }

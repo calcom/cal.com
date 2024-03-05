@@ -56,7 +56,7 @@ export const PlatformAvailabilitySettingsWrapper = ({
   const mySchedule = schedule as ApiSuccessResponse<ScheduleWithAvailabilitiesForWeb>;
   const { data: me } = useMe();
   const userSchedule = mySchedule?.data;
-  const { timeFormat } = me?.data.user || { timeFormat: null };
+  const { timeFormat } = me?.data || { timeFormat: null };
   const { toast } = useToast();
 
   const { mutate: deleteSchedule, isPending: isDeletionInProgress } = useDeleteSchedule({
