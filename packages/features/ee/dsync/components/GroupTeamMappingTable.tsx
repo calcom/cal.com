@@ -11,7 +11,7 @@ const GroupTeamMappingTable = () => {
   const { t } = useLocale();
   const [createTeamDialogOpen, setCreateTeamDialogOpen] = useState(false);
 
-  const { data } = trpc.viewer.dsync.teamGroupMapping.get.useQuery({ orgId: 1 });
+  const { data } = trpc.viewer.dsync.teamGroupMapping.get.useQuery();
 
   const tableContainerRef = useRef<HTMLDivElement>(null);
 
