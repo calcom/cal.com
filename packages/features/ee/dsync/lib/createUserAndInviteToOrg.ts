@@ -49,7 +49,7 @@ const createUserAndInviteToOrg = async ({
     },
   });
 
-  sendSignupToOrganizationEmail({
+  await sendSignupToOrganizationEmail({
     usernameOrEmail: userEmail,
     team: org,
     translation,
