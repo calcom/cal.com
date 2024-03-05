@@ -230,7 +230,7 @@ const usernameCheckForSignup = async ({
       const isClaimingAlreadySetUsername = user.username === username;
       const isClaimingUnsetUsername = !user.username;
       response.available = isClaimingUnsetUsername || isClaimingAlreadySetUsername;
-      /// There are premium users outside an organization only
+      // There are premium users outside an organization only
       response.premium = await isPremiumUserName(username);
     }
     // If user isn't found, it's a direct signup and that can't be of an organization
