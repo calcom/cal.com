@@ -154,7 +154,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         });
       }
     }
-    if (!dayjs().utc().isBefore(endDateUTC)) {
+    if (!dayjs.utc().isBefore(endDateUTC)) {
       if (travelSchedule.prevTimeZone) {
         // travel schedule ended, change back to original timezone
         await setNewTimeZone(travelSchedule.prevTimeZone, travelSchedule.user);
