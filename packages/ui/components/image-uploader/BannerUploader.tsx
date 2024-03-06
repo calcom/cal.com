@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useState, useEffect } from "react";
 import Cropper from "react-easy-crop";
 
 import checkIfItFallbackImage from "@calcom/lib/checkIfItFallbackImage";
@@ -10,9 +10,7 @@ import { showToast } from "../toast";
 import { useFileReader, createImage, Slider } from "./Common";
 import type { FileEvent, Area } from "./Common";
 
-const MAX_IMAGE_SIZE = 512;
-
-type ImageUploaderProps = {
+type BannerUploaderProps = {
   id: string;
   buttonMsg: string;
   handleAvatarChange: (imageSrc: string) => void;
@@ -21,9 +19,10 @@ type ImageUploaderProps = {
   triggerButtonColor?: ButtonColor;
   uploadInstruction?: string;
   disabled?: boolean;
+  height: number;
+  width: number;
 };
 
-// This is separate to prevent loading the component until file upload
 function CropContainer({
   onCropComplete,
   imageSrc,
@@ -40,13 +39,13 @@ function CropContainer({
   };
 
   return (
-    <div className="crop-container h-40 max-h-40 w-40 rounded-full">
-      <div className="relative h-40 w-40 rounded-full">
+    <div className="flex flex-col items-center justify-center">
+      <div className="relative h-52 w-[40rem]">
         <Cropper
           image={imageSrc}
           crop={crop}
           zoom={zoom}
-          aspect={1}
+          aspect={3}
           onCropChange={setCrop}
           onCropComplete={(croppedArea, croppedAreaPixels) => onCropComplete(croppedAreaPixels)}
           onZoomChange={setZoom}
@@ -64,7 +63,7 @@ function CropContainer({
   );
 }
 
-export default function ImageUploader({
+export default function BannerUploader({
   target,
   id,
   buttonMsg,
@@ -73,7 +72,9 @@ export default function ImageUploader({
   imageSrc,
   uploadInstruction,
   disabled = false,
-}: ImageUploaderProps) {
+  height,
+  width,
+}: BannerUploaderProps) {
   const { t } = useLocale();
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
 
@@ -81,7 +82,7 @@ export default function ImageUploader({
     method: "readAsDataURL",
   });
 
-  const onInputFile = (e: FileEvent<HTMLInputElement>) => {
+  const onInputFile = async (e: FileEvent<HTMLInputElement>) => {
     if (!e.target.files?.length) {
       return;
     }
@@ -102,15 +103,31 @@ export default function ImageUploader({
         if (!croppedAreaPixels) return;
         const croppedImage = await getCroppedImg(
           result as string /* result is always string when using readAsDataUrl */,
-          croppedAreaPixels
+          croppedAreaPixels,
+          height,
+          width
         );
         handleAvatarChange(croppedImage);
       } catch (e) {
         console.error(e);
       }
     },
-    [result, handleAvatarChange]
+    [result, height, width, handleAvatarChange]
   );
+
+  useEffect(() => {
+    const checkDimensions = async () => {
+      const image = await createImage(
+        result as string /* result is always string when using readAsDataUrl */
+      );
+      if (image.naturalWidth !== width || image.naturalHeight !== height) {
+        showToast(t("org_banner_instructions", { height, width }), "warning");
+      }
+    };
+    if (result) {
+      checkDimensions();
+    }
+  }, [result]);
 
   return (
     <Dialog
@@ -130,18 +147,18 @@ export default function ImageUploader({
           {buttonMsg}
         </Button>
       </DialogTrigger>
-      <DialogContent title={t("upload_target", { target })}>
+      <DialogContent className="sm:w-[45rem] sm:max-w-[45rem]" title={t("upload_target", { target })}>
         <div className="mb-4">
           <div className="cropper mt-6 flex flex-col items-center justify-center p-8">
             {!result && (
-              <div className="bg-muted flex h-20 max-h-20 w-20 items-center justify-start rounded-full">
+              <div className="bg-muted flex h-60 w-full items-center justify-start">
                 {!imageSrc || checkIfItFallbackImage(imageSrc) ? (
                   <p className="text-emphasis w-full text-center text-sm sm:text-xs">
                     {t("no_target", { target })}
                   </p>
                 ) : (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img className="h-20 w-20 rounded-full" src={imageSrc} alt={target} />
+                  <img className="h-full w-full" src={imageSrc} alt={target} />
                 )}
               </div>
             )}
@@ -178,20 +195,19 @@ export default function ImageUploader({
   );
 }
 
-async function getCroppedImg(imageSrc: string, pixelCrop: Area): Promise<string> {
+async function getCroppedImg(
+  imageSrc: string,
+  pixelCrop: Area,
+  height: number,
+  width: number
+): Promise<string> {
   const image = await createImage(imageSrc);
   const canvas = document.createElement("canvas");
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("Context is null, this should never happen.");
 
-  const maxSize = Math.max(image.naturalWidth, image.naturalHeight);
-  const resizeRatio = MAX_IMAGE_SIZE / maxSize < 1 ? Math.max(MAX_IMAGE_SIZE / maxSize, 0.75) : 1;
-
-  // huh, what? - Having this turned off actually improves image quality as otherwise anti-aliasing is applied
-  // this reduces the quality of the image overall because it anti-aliases the existing, copied image; blur results
-  ctx.imageSmoothingEnabled = false;
-  // pixelCrop is always 1:1 - width = height
-  canvas.width = canvas.height = Math.min(maxSize * resizeRatio, pixelCrop.width);
+  canvas.width = width;
+  canvas.height = height;
 
   ctx.drawImage(
     image,
@@ -204,17 +220,6 @@ async function getCroppedImg(imageSrc: string, pixelCrop: Area): Promise<string>
     canvas.width,
     canvas.height
   );
-
-  // on very low ratios, the quality of the resize becomes awful. For this reason the resizeRatio is limited to 0.75
-  if (resizeRatio <= 0.75) {
-    // With a smaller image, thus improved ratio. Keep doing this until the resizeRatio > 0.75.
-    return getCroppedImg(canvas.toDataURL("image/png"), {
-      width: canvas.width,
-      height: canvas.height,
-      x: 0,
-      y: 0,
-    });
-  }
 
   return canvas.toDataURL("image/png");
 }

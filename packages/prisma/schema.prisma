@@ -348,6 +348,7 @@ model Team {
   brandColor           String?
   darkBrandColor       String?
   verifiedNumbers      VerifiedNumber[]
+  bannerUrl            String?
   parentId             Int?
   parent               Team?                   @relation("organization", fields: [parentId], references: [id], onDelete: Cascade)
   children             Team[]                  @relation("organization")
