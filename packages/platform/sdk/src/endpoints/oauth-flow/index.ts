@@ -1,5 +1,3 @@
-import { assert } from "ts-essentials";
-
 import type { CalSdk } from "../../cal";
 import { Endpoints } from "../../lib/endpoints";
 import type { BasicPlatformResponse } from "../../types";
@@ -12,7 +10,7 @@ export class OAuthFlow extends EndpointHandler {
   }
 
   async exchange(params: ExchangeCodeParams): Promise<ExchangeCodeResponse> {
-    assert(this.sdk.secrets().getClientSecret(), "Client Secret must be present for OAuthFlow#exchange");
+    this.assertClientSecret("exchange");
 
     const { data } = await this.sdk.httpCaller.post<BasicPlatformResponse<ExchangeCodeResponse>>(
       Endpoints.EXCHANGE_OAUTH_AUTH_TOKEN,

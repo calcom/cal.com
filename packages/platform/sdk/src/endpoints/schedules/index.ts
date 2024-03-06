@@ -92,6 +92,8 @@ export class Schedules extends EndpointHandler {
     return data;
   }
   async deleteSchedule(scheduleId: number): Promise<boolean> {
+    this.assertAccessToken("deleteSchedule");
+
     const { status } = await this.sdk.httpCaller.delete<BasicPlatformResponse>(
       Endpoints.DELETE_SCHEDULE_BY_ID,
       {
