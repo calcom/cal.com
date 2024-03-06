@@ -597,8 +597,9 @@ async function createBooking({
   if (originalRescheduledBooking) {
     evt.title = originalRescheduledBooking?.title || evt.title;
     evt.description = originalRescheduledBooking?.description || evt.description;
-    evt.location = originalRescheduledBooking?.location || evt.location;
-    evt.location = changedOrganizer ? evt.location : originalRescheduledBooking?.location || evt.location;
+    // allow anyone to change the event's location even when a location initially exists for the event
+    evt.location = evt.location || originalRescheduledBooking?.location;
+    // evt.location = changedOrganizer ? evt.location : originalRescheduledBooking?.location || evt.location;
   }
 
   const eventTypeRel = !eventTypeId
