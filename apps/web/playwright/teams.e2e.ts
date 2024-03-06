@@ -275,6 +275,46 @@ testBothFutureAndLegacyRoutes.describe("Teams - NonOrg", (routeVariant) => {
     await expect(page.locator('[data-testid="you-cannot-see-team-members"]')).toBeVisible();
     await expect(page.locator('[data-testid="team-members-container"]')).toBeHidden();
   });
+  test("Email Embeds slots are loading for team event types", async ({ page, users }) => {
+    const teamMatesObj = [
+      { name: "teammate-1" },
+      { name: "teammate-2" },
+      { name: "teammate-3" },
+      { name: "teammate-4" },
+    ];
+
+    const owner = await users.create(
+      { username: "pro-user", name: "pro-user" },
+      {
+        hasTeam: true,
+        teammates: teamMatesObj,
+        schedulingType: SchedulingType.COLLECTIVE,
+      }
+    );
+
+    await owner.apiLogin();
+    const { team } = await owner.getFirstTeamMembership();
+    const {
+      title: teamEventTitle,
+      slug: teamEventSlug,
+      id: teamEventId,
+    } = await owner.getFirstTeamEvent(team.id);
+
+    await page.goto("/event-types");
+
+    await page.getByTestId(`event-type-options-${teamEventId}`).first().click();
+    await page.getByTestId("embed").click();
+    await page.getByTestId("email").click();
+    await page.getByTestId("incrementMonth").click();
+
+    await page.waitForLoadState("networkidle");
+
+    await expect(page.getByTestId("no-slots-available")).toBeHidden();
+
+    // Check Team Url
+    const availableTimesUrl = await page.getByTestId("see_all_available_times").getAttribute("href");
+    await expect(availableTimesUrl).toContain(`/team/${team.slug}/${teamEventSlug}`);
+  });
 
   todo("Create a Round Robin with different leastRecentlyBooked hosts");
   todo("Reschedule a Collective EventType booking");

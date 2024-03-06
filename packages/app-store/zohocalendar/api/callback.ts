@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { stringify } from "querystring";
 
+import { renewSelectedCalendarCredentialId } from "@calcom/lib/connectedCalendar";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import logger from "@calcom/lib/logger";
@@ -86,23 +87,36 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
         appId: config.slug,
       },
     });
+    const selectedCalendarWhereUnique = {
+      userId: req.session?.user.id,
+      integration: config.type,
+      externalId: primaryCalendar.uid,
+    };
     // Wrapping in a try/catch to reduce chance of race conditions-
     // also this improves performance for most of the happy-paths.
     try {
       await prisma.selectedCalendar.create({
         data: {
-          userId: req.session.user.id,
-          integration: config.type,
-          externalId: primaryCalendar.uid,
+          ...selectedCalendarWhereUnique,
           credentialId: credential.id,
         },
       });
     } catch (error) {
-      await prisma.credential.delete({ where: { id: credential.id } });
       let errorMessage = "something_went_wrong";
       if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+        // it is possible a selectedCalendar was orphaned, in this situation-
+        // we want to recover by connecting the existing selectedCalendar to the new Credential.
+        if (await renewSelectedCalendarCredentialId(selectedCalendarWhereUnique, credential.id)) {
+          res.redirect(
+            getSafeRedirectUrl(state?.returnTo) ??
+              getInstalledAppPath({ variant: "calendar", slug: config.slug })
+          );
+          return;
+        }
+        // else
         errorMessage = "account_already_linked";
       }
+      await prisma.credential.delete({ where: { id: credential.id } });
       res.redirect(
         `${
           getSafeRedirectUrl(state?.onErrorReturnTo) ??

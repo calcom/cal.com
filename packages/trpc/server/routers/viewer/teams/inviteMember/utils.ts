@@ -3,7 +3,6 @@ import type { TFunction } from "next-i18next";
 
 import { sendTeamInviteEmail } from "@calcom/emails";
 import { ENABLE_PROFILE_SWITCHER, WEBAPP_URL } from "@calcom/lib/constants";
-import { isOrganization } from "@calcom/lib/entityPermissionUtils";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { isTeamAdmin } from "@calcom/lib/server/queries";
@@ -12,7 +11,7 @@ import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
-import type { Membership, Team } from "@calcom/prisma/client";
+import type { Membership, OrganizationSettings, Team } from "@calcom/prisma/client";
 import { Prisma, type User as UserType, type UserPassword } from "@calcom/prisma/client";
 import type { Profile as ProfileType } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -62,18 +61,26 @@ export function checkInputEmailIsValid(email: string) {
     });
 }
 
-export async function getTeamOrThrow(teamId: number, isOrg?: boolean) {
+export async function getTeamOrThrow(teamId: number) {
   const team = await prisma.team.findFirst({
     where: {
       id: teamId,
     },
     include: {
-      parent: true,
+      organizationSettings: true,
+      parent: {
+        include: {
+          organizationSettings: true,
+        },
+      },
     },
   });
 
   if (!team)
-    throw new TRPCError({ code: "NOT_FOUND", message: `${isOrg ? "Organization" : "Team"} not found` });
+    throw new TRPCError({
+      code: "NOT_FOUND",
+      message: `Team not found`,
+    });
 
   return { ...team, metadata: teamMetadataSchema.parse(team.metadata) };
 }
@@ -227,22 +234,29 @@ export async function createNewUsersConnectToOrgIfExists({
 }) {
   // fail if we have invalid emails
   usernamesOrEmails.forEach((usernameOrEmail) => checkInputEmailIsValid(usernameOrEmail));
-
   // from this point we know usernamesOrEmails contains only emails
   await prisma.$transaction(
     async (tx) => {
       for (let index = 0; index < usernamesOrEmails.length; index++) {
         const usernameOrEmail = usernamesOrEmails[index];
+        // Weird but orgId is defined only if the invited user email matches orgAutoAcceptEmail
         const { orgId, autoAccept } = connectionInfoMap[usernameOrEmail];
         const [emailUser, emailDomain] = usernameOrEmail.split("@");
-        const username =
+
+        // An org member can't change username during signup, so we set the username
+        const orgMemberUsername =
           emailDomain === autoAcceptEmailDomain
             ? slugify(emailUser)
             : slugify(`${emailUser}-${emailDomain.split(".")[0]}`);
 
+        // As a regular team member is allowed to change username during signup, we don't set any username for him
+        const regularTeamMemberUsername = null;
+
+        const isBecomingAnOrgMember = parentId || input.isOrg;
+
         const createdUser = await tx.user.create({
           data: {
-            username,
+            username: isBecomingAnOrgMember ? orgMemberUsername : regularTeamMemberUsername,
             email: usernameOrEmail,
             verified: true,
             invitedTo: input.teamId,
@@ -254,7 +268,7 @@ export async function createNewUsersConnectToOrgIfExists({
                       data: [
                         {
                           uid: ProfileRepository.generateProfileUid(),
-                          username,
+                          username: orgMemberUsername,
                           organizationId: orgId,
                         },
                       ],
@@ -278,7 +292,7 @@ export async function createNewUsersConnectToOrgIfExists({
             data: {
               teamId: parentId,
               userId: createdUser.id,
-              role: input.role as MembershipRole,
+              role: MembershipRole.MEMBER,
               accepted: autoAccept,
             },
           });
@@ -325,7 +339,7 @@ export async function createMemberships({
             accepted,
             teamId: parentId,
             userId: invitee.id,
-            role: input.role as MembershipRole,
+            role: MembershipRole.MEMBER,
           });
         }
         return data;
@@ -397,27 +411,29 @@ export async function sendSignupToOrganizationEmail({
   });
 }
 
+type TeamAndOrganizationSettings = Team & {
+  organizationSettings?: OrganizationSettings | null;
+};
+
 export function getIsOrgVerified(
   isOrg: boolean,
-  team: Team & {
-    parent: Team | null;
+  team: TeamAndOrganizationSettings & {
+    parent: TeamAndOrganizationSettings | null;
   }
 ) {
-  const teamMetadata = teamMetadataSchema.parse(team.metadata);
-  const orgMetadataSafeParse = teamMetadataSchema.safeParse(team.parent?.metadata);
-  const orgMetadataIfExists = orgMetadataSafeParse.success ? orgMetadataSafeParse.data : null;
+  const parentSettings = team.parent?.organizationSettings;
 
-  if (isOrg && teamMetadata?.orgAutoAcceptEmail) {
+  if (isOrg && team.organizationSettings?.orgAutoAcceptEmail) {
     return {
       isInOrgScope: true,
-      orgVerified: teamMetadata.isOrganizationVerified,
-      autoAcceptEmailDomain: teamMetadata.orgAutoAcceptEmail,
+      orgVerified: team.organizationSettings.isOrganizationVerified,
+      autoAcceptEmailDomain: team.organizationSettings.orgAutoAcceptEmail,
     };
-  } else if (orgMetadataIfExists?.orgAutoAcceptEmail) {
+  } else if (parentSettings?.orgAutoAcceptEmail) {
     return {
       isInOrgScope: true,
-      orgVerified: orgMetadataIfExists.isOrganizationVerified,
-      autoAcceptEmailDomain: orgMetadataIfExists.orgAutoAcceptEmail,
+      orgVerified: parentSettings.isOrganizationVerified,
+      autoAcceptEmailDomain: parentSettings.orgAutoAcceptEmail,
     };
   }
 
@@ -435,7 +451,7 @@ export function getAutoJoinStatus({
   invitee: UserWithMembership;
   connectionInfoMap: Record<string, ReturnType<typeof getOrgConnectionInfo>>;
 }) {
-  const isRegularTeam = !isOrganization({ team }) && !team.parentId;
+  const isRegularTeam = !team.isOrganization && !team.parentId;
 
   if (isRegularTeam) {
     // There are no-auto join in regular teams ever
