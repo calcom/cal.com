@@ -9,7 +9,7 @@ import type { UserWithMembership } from "@calcom/trpc/server/routers/viewer/team
 import { sendExistingUserTeamInviteEmails } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
 import { sendSignupToOrganizationEmail } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
 
-import createUserAndInviteToOrg from "./users/createUserAndInviteToOrg";
+import createUsersAndConnectToOrg from "./users/createUsersAndConnectToOrg";
 import dSyncUserSelect from "./users/dSyncUserSelect";
 import inviteExistingUserToOrg from "./users/inviteExistingUserToOrg";
 
@@ -65,10 +65,9 @@ const handleUserEvents = async (event: DirectorySyncEvent, orgId: number) => {
     }
     // If user is not in DB, create user and add to the org
   } else {
-    await createUserAndInviteToOrg({
-      userEmail,
+    await createUsersAndConnectToOrg({
+      emailsToCreate: [userEmail],
       org,
-      translation,
     });
 
     await sendSignupToOrganizationEmail({
