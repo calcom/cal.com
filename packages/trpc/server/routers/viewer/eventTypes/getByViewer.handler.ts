@@ -191,12 +191,11 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
           avatarUrl: profile.avatarUrl,
           profile: profile,
         }),
-        parentOrgHasLockedEventTypes,
       },
       eventTypes: orderBy(unmanagedEventTypes, ["position", "id"], ["desc", "asc"]),
       metadata: {
         membershipCount: 1,
-        readOnly: false,
+        readOnly: parentOrgHasLockedEventTypes ?? false,
       },
     });
   }
