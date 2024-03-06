@@ -917,9 +917,9 @@ const Main = ({
                     />
                   ) : group.teamId && !group.metadata.readOnly ? (
                     <EmptyEventTypeList group={group} />
-                  ) : (
+                  ) : !group.metadata.readOnly ? (
                     <CreateFirstEventTypeView slug={data.profiles[0].slug ?? ""} />
-                  )}
+                  ) : null}
                 </div>
               );
             })
