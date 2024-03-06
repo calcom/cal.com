@@ -1,13 +1,14 @@
 import type { DirectorySyncEvent, Group } from "@boxyhq/saml-jackson";
 
 import jackson from "@calcom/features/ee/sso/lib/jackson";
+import { createAProfileForAnExistingUser } from "@calcom/lib/createAProfileForAnExistingUser";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import {
   getTeamOrThrow,
   sendSignupToOrganizationEmail,
-  createAProfileForAnExistingUser,
+  sendExistingUserTeamInviteEmails,
 } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
 
 import createUsersAndConnectToOrg from "./users/createUsersAndConnectToOrg";
@@ -16,6 +17,11 @@ const handleGroupEvents = async (event: DirectorySyncEvent, orgId: number) => {
   const { dsyncController } = await jackson();
   // Find the group name associated with the event
   const eventData = event.data as Group;
+
+  // If the group doesn't have any members assigned then return early
+  if (!eventData.raw.members.length) {
+    return;
+  }
 
   const groupNames = await prisma.dSyncTeamGroupMapping.findMany({
     where: {
@@ -73,6 +79,11 @@ const handleGroupEvents = async (event: DirectorySyncEvent, orgId: number) => {
       identityProvider: true,
       profiles: true,
       locale: true,
+      profiles: {
+        select: {
+          organizationId: true,
+        },
+      },
       teams: {
         select: {
           id: true,
@@ -113,50 +124,54 @@ const handleGroupEvents = async (event: DirectorySyncEvent, orgId: number) => {
     // For existing users create membership for team and org if needed
     await prisma.membership.createMany({
       data: [
-        ...users.map((user) => {
-          return [
-            {
-              userId: user.id,
-              teamId: group.teamId,
-              role: "MEMBER",
-              accepted: true,
-            },
-            {
-              userId: user.id,
-              teamId: orgId,
-              role: "MEMBER",
-              accepted: true,
-            },
-          ];
-        }),
+        ...users
+          .map((user) => {
+            return [
+              {
+                userId: user.id,
+                teamId: group.teamId,
+                role: "MEMBER",
+                accepted: true,
+              },
+              {
+                userId: user.id,
+                teamId: orgId,
+                role: "MEMBER",
+                accepted: true,
+              },
+            ];
+          })
+          .flat(),
       ],
       skipDuplicates: true,
     });
 
     // Send emails to new members
     const newMembers = users.filter((user) => !user.teams.find((team) => team.id === group.teamId));
-    await Promise.all(
-      newMembers
-        .map((user) => {
-          return [
-            sendExistingUserTeamInviteEmails({
-              currentUserName: inviter.name,
-              currentUserTeamName: team?.name,
-              existingUsersWithMembersips: autoJoinUsers,
-              language: translation,
-              isOrg: input.isOrg,
-              teamId: team.id,
-              isAutoJoin: true,
-              currentUserParentTeamName: team?.parent?.name,
-            }),
-            createAProfileForAnExistingUser({
-              user: user,
-              organizationId: orgId,
-            }),
-          ];
-        })
-        .flat()
+    const newOrgMembers = users.filter(
+      (user) => !user.profiles.find((profile) => profile.organizationId === orgId)
     );
+
+    await Promise.all([
+      ...newMembers.map((user) => {
+        const translation = getTranslation(user.locale || "en", "common");
+        return sendExistingUserTeamInviteEmails({
+          currentUserTeamName: group.team.name,
+          existingUsersWithMembersips: [user],
+          language: translation,
+          isOrg: false,
+          teamId: group.teamId,
+          isAutoJoin: true,
+          currentUserParentTeamName: org.name,
+        });
+      }),
+      ...newOrgMembers.map((user) => {
+        return createAProfileForAnExistingUser({
+          user,
+          organizationId: orgId,
+        });
+      }),
+    ]);
   }
 };
 
