@@ -52,7 +52,16 @@ const useExcludedDates = () => {
   }, [watchValues]);
 };
 
+const useSettings = () => {
+  const { data } = useMeQuery();
+  return {
+    hour12: data?.timeFormat === 12,
+    timeZone: data?.timeZone,
+  };
+};
+
 const DateOverride = ({ workingHours }: { workingHours: WorkingHours[] }) => {
+  const { hour12 } = useSettings();
   const { append, replace, fields } = useFieldArray<AvailabilityFormValues, "dateOverrides">({
     name: "dateOverrides",
   });
@@ -71,6 +80,7 @@ const DateOverride = ({ workingHours }: { workingHours: WorkingHours[] }) => {
       <p className="text-subtle mb-4 text-sm">{t("date_overrides_subtitle")}</p>
       <div className="space-y-2">
         <DateOverrideList
+          hour12={hour12}
           replace={replace}
           fields={fields}
           excludedDates={excludedDates}

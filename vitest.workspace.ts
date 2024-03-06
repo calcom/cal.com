@@ -34,13 +34,27 @@ const workspaces = packagedEmbedTestsOnly
   : [
       {
         test: {
-          include: ["packages/**/*.{test,spec}.{ts,js}", "apps/**/*.{test,spec}.{ts,js}"],
+          include: ["packages/**/*.{test,spec}.{js,ts}", "apps/**/*.{test,spec}.{js,ts}"],
           exclude: [
             "**/node_modules/**/*",
             "**/.next/**/*",
             "packages/embeds/**/*",
             "packages/lib/hooks/**/*",
           ],
+          setupFiles: ["setupVitest.ts"],
+        },
+      },
+
+      {
+        test: {
+          include: ["packages/**/*.{test,spec}.tsx"],
+          exclude: [
+            "**/node_modules/**/*",
+            "**/.next/**/*",
+            "packages/embeds/**/*",
+            "packages/lib/hooks/**/*",
+          ],
+          environment: "jsdom",
           setupFiles: ["setupVitest.ts"],
         },
       },
@@ -57,7 +71,7 @@ const workspaces = packagedEmbedTestsOnly
         test: {
           globals: true,
           name: "ui/components",
-          include: ["packages/ui/components/**/*.{test,spec}.{ts,js,tsx}"],
+          include: ["packages/ui/components/**/*.{test,spec}.[jt]s?(x)"],
           environment: "jsdom",
           setupFiles: ["packages/ui/components/test-setup.ts"],
         },
@@ -66,7 +80,7 @@ const workspaces = packagedEmbedTestsOnly
         test: {
           globals: true,
           name: "EventTypeAppCardInterface components",
-          include: ["packages/app-store/_components/**/*.{test,spec}.{ts,js,tsx}"],
+          include: ["packages/app-store/_components/**/*.{test,spec}.[jt]s?(x)"],
           environment: "jsdom",
           setupFiles: ["packages/app-store/test-setup.ts"],
         },

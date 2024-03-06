@@ -1,5 +1,5 @@
+import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import type { TimeRange, WorkingHours } from "@calcom/types/schedule";
 import { Button, DialogTrigger, Tooltip } from "@calcom/ui";
 import { Edit2, Trash2 } from "@calcom/ui/components/icon";
@@ -10,18 +10,11 @@ const sortByDate = (a: { ranges: TimeRange[]; id: string }, b: { ranges: TimeRan
   return a.ranges[0].start > b.ranges[0].start ? 1 : -1;
 };
 
-const useSettings = () => {
-  const { data } = useMeQuery();
-  return {
-    hour12: data?.timeFormat === 12,
-    timeZone: data?.timeZone,
-  };
-};
-
 // I would like this to be decoupled, but RHF really doesn't support this.
 const DateOverrideList = ({
   workingHours,
   excludedDates = [],
+  hour12,
   replace,
   fields,
 }: {
@@ -30,9 +23,9 @@ const DateOverrideList = ({
   fields: { ranges: TimeRange[]; id: string }[];
   workingHours: WorkingHours[];
   excludedDates?: string[];
+  hour12: boolean;
 }) => {
   const { t, i18n } = useLocale();
-  const { hour12 } = useSettings();
 
   const unsortedFieldArrayMap = fields.reduce(
     (map: { [id: string]: number }, { id }, index) => ({ ...map, [id]: index }),
@@ -98,6 +91,7 @@ const DateOverrideList = ({
             />
             <Tooltip content="Delete">
               <Button
+                data-testid={`delete-override-${dayjs(item.ranges[0].start).utc().format("YYYY-MM-DD")}`}
                 className="text-default"
                 color="destructive"
                 variant="icon"
