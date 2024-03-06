@@ -2,9 +2,6 @@
   "extends": "@calcom/tsconfig/react-library.json",
   "compilerOptions": {
     "baseUrl": ".",
-    "declaration": true,
-    "declarationMap": true,
-    "emitDeclarationOnly": true,
     "paths": {
       "~/*": ["/*"],
       "@/*": ["./src/*"]
