@@ -1,4 +1,4 @@
-import type { Membership, Team } from "@calcom/prisma/client";
+import type { Membership } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 export const enum ENTITY_PERMISSION_LEVEL {
@@ -17,10 +17,6 @@ export function canEditEntity(
     permissionLevel === ENTITY_PERMISSION_LEVEL.TEAM_WRITE ||
     permissionLevel === ENTITY_PERMISSION_LEVEL.USER_ONLY_WRITE
   );
-}
-
-export function isOrganization({ team }: { team: Pick<Team, "isOrganization"> }) {
-  return team.isOrganization;
 }
 
 export function getEntityPermissionLevel(

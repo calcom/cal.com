@@ -604,15 +604,33 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
       return membership;
     },
     getOrgMembership: async () => {
-      return prisma.membership.findFirstOrThrow({
+      const membership = await prisma.membership.findFirstOrThrow({
         where: {
           userId: user.id,
           team: {
             isOrganization: true,
           },
         },
-        include: { team: { include: { children: true } } },
+        include: {
+          team: {
+            include: {
+              children: true,
+              organizationSettings: true,
+            },
+          },
+        },
       });
+      if (!membership) {
+        return membership;
+      }
+
+      return {
+        ...membership,
+        team: {
+          ...membership.team,
+          metadata: teamMetadataSchema.parse(membership.team.metadata),
+        },
+      };
     },
     getFirstEventAsOwner: async () =>
       prisma.eventType.findFirstOrThrow({
@@ -670,6 +688,7 @@ type CustomUserOpts = Partial<Pick<Prisma.User, CustomUserOptsKeys>> & {
   roleInOrganization?: MembershipRole;
   schedule?: Schedule;
   password?: string | null;
+  emailDomain?: string;
 };
 
 // creates the actual user in the db.
@@ -687,10 +706,11 @@ const createUser = (
       ? opts.username
       : `${opts?.username || "user"}-${workerInfo.workerIndex}-${Date.now()}`;
 
+  const emailDomain = opts?.emailDomain || "example.com";
   return {
     username: uname,
     name: opts?.name,
-    email: opts?.email ?? `${uname}@example.com`,
+    email: opts?.email ?? `${uname}@${emailDomain}`,
     password: {
       create: {
         hash: hashPassword(uname),
