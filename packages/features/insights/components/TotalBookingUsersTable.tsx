@@ -7,7 +7,14 @@ export const TotalBookingUsersTable = ({
   data,
 }: {
   data:
-    | { userId: number | null; user: User; emailMd5?: string; count: number; Username?: string }[]
+    | {
+        userId: number | null;
+        user: User;
+        emailMd5?: string;
+        count: number;
+        username?: string;
+        avatarUrl: string;
+      }[]
     | undefined;
 }) => {
   return (
@@ -21,7 +28,7 @@ export const TotalBookingUsersTable = ({
                   <Avatar
                     alt={item.user.name || ""}
                     size="sm"
-                    imageSrc={`/${item.user.username}/avatar.png`}
+                    imageSrc={item.user.avatarUrl}
                     title={item.user.name || ""}
                     className="m-2"
                   />

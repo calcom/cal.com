@@ -17,6 +17,24 @@ const UserBelongsToTeamInput = z.object({
   isAll: z.boolean().optional(),
 });
 
+const buildHashMapForUsers = <TUser extends Array<{ avatarUrl: string; id: number }>>(
+  usersFromTeam: {
+    id: number;
+    avatarUrl: string | null;
+    username: string | null;
+  }[]
+) => {
+  const userHashMap = new Map<number, TUser[number]>();
+  usersFromTeam.forEach((user) => {
+    userHashMap.set(user.id, {
+      ...user,
+      // TODO: Use AVATAR_FALLBACK when avatar.png endpoint is fased out
+      avatarUrl: user.avatarUrl || `/${user.username}/avatar.png`,
+    });
+  });
+  return userHashMap;
+};
+
 const userBelongsToTeamProcedure = authedProcedure.use(async ({ ctx, next, getRawInput }) => {
   const parse = UserBelongsToTeamInput.safeParse(await getRawInput());
   if (!parse.success) {
@@ -70,11 +88,12 @@ const userBelongsToTeamProcedure = authedProcedure.use(async ({ ctx, next, getRa
   });
 });
 
-const UserSelect = {
+const userSelect = {
   id: true,
   name: true,
   email: true,
   username: true,
+  avatarUrl: true,
 };
 
 const emptyResponseEventsByStatus = {
@@ -982,15 +1001,13 @@ export const insightsRouter = router({
             in: userIds as number[],
           },
         },
-        select: UserSelect,
+        select: userSelect,
       });
 
-      const userHashMap = new Map();
-      usersFromTeam.forEach((user) => {
-        userHashMap.set(user.id, user);
-      });
+      const userHashMap = buildHashMapForUsers(usersFromTeam);
 
       const result = bookingsFromTeam.map((booking) => {
+        if (!booking.userId) return;
         return {
           userId: booking.userId,
           user: userHashMap.get(booking.userId),
@@ -1114,15 +1131,13 @@ export const insightsRouter = router({
             in: userIds as number[],
           },
         },
-        select: UserSelect,
+        select: userSelect,
       });
 
-      const userHashMap = new Map();
-      usersFromTeam.forEach((user) => {
-        userHashMap.set(user.id, user);
-      });
+      const userHashMap = buildHashMapForUsers(usersFromTeam);
 
       const result = bookingsFromTeam.map((booking) => {
+        if (!booking.userId) return;
         return {
           userId: booking.userId,
           user: userHashMap.get(booking.userId),
@@ -1141,7 +1156,7 @@ export const insightsRouter = router({
       where: {
         id: user.id,
       },
-      select: UserSelect,
+      select: userSelect,
     });
 
     if (!userData) {
@@ -1262,7 +1277,7 @@ export const insightsRouter = router({
           },
           include: {
             user: {
-              select: UserSelect,
+              select: userSelect,
             },
           },
           distinct: ["userId"],
@@ -1278,7 +1293,7 @@ export const insightsRouter = router({
         },
         include: {
           user: {
-            select: UserSelect,
+            select: userSelect,
           },
         },
       });
@@ -1298,7 +1313,7 @@ export const insightsRouter = router({
         },
         include: {
           user: {
-            select: UserSelect,
+            select: userSelect,
           },
         },
         distinct: ["userId"],
