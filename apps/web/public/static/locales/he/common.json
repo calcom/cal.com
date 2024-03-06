@@ -2266,6 +2266,7 @@
   "field_identifiers_as_variables": "להשתמש במזהי השדות כמשתנים להפניות האירועים בהתאמה אישית",
   "field_identifiers_as_variables_with_example": "להשתמש במזהי השדות כמשתנים להפניות האירועים בהתאמה אישית (למשל: {{variable}})",
   "account_already_linked": "החשבון כבר מקושר",
+  "routers": "נתבים",
   "primary": "עיקרי",
   "make_primary": "הפיכה לעיקרי",
   "add_email": "הוספת כתובת דוא״ל",
