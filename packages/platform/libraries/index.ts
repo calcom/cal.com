@@ -5,6 +5,8 @@ import { updateHandler as updateScheduleHandler } from "@calcom/trpc/server/rout
 import getAllUserBookings from "@calcom/trpc/server/routers/viewer/bookings/getAllUserBookings";
 import { getAvailableSlots } from "@calcom/trpc/server/routers/viewer/slots/util";
 
+import getBookingInfo from "../../../apps/web/modules/bookings/lib/getBookingInfo";
+
 export { updateScheduleHandler };
 export type UpdateScheduleOutputType = Awaited<
   ReturnType<
@@ -58,3 +60,4 @@ export { TRPCError } from "@trpc/server";
 export type { TUpdateInputSchema } from "@calcom/trpc/server/routers/viewer/availability/schedule/update.schema";
 
 export { getAllUserBookings };
+export { getBookingInfo };
