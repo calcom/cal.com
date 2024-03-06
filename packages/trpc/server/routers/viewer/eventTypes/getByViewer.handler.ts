@@ -152,6 +152,7 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
       slug: (typeof profile)["username"] | null;
       name: (typeof profile)["name"];
       image: string;
+      eventTypesLockedByOrg?: boolean;
     };
     metadata: {
       membershipCount: number;
@@ -190,11 +191,12 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
           avatarUrl: profile.avatarUrl,
           profile: profile,
         }),
+        eventTypesLockedByOrg: parentOrgHasLockedEventTypes,
       },
       eventTypes: orderBy(unmanagedEventTypes, ["position", "id"], ["desc", "asc"]),
       metadata: {
         membershipCount: 1,
-        readOnly: parentOrgHasLockedEventTypes ?? false,
+        readOnly: false,
       },
     });
   }

@@ -4,7 +4,7 @@ import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { Trans } from "next-i18next";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import type { FC, ReactNode } from "react";
+import type { FC } from "react";
 import { memo, useEffect, useState } from "react";
 import { z } from "zod";
 
@@ -87,7 +87,6 @@ interface EventTypeListHeadingProps {
   membershipCount: number;
   teamId?: number | null;
   bookerUrl: string;
-  showHeader?: boolean;
 }
 
 type EventTypeGroup = EventTypeGroups[number];
@@ -731,8 +730,7 @@ const EventTypeListHeading = ({
   membershipCount,
   teamId,
   bookerUrl,
-  showHeader,
-}: EventTypeListHeadingProps): ReactNode => {
+}: EventTypeListHeadingProps): JSX.Element => {
   const { t } = useLocale();
   const router = useRouter();
 
@@ -744,8 +742,6 @@ const EventTypeListHeading = ({
       showToast(error.message, "error");
     },
   });
-
-  if (!showHeader) return null;
 
   return (
     <div className="mb-4 flex items-center space-x-2">
@@ -789,16 +785,8 @@ const EventTypeListHeading = ({
   );
 };
 
-const CreateFirstEventTypeView = ({
-  slug,
-  parentOrgHasLockedEventTypes,
-}: {
-  slug: string;
-  parentOrgHasLockedEventTypes?: boolean;
-}) => {
+const CreateFirstEventTypeView = ({ slug }: { slug: string }) => {
   const { t } = useLocale();
-
-  if (parentOrgHasLockedEventTypes) return null;
 
   return (
     <EmptyScreen
@@ -822,6 +810,7 @@ const CTA = ({ data }: { data: GetByViewerResponse }) => {
 
   const profileOptions = data.profiles
     .filter((profile) => !profile.readOnly)
+    .filter((profile) => !profile.eventTypesLockedByOrg)
     .map((profile) => {
       return {
         teamId: profile.teamId,
@@ -831,6 +820,8 @@ const CTA = ({ data }: { data: GetByViewerResponse }) => {
         slug: profile.slug,
       };
     });
+
+  console.log({ profileOptions });
 
   return (
     <CreateButton
@@ -904,37 +895,36 @@ const Main = ({
           {isMobile ? (
             <MobileTeamsTab eventTypeGroups={data.eventTypeGroups} />
           ) : (
-            data.eventTypeGroups.map((group, index: number) => (
-              <div
-                className="mt-4 flex flex-col"
-                data-testid={`slug-${group.profile.slug}`}
-                key={group.profile.slug}>
-                <EventTypeListHeading
-                  profile={group.profile}
-                  membershipCount={group.metadata.membershipCount}
-                  teamId={group.teamId}
-                  bookerUrl={group.bookerUrl}
-                  showHeader={!group.metadata.readOnly}
-                />
-
-                {group.eventTypes.length ? (
-                  <EventTypeList
-                    types={group.eventTypes}
-                    group={group}
+            data.eventTypeGroups.map((group, index: number) => {
+              if (group.profile.eventTypesLockedByOrg) return null;
+              return (
+                <div
+                  className="mt-4 flex flex-col"
+                  data-testid={`slug-${group.profile.slug}`}
+                  key={group.profile.slug}>
+                  <EventTypeListHeading
+                    profile={group.profile}
+                    membershipCount={group.metadata.membershipCount}
+                    teamId={group.teamId}
                     bookerUrl={group.bookerUrl}
-                    groupIndex={index}
-                    readOnly={group.metadata.readOnly}
                   />
-                ) : group.teamId ? (
-                  <EmptyEventTypeList group={group} />
-                ) : (
-                  <CreateFirstEventTypeView
-                    slug={data.profiles[0].slug ?? ""}
-                    parentOrgHasLockedEventTypes={!!data.profiles[0].readOnly}
-                  />
-                )}
-              </div>
-            ))
+
+                  {group.eventTypes.length ? (
+                    <EventTypeList
+                      types={group.eventTypes}
+                      group={group}
+                      bookerUrl={group.bookerUrl}
+                      groupIndex={index}
+                      readOnly={group.metadata.readOnly}
+                    />
+                  ) : group.teamId ? (
+                    <EmptyEventTypeList group={group} />
+                  ) : (
+                    <CreateFirstEventTypeView slug={data.profiles[0].slug ?? ""} />
+                  )}
+                </div>
+              );
+            })
           )}
         </>
       ) : (
