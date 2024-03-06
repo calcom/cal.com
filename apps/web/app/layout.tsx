@@ -97,7 +97,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               }
             : {}
         }>
-        {process.env.NEXT_PUBLIC_BODY_SCRIPTS && (
+        {!!process.env.NEXT_PUBLIC_BODY_SCRIPTS && (
           <script
             nonce={nonce}
             id="injected-head-scripts"
