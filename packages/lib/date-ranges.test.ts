@@ -277,7 +277,7 @@ describe("processWorkingHours", () => {
       })
     ).toBeTruthy();
 
-    // 8AM in America/Kolkata is 2:30AM in UTC, 5PM in America/Kolkata is 11:30AM in UTC
+    // 8AM in Asia/Kolkata is 2:30AM in UTC, 5PM in Asia/Kolkata is 11:30AM in UTC
     expect(
       resultsWithKolkataTz.every((result) => {
         const correctStartTime = result.start.utc().hour() === 2 && result.start.utc().minute() === 30;
