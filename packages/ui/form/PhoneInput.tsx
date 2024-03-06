@@ -17,21 +17,14 @@ export type PhoneInputProps = {
   onChange: (value: string) => void;
 };
 
-function BasePhoneInput({ name, className = "", onChange, ...rest }: PhoneInputProps) {
-  useEffect(() => {
-    if (!rest.value) {
-      return;
-    }
-    const formattedValue = rest.value.trim().replace(/^\+?/, "+");
-    onChange(formattedValue);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
+function BasePhoneInput({ name, className = "", onChange, value, ...rest }: PhoneInputProps) {
   const defaultCountry = useDefaultCountry();
+
   return (
     <PhoneInput
       {...rest}
-      country={rest.value ? undefined : defaultCountry}
+      value={value ? value.trim().replace(/^\+?/, "+") : undefined}
+      country={value ? undefined : defaultCountry}
       enableSearch
       disableSearchIcon
       inputProps={{
