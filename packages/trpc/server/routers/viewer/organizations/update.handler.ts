@@ -122,6 +122,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         case "HIDE":
           await tx.eventType.updateMany({
             where: {
+              teamId: null, // Not assigned to a team
               parentId: null, // Not a managed event type
               owner: {
                 profiles: {
@@ -135,10 +136,12 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
               hidden: true,
             },
           });
+
           break;
         case "DELETE":
           await tx.eventType.deleteMany({
             where: {
+              teamId: null, // Not assigned to a team
               parentId: null, // Not a managed event type
               owner: {
                 profiles: {
