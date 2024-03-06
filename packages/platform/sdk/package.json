@@ -1,15 +1,30 @@
 {
   "name": "@calcom/sdk",
   "description": "Cal.com platform SDK.",
+  "main": "dist/index.cjs.js",
+  "module": "dist/index.esm.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "dev": "rollup -c --bundleConfigAsCjs -w",
+    "build:ts": "rollup -c --bundleConfigAsCjs"
+  },
   "packageManager": "yarn@3.4.1",
   "devDependencies": {
+    "@rollup/plugin-json": "^6.1.0",
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "@rollup/plugin-typescript": "^11.1.6",
+    "rollup": "^4.12.0",
+    "rollup-plugin-bundle-size": "^1.0.3",
+    "ts-essentials": "^9.4.1",
     "typescript": "^5.3.3"
   },
   "dependencies": {
     "axios": "^1.6.7",
     "axios-retry": "^4.0.0",
     "lodash": "^4.17.21",
-    "ts-essentials": "^9.4.1",
     "zod": "^3.22.4"
   }
 }
