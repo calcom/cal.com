@@ -740,7 +740,6 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
             <EmailEmbed
               eventType={eventTypeData?.eventType}
               username={teamSlug ?? (data?.user.username as string)}
-              // username={data?.user.username as string}
               orgSlug={data?.user?.org?.slug}
               isTeamEvent={!!teamSlug}
             />
