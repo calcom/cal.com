@@ -1,4 +1,8 @@
-import { APP_CREDENTIAL_SHARING_ENABLED } from "@calcom/lib/constants";
+import {
+  APP_CREDENTIAL_SHARING_ENABLED,
+  CREDENTIAL_SYNC_SECRET,
+  CREDENTIAL_SYNC_SECRET_HEADER_NAME,
+} from "@calcom/lib/constants";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const refreshOAuthTokens = async (refreshFunction: () => any, appSlug: string, userId: number | null) => {
@@ -6,16 +10,15 @@ const refreshOAuthTokens = async (refreshFunction: () => any, appSlug: string, u
   if (
     APP_CREDENTIAL_SHARING_ENABLED &&
     process.env.CALCOM_CREDENTIAL_SYNC_ENDPOINT &&
-    userId &&
-    process.env.CALCOM_CREDENTIAL_SYNC_SECRET
+    CREDENTIAL_SYNC_SECRET &&
+    userId
   ) {
-    const headerSecretName = process.env.CALCOM_CREDENTIAL_SYNC_HEADER_NAME || "calcom-webhook-secret";
     // Customize the payload based on what your endpoint requires
     // The response should only contain the access token and expiry date
     const response = await fetch(process.env.CALCOM_CREDENTIAL_SYNC_ENDPOINT, {
       method: "POST",
       headers: {
-        [headerSecretName]: process.env.CALCOM_CREDENTIAL_SYNC_SECRET,
+        [CREDENTIAL_SYNC_SECRET_HEADER_NAME]: CREDENTIAL_SYNC_SECRET,
       },
       body: new URLSearchParams({
         calcomUserId: userId.toString(),

@@ -8,7 +8,7 @@ import googleMeetMeta from "@calcom/app-store/googlevideo/_metadata";
 import zoomMeta from "@calcom/app-store/zoomvideo/_metadata";
 import dayjs from "@calcom/dayjs";
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
-import { BookingStatus, MembershipRole } from "@calcom/prisma/enums";
+import { BookingStatus, MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 import type { Ensure } from "@calcom/types/utils";
 
 import prisma from ".";
@@ -85,7 +85,9 @@ async function createOrganizationAndAddMembersAndTeams({
   usersOutsideOrg,
 }: {
   org: {
-    orgData: Ensure<Partial<Prisma.TeamCreateInput>, "name" | "slug">;
+    orgData: Ensure<Partial<Prisma.TeamCreateInput>, "name" | "slug"> & {
+      organizationSettings: Prisma.OrganizationSettingsCreateWithoutOrganizationInput;
+    };
     members: {
       memberData: Ensure<Partial<Prisma.UserCreateInput>, "username" | "name" | "email" | "password">;
       orgMembership: Partial<Membership>;
@@ -181,6 +183,11 @@ async function createOrganizationAndAddMembersAndTeams({
             },
           },
         })),
+      },
+      organizationSettings: {
+        create: {
+          ...orgData.organizationSettings,
+        },
       },
       members: {
         create: orgMembersInDb.map((member) => ({
@@ -302,8 +309,9 @@ async function createOrganizationAndAddMembersAndTeams({
     // Create event for each team
     await prisma.eventType.create({
       data: {
-        title: `${team.teamData.name} Event1`,
+        title: `${team.teamData.name} Event 1`,
         slug: `${team.teamData.slug}-event-1`,
+        schedulingType: SchedulingType.ROUND_ROBIN,
         length: 15,
         team: {
           connect: {
@@ -810,7 +818,7 @@ async function main() {
       orgData: {
         name: "Acme Inc",
         slug: "acme",
-        metadata: {
+        organizationSettings: {
           isOrganizationVerified: true,
           orgAutoAcceptEmail: "acme.com",
         },
@@ -877,7 +885,7 @@ async function main() {
       orgData: {
         name: "Dunder Mifflin",
         slug: "dunder-mifflin",
-        metadata: {
+        organizationSettings: {
           isOrganizationVerified: true,
           orgAutoAcceptEmail: "dunder-mifflin.com",
         },

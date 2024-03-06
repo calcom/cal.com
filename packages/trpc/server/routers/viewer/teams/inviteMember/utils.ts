@@ -3,7 +3,6 @@ import type { TFunction } from "next-i18next";
 
 import { sendTeamInviteEmail } from "@calcom/emails";
 import { ENABLE_PROFILE_SWITCHER, WEBAPP_URL } from "@calcom/lib/constants";
-import { isOrganization } from "@calcom/lib/entityPermissionUtils";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { isTeamAdmin } from "@calcom/lib/server/queries";
@@ -20,7 +19,6 @@ import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
 
-import type { TrpcSessionUser } from "../../../../trpc";
 import { isEmail } from "../util";
 import type { InviteMemberOptions, TeamWithParent } from "./types";
 
@@ -370,13 +368,13 @@ export async function sendSignupToOrganizationEmail({
   usernameOrEmail,
   team,
   translation,
-  ctx,
+  inviterName,
   input,
 }: {
   usernameOrEmail: string;
   team: Awaited<ReturnType<typeof getTeamOrThrow>>;
   translation: TFunction;
-  ctx: { user: NonNullable<TrpcSessionUser> };
+  inviterName: string;
   input: {
     teamId: number;
     role: "ADMIN" | "MEMBER" | "OWNER";
@@ -401,7 +399,7 @@ export async function sendSignupToOrganizationEmail({
   });
   await sendTeamInviteEmail({
     language: translation,
-    from: ctx.user.name || `${team.name}'s admin`,
+    from: inviterName || `${team.name}'s admin`,
     to: usernameOrEmail,
     teamName: team.name,
     joinLink: `${WEBAPP_URL}/signup?token=${token}&callbackUrl=/getting-started`,
@@ -452,7 +450,7 @@ export function getAutoJoinStatus({
   invitee: UserWithMembership;
   connectionInfoMap: Record<string, ReturnType<typeof getOrgConnectionInfo>>;
 }) {
-  const isRegularTeam = !isOrganization({ team }) && !team.parentId;
+  const isRegularTeam = !team.isOrganization && !team.parentId;
 
   if (isRegularTeam) {
     // There are no-auto join in regular teams ever

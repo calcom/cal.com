@@ -2136,6 +2136,7 @@
   "scheduling_for_your_team": "Automação de fluxo de trabalho",
   "scheduling_for_your_team_description": "Faça o agendamento para a sua equipa, com agendamento coletivo e distribuição equilibrada",
   "no_members_found": "Nenhum membro encontrado",
+  "directory_sync": "Sincronização do diretório",
   "event_setup_length_error": "Configuração do Evento: a duração deve ser de, pelo menos, 1 minuto.",
   "availability_schedules": "Horários de Disponibilidade",
   "unauthorized": "Não autorizado",
