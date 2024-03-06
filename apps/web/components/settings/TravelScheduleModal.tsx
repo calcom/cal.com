@@ -118,7 +118,7 @@ const TravelScheduleModal = ({
           <div className="mt-3">
             <SettingsToggle
               labelClassName="mt-1 font-normal"
-              title="Schedule timezone without end date"
+              title={t("schedule_tz_without_end_date")}
               checked={isNoEndDate}
               onCheckedChange={(e) => {
                 setEndDate(!e ? startDate : undefined);

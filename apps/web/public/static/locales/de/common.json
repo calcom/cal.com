@@ -2262,5 +2262,6 @@
   "field_identifiers_as_variables": "Verwenden Sie Feldbezeichner als Variablen für Ihre benutzerdefinierte Ereignisumleitung",
   "field_identifiers_as_variables_with_example": "Verwenden Sie Feldbezeichner als Variablen für Ihre benutzerdefinierte Ereignisumleitung (z. B. {{variable}})",
   "account_already_linked": "Konto ist bereits verknüpft",
+  "schedule_tz_without_end_date": "Schedule timezone without end date",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Fügen Sie Ihre neuen Code-Zeilen über dieser hinzu ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

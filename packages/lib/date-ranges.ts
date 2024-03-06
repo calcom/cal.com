@@ -16,10 +16,11 @@ function getAdjustedTimezone(date: Dayjs, timeZone: string, travelSchedules: Tra
   let adjustedTimezone = timeZone;
 
   travelSchedules.forEach((travelSchedule) => {
-    if (!date.isBefore(travelSchedule.startDate)) {
-      if (!travelSchedule.endDate || !date.isAfter(travelSchedule.endDate)) {
-        adjustedTimezone = travelSchedule.timeZone;
-      }
+    if (
+      !date.isBefore(travelSchedule.startDate) &&
+      (!travelSchedule.endDate || !date.isAfter(travelSchedule.endDate))
+    ) {
+      adjustedTimezone = travelSchedule.timeZone;
     }
   });
   return adjustedTimezone;

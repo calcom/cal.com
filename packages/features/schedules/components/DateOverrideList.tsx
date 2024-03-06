@@ -58,7 +58,6 @@ const DateOverrideList = ({
       new Date(end.toISOString().slice(0, -1))
     )}`;
   };
-  console.log(`items ${JSON.stringify(items)}`);
 
   return (
     <ul className="border-subtle rounded border" data-testid="date-overrides-list">
