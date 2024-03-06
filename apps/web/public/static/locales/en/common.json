@@ -2271,6 +2271,7 @@
   "schedule_timezone_change": "Schedule timezone change",
   "date": "Date",
   "overlaps_with_existing_schedule": "This overlaps with an existing schedule. Please select a different date.",
+  "routers": "Routers",
   "primary": "Primary",
   "make_primary": "Make primary",
   "add_email": "Add Email",

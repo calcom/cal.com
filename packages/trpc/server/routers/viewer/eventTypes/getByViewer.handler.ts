@@ -3,7 +3,6 @@ import { orderBy } from "lodash";
 
 import { hasFilter } from "@calcom/features/filters/lib/hasFilter";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
-import { isOrganization } from "@calcom/lib/entityPermissionUtils";
 import { getOrgAvatarUrl, getTeamAvatarUrl, getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
@@ -214,7 +213,7 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
     await Promise.all(
       memberships
         .filter((mmship) => {
-          if (isOrganization({ team: mmship.team })) {
+          if (mmship.team.isOrganization) {
             return false;
           } else {
             if (!input?.filters || !hasFilter(input?.filters)) {

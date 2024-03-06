@@ -3,7 +3,6 @@ import type { TFunction } from "next-i18next";
 
 import { sendTeamInviteEmail } from "@calcom/emails";
 import { ENABLE_PROFILE_SWITCHER, WEBAPP_URL } from "@calcom/lib/constants";
-import { isOrganization } from "@calcom/lib/entityPermissionUtils";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { isTeamAdmin } from "@calcom/lib/server/queries";
@@ -452,7 +451,7 @@ export function getAutoJoinStatus({
   invitee: UserWithMembership;
   connectionInfoMap: Record<string, ReturnType<typeof getOrgConnectionInfo>>;
 }) {
-  const isRegularTeam = !isOrganization({ team }) && !team.parentId;
+  const isRegularTeam = !team.isOrganization && !team.parentId;
 
   if (isRegularTeam) {
     // There are no-auto join in regular teams ever

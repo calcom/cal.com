@@ -53,7 +53,15 @@ const enum Theme {
   dark = "dark",
 }
 
-const queryParamsForDialog = ["embedType", "embedTabName", "embedUrl", "eventId"];
+const queryParamsForDialog = [
+  "embedType",
+  "embedTabName",
+  "embedUrl",
+  "eventId",
+  "namespace",
+  "date",
+  "month",
+];
 
 function useRouterHelpers() {
   const router = useRouter();
@@ -131,10 +139,12 @@ const EmailEmbed = ({
   eventType,
   username,
   orgSlug,
+  isTeamEvent,
 }: {
   eventType?: EventType;
   username: string;
   orgSlug?: string;
+  isTeamEvent: boolean;
 }) => {
   const { t, i18n } = useLocale();
 
@@ -145,6 +155,8 @@ const EmailEmbed = ({
     eventSlug: eventType?.slug ?? "",
     eventId: eventType?.id,
     layout: BookerLayouts.MONTH_VIEW,
+    org: orgSlug,
+    isTeamEvent,
   });
 
   const [month, selectedDate, selectedDatesAndTimes] = useBookerStore(
@@ -301,6 +313,7 @@ const EmailEmbedPreview = ({
   username,
   month,
   selectedDateAndTime,
+  calLink,
 }: {
   eventType: EventType;
   timezone?: string;
@@ -308,9 +321,11 @@ const EmailEmbedPreview = ({
   username?: string;
   month?: string;
   selectedDateAndTime: { [key: string]: string[] };
+  calLink: string;
 }) => {
   const { t } = useLocale();
   const [timeFormat, timezone] = useTimePreferences((state) => [state.timeFormat, state.timezone]);
+
   if (!eventType) {
     return null;
   }
@@ -471,7 +486,8 @@ const EmailEmbedPreview = ({
               <div style={{ marginTop: "13px" }}>
                 <a
                   className="more"
-                  href={`${WEBSITE_URL}/${username}/${eventType.slug}`}
+                  data-testid="see_all_available_times"
+                  href={`${eventType.bookerUrl}/${calLink}`}
                   style={{
                     textDecoration: "none",
                     cursor: "pointer",
@@ -536,6 +552,8 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
     { id: parsedEventId },
     { enabled: !Number.isNaN(parsedEventId) && embedType === "email", refetchOnWindowFocus: false }
   );
+
+  const teamSlug = !!eventTypeData?.team ? eventTypeData.team.slug : null;
 
   const s = (href: string) => {
     const _searchParams = new URLSearchParams(searchParams ?? undefined);
@@ -721,8 +739,9 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
           {eventTypeData?.eventType && embedType === "email" ? (
             <EmailEmbed
               eventType={eventTypeData?.eventType}
-              username={data?.user.username as string}
+              username={teamSlug ?? (data?.user.username as string)}
               orgSlug={data?.user?.org?.slug}
+              isTeamEvent={!!teamSlug}
             />
           ) : (
             <div className="flex flex-col">
@@ -1067,9 +1086,10 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
               <div key={tab.href} className={classNames("flex flex-grow flex-col")}>
                 <div className="flex h-[55vh] flex-grow flex-col">
                   <EmailEmbedPreview
+                    calLink={calLink}
                     eventType={eventTypeData?.eventType}
                     emailContentRef={emailContentRef}
-                    username={data?.user.username as string}
+                    username={teamSlug ?? (data?.user.username as string)}
                     month={month as string}
                     selectedDateAndTime={
                       selectedDatesAndTimes
@@ -1149,6 +1169,7 @@ export const EmbedButton = <T extends React.ElementType>({
 }: EmbedButtonProps<T> & React.ComponentPropsWithoutRef<T>) => {
   const { goto } = useRouterHelpers();
   className = classNames("hidden lg:inline-flex", className);
+
   const openEmbedModal = () => {
     goto({
       dialog: "embed",
