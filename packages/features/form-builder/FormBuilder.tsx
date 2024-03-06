@@ -4,6 +4,7 @@ import { Controller, useFieldArray, useFormContext, useForm } from "react-hook-f
 import type { UseFormReturn, SubmitHandler } from "react-hook-form";
 import type { z } from "zod";
 
+import { getAndUpdateNormalizedValues } from "@calcom/features/form-builder/FormBuilderField";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
@@ -119,8 +120,8 @@ export const FormBuilder = function FormBuilder({
               : field.getOptionsAt
               ? dataStore.options[field.getOptionsAt as keyof typeof dataStore]
               : [];
-            const numOptions = options?.length ?? 0;
-            if (field.hideWhenJustOneOption && numOptions <= 1) {
+            const { hidden } = getAndUpdateNormalizedValues({ ...field, options }, t);
+            if (field.hideWhenJustOneOption && hidden) {
               return null;
             }
             const fieldType = fieldTypesConfigMap[field.type];
