@@ -43,7 +43,7 @@ export class SchedulesController {
     @GetUser() user: UserWithProfile,
     @Body() bodySchedule: CreateScheduleInput,
     @ForAtom() forAtom: boolean
-  ): Promise<ApiResponse<ScheduleResponse | ScheduleWithAvailabilitiesForWeb>> {
+  ): Promise<ApiResponse<ScheduleResponse>> {
     const schedule = await this.schedulesService.createUserSchedule(user.id, bodySchedule);
     const scheduleFormatted = await this.schedulesResponseService.formatSchedule(forAtom, user, schedule);
 
@@ -111,12 +111,13 @@ export class SchedulesController {
     };
   }
 
+  // note(Lauris): currently this endpoint is atoms only
   @Patch("/:scheduleId")
   @UseGuards(AccessTokenGuard)
   async updateSchedule(
     @GetUser() user: UserWithProfile,
     @Body() bodySchedule: UpdateScheduleInput
-  ): Promise<ApiResponse<unknown>> {
+  ): Promise<ApiResponse<UpdateScheduleOutputType>> {
     const updatedSchedule: UpdateScheduleOutputType = await updateScheduleHandler({
       input: bodySchedule,
       ctx: { user },

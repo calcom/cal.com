@@ -1,5 +1,4 @@
-import { IsTimeZone } from "@/modules/users/inputs/validators/is-time-zone";
-import { IsBoolean, IsNumber, IsString, IsOptional, IsArray, Validate } from "class-validator";
+import { IsBoolean, IsTimeZone, IsNumber, IsString, IsOptional, IsArray } from "class-validator";
 
 export class CreateBookingInput {
   @IsString()
@@ -24,8 +23,7 @@ export class CreateBookingInput {
   @IsOptional()
   recurringEventId?: string;
 
-  @IsString()
-  @Validate(IsTimeZone)
+  @IsTimeZone()
   timeZone!: string;
 
   @IsOptional()

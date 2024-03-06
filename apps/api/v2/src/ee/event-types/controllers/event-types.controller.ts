@@ -23,14 +23,12 @@ export class EventTypesController {
   async createEventType(
     @Body() body: CreateEventTypeInput,
     @GetUser() user: UserWithProfile
-  ): Promise<ApiResponse<{ eventType: EventType }>> {
+  ): Promise<ApiResponse<EventType>> {
     const eventType = await this.eventTypesService.createUserEventType(user.id, body);
 
     return {
       status: SUCCESS_STATUS,
-      data: {
-        eventType,
-      },
+      data: eventType,
     };
   }
 
@@ -39,7 +37,7 @@ export class EventTypesController {
     @Param("eventTypeId") eventTypeId: string,
     @ForAtom() forAtom: boolean,
     @GetUser() user: UserWithProfile
-  ): Promise<ApiResponse<{ eventType: EventType | AtomEventType }>> {
+  ): Promise<ApiResponse<EventType | AtomEventType>> {
     const eventType = forAtom
       ? await this.eventTypesService.getUserEventTypeForAtom(user, Number(eventTypeId))
       : await this.eventTypesService.getUserEventType(user.id, Number(eventTypeId));
@@ -50,9 +48,7 @@ export class EventTypesController {
 
     return {
       status: SUCCESS_STATUS,
-      data: {
-        eventType,
-      },
+      data: eventType,
     };
   }
 }

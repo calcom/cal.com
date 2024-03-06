@@ -15,8 +15,12 @@ import { UserRepositoryFixture } from "test/fixtures/repository/users.repository
 import { withAccessTokenAuth } from "test/utils/withAccessTokenAuth";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { ScheduleWithAvailabilities, ScheduleWithAvailabilitiesForWeb } from "@calcom/platform-libraries";
-import { ScheduleResponse } from "@calcom/platform-types";
+import {
+  ScheduleWithAvailabilities,
+  ScheduleWithAvailabilitiesForWeb,
+  UpdateScheduleOutputType,
+} from "@calcom/platform-libraries";
+import { ScheduleResponse, UpdateScheduleInput } from "@calcom/platform-types";
 import { ApiSuccessResponse } from "@calcom/platform-types";
 
 describe("Schedules Endpoints", () => {
@@ -71,32 +75,28 @@ describe("Schedules Endpoints", () => {
         .send(body)
         .expect(201)
         .then(async (response) => {
-          const responseBody: ApiSuccessResponse<{ schedule: ScheduleResponse }> = response.body;
+          const responseBody: ApiSuccessResponse<ScheduleResponse> = response.body;
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           expect(responseBody.data).toBeDefined();
+          expect(responseBody.data.id).toBeDefined();
+          expect(responseBody.data.userId).toEqual(user.id);
+          expect(responseBody.data.name).toEqual(scheduleName);
+          expect(responseBody.data.timeZone).toEqual(scheduleTimeZone);
 
-          expect(responseBody.data.schedule).toBeDefined();
-          expect(responseBody.data.schedule.id).toBeDefined();
-          expect(responseBody.data.schedule.userId).toEqual(user.id);
-          expect(responseBody.data.schedule.name).toEqual(scheduleName);
-          expect(responseBody.data.schedule.timeZone).toEqual(scheduleTimeZone);
-
-          expect(responseBody.data.schedule.availability).toBeDefined();
-          expect(responseBody.data.schedule.availability?.length).toEqual(1);
+          expect(responseBody.data.availability).toBeDefined();
+          expect(responseBody.data.availability?.length).toEqual(1);
           const defaultAvailabilityDays = [1, 2, 3, 4, 5];
           const defaultAvailabilityStartTime = "09:00:00";
           const defaultAvailabilityEndTime = "17:00:00";
 
-          expect(responseBody.data.schedule.availability?.[0]?.days).toEqual(defaultAvailabilityDays);
-          expect(responseBody.data.schedule.availability?.[0]?.startTime).toEqual(
-            defaultAvailabilityStartTime
-          );
-          expect(responseBody.data.schedule.availability?.[0]?.endTime).toEqual(defaultAvailabilityEndTime);
+          expect(responseBody.data.availability?.[0]?.days).toEqual(defaultAvailabilityDays);
+          expect(responseBody.data.availability?.[0]?.startTime).toEqual(defaultAvailabilityStartTime);
+          expect(responseBody.data.availability?.[0]?.endTime).toEqual(defaultAvailabilityEndTime);
 
-          const scheduleUser = await userRepositoryFixture.get(responseBody.data.schedule.userId);
-          expect(scheduleUser?.defaultScheduleId).toEqual(responseBody.data.schedule.id);
-          await scheduleRepositoryFixture.deleteById(responseBody.data.schedule.id);
-          await scheduleRepositoryFixture.deleteAvailabilities(responseBody.data.schedule.id);
+          const scheduleUser = await userRepositoryFixture.get(responseBody.data.userId);
+          expect(scheduleUser?.defaultScheduleId).toEqual(responseBody.data.id);
+          await scheduleRepositoryFixture.deleteById(responseBody.data.id);
+          await scheduleRepositoryFixture.deleteAvailabilities(responseBody.data.id);
         });
     });
 
@@ -124,26 +124,24 @@ describe("Schedules Endpoints", () => {
         .send(body)
         .expect(201)
         .then(async (response) => {
-          const responseBody: ApiSuccessResponse<{ schedule: ScheduleResponse }> = response.body;
+          const responseBody: ApiSuccessResponse<ScheduleResponse> = response.body;
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           expect(responseBody.data).toBeDefined();
+          expect(responseBody.data.id).toBeDefined();
+          expect(responseBody.data.userId).toEqual(user.id);
+          expect(responseBody.data.name).toEqual(scheduleName);
+          expect(responseBody.data.timeZone).toEqual(scheduleTimeZone);
 
-          expect(responseBody.data.schedule).toBeDefined();
-          expect(responseBody.data.schedule.id).toBeDefined();
-          expect(responseBody.data.schedule.userId).toEqual(user.id);
-          expect(responseBody.data.schedule.name).toEqual(scheduleName);
-          expect(responseBody.data.schedule.timeZone).toEqual(scheduleTimeZone);
+          expect(responseBody.data.availability).toBeDefined();
+          expect(responseBody.data.availability?.length).toEqual(1);
+          expect(responseBody.data.availability?.[0]?.days).toEqual(availabilityDays);
+          expect(responseBody.data.availability?.[0]?.startTime).toEqual(availabilityStartTime);
+          expect(responseBody.data.availability?.[0]?.endTime).toEqual(availabilityEndTime);
 
-          expect(responseBody.data.schedule.availability).toBeDefined();
-          expect(responseBody.data.schedule.availability?.length).toEqual(1);
-          expect(responseBody.data.schedule.availability?.[0]?.days).toEqual(availabilityDays);
-          expect(responseBody.data.schedule.availability?.[0]?.startTime).toEqual(availabilityStartTime);
-          expect(responseBody.data.schedule.availability?.[0]?.endTime).toEqual(availabilityEndTime);
+          createdSchedule = responseBody.data;
 
-          createdSchedule = responseBody.data.schedule;
-
-          const scheduleUser = await userRepositoryFixture.get(responseBody.data.schedule.userId);
-          expect(scheduleUser?.defaultScheduleId).toEqual(responseBody.data.schedule.id);
+          const scheduleUser = await userRepositoryFixture.get(responseBody.data.userId);
+          expect(scheduleUser?.defaultScheduleId).toEqual(responseBody.data.id);
         });
     });
 
@@ -152,26 +150,22 @@ describe("Schedules Endpoints", () => {
         .get("/api/v2/schedules/default")
         .expect(200)
         .then((response) => {
-          const responseBody: ApiSuccessResponse<{ schedule: ScheduleResponse }> = response.body;
+          const responseBody: ApiSuccessResponse<ScheduleResponse> = response.body;
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           expect(responseBody.data).toBeDefined();
+          expect(responseBody.data.id).toBeDefined();
+          expect(responseBody.data.userId).toEqual(createdSchedule.userId);
+          expect(responseBody.data.name).toEqual(createdSchedule.name);
+          expect(responseBody.data.timeZone).toEqual(createdSchedule.timeZone);
 
-          expect(responseBody.data.schedule).toBeDefined();
-          expect(responseBody.data.schedule.id).toBeDefined();
-          expect(responseBody.data.schedule.userId).toEqual(createdSchedule.userId);
-          expect(responseBody.data.schedule.name).toEqual(createdSchedule.name);
-          expect(responseBody.data.schedule.timeZone).toEqual(createdSchedule.timeZone);
+          expect(responseBody.data.availability).toBeDefined();
+          expect(responseBody.data.availability?.length).toEqual(1);
 
-          expect(responseBody.data.schedule.availability).toBeDefined();
-          expect(responseBody.data.schedule.availability?.length).toEqual(1);
-
-          expect(responseBody.data.schedule.availability?.[0]?.days).toEqual(
-            createdSchedule.availability?.[0]?.days
-          );
-          expect(responseBody.data.schedule.availability?.[0]?.startTime).toEqual(
+          expect(responseBody.data.availability?.[0]?.days).toEqual(createdSchedule.availability?.[0]?.days);
+          expect(responseBody.data.availability?.[0]?.startTime).toEqual(
             createdSchedule.availability?.[0]?.startTime
           );
-          expect(responseBody.data.schedule.availability?.[0]?.endTime).toEqual(
+          expect(responseBody.data.availability?.[0]?.endTime).toEqual(
             createdSchedule.availability?.[0]?.endTime
           );
         });
@@ -182,27 +176,25 @@ describe("Schedules Endpoints", () => {
         .get(`/api/v2/schedules/${createdSchedule.id}`)
         .expect(200)
         .then((response) => {
-          const responseBody: ApiSuccessResponse<{ schedule: ScheduleResponse }> = response.body;
+          const responseBody: ApiSuccessResponse<ScheduleResponse> = response.body;
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           expect(responseBody.data).toBeDefined();
+          expect(responseBody.data.id).toBeDefined();
+          expect(
+            (responseBody.data as unknown as ScheduleWithAvailabilitiesForWeb).dateOverrides
+          ).toBeFalsy();
+          expect(responseBody.data.userId).toEqual(createdSchedule.userId);
+          expect(responseBody.data.name).toEqual(createdSchedule.name);
+          expect(responseBody.data.timeZone).toEqual(createdSchedule.timeZone);
 
-          expect(responseBody.data.schedule).toBeDefined();
-          expect(responseBody.data.schedule.id).toBeDefined();
-          expect((responseBody.data.schedule as ScheduleWithAvailabilitiesForWeb).dateOverrides).toBeFalsy();
-          expect(responseBody.data.schedule.userId).toEqual(createdSchedule.userId);
-          expect(responseBody.data.schedule.name).toEqual(createdSchedule.name);
-          expect(responseBody.data.schedule.timeZone).toEqual(createdSchedule.timeZone);
+          expect(responseBody.data.availability).toBeDefined();
+          expect(responseBody.data.availability?.length).toEqual(1);
 
-          expect(responseBody.data.schedule.availability).toBeDefined();
-          expect(responseBody.data.schedule.availability?.length).toEqual(1);
-
-          expect(responseBody.data.schedule.availability?.[0]?.days).toEqual(
-            createdSchedule.availability?.[0]?.days
-          );
-          expect(responseBody.data.schedule.availability?.[0]?.startTime).toEqual(
+          expect(responseBody.data.availability?.[0]?.days).toEqual(createdSchedule.availability?.[0]?.days);
+          expect(responseBody.data.availability?.[0]?.startTime).toEqual(
             createdSchedule.availability?.[0]?.startTime
           );
-          expect(responseBody.data.schedule.availability?.[0]?.endTime).toEqual(
+          expect(responseBody.data.availability?.[0]?.endTime).toEqual(
             createdSchedule.availability?.[0]?.endTime
           );
         });
@@ -214,23 +206,20 @@ describe("Schedules Endpoints", () => {
         .get(`/api/v2/schedules/${createdSchedule.id}${forAtomQueryParam}`)
         .expect(200)
         .then((response) => {
-          const responseBody: ApiSuccessResponse<{ schedule: ScheduleWithAvailabilitiesForWeb }> =
-            response.body;
+          const responseBody: ApiSuccessResponse<ScheduleWithAvailabilitiesForWeb> = response.body;
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           expect(responseBody.data).toBeDefined();
+          expect(responseBody.data.id).toBeDefined();
+          expect(responseBody.data.dateOverrides).toBeDefined();
+          expect((responseBody.data as unknown as ScheduleWithAvailabilities).userId).toBeFalsy();
+          expect(responseBody.data.name).toEqual(createdSchedule.name);
+          expect(responseBody.data.timeZone).toEqual(createdSchedule.timeZone);
 
-          expect(responseBody.data.schedule).toBeDefined();
-          expect(responseBody.data.schedule.id).toBeDefined();
-          expect(responseBody.data.schedule.dateOverrides).toBeDefined();
-          expect((responseBody.data.schedule as ScheduleWithAvailabilities).userId).toBeFalsy();
-          expect(responseBody.data.schedule.name).toEqual(createdSchedule.name);
-          expect(responseBody.data.schedule.timeZone).toEqual(createdSchedule.timeZone);
+          expect(responseBody.data.availability).toBeDefined();
+          expect(responseBody.data.availability?.length).toEqual(7);
 
-          expect(responseBody.data.schedule.availability).toBeDefined();
-          expect(responseBody.data.schedule.availability?.length).toEqual(7);
-
-          const dateStart = new Date(responseBody.data.schedule.availability?.[1]?.[0]?.start);
-          const dateEnd = new Date(responseBody.data.schedule.availability?.[1]?.[0]?.end);
+          const dateStart = new Date(responseBody.data.availability?.[1]?.[0]?.start);
+          const dateEnd = new Date(responseBody.data.availability?.[1]?.[0]?.end);
 
           const dateStartHours = dateStart.getUTCHours().toString().padStart(2, "0");
           const dateStartMinutes = dateStart.getUTCMinutes().toString().padStart(2, "0");
@@ -252,14 +241,12 @@ describe("Schedules Endpoints", () => {
         .get(`/api/v2/schedules`)
         .expect(200)
         .then((response) => {
-          const responseBody: ApiSuccessResponse<{ schedules: ScheduleResponse[] }> = response.body;
+          const responseBody: ApiSuccessResponse<ScheduleResponse[]> = response.body;
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           expect(responseBody.data).toBeDefined();
+          expect(responseBody.data.length).toEqual(1);
 
-          expect(responseBody.data.schedules).toBeDefined();
-          expect(responseBody.data.schedules.length).toEqual(1);
-
-          const fetchedSchedule = responseBody.data.schedules[0];
+          const fetchedSchedule = responseBody.data[0];
           expect(fetchedSchedule).toBeDefined();
           expect(fetchedSchedule.userId).toEqual(createdSchedule.userId);
           expect(fetchedSchedule.name).toEqual(createdSchedule.name);
@@ -281,80 +268,83 @@ describe("Schedules Endpoints", () => {
     it("should update schedule name", async () => {
       const newScheduleName = "new-schedule-name";
 
-      const body = {
+      const schedule = [
+        [],
+        [
+          {
+            start: new Date("2024-03-05T11:00:00.000Z"),
+            end: new Date("2024-03-05T14:00:00.000Z"),
+          },
+        ],
+        [
+          {
+            start: new Date("2024-03-05T11:00:00.000Z"),
+            end: new Date("2024-03-05T14:00:00.000Z"),
+          },
+        ],
+        [
+          {
+            start: new Date("2024-03-05T11:00:00.000Z"),
+            end: new Date("2024-03-05T14:00:00.000Z"),
+          },
+        ],
+        [
+          {
+            start: new Date("2024-03-05T11:00:00.000Z"),
+            end: new Date("2024-03-05T14:00:00.000Z"),
+          },
+        ],
+        [
+          {
+            start: new Date("2024-03-05T11:00:00.000Z"),
+            end: new Date("2024-03-05T14:00:00.000Z"),
+          },
+        ],
+        [
+          {
+            start: new Date("2024-03-05T11:00:00.000Z"),
+            end: new Date("2024-03-05T14:00:00.000Z"),
+          },
+        ],
+      ];
+
+      const body: UpdateScheduleInput = {
+        scheduleId: createdSchedule.id,
         name: newScheduleName,
+        schedule,
       };
 
       return request(app.getHttpServer())
         .patch(`/api/v2/schedules/${createdSchedule.id}`)
         .send(body)
         .expect(200)
-        .then((response) => {
-          const responseBody: ApiSuccessResponse<{ schedule: ScheduleResponse }> = response.body;
+        .then((response: any) => {
+          const responseBody: ApiSuccessResponse<UpdateScheduleOutputType> = response.body;
+          console.log("asap responseBody.data 1", JSON.stringify(responseBody.data, null, 2));
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           expect(responseBody.data).toBeDefined();
-
-          expect(responseBody.data.schedule).toBeDefined();
           expect(responseBody.data.schedule.id).toBeDefined();
           expect(responseBody.data.schedule.userId).toEqual(createdSchedule.userId);
           expect(responseBody.data.schedule.name).toEqual(newScheduleName);
-          expect(responseBody.data.schedule.timeZone).toEqual(createdSchedule.timeZone);
+          expect(responseBody.data.timeZone).toEqual(createdSchedule.timeZone);
 
-          expect(responseBody.data.schedule.availability).toBeDefined();
-          expect(responseBody.data.schedule.availability?.length).toEqual(1);
+          expect(responseBody.data.availability).toBeDefined();
+          const availabilities = responseBody.data.availability.filter(
+            (availability: any[]) => availability.length
+          );
+          expect(availabilities.length).toEqual(6);
 
           expect(responseBody.data.schedule.availability?.[0]?.days).toEqual(
             createdSchedule.availability?.[0]?.days
           );
           expect(responseBody.data.schedule.availability?.[0]?.startTime).toEqual(
-            createdSchedule.availability?.[0]?.startTime
+            `1970-01-01T${createdSchedule.availability?.[0]?.startTime}.000Z`
           );
           expect(responseBody.data.schedule.availability?.[0]?.endTime).toEqual(
-            createdSchedule.availability?.[0]?.endTime
+            `1970-01-01T${createdSchedule.availability?.[0]?.endTime}.000Z`
           );
 
-          createdSchedule = responseBody.data.schedule;
-        });
-    });
-
-    it("should update schedule availabilities", async () => {
-      const newAvailabilityDays = [2, 4];
-      const newAvailabilityStartTime = "19:00:00";
-      const newAvailabilityEndTime = "20:00:00";
-
-      const body = {
-        availabilities: [
-          {
-            days: newAvailabilityDays,
-            startTime: newAvailabilityStartTime,
-            endTime: newAvailabilityEndTime,
-          },
-        ],
-      };
-
-      return request(app.getHttpServer())
-        .patch(`/api/v2/schedules/${createdSchedule.id}`)
-        .send(body)
-        .expect(200)
-        .then((response) => {
-          const responseBody: ApiSuccessResponse<{ schedule: ScheduleResponse }> = response.body;
-          expect(responseBody.status).toEqual(SUCCESS_STATUS);
-          expect(responseBody.data).toBeDefined();
-
-          expect(responseBody.data.schedule).toBeDefined();
-          expect(responseBody.data.schedule.id).toBeDefined();
-          expect(responseBody.data.schedule.userId).toEqual(createdSchedule.userId);
-          expect(responseBody.data.schedule.name).toEqual(createdSchedule.name);
-          expect(responseBody.data.schedule.timeZone).toEqual(createdSchedule.timeZone);
-
-          expect(responseBody.data.schedule.availability).toBeDefined();
-          expect(responseBody.data.schedule.availability?.length).toEqual(1);
-
-          expect(responseBody.data.schedule.availability?.[0]?.days).toEqual(newAvailabilityDays);
-          expect(responseBody.data.schedule.availability?.[0]?.startTime).toEqual(newAvailabilityStartTime);
-          expect(responseBody.data.schedule.availability?.[0]?.endTime).toEqual(newAvailabilityEndTime);
-
-          createdSchedule = responseBody.data.schedule;
+          createdSchedule.name = newScheduleName;
         });
     });
 

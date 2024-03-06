@@ -1,3 +1,4 @@
+import { SchedulesService } from "@/ee/schedules/services/schedules.service";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
 import { UpdateUserInput } from "@/modules/users/inputs/update-user.input";
@@ -14,17 +15,18 @@ import { ApiResponse } from "@calcom/platform-types";
 })
 @UseGuards(AccessTokenGuard)
 export class MeController {
-  constructor(private readonly usersRepository: UsersRepository) {}
+  constructor(
+    private readonly usersRepository: UsersRepository,
+    private readonly schedulesRepository: SchedulesService
+  ) {}
 
   @Get("/")
-  async getMe(@GetUser() user: UserWithProfile): Promise<ApiResponse<{ user: UserResponse }>> {
+  async getMe(@GetUser() user: UserWithProfile): Promise<ApiResponse<UserResponse>> {
     const me = userSchemaResponse.parse(user);
 
     return {
       status: SUCCESS_STATUS,
-      data: {
-        user: me,
-      },
+      data: me,
     };
   }
 
@@ -32,15 +34,19 @@ export class MeController {
   async updateMe(
     @GetUser() user: UserWithProfile,
     @Body() bodySchedule: UpdateUserInput
-  ): Promise<ApiResponse<{ user: UserResponse }>> {
+  ): Promise<ApiResponse<UserResponse>> {
     const updatedUser = await this.usersRepository.update(user.id, bodySchedule);
+    if (bodySchedule.timeZone && user.defaultScheduleId) {
+      await this.schedulesRepository.updateUserSchedule(user.id, user.defaultScheduleId, {
+        timeZone: bodySchedule.timeZone,
+      });
+    }
+
     const me = userSchemaResponse.parse(updatedUser);
 
     return {
       status: SUCCESS_STATUS,
-      data: {
-        user: me,
-      },
+      data: me,
     };
   }
 }
