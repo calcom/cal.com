@@ -189,11 +189,6 @@ export const sendGenericWebhookPayload = async ({
   return _sendPayload(secretKey, webhook, body, "application/json");
 };
 
-export const createWebhookSignature = (params: { secret?: string | null; body: string }) =>
-  params.secret
-    ? createHmac("sha256", params.secret).update(`${params.body}`).digest("hex")
-    : "no-secret-provided";
-
 const _sendPayload = async (
   secretKey: string | null,
   webhook: Pick<Webhook, "subscriberUrl" | "appId" | "payloadTemplate">,
@@ -205,11 +200,15 @@ const _sendPayload = async (
     throw new Error("Missing required elements to send webhook payload.");
   }
 
+  const secretSignature = secretKey
+    ? createHmac("sha256", secretKey).update(`${body}`).digest("hex")
+    : "no-secret-provided";
+
   const response = await fetch(subscriberUrl, {
     method: "POST",
     headers: {
       "Content-Type": contentType,
-      "X-Cal-Signature-256": createWebhookSignature({ secret: secretKey, body }),
+      "X-Cal-Signature-256": secretSignature,
     },
     redirect: "manual",
     body,
