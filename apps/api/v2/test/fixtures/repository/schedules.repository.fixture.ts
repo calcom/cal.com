@@ -12,6 +12,10 @@ export class SchedulesRepositoryFixture {
     this.prismaWriteClient = module.get(PrismaWriteService).prisma;
   }
 
+  async getById(scheduleId: Schedule["id"]) {
+    return this.primaReadClient.schedule.findFirst({ where: { id: scheduleId } });
+  }
+
   async deleteById(scheduleId: Schedule["id"]) {
     return this.prismaWriteClient.schedule.delete({ where: { id: scheduleId } });
   }

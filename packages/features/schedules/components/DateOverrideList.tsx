@@ -26,6 +26,7 @@ const DateOverrideList = ({
   replace,
   workingHours,
   excludedDates = [],
+  userTimeFormat,
 }: {
   remove: UseFieldArrayRemove;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -33,6 +34,7 @@ const DateOverrideList = ({
   items: { ranges: TimeRange[]; id: string }[];
   workingHours: WorkingHours[];
   excludedDates?: string[];
+  userTimeFormat: number | null;
 }) => {
   const { t, i18n } = useLocale();
   const { hour12 } = useSettings();
@@ -79,6 +81,7 @@ const DateOverrideList = ({
           </div>
           <div className="flex flex-row-reverse gap-5 space-x-2 rtl:space-x-reverse">
             <DateOverrideInputDialog
+              userTimeFormat={userTimeFormat}
               excludedDates={excludedDates}
               workingHours={workingHours}
               value={item.ranges}

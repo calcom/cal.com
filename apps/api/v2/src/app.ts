@@ -11,6 +11,8 @@ import * as Sentry from "@sentry/node";
 import * as cookieParser from "cookie-parser";
 import helmet from "helmet";
 
+import { TRPCExceptionFilter } from "./filters/trpc-exception.filter";
+
 export const bootstrap = (app: NestExpressApplication): NestExpressApplication => {
   app.enableShutdownHooks();
   app.enableVersioning({
@@ -54,6 +56,7 @@ export const bootstrap = (app: NestExpressApplication): NestExpressApplication =
   app.useGlobalFilters(new PrismaExceptionFilter());
   app.useGlobalFilters(new ZodExceptionFilter());
   app.useGlobalFilters(new HttpExceptionFilter());
+  app.useGlobalFilters(new TRPCExceptionFilter());
 
   app.setGlobalPrefix("api", {
     exclude: [{ path: "health", method: RequestMethod.GET }],

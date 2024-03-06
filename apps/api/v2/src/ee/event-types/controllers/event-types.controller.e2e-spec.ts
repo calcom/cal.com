@@ -118,14 +118,14 @@ describe("Event types Endpoints", () => {
         .set("Authorization", `Bearer whatever`)
         .expect(200);
 
-      const responseBody: ApiSuccessResponse<{ eventType: EventType }> = response.body;
+      const responseBody: ApiSuccessResponse<EventType> = response.body;
 
       expect(responseBody.status).toEqual(SUCCESS_STATUS);
       expect(responseBody.data).toBeDefined();
-      expect(responseBody.data.eventType.id).toEqual(eventType.id);
-      expect(responseBody.data.eventType.title).toEqual(eventType.title);
-      expect(responseBody.data.eventType.slug).toEqual(eventType.slug);
-      expect(responseBody.data.eventType.userId).toEqual(user.id);
+      expect(responseBody.data.id).toEqual(eventType.id);
+      expect(responseBody.data.title).toEqual(eventType.title);
+      expect(responseBody.data.slug).toEqual(eventType.slug);
+      expect(responseBody.data.userId).toEqual(user.id);
     });
 
     it(`/GET/:id not existing`, async () => {

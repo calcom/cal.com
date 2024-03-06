@@ -1,8 +1,8 @@
 import { CalendarsService } from "@/ee/calendars/services/calendars.service";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
+import { UserWithProfile } from "@/modules/users/users.repository";
 import { Controller, Get, Logger, UseGuards, Query } from "@nestjs/common";
-import { User } from "@prisma/client";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { ConnectedDestinationCalendars } from "@calcom/platform-libraries";
@@ -23,7 +23,7 @@ export class CalendarsController {
   @Get("/busy-times")
   async getBusyTimes(
     @Query() queryParams: CalendarBusyTimesInput,
-    @GetUser() user: User
+    @GetUser() user: UserWithProfile
   ): Promise<ApiResponse<EventBusyDate[]>> {
     const { loggedInUsersTz, dateFrom, dateTo, calendarsToLoad } = queryParams;
     if (!dateFrom || !dateTo) {

@@ -19,7 +19,8 @@
     "@vitejs/plugin-react": "^2.2.0",
     "rollup-plugin-node-builtins": "^2.1.2",
     "typescript": "^4.9.4",
-    "vite": "^5.0.10"
+    "vite": "^5.0.10",
+    "vite-plugin-dts": "^3.7.3"
   },
   "files": [
     "dist"
@@ -41,7 +42,9 @@
   "dependencies": {
     "@calcom/platform-constants": "*",
     "@calcom/ui": "*",
+    "@radix-ui/react-dialog": "^1.0.5",
     "@radix-ui/react-slot": "^1.0.2",
+    "@radix-ui/react-toast": "^1.1.5",
     "@tanstack/react-query": "^5.17.19",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
