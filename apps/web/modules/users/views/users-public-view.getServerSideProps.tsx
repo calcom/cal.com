@@ -250,6 +250,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
         avatarUrl: user.avatarUrl,
         verified: user.verified,
         profile: user.profile,
+        away: user.away,
       })),
       entity: {
         isUnpublished: org?.slug === null,
