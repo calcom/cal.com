@@ -20,6 +20,7 @@ export interface Option {
   label: string | null;
   image: string | null;
   slug: string | null;
+  parentOrgHasLockedEventTypes: boolean;
 }
 
 export type CreateBtnProps = {
@@ -106,27 +107,31 @@ export function CreateButton(props: CreateBtnProps) {
             <DropdownMenuLabel>
               <div className="w-48 text-left text-xs">{subtitle}</div>
             </DropdownMenuLabel>
-            {options.map((option, idx) => (
-              <DropdownMenuItem key={option.label}>
-                <DropdownItem
-                  type="button"
-                  data-testid={`option${option.teamId ? "-team" : ""}-${idx}`}
-                  StartIcon={(props) => (
-                    <Avatar alt={option.label || ""} imageSrc={option.image} size="sm" {...props} />
-                  )}
-                  onClick={() =>
-                    !!CreateDialog
-                      ? openModal(option)
-                      : createFunction
-                      ? createFunction(option.teamId || undefined)
-                      : null
-                  }>
-                  {" "}
-                  {/*improve this code */}
-                  <span>{option.label}</span>
-                </DropdownItem>
-              </DropdownMenuItem>
-            ))}
+            {options.map((option, idx) => {
+              if (option.parentOrgHasLockedEventTypes) return null;
+              return (
+                <DropdownMenuItem key={option.label}>
+                  <DropdownItem
+                    type="button"
+                    disabled={option.parentOrgHasLockedEventTypes}
+                    data-testid={`option${option.teamId ? "-team" : ""}-${idx}`}
+                    StartIcon={(props) => (
+                      <Avatar alt={option.label || ""} imageSrc={option.image} size="sm" {...props} />
+                    )}
+                    onClick={() =>
+                      !!CreateDialog
+                        ? openModal(option)
+                        : createFunction
+                        ? createFunction(option.teamId || undefined)
+                        : null
+                    }>
+                    {" "}
+                    {/*improve this code */}
+                    <span>{option.label}</span>
+                  </DropdownItem>
+                </DropdownMenuItem>
+              );
+            })}
           </DropdownMenuContent>
         </Dropdown>
       )}

@@ -817,6 +817,7 @@ const CTA = ({ data }: { data: GetByViewerResponse }) => {
         image: profile.image,
         membershipRole: profile.membershipRole,
         slug: profile.slug,
+        parentOrgHasLockedEventTypes: profile.parentOrgHasLockedEventTypes,
       };
     });
 
