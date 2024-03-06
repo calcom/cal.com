@@ -229,7 +229,7 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
           ) : (
             <div className="bg-muted border-subtle mt-2 rounded-md border p-4">
               <Label>{t("travel_schedule")}</Label>
-              <div className="border-subtle mt-4 rounded-md border bg-white text-sm">
+              <div className="dark:bg-darkgray-100 border-subtle mt-4 rounded-md border bg-white text-sm">
                 {watchedTzSchedules.map((schedule, index) => {
                   return (
                     <div
