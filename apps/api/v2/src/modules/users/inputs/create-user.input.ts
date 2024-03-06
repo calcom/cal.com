@@ -1,7 +1,6 @@
 import { IsTimeFormat } from "@/modules/users/inputs/validators/is-time-format";
-import { IsTimeZone } from "@/modules/users/inputs/validators/is-time-zone";
 import { IsWeekStart } from "@/modules/users/inputs/validators/is-week-start";
-import { IsNumber, IsOptional, IsString, Validate } from "class-validator";
+import { IsNumber, IsOptional, IsTimeZone, IsString, Validate } from "class-validator";
 
 export class CreateUserInput {
   @IsString()
@@ -21,8 +20,7 @@ export class CreateUserInput {
   @Validate(IsWeekStart)
   weekStart?: string;
 
-  @IsString()
+  @IsTimeZone()
   @IsOptional()
-  @Validate(IsTimeZone)
   timeZone?: string;
 }

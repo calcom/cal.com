@@ -48,6 +48,7 @@ import { useFormbricks } from "@calcom/lib/formbricks-client";
 import getBrandColours from "@calcom/lib/getBrandColours";
 import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import useTheme from "@calcom/lib/hooks/useTheme";
 import { isKeyInObject } from "@calcom/lib/isKeyInObject";
 import type { User } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
@@ -299,7 +300,7 @@ const Layout = (props: LayoutProps) => {
 
 type DrawerState = [isOpen: boolean, setDrawerOpen: Dispatch<SetStateAction<boolean>>];
 
-type LayoutProps = {
+export type LayoutProps = {
   centered?: boolean;
   title?: string;
   description?: string;
@@ -329,13 +330,14 @@ type LayoutProps = {
   hideHeadingOnMobile?: boolean;
 };
 
-const useBrandColors = () => {
+const useAppTheme = () => {
   const { data: user } = useMeQuery();
   const brandTheme = getBrandColours({
     lightVal: user?.brandColor,
     darkVal: user?.darkBrandColor,
   });
   useCalcomTheme(brandTheme);
+  useTheme(user?.appTheme);
 };
 
 const KBarWrapper = ({ children, withKBar = false }: { withKBar: boolean; children: React.ReactNode }) =>
@@ -361,9 +363,7 @@ export default function Shell(props: LayoutProps) {
   // if a page is unauthed and isPublic is true, the redirect does not happen.
   useRedirectToLoginIfUnauthenticated(props.isPublic);
   useRedirectToOnboardingIfNeeded();
-  // System Theme is automatically supported using ThemeProvider. If we intend to use user theme throughout the app we need to uncomment this.
-  // useTheme(profile.theme);
-  useBrandColors();
+  useAppTheme();
 
   return !props.isPublic ? (
     <KBarWrapper withKBar>
@@ -462,8 +462,10 @@ function UserDropdown({ small }: UserDropdownProps) {
           </span>
           {!small && (
             <span className="flex flex-grow items-center gap-2">
-              <span className="line-clamp-1 flex-grow text-sm leading-none">
-                <span className="text-emphasis block font-medium">{user.name || "Nameless User"}</span>
+              <span className="w-24 flex-shrink-0 text-sm leading-none">
+                <span className="text-emphasis block truncate font-medium">
+                  {user.name || "Nameless User"}
+                </span>
               </span>
               <ChevronDown
                 className="group-hover:text-subtle text-muted h-4 w-4 flex-shrink-0 rtl:mr-4"
@@ -729,6 +731,7 @@ const NavigationItem: React.FC<{
     <Fragment>
       <Tooltip side="right" content={t(item.name)} className="lg:hidden">
         <Link
+          data-test-id={item.name}
           href={item.href}
           aria-label={t(item.name)}
           className={classNames(
@@ -752,8 +755,10 @@ const NavigationItem: React.FC<{
             />
           )}
           {isLocaleReady ? (
-            <span className="hidden w-full justify-between lg:flex" data-testid={`${item.name}-test`}>
-              <div className="flex">{t(item.name)}</div>
+            <span
+              className="hidden w-full justify-between truncate text-ellipsis lg:flex"
+              data-testid={`${item.name}-test`}>
+              {t(item.name)}
               {item.badge && item.badge}
             </span>
           ) : (

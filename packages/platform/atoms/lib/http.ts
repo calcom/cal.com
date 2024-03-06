@@ -8,12 +8,12 @@ const http = (function () {
     headers: {},
   });
   let refreshUrl = "";
-
   return {
     instance: instance,
     get: instance.get,
     post: instance.post,
     put: instance.put,
+    patch: instance.patch,
     delete: instance.delete,
     responseInterceptor: instance.interceptors.response,
     setRefreshUrl: (url: string) => {
