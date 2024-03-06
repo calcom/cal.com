@@ -1,8 +1,26 @@
 import { z } from "zod";
 
-const userId = z.string();
+import { HttpError } from "@calcom/lib/http-error";
+
+const userId = z.string().transform((val) => {
+  const userIdInt = parseInt(val);
+
+  if (isNaN(userIdInt)) {
+    throw new HttpError({ message: "userId is not a valid number", statusCode: 400 });
+  }
+
+  return userIdInt;
+});
 const appSlug = z.string();
-const credentialId = z.string();
+const credentialId = z.string().transform((val) => {
+  const credentialIdInt = parseInt(val);
+
+  if (isNaN(credentialIdInt)) {
+    throw new HttpError({ message: "credentialId is not a valid number", statusCode: 400 });
+  }
+
+  return credentialIdInt;
+});
 const encryptedKey = z.string();
 
 export const schemaCredentialGetParams = z.object({

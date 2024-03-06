@@ -36,9 +36,7 @@ import { schemaCredentialGetParams } from "~/lib/validations/credential-sync";
 async function handler(req: NextApiRequest) {
   const { prisma } = req;
 
-  const { appSlug, userId: reqUserId } = schemaCredentialGetParams.parse(req.query);
-
-  const userId = parseInt(reqUserId);
+  const { appSlug, userId } = schemaCredentialGetParams.parse(req.query);
 
   let credentials = await prisma.credential.findMany({
     where: {

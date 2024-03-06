@@ -55,17 +55,19 @@ import { schemaCredentialPostParams, schemaCredentialPostBody } from "~/lib/vali
 async function handler(req: NextApiRequest) {
   const { prisma } = req;
 
-  const { userId: reqUserId } = schemaCredentialPostParams.parse(req.query);
+  if (!req.body) {
+    throw new HttpError({ message: "Request body is missing", statusCode: 400 });
+  }
+
+  const { userId } = schemaCredentialPostParams.parse(req.query);
 
   const { appSlug, encryptedKey } = schemaCredentialPostBody.parse(req.body);
 
   const decryptedKey = JSON.parse(
-    symmetricDecrypt(encryptedKey, process.env.CALCOM_APP_CREDENTIAL_ENCRYPTION_KEY)
+    symmetricDecrypt(encryptedKey, process.env.CALCOM_APP_CREDENTIAL_ENCRYPTION_KEY || "")
   );
 
   const key = minimumTokenResponseSchema.parse(decryptedKey);
-
-  const userId = parseInt(reqUserId);
 
   // Need to get app type
   const app = await prisma.app.findUnique({

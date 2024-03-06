@@ -6,7 +6,7 @@ export const verifyCredentialSyncEnabled: NextMiddleware = async (req, res, next
   const { isAdmin } = req;
 
   if (!isAdmin) {
-    return res.status(401).json({ error: "Only admin API keys can access credential syncing endpoints" });
+    return res.status(403).json({ error: "Only admin API keys can access credential syncing endpoints" });
   }
 
   if (!APP_CREDENTIAL_SHARING_ENABLED) {
