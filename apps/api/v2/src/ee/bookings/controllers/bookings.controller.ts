@@ -12,7 +12,7 @@ import {
   InternalServerErrorException,
   Body,
   HttpException,
-  Param,
+  Query,
   Get,
   UseGuards,
 } from "@nestjs/common";
@@ -21,6 +21,7 @@ import { Request } from "express";
 import { NextApiRequest } from "next/types";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { getAllUserBookings, getBookingInfo } from "@calcom/platform-libraries";
 import {
   handleNewBooking,
   BookingResponse,
@@ -29,6 +30,7 @@ import {
   handleInstantMeeting,
 } from "@calcom/platform-libraries";
 import { ApiResponse } from "@calcom/platform-types";
+import { GetBookingInput, GetBookingsInput } from "@calcom/platform-types/bookings";
 
 @Controller({
   path: "ee/bookings",
@@ -44,8 +46,12 @@ export class BookingsController {
 
   @Get("/")
   @UseGuards(AccessTokenGuard)
-  async getBookings(@GetUser() user: User): Promise<ApiResponse<unknown>> {
+  async getBookings(
+    @GetUser() user: User,
+    @Query() queryParams: GetBookingsInput
+  ): Promise<ApiResponse<unknown>> {
     const bookings = this.bookingsService.getUserBookings(user.id);
+    const bks = getAllUserBookings({});
 
     return {
       status: SUCCESS_STATUS,
@@ -57,15 +63,12 @@ export class BookingsController {
 
   @Get("/:bookingId")
   @UseGuards(AccessTokenGuard)
-  async getBooking(
-    @GetUser() user: User,
-    @Param("bookingId") bookingId: number
-  ): Promise<ApiResponse<unknown>> {
-    const booking = this.bookingsService.getBookingById(bookingId);
+  async getBooking(@Query() queryParams: GetBookingInput): Promise<ApiResponse<unknown>> {
+    const { bookingInfo } = await getBookingInfo(queryParams.uid);
 
     return {
       status: SUCCESS_STATUS,
-      data: { booking },
+      data: bookingInfo,
     };
   }
 
