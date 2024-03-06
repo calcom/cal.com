@@ -22,14 +22,12 @@ export class MeController {
   ) {}
 
   @Get("/")
-  async getMe(@GetUser() user: User): Promise<ApiResponse<{ user: UserResponse }>> {
+  async getMe(@GetUser() user: User): Promise<ApiResponse<UserResponse>> {
     const me = userSchemaResponse.parse(user);
 
     return {
       status: SUCCESS_STATUS,
-      data: {
-        user: me,
-      },
+      data: me,
     };
   }
 
@@ -37,7 +35,7 @@ export class MeController {
   async updateMe(
     @GetUser() user: User,
     @Body() bodySchedule: UpdateUserInput
-  ): Promise<ApiResponse<{ user: UserResponse }>> {
+  ): Promise<ApiResponse<UserResponse>> {
     const updatedUser = await this.usersRepository.update(user.id, bodySchedule);
     if (bodySchedule.timeZone && user.defaultScheduleId) {
       await this.schedulesRepository.updateUserSchedule(user.id, user.defaultScheduleId, {
@@ -49,9 +47,7 @@ export class MeController {
 
     return {
       status: SUCCESS_STATUS,
-      data: {
-        user: me,
-      },
+      data: me,
     };
   }
 }
