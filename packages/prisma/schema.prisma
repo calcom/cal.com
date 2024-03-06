@@ -367,6 +367,7 @@ model Team {
   instantMeetingTokens InstantMeetingToken[]
   orgProfiles          Profile[]
   pendingPayment       Boolean                 @default(false)
+  dSyncData            DSyncData?
 
   @@unique([slug, parentId])
   @@index([parentId])
@@ -1144,6 +1145,14 @@ model OutOfOfficeEntry {
   @@index([userId])
   @@index([toUserId])
   @@index([start, end])
+}
+
+model DSyncData {
+  id          Int    @id @default(autoincrement())
+  directoryId String
+  tenant      String
+  orgId       Int?   @unique
+  org         Team?  @relation(fields: [orgId], references: [id], onDelete: Cascade)
 }
 
 model SecondaryEmail {
