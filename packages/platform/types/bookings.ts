@@ -1,4 +1,5 @@
-import { ValidateNested, IsNumber, Min, Max, IsString, IsOptional } from "class-validator";
+import { Type } from "class-transformer";
+import { ValidateNested, IsNumber, Min, Max, IsString, IsOptional, IsArray, IsEnum } from "class-validator";
 
 enum Status {
   upcoming = "upcoming",
@@ -8,14 +9,26 @@ enum Status {
   unconfirmed = "unconfirmed",
 }
 
+class Filters {
+  @IsArray()
+  @Type(() => Number)
+  teamsIds?: number[];
+
+  @IsArray()
+  @Type(() => Number)
+  userIds?: number[];
+
+  @IsEnum(Status)
+  status!: Status;
+
+  @IsArray()
+  @Type(() => Number)
+  eventTypeIds?: number[];
+}
+
 export class GetBookingsInput {
   @ValidateNested({ each: true })
-  filters!: {
-    teamsIds?: number[];
-    userIds?: number[];
-    status: Status;
-    eventTypeIds?: number[];
-  };
+  filters!: Filters;
 
   @IsNumber()
   @Min(1)
