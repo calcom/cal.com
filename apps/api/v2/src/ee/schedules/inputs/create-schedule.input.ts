@@ -1,14 +1,12 @@
 import { CreateAvailabilityInput } from "@/modules/availabilities/inputs/create-availability.input";
-import { IsTimeZone } from "@/modules/users/inputs/validators/is-time-zone";
 import { Type } from "class-transformer";
-import { IsArray, IsBoolean, IsOptional, IsString, Validate, ValidateNested } from "class-validator";
+import { IsArray, IsBoolean, IsTimeZone, IsOptional, IsString, ValidateNested } from "class-validator";
 
 export class CreateScheduleInput {
   @IsString()
   name!: string;
 
-  @IsString()
-  @Validate(IsTimeZone)
+  @IsTimeZone()
   timeZone!: string;
 
   @IsArray()
