@@ -1,7 +1,7 @@
 import { BaseStrategy } from "@/lib/passport/strategies/types";
 import { OAuthFlowService } from "@/modules/oauth-clients/services/oauth-flow.service";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
-import { UsersRepository } from "@/modules/users/users.repository";
+import { UserWithProfile, UsersRepository } from "@/modules/users/users.repository";
 import { Injectable, UnauthorizedException } from "@nestjs/common";
 import { PassportStrategy } from "@nestjs/passport";
 import type { Request } from "express";
@@ -34,7 +34,7 @@ export class AccessTokenStrategy extends PassportStrategy(BaseStrategy, "access-
         throw new UnauthorizedException(INVALID_ACCESS_TOKEN);
       }
 
-      const user = await this.userRepository.findById(ownerId);
+      const user: UserWithProfile | null = await this.userRepository.findByIdWithProfile(ownerId);
 
       if (!user) {
         throw new UnauthorizedException(INVALID_ACCESS_TOKEN);

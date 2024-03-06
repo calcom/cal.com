@@ -3,6 +3,7 @@ import { SchedulesService } from "@/ee/schedules/services/schedules.service";
 import { ForAtom } from "@/lib/atoms/decorators/for-atom.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
+import { UserWithProfile } from "@/modules/users/users.repository";
 import {
   Body,
   Controller,
@@ -15,7 +16,6 @@ import {
   Patch,
   UseGuards,
 } from "@nestjs/common";
-import { User } from "@prisma/client";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import type { ScheduleWithAvailabilitiesForWeb } from "@calcom/platform-libraries";
@@ -40,7 +40,7 @@ export class SchedulesController {
 
   @Post("/")
   async createSchedule(
-    @GetUser() user: User,
+    @GetUser() user: UserWithProfile,
     @Body() bodySchedule: CreateScheduleInput,
     @ForAtom() forAtom: boolean
   ): Promise<ApiResponse<ScheduleResponse>> {
@@ -55,7 +55,7 @@ export class SchedulesController {
 
   @Get("/default")
   async getDefaultSchedule(
-    @GetUser() user: User,
+    @GetUser() user: UserWithProfile,
     @ForAtom() forAtom: boolean
   ): Promise<ApiResponse<ScheduleResponse | ScheduleWithAvailabilitiesForWeb | null>> {
     const schedule = await this.schedulesService.getUserScheduleDefault(user.id);
@@ -81,7 +81,7 @@ export class SchedulesController {
 
   @Get("/:scheduleId")
   async getSchedule(
-    @GetUser() user: User,
+    @GetUser() user: UserWithProfile,
     @Param("scheduleId") scheduleId: number,
     @ForAtom() forAtom: boolean
   ): Promise<ApiResponse<ScheduleResponse | ScheduleWithAvailabilitiesForWeb>> {
@@ -96,7 +96,7 @@ export class SchedulesController {
 
   @Get("/")
   async getSchedules(
-    @GetUser() user: User,
+    @GetUser() user: UserWithProfile,
     @ForAtom() forAtom: boolean
   ): Promise<ApiResponse<ScheduleResponse[] | ScheduleWithAvailabilitiesForWeb[]>> {
     const schedules = await this.schedulesService.getUserSchedules(user.id);
@@ -111,7 +111,7 @@ export class SchedulesController {
   // note(Lauris): currently this endpoint is atoms only
   @Patch("/:scheduleId")
   async updateSchedule(
-    @GetUser() user: User,
+    @GetUser() user: UserWithProfile,
     @Body() bodySchedule: UpdateScheduleInput
   ): Promise<ApiResponse<UpdateScheduleOutputType>> {
     const updatedSchedule: UpdateScheduleOutputType = await updateScheduleHandler({
