@@ -15,7 +15,7 @@ export class OAuthFlowService {
   ) {}
 
   async propagateAccessToken(accessToken: string) {
-    this.logger.log("Propagating access token to redis", accessToken);
+    // this.logger.log("Propagating access token to redis", accessToken);
     // TODO propagate
     return void 0;
   }
@@ -75,6 +75,7 @@ export class OAuthFlowService {
       clientId,
       authorizationToken.owner.id
     );
+    await this.tokensRepository.invalidateAuthorizationToken(authorizationToken.id);
     void this.propagateAccessToken(accessToken); // voided as we don't need to await
 
     return {
