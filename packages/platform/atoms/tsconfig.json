@@ -18,7 +18,7 @@
     "../../types/next.d.ts",
     "../../types/@wojtekmaj__react-daterange-picker.d.ts",
     "../../types/business-days-plugin.d.ts",
-    "../../types/Meticulous.d.ts"
+    "../../types/window.d.ts"
   ],
   "exclude": ["dist", "build", "node_modules"]
 }
