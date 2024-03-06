@@ -8,8 +8,4 @@ export class BookingsService {
   async getUserBookings(userId: number) {
     return this.bookingsRepository.getBookingsByUserId(userId);
   }
-
-  async getBookingById(bookingId: number) {
-    return this.bookingsRepository.getBookingsById(bookingId);
-  }
 }
