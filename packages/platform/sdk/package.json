@@ -1,5 +1,6 @@
 {
   "name": "@calcom/sdk",
+  "version": "0.0.1",
   "description": "Cal.com platform SDK.",
   "main": "dist/index.cjs.js",
   "module": "dist/index.esm.js",
@@ -8,8 +9,7 @@
     "dist"
   ],
   "scripts": {
-    "dev": "rollup -c --bundleConfigAsCjs -w",
-    "build:ts": "rollup -c --bundleConfigAsCjs",
+    "build": "rollup -c --bundleConfigAsCjs",
     "release": "release-it --only-version"
   },
   "packageManager": "yarn@3.4.1",
