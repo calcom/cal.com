@@ -3,7 +3,6 @@ import type { DirectorySyncEvent, User } from "@boxyhq/saml-jackson";
 import removeUserFromOrg from "@calcom/features/ee/dsync/lib/removeUserFromOrg";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
-import { MembershipRole } from "@calcom/prisma/enums";
 import { getTeamOrThrow } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
 import type { UserWithMembership } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
 import { sendExistingUserTeamInviteEmails } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
@@ -75,13 +74,8 @@ const handleUserEvents = async (event: DirectorySyncEvent, orgId: number) => {
       team: org,
       translation,
       inviterName: org.name,
-      input: {
-        teamId: orgId,
-        role: MembershipRole.MEMBER,
-        usernameOrEmail: userEmail,
-        language: "en",
-        isOrg: true,
-      },
+      teamId: orgId,
+      isOrg: true,
     });
   }
 };
