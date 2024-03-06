@@ -2061,6 +2061,7 @@
   "workflow_automation": "Automatisering van de werkstroom",
   "scheduling_for_your_team": "Automatisering van de werkstroom",
   "no_members_found": "Geen leden gevonden",
+  "directory_sync": "Mapsynchronisatie",
   "event_setup_length_error": "Gebeurtenisconfiguratie: de duur moet minimaal 1 minuut zijn.",
   "availability_schedules": "Beschikbaarheidsschema's",
   "unauthorized": "Ongeautoriseerd",
