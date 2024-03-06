@@ -1,4 +1,4 @@
-FROM node:18 as builder
+FROM node:18-alpine as builder
 WORKDIR /calcom
 ARG MAX_OLD_SPACE_SIZE=4096
 ARG DISABLE_ESLINT_PLUGIN=true
@@ -17,7 +17,7 @@ RUN yarn config set httpTimeout 1200000 && \
 RUN yarn turbo run build --filter=@calcom/web
 RUN rm -rf node_modules/.cache .yarn/cache apps/web/.next/cache apps/web/test apps/web/abTest apps/web/playwright
 
-FROM node:18 as builder-two
+FROM node:18-alpine as builder-two
 WORKDIR /calcom
 ARG NEXT_PUBLIC_WEBAPP_URL=https://calendar.funnelhub.io
 ENV NODE_ENV production
@@ -31,11 +31,11 @@ COPY --from=builder /calcom/.env .env
 COPY scripts scripts
 ENV NEXT_PUBLIC_WEBAPP_URL=$NEXT_PUBLIC_WEBAPP_URL \
     BUILT_NEXT_PUBLIC_WEBAPP_URL=$NEXT_PUBLIC_WEBAPP_URL
-RUN chmod +777 /calcom/scripts/replace-placeholder.sh
+RUN chmod 777 /calcom/scripts/replace-placeholder.sh
 RUN /calcom/scripts/replace-placeholder.sh https://NEXT_PUBLIC_WEBAPP_URL_PLACEHOLDER ${NEXT_PUBLIC_WEBAPP_URL}
 
 
-FROM node:18 as runner
+FROM node:18-alpine as runner
 WORKDIR /calcom
 COPY --from=builder-two /calcom ./
 ARG NEXT_PUBLIC_WEBAPP_URL=https://calendar.funnelhub.io
@@ -44,5 +44,5 @@ ENV NODE_ENV production
 EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=30s --retries=5 \
     CMD wget --spider https://calendar.funnelhub.io || exit 1
-RUN chmod +777 /calcom/scripts/start.sh
+RUN chmod 777 /calcom/scripts/start.sh
 CMD ["/calcom/scripts/start.sh"]
