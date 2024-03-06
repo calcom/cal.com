@@ -821,8 +821,6 @@ const CTA = ({ data }: { data: GetByViewerResponse }) => {
       };
     });
 
-  console.log({ profileOptions });
-
   return (
     <CreateButton
       data-testid="new-event-type"
@@ -917,7 +915,7 @@ const Main = ({
                       groupIndex={index}
                       readOnly={group.metadata.readOnly}
                     />
-                  ) : group.teamId ? (
+                  ) : group.teamId && !group.metadata.readOnly ? (
                     <EmptyEventTypeList group={group} />
                   ) : (
                     <CreateFirstEventTypeView slug={data.profiles[0].slug ?? ""} />
