@@ -5,6 +5,8 @@ import createUserAndInviteToOrg from "@calcom/features/ee/dsync/lib/createUserAn
 import inviteExistingUserToOrg from "@calcom/features/ee/dsync/lib/inviteExistingUserToOrg";
 import removeUserFromOrg from "@calcom/features/ee/dsync/lib/removeUserFromOrg";
 import jackson from "@calcom/features/ee/sso/lib/jackson";
+import { updateQuantitySubscriptionFromStripe } from "@calcom/features/ee/teams/lib/payments";
+import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
 import type { UserWithMembership } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
@@ -127,4 +129,6 @@ const handleEvents = async (event: DirectorySyncEvent) => {
       });
     }
   }
+
+  if (IS_TEAM_BILLING_ENABLED) await updateQuantitySubscriptionFromStripe(orgId);
 };
