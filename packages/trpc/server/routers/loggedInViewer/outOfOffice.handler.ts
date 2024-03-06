@@ -227,7 +227,7 @@ export const outOfOfficeEntriesList = async ({ ctx }: { ctx: { user: NonNullable
       },
     },
     orderBy: {
-      start: "desc",
+      start: "asc",
     },
     select: {
       id: true,

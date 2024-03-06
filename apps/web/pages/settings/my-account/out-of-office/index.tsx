@@ -113,8 +113,8 @@ const CreateOutOfOfficeEntryModal = ({
             setValue("toTeamUserId", null);
             setSelectedMember(null);
           })}>
-          <DialogHeader title="Create an Out of Office" />
-          <div>
+          <div className="pb-11">
+            <DialogHeader title={t("create_an_out_of_office")} />
             <div>
               <p className="text-emphasis mb-1 block text-sm font-medium capitalize">{t("dates")}</p>
               <div>
@@ -143,11 +143,11 @@ const CreateOutOfOfficeEntryModal = ({
               <div className="">
                 <p className="text-emphasis block text-sm font-medium">{t("reason")}</p>
                 <Select
-                  className="mt-1 h-4 text-white"
+                  className="mb-1 mt-1 h-5 text-white"
                   name="reason"
                   data-testid="reason_select"
                   value={selectedReason}
-                  placeholder="Select reason"
+                  placeholder={t("select_reason")}
                   options={reasonList}
                   onChange={(selectedOption) => {
                     if (selectedOption?.value) {
@@ -202,7 +202,7 @@ const CreateOutOfOfficeEntryModal = ({
               )}
             </div>
           </div>
-          <DialogFooter>
+          <DialogFooter showDivider>
             <div className="flex">
               <Button color="minimal" type="button" onClick={() => closeModal()} className="mr-1">
                 Cancel

@@ -766,11 +766,6 @@ const _getOutOfOfficeDays = async ({
     const [flattenDays] = availability.map((a) => ("days" in a ? a.days : []));
     const endDateRange = dayjs(end).utc().endOf("day");
 
-    // Return date is kinda tricky to obtain but basically is the first available date after the end date
-    // We need to take into account user may have multiple availability ranges
-    // So we need to check every range and consider the first available date after the end date keeping in mind the next range
-    // finally we need to go beyond the end date to find the first available date using availability days.
-
     for (let date = startDateRange; date.isBefore(endDateRange); date = date.add(1, "day")) {
       const dayNumberOnWeek = date.day();
 
@@ -792,5 +787,3 @@ const _getOutOfOfficeDays = async ({
     return acc;
   }, {});
 };
-
-// const obtainNearestAvailableReturnDate = (availabilityDaysInWeek, outOfOfficeDays) => {};

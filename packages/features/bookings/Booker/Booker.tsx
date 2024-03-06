@@ -89,6 +89,7 @@ const BookerComponent = ({
   const nonEmptyScheduleDays = useNonEmptyScheduleDays(schedule?.data?.slots).filter(
     (slot) => dayjs(selectedDate).diff(slot, "day") <= 0
   );
+  const orgSlug = entity.orgSlug;
   const totalWeekDays = 7;
   const addonDays =
     nonEmptyScheduleDays.length < extraDays

@@ -7,6 +7,8 @@ import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui";
 
+import { useBookerStore } from "../store";
+
 interface IOutOfOfficeInSlotsProps {
   date: string;
   fromUser?: IOutOfOfficeData["anyDate"]["fromUser"];
@@ -21,6 +23,7 @@ export const OutOfOfficeInSlots = (props: IOutOfOfficeInSlotsProps) => {
   const { fromUser, toUser, emoji = "🏝️", borderDashed = true, date } = props;
   const searchParams = useCompatSearchParams();
   const router = useRouter();
+  const org = useBookerStore((state) => state.org);
 
   if (!fromUser) return null;
   return (
@@ -60,10 +63,13 @@ export const OutOfOfficeInSlots = (props: IOutOfOfficeInSlotsProps) => {
               const month = searchParams.get("month");
               const layout = searchParams.get("layout");
               const targetDate = searchParams.get("date") || date;
-              // go to the booking page with the selected user and correct search params
-              // @TODO: should we make an api or server function to automatically generate the correct URL using user id considering orgs
-
-              router.push(`/${toUser.username}?month=${month}&layout=${layout}&date=${targetDate}`);
+              // go to the booking page with the selected user and correct search param
+              // @TODO: how to guess whats the right event to go for a user?
+              router.push(
+                `/${toUser.username}?${month ? `month=${month}&` : ""}date=${targetDate}${
+                  layout ? `&layout=${layout}` : ""
+                }`
+              );
             }}>
             <span className="block overflow-hidden text-ellipsis whitespace-nowrap">
               {t("ooo_slots_book_with", { displayName: toUser.displayName })}
