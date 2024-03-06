@@ -2,7 +2,6 @@ import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import { getBookingWithResponses } from "@calcom/features/bookings/lib/get-booking";
 import { parseRecurringEvent } from "@calcom/lib";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import { maybeGetBookingUidFromSeat } from "@calcom/lib/server/maybeGetBookingUidFromSeat";
@@ -12,6 +11,8 @@ import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-u
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import { ssrInit } from "@server/lib/ssr";
+
+import getBookingInfo from "../lib/getBookingInfo";
 
 const stringToBoolean = z
   .string()
@@ -62,65 +63,16 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const maybeBookingUidFromSeat = await maybeGetBookingUidFromSeat(prisma, uid);
   if (maybeBookingUidFromSeat.uid) uid = maybeBookingUidFromSeat.uid;
   if (maybeBookingUidFromSeat.seatReferenceUid) seatReferenceUid = maybeBookingUidFromSeat.seatReferenceUid;
-  const bookingInfoRaw = await prisma.booking.findFirst({
-    where: {
-      uid: uid,
-    },
-    select: {
-      title: true,
-      id: true,
-      uid: true,
-      description: true,
-      customInputs: true,
-      smsReminderNumber: true,
-      recurringEventId: true,
-      startTime: true,
-      endTime: true,
-      location: true,
-      status: true,
-      metadata: true,
-      cancellationReason: true,
-      responses: true,
-      rejectionReason: true,
-      userPrimaryEmail: true,
-      user: {
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          username: true,
-          timeZone: true,
-        },
-      },
-      attendees: {
-        select: {
-          name: true,
-          email: true,
-          timeZone: true,
-        },
-      },
-      eventTypeId: true,
-      eventType: {
-        select: {
-          eventName: true,
-          slug: true,
-          timeZone: true,
-        },
-      },
-      seatsReferences: {
-        select: {
-          referenceUid: true,
-        },
-      },
-    },
-  });
+
+  const { bookingInfoRaw, bookingInfo } = await getBookingInfo(uid);
+
   if (!bookingInfoRaw) {
     return {
       notFound: true,
     } as const;
   }
 
-  const eventTypeRaw = !bookingInfoRaw.eventTypeId
+  const eventTypeRaw = !bookingInfoRaw?.eventTypeId
     ? getDefaultEvent(eventTypeSlug || "")
     : await getEventTypesFromDB(bookingInfoRaw.eventTypeId);
   if (!eventTypeRaw) {
@@ -133,7 +85,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     requiresLoginToUpdate = true;
   }
 
-  const bookingInfo = getBookingWithResponses(bookingInfoRaw);
   // @NOTE: had to do this because Server side cant return [Object objects]
   // probably fixable with json.stringify -> json.parse
   bookingInfo["startTime"] = (bookingInfo?.startTime as Date)?.toISOString() as unknown as Date;
