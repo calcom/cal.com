@@ -1,8 +1,8 @@
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
-import { UserReturned } from "@/modules/oauth-clients/controllers/oauth-client-users/oauth-client-users.controller";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
+import { UserWithProfile } from "@/modules/users/users.repository";
 import {
   BadRequestException,
   Controller,
@@ -51,7 +51,7 @@ export class CalProviderController {
   @UseGuards(AccessTokenGuard)
   async verifyAccessToken(
     @Param("clientId") clientId: string,
-    @GetUser() user: UserReturned
+    @GetUser() user: UserWithProfile
   ): Promise<ApiResponse> {
     if (!clientId) {
       throw new BadRequestException();

@@ -1,5 +1,6 @@
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
+import { UserWithProfile } from "@/modules/users/users.repository";
 import { Injectable, CanActivate, ExecutionContext } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 
@@ -15,14 +16,14 @@ export class OrganizationRolesGuard implements CanActivate {
     }
 
     const request = context.switchToHttp().getRequest();
-    const user = request.user;
-    const partOfOrganization = Boolean(user?.organizationId);
+    const user: UserWithProfile = request.user;
+    const organizationId = user?.movedToProfile?.organizationId || user?.organizationId;
 
-    if (!user || !partOfOrganization) {
+    if (!user || !organizationId) {
       return false;
     }
 
-    const membership = await this.membershipRepository.findOrgUserMembership(user.organizationId, user.id);
+    const membership = await this.membershipRepository.findOrgUserMembership(organizationId, user.id);
     const isAccepted = membership.accepted;
     const hasRequiredRole = requiredRoles.includes(membership.role);
 
