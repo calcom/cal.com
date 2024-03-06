@@ -152,7 +152,6 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
       slug: (typeof profile)["username"] | null;
       name: (typeof profile)["name"];
       image: string;
-      parentOrgHasLockedEventTypes?: boolean;
     };
     metadata: {
       membershipCount: number;

@@ -4,7 +4,7 @@ import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { Trans } from "next-i18next";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import type { FC } from "react";
+import type { FC, ReactNode } from "react";
 import { memo, useEffect, useState } from "react";
 import { z } from "zod";
 
@@ -87,6 +87,7 @@ interface EventTypeListHeadingProps {
   membershipCount: number;
   teamId?: number | null;
   bookerUrl: string;
+  showHeader?: boolean;
 }
 
 type EventTypeGroup = EventTypeGroups[number];
@@ -730,7 +731,8 @@ const EventTypeListHeading = ({
   membershipCount,
   teamId,
   bookerUrl,
-}: EventTypeListHeadingProps): JSX.Element => {
+  showHeader,
+}: EventTypeListHeadingProps): ReactNode => {
   const { t } = useLocale();
   const router = useRouter();
 
@@ -742,6 +744,8 @@ const EventTypeListHeading = ({
       showToast(error.message, "error");
     },
   });
+
+  if (!showHeader) return null;
 
   return (
     <div className="mb-4 flex items-center space-x-2">
@@ -785,8 +789,16 @@ const EventTypeListHeading = ({
   );
 };
 
-const CreateFirstEventTypeView = ({ slug }: { slug: string }) => {
+const CreateFirstEventTypeView = ({
+  slug,
+  parentOrgHasLockedEventTypes,
+}: {
+  slug: string;
+  parentOrgHasLockedEventTypes?: boolean;
+}) => {
   const { t } = useLocale();
+
+  if (parentOrgHasLockedEventTypes) return null;
 
   return (
     <EmptyScreen
@@ -902,6 +914,7 @@ const Main = ({
                   membershipCount={group.metadata.membershipCount}
                   teamId={group.teamId}
                   bookerUrl={group.bookerUrl}
+                  showHeader={!group.metadata.readOnly}
                 />
 
                 {group.eventTypes.length ? (
@@ -915,7 +928,10 @@ const Main = ({
                 ) : group.teamId ? (
                   <EmptyEventTypeList group={group} />
                 ) : (
-                  <CreateFirstEventTypeView slug={data.profiles[0].slug ?? ""} />
+                  <CreateFirstEventTypeView
+                    slug={data.profiles[0].slug ?? ""}
+                    parentOrgHasLockedEventTypes={!!data.profiles[0].readOnly}
+                  />
                 )}
               </div>
             ))
