@@ -28,7 +28,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     // Fetch the webhook configuration so that we can get the secret.
     const [appId, subscriberId] = job.jobName.split("_");
     const webhook = await prisma.webhook.findUniqueOrThrow({
-      where: { id: subscriberId, appId },
+      where: { id: subscriberId, appId: appId !== "null" ? appId : null },
     });
     try {
       await fetch(job.subscriberUrl, {
