@@ -1,3 +1,5 @@
+import commonjs from "@rollup/plugin-commonjs";
+import json from "@rollup/plugin-json";
 import { nodeResolve } from "@rollup/plugin-node-resolve";
 import typescript from "@rollup/plugin-typescript";
 import bundleSize from "rollup-plugin-bundle-size";
@@ -18,5 +20,11 @@ export default {
       format: "es",
     },
   ],
-  plugins: [nodeResolve(), typescript({ tsconfig: "./tsconfig.build.json" }), bundleSize()],
+  plugins: [
+    json(),
+    commonjs(),
+    nodeResolve(),
+    typescript({ tsconfig: "./tsconfig.build.json" }),
+    bundleSize(),
+  ],
 };

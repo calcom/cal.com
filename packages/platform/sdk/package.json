@@ -9,13 +9,16 @@
   ],
   "scripts": {
     "dev": "rollup -c --bundleConfigAsCjs -w",
-    "build:ts": "rollup -c --bundleConfigAsCjs"
+    "build:ts": "rollup -c --bundleConfigAsCjs",
+    "release": "release-it --only-version"
   },
   "packageManager": "yarn@3.4.1",
   "devDependencies": {
+    "@rollup/plugin-commonjs": "^25.0.7",
     "@rollup/plugin-json": "^6.1.0",
     "@rollup/plugin-node-resolve": "^15.2.3",
     "@rollup/plugin-typescript": "^11.1.6",
+    "release-it": "^17.1.1",
     "rollup": "^4.12.0",
     "rollup-plugin-bundle-size": "^1.0.3",
     "ts-essentials": "^9.4.1",
