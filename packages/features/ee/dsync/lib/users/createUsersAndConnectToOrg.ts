@@ -51,7 +51,9 @@ const createUsersAndConnectToOrg = async ({
   await prisma.profile.createMany({
     data: users.map((user) => ({
       uid: ProfileRepository.generateProfileUid(),
-      username: user.username,
+      userId: user.id,
+      // The username is already set when creating the user
+      username: user.username!,
       organizationId: orgId,
     })),
   });
