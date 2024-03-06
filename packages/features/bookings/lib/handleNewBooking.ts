@@ -864,6 +864,7 @@ export const findBookingQuery = async (bookingId: number) => {
       description: true,
       status: true,
       responses: true,
+      metadata: true,
       user: {
         select: {
           name: true,
