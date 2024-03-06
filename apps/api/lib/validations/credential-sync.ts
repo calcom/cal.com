@@ -30,6 +30,18 @@ export const schemaCredentialGetParams = z.object({
 
 export const schemaCredentialPostParams = z.object({
   userId,
+  createSelectedCalendar: z
+    .string()
+    .optional()
+    .transform((val) => {
+      return val === "true";
+    }),
+  createDestinationCalendar: z
+    .string()
+    .optional()
+    .transform((val) => {
+      return val === "true";
+    }),
 });
 
 export const schemaCredentialPostBody = z.object({

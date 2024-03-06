@@ -1,5 +1,6 @@
 import type { NextApiRequest } from "next";
 
+import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { minimumTokenResponseSchema } from "@calcom/app-store/_utils/oauth/parseRefreshTokenResponse";
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
@@ -59,7 +60,9 @@ async function handler(req: NextApiRequest) {
     throw new HttpError({ message: "Request body is missing", statusCode: 400 });
   }
 
-  const { userId } = schemaCredentialPostParams.parse(req.query);
+  const { userId, createSelectedCalendar, createDestinationCalendar } = schemaCredentialPostParams.parse(
+    req.query
+  );
 
   const { appSlug, encryptedKey } = schemaCredentialPostBody.parse(req.body);
 
@@ -72,12 +75,16 @@ async function handler(req: NextApiRequest) {
   // Need to get app type
   const app = await prisma.app.findUnique({
     where: { slug: appSlug },
-    select: { dirName: true },
+    select: { dirName: true, categories: true },
   });
 
   if (!app) {
     throw new HttpError({ message: "App not found", statusCode: 500 });
   }
+
+  const createCalendarResources =
+    app.categories.some((category) => category === "calendar") &&
+    (createSelectedCalendar || createDestinationCalendar);
 
   const appMetadata = appStoreMetadata[app.dirName as keyof typeof appStoreMetadata];
 
@@ -88,13 +95,48 @@ async function handler(req: NextApiRequest) {
       key,
       type: appMetadata.type,
     },
-    select: {
-      id: true,
-      appId: true,
+    include: {
+      user: {
+        select: {
+          email: true,
+        },
+      },
     },
   });
 
-  return { credential };
+  if (createCalendarResources) {
+    const calendar = await getCalendar(credential);
+    const calendars = await calendar.listCalendars();
+
+    const calendarToCreate = calendars.find((calendar) => calendar.primary) || calendars[0];
+
+    if (createSelectedCalendar) {
+      await prisma.selectedCalendar.createMany({
+        data: [
+          {
+            userId,
+            integration: appMetadata.type,
+            externalId: calendarToCreate.externalId,
+            credentialId: credential.id,
+          },
+        ],
+        skipDuplicates: true,
+      });
+    }
+    if (createDestinationCalendar) {
+      await prisma.destinationCalendar.create({
+        data: {
+          integration: appMetadata.type,
+          externalId: calendarToCreate.externalId,
+          credential: { connect: { id: credential.id } },
+          primaryEmail: calendarToCreate.email || credential.user.email,
+          user: { connect: { id: userId } },
+        },
+      });
+    }
+  }
+
+  return { credential: { id: credential.id, type: credential.type } };
 }
 
 export default defaultResponder(handler);
