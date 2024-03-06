@@ -162,6 +162,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
       },
       user: username,
       slug,
+      away: false,
       trpcState: ssr.dehydrate(),
       isBrandingHidden: user?.hideBranding,
       isSEOIndexable: user?.allowSEOIndexing,
