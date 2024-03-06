@@ -1475,6 +1475,8 @@
   "copy_link_to_form": "להעתיק את הקישור לטופס",
   "theme": "ערכת נושא",
   "theme_applies_note": "חלה רק על דפים של הזמנות ציבוריות",
+  "app_theme": "ערכת עיצוב ללוח בקרה",
+  "app_theme_applies_note": "חל רק על לוח הבקרה שנכנסת אליו",
   "theme_system": "ברירת המחדל של המערכת",
   "add_a_team": "הוספת צוות",
   "add_webhook_description": "לקבל נתוני פגישה בזמן אמת כשמשהו קורה ב-{{appName}}",

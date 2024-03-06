@@ -1,8 +1,8 @@
 import { CreateEventTypeInput } from "@/ee/event-types/inputs/create-event-type.input";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
+import { UserWithProfile } from "@/modules/users/users.repository";
 import { Injectable, NotFoundException } from "@nestjs/common";
-import { User } from "@prisma/client";
 
 import { getEventTypeById } from "@calcom/platform-libraries";
 
@@ -36,10 +36,14 @@ export class EventTypesRepository {
     });
   }
 
-  async getUserEventTypeForAtom(user: User, isUserOrganizationAdmin: boolean, eventTypeId: number) {
+  async getUserEventTypeForAtom(
+    user: UserWithProfile,
+    isUserOrganizationAdmin: boolean,
+    eventTypeId: number
+  ) {
     try {
       return getEventTypeById({
-        currentOrganizationId: user.organizationId,
+        currentOrganizationId: user.movedToProfile?.organizationId || user.organizationId,
         eventTypeId,
         userId: user.id,
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment

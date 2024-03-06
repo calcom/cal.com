@@ -59,7 +59,7 @@ function UpgradeTeamTip() {
   );
 }
 
-export function AvailabilitySliderTable() {
+export function AvailabilitySliderTable(props: { userTimeFormat: number | null }) {
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const [browsingDate, setBrowsingDate] = useState(dayjs());
   const [editSheetOpen, setEditSheetOpen] = useState(false);
@@ -220,6 +220,7 @@ export function AvailabilitySliderTable() {
               setSelectedUser(null); // We need to clear the user here or else the sheet will not re-render when opening a new user
             }}
             selectedUser={selectedUser}
+            userTimeFormat={props.userTimeFormat}
           />
         ) : null}
       </>
