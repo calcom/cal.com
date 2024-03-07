@@ -50,8 +50,13 @@ describe("slugify", () => {
   });
 
   // This is failing, if we want to fix it, one approach is as used in getValidRhfFieldName
-  it.skip("should remove unicode and emoji characters", () => {
-    expect(slugify("Hello 📚🕯️®️ There")).toEqual("hello---------there");
-    expect(slugify("📚🕯️®️")).toEqual("");
+  it("should remove emoji characters", () => {
+    expect(slugify("Hello 📚🕯️ There")).toEqual("hello-there");
+    expect(slugify("📚🕯️")).toEqual("");
+  });
+
+  it.skip("should remove unicode", () => {
+    expect(slugify("Hello ®️ There")).toEqual("hello---------there");
+    expect(slugify("®️")).toEqual("");
   });
 });
