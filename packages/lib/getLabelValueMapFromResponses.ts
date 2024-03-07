@@ -1,10 +1,16 @@
 import type z from "zod";
 
+import { TITLE } from "@calcom/features/bookings/lib/SystemField";
 import type { bookingResponse } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 export default function getLabelValueMapFromResponses(calEvent: CalendarEvent) {
-  const { customInputs, userFieldsResponses } = calEvent;
+  const { customInputs, userFieldsResponses, responses, eventTypeId } = calEvent;
+
+  const isDynamicEvent = !eventTypeId;
+  if (!!responses[TITLE] && !isDynamicEvent) {
+    userFieldsResponses[TITLE] = responses[TITLE];
+  }
 
   let labelValueMap: Record<string, z.infer<typeof bookingResponse>> = {};
   if (userFieldsResponses) {
