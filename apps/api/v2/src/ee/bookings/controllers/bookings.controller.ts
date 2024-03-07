@@ -13,6 +13,7 @@ import {
   HttpException,
   Query,
   Get,
+  Param,
   UseGuards,
   NotFoundException,
 } from "@nestjs/common";
@@ -30,7 +31,7 @@ import {
   handleInstantMeeting,
 } from "@calcom/platform-libraries";
 import { ApiResponse } from "@calcom/platform-types";
-import { GetBookingInput, GetBookingsInput } from "@calcom/platform-types/bookings";
+import { GetBookingsInput } from "@calcom/platform-types/bookings";
 import prisma from "@calcom/prisma";
 
 @Controller({
@@ -66,13 +67,13 @@ export class BookingsController {
     };
   }
 
-  @Get("/:bookingId")
+  @Get("/:bookingUid")
   @UseGuards(AccessTokenGuard)
-  async getBooking(@Query() queryParams: GetBookingInput): Promise<ApiResponse<unknown>> {
-    const { bookingInfo } = await getBookingInfo(queryParams.uid);
+  async getBooking(@Param("bookingUid") bookingUid: string): Promise<ApiResponse<unknown>> {
+    const { bookingInfo } = await getBookingInfo(bookingUid);
 
     if (!bookingInfo) {
-      throw new NotFoundException(`Booking with UID=${queryParams.uid} does not exist.`);
+      throw new NotFoundException(`Booking with UID=${bookingUid} does not exist.`);
     }
 
     return {
