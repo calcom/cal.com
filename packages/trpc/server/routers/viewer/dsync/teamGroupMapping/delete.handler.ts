@@ -26,3 +26,5 @@ export const deleteHandler = async ({ ctx, input }: Options) => {
 
   return { deletedGroupName: input.groupName };
 };
+
+export default deleteHandler;

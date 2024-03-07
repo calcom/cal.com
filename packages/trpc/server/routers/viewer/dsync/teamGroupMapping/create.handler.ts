@@ -25,3 +25,5 @@ export const createHandler = async ({ ctx, input }: Options) => {
 
   return { newGroupName: input.name };
 };
+
+export default createHandler;

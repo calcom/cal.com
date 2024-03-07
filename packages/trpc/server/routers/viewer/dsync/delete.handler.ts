@@ -36,3 +36,5 @@ export const deleteHandler = async ({ ctx, input }: Options) => {
 
   return null;
 };
+
+export default deleteHandler;

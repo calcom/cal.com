@@ -68,3 +68,5 @@ export const getHandler = async ({ ctx }: Options) => {
     teamGroupMapping,
   };
 };
+
+export default getHandler;
