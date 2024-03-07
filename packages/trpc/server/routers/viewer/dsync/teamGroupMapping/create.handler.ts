@@ -1,7 +1,6 @@
+import userCanCreateTeamGroupMapping from "@calcom/features/ee/dsync/lib/server/userCanCreateTeamGroupMapping";
 import prisma from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
-
-import { TRPCError } from "@trpc/server";
 
 import type { ZCreateInputSchema } from "./create.schema";
 
@@ -13,13 +12,11 @@ type Options = {
 };
 
 export const createHandler = async ({ ctx, input }: Options) => {
-  if (!ctx.user.organizationId) {
-    throw new TRPCError({ code: "FORBIDDEN", message: "User not connected to an org" });
-  }
+  const { orgId } = await userCanCreateTeamGroupMapping(ctx.user, ctx.user.organizationId, input.teamId);
 
   await prisma.dSyncTeamGroupMapping.create({
     data: {
-      orgId: ctx.user.organizationId,
+      orgId,
       teamId: input.teamId,
       groupName: input.name,
       directoryId: input.directoryId,

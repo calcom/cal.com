@@ -1,3 +1,4 @@
+import userCanCreateTeamGroupMapping from "@calcom/features/ee/dsync/lib/server/userCanCreateTeamGroupMapping";
 import prisma from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
@@ -10,10 +11,12 @@ type Options = {
 };
 
 export const getHandler = async ({ ctx }: Options) => {
+  const { orgId } = await userCanCreateTeamGroupMapping(ctx.user, ctx.user.organizationId);
+
   // Get org teams
   const teamsQuery = await prisma.team.findMany({
     where: {
-      parentId: ctx.user.organizationId,
+      parentId: orgId,
     },
     select: {
       id: true,
@@ -24,7 +27,7 @@ export const getHandler = async ({ ctx }: Options) => {
 
   const directoryId = await prisma.dSyncData.findFirst({
     where: {
-      orgId: ctx.user.organizationId,
+      orgId,
     },
     select: {
       directoryId: true,
