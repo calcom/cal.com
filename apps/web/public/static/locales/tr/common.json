@@ -2061,6 +2061,7 @@
   "workflow_automation": "İş akışı otomasyonu",
   "scheduling_for_your_team": "İş akışı otomasyonu",
   "no_members_found": "Üye bulunamadı",
+  "directory_sync": "Dizin Senkronizasyonu",
   "event_setup_length_error": "Etkinlik Kurulumu: Süre en az 1 dakika olmalıdır.",
   "availability_schedules": "Müsaitlik Planları",
   "unauthorized": "Yetkisiz",

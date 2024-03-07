@@ -4,7 +4,6 @@ import { getStripeCustomerIdFromUserId } from "@calcom/app-store/stripepayment/l
 import stripe from "@calcom/app-store/stripepayment/lib/server";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { ORGANIZATION_MIN_SEATS } from "@calcom/lib/constants";
-import { isOrganization } from "@calcom/lib/entityPermissionUtils";
 import prisma from "@calcom/prisma";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
@@ -157,7 +156,7 @@ export const updateQuantitySubscriptionFromStripe = async (teamId: number) => {
     )?.quantity;
     if (!subscriptionQuantity) throw new Error("Subscription not found");
 
-    if (!!isOrganization({ team }) && membershipCount < ORGANIZATION_MIN_SEATS) {
+    if (team.isOrganization && membershipCount < ORGANIZATION_MIN_SEATS) {
       console.info(
         `Org ${teamId} has less members than the min ${ORGANIZATION_MIN_SEATS}, skipping updating subscription.`
       );
