@@ -13,6 +13,8 @@ export type OrganizationCreation = {
   ownerOldUsername: string;
   orgDomain: string;
   orgName: string;
+  prevLink: string;
+  newLink: string;
 };
 
 export default class OrganizationCreationEmail extends BaseEmail {
@@ -28,7 +30,7 @@ export default class OrganizationCreationEmail extends BaseEmail {
     return {
       to: this.organizationCreationEvent.to,
       from: `${APP_NAME} <${this.getMailerOptions().from}>`,
-      subject: this.organizationCreationEvent.language(`email_organization_created_subject`),
+      subject: this.organizationCreationEvent.language(`email_organization_created|subject`),
       html: await renderEmail("OrganizationCreationEmail", this.organizationCreationEvent),
       text: "",
     };

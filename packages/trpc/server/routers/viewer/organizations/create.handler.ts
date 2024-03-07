@@ -126,6 +126,8 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
     ownerOldUsername: nonOrgUsernameForOwner,
     orgDomain: getOrgFullOrigin(slug, { protocol: false }),
     orgName: organization.name,
+    prevLink: `${getOrgFullOrigin("", { protocol: true })}/${ctx.user.username}`,
+    newLink: `${getOrgFullOrigin(slug, { protocol: true })}/${ownerProfile.username}`,
   });
 
   if (!organization.id) throw Error("User not created");

@@ -1,3 +1,5 @@
+import { Trans } from "next-i18next";
+
 import { APP_NAME, WEBAPP_URL, IS_PRODUCTION } from "@calcom/lib/constants";
 
 import type { OrganizationCreation } from "../../templates/organization-creation-email";
@@ -6,8 +8,11 @@ import { V2BaseEmailHtml } from "../components";
 export const OrganizationCreationEmail = (
   props: OrganizationCreation & Partial<React.ComponentProps<typeof V2BaseEmailHtml>>
 ) => {
+  const { prevLink, newLink, orgName: teamName } = props;
+  const prevLinkWithoutProtocol = props.prevLink?.replace(/https?:\/\//, "");
+  const newLinkWithoutProtocol = props.newLink?.replace(/https?:\/\//, "");
   return (
-    <V2BaseEmailHtml subject={props.language(`email_organization_created_subject`)}>
+    <V2BaseEmailHtml subject={props.language(`email_organization_created|subject`)}>
       <p style={{ fontSize: "24px", marginBottom: "16px", textAlign: "center" }}>
         <>{props.language(`You have created ${props.orgName} organization.`)}</>
       </p>
@@ -35,13 +40,10 @@ export const OrganizationCreationEmail = (
           lineHeightStep: "24px",
         }}>
         <>
-          {props.language(
-            `You have been added as an owner of the organization. Your link has been changed from cal.com/${props.ownerOldUsername} to ${props.orgDomain}/${props.ownerNewUsername} but don't worry, all previous links still work and redirect appropriately.`,
-            {
-              invitedBy: props.from.toString(),
-              appName: APP_NAME,
-            }
-          )}
+          {props.language(`You have been added as an owner of the organization.`, {
+            invitedBy: props.from.toString(),
+            appName: APP_NAME,
+          })}
         </>
       </p>
       <p
@@ -52,10 +54,26 @@ export const OrganizationCreationEmail = (
           marginTop: "48px",
           lineHeightStep: "24px",
         }}>
-        Please note: All of your personal event types have been moved into the ${props.orgName} organisation,
-        which may also include potential personal link. Please log in and make sure you have no private events
-        on your new organisational account. For personal events we recommend creating a new cal.com account
-        with a personal email address. Enjoy your new clean link!
+        <Trans i18nKey="email|existing_user_added_link_changed">
+          Your link has been changed from <a href={`https://${prevLink}`}>{prevLinkWithoutProtocol}</a> to{" "}
+          <a href={`https://${newLink}`}>{newLinkWithoutProtocol}</a> but don&apos;t worry, all previous links
+          still work and redirect appropriately.
+          <br />
+          <br />
+          Please note: All of your personal event types have been moved into the <strong>
+            {teamName}
+          </strong>{" "}
+          organisation, which may also include potential personal link.
+          <br />
+          <br />
+          Please log in and make sure you have no private events on your new organisational account.
+          <br />
+          <br />
+          For personal events we recommend creating a new account with a personal email address.
+          <br />
+          <br />
+          Enjoy your new clean link: <a href={`https://${newLink}`}>{newLinkWithoutProtocol}</a>
+        </Trans>
       </p>
 
       <div className="">

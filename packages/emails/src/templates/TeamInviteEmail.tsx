@@ -195,7 +195,7 @@ export const TeamInviteEmail = (
                   {invitedBy} has invited you to join the <strong>{teamName}</strong> organization.
                 </Trans>{" "}
                 <Trans
-                  i18nKey="email_team_invite|content_addition|existing_user_invited"
+                  i18nKey="existing_user_added_link_will_change"
                   values={{ prevLink: props.prevLink, newLink: props.newLink, teamName: props.teamName }}>
                   On accepting the invite, your link will change to your organization domain but don&apos;t
                   worry, all previous links will still work and redirect appropriately.
