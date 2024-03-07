@@ -2091,6 +2091,7 @@
   "workflow_automation": "工作流程自动化",
   "scheduling_for_your_team": "工作流程自动化",
   "no_members_found": "未找到成员",
+  "directory_sync": "目录同步",
   "event_setup_length_error": "获得设置：持续时间必须至少为 1 分钟。",
   "availability_schedules": "可预约时间表",
   "unauthorized": "未经授权",
