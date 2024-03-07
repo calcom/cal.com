@@ -83,8 +83,7 @@ export const purchaseTeamSubscription = async (input: {
   const { teamId, seats, userId, isOrg } = input;
   const { url } = await checkIfTeamPaymentRequired({ teamId });
   if (url) return { url };
-  // For orgs, enforce minimum of 30 seats
-  const quantity = isOrg ? (seats < 30 ? 30 : seats) : seats;
+  const quantity = seats;
   const customer = await getStripeCustomerIdFromUserId(userId);
   const session = await stripe.checkout.sessions.create({
     customer,
