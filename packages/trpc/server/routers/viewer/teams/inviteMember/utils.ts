@@ -369,19 +369,15 @@ export async function sendSignupToOrganizationEmail({
   team,
   translation,
   inviterName,
-  input,
+  teamId,
+  isOrg,
 }: {
   usernameOrEmail: string;
   team: Awaited<ReturnType<typeof getTeamOrThrow>>;
   translation: TFunction;
   inviterName: string;
-  input: {
-    teamId: number;
-    role: "ADMIN" | "MEMBER" | "OWNER";
-    usernameOrEmail: string | string[];
-    language: string;
-    isOrg: boolean;
-  };
+  teamId: number;
+  isOrg: boolean;
 }) {
   const token: string = randomBytes(32).toString("hex");
 
@@ -392,7 +388,7 @@ export async function sendSignupToOrganizationEmail({
       expires: new Date(new Date().setHours(168)), // +1 week
       team: {
         connect: {
-          id: input.teamId,
+          id: teamId,
         },
       },
     },
@@ -404,7 +400,7 @@ export async function sendSignupToOrganizationEmail({
     teamName: team.name,
     joinLink: `${WEBAPP_URL}/signup?token=${token}&callbackUrl=/getting-started`,
     isCalcomMember: false,
-    isOrg: input.isOrg,
+    isOrg: isOrg,
     parentTeamName: team?.parent?.name,
     isAutoJoin: false,
   });
