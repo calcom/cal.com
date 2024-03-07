@@ -6,13 +6,13 @@ import http from "../lib/http";
 
 export const QUERY_KEY = "user-booking";
 
-const useGetBooking = (id: number) => {
+const useGetBooking = (uid: string) => {
   const endpoint = new URL(BASE_URL);
 
-  endpoint.pathname = `api/${API_VERSION}/${V2_ENDPOINTS.bookings}/${id}`;
+  endpoint.pathname = `api/${API_VERSION}/${V2_ENDPOINTS.bookings}/${uid}`;
 
   const { isLoading, error, data } = useQuery({
-    queryKey: [QUERY_KEY],
+    queryKey: [QUERY_KEY, uid],
     queryFn: () => {
       return http.get(endpoint.toString()).then((res) => {
         if (res.data.status === SUCCESS_STATUS) {
