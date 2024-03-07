@@ -5,6 +5,7 @@ export const slugify = (str: string, forDisplayingInput?: boolean) => {
   if (!str) {
     return "";
   }
+
   const s = str
     .toLowerCase() // Convert to lowercase
     .trim() // Remove whitespace from both sides
@@ -14,7 +15,13 @@ export const slugify = (str: string, forDisplayingInput?: boolean) => {
     .replace(/[\s_#]+/g, "-") // Replace whitespace, # and underscores with a single dash
     .replace(/^-+/, "") // Remove dashes from start
     .replace(/\.{2,}/g, ".") // Replace consecutive periods with a single period
-    .replace(/^\.+/, ""); // Remove periods from the start
+    .replace(/^\.+/, "") // Remove periods from the start
+    .replace(
+      /([\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF])/g,
+      ""
+    ) // Removes emojis
+    .replace(/\s+/g, " ")
+    .replace(/-+/g, "-"); // Replace consecutive dashes with a single dash
 
   return forDisplayingInput ? s : s.replace(/-+$/, "").replace(/\.*$/, ""); // Remove dashes and period from end
 };
