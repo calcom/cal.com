@@ -3,6 +3,7 @@ import { SchedulesService } from "@/ee/schedules/services/schedules.service";
 import { ForAtom } from "@/lib/atoms/decorators/for-atom.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
+import { UserWithProfile } from "@/modules/users/users.repository";
 import {
   Body,
   Controller,
@@ -15,7 +16,6 @@ import {
   Patch,
   UseGuards,
 } from "@nestjs/common";
-import { User } from "@prisma/client";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import type { ScheduleWithAvailabilitiesForWeb } from "@calcom/platform-libraries";
@@ -40,24 +40,22 @@ export class SchedulesController {
 
   @Post("/")
   async createSchedule(
-    @GetUser() user: User,
+    @GetUser() user: UserWithProfile,
     @Body() bodySchedule: CreateScheduleInput,
     @ForAtom() forAtom: boolean
-  ): Promise<ApiResponse<{ schedule: ScheduleResponse | ScheduleWithAvailabilitiesForWeb }>> {
+  ): Promise<ApiResponse<ScheduleResponse>> {
     const schedule = await this.schedulesService.createUserSchedule(user.id, bodySchedule);
     const scheduleFormatted = await this.schedulesResponseService.formatSchedule(forAtom, user, schedule);
 
     return {
       status: SUCCESS_STATUS,
-      data: {
-        schedule: scheduleFormatted,
-      },
+      data: scheduleFormatted,
     };
   }
 
   @Get("/default")
   async getDefaultSchedule(
-    @GetUser() user: User,
+    @GetUser() user: UserWithProfile,
     @ForAtom() forAtom: boolean
   ): Promise<ApiResponse<ScheduleResponse | ScheduleWithAvailabilitiesForWeb | null>> {
     const schedule = await this.schedulesService.getUserScheduleDefault(user.id);
@@ -72,20 +70,18 @@ export class SchedulesController {
   }
 
   @Get("/time-zones")
-  async getTimeZones(): Promise<ApiResponse<{ timeZones: CityTimezones }>> {
+  async getTimeZones(): Promise<ApiResponse<CityTimezones>> {
     const timeZones = await this.schedulesService.getSchedulePossibleTimeZones();
 
     return {
       status: SUCCESS_STATUS,
-      data: {
-        timeZones,
-      },
+      data: timeZones,
     };
   }
 
   @Get("/:scheduleId")
   async getSchedule(
-    @GetUser() user: User,
+    @GetUser() user: UserWithProfile,
     @Param("scheduleId") scheduleId: number,
     @ForAtom() forAtom: boolean
   ): Promise<ApiResponse<ScheduleResponse | ScheduleWithAvailabilitiesForWeb>> {
@@ -94,32 +90,30 @@ export class SchedulesController {
 
     return {
       status: SUCCESS_STATUS,
-      data: {
-        schedule: scheduleFormatted,
-      },
+      data: scheduleFormatted,
     };
   }
 
   @Get("/")
   async getSchedules(
-    @GetUser() user: User,
+    @GetUser() user: UserWithProfile,
     @ForAtom() forAtom: boolean
-  ): Promise<ApiResponse<{ schedules: ScheduleResponse[] | ScheduleWithAvailabilitiesForWeb[] }>> {
+  ): Promise<ApiResponse<ScheduleResponse[] | ScheduleWithAvailabilitiesForWeb[]>> {
     const schedules = await this.schedulesService.getUserSchedules(user.id);
     const schedulesFormatted = await this.schedulesResponseService.formatSchedules(forAtom, user, schedules);
 
     return {
       status: SUCCESS_STATUS,
-      data: {
-        schedules: schedulesFormatted,
-      },
+      data: schedulesFormatted,
     };
   }
+
+  // note(Lauris): currently this endpoint is atoms only
   @Patch("/:scheduleId")
   async updateSchedule(
-    @GetUser() user: User,
+    @GetUser() user: UserWithProfile,
     @Body() bodySchedule: UpdateScheduleInput
-  ): Promise<ApiResponse<unknown>> {
+  ): Promise<ApiResponse<UpdateScheduleOutputType>> {
     const updatedSchedule: UpdateScheduleOutputType = await updateScheduleHandler({
       input: bodySchedule,
       ctx: { user },

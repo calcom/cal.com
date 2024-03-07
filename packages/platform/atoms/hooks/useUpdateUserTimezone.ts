@@ -1,7 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
 
 import { BASE_URL, API_VERSION, V2_ENDPOINTS } from "@calcom/platform-constants";
-import type { ApiResponse } from "@calcom/platform-types";
+import type { ApiResponse, UserResponse } from "@calcom/platform-types";
 
 import http from "../lib/http";
 
@@ -14,7 +14,7 @@ export const useUpdateUserTimezone = () => {
 
   endpoint.pathname = `api/${API_VERSION}/${V2_ENDPOINTS.me}`;
 
-  const mutation = useMutation<ApiResponse<undefined>, unknown, updateTimezoneInput>({
+  const mutation = useMutation<ApiResponse<UserResponse>, unknown, updateTimezoneInput>({
     mutationFn: (data) => {
       const { timeZone } = data;
 
