@@ -131,6 +131,7 @@
   "invitee_timezone": "אזור הזמן של האדם שהוזמן",
   "time_left": "זמן שנותר",
   "event_type": "סוג האירוע",
+  "duplicate_event_type": "שכפול סוג אירוע",
   "enter_meeting": "להצטרף לפגישה",
   "video_call_provider": "ספק שיחות וידאו",
   "meeting_id": "מזהה הפגישה",
