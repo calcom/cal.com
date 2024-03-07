@@ -86,6 +86,7 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/ban-ts-comment
       // @ts-ignore - descriptionAsSafeHTML is added on the fly using a prisma middleware it shouldn't be used to create event type. Such a property doesn't exist on schema
       descriptionAsSafeHTML: _descriptionAsSafeHTML,
+      secondaryEmailId,
       ...rest
     } = eventType;
 
@@ -104,6 +105,24 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
       metadata: metadata === null ? Prisma.DbNull : metadata,
       bookingFields: eventType.bookingFields === null ? Prisma.DbNull : eventType.bookingFields,
     };
+
+    // Validate the secondary email
+    if (!!secondaryEmailId) {
+      const secondaryEmail = await ctx.prisma.secondaryEmail.findUnique({
+        where: {
+          id: secondaryEmailId,
+          userId: ctx.user.id,
+        },
+      });
+      // Make sure the secondary email id belongs to the current user and its a verified one
+      if (secondaryEmail && secondaryEmail.emailVerified) {
+        data.secondaryEmail = {
+          connect: {
+            id: secondaryEmailId,
+          },
+        };
+      }
+    }
 
     const newEventType = await EventTypeRepository.create(data);
 
@@ -156,6 +175,7 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
       eventType: newEventType,
     };
   } catch (error) {
+    console.log("Error Duplicating Event Types", error);
     throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
   }
 };
