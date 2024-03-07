@@ -90,14 +90,14 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
       ...rest
     } = eventType;
 
-    const data: Prisma.EventTypeUncheckedCreateInput = {
+    const data: Prisma.EventTypeCreateInput = {
       ...rest,
       title: newEventTitle,
       slug: newSlug,
       description: newDescription,
       length: newLength,
       locations: locations ?? undefined,
-      teamId: team ? team.id : undefined,
+      team: team ? { connect: { id: team.id } } : undefined,
       users: users ? { connect: users.map((user) => ({ id: user.id })) } : undefined,
       recurringEvent: recurringEvent || undefined,
       bookingLimits: bookingLimits ?? undefined,
@@ -108,7 +108,7 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
 
     // Validate the secondary email
     if (!!secondaryEmailId) {
-      const secondaryEmail = await ctx.prisma.secondaryEmail.findUnique({
+      const secondaryEmail = await prisma.secondaryEmail.findUnique({
         where: {
           id: secondaryEmailId,
           userId: ctx.user.id,
