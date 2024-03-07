@@ -66,7 +66,7 @@ const ConfigureDirectorySync = ({ organizationId }: { organizationId: number | n
   return (
     <div>
       {!directory ? (
-        <CreateDirectory orgId={orgId} />
+        <CreateDirectory orgId={organizationId} />
       ) : (
         <>
           <DirectoryInfo directory={directory} />
