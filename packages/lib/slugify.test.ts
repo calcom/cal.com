@@ -56,7 +56,7 @@ describe("slugify", () => {
   });
 
   it.skip("should remove unicode", () => {
-    expect(slugify("Hello ®️ There")).toEqual("hello---------there");
+    expect(slugify("Hello ®️ There")).toEqual("hello-there");
     expect(slugify("®️")).toEqual("");
   });
 });
