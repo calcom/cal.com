@@ -885,7 +885,6 @@ const Main = ({
     rawData.eventTypeGroups.length === 1;
 
   const data = denormalizePayload(rawData);
-
   return (
     <>
       {data.eventTypeGroups.length > 1 || isFilteredByOnlyOneItem ? (
@@ -894,18 +893,25 @@ const Main = ({
             <MobileTeamsTab eventTypeGroups={data.eventTypeGroups} />
           ) : (
             data.eventTypeGroups.map((group, index: number) => {
-              if (group.profile.eventTypesLockedByOrg) return null;
+              const userHasManagedEventType = group.eventTypes.find(
+                (event) => event.metadata?.managedEventConfig
+              );
+              if (group.profile.eventTypesLockedByOrg && !userHasManagedEventType) return null;
               return (
                 <div
                   className="mt-4 flex flex-col"
                   data-testid={`slug-${group.profile.slug}`}
                   key={group.profile.slug}>
-                  <EventTypeListHeading
-                    profile={group.profile}
-                    membershipCount={group.metadata.membershipCount}
-                    teamId={group.teamId}
-                    bookerUrl={group.bookerUrl}
-                  />
+                  {/* If the group is readonly and empty don't leave a floating header when the user cant see the create box due 
+                    to it being readonly for that user */}
+                  {group.eventTypes.length === 0 && group.metadata.readOnly ? null : (
+                    <EventTypeListHeading
+                      profile={group.profile}
+                      membershipCount={group.metadata.membershipCount}
+                      teamId={group.teamId}
+                      bookerUrl={group.bookerUrl}
+                    />
+                  )}
 
                   {group.eventTypes.length ? (
                     <EventTypeList
