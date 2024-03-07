@@ -12,15 +12,18 @@ interface GroupNameCellProps {
   directoryId: number;
 }
 
-const GroupNameCell = (props: GroupNameCellProps) => {
-  const [groupNames, setGroupNames] = useState(props.groupNames);
+const GroupNameCell = ({ groupNames, teamId, directoryId }: GroupNameCellProps) => {
   const [showTextInput, setShowTextInput] = useState(false);
   const [newGroupName, setNewGroupName] = useState("");
   const { t } = useLocale();
+  const utils = trpc.useContext();
 
   const createMutation = trpc.viewer.dsync.teamGroupMapping.create.useMutation({
     onSuccess: (data) => {
-      setGroupNames([...groupNames, data.newGroupName]);
+      utils.viewer.dsync.teamGroupMapping.get.setData(undefined, (prev) => {
+        const teamIndex = prev.teamGroupMapping.findIndex((team) => team.id === teamId);
+        prev.teamGroupMapping[teamIndex].groupNames.push(data.newGroupName);
+      });
       setShowTextInput(false);
       setNewGroupName("");
       showToast(`Group added`, "success");
@@ -32,7 +35,11 @@ const GroupNameCell = (props: GroupNameCellProps) => {
 
   const deleteMutation = trpc.viewer.dsync.teamGroupMapping.delete.useMutation({
     onSuccess: (data) => {
-      setGroupNames(groupNames.filter((groupName) => data.deletedGroupName !== groupName));
+      utils.viewer.dsync.teamGroupMapping.get.setData(undefined, (prev) => {
+        const teamIndex = prev.teamGroupMapping.findIndex((team) => team.id === teamId);
+        const indexToRemove = prev.teamGroupMapping[teamIndex].groupNames.indexOf(data.deletedGroupName);
+        prev.teamGroupMapping[teamIndex].groupNames.splice(indexToRemove, 1);
+      });
       showToast(`Group removed`, "success");
     },
     onError: (error) => {
@@ -46,14 +53,14 @@ const GroupNameCell = (props: GroupNameCellProps) => {
       return;
     }
 
-    createMutation.mutate({ teamId: props.teamId, name: groupName, directoryId: props.directoryId });
+    createMutation.mutate({ teamId: teamId, name: groupName, directoryId: directoryId });
   };
 
   const removeGroupName = (groupName: string) => {
     deleteMutation.mutate({
-      teamId: props.teamId,
+      teamId: teamId,
       groupName: groupName,
-      directoryId: props.directoryId,
+      directoryId: directoryId,
     });
   };
 
@@ -63,11 +70,7 @@ const GroupNameCell = (props: GroupNameCellProps) => {
         <Badge variant="gray" size="lg" key={name} className="h-8 py-4">
           <div className="flex items-center space-x-2 ">
             <p>{name}</p>
-            <div
-              className="hover:bg-emphasis rounded p-1"
-              onClick={() => {
-                setGroupNames(groupNames.filter((groupName) => groupName !== name));
-              }}>
+            <div className="hover:bg-emphasis rounded p-1">
               <X className="h-4 w-4 stroke-[3px]" onClick={() => removeGroupName(name)} />
             </div>
           </div>
