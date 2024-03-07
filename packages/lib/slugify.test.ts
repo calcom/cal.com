@@ -45,6 +45,10 @@ describe("slugify", () => {
     expect(slugify("hellothere.")).toEqual("hellothere");
   });
 
+  it("Should replace consecutive dashes with a single dash", () => {
+    expect(slugify("Hello -  World 123_ !@#  Test    456   789")).toEqual("hello-world-123-test-456-789");
+  });
+
   // This is failing, if we want to fix it, one approach is as used in getValidRhfFieldName
   it.skip("should remove unicode and emoji characters", () => {
     expect(slugify("Hello 📚🕯️®️ There")).toEqual("hello---------there");

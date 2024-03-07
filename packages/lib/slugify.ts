@@ -14,7 +14,8 @@ export const slugify = (str: string, forDisplayingInput?: boolean) => {
     .replace(/[\s_#]+/g, "-") // Replace whitespace, # and underscores with a single dash
     .replace(/^-+/, "") // Remove dashes from start
     .replace(/\.{2,}/g, ".") // Replace consecutive periods with a single period
-    .replace(/^\.+/, ""); // Remove periods from the start
+    .replace(/^\.+/, "") // Remove periods from the start
+    .replace(/-+/g, "-"); // Replace consecutive dashes with a single dash
 
   return forDisplayingInput ? s : s.replace(/-+$/, "").replace(/\.*$/, ""); // Remove dashes and period from end
 };
