@@ -6,7 +6,13 @@ import { trpc } from "@calcom/trpc/react";
 import { Badge, TextField, showToast } from "@calcom/ui";
 import { X, Plus } from "@calcom/ui/components/icon";
 
-const GroupNameCell = (props) => {
+interface GroupNameCellProps {
+  groupNames: string[];
+  teamId: number;
+  directoryId: number;
+}
+
+const GroupNameCell = (props: GroupNameCellProps) => {
   const [groupNames, setGroupNames] = useState(props.groupNames);
   const [showTextInput, setShowTextInput] = useState(false);
   const [newGroupName, setNewGroupName] = useState("");
