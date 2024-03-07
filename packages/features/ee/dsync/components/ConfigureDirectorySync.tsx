@@ -20,12 +20,12 @@ import CreateDirectory from "./CreateDirectory";
 import DirectoryInfo from "./DirectoryInfo";
 import GroupTeamMappingTable from "./GroupTeamMappingTable";
 
-const ConfigureDirectorySync = ({ orgId }: { orgId: number | null }) => {
+const ConfigureDirectorySync = ({ organizationId }: { organizationId: number | null }) => {
   const { t } = useLocale();
   const utils = trpc.useContext();
   const [deleteDirectoryOpen, setDeleteDirectoryOpen] = useState(false);
 
-  const { data, isLoading, isError, error } = trpc.viewer.dsync.get.useQuery({ orgId });
+  const { data, isLoading, isError, error } = trpc.viewer.dsync.get.useQuery({ organizationId });
 
   const deleteMutation = trpc.viewer.dsync.delete.useMutation({
     async onSuccess() {
@@ -48,7 +48,7 @@ const ConfigureDirectorySync = ({ orgId }: { orgId: number | null }) => {
       return;
     }
 
-    deleteMutation.mutate({ orgId, directoryId: directory.id });
+    deleteMutation.mutate({ organizationId, directoryId: directory.id });
   };
 
   if (error || isError) {

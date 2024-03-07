@@ -27,7 +27,7 @@ export const getHandler = async ({ ctx }: Options) => {
 
   const directoryId = await prisma.dSyncData.findFirst({
     where: {
-      orgId,
+      organizationId: orgId,
     },
     select: {
       directoryId: true,
