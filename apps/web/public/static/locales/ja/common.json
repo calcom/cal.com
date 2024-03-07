@@ -2061,6 +2061,7 @@
   "workflow_automation": "ワークフローの自動化",
   "scheduling_for_your_team": "ワークフローの自動化",
   "no_members_found": "メンバーが見つかりません",
+  "directory_sync": "Directory Sync",
   "event_setup_length_error": "イベント設定：時間は 1 分以上でなくてはいけません。",
   "availability_schedules": "空き状況一覧",
   "unauthorized": "権限がありません",

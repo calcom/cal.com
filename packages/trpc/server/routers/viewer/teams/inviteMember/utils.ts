@@ -19,7 +19,6 @@ import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
 
-import type { TrpcSessionUser } from "../../../../trpc";
 import { isEmail } from "../util";
 import type { InviteMemberOptions, TeamWithParent } from "./types";
 
@@ -369,13 +368,13 @@ export async function sendSignupToOrganizationEmail({
   usernameOrEmail,
   team,
   translation,
-  ctx,
+  inviterName,
   input,
 }: {
   usernameOrEmail: string;
   team: Awaited<ReturnType<typeof getTeamOrThrow>>;
   translation: TFunction;
-  ctx: { user: NonNullable<TrpcSessionUser> };
+  inviterName: string;
   input: {
     teamId: number;
     role: "ADMIN" | "MEMBER" | "OWNER";
@@ -400,7 +399,7 @@ export async function sendSignupToOrganizationEmail({
   });
   await sendTeamInviteEmail({
     language: translation,
-    from: ctx.user.name || `${team.name}'s admin`,
+    from: inviterName || `${team.name}'s admin`,
     to: usernameOrEmail,
     teamName: team.name,
     joinLink: `${WEBAPP_URL}/signup?token=${token}&callbackUrl=/getting-started`,
