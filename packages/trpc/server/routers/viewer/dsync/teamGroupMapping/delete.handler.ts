@@ -1,7 +1,7 @@
 import userCanCreateTeamGroupMapping from "@calcom/features/ee/dsync/lib/server/userCanCreateTeamGroupMapping";
 import prisma from "@calcom/prisma";
+import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
-import type { TrpcSessionUser } from "../../../trpc";
 import type { ZDeleteInputSchema } from "./delete.schema";
 
 type Options = {
