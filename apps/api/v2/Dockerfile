@@ -23,6 +23,6 @@ RUN yarn install
 
 RUN yarn workspace @calcom/api-v2 run build
 
-EXPOSE 5555
+EXPOSE 80
 
 CMD [ "yarn", "workspace", "@calcom/api-v2", "start:prod"]
