@@ -2061,6 +2061,7 @@
   "workflow_automation": "أتمتة سير العمل",
   "scheduling_for_your_team": "أتمتة سير العمل",
   "no_members_found": "لم يُعثر على أعضاء",
+  "directory_sync": "مزامنة الدليل",
   "event_setup_length_error": "إعداد الفعالية: يجب أن تكون المدة لدقيقة على الأقل.",
   "availability_schedules": "جدولة التوافر",
   "unauthorized": "غير مصرح به",
