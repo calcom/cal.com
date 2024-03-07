@@ -1153,10 +1153,6 @@ model DSyncData {
   tenant      String
   orgId       Int?                  @unique
   org         OrganizationSettings? @relation(fields: [orgId], references: [id], onDelete: Cascade)
-  // directMappingToTeams Boolean @default(false)
-  // createNewTeams Boolean @default(false)
-  // newTeamConfig Json?
-  // groupTeamMapping Json?
 }
 
 model DSyncTeamGroupMapping {
