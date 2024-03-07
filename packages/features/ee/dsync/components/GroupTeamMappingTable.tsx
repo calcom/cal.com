@@ -12,7 +12,7 @@ interface TeamGroupMapping {
   name: string;
   id: number;
   groupNames: string[];
-  directoryId: number;
+  directoryId: string;
 }
 
 const GroupTeamMappingTable = () => {
