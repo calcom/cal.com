@@ -1,3 +1,4 @@
+import type { ColumnDef } from "@tanstack/react-table";
 import { useRef, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -7,6 +8,13 @@ import { DataTable, Button } from "@calcom/ui";
 import CreateTeamDialog from "./CreateTeamDialog";
 import GroupNameCell from "./GroupNameCell";
 
+interface TeamGroupMapping {
+  name: string;
+  id: number;
+  groupNames: string[];
+  directoryId: number;
+}
+
 const GroupTeamMappingTable = () => {
   const { t } = useLocale();
   const [createTeamDialogOpen, setCreateTeamDialogOpen] = useState(false);
@@ -15,7 +23,7 @@ const GroupTeamMappingTable = () => {
 
   const tableContainerRef = useRef<HTMLDivElement>(null);
 
-  const columns = [
+  const columns: ColumnDef<TeamGroupMapping>[] = [
     {
       id: "name",
       header: t("team"),
