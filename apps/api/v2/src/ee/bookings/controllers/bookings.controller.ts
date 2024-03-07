@@ -43,15 +43,13 @@ export class BookingsController {
 
   constructor(private readonly oAuthFlowService: OAuthFlowService) {}
 
+  // note(Rajiv): currently this endpoint is atoms only
   @Get("/")
   @UseGuards(AccessTokenGuard)
   async getBookings(
     @GetUser() user: User,
     @Query() queryParams: GetBookingsInput
   ): Promise<ApiResponse<unknown>> {
-    // at the moment we only want to return data in the format of the webapp
-    // maybe in future when we need to return a different format we can pass in
-    // for=atom in query params like we do for schedules
     const { filters, cursor, limit } = queryParams;
     const bookings = await getAllUserBookings({
       bookingListingByStatus: filters.status,
@@ -67,6 +65,7 @@ export class BookingsController {
     };
   }
 
+  // note(Rajiv): currently this endpoint is atoms only
   @Get("/:bookingUid")
   @UseGuards(AccessTokenGuard)
   async getBooking(@Param("bookingUid") bookingUid: string): Promise<ApiResponse<unknown>> {
