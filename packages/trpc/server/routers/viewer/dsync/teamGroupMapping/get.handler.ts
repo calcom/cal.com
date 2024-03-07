@@ -16,7 +16,7 @@ export const getHandler = async ({ ctx }: Options) => {
   // Get org teams
   const teamsQuery = await prisma.team.findMany({
     where: {
-      parentId: orgId,
+      parentId: organizationId,
     },
     select: {
       id: true,
