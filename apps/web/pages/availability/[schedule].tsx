@@ -106,7 +106,7 @@ export default function Availability() {
       isLoading={isPending}
       isSaving={updateMutation.isPending}
       timeFormat={timeFormat}
-      weekStart="Sunday"
+      weekStart={me.data?.weekStart || "Sunday"}
       backPath={fromEventType ? true : "/availability"}
       handleDelete={() => {
         scheduleId && deleteMutation.mutate({ scheduleId });

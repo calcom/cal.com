@@ -76,12 +76,12 @@ export type CustomClassNames = {
   formClassName?: string;
   timezoneSelectClassName?: string;
   subtitlesClassName?: string;
-  scheduleClassName?: {
-    scheduleContainerClassName?: string;
-    scheduleDayClassName?: string;
-    dayRangesClassName?: string;
-    timeRangesClassName?: string;
-    labelAndSwitchContainerClassName?: string;
+  scheduleClassNames?: {
+    scheduleContainer?: string;
+    scheduleDay?: string;
+    dayRanges?: string;
+    timeRanges?: string;
+    labelAndSwitchContainer?: string;
   };
 };
 
@@ -396,14 +396,9 @@ export function AvailabilitySettings({
                       copyTime: translations?.copy_times_to ?? t("copy_times_to"),
                       deleteTime: translations?.delete ?? t("delete"),
                     }}
-                    className={{
-                      schedule: customClassNames?.scheduleClassName?.scheduleContainerClassName,
-                      scheduleDay: customClassNames?.scheduleClassName?.scheduleDayClassName,
-                      dayRanges: customClassNames?.scheduleClassName?.dayRangesClassName,
-                      labelAndSwitchContainer:
-                        customClassNames?.scheduleClassName?.labelAndSwitchContainerClassName,
-                      timeRanges: customClassNames?.scheduleClassName?.timeRangesClassName,
-                    }}
+                    className={
+                      customClassNames?.scheduleClassNames ? { ...customClassNames.scheduleClassNames } : {}
+                    }
                     control={form.control}
                     name="schedule"
                     userTimeFormat={timeFormat}
