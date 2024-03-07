@@ -61,6 +61,16 @@ describe("PermissionsGuard", () => {
       await expect(guard.canActivate(mockContext)).resolves.toBe(true);
     });
 
+    it("should return true for empty Permissions decorator", async () => {
+      const mockContext = createMockExecutionContext({ Authorization: "Bearer token" });
+      jest.spyOn(reflector, "get").mockReturnValue([]);
+
+      let oAuthClientPermissions = 0;
+      oAuthClientPermissions |= SCHEDULE_WRITE;
+      jest.spyOn(guard, "getOAuthClientPermissions").mockResolvedValue(oAuthClientPermissions);
+      await expect(guard.canActivate(mockContext)).resolves.toBe(true);
+    });
+
     it("should return false for invalid permissions", async () => {
       const mockContext = createMockExecutionContext({ Authorization: "Bearer token" });
       jest.spyOn(reflector, "get").mockReturnValue([SCHEDULE_WRITE]);
