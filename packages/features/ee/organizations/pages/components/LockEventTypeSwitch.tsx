@@ -55,6 +55,8 @@ export const LockEventTypeSwitch = ({ currentOrg, isAdminOrOwner }: GeneralViewP
     },
   });
 
+  if (!isAdminOrOwner) return null;
+
   const currentLockedOption = formMethods.watch("currentEventTypeOptions");
 
   const { reset, getValues } = formMethods;
