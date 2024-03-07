@@ -6,5 +6,5 @@ import useGetCityTimezones from "../hooks/useGetCityTimezones";
 export function Timezone(props: TimezoneSelectProps) {
   const { isLoading, data } = useGetCityTimezones();
 
-  return <TimezoneSelectComponent {...props} data={data?.data.timeZones} isPending={isLoading} />;
+  return <TimezoneSelectComponent {...props} data={data?.data} isPending={isLoading} />;
 }

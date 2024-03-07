@@ -30,6 +30,14 @@ export class TokensRepository {
     });
   }
 
+  async invalidateAuthorizationToken(tokenId: string) {
+    return this.dbWrite.prisma.platformAuthorizationToken.delete({
+      where: {
+        id: tokenId,
+      },
+    });
+  }
+
   async getAuthorizationTokenByClientUserIds(clientId: string, userId: number) {
     return this.dbRead.prisma.platformAuthorizationToken.findFirst({
       where: {

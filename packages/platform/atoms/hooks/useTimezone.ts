@@ -7,7 +7,7 @@ export const useTimezone = (
   currentTimezone: string = new Intl.DateTimeFormat().resolvedOptions().timeZone
 ) => {
   const { data: me, isLoading } = useMe();
-  const preferredTimezone = me?.data?.user?.timeZone ?? currentTimezone;
+  const preferredTimezone = me?.data?.timeZone ?? currentTimezone;
 
   useEffect(() => {
     if (!isLoading && preferredTimezone && preferredTimezone !== currentTimezone) {
