@@ -21,8 +21,11 @@ const GroupNameCell = ({ groupNames, teamId, directoryId }: GroupNameCellProps) 
   const createMutation = trpc.viewer.dsync.teamGroupMapping.create.useMutation({
     onSuccess: (data) => {
       utils.viewer.dsync.teamGroupMapping.get.setData(undefined, (prev) => {
-        const teamIndex = prev.teamGroupMapping.findIndex((team) => team.id === teamId);
-        prev.teamGroupMapping[teamIndex].groupNames.push(data.newGroupName);
+        if (prev) {
+          const teamIndex = prev.teamGroupMapping.findIndex((team) => team.id === teamId);
+          prev.teamGroupMapping[teamIndex].groupNames.push(data.newGroupName);
+        }
+        return prev;
       });
       setShowTextInput(false);
       setNewGroupName("");
@@ -36,9 +39,12 @@ const GroupNameCell = ({ groupNames, teamId, directoryId }: GroupNameCellProps) 
   const deleteMutation = trpc.viewer.dsync.teamGroupMapping.delete.useMutation({
     onSuccess: (data) => {
       utils.viewer.dsync.teamGroupMapping.get.setData(undefined, (prev) => {
-        const teamIndex = prev.teamGroupMapping.findIndex((team) => team.id === teamId);
-        const indexToRemove = prev.teamGroupMapping[teamIndex].groupNames.indexOf(data.deletedGroupName);
-        prev.teamGroupMapping[teamIndex].groupNames.splice(indexToRemove, 1);
+        if (prev) {
+          const teamIndex = prev.teamGroupMapping.findIndex((team) => team.id === teamId);
+          const indexToRemove = prev.teamGroupMapping[teamIndex].groupNames.indexOf(data.deletedGroupName);
+          prev.teamGroupMapping[teamIndex].groupNames.splice(indexToRemove, 1);
+        }
+        return prev;
       });
       showToast(`Group removed`, "success");
     },
@@ -60,7 +66,6 @@ const GroupNameCell = ({ groupNames, teamId, directoryId }: GroupNameCellProps) 
     deleteMutation.mutate({
       teamId: teamId,
       groupName: groupName,
-      directoryId: directoryId,
     });
   };
 
