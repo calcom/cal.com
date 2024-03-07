@@ -217,7 +217,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
               placeholder={
                 selectedSecondaryEmailId === -1 && (
                   <span className="text-default min-w-0 overflow-hidden truncate whitespace-nowrap">
-                    <Badge variant="blue">Default</Badge> {user?.email || ""}
+                    <Badge variant="blue">{t("default")}</Badge> {user?.email || ""}
                   </span>
                 )
               }
