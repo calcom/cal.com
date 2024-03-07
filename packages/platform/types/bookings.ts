@@ -1,5 +1,5 @@
 import { Type } from "class-transformer";
-import { ValidateNested, IsNumber, Min, Max, IsString, IsOptional, IsArray, IsEnum } from "class-validator";
+import { ValidateNested, IsNumber, Min, Max, IsOptional, IsArray, IsEnum } from "class-validator";
 
 enum Status {
   upcoming = "upcoming",
@@ -39,9 +39,4 @@ export class GetBookingsInput {
   @IsNumber()
   @IsOptional()
   cursor?: number | null;
-}
-
-export class GetBookingInput {
-  @IsString()
-  uid!: string;
 }
