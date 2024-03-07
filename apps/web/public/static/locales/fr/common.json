@@ -2136,6 +2136,7 @@
   "scheduling_for_your_team": "Automatisation de workflows",
   "scheduling_for_your_team_description": "Planifiez pour votre équipe grâce à la planification collective et par permutation circulaire",
   "no_members_found": "Aucun membre trouvé",
+  "directory_sync": "Synchronisation des dossiers",
   "event_setup_length_error": "Configuration de l'événement : la durée doit être d'au moins 1 minute.",
   "availability_schedules": "Horaires de disponibilité",
   "unauthorized": "Non autorisé",
