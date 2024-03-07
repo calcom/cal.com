@@ -61,7 +61,7 @@ const handleGroupEvents = async (event: DirectorySyncEvent, orgId: number) => {
   // TODO: Handle the case where display property is not an email
 
   if (isEmail) {
-    userEmails = eventData.raw.members.map((member) => member.display);
+    userEmails = eventData.raw.members.map((member: { display: string }) => member.display);
   }
 
   // Find existing users
@@ -80,11 +80,6 @@ const handleGroupEvents = async (event: DirectorySyncEvent, orgId: number) => {
       identityProvider: true,
       profiles: true,
       locale: true,
-      profiles: {
-        select: {
-          organizationId: true,
-        },
-      },
       teams: {
         select: {
           id: true,
