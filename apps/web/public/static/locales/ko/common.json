@@ -2061,6 +2061,7 @@
   "workflow_automation": "워크플로 자동화",
   "scheduling_for_your_team": "워크플로 자동화",
   "no_members_found": "구성원 없음",
+  "directory_sync": "디렉토리 동기화",
   "event_setup_length_error": "이벤트 설정: 지속 시간은 1분 이상이어야 합니다.",
   "availability_schedules": "사용 가능한 일정",
   "unauthorized": "미승인",

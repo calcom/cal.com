@@ -2061,6 +2061,7 @@
   "workflow_automation": "Automatizarea fluxului de lucru",
   "scheduling_for_your_team": "Automatizarea fluxului de lucru",
   "no_members_found": "Nu s-a găsit niciun membru",
+  "directory_sync": "Sincronizare director",
   "event_setup_length_error": "Configurare eveniment: Durata trebuie să fie de cel puțin 1 minut.",
   "availability_schedules": "Programe de disponibilitate",
   "unauthorized": "Neautorizat",
