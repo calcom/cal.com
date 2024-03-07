@@ -2068,6 +2068,7 @@
   "workflow_automation": "Tự động hoá dòng công việc",
   "scheduling_for_your_team": "Tự động hoá dòng công việc",
   "no_members_found": "Không tìm thấy thành viên nào",
+  "directory_sync": "Đồng bộ thư mục",
   "event_setup_length_error": "Thiết lập sự kiện: Thời lượng phải ít nhất 1 phút.",
   "availability_schedules": "Lịch trống",
   "unauthorized": "Chưa được uỷ quyền",
