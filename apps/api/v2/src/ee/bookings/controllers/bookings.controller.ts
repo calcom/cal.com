@@ -1,6 +1,5 @@
 import { CreateBookingInput } from "@/ee/bookings/inputs/create-booking.input";
 import { CreateReccuringBookingInput } from "@/ee/bookings/inputs/create-reccuring-booking.input";
-import { BookingsService } from "@/ee/bookings/services/bookings.service";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
 import { OAuthFlowService } from "@/modules/oauth-clients/services/oauth-flow.service";
@@ -15,6 +14,7 @@ import {
   Query,
   Get,
   UseGuards,
+  NotFoundException,
 } from "@nestjs/common";
 import { User } from "@prisma/client";
 import { Request } from "express";
@@ -31,6 +31,7 @@ import {
 } from "@calcom/platform-libraries";
 import { ApiResponse } from "@calcom/platform-types";
 import { GetBookingInput, GetBookingsInput } from "@calcom/platform-types/bookings";
+import prisma from "@calcom/prisma";
 
 @Controller({
   path: "ee/bookings",
@@ -39,10 +40,7 @@ import { GetBookingInput, GetBookingsInput } from "@calcom/platform-types/bookin
 export class BookingsController {
   private readonly logger = new Logger("ee bookings controller");
 
-  constructor(
-    private readonly oAuthFlowService: OAuthFlowService,
-    private readonly bookingsService: BookingsService
-  ) {}
+  constructor(private readonly oAuthFlowService: OAuthFlowService) {}
 
   @Get("/")
   @UseGuards(AccessTokenGuard)
@@ -50,14 +48,21 @@ export class BookingsController {
     @GetUser() user: User,
     @Query() queryParams: GetBookingsInput
   ): Promise<ApiResponse<unknown>> {
-    const bookings = this.bookingsService.getUserBookings(user.id);
-    const bks = getAllUserBookings({});
+    // at the moment we only want to return data in the format of the webapp
+    // maybe in future when we need to return a different format we can pass in
+    // for=atom in query params like we do for schedules
+    const { filters, cursor, limit } = queryParams;
+    const bookings = await getAllUserBookings({
+      bookingListingByStatus: filters.status,
+      skip: cursor ?? 0,
+      take: limit ?? 10,
+      filters: filters,
+      ctx: { user: { email: user.email, id: user.id }, prisma: prisma },
+    });
 
     return {
       status: SUCCESS_STATUS,
-      data: {
-        bookings,
-      },
+      data: bookings,
     };
   }
 
@@ -65,6 +70,10 @@ export class BookingsController {
   @UseGuards(AccessTokenGuard)
   async getBooking(@Query() queryParams: GetBookingInput): Promise<ApiResponse<unknown>> {
     const { bookingInfo } = await getBookingInfo(queryParams.uid);
+
+    if (!bookingInfo) {
+      throw new NotFoundException(`Booking with UID=${queryParams.uid} does not exist.`);
+    }
 
     return {
       status: SUCCESS_STATUS,
