@@ -9,7 +9,7 @@ import { X, Plus } from "@calcom/ui/components/icon";
 interface GroupNameCellProps {
   groupNames: string[];
   teamId: number;
-  directoryId: number;
+  directoryId: string;
 }
 
 const GroupNameCell = ({ groupNames, teamId, directoryId }: GroupNameCellProps) => {
