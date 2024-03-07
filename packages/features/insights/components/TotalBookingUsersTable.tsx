@@ -9,11 +9,10 @@ export const TotalBookingUsersTable = ({
   data:
     | {
         userId: number | null;
-        user: User;
+        user: Pick<User, "avatarUrl" | "name">;
         emailMd5?: string;
         count: number;
         username?: string;
-        avatarUrl: string;
       }[]
     | undefined;
 }) => {
