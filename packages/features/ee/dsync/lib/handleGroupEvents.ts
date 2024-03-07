@@ -80,11 +80,7 @@ const handleGroupEvents = async (event: DirectorySyncEvent, orgId: number) => {
       identityProvider: true,
       profiles: true,
       locale: true,
-      teams: {
-        select: {
-          id: true,
-        },
-      },
+      teams: true,
       password: {
         select: {
           hash: true,
@@ -157,8 +153,8 @@ const handleGroupEvents = async (event: DirectorySyncEvent, orgId: number) => {
     );
 
     await Promise.all([
-      ...newMembers.map((user) => {
-        const translation = getTranslation(user.locale || "en", "common");
+      ...newMembers.map(async (user) => {
+        const translation = await getTranslation(user.locale || "en", "common");
         return sendExistingUserTeamInviteEmails({
           currentUserTeamName: group.team.name,
           existingUsersWithMembersips: [user],
