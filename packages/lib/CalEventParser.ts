@@ -112,12 +112,12 @@ export const getAppsStatus = (calEvent: CalendarEvent, t: TFunction) => {
     `;
 };
 
-export const getDescription = (calEvent: CalendarEvent, t: TFunction) => {
+export const getDescription = (calEvent: CalendarEvent, t: TFunction, shouldReplaceChars = false) => {
   if (!calEvent.description) {
     return "";
   }
   return `\n${t("description")}
-    ${calEvent.description}
+    ${shouldReplaceChars ? (calEvent.description || "").replace("*", "") : calEvent.description}
     `;
 };
 export const getLocation = (calEvent: CalendarEvent) => {
@@ -179,7 +179,8 @@ export const getRescheduleLink = (calEvent: CalendarEvent): string => {
 export const getRichDescription = (
   calEvent: CalendarEvent,
   t_?: TFunction /*, attendee?: Person*/,
-  includeAppStatus = false
+  includeAppStatus = false,
+  shouldReplaceChars = false
 ) => {
   const t = t_ ?? calEvent.organizer.language.translate;
 
@@ -190,7 +191,7 @@ ${getWhen(calEvent, t)}
 ${getWho(calEvent, t)}
 ${t("where")}:
 ${getLocation(calEvent)}
-${getDescription(calEvent, t)}
+${getDescription(calEvent, t, shouldReplaceChars)}
 ${getAdditionalNotes(calEvent, t)}
 ${getUserFieldsResponses(calEvent)}
 ${includeAppStatus ? getAppsStatus(calEvent, t) : ""}

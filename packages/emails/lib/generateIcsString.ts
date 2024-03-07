@@ -54,7 +54,7 @@ const generateIcsString = ({
     ${title}
     ${subtitle}
 
-    ${getRichDescription(event, t)}
+    ${getRichDescription(event, t, false, true)}
     `.trim();
 
     return body;
