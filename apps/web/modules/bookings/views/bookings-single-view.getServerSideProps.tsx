@@ -72,7 +72,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     } as const;
   }
 
-  const eventTypeRaw = !bookingInfoRaw?.eventTypeId
+  const eventTypeRaw = !bookingInfoRaw.eventTypeId
     ? getDefaultEvent(eventTypeSlug || "")
     : await getEventTypesFromDB(bookingInfoRaw.eventTypeId);
   if (!eventTypeRaw) {
