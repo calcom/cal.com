@@ -14,6 +14,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server";
 import { checkUsername } from "@calcom/lib/server/checkUsername";
+import { updateNewTeamMemberEventTypes } from "@calcom/lib/server/queries";
 import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
 import slugify from "@calcom/lib/slugify";
 import { updateWebUser as syncServicesUpdateWebUser } from "@calcom/lib/sync/SyncServiceManager";
@@ -201,6 +202,27 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
   if ("" === input.avatar) {
     data.avatarUrl = null;
     data.avatar = null;
+  }
+  if (input.completedOnboarding) {
+    const userTeams = await prisma.user.findFirst({
+      where: {
+        id: user.id,
+      },
+      select: {
+        teams: {
+          select: {
+            id: true,
+          },
+        },
+      },
+    });
+    if (userTeams && userTeams.teams.length > 0) {
+      await Promise.all(
+        userTeams.teams.map(async (team) => {
+          await updateNewTeamMemberEventTypes(user.id, team.id);
+        })
+      );
+    }
   }
 
   const updatedUserSelect = Prisma.validator<Prisma.UserDefaultArgs>()({
