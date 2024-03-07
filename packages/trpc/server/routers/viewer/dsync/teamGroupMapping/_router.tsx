@@ -1,5 +1,5 @@
 import authedOrgAdminProcedure from "@calcom/trpc/server/procedures/authedProcedure";
-import { router } from "@calcom/trpc/server/trpc";
+import { router, importHandler } from "@calcom/trpc/server/trpc";
 
 import { ZCreateInputSchema } from "./create.schema";
 import { ZDeleteInputSchema } from "./delete.schema";
@@ -9,7 +9,7 @@ const NAMESPACE = "teamGroupMapping";
 const namespaced = (s: string) => `${NAMESPACE}.${s}`;
 
 export const teamGroupMappingRouter = router({
-  get: authedOrgAdminProcedure.input(ZGetInputSchema).query(async (opts) => {
+  get: authedOrgAdminProcedure.query(async (opts) => {
     const handler = await importHandler(namespaced("get"), () => import("./get.handler"));
     return handler(opts);
   }),
