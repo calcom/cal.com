@@ -223,6 +223,11 @@ async function handleExistingUsersInvites({
         parentId: team.parentId,
         accepted: false,
       });
+      await Promise.all(
+        regularUsers.map(async (user) => {
+          await updateNewTeamMemberEventTypes(user.id, team.id);
+        })
+      );
       await sendExistingUserTeamInviteEmails({
         currentUserName: inviter.name,
         currentUserTeamName: team?.name,
