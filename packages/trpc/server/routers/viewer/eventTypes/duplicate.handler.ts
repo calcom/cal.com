@@ -175,7 +175,6 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
       eventType: newEventType,
     };
   } catch (error) {
-    console.log("Error Duplicating Event Types", error);
-    throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+    throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: `Error duplicating event type ${error}` });
   }
 };
