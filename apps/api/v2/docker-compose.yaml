@@ -11,4 +11,4 @@ services:
       - redis_data:/data
 
 volumes:
-  redis_data:
+  - redis_data:
