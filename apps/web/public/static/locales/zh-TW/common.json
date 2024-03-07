@@ -2061,6 +2061,7 @@
   "workflow_automation": "工作流程自動化",
   "scheduling_for_your_team": "工作流程自動化",
   "no_members_found": "找不到成員",
+  "directory_sync": "Directory Sync",
   "event_setup_length_error": "活動設定：持續時間至少必須為 1 分鐘。",
   "availability_schedules": "可預約時間行程表",
   "unauthorized": "未授權",

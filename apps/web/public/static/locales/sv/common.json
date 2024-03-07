@@ -2061,6 +2061,7 @@
   "workflow_automation": "Automatisering av arbetsflöde",
   "scheduling_for_your_team": "Automatisering av arbetsflöde",
   "no_members_found": "Inga medlemmar hittades",
+  "directory_sync": "Katalogsynkronisering",
   "event_setup_length_error": "Konfigurering av evenemang: Längden måste vara minst 1 minut.",
   "availability_schedules": "Scheman för tillgänglighet",
   "unauthorized": "Obehörig",
