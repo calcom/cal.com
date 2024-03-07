@@ -77,13 +77,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       OR: [
         {
           startDate: {
-            lt: dayjs.utc().subtract(1, "day").toDate(),
+            lt: dayjs.utc().add(2, "day").toDate(),
           },
           endDate: null, //test if this works as expected
         },
         {
           endDate: {
-            lt: dayjs.utc().subtract(1, "day").toDate(),
+            lt: dayjs.utc().add(2, "day").toDate(),
           },
         },
       ],
@@ -108,13 +108,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         {
           startDate: {
             gte: dayjs.utc().subtract(1, "day").toDate(),
-            lte: dayjs.utc().add(1, "day").toDate(),
+            lte: dayjs.utc().add(2, "day").toDate(),
           },
         },
         {
           endDate: {
             gte: dayjs.utc().subtract(1, "day").toDate(),
-            lte: dayjs.utc().add(1, "day").toDate(),
+            lte: dayjs.utc().add(2, "day").toDate(),
           },
         },
       ],
@@ -123,14 +123,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   });
 
   for (const travelSchedule of travelSchedulesCloseToCurrentDate) {
-    const startDateUTC = dayjs(travelSchedule.startDate).utc();
-    const endDateUTC = dayjs(travelSchedule.endDate).utc();
+    const userTz = travelSchedule.user.timeZone;
+    const offset = dayjs().tz(userTz).utcOffset();
 
-    if (dayjs.utc().isAfter(startDateUTC) && !travelSchedule.prevTimeZone) {
+    // midnight in user's time zone
+    const startDateUTC = dayjs(travelSchedule.startDate).subtract(offset, "minute");
+    // 23:59 in user's time zone
+    const endDateUTC = dayjs(travelSchedule.endDate).subtract(offset, "minute");
+    if (
+      (dayjs.utc().isSame(startDateUTC) || dayjs.utc().isAfter(startDateUTC)) &&
+      !travelSchedule.prevTimeZone
+    ) {
       // travel schedule has started and new timezone wasn't set yet
       await setNewTimeZone(travelSchedule.timeZone, travelSchedule.user);
 
-      if (!endDateUTC) {
+      if (!travelSchedule.endDate) {
         await prisma.travelSchedule.delete({
           where: {
             id: travelSchedule.id,
@@ -147,7 +154,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         });
       }
     }
-    if (dayjs.utc().isAfter(endDateUTC)) {
+    if (dayjs().utc().isSame(endDateUTC) || dayjs.utc().isAfter(endDateUTC)) {
       if (travelSchedule.prevTimeZone) {
         // travel schedule ended, change back to original timezone
         await setNewTimeZone(travelSchedule.prevTimeZone, travelSchedule.user);
