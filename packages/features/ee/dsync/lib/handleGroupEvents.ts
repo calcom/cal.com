@@ -14,7 +14,7 @@ import {
 
 import createUsersAndConnectToOrg from "./users/createUsersAndConnectToOrg";
 
-const handleGroupEvents = async (event: DirectorySyncEvent, orgId: number) => {
+const handleGroupEvents = async (event: DirectorySyncEvent, organizationId: number) => {
   const { dsyncController } = await jackson();
   // Find the group name associated with the event
   const eventData = event.data as Group;
@@ -28,7 +28,7 @@ const handleGroupEvents = async (event: DirectorySyncEvent, orgId: number) => {
     where: {
       directoryId: event.directory_id,
       groupName: eventData.name,
-      orgId,
+      organizationId,
     },
     select: {
       teamId: true,
@@ -50,7 +50,7 @@ const handleGroupEvents = async (event: DirectorySyncEvent, orgId: number) => {
     return;
   }
 
-  const org = await getTeamOrThrow(orgId);
+  const org = await getTeamOrThrow(organizationId);
 
   // Check if the group member display property is an email
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -136,7 +136,7 @@ const handleGroupEvents = async (event: DirectorySyncEvent, orgId: number) => {
               },
               {
                 userId: user.id,
-                teamId: orgId,
+                teamId: organizationId,
                 role: MembershipRole.MEMBER,
                 accepted: true,
               },
@@ -150,7 +150,7 @@ const handleGroupEvents = async (event: DirectorySyncEvent, orgId: number) => {
     // Send emails to new members
     const newMembers = users.filter((user) => !user.teams.find((team) => team.id === group.teamId));
     const newOrgMembers = users.filter(
-      (user) => !user.profiles.find((profile) => profile.organizationId === orgId)
+      (user) => !user.profiles.find((profile) => profile.organizationId === organizationId)
     );
 
     await Promise.all([
@@ -169,7 +169,7 @@ const handleGroupEvents = async (event: DirectorySyncEvent, orgId: number) => {
       ...newOrgMembers.map((user) => {
         return createAProfileForAnExistingUser({
           user,
-          organizationId: orgId,
+          organizationId,
         });
       }),
     ]);

@@ -49,7 +49,7 @@ const handleEvents = async (event: DirectorySyncEvent) => {
     },
     select: {
       id: true,
-      orgId: true,
+      organizationId: true,
     },
   });
 
@@ -57,17 +57,17 @@ const handleEvents = async (event: DirectorySyncEvent) => {
     throw new Error("Directory sync data not found");
   }
 
-  const { orgId } = dSyncData;
+  const { organizationId } = dSyncData;
 
-  if (!orgId) {
+  if (!organizationId) {
     throw new Error(`Org ID not found for dsync ${dSyncData.id}`);
   }
 
   if (event.event.includes("group")) {
-    handleGroupEvents(event, orgId);
+    handleGroupEvents(event, organizationId);
   }
 
   if (event.event === "user.created" || event.event === "user.updated") {
-    await handleUserEvents(event, orgId);
+    await handleUserEvents(event, organizationId);
   }
 };

@@ -1157,12 +1157,12 @@ model DSyncData {
 }
 
 model DSyncTeamGroupMapping {
-  id          Int    @id @default(autoincrement())
-  orgId       Int
-  teamId      Int
-  team        Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  directoryId String
-  groupName   String
+  id             Int    @id @default(autoincrement())
+  organizationId Int
+  teamId         Int
+  team           Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  directoryId    String
+  groupName      String
 
   @@unique([teamId, groupName])
 }
