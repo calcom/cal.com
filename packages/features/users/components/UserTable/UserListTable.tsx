@@ -207,6 +207,17 @@ export function UserListTable() {
           );
         },
         filterFn: (rows, id, filterValue) => {
+          if (filterValue.length === 1 && filterValue[0] === "PENDING") {
+            // Show only pending members
+            return !rows.original.accepted;
+          }
+
+          if (filterValue.length > 1 && filterValue.includes("PENDING")) {
+            // Show pending members and the selected roles
+            return !rows.original.accepted && filterValue.includes(rows.getValue(id));
+          }
+
+          // Show only the selected roles
           return filterValue.includes(rows.getValue(id));
         },
       },
@@ -224,7 +235,10 @@ export function UserListTable() {
                   data-testid2={`member-${username}-pending`}
                   variant="red"
                   className="text-xs"
-                  data-testid={`email-${email.replace("@", "")}-pending`}>
+                  data-testid={`email-${email.replace("@", "")}-pending`}
+                  onClick={() => {
+                    table.getColumn("role")?.setFilterValue(["PENDING"]);
+                  }}>
                   Pending
                 </Badge>
               )}
@@ -351,6 +365,7 @@ export function UserListTable() {
               { label: "Owner", value: "OWNER" },
               { label: "Admin", value: "ADMIN" },
               { label: "Member", value: "MEMBER" },
+              { label: "Pending", value: "PENDING" },
             ],
           },
           {
