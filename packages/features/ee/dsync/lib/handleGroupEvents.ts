@@ -84,6 +84,7 @@ const handleGroupEvents = async (event: DirectorySyncEvent, orgId: number) => {
       password: {
         select: {
           hash: true,
+          userId: true,
         },
       },
     },
