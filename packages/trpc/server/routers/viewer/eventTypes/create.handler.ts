@@ -86,7 +86,7 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
 
   // If we are in an organization & they are not admin & they are not creating an event on a teamID
   // Check if evenTypes are locked.
-  if (ctx.user.organizationId && !!!ctx.user?.organization?.isOrgAdmin && !teamId) {
+  if (ctx.user.organizationId && !ctx.user?.organization?.isOrgAdmin && !teamId) {
     const orgSettings = await ctx.prisma.organizationSettings.findUnique({
       where: {
         organizationId: ctx.user.organizationId,
