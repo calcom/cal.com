@@ -209,7 +209,11 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
         id: user.id,
       },
       select: {
-        teams: true,
+        teams: {
+          select: {
+            id: true,
+          },
+        },
       },
     });
     if (userTeams && userTeams.teams.length > 0) {
