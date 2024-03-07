@@ -11,7 +11,7 @@ type Options = {
 };
 
 export const getHandler = async ({ ctx }: Options) => {
-  const { orgId } = await userCanCreateTeamGroupMapping(ctx.user, ctx.user.organizationId);
+  const { organizationId } = await userCanCreateTeamGroupMapping(ctx.user, ctx.user.organizationId);
 
   // Get org teams
   const teamsQuery = await prisma.team.findMany({
@@ -27,7 +27,7 @@ export const getHandler = async ({ ctx }: Options) => {
 
   const directoryId = await prisma.dSyncData.findFirst({
     where: {
-      organizationId: orgId,
+      organizationId,
     },
     select: {
       directoryId: true,

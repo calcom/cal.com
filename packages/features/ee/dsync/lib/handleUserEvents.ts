@@ -12,7 +12,7 @@ import createUsersAndConnectToOrg from "./users/createUsersAndConnectToOrg";
 import dSyncUserSelect from "./users/dSyncUserSelect";
 import inviteExistingUserToOrg from "./users/inviteExistingUserToOrg";
 
-const handleUserEvents = async (event: DirectorySyncEvent, orgId: number) => {
+const handleUserEvents = async (event: DirectorySyncEvent, organizationId: number) => {
   const eventData = event.data as User;
   const userEmail = eventData.email;
   // Check if user exists in DB
@@ -30,7 +30,7 @@ const handleUserEvents = async (event: DirectorySyncEvent, orgId: number) => {
 
   const translation = await getTranslation(user?.locale || "en", "common");
 
-  const org = await getTeamOrThrow(orgId);
+  const org = await getTeamOrThrow(organizationId);
 
   if (!org) {
     throw new Error("Org not found");
@@ -59,7 +59,7 @@ const handleUserEvents = async (event: DirectorySyncEvent, orgId: number) => {
       // If data.active is false then remove the user from the org
       await removeUserFromOrg({
         userId: user.id,
-        orgId,
+        orgId: organizationId,
       });
     }
     // If user is not in DB, create user and add to the org
@@ -74,7 +74,7 @@ const handleUserEvents = async (event: DirectorySyncEvent, orgId: number) => {
       team: org,
       translation,
       inviterName: org.name,
-      teamId: orgId,
+      teamId: organizationId,
       isOrg: true,
     });
   }

@@ -6,17 +6,17 @@ import { TRPCError } from "@trpc/server";
 
 const userCanCreateTeamGroupMapping = async (
   user: NonNullable<TrpcSessionUser>,
-  orgId: number | null,
+  organizationId: number | null,
   teamId?: number
 ) => {
-  if (!orgId) {
+  if (!organizationId) {
     throw new TRPCError({
       code: "BAD_REQUEST",
       message: "Could not find organization id",
     });
   }
 
-  const { message, access } = await canAccess(user, orgId);
+  const { message, access } = await canAccess(user, organizationId);
   if (!access) {
     throw new TRPCError({
       code: "BAD_REQUEST",
@@ -28,7 +28,7 @@ const userCanCreateTeamGroupMapping = async (
     const orgTeam = await prisma.team.findFirst({
       where: {
         id: teamId,
-        parentId: orgId,
+        parentId: organizationId,
       },
       select: {
         id: true,
@@ -43,7 +43,7 @@ const userCanCreateTeamGroupMapping = async (
     }
   }
 
-  return { orgId };
+  return { organizationId };
 };
 
 export default userCanCreateTeamGroupMapping;

@@ -12,11 +12,15 @@ type Options = {
 };
 
 export const createHandler = async ({ ctx, input }: Options) => {
-  const { orgId } = await userCanCreateTeamGroupMapping(ctx.user, ctx.user.organizationId, input.teamId);
+  const { organizationId } = await userCanCreateTeamGroupMapping(
+    ctx.user,
+    ctx.user.organizationId,
+    input.teamId
+  );
 
   await prisma.dSyncTeamGroupMapping.create({
     data: {
-      orgId,
+      organizationId,
       teamId: input.teamId,
       groupName: input.name,
       directoryId: input.directoryId,
