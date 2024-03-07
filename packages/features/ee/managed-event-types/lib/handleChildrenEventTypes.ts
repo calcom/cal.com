@@ -1,4 +1,5 @@
 import type { Prisma } from "@prisma/client";
+// eslint-disable-next-line no-restricted-imports
 import type { DeepMockProxy } from "vitest-mock-extended";
 
 import { sendSlugReplacementEmail } from "@calcom/emails/email-manager";
@@ -217,6 +218,24 @@ export default async function handleChildrenEventTypes({
       teamName: oldEventType.team?.name || null,
     });
 
+    const { unlockedFields } = managedEventTypeValues.metadata?.managedEventConfig;
+    const unlockedFieldProps = !unlockedFields
+      ? {}
+      : Object.keys(unlockedFields).reduce((acc, key) => {
+          const filteredKey =
+            key === "afterBufferTime"
+              ? "afterEventBuffer"
+              : key === "beforeBufferTime"
+              ? "beforeEventBuffer"
+              : key;
+          acc[filteredKey] = true;
+          return acc;
+        }, {});
+
+    // Add to payload all eventType values that belong to locked fields, changed or unchanged
+    // Ignore from payload any eventType values that belong to unlocked fields
+    const updatePayload = allManagedEventTypePropsZod.omit(unlockedFieldProps).parse(eventType);
+
     // Update event types for old users
     const oldEventTypes = await prisma.$transaction(
       oldUserIds.map((userId) => {
@@ -228,7 +247,7 @@ export default async function handleChildrenEventTypes({
             },
           },
           data: {
-            ...updatedValues,
+            ...updatePayload,
             hashedLink: hashedLinkQuery(userId),
             hidden: children?.find((ch) => ch.owner.id === userId)?.hidden ?? false,
           },
