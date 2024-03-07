@@ -2140,6 +2140,7 @@
   "scheduling_for_your_team": "אוטומצית תהליך עבודה",
   "scheduling_for_your_team_description": "עריכת תזמון לצוות שלך באופן שיתופי ולפי התור",
   "no_members_found": "לא נמצא אף חבר",
+  "directory_sync": "סנכרון ספריות",
   "event_setup_length_error": "הגדרת אירוע: משך הזמן חייב להיות לפחות דקה אחת.",
   "availability_schedules": "לוחות זמנים לזמינוּת",
   "unauthorized": "אין הרשאה",
