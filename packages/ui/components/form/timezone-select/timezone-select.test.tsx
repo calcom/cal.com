@@ -35,7 +35,7 @@ const runtimeMock = async (isPending: boolean) => {
 };
 
 const formatOffset = (offset: string) =>
-  offset.replace(/^([-+])(0)(\d):00$/, (_, sign, zero, hour) => `${sign}${hour}:00`);
+  offset.replace(/^([-+])(0)(\d):00$/, (_, sign, _zero, hour) => `${sign}${hour}:00`);
 const formatTimeZoneWithOffset = (timeZone: string) =>
   `${timeZone} GMT ${formatOffset(dayjs.tz(undefined, timeZone).format("Z"))}`;
 
