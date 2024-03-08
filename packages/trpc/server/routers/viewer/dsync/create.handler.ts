@@ -54,3 +54,5 @@ export const createHandler = async ({ ctx, input }: Options) => {
 
   return data;
 };
+
+export default createHandler;
