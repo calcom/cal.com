@@ -27,6 +27,7 @@ type BookEventFormProps = {
   bookingForm: UseBookingFormReturnType["bookingForm"];
   renderConfirmNotVerifyEmailButtonCond: boolean;
   extraOptions: Record<string, string | string[]>;
+  isPlatform?: boolean;
 };
 
 export const BookEventForm = ({
@@ -41,6 +42,7 @@ export const BookEventForm = ({
   bookingForm,
   children,
   extraOptions,
+  isPlatform = false,
 }: Omit<BookEventFormProps, "event"> & {
   eventQuery: useEventReturnType;
   rescheduleUid: string | null;
@@ -112,19 +114,21 @@ export const BookEventForm = ({
             />
           </div>
         )}
-        <div className="text-subtle my-3 w-full text-xs opacity-80">
-          <Trans i18nKey="signing_up_terms">
-            By proceeding, you agree to our{" "}
-            <Link className="text-emphasis hover:underline" href={`${WEBSITE_URL}/terms`} target="_blank">
-              <a>Terms</a>
-            </Link>{" "}
-            and{" "}
-            <Link className="text-emphasis hover:underline" href={`${WEBSITE_URL}/privacy`} target="_blank">
-              <a>Privacy Policy</a>
-            </Link>
-            .
-          </Trans>
-        </div>
+        {!isPlatform && (
+          <div className="text-subtle my-3 w-full text-xs opacity-80">
+            <Trans i18nKey="signing_up_terms">
+              By proceeding, you agree to our{" "}
+              <Link className="text-emphasis hover:underline" href={`${WEBSITE_URL}/terms`} target="_blank">
+                <a>Terms</a>
+              </Link>{" "}
+              and{" "}
+              <Link className="text-emphasis hover:underline" href={`${WEBSITE_URL}/privacy`} target="_blank">
+                <a>Privacy Policy</a>
+              </Link>
+              .
+            </Trans>
+          </div>
+        )}
         <div className="modalsticky mt-auto flex justify-end space-x-2 rtl:space-x-reverse">
           {isInstantMeeting ? (
             <Button type="submit" color="primary" loading={loadingStates.creatingInstantBooking}>
@@ -171,11 +175,11 @@ const getError = (
   t: TFunction,
   responseVercelIdHeader: string | null
 ) => {
-  if (globalError) return globalError.message;
+  if (globalError) return globalError?.message;
 
   const error = dataError;
 
-  return error.message ? (
+  return error?.message ? (
     <>
       {responseVercelIdHeader ?? ""} {t(error.message)}
     </>

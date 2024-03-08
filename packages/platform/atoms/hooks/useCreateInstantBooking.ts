@@ -2,14 +2,14 @@ import { useMutation } from "@tanstack/react-query";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import type { BookingResponse } from "@calcom/platform-libraries";
-import type { ApiResponse, ApiErrorResponse } from "@calcom/platform-types";
+import type { ApiResponse, ApiErrorResponse, ApiSuccessResponse } from "@calcom/platform-types";
 import type { BookingCreateBody } from "@calcom/prisma/zod-utils";
 
 import http from "../lib/http";
 
 interface IUseCreateInstantBooking {
-  onSuccess?: (res: ApiResponse<BookingResponse>) => void;
-  onError?: (err: ApiErrorResponse) => void;
+  onSuccess?: (res: ApiSuccessResponse<BookingResponse>) => void;
+  onError?: (err: ApiErrorResponse | Error) => void;
 }
 export const useCreateInstantBooking = (
   { onSuccess, onError }: IUseCreateInstantBooking = {
@@ -21,7 +21,7 @@ export const useCreateInstantBooking = (
     },
   }
 ) => {
-  const createInstantBooking = useMutation<ApiResponse<BookingResponse>, unknown, BookingCreateBody>({
+  const createInstantBooking = useMutation<ApiResponse<BookingResponse>, Error, BookingCreateBody>({
     mutationFn: (data) => {
       return http.post<ApiResponse<BookingResponse>>("/ee/bookings/instant", data).then((res) => {
         if (res.data.status === SUCCESS_STATUS) {
@@ -38,7 +38,7 @@ export const useCreateInstantBooking = (
       }
     },
     onError: (err) => {
-      onError?.(err as ApiErrorResponse);
+      onError?.(err);
     },
   });
   return createInstantBooking;

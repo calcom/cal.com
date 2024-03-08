@@ -23,6 +23,17 @@ export class UsersRepository {
     });
   }
 
+  async addToOAuthClient(userId: number, oAuthClientId: string) {
+    return this.dbRead.prisma.user.update({
+      data: {
+        platformOAuthClients: {
+          connect: { id: oAuthClientId },
+        },
+      },
+      where: { id: userId },
+    });
+  }
+
   async findById(userId: number) {
     return this.dbRead.prisma.user.findUnique({
       where: {

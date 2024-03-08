@@ -1,10 +1,12 @@
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
+import { Injectable } from "@nestjs/common";
 import { DateTime } from "luxon";
 
 import { MINUTES_TO_BOOK } from "@calcom/platform-libraries";
 import { ReserveSlotInput } from "@calcom/platform-types";
 
+@Injectable()
 export class SlotsRepository {
   constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
 
@@ -21,7 +23,6 @@ export class SlotsRepository {
     const releaseAt = DateTime.utc()
       .plus({ minutes: parseInt(MINUTES_TO_BOOK) })
       .toISO();
-
     return this.dbWrite.prisma.selectedSlots.upsert({
       where: {
         selectedSlotUnique: { userId, slotUtcStartDate, slotUtcEndDate, uid },

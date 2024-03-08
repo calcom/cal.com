@@ -8,21 +8,31 @@ import http from "../lib/http";
 
 export const QUERY_KEY = "get-calendars-busy-times";
 
-export const useCalendarsBusyTimes = (props: CalendarBusyTimesInput) => {
+type UseCalendarsBusyTimesProps = CalendarBusyTimesInput & { onError?: () => void; enabled: boolean };
+
+export const useCalendarsBusyTimes = ({ onError, enabled, ...rest }: UseCalendarsBusyTimesProps) => {
   const availableSlots = useQuery({
-    queryKey: [QUERY_KEY],
+    queryKey: [
+      QUERY_KEY,
+      rest?.calendarsToLoad?.toString() ?? "",
+      rest.dateFrom ?? "",
+      rest.dateTo ?? "",
+      rest.loggedInUsersTz,
+    ],
     queryFn: () => {
       return http
         .get<ApiResponse<EventBusyDate[]>>("/ee/calendars/busy-times", {
-          params: props,
+          params: rest,
         })
         .then((res) => {
           if (res.data.status === SUCCESS_STATUS) {
             return res.data;
           }
+          onError?.();
           throw new Error(res.data.error.message);
         });
     },
+    enabled,
   });
   return availableSlots;
 };

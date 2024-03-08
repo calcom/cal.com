@@ -11,17 +11,22 @@ import http from "../lib/http";
 export const QUERY_KEY = "get-public-event";
 export type UsePublicEventReturnType = ReturnType<typeof usePublicEvent>;
 
-export const usePublicEvent = () => {
+export const usePublicEvent = (props: { username: string; eventSlug: string }) => {
   const [username, eventSlug] = useBookerStore((state) => [state.username, state.eventSlug], shallow);
   const isTeamEvent = useBookerStore((state) => state.isTeamEvent);
   const org = useBookerStore((state) => state.org);
 
   const event = useQuery({
-    queryKey: [QUERY_KEY, username, eventSlug],
+    queryKey: [QUERY_KEY, username ?? props.username, eventSlug ?? props.eventSlug],
     queryFn: () => {
       return http
         .get<ApiResponse<PublicEventType>>("/events/public", {
-          params: { username, eventSlug, isTeamEvent, org: org ?? null },
+          params: {
+            username: username ?? props.username,
+            eventSlug: eventSlug ?? props.eventSlug,
+            isTeamEvent,
+            org: org ?? null,
+          },
         })
         .then((res) => {
           if (res.data.status === SUCCESS_STATUS) {
