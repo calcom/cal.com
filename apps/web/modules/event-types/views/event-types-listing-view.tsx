@@ -109,6 +109,7 @@ interface EventTypeListProps {
   readOnly: boolean;
   bookerUrl: string | null;
   types: DeNormalizedEventType[];
+  lockedByOrg?: boolean;
 }
 
 interface MobileTeamsTabProps {
@@ -230,6 +231,7 @@ export const EventTypeList = ({
   readOnly,
   types,
   bookerUrl,
+  lockedByOrg,
 }: EventTypeListProps): JSX.Element => {
   const { t } = useLocale();
   const router = useRouter();
@@ -450,6 +452,7 @@ export const EventTypeList = ({
                               <div className="self-center rounded-md p-2">
                                 <Switch
                                   name="Hidden"
+                                  disabled={lockedByOrg}
                                   checked={!type.hidden}
                                   onCheckedChange={() => {
                                     setHiddenMutation.mutate({ id: type.id, hidden: !type.hidden });
@@ -893,10 +896,11 @@ const Main = ({
             <MobileTeamsTab eventTypeGroups={data.eventTypeGroups} />
           ) : (
             data.eventTypeGroups.map((group, index: number) => {
-              const userHasManagedEventType = group.eventTypes.find(
-                (event) => event.metadata?.managedEventConfig
+              const eventsLockedByOrg = group.profile.eventTypesLockedByOrg;
+              const userHasManagedOrHiddenEventTypes = group.eventTypes.find(
+                (event) => event.metadata?.managedEventConfig || event.hidden
               );
-              if (group.profile.eventTypesLockedByOrg && !userHasManagedEventType) return null;
+              if (eventsLockedByOrg && !userHasManagedOrHiddenEventTypes) return null;
               return (
                 <div
                   className="mt-4 flex flex-col"
@@ -920,6 +924,7 @@ const Main = ({
                       bookerUrl={group.bookerUrl}
                       groupIndex={index}
                       readOnly={group.metadata.readOnly}
+                      lockedByOrg={eventsLockedByOrg}
                     />
                   ) : group.teamId && !group.metadata.readOnly ? (
                     <EmptyEventTypeList group={group} />
