@@ -3,6 +3,8 @@ import { AppModule } from "@/app.module";
 import { EventTypesModule } from "@/ee/event-types/event-types.module";
 import { HttpExceptionFilter } from "@/filters/http-exception.filter";
 import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
+import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
+import { TokensModule } from "@/modules/tokens/tokens.module";
 import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
@@ -25,8 +27,13 @@ describe("Event types Endpoints", () => {
     beforeAll(async () => {
       const moduleRef = await Test.createTestingModule({
         providers: [PrismaExceptionFilter, HttpExceptionFilter],
-        imports: [AppModule, UsersModule, EventTypesModule],
-      }).compile();
+        imports: [AppModule, UsersModule, EventTypesModule, TokensModule],
+      })
+        .overrideGuard(PermissionsGuard)
+        .useValue({
+          canActivate: () => true,
+        })
+        .compile();
 
       app = moduleRef.createNestApplication();
       bootstrap(app as NestExpressApplication);
@@ -60,9 +67,15 @@ describe("Event types Endpoints", () => {
       const moduleRef = await withAccessTokenAuth(
         userEmail,
         Test.createTestingModule({
-          imports: [AppModule, UsersModule, EventTypesModule],
+          providers: [PrismaExceptionFilter, HttpExceptionFilter],
+          imports: [AppModule, UsersModule, EventTypesModule, TokensModule],
         })
-      ).compile();
+      )
+        .overrideGuard(PermissionsGuard)
+        .useValue({
+          canActivate: () => true,
+        })
+        .compile();
 
       app = moduleRef.createNestApplication();
       bootstrap(app as NestExpressApplication);

@@ -2,6 +2,8 @@ import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
 import { HttpExceptionFilter } from "@/filters/http-exception.filter";
 import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
+import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
+import { TokensModule } from "@/modules/tokens/tokens.module";
 import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
@@ -31,8 +33,13 @@ describe("Platform Gcal Endpoints", () => {
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
       providers: [PrismaExceptionFilter, HttpExceptionFilter],
-      imports: [AppModule, UsersModule],
-    }).compile();
+      imports: [AppModule, UsersModule, TokensModule],
+    })
+      .overrideGuard(PermissionsGuard)
+      .useValue({
+        canActivate: () => true,
+      })
+      .compile();
 
     app = moduleRef.createNestApplication();
     bootstrap(app as NestExpressApplication);
