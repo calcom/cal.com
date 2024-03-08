@@ -153,7 +153,6 @@ test.describe("Bookings list for organizations", () => {
       await page.getByRole("button", { name: "Continue" }).click();
       await page.getByTestId("vertical-tab-assignment").click();
 
-      await page.locator("span:nth-child(3) > .bg-default > div > .text-emphasis").nth(0).click();
       await page.getByRole("combobox", { name: "assignment-dropdown" }).fill("commonUser");
       await page.getByRole("combobox", { name: "assignment-dropdown" }).press("Enter");
       await page.getByRole("combobox", { name: "assignment-dropdown" }).fill("team1_teammate1");
