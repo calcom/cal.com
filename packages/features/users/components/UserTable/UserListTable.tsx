@@ -207,14 +207,10 @@ export function UserListTable() {
           );
         },
         filterFn: (rows, id, filterValue) => {
-          if (filterValue.length === 1 && filterValue[0] === "PENDING") {
-            // Show only pending members
-            return !rows.original.accepted;
-          }
-
-          if (filterValue.length > 1 && filterValue.includes("PENDING")) {
-            // Show pending members and the selected roles
-            return !rows.original.accepted && filterValue.includes(rows.getValue(id));
+          console.log("filterValue", filterValue);
+          if (filterValue.includes("PENDING")) {
+            if (filterValue.length === 1) return !rows.original.accepted;
+            else return !rows.original.accepted || filterValue.includes(rows.getValue(id));
           }
 
           // Show only the selected roles
