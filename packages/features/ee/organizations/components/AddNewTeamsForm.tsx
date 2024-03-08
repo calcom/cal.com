@@ -1,11 +1,14 @@
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useFieldArray, useForm, Controller } from "react-hook-form";
 import { z } from "zod";
 
 import { classNames } from "@calcom/lib";
+import { IS_TEAM_BILLING_ENABLED_CLIENT } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
+import { UserPermissionRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import { Button, showToast, TextField, CheckboxField, Form } from "@calcom/ui";
 import { ArrowRight, Plus, X } from "@calcom/ui/components/icon";
@@ -86,10 +89,23 @@ const AddNewTeamsFormChild = ({
       }
     },
   });
-  const { register, control, watch, formState, getValues } = form;
+  const session = useSession();
+  const isAdmin = session.data.user.role === UserPermissionRole.ADMIN;
+
+  const allowWizardCompletionWithoutUpgrading = !IS_TEAM_BILLING_ENABLED_CLIENT || isAdmin;
+  const { register, control, watch, getValues } = form;
   const { fields, append, remove } = useFieldArray({
     control,
     name: "teams",
+  });
+
+  const publishOrgMutation = trpc.viewer.organizations.publish.useMutation({
+    onSuccess(data) {
+      router.push(data.url);
+    },
+    onError: (error) => {
+      showToast(error.message, "error");
+    },
   });
 
   const handleCounterIncrease = () => {
@@ -110,11 +126,17 @@ const AddNewTeamsFormChild = ({
         showToast(t("duplicated_slugs_warning", { slugs: data.duplicatedSlugs.join(", ") }), "warning");
         // Server will return array of duplicated slugs, so we need to wait for user to read the warning
         // before pushing to next page
-        setTimeout(() => {
-          router.push(`/event-types`);
-        }, 3000);
+        setTimeout(() => handleSuccessRedirect, 3000);
       } else {
-        router.push(`/event-types`);
+        handleSuccessRedirect();
+      }
+
+      function handleSuccessRedirect() {
+        if (allowWizardCompletionWithoutUpgrading) {
+          router.push(`/event-types`);
+          return;
+        }
+        publishOrgMutation.mutate();
       }
     },
     onError: (error) => {
@@ -209,9 +231,9 @@ const AddNewTeamsFormChild = ({
           EndIcon={ArrowRight}
           color="primary"
           className="mt-6 w-full justify-center"
-          disabled={!formState.isDirty || createTeamsMutation.isPending || createTeamsMutation.isSuccess}
+          disabled={createTeamsMutation.isPending || createTeamsMutation.isSuccess}
           onClick={handleFormSubmit}>
-          {t("continue")}
+          {allowWizardCompletionWithoutUpgrading ? t("continue") : t("checkout")}
         </Button>
       </Form>
     </>

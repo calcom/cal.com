@@ -91,8 +91,11 @@ export const IS_STRIPE_ENABLED = !!(
   process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY &&
   process.env.STRIPE_PRIVATE_KEY
 );
-/** Self hosted shouldn't checkout when creating teams unless required */
+/** This has correct value only server side when you want to use client side, go for IS_TEAM_BILLING_ENABLED_CLIENT. I think we should use the CLIENT one only everywhere so that it works reliably everywhere.  */
 export const IS_TEAM_BILLING_ENABLED = IS_STRIPE_ENABLED && HOSTED_CAL_FEATURES;
+export const IS_TEAM_BILLING_ENABLED_CLIENT =
+  !!process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY && HOSTED_CAL_FEATURES;
+
 export const FULL_NAME_LENGTH_MAX_LIMIT = 50;
 export const MINUTES_TO_BOOK = process.env.NEXT_PUBLIC_MINUTES_TO_BOOK || "5";
 export const ENABLE_PROFILE_SWITCHER = process.env.NEXT_PUBLIC_ENABLE_PROFILE_SWITCHER === "1";
