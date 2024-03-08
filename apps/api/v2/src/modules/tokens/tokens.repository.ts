@@ -129,4 +129,17 @@ export class TokensRepository {
     ]);
     return { accessToken, refreshToken };
   }
+
+  async getAccessTokenClient(accessToken: string) {
+    const token = await this.dbRead.prisma.accessToken.findFirst({
+      where: {
+        secret: accessToken,
+      },
+      select: {
+        client: true,
+      },
+    });
+
+    return token?.client;
+  }
 }

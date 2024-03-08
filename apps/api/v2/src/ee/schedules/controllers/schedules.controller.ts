@@ -2,7 +2,9 @@ import { ResponseService } from "@/ee/schedules/services/response/response.servi
 import { SchedulesService } from "@/ee/schedules/services/schedules.service";
 import { ForAtom } from "@/lib/atoms/decorators/for-atom.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
+import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
 import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
+import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import {
   Body,
@@ -17,7 +19,7 @@ import {
   UseGuards,
 } from "@nestjs/common";
 
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { SCHEDULE_READ, SCHEDULE_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
 import type { ScheduleWithAvailabilitiesForWeb } from "@calcom/platform-libraries";
 import type { CityTimezones } from "@calcom/platform-libraries";
 import { updateScheduleHandler } from "@calcom/platform-libraries";
@@ -31,7 +33,7 @@ import { CreateScheduleInput } from "../inputs/create-schedule.input";
   path: "schedules",
   version: "2",
 })
-@UseGuards(AccessTokenGuard)
+@UseGuards(AccessTokenGuard, PermissionsGuard)
 export class SchedulesController {
   constructor(
     private readonly schedulesService: SchedulesService,
@@ -39,6 +41,7 @@ export class SchedulesController {
   ) {}
 
   @Post("/")
+  @Permissions([SCHEDULE_WRITE])
   async createSchedule(
     @GetUser() user: UserWithProfile,
     @Body() bodySchedule: CreateScheduleInput,
@@ -54,6 +57,7 @@ export class SchedulesController {
   }
 
   @Get("/default")
+  @Permissions([SCHEDULE_READ])
   async getDefaultSchedule(
     @GetUser() user: UserWithProfile,
     @ForAtom() forAtom: boolean
@@ -80,6 +84,7 @@ export class SchedulesController {
   }
 
   @Get("/:scheduleId")
+  @Permissions([SCHEDULE_READ])
   async getSchedule(
     @GetUser() user: UserWithProfile,
     @Param("scheduleId") scheduleId: number,
@@ -95,6 +100,7 @@ export class SchedulesController {
   }
 
   @Get("/")
+  @Permissions([SCHEDULE_READ])
   async getSchedules(
     @GetUser() user: UserWithProfile,
     @ForAtom() forAtom: boolean
@@ -110,6 +116,7 @@ export class SchedulesController {
 
   // note(Lauris): currently this endpoint is atoms only
   @Patch("/:scheduleId")
+  @Permissions([SCHEDULE_WRITE])
   async updateSchedule(
     @GetUser() user: UserWithProfile,
     @Body() bodySchedule: UpdateScheduleInput
@@ -127,6 +134,7 @@ export class SchedulesController {
 
   @Delete("/:scheduleId")
   @HttpCode(HttpStatus.OK)
+  @Permissions([SCHEDULE_WRITE])
   async deleteSchedule(
     @GetUser("id") userId: number,
     @Param("scheduleId") scheduleId: number
