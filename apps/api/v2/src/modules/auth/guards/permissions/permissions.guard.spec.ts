@@ -1,10 +1,7 @@
-import { AppModule } from "@/app.module";
-import { PrismaModule } from "@/modules/prisma/prisma.module";
-import { TokensModule } from "@/modules/tokens/tokens.module";
+import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { createMock } from "@golevelup/ts-jest";
 import { ExecutionContext } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
-import { Test, TestingModule } from "@nestjs/testing";
 
 import { APPS_WRITE, SCHEDULE_READ, SCHEDULE_WRITE } from "@calcom/platform-constants";
 
@@ -15,13 +12,8 @@ describe("PermissionsGuard", () => {
   let reflector: Reflector;
 
   beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      imports: [AppModule, TokensModule, PrismaModule],
-      providers: [PermissionsGuard, Reflector],
-    }).compile();
-
-    guard = module.get<PermissionsGuard>(PermissionsGuard);
-    reflector = module.get<Reflector>(Reflector);
+    reflector = new Reflector();
+    guard = new PermissionsGuard(reflector, createMock<TokensRepository>());
   });
 
   it("should be defined", () => {
