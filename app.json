@@ -87,6 +87,11 @@
     "NEXT_PUBLIC_AVAILABILITY_SCHEDULE_INTERVAL": {
       "description": "Control time intervals on a user's Schedule availability",
       "value": "15"
+    },
+    "PROJECT_VAR_TRANSLATIONS": {
+      "description": "JSON Array of Objects mapping global variables to project specific translations",
+      "value": "",
+      "required": false
     }
   },
   "scripts": {

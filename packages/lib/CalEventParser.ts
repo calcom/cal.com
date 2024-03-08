@@ -14,7 +14,7 @@ const translator = short();
 export const getWhat = (calEvent: CalendarEvent, t: TFunction) => {
   return `
 ${t("what")}:
-${calEvent.title}
+${calEvent.type}
   `;
 };
 
@@ -42,25 +42,25 @@ ${attendee?.name || t("guest")}
 ${attendee.email}
       `;
     })
-    .join("");
+    .join("\n");
 
   const organizer = `
 ${calEvent.organizer.name} - ${t("organizer")}
 ${calEvent.organizer.email}
-  `;
+  \n`;
 
   const teamMembers = calEvent.team?.members
     ? calEvent.team.members.map((member) => {
         return `
-${member.name} - ${t("team_member")}
+${member.name} - ${t("team_member")} 
 ${member.email}
     `;
       })
     : [];
 
   return `
-${t("who")}:
-${organizer + attendees + teamMembers.join("")}
+${t("who")}:\n
+${organizer + attendees + teamMembers.join("\n")}
   `;
 };
 
@@ -90,7 +90,7 @@ ${labelValueMap[key]}
   `;
       }
     })
-    .join("");
+    .join("\n");
 
   return responsesString;
 };
@@ -185,10 +185,10 @@ export const getRichDescription = (
   const t = t_ ?? calEvent.organizer.language.translate;
 
   return `
-${getCancellationReason(calEvent, t)}
-${getWhat(calEvent, t)}
-${getWhen(calEvent, t)}
-${getWho(calEvent, t)}
+${getCancellationReason(calEvent, t)}\n
+${getWhat(calEvent, t)}\n
+${getWhen(calEvent, t)}\n
+${getWho(calEvent, t)}\n
 ${t("where")}:
 ${getLocation(calEvent)}
 ${getDescription(calEvent, t, shouldReplaceChars)}
