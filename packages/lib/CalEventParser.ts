@@ -117,7 +117,7 @@ export const getDescription = (calEvent: CalendarEvent, t: TFunction, shouldRepl
     return "";
   }
   return `\n${t("description")}
-    ${shouldReplaceChars ? (calEvent.description || "").replace("*", "") : calEvent.description}
+    ${shouldReplaceChars ? (calEvent.description || "").replace(/\*/g, "") : calEvent.description}
     `;
 };
 export const getLocation = (calEvent: CalendarEvent) => {
