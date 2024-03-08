@@ -23,6 +23,7 @@ const appStore = {
   salesforce: () => import("./salesforce"),
   "salesforce-revert": () => import("./salesforce-revert"),
   zohocrm: () => import("./zohocrm"),
+  "zohocrm-revert": () => import("./zohocrm-revert"),
   sendgrid: () => import("./sendgrid"),
   stripepayment: () => import("./stripepayment"),
   tandemvideo: () => import("./tandemvideo"),
