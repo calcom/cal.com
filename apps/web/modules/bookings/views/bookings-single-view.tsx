@@ -42,7 +42,7 @@ import { localStorage } from "@calcom/lib/webstorage";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import { Alert, Badge, Button, EmailInput, HeadSeo, useCalcomTheme } from "@calcom/ui";
-import { AlertCircle, Calendar, Check, ChevronLeft, ExternalLink } from "@calcom/ui/components/icon";
+import { AlertCircle, Calendar, Check, ChevronLeft, ExternalLink, X } from "@calcom/ui/components/icon";
 
 import { timeZone } from "@lib/clock";
 
@@ -345,7 +345,7 @@ export default function Success(props: PageProps) {
                     !giphyImage && !isCancelled && needsConfirmation
                       ? "bg-subtle h-12 w-12 rounded-full"
                       : "",
-                    isCancelled ? "bg-error h-12 w-12 rounded-full" : ""
+                    isCancelled ? "bg-error h-12 w-12 rounded-full " : ""
                   )}>
                   {giphyImage && !needsConfirmation && !isCancelled && (
                     // eslint-disable-next-line @next/next/no-img-element
@@ -355,9 +355,7 @@ export default function Success(props: PageProps) {
                     <Check className="h-5 w-5 text-green-600 dark:text-green-400" />
                   )}
                   {needsConfirmation && !isCancelled && <Calendar className="text-emphasis h-5 w-5" />}
-                  {isCancelled && (
-                    <img src="/booking-cancelled.svg" alt="cancelled image" className="h-8 w-8" />
-                  )}
+                  {isCancelled && <X className="h-5 w-5 text-red-600 dark:text-red-200" />}
                 </div>
                 <div className="mb-8 mt-6 text-center last:mb-0">
                   <h3
