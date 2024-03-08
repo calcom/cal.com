@@ -207,7 +207,6 @@ export function UserListTable() {
           );
         },
         filterFn: (rows, id, filterValue) => {
-          console.log("filterValue", filterValue);
           if (filterValue.includes("PENDING")) {
             if (filterValue.length === 1) return !rows.original.accepted;
             else return !rows.original.accepted || filterValue.includes(rows.getValue(id));
