@@ -157,11 +157,13 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
         <DialogContent type="confirmation" Icon={Edit2} title={t("confirm_username_change_dialog_title")}>
           <div className="flex flex-row">
             <div className="mb-4 w-full pt-1">
-              <div className="bg-subtle flex w-full flex-wrap gap-6 rounded-sm px-2 py-3 text-sm">
+              <div className="bg-subtle flex w-full flex-wrap justify-between gap-6 rounded-sm  px-4 py-3 text-sm">
                 <div>
                   <p className="text-subtle">{t("current_username")}</p>
-                  <p className="text-emphasis mt-1 break-all" data-testid="current-username">
-                    {currentUsername}
+                  <p
+                    className="text-emphasis min-h-5 mt-1 max-h-12 overflow-auto break-all"
+                    data-testid="current-username">
+                    {currentUsername?.substring(0, 200)}
                   </p>
                 </div>
                 <div>
@@ -169,8 +171,8 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
                     {t("new_username")}
                   </p>
 
-                  <p className="text-emphasis min-h-5 mt-1 max-h-12 overflow-y-auto break-all">
-                    {inputUsernameValue}
+                  <p className="text-emphasis min-h-5 mt-1 max-h-12 overflow-auto break-all">
+                    {inputUsernameValue?.substring(0, 200)}
                   </p>
                 </div>
               </div>
