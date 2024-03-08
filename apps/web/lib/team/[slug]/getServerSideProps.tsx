@@ -103,10 +103,12 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     } as const;
   }
 
+  const isTeamOrParentOrgPrivate = team.isPrivate || (team.parent.isOrganization && team.parent.isPrivate);
+
   team.eventTypes =
     team.eventTypes?.map((type) => ({
       ...type,
-      users: !team.isPrivate
+      users: !isTeamOrParentOrgPrivate
         ? type.users.map((user) => ({
             ...user,
             avatar: `/${user.username}/avatar.png`,
@@ -117,7 +119,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const safeBio = markdownToSafeHTML(team.bio) || "";
 
-  const members = !team.isPrivate
+  const members = !isTeamOrParentOrgPrivate
     ? team.members.map((member) => {
         return {
           name: member.name,
@@ -146,7 +148,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         safeBio,
         members,
         metadata,
-        children: team.isPrivate ? [] : team.children,
+        children: isTeamOrParentOrgPrivate ? [] : team.children,
       },
       themeBasis: serializableTeam.slug,
       trpcState: ssr.dehydrate(),

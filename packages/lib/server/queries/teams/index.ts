@@ -86,6 +86,7 @@ export async function getTeamWithMembers(args: {
       id: true,
       name: true,
       slug: true,
+      isPrivate: true,
       isOrganization: true,
       ...(!!includeTeamLogo ? { logo: true } : {}),
       logoUrl: true,
@@ -99,6 +100,8 @@ export async function getTeamWithMembers(args: {
           id: true,
           slug: true,
           name: true,
+          isPrivate: true,
+          isOrganization: true,
         },
       },
       children: {

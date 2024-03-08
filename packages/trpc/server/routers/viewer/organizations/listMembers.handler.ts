@@ -20,6 +20,18 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
     throw new TRPCError({ code: "NOT_FOUND", message: "User is not part of any organization." });
   }
 
+  if (ctx.user.organization.isPrivate && !ctx.user.organization.isOrgAdmin) {
+    console.log("ctx.usre", ctx.user.profile);
+
+    return {
+      canUserGetMembers: false,
+      rows: [],
+      meta: {
+        totalRowCount: 0,
+      },
+    };
+  }
+
   const { cursor, limit } = input;
 
   const getTotalMembers = await prisma.membership.count({

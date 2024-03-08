@@ -10,20 +10,24 @@ import { Meta } from "@calcom/ui";
 
 const MembersView = () => {
   const { t } = useLocale();
-  const { data: currentOrg } = trpc.viewer.organizations.listCurrent.useQuery();
+  const { data: currentOrg, isPending } = trpc.viewer.organizations.listCurrent.useQuery();
 
   const isOrgAdminOrOwner =
     currentOrg &&
     (currentOrg.user.role === MembershipRole.OWNER || currentOrg.user.role === MembershipRole.ADMIN);
 
+  const canLoggedInUserSeeMembers =
+    (currentOrg?.isPrivate && isOrgAdminOrOwner) || isOrgAdminOrOwner || !currentOrg?.isPrivate;
+
   return (
     <LicenseRequired>
       <Meta title={t("organization_members")} description={t("organization_description")} />
-      <div>
-        {((currentOrg?.isPrivate && isOrgAdminOrOwner) || isOrgAdminOrOwner || !currentOrg?.isPrivate) && (
-          <UserListTable />
-        )}
-      </div>
+      <div>{!isPending && canLoggedInUserSeeMembers && <UserListTable />}</div>
+      {!canLoggedInUserSeeMembers && (
+        <div className="border-subtle rounded-xl border p-6">
+          <h2 className="text-default">{t("only_admin_can_see_members_of_org")}.</h2>
+        </div>
+      )}
     </LicenseRequired>
   );
 };

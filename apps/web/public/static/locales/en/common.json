@@ -1619,6 +1619,7 @@
   "test_routing": "Test Routing",
   "payment_app_disabled": "An admin has disabled a payment app",
   "edit_event_type": "Edit event type",
+  "only_admin_can_see_members_of_org": "This Organization is private, and only the organization's admin or owner can view its members.",
   "collective_scheduling": "Collective Scheduling",
   "make_it_easy_to_book": "Make it easy to book your team when everyone is available.",
   "find_the_best_person": "Find the best person available and cycle through your team.",
