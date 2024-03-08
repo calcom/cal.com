@@ -94,7 +94,11 @@ const ConfigureDirectorySync = ({ organizationId }: { organizationId: number | n
                 </div>
                 <DialogFooter showDivider>
                   <DialogClose />
-                  <Button color="primary" data-testid="delete-account-confirm" onClick={onDeleteConfirmation}>
+                  <Button
+                    color="primary"
+                    data-testid="delete-account-confirm"
+                    onClick={onDeleteConfirmation}
+                    loading={deleteMutation.isPending}>
                     {t("directory_sync_delete_connection")}
                   </Button>
                 </DialogFooter>

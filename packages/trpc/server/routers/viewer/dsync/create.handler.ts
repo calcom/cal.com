@@ -48,7 +48,7 @@ export const createHandler = async ({ ctx, input }: Options) => {
     data: {
       directoryId: data.id,
       tenant,
-      ...(organizationId && { orgId: organizationId }),
+      ...(organizationId && { organizationId }),
     },
   });
 

@@ -112,7 +112,7 @@ const CreateDirectory = ({ orgId }: { orgId: number | null }) => {
                 tabIndex={-1}>
                 {t("cancel")}
               </Button>
-              <Button type="submit" loading={form.formState.isSubmitting}>
+              <Button type="submit" loading={form.formState.isSubmitting || mutation.isPending}>
                 {t("save")}
               </Button>
             </DialogFooter>

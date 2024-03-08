@@ -1,6 +1,5 @@
 import jackson from "@calcom/features/ee/sso/lib/jackson";
 import { canAccess } from "@calcom/features/ee/sso/lib/saml";
-import prisma from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
 
@@ -27,11 +26,11 @@ export const deleteHandler = async ({ ctx, input }: Options) => {
     });
   }
 
-  await prisma.dSyncData.delete({
-    where: {
-      organizationId: input.organizationId || undefined,
-    },
-  });
+  // await prisma.dSyncData.delete({
+  //   where: {
+  //     organizationId: input.organizationId || undefined,
+  //   },
+  // });
   await dsyncController.directories.delete(input.directoryId);
 
   return null;
