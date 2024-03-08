@@ -80,6 +80,9 @@ export class OAuthClientUsersController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(AccessTokenGuard)
   async getUserById(
+    // @Param("clientId") is added to generate OpenAPI schema correctly: clientId is in @Controller path, and unless
+    // also added here as @Param, then it does not appear in OpenAPI schema.
+    @Param("clientId") _: string,
     @GetUser("id") accessTokenUserId: number,
     @Param("userId") userId: number
   ): Promise<ApiResponse<UserReturned>> {
@@ -106,6 +109,9 @@ export class OAuthClientUsersController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(AccessTokenGuard)
   async updateUser(
+    // @Param("clientId") is added to generate OpenAPI schema correctly: clientId is in @Controller path, and unless
+    // also added here as @Param, then it does not appear in OpenAPI schema.
+    @Param("clientId") _: string,
     @GetUser("id") accessTokenUserId: number,
     @Param("userId") userId: number,
     @Body() body: UpdateUserInput
@@ -132,6 +138,9 @@ export class OAuthClientUsersController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(AccessTokenGuard)
   async deleteUser(
+    // @Param("clientId") is added to generate OpenAPI schema correctly: clientId is in @Controller path, and unless
+    // also added here as @Param, then it does not appear in OpenAPI schema.
+    @Param("clientId") _: string,
     @GetUser("id") accessTokenUserId: number,
     @Param("userId") userId: number
   ): Promise<ApiResponse<UserReturned>> {

@@ -3,7 +3,10 @@ import { Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { NestFactory } from "@nestjs/core";
 import type { NestExpressApplication } from "@nestjs/platform-express";
+import { SwaggerModule, DocumentBuilder } from "@nestjs/swagger";
 import "dotenv/config";
+import * as fs from "fs";
+import { Server } from "http";
 import { WinstonModule } from "nest-winston";
 
 import { bootstrap } from "./app";
@@ -14,11 +17,13 @@ const run = async () => {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     logger: WinstonModule.createLogger(loggerConfig()),
   });
+
   const logger = new Logger("App");
 
   try {
     bootstrap(app);
     const port = app.get(ConfigService<AppConfig, true>).get("api.port", { infer: true });
+    generateSwagger(app);
     await app.listen(port);
     logger.log(`Application started on port: ${port}`);
   } catch (error) {
@@ -27,6 +32,26 @@ const run = async () => {
     });
   }
 };
+
+async function generateSwagger(app: NestExpressApplication<Server>) {
+  const logger = new Logger("App");
+  logger.log(`Generating Swagger documentation...\n`);
+
+  const config = new DocumentBuilder().setTitle("Cal.com v2 API").build();
+
+  const document = SwaggerModule.createDocument(app, config);
+
+  const outputFile = "./swagger/documentation.json";
+
+  if (fs.existsSync(outputFile)) {
+    fs.unlinkSync(outputFile);
+  }
+
+  fs.writeFileSync(outputFile, JSON.stringify(document, null, 2), { encoding: "utf8" });
+  SwaggerModule.setup("docs", app, document);
+
+  logger.log(`Swagger documentation available in the "/docs" endpoint\n`);
+}
 
 run().catch((error: Error) => {
   console.error("Failed to start Cal Platform API", { error: error.stack });

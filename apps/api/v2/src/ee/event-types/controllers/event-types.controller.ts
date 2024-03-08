@@ -3,8 +3,9 @@ import { EventTypesService } from "@/ee/event-types/services/event-types.service
 import { ForAtom } from "@/lib/atoms/decorators/for-atom.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
+import { UserWithProfile } from "@/modules/users/users.repository";
 import { Controller, UseGuards, Get, Param, Post, Body, NotFoundException } from "@nestjs/common";
-import { EventType, User } from "@prisma/client";
+import { EventType } from "@prisma/client";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import type { EventType as AtomEventType } from "@calcom/platform-libraries";
@@ -21,15 +22,13 @@ export class EventTypesController {
   @Post("/")
   async createEventType(
     @Body() body: CreateEventTypeInput,
-    @GetUser() user: User
-  ): Promise<ApiResponse<{ eventType: EventType }>> {
+    @GetUser() user: UserWithProfile
+  ): Promise<ApiResponse<EventType>> {
     const eventType = await this.eventTypesService.createUserEventType(user.id, body);
 
     return {
       status: SUCCESS_STATUS,
-      data: {
-        eventType,
-      },
+      data: eventType,
     };
   }
 
@@ -37,8 +36,8 @@ export class EventTypesController {
   async getEventType(
     @Param("eventTypeId") eventTypeId: string,
     @ForAtom() forAtom: boolean,
-    @GetUser() user: User
-  ): Promise<ApiResponse<{ eventType: EventType | AtomEventType }>> {
+    @GetUser() user: UserWithProfile
+  ): Promise<ApiResponse<EventType | AtomEventType>> {
     const eventType = forAtom
       ? await this.eventTypesService.getUserEventTypeForAtom(user, Number(eventTypeId))
       : await this.eventTypesService.getUserEventType(user.id, Number(eventTypeId));
@@ -49,9 +48,7 @@ export class EventTypesController {
 
     return {
       status: SUCCESS_STATUS,
-      data: {
-        eventType,
-      },
+      data: eventType,
     };
   }
 }

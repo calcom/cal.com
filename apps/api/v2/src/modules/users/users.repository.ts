@@ -3,7 +3,11 @@ import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { CreateUserInput } from "@/modules/users/inputs/create-user.input";
 import { UpdateUserInput } from "@/modules/users/inputs/update-user.input";
 import { Injectable } from "@nestjs/common";
-import type { User } from "@prisma/client";
+import type { Profile, User } from "@prisma/client";
+
+export type UserWithProfile = User & {
+  movedToProfile?: Profile | null;
+};
 
 @Injectable()
 export class UsersRepository {
@@ -38,6 +42,17 @@ export class UsersRepository {
     return this.dbRead.prisma.user.findUnique({
       where: {
         id: userId,
+      },
+    });
+  }
+
+  async findByIdWithProfile(userId: number): Promise<UserWithProfile | null> {
+    return this.dbRead.prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+      include: {
+        movedToProfile: true,
       },
     });
   }

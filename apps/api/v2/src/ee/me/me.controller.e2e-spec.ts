@@ -11,6 +11,7 @@ import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
 import { User } from "@prisma/client";
 import * as request from "supertest";
+import { SchedulesRepositoryFixture } from "test/fixtures/repository/schedules.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { withAccessTokenAuth } from "test/utils/withAccessTokenAuth";
 
@@ -23,6 +24,7 @@ describe("Me Endpoints", () => {
     let app: INestApplication;
 
     let userRepositoryFixture: UserRepositoryFixture;
+    let schedulesRepositoryFixture: SchedulesRepositoryFixture;
 
     const userEmail = "me-controller-e2e@api.com";
     let user: User;
@@ -37,6 +39,7 @@ describe("Me Endpoints", () => {
       ).compile();
 
       userRepositoryFixture = new UserRepositoryFixture(moduleRef);
+      schedulesRepositoryFixture = new SchedulesRepositoryFixture(moduleRef);
 
       user = await userRepositoryFixture.create({
         email: userEmail,
@@ -77,7 +80,7 @@ describe("Me Endpoints", () => {
         .patch("/api/v2/me")
         .send(body)
         .expect(200)
-        .then((response) => {
+        .then(async (response) => {
           const responseBody: ApiSuccessResponse<{ user: UserResponse }> = response.body;
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
 
@@ -87,6 +90,11 @@ describe("Me Endpoints", () => {
           expect(responseBody.data?.user?.defaultScheduleId).toEqual(user.defaultScheduleId);
           expect(responseBody.data?.user?.weekStart).toEqual(user.weekStart);
           expect(responseBody.data?.user?.timeZone).toEqual(body.timeZone);
+
+          if (user.defaultScheduleId) {
+            const defaultSchedule = await schedulesRepositoryFixture.getById(user.defaultScheduleId);
+            expect(defaultSchedule?.timeZone).toEqual(body.timeZone);
+          }
         });
     });
 
