@@ -102,6 +102,27 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
         throw new TRPCError({ code: "BAD_REQUEST", message: t("username_already_taken") });
       }
     }
+  } else if (input.username && user.organizationId && user.movedToProfileId) {
+    const username = slugify(input.username);
+    const movedToProfile = await prisma.profile.findUnique({
+      where: {
+        id: user.movedToProfileId,
+      },
+    });
+    if (username !== movedToProfile?.username) {
+      await prisma.profile.update({
+        where: {
+          userId_organizationId: {
+            userId: user.id,
+            organizationId: user.organizationId,
+          },
+        },
+        data: {
+          username: input.username,
+        },
+      });
+    }
+    data.username = user.username;
   }
 
   if (isPremiumUsername) {
