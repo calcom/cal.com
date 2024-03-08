@@ -17,7 +17,7 @@ const queryClient = new QueryClient();
 
 export const OAuthClients = () => {
   const { data, isLoading, refetch: refetchClients } = useOAuthClients();
-  const { mutateAsync, isLoading: isDeleting } = useDeleteOAuthClient({
+  const { mutateAsync, isPending: isDeleting } = useDeleteOAuthClient({
     onSuccess: () => {
       showToast("OAuth client deleted successfully", "success");
       refetchClients();

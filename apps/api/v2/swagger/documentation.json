@@ -1171,7 +1171,7 @@
           "createdAt": {
             "format": "date-time",
             "type": "string",
-            "example": "2024-03-08T14:22:03.573Z"
+            "example": "2024-03-08T15:40:48.723Z"
           }
         },
         "required": ["id", "name", "secret", "permissions", "redirectUris", "organizationId", "createdAt"]
