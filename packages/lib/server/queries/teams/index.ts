@@ -86,7 +86,6 @@ export async function getTeamWithMembers(args: {
       id: true,
       name: true,
       slug: true,
-      isPrivate: true,
       isOrganization: true,
       ...(!!includeTeamLogo ? { logo: true } : {}),
       logoUrl: true,
