@@ -95,7 +95,7 @@ const DuplicateDialog = () => {
     <Dialog
       name="duplicate"
       clearQueryParamsOnClose={["description", "title", "length", "slug", "name", "id", "pageSlug"]}>
-      <DialogContent type="creation" className="overflow-y-auto" title="Duplicate Event Type">
+      <DialogContent type="creation" className="overflow-y-auto" title={t("duplicate_event_type")}>
         <Form
           form={form}
           handleSubmit={(values) => {
@@ -161,7 +161,7 @@ const DuplicateDialog = () => {
           </div>
           <DialogFooter showDivider className="mt-10">
             <DialogClose />
-            <Button type="submit" loading={duplicateMutation.isPending}>
+            <Button data-testid="continue" type="submit" loading={duplicateMutation.isPending}>
               {t("continue")}
             </Button>
           </DialogFooter>

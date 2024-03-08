@@ -2136,6 +2136,7 @@
   "scheduling_for_your_team": "Automazione dei flussi di lavoro",
   "scheduling_for_your_team_description": "Usa la programmazione collettiva e round robin per il tuo team",
   "no_members_found": "Nessun membro trovato",
+  "directory_sync": "Directory Sync",
   "event_setup_length_error": "Impostazione evento: la durata deve essere di almeno 1 minuto.",
   "availability_schedules": "Calendario disponibilità",
   "unauthorized": "Non autorizzato",

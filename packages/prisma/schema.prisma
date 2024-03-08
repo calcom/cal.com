@@ -350,6 +350,7 @@ model Team {
   brandColor           String?
   darkBrandColor       String?
   verifiedNumbers      VerifiedNumber[]
+  bannerUrl            String?
   parentId             Int?
   parent               Team?                   @relation("organization", fields: [parentId], references: [id], onDelete: Cascade)
   children             Team[]                  @relation("organization")
@@ -368,6 +369,7 @@ model Team {
   instantMeetingTokens InstantMeetingToken[]
   orgProfiles          Profile[]
   pendingPayment       Boolean                 @default(false)
+  dSyncData            DSyncData?
 
   @@unique([slug, parentId])
   @@index([parentId])
@@ -1158,6 +1160,14 @@ model OutOfOfficeReason {
   user    User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   entries OutOfOfficeEntry[]
+}
+
+model DSyncData {
+  id          Int    @id @default(autoincrement())
+  directoryId String
+  tenant      String
+  orgId       Int?   @unique
+  org         Team?  @relation(fields: [orgId], references: [id], onDelete: Cascade)
 }
 
 model SecondaryEmail {
