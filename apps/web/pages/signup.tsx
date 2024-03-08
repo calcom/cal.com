@@ -223,7 +223,9 @@ export default function Signup({
     })
       .then(handleErrorsAndStripe)
       .then(async () => {
-        pushGTMEvent("create_account", { email: data.email, user: data.username, lang: data.language });
+        if (process.env.NEXT_PUBLIC_GTM_ID)
+          pushGTMEvent("create_account", { email: data.email, user: data.username, lang: data.language });
+
         telemetry.event(telemetryEventTypes.signup, collectPageParameters());
         const verifyOrGettingStarted = flags["email-verification"] ? "auth/verify-email" : "getting-started";
         const callBackUrl = `${

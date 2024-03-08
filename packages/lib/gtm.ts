@@ -5,5 +5,4 @@ export const pushGTMEvent = (event: string, data?: Record<string, unknown>) => {
     event,
     ...data,
   });
-  console.log("PUSHED");
 };
