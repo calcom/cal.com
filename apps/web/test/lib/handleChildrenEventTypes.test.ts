@@ -435,7 +435,8 @@ describe("handleChildrenEventTypes", () => {
           },
         },
       });
-      const { profileId, workflows, ...rest } = evType;
+      const { profileId, ...rest } = evType;
+      if ("workflows" in rest) delete rest.workflows;
       expect(prismaMock.eventType.update).toHaveBeenCalledWith({
         data: {
           ...rest,
