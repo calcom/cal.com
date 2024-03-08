@@ -2061,6 +2061,7 @@
   "workflow_automation": "Automatyzacja przepływu pracy",
   "scheduling_for_your_team": "Automatyzacja przepływu pracy",
   "no_members_found": "Nie znaleziono członków",
+  "directory_sync": "Synchronizacja katalogu",
   "event_setup_length_error": "Konfiguracja wydarzenia: czas trwania musi wynosić co najmniej minutę.",
   "availability_schedules": "Harmonogramy dostępności",
   "unauthorized": "Brak autoryzacji",
