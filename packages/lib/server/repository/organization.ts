@@ -29,13 +29,17 @@ export class OrganizationRepository {
     const organization = await prisma.team.create({
       data: {
         name: orgData.name,
+        isOrganization: true,
         ...(!IS_TEAM_BILLING_ENABLED ? { slug: orgData.slug } : {}),
+        organizationSettings: {
+          create: {
+            isOrganizationVerified: true,
+            isOrganizationConfigured: orgData.isOrganizationConfigured,
+            orgAutoAcceptEmail: orgData.autoAcceptEmail,
+          },
+        },
         metadata: {
           ...(IS_TEAM_BILLING_ENABLED ? { requestedSlug: orgData.slug } : {}),
-          isOrganization: true,
-          isOrganizationVerified: true,
-          isOrganizationConfigured: orgData.isOrganizationConfigured,
-          orgAutoAcceptEmail: orgData.autoAcceptEmail,
           orgSeats: orgData.seats,
           orgPricePerSeat: orgData.pricePerSeat,
         },

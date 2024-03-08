@@ -1,5 +1,4 @@
 import { createAProfileForAnExistingUser } from "@calcom/lib/createAProfileForAnExistingUser";
-import { isOrganization } from "@calcom/lib/entityPermissionUtils";
 import { updateNewTeamMemberEventTypes } from "@calcom/lib/server/queries";
 import { closeComUpsertTeamUser } from "@calcom/lib/sync/SyncServiceManager";
 import { prisma } from "@calcom/prisma";
@@ -45,9 +44,8 @@ export const acceptOrLeaveHandler = async ({ ctx, input }: AcceptOrLeaveOptions)
       });
     }
 
-    const isAnOrganization = isOrganization({ team });
     const isASubteam = team.parentId !== null;
-    const idOfOrganizationInContext = isAnOrganization ? team.id : isASubteam ? team.parentId : null;
+    const idOfOrganizationInContext = team.isOrganization ? team.id : isASubteam ? team.parentId : null;
     const needProfileUpdate = !!idOfOrganizationInContext;
     if (needProfileUpdate) {
       await createAProfileForAnExistingUser({

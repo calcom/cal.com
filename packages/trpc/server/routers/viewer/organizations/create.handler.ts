@@ -44,10 +44,7 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
     where: {
       slug: slug,
       parentId: null,
-      metadata: {
-        path: ["isOrganization"],
-        equals: true,
-      },
+      isOrganization: true,
     },
   });
 

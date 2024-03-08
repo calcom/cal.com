@@ -4,7 +4,6 @@ import { getStripeCustomerIdFromUserId } from "@calcom/app-store/stripepayment/l
 import stripe from "@calcom/app-store/stripepayment/lib/server";
 import { MINIMUM_NUMBER_OF_ORG_SEATS, WEBAPP_URL } from "@calcom/lib/constants";
 import { ORGANIZATION_MIN_SEATS } from "@calcom/lib/constants";
-import { isOrganization } from "@calcom/lib/entityPermissionUtils";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
@@ -167,7 +166,7 @@ export const purchaseTeamOrOrgSubscription = async (input: {
 const getTeamWithPaymentMetadata = async (teamId: number) => {
   const team = await prisma.team.findUniqueOrThrow({
     where: { id: teamId },
-    select: { metadata: true, members: true },
+    select: { metadata: true, members: true, isOrganization: true },
   });
 
   const metadata = teamPaymentMetadataSchema.parse(team.metadata);
@@ -203,7 +202,7 @@ export const updateQuantitySubscriptionFromStripe = async (teamId: number) => {
     )?.quantity;
     if (!subscriptionQuantity) throw new Error("Subscription not found");
 
-    if (!!isOrganization({ team }) && membershipCount < ORGANIZATION_MIN_SEATS) {
+    if (team.isOrganization && membershipCount < ORGANIZATION_MIN_SEATS) {
       console.info(
         `Org ${teamId} has less members than the min ${ORGANIZATION_MIN_SEATS}, skipping updating subscription.`
       );
