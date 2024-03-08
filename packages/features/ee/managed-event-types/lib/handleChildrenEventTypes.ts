@@ -123,8 +123,9 @@ export default async function handleChildrenEventTypes({
   });
 
   const allManagedEventTypePropsZod = _ManagedEventTypeModel.pick(allManagedEventTypeProps);
-  const managedEventTypeValues = allManagedEventTypePropsZod.parse(eventType);
-  console.log(managedEventTypeValues);
+  const managedEventTypeValues = allManagedEventTypePropsZod
+    .omit(unlockedManagedEventTypeProps)
+    .parse(eventType);
 
   // Check we are certainly dealing with a managed event type through its metadata
   if (!managedEventTypeValues.metadata?.managedEventConfig)
@@ -237,7 +238,10 @@ export default async function handleChildrenEventTypes({
     // Add to payload all eventType values that belong to locked fields, changed or unchanged
     // Ignore from payload any eventType values that belong to unlocked fields
     const updatePayload = allManagedEventTypePropsZod.omit(unlockedFieldProps).parse(eventType);
-    console.log({ updatePayload });
+    const updatePayloadFiltered = Object.entries(updatePayload)
+      .filter(([key, _]) => key !== "userId" && key !== "parentId")
+      .reduce((newObj, [key, value]) => ({ ...newObj, [key]: value }), {});
+
     // Update event types for old users
     const oldEventTypes = await prisma.$transaction(
       oldUserIds.map((userId) => {
@@ -249,7 +253,7 @@ export default async function handleChildrenEventTypes({
             },
           },
           data: {
-            ...updatePayload,
+            ...updatePayloadFiltered,
             hashedLink: hashedLinkQuery(userId),
           },
         });
