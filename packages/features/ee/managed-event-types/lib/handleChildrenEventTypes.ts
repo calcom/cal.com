@@ -239,7 +239,7 @@ export default async function handleChildrenEventTypes({
     // Ignore from payload any eventType values that belong to unlocked fields
     const updatePayload = allManagedEventTypePropsZod.omit(unlockedFieldProps).parse(eventType);
     const updatePayloadFiltered = Object.entries(updatePayload)
-      .filter(([key, _]) => key !== "userId" && key !== "parentId")
+      .filter(([key, _]) => key !== "children")
       .reduce((newObj, [key, value]) => ({ ...newObj, [key]: value }), {});
 
     // Update event types for old users
