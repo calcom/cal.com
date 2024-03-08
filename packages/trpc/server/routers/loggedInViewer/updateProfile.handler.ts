@@ -103,27 +103,8 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
       }
     }
   } else if (input.username && user.organizationId && user.movedToProfileId) {
-    const username = slugify(input.username);
-    const movedToProfile = await prisma.profile.findUnique({
-      where: {
-        id: user.movedToProfileId,
-      },
-    });
-    if (username !== movedToProfile?.username) {
-      await prisma.profile.update({
-        where: {
-          userId_organizationId: {
-            userId: user.id,
-            organizationId: user.organizationId,
-          },
-        },
-        data: {
-          username: input.username,
-        },
-      });
-    }
     // don't change user.username if we have profile.username
-    data.username = user.username;
+    delete data.username;
   }
 
   if (isPremiumUsername) {
