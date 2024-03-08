@@ -2136,6 +2136,7 @@
   "scheduling_for_your_team": "Workflow-Automatisierung",
   "scheduling_for_your_team_description": "Planen Sie Ihr Team mit kollektiver Terminplanung und Round-Robin-Terminplanung",
   "no_members_found": "Keine Mitglieder gefunden",
+  "directory_sync": "Verzeichnissynchronisierung",
   "event_setup_length_error": "Ereignis-Einrichtung: Die Dauer muss mindestens 1 Minute betragen.",
   "availability_schedules": "Verfügbarkeitspläne",
   "unauthorized": "Nicht authorisiert",

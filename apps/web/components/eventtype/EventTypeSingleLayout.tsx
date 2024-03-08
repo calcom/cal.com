@@ -204,6 +204,7 @@ function EventTypeSingleLayout({
   activeWebhooksNumber,
 }: Props) {
   const { t } = useLocale();
+
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const hasPermsToDelete =

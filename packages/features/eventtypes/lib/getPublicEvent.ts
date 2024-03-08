@@ -81,6 +81,7 @@ const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
         select: {
           slug: true,
           name: true,
+          bannerUrl: true,
         },
       },
     },
@@ -244,7 +245,9 @@ export const getPublicEvent = async (
     hosts: hosts,
   };
 
-  const users = getUsersFromEvent(eventWithUserProfiles) || (await getOwnerFromUsersArray(prisma, event.id));
+  const users =
+    (await getUsersFromEvent(eventWithUserProfiles, prisma)) ||
+    (await getOwnerFromUsersArray(prisma, event.id));
 
   if (users === null) {
     throw new Error("Event has no owner");
@@ -330,7 +333,7 @@ function getProfileFromEvent(event: Event) {
     ),
   };
 }
-function getUsersFromEvent(
+async function getUsersFromEvent(
   event: Omit<Event, "owner" | "hosts"> & {
     owner:
       | (Event["owner"] & {
@@ -342,11 +345,15 @@ function getUsersFromEvent(
         profile: UserProfile;
       };
     })[];
-  }
+  },
+  prisma: PrismaClient
 ) {
-  const { team, hosts, owner } = event;
+  const { team, hosts, owner, id } = event;
   if (team) {
-    return (hosts || []).filter((host) => host.user.username).map(mapHostsToUsers);
+    // getOwnerFromUsersArray is used here for backward compatibility when team event type has users[] but not hosts[]
+    return hosts.length
+      ? hosts.filter((host) => host.user.username).map(mapHostsToUsers)
+      : (await getOwnerFromUsersArray(prisma, id)) ?? [];
   }
   if (!owner) {
     return null;
