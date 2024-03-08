@@ -57,7 +57,7 @@ const CreateDirectory = ({ orgId }: { orgId: number | null }) => {
             handleSubmit={(values) => {
               mutation.mutate({
                 ...values,
-                orgId,
+                organizationId: orgId,
               });
             }}>
             <div className="mb-5 mt-1">
