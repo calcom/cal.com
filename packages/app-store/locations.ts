@@ -156,7 +156,25 @@ export const defaultLocations: DefaultEventLocationType[] = [
   },
 ];
 
-const PROJECT_VAR_TRANSLATIONS = JSON.parse(process.env.PROJECT_VAR_TRANSLATIONS || "[]");
+const isValidObject = (value: unknown): boolean => {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+};
+
+let PROJECT_VAR_TRANSLATIONS: Array<Record<string, string>> = [{ key: "value" }];
+try {
+  const arrOfObjects: Array<Record<string, string>> = JSON.parse(
+    process.env.PROJECT_VAR_TRANSLATIONS || "[]"
+  );
+  if (Array.isArray(arrOfObjects)) {
+    PROJECT_VAR_TRANSLATIONS = PROJECT_VAR_TRANSLATIONS.concat(
+      arrOfObjects
+        .filter((obj: Record<string, string>) => isValidObject(obj))
+        .map((obj: Record<string, string>) => obj)
+    ) as Array<Record<string, string>>;
+  }
+} catch (err) {
+  PROJECT_VAR_TRANSLATIONS = [{ key: "value" }];
+}
 
 const translateAbleKeys = [
   "in_person_attendee_address",
@@ -432,11 +450,18 @@ export const getTranslatedLocation = (
         PROJECT_VAR_TRANSLATIONS.find(
           (globalVarCustomMapping: Record<string, string>) =>
             Object.keys(globalVarCustomMapping)[0] === locationKey
-        )
+        ) || { key: "value" }
       )[0]
     : translateAbleKeys.includes(locationKey)
     ? t(locationKey)
     : locationKey;
+
+  console.log("PROJECT_VAR_TRANSLATIONS", PROJECT_VAR_TRANSLATIONS);
+  console.log("locationKey", locationKey);
+  // Example usage
+  const data = { location, PROJECT_VAR_TRANSLATIONS, locationKey, translatedLocation };
+  const filePath = "/Users/snoseeds/repos/esa/cal.com/output.json";
+  writeObjectToJsonFile(filePath, data);
 
   return translatedLocation;
 };

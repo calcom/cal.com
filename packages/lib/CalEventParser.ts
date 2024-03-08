@@ -14,7 +14,7 @@ const translator = short();
 export const getWhat = (calEvent: CalendarEvent, t: TFunction) => {
   return `
 ${t("what")}:
-${calEvent.type}
+${calEvent.title}
   `;
 };
 
@@ -42,25 +42,25 @@ ${attendee?.name || t("guest")}
 ${attendee.email}
       `;
     })
-    .join("\n");
+    .join("");
 
   const organizer = `
 ${calEvent.organizer.name} - ${t("organizer")}
 ${calEvent.organizer.email}
-  \n`;
+  `;
 
   const teamMembers = calEvent.team?.members
     ? calEvent.team.members.map((member) => {
         return `
-${member.name} - ${t("team_member")} 
+${member.name} - ${t("team_member")}
 ${member.email}
     `;
       })
     : [];
 
   return `
-${t("who")}:\n
-${organizer + attendees + teamMembers.join("\n")}
+${t("who")}:
+${organizer + attendees + teamMembers.join("")}
   `;
 };
 
@@ -90,7 +90,7 @@ ${labelValueMap[key]}
   `;
       }
     })
-    .join("\n");
+    .join("");
 
   return responsesString;
 };
