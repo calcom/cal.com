@@ -122,7 +122,7 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
     eventTypeId: event?.data?.id ?? 0,
     startTime,
     endTime,
-    timeZone: session?.data?.user?.timeZone,
+    timeZone: session?.data?.timeZone,
     duration: selectedDuration ?? undefined,
     rescheduleUid: props.rescheduleUid,
     enabled:
@@ -135,9 +135,9 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
 
   const bookerForm = useBookingForm({
     event: event.data,
-    sessionEmail: session?.data?.user?.email,
-    sessionUsername: session?.data?.user?.username,
-    sessionName: session?.data?.user?.name,
+    sessionEmail: session?.data?.email,
+    sessionUsername: session?.data?.username,
+    sessionName: session?.data?.name,
     hasSession,
     extraOptions: {},
     prefillFormParams: prefillFormParams,
@@ -189,7 +189,7 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
     externalId: string;
   }>("toggledConnectedCalendars", []);
   const { data: overlayBusyDates } = useCalendarsBusyTimes({
-    loggedInUsersTz: session?.data?.user?.timeZone || "Europe/London",
+    loggedInUsersTz: session?.data?.timeZone || "Europe/London",
     dateFrom: selectedDate,
     dateTo: selectedDate,
     calendarsToLoad: Array.from(set).map((item) => ({

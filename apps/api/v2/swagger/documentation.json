@@ -19,6 +19,24 @@
         }
       }
     },
+    "/api/v2/events/public": {
+      "get": {
+        "operationId": "EventsController_getPublicEvent",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v2/oauth-clients/{clientId}/users": {
       "post": {
         "operationId": "OAuthClientUsersController_createUser",
@@ -743,16 +761,7 @@
       },
       "patch": {
         "operationId": "SchedulesController_updateSchedule",
-        "parameters": [
-          {
-            "name": "scheduleId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          }
-        ],
+        "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
@@ -969,24 +978,6 @@
         }
       }
     },
-    "/api/events": {
-      "get": {
-        "operationId": "EventsController_getPublicEvent",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/v2/slots/reserve": {
       "post": {
         "operationId": "SlotsController_reserveSlot",
@@ -1180,7 +1171,7 @@
           "createdAt": {
             "format": "date-time",
             "type": "string",
-            "example": "2024-02-23T09:25:23.564Z"
+            "example": "2024-03-08T14:22:03.573Z"
           }
         },
         "required": ["id", "name", "secret", "permissions", "redirectUris", "organizationId", "createdAt"]
@@ -1349,23 +1340,7 @@
       },
       "UpdateScheduleInput": {
         "type": "object",
-        "properties": {
-          "name": {
-            "type": "string"
-          },
-          "timeZone": {
-            "type": "string"
-          },
-          "availabilities": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/CreateAvailabilityInput"
-            }
-          },
-          "isDefault": {
-            "type": "boolean"
-          }
-        }
+        "properties": {}
       },
       "CreateBookingInput": {
         "type": "object",
@@ -1392,7 +1367,10 @@
             "type": "string"
           },
           "user": {
-            "type": "object"
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           },
           "language": {
             "type": "string"
