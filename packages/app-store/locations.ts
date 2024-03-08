@@ -156,6 +156,8 @@ export const defaultLocations: DefaultEventLocationType[] = [
   },
 ];
 
+const PROJECT_VAR_TRANSLATIONS = JSON.parse(process.env.PROJECT_VAR_TRANSLATIONS || "[]");
+
 const translateAbleKeys = [
   "in_person_attendee_address",
   "in_person",
@@ -422,6 +424,16 @@ export const getTranslatedLocation = (
   const locationKey = z.string().default("").parse(locationKeyToString(location));
   const translatedLocation = location.type.startsWith("integrations:")
     ? eventLocationType.label
+    : PROJECT_VAR_TRANSLATIONS.some(
+        (globalVarCustomMapping: Record<string, string>) =>
+          Object.keys(globalVarCustomMapping)[0] === locationKey
+      )
+    ? Object.values(
+        PROJECT_VAR_TRANSLATIONS.find(
+          (globalVarCustomMapping: Record<string, string>) =>
+            Object.keys(globalVarCustomMapping)[0] === locationKey
+        )
+      )[0]
     : translateAbleKeys.includes(locationKey)
     ? t(locationKey)
     : locationKey;

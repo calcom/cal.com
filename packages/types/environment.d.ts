@@ -62,5 +62,6 @@ declare namespace NodeJS {
      *  "non-strict" -> Strict CSP except the usage of unsafe-inline for `style-src`
      */
     readonly CSP_POLICY: "strict" | "non-strict";
+    readonly PROJECT_VAR_TRANSLATIONS: string | undefined;
   }
 }
