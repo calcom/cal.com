@@ -456,13 +456,6 @@ export const getTranslatedLocation = (
     ? t(locationKey)
     : locationKey;
 
-  console.log("PROJECT_VAR_TRANSLATIONS", PROJECT_VAR_TRANSLATIONS);
-  console.log("locationKey", locationKey);
-  // Example usage
-  const data = { location, PROJECT_VAR_TRANSLATIONS, locationKey, translatedLocation };
-  const filePath = "/Users/snoseeds/repos/esa/cal.com/output.json";
-  writeObjectToJsonFile(filePath, data);
-
   return translatedLocation;
 };
 
