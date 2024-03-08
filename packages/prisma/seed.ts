@@ -165,10 +165,12 @@ async function createOrganizationAndAddMembersAndTeams({
     }),
   ]);
 
+  const { organizationSettings, ...restOrgData } = orgData;
+
   // Create organization with those users as members
   const orgInDb = await prisma.team.create({
     data: {
-      ...orgData,
+      ...restOrgData,
       metadata: {
         ...(orgData.metadata && typeof orgData.metadata === "object" ? orgData.metadata : {}),
         isOrganization: true,
@@ -186,7 +188,7 @@ async function createOrganizationAndAddMembersAndTeams({
       },
       organizationSettings: {
         create: {
-          ...orgData.organizationSettings,
+          ...organizationSettings,
         },
       },
       members: {
@@ -818,6 +820,7 @@ async function main() {
       orgData: {
         name: "Acme Inc",
         slug: "acme",
+        isOrganization: true,
         organizationSettings: {
           isOrganizationVerified: true,
           orgAutoAcceptEmail: "acme.com",
@@ -885,6 +888,7 @@ async function main() {
       orgData: {
         name: "Dunder Mifflin",
         slug: "dunder-mifflin",
+        isOrganization: true,
         organizationSettings: {
           isOrganizationVerified: true,
           orgAutoAcceptEmail: "dunder-mifflin.com",

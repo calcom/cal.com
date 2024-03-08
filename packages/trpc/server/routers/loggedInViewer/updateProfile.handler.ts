@@ -168,7 +168,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
         // Set metadata of the user so we can set it to this updated email once it is confirmed
         data.metadata = {
           ...userMetadata,
-          emailChangeWaitingForVerification: input.email,
+          emailChangeWaitingForVerification: input.email?.toLocaleLowerCase(),
         };
 
         // Check to ensure this email isnt in use
