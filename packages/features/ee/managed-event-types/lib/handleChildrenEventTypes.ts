@@ -122,8 +122,9 @@ export default async function handleChildrenEventTypes({
     bookingFields: _EventTypeModel.shape.bookingFields.nullish(),
   });
 
-  const allManagedEventTypePropsZod = _ManagedEventTypeModel.pick(allManagedEventTypeProps); //FIXME
+  const allManagedEventTypePropsZod = _ManagedEventTypeModel.pick(allManagedEventTypeProps);
   const managedEventTypeValues = allManagedEventTypePropsZod.parse(eventType);
+  console.log(managedEventTypeValues);
 
   // Check we are certainly dealing with a managed event type through its metadata
   if (!managedEventTypeValues.metadata?.managedEventConfig)
@@ -228,6 +229,7 @@ export default async function handleChildrenEventTypes({
               : key === "beforeBufferTime"
               ? "beforeEventBuffer"
               : key;
+          // @ts-expect-error Element implicitly has any type
           acc[filteredKey] = true;
           return acc;
         }, {});
@@ -235,7 +237,7 @@ export default async function handleChildrenEventTypes({
     // Add to payload all eventType values that belong to locked fields, changed or unchanged
     // Ignore from payload any eventType values that belong to unlocked fields
     const updatePayload = allManagedEventTypePropsZod.omit(unlockedFieldProps).parse(eventType);
-
+    console.log({ updatePayload });
     // Update event types for old users
     const oldEventTypes = await prisma.$transaction(
       oldUserIds.map((userId) => {
@@ -249,7 +251,6 @@ export default async function handleChildrenEventTypes({
           data: {
             ...updatePayload,
             hashedLink: hashedLinkQuery(userId),
-            hidden: children?.find((ch) => ch.owner.id === userId)?.hidden ?? false,
           },
         });
       })
