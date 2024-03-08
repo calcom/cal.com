@@ -112,12 +112,12 @@ export const getAppsStatus = (calEvent: CalendarEvent, t: TFunction) => {
     `;
 };
 
-export const getDescription = (calEvent: CalendarEvent, t: TFunction) => {
+export const getDescription = (calEvent: CalendarEvent, t: TFunction, shouldReplaceChars = false) => {
   if (!calEvent.description) {
     return "";
   }
   return `\n${t("description")}
-    ${calEvent.description}
+    ${shouldReplaceChars ? (calEvent.description || "").replace("*", "") : calEvent.description}
     `;
 };
 export const getLocation = (calEvent: CalendarEvent) => {
@@ -179,7 +179,8 @@ export const getRescheduleLink = (calEvent: CalendarEvent): string => {
 export const getRichDescription = (
   calEvent: CalendarEvent,
   t_?: TFunction /*, attendee?: Person*/,
-  includeAppStatus = false
+  includeAppStatus = false,
+  shouldReplaceChars = false
 ) => {
   const t = t_ ?? calEvent.organizer.language.translate;
 
@@ -189,11 +190,11 @@ ${getWhat(calEvent, t)}\n
 ${getWhen(calEvent, t)}\n
 ${getWho(calEvent, t)}\n
 ${t("where")}:
-${getLocation(calEvent)}\n
-${getDescription(calEvent, t)}\n
-${getAdditionalNotes(calEvent, t)}\n
-${getUserFieldsResponses(calEvent)}\n
-${includeAppStatus ? getAppsStatus(calEvent, t) : ""}\n
+${getLocation(calEvent)}
+${getDescription(calEvent, t, shouldReplaceChars)}
+${getAdditionalNotes(calEvent, t)}
+${getUserFieldsResponses(calEvent)}
+${includeAppStatus ? getAppsStatus(calEvent, t) : ""}
 ${
   // TODO: Only the original attendee can make changes to the event
   // Guests cannot

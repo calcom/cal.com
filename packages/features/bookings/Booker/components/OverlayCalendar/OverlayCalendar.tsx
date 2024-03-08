@@ -1,3 +1,4 @@
+import { getQueryParam } from "../../utils/query-param";
 import type { UseCalendarsReturnType } from "../hooks/useCalendars";
 import { useOverlayCalendar } from "../hooks/useOverlayCalendar";
 import { OverlayCalendarContinueModal } from "./OverlayCalendarContinueModal";
@@ -29,6 +30,7 @@ export const OverlayCalendar = ({
   handleClickContinue,
   hasSession,
 }: OverlayCalendarProps) => {
+  const showCalendarOverlay = getQueryParam("showCalendarOverlay");
   const {
     handleCloseContinueModal,
     handleCloseSettingsModal,
@@ -39,11 +41,13 @@ export const OverlayCalendar = ({
   } = useOverlayCalendar({ connectedCalendars, overlayBusyDates, onToggleCalendar });
   return (
     <>
-      <OverlayCalendarSwitch
-        enabled={isOverlayCalendarEnabled}
-        hasSession={hasSession}
-        onStateChange={handleSwitchStateChange}
-      />
+      {showCalendarOverlay && (
+        <OverlayCalendarSwitch
+          enabled={isOverlayCalendarEnabled}
+          hasSession={hasSession}
+          onStateChange={handleSwitchStateChange}
+        />
+      )}
       <OverlayCalendarContinueModal
         open={isOpenOverlayContinueModal}
         onClose={handleCloseContinueModal}
