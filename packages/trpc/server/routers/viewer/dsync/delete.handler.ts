@@ -18,7 +18,7 @@ type Options = {
 export const deleteHandler = async ({ ctx, input }: Options) => {
   const { dsyncController } = await jackson();
 
-  const { message, access } = await canAccess(ctx.user, input.orgId);
+  const { message, access } = await canAccess(ctx.user, input.organizationId);
 
   if (!access) {
     throw new TRPCError({
@@ -29,10 +29,12 @@ export const deleteHandler = async ({ ctx, input }: Options) => {
 
   await prisma.dSyncData.delete({
     where: {
-      orgId: input.orgId || undefined,
+      organizationId: input.organizationId || undefined,
     },
   });
   await dsyncController.directories.delete(input.directoryId);
 
   return null;
 };
+
+export default deleteHandler;
