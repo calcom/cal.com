@@ -2,8 +2,10 @@ import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
 import { SchedulesRepository } from "@/ee/schedules/schedules.repository";
 import { SchedulesService } from "@/ee/schedules/services/schedules.service";
+import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { AvailabilitiesModule } from "@/modules/availabilities/availabilities.module";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
+import { TokensModule } from "@/modules/tokens/tokens.module";
 import { UpdateUserInput } from "@/modules/users/inputs/update-user.input";
 import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
@@ -33,10 +35,15 @@ describe("Me Endpoints", () => {
       const moduleRef = await withAccessTokenAuth(
         userEmail,
         Test.createTestingModule({
-          imports: [AppModule, PrismaModule, AvailabilitiesModule, UsersModule],
+          imports: [AppModule, PrismaModule, AvailabilitiesModule, UsersModule, TokensModule],
           providers: [SchedulesRepository, SchedulesService],
         })
-      ).compile();
+      )
+        .overrideGuard(PermissionsGuard)
+        .useValue({
+          canActivate: () => true,
+        })
+        .compile();
 
       userRepositoryFixture = new UserRepositoryFixture(moduleRef);
       schedulesRepositoryFixture = new SchedulesRepositoryFixture(moduleRef);
@@ -61,15 +68,15 @@ describe("Me Endpoints", () => {
         .get("/api/v2/me")
         .expect(200)
         .then((response) => {
-          const responseBody: ApiSuccessResponse<{ user: UserResponse }> = response.body;
+          const responseBody: ApiSuccessResponse<UserResponse> = response.body;
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
 
-          expect(responseBody.data?.user?.id).toEqual(user.id);
-          expect(responseBody.data?.user?.email).toEqual(user.email);
-          expect(responseBody.data?.user?.timeFormat).toEqual(user.timeFormat);
-          expect(responseBody.data?.user?.defaultScheduleId).toEqual(user.defaultScheduleId);
-          expect(responseBody.data?.user?.weekStart).toEqual(user.weekStart);
-          expect(responseBody.data?.user?.timeZone).toEqual(user.timeZone);
+          expect(responseBody.data.id).toEqual(user.id);
+          expect(responseBody.data.email).toEqual(user.email);
+          expect(responseBody.data.timeFormat).toEqual(user.timeFormat);
+          expect(responseBody.data.defaultScheduleId).toEqual(user.defaultScheduleId);
+          expect(responseBody.data.weekStart).toEqual(user.weekStart);
+          expect(responseBody.data.timeZone).toEqual(user.timeZone);
         });
     });
 
@@ -81,15 +88,15 @@ describe("Me Endpoints", () => {
         .send(body)
         .expect(200)
         .then(async (response) => {
-          const responseBody: ApiSuccessResponse<{ user: UserResponse }> = response.body;
+          const responseBody: ApiSuccessResponse<UserResponse> = response.body;
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
 
-          expect(responseBody.data?.user?.id).toEqual(user.id);
-          expect(responseBody.data?.user?.email).toEqual(user.email);
-          expect(responseBody.data?.user?.timeFormat).toEqual(user.timeFormat);
-          expect(responseBody.data?.user?.defaultScheduleId).toEqual(user.defaultScheduleId);
-          expect(responseBody.data?.user?.weekStart).toEqual(user.weekStart);
-          expect(responseBody.data?.user?.timeZone).toEqual(body.timeZone);
+          expect(responseBody.data.id).toEqual(user.id);
+          expect(responseBody.data.email).toEqual(user.email);
+          expect(responseBody.data.timeFormat).toEqual(user.timeFormat);
+          expect(responseBody.data.defaultScheduleId).toEqual(user.defaultScheduleId);
+          expect(responseBody.data.weekStart).toEqual(user.weekStart);
+          expect(responseBody.data.timeZone).toEqual(body.timeZone);
 
           if (user.defaultScheduleId) {
             const defaultSchedule = await schedulesRepositoryFixture.getById(user.defaultScheduleId);

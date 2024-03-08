@@ -1,5 +1,7 @@
 import { CreateBookingInput } from "@/ee/bookings/inputs/create-booking.input";
 import { CreateReccuringBookingInput } from "@/ee/bookings/inputs/create-reccuring-booking.input";
+import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
+import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { OAuthFlowService } from "@/modules/oauth-clients/services/oauth-flow.service";
 import {
   Controller,
@@ -9,11 +11,12 @@ import {
   InternalServerErrorException,
   Body,
   HttpException,
+  UseGuards,
 } from "@nestjs/common";
 import { Request } from "express";
 import { NextApiRequest } from "next/types";
 
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { BOOKING_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
 import {
   handleNewBooking,
   BookingResponse,
@@ -27,12 +30,14 @@ import { ApiResponse } from "@calcom/platform-types";
   path: "ee/bookings",
   version: "2",
 })
+@UseGuards(PermissionsGuard)
 export class BookingsController {
   private readonly logger = new Logger("ee bookings controller");
 
   constructor(private readonly oAuthFlowService: OAuthFlowService) {}
 
   @Post("/")
+  @Permissions([BOOKING_WRITE])
   async createBooking(
     @Req() req: Request & { userId?: number },
     @Body() _: CreateBookingInput
@@ -51,6 +56,7 @@ export class BookingsController {
   }
 
   @Post("/reccuring")
+  @Permissions([BOOKING_WRITE])
   async createReccuringBooking(
     @Req() req: Request & { userId?: number },
     @Body() _: CreateReccuringBookingInput[]
@@ -71,6 +77,7 @@ export class BookingsController {
   }
 
   @Post("/instant")
+  @Permissions([BOOKING_WRITE])
   async createInstantBooking(
     @Req() req: Request & { userId?: number },
     @Body() _: CreateBookingInput
