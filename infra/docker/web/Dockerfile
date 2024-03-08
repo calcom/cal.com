@@ -31,7 +31,7 @@ COPY --from=builder /calcom/.env .env
 COPY scripts scripts
 ENV NEXT_PUBLIC_WEBAPP_URL=$NEXT_PUBLIC_WEBAPP_URL \
     BUILT_NEXT_PUBLIC_WEBAPP_URL=$NEXT_PUBLIC_WEBAPP_URL
-RUN chmod 777 /calcom/scripts/replace-placeholder.sh
+RUN chmod +x /calcom/scripts/replace-placeholder.sh
 RUN /calcom/scripts/replace-placeholder.sh https://NEXT_PUBLIC_WEBAPP_URL_PLACEHOLDER ${NEXT_PUBLIC_WEBAPP_URL}
 
 
@@ -44,5 +44,5 @@ ENV NODE_ENV production
 EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=30s --retries=5 \
     CMD wget --spider https://calendar.funnelhub.io || exit 1
-RUN chmod 777 /calcom/scripts/start.sh
+RUN chmod +x /calcom/scripts/start.sh
 CMD ["/calcom/scripts/start.sh"]
