@@ -410,6 +410,9 @@ export async function sendSignupToOrganizationEmail({
     parentTeamName: team?.parent?.name,
     isAutoJoin: false,
     isExistingUserMovedToOrg: false,
+    // For a new user there is no prev and new links.
+    prevLink: null,
+    newLink: null,
   });
 }
 
