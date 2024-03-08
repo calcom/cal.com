@@ -158,7 +158,7 @@ test.describe("Managed Event Types", () => {
       await page.goto("/auth/logout");
     });
 
-    await test.step("Managed event type should only update the fields modified by Admin", async () => {
+    await test.step("Managed event type should only update the unlocked fields modified by Admin", async () => {
       await memberUser.apiLogin();
       await page.goto("/event-types");
 
