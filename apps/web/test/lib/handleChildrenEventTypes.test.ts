@@ -11,7 +11,9 @@ import type { CompleteEventType, CompleteWorkflowsOnEventTypes } from "@calcom/p
 
 const mockFindFirstEventType = (data?: Partial<CompleteEventType>) => {
   const eventType = buildEventType(data as Partial<EventType>);
+  // const { scheduleId, destinationCalendar, ...restEventType } = eventType;
   prismaMock.eventType.findFirst.mockResolvedValue(eventType as EventType);
+
   return eventType;
 };
 
@@ -188,10 +190,14 @@ describe("handleChildrenEventTypes", () => {
           bookingLimits: undefined,
         },
       });
+      const { profileId, ...rest } = evType;
       expect(prismaMock.eventType.update).toHaveBeenCalledWith({
         data: {
-          hidden: false,
-          bookingLimits: undefined,
+          ...rest,
+          locations: [],
+          scheduleId: null,
+          lockTimeZoneToggleOnBookingPage: false,
+          requiresBookerEmailVerification: false,
           hashedLink: { create: { link: expect.any(String) } },
         },
         where: {
@@ -342,11 +348,13 @@ describe("handleChildrenEventTypes", () => {
           length: 30,
         },
       });
+      const { profileId, ...rest } = evType;
       expect(prismaMock.eventType.update).toHaveBeenCalledWith({
         data: {
-          hidden: false,
-          length: 30,
-          hashedLink: undefined,
+          ...rest,
+          locations: [],
+          lockTimeZoneToggleOnBookingPage: false,
+          requiresBookerEmailVerification: false,
         },
         where: {
           userId_parentId: {
@@ -427,9 +435,13 @@ describe("handleChildrenEventTypes", () => {
           },
         },
       });
+      const { profileId, workflows, ...rest } = evType;
       expect(prismaMock.eventType.update).toHaveBeenCalledWith({
         data: {
-          hidden: false,
+          ...rest,
+          locations: [],
+          lockTimeZoneToggleOnBookingPage: false,
+          requiresBookerEmailVerification: false,
           hashedLink: undefined,
         },
         where: {
