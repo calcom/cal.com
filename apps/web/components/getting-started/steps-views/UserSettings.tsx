@@ -1,5 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -64,6 +65,10 @@ const UserSettings = (props: IUserSettingsProps) => {
       timeZone: selectedTimeZone,
     });
   });
+  const [count, setCount] = useState<BooleanState>(false);
+  const handleClick = () => {
+    setCount(!count); // Toggles the value from true to false or false to true
+  };
 
   return (
     <form onSubmit={onSubmit}>
@@ -112,10 +117,17 @@ const UserSettings = (props: IUserSettingsProps) => {
       </div>
       <Button
         type="submit"
-        className="mt-8 flex w-full flex-row justify-center"
-        disabled={mutation.isPending}>
-        {t("next_step_text")}
-        <ArrowRight className="ml-2 h-4 w-4 self-center" aria-hidden="true" />
+        className="mt-8 flex w-full  flex-row justify-center "
+        disabled={mutation.isPending}
+        onClick={handleClick}>
+        {count ? (
+          <div className="cursor-wait px-[220px] py-2  "> Processing...</div>
+        ) : (
+          <>
+            {t("next_step_text")}
+            <ArrowRight className="ml-2 h-4 w-4 self-center" aria-hidden="true" />
+          </>
+        )}
       </Button>
     </form>
   );
