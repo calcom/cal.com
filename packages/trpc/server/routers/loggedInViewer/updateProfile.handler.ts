@@ -122,6 +122,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
         },
       });
     }
+    // don't change user.username if we have profile.username
     data.username = user.username;
   }
 
