@@ -2061,6 +2061,7 @@
   "workflow_automation": "Automatizacija radnog toka",
   "scheduling_for_your_team": "Automatizacija radnog toka",
   "no_members_found": "Članovi nisu pronađeni",
+  "directory_sync": "Sinhronizacija za Directory",
   "event_setup_length_error": "Podešavanje događaja: Trajanje mora da bude barem 1 minut.",
   "availability_schedules": "Raspored dostupnosti",
   "unauthorized": "Neovlašćeno",

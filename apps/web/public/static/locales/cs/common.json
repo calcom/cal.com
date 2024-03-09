@@ -2061,6 +2061,7 @@
   "workflow_automation": "Automatizace pracovních postupů",
   "scheduling_for_your_team": "Automatizace pracovních postupů",
   "no_members_found": "Nenalezeni žádní členové",
+  "directory_sync": "Synchronizace adresářů",
   "event_setup_length_error": "Nastavení události: Doba trvání musí být alespoň 1 minuta.",
   "availability_schedules": "Plány dostupnosti",
   "unauthorized": "Neautorizováno",
