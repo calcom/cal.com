@@ -1,6 +1,7 @@
 import { Clock, Plus, Trash2 } from "lucide-react";
 import { Trans } from "next-i18next";
-import React, { useState } from "react";
+import { useSearchParams } from "next/navigation";
+import React, { useEffect, useState } from "react";
 import { Controller, useForm, useFormState } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
@@ -22,6 +23,7 @@ import {
   DialogHeader,
   DialogContent,
   DialogFooter,
+  TextArea,
 } from "@calcom/ui";
 import { TableNew, TableBody, TableCell, TableRow } from "@calcom/ui";
 
@@ -32,6 +34,7 @@ export type BookingRedirectForm = {
   offset: number;
   toTeamUserId: number | null;
   reasonId: number;
+  notes?: string;
 };
 
 const CreateOutOfOfficeEntryModal = ({
@@ -67,7 +70,7 @@ const CreateOutOfOfficeEntryModal = ({
         label: member.name || "",
       })) || [];
 
-  const { handleSubmit, setValue, getValues, control } = useForm<BookingRedirectForm>({
+  const { handleSubmit, setValue, getValues, control, register } = useForm<BookingRedirectForm>({
     defaultValues: {
       dateRange: {
         startDate: dateRange.startDate,
@@ -103,6 +106,7 @@ const CreateOutOfOfficeEntryModal = ({
   return (
     <Dialog open={openModal}>
       <DialogContent
+        enableOverflow
         onOpenAutoFocus={(event) => {
           event.preventDefault();
         }}>
@@ -111,9 +115,11 @@ const CreateOutOfOfficeEntryModal = ({
           onSubmit={handleSubmit((data) => {
             createOutOfOfficeEntry.mutate(data);
             setValue("toTeamUserId", null);
+            setValue("notes", "");
+            setSelectedReason(null);
             setSelectedMember(null);
           })}>
-          <div className="pb-11">
+          <div className="px-1">
             <DialogHeader title={t("create_an_out_of_office")} />
             <div>
               <p className="text-emphasis mb-1 block text-sm font-medium capitalize">{t("dates")}</p>
@@ -139,15 +145,15 @@ const CreateOutOfOfficeEntryModal = ({
             </div>
 
             {/* Reason Select */}
-            <div className="mt-5 w-full">
+            <div className="mt-4 w-full">
               <div className="">
                 <p className="text-emphasis block text-sm font-medium">{t("reason")}</p>
                 <Select
-                  className="mb-1 mt-1 h-5 text-white"
+                  className="mb-0 mt-1 text-white"
                   name="reason"
                   data-testid="reason_select"
                   value={selectedReason}
-                  placeholder={t("select_reason")}
+                  placeholder={t("ooo_select_reason")}
                   options={reasonList}
                   onChange={(selectedOption) => {
                     if (selectedOption?.value) {
@@ -159,7 +165,21 @@ const CreateOutOfOfficeEntryModal = ({
               </div>
             </div>
 
-            <div className="mt-12 rounded-lg bg-[#f9fafb] p-4 dark:bg-transparent">
+            {/* Notes input */}
+            <div className="mt-4">
+              <p className="text-emphasis block text-sm font-medium">{t("notes")}</p>
+              <TextArea
+                data-testid="notes_input"
+                className="border-subtle mt-1 h-10 w-full rounded-lg border px-2"
+                placeholder={t("additional_notes")}
+                {...register("notes")}
+                onChange={(e) => {
+                  setValue("notes", e?.target.value);
+                }}
+              />
+            </div>
+
+            <div className="bg-muted my-4 rounded-xl p-5">
               <div className="flex flex-row">
                 <Switch
                   disabled={!hasTeamPlan}
@@ -313,6 +333,15 @@ const OutOfOfficeEntriesList = () => {
 
 const OutOfOfficePage = () => {
   const { t } = useLocale();
+
+  const params = useSearchParams();
+  const openModalOnStart = !!params?.get("om");
+  useEffect(() => {
+    if (openModalOnStart) {
+      setOpenModal(true);
+    }
+  }, [openModalOnStart]);
+
   const [openModal, setOpenModal] = useState(false);
   return (
     <>

@@ -1135,6 +1135,7 @@ model OutOfOfficeEntry {
   uuid     String             @unique
   start    DateTime
   end      DateTime
+  notes    String?
   userId   Int
   user     User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   toUserId Int?

@@ -146,6 +146,7 @@ export const outOfOfficeCreate = async ({ ctx, input }: TBookingRedirect) => {
       uuid: uuidv4(),
       start: startDateUtc.startOf("day").toISOString(),
       end: endDateUtc.endOf("day").toISOString(),
+      notes: input.notes,
       userId: ctx.user.id,
       reasonId: input.reasonId,
       toUserId: toUserId,
