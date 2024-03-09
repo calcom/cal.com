@@ -324,62 +324,63 @@ model Profile {
 }
 
 model Team {
-  id                   Int                     @id @default(autoincrement())
+  id                    Int                     @id @default(autoincrement())
   /// @zod.min(1)
-  name                 String
+  name                  String
   /// @zod.min(1)
-  slug                 String?
-  logo                 String?
-  logoUrl              String?
-  calVideoLogo         String?
-  appLogo              String?
-  appIconLogo          String?
-  bio                  String?
-  hideBranding         Boolean                 @default(false)
-  isPrivate            Boolean                 @default(false)
-  hideBookATeamMember  Boolean                 @default(false)
-  members              Membership[]
-  eventTypes           EventType[]
-  workflows            Workflow[]
-  createdAt            DateTime                @default(now())
+  slug                  String?
+  logo                  String?
+  logoUrl               String?
+  calVideoLogo          String?
+  appLogo               String?
+  appIconLogo           String?
+  bio                   String?
+  hideBranding          Boolean                 @default(false)
+  isPrivate             Boolean                 @default(false)
+  hideBookATeamMember   Boolean                 @default(false)
+  members               Membership[]
+  eventTypes            EventType[]
+  workflows             Workflow[]
+  createdAt             DateTime                @default(now())
   /// @zod.custom(imports.teamMetadataSchema)
-  metadata             Json?
-  theme                String?
-  brandColor           String?
-  darkBrandColor       String?
-  verifiedNumbers      VerifiedNumber[]
-  bannerUrl            String?
-  parentId             Int?
-  parent               Team?                   @relation("organization", fields: [parentId], references: [id], onDelete: Cascade)
-  children             Team[]                  @relation("organization")
-  orgUsers             User[]                  @relation("scope")
-  inviteTokens         VerificationToken[]
-  webhooks             Webhook[]
-  timeFormat           Int?
-  timeZone             String                  @default("Europe/London")
-  weekStart            String                  @default("Sunday")
-  routingForms         App_RoutingForms_Form[]
-  apiKeys              ApiKey[]
-  credentials          Credential[]
-  accessCodes          AccessCode[]
-  isOrganization       Boolean                 @default(false)
-  organizationSettings OrganizationSettings?
-  instantMeetingTokens InstantMeetingToken[]
-  orgProfiles          Profile[]
-  pendingPayment       Boolean                 @default(false)
-  dSyncData            DSyncData?
+  metadata              Json?
+  theme                 String?
+  brandColor            String?
+  darkBrandColor        String?
+  verifiedNumbers       VerifiedNumber[]
+  bannerUrl             String?
+  parentId              Int?
+  parent                Team?                   @relation("organization", fields: [parentId], references: [id], onDelete: Cascade)
+  children              Team[]                  @relation("organization")
+  orgUsers              User[]                  @relation("scope")
+  inviteTokens          VerificationToken[]
+  webhooks              Webhook[]
+  timeFormat            Int?
+  timeZone              String                  @default("Europe/London")
+  weekStart             String                  @default("Sunday")
+  routingForms          App_RoutingForms_Form[]
+  apiKeys               ApiKey[]
+  credentials           Credential[]
+  accessCodes           AccessCode[]
+  isOrganization        Boolean                 @default(false)
+  organizationSettings  OrganizationSettings?
+  instantMeetingTokens  InstantMeetingToken[]
+  orgProfiles           Profile[]
+  pendingPayment        Boolean                 @default(false)
+  dsyncTeamGroupMapping DSyncTeamGroupMapping[]
 
   @@unique([slug, parentId])
   @@index([parentId])
 }
 
 model OrganizationSettings {
-  id                       Int     @id @default(autoincrement())
-  organization             Team    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  organizationId           Int     @unique
-  isOrganizationConfigured Boolean @default(false)
-  isOrganizationVerified   Boolean @default(false)
+  id                       Int        @id @default(autoincrement())
+  organization             Team       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId           Int        @unique
+  isOrganizationConfigured Boolean    @default(false)
+  isOrganizationVerified   Boolean    @default(false)
   orgAutoAcceptEmail       String
+  dSyncData                DSyncData?
 }
 
 enum MembershipRole {
@@ -1148,11 +1149,22 @@ model OutOfOfficeEntry {
 }
 
 model DSyncData {
-  id          Int    @id @default(autoincrement())
-  directoryId String
-  tenant      String
-  orgId       Int?   @unique
-  org         Team?  @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  id             Int                   @id @default(autoincrement())
+  directoryId    String
+  tenant         String
+  organizationId Int?                  @unique
+  org            OrganizationSettings? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}
+
+model DSyncTeamGroupMapping {
+  id             Int    @id @default(autoincrement())
+  organizationId Int
+  teamId         Int
+  team           Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  directoryId    String
+  groupName      String
+
+  @@unique([teamId, groupName])
 }
 
 model SecondaryEmail {
