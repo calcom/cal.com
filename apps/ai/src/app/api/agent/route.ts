@@ -28,7 +28,15 @@ export const POST = async (request: NextRequest) => {
   }
 
   try {
-    const response = await agent(`${subject}\n\n${message}`, { ...user }, users, apiKey, userId, agentEmail);
+    const response = await agent(
+      `${subject}\n\n${message}`,
+      { ...user },
+      users,
+      apiKey,
+      userId,
+      agentEmail,
+      "openai"
+    );
 
     // Send response to user
     await sendEmail({
