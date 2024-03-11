@@ -32,19 +32,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   });
   const tenantId = teamId ? teamId : userId;
   //  @TODO check scopes before deployment
-  const scopes = [
-    "ZohoCRM.modules.ALL",
-    "ZohoCRM.settings.ALL",
-    "ZohoCRM.users.ALL",
-    "AaaServer.profile.READ",
-  ];
+  const scopes = ["ZohoCRM.modules.ALL", "ZohoCRM.users.READ", "AaaServer.profile.READ"];
 
   const queryParams = {
     scope: scopes.join(","),
     client_id,
     response_type: "code",
     access_type: "offline",
-    redirect_uri: "http://localhost:3010/oauth-callback/zohocrm",
+    redirect_uri: "https://app.revert.dev/oauth-callback/zohocrm",
     state: `{%22tenantId%22:%22${tenantId}%22,%22revertPublicToken%22:%22${process.env.REVERT_PUBLIC_TOKEN}%22}`,
   };
 
