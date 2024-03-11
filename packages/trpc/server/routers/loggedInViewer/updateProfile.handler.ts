@@ -43,15 +43,17 @@ export const uploadAvatar = async ({ userId, avatar: data }: { userId: number; a
 
   await prisma.avatar.upsert({
     where: {
-      teamId_userId: {
+      teamId_userId_isBanner: {
         teamId: 0,
         userId,
+        isBanner: false,
       },
     },
     create: {
       userId: userId,
       data,
       objectKey,
+      isBanner: false,
     },
     update: {
       data,
