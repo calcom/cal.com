@@ -75,11 +75,11 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
     };
   };
 
-  const { shouldLockDisableProps, isManagedEventType, isChildrenManagedEventType } = useLockedFieldsManager(
+  const { shouldLockDisableProps, isManagedEventType, isChildrenManagedEventType } = useLockedFieldsManager({
     eventType,
+    translate: t,
     formMethods,
-    t
-  );
+  });
   const appsDisableProps = shouldLockDisableProps("apps", { simple: true });
   const lockedText = appsDisableProps.isLocked ? "locked" : "unlocked";
 

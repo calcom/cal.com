@@ -99,11 +99,11 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
     );
   };
 
-  const { shouldLockDisableProps, isChildrenManagedEventType, isManagedEventType } = useLockedFieldsManager(
+  const { shouldLockDisableProps, isChildrenManagedEventType, isManagedEventType } = useLockedFieldsManager({
     eventType,
+    translate: t,
     formMethods,
-    t
-  );
+  });
   const webhookLockedStatus = shouldLockDisableProps("webhooks");
 
   return (

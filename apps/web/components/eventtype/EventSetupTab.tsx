@@ -143,7 +143,7 @@ export const EventSetupTab = (
   );
 
   const { isChildrenManagedEventType, isManagedEventType, shouldLockIndicator, shouldLockDisableProps } =
-    useLockedFieldsManager(eventType, formMethods, t);
+    useLockedFieldsManager({ eventType, translate: t, formMethods });
   const Locations = () => {
     const { t } = useLocale();
     const {

@@ -86,6 +86,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
 
   useEffect(() => {
     !hashedUrl && setHashedUrl(generateHashedLink(formMethods.getValues("users")[0]?.id ?? team?.id));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formMethods.getValues("users"), hashedUrl, team?.id]);
 
   const toggleGuests = (enabled: boolean) => {
@@ -108,8 +109,11 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
     );
   };
 
-  const { isChildrenManagedEventType, isManagedEventType, shouldLockDisableProps, shouldLockIndicator } =
-    useLockedFieldsManager(eventType, formMethods, t);
+  const { isChildrenManagedEventType, isManagedEventType, shouldLockDisableProps } = useLockedFieldsManager({
+    eventType,
+    translate: t,
+    formMethods,
+  });
   const eventNamePlaceholder = getEventName({
     ...eventNameObject,
     eventName: formMethods.watch("eventName"),
@@ -136,7 +140,6 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
   ];
   const selectedSecondaryEmailId = formMethods.getValues("secondaryEmailId") || -1;
 
-  const setEventName = (value: string) => formMethods.setValue("eventName", value);
   return (
     <div className="flex flex-col space-y-4">
       {/**

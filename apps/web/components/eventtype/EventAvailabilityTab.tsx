@@ -156,8 +156,8 @@ const EventTypeSchedule = ({ eventType }: { eventType: EventTypeSetup }) => {
   const { t } = useLocale();
   const formMethods = useFormContext<FormValues>();
   const { shouldLockIndicator, shouldLockDisableProps, isManagedEventType, isChildrenManagedEventType } =
-    useLockedFieldsManager(eventType, formMethods, t);
-  const { watch, setValue, getValues } = useFormContext<FormValues>();
+    useLockedFieldsManager({ eventType, translate: t, formMethods });
+  const { watch, setValue, getValues } = formMethods;
   const watchSchedule = watch("schedule");
   const [options, setOptions] = useState<AvailabilityOption[]>([]);
 

@@ -204,11 +204,11 @@ function EventWorkflowsTab(props: Props) {
   const { workflows, eventType } = props;
   const { t } = useLocale();
   const formMethods = useFormContext<FormValues>();
-  const { shouldLockDisableProps, isManagedEventType, isChildrenManagedEventType } = useLockedFieldsManager(
+  const { shouldLockDisableProps, isManagedEventType, isChildrenManagedEventType } = useLockedFieldsManager({
     eventType,
+    translate: t,
     formMethods,
-    t
-  );
+  });
 
   const workflowsDisableProps = shouldLockDisableProps("workflows", { simple: true });
 
@@ -245,6 +245,7 @@ function EventWorkflowsTab(props: Props) {
           : activeWorkflows.concat(disabledWorkflows);
       setSortedWorkflows(allSortedWorkflows);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isPending]);
 
   const createMutation = trpc.viewer.workflows.create.useMutation({

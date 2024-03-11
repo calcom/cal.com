@@ -131,7 +131,11 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
 
   const watchPeriodType = formMethods.watch("periodType");
 
-  const { shouldLockIndicator, shouldLockDisableProps } = useLockedFieldsManager(eventType, formMethods, t);
+  const { shouldLockIndicator, shouldLockDisableProps } = useLockedFieldsManager({
+    eventType,
+    translate: t,
+    formMethods,
+  });
 
   const bookingLimitsLocked = shouldLockDisableProps("bookingLimits");
   const durationLimitsLocked = shouldLockDisableProps("durationLimits");

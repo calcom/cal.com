@@ -43,7 +43,7 @@ export default function RequiresConfirmationController({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [requiresConfirmation]);
 
-  const { shouldLockDisableProps } = useLockedFieldsManager(eventType, formMethods, t);
+  const { shouldLockDisableProps } = useLockedFieldsManager({ eventType, translate: t, formMethods });
   const requiresConfirmationLockedProps = shouldLockDisableProps("requiresConfirmation");
 
   const options = [

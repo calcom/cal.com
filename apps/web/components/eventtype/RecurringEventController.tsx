@@ -32,7 +32,7 @@ export default function RecurringEventController({
       value: value.toString(),
     }));
 
-  const { shouldLockDisableProps } = useLockedFieldsManager(eventType, formMethods, t);
+  const { shouldLockDisableProps } = useLockedFieldsManager({ eventType, translate: t, formMethods });
 
   const recurringLocked = shouldLockDisableProps("recurringEvent");
 

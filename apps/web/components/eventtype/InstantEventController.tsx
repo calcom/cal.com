@@ -34,7 +34,7 @@ export default function InstantEventController({
   const [instantEventState, setInstantEventState] = useState<boolean>(eventType?.isInstantEvent ?? false);
   const formMethods = useFormContext<FormValues>();
 
-  const { shouldLockDisableProps } = useLockedFieldsManager(eventType, formMethods, t);
+  const { shouldLockDisableProps } = useLockedFieldsManager({ eventType, translate: t, formMethods });
 
   const instantLocked = shouldLockDisableProps("isInstantEvent");
 

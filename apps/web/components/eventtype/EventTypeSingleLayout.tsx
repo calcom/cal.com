@@ -213,11 +213,11 @@ function EventTypeSingleLayout({
     formMethods.getValues("schedulingType") === SchedulingType.MANAGED ||
     isUserOrganizationAdmin;
 
-  const { isManagedEventType, isChildrenManagedEventType } = useLockedFieldsManager(
+  const { isManagedEventType, isChildrenManagedEventType } = useLockedFieldsManager({
     eventType,
+    translate: t,
     formMethods,
-    t
-  );
+  });
 
   const length = formMethods.watch("length");
   const multipleDuration = formMethods.watch("metadata")?.multipleDuration;

@@ -86,11 +86,16 @@ export const LockedIndicator = (
   );
 };
 
-const useLockedFieldsManager = (
-  eventType: Pick<z.infer<typeof _EventTypeModel>, "schedulingType" | "userId" | "metadata" | "id">,
-  formMethods: UseFormReturn<FormValues>,
-  translate: TFunction
-) => {
+const useLockedFieldsManager = ({
+  eventType,
+  translate,
+  formMethods,
+}: {
+  eventType: Pick<z.infer<typeof _EventTypeModel>, "schedulingType" | "userId" | "metadata" | "id">;
+  translate: TFunction;
+  formMethods: UseFormReturn<FormValues>;
+}) => {
+  const { setValue, getValues } = formMethods;
   const fieldStates: Record<string, [boolean, Dispatch<SetStateAction<boolean>>]> = {};
   const unlockedFields =
     (eventType.metadata?.managedEventConfig?.unlockedFields !== undefined &&
@@ -104,13 +109,13 @@ const useLockedFieldsManager = (
 
   const setUnlockedFields = (fieldName: string, val: boolean | undefined) => {
     const path = "metadata.managedEventConfig.unlockedFields";
-    const metaUnlockedFields = formMethods.getValues(path);
+    const metaUnlockedFields = getValues(path);
     if (!metaUnlockedFields) return;
     if (val === undefined) {
       delete metaUnlockedFields[fieldName as keyof typeof metaUnlockedFields];
-      formMethods.setValue(path, { ...metaUnlockedFields }, { shouldDirty: true });
+      setValue(path, { ...metaUnlockedFields }, { shouldDirty: true });
     } else {
-      formMethods.setValue(
+      setValue(
         path,
         {
           ...metaUnlockedFields,
@@ -123,7 +128,7 @@ const useLockedFieldsManager = (
 
   const getLockedInitState = (fieldName: string): boolean => {
     let locked = isManagedEventType || isChildrenManagedEventType;
-    const unlockedFieldList = formMethods.getValues("metadata")?.managedEventConfig?.unlockedFields;
+    const unlockedFieldList = getValues("metadata")?.managedEventConfig?.unlockedFields;
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     //@ts-ignore
     const fieldIsUnlocked = unlockedFieldList && unlockedFieldList[fieldName] === true;
