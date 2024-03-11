@@ -26,6 +26,7 @@ import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
 import type { User } from "@calcom/prisma/client";
+import type { MembershipRole } from "@calcom/prisma/enums";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc, TRPCClientError } from "@calcom/trpc/react";
@@ -808,23 +809,18 @@ const CreateFirstEventTypeView = ({ slug }: { slug: string }) => {
   );
 };
 
-const CTA = ({ data }: { data: GetByViewerResponse }) => {
+const CTA = ({
+  profileOptions,
+}: {
+  profileOptions: {
+    teamId: number | null | undefined;
+    label: string | null;
+    image: string;
+    membershipRole: MembershipRole | null | undefined;
+    slug: string | null;
+  }[];
+}) => {
   const { t } = useLocale();
-
-  if (!data) return null;
-
-  const profileOptions = data.profiles
-    .filter((profile) => !profile.readOnly)
-    .filter((profile) => !profile.eventTypesLockedByOrg)
-    .map((profile) => {
-      return {
-        teamId: profile.teamId,
-        label: profile.name || profile.slug,
-        image: profile.image,
-        membershipRole: profile.membershipRole,
-        slug: profile.slug,
-      };
-    });
 
   if (!profileOptions.length) return null;
 
@@ -838,10 +834,10 @@ const CTA = ({ data }: { data: GetByViewerResponse }) => {
   );
 };
 
-const Actions = () => {
+const Actions = (props: { showDivider: boolean }) => {
   return (
     <div className="hidden items-center md:flex">
-      <TeamsFilter useProfileFilter popoverTriggerClassNames="mb-0" showVerticalDivider={true} />
+      <TeamsFilter useProfileFilter popoverTriggerClassNames="mb-0" showVerticalDivider={props.showDivider} />
     </div>
   );
 };
@@ -992,6 +988,21 @@ const EventTypesPage: React.FC & {
     );
   }, [orgBranding, user]);
 
+  const profileOptions = data
+    ? data?.profiles
+        .filter((profile) => !profile.readOnly)
+        .filter((profile) => !profile.eventTypesLockedByOrg)
+        .map((profile) => {
+          return {
+            teamId: profile.teamId,
+            label: profile.name || profile.slug,
+            image: profile.image,
+            membershipRole: profile.membershipRole,
+            slug: profile.slug,
+          };
+        })
+    : [];
+
   return (
     <Shell
       withoutMain={false}
@@ -1001,8 +1012,8 @@ const EventTypesPage: React.FC & {
       heading={t("event_types_page_title")}
       hideHeadingOnMobile
       subtitle={t("event_types_page_subtitle")}
-      beforeCTAactions={<Actions />}
-      CTA={<CTA data={data} />}>
+      beforeCTAactions={<Actions showDivider={profileOptions.length > 0} />}
+      CTA={<CTA profileOptions={profileOptions} />}>
       <HeadSeo
         title="Event Types"
         description="Create events to share for people to book on your calendar."
