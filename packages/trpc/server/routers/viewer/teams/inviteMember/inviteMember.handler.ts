@@ -120,7 +120,8 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
         team,
         translation,
         inviterName: ctx.user.name ?? "",
-        input,
+        teamId: input.teamId,
+        isOrg: input.isOrg,
       });
     });
     sendEmails(sendVerifEmailsPromises);
