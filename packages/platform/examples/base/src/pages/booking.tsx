@@ -16,7 +16,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
         <h1 className="my-4 text-2xl font-semibold">{props.calUsername} Public Booking Page</h1>
         {!bookingTitle && (
           <Booker
-            eventSlug="thirty-minutes"
+            eventSlug="sixty-minutes-video"
             username={props.calUsername ?? ""}
             onCreateBookingSuccess={(data) => {
               setBookingTitle(data.data.title);

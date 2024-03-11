@@ -32,11 +32,16 @@ export class EventTypesService {
 
   async createUserDefaultEventTypes(userId: number) {
     const thirtyMinutes = DEFAULT_EVENT_TYPES.thirtyMinutes;
+    const thirtyMinutesVideo = DEFAULT_EVENT_TYPES.thirtyMinutesVideo;
+
     const sixtyMinutes = DEFAULT_EVENT_TYPES.sixtyMinutes;
+    const sixtyMinutesVideo = DEFAULT_EVENT_TYPES.sixtyMinutesVideo;
 
     const defaultEventTypes = await Promise.all([
       this.eventTypesRepository.createUserEventType(userId, thirtyMinutes),
       this.eventTypesRepository.createUserEventType(userId, sixtyMinutes),
+      this.eventTypesRepository.createUserEventType(userId, thirtyMinutesVideo),
+      this.eventTypesRepository.createUserEventType(userId, sixtyMinutesVideo),
     ]);
 
     return defaultEventTypes;
