@@ -392,8 +392,10 @@ export const EventTypeList = ({
   if (!types.length) {
     return group.teamId ? (
       <EmptyEventTypeList group={group} />
-    ) : (
+    ) : !group.profile.eventTypesLockedByOrg ? (
       <CreateFirstEventTypeView slug={group.profile.slug ?? ""} />
+    ) : (
+      <></>
     );
   }
 
@@ -823,6 +825,8 @@ const CTA = ({ data }: { data: GetByViewerResponse }) => {
         slug: profile.slug,
       };
     });
+
+  if (!profileOptions.length) return null;
 
   return (
     <CreateButton
