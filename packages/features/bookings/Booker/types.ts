@@ -16,6 +16,7 @@ import type { GetBookingType } from "../lib/get-booking";
 export interface BookerProps {
   eventSlug: string;
   username: string;
+  orgBannerUrl?: string | null;
 
   /**
    * Whether is a team or org, we gather basic info from both

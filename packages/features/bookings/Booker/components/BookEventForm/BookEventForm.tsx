@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState, useMemo } from "react";
 import type { FieldError } from "react-hook-form";
 
-import { WEBSITE_URL } from "@calcom/lib/constants";
+import { IS_CALCOM, WEBSITE_URL } from "@calcom/lib/constants";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Alert, Button, EmptyScreen, Form } from "@calcom/ui";
@@ -53,7 +53,6 @@ export const BookEventForm = ({
   const timeslot = useBookerStore((state) => state.selectedTimeslot);
   const username = useBookerStore((state) => state.username);
   const isInstantMeeting = useBookerStore((state) => state.isInstantMeeting);
-  const [expiryTime, setExpiryTime] = useState<Date | undefined>();
 
   const [responseVercelIdHeader] = useState<string | null>(null);
   const { t } = useLocale();
@@ -114,7 +113,7 @@ export const BookEventForm = ({
             />
           </div>
         )}
-        {!isPlatform && (
+        {!isPlatform && IS_CALCOM && (
           <div className="text-subtle my-3 w-full text-xs opacity-80">
             <Trans i18nKey="signing_up_terms">
               By proceeding, you agree to our{" "}
