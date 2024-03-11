@@ -1,4 +1,3 @@
-import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { TimeRange, WorkingHours } from "@calcom/types/schedule";
 import { Button, DialogTrigger, Tooltip } from "@calcom/ui";
@@ -50,8 +49,8 @@ const DateOverrideList = ({
         <li key={item.id} className="border-subtle flex justify-between border-b px-5 py-4 last:border-b-0">
           <div>
             <h3 className="text-emphasis text-sm">
-              {new Intl.DateTimeFormat("en-GB", {
-                weekday: "short",
+              {new Intl.DateTimeFormat(i18n.language, {
+                weekday: "long",
                 month: "long",
                 day: "numeric",
                 timeZone: "UTC",
@@ -91,8 +90,16 @@ const DateOverrideList = ({
             />
             <Tooltip content="Delete">
               <Button
-                data-testid={`delete-override-${dayjs(item.ranges[0].start).utc().format("YYYY-MM-DD")}`}
                 className="text-default"
+                data-testid="delete-button"
+                title={t("date_overrides_delete_on_date", {
+                  date: new Intl.DateTimeFormat(i18n.language, {
+                    weekday: "long",
+                    month: "long",
+                    day: "numeric",
+                    timeZone: "UTC",
+                  }).format(item.ranges[0].start),
+                })}
                 color="destructive"
                 variant="icon"
                 StartIcon={Trash2}
