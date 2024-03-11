@@ -76,6 +76,13 @@ export type CustomClassNames = {
   formClassName?: string;
   timezoneSelectClassName?: string;
   subtitlesClassName?: string;
+  scheduleClassNames?: {
+    scheduleContainer?: string;
+    scheduleDay?: string;
+    dayRanges?: string;
+    timeRanges?: string;
+    labelAndSwitchContainer?: string;
+  };
 };
 
 type AvailabilitySettingsProps = {
@@ -389,6 +396,9 @@ export function AvailabilitySettings({
                       copyTime: translations?.copy_times_to ?? t("copy_times_to"),
                       deleteTime: translations?.delete ?? t("delete"),
                     }}
+                    className={
+                      customClassNames?.scheduleClassNames ? { ...customClassNames.scheduleClassNames } : {}
+                    }
                     control={form.control}
                     name="schedule"
                     userTimeFormat={timeFormat}
