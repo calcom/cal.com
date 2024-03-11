@@ -170,7 +170,6 @@ export const EventSetupTab = (
     const defaultValue = isManagedEventType
       ? locationOptions.find((op) => op.label === t("default"))?.options[0]
       : undefined;
-    console.log({ defaultValue });
 
     const { locationDetails, locationAvailable } = getLocationInfo(props);
 
