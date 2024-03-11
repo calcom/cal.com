@@ -82,6 +82,7 @@ export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availab
       onSuccess: () => {
         utils.viewer.availability.list.invalidate();
         setBulkUpdateModal(false);
+        showToast(t("success"), "success");
       },
     });
 
