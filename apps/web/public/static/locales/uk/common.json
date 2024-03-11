@@ -2093,6 +2093,7 @@
   "workflow_automation": "Автоматизація робочого процесу",
   "scheduling_for_your_team": "Автоматизація робочого процесу",
   "no_members_found": "Учасників не знайдено",
+  "directory_sync": "Directory Sync",
   "event_setup_length_error": "Налаштування заходу: мінімальна тривалість — 1 хвилина.",
   "availability_schedules": "Розклад доступності",
   "unauthorized": "Неавторизовано",
