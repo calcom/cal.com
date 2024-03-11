@@ -1,3 +1,4 @@
+import { InfoIcon } from "lucide-react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import type { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
@@ -26,8 +27,10 @@ import { trpc } from "@calcom/trpc/react";
 import {
   Alert,
   Button,
+  Badge,
   CheckboxField,
   Label,
+  SelectField,
   SettingsToggle,
   showToast,
   Switch,
@@ -59,7 +62,6 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
   const selectedThemeIsDark =
     user?.theme === "dark" ||
     (!user?.theme && typeof document !== "undefined" && document.documentElement.classList.contains("dark"));
-
   formMethods.getValues().bookingFields.forEach(({ name }) => {
     bookingFields[name] = `${name} input`;
   });
@@ -101,7 +103,8 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
           };
         }
         return field;
-      })
+      }),
+      { shouldDirty: true }
     );
   };
 
@@ -121,6 +124,16 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
   const closeEventNameTip = () => setShowEventNameTip(false);
   const displayDestinationCalendarSelector =
     !!connectedCalendarsQuery.data?.connectedCalendars.length && !team;
+  const verifiedSecondaryEmails = [
+    {
+      label: user?.email || "",
+      value: -1,
+    },
+    ...(user?.secondaryEmails || [])
+      .filter((secondaryEmail) => !!secondaryEmail.emailVerified)
+      .map((secondaryEmail) => ({ label: secondaryEmail.email, value: secondaryEmail.id })),
+  ];
+  const selectedSecondaryEmailId = formMethods.getValues("secondaryEmailId") || -1;
 
   return (
     <div className="flex flex-col space-y-4">
@@ -179,12 +192,43 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
         {displayDestinationCalendarSelector && (
           <div className="w-full">
             <Switch
-              label={t("display_add_to_calendar_organizer")}
+              tooltip={t("reconnect_calendar_to_use")}
+              label={
+                <>
+                  {t("display_add_to_calendar_organizer")}
+                  <InfoIcon className="text-default hover:text-attention hover:bg-attention ms-1 inline h-4 w-4 rounded-md" />
+                </>
+              }
               checked={useEventTypeDestinationCalendarEmail}
               onCheckedChange={(val) => {
                 setUseEventTypeDestinationCalendarEmail(val);
-                formMethods.setValue("useEventTypeDestinationCalendarEmail", val);
+                formMethods.setValue("useEventTypeDestinationCalendarEmail", val, { shouldDirty: true });
+                if (val) {
+                  showToast(t("reconnect_calendar_to_use"), "warning");
+                }
               }}
+            />
+          </div>
+        )}
+        {!useEventTypeDestinationCalendarEmail && verifiedSecondaryEmails.length > 0 && (
+          <div className="w-full">
+            <SelectField
+              label={t("send_event_details_to")}
+              placeholder={
+                selectedSecondaryEmailId === -1 && (
+                  <span className="text-default min-w-0 overflow-hidden truncate whitespace-nowrap">
+                    <Badge variant="blue">{t("default")}</Badge> {user?.email || ""}
+                  </span>
+                )
+              }
+              onChange={(option) =>
+                formMethods.setValue("secondaryEmailId", option?.value, { shouldDirty: true })
+              }
+              value={verifiedSecondaryEmails.find(
+                (secondaryEmail) =>
+                  selectedSecondaryEmailId !== -1 && secondaryEmail.value === selectedSecondaryEmailId
+              )}
+              options={verifiedSecondaryEmails}
             />
           </div>
         )}
@@ -319,7 +363,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
         description={t("private_link_description", { appName: APP_NAME })}
         checked={hashedLinkVisible}
         onCheckedChange={(e) => {
-          formMethods.setValue("hashedLink", e ? hashedUrl : undefined);
+          formMethods.setValue("hashedLink", e ? hashedUrl : undefined, { shouldDirty: true });
           setHashedLinkVisible(e);
         }}>
         <div className="border-subtle rounded-b-lg border border-t-0 p-6">
@@ -383,10 +427,12 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
                 // Enabling seats will disable guests and requiring confirmation until fully supported
                 if (e) {
                   toggleGuests(false);
-                  formMethods.setValue("requiresConfirmation", false);
+                  formMethods.setValue("requiresConfirmation", false, { shouldDirty: true });
                   setRequiresConfirmation(false);
-                  formMethods.setValue("metadata.multipleDuration", undefined);
-                  formMethods.setValue("seatsPerTimeSlot", eventType.seatsPerTimeSlot ?? 2);
+                  formMethods.setValue("metadata.multipleDuration", undefined, { shouldDirty: true });
+                  formMethods.setValue("seatsPerTimeSlot", eventType.seatsPerTimeSlot ?? 2, {
+                    shouldDirty: true,
+                  });
                 } else {
                   formMethods.setValue("seatsPerTimeSlot", null);
                   toggleGuests(true);
@@ -506,7 +552,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
       {showEventNameTip && (
         <CustomEventTypeModal
           close={closeEventNameTip}
-          setValue={(val: string) => formMethods.setValue("eventName", val)}
+          setValue={(val: string) => formMethods.setValue("eventName", val, { shouldDirty: true })}
           defaultValue={formMethods.getValues("eventName")}
           placeHolder={eventNamePlaceholder}
           event={eventNameObject}

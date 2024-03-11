@@ -110,6 +110,7 @@ function reducer(state: State, action: Action): State {
 export function UserListTable() {
   const { data: session } = useSession();
   const { data: currentMembership } = trpc.viewer.organizations.listCurrent.useQuery();
+  const { data: teams } = trpc.viewer.organizations.getTeams.useQuery();
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const [state, dispatch] = useReducer(reducer, initialState);
   const { t } = useLocale();
@@ -126,6 +127,7 @@ export function UserListTable() {
       }
     );
 
+  const totalDBRowCount = data?.pages?.[0]?.meta?.totalRowCount ?? 0;
   const adminOrOwner = currentMembership?.user.role === "ADMIN" || currentMembership?.user.role === "OWNER";
   const domain = orgBranding?.fullDomain ?? WEBAPP_URL;
 
@@ -160,7 +162,7 @@ export function UserListTable() {
       {
         id: "member",
         accessorFn: (data) => data.email,
-        header: "Member",
+        header: `Member (${totalDBRowCount})`,
         cell: ({ row }) => {
           const { username, email } = row.original;
           return (
@@ -205,13 +207,20 @@ export function UserListTable() {
           );
         },
         filterFn: (rows, id, filterValue) => {
+          if (filterValue.includes("PENDING")) {
+            if (filterValue.length === 1) return !rows.original.accepted;
+            else return !rows.original.accepted || filterValue.includes(rows.getValue(id));
+          }
+
+          // Show only the selected roles
           return filterValue.includes(rows.getValue(id));
         },
       },
       {
         id: "teams",
+        accessorFn: (data) => data.teams.map((team) => team.name),
         header: "Teams",
-        cell: ({ row }) => {
+        cell: ({ row, table }) => {
           const { teams, accepted, email, username } = row.original;
           // TODO: Implement click to filter
           return (
@@ -221,17 +230,29 @@ export function UserListTable() {
                   data-testid2={`member-${username}-pending`}
                   variant="red"
                   className="text-xs"
-                  data-testid={`email-${email.replace("@", "")}-pending`}>
+                  data-testid={`email-${email.replace("@", "")}-pending`}
+                  onClick={() => {
+                    table.getColumn("role")?.setFilterValue(["PENDING"]);
+                  }}>
                   Pending
                 </Badge>
               )}
               {teams.map((team) => (
-                <Badge key={team.id} variant="gray">
+                <Badge
+                  key={team.id}
+                  variant="gray"
+                  onClick={() => {
+                    table.getColumn("teams")?.setFilterValue([team.name]);
+                  }}>
                   {team.name}
                 </Badge>
               ))}
             </div>
           );
+        },
+        filterFn: (rows, _, filterValue: string[]) => {
+          const teamNames = rows.original.teams.map((team) => team.name);
+          return filterValue.some((value: string) => teamNames.includes(value));
         },
       },
       {
@@ -262,11 +283,10 @@ export function UserListTable() {
     ];
 
     return cols;
-  }, [session?.user.id, adminOrOwner, dispatch, domain]);
+  }, [session?.user.id, adminOrOwner, dispatch, domain, totalDBRowCount]);
 
   //we must flatten the array of arrays from the useInfiniteQuery hook
   const flatData = useMemo(() => data?.pages?.flatMap((page) => page.rows) ?? [], [data]) as User[];
-  const totalDBRowCount = data?.pages?.[0]?.meta?.totalRowCount ?? 0;
   const totalFetched = flatData.length;
 
   //called on scroll and possibly on mount to fetch more data as the user scrolls and reaches bottom of table
@@ -340,7 +360,13 @@ export function UserListTable() {
               { label: "Owner", value: "OWNER" },
               { label: "Admin", value: "ADMIN" },
               { label: "Member", value: "MEMBER" },
+              { label: "Pending", value: "PENDING" },
             ],
+          },
+          {
+            tableAccessor: "teams",
+            title: "Teams",
+            options: teams ? teams.map((team) => ({ label: team.name, value: team.name })) : [],
           },
         ]}
       />

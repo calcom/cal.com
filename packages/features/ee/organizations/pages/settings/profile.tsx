@@ -22,6 +22,7 @@ import {
   Button,
   Form,
   ImageUploader,
+  BannerUploader,
   Label,
   Meta,
   showToast,
@@ -40,12 +41,14 @@ import { useOrgBranding } from "../../../organizations/context/provider";
 const orgProfileFormSchema = z.object({
   name: z.string(),
   logo: z.string().nullable(),
+  banner: z.string().nullable(),
   bio: z.string(),
 });
 
 type FormValues = {
   name: string;
   logo: string | null;
+  banner: string | null;
   bio: string;
   slug: string;
 };
@@ -110,6 +113,7 @@ const OrgProfileView = () => {
   const defaultValues: FormValues = {
     name: currentOrganisation?.name || "",
     logo: currentOrganisation?.logo || "",
+    banner: currentOrganisation?.bannerUrl || "",
     bio: currentOrganisation?.bio || "",
     slug:
       currentOrganisation?.slug ||
@@ -178,6 +182,7 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
         name: (res.data?.name || "") as string,
         bio: (res.data?.bio || "") as string,
         slug: defaultValues["slug"],
+        banner: (res.data?.bannerUrl || "") as string,
       });
       await utils.viewer.teams.get.invalidate();
       await utils.viewer.organizations.listCurrent.invalidate();
@@ -201,6 +206,7 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
           name: values.name,
           slug: values.slug,
           bio: values.bio,
+          banner: values.banner,
         };
 
         mutation.mutate(variables);
@@ -238,6 +244,53 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
                           color="secondary"
                           onClick={() => {
                             form.setValue("logo", null, { shouldDirty: true });
+                          }}>
+                          {t("remove")}
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </>
+              );
+            }}
+          />
+        </div>
+
+        <div className="mt-2 flex items-center">
+          <Controller
+            control={form.control}
+            name="banner"
+            render={({ field: { value } }) => {
+              const showRemoveBannerButton = !!value;
+
+              return (
+                <>
+                  <Avatar
+                    data-testid="profile-upload-banner"
+                    alt={`${defaultValues.name} Banner` || ""}
+                    imageSrc={value}
+                    size="lg"
+                  />
+                  <div className="ms-4">
+                    <div className="flex gap-2">
+                      <BannerUploader
+                        height={500}
+                        width={1500}
+                        target="banner"
+                        uploadInstruction={t("org_banner_instructions", { height: 500, width: 1500 })}
+                        id="banner-upload"
+                        buttonMsg={t("upload_banner")}
+                        handleAvatarChange={(newBanner) => {
+                          form.setValue("banner", newBanner, { shouldDirty: true });
+                        }}
+                        imageSrc={value || undefined}
+                        triggerButtonColor={showRemoveBannerButton ? "secondary" : "primary"}
+                      />
+                      {showRemoveBannerButton && (
+                        <Button
+                          color="destructive"
+                          onClick={() => {
+                            form.setValue("banner", "", { shouldDirty: true });
                           }}>
                           {t("remove")}
                         </Button>
