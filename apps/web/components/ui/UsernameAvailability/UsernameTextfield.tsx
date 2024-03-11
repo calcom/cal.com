@@ -168,7 +168,10 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
                   <p className="text-subtle" data-testid="new-username">
                     {t("new_username")}
                   </p>
-                  <p className="text-emphasis mt-1 break-all">{inputUsernameValue}</p>
+
+                  <p className="text-emphasis min-h-5 mt-1 max-h-12 overflow-y-auto break-all">
+                    {inputUsernameValue}
+                  </p>
                 </div>
               </div>
             </div>
