@@ -43,6 +43,7 @@ export class BookingsController {
     @Body() _: CreateBookingInput
   ): Promise<ApiResponse<unknown>> {
     req.userId = await this.getOwnerId(req);
+    req.body = { ...req.body, noEmail: true };
     try {
       const booking = await handleNewBooking(req as unknown as NextApiRequest & { userId?: number });
       return {
@@ -62,6 +63,7 @@ export class BookingsController {
     @Body() _: CreateReccuringBookingInput[]
   ): Promise<ApiResponse<BookingResponse[]>> {
     req.userId = await this.getOwnerId(req);
+    req.body = { ...req.body, noEmail: true };
     try {
       const createdBookings: BookingResponse[] = await handleNewRecurringBooking(
         req as unknown as NextApiRequest & { userId?: number }
@@ -83,6 +85,7 @@ export class BookingsController {
     @Body() _: CreateBookingInput
   ): Promise<ApiResponse<Awaited<ReturnType<typeof handleInstantMeeting>>>> {
     req.userId = await this.getOwnerId(req);
+    req.body = { ...req.body, noEmail: true };
     try {
       const instantMeeting = await handleInstantMeeting(
         req as unknown as NextApiRequest & { userId?: number }

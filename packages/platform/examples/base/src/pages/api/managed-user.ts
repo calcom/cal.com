@@ -42,11 +42,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       },
       body: JSON.stringify({
         email,
+        name: "John Jones",
       }),
     }
   );
   const body = await response.json();
-  console.log(body);
   await prisma.user.update({
     data: {
       refreshToken: (body.data?.refreshToken as string) ?? "",
