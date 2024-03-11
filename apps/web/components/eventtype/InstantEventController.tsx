@@ -178,11 +178,11 @@ const InstantMeetingWebhooks = ({ eventType }: { eventType: EventTypeSetup }) =>
     );
   };
 
-  const { shouldLockDisableProps, isChildrenManagedEventType, isManagedEventType } = useLockedFieldsManager(
+  const { shouldLockDisableProps, isChildrenManagedEventType, isManagedEventType } = useLockedFieldsManager({
     eventType,
     formMethods,
-    t
-  );
+    translate: t,
+  });
   const webhookLockedStatus = shouldLockDisableProps("webhooks");
 
   return (
