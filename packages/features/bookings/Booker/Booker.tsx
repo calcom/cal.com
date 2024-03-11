@@ -235,7 +235,7 @@ const BookerComponent = ({
 
   return (
     <>
-      {event.data && !isPlatform ? <BookingPageTagManager eventType={event.data} /> : null}
+      {event.data && !isPlatform ? <BookingPageTagManager eventType={event.data} /> : <></>}
 
       {bookerState !== "booking" && event.data?.isInstantEvent && (
         <div

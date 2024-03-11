@@ -8,11 +8,7 @@ import { useBookerLayout } from "@calcom/features/bookings/Booker/components/hoo
 import { useBookingForm } from "@calcom/features/bookings/Booker/components/hooks/useBookingForm";
 import { useLocalSet } from "@calcom/features/bookings/Booker/components/hooks/useLocalSet";
 import { useBookerStore, useInitializeBookerStore } from "@calcom/features/bookings/Booker/store";
-import {
-  useTimePreferences,
-  mapBookingToMutationInput,
-  mapRecurringBookingToMutationInput,
-} from "@calcom/features/bookings/lib";
+import { useTimePreferences } from "@calcom/features/bookings/lib";
 import { useTimesForSchedule } from "@calcom/features/schedules/lib/use-schedule/useTimesForSchedule";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
 import type { ConnectedDestinationCalendars } from "@calcom/platform-libraries";
@@ -30,6 +26,7 @@ import { useConnectedCalendars } from "../hooks/useConnectedCalendars";
 import { useCreateBooking } from "../hooks/useCreateBooking";
 import { useCreateInstantBooking } from "../hooks/useCreateInstantBooking";
 import { useCreateRecurringBooking } from "../hooks/useCreateRecurringBooking";
+import { useHandleBookEvent } from "../hooks/useHandleBookEvent";
 import { useMe } from "../hooks/useMe";
 import { usePublicEvent } from "../hooks/usePublicEvent";
 import { useSlots } from "../hooks/useSlots";
@@ -59,6 +56,7 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
   const setSelectedTimeslot = useBookerStore((state) => state.setSelectedTimeslot);
 
   useEffect(() => {
+    // reset booker whenever it's unmounted
     return () => {
       setBookerState("loading");
       setSelectedDate(null);
@@ -203,62 +201,16 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
       hasSession && set.size > 0 && localStorage?.getItem("overlayCalendarSwitchDefault") === "true"
     ),
   });
-  const timeslot = useBookerStore((state) => state.selectedTimeslot);
-  const setFormValues = useBookerStore((state) => state.setFormValues);
-  const recurringEventCount = useBookerStore((state) => state.recurringEventCount);
-  const bookingData = useBookerStore((state) => state.bookingData);
-  const seatedEventData = useBookerStore((state) => state.seatedEventData);
 
-  const handleBookEvent = () => {
-    const values = bookerForm.bookingForm.getValues();
-    if (timeslot) {
-      // Clears form values stored in store, so old values won't stick around.
-      setFormValues({});
-      bookerForm.bookingForm.clearErrors();
-
-      // It shouldn't be possible that this method is fired without having event data,
-      // but since in theory (looking at the types) it is possible, we still handle that case.
-      if (!event?.data) {
-        bookerForm.bookingForm.setError("globalError", {
-          message: "An error occurred when booking the event, please refresh the page and try again",
-        });
-        return;
-      }
-
-      // Ensures that duration is an allowed value, if not it defaults to the
-      // default event duration.
-      const validDuration = event.data.isDynamic
-        ? selectedDuration || event.data.length
-        : selectedDuration && event.data.metadata?.multipleDuration?.includes(selectedDuration)
-        ? selectedDuration
-        : event.data.length;
-
-      const bookingInput = {
-        values,
-        duration: validDuration,
-        event: event.data,
-        date: timeslot,
-        timeZone: timezone,
-        language: "en",
-        rescheduleUid: props.rescheduleUid || undefined,
-        bookingUid: (bookingData && bookingData.uid) || seatedEventData?.bookingUid || undefined,
-        username: props.username || "",
-        metadata: {},
-        hashedLink: props.hashedLink,
-      };
-
-      if (props.isInstantMeeting) {
-        createInstantBooking(mapBookingToMutationInput(bookingInput));
-      } else if (event.data?.recurringEvent?.freq && recurringEventCount && !props.rescheduleUid) {
-        createRecBooking(mapRecurringBookingToMutationInput(bookingInput, recurringEventCount));
-      } else {
-        createBooking(mapBookingToMutationInput(bookingInput));
-      }
-      // Clears form values stored in store, so old values won't stick around.
-      setFormValues({});
-      bookerForm.bookingForm.clearErrors();
-    }
-  };
+  const handleBookEvent = useHandleBookEvent({
+    event,
+    bookingForm: bookerForm.bookingForm,
+    hashedLink: props.hashedLink,
+    metadata: {},
+    handleBooking: createBooking,
+    handleInstantBooking: createInstantBooking,
+    handleRecBooking: createRecBooking,
+  });
 
   return (
     <BookerComponent
