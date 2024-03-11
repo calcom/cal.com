@@ -46,7 +46,7 @@ function logOnce(message: string) {
   warningDisplayed = true;
 }
 
-export const API_KEY_RATE_LIMIT = 10;
+export const API_KEY_RATE_LIMIT = 30;
 
 export function rateLimiter() {
   const UPSATCH_ENV_FOUND = process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN;

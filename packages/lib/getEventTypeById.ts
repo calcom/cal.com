@@ -237,6 +237,7 @@ export const getEventTypeById = async ({
           },
         },
       },
+      secondaryEmailId: true,
     },
   });
 
