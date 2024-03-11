@@ -33,9 +33,10 @@ test.describe("UploadAvatar", async () => {
 
       const response = await prisma.avatar.findUniqueOrThrow({
         where: {
-          teamId_userId: {
+          teamId_userId_isBanner: {
             userId: user.id,
             teamId: 0,
+            isBanner: false,
           },
         },
       });
