@@ -38,7 +38,7 @@ type AvailabilityFormValues = {
 };
 
 const DateOverride = ({ workingHours, disabled }: { workingHours: WorkingHours[]; disabled?: boolean }) => {
-  const { remove, append, replace, fields } = useFieldArray<AvailabilityFormValues, "dateOverrides">({
+  const { append, replace, fields } = useFieldArray<AvailabilityFormValues, "dateOverrides">({
     name: "dateOverrides",
   });
   const excludedDates = fields.map((field) => dayjs(field.ranges[0].start).utc().format("YYYY-MM-DD"));
@@ -49,7 +49,6 @@ const DateOverride = ({ workingHours, disabled }: { workingHours: WorkingHours[]
       <div className="space-y-2">
         <DateOverrideList
           excludedDates={excludedDates}
-          remove={remove}
           replace={replace}
           items={fields}
           workingHours={workingHours}
