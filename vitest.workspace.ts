@@ -34,26 +34,9 @@ const workspaces = packagedEmbedTestsOnly
   : [
       {
         test: {
-          include: ["packages/**/*.{test,spec}.{js,ts}", "apps/**/*.{test,spec}.{js,ts}"],
-          exclude: [
-            "**/node_modules/**/*",
-            "**/.next/**/*",
-            "packages/embeds/**/*",
-            "packages/lib/hooks/**/*",
-          ],
-          setupFiles: ["setupVitest.ts"],
-        },
-      },
-
-      {
-        test: {
-          include: ["packages/**/*.{test,spec}.tsx"],
-          exclude: [
-            "**/node_modules/**/*",
-            "**/.next/**/*",
-            "packages/embeds/**/*",
-            "packages/lib/hooks/**/*",
-          ],
+          globals: true,
+          name: "@calcom/features",
+          include: ["packages/features/**/*.{test,spec}.tsx"],
           environment: "jsdom",
           setupFiles: ["setupVitest.ts"],
         },
@@ -70,7 +53,7 @@ const workspaces = packagedEmbedTestsOnly
       {
         test: {
           globals: true,
-          name: "ui/components",
+          name: "@calcom/ui",
           include: ["packages/ui/components/**/*.{test,spec}.[jt]s?(x)"],
           environment: "jsdom",
           setupFiles: ["packages/ui/components/test-setup.ts"],
