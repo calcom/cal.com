@@ -60,7 +60,7 @@ type DropdownMenuItemProps = ComponentProps<(typeof DropdownMenuPrimitive)["Chec
 export const DropdownMenuItem = forwardRef<HTMLDivElement, DropdownMenuItemProps>(
   ({ className = "", ...props }, forwardedRef) => (
     <DropdownMenuPrimitive.Item
-      className={`focus:ring-brand-800 hover:bg-subtle hover:text-emphasis text-default text-sm ring-inset first-of-type:rounded-t-[inherit] last-of-type:rounded-b-[inherit] focus:outline-none focus:ring-1 ${className}`}
+      className={`focus:ring-brand-800 hover:bg-subtle hover:text-emphasis text-default text-sm ring-inset transition first-of-type:rounded-t-[inherit] last-of-type:rounded-b-[inherit] focus:outline-none focus:ring-1 ${className}`}
       {...props}
       ref={forwardedRef}
     />
@@ -137,7 +137,7 @@ export const DropdownItem = (props: DropdownItemProps) => {
     <ButtonOrLink
       {...rest}
       className={classNames(
-        "hover:text-emphasis text-default inline-flex w-full items-center space-x-2 px-3 py-2  disabled:cursor-not-allowed",
+        "hover:text-emphasis text-default inline-flex w-full items-center space-x-2 px-3 py-2 transition disabled:cursor-not-allowed",
         color === "destructive"
           ? "hover:bg-error hover:text-red-700 dark:hover:text-red-100"
           : "hover:bg-subtle",
