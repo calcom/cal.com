@@ -315,6 +315,7 @@ function EventWorkflowsTab(props: Props) {
                 description={t("no_workflows_description")}
                 buttonRaw={
                   <Button
+                    disabled={workflowsDisableProps.isLocked && !isManagedEventType}
                     target="_blank"
                     color="secondary"
                     onClick={() => createMutation.mutate({ teamId: eventType.team?.id })}
