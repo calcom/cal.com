@@ -35,7 +35,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const queryParams = {
     response_type: "code",
     client_id: consumer_key,
-    redirect_uri: `https://a3f9-103-183-24-51.ngrok-free.app/oauth-callback/sfdc`,
+    redirect_uri: `https://app.revert.dev/oauth-callback/sfdc`,
     state: `{%22tenantId%22:%22${tenantId}%22,%22revertPublicToken%22:%22${process.env.REVERT_PUBLIC_TOKEN}%22}`,
   };
 

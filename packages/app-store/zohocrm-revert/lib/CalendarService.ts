@@ -163,7 +163,7 @@ export default class ZohoCRMRevertCalendarService implements Calendar {
     return await fetch(`${this.revertApiUrl}crm/events/${uid}`, requestOptions);
   };
 
-  private deleteMeeting = async (uid: any) => {
+  private deleteMeeting = async (uid: string) => {
     const headers = new Headers();
     headers.append("x-revert-api-token", this.revertApiKey);
     headers.append("x-revert-t-id", this.tenantId);
@@ -180,9 +180,10 @@ export default class ZohoCRMRevertCalendarService implements Calendar {
     const meetingEvent = await (await this.createZohoCRMEvent(event, contacts)).json();
     if (meetingEvent && meetingEvent.status === "ok") {
       this.log.debug("event:creation:ok", { meetingEvent });
+
       return Promise.resolve({
-        uid: meetingEvent.result.id,
-        id: meetingEvent.result.id,
+        uid: meetingEvent.result.details.id,
+        id: meetingEvent.result.details.id,
         type: appConfig.slug,
         password: "",
         url: "",
@@ -296,6 +297,7 @@ export default class ZohoCRMRevertCalendarService implements Calendar {
     );
 
     await this.createContacts(nonExistingContacts);
+
     const meetingEvent = await (await this.updateMeeting(uid, event)).json();
     if (meetingEvent && meetingEvent.status === "ok") {
       this.log.debug("event:updation:ok", { meetingEvent });
@@ -312,7 +314,7 @@ export default class ZohoCRMRevertCalendarService implements Calendar {
     return Promise.reject("Something went wrong when updating a meeting in ZOHO CRM");
   }
 
-  async deleteEvent(uid: any): Promise<void> {
+  async deleteEvent(uid: string): Promise<void> {
     await this.deleteMeeting(uid);
   }
 
