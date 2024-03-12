@@ -447,7 +447,14 @@ async function getOriginalRescheduledBooking(uid: string, eventTypeId: number, s
   return prisma.booking.findFirst({
     where: {
       uid: uid,
-      eventTypeId,
+      OR: [
+        {
+          eventTypeId,
+        },
+        {
+          eventTypeId: null,
+        },
+      ],
       status: {
         in: [BookingStatus.ACCEPTED, BookingStatus.CANCELLED, BookingStatus.PENDING],
       },
