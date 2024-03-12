@@ -3,6 +3,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
+import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { InstallAppButton } from "@calcom/app-store/components";
 import { doesAppSupportTeamInstall } from "@calcom/app-store/utils";
 import { Spinner } from "@calcom/features/calendars/weeklyview/components/spinner/Spinner";
@@ -124,6 +125,7 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
                       appCategories={app.categories}
                       concurrentMeetings={app.concurrentMeetings}
                       paid={app.paid}
+                      dirName={app.dirName}
                     />
                   );
                 }}
@@ -151,6 +153,7 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
                       credentials={credentials}
                       concurrentMeetings={app.concurrentMeetings}
                       paid={app.paid}
+                      dirName={app.dirName}
                       {...props}
                     />
                   );
@@ -180,6 +183,8 @@ const InstallAppButtonChild = ({
   credentials,
   concurrentMeetings,
   paid,
+  dirName,
+  onClick,
   ...props
 }: {
   userAdminTeams?: UserAdminTeams;
@@ -187,6 +192,7 @@ const InstallAppButtonChild = ({
   appCategories: string[];
   credentials?: Credential[];
   concurrentMeetings?: boolean;
+  dirName: string | undefined;
   paid: App["paid"];
 } & ButtonProps) => {
   const { t } = useLocale();
@@ -207,6 +213,18 @@ const InstallAppButtonChild = ({
     },
   });
 
+  const appMetadata = appStoreMetadata[dirName as keyof typeof appStoreMetadata];
+  const hasEventTypes = appMetadata.extendsFeature == "EventType";
+  const isOAuth = appMetadata.isOAuth;
+  const redirectToAppOnboarding = hasEventTypes || isOAuth;
+
+  const _onClick = (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
+    if (redirectToAppOnboarding) {
+      router.push(`/apps/onboarding/accounts?slug=${addAppMutationInput.slug}`);
+    } else if (onClick) {
+      onClick(e);
+    }
+  };
   // Paid apps don't support team installs at the moment
   // Also, cal.ai(the only paid app at the moment) doesn't support team install either
   if (paid) {
@@ -215,6 +233,7 @@ const InstallAppButtonChild = ({
         color="secondary"
         className="[@media(max-width:260px)]:w-full [@media(max-width:260px)]:justify-center"
         StartIcon={Plus}
+        onClick={_onClick}
         data-testid="install-app-button"
         {...props}>
         {paid.trial ? t("start_paid_trial") : t("subscribe")}
@@ -231,6 +250,7 @@ const InstallAppButtonChild = ({
         color="secondary"
         className="[@media(max-width:260px)]:w-full [@media(max-width:260px)]:justify-center"
         StartIcon={Plus}
+        onClick={_onClick}
         data-testid="install-app-button"
         {...props}>
         {t("install")}
@@ -238,6 +258,20 @@ const InstallAppButtonChild = ({
     );
   }
 
+  if (redirectToAppOnboarding) {
+    return (
+      <Button
+        color="secondary"
+        className="[@media(max-width:260px)]:w-full [@media(max-width:260px)]:justify-center"
+        StartIcon={Plus}
+        data-testid="install-app-button"
+        onClick={_onClick}
+        {...props}
+        size="base">
+        {t("install")}
+      </Button>
+    );
+  }
   return (
     <Dropdown>
       <DropdownMenuTrigger asChild>

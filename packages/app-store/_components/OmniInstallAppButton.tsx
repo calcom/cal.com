@@ -2,7 +2,6 @@ import { useRouter } from "next/navigation";
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { classNames } from "@calcom/lib";
-import { getAppOnboardingRedirectUrl } from "@calcom/lib/getAppOnboardingRedirectUrl";
 import useApp from "@calcom/lib/hooks/useApp";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -83,7 +82,8 @@ export default function OmniInstallAppButton({
           props = {
             ...props,
             onClick: () => {
-              router.push(getAppOnboardingRedirectUrl(app.slug, teamId));
+              // router.push(getAppOnboardingRedirectUrl(app.slug, teamId));
+              router.push(`/apps/onboarding/accounts?slug=${app.slug}${teamId ? `&teamId=${teamId}` : ""}`);
             },
           };
         }

@@ -1,4 +1,7 @@
+import { useRouter } from "next/navigation";
+
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
+import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { doesAppSupportTeamInstall } from "@calcom/app-store/utils";
 import { Spinner } from "@calcom/features/calendars/weeklyview/components/spinner/Spinner";
 import type { UserAdminTeams } from "@calcom/features/ee/teams/lib/getUserAdminTeams";
@@ -26,7 +29,9 @@ export const InstallAppButtonChild = ({
   multiInstall,
   credentials,
   concurrentMeetings,
+  dirName,
   paid,
+  onClick,
   ...props
 }: {
   userAdminTeams?: UserAdminTeams;
@@ -36,8 +41,10 @@ export const InstallAppButtonChild = ({
   credentials?: RouterOutputs["viewer"]["appCredentialsByType"]["credentials"];
   concurrentMeetings?: boolean;
   paid?: AppFrontendPayload["paid"];
+  dirName: string | undefined;
 } & ButtonProps) => {
   const { t } = useLocale();
+  const router = useRouter();
 
   const mutation = useAddAppMutation(null, {
     onSuccess: (data) => {
@@ -49,6 +56,20 @@ export const InstallAppButtonChild = ({
     },
   });
   const shouldDisableInstallation = !multiInstall ? !!(credentials && credentials.length) : false;
+  const appMetadata = appStoreMetadata[dirName as keyof typeof appStoreMetadata];
+  const hasEventTypes = appMetadata.extendsFeature == "EventType";
+  const isOAuth = appMetadata.isOAuth;
+  const redirectToAppOnboarding = hasEventTypes || isOAuth;
+  console.log("redirectToAppOnboarding11111: ", redirectToAppOnboarding);
+
+  const _onClick = (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
+    console.log("__onClick_onClick_onClickonClick: ");
+    if (redirectToAppOnboarding) {
+      router.push(`/apps/onboarding/accounts?slug=${addAppMutationInput.slug}`);
+    } else if (onClick) {
+      onClick(e);
+    }
+  };
 
   // Paid apps don't support team installs at the moment
   // Also, cal.ai(the only paid app at the moment) doesn't support team install either
@@ -56,6 +77,7 @@ export const InstallAppButtonChild = ({
     return (
       <Button
         data-testid="install-app-button"
+        onClick={_onClick}
         {...props}
         disabled={shouldDisableInstallation}
         color="primary"
@@ -72,6 +94,7 @@ export const InstallAppButtonChild = ({
     return (
       <Button
         data-testid="install-app-button"
+        onClick={_onClick}
         {...props}
         // @TODO: Overriding color and size prevent us from
         // having to duplicate InstallAppButton for now.
@@ -83,6 +106,19 @@ export const InstallAppButtonChild = ({
     );
   }
 
+  if (redirectToAppOnboarding) {
+    return (
+      <Button
+        data-testid="install-app-button"
+        disabled={shouldDisableInstallation}
+        onClick={_onClick}
+        color="primary"
+        size="base"
+        {...props}>
+        {multiInstall ? t("install_another") : t("install_app")}
+      </Button>
+    );
+  }
   return (
     <Dropdown>
       <DropdownMenuTrigger asChild>
