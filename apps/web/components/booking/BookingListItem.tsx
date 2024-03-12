@@ -493,7 +493,7 @@ function BookingListItem(booking: BookingItemProps) {
                 <span> </span>
 
                 {showPendingPayment && (
-                  <Badge className="me-2 ms-2 hidden sm:inline-flex" variant="orange">
+                  <Badge className="hidden sm:inline-flex" variant="orange">
                     {t("pending_payment")}
                   </Badge>
                 )}
