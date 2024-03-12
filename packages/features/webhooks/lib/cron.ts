@@ -5,7 +5,7 @@ import dayjs from "@calcom/dayjs";
 import { defaultHandler } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 
-import { jsonParse } from "./sendPayload";
+import { createWebhookSignature, jsonParse } from "./sendPayload";
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   const apiKey = req.headers.authorization || req.query.apiKey;
@@ -25,6 +25,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   // run jobs
   for (const job of jobsToRun) {
+    // Fetch the webhook configuration so that we can get the secret.
+    const [appId, subscriberId] = job.jobName.split("_");
+    const webhook = await prisma.webhook.findUniqueOrThrow({
+      where: { id: subscriberId, appId: appId !== "null" ? appId : null },
+    });
     try {
       await fetch(job.subscriberUrl, {
         method: "POST",
@@ -32,6 +37,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         headers: {
           "Content-Type":
             !job.payload || jsonParse(job.payload) ? "application/json" : "application/x-www-form-urlencoded",
+          "X-Cal-Signature-256": createWebhookSignature({ secret: webhook.secret, body: job.payload }),
         },
       });
     } catch (error) {

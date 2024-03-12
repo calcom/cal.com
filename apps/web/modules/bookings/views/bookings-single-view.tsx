@@ -345,7 +345,7 @@ export default function Success(props: PageProps) {
                     !giphyImage && !isCancelled && needsConfirmation
                       ? "bg-subtle h-12 w-12 rounded-full"
                       : "",
-                    isCancelled ? "bg-error h-12 w-12 rounded-full" : ""
+                    isCancelled ? "bg-error h-12 w-12 rounded-full " : ""
                   )}>
                   {giphyImage && !needsConfirmation && !isCancelled && (
                     // eslint-disable-next-line @next/next/no-img-element
