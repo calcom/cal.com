@@ -51,8 +51,8 @@ export function processWorkingHours({
     end = end.add(offsetDiff, "minute").tz(timeZone);
 
     const startResult = dayjs.max(start, dateFrom);
-    const endResult = dayjs.min(end, dateTo);
 
+    let endResult = dayjs.min(end, dateTo);
     // INFO: We only allow users to set availability up to 11:59PM which ends up not making them available
     // up to midnight.
     if (endResult.hour() === 23 && endResult.minute() === 59) {
