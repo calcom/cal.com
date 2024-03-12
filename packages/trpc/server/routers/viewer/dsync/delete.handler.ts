@@ -27,7 +27,7 @@ export const deleteHandler = async ({ ctx, input }: Options) => {
     });
   }
 
-  await prisma.dSyncData.delete({
+  await prisma.dSyncData.deleteMany({
     where: {
       organizationId: input.organizationId || undefined,
     },
