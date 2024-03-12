@@ -26,6 +26,7 @@ const ConfigureDirectorySync = ({ organizationId }: { organizationId: number | n
   const [deleteDirectoryOpen, setDeleteDirectoryOpen] = useState(false);
 
   const { data, isLoading, isError, error } = trpc.viewer.dsync.get.useQuery({ organizationId });
+  console.log("🚀 ~ ConfigureDirectorySync ~ data:", data);
 
   const deleteMutation = trpc.viewer.dsync.delete.useMutation({
     async onSuccess() {
@@ -39,7 +40,7 @@ const ConfigureDirectorySync = ({ organizationId }: { organizationId: number | n
     return <SkeletonLoader />;
   }
 
-  const directory = data ? data[0] : null;
+  const directory = data ? data : null;
 
   const onDeleteConfirmation = (e: Event | React.MouseEvent<HTMLElement, MouseEvent>) => {
     e.preventDefault();
