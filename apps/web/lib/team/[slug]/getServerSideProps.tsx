@@ -103,7 +103,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     } as const;
   }
 
-  const isTeamOrParentOrgPrivate = team.isPrivate || (team.parent.isOrganization && team.parent.isPrivate);
+  const isTeamOrParentOrgPrivate = team.isPrivate || (team.parent?.isOrganization && team.parent?.isPrivate);
 
   team.eventTypes =
     team.eventTypes?.map((type) => ({
@@ -139,7 +139,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const markdownStrippedBio = stripMarkdown(team?.bio || "");
 
-  const { inviteToken: _inviteToken, ...serializableTeam } = team;
+  const { inviteToken: _inviteToken, parent, ...serializableTeam } = team;
 
   return {
     props: {
@@ -148,6 +148,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         safeBio,
         members,
         metadata,
+        parent,
         children: isTeamOrParentOrgPrivate ? [] : team.children,
       },
       themeBasis: serializableTeam.slug,

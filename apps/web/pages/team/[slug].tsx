@@ -50,7 +50,7 @@ function TeamPage({
   const isBioEmpty = !team.bio || !team.bio.replace("<p><br></p>", "").length;
   const metadata = teamMetadataSchema.parse(team.metadata);
 
-  const teamOrOrgIsPrivate = team.isPrivate || (team.parent.isOrganization && team.parent.isPrivate);
+  const teamOrOrgIsPrivate = team.isPrivate || (team?.parent?.isOrganization && team.parent?.isPrivate);
 
   useEffect(() => {
     telemetry.event(
