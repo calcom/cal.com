@@ -443,7 +443,7 @@ export async function ensureAvailableUsers(
   return availableUsers;
 }
 
-async function getOriginalRescheduledBooking(uid: string, eventTypeId: int, seatsEventType?: boolean) {
+async function getOriginalRescheduledBooking(uid: string, eventTypeId: number, seatsEventType?: boolean) {
   return prisma.booking.findFirst({
     where: {
       uid: uid,
