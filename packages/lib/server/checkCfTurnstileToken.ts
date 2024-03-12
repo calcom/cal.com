@@ -16,7 +16,7 @@ export async function checkCfTurnstileToken({ token, remoteIp }: { token?: strin
   }
 
   const form = new URLSearchParams();
-  form.append("secret", TUNRSTILE_SECRET_ID);
+  form.append("secret", TURNSTILE_SECRET_ID);
   form.append("response", token);
   form.append("remoteip", remoteIp);
 
