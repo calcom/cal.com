@@ -16,7 +16,7 @@ export function UserFieldsResponses(props: { calEvent: CalendarEvent; t: TFuncti
         labelValueMap[key] !== "" ? (
           <Info
             key={key}
-            label={key}
+            label={t(key)}
             description={
               typeof labelValueMap[key] === "boolean"
                 ? labelValueMap[key]
