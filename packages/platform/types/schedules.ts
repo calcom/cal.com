@@ -1,9 +1,7 @@
 import { Type } from "class-transformer";
-import { IsNumber, IsString, IsBoolean, IsOptional, ValidateNested } from "class-validator";
+import { IsNumber, IsString, IsBoolean, IsOptional, ValidateNested, IsArray, IsDate } from "class-validator";
 import { DateTime } from "luxon";
 import { z } from "zod";
-
-import type { TimeRange } from "@calcom/types/schedule";
 
 const scheduleSchema = z.object({
   id: z.number().int(),
@@ -47,6 +45,16 @@ class ScheduleItem {
   end!: Date;
 }
 
+class DateOverride {
+  @IsDate()
+  @Type(() => Date)
+  start!: Date;
+
+  @IsDate()
+  @Type(() => Date)
+  end!: Date;
+}
+
 export class UpdateScheduleInput {
   @IsNumber()
   scheduleId!: number;
@@ -69,5 +77,7 @@ export class UpdateScheduleInput {
 
   @IsOptional()
   @ValidateNested({ each: true })
-  dateOverrides?: { ranges: TimeRange[] }[];
+  @Type(() => DateOverride)
+  @IsArray()
+  dateOverrides?: DateOverride[];
 }
