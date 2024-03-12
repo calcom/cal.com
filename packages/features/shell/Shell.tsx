@@ -29,6 +29,10 @@ import AdminPasswordBanner, {
 import CalendarCredentialBanner, {
   type CalendarCredentialBannerProps,
 } from "@calcom/features/users/components/CalendarCredentialBanner";
+import {
+  InvalidAppCredentialBanners,
+  type InvalidAppCredentialBannersProps,
+} from "@calcom/features/users/components/InvalidAppCredentialsBanner";
 import UserV2OptInBanner from "@calcom/features/users/components/UserV2OptInBanner";
 import VerifyEmailBanner, {
   type VerifyEmailBannerProps,
@@ -163,6 +167,7 @@ type BannerTypeProps = {
   adminPasswordBanner: AdminPasswordBannerProps;
   impersonationBanner: ImpersonatingBannerProps;
   calendarCredentialBanner: CalendarCredentialBannerProps;
+  invalidAppCredentialBanners: InvalidAppCredentialBannersProps;
 };
 
 type BannerType = keyof BannerTypeProps;
@@ -178,6 +183,9 @@ const BannerComponent: BannerComponent = {
   adminPasswordBanner: (props: AdminPasswordBannerProps) => <AdminPasswordBanner {...props} />,
   impersonationBanner: (props: ImpersonatingBannerProps) => <ImpersonatingBanner {...props} />,
   calendarCredentialBanner: (props: CalendarCredentialBannerProps) => <CalendarCredentialBanner {...props} />,
+  invalidAppCredentialBanners: (props: InvalidAppCredentialBannersProps) => (
+    <InvalidAppCredentialBanners {...props} />
+  ),
 };
 
 function useRedirectToOnboardingIfNeeded() {
@@ -255,6 +263,7 @@ const Layout = (props: LayoutProps) => {
 
       {/* todo: only run this if timezone is different */}
       <TimezoneChangeDialog />
+
       <div className="flex min-h-screen flex-col">
         {banners && (
           <div className="sticky top-0 z-10 w-full divide-y divide-black">
@@ -276,6 +285,9 @@ const Layout = (props: LayoutProps) => {
                 const Banner = BannerComponent[key];
                 return <Banner data={banners[key]} key={key} />;
               } else if (key === "calendarCredentialBanner") {
+                const Banner = BannerComponent[key];
+                return <Banner data={banners[key]} key={key} />;
+              } else if (key === "invalidAppCredentialBanners") {
                 const Banner = BannerComponent[key];
                 return <Banner data={banners[key]} key={key} />;
               }

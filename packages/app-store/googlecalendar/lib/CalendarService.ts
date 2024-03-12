@@ -240,7 +240,9 @@ export default class GoogleCalendarService implements Calendar {
           eventId: calEventRaw.existingRecurringEvent.recurringEventId,
         });
         if (recurringEventInstances.data.items) {
-          const calComEventStartTime = dayjs(calEventRaw.startTime).format();
+          const calComEventStartTime = dayjs(calEventRaw.startTime)
+            .tz(calEventRaw.organizer.timeZone)
+            .format();
           for (let i = 0; i < recurringEventInstances.data.items.length; i++) {
             const instance = recurringEventInstances.data.items[i];
             const instanceStartTime = dayjs(instance.start?.dateTime)
@@ -264,6 +266,7 @@ export default class GoogleCalendarService implements Calendar {
             calendarId: selectedCalendar,
             eventId: event.id || "",
             requestBody: {
+              location: getLocation(calEventRaw),
               description: getRichDescription({
                 ...calEventRaw,
               }),

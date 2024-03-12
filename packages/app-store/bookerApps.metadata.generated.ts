@@ -15,6 +15,7 @@ import ga4_config_json from "./ga4/config.json";
 import { metadata as googlevideo__metadata_ts } from "./googlevideo/_metadata";
 import gtm_config_json from "./gtm/config.json";
 import { metadata as huddle01video__metadata_ts } from "./huddle01video/_metadata";
+import jelly_config_json from "./jelly/config.json";
 import { metadata as jitsivideo__metadata_ts } from "./jitsivideo/_metadata";
 import matomo_config_json from "./matomo/config.json";
 import metapixel_config_json from "./metapixel/config.json";
@@ -52,6 +53,7 @@ export const appStoreMetadata = {
   googlevideo: googlevideo__metadata_ts,
   gtm: gtm_config_json,
   huddle01video: huddle01video__metadata_ts,
+  jelly: jelly_config_json,
   jitsivideo: jitsivideo__metadata_ts,
   matomo: matomo_config_json,
   metapixel: metapixel_config_json,
