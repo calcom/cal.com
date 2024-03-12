@@ -75,12 +75,10 @@ export const FormBuilderField = ({
                   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                   //@ts-ignore
                   if (value?.optionValue && !val.optionValue) {
+                    const optionValue = `${value.optionValue[0] !== "+" ? "+" : ""}${value.optionValue}`;
                     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                     //@ts-ignore
-                    newVal = {
-                      value: val.value,
-                      optionValue: `${value.optionValue[0] !== "+" ? "+" : ""}${value.optionValue}`,
-                    };
+                    newVal = { value: val.value, optionValue };
                   }
                   onChange(newVal);
                 }}
