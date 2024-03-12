@@ -68,8 +68,6 @@ export const useBookingSuccessRedirect = () => {
         url.searchParams.append(key, value);
       }
 
-      // const input = url.toString();
-
       window.parent.location.href = url.toString();
       return;
     }
