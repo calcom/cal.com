@@ -176,7 +176,6 @@ export default function Signup({
   const [premiumUsername, setPremiumUsername] = useState(false);
   const [usernameTaken, setUsernameTaken] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-  const [turnstileError, setTurnstileError] = useState<string | undefined>();
   const searchParams = useCompatSearchParams();
   const telemetry = useTelemetry();
   const { t, i18n } = useLocale();
@@ -343,18 +342,12 @@ export default function Signup({
                 />
                 {/* Cloudflare Turnstile Captcha */}
                 {CLOUDFLARE_SITE_ID ? (
-                  <div
-                    style={{
-                      display: !turnstileError ? "none" : "block",
-                      height: "65px",
-                    }}>
-                    <TurnstileCaptcha
-                      onVerify={(token) => {
-                        formMethods.setValue("cfToken", token);
-                      }}
-                      onError={(error) => setTurnstileError(error)}
-                    />
-                  </div>
+                  <TurnstileCaptcha
+                    appearance="interaction-only"
+                    onVerify={(token) => {
+                      formMethods.setValue("cfToken", token);
+                    }}
+                  />
                 ) : null}
 
                 <Button
