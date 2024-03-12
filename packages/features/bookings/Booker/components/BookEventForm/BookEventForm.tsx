@@ -1,7 +1,7 @@
 import type { TFunction } from "next-i18next";
 import { Trans } from "next-i18next";
 import Link from "next/link";
-import { useState, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import type { FieldError } from "react-hook-form";
 
 import { WEBSITE_URL } from "@calcom/lib/constants";
@@ -51,10 +51,34 @@ export const BookEventForm = ({
   const timeslot = useBookerStore((state) => state.selectedTimeslot);
   const username = useBookerStore((state) => state.username);
   const isInstantMeeting = useBookerStore((state) => state.isInstantMeeting);
-  const [expiryTime, setExpiryTime] = useState<Date | undefined>();
+  const [isPhoneModified, setIsPhoneModified] = useState(false);
+  // const [expiryTime, setExpiryTime] = useState<Date | undefined>();
 
   const [responseVercelIdHeader] = useState<string | null>(null);
   const { t } = useLocale();
+
+  useEffect(() => {
+    // This is a hack to make sure that the phone number is always in the correct format
+    if (!isPhoneModified) {
+      const values: any = bookingForm.getValues();
+      if (values.responses?.phone) {
+        const phone = values.responses.phone;
+        if (phone.length > 0 && phone[0] !== "+") {
+          values.responses.phone = `+${phone}`;
+          setFormValues(values);
+        }
+        setIsPhoneModified(true);
+      }
+      if (values.responses?.location) {
+        const location = values.responses.location;
+        const optionValue = location.optionValue;
+        if (optionValue && optionValue.length && optionValue[0] !== "+" && /^[^a-zA-Z]*$/.test(optionValue)) {
+          values.responses.location.optionValue = `+${optionValue}`;
+          setFormValues(values);
+        }
+      }
+    }
+  }, [bookingForm.getValues()]);
 
   const isPaidEvent = useMemo(() => {
     if (!eventType?.price) return false;

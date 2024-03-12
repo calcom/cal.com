@@ -53,7 +53,7 @@ export const FormBuilderField = ({
   className: string;
 }) => {
   const { t } = useLocale();
-  const { control, formState } = useFormContext();
+  const { control, formState, getValues } = useFormContext();
 
   const { hidden, placeholder, label } = getAndUpdateNormalizedValues(field, t);
 
@@ -71,13 +71,28 @@ export const FormBuilderField = ({
                 value={value}
                 readOnly={readOnly}
                 setValue={(val: unknown) => {
-                  onChange(val);
+                  let newVal = val;
+                  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                  //@ts-ignore
+                  if (value?.optionValue && !val.optionValue) {
+                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                    //@ts-ignore
+                    newVal = { value: val.value, optionValue: value.optionValue };
+                  }
+                  onChange(newVal);
                 }}
               />
               <ErrorMessage
                 name="responses"
                 errors={formState.errors}
                 render={({ message }: { message: string | undefined }) => {
+                  if (
+                    message === "{location}invalid_number" &&
+                    formState.dirtyFields?.responses?.location &&
+                    getValues().responses?.location?.value !== "phone"
+                  ) {
+                    return null;
+                  }
                   message = message || "";
                   // If the error comes due to parsing the `responses` object(which can have error for any field), we need to identify the field that has the error from the message
                   const name = message.replace(/\{([^}]+)\}.*/, "$1");
