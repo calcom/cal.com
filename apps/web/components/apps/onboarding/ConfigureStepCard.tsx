@@ -1,5 +1,5 @@
 import type { FC } from "react";
-import React from "react";
+import React, { useEffect } from "react";
 
 import { EventTypeAppSettings } from "@calcom/app-store/_components/EventTypeAppSettingsInterface";
 import type { EventTypeAppSettingsComponentProps, EventTypeModel } from "@calcom/app-store/types";
@@ -38,6 +38,10 @@ export const ConfigureStepCard: FC<ConfigureStepCardProps> = ({
     t("locked_fields_admin_description"),
     t("locked_fields_member_description")
   );
+  useEffect(() => {
+    const appDataSetter = getAppDataSetter(slug as EventTypeAppsList, categories, credentialId);
+    appDataSetter("enabled", true);
+  }, []);
 
   const data = getAppDataGetter(slug as EventTypeAppsList)("") as Record<string, unknown>;
   return (

@@ -13,8 +13,12 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma from "@calcom/prisma";
+import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import { trpc } from "@calcom/trpc/react";
 import type { AppMeta } from "@calcom/types/App";
-import { Steps } from "@calcom/ui";
+import { Steps, showToast } from "@calcom/ui";
+
+import { HttpError } from "@lib/core/http/error";
 
 import PageWrapper from "@components/PageWrapper";
 import type {
@@ -35,6 +39,9 @@ const ACCOUNTS_STEP = "accounts";
 const OAUTH_STEP = "connect";
 const EVENT_TYPES_STEP = "event-types";
 const CONFIGURE_STEP = "configure";
+type TFormType = {
+  metadata: z.infer<typeof EventTypeMetaDataSchema>;
+};
 
 const STEPS = [ACCOUNTS_STEP, OAUTH_STEP, EVENT_TYPES_STEP, CONFIGURE_STEP] as const;
 const MAX_NUMBER_OF_STEPS = STEPS.length;
@@ -113,11 +120,50 @@ const OnboardingPage = ({
     MAX_NUMBER_OF_STEPS - (hasTeams ? 0 : 1) - (appMetadata.isOAuth ? 0 : 1) - (hasEventTypes ? 0 : 1);
   const { t } = useLocale();
   const [isLoadingOAuth, setIsLoadingOAuth] = useState(false);
+  const utils = trpc.useContext();
   const [isSelectingAccount, setIsSelectingAccount] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  const methods = useForm();
+  const methods = useForm<TFormType>({
+    defaultValues: {
+      metadata: configureEventType?.metadata,
+    },
+  });
 
+  const updateMutation = trpc.viewer.eventTypes.update.useMutation({
+    onSuccess: async () => {
+      showToast(
+        t("event_type_updated_successfully", { eventTypeTitle: configureEventType?.title }),
+        "success"
+      );
+      router.push(`/event-types/${configureEventType?.id}?tabName=apps`);
+    },
+    async onSettled() {
+      await utils.viewer.eventTypes.get.invalidate();
+      setIsSaving(false);
+    },
+    onError: (err) => {
+      let message = "";
+      if (err instanceof HttpError) {
+        const message = `${err.statusCode}: ${err.message}`;
+        showToast(message, "error");
+      }
+
+      if (err.data?.code === "UNAUTHORIZED") {
+        message = `${err.data.code}: ${t("error_event_type_unauthorized_update")}`;
+      }
+
+      if (err.data?.code === "PARSE_ERROR" || err.data?.code === "BAD_REQUEST") {
+        message = `${err.data.code}: ${t(err.message)}`;
+      }
+
+      if (err.data?.code === "INTERNAL_SERVER_ERROR") {
+        message = t("unexpected_error_try_again");
+      }
+
+      showToast(message ? t(message) : t(err.message), "error");
+    },
+  });
   const handleSelectAccount = ({ id: teamId }: onSelectParams) => {
     setIsSelectingAccount(true);
     if (appMetadata.isOAuth) {
@@ -158,12 +204,17 @@ const OnboardingPage = ({
         teamId: teamId,
       });
 
-      const res = await fetch(`/api/integrations/${appMetadata.slug}/add?state=${state}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+      const res = await fetch(
+        `/api/integrations/${
+          appMetadata.slug == "stripe" ? "stripepayment" : appMetadata.slug
+        }/add?state=${state}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
       const oAuthUrl = (await res.json())?.url;
       router.push(oAuthUrl);
     } catch (err) {
@@ -171,9 +222,16 @@ const OnboardingPage = ({
     }
   };
 
-  const handleSaveSettings = (data: Record<string, unknown>) => {
-    setIsSaving(true);
-    console.log("SAVE THIS DATA IN EVENT TYPE", data);
+  const handleSaveSettings = () => {
+    if (configureEventType) {
+      setIsSaving(true);
+      const metadata = methods.getValues("metadata");
+      updateMutation.mutate({
+        id: configureEventType.id,
+        metadata,
+      });
+    }
+    // console.log("SAVE THIS DATA IN EVENT TYPE", data);
     // redirect to event type settings, advanced tab -> apps
     return;
   };
@@ -385,7 +443,7 @@ const getAppInstallsBySlug = async (appSlug: string, userId: number, teamIds?: n
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   try {
     let eventTypes: EventTypeProp[] = [];
-    let eventType: ConfigureEventTypeProp | null = null;
+    let configureEventType: ConfigureEventTypeProp | null = null;
     const { req, res, query, params } = context;
     const stepsEnum = z.enum(STEPS);
     const parsedAppSlug = z.coerce.string().parse(query?.slug);
@@ -442,7 +500,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         if (!parsedEventTypeIdParam) {
           throw new Error(ERROR_MESSAGES.appNotEventType);
         }
-        eventType = await getEventTypeById(parsedEventTypeIdParam);
+        configureEventType = await getEventTypeById(parsedEventTypeIdParam);
         break;
 
       case OAUTH_STEP:
@@ -481,8 +539,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         teamId: parsedTeamIdParam ?? null,
         userName: user.username,
         hasEventTypes,
-        configureEventType: eventType,
-        credentialId: parsedTeamIdParam ? teamsWithIsAppInstalled[0]?.id : appInstalls[0]?.id,
+        configureEventType,
+        credentialId: parsedTeamIdParam ? teamsWithIsAppInstalled[0]?.id ?? null : appInstalls[0]?.id ?? null,
       } as OnboardingPageProps,
     };
   } catch (err) {
