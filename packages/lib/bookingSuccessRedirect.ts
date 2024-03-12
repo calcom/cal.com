@@ -68,16 +68,9 @@ export const useBookingSuccessRedirect = () => {
         url.searchParams.append(key, value);
       }
 
-      const input = url.toString();
+      // const input = url.toString();
 
-      const firstIndex = input.indexOf("?");
-      if (firstIndex === -1) {
-        // No "?" found in the string
-        return (window.parent.location.href = `${url.toString()}?${newSearchParams.toString()}`);
-      }
-      // Keep the first occurrence and remove subsequent ones
-      const resultURL = input.slice(0, firstIndex + 1) + input.slice(firstIndex + 1).replace(/\?/g, "");
-      window.parent.location.href = resultURL;
+      window.parent.location.href = url.toString();
       return;
     }
     const newSearchParams = getNewSeachParams({ query });
