@@ -2069,6 +2069,7 @@ async function handler(
             calEvent: getPiiFreeCalendarEvent(evt),
           })
         );
+
         await sendScheduledEmails(
           {
             ...evt,
