@@ -6,6 +6,14 @@ import { Card } from "@calcom/ui";
 
 export const tips = [
   {
+    id: 13,
+    thumbnailUrl: "https://img.youtube.com/vi/ihE8OYTdklg/0.jpg",
+    mediaLink: "https://go.cal.com/ooo",
+    title: "ooo.new",
+    description: "Easily go out-of-office",
+    href: "https://ooo.new",
+  },
+  {
     id: 12,
     thumbnailUrl: "https://cal.com/og-image-cal-ai.jpg",
     mediaLink: "https://go.cal.com/cal-ai",

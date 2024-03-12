@@ -28,6 +28,7 @@ import {
   CLOUDFLARE_SITE_ID,
 } from "@calcom/lib/constants";
 import { fetchUsername } from "@calcom/lib/fetchUsername";
+import { pushGTMEvent } from "@calcom/lib/gtm";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -175,7 +176,6 @@ export default function Signup({
   const [premiumUsername, setPremiumUsername] = useState(false);
   const [usernameTaken, setUsernameTaken] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-
   const searchParams = useCompatSearchParams();
   const telemetry = useTelemetry();
   const { t, i18n } = useLocale();
@@ -236,6 +236,9 @@ export default function Signup({
     })
       .then(handleErrorsAndStripe)
       .then(async () => {
+        if (process.env.NEXT_PUBLIC_GTM_ID)
+          pushGTMEvent("create_account", { email: data.email, user: data.username, lang: data.language });
+
         telemetry.event(telemetryEventTypes.signup, collectPageParameters());
         const verifyOrGettingStarted = flags["email-verification"] ? "auth/verify-email" : "getting-started";
         const callBackUrl = `${

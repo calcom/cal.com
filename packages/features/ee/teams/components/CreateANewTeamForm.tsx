@@ -1,61 +1,39 @@
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
-import { z } from "zod";
 
-import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
-import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import slugify from "@calcom/lib/slugify";
-import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { trpc } from "@calcom/trpc/react";
-import { Alert, Button, Form, TextField } from "@calcom/ui";
+import type { RouterOutputs } from "@calcom/trpc/react";
+import { Alert, Button, Form, TextField, DialogFooter } from "@calcom/ui";
 import { ArrowRight } from "@calcom/ui/components/icon";
 
 import { useOrgBranding } from "../../organizations/context/provider";
 import { subdomainSuffix } from "../../organizations/lib/orgDomains";
 import type { NewTeamFormValues } from "../lib/types";
 
-const querySchema = z.object({
-  returnTo: z.string().optional(),
-  slug: z.string().optional(),
-});
+interface CreateANewTeamFormProps {
+  onCancel: () => void;
+  submitLabel: string;
+  onSuccess: (data: RouterOutputs["viewer"]["teams"]["create"]) => void;
+  inDialog?: boolean;
+  slug?: string;
+}
 
-const isTeamBillingEnabledClient = !!process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY && HOSTED_CAL_FEATURES;
-const flag = isTeamBillingEnabledClient
-  ? {
-      telemetryEvent: telemetryEventTypes.team_checkout_session_created,
-      submitLabel: "checkout",
-    }
-  : {
-      telemetryEvent: telemetryEventTypes.team_created,
-      submitLabel: "continue",
-    };
-
-export const CreateANewTeamForm = () => {
+export const CreateANewTeamForm = (props: CreateANewTeamFormProps) => {
+  const { inDialog, onCancel, slug, submitLabel, onSuccess } = props;
   const { t, isLocaleReady } = useLocale();
-  const router = useRouter();
-  const telemetry = useTelemetry();
-  const params = useParamsWithFallback();
-  const parsedQuery = querySchema.safeParse(params);
   const [serverErrorMessage, setServerErrorMessage] = useState<string | null>(null);
   const orgBranding = useOrgBranding();
 
-  const returnToParam =
-    (parsedQuery.success ? getSafeRedirectUrl(parsedQuery.data.returnTo) : "/teams") || "/teams";
-
   const newTeamFormMethods = useForm<NewTeamFormValues>({
     defaultValues: {
-      slug: parsedQuery.success ? parsedQuery.data.slug : "",
+      slug,
     },
   });
 
   const createTeamMutation = trpc.viewer.teams.create.useMutation({
-    onSuccess: (data) => {
-      telemetry.event(flag.telemetryEvent);
-      router.push(data.url);
-    },
+    onSuccess: (data) => onSuccess(data),
     onError: (err) => {
       if (err.message === "team_url_taken") {
         newTeamFormMethods.setError("slug", { type: "custom", message: t("url_taken") });
@@ -64,6 +42,27 @@ export const CreateANewTeamForm = () => {
       }
     },
   });
+
+  const FormButtons = () => (
+    <>
+      <Button
+        disabled={createTeamMutation.isPending}
+        color="secondary"
+        onClick={onCancel}
+        className="w-full justify-center">
+        {t("cancel")}
+      </Button>
+      <Button
+        disabled={newTeamFormMethods.formState.isSubmitting || createTeamMutation.isPending}
+        color="primary"
+        EndIcon={ArrowRight}
+        type="submit"
+        className="w-full justify-center"
+        data-testid="continue-button">
+        {t(submitLabel)}
+      </Button>
+    </>
+  );
 
   return (
     <>
@@ -144,24 +143,17 @@ export const CreateANewTeamForm = () => {
           />
         </div>
 
-        <div className="flex space-x-2 rtl:space-x-reverse">
-          <Button
-            disabled={createTeamMutation.isPending}
-            color="secondary"
-            href={returnToParam}
-            className="w-full justify-center">
-            {t("cancel")}
-          </Button>
-          <Button
-            disabled={newTeamFormMethods.formState.isSubmitting || createTeamMutation.isPending}
-            color="primary"
-            EndIcon={ArrowRight}
-            type="submit"
-            className="w-full justify-center"
-            data-testid="continue-button">
-            {t(flag.submitLabel)}
-          </Button>
-        </div>
+        {inDialog ? (
+          <DialogFooter>
+            <div className="flex space-x-2 rtl:space-x-reverse">
+              <FormButtons />
+            </div>
+          </DialogFooter>
+        ) : (
+          <div className="flex space-x-2 rtl:space-x-reverse">
+            <FormButtons />
+          </div>
+        )}
       </Form>
     </>
   );

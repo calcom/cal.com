@@ -100,6 +100,10 @@ const tabs: VerticalTabItemProps[] = [
         name: "billing",
         href: "/settings/organizations/billing",
       },
+      {
+        name: "directory_sync",
+        href: "/settings/organizations/dsync",
+      },
     ],
   },
   {
@@ -126,9 +130,10 @@ const tabs: VerticalTabItemProps[] = [
 ];
 
 tabs.find((tab) => {
-  // Add "SAML SSO" to the tab
   if (tab.name === "security" && !HOSTED_CAL_FEATURES) {
     tab.children?.push({ name: "sso_configuration", href: "/settings/security/sso" });
+    // TODO: Enable dsync for self hosters
+    // tab.children?.push({ name: "directory_sync", href: "/settings/security/dsync" });
   }
 });
 
@@ -704,7 +709,7 @@ export function ShellHeader() {
           )}
           <div>
             {meta.title && isLocaleReady ? (
-              <h1 className="font-cal text-emphasis mb-1 text-xl font-bold leading-5 tracking-wide">
+              <h1 className="font-cal text-emphasis mb-1 text-xl font-semibold leading-5 tracking-wide">
                 {t(meta.title)}
               </h1>
             ) : (

@@ -40,10 +40,8 @@ test.describe("UploadAvatar", async () => {
         },
       });
 
-      // todo: remove this; ideally the organization-avatar is updated the moment
-      //       'Settings updated succesfully' is saved.
-      await page.waitForLoadState("networkidle");
-      const avatar = page.getByTestId("profile-upload-avatar").locator("img");
+      // Wait for the avatar image with the http src to appear instead of the data uri
+      const avatar = page.getByTestId("profile-upload-avatar").locator("img[src^=http]");
 
       const src = await avatar.getAttribute("src");
 
