@@ -2290,5 +2290,6 @@
   "confirm_email": "Confirme seu email",
   "confirm_email_description": "Enviamos um e-mail para <strong>{{email}}</strong> . Clique no link do e-mail para verificar este endereço.",
   "send_event_details_to": "Envie detalhes do evento para",
+  "privacy": "Privacidade",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adicione suas novas strings aqui em cima ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
