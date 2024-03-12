@@ -17,7 +17,7 @@
   --cal-bg-info: hsla(218,83%,98%,1);
   --cal-bg-success: hsla(134,76%,94%,1);
   --cal-bg-attention: hsla(37, 86%, 92%, 1);
-  --cal-bg-error: hsla(3,66,93,1);
+  --cal-bg-error: hsla(3,66%,93%,1);
   --cal-bg-dark-error: hsla(2, 55%, 30%, 1);
 
   /* Borders */
@@ -95,7 +95,7 @@
 
 @layer base {
   * {
-    @apply border-default 
+    @apply border-default
   }
 }
 
