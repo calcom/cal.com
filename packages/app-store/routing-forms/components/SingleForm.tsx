@@ -5,6 +5,8 @@ import type { UseFormReturn } from "react-hook-form";
 import { Controller, useFormContext } from "react-hook-form";
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
+import AddMembersWithSwitch from "@calcom/features/eventtypes/components/AddMembersWithSwitch";
+import type { Host } from "@calcom/features/eventtypes/lib/types";
 import { ShellMain } from "@calcom/features/shell/Shell";
 import useApp from "@calcom/lib/hooks/useApp";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -38,8 +40,6 @@ import {
   Trash,
   MessageCircle,
 } from "@calcom/ui/components/icon";
-import { AddMembersWithSwitch } from "@calcom/web/components/eventtype/EventTeamTab";
-import type { Host } from "@calcom/web/pages/event-types/[type]";
 
 import { getAbsoluteEventTypeRedirectUrl } from "../getEventTypeRedirectUrl";
 import { RoutingPages } from "../lib/RoutingPages";
