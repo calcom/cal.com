@@ -69,6 +69,20 @@ export const BookEventForm = ({
         }
         setIsPhoneModified(true);
       }
+      if (values.responses?.smsReminderNumber) {
+        const smsPhone = values.responses.smsReminderNumber;
+        if (smsPhone.length > 0 && smsPhone[0] !== "+") {
+          values.responses.smsReminderNumber = `+${smsPhone}`;
+          setFormValues(values);
+        }
+      }
+      if (values.responses?.sms) {
+        const smsPhone = values.responses.sms;
+        if (smsPhone.length > 0 && smsPhone[0] !== "+") {
+          values.responses.sms = `+${smsPhone}`;
+          setFormValues(values);
+        }
+      }
       if (values.responses?.location) {
         const location = values.responses.location;
         const optionValue = location.optionValue;
