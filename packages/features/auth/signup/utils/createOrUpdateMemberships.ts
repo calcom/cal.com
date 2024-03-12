@@ -1,27 +1,55 @@
-import type z from "zod";
-
+import { updateNewTeamMemberEventTypes } from "@calcom/lib/server/queries";
+import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { prisma } from "@calcom/prisma";
-import type { Team, User } from "@calcom/prisma/client";
+import type { Team, User, OrganizationSettings } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
-import type { teamMetadataSchema } from "@calcom/prisma/zod-utils";
+
+import { getOrgUsernameFromEmail } from "./getOrgUsernameFromEmail";
 
 export const createOrUpdateMemberships = async ({
-  teamMetadata,
   user,
   team,
 }: {
   user: Pick<User, "id">;
-  team: Pick<Team, "id" | "parentId">;
-  teamMetadata: z.infer<typeof teamMetadataSchema>;
+  team: Pick<Team, "id" | "parentId" | "isOrganization"> & {
+    organizationSettings: OrganizationSettings | null;
+  };
 }) => {
   return await prisma.$transaction(async (tx) => {
-    if (teamMetadata?.isOrganization) {
-      await tx.user.update({
+    if (team.isOrganization) {
+      const dbUser = await tx.user.update({
         where: {
           id: user.id,
         },
         data: {
           organizationId: team.id,
+        },
+        select: {
+          username: true,
+          email: true,
+        },
+      });
+
+      // Ideally dbUser.username should never be null, but just in case.
+      // This method being called only during signup means that dbUser.username should be the correct org username
+      const orgUsername =
+        dbUser.username ||
+        getOrgUsernameFromEmail(dbUser.email, team.organizationSettings?.orgAutoAcceptEmail ?? null);
+      await tx.profile.upsert({
+        create: {
+          uid: ProfileRepository.generateProfileUid(),
+          userId: user.id,
+          organizationId: team.id,
+          username: orgUsername,
+        },
+        update: {
+          username: orgUsername,
+        },
+        where: {
+          userId_organizationId: {
+            userId: user.id,
+            organizationId: team.id,
+          },
         },
       });
     }
@@ -56,6 +84,7 @@ export const createOrUpdateMemberships = async ({
         },
       });
     }
+    await updateNewTeamMemberEventTypes(user.id, team.id);
     return { membership, orgMembership };
   });
 };

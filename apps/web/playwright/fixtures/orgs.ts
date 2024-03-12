@@ -2,6 +2,7 @@ import type { Page } from "@playwright/test";
 import type { Team } from "@prisma/client";
 
 import { prisma } from "@calcom/prisma";
+import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 const getRandomSlug = () => `org-${Math.random().toString(36).substring(7)}`;
 
@@ -15,8 +16,12 @@ export const createOrgsFixture = (page: Page) => {
         slug: opts.slug || getRandomSlug(),
         requestedSlug: opts.requestedSlug,
       });
-      store.orgs.push(org);
-      return org;
+      const orgWithMetadata = {
+        ...org,
+        metadata: teamMetadataSchema.parse(org.metadata),
+      };
+      store.orgs.push(orgWithMetadata);
+      return orgWithMetadata;
     },
     get: () => store.orgs,
     deleteAll: async () => {
@@ -30,7 +35,7 @@ export const createOrgsFixture = (page: Page) => {
   };
 };
 
-async function createOrgInDb({
+export async function createOrgInDb({
   name,
   slug,
   requestedSlug,
@@ -43,14 +48,17 @@ async function createOrgInDb({
     data: {
       name: name,
       slug: slug,
+      isOrganization: true,
       metadata: {
-        isOrganization: true,
         ...(requestedSlug
           ? {
               requestedSlug,
             }
           : null),
       },
+    },
+    include: {
+      organizationSettings: true,
     },
   });
 }

@@ -43,7 +43,7 @@ export const AboutOrganizationForm = () => {
         form={aboutOrganizationFormMethods}
         className="space-y-5"
         handleSubmit={(v) => {
-          if (!updateOrganizationMutation.isLoading) {
+          if (!updateOrganizationMutation.isPending) {
             setServerErrorMessage(null);
             updateOrganizationMutation.mutate({ ...v, orgId });
           }
@@ -109,7 +109,7 @@ export const AboutOrganizationForm = () => {
         <div className="flex">
           <Button
             disabled={
-              aboutOrganizationFormMethods.formState.isSubmitting || updateOrganizationMutation.isLoading
+              aboutOrganizationFormMethods.formState.isSubmitting || updateOrganizationMutation.isPending
             }
             color="primary"
             EndIcon={ArrowRight}

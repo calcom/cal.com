@@ -5,6 +5,7 @@ import type {
   AppUser,
 } from "@calcom/types/AppGetServerSideProps";
 
+import { enrichFormWithMigrationData } from "../enrichFormWithMigrationData";
 import { getSerializableForm } from "../lib/getSerializableForm";
 
 export const getServerSidePropsForSingleFormView = async function getServerSidePropsForSingleFormView(
@@ -48,10 +49,31 @@ export const getServerSidePropsForSingleFormView = async function getServerSideP
       id: formId,
     },
     include: {
+      user: {
+        select: {
+          id: true,
+          movedToProfileId: true,
+          organization: {
+            select: {
+              slug: true,
+            },
+          },
+          username: true,
+          theme: true,
+          brandColor: true,
+          darkBrandColor: true,
+          metadata: true,
+        },
+      },
       team: {
         select: {
-          name: true,
           slug: true,
+          name: true,
+          parent: {
+            select: { slug: true },
+          },
+          parentId: true,
+          metadata: true,
         },
       },
       _count: {
@@ -67,10 +89,32 @@ export const getServerSidePropsForSingleFormView = async function getServerSideP
     };
   }
 
+  const { user: u, ...formWithoutUser } = form;
+
+  const formWithoutProfilInfo = {
+    ...formWithoutUser,
+    team: form.team
+      ? {
+          slug: form.team.slug,
+          name: form.team.name,
+        }
+      : null,
+  };
+
+  const { UserRepository } = await import("@calcom/lib/server/repository/user");
+
+  const formWithUserInfoProfil = {
+    ...form,
+    user: await UserRepository.enrichUserWithItsProfile({ user: form.user }),
+  };
+
   return {
     props: {
       trpcState: await ssr.dehydrate(),
-      form: await getSerializableForm({ form }),
+      form: await getSerializableForm({ form: formWithoutProfilInfo }),
+      enrichedWithUserProfileForm: await getSerializableForm({
+        form: enrichFormWithMigrationData(formWithUserInfoProfil),
+      }),
     },
   };
 };

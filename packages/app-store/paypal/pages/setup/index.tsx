@@ -27,7 +27,7 @@ export default function PayPalSetup() {
     },
   });
 
-  if (integrations.isLoading) {
+  if (integrations.isPending) {
     return <div className="absolute z-50 flex h-screen w-full items-center bg-gray-200" />;
   }
 

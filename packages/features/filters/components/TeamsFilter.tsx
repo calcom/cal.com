@@ -6,7 +6,6 @@ import { classNames } from "@calcom/lib";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
-import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { AnimatedPopover, Avatar, Divider, Tooltip, VerticalDivider } from "@calcom/ui";
@@ -17,17 +16,20 @@ import { filterQuerySchema } from "../lib/getTeamsFiltersFromQuery";
 export type IEventTypesFilters = RouterOutputs["viewer"]["eventTypes"]["listWithTeam"];
 export type IEventTypeFilter = IEventTypesFilters[0];
 
+export const TEAMS_FILTER_KEY = "TEAMS_FILTER_KEY";
 function useFilterQuery() {
   // passthrough allows additional params to not be removed
-  return useTypedQuery(filterQuerySchema.passthrough());
+  return useTypedQuery(filterQuerySchema.passthrough(), TEAMS_FILTER_KEY);
 }
 
 export const TeamsFilter = ({
   popoverTriggerClassNames,
+  useProfileFilter = false,
   showVerticalDivider = false,
 }: {
   popoverTriggerClassNames?: string;
   showVerticalDivider?: boolean;
+  useProfileFilter?: boolean;
 }) => {
   const { t } = useLocale();
   const session = useSession();
@@ -39,6 +41,7 @@ export const TeamsFilter = ({
   const getCheckedOptionsNames = () => {
     const checkedOptions: string[] = [];
     const teamIds = query.teamIds;
+    const users = useProfileFilter ? query.upIds : query.userIds;
     if (teamIds) {
       const selectedTeamsNames = teams
         ?.filter((team) => {
@@ -50,7 +53,7 @@ export const TeamsFilter = ({
       }
       return `${t("team")}: ${checkedOptions.join(",")}`;
     }
-    if (query.userIds) {
+    if (users) {
       return t("yours");
     }
     return t("all");
@@ -58,6 +61,9 @@ export const TeamsFilter = ({
 
   if (!teams || !teams.length) return null;
 
+  const userId = session.data?.user?.id || 0;
+  const upId = session.data?.upId || "";
+  const isUserInQuery = useProfileFilter ? query.upIds?.includes(upId) : query.userIds?.includes(userId);
   return (
     <div className="flex items-center">
       <AnimatedPopover
@@ -68,7 +74,7 @@ export const TeamsFilter = ({
           <FilterCheckboxField
             id="all"
             icon={<Layers className="h-4 w-4" />}
-            checked={!query.teamIds && !query.userIds?.includes(session.data?.user.id || 0)}
+            checked={!query.teamIds && !isUserInQuery}
             onChange={removeAllQueryParams}
             label={t("all")}
           />
@@ -76,19 +82,21 @@ export const TeamsFilter = ({
           <FilterCheckboxField
             id="yours"
             icon={<User className="h-4 w-4" />}
-            checked={!!query.userIds?.includes(session.data?.user.id || 0)}
+            checked={!!isUserInQuery}
             onChange={(e) => {
               if (e.target.checked) {
-                pushItemToKey("userIds", session.data?.user.id || 0);
+                if (useProfileFilter) pushItemToKey("upIds", upId);
+                else pushItemToKey("userIds", userId);
               } else if (!e.target.checked) {
-                removeItemByKeyAndValue("userIds", session.data?.user.id || 0);
+                if (useProfileFilter) removeItemByKeyAndValue("upIds", upId);
+                else removeItemByKeyAndValue("userIds", userId);
               }
             }}
             label={t("yours")}
           />
           <Divider />
           {teams
-            ?.filter((team) => !teamMetadataSchema.parse(team.metadata)?.isOrganization)
+            ?.filter((team) => !team?.isOrganization)
             .map((team) => (
               <FilterCheckboxField
                 key={team.id}

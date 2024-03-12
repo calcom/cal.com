@@ -12,7 +12,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { describe, expect } from "vitest";
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
-import { CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
+import { WEBSITE_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { resetTestEmails } from "@calcom/lib/testEmails";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -82,6 +82,9 @@ describe("handleNewBooking", () => {
           name: "Booker",
         });
 
+        const organizerOtherEmail = "organizer2@example.com";
+        const organizerDestinationCalendarEmailOnEventType = "organizerEventTypeEmail@example.com";
+
         const organizer = getOrganizer({
           name: "Organizer",
           email: "organizer@example.com",
@@ -92,6 +95,7 @@ describe("handleNewBooking", () => {
           destinationCalendar: {
             integration: "google_calendar",
             externalId: "organizer@google-calendar.com",
+            primaryEmail: organizerOtherEmail,
           },
         });
 
@@ -122,6 +126,7 @@ describe("handleNewBooking", () => {
                   id: 1,
                   slotInterval: 30,
                   length: 30,
+                  useEventTypeDestinationCalendarEmail: true,
                   users: [
                     {
                       id: 101,
@@ -130,6 +135,7 @@ describe("handleNewBooking", () => {
                   destinationCalendar: {
                     integration: "google_calendar",
                     externalId: "event-type-1@google-calendar.com",
+                    primaryEmail: organizerDestinationCalendarEmailOnEventType,
                   },
                 },
               ],
@@ -157,6 +163,7 @@ describe("handleNewBooking", () => {
 
         const mockBookingData = getMockRequestDataForBooking({
           data: {
+            user: organizer.username,
             eventTypeId: 1,
             responses: {
               email: booker.email,
@@ -207,7 +214,11 @@ describe("handleNewBooking", () => {
           iCalUID: createdBooking.iCalUID,
         });
 
-        expectWorkflowToBeTriggered({ organizer, emails });
+        expectWorkflowToBeTriggered({
+          organizer,
+          emails,
+          destinationEmail: organizerDestinationCalendarEmailOnEventType,
+        });
         expectSuccessfulCalendarEventCreationInCalendar(calendarMock, {
           calendarId: "event-type-1@google-calendar.com",
           videoCallUrl: "http://mock-dailyvideo.example.com/meeting-1",
@@ -218,12 +229,13 @@ describe("handleNewBooking", () => {
         expectSuccessfulBookingCreationEmails({
           booking: {
             uid: createdBooking.uid!,
-            urlOrigin: org ? org.urlOrigin : CAL_URL,
+            urlOrigin: org ? org.urlOrigin : WEBSITE_URL,
           },
           booker,
           organizer,
           emails,
           iCalUID,
+          destinationEmail: organizerDestinationCalendarEmailOnEventType,
         });
 
         expectBookingCreatedWebhookToHaveBeenFired({
@@ -1991,6 +2003,7 @@ describe("handleNewBooking", () => {
 
         const mockBookingData = getMockRequestDataForBooking({
           data: {
+            user: organizer.username,
             eventTypeId: 1,
             responses: {
               email: booker.email,

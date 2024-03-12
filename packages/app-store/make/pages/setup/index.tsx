@@ -59,7 +59,7 @@ export default function MakeSetup({ inviteLink }: InferGetServerSidePropsType<ty
     setNewApiKeys({ ...newApiKeys, [teamId || ""]: apiKey });
   }
 
-  if (integrations.isLoading) {
+  if (integrations.isPending) {
     return <div className="bg-emphasis absolute z-50 flex h-screen w-full items-center" />;
   }
 

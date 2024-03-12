@@ -38,7 +38,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           },
           {}
         )
-      : availableSlots;
+      : availableSlots.slots;
 
     return { slots: slotsInProvidedTimeZone };
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

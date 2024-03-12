@@ -9,6 +9,7 @@ import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/avail
 import { IS_TEAM_BILLING_ENABLED, RESERVED_SUBDOMAINS, WEBAPP_URL } from "@calcom/lib/constants";
 import { createDomain } from "@calcom/lib/domainManager/organization";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole, UserPermissionRole } from "@calcom/prisma/enums";
@@ -47,10 +48,7 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
     where: {
       slug: slug,
       parentId: null,
-      metadata: {
-        path: ["isOrganization"],
-        equals: true,
-      },
+      isOrganization: true,
     },
   });
 
@@ -98,55 +96,71 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
       }
     }
 
-    const createOwnerOrg = await prisma.user.create({
-      data: {
-        username: slugify(adminUsername),
-        email: adminEmail,
-        emailVerified: new Date(),
-        password: hashedPassword,
-        // Default schedule
-        schedules: {
-          create: {
-            name: t("default_schedule_name"),
-            availability: {
-              createMany: {
-                data: availability.map((schedule) => ({
-                  days: schedule.days,
-                  startTime: schedule.startTime,
-                  endTime: schedule.endTime,
-                })),
-              },
-            },
-          },
-        },
-        organization: {
-          create: {
-            name,
-            ...(!IS_TEAM_BILLING_ENABLED ? { slug } : {}),
-            metadata: {
-              ...(IS_TEAM_BILLING_ENABLED ? { requestedSlug: slug } : {}),
-              isOrganization: true,
+    const { user: createOwnerOrg, organization } = await prisma.$transaction(async (tx) => {
+      const organization = await tx.team.create({
+        data: {
+          name,
+          isOrganization: true,
+          ...(!IS_TEAM_BILLING_ENABLED ? { slug } : {}),
+          organizationSettings: {
+            create: {
               isOrganizationVerified: true,
               isOrganizationConfigured,
               orgAutoAcceptEmail: emailDomain,
             },
           },
+          metadata: {
+            ...(IS_TEAM_BILLING_ENABLED ? { requestedSlug: slug } : {}),
+          },
         },
-      },
+      });
+
+      const user = await tx.user.create({
+        data: {
+          username: slugify(adminUsername),
+          email: adminEmail,
+          emailVerified: new Date(),
+          password: { create: { hash: hashedPassword } },
+          organizationId: organization.id,
+          // Default schedule
+          schedules: {
+            create: {
+              name: t("default_schedule_name"),
+              availability: {
+                createMany: {
+                  data: availability.map((schedule) => ({
+                    days: schedule.days,
+                    startTime: schedule.startTime,
+                    endTime: schedule.endTime,
+                  })),
+                },
+              },
+            },
+          },
+          profiles: {
+            create: {
+              username: slugify(adminUsername),
+              organizationId: organization.id,
+              uid: ProfileRepository.generateProfileUid(),
+            },
+          },
+        },
+      });
+
+      await tx.membership.create({
+        data: {
+          userId: user.id,
+          role: MembershipRole.OWNER,
+          accepted: true,
+          teamId: organization.id,
+        },
+      });
+      return { user, organization };
     });
 
-    if (!createOwnerOrg.organizationId) throw Error("User not created");
+    if (!organization.id) throw Error("User not created");
 
-    await prisma.membership.create({
-      data: {
-        userId: createOwnerOrg.id,
-        role: MembershipRole.OWNER,
-        accepted: true,
-        teamId: createOwnerOrg.organizationId,
-      },
-    });
-
-    return { user: { ...createOwnerOrg, password } };
+    return { user: { ...createOwnerOrg, organizationId: organization.id, password } };
   } else {
     const language = await getTranslation(input.language ?? "en", "common");
 

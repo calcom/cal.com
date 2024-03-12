@@ -36,7 +36,7 @@ const SkeletonLoader = ({ title, description }: { title: string; description: st
 const ApiKeysView = () => {
   const { t } = useLocale();
 
-  const { data, isLoading } = trpc.viewer.apiKeys.list.useQuery();
+  const { data, isPending } = trpc.viewer.apiKeys.list.useQuery();
 
   const [apiKeyModal, setApiKeyModal] = useState(false);
   const [apiKeyToEdit, setApiKeyToEdit] = useState<(TApiKeys & { neverExpires?: boolean }) | undefined>(
@@ -57,7 +57,7 @@ const ApiKeysView = () => {
     );
   };
 
-  if (isLoading || !data) {
+  if (isPending || !data) {
     return (
       <SkeletonLoader
         title={t("api_keys")}

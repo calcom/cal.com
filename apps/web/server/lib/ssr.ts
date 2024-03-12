@@ -6,7 +6,7 @@ import { forms } from "@calcom/app-store/routing-forms/trpc/procedures/forms";
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import { map } from "@calcom/features/flags/server/procedures/map";
 import { CALCOM_VERSION } from "@calcom/lib/constants";
-import { createProxySSGHelpers } from "@calcom/trpc/react/ssg";
+import { createServerSideHelpers } from "@calcom/trpc/react/server";
 import { createContext } from "@calcom/trpc/server/createContext";
 import { me } from "@calcom/trpc/server/routers/loggedInViewer/procedures/me";
 import { teamsAndUserProfilesQuery } from "@calcom/trpc/server/routers/loggedInViewer/procedures/teamsAndUserProfilesQuery";
@@ -59,7 +59,7 @@ export async function ssrInit(context: GetServerSidePropsContext, options?: { no
   const locale = await getLocale(context.req);
   const i18n = await serverSideTranslations(locale, ["common", "vital"]);
 
-  const ssr = createProxySSGHelpers({
+  const ssr = createServerSideHelpers({
     router: routerSlice,
     transformer: superjson,
     ctx: { ...ctx, locale, i18n },

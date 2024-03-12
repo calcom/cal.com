@@ -152,7 +152,7 @@ function BookingListItem(booking: BookingItemProps) {
         setRejectionDialogIsOpen(true);
       },
       icon: Ban,
-      disabled: mutation.isLoading,
+      disabled: mutation.isPending,
     },
     // For bookings with payment, only confirm if the booking is paid for
     ...((isPending && !paymentAppData.enabled) ||
@@ -166,7 +166,7 @@ function BookingListItem(booking: BookingItemProps) {
               bookingConfirm(true);
             },
             icon: Check,
-            disabled: mutation.isLoading,
+            disabled: mutation.isPending,
           },
         ]
       : []),
@@ -227,7 +227,7 @@ function BookingListItem(booking: BookingItemProps) {
   let bookedActions: ActionType[] = [
     {
       id: "cancel",
-      label: isTabRecurring && isRecurring ? t("cancel_all_remaining") : t("cancel"),
+      label: isTabRecurring && isRecurring ? t("cancel_all_remaining") : t("cancel_event"),
       /* When cancelling we need to let the UI and the API know if the intention is to
                cancel all remaining bookings or just that booking instance. */
       href: `/booking/${booking.uid}?cancel=true${
@@ -333,9 +333,11 @@ function BookingListItem(booking: BookingItemProps) {
         setViewRecordingsDialogIsOpen(true);
       },
       color: showCheckRecordingButton ? "secondary" : "primary",
-      disabled: mutation.isLoading,
+      disabled: mutation.isPending,
     },
   ];
+
+  const showPendingPayment = paymentAppData.enabled && booking.payment.length && !booking.paid;
 
   return (
     <>
@@ -401,7 +403,7 @@ function BookingListItem(booking: BookingItemProps) {
           <DialogFooter>
             <DialogClose />
             <Button
-              disabled={mutation.isLoading}
+              disabled={mutation.isPending}
               data-testid="rejection-confirm"
               onClick={() => {
                 bookingConfirm(false);
@@ -516,7 +518,7 @@ function BookingListItem(booking: BookingItemProps) {
                   {booking.eventType.team.name}
                 </Badge>
               )}
-              {!!booking?.eventType?.price && !booking.paid && (
+              {showPendingPayment && (
                 <Badge className="ltr:mr-2 rtl:ml-2 sm:hidden" variant="orange">
                   {t("pending_payment")}
                 </Badge>
@@ -543,8 +545,8 @@ function BookingListItem(booking: BookingItemProps) {
                 {title}
                 <span> </span>
 
-                {paymentAppData.enabled && !booking.paid && booking.payment.length && (
-                  <Badge className="me-2 ms-2 hidden sm:inline-flex" variant="orange">
+                {showPendingPayment && (
+                  <Badge className="hidden sm:inline-flex" variant="orange">
                     {t("pending_payment")}
                   </Badge>
                 )}

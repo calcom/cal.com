@@ -1,8 +1,9 @@
-import type { EventTypeSetup, FormValues } from "pages/event-types/[type]";
+import type { EventTypeSetup } from "pages/event-types/[type]";
 import { useState } from "react";
 import { useFormContext } from "react-hook-form";
 
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
+import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Frequency } from "@calcom/prisma/zod-utils";
@@ -19,11 +20,10 @@ export default function RecurringEventController({
   paymentEnabled,
 }: RecurringEventControllerProps) {
   const { t } = useLocale();
-  const [recurringEventState, setRecurringEventState] = useState<RecurringEvent | null>(
-    eventType.recurringEvent
-  );
   const formMethods = useFormContext<FormValues>();
-
+  const [recurringEventState, setRecurringEventState] = useState<RecurringEvent | null>(
+    formMethods.getValues("recurringEvent")
+  );
   /* Just yearly-0, monthly-1 and weekly-2 */
   const recurringEventFreqOptions = Object.entries(Frequency)
     .filter(([key, value]) => isNaN(Number(key)) && Number(value) < 3)
@@ -32,11 +32,7 @@ export default function RecurringEventController({
       value: value.toString(),
     }));
 
-  const { shouldLockDisableProps } = useLockedFieldsManager(
-    eventType,
-    t("locked_fields_admin_description"),
-    t("locked_fields_member_description")
-  );
+  const { shouldLockDisableProps } = useLockedFieldsManager({ eventType, translate: t, formMethods });
 
   const recurringLocked = shouldLockDisableProps("recurringEvent");
 
@@ -67,7 +63,7 @@ export default function RecurringEventController({
               data-testid="recurring-event-check"
               onCheckedChange={(e) => {
                 if (!e) {
-                  formMethods.setValue("recurringEvent", null);
+                  formMethods.setValue("recurringEvent", null, { shouldDirty: true });
                   setRecurringEventState(null);
                 } else {
                   const newVal = eventType.recurringEvent || {
@@ -75,7 +71,7 @@ export default function RecurringEventController({
                     count: 12,
                     freq: Frequency.WEEKLY,
                   };
-                  formMethods.setValue("recurringEvent", newVal);
+                  formMethods.setValue("recurringEvent", newVal, { shouldDirty: true });
                   setRecurringEventState(newVal);
                 }
               }}>
@@ -96,7 +92,7 @@ export default function RecurringEventController({
                             ...recurringEventState,
                             interval: parseInt(event?.target.value),
                           };
-                          formMethods.setValue("recurringEvent", newVal);
+                          formMethods.setValue("recurringEvent", newVal, { shouldDirty: true });
                           setRecurringEventState(newVal);
                         }}
                       />
@@ -111,7 +107,7 @@ export default function RecurringEventController({
                             ...recurringEventState,
                             freq: parseInt(event?.value || `${Frequency.WEEKLY}`),
                           };
-                          formMethods.setValue("recurringEvent", newVal);
+                          formMethods.setValue("recurringEvent", newVal, { shouldDirty: true });
                           setRecurringEventState(newVal);
                         }}
                       />
@@ -130,7 +126,7 @@ export default function RecurringEventController({
                             ...recurringEventState,
                             count: parseInt(event?.target.value),
                           };
-                          formMethods.setValue("recurringEvent", newVal);
+                          formMethods.setValue("recurringEvent", newVal, { shouldDirty: true });
                           setRecurringEventState(newVal);
                         }}
                       />

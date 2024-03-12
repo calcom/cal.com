@@ -1,5 +1,5 @@
-import { useSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
+import { useEffect } from "react";
 import { shallow } from "zustand/shallow";
 
 import { useTimePreferences } from "@calcom/features/bookings/lib";
@@ -11,7 +11,10 @@ import { useOverlayCalendarStore } from "../OverlayCalendar/store";
 import { useLocalSet } from "./useLocalSet";
 
 export type UseCalendarsReturnType = ReturnType<typeof useCalendars>;
-export const useCalendars = () => {
+type UseCalendarsProps = {
+  hasSession: boolean;
+};
+export const useCalendars = ({ hasSession }: UseCalendarsProps) => {
   const searchParams = useSearchParams();
   const selectedDate = useBookerStore((state) => state.selectedDate);
   const { timezone } = useTimePreferences();
@@ -23,14 +26,13 @@ export const useCalendars = () => {
     externalId: string;
   }>("toggledConnectedCalendars", []);
   const utils = trpc.useContext();
-  const { data: session } = useSession();
 
   const [calendarSettingsOverlay] = useOverlayCalendarStore(
     (state) => [state.calendarSettingsOverlayModal, state.setCalendarSettingsOverlayModal],
     shallow
   );
 
-  const { data: overlayBusyDates } = trpc.viewer.availability.calendarOverlay.useQuery(
+  const { data: overlayBusyDates, isError } = trpc.viewer.availability.calendarOverlay.useQuery(
     {
       loggedInUsersTz: timezone || "Europe/London",
       dateFrom: selectedDate,
@@ -41,14 +43,19 @@ export const useCalendars = () => {
       })),
     },
     {
-      enabled: !!session && set.size > 0 && switchEnabled,
-      onError: () => {
-        clearSet();
-      },
+      enabled: hasSession && set.size > 0 && switchEnabled,
     }
   );
 
-  const { data, isLoading } = trpc.viewer.connectedCalendars.useQuery(undefined, {
+  useEffect(
+    function refactorMeWithoutEffect() {
+      if (!isError) return;
+      clearSet();
+    },
+    [isError]
+  );
+
+  const { data, isPending } = trpc.viewer.connectedCalendars.useQuery(undefined, {
     enabled: !!calendarSettingsOverlay || Boolean(searchParams?.get("overlayCalendar")),
   });
 
@@ -56,7 +63,7 @@ export const useCalendars = () => {
     overlayBusyDates,
     isOverlayCalendarEnabled: switchEnabled,
     connectedCalendars: data?.connectedCalendars || [],
-    loadingConnectedCalendar: isLoading,
+    loadingConnectedCalendar: isPending,
     onToggleCalendar: () => {
       utils.viewer.availability.calendarOverlay.reset();
     },

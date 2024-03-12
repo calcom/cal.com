@@ -2,7 +2,7 @@ import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { Props } from "react-select";
 
 import { classNames } from "@calcom/lib";
-import { CAL_URL } from "@calcom/lib/constants";
+import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { Avatar, Badge, Button, ButtonGroup, Select, Switch, Tooltip } from "@calcom/ui";
@@ -106,7 +106,7 @@ export const ChildrenEventTypeSelect = ({
                           color="secondary"
                           target="_blank"
                           variant="icon"
-                          href={`${CAL_URL}/${children.owner?.username}/${children.slug}`}
+                          href={`${WEBSITE_URL}/${children.owner?.username}/${children.slug}`}
                           StartIcon={ExternalLink}
                         />
                       </Tooltip>

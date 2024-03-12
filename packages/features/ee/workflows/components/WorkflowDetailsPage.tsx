@@ -43,7 +43,7 @@ export default function WorkflowDetailsPage(props: Props) {
   const [reload, setReload] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
-  const { data, isLoading } = trpc.viewer.eventTypes.getByViewer.useQuery();
+  const { data, isPending } = trpc.viewer.eventTypes.getByViewer.useQuery();
 
   const eventTypeOptions = useMemo(
     () =>
@@ -54,12 +54,19 @@ export default function WorkflowDetailsPage(props: Props) {
         if (teamId && teamId !== group.teamId) return options;
         return [
           ...options,
-          ...group.eventTypes.map((eventType) => ({
-            value: String(eventType.id),
-            label: `${eventType.title} ${
-              eventType.children && eventType.children.length ? `(+${eventType.children.length})` : ``
-            }`,
-          })),
+          ...group.eventTypes
+            .filter(
+              (evType) =>
+                !evType.metadata?.managedEventConfig ||
+                !!evType.metadata?.managedEventConfig.unlockedFields?.workflows ||
+                !!teamId
+            )
+            .map((eventType) => ({
+              value: String(eventType.id),
+              label: `${eventType.title} ${
+                eventType.children && eventType.children.length ? `(+${eventType.children.length})` : ``
+              }`,
+            })),
         ];
       }, [] as Option[]) || [],
     [data]
@@ -138,7 +145,7 @@ export default function WorkflowDetailsPage(props: Props) {
                 <MultiSelectCheckboxes
                   options={allEventTypeOptions}
                   isDisabled={props.readOnly}
-                  isLoading={isLoading}
+                  isLoading={isPending}
                   className="w-full md:w-64"
                   setSelected={setSelectedEventTypes}
                   selected={selectedEventTypes}

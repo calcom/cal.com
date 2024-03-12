@@ -51,8 +51,8 @@ interface GeneralViewProps {
 const GeneralQueryView = () => {
   const { t } = useLocale();
 
-  const { data: user, isLoading } = trpc.viewer.me.useQuery();
-  if (isLoading) return <SkeletonLoader title={t("general")} description={t("general_description")} />;
+  const { data: user, isPending } = trpc.viewer.me.useQuery();
+  if (isPending) return <SkeletonLoader title={t("general")} description={t("general_description")} />;
   if (!user) {
     throw new Error(t("something_went_wrong"));
   }
@@ -233,7 +233,7 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
         toggleSwitchAtTheEnd={true}
         title={t("dynamic_booking")}
         description={t("allow_dynamic_booking")}
-        disabled={mutation.isLoading}
+        disabled={mutation.isPending}
         checked={isAllowDynamicBookingChecked}
         onCheckedChange={(checked) => {
           setIsAllowDynamicBookingChecked(checked);
@@ -246,7 +246,7 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
         toggleSwitchAtTheEnd={true}
         title={t("seo_indexing")}
         description={t("allow_seo_indexing")}
-        disabled={mutation.isLoading}
+        disabled={mutation.isPending}
         checked={isAllowSEOIndexingChecked}
         onCheckedChange={(checked) => {
           setIsAllowSEOIndexingChecked(checked);
@@ -259,7 +259,7 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
         toggleSwitchAtTheEnd={true}
         title={t("monthly_digest_email")}
         description={t("monthly_digest_email_for_teams")}
-        disabled={mutation.isLoading}
+        disabled={mutation.isPending}
         checked={isReceiveMonthlyDigestEmailChecked}
         onCheckedChange={(checked) => {
           setIsReceiveMonthlyDigestEmailChecked(checked);

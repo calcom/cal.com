@@ -120,8 +120,9 @@ export const purchaseTeamSubscription = async (input: {
 const getTeamWithPaymentMetadata = async (teamId: number) => {
   const team = await prisma.team.findUniqueOrThrow({
     where: { id: teamId },
-    select: { metadata: true, members: true, _count: { select: { orgUsers: true } } },
+    select: { metadata: true, members: true, isOrganization: true },
   });
+
   const metadata = teamPaymentMetadataSchema.parse(team.metadata);
   return { ...team, metadata };
 };
@@ -155,7 +156,7 @@ export const updateQuantitySubscriptionFromStripe = async (teamId: number) => {
     )?.quantity;
     if (!subscriptionQuantity) throw new Error("Subscription not found");
 
-    if (!!team._count.orgUsers && membershipCount < ORGANIZATION_MIN_SEATS) {
+    if (team.isOrganization && membershipCount < ORGANIZATION_MIN_SEATS) {
       console.info(
         `Org ${teamId} has less members than the min ${ORGANIZATION_MIN_SEATS}, skipping updating subscription.`
       );

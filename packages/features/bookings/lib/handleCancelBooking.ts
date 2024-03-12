@@ -245,7 +245,7 @@ async function handler(req: CustomRequest) {
     startTime: bookingToDelete?.startTime ? dayjs(bookingToDelete.startTime).format() : "",
     endTime: bookingToDelete?.endTime ? dayjs(bookingToDelete.endTime).format() : "",
     organizer: {
-      email: organizer.email,
+      email: bookingToDelete?.userPrimaryEmail ?? organizer.email,
       name: organizer.name ?? "Nameless",
       timeZone: organizer.timeZone,
       timeFormat: getTimeFormatStringFromUserTimeFormat(organizer.timeFormat),
@@ -524,7 +524,7 @@ async function handler(req: CustomRequest) {
       startTime: bookingToDelete.startTime.toISOString(),
       endTime: bookingToDelete.endTime.toISOString(),
       organizer: {
-        email: bookingToDelete.user?.email ?? "dev@calendso.com",
+        email: bookingToDelete?.userPrimaryEmail ?? bookingToDelete.user?.email ?? "dev@calendso.com",
         name: bookingToDelete.user?.name ?? "no user",
         timeZone: bookingToDelete.user?.timeZone ?? "",
         timeFormat: getTimeFormatStringFromUserTimeFormat(organizer.timeFormat),

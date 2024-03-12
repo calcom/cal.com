@@ -71,7 +71,7 @@ export default function OmniInstallAppButton({
 
         return (
           <Button
-            loading={mutation.isLoading}
+            loading={mutation.isPending}
             color="secondary"
             className="[@media(max-width:260px)]:w-full [@media(max-width:260px)]:justify-center"
             StartIcon={Plus}

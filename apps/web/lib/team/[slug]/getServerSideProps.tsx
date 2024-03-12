@@ -1,7 +1,7 @@
 import type { GetServerSidePropsContext } from "next";
 
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
-import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
+import { getFeatureFlag } from "@calcom/features/flags/server/utils";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import logger from "@calcom/lib/logger";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
@@ -18,19 +18,30 @@ import { ssrInit } from "@server/lib/ssr";
 
 const log = logger.getSubLogger({ prefix: ["team/[slug]"] });
 
+const getTheLastArrayElement = (value: ReadonlyArray<string> | string | undefined): string | undefined => {
+  if (value === undefined || typeof value === "string") {
+    return value;
+  }
+
+  return value.at(-1);
+};
+
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  const slug = Array.isArray(context.query?.slug) ? context.query.slug.pop() : context.query.slug;
-  const { isValidOrgDomain, currentOrgDomain } = orgDomainConfig(context.req, context.params?.orgSlug);
+  const slug = getTheLastArrayElement(context.query.slug) ?? getTheLastArrayElement(context.query.orgSlug);
+
+  const { isValidOrgDomain, currentOrgDomain } = orgDomainConfig(
+    context.req,
+    context.params?.orgSlug ?? context.query?.orgSlug
+  );
   const isOrgContext = isValidOrgDomain && currentOrgDomain;
 
   // Provided by Rewrite from next.config.js
   const isOrgProfile = context.query?.isOrgProfile === "1";
-  const flags = await getFeatureFlagMap(prisma);
-  const isOrganizationFeatureEnabled = flags["organizations"];
+  const organizationsEnabled = await getFeatureFlag(prisma, "organizations");
 
   log.debug("getServerSideProps", {
     isOrgProfile,
-    isOrganizationFeatureEnabled,
+    isOrganizationFeatureEnabled: organizationsEnabled,
     isValidOrgDomain,
     currentOrgDomain,
   });
@@ -61,8 +72,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   // Taking care of sub-teams and orgs
   if (
     (!isValidOrgDomain && team?.parent) ||
-    (!isValidOrgDomain && !!metadata?.isOrganization) ||
-    !isOrganizationFeatureEnabled
+    (!isValidOrgDomain && !!team?.isOrganization) ||
+    !organizationsEnabled
   ) {
     return { notFound: true } as const;
   }
@@ -109,7 +120,9 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         return {
           name: member.name,
           id: member.id,
+          avatarUrl: member.avatarUrl,
           bio: member.bio,
+          profile: member.profile,
           subteams: member.subteams,
           username: member.username,
           accepted: member.accepted,

@@ -1,5 +1,5 @@
 import { useSession } from "next-auth/react";
-import { Fragment, useState } from "react";
+import { Fragment, useMemo } from "react";
 
 import {
   FilterCheckboxFieldsContainer,
@@ -36,24 +36,24 @@ export const EventTypeFilter = () => {
   const { data: user } = useSession();
   const { data: query, pushItemToKey, removeItemByKeyAndValue, removeAllQueryParams } = useFilterQuery();
 
-  const [groupedEventTypes, setGroupedEventTypes] = useState<GroupedEventTypeState>();
-
   const eventTypes = trpc.viewer.eventTypes.listWithTeam.useQuery(undefined, {
-    onSuccess: (data) => {
-      // Will be handled up the tree to redirect
-      // Group event types by team
-      const grouped = groupBy<IEventTypeFilter>(
-        data.filter((el) => el.team),
-        (item) => item?.team?.name || ""
-      ); // Add the team name
-      const individualEvents = data.filter((el) => !el.team);
-      // push indivdual events to the start of grouped array
-      setGroupedEventTypes(
-        individualEvents.length > 0 ? { user_own_event_types: individualEvents, ...grouped } : grouped
-      );
-    },
     enabled: !!user,
   });
+  const groupedEventTypes: GroupedEventTypeState | null = useMemo(() => {
+    const data = eventTypes.data;
+    if (!data) {
+      return null;
+    }
+    // Will be handled up the tree to redirect
+    // Group event types by team
+    const grouped = groupBy<IEventTypeFilter>(
+      data.filter((el) => el.team),
+      (item) => item?.team?.name || ""
+    ); // Add the team name
+    const individualEvents = data.filter((el) => !el.team);
+    // push indivdual events to the start of grouped array
+    return individualEvents.length > 0 ? { user_own_event_types: individualEvents, ...grouped } : grouped;
+  }, [eventTypes.data]);
 
   if (!eventTypes.data) return null;
   const isEmpty = eventTypes.data.length === 0;
