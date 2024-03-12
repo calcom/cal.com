@@ -114,7 +114,6 @@ const TravelScheduleModal = ({
             </>
           )}
           <div className="text-error mt-1 text-sm">{errorMessage}</div>
-
           <div className="mt-3">
             <SettingsToggle
               labelClassName="mt-1 font-normal"
@@ -135,7 +134,7 @@ const TravelScheduleModal = ({
             className="mb-11 mt-2 w-full rounded-md text-sm"
           />
         </div>
-        <DialogFooter showDivider>
+        <DialogFooter showDivider className="relative">
           <DialogClose />
           <Button
             onClick={() => {
