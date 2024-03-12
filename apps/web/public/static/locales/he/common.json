@@ -2279,6 +2279,7 @@
   "field_identifiers_as_variables": "להשתמש במזהי השדות כמשתנים להפניות האירועים בהתאמה אישית",
   "field_identifiers_as_variables_with_example": "להשתמש במזהי השדות כמשתנים להפניות האירועים בהתאמה אישית (למשל: {{variable}})",
   "account_already_linked": "החשבון כבר מקושר",
+  "privacy": "פרטיות",
   "team_will_be_under_org": "צוותים חדשים יהיו תחת הארגון שלך",
   "add_group_name": "הוספת שם קבוצה",
   "group_name": "שם קבוצה",
