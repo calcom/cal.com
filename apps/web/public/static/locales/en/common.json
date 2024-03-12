@@ -1083,7 +1083,7 @@
   "make_team_private": "Make team private",
   "make_team_private_description": "Your team members won't be able to see other team members when this is turned on.",
   "you_cannot_see_team_members": "You cannot see all the team members of a private team.",
-  "you_cannot_see_teams_of_org":"You cannot see teams of a private org.",
+  "you_cannot_see_teams_of_org":"You cannot see teams of a private organization.",
   "allow_booker_to_select_duration": "Allow booker to select duration",
   "impersonate_user_tip": "All uses of this feature is audited.",
   "impersonating_user_warning": "Impersonating username \"{{user}}\".",
