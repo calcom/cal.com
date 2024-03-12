@@ -55,11 +55,3 @@ export const EventTypeUpdateInput = _EventTypeModel
         id: true,
       })
   );
-
-export const EventTypeDuplicateInput = z.object({
-  id: z.number(),
-  slug: z.string(),
-  title: z.string(),
-  description: z.string(),
-  length: z.number(),
-});
