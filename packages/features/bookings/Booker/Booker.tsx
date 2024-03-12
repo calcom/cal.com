@@ -66,6 +66,7 @@ const BookerComponent = ({
   bookerLayout,
   schedule,
   verifyCode,
+  orgBannerUrl,
 }: BookerProps & WrappedBookerProps) => {
   const [bookerState, setBookerState] = useBookerStore((state) => [state.state, state.setState], shallow);
   const selectedDate = useBookerStore((state) => state.selectedDate);
@@ -123,7 +124,8 @@ const BookerComponent = ({
 
   const { bookerFormErrorRef, key, formEmail, bookingForm, errors: formErrors } = bookerForm;
 
-  const { handleBookEvent, hasInstantMeetingTokenExpired, errors, loadingStates, expiryTime } = bookings;
+  const { handleBookEvent, errors, loadingStates, expiryTime } = bookings;
+
   const {
     isEmailVerificationModalVisible,
     setEmailVerificationModalVisible,
@@ -180,7 +182,6 @@ const BookerComponent = ({
           />
           <RedirectToInstantMeetingModal
             expiryTime={expiryTime}
-            hasInstantMeetingTokenExpired={hasInstantMeetingTokenExpired}
             bookingId={parseInt(getQueryParam("bookingId") || "0")}
             onGoBack={() => {
               onGoBackInstantMeeting();
@@ -203,7 +204,6 @@ const BookerComponent = ({
     formErrors,
     handleBookEvent,
     handleVerifyEmail,
-    hasInstantMeetingTokenExpired,
     isEmailVerificationModalVisible,
     key,
     loadingStates,
@@ -339,6 +339,15 @@ const BookerComponent = ({
               <BookerSection
                 area="meta"
                 className="max-w-screen flex w-full flex-col md:w-[var(--booker-meta-width)]">
+                {orgBannerUrl && (
+                  <img
+                    loading="eager"
+                    className="-mb-9 h-40 max-h-40 rounded-tl-md sm:max-h-24"
+                    alt="org banner"
+                    src={orgBannerUrl}
+                  />
+                )}
+
                 <EventMeta event={event.data} isPending={event.isPending} />
                 {layout !== BookerLayouts.MONTH_VIEW &&
                   !(layout === "mobile" && bookerState === "booking") && (

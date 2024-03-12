@@ -251,6 +251,13 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
           days: true,
         },
       },
+      secondaryEmailId: true,
+      secondaryEmail: {
+        select: {
+          id: true,
+          email: true,
+        },
+      },
     },
   });
 
@@ -379,7 +386,7 @@ export async function ensureAvailableUsers(
         safeStringify({
           startDateTimeUtc,
           endDateTimeUtc,
-          timeZone: input.timeZone,
+          input,
         })
       );
       continue;
@@ -406,7 +413,7 @@ export async function ensureAvailableUsers(
         safeStringify({
           startDateTimeUtc,
           endDateTimeUtc,
-          timeZone: input.timeZone,
+          input,
         })
       );
       continue;
@@ -428,7 +435,7 @@ export async function ensureAvailableUsers(
       safeStringify({
         startDateTimeUtc,
         endDateTimeUtc,
-        timeZone: input.timeZone,
+        input,
       })
     );
     throw new Error(ErrorCode.NoAvailableUsersFound);
@@ -1289,7 +1296,7 @@ async function handler(
       }
       // Pushing fixed user before the luckyUser guarantees the (first) fixed user as the organizer.
       users = [...availableUsers.filter((user) => user.isFixed), ...luckyUsers];
-      luckyUserResponse = { luckyUsers };
+      luckyUserResponse = { luckyUsers: luckyUsers.map((u) => u.id) };
     } else if (req.body.allRecurringDates && eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
       // all recurring slots except the first one
       const luckyUsersFromFirstBooking = luckyUsers
@@ -1452,6 +1459,13 @@ async function handler(
     ? [organizerUser.destinationCalendar]
     : null;
 
+  let organizerEmail = organizerUser.email || "Email-less";
+  if (eventType.useEventTypeDestinationCalendarEmail && destinationCalendar?.[0]?.primaryEmail) {
+    organizerEmail = destinationCalendar[0].primaryEmail;
+  } else if (eventType.secondaryEmailId && eventType.secondaryEmail?.email) {
+    organizerEmail = eventType.secondaryEmail.email;
+  }
+
   let evt: CalendarEvent = {
     bookerUrl,
     type: eventType.slug,
@@ -1464,10 +1478,7 @@ async function handler(
     organizer: {
       id: organizerUser.id,
       name: organizerUser.name || "Nameless",
-      email:
-        eventType.useEventTypeDestinationCalendarEmail && destinationCalendar?.[0]?.primaryEmail
-          ? destinationCalendar[0].primaryEmail
-          : organizerUser.email || "Email-less",
+      email: organizerEmail,
       username: organizerUser.username || undefined,
       timeZone: organizerUser.timeZone,
       language: { translate: tOrganizer, locale: organizerUser.locale ?? "en" },
@@ -1576,7 +1587,18 @@ async function handler(
     });
     if (newBooking) {
       req.statusCode = 201;
-      return { ...newBooking, ...luckyUserResponse };
+      const bookingResponse = {
+        ...newBooking,
+        user: {
+          ...newBooking.user,
+          email: null,
+        },
+      };
+
+      return {
+        ...bookingResponse,
+        ...luckyUserResponse,
+      };
     }
   }
   if (isTeamEventType) {
@@ -1615,6 +1637,19 @@ async function handler(
       userReschedulingIsOwner,
     })
   );
+
+  // update original rescheduled booking (no seats event)
+  if (!eventType.seatsPerTimeSlot && originalRescheduledBooking?.uid) {
+    await prisma.booking.update({
+      where: {
+        id: originalRescheduledBooking.id,
+      },
+      data: {
+        rescheduled: true,
+        status: BookingStatus.CANCELLED,
+      },
+    });
+  }
 
   try {
     booking = await createBooking({
@@ -1683,7 +1718,7 @@ async function handler(
       err.message
     );
     if (err.code === "P2002") {
-      throw new HttpError({ statusCode: 409, message: "booking.conflict" });
+      throw new HttpError({ statusCode: 409, message: "booking_conflict" });
     }
     throw err;
   }
@@ -1709,20 +1744,7 @@ async function handler(
 
     evt = addVideoCallDataToEvent(originalRescheduledBooking.references, evt);
 
-    //update original rescheduled booking (no seats event)
-    if (!eventType.seatsPerTimeSlot) {
-      await prisma.booking.update({
-        where: {
-          id: originalRescheduledBooking.id,
-        },
-        data: {
-          rescheduled: true,
-          status: BookingStatus.CANCELLED,
-        },
-      });
-    }
-
-    const newDesinationCalendar = evt.destinationCalendar;
+    const newDestinationCalendar = evt.destinationCalendar;
 
     evt.destinationCalendar = originalRescheduledBooking?.destinationCalendar
       ? [originalRescheduledBooking?.destinationCalendar]
@@ -1741,7 +1763,7 @@ async function handler(
       originalRescheduledBooking.uid,
       undefined,
       changedOrganizer,
-      newDesinationCalendar
+      newDestinationCalendar
     );
 
     // This gets overridden when updating the event - to check if notes have been hidden or not. We just reset this back
@@ -2089,6 +2111,10 @@ async function handler(
     await sendAttendeeRequestEmail({ ...evt, additionalNotes }, attendeesList[0]);
   }
 
+  if (booking.location?.startsWith("http")) {
+    videoCallUrl = booking.location;
+  }
+
   const metadata = videoCallUrl
     ? {
         videoCallUrl: getVideoCallUrlFromCalEvent(evt) || videoCallUrl,
@@ -2170,8 +2196,18 @@ async function handler(
     });
 
     req.statusCode = 201;
-    return {
+    // TODO: Refactor better so this booking object is not passed
+    // all around and instead the individual fields are sent as args.
+    const bookingReponse = {
       ...booking,
+      user: {
+        ...booking.user,
+        email: null,
+      },
+    };
+
+    return {
+      ...bookingReponse,
       ...luckyUserResponse,
       message: "Payment required",
       paymentUid: payment?.uid,
@@ -2180,10 +2216,6 @@ async function handler(
   }
 
   loggerWithEventDetails.debug(`Booking ${organizerUser.username} completed`);
-
-  if (booking.location?.startsWith("http")) {
-    videoCallUrl = booking.location;
-  }
 
   // We are here so, booking doesn't require payment and booking is also created in DB already, through createBooking call
   if (isConfirmedByDefault) {
@@ -2270,8 +2302,7 @@ async function handler(
     loggerWithEventDetails.error("Error while creating booking references", JSON.stringify({ error }));
   }
 
-  const metadataFromEvent = videoCallUrl ? { videoCallUrl } : undefined;
-  const evtWithMetadata = { ...evt, metadata: metadataFromEvent, eventType: { slug: eventType.slug } };
+  const evtWithMetadata = { ...evt, metadata, eventType: { slug: eventType.slug } };
 
   await scheduleMandatoryReminder(
     evtWithMetadata,
@@ -2299,8 +2330,19 @@ async function handler(
 
   // booking successful
   req.statusCode = 201;
-  return {
+
+  // TODO: Refactor better so this booking object is not passed
+  // all around and instead the individual fields are sent as args.
+  const bookingResponse = {
     ...booking,
+    user: {
+      ...booking.user,
+      email: null,
+    },
+  };
+
+  return {
+    ...bookingResponse,
     ...luckyUserResponse,
     references: referencesToCreate,
     seatReferenceUid: evt.attendeeSeatId,

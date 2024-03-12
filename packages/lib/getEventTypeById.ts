@@ -235,6 +235,7 @@ export default async function getEventTypeById({
           },
         },
       },
+      secondaryEmailId: true,
     },
   });
 
