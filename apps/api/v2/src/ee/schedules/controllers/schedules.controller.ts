@@ -24,7 +24,7 @@ import type { ScheduleWithAvailabilitiesForWeb } from "@calcom/platform-librarie
 import type { CityTimezones } from "@calcom/platform-libraries";
 import { updateScheduleHandler } from "@calcom/platform-libraries";
 import type { UpdateScheduleOutputType } from "@calcom/platform-libraries";
-import { ScheduleResponse, UpdateScheduleInput } from "@calcom/platform-types";
+import { ApiSuccessResponse, ScheduleResponse, UpdateScheduleInput } from "@calcom/platform-types";
 import { ApiResponse } from "@calcom/platform-types";
 
 import { CreateScheduleInput } from "../inputs/create-schedule.input";
@@ -46,7 +46,7 @@ export class SchedulesController {
     @GetUser() user: UserWithProfile,
     @Body() bodySchedule: CreateScheduleInput,
     @ForAtom() forAtom: boolean
-  ): Promise<ApiResponse<ScheduleResponse>> {
+  ): Promise<ApiSuccessResponse<ScheduleResponse | ScheduleWithAvailabilitiesForWeb>> {
     const schedule = await this.schedulesService.createUserSchedule(user.id, bodySchedule);
     const scheduleFormatted = await this.schedulesResponseService.formatSchedule(forAtom, user, schedule);
 
@@ -89,7 +89,7 @@ export class SchedulesController {
     @GetUser() user: UserWithProfile,
     @Param("scheduleId") scheduleId: number,
     @ForAtom() forAtom: boolean
-  ): Promise<ApiResponse<ScheduleResponse | ScheduleWithAvailabilitiesForWeb>> {
+  ): Promise<ApiSuccessResponse<ScheduleResponse | ScheduleWithAvailabilitiesForWeb>> {
     const schedule = await this.schedulesService.getUserSchedule(user.id, scheduleId);
     const scheduleFormatted = await this.schedulesResponseService.formatSchedule(forAtom, user, schedule);
 
@@ -104,7 +104,7 @@ export class SchedulesController {
   async getSchedules(
     @GetUser() user: UserWithProfile,
     @ForAtom() forAtom: boolean
-  ): Promise<ApiResponse<ScheduleResponse[] | ScheduleWithAvailabilitiesForWeb[]>> {
+  ): Promise<ApiSuccessResponse<ScheduleResponse[] | ScheduleWithAvailabilitiesForWeb[]>> {
     const schedules = await this.schedulesService.getUserSchedules(user.id);
     const schedulesFormatted = await this.schedulesResponseService.formatSchedules(forAtom, user, schedules);
 
@@ -120,7 +120,7 @@ export class SchedulesController {
   async updateSchedule(
     @GetUser() user: UserWithProfile,
     @Body() bodySchedule: UpdateScheduleInput
-  ): Promise<ApiResponse<UpdateScheduleOutputType>> {
+  ): Promise<ApiSuccessResponse<UpdateScheduleOutputType>> {
     const updatedSchedule: UpdateScheduleOutputType = await updateScheduleHandler({
       input: bodySchedule,
       ctx: { user },
