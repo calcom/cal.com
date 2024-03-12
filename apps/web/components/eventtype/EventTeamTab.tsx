@@ -1,6 +1,6 @@
 import { Trans } from "next-i18next";
 import Link from "next/link";
-import type { EventTypeSetupProps, FormValues, Host } from "pages/event-types/[type]";
+import type { EventTypeSetupProps, Host } from "pages/event-types/[type]";
 import { useEffect, useRef, useState } from "react";
 import type { ComponentProps, Dispatch, SetStateAction } from "react";
 import { Controller, useFormContext, useWatch } from "react-hook-form";
@@ -9,6 +9,7 @@ import type { Options } from "react-select";
 import type { CheckedSelectOption } from "@calcom/features/eventtypes/components/CheckedTeamSelect";
 import CheckedTeamSelect from "@calcom/features/eventtypes/components/CheckedTeamSelect";
 import ChildrenEventTypeSelect from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
+import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { Label, Select, SettingsToggle } from "@calcom/ui";
