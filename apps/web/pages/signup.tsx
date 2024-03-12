@@ -20,6 +20,7 @@ import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { classNames } from "@calcom/lib";
 import { APP_NAME, URL_PROTOCOL_REGEX, IS_CALCOM, WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
 import { fetchUsername } from "@calcom/lib/fetchUsername";
+import { pushGTMEvent } from "@calcom/lib/gtm";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -159,11 +160,11 @@ export default function Signup({
   isGoogleLoginEnabled,
   isSAMLLoginEnabled,
   orgAutoAcceptEmail,
+  redirectUrl,
 }: SignupProps) {
   const [premiumUsername, setPremiumUsername] = useState(false);
   const [usernameTaken, setUsernameTaken] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-
   const searchParams = useCompatSearchParams();
   const telemetry = useTelemetry();
   const { t, i18n } = useLocale();
@@ -179,6 +180,12 @@ export default function Signup({
     watch,
     formState: { isSubmitting, errors, isSubmitSuccessful },
   } = formMethods;
+
+  useEffect(() => {
+    if (redirectUrl) {
+      localStorage.setItem("onBoardingRedirect", redirectUrl);
+    }
+  }, [redirectUrl]);
 
   const loadingSubmitState = isSubmitSuccessful || isSubmitting;
 
@@ -216,6 +223,9 @@ export default function Signup({
     })
       .then(handleErrorsAndStripe)
       .then(async () => {
+        if (process.env.NEXT_PUBLIC_GTM_ID)
+          pushGTMEvent("create_account", { email: data.email, user: data.username, lang: data.language });
+
         telemetry.event(telemetryEventTypes.signup, collectPageParameters());
         const verifyOrGettingStarted = flags["email-verification"] ? "auth/verify-email" : "getting-started";
         const callBackUrl = `${

@@ -19,13 +19,16 @@ import { getEventName } from "@calcom/core/event";
 import type { ConfigType } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import {
-  sdkActionManager,
   useEmbedNonStylesConfig,
   useIsBackgroundTransparent,
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
 import { Price } from "@calcom/features/bookings/components/event-meta/Price";
-import { SMS_REMINDER_NUMBER_FIELD, SystemField } from "@calcom/features/bookings/lib/SystemField";
+import {
+  SMS_REMINDER_NUMBER_FIELD,
+  SystemField,
+  TITLE_FIELD,
+} from "@calcom/features/bookings/lib/SystemField";
 import { APP_NAME } from "@calcom/lib/constants";
 import {
   formatToLocalizedDate,
@@ -92,6 +95,7 @@ export default function Success(props: PageProps) {
   const pathname = usePathname();
   const searchParams = useCompatSearchParams();
   const { eventType, bookingInfo, requiresLoginToUpdate } = props;
+
   const {
     allRemainingBookings,
     isSuccessBookingPage,
@@ -193,22 +197,6 @@ export default function Success(props: PageProps) {
   }, [telemetry]); */
 
   useEffect(() => {
-    const users = eventType.users;
-    if (!sdkActionManager) return;
-    // TODO: We should probably make it consistent with Webhook payload. Some data is not available here, as and when requirement comes we can add
-    sdkActionManager.fire("bookingSuccessful", {
-      booking: bookingInfo,
-      eventType,
-      date: date.toString(),
-      duration: calculatedDuration,
-      organizer: {
-        name: users[0].name || "Nameless",
-        email: bookingInfo?.userPrimaryEmail || users[0].email || "Email-less",
-        timeZone: users[0].timeZone,
-      },
-      confirmed: !needsConfirmation,
-      // TODO: Add payment details
-    });
     setDate(
       date.tz(localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess() || "Europe/London")
     );
@@ -294,6 +282,16 @@ export default function Success(props: PageProps) {
   const providerName = guessEventLocationType(location)?.label;
   const rescheduleProviderName = guessEventLocationType(rescheduleLocation)?.label;
 
+  const bookingCancelledEventProps = {
+    booking: bookingInfo,
+    organizer: {
+      name: bookingInfo?.user?.name || "Nameless",
+      email: bookingInfo?.userPrimaryEmail || bookingInfo?.user?.email || "Email-less",
+      timeZone: bookingInfo?.user?.timeZone,
+    },
+    eventType,
+  };
+
   return (
     <div className={isEmbed ? "" : "h-screen"} data-testid="success-page">
       {!isEmbed && (
@@ -352,7 +350,7 @@ export default function Success(props: PageProps) {
                     !giphyImage && !isCancelled && needsConfirmation
                       ? "bg-subtle h-12 w-12 rounded-full"
                       : "",
-                    isCancelled ? "bg-error h-12 w-12 rounded-full" : ""
+                    isCancelled ? "bg-error h-12 w-12 rounded-full " : ""
                   )}>
                   {giphyImage && !needsConfirmation && !isCancelled && (
                     // eslint-disable-next-line @next/next/no-img-element
@@ -525,7 +523,13 @@ export default function Success(props: PageProps) {
                       if (!field) return null;
                       const isSystemField = SystemField.safeParse(field.name);
                       // SMS_REMINDER_NUMBER_FIELD is a system field but doesn't have a dedicated place in the UI. So, it would be shown through the following responses list
-                      if (isSystemField.success && field.name !== SMS_REMINDER_NUMBER_FIELD) return null;
+                      // TITLE is also an identifier for booking question "What is this meeting about?"
+                      if (
+                        isSystemField.success &&
+                        field.name !== SMS_REMINDER_NUMBER_FIELD &&
+                        field.name !== TITLE_FIELD
+                      )
+                        return null;
 
                       const label = field.label || t(field.defaultLabel || "");
 
@@ -610,6 +614,7 @@ export default function Success(props: PageProps) {
                         theme={isSuccessBookingPage ? props.profile.theme : "light"}
                         allRemainingBookings={allRemainingBookings}
                         seatReferenceUid={seatReferenceUid}
+                        bookingCancelledEventProps={bookingCancelledEventProps}
                       />
                     </>
                   ))}

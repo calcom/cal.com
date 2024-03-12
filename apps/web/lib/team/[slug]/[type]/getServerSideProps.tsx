@@ -96,6 +96,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       isBrandingHidden: team?.hideBranding,
       isInstantMeeting: eventData.isInstantEvent && queryIsInstantMeeting ? true : false,
       themeBasis: null,
+      orgBannerUrl: eventData?.team?.parent?.bannerUrl ?? "",
     },
   };
 };
