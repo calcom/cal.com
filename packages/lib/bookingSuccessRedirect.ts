@@ -63,7 +63,13 @@ export const useBookingSuccessRedirect = () => {
         },
         searchParams: searchParams ?? undefined,
       });
-      const input = `${url.toString()}?${newSearchParams.toString()}`;
+
+      for (const [key, value] of newSearchParams) {
+        url.searchParams.append(key, value);
+      }
+
+      const input = url.toString();
+
       const firstIndex = input.indexOf("?");
       if (firstIndex === -1) {
         // No "?" found in the string
