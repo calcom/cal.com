@@ -24,7 +24,11 @@ import {
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
 import { Price } from "@calcom/features/bookings/components/event-meta/Price";
-import { SMS_REMINDER_NUMBER_FIELD, SystemField, TITLE } from "@calcom/features/bookings/lib/SystemField";
+import {
+  SMS_REMINDER_NUMBER_FIELD,
+  SystemField,
+  TITLE_FIELD,
+} from "@calcom/features/bookings/lib/SystemField";
 import { APP_NAME } from "@calcom/lib/constants";
 import {
   formatToLocalizedDate,
@@ -523,7 +527,7 @@ export default function Success(props: PageProps) {
                       if (
                         isSystemField.success &&
                         field.name !== SMS_REMINDER_NUMBER_FIELD &&
-                        field.name !== TITLE
+                        field.name !== TITLE_FIELD
                       )
                         return null;
 

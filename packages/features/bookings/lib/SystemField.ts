@@ -12,4 +12,4 @@ export const SystemField = z.enum([
 ]);
 
 export const SMS_REMINDER_NUMBER_FIELD = "smsReminderNumber";
-export const TITLE = "title";
+export const TITLE_FIELD = "title";
