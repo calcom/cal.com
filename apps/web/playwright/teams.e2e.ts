@@ -307,8 +307,6 @@ testBothFutureAndLegacyRoutes.describe("Teams - NonOrg", (routeVariant) => {
     await page.getByTestId("email").click();
     await page.getByTestId("incrementMonth").click();
 
-    await page.waitForLoadState("networkidle");
-
     await expect(page.getByTestId("no-slots-available")).toBeHidden();
 
     // Check Team Url
