@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const ZDeleteInputSchema = z.object({
-  orgId: z.union([z.number(), z.null()]),
+  organizationId: z.union([z.number(), z.null()]),
   directoryId: z.string(),
 });
 
