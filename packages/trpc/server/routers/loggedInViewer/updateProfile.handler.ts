@@ -43,15 +43,17 @@ export const uploadAvatar = async ({ userId, avatar: data }: { userId: number; a
 
   await prisma.avatar.upsert({
     where: {
-      teamId_userId: {
+      teamId_userId_isBanner: {
         teamId: 0,
         userId,
+        isBanner: false,
       },
     },
     create: {
       userId: userId,
       data,
       objectKey,
+      isBanner: false,
     },
     update: {
       data,
@@ -168,7 +170,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
         // Set metadata of the user so we can set it to this updated email once it is confirmed
         data.metadata = {
           ...userMetadata,
-          emailChangeWaitingForVerification: input.email,
+          emailChangeWaitingForVerification: input.email?.toLocaleLowerCase(),
         };
 
         // Check to ensure this email isnt in use
