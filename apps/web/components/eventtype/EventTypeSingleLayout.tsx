@@ -2,12 +2,13 @@ import { Webhook as TbWebhook } from "lucide-react";
 import type { TFunction } from "next-i18next";
 import { Trans } from "next-i18next";
 import { useRouter } from "next/navigation";
-import type { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
+import type { EventTypeSetupProps } from "pages/event-types/[type]";
 import { useMemo, useState, Suspense } from "react";
 import type { UseFormReturn } from "react-hook-form";
 
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import { EventTypeEmbedButton, EventTypeEmbedDialog } from "@calcom/features/embed/EventTypeEmbed";
+import type { FormValues, AvailabilityOption } from "@calcom/features/eventtypes/lib/types";
 import Shell from "@calcom/features/shell/Shell";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -51,8 +52,6 @@ import {
   MoreHorizontal,
   Loader,
 } from "@calcom/ui/components/icon";
-
-import type { AvailabilityOption } from "@components/eventtype/EventAvailabilityTab";
 
 type Props = {
   children: React.ReactNode;
@@ -214,11 +213,11 @@ function EventTypeSingleLayout({
     formMethods.getValues("schedulingType") === SchedulingType.MANAGED ||
     isUserOrganizationAdmin;
 
-  const { isManagedEventType, isChildrenManagedEventType } = useLockedFieldsManager(
-    formMethods.getValues(),
-    t("locked_fields_admin_description"),
-    t("locked_fields_member_description")
-  );
+  const { isManagedEventType, isChildrenManagedEventType } = useLockedFieldsManager({
+    eventType,
+    translate: t,
+    formMethods,
+  });
 
   const length = formMethods.watch("length");
   const multipleDuration = formMethods.watch("metadata")?.multipleDuration;

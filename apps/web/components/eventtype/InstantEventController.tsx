@@ -1,11 +1,12 @@
 import type { Webhook } from "@prisma/client";
 import { useSession } from "next-auth/react";
-import type { EventTypeSetup, FormValues } from "pages/event-types/[type]";
+import type { EventTypeSetup } from "pages/event-types/[type]";
 import { useState } from "react";
 import { useFormContext } from "react-hook-form";
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
+import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import { WebhookForm } from "@calcom/features/webhooks/components";
 import type { WebhookFormSubmitData } from "@calcom/features/webhooks/components/WebhookForm";
 import WebhookListItem from "@calcom/features/webhooks/components/WebhookListItem";
@@ -33,11 +34,7 @@ export default function InstantEventController({
   const [instantEventState, setInstantEventState] = useState<boolean>(eventType?.isInstantEvent ?? false);
   const formMethods = useFormContext<FormValues>();
 
-  const { shouldLockDisableProps } = useLockedFieldsManager(
-    eventType,
-    t("locked_fields_admin_description"),
-    t("locked_fields_member_description")
-  );
+  const { shouldLockDisableProps } = useLockedFieldsManager({ eventType, translate: t, formMethods });
 
   const instantLocked = shouldLockDisableProps("isInstantEvent");
 
@@ -104,6 +101,8 @@ export default function InstantEventController({
 const InstantMeetingWebhooks = ({ eventType }: { eventType: EventTypeSetup }) => {
   const { t } = useLocale();
   const utils = trpc.useContext();
+  const formMethods = useFormContext<FormValues>();
+
   const { data: webhooks } = trpc.viewer.webhook.list.useQuery({
     eventTypeId: eventType.id,
     eventTriggers: [WebhookTriggerEvents.INSTANT_MEETING],
@@ -179,11 +178,11 @@ const InstantMeetingWebhooks = ({ eventType }: { eventType: EventTypeSetup }) =>
     );
   };
 
-  const { shouldLockDisableProps, isChildrenManagedEventType, isManagedEventType } = useLockedFieldsManager(
+  const { shouldLockDisableProps, isChildrenManagedEventType, isManagedEventType } = useLockedFieldsManager({
     eventType,
-    t("locked_fields_admin_description"),
-    t("locked_fields_member_description")
-  );
+    formMethods,
+    translate: t,
+  });
   const webhookLockedStatus = shouldLockDisableProps("webhooks");
 
   return (
