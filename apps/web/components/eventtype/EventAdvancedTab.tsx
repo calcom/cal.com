@@ -1,7 +1,7 @@
 import { InfoIcon } from "lucide-react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import type { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
+import type { EventTypeSetupProps } from "pages/event-types/[type]";
 import { useEffect, useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import type { z } from "zod";
@@ -15,6 +15,7 @@ import {
   allowDisablingAttendeeConfirmationEmails,
   allowDisablingHostConfirmationEmails,
 } from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
+import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import { FormBuilder } from "@calcom/features/form-builder/FormBuilder";
 import type { EditableSchema } from "@calcom/features/form-builder/schema";
 import { BookerLayoutSelector } from "@calcom/features/settings/BookerLayoutSelector";
@@ -55,7 +56,6 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
     formMethods.getValues("useEventTypeDestinationCalendarEmail")
   );
   const [hashedUrl, setHashedUrl] = useState(eventType.hashedLink?.link);
-
   const bookingFields: Prisma.JsonObject = {};
 
   const workflows = eventType.workflows.map((workflowOnEventType) => workflowOnEventType.workflow);
@@ -86,6 +86,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
 
   useEffect(() => {
     !hashedUrl && setHashedUrl(generateHashedLink(formMethods.getValues("users")[0]?.id ?? team?.id));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formMethods.getValues("users"), hashedUrl, team?.id]);
 
   const toggleGuests = (enabled: boolean) => {
@@ -108,11 +109,11 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
     );
   };
 
-  const { shouldLockDisableProps } = useLockedFieldsManager(
-    formMethods.getValues(),
-    t("locked_fields_admin_description"),
-    t("locked_fields_member_description")
-  );
+  const { isChildrenManagedEventType, isManagedEventType, shouldLockDisableProps } = useLockedFieldsManager({
+    eventType,
+    translate: t,
+    formMethods,
+  });
   const eventNamePlaceholder = getEventName({
     ...eventNameObject,
     eventName: formMethods.watch("eventName"),
@@ -120,10 +121,14 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
 
   const successRedirectUrlLocked = shouldLockDisableProps("successRedirectUrl");
   const seatsLocked = shouldLockDisableProps("seatsPerTimeSlotEnabled");
+  const requiresBookerEmailVerificationProps = shouldLockDisableProps("requiresBookerEmailVerification");
+  const hideCalendarNotesLocked = shouldLockDisableProps("hideCalendarNotes");
+  const lockTimeZoneToggleOnBookingPageLocked = shouldLockDisableProps("lockTimeZoneToggleOnBookingPage");
 
   const closeEventNameTip = () => setShowEventNameTip(false);
   const displayDestinationCalendarSelector =
-    !!connectedCalendarsQuery.data?.connectedCalendars.length && !team;
+    !!connectedCalendarsQuery.data?.connectedCalendars.length && (!team || isChildrenManagedEventType);
+
   const verifiedSecondaryEmails = [
     {
       label: user?.email || "",
@@ -181,6 +186,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
               <Button
                 color="minimal"
                 size="sm"
+                {...(shouldLockDisableProps("eventName").disabled ? { disabled: true } : {})}
                 aria-label="edit custom name"
                 className="hover:stroke-3 hover:text-emphasis min-w-fit !py-0 px-0 hover:bg-transparent"
                 onClick={() => setShowEventNameTip((old) => !old)}>
@@ -233,9 +239,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
           </div>
         )}
       </div>
-
       <BookerLayoutSelector fallbackToUserSettings isDark={selectedThemeIsDark} isOuterBorder={true} />
-
       <div className="border-subtle space-y-6 rounded-lg border p-6">
         <FormBuilder
           title={t("booking_questions_title")}
@@ -250,7 +254,6 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
           }}
         />
       </div>
-
       <RequiresConfirmationController
         eventType={eventType}
         seatsEnabled={seatsEnabled}
@@ -258,7 +261,6 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
         requiresConfirmation={requiresConfirmation}
         onRequiresConfirmation={setRequiresConfirmation}
       />
-
       <Controller
         name="requiresBookerEmailVerification"
         render={({ field: { value, onChange } }) => (
@@ -268,14 +270,13 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
             switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
             title={t("requires_booker_email_verification")}
             data-testid="requires-booker-email-verification"
-            {...shouldLockDisableProps("requiresBookerEmailVerification")}
+            {...requiresBookerEmailVerificationProps}
             description={t("description_requires_booker_email_verification")}
             checked={value}
             onCheckedChange={(e) => onChange(e)}
           />
         )}
       />
-
       <Controller
         name="hideCalendarNotes"
         render={({ field: { value, onChange } }) => (
@@ -283,16 +284,15 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
             labelClassName="text-sm"
             toggleSwitchAtTheEnd={true}
             switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
-            title={t("disable_notes")}
             data-testid="disable-notes"
-            {...shouldLockDisableProps("hideCalendarNotes")}
+            title={t("disable_notes")}
+            {...hideCalendarNotesLocked}
             description={t("disable_notes_description")}
             checked={value}
             onCheckedChange={(e) => onChange(e)}
           />
         )}
       />
-
       <Controller
         name="successRedirectUrl"
         render={({ field: { value, onChange } }) => (
@@ -339,7 +339,6 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
           </>
         )}
       />
-
       <SettingsToggle
         labelClassName="text-sm"
         toggleSwitchAtTheEnd={true}
@@ -359,52 +358,53 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
             <Info className="ml-1.5 h-4 w-4 cursor-pointer" />
           </a>
         }
-        {...shouldLockDisableProps("hashedLinkCheck")}
+        {...shouldLockDisableProps("hashedLink")}
         description={t("private_link_description", { appName: APP_NAME })}
         checked={hashedLinkVisible}
         onCheckedChange={(e) => {
           formMethods.setValue("hashedLink", e ? hashedUrl : undefined, { shouldDirty: true });
           setHashedLinkVisible(e);
         }}>
-        <div className="border-subtle rounded-b-lg border border-t-0 p-6">
-          {!IS_VISUAL_REGRESSION_TESTING && (
-            <TextField
-              disabled
-              name="hashedLink"
-              label={t("private_link_label")}
-              data-testid="generated-hash-url"
-              labelSrOnly
-              type="text"
-              hint={t("private_link_hint")}
-              defaultValue={placeholderHashedLink}
-              addOnSuffix={
-                <Tooltip
-                  content={
-                    formMethods.getValues("hashedLink") ? t("copy_to_clipboard") : t("enabled_after_update")
-                  }>
-                  <Button
-                    color="minimal"
-                    size="sm"
-                    type="button"
-                    className="hover:stroke-3 hover:text-emphasis min-w-fit !py-0 px-0 hover:bg-transparent"
-                    aria-label="copy link"
-                    onClick={() => {
-                      navigator.clipboard.writeText(placeholderHashedLink);
-                      if (formMethods.getValues("hashedLink")) {
-                        showToast(t("private_link_copied"), "success");
-                      } else {
-                        showToast(t("enabled_after_update_description"), "warning");
-                      }
-                    }}>
-                    <Copy className="h-4 w-4" />
-                  </Button>
-                </Tooltip>
-              }
-            />
-          )}
-        </div>
+        {!isManagedEventType && (
+          <div className="border-subtle rounded-b-lg border border-t-0 p-6">
+            {!IS_VISUAL_REGRESSION_TESTING && (
+              <TextField
+                disabled
+                name="hashedLink"
+                label={t("private_link_label")}
+                data-testid="generated-hash-url"
+                labelSrOnly
+                type="text"
+                hint={t("private_link_hint")}
+                defaultValue={placeholderHashedLink}
+                addOnSuffix={
+                  <Tooltip
+                    content={
+                      formMethods.getValues("hashedLink") ? t("copy_to_clipboard") : t("enabled_after_update")
+                    }>
+                    <Button
+                      color="minimal"
+                      size="sm"
+                      type="button"
+                      className="hover:stroke-3 hover:text-emphasis min-w-fit !py-0 px-0 hover:bg-transparent"
+                      aria-label="copy link"
+                      onClick={() => {
+                        navigator.clipboard.writeText(placeholderHashedLink);
+                        if (formMethods.getValues("hashedLink")) {
+                          showToast(t("private_link_copied"), "success");
+                        } else {
+                          showToast(t("enabled_after_update_description"), "warning");
+                        }
+                      }}>
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                  </Tooltip>
+                }
+              />
+            )}
+          </div>
+        )}
       </SettingsToggle>
-
       <Controller
         name="seatsPerTimeSlotEnabled"
         render={({ field: { value, onChange } }) => (
@@ -504,7 +504,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
             toggleSwitchAtTheEnd={true}
             switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
             title={t("lock_timezone_toggle_on_booking_page")}
-            {...shouldLockDisableProps("lockTimeZoneToggleOnBookingPage")}
+            {...lockTimeZoneToggleOnBookingPageLocked}
             description={t("description_lock_timezone_toggle_on_booking_page")}
             checked={value}
             onCheckedChange={(e) => onChange(e)}
