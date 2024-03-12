@@ -2282,6 +2282,7 @@
   "field_identifiers_as_variables": "Use identificadores de campo como variáveis para seu redirecionamento de evento personalizado",
   "field_identifiers_as_variables_with_example": "Use identificadores de campo como variáveis para seu redirecionamento de evento personalizado (por exemplo {{variable}} )",
   "account_already_linked": "A conta já está vinculada",
+  "privacy": "Privacidade",
   "routers": "Roteadores",
   "primary": "Primário",
   "make_primary": "Tornar primário",
@@ -2290,6 +2291,5 @@
   "confirm_email": "Confirme seu email",
   "confirm_email_description": "Enviamos um e-mail para <strong>{{email}}</strong> . Clique no link do e-mail para verificar este endereço.",
   "send_event_details_to": "Envie detalhes do evento para",
-  "privacy": "Privacidade",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adicione suas novas strings aqui em cima ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
