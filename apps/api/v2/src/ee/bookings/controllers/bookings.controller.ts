@@ -74,7 +74,6 @@ export class BookingsController {
 
   // note(Rajiv): currently this endpoint is atoms only
   @Get("/:bookingUid")
-  @UseGuards(AccessTokenGuard)
   async getBooking(@Param("bookingUid") bookingUid: string): Promise<ApiResponse<unknown>> {
     const { bookingInfo } = await getBookingInfo(bookingUid);
 

@@ -23,7 +23,7 @@ describe("Bookings Endpoints", () => {
 
     let userRepositoryFixture: UserRepositoryFixture;
 
-    const userEmail = "schedules-controller-e2e@api.com";
+    const userEmail = "bookings-controller-e2e@api.com";
     let user: User;
 
     let createdBooking: Awaited<ReturnType<typeof handleNewBooking>>;
