@@ -1518,7 +1518,7 @@ async function handler(
     eventDescription: eventType.description,
     price: paymentAppData.price,
     currency: eventType.currency,
-    length: eventType.length,
+    length: reqEventLength,
   };
 
   const teamId = await getTeamIdFromEventType({ eventType });
