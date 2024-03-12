@@ -2,6 +2,7 @@ import type { NextApiRequest } from "next";
 import type { z } from "zod";
 
 import { HttpError } from "@calcom/lib/http-error";
+import prisma from "@calcom/prisma";
 
 import type { schemaEventTypeCreateBodyParams } from "~/lib/validations/event-type";
 
@@ -9,7 +10,7 @@ export default async function checkTeamEventEditPermission(
   req: NextApiRequest,
   body: Pick<z.infer<typeof schemaEventTypeCreateBodyParams>, "teamId" | "userId">
 ) {
-  const { prisma, isAdmin } = req;
+  const { isAdmin } = req;
   let userId = req.userId;
   if (isAdmin && body.userId) {
     userId = body.userId;

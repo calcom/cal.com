@@ -5,6 +5,7 @@ import type { z } from "zod";
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
+import prisma from "@calcom/prisma";
 import type { PrismaClient } from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
@@ -82,7 +83,7 @@ type UserCredentialType = {
 };
 
 export async function patchHandler(req: NextApiRequest) {
-  const { userId, isAdmin, prisma, query, body } = req;
+  const { userId, isAdmin, query, body } = req;
   const { id } = schemaQueryIdParseInt.parse(query);
   const parsedBody = schemaDestinationCalendarEditBodyParams.parse(body);
   const assignedUserId = isAdmin ? parsedBody.userId || userId : userId;
