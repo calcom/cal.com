@@ -104,6 +104,9 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
         throw new TRPCError({ code: "BAD_REQUEST", message: t("username_already_taken") });
       }
     }
+  } else if (input.username && user.organizationId && user.movedToProfileId) {
+    // don't change user.username if we have profile.username
+    delete data.username;
   }
 
   if (isPremiumUsername) {
