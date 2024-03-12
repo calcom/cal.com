@@ -59,7 +59,7 @@ const handleUserEvents = async (event: DirectorySyncEvent, organizationId: numbe
         teamId: org.id,
         isAutoJoin: true,
         currentUserParentTeamName: org?.parent?.name,
-        orgSlug: null,
+        orgSlug: org.slug,
       });
     } else {
       // If data.active is false then remove the user from the org

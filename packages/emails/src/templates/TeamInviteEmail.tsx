@@ -2,7 +2,6 @@ import type { TFunction } from "next-i18next";
 import { Trans } from "next-i18next";
 
 import { APP_NAME, WEBAPP_URL, IS_PRODUCTION } from "@calcom/lib/constants";
-import logger from "@calcom/lib/logger";
 
 import { getSubject, getTypeOfInvite } from "../../templates/team-invite-email";
 import { V2BaseEmailHtml, CallToAction } from "../components";
@@ -110,31 +109,25 @@ export const TeamInviteEmail = (
   );
 
   function getHeading() {
-    const type = props.isAutoJoin ? "added" : "invited";
+    const autoJoinType = props.isAutoJoin ? "added" : "invited";
     const variables = {
       appName: APP_NAME,
       parentTeamName: props.parentTeamName,
     };
 
-    logger.debug({
-      typeOfInvite,
-      type,
-      variables,
-    });
-
     if (typeOfInvite === "TO_ORG") {
-      return props.language(`email_team_invite|heading|${type}_to_org`, variables);
+      return props.language(`email_team_invite|heading|${autoJoinType}_to_org`, variables);
     }
 
     if (typeOfInvite === "TO_SUBTEAM") {
-      return props.language(`email_team_invite|heading|${type}_to_subteam`, variables);
+      return props.language(`email_team_invite|heading|${autoJoinType}_to_subteam`, variables);
     }
 
     return props.language(`email_team_invite|heading|invited_to_regular_team`, variables);
   }
 
   function getContent() {
-    const type = props.isAutoJoin ? "added" : "invited";
+    const autoJoinType = props.isAutoJoin ? "added" : "invited";
 
     const variables = {
       invitedBy: props.from.toString(),
@@ -158,11 +151,11 @@ export const TeamInviteEmail = (
       prevLinkWithoutProtocol,
       newLinkWithoutProtocol,
     } = variables;
-    if (props.isOrg) {
+    if (typeOfInvite === "TO_ORG") {
       if (props.isExistingUserMovedToOrg) {
         return (
           <>
-            {type == "added" ? (
+            {autoJoinType == "added" ? (
               <>
                 <Trans i18nKey="email_team_invite|content|added_to_org">
                   {invitedBy} has added you to the <strong>{teamName}</strong> organization.
@@ -214,7 +207,7 @@ export const TeamInviteEmail = (
       }
       return (
         <>
-          {type === "added" ? (
+          {autoJoinType === "added" ? (
             <Trans i18nKey="email_team_invite|content|added_to_org">
               {invitedBy} has added you to the <strong>{teamName}</strong> organization.
             </Trans>
@@ -231,11 +224,11 @@ export const TeamInviteEmail = (
       );
     }
 
-    if (props.parentTeamName) {
+    if (typeOfInvite === "TO_SUBTEAM") {
       return (
         <>
           (
-          {type === "added" ? (
+          {autoJoinType === "added" ? (
             <Trans i18nKey="email_team_invite|content|added_to_subteam">
               {invitedBy} has added you to the team <strong>{teamName}</strong> in their organization{" "}
               <strong>{parentTeamName}</strong>

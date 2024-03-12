@@ -22,7 +22,7 @@ export default class OrganizationCreationEmail extends BaseEmail {
 
   constructor(organizationCreationEvent: OrganizationCreation) {
     super();
-    this.name = "SEND_TEAM_INVITE_EMAIL";
+    this.name = "SEND_ORGANIZATION_CREATION_EMAIL";
     this.organizationCreationEvent = organizationCreationEvent;
   }
 

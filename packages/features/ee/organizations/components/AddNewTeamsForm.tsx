@@ -136,6 +136,7 @@ const AddNewTeamsFormChild = ({
           router.push(`/event-types`);
           return;
         }
+        // mutate onSuccess will take care of routing to the correct place.
         publishOrgMutation.mutate();
       }
     },

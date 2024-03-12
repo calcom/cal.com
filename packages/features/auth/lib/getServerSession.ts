@@ -41,7 +41,6 @@ export async function getServerSession(options: {
   });
 
   log.debug("Getting server session", safeStringify({ token }));
-  console.log("SERVER TOKEN UPID", token?.upId);
 
   if (!token || !token.email || !token.sub) {
     log.debug("Couldnt get token");

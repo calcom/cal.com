@@ -887,7 +887,7 @@ export const AUTH_OPTIONS: AuthOptions = {
 /**
  * Identifies the profile the user should be logged into.
  */
-export const determineProfile = ({
+const determineProfile = ({
   token,
   profiles,
 }: {
