@@ -3,7 +3,7 @@ import type { z } from "zod";
 
 import { HttpError } from "@calcom/lib/http-error";
 
-import { type schemaEventTypeCreateBodyParams } from "~/lib/validations/event-type";
+import type { schemaEventTypeCreateBodyParams } from "~/lib/validations/event-type";
 
 export default async function checkTeamEventEditPermission(
   req: NextApiRequest,
