@@ -294,11 +294,31 @@ const createOrg = async (orgs: Fixtures["orgs"], userFixture: Fixtures["users"])
     organizationId: org.id,
     roleInOrganization: MembershipRole.ADMIN,
   });
-  const team1owner = await userFixture.create({ name: "team-owner-1" });
-  const team2owner = await userFixture.create({ name: "team-owner-2" });
-  const commonUser = await userFixture.create({ name: "commonUser" });
-  const team1_teammate1 = await userFixture.create({ name: "team1_teammate1" });
-  const team2_teammate1 = await userFixture.create({ name: "team2_teammate1" });
+  const team1owner = await userFixture.create({
+    name: "team-owner-1",
+    organizationId: org.id,
+    roleInOrganization: MembershipRole.MEMBER,
+  });
+  const team2owner = await userFixture.create({
+    name: "team-owner-2",
+    organizationId: org.id,
+    roleInOrganization: MembershipRole.MEMBER,
+  });
+  const commonUser = await userFixture.create({
+    name: "commonUser",
+    organizationId: org.id,
+    roleInOrganization: MembershipRole.MEMBER,
+  });
+  const team1_teammate1 = await userFixture.create({
+    name: "team1_teammate1",
+    organizationId: org.id,
+    roleInOrganization: MembershipRole.MEMBER,
+  });
+  const team2_teammate1 = await userFixture.create({
+    name: "team2_teammate1",
+    organizationId: org.id,
+    roleInOrganization: MembershipRole.MEMBER,
+  });
   const teamOne = await prisma.team.create({
     data: {
       name: "bookings-test-team-1",
