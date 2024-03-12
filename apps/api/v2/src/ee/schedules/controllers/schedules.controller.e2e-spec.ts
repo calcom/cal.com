@@ -336,10 +336,10 @@ describe("Schedules Endpoints", () => {
           expect(responseBody.data.timeZone).toEqual(createdSchedule.timeZone);
 
           expect(responseBody.data.availability).toBeDefined();
-          const availabilities = responseBody.data.availability.filter(
+          const availabilities = responseBody.data?.availability?.filter(
             (availability: any[]) => availability.length
           );
-          expect(availabilities.length).toEqual(6);
+          expect(availabilities?.length).toEqual(6);
 
           expect(responseBody.data.schedule.availability?.[0]?.days).toEqual(
             createdSchedule.availability?.[0]?.days
