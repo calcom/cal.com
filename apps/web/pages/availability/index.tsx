@@ -1,8 +1,9 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 
+import { BulkEditDefaultForEventsModal } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
 import { NewScheduleButton, ScheduleListItem } from "@calcom/features/schedules";
 import Shell from "@calcom/features/shell/Shell";
 import { AvailabilitySliderTable } from "@calcom/features/timezone-buddy/components/AvailabilitySliderTable";
@@ -21,6 +22,7 @@ import SkeletonLoader from "@components/availability/SkeletonLoader";
 
 export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availability"]["list"]) {
   const { t } = useLocale();
+  const [bulkUpdateModal, setBulkUpdateModal] = useState(false);
   const utils = trpc.useContext();
 
   const meQuery = trpc.viewer.me.useQuery();
@@ -65,6 +67,7 @@ export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availab
         }),
         "success"
       );
+      setBulkUpdateModal(true);
     },
     onError: (err) => {
       if (err instanceof HttpError) {
@@ -73,6 +76,15 @@ export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availab
       }
     },
   });
+
+  const bulkUpdateDefaultAvailabilityMutation =
+    trpc.viewer.availability.schedule.bulkUpdateToDefaultAvailability.useMutation({
+      onSuccess: () => {
+        utils.viewer.availability.list.invalidate();
+        setBulkUpdateModal(false);
+        showToast(t("success"), "success");
+      },
+    });
 
   const duplicateMutation = trpc.viewer.availability.schedule.duplicate.useMutation({
     onSuccess: async ({ schedule }) => {
@@ -129,6 +141,14 @@ export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availab
               {t("add_a_redirect")}
             </Link>
           </div>
+          {bulkUpdateModal && (
+            <BulkEditDefaultForEventsModal
+              isPending={bulkUpdateDefaultAvailabilityMutation.isPending}
+              open={bulkUpdateModal}
+              setOpen={setBulkUpdateModal}
+              bulkUpdateFunction={bulkUpdateDefaultAvailabilityMutation.mutate}
+            />
+          )}
         </>
       )}
     </>

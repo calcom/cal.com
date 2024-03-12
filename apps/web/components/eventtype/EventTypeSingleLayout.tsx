@@ -2,18 +2,20 @@ import { Webhook as TbWebhook } from "lucide-react";
 import type { TFunction } from "next-i18next";
 import { Trans } from "next-i18next";
 import { useRouter } from "next/navigation";
-import type { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
+import type { EventTypeSetupProps } from "pages/event-types/[type]";
 import { useMemo, useState, Suspense } from "react";
 import type { UseFormReturn } from "react-hook-form";
 
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import { EventTypeEmbedButton, EventTypeEmbedDialog } from "@calcom/features/embed/EventTypeEmbed";
+import type { FormValues, AvailabilityOption } from "@calcom/features/eventtypes/lib/types";
 import Shell from "@calcom/features/shell/Shell";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { trpc, TRPCClientError } from "@calcom/trpc/react";
+import type { DialogProps } from "@calcom/ui";
 import {
   Button,
   ButtonGroup,
@@ -50,8 +52,6 @@ import {
   MoreHorizontal,
   Loader,
 } from "@calcom/ui/components/icon";
-
-import type { AvailabilityOption } from "@components/eventtype/EventAvailabilityTab";
 
 type Props = {
   children: React.ReactNode;
@@ -133,6 +133,60 @@ function getNavigation({
   ];
 }
 
+function DeleteDialog({
+  isManagedEvent,
+  eventTypeId,
+  open,
+  onOpenChange,
+}: { isManagedEvent: string; eventTypeId: number } & Pick<DialogProps, "open" | "onOpenChange">) {
+  const utils = trpc.useContext();
+  const { t } = useLocale();
+  const router = useRouter();
+  const deleteMutation = trpc.viewer.eventTypes.delete.useMutation({
+    onSuccess: async () => {
+      await utils.viewer.eventTypes.invalidate();
+      showToast(t("event_type_deleted_successfully"), "success");
+      router.push("/event-types");
+      onOpenChange?.(false);
+    },
+    onError: (err) => {
+      if (err instanceof HttpError) {
+        const message = `${err.statusCode}: ${err.message}`;
+        showToast(message, "error");
+        onOpenChange?.(false);
+      } else if (err instanceof TRPCClientError) {
+        showToast(err.message, "error");
+      }
+    },
+  });
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <ConfirmationDialogContent
+        isPending={deleteMutation.isPending}
+        variety="danger"
+        title={t(`delete${isManagedEvent}_event_type`)}
+        confirmBtnText={t(`confirm_delete_event_type`)}
+        loadingText={t(`confirm_delete_event_type`)}
+        onConfirm={(e) => {
+          e.preventDefault();
+          deleteMutation.mutate({ id: eventTypeId });
+        }}>
+        <p className="mt-5">
+          <Trans
+            i18nKey={`delete${isManagedEvent}_event_type_description`}
+            components={{ li: <li />, ul: <ul className="ml-4 list-disc" /> }}>
+            <ul>
+              <li>Members assigned to this event type will also have their event types deleted.</li>
+              <li>Anyone who they&apos;ve shared their link with will no longer be able to book using it.</li>
+            </ul>
+          </Trans>
+        </p>
+      </ConfirmationDialogContent>
+    </Dialog>
+  );
+}
+
 function EventTypeSingleLayout({
   children,
   eventType,
@@ -149,9 +203,8 @@ function EventTypeSingleLayout({
   bookerUrl,
   activeWebhooksNumber,
 }: Props) {
-  const utils = trpc.useContext();
   const { t } = useLocale();
-  const router = useRouter();
+
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const hasPermsToDelete =
@@ -160,29 +213,11 @@ function EventTypeSingleLayout({
     formMethods.getValues("schedulingType") === SchedulingType.MANAGED ||
     isUserOrganizationAdmin;
 
-  const deleteMutation = trpc.viewer.eventTypes.delete.useMutation({
-    onSuccess: async () => {
-      await utils.viewer.eventTypes.invalidate();
-      showToast(t("event_type_deleted_successfully"), "success");
-      router.push("/event-types");
-      setDeleteDialogOpen(false);
-    },
-    onError: (err) => {
-      if (err instanceof HttpError) {
-        const message = `${err.statusCode}: ${err.message}`;
-        showToast(message, "error");
-        setDeleteDialogOpen(false);
-      } else if (err instanceof TRPCClientError) {
-        showToast(err.message, "error");
-      }
-    },
+  const { isManagedEventType, isChildrenManagedEventType } = useLockedFieldsManager({
+    eventType,
+    translate: t,
+    formMethods,
   });
-
-  const { isManagedEventType, isChildrenManagedEventType } = useLockedFieldsManager(
-    formMethods.getValues(),
-    t("locked_fields_admin_description"),
-    t("locked_fields_member_description")
-  );
 
   const length = formMethods.watch("length");
   const multipleDuration = formMethods.watch("metadata")?.multipleDuration;
@@ -308,7 +343,7 @@ function EventTypeSingleLayout({
                       id="hiddenSwitch"
                       checked={!formMethods.watch("hidden")}
                       onCheckedChange={(e) => {
-                        formMethods.setValue("hidden", !e);
+                        formMethods.setValue("hidden", !e, { shouldDirty: true });
                       }}
                     />
                   </div>
@@ -424,7 +459,7 @@ function EventTypeSingleLayout({
                   id="hiddenSwitch"
                   checked={!formMethods.watch("hidden")}
                   onCheckedChange={(e) => {
-                    formMethods.setValue("hidden", !e);
+                    formMethods.setValue("hidden", !e, { shouldDirty: true });
                   }}
                 />
               </div>
@@ -435,6 +470,7 @@ function EventTypeSingleLayout({
             className="ml-4 lg:ml-0"
             type="submit"
             loading={isUpdateMutationLoading}
+            disabled={!formMethods.formState.isDirty}
             data-testid="update-eventtype"
             form="event-type-form">
             {t("save")}
@@ -467,31 +503,13 @@ function EventTypeSingleLayout({
           </div>
         </div>
       </Suspense>
-      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <ConfirmationDialogContent
-          isPending={deleteMutation.isPending}
-          variety="danger"
-          title={t(`delete${isManagedEvent}_event_type`)}
-          confirmBtnText={t(`confirm_delete_event_type`)}
-          loadingText={t(`confirm_delete_event_type`)}
-          onConfirm={(e) => {
-            e.preventDefault();
-            deleteMutation.mutate({ id: formMethods.getValues("id") });
-          }}>
-          <p className="mt-5">
-            <Trans
-              i18nKey={`delete${isManagedEvent}_event_type_description`}
-              components={{ li: <li />, ul: <ul className="ml-4 list-disc" /> }}>
-              <ul>
-                <li>Members assigned to this event type will also have their event types deleted.</li>
-                <li>
-                  Anyone who they&apos;ve shared their link with will no longer be able to book using it.
-                </li>
-              </ul>
-            </Trans>
-          </p>
-        </ConfirmationDialogContent>
-      </Dialog>
+      <DeleteDialog
+        eventTypeId={eventType.id}
+        isManagedEvent={isManagedEvent}
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+      />
+
       <EventTypeEmbedDialog />
     </Shell>
   );

@@ -1,9 +1,10 @@
 import { useMutation } from "@tanstack/react-query";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useRef, useState, useEffect } from "react";
 
 import { createPaymentLink } from "@calcom/app-store/stripepayment/lib/client";
 import dayjs from "@calcom/dayjs";
+import { sdkActionManager } from "@calcom/embed-core/embed-iframe";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import type { useEventReturnType } from "@calcom/features/bookings/Booker/utils/event";
 import { updateQueryParam, getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
@@ -18,17 +19,18 @@ import {
 import { getFullName } from "@calcom/features/form-builder/utils";
 import { useBookingSuccessRedirect } from "@calcom/lib/bookingSuccessRedirect";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
+import { BookingStatus } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc";
 import { showToast } from "@calcom/ui";
 
-import type { useBookingFormReturnType } from "./useBookingForm";
+import type { UseBookingFormReturnType } from "./useBookingForm";
 
 export interface IUseBookings {
   event: useEventReturnType;
   hashedLink?: string | null;
-  bookingForm: useBookingFormReturnType["bookingForm"];
+  bookingForm: UseBookingFormReturnType["bookingForm"];
+  metadata: Record<string, string>;
 }
 
 export interface IUseBookingLoadingStates {
@@ -41,8 +43,9 @@ export interface IUseBookingErrors {
   hasDataErrors: boolean;
   dataErrors: unknown;
 }
+export type UseBookingsReturnType = ReturnType<typeof useBookings>;
 
-export const useBookings = ({ event, hashedLink, bookingForm }: IUseBookings) => {
+export const useBookings = ({ event, hashedLink, bookingForm, metadata }: IUseBookings) => {
   const router = useRouter();
   const eventSlug = useBookerStore((state) => state.eventSlug);
   const setFormValues = useBookerStore((state) => state.setFormValues);
@@ -53,25 +56,23 @@ export const useBookings = ({ event, hashedLink, bookingForm }: IUseBookings) =>
   const { t, i18n } = useLocale();
   const bookingSuccessRedirect = useBookingSuccessRedirect();
   const bookerFormErrorRef = useRef<HTMLDivElement>(null);
-  const [expiryTime, setExpiryTime] = useState<Date | undefined>();
+  const [instantMeetingTokenExpiryTime, setExpiryTime] = useState<Date | undefined>();
   const recurringEventCount = useBookerStore((state) => state.recurringEventCount);
   const isInstantMeeting = useBookerStore((state) => state.isInstantMeeting);
   const duration = useBookerStore((state) => state.selectedDuration);
   const { timezone } = useTimePreferences();
   const username = useBookerStore((state) => state.username);
-  const routerQuery = useRouterQuery();
-  const searchParams = useSearchParams();
 
   const isRescheduling = !!rescheduleUid && !!bookingData;
 
   const bookingId = parseInt(getQueryParam("bookingId") || "0");
-  const hasInstantMeetingTokenExpired = expiryTime && new Date(expiryTime) < new Date();
+
   const _instantBooking = trpc.viewer.bookings.getInstantBookingLocation.useQuery(
     {
       bookingId: bookingId,
     },
     {
-      enabled: !!bookingId && !hasInstantMeetingTokenExpired,
+      enabled: !!bookingId,
       refetchInterval: 2000,
       refetchIntervalInBackground: true,
     }
@@ -79,6 +80,7 @@ export const useBookings = ({ event, hashedLink, bookingForm }: IUseBookings) =>
   useEffect(
     function refactorMeWithoutEffect() {
       const data = _instantBooking.data;
+
       if (!data) return;
       try {
         showToast(t("something_went_wrong_on_our_end"), "error");
@@ -104,6 +106,45 @@ export const useBookings = ({ event, hashedLink, bookingForm }: IUseBookings) =>
     onSuccess: (responseData) => {
       const { uid, paymentUid } = responseData;
       const fullName = getFullName(bookingForm.getValues("responses.name"));
+
+      const users = !!event.data?.hosts?.length
+        ? event.data?.hosts.map((host) => host.user)
+        : event.data?.users;
+
+      const validDuration = event.data?.isDynamic
+        ? duration || event.data?.length
+        : duration && event.data?.metadata?.multipleDuration?.includes(duration)
+        ? duration
+        : event.data?.length;
+
+      if (isRescheduling) {
+        sdkActionManager?.fire("rescheduleBookingSuccessful", {
+          booking: responseData,
+          eventType: event.data,
+          date: responseData?.startTime?.toString() || "",
+          duration: validDuration,
+          organizer: {
+            name: users?.[0]?.name || "Nameless",
+            email: responseData?.userPrimaryEmail || responseData.user?.email || "Email-less",
+            timeZone: responseData.user?.timeZone || "Europe/London",
+          },
+          confirmed: !(responseData.status === BookingStatus.PENDING && event.data?.requiresConfirmation),
+        });
+      } else {
+        sdkActionManager?.fire("bookingSuccessful", {
+          booking: responseData,
+          eventType: event.data,
+          date: responseData?.startTime?.toString() || "",
+          duration: validDuration,
+          organizer: {
+            name: users?.[0]?.name || "Nameless",
+            email: responseData?.userPrimaryEmail || responseData.user?.email || "Email-less",
+            timeZone: responseData.user?.timeZone || "Europe/London",
+          },
+          confirmed: !(responseData.status === BookingStatus.PENDING && event.data?.requiresConfirmation),
+        });
+      }
+
       if (paymentUid) {
         router.push(
           createPaymentLink({
@@ -220,15 +261,7 @@ export const useBookings = ({ event, hashedLink, bookingForm }: IUseBookings) =>
         rescheduleUid: rescheduleUid || undefined,
         bookingUid: (bookingData && bookingData.uid) || seatedEventData?.bookingUid || undefined,
         username: username || "",
-        metadata: Object.keys(routerQuery)
-          .filter((key) => key.startsWith("metadata"))
-          .reduce(
-            (metadata, key) => ({
-              ...metadata,
-              [key.substring("metadata[".length, key.length - 1)]: searchParams?.get(key),
-            }),
-            {}
-          ),
+        metadata: metadata,
         hashedLink,
       };
 
@@ -269,11 +302,10 @@ export const useBookings = ({ event, hashedLink, bookingForm }: IUseBookings) =>
 
   return {
     handleBookEvent,
-    expiryTime,
+    expiryTime: instantMeetingTokenExpiryTime,
     bookingForm,
     bookerFormErrorRef,
     errors,
     loadingStates,
-    hasInstantMeetingTokenExpired: Boolean(hasInstantMeetingTokenExpired),
   };
 };

@@ -42,8 +42,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
       data: {
         password: {
-          update: {
-            hash: hashedPassword,
+          upsert: {
+            create: { hash: hashedPassword },
+            update: { hash: hashedPassword },
           },
         },
         emailVerified: new Date(),

@@ -2,10 +2,13 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
+import { RedirectType } from "@calcom/prisma/enums";
 
 import { IS_PREMIUM_USERNAME_ENABLED } from "../constants";
+import logger from "../logger";
 import notEmpty from "../notEmpty";
 
+const log = logger.getSubLogger({ prefix: ["server/username"] });
 const cachedData: Set<string> = new Set();
 
 export type RequestWithUsernameStatus = NextApiRequest & {
@@ -106,7 +109,9 @@ const usernameHandler =
     return handler(req, res);
   };
 
-const usernameCheck = async (usernameRaw: string) => {
+const usernameCheck = async (usernameRaw: string, currentOrgDomain?: string | null) => {
+  log.debug("usernameCheck", { usernameRaw, currentOrgDomain });
+  const isCheckingUsernameInGlobalNamespace = !currentOrgDomain;
   const response = {
     available: true,
     premium: false,
@@ -129,6 +134,10 @@ const usernameCheck = async (usernameRaw: string) => {
 
   if (user) {
     response.available = false;
+  } else {
+    response.available = isCheckingUsernameInGlobalNamespace
+      ? !(await isUsernameReservedDueToMigration(username))
+      : true;
   }
 
   if (await isPremiumUserName(username)) {
@@ -159,6 +168,20 @@ const usernameCheck = async (usernameRaw: string) => {
 };
 
 /**
+ * Should be used when in global namespace(i.e. outside of an organization)
+ */
+export const isUsernameReservedDueToMigration = async (username: string) =>
+  !!(await prisma.tempOrgRedirect.findUnique({
+    where: {
+      from_type_fromOrgId: {
+        type: RedirectType.User,
+        from: username,
+        fromOrgId: 0,
+      },
+    },
+  }));
+
+/**
  * It is a bit different from usernameCheck because it also check if the user signing up is the same user that has a pending invitation to organization
  * So, it uses email to uniquely identify the user and then also checks if the username requested by that user is available for taking or not.
  * TODO: We should reuse `usernameCheck` and then do the additional thing in here.
@@ -178,7 +201,7 @@ const usernameCheckForSignup = async ({
 
   const username = slugify(usernameRaw);
 
-  const user = await prisma.user.findFirst({
+  const user = await prisma.user.findUnique({
     where: {
       email,
     },
@@ -195,10 +218,7 @@ const usernameCheckForSignup = async ({
       where: {
         userId: user.id,
         team: {
-          metadata: {
-            path: ["isOrganization"],
-            equals: true,
-          },
+          isOrganization: true,
         },
       },
     });
@@ -207,13 +227,16 @@ const usernameCheckForSignup = async ({
     // The only way to differentiate b/w 'a new email that was invited to an Org' and 'a user that was created using regular signup' is to check if the user is a member of an org.
     // If username is in global namespace
     if (!userIsAMemberOfAnOrg) {
-      response.available = false;
-      // There are no premium users outside an organization only
+      const isClaimingAlreadySetUsername = user.username === username;
+      const isClaimingUnsetUsername = !user.username;
+      response.available = isClaimingUnsetUsername || isClaimingAlreadySetUsername;
+      // There are premium users outside an organization only
       response.premium = await isPremiumUserName(username);
     }
+    // If user isn't found, it's a direct signup and that can't be of an organization
   } else {
-    // If user isn't found, it's a new signup and that can't be of an organization
     response.premium = await isPremiumUserName(username);
+    response.available = !(await isUsernameReservedDueToMigration(username));
   }
 
   // get list of similar usernames in the db

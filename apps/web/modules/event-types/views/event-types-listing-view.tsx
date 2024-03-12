@@ -425,7 +425,7 @@ export const EventTypeList = ({
                   <MemoizedItem type={type} group={group} readOnly={readOnly} />
                   <div className="mt-4 hidden sm:mt-0 sm:flex">
                     <div className="flex justify-between space-x-2 rtl:space-x-reverse">
-                      {type.team && !isManagedEventType && (
+                      {!!type.teamId && !isManagedEventType && (
                         <UserAvatarGroup
                           className="relative right-3"
                           size="sm"
@@ -803,11 +803,10 @@ const CreateFirstEventTypeView = ({ slug }: { slug: string }) => {
   );
 };
 
-const CTA = ({ data }: { data: GetByViewerResponse }) => {
+const CTA = ({ data, isOrganization }: { data: GetByViewerResponse; isOrganization: boolean }) => {
   const { t } = useLocale();
 
   if (!data) return null;
-
   const profileOptions = data.profiles
     .filter((profile) => !profile.readOnly)
     .map((profile) => {
@@ -825,7 +824,9 @@ const CTA = ({ data }: { data: GetByViewerResponse }) => {
       data-testid="new-event-type"
       subtitle={t("create_event_on").toUpperCase()}
       options={profileOptions}
-      createDialog={() => <CreateEventTypeDialog profileOptions={profileOptions} />}
+      createDialog={() => (
+        <CreateEventTypeDialog profileOptions={profileOptions} isOrganization={isOrganization} />
+      )}
     />
   );
 };
@@ -983,7 +984,7 @@ const EventTypesPage: React.FC & {
       hideHeadingOnMobile
       subtitle={t("event_types_page_subtitle")}
       beforeCTAactions={<Actions />}
-      CTA={<CTA data={data} />}>
+      CTA={<CTA data={data} isOrganization={!!user?.organizationId} />}>
       <HeadSeo
         title="Event Types"
         description="Create events to share for people to book on your calendar."

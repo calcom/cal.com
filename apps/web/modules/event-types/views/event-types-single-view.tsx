@@ -12,8 +12,8 @@ import { z } from "zod";
 import checkForMultiplePaymentApps from "@calcom/app-store/_utils/payments/checkForMultiplePaymentApps";
 import { getEventLocationType } from "@calcom/app-store/locations";
 import { validateCustomEventName } from "@calcom/core/event";
-import type { EventLocationType } from "@calcom/core/location";
 import type { ChildrenEventType } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
+import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import { validateIntervalLimitOrder } from "@calcom/lib";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -22,21 +22,14 @@ import { HttpError } from "@calcom/lib/http-error";
 import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import type { Prisma } from "@calcom/prisma/client";
-import type { PeriodType, SchedulingType } from "@calcom/prisma/enums";
-import type {
-  BookerLayoutSettings,
-  customInputSchema,
-  EventTypeMetaDataSchema,
-} from "@calcom/prisma/zod-utils";
+import type { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import type { IntervalLimit, RecurringEvent } from "@calcom/types/Calendar";
 import { Form, showToast } from "@calcom/ui";
 
 import type { AppProps } from "@lib/app-providers";
 
-import type { AvailabilityOption } from "@components/eventtype/EventAvailabilityTab";
 import { EventTypeSingleLayout } from "@components/eventtype/EventTypeSingleLayout";
 
 import { type PageProps } from "~/event-types/views/event-types-single-view.getServerSideProps";
@@ -84,73 +77,6 @@ const ManagedEventTypeDialog = dynamic(() => import("@components/eventtype/Manag
 
 export type Host = { isFixed: boolean; userId: number; priority: number };
 
-export type FormValues = {
-  id: number;
-  title: string;
-  eventTitle: string;
-  eventName: string;
-  slug: string;
-  isInstantEvent: boolean;
-  length: number;
-  offsetStart: number;
-  description: string;
-  disableGuests: boolean;
-  lockTimeZoneToggleOnBookingPage: boolean;
-  requiresConfirmation: boolean;
-  requiresBookerEmailVerification: boolean;
-  recurringEvent: RecurringEvent | null;
-  schedulingType: SchedulingType | null;
-  hidden: boolean;
-  hideCalendarNotes: boolean;
-  hashedLink: string | undefined;
-  locations: {
-    type: EventLocationType["type"];
-    address?: string;
-    attendeeAddress?: string;
-    link?: string;
-    hostPhoneNumber?: string;
-    displayLocationPublicly?: boolean;
-    phone?: string;
-    hostDefault?: string;
-    credentialId?: number;
-    teamName?: string;
-  }[];
-  customInputs: CustomInputParsed[];
-  schedule: number | null;
-  periodType: PeriodType;
-  periodDays: number;
-  periodCountCalendarDays: "1" | "0";
-  periodDates: { startDate: Date; endDate: Date };
-  seatsPerTimeSlot: number | null;
-  seatsShowAttendees: boolean | null;
-  seatsShowAvailabilityCount: boolean | null;
-  seatsPerTimeSlotEnabled: boolean;
-  scheduleName: string;
-  minimumBookingNotice: number;
-  minimumBookingNoticeInDurationType: number;
-  beforeEventBuffer: number;
-  afterEventBuffer: number;
-  slotInterval: number | null;
-  metadata: z.infer<typeof EventTypeMetaDataSchema>;
-  destinationCalendar: {
-    integration: string;
-    externalId: string;
-  };
-  successRedirectUrl: string;
-  durationLimits?: IntervalLimit;
-  bookingLimits?: IntervalLimit;
-  onlyShowFirstAvailableSlot: boolean;
-  children: ChildrenEventType[];
-  hosts: Host[];
-  bookingFields: z.infer<typeof eventTypeBookingFields>;
-  availability?: AvailabilityOption;
-  bookerLayouts: BookerLayoutSettings;
-  multipleDurationEnabled: boolean;
-  users: EventTypeSetup["users"];
-  assignAllTeamMembers: boolean;
-  useEventTypeDestinationCalendarEmail: boolean;
-};
-
 export type CustomInputParsed = typeof customInputSchema._output;
 
 const querySchema = z.object({
@@ -192,14 +118,17 @@ const EventTypePage = (props: EventTypeSetupProps) => {
   const [animationParentRef] = useAutoAnimate<HTMLDivElement>();
   const updateMutation = trpc.viewer.eventTypes.update.useMutation({
     onSuccess: async () => {
-      formMethods.setValue(
-        "children",
-        formMethods.getValues().children.map((child) => ({
-          ...child,
-          created: true,
-        }))
-      );
-      formMethods.setValue("assignAllTeamMembers", formMethods.getValues("assignAllTeamMembers") || false);
+      const currentValues = formMethods.getValues();
+
+      currentValues.children = currentValues.children.map((child) => ({
+        ...child,
+        created: true,
+      }));
+      currentValues.assignAllTeamMembers = currentValues.assignAllTeamMembers || false;
+
+      // Reset the form with these values as new default values to ensure the correct comparison for dirtyFields eval
+      formMethods.reset(currentValues);
+
       showToast(t("event_type_updated_successfully", { eventTypeTitle: eventType.title }), "success");
     },
     async onSettled() {
@@ -253,7 +182,6 @@ const EventTypePage = (props: EventTypeSetupProps) => {
   eventType.bookingFields.forEach(({ name }) => {
     bookingFields[name] = name;
   });
-
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const defaultValues: any = useMemo(() => {
     return {
@@ -264,7 +192,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       beforeEventBuffer: eventType.beforeEventBuffer,
       eventName: eventType.eventName || "",
       scheduleName: eventType.scheduleName,
-      periodDays: eventType.periodDays || 30,
+      periodDays: eventType.periodDays,
       requiresBookerEmailVerification: eventType.requiresBookerEmailVerification,
       seatsPerTimeSlot: eventType.seatsPerTimeSlot,
       seatsShowAttendees: eventType.seatsShowAttendees,
@@ -290,7 +218,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       offsetStart: eventType.offsetStart,
       bookingFields: eventType.bookingFields,
       periodType: eventType.periodType,
-      periodCountCalendarDays: eventType.periodCountCalendarDays ? "1" : "0",
+      periodCountCalendarDays: eventType.periodCountCalendarDays ? true : false,
       schedulingType: eventType.schedulingType,
       requiresConfirmation: eventType.requiresConfirmation,
       slotInterval: eventType.slotInterval,
@@ -300,6 +228,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       successRedirectUrl: eventType.successRedirectUrl || "",
       users: eventType.users,
       useEventTypeDestinationCalendarEmail: eventType.useEventTypeDestinationCalendarEmail,
+      secondaryEmailId: eventType?.secondaryEmailId || -1,
       children: eventType.children.map((ch) => ({
         ...ch,
         created: true,
@@ -316,7 +245,6 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       assignAllTeamMembers: eventType.assignAllTeamMembers,
     };
   }, [eventType, periodDates, metadata]);
-
   const formMethods = useForm<FormValues>({
     defaultValues,
     resolver: zodResolver(
@@ -405,14 +333,9 @@ const EventTypePage = (props: EventTypeSetupProps) => {
         .passthrough()
     ),
   });
-
-  useEffect(() => {
-    if (!formMethods.formState.isDirty) {
-      //TODO: What's the best way to sync the form with backend
-      formMethods.setValue("bookingFields", defaultValues.bookingFields);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [defaultValues]);
+  const {
+    formState: { isDirty: isFormDirty, dirtyFields },
+  } = formMethods;
 
   const appsMetadata = formMethods.getValues("metadata")?.apps;
   const availability = formMethods.watch("availability");
@@ -440,7 +363,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
     ),
     availability: <EventAvailabilityTab eventType={eventType} isTeamEvent={!!team} />,
     team: <EventTeamTab teamMembers={teamMembers} team={team} eventType={eventType} />,
-    limits: <EventLimitsTab />,
+    limits: <EventLimitsTab eventType={eventType} />,
     advanced: <EventAdvancedTab eventType={eventType} team={team} />,
     instant: <EventInstantTab eventType={eventType} isTeamEvent={!!team} />,
     recurring: <EventRecurringTab eventType={eventType} />,
@@ -453,8 +376,100 @@ const EventTypePage = (props: EventTypeSetupProps) => {
     ),
     webhooks: <EventWebhooksTab eventType={eventType} />,
   } as const;
+  const isObject = <T,>(value: T): boolean => {
+    return value !== null && typeof value === "object" && !Array.isArray(value);
+  };
+
+  const isArray = <T,>(value: T): boolean => {
+    return Array.isArray(value);
+  };
+
+  const isFieldDirty = (fieldName: keyof FormValues) => {
+    // If the field itself is directly marked as dirty
+    if (dirtyFields[fieldName] === true) {
+      return true;
+    }
+
+    // Check if the field is an object or an array
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const fieldValue: any = getNestedField(dirtyFields, fieldName);
+    if (isObject(fieldValue)) {
+      for (const key in fieldValue) {
+        if (fieldValue[key] === true) {
+          return true;
+        }
+
+        if (isObject(fieldValue[key]) || isArray(fieldValue[key])) {
+          const nestedFieldName = `${fieldName}.${key}` as keyof FormValues;
+          // Recursive call for nested objects or arrays
+          if (isFieldDirty(nestedFieldName)) {
+            return true;
+          }
+        }
+      }
+    }
+    if (isArray(fieldValue)) {
+      for (const element of fieldValue) {
+        // If element is an object, check each property of the object
+        if (isObject(element)) {
+          for (const key in element) {
+            if (element[key] === true) {
+              return true;
+            }
+
+            if (isObject(element[key]) || isArray(element[key])) {
+              const nestedFieldName = `${fieldName}.${key}` as keyof FormValues;
+              // Recursive call for nested objects or arrays within each element
+              if (isFieldDirty(nestedFieldName)) {
+                return true;
+              }
+            }
+          }
+        } else if (element === true) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  };
+
+  const getNestedField = (obj: typeof dirtyFields, path: string) => {
+    const keys = path.split(".");
+    let current = obj;
+
+    for (let i = 0; i < keys.length; i++) {
+      // @ts-expect-error /—— currentKey could be any deeply nested fields thanks to recursion
+      const currentKey = current[keys[i]];
+      if (currentKey === undefined) return undefined;
+      current = currentKey;
+    }
+
+    return current;
+  };
+
+  const getDirtyFields = (values: FormValues): Partial<FormValues> => {
+    if (!isFormDirty) {
+      return {};
+    }
+    const updatedFields: Partial<FormValues> = {};
+    Object.keys(dirtyFields).forEach((key) => {
+      const typedKey = key as keyof typeof dirtyFields;
+      updatedFields[typedKey] = undefined;
+      const isDirty = isFieldDirty(typedKey);
+      if (isDirty) {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        updatedFields[typedKey] = values[typedKey];
+      }
+    });
+    return updatedFields;
+  };
 
   const handleSubmit = async (values: FormValues) => {
+    const { children } = values;
+    const dirtyValues = getDirtyFields(values);
+    const dirtyFieldExists = Object.keys(dirtyValues).length !== 0;
     const {
       periodDates,
       periodCountCalendarDays,
@@ -470,7 +485,6 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       locations,
       metadata,
       customInputs,
-      children,
       assignAllTeamMembers,
       // We don't need to send send these values to the backend
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -483,8 +497,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       multipleDurationEnabled,
       length,
       ...input
-    } = values;
-
+    } = dirtyValues;
     if (!Number(length)) throw new Error(t("event_setup_length_error"));
 
     if (bookingLimits) {
@@ -504,8 +517,12 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       if (metadata?.multipleDuration.length < 1) {
         throw new Error(t("event_setup_multiple_duration_error"));
       } else {
-        if (!length && !metadata?.multipleDuration?.includes(length)) {
-          throw new Error(t("event_setup_multiple_duration_default_error"));
+        // if length is unchanged, we skip this check
+        if (length !== undefined) {
+          if (!length && !metadata?.multipleDuration?.includes(length)) {
+            //This would work but it leaves the potential of this check being useless. Need to check against length and not eventType.length, but length can be undefined
+            throw new Error(t("event_setup_multiple_duration_default_error"));
+          }
         }
       }
     }
@@ -521,14 +538,14 @@ const EventTypePage = (props: EventTypeSetupProps) => {
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { availability, users, scheduleName, ...rest } = input;
-    updateMutation.mutate({
+    const payload = {
       ...rest,
       length,
       locations,
       recurringEvent,
-      periodStartDate: periodDates.startDate,
-      periodEndDate: periodDates.endDate,
-      periodCountCalendarDays: periodCountCalendarDays === "1",
+      periodStartDate: periodDates?.startDate,
+      periodEndDate: periodDates?.endDate,
+      periodCountCalendarDays,
       id: eventType.id,
       beforeEventBuffer,
       afterEventBuffer,
@@ -542,7 +559,19 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       customInputs,
       children,
       assignAllTeamMembers,
-    });
+    };
+    // Filter out undefined values
+    const filteredPayload = Object.entries(payload).reduce((acc, [key, value]) => {
+      if (value !== undefined) {
+        // @ts-expect-error Element implicitly has any type
+        acc[key] = value;
+      }
+      return acc;
+    }, {});
+
+    if (dirtyFieldExists) {
+      updateMutation.mutate({ ...filteredPayload, id: eventType.id });
+    }
   };
 
   const [slugExistsChildrenDialogOpen, setSlugExistsChildrenDialogOpen] = useState<ChildrenEventType[]>([]);
@@ -595,6 +624,9 @@ const EventTypePage = (props: EventTypeSetupProps) => {
           form={formMethods}
           id="event-type-form"
           handleSubmit={async (values) => {
+            const { children } = values;
+            const dirtyValues = getDirtyFields(values);
+            const dirtyFieldExists = Object.keys(dirtyValues).length !== 0;
             const {
               periodDates,
               periodCountCalendarDays,
@@ -617,9 +649,9 @@ const EventTypePage = (props: EventTypeSetupProps) => {
               multipleDurationEnabled,
               length,
               ...input
-            } = values;
+            } = dirtyValues;
 
-            if (!Number(length)) throw new Error(t("event_setup_length_error"));
+            if (length && !Number(length)) throw new Error(t("event_setup_length_error"));
 
             if (bookingLimits) {
               const isValid = validateIntervalLimitOrder(bookingLimits);
@@ -638,8 +670,11 @@ const EventTypePage = (props: EventTypeSetupProps) => {
               if (metadata?.multipleDuration.length < 1) {
                 throw new Error(t("event_setup_multiple_duration_error"));
               } else {
-                if (!length && !metadata?.multipleDuration?.includes(length)) {
-                  throw new Error(t("event_setup_multiple_duration_default_error"));
+                if (length !== undefined) {
+                  if (!length && !metadata?.multipleDuration?.includes(length)) {
+                    //This would work but it leaves the potential of this check being useless. Need to check against length and not eventType.length, but length can be undefined
+                    throw new Error(t("event_setup_multiple_duration_default_error"));
+                  }
                 }
               }
             }
@@ -651,14 +686,15 @@ const EventTypePage = (props: EventTypeSetupProps) => {
 
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const { availability, users, scheduleName, ...rest } = input;
-            updateMutation.mutate({
+            const payload = {
               ...rest,
+              children,
               length,
               locations,
               recurringEvent,
-              periodStartDate: periodDates.startDate,
-              periodEndDate: periodDates.endDate,
-              periodCountCalendarDays: periodCountCalendarDays === "1",
+              periodStartDate: periodDates?.startDate,
+              periodEndDate: periodDates?.endDate,
+              periodCountCalendarDays,
               id: eventType.id,
               beforeEventBuffer,
               afterEventBuffer,
@@ -670,7 +706,19 @@ const EventTypePage = (props: EventTypeSetupProps) => {
               seatsShowAvailabilityCount,
               metadata,
               customInputs,
-            });
+            };
+            // Filter out undefined values
+            const filteredPayload = Object.entries(payload).reduce((acc, [key, value]) => {
+              if (value !== undefined) {
+                // @ts-expect-error Element implicitly has any type
+                acc[key] = value;
+              }
+              return acc;
+            }, {});
+
+            if (dirtyFieldExists) {
+              updateMutation.mutate({ ...filteredPayload, id: eventType.id });
+            }
           }}>
           <div ref={animationParentRef}>{tabMap[tabName]}</div>
         </Form>
