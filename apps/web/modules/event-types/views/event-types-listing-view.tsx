@@ -811,6 +811,7 @@ const CreateFirstEventTypeView = ({ slug }: { slug: string }) => {
 
 const CTA = ({
   profileOptions,
+  isOrganization,
 }: {
   profileOptions: {
     teamId: number | null | undefined;
@@ -819,6 +820,7 @@ const CTA = ({
     membershipRole: MembershipRole | null | undefined;
     slug: string | null;
   }[];
+  isOrganization: boolean;
 }) => {
   const { t } = useLocale();
 
@@ -829,7 +831,9 @@ const CTA = ({
       data-testid="new-event-type"
       subtitle={t("create_event_on").toUpperCase()}
       options={profileOptions}
-      createDialog={() => <CreateEventTypeDialog profileOptions={profileOptions} />}
+      createDialog={() => (
+        <CreateEventTypeDialog profileOptions={profileOptions} isOrganization={isOrganization} />
+      )}
     />
   );
 };
@@ -1013,7 +1017,7 @@ const EventTypesPage: React.FC & {
       hideHeadingOnMobile
       subtitle={t("event_types_page_subtitle")}
       beforeCTAactions={<Actions showDivider={profileOptions.length > 0} />}
-      CTA={<CTA profileOptions={profileOptions} />}>
+      CTA={<CTA profileOptions={profileOptions} isOrganization={!!user?.organizationId} />}>
       <HeadSeo
         title="Event Types"
         description="Create events to share for people to book on your calendar."
