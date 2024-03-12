@@ -90,6 +90,17 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
               },
             }),
       },
+      include: {
+        parent: {
+          select: {
+            id: true,
+            slug: true,
+            name: true,
+            isPrivate: true,
+            isOrganization: true,
+          },
+        },
+      },
     });
 
     if (!unpublishedTeam) return { notFound: true } as const;
@@ -139,7 +150,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const markdownStrippedBio = stripMarkdown(team?.bio || "");
 
-  const { inviteToken: _inviteToken, parent, ...serializableTeam } = team;
+  const { inviteToken: _inviteToken, ...serializableTeam } = team;
 
   return {
     props: {
@@ -148,7 +159,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         safeBio,
         members,
         metadata,
-        parent,
         children: isTeamOrParentOrgPrivate ? [] : team.children,
       },
       themeBasis: serializableTeam.slug,
