@@ -1,3 +1,4 @@
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -10,6 +11,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import { md } from "@calcom/lib/markdownIt";
 import slugify from "@calcom/lib/slugify";
 import turndown from "@calcom/lib/turndownService";
+import { EventTypeDuplicateInput } from "@calcom/prisma/zod/custom/eventtype";
 import { trpc } from "@calcom/trpc/react";
 import {
   Button,
@@ -24,7 +26,7 @@ import {
 } from "@calcom/ui";
 
 const querySchema = z.object({
-  title: z.string(),
+  title: z.string().min(1),
   description: z.string().default(""),
   slug: z.string(),
   id: z.coerce.number(),
@@ -47,6 +49,7 @@ const DuplicateDialog = () => {
       slug: t("event_type_duplicate_copy_text", { slug }),
       ...defaultValues,
     },
+    resolver: zodResolver(EventTypeDuplicateInput),
   });
   const { register } = form;
 

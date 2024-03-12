@@ -57,7 +57,7 @@ const CreateDirectory = ({ orgId }: { orgId: number | null }) => {
             handleSubmit={(values) => {
               mutation.mutate({
                 ...values,
-                orgId,
+                organizationId: orgId,
               });
             }}>
             <div className="mb-5 mt-1">
@@ -112,7 +112,7 @@ const CreateDirectory = ({ orgId }: { orgId: number | null }) => {
                 tabIndex={-1}>
                 {t("cancel")}
               </Button>
-              <Button type="submit" loading={form.formState.isSubmitting}>
+              <Button type="submit" loading={form.formState.isSubmitting || mutation.isPending}>
                 {t("save")}
               </Button>
             </DialogFooter>
