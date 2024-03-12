@@ -18,10 +18,10 @@ type Options = {
 
 // Create directory sync connection for a team
 export const createHandler = async ({ ctx, input }: Options) => {
-  const { orgId } = input;
+  const { organizationId } = input;
   const { dsyncController } = await jackson();
 
-  const { message, access } = await canAccess(ctx.user, orgId);
+  const { message, access } = await canAccess(ctx.user, organizationId);
 
   if (!access) {
     throw new TRPCError({
@@ -30,7 +30,7 @@ export const createHandler = async ({ ctx, input }: Options) => {
     });
   }
 
-  const tenant = orgId ? `${tenantPrefix}${orgId}` : (samlTenantID as string);
+  const tenant = organizationId ? `${tenantPrefix}${organizationId}` : (samlTenantID as string);
 
   const { data, error } = await dsyncController.directories.create({
     tenant,
@@ -48,7 +48,7 @@ export const createHandler = async ({ ctx, input }: Options) => {
     data: {
       directoryId: data.id,
       tenant,
-      ...(orgId && { orgId }),
+      ...(organizationId && { organizationId }),
     },
   });
 

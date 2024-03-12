@@ -20,6 +20,7 @@ const Switch = (
     fitToHeight?: boolean;
     disabled?: boolean;
     tooltip?: string;
+    small?: boolean;
     labelOnLeading?: boolean;
     classNames?: {
       container?: string;
@@ -28,7 +29,7 @@ const Switch = (
     LockedIcon?: React.ReactNode;
   }
 ) => {
-  const { label, fitToHeight, classNames, labelOnLeading, LockedIcon, ...primitiveProps } = props;
+  const { label, fitToHeight, classNames, small, labelOnLeading, LockedIcon, ...primitiveProps } = props;
   const id = useId();
   const isChecked = props.checked || props.defaultChecked;
   return (
@@ -45,14 +46,18 @@ const Switch = (
           className={cx(
             isChecked ? "bg-brand-default dark:bg-brand-emphasis" : "bg-emphasis",
             primitiveProps.disabled && "cursor-not-allowed",
-            "focus:ring-brand-default focus:border-subtle h-5 w-[34px] min-w-[34px] rounded-full shadow-none focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:ring-offset-1",
+            small ? "h-4 w-[27px]" : "h-5 w-[34px]",
+            "focus:ring-brand-default rounded-full shadow-none focus:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:ring-offset-1",
             props.className
           )}
           {...primitiveProps}>
           <PrimitiveSwitch.Thumb
             id={id}
             className={cx(
-              "block h-[14px] w-[14px] rounded-full transition will-change-transform ltr:translate-x-[4px] rtl:-translate-x-[4px] ltr:[&[data-state='checked']]:translate-x-[17px] rtl:[&[data-state='checked']]:-translate-x-[17px]",
+              small
+                ? "h-[10px] w-[10px] ltr:translate-x-[2px] rtl:-translate-x-[2px] ltr:[&[data-state='checked']]:translate-x-[13px] rtl:[&[data-state='checked']]:-translate-x-[13px]"
+                : "h-[14px] w-[14px] ltr:translate-x-[4px] rtl:-translate-x-[4px] ltr:[&[data-state='checked']]:translate-x-[17px] rtl:[&[data-state='checked']]:-translate-x-[17px]",
+              "block rounded-full transition will-change-transform",
               isChecked ? "bg-brand-accent shadow-inner" : "bg-default",
               classNames?.thumb
             )}
