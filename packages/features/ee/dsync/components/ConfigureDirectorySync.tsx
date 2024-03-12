@@ -39,7 +39,7 @@ const ConfigureDirectorySync = ({ organizationId }: { organizationId: number | n
     return <SkeletonLoader />;
   }
 
-  const directory = data ? data : null;
+  const directory = data ?? null;
 
   const onDeleteConfirmation = (e: Event | React.MouseEvent<HTMLElement, MouseEvent>) => {
     e.preventDefault();

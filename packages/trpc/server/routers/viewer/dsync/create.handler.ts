@@ -30,7 +30,7 @@ export const createHandler = async ({ ctx, input }: Options) => {
     });
   }
 
-  const organization = ctx.user.organization;
+  const { organization } = ctx.user;
 
   const tenant = input.organizationId ? `${organization.slug}-${organization.id}` : (samlTenantID as string);
 
