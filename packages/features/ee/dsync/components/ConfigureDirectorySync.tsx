@@ -26,7 +26,6 @@ const ConfigureDirectorySync = ({ organizationId }: { organizationId: number | n
   const [deleteDirectoryOpen, setDeleteDirectoryOpen] = useState(false);
 
   const { data, isLoading, isError, error } = trpc.viewer.dsync.get.useQuery({ organizationId });
-  console.log("🚀 ~ ConfigureDirectorySync ~ data:", data);
 
   const deleteMutation = trpc.viewer.dsync.delete.useMutation({
     async onSuccess() {
