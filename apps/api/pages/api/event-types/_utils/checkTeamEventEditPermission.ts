@@ -3,13 +3,17 @@ import type { z } from "zod";
 
 import { HttpError } from "@calcom/lib/http-error";
 
-import type { schemaEventTypeBaseBodyParams } from "~/lib/validations/event-type";
+import type { schemaEventTypeCreateBodyParams } from "~/lib/validations/event-type";
 
 export default async function checkTeamEventEditPermission(
   req: NextApiRequest,
-  body: Pick<z.infer<typeof schemaEventTypeBaseBodyParams>, "teamId">
+  body: Pick<z.infer<typeof schemaEventTypeCreateBodyParams>, "teamId" | "userId">
 ) {
-  const { prisma, userId } = req;
+  const { prisma, isAdmin } = req;
+  let userId = req.userId;
+  if (isAdmin && body.userId) {
+    userId = body.userId;
+  }
   if (body.teamId) {
     const membership = await prisma.membership.findFirst({
       where: {
