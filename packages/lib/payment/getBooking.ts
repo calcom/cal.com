@@ -33,7 +33,34 @@ export async function getBooking(bookingId: number) {
       responses: true,
       eventType: {
         select: {
+          currency: true,
+          description: true,
+          id: true,
+          length: true,
+          price: true,
+          requiresConfirmation: true,
+          metadata: true,
+          title: true,
+          teamId: true,
+          parentId: true,
           slug: true,
+          workflows: {
+            select: {
+              workflow: {
+                select: {
+                  id: true,
+                  userId: true,
+                  name: true,
+                  steps: true,
+                  position: true,
+                  teamId: true,
+                  time: true,
+                  timeUnit: true,
+                  trigger: true,
+                },
+              },
+            },
+          },
           bookingFields: true,
           team: {
             select: {
