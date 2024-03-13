@@ -2,7 +2,6 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
-import { isOrganization } from "@calcom/lib/entityPermissionUtils";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -46,14 +45,11 @@ export function TeamsListing() {
     },
   });
 
-  const teams = useMemo(() => data?.filter((m) => m.accepted && !isOrganization({ team: m })) || [], [data]);
+  const teams = useMemo(() => data?.filter((m) => m.accepted && !m.isOrganization) || [], [data]);
 
-  const teamInvites = useMemo(
-    () => data?.filter((m) => !m.accepted && !isOrganization({ team: m })) || [],
-    [data]
-  );
+  const teamInvites = useMemo(() => data?.filter((m) => !m.accepted && !m.isOrganization) || [], [data]);
 
-  const organizationInvites = (data?.filter((m) => !m.accepted && isOrganization({ team: m })) || []).filter(
+  const organizationInvites = (data?.filter((m) => !m.accepted && m.isOrganization) || []).filter(
     (orgInvite) => {
       const isThereASubTeamOfTheOrganizationInInvites = teamInvites.find(
         (teamInvite) => teamInvite.parentId === orgInvite.id

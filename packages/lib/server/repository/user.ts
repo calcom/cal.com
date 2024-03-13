@@ -4,7 +4,6 @@ import { Prisma } from "@calcom/prisma/client";
 import type { User as UserType } from "@calcom/prisma/client";
 import type { UpId, UserProfile } from "@calcom/types/UserProfile";
 
-import { isOrganization } from "../../entityPermissionUtils";
 import logger from "../../logger";
 import { safeStringify } from "../../safeStringify";
 import { ProfileRepository } from "./profile";
@@ -92,8 +91,8 @@ export class UserRepository {
       userId,
     });
 
-    const acceptedOrgMemberships = acceptedTeamMemberships.filter((membership) =>
-      isOrganization({ team: membership.team })
+    const acceptedOrgMemberships = acceptedTeamMemberships.filter(
+      (membership) => membership.team.isOrganization
     );
 
     const organizations = acceptedOrgMemberships.map((membership) => membership.team);

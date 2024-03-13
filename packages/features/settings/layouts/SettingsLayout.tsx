@@ -93,12 +93,20 @@ const tabs: VerticalTabItemProps[] = [
         href: "/settings/organizations/members",
       },
       {
+        name: "privacy",
+        href: "/settings/organizations/privacy",
+      },
+      {
         name: "appearance",
         href: "/settings/organizations/appearance",
       },
       {
         name: "billing",
         href: "/settings/organizations/billing",
+      },
+      {
+        name: "directory_sync",
+        href: "/settings/organizations/dsync",
       },
     ],
   },
@@ -126,9 +134,10 @@ const tabs: VerticalTabItemProps[] = [
 ];
 
 tabs.find((tab) => {
-  // Add "SAML SSO" to the tab
   if (tab.name === "security" && !HOSTED_CAL_FEATURES) {
     tab.children?.push({ name: "sso_configuration", href: "/settings/security/sso" });
+    // TODO: Enable dsync for self hosters
+    // tab.children?.push({ name: "directory_sync", href: "/settings/security/dsync" });
   }
 });
 
