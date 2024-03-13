@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import * as z from "zod";
+import { z } from "zod";
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { APP_CREDENTIAL_SHARING_ENABLED } from "@calcom/lib/constants";

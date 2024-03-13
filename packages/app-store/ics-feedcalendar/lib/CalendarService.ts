@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/triple-slash-reference */
 /// <reference path="../../../types/ical.d.ts"/>
 import ICAL from "ical.js";
-import * as z from "zod";
+import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
 import { symmetricDecrypt } from "@calcom/lib/crypto";

@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import * as z from "zod";
+import { z } from "zod";
 
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";

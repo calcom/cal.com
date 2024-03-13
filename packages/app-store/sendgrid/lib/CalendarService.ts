@@ -1,4 +1,4 @@
-import * as z from "zod";
+import { z } from "zod";
 
 import type { SendgridNewContact } from "@calcom/lib/Sendgrid";
 import Sendgrid from "@calcom/lib/Sendgrid";

@@ -26,7 +26,7 @@ import {
   WebCredentials,
   WellKnownFolderName,
 } from "ews-javascript-api";
-import * as z from "zod";
+import { z } from "zod";
 
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import logger from "@calcom/lib/logger";
