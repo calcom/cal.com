@@ -111,7 +111,7 @@ export function EventList({ day }: Props) {
             <div
               key={`${event.id}-${eventStart.toISOString()}`}
               className="absolute inset-x-1 "
-              data-testId={event.options?.["data-test-id"]}
+              data-testid={event.options?.["data-test-id"]}
               style={{
                 marginLeft,
                 zIndex,
