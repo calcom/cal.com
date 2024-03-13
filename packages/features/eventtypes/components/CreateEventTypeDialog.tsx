@@ -7,6 +7,7 @@ import { z } from "zod";
 
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { classNames } from "@calcom/lib";
+import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
@@ -69,6 +70,7 @@ const querySchema = z.object({
 
 export default function CreateEventTypeDialog({
   profileOptions,
+  isOrganization,
 }: {
   profileOptions: {
     teamId: number | null | undefined;
@@ -76,6 +78,7 @@ export default function CreateEventTypeDialog({
     image: string | undefined;
     membershipRole: MembershipRole | null | undefined;
   }[];
+  isOrganization: boolean;
 }) {
   const utils = trpc.useContext();
   const { t } = useLocale();
@@ -86,8 +89,10 @@ export default function CreateEventTypeDialog({
   const {
     data: { teamId, eventPage: pageSlug },
   } = useTypedQuery(querySchema);
-  const teamProfile = profileOptions.find((profile) => profile.teamId === teamId);
 
+  const teamProfile = profileOptions.find((profile) => profile.teamId === teamId);
+  const isSelfHosted = !HOSTED_CAL_FEATURES;
+  const isEE = !!(isSelfHosted || isOrganization);
   const form = useForm<z.infer<typeof createEventTypeInput>>({
     defaultValues: {
       length: 15,
@@ -283,7 +288,7 @@ export default function CreateEventTypeDialog({
                     <p>{t("round_robin_description")}</p>
                   </RadioArea.Item>
                   <>
-                    {isAdmin && (
+                    {isAdmin && isEE && (
                       <RadioArea.Item
                         {...register("schedulingType")}
                         value={SchedulingType.MANAGED}
