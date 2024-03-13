@@ -2096,6 +2096,7 @@
   "workflow_automation": "Automação de fluxo de trabalho",
   "scheduling_for_your_team": "Automação de fluxo de trabalho",
   "no_members_found": "Nenhum membro encontrado",
+  "directory_sync": "Sincronização de diretório",
   "event_setup_length_error": "Configuração do evento: deve ter pelo menos 1 minuto de duração.",
   "availability_schedules": "Agendamentos de disponibilidade",
   "unauthorized": "Não autorizado",

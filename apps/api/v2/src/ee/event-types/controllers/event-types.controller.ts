@@ -11,7 +11,7 @@ import { EventType } from "@prisma/client";
 
 import { EVENT_TYPE_READ, EVENT_TYPE_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
 import type { EventType as AtomEventType } from "@calcom/platform-libraries";
-import { ApiResponse } from "@calcom/platform-types";
+import { ApiResponse, ApiSuccessResponse } from "@calcom/platform-types";
 
 @Controller({
   path: "event-types",
@@ -41,7 +41,7 @@ export class EventTypesController {
     @Param("eventTypeId") eventTypeId: string,
     @ForAtom() forAtom: boolean,
     @GetUser() user: UserWithProfile
-  ): Promise<ApiResponse<EventType | AtomEventType>> {
+  ): Promise<ApiSuccessResponse<EventType | AtomEventType>> {
     const eventType = forAtom
       ? await this.eventTypesService.getUserEventTypeForAtom(user, Number(eventTypeId))
       : await this.eventTypesService.getUserEventType(user.id, Number(eventTypeId));

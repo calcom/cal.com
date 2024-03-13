@@ -124,7 +124,7 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata }: IUseBo
           date: responseData?.startTime?.toString() || "",
           duration: validDuration,
           organizer: {
-            name: users?.[0].name || "Nameless",
+            name: users?.[0]?.name || "Nameless",
             email: responseData?.userPrimaryEmail || responseData.user?.email || "Email-less",
             timeZone: responseData.user?.timeZone || "Europe/London",
           },
@@ -137,7 +137,7 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata }: IUseBo
           date: responseData?.startTime?.toString() || "",
           duration: validDuration,
           organizer: {
-            name: users?.[0].name || "Nameless",
+            name: users?.[0]?.name || "Nameless",
             email: responseData?.userPrimaryEmail || responseData.user?.email || "Email-less",
             timeZone: responseData.user?.timeZone || "Europe/London",
           },
