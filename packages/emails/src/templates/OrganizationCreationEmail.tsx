@@ -1,6 +1,6 @@
 import { Trans } from "next-i18next";
 
-import { APP_NAME, WEBAPP_URL, IS_PRODUCTION } from "@calcom/lib/constants";
+import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
 
 import type { OrganizationCreation } from "../../templates/organization-creation-email";
 import { V2BaseEmailHtml } from "../components";
@@ -24,11 +24,7 @@ export const OrganizationCreationEmail = (
           alignItems: "center",
           justifyContent: "center",
         }}
-        src={
-          IS_PRODUCTION
-            ? `${WEBAPP_URL}/emails/calendar-email-hero.png`
-            : "http://localhost:3000/emails/calendar-email-hero.png"
-        }
+        src={`${WEBAPP_URL}/emails/calendar-email-hero.png`}
         alt=""
       />
       <p

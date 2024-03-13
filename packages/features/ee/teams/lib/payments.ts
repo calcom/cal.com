@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import { getStripeCustomerIdFromUserId } from "@calcom/app-store/stripepayment/lib/customer";
 import stripe from "@calcom/app-store/stripepayment/lib/server";
+import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { MINIMUM_NUMBER_OF_ORG_SEATS, WEBAPP_URL } from "@calcom/lib/constants";
 import { ORGANIZATION_MIN_SEATS } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
@@ -62,9 +63,9 @@ export const generateTeamCheckoutSession = async ({
     customer_update: {
       address: "auto",
     },
-    // You can comment it out when testing locally as usually developer doesn't setup Tax in Stripe Test mode
+    // Disabled when testing locally as usually developer doesn't setup Tax in Stripe Test mode
     automatic_tax: {
-      enabled: true,
+      enabled: IS_PRODUCTION,
     },
     metadata: {
       teamName,
@@ -108,9 +109,9 @@ export const purchaseTeamOrOrgSubscription = async (input: {
     customer_update: {
       address: "auto",
     },
-    // You can comment it out when testing locally as usually developer doesn't setup Tax in Stripe Test mode
+    // Disabled when testing locally as usually developer doesn't setup Tax in Stripe Test mode
     automatic_tax: {
-      enabled: true,
+      enabled: IS_PRODUCTION,
     },
     metadata: {
       teamId,
