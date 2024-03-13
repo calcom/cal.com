@@ -227,7 +227,7 @@ export default class ZohoCalendarService implements Calendar {
         eventdata: JSON.stringify({
           uid,
           recurrence_edittype: "following",
-          notify_attendee: 0,
+          notify_attendee: 2,
           etag: existingEventData.events[0].etag,
         }),
       });
@@ -414,7 +414,7 @@ export default class ZohoCalendarService implements Calendar {
         },
       ],
       location: event.location ? getLocation(event) : undefined,
-      notify_attendee: 0,
+      notify_attendee: 2,
     };
 
     return zohoEvent;

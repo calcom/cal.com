@@ -2059,6 +2059,7 @@ async function handler(
             calEvent: getPiiFreeCalendarEvent(evt),
           })
         );
+
         await sendScheduledEmails(
           {
             ...evt,
@@ -2090,7 +2091,12 @@ async function handler(
     !originalRescheduledBooking?.paid &&
     !!booking;
 
-  if (!isConfirmedByDefault && noEmail !== true && !bookingRequiresPayment) {
+  if (
+    !isConfirmedByDefault &&
+    noEmail !== true &&
+    !bookingRequiresPayment &&
+    !(process.env.DISABLE_CAL_DEFAULT_EMAIL_CONFIRMATIONS === "true")
+  ) {
     loggerWithEventDetails.debug(
       `Emails: Booking ${organizerUser.username} requires confirmation, sending request emails`,
       safeStringify({
