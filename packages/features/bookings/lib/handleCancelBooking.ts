@@ -670,8 +670,10 @@ async function handler(req: CustomRequest) {
       throw new Error(`Reasons: ${rejected.map(({ reason }) => reason)}`);
     }
 
-    // TODO: if emails fail try to requeue them
-    await sendCancelledEmails(evt, { eventName: bookingToDelete?.eventType?.eventName });
+    if (!(process.env.DISABLE_CAL_DEFAULT_EMAIL_CONFIRMATIONS === "true")) {
+      // TODO: if emails fail try to requeue them
+      await sendCancelledEmails(evt, { eventName: bookingToDelete?.eventType?.eventName });
+    }
   } catch (error) {
     console.error("Error deleting event", error);
   }

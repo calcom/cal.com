@@ -92,6 +92,11 @@
       "description": "JSON Array of Objects mapping global variables to project specific translations",
       "value": "",
       "required": false
+    },
+    "DISABLE_CAL_DEFAULT_EMAIL_CONFIRMATIONS": {
+      "description": "Disable Cal from sending notifications for meetings booking, rescheduling, and canceling",
+      "value": "false",
+      "required": false
     }
   },
   "scripts": {
