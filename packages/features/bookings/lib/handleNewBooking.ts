@@ -1864,12 +1864,7 @@ async function handler(
     evt.appsStatus = handleAppsStatus(results, booking, reqAppsStatus);
 
     // If there is an integration error, we don't send successful rescheduling email, instead broken integration email should be sent that are handled by either CalendarManager or videoClient
-    if (
-      noEmail !== true &&
-      isConfirmedByDefault &&
-      !isThereAnIntegrationError &&
-      !(process.env.DISABLE_CAL_DEFAULT_EMAIL_CONFIRMATIONS === "true")
-    ) {
+    if (noEmail !== true && isConfirmedByDefault && !isThereAnIntegrationError) {
       const copyEvent = cloneDeep(evt);
       const copyEventAdditionalInfo = {
         ...copyEvent,
@@ -1925,21 +1920,17 @@ async function handler(
           originalBookingMemberEmails.find((orignalMember) => orignalMember.email === member.email)
         );
 
-        if (!(process.env.DISABLE_CAL_DEFAULT_EMAIL_CONFIRMATIONS === "true")) {
-          sendRoundRobinRescheduledEmails(copyEventAdditionalInfo, rescheduledMembers);
-          sendRoundRobinScheduledEmails(copyEventAdditionalInfo, newBookedMembers);
-          sendRoundRobinCancelledEmails(copyEventAdditionalInfo, cancelledMembers);
-        }
+        sendRoundRobinRescheduledEmails(copyEventAdditionalInfo, rescheduledMembers);
+        sendRoundRobinScheduledEmails(copyEventAdditionalInfo, newBookedMembers);
+        sendRoundRobinCancelledEmails(copyEventAdditionalInfo, cancelledMembers);
       } else {
         // send normal rescheduled emails (non round robin event, where organizers stay the same)
-        if (!(process.env.DISABLE_CAL_DEFAULT_EMAIL_CONFIRMATIONS === "true")) {
-          await sendRescheduledEmails({
-            ...copyEvent,
-            additionalInformation: metadata,
-            additionalNotes, // Resets back to the additionalNote input and not the override value
-            cancellationReason: `$RCH$${rescheduleReason ? rescheduleReason : ""}`, // Removable code prefix to differentiate cancellation from rescheduling for email
-          });
-        }
+        await sendRescheduledEmails({
+          ...copyEvent,
+          additionalInformation: metadata,
+          additionalNotes, // Resets back to the additionalNote input and not the override value
+          cancellationReason: `$RCH$${rescheduleReason ? rescheduleReason : ""}`, // Removable code prefix to differentiate cancellation from rescheduling for email
+        });
       }
     }
     // If it's not a reschedule, doesn't require confirmation and there's no price,
@@ -2069,19 +2060,17 @@ async function handler(
           })
         );
 
-        if (!(process.env.DISABLE_CAL_DEFAULT_EMAIL_CONFIRMATIONS === "true")) {
-          await sendScheduledEmails(
-            {
-              ...evt,
-              additionalInformation: metadata,
-              additionalNotes,
-              customInputs,
-            },
-            eventNameObject,
-            isHostConfirmationEmailsDisabled,
-            isAttendeeConfirmationEmailDisabled
-          );
-        }
+        await sendScheduledEmails(
+          {
+            ...evt,
+            additionalInformation: metadata,
+            additionalNotes,
+            customInputs,
+          },
+          eventNameObject,
+          isHostConfirmationEmailsDisabled,
+          isAttendeeConfirmationEmailDisabled
+        );
       }
     }
   } else {
