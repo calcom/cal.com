@@ -1,7 +1,8 @@
 import EventManager from "@calcom/core/EventManager";
 import dayjs from "@calcom/dayjs";
 import { sendRoundRobinCancelledEmails, sendRoundRobinScheduledEmails } from "@calcom/emails";
-import { ensureAvailableUsers } from "@calcom/features/bookings/lib/handleNewBooking";
+import { ensureAvailableUsers, getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking";
+import type { User } from "@calcom/features/bookings/lib/handleNewBooking";
 import { scheduleEmailReminder } from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
 import logger from "@calcom/lib/logger";
 import { getLuckyUser } from "@calcom/lib/server";
@@ -29,42 +30,8 @@ export const roundRobinReassignHandler = async ({ ctx, input }: RoundRobinReassi
   const roundRobinReassignLogger = logger.getSubLogger({
     prefix: ["roundRobinReassign", `${bookingId}`],
   });
-  const eventType = await prisma.eventType.findUnique({
-    where: {
-      id: eventTypeId,
-    },
-    select: {
-      id: true,
-      availability: true,
-      slug: true,
-      description: true,
-      destinationCalendar: true,
-      hosts: {
-        select: {
-          user: {
-            include: {
-              schedules: {
-                include: {
-                  availability: true,
-                },
-              },
-            },
-          },
-        },
-      },
-      users: {
-        select: {
-          id: true,
-        },
-      },
-      team: {
-        select: {
-          name: true,
-          id: true,
-        },
-      },
-    },
-  });
+
+  const eventType = await getEventTypesFromDB(eventTypeId);
 
   if (!eventType) {
     throw new TRPCError({ code: "NOT_FOUND" });
@@ -85,6 +52,7 @@ export const roundRobinReassignHandler = async ({ ctx, input }: RoundRobinReassi
       customInputs: true,
       responses: true,
       destinationCalendar: true,
+      user: true,
       attendees: {
         select: {
           email: true,
@@ -105,12 +73,24 @@ export const roundRobinReassignHandler = async ({ ctx, input }: RoundRobinReassi
     throw new TRPCError({ code: "NOT_FOUND" });
   }
 
+  // Filter out the current attendees of the booking from the event type
+  const availableEventTypeUsers = eventType.users.reduce((availableUsers, user) => {
+    if (
+      !booking?.attendees.some((attendee) => attendee.email === user.email) &&
+      user.email !== booking.user?.email
+    ) {
+      console.log("This is being triggered for user", user.email);
+      availableUsers.push(user);
+    }
+    return availableUsers;
+  }, [] as User[]);
+
   const availableUsers = await ensureAvailableUsers(
-    eventType,
+    { ...eventType, users: availableEventTypeUsers },
     {
       dateFrom: dayjs(booking.startTime).format(),
       dateTo: dayjs(booking.endTime).format(),
-      timeZone: "",
+      timeZone: eventType.timeZone || ctx.user.timeZone,
     },
     roundRobinReassignLogger
   );
@@ -130,6 +110,7 @@ export const roundRobinReassignHandler = async ({ ctx, input }: RoundRobinReassi
       userId: luckyUser.id,
     },
     include: {
+      user: true,
       attendees: true,
       references: true,
       destinationCalendar: true,
