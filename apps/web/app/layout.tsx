@@ -2,11 +2,9 @@ import { dir } from "i18next";
 import { Inter } from "next/font/google";
 import localFont from "next/font/local";
 import { headers, cookies } from "next/headers";
-import Script from "next/script";
 import React from "react";
 
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
-import { IS_PRODUCTION } from "@calcom/lib/constants";
 
 import { prepareRootMetadata } from "@lib/metadata";
 
@@ -70,11 +68,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       style={embedColorScheme ? { colorScheme: embedColorScheme as string } : undefined}
       data-nextjs-router="app">
       <head nonce={nonce}>
-        {!IS_PRODUCTION && process.env.VERCEL_ENV === "preview" && (
-          // eslint-disable-next-line @next/next/no-sync-scripts
-          <Script
-            data-project-id="KjpMrKTnXquJVKfeqmjdTffVPf1a6Unw2LZ58iE4"
-            src="https://snippet.meticulous.ai/v1/stagingMeticulousSnippet.js"
+        {!!process.env.NEXT_PUBLIC_HEAD_SCRIPTS && (
+          <script
+            nonce={nonce}
+            id="injected-head-scripts"
+            dangerouslySetInnerHTML={{
+              __html: process.env.NEXT_PUBLIC_HEAD_SCRIPTS,
+            }}
           />
         )}
         <style>{`
@@ -98,6 +98,15 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               }
             : {}
         }>
+        {!!process.env.NEXT_PUBLIC_BODY_SCRIPTS && (
+          <script
+            nonce={nonce}
+            id="injected-head-scripts"
+            dangerouslySetInnerHTML={{
+              __html: process.env.NEXT_PUBLIC_BODY_SCRIPTS,
+            }}
+          />
+        )}
         {children}
       </body>
     </html>
