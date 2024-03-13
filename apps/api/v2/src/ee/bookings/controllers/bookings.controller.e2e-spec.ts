@@ -61,6 +61,7 @@ describe("Bookings Endpoints", () => {
       const bookingTimeZone = "Europe/Londom";
       const bookingLanguage = "en";
       const bookingHashedLink = "";
+      const bookingMetadata = {};
 
       const body = {
         start: bookingStart,
@@ -68,7 +69,7 @@ describe("Bookings Endpoints", () => {
         eventTypeId: bookingEventTypeId,
         timeZone: bookingTimeZone,
         language: bookingLanguage,
-        metadata: {},
+        metadata: bookingMetadata,
         hashedLink: bookingHashedLink,
       };
 
@@ -81,6 +82,13 @@ describe("Bookings Endpoints", () => {
             response.body;
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           expect(responseBody.data).toBeDefined();
+          expect(responseBody.data.user.email).toBeDefined();
+          expect(responseBody.data.id).toBeDefined();
+          expect(responseBody.data.uid).toBeDefined();
+          expect(responseBody.data.startTime).toEqual(bookingStart);
+          expect(responseBody.data.eventTypeId).toEqual(bookingEventTypeId);
+          expect(responseBody.data.user.timeZone).toEqual(bookingTimeZone);
+          expect(responseBody.data.metadata).toEqual(bookingMetadata);
 
           createdBooking = responseBody.data;
         });
@@ -102,8 +110,16 @@ describe("Bookings Endpoints", () => {
         .get(`/api/v2/ee/bookings/${createdBooking.uid}`)
         .then((response) => {
           const responseBody: ApiSuccessResponse<Awaited<ReturnType<typeof getBookingInfo>>> = response.body;
+          const { bookingInfo } = responseBody.data;
+
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           expect(responseBody.data).toBeDefined();
+          expect(bookingInfo?.id).toBeDefined();
+          expect(bookingInfo?.uid).toBeDefined();
+          expect(bookingInfo?.id).toEqual(createdBooking.id);
+          expect(bookingInfo?.uid).toEqual(createdBooking.uid);
+          expect(bookingInfo?.eventTypeId).toEqual(createdBooking.eventTypeId);
+          expect(bookingInfo?.startTime).toEqual(createdBooking.startTime);
         });
     });
   });
