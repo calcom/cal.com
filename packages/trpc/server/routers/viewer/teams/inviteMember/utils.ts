@@ -3,7 +3,6 @@ import type { TFunction } from "next-i18next";
 
 import { sendTeamInviteEmail } from "@calcom/emails";
 import { ENABLE_PROFILE_SWITCHER, WEBAPP_URL } from "@calcom/lib/constants";
-import { isOrganization } from "@calcom/lib/entityPermissionUtils";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { isTeamAdmin } from "@calcom/lib/server/queries";
@@ -20,7 +19,6 @@ import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
 
-import type { TrpcSessionUser } from "../../../../trpc";
 import { isEmail } from "../util";
 import type { InviteMemberOptions, TeamWithParent } from "./types";
 
@@ -370,20 +368,16 @@ export async function sendSignupToOrganizationEmail({
   usernameOrEmail,
   team,
   translation,
-  ctx,
-  input,
+  inviterName,
+  teamId,
+  isOrg,
 }: {
   usernameOrEmail: string;
   team: Awaited<ReturnType<typeof getTeamOrThrow>>;
   translation: TFunction;
-  ctx: { user: NonNullable<TrpcSessionUser> };
-  input: {
-    teamId: number;
-    role: "ADMIN" | "MEMBER" | "OWNER";
-    usernameOrEmail: string | string[];
-    language: string;
-    isOrg: boolean;
-  };
+  inviterName: string;
+  teamId: number;
+  isOrg: boolean;
 }) {
   const token: string = randomBytes(32).toString("hex");
 
@@ -394,19 +388,19 @@ export async function sendSignupToOrganizationEmail({
       expires: new Date(new Date().setHours(168)), // +1 week
       team: {
         connect: {
-          id: input.teamId,
+          id: teamId,
         },
       },
     },
   });
   await sendTeamInviteEmail({
     language: translation,
-    from: ctx.user.name || `${team.name}'s admin`,
+    from: inviterName || `${team.name}'s admin`,
     to: usernameOrEmail,
     teamName: team.name,
     joinLink: `${WEBAPP_URL}/signup?token=${token}&callbackUrl=/getting-started`,
     isCalcomMember: false,
-    isOrg: input.isOrg,
+    isOrg: isOrg,
     parentTeamName: team?.parent?.name,
     isAutoJoin: false,
   });
@@ -452,7 +446,7 @@ export function getAutoJoinStatus({
   invitee: UserWithMembership;
   connectionInfoMap: Record<string, ReturnType<typeof getOrgConnectionInfo>>;
 }) {
-  const isRegularTeam = !isOrganization({ team }) && !team.parentId;
+  const isRegularTeam = !team.isOrganization && !team.parentId;
 
   if (isRegularTeam) {
     // There are no-auto join in regular teams ever
