@@ -191,17 +191,16 @@ class Paypal {
       ],
     };
 
-    try {
-      const response = await this.fetcher(`/v1/notifications/webhooks`, {
-        method: "POST",
-        body: JSON.stringify(body),
-      });
+    const response = await this.fetcher(`/v1/notifications/webhooks`, {
+      method: "POST",
+      body: JSON.stringify(body),
+    });
 
-      if (response.ok) {
-        const result = await response.json();
-        return result.id as string;
-      }
-    } catch (error) {
+    if (response.ok) {
+      const result = await response.json();
+      return result.id as string;
+    } else {
+      const error = await response.json();
       console.error(error);
     }
 
