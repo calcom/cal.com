@@ -1,5 +1,5 @@
 import { useRouter } from "next/navigation";
-import { useState, useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Controller, useFieldArray, useForm, useWatch } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
@@ -8,6 +8,7 @@ import Schedule from "@calcom/features/schedules/components/Schedule";
 import Shell from "@calcom/features/shell/Shell";
 import { classNames } from "@calcom/lib";
 import { availabilityAsString } from "@calcom/lib/availability";
+import { withErrorFromUnknown } from "@calcom/lib/getClientErrorFromUnknown";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
@@ -116,12 +117,9 @@ const DeleteDialogButton = ({
   const router = useRouter();
   const utils = trpc.useUtils();
   const { isPending, mutate } = trpc.viewer.availability.schedule.delete.useMutation({
-    onError: (err) => {
-      if (err instanceof HttpError) {
-        const message = `${err.statusCode}: ${err.message}`;
-        showToast(message, "error");
-      }
-    },
+    onError: withErrorFromUnknown((err) => {
+      showToast(err.message, "error");
+    }),
     onSettled: () => {
       utils.viewer.availability.list.invalidate();
     },
