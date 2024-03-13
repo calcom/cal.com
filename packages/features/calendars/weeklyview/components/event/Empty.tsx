@@ -56,11 +56,16 @@ export function AvailableCellsForDay({ availableSlots, day, startHour }: Availab
 
   if (!availableSlots) return null;
 
-  const [firstSlot] = availableSlots[dateFormatted] || [];
+  const [firstSlot, secondSlot] = availableSlots[dateFormatted] || [];
 
   if (firstSlot?.away) {
+    const startEndTimeDuration = dayjs(secondSlot.start).diff(dayjs(firstSlot.start), "minutes");
+
     return (
-      <CustomCell timeSlot={dayjs(firstSlot.start).tz(timezone)} topOffsetMinutes={slots[0].topOffsetMinutes}>
+      <CustomCell
+        timeSlot={dayjs(firstSlot.start).tz(timezone)}
+        topOffsetMinutes={slots[0].topOffsetMinutes}
+        startEndTimeDuration={startEndTimeDuration}>
         <OutOfOfficeInSlots
           fromUser={firstSlot?.fromUser}
           toUser={firstSlot?.toUser}
@@ -146,23 +151,28 @@ function Cell({ isDisabled, topOffsetMinutes, timeSlot }: CellProps) {
   );
 }
 
-function CustomCell({ timeSlot, children, topOffsetMinutes }: CellProps & { children: React.ReactNode }) {
+function CustomCell({
+  timeSlot,
+  children,
+  topOffsetMinutes,
+  startEndTimeDuration,
+}: CellProps & { children: React.ReactNode }) {
   return (
     <div
-      className={classNames("bg-default dark:bg-muted flex w-[calc(100%-1px)] items-center justify-center")}
+      className={classNames(
+        "bg-default dark:bg-muted group absolute z-[65] flex w-[calc(100%-1px)] items-center justify-center"
+      )}
       data-slot={timeSlot.toISOString()}
       style={{
-        height: `100%`,
-        overflow: "visible",
         top: topOffsetMinutes ? `calc(${topOffsetMinutes}*var(--one-minute-height))` : undefined,
+        overflow: "visible",
       }}>
       <div
         className={classNames(
-          "dark:border-emphasis bg-default dark:bg-muted absolute cursor-pointer rounded-[4px] p-[6px] text-xs font-semibold leading-5 dark:text-white"
+          "dark:border-emphasis bg-default dark:bg-muted cursor-pointer rounded-[4px] p-[6px] text-xs font-semibold dark:text-white"
         )}
         style={{
-          height: `100%`,
-          zIndex: 80,
+          height: `calc(${startEndTimeDuration}*var(--one-minute-height) - 2px)`,
           width: "calc(100% - 2px)",
         }}>
         {children}

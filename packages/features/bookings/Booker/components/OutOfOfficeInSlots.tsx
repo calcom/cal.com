@@ -27,14 +27,14 @@ export const OutOfOfficeInSlots = (props: IOutOfOfficeInSlotsProps) => {
 
   if (!fromUser) return null;
   return (
-    <div className="h-full pb-2">
+    <div className="relative h-full">
       <div
         className={classNames(
-          "z-10 flex h-full flex-col items-center justify-start rounded-md border bg-white px-4 py-4 dark:bg-transparent",
+          "flex h-full flex-col items-center justify-start rounded-md border bg-white px-4 py-4 dark:bg-transparent",
           borderDashed && "border-dashed"
         )}>
         <div className="bg-emphasis flex h-14 w-14 flex-col items-center justify-center rounded-full">
-          <span className="h-11 text-center text-3xl">{emoji}</span>
+          <span className="m-auto text-center text-lg">{emoji}</span>
         </div>
         <div className="space-y-2 text-center">
           <p className="mt-2 text-base font-bold">

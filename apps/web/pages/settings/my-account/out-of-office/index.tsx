@@ -106,12 +106,12 @@ const CreateOutOfOfficeEntryModal = ({
   return (
     <Dialog open={openModal}>
       <DialogContent
-        enableOverflow
         onOpenAutoFocus={(event) => {
           event.preventDefault();
         }}>
         <form
           id="create-ooo-form"
+          className="h-full"
           onSubmit={handleSubmit((data) => {
             createOutOfOfficeEntry.mutate(data);
             setValue("toTeamUserId", null);
@@ -222,22 +222,22 @@ const CreateOutOfOfficeEntryModal = ({
               )}
             </div>
           </div>
-          <DialogFooter showDivider>
-            <div className="flex">
-              <Button color="minimal" type="button" onClick={() => closeModal()} className="mr-1">
-                Cancel
-              </Button>
-              <Button
-                form="create-ooo-form"
-                color="primary"
-                type="submit"
-                disabled={createOutOfOfficeEntry.isPending}
-                data-testid="create-entry-ooo-redirect">
-                {t("create")}
-              </Button>
-            </div>
-          </DialogFooter>
         </form>
+        <DialogFooter showDivider noSticky>
+          <div className="flex">
+            <Button color="minimal" type="button" onClick={() => closeModal()} className="mr-1">
+              Cancel
+            </Button>
+            <Button
+              form="create-ooo-form"
+              color="primary"
+              type="submit"
+              disabled={createOutOfOfficeEntry.isPending}
+              data-testid="create-entry-ooo-redirect">
+              {t("create")}
+            </Button>
+          </div>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
@@ -291,6 +291,14 @@ const OutOfOfficeEntriesList = () => {
                     </p>
                   </div>
                 </div>
+                {item.notes && (
+                  <div>
+                    <p>
+                      <span className="text-subtle">{t("notes")}: </span>
+                      {item.notes}
+                    </p>
+                  </div>
+                )}
 
                 <Button
                   className="self-center rounded-lg border"

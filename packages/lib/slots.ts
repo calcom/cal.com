@@ -210,14 +210,22 @@ function buildSlotsWithDateRanges({
     if (dateOutOfOfficeExists) {
       const { toUser, fromUser, reason, emoji } = dateOutOfOfficeExists;
 
-      slots.push({
-        time: slotStartTime,
-        away: true,
-        ...(fromUser && { fromUser }),
-        ...(toUser && { toUser }),
-        ...(reason && { reason }),
-        ...(emoji && { emoji }),
-      });
+      slots.push(
+        {
+          time: slotStartTime,
+          away: true,
+          ...(fromUser && { fromUser }),
+          ...(toUser && { toUser }),
+          ...(reason && { reason }),
+          ...(emoji && { emoji }),
+        },
+        {
+          // set last slot to end of day
+          // time: dayjs(range.end).utc().subtract(eventLength, "minutes"),
+          time: range.end,
+          away: true,
+        }
+      );
       return;
     }
 

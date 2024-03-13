@@ -249,6 +249,7 @@ export const outOfOfficeEntriesList = async ({ ctx }: { ctx: { user: NonNullable
           userId: true,
         },
       },
+      notes: true,
     },
   });
 
