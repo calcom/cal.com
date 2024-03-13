@@ -49,8 +49,6 @@ export default function TeamList(props: Props) {
   }
 
   if (!user) return null;
-  // TODO: Derive it
-  const hasOrgPlan = false;
   const isUserAlreadyInAnOrganization = user.profile.organization;
   return (
     <ul className="bg-default divide-subtle border-subtle mb-2 divide-y overflow-hidden rounded-md border">
@@ -70,17 +68,10 @@ export default function TeamList(props: Props) {
                     description={t(
                       "Consider consolidating your teams in an organisation, unify billing, admin tools and analytics."
                     )}
-                    actionButton={
-                      hasOrgPlan
-                        ? {
-                            href: "https://cal.com/sales",
-                            child: t("contact_sales"),
-                          }
-                        : {
-                            href: `/settings/organizations/new`,
-                            child: t("set_up_your_organization"),
-                          }
-                    }
+                    actionButton={{
+                      href: `/settings/organizations/new`,
+                      child: t("set_up_your_organization"),
+                    }}
                   />
                   <Card
                     icon={<Paintbrush className="h-5 w-5 text-orange-700" />}

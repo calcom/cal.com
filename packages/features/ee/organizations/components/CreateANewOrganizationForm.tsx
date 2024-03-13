@@ -25,40 +25,33 @@ function extractDomainFromEmail(email: string) {
   return out.split(".")[0];
 }
 
-export const CreateANewOrganizationForm = ({ slug }: { slug?: string }) => {
+export const CreateANewOrganizationForm = () => {
   const session = useSession();
   if (!session.data) {
     return null;
   }
-  return <CreateANewOrganizationFormChild slug={slug} session={session} />;
+  return <CreateANewOrganizationFormChild session={session} />;
 };
 
-const CreateANewOrganizationFormChild = ({
-  slug,
-  session,
-}: {
-  slug?: string;
-  session: Ensure<SessionContextValue, "data">;
-}) => {
+const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionContextValue, "data"> }) => {
   const { t } = useLocale();
   const router = useRouter();
   const telemetry = useTelemetry();
   const [serverErrorMessage, setServerErrorMessage] = useState<string | null>(null);
   const isAdmin = session.data.user.role === UserPermissionRole.ADMIN;
   const isImpersonated = session.data.user.impersonatedBy;
-  const defaultAdminEmail = session.data.user.email ?? "";
+  const defaultOrgOwnerEmail = session.data.user.email ?? "";
   const newOrganizationFormMethods = useForm<{
     name: string;
     seats: number;
     pricePerSeat: number;
     slug: string;
-    adminEmail: string;
-    adminUsername: string;
+    orgOwnerEmail: string;
   }>({
     defaultValues: {
-      slug: deriveSlugFromEmail(defaultAdminEmail),
-      adminEmail: defaultAdminEmail,
-      name: deriveOrgNameFromEmail(defaultAdminEmail),
+      slug: deriveSlugFromEmail(defaultOrgOwnerEmail),
+      orgOwnerEmail: defaultOrgOwnerEmail,
+      name: deriveOrgNameFromEmail(defaultOrgOwnerEmail),
     },
   });
 
@@ -80,12 +73,7 @@ const CreateANewOrganizationFormChild = ({
       router.push(`/settings/organizations/${data.organizationId}/about`);
     },
     onError: (err) => {
-      if (err.message === "admin_email_taken") {
-        newOrganizationFormMethods.setError("adminEmail", {
-          type: "custom",
-          message: t("email_already_used"),
-        });
-      } else if (err.message === "organization_url_taken") {
+      if (err.message === "organization_url_taken") {
         newOrganizationFormMethods.setError("slug", { type: "custom", message: t("url_taken") });
       } else if (err.message === "domain_taken_team" || err.message === "domain_taken_project") {
         newOrganizationFormMethods.setError("slug", {
@@ -117,7 +105,7 @@ const CreateANewOrganizationFormChild = ({
             </div>
           )}
           <Controller
-            name="adminEmail"
+            name="orgOwnerEmail"
             control={newOrganizationFormMethods.control}
             rules={{
               required: t("must_enter_organization_admin_email"),
@@ -127,15 +115,14 @@ const CreateANewOrganizationFormChild = ({
                 <TextField
                   containerClassName="w-full"
                   placeholder="john@acme.com"
-                  name="adminEmail"
+                  name="orgOwnerEmail"
                   disabled={!isAdmin && !isImpersonated}
                   label={t("admin_email")}
                   defaultValue={value}
                   onChange={(e) => {
                     const email = e?.target.value;
                     const slug = deriveSlugFromEmail(email);
-                    newOrganizationFormMethods.setValue("adminEmail", email.trim());
-                    newOrganizationFormMethods.setValue("adminUsername", email.split("@")[0].trim());
+                    newOrganizationFormMethods.setValue("orgOwnerEmail", email.trim());
                     if (newOrganizationFormMethods.getValues("slug") === "") {
                       newOrganizationFormMethods.setValue("slug", slug);
                     }
@@ -206,11 +193,6 @@ const CreateANewOrganizationFormChild = ({
           <>
             <section className="grid grid-cols-2 gap-2">
               <div className="w-full">
-                {serverErrorMessage && (
-                  <div className="mb-4">
-                    <Alert severity="error" message={serverErrorMessage} />
-                  </div>
-                )}
                 <Controller
                   name="seats"
                   control={newOrganizationFormMethods.control}
@@ -234,11 +216,6 @@ const CreateANewOrganizationFormChild = ({
                 />
               </div>
               <div className="w-full">
-                {serverErrorMessage && (
-                  <div className="mb-4">
-                    <Alert severity="error" message={serverErrorMessage} />
-                  </div>
-                )}
                 <Controller
                   name="pricePerSeat"
                   control={newOrganizationFormMethods.control}
@@ -264,8 +241,6 @@ const CreateANewOrganizationFormChild = ({
             </section>
           </>
         )}
-
-        <input hidden {...newOrganizationFormMethods.register("adminUsername")} />
 
         <div className="flex space-x-2 rtl:space-x-reverse">
           <Button

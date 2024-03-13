@@ -63,9 +63,9 @@ export const generateTeamCheckoutSession = async ({
       address: "auto",
     },
     // You can comment it out when testing locally as usually developer doesn't setup Tax in Stripe Test mode
-    // automatic_tax: {
-    //   enabled: true,
-    // },
+    automatic_tax: {
+      enabled: true,
+    },
     metadata: {
       teamName,
       teamSlug,
@@ -109,9 +109,9 @@ export const purchaseTeamOrOrgSubscription = async (input: {
       address: "auto",
     },
     // You can comment it out when testing locally as usually developer doesn't setup Tax in Stripe Test mode
-    // automatic_tax: {
-    //   enabled: true,
-    // },
+    automatic_tax: {
+      enabled: true,
+    },
     metadata: {
       teamId,
     },
@@ -123,6 +123,10 @@ export const purchaseTeamOrOrgSubscription = async (input: {
   });
   return { url: session.url };
 
+  /**
+   * Determines the priceId depending on if a custom price is required or not.
+   * If the organization has a custom price per seat, it will create a new price in stripe and return its ID.
+   */
   async function getPriceId() {
     const fixedPriceId = isOrg
       ? process.env.STRIPE_ORG_MONTHLY_PRICE_ID

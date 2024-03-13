@@ -32,7 +32,7 @@ const getIPAddress = async (url: string): Promise<string> => {
 };
 
 export const createHandler = async ({ input, ctx }: CreateOptions) => {
-  const { slug, name, adminEmail: orgOwnerEmail, seats, pricePerSeat } = input;
+  const { slug, name, orgOwnerEmail, seats, pricePerSeat } = input;
 
   const orgOwner = await prisma.user.findUnique({
     where: {
@@ -55,16 +55,15 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
   if (hasAnOrgWithSameSlug || RESERVED_SUBDOMAINS.includes(slug))
     throw new TRPCError({ code: "BAD_REQUEST", message: "organization_url_taken" });
 
-  if (orgOwner) {
-    // Invite existing user as the owner of the organization
-  } else {
+  if (!orgOwner) {
     // Create a new user and invite them as the owner of the organization
     throw new Error("Inviting a new user to be the owner of the organization is not supported yet");
   }
 
-  // If we are making the loggedIn user the owner of the organization and he is already a part of an organization, we don't allow it
-  if (ctx.user.profile.organizationId && orgOwner.id !== ctx.user.id) {
-    throw new TRPCError({ code: "FORBIDDEN", message: "You are a part of an organization already" });
+  // If we are making the loggedIn user the owner of the organization and he is already a part of an organization, we don't allow it because multi-org is not supported yet
+  const isLoggedInUserOrgOwner = orgOwner.id === ctx.user.id;
+  if (ctx.user.profile.organizationId && isLoggedInUserOrgOwner) {
+    throw new TRPCError({ code: "FORBIDDEN", message: "User is part of an organization already" });
   }
 
   const t = await getTranslation(ctx.user.locale ?? "en", "common");
