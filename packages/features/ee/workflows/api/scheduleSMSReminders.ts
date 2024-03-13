@@ -3,14 +3,12 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import dayjs from "@calcom/dayjs";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
-import { getOrgWebAppUrl } from "@calcom/features/ee/workflows/utils";
-import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import { defaultHandler } from "@calcom/lib/server";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import { WorkflowActions, WorkflowMethods, WorkflowTemplates } from "@calcom/prisma/enums";
-import { bookingMetadataSchema, teamMetadataSchema } from "@calcom/prisma/zod-utils";
+import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { getSenderId } from "../lib/alphanumericSenderIdSupport";
 import type { PartialWorkflowReminder } from "../lib/getWorkflowReminders";
@@ -94,24 +92,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           bookingFields: reminder.booking.eventType?.bookingFields ?? null,
           booking: reminder.booking,
         });
-
-        // checks whether booking belongs to a organization and updates rescheduleLink.
-        let rescheduleLink = WEBAPP_URL;
-        if (reminder.booking.user?.organizationId) {
-          const team = await prisma.team.findUnique({
-            where: {
-              id: reminder.booking.user.organizationId,
-            },
-            select: {
-              slug: true,
-              metadata: true,
-            },
-          });
-          const metaData = teamMetadataSchema.parse(team?.metadata);
-          if (metaData?.isOrganization) {
-            rescheduleLink = getOrgWebAppUrl(team?.slug || "app", rescheduleLink);
-          }
-        }
 
         const organizerOrganizationProfile = await prisma.profile.findFirst({
           where: {
