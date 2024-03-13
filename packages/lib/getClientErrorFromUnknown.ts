@@ -14,8 +14,7 @@ export function getClientErrorFromUnknown(cause: unknown): Error {
     return new Error(cause.message);
   }
   if (typeof cause === "string") {
-    // @ts-expect-error https://github.com/tc39/proposal-error-cause
-    return new Error(cause, { cause });
+    return new Error(cause);
   }
 
   return new Error(`Unhandled error of type '${typeof cause}'. Please reach out for our customer support.`);
