@@ -199,13 +199,14 @@ class Paypal {
       });
 
       if (!response.ok) {
-        throw new Error(await response.json());
+        const message = `${response.statusText}: ${JSON.stringify(await response.json())}`;
+        throw new Error(message);
       }
 
       const result = await response.json();
       return result.id as string;
     } catch (e) {
-      logger.error(e);
+      logger.error("Error creating webhook", e);
     }
 
     return false;
