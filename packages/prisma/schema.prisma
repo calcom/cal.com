@@ -1155,7 +1155,7 @@ model DSyncData {
   directoryId      String                  @unique
   tenant           String
   organizationId   Int?                    @unique
-  org              OrganizationSettings?   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  org              OrganizationSettings?   @relation(fields: [organizationId], references: [organizationId], onDelete: Cascade)
   teamGroupMapping DSyncTeamGroupMapping[]
 }
 
