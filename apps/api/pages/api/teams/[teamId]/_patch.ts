@@ -5,6 +5,7 @@ import { purchaseTeamSubscription } from "@calcom/features/ee/teams/lib/payments
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
+import prisma from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
 
@@ -55,7 +56,7 @@ import { schemaTeamReadPublic, schemaTeamUpdateBodyParams } from "~/lib/validati
  *        description: Authorization information is missing or invalid.
  */
 export async function patchHandler(req: NextApiRequest) {
-  const { prisma, body, userId } = req;
+  const { body, userId } = req;
   const data = schemaTeamUpdateBodyParams.parse(body);
   const { teamId } = schemaQueryTeamId.parse(req.query);
 
