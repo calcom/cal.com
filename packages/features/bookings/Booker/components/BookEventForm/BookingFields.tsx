@@ -1,3 +1,4 @@
+import { useState, useCallback } from "react";
 import { useFormContext } from "react-hook-form";
 
 import type { LocationObject } from "@calcom/app-store/locations";
@@ -26,9 +27,14 @@ export const BookingFields = ({
 }) => {
   const { t } = useLocale();
   const { watch, setValue } = useFormContext();
+  const [lastLocationVal, setLastLocationVal] = useState("");
   const locationResponse = watch("responses.location");
   const currentView = rescheduleUid ? "reschedule" : "";
   const isInstantMeeting = useBookerStore((state) => state.isInstantMeeting);
+
+  const updateLastLocationVal = useCallback((val: string) => {
+    setLastLocationVal(val);
+  }, []);
 
   return (
     // TODO: It might make sense to extract this logic into BookingFields config, that would allow to quickly configure system fields and their editability in fresh booking and reschedule booking view
@@ -134,7 +140,14 @@ export const BookingFields = ({
         }
 
         return (
-          <FormBuilderField className="mb-4" field={{ ...field, hidden }} readOnly={readOnly} key={index} />
+          <FormBuilderField
+            updateLastLocationVal={updateLastLocationVal}
+            lastLocationVal={lastLocationVal}
+            className="mb-4"
+            field={{ ...field, hidden }}
+            readOnly={readOnly}
+            key={index}
+          />
         );
       })}
     </div>
