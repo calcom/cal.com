@@ -99,6 +99,8 @@ export async function getTeamWithMembers(args: {
           id: true,
           slug: true,
           name: true,
+          isPrivate: true,
+          isOrganization: true,
         },
       },
       children: {
