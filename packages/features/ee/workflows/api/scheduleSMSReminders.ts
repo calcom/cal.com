@@ -5,6 +5,7 @@ import dayjs from "@calcom/dayjs";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { getOrgWebAppUrl } from "@calcom/features/ee/workflows/utils";
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import { defaultHandler } from "@calcom/lib/server";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
@@ -12,6 +13,8 @@ import { WorkflowActions, WorkflowMethods, WorkflowTemplates } from "@calcom/pri
 import { bookingMetadataSchema, teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { getSenderId } from "../lib/alphanumericSenderIdSupport";
+import type { PartialWorkflowReminder } from "../lib/getWorkflowReminders";
+import { select } from "../lib/getWorkflowReminders";
 import * as twilio from "../lib/reminders/providers/twilioProvider";
 import type { VariablesType } from "../lib/reminders/templates/customTemplate";
 import customTemplate from "../lib/reminders/templates/customTemplate";
@@ -35,7 +38,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   });
 
   //find all unscheduled SMS reminders
-  const unscheduledReminders = await prisma.workflowReminder.findMany({
+  const unscheduledReminders = (await prisma.workflowReminder.findMany({
     where: {
       method: WorkflowMethods.SMS,
       scheduled: false,
@@ -43,17 +46,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         lte: dayjs().add(7, "day").toISOString(),
       },
     },
-    include: {
-      workflowStep: true,
-      booking: {
-        include: {
-          eventType: true,
-          user: true,
-          attendees: true,
-        },
-      },
-    },
-  });
+    select,
+  })) as PartialWorkflowReminder[];
 
   if (!unscheduledReminders.length) {
     res.json({ ok: true });
@@ -93,7 +87,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           ? reminder.booking?.attendees[0].locale
           : reminder.booking?.user?.locale;
 
-      let message: string | null = reminder.workflowStep.reminderBody;
+      let message: string | null = reminder.workflowStep.reminderBody || null;
 
       if (reminder.workflowStep.reminderBody) {
         const { responses } = getCalEventResponses({
@@ -119,19 +113,18 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           }
         }
 
-        // checks whether booking belongs to a team and updates rescheduleLink.
+        const organizerOrganizationProfile = await prisma.profile.findFirst({
+          where: {
+            userId: reminder.booking.user?.id,
+          },
+        });
 
-        if (reminder.booking.eventType?.teamId) {
-          const team = await prisma.team.findUnique({
-            where: { id: reminder.booking.eventType.teamId },
-            select: { slug: true },
-          });
+        const organizerOrganizationId = organizerOrganizationProfile?.organizationId;
 
-          rescheduleLink = `${rescheduleLink}/${team?.slug}/`;
-        } else {
-          rescheduleLink = `${rescheduleLink}/${reminder.booking.user?.username}/${reminder.booking.eventType?.slug}?rescheduleUid=${reminder.booking.uid}`;
-        }
-        rescheduleLink = `${rescheduleLink}?rescheduleUid=${reminder.booking.uid}`;
+        const bookerUrl = reminder.booking.eventType?.team
+          ? await getBookerBaseUrl(reminder.booking.eventType?.team.parentId ?? null)
+          : await getBookerBaseUrl(organizerOrganizationId ?? null);
+
         const variables: VariablesType = {
           eventName: reminder.booking?.eventType?.title,
           organizerName: reminder.booking?.user?.name || "",
@@ -144,9 +137,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           additionalNotes: reminder.booking?.description,
           responses: responses,
           meetingUrl: bookingMetadataSchema.parse(reminder.booking?.metadata || {})?.videoCallUrl,
-          cancelLink: `/booking/${reminder.booking.uid}?cancel=true`,
-          // rescheduleLink: `/${reminder.booking.user?.username}/${reminder.booking.eventType?.slug}?rescheduleUid=${reminder.booking.uid}`,
-          rescheduleLink: rescheduleLink,
+          cancelLink: `${bookerUrl}/booking/${reminder.booking.uid}?cancel=true`,
+          rescheduleLink: `${bookerUrl}/${
+            organizerOrganizationProfile?.username || reminder.booking.user?.username
+          }/${reminder.booking.eventType?.slug}?rescheduleUid=${reminder.booking.uid}`,
         };
         const customMessage = customTemplate(
           reminder.workflowStep.reminderBody || "",

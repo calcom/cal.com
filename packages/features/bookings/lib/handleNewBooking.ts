@@ -1469,7 +1469,7 @@ async function handler(
         eventType.useEventTypeDestinationCalendarEmail && destinationCalendar?.[0]?.primaryEmail
           ? destinationCalendar[0].primaryEmail
           : organizerUser.email || "Email-less",
-      username: organizerUser.username || undefined,
+      username: organizerOrganizationProfile?.username || organizerUser.username || undefined,
       timeZone: organizerUser.timeZone,
       language: { translate: tOrganizer, locale: organizerUser.locale ?? "en" },
       timeFormat: getTimeFormatStringFromUserTimeFormat(organizerUser.timeFormat),

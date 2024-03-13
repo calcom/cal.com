@@ -7,6 +7,7 @@ import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirma
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
+import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { getTranslation } from "@calcom/lib/server";
 import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
@@ -66,6 +67,11 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
           bookingFields: true,
           disableGuests: true,
           metadata: true,
+          team: {
+            select: {
+              parentId: true,
+            },
+          },
           workflows: {
             include: {
               workflow: {
@@ -154,12 +160,25 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     };
   });
 
+  const organizerOrganizationProfile = await prisma.profile.findFirst({
+    where: {
+      userId: user.id,
+    },
+  });
+
+  const organizerOrganizationId = organizerOrganizationProfile?.organizationId;
+
+  const bookerUrl = booking.eventType?.team
+    ? await getBookerBaseUrl(booking.eventType.team.parentId)
+    : await getBookerBaseUrl(organizerOrganizationId ?? null);
+
   const attendeesList = await Promise.all(attendeesListPromises);
 
   const evt: CalendarEvent = {
     type: booking?.eventType?.slug as string,
     title: booking.title,
     description: booking.description,
+    bookerUrl,
     // TODO: Remove the usage of `bookingFields` in computing responses. We can do that by storing `label` with the response. Also, this would allow us to correctly show the label for a field even after the Event Type has been deleted.
     ...getCalEventResponses({
       bookingFields: booking.eventType?.bookingFields ?? null,
@@ -171,7 +190,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     organizer: {
       email: booking.userPrimaryEmail ?? user.email,
       name: user.name || "Unnamed",
-      username: user.username || undefined,
+      username: organizerOrganizationProfile?.username || user.username || undefined,
       timeZone: user.timeZone,
       timeFormat: getTimeFormatStringFromUserTimeFormat(user.timeFormat),
       language: { translate: tOrganizer, locale: user.locale ?? "en" },
