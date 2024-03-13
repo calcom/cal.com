@@ -16,7 +16,7 @@ export function BaseCalProvider({
   accessToken,
   options,
   children,
-  timezoneUpdatePreference,
+  autoUpdateTimezone,
   onTimezoneChange,
 }: CalProviderProps) {
   const [error, setError] = useState<string>("");
@@ -30,13 +30,13 @@ export function BaseCalProvider({
     [mutateAsync]
   );
 
-  useTimezone(
-    onTimezoneChange
-      ? onTimezoneChange
-      : timezoneUpdatePreference === "auto"
-      ? handleTimezoneChange
-      : undefined
-  );
+  const getTimezoneChangeHandler = useCallback(() => {
+    if (onTimezoneChange) return onTimezoneChange;
+    if (!onTimezoneChange && autoUpdateTimezone) return handleTimezoneChange;
+    return undefined;
+  }, [onTimezoneChange, autoUpdateTimezone, handleTimezoneChange]);
+
+  useTimezone(getTimezoneChangeHandler());
 
   const { isInit } = useOAuthClient({
     clientId,

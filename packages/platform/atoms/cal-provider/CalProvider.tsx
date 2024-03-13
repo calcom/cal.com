@@ -10,7 +10,7 @@ export type CalProviderProps = {
   clientId: string;
   accessToken: string;
   options: { refreshUrl?: string; apiUrl: string };
-  timezoneUpdatePreference?: "auto" | "none";
+  autoUpdateTimezone?: boolean;
   onTimezoneChange?: () => void;
 };
 
@@ -19,13 +19,13 @@ export function CalProvider({
   accessToken,
   options,
   children,
-  timezoneUpdatePreference = "auto",
+  autoUpdateTimezone = true,
   onTimezoneChange,
 }: CalProviderProps) {
   return (
     <QueryClientProvider client={queryClient}>
       <BaseCalProvider
-        timezoneUpdatePreference={timezoneUpdatePreference}
+        autoUpdateTimezone={autoUpdateTimezone}
         onTimezoneChange={onTimezoneChange}
         clientId={clientId}
         accessToken={accessToken}
