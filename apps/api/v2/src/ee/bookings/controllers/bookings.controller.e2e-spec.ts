@@ -1,6 +1,5 @@
 import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
-import { CreateReccuringBookingInput } from "@/ee/bookings/inputs/create-reccuring-booking.input";
 import { SchedulesRepository } from "@/ee/schedules/schedules.repository";
 import { SchedulesService } from "@/ee/schedules/services/schedules.service";
 import { AvailabilitiesModule } from "@/modules/availabilities/availabilities.module";
@@ -11,6 +10,7 @@ import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
 import { User } from "@prisma/client";
 import * as request from "supertest";
+import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { withAccessTokenAuth } from "test/utils/withAccessTokenAuth";
 
@@ -25,10 +25,11 @@ import {
 import { ApiSuccessResponse, ApiResponse } from "@calcom/platform-types";
 
 describe("Bookings Endpoints", () => {
-  describe("User Authentication", () => {
+  describe("User Authenticated", () => {
     let app: INestApplication;
 
     let userRepositoryFixture: UserRepositoryFixture;
+    let bookingsRepositoryFixture: BookingsRepositoryFixture;
 
     const userEmail = "bookings-controller-e2e@api.com";
     let user: User;
@@ -45,6 +46,7 @@ describe("Bookings Endpoints", () => {
       ).compile();
 
       userRepositoryFixture = new UserRepositoryFixture(moduleRef);
+      bookingsRepositoryFixture = new BookingsRepositoryFixture(moduleRef);
 
       user = await userRepositoryFixture.create({
         email: userEmail,
@@ -90,6 +92,7 @@ describe("Bookings Endpoints", () => {
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           expect(responseBody.data).toBeDefined();
           expect(responseBody.data.user.email).toBeDefined();
+          expect(responseBody.data.user.email).toEqual("bookings-controller-e2e@api.com");
           expect(responseBody.data.id).toBeDefined();
           expect(responseBody.data.uid).toBeDefined();
           expect(responseBody.data.startTime).toEqual(bookingStart);
@@ -109,6 +112,7 @@ describe("Bookings Endpoints", () => {
             response.body;
           const fetchedBooking = responseBody.data.bookings[0];
 
+          expect(responseBody.data.bookings.length).toEqual(1);
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           expect(responseBody.data).toBeDefined();
           expect(fetchedBooking).toBeDefined();
@@ -200,6 +204,12 @@ describe("Bookings Endpoints", () => {
 
           expect(responseBody.status).toEqual("instant");
         });
+    });
+
+    afterAll(async () => {
+      await userRepositoryFixture.deleteByEmail(user.email);
+      await bookingsRepositoryFixture.deleteAllBookings(user.id, user.email);
+      await app.close();
     });
   });
 });
