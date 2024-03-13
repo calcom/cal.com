@@ -1,5 +1,6 @@
 import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
+import { CreateReccuringBookingInput } from "@/ee/bookings/inputs/create-reccuring-booking.input";
 import { SchedulesRepository } from "@/ee/schedules/schedules.repository";
 import { SchedulesService } from "@/ee/schedules/services/schedules.service";
 import { AvailabilitiesModule } from "@/modules/availabilities/availabilities.module";
@@ -14,8 +15,14 @@ import { UserRepositoryFixture } from "test/fixtures/repository/users.repository
 import { withAccessTokenAuth } from "test/utils/withAccessTokenAuth";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { getAllUserBookings, handleNewBooking, getBookingInfo } from "@calcom/platform-libraries";
-import { ApiSuccessResponse } from "@calcom/platform-types";
+import {
+  getAllUserBookings,
+  handleNewBooking,
+  getBookingInfo,
+  handleNewRecurringBooking,
+  handleInstantMeeting,
+} from "@calcom/platform-libraries";
+import { ApiSuccessResponse, ApiResponse } from "@calcom/platform-types";
 
 describe("Bookings Endpoints", () => {
   describe("User Authentication", () => {
@@ -100,8 +107,17 @@ describe("Bookings Endpoints", () => {
         .then((response) => {
           const responseBody: ApiSuccessResponse<Awaited<ReturnType<typeof getAllUserBookings>>> =
             response.body;
+          const fetchedBooking = responseBody.data.bookings[0];
+
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           expect(responseBody.data).toBeDefined();
+          expect(fetchedBooking).toBeDefined();
+
+          expect(fetchedBooking.id).toEqual(createdBooking.id);
+          expect(fetchedBooking.uid).toEqual(createdBooking.uid);
+          expect(fetchedBooking.startTime).toEqual(createdBooking.startTime);
+          expect(fetchedBooking.endTime).toEqual(createdBooking.endTime);
+          expect(fetchedBooking.user?.email).toEqual(createdBooking.user.email);
         });
     });
 
@@ -120,6 +136,69 @@ describe("Bookings Endpoints", () => {
           expect(bookingInfo?.uid).toEqual(createdBooking.uid);
           expect(bookingInfo?.eventTypeId).toEqual(createdBooking.eventTypeId);
           expect(bookingInfo?.startTime).toEqual(createdBooking.startTime);
+        });
+    });
+
+    it("should create a recurring booking", async () => {
+      const bookingStart = "2023-05-25T09:30:00.000Z";
+      const bookingEnd = "2023-05-25T10:30:00.000Z";
+      const bookingEventTypeId = 7;
+      const bookingTimeZone = "Europe/Londom";
+      const bookingLanguage = "en";
+      const bookingHashedLink = "";
+      const bookingRecurringCount = 5;
+      const currentBookingRecurringIndex = 0;
+
+      const body = {
+        start: bookingStart,
+        end: bookingEnd,
+        eventTypeId: bookingEventTypeId,
+        timeZone: bookingTimeZone,
+        language: bookingLanguage,
+        metadata: {},
+        hashedLink: bookingHashedLink,
+        recurringCount: bookingRecurringCount,
+        currentRecurringIndex: currentBookingRecurringIndex,
+      };
+
+      return request(app.getHttpServer())
+        .post("/api/v2/ee/bookings/reccuring")
+        .send(body)
+        .expect(201)
+        .then((response) => {
+          const responseBody: ApiResponse<Awaited<ReturnType<typeof handleNewRecurringBooking>>> =
+            response.body;
+
+          expect(responseBody.status).toEqual("recurring");
+        });
+    });
+
+    it("should create an instant booking", async () => {
+      const bookingStart = "2023-05-25T09:30:00.000Z";
+      const bookingEnd = "2023-05-25T10:30:00.000Z";
+      const bookingEventTypeId = 7;
+      const bookingTimeZone = "Europe/Londom";
+      const bookingLanguage = "en";
+      const bookingHashedLink = "";
+
+      const body = {
+        start: bookingStart,
+        end: bookingEnd,
+        eventTypeId: bookingEventTypeId,
+        timeZone: bookingTimeZone,
+        language: bookingLanguage,
+        metadata: {},
+        hashedLink: bookingHashedLink,
+      };
+
+      return request(app.getHttpServer())
+        .post("/api/v2/ee/bookings/instant")
+        .send(body)
+        .expect(201)
+        .then((response) => {
+          const responseBody: ApiResponse<Awaited<ReturnType<typeof handleInstantMeeting>>> = response.body;
+
+          expect(responseBody.status).toEqual("instant");
         });
     });
   });
