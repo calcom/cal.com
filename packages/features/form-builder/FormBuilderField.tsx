@@ -47,10 +47,14 @@ export const FormBuilderField = ({
   field,
   readOnly,
   className,
+  updateLastLocationVal,
+  lastLocationVal,
 }: {
   field: RhfFormFields[number];
   readOnly: boolean;
   className: string;
+  lastLocationVal?: string;
+  updateLastLocationVal?: (val: string) => void;
 }) => {
   const { t } = useLocale();
   const { control, formState, getValues } = useFormContext();
@@ -71,16 +75,19 @@ export const FormBuilderField = ({
                 value={value}
                 readOnly={readOnly}
                 setValue={(val: unknown) => {
-                  let newVal = val;
+                  let lastVal = lastLocationVal || value?.optionValue;
                   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                  //@ts-ignore
-                  if (value?.optionValue && !val.optionValue) {
-                    const optionValue = `${value.optionValue[0] !== "+" ? "+" : ""}${value.optionValue}`;
-                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                    //@ts-ignore
-                    newVal = { value: val.value, optionValue };
+                  const eventVal: any = val;
+
+                  if ((value?.optionValue || eventVal.optionValue) && updateLastLocationVal) {
+                    lastVal = eventVal.optionValue || value?.optionValue;
+                    updateLastLocationVal(`${lastVal}`);
                   }
-                  onChange(newVal);
+
+                  if (eventVal.value === "phone") {
+                    eventVal.optionValue = lastVal;
+                  }
+                  onChange(eventVal);
                 }}
               />
               <ErrorMessage
