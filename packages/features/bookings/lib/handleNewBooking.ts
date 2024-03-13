@@ -864,6 +864,7 @@ export const findBookingQuery = async (bookingId: number) => {
       description: true,
       status: true,
       responses: true,
+      metadata: true,
       user: {
         select: {
           name: true,
@@ -1518,7 +1519,7 @@ async function handler(
     eventDescription: eventType.description,
     price: paymentAppData.price,
     currency: eventType.currency,
-    length: eventType.length,
+    length: reqEventLength,
   };
 
   const teamId = await getTeamIdFromEventType({ eventType });
@@ -2069,6 +2070,7 @@ async function handler(
             calEvent: getPiiFreeCalendarEvent(evt),
           })
         );
+
         await sendScheduledEmails(
           {
             ...evt,
@@ -2109,6 +2111,10 @@ async function handler(
     );
     await sendOrganizerRequestEmail({ ...evt, additionalNotes });
     await sendAttendeeRequestEmail({ ...evt, additionalNotes }, attendeesList[0]);
+  }
+
+  if (booking.location?.startsWith("http")) {
+    videoCallUrl = booking.location;
   }
 
   const metadata = videoCallUrl
@@ -2212,10 +2218,6 @@ async function handler(
   }
 
   loggerWithEventDetails.debug(`Booking ${organizerUser.username} completed`);
-
-  if (booking.location?.startsWith("http")) {
-    videoCallUrl = booking.location;
-  }
 
   // We are here so, booking doesn't require payment and booking is also created in DB already, through createBooking call
   if (isConfirmedByDefault) {

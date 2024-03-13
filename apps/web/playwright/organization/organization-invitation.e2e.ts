@@ -2,6 +2,9 @@ import type { Browser, Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 
 import prisma from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/client";
+
+import { moveUserToOrg } from "@lib/orgMigration";
 
 import { test } from "../lib/fixtures";
 import { getInviteLink } from "../lib/testUtils";
@@ -16,7 +19,7 @@ test.afterEach(async ({ users, orgs }) => {
 
 test.describe("Organization", () => {
   test.describe("Email not matching orgAutoAcceptEmail", () => {
-    test("Org Invitation", async ({ browser, page, users, emails }) => {
+    test("nonexisting user invited to an organization", async ({ browser, page, users, emails }) => {
       const orgOwner = await users.create(undefined, { hasTeam: true, isOrg: true });
       const { team: org } = await orgOwner.getOrgMembership();
       await orgOwner.apiLogin();
@@ -83,7 +86,17 @@ test.describe("Organization", () => {
       });
     });
 
-    test("Team invitation", async ({ browser, page, users, emails }) => {
+    // This test is already covered by booking.e2e.ts where existing user is invited and his booking links are tested.
+    // We can re-test here when we want to test some more scenarios.
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    test("existing user invited to an organization", () => {});
+
+    test("nonexisting user invited to a Team inside organization", async ({
+      browser,
+      page,
+      users,
+      emails,
+    }) => {
       const orgOwner = await users.create(undefined, { hasTeam: true, isOrg: true, hasSubteam: true });
       await orgOwner.apiLogin();
       const { team } = await orgOwner.getFirstTeamMembership();
@@ -183,7 +196,7 @@ test.describe("Organization", () => {
   });
 
   test.describe("Email matching orgAutoAcceptEmail and a Verified Organization", () => {
-    test("Org Invitation", async ({ browser, page, users, emails }) => {
+    test("nonexisting user is invited to Org", async ({ browser, page, users, emails }) => {
       const orgOwner = await users.create(undefined, { hasTeam: true, isOrg: true, isOrgVerified: true });
       const { team: org } = await orgOwner.getOrgMembership();
       await orgOwner.apiLogin();
@@ -248,7 +261,52 @@ test.describe("Organization", () => {
       });
     });
 
-    test("Team Invitation", async ({ browser, page, users, emails }) => {
+    // Such a user has user.username changed directly in addition to having the new username in the profile.username
+    test("existing user migrated to an organization", async ({ users, page, emails }) => {
+      const orgOwner = await users.create(undefined, { hasTeam: true, isOrg: true, isOrgVerified: true });
+      const { team: org } = await orgOwner.getOrgMembership();
+      await orgOwner.apiLogin();
+      const { existingUser } = await test.step("Invite an existing user to an organization", async () => {
+        const existingUser = await users.create({
+          username: "john",
+          emailDomain: org.organizationSettings?.orgAutoAcceptEmail ?? "",
+          name: "John Outside Organization",
+        });
+
+        await moveUserToOrg({
+          user: existingUser,
+          targetOrg: {
+            username: `${existingUser.username}-org`,
+            id: org.id,
+            membership: {
+              role: MembershipRole.MEMBER,
+              accepted: true,
+            },
+          },
+          shouldMoveTeams: false,
+        });
+        return { existingUser };
+      });
+
+      await test.step("Signing up with the previous username of the migrated user - shouldn't be allowed", async () => {
+        await page.goto("/signup");
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        await page.locator('input[name="username"]').fill(existingUser.username!);
+        await page
+          .locator('input[name="email"]')
+          .fill(`${existingUser.username}-differnet-email@example.com`);
+        await page.locator('input[name="password"]').fill("Password99!");
+        await page.waitForLoadState("networkidle");
+        await expect(page.locator('button[type="submit"]')).toBeDisabled();
+      });
+    });
+
+    test("nonexisting user is invited to a team inside organization", async ({
+      browser,
+      page,
+      users,
+      emails,
+    }) => {
       const orgOwner = await users.create(undefined, {
         hasTeam: true,
         isOrg: true,

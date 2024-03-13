@@ -3,10 +3,10 @@ import type { ReactNode } from "react";
 import { classNames } from "@calcom/lib";
 import { useHasTeamPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useGetTheme } from "@calcom/lib/hooks/useTheme";
 import { trpc } from "@calcom/trpc";
 
 export function UpgradeTip({
-  dark,
   title,
   description,
   background,
@@ -16,7 +16,6 @@ export function UpgradeTip({
   children,
   plan,
 }: {
-  dark?: boolean;
   title: string;
   description: string;
   /* overwrite EmptyScreen text */
@@ -28,9 +27,11 @@ export function UpgradeTip({
   isParentLoading?: ReactNode;
   plan: "team" | "enterprise";
 }) {
+  const { activeTheme } = useGetTheme();
   const { t } = useLocale();
   const { isPending, hasTeamPlan } = useHasTeamPlan();
   const { data } = trpc.viewer.teams.getUpgradeable.useQuery();
+  const imageSrc = `${background}${activeTheme === "dark" ? "-dark" : ""}.jpg`;
 
   const hasEnterprisePlan = false;
   //const { isPending , hasEnterprisePlan } = useHasEnterprisePlan();
@@ -47,19 +48,17 @@ export function UpgradeTip({
     <>
       <div className="relative flex min-h-[295px] w-full items-center justify-between overflow-hidden rounded-lg pb-10">
         <picture className="absolute min-h-[295px] w-full rounded-lg object-cover">
-          <source srcSet={`${background}-dark.jpg`} media="(prefers-color-scheme: dark)" />
+          <source srcSet={imageSrc} media="(prefers-color-scheme: dark)" />
           <img
             className="absolute min-h-[295px] w-full select-none rounded-lg object-cover object-left md:object-center"
-            src={`${background}.jpg`}
+            src={imageSrc}
             loading="lazy"
             alt={title}
           />
         </picture>
         <div className="relative my-4 px-8 sm:px-14">
-          <h1 className={classNames("font-cal text-3xl", dark && "text-inverted")}>{t(title)}</h1>
-          <p className={classNames("mb-8 mt-4 max-w-sm", dark ? "text-inverted" : "text-default")}>
-            {t(description)}
-          </p>
+          <h1 className={classNames("font-cal text-3xl")}>{t(title)}</h1>
+          <p className={classNames("mb-8 mt-4 max-w-sm")}>{t(description)}</p>
           {buttons}
         </div>
       </div>

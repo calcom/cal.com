@@ -1823,10 +1823,8 @@
   "requires_at_least_one_schedule": "Potrebno je da imate barem jedan raspored",
   "default_conferencing_bulk_description": "Ažuriranje lokacija za izabrane tipove događaja",
   "locked_for_members": "Zaključano za članove",
-  "locked_apps_description": "Članovi će moći da vide aktivne aplikacije, ali neće moći da uređuju podešavanja aplikacije",
-  "locked_webhooks_description": "Članovi će moći da vide aktivne webhook-ove, ali neće moći da uređuju podešavanja webhook-ova",
-  "locked_workflows_description": "Članovi će moći da vide aktivne radne tokove, ali neće moći da uređuju podešavanja radnih tokova",
-  "locked_by_admin": "Zaključao administrator tima",
+  "apps_locked_for_members_description": "Članovi će moći da vide aktivne aplikacije, ali neće moći da uređuju podešavanja aplikacije",
+  "locked_by_team_admin": "Zaključao administrator tima",
   "app_not_connected": "Niste povezali {{appName}} nalog.",
   "connect_now": "Povežite odmah",
   "managed_event_dialog_confirm_button_one": "Zameni i obavesti {{count}} člana",
@@ -2061,6 +2059,7 @@
   "workflow_automation": "Automatizacija radnog toka",
   "scheduling_for_your_team": "Automatizacija radnog toka",
   "no_members_found": "Članovi nisu pronađeni",
+  "directory_sync": "Sinhronizacija za Directory",
   "event_setup_length_error": "Podešavanje događaja: Trajanje mora da bude barem 1 minut.",
   "availability_schedules": "Raspored dostupnosti",
   "unauthorized": "Neovlašćeno",
@@ -2097,5 +2096,6 @@
   "extensive_whitelabeling": "Posvećena podrška za uvodnu obuku i inženjering",
   "need_help": "Potrebna vam je pomoć?",
   "show_more": "Prikaži više",
+  "privacy": "Privatnost",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodajte svoje nove stringove iznad ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

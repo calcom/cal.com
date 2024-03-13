@@ -1,5 +1,6 @@
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { getTeamWithMembers } from "@calcom/lib/server/queries/teams";
+import { MembershipRole } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 
@@ -31,9 +32,20 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
   if (!membership) {
     throw new TRPCError({ code: "NOT_FOUND", message: "Not a member of this team." });
   }
+  const { members, ...restTeam } = team;
+
+  // Hide Members of team when 1) Org is private and logged in user is not admin or owner
+  // OR
+  // 2)Team is private and logged in user is not admin or owner of team or Organization's admin or owner
+  const hideMembers =
+    (ctx.user.profile?.organization?.isPrivate && !ctx.user.organization?.isOrgAdmin) ||
+    (team.isPrivate &&
+      !(membership.role === MembershipRole.OWNER || membership.role === MembershipRole.ADMIN) &&
+      !ctx.user.organization?.isOrgAdmin);
 
   return {
-    ...team,
+    ...restTeam,
+    members: hideMembers ? [] : members,
     safeBio: markdownToSafeHTML(team.bio),
     membership: {
       role: membership.role,
