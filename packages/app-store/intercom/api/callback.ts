@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import { getAppOnboardingRedirectUrl } from "@calcom/lib/apps/getAppOnboardingRedirectUrl";
 import { CAL_URL } from "@calcom/lib/constants";
-import { getAppOnboardingRedirectUrl } from "@calcom/lib/getAppOnboardingRedirectUrl";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
@@ -90,7 +90,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const state = decodeOAuthState(req);
 
   if (state?.returnToOnboarding) {
-    return res.redirect(getAppOnboardingRedirectUrl("slug", state.teamId));
+    return res.redirect(getAppOnboardingRedirectUrl("slug", state.teamId, state.eventTypeId));
   }
 
   res.redirect(

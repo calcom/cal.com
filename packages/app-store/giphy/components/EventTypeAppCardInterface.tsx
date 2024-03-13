@@ -16,6 +16,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
   return (
     <AppCard
       app={app}
+      eventType={eventType}
       description={t("confirmation_page_gif")}
       switchOnClick={(e) => {
         setShowGifSelection(e);

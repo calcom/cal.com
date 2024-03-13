@@ -1,7 +1,11 @@
 import { useRouter } from "next/navigation";
+import type { EventTypeAppSettingsComponentProps } from "types";
 
+import getInstalledAppPath from "@calcom/app-store/_utils/getInstalledAppPath";
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { classNames } from "@calcom/lib";
+import { AppOnboardingSteps } from "@calcom/lib/apps/appOnboardingSteps";
+import { getAppOnboardingUrl } from "@calcom/lib/apps/getAppOnboardingUrl";
 import useApp from "@calcom/lib/hooks/useApp";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -20,11 +24,13 @@ export default function OmniInstallAppButton({
   className,
   returnTo,
   teamId,
+  eventType,
 }: {
   appId: string;
   className: string;
   returnTo?: string;
   teamId?: number;
+  eventType: EventTypeAppSettingsComponentProps["eventType"];
 }) {
   const { t } = useLocale();
   const router = useRouter();
@@ -82,8 +88,34 @@ export default function OmniInstallAppButton({
           props = {
             ...props,
             onClick: () => {
-              // router.push(getAppOnboardingRedirectUrl(app.slug, teamId));
-              router.push(`/apps/onboarding/accounts?slug=${app.slug}${teamId ? `&teamId=${teamId}` : ""}`);
+              if (appMetadata.isOAuth) {
+                router.push(
+                  getAppOnboardingUrl({
+                    slug: appMetadata.slug,
+                    step: AppOnboardingSteps.OAUTH_STEP,
+                    teamId,
+                    eventTypeId: eventType.id,
+                  })
+                );
+              } else {
+                fetch(`/api/integrations/${appMetadata.slug}/add${teamId ? `?teamId=${teamId}` : ""}`, {
+                  method: "GET",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                }).then(() => {
+                  router.push(
+                    !hasEventTypes
+                      ? getInstalledAppPath({ slug: appMetadata.slug, variant: appMetadata.variant })
+                      : getAppOnboardingUrl({
+                          slug: appMetadata.slug,
+                          step: AppOnboardingSteps.CONFIGURE_STEP,
+                          teamId,
+                          eventTypeId: eventType.id,
+                        })
+                  );
+                });
+              }
             },
           };
         }

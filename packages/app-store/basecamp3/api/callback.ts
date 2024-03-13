@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import { getAppOnboardingRedirectUrl } from "@calcom/lib/apps/getAppOnboardingRedirectUrl";
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import { getAppOnboardingRedirectUrl } from "@calcom/lib/getAppOnboardingRedirectUrl";
 import prisma from "@calcom/prisma";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
@@ -91,7 +91,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const state = decodeOAuthState(req);
 
   if (state?.returnToOnboarding) {
-    return res.redirect(getAppOnboardingRedirectUrl(appConfig.slug, state.teamId));
+    return res.redirect(getAppOnboardingRedirectUrl(appConfig.slug, state.teamId, state.eventTypeId));
   }
 
   res.redirect(getInstalledAppPath({ variant: appConfig.variant, slug: appConfig.slug }));

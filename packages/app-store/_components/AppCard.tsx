@@ -8,7 +8,7 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { Switch, Badge, Avatar, Button } from "@calcom/ui";
 import { Settings } from "@calcom/ui/components/icon";
 
-import type { CredentialOwner } from "../types";
+import type { CredentialOwner, EventTypeAppSettingsComponentProps } from "../types";
 import OmniInstallAppButton from "./OmniInstallAppButton";
 
 export default function AppCard({
@@ -22,6 +22,7 @@ export default function AppCard({
   disableSwitch,
   switchTooltip,
   hideSettingsIcon = false,
+  eventType,
 }: {
   app: RouterOutputs["viewer"]["integrations"]["items"][number] & { credentialOwner?: CredentialOwner };
   description?: React.ReactNode;
@@ -34,6 +35,7 @@ export default function AppCard({
   disableSwitch?: boolean;
   switchTooltip?: string;
   hideSettingsIcon?: boolean;
+  eventType: EventTypeAppSettingsComponentProps["eventType"];
 }) {
   const { t } = useTranslation();
   const [animationRef] = useAutoAnimate<HTMLDivElement>();
@@ -115,6 +117,7 @@ export default function AppCard({
                 appId={app.slug}
                 returnTo={returnTo}
                 teamId={teamId}
+                eventType={eventType}
               />
             )}
           </div>

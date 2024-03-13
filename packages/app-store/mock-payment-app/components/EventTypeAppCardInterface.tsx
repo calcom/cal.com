@@ -50,6 +50,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
   return (
     <AppCard
       returnTo={WEBAPP_URL + asPath}
+      eventType={eventType}
       app={app}
       switchChecked={requirePayment}
       switchOnClick={(enabled) => {

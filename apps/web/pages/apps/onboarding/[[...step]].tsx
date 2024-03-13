@@ -10,6 +10,8 @@ import getInstalledAppPath from "@calcom/app-store/_utils/getInstalledAppPath";
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { AppOnboardingSteps } from "@calcom/lib/apps/appOnboardingSteps";
+import { getAppOnboardingUrl } from "@calcom/lib/apps/getAppOnboardingUrl";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma from "@calcom/prisma";
@@ -35,15 +37,16 @@ import { OAuthStepCard } from "@components/apps/onboarding/OAuthStepCard";
 import { StepFooter } from "@components/apps/onboarding/StepFooter";
 import { StepHeader } from "@components/apps/onboarding/StepHeader";
 
-const ACCOUNTS_STEP = "accounts";
-const OAUTH_STEP = "connect";
-const EVENT_TYPES_STEP = "event-types";
-const CONFIGURE_STEP = "configure";
 type TFormType = {
   metadata: z.infer<typeof EventTypeMetaDataSchema>;
 };
 
-const STEPS = [ACCOUNTS_STEP, OAUTH_STEP, EVENT_TYPES_STEP, CONFIGURE_STEP] as const;
+const STEPS = [
+  AppOnboardingSteps.ACCOUNTS_STEP,
+  AppOnboardingSteps.OAUTH_STEP,
+  AppOnboardingSteps.EVENT_TYPES_STEP,
+  AppOnboardingSteps.CONFIGURE_STEP,
+] as const;
 const MAX_NUMBER_OF_STEPS = STEPS.length;
 
 type StepType = (typeof STEPS)[number];
@@ -58,22 +61,22 @@ type StepObj = Record<
 >;
 
 const STEPS_MAP: StepObj = {
-  [ACCOUNTS_STEP]: {
+  [AppOnboardingSteps.ACCOUNTS_STEP]: {
     getTitle: () => "Select Account",
     getDescription: (appName) => `Install ${appName} on your personal account or on a team account.`,
     getStepNumber: (hasTeams) => (hasTeams ? 1 : 0),
   },
-  [OAUTH_STEP]: {
+  [AppOnboardingSteps.OAUTH_STEP]: {
     getTitle: (appName) => `Install ${appName}`,
     getDescription: (appName) => `Give permissions to connect your Cal.com to ${appName}.`,
     getStepNumber: (hasTeams, isOAuth) => (hasTeams ? 1 : 0) + (isOAuth ? 1 : 0),
   },
-  [EVENT_TYPES_STEP]: {
+  [AppOnboardingSteps.EVENT_TYPES_STEP]: {
     getTitle: () => "Select Event Type",
     getDescription: (appName) => `On which event type do you want to install ${appName}?`,
     getStepNumber: (hasTeams, isOAuth) => 1 + (hasTeams ? 1 : 0) + (isOAuth ? 1 : 0),
   },
-  [CONFIGURE_STEP]: {
+  [AppOnboardingSteps.CONFIGURE_STEP]: {
     getTitle: (appName) => `Configure ${appName}`,
     getDescription: () => "Finalise the App setup. You can change these settings later.",
     getStepNumber: (hasTeams, isOAuth) => 2 + (hasTeams ? 1 : 0) + (isOAuth ? 1 : 0),
@@ -88,16 +91,11 @@ type OnboardingPageProps = {
   personalAccount: PersonalAccountProps;
   eventTypes?: EventTypeProp[];
   teamId?: number;
+  eventTypeId?: number;
   userName: string;
   hasEventTypes: boolean;
   configureEventType: ConfigureEventTypeProp | null;
   credentialId?: number;
-};
-
-const getRedirectUrl = (slug: string, step: StepType, teamId?: number, eventTypeId?: number) => {
-  return `/apps/onboarding/${step}?slug=${slug}${teamId ? `&teamId=${teamId}` : ""}${
-    eventTypeId ? `&eventTypeId=${eventTypeId}` : ""
-  }`;
 };
 
 const OnboardingPage = ({
@@ -108,6 +106,7 @@ const OnboardingPage = ({
   appMetadata,
   eventTypes,
   teamId,
+  eventTypeId,
   userName,
   hasEventTypes,
   configureEventType,
@@ -164,10 +163,13 @@ const OnboardingPage = ({
       showToast(message ? t(message) : t(err.message), "error");
     },
   });
+
   const handleSelectAccount = ({ id: teamId }: onSelectParams) => {
     setIsSelectingAccount(true);
     if (appMetadata.isOAuth) {
-      router.push(getRedirectUrl(appMetadata.slug, OAUTH_STEP, teamId));
+      router.push(
+        getAppOnboardingUrl({ slug: appMetadata.slug, step: AppOnboardingSteps.OAUTH_STEP, teamId })
+      );
       return;
     }
 
@@ -181,7 +183,11 @@ const OnboardingPage = ({
         router.push(
           !hasEventTypes
             ? getInstalledAppPath({ slug: appMetadata.slug, variant: appMetadata.variant })
-            : getRedirectUrl(appMetadata.slug, EVENT_TYPES_STEP, teamId)
+            : getAppOnboardingUrl({
+                slug: appMetadata.slug,
+                step: AppOnboardingSteps.EVENT_TYPES_STEP,
+                teamId,
+              })
         );
       })
       .catch(() => setIsSelectingAccount(false));
@@ -189,7 +195,14 @@ const OnboardingPage = ({
 
   const handleSelectEventType = (id: number) => {
     if (hasEventTypes) {
-      router.push(getRedirectUrl(appMetadata.slug, CONFIGURE_STEP, teamId, id));
+      router.push(
+        getAppOnboardingUrl({
+          slug: appMetadata.slug,
+          step: AppOnboardingSteps.CONFIGURE_STEP,
+          teamId: teamId,
+          eventTypeId: id,
+        })
+      );
       return;
     }
     router.push(`/apps/installed`);
@@ -202,6 +215,7 @@ const OnboardingPage = ({
       const state = JSON.stringify({
         returnToOnboarding: hasEventTypes,
         teamId: teamId,
+        eventTypeId: eventTypeId,
       });
 
       const res = await fetch(
@@ -265,7 +279,7 @@ const OnboardingPage = ({
                 disableNavigation
               />
             </StepHeader>
-            {step === ACCOUNTS_STEP && (
+            {step === AppOnboardingSteps.ACCOUNTS_STEP && (
               <AccountsStepCard
                 teams={teams}
                 personalAccount={personalAccount}
@@ -273,7 +287,7 @@ const OnboardingPage = ({
                 loading={isSelectingAccount}
               />
             )}
-            {step === OAUTH_STEP && (
+            {step === AppOnboardingSteps.OAUTH_STEP && (
               <OAuthStepCard
                 description={appMetadata.description}
                 name={appMetadata.name}
@@ -282,14 +296,14 @@ const OnboardingPage = ({
                 isLoading={isLoadingOAuth}
               />
             )}
-            {step === EVENT_TYPES_STEP && eventTypes && Boolean(eventTypes?.length) && (
+            {step === AppOnboardingSteps.EVENT_TYPES_STEP && eventTypes && Boolean(eventTypes?.length) && (
               <EventTypesStepCard
                 eventTypes={eventTypes}
                 onSelect={handleSelectEventType}
                 userName={userName}
               />
             )}
-            {step === CONFIGURE_STEP && configureEventType && (
+            {step === AppOnboardingSteps.CONFIGURE_STEP && configureEventType && (
               // Find solution for this, should not have to use FormProvider
               <FormProvider {...methods}>
                 <ConfigureStepCard
@@ -480,20 +494,20 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     }
 
     switch (parsedStepParam) {
-      case ACCOUNTS_STEP:
+      case AppOnboardingSteps.ACCOUNTS_STEP:
         if (!hasTeams) {
           throw new Error(ERROR_MESSAGES.userWithoutTeams);
         }
         break;
 
-      case EVENT_TYPES_STEP:
+      case AppOnboardingSteps.EVENT_TYPES_STEP:
         if (!hasEventTypes) {
           throw new Error(ERROR_MESSAGES.appNotExtendsEventType);
         }
         eventTypes = await getEventTypes(user.id, parsedTeamIdParam);
         break;
 
-      case CONFIGURE_STEP:
+      case AppOnboardingSteps.CONFIGURE_STEP:
         if (!hasEventTypes) {
           throw new Error(ERROR_MESSAGES.appNotExtendsEventType);
         }
@@ -503,7 +517,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         configureEventType = await getEventTypeById(parsedEventTypeIdParam);
         break;
 
-      case OAUTH_STEP:
+      case AppOnboardingSteps.OAUTH_STEP:
         if (!appMetadata.isOAuth) {
           throw new Error(ERROR_MESSAGES.appNotOAuth);
         }
@@ -537,6 +551,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         personalAccount,
         eventTypes,
         teamId: parsedTeamIdParam ?? null,
+        eventTypeId: parsedEventTypeIdParam ?? null,
         userName: user.username,
         hasEventTypes,
         configureEventType,

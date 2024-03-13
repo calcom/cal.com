@@ -11,6 +11,7 @@ export type IntegrationOAuthCallbackState = {
   fromApp: boolean;
   installGoogleVideo?: boolean;
   teamId?: number;
+  eventTypeId?: number;
   returnToOnboarding?: boolean;
 };
 
