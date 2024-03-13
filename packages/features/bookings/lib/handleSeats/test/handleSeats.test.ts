@@ -187,7 +187,9 @@ describe("handleSeats", () => {
         body: mockBookingData,
       });
 
-      await handleNewBooking(req);
+      const createdBooking = await handleNewBooking(req);
+
+      expect(createdBooking.metadata).toHaveProperty("videoCallUrl");
 
       const handleSeatsCall = spy.mock.calls[0][0];
 

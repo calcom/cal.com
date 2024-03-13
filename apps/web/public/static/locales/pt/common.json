@@ -2265,6 +2265,7 @@
   "field_identifiers_as_variables": "Utilize identificadores de campo como variáveis para o seu redirecionamento de evento personalizado",
   "field_identifiers_as_variables_with_example": "Utilize identificadores de campo como variáveis para o seu redirecionamento de evento personalizado (ex.: {{variable}})",
   "account_already_linked": "A conta já está vinculada",
+  "privacy": "Privacidade",
   "primary": "Primário",
   "make_primary": "Tornar primário",
   "add_email": "Adicionar e-mail",
