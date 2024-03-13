@@ -299,9 +299,8 @@ describe("Invite Member Utils", () => {
       email: "testuser@example.com",
       profiles: [],
     };
-    const isOrg = false;
 
-    it("should not throw when inviting to an organization's team an existing org user", () => {
+    it("should return true when inviting to an organization's team an existing org user", () => {
       const inviteeWithOrg: UserWithMembership = {
         ...invitee,
         profiles: [getSampleProfile({ organizationId: 2 })],
@@ -310,10 +309,10 @@ describe("Invite Member Utils", () => {
         ...mockedRegularTeam,
         parentId: 2,
       };
-      expect(() => canBeInvited(inviteeWithOrg, teamWithOrg)).not.toThrow();
+      expect(canBeInvited(inviteeWithOrg, teamWithOrg)).toBe(true);
     });
 
-    it("should throw a TRPCError when inviting a user who is already a member of the team", () => {
+    it("should return false when inviting a user who is already a member of the team", () => {
       const inviteeWithOrg: UserWithMembership = {
         ...invitee,
         profiles: [getSampleProfile()],
@@ -323,15 +322,15 @@ describe("Invite Member Utils", () => {
         ...mockedRegularTeam,
         id: 1,
       };
-      expect(() => canBeInvited(inviteeWithOrg, teamWithOrg)).toThrow(TRPCError);
+      expect(canBeInvited(inviteeWithOrg, teamWithOrg)).toBe(false);
     });
 
-    it("should not throw any error if the invitee already exists in Cal.com and is being invited to an organization", () => {
-      expect(() => canBeInvited(invitee, mockedRegularTeam)).not.toThrow();
+    it("should return true if the invitee already exists in Cal.com and is being invited to an organization", () => {
+      expect(canBeInvited(invitee, mockedRegularTeam)).toBe(true);
     });
 
-    it("should not throw an error if the invitee does not already belong to another organization and is not being invited to an organization", () => {
-      expect(() => canBeInvited(invitee, mockedRegularTeam)).not.toThrow();
+    it("should return true if the invitee does not already belong to another organization and is not being invited to an organization", () => {
+      expect(canBeInvited(invitee, mockedRegularTeam)).toBe(true);
     });
   });
   describe("shouldAutoJoinIfInOrg", () => {

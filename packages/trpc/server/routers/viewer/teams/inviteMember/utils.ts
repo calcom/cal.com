@@ -103,11 +103,6 @@ export async function getUsernameOrEmailsToInvite(usernameOrEmail: string | stri
 export function canBeInvited(invitee: UserWithMembership, team: TeamWithParent) {
   const alreadyInvited = invitee.teams?.find(({ teamId: membershipTeamId }) => team.id === membershipTeamId);
   if (alreadyInvited) {
-    // throw new TRPCError({
-    //   code: "BAD_REQUEST",
-    //   message: `${invitee.email} has already been invited.`,
-    // });
-
     return false;
   }
 
@@ -123,10 +118,6 @@ export function canBeInvited(invitee: UserWithMembership, team: TeamWithParent) 
   // user invited to join a team inside an org, but has not accepted invite to org yet
   if (team.parentId && orgMembership && !orgMembership.accepted) {
     return false;
-    // throw new TRPCError({
-    //   code: "FORBIDDEN",
-    //   message: `User ${invitee.username} needs to accept the invitation to join your organization first.`,
-    // });
   }
 
   // user is invited to join a team in an organization where he isn't a member
@@ -134,10 +125,6 @@ export function canBeInvited(invitee: UserWithMembership, team: TeamWithParent) 
     !ENABLE_PROFILE_SWITCHER &&
     invitee.profiles.find((profile) => profile.organizationId != team.parentId)
   ) {
-    // throw new TRPCError({
-    //   code: "FORBIDDEN",
-    //   message: `User ${invitee.username} is already a member of another organization.`,
-    // });
     return false;
   }
   return true;
