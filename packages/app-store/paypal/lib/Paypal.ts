@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 import z from "zod";
 
 import { IS_PRODUCTION, WEBAPP_URL } from "@calcom/lib/constants";
+import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 
 class Paypal {
@@ -204,7 +205,7 @@ class Paypal {
       const result = await response.json();
       return result.id as string;
     } catch (e) {
-      console.error(e);
+      logger.error(e);
     }
 
     return false;
