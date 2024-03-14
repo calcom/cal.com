@@ -1,6 +1,7 @@
 import type { NextApiRequest } from "next";
 
 import { defaultResponder } from "@calcom/lib/server";
+import prisma from "@calcom/prisma";
 
 import { schemaQueryIdAsString } from "~/lib/validations/shared/queryIdString";
 
@@ -36,7 +37,7 @@ import { schemaQueryIdAsString } from "~/lib/validations/shared/queryIdString";
  *        description: Authorization information is missing or invalid.
  */
 export async function deleteHandler(req: NextApiRequest) {
-  const { prisma, query } = req;
+  const { query } = req;
   const { id } = schemaQueryIdAsString.parse(query);
   await prisma.webhook.delete({ where: { id } });
   return { message: `Webhook with id: ${id} deleted successfully` };

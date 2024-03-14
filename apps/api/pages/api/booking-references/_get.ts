@@ -2,6 +2,7 @@ import type { Prisma } from "@prisma/client";
 import type { NextApiRequest } from "next";
 
 import { defaultResponder } from "@calcom/lib/server";
+import prisma from "@calcom/prisma";
 
 import { schemaBookingReferenceReadPublic } from "~/lib/validations/booking-reference";
 
@@ -29,7 +30,7 @@ import { schemaBookingReferenceReadPublic } from "~/lib/validations/booking-refe
  *         description: No booking references were found
  */
 async function getHandler(req: NextApiRequest) {
-  const { userId, isAdmin, prisma } = req;
+  const { userId, isAdmin } = req;
   const args: Prisma.BookingReferenceFindManyArgs = isAdmin ? {} : { where: { booking: { userId } } };
   const data = await prisma.bookingReference.findMany(args);
   return { booking_references: data.map((br) => schemaBookingReferenceReadPublic.parse(br)) };
