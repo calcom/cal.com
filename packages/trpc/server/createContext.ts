@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { GetServerSidePropsContext, NextApiRequest, NextApiResponse } from "next";
 import type { Session } from "next-auth";
-import type { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import getIP from "@calcom/lib/getIP";
@@ -37,7 +36,6 @@ export type CreateInnerContextOptions = {
         selectedCalendars?: Partial<SelectedCalendar>[];
         rawAvatar?: string;
       };
-  i18n?: Awaited<ReturnType<typeof serverSideTranslations>>;
 } & Partial<CreateContextOptions>;
 
 export type GetSessionFn =
@@ -85,7 +83,6 @@ export const createContext = async ({ req, res }: CreateContextOptions, sessionG
 
 export type TRPCContext = Awaited<ReturnType<typeof createContext>>;
 export type TRPCContextInner = Awaited<ReturnType<typeof createContextInner>>;
-export type WithLocale<T extends TRPCContext = any> = T &
-  Required<Pick<CreateInnerContextOptions, "i18n" | "locale">>;
+export type WithLocale<T extends TRPCContext = any> = T & Required<Pick<CreateInnerContextOptions, "locale">>;
 export type WithSession<T extends TRPCContext = any> = T &
   Required<Pick<CreateInnerContextOptions, "session">>;

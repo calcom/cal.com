@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import type { AnyRouter } from "@trpc/server";
+import type { AnyTRPCRouter } from "@trpc/server";
 import { createNextApiHandler as _createNextApiHandler } from "@trpc/server/adapters/next";
 
 import { createContext as createTrpcContext } from "./createContext";
@@ -8,7 +8,7 @@ import { createContext as createTrpcContext } from "./createContext";
 /**
  * Creates an API handler executed by Next.js.
  */
-export function createNextApiHandler(router: AnyRouter, isPublic = false, namespace = "") {
+export function createNextApiHandler(router: AnyTRPCRouter, isPublic = false, namespace = "") {
   return _createNextApiHandler({
     router,
     /**

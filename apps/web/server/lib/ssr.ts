@@ -62,7 +62,7 @@ export async function ssrInit(context: GetServerSidePropsContext, options?: { no
   const ssr = createServerSideHelpers({
     router: routerSlice,
     transformer: superjson,
-    ctx: { ...ctx, locale, i18n },
+    ctx: { ...ctx, locale },
   });
 
   // i18n translations are already retrieved from serverSideTranslations call, there is no need to run a i18n.fetch

@@ -14,4 +14,7 @@ export const appRouter = router({
   viewer: viewerRouter,
 });
 
-export type AppRouter = typeof appRouter;
+type AppRouterType = typeof appRouter;
+/** @see https://github.com/trpc/trpc/issues/2568#issuecomment-1264683718 */
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface AppRouter extends AppRouterType {}

@@ -66,6 +66,7 @@ export const TrpcProvider: React.FC<{ children: React.ReactNode; dehydratedState
               ENDPOINTS.map((endpoint) => [
                 endpoint,
                 httpLink({
+                  transformer: superjson,
                   url: `${url}/${endpoint}`,
                 })(runtime),
               ])
@@ -78,6 +79,7 @@ export const TrpcProvider: React.FC<{ children: React.ReactNode; dehydratedState
               ENDPOINTS.map((endpoint) => [
                 endpoint,
                 httpBatchLink({
+                  transformer: superjson,
                   url: `${url}/${endpoint}`,
                 })(runtime),
               ])
@@ -86,7 +88,6 @@ export const TrpcProvider: React.FC<{ children: React.ReactNode; dehydratedState
           },
         }),
       ],
-      transformer: superjson,
     })
   );
 
