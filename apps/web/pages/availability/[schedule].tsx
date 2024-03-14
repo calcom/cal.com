@@ -1,6 +1,6 @@
 import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { Controller, useFieldArray, useForm } from "react-hook-form";
+import { useMemo, useState } from "react";
+import { Controller, useFieldArray, useForm, useWatch } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
 import { DateOverrideInputDialog, DateOverrideList } from "@calcom/features/schedules";
@@ -8,6 +8,7 @@ import Schedule from "@calcom/features/schedules/components/Schedule";
 import Shell from "@calcom/features/shell/Shell";
 import { classNames } from "@calcom/lib";
 import { availabilityAsString } from "@calcom/lib/availability";
+import { withErrorFromUnknown } from "@calcom/lib/getClientErrorFromUnknown";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
@@ -29,13 +30,13 @@ import {
   Tooltip,
   VerticalDivider,
 } from "@calcom/ui";
-import { Info, MoreVertical, ArrowLeft, Plus, Trash } from "@calcom/ui/components/icon";
+import { ArrowLeft, Info, MoreVertical, Plus, Trash } from "@calcom/ui/components/icon";
 
 import PageWrapper from "@components/PageWrapper";
 import { SelectSkeletonLoader } from "@components/availability/SkeletonLoader";
 import EditableHeading from "@components/ui/EditableHeading";
 
-type AvailabilityFormValues = {
+export type AvailabilityFormValues = {
   name: string;
   schedule: ScheduleType;
   dateOverrides: { ranges: TimeRange[] }[];
@@ -43,11 +44,29 @@ type AvailabilityFormValues = {
   isDefault: boolean;
 };
 
+const useExcludedDates = () => {
+  const watchValues = useWatch<AvailabilityFormValues>({ name: "dateOverrides" }) as {
+    ranges: TimeRange[];
+  }[];
+  return useMemo(() => {
+    return watchValues?.map((field) => dayjs(field.ranges[0].start).utc().format("YYYY-MM-DD"));
+  }, [watchValues]);
+};
+
+const useSettings = () => {
+  const { data } = useMeQuery();
+  return {
+    hour12: data?.timeFormat === 12,
+    timeZone: data?.timeZone,
+  };
+};
+
 const DateOverride = ({ workingHours }: { workingHours: WorkingHours[] }) => {
-  const { remove, append, replace, fields } = useFieldArray<AvailabilityFormValues, "dateOverrides">({
+  const { hour12 } = useSettings();
+  const { append, replace, fields } = useFieldArray<AvailabilityFormValues, "dateOverrides">({
     name: "dateOverrides",
   });
-  const excludedDates = fields.map((field) => dayjs(field.ranges[0].start).utc().format("YYYY-MM-DD"));
+  const excludedDates = useExcludedDates();
   const { t } = useLocale();
   return (
     <div className="p-6">
@@ -62,10 +81,10 @@ const DateOverride = ({ workingHours }: { workingHours: WorkingHours[] }) => {
       <p className="text-subtle mb-4 text-sm">{t("date_overrides_subtitle")}</p>
       <div className="space-y-2">
         <DateOverrideList
-          excludedDates={excludedDates}
-          remove={remove}
+          hour12={hour12}
           replace={replace}
-          items={fields}
+          fields={fields}
+          excludedDates={excludedDates}
           workingHours={workingHours}
         />
         <DateOverrideInputDialog
@@ -83,11 +102,85 @@ const DateOverride = ({ workingHours }: { workingHours: WorkingHours[] }) => {
   );
 };
 
+const DeleteDialogButton = ({
+  disabled,
+  scheduleId,
+  buttonClassName,
+  onDeleteConfirmed,
+}: {
+  disabled?: boolean;
+  onDeleteConfirmed?: () => void;
+  buttonClassName: string;
+  scheduleId: number;
+}) => {
+  const { t } = useLocale();
+  const router = useRouter();
+  const utils = trpc.useUtils();
+  const { isPending, mutate } = trpc.viewer.availability.schedule.delete.useMutation({
+    onError: withErrorFromUnknown((err) => {
+      showToast(err.message, "error");
+    }),
+    onSettled: () => {
+      utils.viewer.availability.list.invalidate();
+    },
+    onSuccess: () => {
+      showToast(t("schedule_deleted_successfully"), "success");
+      router.push("/availability");
+    },
+  });
+
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button
+          StartIcon={Trash}
+          variant="icon"
+          color="destructive"
+          aria-label={t("delete")}
+          className={buttonClassName}
+          disabled={disabled}
+          tooltip={disabled ? t("requires_at_least_one_schedule") : t("delete")}
+        />
+      </DialogTrigger>
+      <ConfirmationDialogContent
+        isPending={isPending}
+        variety="danger"
+        title={t("delete_schedule")}
+        confirmBtnText={t("delete")}
+        loadingText={t("delete")}
+        onConfirm={() => {
+          scheduleId && mutate({ scheduleId });
+          onDeleteConfirmed?.();
+        }}>
+        {t("delete_schedule_description")}
+      </ConfirmationDialogContent>
+    </Dialog>
+  );
+};
+
+// Simplify logic by assuming this will never be opened on a large screen
+const SmallScreenSideBar = ({ open, children }: { open: boolean; children: JSX.Element }) => {
+  return (
+    <div
+      className={classNames(
+        open
+          ? "fadeIn fixed inset-0 z-50 bg-neutral-800 bg-opacity-70 transition-opacity dark:bg-opacity-70 sm:hidden"
+          : ""
+      )}>
+      <div
+        className={classNames(
+          "bg-default fixed right-0 z-20 flex h-screen w-80 flex-col space-y-2 overflow-x-hidden rounded-md px-2 pb-3 transition-transform",
+          open ? "translate-x-0 opacity-100" : "translate-x-full opacity-0"
+        )}>
+        {open ? children : null}
+      </div>
+    </div>
+  );
+};
 export default function Availability() {
   const searchParams = useCompatSearchParams();
   const { t, i18n } = useLocale();
-  const router = useRouter();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const me = useMeQuery();
   const scheduleId = searchParams?.get("schedule") ? Number(searchParams.get("schedule")) : -1;
   const fromEventType = searchParams?.get("fromEventType");
@@ -133,22 +226,6 @@ export default function Availability() {
     },
   });
 
-  const deleteMutation = trpc.viewer.availability.schedule.delete.useMutation({
-    onError: (err) => {
-      if (err instanceof HttpError) {
-        const message = `${err.statusCode}: ${err.message}`;
-        showToast(message, "error");
-      }
-    },
-    onSettled: () => {
-      utils.viewer.availability.list.invalidate();
-    },
-    onSuccess: () => {
-      showToast(t("schedule_deleted_successfully"), "success");
-      router.push("/availability");
-    },
-  });
-
   return (
     <Shell
       backPath={fromEventType ? true : "/availability"}
@@ -179,88 +256,58 @@ export default function Availability() {
       CTA={
         <div className="flex items-center justify-end">
           <div className="sm:hover:bg-muted hidden items-center rounded-md px-2 sm:flex">
-            <Skeleton
-              as={Label}
-              htmlFor="hiddenSwitch"
-              className="mt-2 cursor-pointer self-center pe-2"
-              loadingClassName="me-4">
-              {t("set_to_default")}
-            </Skeleton>
-            <Switch
-              id="hiddenSwitch"
-              disabled={isPending || schedule?.isDefault}
-              checked={form.watch("isDefault")}
-              onCheckedChange={(e) => {
-                form.setValue("isDefault", e);
-              }}
-            />
+            {!openSidebar ? (
+              <>
+                <Skeleton
+                  as={Label}
+                  htmlFor="hiddenSwitch"
+                  className="mt-2 cursor-pointer self-center pe-2"
+                  loadingClassName="me-4">
+                  {t("set_to_default")}
+                </Skeleton>
+                <Controller
+                  control={form.control}
+                  name="isDefault"
+                  render={({ field: { value, onChange } }) => (
+                    <Switch
+                      id="hiddenSwitch"
+                      disabled={isPending || schedule?.isDefault}
+                      checked={value}
+                      onCheckedChange={onChange}
+                    />
+                  )}
+                />
+              </>
+            ) : null}
           </div>
 
           <VerticalDivider className="hidden sm:inline" />
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button
-                StartIcon={Trash}
-                variant="icon"
-                color="destructive"
-                aria-label={t("delete")}
-                className="hidden sm:inline"
-                disabled={schedule?.isLastSchedule}
-                tooltip={schedule?.isLastSchedule ? t("requires_at_least_one_schedule") : t("delete")}
-              />
-            </DialogTrigger>
-            <ConfirmationDialogContent
-              isPending={deleteMutation.isPending}
-              variety="danger"
-              title={t("delete_schedule")}
-              confirmBtnText={t("delete")}
-              loadingText={t("delete")}
-              onConfirm={() => {
-                scheduleId && deleteMutation.mutate({ scheduleId });
-              }}>
-              {t("delete_schedule_description")}
-            </ConfirmationDialogContent>
-          </Dialog>
+          <DeleteDialogButton
+            buttonClassName="hidden sm:inline"
+            scheduleId={scheduleId}
+            disabled={schedule?.isLastSchedule}
+          />
           <VerticalDivider className="hidden sm:inline" />
-          <div
-            className={classNames(
-              openSidebar
-                ? "fadeIn fixed inset-0 z-50 bg-neutral-800 bg-opacity-70 transition-opacity dark:bg-opacity-70 sm:hidden"
-                : ""
-            )}>
-            <div
-              className={classNames(
-                "bg-default fixed right-0 z-20 flex h-screen w-80 flex-col space-y-2 overflow-x-hidden rounded-md px-2 pb-3 transition-transform",
-                openSidebar ? "translate-x-0 opacity-100" : "translate-x-full opacity-0"
-              )}>
+
+          <SmallScreenSideBar open={openSidebar}>
+            <>
               <div className="flex flex-row items-center pt-5">
-                <Button StartIcon={ArrowLeft} color="minimal" onClick={() => setOpenSidebar(false)} />
+                <Button
+                  StartIcon={ArrowLeft}
+                  color="minimal"
+                  onClick={() => {
+                    setOpenSidebar(false);
+                  }}
+                />
                 <p className="-ml-2">{t("availability_settings")}</p>
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button
-                      StartIcon={Trash}
-                      variant="icon"
-                      color="destructive"
-                      aria-label={t("delete")}
-                      className="ml-16 inline"
-                      disabled={schedule?.isLastSchedule}
-                      tooltip={schedule?.isLastSchedule ? t("requires_at_least_one_schedule") : t("delete")}
-                    />
-                  </DialogTrigger>
-                  <ConfirmationDialogContent
-                    isPending={deleteMutation.isPending}
-                    variety="danger"
-                    title={t("delete_schedule")}
-                    confirmBtnText={t("delete")}
-                    loadingText={t("delete")}
-                    onConfirm={() => {
-                      scheduleId && deleteMutation.mutate({ scheduleId });
-                      setOpenSidebar(false);
-                    }}>
-                    {t("delete_schedule_description")}
-                  </ConfirmationDialogContent>
-                </Dialog>
+                <DeleteDialogButton
+                  buttonClassName="ml-16 inline"
+                  scheduleId={scheduleId}
+                  disabled={schedule?.isLastSchedule}
+                  onDeleteConfirmed={() => {
+                    setOpenSidebar(false);
+                  }}
+                />
               </div>
               <div className="flex flex-col px-2 py-2">
                 <Skeleton as={Label}>{t("name")}</Skeleton>
@@ -275,6 +322,7 @@ export default function Availability() {
                   )}
                 />
               </div>
+
               <div className="flex h-9 flex-row-reverse items-center justify-end gap-3 px-2">
                 <Skeleton
                   as={Label}
@@ -282,13 +330,17 @@ export default function Availability() {
                   className="mt-2 cursor-pointer self-center pr-2 sm:inline">
                   {t("set_to_default")}
                 </Skeleton>
-                <Switch
-                  id="hiddenSwitch"
-                  disabled={isPending || schedule?.isDefault}
-                  checked={form.watch("isDefault")}
-                  onCheckedChange={(e) => {
-                    form.setValue("isDefault", e);
-                  }}
+                <Controller
+                  control={form.control}
+                  name="isDefault"
+                  render={({ field: { value, onChange } }) => (
+                    <Switch
+                      id="hiddenSwitch"
+                      disabled={isPending || value}
+                      checked={value}
+                      onCheckedChange={onChange}
+                    />
+                  )}
                 />
               </div>
 
@@ -331,8 +383,9 @@ export default function Availability() {
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
+            </>
+          </SmallScreenSideBar>
+
           <div className="border-default border-l-2" />
           <Button
             className="ml-4 lg:ml-0"

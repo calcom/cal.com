@@ -3,6 +3,7 @@ import type { NextApiRequest } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
+import prisma from "@calcom/prisma";
 
 import {
   membershipEditBodySchema,
@@ -39,7 +40,7 @@ import {
  *        description: Authorization information is missing or invalid.
  */
 export async function patchHandler(req: NextApiRequest) {
-  const { prisma, query } = req;
+  const { query } = req;
   const userId_teamId = membershipIdSchema.parse(query);
   const data = membershipEditBodySchema.parse(req.body);
   const args: Prisma.MembershipUpdateArgs = { where: { userId_teamId }, data };
@@ -51,7 +52,7 @@ export async function patchHandler(req: NextApiRequest) {
 }
 
 async function checkPermissions(req: NextApiRequest) {
-  const { userId, isAdmin, prisma } = req;
+  const { userId, isAdmin } = req;
   const { userId: queryUserId, teamId } = membershipIdSchema.parse(req.query);
   const data = membershipEditBodySchema.parse(req.body);
   // Admins can just skip this check

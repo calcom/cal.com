@@ -1,6 +1,7 @@
 import type { NextApiRequest } from "next";
 
 import { defaultResponder } from "@calcom/lib/server";
+import prisma from "@calcom/prisma";
 
 import { schemaBookingReferenceReadPublic } from "~/lib/validations/booking-reference";
 import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransformParseInt";
@@ -35,7 +36,7 @@ import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransform
  *         description: BookingReference was not found
  */
 export async function getHandler(req: NextApiRequest) {
-  const { prisma, query } = req;
+  const { query } = req;
   const { id } = schemaQueryIdParseInt.parse(query);
   const booking_reference = await prisma.bookingReference.findUniqueOrThrow({ where: { id } });
   return { booking_reference: schemaBookingReferenceReadPublic.parse(booking_reference) };

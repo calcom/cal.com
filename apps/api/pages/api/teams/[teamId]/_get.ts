@@ -2,6 +2,7 @@ import type { Prisma } from "@prisma/client";
 import type { NextApiRequest } from "next";
 
 import { defaultResponder } from "@calcom/lib/server";
+import prisma from "@calcom/prisma";
 
 import { schemaQueryTeamId } from "~/lib/validations/shared/queryTeamId";
 import { schemaTeamReadPublic } from "~/lib/validations/team";
@@ -36,7 +37,7 @@ import { schemaTeamReadPublic } from "~/lib/validations/team";
  *         description: Team was not found
  */
 export async function getHandler(req: NextApiRequest) {
-  const { prisma, isAdmin, userId } = req;
+  const { isAdmin, userId } = req;
   const { teamId } = schemaQueryTeamId.parse(req.query);
   const where: Prisma.TeamWhereInput = { id: teamId };
   // Non-admins can only query the teams they're part of
