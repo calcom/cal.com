@@ -245,8 +245,6 @@ const OnboardingPage = ({
         metadata,
       });
     }
-    // console.log("SAVE THIS DATA IN EVENT TYPE", data);
-    // redirect to event type settings, advanced tab -> apps
     return;
   };
 

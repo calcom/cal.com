@@ -250,7 +250,6 @@ export const AppPage = ({
               teamsPlanRequired={teamsPlanRequired}
               render={({ useDefaultComponent, ...props }) => {
                 if (useDefaultComponent) {
-                  console.log("useDefaultComponent22: ", useDefaultComponent);
                   props = {
                     ...props,
                     onClick: () => {

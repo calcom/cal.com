@@ -64,7 +64,6 @@ export const InstallAppButtonChild = ({
   const redirectToAppOnboarding = hasEventTypes || isOAuth;
 
   const _onClick = (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
-    console.log("__onClick_onClick_onClickonClick: ");
     if (redirectToAppOnboarding) {
       router.push(
         getAppOnboardingUrl({ slug: addAppMutationInput.slug, step: AppOnboardingSteps.ACCOUNTS_STEP })
