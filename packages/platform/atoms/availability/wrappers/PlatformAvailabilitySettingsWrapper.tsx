@@ -94,7 +94,14 @@ export const PlatformAvailabilitySettingsWrapper = ({
   };
 
   const handleUpdate = async (id: number, body: AvailabilityFormValues) => {
-    await updateSchedule({ scheduleId: id, ...body });
+    const transformedDateOverrides = body.dateOverrides[0].ranges.map((range) => {
+      return {
+        start: range.start,
+        end: range.end,
+      };
+    });
+
+    await updateSchedule({ ...body, scheduleId: id, dateOverrides: transformedDateOverrides });
   };
 
   if (isLoading) return <div className="px-10 py-4 text-xl">Loading...</div>;
