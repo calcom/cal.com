@@ -186,13 +186,13 @@ export async function getUsersToInvite({
 
 export function getOrgConnectionInfo({
   orgAutoAcceptDomain,
-  orgVerified,
+  orgConfigured,
   isOrg,
   usersEmail,
   team,
 }: {
   orgAutoAcceptDomain?: string | null;
-  orgVerified?: boolean | null;
+  orgConfigured?: boolean | null;
   usersEmail: string;
   team: TeamWithParent;
   isOrg: boolean;
@@ -203,7 +203,7 @@ export function getOrgConnectionInfo({
   if (team.parentId || isOrg) {
     orgId = team.parentId || team.id;
     if (usersEmail.split("@")[1] == orgAutoAcceptDomain) {
-      autoAccept = orgVerified ?? true;
+      autoAccept = orgConfigured ?? true;
     } else {
       orgId = undefined;
       autoAccept = false;
@@ -421,19 +421,21 @@ export function getIsOrgVerified(
     return {
       isInOrgScope: true,
       orgVerified: team.organizationSettings.isOrganizationVerified,
+      orgConfigured: team.organizationSettings.isOrganizationConfigured,
       autoAcceptEmailDomain: team.organizationSettings.orgAutoAcceptEmail,
     };
   } else if (parentSettings?.orgAutoAcceptEmail) {
     return {
       isInOrgScope: true,
       orgVerified: parentSettings.isOrganizationVerified,
+      orgConfigured: parentSettings.isOrganizationConfigured,
       autoAcceptEmailDomain: parentSettings.orgAutoAcceptEmail,
     };
   }
 
   return {
     isInOrgScope: false,
-  } as { isInOrgScope: false; orgVerified: never; autoAcceptEmailDomain: never };
+  } as { isInOrgScope: false; orgVerified: never; autoAcceptEmailDomain: never; orgConfigured: never };
 }
 
 export function getAutoJoinStatus({

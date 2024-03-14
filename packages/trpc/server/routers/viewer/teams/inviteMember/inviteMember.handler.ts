@@ -60,14 +60,14 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
     isOrg,
   });
 
-  const { autoAcceptEmailDomain, orgVerified } = getIsOrgVerified(isOrg, team);
+  const { autoAcceptEmailDomain, orgConfigured } = getIsOrgVerified(isOrg, team);
 
   const usernameOrEmailsToInvite = await getUsernameOrEmailsToInvite(input.usernameOrEmail);
   const orgConnectInfoByUsernameOrEmail = usernameOrEmailsToInvite.reduce((acc, usernameOrEmail) => {
     return {
       ...acc,
       [usernameOrEmail]: getOrgConnectionInfo({
-        orgVerified,
+        orgConfigured,
         orgAutoAcceptDomain: autoAcceptEmailDomain,
         usersEmail: usernameOrEmail,
         team,
