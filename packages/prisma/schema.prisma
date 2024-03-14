@@ -1151,19 +1151,21 @@ model OutOfOfficeEntry {
 }
 
 model DSyncData {
-  id             Int                   @id @default(autoincrement())
-  directoryId    String
-  tenant         String
-  organizationId Int?                  @unique
-  org            OrganizationSettings? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  id               Int                     @id @default(autoincrement())
+  directoryId      String                  @unique
+  tenant           String
+  organizationId   Int?                    @unique
+  org              OrganizationSettings?   @relation(fields: [organizationId], references: [organizationId], onDelete: Cascade)
+  teamGroupMapping DSyncTeamGroupMapping[]
 }
 
 model DSyncTeamGroupMapping {
-  id             Int    @id @default(autoincrement())
+  id             Int       @id @default(autoincrement())
   organizationId Int
   teamId         Int
-  team           Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  team           Team      @relation(fields: [teamId], references: [id], onDelete: Cascade)
   directoryId    String
+  directory      DSyncData @relation(fields: [directoryId], references: [directoryId], onDelete: Cascade)
   groupName      String
 
   @@unique([teamId, groupName])

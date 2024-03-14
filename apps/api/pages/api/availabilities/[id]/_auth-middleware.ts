@@ -1,9 +1,11 @@
 import type { NextApiRequest } from "next";
 
+import prisma from "@calcom/prisma";
+
 import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransformParseInt";
 
 async function authMiddleware(req: NextApiRequest) {
-  const { userId, prisma, isAdmin, query } = req;
+  const { userId, isAdmin, query } = req;
   const { id } = schemaQueryIdParseInt.parse(query);
   /** Admins can skip the ownership verification */
   if (isAdmin) return;
