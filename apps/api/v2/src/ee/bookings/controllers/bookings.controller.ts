@@ -1,18 +1,26 @@
 import { CreateBookingInput } from "@/ee/bookings/inputs/create-booking.input";
 import { CreateReccuringBookingInput } from "@/ee/bookings/inputs/create-reccuring-booking.input";
+import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
+import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { OAuthFlowService } from "@/modules/oauth-clients/services/oauth-flow.service";
+import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import {
   Controller,
   Post,
   Logger,
   Req,
+  Get,
+  Query,
   InternalServerErrorException,
+  Param,
   Body,
   HttpException,
+  NotFoundException,
   UseGuards,
 } from "@nestjs/common";
+import { User } from "@prisma/client";
 import { Request } from "express";
 import { NextApiRequest } from "next/types";
 
@@ -24,7 +32,10 @@ import {
   handleNewRecurringBooking,
   handleInstantMeeting,
 } from "@calcom/platform-libraries";
+import { getAllUserBookings, getBookingInfo } from "@calcom/platform-libraries";
 import { ApiResponse } from "@calcom/platform-types";
+import { GetBookingsInput } from "@calcom/platform-types/bookings";
+import { PrismaClient } from "@calcom/prisma";
 
 @Controller({
   path: "ee/bookings",
@@ -34,7 +45,50 @@ import { ApiResponse } from "@calcom/platform-types";
 export class BookingsController {
   private readonly logger = new Logger("ee bookings controller");
 
-  constructor(private readonly oAuthFlowService: OAuthFlowService) {}
+  constructor(
+    private readonly oAuthFlowService: OAuthFlowService,
+    private readonly prismaReadService: PrismaReadService
+  ) {}
+
+  // note(Rajiv): currently this endpoint is atoms only
+  @Get("/")
+  @UseGuards(AccessTokenGuard)
+  async getBookings(
+    @GetUser() user: User,
+    @Query() queryParams: GetBookingsInput
+  ): Promise<ApiResponse<unknown>> {
+    const { filters, cursor, limit } = queryParams;
+    const bookings = await getAllUserBookings({
+      bookingListingByStatus: filters.status,
+      skip: cursor ?? 0,
+      take: limit ?? 10,
+      filters: filters,
+      ctx: {
+        user: { email: user.email, id: user.id },
+        prisma: this.prismaReadService.prisma as unknown as PrismaClient,
+      },
+    });
+
+    return {
+      status: SUCCESS_STATUS,
+      data: bookings,
+    };
+  }
+
+  // note(Rajiv): currently this endpoint is atoms only
+  @Get("/:bookingUid")
+  async getBooking(@Param("bookingUid") bookingUid: string): Promise<ApiResponse<unknown>> {
+    const { bookingInfo } = await getBookingInfo(bookingUid);
+
+    if (!bookingInfo) {
+      throw new NotFoundException(`Booking with UID=${bookingUid} does not exist.`);
+    }
+
+    return {
+      status: SUCCESS_STATUS,
+      data: bookingInfo,
+    };
+  }
 
   @Post("/")
   @Permissions([BOOKING_WRITE])
