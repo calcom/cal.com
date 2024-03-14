@@ -150,4 +150,114 @@ test.describe("Organization", () => {
       await expect(upgradeButtonHidden).toBeHidden();
     });
   });
+
+  test("User can create and upgrade a org", async ({ page, users, emails }) => {
+    const stringUUID = uuid();
+
+    const orgOwnerUsername = `owner-${stringUUID}`;
+
+    const targetOrgEmail = users.trackEmail({
+      username: orgOwnerUsername,
+      domain: `example.com`,
+    });
+    const orgOwnerUser = await users.create({
+      username: orgOwnerUsername,
+      email: targetOrgEmail,
+    });
+
+    await orgOwnerUser.apiLogin();
+
+    await page.goto("/settings/organizations/new");
+    await page.waitForLoadState("networkidle");
+
+    await test.step("Basic info", async () => {
+      // These values are infered due to an existing user being signed
+      expect(await page.locator("input[name=name]").inputValue()).toBe("Example");
+      expect(await page.locator("input[name=slug]").inputValue()).toBe("example");
+
+      await page.locator("button[type=submit]").click();
+      await page.waitForLoadState("networkidle");
+    });
+
+    await test.step("About the organization", async () => {
+      // Choosing an avatar
+      await page.locator('button:text("Upload")').click();
+      const fileChooserPromise = page.waitForEvent("filechooser");
+      await page.getByText("Choose a file...").click();
+      const fileChooser = await fileChooserPromise;
+      await fileChooser.setFiles(path.join(__dirname, "../../public/apple-touch-icon.png"));
+      await page.locator('button:text("Save")').click();
+
+      // About text
+      await page.locator('textarea[name="about"]').fill("This is a testing org");
+      await page.locator("button[type=submit]").click();
+
+      // Waiting to be in next step URL
+      await page.waitForURL("/settings/organizations/*/onboard-members");
+    });
+
+    await test.step("On-board administrators", async () => {
+      await page.waitForSelector('[data-testid="pending-member-list"]');
+      expect(await page.getByTestId("pending-member-item").count()).toBe(1);
+
+      const adminEmail = users.trackEmail({ username: "rick", domain: `example.com` });
+
+      //can add members
+      await page.getByTestId("new-member-button").click();
+      await page.locator('[placeholder="email\\@example\\.com"]').fill(adminEmail);
+      await page.getByTestId("invite-new-member-button").click();
+      await expect(page.locator(`li:has-text("${adminEmail}")`)).toBeVisible();
+      // TODO: Check if invited admin received the invitation email
+      // await expectInvitationEmailToBeReceived(
+      //   page,
+      //   emails,
+      //   adminEmail,
+      //   `${orgName}'s admin invited you to join the organization ${orgName} on Cal.com`
+      // );
+      await expect(page.getByTestId("pending-member-item")).toHaveCount(2);
+
+      // can remove members
+      await expect(page.getByTestId("pending-member-item")).toHaveCount(2);
+      const lastRemoveMemberButton = page.getByTestId("remove-member-button").last();
+      await lastRemoveMemberButton.click();
+      await page.waitForLoadState("networkidle");
+      await expect(page.getByTestId("pending-member-item")).toHaveCount(1);
+      await page.getByTestId("publish-button").click();
+      // Waiting to be in next step URL
+      await page.waitForURL("/settings/organizations/*/add-teams");
+    });
+
+    await test.step("Create teams", async () => {
+      // Filling one team
+      await page.locator('input[name="teams.0.name"]').fill("Marketing");
+
+      // Adding another team
+      await page.locator('button:text("Add a team")').click();
+      await page.locator('input[name="teams.1.name"]').fill("Sales");
+
+      // Finishing the creation wizard
+      await page.locator('button:text("Checkout")').click();
+    });
+
+    await test.step("Login as org owner and pay", async () => {
+      // eslint-disable-next-line playwright/no-skipped-test
+      test.skip(!IS_STRIPE_ENABLED, "Skipping paying for org as stripe is disabled");
+
+      // Check that stripe checkout is present
+      const expectedUrl = "https://checkout.stripe.com";
+
+      await page.waitForURL((url) => url.href.startsWith(expectedUrl));
+      const url = page.url();
+
+      // Check that the URL matches the expected URL
+      expect(url).toContain(expectedUrl);
+
+      await fillStripeTestCheckout(page);
+      await page.waitForLoadState("networkidle");
+
+      const upgradeButtonHidden = await page.getByTestId("upgrade_org_banner_button");
+
+      await expect(upgradeButtonHidden).toBeHidden();
+    });
+  });
 });
