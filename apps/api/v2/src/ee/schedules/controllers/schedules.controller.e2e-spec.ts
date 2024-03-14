@@ -327,7 +327,6 @@ describe("Schedules Endpoints", () => {
         .expect(200)
         .then((response: any) => {
           const responseBody: ApiSuccessResponse<UpdateScheduleOutputType> = response.body;
-          console.log("asap responseBody.data 1", JSON.stringify(responseBody.data, null, 2));
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           expect(responseBody.data).toBeDefined();
           expect(responseBody.data.schedule.id).toBeDefined();
