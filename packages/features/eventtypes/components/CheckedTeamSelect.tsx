@@ -4,7 +4,7 @@ import type { Dispatch, SetStateAction } from "react";
 import { useFormContext } from "react-hook-form";
 import type { Props } from "react-select";
 
-import type { Host } from "@calcom/features/eventtypes/lib/types";
+import type { Host, FormValues } from "@calcom/features/eventtypes/lib/types";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import {
@@ -19,7 +19,6 @@ import {
   Tooltip,
 } from "@calcom/ui";
 import { X } from "@calcom/ui/components/icon";
-import type { FormValues } from "@calcom/web/pages/event-types/[type]";
 
 export type CheckedSelectOption = {
   avatar: string;
