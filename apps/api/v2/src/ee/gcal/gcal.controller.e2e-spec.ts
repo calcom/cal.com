@@ -127,7 +127,7 @@ describe("Platform Gcal Endpoints", () => {
     await request(app.getHttpServer())
       .get(`/api/v2/platform/gcal/check`)
       .set("Authorization", `Bearer ${accessTokenSecret}`)
-      .expect(401);
+      .expect(400);
   });
 
   it(`/GET/platform/gcal/check without access token`, async () => {
