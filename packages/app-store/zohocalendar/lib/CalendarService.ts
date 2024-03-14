@@ -397,13 +397,17 @@ export default class ZohoCalendarService implements Calendar {
   }
 
   private translateEvent = (event: CalendarEvent) => {
+    const attendeeTimezone = event.attendees[0].timeZone;
     const zohoEvent = {
       title: event.title,
-      description: getRichDescription(event),
+      description: getRichDescription(event, undefined, false, true),
       dateandtime: {
-        start: dayjs(event.startTime).format("YYYYMMDDTHHmmssZZ"),
-        end: dayjs(event.endTime).format("YYYYMMDDTHHmmssZZ"),
-        timezone: event.organizer.timeZone,
+        start: dayjs(dayjs(event.startTime).tz(attendeeTimezone)).format("YYYYMMDDTHHmmssZZ"),
+        // start: dayjs(event.startTime).format("YYYYMMDDTHHmmssZZ"),
+        end: dayjs(dayjs(event.endTime).tz(attendeeTimezone)).format("YYYYMMDDTHHmmssZZ"),
+        // end: dayjs(event.endTime).format("YYYYMMDDTHHmmssZZ"),
+        timezone: attendeeTimezone,
+        // timezone: event.organizer.timeZone,
       },
       attendees: event.attendees.map((attendee) => ({ email: attendee.email })),
       isprivate: event.seatsShowAttendees,
