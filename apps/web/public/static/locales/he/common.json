@@ -1681,6 +1681,7 @@
   "meeting_url_variable": "כתובת ה-URL של הפגישה",
   "meeting_url_info": "כתובת ה-URL של שיחת הוועידה באירוע",
   "date_overrides": "חסימת תאריכים",
+  "date_overrides_delete_on_date": "מחיקת מעקפי תאריך ב־{{date}}",
   "date_overrides_subtitle": "הוסף/י תאריכים שבהם הזמינות שלך שונה משעות העבודה הרגילות שלך מדי יום.",
   "date_overrides_info": "תאריכים שסומנו למעקף מועברים לארכיון באופן אוטומטי לאחר שהתאריך חולף",
   "date_overrides_dialog_which_hours": "באילו שעות את/ה פנוי/ה?",
