@@ -33,6 +33,8 @@ export const ZUpdateInputSchema = z.object({
   weekStart: z.string().optional(),
   timeFormat: z.number().optional(),
   metadata: teamMetadataSchema.unwrap().optional(),
+  lockEventTypeCreation: z.boolean().optional(),
+  lockEventTypeCreationOptions: z.enum(["DELETE", "HIDE"]).optional(),
 });
 
 export type TUpdateInputSchema = z.infer<typeof ZUpdateInputSchema>;

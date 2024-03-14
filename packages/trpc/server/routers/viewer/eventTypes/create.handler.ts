@@ -28,6 +28,7 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
 
   const userId = ctx.user.id;
   const isManagedEventType = schedulingType === SchedulingType.MANAGED;
+  const isOrgAdmin = !!ctx.user?.organization?.isOrgAdmin;
   // Get Users default conferencing app
 
   const defaultConferencingData = userMetadataSchema.parse(ctx.user.metadata)?.defaultConferencingApp;
@@ -70,8 +71,6 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
       },
     });
 
-    const isOrgAdmin = !!ctx.user?.organization?.isOrgAdmin;
-
     if (!hasMembership?.role || !(["ADMIN", "OWNER"].includes(hasMembership.role) || isOrgAdmin)) {
       console.warn(`User ${userId} does not have permission to create this new event type`);
       throw new TRPCError({ code: "UNAUTHORIZED" });
@@ -83,6 +82,27 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
       },
     };
     data.schedulingType = schedulingType;
+  }
+
+  // If we are in an organization & they are not admin & they are not creating an event on a teamID
+  // Check if evenTypes are locked.
+  if (ctx.user.organizationId && !ctx.user?.organization?.isOrgAdmin && !teamId) {
+    const orgSettings = await ctx.prisma.organizationSettings.findUnique({
+      where: {
+        organizationId: ctx.user.organizationId,
+      },
+      select: {
+        lockEventTypeCreationForUsers: true,
+      },
+    });
+
+    const orgHasLockedEventTypes = !!orgSettings?.lockEventTypeCreationForUsers;
+    if (orgHasLockedEventTypes) {
+      console.warn(
+        `User ${userId} does not have permission to create this new event type - Locked status: ${orgHasLockedEventTypes}`
+      );
+      throw new TRPCError({ code: "UNAUTHORIZED" });
+    }
   }
 
   const profile = ctx.user.profile;
