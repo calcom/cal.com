@@ -17260,9 +17260,11 @@ __metadata:
     lint-staged: ^12.5.0
     lucide-react: ^0.171.0
     mailhog: ^4.16.0
+    next-router-mock: ^0.9.12
     node-ical: ^0.16.1
     prettier: ^2.8.6
     prismock: ^1.21.1
+    resize-observer-polyfill: ^1.5.1
     tsc-absolute: ^1.0.0
     turbo: ^1.10.1
     typescript: ^4.9.4
@@ -29791,6 +29793,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"next-router-mock@npm:^0.9.12":
+  version: 0.9.12
+  resolution: "next-router-mock@npm:0.9.12"
+  peerDependencies:
+    next: ">=10.0.0"
+    react: ">=17.0.0"
+  checksum: f630a4308686b2f6eeb1138d05ccb40dd2e6312216de1e94811403222967fd9d1ee723b2595d20bffbb1eaffce0d8e8da81983346528c6ac8334d4968338dd96
+  languageName: node
+  linkType: hard
+
 "next-seo@npm:^6.0.0":
   version: 6.1.0
   resolution: "next-seo@npm:6.1.0"
@@ -34588,6 +34600,13 @@ __metadata:
   version: 4.1.5
   resolution: "reselect@npm:4.1.5"
   checksum: 54c13c1e795b2ea70cba8384138aebe78adda00cbea303cc94b64da0a70d74c896cc9a03115ae38b8bff990e7a60dcd6452ab68cbec01b0b38c1afda70714cf0
+  languageName: node
+  linkType: hard
+
+"resize-observer-polyfill@npm:^1.5.1":
+  version: 1.5.1
+  resolution: "resize-observer-polyfill@npm:1.5.1"
+  checksum: 57e7f79489867b00ba43c9c051524a5c8f162a61d5547e99333549afc23e15c44fd43f2f318ea0261ea98c0eb3158cca261e6f48d66e1ed1cd1f340a43977094
   languageName: node
   linkType: hard
 

@@ -4,6 +4,7 @@ import type { z } from "zod";
 
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
+import prisma from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 
 import type { schemaEventTypeBaseBodyParams } from "~/lib/validations/event-type";
@@ -203,7 +204,7 @@ import checkTeamEventEditPermission from "../_utils/checkTeamEventEditPermission
  *        description: Authorization information is missing or invalid.
  */
 export async function patchHandler(req: NextApiRequest) {
-  const { prisma, query, body } = req;
+  const { query, body } = req;
   const { id } = schemaQueryIdParseInt.parse(query);
   const {
     hosts = [],
@@ -236,7 +237,7 @@ export async function patchHandler(req: NextApiRequest) {
 }
 
 async function checkPermissions(req: NextApiRequest, body: z.infer<typeof schemaEventTypeBaseBodyParams>) {
-  const { userId, prisma, isAdmin } = req;
+  const { userId, isAdmin } = req;
   const { id } = schemaQueryIdParseInt.parse(req.query);
   if (isAdmin) return;
   /** Only event type owners can modify it */
