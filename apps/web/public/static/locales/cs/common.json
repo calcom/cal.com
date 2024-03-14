@@ -1823,10 +1823,8 @@
   "requires_at_least_one_schedule": "Musíte mít alespoň jeden rozvrh",
   "default_conferencing_bulk_description": "Aktualizujte místa pro vybrané typy událostí",
   "locked_for_members": "Zamčeno pro členy",
-  "locked_apps_description": "Členové uvidí aktivní aplikace, ale nastavení aplikací upravovat nemohou",
-  "locked_webhooks_description": "Členové uvidí aktivní webhooky, ale nastavení webhooků upravovat nemohou",
-  "locked_workflows_description": "Členové uvidí aktivní pracovní postupy, ale nastavení pracovních postupů upravovat nemohou",
-  "locked_by_admin": "Uzamčeno správcem týmu",
+  "apps_locked_for_members_description": "Členové uvidí aktivní aplikace, ale nastavení aplikací upravovat nemohou",
+  "locked_by_team_admin": "Uzamčeno správcem týmu",
   "app_not_connected": "Nemáte připojený účet {{appName}}.",
   "connect_now": "Připojte se",
   "managed_event_dialog_confirm_button_one": "Nahradit a upozornit {{count}} člena",
@@ -2061,6 +2059,7 @@
   "workflow_automation": "Automatizace pracovních postupů",
   "scheduling_for_your_team": "Automatizace pracovních postupů",
   "no_members_found": "Nenalezeni žádní členové",
+  "directory_sync": "Synchronizace adresářů",
   "event_setup_length_error": "Nastavení události: Doba trvání musí být alespoň 1 minuta.",
   "availability_schedules": "Plány dostupnosti",
   "unauthorized": "Neautorizováno",
@@ -2097,5 +2096,6 @@
   "extensive_whitelabeling": "Vyhrazená podpora zaškolovací a inženýrská podpora",
   "need_help": "Potřebujete pomoc?",
   "show_more": "Zobrazit více",
+  "privacy": "Ochrana soukromí",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Přidejte své nové řetězce nahoru ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -90,6 +90,17 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
               },
             }),
       },
+      include: {
+        parent: {
+          select: {
+            id: true,
+            slug: true,
+            name: true,
+            isPrivate: true,
+            isOrganization: true,
+          },
+        },
+      },
     });
 
     if (!unpublishedTeam) return { notFound: true } as const;
@@ -103,19 +114,23 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     } as const;
   }
 
+  const isTeamOrParentOrgPrivate = team.isPrivate || (team.parent?.isOrganization && team.parent?.isPrivate);
+
   team.eventTypes =
     team.eventTypes?.map((type) => ({
       ...type,
-      users: type.users.map((user) => ({
-        ...user,
-        avatar: `/${user.username}/avatar.png`,
-      })),
+      users: !isTeamOrParentOrgPrivate
+        ? type.users.map((user) => ({
+            ...user,
+            avatar: `/${user.username}/avatar.png`,
+          }))
+        : [],
       descriptionAsSafeHTML: markdownToSafeHTML(type.description),
     })) ?? null;
 
   const safeBio = markdownToSafeHTML(team.bio) || "";
 
-  const members = !team.isPrivate
+  const members = !isTeamOrParentOrgPrivate
     ? team.members.map((member) => {
         return {
           name: member.name,
@@ -139,7 +154,13 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   return {
     props: {
-      team: { ...serializableTeam, safeBio, members, metadata },
+      team: {
+        ...serializableTeam,
+        safeBio,
+        members,
+        metadata,
+        children: isTeamOrParentOrgPrivate ? [] : team.children,
+      },
       themeBasis: serializableTeam.slug,
       trpcState: ssr.dehydrate(),
       markdownStrippedBio,

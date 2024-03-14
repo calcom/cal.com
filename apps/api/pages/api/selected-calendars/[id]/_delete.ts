@@ -1,6 +1,7 @@
 import type { NextApiRequest } from "next";
 
 import { defaultResponder } from "@calcom/lib/server";
+import prisma from "@calcom/prisma";
 
 import { selectedCalendarIdSchema } from "~/lib/validations/selected-calendar";
 
@@ -46,7 +47,7 @@ import { selectedCalendarIdSchema } from "~/lib/validations/selected-calendar";
  *        description: Authorization information is missing or invalid.
  */
 export async function deleteHandler(req: NextApiRequest) {
-  const { prisma, query } = req;
+  const { query } = req;
   const userId_integration_externalId = selectedCalendarIdSchema.parse(query);
   await prisma.selectedCalendar.delete({ where: { userId_integration_externalId } });
   return { message: `Selected Calendar with id: ${query.id} deleted successfully` };

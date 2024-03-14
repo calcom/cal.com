@@ -3,6 +3,7 @@ import type { NextApiRequest } from "next";
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
+import prisma from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
 import {
@@ -60,7 +61,7 @@ import {
  *        description: Authorization information is missing or invalid.
  */
 async function postHandler(req: NextApiRequest) {
-  const { userId, isAdmin, prisma, body } = req;
+  const { userId, isAdmin, body } = req;
   const parsedBody = schemaDestinationCalendarCreateBodyParams.parse(body);
   await checkPermissions(req, userId);
 
@@ -132,7 +133,7 @@ async function checkPermissions(req: NextApiRequest, userId: number) {
   if (isAdmin && !body.userId) throw new HttpError({ statusCode: 400, message: "`userId` required" });
   /* User should only be able to create for their own destination calendars*/
   if (!isAdmin && body.eventTypeId) {
-    const ownsEventType = await req.prisma.eventType.findFirst({ where: { id: body.eventTypeId, userId } });
+    const ownsEventType = await prisma.eventType.findFirst({ where: { id: body.eventTypeId, userId } });
     if (!ownsEventType) throw new HttpError({ statusCode: 401, message: "Unauthorized" });
   }
   // TODO:: Add support for team event types with validation

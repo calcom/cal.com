@@ -1,6 +1,7 @@
 import type { NextApiRequest } from "next";
 
 import { defaultResponder } from "@calcom/lib/server";
+import prisma from "@calcom/prisma";
 
 import { schemaQueryTeamId } from "~/lib/validations/shared/queryTeamId";
 
@@ -36,7 +37,7 @@ import { checkPermissions } from "./_auth-middleware";
  *        description: Authorization information is missing or invalid.
  */
 export async function deleteHandler(req: NextApiRequest) {
-  const { prisma, query } = req;
+  const { query } = req;
   const { teamId } = schemaQueryTeamId.parse(query);
   await checkPermissions(req);
   await prisma.team.delete({ where: { id: teamId } });
