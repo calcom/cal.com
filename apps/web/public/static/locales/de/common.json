@@ -2265,6 +2265,7 @@
   "field_identifiers_as_variables": "Verwenden Sie Feldbezeichner als Variablen für Ihre benutzerdefinierte Ereignisumleitung",
   "field_identifiers_as_variables_with_example": "Verwenden Sie Feldbezeichner als Variablen für Ihre benutzerdefinierte Ereignisumleitung (z. B. {{variable}})",
   "account_already_linked": "Konto ist bereits verknüpft",
+  "privacy": "Datenschutz",
   "primary": "Primär",
   "make_primary": "Zur Primäradresse machen",
   "add_email": "E-Mail-Adresse hinzufügen",

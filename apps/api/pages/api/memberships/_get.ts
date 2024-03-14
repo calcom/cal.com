@@ -3,6 +3,7 @@ import type { NextApiRequest } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
+import prisma from "@calcom/prisma";
 
 import { schemaMembershipPublic } from "~/lib/validations/membership";
 import {
@@ -26,7 +27,6 @@ import {
  *         description: No memberships were found
  */
 async function getHandler(req: NextApiRequest) {
-  const { prisma } = req;
   const args: Prisma.MembershipFindManyArgs = {
     where: {
       /** Admins can query multiple users */
