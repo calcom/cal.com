@@ -400,7 +400,7 @@ export default class ZohoCalendarService implements Calendar {
     const attendeeTimezone = event.attendees[0].timeZone;
     const zohoEvent = {
       title: event.title,
-      description: getRichDescription(event),
+      description: getRichDescription(event, undefined, false, true),
       dateandtime: {
         start: dayjs(dayjs(event.startTime).tz(attendeeTimezone)).format("YYYYMMDDTHHmmssZZ"),
         // start: dayjs(event.startTime).format("YYYYMMDDTHHmmssZZ"),
