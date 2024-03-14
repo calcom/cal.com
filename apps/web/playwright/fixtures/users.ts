@@ -6,7 +6,6 @@ import { hashSync as hash } from "bcryptjs";
 import { uuid } from "short-uuid";
 import { v4 } from "uuid";
 
-import { DailyLocationType } from "@calcom/app-store/locations";
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -232,25 +231,10 @@ export const createUsersFixture = (
       });
 
       let defaultEventTypes: SupportedTestEventTypes[] = [
-        {
-          title: "30 min",
-          slug: "30-min",
-          length: 30,
-          locations: [{ type: DailyLocationType }],
-        },
+        { title: "30 min", slug: "30-min", length: 30 },
         { title: "Paid", slug: "paid", length: 30, price: 1000 },
-        {
-          title: "Opt in",
-          slug: "opt-in",
-          requiresConfirmation: true,
-          length: 30,
-        },
-        {
-          title: "Seated",
-          slug: "seated",
-          seatsPerTimeSlot: 2,
-          length: 30,
-        },
+        { title: "Opt in", slug: "opt-in", requiresConfirmation: true, length: 30 },
+        { title: "Seated", slug: "seated", seatsPerTimeSlot: 2, length: 30 },
       ];
 
       if (opts?.eventTypes) defaultEventTypes = defaultEventTypes.concat(opts.eventTypes);
