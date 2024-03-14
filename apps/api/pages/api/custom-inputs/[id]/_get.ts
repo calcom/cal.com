@@ -1,6 +1,7 @@
 import type { NextApiRequest } from "next";
 
 import { defaultResponder } from "@calcom/lib/server";
+import prisma from "@calcom/prisma";
 
 import { schemaEventTypeCustomInputPublic } from "~/lib/validations/event-type-custom-input";
 import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransformParseInt";
@@ -34,7 +35,7 @@ import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransform
  *         description: EventType was not found
  */
 export async function getHandler(req: NextApiRequest) {
-  const { prisma, query } = req;
+  const { query } = req;
   const { id } = schemaQueryIdParseInt.parse(query);
   const data = await prisma.eventTypeCustomInput.findUniqueOrThrow({ where: { id } });
   return { event_type_custom_input: schemaEventTypeCustomInputPublic.parse(data) };
