@@ -49,9 +49,9 @@ const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionC
     orgOwnerEmail: string;
   }>({
     defaultValues: {
-      slug: deriveSlugFromEmail(defaultOrgOwnerEmail),
-      orgOwnerEmail: defaultOrgOwnerEmail,
-      name: deriveOrgNameFromEmail(defaultOrgOwnerEmail),
+      slug: !isAdmin ? deriveSlugFromEmail(defaultOrgOwnerEmail) : undefined,
+      orgOwnerEmail: !isAdmin ? defaultOrgOwnerEmail : undefined,
+      name: !isAdmin ? deriveOrgNameFromEmail(defaultOrgOwnerEmail) : undefined,
     },
   });
 
