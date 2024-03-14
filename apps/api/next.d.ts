@@ -1,8 +1,6 @@
 import type { Session } from "next-auth";
 import type { NextApiRequest as BaseNextApiRequest } from "next/types";
 
-import type { PrismaClient } from "@calcom/prisma";
-
 export type * from "next/types";
 
 export declare module "next" {
@@ -11,11 +9,9 @@ export declare module "next" {
 
     userId: number;
     method: string;
-    prisma: PrismaClient;
     // session: { user: { id: number } };
     // query: Partial<{ [key: string]: string | string[] }>;
     isAdmin: boolean;
-    isCustomPrisma: boolean;
     pagination: { take: number; skip: number };
   }
 }

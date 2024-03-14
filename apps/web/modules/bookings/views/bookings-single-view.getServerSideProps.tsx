@@ -82,6 +82,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       cancellationReason: true,
       responses: true,
       rejectionReason: true,
+      userPrimaryEmail: true,
       user: {
         select: {
           id: true,
@@ -191,6 +192,22 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       paymentOption: true,
     },
   });
+
+  const userId = session?.user?.id;
+  const isLoggedInUserHost =
+    userId &&
+    (eventType.users.some((user) => user.id === userId) ||
+      eventType.hosts.some(({ user }) => user.id === userId));
+
+  if (!isLoggedInUserHost) {
+    // Removing hidden fields from responses
+    for (const key in bookingInfo.responses) {
+      const field = eventTypeRaw.bookingFields.find((field) => field.name === key);
+      if (field && !!field.hidden) {
+        delete bookingInfo.responses[key];
+      }
+    }
+  }
 
   return {
     props: {

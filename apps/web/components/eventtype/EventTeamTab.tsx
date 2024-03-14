@@ -1,6 +1,6 @@
 import { Trans } from "next-i18next";
 import Link from "next/link";
-import type { EventTypeSetupProps, FormValues, Host } from "pages/event-types/[type]";
+import type { EventTypeSetupProps, Host } from "pages/event-types/[type]";
 import { useEffect, useRef, useState } from "react";
 import type { ComponentProps, Dispatch, SetStateAction } from "react";
 import { Controller, useFormContext, useWatch } from "react-hook-form";
@@ -9,6 +9,7 @@ import type { Options } from "react-select";
 import type { CheckedSelectOption } from "@calcom/features/eventtypes/components/CheckedTeamSelect";
 import CheckedTeamSelect from "@calcom/features/eventtypes/components/CheckedTeamSelect";
 import ChildrenEventTypeSelect from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
+import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { Label, Select, SettingsToggle } from "@calcom/ui";
@@ -127,7 +128,7 @@ const AssignAllTeamMembers = ({
           labelClassName="mt-0.5 font-normal"
           checked={assignAllTeamMembers}
           onCheckedChange={(active) => {
-            setValue("assignAllTeamMembers", active);
+            setValue("assignAllTeamMembers", active, { shouldDirty: true });
             setAssignAllTeamMembers(active);
             if (active) {
               onActive();
@@ -250,7 +251,8 @@ const FixedHosts = ({
                     isFixed: true,
                     userId: parseInt(teamMember.value, 10),
                     priority: 2,
-                  }))
+                  })),
+                  { shouldDirty: true }
                 )
               }
             />
@@ -269,7 +271,7 @@ const FixedHosts = ({
               const rrHosts = getValues("hosts")
                 .filter((host) => !host.isFixed)
                 .sort((a, b) => (b.priority ?? 2) - (a.priority ?? 2));
-              setValue("hosts", rrHosts);
+              setValue("hosts", rrHosts, { shouldDirty: true });
             }
             setIsDisabled(checked);
           }}
@@ -290,7 +292,8 @@ const FixedHosts = ({
                     isFixed: true,
                     userId: parseInt(teamMember.value, 10),
                     priority: 2,
-                  }))
+                  })),
+                  { shouldDirty: true }
                 )
               }
             />
@@ -332,7 +335,7 @@ const AddMembersWithSwitch = ({
               assignAllTeamMembers={assignAllTeamMembers}
               setAssignAllTeamMembers={setAssignAllTeamMembers}
               onActive={onActive}
-              onInactive={() => setValue("hosts", [])}
+              onInactive={() => setValue("hosts", [], { shouldDirty: true })}
             />
           </div>
         ) : (
@@ -395,7 +398,8 @@ const RoundRobinHosts = ({
                   userId: parseInt(teamMember.value, 10),
                   priority: 2,
                 }))
-                .sort((a, b) => b.priority - a.priority)
+                .sort((a, b) => b.priority - a.priority),
+              { shouldDirty: true }
             )
           }
         />
@@ -420,7 +424,7 @@ const ChildrenEventTypes = ({
         <AssignAllTeamMembers
           assignAllTeamMembers={assignAllTeamMembers}
           setAssignAllTeamMembers={setAssignAllTeamMembers}
-          onActive={() => setValue("children", childrenEventTypeOptions)}
+          onActive={() => setValue("children", childrenEventTypeOptions, { shouldDirty: true })}
         />
         {!assignAllTeamMembers ? (
           <Controller<FormValues>
@@ -449,7 +453,7 @@ const Hosts = ({
   const { t } = useLocale();
   const {
     control,
-    resetField,
+    setValue,
     getValues,
     formState: { submitCount },
   } = useFormContext<FormValues>();
@@ -469,10 +473,12 @@ const Hosts = ({
       initialValue.current = { hosts: getValues("hosts"), schedulingType, submitCount };
       return;
     }
-    resetField("hosts", {
-      defaultValue: initialValue.current.schedulingType === schedulingType ? initialValue.current.hosts : [],
-    });
-  }, [schedulingType, resetField, getValues, submitCount]);
+    setValue(
+      "hosts",
+      initialValue.current.schedulingType === schedulingType ? initialValue.current.hosts : [],
+      { shouldDirty: true }
+    );
+  }, [schedulingType, setValue, getValues, submitCount]);
 
   return (
     <Controller<FormValues>
@@ -586,7 +592,7 @@ export const EventTeamTab = ({
                     className="w-full"
                     onChange={(val) => {
                       onChange(val?.value);
-                      setValue("assignAllTeamMembers", false);
+                      setValue("assignAllTeamMembers", false, { shouldDirty: true });
                       setAssignAllTeamMembers(false);
                     }}
                   />

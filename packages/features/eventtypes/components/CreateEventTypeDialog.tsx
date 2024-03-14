@@ -1,20 +1,20 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { classNames } from "@calcom/lib";
+import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
 import { md } from "@calcom/lib/markdownIt";
 import slugify from "@calcom/lib/slugify";
 import turndown from "@calcom/lib/turndownService";
-import { SchedulingType, MembershipRole } from "@calcom/prisma/enums";
+import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 import { unlockedManagedEventTypeProps } from "@calcom/prisma/zod-utils";
 import { createEventTypeInput } from "@calcom/prisma/zod/custom/eventtype";
 import { trpc } from "@calcom/trpc/react";
@@ -24,12 +24,12 @@ import {
   Dialog,
   DialogClose,
   DialogContent,
+  DialogFooter,
+  Editor,
   Form,
   RadioGroup as RadioArea,
   showToast,
   TextField,
-  Editor,
-  DialogFooter,
 } from "@calcom/ui";
 
 // this describes the uniform data needed to create a new event type on Profile or Team
@@ -70,6 +70,7 @@ const querySchema = z.object({
 
 export default function CreateEventTypeDialog({
   profileOptions,
+  isOrganization,
 }: {
   profileOptions: {
     teamId: number | null | undefined;
@@ -77,6 +78,7 @@ export default function CreateEventTypeDialog({
     image: string | undefined;
     membershipRole: MembershipRole | null | undefined;
   }[];
+  isOrganization: boolean;
 }) {
   const utils = trpc.useContext();
   const { t } = useLocale();
@@ -87,8 +89,10 @@ export default function CreateEventTypeDialog({
   const {
     data: { teamId, eventPage: pageSlug },
   } = useTypedQuery(querySchema);
-  const teamProfile = profileOptions.find((profile) => profile.teamId === teamId);
 
+  const teamProfile = profileOptions.find((profile) => profile.teamId === teamId);
+  const isSelfHosted = !HOSTED_CAL_FEATURES;
+  const isEE = !!(isSelfHosted || isOrganization);
   const form = useForm<z.infer<typeof createEventTypeInput>>({
     defaultValues: {
       length: 15,
@@ -284,7 +288,7 @@ export default function CreateEventTypeDialog({
                     <p>{t("round_robin_description")}</p>
                   </RadioArea.Item>
                   <>
-                    {isAdmin && (
+                    {isAdmin && isEE && (
                       <RadioArea.Item
                         {...register("schedulingType")}
                         value={SchedulingType.MANAGED}

@@ -120,18 +120,21 @@ const createTeamAndAddUser = async (
   const slug = `${isOrg ? "org" : "team"}-${workerInfo.workerIndex}-${Date.now()}`;
   const data: PrismaType.TeamCreateInput = {
     name: `user-id-${user.id}'s ${isOrg ? "Org" : "Team"}`,
+    isOrganization: isOrg,
   };
   data.metadata = {
     ...(isUnpublished ? { requestedSlug: slug } : {}),
-    ...(isOrg
-      ? {
-          isOrganization: true,
-          isOrganizationVerified: !!isOrgVerified,
-          orgAutoAcceptEmail: user.email.split("@")[1],
-          isOrganizationConfigured: false,
-        }
-      : {}),
   };
+  if (isOrg) {
+    data.organizationSettings = {
+      create: {
+        isOrganizationVerified: !!isOrgVerified,
+        orgAutoAcceptEmail: user.email.split("@")[1],
+        isOrganizationConfigured: false,
+      },
+    };
+  }
+
   data.slug = !isUnpublished ? slug : undefined;
   if (isOrg && hasSubteam) {
     const team = await createTeamAndAddUser({ user }, workerInfo);
@@ -518,6 +521,7 @@ export const createUsersFixture = (
       // Delete all users that were tracked by email(if they were created)
       await prisma.user.deleteMany({ where: { email: { in: store.trackedEmails.map((e) => e.email) } } });
       await prisma.team.deleteMany({ where: { id: { in: store.teams.map((org) => org.id) } } });
+      await prisma.secondaryEmail.deleteMany({ where: { userId: { in: ids } } });
       store.users = [];
       store.teams = [];
       store.trackedEmails = [];
@@ -593,25 +597,40 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
             },
           };
         })
-        .find((membership) => !membership.team?.metadata?.isOrganization);
+        .find((membership) => !membership.team.isOrganization);
       if (!membership) {
         throw new Error("No team found for user");
       }
       return membership;
     },
     getOrgMembership: async () => {
-      return prisma.membership.findFirstOrThrow({
+      const membership = await prisma.membership.findFirstOrThrow({
         where: {
           userId: user.id,
           team: {
-            metadata: {
-              path: ["isOrganization"],
-              equals: true,
+            isOrganization: true,
+          },
+        },
+        include: {
+          team: {
+            include: {
+              children: true,
+              organizationSettings: true,
             },
           },
         },
-        include: { team: { include: { children: true } } },
       });
+      if (!membership) {
+        return membership;
+      }
+
+      return {
+        ...membership,
+        team: {
+          ...membership.team,
+          metadata: teamMetadataSchema.parse(membership.team.metadata),
+        },
+      };
     },
     getFirstEventAsOwner: async () =>
       prisma.eventType.findFirstOrThrow({
@@ -652,7 +671,6 @@ type SupportedTestWorkflows = PrismaType.WorkflowCreateInput;
 
 type CustomUserOptsKeys =
   | "username"
-  | "password"
   | "completedOnboarding"
   | "locale"
   | "name"
@@ -669,6 +687,8 @@ type CustomUserOpts = Partial<Pick<Prisma.User, CustomUserOptsKeys>> & {
   useExactUsername?: boolean;
   roleInOrganization?: MembershipRole;
   schedule?: Schedule;
+  password?: string | null;
+  emailDomain?: string;
 };
 
 // creates the actual user in the db.
@@ -686,11 +706,16 @@ const createUser = (
       ? opts.username
       : `${opts?.username || "user"}-${workerInfo.workerIndex}-${Date.now()}`;
 
+  const emailDomain = opts?.emailDomain || "example.com";
   return {
     username: uname,
     name: opts?.name,
-    email: opts?.email ?? `${uname}@example.com`,
-    password: hashPassword(uname),
+    email: opts?.email ?? `${uname}@${emailDomain}`,
+    password: {
+      create: {
+        hash: hashPassword(uname),
+      },
+    },
     emailVerified: new Date(),
     completedOnboarding: opts?.completedOnboarding ?? true,
     timeZone: opts?.timeZone ?? TimeZoneEnum.UK,
@@ -791,7 +816,7 @@ async function confirmPendingPayment(page: Page) {
 
 // login using a replay of an E2E routine.
 export async function login(
-  user: Pick<Prisma.User, "username"> & Partial<Pick<Prisma.User, "password" | "email">>,
+  user: Pick<Prisma.User, "username"> & Partial<Pick<Prisma.User, "email">> & { password?: string | null },
   page: Page
 ) {
   // get locators
@@ -812,7 +837,7 @@ export async function login(
 }
 
 export async function apiLogin(
-  user: Pick<Prisma.User, "username"> & Partial<Pick<Prisma.User, "password" | "email">>,
+  user: Pick<Prisma.User, "username"> & Partial<Pick<Prisma.User, "email">> & { password: string | null },
   page: Page
 ) {
   const csrfToken = await page

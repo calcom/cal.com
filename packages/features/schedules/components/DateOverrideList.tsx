@@ -1,7 +1,4 @@
-import type { UseFieldArrayRemove } from "react-hook-form";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import type { TimeRange, WorkingHours } from "@calcom/types/schedule";
 import { Button, DialogTrigger, Tooltip } from "@calcom/ui";
 import { Edit2, Trash2 } from "@calcom/ui/components/icon";
@@ -12,37 +9,29 @@ const sortByDate = (a: { ranges: TimeRange[]; id: string }, b: { ranges: TimeRan
   return a.ranges[0].start > b.ranges[0].start ? 1 : -1;
 };
 
-const useSettings = () => {
-  const { data } = useMeQuery();
-  return {
-    hour12: data?.timeFormat === 12,
-    timeZone: data?.timeZone,
-  };
-};
-
+// I would like this to be decoupled, but RHF really doesn't support this.
 const DateOverrideList = ({
-  items,
-  remove,
-  replace,
   workingHours,
   excludedDates = [],
+  hour12,
+  replace,
+  fields,
 }: {
-  remove: UseFieldArrayRemove;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   replace: any;
-  items: { ranges: TimeRange[]; id: string }[];
+  fields: { ranges: TimeRange[]; id: string }[];
   workingHours: WorkingHours[];
   excludedDates?: string[];
+  hour12: boolean;
 }) => {
   const { t, i18n } = useLocale();
-  const { hour12 } = useSettings();
 
-  const unsortedFieldArrayMap = items.reduce(
+  const unsortedFieldArrayMap = fields.reduce(
     (map: { [id: string]: number }, { id }, index) => ({ ...map, [id]: index }),
     {}
   );
 
-  if (!items.length) {
+  if (!fields.length) {
     return <></>;
   }
 
@@ -56,12 +45,12 @@ const DateOverrideList = ({
 
   return (
     <ul className="border-subtle rounded border" data-testid="date-overrides-list">
-      {items.sort(sortByDate).map((item) => (
+      {fields.sort(sortByDate).map((item) => (
         <li key={item.id} className="border-subtle flex justify-between border-b px-5 py-4 last:border-b-0">
           <div>
             <h3 className="text-emphasis text-sm">
-              {new Intl.DateTimeFormat("en-GB", {
-                weekday: "short",
+              {new Intl.DateTimeFormat(i18n.language, {
+                weekday: "long",
                 month: "long",
                 day: "numeric",
                 timeZone: "UTC",
@@ -84,7 +73,7 @@ const DateOverrideList = ({
               value={item.ranges}
               onChange={(ranges) => {
                 // update has very weird side-effects with sorting.
-                replace([...items.filter((currentItem) => currentItem.id !== item.id), { ranges }]);
+                replace([...fields.filter((currentItem) => currentItem.id !== item.id), { ranges }]);
                 delete unsortedFieldArrayMap[item.id];
               }}
               Trigger={
@@ -102,10 +91,21 @@ const DateOverrideList = ({
             <Tooltip content="Delete">
               <Button
                 className="text-default"
+                data-testid="delete-button"
+                title={t("date_overrides_delete_on_date", {
+                  date: new Intl.DateTimeFormat(i18n.language, {
+                    weekday: "long",
+                    month: "long",
+                    day: "numeric",
+                    timeZone: "UTC",
+                  }).format(item.ranges[0].start),
+                })}
                 color="destructive"
                 variant="icon"
                 StartIcon={Trash2}
-                onClick={() => remove(unsortedFieldArrayMap[item.id])}
+                onClick={() => {
+                  replace([...fields.filter((currentItem) => currentItem.id !== item.id)]);
+                }}
               />
             </Tooltip>
           </div>

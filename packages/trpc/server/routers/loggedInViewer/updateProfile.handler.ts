@@ -1,4 +1,6 @@
 import { Prisma } from "@prisma/client";
+// eslint-disable-next-line no-restricted-imports
+import { keyBy } from "lodash";
 import type { GetServerSidePropsContext, NextApiResponse } from "next";
 import { v4 as uuidv4 } from "uuid";
 
@@ -6,12 +8,13 @@ import stripe from "@calcom/app-store/stripepayment/lib/server";
 import { getPremiumMonthlyPlanPriceId } from "@calcom/app-store/stripepayment/lib/utils";
 import { passwordResetRequest } from "@calcom/features/auth/lib/passwordResetRequest";
 import { sendChangeOfEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
-import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
+import { getFeatureFlag } from "@calcom/features/flags/server/utils";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server";
 import { checkUsername } from "@calcom/lib/server/checkUsername";
+import { updateNewTeamMemberEventTypes } from "@calcom/lib/server/queries";
 import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
 import slugify from "@calcom/lib/slugify";
 import { updateWebUser as syncServicesUpdateWebUser } from "@calcom/lib/sync/SyncServiceManager";
@@ -40,15 +43,17 @@ export const uploadAvatar = async ({ userId, avatar: data }: { userId: number; a
 
   await prisma.avatar.upsert({
     where: {
-      teamId_userId: {
+      teamId_userId_isBanner: {
         teamId: 0,
         userId,
+        isBanner: false,
       },
     },
     create: {
       userId: userId,
       data,
       objectKey,
+      isBanner: false,
     },
     update: {
       data,
@@ -63,13 +68,17 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
   const { user } = ctx;
   const userMetadata = handleUserMetadata({ ctx, input });
   const locale = input.locale || user.locale;
-  const flags = await getFeatureFlagMap(prisma);
+  const emailVerification = await getFeatureFlag(prisma, "email-verification");
+
+  const secondaryEmails = input?.secondaryEmails || [];
+  delete input.secondaryEmails;
 
   const data: Prisma.UserUpdateInput = {
     ...input,
     // DO NOT OVERWRITE AVATAR.
     avatar: undefined,
     metadata: userMetadata,
+    secondaryEmails: undefined,
   };
 
   // some actions can invalidate a user session.
@@ -95,6 +104,9 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
         throw new TRPCError({ code: "BAD_REQUEST", message: t("username_already_taken") });
       }
     }
+  } else if (input.username && user.organizationId && user.movedToProfileId) {
+    // don't change user.username if we have profile.username
+    delete data.username;
   }
 
   if (isPremiumUsername) {
@@ -135,19 +147,39 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
     hasEmailBeenChanged && user.identityProvider !== IdentityProvider.CAL;
   const hasEmailChangedOnCalProvider = hasEmailBeenChanged && user.identityProvider === IdentityProvider.CAL;
 
-  const sendEmailVerification = flags["email-verification"];
-
+  let secondaryEmail:
+    | {
+        id: number;
+        emailVerified: Date | null;
+      }
+    | null
+    | undefined;
+  const primaryEmailVerified = user.emailVerified;
   if (hasEmailBeenChanged) {
-    if (sendEmailVerification && hasEmailChangedOnCalProvider) {
-      // Set metadata of the user so we can set it to this updated email once it is confirmed
-      data.metadata = {
-        ...userMetadata,
-        emailChangeWaitingForVerification: input.email,
-      };
+    secondaryEmail = await prisma.secondaryEmail.findUnique({
+      where: {
+        email: input.email,
+        userId: user.id,
+      },
+      select: {
+        id: true,
+        emailVerified: true,
+      },
+    });
+    if (emailVerification && hasEmailChangedOnCalProvider) {
+      if (secondaryEmail?.emailVerified) {
+        data.emailVerified = secondaryEmail.emailVerified;
+      } else {
+        // Set metadata of the user so we can set it to this updated email once it is confirmed
+        data.metadata = {
+          ...userMetadata,
+          emailChangeWaitingForVerification: input.email?.toLocaleLowerCase(),
+        };
 
-      // Check to ensure this email isnt in use
-      // Don't include email in the data payload if we need to verify
-      delete data.email;
+        // Check to ensure this email isnt in use
+        // Don't include email in the data payload if we need to verify
+        delete data.email;
+      }
     } else {
       log.warn("Profile Update - Email verification is disabled - Skipping");
       data.emailVerified = null;
@@ -175,6 +207,27 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
   if ("" === input.avatar) {
     data.avatarUrl = null;
     data.avatar = null;
+  }
+  if (input.completedOnboarding) {
+    const userTeams = await prisma.user.findFirst({
+      where: {
+        id: user.id,
+      },
+      select: {
+        teams: {
+          select: {
+            id: true,
+          },
+        },
+      },
+    });
+    if (userTeams && userTeams.teams.length > 0) {
+      await Promise.all(
+        userTeams.teams.map(async (team) => {
+          await updateNewTeamMemberEventTypes(user.id, team.id);
+        })
+      );
+    }
   }
 
   const updatedUserSelect = Prisma.validator<Prisma.UserDefaultArgs>()({
@@ -268,28 +321,92 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
   }
 
   if (updatedUser && hasEmailChangedOnCalProvider) {
-    await sendChangeOfEmailVerification({
-      user: {
-        username: updatedUser.username ?? "Nameless User",
-        emailFrom: user.email,
-        // We know email has been changed here so we can use input
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        emailTo: input.email!,
-      },
-    });
+    // Skip sending verification email when user tries to change his primary email to a verified secondary email
+    if (secondaryEmail?.emailVerified) {
+      secondaryEmails.push({
+        id: secondaryEmail.id,
+        email: user.email,
+        isDeleted: false,
+      });
+    } else {
+      await sendChangeOfEmailVerification({
+        user: {
+          username: updatedUser.username ?? "Nameless User",
+          emailFrom: user.email,
+          // We know email has been changed here so we can use input
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          emailTo: input.email!,
+        },
+      });
+    }
   }
 
   // don't return avatar, we don't need it anymore.
   delete input.avatar;
 
+  if (secondaryEmails.length) {
+    const recordsToDelete = secondaryEmails
+      .filter((secondaryEmail) => secondaryEmail.isDeleted)
+      .map((secondaryEmail) => secondaryEmail.id);
+    if (recordsToDelete.length) {
+      await prisma.secondaryEmail.deleteMany({
+        where: {
+          id: {
+            in: recordsToDelete,
+          },
+          userId: updatedUser.id,
+        },
+      });
+    }
+
+    const modifiedRecords = secondaryEmails.filter((secondaryEmail) => !secondaryEmail.isDeleted);
+    if (modifiedRecords.length) {
+      const secondaryEmailsFromDB = await prisma.secondaryEmail.findMany({
+        where: {
+          id: {
+            in: secondaryEmails.map((secondaryEmail) => secondaryEmail.id),
+          },
+          userId: updatedUser.id,
+        },
+      });
+
+      const keyedSecondaryEmailsFromDB = keyBy(secondaryEmailsFromDB, "id");
+
+      const recordsToModifyQueue = modifiedRecords.map((updated) => {
+        let emailVerified = keyedSecondaryEmailsFromDB[updated.id].emailVerified;
+        if (secondaryEmail?.id === updated.id) {
+          emailVerified = primaryEmailVerified;
+        } else if (updated.email !== keyedSecondaryEmailsFromDB[updated.id].email) {
+          emailVerified = null;
+        }
+
+        return prisma.secondaryEmail.update({
+          where: {
+            id: updated.id,
+            userId: updatedUser.id,
+          },
+          data: {
+            email: updated.email,
+            emailVerified,
+          },
+        });
+      });
+
+      await prisma.$transaction(recordsToModifyQueue);
+    }
+  }
+
   return {
     ...input,
-    email: sendEmailVerification && hasEmailChangedOnCalProvider ? user.email : input.email,
+    email:
+      emailVerification && hasEmailChangedOnCalProvider && !secondaryEmail?.emailVerified
+        ? user.email
+        : input.email,
     signOutUser,
     passwordReset,
     avatarUrl: updatedUser.avatarUrl,
     hasEmailBeenChanged,
-    sendEmailVerification,
+    sendEmailVerification: emailVerification && !secondaryEmail?.emailVerified,
   };
 };
 

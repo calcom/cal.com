@@ -8,7 +8,7 @@ import { z } from "zod";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { RoutingFormEmbedButton, RoutingFormEmbedDialog } from "@calcom/features/embed/RoutingFormEmbed";
 import { classNames } from "@calcom/lib";
-import { CAL_URL } from "@calcom/lib/constants";
+import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
@@ -405,8 +405,8 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
   const embedLink = `forms/${routingForm?.id}`;
   const orgBranding = useOrgBranding();
 
-  const formLink = `${orgBranding?.fullDomain ?? CAL_URL}/${embedLink}`;
-  let redirectUrl = `${orgBranding?.fullDomain ?? CAL_URL}/router?form=${routingForm?.id}`;
+  const formLink = `${orgBranding?.fullDomain ?? WEBSITE_URL}/${embedLink}`;
+  let redirectUrl = `${orgBranding?.fullDomain ?? WEBSITE_URL}/router?form=${routingForm?.id}`;
 
   routingForm?.fields?.forEach((field) => {
     redirectUrl += `&${getFieldIdentifier(field)}={Recalled_Response_For_This_Field}`;
