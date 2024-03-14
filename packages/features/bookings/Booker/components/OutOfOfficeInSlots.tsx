@@ -7,8 +7,6 @@ import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui";
 
-import { useBookerStore } from "../store";
-
 interface IOutOfOfficeInSlotsProps {
   date: string;
   fromUser?: IOutOfOfficeData["anyDate"]["fromUser"];
@@ -23,7 +21,6 @@ export const OutOfOfficeInSlots = (props: IOutOfOfficeInSlotsProps) => {
   const { fromUser, toUser, emoji = "🏝️", borderDashed = true, date } = props;
   const searchParams = useCompatSearchParams();
   const router = useRouter();
-  const org = useBookerStore((state) => state.org);
 
   if (!fromUser) return null;
   return (
@@ -64,7 +61,7 @@ export const OutOfOfficeInSlots = (props: IOutOfOfficeInSlotsProps) => {
               const layout = searchParams.get("layout");
               const targetDate = searchParams.get("date") || date;
               // go to the booking page with the selected user and correct search param
-              // @TODO: how to guess whats the right event to go for a user?
+              // While being an org push will maintain the org context and just change the user in params
               router.push(
                 `/${toUser.username}?${month ? `month=${month}&` : ""}date=${targetDate}${
                   layout ? `&layout=${layout}` : ""
