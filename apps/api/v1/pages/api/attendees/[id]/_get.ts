@@ -1,6 +1,7 @@
 import type { NextApiRequest } from "next";
 
 import { defaultResponder } from "@calcom/lib/server";
+import prisma from "@calcom/prisma";
 
 import { schemaAttendeeReadPublic } from "~/lib/validations/attendee";
 import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransformParseInt";
@@ -35,7 +36,7 @@ import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransform
  *         description: Attendee was not found
  */
 export async function getHandler(req: NextApiRequest) {
-  const { prisma, query } = req;
+  const { query } = req;
   const { id } = schemaQueryIdParseInt.parse(query);
   const attendee = await prisma.attendee.findUnique({ where: { id } });
   return { attendee: schemaAttendeeReadPublic.parse(attendee) };

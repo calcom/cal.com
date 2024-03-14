@@ -50,6 +50,8 @@ function TeamPage({
   const isBioEmpty = !team.bio || !team.bio.replace("<p><br></p>", "").length;
   const metadata = teamMetadataSchema.parse(team.metadata);
 
+  const teamOrOrgIsPrivate = team.isPrivate || (team?.parent?.isOrganization && team.parent?.isPrivate);
+
   useEffect(() => {
     telemetry.event(
       telemetryEventTypes.pageView,
@@ -194,11 +196,17 @@ function TeamPage({
           )}
         </div>
         {team.isOrganization ? (
-          <SubTeams />
+          !teamOrOrgIsPrivate ? (
+            <SubTeams />
+          ) : (
+            <div className="w-full text-center">
+              <h2 className="text-emphasis font-semibold">{t("you_cannot_see_teams_of_org")}</h2>
+            </div>
+          )
         ) : (
           <>
             {(showMembers.isOn || !team.eventTypes?.length) &&
-              (team.isPrivate ? (
+              (teamOrOrgIsPrivate ? (
                 <div className="w-full text-center">
                   <h2 data-testid="you-cannot-see-team-members" className="text-emphasis font-semibold">
                     {t("you_cannot_see_team_members")}
@@ -212,7 +220,7 @@ function TeamPage({
                 <EventTypes eventTypes={team.eventTypes} />
 
                 {/* Hide "Book a team member button when team is private or hideBookATeamMember is true" */}
-                {!team.hideBookATeamMember && !team.isPrivate && (
+                {!team.hideBookATeamMember && !teamOrOrgIsPrivate && (
                   <div>
                     <div className="relative mt-12">
                       <div className="absolute inset-0 flex items-center" aria-hidden="true">

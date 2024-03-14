@@ -1,11 +1,12 @@
 import type { NextApiRequest } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
+import prisma from "@calcom/prisma";
 
 import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransformParseInt";
 
 async function authMiddleware(req: NextApiRequest) {
-  const { userId, isAdmin, prisma } = req;
+  const { userId, isAdmin } = req;
   const { id } = schemaQueryIdParseInt.parse(req.query);
   // Here we make sure to only return references of the user's own bookings if the user is not an admin.
   if (isAdmin) return;

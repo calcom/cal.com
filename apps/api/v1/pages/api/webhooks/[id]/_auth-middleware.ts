@@ -1,11 +1,12 @@
 import type { NextApiRequest } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
+import prisma from "@calcom/prisma";
 
 import { schemaQueryIdAsString } from "~/lib/validations/shared/queryIdString";
 
 async function authMiddleware(req: NextApiRequest) {
-  const { userId, isAdmin, prisma } = req;
+  const { userId, isAdmin } = req;
   const { id } = schemaQueryIdAsString.parse(req.query);
   // Admins can just skip this check
   if (isAdmin) return;
