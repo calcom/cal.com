@@ -2,6 +2,7 @@ import type { NextApiRequest } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
+import prisma from "@calcom/prisma";
 
 import {
   schemaAvailabilityCreateBodyParams,
@@ -71,7 +72,6 @@ import {
  *        description: Authorization information is missing or invalid.
  */
 async function postHandler(req: NextApiRequest) {
-  const { prisma } = req;
   const data = schemaAvailabilityCreateBodyParams.parse(req.body);
   await checkPermissions(req);
   const availability = await prisma.availability.create({
@@ -86,7 +86,7 @@ async function postHandler(req: NextApiRequest) {
 }
 
 async function checkPermissions(req: NextApiRequest) {
-  const { userId, prisma, isAdmin } = req;
+  const { userId, isAdmin } = req;
   if (isAdmin) return;
   const data = schemaAvailabilityCreateBodyParams.parse(req.body);
   const schedule = await prisma.schedule.findFirst({

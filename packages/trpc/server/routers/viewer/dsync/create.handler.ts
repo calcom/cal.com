@@ -1,7 +1,7 @@
 import type { DirectoryType } from "@boxyhq/saml-jackson";
 
 import jackson from "@calcom/features/ee/sso/lib/jackson";
-import { canAccess, samlProductID, samlTenantID, tenantPrefix } from "@calcom/features/ee/sso/lib/saml";
+import { canAccess, samlProductID, samlTenantID } from "@calcom/features/ee/sso/lib/saml";
 import prisma from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
@@ -18,10 +18,10 @@ type Options = {
 
 // Create directory sync connection for a team
 export const createHandler = async ({ ctx, input }: Options) => {
-  const { orgId } = input;
+  const { organizationId } = input;
   const { dsyncController } = await jackson();
 
-  const { message, access } = await canAccess(ctx.user, orgId);
+  const { message, access } = await canAccess(ctx.user, organizationId);
 
   if (!access) {
     throw new TRPCError({
@@ -30,7 +30,9 @@ export const createHandler = async ({ ctx, input }: Options) => {
     });
   }
 
-  const tenant = orgId ? `${tenantPrefix}${orgId}` : (samlTenantID as string);
+  const { organization } = ctx.user;
+
+  const tenant = input.organizationId ? `${organization.slug}-${organization.id}` : (samlTenantID as string);
 
   const { data, error } = await dsyncController.directories.create({
     tenant,
@@ -48,7 +50,7 @@ export const createHandler = async ({ ctx, input }: Options) => {
     data: {
       directoryId: data.id,
       tenant,
-      ...(orgId && { orgId }),
+      ...(organizationId && { organizationId }),
     },
   });
 
