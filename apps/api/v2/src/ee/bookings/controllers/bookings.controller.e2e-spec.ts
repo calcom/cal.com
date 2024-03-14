@@ -92,7 +92,7 @@ describe("Bookings Endpoints", () => {
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           expect(responseBody.data).toBeDefined();
           expect(responseBody.data.user.email).toBeDefined();
-          expect(responseBody.data.user.email).toEqual("bookings-controller-e2e@api.com");
+          expect(responseBody.data.user.email).toEqual(userEmail);
           expect(responseBody.data.id).toBeDefined();
           expect(responseBody.data.uid).toBeDefined();
           expect(responseBody.data.startTime).toEqual(bookingStart);
