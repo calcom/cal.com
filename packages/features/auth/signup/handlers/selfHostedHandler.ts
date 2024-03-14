@@ -104,12 +104,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           },
           emailVerified: new Date(Date.now()),
           identityProvider: IdentityProvider.CAL,
+          verified: team.isOrganization,
         },
         create: {
           username: correctedUsername,
           email: userEmail,
           password: { create: { hash: hashedPassword } },
           identityProvider: IdentityProvider.CAL,
+          verified: team.isOrganization,
         },
       });
 

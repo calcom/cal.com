@@ -44,6 +44,15 @@ export const acceptOrLeaveHandler = async ({ ctx, input }: AcceptOrLeaveOptions)
       });
     }
 
+    if (team.isOrganization) {
+      await prisma.user.update({
+        where: { id: ctx.user.id },
+        data: {
+          verified: true,
+        },
+      });
+    }
+
     const isASubteam = team.parentId !== null;
     const idOfOrganizationInContext = team.isOrganization ? team.id : isASubteam ? team.parentId : null;
     const needProfileUpdate = !!idOfOrganizationInContext;
