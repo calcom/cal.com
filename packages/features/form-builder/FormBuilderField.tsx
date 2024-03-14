@@ -110,6 +110,10 @@ export const FormBuilderField = ({
                     return null;
                   }
 
+                  if (value?.value && value.value !== "phone" && field.name === "location") {
+                    return null;
+                  }
+
                   message = message.replace(/\{[^}]+\}(.*)/, "$1").trim();
 
                   if (hidden) {
