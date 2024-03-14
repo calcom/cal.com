@@ -2,6 +2,8 @@
   "extends": "@calcom/tsconfig/base.json",
   "compilerOptions": {
     "jsx": "react",
+    "declaration": true,
+    "declarationMap": true,
     "target": "ES2015",
     "module": "esnext",
     "moduleResolution": "Node",
