@@ -73,6 +73,8 @@ const EventWebhooksTab = dynamic(() =>
   import("@components/eventtype/EventWebhooksTab").then((mod) => mod.EventWebhooksTab)
 );
 
+const EventAITab = dynamic(() => import("@components/eventtype/EventAITab").then((mod) => mod.EventAITab));
+
 const ManagedEventTypeDialog = dynamic(() => import("@components/eventtype/ManagedEventDialog"));
 
 export type Host = { isFixed: boolean; userId: number; priority: number };
@@ -92,6 +94,7 @@ const querySchema = z.object({
       "advanced",
       "workflows",
       "webhooks",
+      "ai",
     ])
     .optional()
     .default("setup"),
@@ -375,6 +378,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       />
     ),
     webhooks: <EventWebhooksTab eventType={eventType} />,
+    ai: <EventAITab eventType={eventType} isTeamEvent={!!team} />,
   } as const;
   const isObject = <T,>(value: T): boolean => {
     return value !== null && typeof value === "object" && !Array.isArray(value);

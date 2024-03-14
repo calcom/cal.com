@@ -44,6 +44,7 @@ import {
   Repeat,
   Grid,
   Zap,
+  Sparkles,
   Users,
   ExternalLink,
   Code,
@@ -281,6 +282,14 @@ function EventTypeSingleLayout({
         href: `/event-types/${formMethods.getValues("id")}?tabName=webhooks`,
         icon: TbWebhook,
         info: `${activeWebhooksNumber} ${t("active")}`,
+      });
+    }
+    if (team) {
+      navigation.push({
+        name: "Cal.ai",
+        href: `/event-types/${eventType.id}?tabName=ai`,
+        icon: Sparkles,
+        info: "Let AI Agents book you", //`cal_ai_event_tab_description`,
       });
     }
     return navigation;
