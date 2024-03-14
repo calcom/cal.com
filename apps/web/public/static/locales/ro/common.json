@@ -1823,10 +1823,8 @@
   "requires_at_least_one_schedule": "Este necesar să aveți cel puțin un program",
   "default_conferencing_bulk_description": "Actualizați locațiile pentru tipurile de evenimente selectate",
   "locked_for_members": "Blocat pentru membri",
-  "locked_apps_description": "Membrii vor putea vedea aplicațiile active, însă nu le vor putea modifica deloc setările",
-  "locked_webhooks_description": "Membrii vor putea vedea webhook-urile active, însă nu le vor putea modifica deloc setările",
-  "locked_workflows_description": "Membrii vor putea vedea fluxurile de lucru active, însă nu le vor putea modifica deloc setările",
-  "locked_by_admin": "Blocat de administratorul echipei",
+  "apps_locked_for_members_description": "Membrii vor putea vedea aplicațiile active, însă nu le vor putea modifica deloc setările",
+  "locked_by_team_admin": "Blocat de administratorul echipei",
   "app_not_connected": "Nu ați conectat un cont {{appName}}.",
   "connect_now": "Conectați-l acum",
   "managed_event_dialog_confirm_button_one": "Înlocuiți și anunțați {{count}} membru",
@@ -2061,6 +2059,7 @@
   "workflow_automation": "Automatizarea fluxului de lucru",
   "scheduling_for_your_team": "Automatizarea fluxului de lucru",
   "no_members_found": "Nu s-a găsit niciun membru",
+  "directory_sync": "Sincronizare director",
   "event_setup_length_error": "Configurare eveniment: Durata trebuie să fie de cel puțin 1 minut.",
   "availability_schedules": "Programe de disponibilitate",
   "unauthorized": "Neautorizat",
@@ -2097,5 +2096,6 @@
   "extensive_whitelabeling": "Asistență dedicată pentru integrare și inginerie",
   "need_help": "Aveți nevoie de ajutor?",
   "show_more": "Afișare mai mult",
+  "privacy": "Confidențialitate",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adăugați stringurile noi deasupra acestui rând ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

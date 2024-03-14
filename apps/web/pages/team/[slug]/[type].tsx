@@ -25,6 +25,7 @@ export const getMultipleDurationValue = (
   if (multipleDurationConfig.includes(Number(queryDuration))) return Number(queryDuration);
   return defaultValue;
 };
+
 export default function Type({
   slug,
   user,
@@ -34,6 +35,7 @@ export default function Type({
   isBrandingHidden,
   eventData,
   isInstantMeeting,
+  orgBannerUrl,
 }: PageProps) {
   const searchParams = useSearchParams();
 
@@ -66,6 +68,7 @@ export default function Type({
           searchParams?.get("duration"),
           eventData.length
         )}
+        orgBannerUrl={orgBannerUrl}
       />
     </main>
   );
