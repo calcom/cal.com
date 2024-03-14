@@ -77,14 +77,28 @@ export const trpc = createTRPCNext<AppRouter, NextPageContext>({
           // when condition is true, use normal request
           true: (runtime) => {
             const links = Object.fromEntries(
-              ENDPOINTS.map((endpoint) => [endpoint, httpLink({ url: `${url}/${endpoint}` })(runtime)])
+              ENDPOINTS.map((endpoint) => [
+                endpoint,
+                httpLink({
+                  /** @link https://trpc.io/docs/data-transformers */
+                  transformer: superjson,
+                  url: `${url}/${endpoint}`,
+                })(runtime),
+              ])
             );
             return resolveEndpoint(links);
           },
           // when condition is false, use batch request
           false: (runtime) => {
             const links = Object.fromEntries(
-              ENDPOINTS.map((endpoint) => [endpoint, httpBatchLink({ url: `${url}/${endpoint}` })(runtime)])
+              ENDPOINTS.map((endpoint) => [
+                endpoint,
+                httpBatchLink({
+                  /** @link https://trpc.io/docs/data-transformers */
+                  transformer: superjson,
+                  url: `${url}/${endpoint}`,
+                })(runtime),
+              ])
             );
             return resolveEndpoint(links);
           },
@@ -117,16 +131,14 @@ export const trpc = createTRPCNext<AppRouter, NextPageContext>({
           },
         },
       },
-      /**
-       * @link https://trpc.io/docs/data-transformers
-       */
-      transformer: superjson,
     };
   },
   /**
    * @link https://trpc.io/docs/ssr
    */
   ssr: false,
+  /** @link https://trpc.io/docs/data-transformers */
+  transformer: superjson,
 });
 
 export const transformer = superjson;
