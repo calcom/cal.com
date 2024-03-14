@@ -3,6 +3,7 @@ import type { NextApiRequest } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
+import prisma from "@calcom/prisma";
 
 import { schemaQuerySingleOrMultipleUserIds } from "~/lib/validations/shared/queryUserId";
 import { schemaWebhookReadPublic } from "~/lib/validations/webhook";
@@ -33,7 +34,7 @@ import { schemaWebhookReadPublic } from "~/lib/validations/webhook";
  *         description: No webhooks were found
  */
 async function getHandler(req: NextApiRequest) {
-  const { userId, isAdmin, prisma } = req;
+  const { userId, isAdmin } = req;
   const args: Prisma.WebhookFindManyArgs = isAdmin
     ? {}
     : { where: { OR: [{ eventType: { userId } }, { userId }] } };

@@ -1681,6 +1681,7 @@
   "meeting_url_variable": "Meeting url",
   "meeting_url_info": "The event meeting conference url",
   "date_overrides": "Date overrides",
+  "date_overrides_delete_on_date": "Delete date overrides on {{date}}",
   "date_overrides_subtitle": "Add dates when your availability changes from your daily hours.",
   "date_overrides_info": "Date overrides are archived automatically after the date has passed",
   "date_overrides_dialog_which_hours": "Which hours are you free?",
