@@ -36,6 +36,12 @@ type ChangePasswordSessionFormValues = {
   apiError: string;
 };
 
+type CreateAccountPasswordFormValues = {
+  newPassword: string;
+  confirmPassword: string;
+  apiError: string;
+};
+
 interface PasswordViewProps {
   user: RouterOutputs["viewer"]["me"];
 }
@@ -122,10 +128,23 @@ const PasswordView = ({ user }: PasswordViewProps) => {
     },
   });
 
+  const createAccountPasswordMutation = trpc.viewer.auth.createAccountPassword.useMutation({
+    onSuccess: () => {
+      showToast("Successfull", "success");
+    },
+  });
+
   const formMethods = useForm<ChangePasswordSessionFormValues>({
     defaultValues: {
       oldPassword: "",
       newPassword: "",
+    },
+  });
+
+  const createAccountFormMethods = useForm<CreateAccountPasswordFormValues>({
+    defaultValues: {
+      newPassword: "",
+      confirmPassword: "",
     },
   });
 
@@ -152,32 +171,114 @@ const PasswordView = ({ user }: PasswordViewProps) => {
     }
   };
 
+  const handleCreateAccountPasswordSubmit = (values: CreateAccountPasswordFormValues) => {
+    const { newPassword, confirmPassword } = values;
+
+    if (!newPassword.length) {
+      createAccountFormMethods.setError(
+        "newPassword",
+        { type: "required", message: t("error_required_field") },
+        { shouldFocus: true }
+      );
+    }
+    if (!confirmPassword.length) {
+      createAccountFormMethods.setError(
+        "confirmPassword",
+        { type: "required", message: t("error_required_field") },
+        { shouldFocus: true }
+      );
+    }
+
+    if (newPassword !== confirmPassword) {
+      createAccountFormMethods.setError(
+        "newPassword",
+        { type: "required", message: t("new_password_not_matching_confirm_password") },
+        { shouldFocus: true }
+      );
+    }
+
+    createAccountPasswordMutation.mutate({ newPassword, confirmPassword });
+  };
+
   const timeoutOptions = [5, 10, 15].map((mins) => ({
     label: t("multiple_duration_mins", { count: mins }),
     value: mins,
   }));
 
   const isDisabled = formMethods.formState.isSubmitting || !formMethods.formState.isDirty;
+  const isCreateAccountDisabled =
+    createAccountFormMethods.formState.isSubmitting || !createAccountFormMethods.formState.isDirty;
 
   const passwordMinLength = data?.user.role === "USER" ? 7 : 15;
   const isUser = data?.user.role === "USER";
+
+  const passwordRules = {
+    minLength: {
+      message: t(isUser ? "password_hint_min" : "password_hint_admin_min"),
+      value: passwordMinLength,
+    },
+    pattern: {
+      message: "Should contain a number, uppercase and lowercase letters",
+      value: /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).*$/gm,
+    },
+  };
 
   return (
     <>
       <Meta title={t("password")} description={t("password_description")} borderInShellHeader={true} />
       {user && user.identityProvider !== IdentityProvider.CAL ? (
-        <div className="border-subtle rounded-b-xl border border-t-0 px-4 py-6 sm:px-6">
-          <h2 className="font-cal text-emphasis text-lg font-medium leading-6">
-            {t("account_managed_by_identity_provider", {
-              provider: identityProviderNameMap[user.identityProvider],
-            })}
-          </h2>
+        <div className="border-subtle rounded-b-xl border border-t-0">
+          <div className="px-4 py-6 sm:px-6">
+            <h2 className="font-cal text-emphasis text-lg font-medium leading-6">
+              {t("account_managed_by_identity_provider", {
+                provider: identityProviderNameMap[user.identityProvider],
+              })}
+            </h2>
 
-          <p className="text-subtle mt-1 text-sm">
-            {t("account_managed_by_identity_provider_description", {
-              provider: identityProviderNameMap[user.identityProvider],
-            })}
-          </p>
+            <p className="text-subtle mt-1 text-sm">
+              {t("account_managed_by_identity_provider_description", {
+                provider: identityProviderNameMap[user.identityProvider],
+              })}
+            </p>
+          </div>
+          <Form form={createAccountFormMethods} handleSubmit={handleCreateAccountPasswordSubmit}>
+            <div className="border border-b-0 border-l-0 border-r-0 px-4 py-6 sm:px-6">
+              {formMethods.formState.errors.apiError && (
+                <div className="pb-6">
+                  <Alert severity="error" message={formMethods.formState.errors.apiError?.message} />
+                </div>
+              )}
+              <h2 className="font-cal text-emphasis mb-1 mt-3 text-lg font-medium leading-6">
+                {t("create_account_password")}
+              </h2>
+              <div className="w-full sm:grid sm:grid-cols-2 sm:gap-x-6">
+                <div>
+                  <PasswordField
+                    {...createAccountFormMethods.register("newPassword", passwordRules)}
+                    label={t("new_password")}
+                  />
+                </div>
+                <div>
+                  <PasswordField
+                    {...createAccountFormMethods.register("confirmPassword", passwordRules)}
+                    label={t("confirm_password")}
+                  />
+                </div>
+              </div>
+            </div>
+            <SectionBottomActions
+              align="end"
+              className="rounded-b-xl border border-b-0 border-l-0 border-r-0">
+              <Button
+                color="primary"
+                type="submit"
+                loading={createAccountPasswordMutation.isPending}
+                onClick={() => createAccountFormMethods.clearErrors("apiError")}
+                disabled={isCreateAccountDisabled || createAccountPasswordMutation.isPending}>
+                {t("update")}
+              </Button>
+            </SectionBottomActions>
+          </Form>
         </div>
       ) : (
         <Form form={formMethods} handleSubmit={handleSubmit}>
@@ -193,16 +294,7 @@ const PasswordView = ({ user }: PasswordViewProps) => {
               </div>
               <div>
                 <PasswordField
-                  {...formMethods.register("newPassword", {
-                    minLength: {
-                      message: t(isUser ? "password_hint_min" : "password_hint_admin_min"),
-                      value: passwordMinLength,
-                    },
-                    pattern: {
-                      message: "Should contain a number, uppercase and lowercase letters",
-                      value: /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).*$/gm,
-                    },
-                  })}
+                  {...formMethods.register("newPassword", passwordRules)}
                   label={t("new_password")}
                 />
               </div>

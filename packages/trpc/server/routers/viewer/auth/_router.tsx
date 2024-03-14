@@ -4,6 +4,7 @@ import authedProcedure from "../../../procedures/authedProcedure";
 import publicProcedure from "../../../procedures/publicProcedure";
 import { router } from "../../../trpc";
 import { ZChangePasswordInputSchema } from "./changePassword.schema";
+import { ZCreateAccountPasswordInputSchema } from "./createAccountPassword.schema";
 import { ZResendVerifyEmailSchema } from "./resendVerifyEmail.schema";
 import { ZSendVerifyEmailCodeSchema } from "./sendVerifyEmailCode.schema";
 import { ZVerifyPasswordInputSchema } from "./verifyPassword.schema";
@@ -15,6 +16,7 @@ type AuthRouterHandlerCache = {
   resendVerifyEmail?: typeof import("./resendVerifyEmail.handler").resendVerifyEmail;
   sendVerifyEmailCode?: typeof import("./sendVerifyEmailCode.handler").sendVerifyEmailCodeHandler;
   resendVerifySecondaryEmail?: typeof import("./resendVerifyEmail.handler").resendVerifyEmail;
+  createAccountPassword?: typeof import("./createAccountPassword.handler").createAccountPasswordHandler;
 };
 
 const UNSTABLE_HANDLER_CACHE: AuthRouterHandlerCache = {};
@@ -107,4 +109,24 @@ export const authRouter = router({
       ctx,
     });
   }),
+
+  createAccountPassword: authedProcedure
+    .input(ZCreateAccountPasswordInputSchema)
+    .mutation(async ({ input, ctx }) => {
+      if (!UNSTABLE_HANDLER_CACHE.createAccountPassword) {
+        UNSTABLE_HANDLER_CACHE.createAccountPassword = await import("./createAccountPassword.handler").then(
+          (mod) => mod.createAccountPasswordHandler
+        );
+      }
+
+      // Unreachable code but required for type safety
+      if (!UNSTABLE_HANDLER_CACHE.createAccountPassword) {
+        throw new Error("Failed to load handler");
+      }
+
+      return UNSTABLE_HANDLER_CACHE.createAccountPassword({
+        ctx,
+        input,
+      });
+    }),
 });

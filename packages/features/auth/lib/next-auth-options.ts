@@ -114,13 +114,10 @@ const providers: Provider[] = [
         identifier: user.email,
       });
 
-      if (user.identityProvider !== IdentityProvider.CAL && !credentials.totpCode) {
-        throw new Error(ErrorCode.ThirdPartyIdentityProviderEnabled);
-      }
-      if (!user.password?.hash && user.identityProvider == IdentityProvider.CAL) {
+      if (!user.password?.hash && user.identityProvider !== IdentityProvider.CAL && !credentials.totpCode) {
         throw new Error(ErrorCode.IncorrectEmailPassword);
       }
-      if (!user.password?.hash && user.identityProvider !== IdentityProvider.CAL && !credentials.totpCode) {
+      if (!user.password?.hash && user.identityProvider == IdentityProvider.CAL) {
         throw new Error(ErrorCode.IncorrectEmailPassword);
       }
 
