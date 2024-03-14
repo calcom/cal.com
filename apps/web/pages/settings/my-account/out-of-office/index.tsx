@@ -361,7 +361,8 @@ const OutOfOfficePage = () => {
           <Button
             color="primary"
             className="flex w-20 items-center justify-between px-4"
-            onClick={() => setOpenModal(true)}>
+            onClick={() => setOpenModal(true)}
+            data-testid="add_entry_ooo">
             <Plus size={16} /> {t("add")}
           </Button>
         }

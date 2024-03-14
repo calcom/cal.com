@@ -77,7 +77,7 @@ export const Day = ({
       data-disabled={disabled}
       disabled={disabled}
       {...props}>
-      {away && <span>{emoji}</span>}
+      {away && <span data-testid="away-emoji">{emoji}</span>}
       {!away && date.date()}
       {date.isToday() && (
         <span
