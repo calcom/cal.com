@@ -1,7 +1,7 @@
 import { lazy } from "@trpc/server/unstable-core-do-not-import";
 
 import { mergeRouters, router } from "../../trpc";
-import { loggedInViewerRouter } from "./loggedInViewer/_router";
+import { loggedInViewerRouter } from "../loggedInViewer/_router";
 
 export const viewerRouter = mergeRouters(
   loggedInViewerRouter,
