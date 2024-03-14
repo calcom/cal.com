@@ -3,6 +3,7 @@ import type { NextApiRequest } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
+import prisma from "@calcom/prisma";
 
 import { schemaQueryIdAsString } from "~/lib/validations/shared/queryIdString";
 import { schemaWebhookEditBodyParams, schemaWebhookReadPublic } from "~/lib/validations/webhook";
@@ -67,7 +68,7 @@ import { schemaWebhookEditBodyParams, schemaWebhookReadPublic } from "~/lib/vali
  *        description: Authorization information is missing or invalid.
  */
 export async function patchHandler(req: NextApiRequest) {
-  const { prisma, query, userId, isAdmin } = req;
+  const { query, userId, isAdmin } = req;
   const { id } = schemaQueryIdAsString.parse(query);
   const {
     eventTypeId,
