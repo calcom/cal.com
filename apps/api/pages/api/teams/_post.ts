@@ -5,6 +5,7 @@ import stripe from "@calcom/app-store/stripepayment/lib/server";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
+import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import { schemaMembershipPublic } from "~/lib/validations/membership";
@@ -78,7 +79,7 @@ import { schemaTeamCreateBodyParams, schemaTeamReadPublic } from "~/lib/validati
  *        description: Authorization information is missing or invalid.
  */
 async function postHandler(req: NextApiRequest) {
-  const { prisma, body, userId, isAdmin } = req;
+  const { body, userId, isAdmin } = req;
   const { ownerId, ...data } = schemaTeamCreateBodyParams.parse(body);
 
   await checkPermissions(req);

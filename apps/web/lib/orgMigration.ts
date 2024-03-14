@@ -1,6 +1,5 @@
 import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getOrgUsernameFromEmail";
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
-import { isOrganization } from "@calcom/lib/entityPermissionUtils";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -48,7 +47,7 @@ export async function moveUserToOrg({
 
   const teamMetadata = teamMetadataSchema.parse(team?.metadata);
 
-  if (!isOrganization({ team })) {
+  if (!team.isOrganization) {
     throw new Error(`Team with ID:${targetOrgId} is not an Org`);
   }
 
@@ -197,7 +196,7 @@ export async function moveTeamToOrg({
 
   const teamMetadata = teamMetadataSchema.parse(possibleOrg?.metadata);
 
-  if (!isOrganization({ team: possibleOrg })) {
+  if (!possibleOrg.isOrganization) {
     throw new Error(`${targetOrg.id} is not an Org`);
   }
 
@@ -667,7 +666,7 @@ async function moveTeamsWithoutMembersToOrg({
       };
     })
     // Remove Orgs from the list
-    .filter((team) => !isOrganization({ team }));
+    .filter((team) => !team.isOrganization);
 
   const teamIdsToBeMovedToOrg = teamsToBeMovedToOrg.map((t) => t.id);
 
@@ -832,7 +831,7 @@ async function removeTeamsWithoutItsMemberFromOrg({ userToRemoveFromOrg }: { use
       };
     })
     // Remove Orgs from the list
-    .filter((team) => !isOrganization({ team }));
+    .filter((team) => !team.isOrganization);
 
   const teamIdsToBeRemovedFromOrg = teamsToBeRemovedFromOrg.map((t) => t.id);
 

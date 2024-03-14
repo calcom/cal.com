@@ -1,6 +1,7 @@
 import type { NextApiRequest } from "next";
 
 import { defaultResponder } from "@calcom/lib/server";
+import prisma from "@calcom/prisma";
 
 import {
   schemaEventTypeCustomInputEditBodyParams,
@@ -76,7 +77,7 @@ import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransform
  *        description: Authorization information is missing or invalid.
  */
 export async function patchHandler(req: NextApiRequest) {
-  const { prisma, query } = req;
+  const { query } = req;
   const { id } = schemaQueryIdParseInt.parse(query);
   const data = schemaEventTypeCustomInputEditBodyParams.parse(req.body);
   const result = await prisma.eventTypeCustomInput.update({ where: { id }, data });
