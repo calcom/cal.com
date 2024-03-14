@@ -62,7 +62,7 @@ function TeamPage({
     return (
       <div className="flex h-full min-h-[100dvh] items-center justify-center">
         <UnpublishedEntity
-          {...(metadata?.isOrganization || team.parentId ? { orgSlug: slug } : { teamSlug: slug })}
+          {...(team?.isOrganization || team.parentId ? { orgSlug: slug } : { teamSlug: slug })}
           name={teamName}
         />
       </div>
@@ -158,7 +158,7 @@ function TeamPage({
     );
 
   const profileImageSrc =
-    isValidOrgDomain || team.metadata?.isOrganization
+    isValidOrgDomain || team.isOrganization
       ? getOrgAvatarUrl({ slug: currentOrgDomain, logoUrl: team.logoUrl })
       : getTeamAvatarUrl({ slug: team.slug, logoUrl: team.logoUrl, organizationId: team.parent?.id });
 
@@ -193,7 +193,7 @@ function TeamPage({
             </>
           )}
         </div>
-        {metadata?.isOrganization ? (
+        {team.isOrganization ? (
           <SubTeams />
         ) : (
           <>

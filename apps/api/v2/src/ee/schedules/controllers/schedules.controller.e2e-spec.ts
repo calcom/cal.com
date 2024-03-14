@@ -2,8 +2,10 @@ import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
 import { SchedulesRepository } from "@/ee/schedules/schedules.repository";
 import { SchedulesService } from "@/ee/schedules/services/schedules.service";
+import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { AvailabilitiesModule } from "@/modules/availabilities/availabilities.module";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
+import { TokensModule } from "@/modules/tokens/tokens.module";
 import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
@@ -39,10 +41,15 @@ describe("Schedules Endpoints", () => {
       const moduleRef = await withAccessTokenAuth(
         userEmail,
         Test.createTestingModule({
-          imports: [AppModule, PrismaModule, AvailabilitiesModule, UsersModule],
+          imports: [AppModule, PrismaModule, AvailabilitiesModule, UsersModule, TokensModule],
           providers: [SchedulesRepository, SchedulesService],
         })
-      ).compile();
+      )
+        .overrideGuard(PermissionsGuard)
+        .useValue({
+          canActivate: () => true,
+        })
+        .compile();
 
       userRepositoryFixture = new UserRepositoryFixture(moduleRef);
       scheduleRepositoryFixture = new SchedulesRepositoryFixture(moduleRef);
@@ -329,10 +336,10 @@ describe("Schedules Endpoints", () => {
           expect(responseBody.data.timeZone).toEqual(createdSchedule.timeZone);
 
           expect(responseBody.data.availability).toBeDefined();
-          const availabilities = responseBody.data.availability.filter(
+          const availabilities = responseBody.data?.availability?.filter(
             (availability: any[]) => availability.length
           );
-          expect(availabilities.length).toEqual(6);
+          expect(availabilities?.length).toEqual(6);
 
           expect(responseBody.data.schedule.availability?.[0]?.days).toEqual(
             createdSchedule.availability?.[0]?.days

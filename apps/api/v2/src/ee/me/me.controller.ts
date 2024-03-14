@@ -1,11 +1,13 @@
 import { SchedulesService } from "@/ee/schedules/services/schedules.service";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
+import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
 import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
+import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { UpdateUserInput } from "@/modules/users/inputs/update-user.input";
 import { UserWithProfile, UsersRepository } from "@/modules/users/users.repository";
 import { Controller, UseGuards, Get, Patch, Body } from "@nestjs/common";
 
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { PROFILE_READ, PROFILE_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
 import { UserResponse, userSchemaResponse } from "@calcom/platform-types";
 import { ApiResponse } from "@calcom/platform-types";
 
@@ -13,7 +15,7 @@ import { ApiResponse } from "@calcom/platform-types";
   path: "me",
   version: "2",
 })
-@UseGuards(AccessTokenGuard)
+@UseGuards(AccessTokenGuard, PermissionsGuard)
 export class MeController {
   constructor(
     private readonly usersRepository: UsersRepository,
@@ -21,6 +23,7 @@ export class MeController {
   ) {}
 
   @Get("/")
+  @Permissions([PROFILE_READ])
   async getMe(@GetUser() user: UserWithProfile): Promise<ApiResponse<UserResponse>> {
     const me = userSchemaResponse.parse(user);
 
@@ -31,6 +34,7 @@ export class MeController {
   }
 
   @Patch("/")
+  @Permissions([PROFILE_WRITE])
   async updateMe(
     @GetUser() user: UserWithProfile,
     @Body() bodySchedule: UpdateUserInput
