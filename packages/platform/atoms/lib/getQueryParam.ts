@@ -1,4 +1,4 @@
-const getQueryParam = (paramName: string, defaultParam?: "setup") => {
+const getQueryParam = (paramName: string) => {
   if (typeof window !== "undefined") {
     const currentUrl = new URL(window.location.href);
     const searchParams = currentUrl.searchParams;
@@ -8,7 +8,7 @@ const getQueryParam = (paramName: string, defaultParam?: "setup") => {
     return paramater;
   }
 
-  return defaultParam;
+  return undefined;
 };
 
 export default getQueryParam;
