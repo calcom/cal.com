@@ -1103,6 +1103,8 @@ async function handler(
       firstUsersMetadata?.defaultConferencingApp?.appLink;
   }
 
+  let rescheduleUid = reqBody.rescheduleUid;
+
   if (
     Object.prototype.hasOwnProperty.call(eventType, "bookingLimits") ||
     Object.prototype.hasOwnProperty.call(eventType, "durationLimits")
@@ -1116,6 +1118,7 @@ async function handler(
         eventType.bookingLimits as IntervalLimit,
         startAsDate,
         eventType.id,
+        rescheduleUid,
         eventType.schedule?.timeZone
       );
     }
@@ -1124,7 +1127,6 @@ async function handler(
     }
   }
 
-  let rescheduleUid = reqBody.rescheduleUid;
   let bookingSeat: BookingSeat = null;
 
   let originalRescheduledBooking: BookingType = null;
