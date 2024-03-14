@@ -16,6 +16,8 @@ import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.
 import { TokensRepositoryFixture } from "test/fixtures/repository/tokens.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 
+const CLIENT_REDIRECT_URI = "http://localhost:5555";
+
 describe("Platform Gcal Endpoints", () => {
   let app: INestApplication;
 
@@ -62,7 +64,7 @@ describe("Platform Gcal Endpoints", () => {
     const data = {
       logo: "logo-url",
       name: "name",
-      redirectUris: ["redirect-uri"],
+      redirectUris: [CLIENT_REDIRECT_URI],
       permissions: 32,
     };
     const secret = "secret";
@@ -91,7 +93,7 @@ describe("Platform Gcal Endpoints", () => {
     const response = await request(app.getHttpServer())
       .get(`/api/v2/platform/gcal/oauth/auth-url`)
       .set("Authorization", `Bearer ${accessTokenSecret}`)
-      .set("origin", "http://localhost:5555")
+      .set("Origin", CLIENT_REDIRECT_URI)
       .expect(200);
     const data = response.body.data;
     expect(data.authUrl).toBeDefined();
@@ -100,7 +102,7 @@ describe("Platform Gcal Endpoints", () => {
   it(`/GET/platform/gcal/oauth/save: without oauth code`, async () => {
     await request(app.getHttpServer())
       .get(
-        `/api/v2/platform/gcal/oauth/save?state=accessToken=${accessTokenSecret}&origin%3Dhttp://localhost:5555&scope=https://www.googleapis.com/auth/calendar.readonly%20https://www.googleapis.com/auth/calendar.events`
+        `/api/v2/platform/gcal/oauth/save?state=accessToken=${accessTokenSecret}&origin%3D${CLIENT_REDIRECT_URI}&scope=https://www.googleapis.com/auth/calendar.readonly%20https://www.googleapis.com/auth/calendar.events`
       )
       .expect(400);
   });
@@ -108,7 +110,7 @@ describe("Platform Gcal Endpoints", () => {
   it(`/GET/platform/gcal/oauth/save: without access token`, async () => {
     await request(app.getHttpServer())
       .get(
-        `/api/v2/platform/gcal/oauth/save?state=origin%3Dhttp://localhost:5555&code=4/0AfJohXmBuT7QVrEPlAJLBu4ZcSnyj5jtDoJqSW_riPUhPXQ70RPGkOEbVO3xs-OzQwpPQw&scope=https://www.googleapis.com/auth/calendar.readonly%20https://www.googleapis.com/auth/calendar.events`
+        `/api/v2/platform/gcal/oauth/save?state=origin%3D${CLIENT_REDIRECT_URI}&code=4/0AfJohXmBuT7QVrEPlAJLBu4ZcSnyj5jtDoJqSW_riPUhPXQ70RPGkOEbVO3xs-OzQwpPQw&scope=https://www.googleapis.com/auth/calendar.readonly%20https://www.googleapis.com/auth/calendar.events`
       )
       .expect(400);
   });
@@ -121,25 +123,26 @@ describe("Platform Gcal Endpoints", () => {
       .expect(400);
   });
 
-  it(`/GET/platform/gcal/check with access token`, async () => {
+  it(`/GET/platform/gcal/check with access token but without origin`, async () => {
     await request(app.getHttpServer())
       .get(`/api/v2/platform/gcal/check`)
       .set("Authorization", `Bearer ${accessTokenSecret}`)
-      .expect(400);
+      .expect(401);
   });
 
   it(`/GET/platform/gcal/check without access token`, async () => {
     await request(app.getHttpServer()).get(`/api/v2/platform/gcal/check`).expect(401);
   });
 
-  it(`/GET/platform/gcal/check with access token but no credentials`, async () => {
+  it(`/GET/platform/gcal/check with access token and origin but no credentials`, async () => {
     await request(app.getHttpServer())
       .get(`/api/v2/platform/gcal/check`)
       .set("Authorization", `Bearer ${accessTokenSecret}`)
+      .set("Origin", CLIENT_REDIRECT_URI)
       .expect(400);
   });
 
-  it(`/GET/platform/gcal/check with access token and gcal credentials`, async () => {
+  it(`/GET/platform/gcal/check with access token and origin and gcal credentials`, async () => {
     gcalCredentials = await credentialsRepositoryFixture.create(
       "google_calendar",
       {},
@@ -149,6 +152,7 @@ describe("Platform Gcal Endpoints", () => {
     await request(app.getHttpServer())
       .get(`/api/v2/platform/gcal/check`)
       .set("Authorization", `Bearer ${accessTokenSecret}`)
+      .set("Origin", CLIENT_REDIRECT_URI)
       .expect(200);
   });
 

@@ -23,6 +23,8 @@ import { UserRepositoryFixture } from "test/fixtures/repository/users.repository
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { ApiSuccessResponse } from "@calcom/platform-types";
 
+const CLIENT_REDIRECT_URI = "http://localhost:4321";
+
 describe("OAuth Client Users Endpoints", () => {
   describe("Not authenticated", () => {
     let app: INestApplication;
@@ -99,7 +101,7 @@ describe("OAuth Client Users Endpoints", () => {
       const data = {
         logo: "logo-url",
         name: "name",
-        redirectUris: ["redirect-uri"],
+        redirectUris: [CLIENT_REDIRECT_URI],
         permissions: 32,
       };
       const secret = "secret";
@@ -180,6 +182,7 @@ describe("OAuth Client Users Endpoints", () => {
       const response = await request(app.getHttpServer())
         .get(`/api/v2/oauth-clients/${oAuthClient.id}/users/${postResponseData.user.id}`)
         .set("Authorization", `Bearer ${postResponseData.accessToken}`)
+        .set("Origin", `${CLIENT_REDIRECT_URI}`)
         .expect(200);
 
       const responseBody: ApiSuccessResponse<UserReturned> = response.body;
@@ -196,6 +199,7 @@ describe("OAuth Client Users Endpoints", () => {
       const response = await request(app.getHttpServer())
         .patch(`/api/v2/oauth-clients/${oAuthClient.id}/users/${postResponseData.user.id}`)
         .set("Authorization", `Bearer ${postResponseData.accessToken}`)
+        .set("Origin", `${CLIENT_REDIRECT_URI}`)
         .send(body)
         .expect(200);
 
@@ -210,6 +214,7 @@ describe("OAuth Client Users Endpoints", () => {
       return request(app.getHttpServer())
         .delete(`/api/v2/oauth-clients/${oAuthClient.id}/users/${postResponseData.user.id}`)
         .set("Authorization", `Bearer ${postResponseData.accessToken}`)
+        .set("Origin", `${CLIENT_REDIRECT_URI}`)
         .expect(200);
     });
 
