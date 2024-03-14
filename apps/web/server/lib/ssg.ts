@@ -34,7 +34,6 @@ export async function ssgInit<TParams extends { locale?: string }>(opts: GetStat
       insightsDb: readonlyPrisma,
       session: null,
       locale,
-      i18n: _i18n,
     },
   });
 
