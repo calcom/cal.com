@@ -4,6 +4,7 @@ import { z } from "zod";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
+import prisma from "@calcom/prisma";
 import { availabilityUserSelect } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { stringOrNumber } from "@calcom/prisma/zod-utils";
@@ -188,7 +189,7 @@ const availabilitySchema = z
   );
 
 async function handler(req: NextApiRequest) {
-  const { prisma, isAdmin, userId: reqUserId } = req;
+  const { isAdmin, userId: reqUserId } = req;
   const { username, userId, eventTypeId, dateTo, dateFrom, teamId } = availabilitySchema.parse(req.query);
   if (!teamId)
     return getUserAvailability({

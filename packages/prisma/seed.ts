@@ -852,6 +852,51 @@ async function main() {
             },
           ],
         },
+        {
+          memberData: {
+            email: "member1-acme@example.com",
+            password: {
+              create: {
+                hash: "member1-acme",
+              },
+            },
+            username: "member1-acme",
+            name: "Member 1",
+          },
+          orgMembership: {
+            role: "MEMBER",
+            accepted: true,
+          },
+          orgProfile: {
+            username: "member1",
+          },
+          inTeams: [
+            {
+              slug: "team1",
+              role: "ADMIN",
+            },
+          ],
+        },
+        {
+          memberData: {
+            email: "member2-acme@example.com",
+            password: {
+              create: {
+                hash: "member2-acme",
+              },
+            },
+            username: "member2-acme",
+            name: "Member 2",
+          },
+          orgMembership: {
+            role: "MEMBER",
+            accepted: true,
+          },
+          orgProfile: {
+            username: "member2",
+          },
+          inTeams: [],
+        },
       ],
     },
     teams: [

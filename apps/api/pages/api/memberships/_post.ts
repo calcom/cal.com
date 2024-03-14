@@ -3,6 +3,7 @@ import type { NextApiRequest } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
+import prisma from "@calcom/prisma";
 
 import { membershipCreateBodySchema, schemaMembershipPublic } from "~/lib/validations/membership";
 
@@ -22,7 +23,6 @@ import { membershipCreateBodySchema, schemaMembershipPublic } from "~/lib/valida
  *        description: Authorization information is missing or invalid.
  */
 async function postHandler(req: NextApiRequest) {
-  const { prisma } = req;
   const data = membershipCreateBodySchema.parse(req.body);
   const args: Prisma.MembershipCreateArgs = { data };
 
@@ -37,7 +37,7 @@ async function postHandler(req: NextApiRequest) {
 }
 
 async function checkPermissions(req: NextApiRequest) {
-  const { userId, isAdmin, prisma } = req;
+  const { userId, isAdmin } = req;
   if (isAdmin) return;
   const body = membershipCreateBodySchema.parse(req.body);
   // To prevent auto-accepted invites, limit it to ADMIN users
