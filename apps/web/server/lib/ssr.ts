@@ -2,51 +2,11 @@ import type { GetServerSidePropsContext } from "next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import superjson from "superjson";
 
-import { forms } from "@calcom/app-store/routing-forms/trpc/procedures/forms";
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
-import { map } from "@calcom/features/flags/server/procedures/map";
 import { CALCOM_VERSION } from "@calcom/lib/constants";
 import { createServerSideHelpers } from "@calcom/trpc/react/server";
 import { createContext } from "@calcom/trpc/server/createContext";
-import { me } from "@calcom/trpc/server/routers/loggedInViewer/procedures/me";
-import { teamsAndUserProfilesQuery } from "@calcom/trpc/server/routers/loggedInViewer/procedures/teamsAndUserProfilesQuery";
-import { event } from "@calcom/trpc/server/routers/publicViewer/procedures/event";
-import { session } from "@calcom/trpc/server/routers/publicViewer/procedures/session";
-import { get } from "@calcom/trpc/server/routers/viewer/eventTypes/procedures/get";
-import { hasTeamPlan } from "@calcom/trpc/server/routers/viewer/teams/procedures/hasTeamPlan";
-import { router, mergeRouters } from "@calcom/trpc/server/trpc";
-
-const loggedInRouter = router({
-  me,
-});
-
-// Temporary workaround for OOM issue, import only procedures that are called on the server side
-const routerSlice = router({
-  viewer: mergeRouters(
-    loggedInRouter,
-    router({
-      features: router({
-        map,
-      }),
-      public: router({
-        session,
-        event,
-      }),
-      teams: router({
-        hasTeamPlan,
-      }),
-      appRoutingForms: router({
-        forms,
-      }),
-      teamsAndUserProfilesQuery: router({
-        teamsAndUserProfilesQuery,
-      }),
-      eventTypes: router({
-        get,
-      }),
-    })
-  ),
-});
+import { appRouter } from "@calcom/trpc/server/routers/_app";
 
 /**
  * Initialize server-side rendering tRPC helpers.
@@ -60,7 +20,7 @@ export async function ssrInit(context: GetServerSidePropsContext, options?: { no
   const i18n = await serverSideTranslations(locale, ["common", "vital"]);
 
   const ssr = createServerSideHelpers({
-    router: routerSlice,
+    router: appRouter,
     transformer: superjson,
     ctx: { ...ctx, locale },
   });
