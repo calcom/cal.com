@@ -1,6 +1,6 @@
 import { InfoIcon } from "lucide-react";
 import dynamic from "next/dynamic";
-import type { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
+import type { EventTypeSetupProps } from "pages/event-types/[type]";
 import { useEffect, useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import type { z } from "zod";
