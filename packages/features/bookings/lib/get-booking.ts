@@ -256,7 +256,6 @@ export const getBookingForSeatedEvent = async (uid: string) => {
     ...booking,
     // @NOTE: had to do this because Server side cant return [Object objects]
     startTime: booking.startTime.toISOString() as unknown as Date,
-    endTime: booking.endTime.toISOString() as unknown as Date,
     description: null,
     customInputs: null,
     responses: {},
