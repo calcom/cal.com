@@ -1,4 +1,5 @@
 import { TooltipProvider } from "@radix-ui/react-tooltip";
+import { useTimezone } from "hooks/useTimezone";
 import { useState } from "react";
 import { useCallback } from "react";
 
@@ -7,7 +8,6 @@ import enTranslations from "@calcom/web/public/static/locales/en/common.json";
 import { AtomsContext } from "../hooks/useAtomsContext";
 import { useOAuthClient } from "../hooks/useOAuthClient";
 import { useOAuthFlow } from "../hooks/useOAuthFlow";
-import { useTimezone } from "../hooks/useTimezone";
 import { useUpdateUserTimezone } from "../hooks/useUpdateUserTimezone";
 import http from "../lib/http";
 import { Toaster } from "../src/components/ui/toaster";
@@ -15,7 +15,14 @@ import type { CalProviderProps } from "./CalProvider";
 
 type translationKeys = keyof typeof enTranslations;
 
-export function BaseCalProvider({ clientId, accessToken, options, children }: CalProviderProps) {
+export function BaseCalProvider({
+  clientId,
+  accessToken,
+  options,
+  children,
+  autoUpdateTimezone,
+  onTimezoneChange,
+}: CalProviderProps) {
   const [error, setError] = useState<string>("");
 
   const { mutateAsync } = useUpdateUserTimezone();
@@ -27,7 +34,13 @@ export function BaseCalProvider({ clientId, accessToken, options, children }: Ca
     [mutateAsync]
   );
 
-  useTimezone(handleTimezoneChange);
+  const getTimezoneChangeHandler = useCallback(() => {
+    if (onTimezoneChange) return onTimezoneChange;
+    if (!onTimezoneChange && autoUpdateTimezone) return handleTimezoneChange;
+    return undefined;
+  }, [onTimezoneChange, autoUpdateTimezone, handleTimezoneChange]);
+
+  useTimezone(getTimezoneChangeHandler());
 
   const { isInit } = useOAuthClient({
     clientId,
