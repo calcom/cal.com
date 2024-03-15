@@ -402,7 +402,11 @@ const getEventTypes = async (userId: number, teamId?: number) => {
   return eventTypes;
 };
 
-const getEventTypeById = async (eventTypeId: number) => {
+const getEventTypeById = async (
+  eventTypeId: number,
+  userId: number | undefined,
+  teamId: number | undefined
+) => {
   const eventTypeDB = await prisma.eventType.findFirst({
     select: {
       id: true,
@@ -418,7 +422,11 @@ const getEventTypeById = async (eventTypeId: number) => {
       schedulingType: true,
       metadata: true,
     },
-    where: { id: eventTypeId },
+    where: {
+      id: eventTypeId,
+      ...(!!teamId ? { teamId } : {}),
+      ...(!!userId ? { userId } : {}),
+    },
   });
 
   if (!eventTypeDB) {
@@ -490,6 +498,9 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         throw new Error(ERROR_MESSAGES.userNotInTeam);
       }
     }
+    if (parsedEventTypeIdParam) {
+      configureEventType = await getEventTypeById(parsedEventTypeIdParam, user.id, parsedTeamIdParam);
+    }
 
     switch (parsedStepParam) {
       case AppOnboardingSteps.ACCOUNTS_STEP:
@@ -512,7 +523,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         if (!parsedEventTypeIdParam) {
           throw new Error(ERROR_MESSAGES.appNotEventType);
         }
-        configureEventType = await getEventTypeById(parsedEventTypeIdParam);
         break;
 
       case AppOnboardingSteps.OAUTH_STEP:
