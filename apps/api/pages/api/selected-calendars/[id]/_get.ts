@@ -1,6 +1,7 @@
 import type { NextApiRequest } from "next";
 
 import { defaultResponder } from "@calcom/lib/server";
+import prisma from "@calcom/prisma";
 
 import { schemaSelectedCalendarPublic, selectedCalendarIdSchema } from "~/lib/validations/selected-calendar";
 
@@ -46,7 +47,7 @@ import { schemaSelectedCalendarPublic, selectedCalendarIdSchema } from "~/lib/va
  *         description: SelectedCalendar was not found
  */
 export async function getHandler(req: NextApiRequest) {
-  const { prisma, query } = req;
+  const { query } = req;
   const userId_integration_externalId = selectedCalendarIdSchema.parse(query);
   const data = await prisma.selectedCalendar.findUniqueOrThrow({
     where: { userId_integration_externalId },

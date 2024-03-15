@@ -10,7 +10,12 @@ export const BulkUpdateEventSchema = z.object({
   eventTypeIds: z.array(z.number()),
 });
 
-export function BulkEditDefaultConferencingModal(props: { open: boolean; setOpen: (open: boolean) => void }) {
+export function BulkEditDefaultForEventsModal(props: {
+  open: boolean;
+  setOpen: (open: boolean) => void;
+  bulkUpdateFunction: ({ eventTypeIds }: { eventTypeIds: number[] }) => void;
+  isPending: boolean;
+}) {
   const { t } = useLocale();
   const utils = trpc.useContext();
   const { data, isFetching } = trpc.viewer.eventTypes.bulkEventFetch.useQuery();
@@ -18,13 +23,6 @@ export function BulkEditDefaultConferencingModal(props: { open: boolean; setOpen
     resolver: zodResolver(BulkUpdateEventSchema),
     defaultValues: {
       eventTypeIds: data?.eventTypes.map((e) => e.id) ?? [],
-    },
-  });
-
-  const updateLocationsMutation = trpc.viewer.eventTypes.bulkUpdateToDefaultLocation.useMutation({
-    onSuccess: () => {
-      utils.viewer.getUsersDefaultConferencingApp.invalidate();
-      props.setOpen(false);
     },
   });
 
@@ -42,7 +40,7 @@ export function BulkEditDefaultConferencingModal(props: { open: boolean; setOpen
         <Form
           form={form}
           handleSubmit={(values) => {
-            updateLocationsMutation.mutate(values);
+            props.bulkUpdateFunction(values);
           }}>
           <div className="flex flex-col space-y-2">
             {data.eventTypes.length > 0 && (
@@ -81,7 +79,7 @@ export function BulkEditDefaultConferencingModal(props: { open: boolean; setOpen
                 utils.viewer.getUsersDefaultConferencingApp.invalidate();
               }}
             />
-            <Button type="submit" color="primary" loading={updateLocationsMutation.isPending}>
+            <Button type="submit" color="primary" loading={props.isPending}>
               {t("update")}
             </Button>
           </DialogFooter>
