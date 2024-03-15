@@ -54,6 +54,7 @@ async function getBooking(prisma: PrismaClient, uid: string, isSeatedEvent?: boo
       id: true,
       uid: true,
       startTime: true,
+      endTime: true,
       description: true,
       customInputs: true,
       responses: true,
@@ -85,6 +86,7 @@ async function getBooking(prisma: PrismaClient, uid: string, isSeatedEvent?: boo
     // @NOTE: had to do this because Server side cant return [Object objects]
     // probably fixable with json.stringify -> json.parse
     booking["startTime"] = (booking?.startTime as Date)?.toISOString() as unknown as Date;
+    booking["endTime"] = (booking?.endTime as Date)?.toISOString() as unknown as Date;
   }
 
   return booking;
