@@ -13,6 +13,7 @@ import {
 } from "./httpMethods";
 import { rateLimitApiKey } from "./rateLimitApiKey";
 import { verifyApiKey } from "./verifyApiKey";
+import { verifyCredentialSyncEnabled } from "./verifyCredentialSyncEnabled";
 import { withPagination } from "./withPagination";
 
 const middleware = {
@@ -28,6 +29,7 @@ const middleware = {
   extendRequest,
   pagination: withPagination,
   captureErrors,
+  verifyCredentialSyncEnabled,
 };
 
 type Middleware = keyof typeof middleware;
