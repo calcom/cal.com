@@ -2,19 +2,16 @@ import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
-import type { getTeamOrThrow } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
 
 import dSyncUserSelect from "./dSyncUserSelect";
 
 const createUsersAndConnectToOrg = async ({
   emailsToCreate,
-  org,
+  organizationId,
 }: {
   emailsToCreate: string[];
-  org: Awaited<ReturnType<typeof getTeamOrThrow>>;
+  organizationId: number;
 }) => {
-  const orgId = org.id;
-
   // As of Mar 2024 Prisma createMany does not support nested creates and returning created records
   await prisma.user.createMany({
     data: emailsToCreate.map((email) => {
@@ -25,8 +22,8 @@ const createUsersAndConnectToOrg = async ({
         email,
         // Assume verified since coming from directory
         verified: true,
-        invitedTo: orgId,
-        organizationId: orgId,
+        invitedTo: organizationId,
+        organizationId: organizationId,
       };
     }),
   });
@@ -43,7 +40,7 @@ const createUsersAndConnectToOrg = async ({
   await prisma.membership.createMany({
     data: users.map((user) => ({
       userId: user.id,
-      teamId: orgId,
+      teamId: organizationId,
       role: MembershipRole.MEMBER,
     })),
   });
@@ -54,7 +51,7 @@ const createUsersAndConnectToOrg = async ({
       userId: user.id,
       // The username is already set when creating the user
       username: user.username!,
-      organizationId: orgId,
+      organizationId: organizationId,
     })),
   });
 

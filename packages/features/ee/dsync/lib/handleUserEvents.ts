@@ -66,7 +66,7 @@ const handleUserEvents = async (event: DirectorySyncEvent, organizationId: numbe
   } else {
     await createUsersAndConnectToOrg({
       emailsToCreate: [userEmail],
-      org,
+      organizationId: org.id,
     });
 
     await sendSignupToOrganizationEmail({

@@ -9,10 +9,12 @@ import EmailProvider from "next-auth/providers/email";
 import GoogleProvider from "next-auth/providers/google";
 
 import checkLicense from "@calcom/features/ee/common/server/checkLicense";
+import createUsersAndConnectToOrg from "@calcom/features/ee/dsync/lib/users/createUsersAndConnectToOrg";
 import ImpersonationProvider from "@calcom/features/ee/impersonation/lib/ImpersonationProvider";
 import { getOrgFullOrigin, subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { clientSecretVerifier, hostedCal, isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
+import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
 import { ENABLE_PROFILE_SWITCHER, IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { symmetricDecrypt, symmetricEncrypt } from "@calcom/lib/crypto";
 import { defaultCookies } from "@calcom/lib/default-cookies";
@@ -42,7 +44,21 @@ const ORGANIZATIONS_AUTOLINK =
   process.env.ORGANIZATIONS_AUTOLINK === "1" || process.env.ORGANIZATIONS_AUTOLINK === "true";
 
 const usernameSlug = (username: string) => `${slugify(username)}-${randomString(6).toLowerCase()}`;
-
+const getDomainFromEmail = (email: string): string => email.split("@")[1];
+const getOrganizationIdByDomain = async (domain: string) => {
+  const existingOrg = await prisma.team.findFirst({
+    where: {
+      organizationSettings: {
+        isOrganizationVerified: true,
+        orgAutoAcceptEmail: domain,
+      },
+    },
+    select: {
+      id: true,
+    },
+  });
+  return existingOrg?.id;
+};
 const loginWithTotp = async (email: string) =>
   `/auth/login?totp=${await (await import("./signJwt")).default({ email })}`;
 
@@ -65,7 +81,8 @@ export const checkIfUserBelongsToActiveTeam = <T extends UserTeams>(user: T) =>
 
 const checkIfUserShouldBelongToOrg = async (idP: IdentityProvider, email: string) => {
   const [orgUsername, apexDomain] = email.split("@");
-  if (!ORGANIZATIONS_AUTOLINK || idP !== "GOOGLE") return { orgUsername, orgId: undefined };
+  if (!ORGANIZATIONS_AUTOLINK || (idP !== "GOOGLE" && idP !== "SAML"))
+    return { orgUsername, orgId: undefined };
   const existingOrg = await prisma.team.findFirst({
     where: {
       organizationSettings: {
@@ -266,11 +283,22 @@ if (isSAMLLoginEnabled) {
       email?: string;
       locale?: string;
     }) => {
-      const user = await UserRepository.findByEmailAndIncludeProfilesAndPassword({
+      let user = await UserRepository.findByEmailAndIncludeProfilesAndPassword({
         email: profile.email || "",
       });
       if (!user) {
-        throw new Error(ErrorCode.UserNotFound);
+        const hostedCal = Boolean(HOSTED_CAL_FEATURES);
+        if (hostedCal && profile.email) {
+          const domain = getDomainFromEmail(profile.email);
+          const organizationId = await getOrganizationIdByDomain(domain);
+          organizationId
+            ? await createUsersAndConnectToOrg({ emailsToCreate: [profile?.email], organizationId })
+            : [];
+          user = await UserRepository.findByEmailAndIncludeProfilesAndPassword({
+            email: profile.email,
+          });
+        }
+        if (!user) throw new Error(ErrorCode.UserNotFound);
       }
 
       const [userProfile] = user.allProfiles;
@@ -325,7 +353,6 @@ if (isSAMLLoginEnabled) {
         if (!access_token) {
           return null;
         }
-
         // Fetch user info
         const userInfo = await oauthController.userInfo(access_token);
 
@@ -334,13 +361,24 @@ if (isSAMLLoginEnabled) {
         }
 
         const { id, firstName, lastName, email } = userInfo;
-        const user = await UserRepository.findByEmailAndIncludeProfilesAndPassword({ email });
-        let profile = null;
+        let user = !email
+          ? undefined
+          : await UserRepository.findByEmailAndIncludeProfilesAndPassword({ email });
         if (!user) {
-          // throw new Error(ErrorCode.UserNotFound);
-          console.log("no user found", firstName, id, lastName, email);
+          const hostedCal = Boolean(HOSTED_CAL_FEATURES);
+          if (hostedCal && email) {
+            const domain = getDomainFromEmail(email);
+            const organizationId = await getOrganizationIdByDomain(domain);
+            organizationId
+              ? await createUsersAndConnectToOrg({ emailsToCreate: [email], organizationId })
+              : [];
+            user = await UserRepository.findByEmailAndIncludeProfilesAndPassword({
+              email: email,
+            });
+          }
+          if (!user) throw new Error(ErrorCode.UserNotFound);
         }
-        if (user) [profile] = user?.allProfiles;
+        const [userProfile] = user?.allProfiles;
 
         return {
           id: id as unknown as number,
@@ -349,7 +387,7 @@ if (isSAMLLoginEnabled) {
           email,
           name: `${firstName} ${lastName}`.trim(),
           email_verified: true,
-          profile,
+          profile: userProfile,
         };
       },
     })
