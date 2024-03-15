@@ -171,7 +171,7 @@ function buildSlotsWithDateRanges({
 
     let interval = Number(process.env.NEXT_PUBLIC_AVAILABILITY_SCHEDULE_INTERVAL) || 15;
 
-    const intervalsWithDefinedStartTimes = [60, 30, 20, 10];
+    const intervalsWithDefinedStartTimes = [60, 30, 20, 15, 10, 5];
 
     for (let i = 0; i < intervalsWithDefinedStartTimes.length; i++) {
       if (frequency % intervalsWithDefinedStartTimes[i] === 0) {
