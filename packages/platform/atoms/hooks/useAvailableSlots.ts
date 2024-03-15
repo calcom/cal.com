@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import type { AvailableSlotsType } from "@calcom/platform-libraries";
-import type { GetAvailableSlotsInput, ApiResponse } from "@calcom/platform-types";
+import type { GetAvailableSlotsInput, ApiResponse, ApiSuccessResponse } from "@calcom/platform-types";
 
 import http from "../lib/http";
 
@@ -18,7 +18,7 @@ export const useAvailableSlots = ({ enabled, ...rest }: GetAvailableSlotsInput &
         })
         .then((res) => {
           if (res.data.status === SUCCESS_STATUS) {
-            return res.data.data;
+            return (res.data as ApiSuccessResponse<AvailableSlotsType>).data;
           }
           throw new Error(res.data.error.message);
         });

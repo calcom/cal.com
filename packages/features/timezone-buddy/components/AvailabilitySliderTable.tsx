@@ -220,7 +220,6 @@ export function AvailabilitySliderTable(props: { userTimeFormat: number | null }
               setSelectedUser(null); // We need to clear the user here or else the sheet will not re-render when opening a new user
             }}
             selectedUser={selectedUser}
-            userTimeFormat={props.userTimeFormat}
           />
         ) : null}
       </>
