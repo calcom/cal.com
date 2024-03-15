@@ -2313,5 +2313,12 @@
   "confirm_email": "Confirm your email",
   "confirm_email_description": "We sent an email to <strong>{{email}}</strong>. Click the link in the email to verify this address.",
   "send_event_details_to": "Send event details to",
+  "lock_event_types_modal_header":"What should we do with your member's existing event types?",
+  "org_delete_event_types_org_admin":"All of your members individual event types (except managed ones) will be permanently deleted. They will not be able to create new ones",
+  "org_hide_event_types_org_admin":"Your members individual event types will be hidden (except managed ones) from profiles but the links will still be active. They will not be able to create new ones.  ",
+  "hide_org_eventtypes":"Hide individual event types",
+  "delete_org_eventtypes":"Delete individual event types",
+  "lock_org_users_eventtypes":"Lock individual event type creation",
+  "lock_org_users_eventtypes_description":"Prevent members from creating their own event types.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
