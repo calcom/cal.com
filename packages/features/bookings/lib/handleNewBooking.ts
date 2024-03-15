@@ -1481,7 +1481,7 @@ async function handler(
       id: organizerUser.id,
       name: organizerUser.name || "Nameless",
       email: organizerEmail,
-      username: organizerOrganizationProfile?.username || organizerUser.username || undefined,
+      username: organizerUser.username || undefined,
       timeZone: organizerUser.timeZone,
       language: { translate: tOrganizer, locale: organizerUser.locale ?? "en" },
       timeFormat: getTimeFormatStringFromUserTimeFormat(organizerUser.timeFormat),

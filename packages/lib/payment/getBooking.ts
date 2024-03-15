@@ -155,7 +155,6 @@ export async function getBooking(bookingId: number) {
       timeFormat: getTimeFormatStringFromUserTimeFormat(user.timeFormat),
       language: { translate: t, locale: user.locale ?? "en" },
       id: user.id,
-      username: organizerOrganizationProfile?.username || user.username || undefined,
     },
     attendees: attendeesList,
     location: booking.location,

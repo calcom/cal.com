@@ -161,7 +161,7 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
       responses: evt.responses,
       meetingUrl: bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl,
       cancelLink: `${evt.bookerUrl}/booking/${evt.uid}?cancel=true`,
-      rescheduleLink: `${evt.bookerUrl}/${evt.organizer.username}/${evt.eventType.slug}?rescheduleUid=${evt.uid}`,
+      rescheduleLink: `${evt.bookerUrl}/reschedule/${evt.uid}`,
     };
     const customMessage = customTemplate(smsMessage, variables, locale, evt.organizer.timeFormat);
     smsMessage = customMessage.text;

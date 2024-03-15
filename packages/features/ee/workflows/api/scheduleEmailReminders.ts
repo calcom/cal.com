@@ -187,9 +187,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
             responses: responses,
             meetingUrl: bookingMetadataSchema.parse(reminder.booking.metadata || {})?.videoCallUrl,
             cancelLink: `${bookerUrl}/booking/${reminder.booking.uid}?cancel=true`,
-            rescheduleLink: `${bookerUrl}/${
-              organizerOrganizationProfile?.username || reminder.booking.user?.username
-            }/${reminder.booking.eventType?.slug}?rescheduleUid=${reminder.booking.uid}`,
+            rescheduleLink: `${bookerUrl}/reschedule/${reminder.booking.uid}`,
           };
           const emailLocale = locale || "en";
           const emailSubject = customTemplate(
