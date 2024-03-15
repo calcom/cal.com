@@ -7,16 +7,23 @@ import { useFormContext } from "react-hook-form";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import type { FormValues } from "@calcom/features/eventtypes/lib/types";
-import { WebhookForm } from "@calcom/features/webhooks/components";
 import type { WebhookFormSubmitData } from "@calcom/features/webhooks/components/WebhookForm";
-import WebhookListItem from "@calcom/features/webhooks/components/WebhookListItem";
 import { subscriberUrlReserved } from "@calcom/features/webhooks/lib/subscriberUrlReserved";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
-import { Alert, Button, EmptyScreen, SettingsToggle, Dialog, DialogContent, showToast } from "@calcom/ui";
-import { Sparkles, Plus, Lock, Webhook as TbWebhook } from "@calcom/ui/components/icon";
+import {
+  Alert,
+  Button,
+  EmptyScreen,
+  SettingsToggle,
+  Dialog,
+  DialogContent,
+  showToast,
+  TextField,
+} from "@calcom/ui";
+import { Sparkles, Phone, Plus, Lock } from "@calcom/ui/components/icon";
 
 type AIEventControllerProps = {
   eventType: EventTypeSetup;
@@ -38,7 +45,8 @@ export default function AIEventController({
 
   const instantLocked = shouldLockDisableProps("isAIEvent");
 
-  const isOrg = !!session.data?.user?.org?.id;
+  //todo const isOrg = !!session.data?.user?.org?.id;
+  const isOrg = true;
 
   if (session.status === "loading") return <></>;
 
@@ -60,11 +68,6 @@ export default function AIEventController({
               <Alert severity="warning" title={t("warning_payment_instant_meeting_event")} />
             ) : (
               <>
-                <Alert
-                  className="mb-4"
-                  severity="warning"
-                  title={t("warning_instant_meeting_experimental")}
-                />
                 <SettingsToggle
                   labelClassName="text-sm"
                   toggleSwitchAtTheEnd={true}
@@ -73,9 +76,9 @@ export default function AIEventController({
                     instantEventState && "rounded-b-none"
                   )}
                   childrenClassName="lg:ml-0"
-                  title={t("instant_tab_title")}
+                  title={t("Cal.ai" /* todo "ai_tab_title"*/)}
                   {...instantLocked}
-                  description={t("instant_event_tab_description")}
+                  description={t("Create an AI phone number" /* todo "instant_event_tab_description" */)}
                   checked={instantEventState}
                   data-testid="instant-event-check"
                   onCheckedChange={(e) => {
@@ -88,7 +91,7 @@ export default function AIEventController({
                     }
                   }}>
                   <div className="border-subtle rounded-b-lg border border-t-0 p-6">
-                    {instantEventState && <AIMeetingWebhooks eventType={eventType} />}
+                    {instantEventState && <AISettings eventType={eventType} />}
                   </div>
                 </SettingsToggle>
               </>
@@ -100,7 +103,7 @@ export default function AIEventController({
   );
 }
 
-const AIMeetingWebhooks = ({ eventType }: { eventType: EventTypeSetup }) => {
+const AISettings = ({ eventType }: { eventType: EventTypeSetup }) => {
   const { t } = useLocale();
   const utils = trpc.useContext();
   const formMethods = useFormContext<FormValues>();
@@ -167,15 +170,15 @@ const AIMeetingWebhooks = ({ eventType }: { eventType: EventTypeSetup }) => {
     });
   };
 
-  const NewWebhookButton = () => {
+  const NewPhoneButton = () => {
     const { t } = useLocale();
     return (
       <Button
         color="secondary"
-        data-testid="new_webhook"
+        data-testid="new_phone_number"
         StartIcon={Plus}
         onClick={() => setCreateModalOpen(true)}>
-        {t("new_webhook")}
+        {t("New Phone number" /*todo "new_webhook" */)}
       </Button>
     );
   };
@@ -195,7 +198,7 @@ const AIMeetingWebhooks = ({ eventType }: { eventType: EventTypeSetup }) => {
             {webhooks.length ? (
               <>
                 <div className="border-subtle my-2 rounded-md border">
-                  {webhooks.map((webhook, index) => {
+                  {/* {webhooks.map((webhook, index) => {
                     return (
                       <WebhookListItem
                         key={webhook.id}
@@ -208,28 +211,27 @@ const AIMeetingWebhooks = ({ eventType }: { eventType: EventTypeSetup }) => {
                         }}
                       />
                     );
-                  })}
+                  })} */}
                 </div>
-                <p className="text-default text-sm font-normal">
-                  {t("warning_payment_instant_meeting_event")}
-                </p>
               </>
             ) : (
               <>
-                <p className="text-default mb-4 text-sm font-normal">
-                  {t("warning_payment_instant_meeting_event")}
-                </p>
                 <EmptyScreen
-                  Icon={TbWebhook}
-                  headline={t("create_your_first_webhook")}
-                  description={t("create_instant_meeting_webhook_description")}
+                  Icon={Phone}
+                  headline={t("Create your phone number" /* todo "create_your_first_webhook" */)}
+                  description={t(
+                    "This phone number can be called by guests but can also do proactive outbound calls by the AI agent." /* todo "create_instant_meeting_webhook_description" */
+                  )}
                   buttonRaw={
                     isChildrenManagedEventType && !isManagedEventType ? (
                       <Button StartIcon={Lock} color="secondary" disabled>
                         {t("locked_by_admin")}
                       </Button>
                     ) : (
-                      <NewWebhookButton />
+                      <>
+                        <NewPhoneButton />
+                        <Button>Learn More</Button>
+                      </>
                     )
                   }
                 />
@@ -237,61 +239,17 @@ const AIMeetingWebhooks = ({ eventType }: { eventType: EventTypeSetup }) => {
             )}
           </div>
 
-          {/* New webhook dialog */}
+          {/* New phone dialog */}
           <Dialog open={createModalOpen} onOpenChange={(isOpen) => !isOpen && setCreateModalOpen(false)}>
             <DialogContent
               enableOverflow
-              title={t("create_webhook")}
-              description={t("create_webhook_team_event_type")}>
-              <WebhookForm
-                noRoutingFormTriggers={true}
-                onSubmit={onCreateWebhook}
-                onCancel={() => setCreateModalOpen(false)}
-                apps={installedApps?.items.map((app) => app.slug)}
-                selectOnlyAIMeetingOption={true}
-              />
-            </DialogContent>
-          </Dialog>
-          {/* Edit webhook dialog */}
-          <Dialog open={editModalOpen} onOpenChange={(isOpen) => !isOpen && setEditModalOpen(false)}>
-            <DialogContent enableOverflow title={t("edit_webhook")}>
-              <WebhookForm
-                noRoutingFormTriggers={true}
-                webhook={webhookToEdit}
-                apps={installedApps?.items.map((app) => app.slug)}
-                onCancel={() => setEditModalOpen(false)}
-                onSubmit={(values: WebhookFormSubmitData) => {
-                  if (
-                    subscriberUrlReserved({
-                      subscriberUrl: values.subscriberUrl,
-                      id: webhookToEdit?.id,
-                      webhooks,
-                      eventTypeId: eventType.id,
-                    })
-                  ) {
-                    showToast(t("webhook_subscriber_url_reserved"), "error");
-                    return;
-                  }
-
-                  if (values.changeSecret) {
-                    values.secret = values.newSecret.length ? values.newSecret : null;
-                  }
-
-                  if (!values.payloadTemplate) {
-                    values.payloadTemplate = null;
-                  }
-
-                  editWebhookMutation.mutate({
-                    id: webhookToEdit?.id || "",
-                    subscriberUrl: values.subscriberUrl,
-                    eventTriggers: values.eventTriggers,
-                    active: values.active,
-                    payloadTemplate: values.payloadTemplate,
-                    secret: values.secret,
-                    eventTypeId: webhookToEdit?.eventTypeId || undefined,
-                  });
-                }}
-              />
+              title={t("Create phone number" /* todo "create_phone_number" */)}
+              description={t(
+                "This number can later be called or can do proactive outbound calls" /* todo "create_phone_number_description" */
+              )}>
+              <div className="mb-12 mt-4">
+                <TextField placeholder="+415" hint="Area Code" />
+              </div>
             </DialogContent>
           </Dialog>
         </>
