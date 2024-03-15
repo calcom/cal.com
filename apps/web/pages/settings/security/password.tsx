@@ -2,12 +2,13 @@
 
 import { signOut, useSession } from "next-auth/react";
 import { useState } from "react";
+import type { UseFormReturn, FieldValues, FieldPath } from "react-hook-form";
 import { useForm } from "react-hook-form";
 
 import { identityProviderNameMap } from "@calcom/features/auth/lib/identityProviderNameMap";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
-import { classNames } from "@calcom/lib";
+import { classNames, isFormDisabled } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { IdentityProvider } from "@calcom/prisma/enums";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
@@ -130,7 +131,16 @@ const PasswordView = ({ user }: PasswordViewProps) => {
 
   const createAccountPasswordMutation = trpc.viewer.auth.createAccountPassword.useMutation({
     onSuccess: () => {
-      showToast("Successfull", "success");
+      showToast(t("successfully_created_account_password"), "success");
+      utils.viewer.me.invalidate();
+    },
+    onError: (error) => {
+      showToast(`${t("error_creating_account_password")}, ${t(error.message)}`, "error");
+
+      createAccountFormMethods.setError("apiError", {
+        message: t(error.message),
+        type: "custom",
+      });
     },
   });
 
@@ -148,22 +158,31 @@ const PasswordView = ({ user }: PasswordViewProps) => {
     },
   });
 
+  const setErrorInFormIfAny = <T extends FieldValues>(
+    genericFormMethod: UseFormReturn<T>,
+    value: string,
+    passwordKey: FieldPath<T>
+  ) => {
+    if (!value.length) {
+      genericFormMethod.setError(
+        passwordKey,
+        { type: "required", message: t("error_required_field") },
+        { shouldFocus: true }
+      );
+      return true;
+    }
+
+    return false;
+  };
+
   const handleSubmit = (values: ChangePasswordSessionFormValues) => {
     const { oldPassword, newPassword } = values;
 
-    if (!oldPassword.length) {
-      formMethods.setError(
-        "oldPassword",
-        { type: "required", message: t("error_required_field") },
-        { shouldFocus: true }
-      );
-    }
-    if (!newPassword.length) {
-      formMethods.setError(
-        "newPassword",
-        { type: "required", message: t("error_required_field") },
-        { shouldFocus: true }
-      );
+    const oldPasswordErrorSet = setErrorInFormIfAny(formMethods, oldPassword, "oldPassword");
+    const newPasswordErrorSet = setErrorInFormIfAny(formMethods, newPassword, "newPassword");
+
+    if (oldPasswordErrorSet || newPasswordErrorSet) {
+      return;
     }
 
     if (oldPassword && newPassword) {
@@ -174,19 +193,11 @@ const PasswordView = ({ user }: PasswordViewProps) => {
   const handleCreateAccountPasswordSubmit = (values: CreateAccountPasswordFormValues) => {
     const { newPassword, confirmPassword } = values;
 
-    if (!newPassword.length) {
-      createAccountFormMethods.setError(
-        "newPassword",
-        { type: "required", message: t("error_required_field") },
-        { shouldFocus: true }
-      );
-    }
-    if (!confirmPassword.length) {
-      createAccountFormMethods.setError(
-        "confirmPassword",
-        { type: "required", message: t("error_required_field") },
-        { shouldFocus: true }
-      );
+    const newPasswordErrorSet = setErrorInFormIfAny(formMethods, newPassword, "newPassword");
+    const confirmPasswordErrorSet = setErrorInFormIfAny(formMethods, confirmPassword, "confirmPassword");
+
+    if (newPasswordErrorSet || confirmPasswordErrorSet) {
+      return;
     }
 
     if (newPassword !== confirmPassword) {
@@ -195,6 +206,7 @@ const PasswordView = ({ user }: PasswordViewProps) => {
         { type: "required", message: t("new_password_not_matching_confirm_password") },
         { shouldFocus: true }
       );
+      return;
     }
 
     createAccountPasswordMutation.mutate({ newPassword, confirmPassword });
@@ -205,9 +217,8 @@ const PasswordView = ({ user }: PasswordViewProps) => {
     value: mins,
   }));
 
-  const isDisabled = formMethods.formState.isSubmitting || !formMethods.formState.isDirty;
-  const isCreateAccountDisabled =
-    createAccountFormMethods.formState.isSubmitting || !createAccountFormMethods.formState.isDirty;
+  const isDisabled = isFormDisabled(formMethods);
+  const isCreateAccountDisabled = isFormDisabled(createAccountFormMethods);
 
   const passwordMinLength = data?.user.role === "USER" ? 7 : 15;
   const isUser = data?.user.role === "USER";
@@ -226,7 +237,7 @@ const PasswordView = ({ user }: PasswordViewProps) => {
   return (
     <>
       <Meta title={t("password")} description={t("password_description")} borderInShellHeader={true} />
-      {user && user.identityProvider !== IdentityProvider.CAL ? (
+      {user && user.identityProvider !== IdentityProvider.CAL && !user.passwordAdded ? (
         <div className="border-subtle rounded-b-xl border border-t-0">
           <div className="px-4 py-6 sm:px-6">
             <h2 className="font-cal text-emphasis text-lg font-medium leading-6">
@@ -248,7 +259,7 @@ const PasswordView = ({ user }: PasswordViewProps) => {
                   <Alert severity="error" message={formMethods.formState.errors.apiError?.message} />
                 </div>
               )}
-              <h2 className="font-cal text-emphasis mb-1 mt-3 text-lg font-medium leading-6">
+              <h2 className="font-cal text-emphasis mb-1 text-lg font-medium leading-6">
                 {t("create_account_password")}
               </h2>
               <div className="w-full sm:grid sm:grid-cols-2 sm:gap-x-6">
@@ -265,6 +276,9 @@ const PasswordView = ({ user }: PasswordViewProps) => {
                   />
                 </div>
               </div>
+              <p className="text-default mt-4 w-full text-sm">
+                {t("invalid_password_hint", { passwordLength: passwordMinLength })}
+              </p>
             </div>
             <SectionBottomActions
               align="end"
@@ -385,7 +399,7 @@ const PasswordView = ({ user }: PasswordViewProps) => {
 };
 
 const PasswordViewWrapper = () => {
-  const { data: user, isPending } = trpc.viewer.me.useQuery();
+  const { data: user, isPending } = trpc.viewer.me.useQuery({ includePasswordAdded: true });
   const { t } = useLocale();
   if (isPending || !user)
     return <SkeletonLoader title={t("password")} description={t("password_description")} />;

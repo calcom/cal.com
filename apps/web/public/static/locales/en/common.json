@@ -2315,5 +2315,9 @@
   "send_event_details_to": "Send event details to",
   "create_account_password": "Create account password",
   "new_password_not_matching_confirm_password": "The entered passwords are not matching",
+  "successfully_created_account_password": "Successfully created account password",
+  "error_creating_account_password": "Failed to create account password",
+  "cannot_create_account_password_cal_provider": "Cannot create account password for cal accounts",
+  "cannot_create_account_password_already_existing": "Cannot create account password for already created ones",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

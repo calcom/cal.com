@@ -21,28 +21,34 @@ export const createAccountPasswordHandler = async ({ input, ctx }: CreateAccount
   const { user } = ctx;
 
   if (user.identityProvider === IdentityProvider.CAL) {
-    throw new TRPCError({ code: "FORBIDDEN", message: "THIRD_PARTY_IDENTITY_PROVIDER_ENABLED" });
+    throw new TRPCError({ code: "FORBIDDEN", message: "cannot_create_account_password_cal_provider" });
+  }
+
+  if (newPassword !== confirmPassword) {
+    throw new TRPCError({ code: "BAD_REQUEST", message: "new_password_not_matching_confirm_password" });
   }
 
   if (!validPassword(newPassword) || !validPassword(confirmPassword)) {
     throw new TRPCError({ code: "BAD_REQUEST", message: "password_hint_min" });
   }
 
-  if (newPassword !== confirmPassword) {
-    throw new TRPCError({ code: "BAD_REQUEST", message: "new_password_matches_old_password" });
+  const userWithPassword = await prisma.user.findUnique({
+    where: {
+      id: user.id,
+    },
+    select: {
+      password: true,
+    },
+  });
+  if (user.identityProvider !== IdentityProvider.CAL && userWithPassword.password?.hash) {
+    throw new TRPCError({ code: "FORBIDDEN", message: "cannot_create_account_password_already_existing" });
   }
 
   const hashedPassword = await hashPassword(newPassword);
-  await prisma.userPassword.upsert({
-    where: {
-      userId: user.id,
-    },
-    create: {
+  await prisma.userPassword.create({
+    data: {
       hash: hashedPassword,
       userId: user.id,
-    },
-    update: {
-      hash: hashedPassword,
     },
   });
 };

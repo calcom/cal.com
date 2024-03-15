@@ -4,16 +4,20 @@ import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
+import { IdentityProvider } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
+
+import type { TMeInputSchema } from "./me.schema";
 
 type MeOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
     session: Session;
   };
+  input: TMeInputSchema;
 };
 
-export const meHandler = async ({ ctx }: MeOptions) => {
+export const meHandler = async ({ ctx, input }: MeOptions) => {
   const crypto = await import("crypto");
 
   const { user: sessionUser, session } = ctx;
@@ -37,6 +41,21 @@ export const meHandler = async ({ ctx }: MeOptions) => {
       emailVerified: true,
     },
   });
+
+  let passwordAdded = false;
+  if (user.identityProvider !== IdentityProvider.CAL && input?.includePasswordAdded) {
+    const userWithPassword = await prisma.user.findUnique({
+      where: {
+        id: user.id,
+      },
+      select: {
+        password: true,
+      },
+    });
+    if (userWithPassword?.password?.hash) {
+      passwordAdded = true;
+    }
+  }
 
   // Destructuring here only makes it more illegible
   // pick only the part we want to expose in the API
@@ -80,5 +99,6 @@ export const meHandler = async ({ ctx }: MeOptions) => {
     profile: user.profile ?? null,
     profiles: allUserEnrichedProfiles,
     secondaryEmails,
+    ...(passwordAdded ? { passwordAdded } : {}),
   };
 };
