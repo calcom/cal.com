@@ -6,6 +6,7 @@ import Schedule from "@calcom/features/schedules/components/Schedule";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { trpc } from "@calcom/trpc/react";
+import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import type { Schedule as ScheduleType, TimeRange, WorkingHours } from "@calcom/types/schedule";
 import {
   Button,
@@ -27,7 +28,6 @@ interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   selectedUser?: SliderUser | null;
-  userTimeFormat: number | null;
 }
 
 type AvailabilityFormValues = {
@@ -38,30 +38,30 @@ type AvailabilityFormValues = {
   isDefault: boolean;
 };
 
-const DateOverride = ({
-  workingHours,
-  disabled,
-  userTimeFormat,
-}: {
-  workingHours: WorkingHours[];
-  disabled?: boolean;
-  userTimeFormat: number | null;
-}) => {
-  const { remove, append, replace, fields } = useFieldArray<AvailabilityFormValues, "dateOverrides">({
+const useSettings = () => {
+  const { data } = useMeQuery();
+  return {
+    userTimeFormat: data?.timeFormat ?? 12,
+  };
+};
+
+const DateOverride = ({ workingHours, disabled }: { workingHours: WorkingHours[]; disabled?: boolean }) => {
+  const { userTimeFormat } = useSettings();
+
+  const { append, replace, fields } = useFieldArray<AvailabilityFormValues, "dateOverrides">({
     name: "dateOverrides",
   });
   const excludedDates = fields.map((field) => dayjs(field.ranges[0].start).utc().format("YYYY-MM-DD"));
   const { t } = useLocale();
-
   return (
     <div className="">
       <Label>{t("date_overrides")}</Label>
       <div className="space-y-2">
         <DateOverrideList
           excludedDates={excludedDates}
-          remove={remove}
           replace={replace}
-          items={fields}
+          fields={fields}
+          hour12={Boolean(userTimeFormat === 12)}
           workingHours={workingHours}
           userTimeFormat={userTimeFormat}
         />
@@ -85,7 +85,7 @@ export function AvailabilityEditSheet(props: Props) {
   // This sheet will not be rendered without a selected user
   const userId = props.selectedUser?.id as number;
   const { t } = useLocale();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
 
   const { data: hasEditPermission, isPending: loadingPermissions } =
     trpc.viewer.teams.hasEditPermissionForUser.useQuery({
@@ -200,7 +200,6 @@ export function AvailabilityEditSheet(props: Props) {
                 <DateOverride
                   workingHours={data.workingHours}
                   disabled={!hasEditPermission || !data.hasDefaultSchedule}
-                  userTimeFormat={props.userTimeFormat}
                 />
               )}
             </div>

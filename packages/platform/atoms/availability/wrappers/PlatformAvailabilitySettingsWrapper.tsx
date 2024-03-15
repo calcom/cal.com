@@ -94,12 +94,11 @@ export const PlatformAvailabilitySettingsWrapper = ({
   };
 
   const handleUpdate = async (id: number, body: AvailabilityFormValues) => {
-    const transformedDateOverrides = body.dateOverrides[0].ranges.map((range) => {
-      return {
-        start: range.start,
-        end: range.end,
-      };
-    });
+    const transformedDateOverrides =
+      body.dateOverrides.flatMap(
+        (dateOverridesRanges) =>
+          dateOverridesRanges?.ranges?.map((range) => ({ start: range.start, end: range.end })) ?? []
+      ) ?? [];
 
     await updateSchedule({ ...body, scheduleId: id, dateOverrides: transformedDateOverrides });
   };
@@ -150,3 +149,34 @@ export const PlatformAvailabilitySettingsWrapper = ({
     />
   );
 };
+
+[
+  [
+    {
+      start: "2024-03-21T09:00:00.000Z",
+      end: "2024-03-21T17:00:00.000Z",
+    },
+    {
+      start: "2024-03-21T17:00:00.000Z",
+      end: "2024-03-21T18:00:00.000Z",
+    },
+    {
+      start: "2024-03-21T18:00:00.000Z",
+      end: "2024-03-21T19:00:00.000Z",
+    },
+  ], // thursday
+  [
+    {
+      start: "2024-03-21T09:00:00.000Z",
+      end: "2024-03-21T17:00:00.000Z",
+    },
+    {
+      start: "2024-03-21T17:00:00.000Z",
+      end: "2024-03-21T18:00:00.000Z",
+    },
+    {
+      start: "2024-03-21T18:00:00.000Z",
+      end: "2024-03-21T19:00:00.000Z",
+    },
+  ], //friday
+];

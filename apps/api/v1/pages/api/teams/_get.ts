@@ -2,6 +2,7 @@ import type { Prisma } from "@prisma/client";
 import type { NextApiRequest } from "next";
 
 import { defaultResponder } from "@calcom/lib/server";
+import prisma from "@calcom/prisma";
 
 import { schemaTeamsReadPublic } from "~/lib/validations/team";
 
@@ -29,7 +30,7 @@ import { schemaTeamsReadPublic } from "~/lib/validations/team";
  *         description: No teams were found
  */
 async function getHandler(req: NextApiRequest) {
-  const { userId, prisma, isAdmin } = req;
+  const { userId, isAdmin } = req;
   const where: Prisma.TeamWhereInput = {};
   // If user is not ADMIN, return only his data.
   if (!isAdmin) where.members = { some: { userId } };

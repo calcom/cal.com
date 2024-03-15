@@ -7,7 +7,7 @@ import { localize } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
 
-test.describe("Availablity tests", () => {
+test.describe("Availablity", () => {
   test.beforeEach(async ({ page, users }) => {
     const user = await users.create();
     await user.apiLogin();
@@ -38,6 +38,51 @@ test.describe("Availablity tests", () => {
     await page.goto(troubleshooterURL);
     await page.waitForLoadState("networkidle");
     await expect(page.locator('[data-testid="troubleshooter-busy-time"]')).toHaveCount(1);
+  });
+
+  test("it can delete date overrides", async ({ page }) => {
+    await page.getByTestId("schedules").first().click();
+    await page.getByTestId("add-override").click();
+    await page.locator('[id="modal-title"]').waitFor();
+    // always go to the next month so there's enough slots regardless of current time.
+    await page.getByTestId("incrementMonth").click();
+
+    await page.locator('[data-testid="day"][data-disabled="false"]').first().click();
+    await page.locator('[data-testid="day"][data-disabled="false"]').nth(4).click();
+    await page.locator('[data-testid="day"][data-disabled="false"]').nth(12).click();
+    await page.getByTestId("date-override-mark-unavailable").click();
+    await page.getByTestId("add-override-submit-btn").click();
+    await page.getByTestId("dialog-rejection").click();
+    await expect(page.locator('[data-testid="date-overrides-list"] > li')).toHaveCount(3);
+    await page.locator('[form="availability-form"][type="submit"]').click();
+
+    await page.getByTestId("add-override").click();
+    await page.locator('[id="modal-title"]').waitFor();
+
+    // always go to the next month so there's enough slots regardless of current time.
+    await page.getByTestId("incrementMonth").click();
+
+    await page.locator('[data-testid="day"][data-disabled="false"]').nth(2).click();
+    await page.getByTestId("date-override-mark-unavailable").click();
+    await page.getByTestId("add-override-submit-btn").click();
+    await page.getByTestId("dialog-rejection").click();
+
+    const dateOverrideList = page.locator('[data-testid="date-overrides-list"] > li');
+
+    await expect(dateOverrideList).toHaveCount(4);
+
+    await page.locator('[form="availability-form"][type="submit"]').click();
+
+    const deleteButton = dateOverrideList.nth(1).getByTestId("delete-button");
+    // we cannot easily predict the title, as this changes throughout the year.
+    const deleteButtonTitle = (await deleteButton.getAttribute("title")) as string;
+    // press the delete button (should remove the .nth 1 element & trigger reorder)
+    await deleteButton.click();
+
+    await page.locator('[form="availability-form"][type="submit"]').click();
+
+    await expect(dateOverrideList).toHaveCount(3);
+    await expect(await page.getByTitle(deleteButtonTitle).isVisible()).toBe(false);
   });
 
   test("Schedule listing", async ({ page }) => {

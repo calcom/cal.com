@@ -2,6 +2,7 @@ import type { NextApiRequest } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
+import prisma from "@calcom/prisma";
 
 import { schemaQueryUserId } from "~/lib/validations/shared/queryUserId";
 import { schemaUserReadPublic } from "~/lib/validations/user";
@@ -37,7 +38,7 @@ import { schemaUserReadPublic } from "~/lib/validations/user";
  *         description: User was not found
  */
 export async function getHandler(req: NextApiRequest) {
-  const { prisma, isAdmin } = req;
+  const { isAdmin } = req;
 
   const query = schemaQueryUserId.parse(req.query);
   // Here we only check for ownership of the user if the user is not admin, otherwise we let ADMIN's edit any user

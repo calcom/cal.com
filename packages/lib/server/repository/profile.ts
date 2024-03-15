@@ -349,6 +349,11 @@ export class ProfileRepository {
         movedFromUser: true,
         organization: {
           include: {
+            organizationSettings: {
+              select: {
+                lockEventTypeCreationForUsers: true,
+              },
+            },
             members: {
               select: membershipSelect,
             },

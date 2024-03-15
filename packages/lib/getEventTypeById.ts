@@ -135,6 +135,11 @@ export const getEventTypeById = async ({
           parent: {
             select: {
               slug: true,
+              organizationSettings: {
+                select: {
+                  lockEventTypeCreationForUsers: true,
+                },
+              },
             },
           },
           members: {

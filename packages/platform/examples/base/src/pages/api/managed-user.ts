@@ -39,6 +39,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         "Content-Type": "application/json",
         // eslint-disable-next-line turbo/no-undeclared-env-vars
         [X_CAL_SECRET_KEY]: process.env.X_CAL_SECRET_KEY ?? "",
+        origin: "http://localhost:4321",
       },
       body: JSON.stringify({
         email,

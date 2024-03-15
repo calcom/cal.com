@@ -107,12 +107,9 @@ describe("Test TimezoneSelect", () => {
       expect(menuListEl).toHaveClass(classNames.menuList());
       expect(menuEl).toHaveClass(classNames.menu());
 
-      expect(screen.getByText(optionMockValues[1])).toBeInTheDocument();
-
-      // TODO America/Juneau and America/Toronto failing
-      // for (const mockText of optionMockValues) {
-      //   expect(screen.getByText(mockText)).toBeInTheDocument();
-      // }
+      for (const mockText of optionMockValues) {
+        expect(screen.getByText(mockText)).toBeInTheDocument();
+      }
     });
 
     test("Should render with the correct CSS when provided with className prop", async () => {
@@ -142,13 +139,12 @@ describe("Test TimezoneSelect", () => {
         const element = screen.getByLabelText("Test");
         element.focus();
         fireEvent.keyDown(element, { key: "ArrowDown", code: "ArrowDown" });
-        // TODO: optionMockValues[3] was failing
-        screen.getByText(optionMockValues[1]);
+        screen.getByText(optionMockValues[3]);
 
         const inputEl = screen.getByRole("combobox", { hidden: true }).parentElement;
         const menuIsOpenEl = inputEl?.parentElement?.nextSibling;
         expect(menuIsOpenEl).toHaveClass("rotate-180 transition-transform ");
-        const opt = screen.getByText(optionMockValues[1]);
+        const opt = screen.getByText(optionMockValues[3]);
         fireEvent.click(opt);
         fireEvent.keyDown(element, { key: "ArrowDown", code: "ArrowDown" });
       });
