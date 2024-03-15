@@ -284,7 +284,8 @@ function EventTypeSingleLayout({
         info: `${activeWebhooksNumber} ${t("active")}`,
       });
     }
-    if (team) {
+    const aiEnabled = false;
+    if (team && aiEnabled) {
       navigation.push({
         name: "Cal.ai",
         href: `/event-types/${eventType.id}?tabName=ai`,
