@@ -3,6 +3,7 @@ import type { NextApiRequest } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
+import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/client";
 
 import { schemaEventTypeCreateBodyParams, schemaEventTypeReadPublic } from "~/lib/validations/event-type";
@@ -264,7 +265,7 @@ import ensureOnlyMembersAsHosts from "./_utils/ensureOnlyMembersAsHosts";
  *        description: Authorization information is missing or invalid.
  */
 async function postHandler(req: NextApiRequest) {
-  const { userId, isAdmin, prisma, body } = req;
+  const { userId, isAdmin, body } = req;
 
   const {
     hosts = [],
@@ -321,7 +322,7 @@ async function checkPermissions(req: NextApiRequest) {
   if (
     body.teamId &&
     !isAdmin &&
-    !(await canUserAccessTeamWithRole(req.prisma, req.userId, isAdmin, body.teamId, {
+    !(await canUserAccessTeamWithRole(req.userId, isAdmin, body.teamId, {
       in: [MembershipRole.OWNER, MembershipRole.ADMIN],
     }))
   )

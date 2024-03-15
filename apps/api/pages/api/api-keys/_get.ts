@@ -2,6 +2,7 @@ import type { Prisma } from "@prisma/client";
 import type { NextApiRequest } from "next";
 
 import { defaultResponder } from "@calcom/lib/server";
+import prisma from "@calcom/prisma";
 import type { Ensure } from "@calcom/types/utils";
 
 import { apiKeyPublicSchema } from "~/lib/validations/api-key";
@@ -29,7 +30,7 @@ function hasReqArgs(req: CustomNextApiRequest): req is Ensure<CustomNextApiReque
 }
 
 async function getHandler(req: CustomNextApiRequest) {
-  const { userId, isAdmin, prisma } = req;
+  const { userId, isAdmin } = req;
   req.args = isAdmin ? {} : { where: { userId } };
   // Proof of concept: allowing mutation in exchange of composability
   handleAdminRequests(req);

@@ -2,6 +2,7 @@ import type { NextApiRequest } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
+import prisma from "@calcom/prisma";
 
 import { schemaUserCreateBodyParams } from "~/lib/validations/user";
 
@@ -87,7 +88,7 @@ import { schemaUserCreateBodyParams } from "~/lib/validations/user";
  *        description: Authorization information is missing or invalid.
  */
 async function postHandler(req: NextApiRequest) {
-  const { prisma, isAdmin } = req;
+  const { isAdmin } = req;
   // If user is not ADMIN, return unauthorized.
   if (!isAdmin) throw new HttpError({ statusCode: 401, message: "You are not authorized" });
   const data = await schemaUserCreateBodyParams.parseAsync(req.body);
