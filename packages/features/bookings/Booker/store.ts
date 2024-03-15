@@ -282,6 +282,8 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
     // if the user reschedules a booking right after the confirmation page.
     // In that case the time would still be store in the store, this way we
     // force clear this.
+    // Also, fetch the original booking duration if user is rescheduling and
+    // update the selectedDuration
     if (rescheduleUid && bookingData) {
       set({ selectedTimeslot: null });
       const originalBookingLength = dayjs(bookingData?.endTime).diff(
