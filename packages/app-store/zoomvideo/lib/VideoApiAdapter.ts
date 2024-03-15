@@ -49,6 +49,25 @@ export const zoomMeetingsSchema = z.object({
   ),
 });
 
+const invalidateCredential = async (credentialId: Credential["id"]) => {
+  const credential = await prisma.credential.findUnique({
+    where: {
+      id: credentialId,
+    },
+  });
+
+  if (credential) {
+    await prisma.credential.update({
+      where: {
+        id: credentialId,
+      },
+      data: {
+        invalid: true,
+      },
+    });
+  }
+};
+
 // Successful API response
 // @TODO: add link to the docs
 const zoomTokenSchema = z.object({
@@ -143,40 +162,6 @@ type ZoomRecurrence = {
   repeat_interval?: number;
   weekly_days?: number; // 1-7 Sunday = 1, Saturday = 7
   monthly_day?: number; // 1-31
-};
-
-const createMeeting = async (event: CalendarEvent): Promise<VideoCallData> => {
-  try {
-    const response = await fetchZoomApi("users/me/meetings", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(translateEvent(event)),
-    });
-    if (response.error) {
-      if (response.error === "invalid_grant") {
-        await invalidateCredential(credential.id);
-        return Promise.reject(new Error("Invalid grant for Cal.com zoom app"));
-      }
-    }
-
-    const result = zoomEventResultSchema.parse(response);
-
-    if (result.id && result.join_url) {
-      return {
-        type: "zoom_video",
-        id: result.id.toString(),
-        password: result.password || "",
-        url: result.join_url,
-      };
-    }
-    throw new Error(`Failed to create meeting. Response is ${JSON.stringify(result)}`);
-  } catch (err) {
-    console.error(err);
-    /* Prevents meeting creation failure when Zoom Token is expired */
-    throw new Error("Unexpected error");
-  }
 };
 
 const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => {
@@ -276,6 +261,40 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
     return responseBody;
   };
 
+  const createMeeting = async (event: CalendarEvent): Promise<VideoCallData> => {
+    try {
+      const response = await fetchZoomApi("users/me/meetings", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(translateEvent(event)),
+      });
+      if (response.error) {
+        if (response.error === "invalid_grant") {
+          await invalidateCredential(credential.id);
+          return Promise.reject(new Error("Invalid grant for Cal.com zoom app"));
+        }
+      }
+
+      const result = zoomEventResultSchema.parse(response);
+
+      if (result.id && result.join_url) {
+        return {
+          type: "zoom_video",
+          id: result.id.toString(),
+          password: result.password || "",
+          url: result.join_url,
+        };
+      }
+      throw new Error(`Failed to create meeting. Response is ${JSON.stringify(result)}`);
+    } catch (err) {
+      console.error(err);
+      /* Prevents meeting creation failure when Zoom Token is expired */
+      throw new Error("Unexpected error");
+    }
+  };
+
   return {
     getAvailability: async () => {
       try {
@@ -372,25 +391,6 @@ const handleZoomResponse = async (response: Response, credentialId: Credential["
     return;
   }
   return responseClone.json();
-};
-
-const invalidateCredential = async (credentialId: Credential["id"]) => {
-  const credential = await prisma.credential.findUnique({
-    where: {
-      id: credentialId,
-    },
-  });
-
-  if (credential) {
-    await prisma.credential.update({
-      where: {
-        id: credentialId,
-      },
-      data: {
-        invalid: true,
-      },
-    });
-  }
 };
 
 export default ZoomVideoApiAdapter;
