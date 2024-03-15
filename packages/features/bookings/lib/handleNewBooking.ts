@@ -1864,6 +1864,7 @@ async function handler(
           metadata.hangoutLink ||
           results[0].createdEvent?.url ||
           organizerOrFirstDynamicGroupMemberDefaultLocationUrl ||
+          getVideoCallUrlFromCalEvent(evt) ||
           videoCallUrl;
       }
 

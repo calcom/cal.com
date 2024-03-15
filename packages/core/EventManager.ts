@@ -115,6 +115,7 @@ export default class EventManager {
    */
   public async create(event: CalendarEvent): Promise<CreateUpdateResult> {
     const evt = processLocation(event);
+
     // Fallback to cal video if no location is set
     if (!evt.location) {
       // See if cal video is enabled & has keys
@@ -388,8 +389,7 @@ export default class EventManager {
 
         log.debug("RescheduleOrganizerChanged: Creating Event and Meeting for for new booking");
 
-        const newEvent = { ...evt, destinationCalendar: newDestinationCalendar };
-        const createdEvent = await this.create(newEvent);
+        const createdEvent = await this.create(originalEvt);
         results.push(...createdEvent.results);
         bookingReferenceChangedOrganizer.push(...createdEvent.referencesToCreate);
       } else {
