@@ -7,7 +7,7 @@ import type { Prisma } from "@calcom/prisma/client";
 import { WorkflowTemplates, WorkflowActions, WorkflowMethods } from "@calcom/prisma/enums";
 import { WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
-import type { CalEventResponses, RecurringEvent, TeamMember } from "@calcom/types/Calendar";
+import type { CalEventResponses, RecurringEvent } from "@calcom/types/Calendar";
 
 import { getSenderId } from "../alphanumericSenderIdSupport";
 import type { ScheduleReminderArgs } from "./emailReminderManager";
@@ -55,12 +55,6 @@ export type BookingInfo = {
   additionalNotes?: string | null;
   responses?: CalEventResponses | null;
   metadata?: Prisma.JsonValue;
-  team?: {
-    name: string;
-    members: TeamMember[];
-    id: number;
-    slug: string;
-  };
 };
 
 export type ScheduleTextReminderAction = Extract<
