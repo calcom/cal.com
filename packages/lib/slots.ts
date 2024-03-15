@@ -162,23 +162,22 @@ function buildSlotsWithDateRanges({
   offsetStart = offsetStart ? minimumOfOne(offsetStart) : 0;
   const slots: { time: Dayjs; userIds?: number[] }[] = [];
 
+  let interval = Number(process.env.NEXT_PUBLIC_AVAILABILITY_SCHEDULE_INTERVAL) || 1;
+  const intervalsWithDefinedStartTimes = [60, 30, 20, 15, 10, 5];
+
+  for (let i = 0; i < intervalsWithDefinedStartTimes.length; i++) {
+    if (frequency % intervalsWithDefinedStartTimes[i] === 0) {
+      interval = intervalsWithDefinedStartTimes[i];
+      break;
+    }
+  }
+
   dateRanges.forEach((range) => {
     const startTimeWithMinNotice = dayjs.utc().add(minimumBookingNotice, "minute");
 
     let slotStartTime = range.start.utc().isAfter(startTimeWithMinNotice)
       ? range.start
       : startTimeWithMinNotice;
-
-    let interval = Number(process.env.NEXT_PUBLIC_AVAILABILITY_SCHEDULE_INTERVAL) || 15;
-
-    const intervalsWithDefinedStartTimes = [60, 30, 20, 15, 10, 5];
-
-    for (let i = 0; i < intervalsWithDefinedStartTimes.length; i++) {
-      if (frequency % intervalsWithDefinedStartTimes[i] === 0) {
-        interval = intervalsWithDefinedStartTimes[i];
-        break;
-      }
-    }
 
     slotStartTime =
       slotStartTime.minute() % interval !== 0
@@ -192,12 +191,12 @@ function buildSlotsWithDateRanges({
       ? range.end.add(1, "minute")
       : range.end;
 
-    slotStartTime = slotStartTime.add(offsetStart ?? 0, "minutes").tz(timeZone);
-
     while (!slotStartTime.add(eventLength, "minutes").subtract(1, "second").utc().isAfter(rangeEnd)) {
       slots.push({
         time: slotStartTime,
       });
+      console.log(`slot start time push ${slotStartTime.format()}`);
+
       slotStartTime = slotStartTime.add(frequency + (offsetStart ?? 0), "minutes");
     }
   });
@@ -223,6 +222,7 @@ const getSlots = ({
   organizerTimeZone,
 }: GetSlots) => {
   if (dateRanges) {
+    console.log("testtest");
     const slots = buildSlotsWithDateRanges({
       dateRanges,
       frequency,
