@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useForm, Controller, useFieldArray } from "react-hook-form";
+import { useForm, Controller, useFieldArray, useWatch } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
 import { DateOverrideInputDialog, DateOverrideList } from "@calcom/features/schedules";
@@ -111,6 +111,136 @@ type AvailabilitySettingsProps = {
   customClassNames?: CustomClassNames;
 };
 
+const DeleteDialogButton = ({
+  disabled,
+  buttonClassName,
+  isPending,
+  onDeleteConfirmed,
+  isPlatform,
+  handleDelete,
+}: {
+  disabled?: boolean;
+  onDeleteConfirmed?: () => void;
+  buttonClassName: string;
+  isPlatform: boolean;
+  handleDelete: () => void;
+  isPending: boolean;
+}) => {
+  const [Dialog, DialogTrigger, ConfirmationDialogContent] = useMemo(() => {
+    return isPlatform
+      ? [PlatformDialog, PlatformDialogTrigger, PlatformConfirmationDialogContent]
+      : [WebDialog, WebDialogTrigger, WebConfirmationDialogContent];
+  }, [isPlatform]);
+
+  const { t } = useLocale();
+
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button
+          StartIcon={Trash}
+          variant="icon"
+          color="destructive"
+          aria-label={t("delete")}
+          className={buttonClassName}
+          disabled={disabled}
+          tooltip={disabled ? t("requires_at_least_one_schedule") : t("delete")}
+        />
+      </DialogTrigger>
+
+      <ConfirmationDialogContent
+        isPending={isPending}
+        variety="danger"
+        title={t("delete_schedule")}
+        confirmBtnText={t("delete")}
+        loadingText={t("delete")}
+        onConfirm={() => {
+          handleDelete();
+          onDeleteConfirmed?.();
+        }}>
+        {t("delete_schedule_description")}
+      </ConfirmationDialogContent>
+    </Dialog>
+  );
+};
+
+const useExcludedDates = () => {
+  const watchValues = useWatch<AvailabilityFormValues>({ name: "dateOverrides" }) as {
+    ranges: TimeRange[];
+  }[];
+  return useMemo(() => {
+    return watchValues?.map((field) => dayjs(field.ranges[0].start).utc().format("YYYY-MM-DD"));
+  }, [watchValues]);
+};
+
+const DateOverride = ({
+  workingHours,
+  userTimeFormat,
+}: {
+  workingHours: WorkingHours[];
+  userTimeFormat: number | null;
+}) => {
+  const { append, replace, fields } = useFieldArray<AvailabilityFormValues, "dateOverrides">({
+    name: "dateOverrides",
+  });
+  const excludedDates = useExcludedDates();
+  const { t } = useLocale();
+  return (
+    <div className="p-6">
+      <h3 className="text-emphasis font-medium leading-6">
+        {t("date_overrides")}{" "}
+        <Tooltip content={t("date_overrides_info")}>
+          <span className="inline-block align-middle">
+            <Info className="h-4 w-4" />
+          </span>
+        </Tooltip>
+      </h3>
+      <p className="text-subtle mb-4 text-sm">{t("date_overrides_subtitle")}</p>
+      <div className="space-y-2">
+        <DateOverrideList
+          excludedDates={excludedDates}
+          replace={replace}
+          fields={fields}
+          workingHours={workingHours}
+          userTimeFormat={userTimeFormat}
+          hour12={Boolean(userTimeFormat === 12)}
+        />
+        <DateOverrideInputDialog
+          workingHours={workingHours}
+          excludedDates={excludedDates}
+          onChange={(ranges) => ranges.forEach((range) => append({ ranges: [range] }))}
+          userTimeFormat={userTimeFormat}
+          Trigger={
+            <Button color="secondary" StartIcon={Plus} data-testid="add-override">
+              {t("add_an_override")}
+            </Button>
+          }
+        />
+      </div>
+    </div>
+  );
+};
+
+// Simplify logic by assuming this will never be opened on a large screen
+const SmallScreenSideBar = ({ open, children }: { open: boolean; children: JSX.Element }) => {
+  return (
+    <div
+      className={classNames(
+        open
+          ? "fadeIn fixed inset-0 z-50 bg-neutral-800 bg-opacity-70 transition-opacity dark:bg-opacity-70 sm:hidden"
+          : ""
+      )}>
+      <div
+        className={classNames(
+          "bg-default fixed right-0 z-20 flex h-screen w-80 flex-col space-y-2 overflow-x-hidden rounded-md px-2 pb-3 transition-transform",
+          open ? "translate-x-0 opacity-100" : "translate-x-full opacity-0"
+        )}>
+        {open ? children : null}
+      </div>
+    </div>
+  );
+};
+
 export function AvailabilitySettings({
   schedule,
   handleDelete,
@@ -135,17 +265,10 @@ export function AvailabilitySettings({
     },
   });
 
-  const [Shell, Schedule, Dialog, DialogTrigger, ConfirmationDialogContent, TimezoneSelect] = useMemo(() => {
+  const [Shell, Schedule, TimezoneSelect] = useMemo(() => {
     return isPlatform
-      ? [
-          PlatformShell,
-          PlatformSchedule,
-          PlatformDialog,
-          PlatformDialogTrigger,
-          PlatformConfirmationDialogContent,
-          PlatformTimzoneSelect,
-        ]
-      : [WebShell, WebSchedule, WebDialog, WebDialogTrigger, WebConfirmationDialogContent, WebTimezoneSelect];
+      ? [PlatformShell, PlatformSchedule, PlatformTimzoneSelect]
+      : [WebShell, WebSchedule, WebTimezoneSelect];
   }, [isPlatform]);
 
   return (
@@ -188,183 +311,165 @@ export function AvailabilitySettings({
       CTA={
         <div className={cn(customClassNames?.ctaClassName, "flex items-center justify-end")}>
           <div className="sm:hover:bg-muted hidden items-center rounded-md px-2 sm:flex">
-            <Skeleton
-              as={Label}
-              htmlFor="hiddenSwitch"
-              className="mt-2 cursor-pointer self-center pe-2"
-              loadingClassName="me-4"
-              waitForTranslation={!isPlatform}>
-              {translations?.set_to_default ?? t("set_to_default")}
-            </Skeleton>
-            <Switch
-              id="hiddenSwitch"
-              disabled={isLoading || schedule?.isDefault}
-              checked={form.watch("isDefault")}
-              onCheckedChange={(e) => {
-                form.setValue("isDefault", e);
-              }}
-            />
-          </div>
-
-          <VerticalDivider className="hidden sm:inline" />
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button
-                StartIcon={Trash}
-                variant="icon"
-                color="destructive"
-                aria-label={translations?.delete ?? t("delete")}
-                className="hidden sm:inline"
-                disabled={isDeleting || schedule?.isLastSchedule || schedule?.isDefault}
-                tooltip={
-                  schedule?.isLastSchedule
-                    ? translations?.requires_at_least_one_schedule ?? t("requires_at_least_one_schedule")
-                    : translations?.delete ?? t("delete")
-                }
-              />
-            </DialogTrigger>
-            <ConfirmationDialogContent
-              isPending={isDeleting}
-              variety="danger"
-              title={translations?.delete_schedule ?? t("delete_schedule")}
-              confirmBtnText={translations?.delete ?? t("delete")}
-              loadingText={translations?.delete ?? t("delete")}
-              onConfirm={() => {
-                handleDelete();
-              }}>
-              {translations?.delete_schedule_description ?? t("delete_schedule_description")}
-            </ConfirmationDialogContent>
-          </Dialog>
-          <VerticalDivider className="hidden sm:inline" />
-          <div
-            className={classNames(
-              openSidebar
-                ? "fadeIn fixed inset-0 z-50 bg-neutral-800 bg-opacity-70 transition-opacity dark:bg-opacity-70 sm:hidden"
-                : ""
-            )}>
-            <div
-              className={classNames(
-                "bg-default fixed right-0 z-20 flex h-screen w-80 flex-col space-y-2 overflow-x-hidden rounded-md px-2 pb-3 transition-transform",
-                openSidebar ? "translate-x-0 opacity-100" : "translate-x-full opacity-0"
-              )}>
-              <div className="flex flex-row items-center pt-5">
-                <Button StartIcon={ArrowLeft} color="minimal" onClick={() => setOpenSidebar(false)} />
-                <p className="-ml-2">{translations?.availability_settings ?? t("availability_settings")}</p>
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button
-                      StartIcon={Trash}
-                      variant="icon"
-                      color="destructive"
-                      aria-label={translations?.delete ?? t("delete")}
-                      className="ml-16 inline"
-                      disabled={schedule?.isLastSchedule}
-                      tooltip={schedule?.isLastSchedule ? t("requires_at_least_one_schedule") : t("delete")}
-                    />
-                  </DialogTrigger>
-                  <ConfirmationDialogContent
-                    isPending={isDeleting}
-                    variety="danger"
-                    title={translations?.delete_schedule ?? t("delete_schedule")}
-                    confirmBtnText={translations?.delete ?? t("delete")}
-                    loadingText={translations?.delete ?? t("delete")}
-                    onConfirm={() => {
-                      handleDelete();
-                      setOpenSidebar(false);
-                    }}>
-                    {translations?.delete_schedule_description ?? t("delete_schedule_description")}
-                  </ConfirmationDialogContent>
-                </Dialog>
-              </div>
-              <div className="flex flex-col px-2 py-2">
-                <Skeleton as={Label} waitForTranslation={!isPlatform}>
-                  {translations?.name ?? t("name")}
-                </Skeleton>
-                <Controller
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <input
-                      className="hover:border-emphasis dark:focus:border-emphasis border-default bg-default placeholder:text-muted text-emphasis focus:ring-brand-default disabled:bg-subtle disabled:hover:border-subtle focus:border-subtle mb-2 block h-9 w-full rounded-md border px-3 py-2 text-sm leading-4 focus:outline-none focus:ring-2 disabled:cursor-not-allowed"
-                      {...field}
-                    />
-                  )}
-                />
-              </div>
-              <div className="flex h-9 flex-row-reverse items-center justify-end gap-3 px-2">
+            {!openSidebar ? (
+              <>
                 <Skeleton
                   as={Label}
                   htmlFor="hiddenSwitch"
-                  className="mt-2 cursor-pointer self-center pr-2 sm:inline"
+                  className="mt-2 cursor-pointer self-center pe-2"
+                  loadingClassName="me-4"
                   waitForTranslation={!isPlatform}>
                   {translations?.set_to_default ?? t("set_to_default")}
                 </Skeleton>
-                <Switch
-                  id="hiddenSwitch"
-                  disabled={isLoading || schedule?.isDefault}
-                  checked={form.watch("isDefault")}
-                  onCheckedChange={(e) => {
-                    form.setValue("isDefault", e);
-                  }}
+                <Controller
+                  control={form.control}
+                  name="isDefault"
+                  render={({ field: { value, onChange } }) => (
+                    <Switch
+                      id="hiddenSwitch"
+                      disabled={isSaving || schedule?.isDefault}
+                      checked={value}
+                      onCheckedChange={onChange}
+                    />
+                  )}
                 />
-              </div>
+              </>
+            ) : null}
+          </div>
 
-              <div className="min-w-40 col-span-3 space-y-2 px-2 py-4 lg:col-span-1">
-                <div className="xl:max-w-80 w-full pr-4 sm:ml-0 sm:mr-36 sm:p-0">
-                  <div>
-                    <Skeleton
-                      as={Label}
-                      htmlFor="timeZone-sm-viewport"
-                      className="mb-0 inline-block leading-none"
-                      waitForTranslation={!isPlatform}>
-                      {translations?.timezone ?? t("timezone")}
+          <VerticalDivider className="hidden sm:inline" />
+          <DeleteDialogButton
+            buttonClassName="hidden sm:inline"
+            disabled={schedule?.isLastSchedule}
+            isPending={isDeleting}
+            handleDelete={handleDelete}
+            isPlatform={isPlatform}
+          />
+          <VerticalDivider className="hidden sm:inline" />
+          <SmallScreenSideBar open={openSidebar}>
+            <>
+              <div
+                className={classNames(
+                  openSidebar
+                    ? "fadeIn fixed inset-0 z-50 bg-neutral-800 bg-opacity-70 transition-opacity dark:bg-opacity-70 sm:hidden"
+                    : ""
+                )}>
+                <div
+                  className={classNames(
+                    "bg-default fixed right-0 z-20 flex h-screen w-80 flex-col space-y-2 overflow-x-hidden rounded-md px-2 pb-3 transition-transform",
+                    openSidebar ? "translate-x-0 opacity-100" : "translate-x-full opacity-0"
+                  )}>
+                  <div className="flex flex-row items-center pt-5">
+                    <Button StartIcon={ArrowLeft} color="minimal" onClick={() => setOpenSidebar(false)} />
+                    <p className="-ml-2">
+                      {translations?.availability_settings ?? t("availability_settings")}
+                    </p>
+                    <DeleteDialogButton
+                      buttonClassName="ml-16 inline"
+                      disabled={schedule?.isLastSchedule}
+                      isPending={isDeleting}
+                      handleDelete={handleDelete}
+                      isPlatform={isPlatform}
+                      onDeleteConfirmed={() => {
+                        setOpenSidebar(false);
+                      }}
+                    />
+                  </div>
+                  <div className="flex flex-col px-2 py-2">
+                    <Skeleton as={Label} waitForTranslation={!isPlatform}>
+                      {translations?.name ?? t("name")}
                     </Skeleton>
                     <Controller
                       control={form.control}
-                      name="timeZone"
-                      render={({ field: { onChange, value } }) =>
-                        value ? (
-                          <TimezoneSelect
-                            inputId="timeZone-sm-viewport"
-                            value={value}
-                            className={cn(
-                              "focus:border-brand-default border-default mt-1 block w-72 rounded-md text-sm",
-                              customClassNames?.timezoneSelectClassName
-                            )}
-                            onChange={(timezone) => onChange(timezone.value)}
-                          />
-                        ) : (
-                          <SelectSkeletonLoader className="mt-1 w-72" />
-                        )
-                      }
+                      name="name"
+                      render={({ field }) => (
+                        <input
+                          className="hover:border-emphasis dark:focus:border-emphasis border-default bg-default placeholder:text-muted text-emphasis focus:ring-brand-default disabled:bg-subtle disabled:hover:border-subtle focus:border-subtle mb-2 block h-9 w-full rounded-md border px-3 py-2 text-sm leading-4 focus:outline-none focus:ring-2 disabled:cursor-not-allowed"
+                          {...field}
+                        />
+                      )}
                     />
                   </div>
-                  {!isPlatform && (
-                    <>
-                      <hr className="border-subtle my-7" />
-                      <div className="rounded-md md:block">
+                  <div className="flex h-9 flex-row-reverse items-center justify-end gap-3 px-2">
+                    <Skeleton
+                      as={Label}
+                      htmlFor="hiddenSwitch"
+                      className="mt-2 cursor-pointer self-center pr-2 sm:inline"
+                      waitForTranslation={!isPlatform}>
+                      {translations?.set_to_default ?? t("set_to_default")}
+                    </Skeleton>
+                    <Controller
+                      control={form.control}
+                      name="isDefault"
+                      render={({ field: { value, onChange } }) => (
+                        <Switch
+                          id="hiddenSwitch"
+                          disabled={isSaving || value}
+                          checked={value}
+                          onCheckedChange={onChange}
+                        />
+                      )}
+                    />
+                  </div>
+
+                  <div className="min-w-40 col-span-3 space-y-2 px-2 py-4 lg:col-span-1">
+                    <div className="xl:max-w-80 w-full pr-4 sm:ml-0 sm:mr-36 sm:p-0">
+                      <div>
                         <Skeleton
-                          as="h3"
-                          className="mb-0 inline-block text-sm font-medium"
+                          as={Label}
+                          htmlFor="timeZone-sm-viewport"
+                          className="mb-0 inline-block leading-none"
                           waitForTranslation={!isPlatform}>
-                          {translations?.something_doesnt_look_right ?? t("something_doesnt_look_right")}
+                          {translations?.timezone ?? t("timezone")}
                         </Skeleton>
-                        <div className="mt-3 flex">
-                          <Skeleton
-                            as={Button}
-                            href="/availability/troubleshoot"
-                            color="secondary"
-                            waitForTranslation={!isPlatform}>
-                            {translations?.launch_troubleshooter ?? t("launch_troubleshooter")}
-                          </Skeleton>
-                        </div>
+                        <Controller
+                          control={form.control}
+                          name="timeZone"
+                          render={({ field: { onChange, value } }) =>
+                            value ? (
+                              <TimezoneSelect
+                                inputId="timeZone-sm-viewport"
+                                value={value}
+                                className={cn(
+                                  "focus:border-brand-default border-default mt-1 block w-72 rounded-md text-sm",
+                                  customClassNames?.timezoneSelectClassName
+                                )}
+                                onChange={(timezone) => onChange(timezone.value)}
+                              />
+                            ) : (
+                              <SelectSkeletonLoader className="mt-1 w-72" />
+                            )
+                          }
+                        />
                       </div>
-                    </>
-                  )}
+                      {!isPlatform && (
+                        <>
+                          <hr className="border-subtle my-7" />
+                          <div className="rounded-md md:block">
+                            <Skeleton
+                              as="h3"
+                              className="mb-0 inline-block text-sm font-medium"
+                              waitForTranslation={!isPlatform}>
+                              {translations?.something_doesnt_look_right ?? t("something_doesnt_look_right")}
+                            </Skeleton>
+                            <div className="mt-3 flex">
+                              <Skeleton
+                                as={Button}
+                                href="/availability/troubleshoot"
+                                color="secondary"
+                                waitForTranslation={!isPlatform}>
+                                {translations?.launch_troubleshooter ?? t("launch_troubleshooter")}
+                              </Skeleton>
+                            </div>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
+            </>
+          </SmallScreenSideBar>
           <div className="border-default border-l-2" />
           <Button className="ml-4 lg:ml-0" type="submit" form="availability-form" loading={isSaving}>
             {translations?.save ?? t("save")}
@@ -478,51 +583,3 @@ export function AvailabilitySettings({
     </Shell>
   );
 }
-
-const DateOverride = ({
-  workingHours,
-  userTimeFormat,
-}: {
-  workingHours: WorkingHours[];
-  userTimeFormat: number | null;
-}) => {
-  const { remove, append, replace, fields } = useFieldArray<AvailabilityFormValues, "dateOverrides">({
-    name: "dateOverrides",
-  });
-  const excludedDates = fields.map((field) => dayjs(field.ranges[0].start).utc().format("YYYY-MM-DD"));
-  const { t } = useLocale();
-  return (
-    <div className="p-6">
-      <h3 className="text-emphasis font-medium leading-6">
-        {t("date_overrides")}{" "}
-        <Tooltip content={t("date_overrides_info")}>
-          <span className="inline-block align-middle">
-            <Info className="h-4 w-4" />
-          </span>
-        </Tooltip>
-      </h3>
-      <p className="text-subtle mb-4 text-sm">{t("date_overrides_subtitle")}</p>
-      <div className="space-y-2">
-        <DateOverrideList
-          excludedDates={excludedDates}
-          remove={remove}
-          replace={replace}
-          items={fields}
-          workingHours={workingHours}
-          userTimeFormat={userTimeFormat}
-        />
-        <DateOverrideInputDialog
-          workingHours={workingHours}
-          excludedDates={excludedDates}
-          onChange={(ranges) => ranges.forEach((range) => append({ ranges: [range] }))}
-          userTimeFormat={userTimeFormat}
-          Trigger={
-            <Button color="secondary" StartIcon={Plus} data-testid="add-override">
-              {t("add_an_override")}
-            </Button>
-          }
-        />
-      </div>
-    </div>
-  );
-};

@@ -16,6 +16,8 @@ import { useVerifyCode } from "@calcom/features/bookings/Booker/components/hooks
 import { useVerifyEmail } from "@calcom/features/bookings/Booker/components/hooks/useVerifyEmail";
 import { useBookerStore, useInitializeBookerStore } from "@calcom/features/bookings/Booker/store";
 import { useEvent, useScheduleForEvent } from "@calcom/features/bookings/Booker/utils/event";
+import { useBrandColors } from "@calcom/features/bookings/Booker/utils/use-brand-colors";
+import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR } from "@calcom/lib/constants";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 
@@ -72,7 +74,7 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
   }, [searchParams, firstNameQueryParam, lastNameQueryParam]);
 
   const bookerForm = useBookingForm({
-    event,
+    event: event.data,
     sessionEmail: session?.user.email,
     sessionUsername: session?.user.username,
     sessionName: session?.user.name,
@@ -150,6 +152,11 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
     },
     [searchParams, pathname, router]
   );
+  useBrandColors({
+    brandColor: event.data?.profile.brandColor ?? DEFAULT_LIGHT_BRAND_COLOR,
+    darkBrandColor: event.data?.profile.darkBrandColor ?? DEFAULT_DARK_BRAND_COLOR,
+    theme: event.data?.profile.theme,
+  });
 
   return (
     <BookerComponent
@@ -188,6 +195,7 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
       bookerLayout={bookerLayout}
       schedule={schedule}
       verifyCode={verifyCode}
+      isPlatform={false}
     />
   );
 };

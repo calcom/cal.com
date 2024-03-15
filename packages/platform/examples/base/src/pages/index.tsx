@@ -6,10 +6,10 @@ import { GcalConnect } from "@calcom/platform-atoms/components";
 const inter = Inter({ subsets: ["latin"] });
 const poppins = Poppins({ subsets: ["latin"], weight: ["400", "800"] });
 
-export default function Home() {
+export default function Home(props: { calUsername: string; calEmail: string }) {
   return (
     <main className={`flex min-h-screen flex-col ${inter.className}`}>
-      <Navbar />
+      <Navbar username={props.calUsername} />
       <div
         className={`flex h-[80vh] w-full items-center justify-center gap-y-3 p-14 font-mono lg:flex ${inter.className}`}>
         <div>

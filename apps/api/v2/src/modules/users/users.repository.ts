@@ -13,16 +13,28 @@ export type UserWithProfile = User & {
 export class UsersRepository {
   constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
 
-  async create(user: CreateUserInput, oAuthClientId: string) {
+  async create(user: CreateUserInput, username: string, oAuthClientId: string) {
     this.formatInput(user);
 
     return this.dbRead.prisma.user.create({
       data: {
         ...user,
+        username,
         platformOAuthClients: {
           connect: { id: oAuthClientId },
         },
       },
+    });
+  }
+
+  async addToOAuthClient(userId: number, oAuthClientId: string) {
+    return this.dbRead.prisma.user.update({
+      data: {
+        platformOAuthClients: {
+          connect: { id: oAuthClientId },
+        },
+      },
+      where: { id: userId },
     });
   }
 

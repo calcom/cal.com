@@ -193,6 +193,22 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     },
   });
 
+  const userId = session?.user?.id;
+  const isLoggedInUserHost =
+    userId &&
+    (eventType.users.some((user) => user.id === userId) ||
+      eventType.hosts.some(({ user }) => user.id === userId));
+
+  if (!isLoggedInUserHost) {
+    // Removing hidden fields from responses
+    for (const key in bookingInfo.responses) {
+      const field = eventTypeRaw.bookingFields.find((field) => field.name === key);
+      if (field && !!field.hidden) {
+        delete bookingInfo.responses[key];
+      }
+    }
+  }
+
   return {
     props: {
       themeBasis: eventType.team ? eventType.team.slug : eventType.users[0]?.username,

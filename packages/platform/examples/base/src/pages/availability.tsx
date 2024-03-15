@@ -5,10 +5,10 @@ import { AvailabilitySettings } from "@calcom/platform-atoms/components";
 
 const inter = Inter({ subsets: ["latin"] });
 
-export default function Availability() {
+export default function Availability(props: { calUsername: string; calEmail: string }) {
   return (
     <main className={`flex min-h-screen flex-col ${inter.className}`}>
-      <Navbar />
+      <Navbar username={props.calUsername} />
       <div>
         <AvailabilitySettings
           customClassNames={{

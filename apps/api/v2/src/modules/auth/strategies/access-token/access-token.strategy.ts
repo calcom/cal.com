@@ -26,9 +26,6 @@ export class AccessTokenStrategy extends PassportStrategy(BaseStrategy, "access-
       if (!accessToken) {
         throw new UnauthorizedException(INVALID_ACCESS_TOKEN);
       }
-      if (!requestOrigin) {
-        throw new UnauthorizedException("Missing request origin");
-      }
 
       await this.oauthFlowService.validateAccessToken(accessToken);
 
@@ -37,7 +34,7 @@ export class AccessTokenStrategy extends PassportStrategy(BaseStrategy, "access-
         throw new UnauthorizedException("OAuth client not found given the access token");
       }
 
-      if (!client.redirectUris.some((uri) => uri.startsWith(requestOrigin))) {
+      if (requestOrigin && !client.redirectUris.some((uri) => uri.startsWith(requestOrigin))) {
         throw new UnauthorizedException("Invalid request origin");
       }
 

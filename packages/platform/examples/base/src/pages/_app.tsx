@@ -24,6 +24,7 @@ function generateRandomEmail() {
 export default function App({ Component, pageProps }: AppProps) {
   const [accessToken, setAccessToken] = useState("");
   const [email, setUserEmail] = useState("");
+  const [username, setUsername] = useState("");
 
   useEffect(() => {
     const randomEmail = generateRandomEmail();
@@ -35,6 +36,7 @@ export default function App({ Component, pageProps }: AppProps) {
       const data = await res.json();
       setAccessToken(data.accessToken);
       setUserEmail(data.email);
+      setUsername(data.username);
     });
   }, []);
   return (
@@ -47,7 +49,7 @@ export default function App({ Component, pageProps }: AppProps) {
         options={{ apiUrl: process.env.NEXT_PUBLIC_CALCOM_API_URL ?? "", refreshUrl: "/api/refresh" }}>
         {email ? (
           <>
-            <Component {...pageProps} />
+            <Component {...pageProps} calUsername={username} calEmail={email} />
           </>
         ) : (
           <>

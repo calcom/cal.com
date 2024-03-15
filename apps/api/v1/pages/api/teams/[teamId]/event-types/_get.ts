@@ -3,6 +3,7 @@ import type { NextApiRequest } from "next";
 import { z } from "zod";
 
 import { defaultResponder } from "@calcom/lib/server";
+import prisma from "@calcom/prisma";
 
 import { schemaEventTypeReadPublic } from "~/lib/validations/event-type";
 
@@ -41,7 +42,7 @@ const querySchema = z.object({
  *         description: No event types were found
  */
 async function getHandler(req: NextApiRequest) {
-  const { userId, isAdmin, prisma } = req;
+  const { userId, isAdmin } = req;
 
   const { teamId } = querySchema.parse(req.query);
 

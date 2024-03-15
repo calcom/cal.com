@@ -864,6 +864,7 @@ export const findBookingQuery = async (bookingId: number) => {
       description: true,
       status: true,
       responses: true,
+      metadata: true,
       user: {
         select: {
           name: true,
@@ -1102,6 +1103,8 @@ async function handler(
       firstUsersMetadata?.defaultConferencingApp?.appLink;
   }
 
+  let rescheduleUid = reqBody.rescheduleUid;
+
   if (
     Object.prototype.hasOwnProperty.call(eventType, "bookingLimits") ||
     Object.prototype.hasOwnProperty.call(eventType, "durationLimits")
@@ -1115,6 +1118,7 @@ async function handler(
         eventType.bookingLimits as IntervalLimit,
         startAsDate,
         eventType.id,
+        rescheduleUid,
         eventType.schedule?.timeZone
       );
     }
@@ -1123,7 +1127,6 @@ async function handler(
     }
   }
 
-  let rescheduleUid = reqBody.rescheduleUid;
   let bookingSeat: BookingSeat = null;
 
   let originalRescheduledBooking: BookingType = null;
@@ -1518,7 +1521,7 @@ async function handler(
     eventDescription: eventType.description,
     price: paymentAppData.price,
     currency: eventType.currency,
-    length: eventType.length,
+    length: reqEventLength,
   };
 
   const teamId = await getTeamIdFromEventType({ eventType });
@@ -2069,6 +2072,7 @@ async function handler(
             calEvent: getPiiFreeCalendarEvent(evt),
           })
         );
+
         await sendScheduledEmails(
           {
             ...evt,

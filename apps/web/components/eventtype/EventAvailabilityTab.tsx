@@ -1,4 +1,4 @@
-import type { EventTypeSetup, FormValues } from "pages/event-types/[type]";
+import type { EventTypeSetup } from "pages/event-types/[type]";
 import { useState, memo, useEffect } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import type { OptionProps, SingleValueProps } from "react-select";
@@ -6,6 +6,7 @@ import { components } from "react-select";
 
 import dayjs from "@calcom/dayjs";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
+import type { AvailabilityOption, FormValues } from "@calcom/features/eventtypes/lib/types";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { weekdayNames } from "@calcom/lib/weekday";
@@ -16,13 +17,6 @@ import { Badge, Button, Select, SettingsToggle, SkeletonText } from "@calcom/ui"
 import { ExternalLink, Globe } from "@calcom/ui/components/icon";
 
 import { SelectSkeletonLoader } from "@components/availability/SkeletonLoader";
-
-export type AvailabilityOption = {
-  label: string;
-  value: number;
-  isDefault: boolean;
-  isManaged?: boolean;
-};
 
 const Option = ({ ...props }: OptionProps<AvailabilityOption>) => {
   const { label, isDefault, isManaged = false } = props.data;
@@ -160,12 +154,10 @@ EventTypeScheduleDetails.displayName = "EventTypeScheduleDetails";
 
 const EventTypeSchedule = ({ eventType }: { eventType: EventTypeSetup }) => {
   const { t } = useLocale();
-  const { shouldLockIndicator, isManagedEventType, isChildrenManagedEventType } = useLockedFieldsManager(
-    eventType,
-    t("locked_fields_admin_description"),
-    t("locked_fields_member_description")
-  );
-  const { watch, setValue, getValues } = useFormContext<FormValues>();
+  const formMethods = useFormContext<FormValues>();
+  const { shouldLockIndicator, shouldLockDisableProps, isManagedEventType, isChildrenManagedEventType } =
+    useLockedFieldsManager({ eventType, translate: t, formMethods });
+  const { watch, setValue, getValues } = formMethods;
   const watchSchedule = watch("schedule");
   const [options, setOptions] = useState<AvailabilityOption[]>([]);
 
@@ -246,7 +238,7 @@ const EventTypeSchedule = ({ eventType }: { eventType: EventTypeSetup }) => {
       <div className="border-subtle rounded-t-md border p-6">
         <label htmlFor="availability" className="text-default mb-2 block text-sm font-medium leading-none">
           {t("availability")}
-          {shouldLockIndicator("availability")}
+          {(isManagedEventType || isChildrenManagedEventType) && shouldLockIndicator("availability")}
         </label>
         {isPending && <SelectSkeletonLoader />}
         {!isPending && (
@@ -257,6 +249,7 @@ const EventTypeSchedule = ({ eventType }: { eventType: EventTypeSetup }) => {
                 <Select
                   placeholder={t("select")}
                   options={options}
+                  isDisabled={shouldLockDisableProps("availability").disabled}
                   isSearchable={false}
                   onChange={(selected) => {
                     field.onChange(selected?.value || null);
