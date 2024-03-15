@@ -28,7 +28,6 @@ interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   selectedUser?: SliderUser | null;
-  userTimeFormat: number | null;
 }
 
 type AvailabilityFormValues = {
@@ -42,28 +41,18 @@ type AvailabilityFormValues = {
 const useSettings = () => {
   const { data } = useMeQuery();
   return {
-    hour12: data?.timeFormat === 12,
-    timeZone: data?.timeZone,
+    userTimeFormat: data?.timeFormat ?? 12,
   };
 };
 
-const DateOverride = ({
-  workingHours,
-  disabled,
-  userTimeFormat,
-}: {
-  workingHours: WorkingHours[];
-  disabled?: boolean;
-  userTimeFormat: number | null;
-}) => {
-  const { hour12 } = useSettings();
+const DateOverride = ({ workingHours, disabled }: { workingHours: WorkingHours[]; disabled?: boolean }) => {
+  const { userTimeFormat } = useSettings();
 
-  const { remove, append, replace, fields } = useFieldArray<AvailabilityFormValues, "dateOverrides">({
+  const { append, replace, fields } = useFieldArray<AvailabilityFormValues, "dateOverrides">({
     name: "dateOverrides",
   });
   const excludedDates = fields.map((field) => dayjs(field.ranges[0].start).utc().format("YYYY-MM-DD"));
   const { t } = useLocale();
-
   return (
     <div className="">
       <Label>{t("date_overrides")}</Label>
@@ -72,7 +61,7 @@ const DateOverride = ({
           excludedDates={excludedDates}
           replace={replace}
           fields={fields}
-          hour12={hour12}
+          hour12={Boolean(userTimeFormat === 12)}
           workingHours={workingHours}
           userTimeFormat={userTimeFormat}
         />
@@ -211,7 +200,6 @@ export function AvailabilityEditSheet(props: Props) {
                 <DateOverride
                   workingHours={data.workingHours}
                   disabled={!hasEditPermission || !data.hasDefaultSchedule}
-                  userTimeFormat={props.userTimeFormat}
                 />
               )}
             </div>
