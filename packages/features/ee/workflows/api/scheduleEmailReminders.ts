@@ -170,9 +170,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
           const organizerOrganizationId = organizerOrganizationProfile?.organizationId;
 
-          const bookerUrl = reminder.booking.eventType?.team
-            ? await getBookerBaseUrl(reminder.booking.eventType?.team.parentId ?? null)
-            : await getBookerBaseUrl(organizerOrganizationId ?? null);
+          const bookerUrl = await getBookerBaseUrl(
+            reminder.booking.eventType?.team?.parentId ?? organizerOrganizationId ?? null
+          );
 
           const variables: VariablesType = {
             eventName: reminder.booking.eventType?.title || "",

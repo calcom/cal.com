@@ -129,9 +129,9 @@ export async function getBooking(bookingId: number) {
 
   const organizerOrganizationId = organizerOrganizationProfile?.organizationId;
 
-  const bookerUrl = booking.eventType?.team
-    ? await getBookerBaseUrl(booking.eventType.team.parentId)
-    : await getBookerBaseUrl(organizerOrganizationId ?? null);
+  const bookerUrl = await getBookerBaseUrl(
+    booking.eventType?.team?.parentId ?? organizerOrganizationId ?? null
+  );
 
   const attendeesList = await Promise.all(attendeesListPromises);
   const selectedDestinationCalendar = booking.destinationCalendar || user.destinationCalendar;
