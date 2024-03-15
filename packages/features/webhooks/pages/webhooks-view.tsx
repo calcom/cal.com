@@ -51,6 +51,13 @@ const WebhooksView = () => {
     enabled: session.status === "authenticated",
   });
 
+  const createFunction = (teamId?: number, platform?: boolean) => {
+    if (platform) {
+      router.push(`webhooks/new${platform ? `?platform=${platform}` : ""}`);
+    } else {
+      router.push(`webhooks/new${teamId ? `?teamId=${teamId}` : ""}`);
+    }
+  };
   if (isPending || !data) {
     return (
       <SkeletonLoader
@@ -72,13 +79,7 @@ const WebhooksView = () => {
               color="secondary"
               subtitle={t("create_for").toUpperCase()}
               isAdmin={isAdmin}
-              createFunction={(teamId?: number, platform?: boolean) => {
-                if (platform) {
-                  router.push(`webhooks/new${platform ? `?platform=${platform}` : ""}`);
-                } else {
-                  router.push(`webhooks/new${teamId ? `?teamId=${teamId}` : ""}`);
-                }
-              }}
+              createFunction={createFunction}
               data-testid="new_webhook"
             />
           ) : (
@@ -88,7 +89,7 @@ const WebhooksView = () => {
         borderInShellHeader={(data && data.profiles.length === 1) || !data?.webhookGroups?.length}
       />
       <div>
-        <WebhooksList webhooksByViewer={data} isAdmin={isAdmin} />
+        <WebhooksList webhooksByViewer={data} isAdmin={isAdmin} createFunction={createFunction} />
       </div>
     </>
   );
@@ -97,9 +98,11 @@ const WebhooksView = () => {
 const WebhooksList = ({
   webhooksByViewer,
   isAdmin,
+  createFunction,
 }: {
   webhooksByViewer: WebhooksByViewer;
   isAdmin: boolean;
+  createFunction: (teamId?: number, platform?: boolean) => void;
 }) => {
   const { t } = useLocale();
   const router = useRouter();
@@ -162,9 +165,7 @@ const WebhooksList = ({
                 <CreateButtonWithTeamsList
                   subtitle={t("create_for").toUpperCase()}
                   isAdmin={isAdmin}
-                  createFunction={(teamId?: number) => {
-                    router.push(`webhooks/new${teamId ? `?teamId=${teamId}` : ""}`);
-                  }}
+                  createFunction={createFunction}
                   data-testid="new_webhook"
                 />
               }
