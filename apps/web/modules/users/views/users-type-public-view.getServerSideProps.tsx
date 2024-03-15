@@ -182,6 +182,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
       themeBasis: username,
       bookingUid: bookingUid ? `${bookingUid}` : null,
       rescheduleUid: rescheduleUid ? `${rescheduleUid}` : null,
+      orgBannerUrl: eventData?.owner?.profile?.organization?.bannerUrl ?? null,
     },
   };
 }

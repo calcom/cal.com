@@ -41,6 +41,7 @@ const userSelect = Prisma.validator<Prisma.UserSelect>()({
       name: true,
       slug: true,
       calVideoLogo: true,
+      bannerUrl: true,
     },
   },
 });

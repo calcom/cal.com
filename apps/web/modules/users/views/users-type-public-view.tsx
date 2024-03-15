@@ -28,6 +28,7 @@ export default function Type({
   isSEOIndexable,
   rescheduleUid,
   eventData,
+  orgBannerUrl,
 }: PageProps) {
   const searchParams = useSearchParams();
 
@@ -50,6 +51,7 @@ export default function Type({
         hideBranding={isBrandingHidden}
         entity={eventData.entity}
         durationConfig={eventData.metadata?.multipleDuration}
+        orgBannerUrl={orgBannerUrl}
         /* TODO: Currently unused, evaluate it is needed-
          *       Possible alternative approach is to have onDurationChange.
          */
