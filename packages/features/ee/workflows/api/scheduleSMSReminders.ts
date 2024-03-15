@@ -100,7 +100,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         });
 
         const organizerOrganizationId = organizerOrganizationProfile?.organizationId;
-        s;
 
         const bookerUrl = await getBookerBaseUrl(
           reminder.booking.eventType?.team?.parentId ?? organizerOrganizationId ?? null
