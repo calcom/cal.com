@@ -330,12 +330,12 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
           try {
             result = await createMeeting(event);
 
-            if (result.id && result.join_url) {
-              const { id, password = "", join_url } = result;
+            if (result.id && result.url) {
+              const { id, password = "", url } = result;
 
-              bookingRef.meetingId = id.toString();
-              bookingRef.password = password;
-              bookingRef.meetingUrl = join_url;
+              bookingRef.meetingId = id;
+              bookingRef.meetingPassword = password;
+              bookingRef.meetingUrl = url;
 
               return Promise.resolve({
                 type: "zoom_video",
