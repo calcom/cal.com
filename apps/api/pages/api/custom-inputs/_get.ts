@@ -2,6 +2,7 @@ import type { Prisma } from "@prisma/client";
 import type { NextApiRequest } from "next";
 
 import { defaultResponder } from "@calcom/lib/server";
+import prisma from "@calcom/prisma";
 
 import { schemaEventTypeCustomInputPublic } from "~/lib/validations/event-type-custom-input";
 
@@ -28,7 +29,7 @@ import { schemaEventTypeCustomInputPublic } from "~/lib/validations/event-type-c
  *         description: No eventTypeCustomInputs were found
  */
 async function getHandler(req: NextApiRequest) {
-  const { userId, isAdmin, prisma } = req;
+  const { userId, isAdmin } = req;
   const args: Prisma.EventTypeCustomInputFindManyArgs = isAdmin ? {} : { where: { eventType: { userId } } };
   const data = await prisma.eventTypeCustomInput.findMany(args);
   return { event_type_custom_inputs: data.map((v) => schemaEventTypeCustomInputPublic.parse(v)) };

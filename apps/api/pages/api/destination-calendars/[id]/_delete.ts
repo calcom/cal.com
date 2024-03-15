@@ -1,6 +1,7 @@
 import type { NextApiRequest } from "next";
 
 import { defaultResponder } from "@calcom/lib/server";
+import prisma from "@calcom/prisma";
 
 import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransformParseInt";
 
@@ -33,7 +34,7 @@ import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransform
  *        description: Destination calendar not found
  */
 export async function deleteHandler(req: NextApiRequest) {
-  const { prisma, query } = req;
+  const { query } = req;
   const { id } = schemaQueryIdParseInt.parse(query);
   await prisma.destinationCalendar.delete({ where: { id } });
   return { message: `OK, Destination Calendar removed successfully` };

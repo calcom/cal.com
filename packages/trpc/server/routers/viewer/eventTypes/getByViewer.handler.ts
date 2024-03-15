@@ -44,8 +44,9 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
     rateLimitingType: "common",
   });
   const lightProfile = ctx.user.profile;
-
   const profile = await ProfileRepository.findByUpId(lightProfile.upId);
+  const parentOrgHasLockedEventTypes =
+    profile?.organization?.organizationSettings?.lockEventTypeCreationForUsers;
   const isFilterSet = input?.filters && hasFilter(input.filters);
   const isUpIdInFilter = input?.filters?.upIds?.includes(lightProfile.upId);
   const shouldListUserEvents = !isFilterSet || isUpIdInFilter;
@@ -150,6 +151,7 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
       slug: (typeof profile)["username"] | null;
       name: (typeof profile)["name"];
       image: string;
+      eventTypesLockedByOrg?: boolean;
     };
     metadata: {
       membershipCount: number;
@@ -188,6 +190,7 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
           avatarUrl: profile.avatarUrl,
           profile: profile,
         }),
+        eventTypesLockedByOrg: parentOrgHasLockedEventTypes,
       },
       eventTypes: orderBy(unmanagedEventTypes, ["position", "id"], ["desc", "asc"]),
       metadata: {

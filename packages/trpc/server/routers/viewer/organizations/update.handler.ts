@@ -116,9 +116,63 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     }
   }
 
-  const updatedOrganisation = await prisma.team.update({
-    where: { id: currentOrgId },
-    data,
+  const updatedOrganisation = await prisma.$transaction(async (tx) => {
+    const updatedOrganisation = await tx.team.update({
+      where: { id: currentOrgId },
+      data,
+    });
+
+    await tx.organizationSettings.update({
+      where: {
+        organizationId: currentOrgId,
+      },
+      data: {
+        lockEventTypeCreationForUsers: !!input.lockEventTypeCreation,
+      },
+    });
+
+    if (input.lockEventTypeCreation) {
+      switch (input.lockEventTypeCreationOptions) {
+        case "HIDE":
+          await tx.eventType.updateMany({
+            where: {
+              teamId: null, // Not assigned to a team
+              parentId: null, // Not a managed event type
+              owner: {
+                profiles: {
+                  some: {
+                    organizationId: currentOrgId,
+                  },
+                },
+              },
+            },
+            data: {
+              hidden: true,
+            },
+          });
+
+          break;
+        case "DELETE":
+          await tx.eventType.deleteMany({
+            where: {
+              teamId: null, // Not assigned to a team
+              parentId: null, // Not a managed event type
+              owner: {
+                profiles: {
+                  some: {
+                    organizationId: currentOrgId,
+                  },
+                },
+              },
+            },
+          });
+          break;
+        default:
+          break;
+      }
+    }
+
+    return updatedOrganisation;
   });
 
   // Sync Services: Close.com

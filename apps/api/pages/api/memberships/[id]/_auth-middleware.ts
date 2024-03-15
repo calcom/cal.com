@@ -1,11 +1,12 @@
 import type { NextApiRequest } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
+import prisma from "@calcom/prisma";
 
 import { membershipIdSchema } from "~/lib/validations/membership";
 
 async function authMiddleware(req: NextApiRequest) {
-  const { userId, isAdmin, prisma } = req;
+  const { userId, isAdmin } = req;
   const { teamId } = membershipIdSchema.parse(req.query);
   // Admins can just skip this check
   if (isAdmin) return;
