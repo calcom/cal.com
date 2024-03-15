@@ -145,6 +145,40 @@ type ZoomRecurrence = {
   monthly_day?: number; // 1-31
 };
 
+const createMeeting = async (event: CalendarEvent): Promise<VideoCallData> => {
+  try {
+    const response = await fetchZoomApi("users/me/meetings", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(translateEvent(event)),
+    });
+    if (response.error) {
+      if (response.error === "invalid_grant") {
+        await invalidateCredential(credential.id);
+        return Promise.reject(new Error("Invalid grant for Cal.com zoom app"));
+      }
+    }
+
+    const result = zoomEventResultSchema.parse(response);
+
+    if (result.id && result.join_url) {
+      return {
+        type: "zoom_video",
+        id: result.id.toString(),
+        password: result.password || "",
+        url: result.join_url,
+      };
+    }
+    throw new Error(`Failed to create meeting. Response is ${JSON.stringify(result)}`);
+  } catch (err) {
+    console.error(err);
+    /* Prevents meeting creation failure when Zoom Token is expired */
+    throw new Error("Unexpected error");
+  }
+};
+
 const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => {
   const translateEvent = (event: CalendarEvent) => {
     const getRecurrence = ({
@@ -259,39 +293,7 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
         return [];
       }
     },
-    createMeeting: async (event: CalendarEvent): Promise<VideoCallData> => {
-      try {
-        const response = await fetchZoomApi("users/me/meetings", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(translateEvent(event)),
-        });
-        if (response.error) {
-          if (response.error === "invalid_grant") {
-            await invalidateCredential(credential.id);
-            return Promise.reject(new Error("Invalid grant for Cal.com zoom app"));
-          }
-        }
-
-        const result = zoomEventResultSchema.parse(response);
-
-        if (result.id && result.join_url) {
-          return {
-            type: "zoom_video",
-            id: result.id.toString(),
-            password: result.password || "",
-            url: result.join_url,
-          };
-        }
-        throw new Error(`Failed to create meeting. Response is ${JSON.stringify(result)}`);
-      } catch (err) {
-        console.error(err);
-        /* Prevents meeting creation failure when Zoom Token is expired */
-        throw new Error("Unexpected error");
-      }
-    },
+    createMeeting,
     deleteMeeting: async (uid: string): Promise<void> => {
       try {
         await fetchZoomApi(`meetings/${uid}`, {
@@ -304,6 +306,31 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
     },
     updateMeeting: async (bookingRef: PartialReference, event: CalendarEvent): Promise<VideoCallData> => {
       try {
+        if (!bookingRef.uid || !bookingRef.meetingId) {
+          let result;
+          try {
+            result = await createMeeting(event);
+
+            if (result.id && result.join_url) {
+              const { id, password = "", join_url } = result;
+
+              bookingRef.meetingId = id.toString();
+              bookingRef.password = password;
+              bookingRef.meetingUrl = join_url;
+
+              return Promise.resolve({
+                type: "zoom_video",
+                id: bookingRef.meetingId as string,
+                password: bookingRef.meetingPassword as string,
+                url: bookingRef.meetingUrl as string,
+              });
+            }
+          } catch (e) {
+            return Promise.reject(
+              new Error("Failed to update meeting by using creating for nonexisting bookingRef")
+            );
+          }
+        }
         await fetchZoomApi(`meetings/${bookingRef.uid}`, {
           method: "PATCH",
           headers: {
