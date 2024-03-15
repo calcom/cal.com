@@ -164,6 +164,83 @@ const DeleteDialogButton = ({
   );
 };
 
+const useExcludedDates = () => {
+  const watchValues = useWatch<AvailabilityFormValues>({ name: "dateOverrides" }) as {
+    ranges: TimeRange[];
+  }[];
+  return useMemo(() => {
+    return watchValues?.map((field) => dayjs(field.ranges[0].start).utc().format("YYYY-MM-DD"));
+  }, [watchValues]);
+};
+
+const DateOverride = ({
+  workingHours,
+  userTimeFormat,
+}: {
+  workingHours: WorkingHours[];
+  userTimeFormat: number | null;
+}) => {
+  const { append, replace, fields } = useFieldArray<AvailabilityFormValues, "dateOverrides">({
+    name: "dateOverrides",
+  });
+  const excludedDates = useExcludedDates();
+  const { t } = useLocale();
+  return (
+    <div className="p-6">
+      <h3 className="text-emphasis font-medium leading-6">
+        {t("date_overrides")}{" "}
+        <Tooltip content={t("date_overrides_info")}>
+          <span className="inline-block align-middle">
+            <Info className="h-4 w-4" />
+          </span>
+        </Tooltip>
+      </h3>
+      <p className="text-subtle mb-4 text-sm">{t("date_overrides_subtitle")}</p>
+      <div className="space-y-2">
+        <DateOverrideList
+          excludedDates={excludedDates}
+          replace={replace}
+          fields={fields}
+          workingHours={workingHours}
+          userTimeFormat={userTimeFormat}
+          hour12={Boolean(userTimeFormat === 12)}
+        />
+        <DateOverrideInputDialog
+          workingHours={workingHours}
+          excludedDates={excludedDates}
+          onChange={(ranges) => ranges.forEach((range) => append({ ranges: [range] }))}
+          userTimeFormat={userTimeFormat}
+          Trigger={
+            <Button color="secondary" StartIcon={Plus} data-testid="add-override">
+              {t("add_an_override")}
+            </Button>
+          }
+        />
+      </div>
+    </div>
+  );
+};
+
+// Simplify logic by assuming this will never be opened on a large screen
+const SmallScreenSideBar = ({ open, children }: { open: boolean; children: JSX.Element }) => {
+  return (
+    <div
+      className={classNames(
+        open
+          ? "fadeIn fixed inset-0 z-50 bg-neutral-800 bg-opacity-70 transition-opacity dark:bg-opacity-70 sm:hidden"
+          : ""
+      )}>
+      <div
+        className={classNames(
+          "bg-default fixed right-0 z-20 flex h-screen w-80 flex-col space-y-2 overflow-x-hidden rounded-md px-2 pb-3 transition-transform",
+          open ? "translate-x-0 opacity-100" : "translate-x-full opacity-0"
+        )}>
+        {open ? children : null}
+      </div>
+    </div>
+  );
+};
+
 export function AvailabilitySettings({
   schedule,
   handleDelete,
@@ -506,80 +583,3 @@ export function AvailabilitySettings({
     </Shell>
   );
 }
-
-const useExcludedDates = () => {
-  const watchValues = useWatch<AvailabilityFormValues>({ name: "dateOverrides" }) as {
-    ranges: TimeRange[];
-  }[];
-  return useMemo(() => {
-    return watchValues?.map((field) => dayjs(field.ranges[0].start).utc().format("YYYY-MM-DD"));
-  }, [watchValues]);
-};
-
-const DateOverride = ({
-  workingHours,
-  userTimeFormat,
-}: {
-  workingHours: WorkingHours[];
-  userTimeFormat: number | null;
-}) => {
-  const { append, replace, fields } = useFieldArray<AvailabilityFormValues, "dateOverrides">({
-    name: "dateOverrides",
-  });
-  const excludedDates = useExcludedDates();
-  const { t } = useLocale();
-  return (
-    <div className="p-6">
-      <h3 className="text-emphasis font-medium leading-6">
-        {t("date_overrides")}{" "}
-        <Tooltip content={t("date_overrides_info")}>
-          <span className="inline-block align-middle">
-            <Info className="h-4 w-4" />
-          </span>
-        </Tooltip>
-      </h3>
-      <p className="text-subtle mb-4 text-sm">{t("date_overrides_subtitle")}</p>
-      <div className="space-y-2">
-        <DateOverrideList
-          excludedDates={excludedDates}
-          replace={replace}
-          fields={fields}
-          workingHours={workingHours}
-          userTimeFormat={userTimeFormat}
-          hour12={Boolean(userTimeFormat === 12)}
-        />
-        <DateOverrideInputDialog
-          workingHours={workingHours}
-          excludedDates={excludedDates}
-          onChange={(ranges) => ranges.forEach((range) => append({ ranges: [range] }))}
-          userTimeFormat={userTimeFormat}
-          Trigger={
-            <Button color="secondary" StartIcon={Plus} data-testid="add-override">
-              {t("add_an_override")}
-            </Button>
-          }
-        />
-      </div>
-    </div>
-  );
-};
-
-// Simplify logic by assuming this will never be opened on a large screen
-const SmallScreenSideBar = ({ open, children }: { open: boolean; children: JSX.Element }) => {
-  return (
-    <div
-      className={classNames(
-        open
-          ? "fadeIn fixed inset-0 z-50 bg-neutral-800 bg-opacity-70 transition-opacity dark:bg-opacity-70 sm:hidden"
-          : ""
-      )}>
-      <div
-        className={classNames(
-          "bg-default fixed right-0 z-20 flex h-screen w-80 flex-col space-y-2 overflow-x-hidden rounded-md px-2 pb-3 transition-transform",
-          open ? "translate-x-0 opacity-100" : "translate-x-full opacity-0"
-        )}>
-        {open ? children : null}
-      </div>
-    </div>
-  );
-};

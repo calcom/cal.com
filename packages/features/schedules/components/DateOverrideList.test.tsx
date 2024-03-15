@@ -46,6 +46,7 @@ describe("DateOverrideList", () => {
         <FormProvider {...methods}>
           <DateOverrideList
             hour12={false}
+            userTimeFormat={24}
             fields={fieldArrayResult.current.fields}
             replace={fieldArrayResult.current.replace}
             workingHours={[]}
@@ -91,6 +92,7 @@ describe("DateOverrideList", () => {
         <FormProvider {...methods}>
           <DateOverrideList
             hour12={true}
+            userTimeFormat={12}
             fields={fieldArrayResult.current.fields}
             replace={fieldArrayResult.current.replace}
             workingHours={[]}
