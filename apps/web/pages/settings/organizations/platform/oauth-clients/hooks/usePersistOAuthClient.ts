@@ -2,6 +2,7 @@ import { useMutation } from "@tanstack/react-query";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import type { ApiResponse, CreateOAuthClientInput, DeleteOAuthClientInput } from "@calcom/platform-types";
+import type { OAuthClient } from "@calcom/prisma/client";
 
 interface IPersistOAuthClient {
   onSuccess?: () => void;
@@ -55,7 +56,7 @@ export const useDeleteOAuthClient = (
     },
   }
 ) => {
-  const mutation = useMutation<ApiResponse<undefined>, unknown, DeleteOAuthClientInput>({
+  const mutation = useMutation<ApiResponse<OAuthClient>, unknown, DeleteOAuthClientInput>({
     mutationFn: (data) => {
       const { id } = data;
       return fetch(`/api/v2/oauth-clients/${id}`, {

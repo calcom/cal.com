@@ -2,7 +2,7 @@ import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 import React from "react";
 
 import classNames from "@calcom/lib/classNames";
-import { useAtomsContext } from "@calcom/platform-atoms";
+import { useIsPlatform } from "@calcom/platform-atoms";
 
 export function Tooltip({
   children,
@@ -22,7 +22,7 @@ export function Tooltip({
   side?: "top" | "right" | "bottom" | "left";
   onOpenChange?: (open: boolean) => void;
 } & TooltipPrimitive.TooltipContentProps) {
-  const context = useAtomsContext();
+  const isPlatform = useIsPlatform();
   const Content = (
     <TooltipPrimitive.Content
       {...props}
@@ -46,7 +46,7 @@ export function Tooltip({
       defaultOpen={defaultOpen}
       onOpenChange={onOpenChange}>
       <TooltipPrimitive.Trigger asChild>{children}</TooltipPrimitive.Trigger>
-      {context.clientId ? <>{Content}</> : <TooltipPrimitive.Portal>{Content}</TooltipPrimitive.Portal>}
+      {isPlatform ? <>{Content}</> : <TooltipPrimitive.Portal>{Content}</TooltipPrimitive.Portal>}
     </TooltipPrimitive.Root>
   );
 }

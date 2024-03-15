@@ -1,19 +1,45 @@
 import { useMutation } from "@tanstack/react-query";
 
-import type { RecurringBookingCreateBody } from "@calcom/features/bookings/types";
-import type { BookingResponse } from "@calcom/platform-libraries";
-import type { ApiResponse } from "@calcom/platform-types";
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import type { BookingResponse, RecurringBookingCreateBody } from "@calcom/platform-libraries";
+import type { ApiResponse, ApiErrorResponse, ApiSuccessResponse } from "@calcom/platform-types";
 
 import http from "../lib/http";
 
-export const useCreateRecurringBooking = (props: RecurringBookingCreateBody[]) => {
-  const createRecurringBooking = useMutation({
-    mutationFn: () => {
+interface IUseCreateRecurringBooking {
+  onSuccess?: (res: ApiSuccessResponse<BookingResponse[]>) => void;
+  onError?: (err: ApiErrorResponse | Error) => void;
+}
+
+export const useCreateRecurringBooking = (
+  { onSuccess, onError }: IUseCreateRecurringBooking = {
+    onSuccess: () => {
+      return;
+    },
+    onError: () => {
+      return;
+    },
+  }
+) => {
+  const createRecurringBooking = useMutation<
+    ApiResponse<BookingResponse[]>,
+    Error,
+    RecurringBookingCreateBody[]
+  >({
+    mutationFn: (data) => {
       return http
-        .post<ApiResponse<BookingResponse[]>>("/ee/bookings/recurring", {
-          body: props,
-        })
+        .post<ApiResponse<BookingResponse[]>>("/ee/bookings/recurring", data)
         .then((res) => res.data);
+    },
+    onSuccess: (data) => {
+      if (data.status === SUCCESS_STATUS) {
+        onSuccess?.(data);
+      } else {
+        onError?.(data);
+      }
+    },
+    onError: (err) => {
+      onError?.(err);
     },
   });
   return createRecurringBooking;

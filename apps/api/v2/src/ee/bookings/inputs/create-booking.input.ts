@@ -1,3 +1,4 @@
+import { Transform } from "class-transformer";
 import { IsBoolean, IsTimeZone, IsNumber, IsString, IsOptional, IsArray } from "class-validator";
 
 export class CreateBookingInput {
@@ -26,10 +27,13 @@ export class CreateBookingInput {
   @IsTimeZone()
   timeZone!: string;
 
+  @Transform(({ value }: { value: string | string[] }) => {
+    return typeof value === "string" ? [value] : value;
+  })
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
-  user?: string | string[];
+  user?: string[];
 
   @IsString()
   language!: string;
@@ -45,6 +49,7 @@ export class CreateBookingInput {
   hasHashedBookingLink?: boolean;
 
   @IsString()
+  @IsOptional()
   hashedLink!: string | null;
 
   @IsString()
