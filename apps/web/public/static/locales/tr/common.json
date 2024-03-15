@@ -1823,10 +1823,8 @@
   "requires_at_least_one_schedule": "En az bir plana sahip olmanız gerekiyor",
   "default_conferencing_bulk_description": "Seçilen etkinlik türleri için konumları güncelleyin",
   "locked_for_members": "Üyeler için kilitli",
-  "locked_apps_description": "Üyeler aktif uygulamaları görebilir, ancak hiçbir uygulama ayarını düzenleyemez",
-  "locked_webhooks_description": "Üyeler aktif web kancalarını görebilir, ancak hiçbir web kancası ayarını düzenleyemez",
-  "locked_workflows_description": "Üyeler aktif iş akışlarını görebilir, ancak hiçbir iş akışı ayarını düzenleyemez",
-  "locked_by_admin": "Ekip yöneticisi tarafından kilitlendi",
+  "apps_locked_for_members_description": "Üyeler aktif uygulamaları görebilir, ancak hiçbir uygulama ayarını düzenleyemez",
+  "locked_by_team_admin": "Ekip yöneticisi tarafından kilitlendi",
   "app_not_connected": "{{appName}} hesabı bağlamadınız.",
   "connect_now": "Hemen bağlan",
   "managed_event_dialog_confirm_button_one": "{{count}} üyeyi değiştirin ve bilgilendirin",
@@ -2061,6 +2059,7 @@
   "workflow_automation": "İş akışı otomasyonu",
   "scheduling_for_your_team": "İş akışı otomasyonu",
   "no_members_found": "Üye bulunamadı",
+  "directory_sync": "Dizin Senkronizasyonu",
   "event_setup_length_error": "Etkinlik Kurulumu: Süre en az 1 dakika olmalıdır.",
   "availability_schedules": "Müsaitlik Planları",
   "unauthorized": "Yetkisiz",
@@ -2097,5 +2096,6 @@
   "extensive_whitelabeling": "Özel işe alıştırma ve mühendislik desteği",
   "need_help": "Yardıma mı ihtiyacınız var?",
   "show_more": "Daha fazla göster",
+  "privacy": "Gizlilik",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Yeni dizelerinizi yukarıya ekleyin ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

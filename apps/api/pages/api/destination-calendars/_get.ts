@@ -2,6 +2,7 @@ import type { NextApiRequest } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
+import prisma from "@calcom/prisma";
 
 import { extractUserIdsFromQuery } from "~/lib/utils/extractUserIdsFromQuery";
 import { schemaDestinationCalendarReadPublic } from "~/lib/validations/destination-calendar";
@@ -29,7 +30,7 @@ import { schemaDestinationCalendarReadPublic } from "~/lib/validations/destinati
  *         description: No destination calendars were found
  */
 async function getHandler(req: NextApiRequest) {
-  const { userId, prisma } = req;
+  const { userId } = req;
   const userIds = req.query.userId ? extractUserIdsFromQuery(req) : [userId];
 
   const userEventTypes = await prisma.eventType.findMany({

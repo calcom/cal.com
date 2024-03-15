@@ -3,7 +3,6 @@ import { orderBy } from "lodash";
 
 import { hasFilter } from "@calcom/features/filters/lib/hasFilter";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
-import { isOrganization } from "@calcom/lib/entityPermissionUtils";
 import { getOrgAvatarUrl, getTeamAvatarUrl, getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
@@ -45,8 +44,9 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
     rateLimitingType: "common",
   });
   const lightProfile = ctx.user.profile;
-
   const profile = await ProfileRepository.findByUpId(lightProfile.upId);
+  const parentOrgHasLockedEventTypes =
+    profile?.organization?.organizationSettings?.lockEventTypeCreationForUsers;
   const isFilterSet = input?.filters && hasFilter(input.filters);
   const isUpIdInFilter = input?.filters?.upIds?.includes(lightProfile.upId);
   const shouldListUserEvents = !isFilterSet || isUpIdInFilter;
@@ -151,6 +151,7 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
       slug: (typeof profile)["username"] | null;
       name: (typeof profile)["name"];
       image: string;
+      eventTypesLockedByOrg?: boolean;
     };
     metadata: {
       membershipCount: number;
@@ -189,6 +190,7 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
           avatarUrl: profile.avatarUrl,
           profile: profile,
         }),
+        eventTypesLockedByOrg: parentOrgHasLockedEventTypes,
       },
       eventTypes: orderBy(unmanagedEventTypes, ["position", "id"], ["desc", "asc"]),
       metadata: {
@@ -214,7 +216,7 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
     await Promise.all(
       memberships
         .filter((mmship) => {
-          if (isOrganization({ team: mmship.team })) {
+          if (mmship.team.isOrganization) {
             return false;
           } else {
             if (!input?.filters || !hasFilter(input?.filters)) {

@@ -3,6 +3,7 @@ import type { z } from "zod";
 
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
+import prisma from "@calcom/prisma";
 
 import { schemaBookingEditBodyParams, schemaBookingReadPublic } from "~/lib/validations/booking";
 import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransformParseInt";
@@ -99,7 +100,7 @@ import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransform
  *        description: Authorization information is missing or invalid.
  */
 export async function patchHandler(req: NextApiRequest) {
-  const { prisma, query, body } = req;
+  const { query, body } = req;
   const { id } = schemaQueryIdParseInt.parse(query);
   const data = schemaBookingEditBodyParams.parse(body);
   await checkPermissions(req, data);
