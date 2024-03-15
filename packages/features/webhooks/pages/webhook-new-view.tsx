@@ -64,6 +64,7 @@ const NewWebhookView = () => {
         webhooks,
         teamId,
         userId: session.data?.user.id,
+        platform,
       })
     ) {
       showToast(t("webhook_subscriber_url_reserved"), "error");
