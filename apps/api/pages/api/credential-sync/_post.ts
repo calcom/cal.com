@@ -6,8 +6,9 @@ import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
+import prisma from "@calcom/prisma";
 
-import { schemaCredentialPostParams, schemaCredentialPostBody } from "~/lib/validations/credential-sync";
+import { schemaCredentialPostBody, schemaCredentialPostParams } from "~/lib/validations/credential-sync";
 
 /**
  * @swagger
@@ -54,8 +55,6 @@ import { schemaCredentialPostParams, schemaCredentialPostBody } from "~/lib/vali
  *        description: Credential syncing not enabled
  */
 async function handler(req: NextApiRequest) {
-  const { prisma } = req;
-
   if (!req.body) {
     throw new HttpError({ message: "Request body is missing", statusCode: 400 });
   }
