@@ -100,6 +100,7 @@ import {
   Settings,
   User as UserIcon,
   Users,
+  Sparkles,
   Zap,
   Check,
 } from "@calcom/ui/components/icon";
@@ -669,6 +670,11 @@ const navigation: NavigationItemType[] = [
     href: "/apps/routing-forms/forms",
     icon: FileText,
     isCurrent: ({ pathname }) => pathname?.startsWith("/apps/routing-forms/") ?? false,
+  },
+  {
+    name: "Cal.ai",
+    href: "/ai",
+    icon: Sparkles,
   },
   {
     name: "workflows",

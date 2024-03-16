@@ -1,29 +1,14 @@
-import type { Webhook } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import type { EventTypeSetup } from "pages/event-types/[type]";
 import { useState } from "react";
 import { useFormContext } from "react-hook-form";
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
-import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import type { FormValues } from "@calcom/features/eventtypes/lib/types";
-import type { WebhookFormSubmitData } from "@calcom/features/webhooks/components/WebhookForm";
-import { subscriberUrlReserved } from "@calcom/features/webhooks/lib/subscriberUrlReserved";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { WebhookTriggerEvents } from "@calcom/prisma/enums";
-import { trpc } from "@calcom/trpc/react";
-import {
-  Alert,
-  Button,
-  EmptyScreen,
-  SettingsToggle,
-  Dialog,
-  DialogContent,
-  showToast,
-  TextField,
-} from "@calcom/ui";
-import { Sparkles, Phone, Plus, Lock } from "@calcom/ui/components/icon";
+import { Alert, Button, EmptyScreen, SettingsToggle, Dialog, DialogContent, TextField } from "@calcom/ui";
+import { Sparkles, Phone, Plus } from "@calcom/ui/components/icon";
 
 type AIEventControllerProps = {
   eventType: EventTypeSetup;
@@ -38,12 +23,8 @@ export default function AIEventController({
 }: AIEventControllerProps) {
   const { t } = useLocale();
   const session = useSession();
-  const [instantEventState, setAIEventState] = useState<boolean>(eventType?.isAIEvent ?? false);
+  const [aiEventState, setAIEventState] = useState<boolean>(eventType?.isAIEvent ?? false);
   const formMethods = useFormContext<FormValues>();
-
-  const { shouldLockDisableProps } = useLockedFieldsManager({ eventType, translate: t, formMethods });
-
-  const instantLocked = shouldLockDisableProps("isAIEvent");
 
   //todo const isOrg = !!session.data?.user?.org?.id;
   const isOrg = true;
@@ -73,13 +54,12 @@ export default function AIEventController({
                   toggleSwitchAtTheEnd={true}
                   switchContainerClassName={classNames(
                     "border-subtle rounded-lg border py-6 px-4 sm:px-6",
-                    instantEventState && "rounded-b-none"
+                    aiEventState && "rounded-b-none"
                   )}
                   childrenClassName="lg:ml-0"
-                  title={t("Cal.ai" /* todo "ai_tab_title"*/)}
-                  {...instantLocked}
-                  description={t("Create an AI phone number" /* todo "instant_event_tab_description" */)}
-                  checked={instantEventState}
+                  title={t("Cal.ai")}
+                  description={t("Create an AI phone number")}
+                  checked={aiEventState}
                   data-testid="instant-event-check"
                   onCheckedChange={(e) => {
                     if (!e) {
@@ -91,7 +71,7 @@ export default function AIEventController({
                     }
                   }}>
                   <div className="border-subtle rounded-b-lg border border-t-0 p-6">
-                    {instantEventState && <AISettings eventType={eventType} />}
+                    {aiEventState && <AISettings eventType={eventType} />}
                   </div>
                 </SettingsToggle>
               </>
@@ -105,148 +85,62 @@ export default function AIEventController({
 
 const AISettings = ({ eventType }: { eventType: EventTypeSetup }) => {
   const { t } = useLocale();
-  const utils = trpc.useContext();
-  const formMethods = useFormContext<FormValues>();
-
-  const { data: webhooks } = trpc.viewer.webhook.list.useQuery({
-    eventTypeId: eventType.id,
-    eventTriggers: [WebhookTriggerEvents.INSTANT_MEETING],
-  });
-  const { data: installedApps, isPending } = trpc.viewer.integrations.useQuery({
-    variant: "other",
-    onlyInstalled: true,
-  });
-
+  console.log(eventType);
   const [createModalOpen, setCreateModalOpen] = useState(false);
-  const [editModalOpen, setEditModalOpen] = useState(false);
-  const [webhookToEdit, setWebhookToEdit] = useState<Webhook>();
-
-  const editWebhookMutation = trpc.viewer.webhook.edit.useMutation({
-    async onSuccess() {
-      setEditModalOpen(false);
-      await utils.viewer.webhook.list.invalidate();
-      showToast(t("webhook_updated_successfully"), "success");
-    },
-    onError(error) {
-      showToast(`${error.message}`, "error");
-    },
-  });
-
-  const createWebhookMutation = trpc.viewer.webhook.create.useMutation({
-    async onSuccess() {
-      showToast(t("webhook_created_successfully"), "success");
-      await utils.viewer.webhook.list.invalidate();
-      setCreateModalOpen(false);
-    },
-    onError(error) {
-      showToast(`${error.message}`, "error");
-    },
-  });
-
-  const onCreateWebhook = async (values: WebhookFormSubmitData) => {
-    if (
-      subscriberUrlReserved({
-        subscriberUrl: values.subscriberUrl,
-        id: values.id,
-        webhooks,
-        eventTypeId: eventType.id,
-      })
-    ) {
-      showToast(t("webhook_subscriber_url_reserved"), "error");
-      return;
-    }
-
-    if (!values.payloadTemplate) {
-      values.payloadTemplate = null;
-    }
-
-    createWebhookMutation.mutate({
-      subscriberUrl: values.subscriberUrl,
-      eventTriggers: values.eventTriggers,
-      active: values.active,
-      payloadTemplate: values.payloadTemplate,
-      secret: values.secret,
-      eventTypeId: eventType.id,
-    });
-  };
 
   const NewPhoneButton = () => {
     const { t } = useLocale();
     return (
       <Button
-        color="secondary"
+        color="primary"
         data-testid="new_phone_number"
         StartIcon={Plus}
         onClick={() => setCreateModalOpen(true)}>
-        {t("New Phone number" /*todo "new_webhook" */)}
+        {t("New Phone number")}
       </Button>
     );
   };
 
-  const { shouldLockDisableProps, isChildrenManagedEventType, isManagedEventType } = useLockedFieldsManager({
-    eventType,
-    formMethods,
-    translate: t,
-  });
-  const webhookLockedStatus = shouldLockDisableProps("webhooks");
+  // TODO: v2 will allow users to create phone numbers and agents within Cal.com.
+  // we do this later, i just wanted to make the layout first
+  const v2 = false;
+
+  // v1 will require the user to log in to Retellai.com to create a phone number, and an agent and
+  // authorize it with the Cal.com API key / OAuth
+  const retellAuthorized = true; // TODO: call retellAPI here
 
   return (
     <div>
-      {webhooks && !isPending && (
+      {retellAuthorized && (
         <>
-          <div>
-            {webhooks.length ? (
-              <>
-                <div className="border-subtle my-2 rounded-md border">
-                  {/* {webhooks.map((webhook, index) => {
-                    return (
-                      <WebhookListItem
-                        key={webhook.id}
-                        webhook={webhook}
-                        lastItem={webhooks.length === index + 1}
-                        canEditWebhook={!webhookLockedStatus.disabled}
-                        onEditWebhook={() => {
-                          setEditModalOpen(true);
-                          setWebhookToEdit(webhook);
-                        }}
-                      />
-                    );
-                  })} */}
-                </div>
-              </>
-            ) : (
-              <>
-                <EmptyScreen
-                  Icon={Phone}
-                  headline={t("Create your phone number" /* todo "create_your_first_webhook" */)}
-                  description={t(
-                    "This phone number can be called by guests but can also do proactive outbound calls by the AI agent." /* todo "create_instant_meeting_webhook_description" */
-                  )}
-                  buttonRaw={
-                    isChildrenManagedEventType && !isManagedEventType ? (
-                      <Button StartIcon={Lock} color="secondary" disabled>
-                        {t("locked_by_admin")}
-                      </Button>
-                    ) : (
-                      <>
-                        <NewPhoneButton />
-                        <Button>Learn More</Button>
-                      </>
-                    )
-                  }
-                />
-              </>
-            )}
-          </div>
+          {/* TODO: <Form> */}
+          <form className="space-y-4">
+            <TextField label="Number to Call" required placeholder="+1 234 456 789" />
+            <TextField label="Name of Receiver" required placeholder="Jane Doe" />
+          </form>
+        </>
+      )}
 
-          {/* New phone dialog */}
+      {v2 && (
+        <>
+          <EmptyScreen
+            Icon={Phone}
+            headline={t("Create your phone number")}
+            description={t(
+              "This phone number can be called by guests but can also do proactive outbound calls by the AI agent."
+            )}
+            buttonRaw={
+              <div className="flex justify-between gap-2">
+                <NewPhoneButton />
+                <Button color="secondary">{t("learn_more")}</Button>
+              </div>
+            }
+          />
           <Dialog open={createModalOpen} onOpenChange={(isOpen) => !isOpen && setCreateModalOpen(false)}>
             <DialogContent
               enableOverflow
-              title={t("Create phone number" /* todo "create_phone_number" */)}
-              description={t(
-                "This number can later be called or can do proactive outbound calls" /* todo "create_phone_number_description" */
-              )}>
+              title={t("Create phone number")}
+              description={t("This number can later be called or can do proactive outbound calls")}>
               <div className="mb-12 mt-4">
                 <TextField placeholder="+415" hint="Area Code" />
               </div>

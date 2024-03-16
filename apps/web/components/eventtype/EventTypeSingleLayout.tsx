@@ -11,6 +11,7 @@ import { EventTypeEmbedButton, EventTypeEmbedDialog } from "@calcom/features/emb
 import type { FormValues, AvailabilityOption } from "@calcom/features/eventtypes/lib/types";
 import Shell from "@calcom/features/shell/Shell";
 import { classNames } from "@calcom/lib";
+import { IS_CALCOM } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { SchedulingType } from "@calcom/prisma/enums";
@@ -284,13 +285,13 @@ function EventTypeSingleLayout({
         info: `${activeWebhooksNumber} ${t("active")}`,
       });
     }
-    const aiEnabled = false;
-    if (team && aiEnabled) {
+    const aiEnabled = true; /* todo: check if cal.ai is installed */
+    if (IS_CALCOM && team && aiEnabled) {
       navigation.push({
         name: "Cal.ai",
         href: `/event-types/${eventType.id}?tabName=ai`,
         icon: Sparkles,
-        info: "Let AI Agents book you", //`cal_ai_event_tab_description`,
+        info: "Let AI Agents book you", // todo `cal_ai_event_tab_description`,
       });
     }
     return navigation;
