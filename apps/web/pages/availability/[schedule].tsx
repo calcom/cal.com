@@ -12,6 +12,7 @@ import { withErrorFromUnknown } from "@calcom/lib/getClientErrorFromUnknown";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
+import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import type { Schedule as ScheduleType, TimeRange, WorkingHours } from "@calcom/types/schedule";
@@ -177,7 +178,30 @@ const SmallScreenSideBar = ({ open, children }: { open: boolean; children: JSX.E
     </div>
   );
 };
+
 export default function Availability() {
+  const searchParams = useCompatSearchParams();
+  const scheduleId = searchParams?.get("schedule") ? Number(searchParams.get("schedule")) : -1;
+  const { data: schedule, isPending } = trpc.viewer.availability.schedule.get.useQuery(
+    { scheduleId },
+    {
+      enabled: !!scheduleId,
+    }
+  );
+
+  // TODO: reimplement Skeletons for this page in here
+  if (isPending) return null;
+
+  if (!schedule) return null;
+
+  // We wait for the schedule to be loaded before rendering the form since `defaultValues`
+  // cannot be redeclared after first render. And using `values` will trigger a form reset
+  // when revalidating.
+  return <AvailabilityForm schedule={schedule} isPending={isPending} />;
+}
+
+type ScheduleProp = RouterOutputs["viewer"]["availability"]["schedule"]["get"];
+function AvailabilityForm({ schedule, isPending }: { schedule: ScheduleProp; isPending: boolean }) {
   const searchParams = useCompatSearchParams();
   const { t, i18n } = useLocale();
   const utils = trpc.useUtils();
@@ -186,17 +210,11 @@ export default function Availability() {
   const fromEventType = searchParams?.get("fromEventType");
   const { timeFormat } = me.data || { timeFormat: null };
   const [openSidebar, setOpenSidebar] = useState(false);
-  const { data: schedule, isPending } = trpc.viewer.availability.schedule.get.useQuery(
-    { scheduleId },
-    {
-      enabled: !!scheduleId,
-    }
-  );
 
   const form = useForm<AvailabilityFormValues>({
-    values: schedule && {
+    defaultValues: {
       ...schedule,
-      schedule: schedule?.availability || [],
+      schedule: schedule.availability || [],
     },
   });
   const updateMutation = trpc.viewer.availability.schedule.update.useMutation({
@@ -229,7 +247,7 @@ export default function Availability() {
   return (
     <Shell
       backPath={fromEventType ? true : "/availability"}
-      title={schedule?.name ? `${schedule.name} | ${t("availability")}` : t("availability")}
+      title={schedule.name ? `${schedule.name} | ${t("availability")}` : t("availability")}
       heading={
         <Controller
           control={form.control}
@@ -271,7 +289,7 @@ export default function Availability() {
                   render={({ field: { value, onChange } }) => (
                     <Switch
                       id="hiddenSwitch"
-                      disabled={isPending || schedule?.isDefault}
+                      disabled={isPending || schedule.isDefault}
                       checked={value}
                       onCheckedChange={onChange}
                     />
@@ -285,7 +303,7 @@ export default function Availability() {
           <DeleteDialogButton
             buttonClassName="hidden sm:inline"
             scheduleId={scheduleId}
-            disabled={schedule?.isLastSchedule}
+            disabled={schedule.isLastSchedule}
           />
           <VerticalDivider className="hidden sm:inline" />
 
@@ -303,7 +321,7 @@ export default function Availability() {
                 <DeleteDialogButton
                   buttonClassName="ml-16 inline"
                   scheduleId={scheduleId}
-                  disabled={schedule?.isLastSchedule}
+                  disabled={schedule.isLastSchedule}
                   onDeleteConfirmed={() => {
                     setOpenSidebar(false);
                   }}
@@ -391,6 +409,7 @@ export default function Availability() {
             className="ml-4 lg:ml-0"
             type="submit"
             form="availability-form"
+            disabled={!form.formState.isDirty}
             loading={updateMutation.isPending}>
             {t("save")}
           </Button>
@@ -433,7 +452,7 @@ export default function Availability() {
               </div>
             </div>
             <div className="border-subtle my-6 rounded-md border">
-              {schedule?.workingHours && <DateOverride workingHours={schedule.workingHours} />}
+              {schedule.workingHours && <DateOverride workingHours={schedule.workingHours} />}
             </div>
           </div>
           <div className="min-w-40 col-span-3 hidden space-y-2 md:block lg:col-span-1">
