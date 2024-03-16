@@ -226,7 +226,7 @@ const CreateOutOfOfficeEntryModal = ({
         <DialogFooter showDivider noSticky>
           <div className="flex">
             <Button color="minimal" type="button" onClick={() => closeModal()} className="mr-1">
-              Cancel
+              {t("cancel")}
             </Button>
             <Button
               form="create-ooo-form"
