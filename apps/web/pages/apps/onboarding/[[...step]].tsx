@@ -1,3 +1,4 @@
+import type { Prisma } from "@prisma/client";
 import type { GetServerSidePropsContext } from "next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Head from "next/head";
@@ -407,6 +408,12 @@ const getEventTypeById = async (
   userId: number | undefined,
   teamId: number | undefined
 ) => {
+  let where: Prisma.EventTypeWhereInput = { id: eventTypeId };
+  if (teamId) {
+    where = { ...where, teamId };
+  } else if (userId) {
+    where = { ...where, userId };
+  }
   const eventTypeDB = await prisma.eventType.findFirst({
     select: {
       id: true,
@@ -422,11 +429,7 @@ const getEventTypeById = async (
       schedulingType: true,
       metadata: true,
     },
-    where: {
-      id: eventTypeId,
-      ...(!!teamId ? { teamId } : {}),
-      ...(!!userId ? { userId } : {}),
-    },
+    where,
   });
 
   if (!eventTypeDB) {
