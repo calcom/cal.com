@@ -103,7 +103,7 @@ const DateOverrideList = ({
                 color="destructive"
                 variant="icon"
                 StartIcon={Trash2}
-                onClick={() => {
+                onClick={async () => {
                   replace([...fields.filter((currentItem) => currentItem.id !== item.id)]);
                 }}
               />
