@@ -9,6 +9,7 @@ import { Button } from "../../components/button";
 
 export function EmptyScreen({
   Icon,
+  customIcon,
   avatar,
   headline,
   description,
@@ -20,6 +21,7 @@ export function EmptyScreen({
   className,
 }: {
   Icon?: SVGComponent | IconType;
+  customIcon?: React.ReactElement;
   avatar?: React.ReactElement;
   headline: string | React.ReactElement;
   description?: string | React.ReactElement;
@@ -47,6 +49,7 @@ export function EmptyScreen({
             <Icon className="text-default inline-block h-10 w-10 stroke-[1.3px]" />
           </div>
         )}
+        {!customIcon ? null : <>{customIcon}</>}
         <div className="flex max-w-[420px] flex-col items-center">
           <h2
             className={classNames(

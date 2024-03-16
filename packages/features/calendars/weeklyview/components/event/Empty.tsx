@@ -156,7 +156,7 @@ function CustomCell({
   children,
   topOffsetMinutes,
   startEndTimeDuration,
-}: CellProps & { children: React.ReactNode }) {
+}: CellProps & { children: React.ReactNode; startEndTimeDuration?: number }) {
   return (
     <div
       className={classNames(
