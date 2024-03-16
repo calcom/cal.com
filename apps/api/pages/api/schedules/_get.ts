@@ -4,6 +4,7 @@ import { z } from "zod";
 
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
+import prisma from "@calcom/prisma";
 
 import { schemaSchedulePublic } from "~/lib/validations/schedule";
 import { schemaQuerySingleOrMultipleUserIds } from "~/lib/validations/shared/queryUserId";
@@ -76,7 +77,7 @@ export const schemaUserIds = z
  */
 
 async function handler(req: NextApiRequest) {
-  const { prisma, userId, isAdmin } = req;
+  const { userId, isAdmin } = req;
   const args: Prisma.ScheduleFindManyArgs = isAdmin ? {} : { where: { userId } };
   args.include = { availability: true };
 
