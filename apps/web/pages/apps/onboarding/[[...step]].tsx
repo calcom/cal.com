@@ -507,12 +507,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     }
 
     switch (parsedStepParam) {
-      case AppOnboardingSteps.ACCOUNTS_STEP:
-        if (!hasTeams) {
-          throw new Error(ERROR_MESSAGES.userWithoutTeams);
-        }
-        break;
-
       case AppOnboardingSteps.EVENT_TYPES_STEP:
         if (!hasEventTypes) {
           throw new Error(ERROR_MESSAGES.appNotExtendsEventType);
