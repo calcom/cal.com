@@ -143,6 +143,7 @@ const WebhooksList = ({
                         <WebhookListItem
                           key={webhook.id}
                           webhook={webhook}
+                          readOnly={group.metadata?.readOnly ?? false}
                           lastItem={group.webhooks.length === index + 1}
                           onEditWebhook={() =>
                             router.push(`${WEBAPP_URL}/settings/developer/webhooks/${webhook.id} `)
