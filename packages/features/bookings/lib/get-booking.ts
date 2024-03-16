@@ -225,6 +225,7 @@ export const getBookingForSeatedEvent = async (uid: string) => {
       id: true,
       uid: true,
       startTime: true,
+      endTime: true,
       attendees: {
         select: {
           id: true,
@@ -256,6 +257,7 @@ export const getBookingForSeatedEvent = async (uid: string) => {
     ...booking,
     // @NOTE: had to do this because Server side cant return [Object objects]
     startTime: booking.startTime.toISOString() as unknown as Date,
+    endTime: booking.endTime.toISOString() as unknown as Date,
     description: null,
     customInputs: null,
     responses: {},
