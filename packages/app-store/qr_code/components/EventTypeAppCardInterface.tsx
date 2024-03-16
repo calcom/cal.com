@@ -13,7 +13,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
   return (
     <AppCard
       app={app}
-      eventType={eventType}
+      eventTypeId={eventType.id}
       switchOnClick={(e) => {
         updateEnabled(e);
       }}

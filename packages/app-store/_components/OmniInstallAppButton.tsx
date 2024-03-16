@@ -1,5 +1,4 @@
 import { useRouter } from "next/navigation";
-import type { EventTypeAppSettingsComponentProps } from "types";
 
 import getInstalledAppPath from "@calcom/app-store/_utils/getInstalledAppPath";
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
@@ -24,13 +23,13 @@ export default function OmniInstallAppButton({
   className,
   returnTo,
   teamId,
-  eventType,
+  eventTypeId,
 }: {
   appId: string;
   className: string;
   returnTo?: string;
   teamId?: number;
-  eventType: EventTypeAppSettingsComponentProps["eventType"];
+  eventTypeId?: number;
 }) {
   const { t } = useLocale();
   const router = useRouter();
@@ -94,7 +93,7 @@ export default function OmniInstallAppButton({
                     slug: appMetadata.slug,
                     step: AppOnboardingSteps.OAUTH_STEP,
                     teamId,
-                    eventTypeId: eventType.id,
+                    eventTypeId,
                   })
                 );
               } else {
@@ -111,7 +110,7 @@ export default function OmniInstallAppButton({
                           slug: appMetadata.slug,
                           step: AppOnboardingSteps.CONFIGURE_STEP,
                           teamId,
-                          eventTypeId: eventType.id,
+                          eventTypeId,
                         })
                   );
                 });

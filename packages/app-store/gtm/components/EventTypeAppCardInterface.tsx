@@ -13,7 +13,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
   return (
     <AppCard
       hideSettingsIcon
-      eventType={eventType}
+      eventTypeId={eventType.id}
       app={app}
       switchOnClick={(e) => {
         updateEnabled(e);
