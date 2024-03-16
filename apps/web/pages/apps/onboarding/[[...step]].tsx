@@ -12,6 +12,7 @@ import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { AppOnboardingSteps } from "@calcom/lib/apps/appOnboardingSteps";
+import { getAppOnboardingRedirectUrl } from "@calcom/lib/apps/getAppOnboardingRedirectUrl";
 import { getAppOnboardingUrl } from "@calcom/lib/apps/getAppOnboardingUrl";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -214,9 +215,9 @@ const OnboardingPage = ({
     try {
       setIsLoadingOAuth(true);
       const state = JSON.stringify({
-        returnToOnboarding: hasEventTypes,
-        teamId: teamId,
-        eventTypeId: eventTypeId,
+        appOnbaordingRedirectUrl: hasEventTypes
+          ? getAppOnboardingRedirectUrl(appMetadata.slug, teamId, eventTypeId)
+          : null,
       });
 
       const res = await fetch(

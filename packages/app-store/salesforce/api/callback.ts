@@ -1,7 +1,6 @@
 import jsforce from "jsforce";
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { getAppOnboardingRedirectUrl } from "@calcom/lib/apps/getAppOnboardingRedirectUrl";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 
@@ -47,8 +46,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const state = decodeOAuthState(req);
 
-  if (state?.returnToOnboarding) {
-    return res.redirect(getAppOnboardingRedirectUrl("salesforce", state.teamId, state.eventTypeId));
+  if (state?.appOnbaordingRedirectUrl && state.appOnbaordingRedirectUrl !== "") {
+    return res.redirect(state.appOnbaordingRedirectUrl);
   }
 
   res.redirect(

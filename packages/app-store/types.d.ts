@@ -10,9 +10,8 @@ export type IntegrationOAuthCallbackState = {
   onErrorReturnTo: string;
   fromApp: boolean;
   installGoogleVideo?: boolean;
+  appOnbaordingRedirectUrl?: string;
   teamId?: number;
-  eventTypeId?: number;
-  returnToOnboarding?: boolean;
 };
 
 export type CredentialOwner = {
