@@ -1,5 +1,4 @@
 import { TooltipProvider } from "@radix-ui/react-tooltip";
-import { useTimezone } from "hooks/useTimezone";
 import { useState } from "react";
 import { useCallback } from "react";
 
@@ -8,6 +7,7 @@ import enTranslations from "@calcom/web/public/static/locales/en/common.json";
 import { AtomsContext } from "../hooks/useAtomsContext";
 import { useOAuthClient } from "../hooks/useOAuthClient";
 import { useOAuthFlow } from "../hooks/useOAuthFlow";
+import { useTimezone } from "../hooks/useTimezone";
 import { useUpdateUserTimezone } from "../hooks/useUpdateUserTimezone";
 import http from "../lib/http";
 import { Toaster } from "../src/components/ui/toaster";
