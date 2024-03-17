@@ -1,4 +1,4 @@
-import type { Prisma } from "@prisma/client";
+import type { Prisma, Webhook } from "@prisma/client";
 import { v4 } from "uuid";
 
 import { getHumanReadableLocationValue } from "@calcom/core/location";
@@ -9,6 +9,11 @@ import { getTranslation } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 import type { ApiKey } from "@calcom/prisma/client";
 import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
+
+const SCHEDULING_TRIGGER: WebhookTriggerEvents[] = [
+  WebhookTriggerEvents.MEETING_ENDED,
+  WebhookTriggerEvents.MEETING_STARTED,
+];
 
 const log = logger.getSubLogger({ prefix: ["[node-scheduler]"] });
 
@@ -321,7 +326,8 @@ export async function scheduleTrigger(
 export async function cancelScheduledJobs(
   booking: { uid: string; scheduledJobs?: string[] },
   appId?: string | null,
-  isReschedule?: boolean
+  isReschedule?: boolean,
+  triggerEvent?: WebhookTriggerEvents
 ) {
   if (!booking.scheduledJobs) return;
 
@@ -338,12 +344,24 @@ export async function cancelScheduledJobs(
       }
     } else {
       //if no specific appId given, delete all scheduled jobs of booking
-      await prisma.webhookScheduledTriggers.deleteMany({
-        where: {
-          jobName: scheduledJob,
-        },
-      });
-      scheduledJobs = [];
+      if (triggerEvent) {
+        const shouldContain = `"triggerEvent":"${triggerEvent}"`;
+        await prisma.webhookScheduledTriggers.deleteMany({
+          where: {
+            jobName: scheduledJob,
+            payload: {
+              contains: shouldContain,
+            },
+          },
+        });
+      } else {
+        await prisma.webhookScheduledTriggers.deleteMany({
+          where: {
+            jobName: scheduledJob,
+          },
+        });
+        scheduledJobs = [];
+      }
     }
 
     if (!isReschedule) {
@@ -362,5 +380,59 @@ export async function cancelScheduledJobs(
     await Promise.all(promises);
   } catch (error) {
     console.error("Error cancelling scheduled jobs", error);
+  }
+}
+
+export async function updateTriggerForExistingBookings(
+  webhook: Webhook,
+  existingEventTriggers: WebhookTriggerEvents[],
+  updatedEventTriggers: WebhookTriggerEvents[]
+) {
+  const addedEventTriggers = updatedEventTriggers.filter(
+    (trigger) => !existingEventTriggers.includes(trigger) && SCHEDULING_TRIGGER.includes(trigger)
+  );
+  const removedEventTriggers = existingEventTriggers.filter(
+    (trigger) => !updatedEventTriggers.includes(trigger) && SCHEDULING_TRIGGER.includes(trigger)
+  );
+  const currentTime = new Date();
+  const bookings = await prisma.booking.findMany({
+    where: {
+      eventTypeId: webhook.eventTypeId,
+      OR: [{ startTime: { gt: currentTime } }, { endTime: { gt: currentTime } }],
+    },
+  });
+
+  if (bookings.length === 0) return;
+
+  if (addedEventTriggers.length > 0) {
+    const promise = bookings.flatMap((booking) => {
+      if (booking.status === BookingStatus.ACCEPTED) {
+        return addedEventTriggers.map((trigger) => {
+          scheduleTrigger(booking, webhook.subscriberUrl, webhook, trigger);
+        });
+      } else {
+        return [];
+      }
+    });
+
+    await Promise.all(promise);
+  }
+
+  if (
+    removedEventTriggers.length > 0 &&
+    removedEventTriggers.some((trigger) => SCHEDULING_TRIGGER.includes(trigger))
+  ) {
+    const promise = bookings.map((booking) => {
+      removedEventTriggers.map((trigger) =>
+        cancelScheduledJobs(
+          { uid: booking.uid, scheduledJobs: booking.scheduledJobs },
+          undefined,
+          false,
+          trigger
+        )
+      );
+    });
+
+    await Promise.all(promise);
   }
 }

@@ -1,3 +1,4 @@
+import { updateTriggerForExistingBookings } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
@@ -22,10 +23,20 @@ export const editHandler = async ({ input }: EditOptions) => {
   if (!webhook) {
     return null;
   }
-  return await prisma.webhook.update({
+
+  const updatedWebhook = await prisma.webhook.update({
     where: {
       id,
     },
     data,
+    select: {
+      eventTriggers: true,
+    },
   });
+
+  if (!webhook.eventTypeId) return updatedWebhook;
+
+  await updateTriggerForExistingBookings(webhook, webhook.eventTriggers, updatedWebhook.eventTriggers);
+
+  return updatedWebhook;
 };
