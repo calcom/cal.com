@@ -29,9 +29,6 @@ export const editHandler = async ({ input }: EditOptions) => {
       id,
     },
     data,
-    select: {
-      eventTriggers: true,
-    },
   });
 
   if (!webhook.eventTypeId) return updatedWebhook;
