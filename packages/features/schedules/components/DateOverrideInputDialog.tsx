@@ -136,7 +136,7 @@ const DateOverrideForm = ({
         setSelectedDates([]);
       }}
       className="p-6 sm:flex sm:p-0 md:flex-col lg:flex-col xl:flex-row">
-      <div className="sm:border-subtle w-full sm:border-r sm:p-4 sm:pr-6 md:p-8">
+      <div className="sm:border-subtle w-full sm:border-r sm:p-4  sm:pb-0 sm:pr-6 md:p-8 md:pb-0">
         <DialogHeader title={t("date_overrides_dialog_title")} />
         <DatePicker
           excludedDates={excludedDates}
@@ -214,7 +214,7 @@ const DateOverrideInputDialog = ({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{Trigger}</DialogTrigger>
 
-      <DialogContent enableOverflow={true} size="md" className="p-0">
+      <DialogContent enableOverflow={true} size="md" className="h-[450px] min-h-[450px] p-0">
         <DateOverrideForm
           excludedDates={excludedDates}
           {...passThroughProps}
