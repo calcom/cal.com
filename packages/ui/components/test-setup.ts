@@ -52,6 +52,12 @@ vi.mock("@calcom/lib/hooks/useLocale", () => ({
   },
 }));
 
+vi.mock("@calcom/platform-atoms", () => ({
+  useIsPlatform: () => {
+    return false;
+  },
+}));
+
 expect.extend({
   tabToBeDisabled(received) {
     const isDisabled = received.classList.contains("pointer-events-none");
