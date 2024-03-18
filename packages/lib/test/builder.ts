@@ -136,6 +136,7 @@ export const buildWebhook = (webhook?: Partial<Webhook>): Webhook => {
     eventTriggers: [],
     teamId: null,
     ...webhook,
+    platform: false,
   };
 };
 

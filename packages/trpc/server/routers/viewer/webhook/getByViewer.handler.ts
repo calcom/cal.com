@@ -146,6 +146,24 @@ export const getByViewerHandler = async ({ ctx }: GetByViewerOptions) => {
 
   webhookGroups = webhookGroups.concat(teamWebhookGroups);
 
+  if (ctx.user.role === "ADMIN") {
+    const platformWebhooks = await prisma.webhook.findMany({
+      where: { platform: true },
+    });
+    webhookGroups.push({
+      teamId: null,
+      profile: {
+        slug: "Platform",
+        name: "Platform",
+        image,
+      },
+      webhooks: platformWebhooks,
+      metadata: {
+        readOnly: false,
+      },
+    });
+  }
+
   return {
     webhookGroups: webhookGroups.filter((groupBy) => !!groupBy.webhooks?.length),
     profiles: webhookGroups.map((group) => ({
