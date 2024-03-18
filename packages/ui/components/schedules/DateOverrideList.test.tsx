@@ -3,9 +3,8 @@ import { render, renderHook, screen } from "@testing-library/react";
 import { useFieldArray, useForm, FormProvider } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
+import DateOverrideList from "@calcom/features/schedules/components/DateOverrideList";
 import type { TimeRange } from "@calcom/types/schedule";
-
-import DateOverrideList from "./DateOverrideList";
 
 type FormValues = {
   dateOverrides: { ranges: TimeRange[] }[];
