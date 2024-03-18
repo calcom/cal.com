@@ -13,8 +13,8 @@ import { ZGetCalVideoRecordingsInputSchema } from "./getCalVideoRecordings.schem
 import { ZGetDownloadLinkOfCalVideoRecordingsInputSchema } from "./getDownloadLinkOfCalVideoRecordings.schema";
 import { ZIntegrationsInputSchema } from "./integrations.schema";
 import { ZLocationOptionsInputSchema } from "./locationOptions.schema";
-import { ZMeInputSchema } from "./me.schema";
 import { ZOutOfOfficeInputSchema, ZOutOfOfficeDelete } from "./outOfOffice.schema";
+import { me } from "./procedures/me";
 import { teamsAndUserProfilesQuery } from "./procedures/teamsAndUserProfilesQuery";
 import { ZRoutingFormOrderInputSchema } from "./routingFormOrder.schema";
 import { ZSetDestinationCalendarInputSchema } from "./setDestinationCalendar.schema";
@@ -60,18 +60,7 @@ type AppsRouterHandlerCache = {
 const UNSTABLE_HANDLER_CACHE: AppsRouterHandlerCache = {};
 
 export const loggedInViewerRouter = router({
-  me: authedProcedure.input(ZMeInputSchema).query(async ({ ctx, input }) => {
-    if (!UNSTABLE_HANDLER_CACHE.me) {
-      UNSTABLE_HANDLER_CACHE.me = (await import("./me.handler")).meHandler;
-    }
-
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.me) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.me({ ctx, input });
-  }),
+  me,
 
   avatar: authedProcedure.query(async ({ ctx }) => {
     if (!UNSTABLE_HANDLER_CACHE.avatar) {
