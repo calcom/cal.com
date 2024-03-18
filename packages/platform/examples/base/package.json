@@ -12,7 +12,7 @@
     "@calcom/platform-atoms": "*",
     "@prisma/client": "5.4.2",
     "next": "14.0.4",
-    "prisma": "^5.7.1",
+    "prisma": "5.4.2",
     "react": "^18",
     "react-dom": "^18"
   },
