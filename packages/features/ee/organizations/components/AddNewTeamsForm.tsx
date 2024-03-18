@@ -232,6 +232,7 @@ const AddNewTeamsFormChild = ({
           EndIcon={ArrowRight}
           color="primary"
           className="mt-6 w-full justify-center"
+          data-testId="continue_or_checkout"
           disabled={createTeamsMutation.isPending || createTeamsMutation.isSuccess}
           onClick={handleFormSubmit}>
           {allowWizardCompletionWithoutUpgrading ? t("continue") : t("checkout")}
