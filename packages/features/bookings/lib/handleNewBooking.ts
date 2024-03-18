@@ -1747,26 +1747,24 @@ async function handler(
 
     evt = addVideoCallDataToEvent(originalRescheduledBooking.references, evt);
 
-    const newDestinationCalendar = evt.destinationCalendar;
-
-    evt.destinationCalendar = originalRescheduledBooking?.destinationCalendar
-      ? [originalRescheduledBooking?.destinationCalendar]
-      : originalRescheduledBooking?.user?.destinationCalendar
-      ? [originalRescheduledBooking?.user.destinationCalendar]
-      : evt.destinationCalendar;
-
     if (changedOrganizer) {
       evt.title = getEventName(eventNameObject);
       // location might changed and will be new created in eventManager.create (organizer default location)
       evt.videoCallData = undefined;
+    } else {
+      // When RR host is changed don't use the original booking's calendar, use the new organizer's calendar instead.
+      evt.destinationCalendar = originalRescheduledBooking?.destinationCalendar
+        ? [originalRescheduledBooking?.destinationCalendar]
+        : originalRescheduledBooking?.user?.destinationCalendar
+        ? [originalRescheduledBooking?.user.destinationCalendar]
+        : evt.destinationCalendar;
     }
 
     const updateManager = await eventManager.reschedule(
       evt,
       originalRescheduledBooking.uid,
       undefined,
-      changedOrganizer,
-      newDestinationCalendar
+      changedOrganizer
     );
 
     // This gets overridden when updating the event - to check if notes have been hidden or not. We just reset this back

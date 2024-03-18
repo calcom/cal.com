@@ -328,8 +328,7 @@ export default class EventManager {
     event: CalendarEvent,
     rescheduleUid: string,
     newBookingId?: number,
-    changedOrganizer?: boolean,
-    newDestinationCalendar?: DestinationCalendar[] | null
+    changedOrganizer?: boolean
   ): Promise<CreateUpdateResult> {
     const originalEvt = processLocation(event);
     const evt = cloneDeep(originalEvt);
