@@ -479,7 +479,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     const locale = await getLocale(context.req);
     const app = await getAppBySlug(parsedAppSlug);
     const appMetadata = appStoreMetadata[app.dirName as keyof typeof appStoreMetadata];
-    const hasEventTypes = appMetadata.extendsFeature === "EventType";
+    const hasEventTypes = appMetadata?.extendsFeature === "EventType";
 
     if (!session?.user?.id) throw new Error(ERROR_MESSAGES.userNotAuthed);
 

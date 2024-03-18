@@ -216,8 +216,8 @@ const InstallAppButtonChild = ({
   });
 
   const appMetadata = appStoreMetadata[dirName as keyof typeof appStoreMetadata];
-  const hasEventTypes = appMetadata.extendsFeature == "EventType";
-  const isOAuth = appMetadata.isOAuth;
+  const hasEventTypes = appMetadata?.extendsFeature == "EventType";
+  const isOAuth = appMetadata?.isOAuth;
   const redirectToAppOnboarding = hasEventTypes || isOAuth;
 
   const _onClick = (e: React.MouseEvent<HTMLElement, MouseEvent>) => {

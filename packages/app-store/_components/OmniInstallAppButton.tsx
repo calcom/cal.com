@@ -58,8 +58,8 @@ export default function OmniInstallAppButton({
   }
 
   const appMetadata = appStoreMetadata[app.dirName as keyof typeof appStoreMetadata];
-  const hasEventTypes = appMetadata.extendsFeature == "EventType";
-  const isOAuth = appMetadata.isOAuth;
+  const hasEventTypes = appMetadata?.extendsFeature == "EventType";
+  const isOAuth = appMetadata?.isOAuth;
   const redirectToAppOnboarding = hasEventTypes || isOAuth;
 
   return (
