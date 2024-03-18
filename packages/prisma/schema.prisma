@@ -686,6 +686,7 @@ model Webhook {
   app             App?                   @relation(fields: [appId], references: [slug], onDelete: Cascade)
   appId           String?
   secret          String?
+  platform        Boolean                @default(false)
 
   @@unique([userId, subscriberUrl], name: "courseIdentifier")
 }
