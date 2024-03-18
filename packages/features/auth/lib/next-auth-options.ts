@@ -1,5 +1,4 @@
 import type { Membership, Team, UserPermissionRole } from "@prisma/client";
-import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import type { AuthOptions, Session } from "next-auth";
 import type { JWT } from "next-auth/jwt";
 import { encode } from "next-auth/jwt";
@@ -807,22 +806,6 @@ export const AUTH_OPTIONS: AuthOptions = {
                 identityProviderId: account.providerAccountId,
               },
             });
-
-            // safely delete password from UserPassword table if it exists
-            try {
-              await prisma.userPassword.delete({
-                where: { userId: updatedUser.id },
-              });
-            } catch (err) {
-              if (
-                err instanceof PrismaClientKnownRequestError &&
-                (err.code === "P2025" || err.code === "P2016")
-              ) {
-                log.warn("UserPassword not found for user", safeStringify(existingUserWithEmail));
-              } else {
-                log.warn("Could not delete UserPassword for user", safeStringify(existingUserWithEmail));
-              }
-            }
 
             if (existingUserWithEmail.twoFactorEnabled) {
               return loginWithTotp(existingUserWithEmail.email);
