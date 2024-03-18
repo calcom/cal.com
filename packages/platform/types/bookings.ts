@@ -34,7 +34,7 @@ export class GetBookingsInput {
   @Min(1)
   @Max(100)
   @IsOptional()
-  limit?: number | null;
+  limit?: number;
 
   @IsNumber()
   @IsOptional()

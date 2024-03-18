@@ -34,7 +34,7 @@ import {
 } from "@calcom/platform-libraries";
 import { getAllUserBookings, getBookingInfo } from "@calcom/platform-libraries";
 import { ApiResponse } from "@calcom/platform-types";
-import { GetBookingsInput } from "@calcom/platform-types/bookings";
+import { GetBookingsInput } from "@calcom/platform-types";
 import { PrismaClient } from "@calcom/prisma";
 
 @Controller({
@@ -62,7 +62,7 @@ export class BookingsController {
       bookingListingByStatus: filters.status,
       skip: cursor ?? 0,
       take: limit ?? 10,
-      filters: filters,
+      filters,
       ctx: {
         user: { email: user.email, id: user.id },
         prisma: this.prismaReadService.prisma as unknown as PrismaClient,
