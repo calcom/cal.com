@@ -177,6 +177,7 @@ export default defineConfig({
       "@calcom/lib": path.resolve(__dirname, "../../lib"),
       "@calcom/trpc": resolve("../../trpc"),
       "lru-cache": resolve("../../../node_modules/lru-cache/dist/cjs/index.js"),
+      "@prisma/client": resolve("../../../node_modules/@prisma/client"),
     },
   },
 });
