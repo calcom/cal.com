@@ -2,10 +2,8 @@ import * as newBookingMethods from "@calcom/features/bookings/lib/handleNewBooki
 import { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
 import * as instantMeetingMethods from "@calcom/features/instant-meeting/handleInstantMeeting";
 import { updateHandler as updateScheduleHandler } from "@calcom/trpc/server/routers/viewer/availability/schedule/update.handler";
-import getAllUserBookings from "@calcom/trpc/server/routers/viewer/bookings/getAllUserBookings";
 import { getAvailableSlots } from "@calcom/trpc/server/routers/viewer/slots/util";
-
-import getBookingInfo from "../../../apps/web/modules/bookings/lib/getBookingInfo";
+import { createNewUsersConnectToOrgIfExists } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
 
 export { updateScheduleHandler };
 export type UpdateScheduleOutputType = Awaited<
@@ -58,5 +56,4 @@ export type { CityTimezones } from "@calcom/lib/cityTimezonesHandler";
 export { TRPCError } from "@trpc/server";
 export type { TUpdateInputSchema } from "@calcom/trpc/server/routers/viewer/availability/schedule/update.schema";
 
-export { getAllUserBookings };
-export { getBookingInfo };
+export { createNewUsersConnectToOrgIfExists };
