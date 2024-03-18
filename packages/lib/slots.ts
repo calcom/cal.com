@@ -191,11 +191,12 @@ function buildSlotsWithDateRanges({
       ? range.end.add(1, "minute")
       : range.end;
 
+    slotStartTime = slotStartTime.add(offsetStart ?? 0, "minutes").tz(timeZone);
+
     while (!slotStartTime.add(eventLength, "minutes").subtract(1, "second").utc().isAfter(rangeEnd)) {
       slots.push({
         time: slotStartTime,
       });
-      console.log(`slot start time push ${slotStartTime.format()}`);
 
       slotStartTime = slotStartTime.add(frequency + (offsetStart ?? 0), "minutes");
     }
@@ -222,7 +223,6 @@ const getSlots = ({
   organizerTimeZone,
 }: GetSlots) => {
   if (dateRanges) {
-    console.log("testtest");
     const slots = buildSlotsWithDateRanges({
       dateRanges,
       frequency,
