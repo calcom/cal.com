@@ -20,7 +20,8 @@ export const createAccountPasswordHandler = async ({ input, ctx }: CreateAccount
 
   const { user } = ctx;
 
-  if (user.identityProvider === IdentityProvider.CAL) {
+  const isCal = user.identityProvider === IdentityProvider.CAL;
+  if (isCal) {
     throw new TRPCError({ code: "FORBIDDEN", message: "cannot_create_account_password_cal_provider" });
   }
 
@@ -40,7 +41,7 @@ export const createAccountPasswordHandler = async ({ input, ctx }: CreateAccount
       password: true,
     },
   });
-  if (user.identityProvider !== IdentityProvider.CAL && userWithPassword.password?.hash) {
+  if (!isCal && userWithPassword?.password?.hash) {
     throw new TRPCError({ code: "FORBIDDEN", message: "cannot_create_account_password_already_existing" });
   }
 
