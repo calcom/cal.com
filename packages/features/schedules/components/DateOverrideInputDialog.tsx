@@ -152,7 +152,7 @@ const DateOverrideForm = ({
           locale={isLocaleReady ? i18n.language : "en"}
         />
       </div>
-      <div className="relative mt-8 flex w-full flex-col sm:mt-0 sm:p-4 md:p-8">
+      <div className="relative mt-8 flex w-full flex-col sm:mt-0 sm:p-4 sm:pb-0 md:p-8 md:pb-0">
         {selectedDates[0] ? (
           <>
             <div className="mb-4 flex-grow space-y-4">
@@ -189,7 +189,7 @@ const DateOverrideForm = ({
             </div>
           </>
         ) : (
-          <div className="bottom-7 right-8 flex flex-row-reverse sm:absolute">
+          <div className="bottom-0 right-8 flex flex-row-reverse sm:absolute">
             <DialogClose />
           </div>
         )}
@@ -214,7 +214,7 @@ const DateOverrideInputDialog = ({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{Trigger}</DialogTrigger>
 
-      <DialogContent enableOverflow={true} size="md" className="h-[450px] min-h-[450px] p-0">
+      <DialogContent enableOverflow={true} size="md" className="p-0 xl:h-[465px] xl:min-h-[465px]">
         <DateOverrideForm
           excludedDates={excludedDates}
           {...passThroughProps}
