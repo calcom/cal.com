@@ -13,7 +13,8 @@ const globalForPrisma = global as unknown as {
   prismaWithClientExtensions: PrismaClientWithExtensions;
 };
 
-if (!!process.env.NEXT_PUBLIC_DEBUG) prismaOptions.log = ["query", "error", "warn"];
+if (!!process.env.SHOW_ALL_LOGS || !!process.env.NEXT_PUBLIC_DEBUG)
+  prismaOptions.log = ["query", "error", "warn"];
 
 // Prevents flooding with idle connections
 const prismaWithoutClientExtensions =
