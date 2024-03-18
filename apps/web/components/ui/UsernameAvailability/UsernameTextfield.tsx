@@ -135,8 +135,8 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
             {...rest}
           />
           {currentUsername !== inputUsernameValue && (
-            <div className="absolute right-[2px] top-6 flex flex-row">
-              <span className={classNames("mx-2 py-3.5")}>
+            <div className="absolute right-[2px] top-6 flex h-7 flex-row">
+              <span className={classNames("mx-0 bg-white p-3")}>
                 {usernameIsAvailable ? <Check className="relative bottom-[6px] h-4 w-4" /> : <></>}
               </span>
             </div>
@@ -161,18 +161,17 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
                 <div>
                   <p className="text-subtle">{t("current_username")}</p>
                   <p
-                    className="text-emphasis min-h-5 mt-1 max-h-12 overflow-auto break-all"
+                    className="text-emphasis mt-1 max-w-md overflow-hidden text-ellipsis"
                     data-testid="current-username">
-                    {currentUsername?.substring(0, 200)}
+                    {currentUsername}
                   </p>
                 </div>
                 <div>
                   <p className="text-subtle" data-testid="new-username">
                     {t("new_username")}
                   </p>
-
-                  <p className="text-emphasis min-h-5 mt-1 max-h-12 overflow-auto break-all">
-                    {inputUsernameValue?.substring(0, 200)}
+                  <p className="text-emphasis mt-1 max-w-md overflow-hidden text-ellipsis">
+                    {inputUsernameValue}
                   </p>
                 </div>
               </div>
