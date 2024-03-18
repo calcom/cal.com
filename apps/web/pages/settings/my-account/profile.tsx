@@ -122,7 +122,6 @@ const ProfileView = () => {
         showToast(t("settings_updated_successfully"), "success");
       }
 
-      setConfirmAuthEmailChangeWarningDialogOpen(false);
       setTempFormValues(null);
     },
     onError: (e) => {
@@ -726,7 +725,7 @@ const ProfileForm = ({
         </div>
         {/* // For Non-Cal indentities, we merge the values from DB and the user logging in,
         so essentially there is no point in allowing them to disconnect, since when they log in they will get logged into the same account */}
-        {!isCALIdentityProvider && user.email !== user.identityProdviderEmail && (
+        {!isCALIdentityProvider && user.email !== user.identityProviderEmail && (
           <div className="mt-6">
             <Label>Connected accounts</Label>
             <div className="flex items-center">
