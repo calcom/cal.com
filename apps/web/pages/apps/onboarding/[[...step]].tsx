@@ -3,7 +3,7 @@ import type { GetServerSidePropsContext } from "next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Head from "next/head";
 import { usePathname, useRouter } from "next/navigation";
-import { useState, type CSSProperties } from "react";
+import { useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -255,14 +255,15 @@ const OnboardingPage = ({
       key={pathname}
       className="dark:bg-brand dark:text-brand-contrast text-emphasis min-h-screen"
       data-testid="onboarding"
-      style={
-        {
-          "--cal-brand": "#111827",
-          "--cal-brand-emphasis": "#101010",
-          "--cal-brand-text": "white",
-          "--cal-brand-subtle": "#9CA3AF",
-        } as CSSProperties
-      }>
+      // style={
+      //   {
+      //     "--cal-brand": "#111827",
+      //     "--cal-brand-emphasis": "#101010",
+      //     "--cal-brand-text": "white",
+      //     "--cal-brand-subtle": "#9CA3AF",
+      //   } as CSSProperties
+      // }
+    >
       <Head>
         <title>Install {appMetadata?.name ?? ""}</title>
         <link rel="icon" href="/favicon.ico" />
