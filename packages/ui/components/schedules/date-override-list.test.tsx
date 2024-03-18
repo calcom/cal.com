@@ -10,14 +10,6 @@ type FormValues = {
   dateOverrides: { ranges: TimeRange[] }[];
 };
 
-vi.mock("next/navigation", () => ({
-  ...require("next-router-mock"),
-  useSearchParams: () => vi.fn(),
-  usePathname: () => "",
-  useParams: () => ({}),
-  ReadonlyURLSearchParams: URLSearchParams,
-}));
-
 describe("DateOverrideList", () => {
   it("renders DateOverrideList component in military time", () => {
     const { result } = renderHook(() =>
