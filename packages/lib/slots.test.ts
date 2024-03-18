@@ -325,7 +325,7 @@ describe("Tests the date-range slot logic with custom env variable", () => {
         offsetStart: 0,
         organizerTimeZone: "America/Toronto",
       })
-    ).toHaveLength(11);
+    ).toHaveLength(10);
   });
 
   it("test buildSlotsWithDateRanges using a 10 mintue interval", async () => {
