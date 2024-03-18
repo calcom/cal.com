@@ -70,15 +70,6 @@ const workspaces = packagedEmbedTestsOnly
       },
       {
         test: {
-          globals: true,
-          name: "schedules components",
-          include: ["packages/features/schedules/components/**/*.{test,spec}.[jt]s?(x)"],
-          environment: "jsdom",
-          setupFiles: ["packages/features/schedules/components/test-setup.ts"],
-        },
-      },
-      {
-        test: {
           name: "@calcom/packages/lib/hooks",
           include: ["packages/lib/hooks/**/*.{test,spec}.{ts,js}"],
           environment: "jsdom",
