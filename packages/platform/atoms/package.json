@@ -42,16 +42,16 @@
   "dependencies": {
     "@calcom/platform-constants": "*",
     "@calcom/ui": "*",
-    "@radix-ui/react-dialog": "^1.0.5",
+    "@radix-ui/react-dialog": "^1.0.4",
     "@radix-ui/react-slot": "^1.0.2",
     "@radix-ui/react-toast": "^1.1.5",
-    "@tanstack/react-query": "^5.17.19",
-    "class-variance-authority": "^0.7.0",
+    "@tanstack/react-query": "^5.17.15",
+    "class-variance-authority": "^0.4.0",
     "clsx": "^2.0.0",
-    "lucide-react": "^0.293.0",
+    "lucide-react": "^0.171.0",
     "react-use": "^17.4.2",
-    "tailwind-merge": "^2.0.0",
-    "tailwindcss": "^3.4.0",
-    "tailwindcss-animate": "^1.0.7"
+    "tailwind-merge": "^1.13.2",
+    "tailwindcss": "^3.3.3",
+    "tailwindcss-animate": "^1.0.6"
   }
 }
