@@ -1,6 +1,8 @@
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
+import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
 import type { Credential } from "@calcom/prisma/client";
 import { Frequency } from "@calcom/prisma/zod-utils";
@@ -14,6 +16,8 @@ import parseRefreshTokenResponse from "../../_utils/oauth/parseRefreshTokenRespo
 import refreshOAuthTokens from "../../_utils/oauth/refreshOAuthTokens";
 import metadata from "../_metadata";
 import { getZoomAppKeys } from "./getZoomAppKeys";
+
+const log = logger.getSubLogger({ prefix: ["[lib] ZoomVideoApiAdapter"] });
 
 /** @link https://marketplace.zoom.us/docs/api-reference/zoom-api/meetings/meetingcreate */
 const zoomEventResultSchema = z.object({
@@ -257,6 +261,9 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
         ...options?.headers,
       },
     });
+
+    log.debug(`fetchZoomApi: ${endpoint}`, safeStringify({ request: options?.body || {}, response }));
+
     const responseBody = await handleZoomResponse(response, credential.id);
     return responseBody;
   };
