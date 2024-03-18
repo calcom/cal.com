@@ -696,7 +696,11 @@ export const AUTH_OPTIONS: AuthOptions = {
             try {
               // If old user without Account entry we link their google account
               if (existingUser.accounts.length === 0) {
-                const linkAccountWithUserData = { ...account, userId: existingUser.id };
+                const linkAccountWithUserData = {
+                  ...account,
+                  userId: existingUser.id,
+                  providerEmail: user.email,
+                };
                 await calcomAdapter.linkAccount(linkAccountWithUserData);
               }
             } catch (error) {
@@ -856,7 +860,7 @@ export const AUTH_OPTIONS: AuthOptions = {
           },
         });
 
-        const linkAccountNewUserData = { ...account, userId: newUser.id };
+        const linkAccountNewUserData = { ...account, userId: newUser.id, providerEmail: user.email };
         await calcomAdapter.linkAccount(linkAccountNewUserData);
 
         if (account.twoFactorEnabled) {

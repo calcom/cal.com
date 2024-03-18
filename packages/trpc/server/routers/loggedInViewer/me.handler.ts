@@ -57,6 +57,20 @@ export const meHandler = async ({ ctx, input }: MeOptions) => {
     }
   }
 
+  let identityProviderEmail = "";
+  if (user.identityProviderId) {
+    const account = await prisma.account.findUnique({
+      where: {
+        provider_providerAccountId: {
+          provider: user.identityProvider.toLocaleLowerCase(),
+          providerAccountId: user.identityProviderId,
+        },
+      },
+      select: { providerEmail: true },
+    });
+    identityProviderEmail = account?.providerEmail || "";
+  }
+
   // Destructuring here only makes it more illegible
   // pick only the part we want to expose in the API
   return {
@@ -80,6 +94,7 @@ export const meHandler = async ({ ctx, input }: MeOptions) => {
     twoFactorEnabled: user.twoFactorEnabled,
     disableImpersonation: user.disableImpersonation,
     identityProvider: user.identityProvider,
+    identityProviderEmail,
     brandColor: user.brandColor,
     darkBrandColor: user.darkBrandColor,
     away: user.away,

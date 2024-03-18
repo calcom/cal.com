@@ -6,6 +6,7 @@ import { v4 as uuidv4 } from "uuid";
 
 import stripe from "@calcom/app-store/stripepayment/lib/server";
 import { getPremiumMonthlyPlanPriceId } from "@calcom/app-store/stripepayment/lib/utils";
+import CalComAdapter from "@calcom/features/auth/lib/next-auth-custom-adapter";
 import { passwordResetRequest } from "@calcom/features/auth/lib/passwordResetRequest";
 import { sendChangeOfEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
 import { getFeatureFlag } from "@calcom/features/flags/server/utils";
@@ -72,6 +73,9 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
 
   const secondaryEmails = input?.secondaryEmails || [];
   delete input.secondaryEmails;
+
+  const unlinkConnectedAccount = input?.unlinkConnectedAccount || false;
+  delete input.unlinkConnectedAccount;
 
   const data: Prisma.UserUpdateInput = {
     ...input,
@@ -186,7 +190,13 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
     }
   }
 
-  if (hasEmailChangedOnNonCalProvider) {
+  if (unlinkConnectedAccount) {
+    // Unlink the account
+    const calcomAdapter = CalComAdapter(prisma);
+    await calcomAdapter.unlinkAccount({
+      provider: user.identityProvider.toLocaleLowerCase(),
+      providerAccountId: user.identityProviderId || "",
+    });
     // Only validate if we're changing email
     data.identityProvider = IdentityProvider.CAL;
     data.identityProviderId = null;

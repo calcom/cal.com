@@ -4,7 +4,6 @@ import authedProcedure from "../../../procedures/authedProcedure";
 import publicProcedure from "../../../procedures/publicProcedure";
 import { router } from "../../../trpc";
 import { ZChangePasswordInputSchema } from "./changePassword.schema";
-import { ZCreateAccountPasswordInputSchema } from "./createAccountPassword.schema";
 import { ZResendVerifyEmailSchema } from "./resendVerifyEmail.schema";
 import { ZSendVerifyEmailCodeSchema } from "./sendVerifyEmailCode.schema";
 import { ZVerifyPasswordInputSchema } from "./verifyPassword.schema";
@@ -110,23 +109,20 @@ export const authRouter = router({
     });
   }),
 
-  createAccountPassword: authedProcedure
-    .input(ZCreateAccountPasswordInputSchema)
-    .mutation(async ({ input, ctx }) => {
-      if (!UNSTABLE_HANDLER_CACHE.createAccountPassword) {
-        UNSTABLE_HANDLER_CACHE.createAccountPassword = await import("./createAccountPassword.handler").then(
-          (mod) => mod.createAccountPasswordHandler
-        );
-      }
+  createAccountPassword: authedProcedure.mutation(async ({ ctx }) => {
+    if (!UNSTABLE_HANDLER_CACHE.createAccountPassword) {
+      UNSTABLE_HANDLER_CACHE.createAccountPassword = await import("./createAccountPassword.handler").then(
+        (mod) => mod.createAccountPasswordHandler
+      );
+    }
 
-      // Unreachable code but required for type safety
-      if (!UNSTABLE_HANDLER_CACHE.createAccountPassword) {
-        throw new Error("Failed to load handler");
-      }
+    // Unreachable code but required for type safety
+    if (!UNSTABLE_HANDLER_CACHE.createAccountPassword) {
+      throw new Error("Failed to load handler");
+    }
 
-      return UNSTABLE_HANDLER_CACHE.createAccountPassword({
-        ctx,
-        input,
-      });
-    }),
+    return UNSTABLE_HANDLER_CACHE.createAccountPassword({
+      ctx,
+    });
+  }),
 });

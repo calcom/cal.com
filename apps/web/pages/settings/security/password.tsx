@@ -2,13 +2,12 @@
 
 import { signOut, useSession } from "next-auth/react";
 import { useState } from "react";
-import type { UseFormReturn, FieldValues, FieldPath } from "react-hook-form";
 import { useForm } from "react-hook-form";
 
 import { identityProviderNameMap } from "@calcom/features/auth/lib/identityProviderNameMap";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
-import { classNames, isFormDisabled } from "@calcom/lib";
+import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { IdentityProvider } from "@calcom/prisma/enums";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
@@ -34,12 +33,6 @@ type ChangePasswordSessionFormValues = {
   oldPassword: string;
   newPassword: string;
   sessionTimeout?: number;
-  apiError: string;
-};
-
-type CreateAccountPasswordFormValues = {
-  newPassword: string;
-  confirmPassword: string;
   apiError: string;
 };
 
@@ -131,16 +124,10 @@ const PasswordView = ({ user }: PasswordViewProps) => {
 
   const createAccountPasswordMutation = trpc.viewer.auth.createAccountPassword.useMutation({
     onSuccess: () => {
-      showToast(t("successfully_created_account_password"), "success");
-      utils.viewer.me.invalidate();
+      showToast(t("password_reset_email", { email: user.email }), "success");
     },
     onError: (error) => {
       showToast(`${t("error_creating_account_password")}, ${t(error.message)}`, "error");
-
-      createAccountFormMethods.setError("apiError", {
-        message: t(error.message),
-        type: "custom",
-      });
     },
   });
 
@@ -151,38 +138,23 @@ const PasswordView = ({ user }: PasswordViewProps) => {
     },
   });
 
-  const createAccountFormMethods = useForm<CreateAccountPasswordFormValues>({
-    defaultValues: {
-      newPassword: "",
-      confirmPassword: "",
-    },
-  });
-
-  const setErrorInFormIfAny = <T extends FieldValues>(
-    genericFormMethod: UseFormReturn<T>,
-    value: string,
-    passwordKey: FieldPath<T>
-  ) => {
-    if (!value.length) {
-      genericFormMethod.setError(
-        passwordKey,
-        { type: "required", message: t("error_required_field") },
-        { shouldFocus: true }
-      );
-      return true;
-    }
-
-    return false;
-  };
-
   const handleSubmit = (values: ChangePasswordSessionFormValues) => {
     const { oldPassword, newPassword } = values;
 
-    const oldPasswordErrorSet = setErrorInFormIfAny(formMethods, oldPassword, "oldPassword");
-    const newPasswordErrorSet = setErrorInFormIfAny(formMethods, newPassword, "newPassword");
+    if (!oldPassword.length) {
+      formMethods.setError(
+        "oldPassword",
+        { type: "required", message: t("error_required_field") },
+        { shouldFocus: true }
+      );
+    }
 
-    if (oldPasswordErrorSet || newPasswordErrorSet) {
-      return;
+    if (!newPassword.length) {
+      formMethods.setError(
+        "newPassword",
+        { type: "required", message: t("error_required_field") },
+        { shouldFocus: true }
+      );
     }
 
     if (oldPassword && newPassword) {
@@ -190,49 +162,15 @@ const PasswordView = ({ user }: PasswordViewProps) => {
     }
   };
 
-  const handleCreateAccountPasswordSubmit = (values: CreateAccountPasswordFormValues) => {
-    const { newPassword, confirmPassword } = values;
-
-    const newPasswordErrorSet = setErrorInFormIfAny(formMethods, newPassword, "newPassword");
-    const confirmPasswordErrorSet = setErrorInFormIfAny(formMethods, confirmPassword, "confirmPassword");
-
-    if (newPasswordErrorSet || confirmPasswordErrorSet) {
-      return;
-    }
-
-    if (newPassword !== confirmPassword) {
-      createAccountFormMethods.setError(
-        "newPassword",
-        { type: "required", message: t("new_password_not_matching_confirm_password") },
-        { shouldFocus: true }
-      );
-      return;
-    }
-
-    createAccountPasswordMutation.mutate({ newPassword, confirmPassword });
-  };
-
   const timeoutOptions = [5, 10, 15].map((mins) => ({
     label: t("multiple_duration_mins", { count: mins }),
     value: mins,
   }));
 
-  const isDisabled = isFormDisabled(formMethods);
-  const isCreateAccountDisabled = isFormDisabled(createAccountFormMethods);
+  const isDisabled = formMethods.formState.isSubmitting || !formMethods.formState.isDirty;
 
   const passwordMinLength = data?.user.role === "USER" ? 7 : 15;
   const isUser = data?.user.role === "USER";
-
-  const passwordRules = {
-    minLength: {
-      message: t(isUser ? "password_hint_min" : "password_hint_admin_min"),
-      value: passwordMinLength,
-    },
-    pattern: {
-      message: "Should contain a number, uppercase and lowercase letters",
-      value: /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).*$/gm,
-    },
-  };
 
   return (
     <>
@@ -251,48 +189,13 @@ const PasswordView = ({ user }: PasswordViewProps) => {
                 provider: identityProviderNameMap[user.identityProvider],
               })}
             </p>
+            <Button
+              className="mt-3"
+              onClick={() => createAccountPasswordMutation.mutate()}
+              loading={createAccountPasswordMutation.isPending}>
+              {t("create_account_password")}
+            </Button>
           </div>
-          <Form form={createAccountFormMethods} handleSubmit={handleCreateAccountPasswordSubmit}>
-            <div className="border border-b-0 border-l-0 border-r-0 px-4 py-6 sm:px-6">
-              {formMethods.formState.errors.apiError && (
-                <div className="pb-6">
-                  <Alert severity="error" message={formMethods.formState.errors.apiError?.message} />
-                </div>
-              )}
-              <h2 className="font-cal text-emphasis mb-1 text-lg font-medium leading-6">
-                {t("create_account_password")}
-              </h2>
-              <div className="w-full sm:grid sm:grid-cols-2 sm:gap-x-6">
-                <div>
-                  <PasswordField
-                    {...createAccountFormMethods.register("newPassword", passwordRules)}
-                    label={t("new_password")}
-                  />
-                </div>
-                <div>
-                  <PasswordField
-                    {...createAccountFormMethods.register("confirmPassword", passwordRules)}
-                    label={t("confirm_password")}
-                  />
-                </div>
-              </div>
-              <p className="text-default mt-4 w-full text-sm">
-                {t("invalid_password_hint", { passwordLength: passwordMinLength })}
-              </p>
-            </div>
-            <SectionBottomActions
-              align="end"
-              className="rounded-b-xl border border-b-0 border-l-0 border-r-0">
-              <Button
-                color="primary"
-                type="submit"
-                loading={createAccountPasswordMutation.isPending}
-                onClick={() => createAccountFormMethods.clearErrors("apiError")}
-                disabled={isCreateAccountDisabled || createAccountPasswordMutation.isPending}>
-                {t("update")}
-              </Button>
-            </SectionBottomActions>
-          </Form>
         </div>
       ) : (
         <Form form={formMethods} handleSubmit={handleSubmit}>
@@ -308,7 +211,16 @@ const PasswordView = ({ user }: PasswordViewProps) => {
               </div>
               <div>
                 <PasswordField
-                  {...formMethods.register("newPassword", passwordRules)}
+                  {...formMethods.register("newPassword", {
+                    minLength: {
+                      message: t(isUser ? "password_hint_min" : "password_hint_admin_min"),
+                      value: passwordMinLength,
+                    },
+                    pattern: {
+                      message: "Should contain a number, uppercase and lowercase letters",
+                      value: /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).*$/gm,
+                    },
+                  })}
                   label={t("new_password")}
                 />
               </div>
