@@ -15,7 +15,8 @@
         "name": "next"
       }
     ],
-    "strictNullChecks": true
+    "strictNullChecks": true,
+    "experimentalDecorators": true
   },
   "include": [
     /* Find a way to not require this - App files don't belong here. */
