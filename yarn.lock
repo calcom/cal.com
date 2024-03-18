@@ -3352,9 +3352,9 @@ __metadata:
     "@sentry/node": ^7.86.0
     "@sentry/tracing": ^7.86.0
     "@types/cookie-parser": ^1.4.6
-    "@types/express": ^4.17.17
+    "@types/express": ^4.17.21
     "@types/fs-extra": ^11.0.4
-    "@types/jest": ^29.5.2
+    "@types/jest": ^29.5.10
     "@types/luxon": ^3.3.7
     "@types/node": ^20.3.1
     "@types/passport-jwt": ^3.0.13
@@ -3364,27 +3364,27 @@ __metadata:
     cookie-parser: ^1.4.6
     dotenv: ^16.3.1
     fs-extra: ^11.2.0
-    googleapis: ^129.0.0
+    googleapis: ^84.0.0
     helmet: ^7.1.0
     ioredis: ^5.3.2
-    jest: ^29.5.0
+    jest: ^29.7.0
     luxon: ^3.4.4
     nest-winston: ^1.9.4
     nestjs-throttler-storage-redis: ^0.4.1
-    next-auth: ^4.24.5
+    next-auth: ^4.22.1
     passport: ^0.7.0
     passport-jwt: ^4.0.1
-    prettier: ^3.0.0
+    prettier: ^2.8.6
     reflect-metadata: ^0.1.13
     rxjs: ^7.8.1
     source-map-support: ^0.5.21
     supertest: ^6.3.3
-    ts-jest: ^29.1.0
+    ts-jest: ^29.1.1
     ts-loader: ^9.4.3
     ts-node: ^10.9.1
-    tsconfig-paths: ^4.2.0
-    typescript: ^5.1.3
-    uuid: ^9.0.1
+    tsconfig-paths: ^4.1.0
+    typescript: ^4.9.4
+    uuid: ^8.3.2
     winston: ^3.11.0
     zod: ^3.22.4
   languageName: unknown
@@ -3486,7 +3486,7 @@ __metadata:
   dependencies:
     "@calcom/platform-atoms": "*"
     "@prisma/client": 5.4.2
-    "@types/node": ^20
+    "@types/node": ^20.3.1
     "@types/react": ^18
     "@types/react-dom": ^18
     autoprefixer: ^10.0.1
@@ -3498,7 +3498,7 @@ __metadata:
     react: ^18
     react-dom: ^18
     tailwindcss: ^3.3.0
-    typescript: ^5
+    typescript: ^4.9.4
   languageName: unknown
   linkType: soft
 
@@ -4159,7 +4159,7 @@ __metadata:
     "@radix-ui/react-toast": ^1.1.5
     "@rollup/plugin-node-resolve": ^15.0.1
     "@tanstack/react-query": ^5.17.19
-    "@types/node": ^20.10.0
+    "@types/node": ^20.3.1
     "@types/react": 18.0.26
     "@types/react-dom": ^18.0.9
     "@vitejs/plugin-react": ^2.2.0
@@ -4190,7 +4190,7 @@ __metadata:
     "@calcom/core": "*"
     "@calcom/features": "*"
     "@calcom/lib": "*"
-    "@types/node": ^20.11.7
+    "@types/node": ^20.3.1
     "@vitejs/plugin-react": ^4.2.1
     typescript: ^4.9.4
     vite: ^5.0.12
@@ -13795,7 +13795,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/express@npm:^4.17.17, @types/express@npm:^4.17.21, @types/express@npm:^4.7.0":
+"@types/express@npm:^4.17.21, @types/express@npm:^4.7.0":
   version: 4.17.21
   resolution: "@types/express@npm:4.17.21"
   dependencies:
@@ -13919,7 +13919,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/jest@npm:^29.5.10, @types/jest@npm:^29.5.2":
+"@types/jest@npm:^29.5.10":
   version: 29.5.12
   resolution: "@types/jest@npm:29.5.12"
   dependencies:
@@ -23940,16 +23940,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"googleapis@npm:^129.0.0":
-  version: 129.0.0
-  resolution: "googleapis@npm:129.0.0"
-  dependencies:
-    google-auth-library: ^9.0.0
-    googleapis-common: ^7.0.0
-  checksum: ce694221b9e53195761a8e08452dd60919afe6a0f397720384a638dba4ae1d6d0a2c2bf4a8c78630e631b4f69137036bb3a5d87629ec82e33ef2eead732986c5
-  languageName: node
-  linkType: hard
-
 "googleapis@npm:^84.0.0":
   version: 84.0.0
   resolution: "googleapis@npm:84.0.0"
@@ -26713,7 +26703,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jest@npm:^29.5.0, jest@npm:^29.7.0":
+"jest@npm:^29.7.0":
   version: 29.7.0
   resolution: "jest@npm:29.7.0"
   dependencies:
@@ -26795,13 +26785,6 @@ __metadata:
   version: 4.15.4
   resolution: "jose@npm:4.15.4"
   checksum: dccad91cb3357f36423774a0b89ad830dd84b31090de65cd139b85488439f16a00f8c59c0773825e8a1adb0dd9d13ad725ad66e6ea33880ecb3959bb99e1ea5b
-  languageName: node
-  linkType: hard
-
-"jose@npm:^4.15.5":
-  version: 4.15.5
-  resolution: "jose@npm:4.15.5"
-  checksum: 7dde76447c7707bd4b448f914b216f3858e701aa83f00447434252461af5b9e159dcbffb88badea3f9616739526763581267c9560622f0a058df8d68c86d7f79
   languageName: node
   linkType: hard
 
@@ -29967,31 +29950,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"next-auth@npm:^4.24.5":
-  version: 4.24.7
-  resolution: "next-auth@npm:4.24.7"
-  dependencies:
-    "@babel/runtime": ^7.20.13
-    "@panva/hkdf": ^1.0.2
-    cookie: ^0.5.0
-    jose: ^4.15.5
-    oauth: ^0.9.15
-    openid-client: ^5.4.0
-    preact: ^10.6.3
-    preact-render-to-string: ^5.1.19
-    uuid: ^8.3.2
-  peerDependencies:
-    next: ^12.2.5 || ^13 || ^14
-    nodemailer: ^6.6.5
-    react: ^17.0.2 || ^18
-    react-dom: ^17.0.2 || ^18
-  peerDependenciesMeta:
-    nodemailer:
-      optional: true
-  checksum: e7849ecf86394d86f08730b96f869c9353b6cc003794fcd953db2949f1ab06a2ce4f7a67312fdb8c7b3bbe7e99a8a215f11ef4eba5ec93f6c3e8ac1954e8b3e6
-  languageName: node
-  linkType: hard
-
 "next-axiom@npm:^0.17.0":
   version: 0.17.0
   resolution: "next-axiom@npm:0.17.0"
@@ -32668,15 +32626,6 @@ __metadata:
   bin:
     prettier: bin-prettier.js
   checksum: 8ac94fa67aec0e65743ea15ebf954ef2f1e52638abd129dc04e8b49e8bb3224c0233c98df6b5c98efd31bd2a43866590486559438ee4ead09dc81be389068572
-  languageName: node
-  linkType: hard
-
-"prettier@npm:^3.0.0":
-  version: 3.2.5
-  resolution: "prettier@npm:3.2.5"
-  bin:
-    prettier: bin/prettier.cjs
-  checksum: 2ee4e1417572372afb7a13bb446b34f20f1bf1747db77cf6ccaf57a9be005f2f15c40f903d41a6b79eec3f57fff14d32a20fb6dee1f126da48908926fe43c311
   languageName: node
   linkType: hard
 
@@ -38113,7 +38062,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ts-jest@npm:^29.1.0, ts-jest@npm:^29.1.1":
+"ts-jest@npm:^29.1.1":
   version: 29.1.2
   resolution: "ts-jest@npm:29.1.2"
   dependencies:
@@ -38251,7 +38200,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tsconfig-paths@npm:4.2.0, tsconfig-paths@npm:^4.1.2, tsconfig-paths@npm:^4.2.0":
+"tsconfig-paths@npm:4.2.0, tsconfig-paths@npm:^4.1.2":
   version: 4.2.0
   resolution: "tsconfig-paths@npm:4.2.0"
   dependencies:
@@ -38870,7 +38819,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:^5, typescript@npm:^5.1.3, typescript@npm:^5.2.2":
+"typescript@npm:^5.2.2":
   version: 5.4.2
   resolution: "typescript@npm:5.4.2"
   bin:
@@ -38900,7 +38849,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@^5#~builtin<compat/typescript>, typescript@patch:typescript@^5.1.3#~builtin<compat/typescript>, typescript@patch:typescript@^5.2.2#~builtin<compat/typescript>":
+"typescript@patch:typescript@^5.2.2#~builtin<compat/typescript>":
   version: 5.4.2
   resolution: "typescript@patch:typescript@npm%3A5.4.2#~builtin<compat/typescript>::version=5.4.2&hash=1f5320"
   bin:
@@ -39385,7 +39334,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"uuid@npm:9.0.1, uuid@npm:^9.0.0, uuid@npm:^9.0.1":
+"uuid@npm:9.0.1, uuid@npm:^9.0.0":
   version: 9.0.1
   resolution: "uuid@npm:9.0.1"
   bin:
