@@ -400,7 +400,7 @@ const getEventTypes = async (userId: number, teamId?: number) => {
     return eventTypeB.position - eventTypeA.position;
   });
   if (eventTypes.length === 0) {
-    throw new Error(ERROR_MESSAGES.noEventTypesFound);
+    return null;
   }
   return eventTypes;
 };
@@ -512,7 +512,12 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         if (!hasEventTypes) {
           throw new Error(ERROR_MESSAGES.appNotExtendsEventType);
         }
-        eventTypes = await getEventTypes(user.id, parsedTeamIdParam);
+        const _eventTypes = await getEventTypes(user.id, parsedTeamIdParam);
+
+        if (!_eventTypes) {
+          return { redirect: { permanent: false, destination: `/apps/installed/${appMetadata.category}` } };
+        }
+        eventTypes = _eventTypes;
         break;
 
       case AppOnboardingSteps.CONFIGURE_STEP:
@@ -520,7 +525,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
           throw new Error(ERROR_MESSAGES.appNotExtendsEventType);
         }
         if (!parsedEventTypeIdParam) {
-          throw new Error(ERROR_MESSAGES.appNotEventType);
+          return { redirect: { permanent: false, destination: `/apps/installed/${appMetadata.category}` } };
         }
         break;
 
