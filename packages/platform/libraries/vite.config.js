@@ -166,6 +166,7 @@ export default defineConfig({
           "@prisma/extension-accelerate": "@prisma/extension-accelerate",
           "@ewsjs/xhr": "@ewsjs/xhr",
           "next-i18next/serverSideTranslations": "next-i18next/serverSideTranslations",
+          "@calcom/prisma/client": "@calcom/prisma/client",
         },
       },
     },
@@ -178,6 +179,7 @@ export default defineConfig({
       "@calcom/trpc": resolve("../../trpc"),
       "lru-cache": resolve("../../../node_modules/lru-cache/dist/cjs/index.js"),
       "@prisma/client": resolve("../../../node_modules/@prisma/client"),
+      "@calcom/prisma/client": resolve("../../../node_modules/.prisma/client"),
     },
   },
 });
