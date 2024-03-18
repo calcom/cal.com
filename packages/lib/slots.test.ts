@@ -345,8 +345,6 @@ describe("Tests the slot logic", () => {
       2023-07-13T06:38:00.000Z
       2023-07-13T06:46:00.000Z
    */
-    console.log(`slots ${JSON.stringify(slots)}`);
-
     expect(slots).toHaveLength(4);
   });
 });
