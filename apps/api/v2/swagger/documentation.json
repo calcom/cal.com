@@ -19,6 +19,24 @@
         }
       }
     },
+    "/api/v2/events/public": {
+      "get": {
+        "operationId": "EventsController_getPublicEvent",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v2/oauth-clients/{clientId}/users": {
       "post": {
         "operationId": "OAuthClientUsersController_createUser",
@@ -960,24 +978,6 @@
         }
       }
     },
-    "/api/events": {
-      "get": {
-        "operationId": "EventsController_getPublicEvent",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/v2/slots/reserve": {
       "post": {
         "operationId": "SlotsController_reserveSlot",
@@ -1367,7 +1367,10 @@
             "type": "string"
           },
           "user": {
-            "type": "object"
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           },
           "language": {
             "type": "string"

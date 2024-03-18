@@ -3,6 +3,7 @@ import type { z } from "zod";
 
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
+import prisma from "@calcom/prisma";
 
 import { schemaAttendeeEditBodyParams, schemaAttendeeReadPublic } from "~/lib/validations/attendee";
 import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransformParseInt";
@@ -53,7 +54,7 @@ import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransform
  */
 
 export async function patchHandler(req: NextApiRequest) {
-  const { prisma, query, body } = req;
+  const { query, body } = req;
   const { id } = schemaQueryIdParseInt.parse(query);
   const data = schemaAttendeeEditBodyParams.parse(body);
   await checkPermissions(req, data);
@@ -62,7 +63,7 @@ export async function patchHandler(req: NextApiRequest) {
 }
 
 async function checkPermissions(req: NextApiRequest, body: z.infer<typeof schemaAttendeeEditBodyParams>) {
-  const { isAdmin, prisma } = req;
+  const { isAdmin } = req;
   if (isAdmin) return;
   const { userId } = req;
   const { bookingId } = body;

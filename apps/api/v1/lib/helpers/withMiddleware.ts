@@ -2,7 +2,6 @@ import { label } from "next-api-middleware";
 
 import { addRequestId } from "./addRequestid";
 import { captureErrors } from "./captureErrors";
-import { customPrismaClient } from "./customPrisma";
 import { extendRequest } from "./extendRequest";
 import {
   HTTP_POST,
@@ -14,6 +13,7 @@ import {
 } from "./httpMethods";
 import { rateLimitApiKey } from "./rateLimitApiKey";
 import { verifyApiKey } from "./verifyApiKey";
+import { verifyCredentialSyncEnabled } from "./verifyCredentialSyncEnabled";
 import { withPagination } from "./withPagination";
 
 const middleware = {
@@ -26,25 +26,22 @@ const middleware = {
   addRequestId,
   verifyApiKey,
   rateLimitApiKey,
-  customPrismaClient,
   extendRequest,
   pagination: withPagination,
   captureErrors,
+  verifyCredentialSyncEnabled,
 };
 
 type Middleware = keyof typeof middleware;
 
-const middlewareOrder =
+const middlewareOrder = [
   // The order here, determines the order of execution
-  [
-    "extendRequest",
-    "captureErrors",
-    // - Put customPrismaClient before verifyApiKey always.
-    "customPrismaClient",
-    "verifyApiKey",
-    "rateLimitApiKey",
-    "addRequestId",
-  ] as Middleware[]; // <-- Provide a list of middleware to call automatically
+  "extendRequest",
+  "captureErrors",
+  "verifyApiKey",
+  "rateLimitApiKey",
+  "addRequestId",
+] as Middleware[]; // <-- Provide a list of middleware to call automatically
 
 const withMiddleware = label(middleware, middlewareOrder);
 

@@ -2,12 +2,13 @@ import type { Prisma } from "@prisma/client";
 import type { NextApiRequest } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
+import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import { schemaQueryTeamId } from "~/lib/validations/shared/queryTeamId";
 
 async function authMiddleware(req: NextApiRequest) {
-  const { userId, prisma, isAdmin } = req;
+  const { userId, isAdmin } = req;
   const { teamId } = schemaQueryTeamId.parse(req.query);
   /** Admins can skip the ownership verification */
   if (isAdmin) return;
@@ -21,17 +22,16 @@ export async function checkPermissions(
   req: NextApiRequest,
   role: Prisma.MembershipWhereInput["role"] = MembershipRole.OWNER
 ) {
-  const { userId, prisma, isAdmin } = req;
+  const { userId, isAdmin } = req;
   const { teamId } = schemaQueryTeamId.parse({
     teamId: req.query.teamId,
     version: req.query.version,
     apiKey: req.query.apiKey,
   });
-  return canUserAccessTeamWithRole(prisma, userId, isAdmin, teamId, role);
+  return canUserAccessTeamWithRole(userId, isAdmin, teamId, role);
 }
 
 export async function canUserAccessTeamWithRole(
-  prisma: NextApiRequest["prisma"],
   userId: number,
   isAdmin: boolean,
   teamId: number,

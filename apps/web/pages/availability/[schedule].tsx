@@ -1,6 +1,7 @@
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 
+import { withErrorFromUnknown } from "@calcom/lib/getClientErrorFromUnknown";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
@@ -70,12 +71,9 @@ export default function Availability() {
   });
 
   const deleteMutation = trpc.viewer.availability.schedule.delete.useMutation({
-    onError: (err) => {
-      if (err instanceof HttpError) {
-        const message = `${err.statusCode}: ${err.message}`;
-        showToast(message, "error");
-      }
-    },
+    onError: withErrorFromUnknown((err) => {
+      showToast(err.message, "error");
+    }),
     onSettled: () => {
       utils.viewer.availability.list.invalidate();
     },

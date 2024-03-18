@@ -7,6 +7,7 @@ import prisma from "../../lib/prismaClient";
 
 type Data = {
   email: string;
+  username: string;
   id: number;
   accessToken: string;
 };
@@ -20,6 +21,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     return res.status(200).json({
       id: existingUser.calcomUserId,
       email: existingUser.email,
+      username: existingUser.calcomUsername ?? "",
       accessToken: existingUser.accessToken ?? "",
     });
   }
@@ -37,9 +39,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         "Content-Type": "application/json",
         // eslint-disable-next-line turbo/no-undeclared-env-vars
         [X_CAL_SECRET_KEY]: process.env.X_CAL_SECRET_KEY ?? "",
+        origin: "http://localhost:4321",
       },
       body: JSON.stringify({
         email,
+        name: "John Jones",
       }),
     }
   );
@@ -49,6 +53,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       refreshToken: (body.data?.refreshToken as string) ?? "",
       accessToken: (body.data?.accessToken as string) ?? "",
       calcomUserId: body.data?.user.id,
+      calcomUsername: (body.data?.user.username as string) ?? "",
     },
     where: { id: localUser.id },
   });
@@ -56,6 +61,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
   return res.status(200).json({
     id: body?.data?.user?.id,
     email: (body.data?.user.email as string) ?? "",
+    username: (body.data?.username as string) ?? "",
     accessToken: (body.data?.accessToken as string) ?? "",
   });
 }

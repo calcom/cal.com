@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
+import prisma from "@calcom/prisma";
 import { createContext } from "@calcom/trpc/server/createContext";
 import { viewerTeamsRouter } from "@calcom/trpc/server/routers/viewer/teams/_router";
 import type { TInviteMemberInputSchema } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/inviteMember.schema";
@@ -57,7 +58,7 @@ async function postHandler(req: NextApiRequest, res: NextApiResponse) {
 }
 
 async function checkPermissions(req: NextApiRequest, body: TInviteMemberInputSchema) {
-  const { userId, isAdmin, prisma } = req;
+  const { userId, isAdmin } = req;
   if (isAdmin) return;
   // To prevent auto-accepted invites, limit it to ADMIN users
   if (!isAdmin && "accepted" in body)

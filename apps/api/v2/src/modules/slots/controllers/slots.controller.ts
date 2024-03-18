@@ -52,7 +52,6 @@ export class SlotsController {
     @Req() req: ExpressRequest
   ): Promise<ApiResponse<AvailableSlotsType>> {
     const isTeamEvent = await this.slotsService.checkIfIsTeamEvent(query.eventTypeId);
-
     const availableSlots = await getAvailableSlots({
       input: {
         ...query,

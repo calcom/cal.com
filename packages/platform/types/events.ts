@@ -9,6 +9,7 @@ export class GetPublicEventInput {
   @IsString()
   eventSlug!: string;
 
+  @Transform(({ value }: { value: string }) => value === "true")
   @IsBoolean()
   @IsOptional()
   isTeamEvent?: boolean;

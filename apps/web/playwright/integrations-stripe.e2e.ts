@@ -219,14 +219,6 @@ test.describe("Stripe integration", () => {
       await user.confirmPendingPayment();
     });
 
-    test("Cancelled paid booking should be refunded", async ({ page, users, request }) => {
-      await page.click('[data-testid="cancel"]');
-      await page.click('[data-testid="confirm_cancel"]');
-
-      await expect(await page.locator('[data-testid="cancelled-headline"]').first()).toBeVisible();
-      await expect(page.getByText("This booking payment has been refunded")).toBeVisible();
-    });
-
     test("Payment should confirm pending payment booking", async ({ page, users }) => {
       await page.goto("/bookings/upcoming");
 

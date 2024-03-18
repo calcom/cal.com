@@ -21,12 +21,22 @@ export class AccessTokenStrategy extends PassportStrategy(BaseStrategy, "access-
   async authenticate(request: Request) {
     try {
       const accessToken = request.get("Authorization")?.replace("Bearer ", "");
+      const requestOrigin = request.get("Origin");
 
       if (!accessToken) {
         throw new UnauthorizedException(INVALID_ACCESS_TOKEN);
       }
 
       await this.oauthFlowService.validateAccessToken(accessToken);
+
+      const client = await this.tokensRepository.getAccessTokenClient(accessToken);
+      if (!client) {
+        throw new UnauthorizedException("OAuth client not found given the access token");
+      }
+
+      if (requestOrigin && !client.redirectUris.some((uri) => uri.startsWith(requestOrigin))) {
+        throw new UnauthorizedException("Invalid request origin");
+      }
 
       const ownerId = await this.tokensRepository.getAccessTokenOwnerId(accessToken);
 

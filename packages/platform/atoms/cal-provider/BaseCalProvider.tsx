@@ -2,6 +2,8 @@ import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { useState } from "react";
 import { useCallback } from "react";
 
+import enTranslations from "@calcom/web/public/static/locales/en/common.json";
+
 import { AtomsContext } from "../hooks/useAtomsContext";
 import { useOAuthClient } from "../hooks/useOAuthClient";
 import { useOAuthFlow } from "../hooks/useOAuthFlow";
@@ -11,7 +13,16 @@ import http from "../lib/http";
 import { Toaster } from "../src/components/ui/toaster";
 import type { CalProviderProps } from "./CalProvider";
 
-export function BaseCalProvider({ clientId, accessToken, options, children }: CalProviderProps) {
+type translationKeys = keyof typeof enTranslations;
+
+export function BaseCalProvider({
+  clientId,
+  accessToken,
+  options,
+  children,
+  autoUpdateTimezone,
+  onTimezoneChange,
+}: CalProviderProps) {
   const [error, setError] = useState<string>("");
 
   const { mutateAsync } = useUpdateUserTimezone();
@@ -23,7 +34,13 @@ export function BaseCalProvider({ clientId, accessToken, options, children }: Ca
     [mutateAsync]
   );
 
-  useTimezone(handleTimezoneChange);
+  const getTimezoneChangeHandler = useCallback(() => {
+    if (onTimezoneChange) return onTimezoneChange;
+    if (!onTimezoneChange && autoUpdateTimezone) return handleTimezoneChange;
+    return undefined;
+  }, [onTimezoneChange, autoUpdateTimezone, handleTimezoneChange]);
+
+  useTimezone(getTimezoneChangeHandler());
 
   const { isInit } = useOAuthClient({
     clientId,
@@ -57,6 +74,32 @@ export function BaseCalProvider({ clientId, accessToken, options, children }: Ca
         isInit: isInit,
         isValidClient: Boolean(!error && clientId && isInit),
         isAuth: Boolean(isInit && !error && clientId && currentAccessToken && http.getAuthorizationHeader()),
+        t: (key, values) => {
+          let translation = String(enTranslations[key as translationKeys] ?? "");
+          if (!translation) {
+            return "";
+          }
+          if (values) {
+            const valueKeys = Object.keys(values) as (keyof typeof values)[];
+            if (valueKeys.length) {
+              valueKeys.forEach((valueKey) => {
+                if (translation)
+                  translation = translation.replace(
+                    `{{${String(valueKey)}}}`,
+                    values[valueKey]?.toString() ?? `{{${String(valueKey)}}}`
+                  );
+              });
+            }
+          }
+
+          return replaceOccurrences(translation, enTranslations) ?? "";
+        },
+        i18n: {
+          language: "en",
+          defaultLocale: "en",
+          locales: ["en"],
+          exists: (key: translationKeys | string) => Boolean(enTranslations[key as translationKeys]),
+        },
       }}>
       <TooltipProvider>{children}</TooltipProvider>
       <Toaster />
@@ -67,4 +110,15 @@ export function BaseCalProvider({ clientId, accessToken, options, children }: Ca
       <Toaster />
     </>
   );
+}
+
+function replaceOccurrences(input: string, replacementMap: { [key: string]: string }): string {
+  const pattern = /\$t\((.*?)\)/g;
+  return input.replace(pattern, (match, key) => {
+    if (key in replacementMap) {
+      return replacementMap[key];
+    }
+    // If the key is not found in the replacement map, you may choose to return the original match
+    return match;
+  });
 }
