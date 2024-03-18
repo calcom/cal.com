@@ -7,7 +7,6 @@ import { v4 as uuidv4 } from "uuid";
 import stripe from "@calcom/app-store/stripepayment/lib/server";
 import { getPremiumMonthlyPlanPriceId } from "@calcom/app-store/stripepayment/lib/utils";
 import CalComAdapter from "@calcom/features/auth/lib/next-auth-custom-adapter";
-import { passwordResetRequest } from "@calcom/features/auth/lib/passwordResetRequest";
 import { sendChangeOfEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
 import { getFeatureFlag } from "@calcom/features/flags/server/utils";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
@@ -85,9 +84,6 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
     secondaryEmails: undefined,
   };
 
-  // some actions can invalidate a user session.
-  let signOutUser = false;
-  let passwordReset = false;
   let isPremiumUsername = false;
 
   const layoutError = validateBookerLayouts(input?.metadata?.defaultBookerLayouts || null);
@@ -146,11 +142,6 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
   }
   const hasEmailBeenChanged = data.email && user.email !== data.email;
 
-  // check if we are changing email and identity provider is not CAL
-  const hasEmailChangedOnNonCalProvider =
-    hasEmailBeenChanged && user.identityProvider !== IdentityProvider.CAL;
-  const hasEmailChangedOnCalProvider = hasEmailBeenChanged && user.identityProvider === IdentityProvider.CAL;
-
   let secondaryEmail:
     | {
         id: number;
@@ -170,7 +161,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
         emailVerified: true,
       },
     });
-    if (emailVerification && hasEmailChangedOnCalProvider) {
+    if (emailVerification) {
       if (secondaryEmail?.emailVerified) {
         data.emailVerified = secondaryEmail.emailVerified;
       } else {
@@ -193,10 +184,13 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
   if (unlinkConnectedAccount) {
     // Unlink the account
     const calcomAdapter = CalComAdapter(prisma);
-    await calcomAdapter.unlinkAccount({
-      provider: user.identityProvider.toLocaleLowerCase(),
-      providerAccountId: user.identityProviderId || "",
-    });
+    // If it fails to delete, don't stop because the users login data might not be present
+    try {
+      await calcomAdapter.unlinkAccount({
+        provider: user.identityProvider.toLocaleLowerCase(),
+        providerAccountId: user.identityProviderId || "",
+      });
+    } catch {}
     // Only validate if we're changing email
     data.identityProvider = IdentityProvider.CAL;
     data.identityProviderId = null;
@@ -307,14 +301,6 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
     });
   }
 
-  if (hasEmailChangedOnNonCalProvider) {
-    // Because the email has changed, we are now attempting to use the CAL provider-
-    // which has no password yet. We have to send the reset password email.
-    await passwordResetRequest(updatedUser);
-    signOutUser = true;
-    passwordReset = true;
-  }
-
   // Sync Services
   await syncServicesUpdateWebUser(updatedUser);
 
@@ -330,7 +316,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
     });
   }
 
-  if (updatedUser && hasEmailChangedOnCalProvider) {
+  if (updatedUser) {
     // Skip sending verification email when user tries to change his primary email to a verified secondary email
     if (secondaryEmail?.emailVerified) {
       secondaryEmails.push({
@@ -408,12 +394,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
 
   return {
     ...input,
-    email:
-      emailVerification && hasEmailChangedOnCalProvider && !secondaryEmail?.emailVerified
-        ? user.email
-        : input.email,
-    signOutUser,
-    passwordReset,
+    email: emailVerification && !secondaryEmail?.emailVerified ? user.email : input.email,
     avatarUrl: updatedUser.avatarUrl,
     hasEmailBeenChanged,
     sendEmailVerification: emailVerification && !secondaryEmail?.emailVerified,

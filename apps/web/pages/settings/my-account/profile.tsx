@@ -106,15 +106,9 @@ const ProfileView = () => {
   const updateProfileMutation = trpc.viewer.updateProfile.useMutation({
     onSuccess: async (res) => {
       await update(res);
-      // signout user only in case of password reset
-      if (res.signOutUser && tempFormValues && res.passwordReset) {
-        showToast(t("password_reset_email", { email: tempFormValues.email }), "success");
-        await signOut({ callbackUrl: "/auth/logout?passReset=true" });
-      } else {
-        utils.viewer.me.invalidate();
-        utils.viewer.avatar.invalidate();
-        utils.viewer.shouldVerifyEmail.invalidate();
-      }
+      utils.viewer.me.invalidate();
+      utils.viewer.avatar.invalidate();
+      utils.viewer.shouldVerifyEmail.invalidate();
 
       if (res.hasEmailBeenChanged && res.sendEmailVerification) {
         showToast(t("change_of_email_toast", { email: tempFormValues?.email }), "success");
