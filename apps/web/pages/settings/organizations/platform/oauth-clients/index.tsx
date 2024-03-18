@@ -1,6 +1,3 @@
-import { OAuthClientCard } from "@pages/settings/organizations/platform/oauth-clients/components/OAuthClientCard";
-import { useOAuthClients } from "@pages/settings/organizations/platform/oauth-clients/hooks/useOAuthClients";
-import { useDeleteOAuthClient } from "@pages/settings/organizations/platform/oauth-clients/hooks/usePersistOAuthClient";
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
 import { useRouter } from "next/router";
@@ -11,7 +8,11 @@ import { EmptyScreen, showToast } from "@calcom/ui";
 import { Meta, Button } from "@calcom/ui";
 import { Spinner } from "@calcom/ui/components/icon/Spinner";
 
+import { useOAuthClients } from "@lib/hooks/settings/organizations/platform/oauth-clients/useOAuthClients";
+import { useDeleteOAuthClient } from "@lib/hooks/settings/organizations/platform/oauth-clients/usePersistOAuthClient";
+
 import PageWrapper from "@components/PageWrapper";
+import { OAuthClientCard } from "@components/settings/organizations/platform/oauth-clients/OAuthClientCard";
 
 const queryClient = new QueryClient();
 

@@ -6,7 +6,7 @@ import { PERMISSIONS_GROUPED_MAP } from "@calcom/platform-constants";
 import type { Avatar } from "@calcom/prisma/client";
 import { Button, showToast } from "@calcom/ui";
 
-import { hasPermission } from "../../../../../../../../packages/platform/utils/permissions";
+import { hasPermission } from "../../../../../../../packages/platform/utils/permissions";
 
 type OAuthClientCardProps = {
   name: string;

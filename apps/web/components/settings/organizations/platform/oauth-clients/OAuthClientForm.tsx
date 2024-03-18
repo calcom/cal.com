@@ -1,4 +1,3 @@
-import { useCreateOAuthClient } from "@pages/settings/organizations/platform/oauth-clients/hooks/usePersistOAuthClient";
 import { useRouter } from "next/router";
 import type { FC } from "react";
 import React, { useState, useCallback } from "react";
@@ -9,6 +8,8 @@ import { PERMISSIONS_GROUPED_MAP } from "@calcom/platform-constants/permissions"
 import { showToast } from "@calcom/ui";
 import { Meta, Button, TextField, Label } from "@calcom/ui";
 import { Plus, Trash } from "@calcom/ui/components/icon";
+
+import { useCreateOAuthClient } from "@lib/hooks/settings/organizations/platform/oauth-clients/usePersistOAuthClient";
 
 type FormValues = {
   name: string;

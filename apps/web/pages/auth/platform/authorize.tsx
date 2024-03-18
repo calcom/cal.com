@@ -1,4 +1,3 @@
-// import { useOAuthClient } from "@pages/settings/platform/oauth-clients/hooks/useOAuthClients";
 import { useRouter } from "next/navigation";
 
 import { APP_NAME } from "@calcom/lib/constants";
