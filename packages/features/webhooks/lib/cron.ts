@@ -2,6 +2,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import dayjs from "@calcom/dayjs";
+import logger from "@calcom/lib/logger";
 import { defaultHandler } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 
@@ -13,6 +14,15 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     res.status(401).json({ message: "Not authenticated" });
     return;
   }
+
+  // make sure to not trigger webhooks that are too far in the past (in case cron job was down for a while)
+  await prisma.webhookScheduledTriggers.deleteMany({
+    where: {
+      startAfter: {
+        lte: dayjs().subtract(1, "day").toISOString(),
+      },
+    },
+  });
 
   // get jobs that should be run
   const jobsToRun = await prisma.webhookScheduledTriggers.findMany({
@@ -27,18 +37,30 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   for (const job of jobsToRun) {
     // Fetch the webhook configuration so that we can get the secret.
     const [appId, subscriberId] = job.jobName.split("_");
-    const webhook = await prisma.webhook.findUniqueOrThrow({
-      where: { id: subscriberId, appId: appId !== "null" ? appId : null },
-    });
+
+    let webhook;
+    try {
+      webhook = await prisma.webhook.findUniqueOrThrow({
+        where: { id: subscriberId, appId: appId !== "null" ? appId : null },
+      });
+    } catch {
+      logger.error(`Error finding webhook for subscriberId: ${subscriberId}, appId: ${appId}`);
+    }
+
+    const headers: Record<string, string> = {
+      "Content-Type":
+        !job.payload || jsonParse(job.payload) ? "application/json" : "application/x-www-form-urlencoded",
+    };
+
+    if (webhook) {
+      headers["X-Cal-Signature-256"] = createWebhookSignature({ secret: webhook.secret, body: job.payload });
+    }
+
     try {
       await fetch(job.subscriberUrl, {
         method: "POST",
         body: job.payload,
-        headers: {
-          "Content-Type":
-            !job.payload || jsonParse(job.payload) ? "application/json" : "application/x-www-form-urlencoded",
-          "X-Cal-Signature-256": createWebhookSignature({ secret: webhook.secret, body: job.payload }),
-        },
+        headers,
       });
     } catch (error) {
       console.log(`Error running webhook trigger (retry count: ${job.retryCount}): ${error}`);
