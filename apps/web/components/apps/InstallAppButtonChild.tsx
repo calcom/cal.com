@@ -1,4 +1,5 @@
 import { useRouter } from "next/navigation";
+import { useMemo } from "react";
 
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
@@ -7,6 +8,7 @@ import { Spinner } from "@calcom/features/calendars/weeklyview/components/spinne
 import type { UserAdminTeams } from "@calcom/features/ee/teams/lib/getUserAdminTeams";
 import { AppOnboardingSteps } from "@calcom/lib/apps/appOnboardingSteps";
 import { getAppOnboardingUrl } from "@calcom/lib/apps/getAppOnboardingUrl";
+import { shouldRedirectToAppOnboarding } from "@calcom/lib/apps/shouldRedirectToAppOnboarding";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -59,9 +61,7 @@ export const InstallAppButtonChild = ({
   });
   const shouldDisableInstallation = !multiInstall ? !!(credentials && credentials.length) : false;
   const appMetadata = appStoreMetadata[dirName as keyof typeof appStoreMetadata];
-  const hasEventTypes = appMetadata?.extendsFeature == "EventType";
-  const isOAuth = appMetadata?.isOAuth;
-  const redirectToAppOnboarding = hasEventTypes || isOAuth;
+  const redirectToAppOnboarding = useMemo(() => shouldRedirectToAppOnboarding(appMetadata), [appMetadata]);
 
   const _onClick = (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
     if (redirectToAppOnboarding) {

@@ -5,6 +5,7 @@ import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { classNames } from "@calcom/lib";
 import { AppOnboardingSteps } from "@calcom/lib/apps/appOnboardingSteps";
 import { getAppOnboardingUrl } from "@calcom/lib/apps/getAppOnboardingUrl";
+import { shouldRedirectToAppOnboarding } from "@calcom/lib/apps/shouldRedirectToAppOnboarding";
 import useApp from "@calcom/lib/hooks/useApp";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -59,8 +60,7 @@ export default function OmniInstallAppButton({
 
   const appMetadata = appStoreMetadata[app.dirName as keyof typeof appStoreMetadata];
   const hasEventTypes = appMetadata?.extendsFeature == "EventType";
-  const isOAuth = appMetadata?.isOAuth;
-  const redirectToAppOnboarding = hasEventTypes || isOAuth;
+  const redirectToAppOnboarding = shouldRedirectToAppOnboarding(appMetadata);
 
   return (
     <InstallAppButton
