@@ -14,6 +14,12 @@ vi.mock("@calcom/lib/hooks/useLocale", () => ({
   },
 }));
 
+vi.mock("@calcom/platform-atoms", () => ({
+  useIsPlatform: () => {
+    return false;
+  },
+}));
+
 global.ResizeObserver = vi.fn().mockImplementation(() => ({
   observe: vi.fn(),
   unobserve: vi.fn(),
