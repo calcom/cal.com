@@ -24,6 +24,7 @@ export const getHandler = async ({ ctx: _ctx, input }: GetOptions) => {
       secret: true,
       teamId: true,
       userId: true,
+      platform: true,
     },
   });
 };
