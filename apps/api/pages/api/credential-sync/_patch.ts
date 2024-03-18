@@ -3,6 +3,7 @@ import type { NextApiRequest } from "next";
 import { minimumTokenResponseSchema } from "@calcom/app-store/_utils/oauth/parseRefreshTokenResponse";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import { defaultResponder } from "@calcom/lib/server";
+import prisma from "@calcom/prisma";
 
 import { schemaCredentialPatchParams, schemaCredentialPatchBody } from "~/lib/validations/credential-sync";
 
@@ -54,8 +55,6 @@ import { schemaCredentialPatchParams, schemaCredentialPatchBody } from "~/lib/va
  *        description: Credential syncing not enabled
  */
 async function handler(req: NextApiRequest) {
-  const { prisma } = req;
-
   const { userId, credentialId } = schemaCredentialPatchParams.parse(req.query);
 
   const { encryptedKey } = schemaCredentialPatchBody.parse(req.body);

@@ -6,8 +6,10 @@ import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
+import prisma from "@calcom/prisma";
+import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
-import { schemaCredentialPostParams, schemaCredentialPostBody } from "~/lib/validations/credential-sync";
+import { schemaCredentialPostBody, schemaCredentialPostParams } from "~/lib/validations/credential-sync";
 
 /**
  * @swagger
@@ -54,8 +56,6 @@ import { schemaCredentialPostParams, schemaCredentialPostBody } from "~/lib/vali
  *        description: Credential syncing not enabled
  */
 async function handler(req: NextApiRequest) {
-  const { prisma } = req;
-
   if (!req.body) {
     throw new HttpError({ message: "Request body is missing", statusCode: 400 });
   }
@@ -88,26 +88,29 @@ async function handler(req: NextApiRequest) {
 
   const appMetadata = appStoreMetadata[app.dirName as keyof typeof appStoreMetadata];
 
-  const credential = await prisma.credential.create({
+  const createdcredential = await prisma.credential.create({
     data: {
       userId,
       appId: appSlug,
       key,
       type: appMetadata.type,
     },
-    include: {
-      user: {
-        select: {
-          email: true,
-        },
-      },
-    },
+    select: credentialForCalendarServiceSelect,
   });
+  // createdcredential.user.email;
+  // TODO:              ^ Investigate why this select doesn't work.
+  const credential = await prisma.credential.findUniqueOrThrow({
+    where: {
+      id: createdcredential.id,
+    },
+    select: credentialForCalendarServiceSelect,
+  });
+  // ^ Workaround for the select in `create` not working
 
   if (createCalendarResources) {
     const calendar = await getCalendar(credential);
+    if (!calendar) throw new HttpError({ message: "Calendar missing for credential", statusCode: 500 });
     const calendars = await calendar.listCalendars();
-
     const calendarToCreate = calendars.find((calendar) => calendar.primary) || calendars[0];
 
     if (createSelectedCalendar) {
@@ -129,7 +132,7 @@ async function handler(req: NextApiRequest) {
           integration: appMetadata.type,
           externalId: calendarToCreate.externalId,
           credential: { connect: { id: credential.id } },
-          primaryEmail: calendarToCreate.email || credential.user.email,
+          primaryEmail: calendarToCreate.email || credential.user?.email,
           user: { connect: { id: userId } },
         },
       });
