@@ -1,5 +1,6 @@
 import { m } from "framer-motion";
 import dynamic from "next/dynamic";
+import { useEffect } from "react";
 import { shallow } from "zustand/shallow";
 
 import { useEmbedUiConfig, useIsEmbed } from "@calcom/embed-core/embed-iframe";
@@ -8,6 +9,7 @@ import { SeatsAvailabilityText } from "@calcom/features/bookings/components/Seat
 import { EventMetaBlock } from "@calcom/features/bookings/components/event-meta/Details";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { trpc } from "@calcom/trpc/react";
 import { Calendar, Globe, User } from "@calcom/ui/components/icon";
 
 import { fadeInUp } from "../config";
@@ -43,6 +45,20 @@ export const EventMeta = ({
   const embedUiConfig = useEmbedUiConfig();
   const isEmbed = useIsEmbed();
   const hideEventTypeDetails = isEmbed ? embedUiConfig.hideEventTypeDetails : false;
+
+  const { data: eventOwnerDefaultShedule } = trpc.viewer.availability.schedule.get.useQuery({
+    scheduleId: event?.owner?.defaultScheduleId || undefined,
+  });
+
+  useEffect(() => {
+    if (event && event?.lockTimeZoneToggleOnBookingPage) {
+      if (event?.schedule?.timeZone) {
+        setTimezone(event.schedule?.timeZone);
+      } else if (eventOwnerDefaultShedule) {
+        setTimezone(eventOwnerDefaultShedule.timeZone);
+      }
+    }
+  }, [event, setTimezone, eventOwnerDefaultShedule]);
 
   if (hideEventTypeDetails) {
     return null;

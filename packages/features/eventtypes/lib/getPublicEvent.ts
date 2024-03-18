@@ -43,6 +43,7 @@ const userSelect = Prisma.validator<Prisma.UserSelect>()({
       calVideoLogo: true,
     },
   },
+  defaultScheduleId: true,
 });
 
 const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
@@ -105,6 +106,12 @@ const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   },
   owner: {
     select: userSelect,
+  },
+  schedule: {
+    select: {
+      id: true,
+      timeZone: true,
+    },
   },
   hidden: true,
   assignAllTeamMembers: true,
