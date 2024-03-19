@@ -2,6 +2,7 @@ import type { NextApiRequest } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
+import prisma from "@calcom/prisma";
 
 import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransformParseInt";
 
@@ -37,7 +38,7 @@ import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransform
  *        description: Authorization information is missing or invalid.
  */
 export async function deleteHandler(req: NextApiRequest) {
-  const { prisma, query } = req;
+  const { query } = req;
   const { id } = schemaQueryIdParseInt.parse(query);
   await checkPermissions(req);
   await prisma.eventType.delete({ where: { id } });
@@ -45,7 +46,7 @@ export async function deleteHandler(req: NextApiRequest) {
 }
 
 async function checkPermissions(req: NextApiRequest) {
-  const { userId, prisma, isAdmin } = req;
+  const { userId, isAdmin } = req;
   const { id } = schemaQueryIdParseInt.parse(req.query);
   if (isAdmin) return;
   /** Only event type owners can delete it */

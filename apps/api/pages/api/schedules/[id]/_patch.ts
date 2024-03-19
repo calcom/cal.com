@@ -3,6 +3,7 @@ import type { z } from "zod";
 
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
+import prisma from "@calcom/prisma";
 
 import { schemaSchedulePublic, schemaSingleScheduleBodyParams } from "~/lib/validations/schedule";
 import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransformParseInt";
@@ -81,7 +82,7 @@ import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransform
  */
 
 export async function patchHandler(req: NextApiRequest) {
-  const { prisma, query } = req;
+  const { query } = req;
   const { id } = schemaQueryIdParseInt.parse(query);
   const data = schemaSingleScheduleBodyParams.parse(req.body);
   await checkPermissions(req, data);

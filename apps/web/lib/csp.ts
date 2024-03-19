@@ -84,7 +84,14 @@ export function csp(req: IncomingMessage | NextRequest | null, res: OutgoingMess
     const enforced =
       "cache" in req ? req.headers.get("x-csp-enforce") === "true" : req.headers["x-csp-enforce"] === "true";
 
-    const name = enforced ? "Content-Security-Policy" : "Content-Security-Policy-Report-Only";
+    // No need to enable REPORT ONLY mode for CSP unless we start actively working on it. See https://github.com/calcom/cal.com/issues/13844
+    const name = enforced ? "Content-Security-Policy" : /*"Content-Security-Policy-Report-Only"*/ null;
+
+    if (!name) {
+      return {
+        nonce: undefined,
+      };
+    }
 
     const value = getCspPolicy(nonce)
       .replace(/\s{2,}/g, " ")

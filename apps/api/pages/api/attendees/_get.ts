@@ -3,6 +3,7 @@ import type { NextApiRequest } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
+import prisma from "@calcom/prisma";
 
 import { schemaAttendeeReadPublic } from "~/lib/validations/attendee";
 
@@ -30,7 +31,7 @@ import { schemaAttendeeReadPublic } from "~/lib/validations/attendee";
  *         description: No attendees were found
  */
 async function handler(req: NextApiRequest) {
-  const { userId, isAdmin, prisma } = req;
+  const { userId, isAdmin } = req;
   const args: Prisma.AttendeeFindManyArgs = isAdmin ? {} : { where: { booking: { userId } } };
   const data = await prisma.attendee.findMany(args);
   const attendees = data.map((attendee) => schemaAttendeeReadPublic.parse(attendee));

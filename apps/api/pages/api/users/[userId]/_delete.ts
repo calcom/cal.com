@@ -3,6 +3,7 @@ import type { NextApiRequest } from "next";
 import { deleteUser } from "@calcom/features/users/lib/userDeletionService";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
+import prisma from "@calcom/prisma";
 
 import { schemaQueryUserId } from "~/lib/validations/shared/queryUserId";
 
@@ -37,7 +38,7 @@ import { schemaQueryUserId } from "~/lib/validations/shared/queryUserId";
  *        description: Authorization information is missing or invalid.
  */
 export async function deleteHandler(req: NextApiRequest) {
-  const { prisma, isAdmin } = req;
+  const { isAdmin } = req;
   const query = schemaQueryUserId.parse(req.query);
   // Here we only check for ownership of the user if the user is not admin, otherwise we let ADMIN's edit any user
   if (!isAdmin && query.userId !== req.userId) throw new HttpError({ statusCode: 403, message: "Forbidden" });

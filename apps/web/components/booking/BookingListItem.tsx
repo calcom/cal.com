@@ -297,6 +297,8 @@ function BookingListItem(booking: BookingItemProps) {
     },
   ];
 
+  const showPendingPayment = paymentAppData.enabled && booking.payment.length && !booking.paid;
+
   return (
     <>
       <RescheduleDialog
@@ -463,7 +465,7 @@ function BookingListItem(booking: BookingItemProps) {
                   {booking.eventType.team.name}
                 </Badge>
               )}
-              {!!booking?.eventType?.price && !booking.paid && (
+              {showPendingPayment && (
                 <Badge className="ltr:mr-2 rtl:ml-2 sm:hidden" variant="orange">
                   {t("pending_payment")}
                 </Badge>
@@ -490,8 +492,8 @@ function BookingListItem(booking: BookingItemProps) {
                 {title}
                 <span> </span>
 
-                {paymentAppData.enabled && !booking.paid && booking.payment.length && (
-                  <Badge className="me-2 ms-2 hidden sm:inline-flex" variant="orange">
+                {showPendingPayment && (
+                  <Badge className="hidden sm:inline-flex" variant="orange">
                     {t("pending_payment")}
                   </Badge>
                 )}
