@@ -112,16 +112,11 @@ const UserSettings = (props: IUserSettingsProps) => {
       </div>
       <Button
         type="submit"
-        className="mt-8 flex w-full  flex-row justify-center "
+        className="mt-8 flex w-full flex-row justify-center"
+        loading={mutation.isPending}
         disabled={mutation.isPending}>
-        {mutation.isPending ? (
-          <div className="cursor-wait px-[220px] py-2  "> Processing...</div>
-        ) : (
-          <>
-            {t("next_step_text")}
-            <ArrowRight className="ml-2 h-4 w-4 self-center" aria-hidden="true" />
-          </>
-        )}
+        {t("next_step_text")}
+        <ArrowRight className="ml-2 h-4 w-4 self-center" aria-hidden="true" />
       </Button>
     </form>
   );
