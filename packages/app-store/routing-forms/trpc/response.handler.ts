@@ -104,7 +104,7 @@ export const responseHandler = async ({ ctx, input }: ResponseHandlerOptions) =>
             in: settings.sendUpdatesTo,
           },
         },
-        include: {
+        select: {
           user: {
             select: {
               email: true,
