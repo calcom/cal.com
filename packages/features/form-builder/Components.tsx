@@ -436,7 +436,7 @@ export const Components: Record<FieldType, Component> = {
                       />
                       <span className="text-emphasis me-2 ms-2 text-sm">{getCleanLabel(option) ?? ""}</span>
                       <span>
-                        {option.value === "phone" && (
+                        {value?.value === "phone" && option.value === "phone" && (
                           <InfoBadge content={t("number_in_international_format")} />
                         )}
                       </span>

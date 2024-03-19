@@ -197,7 +197,7 @@ export default class EventManager {
         meetingPassword: createdEventObj ? createdEventObj.password : result.createdEvent?.password,
         meetingUrl: createdEventObj ? createdEventObj.onlineMeetingUrl : result.createdEvent?.url,
         externalCalendarId: isCalendarType ? result.externalId : undefined,
-        credentialId: isCalendarTypeOrZoomMeeting ? result.credentialId : undefined,
+        credentialId: isCalendarTypeOrZoomMeeting ? result.credentialId : undefined, // // This is why no reference exists for video
       };
     });
 

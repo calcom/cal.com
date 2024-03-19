@@ -47,13 +47,17 @@ export const FormBuilderField = ({
   field,
   readOnly,
   className,
+  updateLastLocationVal,
+  lastLocationVal,
 }: {
   field: RhfFormFields[number];
   readOnly: boolean;
   className: string;
+  lastLocationVal?: string;
+  updateLastLocationVal?: (val: string) => void;
 }) => {
   const { t } = useLocale();
-  const { control, formState } = useFormContext();
+  const { control, formState, getValues } = useFormContext();
 
   const { hidden, placeholder, label } = getAndUpdateNormalizedValues(field, t);
 
@@ -71,19 +75,42 @@ export const FormBuilderField = ({
                 value={value}
                 readOnly={readOnly}
                 setValue={(val: unknown) => {
-                  onChange(val);
+                  let lastVal = lastLocationVal || value?.optionValue;
+                  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                  const eventVal: any = val;
+
+                  if ((value?.optionValue || eventVal.optionValue) && updateLastLocationVal) {
+                    lastVal = eventVal.optionValue || value?.optionValue;
+                    updateLastLocationVal(`${lastVal}`);
+                  }
+
+                  if (eventVal.value === "phone") {
+                    eventVal.optionValue = lastVal;
+                  }
+                  onChange(eventVal);
                 }}
               />
               <ErrorMessage
                 name="responses"
                 errors={formState.errors}
                 render={({ message }: { message: string | undefined }) => {
+                  if (
+                    message === "{location}invalid_number" &&
+                    formState.dirtyFields?.responses?.location &&
+                    getValues().responses?.location?.value !== "phone"
+                  ) {
+                    return null;
+                  }
                   message = message || "";
                   // If the error comes due to parsing the `responses` object(which can have error for any field), we need to identify the field that has the error from the message
                   const name = message.replace(/\{([^}]+)\}.*/, "$1");
                   const isResponsesErrorForThisField = name === field.name;
                   // If the error comes for the specific property of responses(Possible for system fields), then also we would go ahead and show the error
                   if (!isResponsesErrorForThisField && !error) {
+                    return null;
+                  }
+
+                  if (value?.value && value.value !== "phone" && field.name === "location") {
                     return null;
                   }
 
