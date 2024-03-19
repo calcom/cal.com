@@ -41,6 +41,7 @@ const organizationSelect = {
   name: true,
   metadata: true,
   calVideoLogo: true,
+  bannerUrl: true,
 };
 
 export enum LookupTarget {
