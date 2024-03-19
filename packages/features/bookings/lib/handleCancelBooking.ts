@@ -492,9 +492,12 @@ async function handler(req: CustomRequest) {
     }
   }
 
+  // why is this a find instead of filter like the calendarReference
   const bookingVideoReference = bookingToDelete.references.find((reference) =>
     reference.type.includes("_video")
   );
+
+  console.error({ references: bookingToDelete.references, bookingVideoReference });
 
   // If the video reference has a credentialId find the specific credential
   if (bookingVideoReference && bookingVideoReference.credentialId) {
