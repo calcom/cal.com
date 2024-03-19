@@ -145,7 +145,11 @@ const UserProfile = () => {
         />
         <p className="text-default mt-2 font-sans text-sm font-normal">{t("few_sentences_about_yourself")}</p>
       </fieldset>
-      <Button EndIcon={ArrowRight} type="submit" className="mt-8 w-full items-center justify-center">
+      <Button
+        loading={mutation.isPending}
+        EndIcon={ArrowRight}
+        type="submit"
+        className="mt-8 w-full items-center justify-center">
         {t("finish")}
       </Button>
     </form>
