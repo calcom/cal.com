@@ -46,7 +46,7 @@ export const EventMeta = ({
   const hideEventTypeDetails = isEmbed ? embedUiConfig.hideEventTypeDetails : false;
 
   useEffect(() => {
-    //In case event has lockTimeZone enabled ,set the timezone to event's attached availability timezone
+    //In case the event has lockTimeZone enabled ,set the timezone to event's attached availability timezone
     if (event && event?.lockTimeZoneToggleOnBookingPage && event?.schedule?.timeZone) {
       setTimezone(event.schedule?.timeZone);
     }

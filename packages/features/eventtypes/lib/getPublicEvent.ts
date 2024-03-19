@@ -259,7 +259,7 @@ export const getPublicEvent = async (
   if (users === null) {
     throw new Error("Event has no owner");
   }
-  //In case event schedule is not defined ,use event owner's default schedule
+  //In case the event schedule is not defined ,use the event owner's default schedule
   if (!eventWithUserProfiles.schedule && eventWithUserProfiles.owner) {
     const eventOwnerDefaultSchedule = await prisma.schedule.findUnique({
       where: {
