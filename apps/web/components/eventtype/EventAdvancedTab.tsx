@@ -208,7 +208,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
               />
             </div>
           )}
-          {!useEventTypeDestinationCalendarEmail && verifiedSecondaryEmails.length > 0 && (
+          {!useEventTypeDestinationCalendarEmail && verifiedSecondaryEmails.length > 1 && !team && (
             <div className={cx("flex w-full flex-col", displayDestinationCalendarSelector && "pl-11")}>
               <SelectField
                 placeholder={
