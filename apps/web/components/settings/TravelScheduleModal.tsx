@@ -32,11 +32,12 @@ const TravelScheduleModal = ({
   existingSchedules,
 }: TravelScheduleModalProps) => {
   const { t } = useLocale();
+  const { timezone: preferredTimezone } = useTimePreferences();
 
   const [startDate, setStartDate] = useState<Date>(new Date());
   const [endDate, setEndDate] = useState<Date | undefined>(new Date());
 
-  const [selectedTimeZone, setSelectedTimeZone] = useState(useTimePreferences().timezone);
+  const [selectedTimeZone, setSelectedTimeZone] = useState(preferredTimezone);
   const [isNoEndDate, setIsNoEndDate] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -64,6 +65,13 @@ const TravelScheduleModal = ({
     }
   };
 
+  const resetValues = () => {
+    setStartDate(new Date());
+    setEndDate(new Date());
+    setSelectedTimeZone(preferredTimezone);
+    setIsNoEndDate(false);
+  };
+
   const createNewSchedule = () => {
     const newSchedule = {
       startDate,
@@ -74,6 +82,7 @@ const TravelScheduleModal = ({
     if (!isOverlapping(newSchedule)) {
       setValue("travelSchedules", existingSchedules.concat(newSchedule), { shouldDirty: true });
       onOpenChange();
+      resetValues();
     } else {
       setErrorMessage(t("overlaps_with_existing_schedule"));
     }
