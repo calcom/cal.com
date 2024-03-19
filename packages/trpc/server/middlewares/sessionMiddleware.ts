@@ -71,7 +71,6 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
       allowDynamicBooking: true,
       allowSEOIndexing: true,
       receiveMonthlyDigestEmail: true,
-      travelSchedules: true,
     },
   });
 
