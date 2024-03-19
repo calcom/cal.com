@@ -66,6 +66,7 @@ export interface App {
     | `${string}_other`
     | `${string}_automation`
     | `${string}_analytics`
+    | `${string}_crm`
     | `${string}_other_calendar`;
 
   /**
