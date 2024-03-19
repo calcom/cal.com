@@ -252,7 +252,7 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
                               )}`
                             : ``
                         }`}</div>
-                        <div className="text-subtle">{schedule.timeZone}</div>
+                        <div className="text-subtle">{schedule.timeZone.replace(/_/g, " ")}</div>
                       </div>
                       <Button
                         color="secondary"

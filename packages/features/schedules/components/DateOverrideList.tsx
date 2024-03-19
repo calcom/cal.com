@@ -68,12 +68,14 @@ const DateOverrideList = ({
                 <p key={i} className="text-subtle text-xs">
                   {`${timeSpan(range)} ${
                     isDefaultSchedule
-                      ? travelSchedules.find(
-                          (travelSchedule) =>
-                            !dayjs(item.ranges[0].start).isBefore(travelSchedule.startDate) &&
-                            (!dayjs(item.ranges[0].end).isAfter(travelSchedule.endDate) ||
-                              !travelSchedule.endDate)
-                        )?.timeZone || ""
+                      ? travelSchedules
+                          .find(
+                            (travelSchedule) =>
+                              !dayjs(item.ranges[0].start).isBefore(travelSchedule.startDate) &&
+                              (!dayjs(item.ranges[0].end).isAfter(travelSchedule.endDate) ||
+                                !travelSchedule.endDate)
+                          )
+                          ?.timeZone.replace(/_/g, " ") || ""
                       : ""
                   }`}
                   <></>
