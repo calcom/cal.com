@@ -15,6 +15,7 @@ export const _WebhookModel = z.object({
   eventTriggers: z.nativeEnum(WebhookTriggerEvents).array(),
   appId: z.string().nullish(),
   secret: z.string().nullish(),
+  platform: z.boolean(),
 })
 
 export interface CompleteWebhook extends z.infer<typeof _WebhookModel> {
