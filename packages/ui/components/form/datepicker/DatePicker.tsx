@@ -23,9 +23,9 @@ const DatePicker = ({ minDate, disabled, date, onDatesChange, className }: Props
       )}
       calendarClassName="rounded-md"
       clearIcon={null}
-      calendarIcon={<Calendar className="text-subtle h-4 w-4" />}
+      calendarIcon={<Calendar className="text-subtle h-5 w-5 rounded-md" />}
       value={date}
-      disabled={disabled || false}
+      disabled={disabled}
       onChange={onDatesChange}
     />
   );
