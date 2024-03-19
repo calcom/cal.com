@@ -61,7 +61,7 @@ export default function AppleCalendarSetup() {
                   });
                   const json = await res.json();
                   if (!res.ok) {
-                    setErrorMessage(json?.message || t("something_went_wrong"));
+                    setErrorMessage(t(json?.message) || t("something_went_wrong"));
                   } else {
                     router.push(json.url);
                   }
