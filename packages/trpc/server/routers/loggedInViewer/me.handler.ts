@@ -79,7 +79,6 @@ export const meHandler = async ({ ctx }: MeOptions) => {
     username: user.profile?.username ?? user.username ?? null,
     profile: user.profile ?? null,
     profiles: allUserEnrichedProfiles,
-    travelSchedules: user.travelSchedules,
     secondaryEmails,
   };
 };
