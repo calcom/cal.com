@@ -283,23 +283,10 @@ if (isSAMLLoginEnabled) {
       email?: string;
       locale?: string;
     }) => {
-      let user = await UserRepository.findByEmailAndIncludeProfilesAndPassword({
+      const user = await UserRepository.findByEmailAndIncludeProfilesAndPassword({
         email: profile.email || "",
       });
-      if (!user) {
-        const hostedCal = Boolean(HOSTED_CAL_FEATURES);
-        if (hostedCal && profile.email) {
-          const domain = getDomainFromEmail(profile.email);
-          const organizationId = await getOrganizationIdByDomain(domain);
-          organizationId
-            ? await createUsersAndConnectToOrg({ emailsToCreate: [profile?.email], organizationId })
-            : [];
-          user = await UserRepository.findByEmailAndIncludeProfilesAndPassword({
-            email: profile.email,
-          });
-        }
-        if (!user) throw new Error(ErrorCode.UserNotFound);
-      }
+      if (!user) throw new Error(ErrorCode.UserNotFound);
 
       const [userProfile] = user.allProfiles;
       return {
@@ -369,17 +356,22 @@ if (isSAMLLoginEnabled) {
           if (hostedCal && email) {
             const domain = getDomainFromEmail(email);
             const organizationId = await getOrganizationIdByDomain(domain);
-            organizationId
-              ? await createUsersAndConnectToOrg({ emailsToCreate: [email], organizationId })
-              : [];
-            user = await UserRepository.findByEmailAndIncludeProfilesAndPassword({
-              email: email,
-            });
+            if (organizationId) {
+              const createUsersAndConnectToOrgProps = {
+                emailsToCreate: [email],
+                organizationId,
+                identityProvider: IdentityProvider.SAML,
+                identityProviderId: email,
+              };
+              await createUsersAndConnectToOrg(createUsersAndConnectToOrgProps);
+              user = await UserRepository.findByEmailAndIncludeProfilesAndPassword({
+                email: email,
+              });
+            }
           }
           if (!user) throw new Error(ErrorCode.UserNotFound);
         }
         const [userProfile] = user?.allProfiles;
-
         return {
           id: id as unknown as number,
           firstName,

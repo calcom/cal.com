@@ -101,7 +101,7 @@ const tabs: VerticalTabItemProps[] = [
         href: "/settings/organizations/billing",
       },
       {
-        name: "sso",
+        name: "SSO",
         href: "/settings/organizations/sso",
       },
       {
