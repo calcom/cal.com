@@ -2,6 +2,7 @@ import type { Prisma } from "@prisma/client";
 import type { NextApiRequest } from "next";
 
 import { defaultResponder } from "@calcom/lib/server";
+import prisma from "@calcom/prisma";
 
 import { membershipIdSchema, schemaMembershipPublic } from "~/lib/validations/membership";
 
@@ -34,7 +35,7 @@ import { membershipIdSchema, schemaMembershipPublic } from "~/lib/validations/me
  *         description: Membership was not found
  */
 export async function getHandler(req: NextApiRequest) {
-  const { prisma, query } = req;
+  const { query } = req;
   const userId_teamId = membershipIdSchema.parse(query);
   const args: Prisma.MembershipFindUniqueOrThrowArgs = { where: { userId_teamId } };
   // Just in case the user want to get more info about the team itself

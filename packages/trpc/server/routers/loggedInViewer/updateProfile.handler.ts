@@ -43,15 +43,17 @@ export const uploadAvatar = async ({ userId, avatar: data }: { userId: number; a
 
   await prisma.avatar.upsert({
     where: {
-      teamId_userId: {
+      teamId_userId_isBanner: {
         teamId: 0,
         userId,
+        isBanner: false,
       },
     },
     create: {
       userId: userId,
       data,
       objectKey,
+      isBanner: false,
     },
     update: {
       data,
@@ -102,6 +104,9 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
         throw new TRPCError({ code: "BAD_REQUEST", message: t("username_already_taken") });
       }
     }
+  } else if (input.username && user.organizationId && user.movedToProfileId) {
+    // don't change user.username if we have profile.username
+    delete data.username;
   }
 
   if (isPremiumUsername) {
@@ -168,7 +173,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
         // Set metadata of the user so we can set it to this updated email once it is confirmed
         data.metadata = {
           ...userMetadata,
-          emailChangeWaitingForVerification: input.email,
+          emailChangeWaitingForVerification: input.email?.toLocaleLowerCase(),
         };
 
         // Check to ensure this email isnt in use

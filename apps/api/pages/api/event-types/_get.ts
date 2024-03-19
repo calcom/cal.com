@@ -2,6 +2,7 @@ import type { NextApiRequest } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
+import prisma from "@calcom/prisma";
 import type { PrismaClient } from "@calcom/prisma";
 
 import { schemaEventTypeReadPublic } from "~/lib/validations/event-type";
@@ -42,7 +43,7 @@ import getCalLink from "./_utils/getCalLink";
  *         description: No event types were found
  */
 async function getHandler(req: NextApiRequest) {
-  const { userId, prisma, isAdmin } = req;
+  const { userId, isAdmin } = req;
   const userIds = req.query.userId ? extractUserIdsFromQuery(req) : [userId];
   const { slug } = schemaQuerySlug.parse(req.query);
   const shouldUseUserId = !isAdmin || !slug || !!req.query.userId;

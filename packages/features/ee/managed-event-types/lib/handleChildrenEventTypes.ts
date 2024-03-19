@@ -1,4 +1,5 @@
 import type { Prisma } from "@prisma/client";
+// eslint-disable-next-line no-restricted-imports
 import type { DeepMockProxy } from "vitest-mock-extended";
 
 import { sendSlugReplacementEmail } from "@calcom/emails/email-manager";
@@ -121,7 +122,7 @@ export default async function handleChildrenEventTypes({
     bookingFields: _EventTypeModel.shape.bookingFields.nullish(),
   });
 
-  const allManagedEventTypePropsZod = _ManagedEventTypeModel.pick(allManagedEventTypeProps); //FIXME
+  const allManagedEventTypePropsZod = _ManagedEventTypeModel.pick(allManagedEventTypeProps);
   const managedEventTypeValues = allManagedEventTypePropsZod
     .omit(unlockedManagedEventTypeProps)
     .parse(eventType);
@@ -169,7 +170,6 @@ export default async function handleChildrenEventTypes({
       userIds: newUserIds,
       teamName: oldEventType.team?.name ?? null,
     });
-
     // Create event types for new users added
     await prisma.$transaction(
       newUserIds.map((userId) => {
@@ -220,6 +220,28 @@ export default async function handleChildrenEventTypes({
       teamName: oldEventType.team?.name || null,
     });
 
+    const { unlockedFields } = managedEventTypeValues.metadata?.managedEventConfig;
+    const unlockedFieldProps = !unlockedFields
+      ? {}
+      : Object.keys(unlockedFields).reduce((acc, key) => {
+          const filteredKey =
+            key === "afterBufferTime"
+              ? "afterEventBuffer"
+              : key === "beforeBufferTime"
+              ? "beforeEventBuffer"
+              : key;
+          // @ts-expect-error Element implicitly has any type
+          acc[filteredKey] = true;
+          return acc;
+        }, {});
+
+    // Add to payload all eventType values that belong to locked fields, changed or unchanged
+    // Ignore from payload any eventType values that belong to unlocked fields
+    const updatePayload = allManagedEventTypePropsZod.omit(unlockedFieldProps).parse(eventType);
+    const updatePayloadFiltered = Object.entries(updatePayload)
+      .filter(([key, _]) => key !== "children")
+      .reduce((newObj, [key, value]) => ({ ...newObj, [key]: value }), {});
+    console.log({ unlockedFieldProps });
     // Update event types for old users
     const oldEventTypes = await prisma.$transaction(
       oldUserIds.map((userId) => {
@@ -231,9 +253,8 @@ export default async function handleChildrenEventTypes({
             },
           },
           data: {
-            ...updatedValues,
-            hashedLink: hashedLinkQuery(userId),
-            hidden: children?.find((ch) => ch.owner.id === userId)?.hidden ?? false,
+            ...updatePayloadFiltered,
+            hashedLink: "hashedLink" in unlockedFieldProps ? undefined : hashedLinkQuery(userId),
           },
         });
       })

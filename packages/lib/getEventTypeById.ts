@@ -133,6 +133,11 @@ export default async function getEventTypeById({
           parent: {
             select: {
               slug: true,
+              organizationSettings: {
+                select: {
+                  lockEventTypeCreationForUsers: true,
+                },
+              },
             },
           },
           members: {

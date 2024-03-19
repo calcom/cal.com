@@ -3,6 +3,8 @@ import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import type { Props as SelectProps } from "react-timezone-select";
 import { vi } from "vitest";
 
+import dayjs from "@calcom/dayjs";
+
 import { TimezoneSelect } from "./TimezoneSelect";
 
 const cityTimezonesMock = [
@@ -32,14 +34,13 @@ const runtimeMock = async (isPending: boolean) => {
   mockedLib.trpc = updatedTrcp;
 };
 
-const optionMockValues = [
-  "America/Dawson GMT -8:00",
-  "Pacific/Honolulu GMT -10:00",
-  "America/Juneau GMT -9:00",
-  "America/Toronto GMT -5:00",
-];
+const formatOffset = (offset: string) =>
+  offset.replace(/^([-+])(0)(\d):00$/, (_, sign, _zero, hour) => `${sign}${hour}:00`);
+const formatTimeZoneWithOffset = (timeZone: string) =>
+  `${timeZone} GMT ${formatOffset(dayjs.tz(undefined, timeZone).format("Z"))}`;
 
 const timezoneMockValues = ["America/Dawson", "Pacific/Honolulu", "America/Juneau", "America/Toronto"];
+const optionMockValues = timezoneMockValues.map(formatTimeZoneWithOffset);
 
 const classNames = {
   singleValue: () => "test1",

@@ -1,6 +1,7 @@
 import type { NextApiRequest } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
+import prisma from "@calcom/prisma";
 
 /**
  * Checks if a user, identified by the provided userId, is a member of the team associated
@@ -13,7 +14,7 @@ import { HttpError } from "@calcom/lib/http-error";
  *                     or if the user isn't a member of the associated team.
  */
 export default async function checkUserMembership(req: NextApiRequest) {
-  const { prisma, body } = req;
+  const { body } = req;
   /** These are already parsed upstream, we can assume they're good here. */
   const parentId = Number(body.parentId);
   const userId = Number(body.userId);

@@ -2,6 +2,7 @@ import type { Prisma } from "@prisma/client";
 import type { NextApiRequest } from "next";
 
 import { defaultResponder } from "@calcom/lib/server";
+import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "~/lib/helpers/withMiddleware";
 import { schemaQuerySingleOrMultipleUserEmails } from "~/lib/validations/shared/queryUserEmail";
@@ -44,7 +45,6 @@ import { schemaUsersReadPublic } from "~/lib/validations/user";
 export async function getHandler(req: NextApiRequest) {
   const {
     userId,
-    prisma,
     isAdmin,
     pagination: { take, skip },
   } = req;

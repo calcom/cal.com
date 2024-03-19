@@ -3,6 +3,7 @@ import type { NextApiRequest } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
+import prisma from "@calcom/prisma";
 
 import { schemaSelectedCalendarPublic } from "~/lib/validations/selected-calendar";
 import { schemaQuerySingleOrMultipleUserIds } from "~/lib/validations/shared/queryUserId";
@@ -31,7 +32,7 @@ import { schemaQuerySingleOrMultipleUserIds } from "~/lib/validations/shared/que
  *         description: No selected calendars were found
  */
 async function getHandler(req: NextApiRequest) {
-  const { userId, isAdmin, prisma } = req;
+  const { userId, isAdmin } = req;
   /* Admin gets all selected calendar by default, otherwise only the user's ones */
   const args: Prisma.SelectedCalendarFindManyArgs = isAdmin ? {} : { where: { userId } };
 
