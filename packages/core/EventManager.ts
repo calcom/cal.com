@@ -328,7 +328,8 @@ export default class EventManager {
     event: CalendarEvent,
     rescheduleUid: string,
     newBookingId?: number,
-    changedOrganizer?: boolean
+    changedOrganizer?: boolean,
+    newDestinationCalendar?: DestinationCalendar[] | null
   ): Promise<CreateUpdateResult> {
     const originalEvt = processLocation(event);
     const evt = cloneDeep(originalEvt);
@@ -387,6 +388,10 @@ export default class EventManager {
         await this.deleteEventsAndMeetings({ booking, event });
 
         log.debug("RescheduleOrganizerChanged: Creating Event and Meeting for for new booking");
+
+        // After Deleting the events and meetings, we need to create new events on the new host calendar.
+        originalEvt.destinationCalendar = newDestinationCalendar;
+        event.destinationCalendar = newDestinationCalendar;
 
         const createdEvent = await this.create(originalEvt);
         results.push(...createdEvent.results);
