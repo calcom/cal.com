@@ -95,7 +95,10 @@ export default class EventManager {
     // This includes all calendar-related apps, traditional calendars such as Google Calendar
     // (type google_calendar) and non-traditional calendars such as CRMs like Close.com
     // (type closecom_other_calendar)
-    this.calendarCredentials = appCredentials.filter((cred) => cred.type.endsWith("_calendar"));
+    this.calendarCredentials = appCredentials.filter(
+      // Backwards compatibility until CRM manager is implemented
+      (cred) => cred.type.endsWith("_calendar") || cred.type.endsWith("_crm")
+    );
     this.videoCredentials = appCredentials
       .filter((cred) => cred.type.endsWith("_video") || cred.type.endsWith("_conferencing"))
       // Whenever a new video connection is added, latest credentials are added with the highest ID.
