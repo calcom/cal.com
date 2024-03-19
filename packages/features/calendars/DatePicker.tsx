@@ -301,7 +301,7 @@ const DatePicker = ({
           </div>
         ))}
       </div>
-      <div className="relative grid grid-cols-7 gap-1 text-center">
+      <div className="relative grid grid-cols-7 grid-rows-6 gap-1 text-center">
         <Days
           weekStart={weekStart}
           selected={selected}

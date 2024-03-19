@@ -2,6 +2,7 @@ import type { Prisma } from "@prisma/client";
 import type { NextApiRequest } from "next";
 
 import { defaultResponder } from "@calcom/lib/server";
+import prisma from "@calcom/prisma";
 
 import {
   schemaBookingEditBodyParams,
@@ -59,7 +60,7 @@ import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransform
  *        description: Authorization information is missing or invalid.
  */
 export async function patchHandler(req: NextApiRequest) {
-  const { prisma, query, body, isAdmin, userId } = req;
+  const { query, body, isAdmin, userId } = req;
   const { id } = schemaQueryIdParseInt.parse(query);
   const data = schemaBookingEditBodyParams.parse(body);
   /* If user tries to update bookingId, we run extra checks */

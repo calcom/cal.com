@@ -3,6 +3,7 @@ import type { NextApiRequest } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
+import prisma from "@calcom/prisma";
 
 import {
   schemaSelectedCalendarBodyParams,
@@ -49,7 +50,7 @@ import {
  *        description: Authorization information is missing or invalid.
  */
 async function postHandler(req: NextApiRequest) {
-  const { userId, isAdmin, prisma } = req;
+  const { userId, isAdmin } = req;
   const { userId: bodyUserId, ...body } = schemaSelectedCalendarBodyParams.parse(req.body);
   const args: Prisma.SelectedCalendarCreateArgs = { data: { ...body, userId } };
 
