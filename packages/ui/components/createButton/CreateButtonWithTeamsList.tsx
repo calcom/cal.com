@@ -1,15 +1,19 @@
 import { trpc } from "@calcom/trpc/react";
 
-import type { CreateBtnProps } from "./CreateButton";
+import type { CreateBtnProps, Option } from "./CreateButton";
 import { CreateButton } from "./CreateButton";
 
 export function CreateButtonWithTeamsList(
-  props: Omit<CreateBtnProps, "options"> & { onlyShowWithTeams?: boolean; onlyShowWithNoTeams?: boolean }
+  props: Omit<CreateBtnProps, "options"> & {
+    onlyShowWithTeams?: boolean;
+    onlyShowWithNoTeams?: boolean;
+    isAdmin?: boolean;
+  }
 ) {
   const query = trpc.viewer.teamsAndUserProfilesQuery.useQuery();
   if (!query.data) return null;
 
-  const teamsAndUserProfiles = query.data
+  const teamsAndUserProfiles: Option[] = query.data
     .filter((profile) => !profile.readOnly)
     .map((profile) => {
       return {
@@ -19,6 +23,16 @@ export function CreateButtonWithTeamsList(
         slug: profile.slug,
       };
     });
+
+  if (props.isAdmin) {
+    teamsAndUserProfiles.push({
+      platform: true,
+      label: "Platform",
+      image: null,
+      slug: null,
+      teamId: null,
+    });
+  }
 
   if (props.onlyShowWithTeams && teamsAndUserProfiles.length < 2) return null;
 
