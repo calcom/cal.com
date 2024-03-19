@@ -29,6 +29,15 @@ export const listHandler = async ({ ctx }: ListHandlerInput) => {
     },
   });
 
+  const organizationSettings = await ctx.prisma.organizationSettings.findUnique({
+    where: {
+      organizationId: ctx.user.organization.id,
+    },
+    select: {
+      lockEventTypeCreationForUsers: true,
+    },
+  });
+
   if (!membership) {
     throw new TRPCError({
       code: "BAD_REQUEST",
@@ -39,6 +48,9 @@ export const listHandler = async ({ ctx }: ListHandlerInput) => {
   const metadata = teamMetadataSchema.parse(membership?.team.metadata);
 
   return {
+    organizationSettings: {
+      lockEventTypeCreationForUsers: organizationSettings?.lockEventTypeCreationForUsers,
+    },
     user: {
       role: membership?.role,
       accepted: membership?.accepted,
