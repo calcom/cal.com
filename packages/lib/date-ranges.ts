@@ -15,14 +15,15 @@ type TravelSchedule = { startDate: Dayjs; endDate?: Dayjs; timeZone: string };
 function getAdjustedTimezone(date: Dayjs, timeZone: string, travelSchedules: TravelSchedule[]) {
   let adjustedTimezone = timeZone;
 
-  travelSchedules.forEach((travelSchedule) => {
+  for (const travelSchedule of travelSchedules) {
     if (
       !date.isBefore(travelSchedule.startDate) &&
       (!travelSchedule.endDate || !date.isAfter(travelSchedule.endDate))
     ) {
       adjustedTimezone = travelSchedule.timeZone;
+      break;
     }
-  });
+  }
   return adjustedTimezone;
 }
 
