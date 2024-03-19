@@ -328,7 +328,8 @@ export default class EventManager {
     rescheduleUid: string,
     newBookingId?: number,
     changedOrganizer?: boolean,
-    newDestinationCalendar?: DestinationCalendar[] | null
+    newDestinationCalendar?: DestinationCalendar[] | null,
+    locationSuppliedByUser?: string
   ): Promise<CreateUpdateResult> {
     const originalEvt = processLocation(event);
     const evt = cloneDeep(originalEvt);
@@ -394,17 +395,33 @@ export default class EventManager {
         bookingReferenceChangedOrganizer.push(...createdEvent.referencesToCreate);
       } else {
         // If the reschedule doesn't require confirmation, we can "update" the events and meetings to new time.
-        const isDedicated = evt.location ? isDedicatedIntegration(evt.location) : null;
+        const isDedicated = locationSuppliedByUser?.includes("zoom")
+          ? true
+          : evt.location
+          ? isDedicatedIntegration(evt.location)
+          : null;
         // If and only if event type is a dedicated meeting, update the dedicated video meeting.
         if (isDedicated) {
-          const result = await this.updateVideoEvent(evt, booking);
-          const [updatedEvent] = Array.isArray(result.updatedEvent)
-            ? result.updatedEvent
-            : [result.updatedEvent];
+          let result;
+          if (locationSuppliedByUser?.includes("zoom") && !evt?.location?.includes("zoom")) {
+            log.debug("case where user supplies zoom for a non zoom initial meeting");
+            evt.location = locationSuppliedByUser;
+            result = await this.createVideoEvent(evt);
+            if (result?.createdEvent) {
+              evt.videoCallData = result.createdEvent;
+              evt.location = result.originalEvent.location;
+              result.type = result.createdEvent.type;
+            }
+          } else {
+            result = await this.updateVideoEvent(evt, booking);
+            const [updatedEvent] = Array.isArray(result.updatedEvent)
+              ? result.updatedEvent
+              : [result.updatedEvent];
 
-          if (updatedEvent) {
-            evt.videoCallData = updatedEvent;
-            evt.location = updatedEvent.url;
+            if (updatedEvent) {
+              evt.videoCallData = updatedEvent;
+              evt.location = updatedEvent.url;
+            }
           }
           results.push(result);
         }

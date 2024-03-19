@@ -1748,12 +1748,15 @@ async function handler(
       evt.videoCallData = undefined;
     }
 
+    const locationSuppliedByUser = location;
+    log.debug("locationSuppliedByUser", location);
     const updateManager = await eventManager.reschedule(
       evt,
       originalRescheduledBooking.uid,
       undefined,
       changedOrganizer,
-      newDestinationCalendar
+      newDestinationCalendar,
+      locationSuppliedByUser
     );
 
     // This gets overridden when updating the event - to check if notes have been hidden or not. We just reset this back
