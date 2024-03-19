@@ -72,20 +72,26 @@ const SkeletonLoader = ({ title, description }: { title: string; description: st
 interface GeneralViewProps {
   localeProp: string;
   user: RouterOutputs["viewer"]["me"];
+  travelSchedules: RouterOutputs["viewer"]["getTravelSchedules"];
 }
 
 const GeneralQueryView = () => {
   const { t } = useLocale();
 
   const { data: user, isPending } = trpc.viewer.me.useQuery();
-  if (isPending) return <SkeletonLoader title={t("general")} description={t("general_description")} />;
+
+  const { data: travelSchedules, isPending: isPendingTravelSchedules } =
+    trpc.viewer.getTravelSchedules.useQuery();
+
+  if (isPending || isPendingTravelSchedules)
+    return <SkeletonLoader title={t("general")} description={t("general_description")} />;
   if (!user) {
     throw new Error(t("something_went_wrong"));
   }
-  return <GeneralView user={user} localeProp={user.locale} />;
+  return <GeneralView user={user} travelSchedules={travelSchedules || []} localeProp={user.locale} />;
 };
 
-const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
+const GeneralView = ({ localeProp, user, travelSchedules }: GeneralViewProps) => {
   const utils = trpc.useContext();
   const {
     t,
@@ -146,7 +152,7 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
         label: nameOfDay(localeProp, user.weekStart === "Sunday" ? 0 : 1),
       },
       travelSchedules:
-        user.travelSchedules.map((schedule) => {
+        travelSchedules.map((schedule) => {
           return {
             id: schedule.id,
             startDate: schedule.startDate,
