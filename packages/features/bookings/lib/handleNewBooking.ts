@@ -371,7 +371,7 @@ export async function ensureAvailableUsers(
         user,
         eventType,
         rescheduleUid: input.originalRescheduledBooking?.uid ?? null,
-        busyTimesFromLimitsBookings: busyTimesFromLimitsBookingsAllUsers.filter((b) => b.userId === user.id),
+        busyTimesFromLimitsBookings: busyTimesFromLimitsBookingsAllUsers,
       }
     );
 

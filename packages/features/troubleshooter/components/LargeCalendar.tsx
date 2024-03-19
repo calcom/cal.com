@@ -41,6 +41,7 @@ export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
     eventId: event?.id,
     timezone,
     month: startDate.format("YYYY-MM"),
+    orgSlug: session?.user.org?.slug,
   });
 
   const endDate = dayjs(startDate)

@@ -1123,6 +1123,7 @@
   "connect_apple_server": "Connect to Apple Server",
   "calendar_url": "Calendar URL",
   "apple_server_generate_password": "Generate an app specific password to use with {{appName}} at",
+  "unable_to_add_apple_calendar":"Unable to add this Apple Calendar account. Please ensure you're using an app-specific password rather than your account password.",
   "credentials_stored_encrypted": "Your credentials will be stored and encrypted.",
   "it_stored_encrypted": "It will be stored and encrypted.",
   "go_to_app_store": "Go to App Store",
