@@ -44,6 +44,7 @@ const userSelect = Prisma.validator<Prisma.UserSelect>()({
       bannerUrl: true,
     },
   },
+  defaultScheduleId: true,
 });
 
 const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
@@ -106,6 +107,12 @@ const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   },
   owner: {
     select: userSelect,
+  },
+  schedule: {
+    select: {
+      id: true,
+      timeZone: true,
+    },
   },
   hidden: true,
   assignAllTeamMembers: true,
@@ -253,7 +260,19 @@ export const getPublicEvent = async (
   if (users === null) {
     throw new Error("Event has no owner");
   }
-
+  //In case the event schedule is not defined ,use the event owner's default schedule
+  if (!eventWithUserProfiles.schedule && eventWithUserProfiles.owner?.defaultScheduleId) {
+    const eventOwnerDefaultSchedule = await prisma.schedule.findUnique({
+      where: {
+        id: eventWithUserProfiles.owner?.defaultScheduleId,
+      },
+      select: {
+        id: true,
+        timeZone: true,
+      },
+    });
+    eventWithUserProfiles.schedule = eventOwnerDefaultSchedule;
+  }
   return {
     ...eventWithUserProfiles,
     bookerLayouts: bookerLayoutsSchema.parse(eventMetaData?.bookerLayouts || null),
