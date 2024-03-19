@@ -64,7 +64,7 @@ export function UserPage(props: InferGetServerSidePropsType<typeof getServerSide
   }
 
   const isEventListEmpty = eventTypes.length === 0;
-  const isOrg = true; // todo orgSlug && maybe?
+  const isOrg = !!user?.profile?.organization;
 
   return (
     <>
