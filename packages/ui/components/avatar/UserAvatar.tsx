@@ -23,14 +23,26 @@ type UserAvatarProps = Omit<React.ComponentProps<typeof Avatar>, "alt" | "imageS
   alt?: string | null;
 };
 
+const indicatorBySize = {
+  xxs: "hidden", // 14px
+  xs: "hidden", // 16px
+  xsm: "hidden", // 20px
+  sm: "h-3 w-3", // 24px
+  md: "h-4 w-4", // 32px
+  mdLg: "h-5 w-5", //40px
+  lg: "h-6 w-6", // 64px
+  xl: "h-10 w-10", // 96px
+} as const;
+
 function OrganizationIndicator({
   size,
   organization,
   user,
 }: Pick<UserAvatarProps, "size" | "user"> & { organization: Organization }) {
   const organizationUrl = organization.logoUrl ?? getOrgAvatarUrl(organization);
+  const indicatorSize = size && indicatorBySize[size];
   return (
-    <div className={classNames("absolute bottom-0 right-0 z-10", size === "lg" ? "h-6 w-6" : "h-10 w-10")}>
+    <div className={classNames("absolute bottom-0 right-0 z-10", indicatorSize)}>
       <img
         data-testid="organization-logo"
         src={organizationUrl}
