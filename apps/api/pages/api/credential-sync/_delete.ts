@@ -1,6 +1,7 @@
 import type { NextApiRequest } from "next";
 
 import { defaultResponder } from "@calcom/lib/server";
+import prisma from "@calcom/prisma";
 
 import { schemaCredentialDeleteParams } from "~/lib/validations/credential-sync";
 
@@ -40,12 +41,7 @@ import { schemaCredentialDeleteParams } from "~/lib/validations/credential-sync"
  *        description: Credential syncing not enabled
  */
 async function handler(req: NextApiRequest) {
-  const { prisma } = req;
-
-  const { userId: reqUserId, credentialId: reqCredentialId } = schemaCredentialDeleteParams.parse(req.query);
-
-  const userId = parseInt(reqUserId);
-  const credentialId = parseInt(reqCredentialId);
+  const { userId, credentialId } = schemaCredentialDeleteParams.parse(req.query);
 
   const credential = await prisma.credential.delete({
     where: {
