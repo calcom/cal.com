@@ -216,7 +216,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
             />
           </div>
         )}
-        {!useEventTypeDestinationCalendarEmail && verifiedSecondaryEmails.length > 0 && (
+        {!useEventTypeDestinationCalendarEmail && verifiedSecondaryEmails.length > 1 && !team && (
           <div className="w-full">
             <SelectField
               label={t("send_event_details_to")}
