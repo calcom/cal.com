@@ -1,6 +1,8 @@
 import type { DestinationCalendar } from "@prisma/client";
 // eslint-disable-next-line no-restricted-imports
 import { cloneDeep, merge } from "lodash";
+// eslint-disable-next-line no-restricted-imports
+import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 import type { z } from "zod";
 
@@ -37,6 +39,7 @@ const log = logger.getSubLogger({ prefix: ["EventManager"] });
 export const isDedicatedIntegration = (location: string): boolean => {
   return location !== MeetLocationType && location.includes("integrations:");
 };
+const translator = short();
 
 export const getLocationRequestFromIntegration = (location: string) => {
   const eventLocationType = getEventLocationTypeFromApp(location);
@@ -184,6 +187,8 @@ export default class EventManager {
         thirdPartyRecurringEventId = result.createdEvent?.thirdPartyRecurringEventId;
       }
 
+      const isCalendarTypeOrZoomMeeting = isCalendarType || result.type === "zoom_video";
+
       return {
         type: result.type,
         uid: createdEventObj ? createdEventObj.id : result.createdEvent?.id?.toString() ?? "",
@@ -192,7 +197,7 @@ export default class EventManager {
         meetingPassword: createdEventObj ? createdEventObj.password : result.createdEvent?.password,
         meetingUrl: createdEventObj ? createdEventObj.onlineMeetingUrl : result.createdEvent?.url,
         externalCalendarId: isCalendarType ? result.externalId : undefined,
-        credentialId: isCalendarType ? result.credentialId : undefined,
+        credentialId: isCalendarTypeOrZoomMeeting ? result.credentialId : undefined,
       };
     });
 
@@ -403,10 +408,16 @@ export default class EventManager {
         // If and only if event type is a dedicated meeting, update the dedicated video meeting.
         if (isDedicated) {
           let result;
-          if (locationSuppliedByUser?.includes("zoom") && !evt?.location?.includes("zoom")) {
+          const zoomBookingRef = booking
+            ? booking.references.filter((ref) => ref.type === "zoom_video")[0]
+            : null;
+
+          if (locationSuppliedByUser?.includes("zoom") && !zoomBookingRef) {
             log.debug("case where user supplies zoom for a non zoom initial meeting");
             evt.location = locationSuppliedByUser;
             result = await this.createVideoEvent(evt);
+            const uid = translator.fromUUID(uuidv5(JSON.stringify(evt), uuidv5.URL));
+            result.uid = uid;
             if (result?.createdEvent) {
               evt.videoCallData = result.createdEvent;
               evt.location = result.originalEvent.location;
