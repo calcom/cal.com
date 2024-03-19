@@ -16,6 +16,7 @@ import {
 import { Plus } from "@calcom/ui/components/icon";
 
 export interface Option {
+  platform?: boolean;
   teamId: number | null | undefined; // if undefined, then it's a profile
   label: string | null;
   image: string | null;
@@ -25,7 +26,7 @@ export interface Option {
 export type CreateBtnProps = {
   options: Option[];
   createDialog?: () => JSX.Element;
-  createFunction?: (teamId?: number) => void;
+  createFunction?: (teamId?: number, platform?: boolean) => void;
   subtitle?: string;
   buttonText?: string;
   isPending?: boolean;
@@ -56,6 +57,7 @@ export function CreateButton(props: CreateBtnProps) {
   const CreateDialog = createDialog ? createDialog() : null;
 
   const hasTeams = !!options.find((option) => option.teamId);
+  const platform = !!options.find((option) => option.platform);
 
   // inject selection data into url for correct router history
   const openModal = (option: Option) => {
@@ -74,7 +76,7 @@ export function CreateButton(props: CreateBtnProps) {
 
   return (
     <>
-      {!hasTeams ? (
+      {!hasTeams && !platform ? (
         <Button
           onClick={() =>
             !!CreateDialog
@@ -118,7 +120,7 @@ export function CreateButton(props: CreateBtnProps) {
                     !!CreateDialog
                       ? openModal(option)
                       : createFunction
-                      ? createFunction(option.teamId || undefined)
+                      ? createFunction(option.teamId || undefined, option.platform)
                       : null
                   }>
                   {" "}
