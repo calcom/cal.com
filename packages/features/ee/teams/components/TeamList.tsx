@@ -15,7 +15,7 @@ interface Props {
 }
 
 export default function TeamList(props: Props) {
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
 
   const { t } = useLocale();
 
@@ -56,7 +56,6 @@ export default function TeamList(props: Props) {
           setHideDropdown={setHideDropdown}
         />
       ))}
-
       {/* only show recommended steps when there is only one team */}
       {!props.pending && props.teams.length === 1 && (
         <>
