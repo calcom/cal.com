@@ -116,7 +116,6 @@ export default async function getEventTypeById({
       owner: {
         select: {
           id: true,
-          defaultScheduleId: true,
         },
       },
       parent: {
@@ -167,7 +166,6 @@ export default async function getEventTypeById({
         select: {
           id: true,
           name: true,
-          timeZone: true,
         },
       },
       hosts: {

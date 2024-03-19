@@ -259,7 +259,19 @@ export const getPublicEvent = async (
   if (users === null) {
     throw new Error("Event has no owner");
   }
-
+  //In case event schedule is not defined ,use event owner's default schedule
+  if (!eventWithUserProfiles.schedule && eventWithUserProfiles.owner) {
+    const eventOwnerDefaultSchedule = await prisma.schedule.findUnique({
+      where: {
+        id: eventWithUserProfiles.owner?.defaultScheduleId || undefined,
+      },
+      select: {
+        id: true,
+        timeZone: true,
+      },
+    });
+    eventWithUserProfiles.schedule = eventOwnerDefaultSchedule;
+  }
   return {
     ...eventWithUserProfiles,
     bookerLayouts: bookerLayoutsSchema.parse(eventMetaData?.bookerLayouts || null),
