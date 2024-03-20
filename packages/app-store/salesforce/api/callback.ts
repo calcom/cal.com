@@ -8,6 +8,7 @@ import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import createOAuthAppCredential from "../../_utils/oauth/createOAuthAppCredential";
 import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
+import appConfig from "../config.json";
 
 let consumer_key = "";
 let consumer_secret = "";
@@ -38,11 +39,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const salesforceTokenInfo = await conn.oauth2.requestToken(code as string);
 
-  await createOAuthAppCredential(
-    { appId: "salesforce", type: "salesforce_other_calendar" },
-    salesforceTokenInfo,
-    req
-  );
+  await createOAuthAppCredential({ appId: appConfig.slug, type: appConfig.type }, salesforceTokenInfo, req);
 
   const state = decodeOAuthState(req);
   res.redirect(

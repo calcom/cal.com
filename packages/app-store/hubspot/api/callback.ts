@@ -9,6 +9,7 @@ import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import createOAuthAppCredential from "../../_utils/oauth/createOAuthAppCredential";
 import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
+import metadata from "../_metadata";
 
 let client_id = "";
 let client_secret = "";
@@ -47,7 +48,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // set expiry date as offset from current time.
   hubspotToken.expiryDate = Math.round(Date.now() + hubspotToken.expiresIn * 1000);
 
-  await createOAuthAppCredential({ appId: "hubspot", type: "hubspot_other_calendar" }, hubspotToken, req);
+  await createOAuthAppCredential({ appId: metadata.slug, type: metadata.type }, hubspotToken, req);
 
   const state = decodeOAuthState(req);
   res.redirect(
