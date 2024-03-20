@@ -2,6 +2,7 @@
 
 import { useReducer } from "react";
 
+import getAppCategoryTitle from "@calcom/app-store/_utils/getAppCategoryTitle";
 import DisconnectIntegrationModal from "@calcom/features/apps/components/DisconnectIntegrationModal";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -69,13 +70,7 @@ const IntegrationsContainer = ({
       customLoader={<SkeletonLoader />}
       success={({ data }) => {
         if (!data.items.length) {
-          const emptyHeaderCategory = (() => {
-            if (variant) {
-              return variant === "crm" ? t("crm") : t(variant).toLowerCase();
-            } else {
-              return t("other").toLowerCase();
-            }
-          })();
+          const emptyHeaderCategory = getAppCategoryTitle(variant || "other", true);
 
           return (
             <EmptyScreen
