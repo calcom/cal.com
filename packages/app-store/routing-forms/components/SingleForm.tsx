@@ -245,9 +245,6 @@ type SingleFormComponentProps = {
 function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleFormComponentProps) {
   const utils = trpc.useContext();
   const { t } = useLocale();
-  const { data: teamMembers } = form.teamId
-    ? trpc.viewer.teams.listMembers.useQuery({ teamIds: [form.teamId] })
-    : { data: [] };
 
   const [isTestPreviewOpen, setIsTestPreviewOpen] = useState(false);
   const [response, setResponse] = useState<Response>({});
@@ -301,9 +298,9 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
   }, [form]);
 
   useEffect(() => {
-    if (form.teamId && form.settings?.sendUpdatesTo?.length && teamMembers?.length) {
+    if (form.teamId && form.settings?.sendUpdatesTo?.length && form.teamMembers?.length) {
       let sendToAll = true;
-      teamMembers.forEach((member) => {
+      form.teamMembers.forEach((member) => {
         if (!form.settings?.sendUpdatesTo?.includes(member.id)) {
           sendToAll = false;
           return;
@@ -318,7 +315,7 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
         }))
       );
     }
-  }, [form.teamId, form.settings?.sendUpdatesTo?.length, teamMembers?.length]);
+  }, [form.teamId, form.settings?.sendUpdatesTo?.length, form.teamMembers?.length]);
 
   const mutation = trpc.viewer.appRoutingForms.formMutation.useMutation({
     onSuccess() {
@@ -385,7 +382,7 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
                   <div className="mt-6">
                     {form.teamId ? (
                       <AddMembersWithSwitch
-                        teamMembers={(teamMembers || []).map((member) => ({
+                        teamMembers={form.teamMembers.map((member) => ({
                           value: member.id.toString(),
                           label: member.name || "",
                           avatar: member.avatarUrl || "",
@@ -409,7 +406,7 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
                         onActive={() => {
                           hookForm.setValue(
                             "settings.sendUpdatesTo",
-                            (teamMembers || []).map((teamMember) => teamMember.id),
+                            form.teamMembers.map((teamMember) => teamMember.id),
                             { shouldDirty: true }
                           );
                           hookForm.setValue("settings.emailOwnerOnSubmission", false, { shouldDirty: true });

@@ -58,6 +58,25 @@ export async function getSerializableForm<TForm extends App_RoutingForms_Form>({
     description: f.description,
   }));
   const finalFields = fields;
+  let teamMembers = [];
+  if (form.teamId) {
+    teamMembers = await prisma.user.findMany({
+      where: {
+        teams: {
+          some: {
+            teamId: form.teamId,
+            accepted: true,
+          },
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        avatarUrl: true,
+      },
+    });
+  }
 
   // Ideally we should't have needed to explicitly type it but due to some reason it's not working reliably with VSCode TypeCheck
   const serializableForm: SerializableForm<TForm> = {
@@ -67,6 +86,7 @@ export async function getSerializableForm<TForm extends App_RoutingForms_Form>({
     routes,
     routers,
     connectedForms,
+    teamMembers,
     createdAt: form.createdAt.toString(),
     updatedAt: form.updatedAt.toString(),
   };
