@@ -75,6 +75,7 @@ function Component({ webhookId }: { webhookId: string }) {
               webhooks,
               teamId: webhook.teamId ?? undefined,
               userId: webhook.userId ?? undefined,
+              platform: webhook.platform ?? undefined,
             })
           ) {
             showToast(t("webhook_subscriber_url_reserved"), "error");

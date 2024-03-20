@@ -1,6 +1,7 @@
 import type { NextApiRequest } from "next";
 
 import { defaultResponder } from "@calcom/lib/server";
+import prisma from "@calcom/prisma";
 
 import { schemaCredentialGetParams } from "~/lib/validations/credential-sync";
 
@@ -34,8 +35,6 @@ import { schemaCredentialGetParams } from "~/lib/validations/credential-sync";
  *        description: Credential syncing not enabled
  */
 async function handler(req: NextApiRequest) {
-  const { prisma } = req;
-
   const { appSlug, userId } = schemaCredentialGetParams.parse(req.query);
 
   let credentials = await prisma.credential.findMany({
