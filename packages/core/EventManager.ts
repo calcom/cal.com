@@ -383,7 +383,7 @@ export default class EventManager {
       // As the reschedule requires confirmation, we can't update the events and meetings to new time yet. So, just delete them and let it be handled when organizer confirms the booking.
       await this.deleteEventsAndMeetings({
         booking,
-        event,
+        event: { ...event, destinationCalendar: previousHostDestinationCalendar },
       });
     } else {
       if (changedOrganizer) {
