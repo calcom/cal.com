@@ -66,7 +66,7 @@ const createUsersAndConnectToOrg = async (
       userId: user.id,
       // The username is already set when creating the user
       username: user.username!,
-      organizationId: organizationId,
+      organizationId,
     })),
   });
 
