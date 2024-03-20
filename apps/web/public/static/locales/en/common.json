@@ -2318,6 +2318,8 @@
   "org_delete_event_types_org_admin":"All of your members individual event types (except managed ones) will be permanently deleted. They will not be able to create new ones",
   "org_hide_event_types_org_admin":"Your members individual event types will be hidden (except managed ones) from profiles but the links will still be active. They will not be able to create new ones.  ",
   "hide_org_eventtypes":"Hide individual event types",
+  "scheduler_first_name": "The first name of the person booking",
+  "organizer_first_name": "Your first name",
   "delete_org_eventtypes":"Delete individual event types",
   "lock_org_users_eventtypes":"Lock individual event type creation",
   "lock_org_users_eventtypes_description":"Prevent members from creating their own event types.",

@@ -69,8 +69,16 @@ const CustomEventTypeModalForm: FC<CustomEventTypeModalFormProps> = (props) => {
             <p className="text-emphasis">{t("your_full_name")}</p>
           </div>
           <div className="mb-2.5 flex font-normal">
+            <p className="text-subtle ml-1 mr-5 w-28">{`{Organiser first name}`}</p>
+            <p className="text-emphasis">{t("organizer_first_name")}</p>
+          </div>
+          <div className="mb-2.5 flex font-normal">
             <p className="text-subtle ml-1 mr-5 w-28">{`{Scheduler}`}</p>
             <p className="text-emphasis">{t("scheduler_full_name")}</p>
+          </div>
+          <div className="mb-2.5 flex font-normal">
+            <p className="text-subtle ml-1 mr-5 w-28">{`{Scheduler first name}`}</p>
+            <p className="text-emphasis">{t("scheduler_first_name")}</p>
           </div>
           <div className="mb-1 flex font-normal">
             <p className="text-subtle ml-1 mr-5 w-28">{`{Location}`}</p>
