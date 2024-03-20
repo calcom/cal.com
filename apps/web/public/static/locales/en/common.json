@@ -2190,6 +2190,8 @@
   "access_bookings": "Read, edit, delete your bookings",
   "allow_client_to_do": "Allow {{clientName}} to do this?",
   "oauth_access_information": "By clicking allow, you allow this app to use your information in accordance with their terms of service and privacy policy. You can remove access in the {{appName}} App Store.",
+  "oauth_form_title":"OAuth client creation form",
+  "oauth_form_description":"This is the form to create a new OAuth client",
   "allow": "Allow",
   "view_only_edit_availability_not_onboarded": "This user has not completed onboarding. You will not be able to set their availability until they have completed onboarding.",
   "view_only_edit_availability": "You are viewing this user's availability. You can only edit your own availability.",
