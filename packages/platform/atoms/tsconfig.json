@@ -1,0 +1,21 @@
+{
+  "extends": "@calcom/tsconfig/react-library.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "~/*": ["/*"],
+      "@/*": ["./src/*"]
+    },
+    "resolveJsonModule": true,
+    "outDir": "./dist"
+  },
+  "include": [
+    ".",
+    "../../types/next-auth.d.ts",
+    "../../types/next.d.ts",
+    "../../types/@wojtekmaj__react-daterange-picker.d.ts",
+    "../../types/business-days-plugin.d.ts",
+    "../../types/window.d.ts"
+  ],
+  "exclude": ["dist", "build", "node_modules"]
+}

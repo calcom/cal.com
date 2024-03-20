@@ -234,8 +234,9 @@ export async function createNewUsersConnectToOrgIfExists({
   // fail if we have invalid emails
   usernamesOrEmails.forEach((usernameOrEmail) => checkInputEmailIsValid(usernameOrEmail));
   // from this point we know usernamesOrEmails contains only emails
-  await prisma.$transaction(
+  const createdUsers = await prisma.$transaction(
     async (tx) => {
+      const createdUsers = [];
       for (let index = 0; index < usernamesOrEmails.length; index++) {
         const usernameOrEmail = usernamesOrEmails[index];
         // Weird but orgId is defined only if the invited user email matches orgAutoAcceptEmail
@@ -296,10 +297,13 @@ export async function createNewUsersConnectToOrgIfExists({
             },
           });
         }
+        createdUsers.push(createdUser);
       }
+      return createdUsers;
     },
     { timeout: 10000 }
   );
+  return createdUsers;
 }
 
 export async function createMemberships({

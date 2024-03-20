@@ -19,6 +19,12 @@ generator zod {
   relationModel = "default"
 }
 
+generator kysely {
+  provider = "prisma-kysely"
+  output   = "../kysely"
+  fileName = "types.ts"
+}
+
 generator enums {
   provider = "ts-node --transpile-only ./enum-generator"
 }
@@ -285,11 +291,15 @@ model User {
   bookingRedirectsTo   OutOfOfficeEntry[]      @relation(name: "toUser")
 
   // Used to lock the user account
-  locked           Boolean          @default(false)
-  profiles         Profile[]
-  movedToProfileId Int?
-  movedToProfile   Profile?         @relation("moved_to_profile", fields: [movedToProfileId], references: [id], onDelete: SetNull)
-  secondaryEmails  SecondaryEmail[]
+  locked                     Boolean                      @default(false)
+  platformOAuthClients       PlatformOAuthClient[]
+  AccessToken                AccessToken[]
+  RefreshToken               RefreshToken[]
+  PlatformAuthorizationToken PlatformAuthorizationToken[]
+  profiles                   Profile[]
+  movedToProfileId           Int?
+  movedToProfile             Profile?                     @relation("moved_to_profile", fields: [movedToProfileId], references: [id], onDelete: SetNull)
+  secondaryEmails            SecondaryEmail[]
 
   @@unique([email])
   @@unique([email, username])
@@ -368,6 +378,7 @@ model Team {
   orgProfiles           Profile[]
   pendingPayment        Boolean                 @default(false)
   dsyncTeamGroupMapping DSyncTeamGroupMapping[]
+  platformOAuthClient   PlatformOAuthClient[]
 
   @@unique([slug, parentId])
   @@index([parentId])
@@ -1150,6 +1161,74 @@ model OutOfOfficeEntry {
   @@index([userId])
   @@index([toUserId])
   @@index([start, end])
+}
+
+// Platform
+model PlatformOAuthClient {
+  id             String   @id @default(cuid())
+  name           String
+  secret         String // auth secret?
+  permissions    Int
+  users          User[]
+  logo           String?
+  redirectUris   String[] @map("redirect_uris")
+  organizationId Int      @map("organization_id")
+  organization   Team     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  accessTokens        AccessToken[]
+  refreshToken        RefreshToken[]
+  authorizationTokens PlatformAuthorizationToken[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map(name: "platform_oauth_clients")
+}
+
+model PlatformAuthorizationToken {
+  id String @id @default(cuid())
+
+  owner  User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  client PlatformOAuthClient @relation(fields: [platformOAuthClientId], references: [id], onDelete: Cascade)
+
+  platformOAuthClientId String @map("platform_oauth_client_id")
+  userId                Int    @map("user_id")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([userId, platformOAuthClientId])
+  @@map("platform_authorization_token")
+}
+
+model AccessToken {
+  id Int @id @default(autoincrement())
+
+  secret    String   @unique
+  createdAt DateTime @default(now()) @map("created_at")
+  expiresAt DateTime @map("expires_at")
+
+  owner  User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  client PlatformOAuthClient @relation(fields: [platformOAuthClientId], references: [id], onDelete: Cascade)
+
+  platformOAuthClientId String @map("platform_oauth_client_id")
+  userId                Int    @map("user_id")
+
+  @@map("platform_access_tokens")
+}
+
+model RefreshToken {
+  id Int @id @default(autoincrement())
+
+  secret    String   @unique
+  createdAt DateTime @default(now()) @map("created_at")
+  expiresAt DateTime @map("expires_at")
+
+  owner  User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  client PlatformOAuthClient @relation(fields: [platformOAuthClientId], references: [id], onDelete: Cascade)
+
+  platformOAuthClientId String @map("platform_oauth_client_id")
+  userId                Int    @map("user_id")
+
+  @@map("platform_refresh_token")
 }
 
 model DSyncData {
