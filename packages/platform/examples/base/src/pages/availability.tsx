@@ -1,7 +1,7 @@
 import { Navbar } from "@/components/Navbar";
 import { Inter } from "next/font/google";
 
-import { AvailabilitySettings } from "@calcom/platform-atoms";
+import { AvailabilitySettings } from "@calcom/atoms";
 
 const inter = Inter({ subsets: ["latin"] });
 
