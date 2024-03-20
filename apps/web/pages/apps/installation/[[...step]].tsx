@@ -29,15 +29,15 @@ import type {
   PersonalAccountProps,
   TeamsProp,
   onSelectParams,
-} from "@components/apps/onboarding/AccountsStepCard";
-import { AccountsStepCard } from "@components/apps/onboarding/AccountsStepCard";
-import type { ConfigureEventTypeProp } from "@components/apps/onboarding/ConfigureStepCard";
-import { ConfigureStepCard } from "@components/apps/onboarding/ConfigureStepCard";
-import type { EventTypeProp } from "@components/apps/onboarding/EventTypesStepCard";
-import { EventTypesStepCard } from "@components/apps/onboarding/EventTypesStepCard";
-import { OAuthStepCard } from "@components/apps/onboarding/OAuthStepCard";
-import { StepFooter } from "@components/apps/onboarding/StepFooter";
-import { StepHeader } from "@components/apps/onboarding/StepHeader";
+} from "@components/apps/installation/AccountsStepCard";
+import { AccountsStepCard } from "@components/apps/installation/AccountsStepCard";
+import type { ConfigureEventTypeProp } from "@components/apps/installation/ConfigureStepCard";
+import { ConfigureStepCard } from "@components/apps/installation/ConfigureStepCard";
+import type { EventTypeProp } from "@components/apps/installation/EventTypesStepCard";
+import { EventTypesStepCard } from "@components/apps/installation/EventTypesStepCard";
+import { OAuthStepCard } from "@components/apps/installation/OAuthStepCard";
+import { StepFooter } from "@components/apps/installation/StepFooter";
+import { StepHeader } from "@components/apps/installation/StepHeader";
 
 type TFormType = {
   metadata: z.infer<typeof EventTypeMetaDataSchema>;

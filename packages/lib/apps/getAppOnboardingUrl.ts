@@ -23,5 +23,5 @@ export const getAppOnboardingUrl = ({
   }
   const query = stringify(params);
 
-  return `/apps/onboarding/${step}?${query}`;
+  return `/apps/installation/${step}?${query}`;
 };
