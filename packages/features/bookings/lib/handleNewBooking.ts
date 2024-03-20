@@ -1747,31 +1747,30 @@ async function handler(
 
     evt = addVideoCallDataToEvent(originalRescheduledBooking.references, evt);
 
-    // When RR host is changed don't use the original booking's calendar, use the new organizer's calendar instead.
-    const newDestinationCalendar = evt.destinationCalendar;
-
-    // For collective bookings
-    evt.destinationCalendar = originalRescheduledBooking?.destinationCalendar
+    // If organizer is changed in RR event then we need to delete the previous host destination calendar events
+    const previousHostDestinationCalendar = originalRescheduledBooking?.destinationCalendar
       ? [originalRescheduledBooking?.destinationCalendar]
-      : evt.destinationCalendar;
+      : [];
 
     if (changedOrganizer) {
       evt.title = getEventName(eventNameObject);
       // location might changed and will be new created in eventManager.create (organizer default location)
       evt.videoCallData = undefined;
+      // To prevent "The requested identifier already exists" error while updating event, we need to remove iCalUID
+      evt.iCalUID = undefined;
+    } else {
+      // In case of rescheduling, we need to keep the previous host destination calendar
       evt.destinationCalendar = originalRescheduledBooking?.destinationCalendar
         ? [originalRescheduledBooking?.destinationCalendar]
-        : [];
+        : evt.destinationCalendar;
     }
 
-    // newDestinationCalendar stores the new host destination calendar (when organizer is changed)
-    // evt.destinationCalendar still stores previous host destination calendar (to delete events by deleteEventsAndMeetings function)
     const updateManager = await eventManager.reschedule(
       evt,
       originalRescheduledBooking.uid,
       undefined,
       changedOrganizer,
-      newDestinationCalendar
+      previousHostDestinationCalendar
     );
 
     // This gets overridden when updating the event - to check if notes have been hidden or not. We just reset this back

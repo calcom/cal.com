@@ -329,7 +329,7 @@ export default class EventManager {
     rescheduleUid: string,
     newBookingId?: number,
     changedOrganizer?: boolean,
-    newDestinationCalendar?: DestinationCalendar[] | null
+    previousHostDestinationCalendar?: DestinationCalendar[] | null
   ): Promise<CreateUpdateResult> {
     const originalEvt = processLocation(event);
     const evt = cloneDeep(originalEvt);
@@ -381,17 +381,19 @@ export default class EventManager {
     if (evt.requiresConfirmation) {
       log.debug("RescheduleRequiresConfirmation: Deleting Event and Meeting for previous booking");
       // As the reschedule requires confirmation, we can't update the events and meetings to new time yet. So, just delete them and let it be handled when organizer confirms the booking.
-      await this.deleteEventsAndMeetings({ booking, event });
+      await this.deleteEventsAndMeetings({
+        booking,
+        event,
+      });
     } else {
       if (changedOrganizer) {
         log.debug("RescheduleOrganizerChanged: Deleting Event and Meeting for previous booking");
-        await this.deleteEventsAndMeetings({ booking, event });
+        await this.deleteEventsAndMeetings({
+          booking,
+          event: { ...event, destinationCalendar: previousHostDestinationCalendar },
+        });
 
         log.debug("RescheduleOrganizerChanged: Creating Event and Meeting for for new booking");
-
-        // After Deleting the events and meetings, we need to create new events on the new host calendar.
-        originalEvt.destinationCalendar = newDestinationCalendar;
-        event.destinationCalendar = newDestinationCalendar;
 
         const createdEvent = await this.create(originalEvt);
         results.push(...createdEvent.results);
@@ -457,14 +459,14 @@ export default class EventManager {
     const videoReferences = booking.references.filter((reference) => reference.type.includes("_video"));
     log.debug("deleteEventsAndMeetings", safeStringify({ calendarReferences, videoReferences }));
     const calendarPromises = calendarReferences.map(async (bookingCalendarReference) => {
-      return await this.deleteCalendarEventForBookingReference({
+      return this.deleteCalendarEventForBookingReference({
         bookingCalendarReference,
         event,
       });
     });
 
     const videoPromises = videoReferences.map(async (bookingVideoReference) => {
-      return await this.deleteVideoEventForBookingReference({
+      return this.deleteVideoEventForBookingReference({
         bookingVideoReference,
       });
     });
