@@ -46,7 +46,7 @@ const SAMLSSO = () => {
     </div>
   ) : (
     <div className="py-5">
-      <span className="text-default text-sm">{t("only_owner_change")}</span>
+      <span className="text-default text-sm">{t("only_admin_can_manage_sso_org")}</span>
     </div>
   );
 };
