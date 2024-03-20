@@ -7,7 +7,7 @@ import { getMultipleDurationValue } from "@calcom/features/bookings/lib/get-book
 import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import slugify from "@calcom/lib/slugify";
-import { Booker } from "@calcom/platform-atoms";
+import { Booker } from "@calcom/platform-atoms/web";
 import prisma from "@calcom/prisma";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";

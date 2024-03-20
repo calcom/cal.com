@@ -12,7 +12,7 @@ import { createBooking, createRecurringBooking, createInstantBooking } from "@ca
 import { getFullName } from "@calcom/features/form-builder/utils";
 import { useBookingSuccessRedirect } from "@calcom/lib/bookingSuccessRedirect";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { useHandleBookEvent } from "@calcom/platform-atoms";
+import { useHandleBookEvent } from "@calcom/platform-atoms/web";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc";

@@ -5,7 +5,7 @@ import { withErrorFromUnknown } from "@calcom/lib/getClientErrorFromUnknown";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
-import { AvailabilitySettings } from "@calcom/platform-atoms";
+import { AvailabilitySettings } from "@calcom/platform-atoms/web";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import type { Schedule as ScheduleType, TimeRange } from "@calcom/types/schedule";

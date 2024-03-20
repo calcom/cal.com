@@ -7,7 +7,7 @@ import { getEventLocationType, getTranslatedLocation } from "@calcom/app-store/l
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import invertLogoOnDark from "@calcom/lib/invertLogoOnDark";
-import { useIsPlatform } from "@calcom/platform-atoms";
+import { useIsPlatform } from "@calcom/platform-atoms/web";
 import { Tooltip } from "@calcom/ui";
 import { Link } from "@calcom/ui/components/icon";
 import { Video } from "@calcom/ui/components/icon";

@@ -1,4 +1,4 @@
-import { useIsPlatform } from "@calcom/platform-atoms";
+import { useIsPlatform } from "@calcom/platform-atoms/web";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { UserAvatarGroup, UserAvatarGroupWithOrg } from "@calcom/ui";
 

@@ -4,7 +4,7 @@ import { useSearchParams } from "next/navigation";
 
 import { getBookerWrapperClasses } from "@calcom/features/bookings/Booker/utils/getBookerWrapperClasses";
 import { BookerSeo } from "@calcom/features/bookings/components/BookerSeo";
-import { Booker } from "@calcom/platform-atoms";
+import { Booker } from "@calcom/platform-atoms/web";
 
 import { type PageProps } from "./users-type-public-view.getServerSideProps";
 

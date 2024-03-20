@@ -9,7 +9,7 @@ import { SeatsAvailabilityText } from "@calcom/features/bookings/components/Seat
 import { EventMetaBlock } from "@calcom/features/bookings/components/event-meta/Details";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Timezone as PlatformTimezoneSelect } from "@calcom/platform-atoms";
+import { Timezone as PlatformTimezoneSelect } from "@calcom/platform-atoms/web";
 import { Calendar, Globe, User } from "@calcom/ui/components/icon";
 
 import { fadeInUp } from "../config";

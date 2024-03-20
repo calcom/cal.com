@@ -24,16 +24,16 @@
   "files": [
     "dist"
   ],
-  "main": "index.ts",
-  "module": "index.ts",
+  "main": "./dist/cal-atoms.umd.cjs",
+  "module": "./dist/cal-atoms.js",
   "exports": {
     ".": {
-      "import": "./index.ts",
-      "require": "./index.ts"
+      "require": "./dist/cal-atoms.umd.cjs",
+      "import": "./dist/cal-atoms.js"
     },
-    "./components": {
-      "import": "./dist/cal-atoms.js",
-      "require": "./dist/cal-atoms.umd.cjs"
+    "./web": {
+      "import": "./web.ts",
+      "require": "./web.ts"
     },
     "./dist/globals.min.css": "./globals.min.css",
     "./dist/index.ts": "./index.ts"
