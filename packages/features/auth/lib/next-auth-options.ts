@@ -665,7 +665,6 @@ export const AUTH_OPTIONS: AuthOptions = {
       }
 
       if (!user.name) {
-        // fails here for SAML SP initiated login as it doens't have a name. Perhaps a good idea to set username as name prior to onboarding, and this should get sorted.
         return false;
       }
       if (account?.provider) {
