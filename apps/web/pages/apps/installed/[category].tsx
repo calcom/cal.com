@@ -69,11 +69,19 @@ const IntegrationsContainer = ({
       customLoader={<SkeletonLoader />}
       success={({ data }) => {
         if (!data.items.length) {
+          const emptyHeaderCategory = (() => {
+            if (variant) {
+              return variant === "crm" ? t("crm") : t(variant).toLowerCase();
+            } else {
+              return t("other").toLowerCase();
+            }
+          })();
+
           return (
             <EmptyScreen
               Icon={emptyIcon[variant || "other"]}
               headline={t("no_category_apps", {
-                category: (variant && t(variant).toLowerCase()) || t("other").toLowerCase(),
+                category: emptyHeaderCategory,
               })}
               description={t(`no_category_apps_description_${variant || "other"}`)}
               buttonRaw={
