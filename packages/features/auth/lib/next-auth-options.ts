@@ -460,7 +460,6 @@ export const AUTH_OPTIONS: AuthOptions = {
       account,
     }) {
       log.debug("callbacks:jwt", safeStringify({ token, user, account, trigger, session }));
-
       // The data available in 'session' depends on what data was supplied in update method call of session
       if (trigger === "update") {
         return {
@@ -649,7 +648,6 @@ export const AUTH_OPTIONS: AuthOptions = {
       if (account?.provider === "email") {
         return true;
       }
-
       // In this case we've already verified the credentials in the authorize
       // callback so we can sign the user in.
       // Only if provider is not saml-idp
@@ -662,15 +660,14 @@ export const AUTH_OPTIONS: AuthOptions = {
           return false;
         }
       }
-
       if (!user.email) {
         return false;
       }
 
       if (!user.name) {
+        // fails here for SAML SP initiated login as it doens't have a name. Perhaps a good idea to set username as name prior to onboarding, and this should get sorted.
         return false;
       }
-
       if (account?.provider) {
         const idP: IdentityProvider = mapIdentityProvider(account.provider);
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -766,6 +763,7 @@ export const AUTH_OPTIONS: AuthOptions = {
         // If there's no existing user for this identity provider and id, create
         // a new account. If an account already exists with the incoming email
         // address return an error for now.
+
         const existingUserWithEmail = await prisma.user.findFirst({
           where: {
             email: {

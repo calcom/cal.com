@@ -23,9 +23,14 @@ const createUsersAndConnectToOrg = async (
     data: emailsToCreate.map((email) => {
       const [emailUser, emailDomain] = email.split("@");
       const username = slugify(`${emailUser}-${emailDomain.split(".")[0]}`);
+      const name = username
+        .split("-")
+        .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+        .join(" ");
       return {
         username,
         email,
+        name,
         // Assume verified since coming from directory
         verified: true,
         emailVerified: new Date(),
