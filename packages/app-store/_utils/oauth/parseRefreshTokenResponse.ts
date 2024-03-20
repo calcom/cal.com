@@ -2,13 +2,20 @@ import { z } from "zod";
 
 import { APP_CREDENTIAL_SHARING_ENABLED } from "@calcom/lib/constants";
 
-const minimumTokenResponseSchema = z.object({
-  access_token: z.string(),
-  //   Assume that any property with a number is the expiry
-  [z.string().toString()]: z.number(),
-  //   Allow other properties in the token response
-  [z.string().optional().toString()]: z.unknown().optional(),
-});
+export const minimumTokenResponseSchema = z
+  .object({
+    access_token: z.string(),
+  })
+  .passthrough()
+  .superRefine((tokenObject, ctx) => {
+    if (!Object.values(tokenObject).some((value) => typeof value === "number")) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          "Missing a field that defines a token expiry date. Check the specific app package to see how token expiry is defined.",
+      });
+    }
+  });
 
 export type ParseRefreshTokenResponse<S extends z.ZodTypeAny> =
   | z.infer<S>

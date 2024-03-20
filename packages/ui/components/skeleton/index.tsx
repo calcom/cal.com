@@ -13,6 +13,10 @@ interface SkeletonContainer {
   className?: string;
 }
 
+type SkeletonLoaderProps = {
+  className: string;
+};
+
 const SkeletonAvatar: React.FC<SkeletonBaseProps> = ({ className }) => {
   return <div className={classNames(`bg-emphasis me-3 mt-1 rounded-full`, className)} />;
 };
@@ -92,5 +96,22 @@ const SkeletonContainer: React.FC<SkeletonContainer> = ({ children, as, classNam
   return <Component className={classNames("animate-pulse", className)}>{children}</Component>;
 };
 
-export { Skeleton, SkeletonAvatar, SkeletonText, SkeletonButton, SkeletonContainer };
+const SelectSkeletonLoader: React.FC<SkeletonLoaderProps> = ({ className }) => {
+  return (
+    <li
+      className={classNames(
+        "border-subtle group flex w-full items-center justify-between rounded-sm border px-[10px] py-3",
+        className
+      )}>
+      <div className="flex-grow truncate text-sm">
+        <div className="flex justify-between">
+          <SkeletonText className="h-4 w-32" />
+          <SkeletonText className="h-4 w-4" />
+        </div>
+      </div>
+    </li>
+  );
+};
+
+export { Skeleton, SkeletonAvatar, SkeletonText, SkeletonButton, SkeletonContainer, SelectSkeletonLoader };
 export { default as Loader } from "./Loader";

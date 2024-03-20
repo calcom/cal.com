@@ -1,10 +1,9 @@
+import type { SchedulingType } from "@prisma/client";
 import type { ErrorOption, FieldPath } from "react-hook-form";
 
 import type { BookingCreateBody } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import type { AppsStatus } from "@calcom/types/Calendar";
-
-import type { SchedulingType } from ".prisma/client";
 
 export type PublicEvent = NonNullable<RouterOutputs["viewer"]["public"]["event"]>;
 export type ValidationErrors<T extends object> = { key: FieldPath<T>; error: ErrorOption }[];

@@ -7,8 +7,10 @@ import { getEventLocationType, getTranslatedLocation } from "@calcom/app-store/l
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import invertLogoOnDark from "@calcom/lib/invertLogoOnDark";
+import { useIsPlatform } from "@calcom/platform-atoms";
 import { Tooltip } from "@calcom/ui";
 import { Link } from "@calcom/ui/components/icon";
+import { Video } from "@calcom/ui/components/icon";
 
 const excludeNullValues = (value: unknown) => !!value;
 
@@ -19,6 +21,12 @@ function RenderIcon({
   eventLocationType: DefaultEventLocationType | EventLocationTypeFromApp;
   isTooltip: boolean;
 }) {
+  const isPlatform = useIsPlatform();
+
+  if (isPlatform) {
+    return <Video className="me-[10px] h-4 w-4" />;
+  }
+
   return (
     <img
       src={eventLocationType.iconUrl}

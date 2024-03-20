@@ -346,6 +346,7 @@
   "hour_other": "{{count}} óra",
   "new_seat_subject": "Új résztvevő {{name}} itt: {{eventType}}, {{date}}",
   "organizer_name_variable": "Szervező név",
+  "select_which_cal": "A naptár a foglalások hozzáadásához",
   "cancelled_bookings_cannot_be_rescheduled": "Lemondott foglalásokat nem lehet átütemezni",
   "email_subject": "Email tárgy",
   "event_type_not_found": "Eseménytípus nem található",
