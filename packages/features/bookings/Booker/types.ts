@@ -87,7 +87,7 @@ export interface BookerProps {
   isInstantMeeting?: boolean;
 }
 
-export type WrappedBookerProps = {
+export type WrappedBookerPropsMain = {
   sessionUsername?: string | null;
   rescheduleUid: string | null;
   bookingUid: string | null;
@@ -103,13 +103,23 @@ export type WrappedBookerProps = {
   bookings: UseBookingsReturnType;
   slots: UseSlotsReturnType;
   calendars: UseCalendarsReturnType;
-  verifyEmail: UseVerifyEmailReturnType;
   bookerForm: UseBookingFormReturnType;
   event: useEventReturnType;
   schedule: useScheduleForEventReturnType;
   bookerLayout: UseBookerLayoutType;
+  verifyEmail: UseVerifyEmailReturnType;
+};
+
+export type WrappedBookerPropsForPlatform = WrappedBookerPropsMain & {
+  isPlatform: true;
+  verifyCode: undefined;
+};
+export type WrappedBookerPropsForWeb = WrappedBookerPropsMain & {
+  isPlatform: false;
   verifyCode: UseVerifyCodeReturnType;
 };
+
+export type WrappedBookerProps = WrappedBookerPropsForPlatform | WrappedBookerPropsForWeb;
 
 export type BookerState = "loading" | "selecting_date" | "selecting_time" | "booking";
 export type BookerLayout = BookerLayouts | "mobile";

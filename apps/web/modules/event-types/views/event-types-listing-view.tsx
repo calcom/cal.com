@@ -26,6 +26,7 @@ import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
 import type { User } from "@calcom/prisma/client";
+import type { MembershipRole } from "@calcom/prisma/enums";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc, TRPCClientError } from "@calcom/trpc/react";
@@ -109,6 +110,7 @@ interface EventTypeListProps {
   readOnly: boolean;
   bookerUrl: string | null;
   types: DeNormalizedEventType[];
+  lockedByOrg?: boolean;
 }
 
 interface MobileTeamsTabProps {
@@ -230,6 +232,7 @@ export const EventTypeList = ({
   readOnly,
   types,
   bookerUrl,
+  lockedByOrg,
 }: EventTypeListProps): JSX.Element => {
   const { t } = useLocale();
   const router = useRouter();
@@ -390,8 +393,10 @@ export const EventTypeList = ({
   if (!types.length) {
     return group.teamId ? (
       <EmptyEventTypeList group={group} />
-    ) : (
+    ) : !group.profile.eventTypesLockedByOrg ? (
       <CreateFirstEventTypeView slug={group.profile.slug ?? ""} />
+    ) : (
+      <></>
     );
   }
 
@@ -450,6 +455,7 @@ export const EventTypeList = ({
                               <div className="self-center rounded-md p-2">
                                 <Switch
                                   name="Hidden"
+                                  disabled={lockedByOrg}
                                   checked={!type.hidden}
                                   onCheckedChange={() => {
                                     setHiddenMutation.mutate({ id: type.id, hidden: !type.hidden });
@@ -803,21 +809,22 @@ const CreateFirstEventTypeView = ({ slug }: { slug: string }) => {
   );
 };
 
-const CTA = ({ data, isOrganization }: { data: GetByViewerResponse; isOrganization: boolean }) => {
+const CTA = ({
+  profileOptions,
+  isOrganization,
+}: {
+  profileOptions: {
+    teamId: number | null | undefined;
+    label: string | null;
+    image: string;
+    membershipRole: MembershipRole | null | undefined;
+    slug: string | null;
+  }[];
+  isOrganization: boolean;
+}) => {
   const { t } = useLocale();
 
-  if (!data) return null;
-  const profileOptions = data.profiles
-    .filter((profile) => !profile.readOnly)
-    .map((profile) => {
-      return {
-        teamId: profile.teamId,
-        label: profile.name || profile.slug,
-        image: profile.image,
-        membershipRole: profile.membershipRole,
-        slug: profile.slug,
-      };
-    });
+  if (!profileOptions.length) return null;
 
   return (
     <CreateButton
@@ -831,10 +838,10 @@ const CTA = ({ data, isOrganization }: { data: GetByViewerResponse; isOrganizati
   );
 };
 
-const Actions = () => {
+const Actions = (props: { showDivider: boolean }) => {
   return (
     <div className="hidden items-center md:flex">
-      <TeamsFilter useProfileFilter popoverTriggerClassNames="mb-0" showVerticalDivider={true} />
+      <TeamsFilter useProfileFilter popoverTriggerClassNames="mb-0" showVerticalDivider={props.showDivider} />
     </div>
   );
 };
@@ -885,7 +892,6 @@ const Main = ({
     rawData.eventTypeGroups.length === 1;
 
   const data = denormalizePayload(rawData);
-
   return (
     <>
       {data.eventTypeGroups.length > 1 || isFilteredByOnlyOneItem ? (
@@ -893,33 +899,45 @@ const Main = ({
           {isMobile ? (
             <MobileTeamsTab eventTypeGroups={data.eventTypeGroups} />
           ) : (
-            data.eventTypeGroups.map((group, index: number) => (
-              <div
-                className="mt-4 flex flex-col"
-                data-testid={`slug-${group.profile.slug}`}
-                key={group.profile.slug}>
-                <EventTypeListHeading
-                  profile={group.profile}
-                  membershipCount={group.metadata.membershipCount}
-                  teamId={group.teamId}
-                  bookerUrl={group.bookerUrl}
-                />
+            data.eventTypeGroups.map((group, index: number) => {
+              const eventsLockedByOrg = group.profile.eventTypesLockedByOrg;
+              const userHasManagedOrHiddenEventTypes = group.eventTypes.find(
+                (event) => event.metadata?.managedEventConfig || event.hidden
+              );
+              if (eventsLockedByOrg && !userHasManagedOrHiddenEventTypes) return null;
+              return (
+                <div
+                  className="mt-4 flex flex-col"
+                  data-testid={`slug-${group.profile.slug}`}
+                  key={group.profile.slug}>
+                  {/* If the group is readonly and empty don't leave a floating header when the user cant see the create box due 
+                    to it being readonly for that user */}
+                  {group.eventTypes.length === 0 && group.metadata.readOnly ? null : (
+                    <EventTypeListHeading
+                      profile={group.profile}
+                      membershipCount={group.metadata.membershipCount}
+                      teamId={group.teamId}
+                      bookerUrl={group.bookerUrl}
+                    />
+                  )}
 
-                {group.eventTypes.length ? (
-                  <EventTypeList
-                    types={group.eventTypes}
-                    group={group}
-                    bookerUrl={group.bookerUrl}
-                    groupIndex={index}
-                    readOnly={group.metadata.readOnly}
-                  />
-                ) : group.teamId ? (
-                  <EmptyEventTypeList group={group} />
-                ) : (
-                  <CreateFirstEventTypeView slug={data.profiles[0].slug ?? ""} />
-                )}
-              </div>
-            ))
+                  {group.eventTypes.length ? (
+                    <EventTypeList
+                      types={group.eventTypes}
+                      group={group}
+                      bookerUrl={group.bookerUrl}
+                      groupIndex={index}
+                      readOnly={group.metadata.readOnly}
+                      lockedByOrg={eventsLockedByOrg}
+                    />
+                  ) : group.teamId && !group.metadata.readOnly ? (
+                    <EmptyEventTypeList group={group} />
+                  ) : !group.metadata.readOnly ? (
+                    <CreateFirstEventTypeView slug={data.profiles[0].slug ?? ""} />
+                  ) : null}
+                </div>
+              );
+            })
           )}
         </>
       ) : (
@@ -974,6 +992,21 @@ const EventTypesPage: React.FC & {
     );
   }, [orgBranding, user]);
 
+  const profileOptions = data
+    ? data?.profiles
+        .filter((profile) => !profile.readOnly)
+        .filter((profile) => !profile.eventTypesLockedByOrg)
+        .map((profile) => {
+          return {
+            teamId: profile.teamId,
+            label: profile.name || profile.slug,
+            image: profile.image,
+            membershipRole: profile.membershipRole,
+            slug: profile.slug,
+          };
+        })
+    : [];
+
   return (
     <Shell
       withoutMain={false}
@@ -983,8 +1016,8 @@ const EventTypesPage: React.FC & {
       heading={t("event_types_page_title")}
       hideHeadingOnMobile
       subtitle={t("event_types_page_subtitle")}
-      beforeCTAactions={<Actions />}
-      CTA={<CTA data={data} isOrganization={!!user?.organizationId} />}>
+      beforeCTAactions={<Actions showDivider={profileOptions.length > 0} />}
+      CTA={<CTA profileOptions={profileOptions} isOrganization={!!user?.organizationId} />}>
       <HeadSeo
         title="Event Types"
         description="Create events to share for people to book on your calendar."
