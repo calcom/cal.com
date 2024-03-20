@@ -4,10 +4,11 @@
   "type": "module",
   "description": "Customizable UI components to integrate scheduling into your product.",
   "authors": "Cal.com, Inc.",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "scripts": {
     "dev": "yarn vite build --watch & npx tailwindcss -i ./globals.css -o ./globals.min.css --postcss --minify --watch",
-    "build": "yarn vite build && npx tailwindcss -i ./globals.css -o ./globals.min.css --postcss --minify"
+    "build": "yarn vite build && npx tailwindcss -i ./globals.css -o ./globals.min.css --postcss --minify && yarn build:copy-css",
+    "build:copy-css": "cp ./globals.min.css ./dist/globals.min.css"
   },
   "devDependencies": {
     "@rollup/plugin-node-resolve": "^15.0.1",
@@ -34,12 +35,10 @@
       "import": "./web.ts",
       "require": "./web.ts"
     },
-    "./dist/globals.min.css": "./globals.min.css",
+    "./styles.css": "./dist/globals.min.css",
     "./dist/index.ts": "./index.ts"
   },
   "dependencies": {
-    "@calcom/platform-constants": "*",
-    "@calcom/ui": "*",
     "@radix-ui/react-dialog": "^1.0.4",
     "@radix-ui/react-slot": "^1.0.2",
     "@radix-ui/react-toast": "^1.1.5",
