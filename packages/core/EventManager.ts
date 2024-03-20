@@ -515,7 +515,10 @@ export default class EventManager {
        *  Not ideal but, if we don't find a destination calendar,
        *  fallback to the first connected calendar - Shouldn't be a CRM calendar
        */
-      const [credential] = this.calendarCredentials.filter((cred) => !cred.type.endsWith("other_calendar"));
+      // Backwards compatibility until CRM manager is created
+      const [credential] = this.calendarCredentials.filter(
+        (cred) => !cred.type.endsWith("other_calendar") || !cred.type.endsWith("crm")
+      );
       if (credential) {
         const createdEvent = await createEvent(credential, event);
         log.silly("Created Calendar event", safeStringify({ createdEvent }));
@@ -615,7 +618,8 @@ export default class EventManager {
     createdEvents = createdEvents.concat(
       await Promise.all(
         this.calendarCredentials
-          .filter((cred) => cred.type.includes("other_calendar"))
+          // Backwards compatibility until CRM manager is created
+          .filter((cred) => cred.type.includes("other_calendar") || cred.type.includes("crm"))
           .map(async (cred) => await createEvent(cred, event))
       )
     );
@@ -787,7 +791,8 @@ export default class EventManager {
       // Taking care of non-traditional calendar integrations
       result = result.concat(
         this.calendarCredentials
-          .filter((cred) => cred.type.includes("other_calendar"))
+          // Backwards compatibility until CRM manager is created
+          .filter((cred) => cred.type.includes("other_calendar") && cred.type.includes("crm"))
           .map(async (cred) => {
             const calendarReference = booking.references.find((ref) => ref.type === cred.type);
 
