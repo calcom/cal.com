@@ -1,5 +1,6 @@
 import { m } from "framer-motion";
 import dynamic from "next/dynamic";
+import { useMemo, useEffect } from "react";
 import { shallow } from "zustand/shallow";
 
 import { useEmbedUiConfig, useIsEmbed } from "@calcom/embed-core/embed-iframe";
@@ -8,6 +9,7 @@ import { SeatsAvailabilityText } from "@calcom/features/bookings/components/Seat
 import { EventMetaBlock } from "@calcom/features/bookings/components/event-meta/Details";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { Timezone as PlatformTimezoneSelect } from "@calcom/platform-atoms";
 import { Calendar, Globe, User } from "@calcom/ui/components/icon";
 
 import { fadeInUp } from "../config";
@@ -15,7 +17,7 @@ import { useBookerStore } from "../store";
 import { FromToTime } from "../utils/dates";
 import type { useEventReturnType } from "../utils/event";
 
-const TimezoneSelect = dynamic(
+const WebTimezoneSelect = dynamic(
   () => import("@calcom/ui/components/form/timezone-select/TimezoneSelect").then((mod) => mod.TimezoneSelect),
   {
     ssr: false,
@@ -25,9 +27,11 @@ const TimezoneSelect = dynamic(
 export const EventMeta = ({
   event,
   isPending,
+  isPlatform = true,
 }: {
   event: useEventReturnType["data"];
   isPending: useEventReturnType["isPending"];
+  isPlatform?: boolean;
 }) => {
   const { setTimezone, timeFormat, timezone } = useTimePreferences();
   const selectedDuration = useBookerStore((state) => state.selectedDuration);
@@ -43,6 +47,17 @@ export const EventMeta = ({
   const embedUiConfig = useEmbedUiConfig();
   const isEmbed = useIsEmbed();
   const hideEventTypeDetails = isEmbed ? embedUiConfig.hideEventTypeDetails : false;
+  const [TimezoneSelect] = useMemo(
+    () => (isPlatform ? [PlatformTimezoneSelect] : [WebTimezoneSelect]),
+    [isPlatform]
+  );
+
+  useEffect(() => {
+    //In case the event has lockTimeZone enabled ,set the timezone to event's attached availability timezone
+    if (event && event?.lockTimeZoneToggleOnBookingPage && event?.schedule?.timeZone) {
+      setTimezone(event.schedule?.timeZone);
+    }
+  }, [event, setTimezone]);
 
   if (hideEventTypeDetails) {
     return null;

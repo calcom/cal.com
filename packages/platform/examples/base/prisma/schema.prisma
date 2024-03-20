@@ -1,0 +1,26 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// prisma/schema.prisma
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+
+model User {
+  id    Int     @id @default(autoincrement())
+  email String  @unique
+  name  String?
+  calcomUserId Int? @unique
+  calcomUsername String? @unique
+  refreshToken String? @unique
+  accessToken String? @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+
+}

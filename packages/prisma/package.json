@@ -29,6 +29,7 @@
     "@prisma/extension-accelerate": "^0.6.2",
     "@prisma/generator-helper": "^5.4.2",
     "prisma": "^5.4.2",
+    "prisma-kysely": "^1.7.1",
     "ts-node": "^10.9.1",
     "zod": "^3.22.4",
     "zod-prisma": "^0.5.4"

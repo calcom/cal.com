@@ -49,7 +49,13 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
     profile?.organization?.organizationSettings?.lockEventTypeCreationForUsers;
   const isFilterSet = input?.filters && hasFilter(input.filters);
   const isUpIdInFilter = input?.filters?.upIds?.includes(lightProfile.upId);
-  const shouldListUserEvents = !isFilterSet || isUpIdInFilter;
+
+  let shouldListUserEvents = !isFilterSet || isUpIdInFilter;
+  // FIX: Handles the case when an upId != lightProfile - pretend like there is no filter.
+  // Results in {"eventTypeGroups":[],"profiles":[]} - this crashes all dependencies.
+  if (isFilterSet && input?.filters?.upIds && !isUpIdInFilter) {
+    shouldListUserEvents = true;
+  }
   const [profileMemberships, profileEventTypes] = await Promise.all([
     MembershipRepository.findAllByUpIdIncludeTeamWithMembersAndEventTypes(
       {
@@ -176,7 +182,7 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
     })
   );
 
-  if (!isFilterSet || isUpIdInFilter) {
+  if (shouldListUserEvents) {
     const bookerUrl = await getBookerBaseUrl(profile.organizationId ?? null);
     eventTypeGroups.push({
       teamId: null,
