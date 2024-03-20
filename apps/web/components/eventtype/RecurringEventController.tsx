@@ -64,6 +64,7 @@ export default function RecurringEventController({
               onCheckedChange={(e) => {
                 if (!e) {
                   formMethods.setValue("recurringEvent", null, { shouldDirty: true });
+                  formMethods.setValue("differentRoundRobinRecurringHosts", false, { shouldDirty: true });
                   setRecurringEventState(null);
                 } else {
                   const newVal = eventType.recurringEvent || {

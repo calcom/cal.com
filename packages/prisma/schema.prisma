@@ -127,6 +127,7 @@ model EventType {
   isInstantEvent                       Boolean                 @default(false)
   assignAllTeamMembers                 Boolean                 @default(false)
   useEventTypeDestinationCalendarEmail Boolean                 @default(false)
+  differentRoundRobinRecurringHosts    Boolean                 @default(false)
 
   secondaryEmailId Int?
   secondaryEmail   SecondaryEmail? @relation(fields: [secondaryEmailId], references: [id], onDelete: Cascade)

@@ -113,6 +113,7 @@ export default async function getEventTypeById({
       currency: true,
       bookingFields: true,
       useEventTypeDestinationCalendarEmail: true,
+      differentRoundRobinRecurringHosts: true,
       owner: {
         select: {
           id: true,

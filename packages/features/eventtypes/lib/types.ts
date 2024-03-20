@@ -87,4 +87,5 @@ export type FormValues = {
   assignAllTeamMembers: boolean;
   useEventTypeDestinationCalendarEmail: boolean;
   secondaryEmailId?: number;
+  differentRoundRobinRecurringHosts: boolean;
 };

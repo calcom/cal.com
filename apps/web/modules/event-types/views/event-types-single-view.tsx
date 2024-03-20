@@ -243,6 +243,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       })),
       seatsPerTimeSlotEnabled: eventType.seatsPerTimeSlot,
       assignAllTeamMembers: eventType.assignAllTeamMembers,
+      differentRoundRobinRecurringHosts: eventType.differentRoundRobinRecurringHosts,
     };
   }, [eventType, periodDates, metadata]);
   const formMethods = useForm<FormValues>({
