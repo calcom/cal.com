@@ -2,6 +2,7 @@ import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 import React from "react";
 
 import classNames from "@calcom/lib/classNames";
+import { useIsPlatform } from "@calcom/platform-atoms";
 
 export function Tooltip({
   children,
@@ -21,6 +22,23 @@ export function Tooltip({
   side?: "top" | "right" | "bottom" | "left";
   onOpenChange?: (open: boolean) => void;
 } & TooltipPrimitive.TooltipContentProps) {
+  const isPlatform = useIsPlatform();
+  const Content = (
+    <TooltipPrimitive.Content
+      {...props}
+      className={classNames(
+        "calcom-tooltip",
+        side === "top" && "-mt-7",
+        side === "right" && "ml-2",
+        "bg-inverted text-inverted relative z-50 rounded-md px-2 py-1 text-xs font-semibold shadow-lg",
+        props.className && `${props.className}`
+      )}
+      side={side}
+      align="center">
+      {content}
+    </TooltipPrimitive.Content>
+  );
+
   return (
     <TooltipPrimitive.Root
       delayDuration={delayDuration || 50}
@@ -28,20 +46,7 @@ export function Tooltip({
       defaultOpen={defaultOpen}
       onOpenChange={onOpenChange}>
       <TooltipPrimitive.Trigger asChild>{children}</TooltipPrimitive.Trigger>
-      <TooltipPrimitive.Portal>
-        <TooltipPrimitive.Content
-          {...props}
-          className={classNames(
-            side === "top" && "-mt-7",
-            side === "right" && "ml-2",
-            "bg-inverted text-inverted relative z-50 rounded-md px-2 py-1 text-xs font-semibold shadow-lg",
-            props.className && `${props.className}`
-          )}
-          side={side}
-          align="center">
-          {content}
-        </TooltipPrimitive.Content>
-      </TooltipPrimitive.Portal>
+      {isPlatform ? <>{Content}</> : <TooltipPrimitive.Portal>{Content}</TooltipPrimitive.Portal>}
     </TooltipPrimitive.Root>
   );
 }

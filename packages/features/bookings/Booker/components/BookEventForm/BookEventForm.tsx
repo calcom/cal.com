@@ -27,6 +27,7 @@ type BookEventFormProps = {
   bookingForm: UseBookingFormReturnType["bookingForm"];
   renderConfirmNotVerifyEmailButtonCond: boolean;
   extraOptions: Record<string, string | string[]>;
+  isPlatform?: boolean;
 };
 
 export const BookEventForm = ({
@@ -41,6 +42,7 @@ export const BookEventForm = ({
   bookingForm,
   children,
   extraOptions,
+  isPlatform = false,
 }: Omit<BookEventFormProps, "event"> & {
   eventQuery: useEventReturnType;
   rescheduleUid: string | null;
@@ -111,7 +113,7 @@ export const BookEventForm = ({
             />
           </div>
         )}
-        {IS_CALCOM && (
+        {!isPlatform && IS_CALCOM && (
           <div className="text-subtle my-3 w-full text-xs opacity-80">
             <Trans i18nKey="signing_up_terms">
               By proceeding, you agree to our{" "}
@@ -172,11 +174,11 @@ const getError = (
   t: TFunction,
   responseVercelIdHeader: string | null
 ) => {
-  if (globalError) return globalError.message;
+  if (globalError) return globalError?.message;
 
   const error = dataError;
 
-  return error.message ? (
+  return error?.message ? (
     <>
       {responseVercelIdHeader ?? ""} {t(error.message)}
     </>
