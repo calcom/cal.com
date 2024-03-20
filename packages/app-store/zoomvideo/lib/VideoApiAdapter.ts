@@ -98,7 +98,8 @@ const zoomRefreshedTokenSchema = z.object({
 });
 
 const zoomAuth = (credential: CredentialPayload) => {
-  const refreshAccessToken = async (refreshToken: string) => {
+  const refreshAccessToken = async (refreshToken: string, noOfRetries = 0) => {
+    const MAX_RETRIES = 2;
     const { client_id, client_secret } = await getZoomAppKeys();
     const authHeader = `Basic ${Buffer.from(`${client_id}:${client_secret}`).toString("base64")}`;
 
@@ -119,11 +120,24 @@ const zoomAuth = (credential: CredentialPayload) => {
       credential.userId
     );
 
-    const responseBody = await handleZoomResponse(response, credential.id);
+    const responseBody = await handleZoomResponse(response);
 
-    if (responseBody.error) {
+    if (responseBody?.error) {
       if (responseBody.error === "invalid_grant") {
+        await invalidateCredential(credential.id);
         return Promise.reject(new Error("Invalid grant for Cal.com zoom app"));
+      } else {
+        if (noOfRetries <= MAX_RETRIES) {
+          refreshAccessToken(refreshToken, noOfRetries + 1);
+        } else {
+          return Promise.reject(
+            new Error(
+              `Unable to retrieve access token using refresh token after ${
+                MAX_RETRIES + 1
+              } attempts due to error: ${responseBody.error}`
+            )
+          );
+        }
       }
     }
     // We check the if the new credentials matches the expected response structure
@@ -264,7 +278,7 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
 
     log.debug(`fetchZoomApi: ${endpoint}`, safeStringify({ request: options?.body || {}, response }));
 
-    const responseBody = await handleZoomResponse(response, credential.id);
+    const responseBody = await handleZoomResponse(response);
     return responseBody;
   };
 
@@ -277,11 +291,8 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
         },
         body: JSON.stringify(translateEvent(event)),
       });
-      if (response.error) {
-        if (response.error === "invalid_grant") {
-          await invalidateCredential(credential.id);
-          return Promise.reject(new Error("Invalid grant for Cal.com zoom app"));
-        }
+      if (response?.error) {
+        return Promise.reject(new Error(`Error creating meeting: ${response.error}`));
       }
 
       const result = zoomEventResultSchema.parse(response);
@@ -322,9 +333,12 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
     createMeeting,
     deleteMeeting: async (uid: string): Promise<void> => {
       try {
-        await fetchZoomApi(`meetings/${uid}`, {
+        const response = await fetchZoomApi(`meetings/${uid}`, {
           method: "DELETE",
         });
+        if (response?.error) {
+          return Promise.reject(new Error(`Error deleting meeting: ${response.error}`));
+        }
         return Promise.resolve();
       } catch (err) {
         return Promise.reject(new Error("Failed to delete meeting"));
@@ -378,7 +392,7 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
   };
 };
 
-const handleZoomResponse = async (response: Response, credentialId: Credential["id"]) => {
+const handleZoomResponse = async (response: Response) => {
   let _response = response.clone();
   const responseClone = response.clone();
   if (_response.headers.get("content-encoding") === "gzip") {
@@ -388,10 +402,10 @@ const handleZoomResponse = async (response: Response, credentialId: Credential["
   if (!response.ok || (response.status < 200 && response.status >= 300)) {
     const responseBody = await _response.json();
 
-    if ((response && response.status === 124) || responseBody.error === "invalid_grant") {
-      await invalidateCredential(credentialId);
+    if (responseBody.error !== "invalid_grant") {
+      responseBody.error = response.statusText;
     }
-    throw Error(response.statusText);
+    return responseBody;
   }
   // handle 204 response code with empty response (causes crash otherwise as "" is invalid JSON)
   if (response.status === 204) {
