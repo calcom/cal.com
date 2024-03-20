@@ -630,6 +630,7 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   durationLimits: true,
   lockTimeZoneToggleOnBookingPage: true,
   requiresBookerEmailVerification: true,
+  differentRoundRobinRecurringHosts: true,
   assignAllTeamMembers: true,
 };
 

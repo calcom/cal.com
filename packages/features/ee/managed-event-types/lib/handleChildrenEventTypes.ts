@@ -186,6 +186,8 @@ export default async function handleChildrenEventTypes({
             bookingFields: (managedEventTypeValues.bookingFields as Prisma.InputJsonValue) ?? undefined,
             durationLimits: (managedEventTypeValues.durationLimits as Prisma.InputJsonValue) ?? undefined,
             onlyShowFirstAvailableSlot: managedEventTypeValues.onlyShowFirstAvailableSlot ?? false,
+            differentRoundRobinRecurringHosts:
+              managedEventTypeValues.differentRoundRobinRecurringHosts ?? false,
             userId,
             users: {
               connect: [{ id: userId }],
