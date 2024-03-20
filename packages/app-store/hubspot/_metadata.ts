@@ -7,7 +7,7 @@ export const metadata = {
   installed: !!process.env.HUBSPOT_CLIENT_ID,
   description: _package.description,
   type: "hubspot_crm",
-  variant: "other_calendar",
+  variant: "crm",
   logo: "icon.svg",
   publisher: "Cal.com",
   url: "https://hubspot.com/",

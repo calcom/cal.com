@@ -5,7 +5,7 @@
   "type": "salesforce_crm",
   "logo": "icon.png",
   "url": "https://cal.com/",
-  "variant": "other_calendar",
+  "variant": "crm",
   "categories": ["crm"],
   "publisher": "Cal.com, Inc.",
   "email": "help@cal.com",

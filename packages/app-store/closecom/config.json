@@ -6,7 +6,7 @@
   "type": "closecom_crm",
   "logo": "icon.svg",
   "url": "https://cal.com/",
-  "variant": "other",
+  "variant": "crm",
   "categories": ["crm"],
   "publisher": "Cal.com, Inc.",
   "email": "help@cal.com",
