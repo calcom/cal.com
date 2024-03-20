@@ -25,7 +25,7 @@ export function SAMLLogin({ samlTenantID, samlProductID, setErrorMessage }: Prop
 
   const mutation = trpc.viewer.public.samlTenantProduct.useMutation({
     onSuccess: async (data) => {
-      await signIn("saml", {}, { tenant: data.tenant, product: data.product }); // failing here
+      await signIn("saml", {}, { tenant: data.tenant, product: data.product });
     },
     onError: (err) => {
       setErrorMessage(t(err.message));
