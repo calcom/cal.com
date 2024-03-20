@@ -312,7 +312,7 @@ const Layout = (props: LayoutProps) => {
 
 type DrawerState = [isOpen: boolean, setDrawerOpen: Dispatch<SetStateAction<boolean>>];
 
-type LayoutProps = {
+export type LayoutProps = {
   centered?: boolean;
   title?: string;
   description?: string;

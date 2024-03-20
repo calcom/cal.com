@@ -1,6 +1,7 @@
 import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { TimeRange, WorkingHours, TravelSchedule } from "@calcom/types/schedule";
+import type { RouterOutputs } from "@calcom/trpc/react";
+import type { TimeRange, WorkingHours } from "@calcom/types/schedule";
 import { Button, DialogTrigger, Tooltip } from "@calcom/ui";
 import { Edit2, Trash2 } from "@calcom/ui/components/icon";
 
@@ -15,7 +16,7 @@ const DateOverrideList = ({
   workingHours,
   excludedDates = [],
   travelSchedules = [],
-  isDefaultSchedule = false,
+  userTimeFormat,
   hour12,
   replace,
   fields,
@@ -25,9 +26,9 @@ const DateOverrideList = ({
   fields: { ranges: TimeRange[]; id: string }[];
   workingHours: WorkingHours[];
   excludedDates?: string[];
-  travelSchedules?: TravelSchedule[];
-  isDefaultSchedule?: boolean;
+  userTimeFormat: number | null;
   hour12: boolean;
+  travelSchedules?: RouterOutputs["viewer"]["getTravelSchedules"];
 }) => {
   const { t, i18n } = useLocale();
 
@@ -67,16 +68,14 @@ const DateOverrideList = ({
               item.ranges.map((range, i) => (
                 <p key={i} className="text-subtle text-xs">
                   {`${timeSpan(range)} ${
-                    isDefaultSchedule
-                      ? travelSchedules
-                          .find(
-                            (travelSchedule) =>
-                              !dayjs(item.ranges[0].start).isBefore(travelSchedule.startDate) &&
-                              (!dayjs(item.ranges[0].end).isAfter(travelSchedule.endDate) ||
-                                !travelSchedule.endDate)
-                          )
-                          ?.timeZone.replace(/_/g, " ") || ""
-                      : ""
+                    travelSchedules
+                      .find(
+                        (travelSchedule) =>
+                          !dayjs(item.ranges[0].start).isBefore(travelSchedule.startDate) &&
+                          (!dayjs(item.ranges[0].end).isAfter(travelSchedule.endDate) ||
+                            !travelSchedule.endDate)
+                      )
+                      ?.timeZone.replace(/_/g, " ") || ""
                   }`}
                   <></>
                 </p>
@@ -85,6 +84,7 @@ const DateOverrideList = ({
           </div>
           <div className="flex flex-row-reverse gap-5 space-x-2 rtl:space-x-reverse">
             <DateOverrideInputDialog
+              userTimeFormat={userTimeFormat}
               excludedDates={excludedDates}
               workingHours={workingHours}
               value={item.ranges}
