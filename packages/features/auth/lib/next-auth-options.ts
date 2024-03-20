@@ -45,7 +45,7 @@ const ORGANIZATIONS_AUTOLINK =
 
 const usernameSlug = (username: string) => `${slugify(username)}-${randomString(6).toLowerCase()}`;
 const getDomainFromEmail = (email: string): string => email.split("@")[1];
-const getOrganizationIdByDomain = async (domain: string) => {
+const getVerifiedOrganizationByAutoAcceptEmailDomain = async (domain: string) => {
   const existingOrg = await prisma.team.findFirst({
     where: {
       organizationSettings: {
@@ -354,7 +354,7 @@ if (isSAMLLoginEnabled) {
           const hostedCal = Boolean(HOSTED_CAL_FEATURES);
           if (hostedCal && email) {
             const domain = getDomainFromEmail(email);
-            const organizationId = await getOrganizationIdByDomain(domain);
+            const organizationId = await getVerifiedOrganizationByAutoAcceptEmailDomain(domain);
             if (organizationId) {
               const createUsersAndConnectToOrgProps = {
                 emailsToCreate: [email],

@@ -35,7 +35,7 @@ const createUsersAndConnectToOrg = async (
         verified: true,
         emailVerified: new Date(),
         invitedTo: organizationId,
-        organizationId: organizationId,
+        organizationId,
         identityProvider,
         identityProviderId,
       };
