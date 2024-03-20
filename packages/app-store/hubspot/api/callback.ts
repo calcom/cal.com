@@ -2,7 +2,7 @@ import * as hubspot from "@hubspot/api-client";
 import type { TokenResponseIF } from "@hubspot/api-client/lib/codegen/oauth/models/TokenResponseIF";
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import { WEBAPP_URL_FOR_OAUTH } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
@@ -39,7 +39,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const hubspotToken: HubspotToken = await hubspotClient.oauth.tokensApi.createToken(
     "authorization_code",
     code,
-    `${WEBAPP_URL}/api/integrations/hubspot/callback`,
+    `${WEBAPP_URL_FOR_OAUTH}/api/integrations/hubspot/callback`,
     client_id,
     client_secret
   );
