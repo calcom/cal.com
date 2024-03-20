@@ -99,7 +99,7 @@ type AvailabilitySettingsProps = {
     timeZone: string;
     schedule: Schedule[] | [];
   };
-  travelSchedules: RouterOutputs["viewer"]["getTravelSchedules"];
+  travelSchedules?: RouterOutputs["viewer"]["getTravelSchedules"];
   handleDelete: () => void;
   isDeleting: boolean;
   isSaving: boolean;
