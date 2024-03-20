@@ -4,7 +4,7 @@ import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Head from "next/head";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
-import { FormProvider, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import getInstalledAppPath from "@calcom/app-store/_utils/getInstalledAppPath";
@@ -20,7 +20,7 @@ import prisma from "@calcom/prisma";
 import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import type { AppMeta } from "@calcom/types/App";
-import { Steps, showToast } from "@calcom/ui";
+import { Form, Steps, showToast } from "@calcom/ui";
 
 import { HttpError } from "@lib/core/http/error";
 
@@ -125,7 +125,7 @@ const OnboardingPage = ({
   const [isSelectingAccount, setIsSelectingAccount] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  const methods = useForm<TFormType>({
+  const formMethods = useForm<TFormType>({
     defaultValues: {
       metadata: configureEventType?.metadata,
     },
@@ -238,18 +238,6 @@ const OnboardingPage = ({
     }
   };
 
-  const handleSaveSettings = () => {
-    if (configureEventType) {
-      setIsSaving(true);
-      const metadata = methods.getValues("metadata");
-      updateMutation.mutate({
-        id: configureEventType.id,
-        metadata,
-      });
-    }
-    return;
-  };
-
   return (
     <div
       key={pathname}
@@ -305,17 +293,23 @@ const OnboardingPage = ({
               />
             )}
             {step === AppOnboardingSteps.CONFIGURE_STEP && configureEventType && (
-              // Find solution for this, should not have to use FormProvider
-              <FormProvider {...methods}>
+              <Form
+                form={formMethods}
+                handleSubmit={(values) => {
+                  setIsSaving(true);
+                  updateMutation.mutate({
+                    id: configureEventType.id,
+                    metadata: values.metadata,
+                  });
+                }}>
                 <ConfigureStepCard
                   slug={appMetadata.slug}
                   categories={appMetadata.categories}
                   credentialId={credentialId}
                   eventType={configureEventType}
-                  onSave={handleSaveSettings}
                   loading={isSaving}
                 />
-              </FormProvider>
+              </Form>
             )}
             <StepFooter />
           </div>

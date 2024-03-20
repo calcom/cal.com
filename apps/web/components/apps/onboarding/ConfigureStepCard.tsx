@@ -19,7 +19,6 @@ type ConfigureStepCardProps = {
   categories: AppCategories[];
   credentialId?: number;
   eventType: ConfigureEventTypeProp;
-  onSave: (data: Record<string, unknown>) => void;
   loading?: boolean;
 };
 
@@ -28,7 +27,6 @@ export const ConfigureStepCard: FC<ConfigureStepCardProps> = ({
   categories,
   credentialId,
   eventType,
-  onSave,
   loading,
 }) => {
   const { t } = useLocale();
@@ -38,12 +36,12 @@ export const ConfigureStepCard: FC<ConfigureStepCardProps> = ({
     t("locked_fields_admin_description"),
     t("locked_fields_member_description")
   );
+
   useEffect(() => {
     const appDataSetter = getAppDataSetter(slug as EventTypeAppsList, categories, credentialId);
     appDataSetter("enabled", true);
   }, []);
 
-  const data = getAppDataGetter(slug as EventTypeAppsList)("") as Record<string, unknown>;
   return (
     <StepCard>
       <EventTypeAppSettings
@@ -53,12 +51,7 @@ export const ConfigureStepCard: FC<ConfigureStepCardProps> = ({
         getAppData={getAppDataGetter(slug as EventTypeAppsList)}
         setAppData={getAppDataSetter(slug as EventTypeAppsList, categories, credentialId)}
       />
-      <Button
-        className="text-md mt-6 w-full justify-center"
-        loading={loading}
-        onClick={() => {
-          onSave(data);
-        }}>
+      <Button className="text-md mt-6 w-full justify-center" type="submit" loading={loading}>
         Save
       </Button>
     </StepCard>
