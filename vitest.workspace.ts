@@ -34,6 +34,19 @@ const workspaces = packagedEmbedTestsOnly
   : [
       {
         test: {
+          include: ["packages/**/*.{test,spec}.{ts,js}", "apps/**/*.{test,spec}.{ts,js}"],
+          exclude: [
+            "**/node_modules/**/*",
+            "**/.next/**/*",
+            "packages/embeds/**/*",
+            "packages/lib/hooks/**/*",
+          ],
+          name: "@calcom/core",
+          setupFiles: ["setupVitest.ts"],
+        },
+      },
+      {
+        test: {
           globals: true,
           name: "@calcom/features",
           include: ["packages/features/**/*.{test,spec}.tsx"],

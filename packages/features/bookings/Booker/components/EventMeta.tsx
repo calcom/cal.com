@@ -1,5 +1,6 @@
 import { m } from "framer-motion";
 import dynamic from "next/dynamic";
+import { useEffect } from "react";
 import { shallow } from "zustand/shallow";
 
 import { useEmbedUiConfig, useIsEmbed } from "@calcom/embed-core/embed-iframe";
@@ -43,6 +44,13 @@ export const EventMeta = ({
   const embedUiConfig = useEmbedUiConfig();
   const isEmbed = useIsEmbed();
   const hideEventTypeDetails = isEmbed ? embedUiConfig.hideEventTypeDetails : false;
+
+  useEffect(() => {
+    //In case the event has lockTimeZone enabled ,set the timezone to event's attached availability timezone
+    if (event && event?.lockTimeZoneToggleOnBookingPage && event?.schedule?.timeZone) {
+      setTimezone(event.schedule?.timeZone);
+    }
+  }, [event, setTimezone]);
 
   if (hideEventTypeDetails) {
     return null;
