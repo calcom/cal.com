@@ -7,9 +7,8 @@
   "authors": "Cal.com, Inc.",
   "version": "0.0.0",
   "scripts": {
-    "build": "node build.mjs",
-    "vite-dev": "yarn vite build --watch & npx tailwindcss -i ./globals.css -o ./globals.min.css --postcss --minify --watch",
-    "vite-build": "yarn vite build && npx tailwindcss -i ./globals.css -o ./globals.min.css --postcss --minify"
+    "dev": "yarn vite build --watch & npx tailwindcss -i ./globals.css -o ./globals.min.css --postcss --minify --watch",
+    "build": "yarn vite build && npx tailwindcss -i ./globals.css -o ./globals.min.css --postcss --minify"
   },
   "devDependencies": {
     "@rollup/plugin-node-resolve": "^15.0.1",
