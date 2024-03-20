@@ -4,7 +4,7 @@ import type { z } from "zod";
 import { entityPrismaWhereClause } from "@calcom/lib/entityPermissionUtils";
 import { RoutingFormSettings } from "@calcom/prisma/zod-utils";
 
-import type { SerializableForm } from "../types/types";
+import type { SerializableForm, SerializableFormTeamMembers } from "../types/types";
 import type { zodRoutesView, zodFieldsView } from "../zod";
 import { zodFields, zodRoutes } from "../zod";
 import getConnectedForms from "./getConnectedForms";
@@ -58,7 +58,7 @@ export async function getSerializableForm<TForm extends App_RoutingForms_Form>({
     description: f.description,
   }));
   const finalFields = fields;
-  let teamMembers = [];
+  let teamMembers: SerializableFormTeamMembers[] = [];
   if (form.teamId) {
     teamMembers = await prisma.user.findMany({
       where: {

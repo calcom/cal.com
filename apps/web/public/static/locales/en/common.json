@@ -1472,6 +1472,7 @@
   "routing_forms_description": "Create forms to direct attendees to the correct destinations",
   "routing_forms_send_email_owner": "Send Email to Owner",
   "routing_forms_send_email_owner_description": "Sends an email to the owner when the form is submitted",
+  "routing_forms_send_email_to": "Send Email to",
   "add_new_form": "Add new form",
   "add_new_team_form": "Add new form to your team",
   "create_your_first_route": "Create your first route",
