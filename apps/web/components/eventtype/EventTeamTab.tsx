@@ -149,7 +149,6 @@ const CheckedHostField = ({
   isFixed,
   value,
   onChange,
-  helperText,
   ...rest
 }: {
   labelText?: string;
@@ -466,7 +465,6 @@ const Hosts = ({
   assignAllTeamMembers: boolean;
   setAssignAllTeamMembers: Dispatch<SetStateAction<boolean>>;
 }) => {
-  const { t } = useLocale();
   const {
     control,
     setValue,
