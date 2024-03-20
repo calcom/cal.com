@@ -364,17 +364,13 @@ const TeamProfileForm = ({ team }: TeamProfileFormProps) => {
         <Controller
           control={form.control}
           name="name"
-          render={({ field: { value } }) => (
-            <div className="mt-8">
-              <TextField
-                name="name"
-                label={t("team_name")}
-                value={value}
-                onChange={(e) => {
-                  form.setValue("name", e?.target.value, { shouldDirty: true });
-                }}
-              />
-            </div>
+          render={({ field: { name, value, onChange } }) => (
+            <TextField
+              name={name}
+              label={t("team_name")}
+              value={value}
+              onChange={(e) => onChange(e?.target.value)}
+            />
           )}
         />
         <Controller

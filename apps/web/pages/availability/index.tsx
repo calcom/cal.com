@@ -12,6 +12,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
+import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { EmptyScreen, showToast, ToggleGroup } from "@calcom/ui";
 import { Clock } from "@calcom/ui/components/icon";
 
@@ -172,6 +173,7 @@ export default function AvailabilityPage() {
   const searchParams = useCompatSearchParams();
   const router = useRouter();
   const pathname = usePathname();
+  const me = useMeQuery();
 
   // Get a new searchParams string by merging the current
   // searchParams with a provided key/value pair
@@ -210,7 +212,11 @@ export default function AvailabilityPage() {
             <NewScheduleButton />
           </div>
         }>
-        {searchParams?.get("type") === "team" ? <AvailabilitySliderTable /> : <AvailabilityListWithQuery />}
+        {searchParams?.get("type") === "team" ? (
+          <AvailabilitySliderTable userTimeFormat={me?.data?.timeFormat ?? null} />
+        ) : (
+          <AvailabilityListWithQuery />
+        )}
       </Shell>
     </div>
   );

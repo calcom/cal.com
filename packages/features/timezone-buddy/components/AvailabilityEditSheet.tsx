@@ -41,13 +41,12 @@ type AvailabilityFormValues = {
 const useSettings = () => {
   const { data } = useMeQuery();
   return {
-    hour12: data?.timeFormat === 12,
-    timeZone: data?.timeZone,
+    userTimeFormat: data?.timeFormat ?? 12,
   };
 };
 
 const DateOverride = ({ workingHours, disabled }: { workingHours: WorkingHours[]; disabled?: boolean }) => {
-  const { hour12 } = useSettings();
+  const { userTimeFormat } = useSettings();
 
   const { append, replace, fields } = useFieldArray<AvailabilityFormValues, "dateOverrides">({
     name: "dateOverrides",
@@ -62,10 +61,12 @@ const DateOverride = ({ workingHours, disabled }: { workingHours: WorkingHours[]
           excludedDates={excludedDates}
           replace={replace}
           fields={fields}
-          hour12={hour12}
+          hour12={Boolean(userTimeFormat === 12)}
           workingHours={workingHours}
+          userTimeFormat={userTimeFormat}
         />
         <DateOverrideInputDialog
+          userTimeFormat={userTimeFormat}
           workingHours={workingHours}
           excludedDates={excludedDates}
           onChange={(ranges) => ranges.forEach((range) => append({ ranges: [range] }))}
