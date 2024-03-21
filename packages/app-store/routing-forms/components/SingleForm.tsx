@@ -362,7 +362,7 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
                   <div className="mt-6">
                     {form.teamId ? (
                       <div className="flex flex-col">
-                        <span className="text-emphasis mb-2 block text-sm font-medium leading-none">
+                        <span className="text-emphasis mb-3 block text-sm font-medium leading-none">
                           {t("routing_forms_send_email_to")}
                         </span>
                         <AddMembersWithSwitch
