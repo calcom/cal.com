@@ -121,6 +121,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     select: travelScheduleSelect,
   });
 
+  const travelScheduleIdsToDelete = [];
+
   for (const travelSchedule of travelSchedulesCloseToCurrentDate) {
     const userTz = travelSchedule.user.timeZone;
     const offset = dayjs().tz(userTz).utcOffset();
@@ -138,11 +140,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       await setNewTimeZone(travelSchedule.timeZone, travelSchedule.user);
 
       if (!travelSchedule.endDate) {
-        await prisma.travelSchedule.delete({
-          where: {
-            id: travelSchedule.id,
-          },
-        });
+        travelScheduleIdsToDelete.push(travelSchedule.id);
       } else {
         await prisma.travelSchedule.update({
           where: {
@@ -159,12 +157,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         // travel schedule ended, change back to original timezone
         await setNewTimeZone(travelSchedule.prevTimeZone, travelSchedule.user);
       }
-      await prisma.travelSchedule.delete({
-        where: {
-          id: travelSchedule.id,
-        },
-      });
+      travelScheduleIdsToDelete.push(travelSchedule.id);
     }
   }
+
+  await prisma.travelSchedule.deleteMany({
+    where: {
+      id: {
+        in: travelScheduleIdsToDelete,
+      },
+    },
+  });
+
   res.status(200).json({ timeZonesChanged });
 }
