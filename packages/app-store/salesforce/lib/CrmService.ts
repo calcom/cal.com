@@ -8,14 +8,9 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
-import type {
-  Calendar,
-  CalendarEvent,
-  IntegrationCalendar,
-  NewCalendarEventType,
-  Person,
-} from "@calcom/types/Calendar";
+import type { CalendarEvent, NewCalendarEventType, Person } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
+import type { CRM } from "@calcom/types/CrmService";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import type { ParseRefreshTokenResponse } from "../../_utils/oauth/parseRefreshTokenResponse";
@@ -48,7 +43,7 @@ const salesforceTokenSchema = z.object({
   token_type: z.string(),
 });
 
-export default class SalesforceCalendarService implements Calendar {
+export default class SalesforceCRMService implements CRM {
   private integrationName = "";
   private conn: Promise<jsforce.Connection>;
   private log: typeof logger;
@@ -312,11 +307,7 @@ export default class SalesforceCalendarService implements Calendar {
     }
   }
 
-  async getAvailability(_dateFrom: string, _dateTo: string, _selectedCalendars: IntegrationCalendar[]) {
-    return Promise.resolve([]);
-  }
-
-  async listCalendars(_event?: CalendarEvent) {
-    return Promise.resolve([]);
+  async getContact(email: string) {
+    return;
   }
 }
