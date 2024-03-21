@@ -179,10 +179,9 @@ function buildSlotsWithDateRanges({
       ? range.start
       : startTimeWithMinNotice;
 
-    slotStartTime =
-      slotStartTime.minute() % interval !== 0
-        ? slotStartTime.startOf("hour").add(Math.ceil(slotStartTime.minute() / interval) * interval, "minute")
-        : slotStartTime;
+    slotStartTime = ![0, 15, 30, 45, 60].includes(slotStartTime.minute())
+      ? slotStartTime.startOf("hour").add(Math.ceil(slotStartTime.minute() / interval) * interval, "minute")
+      : slotStartTime;
 
     // Adding 1 minute to date ranges that end at midnight to ensure that the last slot is included
     const rangeEnd = range.end
