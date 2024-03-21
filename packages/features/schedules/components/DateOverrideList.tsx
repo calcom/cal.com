@@ -13,6 +13,7 @@ const sortByDate = (a: { ranges: TimeRange[]; id: string }, b: { ranges: TimeRan
 const DateOverrideList = ({
   workingHours,
   excludedDates = [],
+  userTimeFormat,
   hour12,
   replace,
   fields,
@@ -22,6 +23,7 @@ const DateOverrideList = ({
   fields: { ranges: TimeRange[]; id: string }[];
   workingHours: WorkingHours[];
   excludedDates?: string[];
+  userTimeFormat: number | null;
   hour12: boolean;
 }) => {
   const { t, i18n } = useLocale();
@@ -68,6 +70,7 @@ const DateOverrideList = ({
           </div>
           <div className="flex flex-row-reverse gap-5 space-x-2 rtl:space-x-reverse">
             <DateOverrideInputDialog
+              userTimeFormat={userTimeFormat}
               excludedDates={excludedDates}
               workingHours={workingHours}
               value={item.ranges}
