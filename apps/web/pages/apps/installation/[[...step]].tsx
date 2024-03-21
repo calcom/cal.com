@@ -218,6 +218,7 @@ const OnboardingPage = ({
         appOnbaordingRedirectUrl: hasEventTypes
           ? getAppOnboardingRedirectUrl(appMetadata.slug, teamId, eventTypeId)
           : null,
+        teamId,
       });
 
       const res = await fetch(
@@ -545,7 +546,13 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
           ),
         }))
       : [];
-
+    let credentialId = null;
+    if (parsedTeamIdParam) {
+      credentialId =
+        appInstalls.find((item) => !!item.teamId && item.teamId == parsedTeamIdParam)?.id ?? null;
+    } else {
+      credentialId = appInstalls.find((item) => !!item.userId && item.userId == user.id)?.id ?? null;
+    }
     return {
       props: {
         ...(await serverSideTranslations(locale, ["common"])),
@@ -561,7 +568,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         userName: user.username,
         hasEventTypes,
         configureEventType,
-        credentialId: parsedTeamIdParam ? teamsWithIsAppInstalled[0]?.id ?? null : appInstalls[0]?.id ?? null,
+        credentialId,
       } as OnboardingPageProps,
     };
   } catch (err) {
