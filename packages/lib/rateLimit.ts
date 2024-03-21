@@ -1,5 +1,4 @@
-import { Ratelimit } from "@upstash/ratelimit";
-import { Redis } from "@upstash/redis";
+import { Ratelimit, NoopRatelimit, type LimitOptions } from "@unkey/ratelimit";
 
 import { isIpInBanListString } from "./getIP";
 import logger from "./logger";
@@ -9,6 +8,7 @@ const log = logger.getSubLogger({ prefix: ["RateLimit"] });
 export type RateLimitHelper = {
   rateLimitingType?: "core" | "forcedSlowMode" | "common" | "api" | "ai";
   identifier: string;
+  opts?: LimitOptions;
   /**
    * Using a callback instead of a regular return to provide headers even
    * when the rate limit is reached and an error is thrown.
@@ -49,53 +49,58 @@ function logOnce(message: string) {
 export const API_KEY_RATE_LIMIT = 30;
 
 export function rateLimiter() {
-  const UPSATCH_ENV_FOUND = process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN;
+  const { UNKEY_ROOT_KEY } = process.env;
 
-  if (!UPSATCH_ENV_FOUND) {
-    logOnce("Disabled due to not finding UPSTASH env variables");
-    return () => ({ success: true, limit: 10, remaining: 999, reset: 0 } as RatelimitResponse);
+  if (!UNKEY_ROOT_KEY) {
+    logOnce("Disabled due to not finding UNKEY_ROOT_KEY env variable");
+    const rl = new NoopRatelimit();
+    return () => rl.limit("");
   }
 
-  const redis = Redis.fromEnv();
   const limiter = {
     core: new Ratelimit({
-      redis,
-      analytics: true,
-      prefix: "ratelimit",
-      limiter: Ratelimit.fixedWindow(10, "60s"),
+      rootKey: UNKEY_ROOT_KEY,
+      namespace: "core",
+      limit: 10,
+      duration: "60s",
+      async: true,
     }),
     common: new Ratelimit({
-      redis,
-      analytics: true,
-      prefix: "ratelimit",
-      limiter: Ratelimit.fixedWindow(200, "60s"),
+      rootKey: UNKEY_ROOT_KEY,
+      namespace: "common",
+      limit: 200,
+      duration: "60s",
+      async: true,
     }),
     forcedSlowMode: new Ratelimit({
-      redis,
-      analytics: true,
-      prefix: "ratelimit:slowmode",
-      limiter: Ratelimit.fixedWindow(1, "30s"),
+      rootKey: UNKEY_ROOT_KEY,
+      namespace: "forcedSlowMode",
+      limit: 1,
+      duration: "30s",
+      async: true,
     }),
     api: new Ratelimit({
-      redis,
-      analytics: true,
-      prefix: "ratelimit:api",
-      limiter: Ratelimit.fixedWindow(API_KEY_RATE_LIMIT, "60s"),
+      rootKey: UNKEY_ROOT_KEY,
+      namespace: "api",
+      limit: API_KEY_RATE_LIMIT,
+      duration: "60s",
+      async: true,
     }),
     ai: new Ratelimit({
-      redis,
-      analytics: true,
-      prefix: "ratelimit",
-      limiter: Ratelimit.fixedWindow(20, "1d"),
+      rootKey: UNKEY_ROOT_KEY,
+      namespace: "ai",
+      limit: 20,
+      duration: "1d",
+      async: true,
     }),
   };
 
-  async function rateLimit({ rateLimitingType = "core", identifier }: RateLimitHelper) {
+  async function rateLimit({ rateLimitingType = "core", identifier, opts }: RateLimitHelper) {
     if (isIpInBanListString(identifier)) {
-      return await limiter.forcedSlowMode.limit(identifier);
+      return await limiter.forcedSlowMode.limit(identifier, opts);
     }
 
-    return await limiter[rateLimitingType].limit(identifier);
+    return await limiter[rateLimitingType].limit(identifier, opts);
   }
 
   return rateLimit;
