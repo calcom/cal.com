@@ -4,11 +4,12 @@
   "type": "module",
   "description": "Customizable UI components to integrate scheduling into your product.",
   "authors": "Cal.com, Inc.",
-  "version": "1.0.0",
+  "version": "1.0.3",
   "scripts": {
     "dev": "yarn vite build --watch & npx tailwindcss -i ./globals.css -o ./globals.min.css --postcss --minify --watch",
     "build": "yarn vite build && npx tailwindcss -i ./globals.css -o ./globals.min.css --postcss --minify && yarn build:copy-css",
-    "build:copy-css": "cp ./globals.min.css ./dist/globals.min.css"
+    "build:copy-css": "cp ./globals.min.css ./dist/globals.min.css",
+    "publish": "rm -rf dist && yarn build && npm publish --access public"
   },
   "devDependencies": {
     "@rollup/plugin-node-resolve": "^15.0.1",
