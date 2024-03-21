@@ -343,7 +343,7 @@ const BookerComponent = ({
               <BookerSection
                 area="meta"
                 className="max-w-screen flex w-full flex-col md:w-[var(--booker-meta-width)]">
-                {orgBannerUrl && !isPlatform && (
+                {!hideEventTypeDetails && orgBannerUrl && !isPlatform && (
                   <img
                     loading="eager"
                     className="-mb-9 h-28 max-h-28 rounded-tl-md sm:max-h-24"
