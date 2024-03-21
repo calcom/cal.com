@@ -36,6 +36,7 @@
       "require": "./monorepo.ts"
     },
     "./styles.css": "./dist/globals.min.css",
+    "./globals.min.css": "./globals.min.css",
     "./dist/index.ts": "./index.ts"
   },
   "dependencies": {
