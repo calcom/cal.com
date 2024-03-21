@@ -245,10 +245,12 @@ export type Avatar = {
   userId: Generated<number>;
   data: string;
   objectKey: string;
+  isBanner: Generated<boolean>;
 };
 export type Booking = {
   id: Generated<number>;
   uid: string;
+  idempotencyKey: string | null;
   userId: number | null;
   /**
    * @zod.email()
@@ -380,6 +382,19 @@ export type DestinationCalendar = {
   eventTypeId: number | null;
   credentialId: number | null;
 };
+export type DSyncData = {
+  id: Generated<number>;
+  directoryId: string;
+  tenant: string;
+  organizationId: number | null;
+};
+export type DSyncTeamGroupMapping = {
+  id: Generated<number>;
+  organizationId: number;
+  teamId: number;
+  directoryId: string;
+  groupName: string;
+};
 export type EventType = {
   id: Generated<number>;
   /**
@@ -466,6 +481,7 @@ export type EventType = {
   isInstantEvent: Generated<boolean>;
   assignAllTeamMembers: Generated<boolean>;
   useEventTypeDestinationCalendarEmail: Generated<boolean>;
+  secondaryEmailId: number | null;
 };
 export type EventTypeCustomInput = {
   id: Generated<number>;
@@ -537,6 +553,14 @@ export type OAuthClient = {
   clientSecret: string;
   name: string;
   logo: string | null;
+};
+export type OrganizationSettings = {
+  id: Generated<number>;
+  organizationId: number;
+  isOrganizationConfigured: Generated<boolean>;
+  isOrganizationVerified: Generated<boolean>;
+  orgAutoAcceptEmail: string;
+  lockEventTypeCreationForUsers: Generated<boolean>;
 };
 export type OutOfOfficeEntry = {
   id: Generated<number>;
@@ -619,6 +643,12 @@ export type Schedule = {
   name: string;
   timeZone: string | null;
 };
+export type SecondaryEmail = {
+  id: Generated<number>;
+  userId: number;
+  email: string;
+  emailVerified: Timestamp | null;
+};
 export type SelectedCalendar = {
   userId: number;
   integration: string;
@@ -668,10 +698,12 @@ export type Team = {
   theme: string | null;
   brandColor: string | null;
   darkBrandColor: string | null;
+  bannerUrl: string | null;
   parentId: number | null;
   timeFormat: number | null;
   timeZone: Generated<string>;
   weekStart: Generated<string>;
+  isOrganization: Generated<boolean>;
   pendingPayment: Generated<boolean>;
 };
 export type TempOrgRedirect = {
@@ -750,6 +782,7 @@ export type VerificationToken = {
   createdAt: Generated<Timestamp>;
   updatedAt: Timestamp;
   teamId: number | null;
+  secondaryEmailId: number | null;
 };
 export type VerifiedNumber = {
   id: Generated<number>;
@@ -772,6 +805,7 @@ export type Webhook = {
   eventTriggers: WebhookTriggerEvents[];
   appId: string | null;
   secret: string | null;
+  platform: Generated<boolean>;
 };
 export type WebhookScheduledTriggers = {
   id: Generated<number>;
@@ -843,6 +877,8 @@ export type DB = {
   Credential: Credential;
   Deployment: Deployment;
   DestinationCalendar: DestinationCalendar;
+  DSyncData: DSyncData;
+  DSyncTeamGroupMapping: DSyncTeamGroupMapping;
   EventType: EventType;
   EventTypeCustomInput: EventTypeCustomInput;
   Feature: Feature;
@@ -853,6 +889,7 @@ export type DB = {
   InstantMeetingToken: InstantMeetingToken;
   Membership: Membership;
   OAuthClient: OAuthClient;
+  OrganizationSettings: OrganizationSettings;
   OutOfOfficeEntry: OutOfOfficeEntry;
   Payment: Payment;
   platform_access_tokens: AccessToken;
@@ -863,6 +900,7 @@ export type DB = {
   ReminderMail: ReminderMail;
   ResetPasswordRequest: ResetPasswordRequest;
   Schedule: Schedule;
+  SecondaryEmail: SecondaryEmail;
   SelectedCalendar: SelectedCalendar;
   SelectedSlots: SelectedSlots;
   Session: Session;
