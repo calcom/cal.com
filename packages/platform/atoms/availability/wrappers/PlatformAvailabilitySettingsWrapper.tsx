@@ -25,27 +25,8 @@ type PlatformAvailabilitySettingsWrapperProps = {
   onDeleteError?: (err: ApiErrorResponse) => void;
 };
 
-const defaultTranslations: TranslationsType = {
-  availability: "Availability",
-  set_to_default: "Set to default",
-  delete: "Delete",
-  delete_schedule: "Delete schedule",
-  timezone: "Timezone",
-  availability_settings: "Availability settings",
-  launch_troubleshooter: "Launch troubleshooter",
-  requires_at_least_one_schedule: "Requires at least one schedule",
-  delete_schedule_description: "Are you sure you want to delete this schedule?",
-  name: "Name",
-  something_doesnt_look_right: "Something doesn't look right",
-  add_an_override: "Add an override",
-  add_time_availability: "Add new time slot",
-  copy_times_to: "Copy times to …",
-  save: "Save",
-} as const;
-
 export const PlatformAvailabilitySettingsWrapper = ({
   id,
-  translations = defaultTranslations,
   customClassNames,
   onDeleteError,
   onDeleteSuccess,
@@ -144,7 +125,6 @@ export const PlatformAvailabilitySettingsWrapper = ({
       isSaving={isSavingInProgress}
       backPath=""
       isPlatform={true}
-      translations={{ ...defaultTranslations, ...translations }}
       customClassNames={customClassNames}
     />
   );
