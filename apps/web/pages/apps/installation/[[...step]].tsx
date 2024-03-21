@@ -124,7 +124,6 @@ const OnboardingPage = ({
   const [isLoadingOAuth, setIsLoadingOAuth] = useState(false);
   const utils = trpc.useContext();
   const [isSelectingAccount, setIsSelectingAccount] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
 
   const formMethods = useForm<TFormType>({
     defaultValues: {
@@ -142,7 +141,6 @@ const OnboardingPage = ({
     },
     async onSettled() {
       await utils.viewer.eventTypes.get.invalidate();
-      setIsSaving(false);
     },
     onError: (err) => {
       let message = "";
@@ -309,8 +307,6 @@ const OnboardingPage = ({
                   ) {
                     throw new Error(t("seats_and_no_show_fee_error"));
                   }
-
-                  setIsSaving(true);
                   updateMutation.mutate({
                     id: configureEventType.id,
                     metadata: values.metadata,
@@ -321,7 +317,7 @@ const OnboardingPage = ({
                   categories={appMetadata.categories}
                   credentialId={credentialId}
                   eventType={configureEventType}
-                  loading={isSaving}
+                  loading={updateMutation.isPending}
                 />
               </Form>
             )}
