@@ -1,4 +1,4 @@
-import { Ratelimit, NoopRatelimit, type LimitOptions } from "@unkey/ratelimit";
+import { Ratelimit, type LimitOptions, type RatelimitResponse } from "@unkey/ratelimit";
 
 import { isIpInBanListString } from "./getIP";
 import logger from "./logger";
@@ -14,27 +14,6 @@ export type RateLimitHelper = {
    * when the rate limit is reached and an error is thrown.
    **/
   onRateLimiterResponse?: (response: RatelimitResponse) => void;
-};
-
-export type RatelimitResponse = {
-  /**
-   * Whether the request may pass(true) or exceeded the limit(false)
-   */
-  success: boolean;
-  /**
-   * Maximum number of requests allowed within a window.
-   */
-  limit: number;
-  /**
-   * How many requests the user has left within the current window.
-   */
-  remaining: number;
-  /**
-   * Unix timestamp in milliseconds when the limits are reset.
-   */
-  reset: number;
-
-  pending: Promise<unknown>;
 };
 
 let warningDisplayed = false;
@@ -53,8 +32,7 @@ export function rateLimiter() {
 
   if (!UNKEY_ROOT_KEY) {
     logOnce("Disabled due to not finding UNKEY_ROOT_KEY env variable");
-    const rl = new NoopRatelimit();
-    return () => rl.limit("");
+    return () => ({ success: true, limit: 10, remaining: 999, reset: 0 } as RatelimitResponse);
   }
 
   const limiter = {
