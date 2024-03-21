@@ -1,0 +1,28 @@
+{
+  "name": "@calcom/platform-libraries",
+  "version": "0.0.0",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "type": "module",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "yarn vite build && sed -i'' -e 's/const CACHE = new lruCache\\.LRUCache({ max: 1e3 });/const CACHE = new lruCache({ max: 1e3 });/g' ./dist/index.cjs",
+    "build:watch": "yarn vite build --watch"
+  },
+  "dependencies": {
+    "@calcom/core": "*",
+    "@calcom/features": "*",
+    "@calcom/lib": "*"
+  },
+  "devDependencies": {
+    "@types/node": "^20.3.1",
+    "@vitejs/plugin-react": "^4.2.1",
+    "typescript": "^4.9.4",
+    "vite": "^5.0.12",
+    "vite-plugin-dts": "^3.7.2",
+    "vite-plugin-environment": "^1.1.3"
+  }
+}
