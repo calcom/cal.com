@@ -1206,7 +1206,7 @@
           "createdAt": {
             "format": "date-time",
             "type": "string",
-            "example": "2024-03-21T15:49:05.085Z"
+            "example": "2024-03-21T15:49:45.983Z"
           }
         },
         "required": [
