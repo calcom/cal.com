@@ -31,6 +31,7 @@ import type {
 } from "@calcom/types/EventManager";
 
 import { createEvent, updateEvent, deleteEvent } from "./CalendarManager";
+import CrmManager from "./managers/CrmManager";
 import { createMeeting, updateMeeting, deleteMeeting } from "./videoClient";
 
 const log = logger.getSubLogger({ prefix: ["EventManager"] });
@@ -81,6 +82,7 @@ type createdEventSchema = z.infer<typeof createdEventSchema>;
 export default class EventManager {
   calendarCredentials: CredentialPayload[];
   videoCredentials: CredentialPayload[];
+  crmCredentials: CredentialPayload[];
 
   /**
    * Takes an array of credentials and initializes a new instance of the EventManager.
@@ -97,7 +99,7 @@ export default class EventManager {
     // (type closecom_other_calendar)
     this.calendarCredentials = appCredentials.filter(
       // Backwards compatibility until CRM manager is implemented
-      (cred) => cred.type.endsWith("_calendar") || cred.type.endsWith("_crm")
+      (cred) => cred.type.endsWith("_calendar")
     );
     this.videoCredentials = appCredentials
       .filter((cred) => cred.type.endsWith("_video") || cred.type.endsWith("_conferencing"))
@@ -107,6 +109,7 @@ export default class EventManager {
       .sort((a, b) => {
         return b.id - a.id;
       });
+    this.crmCredentials = appCredentials.filter((cred) => cred.type.endsWith("_crm"));
   }
 
   /**
@@ -173,6 +176,8 @@ export default class EventManager {
     ): result is EventResult<NewCalendarEventType> => {
       return result.type.includes("_calendar");
     };
+
+    await this.createAllCRMEvents(clonedCalEvent);
 
     // References can be any type: calendar/video
     const referencesToCreate = results.map((result) => {
@@ -516,9 +521,7 @@ export default class EventManager {
        *  fallback to the first connected calendar - Shouldn't be a CRM calendar
        */
       // Backwards compatibility until CRM manager is created
-      const [credential] = this.calendarCredentials.filter(
-        (cred) => !cred.type.endsWith("other_calendar") || !cred.type.endsWith("crm")
-      );
+      const [credential] = this.calendarCredentials.filter((cred) => !cred.type.endsWith("other_calendar"));
       if (credential) {
         const createdEvent = await createEvent(credential, event);
         log.silly("Created Calendar event", safeStringify({ createdEvent }));
@@ -619,7 +622,7 @@ export default class EventManager {
       await Promise.all(
         this.calendarCredentials
           // Backwards compatibility until CRM manager is created
-          .filter((cred) => cred.type.includes("other_calendar") || cred.type.includes("crm"))
+          .filter((cred) => cred.type.includes("other_calendar"))
           .map(async (cred) => await createEvent(cred, event))
       )
     );
@@ -852,5 +855,12 @@ export default class EventManager {
         `No suitable credentials given for the requested integration name:${event.location}`
       );
     }
+  }
+
+  private async createAllCRMEvents(event: CalendarEvent) {
+    for (const credential of this.crmCredentials) {
+      const crm = new CrmManager(credential);
+    }
+    return;
   }
 }
