@@ -149,7 +149,6 @@ const CheckedHostField = ({
   isFixed,
   value,
   onChange,
-  helperText,
   ...rest
 }: {
   labelText?: string;
@@ -372,7 +371,7 @@ const RoundRobinHosts = ({
 }) => {
   const { t } = useLocale();
 
-  const { setValue } = useFormContext<FormValues>();
+  const { setValue, getValues } = useFormContext<FormValues>();
 
   return (
     <div className="rounded-lg ">
@@ -403,6 +402,22 @@ const RoundRobinHosts = ({
             )
           }
         />
+        {getValues("recurringEvent") && (
+          <div className="mb-6 px-6">
+            <Controller
+              name="differentRoundRobinRecurringHosts"
+              render={({ field: { value, onChange } }) => (
+                <SettingsToggle
+                  switchContainerClassName="p-6"
+                  labelClassName="mt-0.5 font-normal"
+                  title={t("recurring_round_robin_description")}
+                  checked={value}
+                  onCheckedChange={(e) => onChange(e)}
+                />
+              )}
+            />
+          </div>
+        )}
       </div>
     </div>
   );
@@ -450,7 +465,6 @@ const Hosts = ({
   assignAllTeamMembers: boolean;
   setAssignAllTeamMembers: Dispatch<SetStateAction<boolean>>;
 }) => {
-  const { t } = useLocale();
   const {
     control,
     setValue,

@@ -115,6 +115,7 @@ export const getEventTypeById = async ({
       currency: true,
       bookingFields: true,
       useEventTypeDestinationCalendarEmail: true,
+      differentRoundRobinRecurringHosts: true,
       owner: {
         select: {
           id: true,
