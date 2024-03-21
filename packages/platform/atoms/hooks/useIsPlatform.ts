@@ -1,4 +1,4 @@
-import { useAtomsContext } from "@calcom/platform-atoms";
+import { useAtomsContext } from "./useAtomsContext";
 
 export const useIsPlatform = () => {
   const context = useAtomsContext();

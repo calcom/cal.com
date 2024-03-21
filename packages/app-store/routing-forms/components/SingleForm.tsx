@@ -5,6 +5,7 @@ import type { UseFormReturn } from "react-hook-form";
 import { Controller, useFormContext } from "react-hook-form";
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
+import AddMembersWithSwitch from "@calcom/features/eventtypes/components/AddMembersWithSwitch";
 import { ShellMain } from "@calcom/features/shell/Shell";
 import useApp from "@calcom/lib/hooks/useApp";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -293,6 +294,9 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [form]);
 
+  const sendUpdatesTo = hookForm.watch("settings.sendUpdatesTo", []) as number[];
+  const sendToAll = hookForm.watch("settings.sendToAll", false) as boolean;
+
   const mutation = trpc.viewer.appRoutingForms.formMutation.useMutation({
     onSuccess() {
       showToast(t("form_updated_successfully"), "success");
@@ -356,20 +360,73 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
                   />
 
                   <div className="mt-6">
-                    <Controller
-                      name="settings.emailOwnerOnSubmission"
-                      control={hookForm.control}
-                      render={({ field: { value, onChange } }) => {
-                        return (
-                          <SettingsToggle
-                            title={t("routing_forms_send_email_owner")}
-                            description={t("routing_forms_send_email_owner_description")}
-                            checked={value}
-                            onCheckedChange={(val) => onChange(val)}
-                          />
-                        );
-                      }}
-                    />
+                    {form.teamId ? (
+                      <div className="flex flex-col">
+                        <span className="text-emphasis mb-3 block text-sm font-medium leading-none">
+                          {t("routing_forms_send_email_to")}
+                        </span>
+                        <AddMembersWithSwitch
+                          teamMembers={form.teamMembers.map((member) => ({
+                            value: member.id.toString(),
+                            label: member.name || "",
+                            avatar: member.avatarUrl || "",
+                            email: member.email,
+                            isFixed: true,
+                          }))}
+                          value={sendUpdatesTo.map((userId) => ({
+                            isFixed: true,
+                            userId: userId,
+                            priority: 1,
+                          }))}
+                          onChange={(value) => {
+                            hookForm.setValue(
+                              "settings.sendUpdatesTo",
+                              value.map((teamMember) => teamMember.userId),
+                              { shouldDirty: true }
+                            );
+                            hookForm.setValue("settings.emailOwnerOnSubmission", false, {
+                              shouldDirty: true,
+                            });
+                          }}
+                          assignAllTeamMembers={sendToAll}
+                          setAssignAllTeamMembers={(value) => {
+                            hookForm.setValue("settings.sendToAll", !!value, { shouldDirty: true });
+                          }}
+                          automaticAddAllEnabled={true}
+                          isFixed={true}
+                          onActive={() => {
+                            hookForm.setValue(
+                              "settings.sendUpdatesTo",
+                              form.teamMembers.map((teamMember) => teamMember.id),
+                              { shouldDirty: true }
+                            );
+                            hookForm.setValue("settings.emailOwnerOnSubmission", false, {
+                              shouldDirty: true,
+                            });
+                          }}
+                          placeholder={t("select_members")}
+                          containerClassName="!px-0 !pb-0 !pt-0"
+                        />
+                      </div>
+                    ) : (
+                      <Controller
+                        name="settings.emailOwnerOnSubmission"
+                        control={hookForm.control}
+                        render={({ field: { value, onChange } }) => {
+                          return (
+                            <SettingsToggle
+                              title={t("routing_forms_send_email_owner")}
+                              description={t("routing_forms_send_email_owner_description")}
+                              checked={value}
+                              onCheckedChange={(val) => {
+                                onChange(val);
+                                hookForm.unregister("settings.sendUpdatesTo");
+                              }}
+                            />
+                          );
+                        }}
+                      />
+                    )}
                   </div>
 
                   {form.routers.length ? (
