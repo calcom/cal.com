@@ -10,7 +10,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { TRPCClientErrorLike } from "@calcom/trpc/client";
 import { trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/server/routers/_app";
-import { Button, Dialog, DialogClose, DialogContent, TextField, DialogFooter } from "@calcom/ui";
+import { Button, Dialog, DialogClose, DialogContent, TextField, DialogFooter, Tooltip } from "@calcom/ui";
 import { Check, Edit2 } from "@calcom/ui/components/icon";
 
 interface ICustomUsernameProps {
@@ -160,22 +160,23 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
               <div className="bg-subtle flex w-full flex-wrap justify-between gap-6 rounded-sm  px-4 py-3 text-sm">
                 <div>
                   <p className="text-subtle">{t("current_username")}</p>
-                  <p
-                    tooltip={currentUsername}
-                    className="text-emphasis mt-1 max-w-md overflow-hidden text-ellipsis"
-                    data-testid="current-username">
-                    {currentUsername}
-                  </p>
+                  <Tooltip content={currentUsername}>
+                    <p
+                      className="text-emphasis mt-1 max-w-md overflow-hidden text-ellipsis"
+                      data-testid="current-username">
+                      {currentUsername}
+                    </p>
+                  </Tooltip>
                 </div>
                 <div>
                   <p className="text-subtle" data-testid="new-username">
                     {t("new_username")}
                   </p>
-                  <p
-                    tooltip={inputUsernameValue}
-                    className="text-emphasis mt-1 max-w-md overflow-hidden text-ellipsis">
-                    {inputUsernameValue}
-                  </p>
+                  <Tooltip content={inputUsernameValue}>
+                    <p className="text-emphasis mt-1 max-w-md overflow-hidden text-ellipsis">
+                      {inputUsernameValue}
+                    </p>
+                  </Tooltip>
                 </div>
               </div>
             </div>
