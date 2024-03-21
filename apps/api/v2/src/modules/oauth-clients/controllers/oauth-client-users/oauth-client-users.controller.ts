@@ -22,7 +22,6 @@ import {
   Delete,
 } from "@nestjs/common";
 import { User } from "@prisma/client";
-import * as crypto from "crypto";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { ApiResponse } from "@calcom/platform-types";
