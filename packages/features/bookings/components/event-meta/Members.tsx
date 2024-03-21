@@ -1,3 +1,4 @@
+import { useIsPlatform } from "@calcom/platform-atoms";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { UserAvatarGroup, UserAvatarGroupWithOrg } from "@calcom/ui";
 
@@ -15,8 +16,9 @@ export interface EventMembersProps {
 }
 
 export const EventMembers = ({ schedulingType, users, profile, entity }: EventMembersProps) => {
+  const isPlatform = useIsPlatform();
   const showMembers = schedulingType !== SchedulingType.ROUND_ROBIN;
-  const shownUsers = showMembers ? users : [];
+  const shownUsers = showMembers && !isPlatform ? users : [];
 
   // In some cases we don't show the user's names, but only show the profile name.
   const showOnlyProfileName =

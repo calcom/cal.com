@@ -37,7 +37,8 @@
         "NEXT_PUBLIC_WEBSITE_URL",
         "STRIPE_PREMIUM_PLAN_PRODUCT_ID",
         "STRIPE_TEAM_MONTHLY_PRICE_ID",
-        "STRIPE_ORG_MONTHLY_PRICE_ID"
+        "STRIPE_ORG_MONTHLY_PRICE_ID",
+        "NEXT_PUBLIC_API_V2_URL"
       ]
     },
     "@calcom/web#dx": {
@@ -47,6 +48,17 @@
     "@calcom/web#start": {
       "cache": false,
       "dependsOn": []
+    },
+    "@calcom/api-v2#build": {
+      "dependsOn": ["^build"],
+      "env": [
+        "NODE_ENV",
+        "API_PORT",
+        "DATABASE_READ_URL",
+        "DATABASE_WRITE_URL",
+        "LOG_LEVEL",
+        "NEXTAUTH_SECRET"
+      ]
     },
     "@calcom/ai#build": {
       "env": [
@@ -168,7 +180,8 @@
     },
     "@calcom/embed-core#build": {
       "cache": false,
-      "outputs": ["../../../apps/web/public/embed/**"]
+      "outputs": ["../../../apps/web/public/embed/**"],
+      "env": ["EMBED_PUBLIC_VERCEL_URL", "EMBED_PUBLIC_WEBAPP_URL", "EMBED_PUBLIC_EMBED_FINGER_PRINT"]
     },
     "embed-tests-update-snapshots:ci": {
       "cache": false,
@@ -377,6 +390,9 @@
     "CLOUDFLARE_ZONE_ID",
     "CLOUDFLARE_VERCEL_CNAME",
     "CLOUDFLARE_DNS",
+    "EMBED_PUBLIC_EMBED_FINGER_PRINT",
+    "EMBED_PUBLIC_WEBAPP_URL",
+    "EMBED_PUBLIC_VERCEL_URL",
     "NEXT_PUBLIC_ENABLE_PROFILE_SWITCHER",
     "NEXT_PUBLIC_HEAD_SCRIPTS",
     "NEXT_PUBLIC_BODY_SCRIPTS"

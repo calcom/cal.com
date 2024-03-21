@@ -1123,6 +1123,7 @@
   "connect_apple_server": "חיבור לשרת Apple",
   "calendar_url": "כתובת ה-URL של לוח השנה",
   "apple_server_generate_password": "צור סיסמה ספציפית לאפליקציה שתשמש עבור {{appName}} ב-",
+  "unable_to_add_apple_calendar": "לא ניתן להוסיף את החשבון הזה ב־Apple Calendar. נא לוודא שהשתמשת בסיסמה ייעודית ליישום במקום בסיסמת החשבון שלך.",
   "credentials_stored_encrypted": "פרטי הכניסה שלך יישמרו ויוצפנו.",
   "it_stored_encrypted": "הוא יאוחסן ויוצפן.",
   "go_to_app_store": "מעבר אל ה-App Store",
