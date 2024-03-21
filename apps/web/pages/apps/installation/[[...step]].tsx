@@ -8,6 +8,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import getInstalledAppPath from "@calcom/app-store/_utils/getInstalledAppPath";
+import checkForMultiplePaymentApps from "@calcom/app-store/_utils/payments/checkForMultiplePaymentApps";
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
@@ -297,6 +298,18 @@ const OnboardingPage = ({
               <Form
                 form={formMethods}
                 handleSubmit={(values) => {
+                  // Prevent two payment apps to be enabled
+                  // Ok to cast type here because this metadata will be updated as the event type metadata
+                  if (checkForMultiplePaymentApps(values.metadata as z.infer<typeof EventTypeMetaDataSchema>))
+                    throw new Error(t("event_setup_multiple_payment_apps_error"));
+
+                  if (
+                    values.metadata?.apps?.stripe?.paymentOption === "HOLD" &&
+                    configureEventType.seatsPerTimeSlot
+                  ) {
+                    throw new Error(t("seats_and_no_show_fee_error"));
+                  }
+
                   setIsSaving(true);
                   updateMutation.mutate({
                     id: configureEventType.id,
