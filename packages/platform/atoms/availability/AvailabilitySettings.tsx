@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useForm, Controller, useFieldArray, useWatch } from "react-hook-form";
+import { Controller, useFieldArray, useForm, useWatch } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
 import { DateOverrideInputDialog, DateOverrideList } from "@calcom/features/schedules";
@@ -10,25 +10,24 @@ import WebShell from "@calcom/features/shell/Shell";
 import { availabilityAsString } from "@calcom/lib/availability";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { WorkingHours } from "@calcom/types/schedule";
-import type { TimeRange } from "@calcom/types/schedule";
+import type { TimeRange, WorkingHours } from "@calcom/types/schedule";
 import {
-  VerticalDivider,
   Button,
-  Form,
-  SkeletonText,
   ConfirmationDialogContent as WebConfirmationDialogContent,
   Dialog as WebDialog,
   DialogTrigger as WebDialogTrigger,
+  EditableHeading,
+  Form,
   Label,
+  SelectSkeletonLoader,
   Skeleton,
+  SkeletonText,
   Switch,
   TimezoneSelect as WebTimezoneSelect,
-  SelectSkeletonLoader,
   Tooltip,
-  EditableHeading,
+  VerticalDivider,
 } from "@calcom/ui";
-import { MoreVertical, ArrowLeft, Trash, Info, Plus } from "@calcom/ui/components/icon";
+import { ArrowLeft, Info, MoreVertical, Plus, Trash } from "@calcom/ui/components/icon";
 
 import { ConfirmationDialogContent as PlatformConfirmationDialogContent } from "../src/components/ui/confirmation-dialog-content";
 import {
@@ -69,7 +68,7 @@ export type CustomClassNames = {
 
 type AvailabilitySettingsProps = {
   skeletonLabel?: string;
-  schedule?: {
+  schedule: {
     name: string;
     id: number;
     availability: TimeRange[][];
@@ -78,7 +77,7 @@ type AvailabilitySettingsProps = {
     workingHours: WorkingHours[];
     dateOverrides: { ranges: TimeRange[] }[];
     timeZone: string;
-    schedule: Schedule[] | [];
+    schedule: Schedule[];
   };
   handleDelete: () => void;
   isDeleting: boolean;
@@ -239,9 +238,9 @@ export function AvailabilitySettings({
   const { t, i18n } = useLocale();
 
   const form = useForm<AvailabilityFormValues>({
-    values: schedule && {
+    defaultValues: {
       ...schedule,
-      schedule: schedule?.availability || [],
+      schedule: schedule.availability || [],
     },
   });
 
@@ -255,7 +254,7 @@ export function AvailabilitySettings({
     <Shell
       headerClassName={cn(customClassNames?.containerClassName)}
       backPath={backPath}
-      title={schedule?.name ? `${schedule.name} | t("availability")}` : t("availability")}
+      title={schedule.name ? `${schedule.name} | t("availability")}` : t("availability")}
       heading={
         <Controller
           control={form.control}
@@ -303,7 +302,7 @@ export function AvailabilitySettings({
                   render={({ field: { value, onChange } }) => (
                     <Switch
                       id="hiddenSwitch"
-                      disabled={isSaving || schedule?.isDefault}
+                      disabled={isSaving || schedule.isDefault}
                       checked={value}
                       onCheckedChange={onChange}
                     />
@@ -316,7 +315,7 @@ export function AvailabilitySettings({
           <VerticalDivider className="hidden sm:inline" />
           <DeleteDialogButton
             buttonClassName="hidden sm:inline"
-            disabled={schedule?.isLastSchedule}
+            disabled={schedule.isLastSchedule}
             isPending={isDeleting}
             handleDelete={handleDelete}
             isPlatform={isPlatform}
@@ -340,7 +339,7 @@ export function AvailabilitySettings({
                     <p className="-ml-2">{t("availability_settings")}</p>
                     <DeleteDialogButton
                       buttonClassName="ml-16 inline"
-                      disabled={schedule?.isLastSchedule}
+                      disabled={schedule.isLastSchedule}
                       isPending={isDeleting}
                       handleDelete={handleDelete}
                       isPlatform={isPlatform}
@@ -492,7 +491,7 @@ export function AvailabilitySettings({
             </div>
             {!isPlatform ? (
               <div className="border-subtle my-6 rounded-md border">
-                {schedule?.workingHours && (
+                {schedule.workingHours && (
                   <DateOverride workingHours={schedule.workingHours} userTimeFormat={timeFormat} />
                 )}
               </div>
