@@ -490,9 +490,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
               const { attendees: _attendees, ...bookingWithoutAttendees } = bookings;
               return bookingWithoutAttendees;
             }),
-          busyTimesFromLimitsBookings: busyTimesFromLimitsBookingsAllUsers.filter(
-            (b) => b.userId === currentUser.id
-          ),
+          busyTimesFromLimitsBookings: busyTimesFromLimitsBookingsAllUsers,
         }
       );
       if (!currentSeats && _currentSeats) currentSeats = _currentSeats;

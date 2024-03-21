@@ -173,25 +173,24 @@ function buildSlotsWithDateRanges({
     reason?: string;
     emoji?: string;
   }[] = [];
+
+  let interval = Number(process.env.NEXT_PUBLIC_AVAILABILITY_SCHEDULE_INTERVAL) || 1;
+  const intervalsWithDefinedStartTimes = [60, 30, 20, 15, 10, 5];
+
+  for (let i = 0; i < intervalsWithDefinedStartTimes.length; i++) {
+    if (frequency % intervalsWithDefinedStartTimes[i] === 0) {
+      interval = intervalsWithDefinedStartTimes[i];
+      break;
+    }
+  }
+
   dateRanges.forEach((range) => {
     const dateYYYYMMDD = range.start.format("YYYY-MM-DD");
-
     const startTimeWithMinNotice = dayjs.utc().add(minimumBookingNotice, "minute");
 
     let slotStartTime = range.start.utc().isAfter(startTimeWithMinNotice)
       ? range.start
       : startTimeWithMinNotice;
-
-    let interval = Number(process.env.NEXT_PUBLIC_AVAILABILITY_SCHEDULE_INTERVAL) || 15;
-
-    const intervalsWithDefinedStartTimes = [60, 30, 20, 10];
-
-    for (let i = 0; i < intervalsWithDefinedStartTimes.length; i++) {
-      if (frequency % intervalsWithDefinedStartTimes[i] === 0) {
-        interval = intervalsWithDefinedStartTimes[i];
-        break;
-      }
-    }
 
     slotStartTime =
       slotStartTime.minute() % interval !== 0
@@ -233,6 +232,7 @@ function buildSlotsWithDateRanges({
       slots.push({
         time: slotStartTime,
       });
+
       slotStartTime = slotStartTime.add(frequency + (offsetStart ?? 0), "minutes");
     }
   });
