@@ -219,6 +219,9 @@ model TravelSchedule {
   startDate    DateTime
   endDate      DateTime?
   prevTimeZone String?
+
+  @@index([startDate])
+  @@index([endDate])
 }
 
 // It holds Personal Profiles of a User plus it has email, password and other core things
