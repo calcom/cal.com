@@ -130,8 +130,12 @@ export async function getTeamWithMembers(args: {
           },
         },
         select: {
-          users: {
-            select: userSelect,
+          hosts: {
+            select: {
+              user: {
+                select: userSelect,
+              },
+            },
           },
           metadata: true,
           ...baseEventTypeSelect,
@@ -205,7 +209,7 @@ export async function getTeamWithMembers(args: {
   const eventTypesWithUsersUserProfile = [];
   for (const eventType of teamOrOrg.eventTypes) {
     const usersWithUserProfile = [];
-    for (const user of eventType.users) {
+    for (const { user } of eventType.hosts) {
       usersWithUserProfile.push(
         await UserRepository.enrichUserWithItsProfile({
           user,
