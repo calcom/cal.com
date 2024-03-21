@@ -3,7 +3,7 @@ import dynamic from "next/dynamic";
 import { useMemo, useEffect } from "react";
 import { shallow } from "zustand/shallow";
 
-import { Timezone as PlatformTimezoneSelect } from "@calcom/atoms/web";
+import { Timezone as PlatformTimezoneSelect } from "@calcom/atoms/monorepo";
 import { useEmbedUiConfig, useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { EventDetails, EventMembers, EventMetaSkeleton, EventTitle } from "@calcom/features/bookings";
 import { SeatsAvailabilityText } from "@calcom/features/bookings/components/SeatsAvailabilityText";

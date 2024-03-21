@@ -1,6 +1,6 @@
 "use client";
 
-import { Booker } from "@calcom/atoms/web";
+import { Booker } from "@calcom/atoms/monorepo";
 import { getBookerWrapperClasses } from "@calcom/features/bookings/Booker/utils/getBookerWrapperClasses";
 import { BookerSeo } from "@calcom/features/bookings/components/BookerSeo";
 

@@ -31,9 +31,9 @@
       "require": "./dist/cal-atoms.umd.cjs",
       "import": "./dist/cal-atoms.js"
     },
-    "./web": {
-      "import": "./web.ts",
-      "require": "./web.ts"
+    "./monorepo": {
+      "import": "./monorepo.ts",
+      "require": "./monorepo.ts"
     },
     "./styles.css": "./dist/globals.min.css",
     "./dist/index.ts": "./index.ts"
