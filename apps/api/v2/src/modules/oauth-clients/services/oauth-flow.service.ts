@@ -11,8 +11,9 @@ export class OAuthFlowService {
 
   constructor(
     private readonly tokensRepository: TokensRepository,
-    private readonly oAuthClientRepository: OAuthClientRepository //private readonly redisService: RedisIOService
+    private readonly oAuthClientRepository: OAuthClientRepository
   ) {}
+  //private readonly redisService: RedisIOService
 
   async propagateAccessToken(accessToken: string) {
     // this.logger.log("Propagating access token to redis", accessToken);
