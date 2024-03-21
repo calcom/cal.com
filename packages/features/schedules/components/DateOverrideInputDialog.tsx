@@ -27,12 +27,14 @@ const DateOverrideForm = ({
   workingHours,
   excludedDates,
   onChange,
+  userTimeFormat,
 }: {
   workingHours?: WorkingHours[];
   onChange: (newValue: TimeRange[]) => void;
   excludedDates: string[];
   value?: TimeRange[];
   onClose?: () => void;
+  userTimeFormat: number | null;
 }) => {
   const [browsingDate, setBrowsingDate] = useState<Dayjs>();
   const { t, i18n, isLocaleReady } = useLocale();
@@ -163,7 +165,7 @@ const DateOverrideForm = ({
                     {t("date_overrides_unavailable")}
                   </p>
                 ) : (
-                  <DayRanges name="range" />
+                  <DayRanges name="range" userTimeFormat={userTimeFormat} />
                 )}
               </div>
               <Switch
@@ -201,6 +203,7 @@ const DateOverrideForm = ({
 const DateOverrideInputDialog = ({
   Trigger,
   excludedDates = [],
+  userTimeFormat,
   ...passThroughProps
 }: {
   workingHours: WorkingHours[];
@@ -208,6 +211,7 @@ const DateOverrideInputDialog = ({
   Trigger: React.ReactNode;
   onChange: (newValue: TimeRange[]) => void;
   value?: TimeRange[];
+  userTimeFormat: number | null;
 }) => {
   const [open, setOpen] = useState(false);
   return (
@@ -219,6 +223,7 @@ const DateOverrideInputDialog = ({
           excludedDates={excludedDates}
           {...passThroughProps}
           onClose={() => setOpen(false)}
+          userTimeFormat={userTimeFormat}
         />
       </DialogContent>
     </Dialog>
