@@ -8,7 +8,7 @@ import { useMe } from "../../hooks/useMe";
 import useUpdateSchedule from "../../hooks/useUpdateSchedule";
 import { useToast } from "../../src/components/ui/use-toast";
 import type { Schedule } from "../AvailabilitySettings";
-import type { CustomClassNames, TranslationsType } from "../AvailabilitySettings";
+import type { CustomClassNames } from "../AvailabilitySettings";
 import { AvailabilitySettings } from "../AvailabilitySettings";
 import type { AvailabilityFormValues } from "../types";
 
@@ -17,7 +17,6 @@ type PlatformAvailabilitySettingsWrapperProps = {
   labels?: {
     tooltips: Partial<ScheduleLabelsType>;
   };
-  translations?: Partial<TranslationsType>;
   customClassNames?: Partial<CustomClassNames>;
   onUpdateSuccess?: (res: ApiResponse<UpdateScheduleOutputType>) => void;
   onUpdateError?: (err: ApiErrorResponse) => void;
@@ -129,34 +128,3 @@ export const PlatformAvailabilitySettingsWrapper = ({
     />
   );
 };
-
-[
-  [
-    {
-      start: "2024-03-21T09:00:00.000Z",
-      end: "2024-03-21T17:00:00.000Z",
-    },
-    {
-      start: "2024-03-21T17:00:00.000Z",
-      end: "2024-03-21T18:00:00.000Z",
-    },
-    {
-      start: "2024-03-21T18:00:00.000Z",
-      end: "2024-03-21T19:00:00.000Z",
-    },
-  ], // thursday
-  [
-    {
-      start: "2024-03-21T09:00:00.000Z",
-      end: "2024-03-21T17:00:00.000Z",
-    },
-    {
-      start: "2024-03-21T17:00:00.000Z",
-      end: "2024-03-21T18:00:00.000Z",
-    },
-    {
-      start: "2024-03-21T18:00:00.000Z",
-      end: "2024-03-21T19:00:00.000Z",
-    },
-  ], //friday
-];
