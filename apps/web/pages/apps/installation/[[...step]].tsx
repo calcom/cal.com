@@ -344,8 +344,20 @@ const getUser = async (userId: number) => {
       name: true,
       username: true,
       teams: {
-        select: {
+        where: {
           accepted: true,
+          team: {
+            members: {
+              some: {
+                userId,
+                role: {
+                  in: ["ADMIN", "OWNER"],
+                },
+              },
+            },
+          },
+        },
+        select: {
           team: {
             select: {
               id: true,
@@ -481,9 +493,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
     const user = await getUser(session.user.id);
 
-    const userAcceptedTeams = user.teams
-      .filter((team) => team.accepted)
-      .map((team) => ({ ...team.team, accepted: team.accepted }));
+    const userAcceptedTeams = user.teams.map((team) => ({ ...team.team }));
     const hasTeams = Boolean(userAcceptedTeams.length);
 
     const appInstalls = await getAppInstallsBySlug(
