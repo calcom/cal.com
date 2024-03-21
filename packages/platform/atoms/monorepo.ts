@@ -1,6 +1,6 @@
 export { BookerWebWrapper as Booker } from "./booker";
+export { WebAvailabilitySettingsWrapper as AvailabilitySettings } from "./availability/wrappers/WebAvailabilitySettingsWrapper";
 export { CalProvider } from "./cal-provider/CalProvider";
-export { AvailabilitySettings } from "./availability";
 export { useIsPlatform } from "./hooks/useIsPlatform";
 export { useAtomsContext } from "./hooks/useAtomsContext";
 export { useHandleBookEvent } from "./hooks/useHandleBookEvent";

@@ -1,4 +1,4 @@
-import { AvailabilitySettings } from "@calcom/platform-atoms/monorepo";
+import { AvailabilitySettings } from "@calcom/atoms/monorepo";
 
 import PageWrapper from "@components/PageWrapper";
 
