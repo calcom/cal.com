@@ -1,3 +1,4 @@
+import { useSession } from "next-auth/react";
 import { Trans } from "next-i18next";
 import Link from "next/link";
 import type { EventTypeSetupProps, Host } from "pages/event-types/[type]";
@@ -6,6 +7,7 @@ import type { ComponentProps, Dispatch, SetStateAction } from "react";
 import { Controller, useFormContext, useWatch } from "react-hook-form";
 import type { Options } from "react-select";
 
+import MemberInvitationModal from "@calcom/ee/teams/components/MemberInvitationModal";
 import AddMembersWithSwitch, {
   mapUserToValue,
 } from "@calcom/features/eventtypes/components/AddMembersWithSwitch";
@@ -14,7 +16,8 @@ import ChildrenEventTypeSelect from "@calcom/features/eventtypes/components/Chil
 import type { FormValues, TeamMember } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
-import { Label, Select, SettingsToggle } from "@calcom/ui";
+import { trpc } from "@calcom/trpc/react";
+import { Label, Select, SettingsToggle, showToast } from "@calcom/ui";
 
 export const mapMemberToChildrenOption = (
   member: EventTypeSetupProps["teamMembers"][number],
@@ -192,14 +195,39 @@ const RoundRobinHosts = ({
   onChange,
   assignAllTeamMembers,
   setAssignAllTeamMembers,
+  team,
 }: {
   value: Host[];
   onChange: (hosts: Host[]) => void;
   teamMembers: TeamMember[];
   assignAllTeamMembers: boolean;
   setAssignAllTeamMembers: Dispatch<SetStateAction<boolean>>;
-}) => {
-  const { t } = useLocale();
+} & Pick<EventTypeSetupProps, "team">) => {
+  const { t, i18n } = useLocale();
+  const utils = trpc.useUtils();
+  const [showMemberInviteModal, setShowMemberInviteModal] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState<undefined | string>(undefined);
+  const session = useSession();
+  const inviteMemberMutation = trpc.viewer.teams.inviteMember.useMutation({
+    onSuccess: () => {
+      utils.viewer.organizations.getMembers.invalidate();
+      utils.viewer.organizations.listOtherTeams.invalidate();
+      utils.viewer.teams.list.invalidate();
+      utils.viewer.organizations.listOtherTeamMembers.invalidate();
+    },
+  });
+  const { data: orgMembersNotInThisTeam, isPending: isOrgListLoading } =
+    trpc.viewer.organizations.getMembers.useQuery(
+      {
+        teamIdToExclude: team?.id,
+        distinctUser: true,
+      },
+      {
+        enabled: !Number.isNaN(team?.id),
+      }
+    );
+
+  const orgId = session.data?.user.org?.id;
 
   const { setValue } = useFormContext<FormValues>();
 
@@ -217,6 +245,8 @@ const RoundRobinHosts = ({
           assignAllTeamMembers={assignAllTeamMembers}
           setAssignAllTeamMembers={setAssignAllTeamMembers}
           automaticAddAllEnabled={true}
+          setMemberInviteModal={setShowMemberInviteModal}
+          handleEmailInvite={(email: string) => setInviteEmail(email)}
           isFixed={false}
           onActive={() =>
             setValue(
@@ -233,6 +263,53 @@ const RoundRobinHosts = ({
           }
         />
       </div>
+      {showMemberInviteModal && team && (
+        <MemberInvitationModal
+          isOpen={showMemberInviteModal}
+          onExit={() => setShowMemberInviteModal(false)}
+          orgMembers={orgId ? orgMembersNotInThisTeam : undefined}
+          teamId={team.id}
+          inviteEmail={inviteEmail}
+          isOrg={!!orgId}
+          onSubmit={(values, resetFields) => {
+            inviteMemberMutation.mutate(
+              {
+                teamId: team.id,
+                language: i18n.language,
+                role: values.role,
+                usernameOrEmail: values.emailOrUsername,
+              },
+              {
+                onSuccess: async (data) => {
+                  await utils.viewer.teams.get.invalidate();
+                  await utils.viewer.organizations.getMembers.invalidate();
+                  setShowMemberInviteModal(false);
+
+                  if (Array.isArray(data.usernameOrEmail)) {
+                    showToast(
+                      t("email_invite_team_bulk", {
+                        userCount: data.usernameOrEmail.length,
+                      }),
+                      "success"
+                    );
+                    resetFields();
+                  } else {
+                    showToast(
+                      t("email_invite_team", {
+                        email: data.usernameOrEmail,
+                      }),
+                      "success"
+                    );
+                  }
+                },
+                onError: (error) => {
+                  showToast(error.message, "error");
+                },
+              }
+            );
+          }}
+        />
+      )}
     </div>
   );
 };
@@ -274,11 +351,12 @@ const Hosts = ({
   teamMembers,
   assignAllTeamMembers,
   setAssignAllTeamMembers,
+  team,
 }: {
   teamMembers: TeamMember[];
   assignAllTeamMembers: boolean;
   setAssignAllTeamMembers: Dispatch<SetStateAction<boolean>>;
-}) => {
+} & Pick<EventTypeSetupProps, "team">) => {
   const { t } = useLocale();
   const {
     control,
@@ -345,6 +423,7 @@ const Hosts = ({
                     )
                   );
                 }}
+                team={team}
                 assignAllTeamMembers={assignAllTeamMembers}
                 setAssignAllTeamMembers={setAssignAllTeamMembers}
               />
@@ -433,6 +512,7 @@ export const EventTeamTab = ({
             assignAllTeamMembers={assignAllTeamMembers}
             setAssignAllTeamMembers={setAssignAllTeamMembers}
             teamMembers={teamMembersOptions}
+            team={team}
           />
         </>
       )}

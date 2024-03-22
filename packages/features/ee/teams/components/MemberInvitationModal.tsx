@@ -1,7 +1,7 @@
 import { BuildingIcon, PaperclipIcon, UserIcon, Users } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { Trans } from "next-i18next";
-import { useMemo, useState, useRef } from "react";
+import { useMemo, useState, useRef, useEffect } from "react";
 import type { FormEvent } from "react";
 import { Controller, useForm } from "react-hook-form";
 
@@ -34,6 +34,7 @@ import { GoogleWorkspaceInviteButton } from "./GoogleWorkspaceInviteButton";
 type MemberInvitationModalProps = {
   isOpen: boolean;
   justEmailInvites?: boolean;
+  inviteEmail?: string;
   onExit: () => void;
   orgMembers?: RouterOutputs["viewer"]["organizations"]["getMembers"];
   onSubmit: (values: NewMemberForm, resetFields: () => void) => void;
@@ -78,7 +79,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
   const isOrgOwner = currentOrg && currentOrg.user.role === MembershipRole.OWNER;
 
   const [modalImportMode, setModalInputMode] = useState<ModalMode>(
-    props?.orgMembers && props.orgMembers?.length > 0 ? "ORGANIZATION" : "INDIVIDUAL"
+    props?.orgMembers && props.orgMembers?.length > 0 && !props.inviteEmail ? "ORGANIZATION" : "INDIVIDUAL"
   );
 
   const createInviteMutation = trpc.viewer.teams.createInvite.useMutation({
@@ -126,6 +127,12 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
   }, [t, props.orgMembers]);
 
   const newMemberFormMethods = useForm<NewMemberForm>();
+
+  useEffect(() => {
+    if (props.inviteEmail) {
+      newMemberFormMethods.setValue("emailOrUsername", props.inviteEmail);
+    }
+  }, [props.inviteEmail, newMemberFormMethods, modalImportMode]);
 
   const validateUniqueInvite = (value: string) => {
     if (!props?.members?.length) return true;
@@ -229,11 +236,12 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                       return validateUniqueInvite(value) || t("member_already_invited");
                   },
                 }}
-                render={({ field: { onChange }, fieldState: { error } }) => (
+                render={({ field: { value, onChange }, fieldState: { error } }) => (
                   <>
                     <TextField
                       label={props.justEmailInvites ? t("email") : t("email_or_username")}
                       id="inviteUser"
+                      value={value}
                       name="inviteUser"
                       placeholder="email@example.com"
                       required
