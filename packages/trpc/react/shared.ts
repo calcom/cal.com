@@ -16,6 +16,7 @@ export const ENDPOINTS = [
   "insights",
   "payments",
   "public",
+  "timezones",
   "saml",
   "slots",
   "teams",

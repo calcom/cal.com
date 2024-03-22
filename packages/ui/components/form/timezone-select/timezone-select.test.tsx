@@ -17,7 +17,7 @@ const cityTimezonesMock = [
 const runtimeMock = async (isPending: boolean) => {
   const updatedTrcp = {
     viewer: {
-      public: {
+      timezones: {
         cityTimezones: {
           useQuery() {
             return {

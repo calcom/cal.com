@@ -277,6 +277,7 @@ const EmailEmbed = ({
                 onTimeSelect={onTimeSelect}
                 slots={slots}
                 showAvailableSeatsCount={eventType.seatsShowAvailabilityCount}
+                event={event}
               />
             </div>
           ) : null}
