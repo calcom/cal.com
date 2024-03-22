@@ -1,5 +1,6 @@
 import type { Webhook } from "@prisma/client";
-import { TaskerFactory } from "tasker/tasker-factory";
+
+import { TaskerFactory } from "@calcom/features/tasker/tasker-factory";
 
 import type { WebhookDataType } from "./sendPayload";
 
