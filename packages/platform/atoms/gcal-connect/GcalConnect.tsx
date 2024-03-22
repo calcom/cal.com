@@ -1,4 +1,3 @@
-import { cn } from "@/lib/utils";
 import type { FC } from "react";
 
 import { Button } from "@calcom/ui";
@@ -6,6 +5,7 @@ import { CalendarDays } from "@calcom/ui/components/icon";
 
 import { useAtomsContext } from "../hooks/useAtomsContext";
 import { useGcal } from "../hooks/useGcal";
+import { cn } from "../src/lib/utils";
 
 interface GcalConnectProps {
   className?: string;

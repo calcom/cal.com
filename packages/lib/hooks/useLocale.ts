@@ -1,6 +1,6 @@
 import { useTranslation } from "next-i18next";
 
-import { useAtomsContext } from "@calcom/platform-atoms";
+import { useAtomsContext } from "@calcom/atoms/monorepo";
 
 export const useLocale = (namespace: Parameters<typeof useTranslation>[0] = "common") => {
   const context = useAtomsContext();
