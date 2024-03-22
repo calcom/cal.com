@@ -19,7 +19,13 @@ import { extractUserIdsFromQuery } from "~/lib/utils/extractUserIdsFromQuery";
  *         schema:
  *           type: string
  *         description: Your API key
- *     summary: Find all connected calendars
+ *       - in: query
+ *         name: userId
+ *         required: false
+ *         schema:
+ *           type: number
+ *         description: Admins can fetch connected calendars for other user e.g. &userId=1 or multiple users e.g. &userId=1&userId=2
+ *     summary: Fetch connected calendars
  *     tags:
  *      - connected-calendars
  *     responses:
@@ -27,6 +33,8 @@ import { extractUserIdsFromQuery } from "~/lib/utils/extractUserIdsFromQuery";
  *         description: OK
  *       401:
  *        description: Authorization information is missing or invalid.
+ *       403:
+ *        description: Non admin user trying to fetch other user's connected calendars.
  */
 async function getHandler(req: NextApiRequest) {
   const { userId, isAdmin } = req;
