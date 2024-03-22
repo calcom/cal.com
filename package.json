@@ -4,11 +4,14 @@
   "private": true,
   "workspaces": [
     "apps/*",
+    "apps/api/*",
     "packages/*",
     "packages/embeds/*",
     "packages/features/*",
     "packages/app-store/*",
-    "packages/app-store/ee/*"
+    "packages/app-store/ee/*",
+    "packages/platform/*",
+    "packages/platform/examples/base"
   ],
   "scripts": {
     "app-store-cli": "yarn workspace @calcom/app-store-cli",
@@ -31,11 +34,11 @@
     "db-studio": "yarn prisma studio",
     "deploy": "turbo run deploy",
     "dev:all": "turbo run dev --scope=\"@calcom/web\" --scope=\"@calcom/website\" --scope=\"@calcom/console\"",
-    "dev:ai": "turbo run dev --scope=\"@calcom/web\" --scope=\"@calcom/api\" --scope=\"@calcom/ai\"",
-    "dev:api": "turbo run dev --scope=\"@calcom/web\" --scope=\"@calcom/api\"",
-    "dev:api:console": "turbo run dev --scope=\"@calcom/web\" --scope=\"@calcom/api\" --scope=\"@calcom/console\"",
+    "dev:ai": "turbo run dev --scope=\"@calcom/web\" --scope=\"@calcom/api-proxy\" --scope=\"@calcom/api\" --scope=\"@calcom/ai\"",
+    "dev:api": "turbo run dev --scope=\"@calcom/web\" --scope=\"@calcom/api-proxy\" --scope=\"@calcom/api\"",
+    "dev:api:console": "turbo run dev --scope=\"@calcom/web\" --scope=\"@calcom/api-proxy\" --scope=\"@calcom/api\" --scope=\"@calcom/console\"",
     "dev:console": "turbo run dev --scope=\"@calcom/web\" --scope=\"@calcom/console\"",
-    "dev:swagger": "turbo run dev --scope=\"@calcom/api\" --scope=\"@calcom/swagger\"",
+    "dev:swagger": "turbo run dev --scope=\"@calcom/api-proxy\" --scope=\"@calcom/api\" --scope=\"@calcom/swagger\"",
     "dev:website": "turbo run dev --scope=\"@calcom/web\" --scope=\"@calcom/website\"",
     "dev": "turbo run dev --scope=\"@calcom/web\"",
     "build-storybook": "turbo run build --scope=\"@calcom/storybook\"",
@@ -105,7 +108,6 @@
     "vitest-mock-extended": "^1.1.3"
   },
   "dependencies": {
-    "city-timezones": "^1.2.1",
     "eslint": "^8.34.0",
     "lucide-react": "^0.171.0",
     "turbo": "^1.10.1"
