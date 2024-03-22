@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { shallow } from "zustand/shallow";
 
+import type { IFromUser, IToUser } from "@calcom/core/getUserAvailability";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { useEmbedStyles } from "@calcom/embed-core/embed-iframe";

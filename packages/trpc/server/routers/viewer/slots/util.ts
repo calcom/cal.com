@@ -4,7 +4,7 @@ import { v4 as uuid } from "uuid";
 
 import { getAggregatedAvailability } from "@calcom/core/getAggregatedAvailability";
 import { getBusyTimesForLimitChecks } from "@calcom/core/getBusyTimes";
-import type { CurrentSeats, IFromUser, IOutOfOfficeData, IToUser } from "@calcom/core/getUserAvailability";
+import type { CurrentSeats, IFromUser, IToUser } from "@calcom/core/getUserAvailability";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
@@ -310,7 +310,6 @@ export interface IGetAvailableSlots {
       emoji?: string | undefined;
     }[]
   >;
-  datesOutOfOffice: IOutOfOfficeData;
 }
 
 export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<IGetAvailableSlots> {
