@@ -45,16 +45,21 @@ async function getHandler(req: NextApiRequest) {
 
   const connectedCalendars = await getConnectedCalendars(usersWithCalendars);
 
-  return { connectedCalendars: connectedCalendars };
+  return [...connectedCalendars];
 }
 
 async function getConnectedCalendars(users: UserWithCalendars[]) {
   const connectedDestinationCalendarsPromises = users.map((user) =>
-    getConnectedDestinationCalendars(user, false, prisma)
+    getConnectedDestinationCalendars(user, false, prisma).then((connectedCalendarsResult) =>
+      connectedCalendarsResult.connectedCalendars.map((calendar) => ({
+        userId: user.id,
+        ...calendar,
+      }))
+    )
   );
   const connectedDestinationCalendars = await Promise.all(connectedDestinationCalendarsPromises);
 
-  return connectedDestinationCalendars.map((result) => result.connectedCalendars).flat();
+  return connectedDestinationCalendars.flat();
 }
 
 export default defaultResponder(getHandler);
