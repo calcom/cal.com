@@ -17,6 +17,7 @@ export const metadata = {
   url: "https://cal.com/",
   email: "help@cal.com",
   dirName: "applecalendar",
+  isOAuth: false,
 } as AppMeta;
 
 export default metadata;

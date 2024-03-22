@@ -16,6 +16,7 @@ export const metadata = {
   url: "https://larksuite.com/",
   email: "alan@larksuite.com",
   dirName: "larkcalendar",
+  isOAuth: true,
 } as AppMeta;
 
 export default metadata;

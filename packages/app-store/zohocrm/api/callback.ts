@@ -3,6 +3,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import qs from "qs";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { getAppOnboardingRedirectUrl } from "@calcom/lib/getAppOnboardingRedirectUrl";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
@@ -58,6 +59,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   );
 
   const state = decodeOAuthState(req);
+
+  if (state?.returnToOnboarding) {
+    return res.redirect(getAppOnboardingRedirectUrl("zohocrm", state.teamId));
+  }
+
   res.redirect(
     getSafeRedirectUrl(state?.returnTo) ?? getInstalledAppPath({ variant: "other", slug: "zohocrm" })
   );

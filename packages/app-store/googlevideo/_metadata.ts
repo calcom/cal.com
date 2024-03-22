@@ -27,6 +27,7 @@ export const metadata = {
   },
   dirName: "googlevideo",
   dependencies: ["google-calendar"],
+  isOAuth: false,
 } as AppMeta;
 
 export default metadata;

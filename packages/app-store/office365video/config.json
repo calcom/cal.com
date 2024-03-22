@@ -22,5 +22,6 @@
     }
   },
   "dirName": "office365video",
-  "concurrentMeetings": true
+  "concurrentMeetings": true,
+  "isOAuth": true
 }

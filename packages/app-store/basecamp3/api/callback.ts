@@ -1,10 +1,12 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { getAppOnboardingRedirectUrl } from "@calcom/lib/getAppOnboardingRedirectUrl";
 import prisma from "@calcom/prisma";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
+import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
 import appConfig from "../config.json";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -85,6 +87,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     },
   });
+
+  const state = decodeOAuthState(req);
+
+  if (state?.returnToOnboarding) {
+    return res.redirect(getAppOnboardingRedirectUrl(appConfig.slug, state.teamId));
+  }
 
   res.redirect(getInstalledAppPath({ variant: appConfig.variant, slug: appConfig.slug }));
 }

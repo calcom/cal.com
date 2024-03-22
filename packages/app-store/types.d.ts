@@ -11,6 +11,7 @@ export type IntegrationOAuthCallbackState = {
   fromApp: boolean;
   installGoogleVideo?: boolean;
   teamId?: number;
+  returnToOnboarding?: boolean;
 };
 
 export type CredentialOwner = {
@@ -56,4 +57,23 @@ export type EventTypeAppCardComponentProps = {
   LockedIcon?: JSX.Element | false;
   eventTypeFormMetadata?: z.infer<typeof EventTypeFormMetadataSchema>;
 };
+
+export type EventTypeAppSettingsComponentProps = {
+  // Limit what data should be accessible to apps\
+  eventType: Pick<
+    z.infer<typeof EventTypeModel>,
+    "id" | "title" | "description" | "teamId" | "length" | "recurringEvent" | "seatsPerTimeSlot" | "team"
+  > & {
+    URL: string;
+  };
+  getAppData: GetAppData;
+  setAppData: SetAppData;
+  disabled?: boolean;
+  slug: string;
+};
+
 export type EventTypeAppCardComponent = React.FC<EventTypeAppCardComponentProps>;
+
+export type EventTypeAppSettingsComponent = React.FC<EventTypeAppSettingsComponentProps>;
+
+export type EventTypeModel = z.infer<typeof EventTypeModel>;
