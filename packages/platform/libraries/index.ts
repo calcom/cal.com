@@ -11,7 +11,7 @@ export type UpdateScheduleOutputType = Awaited<
     typeof import("@calcom/trpc/server/routers/viewer/availability/schedule/update.handler").updateHandler
   >
 >;
-export { getEventTypeById } from "@calcom/lib/getEventTypeById";
+export { getEventTypeById } from "@calcom/lib/event-types/getEventTypeById";
 
 export type PublicEventType = Awaited<ReturnType<typeof getPublicEvent>>;
 export { getPublicEvent };
@@ -26,7 +26,7 @@ export { getAvailableSlots };
 export type AvailableSlotsType = Awaited<ReturnType<typeof getAvailableSlots>>;
 export { handleNewRecurringBooking } from "@calcom/features/bookings/lib/handleNewRecurringBooking";
 
-export type { EventType } from "@calcom/lib/getEventTypeById";
+export type { EventType } from "@calcom/lib/event-types/getEventTypeById";
 export { getConnectedDestinationCalendars } from "@calcom/lib/getConnectedDestinationCalendars";
 export type { ConnectedDestinationCalendars } from "@calcom/lib/getConnectedDestinationCalendars";
 export { getBusyCalendarTimes } from "@calcom/core/CalendarManager";

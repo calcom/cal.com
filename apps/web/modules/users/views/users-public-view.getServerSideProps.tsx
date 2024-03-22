@@ -7,8 +7,8 @@ import { handleUserRedirection } from "@calcom/features/booking-redirect/handle-
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { DEFAULT_DARK_BRAND_COLOR, DEFAULT_LIGHT_BRAND_COLOR } from "@calcom/lib/constants";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
+import { getEventTypesPublic } from "@calcom/lib/event-types/getEventTypesPublic";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
-import { getEventTypesPublic } from "@calcom/lib/getEventTypesPublic";
 import logger from "@calcom/lib/logger";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { safeStringify } from "@calcom/lib/safeStringify";

@@ -1,5 +1,5 @@
+import { compareMembership } from "@calcom/lib/event-types/getEventTypeByViewer";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
-import { compareMembership } from "@calcom/lib/getEventTypeByViewer";
 import { prisma } from "@calcom/prisma";
 import type { Webhook } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";

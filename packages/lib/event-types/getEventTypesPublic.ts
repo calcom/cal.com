@@ -3,7 +3,7 @@ import prisma from "@calcom/prisma";
 import { baseEventTypeSelect } from "@calcom/prisma/selects";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
-import { markdownToSafeHTML } from "./markdownToSafeHTML";
+import { markdownToSafeHTML } from "../markdownToSafeHTML";
 
 const log = logger.getSubLogger({ prefix: ["getEventTypesPublic"] });
 

@@ -1,5 +1,5 @@
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
-import { getEventTypeByViewer } from "@calcom/lib/getEventTypeByViewer";
+import { getEventTypeByViewer } from "@calcom/lib/event-types/getEventTypeByViewer";
 import type { PrismaClient } from "@calcom/prisma";
 
 import type { TrpcSessionUser } from "../../../trpc";
