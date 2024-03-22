@@ -25,6 +25,7 @@ import { Request } from "express";
 import { NextApiRequest } from "next/types";
 
 import { BOOKING_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
+import { getAllUserBookings, getBookingInfo } from "@calcom/platform-libraries";
 import {
   handleNewBooking,
   BookingResponse,
