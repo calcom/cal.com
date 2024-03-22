@@ -1,7 +1,8 @@
-import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
+import { TaskerFactory } from "tasker/tasker-factory";
+
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
+import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import type { WebhookDataType } from "@calcom/features/webhooks/lib/sendPayload";
-import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
 import logger from "@calcom/lib/logger";
 
 export async function handleWebhookTrigger(args: {
@@ -11,19 +12,22 @@ export async function handleWebhookTrigger(args: {
 }) {
   try {
     const subscribers = await getWebhooks(args.subscriberOptions);
-
+    const taskerFactory = new TaskerFactory();
+    const tasker = taskerFactory.createTasker();
     const promises = subscribers.map((sub) =>
-      sendPayload(sub.secret, args.eventTrigger, new Date().toISOString(), sub, args.webhookData).catch(
-        (e) => {
-          console.error(
-            `Error executing webhook for event: ${args.eventTrigger}, URL: ${sub.subscriberUrl}`,
-            e
-          );
-        }
+      tasker.create(
+        "sendWebhook",
+        JSON.stringify({
+          secretKey: sub.secret,
+          triggerEvent: args.eventTrigger,
+          createdAt: new Date().toISOString(),
+          webhook: sub,
+          data: args.webhookData,
+        })
       )
     );
-    await Promise.all(promises);
+    await Promise.allSettled(promises);
   } catch (error) {
-    logger.error("Error while sending webhook", error);
+    logger.error("Error while scheduling webhooks", error);
   }
 }
