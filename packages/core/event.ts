@@ -55,8 +55,10 @@ export function getEventName(eventNameObj: EventNameObjectType, forAttendeeView 
   let dynamicEventName = eventName
     // Need this for compatibility with older event names
     .replaceAll("{Event type title}", eventNameObj.eventType)
+    .replaceAll("{Scheduler first name}", attendeeName.split(" ")[0])
     .replaceAll("{Scheduler}", attendeeName)
     .replaceAll("{Organiser}", eventNameObj.host)
+    .replaceAll("{Organiser first name}", eventNameObj.host.split(" ")[0])
     .replaceAll("{USER}", attendeeName)
     .replaceAll("{ATTENDEE}", attendeeName)
     .replaceAll("{HOST}", eventNameObj.host)
@@ -105,6 +107,8 @@ export const validateCustomEventName = (
     "{Organiser}",
     "{Scheduler}",
     "{Location}",
+    "{Organiser first name}",
+    "{Scheduler first name}",
     //allowed for fallback reasons
     "{LOCATION}",
     "{HOST/ATTENDEE}",
