@@ -25,6 +25,8 @@ import {
   TimezoneSelect,
 } from "@calcom/ui";
 
+import { LockEventTypeSwitch } from "../components/LockEventTypeSwitch";
+
 const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
   return (
     <SkeletonContainer>
@@ -81,6 +83,8 @@ const OrgGeneralView = () => {
         isAdminOrOwner={isAdminOrOwner}
         localeProp={user?.locale ?? "en"}
       />
+
+      <LockEventTypeSwitch currentOrg={currentOrg} isAdminOrOwner={isAdminOrOwner} />
     </LicenseRequired>
   );
 };

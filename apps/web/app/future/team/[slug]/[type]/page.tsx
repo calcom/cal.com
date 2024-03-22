@@ -16,7 +16,8 @@ export const generateMetadata = async ({
 }) => {
   const legacyCtx = buildLegacyCtx(headers(), cookies(), params, searchParams);
   const props = await getData(legacyCtx as unknown as GetServerSidePropsContext);
-  const { entity, user, slug, booking } = props;
+  const { eventData, user, slug, booking } = props;
+  const entity = eventData.entity;
   const { trpc } = await import("@calcom/trpc");
   const { data: event } = trpc.viewer.public.event.useQuery(
     { username: user, eventSlug: slug, isTeamEvent: false, org: entity.orgSlug ?? null },

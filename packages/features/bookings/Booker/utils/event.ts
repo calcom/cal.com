@@ -24,10 +24,17 @@ export const useEvent = () => {
   const isTeamEvent = useBookerStore((state) => state.isTeamEvent);
   const org = useBookerStore((state) => state.org);
 
-  return trpc.viewer.public.event.useQuery(
+  const event = trpc.viewer.public.event.useQuery(
     { username: username ?? "", eventSlug: eventSlug ?? "", isTeamEvent, org: org ?? null },
     { refetchOnWindowFocus: false, enabled: Boolean(username) && Boolean(eventSlug) }
   );
+
+  return {
+    data: event?.data,
+    isSuccess: event?.isSuccess,
+    isError: event?.isError,
+    isPending: event?.isPending,
+  };
 };
 
 /**
@@ -52,6 +59,7 @@ export const useScheduleForEvent = ({
   monthCount,
   dayCount,
   selectedDate,
+  orgSlug,
 }: {
   prefetchNextMonth?: boolean;
   username?: string | null;
@@ -62,6 +70,7 @@ export const useScheduleForEvent = ({
   monthCount?: number;
   dayCount?: number | null;
   selectedDate?: string | null;
+  orgSlug?: string;
 } = {}) => {
   const { timezone } = useTimePreferences();
   const event = useEvent();
@@ -69,6 +78,7 @@ export const useScheduleForEvent = ({
     (state) => [state.username, state.eventSlug, state.month, state.selectedDuration],
     shallow
   );
+
   const searchParams = useCompatSearchParams();
   const rescheduleUid = searchParams?.get("rescheduleUid");
 
@@ -76,7 +86,7 @@ export const useScheduleForEvent = ({
 
   const isTeam = !!event.data?.team?.parentId;
 
-  return useSchedule({
+  const schedule = useSchedule({
     username: usernameFromStore ?? username,
     eventSlug: eventSlugFromStore ?? eventSlug,
     eventId: event.data?.id ?? eventId,
@@ -89,5 +99,14 @@ export const useScheduleForEvent = ({
     month: monthFromStore ?? month,
     duration: durationFromStore ?? duration,
     isTeamEvent: pathname?.indexOf("/team/") !== -1 || isTeam,
+    orgSlug,
   });
+
+  return {
+    data: schedule?.data,
+    isPending: schedule?.isPending,
+    isError: schedule?.isError,
+    isSuccess: schedule?.isSuccess,
+    isLoading: schedule?.isLoading,
+  };
 };

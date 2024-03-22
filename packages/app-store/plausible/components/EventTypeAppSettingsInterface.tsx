@@ -5,6 +5,7 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
   getAppData,
   setAppData,
   disabled,
+  slug,
 }) => {
   const plausibleUrl = getAppData("PLAUSIBLE_URL");
   const trackingId = getAppData("trackingId");
@@ -12,6 +13,7 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
   return (
     <div className="flex flex-col gap-2">
       <TextField
+        dataTestid={`${slug}-url`}
         name="Plausible URL"
         defaultValue="https://plausible.io/js/script.js"
         placeholder="https://plausible.io/js/script.js"
@@ -22,6 +24,7 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
         }}
       />
       <TextField
+        dataTestid={`${slug}-tracking-id`}
         disabled={disabled}
         name="Tracked Domain"
         placeholder="yourdomain.com"

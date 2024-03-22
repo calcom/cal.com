@@ -86,7 +86,9 @@ export async function getTeamWithMembers(args: {
       id: true,
       name: true,
       slug: true,
+      isOrganization: true,
       ...(!!includeTeamLogo ? { logo: true } : {}),
+      logoUrl: true,
       bio: true,
       hideBranding: true,
       hideBookATeamMember: true,
@@ -97,6 +99,8 @@ export async function getTeamWithMembers(args: {
           id: true,
           slug: true,
           name: true,
+          isPrivate: true,
+          isOrganization: true,
         },
       },
       children: {
@@ -126,8 +130,12 @@ export async function getTeamWithMembers(args: {
           },
         },
         select: {
-          users: {
-            select: userSelect,
+          hosts: {
+            select: {
+              user: {
+                select: userSelect,
+              },
+            },
           },
           metadata: true,
           ...baseEventTypeSelect,
@@ -201,7 +209,7 @@ export async function getTeamWithMembers(args: {
   const eventTypesWithUsersUserProfile = [];
   for (const eventType of teamOrOrg.eventTypes) {
     const usersWithUserProfile = [];
-    for (const user of eventType.users) {
+    for (const { user } of eventType.hosts) {
       usersWithUserProfile.push(
         await UserRepository.enrichUserWithItsProfile({
           user,
@@ -232,6 +240,7 @@ export async function getTeamWithMembers(args: {
 
   return {
     ...teamWithoutInviteTokens,
+    ...(teamWithoutInviteTokens.logoUrl ? { logo: teamWithoutInviteTokens.logoUrl } : {}),
     /** To prevent breaking we only return non-email attached token here, if we have one */
     inviteToken: inviteTokens.find(
       (token) =>

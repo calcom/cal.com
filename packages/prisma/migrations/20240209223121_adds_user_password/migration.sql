@@ -24,8 +24,9 @@ SELECT
   u."password",
   u.id
 FROM
-  users u;
+  users u
+WHERE
+  u."password" IS NOT NULL;
 
--- We rename instead of dropping the column to avoid possible data loss, will be dropped in the next migration.
-ALTER TABLE "users"
-RENAME COLUMN "password" TO "password_deprecated";
+-- TODO for next migration.
+-- ALTER TABLE "users" DROP COLUMN "password";
