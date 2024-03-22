@@ -655,7 +655,6 @@
   "default_duration": "Duración predeterminada",
   "default_duration_no_options": "Seleccione primero las duraciones disponibles",
   "multiple_duration_mins": "{{count}} $t(minute_timeUnit)",
-  "multiple_duration_timeUnit": "{{count}} $t({{unit}}_timeUnit)",
   "minutes": "Minutos",
   "round_robin": "Petición Firmada por Turnos",
   "round_robin_description": "Ciclo de reuniones entre varios miembros del equipo.",
