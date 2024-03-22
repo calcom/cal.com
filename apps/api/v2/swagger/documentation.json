@@ -506,6 +506,22 @@
             }
           }
         }
+      },
+      "get": {
+        "operationId": "EventTypesController_getEventTypes",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/api/v2/event-types/{eventTypeId}": {
@@ -1206,7 +1222,7 @@
           "createdAt": {
             "format": "date-time",
             "type": "string",
-            "example": "2024-03-21T16:58:29.130Z"
+            "example": "2024-03-22T16:12:06.199Z"
           }
         },
         "required": [

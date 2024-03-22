@@ -32,13 +32,15 @@ type Filters = {
   upIds?: string[];
 };
 
+export type EventTypesByViewer = Awaited<ReturnType<typeof getEventTypesByViewer>>;
+
 export const getEventTypesByViewer = async (user: User, filters?: Filters, forRoutingForms?: boolean) => {
-  const lightProfile = user.profile;
-  const profile = await ProfileRepository.findByUpId(lightProfile.upId);
+  const userProfile = user.profile;
+  const profile = await ProfileRepository.findByUpId(userProfile.upId);
   const parentOrgHasLockedEventTypes =
     profile?.organization?.organizationSettings?.lockEventTypeCreationForUsers;
   const isFilterSet = filters && hasFilter(filters);
-  const isUpIdInFilter = filters?.upIds?.includes(lightProfile.upId);
+  const isUpIdInFilter = filters?.upIds?.includes(userProfile.upId);
 
   let shouldListUserEvents = !isFilterSet || isUpIdInFilter;
   // FIX: Handles the case when an upId != lightProfile - pretend like there is no filter.
@@ -49,7 +51,7 @@ export const getEventTypesByViewer = async (user: User, filters?: Filters, forRo
   const [profileMemberships, profileEventTypes] = await Promise.all([
     MembershipRepository.findAllByUpIdIncludeTeamWithMembersAndEventTypes(
       {
-        upId: lightProfile.upId,
+        upId: userProfile.upId,
       },
       {
         where: {
@@ -60,7 +62,7 @@ export const getEventTypesByViewer = async (user: User, filters?: Filters, forRo
     shouldListUserEvents
       ? EventTypeRepository.findAllByUpId(
           {
-            upId: lightProfile.upId,
+            upId: userProfile.upId,
             userId: user.id,
           },
           {

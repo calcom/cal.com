@@ -7,6 +7,8 @@ import { markdownToSafeHTML } from "../markdownToSafeHTML";
 
 const log = logger.getSubLogger({ prefix: ["getEventTypesPublic"] });
 
+export type EventTypesPublic = Awaited<ReturnType<typeof getEventTypesPublic>>;
+
 export async function getEventTypesPublic(userId: number) {
   const eventTypesWithHidden = await getEventTypesWithHiddenFromDB(userId);
 
