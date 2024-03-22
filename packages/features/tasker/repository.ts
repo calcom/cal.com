@@ -21,10 +21,9 @@ const whereMaxAttempsReached: Prisma.TaskWhereInput = {
 const upcomingTasksWhere: Prisma.TaskWhereInput = {
   // Get only tasks that have not succeeded yet
   succeededAt: null,
-  // Get only tasks that are scheduled to run for today
+  // Get only tasks that are scheduled to run now or in the past
   scheduledAt: {
-    gt: new Date(new Date().setDate(new Date().getDate() - 1)),
-    lt: new Date(new Date().setDate(new Date().getDate() + 1)),
+    lt: new Date(),
   },
   // Get only tasks where maxAttemps has not been reached
   attempts: {
