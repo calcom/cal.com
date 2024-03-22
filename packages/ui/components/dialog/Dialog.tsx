@@ -219,10 +219,16 @@ type DialogCloseProps = {
   color?: ButtonProps["color"];
 } & React.ComponentProps<typeof Button>;
 
-export const DialogClose = React.forwardRef<
-  HTMLButtonElement,
-  DialogCloseProps & React.ComponentProps<(typeof DialogPrimitive)["Close"]>
->((props) => {
+export function DialogClose(
+  props: {
+    "data-testid"?: string;
+    dialogCloseProps?: React.ComponentProps<(typeof DialogPrimitive)["Close"]>;
+    children?: ReactNode;
+    onClick?: (e: React.MouseEvent<HTMLElement, MouseEvent>) => void;
+    disabled?: boolean;
+    color?: ButtonProps["color"];
+  } & React.ComponentProps<typeof Button>
+) {
   const { t } = useLocale();
   const isPlatform = useIsPlatform();
   const Close = useMemo(
@@ -241,6 +247,6 @@ export const DialogClose = React.forwardRef<
       </Button>
     </Close>
   );
-});
+}
 
 DialogClose.displayName = "WebDialogClose";
