@@ -53,7 +53,17 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
 
   const eventTypes = await prisma.eventType.findMany({
     where: {
-      userId: ctx.user.id,
+      OR: [
+        {
+          ...(teamId ? { teamId } : { userId: ctx.user.id }),
+        },
+        // for managed events
+        {
+          parent: {
+            teamId,
+          },
+        },
+      ],
     },
     select: {
       id: true,
