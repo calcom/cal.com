@@ -251,9 +251,7 @@ interface IOOOSlotProps {
 
 const OOOSlot: React.FC<IOOOSlotProps> = (props) => {
   const { fromUser, toUser, reason, emoji, time, className = "" } = props;
-  if (!toUser) {
-    return null;
-  }
+
   return (
     <OutOfOfficeInSlots
       fromUser={fromUser}
