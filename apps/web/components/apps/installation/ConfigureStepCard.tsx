@@ -1,5 +1,6 @@
 import type { FC } from "react";
 import React, { useEffect } from "react";
+import { useForm } from "react-hook-form";
 
 import { EventTypeAppSettings } from "@calcom/app-store/_components/EventTypeAppSettingsInterface";
 import type { EventTypeAppSettingsComponentProps, EventTypeModel } from "@calcom/app-store/types";
@@ -31,11 +32,12 @@ export const ConfigureStepCard: FC<ConfigureStepCardProps> = ({
 }) => {
   const { t } = useLocale();
   const { getAppDataGetter, getAppDataSetter } = useAppsData();
-  const { shouldLockDisableProps } = useLockedFieldsManager(
+  const formMethods = useForm();
+  const { shouldLockDisableProps } = useLockedFieldsManager({
     eventType,
-    t("locked_fields_admin_description"),
-    t("locked_fields_member_description")
-  );
+    translate: t,
+    formMethods,
+  });
 
   useEffect(() => {
     const appDataSetter = getAppDataSetter(slug as EventTypeAppsList, categories, credentialId);
