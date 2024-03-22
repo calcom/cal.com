@@ -257,7 +257,6 @@ export default function Signup({
     <>
       {IS_CALCOM && COOKIE_CONSENT && process.env.NEXT_PUBLIC_GTM_ID ? (
         <>
-          wasd
           <Script
             id="gtm-init-script"
             dangerouslySetInnerHTML={{
