@@ -1,5 +1,4 @@
-import { TaskerFactory } from "tasker/tasker-factory";
-
+import { TaskerFactory } from "@calcom/features/tasker/tasker-factory";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import type { WebhookDataType } from "@calcom/features/webhooks/lib/sendPayload";

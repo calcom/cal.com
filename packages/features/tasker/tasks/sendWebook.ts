@@ -1,5 +1,6 @@
-import sendPayload from "webhooks/lib/sendPayload";
 import { z } from "zod";
+
+import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
 
 const sendWebhookPayloadSchema = z.object({
   secretKey: z.string().nullable(),
