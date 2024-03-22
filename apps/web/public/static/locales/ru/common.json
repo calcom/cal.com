@@ -657,6 +657,7 @@
   "default_duration": "Продолжительность по умолчанию",
   "default_duration_no_options": "Пожалуйста, выберите сначала доступную продолжительность",
   "multiple_duration_mins": "{{count}} $t(minute_timeUnit)",
+  "multiple_duration_timeUnit": "{{count}} $t({{unit}}_timeUnit)",
   "minutes": "мин.",
   "round_robin": "По кругу",
   "round_robin_description": "Цикл встреч между несколькими членами команды.",
