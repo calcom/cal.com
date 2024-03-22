@@ -11,7 +11,7 @@ module.exports = {
     "../../packages/app-store/**/*{components,pages}/**/*.{js,ts,jsx,tsx}",
     "../../packages/features/**/*.{js,ts,jsx,tsx}",
     "../../packages/ui/**/*.{js,ts,jsx,tsx}",
-    "../../packages/atoms/**/*.{js,ts,jsx,tsx}",
+    "../../packages/platform/atoms/**/*.{js,ts,jsx,tsx}",
   ],
   darkMode: "class",
   theme: {

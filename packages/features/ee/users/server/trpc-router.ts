@@ -100,7 +100,43 @@ export const userAdminRouter = router({
     .input(userBodySchema.partial())
     .mutation(async ({ ctx, input }) => {
       const { prisma, requestedUser } = ctx;
-      const user = await prisma.user.update({ where: { id: requestedUser.id }, data: input });
+
+      const user = await prisma.$transaction(async (tx) => {
+        const userInternal = await tx.user.update({ where: { id: requestedUser.id }, data: input });
+
+        // If the profile has been moved to an Org -> we can easily access the profile we need to update
+        if (requestedUser.movedToProfileId && input.username) {
+          await tx.profile.update({
+            where: {
+              id: requestedUser.movedToProfileId,
+            },
+            data: {
+              username: input.username,
+            },
+          });
+
+          return userInternal;
+        }
+
+        /**
+         * TODO (Sean/Hariom): Change this to profile specific when we have a way for a user to have > 1 orgs
+         * If the user wasnt a CAL account before being moved to an org they dont have the movedToProfileId value
+         * So we update all of their profiles to this new username - this tx will rollback if there is a username
+         * conflict here somehow (Note for now users only have ONE profile.)
+         **/
+        if (input.username) {
+          await tx.profile.updateMany({
+            where: {
+              userId: requestedUser.id,
+            },
+            data: {
+              username: input.username,
+            },
+          });
+        }
+
+        return userInternal;
+      });
       return { user, message: `User with id: ${user.id} updated successfully` };
     }),
   delete: authedAdminProcedureWithRequestedUser.input(userIdSchema).mutation(async ({ ctx }) => {

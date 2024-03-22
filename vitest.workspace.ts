@@ -40,6 +40,8 @@ const workspaces = packagedEmbedTestsOnly
             "**/.next/**/*",
             "packages/embeds/**/*",
             "packages/lib/hooks/**/*",
+            "packages/platform/**/*",
+            "apps/api/v2/**/*",
           ],
           name: "@calcom/core",
           setupFiles: ["setupVitest.ts"],
