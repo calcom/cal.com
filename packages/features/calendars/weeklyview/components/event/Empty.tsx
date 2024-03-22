@@ -44,31 +44,63 @@ export function AvailableCellsForDay({ availableSlots, day, startHour }: Availab
   const dateFormatted = date.format("YYYY-MM-DD");
   const slotsForToday = availableSlots && availableSlots[dateFormatted];
 
-  const slots = useMemo(
-    () =>
-      slotsForToday?.map((slot) => ({
-        slot,
-        topOffsetMinutes:
-          (dayjs(slot.start).tz(timezone).hour() - startHour) * 60 + dayjs(slot.start).tz(timezone).minute(),
-      })),
-    [slotsForToday, startHour, timezone]
-  );
+  const slots = useMemo(() => {
+    const calculatedSlots: {
+      slot: CalendarAvailableTimeslots[string][number];
+      topOffsetMinutes: number;
+      firstSlot?: CalendarAvailableTimeslots[string][number];
+      timezone?: string;
+    }[] = [];
 
-  if (!slotsForToday) return null;
+    let firstSlotIndex = -1;
+    let lastSlotIndex = -1;
+    let areAllSlotsAway = true;
+    let startEndTimeDuration = 0;
 
-  const areAllSlotsAway = slotsForToday.every((slot) => slot.away);
+    slotsForToday?.forEach((slot, index) => {
+      const startTime = dayjs(slot.start).tz(timezone);
+      const topOffsetMinutes = (startTime.hour() - startHour) * 60 + startTime.minute();
 
-  if (areAllSlotsAway) {
-    const firstSlot = slotsForToday.find((slot) => slot.away);
-    const lastSlot = slotsForToday.reverse().find((slot) => slot.away);
-    const startEndTimeDuration = dayjs(lastSlot?.start).diff(dayjs(firstSlot?.start), "minutes");
-    if (firstSlot?.toUser === null || firstSlot?.toUser === undefined) {
-      return null;
+      if (!slot.away) {
+        areAllSlotsAway = false;
+        calculatedSlots.push({ slot, topOffsetMinutes });
+      } else {
+        if (firstSlotIndex === -1) {
+          firstSlotIndex = index;
+        }
+        lastSlotIndex = index;
+      }
+    });
+
+    if (areAllSlotsAway && firstSlotIndex !== -1) {
+      const firstSlot = slotsForToday[firstSlotIndex];
+      const lastSlot = slotsForToday[lastSlotIndex];
+      startEndTimeDuration = dayjs(lastSlot.start).diff(dayjs(firstSlot.start), "minutes");
+
+      if (firstSlot.toUser == null) {
+        return null;
+      }
+
+      // This will return null if all slots are away and the first slot has no user
+      return {
+        slots: calculatedSlots,
+        startEndTimeDuration,
+        firstSlot,
+        timezone,
+      };
     }
+
+    return { slots: calculatedSlots, startEndTimeDuration };
+  }, [slotsForToday, startHour, timezone]);
+
+  if (slots === null) return null;
+
+  if (slots.startEndTimeDuration) {
+    const { firstSlot, startEndTimeDuration } = slots;
     return (
       <CustomCell
-        timeSlot={dayjs(firstSlot?.start).tz(timezone)}
-        topOffsetMinutes={slots[0].topOffsetMinutes}
+        timeSlot={dayjs(firstSlot?.start).tz(slots.timezone)}
+        topOffsetMinutes={slots.slots[0]?.topOffsetMinutes}
         startEndTimeDuration={startEndTimeDuration}>
         <OutOfOfficeInSlots
           fromUser={firstSlot?.fromUser}
@@ -85,19 +117,13 @@ export function AvailableCellsForDay({ availableSlots, day, startHour }: Availab
 
   return (
     <>
-      {slots?.map((slot, index) => {
-        const { slot: slotData } = slot;
-        if (slotData.away) {
-          return null;
-        }
-        return (
-          <Cell
-            key={index}
-            timeSlot={dayjs(slotData.start).tz(timezone)}
-            topOffsetMinutes={slot.topOffsetMinutes}
-          />
-        );
-      })}
+      {slots.slots.map((slot, index) => (
+        <Cell
+          key={index}
+          timeSlot={dayjs(slot.slot.start).tz(timezone)}
+          topOffsetMinutes={slot.topOffsetMinutes}
+        />
+      ))}
     </>
   );
 }
