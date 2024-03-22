@@ -1,7 +1,6 @@
 import { useEffect } from "react";
 import { shallow } from "zustand/shallow";
 
-import type { IOutOfOfficeData } from "@calcom/core/getUserAvailability";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { useEmbedStyles } from "@calcom/embed-core/embed-iframe";
@@ -41,7 +40,18 @@ export type DatePickerProps = {
   /** used to query the multiple selected dates */
   eventSlug?: string;
   /** To identify days that are not available and should display OOO and redirect if toUser exists */
-  datesOutOfOffice?: IOutOfOfficeData;
+  slots?: Record<
+    string,
+    {
+      time: Dayjs;
+      userIds?: number[];
+      away?: boolean;
+      fromUser?: IFromUser;
+      toUser?: IToUser;
+      reason?: string;
+      emoji?: string;
+    }[]
+  >;
 };
 
 export const Day = ({
@@ -121,7 +131,7 @@ const Days = ({
   month,
   nextMonthButton,
   eventSlug,
-  datesOutOfOffice,
+  slots,
   ...props
 }: Omit<DatePickerProps, "locale" | "className" | "weekStart"> & {
   DayComponent?: React.FC<React.ComponentProps<typeof Day>>;
@@ -175,13 +185,13 @@ const Days = ({
   const daysToRenderForTheMonth = days.map((day) => {
     if (!day) return { day: null, disabled: true };
     const dateKey = yyyymmdd(day);
-    const oooInfo = datesOutOfOffice?.[dateKey];
+    const oooInfo = slots && slots?.[dateKey] ? slots?.[dateKey]?.find((slot) => slot.away) : null;
     const included = includedDates?.includes(dateKey);
     const excluded = excludedDates.includes(dateKey);
 
-    const away = !!oooInfo;
-
-    const disabled = away ? oooInfo?.toUser === null : !included || excluded;
+    const isOOOAllDay = !!(slots && slots[dateKey] && slots[dateKey].every((slot) => slot.away));
+    const away = isOOOAllDay;
+    const disabled = away ? !oooInfo?.toUser : !included || excluded;
 
     return {
       day: day,
@@ -261,6 +271,7 @@ const DatePicker = ({
   locale,
   selected,
   onMonthChange,
+  slots,
   ...passThroughProps
 }: DatePickerProps & Partial<React.ComponentProps<typeof Days>>) => {
   const browsingDate = passThroughProps.browsingDate || dayjs().startOf("month");
@@ -331,7 +342,7 @@ const DatePicker = ({
           browsingDate={browsingDate}
           month={month}
           nextMonthButton={() => changeMonth(+1)}
-          datesOutOfOffice={passThroughProps.datesOutOfOffice}
+          slots={slots}
         />
       </div>
     </div>

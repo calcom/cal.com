@@ -54,16 +54,20 @@ export function AvailableCellsForDay({ availableSlots, day, startHour }: Availab
     [slotsForToday, startHour, timezone]
   );
 
-  if (!availableSlots) return null;
+  if (!slotsForToday) return null;
 
-  const [firstSlot, secondSlot] = availableSlots[dateFormatted] || [];
+  const areAllSlotsAway = slotsForToday.every((slot) => slot.away);
 
-  if (firstSlot?.away) {
-    const startEndTimeDuration = dayjs(secondSlot.start).diff(dayjs(firstSlot.start), "minutes");
-
+  if (areAllSlotsAway) {
+    const firstSlot = slotsForToday.find((slot) => slot.away);
+    const lastSlot = slotsForToday.reverse().find((slot) => slot.away);
+    const startEndTimeDuration = dayjs(lastSlot?.start).diff(dayjs(firstSlot?.start), "minutes");
+    if (firstSlot?.toUser === null || firstSlot?.toUser === undefined) {
+      return null;
+    }
     return (
       <CustomCell
-        timeSlot={dayjs(firstSlot.start).tz(timezone)}
+        timeSlot={dayjs(firstSlot?.start).tz(timezone)}
         topOffsetMinutes={slots[0].topOffsetMinutes}
         startEndTimeDuration={startEndTimeDuration}>
         <OutOfOfficeInSlots
@@ -73,6 +77,7 @@ export function AvailableCellsForDay({ availableSlots, day, startHour }: Availab
           emoji={firstSlot?.emoji}
           borderDashed={false}
           date={dateFormatted}
+          className="pb-0"
         />
       </CustomCell>
     );
@@ -82,6 +87,9 @@ export function AvailableCellsForDay({ availableSlots, day, startHour }: Availab
     <>
       {slots?.map((slot, index) => {
         const { slot: slotData } = slot;
+        if (slotData.away) {
+          return null;
+        }
         return (
           <Cell
             key={index}

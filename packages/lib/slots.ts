@@ -205,34 +205,35 @@ function buildSlotsWithDateRanges({
       : range.end;
 
     slotStartTime = slotStartTime.add(offsetStart ?? 0, "minutes").tz(timeZone);
-    const dateOutOfOfficeExists = datesOutOfOffice?.[dateYYYYMMDD];
-    if (dateOutOfOfficeExists) {
-      const { toUser, fromUser, reason, emoji } = dateOutOfOfficeExists;
 
-      slots.push(
-        {
+    while (!slotStartTime.add(eventLength, "minutes").subtract(1, "second").utc().isAfter(rangeEnd)) {
+      const dateOutOfOfficeExists = datesOutOfOffice?.[dateYYYYMMDD];
+      let slotData: {
+        time: Dayjs;
+        userIds?: number[];
+        away?: boolean;
+        fromUser?: IFromUser;
+        toUser?: IToUser;
+        reason?: string;
+        emoji?: string;
+      } = {
+        time: slotStartTime,
+      };
+
+      if (dateOutOfOfficeExists) {
+        const { toUser, fromUser, reason, emoji } = dateOutOfOfficeExists;
+
+        slotData = {
           time: slotStartTime,
           away: true,
           ...(fromUser && { fromUser }),
           ...(toUser && { toUser }),
           ...(reason && { reason }),
           ...(emoji && { emoji }),
-        },
-        {
-          // set last slot to end of day
-          // time: dayjs(range.end).utc().subtract(eventLength, "minutes"),
-          time: range.end,
-          away: true,
-        }
-      );
-      return;
-    }
+        };
+      }
 
-    while (!slotStartTime.add(eventLength, "minutes").subtract(1, "second").utc().isAfter(rangeEnd)) {
-      slots.push({
-        time: slotStartTime,
-      });
-
+      slots.push(slotData);
       slotStartTime = slotStartTime.add(frequency + (offsetStart ?? 0), "minutes");
     }
   });

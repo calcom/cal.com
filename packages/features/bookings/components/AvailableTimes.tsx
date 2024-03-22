@@ -37,7 +37,6 @@ type AvailableTimesProps = {
   className?: string;
   selectedSlots?: string[];
   event: useEventReturnType;
-  datesOutOfOffice?: IOutOfOfficeData;
 };
 
 const SlotItem = ({
@@ -198,18 +197,14 @@ export const AvailableTimes = ({
 }: AvailableTimesProps) => {
   const { t } = useLocale();
 
-  if (slots[0] && slots[0].away) {
-    const { toUser, fromUser, reason, emoji } = slots[0];
-    return (
-      <OutOfOfficeInSlots
-        toUser={toUser}
-        fromUser={fromUser}
-        date={dayjs(slots[0].time).format("YYYY-MM-DD")}
-        reason={reason}
-        emoji={emoji}
-      />
-    );
+  const oooAllDay = slots.every((slot) => slot.away);
+  if (oooAllDay) {
+    return <OOOSlot {...slots[0]} />;
   }
+
+  // Display ooo in slots once but after or before slots
+  const oooBeforeSlots = slots[0] && slots[0].away;
+  const oooAfterSlots = slots[slots.length - 1] && slots[slots.length - 1].away;
 
   return (
     <div className={classNames("text-default flex flex-col", className)}>
@@ -224,19 +219,49 @@ export const AvailableTimes = ({
             </p>
           </div>
         )}
-        {slots.map((slot) => (
-          <SlotItem
-            key={slot.time}
-            onTimeSelect={onTimeSelect}
-            slot={slot}
-            selectedSlots={selectedSlots}
-            seatsPerTimeSlot={seatsPerTimeSlot}
-            showAvailableSeatsCount={showAvailableSeatsCount}
-            event={event}
-          />
-        ))}
+        {oooBeforeSlots && !oooAfterSlots && <OOOSlot {...slots[0]} />}
+        {slots.map((slot) => {
+          if (slot.away) return null;
+          return (
+            <SlotItem
+              key={slot.time}
+              onTimeSelect={onTimeSelect}
+              slot={slot}
+              selectedSlots={selectedSlots}
+              seatsPerTimeSlot={seatsPerTimeSlot}
+              showAvailableSeatsCount={showAvailableSeatsCount}
+              event={event}
+            />
+          );
+        })}
+        {oooAfterSlots && !oooBeforeSlots && <OOOSlot {...slots[slots.length - 1]} className="pb-0" />}
       </div>
     </div>
+  );
+};
+
+interface IOOOSlotProps {
+  fromUser?: IOutOfOfficeData["anyDate"]["fromUser"];
+  toUser?: IOutOfOfficeData["anyDate"]["toUser"];
+  reason?: string;
+  emoji?: string;
+  time?: string;
+  className?: string;
+}
+
+const OOOSlot: React.FC<IOOOSlotProps> = (props) => {
+  const { fromUser, toUser, reason, emoji, time, className = "" } = props;
+
+  return (
+    <OutOfOfficeInSlots
+      fromUser={fromUser}
+      toUser={toUser}
+      date={dayjs(time).format("YYYY-MM-DD")}
+      reason={reason}
+      emoji={emoji}
+      borderDashed
+      className={className}
+    />
   );
 };
 

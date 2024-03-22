@@ -24,7 +24,6 @@ export const DatePicker = ({
     shallow
   );
   const nonEmptyScheduleDays = useNonEmptyScheduleDays(schedule?.data?.slots);
-  const datesOutOfOffice = schedule?.data?.datesOutOfOffice;
 
   return (
     <DatePickerComponent
@@ -38,11 +37,11 @@ export const DatePicker = ({
         setDayCount(null); // Whenever the month is changed, we nullify getting X days
       }}
       includedDates={nonEmptyScheduleDays}
-      datesOutOfOffice={datesOutOfOffice}
       locale={i18n.language}
       browsingDate={month ? dayjs(month) : undefined}
       selected={dayjs(selectedDate)}
       weekStart={weekdayToWeekIndex(event?.data?.users?.[0]?.weekStart)}
+      slots={schedule?.data?.slots}
     />
   );
 };

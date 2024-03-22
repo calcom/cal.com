@@ -14,18 +14,19 @@ interface IOutOfOfficeInSlotsProps {
   emoji?: string;
   reason?: string;
   borderDashed?: boolean;
+  className?: string;
 }
 
 export const OutOfOfficeInSlots = (props: IOutOfOfficeInSlotsProps) => {
   const { t } = useLocale();
-  const { fromUser, toUser, emoji = "🏝️", borderDashed = true, date } = props;
+  const { fromUser, toUser, emoji = "🏝️", borderDashed = true, date, className } = props;
   const searchParams = useCompatSearchParams();
-  const isLayoutWeek = searchParams.get("layout") === "week_view";
+
   const router = useRouter();
 
   if (!fromUser) return null;
   return (
-    <div className={classNames("relative h-full pb-2", !isLayoutWeek && "pb-0")}>
+    <div className={classNames("relative h-full pb-2", className)}>
       <div
         className={classNames(
           "flex h-full flex-col items-center justify-start rounded-md border bg-white px-4 py-4 font-normal dark:bg-transparent",

@@ -675,7 +675,6 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
 
   return {
     slots: computedAvailableSlots,
-    datesOutOfOffice: allUsersAvailability[0].datesOutOfOffice,
   };
 }
 
