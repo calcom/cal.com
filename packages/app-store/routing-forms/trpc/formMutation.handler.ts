@@ -25,8 +25,9 @@ interface FormMutationHandlerOptions {
 }
 export const formMutationHandler = async ({ ctx, input }: FormMutationHandlerOptions) => {
   const { user, prisma } = ctx;
-  const { name, id, description, settings, disabled, addFallback, duplicateFrom, shouldConnect } = input;
+  const { name, id, description, disabled, addFallback, duplicateFrom, shouldConnect } = input;
   let teamId = input.teamId;
+  const settings = input.settings;
   if (!(await isFormCreateEditAllowed({ userId: user.id, formId: id, targetTeamId: teamId }))) {
     throw new TRPCError({
       code: "FORBIDDEN",
@@ -88,6 +89,25 @@ export const formMutationHandler = async ({ ctx, input }: FormMutationHandlerOpt
     if (!routes.find(isFallbackRoute)) {
       routes.push(createFallbackRoute());
     }
+  }
+
+  // Validate the users passed
+  if (teamId && settings?.sendUpdatesTo?.length) {
+    const sendUpdatesTo = await prisma.membership.findMany({
+      where: {
+        teamId,
+        userId: {
+          in: settings.sendUpdatesTo,
+        },
+      },
+      select: {
+        userId: true,
+      },
+    });
+    settings.sendUpdatesTo = sendUpdatesTo.map((member) => member.userId);
+    // If its not a team, the user is sending the value, we will just ignore it
+  } else if (!teamId && settings?.sendUpdatesTo) {
+    delete settings.sendUpdatesTo;
   }
 
   return await prisma.app_RoutingForms_Form.upsert({

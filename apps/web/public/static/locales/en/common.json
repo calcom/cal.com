@@ -1087,7 +1087,7 @@
   "make_team_private": "Make team private",
   "make_team_private_description": "Your team members won't be able to see other team members when this is turned on.",
   "you_cannot_see_team_members": "You cannot see all the team members of a private team.",
-  "you_cannot_see_teams_of_org":"You cannot see teams of a private organization.",
+  "you_cannot_see_teams_of_org": "You cannot see teams of a private organization.",
   "allow_booker_to_select_duration": "Allow booker to select duration",
   "impersonate_user_tip": "All uses of this feature is audited.",
   "impersonating_user_warning": "Impersonating username \"{{user}}\".",
@@ -1475,6 +1475,7 @@
   "routing_forms_description": "Create forms to direct attendees to the correct destinations",
   "routing_forms_send_email_owner": "Send Email to Owner",
   "routing_forms_send_email_owner_description": "Sends an email to the owner when the form is submitted",
+  "routing_forms_send_email_to": "Send Email to",
   "add_new_form": "Add new form",
   "add_new_team_form": "Add new form to your team",
   "create_your_first_route": "Create your first route",
@@ -2327,5 +2328,6 @@
   "delete_org_eventtypes":"Delete individual event types",
   "lock_org_users_eventtypes":"Lock individual event type creation",
   "lock_org_users_eventtypes_description":"Prevent members from creating their own event types.",
+  "select_members": "Select members",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

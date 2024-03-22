@@ -8,7 +8,7 @@ export default defineConfig({
   plugins: [react(), dts()],
   build: {
     lib: {
-      entry: [resolve(__dirname, "components.ts")],
+      entry: [resolve(__dirname, "index.ts")],
       name: "CalAtoms",
       fileName: "cal-atoms",
     },
