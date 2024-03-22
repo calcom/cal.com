@@ -157,6 +157,7 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
                   ...metadata?.apps,
                   stripe: {
                     ...metadata?.apps?.stripe,
+                    enabled: false,
                     price: 0,
                   },
                 },
