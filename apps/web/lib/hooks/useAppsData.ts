@@ -5,14 +5,18 @@ import type { GetAppData, SetAppData } from "@calcom/app-store/EventTypeAppConte
 import type { EventTypeAppsList } from "@calcom/app-store/utils";
 
 const useAppsData = () => {
-  const methods = useFormContext<FormValues>();
-  const allAppsData = methods.watch("metadata")?.apps || {};
+  const formMethods = useFormContext<FormValues>();
+  const allAppsData = formMethods.watch("metadata")?.apps || {};
 
   const setAllAppsData = (_allAppsData: typeof allAppsData) => {
-    methods.setValue("metadata", {
-      ...methods.getValues("metadata"),
-      apps: _allAppsData,
-    });
+    formMethods.setValue(
+      "metadata",
+      {
+        ...formMethods.getValues("metadata"),
+        apps: _allAppsData,
+      },
+      { shouldDirty: true }
+    );
   };
 
   const getAppDataGetter = (appId: EventTypeAppsList): GetAppData => {
@@ -25,7 +29,7 @@ const useAppsData = () => {
     };
   };
 
-  const eventTypeFormMetadata = methods.getValues("metadata");
+  const eventTypeFormMetadata = formMethods.getValues("metadata");
 
   const getAppDataSetter = (
     appId: EventTypeAppsList,
@@ -34,7 +38,7 @@ const useAppsData = () => {
   ): SetAppData => {
     return function (key, value) {
       // Always get latest data available in Form because consequent calls to setData would update the Form but not allAppsData(it would update during next render)
-      const allAppsDataFromForm = methods.getValues("metadata")?.apps || {};
+      const allAppsDataFromForm = formMethods.getValues("metadata")?.apps || {};
       const appData = allAppsDataFromForm[appId];
       setAllAppsData({
         ...allAppsDataFromForm,

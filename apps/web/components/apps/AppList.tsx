@@ -5,7 +5,7 @@ import { InstallAppButton } from "@calcom/app-store/components";
 import { getEventLocationTypeFromApp, type EventLocationType } from "@calcom/app-store/locations";
 import type { CredentialOwner } from "@calcom/app-store/types";
 import { AppSetDefaultLinkDialog } from "@calcom/features/apps/components/AppSetDefaultLinkDialog";
-import { BulkEditDefaultConferencingModal } from "@calcom/features/eventtypes/components/BulkEditDefaultConferencingModal";
+import { BulkEditDefaultForEventsModal } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AppCategories } from "@calcom/prisma/enums";
 import { trpc, type RouterOutputs } from "@calcom/trpc";
@@ -154,6 +154,12 @@ export const AppList = ({ data, handleDisconnect, variant, listClassName }: AppL
   });
 
   const { t } = useLocale();
+  const updateLocationsMutation = trpc.viewer.eventTypes.bulkUpdateToDefaultLocation.useMutation({
+    onSuccess: () => {
+      utils.viewer.getUsersDefaultConferencingApp.invalidate();
+      setBulkUpdateModal(false);
+    },
+  });
   return (
     <>
       <List className={listClassName}>
@@ -173,7 +179,12 @@ export const AppList = ({ data, handleDisconnect, variant, listClassName }: AppL
       )}
 
       {bulkUpdateModal && (
-        <BulkEditDefaultConferencingModal open={bulkUpdateModal} setOpen={setBulkUpdateModal} />
+        <BulkEditDefaultForEventsModal
+          bulkUpdateFunction={updateLocationsMutation.mutate}
+          open={bulkUpdateModal}
+          setOpen={setBulkUpdateModal}
+          isPending={updateLocationsMutation.isPending}
+        />
       )}
     </>
   );

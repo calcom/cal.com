@@ -1,8 +1,9 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 
+import { BulkEditDefaultForEventsModal } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
 import { NewScheduleButton, ScheduleListItem } from "@calcom/features/schedules";
 import Shell from "@calcom/features/shell/Shell";
 import { AvailabilitySliderTable } from "@calcom/features/timezone-buddy/components/AvailabilitySliderTable";
@@ -11,6 +12,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
+import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { EmptyScreen, showToast, ToggleGroup } from "@calcom/ui";
 import { Clock } from "@calcom/ui/components/icon";
 
@@ -21,6 +23,7 @@ import SkeletonLoader from "@components/availability/SkeletonLoader";
 
 export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availability"]["list"]) {
   const { t } = useLocale();
+  const [bulkUpdateModal, setBulkUpdateModal] = useState(false);
   const utils = trpc.useContext();
 
   const meQuery = trpc.viewer.me.useQuery();
@@ -65,6 +68,7 @@ export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availab
         }),
         "success"
       );
+      setBulkUpdateModal(true);
     },
     onError: (err) => {
       if (err instanceof HttpError) {
@@ -73,6 +77,15 @@ export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availab
       }
     },
   });
+
+  const bulkUpdateDefaultAvailabilityMutation =
+    trpc.viewer.availability.schedule.bulkUpdateToDefaultAvailability.useMutation({
+      onSuccess: () => {
+        utils.viewer.availability.list.invalidate();
+        setBulkUpdateModal(false);
+        showToast(t("success"), "success");
+      },
+    });
 
   const duplicateMutation = trpc.viewer.availability.schedule.duplicate.useMutation({
     onSuccess: async ({ schedule }) => {
@@ -129,6 +142,14 @@ export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availab
               {t("add_a_redirect")}
             </Link>
           </div>
+          {bulkUpdateModal && (
+            <BulkEditDefaultForEventsModal
+              isPending={bulkUpdateDefaultAvailabilityMutation.isPending}
+              open={bulkUpdateModal}
+              setOpen={setBulkUpdateModal}
+              bulkUpdateFunction={bulkUpdateDefaultAvailabilityMutation.mutate}
+            />
+          )}
         </>
       )}
     </>
@@ -152,6 +173,7 @@ export default function AvailabilityPage() {
   const searchParams = useCompatSearchParams();
   const router = useRouter();
   const pathname = usePathname();
+  const me = useMeQuery();
 
   // Get a new searchParams string by merging the current
   // searchParams with a provided key/value pair
@@ -190,7 +212,11 @@ export default function AvailabilityPage() {
             <NewScheduleButton />
           </div>
         }>
-        {searchParams?.get("type") === "team" ? <AvailabilitySliderTable /> : <AvailabilityListWithQuery />}
+        {searchParams?.get("type") === "team" ? (
+          <AvailabilitySliderTable userTimeFormat={me?.data?.timeFormat ?? null} />
+        ) : (
+          <AvailabilityListWithQuery />
+        )}
       </Shell>
     </div>
   );

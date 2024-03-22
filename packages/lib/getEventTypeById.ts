@@ -14,7 +14,7 @@ import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-u
 
 import { TRPCError } from "@trpc/server";
 
-import { CAL_URL } from "./constants";
+import { WEBSITE_URL } from "./constants";
 import { getBookerBaseUrl } from "./getBookerUrl/server";
 
 interface getEventTypeByIdProps {
@@ -26,14 +26,16 @@ interface getEventTypeByIdProps {
   currentOrganizationId: number | null;
 }
 
-export default async function getEventTypeById({
+export type EventType = Awaited<ReturnType<typeof getEventTypeById>>;
+
+export const getEventTypeById = async ({
   currentOrganizationId,
   eventTypeId,
   userId,
   prisma,
   isTrpcCall = false,
   isUserOrganizationAdmin,
-}: getEventTypeByIdProps) {
+}: getEventTypeByIdProps) => {
   const userSelect = Prisma.validator<Prisma.UserSelect>()({
     name: true,
     avatarUrl: true,
@@ -112,6 +114,7 @@ export default async function getEventTypeById({
       successRedirectUrl: true,
       currency: true,
       bookingFields: true,
+      useEventTypeDestinationCalendarEmail: true,
       owner: {
         select: {
           id: true,
@@ -132,6 +135,11 @@ export default async function getEventTypeById({
           parent: {
             select: {
               slug: true,
+              organizationSettings: {
+                select: {
+                  lockEventTypeCreationForUsers: true,
+                },
+              },
             },
           },
           members: {
@@ -234,6 +242,7 @@ export default async function getEventTypeById({
           },
         },
       },
+      secondaryEmailId: true,
     },
   });
 
@@ -304,7 +313,7 @@ export default async function getEventTypeById({
       ? await getBookerBaseUrl(restEventType.team.parentId)
       : restEventType.owner
       ? await getBookerBaseUrl(currentOrganizationId)
-      : CAL_URL,
+      : WEBSITE_URL,
     children: childrenWithUserProfile.flatMap((ch) =>
       ch.owner !== null
         ? {
@@ -429,4 +438,6 @@ export default async function getEventTypeById({
     isUserOrganizationAdmin,
   };
   return finalObj;
-}
+};
+
+export default getEventTypeById;

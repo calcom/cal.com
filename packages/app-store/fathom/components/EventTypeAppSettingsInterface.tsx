@@ -5,11 +5,13 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
   getAppData,
   setAppData,
   disabled,
+  slug,
 }) => {
   const trackingId = getAppData("trackingId");
 
   return (
     <TextField
+      dataTestid={slug}
       name="Tracking ID"
       value={trackingId}
       disabled={disabled}

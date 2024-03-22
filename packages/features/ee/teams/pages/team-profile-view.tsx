@@ -325,7 +325,7 @@ const TeamProfileForm = ({ team }: TeamProfileFormProps) => {
             <Controller
               control={form.control}
               name="logo"
-              render={({ field: { value } }) => {
+              render={({ field: { value, onChange } }) => {
                 const showRemoveLogoButton = !!value;
 
                 return (
@@ -340,9 +340,7 @@ const TeamProfileForm = ({ team }: TeamProfileFormProps) => {
                         target="avatar"
                         id="avatar-upload"
                         buttonMsg={t("upload_logo")}
-                        handleAvatarChange={(newLogo) => {
-                          form.setValue("logo", newLogo, { shouldDirty: true });
-                        }}
+                        handleAvatarChange={onChange}
                         triggerButtonColor={showRemoveLogoButton ? "secondary" : "primary"}
                         imageSrc={value ?? undefined}
                       />
@@ -350,7 +348,7 @@ const TeamProfileForm = ({ team }: TeamProfileFormProps) => {
                         <Button
                           color="secondary"
                           onClick={() => {
-                            form.setValue("logo", null, { shouldDirty: true });
+                            onChange(null);
                           }}>
                           {t("remove")}
                         </Button>
@@ -366,17 +364,13 @@ const TeamProfileForm = ({ team }: TeamProfileFormProps) => {
         <Controller
           control={form.control}
           name="name"
-          render={({ field: { value } }) => (
-            <div className="mt-8">
-              <TextField
-                name="name"
-                label={t("team_name")}
-                value={value}
-                onChange={(e) => {
-                  form.setValue("name", e?.target.value, { shouldDirty: true });
-                }}
-              />
-            </div>
+          render={({ field: { name, value, onChange } }) => (
+            <TextField
+              name={name}
+              label={t("team_name")}
+              value={value}
+              onChange={(e) => onChange(e?.target.value)}
+            />
           )}
         />
         <Controller
