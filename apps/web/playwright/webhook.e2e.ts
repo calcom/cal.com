@@ -8,16 +8,21 @@ import { BookingStatus } from "@calcom/prisma/client";
 import { test } from "./lib/fixtures";
 import {
   bookOptinEvent,
+  bookTimeSlot,
   createHttpServer,
-  selectFirstAvailableTimeSlotNextMonth,
-  gotoRoutingLink,
   createUserWithSeatedEventAndAttendees,
+  gotoRoutingLink,
+  selectFirstAvailableTimeSlotNextMonth,
+  triggerTasker,
 } from "./lib/testUtils";
 
 // remove dynamic properties that differs depending on where you run the tests
 const dynamic = "[redacted/dynamic]";
 
-test.afterEach(({ users }) => users.deleteAll());
+test.afterEach(async ({ users }) => {
+  // This also delete forms on cascade
+  await users.deleteAll();
+});
 
 async function createWebhookReceiver(page: Page) {
   const webhookReceiver = createHttpServer();
@@ -71,13 +76,10 @@ test.describe("BOOKING_CREATED", async () => {
     // --- Book the first available day next month in the pro user's "30min"-event
     await page.goto(`/${user.username}/${eventType.slug}`);
     await selectFirstAvailableTimeSlotNextMonth(page);
-
-    // --- fill form
-    await page.fill('[name="name"]', "Test Testson");
-    await page.fill('[name="email"]', "test@example.com");
-    await page.press('[name="email"]', "Enter");
+    await bookTimeSlot(page);
 
     await webhookReceiver.waitForRequestCount(1);
+    await triggerTasker(page);
 
     const [request] = webhookReceiver.requestList;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -205,6 +207,7 @@ test.describe("BOOKING_REJECTED", async () => {
     await page.waitForResponse((response) => response.url().includes("/api/trpc/bookings/confirm"));
 
     await webhookReceiver.waitForRequestCount(1);
+    await triggerTasker(page);
 
     const [request] = webhookReceiver.requestList;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -326,6 +329,7 @@ test.describe("BOOKING_REQUESTED", async () => {
     // --- check that webhook was called
 
     await webhookReceiver.waitForRequestCount(1);
+    await triggerTasker(page);
 
     const [request] = webhookReceiver.requestList;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -435,6 +439,7 @@ test.describe("BOOKING_RESCHEDULED", async () => {
 
     // --- check that webhook was called
     await webhookReceiver.waitForRequestCount(1);
+    await triggerTasker(page);
 
     const [request] = webhookReceiver.requestList;
 
@@ -511,6 +516,7 @@ test.describe("BOOKING_RESCHEDULED", async () => {
 
     // --- check that webhook was called
     await webhookReceiver.waitForRequestCount(1);
+    await triggerTasker(page);
 
     const [firstRequest] = webhookReceiver.requestList;
 
@@ -584,6 +590,7 @@ test.describe("FORM_SUBMITTED", async () => {
     page.click('button[type="submit"]');
 
     await webhookReceiver.waitForRequestCount(1);
+    await triggerTasker(page);
 
     const [request] = webhookReceiver.requestList;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -643,6 +650,7 @@ test.describe("FORM_SUBMITTED", async () => {
     page.click('button[type="submit"]');
 
     await webhookReceiver.waitForRequestCount(1);
+    await triggerTasker(page);
 
     const [request] = webhookReceiver.requestList;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

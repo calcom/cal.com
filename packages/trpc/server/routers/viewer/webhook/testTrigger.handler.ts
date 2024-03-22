@@ -1,4 +1,4 @@
-import sendPayload from "@calcom/features/webhooks/lib/schedulePayload";
+import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { getTranslation } from "@calcom/lib/server/i18n";
 

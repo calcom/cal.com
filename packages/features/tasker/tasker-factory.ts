@@ -19,3 +19,9 @@ export class TaskerFactory {
     return new InternalTasker();
   }
 }
+
+/** Shorthand for getting the default Tasker */
+export function getTasker() {
+  const taskerFactory = new TaskerFactory();
+  return taskerFactory.createTasker();
+}

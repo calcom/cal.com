@@ -369,3 +369,11 @@ export async function doOnOrgDomain(
 // When App directory is there, this is the 404 page text. We should work on fixing the 404 page as it changed due to app directory.
 export const NotFoundPageTextAppDir = "This page does not exist.";
 // export const NotFoundPageText = "ERROR 404";
+
+export const triggerTasker = async (page: Page) => {
+  await page.request.get("/api/tasks/cron", {
+    headers: {
+      authorization: `Bearer ${process.env.CRON_SECRET}`,
+    },
+  });
+};

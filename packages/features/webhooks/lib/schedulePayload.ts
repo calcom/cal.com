@@ -1,6 +1,6 @@
 import type { Webhook } from "@prisma/client";
 
-import { TaskerFactory } from "@calcom/features/tasker/tasker-factory";
+import tasker from "@calcom/features/tasker";
 
 import type { WebhookDataType } from "./sendPayload";
 
@@ -11,8 +11,6 @@ const schedulePayload = async (
   webhook: Pick<Webhook, "subscriberUrl" | "appId" | "payloadTemplate">,
   data: Omit<WebhookDataType, "createdAt" | "triggerEvent">
 ) => {
-  const taskerFactory = new TaskerFactory();
-  const tasker = taskerFactory.createTasker();
   await tasker.create("sendWebhook", JSON.stringify({ secretKey, triggerEvent, createdAt, webhook, data }));
 };
 
