@@ -16,7 +16,13 @@ export function InvalidAppCredentialBanners({ data }: InvalidAppCredentialBanner
   return (
     <div>
       {data.map((app) => (
-        <InvalidAppCredentialBanner id={app.id} key={app.slug} name={app.name} slug={app.slug} />
+        <InvalidAppCredentialBanner
+          teamId={app.teamId}
+          id={app.id}
+          key={app.slug}
+          name={app.name}
+          slug={app.slug}
+        />
       ))}
     </div>
   );
@@ -26,9 +32,10 @@ export type InvalidAppCredentialBannerProps = {
   id: number;
   name: string;
   slug: string;
+  teamId?: number;
 };
 
-export function InvalidAppCredentialBanner({ name, slug, id }: InvalidAppCredentialBannerProps) {
+export function InvalidAppCredentialBanner({ name, slug, id, teamId }: InvalidAppCredentialBannerProps) {
   const { t } = useLocale();
   const router = useRouter();
   const utils = trpc.useUtils();
@@ -46,7 +53,7 @@ export function InvalidAppCredentialBanner({ name, slug, id }: InvalidAppCredent
   });
 
   const handleClick = () => {
-    mutation.mutate({ id });
+    mutation.mutate({ id, teamId });
     router.push(`/apps/${slug}`);
   };
 
