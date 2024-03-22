@@ -43,9 +43,7 @@ async function getHandler(req: NextApiRequest) {
     },
   });
 
-  const connectedCalendars = await getConnectedCalendars(usersWithCalendars);
-
-  return [...connectedCalendars];
+  return await getConnectedCalendars(usersWithCalendars);
 }
 
 async function getConnectedCalendars(users: UserWithCalendars[]) {
