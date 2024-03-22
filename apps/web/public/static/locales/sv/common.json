@@ -656,6 +656,7 @@
   "default_duration": "Standardvaraktighet",
   "default_duration_no_options": "Välj först tillgänglig varaktighet",
   "multiple_duration_mins": "{{count}} $t(minute_timeUnit)",
+  "multiple_duration_timeUnit": "{{count}} $t({{unit}}_timeUnit)",
   "minutes": "Minuter",
   "round_robin": "Tur och ordning",
   "round_robin_description": "Variera möten mellan olika teammedlemmar.",
