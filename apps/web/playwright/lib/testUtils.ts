@@ -371,9 +371,10 @@ export const NotFoundPageTextAppDir = "This page does not exist.";
 // export const NotFoundPageText = "ERROR 404";
 
 export const triggerTasker = async (page: Page) => {
-  await page.request.get("/api/tasks/cron", {
+  const cronResponse = await page.request.get("/api/tasks/cron", {
     headers: {
       authorization: `Bearer ${process.env.CRON_SECRET}`,
     },
   });
+  console.log("cronResponse", await cronResponse.json());
 };

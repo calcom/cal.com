@@ -8,8 +8,8 @@ const sendWebhookPayloadSchema = z.object({
   createdAt: z.string(),
   webhook: z.object({
     subscriberUrl: z.string().url(),
-    appId: z.string(),
-    payloadTemplate: z.string(),
+    appId: z.string().nullable(),
+    payloadTemplate: z.string().nullable(),
   }),
   // TODO: Define the data schema
   data: z.any(),
