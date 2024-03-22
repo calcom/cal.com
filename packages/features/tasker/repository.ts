@@ -18,7 +18,7 @@ const whereMaxAttempsReached: Prisma.TaskWhereInput = {
   },
 };
 
-const upcomingTasksWhere: Prisma.TaskWhereInput = {
+const whereUpcomingTasks: Prisma.TaskWhereInput = {
   // Get only tasks that have not succeeded yet
   succeededAt: null,
   // Get only tasks that are scheduled to run now or in the past
@@ -54,7 +54,7 @@ export class Task {
   }
   static async getNextBatch() {
     const tasks = await db.task.findMany({
-      where: upcomingTasksWhere,
+      where: whereUpcomingTasks,
       orderBy: {
         scheduledAt: "asc",
       },
@@ -84,7 +84,7 @@ export class Task {
   }
   static async countUpcoming() {
     const tasks = await db.task.count({
-      where: upcomingTasksWhere,
+      where: whereUpcomingTasks,
     });
     return tasks;
   }
