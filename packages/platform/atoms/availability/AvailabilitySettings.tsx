@@ -91,13 +91,11 @@ const DeleteDialogButton = ({
   buttonClassName,
   isPending,
   onDeleteConfirmed,
-  isPlatform,
   handleDelete,
 }: {
   disabled?: boolean;
   onDeleteConfirmed?: () => void;
   buttonClassName: string;
-  isPlatform: boolean;
   handleDelete: () => void;
   isPending: boolean;
 }) => {
@@ -112,7 +110,7 @@ const DeleteDialogButton = ({
           color="destructive"
           aria-label={t("delete")}
           className={buttonClassName}
-          disabled={false}
+          disabled={disabled}
           tooltip={disabled ? t("requires_at_least_one_schedule") : t("delete")}
         />
       </DialogTrigger>
@@ -307,7 +305,6 @@ export function AvailabilitySettings({
             disabled={schedule.isLastSchedule}
             isPending={isDeleting}
             handleDelete={handleDelete}
-            isPlatform={isPlatform}
           />
           <VerticalDivider className="hidden sm:inline" />
           <SmallScreenSideBar open={openSidebar}>
@@ -331,7 +328,6 @@ export function AvailabilitySettings({
                       disabled={schedule.isLastSchedule}
                       isPending={isDeleting}
                       handleDelete={handleDelete}
-                      isPlatform={isPlatform}
                       onDeleteConfirmed={() => {
                         setOpenSidebar(false);
                       }}

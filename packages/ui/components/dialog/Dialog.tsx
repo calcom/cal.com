@@ -89,7 +89,7 @@ type DialogContentProps = React.ComponentProps<(typeof DialogPrimitive)["Content
   enableOverflow?: boolean;
 };
 
-// enableOverflow:- use this prop whenever content inside WebDialogContent could overflow and require scrollbar
+// enableOverflow:- use this prop whenever content inside DialogContent could overflow and require scrollbar
 export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps>(
   ({ children, title, Icon, enableOverflow, type = "creation", ...props }, forwardedRef) => {
     const isPlatform = useIsPlatform();
@@ -225,8 +225,10 @@ export const DialogClose = React.forwardRef<
 >((props) => {
   const { t } = useLocale();
   const isPlatform = useIsPlatform();
-
-  const Close = isPlatform ? PlatformDialogPrimitives.DialogClose : DialogPrimitive.Close;
+  const Close = useMemo(
+    () => (isPlatform ? PlatformDialogPrimitives.DialogClose : DialogPrimitive.Close),
+    [isPlatform]
+  );
 
   return (
     <Close asChild {...props.dialogCloseProps}>
