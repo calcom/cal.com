@@ -2,7 +2,7 @@ import { Navbar } from "@/components/Navbar";
 import { Inter } from "next/font/google";
 import { useState } from "react";
 
-import { Booker } from "@calcom/platform-atoms/components";
+import { Booker } from "@calcom/atoms";
 
 const inter = Inter({ subsets: ["latin"] });
 

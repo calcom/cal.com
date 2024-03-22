@@ -1,7 +1,7 @@
 import { guessEventLocationType } from "@calcom/app-store/locations";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
-import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
+import { APP_NAME } from "@calcom/lib/constants";
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import type { CalEventResponses } from "@calcom/types/Calendar";
 
@@ -43,8 +43,8 @@ const customTemplate = (
     locationString = guessEventLocationType(locationString)?.label || locationString;
   }
 
-  const cancelLink = variables.cancelLink ? `${WEBAPP_URL}${variables.cancelLink}` : "";
-  const rescheduleLink = variables.rescheduleLink ? `${WEBAPP_URL}${variables.rescheduleLink}` : "";
+  const cancelLink = variables.cancelLink ?? "";
+  const rescheduleLink = variables.rescheduleLink ?? "";
 
   const currentTimeFormat = timeFormat || TimeFormat.TWELVE_HOUR;
 

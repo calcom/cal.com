@@ -41,6 +41,9 @@ export async function handleConfirmation(args: {
       requiresConfirmation: boolean;
       metadata?: Prisma.JsonValue;
       title: string;
+      team?: {
+        parentId: number | null;
+      } | null;
       teamId?: number | null;
       parentId?: number | null;
       workflows?: {
