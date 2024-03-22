@@ -1,14 +1,16 @@
-import { useForm, useFieldArray } from "react-hook-form";
+import { useFieldArray, useForm } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
 import { DateOverrideInputDialog, DateOverrideList } from "@calcom/features/schedules";
 import Schedule from "@calcom/features/schedules/components/Schedule";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
+import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import type { Schedule as ScheduleType, TimeRange, WorkingHours } from "@calcom/types/schedule";
 import {
+  Alert,
   Button,
   Form,
   Label,
@@ -16,9 +18,8 @@ import {
   SheetContent,
   SheetHeader,
   SheetTitle,
-  TimezoneSelect,
   showToast,
-  Alert,
+  TimezoneSelect,
 } from "@calcom/ui";
 import { Plus } from "@calcom/ui/components/icon";
 
@@ -84,6 +85,25 @@ const DateOverride = ({ workingHours, disabled }: { workingHours: WorkingHours[]
 export function AvailabilityEditSheet(props: Props) {
   // This sheet will not be rendered without a selected user
   const userId = props.selectedUser?.id as number;
+  const { data, isPending } = trpc.viewer.availability.schedule.getScheduleByUserId.useQuery({
+    userId: userId,
+  });
+
+  // TODO: reimplement Skeletons for this page in here
+  if (isPending) return null;
+
+  if (!data) return null;
+
+  // We wait for the schedule to be loaded before rendering the form since `defaultValues`
+  // cannot be redeclared after first render. And using `values` will trigger a form reset
+  // when revalidating.
+  return <AvailabilityEditSheetForm {...props} data={data} isPending={isPending} />;
+}
+
+type Data = RouterOutputs["viewer"]["availability"]["schedule"]["getScheduleByUserId"];
+export function AvailabilityEditSheetForm(props: Props & { data: Data; isPending: boolean }) {
+  // This sheet will not be rendered without a selected user
+  const userId = props.selectedUser?.id as number;
   const { t } = useLocale();
   const utils = trpc.useUtils();
 
@@ -92,13 +112,11 @@ export function AvailabilityEditSheet(props: Props) {
       memberId: userId,
     });
 
-  const { data, isPending } = trpc.viewer.availability.schedule.getScheduleByUserId.useQuery({
-    userId: userId,
-  });
+  const { data, isPending } = props;
 
   const updateMutation = trpc.viewer.availability.schedule.update.useMutation({
     onSuccess: async () => {
-      utils.viewer.availability.listTeam.invalidate();
+      await utils.viewer.availability.listTeam.invalidate();
       showToast(t("success"), "success");
       props.onOpenChange(false);
     },
@@ -111,10 +129,10 @@ export function AvailabilityEditSheet(props: Props) {
   });
 
   const form = useForm<AvailabilityFormValues>({
-    values: data && {
+    defaultValues: {
       ...data,
-      timeZone: data?.timeZone || Intl.DateTimeFormat().resolvedOptions().timeZone,
-      schedule: data?.availability || [],
+      timeZone: data.timeZone || Intl.DateTimeFormat().resolvedOptions().timeZone,
+      schedule: data.availability || [],
     },
   });
 
@@ -128,12 +146,11 @@ export function AvailabilityEditSheet(props: Props) {
         handleSubmit={async ({ dateOverrides, ...values }) => {
           // Just blocking on a UI side -> Backend will also do the validation
           if (!hasEditPermission) return;
-          data &&
-            updateMutation.mutate({
-              scheduleId: data?.id,
-              dateOverrides: dateOverrides.flatMap((override) => override.ranges),
-              ...values,
-            });
+          updateMutation.mutate({
+            scheduleId: data.id,
+            dateOverrides: dateOverrides.flatMap((override) => override.ranges),
+            ...values,
+          });
         }}>
         <SheetContent
           bottomActions={
@@ -142,7 +159,7 @@ export function AvailabilityEditSheet(props: Props) {
                 {t("cancel")}
               </Button>
               <Button
-                disabled={!hasEditPermission || !data?.hasDefaultSchedule}
+                disabled={!hasEditPermission || !data.hasDefaultSchedule}
                 className="w-full justify-center"
                 type="submit"
                 loading={updateMutation.isPending}
@@ -158,7 +175,7 @@ export function AvailabilityEditSheet(props: Props) {
               })}
             </SheetTitle>
           </SheetHeader>
-          {!data?.hasDefaultSchedule && !isPending && hasEditPermission && (
+          {!data.hasDefaultSchedule && !isPending && hasEditPermission && (
             <div className="my-2">
               <Alert severity="warning" title={t("view_only_edit_availability_not_onboarded")} />
             </div>
@@ -176,7 +193,7 @@ export function AvailabilityEditSheet(props: Props) {
               </Label>
               <TimezoneSelect
                 id="timezone"
-                isDisabled={!hasEditPermission || !data?.hasDefaultSchedule}
+                isDisabled={!hasEditPermission || !data.hasDefaultSchedule}
                 value={watchTimezone ?? "Europe/London"}
                 onChange={(event) => {
                   if (event) form.setValue("timeZone", event.value, { shouldDirty: true });
@@ -191,12 +208,12 @@ export function AvailabilityEditSheet(props: Props) {
                   control={form.control}
                   name="schedule"
                   weekStart={0}
-                  disabled={!hasEditPermission || !data?.hasDefaultSchedule}
+                  disabled={!hasEditPermission || !data.hasDefaultSchedule}
                 />
               </div>
             </div>
             <div className="mt-4">
-              {data?.workingHours && (
+              {data.workingHours && (
                 <DateOverride
                   workingHours={data.workingHours}
                   disabled={!hasEditPermission || !data.hasDefaultSchedule}
