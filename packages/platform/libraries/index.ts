@@ -12,6 +12,8 @@ export type UpdateScheduleOutputType = Awaited<
   >
 >;
 export { getEventTypeById } from "@calcom/lib/event-types/getEventTypeById";
+export { getEventTypesByViewer } from "@calcom/lib/event-types/getEventTypesByViewer";
+export { getEventTypesPublic } from "@calcom/lib/event-types/getEventTypesPublic";
 
 export type PublicEventType = Awaited<ReturnType<typeof getPublicEvent>>;
 export { getPublicEvent };
