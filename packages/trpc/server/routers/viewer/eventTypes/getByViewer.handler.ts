@@ -1,5 +1,5 @@
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
-import { getEventTypeByViewer } from "@calcom/lib/event-types/getEventTypeByViewer";
+import { getEventTypesByViewer } from "@calcom/lib/event-types/getEventTypesByViewer";
 import type { PrismaClient } from "@calcom/prisma";
 
 import type { TrpcSessionUser } from "../../../trpc";
@@ -22,5 +22,5 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
   const filters = input?.filters;
   const forRoutingForms = input?.forRoutingForms;
 
-  return await getEventTypeByViewer(user, filters, forRoutingForms);
+  return await getEventTypesByViewer(user, filters, forRoutingForms);
 };

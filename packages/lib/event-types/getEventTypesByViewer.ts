@@ -32,7 +32,7 @@ type Filters = {
   upIds?: string[];
 };
 
-export const getEventTypeByViewer = async (user: User, filters?: Filters, forRoutingForms?: boolean) => {
+export const getEventTypesByViewer = async (user: User, filters?: Filters, forRoutingForms?: boolean) => {
   const lightProfile = user.profile;
   const profile = await ProfileRepository.findByUpId(lightProfile.upId);
   const parentOrgHasLockedEventTypes =
