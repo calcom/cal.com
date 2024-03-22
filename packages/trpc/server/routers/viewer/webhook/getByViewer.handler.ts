@@ -1,12 +1,11 @@
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
+import { compareMembership } from "@calcom/lib/getEventTypeByViewer";
 import { prisma } from "@calcom/prisma";
 import type { Webhook } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
-
-import { compareMembership } from "../eventTypes/getByViewer.handler";
 
 type GetByViewerOptions = {
   ctx: {
