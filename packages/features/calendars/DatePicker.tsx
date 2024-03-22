@@ -44,7 +44,7 @@ export type DatePickerProps = {
   slots?: Record<
     string,
     {
-      time: Dayjs;
+      time: string;
       userIds?: number[];
       away?: boolean;
       fromUser?: IFromUser;
