@@ -14,6 +14,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { ChevronRight } from "@calcom/ui/components/icon";
 
+import { CalAiTransctibe } from "~/videos/ai/ai-transcribe";
+
 import { type PageProps } from "./videos-single-view.getServerSideProps";
 
 export default function JoinCall(props: PageProps) {
@@ -92,6 +94,9 @@ export default function JoinCall(props: PageProps) {
         <meta property="twitter:description" content={t("quick_video_meeting")} />
       </Head>
       <DailyProvider callObject={daily}>
+        <div className="mx-auto" style={{ zIndex: 2, position: "absolute", bottom: 60, width: "100%" }}>
+          <CalAiTransctibe />
+        </div>
         <div style={{ zIndex: 2, position: "relative" }}>
           {booking?.user?.organization?.calVideoLogo ? (
             <img

@@ -30,6 +30,7 @@ const dailyReturnTypeSchema = z.object({
     enable_chat: z.boolean(),
     enable_knocking: z.boolean(),
     enable_prejoin_ui: z.boolean(),
+    enable_transcription_storage: z.boolean(),
   }),
 });
 
@@ -130,6 +131,7 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
           enable_chat: true,
           exp: exp,
           enable_recording: "cloud",
+          enable_transcription_storage: true,
         },
       };
     }
@@ -141,6 +143,7 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
         enable_screenshare: true,
         enable_chat: true,
         exp: exp,
+        enable_transcription_storage: true,
       },
     };
   };
@@ -159,6 +162,7 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
         exp: exp,
         enable_recording: "cloud",
         start_video_off: true,
+        enable_transcription_storage: true,
       },
     };
 
