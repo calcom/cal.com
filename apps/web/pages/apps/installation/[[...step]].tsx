@@ -509,7 +509,9 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         const _eventTypes = await getEventTypes(user.id, parsedTeamIdParam);
 
         if (!_eventTypes) {
-          return { redirect: { permanent: false, destination: `/apps/installed/${appMetadata.category}` } };
+          return {
+            redirect: { permanent: false, destination: `/apps/installed/${appMetadata.categories[0]}` },
+          };
         }
         eventTypes = _eventTypes;
         break;
@@ -519,7 +521,9 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
           throw new Error(ERROR_MESSAGES.appNotExtendsEventType);
         }
         if (!parsedEventTypeIdParam) {
-          return { redirect: { permanent: false, destination: `/apps/installed/${appMetadata.category}` } };
+          return {
+            redirect: { permanent: false, destination: `/apps/installed/${appMetadata.categories[0]}` },
+          };
         }
         break;
     }
