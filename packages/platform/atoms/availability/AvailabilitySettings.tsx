@@ -13,15 +13,15 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { TimeRange, WorkingHours } from "@calcom/types/schedule";
 import {
   Button,
-  ConfirmationDialogContent as WebConfirmationDialogContent,
-  Dialog as WebDialog,
-  DialogTrigger as WebDialogTrigger,
+  ConfirmationDialogContent,
   EditableHeading,
   Form,
+  SkeletonText,
+  Dialog,
+  DialogTrigger,
   Label,
   SelectSkeletonLoader,
   Skeleton,
-  SkeletonText,
   Switch,
   TimezoneSelect as WebTimezoneSelect,
   Tooltip,
@@ -29,11 +29,6 @@ import {
 } from "@calcom/ui";
 import { ArrowLeft, Info, MoreVertical, Plus, Trash } from "@calcom/ui/components/icon";
 
-import { ConfirmationDialogContent as PlatformConfirmationDialogContent } from "../src/components/ui/confirmation-dialog-content";
-import {
-  Dialog as PlatformDialog,
-  DialogTrigger as PlatformDialogTrigger,
-} from "../src/components/ui/dialog";
 import { Shell as PlatformShell } from "../src/components/ui/shell";
 import { cn } from "../src/lib/utils";
 import { Timezone as PlatformTimzoneSelect } from "../timezone/index";
@@ -96,22 +91,14 @@ const DeleteDialogButton = ({
   buttonClassName,
   isPending,
   onDeleteConfirmed,
-  isPlatform,
   handleDelete,
 }: {
   disabled?: boolean;
   onDeleteConfirmed?: () => void;
   buttonClassName: string;
-  isPlatform: boolean;
   handleDelete: () => void;
   isPending: boolean;
 }) => {
-  const [Dialog, DialogTrigger, ConfirmationDialogContent] = useMemo(() => {
-    return isPlatform
-      ? [PlatformDialog, PlatformDialogTrigger, PlatformConfirmationDialogContent]
-      : [WebDialog, WebDialogTrigger, WebConfirmationDialogContent];
-  }, [isPlatform]);
-
   const { t } = useLocale();
 
   return (
@@ -318,7 +305,6 @@ export function AvailabilitySettings({
             disabled={schedule.isLastSchedule}
             isPending={isDeleting}
             handleDelete={handleDelete}
-            isPlatform={isPlatform}
           />
           <VerticalDivider className="hidden sm:inline" />
           <SmallScreenSideBar open={openSidebar}>
@@ -342,7 +328,6 @@ export function AvailabilitySettings({
                       disabled={schedule.isLastSchedule}
                       isPending={isDeleting}
                       handleDelete={handleDelete}
-                      isPlatform={isPlatform}
                       onDeleteConfirmed={() => {
                         setOpenSidebar(false);
                       }}

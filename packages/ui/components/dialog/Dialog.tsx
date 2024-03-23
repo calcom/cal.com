@@ -1,8 +1,10 @@
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { usePathname, useRouter } from "next/navigation";
-import type { ReactNode } from "react";
+import { useMemo } from "react";
+import type { ReactNode, ForwardRefExoticComponent, ReactElement } from "react";
 import React, { useState } from "react";
 
+import { useIsPlatform, Dialog as PlatformDialogPrimitives } from "@calcom/atoms/monorepo";
 import classNames from "@calcom/lib/classNames";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -26,6 +28,11 @@ const enum DIALOG_STATE {
 }
 
 export function Dialog(props: DialogProps) {
+  const isPlatform = useIsPlatform();
+  return !isPlatform ? <WebDialog {...props} /> : <PlatformDialogPrimitives.Dialog {...props} />;
+}
+
+function WebDialog(props: DialogProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useCompatSearchParams();
@@ -70,6 +77,7 @@ export function Dialog(props: DialogProps) {
 
   return <DialogPrimitive.Root {...dialogProps}>{children}</DialogPrimitive.Root>;
 }
+
 type DialogContentProps = React.ComponentProps<(typeof DialogPrimitive)["Content"]> & {
   size?: "xl" | "lg" | "md";
   type?: "creation" | "confirmation";
@@ -84,10 +92,22 @@ type DialogContentProps = React.ComponentProps<(typeof DialogPrimitive)["Content
 // enableOverflow:- use this prop whenever content inside DialogContent could overflow and require scrollbar
 export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps>(
   ({ children, title, Icon, enableOverflow, type = "creation", ...props }, forwardedRef) => {
+    const isPlatform = useIsPlatform();
+    const [Portal, Overlay, Content] = useMemo(
+      () =>
+        isPlatform
+          ? [
+              ({ children }: { children: ReactElement | ReactElement[] }) => <>{children}</>,
+              PlatformDialogPrimitives.DialogOverlay,
+              PlatformDialogPrimitives.DialogContent,
+            ]
+          : [DialogPrimitive.Portal, DialogPrimitive.Overlay, DialogPrimitive.Content],
+      [isPlatform]
+    );
     return (
-      <DialogPrimitive.Portal>
-        <DialogPrimitive.Overlay className="fadeIn fixed inset-0 z-50 bg-neutral-800 bg-opacity-70 transition-opacity dark:bg-opacity-70 " />
-        <DialogPrimitive.Content
+      <Portal>
+        <Overlay className="fadeIn fixed inset-0 z-50 bg-neutral-800 bg-opacity-70 transition-opacity dark:bg-opacity-70 " />
+        <Content
           {...props}
           className={classNames(
             "fadeIn bg-default scroll-bar fixed left-1/2 top-1/2 z-50 w-full max-w-[22rem] -translate-x-1/2 -translate-y-1/2 rounded-md text-left shadow-xl focus-visible:outline-none sm:align-middle",
@@ -125,8 +145,8 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
             </div>
           )}
           {!type && children}
-        </DialogPrimitive.Content>
-      </DialogPrimitive.Portal>
+        </Content>
+      </Portal>
     );
   }
 );
@@ -134,7 +154,7 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
 type DialogHeaderProps = {
   title: React.ReactNode;
   subtitle?: React.ReactNode;
-};
+} & React.HTMLAttributes<HTMLDivElement>;
 
 export function DialogHeader(props: DialogHeaderProps) {
   if (!props.title) return null;
@@ -152,7 +172,12 @@ export function DialogHeader(props: DialogHeaderProps) {
   );
 }
 
-export function DialogFooter(props: { children: ReactNode; className?: string; showDivider?: boolean }) {
+type DialogFooterProps = {
+  children: React.ReactNode;
+  showDivider?: boolean;
+} & React.HTMLAttributes<HTMLDivElement>;
+
+export function DialogFooter(props: DialogFooterProps) {
   return (
     <div className={classNames("bg-default sticky bottom-0", props.className)}>
       {props.showDivider && (
@@ -172,8 +197,27 @@ export function DialogFooter(props: { children: ReactNode; className?: string; s
 
 DialogContent.displayName = "DialogContent";
 
-export const DialogTrigger = DialogPrimitive.Trigger;
-// export const DialogClose = DialogPrimitive.Close;
+export const DialogTrigger: ForwardRefExoticComponent<
+  DialogPrimitive.DialogTriggerProps & React.RefAttributes<HTMLButtonElement>
+> = React.forwardRef((props, ref) => {
+  const isPlatform = useIsPlatform();
+  return !isPlatform ? (
+    <DialogPrimitive.Trigger {...props} ref={ref} />
+  ) : (
+    <PlatformDialogPrimitives.DialogTrigger {...props} ref={ref} />
+  );
+});
+
+DialogTrigger.displayName = "DialogTrigger";
+
+type DialogCloseProps = {
+  "data-testid"?: string;
+  dialogCloseProps?: React.ComponentProps<(typeof DialogPrimitive)["Close"]>;
+  children?: ReactNode;
+  onClick?: (e: React.MouseEvent<HTMLElement, MouseEvent>) => void;
+  disabled?: boolean;
+  color?: ButtonProps["color"];
+} & React.ComponentProps<typeof Button>;
 
 export function DialogClose(
   props: {
@@ -186,8 +230,14 @@ export function DialogClose(
   } & React.ComponentProps<typeof Button>
 ) {
   const { t } = useLocale();
+  const isPlatform = useIsPlatform();
+  const Close = useMemo(
+    () => (isPlatform ? PlatformDialogPrimitives.DialogClose : DialogPrimitive.Close),
+    [isPlatform]
+  );
+
   return (
-    <DialogPrimitive.Close asChild {...props.dialogCloseProps}>
+    <Close asChild {...props.dialogCloseProps}>
       {/* This will require the i18n string passed in */}
       <Button
         data-testid={props["data-testid"] || "dialog-rejection"}
@@ -195,6 +245,8 @@ export function DialogClose(
         {...props}>
         {props.children ? props.children : t("Close")}
       </Button>
-    </DialogPrimitive.Close>
+    </Close>
   );
 }
+
+DialogClose.displayName = "WebDialogClose";
