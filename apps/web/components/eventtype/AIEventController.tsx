@@ -15,8 +15,8 @@ import {
   EmptyScreen,
   SettingsToggle,
   Dialog,
+  Divider,
   DialogContent,
-  SelectField,
   TextField,
   TextAreaField,
 } from "@calcom/ui";
@@ -135,42 +135,52 @@ const AISettings = ({ eventType }: { eventType: EventTypeSetup }) => {
         <>
           {/* TODO: <Form> */}
           <form className="space-y-4">
-            {v1 && <SelectField label="Your phone number" options={numbers} />}
             {v1 && (
               <>
                 <Label>Number to Call</Label>
-                <TextField label="Number to Call" required placeholder="+1 234 456 789" />
+                <TextField
+                  hint="Variable: {number}"
+                  label="Number to Call"
+                  required
+                  placeholder="+1 234 456 789"
+                />
+                <Divider />
               </>
             )}
             {v1 && (
               <>
-                <Label>Guest Name</Label>
-                <TextField label="Name of Receiver" required placeholder="Jane Doe" />
+                <Label>Guest Name:</Label>
+                <TextField hint="Variable: {name}" label="Name of Guest" required placeholder="Jane Doe" />
               </>
             )}
             {v2 && (
               <>
-                <Label>Company</Label>
-                <TextField label="Company" required placeholder="Company" />
-              </>
-            )}
-            {v2 && (
-              <>
-                <Label>Script</Label>
-                <TextAreaField
-                  value="Introduce yourself: Hey, is this {firstname}? I am calling from Deel.com about your upcoming employee onboarding as an Intern at Cal.com. Peer, the Hiring Manager asked me to contact you because there are missing documents. Your task is to remind employees about missing documents and ask them politely to book a meeting. Ask if they need help and move forward with asking available times for an appointment with an onboarding specialist. It is ok if the person does not want a call. In that case remind them to log into the app.deel.com dashboard and follow all steps."
-                  rows={5}
-                  placeholder="Script"
+                <Label>Guest Email</Label>
+                <TextField
+                  hint="Variable: {email}"
+                  label="Email of Guest"
+                  required
+                  placeholder="jane@example.com"
                 />
               </>
             )}
             {v2 && (
               <>
-                <Label>Behaviour</Label>
+                <Divider />
                 <TextAreaField
-                  rows={8}
-                  value="Make it very casual and breath and say umm and things that sound very natural. Communicate concisely and conversationally. Short sentences ideally less than 20 words and have enough breaks in between sentences. Your approach should be empathetic and understanding, balancing compassion with maintaining a professional stance on what is best for the employee. Be convincing. Really try hard to get a meeting. Be decisive but also polite.  It is ok if you don't get a meeting on your calendar. If someone asks if you are a robot, you say yes. Deel.com is using an automated voice agent to help, but all of our scheduled meetings are with real humans, pinky promise.
-"
+                  value="Introduce yourself: Hey, is this {name}? I am calling from Deel.com about your upcoming employee onboarding as an Intern at Cal.com. Peer, the Hiring Manager asked me to contact you because there are missing documents. Your task is to remind employees about missing documents and ask them politely to book a meeting. Ask if they need help and move forward with asking available times for an appointment with an onboarding specialist. It is ok if the person does not want a call. In that case remind them to log into the app.deel.com dashboard and follow all steps."
+                  rows={3}
+                  placeholder="Script"
+                  name="Script"
+                />
+              </>
+            )}
+            {v2 && (
+              <>
+                <TextAreaField
+                  rows={3}
+                  value="Make it very casual and breath and say umm and things that sound very natural. Communicate concisely and conversationally. Short sentences ideally less than 20 words and have enough breaks in between sentences. Your approach should be empathetic and understanding, balancing compassion with maintaining a professional stance on what is best for the employee. Be convincing. Really try hard to get a meeting. Be decisive but also polite.  It is ok if you don't get a meeting on your calendar. If someone asks if you are a robot, you say yes. Deel.com is using an automated voice agent to help, but all of our scheduled meetings are with real humans, pinky promise."
+                  name="Behaviour"
                 />
               </>
             )}
