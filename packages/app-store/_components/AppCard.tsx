@@ -22,7 +22,6 @@ export default function AppCard({
   disableSwitch,
   switchTooltip,
   hideSettingsIcon = false,
-  eventTypeId,
 }: {
   app: RouterOutputs["viewer"]["integrations"]["items"][number] & { credentialOwner?: CredentialOwner };
   description?: React.ReactNode;
@@ -35,7 +34,6 @@ export default function AppCard({
   disableSwitch?: boolean;
   switchTooltip?: string;
   hideSettingsIcon?: boolean;
-  eventTypeId?: number;
 }) {
   const { t } = useTranslation();
   const [animationRef] = useAutoAnimate<HTMLDivElement>();
@@ -117,7 +115,6 @@ export default function AppCard({
                 appId={app.slug}
                 returnTo={returnTo}
                 teamId={teamId}
-                eventTypeId={eventTypeId}
               />
             )}
           </div>

@@ -1,11 +1,4 @@
-import { useRouter } from "next/navigation";
-
-import getInstalledAppPath from "@calcom/app-store/_utils/getInstalledAppPath";
-import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { classNames } from "@calcom/lib";
-import { AppOnboardingSteps } from "@calcom/lib/apps/appOnboardingSteps";
-import { getAppOnboardingUrl } from "@calcom/lib/apps/getAppOnboardingUrl";
-import { shouldRedirectToAppOnboarding } from "@calcom/lib/apps/shouldRedirectToAppOnboarding";
 import useApp from "@calcom/lib/hooks/useApp";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -24,16 +17,13 @@ export default function OmniInstallAppButton({
   className,
   returnTo,
   teamId,
-  eventTypeId,
 }: {
   appId: string;
   className: string;
   returnTo?: string;
   teamId?: number;
-  eventTypeId?: number;
 }) {
   const { t } = useLocale();
-  const router = useRouter();
   const { data: app } = useApp(appId);
   const utils = trpc.useContext();
 
@@ -58,17 +48,13 @@ export default function OmniInstallAppButton({
     return null;
   }
 
-  const appMetadata = appStoreMetadata[app.dirName as keyof typeof appStoreMetadata];
-  const hasEventTypes = appMetadata?.extendsFeature == "EventType";
-  const redirectToAppOnboarding = shouldRedirectToAppOnboarding(appMetadata);
-
   return (
     <InstallAppButton
       type={app.type}
       teamsPlanRequired={app.teamsPlanRequired}
       wrapperClassName={classNames("[@media(max-width:260px)]:w-full", className)}
       render={({ useDefaultComponent, ...props }) => {
-        if (useDefaultComponent && !redirectToAppOnboarding) {
+        if (useDefaultComponent) {
           props = {
             ...props,
             onClick: () => {
@@ -79,42 +65,6 @@ export default function OmniInstallAppButton({
                 isOmniInstall: true,
                 ...(teamId && { teamId }),
               });
-            },
-          };
-        }
-
-        if (redirectToAppOnboarding) {
-          props = {
-            ...props,
-            onClick: () => {
-              if (appMetadata.isOAuth) {
-                router.push(
-                  getAppOnboardingUrl({
-                    slug: appMetadata.slug,
-                    step: AppOnboardingSteps.OAUTH_STEP,
-                    teamId,
-                    eventTypeId,
-                  })
-                );
-              } else {
-                fetch(`/api/integrations/${appMetadata.slug}/add${teamId ? `?teamId=${teamId}` : ""}`, {
-                  method: "GET",
-                  headers: {
-                    "Content-Type": "application/json",
-                  },
-                }).then(() => {
-                  router.push(
-                    !hasEventTypes
-                      ? getInstalledAppPath({ slug: appMetadata.slug, variant: appMetadata.variant })
-                      : getAppOnboardingUrl({
-                          slug: appMetadata.slug,
-                          step: AppOnboardingSteps.CONFIGURE_STEP,
-                          teamId,
-                          eventTypeId,
-                        })
-                  );
-                });
-              }
             },
           };
         }

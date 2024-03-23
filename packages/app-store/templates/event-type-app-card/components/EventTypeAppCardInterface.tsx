@@ -14,7 +14,6 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
   return (
     <AppCard
       app={app}
-      eventTypeId={eventType.id}
       switchOnClick={(e) => {
         if (!e) {
           updateEnabled(false);
