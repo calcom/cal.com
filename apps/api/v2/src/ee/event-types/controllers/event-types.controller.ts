@@ -67,7 +67,7 @@ export class EventTypesController {
     const eventTypes = await getEventTypesByViewer({
       id: user.id,
       profile: {
-        upId: user.movedToProfile?.id,
+        upId: `usr-${user.id}`,
       },
     });
 
