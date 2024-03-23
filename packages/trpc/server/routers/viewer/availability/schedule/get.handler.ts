@@ -30,6 +30,7 @@ export const getHandler = async ({ ctx, input }: GetOptions): Promise<ScheduleWi
     select: {
       id: true,
       userId: true,
+      eventType: true,
       name: true,
       availability: true,
       timeZone: true,
@@ -65,6 +66,7 @@ export const getHandler = async ({ ctx, input }: GetOptions): Promise<ScheduleWi
   return {
     id: schedule.id,
     name: schedule.name,
+    eventType: schedule.eventType,
     isManaged: schedule.userId !== user.id,
     workingHours: transformWorkingHoursForClient(schedule),
     schedule: schedule.availability,
