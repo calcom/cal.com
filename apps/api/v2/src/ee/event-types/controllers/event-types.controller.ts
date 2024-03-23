@@ -11,7 +11,7 @@ import { EventType } from "@prisma/client";
 
 import { EventTypesByViewer } from "@calcom/lib";
 import { EVENT_TYPE_READ, EVENT_TYPE_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
-import type { EventType as AtomEventType } from "@calcom/platform-libraries";
+import type { EventType as AtomEventType, EventTypesPublic } from "@calcom/platform-libraries";
 import { getEventTypesByViewer } from "@calcom/platform-libraries";
 import { ApiResponse, ApiSuccessResponse } from "@calcom/platform-types";
 
@@ -70,6 +70,19 @@ export class EventTypesController {
         upId: user.movedToProfile?.id,
       },
     });
+
+    return {
+      status: SUCCESS_STATUS,
+      data: eventTypes,
+    };
+  }
+
+  @Get("/:username/public")
+  @Permissions([EVENT_TYPE_READ])
+  async getPublicEventTypes(
+    @Param("username") username: string
+  ): Promise<ApiSuccessResponse<EventTypesPublic>> {
+    const eventTypes = await this.eventTypesService.getEventTypesPublicByUsername(username);
 
     return {
       status: SUCCESS_STATUS,

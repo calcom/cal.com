@@ -77,6 +77,14 @@ export class UsersRepository {
     });
   }
 
+  async findByUsername(username: string) {
+    return this.dbRead.prisma.user.findFirst({
+      where: {
+        username,
+      },
+    });
+  }
+
   async update(userId: number, updateData: UpdateUserInput) {
     this.formatInput(updateData);
 
