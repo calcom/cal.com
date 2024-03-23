@@ -1473,6 +1473,7 @@
   "routing_forms_description": "צור טפסים להפניית משתתפים ליעדים הנכונים",
   "routing_forms_send_email_owner": "שליחת דוא\"ל לבעלים",
   "routing_forms_send_email_owner_description": "דוא\"ל נשלח לבעלים לאחר שליחת הטופס",
+  "routing_forms_send_email_to": "שליחת דוא״ל אל",
   "add_new_form": "הוספת טופס חדש",
   "add_new_team_form": "הוספת טופס חדש לצוות",
   "create_your_first_route": "צור את המסלול הראשון שלך",
@@ -2155,6 +2156,7 @@
   "directory_name": "שם הספרייה",
   "directory_provider": "ספק ספרייה",
   "directory_sync_configure": "הגדרת סנכרון ספרייה",
+  "directory_sync_delete_description": "למחוק את חיבור סנכרון הספרייה?",
   "event_setup_length_error": "הגדרת אירוע: משך הזמן חייב להיות לפחות דקה אחת.",
   "availability_schedules": "לוחות זמנים לזמינוּת",
   "unauthorized": "אין הרשאה",
@@ -2170,6 +2172,8 @@
   "access_bookings": "לקרוא, לערוך ולמחוק את ההזמנות שלך",
   "allow_client_to_do": "האם לאפשר ל-{{clientName}} לעשות זאת?",
   "oauth_access_information": "לחיצה על 'אפשר' מהווה מתן הרשאה מצידך ליישום זה להשתמש במידע שלך בהתאם לתנאי השירות ולמדיניות הפרטיות שלו. ניתן לשלול את הגישה בחנות האפליקציות של {{appName}}.",
+  "oauth_form_title": "טופס יצירת לקוח OAuth",
+  "oauth_form_description": "זה הטופס ליצירת לקוח OAuth חדש",
   "allow": "אפשר",
   "view_only_edit_availability_not_onboarded": "משתמש זה לא השלים תהליך הטמעה. לא תהיה לך אפשרות להגדיר את הזמינות שלו עד שהוא יעשה זאת.",
   "view_only_edit_availability": "את/ה צופה בזמינות של משתמש זה. יש לך אפשרות לערוך רק את פרטי הזמינות שלך.",
@@ -2296,5 +2300,6 @@
   "confirm_email": "אישור כתובת הדוא״ל שלך",
   "confirm_email_description": "שלחנו הודעה בדוא״ל אל <strong>{{email}}</strong>. נא ללחוץ על הקישור בהודעה כדי לאמת את הכתובת הזאת.",
   "send_event_details_to": "שליחת פרטי האירוע אל",
+  "select_members": "בחירת חברים",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
