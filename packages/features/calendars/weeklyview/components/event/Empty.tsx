@@ -52,6 +52,7 @@ export function AvailableCellsForDay({ availableSlots, day, startHour }: Availab
       timezone?: string;
     }[] = [];
 
+    // first and last slot for ooo to display range correctly in week view
     let firstSlotIndex = -1;
     let lastSlotIndex = -1;
     let areAllSlotsAway = true;
@@ -60,10 +61,10 @@ export function AvailableCellsForDay({ availableSlots, day, startHour }: Availab
     slotsForToday?.forEach((slot, index) => {
       const startTime = dayjs(slot.start).tz(timezone);
       const topOffsetMinutes = (startTime.hour() - startHour) * 60 + startTime.minute();
+      calculatedSlots.push({ slot, topOffsetMinutes });
 
       if (!slot.away) {
         areAllSlotsAway = false;
-        calculatedSlots.push({ slot, topOffsetMinutes });
       } else {
         if (firstSlotIndex === -1) {
           firstSlotIndex = index;
@@ -75,7 +76,7 @@ export function AvailableCellsForDay({ availableSlots, day, startHour }: Availab
     if (areAllSlotsAway && firstSlotIndex !== -1) {
       const firstSlot = slotsForToday[firstSlotIndex];
       const lastSlot = slotsForToday[lastSlotIndex];
-      startEndTimeDuration = dayjs(lastSlot.start).diff(dayjs(firstSlot.start), "minutes");
+      startEndTimeDuration = dayjs(lastSlot.end).diff(dayjs(firstSlot.start), "minutes");
 
       if (firstSlot.toUser == null) {
         return null;
