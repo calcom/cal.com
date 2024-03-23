@@ -15,18 +15,20 @@ interface IUserToValue {
   id: number | null;
   name: string | null;
   username: string | null;
-  avatar: string;
+  avatar: string | null;
   email: string;
+  accepted?: boolean;
 }
 
 export const mapUserToValue = (
-  { id, name, username, avatar, email }: IUserToValue,
+  { id, name, username, avatar, email, accepted }: IUserToValue,
   pendingString: string
-) => ({
+): TeamMember => ({
   value: `${id || ""}`,
-  label: `${name || email || ""}${!username ? ` (${pendingString})` : ""}`,
-  avatar,
+  label: `${name || email || ""}${!username || accepted === false ? ` (${pendingString})` : ""}`,
+  avatar: avatar ?? "/avatar.svg",
   email,
+  accepted,
 });
 
 const sortByLabel = (a: ReturnType<typeof mapUserToValue>, b: ReturnType<typeof mapUserToValue>) => {
@@ -62,7 +64,9 @@ const CheckedHostField = ({
       <div>
         {labelText ? <Label>{labelText}</Label> : <></>}
         <CheckedTeamSelect
-          isOptionDisabled={(option) => !!value.find((host) => host.userId.toString() === option.value)}
+          isOptionDisabled={(option) =>
+            !!value.find((host) => host.userId.toString() === option.value) || option.accepted === false
+          }
           onChange={(options) => {
             onChange &&
               onChange(

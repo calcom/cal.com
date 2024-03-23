@@ -25,6 +25,7 @@ export type TeamMember = {
   label: string;
   avatar: string;
   email: string;
+  accepted?: boolean;
 };
 
 export type FormValues = {

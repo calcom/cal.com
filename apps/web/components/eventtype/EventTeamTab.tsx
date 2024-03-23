@@ -196,40 +196,34 @@ const RoundRobinHosts = ({
   assignAllTeamMembers,
   setAssignAllTeamMembers,
   team,
+  allMembers,
 }: {
   value: Host[];
   onChange: (hosts: Host[]) => void;
   teamMembers: TeamMember[];
   assignAllTeamMembers: boolean;
   setAssignAllTeamMembers: Dispatch<SetStateAction<boolean>>;
+  allMembers: TeamMember[];
 } & Pick<EventTypeSetupProps, "team">) => {
   const { t, i18n } = useLocale();
   const utils = trpc.useUtils();
   const [showMemberInviteModal, setShowMemberInviteModal] = useState(false);
   const [inviteEmail, setInviteEmail] = useState<undefined | string>(undefined);
   const session = useSession();
-  const inviteMemberMutation = trpc.viewer.teams.inviteMember.useMutation({
-    onSuccess: () => {
-      utils.viewer.organizations.getMembers.invalidate();
-      utils.viewer.organizations.listOtherTeams.invalidate();
-      utils.viewer.teams.list.invalidate();
-      utils.viewer.organizations.listOtherTeamMembers.invalidate();
+  const inviteMemberMutation = trpc.viewer.teams.inviteMember.useMutation();
+  const { data: orgMembersNotInThisTeam } = trpc.viewer.organizations.getMembers.useQuery(
+    {
+      teamIdToExclude: team?.id,
+      distinctUser: true,
     },
-  });
-  const { data: orgMembersNotInThisTeam, isPending: isOrgListLoading } =
-    trpc.viewer.organizations.getMembers.useQuery(
-      {
-        teamIdToExclude: team?.id,
-        distinctUser: true,
-      },
-      {
-        enabled: !Number.isNaN(team?.id),
-      }
-    );
+    {
+      enabled: !Number.isNaN(team?.id),
+    }
+  );
 
   const orgId = session.data?.user.org?.id;
 
-  const { setValue } = useFormContext<FormValues>();
+  const { setValue, getValues } = useFormContext<FormValues>();
 
   return (
     <div className="rounded-lg ">
@@ -239,7 +233,7 @@ const RoundRobinHosts = ({
       </div>
       <div className="border-subtle rounded-b-md border border-t-0">
         <AddMembersWithSwitch
-          teamMembers={teamMembers}
+          teamMembers={allMembers}
           value={value}
           onChange={onChange}
           assignAllTeamMembers={assignAllTeamMembers}
@@ -281,7 +275,7 @@ const RoundRobinHosts = ({
               },
               {
                 onSuccess: async (data) => {
-                  await utils.viewer.teams.get.invalidate();
+                  await utils.viewer.eventTypes.get.invalidate({ id: getValues("id") });
                   await utils.viewer.organizations.getMembers.invalidate();
                   setShowMemberInviteModal(false);
 
@@ -351,9 +345,11 @@ const Hosts = ({
   teamMembers,
   assignAllTeamMembers,
   setAssignAllTeamMembers,
+  allMembers,
   team,
 }: {
   teamMembers: TeamMember[];
+  allMembers: TeamMember[];
   assignAllTeamMembers: boolean;
   setAssignAllTeamMembers: Dispatch<SetStateAction<boolean>>;
 } & Pick<EventTypeSetupProps, "team">) => {
@@ -414,6 +410,7 @@ const Hosts = ({
                 isRoundRobinEvent={true}
               />
               <RoundRobinHosts
+                allMembers={allMembers}
                 teamMembers={teamMembers}
                 value={value}
                 onChange={(changeValue) => {
@@ -472,6 +469,19 @@ export const EventTeamTab = ({
       t("pending")
     );
   });
+  const allMembers = team?.members.map((member) =>
+    mapUserToValue(
+      {
+        id: member.user.id,
+        avatar: member.user.avatarUrl,
+        name: member.user.name,
+        email: member.user.email,
+        username: member.user.username,
+        accepted: member.accepted,
+      },
+      t("pending")
+    )
+  );
   const isManagedEventType = eventType.schedulingType === SchedulingType.MANAGED;
   const { getValues, setValue } = useFormContext<FormValues>();
   const [assignAllTeamMembers, setAssignAllTeamMembers] = useState<boolean>(
@@ -512,6 +522,7 @@ export const EventTeamTab = ({
             assignAllTeamMembers={assignAllTeamMembers}
             setAssignAllTeamMembers={setAssignAllTeamMembers}
             teamMembers={teamMembersOptions}
+            allMembers={allMembers ?? teamMembersOptions}
             team={team}
           />
         </>
