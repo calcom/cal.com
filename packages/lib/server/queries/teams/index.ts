@@ -86,6 +86,7 @@ export async function getTeamWithMembers(args: {
       id: true,
       name: true,
       slug: true,
+      isOrganization: true,
       ...(!!includeTeamLogo ? { logo: true } : {}),
       logoUrl: true,
       bio: true,
@@ -98,6 +99,8 @@ export async function getTeamWithMembers(args: {
           id: true,
           slug: true,
           name: true,
+          isPrivate: true,
+          isOrganization: true,
         },
       },
       children: {
@@ -127,8 +130,12 @@ export async function getTeamWithMembers(args: {
           },
         },
         select: {
-          users: {
-            select: userSelect,
+          hosts: {
+            select: {
+              user: {
+                select: userSelect,
+              },
+            },
           },
           metadata: true,
           ...baseEventTypeSelect,
@@ -202,7 +209,7 @@ export async function getTeamWithMembers(args: {
   const eventTypesWithUsersUserProfile = [];
   for (const eventType of teamOrOrg.eventTypes) {
     const usersWithUserProfile = [];
-    for (const user of eventType.users) {
+    for (const { user } of eventType.hosts) {
       usersWithUserProfile.push(
         await UserRepository.enrichUserWithItsProfile({
           user,

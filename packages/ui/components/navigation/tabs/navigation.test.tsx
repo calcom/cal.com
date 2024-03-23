@@ -25,7 +25,18 @@ vi.mock("@calcom/lib/hooks/useUrlMatchesCurrentUrl", () => ({
 }));
 
 vi.mock("@calcom/lib/hooks/useLocale", () => ({
-  useLocale: () => ({ t: (key: string) => key, isLocaleReady: true }),
+  useLocale: () => {
+    return {
+      t: (str: string) => str,
+      isLocaleReady: true,
+      i18n: {
+        language: "en",
+        defaultLocale: "en",
+        locales: ["en"],
+        exists: () => false,
+      },
+    };
+  },
 }));
 
 describe("Tests for navigation folder", () => {

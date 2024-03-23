@@ -20,3 +20,11 @@ export const createEventTypeInput = z.object({
     path: ["schedulingType"],
     message: "You must select a scheduling type for team events",
   });
+
+  export const EventTypeDuplicateInput = z.object({
+    id: z.number(),
+    slug: z.string(),
+    title: z.string().min(1),
+    description: z.string(),
+    length: z.number(),
+  }).strict();

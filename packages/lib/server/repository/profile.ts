@@ -41,6 +41,7 @@ const organizationSelect = {
   name: true,
   metadata: true,
   calVideoLogo: true,
+  bannerUrl: true,
 };
 
 export enum LookupTarget {
@@ -349,6 +350,11 @@ export class ProfileRepository {
         movedFromUser: true,
         organization: {
           include: {
+            organizationSettings: {
+              select: {
+                lockEventTypeCreationForUsers: true,
+              },
+            },
             members: {
               select: membershipSelect,
             },

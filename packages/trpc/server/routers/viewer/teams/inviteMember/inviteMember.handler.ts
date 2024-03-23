@@ -2,7 +2,6 @@ import { updateQuantitySubscriptionFromStripe } from "@calcom/features/ee/teams/
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import { createAProfileForAnExistingUser } from "@calcom/lib/createAProfileForAnExistingUser";
-import { isOrganization } from "@calcom/lib/entityPermissionUtils";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -46,23 +45,23 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
   await checkRateLimitAndThrowError({
     identifier: `invitedBy:${ctx.user.id}`,
   });
+  const team = await getTeamOrThrow(input.teamId);
+
+  const isOrg = team.isOrganization;
+
+  // Only owners can award owner role in an organization.
+  if (isOrg && input.role === MembershipRole.OWNER && !(await isOrganisationOwner(ctx.user.id, input.teamId)))
+    throw new TRPCError({ code: "UNAUTHORIZED" });
+
   await checkPermissions({
     userId: ctx.user.id,
     teamId:
       ctx.user.organization.id && ctx.user.organization.isOrgAdmin ? ctx.user.organization.id : input.teamId,
-    isOrg: input.isOrg,
+    isOrg,
   });
 
-  // Only owners can award owner role in an organization.
-  if (
-    input.isOrg &&
-    input.role === MembershipRole.OWNER &&
-    !(await isOrganisationOwner(ctx.user.id, input.teamId))
-  )
-    throw new TRPCError({ code: "UNAUTHORIZED" });
+  const { autoAcceptEmailDomain, orgVerified } = getIsOrgVerified(isOrg, team);
 
-  const team = await getTeamOrThrow(input.teamId, input.isOrg);
-  const { autoAcceptEmailDomain, orgVerified } = getIsOrgVerified(input.isOrg, team);
   const usernameOrEmailsToInvite = await getUsernameOrEmailsToInvite(input.usernameOrEmail);
   const orgConnectInfoByUsernameOrEmail = usernameOrEmailsToInvite.reduce((acc, usernameOrEmail) => {
     return {
@@ -72,13 +71,13 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
         orgAutoAcceptDomain: autoAcceptEmailDomain,
         usersEmail: usernameOrEmail,
         team,
-        isOrg: input.isOrg,
+        isOrg: isOrg,
       }),
     };
   }, {} as Record<string, ReturnType<typeof getOrgConnectionInfo>>);
   const existingUsersWithMembersips = await getUsersToInvite({
     usernamesOrEmails: usernameOrEmailsToInvite,
-    isInvitedToOrg: input.isOrg,
+    isInvitedToOrg: isOrg,
     team,
   });
 
@@ -120,8 +119,9 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
         usernameOrEmail,
         team,
         translation,
-        ctx,
-        input,
+        inviterName: ctx.user.name ?? "",
+        teamId: input.teamId,
+        isOrg: input.isOrg,
       });
     });
     sendEmails(sendVerifEmailsPromises);
@@ -174,7 +174,7 @@ async function handleExistingUsersInvites({
   }
 
   const translation = await getTranslation(input.language ?? "en", "common");
-  if (!isOrganization({ team })) {
+  if (!team.isOrganization) {
     const [autoJoinUsers, regularUsers] = groupUsersByJoinability({
       existingUsersWithMembersips,
       team,

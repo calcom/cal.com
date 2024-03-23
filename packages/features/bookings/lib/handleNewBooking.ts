@@ -251,6 +251,13 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
           days: true,
         },
       },
+      secondaryEmailId: true,
+      secondaryEmail: {
+        select: {
+          id: true,
+          email: true,
+        },
+      },
     },
   });
 
@@ -364,7 +371,7 @@ export async function ensureAvailableUsers(
         user,
         eventType,
         rescheduleUid: input.originalRescheduledBooking?.uid ?? null,
-        busyTimesFromLimitsBookings: busyTimesFromLimitsBookingsAllUsers.filter((b) => b.userId === user.id),
+        busyTimesFromLimitsBookings: busyTimesFromLimitsBookingsAllUsers,
       }
     );
 
@@ -857,6 +864,7 @@ export const findBookingQuery = async (bookingId: number) => {
       description: true,
       status: true,
       responses: true,
+      metadata: true,
       user: {
         select: {
           name: true,
@@ -1095,6 +1103,8 @@ async function handler(
       firstUsersMetadata?.defaultConferencingApp?.appLink;
   }
 
+  let rescheduleUid = reqBody.rescheduleUid;
+
   if (
     Object.prototype.hasOwnProperty.call(eventType, "bookingLimits") ||
     Object.prototype.hasOwnProperty.call(eventType, "durationLimits")
@@ -1108,6 +1118,7 @@ async function handler(
         eventType.bookingLimits as IntervalLimit,
         startAsDate,
         eventType.id,
+        rescheduleUid,
         eventType.schedule?.timeZone
       );
     }
@@ -1116,7 +1127,6 @@ async function handler(
     }
   }
 
-  let rescheduleUid = reqBody.rescheduleUid;
   let bookingSeat: BookingSeat = null;
 
   let originalRescheduledBooking: BookingType = null;
@@ -1452,6 +1462,13 @@ async function handler(
     ? [organizerUser.destinationCalendar]
     : null;
 
+  let organizerEmail = organizerUser.email || "Email-less";
+  if (eventType.useEventTypeDestinationCalendarEmail && destinationCalendar?.[0]?.primaryEmail) {
+    organizerEmail = destinationCalendar[0].primaryEmail;
+  } else if (eventType.secondaryEmailId && eventType.secondaryEmail?.email) {
+    organizerEmail = eventType.secondaryEmail.email;
+  }
+
   let evt: CalendarEvent = {
     bookerUrl,
     type: eventType.slug,
@@ -1464,10 +1481,7 @@ async function handler(
     organizer: {
       id: organizerUser.id,
       name: organizerUser.name || "Nameless",
-      email:
-        eventType.useEventTypeDestinationCalendarEmail && destinationCalendar?.[0]?.primaryEmail
-          ? destinationCalendar[0].primaryEmail
-          : organizerUser.email || "Email-less",
+      email: organizerEmail,
       username: organizerUser.username || undefined,
       timeZone: organizerUser.timeZone,
       language: { translate: tOrganizer, locale: organizerUser.locale ?? "en" },
@@ -1507,7 +1521,7 @@ async function handler(
     eventDescription: eventType.description,
     price: paymentAppData.price,
     currency: eventType.currency,
-    length: eventType.length,
+    length: reqEventLength,
   };
 
   const teamId = await getTeamIdFromEventType({ eventType });
@@ -1733,18 +1747,22 @@ async function handler(
 
     evt = addVideoCallDataToEvent(originalRescheduledBooking.references, evt);
 
-    const newDestinationCalendar = evt.destinationCalendar;
-
-    evt.destinationCalendar = originalRescheduledBooking?.destinationCalendar
+    // If organizer is changed in RR event then we need to delete the previous host destination calendar events
+    const previousHostDestinationCalendar = originalRescheduledBooking?.destinationCalendar
       ? [originalRescheduledBooking?.destinationCalendar]
-      : originalRescheduledBooking?.user?.destinationCalendar
-      ? [originalRescheduledBooking?.user.destinationCalendar]
-      : evt.destinationCalendar;
+      : [];
 
     if (changedOrganizer) {
       evt.title = getEventName(eventNameObject);
       // location might changed and will be new created in eventManager.create (organizer default location)
       evt.videoCallData = undefined;
+      // To prevent "The requested identifier already exists" error while updating event, we need to remove iCalUID
+      evt.iCalUID = undefined;
+    } else {
+      // In case of rescheduling, we need to keep the previous host destination calendar
+      evt.destinationCalendar = originalRescheduledBooking?.destinationCalendar
+        ? [originalRescheduledBooking?.destinationCalendar]
+        : evt.destinationCalendar;
     }
 
     const updateManager = await eventManager.reschedule(
@@ -1752,7 +1770,7 @@ async function handler(
       originalRescheduledBooking.uid,
       undefined,
       changedOrganizer,
-      newDestinationCalendar
+      previousHostDestinationCalendar
     );
 
     // This gets overridden when updating the event - to check if notes have been hidden or not. We just reset this back
@@ -1850,6 +1868,7 @@ async function handler(
           metadata.hangoutLink ||
           results[0].createdEvent?.url ||
           organizerOrFirstDynamicGroupMemberDefaultLocationUrl ||
+          getVideoCallUrlFromCalEvent(evt) ||
           videoCallUrl;
       }
 
@@ -2058,6 +2077,7 @@ async function handler(
             calEvent: getPiiFreeCalendarEvent(evt),
           })
         );
+
         await sendScheduledEmails(
           {
             ...evt,
@@ -2098,6 +2118,10 @@ async function handler(
     );
     await sendOrganizerRequestEmail({ ...evt, additionalNotes });
     await sendAttendeeRequestEmail({ ...evt, additionalNotes }, attendeesList[0]);
+  }
+
+  if (booking.location?.startsWith("http")) {
+    videoCallUrl = booking.location;
   }
 
   const metadata = videoCallUrl
@@ -2201,10 +2225,6 @@ async function handler(
   }
 
   loggerWithEventDetails.debug(`Booking ${organizerUser.username} completed`);
-
-  if (booking.location?.startsWith("http")) {
-    videoCallUrl = booking.location;
-  }
 
   // We are here so, booking doesn't require payment and booking is also created in DB already, through createBooking call
   if (isConfirmedByDefault) {

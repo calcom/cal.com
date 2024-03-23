@@ -22,9 +22,17 @@ export const listHandler = async ({ ctx, input }: ListOptions) => {
     },
     include: {
       team: {
-        include: {
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          logo: true,
+          logoUrl: true,
+          isOrganization: true,
+          metadata: true,
           inviteTokens: true,
           parent: true,
+          parentId: true,
         },
       },
     },
@@ -34,8 +42,7 @@ export const listHandler = async ({ ctx, input }: ListOptions) => {
   return memberships
     .filter((mmship) => {
       if (input?.includeOrgs) return true;
-      const metadata = teamMetadataSchema.parse(mmship.team.metadata);
-      return !metadata?.isOrganization;
+      return !mmship.team.isOrganization;
     })
     .map(({ team: { inviteTokens, logo, logoUrl, ..._team }, ...membership }) => ({
       role: membership.role,
