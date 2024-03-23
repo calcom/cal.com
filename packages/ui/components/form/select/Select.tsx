@@ -1,11 +1,13 @@
 import { useId } from "@radix-ui/react-id";
 import * as React from "react";
-import type { GroupBase, Props, SingleValue, MultiValue } from "react-select";
+import { components } from "react-select";
+import type { GroupBase, Props, SingleValue, MultiValue, OptionProps } from "react-select";
 import ReactSelect from "react-select";
 
 import cx from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
+import { Badge } from "../../badge";
 import { Label } from "../inputs/Label";
 import { getReactSelectProps } from "./selectTheme";
 
@@ -14,6 +16,28 @@ export type SelectProps<
   IsMulti extends boolean = false,
   Group extends GroupBase<Option> = GroupBase<Option>
 > = Props<Option, IsMulti, Group> & { variant?: "default" | "checkbox"; "data-testid"?: string };
+
+const Option = <
+  Option,
+  IsMulti extends boolean = false,
+  Group extends GroupBase<Option> = GroupBase<Option>
+>({
+  data,
+  ...props
+}: OptionProps<Option, IsMulti, Group>) => {
+  return (
+    <components.Option data={data} {...props}>
+      <>
+        {props.children}
+        {(data as { accepted?: boolean })?.accepted === false && (
+          <Badge size="sm" variant="orange" className="ml-2 text-xs">
+            Pending
+          </Badge>
+        )}
+      </>
+    </components.Option>
+  );
+};
 
 export const Select = <
   Option,
@@ -100,6 +124,7 @@ export const Select = <
         multiValueRemove: () => "text-default py-auto ml-2",
         ...classNames,
       }}
+      components={{ Option }}
       {...restProps}
     />
   );

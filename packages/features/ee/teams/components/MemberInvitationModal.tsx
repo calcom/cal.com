@@ -77,9 +77,14 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
     enabled: !!session.data?.user?.org,
   });
   const isOrgOwner = currentOrg && currentOrg.user.role === MembershipRole.OWNER;
+  const newMemberFormMethods = useForm<NewMemberForm>();
 
   const [modalImportMode, setModalInputMode] = useState<ModalMode>(
-    props?.orgMembers && props.orgMembers?.length > 0 && !props.inviteEmail ? "ORGANIZATION" : "INDIVIDUAL"
+    props?.orgMembers && props.orgMembers?.length > 0 && !props.inviteEmail
+      ? "ORGANIZATION"
+      : props.inviteEmail && props.inviteEmail.split(",").length > 1
+      ? "BULK"
+      : "INDIVIDUAL"
   );
 
   const createInviteMutation = trpc.viewer.teams.createInvite.useMutation({
@@ -126,11 +131,14 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
     return array;
   }, [t, props.orgMembers]);
 
-  const newMemberFormMethods = useForm<NewMemberForm>();
-
   useEffect(() => {
     if (props.inviteEmail) {
-      newMemberFormMethods.setValue("emailOrUsername", props.inviteEmail);
+      const bulkEmail = props.inviteEmail.split(",");
+      if (bulkEmail.length > 1) {
+        newMemberFormMethods.setValue("emailOrUsername", bulkEmail);
+      } else {
+        newMemberFormMethods.setValue("emailOrUsername", props.inviteEmail);
+      }
     }
   }, [props.inviteEmail, newMemberFormMethods, modalImportMode]);
 

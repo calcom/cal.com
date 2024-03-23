@@ -9,6 +9,7 @@ import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import {
   Avatar,
+  Badge,
   Button,
   Dialog,
   DialogClose,
@@ -67,6 +68,11 @@ export const CheckedTeamSelect = ({
               className={`flex px-3 py-2 ${index === value.length - 1 ? "" : "border-subtle border-b"}`}>
               <Avatar size="sm" imageSrc={option.avatar} alt={option.label} />
               <p className="text-emphasis my-auto ms-3 text-sm">{option.label}</p>
+              {option.accepted === false && (
+                <Badge variant="orange" className="ml-2 text-xs">
+                  Pending
+                </Badge>
+              )}
               <div className="ml-auto flex items-center">
                 {option && !option.isFixed ? (
                   <Tooltip content={t("change_priority")}>

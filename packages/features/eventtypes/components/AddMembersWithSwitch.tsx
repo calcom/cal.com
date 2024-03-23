@@ -25,7 +25,8 @@ export const mapUserToValue = (
   pendingString: string
 ): TeamMember => ({
   value: `${id || ""}`,
-  label: `${name || email || ""}${!username || accepted === false ? ` (${pendingString})` : ""}`,
+  // Showing Pending badge if user has not accepted
+  label: `${name || email || ""}${!username && accepted !== false ? ` (${pendingString})` : ""}`,
   avatar: avatar ?? "/avatar.svg",
   email,
   accepted,
@@ -64,9 +65,7 @@ const CheckedHostField = ({
       <div>
         {labelText ? <Label>{labelText}</Label> : <></>}
         <CheckedTeamSelect
-          isOptionDisabled={(option) =>
-            !!value.find((host) => host.userId.toString() === option.value) || option.accepted === false
-          }
+          isOptionDisabled={(option) => !!value.find((host) => host.userId.toString() === option.value)}
           onChange={(options) => {
             onChange &&
               onChange(
