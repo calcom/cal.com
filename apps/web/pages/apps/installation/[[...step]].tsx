@@ -36,7 +36,6 @@ import type { ConfigureEventTypeProp } from "@components/apps/installation/Confi
 import { ConfigureStepCard } from "@components/apps/installation/ConfigureStepCard";
 import type { EventTypeProp } from "@components/apps/installation/EventTypesStepCard";
 import { EventTypesStepCard } from "@components/apps/installation/EventTypesStepCard";
-import { OAuthStepCard } from "@components/apps/installation/OAuthStepCard";
 import { StepFooter } from "@components/apps/installation/StepFooter";
 import { StepHeader } from "@components/apps/installation/StepHeader";
 
@@ -46,7 +45,6 @@ type TFormType = {
 
 const STEPS = [
   AppOnboardingSteps.ACCOUNTS_STEP,
-  AppOnboardingSteps.OAUTH_STEP,
   AppOnboardingSteps.EVENT_TYPES_STEP,
   AppOnboardingSteps.CONFIGURE_STEP,
 ] as const;
@@ -67,22 +65,17 @@ const STEPS_MAP: StepObj = {
   [AppOnboardingSteps.ACCOUNTS_STEP]: {
     getTitle: () => "Select Account",
     getDescription: (appName) => `Install ${appName} on your personal account or on a team account.`,
-    getStepNumber: (hasTeams) => (hasTeams ? 1 : 0),
-  },
-  [AppOnboardingSteps.OAUTH_STEP]: {
-    getTitle: (appName) => `Install ${appName}`,
-    getDescription: (appName) => `Give permissions to connect your Cal.com to ${appName}.`,
-    getStepNumber: (hasTeams, isOAuth) => (hasTeams ? 1 : 0) + (isOAuth ? 1 : 0),
+    getStepNumber: () => 1,
   },
   [AppOnboardingSteps.EVENT_TYPES_STEP]: {
     getTitle: () => "Select Event Type",
     getDescription: (appName) => `On which event type do you want to install ${appName}?`,
-    getStepNumber: (hasTeams, isOAuth) => 1 + (hasTeams ? 1 : 0) + (isOAuth ? 1 : 0),
+    getStepNumber: () => 2,
   },
   [AppOnboardingSteps.CONFIGURE_STEP]: {
     getTitle: (appName) => `Configure ${appName}`,
     getDescription: () => "Finalise the App setup. You can change these settings later.",
-    getStepNumber: (hasTeams, isOAuth) => 2 + (hasTeams ? 1 : 0) + (isOAuth ? 1 : 0),
+    getStepNumber: () => 3,
   },
 } as const;
 
@@ -118,10 +111,8 @@ const OnboardingPage = ({
   const pathname = usePathname();
   const router = useRouter();
   const stepObj = STEPS_MAP[step];
-  const nbOfSteps =
-    MAX_NUMBER_OF_STEPS - (hasTeams ? 0 : 1) - (appMetadata.isOAuth ? 0 : 1) - (hasEventTypes ? 0 : 1);
+  const nbOfSteps = MAX_NUMBER_OF_STEPS - (hasEventTypes ? 0 : 1);
   const { t } = useLocale();
-  const [isLoadingOAuth, setIsLoadingOAuth] = useState(false);
   const utils = trpc.useContext();
   const [isSelectingAccount, setIsSelectingAccount] = useState(false);
 
@@ -168,9 +159,7 @@ const OnboardingPage = ({
   const handleSelectAccount = ({ id: teamId }: onSelectParams) => {
     setIsSelectingAccount(true);
     if (appMetadata.isOAuth) {
-      router.push(
-        getAppOnboardingUrl({ slug: appMetadata.slug, step: AppOnboardingSteps.OAUTH_STEP, teamId })
-      );
+      handleOAuth();
       return;
     }
 
@@ -212,7 +201,6 @@ const OnboardingPage = ({
 
   const handleOAuth = async () => {
     try {
-      setIsLoadingOAuth(true);
       const state = JSON.stringify({
         appOnbaordingRedirectUrl: hasEventTypes
           ? getAppOnboardingRedirectUrl(appMetadata.slug, teamId, eventTypeId)
@@ -234,7 +222,8 @@ const OnboardingPage = ({
       const oAuthUrl = (await res.json())?.url;
       router.push(oAuthUrl);
     } catch (err) {
-      setIsLoadingOAuth(false);
+      console.error("Error while connecting to app", appMetadata.slug);
+      router.push(`/apps`);
     }
   };
 
@@ -274,15 +263,6 @@ const OnboardingPage = ({
                 personalAccount={personalAccount}
                 onSelect={handleSelectAccount}
                 loading={isSelectingAccount}
-              />
-            )}
-            {step === AppOnboardingSteps.OAUTH_STEP && (
-              <OAuthStepCard
-                description={appMetadata.description}
-                name={appMetadata.name}
-                logo={appMetadata.logo}
-                onClick={handleOAuth}
-                isLoading={isLoadingOAuth}
               />
             )}
             {step === AppOnboardingSteps.EVENT_TYPES_STEP && eventTypes && Boolean(eventTypes?.length) && (
@@ -540,12 +520,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         }
         if (!parsedEventTypeIdParam) {
           return { redirect: { permanent: false, destination: `/apps/installed/${appMetadata.category}` } };
-        }
-        break;
-
-      case AppOnboardingSteps.OAUTH_STEP:
-        if (!appMetadata.isOAuth) {
-          throw new Error(ERROR_MESSAGES.appNotOAuth);
         }
         break;
     }
