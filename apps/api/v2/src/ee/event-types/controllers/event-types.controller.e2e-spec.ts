@@ -18,6 +18,7 @@ import { UserRepositoryFixture } from "test/fixtures/repository/users.repository
 import { withAccessTokenAuth } from "test/utils/withAccessTokenAuth";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { EventTypesByViewer } from "@calcom/platform-libraries";
 import { ApiSuccessResponse } from "@calcom/platform-types";
 
 describe("Event types Endpoints", () => {
@@ -60,6 +61,7 @@ describe("Event types Endpoints", () => {
     let eventTypesRepositoryFixture: EventTypesRepositoryFixture;
 
     const userEmail = "test-e2e@api.com";
+    const name = "Bob";
     let eventType: EventType;
     let user: User;
 
@@ -88,6 +90,7 @@ describe("Event types Endpoints", () => {
       oAuthClient = await createOAuthClient(organization.id);
       user = await userRepositoryFixture.create({
         email: userEmail,
+        name,
       });
 
       eventTypesRepositoryFixture = new EventTypesRepositoryFixture(moduleRef);
@@ -139,6 +142,27 @@ describe("Event types Endpoints", () => {
       expect(responseBody.data.title).toEqual(eventType.title);
       expect(responseBody.data.slug).toEqual(eventType.slug);
       expect(responseBody.data.userId).toEqual(user.id);
+    });
+
+    it(`/GET/`, async () => {
+      const response = await request(app.getHttpServer())
+        .get(`/api/v2/event-types`)
+        // note: bearer token value mocked using "withAccessTokenAuth" for user which id is used when creating event type above
+        .set("Authorization", `Bearer whatever`)
+        .expect(200);
+
+      const responseBody: ApiSuccessResponse<EventTypesByViewer> = response.body;
+
+      expect(responseBody.status).toEqual(SUCCESS_STATUS);
+      expect(responseBody.data).toBeDefined();
+      console.log("asap responseBody.data", responseBody.data);
+      expect(responseBody.data.eventTypeGroups).toBeDefined();
+      expect(responseBody.data.eventTypeGroups).toBeDefined();
+      expect(responseBody.data.eventTypeGroups[0]).toBeDefined();
+      expect(responseBody.data.eventTypeGroups[0].profile).toBeDefined();
+      expect(responseBody.data.eventTypeGroups?.[0]?.profile?.name).toEqual(name);
+      expect(responseBody.data.eventTypeGroups?.[0]?.eventTypes?.[0]?.id).toEqual(eventType.id);
+      expect(responseBody.data.profiles?.[0]?.name).toEqual(name);
     });
 
     it(`/GET/:id not existing`, async () => {
