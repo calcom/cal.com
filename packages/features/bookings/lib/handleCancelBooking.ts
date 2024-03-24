@@ -13,8 +13,8 @@ import { sendCancelledReminders } from "@calcom/features/ee/workflows/lib/remind
 import { deleteScheduledSMSReminder } from "@calcom/features/ee/workflows/lib/reminders/smsReminderManager";
 import { deleteScheduledWhatsappReminder } from "@calcom/features/ee/workflows/lib/reminders/whatsappReminderManager";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
-import sendPayload from "@calcom/features/webhooks/lib/schedulePayload";
 import { cancelScheduledJobs } from "@calcom/features/webhooks/lib/scheduleTrigger";
+import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
