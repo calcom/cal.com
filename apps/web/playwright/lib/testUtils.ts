@@ -9,6 +9,7 @@ import { noop } from "lodash";
 import type { Messages } from "mailhog";
 import { totp } from "otplib";
 
+import tasker from "@calcom/features/tasker";
 import type { Prisma } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { IntervalLimit } from "@calcom/types/Calendar";
@@ -43,8 +44,10 @@ export function createHttpServer(opts: { requestHandler?: RequestHandler } = {})
   const eventEmitter = new EventEmitter();
   const requestList: Request[] = [];
 
-  const waitForRequestCount = (count: number) =>
-    new Promise<void>((resolve) => {
+  const waitForRequestCount = async (count: number) => {
+    // We need to process the queue to make sure all webhooks are sent
+    await tasker.processQueue();
+    return new Promise<void>((resolve) => {
       if (requestList.length === count) {
         resolve();
         return;
@@ -60,6 +63,7 @@ export function createHttpServer(opts: { requestHandler?: RequestHandler } = {})
 
       eventEmitter.on("push", pushHandler);
     });
+  };
 
   const server = createServer((req, res) => {
     const buffer: unknown[] = [];
@@ -369,12 +373,3 @@ export async function doOnOrgDomain(
 // When App directory is there, this is the 404 page text. We should work on fixing the 404 page as it changed due to app directory.
 export const NotFoundPageTextAppDir = "This page does not exist.";
 // export const NotFoundPageText = "ERROR 404";
-
-export const triggerTasker = async (page: Page) => {
-  const cronResponse = await page.request.get("/api/tasks/cron", {
-    headers: {
-      authorization: `Bearer ${process.env.CRON_SECRET}`,
-    },
-  });
-  console.log("cronResponse", await cronResponse.json());
-};

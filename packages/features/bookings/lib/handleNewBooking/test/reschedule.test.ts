@@ -3,41 +3,42 @@ import prismaMock from "../../../../../../tests/libs/__mocks__/prisma";
 import { describe, expect } from "vitest";
 
 import { appStoreMetadata } from "@calcom/app-store/apps.metadata.generated";
+import tasker from "@calcom/features/tasker";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 import { test } from "@calcom/web/test/fixtures/fixtures";
 import {
+  BookingLocations,
   createBookingScenario,
+  getBooker,
   getDate,
   getGoogleCalendarCredential,
-  TestData,
-  getOrganizer,
-  getBooker,
-  getScenarioData,
-  mockSuccessfulVideoMeetingCreation,
-  mockCalendarToHaveNoBusySlots,
-  mockCalendarToCrashOnUpdateEvent,
-  BookingLocations,
-  getMockBookingReference,
   getMockBookingAttendee,
+  getMockBookingReference,
   getMockFailingAppStatus,
   getMockPassingAppStatus,
+  getOrganizer,
+  getScenarioData,
+  mockCalendarToCrashOnUpdateEvent,
+  mockCalendarToHaveNoBusySlots,
+  mockSuccessfulVideoMeetingCreation,
+  TestData,
 } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
 import { createMockNextJsRequest } from "@calcom/web/test/utils/bookingScenario/createMockNextJsRequest";
 import {
-  expectWorkflowToBeTriggered,
-  expectBookingToBeInDatabase,
-  expectBookingRescheduledWebhookToHaveBeenFired,
-  expectSuccessfulBookingRescheduledEmails,
-  expectSuccessfulCalendarEventUpdationInCalendar,
-  expectSuccessfulVideoMeetingUpdationInCalendar,
   expectBookingInDBToBeRescheduledFromTo,
   expectBookingRequestedEmails,
   expectBookingRequestedWebhookToHaveBeenFired,
+  expectBookingRescheduledWebhookToHaveBeenFired,
+  expectBookingToBeInDatabase,
+  expectSuccessfulBookingRescheduledEmails,
   expectSuccessfulCalendarEventDeletionInCalendar,
-  expectSuccessfulVideoMeetingDeletionInCalendar,
+  expectSuccessfulCalendarEventUpdationInCalendar,
   expectSuccessfulRoundRobinReschedulingEmails,
+  expectSuccessfulVideoMeetingDeletionInCalendar,
+  expectSuccessfulVideoMeetingUpdationInCalendar,
+  expectWorkflowToBeTriggered,
 } from "@calcom/web/test/utils/bookingScenario/expects";
 import { getMockRequestDataForBooking } from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForBooking";
 import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
@@ -57,7 +58,7 @@ describe("handleNewBooking", () => {
           3. Should send emails to the booker as well as organizer
           4. Should trigger BOOKING_RESCHEDULED webhook
     `,
-        async ({ emails, tasker }) => {
+        async ({ emails }) => {
           const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
           const booker = getBooker({
             email: "booker@example.com",
@@ -278,7 +279,7 @@ describe("handleNewBooking", () => {
             ],
           });
 
-          expectBookingRescheduledWebhookToHaveBeenFired({
+          await expectBookingRescheduledWebhookToHaveBeenFired({
             booker,
             organizer,
             location: BookingLocations.CalVideo,
@@ -296,7 +297,7 @@ describe("handleNewBooking", () => {
           3. Should send emails to the booker as well as organizer
           4. Should trigger BOOKING_RESCHEDULED webhook
     `,
-        async ({ emails, tasker }) => {
+        async ({ emails }) => {
           const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
           const booker = getBooker({
             email: "booker@example.com",
@@ -494,7 +495,7 @@ describe("handleNewBooking", () => {
             emails,
             iCalUID,
           });
-          expectBookingRescheduledWebhookToHaveBeenFired({
+          await expectBookingRescheduledWebhookToHaveBeenFired({
             booker,
             organizer,
             location: BookingLocations.CalVideo,
@@ -507,7 +508,7 @@ describe("handleNewBooking", () => {
 
       test(
         `an error in updating a calendar event should not stop the rescheduling - Current behaviour is wrong as the booking is resheduled but no-one is notified of it`,
-        async ({ emails, tasker }) => {
+        async ({ emails }) => {
           const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
           const booker = getBooker({
             email: "booker@example.com",
@@ -667,7 +668,7 @@ describe("handleNewBooking", () => {
           // FIXME: We should send Broken Integration emails on calendar event updation failure
           // expectBrokenIntegrationEmails({ booker, organizer, emails });
 
-          expectBookingRescheduledWebhookToHaveBeenFired({
+          await expectBookingRescheduledWebhookToHaveBeenFired({
             booker,
             organizer,
             location: "integrations:daily",
@@ -696,7 +697,7 @@ describe("handleNewBooking", () => {
           3. Should send BOOKING Requested scenario emails to the booker as well as organizer
           4. Should trigger BOOKING_REQUESTED webhook instead of BOOKING_RESCHEDULED
     `,
-          async ({ emails, tasker }) => {
+          async ({ emails }) => {
             const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
             const subscriberUrl = "http://my-webhook.example.com";
             const booker = getBooker({
@@ -866,7 +867,7 @@ describe("handleNewBooking", () => {
               emails,
             });
 
-            expectBookingRequestedWebhookToHaveBeenFired({
+            await expectBookingRequestedWebhookToHaveBeenFired({
               booker,
               organizer,
               location: BookingLocations.CalVideo,
@@ -905,7 +906,7 @@ describe("handleNewBooking", () => {
           3. Should send rescheduled emails to the booker as well as organizer
           4. Should trigger BOOKING_RESCHEDULED webhook
     `,
-          async ({ emails, tasker }) => {
+          async ({ emails }) => {
             const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
             const booker = getBooker({
               email: "booker@example.com",
@@ -1138,7 +1139,7 @@ describe("handleNewBooking", () => {
               emails,
               iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
             });
-            expectBookingRescheduledWebhookToHaveBeenFired({
+            await expectBookingRescheduledWebhookToHaveBeenFired({
               booker,
               organizer,
               location: BookingLocations.CalVideo,
@@ -1157,7 +1158,7 @@ describe("handleNewBooking", () => {
         3. Should send booking requested emails to the booker as well as organizer
         4. Should trigger BOOKING_REQUESTED webhook
       `,
-          async ({ emails, tasker }) => {
+          async ({ emails }) => {
             const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
             const subscriberUrl = "http://my-webhook.example.com";
             const booker = getBooker({
@@ -1332,7 +1333,7 @@ describe("handleNewBooking", () => {
               emails,
             });
 
-            expectBookingRequestedWebhookToHaveBeenFired({
+            await expectBookingRequestedWebhookToHaveBeenFired({
               booker,
               organizer,
               location: BookingLocations.CalVideo,
@@ -1371,7 +1372,7 @@ describe("handleNewBooking", () => {
           3. Should send rescheduled emails to the booker as well as organizer
           4. Should trigger BOOKING_RESCHEDULED webhook
     `,
-          async ({ emails, tasker }) => {
+          async ({ emails }) => {
             const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
             const booker = getBooker({
               email: "booker@example.com",
@@ -1617,7 +1618,7 @@ describe("handleNewBooking", () => {
               iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
             });
 
-            expectBookingRescheduledWebhookToHaveBeenFired({
+            await expectBookingRescheduledWebhookToHaveBeenFired({
               booker,
               organizer,
               location: BookingLocations.CalVideo,
@@ -1632,7 +1633,7 @@ describe("handleNewBooking", () => {
     describe("Team event-type", () => {
       test(
         "should send correct schedule/cancellation emails to hosts when round robin is rescheduled to different host",
-        async ({ emails, tasker }) => {
+        async ({ emails }) => {
           const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
           const booker = getBooker({
             email: "booker@example.com",
@@ -1787,7 +1788,7 @@ describe("handleNewBooking", () => {
 
       test(
         "should send rescheduling emails when round robin is rescheduled to same host",
-        async ({ emails, tasker }) => {
+        async ({ emails }) => {
           const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
           const booker = getBooker({
             email: "booker@example.com",

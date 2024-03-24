@@ -13,7 +13,6 @@ import {
   createUserWithSeatedEventAndAttendees,
   gotoRoutingLink,
   selectFirstAvailableTimeSlotNextMonth,
-  triggerTasker,
 } from "./lib/testUtils";
 
 // remove dynamic properties that differs depending on where you run the tests
@@ -78,7 +77,6 @@ test.describe("BOOKING_CREATED", async () => {
     await selectFirstAvailableTimeSlotNextMonth(page);
     await bookTimeSlot(page);
 
-    await triggerTasker(page);
     await webhookReceiver.waitForRequestCount(1);
 
     const [request] = webhookReceiver.requestList;
@@ -206,7 +204,6 @@ test.describe("BOOKING_REJECTED", async () => {
     await page.click('[data-testid="rejection-confirm"]');
     await page.waitForResponse((response) => response.url().includes("/api/trpc/bookings/confirm"));
 
-    await triggerTasker(page);
     await webhookReceiver.waitForRequestCount(1);
 
     const [request] = webhookReceiver.requestList;
@@ -328,7 +325,6 @@ test.describe("BOOKING_REQUESTED", async () => {
 
     // --- check that webhook was called
 
-    await triggerTasker(page);
     await webhookReceiver.waitForRequestCount(1);
 
     const [request] = webhookReceiver.requestList;
@@ -438,7 +434,6 @@ test.describe("BOOKING_RESCHEDULED", async () => {
     expect(newBooking).not.toBeNull();
 
     // --- check that webhook was called
-    await triggerTasker(page);
     await webhookReceiver.waitForRequestCount(1);
 
     const [request] = webhookReceiver.requestList;
@@ -515,7 +510,6 @@ test.describe("BOOKING_RESCHEDULED", async () => {
     expect(newBooking).not.toBeNull();
 
     // --- check that webhook was called
-    await triggerTasker(page);
     await webhookReceiver.waitForRequestCount(1);
 
     const [firstRequest] = webhookReceiver.requestList;
@@ -589,7 +583,6 @@ test.describe("FORM_SUBMITTED", async () => {
     await page.fill(`[data-testid="form-field-${fieldName}"]`, "John Doe");
     page.click('button[type="submit"]');
 
-    await triggerTasker(page);
     await webhookReceiver.waitForRequestCount(1);
 
     const [request] = webhookReceiver.requestList;
@@ -649,7 +642,6 @@ test.describe("FORM_SUBMITTED", async () => {
     await page.fill(`[data-testid="form-field-${fieldName}"]`, "John Doe");
     page.click('button[type="submit"]');
 
-    await triggerTasker(page);
     await webhookReceiver.waitForRequestCount(1);
 
     const [request] = webhookReceiver.requestList;
