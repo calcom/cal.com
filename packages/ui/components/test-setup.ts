@@ -65,6 +65,9 @@ vi.mock("@calcom/atoms/monorepo", () => ({
   },
 }));
 
+vi.mock("@calcom/prisma", () => ({}));
+vi.mock("@calcom/lib/server/repository/profile", () => ({}));
+
 expect.extend({
   tabToBeDisabled(received) {
     const isDisabled = received.classList.contains("pointer-events-none");

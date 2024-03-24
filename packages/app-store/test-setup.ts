@@ -27,6 +27,9 @@ vi.mock("@calcom/atoms/monorepo", () => ({
   },
 }));
 
+vi.mock("@calcom/prisma", () => ({}));
+vi.mock("@calcom/lib/server/repository/profile", () => ({}));
+
 global.ResizeObserver = vi.fn().mockImplementation(() => ({
   observe: vi.fn(),
   unobserve: vi.fn(),
