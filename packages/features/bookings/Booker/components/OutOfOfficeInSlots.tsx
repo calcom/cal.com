@@ -26,7 +26,7 @@ export const OutOfOfficeInSlots = (props: IOutOfOfficeInSlotsProps) => {
 
   if (!fromUser || !toUser) return null;
   return (
-    <div className={classNames("relative h-full pb-2", className)}>
+    <div className={classNames("relative h-full pb-5", className)}>
       <div
         className={classNames(
           "flex h-full flex-col items-center justify-start rounded-md border bg-white px-4 py-4 font-normal dark:bg-transparent",
