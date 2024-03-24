@@ -118,7 +118,7 @@ const emptyResponseEventsByStatus = {
   },
 };
 
-interface IResultTeamList {
+export interface IResultTeamList {
   id: number;
   slug: string | null;
   name: string | null;

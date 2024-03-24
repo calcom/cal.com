@@ -126,7 +126,9 @@ const DestinationCalendarSelector = ({
   const queryDestinationCalendar = query.data.destinationCalendar;
 
   return (
-    <div className="relative" title={`${t("create_events_on")}: ${selectedOption?.label || ""}`}>
+    <div
+      className="relative table w-full table-fixed"
+      title={`${t("create_events_on")}: ${selectedOption?.label || ""}`}>
       <Select
         name="primarySelectedCalendar"
         placeholder={

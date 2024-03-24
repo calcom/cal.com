@@ -2,7 +2,7 @@
 
 import { useSearchParams } from "next/navigation";
 
-import { Booker } from "@calcom/atoms";
+import { Booker } from "@calcom/atoms/monorepo";
 import { getBookerWrapperClasses } from "@calcom/features/bookings/Booker/utils/getBookerWrapperClasses";
 import { BookerSeo } from "@calcom/features/bookings/components/BookerSeo";
 
@@ -28,6 +28,7 @@ export default function Type({
   isSEOIndexable,
   rescheduleUid,
   eventData,
+  orgBannerUrl,
 }: PageProps) {
   const searchParams = useSearchParams();
 
@@ -50,6 +51,7 @@ export default function Type({
         hideBranding={isBrandingHidden}
         entity={eventData.entity}
         durationConfig={eventData.metadata?.multipleDuration}
+        orgBannerUrl={orgBannerUrl}
         /* TODO: Currently unused, evaluate it is needed-
          *       Possible alternative approach is to have onDurationChange.
          */

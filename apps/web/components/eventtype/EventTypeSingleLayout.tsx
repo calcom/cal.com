@@ -204,6 +204,7 @@ function EventTypeSingleLayout({
   activeWebhooksNumber,
 }: Props) {
   const { t } = useLocale();
+  const eventTypesLockedByOrg = eventType.team?.parent?.organizationSettings?.lockEventTypeCreationForUsers;
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
@@ -341,6 +342,7 @@ function EventTypeSingleLayout({
                   <div className="self-center rounded-md p-2">
                     <Switch
                       id="hiddenSwitch"
+                      disabled={eventTypesLockedByOrg}
                       checked={!formMethods.watch("hidden")}
                       onCheckedChange={(e) => {
                         formMethods.setValue("hidden", !e, { shouldDirty: true });

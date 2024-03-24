@@ -371,7 +371,7 @@ export async function ensureAvailableUsers(
         user,
         eventType,
         rescheduleUid: input.originalRescheduledBooking?.uid ?? null,
-        busyTimesFromLimitsBookings: busyTimesFromLimitsBookingsAllUsers.filter((b) => b.userId === user.id),
+        busyTimesFromLimitsBookings: busyTimesFromLimitsBookingsAllUsers,
       }
     );
 
@@ -1103,6 +1103,8 @@ async function handler(
       firstUsersMetadata?.defaultConferencingApp?.appLink;
   }
 
+  let rescheduleUid = reqBody.rescheduleUid;
+
   if (
     Object.prototype.hasOwnProperty.call(eventType, "bookingLimits") ||
     Object.prototype.hasOwnProperty.call(eventType, "durationLimits")
@@ -1116,6 +1118,7 @@ async function handler(
         eventType.bookingLimits as IntervalLimit,
         startAsDate,
         eventType.id,
+        rescheduleUid,
         eventType.schedule?.timeZone
       );
     }
@@ -1124,7 +1127,6 @@ async function handler(
     }
   }
 
-  let rescheduleUid = reqBody.rescheduleUid;
   let bookingSeat: BookingSeat = null;
 
   let originalRescheduledBooking: BookingType = null;
@@ -1745,18 +1747,22 @@ async function handler(
 
     evt = addVideoCallDataToEvent(originalRescheduledBooking.references, evt);
 
-    const newDestinationCalendar = evt.destinationCalendar;
-
-    evt.destinationCalendar = originalRescheduledBooking?.destinationCalendar
+    // If organizer is changed in RR event then we need to delete the previous host destination calendar events
+    const previousHostDestinationCalendar = originalRescheduledBooking?.destinationCalendar
       ? [originalRescheduledBooking?.destinationCalendar]
-      : originalRescheduledBooking?.user?.destinationCalendar
-      ? [originalRescheduledBooking?.user.destinationCalendar]
-      : evt.destinationCalendar;
+      : [];
 
     if (changedOrganizer) {
       evt.title = getEventName(eventNameObject);
       // location might changed and will be new created in eventManager.create (organizer default location)
       evt.videoCallData = undefined;
+      // To prevent "The requested identifier already exists" error while updating event, we need to remove iCalUID
+      evt.iCalUID = undefined;
+    } else {
+      // In case of rescheduling, we need to keep the previous host destination calendar
+      evt.destinationCalendar = originalRescheduledBooking?.destinationCalendar
+        ? [originalRescheduledBooking?.destinationCalendar]
+        : evt.destinationCalendar;
     }
 
     const updateManager = await eventManager.reschedule(
@@ -1764,7 +1770,7 @@ async function handler(
       originalRescheduledBooking.uid,
       undefined,
       changedOrganizer,
-      newDestinationCalendar
+      previousHostDestinationCalendar
     );
 
     // This gets overridden when updating the event - to check if notes have been hidden or not. We just reset this back
@@ -1862,6 +1868,7 @@ async function handler(
           metadata.hangoutLink ||
           results[0].createdEvent?.url ||
           organizerOrFirstDynamicGroupMemberDefaultLocationUrl ||
+          getVideoCallUrlFromCalEvent(evt) ||
           videoCallUrl;
       }
 
