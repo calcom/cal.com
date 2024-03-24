@@ -13,6 +13,7 @@ export class InternalTasker implements Tasker {
     await Task.create(type, payload);
   }
   async processQueue(): Promise<void> {
+    console.log("running tasker processQueue");
     const tasks = await Task.getNextBatch();
     const tasksPromises = tasks.map(async (task) => {
       const taskHandler = await tasksMap[task.type as keyof typeof tasksMap];

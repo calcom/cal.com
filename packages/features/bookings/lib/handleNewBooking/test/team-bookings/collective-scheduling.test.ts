@@ -4,33 +4,32 @@ import { describe, expect } from "vitest";
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { OrganizerDefaultConferencingAppType } from "@calcom/app-store/locations";
+import tasker from "@calcom/features/tasker";
 import { WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
 import { ErrorCode } from "@calcom/lib/errorCodes";
-import { SchedulingType } from "@calcom/prisma/enums";
-import { BookingStatus } from "@calcom/prisma/enums";
+import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 import { test } from "@calcom/web/test/fixtures/fixtures";
-import { createOrganization } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
 import {
+  BookingLocations,
   createBookingScenario,
-  getGoogleCalendarCredential,
-  TestData,
-  getOrganizer,
+  createOrganization,
   getBooker,
-  getScenarioData,
-  mockSuccessfulVideoMeetingCreation,
-  mockCalendarToHaveNoBusySlots,
-  Timezones,
   getDate,
   getExpectedCalEventForBookingRequest,
-  BookingLocations,
+  getGoogleCalendarCredential,
+  getOrganizer,
+  getScenarioData,
   getZoomAppCredential,
+  mockCalendarToHaveNoBusySlots,
+  mockSuccessfulVideoMeetingCreation,
+  TestData,
+  Timezones,
 } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
 import { createMockNextJsRequest } from "@calcom/web/test/utils/bookingScenario/createMockNextJsRequest";
 import {
-  // expectWorkflowToBeTriggered,
-  expectSuccessfulBookingCreationEmails,
-  expectBookingToBeInDatabase,
   expectBookingCreatedWebhookToHaveBeenFired,
+  expectBookingToBeInDatabase,
+  expectSuccessfulBookingCreationEmails,
   expectSuccessfulCalendarEventCreationInCalendar,
   expectSuccessfulVideoMeetingCreation,
 } from "@calcom/web/test/utils/bookingScenario/expects";
@@ -38,6 +37,15 @@ import { getMockRequestDataForBooking } from "@calcom/web/test/utils/bookingScen
 import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
 
 export type CustomNextApiRequest = NextApiRequest & Request;
+
+const handleNewBookingWithTriggeredTasks = async (req: CustomNextApiRequest) => {
+  const _handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+  const result = _handleNewBooking(req);
+  await tasker.processQueue();
+  return result;
+};
+
+const handleNewBooking = handleNewBookingWithTriggeredTasks;
 
 export type CustomNextApiResponse = NextApiResponse & Response;
 // Local test runs sometime gets too slow
@@ -53,7 +61,6 @@ describe("handleNewBooking", () => {
           - Destination calendars for event-type and non-first hosts are used to create calendar events
         `,
           async ({ emails }) => {
-            const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
             const booker = getBooker({
               email: "booker@example.com",
               name: "Booker",
@@ -239,7 +246,6 @@ describe("handleNewBooking", () => {
         test(
           `rejects a booking when even one of the hosts is busy`,
           async ({}) => {
-            const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
             const booker = getBooker({
               email: "booker@example.com",
               name: "Booker",
@@ -368,7 +374,6 @@ describe("handleNewBooking", () => {
           - Destination calendars for event-type and non-first hosts are used to create calendar events
         `,
           async ({ emails }) => {
-            const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
             const booker = getBooker({
               email: "booker@example.com",
               name: "Booker",
@@ -554,7 +559,6 @@ describe("handleNewBooking", () => {
         test(
           `rejects a booking when the timeslot isn't within the common schedule`,
           async ({}) => {
-            const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
             const booker = getBooker({
               email: "booker@example.com",
               name: "Booker",
@@ -678,7 +682,6 @@ describe("handleNewBooking", () => {
       test(
         `When Cal Video is the location, it uses global instance credentials and createMeeting is called for it`,
         async ({ emails }) => {
-          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
           const booker = getBooker({
             email: "booker@example.com",
             name: "Booker",
@@ -874,7 +877,6 @@ describe("handleNewBooking", () => {
       test(
         `When Zoom is the location, it uses credentials of the first host and createMeeting is called for it.`,
         async ({ emails }) => {
-          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
           const booker = getBooker({
             email: "booker@example.com",
             name: "Booker",
@@ -1091,7 +1093,6 @@ describe("handleNewBooking", () => {
       test(
         `When event type location is Organizer Default App and user metadata is empty, default to Cal Video`,
         async ({ emails }) => {
-          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
           const booker = getBooker({
             email: "booker@example.com",
             name: "Booker",
@@ -1301,7 +1302,6 @@ describe("handleNewBooking", () => {
           - Reschedule and Cancel link in email are not of the org domain because the team is not part of any org
         `,
           async ({ emails }) => {
-            const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
             const org = await createOrganization({
               name: "Test Org",
               slug: "testorg",

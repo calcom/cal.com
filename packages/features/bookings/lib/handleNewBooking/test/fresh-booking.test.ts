@@ -12,6 +12,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { describe, expect } from "vitest";
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
+import tasker from "@calcom/features/tasker";
 import { WEBSITE_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { resetTestEmails } from "@calcom/lib/testEmails";
@@ -2357,6 +2358,8 @@ describe("handleNewBooking", () => {
             body: mockBookingData,
           });
           const createdBooking = await handleNewBooking(req);
+          const result = await tasker.processQueue();
+          console.log("result", result);
 
           expect(createdBooking.responses).toContain({
             email: booker.email,
