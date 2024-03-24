@@ -3,42 +3,41 @@ import prismaMock from "../../../../../../tests/libs/__mocks__/prisma";
 import { describe, expect } from "vitest";
 
 import { appStoreMetadata } from "@calcom/app-store/apps.metadata.generated";
-import tasker from "@calcom/features/tasker";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 import { test } from "@calcom/web/test/fixtures/fixtures";
 import {
-  BookingLocations,
   createBookingScenario,
-  getBooker,
   getDate,
   getGoogleCalendarCredential,
-  getMockBookingAttendee,
+  TestData,
+  getOrganizer,
+  getBooker,
+  getScenarioData,
+  mockSuccessfulVideoMeetingCreation,
+  mockCalendarToHaveNoBusySlots,
+  mockCalendarToCrashOnUpdateEvent,
+  BookingLocations,
   getMockBookingReference,
+  getMockBookingAttendee,
   getMockFailingAppStatus,
   getMockPassingAppStatus,
-  getOrganizer,
-  getScenarioData,
-  mockCalendarToCrashOnUpdateEvent,
-  mockCalendarToHaveNoBusySlots,
-  mockSuccessfulVideoMeetingCreation,
-  TestData,
 } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
 import { createMockNextJsRequest } from "@calcom/web/test/utils/bookingScenario/createMockNextJsRequest";
 import {
+  expectWorkflowToBeTriggered,
+  expectBookingToBeInDatabase,
+  expectBookingRescheduledWebhookToHaveBeenFired,
+  expectSuccessfulBookingRescheduledEmails,
+  expectSuccessfulCalendarEventUpdationInCalendar,
+  expectSuccessfulVideoMeetingUpdationInCalendar,
   expectBookingInDBToBeRescheduledFromTo,
   expectBookingRequestedEmails,
   expectBookingRequestedWebhookToHaveBeenFired,
-  expectBookingRescheduledWebhookToHaveBeenFired,
-  expectBookingToBeInDatabase,
-  expectSuccessfulBookingRescheduledEmails,
   expectSuccessfulCalendarEventDeletionInCalendar,
-  expectSuccessfulCalendarEventUpdationInCalendar,
-  expectSuccessfulRoundRobinReschedulingEmails,
   expectSuccessfulVideoMeetingDeletionInCalendar,
-  expectSuccessfulVideoMeetingUpdationInCalendar,
-  expectWorkflowToBeTriggered,
+  expectSuccessfulRoundRobinReschedulingEmails,
 } from "@calcom/web/test/utils/bookingScenario/expects";
 import { getMockRequestDataForBooking } from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForBooking";
 import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
@@ -181,8 +180,6 @@ describe("handleNewBooking", () => {
           });
 
           const createdBooking = await handleNewBooking(req);
-          // We need to process the queue to trigger the webhooks
-          await tasker.processQueue();
 
           const previousBooking = await prismaMock.booking.findUnique({
             where: {
@@ -279,7 +276,7 @@ describe("handleNewBooking", () => {
             ],
           });
 
-          await expectBookingRescheduledWebhookToHaveBeenFired({
+          expectBookingRescheduledWebhookToHaveBeenFired({
             booker,
             organizer,
             location: BookingLocations.CalVideo,
@@ -420,8 +417,6 @@ describe("handleNewBooking", () => {
           });
 
           const createdBooking = await handleNewBooking(req);
-          // We need to process the queue to trigger the webhooks
-          await tasker.processQueue();
 
           /**
            *  Booking Time should be new time
@@ -495,7 +490,7 @@ describe("handleNewBooking", () => {
             emails,
             iCalUID,
           });
-          await expectBookingRescheduledWebhookToHaveBeenFired({
+          expectBookingRescheduledWebhookToHaveBeenFired({
             booker,
             organizer,
             location: BookingLocations.CalVideo,
@@ -621,8 +616,6 @@ describe("handleNewBooking", () => {
           });
 
           const createdBooking = await handleNewBooking(req);
-          // We need to process the queue to trigger the webhooks
-          await tasker.processQueue();
 
           await expectBookingInDBToBeRescheduledFromTo({
             from: {
@@ -668,7 +661,7 @@ describe("handleNewBooking", () => {
           // FIXME: We should send Broken Integration emails on calendar event updation failure
           // expectBrokenIntegrationEmails({ booker, organizer, emails });
 
-          await expectBookingRescheduledWebhookToHaveBeenFired({
+          expectBookingRescheduledWebhookToHaveBeenFired({
             booker,
             organizer,
             location: "integrations:daily",
@@ -816,8 +809,6 @@ describe("handleNewBooking", () => {
             });
 
             const createdBooking = await handleNewBooking(req);
-            // We need to process the queue to trigger the webhooks
-            await tasker.processQueue();
             expect(createdBooking.responses).toContain({
               email: booker.email,
               name: booker.name,
@@ -867,7 +858,7 @@ describe("handleNewBooking", () => {
               emails,
             });
 
-            await expectBookingRequestedWebhookToHaveBeenFired({
+            expectBookingRequestedWebhookToHaveBeenFired({
               booker,
               organizer,
               location: BookingLocations.CalVideo,
@@ -1052,8 +1043,6 @@ describe("handleNewBooking", () => {
             req.userId = organizer.id;
 
             const createdBooking = await handleNewBooking(req);
-            // We need to process the queue to trigger the webhooks
-            await tasker.processQueue();
 
             /**
              *  Booking Time should be new time
@@ -1139,7 +1128,7 @@ describe("handleNewBooking", () => {
               emails,
               iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
             });
-            await expectBookingRescheduledWebhookToHaveBeenFired({
+            expectBookingRescheduledWebhookToHaveBeenFired({
               booker,
               organizer,
               location: BookingLocations.CalVideo,
@@ -1282,8 +1271,6 @@ describe("handleNewBooking", () => {
             req.userId = organizer.id;
 
             const createdBooking = await handleNewBooking(req);
-            // We need to process the queue to trigger the webhooks
-            await tasker.processQueue();
             expect(createdBooking.responses).toContain({
               email: booker.email,
               name: booker.name,
@@ -1333,7 +1320,7 @@ describe("handleNewBooking", () => {
               emails,
             });
 
-            await expectBookingRequestedWebhookToHaveBeenFired({
+            expectBookingRequestedWebhookToHaveBeenFired({
               booker,
               organizer,
               location: BookingLocations.CalVideo,
@@ -1530,8 +1517,6 @@ describe("handleNewBooking", () => {
             req.userId = previousOrganizerIdForTheBooking;
 
             const createdBooking = await handleNewBooking(req);
-            // We need to process the queue to trigger the webhooks
-            await tasker.processQueue();
 
             /**
              *  Booking Time should be new time
@@ -1618,7 +1603,7 @@ describe("handleNewBooking", () => {
               iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
             });
 
-            await expectBookingRescheduledWebhookToHaveBeenFired({
+            expectBookingRescheduledWebhookToHaveBeenFired({
               booker,
               organizer,
               location: BookingLocations.CalVideo,
@@ -1731,8 +1716,6 @@ describe("handleNewBooking", () => {
           });
 
           const createdBooking = await handleNewBooking(req);
-          // We need to process the queue to trigger the webhooks
-          await tasker.processQueue();
 
           const previousBooking = await prismaMock.booking.findUnique({
             where: {
@@ -1883,8 +1866,6 @@ describe("handleNewBooking", () => {
           });
 
           const createdBooking = await handleNewBooking(req);
-          // We need to process the queue to trigger the webhooks
-          await tasker.processQueue();
 
           const previousBooking = await prismaMock.booking.findUnique({
             where: {
