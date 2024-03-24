@@ -1,6 +1,6 @@
 import prismaMock from "../../../../../tests/libs/__mocks__/prisma";
 
-import type { Booking, BookingReference, DestinationCalendar, WebhookTriggerEvents } from "@prisma/client";
+import type { WebhookTriggerEvents, Booking, BookingReference, DestinationCalendar } from "@prisma/client";
 import { parse } from "node-html-parser";
 import type { VEvent } from "node-ical";
 import ical from "node-ical";
@@ -8,15 +8,15 @@ import { expect, vi } from "vitest";
 import "vitest-fetch-mock";
 
 import dayjs from "@calcom/dayjs";
-import tasker from "@calcom/features/tasker";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { BookingStatus } from "@calcom/prisma/enums";
-import type { AppsStatus, CalendarEvent } from "@calcom/types/Calendar";
+import type { AppsStatus } from "@calcom/types/Calendar";
+import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { Fixtures } from "@calcom/web/test/fixtures/fixtures";
 
-import type { getOrganizer, InputEventType } from "./bookingScenario";
+import type { InputEventType, getOrganizer } from "./bookingScenario";
 import { DEFAULT_TIMEZONE_BOOKER } from "./getMockRequestDataForBooking";
 
 // This is too complex at the moment, I really need to simplify this.
@@ -257,15 +257,13 @@ expect.extend({
   },
 });
 
-export async function expectWebhookToHaveBeenCalledWith(
+export function expectWebhookToHaveBeenCalledWith(
   subscriberUrl: string,
   data: {
     triggerEvent: WebhookTriggerEvents;
     payload: Record<string, unknown> | null;
   }
 ) {
-  // We need to wait for the tasker to process the queue because the webhook is sent in the background
-  await tasker.processQueue();
   const fetchCalls = fetchMock.mock.calls;
   const webhooksToSubscriberUrl = fetchCalls.filter((call) => {
     return call[0] === subscriberUrl;
@@ -786,7 +784,7 @@ export function expectBookingRequestRescheduledEmails({
   );
 }
 
-export async function expectBookingRequestedWebhookToHaveBeenFired({
+export function expectBookingRequestedWebhookToHaveBeenFired({
   booker,
   location,
   subscriberUrl,
@@ -802,7 +800,7 @@ export async function expectBookingRequestedWebhookToHaveBeenFired({
 }) {
   // There is an inconsistency in the way we send the data to the webhook for paid events and unpaid events. Fix that and then remove this if statement.
   if (!paidEvent) {
-    await expectWebhookToHaveBeenCalledWith(subscriberUrl, {
+    expectWebhookToHaveBeenCalledWith(subscriberUrl, {
       triggerEvent: "BOOKING_REQUESTED",
       payload: {
         eventTitle: eventType.title,
@@ -830,7 +828,7 @@ export async function expectBookingRequestedWebhookToHaveBeenFired({
       },
     });
   } else {
-    await expectWebhookToHaveBeenCalledWith(subscriberUrl, {
+    expectWebhookToHaveBeenCalledWith(subscriberUrl, {
       triggerEvent: "BOOKING_REQUESTED",
       payload: {
         eventTitle: eventType.title,
@@ -851,7 +849,7 @@ export async function expectBookingRequestedWebhookToHaveBeenFired({
   }
 }
 
-export async function expectBookingCreatedWebhookToHaveBeenFired({
+export function expectBookingCreatedWebhookToHaveBeenFired({
   booker,
   location,
   subscriberUrl,
@@ -866,7 +864,7 @@ export async function expectBookingCreatedWebhookToHaveBeenFired({
   videoCallUrl?: string | null;
 }) {
   if (!paidEvent) {
-    await expectWebhookToHaveBeenCalledWith(subscriberUrl, {
+    expectWebhookToHaveBeenCalledWith(subscriberUrl, {
       triggerEvent: "BOOKING_CREATED",
       payload: {
         metadata: {
@@ -884,7 +882,7 @@ export async function expectBookingCreatedWebhookToHaveBeenFired({
       },
     });
   } else {
-    await expectWebhookToHaveBeenCalledWith(subscriberUrl, {
+    expectWebhookToHaveBeenCalledWith(subscriberUrl, {
       triggerEvent: "BOOKING_CREATED",
       payload: {
         // FIXME: File this bug and link ticket here. This is a bug in the code. metadata must be sent here like other BOOKING_CREATED webhook
@@ -908,7 +906,7 @@ export async function expectBookingCreatedWebhookToHaveBeenFired({
   }
 }
 
-export async function expectBookingRescheduledWebhookToHaveBeenFired({
+export function expectBookingRescheduledWebhookToHaveBeenFired({
   booker,
   location,
   subscriberUrl,
@@ -923,7 +921,7 @@ export async function expectBookingRescheduledWebhookToHaveBeenFired({
   videoCallUrl?: string;
   payload?: Record<string, unknown>;
 }) {
-  await expectWebhookToHaveBeenCalledWith(subscriberUrl, {
+  expectWebhookToHaveBeenCalledWith(subscriberUrl, {
     triggerEvent: "BOOKING_RESCHEDULED",
     payload: {
       ...payload,
@@ -943,7 +941,7 @@ export async function expectBookingRescheduledWebhookToHaveBeenFired({
   });
 }
 
-export async function expectBookingPaymentIntiatedWebhookToHaveBeenFired({
+export function expectBookingPaymentIntiatedWebhookToHaveBeenFired({
   booker,
   location,
   subscriberUrl,
@@ -955,7 +953,7 @@ export async function expectBookingPaymentIntiatedWebhookToHaveBeenFired({
   location: string;
   paymentId: number;
 }) {
-  await expectWebhookToHaveBeenCalledWith(subscriberUrl, {
+  expectWebhookToHaveBeenCalledWith(subscriberUrl, {
     triggerEvent: "BOOKING_PAYMENT_INITIATED",
     payload: {
       paymentId: paymentId,
