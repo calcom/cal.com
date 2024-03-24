@@ -9,7 +9,6 @@ import { noop } from "lodash";
 import type { Messages } from "mailhog";
 import { totp } from "otplib";
 
-import tasker from "@calcom/features/tasker";
 import type { Prisma } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { IntervalLimit } from "@calcom/types/Calendar";
@@ -44,10 +43,8 @@ export function createHttpServer(opts: { requestHandler?: RequestHandler } = {})
   const eventEmitter = new EventEmitter();
   const requestList: Request[] = [];
 
-  const waitForRequestCount = async (count: number) => {
-    // We need to process the queue to make sure all webhooks are sent
-    await tasker.processQueue();
-    return new Promise<void>((resolve) => {
+  const waitForRequestCount = (count: number) =>
+    new Promise<void>((resolve) => {
       if (requestList.length === count) {
         resolve();
         return;
@@ -63,7 +60,6 @@ export function createHttpServer(opts: { requestHandler?: RequestHandler } = {})
 
       eventEmitter.on("push", pushHandler);
     });
-  };
 
   const server = createServer((req, res) => {
     const buffer: unknown[] = [];
