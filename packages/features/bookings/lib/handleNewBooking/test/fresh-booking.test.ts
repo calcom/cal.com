@@ -1519,7 +1519,7 @@ describe("handleNewBooking", () => {
             emails,
           });
 
-          await expectBookingRequestedWebhookToHaveBeenFired({
+          expectBookingRequestedWebhookToHaveBeenFired({
             booker,
             organizer,
             location: BookingLocations.CalVideo,
@@ -1644,7 +1644,7 @@ describe("handleNewBooking", () => {
             emails,
           });
 
-          await expectBookingRequestedWebhookToHaveBeenFired({
+          expectBookingRequestedWebhookToHaveBeenFired({
             booker,
             organizer,
             location: BookingLocations.CalVideo,
@@ -1901,7 +1901,7 @@ describe("handleNewBooking", () => {
 
           expectBookingRequestedEmails({ booker, organizer, emails });
 
-          await expectBookingRequestedWebhookToHaveBeenFired({
+          expectBookingRequestedWebhookToHaveBeenFired({
             booker,
             organizer,
             location: BookingLocations.CalVideo,
@@ -2224,7 +2224,7 @@ describe("handleNewBooking", () => {
 
           expectAwaitingPaymentEmails({ organizer, booker, emails });
 
-          await expectBookingPaymentIntiatedWebhookToHaveBeenFired({
+          expectBookingPaymentIntiatedWebhookToHaveBeenFired({
             booker,
             organizer,
             location: BookingLocations.CalVideo,
@@ -2377,7 +2377,7 @@ describe("handleNewBooking", () => {
           expectWorkflowToBeNotTriggered({ organizer, emails });
 
           expectAwaitingPaymentEmails({ organizer, booker, emails });
-          await expectBookingPaymentIntiatedWebhookToHaveBeenFired({
+          expectBookingPaymentIntiatedWebhookToHaveBeenFired({
             booker,
             organizer,
             location: BookingLocations.CalVideo,
@@ -2405,7 +2405,7 @@ describe("handleNewBooking", () => {
             organizer,
             emails,
           });
-          await expectBookingRequestedWebhookToHaveBeenFired({
+          expectBookingRequestedWebhookToHaveBeenFired({
             booker,
             organizer,
             location: BookingLocations.CalVideo,
