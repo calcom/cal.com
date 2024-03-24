@@ -2,7 +2,8 @@ import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import { useFormContext } from "react-hook-form";
-import type { Props } from "react-select";
+import { components } from "react-select";
+import type { Props, OptionProps } from "react-select";
 
 import type { Host, FormValues } from "@calcom/features/eventtypes/lib/types";
 import { classNames } from "@calcom/lib";
@@ -31,6 +32,21 @@ export type CheckedSelectOption = {
   accepted?: boolean;
 };
 
+const Option = ({ ...props }: OptionProps<CheckedSelectOption>) => {
+  const { label, accepted } = props.data;
+  const { t } = useLocale();
+  return (
+    <components.Option {...props}>
+      <span>{label}</span>
+      {accepted === false && (
+        <Badge size="sm" variant="orange" className="ml-2 text-xs">
+          {t("pending")}
+        </Badge>
+      )}
+    </components.Option>
+  );
+};
+
 export const CheckedTeamSelect = ({
   options = [],
   value = [],
@@ -54,6 +70,7 @@ export const CheckedTeamSelect = ({
         options={options}
         value={value}
         isMulti
+        components={{ Option }}
         {...props}
       />
       {/* This class name conditional looks a bit odd but it allows a seemless transition when using autoanimate
