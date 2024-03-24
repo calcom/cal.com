@@ -57,7 +57,7 @@ describe("handleNewBooking", () => {
           3. Should send emails to the booker as well as organizer
           4. Should trigger BOOKING_RESCHEDULED webhook
     `,
-        async ({ emails }) => {
+        async ({ emails, tasker }) => {
           const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
           const booker = getBooker({
             email: "booker@example.com",
@@ -180,6 +180,8 @@ describe("handleNewBooking", () => {
           });
 
           const createdBooking = await handleNewBooking(req);
+          // We need to process the queue to trigger the webhooks
+          await tasker.processQueue();
 
           const previousBooking = await prismaMock.booking.findUnique({
             where: {
@@ -294,7 +296,7 @@ describe("handleNewBooking", () => {
           3. Should send emails to the booker as well as organizer
           4. Should trigger BOOKING_RESCHEDULED webhook
     `,
-        async ({ emails }) => {
+        async ({ emails, tasker }) => {
           const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
           const booker = getBooker({
             email: "booker@example.com",
@@ -417,6 +419,8 @@ describe("handleNewBooking", () => {
           });
 
           const createdBooking = await handleNewBooking(req);
+          // We need to process the queue to trigger the webhooks
+          await tasker.processQueue();
 
           /**
            *  Booking Time should be new time
@@ -503,7 +507,7 @@ describe("handleNewBooking", () => {
 
       test(
         `an error in updating a calendar event should not stop the rescheduling - Current behaviour is wrong as the booking is resheduled but no-one is notified of it`,
-        async ({ emails }) => {
+        async ({ emails, tasker }) => {
           const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
           const booker = getBooker({
             email: "booker@example.com",
@@ -616,6 +620,8 @@ describe("handleNewBooking", () => {
           });
 
           const createdBooking = await handleNewBooking(req);
+          // We need to process the queue to trigger the webhooks
+          await tasker.processQueue();
 
           await expectBookingInDBToBeRescheduledFromTo({
             from: {
@@ -690,7 +696,7 @@ describe("handleNewBooking", () => {
           3. Should send BOOKING Requested scenario emails to the booker as well as organizer
           4. Should trigger BOOKING_REQUESTED webhook instead of BOOKING_RESCHEDULED
     `,
-          async ({ emails }) => {
+          async ({ emails, tasker }) => {
             const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
             const subscriberUrl = "http://my-webhook.example.com";
             const booker = getBooker({
@@ -809,6 +815,8 @@ describe("handleNewBooking", () => {
             });
 
             const createdBooking = await handleNewBooking(req);
+            // We need to process the queue to trigger the webhooks
+            await tasker.processQueue();
             expect(createdBooking.responses).toContain({
               email: booker.email,
               name: booker.name,
@@ -897,7 +905,7 @@ describe("handleNewBooking", () => {
           3. Should send rescheduled emails to the booker as well as organizer
           4. Should trigger BOOKING_RESCHEDULED webhook
     `,
-          async ({ emails }) => {
+          async ({ emails, tasker }) => {
             const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
             const booker = getBooker({
               email: "booker@example.com",
@@ -1043,6 +1051,8 @@ describe("handleNewBooking", () => {
             req.userId = organizer.id;
 
             const createdBooking = await handleNewBooking(req);
+            // We need to process the queue to trigger the webhooks
+            await tasker.processQueue();
 
             /**
              *  Booking Time should be new time
@@ -1147,7 +1157,7 @@ describe("handleNewBooking", () => {
         3. Should send booking requested emails to the booker as well as organizer
         4. Should trigger BOOKING_REQUESTED webhook
       `,
-          async ({ emails }) => {
+          async ({ emails, tasker }) => {
             const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
             const subscriberUrl = "http://my-webhook.example.com";
             const booker = getBooker({
@@ -1271,6 +1281,8 @@ describe("handleNewBooking", () => {
             req.userId = organizer.id;
 
             const createdBooking = await handleNewBooking(req);
+            // We need to process the queue to trigger the webhooks
+            await tasker.processQueue();
             expect(createdBooking.responses).toContain({
               email: booker.email,
               name: booker.name,
@@ -1359,7 +1371,7 @@ describe("handleNewBooking", () => {
           3. Should send rescheduled emails to the booker as well as organizer
           4. Should trigger BOOKING_RESCHEDULED webhook
     `,
-          async ({ emails }) => {
+          async ({ emails, tasker }) => {
             const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
             const booker = getBooker({
               email: "booker@example.com",
@@ -1517,6 +1529,8 @@ describe("handleNewBooking", () => {
             req.userId = previousOrganizerIdForTheBooking;
 
             const createdBooking = await handleNewBooking(req);
+            // We need to process the queue to trigger the webhooks
+            await tasker.processQueue();
 
             /**
              *  Booking Time should be new time
@@ -1618,7 +1632,7 @@ describe("handleNewBooking", () => {
     describe("Team event-type", () => {
       test(
         "should send correct schedule/cancellation emails to hosts when round robin is rescheduled to different host",
-        async ({ emails }) => {
+        async ({ emails, tasker }) => {
           const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
           const booker = getBooker({
             email: "booker@example.com",
@@ -1716,6 +1730,8 @@ describe("handleNewBooking", () => {
           });
 
           const createdBooking = await handleNewBooking(req);
+          // We need to process the queue to trigger the webhooks
+          await tasker.processQueue();
 
           const previousBooking = await prismaMock.booking.findUnique({
             where: {
@@ -1771,7 +1787,7 @@ describe("handleNewBooking", () => {
 
       test(
         "should send rescheduling emails when round robin is rescheduled to same host",
-        async ({ emails }) => {
+        async ({ emails, tasker }) => {
           const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
           const booker = getBooker({
             email: "booker@example.com",
@@ -1866,6 +1882,8 @@ describe("handleNewBooking", () => {
           });
 
           const createdBooking = await handleNewBooking(req);
+          // We need to process the queue to trigger the webhooks
+          await tasker.processQueue();
 
           const previousBooking = await prismaMock.booking.findUnique({
             where: {
