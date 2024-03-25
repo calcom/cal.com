@@ -36,7 +36,7 @@ const getIPAddress = async (url: string): Promise<string> => {
 };
 
 export const createHandler = async ({ input, ctx }: CreateOptions) => {
-  const { slug, name, adminEmail, adminUsername, check } = input;
+  const { slug, name, adminEmail, adminUsername, check, isPlatform } = input;
 
   const userCollisions = await prisma.user.findUnique({
     where: {
@@ -69,14 +69,13 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
 
   const t = await getTranslation(ctx.user.locale ?? "en", "common");
   const availability = getAvailabilityFromSchedule(DEFAULT_SCHEDULE);
-  let isOrganizationConfigured = false;
 
   if (check) {
     await checkOrg(adminEmail, input.language);
     return { checked: true };
   }
 
-  isOrganizationConfigured = await createDomain(slug);
+  const isOrganizationConfigured = isPlatform ? true : await createDomain(slug);
 
   if (!isOrganizationConfigured) {
     // Otherwise, we proceed to send an administrative email to admins regarding
