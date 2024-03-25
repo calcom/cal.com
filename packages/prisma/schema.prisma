@@ -392,6 +392,7 @@ model Team {
   orgProfiles           Profile[]
   pendingPayment        Boolean                 @default(false)
   dsyncTeamGroupMapping DSyncTeamGroupMapping[]
+  isPlatform            Boolean                 @default(false)
   platformOAuthClient   PlatformOAuthClient[]
 
   @@unique([slug, parentId])
