@@ -169,7 +169,8 @@ describe("OAuth Client Users Endpoints", () => {
     async function userHasDefaultEventTypes(userId: number) {
       const defaultEventTypes = await eventTypesRepositoryFixture.getAllUserEventTypes(userId);
 
-      expect(defaultEventTypes?.length).toEqual(2);
+      // note(Lauris): to determine count see default event types created in EventTypesService.createUserDefaultEventTypes
+      expect(defaultEventTypes?.length).toEqual(4);
       expect(
         defaultEventTypes?.find((eventType) => eventType.length === DEFAULT_EVENT_TYPES.thirtyMinutes.length)
       ).toBeTruthy();
@@ -221,7 +222,11 @@ describe("OAuth Client Users Endpoints", () => {
     afterAll(async () => {
       await oauthClientRepositoryFixture.delete(oAuthClient.id);
       await teamRepositoryFixture.delete(organization.id);
-
+      try {
+        await userRepositoryFixture.delete(postResponseData.user.id);
+      } catch (e) {
+        // User might have been deleted by the test
+      }
       await app.close();
     });
   });
