@@ -156,7 +156,7 @@ export class OAuthClientUsersController {
     }
 
     if (!existingUser.isPlatformManaged) {
-      throw new NotFoundException(`Can't delete non managed user with ID=${userId}`);
+      throw new BadRequestException(`Can't delete non managed user with ID=${userId}`);
     }
 
     const user = await this.userRepository.delete(userId);
