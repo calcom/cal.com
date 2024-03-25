@@ -1,3 +1,4 @@
+import handleCancelBooking from "@calcom/features/bookings/lib/handleCancelBooking";
 import * as newBookingMethods from "@calcom/features/bookings/lib/handleNewBooking";
 import { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
 import * as instantMeetingMethods from "@calcom/features/instant-meeting/handleInstantMeeting";
@@ -63,3 +64,4 @@ export { createNewUsersConnectToOrgIfExists };
 
 export { getAllUserBookings };
 export { getBookingInfo };
+export { handleCancelBooking };
