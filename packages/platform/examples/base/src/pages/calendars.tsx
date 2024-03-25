@@ -17,6 +17,7 @@ export default function Calendars(props: { calUsername: string; calEmail: string
         {isLoading ? (
           <div>Loading...</div>
         ) : (
+          Boolean(connectedCalendars?.length) &&
           connectedCalendars.map((connectedCalendar) => (
             <div key={connectedCalendar.credentialId}>
               <h1 className="text-md font-bold">{connectedCalendar.integration.name}</h1>
