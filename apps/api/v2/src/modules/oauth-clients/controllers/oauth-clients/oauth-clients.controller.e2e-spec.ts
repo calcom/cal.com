@@ -58,6 +58,58 @@ describe("OAuth Clients Endpoints", () => {
     });
   });
 
+  describe("Organization is not platform", () => {
+    let usersFixtures: UserRepositoryFixture;
+    let membershipFixtures: MembershipRepositoryFixture;
+    let teamFixtures: TeamRepositoryFixture;
+    let user: User;
+    let org: Team;
+    let app: INestApplication;
+    const userEmail = "test-e2e@api.com";
+
+    beforeAll(async () => {
+      const moduleRef = await withNextAuth(
+        userEmail,
+        Test.createTestingModule({
+          providers: [PrismaExceptionFilter, HttpExceptionFilter],
+          imports: [AppModule, OAuthClientModule, UsersModule, AuthModule, PrismaModule],
+        })
+      ).compile();
+      const strategy = moduleRef.get(NextAuthStrategy);
+      expect(strategy).toBeInstanceOf(NextAuthMockStrategy);
+      usersFixtures = new UserRepositoryFixture(moduleRef);
+      membershipFixtures = new MembershipRepositoryFixture(moduleRef);
+      teamFixtures = new TeamRepositoryFixture(moduleRef);
+      user = await usersFixtures.create({
+        email: userEmail,
+      });
+      org = await teamFixtures.create({
+        name: "apiOrg",
+        metadata: {
+          isOrganization: true,
+          orgAutoAcceptEmail: "api.com",
+          isOrganizationVerified: true,
+          isOrganizationConfigured: true,
+        },
+        isPlatform: false,
+      });
+      await membershipFixtures.addUserToOrg(user, org, "ADMIN", true);
+      app = moduleRef.createNestApplication();
+      bootstrap(app as NestExpressApplication);
+      await app.init();
+    });
+
+    it(`/GET`, () => {
+      return request(app.getHttpServer()).get("/api/v2/oauth-clients").expect(403);
+    });
+
+    afterAll(async () => {
+      await teamFixtures.delete(org.id);
+      await usersFixtures.delete(user.id);
+      await app.close();
+    });
+  });
+
   describe("User Is Authenticated", () => {
     let usersFixtures: UserRepositoryFixture;
     let membershipFixtures: MembershipRepositoryFixture;
@@ -91,6 +143,7 @@ describe("OAuth Clients Endpoints", () => {
           isOrganizationVerified: true,
           isOrganizationConfigured: true,
         },
+        isPlatform: true,
       });
       app = moduleRef.createNestApplication();
       bootstrap(app as NestExpressApplication);
@@ -303,8 +356,8 @@ describe("OAuth Clients Endpoints", () => {
     });
 
     afterAll(async () => {
-      teamFixtures.delete(org.id);
-      usersFixtures.delete(user.id);
+      await teamFixtures.delete(org.id);
+      await usersFixtures.delete(user.id);
       await app.close();
     });
   });

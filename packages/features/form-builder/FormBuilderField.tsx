@@ -152,7 +152,7 @@ const WithLabel = ({
 /**
  * Ensures that `labels` and `placeholders`, wherever they are, are set properly. If direct values are not set, default values from fieldTypeConfig are used.
  */
-function getAndUpdateNormalizedValues(field: RhfFormFields[number], t: TFunction) {
+export function getAndUpdateNormalizedValues(field: RhfFormFields[number], t: TFunction) {
   let noLabel = false;
   let hidden = !!field.hidden;
   if (field.type === "radioInput") {
