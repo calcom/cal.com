@@ -217,6 +217,15 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
     }
     return input?.filters?.teamIds?.includes(eventType?.teamId || 0) ?? false;
   };
+
+  const filterSchedulingTypeEventTypesBasedOnInput = (evType: Awaited<ReturnType<typeof mapEventType>>) => {
+    if (!input?.filters || !hasFilter(input?.filters)) {
+      return true;
+    }
+
+    return input?.filters.schedulingType === evType.schedulingType ?? false;
+  };
+
   eventTypeGroups = ([] as EventTypeGroup[]).concat(
     eventTypeGroups,
     await Promise.all(
@@ -297,7 +306,8 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
                 membership.role === MembershipRole.MEMBER
                   ? evType.schedulingType !== SchedulingType.MANAGED
                   : true
-              ),
+              )
+              .filter(filterSchedulingTypeEventTypesBasedOnInput),
           };
         })
     )
