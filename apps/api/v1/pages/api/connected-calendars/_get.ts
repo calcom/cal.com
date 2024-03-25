@@ -7,6 +7,7 @@ import { defaultResponder } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 
 import { extractUserIdsFromQuery } from "~/lib/utils/extractUserIdsFromQuery";
+import { schemaConnectedCalendarsReadPublic } from "~/lib/validations/connected-calendar";
 
 /**
  * @swagger
@@ -65,7 +66,21 @@ async function getConnectedCalendars(users: UserWithCalendars[]) {
   );
   const connectedDestinationCalendars = await Promise.all(connectedDestinationCalendarsPromises);
 
-  return connectedDestinationCalendars.flat();
+  const flattenedCalendars = connectedDestinationCalendars.flat();
+
+  const mapped = flattenedCalendars.map((calendar) => ({
+    name: calendar.integration.name,
+    appId: calendar.integration.slug,
+    integration: calendar.integration.type,
+    calendars: (calendar.calendars ?? []).map((c) => ({
+      externalId: c.externalId,
+      name: c.name,
+      primary: c.primary ?? false,
+      readOnly: c.readOnly,
+    })),
+  }));
+
+  return schemaConnectedCalendarsReadPublic.parse(mapped);
 }
 
 export default defaultResponder(getHandler);
