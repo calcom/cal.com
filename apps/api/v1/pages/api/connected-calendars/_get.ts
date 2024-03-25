@@ -32,11 +32,70 @@ import { schemaConnectedCalendarsReadPublic } from "~/lib/validations/connected-
  *     responses:
  *       200:
  *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   name:
+ *                     type: string
+ *                   appId:
+ *                     type: string
+ *                   userId:
+ *                     type: number
+ *                   integration:
+ *                     type: string
+ *                   calendars:
+ *                     type: array
+ *                     items:
+ *                       type: object
+ *                       properties:
+ *                         externalId:
+ *                           type: string
+ *                         name:
+ *                           type: string
+ *                         primary:
+ *                           type: boolean
+ *                         readOnly:
+ *                           type: boolean
+ *             examples:
+ *               connectedCalendarExample:
+ *                 value: [
+ *                   {
+ *                     "name": "Google Calendar",
+ *                     "appId": "google-calendar",
+ *                     "userId": 10,
+ *                     "integration": "google_calendar",
+ *                     "calendars": [
+ *                       {
+ *                         "externalId": "laurisskraucis@gmail.com",
+ *                         "name": "laurisskraucis@gmail.com",
+ *                         "primary": true,
+ *                         "readOnly": false
+ *                       },
+ *                       {
+ *                         "externalId": "addressbook#contacts@group.v.calendar.google.com",
+ *                         "name": "Dzimšanas dienas",
+ *                         "primary": false,
+ *                         "readOnly": true
+ *                       },
+ *                       {
+ *                         "externalId": "en.latvian#holiday@group.v.calendar.google.com",
+ *                         "name": "Holidays in Latvia",
+ *                         "primary": false,
+ *                         "readOnly": true
+ *                       }
+ *                     ]
+ *                   }
+ *                 ]
  *       401:
  *        description: Authorization information is missing or invalid.
  *       403:
  *        description: Non admin user trying to fetch other user's connected calendars.
  */
+
 async function getHandler(req: NextApiRequest) {
   const { userId, isAdmin } = req;
 
