@@ -65,7 +65,6 @@ describe("OAuth Clients Endpoints", () => {
     let user: User;
     let org: Team;
     let app: INestApplication;
-    let membership: Membership;
     const userEmail = "test-e2e@api.com";
 
     beforeAll(async () => {
@@ -94,7 +93,7 @@ describe("OAuth Clients Endpoints", () => {
         },
         isPlatform: false,
       });
-      membership = await membershipFixtures.addUserToOrg(user, org, "ADMIN", true);
+      await membershipFixtures.addUserToOrg(user, org, "ADMIN", true);
       app = moduleRef.createNestApplication();
       bootstrap(app as NestExpressApplication);
       await app.init();
