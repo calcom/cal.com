@@ -142,6 +142,7 @@ export type CalEventResponses = Record<
   {
     label: string;
     value: z.infer<typeof bookingResponse>;
+    isHidden?: boolean;
   }
 >;
 

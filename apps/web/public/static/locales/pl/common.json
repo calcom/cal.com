@@ -1823,10 +1823,8 @@
   "requires_at_least_one_schedule": "Musisz mieć co najmniej jeden harmonogram",
   "default_conferencing_bulk_description": "Aktualizuj lokalizacje wybranych typów wydarzeń",
   "locked_for_members": "Zablokowany dla członków",
-  "locked_apps_description": "Członkowie będą mogli sprawdzić aktywne aplikacje, ale nie będą mogli edytować ich ustawień",
-  "locked_webhooks_description": "Członkowie będą mogli sprawdzić aktywne webhooki, ale nie będą mogli edytować ich ustawień",
-  "locked_workflows_description": "Członkowie będą mogli sprawdzić aktywne przepływy pracy, ale nie będą mogli edytować ich ustawień",
-  "locked_by_admin": "Zablokowane przez administratora zespołu",
+  "apps_locked_for_members_description": "Członkowie będą mogli sprawdzić aktywne aplikacje, ale nie będą mogli edytować ich ustawień",
+  "locked_by_team_admin": "Zablokowane przez administratora zespołu",
   "app_not_connected": "Nie podłączono konta {{appName}}.",
   "connect_now": "Podłącz teraz",
   "managed_event_dialog_confirm_button_one": "Zastąp i poinformuj {{count}} członka",
@@ -2061,6 +2059,7 @@
   "workflow_automation": "Automatyzacja przepływu pracy",
   "scheduling_for_your_team": "Automatyzacja przepływu pracy",
   "no_members_found": "Nie znaleziono członków",
+  "directory_sync": "Synchronizacja katalogu",
   "event_setup_length_error": "Konfiguracja wydarzenia: czas trwania musi wynosić co najmniej minutę.",
   "availability_schedules": "Harmonogramy dostępności",
   "unauthorized": "Brak autoryzacji",
@@ -2097,5 +2096,6 @@
   "extensive_whitelabeling": "Dedykowane wsparcie w zakresie wdrożenia i obsługi technicznej",
   "need_help": "Potrzebujesz pomocy?",
   "show_more": "Wyświetl więcej",
+  "privacy": "Prywatność",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodaj nowe ciągi powyżej ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
