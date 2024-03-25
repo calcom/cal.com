@@ -6,7 +6,7 @@ import { ArrowLeft, RotateCw } from "@calcom/ui/components/icon";
 export function CalendarSwitchComponent(
   props: ICalendarSwitchProps & {
     isLoading: boolean;
-    onCheckedChange: () => void;
+    onCheckedChange: (isOn: boolean) => void;
     translations?: {
       spanText?: string;
     };
