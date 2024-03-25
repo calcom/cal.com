@@ -71,6 +71,7 @@ async function getConnectedCalendars(users: UserWithCalendars[]) {
   const mapped = flattenedCalendars.map((calendar) => ({
     name: calendar.integration.name,
     appId: calendar.integration.slug,
+    userId: calendar.userId,
     integration: calendar.integration.type,
     calendars: (calendar.calendars ?? []).map((c) => ({
       externalId: c.externalId,

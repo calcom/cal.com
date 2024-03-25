@@ -10,6 +10,7 @@ const CalendarSchema = z.object({
 const IntegrationSchema = z.object({
   name: z.string(),
   appId: z.string(),
+  userId: z.number(),
   integration: z.string(),
   calendars: z.array(CalendarSchema),
 });
