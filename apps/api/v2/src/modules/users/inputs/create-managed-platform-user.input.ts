@@ -1,11 +1,10 @@
 import { IsTimeFormat } from "@/modules/users/inputs/validators/is-time-format";
 import { IsWeekStart } from "@/modules/users/inputs/validators/is-week-start";
-import { IsNumber, IsOptional, IsString, IsTimeZone, Validate } from "class-validator";
+import { IsNumber, IsOptional, IsTimeZone, IsString, Validate } from "class-validator";
 
-export class UpdateUserInput {
+export class CreateManagedPlatformUserInput {
   @IsString()
-  @IsOptional()
-  email?: string;
+  email!: string;
 
   @IsString()
   @IsOptional()
@@ -15,10 +14,6 @@ export class UpdateUserInput {
   @IsOptional()
   @Validate(IsTimeFormat)
   timeFormat?: number;
-
-  @IsNumber()
-  @IsOptional()
-  defaultScheduleId?: number;
 
   @IsString()
   @IsOptional()

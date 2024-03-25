@@ -3,7 +3,7 @@ import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
 import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
-import { UpdateUserInput } from "@/modules/users/inputs/update-user.input";
+import { UpdateManagedPlatformUserInput } from "@/modules/users/inputs/update-managed-platform-user.input";
 import { UserWithProfile, UsersRepository } from "@/modules/users/users.repository";
 import { Controller, UseGuards, Get, Patch, Body } from "@nestjs/common";
 
@@ -37,7 +37,7 @@ export class MeController {
   @Permissions([PROFILE_WRITE])
   async updateMe(
     @GetUser() user: UserWithProfile,
-    @Body() bodySchedule: UpdateUserInput
+    @Body() bodySchedule: UpdateManagedPlatformUserInput
   ): Promise<ApiResponse<UserResponse>> {
     const updatedUser = await this.usersRepository.update(user.id, bodySchedule);
     if (bodySchedule.timeZone && user.defaultScheduleId) {
