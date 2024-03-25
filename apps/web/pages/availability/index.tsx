@@ -174,6 +174,7 @@ export default function AvailabilityPage() {
   const router = useRouter();
   const pathname = usePathname();
   const me = useMeQuery();
+  const { data } = trpc.viewer.organizations.listCurrent.useQuery();
 
   // Get a new searchParams string by merging the current
   // searchParams with a provided key/value pair
@@ -186,6 +187,14 @@ export default function AvailabilityPage() {
     },
     [searchParams]
   );
+
+  const isOrgAndPrivate = data?.isOrganization && data.isPrivate;
+  const toggleGroupOptions = [{ value: "mine", label: t("my_availability") }];
+
+  if (!isOrgAndPrivate) {
+    toggleGroupOptions.push({ value: "team", label: t("team_availability") });
+  }
+
   return (
     <div>
       <Shell
@@ -204,15 +213,12 @@ export default function AvailabilityPage() {
                 if (!value) return;
                 router.push(`${pathname}?${createQueryString("type", value)}`);
               }}
-              options={[
-                { value: "mine", label: t("my_availability") },
-                { value: "team", label: t("team_availability") },
-              ]}
+              options={toggleGroupOptions}
             />
             <NewScheduleButton />
           </div>
         }>
-        {searchParams?.get("type") === "team" ? (
+        {searchParams?.get("type") === "team" && !isOrgAndPrivate ? (
           <AvailabilitySliderTable userTimeFormat={me?.data?.timeFormat ?? null} />
         ) : (
           <AvailabilityListWithQuery />
