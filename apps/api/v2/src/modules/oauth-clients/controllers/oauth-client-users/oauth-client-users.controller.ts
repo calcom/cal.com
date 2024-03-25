@@ -155,10 +155,6 @@ export class OAuthClientUsersController {
       throw new NotFoundException(`User with ${userId} does not exist`);
     }
 
-    if (existingUser.username) {
-      throw new BadRequestException("Cannot delete a non manually-managed user");
-    }
-
     const user = await this.userRepository.delete(userId);
 
     return {
