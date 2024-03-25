@@ -70,20 +70,20 @@ import { schemaConnectedCalendarsReadPublic } from "~/lib/validations/connected-
  *                     "integration": "google_calendar",
  *                     "calendars": [
  *                       {
- *                         "externalId": "laurisskraucis@gmail.com",
- *                         "name": "laurisskraucis@gmail.com",
+ *                         "externalId": "alice@gmail.com",
+ *                         "name": "alice@gmail.com",
  *                         "primary": true,
  *                         "readOnly": false
  *                       },
  *                       {
  *                         "externalId": "addressbook#contacts@group.v.calendar.google.com",
- *                         "name": "Dzimšanas dienas",
+ *                         "name": "birthdays",
  *                         "primary": false,
  *                         "readOnly": true
  *                       },
  *                       {
  *                         "externalId": "en.latvian#holiday@group.v.calendar.google.com",
- *                         "name": "Holidays in Latvia",
+ *                         "name": "Holidays in Narnia",
  *                         "primary": false,
  *                         "readOnly": true
  *                       }
