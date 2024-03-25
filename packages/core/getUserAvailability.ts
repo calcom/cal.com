@@ -349,7 +349,6 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     dateFrom,
     dateTo,
     availability,
-    timeZone,
   });
 
   const dateRangesInWhichUserIsAvailable = subtract(dateRanges, formattedBusyTimes);
@@ -676,7 +675,6 @@ const _getOutOfOfficeDays = async ({
   dateFrom,
   dateTo,
   availability,
-  timeZone,
 }: GetUserAvailabilityParamsDTO): Promise<IOutOfOfficeData> => {
   const outOfOfficeDays = await prisma.outOfOfficeEntry.findMany({
     where: {
@@ -754,7 +752,10 @@ const _getOutOfOfficeDays = async ({
       : dayjs(start).utc().startOf("day");
 
     // get number of day in the week and see if it's on the availability
-    const [flattenDays] = availability.map((a) => ("days" in a ? a.days : []));
+    const flattenDays = Array.from(new Set(availability.flatMap((a) => ("days" in a ? a.days : [])))).sort(
+      (a, b) => a - b
+    );
+
     const endDateRange = dayjs(end).utc().endOf("day");
 
     for (let date = startDateRange; date.isBefore(endDateRange); date = date.add(1, "day")) {
