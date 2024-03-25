@@ -25,7 +25,7 @@ import { Request } from "express";
 import { NextApiRequest } from "next/types";
 
 import { BOOKING_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
-import { getAllUserBookings, getBookingInfo } from "@calcom/platform-libraries";
+import { getAllUserBookings, getBookingInfo, handleCancelBooking } from "@calcom/platform-libraries";
 import {
   handleNewBooking,
   BookingResponse,
@@ -33,7 +33,7 @@ import {
   handleNewRecurringBooking,
   handleInstantMeeting,
 } from "@calcom/platform-libraries";
-import { GetBookingsInput } from "@calcom/platform-types";
+import { GetBookingsInput, CancelBookingInput } from "@calcom/platform-types";
 import { ApiResponse } from "@calcom/platform-types";
 import { PrismaClient } from "@calcom/prisma";
 
@@ -108,6 +108,26 @@ export class BookingsController {
       handleBookingErrors(err);
     }
     throw new InternalServerErrorException("Could not create booking.");
+  }
+
+  @Post("/:bookingId/cancel")
+  @Permissions([BOOKING_WRITE])
+  async cancelBooking(
+    @Req() req: Request & { userId?: number },
+    @Param("bookingId") bookingId: string,
+    @Body() body: CancelBookingInput
+  ): Promise<ApiResponse> {
+    req.userId = await this.getOwnerId(req);
+    req.body = { ...body, id: bookingId };
+    try {
+      await handleCancelBooking(req as unknown as NextApiRequest & { userId?: number });
+      return {
+        status: SUCCESS_STATUS,
+      };
+    } catch (err) {
+      handleBookingErrors(err);
+    }
+    throw new InternalServerErrorException("Could not cancel booking.");
   }
 
   @Post("/reccuring")
