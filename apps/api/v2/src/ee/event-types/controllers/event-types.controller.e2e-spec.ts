@@ -59,7 +59,7 @@ describe("Event types Endpoints", () => {
     let teamRepositoryFixture: TeamRepositoryFixture;
     let eventTypesRepositoryFixture: EventTypesRepositoryFixture;
 
-    const userEmail = "test-e2e@api.com";
+    const userEmail = "event-types-test-e2e@api.com";
     let eventType: EventType;
     let user: User;
 
@@ -153,7 +153,11 @@ describe("Event types Endpoints", () => {
       await oauthClientRepositoryFixture.delete(oAuthClient.id);
       await teamRepositoryFixture.delete(organization.id);
       await eventTypesRepositoryFixture.delete(eventType.id);
-
+      try {
+        await userRepositoryFixture.delete(user.id);
+      } catch (e) {
+        // User might have been deleted by the test
+      }
       await app.close();
     });
   });

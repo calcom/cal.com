@@ -15,10 +15,6 @@ export class CreateUserInput {
   @Validate(IsTimeFormat)
   timeFormat?: number;
 
-  @IsNumber()
-  @IsOptional()
-  defaultScheduleId?: number;
-
   @IsString()
   @IsOptional()
   @Validate(IsWeekStart)
