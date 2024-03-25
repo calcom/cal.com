@@ -55,9 +55,11 @@ export class OAuthClientUsersController {
     }
     const client = await this.oauthRepository.getOAuthClient(oAuthClientId);
 
+    const isPlatformManaged = true;
     const { user, tokens } = await this.oAuthClientUsersService.createOauthClientUser(
       oAuthClientId,
       body,
+      isPlatformManaged,
       client?.organizationId
     );
 

@@ -19,12 +19,13 @@ export class OAuthClientUsersService {
   async createOauthClientUser(
     oAuthClientId: string,
     body: CreateManagedPlatformUserInput,
+    isPlatformManaged: boolean,
     organizationId?: number
   ) {
     let user: User;
     if (!organizationId) {
       const username = generateShortHash(body.email, oAuthClientId);
-      user = await this.userRepository.create(body, username, oAuthClientId);
+      user = await this.userRepository.create(body, username, oAuthClientId, isPlatformManaged);
     } else {
       const [_, emailDomain] = body.email.split("@");
       user = (
@@ -45,6 +46,7 @@ export class OAuthClientUsersService {
               autoAccept: true,
             },
           },
+          isPlatformManaged,
         })
       )[0];
       await this.userRepository.addToOAuthClient(user.id, oAuthClientId);
