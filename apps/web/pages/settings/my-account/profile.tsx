@@ -43,8 +43,8 @@ import {
   SkeletonContainer,
   SkeletonText,
   TextField,
+  UserAvatar,
 } from "@calcom/ui";
-import { UserAvatar } from "@calcom/ui";
 import { AlertTriangle, Trash2, Plus } from "@calcom/ui/components/icon";
 
 import PageWrapper from "@components/PageWrapper";

@@ -2,6 +2,7 @@ import { useRef } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { AvailableTimes, AvailableTimesSkeleton } from "@calcom/features/bookings";
+import type { useEventReturnType } from "@calcom/features/bookings/Booker/utils/event";
 import { useNonEmptyScheduleDays } from "@calcom/features/schedules";
 import { useSlotsForAvailableDates } from "@calcom/features/schedules/lib/use-schedule/useSlotsForDate";
 import { classNames } from "@calcom/lib";
@@ -18,6 +19,7 @@ type AvailableTimeSlotsProps = {
   isLoading: boolean;
   seatsPerTimeSlot?: number | null;
   showAvailableSeatsCount?: boolean | null;
+  event: useEventReturnType;
 };
 
 /**
@@ -34,6 +36,7 @@ export const AvailableTimeSlots = ({
   showAvailableSeatsCount,
   schedule,
   isLoading,
+  event,
 }: AvailableTimeSlotsProps) => {
   const selectedDate = useBookerStore((state) => state.selectedDate);
   const setSelectedTimeslot = useBookerStore((state) => state.setSelectedTimeslot);
@@ -116,6 +119,7 @@ export const AvailableTimeSlots = ({
                 slots={slots.slots}
                 seatsPerTimeSlot={seatsPerTimeSlot}
                 showAvailableSeatsCount={showAvailableSeatsCount}
+                event={event}
               />
             ))}
       </div>
