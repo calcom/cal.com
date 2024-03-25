@@ -221,7 +221,11 @@ describe("OAuth Client Users Endpoints", () => {
     afterAll(async () => {
       await oauthClientRepositoryFixture.delete(oAuthClient.id);
       await teamRepositoryFixture.delete(organization.id);
-
+      try {
+        await userRepositoryFixture.delete(postResponseData.user.id);
+      } catch (e) {
+        // User might have been deleted by the test
+      }
       await app.close();
     });
   });
