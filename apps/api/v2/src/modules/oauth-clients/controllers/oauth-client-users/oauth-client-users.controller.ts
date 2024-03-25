@@ -3,8 +3,8 @@ import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-toke
 import { OAuthClientCredentialsGuard } from "@/modules/oauth-clients/guards/oauth-client-credentials/oauth-client-credentials.guard";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { OAuthClientUsersService } from "@/modules/oauth-clients/services/oauth-clients-users.service";
-import { CreateUserInput } from "@/modules/users/inputs/create-user.input";
-import { UpdateUserInput } from "@/modules/users/inputs/update-user.input";
+import { CreateManagedPlatformUserInput } from "@/modules/users/inputs/create-managed-platform-user.input";
+import { UpdateManagedPlatformUserInput } from "@/modules/users/inputs/update-managed-platform-user.input";
 import { UsersRepository } from "@/modules/users/users.repository";
 import {
   Body,
@@ -43,7 +43,7 @@ export class OAuthClientUsersController {
   @UseGuards(OAuthClientCredentialsGuard)
   async createUser(
     @Param("clientId") oAuthClientId: string,
-    @Body() body: CreateUserInput
+    @Body() body: CreateManagedPlatformUserInput
   ): Promise<ApiResponse<CreateUserResponse>> {
     this.logger.log(
       `Creating user with data: ${JSON.stringify(body, null, 2)} for OAuth Client with ID ${oAuthClientId}`
@@ -55,9 +55,11 @@ export class OAuthClientUsersController {
     }
     const client = await this.oauthRepository.getOAuthClient(oAuthClientId);
 
+    const isPlatformManaged = true;
     const { user, tokens } = await this.oAuthClientUsersService.createOauthClientUser(
       oAuthClientId,
       body,
+      isPlatformManaged,
       client?.organizationId
     );
 
@@ -113,7 +115,7 @@ export class OAuthClientUsersController {
     @Param("clientId") _: string,
     @GetUser("id") accessTokenUserId: number,
     @Param("userId") userId: number,
-    @Body() body: UpdateUserInput
+    @Body() body: UpdateManagedPlatformUserInput
   ): Promise<ApiResponse<UserReturned>> {
     if (accessTokenUserId !== userId) {
       throw new BadRequestException("userId parameter does not match access token");
@@ -152,7 +154,11 @@ export class OAuthClientUsersController {
     const existingUser = await this.userRepository.findById(userId);
 
     if (!existingUser) {
-      throw new NotFoundException(`User with ${userId} does not exist`);
+      throw new NotFoundException(`User with ID=${userId} does not exist`);
+    }
+
+    if (!existingUser.isPlatformManaged) {
+      throw new BadRequestException(`Can't delete non managed user with ID=${userId}`);
     }
 
     const user = await this.userRepository.delete(userId);
