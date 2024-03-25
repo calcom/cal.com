@@ -1,7 +1,7 @@
 import { Navbar } from "@/components/Navbar";
 import { Inter, Poppins } from "next/font/google";
 
-import { GcalConnect } from "@calcom/platform-atoms/components";
+import { GcalConnect } from "@calcom/atoms";
 
 const inter = Inter({ subsets: ["latin"] });
 const poppins = Poppins({ subsets: ["latin"], weight: ["400", "800"] });

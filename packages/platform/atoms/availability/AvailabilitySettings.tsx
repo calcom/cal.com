@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useForm, Controller, useFieldArray, useWatch } from "react-hook-form";
+import { Controller, useFieldArray, useForm, useWatch } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
 import { DateOverrideInputDialog, DateOverrideList } from "@calcom/features/schedules";
@@ -10,31 +10,25 @@ import WebShell from "@calcom/features/shell/Shell";
 import { availabilityAsString } from "@calcom/lib/availability";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { WorkingHours } from "@calcom/types/schedule";
-import type { TimeRange } from "@calcom/types/schedule";
+import type { TimeRange, WorkingHours } from "@calcom/types/schedule";
 import {
-  VerticalDivider,
   Button,
+  ConfirmationDialogContent,
+  EditableHeading,
   Form,
   SkeletonText,
-  ConfirmationDialogContent as WebConfirmationDialogContent,
-  Dialog as WebDialog,
-  DialogTrigger as WebDialogTrigger,
+  Dialog,
+  DialogTrigger,
   Label,
+  SelectSkeletonLoader,
   Skeleton,
   Switch,
   TimezoneSelect as WebTimezoneSelect,
-  SelectSkeletonLoader,
   Tooltip,
-  EditableHeading,
+  VerticalDivider,
 } from "@calcom/ui";
-import { MoreVertical, ArrowLeft, Trash, Info, Plus } from "@calcom/ui/components/icon";
+import { ArrowLeft, Info, MoreVertical, Plus, Trash } from "@calcom/ui/components/icon";
 
-import { ConfirmationDialogContent as PlatformConfirmationDialogContent } from "../src/components/ui/confirmation-dialog-content";
-import {
-  Dialog as PlatformDialog,
-  DialogTrigger as PlatformDialogTrigger,
-} from "../src/components/ui/dialog";
 import { Shell as PlatformShell } from "../src/components/ui/shell";
 import { cn } from "../src/lib/utils";
 import { Timezone as PlatformTimzoneSelect } from "../timezone/index";
@@ -49,24 +43,6 @@ export type Schedule = {
   date: Date | null;
   scheduleId: number | null;
   days: number[];
-};
-
-export type TranslationsType = {
-  save: string;
-  timezone: string;
-  availability: string;
-  set_to_default: string;
-  delete: string;
-  delete_schedule: string;
-  availability_settings: string;
-  launch_troubleshooter: string;
-  requires_at_least_one_schedule: string;
-  delete_schedule_description: string;
-  name: string;
-  something_doesnt_look_right: string;
-  add_an_override: string;
-  add_time_availability: string;
-  copy_times_to: string;
 };
 
 export type CustomClassNames = {
@@ -87,7 +63,7 @@ export type CustomClassNames = {
 
 type AvailabilitySettingsProps = {
   skeletonLabel?: string;
-  schedule?: {
+  schedule: {
     name: string;
     id: number;
     availability: TimeRange[][];
@@ -96,7 +72,7 @@ type AvailabilitySettingsProps = {
     workingHours: WorkingHours[];
     dateOverrides: { ranges: TimeRange[] }[];
     timeZone: string;
-    schedule: Schedule[] | [];
+    schedule: Schedule[];
   };
   handleDelete: () => void;
   isDeleting: boolean;
@@ -107,7 +83,6 @@ type AvailabilitySettingsProps = {
   backPath: string | boolean;
   handleSubmit: (data: AvailabilityFormValues) => Promise<void>;
   isPlatform?: boolean;
-  translations?: Partial<TranslationsType>;
   customClassNames?: CustomClassNames;
 };
 
@@ -116,22 +91,14 @@ const DeleteDialogButton = ({
   buttonClassName,
   isPending,
   onDeleteConfirmed,
-  isPlatform,
   handleDelete,
 }: {
   disabled?: boolean;
   onDeleteConfirmed?: () => void;
   buttonClassName: string;
-  isPlatform: boolean;
   handleDelete: () => void;
   isPending: boolean;
 }) => {
-  const [Dialog, DialogTrigger, ConfirmationDialogContent] = useMemo(() => {
-    return isPlatform
-      ? [PlatformDialog, PlatformDialogTrigger, PlatformConfirmationDialogContent]
-      : [WebDialog, WebDialogTrigger, WebConfirmationDialogContent];
-  }, [isPlatform]);
-
   const { t } = useLocale();
 
   return (
@@ -252,16 +219,15 @@ export function AvailabilitySettings({
   backPath,
   handleSubmit,
   isPlatform = false,
-  translations,
   customClassNames,
 }: AvailabilitySettingsProps) {
   const [openSidebar, setOpenSidebar] = useState(false);
   const { t, i18n } = useLocale();
 
   const form = useForm<AvailabilityFormValues>({
-    values: schedule && {
+    defaultValues: {
       ...schedule,
-      schedule: schedule?.availability || [],
+      schedule: schedule.availability || [],
     },
   });
 
@@ -275,11 +241,7 @@ export function AvailabilitySettings({
     <Shell
       headerClassName={cn(customClassNames?.containerClassName)}
       backPath={backPath}
-      title={
-        schedule?.name
-          ? `${schedule.name} | ${translations?.availability ?? t("availability")}`
-          : translations?.availability ?? t("availability")
-      }
+      title={schedule.name ? `${schedule.name} | t("availability")}` : t("availability")}
       heading={
         <Controller
           control={form.control}
@@ -319,7 +281,7 @@ export function AvailabilitySettings({
                   className="mt-2 cursor-pointer self-center pe-2"
                   loadingClassName="me-4"
                   waitForTranslation={!isPlatform}>
-                  {translations?.set_to_default ?? t("set_to_default")}
+                  {t("set_to_default")}
                 </Skeleton>
                 <Controller
                   control={form.control}
@@ -327,7 +289,7 @@ export function AvailabilitySettings({
                   render={({ field: { value, onChange } }) => (
                     <Switch
                       id="hiddenSwitch"
-                      disabled={isSaving || schedule?.isDefault}
+                      disabled={isSaving || schedule.isDefault}
                       checked={value}
                       onCheckedChange={onChange}
                     />
@@ -340,10 +302,9 @@ export function AvailabilitySettings({
           <VerticalDivider className="hidden sm:inline" />
           <DeleteDialogButton
             buttonClassName="hidden sm:inline"
-            disabled={schedule?.isLastSchedule}
+            disabled={schedule.isLastSchedule}
             isPending={isDeleting}
             handleDelete={handleDelete}
-            isPlatform={isPlatform}
           />
           <VerticalDivider className="hidden sm:inline" />
           <SmallScreenSideBar open={openSidebar}>
@@ -361,15 +322,12 @@ export function AvailabilitySettings({
                   )}>
                   <div className="flex flex-row items-center pt-5">
                     <Button StartIcon={ArrowLeft} color="minimal" onClick={() => setOpenSidebar(false)} />
-                    <p className="-ml-2">
-                      {translations?.availability_settings ?? t("availability_settings")}
-                    </p>
+                    <p className="-ml-2">{t("availability_settings")}</p>
                     <DeleteDialogButton
                       buttonClassName="ml-16 inline"
-                      disabled={schedule?.isLastSchedule}
+                      disabled={schedule.isLastSchedule}
                       isPending={isDeleting}
                       handleDelete={handleDelete}
-                      isPlatform={isPlatform}
                       onDeleteConfirmed={() => {
                         setOpenSidebar(false);
                       }}
@@ -377,7 +335,7 @@ export function AvailabilitySettings({
                   </div>
                   <div className="flex flex-col px-2 py-2">
                     <Skeleton as={Label} waitForTranslation={!isPlatform}>
-                      {translations?.name ?? t("name")}
+                      {t("name")}
                     </Skeleton>
                     <Controller
                       control={form.control}
@@ -396,7 +354,7 @@ export function AvailabilitySettings({
                       htmlFor="hiddenSwitch"
                       className="mt-2 cursor-pointer self-center pr-2 sm:inline"
                       waitForTranslation={!isPlatform}>
-                      {translations?.set_to_default ?? t("set_to_default")}
+                      {t("set_to_default")}
                     </Skeleton>
                     <Controller
                       control={form.control}
@@ -420,7 +378,7 @@ export function AvailabilitySettings({
                           htmlFor="timeZone-sm-viewport"
                           className="mb-0 inline-block leading-none"
                           waitForTranslation={!isPlatform}>
-                          {translations?.timezone ?? t("timezone")}
+                          {t("timezone")}
                         </Skeleton>
                         <Controller
                           control={form.control}
@@ -450,7 +408,7 @@ export function AvailabilitySettings({
                               as="h3"
                               className="mb-0 inline-block text-sm font-medium"
                               waitForTranslation={!isPlatform}>
-                              {translations?.something_doesnt_look_right ?? t("something_doesnt_look_right")}
+                              {t("something_doesnt_look_right")}
                             </Skeleton>
                             <div className="mt-3 flex">
                               <Skeleton
@@ -458,7 +416,7 @@ export function AvailabilitySettings({
                                 href="/availability/troubleshoot"
                                 color="secondary"
                                 waitForTranslation={!isPlatform}>
-                                {translations?.launch_troubleshooter ?? t("launch_troubleshooter")}
+                                {t("launch_troubleshooter")}
                               </Skeleton>
                             </div>
                           </div>
@@ -472,7 +430,7 @@ export function AvailabilitySettings({
           </SmallScreenSideBar>
           <div className="border-default border-l-2" />
           <Button className="ml-4 lg:ml-0" type="submit" form="availability-form" loading={isSaving}>
-            {translations?.save ?? t("save")}
+            {t("save")}
           </Button>
           <Button
             className="ml-3 sm:hidden"
@@ -497,9 +455,9 @@ export function AvailabilitySettings({
                 {typeof weekStart === "string" && (
                   <Schedule
                     labels={{
-                      addTime: translations?.add_time_availability ?? t("add_time_availability"),
-                      copyTime: translations?.copy_times_to ?? t("copy_times_to"),
-                      deleteTime: translations?.delete ?? t("delete"),
+                      addTime: t("add_time_availability"),
+                      copyTime: t("copy_times_to"),
+                      deleteTime: t("delete"),
                     }}
                     className={
                       customClassNames?.scheduleClassNames ? { ...customClassNames.scheduleClassNames } : {}
@@ -518,7 +476,7 @@ export function AvailabilitySettings({
             </div>
             {!isPlatform ? (
               <div className="border-subtle my-6 rounded-md border">
-                {schedule?.workingHours && (
+                {schedule.workingHours && (
                   <DateOverride workingHours={schedule.workingHours} userTimeFormat={timeFormat} />
                 )}
               </div>
@@ -534,7 +492,7 @@ export function AvailabilitySettings({
                   htmlFor="timeZone-lg-viewport"
                   className="mb-0 inline-block leading-none"
                   waitForTranslation={!isPlatform}>
-                  {translations?.timezone ?? t("timezone")}
+                  {t("timezone")}
                 </Skeleton>
                 <Controller
                   name="timeZone"
@@ -562,7 +520,7 @@ export function AvailabilitySettings({
                       as="h3"
                       className="mb-0 inline-block text-sm font-medium"
                       waitForTranslation={!isPlatform}>
-                      {translations?.something_doesnt_look_right ?? t("something_doesnt_look_right")}
+                      {t("something_doesnt_look_right")}
                     </Skeleton>
                     <div className="mt-3 flex">
                       <Skeleton
@@ -570,7 +528,7 @@ export function AvailabilitySettings({
                         href="/availability/troubleshoot"
                         color="secondary"
                         waitForTranslation={!isPlatform}>
-                        {translations?.launch_troubleshooter ?? t("launch_troubleshooter")}
+                        {t("launch_troubleshooter")}
                       </Skeleton>
                     </div>
                   </div>
