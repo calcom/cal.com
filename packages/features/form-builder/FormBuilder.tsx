@@ -4,6 +4,7 @@ import { Controller, useFieldArray, useFormContext, useForm } from "react-hook-f
 import type { UseFormReturn, SubmitHandler } from "react-hook-form";
 import type { z } from "zod";
 
+import { getAndUpdateNormalizedValues } from "@calcom/features/form-builder/FormBuilderField";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
@@ -119,12 +120,17 @@ export const FormBuilder = function FormBuilder({
               : field.getOptionsAt
               ? dataStore.options[field.getOptionsAt as keyof typeof dataStore]
               : [];
-            const numOptions = options?.length ?? 0;
-            if (field.hideWhenJustOneOption && numOptions <= 1) {
+            const { hidden } = getAndUpdateNormalizedValues({ ...field, options }, t);
+            if (field.hideWhenJustOneOption && (hidden || !options?.length)) {
               return null;
             }
-            const fieldType = fieldTypesConfigMap[field.type];
-            const isRequired = field.required;
+            let fieldType = fieldTypesConfigMap[field.type];
+            let isRequired = field.required;
+            // For radioInput type, when there's only one option, the type and required takes the first options values
+            if (field.type === "radioInput" && options.length === 1) {
+              fieldType = fieldTypesConfigMap[field.optionsInputs?.[options[0].value].type || field.type];
+              isRequired = field.optionsInputs?.[options[0].value].required || field.required;
+            }
             const isFieldEditableSystemButOptional = field.editable === "system-but-optional";
             const isFieldEditableSystemButHidden = field.editable === "system-but-hidden";
             const isFieldEditableSystem = field.editable === "system";
@@ -227,7 +233,16 @@ export const FormBuilder = function FormBuilder({
                       data-testid="edit-field-action"
                       color="secondary"
                       onClick={() => {
-                        editField(index, field);
+                        const fieldToEdit = field;
+                        // For radioInput type, when there's only one option, the type and required takes the only first options values
+                        if (fieldToEdit.type === "radioInput" && options.length === 1) {
+                          fieldToEdit.type =
+                            fieldToEdit.optionsInputs?.[options[0].value].type || fieldToEdit.type;
+                          fieldToEdit.required =
+                            fieldToEdit.optionsInputs?.[options[0].value].required || fieldToEdit.required;
+                        }
+
+                        editField(index, fieldToEdit);
                       }}>
                       {t("edit")}
                     </Button>

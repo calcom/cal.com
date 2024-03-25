@@ -18,7 +18,7 @@ interface Props {
 }
 
 export default function TeamList(props: Props) {
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
 
   const { t } = useLocale();
   const { data: user } = trpc.viewer.me.useQuery();
@@ -113,7 +113,6 @@ export default function TeamList(props: Props) {
           setHideDropdown={setHideDropdown}
         />
       ))}
-
       {/* only show recommended steps when there is only one team */}
       {!props.pending && props.teams.length === 1 && (
         <>
@@ -121,7 +120,7 @@ export default function TeamList(props: Props) {
             (team, i) =>
               team.role !== "MEMBER" &&
               i === 0 && (
-                <div className="bg-subtle p-6">
+                <div className="bg-subtle p-6" key={`listing${team.id}`}>
                   <h3 className="text-emphasis mb-4 text-sm font-semibold">{t("recommended_next_steps")}</h3>
                   <div className="grid-col-1 grid gap-2 md:grid-cols-3">
                     <Card
