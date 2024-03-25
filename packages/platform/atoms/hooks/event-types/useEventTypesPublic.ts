@@ -13,7 +13,7 @@ export const useEventTypesPublic = (username: string) => {
   endpoint.pathname = `api/${API_VERSION}/${V2_ENDPOINTS.eventTypes}/${username}/public`;
 
   return useQuery({
-    queryKey: [QUERY_KEY],
+    queryKey: [QUERY_KEY, username],
     queryFn: () => {
       return http?.get<ApiResponse<EventTypesPublic>>(endpoint.toString()).then((res) => {
         if (res.data.status === SUCCESS_STATUS) {
