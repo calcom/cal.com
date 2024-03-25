@@ -797,7 +797,7 @@ export const AUTH_OPTIONS: AuthOptions = {
             existingUserWithEmail.identityProvider === IdentityProvider.CAL &&
             (idP === IdentityProvider.GOOGLE || idP === IdentityProvider.SAML)
           ) {
-            const updatedUser = await prisma.user.update({
+            await prisma.user.update({
               where: { email: existingUserWithEmail.email },
               // also update email to the IdP email
               data: {
