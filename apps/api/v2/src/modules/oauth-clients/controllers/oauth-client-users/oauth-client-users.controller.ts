@@ -152,7 +152,11 @@ export class OAuthClientUsersController {
     const existingUser = await this.userRepository.findById(userId);
 
     if (!existingUser) {
-      throw new NotFoundException(`User with ${userId} does not exist`);
+      throw new NotFoundException(`User with ID=${userId} does not exist`);
+    }
+
+    if (!existingUser.isPlatformManaged) {
+      throw new NotFoundException(`Can't delete non managed user with ID=${userId}`);
     }
 
     const user = await this.userRepository.delete(userId);
