@@ -14,7 +14,7 @@ import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.rep
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { withAccessTokenAuth } from "test/utils/withAccessTokenAuth";
 
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { SUCCESS_STATUS, ERROR_STATUS } from "@calcom/platform-constants";
 import {
   getAllUserBookings,
   handleNewBooking,
@@ -203,6 +203,27 @@ describe("Bookings Endpoints", () => {
           const responseBody: ApiResponse<Awaited<ReturnType<typeof handleInstantMeeting>>> = response.body;
 
           expect(responseBody.status).toEqual("instant");
+        });
+    });
+
+    it("should cancel a booking", async () => {
+      const bookingId = createdBooking.id;
+
+      const body = {
+        allRemainingBookings: false,
+        cancellationReason: "Was fighting some unforseen rescheduling demons",
+      };
+
+      return request(app.getHttpServer())
+        .post(`/api/v2/ee/bookings/${bookingId}/cancel`)
+        .send(body)
+        .expect(201)
+        .then((response) => {
+          const responseBody: ApiResponse<{ status: typeof SUCCESS_STATUS | typeof ERROR_STATUS }> =
+            response.body;
+
+          expect(bookingId).toBeDefined();
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
         });
     });
 
