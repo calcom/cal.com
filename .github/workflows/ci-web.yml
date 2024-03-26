@@ -8,14 +8,14 @@ on:
       - "apps/web/**"
   workflow_dispatch:
 
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 jobs:
   continuous-integration:
     name: Checkout, lint, test and build
     timeout-minutes: 10
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [18.16.1]
 
     steps:
       - name: Checkout files
@@ -43,7 +43,7 @@ jobs:
       - name: Set up Node.js enviroment
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version-file: '.nvmrc'
 
       - uses: actions/cache@v3
         id: yarn-cache
@@ -54,7 +54,7 @@ jobs:
             ${{ runner.os }}-yarn-
 
       - name: Install dependencies
-        run: yarn install --verbose
+        run: yarn
 
       - name: Lint
         run: yarn lint --scope=web
