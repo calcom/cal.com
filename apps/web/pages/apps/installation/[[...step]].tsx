@@ -5,6 +5,7 @@ import Head from "next/head";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { Toaster } from "react-hot-toast";
 import { z } from "zod";
 
 import getInstalledAppPath from "@calcom/app-store/_utils/getInstalledAppPath";
@@ -305,6 +306,7 @@ const OnboardingPage = ({
           </div>
         </div>
       </div>
+      <Toaster position="bottom-right" />
     </div>
   );
 };
