@@ -1,5 +1,4 @@
 import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
 
 import { withErrorFromUnknown } from "@calcom/lib/getClientErrorFromUnknown";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
@@ -10,13 +9,12 @@ import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { showToast } from "@calcom/ui";
 
 import { AvailabilitySettings } from "../AvailabilitySettings";
-import type { AvailabilityFormValues } from "../types";
 
 export const WebAvailabilitySettingsWrapper = () => {
   const searchParams = useCompatSearchParams();
   const { t } = useLocale();
   const router = useRouter();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const me = useMeQuery();
   const scheduleId = searchParams?.get("schedule") ? Number(searchParams.get("schedule")) : -1;
   const fromEventType = searchParams?.get("fromEventType");
@@ -27,13 +25,6 @@ export const WebAvailabilitySettingsWrapper = () => {
       enabled: !!scheduleId,
     }
   );
-
-  const form = useForm<AvailabilityFormValues>({
-    values: schedule && {
-      ...schedule,
-      schedule: schedule?.availability || [],
-    },
-  });
   const updateMutation = trpc.viewer.availability.schedule.update.useMutation({
     onSuccess: async ({ prevDefaultId, currentDefaultId, ...data }) => {
       if (prevDefaultId && currentDefaultId) {
@@ -74,23 +65,17 @@ export const WebAvailabilitySettingsWrapper = () => {
     },
   });
 
+  // TODO: reimplement Skeletons for this page in here
+  if (isPending) return null;
+
+  // We wait for the schedule to be loaded before rendering the form inside AvailabilitySettings
+  // since `defaultValues` cannot be redeclared after first render and using `values` will
+  // trigger a form reset when revalidating. Introducing flaky behavior.
+  if (!schedule) return null;
+
   return (
     <AvailabilitySettings
-      schedule={
-        schedule
-          ? {
-              name: schedule.name,
-              id: schedule.id,
-              isLastSchedule: schedule.isLastSchedule,
-              isDefault: schedule.isDefault,
-              workingHours: schedule.workingHours,
-              dateOverrides: schedule.dateOverrides,
-              timeZone: schedule.timeZone,
-              availability: schedule.availability || [],
-              schedule: schedule.schedule || [],
-            }
-          : undefined
-      }
+      schedule={schedule}
       isDeleting={deleteMutation.isPending}
       isLoading={isPending}
       isSaving={updateMutation.isPending}
