@@ -11,6 +11,7 @@ import { appDataSchema as ga4_zod_ts } from "./ga4/zod";
 import { appDataSchema as giphy_zod_ts } from "./giphy/zod";
 import { appDataSchema as googlecalendar_zod_ts } from "./googlecalendar/zod";
 import { appDataSchema as gtm_zod_ts } from "./gtm/zod";
+import { appDataSchema as hubspot_revert_zod_ts } from "./hubspot-revert/zod";
 import { appDataSchema as hubspot_zod_ts } from "./hubspot/zod";
 import { appDataSchema as intercom_zod_ts } from "./intercom/zod";
 import { appDataSchema as jelly_zod_ts } from "./jelly/zod";
@@ -27,6 +28,7 @@ import { appDataSchema as pipedrive_crm_zod_ts } from "./pipedrive-crm/zod";
 import { appDataSchema as plausible_zod_ts } from "./plausible/zod";
 import { appDataSchema as qr_code_zod_ts } from "./qr_code/zod";
 import { appDataSchema as routing_forms_zod_ts } from "./routing-forms/zod";
+import { appDataSchema as salesforce_revert_zod_ts } from "./salesforce-revert/zod";
 import { appDataSchema as salesforce_zod_ts } from "./salesforce/zod";
 import { appDataSchema as shimmervideo_zod_ts } from "./shimmervideo/zod";
 import { appDataSchema as stripepayment_zod_ts } from "./stripepayment/zod";
@@ -39,6 +41,7 @@ import { appDataSchema as wordpress_zod_ts } from "./wordpress/zod";
 import { appDataSchema as zapier_zod_ts } from "./zapier/zod";
 import { appDataSchema as zoho_bigin_zod_ts } from "./zoho-bigin/zod";
 import { appDataSchema as zohocalendar_zod_ts } from "./zohocalendar/zod";
+import { appDataSchema as zohocrm_revert_zod_ts } from "./zohocrm-revert/zod";
 import { appDataSchema as zohocrm_zod_ts } from "./zohocrm/zod";
 import { appDataSchema as zoomvideo_zod_ts } from "./zoomvideo/zod";
 
@@ -53,6 +56,7 @@ export const appDataSchemas = {
   googlecalendar: googlecalendar_zod_ts,
   gtm: gtm_zod_ts,
   hubspot: hubspot_zod_ts,
+  "hubspot-revert": hubspot_revert_zod_ts,
   intercom: intercom_zod_ts,
   jelly: jelly_zod_ts,
   jitsivideo: jitsivideo_zod_ts,
@@ -69,6 +73,7 @@ export const appDataSchemas = {
   qr_code: qr_code_zod_ts,
   "routing-forms": routing_forms_zod_ts,
   salesforce: salesforce_zod_ts,
+  "salesforce-revert": salesforce_revert_zod_ts,
   shimmervideo: shimmervideo_zod_ts,
   stripe: stripepayment_zod_ts,
   tandemvideo: tandemvideo_zod_ts,
@@ -81,5 +86,6 @@ export const appDataSchemas = {
   "zoho-bigin": zoho_bigin_zod_ts,
   zohocalendar: zohocalendar_zod_ts,
   zohocrm: zohocrm_zod_ts,
+  "zohocrm-revert": zohocrm_revert_zod_ts,
   zoomvideo: zoomvideo_zod_ts,
 };

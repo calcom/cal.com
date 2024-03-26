@@ -29,6 +29,7 @@ import { metadata as giphy__metadata_ts } from "./giphy/_metadata";
 import { metadata as googlecalendar__metadata_ts } from "./googlecalendar/_metadata";
 import { metadata as googlevideo__metadata_ts } from "./googlevideo/_metadata";
 import gtm_config_json from "./gtm/config.json";
+import hubspot_revert_config_json from "./hubspot-revert/config.json";
 import { metadata as hubspot__metadata_ts } from "./hubspot/_metadata";
 import { metadata as huddle01video__metadata_ts } from "./huddle01video/_metadata";
 import ics_feedcalendar_config_json from "./ics-feedcalendar/config.json";
@@ -55,6 +56,7 @@ import raycast_config_json from "./raycast/config.json";
 import riverside_config_json from "./riverside/config.json";
 import roam_config_json from "./roam/config.json";
 import routing_forms_config_json from "./routing-forms/config.json";
+import salesforce_revert_config_json from "./salesforce-revert/config.json";
 import salesforce_config_json from "./salesforce/config.json";
 import salesroom_config_json from "./salesroom/config.json";
 import sendgrid_config_json from "./sendgrid/config.json";
@@ -83,6 +85,7 @@ import wordpress_config_json from "./wordpress/config.json";
 import { metadata as zapier__metadata_ts } from "./zapier/_metadata";
 import zoho_bigin_config_json from "./zoho-bigin/config.json";
 import zohocalendar_config_json from "./zohocalendar/config.json";
+import zohocrm_revert_config_json from "./zohocrm-revert/config.json";
 import zohocrm_config_json from "./zohocrm/config.json";
 import { metadata as zoomvideo__metadata_ts } from "./zoomvideo/_metadata";
 
@@ -115,6 +118,7 @@ export const appStoreMetadata = {
   googlevideo: googlevideo__metadata_ts,
   gtm: gtm_config_json,
   hubspot: hubspot__metadata_ts,
+  "hubspot-revert": hubspot_revert_config_json,
   huddle01video: huddle01video__metadata_ts,
   "ics-feedcalendar": ics_feedcalendar_config_json,
   intercom: intercom_config_json,
@@ -141,6 +145,7 @@ export const appStoreMetadata = {
   roam: roam_config_json,
   "routing-forms": routing_forms_config_json,
   salesforce: salesforce_config_json,
+  "salesforce-revert": salesforce_revert_config_json,
   salesroom: salesroom_config_json,
   sendgrid: sendgrid_config_json,
   shimmervideo: shimmervideo_config_json,
@@ -169,5 +174,6 @@ export const appStoreMetadata = {
   "zoho-bigin": zoho_bigin_config_json,
   zohocalendar: zohocalendar_config_json,
   zohocrm: zohocrm_config_json,
+  "zohocrm-revert": zohocrm_revert_config_json,
   zoomvideo: zoomvideo__metadata_ts,
 };
