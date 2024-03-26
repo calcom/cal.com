@@ -2,14 +2,17 @@ import { DEFAULT_EVENT_TYPES } from "@/ee/event-types/constants/constants";
 import { EventTypesRepository } from "@/ee/event-types/event-types.repository";
 import { CreateEventTypeInput } from "@/ee/event-types/inputs/create-event-type.input";
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
-import { UserWithProfile } from "@/modules/users/users.repository";
-import { Injectable } from "@nestjs/common";
+import { UserWithProfile, UsersRepository } from "@/modules/users/users.repository";
+import { Injectable, NotFoundException } from "@nestjs/common";
+
+import { getEventTypesPublic, EventTypesPublic } from "@calcom/platform-libraries";
 
 @Injectable()
 export class EventTypesService {
   constructor(
     private readonly eventTypesRepository: EventTypesRepository,
-    private readonly membershipsRepository: MembershipsRepository
+    private readonly membershipsRepository: MembershipsRepository,
+    private readonly usersRepository: UsersRepository
   ) {}
 
   async createUserEventType(userId: number, body: CreateEventTypeInput) {
@@ -28,6 +31,15 @@ export class EventTypesService {
       : false;
 
     return this.eventTypesRepository.getUserEventTypeForAtom(user, isUserOrganizationAdmin, eventTypeId);
+  }
+
+  async getEventTypesPublicByUsername(username: string): Promise<EventTypesPublic> {
+    const user = await this.usersRepository.findByUsername(username);
+    if (!user) {
+      throw new NotFoundException(`User with username "${username}" not found`);
+    }
+
+    return await getEventTypesPublic(user.id);
   }
 
   async createUserDefaultEventTypes(userId: number) {
