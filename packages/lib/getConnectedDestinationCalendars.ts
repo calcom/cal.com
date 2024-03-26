@@ -4,7 +4,7 @@ import type { DestinationCalendar, SelectedCalendar, User } from "@calcom/prisma
 import { AppCategories } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
-type UserWithCalendars = Pick<User, "id"> & {
+export type UserWithCalendars = Pick<User, "id"> & {
   selectedCalendars: Pick<SelectedCalendar, "externalId" | "integration">[];
   destinationCalendar: DestinationCalendar | null;
 };

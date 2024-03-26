@@ -65,6 +65,9 @@ vi.mock("@calcom/atoms/monorepo", () => ({
   },
 }));
 
+vi.mock("@calcom/lib/event-types/getEventTypesByViewer", () => ({}));
+vi.mock("@calcom/lib/event-types/getEventTypesPublic", () => ({}));
+
 expect.extend({
   tabToBeDisabled(received) {
     const isDisabled = received.classList.contains("pointer-events-none");
