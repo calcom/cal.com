@@ -1,9 +1,11 @@
 name: PR to funnelhub
 
 on:
-  pull_request_target:
+  pull_request:
     branches:
-      - funnelhub
+      - "funnelhub"
+    paths:
+      - "apps/web/**"
   workflow_dispatch:
 
 concurrency:
