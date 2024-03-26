@@ -14,8 +14,8 @@ import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-u
 
 import { TRPCError } from "@trpc/server";
 
-import { WEBSITE_URL } from "./constants";
-import { getBookerBaseUrl } from "./getBookerUrl/server";
+import { WEBSITE_URL } from "../constants";
+import { getBookerBaseUrl } from "../getBookerUrl/server";
 
 interface getEventTypeByIdProps {
   eventTypeId: number;

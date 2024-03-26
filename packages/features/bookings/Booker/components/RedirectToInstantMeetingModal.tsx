@@ -1,3 +1,4 @@
+import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 
 import dayjs from "@calcom/dayjs";
@@ -15,14 +16,17 @@ export const RedirectToInstantMeetingModal = ({
   bookingId,
   onGoBack,
   expiryTime,
+  instantVideoMeetingUrl,
 }: {
   bookingId: number;
   onGoBack: () => void;
   expiryTime?: Date;
+  instantVideoMeetingUrl?: string;
 }) => {
   const { t } = useLocale();
   const [timeRemaining, setTimeRemaining] = useState(calculateTimeRemaining());
   const [hasInstantMeetingTokenExpired, setHasInstantMeetingTokenExpired] = useState(false);
+  const router = useRouter();
 
   function calculateTimeRemaining() {
     const now = dayjs();
@@ -53,7 +57,7 @@ export const RedirectToInstantMeetingModal = ({
   };
 
   useEffect(() => {
-    if (!expiryTime || hasInstantMeetingTokenExpired) {
+    if (!expiryTime || hasInstantMeetingTokenExpired || !!instantVideoMeetingUrl) {
       window.removeEventListener("beforeunload", handleBeforeUnload);
       return;
     }
@@ -62,7 +66,14 @@ export const RedirectToInstantMeetingModal = ({
     return () => {
       window.removeEventListener("beforeunload", handleBeforeUnload);
     };
-  }, [expiryTime, hasInstantMeetingTokenExpired]);
+  }, [expiryTime, hasInstantMeetingTokenExpired, instantVideoMeetingUrl]);
+
+  useEffect(() => {
+    if (!!instantVideoMeetingUrl) {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      router.push(instantVideoMeetingUrl);
+    }
+  }, [instantVideoMeetingUrl]);
 
   return (
     <Dialog open={!!bookingId && !!expiryTime}>
