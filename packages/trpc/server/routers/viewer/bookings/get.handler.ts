@@ -112,7 +112,7 @@ const getUniqueBookings = <T extends { uid: string }>(arr: T[]) => {
   return unique;
 };
 
-async function getBookings({
+export async function getBookings({
   user,
   prisma,
   passedBookingsStatusFilter,
