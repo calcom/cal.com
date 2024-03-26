@@ -394,10 +394,14 @@ export async function updateTriggerForExistingBookings(
   const removedEventTriggers = existingEventTriggers.filter(
     (trigger) => !updatedEventTriggers.includes(trigger) && SCHEDULING_TRIGGER.includes(trigger)
   );
+
+  if (addedEventTriggers.length === 0 && removedEventTriggers.length === 0) return;
+
   const currentTime = new Date();
   const bookings = await prisma.booking.findMany({
     where: {
       eventTypeId: webhook.eventTypeId,
+      status: BookingStatus.ACCEPTED,
       OR: [{ startTime: { gt: currentTime } }, { endTime: { gt: currentTime } }],
     },
   });
@@ -406,22 +410,15 @@ export async function updateTriggerForExistingBookings(
 
   if (addedEventTriggers.length > 0) {
     const promise = bookings.flatMap((booking) => {
-      if (booking.status === BookingStatus.ACCEPTED) {
-        return addedEventTriggers.map((trigger) => {
-          scheduleTrigger(booking, webhook.subscriberUrl, webhook, trigger);
-        });
-      } else {
-        return [];
-      }
+      return addedEventTriggers.map((trigger) => {
+        scheduleTrigger(booking, webhook.subscriberUrl, webhook, trigger);
+      });
     });
 
     await Promise.all(promise);
   }
 
-  if (
-    removedEventTriggers.length > 0 &&
-    removedEventTriggers.some((trigger) => SCHEDULING_TRIGGER.includes(trigger))
-  ) {
+  if (removedEventTriggers.length > 0) {
     const promise = bookings.map((booking) => {
       removedEventTriggers.map((trigger) =>
         cancelScheduledJobs(
