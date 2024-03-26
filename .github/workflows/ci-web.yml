@@ -14,7 +14,6 @@ env:
 jobs:
   continuous-integration:
     name: Checkout, lint, test and build
-    timeout-minutes: 10
     runs-on: ubuntu-latest
 
     steps:
@@ -24,23 +23,7 @@ jobs:
           sparse-checkout: |
             apps/web
             .yarn/
-            packages/app-store
-            packages/app-store-cli
-            packages/atoms
-            packages/config
-            packages/core
-            packages/dayjs
-            packages/emails
-            packages/embeds
-            packages/eslint-plugin
-            packages/features
-            packages/lib
-            packages/prisma
-            packages/trpc
-            packages/tsconfig
-            packages/types
-            packages/ui
-
+            packages
       - name: Set up Node.js enviroment
         uses: actions/setup-node@v4
         with:
