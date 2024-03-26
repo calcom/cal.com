@@ -22,7 +22,40 @@
     "/api/v2/events/public": {
       "get": {
         "operationId": "EventsController_getPublicEvent",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "username",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "eventSlug",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "isTeamEvent",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "org",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "",
@@ -55,7 +88,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateUserInput"
+                "$ref": "#/components/schemas/CreateManagedPlatformUserInput"
               }
             }
           }
@@ -133,7 +166,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateUserInput"
+                "$ref": "#/components/schemas/UpdateManagedPlatformUserInput"
               }
             }
           }
@@ -895,7 +928,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateUserInput"
+                "$ref": "#/components/schemas/UpdateManagedPlatformUserInput"
               }
             }
           }
@@ -1112,7 +1145,7 @@
   "servers": [],
   "components": {
     "schemas": {
-      "CreateUserInput": {
+      "CreateManagedPlatformUserInput": {
         "type": "object",
         "properties": {
           "email": {
@@ -1122,9 +1155,6 @@
             "type": "string"
           },
           "timeFormat": {
-            "type": "number"
-          },
-          "defaultScheduleId": {
             "type": "number"
           },
           "weekStart": {
@@ -1138,7 +1168,7 @@
           "email"
         ]
       },
-      "UpdateUserInput": {
+      "UpdateManagedPlatformUserInput": {
         "type": "object",
         "properties": {
           "email": {
