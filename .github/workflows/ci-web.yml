@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
 
 env:
-  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  NODE_OPTIONS: --max-old-space-size=4096
 
 jobs:
   continuous-integration:
@@ -54,7 +54,16 @@ jobs:
             ${{ runner.os }}-yarn-
 
       - name: Install dependencies
-        run: yarn
+        shell: bash
+        run: |
+          yarn install --inline-builds
+          yarn prisma generate
+        env:
+          YARN_ENABLE_IMMUTABLE_INSTALLS: "false"
+          YARN_ENABLE_GLOBAL_CACHE: "false"
+          YARN_INSTALL_STATE_PATH: .yarn/ci-cache/install-state.gz
+          YARN_NM_MODE: "hardlinks-local"
+          HUSKY: "0"
 
       - name: Lint
         run: yarn lint --scope=web
