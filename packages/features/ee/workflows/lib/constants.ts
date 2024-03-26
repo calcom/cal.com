@@ -11,6 +11,7 @@ export const WORKFLOW_TRIGGER_EVENTS = [
 export const WORKFLOW_ACTIONS = [
   WorkflowActions.EMAIL_HOST,
   WorkflowActions.EMAIL_ATTENDEE,
+  WorkflowActions.EMAIL_ATTENDEE_RATING,
   WorkflowActions.EMAIL_ADDRESS,
   WorkflowActions.SMS_ATTENDEE,
   WorkflowActions.SMS_NUMBER,
@@ -23,6 +24,7 @@ export const TIME_UNIT = [TimeUnit.DAY, TimeUnit.HOUR, TimeUnit.MINUTE] as const
 export const WORKFLOW_TEMPLATES = [
   WorkflowTemplates.CUSTOM,
   WorkflowTemplates.REMINDER,
+  WorkflowTemplates.RATING,
   WorkflowTemplates.CANCELLED,
   WorkflowTemplates.COMPLETED,
   WorkflowTemplates.RESCHEDULED,
