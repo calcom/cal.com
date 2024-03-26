@@ -10,7 +10,6 @@ jobs:
     runs-on: buildjet-4vcpu-ubuntu-2204
     services:
       postgres:
-      postgres:
         image: postgres:13
         credentials:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
