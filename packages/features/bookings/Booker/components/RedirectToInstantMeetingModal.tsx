@@ -57,7 +57,7 @@ export const RedirectToInstantMeetingModal = ({
   };
 
   useEffect(() => {
-    if (!expiryTime || hasInstantMeetingTokenExpired) {
+    if (!expiryTime || hasInstantMeetingTokenExpired || !!instantVideoMeetingUrl) {
       window.removeEventListener("beforeunload", handleBeforeUnload);
       return;
     }
@@ -66,7 +66,7 @@ export const RedirectToInstantMeetingModal = ({
     return () => {
       window.removeEventListener("beforeunload", handleBeforeUnload);
     };
-  }, [expiryTime, hasInstantMeetingTokenExpired]);
+  }, [expiryTime, hasInstantMeetingTokenExpired, instantVideoMeetingUrl]);
 
   useEffect(() => {
     if (!!instantVideoMeetingUrl) {
