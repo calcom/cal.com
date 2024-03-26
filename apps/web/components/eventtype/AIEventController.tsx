@@ -123,12 +123,6 @@ const AISettings = ({ eventType }: { eventType: EventTypeSetup }) => {
   // authorize it with the Cal.com API key / OAuth
   const retellAuthorized = true; // TODO: call retellAPI here
 
-  const numbers = [
-    { value: 0, label: "+1" },
-    { value: 1, label: "+49" },
-    { value: 3, label: "+34" },
-  ];
-
   return (
     <div>
       {retellAuthorized && (
