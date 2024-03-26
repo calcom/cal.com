@@ -40,7 +40,9 @@ const emailRatingTemplate = (
   },<br><br>We're always looking to improve our customer's experience. How satisfied were you with your recent meeting?<br><br>`;
 
   // todo: add rating link 1-5: https://app.cal.com/booking/qsiaNB3vppjxRkWgYUjB?rating=1
-  const ratingHtml = `<div><a href="">😠</a><a href="">🙁</a><a href="">😐</a><a href="">😄</a><a href="">😍</a></div>${eventName}<br><br>`;
+  const ratingHtml = `<div><a href="">😠</a><a href="">🙁</a><a href="">😐</a><a href="">😄</a><a href="">😍</a></div><br><br>`;
+
+  const noShowHtml = `<div><a href="">${otherPerson} didn't join the meeting.</a></div><br><br>`;
 
   const eventHtml = `<div><strong class="editor-text-bold">Event: </strong></div>${eventName}<br><br>`;
 
@@ -52,7 +54,8 @@ const emailRatingTemplate = (
 
   const endingHtml = `This survey was triggered by a Workflow in Cal.${branding}</body>`;
 
-  const emailBody = introHtml + ratingHtml + eventHtml + dateTimeHtml + attendeeHtml + endingHtml;
+  const emailBody =
+    introHtml + ratingHtml + noShowHtml + eventHtml + dateTimeHtml + attendeeHtml + endingHtml;
 
   return { emailSubject, emailBody };
 };
