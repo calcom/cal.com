@@ -25,7 +25,12 @@ import { Request } from "express";
 import { NextApiRequest } from "next/types";
 
 import { BOOKING_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
-import { getAllUserBookings, getBookingInfo, handleCancelBooking } from "@calcom/platform-libraries";
+import {
+  getAllUserBookings,
+  getBookingInfo,
+  handleCancelBooking,
+  getBookingForReschedule,
+} from "@calcom/platform-libraries";
 import {
   handleNewBooking,
   BookingResponse,
@@ -90,6 +95,21 @@ export class BookingsController {
     };
   }
 
+  // note(Rajiv): currently this endpoint is atoms only
+  @Get("/:bookingUid/reschedule")
+  async getBookingForReschedule(@Param("bookingUid") bookingUid: string): Promise<ApiResponse<unknown>> {
+    const booking = await getBookingForReschedule(bookingUid);
+
+    if (!booking) {
+      throw new NotFoundException(`Booking with UID=${bookingUid} does not exist.`);
+    }
+
+    return {
+      status: SUCCESS_STATUS,
+      data: booking,
+    };
+  }
+
   @Post("/")
   @Permissions([BOOKING_WRITE])
   async createBooking(
@@ -117,15 +137,19 @@ export class BookingsController {
     @Param("bookingId") bookingId: string,
     @Body() body: CancelBookingInput
   ): Promise<ApiResponse> {
-    req.userId = await this.getOwnerId(req);
-    req.body = { ...body, id: bookingId };
-    try {
-      await handleCancelBooking(req as unknown as NextApiRequest & { userId?: number });
-      return {
-        status: SUCCESS_STATUS,
-      };
-    } catch (err) {
-      handleBookingErrors(err);
+    if (bookingId) {
+      req.userId = await this.getOwnerId(req);
+      req.body = { ...body, id: parseInt(bookingId) };
+      try {
+        await handleCancelBooking(req as unknown as NextApiRequest & { userId?: number });
+        return {
+          status: SUCCESS_STATUS,
+        };
+      } catch (err) {
+        handleBookingErrors(err);
+      }
+    } else {
+      throw new NotFoundException("Booking ID is required.");
     }
     throw new InternalServerErrorException("Could not cancel booking.");
   }

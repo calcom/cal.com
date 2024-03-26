@@ -1,32 +1,32 @@
 import { useMutation } from "@tanstack/react-query";
+import type { z } from "zod";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import type { BookingResponse } from "@calcom/platform-libraries";
-import type { ApiResponse, ApiErrorResponse, ApiSuccessResponse } from "@calcom/platform-types";
+import type { ApiResponse, ApiErrorResponse } from "@calcom/platform-types";
 import type { schemaBookingCancelParams } from "@calcom/prisma/zod-utils";
 
 import http from "../lib/http";
 
 interface IUseCancelBooking {
-  bookingId: number;
-  onSuccess?: (res: ApiSuccessResponse<BookingResponse>) => void;
+  onSuccess?: () => void;
   onError?: (err: ApiErrorResponse | Error) => void;
 }
 
+type inputParams = z.infer<typeof schemaBookingCancelParams>;
+
 export const useCancelBooking = (
-  { onSuccess, onError, bookingId }: IUseCancelBooking = {
+  { onSuccess, onError }: IUseCancelBooking = {
     onSuccess: () => {
       return;
     },
     onError: () => {
       return;
     },
-    bookingId,
   }
 ) => {
-  const cancelBooking = useMutation<ApiResponse<BookingResponse>, Error, typeof schemaBookingCancelParams>({
+  const cancelBooking = useMutation<ApiResponse, Error, inputParams>({
     mutationFn: (data) => {
-      return http.post<ApiResponse<BookingResponse>>(`/ee/bookings/${bookingId}/cancel`, data).then((res) => {
+      return http.post<ApiResponse>(`/ee/bookings/${data.id}/cancel`, data).then((res) => {
         if (res.data.status === SUCCESS_STATUS) {
           return res.data;
         }
@@ -35,7 +35,7 @@ export const useCancelBooking = (
     },
     onSuccess: (data) => {
       if (data.status === SUCCESS_STATUS) {
-        onSuccess?.(data);
+        onSuccess?.();
       } else {
         onError?.(data);
       }

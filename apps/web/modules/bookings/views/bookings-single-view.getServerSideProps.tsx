@@ -2,6 +2,7 @@ import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import getBookingInfo from "@calcom/features/bookings/lib/getBookingInfo";
 import { parseRecurringEvent } from "@calcom/lib";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import { maybeGetBookingUidFromSeat } from "@calcom/lib/server/maybeGetBookingUidFromSeat";
@@ -11,8 +12,6 @@ import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-u
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import { ssrInit } from "@server/lib/ssr";
-
-import getBookingInfo from "../lib/getBookingInfo";
 
 const stringToBoolean = z
   .string()

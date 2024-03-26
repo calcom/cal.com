@@ -1,3 +1,5 @@
+import { getBookingForReschedule } from "@calcom/features/bookings/lib/get-booking";
+import getBookingInfo from "@calcom/features/bookings/lib/getBookingInfo";
 import handleCancelBooking from "@calcom/features/bookings/lib/handleCancelBooking";
 import * as newBookingMethods from "@calcom/features/bookings/lib/handleNewBooking";
 import { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
@@ -7,8 +9,7 @@ import { updateHandler as updateScheduleHandler } from "@calcom/trpc/server/rout
 import { getAvailableSlots } from "@calcom/trpc/server/routers/viewer/slots/util";
 import { createNewUsersConnectToOrgIfExists } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
 
-import getBookingInfo from "../../../apps/web/modules/bookings/lib/getBookingInfo";
-
+export { getBookingForReschedule };
 export { updateScheduleHandler };
 export type UpdateScheduleOutputType = Awaited<
   ReturnType<
