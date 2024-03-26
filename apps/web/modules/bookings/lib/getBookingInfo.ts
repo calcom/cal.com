@@ -1,6 +1,6 @@
 import { getBookingWithResponses } from "@calcom/features/bookings/lib/get-booking";
 
-import getUserBooking from "~/bookings/lib/getUserBooking";
+import getUserBooking from "./getUserBooking";
 
 const getBookingInfo = async (uid: string) => {
   const bookingInfoRaw = await getUserBooking(uid);
