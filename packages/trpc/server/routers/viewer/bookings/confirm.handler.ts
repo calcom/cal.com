@@ -253,7 +253,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     };
     const conferenceCredentialId = getLocationValueForDB(
       booking.location ?? "",
-      booking.eventType?.locations as LocationObject[]
+      (booking.eventType?.locations as LocationObject[]) || []
     );
     evt.conferenceCredentialId = conferenceCredentialId.conferenceCredentialId;
     await handleConfirmation({
