@@ -34,6 +34,10 @@ export function rateLimiter() {
     logOnce("Disabled due to not finding UNKEY_ROOT_KEY env variable");
     return () => ({ success: true, limit: 10, remaining: 999, reset: 0 } as RatelimitResponse);
   }
+  const timeout = {
+    fallback: { success: true, limit: 10, remaining: 999, reset: 0 },
+    ms: 5000,
+  };
 
   const limiter = {
     core: new Ratelimit({
@@ -42,6 +46,7 @@ export function rateLimiter() {
       limit: 10,
       duration: "60s",
       async: true,
+      timeout,
     }),
     common: new Ratelimit({
       rootKey: UNKEY_ROOT_KEY,
@@ -49,6 +54,7 @@ export function rateLimiter() {
       limit: 200,
       duration: "60s",
       async: true,
+      timeout,
     }),
     forcedSlowMode: new Ratelimit({
       rootKey: UNKEY_ROOT_KEY,
@@ -56,6 +62,7 @@ export function rateLimiter() {
       limit: 1,
       duration: "30s",
       async: true,
+      timeout,
     }),
     api: new Ratelimit({
       rootKey: UNKEY_ROOT_KEY,
@@ -63,6 +70,7 @@ export function rateLimiter() {
       limit: API_KEY_RATE_LIMIT,
       duration: "60s",
       async: true,
+      timeout,
     }),
     ai: new Ratelimit({
       rootKey: UNKEY_ROOT_KEY,
@@ -70,6 +78,7 @@ export function rateLimiter() {
       limit: 20,
       duration: "1d",
       async: true,
+      timeout,
     }),
   };
 
