@@ -65,7 +65,7 @@ describe("OAuth Clients Endpoints", () => {
     let user: User;
     let org: Team;
     let app: INestApplication;
-    const userEmail = "test-e2e@api.com";
+    const userEmail = "oauth-clients-test-e2e@api.com";
 
     beforeAll(async () => {
       const moduleRef = await withNextAuth(
