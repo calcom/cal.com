@@ -26,15 +26,17 @@ export default class CrmManager {
   public async createEvent(event: CalendarEvent) {
     await this.getCrmService(this.credential);
     // First see if the attendees already exist in the crm
-    const contacts = await this.getContacts(event.attendees.map((a) => a.email));
+    let contacts = await this.getContacts(event.attendees.map((a) => a.email));
     console.log("This was hit");
     // Ensure that all attendees are in the crm
     if (contacts.length == event.attendees.length) {
-      this.crmService?.createEvent(event);
+      await this.crmService?.createEvent(event, contacts);
     } else {
       // Figure out which contacts to create
       const contactsToCreate = event.attendees.filter((attendee) => !contacts.includes(attendee.email));
-      await this.crmService?.createContact(contactsToCreate);
+      const createdContacts = await this.crmService?.createContact(contactsToCreate);
+      contacts = contacts.concat(createdContacts);
+      await this.crmService?.createEvent(event, contacts);
     }
   }
 
@@ -46,7 +48,6 @@ export default class CrmManager {
 
   public async createContact(email: string) {
     await this.getCrmService(this.credential);
-
     return;
   }
 }

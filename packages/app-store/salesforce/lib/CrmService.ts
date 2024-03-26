@@ -10,7 +10,7 @@ import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
 import type { CalendarEvent, NewCalendarEventType, Person } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
-import type { CRM } from "@calcom/types/CrmService";
+import type { CRM, Contact } from "@calcom/types/CrmService";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import type { ParseRefreshTokenResponse } from "../../_utils/oauth/parseRefreshTokenResponse";
@@ -173,12 +173,9 @@ export default class SalesforceCRMService implements CRM {
     });
   };
 
-  private salesforceCreateEvent = async (
-    event: CalendarEvent,
-    contacts: Omit<ContactSearchResult, "attributes">[]
-  ) => {
+  private salesforceCreateEvent = async (event: CalendarEvent, contacts: Contact[]) => {
     const createdEvent = await this.salesforceCreateEventApiCall(event, {
-      EventWhoIds: contacts.map((contact) => contact.Id),
+      EventWhoIds: contacts.map((contact) => contact.id),
     }).catch(async (reason) => {
       if (reason === sfApiErrors.INVALID_EVENTWHOIDS) {
         this.calWarnings.push(
@@ -238,47 +235,22 @@ export default class SalesforceCRMService implements CRM {
     });
   }
 
-  async createEvent(event: CalendarEvent): Promise<NewCalendarEventType> {
-    const contacts = await this.salesforceContactSearch(event);
-    if (contacts.length) {
-      if (contacts.length == event.attendees.length) {
-        // All attendees do exist in Salesforce
-        this.log.debug("contact:search:all", { event, contacts });
-        return await this.handleEventCreation(event, contacts);
-      } else {
-        // Some attendees don't exist in Salesforce
-        // Get the existing contacts' email to filter out
-        this.log.debug("contact:search:notAll", { event, contacts });
-        const existingContacts = contacts.map((contact) => contact.Email);
-        this.log.debug("contact:filter:existing", { existingContacts });
-        // Get non existing contacts filtering out existing from attendees
-        const nonExistingContacts = event.attendees.filter(
-          (attendee) => !existingContacts.includes(attendee.email)
-        );
-        this.log.debug("contact:filter:nonExisting", { nonExistingContacts });
-        // Only create contacts in Salesforce that were not present in the previous contact search
-        const createContacts = await this.salesforceContactCreate(nonExistingContacts);
-        this.log.debug("contact:created", { createContacts });
-        // Continue with event creation and association only when all contacts are present in Salesforce
-        if (createContacts.length) {
-          this.log.debug("contact:creation:ok");
-          return await this.handleEventCreation(event, createContacts.concat(contacts));
-        }
-        return Promise.reject({
-          calError: "Something went wrong when creating non-existing attendees in Salesforce",
-        });
-      }
-    } else {
-      this.log.debug("contact:search:none", { event, contacts });
-      const createContacts = await this.salesforceContactCreate(event.attendees);
-      this.log.debug("contact:created", { createContacts });
-      if (createContacts.length) {
-        this.log.debug("contact:creation:ok");
-        return await this.handleEventCreation(event, createContacts);
-      }
+  async createEvent(event: CalendarEvent, contacts: Contact[]): Promise<NewCalendarEventType> {
+    const sfEvent = await this.salesforceCreateEvent(event, contacts);
+    if (sfEvent.success) {
+      this.log.debug("event:creation:ok", { sfEvent });
+      return Promise.resolve({
+        uid: sfEvent.id,
+        id: sfEvent.id,
+        type: "salesforce_other_calendar",
+        password: "",
+        url: "",
+        additionalInfo: { contacts, sfEvent, calWarnings: this.calWarnings },
+      });
     }
+    this.log.debug("event:creation:notOk", { event, sfEvent, contacts });
     return Promise.reject({
-      calError: "Something went wrong when searching/creating the attendees in Salesforce",
+      calError: "Something went wrong when creating an event in Salesforce",
     });
   }
 
