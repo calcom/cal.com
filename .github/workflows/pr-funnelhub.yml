@@ -90,13 +90,6 @@ jobs:
     uses: ./.github/workflows/e2e-embed-react.yml
     secrets: inherit
 
-  analyze:
-    name: Analyze Build
-    needs: [changes, build]
-    if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
-    uses: ./.github/workflows/nextjs-bundle-analysis.yml
-    secrets: inherit
-
   required:
     needs: [changes, lint, type-check, test, build, e2e, e2e-embed, e2e-embed-react, e2e-app-store]
     if: always()

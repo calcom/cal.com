@@ -17,7 +17,12 @@ export async function getServerSideProps({ req, res }: GetServerSidePropsContext
     return { redirect: { permanent: false, destination: process.env.NEXT_PUBLIC_FUNNELHUB_URL } };
   }
 
-  return { redirect: { permanent: false, destination: "/event-types" } };
+  return {
+    redirect: {
+      permanent: false,
+      destination: "/event-types",
+    },
+  };
 }
 
 export default RedirectPage;
