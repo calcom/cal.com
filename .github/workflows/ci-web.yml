@@ -1,0 +1,75 @@
+name: "Continuos Integration - Web"
+
+on:
+  pull_request:
+    branches:
+      - "funnelhub"
+    paths:
+      - "apps/web/**"
+  workflow_dispatch:
+
+jobs:
+  continuous-integration:
+    name: Checkout, lint, test and build
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout files
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            apps/web
+            packages/app-store
+            packages/app-store-cli
+            packages/config
+            packages/core
+            packages/dayjs
+            packages/emails
+            packages/embeds
+            packages/eslint-plugin
+            packages/features
+            packages/lib
+            packages/prisma
+            packages/trpc
+            packages/tsconfig
+            packages/types
+            packages/ui
+
+      - name: Set up Node.js enviroment
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "dir=$(yarn cache dir)" >> $GITHUB_OUTPUT
+
+      - uses: actions/cache@v3
+        id: yarn-cache
+        with:
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile --silent
+
+      - name: Lint
+        run: yarn lint --scope=web
+
+      - name: Cache build
+        id: cache-build
+        uses: actions/cache@v4
+        env:
+          cache-name: cache-build
+        with:
+          path: |
+            ${{ github.workspace }}/.turbo
+          key: ${{ runner.os }}-web-${{ env.cache-name }}-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-web-${{ env.cache-name }}-
+
+      - name: Build project
+        run: SKIP_ENV_CHECK=true yarn turbo run build --cache-dir=.turbo --filter=web
