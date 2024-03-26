@@ -3,6 +3,7 @@ import type { PrismaClient } from "@calcom/prisma";
 import type { DestinationCalendar, SelectedCalendar, User } from "@calcom/prisma/client";
 import { AppCategories } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
+import type { IntegrationCalendar } from "@calcom/types/Calendar";
 
 type UserWithCalendars = Pick<User, "id"> & {
   selectedCalendars: Pick<SelectedCalendar, "externalId" | "integration">[];
@@ -11,11 +12,16 @@ type UserWithCalendars = Pick<User, "id"> & {
 
 export type ConnectedDestinationCalendars = Awaited<ReturnType<typeof getConnectedDestinationCalendars>>;
 
+type GetConnectedDestinationCalendarsReturnType = {
+  connectedCalendars: Awaited<ReturnType<typeof getConnectedCalendars>>["connectedCalendars"];
+  destinationCalendar: DestinationCalendar | (DestinationCalendar & IntegrationCalendar);
+};
+
 export async function getConnectedDestinationCalendars(
   user: UserWithCalendars,
   onboarding: boolean,
   prisma: PrismaClient
-) {
+): Promise<GetConnectedDestinationCalendarsReturnType> {
   const userCredentials = await prisma.credential.findMany({
     where: {
       userId: user.id,
