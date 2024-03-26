@@ -2301,5 +2301,6 @@
   "confirm_email_description": "שלחנו הודעה בדוא״ל אל <strong>{{email}}</strong>. נא ללחוץ על הקישור בהודעה כדי לאמת את הכתובת הזאת.",
   "send_event_details_to": "שליחת פרטי האירוע אל",
   "select_members": "בחירת חברים",
+  "cookie_consent_checkbox": "מדיניות הפרטיות והשימוש בעוגיות מוסכמים עליי",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
