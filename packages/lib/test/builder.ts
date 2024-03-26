@@ -77,6 +77,7 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     description: faker.lorem.paragraph(),
     position: 1,
     isInstantEvent: false,
+    isCalAiPhoneCallEnabled: false,
     locations: null,
     length: 15,
     offsetStart: 0,

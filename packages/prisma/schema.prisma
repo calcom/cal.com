@@ -133,6 +133,8 @@ model EventType {
   isInstantEvent                       Boolean                 @default(false)
   assignAllTeamMembers                 Boolean                 @default(false)
   useEventTypeDestinationCalendarEmail Boolean                 @default(false)
+  isCalAiPhoneCallEnabled              Boolean                 @default(false)
+  calAiPhoneScript                     String?
 
   secondaryEmailId Int?
   secondaryEmail   SecondaryEmail? @relation(fields: [secondaryEmailId], references: [id], onDelete: Cascade)

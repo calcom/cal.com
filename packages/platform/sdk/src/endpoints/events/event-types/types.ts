@@ -60,5 +60,7 @@ export type EventType = {
   durationLimits: number | null;
   isInstantEvent: boolean;
   assignAllTeamMembers: boolean;
+  isCalAiPhoneCallEnabled: boolean;
+  calAiPhoneScript?: string;
   useEventTypeDestinationCalendarEmail: boolean;
 };

@@ -84,6 +84,8 @@ export const getEventTypeById = async ({
       description: true,
       length: true,
       isInstantEvent: true,
+      isCalAiPhoneCallEnabled: true,
+      calAiPhoneScript: true,
       offsetStart: true,
       hidden: true,
       locations: true,

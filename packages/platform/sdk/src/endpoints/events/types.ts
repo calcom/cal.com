@@ -45,6 +45,8 @@ export type Event = {
   eventName: string;
   slug: string;
   isInstantEvent: boolean;
+  isCalAiPhoneCallEnabled: boolean;
+  calAiPhoneScript?: string;
   schedulingType: string;
   length: number;
   locations: string[]; // Define more specifically if possible
