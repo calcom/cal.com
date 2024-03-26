@@ -4,10 +4,11 @@ import { EventTypesService } from "@/ee/event-types/services/event-types.service
 import { MembershipsModule } from "@/modules/memberships/memberships.module";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { TokensModule } from "@/modules/tokens/tokens.module";
+import { UsersModule } from "@/modules/users/users.module";
 import { Module } from "@nestjs/common";
 
 @Module({
-  imports: [PrismaModule, MembershipsModule, TokensModule],
+  imports: [PrismaModule, MembershipsModule, TokensModule, UsersModule],
   providers: [EventTypesRepository, EventTypesService],
   controllers: [EventTypesController],
   exports: [EventTypesService, EventTypesRepository],
