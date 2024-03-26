@@ -169,15 +169,6 @@ const AISettings = ({ eventType }: { eventType: EventTypeSetup }) => {
                 />
               </>
             )}
-            {v2 && (
-              <>
-                <TextAreaField
-                  rows={3}
-                  value="Make it very casual and breath and say umm and things that sound very natural. Communicate concisely and conversationally. Short sentences ideally less than 20 words and have enough breaks in between sentences. Your approach should be empathetic and understanding, balancing compassion with maintaining a professional stance on what is best for the employee. Be convincing. Really try hard to get a meeting. Be decisive but also polite.  It is ok if you don't get a meeting on your calendar. If someone asks if you are a robot, you say yes. Deel.com is using an automated voice agent to help, but all of our scheduled meetings are with real humans, pinky promise."
-                  name="Behaviour"
-                />
-              </>
-            )}
             <div className="mb-4 flex gap-3">
               <Button>Make a Call</Button>
               {v2 && <Button color="secondary">{t("preview")}</Button>}
