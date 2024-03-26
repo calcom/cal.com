@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 
 import { BASE_URL, API_VERSION, V2_ENDPOINTS, SUCCESS_STATUS } from "@calcom/platform-constants";
 import type { EventTypesByViewer } from "@calcom/platform-libraries";
-import type { ApiResponse } from "@calcom/platform-types";
+import type { ApiResponse, ApiSuccessResponse } from "@calcom/platform-types";
 
 import http from "../../lib/http";
 
@@ -17,7 +17,7 @@ export const useEventTypesPrivate = () => {
     queryFn: () => {
       return http?.get<ApiResponse<EventTypesByViewer>>(endpoint.toString()).then((res) => {
         if (res.data.status === SUCCESS_STATUS) {
-          return res.data;
+          return (res.data as ApiSuccessResponse<EventTypesByViewer>).data;
         }
         throw new Error(res.data.error.message);
       });
