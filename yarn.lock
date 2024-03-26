@@ -4023,6 +4023,33 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/atoms@*, @calcom/atoms@workspace:packages/platform/atoms":
+  version: 0.0.0-use.local
+  resolution: "@calcom/atoms@workspace:packages/platform/atoms"
+  dependencies:
+    "@radix-ui/react-dialog": ^1.0.4
+    "@radix-ui/react-slot": ^1.0.2
+    "@radix-ui/react-toast": ^1.1.5
+    "@rollup/plugin-node-resolve": ^15.0.1
+    "@tanstack/react-query": ^5.17.15
+    "@types/node": ^20.3.1
+    "@types/react": 18.0.26
+    "@types/react-dom": ^18.0.9
+    "@vitejs/plugin-react": ^2.2.0
+    class-variance-authority: ^0.4.0
+    clsx: ^2.0.0
+    lucide-react: ^0.171.0
+    react-use: ^17.4.2
+    rollup-plugin-node-builtins: ^2.1.2
+    tailwind-merge: ^1.13.2
+    tailwindcss: ^3.3.3
+    tailwindcss-animate: ^1.0.6
+    typescript: ^4.9.4
+    vite: ^5.0.10
+    vite-plugin-dts: ^3.7.3
+  languageName: unknown
+  linkType: soft
+
 "@calcom/auth@workspace:apps/auth":
   version: 0.0.0-use.local
   resolution: "@calcom/auth@workspace:apps/auth"
@@ -4062,7 +4089,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@calcom/base@workspace:packages/platform/examples/base"
   dependencies:
-    "@calcom/platform-atoms": "*"
+    "@calcom/atoms": "*"
     "@prisma/client": 5.4.2
     "@types/node": ^20.3.1
     "@types/react": ^18
@@ -4760,35 +4787,6 @@ __metadata:
   dependencies:
     "@calcom/lib": "*"
     "@calcom/types": "*"
-  languageName: unknown
-  linkType: soft
-
-"@calcom/platform-atoms@*, @calcom/platform-atoms@workspace:packages/platform/atoms":
-  version: 0.0.0-use.local
-  resolution: "@calcom/platform-atoms@workspace:packages/platform/atoms"
-  dependencies:
-    "@calcom/platform-constants": "*"
-    "@calcom/ui": "*"
-    "@radix-ui/react-dialog": ^1.0.4
-    "@radix-ui/react-slot": ^1.0.2
-    "@radix-ui/react-toast": ^1.1.5
-    "@rollup/plugin-node-resolve": ^15.0.1
-    "@tanstack/react-query": ^5.17.15
-    "@types/node": ^20.3.1
-    "@types/react": 18.0.26
-    "@types/react-dom": ^18.0.9
-    "@vitejs/plugin-react": ^2.2.0
-    class-variance-authority: ^0.4.0
-    clsx: ^2.0.0
-    lucide-react: ^0.171.0
-    react-use: ^17.4.2
-    rollup-plugin-node-builtins: ^2.1.2
-    tailwind-merge: ^1.13.2
-    tailwindcss: ^3.3.3
-    tailwindcss-animate: ^1.0.6
-    typescript: ^4.9.4
-    vite: ^5.0.10
-    vite-plugin-dts: ^3.7.3
   languageName: unknown
   linkType: soft
 
@@ -7136,8 +7134,8 @@ __metadata:
   linkType: hard
 
 "@graphql-tools/executor@npm:^1.2.1":
-  version: 1.2.4
-  resolution: "@graphql-tools/executor@npm:1.2.4"
+  version: 1.2.3
+  resolution: "@graphql-tools/executor@npm:1.2.3"
   dependencies:
     "@graphql-tools/utils": ^10.1.1
     "@graphql-typed-document-node/core": 3.2.0
@@ -7146,7 +7144,7 @@ __metadata:
     value-or-promise: ^1.0.12
   peerDependencies:
     graphql: ^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0
-  checksum: 9f27532cf5e799476e4db9d7422e4da97c5cf57e483e004b0e1276962eeb521052a4060aa3608498531313bbec281291b8a3dde5e2a07ed295ac2dc8c4816e66
+  checksum: c4568e987fd7becda76357144bb91c5aeeec1cbc2861a4d724934b4f35f8faaebbf519c29b8ac608237d0558f3194e3358e4505e3cfaaf4b201ad3488b71db02
   languageName: node
   linkType: hard
 

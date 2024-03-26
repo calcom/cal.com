@@ -59,11 +59,14 @@ vi.mock("@calcom/lib/hooks/useLocale", () => ({
   },
 }));
 
-vi.mock("@calcom/platform-atoms", () => ({
+vi.mock("@calcom/atoms/monorepo", () => ({
   useIsPlatform: () => {
     return false;
   },
 }));
+
+vi.mock("@calcom/lib/event-types/getEventTypesByViewer", () => ({}));
+vi.mock("@calcom/lib/event-types/getEventTypesPublic", () => ({}));
 
 expect.extend({
   tabToBeDisabled(received) {

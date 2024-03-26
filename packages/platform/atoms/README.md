@@ -1,1 +1,1 @@
-Contains the platform atoms
+Atoms - customizable UI components to integrate scheduling into products.

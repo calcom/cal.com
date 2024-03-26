@@ -3,6 +3,7 @@ import { useRouter } from "next/navigation";
 import { useRef, useState, useEffect } from "react";
 
 import { createPaymentLink } from "@calcom/app-store/stripepayment/lib/client";
+import { useHandleBookEvent } from "@calcom/atoms/monorepo";
 import dayjs from "@calcom/dayjs";
 import { sdkActionManager } from "@calcom/embed-core/embed-iframe";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
@@ -12,7 +13,6 @@ import { createBooking, createRecurringBooking, createInstantBooking } from "@ca
 import { getFullName } from "@calcom/features/form-builder/utils";
 import { useBookingSuccessRedirect } from "@calcom/lib/bookingSuccessRedirect";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { useHandleBookEvent } from "@calcom/platform-atoms";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc";
@@ -49,6 +49,7 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata }: IUseBo
   const bookingSuccessRedirect = useBookingSuccessRedirect();
   const bookerFormErrorRef = useRef<HTMLDivElement>(null);
   const [instantMeetingTokenExpiryTime, setExpiryTime] = useState<Date | undefined>();
+  const [instantVideoMeetingUrl, setInstantVideoMeetingUrl] = useState<string | undefined>();
   const duration = useBookerStore((state) => state.selectedDuration);
 
   const isRescheduling = !!rescheduleUid && !!bookingData;
@@ -71,14 +72,12 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata }: IUseBo
 
       if (!data) return;
       try {
-        showToast(t("something_went_wrong_on_our_end"), "error");
-
         const locationVideoCallUrl: string | undefined = bookingMetadataSchema.parse(
           data.booking?.metadata || {}
         )?.videoCallUrl;
 
         if (locationVideoCallUrl) {
-          router.push(locationVideoCallUrl);
+          setInstantVideoMeetingUrl(locationVideoCallUrl);
         } else {
           showToast(t("something_went_wrong_on_our_end"), "error");
         }
@@ -254,5 +253,6 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata }: IUseBo
     bookerFormErrorRef,
     errors,
     loadingStates,
+    instantVideoMeetingUrl,
   };
 };
