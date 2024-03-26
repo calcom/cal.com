@@ -6,7 +6,7 @@ import type { ApiResponse, ApiSuccessResponse } from "@calcom/platform-types";
 
 import http from "../../lib/http";
 
-export const QUERY_KEY = "get-private-events";
+export const QUERY_KEY = "get-public-events";
 export const useEventTypesPublic = (username: string) => {
   const endpoint = new URL(BASE_URL);
 

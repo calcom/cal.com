@@ -6,7 +6,7 @@ import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.
 import { AvailabilitiesModule } from "@/modules/availabilities/availabilities.module";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { TokensModule } from "@/modules/tokens/tokens.module";
-import { UpdateUserInput } from "@/modules/users/inputs/update-user.input";
+import { UpdateManagedPlatformUserInput } from "@/modules/users/inputs/update-managed-platform-user.input";
 import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
@@ -81,7 +81,7 @@ describe("Me Endpoints", () => {
     });
 
     it("should update user associated with access token", async () => {
-      const body: UpdateUserInput = { timeZone: "Europe/Rome" };
+      const body: UpdateManagedPlatformUserInput = { timeZone: "Europe/Rome" };
 
       return request(app.getHttpServer())
         .patch("/api/v2/me")
@@ -106,19 +106,19 @@ describe("Me Endpoints", () => {
     });
 
     it("should not update user associated with access token given invalid timezone", async () => {
-      const bodyWithIncorrectTimeZone: UpdateUserInput = { timeZone: "Narnia/Woods" };
+      const bodyWithIncorrectTimeZone: UpdateManagedPlatformUserInput = { timeZone: "Narnia/Woods" };
 
       return request(app.getHttpServer()).patch("/api/v2/me").send(bodyWithIncorrectTimeZone).expect(400);
     });
 
     it("should not update user associated with access token given invalid time format", async () => {
-      const bodyWithIncorrectTimeFormat: UpdateUserInput = { timeFormat: 100 };
+      const bodyWithIncorrectTimeFormat: UpdateManagedPlatformUserInput = { timeFormat: 100 };
 
       return request(app.getHttpServer()).patch("/api/v2/me").send(bodyWithIncorrectTimeFormat).expect(400);
     });
 
     it("should not update user associated with access token given invalid week start", async () => {
-      const bodyWithIncorrectWeekStart: UpdateUserInput = { weekStart: "waba luba dub dub" };
+      const bodyWithIncorrectWeekStart: UpdateManagedPlatformUserInput = { weekStart: "waba luba dub dub" };
 
       return request(app.getHttpServer()).patch("/api/v2/me").send(bodyWithIncorrectWeekStart).expect(400);
     });
