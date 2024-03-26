@@ -158,7 +158,7 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
         enable_chat: true,
         exp: exp,
         enable_recording: "cloud",
-        start_video_off: false,
+        start_video_off: true,
       },
     };
 
