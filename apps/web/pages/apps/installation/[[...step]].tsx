@@ -159,7 +159,7 @@ const OnboardingPage = ({
   const handleSelectAccount = ({ id: teamId }: onSelectParams) => {
     setIsSelectingAccount(true);
     if (appMetadata.isOAuth) {
-      handleOAuth();
+      handleOAuth(teamId);
       return;
     }
 
@@ -199,11 +199,11 @@ const OnboardingPage = ({
     return;
   };
 
-  const handleOAuth = async () => {
+  const handleOAuth = async (teamId?: number) => {
     try {
       const state = JSON.stringify({
         appOnbaordingRedirectUrl: hasEventTypes
-          ? getAppOnboardingRedirectUrl(appMetadata.slug, teamId, eventTypeId)
+          ? getAppOnboardingRedirectUrl(appMetadata.slug, teamId)
           : null,
         teamId,
       });
