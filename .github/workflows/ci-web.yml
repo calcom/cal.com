@@ -26,6 +26,7 @@ jobs:
             .yarn/
             packages/app-store
             packages/app-store-cli
+            packages/atoms
             packages/config
             packages/core
             packages/dayjs
