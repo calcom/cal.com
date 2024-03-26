@@ -122,7 +122,7 @@ export default class SalesforceCRMService implements CRM {
           .sobject("Contact")
           .create({
             FirstName,
-            LastName: LastName || "",
+            ...(LastName ? { LastName } : {}),
             Email: attendee.email,
           })
           .then((result) => {
@@ -307,7 +307,41 @@ export default class SalesforceCRMService implements CRM {
     }
   }
 
-  async getContact(email: string) {
-    return;
+  async getContacts(email: string | string[]) {
+    const conn = await this.conn;
+    const emails = Array.isArray(email) ? email : [email];
+    const soql = `SELECT Id, Email FROM Contact WHERE Email IN ('${emails.join("','")}')`;
+    // const soql = `SELECT Id, Name, Email FROM Contact`;
+    const results = await conn.query(soql);
+    return results.records
+      ? results.records.map((record) => ({
+          id: record.Id,
+          email: record.Email,
+        }))
+      : [];
+  }
+
+  async createContact(contactsToCreate: { email: string; name: string }[]) {
+    const conn = await this.conn;
+    const createdContacts = await Promise.all(
+      contactsToCreate.map(async (attendee) => {
+        const [FirstName, LastName] = attendee.name ? attendee.name.split(" ") : [attendee.email, ""];
+        return await conn
+          .sobject("Contact")
+          .create({
+            FirstName,
+            LastName: LastName || "-",
+            Email: attendee.email,
+          })
+          .then((result) => {
+            if (result.success) {
+              return { Id: result.id, Email: attendee.email };
+            }
+          });
+      })
+    );
+    return createdContacts.filter(
+      (contact): contact is Omit<ContactSearchResult, "attributes"> => contact !== undefined
+    );
   }
 }

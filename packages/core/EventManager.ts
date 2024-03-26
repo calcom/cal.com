@@ -31,7 +31,7 @@ import type {
 } from "@calcom/types/EventManager";
 
 import { createEvent, updateEvent, deleteEvent } from "./CalendarManager";
-import CrmManager from "./managers/CrmManager";
+import CrmManager from "./crmManager/crmManager";
 import { createMeeting, updateMeeting, deleteMeeting } from "./videoClient";
 
 const log = logger.getSubLogger({ prefix: ["EventManager"] });
@@ -866,6 +866,8 @@ export default class EventManager {
   private async createAllCRMEvents(event: CalendarEvent) {
     for (const credential of this.crmCredentials) {
       const crm = new CrmManager(credential);
+
+      await crm.createEvent(event);
     }
     return;
   }
