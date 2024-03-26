@@ -37,7 +37,7 @@ For simplicity sake will explain how the `InternalTasker` works:
   ```diff
   const examplePayload = { example: "payload" };
   - await sendWebhook(examplePayload);
-  + await tasker.create("taskname", JSON.stringify(examplePayload));
+  + await tasker.create("sendWebhook", JSON.stringify(examplePayload));
   ```
 
 - This will create a new task to be run on the next processing of the task queue.
