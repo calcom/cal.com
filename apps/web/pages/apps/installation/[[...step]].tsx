@@ -21,7 +21,7 @@ import prisma from "@calcom/prisma";
 import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import type { AppMeta } from "@calcom/types/App";
-import { Form, Steps, showToast, Button } from "@calcom/ui";
+import { Form, Steps, showToast } from "@calcom/ui";
 
 import { HttpError } from "@lib/core/http/error";
 
@@ -257,15 +257,6 @@ const OnboardingPage = ({
                 disableNavigation
               />
             </StepHeader>
-            <Button
-              onClick={() => {
-                showToast(t("event_type_updated_successfully"), "success");
-              }}
-              className="mt-4"
-              color="primary"
-              size="base">
-              showToast
-            </Button>
             {step === AppOnboardingSteps.ACCOUNTS_STEP && (
               <AccountsStepCard
                 teams={teams}
