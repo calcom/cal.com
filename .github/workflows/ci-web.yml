@@ -54,7 +54,7 @@ jobs:
             ${{ runner.os }}-yarn-
 
       - name: Install dependencies
-        run: yarn install --frozen-lockfile --silent
+        run: yarn install --silent
 
       - name: Lint
         run: yarn lint --scope=web
