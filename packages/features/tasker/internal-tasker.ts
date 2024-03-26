@@ -15,8 +15,9 @@ export class InternalTasker implements Tasker {
   async processQueue(): Promise<void> {
     const tasks = await Task.getNextBatch();
     const tasksPromises = tasks.map(async (task) => {
-      const taskHandler = await tasksMap[task.type as keyof typeof tasksMap];
-      if (!taskHandler) throw new Error(`Task handler not found for type ${task.type}`);
+      const taskHandlerGetter = tasksMap[task.type as keyof typeof tasksMap];
+      if (!taskHandlerGetter) throw new Error(`Task handler not found for type ${task.type}`);
+      const taskHandler = await taskHandlerGetter();
       return taskHandler(task.payload)
         .then(async () => {
           await Task.succeed(task.id);
