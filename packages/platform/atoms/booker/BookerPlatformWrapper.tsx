@@ -269,6 +269,7 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
           creatingRecurringBooking: creatingRecBooking,
           creatingInstantBooking: creatingInstantBooking,
         },
+        instantVideoMeetingUrl: undefined,
       }}
       slots={slots}
       calendars={{
