@@ -1,6 +1,6 @@
 import { EventTypesService } from "@/ee/event-types/services/event-types.service";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
-import { CreateUserInput } from "@/modules/users/inputs/create-user.input";
+import { CreateManagedPlatformUserInput } from "@/modules/users/inputs/create-managed-platform-user.input";
 import { UsersRepository } from "@/modules/users/users.repository";
 import { Injectable } from "@nestjs/common";
 import { User } from "@prisma/client";
@@ -16,11 +16,16 @@ export class OAuthClientUsersService {
     private readonly eventTypesService: EventTypesService
   ) {}
 
-  async createOauthClientUser(oAuthClientId: string, body: CreateUserInput, organizationId?: number) {
+  async createOauthClientUser(
+    oAuthClientId: string,
+    body: CreateManagedPlatformUserInput,
+    isPlatformManaged: boolean,
+    organizationId?: number
+  ) {
     let user: User;
     if (!organizationId) {
       const username = generateShortHash(body.email, oAuthClientId);
-      user = await this.userRepository.create(body, username, oAuthClientId);
+      user = await this.userRepository.create(body, username, oAuthClientId, isPlatformManaged);
     } else {
       const [_, emailDomain] = body.email.split("@");
       user = (
@@ -41,6 +46,7 @@ export class OAuthClientUsersService {
               autoAccept: true,
             },
           },
+          isPlatformManaged,
         })
       )[0];
       await this.userRepository.addToOAuthClient(user.id, oAuthClientId);

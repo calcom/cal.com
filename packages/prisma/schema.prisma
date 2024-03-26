@@ -300,6 +300,7 @@ model User {
   movedToProfileId           Int?
   movedToProfile             Profile?                     @relation("moved_to_profile", fields: [movedToProfileId], references: [id], onDelete: SetNull)
   secondaryEmails            SecondaryEmail[]
+  isPlatformManaged          Boolean                      @default(false)
 
   @@unique([email])
   @@unique([email, username])
