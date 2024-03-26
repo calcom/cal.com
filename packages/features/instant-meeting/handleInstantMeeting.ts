@@ -132,7 +132,6 @@ async function handler(req: NextApiRequest) {
     throw new Error("Cal Video Meeting Creation Failed");
   }
 
-  eventType.team.id;
   const bookingReferenceToCreate = [
     {
       type: calVideoMeeting.type,
@@ -201,7 +200,7 @@ async function handler(req: NextApiRequest) {
   });
 
   // Trigger Webhook
-
+  console.log("url", `${WEBAPP_URL}/connect-and-join?token=${token}`);
   const webhookData = {
     triggerEvent: WebhookTriggerEvents.INSTANT_MEETING,
     uid: newBooking.uid,
