@@ -33,7 +33,7 @@ const emailRatingTemplate = (
     endTime = dayjs(endTime).tz(timeZone).format(currentTimeFormat);
   }
 
-  const emailSubject = `Reminder: ${eventName} - ${eventDate}`;
+  const emailSubject = `How was your recent experience?: ${eventName}`;
 
   const introHtml = `<body>Hi${
     name ? ` ${name}` : ""
@@ -50,7 +50,7 @@ const emailRatingTemplate = (
 
   const branding = !isBrandingDisabled && !isEditingMode ? `<br><br>_<br><br>Scheduling by ${APP_NAME}` : "";
 
-  const endingHtml = `This reminder was triggered by a Workflow in Cal.${branding}</body>`;
+  const endingHtml = `This survey was triggered by a Workflow in Cal.${branding}</body>`;
 
   const emailBody = introHtml + ratingHtml + eventHtml + dateTimeHtml + attendeeHtml + endingHtml;
 
