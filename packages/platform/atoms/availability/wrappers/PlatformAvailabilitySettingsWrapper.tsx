@@ -8,7 +8,7 @@ import { useMe } from "../../hooks/useMe";
 import useUpdateSchedule from "../../hooks/useUpdateSchedule";
 import { useToast } from "../../src/components/ui/use-toast";
 import type { Schedule } from "../AvailabilitySettings";
-import type { CustomClassNames, TranslationsType } from "../AvailabilitySettings";
+import type { CustomClassNames } from "../AvailabilitySettings";
 import { AvailabilitySettings } from "../AvailabilitySettings";
 import type { AvailabilityFormValues } from "../types";
 
@@ -17,7 +17,6 @@ type PlatformAvailabilitySettingsWrapperProps = {
   labels?: {
     tooltips: Partial<ScheduleLabelsType>;
   };
-  translations?: Partial<TranslationsType>;
   customClassNames?: Partial<CustomClassNames>;
   onUpdateSuccess?: (res: ApiResponse<UpdateScheduleOutputType>) => void;
   onUpdateError?: (err: ApiErrorResponse) => void;
@@ -25,27 +24,8 @@ type PlatformAvailabilitySettingsWrapperProps = {
   onDeleteError?: (err: ApiErrorResponse) => void;
 };
 
-const defaultTranslations: TranslationsType = {
-  availability: "Availability",
-  set_to_default: "Set to default",
-  delete: "Delete",
-  delete_schedule: "Delete schedule",
-  timezone: "Timezone",
-  availability_settings: "Availability settings",
-  launch_troubleshooter: "Launch troubleshooter",
-  requires_at_least_one_schedule: "Requires at least one schedule",
-  delete_schedule_description: "Are you sure you want to delete this schedule?",
-  name: "Name",
-  something_doesnt_look_right: "Something doesn't look right",
-  add_an_override: "Add an override",
-  add_time_availability: "Add new time slot",
-  copy_times_to: "Copy times to …",
-  save: "Save",
-} as const;
-
 export const PlatformAvailabilitySettingsWrapper = ({
   id,
-  translations = defaultTranslations,
   customClassNames,
   onDeleteError,
   onDeleteSuccess,
@@ -144,39 +124,7 @@ export const PlatformAvailabilitySettingsWrapper = ({
       isSaving={isSavingInProgress}
       backPath=""
       isPlatform={true}
-      translations={{ ...defaultTranslations, ...translations }}
       customClassNames={customClassNames}
     />
   );
 };
-
-[
-  [
-    {
-      start: "2024-03-21T09:00:00.000Z",
-      end: "2024-03-21T17:00:00.000Z",
-    },
-    {
-      start: "2024-03-21T17:00:00.000Z",
-      end: "2024-03-21T18:00:00.000Z",
-    },
-    {
-      start: "2024-03-21T18:00:00.000Z",
-      end: "2024-03-21T19:00:00.000Z",
-    },
-  ], // thursday
-  [
-    {
-      start: "2024-03-21T09:00:00.000Z",
-      end: "2024-03-21T17:00:00.000Z",
-    },
-    {
-      start: "2024-03-21T17:00:00.000Z",
-      end: "2024-03-21T18:00:00.000Z",
-    },
-    {
-      start: "2024-03-21T18:00:00.000Z",
-      end: "2024-03-21T19:00:00.000Z",
-    },
-  ], //friday
-];
