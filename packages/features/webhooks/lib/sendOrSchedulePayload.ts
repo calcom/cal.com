@@ -1,11 +1,7 @@
-import schedulePayload from "./sendOrSchedulePayload";
+import schedulePayload from "./schedulePayload";
 import sendPayload from "./sendPayload";
 
-type SendOrSchedulePayload = (...args: Parameters<typeof sendPayload>) => Promise<{
-  message?: string | undefined;
-  ok: boolean;
-  status: number;
-}>;
+type SendOrSchedulePayload = typeof sendPayload;
 
 const sendOrSchedulePayload: SendOrSchedulePayload = async (...args) => {
   // If Tasker is enabled, schedule the payload instead of sending it immediately
