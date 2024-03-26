@@ -13,6 +13,9 @@ jobs:
     name: Checkout, lint, test and build
     timeout-minutes: 10
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18.16.1]
 
     steps:
       - name: Checkout files
@@ -39,7 +42,7 @@ jobs:
       - name: Set up Node.js enviroment
         uses: actions/setup-node@v4
         with:
-          node-version-file: '.nvmrc'
+          node-version: ${{ matrix.node-version }}
 
       - name: Get yarn cache directory path
         id: yarn-cache-dir-path
