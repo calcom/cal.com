@@ -42,7 +42,7 @@ jobs:
     timeout-minutes: 30
     services:
       postgres:
-        image: postgres:12.1
+        image: postgres:13.13
         credentials:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
