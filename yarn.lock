@@ -4219,7 +4219,7 @@ __metadata:
     swr: ^1.2.2
     tailwindcss: ^3.3.3
     typescript: ^4.9.4
-    zod: ^3.22.4
+    zod: ^3.22.2
   languageName: unknown
   linkType: soft
 
@@ -5281,8 +5281,7 @@ __metadata:
     "@types/stripe": ^8.0.417
     "@types/turndown": ^5.0.1
     "@types/uuid": 8.3.1
-    "@upstash/ratelimit": ^0.4.3
-    "@upstash/redis": ^1.21.0
+    "@unkey/ratelimit": ^0.1.1
     "@vercel/edge-config": ^0.1.1
     "@vercel/edge-functions-ui": ^0.2.1
     "@vercel/og": ^0.5.0
@@ -5449,7 +5448,7 @@ __metadata:
     keen-slider: ^6.8.0
     lucide-react: ^0.171.0
     micro: ^10.0.1
-    next: ^14.1.3
+    next: ^14.1
     next-auth: ^4.22.1
     next-axiom: ^0.17.0
     next-i18next: ^13.2.2
@@ -5462,7 +5461,7 @@ __metadata:
     react-datocms: ^3.1.0
     react-device-detect: ^2.2.2
     react-dom: ^18.2.0
-    react-fast-marquee: ^1.6.4
+    react-fast-marquee: ^1.3.5
     react-github-btn: ^1.4.0
     react-hook-form: ^7.43.3
     react-hot-toast: ^2.3.0
@@ -17121,30 +17120,31 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@upstash/core-analytics@npm:^0.0.6":
-  version: 0.0.6
-  resolution: "@upstash/core-analytics@npm:0.0.6"
+"@unkey/api@npm:^0.19.4":
+  version: 0.19.4
+  resolution: "@unkey/api@npm:0.19.4"
   dependencies:
-    "@upstash/redis": ^1.19.3
-  checksum: 4d952984b1a7dd6c9b7d2ed6e597b6d64909ab3ed822088a0e014f6598f0c8cf25ac39ec6b72481c67ba9ea27afce1596c18ecb6e5f5f0837811cc600660f137
+    "@unkey/rbac": ^0.1.11
+  checksum: 974bb7fd5462aab55250ddd93c9785f0a1cfed19354e17bf2dbffb30ce5f3c3192dcafe71b9af36cdc7212760e1e0f3762fc8e6b0373db24c175a9e406a7a2a7
   languageName: node
   linkType: hard
 
-"@upstash/ratelimit@npm:^0.4.3":
-  version: 0.4.3
-  resolution: "@upstash/ratelimit@npm:0.4.3"
+"@unkey/ratelimit@npm:^0.1.1":
+  version: 0.1.1
+  resolution: "@unkey/ratelimit@npm:0.1.1"
   dependencies:
-    "@upstash/core-analytics": ^0.0.6
-  checksum: d75c154abad949d90a82a62109e8c8511660fce22564e5de42b806a695f7a41526de91604df561b104b44edf4896fb4cb589d795781a427f31c8943b78c20b61
+    "@unkey/api": ^0.19.4
+  checksum: ec1d5fcf14787700d0a6e16a64e372683f9edcf08c052dbf84b8ef1c2c798d6d5162e7cb1a954d847381ab53db039747490507c0ed02c88eeea06268c02e4d56
   languageName: node
   linkType: hard
 
-"@upstash/redis@npm:^1.19.3, @upstash/redis@npm:^1.21.0":
-  version: 1.21.0
-  resolution: "@upstash/redis@npm:1.21.0"
+"@unkey/rbac@npm:^0.1.11":
+  version: 0.1.11
+  resolution: "@unkey/rbac@npm:0.1.11"
   dependencies:
-    isomorphic-fetch: ^3.0.0
-  checksum: ba2ba971c1f6d0297afddf73aba0817a39fcf8d71e51131030a24541e4564138a11bae50b78da7dd0eca5a11baa1322888688cb206f078603ea3a8d0a639a30e
+    zod: ^3.22.4
+    zod-error: ^1.5.0
+  checksum: 69fddda11453363da7b6fd881d97d21a6bb31be3c234dec51e5837634be71531ada0d69c51d37ef4d0540fb5d65ce7cbd8843380d30c70741135b27e10878e5d
   languageName: node
   linkType: hard
 
@@ -30099,16 +30099,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"isomorphic-fetch@npm:^3.0.0":
-  version: 3.0.0
-  resolution: "isomorphic-fetch@npm:3.0.0"
-  dependencies:
-    node-fetch: ^2.6.1
-    whatwg-fetch: ^3.4.1
-  checksum: e5ab79a56ce5af6ddd21265f59312ad9a4bc5a72cebc98b54797b42cb30441d5c5f8d17c5cd84a99e18101c8af6f90c081ecb8d12fd79e332be1778d58486d75
-  languageName: node
-  linkType: hard
-
 "isomorphic-ws@npm:^5.0.0":
   version: 5.0.0
   resolution: "isomorphic-ws@npm:5.0.0"
@@ -35255,7 +35245,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"next@npm:^14.1.3":
+"next@npm:^14.1":
   version: 14.1.4
   resolution: "next@npm:14.1.4"
   dependencies:
@@ -39152,7 +39142,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-fast-marquee@npm:^1.6.4":
+"react-fast-marquee@npm:^1.3.5":
   version: 1.6.4
   resolution: "react-fast-marquee@npm:1.6.4"
   peerDependencies:
@@ -47688,6 +47678,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"zod-error@npm:^1.5.0":
+  version: 1.5.0
+  resolution: "zod-error@npm:1.5.0"
+  dependencies:
+    zod: ^3.20.2
+  checksum: 1ee6f642f3dcabc2a9610d67f1986f94c338bcf38d152e788dafc4703e488fc7624c189c5948649beb566e2d37444cea064afea662924ac2e8504920e7863ded
+  languageName: node
+  linkType: hard
+
 "zod-prisma@npm:^0.5.4":
   version: 0.5.4
   resolution: "zod-prisma@npm:0.5.4"
@@ -47717,7 +47716,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"zod@npm:^3.22.2, zod@npm:^3.22.3, zod@npm:^3.22.4":
+"zod@npm:^3.20.2, zod@npm:^3.22.2, zod@npm:^3.22.3, zod@npm:^3.22.4":
   version: 3.22.4
   resolution: "zod@npm:3.22.4"
   checksum: 80bfd7f8039b24fddeb0718a2ec7c02aa9856e4838d6aa4864335a047b6b37a3273b191ef335bf0b2002e5c514ef261ffcda5a589fb084a48c336ffc4cdbab7f
