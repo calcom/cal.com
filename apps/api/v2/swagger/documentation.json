@@ -506,6 +506,22 @@
             }
           }
         }
+      },
+      "get": {
+        "operationId": "EventTypesController_getEventTypes",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/api/v2/event-types/{eventTypeId}": {
@@ -514,6 +530,33 @@
         "parameters": [
           {
             "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/event-types/{username}/public": {
+      "get": {
+        "operationId": "EventTypesController_getPublicEventTypes",
+        "parameters": [
+          {
+            "name": "username",
             "required": true,
             "in": "path",
             "schema": {
@@ -1206,7 +1249,7 @@
           "createdAt": {
             "format": "date-time",
             "type": "string",
-            "example": "2024-03-21T16:58:29.130Z"
+            "example": "2024-03-23T08:33:21.851Z"
           }
         },
         "required": [
