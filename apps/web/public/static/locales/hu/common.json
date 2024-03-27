@@ -1138,6 +1138,7 @@
   "workflow_name": "Munkafolyamat neve",
   "custom_workflow": "Egyedi munkafolyamat",
   "workflow_created_successfully": "{{workflowName}} sikeresen létrehozva",
+  "day_timeUnit": "nap",
   "hour_timeUnit": "Óra",
   "minute_timeUnit": "perc",
   "remove_app": "Alkalmazás eltávolítása",
