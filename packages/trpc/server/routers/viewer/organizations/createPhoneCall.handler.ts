@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { handleErrorsJson } from "@calcom/lib/errors";
+import logger from "@calcom/lib/logger";
 import type { PrismaClient } from "@calcom/prisma";
 import type { AIPhoneSettingSchema } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
@@ -17,12 +18,14 @@ type CreatePhoneCallProps = {
 const createRetellLLMSchema = z
   .object({
     llm_id: z.string(),
+    llm_websocket_url: z.string(),
   })
   .passthrough();
 
 const getRetellLLMSchema = z
   .object({
     general_prompt: z.string(),
+    begin_message: z.string().nullable(),
   })
   .passthrough();
 
@@ -30,8 +33,12 @@ const createPhoneSchema = z
   .object({
     call_id: z.string(),
     agent_id: z.string(),
-    from_number: z.number(),
-    to_number: z.number(),
+  })
+  .passthrough();
+
+const getPhoneNumberSchema = z
+  .object({
+    agent_id: z.string(),
   })
   .passthrough();
 
@@ -72,6 +79,8 @@ const createPhoneCallHandler = async ({ input, ctx }: CreatePhoneCallProps) => {
     },
   });
 
+  let llmWebSocketUrlToBeUpdated = null;
+
   if (!aiPhoneCallConfig.llmId) {
     const createdRetellLLM = await fetcher("/create-retell-llm", {
       method: "POST",
@@ -88,7 +97,7 @@ const createPhoneCallHandler = async ({ input, ctx }: CreatePhoneCallProps) => {
             type: "check_availability_cal",
             name: "check_availability",
             // TODO: CAL API KEY Environment Var
-            cal_api_key: "cal_live_cedb0d32c6e02a6ddeb8c1591b3d4255",
+            // cal_api_key: ,
             event_type_id: eventTypeId,
             timezone: ctx.user.timeZone,
           },
@@ -96,7 +105,7 @@ const createPhoneCallHandler = async ({ input, ctx }: CreatePhoneCallProps) => {
             type: "book_appointment_cal",
             name: "book_appointment",
             // TODO: CAL API KEY Environment Var
-            cal_api_key: "cal_live_cedb0d32c6e02a6ddeb8c1591b3d4255",
+            // cal_api_key: ,
             event_type_id: eventTypeId,
             timezone: ctx.user.timeZone,
           },
@@ -113,20 +122,39 @@ const createPhoneCallHandler = async ({ input, ctx }: CreatePhoneCallProps) => {
       },
     });
 
-    console.log("createdRetellLLM", createdRetellLLM);
+    llmWebSocketUrlToBeUpdated = createdRetellLLM.llm_websocket_url;
   } else {
     const retellLLM = await fetcher(`/get-retell-llm/${aiPhoneCallConfig.llmId}`).then(
       getRetellLLMSchema.parse
     );
 
-    if (retellLLM.general_prompt !== generalPrompt) {
-      await fetcher(`/update-retell-llm/${aiPhoneCallConfig.llmId}`, {
+    if (retellLLM.general_prompt !== generalPrompt || retellLLM.begin_message !== beginMessage) {
+      const updatedRetellLLM = await fetcher(`/update-retell-llm/${aiPhoneCallConfig.llmId}`, {
         method: "PATCH",
         body: JSON.stringify({
           general_prompt: generalPrompt,
         }),
-      });
+      }).then(getRetellLLMSchema.parse);
+
+      logger.debug("updated Retell LLM", updatedRetellLLM);
+
+      llmWebSocketUrlToBeUpdated = updatedRetellLLM.llm_websocket_url;
     }
+  }
+
+  if (llmWebSocketUrlToBeUpdated) {
+    const getPhoneNumberDetails = await fetcher(`/get-phone-number/${yourPhoneNumber}`).then(
+      getPhoneNumberSchema.parse
+    );
+
+    const updated = await fetcher(`/update-agent/${getPhoneNumberDetails.agent_id}`, {
+      method: "PATCH",
+      body: JSON.stringify({
+        llm_websocket_url: llmWebSocketUrlToBeUpdated,
+      }),
+    });
+
+    logger.debug("updated Retell Agent", updated);
   }
 
   // Create Phone Call
@@ -139,7 +167,7 @@ const createPhoneCallHandler = async ({ input, ctx }: CreatePhoneCallProps) => {
     }),
   }).then(createPhoneSchema.parse);
 
-  console.log("CreatePhoneCall", createPhoneCallRes);
+  logger.debug("Create Call Response", createPhoneCallRes);
 
   return createPhoneCallRes;
 };

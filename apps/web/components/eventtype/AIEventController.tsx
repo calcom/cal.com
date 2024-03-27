@@ -238,7 +238,10 @@ const AISettings = ({ eventType }: { eventType: EventTypeSetup }) => {
               </>
             )} */}
 
-        <Button disabled={createCallMutation.isPending} onClick={handleSubmit}>
+        <Button
+          disabled={createCallMutation.isPending}
+          loading={createCallMutation.isPending}
+          onClick={handleSubmit}>
           Make a Call
         </Button>
 
