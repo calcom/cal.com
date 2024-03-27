@@ -78,6 +78,7 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     position: 1,
     isInstantEvent: false,
     isCalAiPhoneCallEnabled: false,
+    calAiPhoneScript: null,
     locations: null,
     length: 15,
     offsetStart: 0,

@@ -306,7 +306,7 @@ export const getPublicEvent = async (
     isDynamic: false,
     isInstantEvent: eventWithUserProfiles.isInstantEvent,
     isCalAiPhoneCallEnabled: eventWithUserProfiles.isCalAiPhoneCallEnabled,
-    calAiPhoneScript: eventWithUserProfiles.eventWithUserProfiles,
+    calAiPhoneScript: eventWithUserProfiles.calAiPhoneScript,
     assignAllTeamMembers: event.assignAllTeamMembers,
   };
 };
