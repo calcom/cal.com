@@ -166,7 +166,7 @@ test.describe("Organization", () => {
     });
 
     await orgOwnerUser.apiLogin();
-
+    const orgName = capitalize(`${orgOwnerUsername}`);
     await page.goto("/settings/organizations/new");
     await page.waitForLoadState("networkidle");
 
@@ -174,6 +174,9 @@ test.describe("Organization", () => {
       // These values are infered due to an existing user being signed
       expect(await page.locator("input[name=name]").inputValue()).toBe("Example");
       expect(await page.locator("input[name=slug]").inputValue()).toBe("example");
+
+      await page.locator("input[name=name]").fill(orgName);
+      await page.locator("input[name=slug]").fill(orgOwnerUsername);
 
       await page.locator("button[type=submit]").click();
       await page.waitForLoadState("networkidle");
