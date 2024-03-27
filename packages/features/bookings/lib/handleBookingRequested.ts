@@ -16,6 +16,9 @@ export async function handleBookingRequested(args: {
   evt: CalendarEvent;
   booking: {
     eventType: {
+      team?: {
+        parentId: number | null;
+      } | null;
       currency: string;
       description: string | null;
       id: number;

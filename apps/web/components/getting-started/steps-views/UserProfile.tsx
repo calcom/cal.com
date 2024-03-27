@@ -36,7 +36,7 @@ const UserProfile = () => {
       if (context.avatar) {
         showToast(t("your_user_profile_updated_successfully"), "success");
         await utils.viewer.me.refetch();
-      } else {
+      } else
         try {
           if (eventTypes?.length === 0) {
             await Promise.all(
@@ -49,9 +49,11 @@ const UserProfile = () => {
           console.error(error);
         }
 
-        await utils.viewer.me.refetch();
-        router.push("/");
-      }
+      await utils.viewer.me.refetch();
+      const redirectUrl = localStorage.getItem("onBoardingRedirect");
+      localStorage.removeItem("onBoardingRedirect");
+
+      redirectUrl ? router.push(redirectUrl) : router.push("/");
     },
     onError: () => {
       showToast(t("problem_saving_user_profile"), "error");
@@ -143,6 +145,7 @@ const UserProfile = () => {
         <p className="text-default mt-2 font-sans text-sm font-normal">{t("few_sentences_about_yourself")}</p>
       </fieldset>
       <Button
+        loading={mutation.isPending}
         EndIcon={(props) => <Icon {...props} name="arrow-right" />}
         type="submit"
         className="mt-8 w-full items-center justify-center">

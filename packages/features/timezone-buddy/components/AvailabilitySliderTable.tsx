@@ -59,7 +59,7 @@ function UpgradeTeamTip() {
   );
 }
 
-export function AvailabilitySliderTable() {
+export function AvailabilitySliderTable(props: { userTimeFormat: number | null }) {
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const [browsingDate, setBrowsingDate] = useState(dayjs());
   const [editSheetOpen, setEditSheetOpen] = useState(false);

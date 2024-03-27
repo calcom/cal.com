@@ -82,6 +82,7 @@ const IntegrationsContainer = ({
               className="mb-6"
               actions={
                 <Button
+                  data-testid="add-apps"
                   href={variant ? `/apps/categories/${variant}` : "/apps"}
                   color="secondary"
                   StartIcon={(props) => <Icon {...props} name="plus" />}>

@@ -331,7 +331,10 @@ export const userMetadata = z
       })
       .optional(),
     defaultBookerLayouts: bookerLayouts.optional(),
-    emailChangeWaitingForVerification: z.string().optional(),
+    emailChangeWaitingForVerification: z
+      .string()
+      .transform((data) => data.toLowerCase())
+      .optional(),
     migratedToOrgFrom: z
       .object({
         username: z.string().or(z.null()).optional(),
@@ -343,6 +346,13 @@ export const userMetadata = z
   })
   .nullable();
 
+export const orgSettingsSchema = z
+  .object({
+    isOrganizationVerified: z.boolean().optional(),
+    isOrganizationConfigured: z.boolean().optional(),
+    orgAutoAcceptEmail: z.string().optional(),
+  })
+  .nullable();
 export type userMetadataType = z.infer<typeof userMetadata>;
 
 export const teamMetadataSchema = z
@@ -351,10 +361,6 @@ export const teamMetadataSchema = z
     paymentId: z.string(),
     subscriptionId: z.string().nullable(),
     subscriptionItemId: z.string().nullable(),
-    isOrganization: z.boolean().nullable(),
-    isOrganizationVerified: z.boolean().nullable(),
-    isOrganizationConfigured: z.boolean().nullable(),
-    orgAutoAcceptEmail: z.string().nullable(),
     migratedToOrgFrom: z
       .object({
         teamSlug: z.string().or(z.null()).optional(),
@@ -437,6 +443,8 @@ export const successRedirectUrl = z
 export const RoutingFormSettings = z
   .object({
     emailOwnerOnSubmission: z.boolean(),
+    sendUpdatesTo: z.array(z.number()).optional(),
+    sendToAll: z.boolean().optional(),
   })
   .nullable();
 
@@ -622,6 +630,8 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   workflows: true,
   bookingFields: true,
   durationLimits: true,
+  lockTimeZoneToggleOnBookingPage: true,
+  requiresBookerEmailVerification: true,
   assignAllTeamMembers: true,
 };
 

@@ -49,6 +49,8 @@ function TeamPage({
   const isBioEmpty = !team.bio || !team.bio.replace("<p><br></p>", "").length;
   const metadata = teamMetadataSchema.parse(team.metadata);
 
+  const teamOrOrgIsPrivate = team.isPrivate || (team?.parent?.isOrganization && team.parent?.isPrivate);
+
   useEffect(() => {
     telemetry.event(
       telemetryEventTypes.pageView,
@@ -61,7 +63,7 @@ function TeamPage({
     return (
       <div className="flex h-full min-h-[100dvh] items-center justify-center">
         <UnpublishedEntity
-          {...(metadata?.isOrganization || team.parentId ? { orgSlug: slug } : { teamSlug: slug })}
+          {...(team?.isOrganization || team.parentId ? { orgSlug: slug } : { teamSlug: slug })}
           name={teamName}
         />
       </div>
@@ -122,7 +124,7 @@ function TeamPage({
             (mem) => mem.subteams?.includes(ch.slug) && mem.accepted
           ).length;
           return (
-            <li key={i} className="hover:bg-muted w-full">
+            <li key={i} className="hover:bg-muted w-full rounded-md">
               <Link href={`/${ch.slug}`} className="flex items-center justify-between">
                 <div className="flex items-center px-5 py-5">
                   <div className="ms-3 inline-block truncate">
@@ -157,7 +159,7 @@ function TeamPage({
     );
 
   const profileImageSrc =
-    isValidOrgDomain || team.metadata?.isOrganization
+    isValidOrgDomain || team.isOrganization
       ? getOrgAvatarUrl({ slug: currentOrgDomain, logoUrl: team.logoUrl })
       : getTeamAvatarUrl({ slug: team.slug, logoUrl: team.logoUrl, organizationId: team.parent?.id });
 
@@ -192,12 +194,18 @@ function TeamPage({
             </>
           )}
         </div>
-        {metadata?.isOrganization ? (
-          <SubTeams />
+        {team.isOrganization ? (
+          !teamOrOrgIsPrivate ? (
+            <SubTeams />
+          ) : (
+            <div className="w-full text-center">
+              <h2 className="text-emphasis font-semibold">{t("you_cannot_see_teams_of_org")}</h2>
+            </div>
+          )
         ) : (
           <>
             {(showMembers.isOn || !team.eventTypes?.length) &&
-              (team.isPrivate ? (
+              (teamOrOrgIsPrivate ? (
                 <div className="w-full text-center">
                   <h2 data-testid="you-cannot-see-team-members" className="text-emphasis font-semibold">
                     {t("you_cannot_see_team_members")}
@@ -211,7 +219,7 @@ function TeamPage({
                 <EventTypes eventTypes={team.eventTypes} />
 
                 {/* Hide "Book a team member button when team is private or hideBookATeamMember is true" */}
-                {!team.hideBookATeamMember && !team.isPrivate && (
+                {!team.hideBookATeamMember && !teamOrOrgIsPrivate && (
                   <div>
                     <div className="relative mt-12">
                       <div className="absolute inset-0 flex items-center" aria-hidden="true">

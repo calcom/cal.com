@@ -6,7 +6,6 @@ import InviteLinkSettingsModal from "@calcom/ee/teams/components/InviteLinkSetti
 import MemberInvitationModal from "@calcom/ee/teams/components/MemberInvitationModal";
 import classNames from "@calcom/lib/classNames";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
-import { isOrganization } from "@calcom/lib/entityPermissionUtils";
 import { getTeamUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -77,7 +76,7 @@ export default function TeamListItem(props: Props) {
       utils.viewer.teams.listInvites.invalidate();
       const userOrganizationId = user?.profile?.organization?.id;
       const isSubTeamOfDifferentOrg = team.parentId ? team.parentId != userOrganizationId : false;
-      const isDifferentOrg = isOrganization({ team }) && team.id !== userOrganizationId;
+      const isDifferentOrg = team.isOrganization && team.id !== userOrganizationId;
       // If the user team being accepted is a sub-team of different organization or the different organization itself then page must be reloaded to let the session change reflect reliably everywhere.
       if (variables.accept && (isSubTeamOfDifferentOrg || isDifferentOrg)) {
         window.location.reload();
@@ -101,15 +100,15 @@ export default function TeamListItem(props: Props) {
   const { hideDropdown, setHideDropdown } = props;
 
   if (!team) return <></>;
-  const teamUrl = isOrganization({ team })
+  const teamUrl = team.isOrganization
     ? getTeamUrlSync({ orgSlug: team.slug, teamSlug: null })
     : getTeamUrlSync({ orgSlug: team.parent ? team.parent.slug : null, teamSlug: team.slug });
   const teamInfo = (
     <div className="item-center flex px-5 py-5">
       <Avatar
         size="md"
-        imageSrc={getPlaceholderAvatar(team?.logo, team?.name as string)}
-        alt="Team Logo"
+        imageSrc={getPlaceholderAvatar(team?.logo || team?.parent?.logo, team?.name as string)}
+        alt="Team logo"
         className="inline-flex justify-center"
       />
       <div className="ms-3 inline-block truncate">

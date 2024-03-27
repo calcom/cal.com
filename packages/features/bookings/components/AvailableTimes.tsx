@@ -12,7 +12,7 @@ import { Button, SkeletonText } from "@calcom/ui";
 import { CalendarX2, ChevronRight } from "@calcom/ui/components/icon";
 
 import { useBookerStore } from "../Booker/store";
-import { useEvent } from "../Booker/utils/event";
+import type { useEventReturnType } from "../Booker/utils/event";
 import { getQueryParam } from "../Booker/utils/query-param";
 import { useTimePreferences } from "../lib";
 import { useCheckOverlapWithOverlay } from "../lib/useCheckOverlapWithOverlay";
@@ -33,6 +33,7 @@ type AvailableTimesProps = {
   showTimeFormatToggle?: boolean;
   className?: string;
   selectedSlots?: string[];
+  event: useEventReturnType;
 };
 
 const SlotItem = ({
@@ -41,12 +42,14 @@ const SlotItem = ({
   selectedSlots,
   onTimeSelect,
   showAvailableSeatsCount,
+  event,
 }: {
   slot: Slots[string][number];
   seatsPerTimeSlot?: number | null;
   selectedSlots?: string[];
   onTimeSelect: TOnTimeSelect;
   showAvailableSeatsCount?: boolean | null;
+  event: useEventReturnType;
 }) => {
   const { t } = useLocale();
 
@@ -55,7 +58,7 @@ const SlotItem = ({
   const [timeFormat, timezone] = useTimePreferences((state) => [state.timeFormat, state.timezone]);
   const bookingData = useBookerStore((state) => state.bookingData);
   const layout = useBookerStore((state) => state.layout);
-  const { data: event } = useEvent();
+  const { data: eventData } = event;
   const hasTimeSlots = !!seatsPerTimeSlot;
   const computedDateWithUsersTimezone = dayjs.utc(slot.time).tz(timezone);
 
@@ -71,7 +74,7 @@ const SlotItem = ({
 
   const { isOverlapping, overlappingTimeEnd, overlappingTimeStart } = useCheckOverlapWithOverlay({
     start: computedDateWithUsersTimezone,
-    selectedDuration: event?.length ?? 0,
+    selectedDuration: eventData?.length ?? 0,
     offset,
   });
 
@@ -187,6 +190,7 @@ export const AvailableTimes = ({
   showTimeFormatToggle = true,
   className,
   selectedSlots,
+  event,
 }: AvailableTimesProps) => {
   const { t } = useLocale();
 
@@ -194,7 +198,9 @@ export const AvailableTimes = ({
     <div className={classNames("text-default flex flex-col", className)}>
       <div className="h-full pb-4">
         {!slots.length && (
-          <div className="bg-subtle border-subtle flex h-full flex-col items-center rounded-md border p-6 dark:bg-transparent">
+          <div
+            data-testId="no-slots-available"
+            className="bg-subtle border-subtle flex h-full flex-col items-center rounded-md border p-6 dark:bg-transparent">
             <CalendarX2 className="text-muted mb-2 h-4 w-4" />
             <p className={classNames("text-muted", showTimeFormatToggle ? "-mt-1 text-lg" : "text-sm")}>
               {t("all_booked_today")}
@@ -209,6 +215,7 @@ export const AvailableTimes = ({
             selectedSlots={selectedSlots}
             seatsPerTimeSlot={seatsPerTimeSlot}
             showAvailableSeatsCount={showAvailableSeatsCount}
+            event={event}
           />
         ))}
       </div>

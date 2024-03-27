@@ -1,7 +1,8 @@
 import type { FieldValues } from "react-hook-form";
 import { useFormContext } from "react-hook-form";
 
-import { Check, Circle, Info, X } from "../../icon";
+import { Check, Circle, X } from "../../icon";
+import { InputError } from "./InputError";
 
 type hintsOrErrorsProps = {
   hintErrors?: string[];
@@ -74,16 +75,7 @@ export function HintsOrErrors<T extends FieldValues = FieldValues>({
 
   // errors exist, not custom ones, just show them as is
   if (fieldErrors) {
-    return (
-      <div
-        data-testid="field-error"
-        className="text-gray mt-2 flex items-center gap-x-2 text-sm text-red-700">
-        <div>
-          <Info className="h-3 w-3" />
-        </div>
-        <p>{fieldErrors.message}</p>
-      </div>
-    );
+    return <InputError message={fieldErrors.message} />;
   }
 
   if (!hintErrors) return null;

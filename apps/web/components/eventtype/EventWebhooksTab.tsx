@@ -3,8 +3,10 @@ import { Trans } from "next-i18next";
 import Link from "next/link";
 import type { EventTypeSetupProps } from "pages/event-types/[type]";
 import { useState } from "react";
+import { useFormContext } from "react-hook-form";
 
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
+import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import { WebhookForm } from "@calcom/features/webhooks/components";
 import type { WebhookFormSubmitData } from "@calcom/features/webhooks/components/WebhookForm";
 import WebhookListItem from "@calcom/features/webhooks/components/WebhookListItem";
@@ -18,6 +20,7 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
   const { t } = useLocale();
 
   const utils = trpc.useContext();
+  const formMethods = useFormContext<FormValues>();
 
   const { data: webhooks } = trpc.viewer.webhook.list.useQuery({ eventTypeId: eventType.id });
 
@@ -94,11 +97,11 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
     );
   };
 
-  const { shouldLockDisableProps, isChildrenManagedEventType, isManagedEventType } = useLockedFieldsManager(
+  const { shouldLockDisableProps, isChildrenManagedEventType, isManagedEventType } = useLockedFieldsManager({
     eventType,
-    t("locked_fields_admin_description"),
-    t("locked_fields_member_description")
-  );
+    translate: t,
+    formMethods,
+  });
   const webhookLockedStatus = shouldLockDisableProps("webhooks");
 
   return (
@@ -164,7 +167,7 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
                           StartIcon={(props) => <Icon {...props} name="lock" />}
                           color="secondary"
                           disabled>
-                          {t("locked_by_admin")}
+                          {t("locked_by_team_admin")}
                         </Button>
                       ) : (
                         <NewWebhookButton />

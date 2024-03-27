@@ -102,6 +102,8 @@ const commons = {
   bookingFields: [],
   assignAllTeamMembers: false,
   useEventTypeDestinationCalendarEmail: false,
+  secondaryEmailId: null,
+  secondaryEmail: null,
 };
 
 const dynamicEvent = {
