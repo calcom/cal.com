@@ -1,0 +1,102 @@
+name: "Deploy - Web"
+
+on:
+  # push:
+  pull_request:
+    branches:
+      - funnelhub
+    paths:
+      - apps/web/**
+  workflow_dispatch:
+
+env:
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+  AWS_SECRET_MANAGER_CALCOM_KEY: ${{ secrets.AWS_SECRET_MANAGER_CALCOM_KEY }}
+  REGISTRY_URL_ECR: ${{ secrets.REGISTRY_URL_ECR }}
+  CERTIFICATE_SSL: ${{ secrets.CERTIFICATE_SSL }}
+  K8S_CLUSTER_NAME: ${{ secrets.K8S_CLUSTER_NAME }}
+  ENVFILE: .env
+
+jobs:
+  generate_env:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v4
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: Generate env file
+        run: |
+          mkdir artifact
+          sudo apt-get install -y jq
+          aws secretsmanager get-secret-value --secret-id $AWS_SECRET_MANAGER_CALCOM_KEY --region $AWS_REGION | jq -r '.SecretString' | jq -r "to_entries|map(\"\(.key)=\\\"\(.value|tostring)\\\"\")|.[]" > .env
+          mv .env artifact
+      - name: Archive .env
+        uses: actions/upload-artifact@master
+        with:
+          name: env-file
+          path: ./artifact
+
+  build_and_push_to_ecr:
+    needs: generate_env
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v4
+      - name: Download .env
+        uses: actions/download-artifact@master
+        with:
+          name: env-file
+          path: artifact
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: "Push docker image to registry"
+        id: push_docker_image
+        run: |
+          TAG_IMAGE=$(cat apps/web/package.json | grep '"version"' | awk -F '"' '{print $4}')
+          IMAGE="$REGISTRY_URL_ECR/calcom-web:$TAG_IMAGE"
+          aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $REGISTRY_URL_ECR
+          mv artifact/.env .
+          docker buildx build --platform=linux/amd64 -t docker-image-local --load . -f ./infra/docker/web/Dockerfile
+          docker tag docker-image-local:latest $IMAGE
+          docker push $IMAGE
+
+  deploy_to_kubernetes:
+    needs: build_and_push_to_ecr
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v4
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: Update Kubernetes files
+        run: |
+          TAG_IMAGE=$(cat apps/web/package.json | grep '"version"' | awk -F '"' '{print $4}')
+          IMAGE="$REGISTRY_URL_ECR/calcom-web:$TAG_IMAGE"
+          sed -i -e "s#APPLICATION_NAME#calcom-web#" ./apps/web/k8s/0-deployment.yml
+          sed -i -e "s#APPLICATION_NAME#calcom-web#" ./apps/web/k8s/1-service.yml
+          sed -i -e "s#APPLICATION_NAME#calcom-web#" ./apps/web/k8s/2-hpa.yml
+          sed -i -e "s#WEB_IMAGE#$IMAGE#" ./apps/web/k8s/0-deployment.yml
+          sed -i -e "s#CERTIFICATE_SSL#$CERTIFICATE_SSL#" ./apps/web/k8s/1-service.yml
+      - name: Deploy to k8s
+        run: |
+          K8S_PATH=./apps/web/k8s
+          sudo snap install kubectl --classic
+          aws eks --region $AWS_REGION update-kubeconfig --name $K8S_CLUSTER_NAME
+          kubectl apply -f $K8S_PATH/0-deployment.yml
+          kubectl apply -f $K8S_PATH/1-service.yml
+          kubectl apply -f $K8S_PATH/2-hpa.yml
