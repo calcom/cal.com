@@ -31,5 +31,9 @@ export default viteBaseConfig;
 export const embedCoreEnvVars = {
   EMBED_PUBLIC_EMBED_FINGER_PRINT: process.env.EMBED_PUBLIC_EMBED_FINGER_PRINT ?? "",
   EMBED_PUBLIC_VERCEL_URL: process.env.EMBED_PUBLIC_VERCEL_URL ?? "http://localhost:3000",
-  EMBED_PUBLIC_WEBAPP_URL: process.env.EMBED_PUBLIC_WEBAPP_URL ?? "http://localhost:3000",
+  EMBED_PUBLIC_WEBAPP_URL:
+    process.env.EMBED_PUBLIC_WEBAPP_URL ??
+    (process.env.EMBED_PUBLIC_VERCEL_URL
+      ? `https://${process.env.EMBED_PUBLIC_VERCEL_URL}`
+      : "http://localhost:3000"),
 };
