@@ -684,6 +684,7 @@
   "default_duration": "默认时长",
   "default_duration_no_options": "请先选择可用时长",
   "multiple_duration_mins": "{{count}} $t(minute_timeUnit)",
+  "multiple_duration_timeUnit": "{{count}} $t({{unit}}_timeUnit)",
   "minutes": "分钟",
   "round_robin": "轮流模式",
   "round_robin_description": "和多个团队成员之间轮流举行会议。",
