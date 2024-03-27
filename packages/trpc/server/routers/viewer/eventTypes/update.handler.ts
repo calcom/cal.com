@@ -18,9 +18,19 @@ import { setDestinationCalendarHandler } from "../../loggedInViewer/setDestinati
 import type { TUpdateInputSchema } from "./update.schema";
 import { ensureUniqueBookingFields, handleCustomInputs, handlePeriodType } from "./util";
 
+type SessionUser = NonNullable<TrpcSessionUser>;
+type User = {
+  id: SessionUser["id"];
+  username: SessionUser["username"];
+  profile: {
+    id: SessionUser["profile"]["id"] | null;
+  };
+  selectedCalendars: SessionUser["selectedCalendars"];
+};
+
 type UpdateOptions = {
   ctx: {
-    user: NonNullable<TrpcSessionUser>;
+    user: User;
     res?: NextApiResponse | GetServerSidePropsContext["res"];
     prisma: PrismaClient;
   };

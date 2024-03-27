@@ -2,6 +2,7 @@ import { DEFAULT_EVENT_TYPES } from "@/ee/event-types/constants/constants";
 import { EventTypesRepository } from "@/ee/event-types/event-types.repository";
 import { CreateEventTypeInput } from "@/ee/event-types/inputs/create-event-type.input";
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
+import { SelectedCalendarsRepository } from "@/modules/selected-calendars/selected-calendars.repository";
 import { UserWithProfile, UsersRepository } from "@/modules/users/users.repository";
 import { Injectable, NotFoundException } from "@nestjs/common";
 
@@ -12,7 +13,8 @@ export class EventTypesService {
   constructor(
     private readonly eventTypesRepository: EventTypesRepository,
     private readonly membershipsRepository: MembershipsRepository,
-    private readonly usersRepository: UsersRepository
+    private readonly usersRepository: UsersRepository,
+    private readonly selectedCalendarsRepository: SelectedCalendarsRepository
   ) {}
 
   async createUserEventType(userId: number, body: CreateEventTypeInput) {
@@ -66,5 +68,11 @@ export class EventTypesService {
       : false;
     const profileId = user.movedToProfile?.id;
     return { ...user, organization: { isOrgAdmin }, profile: { id: profileId } };
+  }
+
+  async getUserToUpdateEvent(user: UserWithProfile) {
+    const profileId = user.movedToProfile?.id;
+    const selectedCalendars = await this.selectedCalendarsRepository.getUserSelectedCalendars(user.id);
+    return { ...user, profile: { id: profileId }, selectedCalendars };
   }
 }

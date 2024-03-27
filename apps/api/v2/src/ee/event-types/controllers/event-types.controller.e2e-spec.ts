@@ -2,6 +2,7 @@ import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
 import { EventTypesModule } from "@/ee/event-types/event-types.module";
 import { CreateEventTypeInput } from "@/ee/event-types/inputs/create-event-type.input";
+import { UpdateEventTypeInput } from "@/ee/event-types/inputs/update-event-type.input";
 import { HttpExceptionFilter } from "@/filters/http-exception.filter";
 import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
@@ -145,6 +146,22 @@ describe("Event types Endpoints", () => {
           expect(responseBody.data).toHaveProperty("id");
           expect(responseBody.data.title).toEqual(body.title);
           eventType = responseBody.data;
+        });
+    });
+
+    it("should update event type", async () => {
+      const newTitle = "Updated title";
+
+      const body: UpdateEventTypeInput = {
+        title: newTitle,
+      };
+
+      return request(app.getHttpServer())
+        .patch(`/api/v2/event-types/${eventType.id}`)
+        .send(body)
+        .expect(200)
+        .then(async () => {
+          eventType.title = newTitle;
         });
     });
 
