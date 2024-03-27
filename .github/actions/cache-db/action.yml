@@ -3,7 +3,7 @@ description: "Cache or restore if necessary"
 inputs:
   DATABASE_URL:
     required: false
-    default: "postgresql://postgres:@localhost:5432/calendso"
+    default: "postgresql://postgres:postgres@localhost:5432/calendso"
   path:
     required: false
     default: "backups/backup.sql"
