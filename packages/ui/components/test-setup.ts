@@ -67,6 +67,11 @@ vi.mock("@calcom/atoms/monorepo", () => ({
 
 vi.mock("@calcom/lib/event-types/getEventTypesByViewer", () => ({}));
 vi.mock("@calcom/lib/event-types/getEventTypesPublic", () => ({}));
+vi.mock("@calcom/lib", () => ({
+  classNames: (...args: string[]) => {
+    return args.filter(Boolean).join(" ");
+  },
+}));
 
 expect.extend({
   tabToBeDisabled(received) {
