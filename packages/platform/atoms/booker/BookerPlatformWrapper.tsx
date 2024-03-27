@@ -27,6 +27,7 @@ import { useConnectedCalendars } from "../hooks/useConnectedCalendars";
 import { useCreateBooking } from "../hooks/useCreateBooking";
 import { useCreateInstantBooking } from "../hooks/useCreateInstantBooking";
 import { useCreateRecurringBooking } from "../hooks/useCreateRecurringBooking";
+import { useGetBookingForReschedule } from "../hooks/useGetBookingForReschedule";
 import { useHandleBookEvent } from "../hooks/useHandleBookEvent";
 import { useMe } from "../hooks/useMe";
 import { usePublicEvent } from "../hooks/usePublicEvent";
@@ -54,7 +55,15 @@ type BookerPlatformWrapperAtomProps = Omit<BookerProps, "entity"> & {
 export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => {
   const [bookerState, setBookerState] = useBookerStore((state) => [state.state, state.setState], shallow);
   const setSelectedDate = useBookerStore((state) => state.setSelectedDate);
+  const setBookingData = useBookerStore((state) => state.setBookingData);
+
   const setSelectedTimeslot = useBookerStore((state) => state.setSelectedTimeslot);
+  const { data: booking } = useGetBookingForReschedule({
+    uid: props.rescheduleUid ?? props.bookingUid ?? "",
+    onSuccess: (data) => {
+      setBookingData(data);
+    },
+  });
 
   useEffect(() => {
     // reset booker whenever it's unmounted
