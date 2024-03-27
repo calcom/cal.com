@@ -1,8 +1,7 @@
 name: "Deploy - Web"
 
 on:
-  # push:
-  pull_request:
+  push:
     branches:
       - funnelhub
     paths:
