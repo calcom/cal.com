@@ -641,7 +641,6 @@ interface GetUserAvailabilityParamsDTO {
   dateFrom: Dayjs;
   dateTo: Dayjs;
   availability: (DateOverride | WorkingHours)[];
-  timeZone: string;
 }
 
 export interface IFromUser {
