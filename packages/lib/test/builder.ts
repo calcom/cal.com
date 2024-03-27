@@ -114,6 +114,7 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     slotInterval: null,
     metadata: null,
     successRedirectUrl: null,
+    forwardParamsSuccessRedirect: true,
     bookingFields: [],
     parentId: null,
     profileId: null,

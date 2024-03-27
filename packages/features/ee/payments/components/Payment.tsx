@@ -22,6 +22,7 @@ type Props = {
   eventType: {
     id: number;
     successRedirectUrl: EventType["successRedirectUrl"];
+    forwardParamsSuccessRedirect: EventType["forwardParamsSuccessRedirect"];
   };
   user: {
     username: string | null;
@@ -52,14 +53,17 @@ const getReturnUrl = (props: Props) => {
   }
 
   const returnUrl = new URL(props.eventType.successRedirectUrl);
-  const queryParams = getBookingRedirectExtraParams(props.booking);
 
-  Object.entries(queryParams).forEach(([key, value]) => {
-    if (value === null || value === undefined) {
-      return;
-    }
-    returnUrl.searchParams.append(key, String(value));
-  });
+  if (props.eventType.forwardParamsSuccessRedirect) {
+    const queryParams = getBookingRedirectExtraParams(props.booking);
+
+    Object.entries(queryParams).forEach(([key, value]) => {
+      if (value === null || value === undefined) {
+        return;
+      }
+      returnUrl.searchParams.append(key, String(value));
+    });
+  }
 
   return returnUrl.toString();
 };
@@ -134,6 +138,7 @@ const PaymentForm = (props: Props) => {
         successRedirectUrl: props.eventType.successRedirectUrl,
         query: params,
         booking: props.booking,
+        forwardParamsSuccessRedirect: props.eventType.forwardParamsSuccessRedirect,
       });
     }
   };
