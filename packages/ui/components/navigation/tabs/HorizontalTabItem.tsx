@@ -46,7 +46,7 @@ const HorizontalTabItem = function ({
         props.className
       )}
       target={props.target ? props.target : undefined}
-      data-testid={`horizontal-tabf-${name}`}
+      data-testid={`horizontal-tab-${name}`}
       aria-current={isCurrent ? "page" : undefined}>
       {props.icon && (
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment

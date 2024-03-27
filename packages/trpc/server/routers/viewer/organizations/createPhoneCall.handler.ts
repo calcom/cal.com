@@ -26,6 +26,15 @@ const getRetellLLMSchema = z
   })
   .passthrough();
 
+const createPhoneSchema = z
+  .object({
+    call_id: z.string(),
+    agent_id: z.string(),
+    from_number: z.number(),
+    to_number: z.number(),
+  })
+  .passthrough();
+
 export const fetcher = async (endpoint: string, init?: RequestInit | undefined) => {
   return fetch(`https://api.retellai.com${endpoint}`, {
     method: "GET",
@@ -128,7 +137,7 @@ const createPhoneCallHandler = async ({ input, ctx }: CreatePhoneCallProps) => {
       to_number: numberToCall,
       retell_llm_dynamic_variables: { name: guestName },
     }),
-  });
+  }).then(createPhoneSchema.parse);
 
   console.log("CreatePhoneCall", createPhoneCallRes);
 
