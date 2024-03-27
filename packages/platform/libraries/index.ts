@@ -14,6 +14,7 @@ export type UpdateScheduleOutputType = Awaited<
 export { getEventTypeById } from "@calcom/lib/event-types/getEventTypeById";
 export { getEventTypesByViewer } from "@calcom/lib/event-types/getEventTypesByViewer";
 export { getEventTypesPublic } from "@calcom/lib/event-types/getEventTypesPublic";
+export { createHandler as createEventType } from "@calcom/trpc/server/routers/viewer/eventTypes/create.handler";
 
 export type { EventType } from "@calcom/lib/event-types/getEventTypeById";
 export type { EventTypesByViewer } from "@calcom/lib/event-types/getEventTypesByViewer";

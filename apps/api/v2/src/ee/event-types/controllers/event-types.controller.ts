@@ -11,6 +11,7 @@ import { EventType } from "@prisma/client";
 
 import { EventTypesByViewer } from "@calcom/lib";
 import { EVENT_TYPE_READ, EVENT_TYPE_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
+import { createEventType } from "@calcom/platform-libraries";
 import type { EventType as AtomEventType, EventTypesPublic } from "@calcom/platform-libraries";
 import { getEventTypesByViewer } from "@calcom/platform-libraries";
 import { ApiResponse, ApiSuccessResponse } from "@calcom/platform-types";
@@ -30,7 +31,10 @@ export class EventTypesController {
     @Body() body: CreateEventTypeInput,
     @GetUser() user: UserWithProfile
   ): Promise<ApiResponse<EventType>> {
-    const eventType = await this.eventTypesService.createUserEventType(user.id, body);
+    const eventType = await createEventType({
+      input: body,
+      ctx: { user },
+    });
 
     return {
       status: SUCCESS_STATUS,

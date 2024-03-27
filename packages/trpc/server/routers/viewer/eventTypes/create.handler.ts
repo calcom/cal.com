@@ -15,9 +15,17 @@ import { TRPCError } from "@trpc/server";
 import type { TrpcSessionUser } from "../../../trpc";
 import type { TCreateInputSchema } from "./create.schema";
 
+type User = NonNullable<TrpcSessionUser>;
+
 type CreateOptions = {
   ctx: {
-    user: NonNullable<TrpcSessionUser>;
+    user: {
+      id: User["id"];
+      organizationId: User["organizationId"];
+      organization: User["organization"];
+      profile: User["profile"];
+      metadata: User["metadata"];
+    };
     prisma: PrismaClient;
   };
   input: TCreateInputSchema;
