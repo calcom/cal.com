@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from "uuid";
 
 import dayjs from "@calcom/dayjs";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
+import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import logger from "@calcom/lib/logger";
 import { defaultHandler } from "@calcom/lib/server";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
@@ -116,7 +117,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
         switch (reminder.workflowStep.action) {
           case WorkflowActions.EMAIL_HOST:
-            sendTo = reminder.booking.user?.email;
+            sendTo = reminder.booking?.userPrimaryEmail ?? reminder.booking.user?.email;
             break;
           case WorkflowActions.EMAIL_ATTENDEE:
             sendTo = reminder.booking.attendees[0].email;
@@ -161,6 +162,18 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
             booking: reminder.booking,
           });
 
+          const organizerOrganizationProfile = await prisma.profile.findFirst({
+            where: {
+              userId: reminder.booking.user?.id,
+            },
+          });
+
+          const organizerOrganizationId = organizerOrganizationProfile?.organizationId;
+
+          const bookerUrl = await getBookerBaseUrl(
+            reminder.booking.eventType?.team?.parentId ?? organizerOrganizationId ?? null
+          );
+
           const variables: VariablesType = {
             eventName: reminder.booking.eventType?.title || "",
             organizerName: reminder.booking.user?.name || "",
@@ -173,8 +186,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
             additionalNotes: reminder.booking.description,
             responses: responses,
             meetingUrl: bookingMetadataSchema.parse(reminder.booking.metadata || {})?.videoCallUrl,
-            cancelLink: `/booking/${reminder.booking.uid}?cancel=true`,
-            rescheduleLink: `/${reminder.booking.user?.username}/${reminder.booking.eventType?.slug}?rescheduleUid=${reminder.booking.uid}`,
+            cancelLink: `${bookerUrl}/booking/${reminder.booking.uid}?cancel=true`,
+            rescheduleLink: `${bookerUrl}/reschedule/${reminder.booking.uid}`,
           };
           const emailLocale = locale || "en";
           const emailSubject = customTemplate(
@@ -227,7 +240,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
                   html: emailContent.emailBody,
                   batchId: batchId,
                   sendAt: dayjs(reminder.scheduledDate).unix(),
-                  replyTo: reminder.booking.user?.email,
+                  replyTo: reminder.booking?.userPrimaryEmail ?? reminder.booking.user?.email,
                   attachments: reminder.workflowStep.includeCalendarEvent
                     ? [
                         {
@@ -297,7 +310,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
                 html: emailContent.emailBody,
                 batchId: batchId,
                 sendAt: dayjs(reminder.scheduledDate).unix(),
-                replyTo: reminder.booking.user?.email,
+                replyTo: reminder.booking?.userPrimaryEmail ?? reminder.booking.user?.email,
               },
               { sender: reminder.workflowStep?.sender }
             )

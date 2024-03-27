@@ -351,7 +351,7 @@ test.describe("Bookings", () => {
       }
       const usernameInOrg = getOrgUsernameFromEmail(
         invitedUserEmail,
-        org.metadata?.orgAutoAcceptEmail ?? null
+        org.organizationSettings?.orgAutoAcceptEmail ?? null
       );
 
       const usernameOutsideOrg = userOutsideOrganization.username;

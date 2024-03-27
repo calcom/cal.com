@@ -175,6 +175,35 @@ testBothFutureAndLegacyRoutes.describe("pro user", () => {
     await expect(page.locator('[data-testid="empty-screen"]')).toBeVisible();
   });
 
+  test("can book an unconfirmed event multiple times", async ({ page, users }) => {
+    await page.locator('[data-testid="event-type-link"]:has-text("Opt in")').click();
+    await selectFirstAvailableTimeSlotNextMonth(page);
+
+    const pageUrl = page.url();
+
+    await bookTimeSlot(page);
+    await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+
+    // go back to the booking page to re-book.
+    await page.goto(pageUrl);
+    await bookTimeSlot(page, { email: "test2@example.com" });
+    await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+  });
+
+  test("cannot book an unconfirmed event multiple times with the same email", async ({ page, users }) => {
+    await page.locator('[data-testid="event-type-link"]:has-text("Opt in")').click();
+    await selectFirstAvailableTimeSlotNextMonth(page);
+
+    const pageUrl = page.url();
+
+    await bookTimeSlot(page);
+    // go back to the booking page to re-book.
+    await page.goto(pageUrl);
+
+    await bookTimeSlot(page);
+    await expect(page.getByText("Could not book the meeting.")).toBeVisible();
+  });
+
   test("can book with multiple guests", async ({ page, users }) => {
     const additionalGuests = ["test@gmail.com", "test2@gmail.com"];
 

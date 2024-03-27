@@ -48,14 +48,17 @@ export async function createOrgInDb({
     data: {
       name: name,
       slug: slug,
+      isOrganization: true,
       metadata: {
-        isOrganization: true,
         ...(requestedSlug
           ? {
               requestedSlug,
             }
           : null),
       },
+    },
+    include: {
+      organizationSettings: true,
     },
   });
 }

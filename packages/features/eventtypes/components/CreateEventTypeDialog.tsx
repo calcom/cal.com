@@ -69,6 +69,7 @@ const querySchema = z.object({
 
 export default function CreateEventTypeDialog({
   profileOptions,
+  isOrganization,
 }: {
   profileOptions: {
     teamId: number | null | undefined;
@@ -76,6 +77,7 @@ export default function CreateEventTypeDialog({
     image: string | undefined;
     membershipRole: MembershipRole | null | undefined;
   }[];
+  isOrganization: boolean;
 }) {
   const utils = trpc.useContext();
   const { t } = useLocale();
@@ -86,8 +88,8 @@ export default function CreateEventTypeDialog({
   const {
     data: { teamId, eventPage: pageSlug },
   } = useTypedQuery(querySchema);
-  const teamProfile = profileOptions.find((profile) => profile.teamId === teamId);
 
+  const teamProfile = profileOptions.find((profile) => profile.teamId === teamId);
   const form = useForm<z.infer<typeof createEventTypeInput>>({
     defaultValues: {
       length: 15,

@@ -198,6 +198,7 @@ async function isReturningToSelf({ session, creds }: { session: Session | null; 
       role: true,
       organizationId: true,
       locale: true,
+      profiles: true,
       teams: {
         where: {
           accepted: true, // Ensure they are apart of the team and not just invited.
@@ -213,7 +214,10 @@ async function isReturningToSelf({ session, creds }: { session: Session | null; 
 
   if (returningUser) {
     // Skip for none org users
-    if (returningUser.role !== "ADMIN" && !returningUser.organizationId) return;
+    const inOrg =
+      returningUser.organizationId || // Keep for backwards compatability
+      returningUser.profiles.some((profile) => profile.organizationId !== undefined); // New way of seeing if the user has a profile in orgs.
+    if (returningUser.role !== "ADMIN" && !inOrg) return;
 
     const hasTeams = returningUser.teams.length >= 1;
 

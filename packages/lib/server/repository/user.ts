@@ -4,7 +4,6 @@ import { Prisma } from "@calcom/prisma/client";
 import type { User as UserType } from "@calcom/prisma/client";
 import type { UpId, UserProfile } from "@calcom/types/UserProfile";
 
-import { isOrganization } from "../../entityPermissionUtils";
 import logger from "../../logger";
 import { safeStringify } from "../../safeStringify";
 import { ProfileRepository } from "./profile";
@@ -20,6 +19,8 @@ const teamSelect = Prisma.validator<Prisma.TeamSelect>()({
   slug: true,
   metadata: true,
   logoUrl: true,
+  organizationSettings: true,
+  isOrganization: true,
 });
 
 const userSelect = Prisma.validator<Prisma.UserSelect>()({
@@ -90,8 +91,8 @@ export class UserRepository {
       userId,
     });
 
-    const acceptedOrgMemberships = acceptedTeamMemberships.filter((membership) =>
-      isOrganization({ team: membership.team })
+    const acceptedOrgMemberships = acceptedTeamMemberships.filter(
+      (membership) => membership.team.isOrganization
     );
 
     const organizations = acceptedOrgMemberships.map((membership) => membership.team);
@@ -337,6 +338,22 @@ export class UserRepository {
     };
   }
 
+  static enrichUserWithItsProfileBuiltFromUser<T extends { id: number; username: string | null }>({
+    user,
+  }: {
+    user: T;
+  }): T & {
+    nonProfileUsername: string | null;
+    profile: UserProfile;
+  } {
+    // If no organization profile exists, use the personal profile so that the returned user is normalized to have a profile always
+    return {
+      ...user,
+      nonProfileUsername: user.username,
+      profile: ProfileRepository.buildPersonalProfileFromUser({ user }),
+    };
+  }
+
   static async enrichEntityWithProfile<
     T extends
       | {
@@ -348,6 +365,7 @@ export class UserRepository {
               id: number;
               name: string;
               calVideoLogo: string | null;
+              bannerUrl: string | null;
               slug: string | null;
               metadata: Prisma.JsonValue;
             };

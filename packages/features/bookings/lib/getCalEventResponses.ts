@@ -55,11 +55,13 @@ export const getCalEventResponses = ({
         calEventUserFieldsResponses[field.name] = {
           label,
           value: backwardCompatibleResponses[field.name],
+          isHidden: !!field.hidden,
         };
       }
       calEventResponses[field.name] = {
         label,
         value: backwardCompatibleResponses[field.name],
+        isHidden: !!field.hidden,
       };
     });
   } else {

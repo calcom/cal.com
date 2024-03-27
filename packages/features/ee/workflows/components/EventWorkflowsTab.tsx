@@ -1,9 +1,12 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useFormContext } from "react-hook-form";
+import { Trans } from "react-i18next";
 
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import { isTextMessageToAttendeeAction } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
+import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
@@ -157,7 +160,7 @@ const WorkflowListItem = (props: ItemProps) => {
           content={
             t(
               workflow.readOnly && props.isChildrenManagedEventType
-                ? "locked_by_admin"
+                ? "locked_by_team_admin"
                 : isActive
                 ? "turn_off"
                 : "turn_on"
@@ -200,11 +203,17 @@ type Props = {
 function EventWorkflowsTab(props: Props) {
   const { workflows, eventType } = props;
   const { t } = useLocale();
-  const { isManagedEventType, isChildrenManagedEventType } = useLockedFieldsManager(
+  const formMethods = useFormContext<FormValues>();
+  const { shouldLockDisableProps, isManagedEventType, isChildrenManagedEventType } = useLockedFieldsManager({
     eventType,
-    t("locked_fields_admin_description"),
-    t("locked_fields_member_description")
-  );
+    translate: t,
+    formMethods,
+  });
+
+  const workflowsDisableProps = shouldLockDisableProps("workflows", { simple: true });
+
+  const lockedText = workflowsDisableProps.isLocked ? "locked" : "unlocked";
+
   const { data, isPending } = trpc.viewer.workflows.list.useQuery({
     teamId: eventType.team?.id,
     userId: !isChildrenManagedEventType ? eventType.userId || undefined : undefined,
@@ -223,14 +232,20 @@ function EventWorkflowsTab(props: Props) {
       });
       const disabledWorkflows = data.workflows.filter(
         (workflow) =>
+          (!workflow.teamId || eventType.teamId === workflow.teamId) &&
           !workflows
             .map((workflow) => {
               return workflow.id;
             })
             .includes(workflow.id)
       );
-      setSortedWorkflows(activeWorkflows.concat(disabledWorkflows));
+      const allSortedWorkflows =
+        workflowsDisableProps.isLocked && !isManagedEventType
+          ? activeWorkflows
+          : activeWorkflows.concat(disabledWorkflows);
+      setSortedWorkflows(allSortedWorkflows);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isPending]);
 
   const createMutation = trpc.viewer.workflows.create.useMutation({
@@ -254,15 +269,31 @@ function EventWorkflowsTab(props: Props) {
     <LicenseRequired>
       {!isPending ? (
         <>
-          {isManagedEventType && (
+          {(isManagedEventType || isChildrenManagedEventType) && (
             <Alert
-              severity="neutral"
+              severity={workflowsDisableProps.isLocked ? "neutral" : "green"}
               className="mb-2"
-              title={t("locked_for_members")}
-              message={t("locked_workflows_description")}
+              title={
+                <Trans i18nKey={`${lockedText}_${isManagedEventType ? "for_members" : "by_team_admins"}`}>
+                  {lockedText[0].toUpperCase()}
+                  {lockedText.slice(1)} {isManagedEventType ? "for members" : "by team admins"}
+                </Trans>
+              }
+              actions={<div className="flex h-full items-center">{workflowsDisableProps.LockedIcon}</div>}
+              message={
+                <Trans
+                  i18nKey={`workflows_${lockedText}_${
+                    isManagedEventType ? "for_members" : "by_team_admins"
+                  }_description`}>
+                  {isManagedEventType ? "Members" : "You"}{" "}
+                  {workflowsDisableProps.isLocked
+                    ? "will be able to see the active workflows but will not be able to edit any workflow settings"
+                    : "will be able to see the active workflow and will be able to edit any workflow settings"}
+                </Trans>
+              }
             />
           )}
-          {data?.workflows && data?.workflows.length > 0 ? (
+          {data?.workflows && sortedWorkflows.length > 0 ? (
             <div>
               <div className="space-y-4">
                 {sortedWorkflows.map((workflow) => {
@@ -285,6 +316,7 @@ function EventWorkflowsTab(props: Props) {
                 description={t("no_workflows_description")}
                 buttonRaw={
                   <Button
+                    disabled={workflowsDisableProps.isLocked && !isManagedEventType}
                     target="_blank"
                     color="secondary"
                     onClick={() => createMutation.mutate({ teamId: eventType.team?.id })}

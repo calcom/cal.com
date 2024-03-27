@@ -1,7 +1,7 @@
 import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
-import { Booker } from "@calcom/atoms";
+import { Booker } from "@calcom/atoms/monorepo";
 import { getBookerWrapperClasses } from "@calcom/features/bookings/Booker/utils/getBookerWrapperClasses";
 import { BookerSeo } from "@calcom/features/bookings/components/BookerSeo";
 import { getMultipleDurationValue } from "@calcom/features/bookings/lib/get-booking";
