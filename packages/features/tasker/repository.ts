@@ -8,7 +8,7 @@ const whereSucceeded: Prisma.TaskWhereInput = {
   succeededAt: { not: null },
 };
 
-const whereMaxAttempsReached: Prisma.TaskWhereInput = {
+const whereMaxAttemptsReached: Prisma.TaskWhereInput = {
   attempts: {
     equals: {
       // @ts-expect-error prisma is tripping: '_ref' does not exist in type 'FieldRef<"Task", "Int">'
@@ -50,58 +50,59 @@ export class Task {
         maxAttempts,
       },
     });
-    return newTask;
+    return newTask.id;
   }
+
   static async getNextBatch() {
-    const tasks = await db.task.findMany({
+    return db.task.findMany({
       where: whereUpcomingTasks,
       orderBy: {
         scheduledAt: "asc",
       },
       take: 100,
     });
-    return tasks;
   }
+
   static async getAll() {
-    const tasks = await db.task.findMany();
-    return tasks;
+    return db.task.findMany();
   }
+
   static async getFailed() {
-    const tasks = await db.task.findMany({
-      where: whereMaxAttempsReached,
+    return db.task.findMany({
+      where: whereMaxAttemptsReached,
     });
-    return tasks;
   }
+
   static async getSucceeded() {
-    const tasks = await db.task.findMany({
+    return db.task.findMany({
       where: whereSucceeded,
     });
-    return tasks;
   }
+
   static async count() {
-    const tasks = await db.task.count();
-    return tasks;
+    return db.task.count();
   }
+
   static async countUpcoming() {
-    const tasks = await db.task.count({
+    return db.task.count({
       where: whereUpcomingTasks,
     });
-    return tasks;
   }
+
   static async countFailed() {
-    const tasks = await db.task.count({
-      where: whereMaxAttempsReached,
+    return db.task.count({
+      where: whereMaxAttemptsReached,
     });
-    return tasks;
   }
+
   static async countSucceeded() {
-    const tasks = await db.task.count({
+    return db.task.count({
       where: whereSucceeded,
     });
-    return tasks;
   }
-  static async retry(taskId: number, lastError?: string) {
-    const task = await db.task.update({
+
+  static async retry(taskId: string, lastError?: string) {
+    return db.task.update({
       where: {
         id: taskId,
       },
@@ -110,10 +111,10 @@ export class Task {
         lastError,
       },
     });
-    return task;
   }
-  static async succeed(taskId: number) {
-    const task = await db.task.update({
+
+  static async succeed(taskId: string) {
+    return db.task.update({
       where: {
         id: taskId,
       },
@@ -122,27 +123,26 @@ export class Task {
         succeededAt: new Date(),
       },
     });
-    return task;
   }
-  static async cancel(taskId: number) {
-    const task = await db.task.delete({
+
+  static async cancel(taskId: string) {
+    return db.task.delete({
       where: {
         id: taskId,
       },
     });
-    return task;
   }
+
   static async cleanup() {
-    const task = await db.task.deleteMany({
+    return db.task.deleteMany({
       where: {
         OR: [
           // Get tasks that have succeeded
           whereSucceeded,
           // Get tasks where maxAttemps has been reached
-          whereMaxAttempsReached,
+          whereMaxAttemptsReached,
         ],
       },
     });
-    return task.count;
   }
 }

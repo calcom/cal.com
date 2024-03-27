@@ -9,8 +9,8 @@ import tasksMap from "./tasks";
  * Then, you can use the TaskerFactory to select the new Tasker.
  */
 export class InternalTasker implements Tasker {
-  async create(type: TaskTypes, payload: string): Promise<void> {
-    await Task.create(type, payload);
+  async create(type: TaskTypes, payload: string): Promise<string> {
+    return Task.create(type, payload);
   }
   async processQueue(): Promise<void> {
     const tasks = await Task.getNextBatch();

@@ -1270,7 +1270,7 @@ model SecondaryEmail {
 
 // Needed to store tasks that need to be processed by a background worker or Tasker
 model Task {
-  id          Int       @id @default(autoincrement())
+  id          String    @id @unique @default(uuid())
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   // The time at which the task should be executed
