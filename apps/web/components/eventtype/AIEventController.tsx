@@ -10,6 +10,7 @@ import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { AIPhoneSettingSchema } from "@calcom/prisma/zod-utils";
+import { trpc } from "@calcom/trpc/react";
 import {
   Button,
   Label,
@@ -84,12 +85,20 @@ export default function AIEventController({ eventType, isTeamEvent }: AIEventCon
 
 const AISettings = ({ eventType }: { eventType: EventTypeSetup }) => {
   const { t } = useLocale();
-  const [phoneNumber, setPhoneNumber] = useState();
+  const [numberToCall, setNumberToCall] = useState();
+  const [yourPhoneNumber, setYourPhoneNumber] = useState();
   const [guestName, setGuestName] = useState();
 
   const formMethods = useFormContext<FormValues>();
 
   const calAiPhoneScript = formMethods.watch("calAiPhoneScript");
+  const createCallMutation = trpc.viewer.organizations.createPhoneCall.useMutation({
+    onSuccess: (data) => {
+      if (!!data?.call_id) {
+        showToast("Phone Call Created successfully", "success");
+      }
+    },
+  });
 
   // const [createModalOpen, setCreateModalOpen] = useState(false);
 
@@ -108,16 +117,18 @@ const AISettings = ({ eventType }: { eventType: EventTypeSetup }) => {
 
   // v1 will require the user to log in to Retellai.com to create a phone number, and an agent and
   // authorize it with the Cal.com API key / OAuth
-  const retellAuthorized = true; // TODO: call retellAPI here
+  // const retellAuthorized = true; // TODO: call retellAPI here
 
   const handleSubmit = async () => {
     try {
-      const isValue = await AIPhoneSettingSchema.parseAsync({
-        phoneNumber,
+      const data = await AIPhoneSettingSchema.parseAsync({
+        yourPhoneNumber,
         calAiPhoneScript,
         guestName,
+        numberToCall,
       });
-      console.log("isValue", isValue);
+
+      createCallMutation.mutate(data);
     } catch (err) {
       console.log("erer", err.issues[0]);
       if (err instanceof z.ZodError) {
@@ -132,86 +143,64 @@ const AISettings = ({ eventType }: { eventType: EventTypeSetup }) => {
 
   return (
     <div>
-      {retellAuthorized && (
-        <div className="space-y-4">
-          <>
-            <Label>{t("number_to_call")}</Label>
-            <PhoneInput
-              required
-              placeholder={t("phone_number")}
-              id="phoneNumber"
-              value={phoneNumber}
-              onChange={(val) => {
-                setPhoneNumber(val);
-              }}
-            />
-            {/* <Controller
-              name={`steps.${step.stepNumber - 1}.sendTo`}
-              render={({ field: { value, onChange } }) => (
-                <PhoneInput
-                  required
-                  placeholder={t("phone_number")}
-                  id="phoneNumber"
-                  value={value}
-                  onChange={(val) => {
-                    setPhoneNumber(val);
-                  }}
-                />
-              )}
-            /> */}
-
-            {/* <ErrorMessage
-              errors={AISettingsForm.formState.errors}
-              name="phoneNumber"
-              className="text-error mt-1 text-sm"
-              as="p"
-            /> */}
-
-            <Divider />
-          </>
-
-          <Label>{t("guest_name")}</Label>
-          <TextField
-            type="text"
-            hint="Variable: {name}"
-            label={t("guest_name")}
-            placeholder="Jane Doe"
-            value={guestName}
+      <div className="space-y-4">
+        <>
+          <Label>{t("your_phone_number")}</Label>
+          <PhoneInput
             required
-            onChange={(e) => {
-              setGuestName(e.target.value);
+            placeholder={t("your_phone_number")}
+            id="yourPhoneNumber"
+            value={yourPhoneNumber}
+            onChange={(val) => {
+              setYourPhoneNumber(val);
             }}
           />
-          {/* <ErrorMessage
-            errors={AISettingsForm.formState.errors}
-            name="guestName"
-            className="text-error mt-1 text-sm"
-            as="p"
-          /> */}
+
+          <Label>{t("number_to_call")}</Label>
+          <PhoneInput
+            required
+            placeholder={t("phone_number")}
+            id="numberToCall"
+            value={numberToCall}
+            onChange={(val) => {
+              setNumberToCall(val);
+            }}
+          />
 
           <Divider />
-          <TextAreaField
-            rows={3}
-            required
-            placeholder="Script"
-            name="calAiPhoneScript"
-            {...formMethods.register("calAiPhoneScript")}
-            onChange={(e) => {
-              formMethods.setValue("calAiPhoneScript", e.taget.value, { shouldDirty: true });
-            }}
-          />
-          {/* <ErrorMessage
-            errors={formMethods.formState.errors}
-            name="calAiPhoneScript"
-            className="text-error mt-1 text-sm"
-            as="p"
-          /> */}
+        </>
 
-          {/*  Peer's comments here */}
-          {/* // TODO: v2 will allow users to create phone numbers and agents within Cal.com.
+        <Label>{t("guest_name")}</Label>
+        <TextField
+          type="text"
+          hint="Variable: {name}"
+          label={t("guest_name")}
+          placeholder="Jane Doe"
+          value={guestName}
+          required
+          onChange={(e) => {
+            setGuestName(e.target.value);
+          }}
+        />
+
+        <Divider />
+        <TextAreaField
+          rows={3}
+          required
+          placeholder="Script"
+          name="calAiPhoneScript"
+          label="script"
+          {...formMethods.register("calAiPhoneScript")}
+          onChange={(e) => {
+            formMethods.setValue("calAiPhoneScript", e.taget.value, { shouldDirty: true });
+          }}
+        />
+
+        {/*  Peer's comments here */}
+        {/* // TODO: v2 will allow users to create phone numbers and agents within Cal.com.
             // we do this later, i just wanted to make the layout first
             */}
-          {/* {v2 && (
+        {/* {v2 && (
               <>
                 <Label>Guest Email</Label>
                 <TextField
@@ -223,7 +212,7 @@ const AISettings = ({ eventType }: { eventType: EventTypeSetup }) => {
               </>
             )} */}
 
-          {/* {v2 && (
+        {/* {v2 && (
               <>
                 <TextAreaField
                   rows={3}
@@ -233,17 +222,19 @@ const AISettings = ({ eventType }: { eventType: EventTypeSetup }) => {
               </>
             )} */}
 
-          <Button onClick={handleSubmit}>Make a Call</Button>
+        <Button disabled={createCallMutation.isPending} onClick={handleSubmit}>
+          Make a Call
+        </Button>
 
-          <small className="block opacity-60">
-            Want to automate outgoing phone calls? Read our{" "}
-            <Link className="underline" href="https://cal.com/docs">
-              API docs
-            </Link>{" "}
-            and learn how to build workflows.
-          </small>
-        </div>
-      )}
+        <small className="block opacity-60">
+          Want to automate outgoing phone calls? Read our{" "}
+          <Link className="underline" href="https://cal.com/docs">
+            API docs
+          </Link>{" "}
+          and learn how to build workflows.
+        </small>
+      </div>
+
       {/*
       {v3 && (
         <>

@@ -693,13 +693,12 @@ export const bookingSeatDataSchema = z.object({
 });
 
 export const AIPhoneSettingSchema = z.object({
-  phoneNumber: z.string().refine((val) => isValidPhoneNumber(val), {
-    message: "Phone number is invalid",
-  }),
+  yourPhoneNumber: z.string().refine((val) => isValidPhoneNumber(val)),
+  numberToCall: z.string().refine((val) => isValidPhoneNumber(val)),
   guestName: z.string().min(1, {
     message: "Please enter Guest Name",
   }),
   calAiPhoneScript: z.string().min(1, {
-    message: "Please enter Guest Name",
+    message: "Please enter Script",
   }),
 });
