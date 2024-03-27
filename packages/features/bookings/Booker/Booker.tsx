@@ -115,7 +115,7 @@ const BookerComponent = ({
 
   const { bookerFormErrorRef, key, formEmail, bookingForm, errors: formErrors } = bookerForm;
 
-  const { handleBookEvent, errors, loadingStates, expiryTime } = bookings;
+  const { handleBookEvent, errors, loadingStates, expiryTime, instantVideoMeetingUrl } = bookings;
 
   const {
     isEmailVerificationModalVisible,
@@ -180,6 +180,7 @@ const BookerComponent = ({
             <RedirectToInstantMeetingModal
               expiryTime={expiryTime}
               bookingId={parseInt(getQueryParam("bookingId") || "0")}
+              instantVideoMeetingUrl={instantVideoMeetingUrl}
               onGoBack={() => {
                 onGoBackInstantMeeting();
               }}
@@ -192,6 +193,7 @@ const BookerComponent = ({
     );
   }, [
     bookerFormErrorRef,
+    instantVideoMeetingUrl,
     bookerState,
     bookingForm,
     errors,
