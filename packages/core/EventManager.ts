@@ -431,6 +431,8 @@ export default class EventManager {
           // Update all calendar events.
           results.push(...(await this.updateAllCalendarEvents(evt, booking, newBookingId)));
         }
+
+        results.push(...(await this.updateAllCRMEvents(evt, booking)));
       }
     }
     const bookingPayment = booking?.payment;
@@ -869,12 +871,9 @@ export default class EventManager {
       const crm = new CrmManager(credential);
 
       let success = true;
-      let creationError = undefined;
       const createdEvent = await crm.createEvent(event).catch((error) => {
         success = false;
-        creationError = error;
       });
-
       createdEvents.push({
         type: credential.type,
         appName: credential.appId || "",
@@ -890,8 +889,35 @@ export default class EventManager {
         },
         id: createdEvent.id || "",
         originalEvent: event,
+        credentialId: credential.id,
       });
     }
     return createdEvents;
+  }
+
+  private async updateAllCRMEvents(event: CalendarEvent, booking: PartialBooking) {
+    const updatedEvents = [];
+
+    // Loop through all booking references and update the corresponding CRM event
+    for (const reference of booking.references) {
+      const credential = this.crmCredentials.find((cred) => cred.id === reference.credentialId);
+      let success = true;
+      if (credential) {
+        const crm = new CrmManager(credential);
+        const updatedEvent = await crm.updateEvent(reference.uid, event).catch((error) => {
+          success = false;
+        });
+
+        updatedEvents.push({
+          type: credential.type,
+          appName: credential.appId || "",
+          success,
+          uid: updatedEvent.id || "",
+          originalEvent: event,
+        });
+      }
+    }
+
+    return updatedEvents;
   }
 }

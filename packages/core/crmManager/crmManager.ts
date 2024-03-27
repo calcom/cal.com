@@ -2,7 +2,7 @@ import getCrm from "@calcom/app-store/_utils/getCrm";
 import logger from "@calcom/lib/logger";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
-import type { CRM } from "@calcom/types/CrmService";
+import type { CRM, ContactCreateInput } from "@calcom/types/CrmService";
 
 const log = logger.getSubLogger({ prefix: ["CrmManager"] });
 export default class CrmManager {
@@ -34,10 +34,16 @@ export default class CrmManager {
     } else {
       // Figure out which contacts to create
       const contactsToCreate = event.attendees.filter((attendee) => !contacts.includes(attendee.email));
-      const createdContacts = await this.crmService?.createContact(contactsToCreate);
+      const createdContacts = await this.createContacts(contactsToCreate);
+      console.log("🚀 ~ CrmManager ~ createEvent ~ createdContacts:", createdContacts);
       contacts = contacts.concat(createdContacts);
       return await this.crmService?.createEvent(event, contacts);
     }
+  }
+
+  public async updateEvent(uid: string, event: CalendarEvent) {
+    await this.getCrmService(this.credential);
+    return await this.crmService?.updateEvent(uid, event);
   }
 
   public async getContacts(email: string | string[]) {
@@ -46,8 +52,9 @@ export default class CrmManager {
     return contacts;
   }
 
-  public async createContact(email: string) {
+  public async createContacts(contactsToCreate: ContactCreateInput[]) {
     await this.getCrmService(this.credential);
-    return;
+    const createdContacts = await this.crmService?.createContact(contactsToCreate);
+    return createdContacts;
   }
 }

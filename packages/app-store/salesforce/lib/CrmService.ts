@@ -304,13 +304,11 @@ export default class SalesforceCRMService implements CRM {
           })
           .then((result) => {
             if (result.success) {
-              return { Id: result.id, Email: attendee.email };
+              return { id: result.id, email: attendee.email };
             }
           });
       })
     );
-    return createdContacts.filter(
-      (contact): contact is Omit<ContactSearchResult, "attributes"> => contact !== undefined
-    );
+    return createdContacts.filter((contact): contact is Contact => contact !== undefined);
   }
 }
