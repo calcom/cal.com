@@ -5,8 +5,7 @@ import { classNames } from "@calcom/lib";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
-import { Avatar, Badge, Button, ButtonGroup, Select, Switch, Tooltip } from "@calcom/ui";
-import { ExternalLink } from "@calcom/ui/components/icon";
+import { Avatar, Badge, Button, ButtonGroup, Icon, Select, Switch, Tooltip } from "@calcom/ui";
 
 export type ChildrenEventType = {
   value: string;
@@ -107,7 +106,7 @@ export const ChildrenEventTypeSelect = ({
                           target="_blank"
                           variant="icon"
                           href={`${WEBSITE_URL}/${children.owner?.username}/${children.slug}`}
-                          StartIcon={ExternalLink}
+                          StartIcon={(props) => <Icon {...props} name="external-link" />}
                         />
                       </Tooltip>
                     )}

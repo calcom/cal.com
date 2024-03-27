@@ -27,7 +27,7 @@ export default function SelectGifInput(props: ISelectGifInput) {
           <Button
             color="minimal"
             type="button"
-            StartIcon={(props) => <Icon {...props} name="edit" />}
+            StartIcon={(props) => <Icon {...props} name="pencil" />}
             onClick={() => setShowDialog(true)}
             disabled={props.disabled}>
             Change

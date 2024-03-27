@@ -14,7 +14,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { trpc, TRPCClientError } from "@calcom/trpc/react";
-import type { DialogProps } from "@calcom/ui";
+import type { DialogProps, VerticalTabItemProps } from "@calcom/ui";
 import {
   Button,
   ButtonGroup,
@@ -80,41 +80,41 @@ function getNavigation({
     {
       name: "event_setup_tab_title",
       href: `/event-types/${id}?tabName=setup`,
-      icon: (props) => <Icon {...props} name="link" />,
+      icon: "link",
       info: `${duration} ${t("minute_timeUnit")}`, // TODO: Get this from props
     },
     {
       name: "event_limit_tab_title",
       href: `/event-types/${id}?tabName=limits`,
-      icon: (props) => <Icon {...props} name="clock" />,
+      icon: "clock",
       info: `event_limit_tab_description`,
     },
     {
       name: "event_advanced_tab_title",
       href: `/event-types/${id}?tabName=advanced`,
-      icon: (props) => <Icon {...props} name="sliders" />,
+      icon: "sliders",
       info: `event_advanced_tab_description`,
     },
     {
       name: "recurring",
       href: `/event-types/${id}?tabName=recurring`,
-      icon: (props) => <Icon {...props} name="repeat" />,
+      icon: "repeat",
       info: `recurring_event_tab_description`,
     },
     {
       name: "apps",
       href: `/event-types/${id}?tabName=apps`,
-      icon: (props) => <Icon {...props} name="grid-3x3" />,
+      icon: "grid-3x3",
       //TODO: Handle proper translation with count handling
       info: `${installedAppsNumber} apps, ${enabledAppsNumber} ${t("active")}`,
     },
     {
       name: "workflows",
       href: `/event-types/${id}?tabName=workflows`,
-      icon: (props) => <Icon {...props} name="zap" />,
+      icon: "zap",
       info: `${enabledWorkflowsNumber} ${t("active")}`,
     },
-  ];
+  ] satisfies VerticalTabItemProps[];
 }
 
 function DeleteDialog({
@@ -211,7 +211,7 @@ function EventTypeSingleLayout({
   const watchChildrenCount = formMethods.watch("children").length;
   // Define tab navigation here
   const EventTypeTabs = useMemo(() => {
-    const navigation = getNavigation({
+    const navigation: VerticalTabItemProps[] = getNavigation({
       t,
       length,
       multipleDuration,
@@ -225,7 +225,7 @@ function EventTypeSingleLayout({
     navigation.splice(1, 0, {
       name: "availability",
       href: `/event-types/${formMethods.getValues("id")}?tabName=availability`,
-      icon: (props) => <Icon {...props} name="calendar" />,
+      icon: "calendar",
       info:
         isManagedEventType || isChildrenManagedEventType
           ? formMethods.getValues("schedule") === null
@@ -244,7 +244,7 @@ function EventTypeSingleLayout({
       navigation.splice(2, 0, {
         name: "assignment",
         href: `/event-types/${formMethods.getValues("id")}?tabName=team`,
-        icon: (props) => <Icon {...props} name="users" />,
+        icon: "users",
         info: `${t(watchSchedulingType?.toLowerCase() ?? "")}${
           isManagedEventType ? ` - ${t("number_member", { count: watchChildrenCount || 0 })}` : ""
         }`,
@@ -256,14 +256,14 @@ function EventTypeSingleLayout({
         navigation.push({
           name: "instant_tab_title",
           href: `/event-types/${eventType.id}?tabName=instant`,
-          icon: (props) => <Icon {...props} name="phone-call" />,
+          icon: "phone-call",
           info: `instant_event_tab_description`,
         });
       }
       navigation.push({
         name: "webhooks",
         href: `/event-types/${formMethods.getValues("id")}?tabName=webhooks`,
-        icon: (props) => <Icon {...props} name="webhook" />,
+        icon: "webhook",
         info: `${activeWebhooksNumber} ${t("active")}`,
       });
     }
@@ -370,6 +370,7 @@ function EventTypeSingleLayout({
                 />
                 <EventTypeEmbedButton
                   embedUrl={encodeURIComponent(embedLink)}
+                  // @ts-expect-error the Button props fallback isn't being picked up here
                   StartIcon={(props) => <Icon {...props} name="code" />}
                   color="secondary"
                   variant="icon"

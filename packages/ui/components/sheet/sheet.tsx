@@ -3,7 +3,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import * as React from "react";
 
 import classNames from "@calcom/lib/classNames";
-import { X } from "@calcom/ui/components/icon";
+import { Icon } from "@calcom/ui";
 
 const Sheet = SheetPrimitive.Root;
 

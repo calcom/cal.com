@@ -5,7 +5,7 @@ import { Toaster } from "react-hot-toast";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Alert, Button, Form, TextField } from "@calcom/ui";
-import { Plus, Trash } from "@calcom/ui/components/icon";
+import { Icon } from "@calcom/ui";
 
 export default function ICSFeedSetup() {
   const { t } = useLocale();
@@ -71,7 +71,7 @@ export default function ICSFeedSetup() {
                           type="button"
                           className="mb-2 h-min text-sm"
                           onClick={() => setUrls((urls) => urls.filter((_, ii) => i !== ii))}>
-                          <Trash size={16} />
+                          <Icon name="trash" size={16} />
                         </button>
                       ) : null}
                     </div>

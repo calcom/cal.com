@@ -8,15 +8,15 @@ import LicenseRequired from "@calcom/ee/common/components/LicenseRequired";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import {
-  Meta,
-  DropdownActions,
-  showToast,
-  Table,
   Badge,
   ConfirmationDialogContent,
   Dialog,
+  DropdownActions,
+  Icon,
+  Meta,
+  showToast,
+  Table,
 } from "@calcom/ui";
-import { Check, CheckCheck, Trash, Edit, BookOpenCheck } from "@calcom/ui/components/icon";
 
 import { getLayout } from "../../../../../settings/layouts/SettingsLayout";
 import { subdomainSuffix } from "../../../../organizations/lib/orgDomains";
@@ -146,7 +146,7 @@ function AdminOrgTable() {
                                   orgId: org.id,
                                 });
                               },
-                              icon: Check,
+                              icon: (props) => <Icon {...props} name="check" />,
                             },
                           ]
                         : []),
@@ -163,7 +163,7 @@ function AdminOrgTable() {
                                   },
                                 });
                               },
-                              icon: CheckCheck,
+                              icon: (props) => <Icon {...props} name="check-check" />,
                             },
                           ]
                         : []),
@@ -171,7 +171,7 @@ function AdminOrgTable() {
                         id: "edit",
                         label: t("edit"),
                         href: `/settings/admin/organizations/${org.id}/edit`,
-                        icon: Edit,
+                        icon: (props) => <Icon {...props} name="edit" />,
                       },
                       ...(!org.slug
                         ? [
@@ -181,7 +181,7 @@ function AdminOrgTable() {
                               onClick: () => {
                                 publishOrg(org);
                               },
-                              icon: BookOpenCheck,
+                              icon: (props) => <Icon {...props} name="book-open-check" />,
                             },
                           ]
                         : []),
@@ -191,7 +191,7 @@ function AdminOrgTable() {
                         onClick: () => {
                           setOrgToDelete(org);
                         },
-                        icon: Trash,
+                        icon: (props) => <Icon {...props} name="trash" />,
                       },
                     ]}
                   />

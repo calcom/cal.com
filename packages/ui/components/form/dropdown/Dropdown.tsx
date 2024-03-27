@@ -5,7 +5,7 @@ import { forwardRef } from "react";
 
 import { classNames } from "@calcom/lib";
 import type { SVGComponent } from "@calcom/types/SVGComponent";
-import { CheckCircle } from "@calcom/ui/components/icon";
+import { Icon } from "@calcom/ui";
 
 import type { ButtonColor } from "../../button/Button";
 
@@ -77,7 +77,7 @@ export const DropdownMenuCheckboxItem = forwardRef<HTMLDivElement, DropdownMenuC
       <DropdownMenuPrimitive.CheckboxItem {...props} ref={forwardedRef} className="">
         {children}
         <DropdownMenuPrimitive.ItemIndicator>
-          <CheckCircle />
+          <Icon name="check-circle" />
         </DropdownMenuPrimitive.ItemIndicator>
       </DropdownMenuPrimitive.CheckboxItem>
     );
@@ -94,7 +94,7 @@ export const DropdownMenuRadioItem = forwardRef<HTMLDivElement, DropdownMenuRadi
       <DropdownMenuPrimitive.RadioItem {...props} ref={forwardedRef}>
         {children}
         <DropdownMenuPrimitive.ItemIndicator>
-          <CheckCircle />
+          <Icon name="check-circle" />
         </DropdownMenuPrimitive.ItemIndicator>
       </DropdownMenuPrimitive.RadioItem>
     );

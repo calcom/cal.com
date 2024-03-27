@@ -1,18 +1,23 @@
+import type { ComponentProps } from "react";
+
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { SVGComponent } from "@calcom/types/SVGComponent";
 import {
   Dropdown,
+  DropdownItem,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownItem,
   DropdownMenuTrigger,
+  Icon,
   Tooltip,
 } from "@calcom/ui";
-import { Plus, Link, User, Check } from "@calcom/ui/components/icon";
 
 import { useFilterContext } from "../context/provider";
 
-type Option = { value: "event-type" | "user"; label: string; StartIcon?: SVGComponent };
+type Option = {
+  value: "event-type" | "user";
+  label: string;
+  StartIcon: ComponentProps<typeof Icon>["name"];
+};
 
 export const FilterType = () => {
   const { t } = useLocale();
@@ -23,12 +28,12 @@ export const FilterType = () => {
     {
       label: t("event_type"),
       value: "event-type",
-      StartIcon: Link,
+      StartIcon: "link",
     },
     {
       label: t("user"),
       value: "user",
-      StartIcon: User,
+      StartIcon: "user",
     },
   ];
 
@@ -56,7 +61,7 @@ export const FilterType = () => {
           <DropdownMenuItem key={option.label} className="w-44">
             <DropdownItem
               type="button"
-              StartIcon={option.StartIcon}
+              StartIcon={(props) => <Icon {...props} name={option.StartIcon} />}
               onClick={() => {
                 // This can multiple values, but for now we only want to have one filter active at a time
                 setConfigFilters({
@@ -66,7 +71,7 @@ export const FilterType = () => {
               childrenClassName="w-full">
               <div className="flex w-full items-center justify-between">
                 {t(option.label)}
-                {filterValue?.value === option.value && <Check className="h-4 w-4" />}
+                {filterValue?.value === option.value && <Icon name="check" className="h-4 w-4" />}
               </div>
             </DropdownItem>
           </DropdownMenuItem>

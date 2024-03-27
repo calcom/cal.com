@@ -1,11 +1,11 @@
-import { Fragment } from "react";
-import React from "react";
+import React, { Fragment } from "react";
 
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
+import { PriceIcon } from "@calcom/features/bookings/components/event-meta/PriceIcon";
 import classNames from "@calcom/lib/classNames";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Clock, CheckSquare, RefreshCcw } from "@calcom/ui/components/icon";
+import { Icon } from "@calcom/ui";
 
 import type { PublicEvent } from "../../types";
 import { EventDetailBlocks } from "../../types";
@@ -13,7 +13,6 @@ import { AvailableEventLocations } from "./AvailableEventLocations";
 import { EventDuration } from "./Duration";
 import { EventOccurences } from "./Occurences";
 import { Price } from "./Price";
-import { getPriceIcon } from "./getPriceIcon";
 
 type EventDetailsPropsBase = {
   event: PublicEvent;
@@ -124,7 +123,7 @@ export const EventDetails = ({ event, blocks = defaultEventDetailsBlocks }: Even
         switch (block) {
           case EventDetailBlocks.DURATION:
             return (
-              <EventMetaBlock key={block} icon={Clock}>
+              <EventMetaBlock key={block} icon={(props) => <Icon {...props} name="clock" />}>
                 <EventDuration event={event} />
               </EventMetaBlock>
             );
@@ -141,7 +140,7 @@ export const EventDetails = ({ event, blocks = defaultEventDetailsBlocks }: Even
             if (!event.requiresConfirmation) return null;
 
             return (
-              <EventMetaBlock key={block} icon={CheckSquare}>
+              <EventMetaBlock key={block} icon={(props) => <Icon {...props} name="check-square" />}>
                 {t("requires_confirmation")}
               </EventMetaBlock>
             );
@@ -150,7 +149,7 @@ export const EventDetails = ({ event, blocks = defaultEventDetailsBlocks }: Even
             if (!event.recurringEvent || rescheduleUid) return null;
 
             return (
-              <EventMetaBlock key={block} icon={RefreshCcw}>
+              <EventMetaBlock key={block} icon={(props) => <Icon {...props} name="refresh-ccw" />}>
                 <EventOccurences event={event} />
               </EventMetaBlock>
             );
@@ -160,7 +159,9 @@ export const EventDetails = ({ event, blocks = defaultEventDetailsBlocks }: Even
             if (event.price <= 0 || paymentAppData.price <= 0) return null;
 
             return (
-              <EventMetaBlock key={block} icon={getPriceIcon(event.currency)}>
+              <EventMetaBlock
+                key={block}
+                icon={(props) => <PriceIcon {...props} currency={event.currency} />}>
                 <Price
                   price={paymentAppData.price}
                   currency={event.currency}

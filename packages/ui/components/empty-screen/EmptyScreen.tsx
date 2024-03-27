@@ -3,7 +3,6 @@ import React from "react";
 
 import { classNames } from "@calcom/lib";
 import type { SVGComponent } from "@calcom/types/SVGComponent";
-import type { LucideIcon as IconType } from "@calcom/ui/components/icon";
 
 import { Button } from "../../components/button";
 
@@ -19,7 +18,7 @@ export function EmptyScreen({
   dashedBorder = true,
   className,
 }: {
-  Icon?: SVGComponent | IconType;
+  Icon?: SVGComponent;
   avatar?: React.ReactElement;
   headline: string | React.ReactElement;
   description?: string | React.ReactElement;

@@ -23,6 +23,7 @@ import {
   DialogHeader,
   DropdownMenuSeparator,
   Form,
+  Icon,
   Meta,
   SettingsToggle,
   showToast,
@@ -31,14 +32,6 @@ import {
   Tooltip,
   VerticalDivider,
 } from "@calcom/ui";
-import {
-  ExternalLink,
-  Link as LinkIcon,
-  Download,
-  Code,
-  Trash,
-  MessageCircle,
-} from "@calcom/ui/components/icon";
 
 import { getAbsoluteEventTypeRedirectUrl } from "../getEventTypeRedirectUrl";
 import { RoutingPages } from "../lib/RoutingPages";
@@ -90,7 +83,7 @@ const Actions = ({
             type="button"
             rel="noreferrer"
             action="preview"
-            StartIcon={ExternalLink}
+            StartIcon={(props) => <Icon {...props} name="external-link" />}
           />
         </Tooltip>
         <FormAction
@@ -99,7 +92,7 @@ const Actions = ({
           color="secondary"
           variant="icon"
           type="button"
-          StartIcon={LinkIcon}
+          StartIcon={(props) => <Icon {...props} name="link" />}
           tooltip={t("copy_link_to_form")}
         />
 
@@ -111,7 +104,7 @@ const Actions = ({
             color="secondary"
             variant="icon"
             type="button"
-            StartIcon={Download}
+            StartIcon={(props) => <Icon {...props} name="download" />}
           />
         </Tooltip>
         <FormAction
@@ -119,7 +112,7 @@ const Actions = ({
           action="embed"
           color="secondary"
           variant="icon"
-          StartIcon={Code}
+          StartIcon={(props) => <Icon {...props} name="code" />}
           tooltip={t("embed")}
         />
         <DropdownMenuSeparator />
@@ -128,7 +121,7 @@ const Actions = ({
           action="_delete"
           // className="mr-3"
           variant="icon"
-          StartIcon={Trash}
+          StartIcon={(props) => <Icon {...props} name="trash" />}
           color="secondary"
           type="button"
           tooltip={t("delete")}
@@ -141,7 +134,7 @@ const Actions = ({
               action="copyRedirectUrl"
               color="minimal"
               type="button"
-              StartIcon={LinkIcon}>
+              StartIcon={(props) => <Icon {...props} name="link" />}>
               {t("Copy Typeform Redirect Url")}
             </FormAction>
           </FormActionsDropdown>
@@ -157,7 +150,7 @@ const Actions = ({
             type="button"
             rel="noreferrer"
             action="preview"
-            StartIcon={ExternalLink}>
+            StartIcon={(props) => <Icon {...props} name="external-link" />}>
             {t("preview")}
           </FormAction>
           <FormAction
@@ -166,7 +159,7 @@ const Actions = ({
             routingForm={form}
             color="minimal"
             type="button"
-            StartIcon={LinkIcon}>
+            StartIcon={(props) => <Icon {...props} name="link" />}>
             {t("copy_link_to_form")}
           </FormAction>
           <FormAction
@@ -175,7 +168,7 @@ const Actions = ({
             className="w-full"
             color="minimal"
             type="button"
-            StartIcon={Download}>
+            StartIcon={(props) => <Icon {...props} name="download" />}>
             {t("download_responses")}
           </FormAction>
           <FormAction
@@ -184,7 +177,7 @@ const Actions = ({
             color="minimal"
             type="button"
             className="w-full"
-            StartIcon={Code}>
+            StartIcon={(props) => <Icon {...props} name="code" />}>
             {t("embed")}
           </FormAction>
           {typeformApp ? (
@@ -194,7 +187,7 @@ const Actions = ({
               action="copyRedirectUrl"
               color="minimal"
               type="button"
-              StartIcon={LinkIcon}>
+              StartIcon={(props) => <Icon {...props} name="link" />}>
               {t("Copy Typeform Redirect Url")}
             </FormAction>
           ) : null}
@@ -205,7 +198,7 @@ const Actions = ({
             className="w-full"
             type="button"
             color="destructive"
-            StartIcon={Trash}>
+            StartIcon={(props) => <Icon {...props} name="trash" />}>
             {t("delete")}
           </FormAction>
           <div className="block sm:hidden">
@@ -495,7 +488,7 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
                         className="mt-2 px-4 py-3"
                         severity="neutral"
                         title={t("no_responses_yet")}
-                        CustomIcon={MessageCircle}
+                        CustomIcon={(props) => <Icon {...props} name="message-circle" />}
                       />
                     </>
                   )}

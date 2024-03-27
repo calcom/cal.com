@@ -6,17 +6,17 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import {
   Alert,
   Dialog,
+  DialogClose,
   DialogContent,
   EmptyScreen,
+  Icon,
   ListItem,
   ListItemText,
   ListItemTitle,
-  Switch,
-  DialogClose,
   SkeletonContainer,
   SkeletonText,
+  Switch,
 } from "@calcom/ui";
-import { Calendar } from "@calcom/ui/components/icon";
 
 import type { UseCalendarsReturnType } from "../hooks/useCalendars";
 

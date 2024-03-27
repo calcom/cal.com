@@ -2,8 +2,7 @@ import { useEffect } from "react";
 
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button, Switch } from "@calcom/ui";
-import { Settings } from "@calcom/ui/components/icon";
+import { Button, Icon, Switch } from "@calcom/ui";
 
 import { useBookerStore } from "../../store";
 import { useOverlayCalendarStore } from "./store";
@@ -65,7 +64,7 @@ export function OverlayCalendarSwitch({ enabled, hasSession, onStateChange }: Ov
           data-testid="overlay-calendar-settings-button"
           variant="icon"
           color="secondary"
-          StartIcon={Settings}
+          StartIcon={(props) => <Icon {...props} name="settings" />}
           onClick={() => {
             setCalendarSettingsOverlay(true);
           }}

@@ -1,7 +1,6 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Dialog, DialogTrigger, ConfirmationDialogContent, Button, showToast } from "@calcom/ui";
-import { Ban as BanIcon } from "@calcom/ui/components/icon";
+import { Button, ConfirmationDialogContent, Dialog, DialogTrigger, Icon, showToast } from "@calcom/ui";
 
 import type { User } from "../UserListTable";
 
@@ -26,7 +25,7 @@ export function DeleteBulkUsers({ users, onRemove }: Props) {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button StartIcon={BanIcon}>{t("Delete")}</Button>
+        <Button StartIcon={(props) => <Icon {...props} name="ban" />}>{t("Delete")}</Button>
       </DialogTrigger>
       <ConfirmationDialogContent
         variety="danger"

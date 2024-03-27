@@ -1,4 +1,4 @@
-import { StopCircle, Users } from "@calcom/ui/components/icon";
+import { Icon } from "@calcom/ui";
 
 export type DataTableUserStorybook = {
   id: string;
@@ -13,14 +13,14 @@ export const dataTableSelectionActions = [
     onClick: () => {
       console.log("Add To Team");
     },
-    icon: Users,
+    icon: () => <Icon name="users" />,
   },
   {
     label: "Delete",
     onClick: () => {
       console.log("Delete");
     },
-    icon: StopCircle,
+    icon: () => <Icon name="stop-circle" />,
   },
 ];
 

@@ -4,7 +4,7 @@ import type { LucideProps } from "lucide-react";
 import dynamicIconImports from "lucide-react/dynamicIconImports";
 import dynamic from "next/dynamic";
 
-interface IconProps extends LucideProps {
+interface IconProps extends Omit<LucideProps, "ref"> {
   name: keyof typeof dynamicIconImports;
 }
 

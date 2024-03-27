@@ -2,8 +2,7 @@ import { useMemo } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button, ButtonGroup } from "@calcom/ui";
-import { ChevronRight } from "@calcom/ui/components/icon";
+import { Button, ButtonGroup, Icon } from "@calcom/ui";
 
 import { useTroubleshooterStore } from "../store";
 
@@ -61,7 +60,7 @@ export function TroubleshooterHeader({ extraDays, isMobile }: { extraDays: numbe
             className="group rtl:mr-1 rtl:rotate-180"
             variant="icon"
             color="minimal"
-            StartIcon={ChevronRight}
+            StartIcon={(props) => <Icon {...props} name="chevron-right" />}
             aria-label="Next Day"
             onClick={() => addToSelectedDate(extraDays)}
           />

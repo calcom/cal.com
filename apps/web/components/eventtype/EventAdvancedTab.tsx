@@ -179,7 +179,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
                   aria-label="edit custom name"
                   className="hover:stroke-3 hover:text-emphasis min-w-fit !py-0 px-0 hover:bg-transparent"
                   onClick={() => setShowEventNameTip((old) => !old)}>
-                  <Icon name="edit" className="h-4 w-4" />
+                  <Icon name="pencil" className="h-4 w-4" />
                 </Button>
               }
             />

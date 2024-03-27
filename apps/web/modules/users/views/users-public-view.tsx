@@ -121,13 +121,13 @@ export function UserPage(props: InferGetServerSidePropsType<typeof getServerSide
               {profile.name}
               {!isOrg && user.verified && (
                 <Icon
-                  name="verified"
+                  name="badge-check"
                   className=" mx-1 -mt-1 inline h-6 w-6 fill-blue-500 text-white dark:text-black"
                 />
               )}
               {isOrg && (
                 <Icon
-                  name="verified"
+                  name="badge-check"
                   className=" mx-1 -mt-1 inline h-6 w-6 fill-yellow-500 text-white dark:text-black"
                 />
               )}

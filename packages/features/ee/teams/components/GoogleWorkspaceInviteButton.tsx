@@ -5,8 +5,7 @@ import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import { trpc } from "@calcom/trpc";
-import { Button, showToast, Tooltip } from "@calcom/ui";
-import { Users as UsersIcon, X as XIcon } from "@calcom/ui/components/icon";
+import { Button, Icon, showToast, Tooltip } from "@calcom/ui";
 
 const GoogleIcon = () => (
   <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -75,7 +74,7 @@ export function GoogleWorkspaceInviteButton(
               mutation.mutate();
             }}
             className="w-full justify-center gap-2"
-            StartIcon={UsersIcon}
+            StartIcon={(props) => <Icon {...props} name="users" />}
             loading={mutation.isPending}>
             {t("import_from_google_workspace")}
           </Button>
@@ -84,7 +83,7 @@ export function GoogleWorkspaceInviteButton(
           <Button
             color="secondary"
             loading={removeConnectionMutation.isPending}
-            StartIcon={XIcon}
+            StartIcon={(props) => <Icon {...props} name="x" />}
             onClick={() => {
               removeConnectionMutation.mutate();
               utils.viewer.googleWorkspace.checkForGWorkspace.invalidate();

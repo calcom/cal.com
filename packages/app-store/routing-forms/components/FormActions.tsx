@@ -33,7 +33,7 @@ import {
   TextAreaField,
   TextField,
 } from "@calcom/ui";
-import { MoreHorizontal } from "@calcom/ui/components/icon";
+import { Icon } from "@calcom/ui";
 
 import getFieldIdentifier from "../lib/getFieldIdentifier";
 import type { SerializableForm } from "../types/types";

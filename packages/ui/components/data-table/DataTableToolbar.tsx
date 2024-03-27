@@ -5,6 +5,7 @@ import type { Table } from "@tanstack/react-table";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { LucideIcon } from "@calcom/ui/components/icon";
 
+import { Icon } from "../..";
 import { Button } from "../button";
 import { Input } from "../form";
 import { DataTableFilter } from "./DataTableFilter";

@@ -2,8 +2,7 @@ import type { ReactNode } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Badge, Dialog, DialogContent } from "@calcom/ui";
-import { Calendar, Clock } from "@calcom/ui/components/icon";
+import { Badge, Dialog, DialogContent, Icon } from "@calcom/ui";
 
 import { useTimePreferences } from "../../../lib";
 import { useBookerStore } from "../../store";
@@ -23,13 +22,16 @@ const BookEventFormWrapper = ({ children }: { onCancel: () => void; children: Re
     <>
       <h1 className="font-cal text-emphasis text-xl leading-5">{t("confirm_your_details")} </h1>
       <div className="my-4 flex space-x-2 rounded-md leading-none">
-        <Badge variant="grayWithoutHover" startIcon={(props) => <Icon {...props} name="calendar" />} size="lg">
+        <Badge
+          variant="grayWithoutHover"
+          startIcon={(props) => <Icon {...props} name="calendar" />}
+          size="lg">
           <span>
             {parsedSelectedTimeslot.format("LL")} {parsedSelectedTimeslot.tz(timezone).format(timeFormat)}
           </span>
         </Badge>
         {(selectedDuration || data?.length) && (
-          <Badge variant="grayWithoutHover" startIcon={Clock} size="lg">
+          <Badge variant="grayWithoutHover" startIcon={(props) => <Icon {...props} name="clock" />} size="lg">
             <span>{selectedDuration || data?.length}</span>
           </Badge>
         )}

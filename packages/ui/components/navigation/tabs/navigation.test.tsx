@@ -2,8 +2,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { vi } from "vitest";
 
-import { Plus as PlusIcon } from "@calcom/ui/components/icon";
-
 import HorizontalTabs from "./HorizontalTabs";
 import VerticalTabs from "./VerticalTabs";
 
@@ -83,7 +81,7 @@ describe("Tests for navigation folder", () => {
         href: "/tab1",
         disableChevron: true,
         disabled: true,
-        icon: PlusIcon,
+        icon: "plus" as const,
       },
       { name: "Tab 2", href: "/tab2", isExternalLink: true },
       { name: "Tab 3", href: "/tab3", info: "info" },

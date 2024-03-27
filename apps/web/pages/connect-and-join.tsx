@@ -12,7 +12,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import { TRPCClientError } from "@calcom/trpc/react";
 import { Button, EmptyScreen, Alert } from "@calcom/ui";
-import { PhoneCall } from "@calcom/ui/components/icon";
+import { Icon } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
 
@@ -53,7 +53,7 @@ function ConnectAndJoin() {
       {session ? (
         <EmptyScreen
           headline={t("instant_tab_title")}
-          Icon={PhoneCall}
+          Icon={(props) => <Icon {...props} name="phone-call" />}
           description={t("uprade_to_create_instant_bookings")}
           buttonRaw={
             <div className="flex flex-col items-center justify-center	gap-4">

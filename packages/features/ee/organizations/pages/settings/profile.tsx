@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { Prisma } from "@prisma/client";
 import { useRouter } from "next/navigation";
-import { useState, useLayoutEffect, useEffect } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -18,22 +18,22 @@ import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import {
   Avatar,
-  Button,
-  Form,
-  ImageUploader,
   BannerUploader,
+  Button,
+  Editor,
+  Form,
+  Icon,
+  ImageUploader,
   Label,
+  LinkIconButton,
   Meta,
   showToast,
-  TextField,
-  Editor,
-  LinkIconButton,
   SkeletonAvatar,
   SkeletonButton,
   SkeletonContainer,
   SkeletonText,
+  TextField,
 } from "@calcom/ui";
-import { Link as LinkIcon } from "@calcom/ui/components/icon";
 
 import { getLayout } from "../../../../settings/layouts/SettingsLayout";
 import { useOrgBranding } from "../../../organizations/context/provider";
@@ -146,7 +146,7 @@ const OrgProfileView = () => {
             </div>
             <div className="">
               <LinkIconButton
-                Icon={LinkIcon}
+                Icon={(props) => <Icon {...props} name="link" />}
                 onClick={() => {
                   navigator.clipboard.writeText(orgBranding.fullDomain);
                   showToast("Copied to clipboard", "success");

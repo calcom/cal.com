@@ -1,10 +1,10 @@
 import Link from "next/link";
+import type { ComponentProps } from "react";
 import { Fragment } from "react";
 
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useUrlMatchesCurrentUrl } from "@calcom/lib/hooks/useUrlMatchesCurrentUrl";
-import type { SVGComponent } from "@calcom/types/SVGComponent";
 
 import { Icon } from "../../..";
 import { Skeleton } from "../../skeleton";
@@ -12,7 +12,7 @@ import { Skeleton } from "../../skeleton";
 export type VerticalTabItemProps = {
   name: string;
   info?: string;
-  icon?: SVGComponent;
+  icon?: ComponentProps<typeof Icon>["name"];
   disabled?: boolean;
   children?: VerticalTabItemProps[];
   textClassNames?: string;
@@ -62,7 +62,8 @@ const VerticalTabItem = ({
             data-testid={`vertical-tab-${name}`}
             aria-current={isCurrent ? "page" : undefined}>
             {props.icon && (
-              <props.icon
+              <Icon
+                name={props.icon}
                 className={classNames(
                   "mr-2 h-[16px] w-[16px] stroke-[2px] ltr:mr-2 rtl:ml-2 md:mt-0",
                   props.iconClassName

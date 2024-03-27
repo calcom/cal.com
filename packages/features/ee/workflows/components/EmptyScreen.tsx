@@ -4,8 +4,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { trpc } from "@calcom/trpc/react";
 import type { SVGComponent } from "@calcom/types/SVGComponent";
-import { CreateButtonWithTeamsList, EmptyScreen as ClassicEmptyScreen, showToast } from "@calcom/ui";
-import { Mail, Smartphone, Zap } from "@calcom/ui/components/icon";
+import { CreateButtonWithTeamsList, EmptyScreen as ClassicEmptyScreen, Icon, showToast } from "@calcom/ui";
 
 type WorkflowExampleType = {
   Icon: SVGComponent;
@@ -53,24 +52,30 @@ export default function EmptyScreen(props: { isFilteredView: boolean }) {
   });
 
   const workflowsExamples = [
-    { icon: Smartphone, text: t("workflow_example_1") },
-    { icon: Smartphone, text: t("workflow_example_2") },
-    { icon: Mail, text: t("workflow_example_3") },
-    { icon: Mail, text: t("workflow_example_4") },
-    { icon: Mail, text: t("workflow_example_5") },
-    { icon: Smartphone, text: t("workflow_example_6") },
-  ];
+    { icon: "smartphone", text: t("workflow_example_1") },
+    { icon: "smartphone", text: t("workflow_example_2") },
+    { icon: "mail", text: t("workflow_example_3") },
+    { icon: "mail", text: t("workflow_example_4") },
+    { icon: "mail", text: t("workflow_example_5") },
+    { icon: "smartphone", text: t("workflow_example_6") },
+  ] as const;
   // new workflow example when 'after meetings ends' trigger is implemented: Send custom thank you email to attendee after event (Smile icon),
 
   if (props.isFilteredView) {
-    return <ClassicEmptyScreen Icon={Zap} headline={t("no_workflows")} description={t("change_filter")} />;
+    return (
+      <ClassicEmptyScreen
+        Icon={(props) => <Icon {...props} name="zap" />}
+        headline={t("no_workflows")}
+        description={t("change_filter")}
+      />
+    );
   }
 
   return (
     <>
       <div className="min-h-80 flex w-full flex-col items-center justify-center rounded-md ">
         <div className="bg-emphasis flex h-[72px] w-[72px] items-center justify-center rounded-full">
-          <Zap className="dark:text-default inline-block h-10 w-10 stroke-[1.3px]" />
+          <Icon name="zap" className="dark:text-default inline-block h-10 w-10 stroke-[1.3px]" />
         </div>
         <div className="max-w-[420px] text-center">
           <h2 className="text-semibold font-cal mt-6 text-xl dark:text-gray-300">{t("workflows")}</h2>
@@ -90,7 +95,11 @@ export default function EmptyScreen(props: { isFilteredView: boolean }) {
       <div className="flex flex-row items-center justify-center">
         <div className="grid-cols-none items-center lg:grid lg:grid-cols-3 xl:mx-20">
           {workflowsExamples.map((example, index) => (
-            <WorkflowExample key={index} Icon={example.icon} text={example.text} />
+            <WorkflowExample
+              key={index}
+              Icon={(props) => <Icon {...props} name={example.icon} />}
+              text={example.text}
+            />
           ))}
         </div>
       </div>

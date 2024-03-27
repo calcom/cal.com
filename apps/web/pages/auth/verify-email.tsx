@@ -9,7 +9,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import useEmailVerifyCheck from "@calcom/trpc/react/hooks/useEmailVerifyCheck";
 import { Button, EmptyScreen, showToast } from "@calcom/ui";
-import { MailOpen as MailOpenIcon } from "@calcom/ui/components/icon";
+import { Icon } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
 
@@ -36,7 +36,7 @@ function VerifyEmailPage() {
           <EmptyScreen
             border
             dashedBorder={false}
-            Icon={MailOpenIcon}
+            Icon={(props) => <Icon {...props} name="mail-open" />}
             headline={t("check_your_email")}
             description={t("verify_email_page_body", { email: session?.user?.email, appName: APP_NAME })}
             className="bg-default"

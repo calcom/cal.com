@@ -7,8 +7,7 @@ import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { trpc } from "@calcom/trpc/react";
-import { Button, showToast, TextField } from "@calcom/ui";
-import { ArrowRight, Plus, X } from "@calcom/ui/components/icon";
+import { Button, Icon, showToast, TextField } from "@calcom/ui";
 
 const querySchema = z.object({
   id: z.string().transform((val) => parseInt(val)),
@@ -118,7 +117,10 @@ export const AddNewTeamsForm = () => {
                     className="group/remove mx-2 px-0 hover:bg-transparent"
                     onClick={() => handleRemoveInput(index)}
                     aria-label="Remove Team">
-                    <Icon name="x" className="bg-subtle text group-hover/remove:text-inverted group-hover/remove:bg-inverted h-5 w-5 rounded-full p-1" />
+                    <Icon
+                      name="x"
+                      className="bg-subtle text group-hover/remove:text-inverted group-hover/remove:bg-inverted h-5 w-5 rounded-full p-1"
+                    />
                   </Button>
                 )
               }

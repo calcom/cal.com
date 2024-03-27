@@ -510,7 +510,7 @@ export const EventTypeList = ({
                                   <DropdownItem
                                     type="button"
                                     data-testid={`event-type-edit-${type.id}`}
-                                    StartIcon={(props) => <Icon {...props} name="edit-2" />}
+                                    StartIcon={(props) => <Icon {...props} name="pencil" />}
                                     onClick={() => router.push(`/event-types/${type.id}`)}>
                                     {t("edit")}
                                   </DropdownItem>
@@ -535,6 +535,7 @@ export const EventTypeList = ({
                                     namespace=""
                                     as={DropdownItem}
                                     type="button"
+                                    // @ts-expect-error the Button props fallback isn't being picked up here
                                     StartIcon={(props) => <Icon {...props} name="code" />}
                                     className="w-full rounded-none"
                                     embedUrl={encodeURIComponent(embedLink)}
@@ -631,7 +632,7 @@ export const EventTypeList = ({
                           <DropdownMenuItem className="outline-none">
                             <DropdownItem
                               onClick={() => router.push(`/event-types/${type.id}`)}
-                              StartIcon={(props) => <Icon {...props} name="edit" />}
+                              StartIcon={(props) => <Icon {...props} name="pencil" />}
                               className="w-full rounded-none">
                               {t("edit")}
                             </DropdownItem>

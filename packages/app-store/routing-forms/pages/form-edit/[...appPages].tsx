@@ -3,8 +3,7 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { useEffect, useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
-import { useWatch } from "react-hook-form";
-import { Controller, useFieldArray } from "react-hook-form";
+import { Controller, useFieldArray, useWatch } from "react-hook-form";
 import { v4 as uuidv4 } from "uuid";
 
 import Shell from "@calcom/features/shell/Shell";
@@ -15,12 +14,12 @@ import {
   Button,
   EmptyScreen,
   FormCard,
+  Icon,
   Label,
   SelectField,
   Skeleton,
   TextField,
 } from "@calcom/ui";
-import { FileText, X, ArrowUp, ArrowDown } from "@calcom/ui/components/icon";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -270,7 +269,7 @@ function Field({
                           type="button"
                           onClick={() => move(index, -1)}
                           className="bg-default text-muted hover:text-emphasis invisible flex h-6 w-6 scale-0 items-center   justify-center rounded-md border p-1 transition-all hover:border-transparent  hover:shadow group-hover:visible group-hover:scale-100 ">
-                          <ArrowUp />
+                          <Icon name="arrow-up" />
                         </button>
                       ) : null}
                       {options.length && index !== options.length - 1 ? (
@@ -278,7 +277,7 @@ function Field({
                           type="button"
                           onClick={() => move(index, 1)}
                           className="bg-default text-muted hover:text-emphasis invisible flex h-6 w-6 scale-0 items-center   justify-center rounded-md border p-1 transition-all hover:border-transparent  hover:shadow group-hover:visible group-hover:scale-100 ">
-                          <ArrowDown />
+                          <Icon name="arrow-down" />
                         </button>
                       ) : null}
                     </div>
@@ -437,7 +436,7 @@ const FormEdit = ({
   ) : (
     <div className="bg-default w-full">
       <EmptyScreen
-        Icon={FileText}
+        Icon={(props) => <Icon {...props} name="file-text" />}
         headline="Create your first field"
         description="Fields are the form fields that the booker would see."
         buttonRaw={

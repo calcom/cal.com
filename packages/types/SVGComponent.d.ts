@@ -1,3 +1,3 @@
-import type { LucideIcon } from "lucide-react";
+import type { LucideProps } from "lucide-react";
 
-export type SVGComponent = React.FunctionComponent<React.SVGProps<SVGSVGElement>> | LucideIcon;
+export type SVGComponent = (props: Omit<LucideProps, "ref">) => JSX.Element;

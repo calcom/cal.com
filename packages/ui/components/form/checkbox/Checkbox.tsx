@@ -4,7 +4,7 @@ import type { InputHTMLAttributes } from "react";
 import React, { forwardRef } from "react";
 
 import classNames from "@calcom/lib/classNames";
-import { Check } from "@calcom/ui/components/icon";
+import { Icon } from "@calcom/ui";
 
 type Props = InputHTMLAttributes<HTMLInputElement> & {
   label?: React.ReactNode;
@@ -32,7 +32,7 @@ const Checkbox = React.forwardRef<
     )}
     {...props}>
     <CheckboxPrimitive.Indicator className={classNames("flex items-center justify-center text-current")}>
-      <Check className="h-4 w-4" />
+      <Icon name="check" className="h-4 w-4" />
     </CheckboxPrimitive.Indicator>
   </CheckboxPrimitive.Root>
 ));

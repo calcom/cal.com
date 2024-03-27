@@ -2,7 +2,7 @@ import { getEventLocationType, getTranslatedLocation } from "@calcom/app-store/l
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Tooltip } from "@calcom/ui";
-import { MapPin } from "@calcom/ui/components/icon";
+import { Icon } from "@calcom/ui";
 
 import type { PublicEvent } from "../../types";
 import { EventMetaBlock } from "./Details";
@@ -23,7 +23,9 @@ export const EventLocations = ({ event }: { event: PublicEvent }) => {
   const icon = locations.length > 1 || !eventLocationType?.iconUrl ? MapPin : eventLocationType.iconUrl;
 
   return (
-    <EventMetaBlock icon={icon} isDark={eventLocationType?.iconUrl?.includes("-dark")}>
+    <EventMetaBlock
+      icon={(props) => <Icon {...props} name="icon" />}
+      isDark={eventLocationType?.iconUrl?.includes("-dark")}>
       {locations.length === 1 && (
         <Tooltip content={getLocationToDisplay(locations[0])}>
           <div className="" key={locations[0].type}>

@@ -10,7 +10,7 @@ import {
   VariantsTable,
 } from "@calcom/storybook/components";
 
-import { Plus, Trash, Copy } from "@calcom/ui/components/icon";
+import { Icon } from "@calcom/ui";
 import {
   Dropdown,
   DropdownMenuTrigger,
@@ -266,14 +266,14 @@ The `Dropdown` component can be used to display a menu to the user.
       </DropdownMenuTrigger>
       <DropdownMenuContent>
         <DropdownMenuItem>
-          <DropdownItem StartIcon={Trash}>First</DropdownItem>
+          <DropdownItem StartIcon={(props) => <Icon {...props} name="trash" />}>First</DropdownItem>
         </DropdownMenuItem>
         <DropdownMenuItem>
           <DropdownItem StartIcon={(props) => <Icon {...props} name="plus" />}>Second</DropdownItem>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem>
-          <DropdownItem StartIcon={Copy}>Third</DropdownItem>
+          <DropdownItem StartIcon={(props) => <Icon {...props} name="copy" />}>Third</DropdownItem>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </Dropdown>
@@ -344,13 +344,13 @@ The `Dropdown` component can be used to display a menu to the user.
             </DropdownMenuTrigger>
             <DropdownMenuContent align={align} sideOffset={sideOffset}>
               <DropdownMenuItem>
-                <DropdownItem StartIcon={Trash}>First</DropdownItem>
+                <DropdownItem StartIcon={(props) => <Icon {...props} name="trash" />}>First</DropdownItem>
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <DropdownItem StartIcon={(props) => <Icon {...props} name="plus" />}>Second</DropdownItem>
               </DropdownMenuItem>
               <DropdownMenuItem>
-                <DropdownItem StartIcon={Copy}>Third</DropdownItem>
+                <DropdownItem StartIcon={(props) => <Icon {...props} name="copy" />}>Third</DropdownItem>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </Dropdown>

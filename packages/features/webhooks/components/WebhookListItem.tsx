@@ -9,13 +9,13 @@ import {
   DropdownItem,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger,
   DropdownMenuSeparator,
+  DropdownMenuTrigger,
+  Icon,
   showToast,
   Switch,
   Tooltip,
 } from "@calcom/ui";
-import { Edit, Trash, Zap } from "@calcom/ui/components/icon";
 
 type WebhookProps = {
   id: string;
@@ -93,7 +93,7 @@ export default function WebhookListItem(props: {
                 key={trigger}
                 className="mt-2.5 basis-1/5 ltr:mr-2 rtl:ml-2"
                 variant="gray"
-                startIcon={Zap}>
+                startIcon={(props) => <Icon {...props} name="zap" />}>
                 {t(`${trigger.toLowerCase()}`)}
               </Badge>
             ))}
@@ -122,7 +122,7 @@ export default function WebhookListItem(props: {
           <Button
             className="hidden lg:flex"
             color="destructive"
-            StartIcon={Trash}
+            StartIcon={(props) => <Icon {...props} name="trash" />}
             variant="icon"
             onClick={onDeleteWebhook}
           />
@@ -138,14 +138,20 @@ export default function WebhookListItem(props: {
             </DropdownMenuTrigger>
             <DropdownMenuContent>
               <DropdownMenuItem>
-                <DropdownItem StartIcon={Edit} color="secondary" onClick={props.onEditWebhook}>
+                <DropdownItem
+                  StartIcon={(props) => <Icon {...props} name="pencil" />}
+                  color="secondary"
+                  onClick={props.onEditWebhook}>
                   {t("edit")}
                 </DropdownItem>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
 
               <DropdownMenuItem>
-                <DropdownItem StartIcon={Trash} color="destructive" onClick={onDeleteWebhook}>
+                <DropdownItem
+                  StartIcon={(props) => <Icon {...props} name="trash" />}
+                  color="destructive"
+                  onClick={onDeleteWebhook}>
                   {t("delete")}
                 </DropdownItem>
               </DropdownMenuItem>

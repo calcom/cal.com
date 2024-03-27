@@ -45,7 +45,7 @@ import {
   TextField,
   UserAvatar,
 } from "@calcom/ui";
-import { AlertTriangle, Trash2, Plus } from "@calcom/ui/components/icon";
+import { Icon } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
 import TwoFactor from "@components/auth/TwoFactor";
@@ -341,7 +341,11 @@ const ProfileView = () => {
       <Dialog open={deleteAccountOpen} onOpenChange={setDeleteAccountOpen}>
         <SectionBottomActions align="end">
           <DialogTrigger asChild>
-            <Button data-testid="delete-account" color="destructive" className="mt-1" StartIcon={Trash2}>
+            <Button
+              data-testid="delete-account"
+              color="destructive"
+              className="mt-1"
+              StartIcon={(props) => <Icon {...props} name="trash-2" />}>
               {t("delete_account")}
             </Button>
           </DialogTrigger>
@@ -350,7 +354,7 @@ const ProfileView = () => {
           title={t("delete_account_modal_title")}
           description={t("confirm_delete_account_modal", { appName: APP_NAME })}
           type="creation"
-          Icon={AlertTriangle}>
+          Icon={(props) => <Icon {...props} name="alert-triangle" />}>
           <>
             <div className="mb-10">
               <p className="text-default mb-4">{t("delete_account_confirmation_message")}</p>
@@ -393,7 +397,7 @@ const ProfileView = () => {
           title={t("confirm_password")}
           description={t("confirm_password_change_email")}
           type="creation"
-          Icon={AlertTriangle}>
+          Icon={(props) => <Icon {...props} name="alert-triangle" />}>
           <div className="mb-10">
             <div className="mb-4 grid gap-2 md:grid-cols-2">
               <div>
@@ -442,7 +446,7 @@ const ProfileView = () => {
           title={t("confirm_auth_change")}
           description={t("confirm_auth_email_change")}
           type="creation"
-          Icon={AlertTriangle}>
+          Icon={(props) => <Icon {...props} name="alert-triangle" />}>
           <DialogFooter>
             <Button
               color="primary"
@@ -676,7 +680,7 @@ const ProfileForm = ({
           <div className="text-default mt-2 flex items-center text-sm">{t("change_email_hint")}</div>
           <Button
             color="minimal"
-            StartIcon={Plus}
+            StartIcon={(props) => <Icon {...props} name="plus" />}
             className="mt-2"
             onClick={() => handleAddSecondaryEmail()}
             data-testid="add-secondary-email">

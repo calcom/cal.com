@@ -37,13 +37,13 @@ const IntegrationsContainer = ({
   });
 
   // TODO: Refactor and reuse getAppCategories?
-  const emptyIcon: Record<AppCategories, ComponentProps<typeof Icon>["name"]> = {
+  const emptyIcon: Record<AppCategories, React.ComponentProps<typeof Icon>["name"]> = {
     calendar: "calendar",
     conferencing: "video",
     automation: "share-2",
     analytics: "bar-chart",
     payment: "credit-card",
-    other: "grid",
+    other: "grid-3x3",
     web3: "credit-card", // deprecated
     video: "video", // deprecated
     messaging: "mail",

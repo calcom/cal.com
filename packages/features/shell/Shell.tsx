@@ -41,12 +41,12 @@ import classNames from "@calcom/lib/classNames";
 import {
   APP_NAME,
   DESKTOP_APP_LINK,
+  ENABLE_PROFILE_SWITCHER,
+  IS_VISUAL_REGRESSION_TESTING,
   JOIN_DISCORD,
   ROADMAP,
-  WEBAPP_URL,
-  IS_VISUAL_REGRESSION_TESTING,
   TOP_BANNER_HEIGHT,
-  ENABLE_PROFILE_SWITCHER,
+  WEBAPP_URL,
 } from "@calcom/lib/constants";
 import { useFormbricks } from "@calcom/lib/formbricks-client";
 import getBrandColours from "@calcom/lib/getBrandColours";
@@ -80,6 +80,7 @@ import {
   Tooltip,
   useCalcomTheme,
 } from "@calcom/ui";
+import { Discord } from "@calcom/ui/components/icon/Discord";
 
 import { useOrgBranding } from "../ee/organizations/context/provider";
 import FreshChatProvider from "../ee/support/lib/freshchat/FreshChatProvider";
@@ -511,7 +512,7 @@ function UserDropdown({ small }: UserDropdownProps) {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem>
                   <DropdownItem
-                    StartIcon={(props) => <Icon {...props} name="discord" className="text-default h-4 w-4" />}
+                    StartIcon={() => <Discord />}
                     target="_blank"
                     rel="noreferrer"
                     href={JOIN_DISCORD}>

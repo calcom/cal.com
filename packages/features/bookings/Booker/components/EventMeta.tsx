@@ -1,6 +1,6 @@
 import { m } from "framer-motion";
 import dynamic from "next/dynamic";
-import { useMemo, useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { shallow } from "zustand/shallow";
 
 import { Timezone as PlatformTimezoneSelect } from "@calcom/atoms/monorepo";
@@ -10,7 +10,7 @@ import { SeatsAvailabilityText } from "@calcom/features/bookings/components/Seat
 import { EventMetaBlock } from "@calcom/features/bookings/components/event-meta/Details";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Calendar, Globe, User } from "@calcom/ui/components/icon";
+import { Icon } from "@calcom/ui";
 
 import { fadeInUp } from "../config";
 import { useBookerStore } from "../store";
@@ -131,7 +131,7 @@ export const EventMeta = ({
             <EventMetaBlock
               className="cursor-pointer [&_.current-timezone:before]:focus-within:opacity-100 [&_.current-timezone:before]:hover:opacity-100"
               contentClassName="relative max-w-[90%]"
-              icon={Globe}>
+              icon={(props) => <Icon {...props} name="globe" />}>
               {bookerState === "booking" ? (
                 <>{timezone}</>
               ) : (
@@ -156,7 +156,7 @@ export const EventMeta = ({
               )}
             </EventMetaBlock>
             {bookerState === "booking" && eventTotalSeats && bookingSeatAttendeesQty ? (
-              <EventMetaBlock icon={User} className={`${colorClass}`}>
+              <EventMetaBlock icon={(props) => <Icon {...props} name="user" />} className={`${colorClass}`}>
                 <div className="text-bookinghighlight flex items-start text-sm">
                   <p>
                     <SeatsAvailabilityText

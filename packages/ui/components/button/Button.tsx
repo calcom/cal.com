@@ -17,7 +17,7 @@ export type ButtonBaseProps = {
   /** Action that happens when the button is clicked */
   onClick?: (event: React.MouseEvent<HTMLElement, MouseEvent>) => void;
   /**Left aligned icon*/
-  StartIcon?: SVGComponent | React.ElementType;
+  StartIcon?: SVGComponent;
   /**Right aligned icon */
   EndIcon?: SVGComponent;
   shallow?: boolean;
