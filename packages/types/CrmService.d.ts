@@ -1,5 +1,14 @@
 import type { CalendarEvent } from "./Calendar";
 
+export interface CrmData {
+  id: string;
+  type: string;
+  uid: string;
+  credentialId: number;
+  password: string;
+  url: string;
+}
+
 export interface ContactCreateInput {
   email: string;
   name: string;

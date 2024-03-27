@@ -178,7 +178,7 @@ export default class EventManager {
       return result.type.includes("_calendar");
     };
 
-    await this.createAllCRMEvents(clonedCalEvent);
+    results.push(...(await this.createAllCRMEvents(clonedCalEvent)));
 
     // References can be any type: calendar/video
     const referencesToCreate = results.map((result) => {
@@ -201,7 +201,7 @@ export default class EventManager {
         meetingPassword: createdEventObj ? createdEventObj.password : result.createdEvent?.password,
         meetingUrl: createdEventObj ? createdEventObj.onlineMeetingUrl : result.createdEvent?.url,
         externalCalendarId: isCalendarType ? result.externalId : undefined,
-        credentialId: isCalendarType ? result.credentialId : undefined,
+        credentialId: result?.credentialId || undefined,
       };
     });
 
@@ -864,11 +864,34 @@ export default class EventManager {
   }
 
   private async createAllCRMEvents(event: CalendarEvent) {
+    const createdEvents = [];
     for (const credential of this.crmCredentials) {
       const crm = new CrmManager(credential);
 
-      await crm.createEvent(event);
+      let success = true;
+      let creationError = undefined;
+      const createdEvent = await crm.createEvent(event).catch((error) => {
+        success = false;
+        creationError = error;
+      });
+
+      createdEvents.push({
+        type: credential.type,
+        appName: credential.appId || "",
+        uid: createdEvent.id || "",
+        success,
+        createdEvent: {
+          id: createdEvent.id || "",
+          uid: createdEvent.id || "",
+          type: credential.type,
+          url: "",
+          credentialId: credential.id,
+          password: "",
+        },
+        id: createdEvent.id || "",
+        originalEvent: event,
+      });
     }
-    return;
+    return createdEvents;
   }
 }

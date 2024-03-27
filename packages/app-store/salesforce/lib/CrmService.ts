@@ -216,7 +216,7 @@ export default class SalesforceCRMService implements CRM {
     return await conn.sobject("Event").delete(uid);
   };
 
-  async handleEventCreation(event: CalendarEvent, contacts: Omit<ContactSearchResult, "attributes">[]) {
+  async handleEventCreation(event: CalendarEvent, contacts: Contact[]) {
     const sfEvent = await this.salesforceCreateEvent(event, contacts);
     if (sfEvent.success) {
       this.log.debug("event:creation:ok", { sfEvent });
@@ -238,7 +238,6 @@ export default class SalesforceCRMService implements CRM {
   async createEvent(event: CalendarEvent, contacts: Contact[]): Promise<NewCalendarEventType> {
     const sfEvent = await this.salesforceCreateEvent(event, contacts);
     if (sfEvent.success) {
-      this.log.debug("event:creation:ok", { sfEvent });
       return Promise.resolve({
         uid: sfEvent.id,
         id: sfEvent.id,
@@ -249,9 +248,7 @@ export default class SalesforceCRMService implements CRM {
       });
     }
     this.log.debug("event:creation:notOk", { event, sfEvent, contacts });
-    return Promise.reject({
-      calError: "Something went wrong when creating an event in Salesforce",
-    });
+    return Promise.reject("Something went wrong when creating an event in Salesforce");
   }
 
   async updateEvent(uid: string, event: CalendarEvent): Promise<NewCalendarEventType> {

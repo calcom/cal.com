@@ -30,13 +30,13 @@ export default class CrmManager {
     console.log("This was hit");
     // Ensure that all attendees are in the crm
     if (contacts.length == event.attendees.length) {
-      await this.crmService?.createEvent(event, contacts);
+      return await this.crmService?.createEvent(event, contacts);
     } else {
       // Figure out which contacts to create
       const contactsToCreate = event.attendees.filter((attendee) => !contacts.includes(attendee.email));
       const createdContacts = await this.crmService?.createContact(contactsToCreate);
       contacts = contacts.concat(createdContacts);
-      await this.crmService?.createEvent(event, contacts);
+      return await this.crmService?.createEvent(event, contacts);
     }
   }
 
