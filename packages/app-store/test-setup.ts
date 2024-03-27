@@ -27,6 +27,9 @@ vi.mock("@calcom/atoms/monorepo", () => ({
   },
 }));
 
+vi.mock("@calcom/lib/event-types/getEventTypesByViewer", () => ({}));
+vi.mock("@calcom/lib/event-types/getEventTypesPublic", () => ({}));
+
 global.ResizeObserver = vi.fn().mockImplementation(() => ({
   observe: vi.fn(),
   unobserve: vi.fn(),

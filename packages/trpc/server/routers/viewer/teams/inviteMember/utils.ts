@@ -219,12 +219,14 @@ export async function createNewUsersConnectToOrgIfExists({
   parentId,
   autoAcceptEmailDomain,
   connectionInfoMap,
+  isPlatformManaged,
 }: {
   usernamesOrEmails: string[];
   input: InviteMemberOptions["input"];
   parentId?: number | null;
   autoAcceptEmailDomain?: string;
   connectionInfoMap: Record<string, ReturnType<typeof getOrgConnectionInfo>>;
+  isPlatformManaged?: boolean;
 }) {
   // fail if we have invalid emails
   usernamesOrEmails.forEach((usernameOrEmail) => checkInputEmailIsValid(usernameOrEmail));
@@ -255,6 +257,7 @@ export async function createNewUsersConnectToOrgIfExists({
             email: usernameOrEmail,
             verified: true,
             invitedTo: input.teamId,
+            isPlatformManaged: !!isPlatformManaged,
             organizationId: orgId || null, // If the user is invited to a child team, they are automatically added to the parent org
             ...(orgId
               ? {

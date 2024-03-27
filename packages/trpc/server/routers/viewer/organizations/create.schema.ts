@@ -9,6 +9,7 @@ export const ZCreateInputSchema = z.object({
   language: z.string().optional(),
   seats: z.number().optional(),
   pricePerSeat: z.number().optional(),
+  isPlatform: z.boolean().default(false),
 });
 
 export type TCreateInputSchema = z.infer<typeof ZCreateInputSchema>;

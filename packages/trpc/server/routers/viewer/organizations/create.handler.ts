@@ -2,6 +2,7 @@ import { lookup } from "dns";
 
 import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
 import { sendAdminOrganizationNotification, sendOrganizationCreationEmail } from "@calcom/emails";
+import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { RESERVED_SUBDOMAINS, WEBAPP_URL } from "@calcom/lib/constants";
 import { createDomain } from "@calcom/lib/domainManager/organization";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -32,7 +33,7 @@ const getIPAddress = async (url: string): Promise<string> => {
 };
 
 export const createHandler = async ({ input, ctx }: CreateOptions) => {
-  const { slug, name, orgOwnerEmail, seats, pricePerSeat } = input;
+  const { slug, name, orgOwnerEmail, seats, pricePerSeat, isPlatform } = input;
 
   const orgOwner = await prisma.user.findUnique({
     where: {
@@ -67,9 +68,10 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
   }
 
   const t = await getTranslation(ctx.user.locale ?? "en", "common");
-  let isOrganizationConfigured = false;
 
-  isOrganizationConfigured = await createDomain(slug);
+  const availability = getAvailabilityFromSchedule(DEFAULT_SCHEDULE);
+
+  const isOrganizationConfigured = isPlatform ? true : await createDomain(slug);
 
   if (!isOrganizationConfigured) {
     // Otherwise, we proceed to send an administrative email to admins regarding
@@ -78,7 +80,6 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
       where: { role: UserPermissionRole.ADMIN },
       select: { email: true },
     });
-    // throw new Error("here01");
     if (instanceAdmins.length) {
       await sendAdminOrganizationNotification({
         instanceAdmins,
@@ -129,6 +130,15 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
   if (!organization.id) throw Error("User not created");
   const user = await UserRepository.enrichUserWithItsProfile({
     user: { ...orgOwner, organizationId: organization.id },
+  });
+
+  await prisma.availability.createMany({
+    data: availability.map((schedule) => ({
+      days: schedule.days,
+      startTime: schedule.startTime,
+      endTime: schedule.endTime,
+      userId: user.id,
+    })),
   });
 
   return { userId: user.id, email: user.email, organizationId: user.organizationId, upId: user.profile.upId };

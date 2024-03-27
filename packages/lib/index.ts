@@ -5,3 +5,5 @@ export * from "./isBookingLimits";
 export * from "./isDurationLimits";
 export * from "./validateIntervalLimitOrder";
 export * from "./schedules";
+export * from "./event-types/getEventTypesByViewer";
+export * from "./event-types/getEventTypesPublic";
