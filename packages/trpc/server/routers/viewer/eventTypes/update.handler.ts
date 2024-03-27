@@ -49,12 +49,21 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     bookingFields,
     offsetStart,
     secondaryEmailId,
+    aiPhoneCallConfig,
     ...rest
   } = input;
 
   const eventType = await ctx.prisma.eventType.findUniqueOrThrow({
     where: { id },
     select: {
+      aiPhoneCallConfig: {
+        select: {
+          generalPrompt: true,
+          beginMessage: true,
+          isCalAiPhoneCallEnabled: true,
+          llmId: true,
+        },
+      },
       children: {
         select: {
           userId: true,
@@ -343,6 +352,20 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         disconnect: true,
       };
     }
+  }
+
+  if (aiPhoneCallConfig) {
+    const createOrUpdateAIPhoneConfig = await ctx.prisma.aIPhoneCallConfiguration.upsert({
+      where: {
+        eventTypeId: id,
+      },
+      update: aiPhoneCallConfig,
+      create: {
+        ...aiPhoneCallConfig,
+        eventTypeId: id,
+      },
+    });
+    console.log("createOrUpdateAIPhoneConfig", createOrUpdateAIPhoneConfig);
   }
 
   const updatedEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({

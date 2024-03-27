@@ -592,8 +592,7 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   title: true,
   description: true,
   isInstantEvent: true,
-  isCalAiPhoneCallEnabled: true,
-  calAiPhoneScript: true,
+  aiPhoneCallConfig: true,
   currency: true,
   periodDays: true,
   position: true,
@@ -698,7 +697,9 @@ export const AIPhoneSettingSchema = z.object({
   guestName: z.string().min(1, {
     message: "Please enter Guest Name",
   }),
-  calAiPhoneScript: z.string().min(1, {
-    message: "Please enter Script",
+  generalPrompt: z.string().min(1, {
+    message: "Please enter prompt",
   }),
+  beginMessage: z.string().nullable(),
+  eventTypeId: z.number(),
 });

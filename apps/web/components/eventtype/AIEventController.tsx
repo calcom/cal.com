@@ -32,7 +32,9 @@ type AIEventControllerProps = {
 export default function AIEventController({ eventType, isTeamEvent }: AIEventControllerProps) {
   const { t } = useLocale();
   const session = useSession();
-  const [aiEventState, setAIEventState] = useState<boolean>(eventType?.isCalAiPhoneCallEnabled ?? false);
+  const [aiEventState, setAIEventState] = useState<boolean>(
+    eventType?.aiPhoneCallConfig?.isCalAiPhoneCallEnabled ?? false
+  );
   const formMethods = useFormContext<FormValues>();
 
   const isOrg = !!session.data?.user?.org?.id;
@@ -65,10 +67,14 @@ export default function AIEventController({ eventType, isTeamEvent }: AIEventCon
               data-testid="instant-event-check"
               onCheckedChange={(e) => {
                 if (!e) {
-                  formMethods.setValue("isCalAiPhoneCallEnabled", false, { shouldDirty: true });
+                  formMethods.setValue("aiPhoneCallConfig.isCalAiPhoneCallEnabled", false, {
+                    shouldDirty: true,
+                  });
                   setAIEventState(false);
                 } else {
-                  formMethods.setValue("isCalAiPhoneCallEnabled", true, { shouldDirty: true });
+                  formMethods.setValue("aiPhoneCallConfig.isCalAiPhoneCallEnabled", true, {
+                    shouldDirty: true,
+                  });
                   setAIEventState(true);
                 }
               }}>
@@ -85,13 +91,14 @@ export default function AIEventController({ eventType, isTeamEvent }: AIEventCon
 
 const AISettings = ({ eventType }: { eventType: EventTypeSetup }) => {
   const { t } = useLocale();
-  const [numberToCall, setNumberToCall] = useState();
-  const [yourPhoneNumber, setYourPhoneNumber] = useState();
-  const [guestName, setGuestName] = useState();
+  const [numberToCall, setNumberToCall] = useState<string | undefined>();
+  const [yourPhoneNumber, setYourPhoneNumber] = useState<string | undefined>();
+  const [guestName, setGuestName] = useState<string | undefined>();
 
   const formMethods = useFormContext<FormValues>();
 
-  const calAiPhoneScript = formMethods.watch("calAiPhoneScript");
+  const generalPrompt = formMethods.watch("aiPhoneCallConfig.generalPrompt");
+  const beginMessage = formMethods.watch("aiPhoneCallConfig.beginMessage");
   const createCallMutation = trpc.viewer.organizations.createPhoneCall.useMutation({
     onSuccess: (data) => {
       if (!!data?.call_id) {
@@ -123,14 +130,15 @@ const AISettings = ({ eventType }: { eventType: EventTypeSetup }) => {
     try {
       const data = await AIPhoneSettingSchema.parseAsync({
         yourPhoneNumber,
-        calAiPhoneScript,
+        generalPrompt,
         guestName,
         numberToCall,
+        beginMessage,
+        eventTypeId: eventType.id,
       });
 
       createCallMutation.mutate(data);
     } catch (err) {
-      console.log("erer", err.issues[0]);
       if (err instanceof z.ZodError) {
         const fieldName = err.issues?.[0]?.path?.[0];
         const message = err.issues?.[0]?.message;
@@ -177,7 +185,6 @@ const AISettings = ({ eventType }: { eventType: EventTypeSetup }) => {
           label={t("guest_name")}
           placeholder="Jane Doe"
           value={guestName}
-          required
           onChange={(e) => {
             setGuestName(e.target.value);
           }}
@@ -187,12 +194,21 @@ const AISettings = ({ eventType }: { eventType: EventTypeSetup }) => {
         <TextAreaField
           rows={3}
           required
-          placeholder="Script"
-          name="calAiPhoneScript"
-          label="script"
-          {...formMethods.register("calAiPhoneScript")}
+          placeholder="General Prompt"
+          label="General Prompt"
+          {...formMethods.register("aiPhoneCallConfig.generalPrompt")}
           onChange={(e) => {
-            formMethods.setValue("calAiPhoneScript", e.taget.value, { shouldDirty: true });
+            formMethods.setValue("aiPhoneCallConfig.generalPrompt", e.target.value, { shouldDirty: true });
+          }}
+        />
+
+        <TextAreaField
+          rows={3}
+          placeholder="Begin Message"
+          label="Begin message"
+          {...formMethods.register("aiPhoneCallConfig.beginMessage")}
+          onChange={(e) => {
+            formMethods.setValue("aiPhoneCallConfig.beginMessage", e.target.value, { shouldDirty: true });
           }}
         />
 

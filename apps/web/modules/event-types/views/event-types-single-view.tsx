@@ -34,8 +34,10 @@ import { EventTypeSingleLayout } from "@components/eventtype/EventTypeSingleLayo
 
 import { type PageProps } from "~/event-types/views/event-types-single-view.getServerSideProps";
 
-const DEFAULT_SCRIPT_VALUE =
+const DEFAULT_PROMPT_VALUE =
   "Introduce yourself: Hey, is this {name}? I am calling from Deel.com about your upcoming employee onboarding as an Intern at Cal.com. Peer, the Hiring Manager asked me to contact you because there are missing documents. Your task is to remind employees about missing documents and ask them politely to book a meeting. Ask if they need help and move forward with asking available times for an appointment with an onboarding specialist. It is ok if the person does not want a call. In that case remind them to log into the app.deel.com dashboard and follow all steps.";
+
+const DEFAULT_BEGIN_MESSAGE = "Hi I'm Alicia from Deel. How are you doing?";
 
 // These can't really be moved into calcom/ui due to the fact they use infered getserverside props typings;
 const EventSetupTab = dynamic(() =>
@@ -249,8 +251,11 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       })),
       seatsPerTimeSlotEnabled: eventType.seatsPerTimeSlot,
       assignAllTeamMembers: eventType.assignAllTeamMembers,
-      isCalAiPhoneCallEnabled: eventType.isCalAiPhoneCallEnabled,
-      calAiPhoneScript: eventType.calAiPhoneScript ?? DEFAULT_SCRIPT_VALUE,
+      aiPhoneCallConfig: {
+        generalPrompt: eventType.aiPhoneCallConfig?.generalPrompt ?? DEFAULT_PROMPT_VALUE,
+        isCalAiPhoneCallEnabled: eventType.aiPhoneCallConfig?.isCalAiPhoneCallEnabled,
+        beginMessage: eventType.aiPhoneCallConfig?.beginMessage ?? DEFAULT_BEGIN_MESSAGE,
+      },
     };
   }, [eventType, periodDates, metadata]);
   const formMethods = useForm<FormValues>({
