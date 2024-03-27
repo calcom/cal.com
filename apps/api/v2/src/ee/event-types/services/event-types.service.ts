@@ -23,7 +23,14 @@ export class EventTypesService {
   }
 
   async getUserEventType(userId: number, eventTypeId: number) {
-    return this.eventTypesRepository.getUserEventType(userId, eventTypeId);
+    const eventType = await this.eventTypesRepository.getUserEventType(userId, eventTypeId);
+
+    if (!eventType) {
+      return null;
+    }
+
+    checkUserOwnsEventType(userId, eventType);
+    return eventType;
   }
 
   async getUserEventTypeForAtom(user: UserWithProfile, eventTypeId: number) {
@@ -33,7 +40,18 @@ export class EventTypesService {
       ? await this.membershipsRepository.isUserOrganizationAdmin(user.id, organizationId)
       : false;
 
-    return this.eventTypesRepository.getUserEventTypeForAtom(user, isUserOrganizationAdmin, eventTypeId);
+    const eventType = await this.eventTypesRepository.getUserEventTypeForAtom(
+      user,
+      isUserOrganizationAdmin,
+      eventTypeId
+    );
+
+    if (!eventType) {
+      return null;
+    }
+
+    checkUserOwnsEventType(user.id, eventType);
+    return eventType;
   }
 
   async getEventTypesPublicByUsername(username: string): Promise<EventTypesPublic> {
@@ -83,14 +101,14 @@ export class EventTypesService {
       throw new NotFoundException(`Event type with ID=${eventTypeId} does not exist.`);
     }
 
-    this.checkUserOwnsEventType(userId, existingEventType);
+    checkUserOwnsEventType(userId, existingEventType);
 
     return this.eventTypesRepository.deleteEventType(eventTypeId);
   }
+}
 
-  checkUserOwnsEventType(userId: number, eventType: Pick<EventType, "id" | "userId">) {
-    if (userId !== eventType.userId) {
-      throw new ForbiddenException(`User with ID=${userId} does not own event type with ID=${eventType.id}`);
-    }
+export function checkUserOwnsEventType(userId: number, eventType: Pick<EventType, "id" | "userId">) {
+  if (userId !== eventType.userId) {
+    throw new ForbiddenException(`User with ID=${userId} does not own event type with ID=${eventType.id}`);
   }
 }
