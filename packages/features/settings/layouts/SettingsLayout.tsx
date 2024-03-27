@@ -106,6 +106,10 @@ const tabs: VerticalTabItemProps[] = [
       },
       { name: "OAuth Clients", href: "/settings/organizations/platform/oauth-clients" },
       {
+        name: "SSO",
+        href: "/settings/organizations/sso",
+      },
+      {
         name: "directory_sync",
         href: "/settings/organizations/dsync",
       },
@@ -448,14 +452,6 @@ const SettingsSidebarContainer = ({
                                           textClassNames="px-3 text-emphasis font-medium text-sm"
                                           disableChevron
                                         />
-                                        {HOSTED_CAL_FEATURES && (
-                                          <VerticalTabItem
-                                            name={t("saml_config")}
-                                            href={`/settings/teams/${team.id}/sso`}
-                                            textClassNames="px-3 text-emphasis font-medium text-sm"
-                                            disableChevron
-                                          />
-                                        )}
                                       </>
                                     ) : null}
                                   </>
