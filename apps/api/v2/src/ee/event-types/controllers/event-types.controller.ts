@@ -31,9 +31,10 @@ export class EventTypesController {
     @Body() body: CreateEventTypeInput,
     @GetUser() user: UserWithProfile
   ): Promise<ApiResponse<EventType>> {
-    const eventType = await createEventType({
+    const userWithOrg = await this.eventTypesService.getUserToCreateEvent(user);
+    const { eventType } = await createEventType({
       input: body,
-      ctx: { user },
+      ctx: { user: userWithOrg },
     });
 
     return {

@@ -10,7 +10,10 @@ import { getEventTypeById } from "@calcom/platform-libraries";
 export class EventTypesRepository {
   constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
 
-  async createUserEventType(userId: number, body: CreateEventTypeInput) {
+  async createUserEventType(
+    userId: number,
+    body: Pick<CreateEventTypeInput, "title" | "slug" | "length" | "hidden">
+  ) {
     return this.dbWrite.prisma.eventType.create({
       data: {
         ...body,

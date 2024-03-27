@@ -1,6 +1,7 @@
 import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
 import { EventTypesModule } from "@/ee/event-types/event-types.module";
+import { CreateEventTypeInput } from "@/ee/event-types/inputs/create-event-type.input";
 import { HttpExceptionFilter } from "@/filters/http-exception.filter";
 import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
@@ -86,6 +87,7 @@ describe("Event types Endpoints", () => {
       oauthClientRepositoryFixture = new OAuthClientRepositoryFixture(moduleRef);
       userRepositoryFixture = new UserRepositoryFixture(moduleRef);
       teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);
+      eventTypesRepositoryFixture = new EventTypesRepositoryFixture(moduleRef);
 
       organization = await teamRepositoryFixture.create({ name: "organization" });
       oAuthClient = await createOAuthClient(organization.id);
@@ -94,17 +96,6 @@ describe("Event types Endpoints", () => {
         name,
         username,
       });
-
-      eventTypesRepositoryFixture = new EventTypesRepositoryFixture(moduleRef);
-
-      eventType = await eventTypesRepositoryFixture.create(
-        {
-          length: 60,
-          title: "peer coding session",
-          slug: "peer-coding",
-        },
-        user.id
-      );
 
       await app.init();
     });
@@ -127,6 +118,34 @@ describe("Event types Endpoints", () => {
       expect(userRepositoryFixture).toBeDefined();
       expect(oAuthClient).toBeDefined();
       expect(user).toBeDefined();
+    });
+
+    it("should create an event type", async () => {
+      const body: CreateEventTypeInput = {
+        title: "Test Event Type",
+        slug: "test-event-type",
+        description: "A description of the test event type.",
+        length: 60,
+        hidden: false,
+        locations: [
+          {
+            type: "Online",
+            link: "https://example.com/meet",
+            displayLocationPublicly: true,
+          },
+        ],
+      };
+
+      return request(app.getHttpServer())
+        .post("/api/v2/event-types")
+        .send(body)
+        .expect(201)
+        .then(async (response) => {
+          const responseBody: ApiSuccessResponse<EventType> = response.body;
+          expect(responseBody.data).toHaveProperty("id");
+          expect(responseBody.data.title).toEqual(body.title);
+          eventType = responseBody.data;
+        });
     });
 
     it(`/GET/:id`, async () => {
@@ -154,10 +173,8 @@ describe("Event types Endpoints", () => {
         .expect(200);
 
       const responseBody: ApiSuccessResponse<EventTypesByViewer> = response.body;
-
       expect(responseBody.status).toEqual(SUCCESS_STATUS);
       expect(responseBody.data).toBeDefined();
-      console.log("asap responseBody.data", responseBody.data);
       expect(responseBody.data.eventTypeGroups).toBeDefined();
       expect(responseBody.data.eventTypeGroups).toBeDefined();
       expect(responseBody.data.eventTypeGroups[0]).toBeDefined();
@@ -178,7 +195,6 @@ describe("Event types Endpoints", () => {
 
       expect(responseBody.status).toEqual(SUCCESS_STATUS);
       expect(responseBody.data).toBeDefined();
-      console.log("asap responseBody.data", responseBody.data);
       expect(responseBody.data).toBeDefined();
       expect(responseBody.data.length).toEqual(1);
       expect(responseBody.data[0].id).toEqual(eventType.id);

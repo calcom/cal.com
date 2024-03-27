@@ -58,4 +58,13 @@ export class EventTypesService {
 
     return defaultEventTypes;
   }
+
+  async getUserToCreateEvent(user: UserWithProfile) {
+    const organizationId = user.movedToProfile?.organizationId || user.organizationId;
+    const isOrgAdmin = organizationId
+      ? await this.membershipsRepository.isUserOrganizationAdmin(user.id, organizationId)
+      : false;
+    const profileId = user.movedToProfile?.id;
+    return { ...user, organization: { isOrgAdmin }, profile: { id: profileId } };
+  }
 }
