@@ -4,9 +4,10 @@ import { CreateEventTypeInput } from "@/ee/event-types/inputs/create-event-type.
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
 import { SelectedCalendarsRepository } from "@/modules/selected-calendars/selected-calendars.repository";
 import { UserWithProfile, UsersRepository } from "@/modules/users/users.repository";
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 
 import { getEventTypesPublic, EventTypesPublic } from "@calcom/platform-libraries";
+import { EventType } from "@calcom/prisma/client";
 
 @Injectable()
 export class EventTypesService {
@@ -74,5 +75,22 @@ export class EventTypesService {
     const profileId = user.movedToProfile?.id;
     const selectedCalendars = await this.selectedCalendarsRepository.getUserSelectedCalendars(user.id);
     return { ...user, profile: { id: profileId }, selectedCalendars };
+  }
+
+  async deleteEventType(eventTypeId: number, userId: number) {
+    const existingEventType = await this.eventTypesRepository.getEventTypeById(eventTypeId);
+    if (!existingEventType) {
+      throw new NotFoundException(`Event type with ID=${eventTypeId} does not exist.`);
+    }
+
+    this.checkUserOwnsEventType(userId, existingEventType);
+
+    return this.eventTypesRepository.deleteEventType(eventTypeId);
+  }
+
+  checkUserOwnsEventType(userId: number, eventType: Pick<EventType, "id" | "userId">) {
+    if (userId !== eventType.userId) {
+      throw new ForbiddenException(`User with ID=${userId} does not own event type with ID=${eventType.id}`);
+    }
   }
 }

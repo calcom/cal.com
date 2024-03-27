@@ -62,4 +62,8 @@ export class EventTypesRepository {
   async getEventTypeById(eventTypeId: number) {
     return this.dbRead.prisma.eventType.findUnique({ where: { id: eventTypeId } });
   }
+
+  async deleteEventType(eventTypeId: number) {
+    return this.dbWrite.prisma.eventType.delete({ where: { id: eventTypeId } });
+  }
 }

@@ -63,7 +63,7 @@ describe("Event types Endpoints", () => {
     let eventTypesRepositoryFixture: EventTypesRepositoryFixture;
 
     const userEmail = "event-types-test-e2e@api.com";
-    const name = "bob";
+    const name = "bob the builder";
     const username = name;
     let eventType: EventType;
     let user: User;
@@ -225,10 +225,18 @@ describe("Event types Endpoints", () => {
         .expect(404);
     });
 
+    it("should delete schedule", async () => {
+      return request(app.getHttpServer()).delete(`/api/v2/event-types/${eventType.id}`).expect(200);
+    });
+
     afterAll(async () => {
       await oauthClientRepositoryFixture.delete(oAuthClient.id);
       await teamRepositoryFixture.delete(organization.id);
-      await eventTypesRepositoryFixture.delete(eventType.id);
+      try {
+        await eventTypesRepositoryFixture.delete(eventType.id);
+      } catch (e) {
+        // Event type might have been deleted by the test
+      }
       try {
         await userRepositoryFixture.delete(user.id);
       } catch (e) {

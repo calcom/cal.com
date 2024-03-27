@@ -19,6 +19,7 @@ import {
   Patch,
   HttpCode,
   HttpStatus,
+  Delete,
 } from "@nestjs/common";
 import { EventType } from "@prisma/client";
 
@@ -125,6 +126,21 @@ export class EventTypesController {
       input: { id: eventTypeId, ...body },
       ctx: { user: eventTypeUser, prisma: this.dbWrite.prisma },
     });
+
+    return {
+      status: SUCCESS_STATUS,
+      data: eventType,
+    };
+  }
+
+  @Delete("/:eventTypeId")
+  @Permissions([EVENT_TYPE_WRITE])
+  @UseGuards(AccessTokenGuard)
+  async deleteEventType(
+    @Param("eventTypeId") eventTypeId: number,
+    @GetUser("id") userId: number
+  ): Promise<ApiResponse<EventType>> {
+    const eventType = await this.eventTypesService.deleteEventType(eventTypeId, userId);
 
     return {
       status: SUCCESS_STATUS,
