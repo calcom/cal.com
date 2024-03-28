@@ -443,10 +443,18 @@ export async function ensureAvailableUsers(
   return availableUsers;
 }
 
-async function getOriginalRescheduledBooking(uid: string, seatsEventType?: boolean) {
+async function getOriginalRescheduledBooking(uid: string, eventTypeId: number, seatsEventType?: boolean) {
   return prisma.booking.findFirst({
     where: {
       uid: uid,
+      OR: [
+        {
+          eventTypeId,
+        },
+        {
+          eventTypeId: null,
+        },
+      ],
       status: {
         in: [BookingStatus.ACCEPTED, BookingStatus.CANCELLED, BookingStatus.PENDING],
       },
@@ -1148,6 +1156,7 @@ async function handler(
     }
     originalRescheduledBooking = await getOriginalRescheduledBooking(
       rescheduleUid,
+      eventType.id,
       !!eventType.seatsPerTimeSlot
     );
     if (!originalRescheduledBooking) {
