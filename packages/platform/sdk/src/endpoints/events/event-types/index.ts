@@ -4,10 +4,6 @@ import type { BasicPlatformResponse } from "../../../types";
 import { EndpointHandler } from "../../endpoint-handler";
 import type { CreateEventTypeArgs, EventType, GetEventTypeByIdArgs } from "./types";
 
-type BodyWithEventTypeResponse = {
-  eventType: EventType;
-};
-
 export class EventTypes extends EndpointHandler {
   constructor(private readonly sdk: CalSdk) {
     super("event-types", sdk);
@@ -16,20 +12,20 @@ export class EventTypes extends EndpointHandler {
   async createEventType(args: CreateEventTypeArgs): Promise<EventType> {
     this.assertAccessToken("createEventType");
 
-    const { data } = await this.sdk.httpCaller.post<BasicPlatformResponse<BodyWithEventTypeResponse>>(
+    const { data } = await this.sdk.httpCaller.post<BasicPlatformResponse<EventType>>(
       Endpoints.CREATE_EVENT_TYPE,
       {
         body: args,
       }
     );
 
-    return data.eventType;
+    return data;
   }
 
   async getEventType(args: GetEventTypeByIdArgs): Promise<EventType> {
     this.assertAccessToken("getEventType");
 
-    const { data } = await this.sdk.httpCaller.get<BasicPlatformResponse<BodyWithEventTypeResponse>>(
+    const { data } = await this.sdk.httpCaller.get<BasicPlatformResponse<EventType>>(
       Endpoints.GET_EVENT_TYPE_BY_ID,
       {
         urlParams: [args.id],
