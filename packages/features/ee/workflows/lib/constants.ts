@@ -31,6 +31,12 @@ export const WORKFLOW_TEMPLATES = [
 
 export const BASIC_WORKFLOW_TEMPLATES = [WorkflowTemplates.CUSTOM, WorkflowTemplates.REMINDER] as const;
 
+export const ATTENDEE_WORKFLOW_TEMPLATES = [
+  WorkflowTemplates.CUSTOM,
+  WorkflowTemplates.REMINDER,
+  WorkflowTemplates.RATING,
+] as const;
+
 export const WHATSAPP_WORKFLOW_TEMPLATES = [
   WorkflowTemplates.REMINDER,
   WorkflowTemplates.COMPLETED,
