@@ -40,6 +40,7 @@ export const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   slotInterval: true,
   successRedirectUrl: true,
   isInstantEvent: true,
+  aiPhoneCallConfig: true,
   assignAllTeamMembers: true,
   recurringEvent: true,
 });
