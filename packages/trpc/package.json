@@ -12,10 +12,10 @@
   },
   "dependencies": {
     "@tanstack/react-query": "^5.17.15",
-    "@trpc/client": "11.0.0-next-beta.222",
-    "@trpc/next": "11.0.0-next-beta.222",
-    "@trpc/react-query": "11.0.0-next-beta.222",
-    "@trpc/server": "11.0.0-next-beta.222",
+    "@trpc/client": "11.0.0-next-beta.257",
+    "@trpc/next": "11.0.0-next-beta.257",
+    "@trpc/react-query": "11.0.0-next-beta.257",
+    "@trpc/server": "11.0.0-next-beta.257",
     "superjson": "1.9.1",
     "zod": "^3.22.4"
   }
