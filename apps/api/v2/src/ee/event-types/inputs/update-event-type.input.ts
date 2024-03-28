@@ -10,7 +10,6 @@ import {
   IsUrl,
   IsDate,
   IsInt,
-  ArrayMinSize,
   IsArray,
 } from "class-validator";
 

@@ -50,7 +50,7 @@ export class EventTypesService {
       return null;
     }
 
-    checkUserOwnsEventType(user.id, eventType);
+    checkUserOwnsEventType(user.id, eventType.eventType);
     return eventType;
   }
 
