@@ -7,16 +7,15 @@ import { handleUserRedirection } from "@calcom/features/booking-redirect/handle-
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { DEFAULT_DARK_BRAND_COLOR, DEFAULT_LIGHT_BRAND_COLOR } from "@calcom/lib/constants";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
+import { getEventTypesPublic } from "@calcom/lib/event-types/getEventTypesPublic";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import logger from "@calcom/lib/logger";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import { stripMarkdown } from "@calcom/lib/stripMarkdown";
-import prisma from "@calcom/prisma";
 import { RedirectType, type EventType, type User } from "@calcom/prisma/client";
-import { baseEventTypeSelect } from "@calcom/prisma/selects";
-import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { UserProfile } from "@calcom/types/UserProfile";
 
 import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
@@ -70,58 +69,6 @@ export type UserPageProps = {
     | "recurringEvent"
   >)[];
 } & EmbedProps;
-
-export const getEventTypesWithHiddenFromDB = async (userId: number) => {
-  const eventTypes = await prisma.eventType.findMany({
-    where: {
-      AND: [
-        {
-          teamId: null,
-        },
-        {
-          OR: [
-            {
-              userId,
-            },
-            {
-              users: {
-                some: {
-                  id: userId,
-                },
-              },
-            },
-          ],
-        },
-      ],
-    },
-    orderBy: [
-      {
-        position: "desc",
-      },
-      {
-        id: "asc",
-      },
-    ],
-    select: {
-      ...baseEventTypeSelect,
-      metadata: true,
-    },
-  });
-  // map and filter metadata, exclude eventType entirely when faulty metadata is found.
-  // report error to exception so we don't lose the error.
-  return eventTypes.reduce<typeof eventTypes>((eventTypes, eventType) => {
-    const parsedMetadata = EventTypeMetaDataSchema.safeParse(eventType.metadata);
-    if (!parsedMetadata.success) {
-      log.error(parsedMetadata.error);
-      return eventTypes;
-    }
-    eventTypes.push({
-      ...eventType,
-      metadata: parsedMetadata.data,
-    });
-    return eventTypes;
-  }, []);
-};
 
 export const getServerSideProps: GetServerSideProps<UserPageProps> = async (context) => {
   const ssr = await ssrInit(context);
@@ -220,18 +167,12 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
     organization: user.profile.organization,
   };
 
-  const eventTypesWithHidden = await getEventTypesWithHiddenFromDB(user.id);
   const dataFetchEnd = Date.now();
   if (context.query.log === "1") {
     context.res.setHeader("X-Data-Fetch-Time", `${dataFetchEnd - dataFetchStart}ms`);
   }
-  const eventTypesRaw = eventTypesWithHidden.filter((evt) => !evt.hidden);
 
-  const eventTypes = eventTypesRaw.map((eventType) => ({
-    ...eventType,
-    metadata: EventTypeMetaDataSchema.parse(eventType.metadata || {}),
-    descriptionAsSafeHTML: markdownToSafeHTML(eventType.description),
-  }));
+  const eventTypes = await getEventTypesPublic(user.id);
 
   // if profile only has one public event-type, redirect to it
   if (eventTypes.length === 1 && context.query.redirect !== "false" && !outOfOffice) {
