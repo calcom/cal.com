@@ -8,6 +8,17 @@ export const EventTypeUpdateInput = _EventTypeModel
   /** Optional fields */
   .extend({
     isInstantEvent: z.boolean().optional(),
+    aiPhoneCallConfig: z
+      .object({
+        generalPrompt: z.string(),
+        enabled: z.boolean(),
+        beginMessage: z.string().nullable(),
+        yourPhoneNumber: z.string().default(""),
+        numberToCall: z.string().default(""),
+        guestName: z.string().default(""),
+      })
+      .optional(),
+    calAiPhoneScript: z.string().optional(),
     customInputs: z.array(customInputSchema).optional(),
     destinationCalendar: _DestinationCalendarModel
       .pick({

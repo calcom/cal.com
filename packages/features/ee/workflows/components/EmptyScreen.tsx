@@ -6,9 +6,10 @@ import { trpc } from "@calcom/trpc/react";
 import type { SVGComponent } from "@calcom/types/SVGComponent";
 import { CreateButtonWithTeamsList, EmptyScreen as ClassicEmptyScreen, showToast } from "@calcom/ui";
 import { Mail, Smartphone, Zap } from "@calcom/ui/components/icon";
+import type { LucideIcon } from "@calcom/ui/components/icon";
 
 type WorkflowExampleType = {
-  Icon: SVGComponent;
+  Icon: SVGComponent | LucideIcon;
   text: string;
 };
 

@@ -1,4 +1,5 @@
 import { ZVerifyCodeInputSchema } from "@calcom/prisma/zod-utils";
+import { AIPhoneSettingSchema } from "@calcom/prisma/zod-utils";
 
 import authedProcedure, {
   authedAdminProcedure,
@@ -139,6 +140,13 @@ export const viewerOrganizationsRouter = router({
   }),
   adminDelete: authedAdminProcedure.input(ZAdminDeleteInput).mutation(async (opts) => {
     const handler = await importHandler(namespaced("adminDelete"), () => import("./adminDelete.handler"));
+    return handler(opts);
+  }),
+  createPhoneCall: authedProcedure.input(AIPhoneSettingSchema).mutation(async (opts) => {
+    const handler = await importHandler(
+      namespaced("createPhoneCall"),
+      () => import("./createPhoneCall.handler")
+    );
     return handler(opts);
   }),
 });

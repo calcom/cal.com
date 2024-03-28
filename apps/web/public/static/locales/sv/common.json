@@ -182,6 +182,7 @@
   "2fa_confirm_current_password": "Bekräfta ditt nuvarande lösenord för att komma igång.",
   "2fa_scan_image_or_use_code": "Skanna bilden nedan med autentiseringsappen på din telefon eller ange textkoden manuellt.",
   "text": "Text",
+  "your_phone_number": "Ditt telefonnummer",
   "multiline_text": "Text på flera rader",
   "number": "Nummer",
   "checkbox": "Kryssruta",
