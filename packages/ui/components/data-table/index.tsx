@@ -30,6 +30,7 @@ export interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   searchKey?: string;
+  onSearch?: (value: string) => void;
   filterableItems?: FilterableItems;
   selectionOptions?: ActionItem<TData>[];
   tableCTA?: React.ReactNode;
@@ -53,6 +54,7 @@ export function DataTable<TData, TValue>({
   tableOverlay,
   variant,
   /** This should only really be used if you dont have actions in a row. */
+  onSearch,
   onRowMouseclick,
   onScroll,
 }: DataTableProps<TData, TValue>) {
@@ -102,6 +104,7 @@ export function DataTable<TData, TValue>({
         table={table}
         filterableItems={filterableItems}
         searchKey={searchKey}
+        onSearch={onSearch}
         tableCTA={tableCTA}
       />
       <div ref={tableContainerRef} onScroll={onScroll}>

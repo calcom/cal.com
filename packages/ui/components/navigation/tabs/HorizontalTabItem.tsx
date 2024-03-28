@@ -4,6 +4,7 @@ import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useUrlMatchesCurrentUrl } from "@calcom/lib/hooks/useUrlMatchesCurrentUrl";
 import type { SVGComponent } from "@calcom/types/SVGComponent";
+import type { LucideIcon } from "@calcom/ui/components/icon";
 
 import { Avatar } from "../../avatar";
 import { SkeletonText } from "../../skeleton";
@@ -12,10 +13,11 @@ export type HorizontalTabItemProps = {
   name: string;
   disabled?: boolean;
   className?: string;
+  target?: string;
   href: string;
   linkShallow?: boolean;
   linkScroll?: boolean;
-  icon?: SVGComponent;
+  icon?: SVGComponent | LucideIcon;
   avatar?: string;
 };
 
@@ -43,6 +45,7 @@ const HorizontalTabItem = function ({
         props.disabled && "pointer-events-none !opacity-30",
         props.className
       )}
+      target={props.target ? props.target : undefined}
       data-testid={`horizontal-tab-${name}`}
       aria-current={isCurrent ? "page" : undefined}>
       {props.icon && (

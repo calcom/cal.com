@@ -182,6 +182,7 @@
   "2fa_confirm_current_password": "Confirma tu contraseña actual para empezar.",
   "2fa_scan_image_or_use_code": "Escanee la imagen a continuación con la aplicación de autenticación en su teléfono o ingrese manualmente el código de texto.",
   "text": "Texto",
+  "your_phone_number": "Su número de teléfono",
   "multiline_text": "Texto de varias líneas",
   "number": "Número",
   "checkbox": "Casilla",
@@ -2095,5 +2096,6 @@
   "extensive_whitelabeling": "Asistencia dedicada en materia de incorporación e ingeniería",
   "need_help": "¿Necesita ayuda?",
   "show_more": "Mostrar más",
+  "privacy": "Privacidad",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Agregue sus nuevas cadenas arriba ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

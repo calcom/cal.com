@@ -182,6 +182,7 @@
   "2fa_confirm_current_password": "一開始，請確認目前的密碼。",
   "2fa_scan_image_or_use_code": "使用手機的認證應用程式掃描下方的圖片，或者，手動輸入文字碼也可以。",
   "text": "文字",
+  "your_phone_number": "您的電話號碼",
   "multiline_text": "多行文字",
   "number": "數字",
   "checkbox": "勾選",
@@ -2096,5 +2097,6 @@
   "extensive_whitelabeling": "專屬的入門和工程支援",
   "need_help": "需要協助？",
   "show_more": "顯示更多",
+  "privacy": "隱私權",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 請在此處新增您的字串 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

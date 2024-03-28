@@ -93,12 +93,21 @@ const tabs: VerticalTabItemProps[] = [
         href: "/settings/organizations/members",
       },
       {
+        name: "privacy",
+        href: "/settings/organizations/privacy",
+      },
+      {
         name: "appearance",
         href: "/settings/organizations/appearance",
       },
       {
         name: "billing",
         href: "/settings/organizations/billing",
+      },
+      { name: "OAuth Clients", href: "/settings/organizations/platform/oauth-clients" },
+      {
+        name: "SSO",
+        href: "/settings/organizations/sso",
       },
       {
         name: "directory_sync",
@@ -145,7 +154,6 @@ const useTabs = () => {
   const session = useSession();
   const { data: user } = trpc.viewer.me.useQuery();
   const orgBranding = useOrgBranding();
-
   const isAdmin = session.data?.user.role === UserPermissionRole.ADMIN;
 
   tabs.map((tab) => {
@@ -443,14 +451,6 @@ const SettingsSidebarContainer = ({
                                           textClassNames="px-3 text-emphasis font-medium text-sm"
                                           disableChevron
                                         />
-                                        {HOSTED_CAL_FEATURES && (
-                                          <VerticalTabItem
-                                            name={t("saml_config")}
-                                            href={`/settings/teams/${team.id}/sso`}
-                                            textClassNames="px-3 text-emphasis font-medium text-sm"
-                                            disableChevron
-                                          />
-                                        )}
                                       </>
                                     ) : null}
                                   </>

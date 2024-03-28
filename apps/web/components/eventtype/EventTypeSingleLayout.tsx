@@ -44,6 +44,7 @@ import {
   Repeat,
   Grid,
   Zap,
+  Sparkles,
   Users,
   ExternalLink,
   Code,
@@ -204,6 +205,7 @@ function EventTypeSingleLayout({
   activeWebhooksNumber,
 }: Props) {
   const { t } = useLocale();
+  const eventTypesLockedByOrg = eventType.team?.parent?.organizationSettings?.lockEventTypeCreationForUsers;
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
@@ -282,6 +284,15 @@ function EventTypeSingleLayout({
         info: `${activeWebhooksNumber} ${t("active")}`,
       });
     }
+    const hidden = true; // hidden while in alpha trial. you can access it with tabName=ai
+    if (team && hidden) {
+      navigation.push({
+        name: "Cal.ai",
+        href: `/event-types/${eventType.id}?tabName=ai`,
+        icon: Sparkles,
+        info: "cal_ai_event_tab_description", // todo `cal_ai_event_tab_description`,
+      });
+    }
     return navigation;
   }, [
     t,
@@ -341,6 +352,7 @@ function EventTypeSingleLayout({
                   <div className="self-center rounded-md p-2">
                     <Switch
                       id="hiddenSwitch"
+                      disabled={eventTypesLockedByOrg}
                       checked={!formMethods.watch("hidden")}
                       onCheckedChange={(e) => {
                         formMethods.setValue("hidden", !e, { shouldDirty: true });

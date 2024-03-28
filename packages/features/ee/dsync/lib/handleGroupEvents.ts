@@ -4,7 +4,7 @@ import jackson from "@calcom/features/ee/sso/lib/jackson";
 import { createAProfileForAnExistingUser } from "@calcom/lib/createAProfileForAnExistingUser";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
-import { MembershipRole } from "@calcom/prisma/enums";
+import { IdentityProvider, MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import {
   getTeamOrThrow,
@@ -96,10 +96,13 @@ const handleGroupEvents = async (event: DirectorySyncEvent, organizationId: numb
   // For each team linked to the dsync group name provision members
   for (const group of groupNames) {
     if (newUserEmails.length) {
-      const newUsers = await createUsersAndConnectToOrg({
+      const createUsersAndConnectToOrgProps = {
         emailsToCreate: newUserEmails,
-        org,
-      });
+        organizationId: org.id,
+        identityProvider: IdentityProvider.CAL,
+        identityProviderId: null,
+      };
+      const newUsers = await createUsersAndConnectToOrg(createUsersAndConnectToOrgProps);
       await prisma.membership.createMany({
         data: newUsers.map((user) => ({
           userId: user.id,
