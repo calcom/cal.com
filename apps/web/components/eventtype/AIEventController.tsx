@@ -1,5 +1,4 @@
 import { useSession } from "next-auth/react";
-import Link from "next/link";
 import type { EventTypeSetup } from "pages/event-types/[type]";
 import { useState } from "react";
 import { useFormContext, Controller } from "react-hook-form";
@@ -218,50 +217,23 @@ const AISettings = ({ eventType }: { eventType: EventTypeSetup }) => {
           }}
         />
 
-        {/*  Peer's comments here */}
-        {/* // TODO: v2 will allow users to create phone numbers and agents within Cal.com.
-            // we do this later, i just wanted to make the layout first
-            */}
-        {/* {v2 && (
-              <>
-                <Label>Guest Email</Label>
-                <TextField
-                  hint="Variable: {email}"
-                  label="Email of Guest"
-                  required
-                  placeholder="jane@example.com"
-                />
-              </>
-            )} */}
-
-        {/* {v2 && (
-              <>
-                <TextAreaField
-                  rows={3}
-                  value="Make it very casual and breath and say umm and things that sound very natural. Communicate concisely and conversationally. Short sentences ideally less than 20 words and have enough breaks in between sentences. Your approach should be empathetic and understanding, balancing compassion with maintaining a professional stance on what is best for the employee. Be convincing. Really try hard to get a meeting. Be decisive but also polite.  It is ok if you don't get a meeting on your calendar. If someone asks if you are a robot, you say yes. Deel.com is using an automated voice agent to help, but all of our scheduled meetings are with real humans, pinky promise."
-                  name="Behaviour"
-                />
-              </>
-            )} */}
-
         <Button
           disabled={createCallMutation.isPending}
           loading={createCallMutation.isPending}
           onClick={handleSubmit}>
-          Make a Call
+          {t("make_a_call")}
         </Button>
 
-        <small className="block opacity-60">
+        {/* TODO:<small className="block opacity-60">
           Want to automate outgoing phone calls? Read our{" "}
           <Link className="underline" href="https://cal.com/docs">
             API docs
           </Link>{" "}
           and learn how to build workflows.
-        </small>
+        </small> */}
       </div>
 
-      {/*
-      {v3 && (
+      {/* TODO:
         <>
           <EmptyScreen
             Icon={Phone}
@@ -287,7 +259,7 @@ const AISettings = ({ eventType }: { eventType: EventTypeSetup }) => {
             </DialogContent>
           </Dialog>
         </>
-      )} */}
+      */}
     </div>
   );
 };
