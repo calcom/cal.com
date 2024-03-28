@@ -807,24 +807,6 @@
         }
       }
     },
-    "/api/v2/schedules/time-zones": {
-      "get": {
-        "operationId": "SchedulesController_getTimeZones",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/v2/schedules/{scheduleId}": {
       "get": {
         "operationId": "SchedulesController_getSchedule",
@@ -1226,6 +1208,24 @@
     "/api/v2/slots/available": {
       "get": {
         "operationId": "SlotsController_getAvailableSlots",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/timezones": {
+      "get": {
+        "operationId": "TimezonesController_getTimeZones",
         "parameters": [],
         "responses": {
           "200": {

@@ -73,16 +73,6 @@ export class SchedulesController {
     };
   }
 
-  @Get("/time-zones")
-  async getTimeZones(): Promise<ApiResponse<CityTimezones>> {
-    const timeZones = await this.schedulesService.getSchedulePossibleTimeZones();
-
-    return {
-      status: SUCCESS_STATUS,
-      data: timeZones,
-    };
-  }
-
   @Get("/:scheduleId")
   @Permissions([SCHEDULE_READ])
   async getSchedule(

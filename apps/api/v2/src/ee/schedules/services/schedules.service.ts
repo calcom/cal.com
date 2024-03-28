@@ -96,8 +96,4 @@ export class SchedulesService {
       throw new ForbiddenException(`User with ID=${userId} does not own schedule with ID=${schedule.id}`);
     }
   }
-
-  async getSchedulePossibleTimeZones() {
-    return cityTimezonesHandler();
-  }
 }
