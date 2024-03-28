@@ -18,7 +18,6 @@ import getStripe from "@calcom/app-store/stripepayment/lib/client";
 import { getPremiumPlanPriceValue } from "@calcom/app-store/stripepayment/lib/utils";
 import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getOrgUsernameFromEmail";
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
-import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { classNames } from "@calcom/lib";
 import {
   APP_NAME,
@@ -173,6 +172,7 @@ export default function Signup({
   isSAMLLoginEnabled,
   orgAutoAcceptEmail,
   redirectUrl,
+  emailVerificationEnabled,
 }: SignupProps) {
   const [premiumUsername, setPremiumUsername] = useState(false);
   const [usernameTaken, setUsernameTaken] = useState(false);
@@ -181,7 +181,6 @@ export default function Signup({
   const telemetry = useTelemetry();
   const { t, i18n } = useLocale();
   const router = useRouter();
-  const flags = useFlagMap();
   const formMethods = useForm<FormValues>({
     resolver: zodResolver(signupSchema),
     defaultValues: prepopulateFormValues satisfies FormValues,
@@ -247,7 +246,7 @@ export default function Signup({
           pushGTMEvent("create_account", { email: data.email, user: data.username, lang: data.language });
 
         telemetry.event(telemetryEventTypes.signup, collectPageParameters());
-        const verifyOrGettingStarted = flags["email-verification"] ? "auth/verify-email" : "getting-started";
+        const verifyOrGettingStarted = emailVerificationEnabled ? "auth/verify-email" : "getting-started";
         const callBackUrl = `${
           searchParams?.get("callbackUrl")
             ? isOrgInviteByLink

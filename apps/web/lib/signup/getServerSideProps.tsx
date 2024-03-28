@@ -24,6 +24,7 @@ const querySchema = z.object({
 
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   const prisma = await import("@calcom/prisma").then((mod) => mod.default);
+  const emailVerificationEnabled = await getFeatureFlag(prisma, "email-verification");
   await ssrInit(ctx);
   const signupDisabled = await getFeatureFlag(prisma, "disable-signup");
 
@@ -44,6 +45,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     isGoogleLoginEnabled: IS_GOOGLE_LOGIN_ENABLED,
     isSAMLLoginEnabled,
     prepopulateFormValues: undefined,
+    emailVerificationEnabled,
   };
 
   // username + email prepopulated from query params

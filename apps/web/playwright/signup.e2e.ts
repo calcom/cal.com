@@ -119,7 +119,7 @@ test.describe("Signup Flow Test", async () => {
     await page.locator('input[name="password"]').fill(userToCreate.password);
 
     await page.click('button[type="submit"]');
-    await page.waitForURL("/auth/verify");
+    await page.waitForURL("/auth/verify-email**");
 
     // Check that the URL matches the expected URL
     expect(page.url()).toContain("/auth/verify-email");
