@@ -107,7 +107,7 @@ export default function AppListCard(props: AppListCardProps) {
             <div className="flex gap-x-2 pt-2">
               <AlertCircle className="h-8 w-8 text-red-500 sm:h-4 sm:w-4" />
               <ListItemText component="p" className="whitespace-pre-wrap text-red-500">
-                {t("invalid_credential")}
+                {t("invalid_credential", { appName: title })}
               </ListItemText>
             </div>
           )}

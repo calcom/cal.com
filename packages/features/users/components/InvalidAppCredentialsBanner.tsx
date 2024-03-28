@@ -1,8 +1,8 @@
 import { useRouter } from "next/navigation";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { type RouterOutputs } from "@calcom/trpc";
-import { TopBanner } from "@calcom/ui";
+import { type RouterOutputs, trpc } from "@calcom/trpc";
+import { TopBanner, showToast } from "@calcom/ui";
 
 export type InvalidAppCredentialBannersProps = {
   data: RouterOutputs["viewer"]["getUserTopBanners"]["invalidAppCredentialBanners"];
@@ -16,22 +16,44 @@ export function InvalidAppCredentialBanners({ data }: InvalidAppCredentialBanner
   return (
     <div>
       {data.map((app) => (
-        <InvalidAppCredentialBanner key={app.slug} name={app.name} slug={app.slug} />
+        <InvalidAppCredentialBanner
+          teamId={app.teamId}
+          id={app.id}
+          key={app.slug}
+          name={app.name}
+          slug={app.slug}
+        />
       ))}
     </div>
   );
 }
 
 export type InvalidAppCredentialBannerProps = {
+  id: number;
   name: string;
   slug: string;
+  teamId?: number;
 };
 
-export function InvalidAppCredentialBanner({ name, slug }: InvalidAppCredentialBannerProps) {
+export function InvalidAppCredentialBanner({ name, slug, id, teamId }: InvalidAppCredentialBannerProps) {
   const { t } = useLocale();
   const router = useRouter();
+  const utils = trpc.useUtils();
+  const mutation = trpc.viewer.deleteCredential.useMutation({
+    onSuccess: () => {
+      showToast(t("app_removed_successfully"), "success");
+    },
+    onError: () => {
+      showToast(t("error_removing_app"), "error");
+    },
+    async onSettled() {
+      await utils.viewer.connectedCalendars.invalidate();
+      await utils.viewer.integrations.invalidate();
+    },
+  });
 
   const handleClick = () => {
+    mutation.mutate({ id, teamId });
     router.push(`/apps/${slug}`);
   };
 
