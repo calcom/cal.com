@@ -65,6 +65,9 @@ export const buildBooking = (booking?: Partial<Booking>): Booking => {
     isRecorded: false,
     iCalUID: getICalUID({ uid }),
     iCalSequence: 0,
+    rating: null,
+    noShowHost: null,
+    ratingFeedback: null,
     ...booking,
   };
 };

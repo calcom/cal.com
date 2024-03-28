@@ -6,6 +6,7 @@ import {
   isTextMessageToAttendeeAction,
   isSMSOrWhatsappAction,
   isWhatsappAction,
+  isEmailToAttendeeAction,
 } from "./actionHelperFunctions";
 import {
   TIME_UNIT,
@@ -13,6 +14,7 @@ import {
   WORKFLOW_ACTIONS,
   BASIC_WORKFLOW_TEMPLATES,
   WORKFLOW_TRIGGER_EVENTS,
+  ATTENDEE_WORKFLOW_TEMPLATES,
 } from "./constants";
 
 export function getWorkflowActionOptions(t: TFunction, isTeamsPlan?: boolean, isOrgsPlan?: boolean) {
@@ -46,7 +48,11 @@ export function getWorkflowTimeUnitOptions(t: TFunction) {
 
 export function getWorkflowTemplateOptions(t: TFunction, action: WorkflowActions | undefined) {
   const TEMPLATES =
-    action && isWhatsappAction(action) ? WHATSAPP_WORKFLOW_TEMPLATES : BASIC_WORKFLOW_TEMPLATES;
+    action && isWhatsappAction(action)
+      ? WHATSAPP_WORKFLOW_TEMPLATES
+      : action && isEmailToAttendeeAction(action)
+      ? ATTENDEE_WORKFLOW_TEMPLATES
+      : BASIC_WORKFLOW_TEMPLATES;
   return TEMPLATES.map((template) => {
     return { label: t(`${template.toLowerCase()}`), value: template };
   }) as { label: string; value: any }[];

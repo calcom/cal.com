@@ -38,6 +38,10 @@ export function isAttendeeAction(action: WorkflowActions) {
   );
 }
 
+export function isEmailToAttendeeAction(action: WorkflowActions) {
+  return action === WorkflowActions.EMAIL_ATTENDEE;
+}
+
 export function isTextMessageToAttendeeAction(action?: WorkflowActions) {
   return action === WorkflowActions.SMS_ATTENDEE || action === WorkflowActions.WHATSAPP_ATTENDEE;
 }
