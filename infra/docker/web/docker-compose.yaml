@@ -1,0 +1,25 @@
+version: '3'
+
+volumes:
+  database-data:
+
+services:
+  database:
+    image: postgres
+    volumes:
+      - database-data:/var/lib/postgresql/data/
+    env_file: .env
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"]
+      interval: 10s
+      retries: 10
+
+
+  calcom:
+    image: calcom/cal.com
+    ports:
+      - 3000:3000
+    env_file: .env
+    depends_on:
+      database:
+        condition: service_healthy

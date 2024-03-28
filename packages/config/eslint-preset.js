@@ -43,6 +43,10 @@ module.exports = {
       },
     ],
     "prefer-template": "error",
+    "prettier/prettier": [   'warn',   {
+      endOfLine: 'auto',
+    },
+  ],
   },
   overrides: [
     {
