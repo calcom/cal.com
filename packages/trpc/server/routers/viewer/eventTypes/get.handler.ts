@@ -1,4 +1,4 @@
-import getEventTypeById from "@calcom/lib/getEventTypeById";
+import getEventTypeById from "@calcom/lib/event-types/getEventTypeById";
 import type { PrismaClient } from "@calcom/prisma";
 
 import type { TrpcSessionUser } from "../../../trpc";
