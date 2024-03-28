@@ -1,7 +1,7 @@
 import jsforce from "jsforce";
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import { WEBAPP_URL_FOR_OAUTH } from "@calcom/lib/constants";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import { encodeOAuthState } from "../../_utils/oauth/encodeOAuthState";
@@ -17,7 +17,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const salesforceClient = new jsforce.Connection({
     clientId: consumer_key,
-    redirectUri: `${WEBAPP_URL}/api/integrations/salesforce/callback`,
+    redirectUri: `${WEBAPP_URL_FOR_OAUTH}/api/integrations/salesforce/callback`,
   });
 
   const url = salesforceClient.oauth2.getAuthorizationUrl({

@@ -9,6 +9,7 @@ import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import createOAuthAppCredential from "../../_utils/oauth/createOAuthAppCredential";
 import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
+import appConfig from "../config.json";
 
 let client_id = "";
 let client_secret = "";
@@ -51,11 +52,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   zohoCrmTokenInfo.data.expiryDate = Math.round(Date.now() + 60 * 60);
   zohoCrmTokenInfo.data.accountServer = req.query["accounts-server"];
 
-  await createOAuthAppCredential(
-    { appId: "zohocrm", type: "zohocrm_other_calendar" },
-    zohoCrmTokenInfo.data,
-    req
-  );
+  await createOAuthAppCredential({ appId: appConfig.slug, type: appConfig.type }, zohoCrmTokenInfo.data, req);
 
   const state = decodeOAuthState(req);
   res.redirect(

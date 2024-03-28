@@ -135,13 +135,13 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
   //TODO: Refactor this to pick up only needed fields and prevent more leaking
   let apps = await Promise.all(
     enabledApps.map(async ({ credentials: _, credential, key: _2 /* don't leak to frontend */, ...app }) => {
-      const userCredentialIds = credentials.filter((c) => c.type === app.type && !c.teamId).map((c) => c.id);
+      const userCredentialIds = credentials.filter((c) => c.appId === app.slug && !c.teamId).map((c) => c.id);
       const invalidCredentialIds = credentials
-        .filter((c) => c.type === app.type && c.invalid)
+        .filter((c) => c.appId === app.slug && c.invalid)
         .map((c) => c.id);
       const teams = await Promise.all(
         credentials
-          .filter((c) => c.type === app.type && c.teamId)
+          .filter((c) => c.appId === app.slug && c.teamId)
           .map(async (c) => {
             const team = userTeams.find((team) => team.id === c.teamId);
             if (!team) {

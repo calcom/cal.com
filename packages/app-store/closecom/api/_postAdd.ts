@@ -8,6 +8,7 @@ import prisma from "@calcom/prisma";
 
 import checkSession from "../../_utils/auth";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
+import appConfig from "../config.json";
 
 export async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   const session = checkSession(req);
@@ -18,10 +19,10 @@ export async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   const encrypted = symmetricEncrypt(JSON.stringify({ api_key }), process.env.CALENDSO_ENCRYPTION_KEY || "");
 
   const data = {
-    type: "closecom_other_calendar",
+    type: appConfig.type,
     key: { encrypted },
     userId: session.user?.id,
-    appId: "closecom",
+    appId: appConfig.slug,
   };
 
   try {

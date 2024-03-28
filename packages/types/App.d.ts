@@ -66,6 +66,7 @@ export interface App {
     | `${string}_other`
     | `${string}_automation`
     | `${string}_analytics`
+    | `${string}_crm`
     | `${string}_other_calendar`;
 
   /**
@@ -79,7 +80,15 @@ export interface App {
   /** A brief description, usually found in the app's package.json */
   description: string;
   /** TODO determine if we should use this instead of category */
-  variant: "calendar" | "payment" | "conferencing" | "video" | "other" | "other_calendar" | "automation";
+  variant:
+    | "calendar"
+    | "payment"
+    | "conferencing"
+    | "video"
+    | "other"
+    | "other_calendar"
+    | "automation"
+    | "crm";
   /** The slug for the app store public page inside `/apps/[slug] */
   slug: string;
 
