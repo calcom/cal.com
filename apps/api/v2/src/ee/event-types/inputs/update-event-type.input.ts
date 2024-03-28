@@ -256,14 +256,6 @@ export class UpdateEventTypeInput {
   secondaryEmailId?: number;
 }
 
-enum Editable {
-  System = "system",
-  SystemButOptional = "system-but-optional",
-  SystemButHidden = "system-but-hidden",
-  User = "user",
-  UserReadonly = "user-readonly",
-}
-
 class VariantField {
   @IsString()
   @IsOptional()
