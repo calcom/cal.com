@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/triple-slash-reference */
 /// <reference path="../../../types/ical.d.ts"/>
 import ICAL from "ical.js";
+import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
@@ -36,14 +37,17 @@ const applyTravelDuration = (event: ICAL.Event, seconds: number) => {
   return event;
 };
 
-const CALENDSO_ENCRYPTION_KEY = process.env.CALENDSO_ENCRYPTION_KEY || "";
-
 export default class ICSFeedCalendarService implements Calendar {
   private urls: string[] = [];
   protected integrationName = "ics-feed_calendar";
 
   constructor(credential: CredentialPayload) {
-    const { urls } = JSON.parse(symmetricDecrypt(credential.key as string, CALENDSO_ENCRYPTION_KEY));
+    const { urls } = symmetricDecrypt(credential.key as string, {
+      schema: z.object({
+        urls: z.array(z.string()),
+      }),
+    });
+
     this.urls = urls;
   }
 

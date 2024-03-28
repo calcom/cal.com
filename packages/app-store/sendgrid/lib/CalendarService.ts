@@ -1,4 +1,4 @@
-import z from "zod";
+import { z } from "zod";
 
 import type { SendgridNewContact } from "@calcom/lib/Sendgrid";
 import Sendgrid from "@calcom/lib/Sendgrid";
@@ -16,8 +16,6 @@ import type { CredentialPayload } from "@calcom/types/Credential";
 const apiKeySchema = z.object({
   encrypted: z.string(),
 });
-
-const CALENDSO_ENCRYPTION_KEY = process.env.CALENDSO_ENCRYPTION_KEY || "";
 
 /**
  * Authentication
@@ -37,10 +35,12 @@ export default class CloseComCalendarService implements Calendar {
 
     const parsedCredentialKey = apiKeySchema.safeParse(credential.key);
 
-    let decrypted;
     if (parsedCredentialKey.success) {
-      decrypted = symmetricDecrypt(parsedCredentialKey.data.encrypted, CALENDSO_ENCRYPTION_KEY);
-      const { api_key } = JSON.parse(decrypted);
+      const { api_key } = symmetricDecrypt(parsedCredentialKey.data.encrypted, {
+        schema: z.object({
+          api_key: z.string(),
+        }),
+      });
       this.sendgrid = new Sendgrid(api_key);
     } else {
       throw Error(

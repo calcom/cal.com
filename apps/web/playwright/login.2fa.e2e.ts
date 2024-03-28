@@ -1,6 +1,7 @@
 import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 import { authenticator } from "otplib";
+import { z } from "zod";
 
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import { totpAuthenticatorCheck } from "@calcom/lib/totp";
@@ -70,14 +71,10 @@ test.describe("2FA Tests", async () => {
         },
       });
 
-      const secret = symmetricDecrypt(
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        userWith2FaSecret!.twoFactorSecret!,
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        process.env.CALENDSO_ENCRYPTION_KEY!
-      );
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      await fillOtp({ page, secret: secret! });
+      const secret = symmetricDecrypt(userWith2FaSecret!.twoFactorSecret!, { schema: z.string() });
+
+      await fillOtp({ page, secret: secret });
       await Promise.all([
         page.press('input[name="2fa6"]', "Enter"),
         page.waitForResponse("**/api/auth/callback/credentials**"),
@@ -147,15 +144,10 @@ test.describe("2FA Tests", async () => {
         },
       });
 
-      const secret = symmetricDecrypt(
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        userWith2FaSecret!.twoFactorSecret!,
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        process.env.CALENDSO_ENCRYPTION_KEY!
-      );
-
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      await fillOtp({ page, secret: secret! });
+      const secret = symmetricDecrypt(userWith2FaSecret!.twoFactorSecret!, { schema: z.string() });
+
+      await fillOtp({ page, secret: secret });
       await page.click('[data-testid="disable-2fa"]');
       await expect(page.locator(`[data-testid=two-factor-switch][data-state="unchecked"]`)).toBeVisible();
 

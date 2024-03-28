@@ -28,9 +28,9 @@ const decryptedSchema = z.object({
 
 async function handler(req: NextApiRequest, res: NextApiResponse<Response>) {
   const { action, token, reason } = querySchema.parse(req.query);
-  const { bookingUid, userId } = decryptedSchema.parse(
-    JSON.parse(symmetricDecrypt(decodeURIComponent(token), process.env.CALENDSO_ENCRYPTION_KEY || ""))
-  );
+  const { bookingUid, userId } = symmetricDecrypt(decodeURIComponent(token), {
+    schema: decryptedSchema,
+  });
 
   const booking = await prisma.booking.findUniqueOrThrow({
     where: { uid: bookingUid },

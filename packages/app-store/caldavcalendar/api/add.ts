@@ -23,10 +23,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const data = {
       type: "caldav_calendar",
-      key: symmetricEncrypt(
-        JSON.stringify({ username, password, url }),
-        process.env.CALENDSO_ENCRYPTION_KEY || ""
-      ),
+      key: symmetricEncrypt(JSON.stringify({ username, password, url })),
       userId: user.id,
       teamId: null,
       appId: "caldav-calendar",

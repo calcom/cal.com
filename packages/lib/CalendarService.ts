@@ -15,6 +15,7 @@ import {
   updateCalendarObject,
 } from "tsdav";
 import { v4 as uuidv4 } from "uuid";
+import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
 import sanitizeCalendarObject from "@calcom/lib/sanitizeCalendarObject";
@@ -34,8 +35,6 @@ import logger from "./logger";
 
 const TIMEZONE_FORMAT = "YYYY-MM-DDTHH:mm:ss[Z]";
 const DEFAULT_CALENDAR_TYPE = "caldav";
-
-const CALENDSO_ENCRYPTION_KEY = process.env.CALENDSO_ENCRYPTION_KEY || "";
 
 type FetchObjectsWithOptionalExpandOptionsType = {
   selectedCalendars: IntegrationCalendar[];
@@ -113,7 +112,13 @@ export default abstract class BaseCalendarService implements Calendar {
       username,
       password,
       url: credentialURL,
-    } = JSON.parse(symmetricDecrypt(credential.key as string, CALENDSO_ENCRYPTION_KEY));
+    } = symmetricDecrypt(credential.key as string, {
+      schema: z.object({
+        username: z.string(),
+        password: z.string(),
+        url: z.string(),
+      }),
+    });
 
     this.url = url || credentialURL;
 

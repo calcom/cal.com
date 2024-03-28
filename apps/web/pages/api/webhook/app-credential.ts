@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import z from "zod";
+import { z } from "zod";
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { CREDENTIAL_SYNC_SECRET, CREDENTIAL_SYNC_SECRET_HEADER_NAME } from "@calcom/lib/constants";
@@ -47,9 +47,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(404).json({ message: "App not found. Ensure that you have the correct app slug" });
   }
 
-  const keys = JSON.parse(
-    symmetricDecrypt(reqBody.keys, process.env.CALCOM_APP_CREDENTIAL_ENCRYPTION_KEY || "")
-  );
+  const keys = symmetricDecrypt(reqBody.keys, {
+    schema: z.array(z.string()),
+  });
 
   // INFO: Can't use prisma upsert as we don't know the id of the credential
   const appCredential = await prisma.credential.findFirst({

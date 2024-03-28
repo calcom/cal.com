@@ -1,8 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from "next";
+import { z } from "zod";
 
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import { symmetricDecrypt } from "@calcom/lib/crypto";
+import { symmetricDecrypt, symmetricEncrypt } from "@calcom/lib/crypto";
 import { totpAuthenticatorCheck } from "@calcom/lib/totp";
 import prisma from "@calcom/prisma";
 
@@ -40,11 +41,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(500).json({ error: ErrorCode.InternalServerError });
   }
 
-  const secret = symmetricDecrypt(user.twoFactorSecret, process.env.CALENDSO_ENCRYPTION_KEY);
-  if (secret.length !== 32) {
-    console.error(
-      `Two factor secret decryption failed. Expected key with length 32 but got ${secret.length}`
-    );
+  let secret;
+  try {
+    secret = symmetricDecrypt(user.twoFactorSecret, {
+      schema: z.string().length(32, "Expected key with length 32"),
+      // Re-encrypt the secret with the new key
+      onShouldUpdate: async (result) =>
+        await prisma.user.update({
+          where: {
+            id: session.user.id,
+          },
+          data: {
+            twoFactorSecret: symmetricEncrypt(result),
+          },
+        }),
+    });
+  } catch (error) {
+    console.error(`Two factor secret decryption failed. ${error}`);
+    secret = null;
+  }
+
+  if (!secret) {
     return res.status(500).json({ error: ErrorCode.InternalServerError });
   }
 
