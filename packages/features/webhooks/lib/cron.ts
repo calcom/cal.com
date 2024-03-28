@@ -31,20 +31,35 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         lte: dayjs().toISOString(),
       },
     },
+    select: {
+      id: true,
+      jobName: true,
+      payload: true,
+      subscriberUrl: true,
+      webhook: {
+        select: {
+          secret: true,
+        },
+      },
+    },
   });
+
+  const fetchPromises: Promise<any>[] = [];
 
   // run jobs
   for (const job of jobsToRun) {
     // Fetch the webhook configuration so that we can get the secret.
     const [appId, subscriberId] = job.jobName.split("_");
+    let webhook = job.webhook;
 
-    let webhook;
-    try {
-      webhook = await prisma.webhook.findUniqueOrThrow({
-        where: { id: subscriberId, appId: appId !== "null" ? appId : null },
-      });
-    } catch {
-      logger.error(`Error finding webhook for subscriberId: ${subscriberId}, appId: ${appId}`);
+    if (!webhook) {
+      try {
+        webhook = await prisma.webhook.findUniqueOrThrow({
+          where: { id: subscriberId, appId: appId !== "null" ? appId : null },
+        });
+      } catch {
+        logger.error(`Error finding webhook for subscriberId: ${subscriberId}, appId: ${appId}`);
+      }
     }
 
     const headers: Record<string, string> = {
@@ -56,33 +71,15 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       headers["X-Cal-Signature-256"] = createWebhookSignature({ secret: webhook.secret, body: job.payload });
     }
 
-    try {
-      await fetch(job.subscriberUrl, {
+    fetchPromises.push(
+      fetch(job.subscriberUrl, {
         method: "POST",
         body: job.payload,
         headers,
-      });
-    } catch (error) {
-      console.log(`Error running webhook trigger (retry count: ${job.retryCount}): ${error}`);
-
-      // if job fails, retry again for 5 times.
-      if (job.retryCount < 5) {
-        await prisma.webhookScheduledTriggers.update({
-          where: {
-            id: job.id,
-          },
-          data: {
-            retryCount: {
-              increment: 1,
-            },
-            startAfter: dayjs()
-              .add(5 * (job.retryCount + 1), "minutes")
-              .toISOString(),
-          },
-        });
-        return res.json({ ok: false });
-      }
-    }
+      }).catch((error) => {
+        console.error(`Webhook trigger for subscriber url ${job.subscriberUrl} failed with error: ${error}`);
+      })
+    );
 
     const parsedJobPayload = JSON.parse(job.payload) as {
       id: number; // booking id
@@ -121,6 +118,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       },
     });
   }
+
+  Promise.allSettled(fetchPromises);
 
   res.json({ ok: true });
 }

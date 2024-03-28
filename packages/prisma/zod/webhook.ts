@@ -1,7 +1,7 @@
 import * as z from "zod"
 import * as imports from "../zod-utils"
 import { WebhookTriggerEvents } from "@prisma/client"
-import { CompleteUser, UserModel, CompleteTeam, TeamModel, CompleteEventType, EventTypeModel, CompleteApp, AppModel } from "./index"
+import { CompleteUser, UserModel, CompleteTeam, TeamModel, CompleteEventType, EventTypeModel, CompleteApp, AppModel, CompleteWebhookScheduledTriggers, WebhookScheduledTriggersModel } from "./index"
 
 export const _WebhookModel = z.object({
   id: z.string(),
@@ -23,6 +23,7 @@ export interface CompleteWebhook extends z.infer<typeof _WebhookModel> {
   team?: CompleteTeam | null
   eventType?: CompleteEventType | null
   app?: CompleteApp | null
+  scheduledTriggers: CompleteWebhookScheduledTriggers[]
 }
 
 /**
@@ -35,4 +36,5 @@ export const WebhookModel: z.ZodSchema<CompleteWebhook> = z.lazy(() => _WebhookM
   team: TeamModel.nullish(),
   eventType: EventTypeModel.nullish(),
   app: AppModel.nullish(),
+  scheduledTriggers: WebhookScheduledTriggersModel.array(),
 }))
