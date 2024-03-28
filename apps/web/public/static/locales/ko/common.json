@@ -182,6 +182,7 @@
   "2fa_confirm_current_password": "시작하려면 현재 비밀번호를 확인하세요.",
   "2fa_scan_image_or_use_code": "휴대폰의 인증 앱으로 아래 이미지를 스캔하거나 텍스트 코드를 수동으로 입력하세요.",
   "text": "텍스트",
+  "your_phone_number": "본인 전화 번호",
   "multiline_text": "멀티라인 텍스트",
   "number": "숫자",
   "checkbox": "체크박스",

@@ -12,7 +12,7 @@ import { UserResponse, userSchemaResponse } from "@calcom/platform-types";
 import { ApiResponse } from "@calcom/platform-types";
 
 @Controller({
-  path: "me",
+  path: "ee/me",
   version: "2",
 })
 @UseGuards(AccessTokenGuard, PermissionsGuard)
