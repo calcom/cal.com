@@ -1,17 +1,36 @@
 import { CreateEventTypeInput } from "@/ee/event-types/inputs/create-event-type.input";
-import { EventTypesService } from "@/ee/event-types/services/event-types.service";
+import { UpdateEventTypeInput } from "@/ee/event-types/inputs/update-event-type/update-event-type.input";
+import { EventTypesService, checkUserOwnsEventType } from "@/ee/event-types/services/event-types.service";
 import { ForAtom } from "@/lib/atoms/decorators/for-atom.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
 import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
+import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
-import { Controller, UseGuards, Get, Param, Post, Body, NotFoundException } from "@nestjs/common";
+import {
+  Controller,
+  UseGuards,
+  Get,
+  Param,
+  Post,
+  Body,
+  NotFoundException,
+  Patch,
+  HttpCode,
+  HttpStatus,
+  Delete,
+} from "@nestjs/common";
 import { EventType } from "@prisma/client";
 
 import { EventTypesByViewer } from "@calcom/lib";
 import { EVENT_TYPE_READ, EVENT_TYPE_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
-import type { EventType as AtomEventType, EventTypesPublic } from "@calcom/platform-libraries";
+import { createEventType, updateEventType } from "@calcom/platform-libraries";
+import type {
+  EventType as AtomEventType,
+  EventTypesPublic,
+  UpdateEventTypeReturn,
+} from "@calcom/platform-libraries";
 import { getEventTypesByViewer } from "@calcom/platform-libraries";
 import { ApiResponse, ApiSuccessResponse } from "@calcom/platform-types";
 
@@ -21,7 +40,10 @@ import { ApiResponse, ApiSuccessResponse } from "@calcom/platform-types";
 })
 @UseGuards(PermissionsGuard)
 export class EventTypesController {
-  constructor(private readonly eventTypesService: EventTypesService) {}
+  constructor(
+    private readonly eventTypesService: EventTypesService,
+    private readonly dbWrite: PrismaWriteService
+  ) {}
 
   @Post("/")
   @Permissions([EVENT_TYPE_WRITE])
@@ -30,7 +52,16 @@ export class EventTypesController {
     @Body() body: CreateEventTypeInput,
     @GetUser() user: UserWithProfile
   ): Promise<ApiResponse<EventType>> {
-    const eventType = await this.eventTypesService.createUserEventType(user.id, body);
+    const eventTypeUser = await this.eventTypesService.getUserToCreateEvent(user);
+    const { eventType } = await createEventType({
+      input: body,
+      ctx: {
+        user: eventTypeUser,
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        prisma: this.dbWrite.prisma,
+      },
+    });
 
     return {
       status: SUCCESS_STATUS,
@@ -87,6 +118,53 @@ export class EventTypesController {
     return {
       status: SUCCESS_STATUS,
       data: eventTypes,
+    };
+  }
+
+  @Patch("/:eventTypeId")
+  @Permissions([EVENT_TYPE_WRITE])
+  @UseGuards(AccessTokenGuard)
+  @HttpCode(HttpStatus.OK)
+  async updateEventType(
+    @Param("eventTypeId") eventTypeId: number,
+    @Body() body: UpdateEventTypeInput,
+    @GetUser() user: UserWithProfile
+  ): Promise<ApiResponse<UpdateEventTypeReturn["eventType"]>> {
+    const existingEventType = await this.eventTypesService.getUserEventType(user.id, eventTypeId);
+    if (!existingEventType) {
+      throw new NotFoundException(`Event type with id ${eventTypeId} not found`);
+    }
+    checkUserOwnsEventType(user.id, existingEventType);
+
+    const eventTypeUser = await this.eventTypesService.getUserToUpdateEvent(user);
+    const { eventType } = await updateEventType({
+      input: { id: eventTypeId, ...body },
+      ctx: {
+        user: eventTypeUser,
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        prisma: this.dbWrite.prisma,
+      },
+    });
+
+    return {
+      status: SUCCESS_STATUS,
+      data: eventType,
+    };
+  }
+
+  @Delete("/:eventTypeId")
+  @Permissions([EVENT_TYPE_WRITE])
+  @UseGuards(AccessTokenGuard)
+  async deleteEventType(
+    @Param("eventTypeId") eventTypeId: number,
+    @GetUser("id") userId: number
+  ): Promise<ApiResponse<EventType>> {
+    const eventType = await this.eventTypesService.deleteEventType(eventTypeId, userId);
+
+    return {
+      status: SUCCESS_STATUS,
+      data: eventType,
     };
   }
 }
