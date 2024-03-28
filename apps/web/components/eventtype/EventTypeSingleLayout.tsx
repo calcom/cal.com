@@ -284,8 +284,8 @@ function EventTypeSingleLayout({
         info: `${activeWebhooksNumber} ${t("active")}`,
       });
     }
-    const aiEnabled = true; /* todo: check if cal.ai is installed */
-    if (team && aiEnabled) {
+    const hidden = true; // hidden while in alpha trial. you can access it with tabName=ai
+    if (team && hidden) {
       navigation.push({
         name: "Cal.ai",
         href: `/event-types/${eventType.id}?tabName=ai`,
