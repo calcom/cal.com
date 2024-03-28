@@ -414,8 +414,17 @@ class CalApi {
   }
 
   init(namespaceOrConfig?: string | InitArgConfig, config = {} as InitArgConfig) {
+    let namespace = "";
     if (typeof namespaceOrConfig !== "string") {
       config = (namespaceOrConfig || {}) as Config;
+    } else {
+      namespace = namespaceOrConfig;
+    }
+
+    if (!globalCal.ns[namespace].instance && namespace !== this.cal.namespace) {
+      globalCal.ns[namespace].instance = new Cal(namespace, globalCal.ns[namespace].q);
+      // Let it take care of it's own queue which should have it's init call in it.
+      return;
     }
 
     CalApi.initializedNamespaces.push(this.cal.namespace);
@@ -438,6 +447,12 @@ class CalApi {
     elementOrSelector: string | HTMLElement;
     config?: PrefillAndIframeAttrsConfig;
   }) {
+    
+//     if (this.cal.inlineEl && document.body.contains(this.cal.inlineEl)) {
+//       console.warn("Inline embed already exists. Ignoring this call");
+//       return;
+//     }
+
     // eslint-disable-next-line prefer-rest-params
     validate(arguments[0], {
       required: true,
@@ -801,7 +816,7 @@ const DEFAULT_NAMESPACE = "";
 
 globalCal.instance = new Cal(DEFAULT_NAMESPACE, globalCal.q);
 for (const [ns, api] of Object.entries(globalCal.ns)) {
-  api.instance = new Cal(ns, api.q);
+  api.instance = api.instance ?? new Cal(ns, api.q);
 }
 
 /**
