@@ -4,7 +4,7 @@ import { vi, expect } from "vitest";
 import createFetchMock from "vitest-fetch-mock";
 
 global.ResizeObserver = ResizeObserver;
-const fetchMocker = createFetchMock(vi);
+export const fetchMocker = createFetchMock(vi);
 
 // sets globalThis.fetch and globalThis.fetchMock to our mocked version
 fetchMocker.enableMocks();
