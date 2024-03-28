@@ -357,6 +357,7 @@ export class ProfileRepository {
             slug: true,
             metadata: true,
             bannerUrl: true,
+            isPrivate: true,
             organizationSettings: {
               select: {
                 lockEventTypeCreationForUsers: true,
