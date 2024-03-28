@@ -69,7 +69,7 @@ const ApiKeyListItem = ({
       <div>
         <Dropdown>
           <DropdownMenuTrigger asChild>
-            <Button type="button" variant="icon" color="secondary" StartIcon={MoreHorizontal} />
+            <Button type="button" variant="icon" color="secondary" StartIcon={(props) => <Icon {...props} name="more-horizontal" />} />
           </DropdownMenuTrigger>
 
           <DropdownMenuContent>

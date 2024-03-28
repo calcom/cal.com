@@ -1,8 +1,8 @@
-import { ArrowRight, InfoIcon } from "lucide-react";
 import { useState } from "react";
 
 import { BOOKER_NUMBER_OF_DAYS_TO_LOAD } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { ArrowRight, Info as InfoIcon } from "@calcom/ui/components/icon";
 
 type Props = {
   onButtonClick: () => void;
@@ -41,7 +41,7 @@ export function HavingTroubleFindingTime(props: Props) {
           props.onButtonClick();
           setInternalClick(true);
         }}>
-        {t("show_more")} <ArrowRight className="h-4 w-4" />
+        {t("show_more")} <Icon name="arrow-right" className="h-4 w-4" />
       </button>
     </div>
   );

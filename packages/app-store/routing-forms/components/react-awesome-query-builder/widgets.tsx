@@ -228,7 +228,7 @@ function Button({ config, type, label, onClick, readonly }: ButtonProps) {
   }
   return (
     <CalButton
-      StartIcon={Plus}
+      StartIcon={(props) => <Icon {...props} name="plus" />}
       data-testid={dataTestId}
       type="button"
       color="secondary"

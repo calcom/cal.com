@@ -120,7 +120,7 @@ export const AddNewTeamMembersForm = ({
         <Button
           color="secondary"
           data-testid="new-member-button"
-          StartIcon={Plus}
+          StartIcon={(props) => <Icon {...props} name="plus" />}
           onClick={() => setMemberInviteModal(true)}
           className={classNames("w-full justify-center", defaultValues.members.length > 0 && "mt-6")}>
           {isOrg ? t("add_org_members") : t("add_team_member")}

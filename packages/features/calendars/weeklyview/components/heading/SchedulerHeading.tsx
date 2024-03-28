@@ -30,7 +30,7 @@ export function SchedulerHeading() {
         <ButtonGroup combined>
           {/* TODO: i18n label with correct view */}
           <Button
-            StartIcon={ChevronLeft}
+            StartIcon={(props) => <Icon {...props} name="chevron-left" />}
             variant="icon"
             color="secondary"
             aria-label="Previous Week"

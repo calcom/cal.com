@@ -458,7 +458,7 @@ const SettingsSidebarContainer = ({
                         name={t("add_a_team")}
                         href={`${WEBAPP_URL}/settings/teams/new`}
                         textClassNames="px-3 items-center mt-2 text-emphasis font-medium text-sm"
-                        icon={Plus}
+                        icon={() => <Icon name="plus" />}
                         disableChevron
                       />
                     )}

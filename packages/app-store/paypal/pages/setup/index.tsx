@@ -1,4 +1,3 @@
-import { AlertCircleIcon } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -7,6 +6,7 @@ import { Toaster } from "react-hot-toast";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import { Button, showToast, TextField } from "@calcom/ui";
+import { AlertCircle as AlertCircleIcon } from "@calcom/ui/components/icon";
 
 export default function PayPalSetup() {
   const [newClientId, setNewClientId] = useState("");

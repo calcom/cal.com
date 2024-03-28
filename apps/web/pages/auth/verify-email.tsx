@@ -1,6 +1,5 @@
 "use client";
 
-import { MailOpenIcon } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
@@ -10,6 +9,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import useEmailVerifyCheck from "@calcom/trpc/react/hooks/useEmailVerifyCheck";
 import { Button, EmptyScreen, showToast } from "@calcom/ui";
+import { MailOpen as MailOpenIcon } from "@calcom/ui/components/icon";
 
 import PageWrapper from "@components/PageWrapper";
 

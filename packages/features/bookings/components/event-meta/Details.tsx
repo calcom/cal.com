@@ -34,7 +34,7 @@ type EventDetailCustomBlock = {
 type EventDetailsProps = EventDetailsPropsBase & (EventDetailDefaultBlock | EventDetailCustomBlock);
 
 interface EventMetaProps {
-  icon?: React.FC<{ className: string }> | string;
+  icon?: React.FC<{ className?: string }>;
   children: React.ReactNode;
   // Emphasises the text in the block. For now only
   // applying in dark mode.

@@ -371,7 +371,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   <div>
                     <Dropdown>
                       <DropdownMenuTrigger asChild>
-                        <Button type="button" color="minimal" variant="icon" StartIcon={MoreHorizontal} />
+                        <Button type="button" color="minimal" variant="icon" StartIcon={(props) => <Icon {...props} name="more-horizontal" />} />
                       </DropdownMenuTrigger>
                       <DropdownMenuContent>
                         <DropdownMenuItem>

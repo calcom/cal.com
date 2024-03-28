@@ -1,4 +1,3 @@
-import { Trash2 } from "lucide-react";
 import React, { useState } from "react";
 import { Controller, useForm, useFormState } from "react-hook-form";
 
@@ -20,6 +19,7 @@ import {
   DateRangePicker,
 } from "@calcom/ui";
 import { TableNew, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@calcom/ui";
+import { Trash2 } from "@calcom/ui/components/icon";
 
 import PageWrapper from "@components/PageWrapper";
 

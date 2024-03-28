@@ -7,7 +7,7 @@ import React, { forwardRef } from "react";
 import classNames from "@calcom/lib/classNames";
 import type { SVGComponent } from "@calcom/types/SVGComponent";
 
-import { Plus } from "../icon";
+import { Icon } from "../..";
 import { Tooltip } from "../tooltip";
 
 type InferredVariantProps = VariantProps<typeof buttonClasses>;
@@ -159,7 +159,7 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
           {variant === "fab" ? (
             <>
               <StartIcon className="hidden h-4 w-4 stroke-[1.5px] ltr:-ml-1 ltr:mr-2 rtl:-mr-1 rtl:ml-2 md:inline-flex" />
-              <Plus data-testid="plus" className="inline h-6 w-6 md:hidden" />
+              <Icon name="plus" data-testid="plus" className="inline h-6 w-6 md:hidden" />
             </>
           ) : (
             <StartIcon
@@ -196,7 +196,7 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
           {variant === "fab" ? (
             <>
               <EndIcon className="-mr-1 me-2 ms-2 hidden h-5 w-5 md:inline" />
-              <Plus data-testid="plus" className="inline h-6 w-6 md:hidden" />
+              <Icon name="plus" data-testid="plus" className="inline h-6 w-6 md:hidden" />
             </>
           ) : (
             <EndIcon

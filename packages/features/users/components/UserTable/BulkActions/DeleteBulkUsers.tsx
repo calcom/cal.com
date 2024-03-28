@@ -1,8 +1,7 @@
-import { BanIcon } from "lucide-react";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Dialog, DialogTrigger, ConfirmationDialogContent, Button, showToast } from "@calcom/ui";
+import { Ban as BanIcon } from "@calcom/ui/components/icon";
 
 import type { User } from "../UserListTable";
 

@@ -1,10 +1,11 @@
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
 import React from "react";
-import { GoPrimitiveDot } from "react-icons/go";
 
 import classNames from "@calcom/lib/classNames";
 import type { SVGComponent } from "@calcom/types/SVGComponent";
+
+import { Dot as GoPrimitiveDot } from "../icon";
 
 export const badgeStyles = cva("font-medium inline-flex items-center justify-center rounded gap-x-1", {
   variants: {
@@ -37,9 +38,9 @@ type InferredBadgeStyles = VariantProps<typeof badgeStyles>;
 type IconOrDot =
   | {
       startIcon?: SVGComponent;
-      withDot?: unknown;
+      withDot?: never;
     }
-  | { startIcon?: unknown; withDot?: boolean };
+  | { startIcon?: never; withDot?: true };
 
 export type BadgeBaseProps = InferredBadgeStyles & {
   children: React.ReactNode;
@@ -59,7 +60,7 @@ export type BadgeProps =
 export const Badge = function Badge(props: BadgeProps) {
   const { variant, className, size, startIcon, withDot, children, rounded, ...passThroughProps } = props;
   const isButton = "onClick" in passThroughProps && passThroughProps.onClick !== undefined;
-  const StartIcon = startIcon ? (startIcon as SVGComponent) : undefined;
+  const StartIcon = startIcon;
   const classes = classNames(
     badgeStyles({ variant, size }),
     rounded && "h-5 w-5 rounded-full p-0",

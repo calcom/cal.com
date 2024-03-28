@@ -7,8 +7,7 @@ import { APP_NAME } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Avatar, Button, Select } from "@calcom/ui";
-import { Plus, Info } from "@calcom/ui/components/icon";
+import { Avatar, Button, Icon, Select } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
 
@@ -85,7 +84,7 @@ export default function Authorize() {
         <div className="flex items-center justify-center">
           <Avatar
             alt=""
-            fallback={<Plus className="text-subtle h-6 w-6" />}
+            fallback={<Icon name="plus" className="text-subtle h-6 w-6" />}
             className="items-center"
             imageSrc={client.logo}
             size="lg"
@@ -139,7 +138,7 @@ export default function Authorize() {
         </ul>
         <div className="bg-subtle mb-8 mt-8 flex rounded-md p-3">
           <div>
-            <Info className="mr-1 mt-0.5 h-4 w-4" />
+            <Icon name="info" className="mr-1 mt-0.5 h-4 w-4" />
           </div>
           <div className="ml-1 ">
             <div className="mb-1 text-sm font-medium">

@@ -1,9 +1,9 @@
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useMemo } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, ButtonGroup } from "@calcom/ui";
+import { ChevronRight } from "@calcom/ui/components/icon";
 
 import { useTroubleshooterStore } from "../store";
 
@@ -53,7 +53,7 @@ export function TroubleshooterHeader({ extraDays, isMobile }: { extraDays: numbe
             className="group rtl:ml-1 rtl:rotate-180"
             variant="icon"
             color="minimal"
-            StartIcon={ChevronLeft}
+            StartIcon={(props) => <Icon {...props} name="chevron-left" />}
             aria-label="Previous Day"
             onClick={() => addToSelectedDate(-extraDays)}
           />

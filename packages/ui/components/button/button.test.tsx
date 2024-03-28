@@ -3,7 +3,7 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import { useState } from "react";
 import { vi } from "vitest";
 
-import { Plus } from "@calcom/ui/components/icon";
+import { Icon } from "@calcom/ui";
 
 import { Button, buttonClasses } from "./Button";
 
@@ -140,7 +140,7 @@ describe("Tests for Button component", () => {
 
   test("Should render StartIcon and Plus icon if is fab variant", () => {
     render(
-      <Button variant="fab" StartIcon={Plus} data-testid="start-icon">
+      <Button variant="fab" StartIcon={(props) => <Icon {...props} name="plus" />} data-testid="start-icon">
         Test Button
       </Button>
     );
@@ -150,7 +150,7 @@ describe("Tests for Button component", () => {
 
   test("Should render just StartIcon if is not fab variant", () => {
     render(
-      <Button StartIcon={Plus} data-testid="start-icon">
+      <Button StartIcon={(props) => <Icon {...props} name="plus" />} data-testid="start-icon">
         Test Button
       </Button>
     );
@@ -160,7 +160,7 @@ describe("Tests for Button component", () => {
 
   test("Should render EndIcon and Plus icon if is fab variant", () => {
     render(
-      <Button variant="fab" EndIcon={Plus} data-testid="end-icon">
+      <Button variant="fab" EndIcon={(props) => <Icon {...props} name="plus" />} data-testid="end-icon">
         Test Button
       </Button>
     );
@@ -170,7 +170,7 @@ describe("Tests for Button component", () => {
 
   test("Should render just EndIcon if is not fab variant", () => {
     render(
-      <Button EndIcon={Plus} data-testid="end-icon">
+      <Button EndIcon={(props) => <Icon {...props} name="plus" />} data-testid="end-icon">
         Test Button
       </Button>
     );

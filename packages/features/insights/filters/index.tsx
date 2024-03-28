@@ -28,7 +28,7 @@ const ClearFilters = () => {
         onClick={() => {
           clearFilters();
         }}>
-        <X className="mr-1 h-4 w-4" />
+        <Icon name="x" className="mr-1 h-4 w-4" />
         {t("clear")}
       </Button>
     </Tooltip>

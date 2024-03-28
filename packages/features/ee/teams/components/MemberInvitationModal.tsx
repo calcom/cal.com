@@ -1,4 +1,3 @@
-import { BuildingIcon, PaperclipIcon, UserIcon, Users } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { Trans } from "next-i18next";
 import { useMemo, useState, useRef } from "react";
@@ -26,6 +25,12 @@ import {
   Select,
   TextAreaField,
 } from "@calcom/ui";
+import {
+  Building as BuildingIcon,
+  Paperclip as PaperclipIcon,
+  User as UserIcon,
+  Users,
+} from "@calcom/ui/components/icon";
 import { Link } from "@calcom/ui/components/icon";
 
 import type { PendingMember } from "../lib/types";

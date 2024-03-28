@@ -64,7 +64,7 @@ export const AboutOrganizationForm = () => {
                 <div className="flex items-center">
                   <Avatar
                     alt=""
-                    fallback={<Plus className="text-subtle h-6 w-6" />}
+                    fallback={<Icon name="plus" className="text-subtle h-6 w-6" />}
                     className="items-center"
                     imageSrc={image}
                     size="lg"
@@ -112,7 +112,7 @@ export const AboutOrganizationForm = () => {
               aboutOrganizationFormMethods.formState.isSubmitting || updateOrganizationMutation.isPending
             }
             color="primary"
-            EndIcon={ArrowRight}
+            EndIcon={(props) => <Icon {...props} name="arrow-right" />}
             type="submit"
             className="w-full justify-center">
             {t("continue")}

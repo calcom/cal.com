@@ -1,6 +1,5 @@
 import { keepPreviousData } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
-import { Plus } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useCallback, useEffect, useMemo, useReducer, useRef } from "react";
 
@@ -332,7 +331,7 @@ export function UserListTable() {
             <Button
               type="button"
               color="primary"
-              StartIcon={Plus}
+              StartIcon={(props) => <Icon {...props} name="plus" />}
               size="sm"
               className="rounded-md"
               onClick={() =>

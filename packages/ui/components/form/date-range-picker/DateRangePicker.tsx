@@ -20,7 +20,7 @@ const DateRangePicker = ({ disabled, startDate, endDate, onDatesChange }: Props)
         className="border-default rounded-sm text-sm"
         clearIcon={null}
         calendarIcon={<Calendar className="text-subtle h-4 w-4" />}
-        rangeDivider={<ArrowRight className="text-muted h-4 w-4 ltr:mr-2 rtl:ml-2" />}
+        rangeDivider={<Icon name="arrow-right" className="text-muted h-4 w-4 ltr:mr-2 rtl:ml-2" />}
         value={[startDate, endDate]}
         onChange={([startDate, endDate]: [Date, Date]) => {
           if (typeof onDatesChange === "function") onDatesChange({ startDate, endDate });

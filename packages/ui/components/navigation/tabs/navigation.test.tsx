@@ -1,7 +1,8 @@
 /* eslint-disable playwright/missing-playwright-await */
 import { fireEvent, render, screen } from "@testing-library/react";
-import { PlusIcon } from "lucide-react";
 import { vi } from "vitest";
+
+import { Plus as PlusIcon } from "@calcom/ui/components/icon";
 
 import HorizontalTabs from "./HorizontalTabs";
 import VerticalTabs from "./VerticalTabs";

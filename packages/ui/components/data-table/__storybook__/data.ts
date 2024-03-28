@@ -1,4 +1,4 @@
-import { StopCircle, Users } from "lucide-react";
+import { StopCircle, Users } from "@calcom/ui/components/icon";
 
 export type DataTableUserStorybook = {
   id: string;

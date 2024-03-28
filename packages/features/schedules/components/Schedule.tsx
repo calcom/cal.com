@@ -294,7 +294,7 @@ export const DayRanges = <TFieldValues extends FieldValues>({
                 type="button"
                 color="minimal"
                 variant="icon"
-                StartIcon={Plus}
+                StartIcon={(props) => <Icon {...props} name="plus" />}
                 onClick={() => {
                   // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   const slotRange: any = getDateSlotRange(
