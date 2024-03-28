@@ -34,6 +34,26 @@ const dailyReturnTypeSchema = z.object({
   }),
 });
 
+const getTranscripts = z.object({
+  total_count: z.number(),
+  data: z.array(
+    z.object({
+      transcriptId: z.string(),
+      domainId: z.string(),
+      roomId: z.string(),
+      mtgSessionId: z.string(),
+      duration: z.number(),
+      status: z.string(),
+    })
+  ),
+});
+
+const getRooms = z
+  .object({
+    id: z.string(),
+  })
+  .passthrough();
+
 export interface DailyEventResult {
   id: string;
   name: string;
@@ -85,6 +105,33 @@ function postToDailyAPI(endpoint: string, body: Record<string, unknown>) {
     method: "POST",
     body: JSON.stringify(body),
   });
+}
+
+async function processTranscriptsInBatches(transcriptIds: Array<string>) {
+  const batchSize = 5; // Batch size
+  const batches = []; // Array to hold batches of transcript IDs
+
+  // Split transcript IDs into batches
+  for (let i = 0; i < transcriptIds.length; i += batchSize) {
+    batches.push(transcriptIds.slice(i, i + batchSize));
+  }
+
+  const allTranscriptsAccessLinks = []; // Array to hold all access links
+
+  // Process each batch sequentially
+  for (const batch of batches) {
+    const batchPromises = batch.map((id) =>
+      fetcher(`/transcript/${id}/access-link`)
+        .then(z.object({ link: z.string() }).parse)
+        .then((res) => res.link)
+    );
+
+    const accessLinks = await Promise.all(batchPromises);
+
+    allTranscriptsAccessLinks.push(...accessLinks);
+  }
+
+  return allTranscriptsAccessLinks;
 }
 
 const DailyVideoApiAdapter = (): VideoApiAdapter => {
@@ -215,6 +262,24 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
       } catch (err) {
         console.log("err", err);
         throw new Error("Something went wrong! Unable to get recording access link");
+      }
+    },
+    getAllTranscriptsAccessLinkFromRoomName: async (roomName: string): Promise<Array<string>> => {
+      try {
+        const res = await fetcher(`/rooms/${roomName}`).then(getRooms.parse);
+        const roomId = res.id;
+        const allTranscripts = await fetcher(`/transcript?roomId=${roomId}`).then(getTranscripts.parse);
+
+        const allTranscriptsIds = allTranscripts.data.map((transcript) => transcript.transcriptId);
+
+        const allTranscriptsAccessLink = await processTranscriptsInBatches(allTranscriptsIds);
+
+        const accessLinks = await Promise.all(allTranscriptsAccessLink);
+
+        return Promise.resolve(accessLinks);
+      } catch (err) {
+        console.log("err", err);
+        throw new Error("Something went wrong! Unable to get transcription access link");
       }
     },
   };

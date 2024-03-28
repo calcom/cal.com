@@ -40,26 +40,6 @@ const dailyReturnTypeSchema = z.object({
   }),
 });
 
-const getTranscripts = z.object({
-  total_count: z.number(),
-  data: z.array(
-    z.object({
-      transcriptId: z.string(),
-      domainId: z.string(),
-      roomId: z.string(),
-      mtgSessionId: z.string(),
-      duration: z.number(),
-      status: z.string(),
-    })
-  ),
-});
-
-const getRooms = z
-  .object({
-    id: z.string(),
-  })
-  .passthrough();
-
 export interface DailyEventResult {
   id: string;
   name: string;
@@ -207,26 +187,6 @@ const ShimmerDailyVideoApiAdapter = (): VideoApiAdapter => {
       } catch (err) {
         console.log("err", err);
         throw new Error("Something went wrong! Unable to get recording access link");
-      }
-    },
-    getAllTranscriptsAccessLinkFromRoomName: async (roomName: string): Promise<Array<string>> => {
-      try {
-        const res = await fetcher(`/rooms/${roomName}`).then(getRooms.parse);
-        const roomId = res.id;
-        const allTranscripts = await fetcher(`/transcript?roomId=${roomId}`).then(getTranscripts.parse);
-
-        const allTranscriptsIds = allTranscripts.data.map((transcript) => transcript.transcriptId);
-
-        const allTranscriptsAccessLink = allTranscriptsIds.map((id) =>
-          fetcher(`/transcript/${id}/access-link`).then(z.object({ link: z.string() }).parse)
-        );
-
-        const accessLinks = await Promise.all(allTranscriptsAccessLink);
-
-        return Promise.resolve(accessLinks);
-      } catch (err) {
-        console.log("err", err);
-        throw new Error("Something went wrong! Unable to get transcription access link");
       }
     },
   };
