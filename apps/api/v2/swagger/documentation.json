@@ -22,7 +22,40 @@
     "/api/v2/events/public": {
       "get": {
         "operationId": "EventsController_getPublicEvent",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "username",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "eventSlug",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "isTeamEvent",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "org",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "",
@@ -55,7 +88,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateUserInput"
+                "$ref": "#/components/schemas/CreateManagedPlatformUserInput"
               }
             }
           }
@@ -133,7 +166,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateUserInput"
+                "$ref": "#/components/schemas/UpdateManagedPlatformUserInput"
               }
             }
           }
@@ -578,7 +611,7 @@
         }
       }
     },
-    "/api/v2/platform/gcal/oauth/auth-url": {
+    "/api/v2/ee/gcal/oauth/auth-url": {
       "get": {
         "operationId": "GcalController_redirect",
         "parameters": [
@@ -605,7 +638,7 @@
         }
       }
     },
-    "/api/v2/platform/gcal/oauth/save": {
+    "/api/v2/ee/gcal/oauth/save": {
       "get": {
         "operationId": "GcalController_save",
         "parameters": [
@@ -640,7 +673,7 @@
         }
       }
     },
-    "/api/v2/platform/gcal/check": {
+    "/api/v2/ee/gcal/check": {
       "get": {
         "operationId": "GcalController_check",
         "parameters": [],
@@ -658,7 +691,7 @@
         }
       }
     },
-    "/api/v2/platform/provider/{clientId}": {
+    "/api/v2/ee/provider/{clientId}": {
       "get": {
         "operationId": "CalProviderController_verifyClientId",
         "parameters": [
@@ -685,7 +718,7 @@
         }
       }
     },
-    "/api/v2/platform/provider/{clientId}/access-token": {
+    "/api/v2/ee/provider/{clientId}/access-token": {
       "get": {
         "operationId": "CalProviderController_verifyAccessToken",
         "parameters": [
@@ -895,7 +928,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateUserInput"
+                "$ref": "#/components/schemas/UpdateManagedPlatformUserInput"
               }
             }
           }
@@ -951,6 +984,22 @@
       }
     },
     "/api/v2/ee/bookings": {
+      "get": {
+        "operationId": "BookingsController_getBookings",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      },
       "post": {
         "operationId": "BookingsController_createBooking",
         "parameters": [],
@@ -960,6 +1009,97 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/CreateBookingInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/ee/bookings/{bookingUid}": {
+      "get": {
+        "operationId": "BookingsController_getBooking",
+        "parameters": [
+          {
+            "name": "bookingUid",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/ee/bookings/{bookingUid}/reschedule": {
+      "get": {
+        "operationId": "BookingsController_getBookingForReschedule",
+        "parameters": [
+          {
+            "name": "bookingUid",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/ee/bookings/{bookingId}/cancel": {
+      "post": {
+        "operationId": "BookingsController_cancelBooking",
+        "parameters": [
+          {
+            "name": "bookingId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CancelBookingInput"
               }
             }
           }
@@ -1112,7 +1252,7 @@
   "servers": [],
   "components": {
     "schemas": {
-      "CreateUserInput": {
+      "CreateManagedPlatformUserInput": {
         "type": "object",
         "properties": {
           "email": {
@@ -1122,9 +1262,6 @@
             "type": "string"
           },
           "timeFormat": {
-            "type": "number"
-          },
-          "defaultScheduleId": {
             "type": "number"
           },
           "weekStart": {
@@ -1138,7 +1275,7 @@
           "email"
         ]
       },
-      "UpdateUserInput": {
+      "UpdateManagedPlatformUserInput": {
         "type": "object",
         "properties": {
           "email": {
@@ -1525,6 +1662,10 @@
           "metadata",
           "hashedLink"
         ]
+      },
+      "CancelBookingInput": {
+        "type": "object",
+        "properties": {}
       },
       "ReserveSlotInput": {
         "type": "object",
