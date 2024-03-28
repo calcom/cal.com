@@ -694,10 +694,10 @@ export const bookingSeatDataSchema = z.object({
 export const AIPhoneSettingSchema = z.object({
   yourPhoneNumber: z.string().refine((val) => isValidPhoneNumber(val)),
   numberToCall: z.string().refine((val) => isValidPhoneNumber(val)),
-  guestName: z.string().min(1, {
+  guestName: z.string().trim().min(1, {
     message: "Please enter Guest Name",
   }),
-  generalPrompt: z.string().min(1, {
+  generalPrompt: z.string().trim().min(1, {
     message: "Please enter prompt",
   }),
   beginMessage: z.string().nullable(),

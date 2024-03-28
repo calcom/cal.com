@@ -125,7 +125,7 @@ const AISettings = ({ eventType }: { eventType: EventTypeSetup }) => {
   const handleSubmit = async () => {
     try {
       const values = formMethods.getValues("aiPhoneCallConfig");
-      console.log("values", values);
+
       const data = await AIPhoneSettingSchema.parseAsync({
         ...values,
         eventTypeId: eventType.id,
@@ -194,9 +194,6 @@ const AISettings = ({ eventType }: { eventType: EventTypeSetup }) => {
           label={t("guest_name")}
           placeholder="Jane Doe"
           {...formMethods.register("aiPhoneCallConfig.guestName")}
-          onChange={(e) => {
-            formMethods.setValue("aiPhoneCallConfig.guestName", e.target.value, { shouldDirty: true });
-          }}
         />
 
         <Divider />
