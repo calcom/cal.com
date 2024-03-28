@@ -128,7 +128,6 @@ export async function getBookings({
       ],
     },
   };
-
   const filtersCombined: Prisma.BookingWhereInput[] = !filters
     ? []
     : Object.keys(filters)
@@ -196,60 +195,135 @@ export async function getBookings({
     },
   };
 
-  const [
-    // Quering these in parallel to save time.
-    // Note that because we are applying `take` to individual queries, we will usually get more bookings then we need. It is okay to have more bookings faster than having what we need slower
-    bookingsQueryUserId,
-    bookingsQueryAttendees,
-    bookingsQueryTeamMember,
-    bookingsQuerySeatReference,
-    //////////////////////////
-
-    recurringInfoBasic,
-    recurringInfoExtended,
-    // We need all promises to be successful, so we are not using Promise.allSettled
-  ] = await Promise.all([
-    prisma.booking.findMany({
-      where: {
-        OR: [
-          {
-            userId: user.id,
-          },
-        ],
-        AND: [passedBookingsStatusFilter, ...filtersCombined],
+  const userBookingsFilter: Prisma.BookingWhereInput = {
+    userId: user.id,
+  };
+  const userAttendingBookingsFilter: Prisma.BookingWhereInput = {
+    attendees: {
+      some: {
+        email: user.email,
       },
-      orderBy,
-      take: take + 1,
-      skip,
-    }),
-    prisma.booking.findMany({
-      where: {
-        OR: [
-          {
-            attendees: {
-              some: {
-                email: user.email,
+    },
+  };
+  // all (collective + round-robin) team bookings should be visible to team-owner and team-admins
+  const teamBookingsFilter: Prisma.BookingWhereInput = {
+    eventType: {
+      team: {
+        members: {
+          some: {
+            userId: user.id,
+            role: {
+              in: ["ADMIN", "OWNER"],
+            },
+          },
+        },
+      },
+    },
+  };
+  // all (collective + round-robin) team bookings should be visible to org-owner and org-admins
+  const organizationBookingsFilter: Prisma.BookingWhereInput = {
+    eventType: {
+      team: {
+        parent: {
+          members: {
+            some: {
+              userId: user.id,
+              role: {
+                in: ["ADMIN", "OWNER"],
               },
             },
           },
-        ],
-        AND: [passedBookingsStatusFilter, ...filtersCombined],
+        },
       },
-      orderBy,
-      take: take + 1,
-      skip,
-    }),
-    prisma.booking.findMany({
-      where: {
+    },
+  };
+
+  // all managed team bookings should be visible to team-owner and team-admins
+  const teamManagedBookingsFilter: Prisma.BookingWhereInput = {
+    eventType: {
+      parent: {
+        team: {
+          members: {
+            some: {
+              userId: user.id,
+              role: {
+                in: ["ADMIN", "OWNER"],
+              },
+            },
+          },
+        },
+      },
+    },
+  };
+
+  // all managed team bookings should be visible to org-owner and org-admins
+  const organizationManagedBookingsFilter: Prisma.BookingWhereInput = {
+    eventType: {
+      parent: {
+        team: {
+          parent: {
+            members: {
+              some: {
+                userId: user.id,
+                role: {
+                  in: ["ADMIN", "OWNER"],
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  };
+
+  // show personal booking to org-owner and org-admins
+  const organizationPersonalBookingsFilter: Prisma.BookingWhereInput = {
+    AND: [
+      {
+        user: {
+          teams: {
+            some: {
+              team: {
+                parentId: { gt: 0 },
+              },
+            },
+          },
+        },
+      },
+      {
         OR: [
           {
-            eventType: {
-              team: {
-                members: {
-                  some: {
-                    userId: user.id,
-                    role: {
-                      in: ["ADMIN", "OWNER"],
+            user: {
+              teams: {
+                some: {
+                  team: {
+                    parent: {
+                      members: {
+                        some: {
+                          userId: user.id,
+                          role: {
+                            in: ["ADMIN", "OWNER"],
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          {
+            user: {
+              teams: {
+                some: {
+                  team: {
+                    members: {
+                      some: {
+                        userId: user.id,
+                        role: {
+                          in: ["ADMIN", "OWNER"],
+                        },
+                      },
                     },
                   },
                 },
@@ -257,24 +331,50 @@ export async function getBookings({
             },
           },
         ],
-        AND: [passedBookingsStatusFilter, ...filtersCombined],
       },
-      orderBy,
-      take: take + 1,
-      skip,
-    }),
+      // filter out all (collective + round-robin) event bookings
+      {
+        eventType: {
+          teamId: null,
+        },
+      },
+      // filter out all (managed) event bookings
+      {
+        eventType: {
+          parentId: null,
+        },
+      },
+    ],
+  };
+
+  const seatsReferenceFilter: Prisma.BookingWhereInput = {
+    seatsReferences: {
+      some: {
+        attendee: {
+          email: user.email,
+        },
+      },
+    },
+  };
+  const [
+    // Quering these in parallel to save time.
+    // Note that because we are applying `take` to individual queries, we will usually get more bookings then we need. It is okay to have more bookings faster than having what we need slower
+    bookingsQueryUserId,
+    recurringInfoBasic,
+    recurringInfoExtended,
+    // We need all promises to be successful, so we are not using Promise.allSettled
+  ] = await Promise.all([
     prisma.booking.findMany({
       where: {
         OR: [
-          {
-            seatsReferences: {
-              some: {
-                attendee: {
-                  email: user.email,
-                },
-              },
-            },
-          },
+          userBookingsFilter,
+          userAttendingBookingsFilter,
+          teamBookingsFilter,
+          organizationBookingsFilter,
+          teamManagedBookingsFilter,
+          organizationManagedBookingsFilter,
+          organizationPersonalBookingsFilter,
+          seatsReferenceFilter,
         ],
         AND: [passedBookingsStatusFilter, ...filtersCombined],
       },
@@ -345,9 +445,6 @@ export async function getBookings({
   const plainBookings = getUniqueBookings(
     // It's going to mess up the orderBy as we are concatenating independent queries results
     bookingsQueryUserId
-      .concat(bookingsQueryAttendees)
-      .concat(bookingsQueryTeamMember)
-      .concat(bookingsQuerySeatReference)
   );
 
   // Now enrich bookings with relation data. We could have queried the relation data along with the bookings, but that would cause unnecessary queries to the database.

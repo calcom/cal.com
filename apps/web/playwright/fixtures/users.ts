@@ -58,7 +58,7 @@ const createTeamWorkflow = async (user: { id: number }, team: { id: number }) =>
   });
 };
 
-const createTeamEventType = async (
+export const createTeamEventType = async (
   user: { id: number },
   team: { id: number },
   scenario?: {
