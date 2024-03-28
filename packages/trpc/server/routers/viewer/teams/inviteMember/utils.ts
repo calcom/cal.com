@@ -224,18 +224,21 @@ export async function createNewUsersConnectToOrgIfExists({
   parentId,
   autoAcceptEmailDomain,
   connectionInfoMap,
+  isPlatformManaged,
 }: {
   usernamesOrEmails: string[];
   input: InviteMemberOptions["input"];
   parentId?: number | null;
   autoAcceptEmailDomain?: string;
   connectionInfoMap: Record<string, ReturnType<typeof getOrgConnectionInfo>>;
+  isPlatformManaged?: boolean;
 }) {
   // fail if we have invalid emails
   usernamesOrEmails.forEach((usernameOrEmail) => checkInputEmailIsValid(usernameOrEmail));
   // from this point we know usernamesOrEmails contains only emails
-  await prisma.$transaction(
+  const createdUsers = await prisma.$transaction(
     async (tx) => {
+      const createdUsers = [];
       for (let index = 0; index < usernamesOrEmails.length; index++) {
         const usernameOrEmail = usernamesOrEmails[index];
         // Weird but orgId is defined only if the invited user email matches orgAutoAcceptEmail
@@ -259,6 +262,7 @@ export async function createNewUsersConnectToOrgIfExists({
             email: usernameOrEmail,
             verified: true,
             invitedTo: input.teamId,
+            isPlatformManaged: !!isPlatformManaged,
             organizationId: orgId || null, // If the user is invited to a child team, they are automatically added to the parent org
             ...(orgId
               ? {
@@ -296,10 +300,13 @@ export async function createNewUsersConnectToOrgIfExists({
             },
           });
         }
+        createdUsers.push(createdUser);
       }
+      return createdUsers;
     },
     { timeout: 10000 }
   );
+  return createdUsers;
 }
 
 export async function createMemberships({

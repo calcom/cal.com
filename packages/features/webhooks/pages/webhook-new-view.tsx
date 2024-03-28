@@ -31,6 +31,7 @@ const NewWebhookView = () => {
   const session = useSession();
 
   const teamId = searchParams?.get("teamId") ? Number(searchParams.get("teamId")) : undefined;
+  const platform = searchParams?.get("platform") ? Boolean(searchParams.get("platform")) : false;
 
   const { data: installedApps, isPending } = trpc.viewer.integrations.useQuery(
     { variant: "other", onlyInstalled: true },
@@ -63,6 +64,7 @@ const NewWebhookView = () => {
         webhooks,
         teamId,
         userId: session.data?.user.id,
+        platform,
       })
     ) {
       showToast(t("webhook_subscriber_url_reserved"), "error");
@@ -80,6 +82,7 @@ const NewWebhookView = () => {
       payloadTemplate: values.payloadTemplate,
       secret: values.secret,
       teamId,
+      platform,
     });
   };
 

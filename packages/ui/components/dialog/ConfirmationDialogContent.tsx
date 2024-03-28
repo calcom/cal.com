@@ -21,6 +21,14 @@ export type ConfirmationDialogContentProps = {
 } & ConfirmBtnType;
 
 export function ConfirmationDialogContent(props: PropsWithChildren<ConfirmationDialogContentProps>) {
+  return (
+    <DialogContent type="creation">
+      <ConfirmationContent {...props} />
+    </DialogContent>
+  );
+}
+
+export const ConfirmationContent = (props: PropsWithChildren<ConfirmationDialogContentProps>) => {
   const { t } = useLocale();
   const {
     title,
@@ -35,7 +43,7 @@ export function ConfirmationDialogContent(props: PropsWithChildren<ConfirmationD
   } = props;
 
   return (
-    <DialogContent type="creation">
+    <>
       <div className="flex">
         {variety && (
           <div className="mt-0.5 ltr:mr-3">
@@ -79,6 +87,6 @@ export function ConfirmationDialogContent(props: PropsWithChildren<ConfirmationD
         )}
         <DialogClose disabled={isPending}>{cancelBtnText}</DialogClose>
       </div>
-    </DialogContent>
+    </>
   );
-}
+};

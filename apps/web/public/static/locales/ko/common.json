@@ -182,6 +182,7 @@
   "2fa_confirm_current_password": "시작하려면 현재 비밀번호를 확인하세요.",
   "2fa_scan_image_or_use_code": "휴대폰의 인증 앱으로 아래 이미지를 스캔하거나 텍스트 코드를 수동으로 입력하세요.",
   "text": "텍스트",
+  "your_phone_number": "본인 전화 번호",
   "multiline_text": "멀티라인 텍스트",
   "number": "숫자",
   "checkbox": "체크박스",
@@ -2096,5 +2097,6 @@
   "extensive_whitelabeling": "전담 온보딩 및 엔지니어링 지원",
   "need_help": "도움이 필요하세요?",
   "show_more": "더 보기",
+  "privacy": "개인정보보호",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 여기에 새 문자열을 추가하세요 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

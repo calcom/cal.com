@@ -25,13 +25,13 @@ export async function getTeamWithMembers(args: {
   orgSlug?: string | null;
   includeTeamLogo?: boolean;
   isTeamView?: boolean;
-  currentOrg?: Team | null;
+  currentOrg?: Pick<Team, "id"> | null;
   /**
    * If true, means that you are fetching an organization and not a team
    */
   isOrgView?: boolean;
 }) {
-  const { id, slug, currentOrg, userId, orgSlug, isTeamView, isOrgView, includeTeamLogo } = args;
+  const { id, slug, currentOrg: _currentOrg, userId, orgSlug, isTeamView, isOrgView, includeTeamLogo } = args;
 
   // This should improve performance saving already app data found.
   const appDataMap = new Map();
@@ -99,6 +99,8 @@ export async function getTeamWithMembers(args: {
           id: true,
           slug: true,
           name: true,
+          isPrivate: true,
+          isOrganization: true,
         },
       },
       children: {
@@ -128,8 +130,12 @@ export async function getTeamWithMembers(args: {
           },
         },
         select: {
-          users: {
-            select: userSelect,
+          hosts: {
+            select: {
+              user: {
+                select: userSelect,
+              },
+            },
           },
           metadata: true,
           ...baseEventTypeSelect,
@@ -203,7 +209,7 @@ export async function getTeamWithMembers(args: {
   const eventTypesWithUsersUserProfile = [];
   for (const eventType of teamOrOrg.eventTypes) {
     const usersWithUserProfile = [];
-    for (const user of eventType.users) {
+    for (const { user } of eventType.hosts) {
       usersWithUserProfile.push(
         await UserRepository.enrichUserWithItsProfile({
           user,

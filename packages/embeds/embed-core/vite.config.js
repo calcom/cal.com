@@ -1,4 +1,6 @@
-import viteBaseConfig from "../vite.config";
+import EnvironmentPlugin from "vite-plugin-environment";
+
+import viteBaseConfig, { embedCoreEnvVars } from "../vite.config";
 
 const path = require("path");
 const { defineConfig } = require("vite");
@@ -7,6 +9,13 @@ module.exports = defineConfig((configEnv) => {
   const config = {
     ...viteBaseConfig,
     base: "/embed/",
+    plugins: [
+      EnvironmentPlugin({
+        EMBED_PUBLIC_EMBED_FINGER_PRINT: embedCoreEnvVars.EMBED_PUBLIC_EMBED_FINGER_PRINT,
+        EMBED_PUBLIC_VERCEL_URL: embedCoreEnvVars.EMBED_PUBLIC_VERCEL_URL,
+        EMBED_PUBLIC_WEBAPP_URL: embedCoreEnvVars.EMBED_PUBLIC_WEBAPP_URL,
+      }),
+    ],
     build: {
       emptyOutDir: true,
       rollupOptions: {
