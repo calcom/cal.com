@@ -2,7 +2,7 @@ import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
 import { EventTypesModule } from "@/ee/event-types/event-types.module";
 import { CreateEventTypeInput } from "@/ee/event-types/inputs/create-event-type.input";
-import { UpdateEventTypeInput } from "@/ee/event-types/inputs/update-event-type.input";
+import { UpdateEventTypeInput } from "@/ee/event-types/inputs/update-event-type/update-event-type.input";
 import { HttpExceptionFilter } from "@/filters/http-exception.filter";
 import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";

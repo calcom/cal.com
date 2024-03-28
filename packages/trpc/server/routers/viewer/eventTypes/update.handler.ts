@@ -37,6 +37,8 @@ type UpdateOptions = {
   input: TUpdateInputSchema;
 };
 
+export type UpdateEventTypeReturn = Awaited<ReturnType<typeof updateHandler>>;
+
 export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   const {
     schedule,

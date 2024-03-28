@@ -1,5 +1,5 @@
 import { CreateEventTypeInput } from "@/ee/event-types/inputs/create-event-type.input";
-import { UpdateEventTypeInput } from "@/ee/event-types/inputs/update-event-type.input";
+import { UpdateEventTypeInput } from "@/ee/event-types/inputs/update-event-type/update-event-type.input";
 import { EventTypesService, checkUserOwnsEventType } from "@/ee/event-types/services/event-types.service";
 import { ForAtom } from "@/lib/atoms/decorators/for-atom.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
@@ -26,7 +26,11 @@ import { EventType } from "@prisma/client";
 import { EventTypesByViewer } from "@calcom/lib";
 import { EVENT_TYPE_READ, EVENT_TYPE_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
 import { createEventType, updateEventType } from "@calcom/platform-libraries";
-import type { EventType as AtomEventType, EventTypesPublic } from "@calcom/platform-libraries";
+import type {
+  EventType as AtomEventType,
+  EventTypesPublic,
+  UpdateEventTypeReturn,
+} from "@calcom/platform-libraries";
 import { getEventTypesByViewer } from "@calcom/platform-libraries";
 import { ApiResponse, ApiSuccessResponse } from "@calcom/platform-types";
 
@@ -125,7 +129,7 @@ export class EventTypesController {
     @Param("eventTypeId") eventTypeId: number,
     @Body() body: UpdateEventTypeInput,
     @GetUser() user: UserWithProfile
-  ): Promise<ApiResponse<EventType>> {
+  ): Promise<ApiResponse<UpdateEventTypeReturn["eventType"]>> {
     const existingEventType = await this.eventTypesService.getUserEventType(user.id, eventTypeId);
     if (!existingEventType) {
       throw new NotFoundException(`Event type with id ${eventTypeId} not found`);
