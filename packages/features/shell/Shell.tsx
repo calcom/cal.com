@@ -71,6 +71,7 @@ import {
   Clock,
   Copy,
   ExternalLink,
+  Grid,
   Link as LinkIcon,
   Moon,
   MoreHorizontal,
@@ -525,36 +526,36 @@ const navigation: NavigationItemType[] = [
   //   onlyDesktop: true,
   //   badge: <TeamInviteBadge />,
   // },
-  // {
-  //   name: "apps",
-  //   href: "/apps",
-  //   icon: Grid,
-  //   isCurrent: ({ pathname: path, item }) => {
-  //     // During Server rendering path is /v2/apps but on client it becomes /apps(weird..)
-  //     return (path?.startsWith(item.href) ?? false) && !(path?.includes("routing-forms/") ?? false);
-  //   },
-  //   child: [
-  //     {
-  //       name: "app_store",
-  //       href: "/apps",
-  //       isCurrent: ({ pathname: path, item }) => {
-  //         // During Server rendering path is /v2/apps but on client it becomes /apps(weird..)
-  //         return (
-  //           (path?.startsWith(item.href) ?? false) &&
-  //           !(path?.includes("routing-forms/") ?? false) &&
-  //           !(path?.includes("/installed") ?? false)
-  //         );
-  //       },
-  //     },
-  //     {
-  //       name: "installed_apps",
-  //       href: "/apps/installed/calendar",
-  //       isCurrent: ({ pathname: path }) =>
-  //         (path?.startsWith("/apps/installed/") ?? false) ||
-  //         (path?.startsWith("/v2/apps/installed/") ?? false),
-  //     },
-  //   ],
-  // },
+  {
+    name: "apps",
+    href: "/apps",
+    icon: Grid,
+    isCurrent: ({ pathname: path, item }) => {
+      // During Server rendering path is /v2/apps but on client it becomes /apps(weird..)
+      return (path?.startsWith(item.href) ?? false) && !(path?.includes("routing-forms/") ?? false);
+    },
+    child: [
+      {
+        name: "app_store",
+        href: "/apps",
+        isCurrent: ({ pathname: path, item }) => {
+          // During Server rendering path is /v2/apps but on client it becomes /apps(weird..)
+          return (
+            (path?.startsWith(item.href) ?? false) &&
+            !(path?.includes("routing-forms/") ?? false) &&
+            !(path?.includes("/installed") ?? false)
+          );
+        },
+      },
+      {
+        name: "installed_apps",
+        href: "/apps/installed/calendar",
+        isCurrent: ({ pathname: path }) =>
+          (path?.startsWith("/apps/installed/") ?? false) ||
+          (path?.startsWith("/v2/apps/installed/") ?? false),
+      },
+    ],
+  },
   {
     name: MORE_SEPARATOR_NAME,
     href: "/more",
