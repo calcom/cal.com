@@ -178,8 +178,8 @@ test.describe("Signup Flow Test", async () => {
     });
 
     const signupUrlWithToken = `/signup?token=${token}`;
-
     await page.goto(signupUrlWithToken);
+    await page.waitForLoadState("networkidle");
 
     const usernameField = page.locator('input[name="username"]');
     const emailField = page.locator('input[name="email"]');
