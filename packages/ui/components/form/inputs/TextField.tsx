@@ -48,7 +48,16 @@ const Addon = ({ isFilled, children, className, error, onClickAddon }: AddonProp
         "min-h-9 flex flex-col justify-center text-sm leading-7",
         error ? "text-error" : "text-default"
       )}>
-      <span className="flex whitespace-nowrap">{children}</span>
+      <span
+        className="flex max-w-2xl overflow-y-auto whitespace-nowrap"
+        style={{
+          WebkitOverflowScrolling: "touch",
+          scrollbarWidth: "none",
+          overflow: "-ms-scroll-chaining",
+          msOverflowStyle: "-ms-autohiding-scrollbar",
+        }}>
+        {children}
+      </span>
     </div>
   </div>
 );

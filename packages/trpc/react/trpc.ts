@@ -5,6 +5,7 @@ import { httpBatchLink } from "../client";
 import { httpLink } from "../client";
 import { loggerLink } from "../client";
 import { splitLink } from "../client";
+import type { CreateTRPCNext } from "../next";
 import { createTRPCNext } from "../next";
 // ℹ️ Type-only import:
 // https://www.typescriptlang.org/docs/handbook/release-notes/typescript-3-8.html#type-only-imports-and-export
@@ -48,7 +49,10 @@ const resolveEndpoint = (links: any) => {
  * A set of strongly-typed React hooks from your `AppRouter` type signature with `createTRPCReact`.
  * @link https://trpc.io/docs/v10/react#2-create-trpc-hooks
  */
-export const trpc = createTRPCNext<AppRouter, NextPageContext>({
+export const trpc: CreateTRPCNext<AppRouter, NextPageContext, null> = createTRPCNext<
+  AppRouter,
+  NextPageContext
+>({
   config() {
     const url =
       typeof window !== "undefined"

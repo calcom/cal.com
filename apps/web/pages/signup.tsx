@@ -7,6 +7,7 @@ import { Trans } from "next-i18next";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import Script from "next/script";
 import { useState, useEffect } from "react";
 import type { SubmitHandler } from "react-hook-form";
 import { useForm, useFormContext } from "react-hook-form";
@@ -35,7 +36,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { signupSchema as apiSignupSchema } from "@calcom/prisma/zod-utils";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
-import { Button, HeadSeo, PasswordField, TextField, Form, Alert, showToast } from "@calcom/ui";
+import { Button, HeadSeo, PasswordField, TextField, Form, Alert, showToast, CheckboxField } from "@calcom/ui";
 
 import { getServerSideProps } from "@lib/signup/getServerSideProps";
 
@@ -198,6 +199,12 @@ export default function Signup({
     }
   }, [redirectUrl]);
 
+  const [COOKIE_CONSENT, setCOOKIE_CONSENT] = useState(false);
+
+  function handleConsentChange(consent: boolean) {
+    setCOOKIE_CONSENT(!consent);
+  }
+
   const loadingSubmitState = isSubmitSuccessful || isSubmitting;
 
   const handleErrorsAndStripe = async (resp: Response) => {
@@ -261,6 +268,25 @@ export default function Signup({
 
   return (
     <>
+      {IS_CALCOM && COOKIE_CONSENT && process.env.NEXT_PUBLIC_GTM_ID ? (
+        <>
+          <Script
+            id="gtm-init-script"
+            dangerouslySetInnerHTML={{
+              __html: `(function (w, d, s, l, i) {
+                        w[l] = w[l] || []; w[l].push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
+                        var f = d.getElementsByTagName(s)[0], j = d.createElement(s), dl = l != 'dataLayer' ? '&l=' + l : '';
+                        j.async = true; j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i + dl; f.parentNode.insertBefore(j, f);
+                    })(window, document, 'script', 'dataLayer', '${process.env.NEXT_PUBLIC_GTM_ID}');`,
+            }}
+          />
+          <noscript
+            dangerouslySetInnerHTML={{
+              __html: `<iframe src="https://www.googletagmanager.com/ns.html?id=${process.env.NEXT_PUBLIC_GTM_ID}" height="0" width="0" style="display:none;visibility:hidden"></iframe>`,
+            }}
+          />
+        </>
+      ) : null}
       <div
         className={classNames(
           "light bg-muted 2xl:bg-default flex min-h-screen w-full flex-col items-center justify-center [--cal-brand:#111827] dark:[--cal-brand:#FFFFFF]",
@@ -350,6 +376,10 @@ export default function Signup({
                   />
                 ) : null}
 
+                <CheckboxField
+                  onChange={() => handleConsentChange(COOKIE_CONSENT)}
+                  description={t("cookie_consent_checkbox")}
+                />
                 <Button
                   type="submit"
                   className="my-2 w-full justify-center"
@@ -486,14 +516,14 @@ export default function Signup({
                       className="text-emphasis hover:underline"
                       href={`${WEBSITE_URL}/terms`}
                       target="_blank">
-                      Terms
+                      <a>Terms</a>
                     </Link>{" "}
                     and{" "}
                     <Link
                       className="text-emphasis hover:underline"
                       href={`${WEBSITE_URL}/privacy`}
                       target="_blank">
-                      Privacy Policy
+                      <a>Privacy Policy</a>
                     </Link>
                     .
                   </Trans>
