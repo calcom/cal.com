@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { forwardRef } from "react";
 import type { IconType } from "react-icons";
 
+import type { LucideIcon } from "@calcom/ui/components/icon";
 import { CheckCircle2, Info, XCircle, AlertTriangle } from "@calcom/ui/components/icon";
 
 export interface AlertProps {
@@ -15,7 +16,7 @@ export interface AlertProps {
   iconClassName?: string;
   // @TODO: Success and info shouldn't exist as per design?
   severity: "success" | "warning" | "error" | "info" | "neutral" | "green";
-  CustomIcon?: IconType;
+  CustomIcon?: IconType | LucideIcon;
   customIconColor?: string;
 }
 export const Alert = forwardRef<HTMLDivElement, AlertProps>((props, ref) => {

@@ -182,6 +182,7 @@
   "2fa_confirm_current_password": "Confirmați parola curentă pentru a începe.",
   "2fa_scan_image_or_use_code": "Scanați imaginea de mai jos cu aplicația de autentificare de pe telefon sau introduceți manual codul de text.",
   "text": "Textul",
+  "your_phone_number": "Numărul dvs. de telefon",
   "multiline_text": "Text Multiline",
   "number": "Număr",
   "checkbox": "Caseta de bifat",
