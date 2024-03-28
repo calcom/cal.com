@@ -6,8 +6,6 @@ import { UsersRepository } from "@/modules/users/users.repository";
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 import { Schedule } from "@prisma/client";
 
-import { cityTimezonesHandler } from "@calcom/platform-libraries";
-
 @Injectable()
 export class SchedulesService {
   constructor(
