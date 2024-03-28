@@ -7,6 +7,7 @@ import authedProcedure, {
 } from "../../../procedures/authedProcedure";
 import { importHandler, router } from "../../../trpc";
 import { ZAddBulkTeams } from "./addBulkTeams.schema";
+import { ZAddBulkToEventType } from "./addBulkToEventType.schema";
 import { ZAdminDeleteInput } from "./adminDelete.schema";
 import { ZAdminGet } from "./adminGet.schema";
 import { ZAdminUpdate } from "./adminUpdate.schema";
@@ -90,6 +91,13 @@ export const viewerOrganizationsRouter = router({
   }),
   bulkAddToTeams: authedProcedure.input(ZAddBulkTeams).mutation(async (opts) => {
     const handler = await importHandler(namespaced("addBulkTeams"), () => import("./addBulkTeams.handler"));
+    return handler(opts);
+  }),
+  bulkAddToEventType: authedProcedure.input(ZAddBulkToEventType).mutation(async (opts) => {
+    const handler = await importHandler(
+      namespaced("addBulkToEventType"),
+      () => import("./addBulkToEventType.handler")
+    );
     return handler(opts);
   }),
   bulkDeleteUsers: authedProcedure.input(ZBulkUsersDelete).mutation(async (opts) => {
