@@ -6,7 +6,7 @@ import { z } from "zod";
 import { getDownloadLinkOfCalVideoByRecordingId } from "@calcom/core/videoClient";
 import { sendDailyVideoRecordingEmails } from "@calcom/emails";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
-import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
+import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
