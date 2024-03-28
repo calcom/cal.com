@@ -903,7 +903,7 @@
         }
       }
     },
-    "/api/v2/me": {
+    "/api/v2/ee/me": {
       "get": {
         "operationId": "MeController_getMe",
         "parameters": [],
