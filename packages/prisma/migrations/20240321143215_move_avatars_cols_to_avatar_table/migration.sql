@@ -1,22 +1,32 @@
-BEGIN;
+DO $$
+DECLARE
+    cur CURSOR FOR SELECT "id", "avatar" FROM "users" WHERE "avatar" IS NOT NULL AND "avatar" != '';
+    rec RECORD;
+    objectKey UUID;
+BEGIN
+    OPEN cur;
 
-WITH inserted_avatars AS (
-    SELECT u."id", u."avatar" as "data", gen_random_uuid() AS "objectKey"
-    FROM "users" u WHERE u."avatar" IS NOT NULL AND u."avatar" != ''
-),
-inserted AS (
-    INSERT INTO "avatars" ("userId", "data", "objectKey", "teamId")
-    SELECT "id", "data", "objectKey", 0 AS "teamId"
-    FROM inserted_avatars
-    ON CONFLICT ("teamId", "userId", "isBanner") DO NOTHING
-    RETURNING "userId", "objectKey"
-)
-UPDATE "users" u
-SET "avatarUrl" = '/api/avatar/' || i."objectKey" || '.png'
-FROM inserted i
-WHERE u."id" = i."userId";
+    LOOP
+        FETCH cur INTO rec;
+        EXIT WHEN NOT FOUND;
 
-COMMIT;
+        objectKey := gen_random_uuid();
+
+        BEGIN
+            INSERT INTO "avatars" ("userId", "data", "objectKey", "teamId")
+            VALUES (rec."id", rec."avatar", objectKey, 0)
+            ON CONFLICT ("teamId", "userId", "isBanner") DO NOTHING;
+
+            UPDATE "users"
+            SET "avatarUrl" = '/api/avatar/' || objectKey || '.png'
+            WHERE "id" = rec."id";
+        EXCEPTION WHEN UNIQUE_VIOLATION THEN
+            -- If there's a unique violation error, do nothing.
+        END;
+    END LOOP;
+
+    CLOSE cur;
+END $$;
 
 BEGIN;
 
