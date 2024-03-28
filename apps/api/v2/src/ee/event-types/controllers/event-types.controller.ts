@@ -51,7 +51,12 @@ export class EventTypesController {
     const eventTypeUser = await this.eventTypesService.getUserToCreateEvent(user);
     const { eventType } = await createEventType({
       input: body,
-      ctx: { user: eventTypeUser, prisma: this.dbWrite.prisma },
+      ctx: {
+        user: eventTypeUser,
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        prisma: this.dbWrite.prisma,
+      },
     });
 
     return {
@@ -127,10 +132,15 @@ export class EventTypesController {
     }
     checkUserOwnsEventType(user.id, existingEventType);
 
-    const eventTypeUser = await this.eventTypesService.getUserToCreateEvent(user);
+    const eventTypeUser = await this.eventTypesService.getUserToUpdateEvent(user);
     const { eventType } = await updateEventType({
       input: { id: eventTypeId, ...body },
-      ctx: { user: eventTypeUser, prisma: this.dbWrite.prisma },
+      ctx: {
+        user: eventTypeUser,
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        prisma: this.dbWrite.prisma,
+      },
     });
 
     return {

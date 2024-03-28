@@ -10,9 +10,11 @@ import {
   IsUrl,
   IsDate,
   IsInt,
+  ArrayMinSize,
+  IsArray,
 } from "class-validator";
 
-import { PeriodType, SchedulingType } from "@calcom/prisma/enums";
+import { PeriodType, SchedulingType } from "@calcom/platform-libraries";
 
 enum Frequency {
   YEARLY = 0,
@@ -121,9 +123,9 @@ export class UpdateEventTypeInput {
   parentId?: number;
 
   @ValidateNested()
-  @Type(() => BookingField)
+  @Type(() => FieldSchema)
   @IsOptional()
-  bookingFields?: BookingField[];
+  bookingFields?: FieldSchema[];
 
   @IsString()
   @IsOptional()
@@ -332,36 +334,127 @@ class View {
   description?: string;
 }
 
-export class BookingField {
+enum FieldType {
+  Name = "name",
+  Text = "text",
+  Textarea = "textarea",
+  Number = "number",
+  Email = "email",
+  Phone = "phone",
+  Address = "address",
+  MultiEmail = "multiemail",
+  Select = "select",
+  Multiselect = "multiselect",
+  Checkbox = "checkbox",
+  Radio = "radio",
+  RadioInput = "radioInput",
+  Boolean = "boolean",
+}
+
+enum EditableSchema {
+  System = "system",
+  SystemButOptional = "system-but-optional",
+  SystemButHidden = "system-but-hidden",
+  User = "user",
+  UserReadonly = "user-readonly",
+}
+
+class Option {
   @IsString()
+  label!: string;
+
+  @IsString()
+  value!: string;
+}
+
+class OptionsInput {
+  @IsEnum(FieldType, { each: true })
+  type!: FieldType;
+
   @IsOptional()
+  @IsBoolean()
+  required?: boolean;
+
+  @IsOptional()
+  @IsString()
+  placeholder?: string;
+}
+
+class BaseFieldSchema {
+  @IsString()
+  name!: string;
+
+  @IsEnum(FieldType)
+  type!: FieldType;
+
+  @IsOptional()
+  @IsString()
+  label?: string;
+
+  @IsOptional()
+  @IsString()
+  labelAsSafeHtml?: string;
+
+  @IsOptional()
+  @IsString()
+  defaultLabel?: string;
+
+  @IsOptional()
+  @IsString()
+  placeholder?: string;
+
+  @IsOptional()
+  @IsString()
+  defaultPlaceholder?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  required?: boolean;
+
+  @IsOptional()
+  @ValidateNested({ each: true })
+  @Type(() => Option)
+  options?: Option[];
+
+  @IsOptional()
+  @IsString()
+  getOptionsAt?: string;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => OptionsInput)
+  optionsInputs?: { [key: string]: OptionsInput };
+}
+
+class FieldSchema extends BaseFieldSchema {
+  @IsOptional()
+  @IsString()
   variant?: string;
 
+  @IsOptional()
   @ValidateNested()
   @Type(() => VariantsConfig)
-  @IsOptional()
   variantsConfig?: VariantsConfig;
 
-  @ValidateNested({ each: true })
-  @Type(() => View)
   @IsOptional()
+  @IsArray()
   views?: View[];
 
-  @IsBoolean()
   @IsOptional()
+  @IsBoolean()
   hideWhenJustOneOption?: boolean;
 
-  @IsBoolean()
   @IsOptional()
+  @IsBoolean()
   hidden?: boolean;
 
-  @IsEnum(Editable)
+  @IsEnum(EditableSchema)
   @IsOptional()
-  editable?: Editable;
+  editable?: EditableSchema = EditableSchema.User;
 
-  @ValidateNested({ each: true })
-  @Type(() => Source)
   @IsOptional()
+  @ValidateNested({ each: true })
+  @Type(() => Option)
   sources?: Source[];
 }
 

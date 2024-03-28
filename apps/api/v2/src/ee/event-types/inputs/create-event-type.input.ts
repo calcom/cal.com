@@ -11,7 +11,7 @@ import {
   IsUrl,
 } from "class-validator";
 
-import { SchedulingType } from "@calcom/prisma/enums";
+import { SchedulingType } from "@calcom/platform-libraries";
 
 class EventTypeLocation {
   @IsString()

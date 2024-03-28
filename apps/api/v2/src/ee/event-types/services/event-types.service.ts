@@ -85,12 +85,18 @@ export class EventTypesService {
     const isOrgAdmin = organizationId
       ? await this.membershipsRepository.isUserOrganizationAdmin(user.id, organizationId)
       : false;
-    const profileId = user.movedToProfile?.id;
-    return { ...user, organization: { isOrgAdmin }, profile: { id: profileId } };
+    const profileId = user.movedToProfile?.id || null;
+    return {
+      id: user.id,
+      organizationId: user.organizationId,
+      organization: { isOrgAdmin },
+      profile: { id: profileId },
+      metadata: user.metadata,
+    };
   }
 
   async getUserToUpdateEvent(user: UserWithProfile) {
-    const profileId = user.movedToProfile?.id;
+    const profileId = user.movedToProfile?.id || null;
     const selectedCalendars = await this.selectedCalendarsRepository.getUserSelectedCalendars(user.id);
     return { ...user, profile: { id: profileId }, selectedCalendars };
   }
