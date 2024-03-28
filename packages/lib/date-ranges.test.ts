@@ -5,8 +5,7 @@ import dayjs from "@calcom/dayjs";
 import { buildDateRanges, processDateOverride, processWorkingHours, subtract } from "./date-ranges";
 
 describe("processWorkingHours", () => {
-  // TEMPORAIRLY SKIPPING THIS TEST - Started failing after 29th Oct
-  it.skip("should return the correct working hours given a specific availability, timezone, and date range", () => {
+  it("should return the correct working hours given a specific availability, timezone, and date range", () => {
     const item = {
       days: [1, 2, 3, 4, 5], // Monday to Friday
       startTime: new Date(Date.UTC(2023, 5, 12, 8, 0)), // 8 AM
@@ -14,20 +13,31 @@ describe("processWorkingHours", () => {
     };
 
     const timeZone = "America/New_York";
-    const dateFrom = dayjs.utc().startOf("day").day(2).add(1, "week");
-    const dateTo = dayjs.utc().endOf("day").day(3).add(1, "week");
-
+    const dateFrom = dayjs.utc().startOf("day").day(2).add(1, "week").tz(timeZone);
+    const dateTo = dayjs.utc().endOf("day").day(3).add(1, "week").tz(timeZone);
     const results = processWorkingHours({ item, timeZone, dateFrom, dateTo });
 
     expect(results.length).toBe(2); // There should be two working days between the range
     // "America/New_York" day shifts -1, so we need to add a day to correct this shift.
     expect(results[0]).toEqual({
-      start: dayjs(`${dateFrom.tz(timeZone).add(1, "day").format("YYYY-MM-DD")}T12:00:00Z`).tz(timeZone),
-      end: dayjs(`${dateFrom.tz(timeZone).add(1, "day").format("YYYY-MM-DD")}T21:00:00Z`).tz(timeZone),
+      start: dayjs
+        .tz(`${dateFrom.add(1, "day").format("YYYY-MM-DD")}T08:00`, timeZone) // Even though the result is correct by now, it will fail because of deep equal of two dayjs object.
+        .utc() // For example a dayjs 'instance1' not containing offset property entirely while another 'instance2' contains offset = 0. Even though computing both instances to utc will result in same time.
+        .tz(timeZone), // So we have to convert it to utc and then back to timezone to make sure both dayjs instances are created in the same manner
+      end: dayjs
+        .tz(`${dateFrom.add(1, "day").format("YYYY-MM-DD")}T17:00`, timeZone)
+        .utc()
+        .tz(timeZone),
     });
     expect(results[1]).toEqual({
-      start: dayjs(`${dateTo.tz(timeZone).format("YYYY-MM-DD")}T12:00:00Z`).tz(timeZone),
-      end: dayjs(`${dateTo.tz(timeZone).format("YYYY-MM-DD")}T21:00:00Z`).tz(timeZone),
+      start: dayjs
+        .tz(`${dateTo.format("YYYY-MM-DD")}T08:00`, timeZone)
+        .utc()
+        .tz(timeZone),
+      end: dayjs
+        .tz(`${dateTo.format("YYYY-MM-DD")}T17:00`, timeZone)
+        .utc()
+        .tz(timeZone),
     });
   });
   it("should have availability on last day of month in the month were DST starts", () => {
@@ -39,8 +49,8 @@ describe("processWorkingHours", () => {
 
     const timeZone = "Europe/London";
 
-    const dateFrom = dayjs().month(9).date(24); // starts before DST change
-    const dateTo = dayjs().startOf("day").month(10).date(1); // first day of November
+    const dateFrom = dayjs.utc().month(9).date(24).tz(timeZone); // starts before DST change
+    const dateTo = dayjs.utc().startOf("day").month(10).date(1).tz(timeZone); // first day of November
 
     const results = processWorkingHours({ item, timeZone, dateFrom, dateTo });
 
@@ -48,7 +58,28 @@ describe("processWorkingHours", () => {
 
     expect(lastAvailableSlot.start.date()).toBe(31);
   });
+  it("Correct working hours when dst changes in between start of working hour and end of working hour", () => {
+    const item = {
+      days: [0, 1, 2, 3, 4, 5, 6],
+      startTime: new Date(Date.UTC(2023, 5, 12, 0, 0)), // 0 AM
+      endTime: new Date(Date.UTC(2023, 5, 12, 2, 0)), // 2 PM
+    };
 
+    const timeZone = "Europe/London";
+
+    const dateFrom = dayjs.utc("2024-10-26T23:00:00.000Z").tz(timeZone); // 2024-10-27T00:00 in Europe/London
+    const dateTo = dayjs.utc("2024-10-27T23:59:00.000Z").tz(timeZone); // 2024-10-27T23:59 in Europe/London
+
+    const results = processWorkingHours({ item, timeZone, dateFrom, dateTo });
+
+    //UTC 2024-10-26T23:00:00.000Z - 2024-10-27T00:00:00+01:00 BST
+    //UTC 2024-10-27T00:00:00.000Z - 2024-10-27T01:00:00+01:00 BST
+    //UTC 2024-10-27T01:00:00.000Z - 2024-10-27T01:00:00+00:00 GMT
+    expect(results[0]).toEqual({
+      start: dayjs.utc("2024-10-26T23:00:00.000Z").tz(timeZone), // 2024-10-27T00:00 in Europe/London
+      end: dayjs.utc("2024-10-27T02:00:00.000Z").tz(timeZone), // 2024-10-27T02:00 in Europe/London
+    });
+  });
   it("It has the correct working hours on date of DST change (- tz)", () => {
     vi.useFakeTimers().setSystemTime(new Date("2023-11-05T13:26:14.000Z"));
 
@@ -60,8 +91,8 @@ describe("processWorkingHours", () => {
 
     const timeZone = "America/New_York";
 
-    const dateFrom = dayjs();
-    const dateTo = dayjs().endOf("month");
+    const dateFrom = dayjs.utc().tz(timeZone);
+    const dateTo = dayjs.utc().tz(timeZone).endOf("month");
 
     const results = processWorkingHours({ item, timeZone, dateFrom, dateTo });
 
@@ -148,8 +179,7 @@ describe("processWorkingHours", () => {
     vi.useRealTimers();
   });
 
-  // TEMPORAIRLY SKIPPING THIS TEST - Started failing after 29th Oct
-  it.skip("should return the correct working hours in the month were DST ends", () => {
+  it("should return the correct working hours in the month were DST ends", () => {
     const item = {
       days: [0, 1, 2, 3, 4, 5, 6], // Monday to Sunday
       startTime: new Date(Date.UTC(2023, 5, 12, 8, 0)), // 8 AM
@@ -159,13 +189,13 @@ describe("processWorkingHours", () => {
     // in America/New_York DST ends on first Sunday of November
     const timeZone = "America/New_York";
 
-    let firstSundayOfNovember = dayjs().startOf("day").month(10).date(1);
+    let firstSundayOfNovember = dayjs.utc().startOf("day").month(10).date(1);
     while (firstSundayOfNovember.day() !== 0) {
       firstSundayOfNovember = firstSundayOfNovember.add(1, "day");
     }
 
-    const dateFrom = dayjs().month(10).date(1).startOf("day");
-    const dateTo = dayjs().month(10).endOf("month");
+    const dateFrom = dayjs.utc().month(10).date(1).startOf("day").tz(timeZone);
+    const dateTo = dayjs.utc().month(10).endOf("month").tz(timeZone);
 
     const results = processWorkingHours({ item, timeZone, dateFrom, dateTo });
 
@@ -188,8 +218,8 @@ describe("processWorkingHours", () => {
     };
 
     const timeZone = "America/New_York";
-    const dateFrom = dayjs("2023-11-07T00:00:00Z").tz(timeZone); // 2023-11-07T00:00:00 (America/New_York)
-    const dateTo = dayjs("2023-11-08T00:00:00Z").tz(timeZone); // 2023-11-08T00:00:00 (America/New_York)
+    const dateFrom = dayjs.utc("2023-11-07T05:00:00.000Z").tz(timeZone); // 2023-11-07T00:00:00 (America/New_York)
+    const dateTo = dayjs.utc("2023-11-08T05:00:00.000Z").tz(timeZone); // 2023-11-08T00:00:00 (America/New_York)
 
     const results = processWorkingHours({ item, timeZone, dateFrom, dateTo });
 
@@ -204,8 +234,8 @@ describe("processWorkingHours", () => {
     };
 
     const timeZone = "America/New_York";
-    const dateFrom = dayjs("2023-11-07T00:00:00Z").tz(timeZone); // 2023-11-07T00:00:00 (America/New_York)
-    const dateTo = dayjs("2023-11-07T23:59:59Z").tz(timeZone); // 2023-11-07T23:59:59 (America/New_York)
+    const dateFrom = dayjs.utc("2023-11-07T05:00:00").tz(timeZone); // 2023-11-07T00:00:00 (America/New_York)
+    const dateTo = dayjs.utc("2023-11-08T04:59:59").tz(timeZone); // 2023-11-07T23:59:59 (America/New_York)
 
     const results = processWorkingHours({ item, timeZone, dateFrom, dateTo });
 

@@ -13,51 +13,54 @@ export type WorkingHours = Pick<Availability, "days" | "startTime" | "endTime">;
 export function processWorkingHours({
   item,
   timeZone,
-  dateFrom,
-  dateTo,
+  dateFrom /* Date in organizer tz*/,
+  dateTo /* Date in organizer tz*/,
 }: {
   item: WorkingHours;
   timeZone: string;
   dateFrom: Dayjs;
   dateTo: Dayjs;
 }) {
-  const utcDateTo = dateTo.utc();
   const results = [];
-  for (let date = dateFrom.startOf("day"); utcDateTo.isAfter(date); date = date.add(1, "day")) {
-    const fromOffset = dateFrom.startOf("day").utcOffset();
+
+  // Dayjs.startof() respects the DST changes & gives us the correct start of date, unlike Dayjs.add().
+  const startOfDateFrom = dateFrom.startOf("day").tz(timeZone);
+  const fromOffset = startOfDateFrom.utcOffset();
+
+  for (let date = startOfDateFrom; date.isBefore(dateTo); date = date.add(1, "day")) {
     const offset = date.tz(timeZone).utcOffset();
 
-    // it always has to be start of the day (midnight) even when DST changes
+    // It always has to be start of the day (midnight) even when DST changes
+    // When dst changes (can happen whenever we change time like add hours/minutes), the date utcOffset doesn't updates automatically. So we need to apply the tz again.
     const dateInTz = date.add(fromOffset - offset, "minutes").tz(timeZone);
-    if (!item.days.includes(dateInTz.day())) {
-      continue;
-    }
+    if (!item.days.includes(dateInTz.day())) continue;
 
     let start = dateInTz
       .add(item.startTime.getUTCHours(), "hours")
       .add(item.startTime.getUTCMinutes(), "minutes");
-
     let end = dateInTz.add(item.endTime.getUTCHours(), "hours").add(item.endTime.getUTCMinutes(), "minutes");
 
-    const offsetBeginningOfDay = dayjs(start.format("YYYY-MM-DD hh:mm")).tz(timeZone).utcOffset();
-    const offsetDiff = start.utcOffset() - offsetBeginningOfDay; // there will be 60 min offset on the day day of DST change
+    // If DST changes between start of day - start of availability, Add the required offset.
+    // there will be 60 min offset on the day of DST change
+    let offsetDiff = start.utcOffset() - start.tz(timeZone).utcOffset();
+    start = start.add(offsetDiff, "minute").tz(timeZone);
+    end = end.add(offsetDiff, "minute").tz(timeZone);
 
-    start = start.add(offsetDiff, "minute");
-    end = end.add(offsetDiff, "minute");
+    // If DST changes between start of availability - end of availability, Add the required offset.
+    offsetDiff = start.utcOffset() - end.utcOffset();
+    end = end.add(offsetDiff, "minute").tz(timeZone);
 
     const startResult = dayjs.max(start, dateFrom);
-    let endResult = dayjs.min(end, dateTo.tz(timeZone));
 
+    let endResult = dayjs.min(end, dateTo);
     // INFO: We only allow users to set availability up to 11:59PM which ends up not making them available
     // up to midnight.
     if (endResult.hour() === 23 && endResult.minute() === 59) {
       endResult = endResult.add(1, "minute");
     }
 
-    if (endResult.isBefore(startResult)) {
-      // if an event ends before start, it's not a result.
-      continue;
-    }
+    // if an event ends before start, it's not a result.
+    if (endResult.isBefore(startResult)) continue;
 
     results.push({
       start: startResult,
@@ -114,12 +117,14 @@ export function buildDateRanges({
   dateFrom: Dayjs;
   dateTo: Dayjs;
 }): DateRange[] {
+  // Caching the dateFrom in organizer tz here becauze Dayjs.tz fn is slow.
   const dateFromOrganizerTZ = dateFrom.tz(timeZone);
+  const dateToOrganizerTZ = dateTo.tz(timeZone);
   const groupedWorkingHours = groupByDate(
     availability.reduce((processed: DateRange[], item) => {
       if ("days" in item) {
         processed = processed.concat(
-          processWorkingHours({ item, timeZone, dateFrom: dateFromOrganizerTZ, dateTo })
+          processWorkingHours({ item, timeZone, dateFrom: dateFromOrganizerTZ, dateTo: dateToOrganizerTZ })
         );
       }
       return processed;
