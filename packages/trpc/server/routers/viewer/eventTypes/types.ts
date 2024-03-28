@@ -10,12 +10,12 @@ export const EventTypeUpdateInput = _EventTypeModel
     isInstantEvent: z.boolean().optional(),
     aiPhoneCallConfig: z
       .object({
-        generalPrompt: z.string().optional(),
+        generalPrompt: z.string(),
         enabled: z.boolean(),
         beginMessage: z.string().nullable(),
-        yourPhoneNumber: z.string().optional(),
-        numberToCall: z.string().optional(),
-        guestName: z.string().optional(),
+        yourPhoneNumber: z.string().default(""),
+        numberToCall: z.string().default(""),
+        guestName: z.string().default(""),
       })
       .optional(),
     calAiPhoneScript: z.string().optional(),

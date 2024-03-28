@@ -354,7 +354,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     }
   }
 
-  console.log("aiPhoneCallConfig", aiPhoneCallConfig, eventType.aiPhoneCallConfig);
   if (aiPhoneCallConfig) {
     if (aiPhoneCallConfig.enabled) {
       await ctx.prisma.aIPhoneCallConfiguration.upsert({
