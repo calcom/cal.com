@@ -365,14 +365,11 @@ test.describe("Organization", () => {
 
     await test.step("Move existing teams to org", async () => {
       // No easy way to get all team checkboxes so we fill all checkboxes on the page in
-      const foundCheckboxes = await page.locator('input[type="checkbox"]').all();
-      for (const locator of foundCheckboxes) {
-        await locator.check();
-      }
-      // Update slugs of existing teams
-      for (const id of [0, 1, 2]) {
-        const locator = page.locator(`input[name="moveTeams.${id}.newSlug"]`);
-        await locator.fill(`migratedTeam-${id}`);
+      const foundCheckboxes = await page.locator('input[type="checkbox"]');
+      const count = await foundCheckboxes.count();
+      for (const i = 0; i < count; i++) {
+        const checkbox = foundCheckboxes.nth(i);
+        await checkbox.click();
       }
     });
 
