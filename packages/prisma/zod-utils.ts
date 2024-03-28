@@ -702,4 +702,5 @@ export const AIPhoneSettingSchema = z.object({
   }),
   beginMessage: z.string().nullable(),
   eventTypeId: z.number(),
+  calApiKey: z.string(),
 });

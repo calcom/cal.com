@@ -587,7 +587,6 @@ const EventTypePage = (props: EventTypeSetupProps) => {
     }, {});
 
     if (dirtyFieldExists) {
-      console.log("filteredPayload", filteredPayload);
       updateMutation.mutate({ ...filteredPayload, id: eventType.id });
     }
   };

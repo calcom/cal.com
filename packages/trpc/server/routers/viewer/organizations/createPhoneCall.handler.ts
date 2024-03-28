@@ -60,7 +60,8 @@ const createPhoneCallHandler = async ({ input, ctx }: CreatePhoneCallProps) => {
     identifier: `createPhoneCall:${ctx.user.id}`,
   });
 
-  const { yourPhoneNumber, numberToCall, guestName, eventTypeId, beginMessage, generalPrompt } = input;
+  const { yourPhoneNumber, numberToCall, guestName, eventTypeId, beginMessage, generalPrompt, calApiKey } =
+    input;
 
   const aiPhoneCallConfig = await ctx.prisma.aIPhoneCallConfiguration.upsert({
     where: {
@@ -102,16 +103,14 @@ const createPhoneCallHandler = async ({ input, ctx }: CreatePhoneCallProps) => {
           {
             type: "check_availability_cal",
             name: "check_availability",
-            // TODO: CAL API KEY Environment Var
-            // cal_api_key: ,
+            cal_api_key: calApiKey,
             event_type_id: eventTypeId,
             timezone: ctx.user.timeZone,
           },
           {
             type: "book_appointment_cal",
             name: "book_appointment",
-            // TODO: CAL API KEY Environment Var
-            // cal_api_key: ,
+            cal_api_key: calApiKey,
             event_type_id: eventTypeId,
             timezone: ctx.user.timeZone,
           },

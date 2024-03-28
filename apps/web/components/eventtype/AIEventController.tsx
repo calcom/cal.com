@@ -90,6 +90,7 @@ const AISettings = ({ eventType }: { eventType: EventTypeSetup }) => {
   const { t } = useLocale();
 
   const formMethods = useFormContext<FormValues>();
+  const [calApiKey, setCalApiKey] = useState();
 
   const createCallMutation = trpc.viewer.organizations.createPhoneCall.useMutation({
     onSuccess: (data) => {
@@ -128,6 +129,7 @@ const AISettings = ({ eventType }: { eventType: EventTypeSetup }) => {
       const data = await AIPhoneSettingSchema.parseAsync({
         ...values,
         eventTypeId: eventType.id,
+        calApiKey,
       });
 
       createCallMutation.mutate(data);
@@ -193,6 +195,18 @@ const AISettings = ({ eventType }: { eventType: EventTypeSetup }) => {
           label={t("guest_name")}
           placeholder="Jane Doe"
           {...formMethods.register("aiPhoneCallConfig.guestName")}
+        />
+
+        <TextField
+          type="text"
+          hint="For eg:- cal_live_0123.."
+          label={t("provide_api_key")}
+          name="calApiKey"
+          placeholder="Cal API Key"
+          value={calApiKey}
+          onChange={(e) => {
+            setCalApiKey(e.target.value);
+          }}
         />
 
         <Divider />
