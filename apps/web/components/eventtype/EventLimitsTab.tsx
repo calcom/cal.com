@@ -3,7 +3,7 @@ import * as RadioGroup from "@radix-ui/react-radio-group";
 import type { EventTypeSetupProps } from "pages/event-types/[type]";
 import type { Key } from "react";
 import React, { useEffect, useState } from "react";
-import type { UseFormRegisterReturn } from "react-hook-form";
+import type { UseFormRegisterReturn, useForm } from "react-hook-form";
 import { Controller, useFormContext } from "react-hook-form";
 import type { SingleValue } from "react-select";
 
@@ -110,25 +110,318 @@ export const MinimumBookingNoticeInput = React.forwardRef<
   );
 });
 
-export const PERIOD_TYPES = [
-  {
-    type: "ROLLING" as const,
-    suffix: "into_the_future",
-  },
-  {
-    type: "RANGE" as const,
-    prefix: "within_date_range",
-  },
-  {
-    type: "UNLIMITED" as const,
-    prefix: "indefinitely_into_future",
-  },
-];
+type ShouldLockDisableProps = {
+  disabled: boolean;
+  LockedIcon: React.ReactNode;
+  isLocked: boolean;
+};
 
-export const optionsPeriod = [
-  { value: 0, label: "business_days" },
-  { value: 1, label: "calendar_days" },
-];
+type BookingLimitsProps = {
+  formMethods: ReturnType<typeof useForm>;
+  bookingLimitsLocked?: ShouldLockDisableProps;
+  childrenContainerClassName?: string;
+};
+export const BookingLimits = ({
+  formMethods,
+  bookingLimitsLocked = {},
+  childrenContainerClassName = "",
+}): BookingLimitsProps => {
+  const { t } = useLocale();
+  return (
+    <Controller
+      name="bookingLimits"
+      render={({ field: { value } }) => {
+        const isChecked = Object.keys(value ?? {}).length > 0;
+        return (
+          <SettingsToggle
+            toggleSwitchAtTheEnd={true}
+            labelClassName="text-sm"
+            title={t("limit_booking_frequency")}
+            {...bookingLimitsLocked}
+            description={t("limit_booking_frequency_description")}
+            checked={isChecked}
+            onCheckedChange={(active) => {
+              if (active) {
+                formMethods.setValue(
+                  "bookingLimits",
+                  {
+                    PER_DAY: 1,
+                  },
+                  { shouldDirty: true }
+                );
+              } else {
+                formMethods.setValue("bookingLimits", {}, { shouldDirty: true });
+              }
+            }}
+            switchContainerClassName={classNames(
+              "border-subtle mt-6 rounded-lg border py-6 px-4 sm:px-6",
+              isChecked && "rounded-b-none"
+            )}
+            childrenClassName="lg:ml-0">
+            <div
+              className={classNames(
+                "border-subtle rounded-b-lg border border-t-0 p-6",
+                childrenContainerClassName
+              )}>
+              <IntervalLimitsManager
+                disabled={!!bookingLimitsLocked?.disabled}
+                propertyName="bookingLimits"
+                defaultLimit={1}
+                step={1}
+              />
+            </div>
+          </SettingsToggle>
+        );
+      }}
+    />
+  );
+};
+
+type FutureBookingLimitsProps = {
+  formMethods: ReturnType<typeof useForm>;
+  periodTypeLocked?: ShouldLockDisableProps;
+  childrenContainerClassName?: string;
+  children?: React.ReactNode;
+};
+export const FutureBookingLimits = ({
+  formMethods,
+  periodTypeLocked = {},
+  childrenContainerClassName = "",
+  children,
+}): FutureBookingLimitsProps => {
+  const { t } = useLocale();
+  const watchPeriodType = formMethods.watch("periodType");
+
+  const PERIOD_TYPES = [
+    {
+      type: "ROLLING" as const,
+      suffix: t("into_the_future"),
+    },
+    {
+      type: "RANGE" as const,
+      prefix: t("within_date_range"),
+    },
+    {
+      type: "UNLIMITED" as const,
+      prefix: t("indefinitely_into_future"),
+    },
+  ];
+
+  const optionsPeriod = [
+    { value: 0, label: t("business_days") },
+    { value: 1, label: t("calendar_days") },
+  ];
+
+  return (
+    <Controller
+      name="periodType"
+      render={({ field: { onChange, value } }) => {
+        const isChecked = value && value !== "UNLIMITED";
+
+        return (
+          <SettingsToggle
+            labelClassName="text-sm"
+            toggleSwitchAtTheEnd={true}
+            switchContainerClassName={classNames(
+              "border-subtle mt-6 rounded-lg border py-6 px-4 sm:px-6",
+              isChecked && "rounded-b-none"
+            )}
+            childrenClassName="lg:ml-0"
+            title={t("limit_future_bookings")}
+            description={t("limit_future_bookings_description")}
+            {...periodTypeLocked}
+            checked={isChecked}
+            onCheckedChange={(bool) => {
+              if (bool && !formMethods.getValues("periodDays")) {
+                formMethods.setValue("periodDays", 30, { shouldDirty: true });
+              }
+              return onChange(bool ? "ROLLING" : "UNLIMITED");
+            }}>
+            <div
+              className={classNames(
+                "border-subtle rounded-b-lg border border-t-0 p-6",
+                childrenContainerClassName
+              )}>
+              <RadioGroup.Root
+                value={watchPeriodType}
+                onValueChange={(val) =>
+                  formMethods.setValue("periodType", val as PeriodType, { shouldDirty: true })
+                }>
+                {PERIOD_TYPES.filter((opt) =>
+                  !!periodTypeLocked?.disabled ? watchPeriodType === opt.type : true
+                ).map((period) => {
+                  if (period.type === "UNLIMITED") return null;
+                  return (
+                    <div
+                      className={classNames(
+                        "text-default mb-2 flex flex-wrap items-center text-sm",
+                        watchPeriodType === "UNLIMITED" && "pointer-events-none opacity-30"
+                      )}
+                      key={period.type}>
+                      {!periodTypeLocked?.disabled && (
+                        <RadioGroup.Item
+                          id={period.type}
+                          value={period.type}
+                          className="min-w-4 bg-default border-default flex h-4 w-4 cursor-pointer items-center rounded-full border focus:border-2 focus:outline-none ltr:mr-2 rtl:ml-2">
+                          <RadioGroup.Indicator className="after:bg-inverted relative flex h-4 w-4 items-center justify-center after:block after:h-2 after:w-2 after:rounded-full" />
+                        </RadioGroup.Item>
+                      )}
+
+                      {period.prefix ? <span>{period.prefix}&nbsp;</span> : null}
+                      {period.type === "ROLLING" && (
+                        <div className="flex items-center">
+                          <TextField
+                            labelSrOnly
+                            type="number"
+                            className="border-default my-0 block w-16 text-sm [appearance:textfield] ltr:mr-2 rtl:ml-2"
+                            placeholder="30"
+                            disabled={periodTypeLocked.disabled}
+                            {...formMethods.register("periodDays", { valueAsNumber: true })}
+                          />
+                          <Select
+                            options={optionsPeriod}
+                            isSearchable={false}
+                            isDisabled={!!periodTypeLocked?.disabled}
+                            onChange={(opt) => {
+                              formMethods.setValue(
+                                "periodCountCalendarDays",
+                                opt?.value === 1 ? true : false,
+                                { shouldDirty: true }
+                              );
+                            }}
+                            name="periodCoundCalendarDays"
+                            value={optionsPeriod.find((opt) => {
+                              opt.value ===
+                                (formMethods.getValues("periodCountCalendarDays") === true ? 1 : 0);
+                            })}
+                            defaultValue={optionsPeriod.find(
+                              (opt) =>
+                                opt.value ===
+                                (formMethods.getValues("periodCountCalendarDays") === true ? 1 : 0)
+                            )}
+                          />
+                        </div>
+                      )}
+                      {period.type === "RANGE" && (
+                        <div className="me-2 ms-2 inline-flex space-x-2 rtl:space-x-reverse">
+                          <Controller
+                            name="periodDates"
+                            render={({ field: { onChange } }) => (
+                              <DateRangePicker
+                                startDate={formMethods.getValues("periodDates").startDate}
+                                endDate={formMethods.getValues("periodDates").endDate}
+                                disabled={!!periodTypeLocked?.disabled}
+                                onDatesChange={({ startDate, endDate }) => {
+                                  onChange({
+                                    startDate,
+                                    endDate,
+                                  });
+                                }}
+                              />
+                            )}
+                          />
+                        </div>
+                      )}
+                      {period.suffix ? <span className="me-2 ms-2">&nbsp;{period.suffix}</span> : null}
+                    </div>
+                  );
+                })}
+              </RadioGroup.Root>
+              {children}
+            </div>
+          </SettingsToggle>
+        );
+      }}
+    />
+  );
+};
+
+type BufferBeforeAndAfterProps = {
+  beforeBufferTimeLockIndicator?: React.ReactNode;
+  beforeBufferTimeDisabled?: boolean;
+  afterBufferTimeLockIndicator?: React.ReactNode;
+  afterBufferTimeDisabled?: boolean;
+};
+export const BufferBeforeAndAfter = ({
+  beforeBufferTimeLockIndicator,
+  beforeBufferTimeDisabled = false,
+  afterBufferTimeLockIndicator,
+  afterBufferTimeDisabled = false,
+}): BufferBeforeAndAfterProps => {
+  const { t } = useLocale();
+  return (
+    <div className="flex flex-col space-y-4 lg:flex-row lg:space-x-4 lg:space-y-0">
+      <div className="w-full">
+        <Label htmlFor="beforeBufferTime">
+          {t("before_event")}
+          {beforeBufferTimeLockIndicator}
+        </Label>
+        <Controller
+          name="beforeEventBuffer"
+          render={({ field: { onChange, value } }) => {
+            const beforeBufferOptions = [
+              {
+                label: t("event_buffer_default"),
+                value: 0,
+              },
+              ...[5, 10, 15, 20, 30, 45, 60, 90, 120].map((minutes) => ({
+                label: `${minutes} ${t("minutes")}`,
+                value: minutes,
+              })),
+            ];
+            return (
+              <Select
+                isSearchable={false}
+                onChange={(val) => {
+                  if (val) onChange(val.value);
+                }}
+                isDisabled={beforeBufferTimeDisabled}
+                defaultValue={
+                  beforeBufferOptions.find((option) => option.value === value) || beforeBufferOptions[0]
+                }
+                options={beforeBufferOptions}
+              />
+            );
+          }}
+        />
+      </div>
+      <div className="w-full">
+        <Label htmlFor="afterBufferTime">
+          {t("after_event")}
+          {afterBufferTimeLockIndicator}
+        </Label>
+        <Controller
+          name="afterEventBuffer"
+          render={({ field: { onChange, value } }) => {
+            const afterBufferOptions = [
+              {
+                label: t("event_buffer_default"),
+                value: 0,
+              },
+              ...[5, 10, 15, 20, 30, 45, 60, 90, 120].map((minutes) => ({
+                label: `${minutes} ${t("minutes")}`,
+                value: minutes,
+              })),
+            ];
+            return (
+              <Select
+                isSearchable={false}
+                onChange={(val) => {
+                  if (val) onChange(val.value);
+                }}
+                isDisabled={afterBufferTimeDisabled}
+                defaultValue={
+                  afterBufferOptions.find((option) => option.value === value) || afterBufferOptions[0]
+                }
+                options={afterBufferOptions}
+              />
+            );
+          }}
+        />
+      </div>
+    </div>
+  );
+};
 
 export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventType">) => {
   const { t, i18n } = useLocale();
@@ -159,76 +452,12 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
   return (
     <div>
       <div className="border-subtle space-y-6 rounded-lg border p-6">
-        <div className="flex flex-col space-y-4 lg:flex-row lg:space-x-4 lg:space-y-0">
-          <div className="w-full">
-            <Label htmlFor="beforeBufferTime">
-              {t("before_event")}
-              {shouldLockIndicator("beforeBufferTime")}
-            </Label>
-            <Controller
-              name="beforeEventBuffer"
-              render={({ field: { onChange, value } }) => {
-                const beforeBufferOptions = [
-                  {
-                    label: t("event_buffer_default"),
-                    value: 0,
-                  },
-                  ...[5, 10, 15, 20, 30, 45, 60, 90, 120].map((minutes) => ({
-                    label: `${minutes} ${t("minutes")}`,
-                    value: minutes,
-                  })),
-                ];
-                return (
-                  <Select
-                    isSearchable={false}
-                    onChange={(val) => {
-                      if (val) onChange(val.value);
-                    }}
-                    isDisabled={shouldLockDisableProps("beforeBufferTime").disabled}
-                    defaultValue={
-                      beforeBufferOptions.find((option) => option.value === value) || beforeBufferOptions[0]
-                    }
-                    options={beforeBufferOptions}
-                  />
-                );
-              }}
-            />
-          </div>
-          <div className="w-full">
-            <Label htmlFor="afterBufferTime">
-              {t("after_event")}
-              {shouldLockIndicator("afterBufferTime")}
-            </Label>
-            <Controller
-              name="afterEventBuffer"
-              render={({ field: { onChange, value } }) => {
-                const afterBufferOptions = [
-                  {
-                    label: t("event_buffer_default"),
-                    value: 0,
-                  },
-                  ...[5, 10, 15, 20, 30, 45, 60, 90, 120].map((minutes) => ({
-                    label: `${minutes} ${t("minutes")}`,
-                    value: minutes,
-                  })),
-                ];
-                return (
-                  <Select
-                    isSearchable={false}
-                    onChange={(val) => {
-                      if (val) onChange(val.value);
-                    }}
-                    isDisabled={shouldLockDisableProps("afterBufferTime").disabled}
-                    defaultValue={
-                      afterBufferOptions.find((option) => option.value === value) || afterBufferOptions[0]
-                    }
-                    options={afterBufferOptions}
-                  />
-                );
-              }}
-            />
-          </div>
-        </div>
+        <BufferBeforeAndAfter
+          beforeBufferTimeLockIndicator={shouldLockIndicator("beforeBufferTime")}
+          beforeBufferTimeDisabled={shouldLockDisableProps("beforeBufferTime").disabled}
+          afterBufferTimeLockIndicator={shouldLockIndicator("afterBufferTime")}
+          afterBufferTimeDisabled={shouldLockDisableProps("afterBufferTime").disabled}
+        />
         <div className="flex flex-col space-y-4 lg:flex-row lg:space-x-4 lg:space-y-0">
           <div className="w-full">
             <Label htmlFor="minimumBookingNotice">
@@ -280,48 +509,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
           </div>
         </div>
       </div>
-      <Controller
-        name="bookingLimits"
-        render={({ field: { value } }) => {
-          const isChecked = Object.keys(value ?? {}).length > 0;
-          return (
-            <SettingsToggle
-              toggleSwitchAtTheEnd={true}
-              labelClassName="text-sm"
-              title={t("limit_booking_frequency")}
-              {...bookingLimitsLocked}
-              description={t("limit_booking_frequency_description")}
-              checked={isChecked}
-              onCheckedChange={(active) => {
-                if (active) {
-                  formMethods.setValue(
-                    "bookingLimits",
-                    {
-                      PER_DAY: 1,
-                    },
-                    { shouldDirty: true }
-                  );
-                } else {
-                  formMethods.setValue("bookingLimits", {}, { shouldDirty: true });
-                }
-              }}
-              switchContainerClassName={classNames(
-                "border-subtle mt-6 rounded-lg border py-6 px-4 sm:px-6",
-                isChecked && "rounded-b-none"
-              )}
-              childrenClassName="lg:ml-0">
-              <div className="border-subtle rounded-b-lg border border-t-0 p-6">
-                <IntervalLimitsManager
-                  disabled={bookingLimitsLocked.disabled}
-                  propertyName="bookingLimits"
-                  defaultLimit={1}
-                  step={1}
-                />
-              </div>
-            </SettingsToggle>
-          );
-        }}
-      />
+      <BookingLimits formMethods={formMethods} bookingLimitsLocked={bookingLimitsLocked} />
       <Controller
         name="onlyShowFirstAvailableSlot"
         render={({ field: { onChange, value } }) => {
@@ -384,121 +572,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
           );
         }}
       />
-      <Controller
-        name="periodType"
-        render={({ field: { onChange, value } }) => {
-          const isChecked = value && value !== "UNLIMITED";
-
-          return (
-            <SettingsToggle
-              labelClassName="text-sm"
-              toggleSwitchAtTheEnd={true}
-              switchContainerClassName={classNames(
-                "border-subtle mt-6 rounded-lg border py-6 px-4 sm:px-6",
-                isChecked && "rounded-b-none"
-              )}
-              childrenClassName="lg:ml-0"
-              title={t("limit_future_bookings")}
-              description={t("limit_future_bookings_description")}
-              {...periodTypeLocked}
-              checked={isChecked}
-              onCheckedChange={(bool) => {
-                if (bool && !formMethods.getValues("periodDays")) {
-                  formMethods.setValue("periodDays", 30, { shouldDirty: true });
-                }
-                return onChange(bool ? "ROLLING" : "UNLIMITED");
-              }}>
-              <div className="border-subtle rounded-b-lg border border-t-0 p-6">
-                <RadioGroup.Root
-                  value={watchPeriodType}
-                  onValueChange={(val) =>
-                    formMethods.setValue("periodType", val as PeriodType, { shouldDirty: true })
-                  }>
-                  {PERIOD_TYPES.filter((opt) =>
-                    periodTypeLocked.disabled ? watchPeriodType === opt.type : true
-                  ).map((period) => {
-                    if (period.type === "UNLIMITED") return null;
-                    return (
-                      <div
-                        className={classNames(
-                          "text-default mb-2 flex flex-wrap items-center text-sm",
-                          watchPeriodType === "UNLIMITED" && "pointer-events-none opacity-30"
-                        )}
-                        key={period.type}>
-                        {!periodTypeLocked.disabled && (
-                          <RadioGroup.Item
-                            id={period.type}
-                            value={period.type}
-                            className="min-w-4 bg-default border-default flex h-4 w-4 cursor-pointer items-center rounded-full border focus:border-2 focus:outline-none ltr:mr-2 rtl:ml-2">
-                            <RadioGroup.Indicator className="after:bg-inverted relative flex h-4 w-4 items-center justify-center after:block after:h-2 after:w-2 after:rounded-full" />
-                          </RadioGroup.Item>
-                        )}
-
-                        {period.prefix ? <span>{t(period.prefix)}&nbsp;</span> : null}
-                        {period.type === "ROLLING" && (
-                          <div className="flex items-center">
-                            <TextField
-                              labelSrOnly
-                              type="number"
-                              className="border-default my-0 block w-16 text-sm [appearance:textfield] ltr:mr-2 rtl:ml-2"
-                              placeholder="30"
-                              disabled={periodTypeLocked.disabled}
-                              {...formMethods.register("periodDays", { valueAsNumber: true })}
-                            />
-                            <Select
-                              options={optionsPeriod.map((option) => ({ ...option, label: t(option.label) }))}
-                              isSearchable={false}
-                              isDisabled={periodTypeLocked.disabled}
-                              onChange={(opt) => {
-                                formMethods.setValue(
-                                  "periodCountCalendarDays",
-                                  opt?.value === 1 ? true : false,
-                                  { shouldDirty: true }
-                                );
-                              }}
-                              name="periodCoundCalendarDays"
-                              value={optionsPeriod.find((opt) => {
-                                opt.value ===
-                                  (formMethods.getValues("periodCountCalendarDays") === true ? 1 : 0);
-                              })}
-                              defaultValue={optionsPeriod.find(
-                                (opt) =>
-                                  opt.value ===
-                                  (formMethods.getValues("periodCountCalendarDays") === true ? 1 : 0)
-                              )}
-                            />
-                          </div>
-                        )}
-                        {period.type === "RANGE" && (
-                          <div className="me-2 ms-2 inline-flex space-x-2 rtl:space-x-reverse">
-                            <Controller
-                              name="periodDates"
-                              render={({ field: { onChange } }) => (
-                                <DateRangePicker
-                                  startDate={formMethods.getValues("periodDates").startDate}
-                                  endDate={formMethods.getValues("periodDates").endDate}
-                                  disabled={periodTypeLocked.disabled}
-                                  onDatesChange={({ startDate, endDate }) => {
-                                    onChange({
-                                      startDate,
-                                      endDate,
-                                    });
-                                  }}
-                                />
-                              )}
-                            />
-                          </div>
-                        )}
-                        {period.suffix ? <span className="me-2 ms-2">&nbsp;{t(period.suffix)}</span> : null}
-                      </div>
-                    );
-                  })}
-                </RadioGroup.Root>
-              </div>
-            </SettingsToggle>
-          );
-        }}
-      />
+      <FutureBookingLimits formMethods={formMethods} periodTypeLocked={periodTypeLocked} />
       <SettingsToggle
         labelClassName="text-sm"
         toggleSwitchAtTheEnd={true}
@@ -616,7 +690,7 @@ type IntervalLimitsManagerProps<K extends "durationLimits" | "bookingLimits"> = 
   disabled?: boolean;
 };
 
-export const IntervalLimitsManager = <K extends "durationLimits" | "bookingLimits">({
+const IntervalLimitsManager = <K extends "durationLimits" | "bookingLimits">({
   propertyName,
   defaultLimit,
   step,
