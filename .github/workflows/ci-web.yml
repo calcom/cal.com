@@ -1,0 +1,68 @@
+name: "Continuos Integration - Web"
+
+on:
+  pull_request:
+    branches:
+      - "funnelhub"
+    paths:
+      - "apps/web/**"
+  workflow_dispatch:
+
+env:
+  NODE_OPTIONS: --max-old-space-size=4096
+
+jobs:
+  continuous-integration:
+    name: Checkout, lint, test and build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout files
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            apps/web
+            .yarn/
+            packages
+      - name: Set up Node.js enviroment
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+
+      - uses: actions/cache@v3
+        id: yarn-cache
+        with:
+          path: .yarn/cache
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+
+      - name: Install dependencies
+        shell: bash
+        run: |
+          yarn install --inline-builds
+          yarn prisma generate
+        env:
+          YARN_ENABLE_IMMUTABLE_INSTALLS: "false"
+          YARN_ENABLE_GLOBAL_CACHE: "false"
+          YARN_INSTALL_STATE_PATH: .yarn/ci-cache/install-state.gz
+          YARN_NM_MODE: "hardlinks-local"
+          HUSKY: "0"
+
+      - name: Lint
+        run: yarn lint --scope=web
+
+      - name: Cache build
+        id: cache-build
+        uses: actions/cache@v4
+        env:
+          cache-name: cache-build
+        with:
+          path: |
+            ${{ github.workspace }}/.turbo
+          key: ${{ runner.os }}-web-${{ env.cache-name }}-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-web-${{ env.cache-name }}-
+
+      - name: Build project
+        run: SKIP_ENV_CHECK=true yarn turbo run build --cache-dir=.turbo --filter=web

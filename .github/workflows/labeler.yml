@@ -1,9 +1,7 @@
 name: "Pull Request Labeler"
-on:
-  pull_request_target:
-  workflow_dispatch:
+on: workflow_dispatch
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 jobs:
   labeler:

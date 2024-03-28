@@ -235,6 +235,7 @@ export const buildUser = <T extends Partial<UserPayload>>(user?: T): UserPayload
     organizationId: null,
     allowSEOIndexing: null,
     receiveMonthlyDigestEmail: null,
+    funnelHubUserId: "0",
     ...user,
   };
 };

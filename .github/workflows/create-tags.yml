@@ -1,0 +1,27 @@
+name: Create Tags
+
+on:
+  push:
+    branches:
+      - funnelhub
+    paths:
+      - apps/web/**
+
+jobs:
+  create-tag:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        app: ['web']
+    env:
+      GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: 'Create ${{ matrix.app }} tag'
+        id: 'main'
+        uses: butlerlogic/action-autotag@1.1.2
+        with:
+          strategy: package
+          root: /apps/${{ matrix.app }}
+          tag_prefix: '${{ matrix.app }}-v'

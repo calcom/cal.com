@@ -328,10 +328,6 @@ export function createBookingPageFixture(page: Page) {
       await eventTypePage.getByTestId("confirm_cancel").click();
       await expect(eventTypePage.getByTestId("cancelled-headline")).toBeVisible();
     },
-    confirmBooking: async (eventTypePage: Page) => {
-      await eventTypePage.getByTestId("confirm-book-button").click();
-      await eventTypePage.waitForURL("booking/**");
-    },
 
     confirmBooking: async (eventTypePage: Page) => {
       const confirmButton = "confirm-book-button";
