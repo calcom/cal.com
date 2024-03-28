@@ -148,6 +148,7 @@
   "2fa_confirm_current_password": "Bekreft ditt nåværende passord for å komme i gang.",
   "2fa_scan_image_or_use_code": "Skann bildet nedenfor med autentiseringsappen på telefonen eller skriv inn tekstkoden manuelt i stedet.",
   "text": "Tekst",
+  "your_phone_number": "Ditt Telefonnummer",
   "multiline_text": "Flerlinjetekst",
   "number": "Tall",
   "checkbox": "Avmerkingsboks",

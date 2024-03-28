@@ -34,6 +34,11 @@ import { EventTypeSingleLayout } from "@components/eventtype/EventTypeSingleLayo
 
 import { type PageProps } from "~/event-types/views/event-types-single-view.getServerSideProps";
 
+const DEFAULT_PROMPT_VALUE =
+  "## You are helping user set up a call with the support team. The appointment is 15 min long. You are a pleasant and friendly.\n\n## Style Guardrails\nBe Concise: Respond succinctly, addressing one topic at most.\nEmbrace Variety: Use diverse language and rephrasing to enhance clarity without repeating content.\nBe Conversational: Use everyday language, making the chat feel like talking to a friend.\nBe Proactive: Lead the conversation, often wrapping up with a question or next-step suggestion.\nAvoid multiple questions in a single response.\nGet clarity: If the user only partially answers a question, or if the answer is unclear, keep asking to get clarity.\nUse a colloquial way of referring to the date (like Friday, Jan 14th, or Tuesday, Jan 12th, 2024 at 8am).\nIf you are saying a time like 8:00 AM, just say 8 AM and emit the trailing zeros.\n\n## Response Guideline\nAdapt and Guess: Try to understand transcripts that may contain transcription errors. Avoid mentioning \"transcription error\" in the response.\nStay in Character: Keep conversations within your role'''s scope, guiding them back creatively without repeating.\nEnsure Fluid Dialogue: Respond in a role-appropriate, direct manner to maintain a smooth conversation flow.\n\n## Schedule Rule\nCurrent time is {{current_time}}. You only schedule time in current calendar year, you cannot schedule time that'''s in the past.\n\n## Task Steps\n1. I am here to learn more about your issue and help schedule an appointment with our support team.\n2. Ask for user name and email. Confirm the name and email with user by reading it back to user.\n3. Ask user for \"When would you want to meet with one of our representive\".\n4. Call function check_availability to check for availability in the user provided time range.\n  - if availability exists, inform user about the availability range (do not repeat the detailed available slot) and ask user to choose from it. Make sure user chose a slot within detailed available slot.\n  - if availability does not exist, ask user to select another time range for the appointment, repeat this step 3.\n4. Confirm the date and time selected by user: \"Just to confirm, you want to book the appointment at ...\".\n6. Once confirmed, call function book_appointment to book the appointment.\n  - if booking returned booking detail, it means booking is successful, proceed to step 7.\n  - if booking returned error message, let user know why the booking was not successful, and maybe start over with step 3.\n7. Inform the user booking is successful, and ask if user have any questions. Answer them if there are any.\n8. After all questions answered, call function end_call to hang up.";
+
+const DEFAULT_BEGIN_MESSAGE = "Hi. How are you doing?";
+
 // These can't really be moved into calcom/ui due to the fact they use infered getserverside props typings;
 const EventSetupTab = dynamic(() =>
   import("@components/eventtype/EventSetupTab").then((mod) => mod.EventSetupTab)
@@ -73,6 +78,8 @@ const EventWebhooksTab = dynamic(() =>
   import("@components/eventtype/EventWebhooksTab").then((mod) => mod.EventWebhooksTab)
 );
 
+const EventAITab = dynamic(() => import("@components/eventtype/EventAITab").then((mod) => mod.EventAITab));
+
 const ManagedEventTypeDialog = dynamic(() => import("@components/eventtype/ManagedEventDialog"));
 
 export type Host = { isFixed: boolean; userId: number; priority: number };
@@ -92,6 +99,7 @@ const querySchema = z.object({
       "advanced",
       "workflows",
       "webhooks",
+      "ai",
     ])
     .optional()
     .default("setup"),
@@ -243,6 +251,14 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       })),
       seatsPerTimeSlotEnabled: eventType.seatsPerTimeSlot,
       assignAllTeamMembers: eventType.assignAllTeamMembers,
+      aiPhoneCallConfig: {
+        generalPrompt: eventType.aiPhoneCallConfig?.generalPrompt ?? DEFAULT_PROMPT_VALUE,
+        enabled: eventType.aiPhoneCallConfig?.enabled,
+        beginMessage: eventType.aiPhoneCallConfig?.beginMessage ?? DEFAULT_BEGIN_MESSAGE,
+        guestName: eventType.aiPhoneCallConfig?.guestName,
+        yourPhoneNumber: eventType.aiPhoneCallConfig?.yourPhoneNumber,
+        numberToCall: eventType.aiPhoneCallConfig?.numberToCall,
+      },
     };
   }, [eventType, periodDates, metadata]);
   const formMethods = useForm<FormValues>({
@@ -375,6 +391,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       />
     ),
     webhooks: <EventWebhooksTab eventType={eventType} />,
+    ai: <EventAITab eventType={eventType} isTeamEvent={!!team} />,
   } as const;
   const isObject = <T,>(value: T): boolean => {
     return value !== null && typeof value === "object" && !Array.isArray(value);

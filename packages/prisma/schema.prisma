@@ -76,7 +76,7 @@ model EventType {
   profileId Int?
   profile   Profile? @relation(fields: [profileId], references: [id], onDelete: Cascade)
 
-  team                                 Team?                   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  team                                 Team?                     @relation(fields: [teamId], references: [id], onDelete: Cascade)
   teamId                               Int?
   hashedLink                           HashedLink?
   bookings                             Booking[]
@@ -86,40 +86,40 @@ model EventType {
   eventName                            String?
   customInputs                         EventTypeCustomInput[]
   parentId                             Int?
-  parent                               EventType?              @relation("managed_eventtype", fields: [parentId], references: [id], onDelete: Cascade)
-  children                             EventType[]             @relation("managed_eventtype")
+  parent                               EventType?                @relation("managed_eventtype", fields: [parentId], references: [id], onDelete: Cascade)
+  children                             EventType[]               @relation("managed_eventtype")
   /// @zod.custom(imports.eventTypeBookingFields)
   bookingFields                        Json?
   timeZone                             String?
-  periodType                           PeriodType              @default(UNLIMITED)
+  periodType                           PeriodType                @default(UNLIMITED)
   /// @zod.custom(imports.coerceToDate)
   periodStartDate                      DateTime?
   /// @zod.custom(imports.coerceToDate)
   periodEndDate                        DateTime?
   periodDays                           Int?
   periodCountCalendarDays              Boolean?
-  lockTimeZoneToggleOnBookingPage      Boolean                 @default(false)
-  requiresConfirmation                 Boolean                 @default(false)
-  requiresBookerEmailVerification      Boolean                 @default(false)
+  lockTimeZoneToggleOnBookingPage      Boolean                   @default(false)
+  requiresConfirmation                 Boolean                   @default(false)
+  requiresBookerEmailVerification      Boolean                   @default(false)
   /// @zod.custom(imports.recurringEventType)
   recurringEvent                       Json?
-  disableGuests                        Boolean                 @default(false)
-  hideCalendarNotes                    Boolean                 @default(false)
+  disableGuests                        Boolean                   @default(false)
+  hideCalendarNotes                    Boolean                   @default(false)
   /// @zod.min(0)
-  minimumBookingNotice                 Int                     @default(120)
-  beforeEventBuffer                    Int                     @default(0)
-  afterEventBuffer                     Int                     @default(0)
+  minimumBookingNotice                 Int                       @default(120)
+  beforeEventBuffer                    Int                       @default(0)
+  afterEventBuffer                     Int                       @default(0)
   seatsPerTimeSlot                     Int?
-  onlyShowFirstAvailableSlot           Boolean                 @default(false)
-  seatsShowAttendees                   Boolean?                @default(false)
-  seatsShowAvailabilityCount           Boolean?                @default(true)
+  onlyShowFirstAvailableSlot           Boolean                   @default(false)
+  seatsShowAttendees                   Boolean?                  @default(false)
+  seatsShowAvailabilityCount           Boolean?                  @default(true)
   schedulingType                       SchedulingType?
-  schedule                             Schedule?               @relation(fields: [scheduleId], references: [id])
+  schedule                             Schedule?                 @relation(fields: [scheduleId], references: [id])
   scheduleId                           Int?
   // price is deprecated. It has now moved to metadata.apps.stripe.price. Plan to drop this column.
-  price                                Int                     @default(0)
+  price                                Int                       @default(0)
   // currency is deprecated. It has now moved to metadata.apps.stripe.currency. Plan to drop this column.
-  currency                             String                  @default("usd")
+  currency                             String                    @default("usd")
   slotInterval                         Int?
   /// @zod.custom(imports.EventTypeMetaDataSchema)
   metadata                             Json?
@@ -130,9 +130,10 @@ model EventType {
   bookingLimits                        Json?
   /// @zod.custom(imports.intervalLimitsType)
   durationLimits                       Json?
-  isInstantEvent                       Boolean                 @default(false)
-  assignAllTeamMembers                 Boolean                 @default(false)
-  useEventTypeDestinationCalendarEmail Boolean                 @default(false)
+  isInstantEvent                       Boolean                   @default(false)
+  assignAllTeamMembers                 Boolean                   @default(false)
+  useEventTypeDestinationCalendarEmail Boolean                   @default(false)
+  aiPhoneCallConfig                    AIPhoneCallConfiguration?
 
   secondaryEmailId Int?
   secondaryEmail   SecondaryEmail? @relation(fields: [secondaryEmailId], references: [id], onDelete: Cascade)
@@ -904,6 +905,22 @@ model Workflow {
 
   @@index([userId])
   @@index([teamId])
+}
+
+model AIPhoneCallConfiguration {
+  id              Int       @id @default(autoincrement())
+  eventType       EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+  eventTypeId     Int
+  generalPrompt   String
+  yourPhoneNumber String
+  numberToCall    String
+  guestName       String
+  enabled         Boolean   @default(false)
+  beginMessage    String?
+  llmId           String?
+
+  @@unique([eventTypeId])
+  @@index([eventTypeId])
 }
 
 model WorkflowsOnEventTypes {
