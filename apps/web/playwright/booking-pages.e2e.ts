@@ -30,6 +30,7 @@ testBothFutureAndLegacyRoutes.describe("free user", () => {
 
   test("cannot book same slot multiple times", async ({ page, users, emails }) => {
     const [user] = users.get();
+
     const bookerObj = {
       email: users.trackEmail({ username: "testEmail", domain: "example.com" }),
       name: "testBooker",

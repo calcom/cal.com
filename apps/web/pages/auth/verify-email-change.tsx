@@ -25,15 +25,15 @@ function VerifyEmailChange(props: PageProps) {
   const router = useRouter();
 
   useEffect(() => {
-    async function updateSession() {
+    async function updateSessionAndDisplayToast() {
       await update({ email: props.updatedEmail });
-      router.push("/event-types");
-    }
-    if (props.updateSession) {
-      updateSession();
       if (isLocaleReady) {
         showToast(t("verify_email_change_success_toast", { email: props.updatedEmail }), "success");
       }
+      router.push("/event-types");
+    }
+    if (props.updateSession) {
+      updateSessionAndDisplayToast();
     } else {
       if (isLocaleReady) {
         showToast(t("verify_email_change_failure_toast"), "error");
