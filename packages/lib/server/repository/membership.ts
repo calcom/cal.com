@@ -11,7 +11,6 @@ const log = logger.getSubLogger({ prefix: ["repository/membership"] });
 type IMembership = {
   teamId: number;
   userId: number;
-  profileId: number | null;
   accepted: boolean;
   role: MembershipRole;
 };

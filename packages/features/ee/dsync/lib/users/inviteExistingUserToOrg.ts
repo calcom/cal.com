@@ -17,7 +17,11 @@ const inviteExistingUserToOrg = async ({
   translation: TFunction;
 }) => {
   await createAProfileForAnExistingUser({
-    user,
+    user: {
+      id: user.id,
+      email: user.email,
+      currentUsername: user.username,
+    },
     organizationId: org.id,
   });
 

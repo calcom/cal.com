@@ -31,6 +31,7 @@ export function OrgUpgradeBanner({ data }: OrgUpgradeBannerProps) {
       variant="warning"
       actions={
         <button
+          data-testid="upgrade_org_banner_button"
           className="border-b border-b-black"
           onClick={() => {
             publishOrgMutation.mutate();

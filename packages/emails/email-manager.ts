@@ -38,6 +38,8 @@ import MonthlyDigestEmail from "./templates/monthly-digest-email";
 import NoShowFeeChargedEmail from "./templates/no-show-fee-charged-email";
 import type { OrgAutoInvite } from "./templates/org-auto-join-invite";
 import OrgAutoJoinEmail from "./templates/org-auto-join-invite";
+import type { OrganizationCreation } from "./templates/organization-creation-email";
+import OrganizationCreationEmail from "./templates/organization-creation-email";
 import type { OrganizationEmailVerify } from "./templates/organization-email-verification";
 import OrganizationEmailVerification from "./templates/organization-email-verification";
 import OrganizerAttendeeCancelledSeatEmail from "./templates/organizer-attendee-cancelled-seat-email";
@@ -325,6 +327,10 @@ export const sendPasswordResetEmail = async (passwordResetEvent: PasswordReset) 
 
 export const sendTeamInviteEmail = async (teamInviteEvent: TeamInvite) => {
   await sendEmail(() => new TeamInviteEmail(teamInviteEvent));
+};
+
+export const sendOrganizationCreationEmail = async (organizationCreationEvent: OrganizationCreation) => {
+  await sendEmail(() => new OrganizationCreationEmail(organizationCreationEvent));
 };
 
 export const sendOrganizationAutoJoinEmail = async (orgInviteEvent: OrgAutoInvite) => {

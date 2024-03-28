@@ -1,13 +1,16 @@
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { useFieldArray, useForm } from "react-hook-form";
+import { useFieldArray, useForm, Controller } from "react-hook-form";
 import { z } from "zod";
 
 import { classNames } from "@calcom/lib";
+import { IS_TEAM_BILLING_ENABLED_CLIENT } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
+import { UserPermissionRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
-import { Button, showToast, TextField } from "@calcom/ui";
+import { Button, showToast, TextField, CheckboxField, Form } from "@calcom/ui";
 import { ArrowRight, Plus, X } from "@calcom/ui/components/icon";
 
 const querySchema = z.object({
@@ -15,24 +18,60 @@ const querySchema = z.object({
 });
 
 const schema = z.object({
-  teams: z
-    .array(
-      z.object({
-        name: z.string().min(2, "org_team_name_min_2_chars").trim(),
-      })
-    )
-    .min(1, "At least one team is required"),
+  teams: z.array(
+    z.object({
+      name: z.string().trim(),
+    })
+  ),
+  moveTeams: z.array(
+    z.object({
+      id: z.number(),
+      shouldMove: z.boolean(),
+      newSlug: z.string().optional(),
+    })
+  ),
 });
 
 export const AddNewTeamsForm = () => {
+  const { data: teams } = trpc.viewer.teams.list.useQuery();
+  const routerQuery = useRouterQuery();
+
+  const { id: orgId } = querySchema.parse(routerQuery);
+
+  const { data: org } = trpc.viewer.teams.get.useQuery({ teamId: orgId, isOrg: true });
+
+  if (!teams || !org) {
+    return null;
+  }
+
+  const orgWithRequestedSlug = {
+    ...org,
+    requestedSlug: org.metadata.requestedSlug ?? null,
+  };
+
+  const regularTeams = teams.filter((team) => !team.parentId);
+  return <AddNewTeamsFormChild org={orgWithRequestedSlug} teams={regularTeams} />;
+};
+
+const AddNewTeamsFormChild = ({
+  teams,
+  org,
+}: {
+  org: { id: number; slug: string | null; requestedSlug: string | null };
+  teams: { id: number; name: string; slug: string | null }[];
+}) => {
   const { t } = useLocale();
   const router = useRouter();
-  const routerQuery = useRouterQuery();
-  const { id: orgId } = querySchema.parse(routerQuery);
   const [counter, setCounter] = useState(1);
-
-  const { register, control, handleSubmit, formState, trigger, setValue, getValues } = useForm({
-    defaultValues: { teams: [{ name: "" }] }, // Set initial values
+  const form = useForm({
+    defaultValues: {
+      teams: [{ name: "" }],
+      moveTeams: teams.map((team) => ({
+        id: team.id,
+        shouldMove: false,
+        newSlug: getSuggestedSlug({ teamSlug: team.slug, orgSlug: org.slug || org.requestedSlug }),
+      })),
+    }, // Set initial values
     resolver: async (data) => {
       try {
         const validatedData = await schema.parseAsync(data);
@@ -50,9 +89,25 @@ export const AddNewTeamsForm = () => {
       }
     },
   });
+  const session = useSession();
+  const isAdmin =
+    session.data?.user?.role === UserPermissionRole.ADMIN ||
+    session.data?.user?.impersonatedBy?.role === UserPermissionRole.ADMIN;
+
+  const allowWizardCompletionWithoutUpgrading = !IS_TEAM_BILLING_ENABLED_CLIENT || isAdmin;
+  const { register, control, watch, getValues } = form;
   const { fields, append, remove } = useFieldArray({
     control,
     name: "teams",
+  });
+
+  const publishOrgMutation = trpc.viewer.organizations.publish.useMutation({
+    onSuccess(data) {
+      router.push(data.url);
+    },
+    onError: (error) => {
+      showToast(error.message, "error");
+    },
   });
 
   const handleCounterIncrease = () => {
@@ -73,11 +128,18 @@ export const AddNewTeamsForm = () => {
         showToast(t("duplicated_slugs_warning", { slugs: data.duplicatedSlugs.join(", ") }), "warning");
         // Server will return array of duplicated slugs, so we need to wait for user to read the warning
         // before pushing to next page
-        setTimeout(() => {
-          router.push(`/event-types`);
-        }, 3000);
+        setTimeout(() => handleSuccessRedirect, 3000);
       } else {
-        router.push(`/event-types`);
+        handleSuccessRedirect();
+      }
+
+      function handleSuccessRedirect() {
+        if (allowWizardCompletionWithoutUpgrading) {
+          router.push(`/event-types`);
+          return;
+        }
+        // mutate onSuccess will take care of routing to the correct place.
+        publishOrgMutation.mutate();
       }
     },
     onError: (error) => {
@@ -85,29 +147,58 @@ export const AddNewTeamsForm = () => {
     },
   });
 
-  const handleInputChange = (index: number, event: any) => {
-    const { name, value } = event.target;
-    setValue(`teams.${index}.name`, value);
-    trigger(`teams.${index}.name`);
-  };
-
   const handleFormSubmit = () => {
-    if (formState.isValid) {
-      const fields = getValues("teams");
-      createTeamsMutation.mutate({ orgId, teamNames: fields.map((field) => field.name) });
-    }
+    const fields = getValues("teams");
+    const moveTeams = getValues("moveTeams");
+    createTeamsMutation.mutate({ orgId: org.id, moveTeams, teamNames: fields.map((field) => field.name) });
   };
 
+  const moveTeams = watch("moveTeams");
   return (
     <>
-      <form onSubmit={handleSubmit(handleFormSubmit)}>
+      <Form form={form} handleSubmit={handleFormSubmit}>
+        {moveTeams.length ? (
+          <>
+            <label className="text-emphasis mb-2 block text-sm font-medium leading-none">
+              Move existing teams
+            </label>
+            <ul className="mb-8 space-y-4">
+              {moveTeams.map((team, index) => {
+                return (
+                  <li key={team.id}>
+                    <Controller
+                      name={`moveTeams.${index}.shouldMove`}
+                      render={({ field: { value, onChange } }) => (
+                        <CheckboxField
+                          defaultValue={value}
+                          checked={value}
+                          onChange={onChange}
+                          description={teams.find((t) => t.id === team.id)?.name ?? ""}
+                        />
+                      )}
+                    />
+                    {moveTeams[index].shouldMove ? (
+                      <TextField
+                        placeholder="New Slug"
+                        defaultValue={teams.find((t) => t.id === team.id)?.slug ?? ""}
+                        {...register(`moveTeams.${index}.newSlug`)}
+                        className="mt-2"
+                        label=""
+                      />
+                    ) : null}
+                  </li>
+                );
+              })}
+            </ul>
+          </>
+        ) : null}
+        <label className="text-emphasis mb-2 block text-sm font-medium leading-none">Add New Teams</label>
         {fields.map((field, index) => (
           <div className={classNames("relative", index > 0 ? "mb-2" : "")} key={field.id}>
             <TextField
               key={field.id}
               {...register(`teams.${index}.name`)}
               label=""
-              onChange={(e) => handleInputChange(index, e)}
               addOnClassname="bg-transparent p-0 border-l-0"
               className={index > 0 ? "mb-2" : ""}
               placeholder={t(`org_team_names_example_${index + 1}`)}
@@ -143,11 +234,21 @@ export const AddNewTeamsForm = () => {
           EndIcon={ArrowRight}
           color="primary"
           className="mt-6 w-full justify-center"
-          disabled={!formState.isValid || createTeamsMutation.isPending || createTeamsMutation.isSuccess}
+          data-testId="continue_or_checkout"
+          disabled={createTeamsMutation.isPending || createTeamsMutation.isSuccess}
           onClick={handleFormSubmit}>
-          {t("continue")}
+          {allowWizardCompletionWithoutUpgrading ? t("continue") : t("checkout")}
         </Button>
-      </form>
+      </Form>
     </>
   );
+};
+
+const getSuggestedSlug = ({ teamSlug, orgSlug }: { teamSlug: string | null; orgSlug: string | null }) => {
+  // If there is no orgSlug, we can't suggest a slug
+  if (!teamSlug || !orgSlug) {
+    return teamSlug;
+  }
+
+  return teamSlug.replace(`${orgSlug}-`, "").replace(`-${orgSlug}`, "");
 };

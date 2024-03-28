@@ -161,17 +161,27 @@ const handleGroupEvents = async (event: DirectorySyncEvent, organizationId: numb
         const translation = await getTranslation(user.locale || "en", "common");
         return sendExistingUserTeamInviteEmails({
           currentUserTeamName: group.team.name,
-          existingUsersWithMembersips: [user],
+          existingUsersWithMembersips: [
+            {
+              ...user,
+              profile: null,
+            },
+          ],
           language: translation,
           isOrg: false,
           teamId: group.teamId,
           isAutoJoin: true,
           currentUserParentTeamName: org.name,
+          orgSlug: null,
         });
       }),
       ...newOrgMembers.map((user) => {
         return createAProfileForAnExistingUser({
-          user,
+          user: {
+            id: user.id,
+            email: user.email,
+            currentUsername: user.username,
+          },
           organizationId,
         });
       }),

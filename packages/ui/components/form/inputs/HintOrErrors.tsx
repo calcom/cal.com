@@ -52,9 +52,7 @@ export function HintsOrErrors<T extends FieldValues = FieldValues>({
               <li
                 key={key}
                 data-testid="hint-error"
-                className={
-                  error !== undefined ? (submitted ? "bg-yellow-200 text-red-700" : "") : "text-green-600"
-                }>
+                className={error !== undefined ? (submitted ? "text-red-500" : "") : "text-green-600"}>
                 {error !== undefined ? (
                   submitted ? (
                     <X size="12" strokeWidth="3" className="-ml-1 inline-block ltr:mr-2 rtl:ml-2" />

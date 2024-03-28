@@ -56,6 +56,10 @@ export const resendInvitationHandler = async ({ ctx, input }: InviteMemberOption
     ...inviteTeamOptions,
     isOrg: input.isOrg,
     parentTeamName: team?.parent?.name,
+    // We don't know at his moment if this user was an existing user or a new user as it is a resend. So, we assume it's a new user and we can avoid sending the prevLink and newLink.
+    isExistingUserMovedToOrg: false,
+    prevLink: null,
+    newLink: null,
   });
 
   return input;

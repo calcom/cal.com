@@ -49,12 +49,18 @@ const handleUserEvents = async (event: DirectorySyncEvent, organizationId: numbe
       await sendExistingUserTeamInviteEmails({
         currentUserName: user.username,
         currentUserTeamName: org.name,
-        existingUsersWithMembersips: [addedUser],
+        existingUsersWithMembersips: [
+          {
+            ...addedUser,
+            profile: null,
+          },
+        ],
         language: translation,
         isOrg: true,
         teamId: org.id,
         isAutoJoin: true,
         currentUserParentTeamName: org?.parent?.name,
+        orgSlug: org.slug,
       });
     } else {
       // If data.active is false then remove the user from the org

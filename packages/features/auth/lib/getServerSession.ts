@@ -33,13 +33,14 @@ export async function getServerSession(options: {
   res?: NextApiResponse | GetServerSidePropsContext["res"];
   authOptions?: AuthOptions;
 }) {
-  log.debug("Getting server session");
   const { req, authOptions: { secret } = {} } = options;
 
   const token = await getToken({
     req,
     secret,
   });
+
+  log.debug("Getting server session", safeStringify({ token }));
 
   if (!token || !token.email || !token.sub) {
     log.debug("Couldnt get token");
@@ -49,6 +50,7 @@ export async function getServerSession(options: {
   const cachedSession = CACHE.get(JSON.stringify(token));
 
   if (cachedSession) {
+    log.debug("Returning cached session", safeStringify(cachedSession));
     return cachedSession;
   }
 
