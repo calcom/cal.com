@@ -197,7 +197,11 @@ export default function CreateEventTypeDialog({
                 <TextField
                   label={`${t("url")}: ${urlPrefix}`}
                   required
-                  addOnLeading={<>/{!isManagedEventType ? pageSlug : t("username_placeholder")}/</>}
+                  addOnLeading={
+                    <span className="max-w-64">
+                      /{!isManagedEventType ? pageSlug : t("username_placeholder")}/
+                    </span>
+                  }
                   {...register("slug")}
                   onChange={(e) => {
                     form.setValue("slug", slugify(e?.target.value), { shouldTouch: true });
@@ -214,9 +218,9 @@ export default function CreateEventTypeDialog({
                   label={t("url")}
                   required
                   addOnLeading={
-                    <>
+                    <span className="max-w-64">
                       {urlPrefix}/{!isManagedEventType ? pageSlug : t("username_placeholder")}/
-                    </>
+                    </span>
                   }
                   {...register("slug")}
                 />
