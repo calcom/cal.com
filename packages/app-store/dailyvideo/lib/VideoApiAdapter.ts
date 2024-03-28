@@ -94,6 +94,7 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
     }
     const body = await translateEvent(event);
     const dailyEvent = await postToDailyAPI(endpoint, body).then(dailyReturnTypeSchema.parse);
+    console.log("dailyEvent", dailyEvent);
     const meetingToken = await postToDailyAPI("/meeting-tokens", {
       properties: { room_name: dailyEvent.name, exp: dailyEvent.config.exp, is_owner: true },
     }).then(meetingTokenSchema.parse);
@@ -121,20 +122,18 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
         },
       },
     });
-    if (scalePlan === "true" && !!hasTeamPlan === true) {
-      return {
-        privacy: "public",
-        properties: {
-          enable_prejoin_ui: true,
-          enable_knocking: true,
-          enable_screenshare: true,
-          enable_chat: true,
-          exp: exp,
-          enable_recording: "cloud",
-          enable_transcription_storage: true,
-        },
-      };
-    }
+
+    // Check if organizer has subscribed to Cal.ai
+
+    const isCalAiSubscribed = await prisma.credential.findMany({
+      where: {
+        userId: event.organizer.id,
+        type: "cal-ai_automation",
+        invalid: false,
+        paymentStatus: "active",
+      },
+    });
+
     return {
       privacy: "public",
       properties: {
@@ -143,9 +142,36 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
         enable_screenshare: true,
         enable_chat: true,
         exp: exp,
-        enable_transcription_storage: true,
+        enable_recording: scalePlan === "true" && !!hasTeamPlan === true ? "cloud" : undefined,
+        enable_transcription_storage: !!isCalAiSubscribed,
       },
     };
+
+    // if (scalePlan === "true" && !!hasTeamPlan === true) {
+    //   return {
+    //     privacy: "public",
+    //     properties: {
+    //       enable_prejoin_ui: true,
+    //       enable_knocking: true,
+    //       enable_screenshare: true,
+    //       enable_chat: true,
+    //       exp: exp,
+    //       enable_recording: "cloud",
+    //       enable_transcription_storage: true,
+    //     },
+    //   };
+    // }
+    // return {
+    //   privacy: "public",
+    //   properties: {
+    //     enable_prejoin_ui: true,
+    //     enable_knocking: true,
+    //     enable_screenshare: true,
+    //     enable_chat: true,
+    //     exp: exp,
+    //     enable_transcription_storage: true,
+    //   },
+    // };
   };
 
   async function createInstantMeeting(endTime: string) {
