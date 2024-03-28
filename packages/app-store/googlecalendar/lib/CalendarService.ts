@@ -21,8 +21,8 @@ import type {
 } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
-import type { ParseRefreshTokenResponse } from "../../_utils/oauth/parseRefreshTokenResponse";
-import parseRefreshTokenResponse from "../../_utils/oauth/parseRefreshTokenResponse";
+import type { ParseCredentialKeyRefreshResponse } from "../../_utils/oauth/parseCredentialKey";
+import parseCredentialKey from "../../_utils/oauth/parseCredentialKey";
 import refreshOAuthTokens from "../../_utils/oauth/refreshOAuthTokens";
 import { getGoogleAppKeys } from "./getGoogleAppKeys";
 import { googleCredentialSchema } from "./googleCredentialSchema";
@@ -76,7 +76,7 @@ export default class GoogleCalendarService implements Calendar {
   }
 
   private googleAuth = (credential: CredentialPayload) => {
-    const googleCredentials = googleCredentialSchema.parse(credential.key);
+    const googleCredentials = parseCredentialKey(credential.key, googleCredentialSchema);
 
     async function getGoogleAuth() {
       const { client_id, client_secret, redirect_uris } = await getGoogleAppKeys();
@@ -98,10 +98,8 @@ export default class GoogleCalendarService implements Calendar {
         const token = res?.data;
         googleCredentials.access_token = token.access_token;
         googleCredentials.expiry_date = token.expiry_date;
-        const parsedKey: ParseRefreshTokenResponse<typeof googleCredentialSchema> = parseRefreshTokenResponse(
-          googleCredentials,
-          googleCredentialSchema
-        );
+        const parsedKey: ParseCredentialKeyRefreshResponse<typeof googleCredentialSchema> =
+          parseCredentialKey(googleCredentials, googleCredentialSchema);
         await prisma.credential.update({
           where: { id: credential.id },
           data: { key: { ...parsedKey } as Prisma.InputJsonValue },

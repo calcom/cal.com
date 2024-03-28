@@ -12,6 +12,7 @@ import prisma from "@calcom/prisma";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
 
+import parseCredentialKey from "../../_utils/oauth/parseCredentialKey";
 import { paymentOptionEnum } from "../zod";
 import { createPaymentLink } from "./client";
 import { retrieveOrCreateStripeCustomerByEmail } from "./customer";
@@ -36,7 +37,7 @@ export class PaymentService implements IAbstractPaymentService {
   private credentials: z.infer<typeof stripeCredentialKeysSchema> | null;
 
   constructor(credentials: { key: Prisma.JsonValue }) {
-    const keyParsing = stripeCredentialKeysSchema.safeParse(credentials.key);
+    const keyParsing = parseCredentialKey(credentials.key, stripeCredentialKeysSchema);
     if (keyParsing.success) {
       this.credentials = keyParsing.data;
     } else {

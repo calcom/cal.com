@@ -13,6 +13,8 @@ import type {
 } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
+import parseCredentialKey from "../../_utils/oauth/parseCredentialKey";
+
 const apiKeySchema = z.object({
   encrypted: z.string(),
 });
@@ -35,7 +37,7 @@ export default class CloseComCalendarService implements Calendar {
     this.integrationName = "sendgrid_other_calendar";
     this.log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
 
-    const parsedCredentialKey = apiKeySchema.safeParse(credential.key);
+    const parsedCredentialKey = parseCredentialKey(credential.key, apiKeySchema);
 
     let decrypted;
     if (parsedCredentialKey.success) {
