@@ -349,7 +349,14 @@ export class ProfileRepository {
         },
         movedFromUser: true,
         organization: {
-          include: {
+          select: {
+            calVideoLogo: true,
+            id: true,
+            logoUrl: true,
+            name: true,
+            slug: true,
+            metadata: true,
+            bannerUrl: true,
             organizationSettings: {
               select: {
                 lockEventTypeCreationForUsers: true,
