@@ -8,7 +8,7 @@ import { useState, useEffect, useRef } from "react";
 
 import dayjs from "@calcom/dayjs";
 import classNames from "@calcom/lib/classNames";
-import { APP_NAME, SEO_IMG_OGIMG_VIDEO, WEBSITE_URL } from "@calcom/lib/constants";
+import { APP_NAME, SEO_IMG_OGIMG_VIDEO, WEBSITE_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { formatToLocalizedDate, formatToLocalizedTime } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
@@ -21,7 +21,6 @@ import { type PageProps } from "./videos-single-view.getServerSideProps";
 export default function JoinCall(props: PageProps) {
   const { t } = useLocale();
   const { meetingUrl, meetingPassword, booking } = props;
-  const [calAiEnabled, setCalAiEnabled] = useState(false);
   const [daily, setDaily] = useState<DailyCall | null>(null);
 
   useEffect(() => {
@@ -50,23 +49,15 @@ export default function JoinCall(props: PageProps) {
       ...(typeof meetingPassword === "string" && { token: meetingPassword }),
       customTrayButtons: {
         "cal-ai": {
-          label: t("cal_ai_assistant"),
-          tooltip: t("discard_cal_ai_assistant"),
-          iconPath: "https://unpkg.com/lucide-static@0.335.0/icons/sparkles.svg",
-          iconPathDarkMode: "https://unpkg.com/lucide-static@0.335.0/icons/sparkles.svg",
+          label: "Cal AI Assistant",
+          tooltip: "Toggle Transcription",
+          iconPath: `${WEBAPP_URL}/sparkles.svg`,
+          iconPathDarkMode: `${WEBAPP_URL}/sparkles.svg`,
         },
       },
     });
 
     setDaily(callFrame);
-
-    callFrame.on("custom-button-click", (event) => {
-      if (event?.button_id !== "cal-ai") {
-        return;
-      }
-
-      console.log("button clicked");
-    });
 
     callFrame.join();
 

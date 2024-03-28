@@ -144,34 +144,11 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
         exp: exp,
         enable_recording: scalePlan === "true" && !!hasTeamPlan === true ? "cloud" : undefined,
         enable_transcription_storage: !!isCalAiSubscribed,
+        permissions: {
+          canAdmin: ["transcription"],
+        },
       },
     };
-
-    // if (scalePlan === "true" && !!hasTeamPlan === true) {
-    //   return {
-    //     privacy: "public",
-    //     properties: {
-    //       enable_prejoin_ui: true,
-    //       enable_knocking: true,
-    //       enable_screenshare: true,
-    //       enable_chat: true,
-    //       exp: exp,
-    //       enable_recording: "cloud",
-    //       enable_transcription_storage: true,
-    //     },
-    //   };
-    // }
-    // return {
-    //   privacy: "public",
-    //   properties: {
-    //     enable_prejoin_ui: true,
-    //     enable_knocking: true,
-    //     enable_screenshare: true,
-    //     enable_chat: true,
-    //     exp: exp,
-    //     enable_transcription_storage: true,
-    //   },
-    // };
   };
 
   async function createInstantMeeting(endTime: string) {

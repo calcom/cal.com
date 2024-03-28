@@ -19,6 +19,7 @@
   "verify_email_banner_body": "Verify your email address to guarantee the best email and calendar deliverability",
   "verify_email_email_header": "Verify your email address",
   "verify_email_email_button": "Verify email",
+  "cal_ai_assistant":"Cal AI Assistant",
   "verify_email_change_description": "You have recently requested to change the email address you use to log into your {{appName}} account. Please click the button below to confirm your new email address.",
   "verify_email_change_success_toast": "Updated your email to {{email}}",
   "verify_email_change_failure_toast": "Failed to update email.",
