@@ -1,5 +1,6 @@
 import { Navbar } from "@/components/Navbar";
 import { Inter } from "next/font/google";
+import { useRouter } from "next/router";
 import { useState } from "react";
 
 import { Booker, useEventTypesPublic } from "@calcom/atoms";
@@ -9,9 +10,10 @@ const inter = Inter({ subsets: ["latin"] });
 export default function Bookings(props: { calUsername: string; calEmail: string }) {
   const [bookingTitle, setBookingTitle] = useState<string | null>(null);
   const [eventTypeSlug, setEventTypeSlug] = useState<string | null>(null);
-
+  const router = useRouter();
   const { isLoading: isLoadingEvents, data: eventTypes } = useEventTypesPublic(props.calUsername);
-  console.log(isLoadingEvents, eventTypes);
+  const rescheduleUid = (router.query.rescheduleUid as string) ?? "";
+  const eventTypeSlugQueryParam = (router.query.eventTypeSlug as string) ?? "";
   return (
     <main
       className={`flex min-h-screen flex-col ${inter.className} main text-default flex min-h-full w-full flex-col items-center overflow-visible`}>
@@ -21,7 +23,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
 
         {isLoadingEvents && !eventTypeSlug && <p>Loading...</p>}
 
-        {!isLoadingEvents && !eventTypeSlug && Boolean(eventTypes?.length) && (
+        {!isLoadingEvents && !eventTypeSlug && Boolean(eventTypes?.length) && !rescheduleUid && (
           <div className="flex flex-row gap-4">
             {eventTypes?.map((event: { id: number; slug: string; title: string }) => (
               <button
@@ -34,12 +36,24 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
           </div>
         )}
 
-        {!bookingTitle && eventTypeSlug && (
+        {!bookingTitle && eventTypeSlug && !rescheduleUid && (
           <Booker
-            eventSlug="sixty-minutes-video"
+            eventSlug={eventTypeSlug}
             username={props.calUsername ?? ""}
             onCreateBookingSuccess={(data) => {
               setBookingTitle(data.data.title);
+              router.push(`/${data.data.uid}`);
+            }}
+          />
+        )}
+        {!bookingTitle && rescheduleUid && eventTypeSlugQueryParam && (
+          <Booker
+            rescheduleUid={rescheduleUid}
+            eventSlug={eventTypeSlugQueryParam}
+            username={props.calUsername ?? ""}
+            onCreateBookingSuccess={(data) => {
+              setBookingTitle(data.data.title);
+              router.push(`/${data.data.uid}`);
             }}
           />
         )}
