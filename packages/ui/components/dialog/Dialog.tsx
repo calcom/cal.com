@@ -9,6 +9,7 @@ import classNames from "@calcom/lib/classNames";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { SVGComponent } from "@calcom/types/SVGComponent";
+import type { LucideIcon } from "@calcom/ui/components/icon";
 
 import type { ButtonProps } from "../../components/button";
 import { Button } from "../../components/button";
@@ -85,7 +86,7 @@ type DialogContentProps = React.ComponentProps<(typeof DialogPrimitive)["Content
   description?: string | JSX.Element | null;
   closeText?: string;
   actionDisabled?: boolean;
-  Icon?: SVGComponent;
+  Icon?: SVGComponent | LucideIcon;
   enableOverflow?: boolean;
 };
 

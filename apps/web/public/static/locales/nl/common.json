@@ -182,6 +182,7 @@
   "2fa_confirm_current_password": "Bevestig uw huidige wachtwoord om aan de slag te gaan.",
   "2fa_scan_image_or_use_code": "Scan de afbeelding hieronder met de authenticator-app op uw telefoon of voer de tekstcode handmatig in.",
   "text": "Tekst",
+  "your_phone_number": "Uw telefoonnummer",
   "multiline_text": "Meerdere regels tekst",
   "number": "Nummer",
   "checkbox": "Selectievakje",

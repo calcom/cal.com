@@ -1,5 +1,6 @@
 import type { Prisma } from "@prisma/client";
 import type { UnitTypeLongPlural } from "dayjs";
+import { isValidPhoneNumber } from "libphonenumber-js";
 import type { TFunction } from "next-i18next";
 import z, { ZodNullable, ZodObject, ZodOptional } from "zod";
 import type {
@@ -591,6 +592,7 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   title: true,
   description: true,
   isInstantEvent: true,
+  aiPhoneCallConfig: true,
   currency: true,
   periodDays: true,
   position: true,
@@ -687,4 +689,20 @@ export const getStringAsNumberRequiredSchema = (t: TFunction) =>
 export const bookingSeatDataSchema = z.object({
   description: z.string().optional(),
   responses: bookingResponses,
+});
+
+export const AIPhoneSettingSchema = z.object({
+  yourPhoneNumber: z.string().refine((val) => isValidPhoneNumber(val)),
+  numberToCall: z.string().refine((val) => isValidPhoneNumber(val)),
+  guestName: z.string().trim().min(1, {
+    message: "Please enter Guest Name",
+  }),
+  generalPrompt: z.string().trim().min(1, {
+    message: "Please enter prompt",
+  }),
+  beginMessage: z.string().nullable(),
+  eventTypeId: z.number(),
+  calApiKey: z.string().trim().min(1, {
+    message: "Please enter CAL API Key",
+  }),
 });
