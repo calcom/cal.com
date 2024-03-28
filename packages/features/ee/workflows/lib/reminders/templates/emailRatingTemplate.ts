@@ -40,7 +40,7 @@ const emailRatingTemplate = (
   },<br><br>We're always looking to improve our customer's experience. How satisfied were you with your recent meeting?<br><br>`;
 
   // todo: add rating link 1-5: https://app.cal.com/booking/qsiaNB3vppjxRkWgYUjB?rating=1
-  const ratingHtml = `<h1><a href="">😠</a> <a href="">🙁</a> <a href="">😐</a> <a href="">😄</a> <a href="">😍</a></h1><br><br>`;
+  const ratingHtml = `<a href="#">😠</a> <a href="#">🙁</a> <a href="#">😐</a> <a href="#">😄</a> <a href="#">😍</a><br><br>`;
 
   const noShowHtml = `<div><a href="">${otherPerson} didn't join the meeting</a></div><br><br>`;
 
