@@ -4,19 +4,18 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Badge, Label } from "@calcom/ui";
 
-import { useTroubleshooterStore } from "../store";
 import { TroubleshooterListItemHeader } from "./TroubleshooterListItemContainer";
 
 export function EventScheduleItem() {
   const { t } = useLocale();
-  const selectedEventType = useTroubleshooterStore((state) => state.event);
-
-  const { data: schedule } = trpc.viewer.availability.schedule.getScheduleByEventSlug.useQuery(
+  const scheduleIdStr = new URLSearchParams(window.location.search).get("scheduleId");
+  const scheduleId = scheduleIdStr ? Number(scheduleIdStr) : null;
+  const { data: schedule } = trpc.viewer.availability.schedule.getScheduleById.useQuery(
     {
-      eventSlug: selectedEventType?.slug as string,
+      id: scheduleId as number,
     },
     {
-      enabled: !!selectedEventType?.slug,
+      enabled: !!scheduleId,
     }
   );
 

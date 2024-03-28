@@ -1,4 +1,8 @@
-import type { Availability as AvailabilityModel, Schedule as ScheduleModel } from "@prisma/client";
+import type {
+  Availability as AvailabilityModel,
+  Schedule as ScheduleModel,
+  EventType as EventTypeModel,
+} from "@prisma/client";
 
 import dayjs from "@calcom/dayjs";
 import { getWorkingHours } from "@calcom/lib/availability";
@@ -17,6 +21,7 @@ export type ScheduleWithAvailabilitiesForWeb = Pick<ScheduleModel, "id" | "name"
   isDefault: boolean;
   isLastSchedule: boolean;
   readOnly: boolean;
+  eventType: EventTypeModel[];
 };
 
 export function transformWorkingHoursForClient(schedule: ScheduleWithAvailabilities) {

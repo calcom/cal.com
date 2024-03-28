@@ -7,7 +7,17 @@ import { getQueryParam } from "../../bookings/Booker/utils/query-param";
 import { useTroubleshooterStore } from "../store";
 
 export function EventTypeSelect() {
-  const { data: eventTypes, isPending } = trpc.viewer.eventTypes.list.useQuery();
+  const scheduleIdStr = new URLSearchParams(window.location.search).get("scheduleId");
+  const scheduleId = scheduleIdStr ? Number(scheduleIdStr) : null;
+  const { data: schedule, isPending } = trpc.viewer.availability.schedule.getScheduleById.useQuery(
+    {
+      id: scheduleId as number,
+    },
+    {
+      enabled: !!scheduleId,
+    }
+  );
+  const eventTypes = schedule?.eventType;
   const selectedEventType = useTroubleshooterStore((state) => state.event);
   const setSelectedEventType = useTroubleshooterStore((state) => state.setEvent);
 
