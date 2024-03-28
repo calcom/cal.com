@@ -6,16 +6,16 @@ export const getAppOnboardingUrl = ({
   slug,
   step,
   teamId,
-  eventTypeId,
+  eventTypeIds,
 }: {
   slug: string;
   step: AppOnboardingSteps;
   teamId?: number;
-  eventTypeId?: number;
+  eventTypeIds?: number[];
 }) => {
-  const params: { [key: string]: string | number } = { slug };
-  if (!!eventTypeId) {
-    params.eventTypeId = eventTypeId;
+  const params: { [key: string]: string | number | number[] } = { slug };
+  if (!!eventTypeIds && eventTypeIds.length > 0) {
+    params.eventTypeIds = eventTypeIds.join(",");
   }
 
   if (!!teamId) {

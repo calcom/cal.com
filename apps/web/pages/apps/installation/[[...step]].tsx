@@ -1,16 +1,15 @@
-import type { Prisma } from "@prisma/client";
 import type { GetServerSidePropsContext } from "next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Head from "next/head";
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Toaster } from "react-hot-toast";
 import { z } from "zod";
 
 import getInstalledAppPath from "@calcom/app-store/_utils/getInstalledAppPath";
-import checkForMultiplePaymentApps from "@calcom/app-store/_utils/payments/checkForMultiplePaymentApps";
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
+import type { EventTypeAppSettingsComponentProps, EventTypeModel } from "@calcom/app-store/types";
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { AppOnboardingSteps } from "@calcom/lib/apps/appOnboardingSteps";
@@ -18,8 +17,8 @@ import { getAppOnboardingRedirectUrl } from "@calcom/lib/apps/getAppOnboardingRe
 import { getAppOnboardingUrl } from "@calcom/lib/apps/getAppOnboardingUrl";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { queryNumberArray } from "@calcom/lib/hooks/useTypedQuery";
 import prisma from "@calcom/prisma";
-import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import type { AppMeta } from "@calcom/types/App";
 import { Form, Steps, showToast } from "@calcom/ui";
@@ -33,15 +32,16 @@ import type {
   onSelectParams,
 } from "@components/apps/installation/AccountsStepCard";
 import { AccountsStepCard } from "@components/apps/installation/AccountsStepCard";
-import type { ConfigureEventTypeProp } from "@components/apps/installation/ConfigureStepCard";
 import { ConfigureStepCard } from "@components/apps/installation/ConfigureStepCard";
-import type { EventTypeProp } from "@components/apps/installation/EventTypesStepCard";
 import { EventTypesStepCard } from "@components/apps/installation/EventTypesStepCard";
 import { StepFooter } from "@components/apps/installation/StepFooter";
 import { StepHeader } from "@components/apps/installation/StepHeader";
 
-type TFormType = {
-  metadata: z.infer<typeof EventTypeMetaDataSchema>;
+export type TEventType = EventTypeAppSettingsComponentProps["eventType"] &
+  Pick<EventTypeModel, "metadata" | "schedulingType" | "slug" | "requiresConfirmation" | "position">;
+
+export type TEventTypesForm = {
+  eventTypes: TEventType[];
 };
 
 const STEPS = [
@@ -86,12 +86,12 @@ type OnboardingPageProps = {
   step: StepType;
   teams: TeamsProp;
   personalAccount: PersonalAccountProps;
-  eventTypes?: EventTypeProp[];
+  eventTypes?: TEventType[];
   teamId?: number;
   eventTypeId?: number;
+  eventTypeIds?: number[];
   userName: string;
   hasEventTypes: boolean;
-  configureEventType: ConfigureEventTypeProp | null;
   credentialId?: number;
 };
 
@@ -103,10 +103,9 @@ const OnboardingPage = ({
   appMetadata,
   eventTypes,
   teamId,
-  eventTypeId,
+  eventTypeIds,
   userName,
   hasEventTypes,
-  configureEventType,
   credentialId,
 }: OnboardingPageProps) => {
   const pathname = usePathname();
@@ -117,19 +116,41 @@ const OnboardingPage = ({
   const utils = trpc.useContext();
   const [isSelectingAccount, setIsSelectingAccount] = useState(false);
 
-  const formMethods = useForm<TFormType>({
+  const formMethods = useForm<TEventTypesForm>({
     defaultValues: {
-      metadata: configureEventType?.metadata,
+      eventTypes,
     },
   });
+  const watchEventTypes = formMethods.watch("eventTypes");
+  const selectedEventTypeIds = useMemo(
+    () =>
+      watchEventTypes.reduce((res: number[], item: TEventType) => {
+        if (item.selected) {
+          res.push(item.id);
+        }
+        return res;
+      }, []),
+    [watchEventTypes]
+  );
+
+  useEffect(() => {
+    const url = getAppOnboardingUrl({
+      slug: appMetadata.slug,
+      step,
+      teamId,
+      eventTypeIds: selectedEventTypeIds,
+    });
+    console.log("ururlurlurlurlurll: ", url);
+    router.push(url);
+  }, [selectedEventTypeIds, teamId, step, appMetadata.slug, router]);
 
   const updateMutation = trpc.viewer.eventTypes.update.useMutation({
     onSuccess: async () => {
-      showToast(
-        t("event_type_updated_successfully", { eventTypeTitle: configureEventType?.title }),
-        "success"
-      );
-      router.push(`/event-types/${configureEventType?.id}?tabName=apps`);
+      // showToast(
+      //   t("event_type_updated_successfully", { eventTypeTitle: configureEventType?.title }),
+      //   "success"
+      // );
+      // router.push(`/event-types/${configureEventType?.id}?tabName=apps`);
     },
     async onSettled() {
       await utils.viewer.eventTypes.get.invalidate();
@@ -184,14 +205,14 @@ const OnboardingPage = ({
       .catch(() => setIsSelectingAccount(false));
   };
 
-  const handleSelectEventType = (id: number) => {
+  const handleSelectEventType = () => {
     if (hasEventTypes) {
       router.push(
         getAppOnboardingUrl({
           slug: appMetadata.slug,
           step: AppOnboardingSteps.CONFIGURE_STEP,
           teamId: teamId,
-          eventTypeId: id,
+          eventTypeIds: selectedEventTypeIds,
         })
       );
       return;
@@ -231,7 +252,7 @@ const OnboardingPage = ({
   return (
     <div
       key={pathname}
-      className="dark:bg-brand dark:text-brand-contrast text-emphasis min-h-screen"
+      className="dark:bg-brand dark:text-brand-contrast text-emphasis min-h-screen px-4"
       data-testid="onboarding"
       // style={
       //   {
@@ -249,60 +270,67 @@ const OnboardingPage = ({
       <div className="mx-auto py-6 sm:px-4 md:py-24">
         <div className="relative">
           <div className="sm:mx-auto sm:w-full sm:max-w-[600px]">
-            <StepHeader
-              title={stepObj.getTitle(appMetadata.name)}
-              subtitle={stepObj.getDescription(appMetadata.name)}>
-              <Steps
-                maxSteps={nbOfSteps}
-                currentStep={stepObj.getStepNumber(hasTeams, appMetadata.isOAuth ?? false)}
-                disableNavigation
-              />
-            </StepHeader>
-            {step === AppOnboardingSteps.ACCOUNTS_STEP && (
-              <AccountsStepCard
-                teams={teams}
-                personalAccount={personalAccount}
-                onSelect={handleSelectAccount}
-                loading={isSelectingAccount}
-              />
-            )}
-            {step === AppOnboardingSteps.EVENT_TYPES_STEP && eventTypes && Boolean(eventTypes?.length) && (
-              <EventTypesStepCard
-                eventTypes={eventTypes}
-                onSelect={handleSelectEventType}
-                userName={userName}
-              />
-            )}
-            {step === AppOnboardingSteps.CONFIGURE_STEP && configureEventType && (
-              <Form
-                form={formMethods}
-                handleSubmit={(values) => {
-                  // Prevent two payment apps to be enabled
-                  // Ok to cast type here because this metadata will be updated as the event type metadata
-                  if (checkForMultiplePaymentApps(values.metadata as z.infer<typeof EventTypeMetaDataSchema>))
-                    throw new Error(t("event_setup_multiple_payment_apps_error"));
+            <Form
+              form={formMethods}
+              handleSubmit={(values) => {
+                console.log("vvaluesvaluesalues: ", values);
+              }}
+              // handleSubmit={(values) => {
+              //   // Prevent two payment apps to be enabled
+              //   // Ok to cast type here because this metadata will be updated as the event type metadata
+              //   if (
+              //     checkForMultiplePaymentApps(values.metadata as z.infer<typeof EventTypeMetaDataSchema>)
+              //   )
+              //     throw new Error(t("event_setup_multiple_payment_apps_error"));
 
-                  if (
-                    values.metadata?.apps?.stripe?.paymentOption === "HOLD" &&
-                    configureEventType.seatsPerTimeSlot
-                  ) {
-                    throw new Error(t("seats_and_no_show_fee_error"));
-                  }
-                  updateMutation.mutate({
-                    id: configureEventType.id,
-                    metadata: values.metadata,
-                  });
-                }}>
+              //   if (
+              //     values.metadata?.apps?.stripe?.paymentOption === "HOLD" &&
+              //     configureEventType.seatsPerTimeSlot
+              //   ) {
+              //     throw new Error(t("seats_and_no_show_fee_error"));
+              //   }
+              //   updateMutation.mutate({
+              //     id: configureEventType.id,
+              //     metadata: values.metadata,
+              //   });
+              // }}
+            >
+              <StepHeader
+                title={stepObj.getTitle(appMetadata.name)}
+                subtitle={stepObj.getDescription(appMetadata.name)}>
+                <Steps
+                  maxSteps={nbOfSteps}
+                  currentStep={stepObj.getStepNumber(hasTeams, appMetadata.isOAuth ?? false)}
+                  disableNavigation
+                />
+              </StepHeader>
+              {step === AppOnboardingSteps.ACCOUNTS_STEP && (
+                <AccountsStepCard
+                  teams={teams}
+                  personalAccount={personalAccount}
+                  onSelect={handleSelectAccount}
+                  loading={isSelectingAccount}
+                />
+              )}
+              {step === AppOnboardingSteps.EVENT_TYPES_STEP && eventTypes && Boolean(eventTypes?.length) && (
+                <EventTypesStepCard
+                  onSelect={handleSelectEventType}
+                  userName={userName}
+                  selectedEventTypeIds={selectedEventTypeIds}
+                />
+              )}
+              {step === AppOnboardingSteps.CONFIGURE_STEP && (
                 <ConfigureStepCard
                   slug={appMetadata.slug}
                   categories={appMetadata.categories}
                   credentialId={credentialId}
-                  eventType={configureEventType}
+                  userName={userName}
                   loading={updateMutation.isPending}
+                  selectedEventTypeIds={selectedEventTypeIds}
                 />
-              </Form>
-            )}
-            <StepFooter />
+              )}
+              <StepFooter />
+            </Form>
           </div>
         </div>
       </div>
@@ -376,7 +404,7 @@ const getAppBySlug = async (appSlug: string) => {
   return app;
 };
 
-const getEventTypes = async (userId: number, teamId?: number) => {
+const getEventTypes = async (userId: number, teamId?: number, eventTypeIds?: number[]) => {
   const eventTypes = (
     await prisma.eventType.findMany({
       select: {
@@ -390,6 +418,10 @@ const getEventTypes = async (userId: number, teamId?: number) => {
         recurringEvent: true,
         requiresConfirmation: true,
         team: { select: { slug: true } },
+        schedulingType: true,
+        teamId: true,
+        users: { select: { username: true } },
+        seatsPerTimeSlot: true,
         slug: true,
       },
       where: teamId ? { teamId } : { userId },
@@ -398,49 +430,13 @@ const getEventTypes = async (userId: number, teamId?: number) => {
     return eventTypeB.position - eventTypeA.position;
   });
   if (eventTypes.length === 0) {
-    return null;
+    return [];
   }
-  return eventTypes;
-};
-
-const getEventTypeById = async (
-  eventTypeId: number,
-  userId: number | undefined,
-  teamId: number | undefined
-) => {
-  let where: Prisma.EventTypeWhereInput = { id: eventTypeId };
-  if (teamId) {
-    where = { ...where, teamId };
-  } else if (userId) {
-    where = { ...where, userId };
-  }
-  const eventTypeDB = await prisma.eventType.findFirst({
-    select: {
-      id: true,
-      slug: true,
-      description: true,
-      users: { select: { username: true } },
-      length: true,
-      title: true,
-      teamId: true,
-      seatsPerTimeSlot: true,
-      recurringEvent: true,
-      team: { select: { slug: true } },
-      schedulingType: true,
-      metadata: true,
-    },
-    where,
-  });
-
-  if (!eventTypeDB) {
-    throw new Error(ERROR_MESSAGES.noEventTypesFound);
-  }
-  return {
-    ...eventTypeDB,
-    URL: `${CAL_URL}/${
-      eventTypeDB.team ? `team/${eventTypeDB.team.slug}` : eventTypeDB?.users?.[0]?.username
-    }/${eventTypeDB.slug}`,
-  } as ConfigureEventTypeProp;
+  return eventTypes.map((item) => ({
+    ...item,
+    URL: `${CAL_URL}/${item.team ? `team/${item.team.slug}` : item?.users?.[0]?.username}/${item.slug}`,
+    selected: !!eventTypeIds?.includes(item.id),
+  }));
 };
 
 const getAppInstallsBySlug = async (appSlug: string, userId: number, teamIds?: number[]) => {
@@ -465,14 +461,13 @@ const getAppInstallsBySlug = async (appSlug: string, userId: number, teamIds?: n
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   try {
-    let eventTypes: EventTypeProp[] = [];
-    let configureEventType: ConfigureEventTypeProp | null = null;
+    let eventTypes: TEventType[] = [];
     const { req, res, query, params } = context;
     const stepsEnum = z.enum(STEPS);
     const parsedAppSlug = z.coerce.string().parse(query?.slug);
     const parsedStepParam = z.coerce.string().parse(params?.step);
     const parsedTeamIdParam = z.coerce.number().optional().parse(query?.teamId);
-    const parsedEventTypeIdParam = z.coerce.number().optional().parse(query?.eventTypeId);
+    const parsedEventTypeIdsParam = queryNumberArray.optional().parse(query?.eventTypeIds);
     const _ = stepsEnum.parse(parsedStepParam);
     const session = await getServerSession({ req, res });
     const locale = await getLocale(context.req);
@@ -481,6 +476,9 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     const hasEventTypes = appMetadata?.extendsFeature === "EventType";
 
     if (!session?.user?.id) throw new Error(ERROR_MESSAGES.userNotAuthed);
+    if (!hasEventTypes) {
+      throw new Error(ERROR_MESSAGES.appNotExtendsEventType);
+    }
 
     const user = await getUser(session.user.id);
 
@@ -499,32 +497,30 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         throw new Error(ERROR_MESSAGES.userNotInTeam);
       }
     }
-    if (parsedEventTypeIdParam) {
-      configureEventType = await getEventTypeById(parsedEventTypeIdParam, user.id, parsedTeamIdParam);
-    }
+
+    eventTypes = await getEventTypes(user.id, parsedTeamIdParam, parsedEventTypeIdsParam);
 
     switch (parsedStepParam) {
       case AppOnboardingSteps.EVENT_TYPES_STEP:
-        if (!hasEventTypes) {
-          throw new Error(ERROR_MESSAGES.appNotExtendsEventType);
-        }
-        const _eventTypes = await getEventTypes(user.id, parsedTeamIdParam);
-
-        if (!_eventTypes) {
+        if (eventTypes.length === 0) {
           return {
             redirect: { permanent: false, destination: `/apps/installed/${appMetadata.categories[0]}` },
           };
         }
-        eventTypes = _eventTypes;
         break;
 
       case AppOnboardingSteps.CONFIGURE_STEP:
-        if (!hasEventTypes) {
-          throw new Error(ERROR_MESSAGES.appNotExtendsEventType);
-        }
-        if (!parsedEventTypeIdParam) {
+        if (!parsedEventTypeIdsParam || parsedEventTypeIdsParam.length == 0) {
           return {
-            redirect: { permanent: false, destination: `/apps/installed/${appMetadata.categories[0]}` },
+            redirect: {
+              permanent: false,
+              destination: getAppOnboardingUrl({
+                slug: appMetadata.slug,
+                step: AppOnboardingSteps.EVENT_TYPES_STEP,
+                teamId: parsedTeamIdParam,
+                eventTypeIds: [],
+              }),
+            },
           };
         }
         break;
@@ -563,10 +559,9 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         personalAccount,
         eventTypes,
         teamId: parsedTeamIdParam ?? null,
-        eventTypeId: parsedEventTypeIdParam ?? null,
+        eventTypeIds: parsedEventTypeIdsParam ?? null,
         userName: user.username,
         hasEventTypes,
-        configureEventType,
         credentialId,
       } as OnboardingPageProps,
     };

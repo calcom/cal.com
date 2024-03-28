@@ -1,50 +1,54 @@
+import type { TEventType, TEventTypesForm } from "@pages/apps/installation/[[...step]]";
 import type { FC } from "react";
 import React from "react";
+import { useFieldArray, useFormContext } from "react-hook-form";
 
-import type { EventType, Team } from "@calcom/prisma/client";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-import { ScrollableArea, Badge } from "@calcom/ui";
+import { ScrollableArea, Badge, Button } from "@calcom/ui";
 import { Clock } from "@calcom/ui/components/icon";
 
-export type EventTypeProp = Pick<
-  EventType,
-  | "description"
-  | "id"
-  | "metadata"
-  | "length"
-  | "title"
-  | "position"
-  | "requiresConfirmation"
-  | "recurringEvent"
-  | "slug"
-> & { team: Pick<Team, "slug"> | null };
-
 type EventTypesCardProps = {
-  eventTypes: EventTypeProp[];
-  onSelect: (id: number) => void;
+  onSelect: () => void;
   userName: string;
+  selectedEventTypeIds: number[];
 };
 
-export const EventTypesStepCard: FC<EventTypesCardProps> = ({ eventTypes, onSelect, userName }) => {
+export const EventTypesStepCard: FC<EventTypesCardProps> = ({ onSelect, userName, selectedEventTypeIds }) => {
+  const { control } = useFormContext<TEventTypesForm>();
+  const { fields, update } = useFieldArray({
+    control,
+    name: "eventTypes",
+    keyName: "fieldId",
+  });
+
   return (
-    <div className="sm:border-subtle bg-default mt-10  border dark:bg-black sm:rounded-md ">
-      <ScrollableArea className="rounded-md">
-        <ul className="border-subtle max-h-97 !static w-full divide-y">
-          {eventTypes.map((eventType) => (
-            <EventTypeCard
-              key={eventType.id}
-              {...eventType}
-              onClick={() => onSelect(eventType.id)}
-              userName={userName}
-            />
-          ))}
-        </ul>
-      </ScrollableArea>
-    </div>
+    <>
+      <div className="sm:border-subtle bg-default mt-10  border sm:rounded-md dark:bg-black">
+        <ScrollableArea className="rounded-md">
+          <ul className="border-subtle max-h-97 !static w-full divide-y">
+            {fields.map((field, index) => (
+              <EventTypeCard
+                onClick={() => update(index, { ...field, selected: !field.selected })}
+                userName={userName}
+                key={field.fieldId}
+                {...field}
+              />
+            ))}
+          </ul>
+        </ScrollableArea>
+      </div>
+
+      <Button
+        className="text-md mt-6 w-full justify-center"
+        onClick={onSelect}
+        disabled={selectedEventTypeIds.length == 0}>
+        Save
+      </Button>
+    </>
   );
 };
 
-type EventTypeCardProps = EventTypeProp & { onClick: () => void; userName: string };
+type EventTypeCardProps = TEventType & { userName: string; onClick: () => void };
 
 const EventTypeCard: FC<EventTypeCardProps> = ({
   title,
@@ -52,8 +56,9 @@ const EventTypeCard: FC<EventTypeCardProps> = ({
   id,
   metadata,
   length,
-  onClick,
+  selected,
   slug,
+  onClick,
   team,
   userName,
 }) => {
@@ -65,28 +70,38 @@ const EventTypeCard: FC<EventTypeCardProps> = ({
       ? [length, ...parsedMetaData.data?.multipleDuration?.filter((duration) => duration !== length)].sort()
       : [length];
   return (
-    <li
-      className="hover:bg-muted min-h-20 box-border flex w-full cursor-pointer flex-col px-4 py-3"
-      onClick={onClick}>
-      <div>
-        <span className="text-default font-semibold ltr:mr-1 rtl:ml-1">{title}</span>{" "}
-        <small className="text-subtle hidden font-normal sm:inline">
-          /{team ? team.slug : userName}/{slug}
-        </small>
-      </div>
-      {Boolean(description) && (
-        <div className="text-subtle line-clamp-4 break-words  text-sm sm:max-w-[650px] [&>*:not(:first-child)]:hidden [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600">
-          {description}
-        </div>
-      )}
-      <div className="mt-2 flex flex-row flex-wrap gap-2">
-        {Boolean(durations.length) &&
-          durations.map((duration) => (
-            <Badge key={`event-type-${id}-duration-${duration}`} variant="gray" startIcon={Clock}>
-              {duration}m
-            </Badge>
-          ))}
-      </div>
-    </li>
+    <div
+      className="hover:bg-muted box-border flex min-h-20 w-full cursor-pointer select-none items-center space-x-4 px-4 py-3"
+      onClick={() => onClick()}>
+      <input
+        id={`${id}`}
+        checked={selected}
+        className="bg-default border-default h-4 w-4 shrink-0 cursor-pointer rounded-[4px] border ring-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed"
+        type="checkbox"
+      />
+      <label htmlFor={`${id}`} className="cursor-pointer text-sm">
+        <li>
+          <div>
+            <span className="text-default font-semibold ltr:mr-1 rtl:ml-1">{title}</span>{" "}
+            <small className="text-subtle hidden font-normal sm:inline">
+              /{team ? team.slug : userName}/{slug}
+            </small>
+          </div>
+          {Boolean(description) && (
+            <div className="text-subtle line-clamp-4 break-words  text-sm sm:max-w-[650px] [&>*:not(:first-child)]:hidden [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600">
+              {description}
+            </div>
+          )}
+          <div className="mt-2 flex flex-row flex-wrap gap-2">
+            {Boolean(durations.length) &&
+              durations.map((duration) => (
+                <Badge key={`event-type-${id}-duration-${duration}`} variant="gray" startIcon={Clock}>
+                  {duration}m
+                </Badge>
+              ))}
+          </div>
+        </li>
+      </label>
+    </div>
   );
 };
