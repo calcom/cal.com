@@ -513,6 +513,7 @@ export default function Signup({
                   <Trans i18nKey="signing_up_terms">
                     By proceeding, you agree to our{" "}
                     <Link
+                      legacyBehavior
                       className="text-emphasis hover:underline"
                       href={`${WEBSITE_URL}/terms`}
                       target="_blank">
@@ -520,6 +521,7 @@ export default function Signup({
                     </Link>{" "}
                     and{" "}
                     <Link
+                      legacyBehavior
                       className="text-emphasis hover:underline"
                       href={`${WEBSITE_URL}/privacy`}
                       target="_blank">
