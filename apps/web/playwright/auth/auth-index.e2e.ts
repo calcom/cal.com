@@ -1,4 +1,5 @@
 import { test } from "../lib/fixtures";
+import { fillStripeTestCheckoutIfNeeded } from "../lib/testUtils";
 
 test.describe("Can signup from a team invite", async () => {
   test.beforeEach(async ({ users }) => {
@@ -22,6 +23,8 @@ test.describe("Can signup from a team invite", async () => {
     await page.locator('input[name="name"]').fill(teamName);
     await page.locator('input[name="slug"]').fill(teamName);
     await page.locator('button[type="submit"]').click();
+
+    await fillStripeTestCheckoutIfNeeded(page);
 
     // Add new member to team
     await page.click('[data-testid="new-member-button"]');

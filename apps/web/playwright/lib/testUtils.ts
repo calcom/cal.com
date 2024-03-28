@@ -32,6 +32,12 @@ export const testName = "Test Testson";
 export const teamEventTitle = "Team Event - 30min";
 export const teamEventSlug = "team-event-30min";
 
+const IS_STRIPE_ENABLED = !!(
+  process.env.STRIPE_CLIENT_ID &&
+  process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY &&
+  process.env.STRIPE_PRIVATE_KEY
+);
+
 export function createHttpServer(opts: { requestHandler?: RequestHandler } = {}) {
   const {
     requestHandler = ({ res }) => {
@@ -344,10 +350,16 @@ export function generateTotpCode(email: string) {
 
 export async function fillStripeTestCheckout(page: Page) {
   await page.fill("[name=cardNumber]", "4242424242424242");
-  await page.fill("[name=cardExpiry]", "12/30");
+  const now = new Date();
+  await page.fill("[name=cardExpiry]", `${now.getMonth() + 1} / ${now.getFullYear() + 1}`);
   await page.fill("[name=cardCvc]", "111");
   await page.fill("[name=billingName]", "Stripe Stripeson");
   await page.click(".SubmitButton--complete-Shimmer");
+}
+
+export async function fillStripeTestCheckoutIfNeeded(page: Page) {
+  if (!IS_STRIPE_ENABLED) return;
+  await fillStripeTestCheckout(page);
 }
 
 export async function doOnOrgDomain(
