@@ -702,5 +702,7 @@ export const AIPhoneSettingSchema = z.object({
   }),
   beginMessage: z.string().nullable(),
   eventTypeId: z.number(),
-  calApiKey: z.string(),
+  calApiKey: z.string().trim().min(1, {
+    message: "Please enter CAL API Key",
+  }),
 });

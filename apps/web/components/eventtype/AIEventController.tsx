@@ -90,7 +90,7 @@ const AISettings = ({ eventType }: { eventType: EventTypeSetup }) => {
   const { t } = useLocale();
 
   const formMethods = useFormContext<FormValues>();
-  const [calApiKey, setCalApiKey] = useState();
+  const [calApiKey, setCalApiKey] = useState("");
 
   const createCallMutation = trpc.viewer.organizations.createPhoneCall.useMutation({
     onSuccess: (data) => {
