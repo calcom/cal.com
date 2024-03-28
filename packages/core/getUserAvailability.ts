@@ -5,6 +5,7 @@ import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { parseBookingLimit, parseDurationLimit } from "@calcom/lib";
 import { getWorkingHours } from "@calcom/lib/availability";
+import type { DateOverride, WorkingHours } from "@calcom/lib/date-ranges";
 import { buildDateRanges, subtract } from "@calcom/lib/date-ranges";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
@@ -343,6 +344,13 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     end: dayjs(busy.end),
   }));
 
+  const datesOutOfOffice = await getOutOfOfficeDays({
+    userId: user.id,
+    dateFrom,
+    dateTo,
+    availability,
+  });
+
   const dateRangesInWhichUserIsAvailable = subtract(dateRanges, formattedBusyTimes);
 
   log.debug(
@@ -363,6 +371,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     workingHours,
     dateOverrides,
     currentSeats,
+    datesOutOfOffice,
   };
 };
 
@@ -625,4 +634,147 @@ const _getBusyTimesFromDurationLimits = async (
       }
     }
   }
+};
+
+interface GetUserAvailabilityParamsDTO {
+  userId: number;
+  dateFrom: Dayjs;
+  dateTo: Dayjs;
+  availability: (DateOverride | WorkingHours)[];
+}
+
+export interface IFromUser {
+  id: number;
+  displayName: string | null;
+}
+
+export interface IToUser {
+  id: number;
+  username: string | null;
+  displayName: string | null;
+}
+
+export interface IOutOfOfficeData {
+  [key: string]: {
+    fromUser: IFromUser | null;
+    toUser?: IToUser | null;
+    reason?: string | null;
+    emoji?: string | null;
+  };
+}
+
+const getOutOfOfficeDays = async (
+  ...args: Parameters<typeof _getOutOfOfficeDays>
+): Promise<ReturnType<typeof _getOutOfOfficeDays>> => {
+  return monitorCallbackAsync(_getOutOfOfficeDays, ...args);
+};
+
+const _getOutOfOfficeDays = async ({
+  userId,
+  dateFrom,
+  dateTo,
+  availability,
+}: GetUserAvailabilityParamsDTO): Promise<IOutOfOfficeData> => {
+  const outOfOfficeDays = await prisma.outOfOfficeEntry.findMany({
+    where: {
+      userId,
+      OR: [
+        // outside of range
+        // (start <= 'dateTo' AND end >= 'dateFrom')
+        {
+          start: {
+            lte: dateTo.toISOString(),
+          },
+          end: {
+            gte: dateFrom.toISOString(),
+          },
+        },
+        // start is between dateFrom and dateTo but end is outside of range
+        // (start <= 'dateTo' AND end >= 'dateTo')
+        {
+          start: {
+            lte: dateTo.toISOString(),
+          },
+
+          end: {
+            gte: dateTo.toISOString(),
+          },
+        },
+        // end is between dateFrom and dateTo but start is outside of range
+        // (start <= 'dateFrom' OR end <= 'dateTo')
+        {
+          start: {
+            lte: dateFrom.toISOString(),
+          },
+
+          end: {
+            lte: dateTo.toISOString(),
+          },
+        },
+      ],
+    },
+    select: {
+      id: true,
+      start: true,
+      end: true,
+      user: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+      toUser: {
+        select: {
+          id: true,
+          username: true,
+          name: true,
+        },
+      },
+      reason: {
+        select: {
+          id: true,
+          emoji: true,
+          reason: true,
+        },
+      },
+    },
+  });
+  if (!outOfOfficeDays.length) {
+    return {};
+  }
+
+  return outOfOfficeDays.reduce((acc: IOutOfOfficeData, { start, end, toUser, user, reason }) => {
+    // here we should use startDate or today if start is before today
+    // consider timezone in start and end date range
+    const startDateRange = dayjs(start).utc().isBefore(dayjs().startOf("day").utc())
+      ? dayjs().utc().startOf("day")
+      : dayjs(start).utc().startOf("day");
+
+    // get number of day in the week and see if it's on the availability
+    const flattenDays = Array.from(new Set(availability.flatMap((a) => ("days" in a ? a.days : [])))).sort(
+      (a, b) => a - b
+    );
+
+    const endDateRange = dayjs(end).utc().endOf("day");
+
+    for (let date = startDateRange; date.isBefore(endDateRange); date = date.add(1, "day")) {
+      const dayNumberOnWeek = date.day();
+
+      if (!flattenDays?.includes(dayNumberOnWeek)) {
+        continue; // Skip to the next iteration if day not found in flattenDays
+      }
+
+      acc[date.format("YYYY-MM-DD")] = {
+        // @TODO:  would be good having start and end availability time here, but for now should be good
+        // you can obtain that from user availability defined outside of here
+        fromUser: { id: user.id, displayName: user.name },
+        // optional chaining destructuring toUser
+        toUser: !!toUser ? { id: toUser.id, displayName: toUser.name, username: toUser.username } : null,
+        reason: !!reason ? reason.reason : null,
+        emoji: !!reason ? reason.emoji : null,
+      };
+    }
+
+    return acc;
+  }, {});
 };

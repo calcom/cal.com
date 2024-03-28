@@ -55,6 +55,7 @@ type AppsRouterHandlerCache = {
   outOfOfficeEntriesList?: typeof import("./outOfOffice.handler").outOfOfficeEntriesList;
   outOfOfficeEntryDelete?: typeof import("./outOfOffice.handler").outOfOfficeEntryDelete;
   addSecondaryEmail?: typeof import("./addSecondaryEmail.handler").addSecondaryEmailHandler;
+  outOfOfficeReasonList?: typeof import("./outOfOfficeReasons.handler").outOfOfficeReasonList;
 };
 
 const UNSTABLE_HANDLER_CACHE: AppsRouterHandlerCache = {};
@@ -483,5 +484,19 @@ export const loggedInViewerRouter = router({
     }
 
     return UNSTABLE_HANDLER_CACHE.addSecondaryEmail({ ctx, input });
+  }),
+  outOfOfficeReasonList: authedProcedure.query(async () => {
+    if (!UNSTABLE_HANDLER_CACHE.outOfOfficeReasonList) {
+      UNSTABLE_HANDLER_CACHE.outOfOfficeReasonList = (
+        await import("./outOfOfficeReasons.handler")
+      ).outOfOfficeReasonList;
+    }
+
+    // Unreachable code but required for type safety
+    if (!UNSTABLE_HANDLER_CACHE.outOfOfficeReasonList) {
+      throw new Error("Failed to load handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.outOfOfficeReasonList();
   }),
 });

@@ -41,6 +41,7 @@ export const DatePicker = ({
       browsingDate={month ? dayjs(month) : undefined}
       selected={dayjs(selectedDate)}
       weekStart={weekdayToWeekIndex(event?.data?.users?.[0]?.weekStart)}
+      slots={schedule?.data?.slots}
     />
   );
 };

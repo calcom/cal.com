@@ -101,6 +101,10 @@ export const outOfOfficeCreate = async ({ ctx, input }: TBookingRedirect) => {
     throw new TRPCError({ code: "CONFLICT", message: "out_of_office_entry_already_exists" });
   }
 
+  if (!input.reasonId) {
+    throw new TRPCError({ code: "BAD_REQUEST", message: "reason_id_required" });
+  }
+
   // Prevent infinite redirects but consider time ranges
   const existingOutOfOfficeEntry = await prisma.outOfOfficeEntry.findFirst({
     select: {
@@ -142,7 +146,9 @@ export const outOfOfficeCreate = async ({ ctx, input }: TBookingRedirect) => {
       uuid: uuidv4(),
       start: startDateUtc.startOf("day").toISOString(),
       end: endDateUtc.endOf("day").toISOString(),
+      notes: input.notes,
       userId: ctx.user.id,
+      reasonId: input.reasonId,
       toUserId: toUserId,
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -222,7 +228,7 @@ export const outOfOfficeEntriesList = async ({ ctx }: { ctx: { user: NonNullable
       },
     },
     orderBy: {
-      start: "desc",
+      start: "asc",
     },
     select: {
       id: true,
@@ -235,6 +241,15 @@ export const outOfOfficeEntriesList = async ({ ctx }: { ctx: { user: NonNullable
           username: true,
         },
       },
+      reason: {
+        select: {
+          id: true,
+          emoji: true,
+          reason: true,
+          userId: true,
+        },
+      },
+      notes: true,
     },
   });
 

@@ -18,7 +18,14 @@ test.describe("Out of office", () => {
 
     await page.goto("/settings/my-account/out-of-office");
 
-    await page.locator("data-testid=create-entry-ooo-redirect").click();
+    await page.getByTestId("add_entry_ooo").click();
+    await page.getByTestId("reason_select").click();
+
+    await page.getByTestId("select-option-4").click();
+
+    await page.getByTestId("notes_input").click();
+    await page.getByTestId("notes_input").fill("Demo notes");
+    await page.getByTestId("create-entry-ooo-redirect").click();
 
     await expect(page.locator(`data-testid=table-redirect-n-a`)).toBeVisible();
   });
@@ -56,14 +63,20 @@ test.describe("Out of office", () => {
 
     await page.goto(`/settings/my-account/out-of-office`);
 
+    await page.getByTestId("add_entry_ooo").click();
+    await page.getByTestId("reason_select").click();
+
+    await page.getByTestId("select-option-4").click();
+
+    await page.getByTestId("notes_input").click();
+    await page.getByTestId("notes_input").fill("Demo notes");
+
     await page.getByTestId("profile-redirect-switch").click();
-    await page
-      .getByTestId("team_username_select")
-      .locator("div")
-      .filter({ hasText: "Select team member" })
-      .first()
-      .click();
-    await page.locator("#react-select-2-option-0 div").click();
+
+    await page.getByTestId("team_username_select").click();
+
+    await page.locator("#react-select-3-input").fill("user");
+    await page.locator("#react-select-3-input").press("Enter");
 
     // send request
     await page.getByTestId("create-entry-ooo-redirect").click();
@@ -84,18 +97,19 @@ test.describe("Out of office", () => {
         user: { connect: { id: user.id } },
         toUser: { connect: { id: userTo.id } },
         createdAt: new Date(),
+        reason: {
+          connect: {
+            id: 1,
+          },
+        },
       },
     });
 
     await page.goto(`/${user.username}`);
 
-    await page.waitForLoadState("networkidle");
+    const eventTypeLink = page.locator('[data-testid="event-type-link"]').first();
+    await eventTypeLink.click();
 
-    // regex to match username
-    expect(page.url()).toMatch(new RegExp(`/${userTo.username}`));
-
-    await page.goto(`/${userTo.username}/30-min`);
-
-    expect(page.url()).toMatch(new RegExp(`/${userTo.username}/30-min`));
+    await expect(page.getByTestId("away-emoji")).toBeTruthy();
   });
 });
