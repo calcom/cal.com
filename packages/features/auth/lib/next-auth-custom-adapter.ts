@@ -72,7 +72,6 @@ export default function CalComAdapter(prismaClient: PrismaClient) {
       }
     },
     linkAccount: (data: Prisma.AccountCreateInput) => prismaClient.account.create({ data }),
-    // @NOTE: All methods below here are not being used but leaved if they are required
     unlinkAccount: (provider_providerAccountId: Prisma.AccountProviderProviderAccountIdCompoundUniqueInput) =>
       prismaClient.account.delete({ where: { provider_providerAccountId } }),
   };
