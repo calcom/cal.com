@@ -20,7 +20,7 @@ import type { IntervalLimit } from "@calcom/types/Calendar";
 import { Button, DateRangePicker, InputField, Label, Select, SettingsToggle, TextField } from "@calcom/ui";
 import { Plus, Trash2 } from "@calcom/ui/components/icon";
 
-const MinimumBookingNoticeInput = React.forwardRef<
+export const MinimumBookingNoticeInput = React.forwardRef<
   HTMLInputElement,
   Omit<UseFormRegisterReturn<"minimumBookingNotice">, "ref">
 >(function MinimumBookingNoticeInput({ ...passThroughProps }, ref) {
@@ -110,24 +110,29 @@ const MinimumBookingNoticeInput = React.forwardRef<
   );
 });
 
+export const PERIOD_TYPES = [
+  {
+    type: "ROLLING" as const,
+    suffix: "into_the_future",
+  },
+  {
+    type: "RANGE" as const,
+    prefix: "within_date_range",
+  },
+  {
+    type: "UNLIMITED" as const,
+    prefix: "indefinitely_into_future",
+  },
+];
+
+export const optionsPeriod = [
+  { value: 0, label: "business_days" },
+  { value: 1, label: "calendar_days" },
+];
+
 export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventType">) => {
   const { t, i18n } = useLocale();
   const formMethods = useFormContext<FormValues>();
-
-  const PERIOD_TYPES = [
-    {
-      type: "ROLLING" as const,
-      suffix: t("into_the_future"),
-    },
-    {
-      type: "RANGE" as const,
-      prefix: t("within_date_range"),
-    },
-    {
-      type: "UNLIMITED" as const,
-      prefix: t("indefinitely_into_future"),
-    },
-  ];
 
   const watchPeriodType = formMethods.watch("periodType");
 
@@ -142,11 +147,6 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
   const onlyFirstAvailableSlotLocked = shouldLockDisableProps("onlyShowFirstAvailableSlot");
   const periodTypeLocked = shouldLockDisableProps("periodType");
   const offsetStartLockedProps = shouldLockDisableProps("offsetStart");
-
-  const optionsPeriod = [
-    { value: 0, label: t("business_days") },
-    { value: 1, label: t("calendar_days") },
-  ];
 
   const [offsetToggle, setOffsetToggle] = useState(formMethods.getValues("offsetStart") > 0);
 
@@ -434,7 +434,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
                           </RadioGroup.Item>
                         )}
 
-                        {period.prefix ? <span>{period.prefix}&nbsp;</span> : null}
+                        {period.prefix ? <span>{t(period.prefix)}&nbsp;</span> : null}
                         {period.type === "ROLLING" && (
                           <div className="flex items-center">
                             <TextField
@@ -446,7 +446,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
                               {...formMethods.register("periodDays", { valueAsNumber: true })}
                             />
                             <Select
-                              options={optionsPeriod}
+                              options={optionsPeriod.map((option) => ({ ...option, label: t(option.label) }))}
                               isSearchable={false}
                               isDisabled={periodTypeLocked.disabled}
                               onChange={(opt) => {
@@ -489,7 +489,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
                             />
                           </div>
                         )}
-                        {period.suffix ? <span className="me-2 ms-2">&nbsp;{period.suffix}</span> : null}
+                        {period.suffix ? <span className="me-2 ms-2">&nbsp;{t(period.suffix)}</span> : null}
                       </div>
                     );
                   })}
@@ -616,7 +616,7 @@ type IntervalLimitsManagerProps<K extends "durationLimits" | "bookingLimits"> = 
   disabled?: boolean;
 };
 
-const IntervalLimitsManager = <K extends "durationLimits" | "bookingLimits">({
+export const IntervalLimitsManager = <K extends "durationLimits" | "bookingLimits">({
   propertyName,
   defaultLimit,
   step,
