@@ -206,6 +206,7 @@
   "2fa_confirm_current_password": "Confirmez votre mot de passe actuel pour commencer.",
   "2fa_scan_image_or_use_code": "Scannez l'image ci-dessous avec votre application d'authentification ou saisissez manuellement le code.",
   "text": "Texte",
+  "your_phone_number": "Votre numéro de téléphone",
   "multiline_text": "Zone de texte",
   "number": "Nombre",
   "checkbox": "Case à cocher",

@@ -4038,7 +4038,7 @@ __metadata:
     "@vitejs/plugin-react": ^2.2.0
     class-variance-authority: ^0.4.0
     clsx: ^2.0.0
-    lucide-react: ^0.171.0
+    lucide-react: ^0.363.0
     react-use: ^17.4.2
     rollup-plugin-node-builtins: ^2.1.2
     tailwind-merge: ^1.13.2
@@ -5168,7 +5168,7 @@ __metadata:
     cmdk: ^0.2.0
     cmk: ^0.1.1
     downshift: ^6.1.9
-    lucide-react: ^0.171.0
+    lucide-react: ^0.363.0
     next: ^13.5.4
     next-seo: ^6.0.0
     react: ^18.2.0
@@ -5446,7 +5446,7 @@ __metadata:
     i18n-unused: ^0.13.0
     iframe-resizer-react: ^1.1.0
     keen-slider: ^6.8.0
-    lucide-react: ^0.171.0
+    lucide-react: ^0.363.0
     micro: ^10.0.1
     next: ^14.1
     next-auth: ^4.22.1
@@ -20073,7 +20073,7 @@ __metadata:
     jest-diff: ^29.5.0
     jsdom: ^22.0.0
     lint-staged: ^12.5.0
-    lucide-react: ^0.171.0
+    lucide-react: ^0.363.0
     mailhog: ^4.16.0
     next-router-mock: ^0.9.12
     node-ical: ^0.16.1
@@ -32846,12 +32846,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lucide-react@npm:^0.171.0":
-  version: 0.171.0
-  resolution: "lucide-react@npm:0.171.0"
+"lucide-react@npm:^0.363.0":
+  version: 0.363.0
+  resolution: "lucide-react@npm:0.363.0"
   peerDependencies:
     react: ^16.5.1 || ^17.0.0 || ^18.0.0
-  checksum: 768ffe368c52a518ee339203d86ff4479989ab4d79c0716f721900c4bb7392ef6ff7a14807f6a685abd74d27f4c1778170bff77a0ab4c3e06c17944b557d8300
+  checksum: abe8fad469a2f14181eca6f3682403c5d53a4a354f333b0f7d3b575471d451c6f3fd36f59d96745a5a823e4cc55eeb2dcda70774a6fe438834ea3fb6fa5b75af
   languageName: node
   linkType: hard
 

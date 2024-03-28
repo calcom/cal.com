@@ -44,6 +44,7 @@ import {
   Repeat,
   Grid,
   Zap,
+  Sparkles,
   Users,
   ExternalLink,
   Code,
@@ -281,6 +282,15 @@ function EventTypeSingleLayout({
         href: `/event-types/${formMethods.getValues("id")}?tabName=webhooks`,
         icon: TbWebhook,
         info: `${activeWebhooksNumber} ${t("active")}`,
+      });
+    }
+    const hidden = true; // hidden while in alpha trial. you can access it with tabName=ai
+    if (team && hidden) {
+      navigation.push({
+        name: "Cal.ai",
+        href: `/event-types/${eventType.id}?tabName=ai`,
+        icon: Sparkles,
+        info: "cal_ai_event_tab_description", // todo `cal_ai_event_tab_description`,
       });
     }
     return navigation;
