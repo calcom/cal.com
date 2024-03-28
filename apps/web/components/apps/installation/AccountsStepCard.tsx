@@ -35,7 +35,6 @@ const AccountSelector: FC<AccountSelectorProps> = ({ avatar, alreadyInstalled, n
 export type PersonalAccountProps = Pick<User, "id" | "avatar" | "name"> & { alreadyInstalled: boolean };
 
 export type TeamsProp = (Pick<Team, "id" | "name" | "logo"> & {
-  accepted: true;
   alreadyInstalled: boolean;
 })[];
 
