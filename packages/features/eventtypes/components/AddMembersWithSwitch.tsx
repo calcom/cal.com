@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import type { ComponentProps, Dispatch, SetStateAction } from "react";
 import { useFormContext } from "react-hook-form";
 import type { Options } from "react-select";
@@ -14,18 +15,21 @@ interface IUserToValue {
   id: number | null;
   name: string | null;
   username: string | null;
-  avatar: string;
+  avatar: string | null;
   email: string;
+  accepted?: boolean;
 }
 
 export const mapUserToValue = (
-  { id, name, username, avatar, email }: IUserToValue,
+  { id, name, username, avatar, email, accepted }: IUserToValue,
   pendingString: string
-) => ({
+): TeamMember => ({
   value: `${id || ""}`,
-  label: `${name || email || ""}${!username ? ` (${pendingString})` : ""}`,
-  avatar,
+  // Showing Pending badge if user has not accepted
+  label: `${name || email || ""}${!username && accepted !== false ? ` (${pendingString})` : ""}`,
+  avatar: avatar ?? "/avatar.svg",
   email,
+  accepted,
 });
 
 const sortByLabel = (a: ReturnType<typeof mapUserToValue>, b: ReturnType<typeof mapUserToValue>) => {
@@ -100,6 +104,8 @@ const AddMembersWithSwitch = ({
   isFixed,
   placeholder = "",
   containerClassName = "",
+  setMemberInviteModal,
+  handleEmailInvite,
 }: {
   value: Host[];
   onChange: (hosts: Host[]) => void;
@@ -111,12 +117,28 @@ const AddMembersWithSwitch = ({
   isFixed: boolean;
   placeholder?: string;
   containerClassName?: string;
+  setMemberInviteModal?: Dispatch<SetStateAction<boolean>>;
+  handleEmailInvite?: (email: string) => void;
 }) => {
   const { t } = useLocale();
   const { setValue } = useFormContext<FormValues>();
+  const [inputValue, setInputValue] = useState("");
+  const [noOptionLeft, setNoOptionLeft] = useState(false);
+
+  useEffect(() => {
+    // Check if no option left when inputValue changes
+    if (inputValue.trim() !== "") {
+      const filteredOptions = teamMembers.filter((option) =>
+        option.label.toLowerCase().includes(inputValue.toLowerCase())
+      );
+      setNoOptionLeft(filteredOptions.length === 0);
+    } else {
+      setNoOptionLeft(false);
+    }
+  }, [inputValue, teamMembers, handleEmailInvite]);
 
   return (
-    <div className="rounded-md ">
+    <div className="rounded-md">
       <div className={`flex flex-col rounded-md px-6 pb-2 pt-6 ${containerClassName}`}>
         {automaticAddAllEnabled ? (
           <div className="mb-2">
@@ -132,6 +154,19 @@ const AddMembersWithSwitch = ({
         )}
         {!assignAllTeamMembers || !automaticAddAllEnabled ? (
           <CheckedHostField
+            onInputChange={(inputValue) => {
+              setInputValue(inputValue);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                if (setMemberInviteModal && noOptionLeft && handleEmailInvite) {
+                  e.preventDefault();
+                  setMemberInviteModal(true);
+                  setNoOptionLeft(false);
+                  handleEmailInvite(inputValue);
+                }
+              }
+            }}
             value={value}
             onChange={onChange}
             isFixed={isFixed}
