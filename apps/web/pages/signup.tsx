@@ -359,7 +359,9 @@ export default function Signup({
                     !!formMethods.formState.errors.email ||
                     !formMethods.getValues("email") ||
                     !formMethods.getValues("password") ||
-                    (CLOUDFLARE_SITE_ID && !formMethods.getValues("cfToken")) ||
+                    (CLOUDFLARE_SITE_ID &&
+                      !process.env.NEXT_PUBLIC_IS_E2E &&
+                      !formMethods.getValues("cfToken")) ||
                     isSubmitting ||
                     usernameTaken
                   }>
