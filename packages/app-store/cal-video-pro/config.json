@@ -1,0 +1,16 @@
+{
+  "/*": "Don't modify slug - If required, do it using cli edit command",
+  "name": "Cal Video Pro",
+  "slug": "cal-video-pro",
+  "type": "cal-video-pro_conferencing",
+  "logo": "icon.svg",
+  "url": "https://cal.com",
+  "variant": "conferencing",
+  "categories": ["conferencing"],
+  "publisher": "Cal.com, Inc.",
+  "email": "support@cal.com",
+  "description": "Experience the Pro version of Cal Video with transcription, dedicated S3 storage for recordings and unique cal.video/username links.",
+  "isTemplate": false,
+  "__createdUsingCli": true,
+  "__template": "basic"
+}
