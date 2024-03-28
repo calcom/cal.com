@@ -12,16 +12,20 @@ import { Prisma } from "@calcom/prisma/client";
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
+import updateAppServerLocation from "../../_utils/updateAppServerLocation";
 import config from "../config.json";
 import type { ZohoAuthCredentials } from "../types/ZohoCalendar";
 import { appKeysSchema as zohoKeysSchema } from "../zod";
 
 const log = logger.getSubLogger({ prefix: [`[[zohocalendar/api/callback]`] });
 
-const OAUTH_BASE_URL = "https://accounts.zoho.com/oauth/v2";
+function getOAuthBaseUrl(domain: string): string {
+  return `https://accounts.zoho.${domain}/oauth/v2`;
+}
 
 async function getHandler(req: NextApiRequest, res: NextApiResponse) {
-  const { code } = req.query;
+  const { code, location } = req.query;
+
   const state = decodeOAuthState(req);
 
   if (code && typeof code !== "string") {
@@ -33,8 +37,12 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     return res.status(401).json({ message: "You must be logged in to do this" });
   }
 
+  if (location && typeof location === "string") {
+    updateAppServerLocation(config.slug, location);
+  }
+
   const appKeys = await getAppKeysFromSlug(config.slug);
-  const { client_id, client_secret } = zohoKeysSchema.parse(appKeys);
+  const { client_id, client_secret, server_location } = zohoKeysSchema.parse(appKeys);
 
   const params = {
     client_id,
@@ -46,14 +54,14 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
 
   const query = stringify(params);
 
-  const response = await fetch(`${OAUTH_BASE_URL}/token?${query}`, {
+  const response = await fetch(`${getOAuthBaseUrl(server_location || "com")}/token?${query}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json; charset=utf-8",
     },
   });
 
-  const responseBody = await response.json();
+  const responseBody = await JSON.parse(await response.text());
 
   if (!response.ok || responseBody.error) {
     log.error("get access_token failed", responseBody);
@@ -66,7 +74,11 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     expires_in: Math.round(+new Date() / 1000 + responseBody.expires_in),
   };
 
-  const calendarResponse = await fetch("https://calendar.zoho.com/api/v1/calendars", {
+  function getCalenderUri(domain: string): string {
+    return `https://calendar.zoho.${domain}/api/v1/calendars`;
+  }
+
+  const calendarResponse = await fetch(getCalenderUri(server_location || "com"), {
     method: "GET",
     headers: {
       Authorization: `Bearer ${key.access_token}`,
