@@ -54,14 +54,7 @@ const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   eventName: true,
   slug: true,
   isInstantEvent: true,
-  aiPhoneCallConfig: {
-    select: {
-      eventTypeId: true,
-      isCalAiPhoneCallEnabled: true,
-      generalPrompt: true,
-      beginMessage: true,
-    },
-  },
+  aiPhoneCallConfig: true,
   schedulingType: true,
   length: true,
   locations: true,

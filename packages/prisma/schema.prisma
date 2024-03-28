@@ -908,13 +908,16 @@ model Workflow {
 }
 
 model AIPhoneCallConfiguration {
-  id                      Int       @id @default(autoincrement())
-  eventType               EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
-  eventTypeId             Int
-  generalPrompt           String
-  isCalAiPhoneCallEnabled Boolean   @default(false)
-  beginMessage            String?
-  llmId                   String?
+  id              Int       @id @default(autoincrement())
+  eventType       EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+  eventTypeId     Int
+  generalPrompt   String
+  yourPhoneNumber String
+  numberToCall    String
+  guestName       String
+  enabled         Boolean   @default(false)
+  beginMessage    String?
+  llmId           String?
 
   @@unique([eventTypeId])
   @@index([eventTypeId])

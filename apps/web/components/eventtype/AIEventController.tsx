@@ -2,7 +2,7 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import type { EventTypeSetup } from "pages/event-types/[type]";
 import { useState } from "react";
-import { useFormContext } from "react-hook-form";
+import { useFormContext, Controller } from "react-hook-form";
 import { z } from "zod";
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
@@ -32,9 +32,7 @@ type AIEventControllerProps = {
 export default function AIEventController({ eventType, isTeamEvent }: AIEventControllerProps) {
   const { t } = useLocale();
   const session = useSession();
-  const [aiEventState, setAIEventState] = useState<boolean>(
-    eventType?.aiPhoneCallConfig?.isCalAiPhoneCallEnabled ?? false
-  );
+  const [aiEventState, setAIEventState] = useState<boolean>(eventType?.aiPhoneCallConfig?.enabled ?? false);
   const formMethods = useFormContext<FormValues>();
 
   const isOrg = !!session.data?.user?.org?.id;
@@ -67,12 +65,12 @@ export default function AIEventController({ eventType, isTeamEvent }: AIEventCon
               data-testid="instant-event-check"
               onCheckedChange={(e) => {
                 if (!e) {
-                  formMethods.setValue("aiPhoneCallConfig.isCalAiPhoneCallEnabled", false, {
+                  formMethods.setValue("aiPhoneCallConfig.enabled", false, {
                     shouldDirty: true,
                   });
                   setAIEventState(false);
                 } else {
-                  formMethods.setValue("aiPhoneCallConfig.isCalAiPhoneCallEnabled", true, {
+                  formMethods.setValue("aiPhoneCallConfig.enabled", true, {
                     shouldDirty: true,
                   });
                   setAIEventState(true);
@@ -91,19 +89,17 @@ export default function AIEventController({ eventType, isTeamEvent }: AIEventCon
 
 const AISettings = ({ eventType }: { eventType: EventTypeSetup }) => {
   const { t } = useLocale();
-  const [numberToCall, setNumberToCall] = useState<string | undefined>();
-  const [yourPhoneNumber, setYourPhoneNumber] = useState<string | undefined>();
-  const [guestName, setGuestName] = useState<string | undefined>();
 
   const formMethods = useFormContext<FormValues>();
 
-  const generalPrompt = formMethods.watch("aiPhoneCallConfig.generalPrompt");
-  const beginMessage = formMethods.watch("aiPhoneCallConfig.beginMessage");
   const createCallMutation = trpc.viewer.organizations.createPhoneCall.useMutation({
     onSuccess: (data) => {
       if (!!data?.call_id) {
         showToast("Phone Call Created successfully", "success");
       }
+    },
+    onError: (err) => {
+      showToast(t("something_went_wrong"), "error");
     },
   });
 
@@ -128,12 +124,10 @@ const AISettings = ({ eventType }: { eventType: EventTypeSetup }) => {
 
   const handleSubmit = async () => {
     try {
+      const values = formMethods.getValues("aiPhoneCallConfig");
+      console.log("values", values);
       const data = await AIPhoneSettingSchema.parseAsync({
-        yourPhoneNumber,
-        generalPrompt,
-        guestName,
-        numberToCall,
-        beginMessage,
+        ...values,
         eventTypeId: eventType.id,
       });
 
@@ -154,39 +148,54 @@ const AISettings = ({ eventType }: { eventType: EventTypeSetup }) => {
       <div className="space-y-4">
         <>
           <Label>{t("your_phone_number")}</Label>
-          <PhoneInput
-            required
-            placeholder={t("your_phone_number")}
-            id="yourPhoneNumber"
-            value={yourPhoneNumber}
-            onChange={(val) => {
-              setYourPhoneNumber(val);
+          <Controller
+            name="aiPhoneCallConfig.yourPhoneNumber"
+            render={({ field: { onChange, value } }) => {
+              return (
+                <PhoneInput
+                  required
+                  placeholder={t("your_phone_number")}
+                  id="aiPhoneCallConfig.yourPhoneNumber"
+                  name="aiPhoneCallConfig.yourPhoneNumber"
+                  value={value}
+                  onChange={(val) => {
+                    onChange(val);
+                  }}
+                />
+              );
             }}
           />
 
           <Label>{t("number_to_call")}</Label>
-          <PhoneInput
-            required
-            placeholder={t("phone_number")}
-            id="numberToCall"
-            value={numberToCall}
-            onChange={(val) => {
-              setNumberToCall(val);
+          <Controller
+            name="aiPhoneCallConfig.numberToCall"
+            render={({ field: { onChange, value } }) => {
+              return (
+                <PhoneInput
+                  required
+                  placeholder={t("phone_number")}
+                  id="aiPhoneCallConfig.numberToCall"
+                  name="aiPhoneCallConfig.numberToCall"
+                  value={value}
+                  onChange={(val) => {
+                    onChange(val);
+                  }}
+                />
+              );
             }}
           />
 
           <Divider />
         </>
 
-        <Label>{t("guest_name")}</Label>
         <TextField
           type="text"
           hint="Variable: {name}"
           label={t("guest_name")}
           placeholder="Jane Doe"
-          value={guestName}
+          {...formMethods.register("aiPhoneCallConfig.guestName")}
           onChange={(e) => {
-            setGuestName(e.target.value);
+            formMethods.setValue("aiPhoneCallConfig.guestName", e.target.value, { shouldDirty: true });
           }}
         />
 
@@ -194,8 +203,8 @@ const AISettings = ({ eventType }: { eventType: EventTypeSetup }) => {
         <TextAreaField
           rows={3}
           required
-          placeholder="General Prompt"
-          label="General Prompt"
+          placeholder={t("general_prompt")}
+          label={t("general_prompt")}
           {...formMethods.register("aiPhoneCallConfig.generalPrompt")}
           onChange={(e) => {
             formMethods.setValue("aiPhoneCallConfig.generalPrompt", e.target.value, { shouldDirty: true });
@@ -204,8 +213,8 @@ const AISettings = ({ eventType }: { eventType: EventTypeSetup }) => {
 
         <TextAreaField
           rows={3}
-          placeholder="Begin Message"
-          label="Begin message"
+          placeholder={t("begin_message")}
+          label={t("begin_message")}
           {...formMethods.register("aiPhoneCallConfig.beginMessage")}
           onChange={(e) => {
             formMethods.setValue("aiPhoneCallConfig.beginMessage", e.target.value, { shouldDirty: true });

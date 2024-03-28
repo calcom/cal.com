@@ -84,14 +84,7 @@ export const getEventTypeById = async ({
       description: true,
       length: true,
       isInstantEvent: true,
-      aiPhoneCallConfig: {
-        select: {
-          eventTypeId: true,
-          isCalAiPhoneCallEnabled: true,
-          generalPrompt: true,
-          beginMessage: true,
-        },
-      },
+      aiPhoneCallConfig: true,
       offsetStart: true,
       hidden: true,
       locations: true,

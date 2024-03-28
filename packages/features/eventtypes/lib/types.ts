@@ -60,8 +60,11 @@ export type FormValues = {
   }[];
   aiPhoneCallConfig: {
     generalPrompt: string;
-    isCalAiPhoneCallEnabled: boolean;
+    enabled: boolean;
     beginMessage: string;
+    yourPhoneNumber: string;
+    numberToCall: string;
+    guestName: string;
   };
   customInputs: CustomInputParsed[];
   schedule: number | null;

@@ -47,9 +47,12 @@ export type Event = {
   isInstantEvent: boolean;
   aiPhoneCallConfig: {
     eventTypeId: number;
-    isCalAiPhoneCallEnabled: boolean;
+    enabled: boolean;
     generalPrompt: string;
     beginMessage: string | null;
+    yourPhoneNumber: string;
+    numberToCall: string;
+    guestName: string;
   };
   schedulingType: string;
   length: number;

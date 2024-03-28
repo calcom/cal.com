@@ -69,13 +69,19 @@ const createPhoneCallHandler = async ({ input, ctx }: CreatePhoneCallProps) => {
     update: {
       beginMessage,
       generalPrompt,
-      isCalAiPhoneCallEnabled: true,
+      enabled: true,
+      guestName,
+      numberToCall,
+      yourPhoneNumber,
     },
     create: {
       eventTypeId,
       beginMessage,
       generalPrompt,
-      isCalAiPhoneCallEnabled: true,
+      enabled: true,
+      guestName,
+      numberToCall,
+      yourPhoneNumber,
     },
   });
 

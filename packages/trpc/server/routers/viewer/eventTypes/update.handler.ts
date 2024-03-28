@@ -60,7 +60,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         select: {
           generalPrompt: true,
           beginMessage: true,
-          isCalAiPhoneCallEnabled: true,
+          enabled: true,
           llmId: true,
         },
       },
@@ -354,18 +354,26 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     }
   }
 
+  console.log("aiPhoneCallConfig", aiPhoneCallConfig, eventType.aiPhoneCallConfig);
   if (aiPhoneCallConfig) {
-    const createOrUpdateAIPhoneConfig = await ctx.prisma.aIPhoneCallConfiguration.upsert({
-      where: {
-        eventTypeId: id,
-      },
-      update: aiPhoneCallConfig,
-      create: {
-        ...aiPhoneCallConfig,
-        eventTypeId: id,
-      },
-    });
-    console.log("createOrUpdateAIPhoneConfig", createOrUpdateAIPhoneConfig);
+    if (aiPhoneCallConfig.enabled) {
+      await ctx.prisma.aIPhoneCallConfiguration.upsert({
+        where: {
+          eventTypeId: id,
+        },
+        update: aiPhoneCallConfig,
+        create: {
+          ...aiPhoneCallConfig,
+          eventTypeId: id,
+        },
+      });
+    } else if (!aiPhoneCallConfig.enabled && eventType.aiPhoneCallConfig) {
+      await ctx.prisma.aIPhoneCallConfiguration.delete({
+        where: {
+          eventTypeId: id,
+        },
+      });
+    }
   }
 
   const updatedEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({

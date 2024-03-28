@@ -3,7 +3,10 @@ CREATE TABLE "AIPhoneCallConfiguration" (
     "id" SERIAL NOT NULL,
     "eventTypeId" INTEGER NOT NULL,
     "generalPrompt" TEXT NOT NULL,
-    "isCalAiPhoneCallEnabled" BOOLEAN NOT NULL DEFAULT false,
+    "yourPhoneNumber" TEXT NOT NULL,
+    "numberToCall" TEXT NOT NULL,
+    "guestName" TEXT NOT NULL,
+    "enabled" BOOLEAN NOT NULL DEFAULT false,
     "beginMessage" TEXT,
     "llmId" TEXT,
 
