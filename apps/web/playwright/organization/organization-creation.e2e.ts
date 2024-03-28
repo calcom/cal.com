@@ -245,7 +245,12 @@ test.describe("Organization", () => {
     await test.step("Login as org owner and pay", async () => {
       // eslint-disable-next-line playwright/no-skipped-test
       test.skip(!IS_TEAM_BILLING_ENABLED, "Skipping paying for org as stripe is disabled");
+      await orgOwnerUser.apiLogin();
+      await page.goto("/event-types");
+      const upgradeButton = await page.getByTestId("upgrade_org_banner_button");
 
+      await expect(upgradeButton).toBeVisible();
+      await upgradeButton.click();
       // Check that stripe checkout is present
       const expectedUrl = "https://checkout.stripe.com";
 
@@ -386,7 +391,12 @@ test.describe("Organization", () => {
     await test.step("Login as org owner and pay", async () => {
       // eslint-disable-next-line playwright/no-skipped-test
       test.skip(!IS_TEAM_BILLING_ENABLED, "Skipping paying for org as stripe is disabled");
+      await orgOwnerUser.apiLogin();
+      await page.goto("/event-types");
+      const upgradeButton = await page.getByTestId("upgrade_org_banner_button");
 
+      await expect(upgradeButton).toBeVisible();
+      await upgradeButton.click();
       // Check that stripe checkout is present
       const expectedUrl = "https://checkout.stripe.com";
 
