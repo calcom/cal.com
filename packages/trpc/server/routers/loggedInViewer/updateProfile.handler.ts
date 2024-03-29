@@ -9,6 +9,7 @@ import { getPremiumMonthlyPlanPriceId } from "@calcom/app-store/stripepayment/li
 import { passwordResetRequest } from "@calcom/features/auth/lib/passwordResetRequest";
 import { sendChangeOfEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
 import { getFeatureFlag } from "@calcom/features/flags/server/utils";
+import { validateIntervalLimitOrder } from "@calcom/lib";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
@@ -22,6 +23,7 @@ import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import { prisma } from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
+import { handlePeriodType } from "@calcom/trpc/server/routers/viewer/eventTypes/util";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
@@ -72,6 +74,12 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
 
   const secondaryEmails = input?.secondaryEmails || [];
   delete input.secondaryEmails;
+
+  const bookingLimits = input?.bookingLimits;
+  delete input.bookingLimits;
+
+  const futureBookingLimits = input?.futureBookingLimits;
+  delete input.futureBookingLimits;
 
   const data: Prisma.UserUpdateInput = {
     ...input,
@@ -269,6 +277,53 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
       }
     }
     throw e; // make sure other errors are rethrown
+  }
+
+  if (bookingLimits) {
+    const isValid = validateIntervalLimitOrder(bookingLimits);
+    if (!isValid)
+      throw new TRPCError({ code: "BAD_REQUEST", message: "Booking limits must be in ascending order." });
+
+    await prisma.globalSettings.upsert({
+      where: {
+        userId: user.id,
+      },
+      create: {
+        userId: user.id,
+        bookingLimits,
+      },
+      update: {
+        bookingLimits,
+      },
+    });
+  }
+
+  if (futureBookingLimits) {
+    const dataToSave = {
+      ...futureBookingLimits,
+      ...(futureBookingLimits?.periodDates
+        ? {
+            periodStartDate: futureBookingLimits.periodDates.startDate,
+            periodEndDate: futureBookingLimits.periodDates.endDate,
+          }
+        : {}),
+    };
+    delete dataToSave.periodDates;
+    if (dataToSave.periodType) {
+      dataToSave.periodType = handlePeriodType(dataToSave.periodType);
+    }
+    await prisma.globalSettings.upsert({
+      where: {
+        userId: user.id,
+      },
+      create: {
+        userId: user.id,
+        ...dataToSave,
+      },
+      update: {
+        ...dataToSave,
+      },
+    });
   }
 
   if (user.timeZone !== data.timeZone && updatedUser.schedules.length > 0) {

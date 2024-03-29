@@ -1,7 +1,8 @@
 import { z } from "zod";
 
 import { FULL_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
-import { bookerLayouts, userMetadata } from "@calcom/prisma/zod-utils";
+import { PeriodType } from "@calcom/prisma/enums";
+import { bookerLayouts, intervalLimitsType, userMetadata, coerceToDate } from "@calcom/prisma/zod-utils";
 
 export const updateUserMetadataAllowedKeys = z.object({
   sessionTimeout: z.number().optional(), // Minutes
@@ -37,6 +38,23 @@ export const ZUpdateProfileInputSchema = z.object({
         isDeleted: z.boolean().default(false),
       })
     )
+    .optional(),
+  bookingLimits: intervalLimitsType.optional(),
+  futureBookingLimits: z
+    .object({
+      periodType: z.nativeEnum(PeriodType),
+      periodDates: z
+        .object({
+          startDate: coerceToDate.optional(),
+          endDate: coerceToDate.optional(),
+        })
+        .optional(),
+      periodDays: z.number().int().optional(),
+      periodCountCalendarDays: z.boolean().optional(),
+      minimumBookingNotice: z.number().int().min(0),
+      afterEventBuffer: z.number().optional(),
+      beforeEventBuffer: z.number().optional(),
+    })
     .optional(),
 });
 
