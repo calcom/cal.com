@@ -82,16 +82,16 @@ describe("Platform Gcal Endpoints", () => {
     expect(user).toBeDefined();
   });
 
-  it(`/GET/platform/gcal/oauth/auth-url: it should respond 401 with invalid access token`, async () => {
+  it(`/GET/ee/gcal/oauth/auth-url: it should respond 401 with invalid access token`, async () => {
     await request(app.getHttpServer())
-      .get(`/api/v2/platform/gcal/oauth/auth-url`)
+      .get(`/api/v2/ee/gcal/oauth/auth-url`)
       .set("Authorization", `Bearer invalid_access_token`)
       .expect(401);
   });
 
-  it(`/GET/platform/gcal/oauth/auth-url: it should auth-url to google oauth with valid access token `, async () => {
+  it(`/GET/ee/gcal/oauth/auth-url: it should auth-url to google oauth with valid access token `, async () => {
     const response = await request(app.getHttpServer())
-      .get(`/api/v2/platform/gcal/oauth/auth-url`)
+      .get(`/api/v2/ee/gcal/oauth/auth-url`)
       .set("Authorization", `Bearer ${accessTokenSecret}`)
       .set("Origin", CLIENT_REDIRECT_URI)
       .expect(200);
@@ -99,50 +99,50 @@ describe("Platform Gcal Endpoints", () => {
     expect(data.authUrl).toBeDefined();
   });
 
-  it(`/GET/platform/gcal/oauth/save: without oauth code`, async () => {
+  it(`/GET/ee/gcal/oauth/save: without oauth code`, async () => {
     await request(app.getHttpServer())
       .get(
-        `/api/v2/platform/gcal/oauth/save?state=accessToken=${accessTokenSecret}&origin%3D${CLIENT_REDIRECT_URI}&scope=https://www.googleapis.com/auth/calendar.readonly%20https://www.googleapis.com/auth/calendar.events`
+        `/api/v2/ee/gcal/oauth/save?state=accessToken=${accessTokenSecret}&origin%3D${CLIENT_REDIRECT_URI}&scope=https://www.googleapis.com/auth/calendar.readonly%20https://www.googleapis.com/auth/calendar.events`
       )
       .expect(400);
   });
 
-  it(`/GET/platform/gcal/oauth/save: without access token`, async () => {
+  it(`/GET/ee/gcal/oauth/save: without access token`, async () => {
     await request(app.getHttpServer())
       .get(
-        `/api/v2/platform/gcal/oauth/save?state=origin%3D${CLIENT_REDIRECT_URI}&code=4/0AfJohXmBuT7QVrEPlAJLBu4ZcSnyj5jtDoJqSW_riPUhPXQ70RPGkOEbVO3xs-OzQwpPQw&scope=https://www.googleapis.com/auth/calendar.readonly%20https://www.googleapis.com/auth/calendar.events`
+        `/api/v2/ee/gcal/oauth/save?state=origin%3D${CLIENT_REDIRECT_URI}&code=4/0AfJohXmBuT7QVrEPlAJLBu4ZcSnyj5jtDoJqSW_riPUhPXQ70RPGkOEbVO3xs-OzQwpPQw&scope=https://www.googleapis.com/auth/calendar.readonly%20https://www.googleapis.com/auth/calendar.events`
       )
       .expect(400);
   });
 
-  it(`/GET/platform/gcal/oauth/save: without origin`, async () => {
+  it(`/GET/ee/gcal/oauth/save: without origin`, async () => {
     await request(app.getHttpServer())
       .get(
-        `/api/v2/platform/gcal/oauth/save?state=accessToken=${accessTokenSecret}&code=4/0AfJohXmBuT7QVrEPlAJLBu4ZcSnyj5jtDoJqSW_riPUhPXQ70RPGkOEbVO3xs-OzQwpPQw&scope=https://www.googleapis.com/auth/calendar.readonly%20https://www.googleapis.com/auth/calendar.events`
+        `/api/v2/ee/gcal/oauth/save?state=accessToken=${accessTokenSecret}&code=4/0AfJohXmBuT7QVrEPlAJLBu4ZcSnyj5jtDoJqSW_riPUhPXQ70RPGkOEbVO3xs-OzQwpPQw&scope=https://www.googleapis.com/auth/calendar.readonly%20https://www.googleapis.com/auth/calendar.events`
       )
       .expect(400);
   });
 
-  it(`/GET/platform/gcal/check with access token but without origin`, async () => {
+  it(`/GET/ee/gcal/check with access token but without origin`, async () => {
     await request(app.getHttpServer())
-      .get(`/api/v2/platform/gcal/check`)
+      .get(`/api/v2/ee/gcal/check`)
       .set("Authorization", `Bearer ${accessTokenSecret}`)
       .expect(400);
   });
 
-  it(`/GET/platform/gcal/check without access token`, async () => {
-    await request(app.getHttpServer()).get(`/api/v2/platform/gcal/check`).expect(401);
+  it(`/GET/ee/gcal/check without access token`, async () => {
+    await request(app.getHttpServer()).get(`/api/v2/ee/gcal/check`).expect(401);
   });
 
-  it(`/GET/platform/gcal/check with access token and origin but no credentials`, async () => {
+  it(`/GET/ee/gcal/check with access token and origin but no credentials`, async () => {
     await request(app.getHttpServer())
-      .get(`/api/v2/platform/gcal/check`)
+      .get(`/api/v2/ee/gcal/check`)
       .set("Authorization", `Bearer ${accessTokenSecret}`)
       .set("Origin", CLIENT_REDIRECT_URI)
       .expect(400);
   });
 
-  it(`/GET/platform/gcal/check with access token and origin and gcal credentials`, async () => {
+  it(`/GET/ee/gcal/check with access token and origin and gcal credentials`, async () => {
     gcalCredentials = await credentialsRepositoryFixture.create(
       "google_calendar",
       {},
@@ -150,7 +150,7 @@ describe("Platform Gcal Endpoints", () => {
       "google-calendar"
     );
     await request(app.getHttpServer())
-      .get(`/api/v2/platform/gcal/check`)
+      .get(`/api/v2/ee/gcal/check`)
       .set("Authorization", `Bearer ${accessTokenSecret}`)
       .set("Origin", CLIENT_REDIRECT_URI)
       .expect(200);

@@ -23,7 +23,10 @@ export function Navbar({ username }: { username?: string }) {
             <Link href="/availability">Availability</Link>
           </li>
           <li>
-            <Link href="/booking">Bookings</Link>
+            <Link href="/booking">Book Me</Link>
+          </li>
+          <li>
+            <Link href="/bookings">My Bookings</Link>
           </li>
         </ul>
       </div>

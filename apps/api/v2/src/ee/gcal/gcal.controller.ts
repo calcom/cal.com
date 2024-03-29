@@ -40,7 +40,7 @@ const CALENDAR_SCOPES = [
 ];
 
 @Controller({
-  path: "platform/gcal",
+  path: "ee/gcal",
   version: "2",
 })
 export class GcalController {
@@ -55,7 +55,7 @@ export class GcalController {
     private readonly gcalService: GcalService
   ) {}
 
-  private redirectUri = `${this.config.get("api.url")}/platform/gcal/oauth/save`;
+  private redirectUri = `${this.config.get("api.url")}/ee/gcal/oauth/save`;
 
   @Get("/oauth/auth-url")
   @HttpCode(HttpStatus.OK)

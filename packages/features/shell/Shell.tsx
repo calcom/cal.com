@@ -79,6 +79,7 @@ import {
   Tooltip,
   useCalcomTheme,
 } from "@calcom/ui";
+import type { LucideIcon } from "@calcom/ui/components/icon";
 import {
   ArrowLeft,
   ArrowRight,
@@ -100,6 +101,7 @@ import {
   Settings,
   User as UserIcon,
   Users,
+  Sparkles,
   Zap,
   Check,
 } from "@calcom/ui/components/icon";
@@ -504,7 +506,7 @@ function UserDropdown({ small }: UserDropdownProps) {
                 <DropdownMenuItem>
                   <DropdownItem
                     type="button"
-                    StartIcon={(props) => (
+                    StartIcon={(props: { className?: string }) => (
                       <UserIcon className={classNames("text-default", props.className)} aria-hidden="true" />
                     )}
                     href="/settings/my-account/profile">
@@ -514,7 +516,7 @@ function UserDropdown({ small }: UserDropdownProps) {
                 <DropdownMenuItem>
                   <DropdownItem
                     type="button"
-                    StartIcon={(props) => (
+                    StartIcon={(props: { className?: string }) => (
                       <Settings className={classNames("text-default", props.className)} aria-hidden="true" />
                     )}
                     href="/settings/my-account/general">
@@ -524,7 +526,7 @@ function UserDropdown({ small }: UserDropdownProps) {
                 <DropdownMenuItem>
                   <DropdownItem
                     type="button"
-                    StartIcon={(props) => (
+                    StartIcon={(props: { className?: string }) => (
                       <Moon className={classNames("text-default", props.className)} aria-hidden="true" />
                     )}
                     href="/settings/my-account/out-of-office">
@@ -549,7 +551,9 @@ function UserDropdown({ small }: UserDropdownProps) {
                 <DropdownMenuItem>
                   <DropdownItem
                     type="button"
-                    StartIcon={(props) => <HelpCircle aria-hidden="true" {...props} />}
+                    StartIcon={(props: { className?: string }) => (
+                      <HelpCircle aria-hidden="true" {...props} />
+                    )}
                     onClick={() => setHelpOpen(true)}>
                     {t("help")}
                   </DropdownItem>
@@ -565,7 +569,7 @@ function UserDropdown({ small }: UserDropdownProps) {
                 <DropdownMenuItem>
                   <DropdownItem
                     type="button"
-                    StartIcon={(props) => <LogOut aria-hidden="true" {...props} />}
+                    StartIcon={(props: { className?: string }) => <LogOut aria-hidden="true" {...props} />}
                     onClick={() => signOut({ callbackUrl: "/auth/logout" })}>
                     {t("sign_out")}
                   </DropdownItem>
@@ -585,7 +589,7 @@ export type NavigationItemType = {
   onClick?: React.MouseEventHandler<HTMLAnchorElement | HTMLButtonElement>;
   target?: HTMLAnchorElement["target"];
   badge?: React.ReactNode;
-  icon?: SVGComponent;
+  icon?: SVGComponent | LucideIcon;
   child?: NavigationItemType[];
   pro?: true;
   onlyMobile?: boolean;
@@ -669,6 +673,11 @@ const navigation: NavigationItemType[] = [
     href: "/apps/routing-forms/forms",
     icon: FileText,
     isCurrent: ({ pathname }) => pathname?.startsWith("/apps/routing-forms/") ?? false,
+  },
+  {
+    name: "Cal.ai",
+    href: "/ai",
+    icon: Sparkles,
   },
   {
     name: "workflows",
