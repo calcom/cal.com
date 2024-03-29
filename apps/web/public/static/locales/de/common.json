@@ -1514,7 +1514,7 @@
   "report_app": "App melden",
   "limit_booking_frequency": "Buchungsfrequenz begrenzen",
   "limit_booking_frequency_description": "Begrenzen, wie oft dieses Ereignis gebucht werden kann",
-  "limit_booking_only_first_slot": "Buchun auf den ersten Platz beschränken",
+  "limit_booking_only_first_slot": "Buchung auf den ersten Platz beschränken",
   "limit_booking_only_first_slot_description": "Nur die Buchung des ersten Platzes am Tag erlauben",
   "limit_total_booking_duration": "Gesamtbuchungsdauer beschränken",
   "limit_total_booking_duration_description": "Begrenzt die Gesamtanzahl, die dieser Termin gebucht werden kann",
