@@ -264,7 +264,11 @@ export default class EventManager {
       type: credentialType,
     } = bookingCalendarReference;
 
-    const calendarCredential = await this.getCredentialAndWarnIfNotFound(credentialId, credentialType);
+    const calendarCredential = await this.getCredentialAndWarnIfNotFound(
+      credentialId,
+      this.calendarCredentials,
+      credentialType
+    );
     if (calendarCredential) {
       await deleteEvent({
         credential: calendarCredential,
@@ -285,6 +289,7 @@ export default class EventManager {
 
     const videoCredential = await this.getCredentialAndWarnIfNotFound(
       credentialId,
+      this.videoCredentials,
       bookingVideoReference.type
     );
 
@@ -293,32 +298,41 @@ export default class EventManager {
     }
   }
 
-  private async getCredentialAndWarnIfNotFound(credentialId: number | null | undefined, type: string) {
-    const credential =
-      typeof credentialId === "number" && credentialId > 0
-        ? await prisma.credential.findUnique({
-            where: {
-              id: credentialId,
-            },
-            select: credentialForCalendarServiceSelect,
+  private async getCredentialAndWarnIfNotFound(
+    credentialId: number | null | undefined,
+    credentials: CredentialPayload[],
+    type: string
+  ) {
+    const credential = credentials.find((cred) => cred.id === credentialId);
+    if (credential) {
+      return credential;
+    } else {
+      const credential =
+        typeof credentialId === "number" && credentialId > 0
+          ? await prisma.credential.findUnique({
+              where: {
+                id: credentialId,
+              },
+              select: credentialForCalendarServiceSelect,
+            })
+          : // Fallback for zero or nullish credentialId which could be the case of Global App e.g. dailyVideo
+            this.videoCredentials.find((cred) => cred.type === type) ||
+            this.calendarCredentials.find((cred) => cred.type === type) ||
+            null;
+
+      if (!credential) {
+        log.error(
+          "getCredentialAndWarnIfNotFound: Could not find credential",
+          safeStringify({
+            credentialId,
+            type,
+            videoCredentials: this.videoCredentials,
           })
-        : // Fallback for zero or nullish credentialId which could be the case of Global App e.g. dailyVideo
-          this.videoCredentials.find((cred) => cred.type === type) ||
-          this.calendarCredentials.find((cred) => cred.type === type) ||
-          null;
+        );
+      }
 
-    if (!credential) {
-      log.error(
-        "getCredentialAndWarnIfNotFound: Could not find credential",
-        safeStringify({
-          credentialId,
-          type,
-          videoCredentials: this.videoCredentials,
-        })
-      );
+      return credential;
     }
-
-    return credential;
   }
 
   /**
