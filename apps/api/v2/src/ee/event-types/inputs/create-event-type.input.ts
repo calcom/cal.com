@@ -1,3 +1,4 @@
+import { SchedulingType } from "@/ee/event-types/inputs/enums/scheduling-type";
 import { Type } from "class-transformer";
 import {
   IsString,
@@ -10,8 +11,6 @@ import {
   IsArray,
   IsUrl,
 } from "class-validator";
-
-import { SchedulingType } from "@calcom/platform-libraries";
 
 class EventTypeLocation {
   @IsString()

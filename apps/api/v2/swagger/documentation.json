@@ -1642,7 +1642,12 @@
             "type": "number"
           },
           "schedulingType": {
-            "type": "object"
+            "type": "string",
+            "enum": [
+              "ROUND_ROBIN",
+              "COLLECTIVE",
+              "MANAGED"
+            ]
           },
           "locations": {
             "type": "array",
@@ -1659,11 +1664,170 @@
       },
       "Location": {
         "type": "object",
-        "properties": {}
+        "properties": {
+          "type": {
+            "type": "string"
+          },
+          "address": {
+            "type": "string"
+          },
+          "link": {
+            "type": "string"
+          },
+          "displayLocationPublicly": {
+            "type": "boolean"
+          },
+          "hostPhoneNumber": {
+            "type": "string"
+          },
+          "credentialId": {
+            "type": "number"
+          },
+          "teamName": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "Option": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "value",
+          "label"
+        ]
+      },
+      "VariantsConfig": {
+        "type": "object",
+        "properties": {
+          "variants": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "variants"
+        ]
+      },
+      "View": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "label"
+        ]
+      },
+      "Source": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "editUrl": {
+            "type": "string"
+          },
+          "fieldRequired": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "label"
+        ]
       },
       "BookingField": {
         "type": "object",
-        "properties": {}
+        "properties": {
+          "type": {
+            "type": "object"
+          },
+          "name": {
+            "type": "string"
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Option"
+            }
+          },
+          "label": {
+            "type": "string"
+          },
+          "labelAsSafeHtml": {
+            "type": "string"
+          },
+          "defaultLabel": {
+            "type": "string"
+          },
+          "placeholder": {
+            "type": "string"
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "getOptionsAt": {
+            "type": "string"
+          },
+          "optionsInputs": {
+            "type": "object"
+          },
+          "variant": {
+            "type": "string"
+          },
+          "variantsConfig": {
+            "$ref": "#/components/schemas/VariantsConfig"
+          },
+          "views": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/View"
+            }
+          },
+          "hideWhenJustOneOption": {
+            "type": "boolean"
+          },
+          "hidden": {
+            "type": "boolean"
+          },
+          "editable": {
+            "type": "object"
+          },
+          "sources": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Source"
+            }
+          }
+        },
+        "required": [
+          "type",
+          "name"
+        ]
       },
       "RecurringEvent": {
         "type": "object",
@@ -1679,7 +1843,16 @@
             "type": "number"
           },
           "freq": {
-            "type": "object"
+            "type": "number",
+            "enum": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6
+            ]
           },
           "until": {
             "format": "date-time",
@@ -1768,7 +1941,12 @@
             "type": "string"
           },
           "periodType": {
-            "type": "object"
+            "type": "string",
+            "enum": [
+              "UNLIMITED",
+              "ROLLING",
+              "RANGE"
+            ]
           },
           "periodStartDate": {
             "format": "date-time",
@@ -1825,7 +2003,12 @@
             "type": "boolean"
           },
           "schedulingType": {
-            "type": "object"
+            "type": "string",
+            "enum": [
+              "ROUND_ROBIN",
+              "COLLECTIVE",
+              "MANAGED"
+            ]
           },
           "scheduleId": {
             "type": "number"

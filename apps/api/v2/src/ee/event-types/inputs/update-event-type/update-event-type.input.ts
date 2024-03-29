@@ -1,5 +1,6 @@
-import { BookingField } from "@/ee/event-types/inputs/update-event-type/fields/booking-field";
-import { Location } from "@/ee/event-types/inputs/update-event-type/fields/location";
+import { Frequency } from "@/ee/event-types/inputs/enums/frequency";
+import { PeriodType } from "@/ee/event-types/inputs/enums/period-type";
+import { SchedulingType } from "@/ee/event-types/inputs/enums/scheduling-type";
 import { Type } from "class-transformer";
 import {
   IsString,
@@ -15,18 +16,210 @@ import {
   IsArray,
 } from "class-validator";
 
-import { PeriodType, SchedulingType } from "@calcom/platform-libraries";
+type FieldType =
+  | "number"
+  | "boolean"
+  | "address"
+  | "name"
+  | "text"
+  | "textarea"
+  | "email"
+  | "phone"
+  | "multiemail"
+  | "select"
+  | "multiselect"
+  | "checkbox"
+  | "radio"
+  | "radioInput";
 
-enum Frequency {
-  YEARLY = 0,
-  MONTHLY = 1,
-  WEEKLY = 2,
-  DAILY = 3,
-  HOURLY = 4,
-  MINUTELY = 5,
-  SECONDLY = 6,
+class Option {
+  @IsString()
+  value!: string;
+
+  @IsString()
+  label!: string;
 }
 
+class Source {
+  @IsString()
+  id!: string;
+
+  @IsString()
+  type!: string;
+
+  @IsString()
+  label!: string;
+
+  @IsOptional()
+  @IsString()
+  editUrl?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  fieldRequired?: boolean;
+}
+
+class View {
+  @IsString()
+  id!: string;
+
+  @IsString()
+  label!: string;
+
+  @IsOptional()
+  @IsString()
+  description?: string;
+}
+
+class OptionsInput {
+  @IsString()
+  type!: "address" | "text" | "phone";
+
+  @IsOptional()
+  @IsBoolean()
+  required?: boolean;
+
+  @IsOptional()
+  @IsString()
+  placeholder?: string;
+}
+
+class VariantField {
+  @IsString()
+  type!: FieldType;
+
+  @IsString()
+  name!: string;
+
+  @IsOptional()
+  @IsString()
+  label?: string;
+
+  @IsOptional()
+  @IsString()
+  labelAsSafeHtml?: string;
+
+  @IsOptional()
+  @IsString()
+  placeholder?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  required?: boolean;
+}
+
+class Variant {
+  @ValidateNested({ each: true })
+  @Type(() => VariantField)
+  fields!: VariantField[];
+}
+
+class VariantsConfig {
+  variants!: Record<string, Variant>;
+}
+
+export class BookingField {
+  @IsString()
+  type!: FieldType;
+
+  @IsString()
+  name!: string;
+
+  @IsOptional()
+  @ValidateNested({ each: true })
+  @Type(() => Option)
+  options?: Option[];
+
+  @IsOptional()
+  @IsString()
+  label?: string;
+
+  @IsOptional()
+  @IsString()
+  labelAsSafeHtml?: string;
+
+  @IsOptional()
+  @IsString()
+  defaultLabel?: string;
+
+  @IsOptional()
+  @IsString()
+  placeholder?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  required?: boolean;
+
+  @IsOptional()
+  @IsString()
+  getOptionsAt?: string;
+
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => OptionsInput)
+  optionsInputs?: Record<string, OptionsInput>;
+
+  @IsOptional()
+  @IsString()
+  variant?: string;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => VariantsConfig)
+  variantsConfig?: VariantsConfig;
+
+  @IsOptional()
+  @ValidateNested({ each: true })
+  @Type(() => View)
+  views?: View[];
+
+  @IsOptional()
+  @IsBoolean()
+  hideWhenJustOneOption?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  hidden?: boolean;
+
+  @IsOptional()
+  @IsString()
+  editable?: "system" | "system-but-optional" | "system-but-hidden" | "user" | "user-readonly";
+
+  @IsOptional()
+  @ValidateNested({ each: true })
+  @Type(() => Source)
+  sources?: Source[];
+}
+
+class Location {
+  @IsString()
+  type!: string;
+
+  @IsString()
+  @IsOptional()
+  address?: string;
+
+  @IsString()
+  @IsOptional()
+  link?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  displayLocationPublicly?: boolean;
+
+  @IsString()
+  @IsOptional()
+  hostPhoneNumber?: string;
+
+  @IsNumber()
+  @IsOptional()
+  credentialId?: number;
+
+  @IsString()
+  @IsOptional()
+  teamName?: string;
+}
 class RecurringEvent {
   @IsDate()
   @IsOptional()
@@ -39,7 +232,7 @@ class RecurringEvent {
   count!: number;
 
   @IsEnum(Frequency)
-  freq!: any;
+  freq!: Frequency;
 
   @IsDate()
   @IsOptional()
