@@ -267,7 +267,7 @@ export default class SalesforceCRMService implements CRM {
     }
   }
 
-  async deleteEvent(uid: string) {
+  public async deleteEvent(uid: string) {
     const deletedEvent = await this.salesforceDeleteEvent(uid);
     if (deletedEvent.success) {
       Promise.resolve();
