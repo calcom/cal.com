@@ -15,5 +15,6 @@ spec:
       containers:
         - name: APPLICATION_NAME
           image: WEB_IMAGE
+          imagePullPolicy: Always
           ports:
             - containerPort: 3000
