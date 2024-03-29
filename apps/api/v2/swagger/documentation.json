@@ -582,6 +582,66 @@
             }
           }
         }
+      },
+      "patch": {
+        "operationId": "EventTypesController_updateEventType",
+        "parameters": [
+          {
+            "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateEventTypeInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "EventTypesController_deleteEventType",
+        "parameters": [
+          {
+            "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/api/v2/event-types/{username}/public": {
@@ -1530,25 +1590,277 @@
           "refreshToken"
         ]
       },
-      "CreateEventTypeInput": {
+      "EventTypeLocation": {
         "type": "object",
         "properties": {
-          "length": {
-            "type": "number",
-            "minimum": 1
-          },
-          "slug": {
+          "type": {
             "type": "string"
           },
-          "title": {
+          "address": {
+            "type": "string"
+          },
+          "link": {
+            "type": "string"
+          },
+          "displayLocationPublicly": {
+            "type": "boolean"
+          },
+          "hostPhoneNumber": {
+            "type": "string"
+          },
+          "credentialId": {
+            "type": "number"
+          },
+          "teamName": {
             "type": "string"
           }
         },
         "required": [
-          "length",
-          "slug",
-          "title"
+          "type"
         ]
+      },
+      "CreateEventTypeInput": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "length": {
+            "type": "number",
+            "minimum": 1
+          },
+          "hidden": {
+            "type": "boolean"
+          },
+          "teamId": {
+            "type": "number"
+          },
+          "schedulingType": {
+            "type": "object"
+          },
+          "locations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EventTypeLocation"
+            }
+          }
+        },
+        "required": [
+          "title",
+          "slug",
+          "length"
+        ]
+      },
+      "Location": {
+        "type": "object",
+        "properties": {}
+      },
+      "BookingField": {
+        "type": "object",
+        "properties": {}
+      },
+      "RecurringEvent": {
+        "type": "object",
+        "properties": {
+          "dtstart": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "interval": {
+            "type": "number"
+          },
+          "count": {
+            "type": "number"
+          },
+          "freq": {
+            "type": "object"
+          },
+          "until": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "tzid": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "interval",
+          "count",
+          "freq"
+        ]
+      },
+      "IntervalLimits": {
+        "type": "object",
+        "properties": {
+          "PER_DAY": {
+            "type": "number"
+          },
+          "PER_WEEK": {
+            "type": "number"
+          },
+          "PER_MONTH": {
+            "type": "number"
+          },
+          "PER_YEAR": {
+            "type": "number"
+          }
+        }
+      },
+      "UpdateEventTypeInput": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "position": {
+            "type": "number"
+          },
+          "locations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Location"
+            }
+          },
+          "length": {
+            "type": "number",
+            "minimum": 1
+          },
+          "offsetStart": {
+            "type": "number"
+          },
+          "hidden": {
+            "type": "boolean"
+          },
+          "userId": {
+            "type": "number"
+          },
+          "profileId": {
+            "type": "number"
+          },
+          "teamId": {
+            "type": "number"
+          },
+          "eventName": {
+            "type": "string"
+          },
+          "parentId": {
+            "type": "number"
+          },
+          "bookingFields": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BookingField"
+            }
+          },
+          "timeZone": {
+            "type": "string"
+          },
+          "periodType": {
+            "type": "object"
+          },
+          "periodStartDate": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "periodEndDate": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "periodDays": {
+            "type": "number"
+          },
+          "periodCountCalendarDays": {
+            "type": "boolean"
+          },
+          "lockTimeZoneToggleOnBookingPage": {
+            "type": "boolean"
+          },
+          "requiresConfirmation": {
+            "type": "boolean"
+          },
+          "requiresBookerEmailVerification": {
+            "type": "boolean"
+          },
+          "recurringEvent": {
+            "$ref": "#/components/schemas/RecurringEvent"
+          },
+          "disableGuests": {
+            "type": "boolean"
+          },
+          "hideCalendarNotes": {
+            "type": "boolean"
+          },
+          "minimumBookingNotice": {
+            "type": "number",
+            "minimum": 0
+          },
+          "beforeEventBuffer": {
+            "type": "number"
+          },
+          "afterEventBuffer": {
+            "type": "number"
+          },
+          "seatsPerTimeSlot": {
+            "type": "number"
+          },
+          "onlyShowFirstAvailableSlot": {
+            "type": "boolean"
+          },
+          "seatsShowAttendees": {
+            "type": "boolean"
+          },
+          "seatsShowAvailabilityCount": {
+            "type": "boolean"
+          },
+          "schedulingType": {
+            "type": "object"
+          },
+          "scheduleId": {
+            "type": "number"
+          },
+          "price": {
+            "type": "number"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "slotInterval": {
+            "type": "number"
+          },
+          "successRedirectUrl": {
+            "type": "string"
+          },
+          "bookingLimits": {
+            "$ref": "#/components/schemas/IntervalLimits"
+          },
+          "durationLimits": {
+            "$ref": "#/components/schemas/IntervalLimits"
+          },
+          "isInstantEvent": {
+            "type": "boolean"
+          },
+          "assignAllTeamMembers": {
+            "type": "boolean"
+          },
+          "useEventTypeDestinationCalendarEmail": {
+            "type": "boolean"
+          },
+          "secondaryEmailId": {
+            "type": "number"
+          }
+        }
       },
       "CreateAvailabilityInput": {
         "type": "object",
