@@ -21,7 +21,6 @@ import {
 
 import { SCHEDULE_READ, SCHEDULE_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
 import type { ScheduleWithAvailabilitiesForWeb } from "@calcom/platform-libraries";
-import type { CityTimezones } from "@calcom/platform-libraries";
 import { updateScheduleHandler } from "@calcom/platform-libraries";
 import type { UpdateScheduleOutputType } from "@calcom/platform-libraries";
 import { ApiSuccessResponse, ScheduleResponse, UpdateScheduleInput } from "@calcom/platform-types";
@@ -70,16 +69,6 @@ export class SchedulesController {
     return {
       status: SUCCESS_STATUS,
       data: scheduleFormatted,
-    };
-  }
-
-  @Get("/time-zones")
-  async getTimeZones(): Promise<ApiResponse<CityTimezones>> {
-    const timeZones = await this.schedulesService.getSchedulePossibleTimeZones();
-
-    return {
-      status: SUCCESS_STATUS,
-      data: timeZones,
     };
   }
 

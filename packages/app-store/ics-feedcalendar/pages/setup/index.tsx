@@ -24,7 +24,11 @@ export default function ICSFeedSetup() {
         <div className="flex flex-col space-y-5 md:flex-row md:space-x-5 md:space-y-0">
           <div>
             {/* eslint-disable @next/next/no-img-element */}
-            <img src="/api/app-store/ics-feed/icon.svg" alt="ICS Feed" className="h-12 w-12 max-w-2xl" />
+            <img
+              src="/api/app-store/ics-feedcalendar/icon.svg"
+              alt="ICS Feed"
+              className="h-12 w-12 max-w-2xl"
+            />
           </div>
           <div className="flex w-10/12 flex-col">
             <h1 className="text-default">{t("connect_ics_feed")}</h1>
@@ -34,7 +38,7 @@ export default function ICSFeedSetup() {
                 form={form}
                 handleSubmit={async (_) => {
                   setErrorMessage("");
-                  const res = await fetch("/api/integrations/ics-feed/add", {
+                  const res = await fetch("/api/integrations/ics-feedcalendar/add", {
                     method: "POST",
                     body: JSON.stringify({ urls }),
                     headers: {

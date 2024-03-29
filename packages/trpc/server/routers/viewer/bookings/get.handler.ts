@@ -1,8 +1,9 @@
 import { parseRecurringEvent } from "@calcom/lib";
+import getAllUserBookings from "@calcom/lib/bookings/getAllUserBookings";
 import type { PrismaClient } from "@calcom/prisma";
 import { bookingMinimalSelect } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
-import { BookingStatus } from "@calcom/prisma/enums";
+import type { BookingStatus } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import type { TrpcSessionUser } from "../../../trpc";
@@ -23,76 +24,14 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
   const skip = input.cursor ?? 0;
   const { prisma, user } = ctx;
   const bookingListingByStatus = input.filters.status;
-  const bookingListingFilters: Record<typeof bookingListingByStatus, Prisma.BookingWhereInput> = {
-    upcoming: {
-      endTime: { gte: new Date() },
-      // These changes are needed to not show confirmed recurring events,
-      // as rescheduling or cancel for recurring event bookings should be
-      // handled separately for each occurrence
-      OR: [
-        {
-          recurringEventId: { not: null },
-          status: { equals: BookingStatus.ACCEPTED },
-        },
-        {
-          recurringEventId: { equals: null },
-          status: { notIn: [BookingStatus.CANCELLED, BookingStatus.REJECTED] },
-        },
-      ],
-    },
-    recurring: {
-      endTime: { gte: new Date() },
-      AND: [
-        { NOT: { recurringEventId: { equals: null } } },
-        { status: { notIn: [BookingStatus.CANCELLED, BookingStatus.REJECTED] } },
-      ],
-    },
-    past: {
-      endTime: { lte: new Date() },
-      AND: [
-        { NOT: { status: { equals: BookingStatus.CANCELLED } } },
-        { NOT: { status: { equals: BookingStatus.REJECTED } } },
-      ],
-    },
-    cancelled: {
-      OR: [{ status: { equals: BookingStatus.CANCELLED } }, { status: { equals: BookingStatus.REJECTED } }],
-    },
-    unconfirmed: {
-      endTime: { gte: new Date() },
-      status: { equals: BookingStatus.PENDING },
-    },
-  };
-  const bookingListingOrderby: Record<
-    typeof bookingListingByStatus,
-    Prisma.BookingOrderByWithAggregationInput
-  > = {
-    upcoming: { startTime: "asc" },
-    recurring: { startTime: "asc" },
-    past: { startTime: "desc" },
-    cancelled: { startTime: "desc" },
-    unconfirmed: { startTime: "asc" },
-  };
 
-  const passedBookingsStatusFilter = bookingListingFilters[bookingListingByStatus];
-  const orderBy = bookingListingOrderby[bookingListingByStatus];
-
-  const { bookings, recurringInfo } = await getBookings({
-    user,
-    prisma,
-    passedBookingsStatusFilter,
+  const { bookings, recurringInfo, nextCursor } = await getAllUserBookings({
+    ctx: { user: { id: user.id, email: user.email }, prisma: prisma },
+    bookingListingByStatus: bookingListingByStatus,
+    take: take,
+    skip: skip,
     filters: input.filters,
-    orderBy,
-    take,
-    skip,
   });
-
-  const bookingsFetched = bookings.length;
-  let nextCursor: typeof skip | null = skip;
-  if (bookingsFetched > take) {
-    nextCursor += bookingsFetched;
-  } else {
-    nextCursor = null;
-  }
 
   return {
     bookings,
@@ -112,7 +51,7 @@ const getUniqueBookings = <T extends { uid: string }>(arr: T[]) => {
   return unique;
 };
 
-async function getBookings({
+export async function getBookings({
   user,
   prisma,
   passedBookingsStatusFilter,

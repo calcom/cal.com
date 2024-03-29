@@ -49,12 +49,21 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     bookingFields,
     offsetStart,
     secondaryEmailId,
+    aiPhoneCallConfig,
     ...rest
   } = input;
 
   const eventType = await ctx.prisma.eventType.findUniqueOrThrow({
     where: { id },
     select: {
+      aiPhoneCallConfig: {
+        select: {
+          generalPrompt: true,
+          beginMessage: true,
+          enabled: true,
+          llmId: true,
+        },
+      },
       children: {
         select: {
           userId: true,
@@ -342,6 +351,27 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       data.secondaryEmail = {
         disconnect: true,
       };
+    }
+  }
+
+  if (aiPhoneCallConfig) {
+    if (aiPhoneCallConfig.enabled) {
+      await ctx.prisma.aIPhoneCallConfiguration.upsert({
+        where: {
+          eventTypeId: id,
+        },
+        update: aiPhoneCallConfig,
+        create: {
+          ...aiPhoneCallConfig,
+          eventTypeId: id,
+        },
+      });
+    } else if (!aiPhoneCallConfig.enabled && eventType.aiPhoneCallConfig) {
+      await ctx.prisma.aIPhoneCallConfiguration.delete({
+        where: {
+          eventTypeId: id,
+        },
+      });
     }
   }
 
