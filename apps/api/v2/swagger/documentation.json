@@ -1764,7 +1764,23 @@
         "type": "object",
         "properties": {
           "type": {
-            "type": "object"
+            "type": "string",
+            "enum": [
+              "number",
+              "boolean",
+              "address",
+              "name",
+              "text",
+              "textarea",
+              "email",
+              "phone",
+              "multiemail",
+              "select",
+              "multiselect",
+              "checkbox",
+              "radio",
+              "radioInput"
+            ]
           },
           "name": {
             "type": "string"
@@ -1815,7 +1831,14 @@
             "type": "boolean"
           },
           "editable": {
-            "type": "object"
+            "type": "string",
+            "enum": [
+              "system",
+              "system-but-optional",
+              "system-but-hidden",
+              "user",
+              "user-readonly"
+            ]
           },
           "sources": {
             "type": "array",

@@ -1,3 +1,5 @@
+import { Editable } from "@/ee/event-types/inputs/enums/editable";
+import { BaseField } from "@/ee/event-types/inputs/enums/field-type";
 import { Frequency } from "@/ee/event-types/inputs/enums/frequency";
 import { PeriodType } from "@/ee/event-types/inputs/enums/period-type";
 import { SchedulingType } from "@/ee/event-types/inputs/enums/scheduling-type";
@@ -15,22 +17,6 @@ import {
   IsInt,
   IsArray,
 } from "class-validator";
-
-type FieldType =
-  | "number"
-  | "boolean"
-  | "address"
-  | "name"
-  | "text"
-  | "textarea"
-  | "email"
-  | "phone"
-  | "multiemail"
-  | "select"
-  | "multiselect"
-  | "checkbox"
-  | "radio"
-  | "radioInput";
 
 class Option {
   @IsString()
@@ -86,7 +72,7 @@ class OptionsInput {
 
 class VariantField {
   @IsString()
-  type!: FieldType;
+  type!: BaseField;
 
   @IsString()
   name!: string;
@@ -119,8 +105,8 @@ class VariantsConfig {
 }
 
 export class BookingField {
-  @IsString()
-  type!: FieldType;
+  @IsEnum(BaseField)
+  type!: BaseField;
 
   @IsString()
   name!: string;
@@ -183,8 +169,8 @@ export class BookingField {
   hidden?: boolean;
 
   @IsOptional()
-  @IsString()
-  editable?: "system" | "system-but-optional" | "system-but-hidden" | "user" | "user-readonly";
+  @IsEnum(Editable)
+  editable?: Editable;
 
   @IsOptional()
   @ValidateNested({ each: true })
