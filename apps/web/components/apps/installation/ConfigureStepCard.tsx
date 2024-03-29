@@ -95,7 +95,10 @@ const EventTypeAppSettingsForm = forwardRef<HTMLButtonElement, EventTypeAppSetti
             </div>
             <EventTypeAppSettingsWrapper {...props} />
             <X className="absolute right-4 top-4 h-4 w-4 cursor-pointer" onClick={() => handleDelete()} />
-            <button type="submit" ref={ref}>
+            <button
+              type="submit"
+              // className="hidden"
+              ref={ref}>
               Save
             </button>
           </div>
