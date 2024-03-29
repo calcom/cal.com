@@ -348,7 +348,7 @@ export default function Success(props: PageProps) {
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="modal-headline">
-                <div className={classNames(isRoundRobin && "min-w-28 min-h-24 relative mx-auto h-24 w-28")}>
+                <div className={classNames(isRoundRobin && "min-w-32 min-h-24 relative mx-auto h-24 w-32")}>
                   {isRoundRobin && bookingInfo.user && (
                     <Avatar
                       className="mx-auto flex items-center justify-center"
@@ -360,7 +360,8 @@ export default function Success(props: PageProps) {
                   <div
                     className={classNames(
                       "mx-auto flex h-12 w-12 items-center justify-center rounded-full",
-                      isRoundRobin && "absolute bottom-0 right-0 z-10 h-9 w-9",
+                      isRoundRobin &&
+                        "absolute bottom-0 right-0 z-10 h-12 w-12 border-8 border-[--cal-bg] dark:border-[--cal-bg-muted]",
                       !giphyImage && !isCancelled && !needsConfirmation ? "bg-success" : "",
                       !giphyImage && !isCancelled && needsConfirmation ? "bg-subtle" : "",
                       isCancelled ? "bg-error" : ""
