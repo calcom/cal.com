@@ -1,4 +1,4 @@
-import type { DestinationCalendar } from "@prisma/client";
+import type { Prisma, DestinationCalendar } from "@prisma/client";
 // eslint-disable-next-line no-restricted-imports
 import { cloneDeep, merge } from "lodash";
 import { v5 as uuidv5 } from "uuid";
@@ -246,23 +246,30 @@ export default class EventManager {
   }
 
   private async deleteCalendarEventForBookingReference({
-    bookingCalendarReference,
+    reference,
     event,
+    isBookingInRecurringSeries,
   }: {
-    bookingCalendarReference: PartialReference;
+    reference: PartialReference;
     event: CalendarEvent;
+    isBookingInRecurringSeries?: boolean;
   }) {
     log.debug(
       "deleteCalendarEventForBookingReference",
-      safeStringify({ bookingCalendarReference, event: getPiiFreeCalendarEvent(event) })
+      safeStringify({ bookingCalendarReference: reference, event: getPiiFreeCalendarEvent(event) })
     );
 
     const {
-      uid: bookingRefUid,
+      // uid: bookingRefUid,
       externalCalendarId: bookingExternalCalendarId,
       credentialId,
       type: credentialType,
-    } = bookingCalendarReference;
+    } = reference;
+
+    const bookingRefUid =
+      isBookingInRecurringSeries && reference?.thirdPartyRecurringEventId
+        ? reference.thirdPartyRecurringEventId
+        : reference.uid;
 
     const calendarCredential = await this.getCredentialAndWarnIfNotFound(
       credentialId,
@@ -279,18 +286,14 @@ export default class EventManager {
     }
   }
 
-  private async deleteVideoEventForBookingReference({
-    bookingVideoReference,
-  }: {
-    bookingVideoReference: PartialReference;
-  }) {
-    log.debug("deleteVideoEventForBookingReference", safeStringify({ bookingVideoReference }));
-    const { uid: bookingRefUid, credentialId } = bookingVideoReference;
+  private async deleteVideoEventForBookingReference({ reference }: { reference: PartialReference }) {
+    log.debug("deleteVideoEventForBookingReference", safeStringify({ bookingVideoReference: reference }));
+    const { uid: bookingRefUid, credentialId } = reference;
 
     const videoCredential = await this.getCredentialAndWarnIfNotFound(
       credentialId,
       this.videoCredentials,
-      bookingVideoReference.type
+      reference.type
     );
 
     if (videoCredential) {
@@ -465,30 +468,62 @@ export default class EventManager {
     };
   }
 
+  public async cancelEvent(
+    event: CalendarEvent,
+    bookingReferences: Prisma.GetBookingReferencePayload<{
+      select: {
+        uid: true;
+        type: true;
+        externalCalendarId: true;
+        credentialId: true;
+        thirdPartyRecurringEventId: true;
+      };
+    }>,
+    isBookingInRecurringSeries?: boolean
+  ) {
+    await this.deleteEventsAndMeetings({
+      event,
+      bookingReferences,
+      isBookingInRecurringSeries,
+    });
+  }
+
   private async deleteEventsAndMeetings({
     event,
-    booking,
+    bookingReferences,
+    isBookingInRecurringSeries,
   }: {
     event: CalendarEvent;
-    booking: PartialBooking;
+    bookingReferences: PartialReference[];
+    isBookingInRecurringSeries?: boolean;
   }) {
-    const calendarReferences = booking.references.filter((reference) => reference.type.includes("_calendar"));
-    const videoReferences = booking.references.filter((reference) => reference.type.includes("_video"));
+    const calendarReferences = [],
+      videoReferences = [],
+      allPromises = [];
+
+    for (const reference of bookingReferences) {
+      if (reference.type.includes("_calendar")) {
+        calendarReferences.push(reference);
+        allPromises.push(
+          this.deleteCalendarEventForBookingReference({
+            reference,
+            event,
+            isBookingInRecurringSeries,
+          })
+        );
+      }
+
+      if (reference.type.includes("_video")) {
+        videoReferences.push(reference);
+        allPromises.push(
+          this.deleteVideoEventForBookingReference({
+            reference,
+          })
+        );
+      }
+    }
+
     log.debug("deleteEventsAndMeetings", safeStringify({ calendarReferences, videoReferences }));
-    const calendarPromises = calendarReferences.map(async (bookingCalendarReference) => {
-      return this.deleteCalendarEventForBookingReference({
-        bookingCalendarReference,
-        event,
-      });
-    });
-
-    const videoPromises = videoReferences.map(async (bookingVideoReference) => {
-      return this.deleteVideoEventForBookingReference({
-        bookingVideoReference,
-      });
-    });
-
-    const allPromises = [...calendarPromises, ...videoPromises];
 
     // Using allSettled to ensure that if one of the promises rejects, the others will still be executed.
     // Because we are just cleaning up the events and meetings, we don't want to throw an error if one of them fails.
