@@ -200,6 +200,14 @@ const Days = ({
 
   useEffect(useHandleInitialDateSelection);
 
+  const today = dayjs();
+  const isLastDayOfMonth = browsingDate.endOf("month").isSame(today, "day");
+  useEffect(() => {
+    if (isLastDayOfMonth) {
+      nextMonthButton(); // Call nextMonthButton to move to the next month
+    }
+  }, [isLastDayOfMonth, nextMonthButton]);
+
   return (
     <>
       {daysToRenderForTheMonth.map(({ day, disabled }, idx) => (
@@ -226,7 +234,7 @@ const Days = ({
         </div>
       ))}
 
-      {!props.isPending && includedDates && includedDates?.length === 0 && (
+      {!isLastDayOfMonth && !props.isPending && includedDates && includedDates?.length === 0 && (
         <NoAvailabilityOverlay month={month} nextMonthButton={nextMonthButton} />
       )}
     </>
