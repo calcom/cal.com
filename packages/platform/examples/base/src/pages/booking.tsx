@@ -19,20 +19,29 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
       className={`flex min-h-screen flex-col ${inter.className} main text-default flex min-h-full w-full flex-col items-center overflow-visible`}>
       <Navbar username={props.calUsername} />
       <div>
-        <h1 className="my-4 text-2xl font-semibold">{props.calUsername} Public Booking Page</h1>
+        <h1 className="mx-10 my-4 text-2xl font-semibold">{props.calUsername} Public Booking Page</h1>
 
         {isLoadingEvents && !eventTypeSlug && <p>Loading...</p>}
 
         {!isLoadingEvents && !eventTypeSlug && Boolean(eventTypes?.length) && !rescheduleUid && (
-          <div className="flex flex-row gap-4">
-            {eventTypes?.map((event: { id: number; slug: string; title: string }) => (
-              <button
-                key={event.id}
-                className="rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
-                onClick={() => setEventTypeSlug(event.slug)}>
-                {event.slug}
-              </button>
-            ))}
+          <div className="flex flex-col gap-4">
+            {eventTypes?.map((event: { id: number; slug: string; title: string }) => {
+              const formatEventSlug = event.slug
+                .split("-")
+                .map((item) => `${item[0].toLocaleUpperCase()}${item.slice(1)}`)
+                .join(" ");
+
+              return (
+                <div
+                  onClick={() => setEventTypeSlug(event.slug)}
+                  className="mx-10 w-[80vw] cursor-pointer rounded-md border-[0.8px] border-black px-10 py-4"
+                  key={event.id}>
+                  <h1 className="text-lg font-semibold">{formatEventSlug}</h1>
+                  <p>{`/${event.slug}`}</p>
+                  <span className="border-none bg-gray-800 px-2 text-white">{event?.length}</span>
+                </div>
+              );
+            })}
           </div>
         )}
 
