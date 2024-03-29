@@ -506,6 +506,7 @@ export default class EventManager {
   }) {
     const calendarReferences = [],
       videoReferences = [],
+      crmReferences = [],
       allPromises = [];
 
     for (const reference of bookingReferences) {
@@ -527,6 +528,11 @@ export default class EventManager {
             reference,
           })
         );
+      }
+
+      if (reference.type.includes("_crm")) {
+        crmReferences.push(reference);
+        allPromises.push(this.deleteCRMEvent({ reference }));
       }
     }
 
@@ -970,14 +976,11 @@ export default class EventManager {
     return updatedEvents;
   }
 
-  private async deleteAllCRMEvents(booking: PartialBooking) {
-    for (const reference of booking.references) {
-      const credential = this.crmCredentials.find((cred) => cred.id === reference.credentialId);
-      if (credential) {
-        const crm = new CrmManager(credential);
-        await crm.deleteEvent(reference.uid);
-      }
+  private async deleteCRMEvent({ reference }: { reference: PartialReference }) {
+    const credential = this.crmCredentials.find((cred) => cred.id === reference.credentialId);
+    if (credential) {
+      const crm = new CrmManager(credential);
+      await crm.deleteEvent(reference.uid);
     }
-    return;
   }
 }
