@@ -54,6 +54,7 @@ const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   eventName: true,
   slug: true,
   isInstantEvent: true,
+  aiPhoneCallConfig: true,
   schedulingType: true,
   length: true,
   locations: true,
@@ -302,6 +303,7 @@ export const getPublicEvent = async (
     },
     isDynamic: false,
     isInstantEvent: eventWithUserProfiles.isInstantEvent,
+    aiPhoneCallConfig: eventWithUserProfiles.aiPhoneCallConfig,
     assignAllTeamMembers: event.assignAllTeamMembers,
   };
 };
