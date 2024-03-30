@@ -20,7 +20,7 @@ import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { ApiResponse } from "@calcom/platform-types";
 
 @Controller({
-  path: "platform/provider",
+  path: "ee/provider",
   version: "2",
 })
 export class CalProviderController {

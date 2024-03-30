@@ -6,6 +6,7 @@ import classNames from "@calcom/lib/classNames";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Clock, CheckSquare, RefreshCcw } from "@calcom/ui/components/icon";
+import type { LucideIcon } from "@calcom/ui/components/icon";
 
 import type { PublicEvent } from "../../types";
 import { EventDetailBlocks } from "../../types";
@@ -34,7 +35,7 @@ type EventDetailCustomBlock = {
 type EventDetailsProps = EventDetailsPropsBase & (EventDetailDefaultBlock | EventDetailCustomBlock);
 
 interface EventMetaProps {
-  icon?: React.FC<{ className: string }> | string;
+  icon?: React.FC<{ className: string }> | string | LucideIcon;
   children: React.ReactNode;
   // Emphasises the text in the block. For now only
   // applying in dark mode.

@@ -285,6 +285,23 @@ export const EventSetupTab = (
                           });
                           showToast(t("location_already_exists"), "warning");
                         }
+                        // Whenever location changes, we need to reset the locations item in booking questions list else it overflows
+                        // previously added values resulting in wrong behaviour
+                        const existingBookingFields = formMethods.getValues("bookingFields");
+                        const findLocation = existingBookingFields.findIndex(
+                          (field) => field.name === "location"
+                        );
+                        if (findLocation >= 0) {
+                          existingBookingFields[findLocation] = {
+                            ...existingBookingFields[findLocation],
+                            type: "radioInput",
+                            label: "",
+                            placeholder: "",
+                          };
+                          formMethods.setValue("bookingFields", existingBookingFields, {
+                            shouldDirty: true,
+                          });
+                        }
                       }
                     }}
                   />
