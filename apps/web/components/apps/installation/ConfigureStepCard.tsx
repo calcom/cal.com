@@ -1,6 +1,7 @@
 import type { TEventType, TEventTypesForm } from "@pages/apps/installation/[[...step]]";
 import type { FC } from "react";
-import React, { forwardRef, useEffect, useRef } from "react";
+import React, { forwardRef, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useFieldArray, useFormContext } from "react-hook-form";
 import { useForm } from "react-hook-form";
 import type { z } from "zod";
@@ -27,6 +28,8 @@ type ConfigureStepCardProps = {
   credentialId?: number;
   loading?: boolean;
   selectedEventTypeIds: number[];
+  formPortalRef: React.RefObject<HTMLDivElement>;
+  eventTypes: TEventType[];
 };
 
 type EventTypeAppSettingsWrapperProps = {
@@ -86,7 +89,7 @@ const EventTypeAppSettingsForm = forwardRef<HTMLButtonElement, EventTypeAppSetti
           onSubmit(data);
         }}>
         <div>
-          <div className="sm:border-subtle bg-default relative border p-4 sm:rounded-md dark:bg-black">
+          <div className="sm:border-subtle bg-default relative border p-4 dark:bg-black sm:rounded-md">
             <div>
               <span className="text-default font-semibold ltr:mr-1 rtl:ml-1">{eventType.title}</span>{" "}
               <small className="text-subtle hidden font-normal sm:inline">
@@ -111,51 +114,88 @@ const EventTypeAppSettingsForm = forwardRef<HTMLButtonElement, EventTypeAppSetti
 export const ConfigureStepCard: FC<ConfigureStepCardProps> = ({
   loading,
   selectedEventTypeIds,
+  formPortalRef,
+  eventTypes,
   ...props
 }) => {
-  const { control } = useFormContext<TEventTypesForm>();
+  const { control, getValues } = useFormContext<TEventTypesForm>();
   const { fields, update } = useFieldArray({
     control,
     name: "eventTypes",
     keyName: "fieldId",
   });
+  const [updatedEventTypesStatus, setUpdatedEventTypesStatus] = useState(
+    fields.filter((field) => field.selected).map((field) => ({ id: field.id, updated: false }))
+  );
+  const [submit, setSubmit] = useState(false);
+  const allUpdated = updatedEventTypesStatus.every((item) => item.updated);
+
+  useEffect(() => {
+    setUpdatedEventTypesStatus(
+      updatedEventTypesStatus.filter((state) =>
+        fields.some((field) => field.id === state.id && field.selected)
+      )
+    );
+  }, [fields]);
+
+  useEffect(() => {
+    if (submit && allUpdated) {
+      const data = getValues("eventTypes");
+      console.log("ddatadataata: ", data);
+      setSubmit(false);
+    }
+  }, [submit, allUpdated, getValues]);
+
   const submitRefs = useRef<Array<React.RefObject<HTMLButtonElement>>>([]);
   submitRefs.current = selectedEventTypeIds.map(
     (_ref, index) => (submitRefs.current[index] = React.createRef<HTMLButtonElement>())
   );
 
   return (
-    <div className="mt-8">
-      <div className="flex flex-col space-y-6">
-        {fields.map((field, index) => {
-          return (
-            field.selected && (
-              <EventTypeAppSettingsForm
-                key={field.fieldId}
-                eventType={field}
-                handleDelete={() => {
-                  update(index, { ...field, selected: false });
-                }}
-                onSubmit={(data) => {
-                  console.log("ddatadatadatadataata: ", data);
-                  update(index, { ...field, metadata: data });
-                }}
-                ref={submitRefs.current[index]}
-                {...props}
-              />
-            )
-          );
-        })}
-      </div>
-      <Button
-        className="text-md mt-6 w-full justify-center"
-        onClick={() => {
-          // submitRefs.current[0].current?.click();
-          submitRefs.current.map((ref) => ref.current?.click());
-        }}
-        loading={loading}>
-        Save
-      </Button>
-    </div>
+    formPortalRef?.current &&
+    createPortal(
+      <div className="mt-8">
+        <div className="flex flex-col space-y-6">
+          {fields.map((field, index) => {
+            return (
+              field.selected && (
+                <EventTypeAppSettingsForm
+                  key={field.fieldId}
+                  eventType={field}
+                  handleDelete={() => {
+                    const eventMetadataDb = eventTypes.find(
+                      (eventType) => eventType.id == field.id
+                    )?.metadata;
+                    update(index, { ...field, selected: false, metadata: eventMetadataDb });
+                  }}
+                  onSubmit={(data) => {
+                    console.log("ddatadataata: ", index, field.id, data);
+                    update(index, { ...field, metadata: data });
+                    const temp = updatedEventTypesStatus.map((item) =>
+                      item.id === field.id ? { ...item, updated: true } : item
+                    );
+                    console.log("ttempemp: ", temp);
+                    setUpdatedEventTypesStatus(temp);
+                  }}
+                  ref={submitRefs.current[index]}
+                  {...props}
+                />
+              )
+            );
+          })}
+        </div>
+        <Button
+          className="text-md mt-6 w-full justify-center"
+          // type="submit"
+          onClick={(e) => {
+            submitRefs.current.map((ref) => ref.current?.click());
+            setSubmit(true);
+          }}
+          loading={loading}>
+          Save
+        </Button>
+      </div>,
+      formPortalRef?.current
+    )
   );
 };

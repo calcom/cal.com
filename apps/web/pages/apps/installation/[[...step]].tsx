@@ -2,7 +2,7 @@ import type { GetServerSidePropsContext } from "next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Head from "next/head";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Toaster } from "react-hot-toast";
 import { z } from "zod";
@@ -115,6 +115,7 @@ const OnboardingPage = ({
   const { t } = useLocale();
   const utils = trpc.useContext();
   const [isSelectingAccount, setIsSelectingAccount] = useState(false);
+  const formPortalRef = useRef<HTMLDivElement>(null);
 
   const formMethods = useForm<TEventTypesForm>({
     defaultValues: {
@@ -140,7 +141,6 @@ const OnboardingPage = ({
       teamId,
       eventTypeIds: selectedEventTypeIds,
     });
-    console.log("ururlurlurlurlurll: ", url);
     router.push(url);
   }, [selectedEventTypeIds, teamId, step, appMetadata.slug, router]);
 
@@ -269,7 +269,7 @@ const OnboardingPage = ({
       </Head>
       <div className="mx-auto py-6 sm:px-4 md:py-24">
         <div className="relative">
-          <div className="sm:mx-auto sm:w-full sm:max-w-[600px]">
+          <div className="sm:mx-auto sm:w-full sm:max-w-[600px]" ref={formPortalRef}>
             <Form
               form={formMethods}
               handleSubmit={(values) => {
@@ -319,7 +319,7 @@ const OnboardingPage = ({
                   selectedEventTypeIds={selectedEventTypeIds}
                 />
               )}
-              {step === AppOnboardingSteps.CONFIGURE_STEP && (
+              {step === AppOnboardingSteps.CONFIGURE_STEP && formPortalRef.current && (
                 <ConfigureStepCard
                   slug={appMetadata.slug}
                   categories={appMetadata.categories}
@@ -327,6 +327,8 @@ const OnboardingPage = ({
                   userName={userName}
                   loading={updateMutation.isPending}
                   selectedEventTypeIds={selectedEventTypeIds}
+                  formPortalRef={formPortalRef}
+                  eventTypes={eventTypes}
                 />
               )}
               <StepFooter />
