@@ -58,7 +58,7 @@ export default class CrmManager {
 
   public async createContacts(contactsToCreate: ContactCreateInput[]) {
     await this.getCrmService(this.credential);
-    const createdContacts = await this.crmService?.createContact(contactsToCreate);
+    const createdContacts = await this.crmService?.createContacts(contactsToCreate);
     return createdContacts;
   }
 }

@@ -5,14 +5,9 @@ import CloseCom from "@calcom/lib/CloseCom";
 import { getCustomActivityTypeInstanceData } from "@calcom/lib/CloseComeUtils";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import logger from "@calcom/lib/logger";
-import type {
-  Calendar,
-  CalendarEvent,
-  EventBusyDate,
-  IntegrationCalendar,
-  NewCalendarEventType,
-} from "@calcom/types/Calendar";
+import type { CalendarEvent, NewCalendarEventType } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
+import type { CRM, ContactCreateInput } from "@calcom/types/CrmService";
 
 const apiKeySchema = z.object({
   encrypted: z.string(),
@@ -51,7 +46,7 @@ const calComCustomActivityFields: CloseComFieldOptions = [
  * Close.com as part of this integration, a new generic Lead will be created in order
  * to assign every contact created by this process, and it is named "From Cal.com"
  */
-export default class CloseComCalendarService implements Calendar {
+export default class CloseComCRMService implements CRM {
   private integrationName = "";
   private closeCom: CloseCom;
   private log: typeof logger;
@@ -122,15 +117,23 @@ export default class CloseComCalendarService implements Calendar {
     return await this.closeComDeleteCustomActivity(uid);
   }
 
-  async getAvailability(
-    _dateFrom: string,
-    _dateTo: string,
-    _selectedCalendars: IntegrationCalendar[]
-  ): Promise<EventBusyDate[]> {
-    return Promise.resolve([]);
+  async getContacts(emails: string | string[]) {
+    return await this.closeCom.contact.search({
+      emails: Array.isArray(emails) ? emails : [emails],
+    });
   }
 
-  async listCalendars(_event?: CalendarEvent): Promise<IntegrationCalendar[]> {
-    return Promise.resolve([]);
+  async createContacts(contactsToCreate: ContactCreateInput[]) {
+    const createContactPromise = [];
+    for (const contact of contactsToCreate) {
+      createContactPromise.push(
+        this.closeCom.contact.create({
+          person: {
+            email: contact.email,
+            name: contact.name,
+          },
+        })
+      );
+    }
   }
 }
