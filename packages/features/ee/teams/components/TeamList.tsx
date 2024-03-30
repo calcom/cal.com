@@ -1,5 +1,6 @@
 import { useState } from "react";
 
+import { ORG_SELF_SERVE_ENABLED } from "@calcom/lib/constants";
 import { trackFormbricksAction } from "@calcom/lib/formbricks-client";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -52,7 +53,8 @@ export default function TeamList(props: Props) {
   const isUserAlreadyInAnOrganization = user.profile.organization;
   return (
     <ul className="bg-default divide-subtle border-subtle mb-2 divide-y overflow-hidden rounded-md border">
-      {!props.pending &&
+      {ORG_SELF_SERVE_ENABLED &&
+        !props.pending &&
         !isUserAlreadyInAnOrganization &&
         props.teams.length > 2 &&
         props.teams.map(

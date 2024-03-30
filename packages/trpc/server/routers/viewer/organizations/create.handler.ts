@@ -3,7 +3,7 @@ import { lookup } from "dns";
 import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
 import { sendAdminOrganizationNotification, sendOrganizationCreationEmail } from "@calcom/emails";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
-import { RESERVED_SUBDOMAINS, WEBAPP_URL } from "@calcom/lib/constants";
+import { RESERVED_SUBDOMAINS, WEBAPP_URL, ORG_SELF_SERVE_ENABLED } from "@calcom/lib/constants";
 import { createDomain } from "@calcom/lib/domainManager/organization";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
@@ -34,6 +34,10 @@ const getIPAddress = async (url: string): Promise<string> => {
 
 export const createHandler = async ({ input, ctx }: CreateOptions) => {
   const { slug, name, orgOwnerEmail, seats, pricePerSeat, isPlatform } = input;
+
+  if (!ORG_SELF_SERVE_ENABLED && ctx.user.role !== UserPermissionRole.ADMIN) {
+    throw new TRPCError({ code: "FORBIDDEN", message: "Only admins can create organizations" });
+  }
 
   const orgOwner = await prisma.user.findUnique({
     where: {
