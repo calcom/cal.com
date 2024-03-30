@@ -1,4 +1,4 @@
-import type { Prisma, DestinationCalendar } from "@prisma/client";
+import type { DestinationCalendar, BookingReference } from "@prisma/client";
 // eslint-disable-next-line no-restricted-imports
 import { cloneDeep, merge } from "lodash";
 import { v5 as uuidv5 } from "uuid";
@@ -99,7 +99,7 @@ export default class EventManager {
     // (type closecom_other_calendar)
     this.calendarCredentials = appCredentials.filter(
       // Backwards compatibility until CRM manager is implemented
-      (cred) => cred.type.endsWith("_calendar")
+      (cred) => cred.type.endsWith("_calendar") && !cred.type.includes("other_calendar")
     );
     this.videoCredentials = appCredentials
       .filter((cred) => cred.type.endsWith("_video") || cred.type.endsWith("_conferencing"))
@@ -109,7 +109,9 @@ export default class EventManager {
       .sort((a, b) => {
         return b.id - a.id;
       });
-    this.crmCredentials = appCredentials.filter((cred) => cred.type.endsWith("_crm"));
+    this.crmCredentials = appCredentials.filter(
+      (cred) => cred.type.endsWith("_crm") || cred.type.endsWith("_other_calendar")
+    );
   }
 
   /**
@@ -407,15 +409,15 @@ export default class EventManager {
       log.debug("RescheduleRequiresConfirmation: Deleting Event and Meeting for previous booking");
       // As the reschedule requires confirmation, we can't update the events and meetings to new time yet. So, just delete them and let it be handled when organizer confirms the booking.
       await this.deleteEventsAndMeetings({
-        booking,
         event: { ...event, destinationCalendar: previousHostDestinationCalendar },
+        bookingReferences: booking.references,
       });
     } else {
       if (changedOrganizer) {
         log.debug("RescheduleOrganizerChanged: Deleting Event and Meeting for previous booking");
         await this.deleteEventsAndMeetings({
-          booking,
           event: { ...event, destinationCalendar: previousHostDestinationCalendar },
+          bookingReferences: booking.references,
         });
 
         log.debug("RescheduleOrganizerChanged: Creating Event and Meeting for for new booking");
@@ -477,15 +479,10 @@ export default class EventManager {
 
   public async cancelEvent(
     event: CalendarEvent,
-    bookingReferences: Prisma.GetBookingReferencePayload<{
-      select: {
-        uid: true;
-        type: true;
-        externalCalendarId: true;
-        credentialId: true;
-        thirdPartyRecurringEventId: true;
-      };
-    }>,
+    bookingReferences: Pick<
+      BookingReference,
+      "uid" | "type" | "externalCalendarId" | "credentialId" | "thirdPartyRecurringEventId"
+    >,
     isBookingInRecurringSeries?: boolean
   ) {
     await this.deleteEventsAndMeetings({
