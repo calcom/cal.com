@@ -3,6 +3,7 @@ import { EventTypesRepository } from "@/ee/event-types/event-types.repository";
 import { CreateEventTypeInput } from "@/ee/event-types/inputs/create-event-type.input";
 import { UpdateEventTypeInput } from "@/ee/event-types/inputs/update-event-type/update-event-type.input";
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
+import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { SelectedCalendarsRepository } from "@/modules/selected-calendars/selected-calendars.repository";
 import { UserWithProfile, UsersRepository } from "@/modules/users/users.repository";
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
@@ -17,7 +18,8 @@ export class EventTypesService {
     private readonly eventTypesRepository: EventTypesRepository,
     private readonly membershipsRepository: MembershipsRepository,
     private readonly usersRepository: UsersRepository,
-    private readonly selectedCalendarsRepository: SelectedCalendarsRepository
+    private readonly selectedCalendarsRepository: SelectedCalendarsRepository,
+    private readonly dbWrite: PrismaWriteService
   ) {}
 
   async createUserEventType(user: UserWithProfile, body: CreateEventTypeInput) {

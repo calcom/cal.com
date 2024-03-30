@@ -41,10 +41,7 @@ import { ApiResponse, ApiSuccessResponse } from "@calcom/platform-types";
 @UseGuards(PermissionsGuard)
 @DocsTags("Event types")
 export class EventTypesController {
-  constructor(
-    private readonly eventTypesService: EventTypesService,
-    private readonly dbWrite: PrismaWriteService
-  ) {}
+  constructor(private readonly eventTypesService: EventTypesService) {}
 
   @Post("/")
   @Permissions([EVENT_TYPE_WRITE])
