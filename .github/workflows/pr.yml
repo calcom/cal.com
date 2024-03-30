@@ -33,7 +33,7 @@ jobs:
             }
   changes:
     name: Detect changes
-    if: ${{ needs.check-if-should-run-jobs.output.shouldRunJobs == 'true' }}
+    if: ${{ needs.check-if-should-run-jobs.outputs.shouldRunJobs == 'true' }}
     runs-on: buildjet-4vcpu-ubuntu-2204
     permissions:
       pull-requests: read
