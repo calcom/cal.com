@@ -1,4 +1,3 @@
-import { SchedulingType } from "@/ee/event-types/inputs/enums/scheduling-type";
 import { Type } from "class-transformer";
 import {
   IsString,
@@ -6,11 +5,13 @@ import {
   IsBoolean,
   IsOptional,
   ValidateNested,
-  IsEnum,
   Min,
   IsArray,
   IsUrl,
 } from "class-validator";
+
+// note(Lauris): We will gradually expose more properties if any customer needs them.
+// Just uncomment any below when requested.
 
 class EventTypeLocation {
   @IsString()
@@ -41,35 +42,37 @@ class EventTypeLocation {
   teamName?: string;
 }
 export class CreateEventTypeInput {
-  @IsString()
-  title!: string;
+  @IsNumber()
+  @Min(1)
+  length!: number;
 
   @IsString()
   slug!: string;
 
+  @IsString()
+  title!: string;
+
   @IsOptional()
   @IsString()
   description?: string;
-
-  @IsNumber()
-  @Min(1)
-  length!: number;
 
   @IsOptional()
   @IsBoolean()
   hidden?: boolean;
 
   @IsOptional()
-  @IsNumber()
-  teamId?: number;
-
-  @IsOptional()
-  @IsEnum(SchedulingType)
-  schedulingType?: SchedulingType;
-
-  @IsOptional()
   @ValidateNested({ each: true })
   @Type(() => EventTypeLocation)
   @IsArray()
   locations?: EventTypeLocation[];
+
+  // @ApiHideProperty()
+  // @IsOptional()
+  // @IsNumber()
+  // teamId?: number;
+
+  // @ApiHideProperty()
+  // @IsOptional()
+  // @IsEnum(SchedulingType)
+  // schedulingType?: SchedulingType; -> import { SchedulingType } from "@/ee/event-types/inputs/enums/scheduling-type";
 }

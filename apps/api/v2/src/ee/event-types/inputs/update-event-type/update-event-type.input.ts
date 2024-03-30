@@ -1,182 +1,168 @@
-import { Editable } from "@/ee/event-types/inputs/enums/editable";
-import { BaseField } from "@/ee/event-types/inputs/enums/field-type";
-import { Frequency } from "@/ee/event-types/inputs/enums/frequency";
-import { PeriodType } from "@/ee/event-types/inputs/enums/period-type";
-import { SchedulingType } from "@/ee/event-types/inputs/enums/scheduling-type";
 import { Type } from "class-transformer";
-import {
-  IsString,
-  IsNumber,
-  IsBoolean,
-  IsOptional,
-  ValidateNested,
-  IsEnum,
-  Min,
-  IsUrl,
-  IsDate,
-  IsInt,
-  IsArray,
-} from "class-validator";
+import { IsString, IsNumber, IsBoolean, IsOptional, ValidateNested, Min, IsInt } from "class-validator";
 
-class Option {
-  @IsString()
-  value!: string;
+// note(Lauris): We will gradually expose more properties if any customer needs them.
+// Just uncomment any below when requested. Go to bottom of file to see UpdateEventTypeInput.
 
-  @IsString()
-  label!: string;
-}
+// class Option {
+//   @IsString()
+//   value!: string;
 
-class Source {
-  @IsString()
-  id!: string;
+//   @IsString()
+//   label!: string;
+// }
 
-  @IsString()
-  type!: string;
+// class Source {
+//   @IsString()
+//   id!: string;
 
-  @IsString()
-  label!: string;
+//   @IsString()
+//   type!: string;
 
-  @IsOptional()
-  @IsString()
-  editUrl?: string;
+//   @IsString()
+//   label!: string;
 
-  @IsOptional()
-  @IsBoolean()
-  fieldRequired?: boolean;
-}
+//   @IsOptional()
+//   @IsString()
+//   editUrl?: string;
 
-class View {
-  @IsString()
-  id!: string;
+//   @IsOptional()
+//   @IsBoolean()
+//   fieldRequired?: boolean;
+// }
 
-  @IsString()
-  label!: string;
+// class View {
+//   @IsString()
+//   id!: string;
 
-  @IsOptional()
-  @IsString()
-  description?: string;
-}
+//   @IsString()
+//   label!: string;
 
-class OptionsInput {
-  @IsString()
-  type!: "address" | "text" | "phone";
+//   @IsOptional()
+//   @IsString()
+//   description?: string;
+// }
 
-  @IsOptional()
-  @IsBoolean()
-  required?: boolean;
+// class OptionsInput {
+//   @IsString()
+//   type!: "address" | "text" | "phone";
 
-  @IsOptional()
-  @IsString()
-  placeholder?: string;
-}
+//   @IsOptional()
+//   @IsBoolean()
+//   required?: boolean;
 
-class VariantField {
-  @IsString()
-  type!: BaseField;
+//   @IsOptional()
+//   @IsString()
+//   placeholder?: string;
+// }
 
-  @IsString()
-  name!: string;
+// class VariantField {
+//   @IsString()
+//   type!: BaseField; -> import { BaseField } from "@/ee/event-types/inputs/enums/field-type";
 
-  @IsOptional()
-  @IsString()
-  label?: string;
+//   @IsString()
+//   name!: string;
 
-  @IsOptional()
-  @IsString()
-  labelAsSafeHtml?: string;
+//   @IsOptional()
+//   @IsString()
+//   label?: string;
 
-  @IsOptional()
-  @IsString()
-  placeholder?: string;
+//   @IsOptional()
+//   @IsString()
+//   labelAsSafeHtml?: string;
 
-  @IsOptional()
-  @IsBoolean()
-  required?: boolean;
-}
+//   @IsOptional()
+//   @IsString()
+//   placeholder?: string;
 
-class Variant {
-  @ValidateNested({ each: true })
-  @Type(() => VariantField)
-  fields!: VariantField[];
-}
+//   @IsOptional()
+//   @IsBoolean()
+//   required?: boolean;
+// }
 
-class VariantsConfig {
-  variants!: Record<string, Variant>;
-}
+// class Variant {
+//   @ValidateNested({ each: true })
+//   @Type(() => VariantField)
+//   fields!: VariantField[];
+// }
 
-export class BookingField {
-  @IsEnum(BaseField)
-  type!: BaseField;
+// class VariantsConfig {
+//   variants!: Record<string, Variant>;
+// }
 
-  @IsString()
-  name!: string;
+// class BookingField {
+//   @IsEnum(BaseField)
+//   type!: BaseField; -> import { BaseField } from "@/ee/event-types/inputs/enums/field-type";
 
-  @IsOptional()
-  @ValidateNested({ each: true })
-  @Type(() => Option)
-  options?: Option[];
+//   @IsString()
+//   name!: string;
 
-  @IsOptional()
-  @IsString()
-  label?: string;
+//   @IsOptional()
+//   @ValidateNested({ each: true })
+//   @Type(() => Option)
+//   options?: Option[];
 
-  @IsOptional()
-  @IsString()
-  labelAsSafeHtml?: string;
+//   @IsOptional()
+//   @IsString()
+//   label?: string;
 
-  @IsOptional()
-  @IsString()
-  defaultLabel?: string;
+//   @IsOptional()
+//   @IsString()
+//   labelAsSafeHtml?: string;
 
-  @IsOptional()
-  @IsString()
-  placeholder?: string;
+//   @IsOptional()
+//   @IsString()
+//   defaultLabel?: string;
 
-  @IsOptional()
-  @IsBoolean()
-  required?: boolean;
+//   @IsOptional()
+//   @IsString()
+//   placeholder?: string;
 
-  @IsOptional()
-  @IsString()
-  getOptionsAt?: string;
+//   @IsOptional()
+//   @IsBoolean()
+//   required?: boolean;
 
-  @IsOptional()
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => OptionsInput)
-  optionsInputs?: Record<string, OptionsInput>;
+//   @IsOptional()
+//   @IsString()
+//   getOptionsAt?: string;
 
-  @IsOptional()
-  @IsString()
-  variant?: string;
+//   @IsOptional()
+//   @IsArray()
+//   @ValidateNested({ each: true })
+//   @Type(() => OptionsInput)
+//   optionsInputs?: Record<string, OptionsInput>;
 
-  @IsOptional()
-  @ValidateNested()
-  @Type(() => VariantsConfig)
-  variantsConfig?: VariantsConfig;
+//   @IsOptional()
+//   @IsString()
+//   variant?: string;
 
-  @IsOptional()
-  @ValidateNested({ each: true })
-  @Type(() => View)
-  views?: View[];
+//   @IsOptional()
+//   @ValidateNested()
+//   @Type(() => VariantsConfig)
+//   variantsConfig?: VariantsConfig;
 
-  @IsOptional()
-  @IsBoolean()
-  hideWhenJustOneOption?: boolean;
+//   @IsOptional()
+//   @ValidateNested({ each: true })
+//   @Type(() => View)
+//   views?: View[];
 
-  @IsOptional()
-  @IsBoolean()
-  hidden?: boolean;
+//   @IsOptional()
+//   @IsBoolean()
+//   hideWhenJustOneOption?: boolean;
 
-  @IsOptional()
-  @IsEnum(Editable)
-  editable?: Editable;
+//   @IsOptional()
+//   @IsBoolean()
+//   hidden?: boolean;
 
-  @IsOptional()
-  @ValidateNested({ each: true })
-  @Type(() => Source)
-  sources?: Source[];
-}
+//   @IsOptional()
+//   @IsEnum(Editable)
+//   editable?: Editable; -> import { Editable } from "@/ee/event-types/inputs/enums/editable";
+
+//   @IsOptional()
+//   @ValidateNested({ each: true })
+//   @Type(() => Source)
+//   sources?: Source[];
+// }
 
 class Location {
   @IsString()
@@ -206,51 +192,52 @@ class Location {
   @IsOptional()
   teamName?: string;
 }
-class RecurringEvent {
-  @IsDate()
-  @IsOptional()
-  dtstart?: Date;
+// class RecurringEvent {
+//   @IsDate()
+//   @IsOptional()
+//   dtstart?: Date;
 
-  @IsInt()
-  interval!: number;
+//   @IsInt()
+//   interval!: number;
 
-  @IsInt()
-  count!: number;
+//   @IsInt()
+//   count!: number;
 
-  @IsEnum(Frequency)
-  freq!: Frequency;
+//   @IsEnum(Frequency)
+//   freq!: Frequency; -> import { Frequency } from "@/ee/event-types/inputs/enums/frequency";
 
-  @IsDate()
-  @IsOptional()
-  until?: Date;
+//   @IsDate()
+//   @IsOptional()
+//   until?: Date;
 
-  @IsString()
-  @IsOptional()
-  tzid?: string;
-}
+//   @IsString()
+//   @IsOptional()
+//   tzid?: string;
+// }
 
-class IntervalLimits {
-  @IsNumber()
-  @IsOptional()
-  PER_DAY?: number;
+// class IntervalLimits {
+//   @IsNumber()
+//   @IsOptional()
+//   PER_DAY?: number;
 
-  @IsNumber()
-  @IsOptional()
-  PER_WEEK?: number;
+//   @IsNumber()
+//   @IsOptional()
+//   PER_WEEK?: number;
 
-  @IsNumber()
-  @IsOptional()
-  PER_MONTH?: number;
+//   @IsNumber()
+//   @IsOptional()
+//   PER_MONTH?: number;
 
-  @IsNumber()
-  @IsOptional()
-  PER_YEAR?: number;
-}
+//   @IsNumber()
+//   @IsOptional()
+//   PER_YEAR?: number;
+// }
 
 export class UpdateEventTypeInput {
-  @IsString()
+  @IsInt()
+  @Min(1)
   @IsOptional()
-  title?: string;
+  length?: number;
 
   @IsString()
   @IsOptional()
@@ -258,182 +245,181 @@ export class UpdateEventTypeInput {
 
   @IsString()
   @IsOptional()
+  title?: string;
+
+  @IsString()
+  @IsOptional()
   description?: string;
 
-  @IsInt()
+  @IsBoolean()
   @IsOptional()
-  position?: number;
+  hidden?: boolean;
 
   @ValidateNested({ each: true })
   @Type(() => Location)
   @IsOptional()
   locations?: Location[];
 
-  @IsInt()
-  @Min(1)
-  @IsOptional()
-  length?: number;
+  // @IsInt()
+  // @IsOptional()
+  // position?: number;
 
-  @IsInt()
-  @IsOptional()
-  offsetStart?: number;
+  // @IsInt()
+  // @IsOptional()
+  // offsetStart?: number;
 
-  @IsBoolean()
-  @IsOptional()
-  hidden?: boolean;
+  // @IsInt()
+  // @IsOptional()
+  // userId?: number;
 
-  @IsInt()
-  @IsOptional()
-  userId?: number;
+  // @IsInt()
+  // @IsOptional()
+  // profileId?: number;
 
-  @IsInt()
-  @IsOptional()
-  profileId?: number;
+  // @IsInt()
+  // @IsOptional()
+  // teamId?: number;
 
-  @IsInt()
-  @IsOptional()
-  teamId?: number;
+  // @IsString()
+  // @IsOptional()
+  // eventName?: string;
 
-  @IsString()
-  @IsOptional()
-  eventName?: string;
+  // @IsInt()
+  // @IsOptional()
+  // parentId?: number;
 
-  @IsInt()
-  @IsOptional()
-  parentId?: number;
+  // @IsOptional()
+  // @IsArray()
+  // @ValidateNested({ each: true })
+  // @Type(() => BookingField)
+  // bookingFields?: BookingField[];
 
-  @IsOptional()
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => BookingField)
-  bookingFields?: BookingField[];
+  // @IsString()
+  // @IsOptional()
+  // timeZone?: string;
 
-  @IsString()
-  @IsOptional()
-  timeZone?: string;
+  // @IsEnum(PeriodType)
+  // @IsOptional()
+  // periodType?: PeriodType; -> import { PeriodType } from "@/ee/event-types/inputs/enums/period-type";
 
-  @IsEnum(PeriodType)
-  @IsOptional()
-  periodType?: PeriodType;
+  // @IsDate()
+  // @IsOptional()
+  // periodStartDate?: Date;
 
-  @IsDate()
-  @IsOptional()
-  periodStartDate?: Date;
+  // @IsDate()
+  // @IsOptional()
+  // periodEndDate?: Date;
 
-  @IsDate()
-  @IsOptional()
-  periodEndDate?: Date;
+  // @IsInt()
+  // @IsOptional()
+  // periodDays?: number;
 
-  @IsInt()
-  @IsOptional()
-  periodDays?: number;
+  // @IsBoolean()
+  // @IsOptional()
+  // periodCountCalendarDays?: boolean;
 
-  @IsBoolean()
-  @IsOptional()
-  periodCountCalendarDays?: boolean;
+  // @IsBoolean()
+  // @IsOptional()
+  // lockTimeZoneToggleOnBookingPage?: boolean;
 
-  @IsBoolean()
-  @IsOptional()
-  lockTimeZoneToggleOnBookingPage?: boolean;
+  // @IsBoolean()
+  // @IsOptional()
+  // requiresConfirmation?: boolean;
 
-  @IsBoolean()
-  @IsOptional()
-  requiresConfirmation?: boolean;
+  // @IsBoolean()
+  // @IsOptional()
+  // requiresBookerEmailVerification?: boolean;
 
-  @IsBoolean()
-  @IsOptional()
-  requiresBookerEmailVerification?: boolean;
+  // @ValidateNested()
+  // @Type(() => RecurringEvent)
+  // @IsOptional()
+  // recurringEvent?: RecurringEvent;
 
-  @ValidateNested()
-  @Type(() => RecurringEvent)
-  @IsOptional()
-  recurringEvent?: RecurringEvent;
+  // @IsBoolean()
+  // @IsOptional()
+  // disableGuests?: boolean;
 
-  @IsBoolean()
-  @IsOptional()
-  disableGuests?: boolean;
+  // @IsBoolean()
+  // @IsOptional()
+  // hideCalendarNotes?: boolean;
 
-  @IsBoolean()
-  @IsOptional()
-  hideCalendarNotes?: boolean;
+  // @IsInt()
+  // @Min(0)
+  // @IsOptional()
+  // minimumBookingNotice?: number;
 
-  @IsInt()
-  @Min(0)
-  @IsOptional()
-  minimumBookingNotice?: number;
+  // @IsInt()
+  // @IsOptional()
+  // beforeEventBuffer?: number;
 
-  @IsInt()
-  @IsOptional()
-  beforeEventBuffer?: number;
+  // @IsInt()
+  // @IsOptional()
+  // afterEventBuffer?: number;
 
-  @IsInt()
-  @IsOptional()
-  afterEventBuffer?: number;
+  // @IsInt()
+  // @IsOptional()
+  // seatsPerTimeSlot?: number;
 
-  @IsInt()
-  @IsOptional()
-  seatsPerTimeSlot?: number;
+  // @IsBoolean()
+  // @IsOptional()
+  // onlyShowFirstAvailableSlot?: boolean;
 
-  @IsBoolean()
-  @IsOptional()
-  onlyShowFirstAvailableSlot?: boolean;
+  // @IsBoolean()
+  // @IsOptional()
+  // seatsShowAttendees?: boolean;
 
-  @IsBoolean()
-  @IsOptional()
-  seatsShowAttendees?: boolean;
+  // @IsBoolean()
+  // @IsOptional()
+  // seatsShowAvailabilityCount?: boolean;
 
-  @IsBoolean()
-  @IsOptional()
-  seatsShowAvailabilityCount?: boolean;
+  // @IsEnum(SchedulingType)
+  // @IsOptional()
+  // schedulingType?: SchedulingType; -> import { SchedulingType } from "@/ee/event-types/inputs/enums/scheduling-type";
 
-  @IsEnum(SchedulingType)
-  @IsOptional()
-  schedulingType?: SchedulingType;
+  // @IsInt()
+  // @IsOptional()
+  // scheduleId?: number;
 
-  @IsInt()
-  @IsOptional()
-  scheduleId?: number;
+  // @IsInt()
+  // @IsOptional()
+  // price?: number;
 
-  @IsInt()
-  @IsOptional()
-  price?: number;
+  // @IsString()
+  // @IsOptional()
+  // currency?: string;
 
-  @IsString()
-  @IsOptional()
-  currency?: string;
+  // @IsInt()
+  // @IsOptional()
+  // slotInterval?: number;
 
-  @IsInt()
-  @IsOptional()
-  slotInterval?: number;
+  // @IsString()
+  // @IsOptional()
+  // @IsUrl()
+  // successRedirectUrl?: string;
 
-  @IsString()
-  @IsOptional()
-  @IsUrl()
-  successRedirectUrl?: string;
+  // @ValidateNested()
+  // @Type(() => IntervalLimits)
+  // @IsOptional()
+  // bookingLimits?: IntervalLimits;
 
-  @ValidateNested()
-  @Type(() => IntervalLimits)
-  @IsOptional()
-  bookingLimits?: IntervalLimits;
+  // @ValidateNested()
+  // @Type(() => IntervalLimits)
+  // @IsOptional()
+  // durationLimits?: IntervalLimits;
 
-  @ValidateNested()
-  @Type(() => IntervalLimits)
-  @IsOptional()
-  durationLimits?: IntervalLimits;
+  // @IsBoolean()
+  // @IsOptional()
+  // isInstantEvent?: boolean;
 
-  @IsBoolean()
-  @IsOptional()
-  isInstantEvent?: boolean;
+  // @IsBoolean()
+  // @IsOptional()
+  // assignAllTeamMembers?: boolean;
 
-  @IsBoolean()
-  @IsOptional()
-  assignAllTeamMembers?: boolean;
+  // @IsBoolean()
+  // @IsOptional()
+  // useEventTypeDestinationCalendarEmail?: boolean;
 
-  @IsBoolean()
-  @IsOptional()
-  useEventTypeDestinationCalendarEmail?: boolean;
-
-  @IsInt()
-  @IsOptional()
-  secondaryEmailId?: number;
+  // @IsInt()
+  // @IsOptional()
+  // secondaryEmailId?: number;
 }
