@@ -318,6 +318,11 @@ export const createdEventSchema = z
   })
   .passthrough();
 
+const schemaDefaultConferencingApp = z.object({
+  appSlug: z.string().default("daily-video").optional(),
+  appLink: z.string().optional(),
+});
+
 export const userMetadata = z
   .object({
     proPaidForByTeamId: z.number().optional(),
@@ -325,12 +330,7 @@ export const userMetadata = z
     vitalSettings: vitalSettingsUpdateSchema.optional(),
     isPremium: z.boolean().optional(),
     sessionTimeout: z.number().optional(), // Minutes
-    defaultConferencingApp: z
-      .object({
-        appSlug: z.string().default("daily-video").optional(),
-        appLink: z.string().optional(),
-      })
-      .optional(),
+    defaultConferencingApp: schemaDefaultConferencingApp.optional(),
     defaultBookerLayouts: bookerLayouts.optional(),
     emailChangeWaitingForVerification: z
       .string()
@@ -346,6 +346,8 @@ export const userMetadata = z
       .optional(),
   })
   .nullable();
+
+export type DefaultConferencingApp = z.infer<typeof schemaDefaultConferencingApp>;
 
 export const orgSettingsSchema = z
   .object({
