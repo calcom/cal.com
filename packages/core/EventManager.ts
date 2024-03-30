@@ -482,7 +482,7 @@ export default class EventManager {
     bookingReferences: Pick<
       BookingReference,
       "uid" | "type" | "externalCalendarId" | "credentialId" | "thirdPartyRecurringEventId"
-    >,
+    >[],
     isBookingInRecurringSeries?: boolean
   ) {
     await this.deleteEventsAndMeetings({
