@@ -13,25 +13,27 @@ jobs:
   check-if-should-run-jobs:
     name: Check if should run jobs (target main or core team)
     runs-on: buildjet-2vcpu-ubuntu-2204
-    uses: actions/github-script@v5
-    with:
-      github-token: ${{ secrets.GITHUB_TOKEN }}
-      script: |
-        const targetBranch = context.base_ref;
-        if (targetBranch.includes("main")) {
-          core.setOutput("shouldRunJobs", "true");
-          exit 0;
-        }
+    steps:
+      - name: Check if should run jobs
+        uses: actions/github-script@v5
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const targetBranch = context.base_ref;
+            if (targetBranch.includes("main")) {
+              core.setOutput("shouldRunJobs", "true");
+              exit 0;
+            }
 
-        const authorTeams = context.actor.teams.map(team => team.slug);
+            const authorTeams = context.actor.teams.map(team => team.slug);
 
-        if (authorTeams.includes("core")) {
-          core.setOutput("shouldRunJobs", "true");
-          exit 0;
-        }
+            if (authorTeams.includes("core")) {
+              core.setOutput("shouldRunJobs", "true");
+              exit 0;
+            }
   changes:
     name: Detect changes
-    if: ${{ steps.check-if-should-run-jobs.shouldRunJobs == 'true' }}
+    if: ${{ needs.check-if-should-run-jobs.output.shouldRunJobs == 'true' }}
     runs-on: buildjet-4vcpu-ubuntu-2204
     permissions:
       pull-requests: read
