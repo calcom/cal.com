@@ -107,12 +107,14 @@ const createTeamAndAddUser = async (
     isOrgVerified,
     hasSubteam,
     organizationId,
+    isDnsSetup,
     index,
   }: {
     user: { id: number; email: string; username: string | null; role?: MembershipRole };
     isUnpublished?: boolean;
     isOrg?: boolean;
     isOrgVerified?: boolean;
+    isDnsSetup?: boolean;
     hasSubteam?: true;
     organizationId?: number | null;
     index?: number;
@@ -131,9 +133,9 @@ const createTeamAndAddUser = async (
   if (isOrg) {
     data.organizationSettings = {
       create: {
-        isOrganizationVerified: !!isOrgVerified,
         orgAutoAcceptEmail: user.email.split("@")[1],
-        isOrganizationConfigured: false,
+        isOrganizationVerified: !!isOrgVerified,
+        isOrganizationConfigured: isDnsSetup,
       },
     };
   }
@@ -223,6 +225,7 @@ export const createUsersFixture = (
         teamEventLength?: number;
         isOrg?: boolean;
         isOrgVerified?: boolean;
+        isDnsSetup?: boolean;
         hasSubteam?: true;
         isUnpublished?: true;
       } = {}
@@ -399,6 +402,7 @@ export const createUsersFixture = (
               isUnpublished: scenario.isUnpublished,
               isOrg: scenario.isOrg,
               isOrgVerified: scenario.isOrgVerified,
+              isDnsSetup: scenario.isDnsSetup,
               hasSubteam: scenario.hasSubteam,
               organizationId: opts?.organizationId,
             },

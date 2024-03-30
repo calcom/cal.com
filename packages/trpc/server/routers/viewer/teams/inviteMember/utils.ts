@@ -189,10 +189,12 @@ export function getOrgConnectionInfo({
   orgConfigured,
   isOrg,
   usersEmail,
+  orgVerified,
   team,
 }: {
   orgAutoAcceptDomain?: string | null;
-  orgConfigured?: boolean | null;
+  orgConfigured: boolean;
+  orgVerified: boolean;
   usersEmail: string;
   team: TeamWithParent;
   isOrg: boolean;
@@ -203,7 +205,7 @@ export function getOrgConnectionInfo({
   if (team.parentId || isOrg) {
     orgId = team.parentId || team.id;
     if (usersEmail.split("@")[1] == orgAutoAcceptDomain) {
-      autoAccept = orgConfigured ?? true;
+      autoAccept = orgConfigured && orgVerified;
     } else {
       orgId = undefined;
       autoAccept = false;
