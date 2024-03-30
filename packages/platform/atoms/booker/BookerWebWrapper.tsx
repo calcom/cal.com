@@ -1,4 +1,3 @@
-import type { CustomClassNames } from "booker/BookerPlatformWrapper";
 import { useSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import { usePathname, useRouter } from "next/navigation";
@@ -21,6 +20,8 @@ import { useBrandColors } from "@calcom/features/bookings/Booker/utils/use-brand
 import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR } from "@calcom/lib/constants";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
+
+import type { CustomClassNames } from "./BookerPlatformWrapper";
 
 type BookerWebWrapperAtomProps = BookerProps & { customClassNames?: CustomClassNames };
 
