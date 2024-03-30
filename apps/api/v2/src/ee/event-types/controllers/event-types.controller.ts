@@ -1,5 +1,5 @@
 import { CreateEventTypeInput } from "@/ee/event-types/inputs/create-event-type.input";
-import { UpdateEventTypeInput } from "@/ee/event-types/inputs/update-event-type/update-event-type.input";
+import { UpdateEventTypeInput } from "@/ee/event-types/inputs/update-event-type.input";
 import { EventTypesService } from "@/ee/event-types/services/event-types.service";
 import { ForAtom } from "@/lib/atoms/decorators/for-atom.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";

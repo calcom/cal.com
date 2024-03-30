@@ -1,7 +1,7 @@
 import { DEFAULT_EVENT_TYPES } from "@/ee/event-types/constants/constants";
 import { EventTypesRepository } from "@/ee/event-types/event-types.repository";
 import { CreateEventTypeInput } from "@/ee/event-types/inputs/create-event-type.input";
-import { UpdateEventTypeInput } from "@/ee/event-types/inputs/update-event-type/update-event-type.input";
+import { UpdateEventTypeInput } from "@/ee/event-types/inputs/update-event-type.input";
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { SelectedCalendarsRepository } from "@/modules/selected-calendars/selected-calendars.repository";
