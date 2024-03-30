@@ -1,6 +1,6 @@
 import { CreateEventTypeInput } from "@/ee/event-types/inputs/create-event-type.input";
 import { UpdateEventTypeInput } from "@/ee/event-types/inputs/update-event-type/update-event-type.input";
-import { EventTypesService, checkUserOwnsEventType } from "@/ee/event-types/services/event-types.service";
+import { EventTypesService } from "@/ee/event-types/services/event-types.service";
 import { ForAtom } from "@/lib/atoms/decorators/for-atom.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
@@ -26,7 +26,6 @@ import { EventType } from "@prisma/client";
 
 import { EventTypesByViewer } from "@calcom/lib";
 import { EVENT_TYPE_READ, EVENT_TYPE_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
-import { updateEventType } from "@calcom/platform-libraries";
 import type {
   EventType as AtomEventType,
   EventTypesPublic,
@@ -123,22 +122,7 @@ export class EventTypesController {
     @Body() body: UpdateEventTypeInput,
     @GetUser() user: UserWithProfile
   ): Promise<ApiResponse<UpdateEventTypeReturn["eventType"]>> {
-    const existingEventType = await this.eventTypesService.getUserEventType(user.id, eventTypeId);
-    if (!existingEventType) {
-      throw new NotFoundException(`Event type with id ${eventTypeId} not found`);
-    }
-    checkUserOwnsEventType(user.id, existingEventType);
-
-    const eventTypeUser = await this.eventTypesService.getUserToUpdateEvent(user);
-    const { eventType } = await updateEventType({
-      input: { id: eventTypeId, ...body },
-      ctx: {
-        user: eventTypeUser,
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        prisma: this.dbWrite.prisma,
-      },
-    });
+    const eventType = await this.eventTypesService.updateEventType(eventTypeId, body, user);
 
     return {
       status: SUCCESS_STATUS,
