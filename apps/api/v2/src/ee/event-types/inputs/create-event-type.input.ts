@@ -1,3 +1,4 @@
+import { ApiProperty as DocsProperty, ApiHideProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import {
   IsString,
@@ -15,49 +16,61 @@ import {
 
 class EventTypeLocation {
   @IsString()
+  @DocsProperty({ example: "masterchief_video" })
   type!: string;
 
   @IsOptional()
   @IsString()
+  @ApiHideProperty()
   address?: string;
 
   @IsOptional()
   @IsUrl()
+  @DocsProperty({ example: "https://masterchief.com/argentina/flan/video/9129412" })
   link?: string;
 
   @IsOptional()
   @IsBoolean()
+  @ApiHideProperty()
   displayLocationPublicly?: boolean;
 
   @IsOptional()
   @IsString()
+  @ApiHideProperty()
   hostPhoneNumber?: string;
 
   @IsOptional()
   @IsNumber()
+  @ApiHideProperty()
   credentialId?: number;
 
   @IsOptional()
   @IsString()
+  @ApiHideProperty()
   teamName?: string;
 }
 export class CreateEventTypeInput {
   @IsNumber()
   @Min(1)
+  @DocsProperty({ example: 60 })
   length!: number;
 
   @IsString()
+  @DocsProperty({ example: "cooking-class" })
   slug!: string;
 
   @IsString()
+  @DocsProperty({ example: "Learn the secrets of masterchief!" })
   title!: string;
 
   @IsOptional()
   @IsString()
+  @DocsProperty({ example: "Discover the culinary wonders of the Argentina by making the best flan ever!" })
   description?: string;
 
   @IsOptional()
   @IsBoolean()
+  @ApiHideProperty()
   hidden?: boolean;
 
   @IsOptional()

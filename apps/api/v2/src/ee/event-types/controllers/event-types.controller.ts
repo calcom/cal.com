@@ -21,6 +21,7 @@ import {
   HttpStatus,
   Delete,
 } from "@nestjs/common";
+import { ApiTags as DocsTags } from "@nestjs/swagger";
 import { EventType } from "@prisma/client";
 
 import { EventTypesByViewer } from "@calcom/lib";
@@ -39,6 +40,7 @@ import { ApiResponse, ApiSuccessResponse } from "@calcom/platform-types";
   version: "2",
 })
 @UseGuards(PermissionsGuard)
+@DocsTags("Event types")
 export class EventTypesController {
   constructor(
     private readonly eventTypesService: EventTypesService,

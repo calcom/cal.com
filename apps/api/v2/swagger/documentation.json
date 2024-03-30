@@ -538,7 +538,10 @@
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Event types"
+        ]
       },
       "get": {
         "operationId": "EventTypesController_getEventTypes",
@@ -554,7 +557,10 @@
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Event types"
+        ]
       }
     },
     "/api/v2/event-types/{eventTypeId}": {
@@ -581,7 +587,10 @@
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Event types"
+        ]
       },
       "patch": {
         "operationId": "EventTypesController_updateEventType",
@@ -616,7 +625,10 @@
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Event types"
+        ]
       },
       "delete": {
         "operationId": "EventTypesController_deleteEventType",
@@ -641,7 +653,10 @@
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Event types"
+        ]
       }
     },
     "/api/v2/event-types/{username}/public": {
@@ -668,7 +683,10 @@
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Event types"
+        ]
       }
     },
     "/api/v2/ee/gcal/oauth/auth-url": {
@@ -1594,25 +1612,12 @@
         "type": "object",
         "properties": {
           "type": {
-            "type": "string"
-          },
-          "address": {
-            "type": "string"
+            "type": "string",
+            "example": "masterchief_video"
           },
           "link": {
-            "type": "string"
-          },
-          "displayLocationPublicly": {
-            "type": "boolean"
-          },
-          "hostPhoneNumber": {
-            "type": "string"
-          },
-          "credentialId": {
-            "type": "number"
-          },
-          "teamName": {
-            "type": "string"
+            "type": "string",
+            "example": "https://masterchief.com/argentina/flan/video/9129412"
           }
         },
         "required": [
@@ -1622,32 +1627,22 @@
       "CreateEventTypeInput": {
         "type": "object",
         "properties": {
-          "title": {
-            "type": "string"
-          },
-          "slug": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string"
-          },
           "length": {
             "type": "number",
-            "minimum": 1
+            "minimum": 1,
+            "example": 60
           },
-          "hidden": {
-            "type": "boolean"
-          },
-          "teamId": {
-            "type": "number"
-          },
-          "schedulingType": {
+          "slug": {
             "type": "string",
-            "enum": [
-              "ROUND_ROBIN",
-              "COLLECTIVE",
-              "MANAGED"
-            ]
+            "example": "cooking-class"
+          },
+          "title": {
+            "type": "string",
+            "example": "Learn the secrets of masterchief!"
+          },
+          "description": {
+            "type": "string",
+            "example": "Discover the culinary wonders of the Argentina by making the best flan ever!"
           },
           "locations": {
             "type": "array",
@@ -1657,9 +1652,9 @@
           }
         },
         "required": [
-          "title",
+          "length",
           "slug",
-          "length"
+          "title"
         ]
       },
       "Location": {
@@ -1691,380 +1686,30 @@
           "type"
         ]
       },
-      "Option": {
-        "type": "object",
-        "properties": {
-          "value": {
-            "type": "string"
-          },
-          "label": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "value",
-          "label"
-        ]
-      },
-      "VariantsConfig": {
-        "type": "object",
-        "properties": {
-          "variants": {
-            "type": "object"
-          }
-        },
-        "required": [
-          "variants"
-        ]
-      },
-      "View": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "label": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "label"
-        ]
-      },
-      "Source": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "type": {
-            "type": "string"
-          },
-          "label": {
-            "type": "string"
-          },
-          "editUrl": {
-            "type": "string"
-          },
-          "fieldRequired": {
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "id",
-          "type",
-          "label"
-        ]
-      },
-      "BookingField": {
-        "type": "object",
-        "properties": {
-          "type": {
-            "type": "string",
-            "enum": [
-              "number",
-              "boolean",
-              "address",
-              "name",
-              "text",
-              "textarea",
-              "email",
-              "phone",
-              "multiemail",
-              "select",
-              "multiselect",
-              "checkbox",
-              "radio",
-              "radioInput"
-            ]
-          },
-          "name": {
-            "type": "string"
-          },
-          "options": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/Option"
-            }
-          },
-          "label": {
-            "type": "string"
-          },
-          "labelAsSafeHtml": {
-            "type": "string"
-          },
-          "defaultLabel": {
-            "type": "string"
-          },
-          "placeholder": {
-            "type": "string"
-          },
-          "required": {
-            "type": "boolean"
-          },
-          "getOptionsAt": {
-            "type": "string"
-          },
-          "optionsInputs": {
-            "type": "object"
-          },
-          "variant": {
-            "type": "string"
-          },
-          "variantsConfig": {
-            "$ref": "#/components/schemas/VariantsConfig"
-          },
-          "views": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/View"
-            }
-          },
-          "hideWhenJustOneOption": {
-            "type": "boolean"
-          },
-          "hidden": {
-            "type": "boolean"
-          },
-          "editable": {
-            "type": "string",
-            "enum": [
-              "system",
-              "system-but-optional",
-              "system-but-hidden",
-              "user",
-              "user-readonly"
-            ]
-          },
-          "sources": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/Source"
-            }
-          }
-        },
-        "required": [
-          "type",
-          "name"
-        ]
-      },
-      "RecurringEvent": {
-        "type": "object",
-        "properties": {
-          "dtstart": {
-            "format": "date-time",
-            "type": "string"
-          },
-          "interval": {
-            "type": "number"
-          },
-          "count": {
-            "type": "number"
-          },
-          "freq": {
-            "type": "number",
-            "enum": [
-              0,
-              1,
-              2,
-              3,
-              4,
-              5,
-              6
-            ]
-          },
-          "until": {
-            "format": "date-time",
-            "type": "string"
-          },
-          "tzid": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "interval",
-          "count",
-          "freq"
-        ]
-      },
-      "IntervalLimits": {
-        "type": "object",
-        "properties": {
-          "PER_DAY": {
-            "type": "number"
-          },
-          "PER_WEEK": {
-            "type": "number"
-          },
-          "PER_MONTH": {
-            "type": "number"
-          },
-          "PER_YEAR": {
-            "type": "number"
-          }
-        }
-      },
       "UpdateEventTypeInput": {
         "type": "object",
         "properties": {
-          "title": {
-            "type": "string"
+          "length": {
+            "type": "number",
+            "minimum": 1
           },
           "slug": {
             "type": "string"
           },
+          "title": {
+            "type": "string"
+          },
           "description": {
             "type": "string"
           },
-          "position": {
-            "type": "number"
+          "hidden": {
+            "type": "boolean"
           },
           "locations": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/Location"
             }
-          },
-          "length": {
-            "type": "number",
-            "minimum": 1
-          },
-          "offsetStart": {
-            "type": "number"
-          },
-          "hidden": {
-            "type": "boolean"
-          },
-          "userId": {
-            "type": "number"
-          },
-          "profileId": {
-            "type": "number"
-          },
-          "teamId": {
-            "type": "number"
-          },
-          "eventName": {
-            "type": "string"
-          },
-          "parentId": {
-            "type": "number"
-          },
-          "bookingFields": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/BookingField"
-            }
-          },
-          "timeZone": {
-            "type": "string"
-          },
-          "periodType": {
-            "type": "string",
-            "enum": [
-              "UNLIMITED",
-              "ROLLING",
-              "RANGE"
-            ]
-          },
-          "periodStartDate": {
-            "format": "date-time",
-            "type": "string"
-          },
-          "periodEndDate": {
-            "format": "date-time",
-            "type": "string"
-          },
-          "periodDays": {
-            "type": "number"
-          },
-          "periodCountCalendarDays": {
-            "type": "boolean"
-          },
-          "lockTimeZoneToggleOnBookingPage": {
-            "type": "boolean"
-          },
-          "requiresConfirmation": {
-            "type": "boolean"
-          },
-          "requiresBookerEmailVerification": {
-            "type": "boolean"
-          },
-          "recurringEvent": {
-            "$ref": "#/components/schemas/RecurringEvent"
-          },
-          "disableGuests": {
-            "type": "boolean"
-          },
-          "hideCalendarNotes": {
-            "type": "boolean"
-          },
-          "minimumBookingNotice": {
-            "type": "number",
-            "minimum": 0
-          },
-          "beforeEventBuffer": {
-            "type": "number"
-          },
-          "afterEventBuffer": {
-            "type": "number"
-          },
-          "seatsPerTimeSlot": {
-            "type": "number"
-          },
-          "onlyShowFirstAvailableSlot": {
-            "type": "boolean"
-          },
-          "seatsShowAttendees": {
-            "type": "boolean"
-          },
-          "seatsShowAvailabilityCount": {
-            "type": "boolean"
-          },
-          "schedulingType": {
-            "type": "string",
-            "enum": [
-              "ROUND_ROBIN",
-              "COLLECTIVE",
-              "MANAGED"
-            ]
-          },
-          "scheduleId": {
-            "type": "number"
-          },
-          "price": {
-            "type": "number"
-          },
-          "currency": {
-            "type": "string"
-          },
-          "slotInterval": {
-            "type": "number"
-          },
-          "successRedirectUrl": {
-            "type": "string"
-          },
-          "bookingLimits": {
-            "$ref": "#/components/schemas/IntervalLimits"
-          },
-          "durationLimits": {
-            "$ref": "#/components/schemas/IntervalLimits"
-          },
-          "isInstantEvent": {
-            "type": "boolean"
-          },
-          "assignAllTeamMembers": {
-            "type": "boolean"
-          },
-          "useEventTypeDestinationCalendarEmail": {
-            "type": "boolean"
-          },
-          "secondaryEmailId": {
-            "type": "number"
           }
         }
       },
