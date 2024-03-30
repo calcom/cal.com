@@ -342,7 +342,7 @@ test.describe("Organization", () => {
       await page.getByTestId("new-member-button").click();
       await page.locator('[placeholder="email\\@example\\.com"]').fill(adminEmail);
       await page.getByTestId("invite-new-member-button").click();
-      await expect(await page.locator(`li:has-text("${adminEmail}")`)).toBeVisible();
+      await expect(page.locator(`li:has-text("${adminEmail}")`)).toBeVisible();
       // TODO: Check if invited admin received the invitation email
       // await expectInvitationEmailToBeReceived(
       //   page,
@@ -365,9 +365,9 @@ test.describe("Organization", () => {
 
     await test.step("Move existing teams to org", async () => {
       // No easy way to get all team checkboxes so we fill all checkboxes on the page in
-      const foundCheckboxes = await page.locator('input[type="checkbox"]');
+      const foundCheckboxes = page.locator('input[type="checkbox"]');
       const count = await foundCheckboxes.count();
-      for (const i = 0; i < count; i++) {
+      for (let i = 0; i < count; i++) {
         const checkbox = foundCheckboxes.nth(i);
         await checkbox.click();
       }
