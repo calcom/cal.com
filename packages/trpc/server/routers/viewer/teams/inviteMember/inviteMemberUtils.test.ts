@@ -175,6 +175,7 @@ describe("Invite Member Utils", () => {
       const result = getOrgConnectionInfo({
         orgAutoAcceptDomain,
         orgConfigured: true,
+        orgPublished: true,
         orgVerified: true,
         usersEmail,
         team: {
@@ -186,10 +187,11 @@ describe("Invite Member Utils", () => {
       expect(result).toEqual({ orgId: 2, autoAccept: true });
     });
 
-    it("should return autoAccept:false when orgConfigured is false even if usersEmail domain matches orgAutoAcceptDomain and orgVerified is true ", () => {
+    it("should return autoAccept:false when orgConfigured is false even if usersEmail domain matches orgAutoAcceptDomain and orgVerified and orgPublished is true ", () => {
       const result = getOrgConnectionInfo({
         orgAutoAcceptDomain,
         orgConfigured: false,
+        orgPublished: true,
         orgVerified: true,
         usersEmail,
         team: {
@@ -201,11 +203,28 @@ describe("Invite Member Utils", () => {
       expect(result).toEqual({ orgId: 2, autoAccept: false });
     });
 
-    it("should return autoAccept:false when orgVerified is false even if usersEmail domain matches orgAutoAcceptDomain and orgConfigured is true ", () => {
+    it("should return autoAccept:false when orgVerified is false even if usersEmail domain matches orgAutoAcceptDomain and orgConfigured and orgPublished is true ", () => {
       const result = getOrgConnectionInfo({
         orgAutoAcceptDomain,
-        orgConfigured: true,
         orgVerified: false,
+        orgConfigured: true,
+        orgPublished: true,
+        usersEmail,
+        team: {
+          ...mockedRegularTeam,
+          parentId: 2,
+        },
+        isOrg: false,
+      });
+      expect(result).toEqual({ orgId: 2, autoAccept: false });
+    });
+
+    it("should return autoAccept:false when orgPublished is false even if usersEmail domain matches orgAutoAcceptDomain and orgVerified and orgConfigured is true ", () => {
+      const result = getOrgConnectionInfo({
+        orgAutoAcceptDomain,
+        orgPublished: false,
+        orgConfigured: true,
+        orgVerified: true,
         usersEmail,
         team: {
           ...mockedRegularTeam,
@@ -221,6 +240,7 @@ describe("Invite Member Utils", () => {
         orgAutoAcceptDomain,
         orgConfigured: false,
         orgVerified: false,
+        orgPublished: true,
         usersEmail: "user@other.com",
         team: {
           ...mockedRegularTeam,
@@ -236,6 +256,7 @@ describe("Invite Member Utils", () => {
         orgAutoAcceptDomain,
         orgConfigured: false,
         orgVerified: false,
+        orgPublished: true,
         usersEmail,
         team: { ...mockedRegularTeam },
         isOrg: false,
@@ -248,6 +269,7 @@ describe("Invite Member Utils", () => {
         orgAutoAcceptDomain,
         orgConfigured: true,
         orgVerified: true,
+        orgPublished: true,
         usersEmail,
         team: { ...mockedRegularTeam, parentId: null },
         isOrg: true,
@@ -260,6 +282,7 @@ describe("Invite Member Utils", () => {
         orgAutoAcceptDomain,
         orgVerified: false,
         orgConfigured: false,
+        orgPublished: true,
         usersEmail: "user@other.com",
         team: { ...mockedRegularTeam, parentId: null },
         isOrg: true,
@@ -272,6 +295,7 @@ describe("Invite Member Utils", () => {
         orgAutoAcceptDomain,
         orgConfigured: false,
         orgVerified: false,
+        orgPublished: true,
         usersEmail,
         team: { ...mockedRegularTeam, parentId: null },
         isOrg: true,
@@ -289,6 +313,7 @@ describe("Invite Member Utils", () => {
           isOrganizationVerified: true,
           orgAutoAcceptEmail: "example.com",
         },
+        slug: "abc",
         parent: null,
       };
       const result = getIsOrgVerified(true, { ...mockedRegularTeam, ...team });
@@ -296,6 +321,7 @@ describe("Invite Member Utils", () => {
         isInOrgScope: true,
         orgVerified: true,
         orgConfigured: false,
+        orgPublished: true,
         autoAcceptEmailDomain: "example.com",
       });
     });
@@ -319,6 +345,7 @@ describe("Invite Member Utils", () => {
         isInOrgScope: true,
         orgVerified: false,
         orgConfigured: false,
+        orgPublished: false,
         autoAcceptEmailDomain: "example.com",
       });
     });

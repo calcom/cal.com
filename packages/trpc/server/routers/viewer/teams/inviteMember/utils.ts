@@ -187,14 +187,16 @@ export async function getUsersToInvite({
 export function getOrgConnectionInfo({
   orgAutoAcceptDomain,
   orgConfigured,
+  orgVerified,
+  orgPublished,
   isOrg,
   usersEmail,
-  orgVerified,
   team,
 }: {
   orgAutoAcceptDomain?: string | null;
   orgConfigured: boolean;
   orgVerified: boolean;
+  orgPublished: boolean;
   usersEmail: string;
   team: TeamWithParent;
   isOrg: boolean;
@@ -205,7 +207,11 @@ export function getOrgConnectionInfo({
   if (team.parentId || isOrg) {
     orgId = team.parentId || team.id;
     if (usersEmail.split("@")[1] == orgAutoAcceptDomain) {
-      autoAccept = orgConfigured && orgVerified;
+      // If there is a failure in DNS setup(orgConfigured is false), we can't let the user auto-join. It could be due to that domain not being allowed to be created.
+      // If the org is not verified, we can't let the user auto-join. It could be due to the org not being verified.
+      // If the org is not published, we can't let the user auto-join. This is to prevent someone squatting a domain without paying. Because only after payment, the org is published.
+      // Also, this is to discourage someone creating an org like yahoo.cal.com and auto-adding any yahoo.com email user to it.
+      autoAccept = orgConfigured && orgVerified && orgPublished;
     } else {
       orgId = undefined;
       autoAccept = false;
@@ -432,6 +438,7 @@ export function getIsOrgVerified(
       orgVerified: team.organizationSettings.isOrganizationVerified,
       orgConfigured: team.organizationSettings.isOrganizationConfigured,
       autoAcceptEmailDomain: team.organizationSettings.orgAutoAcceptEmail,
+      orgPublished: !!team.slug,
     };
   } else if (parentSettings?.orgAutoAcceptEmail) {
     return {
@@ -439,12 +446,19 @@ export function getIsOrgVerified(
       orgVerified: parentSettings.isOrganizationVerified,
       orgConfigured: parentSettings.isOrganizationConfigured,
       autoAcceptEmailDomain: parentSettings.orgAutoAcceptEmail,
+      orgPublished: !!team.parent?.slug,
     };
   }
 
   return {
     isInOrgScope: false,
-  } as { isInOrgScope: false; orgVerified: never; autoAcceptEmailDomain: never; orgConfigured: never };
+  } as {
+    isInOrgScope: false;
+    orgVerified: never;
+    autoAcceptEmailDomain: never;
+    orgConfigured: never;
+    orgPublished: never;
+  };
 }
 
 export function getAutoJoinStatus({
