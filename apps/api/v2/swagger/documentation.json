@@ -1613,7 +1613,7 @@
         "properties": {
           "type": {
             "type": "string",
-            "example": "masterchief_video"
+            "example": "link"
           },
           "link": {
             "type": "string",

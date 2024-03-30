@@ -16,7 +16,7 @@ import {
 
 class EventTypeLocation {
   @IsString()
-  @DocsProperty({ example: "masterchief_video" })
+  @DocsProperty({ example: "link" })
   type!: string;
 
   @IsOptional()
