@@ -26,7 +26,7 @@ import { EventType } from "@prisma/client";
 
 import { EventTypesByViewer } from "@calcom/lib";
 import { EVENT_TYPE_READ, EVENT_TYPE_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
-import { createEventType, updateEventType } from "@calcom/platform-libraries";
+import { updateEventType } from "@calcom/platform-libraries";
 import type {
   EventType as AtomEventType,
   EventTypesPublic,
@@ -54,16 +54,7 @@ export class EventTypesController {
     @Body() body: CreateEventTypeInput,
     @GetUser() user: UserWithProfile
   ): Promise<ApiResponse<EventType>> {
-    const eventTypeUser = await this.eventTypesService.getUserToCreateEvent(user);
-    const { eventType } = await createEventType({
-      input: body,
-      ctx: {
-        user: eventTypeUser,
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        prisma: this.dbWrite.prisma,
-      },
-    });
+    const eventType = await this.eventTypesService.createUserEventType(user, body);
 
     return {
       status: SUCCESS_STATUS,

@@ -4,8 +4,9 @@ import { CreateEventTypeInput } from "@/ee/event-types/inputs/create-event-type.
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
 import { SelectedCalendarsRepository } from "@/modules/selected-calendars/selected-calendars.repository";
 import { UserWithProfile, UsersRepository } from "@/modules/users/users.repository";
-import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 
+import { createEventType } from "@calcom/platform-libraries";
 import { getEventTypesPublic, EventTypesPublic } from "@calcom/platform-libraries";
 import { EventType } from "@calcom/prisma/client";
 
@@ -18,8 +19,41 @@ export class EventTypesService {
     private readonly selectedCalendarsRepository: SelectedCalendarsRepository
   ) {}
 
-  async createUserEventType(userId: number, body: CreateEventTypeInput) {
-    return this.eventTypesRepository.createUserEventType(userId, body);
+  async createUserEventType(user: UserWithProfile, body: CreateEventTypeInput) {
+    await this.checkCanCreateEventType(user, body);
+    const eventTypeUser = await this.getUserToCreateEvent(user);
+    const { eventType } = await createEventType({
+      input: body,
+      ctx: {
+        user: eventTypeUser,
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        prisma: this.dbWrite.prisma,
+      },
+    });
+    return eventType;
+  }
+
+  async checkCanCreateEventType(user: UserWithProfile, body: CreateEventTypeInput) {
+    const existsWithSlug = await this.eventTypesRepository.getUserEventTypeBySlug(user.id, body.slug);
+    if (existsWithSlug) {
+      throw new BadRequestException("User already has an event type with this slug.");
+    }
+  }
+
+  async getUserToCreateEvent(user: UserWithProfile) {
+    const organizationId = user.movedToProfile?.organizationId || user.organizationId;
+    const isOrgAdmin = organizationId
+      ? await this.membershipsRepository.isUserOrganizationAdmin(user.id, organizationId)
+      : false;
+    const profileId = user.movedToProfile?.id || null;
+    return {
+      id: user.id,
+      organizationId: user.organizationId,
+      organization: { isOrgAdmin },
+      profile: { id: profileId },
+      metadata: user.metadata,
+    };
   }
 
   async getUserEventType(userId: number, eventTypeId: number) {
@@ -78,21 +112,6 @@ export class EventTypesService {
     ]);
 
     return defaultEventTypes;
-  }
-
-  async getUserToCreateEvent(user: UserWithProfile) {
-    const organizationId = user.movedToProfile?.organizationId || user.organizationId;
-    const isOrgAdmin = organizationId
-      ? await this.membershipsRepository.isUserOrganizationAdmin(user.id, organizationId)
-      : false;
-    const profileId = user.movedToProfile?.id || null;
-    return {
-      id: user.id,
-      organizationId: user.organizationId,
-      organization: { isOrgAdmin },
-      profile: { id: profileId },
-      metadata: user.metadata,
-    };
   }
 
   async getUserToUpdateEvent(user: UserWithProfile) {
