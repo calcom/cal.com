@@ -40,6 +40,7 @@ type BookerPlatformWrapperAtomProps = Omit<BookerProps, "entity"> & {
   lastName?: string;
   guests?: string[];
   name?: string;
+  customClassNames?: CustomClassNames;
   onCreateBookingSuccess?: (data: ApiSuccessResponse<BookingResponse>) => void;
   onCreateBookingError?: (data: ApiErrorResponse | Error) => void;
   onCreateRecurringBookingSuccess?: (data: ApiSuccessResponse<BookingResponse[]>) => void;
@@ -50,6 +51,10 @@ type BookerPlatformWrapperAtomProps = Omit<BookerProps, "entity"> & {
   onReserveSlotError?: (data: ApiErrorResponse) => void;
   onDeleteSlotSuccess?: (data: ApiSuccessResponseWithoutData) => void;
   onDeleteSlotError?: (data: ApiErrorResponse) => void;
+};
+
+export type CustomClassNames = {
+  containerClassName?: string;
 };
 
 export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => {
