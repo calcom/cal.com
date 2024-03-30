@@ -152,6 +152,8 @@ test.describe("Organization", () => {
   });
 
   test("User can create and upgrade a org", async ({ page, users, emails }) => {
+    // eslint-disable-next-line playwright/no-skipped-test
+    test.skip(process.env.NEXT_PUBLIC_ORG_SELF_SERVE_ENABLED !== "1", "Org self serve is not enabled");
     const stringUUID = uuid();
 
     const orgOwnerUsername = `owner-${stringUUID}`;
@@ -273,6 +275,8 @@ test.describe("Organization", () => {
     page,
     users,
   }) => {
+    // eslint-disable-next-line playwright/no-skipped-test
+    test.skip(process.env.NEXT_PUBLIC_ORG_SELF_SERVE_ENABLED !== "1", "Org self serve is not enabled");
     const numberOfTeams = 3;
     const stringUUID = uuid();
 
