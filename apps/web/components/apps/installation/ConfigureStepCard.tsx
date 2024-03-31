@@ -29,7 +29,7 @@ type ConfigureStepCardProps = {
   loading?: boolean;
   selectedEventTypeIds: number[];
   formPortalRef: React.RefObject<HTMLDivElement>;
-  eventTypes: TEventType[];
+  eventTypes: TEventType[] | undefined;
 };
 
 type EventTypeAppSettingsWrapperProps = {
@@ -98,10 +98,7 @@ const EventTypeAppSettingsForm = forwardRef<HTMLButtonElement, EventTypeAppSetti
             </div>
             <EventTypeAppSettingsWrapper {...props} />
             <X className="absolute right-4 top-4 h-4 w-4 cursor-pointer" onClick={() => handleDelete()} />
-            <button
-              type="submit"
-              // className="hidden"
-              ref={ref}>
+            <button type="submit" className="hidden" ref={ref}>
               Save
             </button>
           </div>
@@ -124,6 +121,12 @@ export const ConfigureStepCard: FC<ConfigureStepCardProps> = ({
     name: "eventTypes",
     keyName: "fieldId",
   });
+
+  const submitRefs = useRef<Array<React.RefObject<HTMLButtonElement>>>([]);
+  submitRefs.current = selectedEventTypeIds.map(
+    (_ref, index) => (submitRefs.current[index] = React.createRef<HTMLButtonElement>())
+  );
+  const mainForSubmitRef = useRef<HTMLButtonElement>(null);
   const [updatedEventTypesStatus, setUpdatedEventTypesStatus] = useState(
     fields.filter((field) => field.selected).map((field) => ({ id: field.id, updated: false }))
   );
@@ -139,17 +142,12 @@ export const ConfigureStepCard: FC<ConfigureStepCardProps> = ({
   }, [fields]);
 
   useEffect(() => {
-    if (submit && allUpdated) {
-      const data = getValues("eventTypes");
-      console.log("ddatadataata: ", data);
+    if (submit && allUpdated && mainForSubmitRef.current) {
+      mainForSubmitRef.current?.click();
+
       setSubmit(false);
     }
-  }, [submit, allUpdated, getValues]);
-
-  const submitRefs = useRef<Array<React.RefObject<HTMLButtonElement>>>([]);
-  submitRefs.current = selectedEventTypeIds.map(
-    (_ref, index) => (submitRefs.current[index] = React.createRef<HTMLButtonElement>())
-  );
+  }, [submit, allUpdated, getValues, mainForSubmitRef]);
 
   return (
     formPortalRef?.current &&
@@ -163,19 +161,19 @@ export const ConfigureStepCard: FC<ConfigureStepCardProps> = ({
                   key={field.fieldId}
                   eventType={field}
                   handleDelete={() => {
-                    const eventMetadataDb = eventTypes.find(
+                    const eventMetadataDb = eventTypes?.find(
                       (eventType) => eventType.id == field.id
                     )?.metadata;
                     update(index, { ...field, selected: false, metadata: eventMetadataDb });
                   }}
                   onSubmit={(data) => {
-                    console.log("ddatadataata: ", index, field.id, data);
                     update(index, { ...field, metadata: data });
-                    const temp = updatedEventTypesStatus.map((item) =>
-                      item.id === field.id ? { ...item, updated: true } : item
-                    );
-                    console.log("ttempemp: ", temp);
-                    setUpdatedEventTypesStatus(temp);
+                    setUpdatedEventTypesStatus((prev) => {
+                      const temp = prev.map((item) =>
+                        item.id === field.id ? { ...item, updated: true } : item
+                      );
+                      return temp;
+                    });
                   }}
                   ref={submitRefs.current[index]}
                   {...props}
@@ -184,11 +182,15 @@ export const ConfigureStepCard: FC<ConfigureStepCardProps> = ({
             );
           })}
         </div>
+
+        <button form="outer-event-type-form" type="submit" className="hidden" ref={mainForSubmitRef}>
+          Save
+        </button>
         <Button
           className="text-md mt-6 w-full justify-center"
-          // type="submit"
-          onClick={(e) => {
-            submitRefs.current.map((ref) => ref.current?.click());
+          type="button"
+          onClick={() => {
+            submitRefs.current.reverse().map((ref) => ref.current?.click());
             setSubmit(true);
           }}
           loading={loading}>

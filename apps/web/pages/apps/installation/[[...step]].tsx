@@ -8,6 +8,7 @@ import { Toaster } from "react-hot-toast";
 import { z } from "zod";
 
 import getInstalledAppPath from "@calcom/app-store/_utils/getInstalledAppPath";
+import checkForMultiplePaymentApps from "@calcom/app-store/_utils/payments/checkForMultiplePaymentApps";
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import type { EventTypeAppSettingsComponentProps, EventTypeModel } from "@calcom/app-store/types";
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
@@ -19,6 +20,7 @@ import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { queryNumberArray } from "@calcom/lib/hooks/useTypedQuery";
 import prisma from "@calcom/prisma";
+import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import type { AppMeta } from "@calcom/types/App";
 import { Form, Steps, showToast } from "@calcom/ui";
@@ -145,12 +147,13 @@ const OnboardingPage = ({
   }, [selectedEventTypeIds, teamId, step, appMetadata.slug, router]);
 
   const updateMutation = trpc.viewer.eventTypes.update.useMutation({
-    onSuccess: async () => {
-      // showToast(
-      //   t("event_type_updated_successfully", { eventTypeTitle: configureEventType?.title }),
-      //   "success"
-      // );
-      // router.push(`/event-types/${configureEventType?.id}?tabName=apps`);
+    onSuccess: async (data) => {
+      showToast(t("event_type_updated_successfully", { eventTypeTitle: data.eventType?.title }), "success");
+      if (eventTypeIds?.length == 1) {
+        router.push(`/event-types/${eventTypeIds[0]}?tabName=apps`);
+      } else {
+        router.push("/event-types");
+      }
     },
     async onSettled() {
       await utils.viewer.eventTypes.get.invalidate();
@@ -272,29 +275,23 @@ const OnboardingPage = ({
           <div className="sm:mx-auto sm:w-full sm:max-w-[600px]" ref={formPortalRef}>
             <Form
               form={formMethods}
-              handleSubmit={(values) => {
-                console.log("vvaluesvaluesalues: ", values);
-              }}
-              // handleSubmit={(values) => {
-              //   // Prevent two payment apps to be enabled
-              //   // Ok to cast type here because this metadata will be updated as the event type metadata
-              //   if (
-              //     checkForMultiplePaymentApps(values.metadata as z.infer<typeof EventTypeMetaDataSchema>)
-              //   )
-              //     throw new Error(t("event_setup_multiple_payment_apps_error"));
-
-              //   if (
-              //     values.metadata?.apps?.stripe?.paymentOption === "HOLD" &&
-              //     configureEventType.seatsPerTimeSlot
-              //   ) {
-              //     throw new Error(t("seats_and_no_show_fee_error"));
-              //   }
-              //   updateMutation.mutate({
-              //     id: configureEventType.id,
-              //     metadata: values.metadata,
-              //   });
-              // }}
-            >
+              id="outer-event-type-form"
+              handleSubmit={async (values) => {
+                const mutationPromises = values?.eventTypes.map((value: TEventType) => {
+                  // Prevent two payment apps to be enabled
+                  // Ok to cast type here because this metadata will be updated as the event type metadata
+                  if (checkForMultiplePaymentApps(value.metadata as z.infer<typeof EventTypeMetaDataSchema>))
+                    throw new Error(t("event_setup_multiple_payment_apps_error"));
+                  if (value.metadata?.apps?.stripe?.paymentOption === "HOLD" && value.seatsPerTimeSlot) {
+                    throw new Error(t("seats_and_no_show_fee_error"));
+                  }
+                  return updateMutation.mutateAsync({
+                    id: value.id,
+                    metadata: value.metadata,
+                  });
+                });
+                await Promise.all(mutationPromises);
+              }}>
               <StepHeader
                 title={stepObj.getTitle(appMetadata.name)}
                 subtitle={stepObj.getDescription(appMetadata.name)}>
