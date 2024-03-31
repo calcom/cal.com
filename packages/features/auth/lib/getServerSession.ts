@@ -52,60 +52,100 @@ export async function getServerSession(options: {
     return cachedSession;
   }
 
-  const userFromDb = await prisma.user.findUnique({
-    where: {
-      email: token.email.toLowerCase(),
-    },
-    // TODO: Re-enable once we get confirmation from compliance that this is okay.
-    // cacheStrategy: { ttl: 60, swr: 1 },
-  });
+  let session: Session;
 
-  if (!userFromDb) {
-    log.debug("No user found");
-    return null;
-  }
+  if (token.isOverlayUser) {
+    const userFromDb = await prisma.overlayUser.findUnique({
+      where: {
+        email: token.email.toLowerCase(),
+      },
+    });
 
-  const hasValidLicense = await checkLicense(prisma);
+    if (!userFromDb) {
+      log.debug("No user found");
+      return null;
+    }
 
-  let upId = token.upId;
+    const hasValidLicense = await checkLicense(prisma);
 
-  if (!upId) {
-    upId = `usr-${userFromDb.id}`;
-  }
+    let upId = token.upId;
 
-  if (!upId) {
-    log.error("No upId found for session", { userId: userFromDb.id });
-    return null;
-  }
+    if (!upId) {
+      upId = `usr-${userFromDb.id}`;
+    }
 
-  const user = await UserRepository.enrichUserWithTheProfile({
-    user: userFromDb,
-    upId,
-  });
+    if (!upId) {
+      log.error("No upId found for session", { userId: userFromDb.id });
+      return null;
+    }
 
-  const session: Session = {
-    hasValidLicense,
-    expires: new Date(typeof token.exp === "number" ? token.exp * 1000 : Date.now()).toISOString(),
-    user: {
-      id: user.id,
-      name: user.name,
-      username: user.username,
-      email: user.email,
-      emailVerified: user.emailVerified,
-      email_verified: user.emailVerified !== null,
-      role: user.role,
-      image: getUserAvatarUrl({
-        ...user,
+    session = {
+      hasValidLicense,
+      expires: new Date(typeof token.exp === "number" ? token.exp * 1000 : Date.now()).toISOString(),
+      user: {
+        id: userFromDb.id,
+        name: userFromDb.name,
+        email: userFromDb.email,
+        isOverlayUser: true,
+      },
+      upId,
+    };
+  } else {
+    const userFromDb = await prisma.user.findUnique({
+      where: {
+        email: token.email.toLowerCase(),
+      },
+      // TODO: Re-enable once we get confirmation from compliance that this is okay.
+      // cacheStrategy: { ttl: 60, swr: 1 },
+    });
+
+    if (!userFromDb) {
+      log.debug("No user found");
+      return null;
+    }
+
+    const hasValidLicense = await checkLicense(prisma);
+
+    let upId = token.upId;
+
+    if (!upId) {
+      upId = `usr-${userFromDb.id}`;
+    }
+
+    if (!upId) {
+      log.error("No upId found for session", { userId: userFromDb.id });
+      return null;
+    }
+
+    const user = await UserRepository.enrichUserWithTheProfile({
+      user: userFromDb,
+      upId,
+    });
+
+    session = {
+      hasValidLicense,
+      expires: new Date(typeof token.exp === "number" ? token.exp * 1000 : Date.now()).toISOString(),
+      user: {
+        id: user.id,
+        name: user.name,
+        username: user.username,
+        email: user.email,
+        emailVerified: user.emailVerified,
+        email_verified: user.emailVerified !== null,
+        role: user.role,
+        image: getUserAvatarUrl({
+          ...user,
+          profile: user.profile,
+        }),
+        belongsToActiveTeam: token.belongsToActiveTeam,
+        org: token.org,
+        locale: user.locale ?? undefined,
         profile: user.profile,
-      }),
-      belongsToActiveTeam: token.belongsToActiveTeam,
-      org: token.org,
-      locale: user.locale ?? undefined,
-      profile: user.profile,
-    },
-    profileId: token.profileId,
-    upId,
-  };
+      },
+      profileId: token.profileId,
+      upId,
+    };
+  }
 
   if (token?.impersonatedBy?.id) {
     const impersonatedByUser = await prisma.user.findUnique({
