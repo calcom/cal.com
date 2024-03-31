@@ -1,4 +1,4 @@
-import authedProcedure from "../../procedures/authedProcedure";
+import authedProcedure, { overlayProcedure } from "../../procedures/authedProcedure";
 import { router } from "../../trpc";
 import { ZAddSecondaryEmailInputSchema } from "./addSecondaryEmail.schema";
 import { ZAppByIdInputSchema } from "./appById.schema";
@@ -116,7 +116,7 @@ export const loggedInViewerRouter = router({
     return UNSTABLE_HANDLER_CACHE.away({ ctx, input });
   }),
 
-  connectedCalendars: authedProcedure.input(ZConnectedCalendarsInputSchema).query(async ({ ctx, input }) => {
+  connectedCalendars: overlayProcedure.input(ZConnectedCalendarsInputSchema).query(async ({ ctx, input }) => {
     if (!UNSTABLE_HANDLER_CACHE.connectedCalendars) {
       UNSTABLE_HANDLER_CACHE.connectedCalendars = (
         await import("./connectedCalendars.handler")

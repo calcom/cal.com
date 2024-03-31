@@ -1,4 +1,4 @@
-import authedProcedure from "../../../procedures/authedProcedure";
+import authedProcedure, { overlayProcedure } from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
 import { ZCalendarOverlayInputSchema } from "./calendarOverlay.schema";
 import { scheduleRouter } from "./schedule/_router";
@@ -63,7 +63,7 @@ export const availabilityRouter = router({
     });
   }),
   schedule: scheduleRouter,
-  calendarOverlay: authedProcedure.input(ZCalendarOverlayInputSchema).query(async ({ ctx, input }) => {
+  calendarOverlay: overlayProcedure.input(ZCalendarOverlayInputSchema).query(async ({ ctx, input }) => {
     if (!UNSTABLE_HANDLER_CACHE.calendarOverlay) {
       UNSTABLE_HANDLER_CACHE.calendarOverlay = await import("./calendarOverlay.handler").then(
         (mod) => mod.calendarOverlayHandler

@@ -1,6 +1,11 @@
 import captureErrorsMiddleware from "../middlewares/captureErrorsMiddleware";
 import perfMiddleware from "../middlewares/perfMiddleware";
-import { isAdminMiddleware, isAuthed, isOrgAdminMiddleware } from "../middlewares/sessionMiddleware";
+import {
+  isAdminMiddleware,
+  isAuthed,
+  isOrgAdminMiddleware,
+  isOverlayUser,
+} from "../middlewares/sessionMiddleware";
 import { procedure } from "../trpc";
 import publicProcedure from "./publicProcedure";
 
@@ -25,6 +30,7 @@ const isRateLimitedByUserIdMiddleware = ({ intervalInMs, limit }: IRateLimitOpti
     });
 */
 const authedProcedure = procedure.use(captureErrorsMiddleware).use(perfMiddleware).use(isAuthed);
+export const overlayProcedure = procedure.use(captureErrorsMiddleware).use(perfMiddleware).use(isOverlayUser);
 /*export const authedRateLimitedProcedure = ({ intervalInMs, limit }: IRateLimitOptions) =>
 authedProcedure.use(isRateLimitedByUserIdMiddleware({ intervalInMs, limit }));*/
 export const authedAdminProcedure = publicProcedure.use(captureErrorsMiddleware).use(isAdminMiddleware);
