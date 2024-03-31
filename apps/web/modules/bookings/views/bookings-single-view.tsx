@@ -440,6 +440,13 @@ export default function Success(props: PageProps) {
                       <>
                         <div className="font-medium">{t("who")}</div>
                         <div className="col-span-2 last:mb-0">
+                          {eventType.differentRoundRobinRecurringHosts && (
+                            <p>
+                              {t("members_of_team", {
+                                teamName: eventType.team?.name || "Team",
+                              })}
+                            </p>
+                          )}
                           {bookingInfo?.user && (
                             <div className="mb-3">
                               <div>

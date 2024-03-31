@@ -35,9 +35,10 @@ export default class OrganizerScheduledEmail extends BaseEmail {
         filename: "event.ics",
         content: generateIcsString({
           event: this.calEvent,
-          title: this.calEvent.recurringEvent?.count
-            ? this.t("new_event_scheduled_recurring")
-            : this.t("new_event_scheduled"),
+          title:
+            this.calEvent.recurringEvent?.count && !this.calEvent.differentRoundRobinRecurringHosts
+              ? this.t("new_event_scheduled_recurring")
+              : this.t("new_event_scheduled"),
           subtitle: this.t("emailed_you_and_any_other_attendees"),
           role: "organizer",
           status: "CONFIRMED",

@@ -37,8 +37,9 @@ export function WhenInfo(props: {
   t: TFunction;
   locale: string;
   timeFormat: TimeFormat;
+  isOrganizer?: boolean;
 }) {
-  const { timeZone, t, calEvent: { recurringEvent } = {}, locale, timeFormat } = props;
+  const { timeZone, t, calEvent: { recurringEvent } = {}, locale, timeFormat, isOrganizer } = props;
 
   function getRecipientStart(format: string) {
     return dayjs(props.calEvent.startTime).tz(timeZone).locale(locale).format(format);
@@ -53,16 +54,20 @@ export function WhenInfo(props: {
     attendee: props.calEvent.attendees[0],
   });
 
+  const hideInfo = props.calEvent.differentRoundRobinRecurringHosts && isOrganizer;
+
   return (
     <div>
       <Info
-        label={`${t("when")} ${recurringInfo !== "" ? ` - ${recurringInfo}` : ""}`}
+        label={`${t("when")} ${recurringInfo !== "" && !hideInfo ? ` - ${recurringInfo}` : ""}`}
         lineThrough={
           !!props.calEvent.cancellationReason && !props.calEvent.cancellationReason.includes("$RCH$")
         }
         description={
           <span data-testid="when">
-            {recurringEvent?.count ? `${t("starting")} ` : ""}
+            {recurringEvent?.count && !props.calEvent.differentRoundRobinRecurringHosts
+              ? `${t("starting")} `
+              : ""}
             {getRecipientStart(`dddd, LL | ${timeFormat}`)} - {getRecipientEnd(timeFormat)}{" "}
             <span style={{ color: "#4B5563" }}>({timeZone})</span>
           </span>

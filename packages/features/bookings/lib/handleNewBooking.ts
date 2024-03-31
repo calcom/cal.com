@@ -1510,6 +1510,7 @@ async function handler(
     seatsPerTimeSlot: eventType.seatsPerTimeSlot,
     seatsShowAvailabilityCount: eventType.seatsPerTimeSlot ? eventType.seatsShowAvailabilityCount : true,
     schedulingType: eventType.schedulingType,
+    differentRoundRobinRecurringHosts: eventType.differentRoundRobinRecurringHosts,
     iCalUID,
     iCalSequence,
   };
@@ -2082,6 +2083,16 @@ async function handler(
           })
         );
 
+        if (
+          // Send only one email to attendee
+          eventType.schedulingType === SchedulingType.ROUND_ROBIN &&
+          eventType.differentRoundRobinRecurringHosts &&
+          req.body.currentRecurringIndex > 0
+        ) {
+          isAttendeeConfirmationEmailDisabled = true;
+        }
+
+        console.log("sending emails");
         await sendScheduledEmails(
           {
             ...evt,

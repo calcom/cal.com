@@ -1233,6 +1233,7 @@
   "add_exchange2016": "Connect Exchange 2016 Server",
   "custom_template": "Custom template",
   "email_body": "Email body",
+  "members_of_team": "Members of {{teamName}}",
   "text_message": "Text message",
   "specific_issue": "Have a specific issue?",
   "browse_our_docs": "browse our docs",

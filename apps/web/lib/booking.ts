@@ -30,6 +30,7 @@ export const getEventTypesFromDB = async (id: number) => {
       recurringEvent: true,
       requiresConfirmation: true,
       userId: true,
+      differentRoundRobinRecurringHosts: true,
       successRedirectUrl: true,
       customInputs: true,
       locations: true,
