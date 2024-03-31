@@ -253,6 +253,22 @@ if (IS_GOOGLE_LOGIN_ENABLED) {
       allowDangerousEmailAccountLinking: true,
     })
   );
+
+  providers.push(
+    GoogleProvider({
+      id: "google-for-overlay",
+      clientId: GOOGLE_CLIENT_ID,
+      clientSecret: GOOGLE_CLIENT_SECRET,
+      allowDangerousEmailAccountLinking: true,
+      authorization: {
+        params: {
+          scope: "openid email profile https://www.googleapis.com/auth/calendar.readonly",
+          access_type: "offline",
+          prompt: "consent",
+        },
+      },
+    })
+  );
 }
 
 if (isSAMLLoginEnabled) {
@@ -568,6 +584,36 @@ export const AUTH_OPTIONS: AuthOptions = {
         if (!account.provider || !account.providerAccountId) {
           return token;
         }
+
+        if (account.provider === "google-for-overlay") {
+          if (!user.email) return token;
+          // get the user from overlayuser table
+          const existingOverlayUser = await prisma.overlayUser.findFirst({
+            where: {
+              AND: [
+                {
+                  provider: "google",
+                },
+                {
+                  providerAccountId: account.providerAccountId,
+                },
+              ],
+            },
+          });
+
+          if (!existingOverlayUser) {
+            return token;
+          }
+
+          return {
+            ...token,
+            id: existingOverlayUser.id,
+            name: existingOverlayUser.name,
+            email: existingOverlayUser.email,
+            isOverlayUser: true,
+          };
+        }
+
         const idP = account.provider === "saml" ? IdentityProvider.SAML : IdentityProvider.GOOGLE;
 
         const existingUser = await prisma.user.findFirst({
@@ -611,23 +657,36 @@ export const AUTH_OPTIONS: AuthOptions = {
       log.debug("callbacks:session - Session callback called", safeStringify({ session, token, user }));
       const hasValidLicense = await checkLicense(prisma);
       const profileId = token.profileId;
-      const calendsoSession: Session = {
-        ...session,
-        profileId,
-        upId: token.upId || session.upId,
-        hasValidLicense,
-        user: {
-          ...session.user,
-          id: token.id as number,
-          name: token.name,
-          username: token.username as string,
-          role: token.role as UserPermissionRole,
-          impersonatedBy: token.impersonatedBy,
-          belongsToActiveTeam: token?.belongsToActiveTeam as boolean,
-          org: token?.org,
-          locale: token.locale,
-        },
-      };
+      let calendsoSession: Session;
+      if (token.isOverlayUser) {
+        calendsoSession = {
+          ...session,
+          user: {
+            ...session.user,
+            id: token.id as number,
+            name: token.name,
+            isOverlayUser: token?.isOverlayUser,
+          },
+        };
+      } else {
+        calendsoSession = {
+          ...session,
+          profileId,
+          upId: token.upId || session.upId,
+          hasValidLicense,
+          user: {
+            ...session.user,
+            id: token.id as number,
+            name: token.name,
+            username: token.username as string,
+            role: token.role as UserPermissionRole,
+            impersonatedBy: token.impersonatedBy,
+            belongsToActiveTeam: token?.belongsToActiveTeam as boolean,
+            org: token?.org,
+            locale: token.locale,
+          },
+        };
+      }
       return calendsoSession;
     },
     async signIn(params) {
@@ -668,6 +727,53 @@ export const AUTH_OPTIONS: AuthOptions = {
         return false;
       }
       if (account?.provider) {
+        // sign in overlay user
+        if (account?.provider === "google-for-overlay") {
+          // fetch overlayUser and include overlayCredentials associated with that user
+          const existingOverlayUser = await prisma.overlayUser.findFirst({
+            where: {
+              provider: "google",
+              providerAccountId: account.providerAccountId,
+            },
+            include: {
+              credential: true,
+            },
+          });
+          if (!existingOverlayUser) {
+            const GOOGLE_CAL_SCOPE = "https://www.googleapis.com/auth/calendar.readonly";
+            // add user to OverlayUser table and create a OverlayCredential record for that user
+            await prisma.overlayUser.create({
+              data: {
+                email: user.email,
+                name: user.name,
+                provider: "google",
+                providerAccountId: account.providerAccountId,
+                expires_at: account.expires_at,
+                token_type: account.token_type,
+                scope: account?.scope
+                  ?.split(" ")
+                  .filter((scope: string) => scope !== GOOGLE_CAL_SCOPE)
+                  .join(" "),
+                id_token: account.id_token,
+                // also create a new OverlayCredential record for this user
+                credential: {
+                  create: {
+                    key: {
+                      scope: GOOGLE_CAL_SCOPE,
+                      token_type: account?.token_type,
+                      access_token: account?.access_token,
+                      refresh_token: account?.refresh_token,
+                      expiry_date: account?.expires_at,
+                    },
+                    appId: "google-calendar",
+                    type: "google_calendar",
+                  },
+                },
+              },
+            });
+          }
+          return true;
+        }
         const idP: IdentityProvider = mapIdentityProvider(account.provider);
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore-error TODO validate email_verified key on profile

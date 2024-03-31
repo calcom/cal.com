@@ -33,7 +33,8 @@ declare module "next-auth" {
     username?: PrismaUser["username"];
     role?: PrismaUser["role"] | "INACTIVE_ADMIN";
     locale?: string | null;
-    profile: UserProfile;
+    isOverlayUser?: boolean;
+    profile?: UserProfile;
   }
 }
 
@@ -60,5 +61,6 @@ declare module "next-auth/jwt" {
     };
     organizationId?: number | null;
     locale?: string;
+    isOverlayUser?: boolean;
   }
 }

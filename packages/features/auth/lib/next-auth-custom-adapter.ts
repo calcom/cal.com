@@ -71,7 +71,10 @@ export default function CalComAdapter(prismaClient: PrismaClient) {
         throw error;
       }
     },
-    linkAccount: (data: Prisma.AccountCreateInput) => prismaClient.account.create({ data }),
+    linkAccount: (data: Prisma.AccountCreateInput) => {
+      if (data.provider === "google-for-overlay") return;
+      return prismaClient.account.create({ data });
+    },
     // @NOTE: All methods below here are not being used but leaved if they are required
     unlinkAccount: (provider_providerAccountId: Prisma.AccountProviderProviderAccountIdCompoundUniqueInput) =>
       prismaClient.account.delete({ where: { provider_providerAccountId } }),
