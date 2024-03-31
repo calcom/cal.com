@@ -24,6 +24,28 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
     return null;
   }
 
+  if (session.user.isOverlayUser) {
+    const userFromDb = await prisma.overlayUser.findUnique({
+      where: {
+        id: session.user.id,
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+      },
+    });
+
+    if (!userFromDb) {
+      return null;
+    }
+
+    return {
+      ...userFromDb,
+      isOverlayUser: true,
+    };
+  }
+
   const userFromDb = await prisma.user.findUnique({
     where: {
       id: session.user.id,
@@ -217,7 +239,7 @@ export const isAuthed = middleware(async ({ ctx, next }) => {
 
 export const isAdminMiddleware = isAuthed.unstable_pipe(({ ctx, next }) => {
   const { user } = ctx;
-  if (user?.role !== "ADMIN") {
+  if ("role" in user && user?.role !== "ADMIN") {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
   return next({ ctx: { user: user } });
@@ -226,7 +248,7 @@ export const isAdminMiddleware = isAuthed.unstable_pipe(({ ctx, next }) => {
 // Org admins can be admins or owners
 export const isOrgAdminMiddleware = isAuthed.unstable_pipe(({ ctx, next }) => {
   const { user } = ctx;
-  if (!user?.organization?.isOrgAdmin) {
+  if ("organization" in user && !user?.organization?.isOrgAdmin) {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
   return next({ ctx: { user: user } });
