@@ -785,20 +785,21 @@ enum AppCategories {
 
 model App {
   // The slug for the app store public page inside `/apps/[slug]`
-  slug        String          @id @unique
+  slug               String              @id @unique
   // The directory name for `/packages/app-store/[dirName]`
-  dirName     String          @unique
+  dirName            String              @unique
   // Needed API Keys
-  keys        Json?
+  keys               Json?
   // One or multiple categories to which this app belongs
-  categories  AppCategories[]
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
-  credentials Credential[]
-  payments    Payment[]
-  Webhook     Webhook[]
-  ApiKey      ApiKey[]
-  enabled     Boolean         @default(false)
+  categories         AppCategories[]
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  credentials        Credential[]
+  payments           Payment[]
+  Webhook            Webhook[]
+  ApiKey             ApiKey[]
+  enabled            Boolean             @default(false)
+  OverlayCredentials OverlayCredential[]
 
   @@index([enabled])
 }
@@ -1276,4 +1277,31 @@ model SecondaryEmail {
   @@unique([email])
   @@unique([userId, email])
   @@index([userId])
+}
+
+model OverlayUser {
+  id                Int                @id @default(autoincrement())
+  name              String
+  email             String
+  provider          String
+  providerAccountId String
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?            @db.Text
+  credential        OverlayCredential?
+
+  @@unique([email])
+  @@unique([provider, providerAccountId])
+}
+
+model OverlayCredential {
+  id      Int          @id @default(autoincrement())
+  key     Json
+  type    String
+  appId   String?
+  app     App?         @relation(fields: [appId], references: [slug], onDelete: Cascade)
+  invalid Boolean?     @default(false)
+  userId  Int?         @unique
+  user    OverlayUser? @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
