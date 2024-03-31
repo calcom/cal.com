@@ -54,12 +54,12 @@ export const PERMISSIONS_GROUPED_MAP = {
     key: "schedule",
     label: "Schedule",
   },
-  APPS: {
-    read: APPS_READ,
-    write: APPS_WRITE,
-    key: "apps",
-    label: "Apps",
-  },
+  // APPS: {
+  //   read: APPS_READ,
+  //   write: APPS_WRITE,
+  //   key: "apps",
+  //   label: "Apps",
+  // },
   PROFILE: {
     read: PROFILE_READ,
     write: PROFILE_WRITE,

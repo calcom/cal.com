@@ -207,6 +207,7 @@
   "2fa_confirm_current_password": "כדי להתחיל, יש לאשר את הסיסמה הנוכחית.",
   "2fa_scan_image_or_use_code": "סרוק את התמונה הבאה באמצעות אפליקציית האימות (authenticator) בטלפון או הזן את קוד הטקסט ידנית.",
   "text": "טקסט",
+  "your_phone_number": "מספר הטלפון שלך",
   "multiline_text": "טקסט מרובה שורות",
   "number": "מספר",
   "checkbox": "תיבת סימון",
