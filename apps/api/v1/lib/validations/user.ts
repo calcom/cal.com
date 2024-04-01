@@ -24,6 +24,7 @@ enum locales {
   FR = "fr",
   IT = "it",
   RU = "ru",
+  Kz = "kk",
   ES = "es",
   DE = "de",
   PT = "pt",
