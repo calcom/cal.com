@@ -250,6 +250,7 @@ export const buildUser = <T extends Partial<UserPayload>>(
     receiveMonthlyDigestEmail: null,
     movedToProfileId: null,
     priority: user?.priority ?? null,
+    isPlatformManaged: false,
     ...user,
   };
 };

@@ -15,6 +15,7 @@ type GetOptions = {
 
 export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
   const organizationId = ctx.user.organizationId;
+  const searchTerm = input.searchTerm;
 
   if (!organizationId) {
     throw new TRPCError({ code: "NOT_FOUND", message: "User is not part of any organization." });
@@ -42,6 +43,22 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
   const teamMembers = await prisma.membership.findMany({
     where: {
       teamId: organizationId,
+      ...(searchTerm && {
+        user: {
+          OR: [
+            {
+              email: {
+                contains: searchTerm,
+              },
+            },
+            {
+              username: {
+                contains: searchTerm,
+              },
+            },
+          ],
+        },
+      }),
     },
     select: {
       id: true,
