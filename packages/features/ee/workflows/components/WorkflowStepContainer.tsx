@@ -744,11 +744,11 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                             } else if (val.value === WorkflowTemplates.RATING) {
                               form.setValue(
                                 `steps.${step.stepNumber - 1}.reminderBody`,
-                                emailRatingTemplate(true, action, timeFormat).emailBody
+                                emailRatingTemplate({ isEditingMode: true, action, timeFormat }).emailBody
                               );
                               form.setValue(
                                 `steps.${step.stepNumber - 1}.emailSubject`,
-                                emailRatingTemplate(true, action, timeFormat).emailSubject
+                                emailRatingTemplate({ isEditingMode: true, action, timeFormat }).emailSubject
                               );
                             } else {
                               if (isWhatsappAction(action)) {
