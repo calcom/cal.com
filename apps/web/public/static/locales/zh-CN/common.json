@@ -203,6 +203,7 @@
   "2fa_confirm_current_password": "输入您当前的密码来开始设置。",
   "2fa_scan_image_or_use_code": "请用您的手机上的身份验证器扫描下面的图像，或者手动输入验证码。",
   "text": "文本",
+  "your_phone_number": "您的电话号码",
   "multiline_text": "多行文本",
   "number": "数字",
   "checkbox": "复选框",
