@@ -2362,5 +2362,8 @@
   "lock_org_users_eventtypes_description": "Prevent members from creating their own event types.",
   "cookie_consent_checkbox": "I consent to our privacy policy and cookie usage",
   "make_a_call": "Make a Call",
+  "review": "Review",
+  "reviewed": "Reviewed",
+  "unreviewed": "Unreviewed",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
