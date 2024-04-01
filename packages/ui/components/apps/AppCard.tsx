@@ -273,7 +273,7 @@ const InstallAppButtonChild = ({
                 type="button"
                 disabled={isInstalledTeamOrUser}
                 key={team.id}
-                StartIcon={(props) => (
+                StartIcon={(props: { className?: string }) => (
                   <Avatar
                     alt={team.logo || ""}
                     imageSrc={team.logo || `${WEBAPP_URL}/${team.logo}/avatar.png`} // if no image, use default avatar

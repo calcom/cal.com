@@ -1,17 +1,28 @@
+import { getBookingForReschedule } from "@calcom/features/bookings/lib/get-booking";
+import getBookingInfo from "@calcom/features/bookings/lib/getBookingInfo";
+import handleCancelBooking from "@calcom/features/bookings/lib/handleCancelBooking";
 import * as newBookingMethods from "@calcom/features/bookings/lib/handleNewBooking";
 import { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
 import * as instantMeetingMethods from "@calcom/features/instant-meeting/handleInstantMeeting";
+import getAllUserBookings from "@calcom/lib/bookings/getAllUserBookings";
 import { updateHandler as updateScheduleHandler } from "@calcom/trpc/server/routers/viewer/availability/schedule/update.handler";
 import { getAvailableSlots } from "@calcom/trpc/server/routers/viewer/slots/util";
 import { createNewUsersConnectToOrgIfExists } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
 
+export { getBookingForReschedule };
 export { updateScheduleHandler };
 export type UpdateScheduleOutputType = Awaited<
   ReturnType<
     typeof import("@calcom/trpc/server/routers/viewer/availability/schedule/update.handler").updateHandler
   >
 >;
-export { getEventTypeById } from "@calcom/lib/getEventTypeById";
+export { getEventTypeById } from "@calcom/lib/event-types/getEventTypeById";
+export { getEventTypesByViewer } from "@calcom/lib/event-types/getEventTypesByViewer";
+export { getEventTypesPublic } from "@calcom/lib/event-types/getEventTypesPublic";
+
+export type { EventType } from "@calcom/lib/event-types/getEventTypeById";
+export type { EventTypesByViewer } from "@calcom/lib/event-types/getEventTypesByViewer";
+export type { EventTypesPublic } from "@calcom/lib/event-types/getEventTypesPublic";
 
 export type PublicEventType = Awaited<ReturnType<typeof getPublicEvent>>;
 export { getPublicEvent };
@@ -26,7 +37,6 @@ export { getAvailableSlots };
 export type AvailableSlotsType = Awaited<ReturnType<typeof getAvailableSlots>>;
 export { handleNewRecurringBooking } from "@calcom/features/bookings/lib/handleNewRecurringBooking";
 
-export type { EventType } from "@calcom/lib/getEventTypeById";
 export { getConnectedDestinationCalendars } from "@calcom/lib/getConnectedDestinationCalendars";
 export type { ConnectedDestinationCalendars } from "@calcom/lib/getConnectedDestinationCalendars";
 export { getBusyCalendarTimes } from "@calcom/core/CalendarManager";
@@ -57,3 +67,7 @@ export { TRPCError } from "@trpc/server";
 export type { TUpdateInputSchema } from "@calcom/trpc/server/routers/viewer/availability/schedule/update.schema";
 
 export { createNewUsersConnectToOrgIfExists };
+
+export { getAllUserBookings };
+export { getBookingInfo };
+export { handleCancelBooking };
