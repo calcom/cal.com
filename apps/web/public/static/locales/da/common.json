@@ -151,6 +151,7 @@
   "2fa_confirm_current_password": "Bekræft din nuværende adgangskode for at komme i gang.",
   "2fa_scan_image_or_use_code": "Scan billedet nedenfor med autentificerings-appen på din telefon, eller indtast tekstkoden manuelt i stedet.",
   "text": "Tekst",
+  "your_phone_number": "Dit Telefonnummer",
   "multiline_text": "Flerlinje Tekst",
   "number": "Nummer",
   "checkbox": "Afkrydsningsfelt",

@@ -8,11 +8,12 @@ import {
   DropdownMenuTrigger,
   Tooltip,
 } from "@calcom/ui";
+import type { LucideIcon } from "@calcom/ui/components/icon";
 import { Plus, Link, User, Check } from "@calcom/ui/components/icon";
 
 import { useFilterContext } from "../context/provider";
 
-type Option = { value: "event-type" | "user"; label: string; StartIcon?: SVGComponent };
+type Option = { value: "event-type" | "user"; label: string; StartIcon?: SVGComponent | LucideIcon };
 
 export const FilterType = () => {
   const { t } = useLocale();

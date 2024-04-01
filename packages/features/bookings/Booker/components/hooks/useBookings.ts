@@ -49,6 +49,7 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata }: IUseBo
   const bookingSuccessRedirect = useBookingSuccessRedirect();
   const bookerFormErrorRef = useRef<HTMLDivElement>(null);
   const [instantMeetingTokenExpiryTime, setExpiryTime] = useState<Date | undefined>();
+  const [instantVideoMeetingUrl, setInstantVideoMeetingUrl] = useState<string | undefined>();
   const duration = useBookerStore((state) => state.selectedDuration);
 
   const isRescheduling = !!rescheduleUid && !!bookingData;
@@ -71,14 +72,12 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata }: IUseBo
 
       if (!data) return;
       try {
-        showToast(t("something_went_wrong_on_our_end"), "error");
-
         const locationVideoCallUrl: string | undefined = bookingMetadataSchema.parse(
           data.booking?.metadata || {}
         )?.videoCallUrl;
 
         if (locationVideoCallUrl) {
-          router.push(locationVideoCallUrl);
+          setInstantVideoMeetingUrl(locationVideoCallUrl);
         } else {
           showToast(t("something_went_wrong_on_our_end"), "error");
         }
@@ -254,5 +253,6 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata }: IUseBo
     bookerFormErrorRef,
     errors,
     loadingStates,
+    instantVideoMeetingUrl,
   };
 };

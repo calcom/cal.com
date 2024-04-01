@@ -6,8 +6,6 @@ import { UsersRepository } from "@/modules/users/users.repository";
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 import { Schedule } from "@prisma/client";
 
-import { cityTimezonesHandler } from "@calcom/platform-libraries";
-
 @Injectable()
 export class SchedulesService {
   constructor(
@@ -95,9 +93,5 @@ export class SchedulesService {
     if (userId !== schedule.userId) {
       throw new ForbiddenException(`User with ID=${userId} does not own schedule with ID=${schedule.id}`);
     }
-  }
-
-  async getSchedulePossibleTimeZones() {
-    return cityTimezonesHandler();
   }
 }
