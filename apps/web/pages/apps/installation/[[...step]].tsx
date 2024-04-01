@@ -151,6 +151,7 @@ const OnboardingPage = ({
       }
 
       showToast(message ? t(message) : t(err.message), "error");
+      router.push("/apps");
     },
   });
 
