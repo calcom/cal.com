@@ -21,6 +21,8 @@ export type VariablesType = {
   meetingUrl?: string;
   cancelLink?: string;
   rescheduleLink?: string;
+  ratingUrl?: string;
+  noShowUrl?: string;
 };
 
 const customTemplate = (

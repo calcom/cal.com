@@ -240,7 +240,7 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
       endTime,
       eventName: evt.title,
       timeZone,
-      otherPerson,
+      organizer: otherPerson,
       name,
     });
   }
