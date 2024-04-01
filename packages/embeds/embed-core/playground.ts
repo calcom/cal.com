@@ -1,6 +1,7 @@
 import type { GlobalCal } from "./src/embed";
 
 const Cal = window.Cal as GlobalCal;
+
 const callback = function (e) {
   const detail = e.detail;
   console.log("Event: ", e.type, detail);

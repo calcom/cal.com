@@ -413,17 +413,21 @@ class CalApi {
     this.cal = cal;
   }
 
+  /**
+   * If namespaceOrConfig is a string, config is available in config argument
+   * If namespaceOrConfig is an object, namespace is assumed to be default and config isn't provided
+   */
   init(namespaceOrConfig?: string | InitArgConfig, config = {} as InitArgConfig) {
-    let namespace = "";
+    let initForNamespace = "";
     if (typeof namespaceOrConfig !== "string") {
       config = (namespaceOrConfig || {}) as Config;
     } else {
-      namespace = namespaceOrConfig;
+      initForNamespace = namespaceOrConfig;
     }
 
-    if (!globalCal.ns[namespace].instance && namespace !== this.cal.namespace) {
-      globalCal.ns[namespace].instance = new Cal(namespace, globalCal.ns[namespace].q);
-      // Let it take care of it's own queue which should have it's init call in it.
+    // Just in case 'init' instruction belongs to another namespace, ignore it
+    // Though it shouldn't happen normally as the snippet takes care of delegating the init instruction to appropriate namespace queue
+    if (initForNamespace !== this.cal.namespace) {
       return;
     }
 
@@ -434,6 +438,15 @@ class CalApi {
     this.cal.__config.calOrigin = calOrigin || origin || this.cal.__config.calOrigin;
 
     this.cal.__config = { ...this.cal.__config, ...restConfig };
+  }
+
+  /**
+   * Used when a non-default namespace is to be initialized
+   * It allows default queue to take care of instantiation of the non-default namespace queue
+   */
+  initNamespace(namespace: string) {
+    globalCal.ns[namespace].instance =
+      globalCal.ns[namespace].instance || new Cal(namespace, globalCal.ns[namespace].q);
   }
   /**
    * It is an instruction that adds embed iframe inline as last child of the element
@@ -466,6 +479,12 @@ class CalApi {
         },
       },
     });
+
+    // If it is ensured that there is one instance for a namespace,
+    if (this.cal.inlineEl && document.body.contains(this.cal.inlineEl)) {
+      console.warn("Inline embed already exists. Ignoring this call");
+      return;
+    }
 
     config = config || {};
     if (typeof config.iframeAttrs === "string" || config.iframeAttrs instanceof Array) {
@@ -809,6 +828,9 @@ export interface CalWindow extends Window {
 const DEFAULT_NAMESPACE = "";
 
 globalCal.instance = new Cal(DEFAULT_NAMESPACE, globalCal.q);
+
+// Namespaces created before embed.js executes are instantiated here for old Embed Snippets which don't use 'initNamespace' instruction
+// Snippets that support 'initNamespace' instruction don't really need this but it is okay if it's done because it's idempotent
 for (const [ns, api] of Object.entries(globalCal.ns)) {
   api.instance = api.instance ?? new Cal(ns, api.q);
 }
