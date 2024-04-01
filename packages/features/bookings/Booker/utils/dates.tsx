@@ -72,7 +72,7 @@ export const FromToTime = (props: EventFromToTime) => {
   );
 };
 
-export const FromTime = (props: EventFromToTime) => {
+export const FromTime = (props: EventFromTime) => {
   const formatted = formatEventFromTime(props);
   return (
     <>
