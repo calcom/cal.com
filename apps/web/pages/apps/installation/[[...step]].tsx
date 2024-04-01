@@ -7,7 +7,6 @@ import { useForm } from "react-hook-form";
 import { Toaster } from "react-hot-toast";
 import { z } from "zod";
 
-import getInstalledAppPath from "@calcom/app-store/_utils/getInstalledAppPath";
 import checkForMultiplePaymentApps from "@calcom/app-store/_utils/payments/checkForMultiplePaymentApps";
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import type { EventTypeAppSettingsComponentProps, EventTypeModel } from "@calcom/app-store/types";
@@ -89,7 +88,6 @@ type OnboardingPageProps = {
   personalAccount: PersonalAccountProps;
   eventTypes?: TEventType[];
   userName: string;
-  hasEventTypes: boolean;
   credentialId?: number;
 };
 
@@ -101,7 +99,6 @@ const OnboardingPage = ({
   appMetadata,
   eventTypes,
   userName,
-  hasEventTypes,
   credentialId,
 }: OnboardingPageProps) => {
   const pathname = usePathname();
@@ -117,7 +114,6 @@ const OnboardingPage = ({
     return step;
   }, [step, configureStep]);
   const stepObj = STEPS_MAP[curerentStep];
-  const nbOfSteps = MAX_NUMBER_OF_STEPS - (hasEventTypes ? 0 : 1);
 
   const { t } = useLocale();
   const utils = trpc.useContext();
@@ -133,13 +129,7 @@ const OnboardingPage = ({
   const updateMutation = trpc.viewer.eventTypes.update.useMutation({
     onSuccess: async (data) => {
       showToast(t("event_type_updated_successfully", { eventTypeTitle: data.eventType?.title }), "success");
-      // if (eventTypeIds?.length == 1) {
-      //   router.push(`/event-types/${eventTypeIds[0]}?tabName=apps`);
-      // }
-
-      // else {
       router.push("/event-types");
-      // }
     },
     async onSettled() {
       await utils.viewer.eventTypes.get.invalidate();
@@ -169,9 +159,7 @@ const OnboardingPage = ({
       setIsSelectingAccount(true);
       if (appMetadata.isOAuth) {
         const state = JSON.stringify({
-          appOnbaordingRedirectUrl: hasEventTypes
-            ? getAppOnboardingRedirectUrl(appMetadata.slug, teamId)
-            : null,
+          appOnbaordingRedirectUrl: getAppOnboardingRedirectUrl(appMetadata.slug, teamId),
           teamId,
         });
 
@@ -197,13 +185,11 @@ const OnboardingPage = ({
           },
         });
         router.push(
-          !hasEventTypes
-            ? getInstalledAppPath({ slug: appMetadata.slug, variant: appMetadata.variant })
-            : getAppOnboardingUrl({
-                slug: appMetadata.slug,
-                step: AppOnboardingSteps.EVENT_TYPES_STEP,
-                teamId,
-              })
+          getAppOnboardingUrl({
+            slug: appMetadata.slug,
+            step: AppOnboardingSteps.EVENT_TYPES_STEP,
+            teamId,
+          })
         );
       }
     } catch (error) {
@@ -237,11 +223,9 @@ const OnboardingPage = ({
               form={formMethods}
               id="outer-event-type-form"
               handleSubmit={async (values) => {
-                console.log("valuevaluesvaluess: ", values);
                 const mutationPromises = values?.eventTypes
                   .filter((eventType) => eventType.selected)
                   .map((value: TEventType) => {
-                    console.log("value: ", value);
                     // Prevent two payment apps to be enabled
                     // Ok to cast type here because this metadata will be updated as the event type metadata
                     if (
@@ -262,7 +246,7 @@ const OnboardingPage = ({
                 title={stepObj.getTitle(appMetadata.name)}
                 subtitle={stepObj.getDescription(appMetadata.name)}>
                 <Steps
-                  maxSteps={nbOfSteps}
+                  maxSteps={MAX_NUMBER_OF_STEPS}
                   currentStep={stepObj.getStepNumber(hasTeams, appMetadata.isOAuth ?? false)}
                   disableNavigation
                 />
@@ -307,10 +291,6 @@ const ERROR_MESSAGES = {
   appNotFound: "App not found",
   userNotAuthed: "User is not logged in",
   userNotFound: "User from session not found",
-  userWithoutTeams: "User has no teams on team step",
-  noEventTypesFound: "User or teams does not have any event types",
-  appNotOAuth: "App does not use OAuth",
-  appNotEventType: "App does not have EventTypes",
   appNotExtendsEventType: "App does not extend EventTypes",
   userNotInTeam: "User is not in provided team",
 } as const;
@@ -502,7 +482,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         eventTypes,
         teamId: parsedTeamIdParam ?? null,
         userName: user.username,
-        hasEventTypes,
         credentialId,
       } as OnboardingPageProps,
     };
