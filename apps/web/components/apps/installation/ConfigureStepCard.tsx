@@ -10,6 +10,7 @@ import type { z } from "zod";
 import { EventTypeAppSettings } from "@calcom/app-store/_components/EventTypeAppSettingsInterface";
 import type { EventTypeAppsList } from "@calcom/app-store/utils";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
+import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AppCategories } from "@calcom/prisma/enums";
 import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
@@ -47,7 +48,7 @@ const EventTypeAppSettingsWrapper: FC<
   Omit<EventTypeAppSettingsWrapperProps, "handleDelete" | "onSubmit" | "buttonRef">
 > = ({ slug, eventType, categories, credentialId }) => {
   const { t } = useLocale();
-  const formMethods = useForm();
+  const formMethods = useForm<FormValues>();
   const { shouldLockDisableProps } = useLockedFieldsManager({
     eventType,
     translate: t,
@@ -135,10 +136,8 @@ export const ConfigureStepCard: FC<ConfigureStepCardProps> = ({
   const allUpdated = updatedEventTypesStatus.every((item) => item.updated);
 
   useEffect(() => {
-    setUpdatedEventTypesStatus(
-      updatedEventTypesStatus.filter((state) =>
-        fields.some((field) => field.id === state.id && field.selected)
-      )
+    setUpdatedEventTypesStatus((prev) =>
+      prev.filter((state) => fields.some((field) => field.id === state.id && field.selected))
     );
     if (!fields.some((field) => field.selected)) {
       setConfigureStep(false);
