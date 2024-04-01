@@ -113,7 +113,7 @@ export function CreateButton(props: CreateBtnProps) {
                 <DropdownItem
                   type="button"
                   data-testid={`option${option.teamId ? "-team" : ""}-${idx}`}
-                  StartIcon={(props) => (
+                  StartIcon={(props: { className?: string }) => (
                     <Avatar alt={option.label || ""} imageSrc={option.image} size="sm" {...props} />
                   )}
                   onClick={() =>

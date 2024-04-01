@@ -182,6 +182,7 @@
   "2fa_confirm_current_password": "現在のパスワードを確認して開始します。",
   "2fa_scan_image_or_use_code": "携帯電話の認証アプリで下の画像をスキャンするか、手動でテキストコードを入力してください。",
   "text": "テキスト",
+  "your_phone_number": "あなたの電話番号",
   "multiline_text": "複数行のテキスト",
   "number": "番号",
   "checkbox": "チェックボックス",

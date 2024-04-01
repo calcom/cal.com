@@ -45,6 +45,15 @@ export type Event = {
   eventName: string;
   slug: string;
   isInstantEvent: boolean;
+  aiPhoneCallConfig: {
+    eventTypeId: number;
+    enabled: boolean;
+    generalPrompt: string;
+    beginMessage: string | null;
+    yourPhoneNumber: string;
+    numberToCall: string;
+    guestName: string;
+  };
   schedulingType: string;
   length: number;
   locations: string[]; // Define more specifically if possible
