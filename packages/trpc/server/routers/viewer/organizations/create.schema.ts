@@ -9,6 +9,7 @@ export const ZCreateInputSchema = z.object({
   adminUsername: z.string(),
   check: z.boolean().default(true),
   language: z.string().optional(),
+  isPlatform: z.boolean().default(false),
 });
 
 export type TCreateInputSchema = z.infer<typeof ZCreateInputSchema>;

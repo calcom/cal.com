@@ -1,3 +1,4 @@
+import type { SchedulingType } from "@prisma/client";
 import type { ErrorOption, FieldPath } from "react-hook-form";
 
 import type { BookingCreateBody } from "@calcom/prisma/zod-utils";
@@ -27,6 +28,7 @@ export type RecurringBookingCreateBody = BookingCreateBody & {
   appsStatus?: AppsStatus[] | undefined;
   allRecurringDates?: Record<string, string>[];
   currentRecurringIndex?: number;
+  schedulingType?: SchedulingType;
 };
 
 export type BookingResponse = Awaited<

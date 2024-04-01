@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { forwardRef } from "react";
 import type { IconType } from "react-icons";
 
+import type { LucideIcon } from "@calcom/ui/components/icon";
 import { CheckCircle2, Info, XCircle, AlertTriangle } from "@calcom/ui/components/icon";
 
 export interface AlertProps {
@@ -14,8 +15,8 @@ export interface AlertProps {
   className?: string;
   iconClassName?: string;
   // @TODO: Success and info shouldn't exist as per design?
-  severity: "success" | "warning" | "error" | "info" | "neutral";
-  CustomIcon?: IconType;
+  severity: "success" | "warning" | "error" | "info" | "neutral" | "green";
+  CustomIcon?: IconType | LucideIcon;
   customIconColor?: string;
 }
 export const Alert = forwardRef<HTMLDivElement, AlertProps>((props, ref) => {
@@ -31,6 +32,7 @@ export const Alert = forwardRef<HTMLDivElement, AlertProps>((props, ref) => {
         severity === "error" && "bg-red-100 text-red-900 dark:bg-red-900 dark:text-red-200",
         severity === "warning" && "text-attention bg-attention dark:bg-orange-900 dark:text-orange-200",
         severity === "info" && "bg-blue-100 text-blue-900 dark:bg-blue-900 dark:text-blue-200",
+        severity === "green" && "bg-success text-success",
         severity === "success" && "bg-inverted text-inverted",
         severity === "neutral" && "bg-subtle text-default"
       )}>

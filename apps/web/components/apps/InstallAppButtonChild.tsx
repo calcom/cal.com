@@ -2,7 +2,7 @@ import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import { doesAppSupportTeamInstall } from "@calcom/app-store/utils";
 import { Spinner } from "@calcom/features/calendars/weeklyview/components/spinner/Spinner";
 import type { UserAdminTeams } from "@calcom/features/ee/teams/lib/getUserAdminTeams";
-import { CAL_URL } from "@calcom/lib/constants";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import type { AppFrontendPayload } from "@calcom/types/App";
@@ -122,10 +122,10 @@ export const InstallAppButtonChild = ({
                 data-testid={team.isUser ? "install-app-button-personal" : "anything else"}
                 key={team.id}
                 disabled={isInstalled}
-                StartIcon={(props) => (
+                StartIcon={(props: { className?: string }) => (
                   <Avatar
                     alt={team.logo || ""}
-                    imageSrc={team.logo || `${CAL_URL}/${team.logo}/avatar.png`} // if no image, use default avatar
+                    imageSrc={team.logo || `${WEBAPP_URL}/${team.logo}/avatar.png`} // if no image, use default avatar
                     size="sm"
                     {...props}
                   />

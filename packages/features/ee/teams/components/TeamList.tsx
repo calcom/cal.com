@@ -1,5 +1,6 @@
 import { useState } from "react";
 
+import { trackFormbricksAction } from "@calcom/lib/formbricks-client";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
@@ -14,7 +15,7 @@ interface Props {
 }
 
 export default function TeamList(props: Props) {
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
 
   const { t } = useLocale();
 
@@ -32,6 +33,7 @@ export default function TeamList(props: Props) {
     async onSuccess() {
       await utils.viewer.teams.list.invalidate();
       await utils.viewer.teams.hasTeamPlan.invalidate();
+      trackFormbricksAction("team_disbanded");
     },
     async onError(err) {
       showToast(err.message, "error");
@@ -54,7 +56,6 @@ export default function TeamList(props: Props) {
           setHideDropdown={setHideDropdown}
         />
       ))}
-
       {/* only show recommended steps when there is only one team */}
       {!props.pending && props.teams.length === 1 && (
         <>
@@ -62,7 +63,7 @@ export default function TeamList(props: Props) {
             (team, i) =>
               team.role !== "MEMBER" &&
               i === 0 && (
-                <div className="bg-subtle p-6">
+                <div className="bg-subtle p-6" key={`listing${team.id}`}>
                   <h3 className="text-emphasis mb-4 text-sm font-semibold">{t("recommended_next_steps")}</h3>
                   <div className="grid-col-1 grid gap-2 md:grid-cols-3">
                     <Card

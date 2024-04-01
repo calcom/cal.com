@@ -5,6 +5,7 @@ import getAppKeysFromSlug from "@calcom/app-store/_utils/getAppKeysFromSlug";
 import { DailyLocationType } from "@calcom/app-store/locations";
 import getApps from "@calcom/app-store/utils";
 import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
+import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import type { PrismaClient } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
@@ -27,6 +28,7 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
 
   const userId = ctx.user.id;
   const isManagedEventType = schedulingType === SchedulingType.MANAGED;
+  const isOrgAdmin = !!ctx.user?.organization?.isOrgAdmin;
   // Get Users default conferencing app
 
   const defaultConferencingData = userMetadataSchema.parse(ctx.user.metadata)?.defaultConferencingApp;
@@ -43,7 +45,7 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
   }
 
   if (defaultConferencingData && defaultConferencingData.appSlug !== "daily-video") {
-    const credentials = await getUsersCredentials(ctx.user.id);
+    const credentials = await getUsersCredentials(ctx.user);
     const foundApp = getApps(credentials, true).filter(
       (app) => app.slug === defaultConferencingData.appSlug
     )[0]; // There is only one possible install here so index [0] is the one we are looking for ;
@@ -55,8 +57,8 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
     ...rest,
     owner: teamId ? undefined : { connect: { id: userId } },
     metadata: (metadata as Prisma.InputJsonObject) ?? undefined,
-    // Only connecting the current user for non-managed event type
-    users: isManagedEventType ? undefined : { connect: { id: userId } },
+    // Only connecting the current user for non-managed event types and non team event types
+    users: isManagedEventType || schedulingType ? undefined : { connect: { id: userId } },
     locations,
   };
 
@@ -68,8 +70,6 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
         accepted: true,
       },
     });
-
-    const isOrgAdmin = !!ctx.user?.organization?.isOrgAdmin;
 
     if (!hasMembership?.role || !(["ADMIN", "OWNER"].includes(hasMembership.role) || isOrgAdmin)) {
       console.warn(`User ${userId} does not have permission to create this new event type`);
@@ -84,10 +84,36 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
     data.schedulingType = schedulingType;
   }
 
+  // If we are in an organization & they are not admin & they are not creating an event on a teamID
+  // Check if evenTypes are locked.
+  if (ctx.user.organizationId && !ctx.user?.organization?.isOrgAdmin && !teamId) {
+    const orgSettings = await ctx.prisma.organizationSettings.findUnique({
+      where: {
+        organizationId: ctx.user.organizationId,
+      },
+      select: {
+        lockEventTypeCreationForUsers: true,
+      },
+    });
+
+    const orgHasLockedEventTypes = !!orgSettings?.lockEventTypeCreationForUsers;
+    if (orgHasLockedEventTypes) {
+      console.warn(
+        `User ${userId} does not have permission to create this new event type - Locked status: ${orgHasLockedEventTypes}`
+      );
+      throw new TRPCError({ code: "UNAUTHORIZED" });
+    }
+  }
+
+  const profile = ctx.user.profile;
   try {
-    const eventType = await ctx.prisma.eventType.create({ data });
+    const eventType = await EventTypeRepository.create({
+      ...data,
+      profileId: profile.id,
+    });
     return { eventType };
   } catch (e) {
+    console.warn(e);
     if (e instanceof PrismaClientKnownRequestError) {
       if (e.code === "P2002" && Array.isArray(e.meta?.target) && e.meta?.target.includes("slug")) {
         throw new TRPCError({ code: "BAD_REQUEST", message: "URL Slug already exists for given user." });

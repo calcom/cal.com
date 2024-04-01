@@ -1,4 +1,4 @@
-import { isOrganization, withRoleCanCreateEntity } from "@calcom/lib/entityPermissionUtils";
+import { withRoleCanCreateEntity } from "@calcom/lib/entityPermissionUtils";
 import { getTeamAvatarUrl, getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import type { PrismaClient } from "@calcom/prisma";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
@@ -16,11 +16,13 @@ type TeamsAndUserProfileOptions = {
 export const teamsAndUserProfilesQuery = async ({ ctx }: TeamsAndUserProfileOptions) => {
   const { prisma } = ctx;
 
+  const profile = ctx.user.profile;
   const user = await prisma.user.findUnique({
     where: {
       id: ctx.user.id,
     },
     select: {
+      avatarUrl: true,
       id: true,
       username: true,
       name: true,
@@ -34,6 +36,7 @@ export const teamsAndUserProfilesQuery = async ({ ctx }: TeamsAndUserProfileOpti
           team: {
             select: {
               id: true,
+              isOrganization: true,
               name: true,
               slug: true,
               metadata: true,
@@ -47,7 +50,6 @@ export const teamsAndUserProfilesQuery = async ({ ctx }: TeamsAndUserProfileOpti
           },
         },
       },
-      organizationId: true,
     },
   });
   if (!user) {
@@ -55,7 +57,7 @@ export const teamsAndUserProfilesQuery = async ({ ctx }: TeamsAndUserProfileOpti
   }
 
   const nonOrgTeams = user.teams
-    .filter((membership) => !isOrganization({ team: membership.team }))
+    .filter((membership) => !membership.team.isOrganization)
     .map((membership) => ({
       ...membership,
       team: {
@@ -69,7 +71,10 @@ export const teamsAndUserProfilesQuery = async ({ ctx }: TeamsAndUserProfileOpti
       teamId: null,
       name: user.name,
       slug: user.username,
-      image: getUserAvatarUrl(user),
+      image: getUserAvatarUrl({
+        ...user,
+        profile: profile,
+      }),
       readOnly: false,
     },
     ...nonOrgTeams.map((membership) => ({

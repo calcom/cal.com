@@ -27,27 +27,28 @@ const TroubleshooterComponent = ({ month }: TroubleshooterProps) => {
     <>
       <div
         className={classNames(
-          "text-default fixed inset-0 grid min-h-full w-full flex-col items-center overflow-clip ",
+          "text-default flex min-h-full w-full flex-col items-center overflow-clip",
           isMobile
             ? "[--troublehooster-meta-width:0px]"
             : "[--troublehooster-meta-width:250px] lg:[--troubleshooter-meta-width:430px]"
         )}>
         <div
           style={{
+            display: "grid",
             width: "100vw",
             minHeight: "100vh",
             height: "auto",
             gridTemplateAreas: `
-          "meta header header"
-          "meta main main"
-          `,
+            "meta header header"
+            "meta main main"
+            `,
             gridTemplateColumns: "var(--troubleshooter-meta-width) 1fr",
             gridTemplateRows: "70px auto",
           }}
           className={classNames(
-            "bg-default dark:bg-muted grid max-w-full items-start dark:[color-scheme:dark] sm:transition-[width] sm:duration-300 sm:motion-reduce:transition-none md:flex-row "
+            "bg-default dark:bg-muted text-default flex min-h-full w-full flex-col items-center sm:transition-[width] sm:duration-300"
           )}>
-          <div className={classNames("bg-default dark:bg-muted sticky top-0 z-10 [grid-area:header]")}>
+          <div className="bg-default dark:bg-muted sticky top-0 z-10 [grid-area:header]">
             <TroubleshooterHeader extraDays={extraDays} isMobile={isMobile} />
           </div>
           <StickyBox key="meta" className={classNames("relative z-10")}>
@@ -56,7 +57,7 @@ const TroubleshooterComponent = ({ month }: TroubleshooterProps) => {
             </div>
           </StickyBox>
 
-          <div className="border-subtle sticky top-0 ml-[-1px] h-full [grid-area:main] md:border-l ">
+          <div className="ml[-1px] border-subtle  sticky top-0 [grid-area:main]">
             <LargeCalendar extraDays={extraDays} />
           </div>
         </div>

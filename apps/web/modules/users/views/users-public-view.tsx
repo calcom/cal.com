@@ -64,6 +64,7 @@ export function UserPage(props: InferGetServerSidePropsType<typeof getServerSide
   }
 
   const isEventListEmpty = eventTypes.length === 0;
+  const isOrg = !!user?.profile?.organization;
 
   return (
     <>
@@ -89,7 +90,7 @@ export function UserPage(props: InferGetServerSidePropsType<typeof getServerSide
             "max-w-3xl px-4 py-24"
           )}>
           {isRedirect && (
-            <div className="mb-8 rounded-md bg-blue-100 p-4 dark:border dark:bg-transparent dark:bg-transparent">
+            <div className="mb-8 rounded-md bg-blue-100 p-4 dark:border dark:bg-transparent">
               <h2 className="text-default mb-2 text-sm font-semibold dark:text-white">
                 {t("user_redirect_title", {
                   username: fromUserNameRedirected,
@@ -111,24 +112,19 @@ export function UserPage(props: InferGetServerSidePropsType<typeof getServerSide
             <UserAvatar
               size="xl"
               user={{
-                organizationId: profile.organization?.id,
+                avatarUrl: user.avatarUrl,
+                profile: user.profile,
                 name: profile.name,
                 username: profile.username,
               }}
-              organization={
-                profile.organization?.id
-                  ? {
-                      id: profile.organization.id,
-                      slug: profile.organization.slug,
-                      requestedSlug: null,
-                    }
-                  : null
-              }
             />
             <h1 className="font-cal text-emphasis my-1 text-3xl" data-testid="name-title">
               {profile.name}
-              {user.verified && (
+              {!isOrg && user.verified && (
                 <Verified className=" mx-1 -mt-1 inline h-6 w-6 fill-blue-500 text-white dark:text-black" />
+              )}
+              {isOrg && (
+                <Verified className=" mx-1 -mt-1 inline h-6 w-6 fill-yellow-500 text-white dark:text-black" />
               )}
             </h1>
             {!isBioEmpty && (
@@ -163,7 +159,7 @@ export function UserPage(props: InferGetServerSidePropsType<typeof getServerSide
                     <Link
                       prefetch={false}
                       href={{
-                        pathname: `/${user.username}/${type.slug}`,
+                        pathname: `/${user.profile.username}/${type.slug}`,
                         query,
                       }}
                       passHref

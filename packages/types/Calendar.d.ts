@@ -55,6 +55,7 @@ export type EventBusyDate = {
 export type EventBusyDetails = EventBusyDate & {
   title?: string;
   source?: string | null;
+  userId?: number | null;
 };
 
 export type CalendarServiceType = typeof Calendar;
@@ -141,6 +142,7 @@ export type CalEventResponses = Record<
   {
     label: string;
     value: z.infer<typeof bookingResponse>;
+    isHidden?: boolean;
   }
 >;
 

@@ -21,7 +21,7 @@ import {
   Table,
   TextField,
 } from "@calcom/ui";
-import { Edit, Lock, Trash, User, VenetianMask } from "@calcom/ui/components/icon";
+import { Edit, Lock, Trash, User, VenetianMask, Shield } from "@calcom/ui/components/icon";
 
 import { withLicenseRequired } from "../../common/components/LicenseRequired";
 
@@ -85,6 +85,12 @@ function UsersTableBare() {
   const sendPasswordResetEmail = trpc.viewer.admin.sendPasswordReset.useMutation({
     onSuccess: () => {
       showToast("Password reset email has been sent", "success");
+    },
+  });
+
+  const removeTwoFactor = trpc.viewer.admin.removeTwoFactor.useMutation({
+    onSuccess: () => {
+      showToast("2FA has been removed", "success");
     },
   });
 
@@ -176,6 +182,7 @@ function UsersTableBare() {
                     <Avatar
                       size="md"
                       alt={`Avatar of ${user.username || "Nameless"}`}
+                      // @ts-expect-error - Figure it out later. Ideally we should show all the profiles here for the user.
                       imageSrc={`${WEBAPP_URL}/${user.username}/avatar.png?orgId=${user.organizationId}`}
                     />
 
@@ -234,6 +241,13 @@ function UsersTableBare() {
                             setShowImpersonateModal(true);
                           },
                           icon: VenetianMask,
+                        },
+                        {
+                          id: "remove-2fa",
+                          label: "Remove 2FA",
+                          color: "destructive",
+                          onClick: () => removeTwoFactor.mutate({ userId: user.id }),
+                          icon: Shield,
                         },
                         {
                           id: "delete",

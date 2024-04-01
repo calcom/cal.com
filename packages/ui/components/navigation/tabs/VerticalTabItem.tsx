@@ -5,6 +5,7 @@ import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useUrlMatchesCurrentUrl } from "@calcom/lib/hooks/useUrlMatchesCurrentUrl";
 import type { SVGComponent } from "@calcom/types/SVGComponent";
+import type { LucideIcon } from "@calcom/ui/components/icon";
 
 import { ChevronRight, ExternalLink } from "../../icon";
 import { Skeleton } from "../../skeleton";
@@ -12,7 +13,7 @@ import { Skeleton } from "../../skeleton";
 export type VerticalTabItemProps = {
   name: string;
   info?: string;
-  icon?: SVGComponent;
+  icon?: SVGComponent | LucideIcon;
   disabled?: boolean;
   children?: VerticalTabItemProps[];
   textClassNames?: string;
@@ -78,7 +79,11 @@ const VerticalTabItem = ({
                 {props.isExternalLink ? <ExternalLink data-testid="external-link" /> : null}
               </span>
               {info && (
-                <Skeleton as="p" title={t(info)} className="max-w-44 mt-1 truncate text-xs font-normal">
+                <Skeleton
+                  data-testid="apps-info"
+                  as="p"
+                  title={t(info)}
+                  className="max-w-44 mt-1 truncate text-xs font-normal">
                   {t(info)}
                 </Skeleton>
               )}

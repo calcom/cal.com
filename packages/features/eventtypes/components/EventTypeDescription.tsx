@@ -16,11 +16,10 @@ import { Clock, Users, RefreshCw, Clipboard, Plus, User, Lock } from "@calcom/ui
 export type EventTypeDescriptionProps = {
   eventType: Pick<
     z.infer<typeof EventTypeModel>,
-    Exclude<keyof typeof baseEventTypeSelect, "recurringEvent"> | "metadata"
+    Exclude<keyof typeof baseEventTypeSelect, "recurringEvent"> | "metadata" | "seatsPerTimeSlot"
   > & {
     descriptionAsSafeHTML?: string | null;
     recurringEvent: Prisma.JsonValue;
-    seatsPerTimeSlot?: number;
   };
   className?: string;
   shortenDescription?: boolean;

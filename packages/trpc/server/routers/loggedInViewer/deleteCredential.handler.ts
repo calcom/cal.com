@@ -53,7 +53,17 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
 
   const eventTypes = await prisma.eventType.findMany({
     where: {
-      userId: ctx.user.id,
+      OR: [
+        {
+          ...(teamId ? { teamId } : { userId: ctx.user.id }),
+        },
+        // for managed events
+        {
+          parent: {
+            teamId,
+          },
+        },
+      ],
     },
     select: {
       id: true,
@@ -147,6 +157,7 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
                   ...metadata?.apps,
                   stripe: {
                     ...metadata?.apps?.stripe,
+                    enabled: false,
                     price: 0,
                   },
                 },
@@ -272,7 +283,7 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
                 startTime: booking.startTime.toISOString(),
                 endTime: booking.endTime.toISOString(),
                 organizer: {
-                  email: booking?.user?.email as string,
+                  email: booking?.userPrimaryEmail ?? (booking?.user?.email as string),
                   name: booking?.user?.name ?? "Nameless",
                   timeZone: booking?.user?.timeZone as string,
                   language: { translate: tOrganizer, locale: booking?.user?.locale ?? "en" },

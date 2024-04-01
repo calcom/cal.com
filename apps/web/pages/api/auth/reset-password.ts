@@ -41,7 +41,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         email: maybeRequest.email,
       },
       data: {
-        password: hashedPassword,
+        password: {
+          upsert: {
+            create: { hash: hashedPassword },
+            update: { hash: hashedPassword },
+          },
+        },
+        emailVerified: new Date(),
       },
     });
   } catch (e) {

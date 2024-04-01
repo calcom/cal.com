@@ -1,10 +1,12 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+// eslint-disable-next-line no-restricted-imports
+import { pick, get } from "lodash";
 import { signOut, useSession } from "next-auth/react";
 import type { BaseSyntheticEvent } from "react";
 import React, { useRef, useState } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useForm, useFieldArray } from "react-hook-form";
 import { z } from "zod";
 
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
@@ -41,12 +43,15 @@ import {
   SkeletonContainer,
   SkeletonText,
   TextField,
+  UserAvatar,
 } from "@calcom/ui";
-import { UserAvatar } from "@calcom/ui";
-import { AlertTriangle, Trash2 } from "@calcom/ui/components/icon";
+import { AlertTriangle, Trash2, Plus } from "@calcom/ui/components/icon";
 
 import PageWrapper from "@components/PageWrapper";
 import TwoFactor from "@components/auth/TwoFactor";
+import CustomEmailTextField from "@components/settings/CustomEmailTextField";
+import SecondaryEmailConfirmModal from "@components/settings/SecondaryEmailConfirmModal";
+import SecondaryEmailModal from "@components/settings/SecondaryEmailModal";
 import { UsernameAvailabilityField } from "@components/ui/UsernameAvailability";
 
 const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
@@ -72,12 +77,20 @@ interface DeleteAccountValues {
   totpCode: string;
 }
 
-type FormValues = {
+type Email = {
+  id: number;
+  email: string;
+  emailVerified: string | null;
+  emailPrimary: boolean;
+};
+
+export type FormValues = {
   username: string;
   avatar: string;
   name: string;
   email: string;
   bio: string;
+  secondaryEmails: Email[];
 };
 
 const ProfileView = () => {
@@ -93,8 +106,6 @@ const ProfileView = () => {
   const updateProfileMutation = trpc.viewer.updateProfile.useMutation({
     onSuccess: async (res) => {
       await update(res);
-      showToast(t("settings_updated_successfully"), "success");
-
       // signout user only in case of password reset
       if (res.signOutUser && tempFormValues && res.passwordReset) {
         showToast(t("password_reset_email", { email: tempFormValues.email }), "success");
@@ -103,6 +114,12 @@ const ProfileView = () => {
         utils.viewer.me.invalidate();
         utils.viewer.avatar.invalidate();
         utils.viewer.shouldVerifyEmail.invalidate();
+      }
+
+      if (res.hasEmailBeenChanged && res.sendEmailVerification) {
+        showToast(t("change_of_email_toast", { email: tempFormValues?.email }), "success");
+      } else {
+        showToast(t("settings_updated_successfully"), "success");
       }
 
       setConfirmAuthEmailChangeWarningDialogOpen(false);
@@ -122,11 +139,27 @@ const ProfileView = () => {
     },
   });
 
+  const addSecondaryEmailMutation = trpc.viewer.addSecondaryEmail.useMutation({
+    onSuccess: (res) => {
+      setShowSecondaryEmailModalOpen(false);
+      setNewlyAddedSecondaryEmail(res?.data?.email);
+      utils.viewer.me.invalidate();
+    },
+    onError: (error) => {
+      setSecondaryEmailAddErrorMessage(error?.message || "");
+    },
+  });
+
+  const resendVerifyEmailMutation = trpc.viewer.auth.resendVerifyEmail.useMutation();
+
   const [confirmPasswordOpen, setConfirmPasswordOpen] = useState(false);
-  const [tempFormValues, setTempFormValues] = useState<FormValues | null>(null);
+  const [tempFormValues, setTempFormValues] = useState<ExtendedFormValues | null>(null);
   const [confirmPasswordErrorMessage, setConfirmPasswordDeleteErrorMessage] = useState("");
   const [confirmAuthEmailChangeWarningDialogOpen, setConfirmAuthEmailChangeWarningDialogOpen] =
     useState(false);
+  const [showSecondaryEmailModalOpen, setShowSecondaryEmailModalOpen] = useState(false);
+  const [secondaryEmailAddErrorMessage, setSecondaryEmailAddErrorMessage] = useState("");
+  const [newlyAddedSecondaryEmail, setNewlyAddedSecondaryEmail] = useState<undefined | string>(undefined);
 
   const [deleteAccountOpen, setDeleteAccountOpen] = useState(false);
   const [hasDeleteErrors, setHasDeleteErrors] = useState(false);
@@ -228,12 +261,30 @@ const ProfileView = () => {
     );
   }
 
+  const userEmail = user.email || "";
   const defaultValues = {
     username: user.username || "",
-    avatar: getUserAvatarUrl(user),
+    avatar: getUserAvatarUrl({
+      ...user,
+      profile: user.profile,
+    }),
     name: user.name || "",
-    email: user.email || "",
+    email: userEmail,
     bio: user.bio || "",
+    // We add the primary email as the first item in the list
+    secondaryEmails: [
+      {
+        id: 0,
+        email: userEmail,
+        emailVerified: user.emailVerified?.toString() || null,
+        emailPrimary: true,
+      },
+      ...(user.secondaryEmails || []).map((secondaryEmail) => ({
+        ...secondaryEmail,
+        emailVerified: secondaryEmail.emailVerified?.toString() || null,
+        emailPrimary: false,
+      })),
+    ],
   };
 
   return (
@@ -261,6 +312,11 @@ const ProfileView = () => {
           } else {
             updateProfileMutation.mutate(values);
           }
+        }}
+        handleAddSecondaryEmail={() => setShowSecondaryEmailModalOpen(true)}
+        handleResendVerifyEmail={(email) => {
+          resendVerifyEmailMutation.mutate({ email });
+          showToast(t("email_sent"), "success");
         }}
         extraField={
           <div className="mt-6">
@@ -339,6 +395,20 @@ const ProfileView = () => {
           type="creation"
           Icon={AlertTriangle}>
           <div className="mb-10">
+            <div className="mb-4 grid gap-2 md:grid-cols-2">
+              <div>
+                <span className="text-emphasis mb-2 block text-sm font-medium leading-none">
+                  {t("old_email_address")}
+                </span>
+                <p className="text-subtle leading-none">{user.email}</p>
+              </div>
+              <div>
+                <span className="text-emphasis mb-2 block text-sm font-medium leading-none">
+                  {t("new_email_address")}
+                </span>
+                <p className="text-subtle leading-none">{tempFormValues?.email}</p>
+              </div>
+            </div>
             <PasswordField
               data-testid="password"
               name="password"
@@ -353,6 +423,7 @@ const ProfileView = () => {
           </div>
           <DialogFooter showDivider>
             <Button
+              data-testid="profile-update-email-submit-button"
               color="primary"
               loading={confirmPasswordMutation.isPending}
               onClick={(e) => onConfirmPassword(e)}>
@@ -383,13 +454,50 @@ const ProfileView = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {showSecondaryEmailModalOpen && (
+        <SecondaryEmailModal
+          isLoading={addSecondaryEmailMutation.isPending}
+          errorMessage={secondaryEmailAddErrorMessage}
+          handleAddEmail={(values) => {
+            setSecondaryEmailAddErrorMessage("");
+            addSecondaryEmailMutation.mutate(values);
+          }}
+          onCancel={() => {
+            setSecondaryEmailAddErrorMessage("");
+            setShowSecondaryEmailModalOpen(false);
+          }}
+          clearErrorMessage={() => {
+            addSecondaryEmailMutation.reset();
+            setSecondaryEmailAddErrorMessage("");
+          }}
+        />
+      )}
+      {!!newlyAddedSecondaryEmail && (
+        <SecondaryEmailConfirmModal
+          email={newlyAddedSecondaryEmail}
+          onCancel={() => setNewlyAddedSecondaryEmail(undefined)}
+        />
+      )}
     </>
   );
+};
+
+type SecondaryEmailApiPayload = {
+  id: number;
+  email: string;
+  isDeleted: boolean;
+};
+
+type ExtendedFormValues = Omit<FormValues, "secondaryEmails"> & {
+  secondaryEmails: SecondaryEmailApiPayload[];
 };
 
 const ProfileForm = ({
   defaultValues,
   onSubmit,
+  handleAddSecondaryEmail,
+  handleResendVerifyEmail,
   extraField,
   isPending = false,
   isFallbackImg,
@@ -397,7 +505,9 @@ const ProfileForm = ({
   userOrganization,
 }: {
   defaultValues: FormValues;
-  onSubmit: (values: FormValues) => void;
+  onSubmit: (values: ExtendedFormValues) => void;
+  handleAddSecondaryEmail: () => void;
+  handleResendVerifyEmail: (email: string) => void;
   extraField?: React.ReactNode;
   isPending: boolean;
   isFallbackImg: boolean;
@@ -419,6 +529,14 @@ const ProfileForm = ({
       }),
     email: z.string().email(),
     bio: z.string(),
+    secondaryEmails: z.array(
+      z.object({
+        id: z.number(),
+        email: z.string().email(),
+        emailVerified: z.union([z.string(), z.null()]).optional(),
+        emailPrimary: z.boolean().optional(),
+      })
+    ),
   });
 
   const formMethods = useForm<FormValues>({
@@ -427,12 +545,60 @@ const ProfileForm = ({
   });
 
   const {
+    fields: secondaryEmailFields,
+    remove: deleteSecondaryEmail,
+    replace: updateAllSecondaryEmailFields,
+  } = useFieldArray({
+    control: formMethods.control,
+    name: "secondaryEmails",
+    keyName: "itemId",
+  });
+
+  const handleFormSubmit = (values: FormValues) => {
+    const changedFields = formMethods.formState.dirtyFields?.secondaryEmails || [];
+    const updatedValues: FormValues = {
+      ...values,
+    };
+
+    // If the primary email is changed, we will need to update
+    const primaryEmailIndex = updatedValues.secondaryEmails.findIndex(
+      (secondaryEmail) => secondaryEmail.emailPrimary
+    );
+    if (primaryEmailIndex >= 0) {
+      // Add the new updated value as primary email
+      updatedValues.email = updatedValues.secondaryEmails[primaryEmailIndex].email;
+    }
+
+    // We will only send the emails which have already changed
+    const updatedEmails: Email[] = [];
+    changedFields.map((field, index) => {
+      // If the email changed and if its only secondary email, we add it for updation, the first
+      // item in the list is always primary email
+      if (field?.email && updatedValues.secondaryEmails[index]?.id) {
+        updatedEmails.push(updatedValues.secondaryEmails[index]);
+      }
+    });
+
+    const deletedEmails = (user?.secondaryEmails || []).filter(
+      (secondaryEmail) => !updatedValues.secondaryEmails.find((val) => val.id && val.id === secondaryEmail.id)
+    );
+    const secondaryEmails = [
+      ...updatedEmails.map((email) => ({ ...email, isDeleted: false })),
+      ...deletedEmails.map((email) => ({ ...email, isDeleted: true })),
+    ].map((secondaryEmail) => pick(secondaryEmail, ["id", "email", "isDeleted"]));
+    onSubmit({
+      ...updatedValues,
+      secondaryEmails,
+    });
+  };
+
+  const {
     formState: { isSubmitting, isDirty },
   } = formMethods;
 
   const isDisabled = isSubmitting || !isDirty;
   return (
-    <Form form={formMethods} handleSubmit={onSubmit}>
+    <Form form={formMethods} handleSubmit={handleFormSubmit}>
       <div className="border-subtle border-x px-4 pb-10 pt-8 sm:px-6">
         <div className="flex items-center">
           <Controller
@@ -443,20 +609,14 @@ const ProfileForm = ({
               const organization =
                 userOrganization && userOrganization.id
                   ? {
-                      ...(userOrganization as Ensure<typeof user.organization, "id">),
+                      ...(userOrganization as Ensure<NonNullable<typeof user.organization>, "id">),
                       slug: userOrganization.slug || null,
                       requestedSlug: userOrganization.metadata?.requestedSlug || null,
                     }
                   : null;
               return (
                 <>
-                  <UserAvatar
-                    data-testid="profile-upload-avatar"
-                    previewSrc={value}
-                    size="lg"
-                    user={user}
-                    organization={organization}
-                  />
+                  <UserAvatar data-testid="profile-upload-avatar" previewSrc={value} size="lg" user={user} />
                   <div className="ms-4">
                     <h2 className="mb-2 text-sm font-medium">{t("profile_picture")}</h2>
                     <div className="flex gap-2">
@@ -492,7 +652,36 @@ const ProfileForm = ({
           <TextField label={t("full_name")} {...formMethods.register("name")} />
         </div>
         <div className="mt-6">
-          <TextField label={t("email")} hint={t("change_email_hint")} {...formMethods.register("email")} />
+          <Label>{t("email")}</Label>
+          {secondaryEmailFields.map((field, index) => (
+            <CustomEmailTextField
+              key={field.itemId}
+              formMethods={formMethods}
+              formMethodFieldName={`secondaryEmails.${index}.email` as keyof FormValues}
+              errorMessage={get(formMethods.formState.errors, `secondaryEmails.${index}.email.message`)}
+              emailVerified={Boolean(field.emailVerified)}
+              emailPrimary={field.emailPrimary}
+              dataTestId={`profile-form-email-${index}`}
+              handleChangePrimary={() => {
+                const fields = secondaryEmailFields.map((secondaryField, cIndex) => ({
+                  ...secondaryField,
+                  emailPrimary: cIndex === index,
+                }));
+                updateAllSecondaryEmailFields(fields);
+              }}
+              handleVerifyEmail={() => handleResendVerifyEmail(field.email)}
+              handleItemDelete={() => deleteSecondaryEmail(index)}
+            />
+          ))}
+          <div className="text-default mt-2 flex items-center text-sm">{t("change_email_hint")}</div>
+          <Button
+            color="minimal"
+            StartIcon={Plus}
+            className="mt-2"
+            onClick={() => handleAddSecondaryEmail()}
+            data-testid="add-secondary-email">
+            {t("add_email")}
+          </Button>
         </div>
         <div className="mt-6">
           <Label>{t("about")}</Label>
@@ -509,7 +698,12 @@ const ProfileForm = ({
         </div>
       </div>
       <SectionBottomActions align="end">
-        <Button loading={isPending} disabled={isDisabled} color="primary" type="submit">
+        <Button
+          loading={isPending}
+          disabled={isDisabled}
+          color="primary"
+          type="submit"
+          data-testid="profile-submit-button">
           {t("update")}
         </Button>
       </SectionBottomActions>

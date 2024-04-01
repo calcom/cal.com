@@ -15,7 +15,7 @@ type InviteMemberOptions = {
 };
 
 export const resendInvitationHandler = async ({ ctx, input }: InviteMemberOptions) => {
-  const team = await getTeamOrThrow(input.teamId, input.isOrg);
+  const team = await getTeamOrThrow(input.teamId);
 
   await checkPermissions({
     userId: ctx.user.id,
@@ -37,6 +37,7 @@ export const resendInvitationHandler = async ({ ctx, input }: InviteMemberOption
   const inviteTeamOptions = {
     joinLink: `${WEBAPP_URL}/auth/login?callbackUrl=/settings/teams`,
     isCalcomMember: true,
+    isAutoJoin: false,
   };
 
   if (verificationToken) {

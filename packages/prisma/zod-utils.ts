@@ -1,9 +1,8 @@
 import type { Prisma } from "@prisma/client";
 import type { UnitTypeLongPlural } from "dayjs";
+import { isValidPhoneNumber } from "libphonenumber-js";
 import type { TFunction } from "next-i18next";
 import z, { ZodNullable, ZodObject, ZodOptional } from "zod";
-
-/* eslint-disable no-underscore-dangle */
 import type {
   AnyZodObject,
   objectInputType,
@@ -206,11 +205,13 @@ export const stringOrNumber = z.union([
   z.number().int(),
 ]);
 
-export const stringToDayjs = z.string().transform((val) => {
+export const stringToDayjs = (val: string) => {
   const matches = val.match(/([+-]\d{2}:\d{2})$/);
   const timezone = matches ? matches[1] : "+00:00";
   return dayjs(val).utcOffset(timezone);
-});
+};
+
+export const stringToDayjsZod = z.string().transform(stringToDayjs);
 
 export const bookingCreateBodySchema = z.object({
   end: z.string().optional(),
@@ -271,6 +272,8 @@ export const extendedBookingCreateBody = bookingCreateBodySchema.merge(
         })
       )
       .optional(),
+    luckyUsers: z.array(z.number()).optional(),
+    customInputs: z.undefined().optional(),
   })
 );
 
@@ -329,21 +332,36 @@ export const userMetadata = z
       })
       .optional(),
     defaultBookerLayouts: bookerLayouts.optional(),
+    emailChangeWaitingForVerification: z
+      .string()
+      .transform((data) => data.toLowerCase())
+      .optional(),
+    migratedToOrgFrom: z
+      .object({
+        username: z.string().or(z.null()).optional(),
+        lastMigrationTime: z.string().optional(),
+        reverted: z.boolean().optional(),
+        revertTime: z.string().optional(),
+      })
+      .optional(),
   })
   .nullable();
 
+export const orgSettingsSchema = z
+  .object({
+    isOrganizationVerified: z.boolean().optional(),
+    isOrganizationConfigured: z.boolean().optional(),
+    orgAutoAcceptEmail: z.string().optional(),
+  })
+  .nullable();
 export type userMetadataType = z.infer<typeof userMetadata>;
 
 export const teamMetadataSchema = z
   .object({
-    requestedSlug: z.string(),
+    requestedSlug: z.string().or(z.null()),
     paymentId: z.string(),
     subscriptionId: z.string().nullable(),
     subscriptionItemId: z.string().nullable(),
-    isOrganization: z.boolean().nullable(),
-    isOrganizationVerified: z.boolean().nullable(),
-    isOrganizationConfigured: z.boolean().nullable(),
-    orgAutoAcceptEmail: z.string().nullable(),
     migratedToOrgFrom: z
       .object({
         teamSlug: z.string().or(z.null()).optional(),
@@ -426,6 +444,8 @@ export const successRedirectUrl = z
 export const RoutingFormSettings = z
   .object({
     emailOwnerOnSubmission: z.boolean(),
+    sendUpdatesTo: z.array(z.number()).optional(),
+    sendToAll: z.boolean().optional(),
   })
   .nullable();
 
@@ -572,6 +592,7 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   title: true,
   description: true,
   isInstantEvent: true,
+  aiPhoneCallConfig: true,
   currency: true,
   periodDays: true,
   position: true,
@@ -611,6 +632,8 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   workflows: true,
   bookingFields: true,
   durationLimits: true,
+  lockTimeZoneToggleOnBookingPage: true,
+  requiresBookerEmailVerification: true,
   assignAllTeamMembers: true,
 };
 
@@ -666,4 +689,20 @@ export const getStringAsNumberRequiredSchema = (t: TFunction) =>
 export const bookingSeatDataSchema = z.object({
   description: z.string().optional(),
   responses: bookingResponses,
+});
+
+export const AIPhoneSettingSchema = z.object({
+  yourPhoneNumber: z.string().refine((val) => isValidPhoneNumber(val)),
+  numberToCall: z.string().refine((val) => isValidPhoneNumber(val)),
+  guestName: z.string().trim().min(1, {
+    message: "Please enter Guest Name",
+  }),
+  generalPrompt: z.string().trim().min(1, {
+    message: "Please enter prompt",
+  }),
+  beginMessage: z.string().nullable(),
+  eventTypeId: z.number(),
+  calApiKey: z.string().trim().min(1, {
+    message: "Please enter CAL API Key",
+  }),
 });

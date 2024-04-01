@@ -1,17 +1,19 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 
-import { getLayout } from "@calcom/features/MainLayout";
+import { BulkEditDefaultForEventsModal } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
 import { NewScheduleButton, ScheduleListItem } from "@calcom/features/schedules";
-import { ShellMain } from "@calcom/features/shell/Shell";
+import Shell from "@calcom/features/shell/Shell";
 import { AvailabilitySliderTable } from "@calcom/features/timezone-buddy/components/AvailabilitySliderTable";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
+import { MembershipRole } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
+import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { EmptyScreen, showToast, ToggleGroup } from "@calcom/ui";
 import { Clock } from "@calcom/ui/components/icon";
 
@@ -22,6 +24,7 @@ import SkeletonLoader from "@components/availability/SkeletonLoader";
 
 export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availability"]["list"]) {
   const { t } = useLocale();
+  const [bulkUpdateModal, setBulkUpdateModal] = useState(false);
   const utils = trpc.useContext();
 
   const meQuery = trpc.viewer.me.useQuery();
@@ -66,6 +69,7 @@ export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availab
         }),
         "success"
       );
+      setBulkUpdateModal(true);
     },
     onError: (err) => {
       if (err instanceof HttpError) {
@@ -74,6 +78,15 @@ export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availab
       }
     },
   });
+
+  const bulkUpdateDefaultAvailabilityMutation =
+    trpc.viewer.availability.schedule.bulkUpdateToDefaultAvailability.useMutation({
+      onSuccess: () => {
+        utils.viewer.availability.list.invalidate();
+        setBulkUpdateModal(false);
+        showToast(t("success"), "success");
+      },
+    });
 
   const duplicateMutation = trpc.viewer.availability.schedule.duplicate.useMutation({
     onSuccess: async ({ schedule }) => {
@@ -130,6 +143,14 @@ export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availab
               {t("add_a_redirect")}
             </Link>
           </div>
+          {bulkUpdateModal && (
+            <BulkEditDefaultForEventsModal
+              isPending={bulkUpdateDefaultAvailabilityMutation.isPending}
+              open={bulkUpdateModal}
+              setOpen={setBulkUpdateModal}
+              bulkUpdateFunction={bulkUpdateDefaultAvailabilityMutation.mutate}
+            />
+          )}
         </>
       )}
     </>
@@ -153,6 +174,8 @@ export default function AvailabilityPage() {
   const searchParams = useCompatSearchParams();
   const router = useRouter();
   const pathname = usePathname();
+  const me = useMeQuery();
+  const { data } = trpc.viewer.organizations.listCurrent.useQuery();
 
   // Get a new searchParams string by merging the current
   // searchParams with a provided key/value pair
@@ -165,11 +188,24 @@ export default function AvailabilityPage() {
     },
     [searchParams]
   );
+
+  const isOrgAdminOrOwner =
+    data && (data.user.role === MembershipRole.OWNER || data.user.role === MembershipRole.ADMIN);
+  const isOrgAndPrivate = data?.isOrganization && data.isPrivate;
+  const toggleGroupOptions = [{ value: "mine", label: t("my_availability") }];
+
+  if (!isOrgAndPrivate || isOrgAdminOrOwner) {
+    toggleGroupOptions.push({ value: "team", label: t("team_availability") });
+  }
+
   return (
     <div>
-      <ShellMain
+      <Shell
         heading={t("availability")}
+        title="Availability"
+        description="Configure times when you are available for bookings."
         hideHeadingOnMobile
+        withoutMain={false}
         subtitle={t("configure_availability")}
         CTA={
           <div className="flex gap-2">
@@ -180,20 +216,19 @@ export default function AvailabilityPage() {
                 if (!value) return;
                 router.push(`${pathname}?${createQueryString("type", value)}`);
               }}
-              options={[
-                { value: "mine", label: t("my_availability") },
-                { value: "team", label: t("team_availability") },
-              ]}
+              options={toggleGroupOptions}
             />
             <NewScheduleButton />
           </div>
         }>
-        {searchParams?.get("type") === "team" ? <AvailabilitySliderTable /> : <AvailabilityListWithQuery />}
-      </ShellMain>
+        {searchParams?.get("type") === "team" && (!isOrgAndPrivate || isOrgAdminOrOwner) ? (
+          <AvailabilitySliderTable userTimeFormat={me?.data?.timeFormat ?? null} />
+        ) : (
+          <AvailabilityListWithQuery />
+        )}
+      </Shell>
     </div>
   );
 }
-
-AvailabilityPage.getLayout = getLayout;
 
 AvailabilityPage.PageWrapper = PageWrapper;

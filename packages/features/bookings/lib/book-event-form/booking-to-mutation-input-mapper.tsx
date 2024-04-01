@@ -76,7 +76,7 @@ export const mapRecurringBookingToMutationInput = (
     booking.language
   );
 
-  const input = mapBookingToMutationInput(booking);
+  const input = mapBookingToMutationInput({ ...booking, bookingUid: undefined });
 
   return recurringDates.map((recurringDate) => ({
     ...input,
@@ -85,6 +85,7 @@ export const mapRecurringBookingToMutationInput = (
       .add(booking.duration || booking.event.length, "minute")
       .format(),
     recurringEventId,
+    schedulingType: booking.event.schedulingType || undefined,
     recurringCount: recurringDates.length,
   }));
 };

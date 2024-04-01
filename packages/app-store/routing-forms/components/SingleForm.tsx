@@ -5,10 +5,12 @@ import type { UseFormReturn } from "react-hook-form";
 import { Controller, useFormContext } from "react-hook-form";
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
+import AddMembersWithSwitch from "@calcom/features/eventtypes/components/AddMembersWithSwitch";
 import { ShellMain } from "@calcom/features/shell/Shell";
 import useApp from "@calcom/lib/hooks/useApp";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
+import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import {
   Alert,
   Badge,
@@ -38,6 +40,7 @@ import {
   MessageCircle,
 } from "@calcom/ui/components/icon";
 
+import { getAbsoluteEventTypeRedirectUrl } from "../getEventTypeRedirectUrl";
 import { RoutingPages } from "../lib/RoutingPages";
 import { isFallbackRoute } from "../lib/isFallbackRoute";
 import { processRoute } from "../lib/processRoute";
@@ -233,9 +236,12 @@ type SingleFormComponentProps = {
     appUrl: string;
     hookForm: UseFormReturn<RoutingFormWithResponseCount>;
   }>;
+  enrichedWithUserProfileForm?: inferSSRProps<
+    typeof getServerSidePropsForSingleFormView
+  >["enrichedWithUserProfileForm"];
 };
 
-function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
+function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleFormComponentProps) {
   const utils = trpc.useContext();
   const { t } = useLocale();
 
@@ -243,9 +249,21 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
   const [response, setResponse] = useState<Response>({});
   const [decidedAction, setDecidedAction] = useState<Route["action"] | null>(null);
   const [skipFirstUpdate, setSkipFirstUpdate] = useState(true);
+  const [eventTypeUrl, setEventTypeUrl] = useState("");
 
   function testRouting() {
     const action = processRoute({ form, response });
+    if (action.type === "eventTypeRedirectUrl") {
+      setEventTypeUrl(
+        enrichedWithUserProfileForm
+          ? getAbsoluteEventTypeRedirectUrl({
+              eventTypeRedirectUrl: action.value,
+              form: enrichedWithUserProfileForm,
+              allURLSearchParams: new URLSearchParams(),
+            })
+          : ""
+      );
+    }
     setDecidedAction(action);
   }
 
@@ -275,6 +293,9 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [form]);
+
+  const sendUpdatesTo = hookForm.watch("settings.sendUpdatesTo", []) as number[];
+  const sendToAll = hookForm.watch("settings.sendToAll", false) as boolean;
 
   const mutation = trpc.viewer.appRoutingForms.formMutation.useMutation({
     onSuccess() {
@@ -339,26 +360,79 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
                   />
 
                   <div className="mt-6">
-                    <Controller
-                      name="settings.emailOwnerOnSubmission"
-                      control={hookForm.control}
-                      render={({ field: { value, onChange } }) => {
-                        return (
-                          <SettingsToggle
-                            title={t("routing_forms_send_email_owner")}
-                            description={t("routing_forms_send_email_owner_description")}
-                            checked={value}
-                            onCheckedChange={(val) => onChange(val)}
-                          />
-                        );
-                      }}
-                    />
+                    {form.teamId ? (
+                      <div className="flex flex-col">
+                        <span className="text-emphasis mb-3 block text-sm font-medium leading-none">
+                          {t("routing_forms_send_email_to")}
+                        </span>
+                        <AddMembersWithSwitch
+                          teamMembers={form.teamMembers.map((member) => ({
+                            value: member.id.toString(),
+                            label: member.name || "",
+                            avatar: member.avatarUrl || "",
+                            email: member.email,
+                            isFixed: true,
+                          }))}
+                          value={sendUpdatesTo.map((userId) => ({
+                            isFixed: true,
+                            userId: userId,
+                            priority: 1,
+                          }))}
+                          onChange={(value) => {
+                            hookForm.setValue(
+                              "settings.sendUpdatesTo",
+                              value.map((teamMember) => teamMember.userId),
+                              { shouldDirty: true }
+                            );
+                            hookForm.setValue("settings.emailOwnerOnSubmission", false, {
+                              shouldDirty: true,
+                            });
+                          }}
+                          assignAllTeamMembers={sendToAll}
+                          setAssignAllTeamMembers={(value) => {
+                            hookForm.setValue("settings.sendToAll", !!value, { shouldDirty: true });
+                          }}
+                          automaticAddAllEnabled={true}
+                          isFixed={true}
+                          onActive={() => {
+                            hookForm.setValue(
+                              "settings.sendUpdatesTo",
+                              form.teamMembers.map((teamMember) => teamMember.id),
+                              { shouldDirty: true }
+                            );
+                            hookForm.setValue("settings.emailOwnerOnSubmission", false, {
+                              shouldDirty: true,
+                            });
+                          }}
+                          placeholder={t("select_members")}
+                          containerClassName="!px-0 !pb-0 !pt-0"
+                        />
+                      </div>
+                    ) : (
+                      <Controller
+                        name="settings.emailOwnerOnSubmission"
+                        control={hookForm.control}
+                        render={({ field: { value, onChange } }) => {
+                          return (
+                            <SettingsToggle
+                              title={t("routing_forms_send_email_owner")}
+                              description={t("routing_forms_send_email_owner_description")}
+                              checked={value}
+                              onCheckedChange={(val) => {
+                                onChange(val);
+                                hookForm.unregister("settings.sendUpdatesTo");
+                              }}
+                            />
+                          );
+                        }}
+                      />
+                    )}
                   </div>
 
                   {form.routers.length ? (
                     <div className="mt-6">
                       <div className="text-emphasis mb-2 block text-sm font-semibold leading-none ">
-                        Routers
+                        {t("routers")}
                       </div>
                       <p className="text-default -mt-1 text-xs leading-normal">
                         {t("modifications_in_fields_warning")}
@@ -455,9 +529,9 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
                       {RoutingPages.map((page) => {
                         if (page.value !== decidedAction.type) return null;
                         return (
-                          <div key={page.value} data-testid="test-routing-result-type">
+                          <span key={page.value} data-testid="test-routing-result-type">
                             {page.label}
-                          </div>
+                          </span>
                         );
                       })}
                       :{" "}
@@ -484,7 +558,7 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
                         <span className="text-default underline">
                           <a
                             target="_blank"
-                            href={`/${decidedAction.value}`}
+                            href={eventTypeUrl}
                             rel="noreferrer"
                             data-testid="test-routing-result">
                             {decidedAction.value}

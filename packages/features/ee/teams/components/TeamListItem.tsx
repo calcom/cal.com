@@ -42,7 +42,6 @@ import {
   X,
 } from "@calcom/ui/components/icon";
 
-import { useOrgBranding } from "../../organizations/context/provider";
 import { TeamRole } from "./TeamPill";
 
 interface Props {
@@ -58,6 +57,7 @@ export default function TeamListItem(props: Props) {
   const searchParams = useCompatSearchParams();
   const { t, i18n } = useLocale();
   const utils = trpc.useContext();
+  const user = trpc.viewer.me.useQuery().data;
   const team = props.team;
 
   const showDialog = searchParams?.get("inviteModal") === "true";
@@ -68,12 +68,19 @@ export default function TeamListItem(props: Props) {
   const inviteMemberMutation = trpc.viewer.teams.inviteMember.useMutation();
 
   const acceptOrLeaveMutation = trpc.viewer.teams.acceptOrLeave.useMutation({
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       showToast(t("success"), "success");
       utils.viewer.teams.get.invalidate();
       utils.viewer.teams.list.invalidate();
       utils.viewer.teams.hasTeamPlan.invalidate();
       utils.viewer.teams.listInvites.invalidate();
+      const userOrganizationId = user?.profile?.organization?.id;
+      const isSubTeamOfDifferentOrg = team.parentId ? team.parentId != userOrganizationId : false;
+      const isDifferentOrg = team.isOrganization && team.id !== userOrganizationId;
+      // If the user team being accepted is a sub-team of different organization or the different organization itself then page must be reloaded to let the session change reflect reliably everywhere.
+      if (variables.accept && (isSubTeamOfDifferentOrg || isDifferentOrg)) {
+        window.location.reload();
+      }
     },
   });
 
@@ -86,7 +93,6 @@ export default function TeamListItem(props: Props) {
 
   const acceptInvite = () => acceptOrLeave(true);
   const declineInvite = () => acceptOrLeave(false);
-  const orgBranding = useOrgBranding();
 
   const isOwner = props.team.role === MembershipRole.OWNER;
   const isInvitee = !props.team.accepted;
@@ -94,23 +100,21 @@ export default function TeamListItem(props: Props) {
   const { hideDropdown, setHideDropdown } = props;
 
   if (!team) return <></>;
-
+  const teamUrl = team.isOrganization
+    ? getTeamUrlSync({ orgSlug: team.slug, teamSlug: null })
+    : getTeamUrlSync({ orgSlug: team.parent ? team.parent.slug : null, teamSlug: team.slug });
   const teamInfo = (
     <div className="item-center flex px-5 py-5">
       <Avatar
         size="md"
-        imageSrc={getPlaceholderAvatar(team?.logo, team?.name as string)}
-        alt="Team Logo"
+        imageSrc={getPlaceholderAvatar(team?.logo || team?.parent?.logo, team?.name as string)}
+        alt="Team logo"
         className="inline-flex justify-center"
       />
       <div className="ms-3 inline-block truncate">
         <span className="text-default text-sm font-bold">{team.name}</span>
         <span className="text-muted block text-xs">
-          {team.slug ? (
-            `${getTeamUrlSync({ orgSlug: team.parent ? team.parent.slug : null, teamSlug: team.slug })}`
-          ) : (
-            <Badge>{t("upgrade")}</Badge>
-          )}
+          {team.slug ? `${teamUrl}` : <Badge>{t("upgrade")}</Badge>}
         </span>
       </div>
     </div>
