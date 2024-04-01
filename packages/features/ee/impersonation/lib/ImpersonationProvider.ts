@@ -284,7 +284,7 @@ const ImpersonationProvider = CredentialsProvider({
 
     await ensureOrganizationIsReviewed(session?.user.org?.id);
 
-    if (!teamId) throw new Error("You do not have permission to do this.");
+    if (!teamId) throw new Error("Error-teamNotFound: You do not have permission to do this.");
 
     // Check session
     const sessionUserFromDb = await prisma.user.findUnique({
@@ -315,7 +315,7 @@ const ImpersonationProvider = CredentialsProvider({
     });
 
     if (sessionUserFromDb?.teams.length === 0 || impersonatedUser.teams.length === 0) {
-      throw new Error("You do not have permission to do this.");
+      throw new Error("Error-UserHasNoTeams: You do not have permission to do this.");
     }
 
     // We find team by ID so we know there is only one team in the array
