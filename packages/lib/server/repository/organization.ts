@@ -6,6 +6,12 @@ import { MembershipRole } from "@calcom/prisma/enums";
 
 import { createAProfileForAnExistingUser } from "../../createAProfileForAnExistingUser";
 
+const orgSelect = {
+  id: true,
+  name: true,
+  slug: true,
+  logoUrl: true,
+};
 export class OrganizationRepository {
   static async createWithOwner({
     orgData,
@@ -66,5 +72,28 @@ export class OrganizationRepository {
       },
     });
     return { organization, ownerProfile };
+  }
+
+  static async findById({ id }: { id: number }) {
+    return prisma.team.findUnique({
+      where: {
+        id,
+        isOrganization: true,
+      },
+      select: orgSelect,
+    });
+  }
+
+  static async findByIdIncludeOrganizationSettings({ id }: { id: number }) {
+    return prisma.team.findUnique({
+      where: {
+        id,
+        isOrganization: true,
+      },
+      select: {
+        ...orgSelect,
+        organizationSettings: true,
+      },
+    });
   }
 }
