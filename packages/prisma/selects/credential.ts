@@ -30,3 +30,17 @@ export const safeCredentialSelect = Prisma.validator<Prisma.CredentialSelect>()(
   appId: true,
   invalid: true,
 });
+
+export const overlayCredentialForCalendarServiceSelect = Prisma.validator<Prisma.OverlayCredentialSelect>()({
+  id: true,
+  appId: true,
+  type: true,
+  userId: true,
+  user: {
+    select: {
+      email: true,
+    },
+  },
+  key: true,
+  invalid: true,
+});

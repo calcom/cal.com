@@ -13,3 +13,7 @@ export type CredentialFrontendPayload = Omit<CredentialPayload, "key"> & {
   /** We should type error if keys are leaked to the frontend */
   key?: never;
 };
+
+export type OverlayCredentialPayload = Prisma.OverlayCredentialGetPayload<{
+  select: typeof import("@calcom/prisma/selects/credential").overlayCredentialForCalendarServiceSelect;
+}>;

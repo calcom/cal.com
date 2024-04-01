@@ -16,14 +16,16 @@ import type {
   IntegrationCalendar,
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
-import type { CredentialPayload } from "@calcom/types/Credential";
+import type { CredentialPayload, OverlayCredentialPayload } from "@calcom/types/Credential";
 import type { EventResult } from "@calcom/types/EventManager";
 
 import getCalendarsEvents from "./getCalendarsEvents";
 
 const log = logger.getSubLogger({ prefix: ["CalendarManager"] });
 
-export const getCalendarCredentials = (credentials: Array<CredentialPayload>) => {
+export const getCalendarCredentials = (
+  credentials: Array<CredentialPayload> | Array<OverlayCredentialPayload>
+) => {
   const calendarCredentials = getApps(credentials, true)
     .filter((app) => app.type.endsWith("_calendar"))
     .flatMap((app) => {
@@ -65,7 +67,10 @@ export const getConnectedCalendars = async (
               ...cal,
               readOnly: cal.readOnly || false,
               primary: cal.primary || null,
-              isSelected: selectedCalendars.some((selected) => selected.externalId === cal.externalId),
+              isSelected:
+                selectedCalendars.length > 0
+                  ? selectedCalendars.some((selected) => selected.externalId === cal.externalId)
+                  : cal.primary,
               credentialId,
             };
           }),
@@ -127,8 +132,8 @@ export const getConnectedCalendars = async (
  */
 const cleanIntegrationKeys = (
   appIntegration: ReturnType<typeof getCalendarCredentials>[number]["integration"] & {
-    credentials?: Array<CredentialPayload>;
-    credential: CredentialPayload;
+    credentials?: Array<CredentialPayload> | Array<OverlayCredentialPayload>;
+    credential: CredentialPayload | OverlayCredentialPayload;
   }
 ) => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

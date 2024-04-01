@@ -2,11 +2,16 @@ import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/Cale
 import type { PrismaClient } from "@calcom/prisma";
 import type { DestinationCalendar, SelectedCalendar, User } from "@calcom/prisma/client";
 import { AppCategories } from "@calcom/prisma/enums";
-import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
+import {
+  credentialForCalendarServiceSelect,
+  overlayCredentialForCalendarServiceSelect,
+} from "@calcom/prisma/selects/credential";
+import type { CredentialPayload, OverlayCredentialPayload } from "@calcom/types/Credential";
 
-export type UserWithCalendars = Pick<User, "id"> & {
-  selectedCalendars: Pick<SelectedCalendar, "externalId" | "integration">[];
-  destinationCalendar: DestinationCalendar | null;
+type UserWithCalendars = Pick<User, "id"> & {
+  selectedCalendars?: Pick<SelectedCalendar, "externalId" | "integration">[];
+  destinationCalendar?: DestinationCalendar | null;
+  isOverlayUser?: boolean;
 };
 
 export type ConnectedDestinationCalendars = Awaited<ReturnType<typeof getConnectedDestinationCalendars>>;
@@ -16,16 +21,32 @@ export async function getConnectedDestinationCalendars(
   onboarding: boolean,
   prisma: PrismaClient
 ) {
-  const userCredentials = await prisma.credential.findMany({
-    where: {
-      userId: user.id,
-      app: {
-        categories: { has: AppCategories.calendar },
-        enabled: true,
+  let userCredentials: Array<CredentialPayload> | Array<OverlayCredentialPayload>;
+
+  if ("isOverlayUser" in user) {
+    const userCredential = await prisma.overlayCredential.findFirst({
+      where: {
+        userId: user.id,
+        app: {
+          categories: { has: AppCategories.calendar },
+          enabled: true,
+        },
       },
-    },
-    select: credentialForCalendarServiceSelect,
-  });
+      select: overlayCredentialForCalendarServiceSelect,
+    });
+    userCredentials = userCredential ? [userCredential] : [];
+  } else {
+    userCredentials = await prisma.credential.findMany({
+      where: {
+        userId: user.id,
+        app: {
+          categories: { has: AppCategories.calendar },
+          enabled: true,
+        },
+      },
+      select: credentialForCalendarServiceSelect,
+    });
+  }
 
   // get user's credentials + their connected integrations
   const calendarCredentials = getCalendarCredentials(userCredentials);
@@ -33,9 +54,20 @@ export async function getConnectedDestinationCalendars(
   // get all the connected integrations' calendars (from third party)
   const { connectedCalendars, destinationCalendar } = await getConnectedCalendars(
     calendarCredentials,
-    user.selectedCalendars,
+    user.selectedCalendars || [],
     user.destinationCalendar?.externalId
   );
+
+  if ("isOverlayUser" in user) {
+    return {
+      connectedCalendars,
+      destinationCalendar: {
+        ...(user.destinationCalendar as DestinationCalendar),
+        ...destinationCalendar,
+      },
+    };
+  }
+
   let toggledCalendarDetails:
     | {
         externalId: string;
