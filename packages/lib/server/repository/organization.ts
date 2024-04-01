@@ -15,6 +15,7 @@ export class OrganizationRepository {
       name: string;
       slug: string;
       isOrganizationConfigured: boolean;
+      isOrganizationAdminReviewed: boolean;
       autoAcceptEmail: string;
       seats: number | null;
       pricePerSeat: number | null;
@@ -33,6 +34,7 @@ export class OrganizationRepository {
         ...(!IS_TEAM_BILLING_ENABLED ? { slug: orgData.slug } : {}),
         organizationSettings: {
           create: {
+            isAdminReviewed: orgData.isOrganizationAdminReviewed,
             isOrganizationVerified: true,
             isOrganizationConfigured: orgData.isOrganizationConfigured,
             orgAutoAcceptEmail: orgData.autoAcceptEmail,
