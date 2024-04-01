@@ -1,8 +1,7 @@
 import { Calendar, Clock } from "lucide-react";
 import type { ReactNode } from "react";
 
-import { useGetEventTypeById } from "@calcom/atoms";
-import { useIsPlatform } from "@calcom/atoms/monorepo";
+import { useIsPlatform, useGetEventTypeById } from "@calcom/atoms/monorepo";
 import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Badge, Dialog, DialogContent } from "@calcom/ui";
@@ -25,11 +24,15 @@ const PlatformBookEventFormWrapper = ({
   children: ReactNode;
 }) => {
   const eventId = useBookerStore((state) => state.eventId);
-  const eventType = useGetEventTypeById(eventId);
+  const { data } = useGetEventTypeById(eventId);
 
-  console.log("this is the event type", eventType);
-
-  return <BookEventFormWrapperComponent child={children} onCancel={onCancel} />;
+  return (
+    <BookEventFormWrapperComponent
+      child={children}
+      eventLength={data?.eventType.length}
+      onCancel={onCancel}
+    />
+  );
 };
 
 export const BookEventFormWrapperComponent = ({
