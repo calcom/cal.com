@@ -1,4 +1,5 @@
 import type { TEventType, TEventTypesForm } from "@pages/apps/installation/[[...step]]";
+import type { Dispatch, SetStateAction } from "react";
 import type { FC } from "react";
 import React, { forwardRef, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -27,9 +28,9 @@ type ConfigureStepCardProps = {
   categories: AppCategories[];
   credentialId?: number;
   loading?: boolean;
-  selectedEventTypeIds: number[];
   formPortalRef: React.RefObject<HTMLDivElement>;
   eventTypes: TEventType[] | undefined;
+  setConfigureStep: Dispatch<SetStateAction<boolean>>;
 };
 
 type EventTypeAppSettingsWrapperProps = {
@@ -110,9 +111,9 @@ const EventTypeAppSettingsForm = forwardRef<HTMLButtonElement, EventTypeAppSetti
 
 export const ConfigureStepCard: FC<ConfigureStepCardProps> = ({
   loading,
-  selectedEventTypeIds,
   formPortalRef,
   eventTypes,
+  setConfigureStep,
   ...props
 }) => {
   const { control, getValues } = useFormContext<TEventTypesForm>();
@@ -123,7 +124,7 @@ export const ConfigureStepCard: FC<ConfigureStepCardProps> = ({
   });
 
   const submitRefs = useRef<Array<React.RefObject<HTMLButtonElement>>>([]);
-  submitRefs.current = selectedEventTypeIds.map(
+  submitRefs.current = fields.map(
     (_ref, index) => (submitRefs.current[index] = React.createRef<HTMLButtonElement>())
   );
   const mainForSubmitRef = useRef<HTMLButtonElement>(null);
@@ -139,12 +140,14 @@ export const ConfigureStepCard: FC<ConfigureStepCardProps> = ({
         fields.some((field) => field.id === state.id && field.selected)
       )
     );
+    if (!fields.some((field) => field.selected)) {
+      setConfigureStep(false);
+    }
   }, [fields]);
 
   useEffect(() => {
     if (submit && allUpdated && mainForSubmitRef.current) {
       mainForSubmitRef.current?.click();
-
       setSubmit(false);
     }
   }, [submit, allUpdated, getValues, mainForSubmitRef]);
@@ -189,7 +192,7 @@ export const ConfigureStepCard: FC<ConfigureStepCardProps> = ({
         <Button
           className="text-md mt-6 w-full justify-center"
           type="button"
-          onClick={() => {
+          onClick={(e) => {
             submitRefs.current.reverse().map((ref) => ref.current?.click());
             setSubmit(true);
           }}

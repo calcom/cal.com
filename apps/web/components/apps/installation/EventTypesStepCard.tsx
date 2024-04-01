@@ -1,4 +1,5 @@
 import type { TEventType, TEventTypesForm } from "@pages/apps/installation/[[...step]]";
+import type { Dispatch, SetStateAction } from "react";
 import type { FC } from "react";
 import React from "react";
 import { useFieldArray, useFormContext } from "react-hook-form";
@@ -8,12 +9,11 @@ import { ScrollableArea, Badge, Button } from "@calcom/ui";
 import { Clock } from "@calcom/ui/components/icon";
 
 type EventTypesCardProps = {
-  onSelect: () => void;
   userName: string;
-  selectedEventTypeIds: number[];
+  setConfigureStep: Dispatch<SetStateAction<boolean>>;
 };
 
-export const EventTypesStepCard: FC<EventTypesCardProps> = ({ onSelect, userName, selectedEventTypeIds }) => {
+export const EventTypesStepCard: FC<EventTypesCardProps> = ({ setConfigureStep, userName }) => {
   const { control } = useFormContext<TEventTypesForm>();
   const { fields, update } = useFieldArray({
     control,
@@ -23,12 +23,12 @@ export const EventTypesStepCard: FC<EventTypesCardProps> = ({ onSelect, userName
 
   return (
     <>
-      <div className="sm:border-subtle bg-default mt-10  border sm:rounded-md dark:bg-black">
+      <div className="sm:border-subtle bg-default mt-10  border dark:bg-black sm:rounded-md">
         <ScrollableArea className="rounded-md">
           <ul className="border-subtle max-h-97 !static w-full divide-y">
             {fields.map((field, index) => (
               <EventTypeCard
-                onClick={() => update(index, { ...field, selected: !field.selected })}
+                handleSelect={() => update(index, { ...field, selected: !field.selected })}
                 userName={userName}
                 key={field.fieldId}
                 {...field}
@@ -40,15 +40,17 @@ export const EventTypesStepCard: FC<EventTypesCardProps> = ({ onSelect, userName
 
       <Button
         className="text-md mt-6 w-full justify-center"
-        onClick={onSelect}
-        disabled={selectedEventTypeIds.length == 0}>
+        onClick={() => {
+          setConfigureStep(true);
+        }}
+        disabled={!fields.some((field) => field.selected === true)}>
         Save
       </Button>
     </>
   );
 };
 
-type EventTypeCardProps = TEventType & { userName: string; onClick: () => void };
+type EventTypeCardProps = TEventType & { userName: string; handleSelect: () => void };
 
 const EventTypeCard: FC<EventTypeCardProps> = ({
   title,
@@ -58,7 +60,7 @@ const EventTypeCard: FC<EventTypeCardProps> = ({
   length,
   selected,
   slug,
-  onClick,
+  handleSelect,
   team,
   userName,
 }) => {
@@ -71,8 +73,8 @@ const EventTypeCard: FC<EventTypeCardProps> = ({
       : [length];
   return (
     <div
-      className="hover:bg-muted box-border flex min-h-20 w-full cursor-pointer select-none items-center space-x-4 px-4 py-3"
-      onClick={() => onClick()}>
+      className="hover:bg-muted min-h-20 box-border flex w-full cursor-pointer select-none items-center space-x-4 px-4 py-3"
+      onClick={() => handleSelect()}>
       <input
         id={`${id}`}
         checked={selected}

@@ -2,7 +2,7 @@ import type { GetServerSidePropsContext } from "next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Head from "next/head";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Toaster } from "react-hot-toast";
 import { z } from "zod";
@@ -18,7 +18,6 @@ import { getAppOnboardingRedirectUrl } from "@calcom/lib/apps/getAppOnboardingRe
 import { getAppOnboardingUrl } from "@calcom/lib/apps/getAppOnboardingUrl";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { queryNumberArray } from "@calcom/lib/hooks/useTypedQuery";
 import prisma from "@calcom/prisma";
 import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
@@ -89,9 +88,6 @@ type OnboardingPageProps = {
   teams: TeamsProp;
   personalAccount: PersonalAccountProps;
   eventTypes?: TEventType[];
-  teamId?: number;
-  eventTypeId?: number;
-  eventTypeIds?: number[];
   userName: string;
   hasEventTypes: boolean;
   credentialId?: number;
@@ -104,19 +100,28 @@ const OnboardingPage = ({
   personalAccount,
   appMetadata,
   eventTypes,
-  teamId,
-  eventTypeIds,
   userName,
   hasEventTypes,
   credentialId,
 }: OnboardingPageProps) => {
   const pathname = usePathname();
   const router = useRouter();
-  const stepObj = STEPS_MAP[step];
+
+  const [configureStep, setConfigureStep] = useState(false);
+  const [isSelectingAccount, setIsSelectingAccount] = useState(false);
+
+  const curerentStep: AppOnboardingSteps = useMemo(() => {
+    if (step == AppOnboardingSteps.EVENT_TYPES_STEP && configureStep) {
+      return AppOnboardingSteps.CONFIGURE_STEP;
+    }
+    return step;
+  }, [step, configureStep]);
+  const stepObj = STEPS_MAP[curerentStep];
   const nbOfSteps = MAX_NUMBER_OF_STEPS - (hasEventTypes ? 0 : 1);
+
   const { t } = useLocale();
   const utils = trpc.useContext();
-  const [isSelectingAccount, setIsSelectingAccount] = useState(false);
+
   const formPortalRef = useRef<HTMLDivElement>(null);
 
   const formMethods = useForm<TEventTypesForm>({
@@ -124,36 +129,17 @@ const OnboardingPage = ({
       eventTypes,
     },
   });
-  const watchEventTypes = formMethods.watch("eventTypes");
-  const selectedEventTypeIds = useMemo(
-    () =>
-      watchEventTypes.reduce((res: number[], item: TEventType) => {
-        if (item.selected) {
-          res.push(item.id);
-        }
-        return res;
-      }, []),
-    [watchEventTypes]
-  );
-
-  useEffect(() => {
-    const url = getAppOnboardingUrl({
-      slug: appMetadata.slug,
-      step,
-      teamId,
-      eventTypeIds: selectedEventTypeIds,
-    });
-    router.push(url);
-  }, [selectedEventTypeIds, teamId, step, appMetadata.slug, router]);
 
   const updateMutation = trpc.viewer.eventTypes.update.useMutation({
     onSuccess: async (data) => {
       showToast(t("event_type_updated_successfully", { eventTypeTitle: data.eventType?.title }), "success");
-      if (eventTypeIds?.length == 1) {
-        router.push(`/event-types/${eventTypeIds[0]}?tabName=apps`);
-      } else {
-        router.push("/event-types");
-      }
+      // if (eventTypeIds?.length == 1) {
+      //   router.push(`/event-types/${eventTypeIds[0]}?tabName=apps`);
+      // }
+
+      // else {
+      router.push("/event-types");
+      // }
     },
     async onSettled() {
       await utils.viewer.eventTypes.get.invalidate();
@@ -167,9 +153,6 @@ const OnboardingPage = ({
 
       if (err.data?.code === "UNAUTHORIZED") {
         message = `${err.data.code}: ${t("error_event_type_unauthorized_update")}`;
-      }
-
-      if (err.data?.code === "PARSE_ERROR" || err.data?.code === "BAD_REQUEST") {
         message = `${err.data.code}: ${t(err.message)}`;
       }
 
@@ -181,20 +164,38 @@ const OnboardingPage = ({
     },
   });
 
-  const handleSelectAccount = ({ id: teamId }: onSelectParams) => {
-    setIsSelectingAccount(true);
-    if (appMetadata.isOAuth) {
-      handleOAuth(teamId);
-      return;
-    }
+  const handleSelectAccount = async ({ id: teamId }: onSelectParams) => {
+    try {
+      setIsSelectingAccount(true);
+      if (appMetadata.isOAuth) {
+        const state = JSON.stringify({
+          appOnbaordingRedirectUrl: hasEventTypes
+            ? getAppOnboardingRedirectUrl(appMetadata.slug, teamId)
+            : null,
+          teamId,
+        });
 
-    fetch(`/api/integrations/${appMetadata.slug}/add${teamId ? `?teamId=${teamId}` : ""}`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    })
-      .then(() => {
+        const res = await fetch(
+          `/api/integrations/${
+            appMetadata.slug == "stripe" ? "stripepayment" : appMetadata.slug
+          }/add?state=${state}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        const oAuthUrl = (await res.json())?.url;
+        router.push(oAuthUrl);
+        return;
+      } else {
+        await fetch(`/api/integrations/${appMetadata.slug}/add${teamId ? `?teamId=${teamId}` : ""}`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
         router.push(
           !hasEventTypes
             ? getInstalledAppPath({ slug: appMetadata.slug, variant: appMetadata.variant })
@@ -204,50 +205,9 @@ const OnboardingPage = ({
                 teamId,
               })
         );
-      })
-      .catch(() => setIsSelectingAccount(false));
-  };
-
-  const handleSelectEventType = () => {
-    if (hasEventTypes) {
-      router.push(
-        getAppOnboardingUrl({
-          slug: appMetadata.slug,
-          step: AppOnboardingSteps.CONFIGURE_STEP,
-          teamId: teamId,
-          eventTypeIds: selectedEventTypeIds,
-        })
-      );
-      return;
-    }
-    router.push(`/apps/installed`);
-    return;
-  };
-
-  const handleOAuth = async (teamId?: number) => {
-    try {
-      const state = JSON.stringify({
-        appOnbaordingRedirectUrl: hasEventTypes
-          ? getAppOnboardingRedirectUrl(appMetadata.slug, teamId)
-          : null,
-        teamId,
-      });
-
-      const res = await fetch(
-        `/api/integrations/${
-          appMetadata.slug == "stripe" ? "stripepayment" : appMetadata.slug
-        }/add?state=${state}`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-      const oAuthUrl = (await res.json())?.url;
-      router.push(oAuthUrl);
-    } catch (err) {
-      console.error("Error while connecting to app", appMetadata.slug);
+      }
+    } catch (error) {
+      setIsSelectingAccount(false);
       router.push(`/apps`);
     }
   };
@@ -277,19 +237,25 @@ const OnboardingPage = ({
               form={formMethods}
               id="outer-event-type-form"
               handleSubmit={async (values) => {
-                const mutationPromises = values?.eventTypes.map((value: TEventType) => {
-                  // Prevent two payment apps to be enabled
-                  // Ok to cast type here because this metadata will be updated as the event type metadata
-                  if (checkForMultiplePaymentApps(value.metadata as z.infer<typeof EventTypeMetaDataSchema>))
-                    throw new Error(t("event_setup_multiple_payment_apps_error"));
-                  if (value.metadata?.apps?.stripe?.paymentOption === "HOLD" && value.seatsPerTimeSlot) {
-                    throw new Error(t("seats_and_no_show_fee_error"));
-                  }
-                  return updateMutation.mutateAsync({
-                    id: value.id,
-                    metadata: value.metadata,
+                console.log("valuevaluesvaluess: ", values);
+                const mutationPromises = values?.eventTypes
+                  .filter((eventType) => eventType.selected)
+                  .map((value: TEventType) => {
+                    console.log("value: ", value);
+                    // Prevent two payment apps to be enabled
+                    // Ok to cast type here because this metadata will be updated as the event type metadata
+                    if (
+                      checkForMultiplePaymentApps(value.metadata as z.infer<typeof EventTypeMetaDataSchema>)
+                    )
+                      throw new Error(t("event_setup_multiple_payment_apps_error"));
+                    if (value.metadata?.apps?.stripe?.paymentOption === "HOLD" && value.seatsPerTimeSlot) {
+                      throw new Error(t("seats_and_no_show_fee_error"));
+                    }
+                    return updateMutation.mutateAsync({
+                      id: value.id,
+                      metadata: value.metadata,
+                    });
                   });
-                });
                 await Promise.all(mutationPromises);
               }}>
               <StepHeader
@@ -301,7 +267,7 @@ const OnboardingPage = ({
                   disableNavigation
                 />
               </StepHeader>
-              {step === AppOnboardingSteps.ACCOUNTS_STEP && (
+              {curerentStep === AppOnboardingSteps.ACCOUNTS_STEP && (
                 <AccountsStepCard
                   teams={teams}
                   personalAccount={personalAccount}
@@ -309,22 +275,20 @@ const OnboardingPage = ({
                   loading={isSelectingAccount}
                 />
               )}
-              {step === AppOnboardingSteps.EVENT_TYPES_STEP && eventTypes && Boolean(eventTypes?.length) && (
-                <EventTypesStepCard
-                  onSelect={handleSelectEventType}
-                  userName={userName}
-                  selectedEventTypeIds={selectedEventTypeIds}
-                />
-              )}
-              {step === AppOnboardingSteps.CONFIGURE_STEP && formPortalRef.current && (
+              {curerentStep === AppOnboardingSteps.EVENT_TYPES_STEP &&
+                eventTypes &&
+                Boolean(eventTypes?.length) && (
+                  <EventTypesStepCard setConfigureStep={setConfigureStep} userName={userName} />
+                )}
+              {curerentStep === AppOnboardingSteps.CONFIGURE_STEP && formPortalRef.current && (
                 <ConfigureStepCard
                   slug={appMetadata.slug}
                   categories={appMetadata.categories}
                   credentialId={credentialId}
                   userName={userName}
                   loading={updateMutation.isPending}
-                  selectedEventTypeIds={selectedEventTypeIds}
                   formPortalRef={formPortalRef}
+                  setConfigureStep={setConfigureStep}
                   eventTypes={eventTypes}
                 />
               )}
@@ -403,7 +367,7 @@ const getAppBySlug = async (appSlug: string) => {
   return app;
 };
 
-const getEventTypes = async (userId: number, teamId?: number, eventTypeIds?: number[]) => {
+const getEventTypes = async (userId: number, teamId?: number) => {
   const eventTypes = (
     await prisma.eventType.findMany({
       select: {
@@ -434,7 +398,7 @@ const getEventTypes = async (userId: number, teamId?: number, eventTypeIds?: num
   return eventTypes.map((item) => ({
     ...item,
     URL: `${CAL_URL}/${item.team ? `team/${item.team.slug}` : item?.users?.[0]?.username}/${item.slug}`,
-    selected: !!eventTypeIds?.includes(item.id),
+    selected: false,
   }));
 };
 
@@ -460,13 +424,12 @@ const getAppInstallsBySlug = async (appSlug: string, userId: number, teamIds?: n
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   try {
-    let eventTypes: TEventType[] = [];
+    // let eventTypes: TEventType[] = [];
     const { req, res, query, params } = context;
     const stepsEnum = z.enum(STEPS);
     const parsedAppSlug = z.coerce.string().parse(query?.slug);
     const parsedStepParam = z.coerce.string().parse(params?.step);
     const parsedTeamIdParam = z.coerce.number().optional().parse(query?.teamId);
-    const parsedEventTypeIdsParam = queryNumberArray.optional().parse(query?.eventTypeIds);
     const _ = stepsEnum.parse(parsedStepParam);
     const session = await getServerSession({ req, res });
     const locale = await getLocale(context.req);
@@ -497,32 +460,12 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       }
     }
 
-    eventTypes = await getEventTypes(user.id, parsedTeamIdParam, parsedEventTypeIdsParam);
+    const eventTypes = await getEventTypes(user.id, parsedTeamIdParam);
 
-    switch (parsedStepParam) {
-      case AppOnboardingSteps.EVENT_TYPES_STEP:
-        if (eventTypes.length === 0) {
-          return {
-            redirect: { permanent: false, destination: `/apps/installed/${appMetadata.categories[0]}` },
-          };
-        }
-        break;
-
-      case AppOnboardingSteps.CONFIGURE_STEP:
-        if (!parsedEventTypeIdsParam || parsedEventTypeIdsParam.length == 0) {
-          return {
-            redirect: {
-              permanent: false,
-              destination: getAppOnboardingUrl({
-                slug: appMetadata.slug,
-                step: AppOnboardingSteps.EVENT_TYPES_STEP,
-                teamId: parsedTeamIdParam,
-                eventTypeIds: [],
-              }),
-            },
-          };
-        }
-        break;
+    if (parsedStepParam == AppOnboardingSteps.EVENT_TYPES_STEP && eventTypes.length === 0) {
+      return {
+        redirect: { permanent: false, destination: `/apps/installed/${appMetadata.categories[0]}` },
+      };
     }
 
     const personalAccount = {
@@ -558,7 +501,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         personalAccount,
         eventTypes,
         teamId: parsedTeamIdParam ?? null,
-        eventTypeIds: parsedEventTypeIdsParam ?? null,
         userName: user.username,
         hasEventTypes,
         credentialId,
@@ -566,12 +508,10 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     };
   } catch (err) {
     if (err instanceof z.ZodError) {
-      console.info("Zod Parse Error", err.message);
       return { redirect: { permanent: false, destination: "/apps" } };
     }
 
     if (err instanceof Error) {
-      console.info("Redirect Error", err.message);
       switch (err.message) {
         case ERROR_MESSAGES.userNotAuthed:
           return { redirect: { permanent: false, destination: "/auth/login" } };
