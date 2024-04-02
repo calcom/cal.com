@@ -27,7 +27,6 @@ export default class CrmManager {
     await this.getCrmService(this.credential);
     // First see if the attendees already exist in the crm
     let contacts = await this.getContacts(event.attendees.map((a) => a.email));
-    console.log("This was hit");
     // Ensure that all attendees are in the crm
     if (contacts.length == event.attendees.length) {
       return await this.crmService?.createEvent(event, contacts);
