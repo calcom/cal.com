@@ -2,6 +2,9 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 
 import { getAllTranscriptsAccessLinkFromRoomName } from "@calcom/core/videoClient";
+import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
+import { defaultHandler } from "@calcom/lib/server";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 
 const testRequestSchema = z.object({
@@ -119,7 +122,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       );
 
       return res.status(404).send({
-        message: `Booking of room_name ${room_name} does not exist or does not contain daily video as location`,
+        message: `Booking of room_name ${room} does not exist or does not contain daily video as location`,
       });
     }
 
