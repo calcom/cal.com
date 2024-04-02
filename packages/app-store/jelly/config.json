@@ -11,7 +11,7 @@
   "email": "support@jellyjelly.com",
   "appData": {
     "location": {
-      "type": "integrations:{SLUG}_video",
+      "type": "integrations:{SLUG}_conferencing",
       "label": "{TITLE}",
       "linkType": "dynamic"
     }

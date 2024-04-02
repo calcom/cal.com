@@ -1,6 +1,8 @@
 import { Prisma } from "@prisma/client";
 
 import appStore from "@calcom/app-store";
+import { getLocationValueForDB } from "@calcom/app-store/locations";
+import type { LocationObject } from "@calcom/app-store/locations";
 import { sendDeclinedEmails } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
@@ -67,6 +69,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
           bookingFields: true,
           disableGuests: true,
           metadata: true,
+          locations: true,
           team: {
             select: {
               parentId: true,
@@ -248,6 +251,11 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       ...user,
       credentials,
     };
+    const conferenceCredentialId = getLocationValueForDB(
+      booking.location ?? "",
+      (booking.eventType?.locations as LocationObject[]) || []
+    );
+    evt.conferenceCredentialId = conferenceCredentialId.conferenceCredentialId;
     await handleConfirmation({
       user: userWithCredentials,
       evt,

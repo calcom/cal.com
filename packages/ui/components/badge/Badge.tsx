@@ -5,6 +5,7 @@ import { GoPrimitiveDot } from "react-icons/go";
 
 import classNames from "@calcom/lib/classNames";
 import type { SVGComponent } from "@calcom/types/SVGComponent";
+import type { LucideIcon } from "@calcom/ui/components/icon";
 
 export const badgeStyles = cva("font-medium inline-flex items-center justify-center rounded gap-x-1", {
   variants: {
@@ -36,7 +37,7 @@ type InferredBadgeStyles = VariantProps<typeof badgeStyles>;
 
 type IconOrDot =
   | {
-      startIcon?: SVGComponent;
+      startIcon?: SVGComponent | LucideIcon;
       withDot?: unknown;
     }
   | { startIcon?: unknown; withDot?: boolean };
