@@ -6,6 +6,7 @@ import { event } from "./procedures/event";
 import { session } from "./procedures/session";
 import { ZSamlTenantProductInputSchema } from "./samlTenantProduct.schema";
 import { ZStripeCheckoutSessionInputSchema } from "./stripeCheckoutSession.schema";
+import { ZSubmitRatingInputSchema } from "./submitRating.schema";
 
 const NAMESPACE = "publicViewer";
 
@@ -20,6 +21,10 @@ export const publicViewerRouter = router({
   }),
   countryCode: publicProcedure.query(async (opts) => {
     const handler = await importHandler(namespaced("countryCode"), () => import("./countryCode.handler"));
+    return handler(opts);
+  }),
+  submitRating: publicProcedure.input(ZSubmitRatingInputSchema).mutation(async (opts) => {
+    const handler = await importHandler(namespaced("submitRating"), () => import("./submitRating.handler"));
     return handler(opts);
   }),
   samlTenantProduct: publicProcedure.input(ZSamlTenantProductInputSchema).mutation(async (opts) => {
