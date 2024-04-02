@@ -3,7 +3,8 @@ import type { Page } from "@playwright/test";
 export const createEmbedsFixture = (page: Page) => {
   return {
     /**
-     * @deprecated Use gotoPlayground instead
+     * @deprecated
+     * Use 'gotoPlayground' instead to navigate which calls it automatically
      */
     async addEmbedListeners(calNamespace: string) {
       await page.addInitScript(
@@ -50,7 +51,9 @@ export const createEmbedsFixture = (page: Page) => {
               console.log("Using api from namespace-", { calNamespace, api });
             }
             if (!api) {
-              throw new Error(`namespace "${calNamespace}" not found`);
+              console.log(`namespace "${calNamespace}" not found yet - Trying again`);
+              setTimeout(tryAddingListener, 500);
+              return;
             }
             console.log("PlaywrightTest:", `Adding listener for __iframeReady on namespace:${calNamespace}`);
             api("on", {

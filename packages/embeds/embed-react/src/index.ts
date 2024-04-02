@@ -5,12 +5,24 @@ import EmbedSnippet from "@calcom/embed-snippet";
 
 import Cal from "./Cal";
 
-export const getCalApi = (options?: {
+export function getCalApi(options: {
   embedJsUrl?: string;
   namespace?: string;
-}): Promise<GlobalCal | GlobalCalWithoutNs> => {
-  options = options || {};
-  const { namespace, embedJsUrl } = options;
+}): Promise<GlobalCal | GlobalCalWithoutNs>;
+export function getCalApi(embedJsUrl: string): Promise<GlobalCal | GlobalCalWithoutNs>;
+
+export function getCalApi(
+  optionsOrEmbedJsUrl?:
+    | {
+        embedJsUrl?: string;
+        namespace?: string;
+      }
+    | string
+): Promise<GlobalCal | GlobalCalWithoutNs> {
+  const options =
+    typeof optionsOrEmbedJsUrl === "string" ? { embedJsUrl: optionsOrEmbedJsUrl } : optionsOrEmbedJsUrl ?? {};
+
+  const { namespace = "", embedJsUrl } = options;
   return new Promise(function tryReadingFromWindow(resolve) {
     const globalCal = EmbedSnippet(embedJsUrl);
     globalCal("init", namespace);
@@ -23,6 +35,6 @@ export const getCalApi = (options?: {
     }
     resolve(api);
   });
-};
+}
 
 export default Cal;
