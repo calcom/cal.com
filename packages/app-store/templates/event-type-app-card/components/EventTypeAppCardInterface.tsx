@@ -28,7 +28,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
       <div className="mt-2 text-sm">
         <div className="flex">
           <span className="ltr:mr-2 rtl:ml-2">
-            {isSunrise ? <Icon name="sunrise" /> : <Icon name="sunset" />}
+            <Icon name={isSunrise ? "sunrise" : "sunset"} />
           </span>
           I am an AppCard for Event with Title: {eventType.title}
         </div>{" "}
