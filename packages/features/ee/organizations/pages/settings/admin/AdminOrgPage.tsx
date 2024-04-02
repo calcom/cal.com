@@ -12,7 +12,6 @@ import {
   ConfirmationDialogContent,
   Dialog,
   DropdownActions,
-  Icon,
   Meta,
   showToast,
   Table,
@@ -146,7 +145,7 @@ function AdminOrgTable() {
                                   orgId: org.id,
                                 });
                               },
-                              icon: (props) => <Icon {...props} name="check" />,
+                              icon: "check" as const,
                             },
                           ]
                         : []),
@@ -163,7 +162,7 @@ function AdminOrgTable() {
                                   },
                                 });
                               },
-                              icon: (props) => <Icon {...props} name="check-check" />,
+                              icon: "check-check" as const,
                             },
                           ]
                         : []),
@@ -171,7 +170,7 @@ function AdminOrgTable() {
                         id: "edit",
                         label: t("edit"),
                         href: `/settings/admin/organizations/${org.id}/edit`,
-                        icon: (props) => <Icon {...props} name="edit" />,
+                        icon: "pencil" as const,
                       },
                       ...(!org.slug
                         ? [
@@ -181,7 +180,7 @@ function AdminOrgTable() {
                               onClick: () => {
                                 publishOrg(org);
                               },
-                              icon: (props) => <Icon {...props} name="book-open-check" />,
+                              icon: "book-open-check" as const,
                             },
                           ]
                         : []),
@@ -191,7 +190,7 @@ function AdminOrgTable() {
                         onClick: () => {
                           setOrgToDelete(org);
                         },
-                        icon: (props) => <Icon {...props} name="trash" />,
+                        icon: "trash" as const,
                       },
                     ]}
                   />

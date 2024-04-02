@@ -32,7 +32,6 @@ import {
   DialogTrigger,
   Editor,
   Form,
-  Icon,
   ImageUploader,
   Label,
   LinkIconButton,
@@ -182,12 +181,10 @@ const ProfileView = () => {
           </div>
           <div>
             <Link href={permalink} passHref={true} target="_blank">
-              <LinkIconButton Icon={(props) => <Icon {...props} name="external-link" />}>
-                {t("preview")}
-              </LinkIconButton>
+              <LinkIconButton Icon="external-link">{t("preview")}</LinkIconButton>
             </Link>
             <LinkIconButton
-              Icon={(props) => <Icon {...props} name="link" />}
+              Icon="link"
               onClick={() => {
                 navigator.clipboard.writeText(permalink);
                 showToast("Copied to clipboard", "success");
@@ -211,7 +208,7 @@ const ProfileView = () => {
               <Button
                 color="destructive"
                 className="border"
-                StartIcon={(props) => <Icon {...props} name="trash-2" />}
+                StartIcon="trash-2"
                 data-testid="disband-team-button">
                 {t("disband_team")}
               </Button>
@@ -231,10 +228,7 @@ const ProfileView = () => {
         <Dialog>
           <SectionBottomActions align="end">
             <DialogTrigger asChild>
-              <Button
-                color="destructive"
-                className="border"
-                StartIcon={(props) => <Icon {...props} name="log-out" />}>
+              <Button color="destructive" className="border" StartIcon="log-out">
                 {t("leave_team")}
               </Button>
             </DialogTrigger>

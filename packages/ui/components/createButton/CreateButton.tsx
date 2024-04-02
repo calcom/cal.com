@@ -13,7 +13,6 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@calcom/ui";
-import { Icon } from "@calcom/ui";
 
 export interface Option {
   platform?: boolean;
@@ -86,7 +85,7 @@ export function CreateButton(props: CreateBtnProps) {
               : null
           }
           data-testid="create-button"
-          StartIcon={(props) => <Icon {...props} name="plus" />}
+          StartIcon="plus"
           loading={isPending}
           variant={disableMobileButton ? "button" : "fab"}
           {...restProps}>
@@ -97,7 +96,7 @@ export function CreateButton(props: CreateBtnProps) {
           <DropdownMenuTrigger asChild>
             <Button
               variant={disableMobileButton ? "button" : "fab"}
-              StartIcon={(props) => <Icon {...props} name="plus" />}
+              StartIcon="plus"
               data-testid="create-button-dropdown"
               loading={isPending}
               {...restProps}>
@@ -113,7 +112,7 @@ export function CreateButton(props: CreateBtnProps) {
                 <DropdownItem
                   type="button"
                   data-testid={`option${option.teamId ? "-team" : ""}-${idx}`}
-                  StartIcon={() => <Avatar alt={option.label || ""} imageSrc={option.image} size="sm" />}
+                  CustomStartIcon={<Avatar alt={option.label || ""} imageSrc={option.image} size="sm" />}
                   onClick={() =>
                     !!CreateDialog
                       ? openModal(option)

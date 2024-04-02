@@ -127,7 +127,7 @@ const ViewRecordingsList = ({ roomName, hasTeamPlan }: { roomName: string; hasTe
                 </div>
                 {hasTeamPlan ? (
                   <Button
-                    StartIcon={(props) => <Icon {...props} name="download" />}
+                    StartIcon="download"
                     className="ml-4 lg:ml-0"
                     loading={isFetching && recordingId === recording.id}
                     onClick={() => handleDownloadClick(recording.id)}>

@@ -10,7 +10,6 @@ import { SeatsAvailabilityText } from "@calcom/features/bookings/components/Seat
 import { EventMetaBlock } from "@calcom/features/bookings/components/event-meta/Details";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Icon } from "@calcom/ui";
 
 import { fadeInUp } from "../config";
 import { useBookerStore } from "../store";
@@ -101,7 +100,7 @@ export const EventMeta = ({
           )}
           <div className="space-y-4 font-medium rtl:-mr-2">
             {rescheduleUid && bookingData && (
-              <EventMetaBlock icon={(props) => <Icon {...props} name="calendar" />}>
+              <EventMetaBlock icon="calendar">
                 {t("former_time")}
                 <br />
                 <span className="line-through" data-testid="former_time_p">
@@ -116,7 +115,7 @@ export const EventMeta = ({
               </EventMetaBlock>
             )}
             {selectedTimeslot && (
-              <EventMetaBlock icon={(props) => <Icon {...props} name="calendar" />}>
+              <EventMetaBlock icon="calendar">
                 <FromToTime
                   date={selectedTimeslot}
                   duration={selectedDuration || event.length}
@@ -131,7 +130,7 @@ export const EventMeta = ({
             <EventMetaBlock
               className="cursor-pointer [&_.current-timezone:before]:focus-within:opacity-100 [&_.current-timezone:before]:hover:opacity-100"
               contentClassName="relative max-w-[90%]"
-              icon={(props) => <Icon {...props} name="globe" />}>
+              icon="globe">
               {bookerState === "booking" ? (
                 <>{timezone}</>
               ) : (
@@ -156,7 +155,7 @@ export const EventMeta = ({
               )}
             </EventMetaBlock>
             {bookerState === "booking" && eventTotalSeats && bookingSeatAttendeesQty ? (
-              <EventMetaBlock icon={(props) => <Icon {...props} name="user" />} className={`${colorClass}`}>
+              <EventMetaBlock icon="user" className={`${colorClass}`}>
                 <div className="text-bookinghighlight flex items-start text-sm">
                   <p>
                     <SeatsAvailabilityText

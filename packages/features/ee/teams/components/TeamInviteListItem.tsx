@@ -95,7 +95,7 @@ export default function TeamInviteListItem(props: Props) {
                 variant="icon"
                 color="secondary"
                 onClick={declineInvite}
-                StartIcon={(props) => <Icon {...props} name="ban" />}
+                StartIcon="ban"
               />
               <Button
                 type="button"
@@ -103,7 +103,7 @@ export default function TeamInviteListItem(props: Props) {
                 variant="icon"
                 color="secondary"
                 onClick={acceptInvite}
-                StartIcon={(props) => <Icon {...props} name="check" />}
+                StartIcon="check"
               />
             </div>
             <div className="block sm:hidden">
@@ -113,14 +113,14 @@ export default function TeamInviteListItem(props: Props) {
                     type="button"
                     color="minimal"
                     variant="icon"
-                    StartIcon={(props) => <Icon {...props} name="more-horizontal" />}
+                    StartIcon="more-horizontal"
                   />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
                   <DropdownMenuItem>
                     <DropdownItem
                       type="button"
-                      StartIcon={(props) => <Icon {...props} name="check" />}
+                      StartIcon="check"
                       onClick={acceptInvite}>
                       {t("accept")}
                     </DropdownItem>
@@ -129,7 +129,7 @@ export default function TeamInviteListItem(props: Props) {
                     <DropdownItem
                       color="destructive"
                       type="button"
-                      StartIcon={(props) => <Icon {...props} name="x" />}
+                      StartIcon="x"
                       onClick={declineInvite}>
                       {t("reject")}
                     </DropdownItem>

@@ -109,7 +109,7 @@ export function Header({
             className="group rtl:ml-1 rtl:rotate-180"
             variant="icon"
             color="minimal"
-            StartIcon={(props) => <Icon {...props} name="chevron-left" />}
+            StartIcon="chevron-left"
             aria-label="Previous Day"
             onClick={() => addToSelectedDate(layout === BookerLayouts.COLUMN_VIEW ? -nextSlots : -extraDays)}
           />
@@ -117,7 +117,7 @@ export function Header({
             className="group rtl:mr-1 rtl:rotate-180"
             variant="icon"
             color="minimal"
-            StartIcon={(props) => <Icon {...props} name="chevron-right" />}
+            StartIcon="chevron-right"
             aria-label="Next Day"
             onClick={() => addToSelectedDate(layout === BookerLayouts.COLUMN_VIEW ? nextSlots : extraDays)}
           />

@@ -11,7 +11,6 @@ import {
   Alert,
   Button,
   EmptyScreen,
-  Icon,
   Label,
   List,
   ShellSubHeading,
@@ -267,7 +266,7 @@ export function CalendarListContainer(props: { heading?: boolean; fromOnboarding
               </>
             ) : (
               <EmptyScreen
-                Icon={(props) => <Icon {...props} name="calendar" />}
+                Icon="calendar"
                 headline={t("no_category_apps", {
                   category: t("calendar").toLowerCase(),
                 })}

@@ -6,7 +6,6 @@ import type { ReactNode } from "react";
 import React from "react";
 
 import classNames from "@calcom/lib/classNames";
-import { Icon } from "@calcom/ui";
 
 import { Button } from "../button";
 
@@ -204,11 +203,7 @@ export function Card({
       {/* TODO: this should be CardActions https://mui.com/material-ui/api/card-actions/ */}
       <div>
         {variant === "basic" && (
-          <Button
-            color="secondary"
-            href={actionButton?.href}
-            className="mt-10"
-            EndIcon={(props) => <Icon {...props} name="arrow-right" />}>
+          <Button color="secondary" href={actionButton?.href} className="mt-10" EndIcon="arrow-right">
             {actionButton?.child}
           </Button>
         )}

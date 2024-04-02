@@ -15,7 +15,6 @@ import {
   DropdownMenuSeparator,
   showToast,
 } from "@calcom/ui";
-import { Icon } from "@calcom/ui";
 
 import type { Action } from "./UserListTable";
 import type { User } from "./UserListTable";
@@ -63,7 +62,7 @@ export function TableActions({
             color="secondary"
             className={classNames(!permissionsForUser.canEdit ? "rounded-r-md" : "")}
             variant="icon"
-            StartIcon={(props) => <Icon {...props} name="external-link" />}
+            StartIcon="external-link"
           />
         </Tooltip>
         {(permissionsForUser.canEdit || permissionsForUser.canRemove) && (
@@ -73,7 +72,7 @@ export function TableActions({
                 className="radix-state-open:rounded-r-md"
                 color="secondary"
                 variant="icon"
-                StartIcon={(props) => <Icon {...props} name="more-horizontal" />}
+                StartIcon="more-horizontal"
               />
             </DropdownMenuTrigger>
             <DropdownMenuContent>
@@ -90,7 +89,7 @@ export function TableActions({
                         },
                       })
                     }
-                    StartIcon={(props) => <Icon {...props} name="pencil" />}>
+                    StartIcon="pencil">
                     {t("edit")}
                   </DropdownItem>
                 </DropdownMenuItem>
@@ -109,7 +108,7 @@ export function TableActions({
                           },
                         })
                       }
-                      StartIcon={(props) => <Icon {...props} name="lock" />}>
+                      StartIcon="lock">
                       {t("impersonate")}
                     </DropdownItem>
                   </DropdownMenuItem>
@@ -130,7 +129,7 @@ export function TableActions({
                       })
                     }
                     color="destructive"
-                    StartIcon={(props) => <Icon {...props} name="user-x" />}>
+                    StartIcon="user-x">
                     {t("remove")}
                   </DropdownItem>
                 </DropdownMenuItem>
@@ -147,7 +146,7 @@ export function TableActions({
                         isOrg: true,
                       });
                     }}
-                    StartIcon={(props) => <Icon {...props} name="send" />}>
+                    StartIcon="send">
                     {t("resend_invitation")}
                   </DropdownItem>
                 </DropdownMenuItem>
@@ -159,16 +158,11 @@ export function TableActions({
       <div className="flex md:hidden">
         <Dropdown>
           <DropdownMenuTrigger asChild>
-            <Button
-              type="button"
-              variant="icon"
-              color="minimal"
-              StartIcon={(props) => <Icon {...props} name="more-horizontal" />}
-            />
+            <Button type="button" variant="icon" color="minimal" StartIcon="more-horizontal" />
           </DropdownMenuTrigger>
           <DropdownMenuContent>
             <DropdownMenuItem className="outline-none">
-              <DropdownItem type="button" StartIcon={(props) => <Icon {...props} name="external-link" />}>
+              <DropdownItem type="button" StartIcon="external-link">
                 {t("view_public_page")}
               </DropdownItem>
             </DropdownMenuItem>
@@ -186,7 +180,7 @@ export function TableActions({
                         },
                       })
                     }
-                    StartIcon={(props) => <Icon {...props} name="pencil" />}>
+                    StartIcon="pencil">
                     {t("edit")}
                   </DropdownItem>
                 </DropdownMenuItem>
@@ -206,7 +200,7 @@ export function TableActions({
                       },
                     })
                   }
-                  StartIcon={(props) => <Icon {...props} name="user-x" />}>
+                  StartIcon="user-x">
                   {t("remove")}
                 </DropdownItem>
               </DropdownMenuItem>

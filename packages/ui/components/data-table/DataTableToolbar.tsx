@@ -5,7 +5,6 @@ import type { Table } from "@tanstack/react-table";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { LucideIcon } from "@calcom/ui/components/icon";
 
-import { Icon } from "../..";
 import { Button } from "../button";
 import { Input } from "../form";
 import { DataTableFilter } from "./DataTableFilter";
@@ -52,7 +51,7 @@ export function DataTableToolbar<TData>({
       {isFiltered && (
         <Button
           color="minimal"
-          EndIcon={(props) => <Icon {...props} name="x" />}
+          EndIcon="x"
           onClick={() => table.resetColumnFilters()}
           className="h-8 px-2 lg:px-3">
           {t("clear")}

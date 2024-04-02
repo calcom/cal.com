@@ -1,6 +1,5 @@
-import type { ComponentProps } from "react";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { IconName } from "@calcom/ui";
 import {
   Dropdown,
   DropdownItem,
@@ -16,7 +15,7 @@ import { useFilterContext } from "../context/provider";
 type Option = {
   value: "event-type" | "user";
   label: string;
-  StartIcon: ComponentProps<typeof Icon>["name"];
+  StartIcon: IconName;
 };
 
 export const FilterType = () => {
@@ -61,7 +60,7 @@ export const FilterType = () => {
           <DropdownMenuItem key={option.label} className="w-44">
             <DropdownItem
               type="button"
-              StartIcon={(props) => <Icon {...props} name={option.StartIcon} />}
+              StartIcon={option.StartIcon}
               onClick={() => {
                 // This can multiple values, but for now we only want to have one filter active at a time
                 setConfigFilters({

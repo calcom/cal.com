@@ -4,8 +4,10 @@ import type { LucideProps } from "lucide-react";
 import dynamicIconImports from "lucide-react/dynamicIconImports";
 import dynamic from "next/dynamic";
 
+export type IconName = keyof typeof dynamicIconImports;
+
 interface IconProps extends Omit<LucideProps, "ref"> {
-  name: keyof typeof dynamicIconImports;
+  name: IconName;
 }
 
 const LazyIcon = ({ name, ...props }: IconProps) => {

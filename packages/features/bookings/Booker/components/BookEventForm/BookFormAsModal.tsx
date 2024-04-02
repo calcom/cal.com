@@ -24,14 +24,14 @@ const BookEventFormWrapper = ({ children }: { onCancel: () => void; children: Re
       <div className="my-4 flex space-x-2 rounded-md leading-none">
         <Badge
           variant="grayWithoutHover"
-          startIcon={(props) => <Icon {...props} name="calendar" />}
+          startIcon="calendar"
           size="lg">
           <span>
             {parsedSelectedTimeslot.format("LL")} {parsedSelectedTimeslot.tz(timezone).format(timeFormat)}
           </span>
         </Badge>
         {(selectedDuration || data?.length) && (
-          <Badge variant="grayWithoutHover" startIcon={(props) => <Icon {...props} name="clock" />} size="lg">
+          <Badge variant="grayWithoutHover" startIcon="clock" size="lg">
             <span>{selectedDuration || data?.length}</span>
           </Badge>
         )}

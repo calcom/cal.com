@@ -442,7 +442,7 @@ export const EventSetupTab = (
             <li>
               <Button
                 data-testid="add-location"
-                StartIcon={(props) => <Icon {...props} name="plus" />}
+                StartIcon="plus"
                 color="minimal"
                 onClick={() => setShowEmptyLocationSelect(true)}>
                 {t("add_location")}

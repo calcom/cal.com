@@ -84,7 +84,7 @@ export function ScheduleListItem({
               type="button"
               variant="icon"
               color="secondary"
-              StartIcon={(props) => <Icon {...props} name="more-horizontal" />}
+              StartIcon="more-horizontal"
             />
           </DropdownMenuTrigger>
           {!isPending && data && (
@@ -93,7 +93,7 @@ export function ScheduleListItem({
                 {!schedule.isDefault && (
                   <DropdownItem
                     type="button"
-                    StartIcon={(props) => <Icon {...props} name="star" />}
+                    StartIcon="star"
                     onClick={() => {
                       updateDefault({
                         scheduleId: schedule.id,
@@ -108,7 +108,7 @@ export function ScheduleListItem({
                 <DropdownItem
                   type="button"
                   data-testid={`schedule-duplicate${schedule.id}`}
-                  StartIcon={(props) => <Icon {...props} name="copy" />}
+                  StartIcon="copy"
                   onClick={() => {
                     duplicateFunction({
                       scheduleId: schedule.id,
@@ -121,7 +121,7 @@ export function ScheduleListItem({
                 <DropdownItem
                   type="button"
                   color="destructive"
-                  StartIcon={(props) => <Icon {...props} name="trash" />}
+                  StartIcon="trash"
                   data-testid="delete-schedule"
                   onClick={() => {
                     if (!isDeletable) {

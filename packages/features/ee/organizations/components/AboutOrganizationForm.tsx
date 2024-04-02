@@ -111,7 +111,7 @@ export const AboutOrganizationForm = () => {
               aboutOrganizationFormMethods.formState.isSubmitting || updateOrganizationMutation.isPending
             }
             color="primary"
-            EndIcon={(props) => <Icon {...props} name="arrow-right" />}
+            EndIcon="arrow-right"
             type="submit"
             className="w-full justify-center">
             {t("continue")}

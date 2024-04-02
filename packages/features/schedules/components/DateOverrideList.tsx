@@ -85,7 +85,7 @@ const DateOverrideList = ({
                     className="text-default"
                     color="minimal"
                     variant="icon"
-                    StartIcon={(props) => <Icon {...props} name="pencil" />}
+                    StartIcon="pencil"
                   />
                 </DialogTrigger>
               }
@@ -104,7 +104,7 @@ const DateOverrideList = ({
                 })}
                 color="destructive"
                 variant="icon"
-                StartIcon={(props) => <Icon {...props} name="trash-2" />}
+                StartIcon="trash-2"
                 onClick={() => {
                   replace([...fields.filter((currentItem) => currentItem.id !== item.id)]);
                 }}

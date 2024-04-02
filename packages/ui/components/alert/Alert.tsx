@@ -2,9 +2,7 @@ import classNames from "classnames";
 import type { ReactNode } from "react";
 import { forwardRef } from "react";
 
-import type { SVGComponent } from "@calcom/types/SVGComponent";
-
-import { Icon } from "../..";
+import { Icon, type IconName } from "../..";
 
 export interface AlertProps {
   title?: ReactNode;
@@ -16,7 +14,7 @@ export interface AlertProps {
   iconClassName?: string;
   // @TODO: Success and info shouldn't exist as per design?
   severity: "success" | "warning" | "error" | "info" | "neutral" | "green";
-  CustomIcon?: SVGComponent;
+  CustomIcon?: IconName;
   customIconColor?: string;
 }
 export const Alert = forwardRef<HTMLDivElement, AlertProps>((props, ref) => {
@@ -39,7 +37,8 @@ export const Alert = forwardRef<HTMLDivElement, AlertProps>((props, ref) => {
       <div className="relative flex md:flex-row">
         {CustomIcon ? (
           <div className="flex-shrink-0">
-            <CustomIcon
+            <Icon
+              name={CustomIcon}
               data-testid="custom-icon"
               aria-hidden="true"
               className={classNames(`h-5 w-5`, iconClassName, customIconColor ?? "text-default")}

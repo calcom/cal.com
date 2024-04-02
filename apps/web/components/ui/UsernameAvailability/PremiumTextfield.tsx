@@ -264,7 +264,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
 
       <Dialog open={openDialogSaveUsername}>
         <DialogContent
-          Icon={(props) => <Icon {...props} name="pencil" />}
+          Icon="pencil"
           title={t("confirm_username_change_dialog_title")}
           description={
             <>

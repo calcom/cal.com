@@ -73,7 +73,7 @@ export default function MemberListItem(props: Props) {
                   color="secondary"
                   className={classNames("rounded-r-md")}
                   variant="icon"
-                  StartIcon={(props) => <Icon {...props} name="external-link" />}
+                  StartIcon="external-link"
                   disabled={!member.accepted}
                 />
               </Tooltip>
@@ -86,7 +86,7 @@ export default function MemberListItem(props: Props) {
                     type="button"
                     variant="icon"
                     color="minimal"
-                    StartIcon={(props) => <Icon {...props} name="more-horizontal" />}
+                    StartIcon="more-horizontal"
                   />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
@@ -96,7 +96,7 @@ export default function MemberListItem(props: Props) {
                       href={`/${user.username}`}
                       target="_blank"
                       type="button"
-                      StartIcon={(props) => <Icon {...props} name="external-link" />}>
+                      StartIcon="external-link">
                       {t("view_public_page")}
                     </DropdownItem>
                   </DropdownMenuItem>

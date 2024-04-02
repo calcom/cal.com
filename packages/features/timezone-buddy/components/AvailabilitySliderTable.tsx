@@ -137,13 +137,13 @@ export function AvailabilitySliderTable(props: { userTimeFormat: number | null }
                 <Button
                   color="minimal"
                   variant="icon"
-                  StartIcon={(props) => <Icon {...props} name="chevron-left" />}
+                  StartIcon="chevron-left"
                   onClick={() => setBrowsingDate(browsingDate.subtract(1, "day"))}
                 />
                 <Button
                   onClick={() => setBrowsingDate(browsingDate.add(1, "day"))}
                   color="minimal"
-                  StartIcon={(props) => <Icon {...props} name="chevron-right" />}
+                  StartIcon="chevron-right"
                   variant="icon"
                 />
               </ButtonGroup>

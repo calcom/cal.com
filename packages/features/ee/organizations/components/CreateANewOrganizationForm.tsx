@@ -204,7 +204,7 @@ export const CreateANewOrganizationForm = ({ slug }: { slug?: string }) => {
               newOrganizationFormMethods.formState.isSubmitting || createOrganizationMutation.isPending
             }
             color="primary"
-            EndIcon={(props) => <Icon {...props} name="arrow-right" />}
+            EndIcon="arrow-right"
             type="submit"
             form="createOrg"
             className="w-full justify-center">

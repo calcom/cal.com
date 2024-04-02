@@ -1,9 +1,7 @@
 import type { FC } from "react";
 import React from "react";
 
-import type { SVGComponent } from "@calcom/types/SVGComponent";
-
-import { Icon } from "../..";
+import type { IconName } from "../..";
 import type { ButtonBaseProps } from "../button";
 import { Button } from "../button";
 import {
@@ -17,7 +15,7 @@ import {
 
 export type ActionType = {
   id: string;
-  icon?: SVGComponent;
+  icon?: IconName;
   iconClassName?: string;
   label: string;
   disabled?: boolean;
@@ -48,12 +46,7 @@ export const DropdownActions = ({
     <Dropdown>
       {!actionTrigger ? (
         <DropdownMenuTrigger asChild>
-          <Button
-            type="button"
-            color="secondary"
-            variant="icon"
-            StartIcon={(props) => <Icon {...props} name="more-horizontal" />}
-          />
+          <Button type="button" color="secondary" variant="icon" StartIcon="more-horizontal" />
         </DropdownMenuTrigger>
       ) : (
         <DropdownMenuTrigger asChild>{actionTrigger}</DropdownMenuTrigger>
@@ -93,7 +86,7 @@ export const TableActions: FC<Props> = ({ actions }) => {
               href={action.href}
               onClick={action.onClick || defaultAction}
               StartIcon={action.icon}
-              {...(action?.actions ? { EndIcon: () => <Icon name="chevron-down" /> } : null)}
+              {...(action?.actions ? { EndIcon: "chevron-down" } : null)}
               disabled={action.disabled}
               data-bookingid={action.bookingId}
               color={action.color || "secondary"}>

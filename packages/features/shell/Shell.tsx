@@ -58,7 +58,6 @@ import type { User } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
 import useEmailVerifyCheck from "@calcom/trpc/react/hooks/useEmailVerifyCheck";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
-import type { SVGComponent } from "@calcom/types/SVGComponent";
 import {
   Avatar,
   Button,
@@ -79,6 +78,7 @@ import {
   SkeletonText,
   Tooltip,
   useCalcomTheme,
+  type IconName,
 } from "@calcom/ui";
 import { Discord } from "@calcom/ui/components/icon/Discord";
 
@@ -482,9 +482,9 @@ function UserDropdown({ small }: UserDropdownProps) {
                 <DropdownMenuItem>
                   <DropdownItem
                     type="button"
-                    StartIcon={() => (
+                    CustomStartIcon={
                       <Icon name="user" className={classNames("text-default")} aria-hidden="true" />
-                    )}
+                    }
                     href="/settings/my-account/profile">
                     {t("my_profile")}
                   </DropdownItem>
@@ -492,9 +492,9 @@ function UserDropdown({ small }: UserDropdownProps) {
                 <DropdownMenuItem>
                   <DropdownItem
                     type="button"
-                    StartIcon={() => (
+                    CustomStartIcon={
                       <Icon name="settings" className={classNames("text-default")} aria-hidden="true" />
-                    )}
+                    }
                     href="/settings/my-account/general">
                     {t("my_settings")}
                   </DropdownItem>
@@ -502,9 +502,9 @@ function UserDropdown({ small }: UserDropdownProps) {
                 <DropdownMenuItem>
                   <DropdownItem
                     type="button"
-                    StartIcon={() => (
+                    CustomStartIcon={
                       <Icon name="moon" className={classNames("text-default")} aria-hidden="true" />
-                    )}
+                    }
                     href="/settings/my-account/out-of-office">
                     {t("out_of_office")}
                   </DropdownItem>
@@ -512,7 +512,7 @@ function UserDropdown({ small }: UserDropdownProps) {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem>
                   <DropdownItem
-                    StartIcon={() => <Discord />}
+                    CustomStartIcon={<Discord />}
                     target="_blank"
                     rel="noreferrer"
                     href={JOIN_DISCORD}>
@@ -520,27 +520,21 @@ function UserDropdown({ small }: UserDropdownProps) {
                   </DropdownItem>
                 </DropdownMenuItem>
                 <DropdownMenuItem>
-                  <DropdownItem
-                    StartIcon={(props) => <Icon {...props} name="map" />}
-                    target="_blank"
-                    href={ROADMAP}>
+                  <DropdownItem StartIcon="map" target="_blank" href={ROADMAP}>
                     {t("visit_roadmap")}
                   </DropdownItem>
                 </DropdownMenuItem>
                 <DropdownMenuItem>
                   <DropdownItem
                     type="button"
-                    StartIcon={(props) => <Icon {...props} name="help-circle" aria-hidden="true" />}
+                    StartIcon="help-circle"
+                    aria-hidden="true"
                     onClick={() => setHelpOpen(true)}>
                     {t("help")}
                   </DropdownItem>
                 </DropdownMenuItem>
                 <DropdownMenuItem className="todesktop:hidden hidden lg:flex">
-                  <DropdownItem
-                    StartIcon={(props) => <Icon {...props} name="download" />}
-                    target="_blank"
-                    rel="noreferrer"
-                    href={DESKTOP_APP_LINK}>
+                  <DropdownItem StartIcon="download" target="_blank" rel="noreferrer" href={DESKTOP_APP_LINK}>
                     {t("download_desktop_app")}
                   </DropdownItem>
                 </DropdownMenuItem>
@@ -550,7 +544,8 @@ function UserDropdown({ small }: UserDropdownProps) {
                 <DropdownMenuItem>
                   <DropdownItem
                     type="button"
-                    StartIcon={(props) => <Icon {...props} name="log-out" aria-hidden="true" />}
+                    StartIcon="log-out"
+                    aria-hidden="true"
                     onClick={() => signOut({ callbackUrl: "/auth/logout" })}>
                     {t("sign_out")}
                   </DropdownItem>
@@ -570,7 +565,7 @@ export type NavigationItemType = {
   onClick?: React.MouseEventHandler<HTMLAnchorElement | HTMLButtonElement>;
   target?: HTMLAnchorElement["target"];
   badge?: React.ReactNode;
-  icon?: SVGComponent;
+  icon?: IconName;
   child?: NavigationItemType[];
   pro?: true;
   onlyMobile?: boolean;
@@ -593,31 +588,31 @@ const navigation: NavigationItemType[] = [
   {
     name: "event_types_page_title",
     href: "/event-types",
-    icon: (props) => <Icon {...props} name="link" />,
+    icon: "link",
   },
   {
     name: "bookings",
     href: "/bookings/upcoming",
-    icon: (props) => <Icon {...props} name="calendar" />,
+    icon: "calendar",
     badge: <UnconfirmedBookingBadge />,
     isCurrent: ({ pathname }) => pathname?.startsWith("/bookings") ?? false,
   },
   {
     name: "availability",
     href: "/availability",
-    icon: (props) => <Icon {...props} name="clock" />,
+    icon: "clock",
   },
   {
     name: "teams",
     href: "/teams",
-    icon: (props) => <Icon {...props} name="users" />,
+    icon: "users",
     onlyDesktop: true,
     badge: <TeamInviteBadge />,
   },
   {
     name: "apps",
     href: "/apps",
-    icon: (props) => <Icon {...props} name="grid-3x3" />,
+    icon: "grid-3x3",
     isCurrent: ({ pathname: path, item }) => {
       // During Server rendering path is /v2/apps but on client it becomes /apps(weird..)
       return (path?.startsWith(item.href) ?? false) && !(path?.includes("routing-forms/") ?? false);
@@ -647,23 +642,23 @@ const navigation: NavigationItemType[] = [
   {
     name: MORE_SEPARATOR_NAME,
     href: "/more",
-    icon: (props) => <Icon {...props} name="more-horizontal" />,
+    icon: "more-horizontal",
   },
   {
     name: "Routing Forms",
     href: "/apps/routing-forms/forms",
-    icon: (props) => <Icon {...props} name="file-text" />,
+    icon: "file-text",
     isCurrent: ({ pathname }) => pathname?.startsWith("/apps/routing-forms/") ?? false,
   },
   {
     name: "workflows",
     href: "/workflows",
-    icon: (props) => <Icon {...props} name="zap" />,
+    icon: "zap",
   },
   {
     name: "insights",
     href: "/insights",
-    icon: (props) => <Icon {...props} name="bar-chart" />,
+    icon: "bar-chart",
   },
 ];
 
@@ -745,7 +740,8 @@ const NavigationItem: React.FC<{
           )}
           aria-current={current ? "page" : undefined}>
           {item.icon && (
-            <item.icon
+            <Icon
+              name={item.icon}
               className="todesktop:!text-blue-500 mr-2 h-4 w-4 flex-shrink-0 rtl:ml-2 md:ltr:mx-auto lg:ltr:mr-2 [&[aria-current='page']]:text-inherit"
               aria-hidden="true"
               aria-current={current ? "page" : undefined}
@@ -816,7 +812,8 @@ const MobileNavigationItem: React.FC<{
       aria-current={current ? "page" : undefined}>
       {item.badge && <div className="absolute right-1 top-1">{item.badge}</div>}
       {item.icon && (
-        <item.icon
+        <Icon
+          name={item.icon}
           className="[&[aria-current='page']]:text-emphasis  mx-auto mb-1 block h-5 w-5 flex-shrink-0 text-center text-inherit"
           aria-hidden="true"
           aria-current={current ? "page" : undefined}
@@ -841,7 +838,9 @@ const MobileNavigationMoreItem: React.FC<{
     <li className="border-subtle border-b last:border-b-0" key={item.name}>
       <Link href={item.href} className="hover:bg-subtle flex items-center justify-between p-5 transition">
         <span className="text-default flex items-center font-semibold ">
-          {item.icon && <item.icon className="h-5 w-5 flex-shrink-0 ltr:mr-3 rtl:ml-3" aria-hidden="true" />}
+          {item.icon && (
+            <Icon name={item.icon} className="h-5 w-5 flex-shrink-0 ltr:mr-3 rtl:ml-3" aria-hidden="true" />
+          )}
           {isLocaleReady ? t(item.name) : <SkeletonText />}
         </span>
         <Icon name="arrow-right" className="text-subtle h-5 w-5" />
@@ -883,7 +882,7 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
     {
       name: "view_public_page",
       href: publicPageUrl,
-      icon: (props) => <Icon {...props} name="external-link" />,
+      icon: "external-link",
       target: "__blank",
     },
     {
@@ -894,12 +893,12 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
         navigator.clipboard.writeText(publicPageUrl);
         showToast(t("link_copied"), "success");
       },
-      icon: (props) => <Icon {...props} name="copy" />,
+      icon: "copy",
     },
     {
       name: "settings",
       href: user?.org ? `/settings/organizations/profile` : "/settings/my-account/profile",
-      icon: (props) => <Icon {...props} name="settings" />,
+      icon: "settings",
     },
   ];
   return (
@@ -974,7 +973,7 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
 
         <div>
           <Tips />
-          {bottomNavItems.map(({ icon: Icon, ...item }, index) => (
+          {bottomNavItems.map((item, index) => (
             <Tooltip side="right" content={t(item.name)} className="lg:hidden" key={item.name}>
               <ButtonOrLink
                 id={item.name}
@@ -989,8 +988,9 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
                   index === 0 && "mt-3"
                 )}
                 onClick={item.onClick}>
-                {!!Icon && (
+                {!!item.icon && (
                   <Icon
+                    name={item.icon}
                     className={classNames(
                       "h-4 w-4 flex-shrink-0 [&[aria-current='page']]:text-inherit",
                       "me-3 md:mx-auto lg:ltr:mr-2 lg:rtl:ml-2"
@@ -1036,7 +1036,7 @@ export function ShellMain(props: LayoutProps) {
               onClick={() =>
                 typeof props.backPath === "string" ? router.push(props.backPath as string) : router.back()
               }
-              StartIcon={(props) => <Icon {...props} name="arrow-left" />}
+              StartIcon="arrow-left"
               aria-label="Go Back"
               className="rounded-md ltr:mr-2 rtl:ml-2"
             />

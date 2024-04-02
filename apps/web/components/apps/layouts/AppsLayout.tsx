@@ -5,7 +5,7 @@ import React from "react";
 
 import { ShellMain } from "@calcom/features/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { EmptyScreen, Icon } from "@calcom/ui";
+import { EmptyScreen } from "@calcom/ui";
 
 type AppsLayoutProps = {
   children: React.ReactNode;
@@ -26,7 +26,7 @@ export default function AppsLayout({ children, actions, emptyStore, ...rest }: A
         <main className="w-full">
           {emptyStore ? (
             <EmptyScreen
-              Icon={(props) => <Icon {...props} name="alert-circle" />}
+              Icon="alert-circle"
               headline={isAdmin ? t("no_apps") : t("no_apps_configured")}
               description={isAdmin ? t("enable_in_settings") : t("please_contact_admin")}
               buttonText={isAdmin ? t("apps_settings") : ""}

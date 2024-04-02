@@ -213,25 +213,25 @@ function UsersTableBare() {
                           id: "edit",
                           label: "Edit",
                           href: `/settings/admin/users/${user.id}/edit`,
-                          icon: (props) => <Icon {...props} name="pencil" />,
+                          icon: "pencil",
                         },
                         {
                           id: "reset-password",
                           label: "Reset Password",
                           onClick: () => sendPasswordResetEmail.mutate({ userId: user.id }),
-                          icon: (props) => <Icon {...props} name="lock" />,
+                          icon: "lock",
                         },
                         {
                           id: "impersonate-user",
                           label: "Impersonate User",
                           onClick: () => handleImpersonateUser(user?.username),
-                          icon: (props) => <Icon {...props} name="user" />,
+                          icon: "user",
                         },
                         {
                           id: "lock-user",
                           label: user.locked ? "Unlock User Account" : "Lock User Account",
                           onClick: () => lockUserAccount.mutate({ userId: user.id, locked: !user.locked }),
-                          icon: (props) => <Icon {...props} name="lock" />,
+                          icon: "lock",
                         },
                         {
                           id: "impersonation",
@@ -240,21 +240,21 @@ function UsersTableBare() {
                             setSelectedUser(user.username);
                             setShowImpersonateModal(true);
                           },
-                          icon: (props) => <Icon {...props} name="venetian-mask" />,
+                          icon: "venetian-mask",
                         },
                         {
                           id: "remove-2fa",
                           label: "Remove 2FA",
                           color: "destructive",
                           onClick: () => removeTwoFactor.mutate({ userId: user.id }),
-                          icon: (props) => <Icon {...props} name="shield" />,
+                          icon: "shield",
                         },
                         {
                           id: "delete",
                           label: "Delete",
                           color: "destructive",
                           onClick: () => setUserToDelete(user.id),
-                          icon: (props) => <Icon {...props} name="trash" />,
+                          icon: "trash",
                         },
                       ]}
                     />

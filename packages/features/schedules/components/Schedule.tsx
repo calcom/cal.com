@@ -150,7 +150,7 @@ const CopyButton = ({
           tooltip={labels?.copyTime ?? t("copy_times_to_tooltip")}
           color="minimal"
           variant="icon"
-          StartIcon={(props) => <Icon {...props} name="copy" />}
+          StartIcon="copy"
         />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
@@ -294,7 +294,7 @@ export const DayRanges = <TFieldValues extends FieldValues>({
                 type="button"
                 color="minimal"
                 variant="icon"
-                StartIcon={(props) => <Icon {...props} name="plus" />}
+                StartIcon="plus"
                 onClick={() => {
                   // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   const slotRange: any = getDateSlotRange(
@@ -342,7 +342,7 @@ const RemoveTimeButton = ({
       type="button"
       variant="icon"
       color="destructive"
-      StartIcon={(props) => <Icon {...props} name="trash" />}
+      StartIcon="trash"
       onClick={() => remove(index)}
       className={className}
       tooltip={labels?.deleteTime ?? t("delete")}

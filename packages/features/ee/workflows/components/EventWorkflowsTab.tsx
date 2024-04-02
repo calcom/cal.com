@@ -310,7 +310,7 @@ function EventWorkflowsTab(props: Props) {
           ) : (
             <div className="pt-2 before:border-0">
               <EmptyScreen
-                Icon={(props) => <Icon {...props} name="zap" />}
+                Icon="zap"
                 headline={t("workflows")}
                 description={t("no_workflows_description")}
                 buttonRaw={

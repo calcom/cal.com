@@ -2,7 +2,7 @@ import { classNames } from "@calcom/lib";
 import useApp from "@calcom/lib/hooks/useApp";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Button, Icon, showToast } from "@calcom/ui";
+import { Button, showToast } from "@calcom/ui";
 
 import useAddAppMutation from "../_utils/useAddAppMutation";
 import { InstallAppButton } from "../components";
@@ -73,7 +73,7 @@ export default function OmniInstallAppButton({
             loading={mutation.isPending}
             color="secondary"
             className="[@media(max-width:260px)]:w-full [@media(max-width:260px)]:justify-center"
-            StartIcon={(props) => <Icon {...props} name="plus" />}
+            StartIcon="plus"
             {...props}>
             {t("add")}
           </Button>

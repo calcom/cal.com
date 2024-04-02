@@ -14,7 +14,6 @@ import {
   Button,
   InputError,
 } from "@calcom/ui";
-import { Icon } from "@calcom/ui";
 
 type CustomEmailTextFieldProps = {
   formMethods: UseFormReturn<FormValues>;
@@ -71,7 +70,7 @@ const CustomEmailTextField = ({
           <Dropdown>
             <DropdownMenuTrigger asChild>
               <Button
-                StartIcon={(props) => <Icon {...props} name="more-horizontal" />}
+                StartIcon="more-horizontal"
                 variant="icon"
                 size="sm"
                 color="secondary"
@@ -82,7 +81,7 @@ const CustomEmailTextField = ({
             <DropdownMenuContent>
               <DropdownMenuItem>
                 <DropdownItem
-                  StartIcon={(props) => <Icon {...props} name="flag" />}
+                  StartIcon="flag"
                   color="secondary"
                   className="disabled:opacity-40"
                   onClick={handleChangePrimary}
@@ -94,7 +93,7 @@ const CustomEmailTextField = ({
               {!emailVerified && (
                 <DropdownMenuItem>
                   <DropdownItem
-                    StartIcon={(props) => <Icon {...props} name="send" />}
+                    StartIcon="send"
                     color="secondary"
                     className="disabled:opacity-40"
                     onClick={handleVerifyEmail}
@@ -106,7 +105,7 @@ const CustomEmailTextField = ({
               )}
               <DropdownMenuItem>
                 <DropdownItem
-                  StartIcon={(props) => <Icon {...props} name="trash" />}
+                  StartIcon="trash"
                   color="destructive"
                   className="disabled:opacity-40"
                   onClick={handleItemDelete}

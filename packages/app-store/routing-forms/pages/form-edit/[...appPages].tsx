@@ -310,7 +310,7 @@ function Field({
                   data-testid="add-attribute"
                   className="border-none"
                   type="button"
-                  StartIcon={(props) => <Icon {...props} name="plus" />}
+                  StartIcon="plus"
                   color="secondary"
                   onClick={handleAddOptions}>
                   Add an option
@@ -424,7 +424,7 @@ const FormEdit = ({
             <Button
               data-testid="add-field"
               type="button"
-              StartIcon={(props) => <Icon {...props} name="plus" />}
+              StartIcon="plus"
               color="secondary"
               onClick={addField}>
               Add field
@@ -436,7 +436,7 @@ const FormEdit = ({
   ) : (
     <div className="bg-default w-full">
       <EmptyScreen
-        Icon={(props) => <Icon {...props} name="file-text" />}
+        Icon="file-text"
         headline="Create your first field"
         description="Fields are the form fields that the booker would see."
         buttonRaw={

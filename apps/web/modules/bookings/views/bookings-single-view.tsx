@@ -785,7 +785,7 @@ export default function Success(props: PageProps) {
                       </span>
                     </div>
                   }
-                  CustomIcon={(props) => <Icon {...props} name="alert-circle" />}
+                  CustomIcon="alert-circle"
                   customIconColor="text-attention dark:text-orange-200"
                 />
               )}

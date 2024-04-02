@@ -583,11 +583,7 @@ const MobileSettingsContainer = (props: { onSideContainerOpen?: () => void }) =>
     <>
       <nav className="bg-muted border-muted sticky top-0 z-20 flex w-full items-center justify-between border-b py-2 sm:relative lg:hidden">
         <div className="flex items-center space-x-3 ">
-          <Button
-            StartIcon={(props) => <Icon {...props} name="menu" />}
-            color="minimal"
-            variant="icon"
-            onClick={props.onSideContainerOpen}>
+          <Button StartIcon="menu" color="minimal" variant="icon" onClick={props.onSideContainerOpen}>
             <span className="sr-only">{t("show_navigation")}</span>
           </Button>
 

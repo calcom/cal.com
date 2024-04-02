@@ -300,12 +300,12 @@ const OtherTeamProfileView = () => {
               </div>
               <div className="">
                 <Link href={permalink} passHref={true} target="_blank">
-                  <LinkIconButton Icon={(props) => <Icon {...props} name="external-link" />}>
+                  <LinkIconButton Icon="external-link">
                     {t("preview")}
                   </LinkIconButton>
                 </Link>
                 <LinkIconButton
-                  Icon={(props) => <Icon {...props} name="link" />}
+                  Icon="link"
                   onClick={() => {
                     navigator.clipboard.writeText(permalink);
                     showToast("Copied to clipboard", "success");
@@ -324,7 +324,7 @@ const OtherTeamProfileView = () => {
               <Button
                 color="destructive"
                 className="border"
-                StartIcon={(props) => <Icon {...props} name="trash-2" />}>
+                StartIcon="trash-2">
                 {t("disband_team")}
               </Button>
             </DialogTrigger>

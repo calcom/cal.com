@@ -331,7 +331,7 @@ export function UserListTable() {
             <Button
               type="button"
               color="primary"
-              StartIcon={(props) => <Icon {...props} name="plus" />}
+              StartIcon="plus"
               size="sm"
               className="rounded-md"
               onClick={() =>

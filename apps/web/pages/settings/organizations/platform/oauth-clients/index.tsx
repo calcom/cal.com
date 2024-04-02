@@ -4,7 +4,7 @@ import React from "react";
 
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { EmptyScreen, showToast } from "@calcom/ui";
-import { Meta, Button, Icon } from "@calcom/ui";
+import { Meta, Button } from "@calcom/ui";
 import { Spinner } from "@calcom/ui/components/icon/Spinner";
 
 import { useOAuthClients } from "@lib/hooks/settings/organizations/platform/oauth-clients/useOAuthClients";
@@ -38,7 +38,7 @@ export const OAuthClients = () => {
           router.push("/settings/organizations/platform/oauth-clients/create");
         }}
         color="secondary"
-        StartIcon={(props) => <Icon {...props} name="plus" />}>
+        StartIcon="plus">
         Add
       </Button>
     );
@@ -82,7 +82,7 @@ export const OAuthClients = () => {
             <EmptyScreen
               headline="Create your first OAuth client"
               description="OAuth clients faciliate acceess to cal.com on users behalf"
-              Icon={(props) => <Icon {...props} name="plus" />}
+              Icon="plus"
               className="rounded-b-lg rounded-t-none border-t-0"
               buttonRaw={<NewOAuthClientButton />}
             />

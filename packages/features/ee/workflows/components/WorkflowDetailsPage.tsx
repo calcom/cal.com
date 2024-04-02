@@ -159,7 +159,7 @@ export default function WorkflowDetailsPage(props: Props) {
           {!props.readOnly && (
             <Button
               type="button"
-              StartIcon={(props) => <Icon {...props} name="trash-2" />}
+              StartIcon="trash-2"
               color="destructive"
               className="border"
               onClick={() => setDeleteDialogOpen(true)}>

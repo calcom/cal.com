@@ -227,7 +227,7 @@ export default function WorkflowListPage({ workflows }: Props) {
                               type="button"
                               color="secondary"
                               variant="icon"
-                              StartIcon={(props) => <Icon {...props} name="pencil" />}
+                              StartIcon="pencil"
                               disabled={workflow.readOnly}
                               onClick={async () => await router.replace(`/workflows/${workflow.id}`)}
                               data-testid="edit-button"
@@ -242,7 +242,7 @@ export default function WorkflowListPage({ workflows }: Props) {
                               color="secondary"
                               variant="icon"
                               disabled={workflow.readOnly}
-                              StartIcon={(props) => <Icon {...props} name="trash-2" />}
+                              StartIcon="trash-2"
                               data-testid="delete-button"
                             />
                           </Tooltip>
@@ -256,14 +256,14 @@ export default function WorkflowListPage({ workflows }: Props) {
                                 type="button"
                                 color="minimal"
                                 variant="icon"
-                                StartIcon={(props) => <Icon {...props} name="more-horizontal" />}
+                                StartIcon="more-horizontal"
                               />
                             </DropdownMenuTrigger>
                             <DropdownMenuContent>
                               <DropdownMenuItem>
                                 <DropdownItem
                                   type="button"
-                                  StartIcon={(props) => <Icon {...props} name="pencil" />}
+                                  StartIcon="pencil"
                                   onClick={async () => await router.replace(`/workflows/${workflow.id}`)}>
                                   {t("edit")}
                                 </DropdownItem>
@@ -272,7 +272,7 @@ export default function WorkflowListPage({ workflows }: Props) {
                                 <DropdownItem
                                   type="button"
                                   color="destructive"
-                                  StartIcon={(props) => <Icon {...props} name="trash-2" />}
+                                  StartIcon="trash-2"
                                   onClick={() => {
                                     setDeleteDialogOpen(true);
                                     setwWorkflowToDeleteId(workflow.id);

@@ -1,7 +1,7 @@
 import { classNames } from "@calcom/lib";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import type { BadgeProps } from "@calcom/ui";
-import { Badge, Button, Icon, Label } from "@calcom/ui";
+import { Badge, Button, Label } from "@calcom/ui";
 
 type DisplayInfoType<T extends boolean> = {
   label: string;
@@ -48,9 +48,7 @@ export function DisplayInfo<T extends boolean>({
                     onClick={() => copyToClipboard(v)}
                     color="minimal"
                     className="text-subtle rounded-md"
-                    StartIcon={(props) => (
-                      <Icon {...props} name={isCopied ? "clipboard-check" : "clipboard"} />
-                    )}
+                    StartIcon={isCopied ? "clipboard-check" : "clipboard"}
                   />
                 )}
               </span>

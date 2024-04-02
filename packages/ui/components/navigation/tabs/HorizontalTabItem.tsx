@@ -1,11 +1,10 @@
 import Link from "next/link";
-import type { ComponentProps } from "react";
 
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useUrlMatchesCurrentUrl } from "@calcom/lib/hooks/useUrlMatchesCurrentUrl";
 
-import { Icon } from "../../..";
+import { Icon, type IconName } from "../../..";
 import { Avatar } from "../../avatar";
 import { SkeletonText } from "../../skeleton";
 
@@ -17,7 +16,7 @@ export type HorizontalTabItemProps = {
   href: string;
   linkShallow?: boolean;
   linkScroll?: boolean;
-  icon?: ComponentProps<typeof Icon>["name"];
+  icon?: IconName;
   avatar?: string;
 };
 

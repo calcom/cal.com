@@ -73,7 +73,7 @@ const DateOverride = ({ workingHours, disabled }: { workingHours: WorkingHours[]
           Trigger={
             <Button
               color="secondary"
-              StartIcon={(props) => <Icon {...props} name="plus" />}
+              StartIcon="plus"
               data-testid="add-override"
               disabled={disabled}>
               {t("add_an_override")}

@@ -28,7 +28,7 @@ const DirectoryInfo = ({ directory }: { directory: Directory }) => {
               }}
               type="button"
               className="rounded-l-none text-base"
-              StartIcon={(props) => <Icon {...props} name="clipboard" />}>
+              StartIcon="clipboard">
               {t("copy")}
             </Button>
           </Tooltip>
@@ -50,7 +50,7 @@ const DirectoryInfo = ({ directory }: { directory: Directory }) => {
               }}
               type="button"
               className="rounded-l-none text-base"
-              StartIcon={(props) => <Icon {...props} name="clipboard" />}>
+              StartIcon="clipboard">
               {t("copy")}
             </Button>
           </Tooltip>

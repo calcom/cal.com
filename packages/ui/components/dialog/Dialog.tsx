@@ -8,8 +8,9 @@ import { useIsPlatform, Dialog as PlatformDialogPrimitives } from "@calcom/atoms
 import classNames from "@calcom/lib/classNames";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { SVGComponent } from "@calcom/types/SVGComponent";
 
+import type { IconName } from "../..";
+import { Icon } from "../..";
 import type { ButtonProps } from "../../components/button";
 import { Button } from "../../components/button";
 
@@ -85,13 +86,13 @@ type DialogContentProps = React.ComponentProps<(typeof DialogPrimitive)["Content
   description?: string | JSX.Element | null;
   closeText?: string;
   actionDisabled?: boolean;
-  Icon?: SVGComponent;
+  Icon?: IconName;
   enableOverflow?: boolean;
 };
 
 // enableOverflow:- use this prop whenever content inside DialogContent could overflow and require scrollbar
 export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps>(
-  ({ children, title, Icon, enableOverflow, type = "creation", ...props }, forwardedRef) => {
+  ({ children, title, Icon: icon, enableOverflow, type = "creation", ...props }, forwardedRef) => {
     const isPlatform = useIsPlatform();
     const [Portal, Overlay, Content] = useMemo(
       () =>
@@ -133,9 +134,9 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
           )}
           {type === "confirmation" && (
             <div className="flex">
-              {Icon && (
+              {icon && (
                 <div className="bg-emphasis mr-4 inline-flex h-10 w-10 items-center justify-center rounded-full">
-                  <Icon className="text-emphasis h-4 w-4" />
+                  <Icon name={icon} className="text-emphasis h-4 w-4" />
                 </div>
               )}
               <div className="w-full">

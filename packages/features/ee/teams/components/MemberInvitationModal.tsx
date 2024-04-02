@@ -298,7 +298,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                       importRef.current.click();
                     }
                   }}
-                  StartIcon={(props) => <Icon {...props} name="paperclip" />}
+                  StartIcon="paperclip"
                   className="mt-3 justify-center stroke-2">
                   {t("upload_csv_file")}
                 </Button>

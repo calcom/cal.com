@@ -145,7 +145,7 @@ const MembersView = () => {
             <Button
               type="button"
               color="primary"
-              StartIcon={(props) => <Icon {...props} name="plus" />}
+              StartIcon="plus"
               className="ml-auto"
               onClick={() => setShowMemberInvitationModal(true)}
               data-testid="new-member-button">

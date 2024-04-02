@@ -1,7 +1,6 @@
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, Dialog, DialogContent, DialogFooter } from "@calcom/ui";
-import { Icon } from "@calcom/ui";
 
 interface IOverlayCalendarContinueModalProps {
   open?: boolean;
@@ -25,7 +24,7 @@ export function OverlayCalendarContinueModal(props: IOverlayCalendarContinueModa
                 props.onContinue();
               }}
               className="gap w-full items-center justify-center font-semibold"
-              StartIcon={(props) => <Icon {...props} name="calendar-search" />}>
+              StartIcon="calendar-search">
               {t("continue_with", { appName: APP_NAME })}
             </Button>
           </div>

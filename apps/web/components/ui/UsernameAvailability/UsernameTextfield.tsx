@@ -158,10 +158,7 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
         </div>
       )}
       <Dialog open={openDialogSaveUsername}>
-        <DialogContent
-          type="confirmation"
-          Icon={(props) => <Icon {...props} name="pencil" />}
-          title={t("confirm_username_change_dialog_title")}>
+        <DialogContent type="confirmation" Icon="pencil" title={t("confirm_username_change_dialog_title")}>
           <div className="flex flex-row">
             <div className="mb-4 w-full pt-1">
               <div className="bg-subtle flex w-full flex-wrap justify-between gap-6 rounded-sm  px-4 py-3 text-sm">

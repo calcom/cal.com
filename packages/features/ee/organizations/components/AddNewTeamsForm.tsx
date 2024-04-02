@@ -132,7 +132,7 @@ export const AddNewTeamsForm = () => {
         {counter === 5 && <p className="text-subtle my-2 text-sm">{t("org_max_team_warnings")}</p>}
         {counter < 5 && (
           <Button
-            StartIcon={(props) => <Icon {...props} name="plus" />}
+            StartIcon="plus"
             color="secondary"
             disabled={createTeamsMutation.isPending}
             onClick={handleCounterIncrease}
@@ -142,7 +142,7 @@ export const AddNewTeamsForm = () => {
           </Button>
         )}
         <Button
-          EndIcon={(props) => <Icon {...props} name="arrow-right" />}
+          EndIcon="arrow-right"
           color="primary"
           className="mt-6 w-full justify-center"
           disabled={!formState.isValid || createTeamsMutation.isPending || createTeamsMutation.isSuccess}

@@ -18,7 +18,6 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-  Icon,
   List,
   showToast,
 } from "@calcom/ui";
@@ -82,11 +81,7 @@ export const AppList = ({ data, handleDisconnect, variant, listClassName }: AppL
             <div className="flex justify-end">
               <Dropdown modal={false}>
                 <DropdownMenuTrigger asChild>
-                  <Button
-                    StartIcon={(props) => <Icon {...props} name="more-horizontal" />}
-                    variant="icon"
-                    color="secondary"
-                  />
+                  <Button StartIcon="more-horizontal" variant="icon" color="secondary" />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
                   {!appIsDefault && variant === "conferencing" && !item.credentialOwner?.teamId && (
@@ -94,7 +89,7 @@ export const AppList = ({ data, handleDisconnect, variant, listClassName }: AppL
                       <DropdownItem
                         type="button"
                         color="secondary"
-                        StartIcon={(props) => <Icon {...props} name="video" />}
+                        StartIcon="video"
                         onClick={() => {
                           const locationType = getEventLocationTypeFromApp(item?.locationOption?.value ?? "");
                           if (locationType?.linkType === "static") {
@@ -218,7 +213,7 @@ function ConnectOrDisconnectIntegrationMenuItem(props: {
           color="destructive"
           onClick={() => handleDisconnect(credentialId, teamId)}
           disabled={isGlobal}
-          StartIcon={(props) => <Icon {...props} name="trash" />}>
+          StartIcon="trash">
           {t("remove_app")}
         </DropdownItem>
       </DropdownMenuItem>

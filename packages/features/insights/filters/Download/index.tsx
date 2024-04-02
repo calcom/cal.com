@@ -56,7 +56,7 @@ const Download = () => {
     <Dropdown modal={false}>
       <DropdownMenuTrigger asChild>
         <Button
-          EndIcon={(props) => <Icon {...props} name="file-down" />}
+          EndIcon="file-down"
           color="secondary"
           {...(isPending && { loading: isPending })}
           className="self-end sm:self-baseline">

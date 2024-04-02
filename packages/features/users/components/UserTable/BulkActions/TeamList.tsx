@@ -68,7 +68,7 @@ export function TeamListBulkAction({ table }: Props) {
     <>
       <Popover>
         <PopoverTrigger asChild>
-          <Button StartIcon={(props) => <Icon {...props} name="users" />}>{t("add_to_team")}</Button>
+          <Button StartIcon="users">{t("add_to_team")}</Button>
         </PopoverTrigger>
         {/* We dont really use shadows much - but its needed here  */}
         <PopoverContent className="w-[200px] p-0 shadow-md" align="start" sideOffset={12}>

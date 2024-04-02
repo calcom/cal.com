@@ -106,7 +106,7 @@ export const ChildrenEventTypeSelect = ({
                           target="_blank"
                           variant="icon"
                           href={`${WEBSITE_URL}/${children.owner?.username}/${children.slug}`}
-                          StartIcon={(props) => <Icon {...props} name="external-link" />}
+                          StartIcon="external-link"
                         />
                       </Tooltip>
                     )}
@@ -118,7 +118,7 @@ export const ChildrenEventTypeSelect = ({
                         onClick={() =>
                           props.onChange(value.filter((item) => item.owner.id !== children.owner.id))
                         }
-                        StartIcon={(props) => <Icon {...props} name="x" />}
+                        StartIcon="x"
                       />
                     </Tooltip>
                   </ButtonGroup>

@@ -99,7 +99,7 @@ export const SetPasswordForm = () => {
           <Button
             disabled={setPasswordFormMethods.formState.isSubmitting || setPasswordMutation.isPending}
             color="primary"
-            EndIcon={(props) => <Icon {...props} name="arrow-right" />}
+            EndIcon="arrow-right"
             type="submit"
             className="w-full justify-center">
             {t("continue")}

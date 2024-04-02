@@ -1,4 +1,4 @@
-import { Button, Icon, SkeletonText } from "@calcom/ui";
+import { Button, SkeletonText } from "@calcom/ui";
 
 import classNames from "@lib/classNames";
 
@@ -28,7 +28,7 @@ function SkeletonItem() {
           type="button"
           variant="icon"
           color="secondary"
-          StartIcon={(props) => <Icon {...props} name="more-horizontal" />}
+          StartIcon="more-horizontal"
           disabled
         />
       </div>

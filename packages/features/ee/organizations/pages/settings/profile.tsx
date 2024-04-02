@@ -146,7 +146,7 @@ const OrgProfileView = () => {
             </div>
             <div className="">
               <LinkIconButton
-                Icon={(props) => <Icon {...props} name="link" />}
+                Icon="link"
                 onClick={() => {
                   navigator.clipboard.writeText(orgBranding.fullDomain);
                   showToast("Copied to clipboard", "success");

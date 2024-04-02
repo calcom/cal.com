@@ -22,7 +22,6 @@ import {
   DropdownItem,
   Avatar,
   Badge,
-  Icon,
 } from "@calcom/ui";
 
 import { Button } from "../button";
@@ -214,7 +213,7 @@ const InstallAppButtonChild = ({
       <Button
         color="secondary"
         className="[@media(max-width:260px)]:w-full [@media(max-width:260px)]:justify-center"
-        StartIcon={(props) => <Icon {...props} name="plus" />}
+        StartIcon="plus"
         data-testid="install-app-button"
         {...props}>
         {paid.trial ? t("start_paid_trial") : t("subscribe")}
@@ -230,7 +229,7 @@ const InstallAppButtonChild = ({
       <Button
         color="secondary"
         className="[@media(max-width:260px)]:w-full [@media(max-width:260px)]:justify-center"
-        StartIcon={(props) => <Icon {...props} name="plus" />}
+        StartIcon="plus"
         data-testid="install-app-button"
         {...props}>
         {t("install")}
@@ -244,7 +243,7 @@ const InstallAppButtonChild = ({
         <Button
           color="secondary"
           className="[@media(max-width:260px)]:w-full [@media(max-width:260px)]:justify-center"
-          StartIcon={(props) => <Icon {...props} name="plus" />}
+          StartIcon="plus"
           data-testid="install-app-button"
           {...props}>
           {t("install")}
@@ -273,13 +272,13 @@ const InstallAppButtonChild = ({
                 type="button"
                 disabled={isInstalledTeamOrUser}
                 key={team.id}
-                StartIcon={() => (
+                CustomStartIcon={
                   <Avatar
                     alt={team.logo || ""}
                     imageSrc={team.logo || `${WEBAPP_URL}/${team.logo}/avatar.png`} // if no image, use default avatar
                     size="sm"
                   />
-                )}
+                }
                 onClick={() => {
                   mutation.mutate(
                     team.isUser ? addAppMutationInput : { ...addAppMutationInput, teamId: team.id }

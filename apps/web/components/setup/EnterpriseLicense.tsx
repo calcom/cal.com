@@ -92,7 +92,7 @@ const EnterpriseLicense = (
         <div>
           <Button
             className="w-full justify-center text-lg"
-            EndIcon={(props) => <Icon {...props} name="external-link" />}
+            EndIcon="external-link"
             href="https://console.cal.com"
             target="_blank">
             {t("purchase_license")}

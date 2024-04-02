@@ -458,7 +458,7 @@ export default function ToolbarPlugin(props: TextEditorProps) {
               color="minimal"
               variant="icon"
               type="button"
-              StartIcon={(props) => <Icon {...props} name="bold" />}
+              StartIcon="bold"
               onClick={() => {
                 editor.dispatchCommand(FORMAT_TEXT_COMMAND, "bold");
               }}
@@ -470,7 +470,7 @@ export default function ToolbarPlugin(props: TextEditorProps) {
               color="minimal"
               variant="icon"
               type="button"
-              StartIcon={(props) => <Icon {...props} name="italic" />}
+              StartIcon="italic"
               onClick={() => {
                 editor.dispatchCommand(FORMAT_TEXT_COMMAND, "italic");
               }}
@@ -483,7 +483,7 @@ export default function ToolbarPlugin(props: TextEditorProps) {
                 color="minimal"
                 variant="icon"
                 type="button"
-                StartIcon={(props) => <Icon {...props} name="link" />}
+                StartIcon="link"
                 onClick={insertLink}
                 className={isLink ? "bg-subtle" : ""}
               />

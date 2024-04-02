@@ -1,6 +1,6 @@
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import type { AppCategories } from "@calcom/prisma/enums";
-import type { Icon } from "@calcom/ui";
+import type { IconName } from "@calcom/ui";
 
 function getHref(baseURL: string, category: string, useQueryParam: boolean) {
   const baseUrlParsed = new URL(baseURL, WEBAPP_URL);
@@ -11,7 +11,7 @@ function getHref(baseURL: string, category: string, useQueryParam: boolean) {
 type AppCategoryEntry = {
   name: AppCategories;
   href: string;
-  icon: React.ComponentProps<typeof Icon>["name"];
+  icon: IconName;
 };
 
 const getAppCategories = (baseURL: string, useQueryParam: boolean): AppCategoryEntry[] => {

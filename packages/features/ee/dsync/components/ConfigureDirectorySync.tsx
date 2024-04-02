@@ -57,7 +57,7 @@ const ConfigureDirectorySync = ({ organizationId }: { organizationId: number | n
         <EmptyScreen
           headline="Error"
           description={error.message || "Error getting dsync data"}
-          Icon={(props) => <Icon {...props} name="alert-triangle" />}
+          Icon="alert-triangle"
         />
       </div>
     );
@@ -82,7 +82,7 @@ const ConfigureDirectorySync = ({ organizationId }: { organizationId: number | n
               <Button
                 color="destructive"
                 className="mt-1"
-                StartIcon={(props) => <Icon {...props} name="trash" />}>
+                StartIcon="trash">
                 {t("directory_sync_delete_connection")}
               </Button>
             </DialogTrigger>
@@ -90,7 +90,7 @@ const ConfigureDirectorySync = ({ organizationId }: { organizationId: number | n
               title={t("directory_sync_delete_title")}
               description={t("directory_sync_delete_description")}
               type="creation"
-              Icon={(props) => <Icon {...props} name="alert-triangle" />}>
+              Icon="alert-triangle">
               <>
                 <div className="mb-10">
                   <p className="text-default mb-4">{t("directory_sync_delete_confirmation")}</p>

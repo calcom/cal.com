@@ -278,7 +278,7 @@ export const Components: Record<FieldType, Component> = {
                   data-testid="add-another-guest"
                   type="button"
                   color="minimal"
-                  StartIcon={(props) => <Icon {...props} name="user-plus" />}
+                  StartIcon="user-plus"
                   className="my-2.5"
                   onClick={() => {
                     value.push("");
@@ -297,7 +297,7 @@ export const Components: Record<FieldType, Component> = {
               data-testid="add-guests"
               color="minimal"
               variant="button"
-              StartIcon={(props) => <Icon {...props} name="user-plus" />}
+              StartIcon="user-plus"
               onClick={() => {
                 value.push("");
                 setValue(value);

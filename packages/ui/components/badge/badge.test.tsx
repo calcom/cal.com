@@ -51,8 +51,7 @@ describe("Tests for Badge component", () => {
   });
 
   test("Should render with a startIcon when startIcon prop is provided shouldn't render if is false", () => {
-    const startIcon = () => <svg data-testid="start-icon" />;
-    const { rerender } = render(<Badge startIcon={startIcon}>{children}</Badge>);
+    const { rerender } = render(<Badge customStartIcon={<svg data-testid="start-icon" />}>{children}</Badge>);
     expect(screen.getByTestId("start-icon")).toBeInTheDocument();
 
     rerender(<Badge>{children}</Badge>);

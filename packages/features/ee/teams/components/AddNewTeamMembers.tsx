@@ -120,7 +120,7 @@ export const AddNewTeamMembersForm = ({
         <Button
           color="secondary"
           data-testid="new-member-button"
-          StartIcon={(props) => <Icon {...props} name="plus" />}
+          StartIcon="plus"
           onClick={() => setMemberInviteModal(true)}
           className={classNames("w-full justify-center", defaultValues.members.length > 0 && "mt-6")}>
           {isOrg ? t("add_org_members") : t("add_team_member")}
@@ -196,7 +196,7 @@ export const AddNewTeamMembersForm = ({
       <hr className="border-subtle my-6" />
       <Button
         data-testid="publish-button"
-        EndIcon={!orgBranding || isOrg ? (props) => <Icon {...props} name="arrow-right" /> : undefined}
+        EndIcon={!orgBranding || isOrg ? "arrow-right" : undefined}
         color="primary"
         className="w-full justify-center"
         disabled={publishTeamMutation.isPending}
@@ -287,7 +287,7 @@ const PendingMemberItem = (props: { member: TeamMember; index: number; teamId: n
       {(member.role !== "OWNER" || isOrgAdminOrOwner) && member.id !== session.data?.user.id && (
         <Button
           data-testid="remove-member-button"
-          StartIcon={(props) => <Icon {...props} name="trash-2" />}
+          StartIcon="trash-2"
           variant="icon"
           color="secondary"
           className="h-[36px] w-[36px]"

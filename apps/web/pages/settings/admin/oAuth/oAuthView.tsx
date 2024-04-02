@@ -103,7 +103,7 @@ export default function OAuthView() {
                 }}
                 type="button"
                 className="rounded-l-none text-base"
-                StartIcon={(props) => <Icon {...props} name="clipboard" />}>
+                StartIcon="clipboard">
                 {t("copy")}
               </Button>
             </Tooltip>
@@ -125,7 +125,7 @@ export default function OAuthView() {
                     }}
                     type="button"
                     className="rounded-l-none text-base"
-                    StartIcon={(props) => <Icon {...props} name="clipboard" />}>
+                    StartIcon="clipboard">
                     {t("copy")}
                   </Button>
                 </Tooltip>

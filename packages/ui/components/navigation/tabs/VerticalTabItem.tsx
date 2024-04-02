@@ -1,18 +1,17 @@
 import Link from "next/link";
-import type { ComponentProps } from "react";
 import { Fragment } from "react";
 
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useUrlMatchesCurrentUrl } from "@calcom/lib/hooks/useUrlMatchesCurrentUrl";
 
-import { Icon } from "../../..";
+import { Icon, type IconName } from "../../..";
 import { Skeleton } from "../../skeleton";
 
 export type VerticalTabItemProps = {
   name: string;
   info?: string;
-  icon?: ComponentProps<typeof Icon>["name"];
+  icon?: IconName;
   disabled?: boolean;
   children?: VerticalTabItemProps[];
   textClassNames?: string;

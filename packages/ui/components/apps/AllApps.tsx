@@ -192,7 +192,7 @@ export function AllApps({ apps, searchText, categories, userAdminTeams }: AllApp
         </div>
       ) : (
         <EmptyScreen
-          Icon={(props) => <Icon {...props} name="search" />}
+          Icon="search"
           headline={t("no_results")}
           description={searchText ? searchText?.toString() : ""}
         />

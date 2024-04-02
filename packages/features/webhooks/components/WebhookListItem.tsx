@@ -93,7 +93,7 @@ export default function WebhookListItem(props: {
                 key={trigger}
                 className="mt-2.5 basis-1/5 ltr:mr-2 rtl:ml-2"
                 variant="gray"
-                startIcon={(props) => <Icon {...props} name="zap" />}>
+                startIcon="zap">
                 {t(`${trigger.toLowerCase()}`)}
               </Badge>
             ))}
@@ -122,36 +122,25 @@ export default function WebhookListItem(props: {
           <Button
             className="hidden lg:flex"
             color="destructive"
-            StartIcon={(props) => <Icon {...props} name="trash" />}
+            StartIcon="trash"
             variant="icon"
             onClick={onDeleteWebhook}
           />
 
           <Dropdown>
             <DropdownMenuTrigger asChild>
-              <Button
-                className="lg:hidden"
-                StartIcon={(props) => <Icon {...props} name="more-horizontal" />}
-                variant="icon"
-                color="secondary"
-              />
+              <Button className="lg:hidden" StartIcon="more-horizontal" variant="icon" color="secondary" />
             </DropdownMenuTrigger>
             <DropdownMenuContent>
               <DropdownMenuItem>
-                <DropdownItem
-                  StartIcon={(props) => <Icon {...props} name="pencil" />}
-                  color="secondary"
-                  onClick={props.onEditWebhook}>
+                <DropdownItem StartIcon="pencil" color="secondary" onClick={props.onEditWebhook}>
                   {t("edit")}
                 </DropdownItem>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
 
               <DropdownMenuItem>
-                <DropdownItem
-                  StartIcon={(props) => <Icon {...props} name="trash" />}
-                  color="destructive"
-                  onClick={onDeleteWebhook}>
+                <DropdownItem StartIcon="trash" color="destructive" onClick={onDeleteWebhook}>
                   {t("delete")}
                 </DropdownItem>
               </DropdownMenuItem>

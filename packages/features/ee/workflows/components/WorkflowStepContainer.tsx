@@ -374,14 +374,14 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           type="button"
                           color="minimal"
                           variant="icon"
-                          StartIcon={(props) => <Icon {...props} name="more-horizontal" />}
+                          StartIcon="more-horizontal"
                         />
                       </DropdownMenuTrigger>
                       <DropdownMenuContent>
                         <DropdownMenuItem>
                           <DropdownItem
                             type="button"
-                            StartIcon={(props) => <Icon {...props} name="trash-2" />}
+                            StartIcon="trash-2"
                             color="destructive"
                             onClick={() => {
                               const steps = form.getValues("steps");

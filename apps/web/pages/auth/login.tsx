@@ -17,7 +17,7 @@ import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { trpc } from "@calcom/trpc/react";
-import { Alert, Button, EmailField, Icon, PasswordField } from "@calcom/ui";
+import { Alert, Button, EmailField, PasswordField } from "@calcom/ui";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 import type { WithNonceProps } from "@lib/withNonce";
@@ -112,7 +112,7 @@ inferSSRProps<typeof getServerSideProps> & WithNonceProps<{}>) {
           }
           setErrorMessage(null);
         }}
-        StartIcon={(props) => <Icon {...props} name="arrow-left" />}
+        StartIcon="arrow-left"
         color="minimal">
         {t("go_back")}
       </Button>
@@ -123,7 +123,7 @@ inferSSRProps<typeof getServerSideProps> & WithNonceProps<{}>) {
             setErrorMessage(null);
             methods.setValue("totpCode", "");
           }}
-          StartIcon={(props) => <Icon {...props} name="lock" />}
+          StartIcon="lock"
           color="minimal">
           {t("lost_access")}
         </Button>
@@ -246,7 +246,7 @@ inferSSRProps<typeof getServerSideProps> & WithNonceProps<{}>) {
                     className="w-full justify-center"
                     disabled={formState.isSubmitting}
                     data-testid="google"
-                    StartIcon={GoogleIcon}
+                    CustomStartIcon={<GoogleIcon />}
                     onClick={async (e) => {
                       e.preventDefault();
                       await signIn("google");

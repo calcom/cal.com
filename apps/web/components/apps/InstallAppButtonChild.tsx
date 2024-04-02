@@ -122,13 +122,13 @@ export const InstallAppButtonChild = ({
                 data-testid={team.isUser ? "install-app-button-personal" : "anything else"}
                 key={team.id}
                 disabled={isInstalled}
-                StartIcon={() => (
+                CustomStartIcon={
                   <Avatar
                     alt={team.logo || ""}
                     imageSrc={team.logo || `${WEBAPP_URL}/${team.logo}/avatar.png`} // if no image, use default avatar
                     size="sm"
                   />
-                )}
+                }
                 onClick={() => {
                   mutation.mutate(
                     team.isUser ? addAppMutationInput : { ...addAppMutationInput, teamId: team.id }

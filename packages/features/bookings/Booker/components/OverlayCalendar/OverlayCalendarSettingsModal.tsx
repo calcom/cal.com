@@ -70,7 +70,7 @@ export function OverlayCalendarSettingsModal({
               <>
                 {connectedCalendars.length === 0 ? (
                   <EmptyScreen
-                    Icon={(props) => <Icon {...props} name="calendar" />}
+                    Icon="calendar"
                     headline={t("no_calendar_installed")}
                     description={t("no_calendar_installed_description")}
                     buttonText={t("add_a_calendar")}

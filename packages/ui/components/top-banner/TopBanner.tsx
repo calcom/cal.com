@@ -1,13 +1,13 @@
 import classNames from "classnames";
-import type { ComponentProps, ReactNode } from "react";
+import type { ReactNode } from "react";
 
 import { TOP_BANNER_HEIGHT } from "@calcom/lib/constants";
 import type { LucideProps } from "@calcom/ui/components/icon";
 
-import { Icon } from "../..";
+import { Icon, type IconName } from "../..";
 
 export type TopBannerProps = {
-  icon?: ComponentProps<typeof Icon>["name"];
+  icon?: IconName;
   text: string;
   variant?: keyof typeof variantClassName;
   actions?: ReactNode;

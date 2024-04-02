@@ -4,7 +4,7 @@ import { Fragment } from "react";
 
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button, Icon, Meta, SkeletonButton, SkeletonContainer, SkeletonText } from "@calcom/ui";
+import { Button, Meta, SkeletonButton, SkeletonContainer, SkeletonText } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
 import { CalendarListContainer } from "@components/apps/CalendarListContainer";
@@ -29,10 +29,7 @@ const AddCalendarButton = () => {
 
   return (
     <>
-      <Button
-        color="secondary"
-        StartIcon={(props) => <Icon {...props} name="plus" />}
-        href="/apps/categories/calendar">
+      <Button color="secondary" StartIcon="plus" href="/apps/categories/calendar">
         {t("add_calendar")}
       </Button>
     </>

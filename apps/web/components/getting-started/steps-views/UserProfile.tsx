@@ -9,7 +9,7 @@ import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import turndown from "@calcom/lib/turndownService";
 import { trpc } from "@calcom/trpc/react";
 import { Button, Editor, ImageUploader, Label, showToast } from "@calcom/ui";
-import { Icon, UserAvatar } from "@calcom/ui";
+import { UserAvatar } from "@calcom/ui";
 
 type FormData = {
   bio: string;
@@ -146,7 +146,7 @@ const UserProfile = () => {
       </fieldset>
       <Button
         loading={mutation.isPending}
-        EndIcon={(props) => <Icon {...props} name="arrow-right" />}
+        EndIcon="arrow-right"
         type="submit"
         className="mt-8 w-full items-center justify-center">
         {t("finish")}

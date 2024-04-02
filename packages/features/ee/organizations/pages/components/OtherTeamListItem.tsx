@@ -83,7 +83,7 @@ export default function OtherTeamListItem(props: Props) {
                       showToast(t("link_copied"), "success");
                     }}
                     variant="icon"
-                    StartIcon={(props) => <Icon {...props} name="link" />}
+                    StartIcon="link"
                   />
                 </Tooltip>
               )}
@@ -94,7 +94,7 @@ export default function OtherTeamListItem(props: Props) {
                     type="button"
                     color="secondary"
                     variant="icon"
-                    StartIcon={(props) => <Icon {...props} name="more-horizontal" />}
+                    StartIcon="more-horizontal"
                   />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent hidden={hideDropdown}>
@@ -102,7 +102,7 @@ export default function OtherTeamListItem(props: Props) {
                     <DropdownItem
                       type="button"
                       href={`/settings/teams/other/${team.id}/profile`}
-                      StartIcon={(props) => <Icon {...props} name="pencil" />}>
+                      StartIcon="pencil">
                       {t("edit_team") as string}
                     </DropdownItem>
                   </DropdownMenuItem>
@@ -117,7 +117,7 @@ export default function OtherTeamListItem(props: Props) {
                             ? `${orgBranding.fullDomain}`
                             : `${process.env.NEXT_PUBLIC_WEBSITE_URL}/team/other`
                         }/${team.slug}`}
-                        StartIcon={(props) => <Icon {...props} name="external-link" />}>
+                        StartIcon="external-link">
                         {t("preview_team") as string}
                       </DropdownItem>
                     </DropdownMenuItem>
@@ -129,7 +129,7 @@ export default function OtherTeamListItem(props: Props) {
                         <DropdownItem
                           color="destructive"
                           type="button"
-                          StartIcon={(props) => <Icon {...props} name="trash" />}
+                          StartIcon="trash"
                           onClick={(e) => {
                             e.stopPropagation();
                           }}>

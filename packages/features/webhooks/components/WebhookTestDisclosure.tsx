@@ -27,7 +27,7 @@ export default function WebhookTestDisclosure() {
           type="button"
           color="secondary"
           disabled={mutation.isPending || !subscriberUrl}
-          StartIcon={(props) => <Icon {...props} name="activity" />}
+          StartIcon="activity"
           onClick={() => {
             try {
               ZTestTriggerInputSchema.parse({

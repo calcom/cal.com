@@ -31,10 +31,10 @@ import {
   DialogFooter,
   Icon,
   MeetingTimeInTimezones,
+  showToast,
   TableActions,
   TextAreaField,
   Tooltip,
-  showToast,
 } from "@calcom/ui";
 
 import { ChargeCardDialog } from "@components/dialog/ChargeCardDialog";
@@ -138,7 +138,7 @@ function BookingListItem(booking: BookingItemProps) {
       onClick: () => {
         setRejectionDialogIsOpen(true);
       },
-      icon: () => <Icon name="ban" />,
+      icon: "ban",
       disabled: mutation.isPending,
     },
     // For bookings with payment, only confirm if the booking is paid for
@@ -152,7 +152,7 @@ function BookingListItem(booking: BookingItemProps) {
             onClick: () => {
               bookingConfirm(true);
             },
-            icon: () => <Icon name="check" />,
+            icon: "check" as const,
             disabled: mutation.isPending,
           },
         ]
@@ -169,7 +169,7 @@ function BookingListItem(booking: BookingItemProps) {
         isTabRecurring && isRecurring ? "&allRemainingBookings=true" : ""
       }${booking.seatsReferences.length ? `&seatReferenceUid=${getSeatReferenceUid()}` : ""}
       `,
-      icon: () => <Icon name="x" />,
+      icon: "x" as const,
     },
     {
       id: "edit_booking",
@@ -177,7 +177,7 @@ function BookingListItem(booking: BookingItemProps) {
       actions: [
         {
           id: "reschedule",
-          icon: () => <Icon name="clock" />,
+          icon: "clock" as const,
           label: t("reschedule_booking"),
           href: `${bookerUrl}/reschedule/${booking.uid}${
             booking.seatsReferences.length ? `?seatReferenceUid=${getSeatReferenceUid()}` : ""
@@ -185,7 +185,7 @@ function BookingListItem(booking: BookingItemProps) {
         },
         {
           id: "reschedule_request",
-          icon: () => <Icon name="send" />,
+          icon: "send" as const,
           iconClassName: "rotate-45 w-[16px] -translate-x-0.5 ",
           label: t("send_reschedule_request"),
           onClick: () => {
@@ -198,7 +198,7 @@ function BookingListItem(booking: BookingItemProps) {
           onClick: () => {
             setIsOpenLocationDialog(true);
           },
-          icon: () => <Icon name="map-pin" />,
+          icon: "map-pin" as const,
         },
       ],
     },
@@ -212,7 +212,7 @@ function BookingListItem(booking: BookingItemProps) {
       onClick: () => {
         setChargeCardDialogIsOpen(true);
       },
-      icon: () => <Icon name="credit-card" />,
+      icon: "credit-card" as const,
     },
   ];
 
@@ -226,11 +226,7 @@ function BookingListItem(booking: BookingItemProps) {
 
   const RequestSentMessage = () => {
     return (
-      <Badge
-        startIcon={(props) => <Icon {...props} name="send" />}
-        size="md"
-        variant="gray"
-        data-testid="request_reschedule_sent">
+      <Badge startIcon="send" size="md" variant="gray" data-testid="request_reschedule_sent">
         {t("reschedule_request_sent")}
       </Badge>
     );

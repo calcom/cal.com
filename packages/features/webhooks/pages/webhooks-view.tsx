@@ -12,7 +12,6 @@ import {
   Avatar,
   CreateButtonWithTeamsList,
   EmptyScreen,
-  Icon,
   Meta,
   SkeletonContainer,
   SkeletonText,
@@ -158,7 +157,7 @@ const WebhooksList = ({
           )}
           {!webhookGroups.length && (
             <EmptyScreen
-              Icon={(props) => <Icon {...props} name="link" />}
+              Icon="link"
               headline={t("create_your_first_webhook")}
               description={t("create_your_first_webhook_description", { appName: APP_NAME })}
               className="rounded-b-lg rounded-t-none border-t-0"

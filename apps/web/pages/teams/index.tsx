@@ -5,7 +5,7 @@ import Shell from "@calcom/features/shell/Shell";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Button, Icon } from "@calcom/ui";
+import { Button } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
 
@@ -28,7 +28,7 @@ function Teams() {
           <Button
             data-testid="new-team-btn"
             variant="fab"
-            StartIcon={(props) => <Icon {...props} name="plus" />}
+            StartIcon="plus"
             type="button"
             href={`${WEBAPP_URL}/settings/teams/new?returnTo=${WEBAPP_URL}/teams`}>
             {t("new")}

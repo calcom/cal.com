@@ -352,14 +352,14 @@ function EventTypeSingleLayout({
                     variant="icon"
                     href={permalink}
                     rel="noreferrer"
-                    StartIcon={(props) => <Icon {...props} name="external-link" />}
+                    StartIcon="external-link"
                   />
                 </Tooltip>
 
                 <Button
                   color="secondary"
                   variant="icon"
-                  StartIcon={(props) => <Icon {...props} name="link" />}
+                  StartIcon="link"
                   tooltip={t("copy_link")}
                   tooltipSide="bottom"
                   tooltipOffset={4}
@@ -370,8 +370,7 @@ function EventTypeSingleLayout({
                 />
                 <EventTypeEmbedButton
                   embedUrl={encodeURIComponent(embedLink)}
-                  // @ts-expect-error the Button props fallback isn't being picked up here
-                  StartIcon={(props) => <Icon {...props} name="code" />}
+                  StartIcon="code"
                   color="secondary"
                   variant="icon"
                   namespace=""
@@ -386,7 +385,7 @@ function EventTypeSingleLayout({
               <Button
                 color="destructive"
                 variant="icon"
-                StartIcon={(props) => <Icon {...props} name="trash" />}
+                StartIcon="trash"
                 tooltip={t("delete")}
                 tooltipSide="bottom"
                 tooltipOffset={4}
@@ -400,19 +399,14 @@ function EventTypeSingleLayout({
 
           <Dropdown>
             <DropdownMenuTrigger asChild>
-              <Button
-                className="lg:hidden"
-                StartIcon={(props) => <Icon {...props} name="more-horizontal" />}
-                variant="icon"
-                color="secondary"
-              />
+              <Button className="lg:hidden" StartIcon="more-horizontal" variant="icon" color="secondary" />
             </DropdownMenuTrigger>
             <DropdownMenuContent style={{ minWidth: "200px" }}>
               <DropdownMenuItem className="focus:ring-muted">
                 <DropdownItem
                   target="_blank"
                   type="button"
-                  StartIcon={(props) => <Icon {...props} name="external-link" />}
+                  StartIcon="external-link"
                   href={permalink}
                   rel="noreferrer">
                   {t("preview")}
@@ -421,7 +415,7 @@ function EventTypeSingleLayout({
               <DropdownMenuItem className="focus:ring-muted">
                 <DropdownItem
                   type="button"
-                  StartIcon={(props) => <Icon {...props} name="link" />}
+                  StartIcon="link"
                   onClick={() => {
                     navigator.clipboard.writeText(permalink);
                     showToast("Link copied!", "success");
@@ -433,7 +427,7 @@ function EventTypeSingleLayout({
                 <DropdownItem
                   type="button"
                   color="destructive"
-                  StartIcon={(props) => <Icon {...props} name="trash" />}
+                  StartIcon="trash"
                   disabled={!hasPermsToDelete}
                   onClick={() => setDeleteDialogOpen(true)}>
                   {t("delete")}

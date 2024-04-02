@@ -3,8 +3,8 @@ import { cva } from "class-variance-authority";
 import React from "react";
 
 import classNames from "@calcom/lib/classNames";
-import type { SVGComponent } from "@calcom/types/SVGComponent";
 
+import { Icon, type IconName } from "../..";
 import { Dot as GoPrimitiveDot } from "../icon";
 
 export const badgeStyles = cva("font-medium inline-flex items-center justify-center rounded gap-x-1", {
@@ -37,7 +37,7 @@ type InferredBadgeStyles = VariantProps<typeof badgeStyles>;
 
 type IconOrDot =
   | {
-      startIcon?: SVGComponent;
+      startIcon?: IconName;
       withDot?: never;
     }
   | { startIcon?: never; withDot?: true };
@@ -45,6 +45,7 @@ type IconOrDot =
 export type BadgeBaseProps = InferredBadgeStyles & {
   children: React.ReactNode;
   rounded?: boolean;
+  customStartIcon?: React.ReactNode;
 } & IconOrDot;
 
 export type BadgeProps =
@@ -58,7 +59,17 @@ export type BadgeProps =
   | (BadgeBaseProps & Omit<React.HTMLAttributes<HTMLButtonElement>, "onClick"> & { onClick: () => void });
 
 export const Badge = function Badge(props: BadgeProps) {
-  const { variant, className, size, startIcon, withDot, children, rounded, ...passThroughProps } = props;
+  const {
+    customStartIcon,
+    variant,
+    className,
+    size,
+    startIcon,
+    withDot,
+    children,
+    rounded,
+    ...passThroughProps
+  } = props;
   const isButton = "onClick" in passThroughProps && passThroughProps.onClick !== undefined;
   const StartIcon = startIcon;
   const classes = classNames(
@@ -70,7 +81,10 @@ export const Badge = function Badge(props: BadgeProps) {
   const Children = () => (
     <>
       {withDot ? <GoPrimitiveDot data-testid="go-primitive-dot" className="h-3 w-3 stroke-[3px]" /> : null}
-      {StartIcon ? <StartIcon data-testid="start-icon" className="h-3 w-3 stroke-[3px]" /> : null}
+      {customStartIcon ||
+        (StartIcon ? (
+          <Icon name={StartIcon} data-testid="start-icon" className="h-3 w-3 stroke-[3px]" />
+        ) : null)}
       {children}
     </>
   );

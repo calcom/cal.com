@@ -213,7 +213,7 @@ export default function Verify(props: inferSSRProps<typeof getServerSideProps>) 
                   : "https://mail.google.com/mail/u/0/"
               }
               target="_blank"
-              EndIcon={(props) => <Icon {...props} name="external-link" />}>
+              EndIcon="external-link">
               Open in Gmail
             </Button>
           </div>

@@ -183,7 +183,7 @@ export default function RoutingForms({
                   queryRes={queryRes}
                   emptyScreen={
                     <EmptyScreen
-                      Icon={(props) => <Icon {...props} name="git-merge" />}
+                      Icon="git-merge"
                       headline={t("create_your_first_form")}
                       description={t("create_your_first_form_description")}
                       buttonRaw={<NewFormButton />}
@@ -191,7 +191,7 @@ export default function RoutingForms({
                   }
                   noResultsScreen={
                     <EmptyScreen
-                      Icon={(props) => <Icon {...props} name="git-merge" />}
+                      Icon="git-merge"
                       headline={t("no_results_for_filter")}
                       description={t("change_filter_common")}
                     />
@@ -249,7 +249,7 @@ export default function RoutingForms({
                                         action="preview"
                                         routingForm={form}
                                         target="_blank"
-                                        StartIcon={(props) => <Icon {...props} name="external-link" />}
+                                        StartIcon="external-link"
                                         color="secondary"
                                         variant="icon"
                                       />
@@ -259,7 +259,7 @@ export default function RoutingForms({
                                       action="copyLink"
                                       color="secondary"
                                       variant="icon"
-                                      StartIcon={(props) => <Icon {...props} name="link" />}
+                                      StartIcon="link"
                                       tooltip={t("copy_link_to_form")}
                                     />
                                     <FormAction
@@ -267,7 +267,7 @@ export default function RoutingForms({
                                       action="embed"
                                       color="secondary"
                                       variant="icon"
-                                      StartIcon={(props) => <Icon {...props} name="code" />}
+                                      StartIcon="code"
                                       tooltip={t("embed")}
                                     />
                                     <FormActionsDropdown disabled={readOnly}>
@@ -276,14 +276,14 @@ export default function RoutingForms({
                                         routingForm={form}
                                         color="minimal"
                                         className="!flex"
-                                        StartIcon={(props) => <Icon {...props} name="pencil" />}>
+                                        StartIcon="pencil">
                                         {t("edit")}
                                       </FormAction>
                                       <FormAction
                                         action="download"
                                         routingForm={form}
                                         color="minimal"
-                                        StartIcon={(props) => <Icon {...props} name="download" />}>
+                                        StartIcon="download">
                                         {t("download_responses")}
                                       </FormAction>
                                       <FormAction
@@ -291,7 +291,7 @@ export default function RoutingForms({
                                         routingForm={form}
                                         color="minimal"
                                         className="w-full"
-                                        StartIcon={(props) => <Icon {...props} name="copy" />}>
+                                        StartIcon="copy">
                                         {t("duplicate")}
                                       </FormAction>
                                       {typeformApp?.isInstalled ? (
@@ -301,7 +301,7 @@ export default function RoutingForms({
                                           action="copyRedirectUrl"
                                           color="minimal"
                                           type="button"
-                                          StartIcon={(props) => <Icon {...props} name="link" />}>
+                                          StartIcon="link">
                                           {t("Copy Typeform Redirect Url")}
                                         </FormAction>
                                       ) : null}
@@ -310,7 +310,7 @@ export default function RoutingForms({
                                         routingForm={form}
                                         color="destructive"
                                         className="w-full"
-                                        StartIcon={(props) => <Icon {...props} name="trash" />}>
+                                        StartIcon="trash">
                                         {t("delete")}
                                       </FormAction>
                                     </FormActionsDropdown>
@@ -318,17 +318,13 @@ export default function RoutingForms({
                                 </>
                               }>
                               <div className="flex flex-wrap gap-1">
-                                <Badge variant="gray" startIcon={(props) => <Icon {...props} name="menu" />}>
+                                <Badge variant="gray" startIcon="menu">
                                   {fields.length} {fields.length === 1 ? "field" : "fields"}
                                 </Badge>
-                                <Badge
-                                  variant="gray"
-                                  startIcon={(props) => <Icon {...props} name="git-merge" />}>
+                                <Badge variant="gray" startIcon="git-merge">
                                   {userRoutes.length} {userRoutes.length === 1 ? "route" : "routes"}
                                 </Badge>
-                                <Badge
-                                  variant="gray"
-                                  startIcon={(props) => <Icon {...props} name="message-circle" />}>
+                                <Badge variant="gray" startIcon="message-circle">
                                   {form._count.responses}{" "}
                                   {form._count.responses === 1 ? "response" : "responses"}
                                 </Badge>

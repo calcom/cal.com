@@ -33,7 +33,7 @@ export function SAMLLogin({ samlTenantID, samlProductID, setErrorMessage }: Prop
 
   return (
     <Button
-      StartIcon={(props) => <Icon {...props} name="lock" />}
+      StartIcon="lock"
       color="secondary"
       data-testid="saml"
       className="flex w-full justify-center"

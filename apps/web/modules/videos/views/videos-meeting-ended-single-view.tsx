@@ -46,10 +46,7 @@ export default function MeetingUnavailable(props: PageProps) {
                 </div>
                 <div className="mt-5 text-center sm:mt-6">
                   <div className="mt-5">
-                    <Button
-                      data-testid="return-home"
-                      href="/event-types"
-                      EndIcon={(props) => <Icon {...props} name="arrow-right" />}>
+                    <Button data-testid="return-home" href="/event-types" EndIcon="arrow-right">
                       {t("go_back")}
                     </Button>
                   </div>

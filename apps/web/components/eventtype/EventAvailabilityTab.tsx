@@ -137,7 +137,7 @@ const EventTypeScheduleDetails = memo(
               href={`/availability/${schedule.id}`}
               disabled={isPending}
               color="minimal"
-              EndIcon={(props) => <Icon {...props} name="external-link" />}
+              EndIcon="external-link"
               target="_blank"
               rel="noopener noreferrer">
               {t("edit_availability")}

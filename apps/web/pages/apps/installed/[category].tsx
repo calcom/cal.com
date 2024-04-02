@@ -7,7 +7,8 @@ import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { AppCategories } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
-import { Button, EmptyScreen, AppSkeletonLoader as SkeletonLoader, Icon, ShellSubHeading } from "@calcom/ui";
+import type { Icon } from "@calcom/ui";
+import { AppSkeletonLoader as SkeletonLoader, Button, EmptyScreen, ShellSubHeading } from "@calcom/ui";
 
 import { QueryCell } from "@lib/QueryCell";
 import type { querySchemaType } from "@lib/apps/installed/[category]/getServerSideProps";
@@ -58,7 +59,7 @@ const IntegrationsContainer = ({
         if (!data.items.length) {
           return (
             <EmptyScreen
-              Icon={(props) => <Icon {...props} name={emptyIcon[variant || "other"]} />}
+              Icon={emptyIcon[variant || "other"]}
               headline={t("no_category_apps", {
                 category: (variant && t(variant).toLowerCase()) || t("other").toLowerCase(),
               })}
@@ -85,7 +86,7 @@ const IntegrationsContainer = ({
                   data-testid="add-apps"
                   href={variant ? `/apps/categories/${variant}` : "/apps"}
                   color="secondary"
-                  StartIcon={(props) => <Icon {...props} name="plus" />}>
+                  StartIcon="plus">
                   {t("add")}
                 </Button>
               }

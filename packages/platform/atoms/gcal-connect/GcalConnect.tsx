@@ -25,7 +25,7 @@ export const GcalConnect: FC<GcalConnectProps> = ({
 
   return (
     <Button
-      StartIcon={(props) => <Icon {...props} name="calendar-days" />}
+      StartIcon="calendar-days"
       color="primary"
       disabled={!allowConnect}
       className={cn("", className)}

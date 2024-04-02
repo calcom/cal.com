@@ -6,7 +6,6 @@ import React, { Fragment, useEffect } from "react";
 import { SUPPORT_MAIL_ADDRESS, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { EmptyScreen, Alert } from "@calcom/ui";
-import { Icon } from "@calcom/ui";
 
 type LicenseRequiredProps = {
   as?: keyof JSX.IntrinsicElements | "";
@@ -58,7 +57,7 @@ const LicenseRequired = ({ children, as = "", ...rest }: LicenseRequiredProps) =
         </>
       ) : (
         <EmptyScreen
-          Icon={(props) => <Icon {...props} name="alert-triangle" />}
+          Icon="alert-triangle"
           headline={t("enterprise_license")}
           description={
             <Trans i18nKey="enterprise_license_description">

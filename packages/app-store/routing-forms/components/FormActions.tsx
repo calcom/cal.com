@@ -33,7 +33,6 @@ import {
   TextAreaField,
   TextField,
 } from "@calcom/ui";
-import { Icon } from "@calcom/ui";
 
 import getFieldIdentifier from "../lib/getFieldIdentifier";
 import type { SerializableForm } from "../types/types";
@@ -174,7 +173,7 @@ export const FormActionsDropdown = ({
             variant="icon"
             color="secondary"
             className={classNames("radix-state-open:rounded-r-md", disabled && "opacity-30")}
-            StartIcon={(props) => <Icon {...props} name="more-horizontal" />}
+            StartIcon="more-horizontal"
           />
         </DropdownMenuTrigger>
         <DropdownMenuContent>{children}</DropdownMenuContent>

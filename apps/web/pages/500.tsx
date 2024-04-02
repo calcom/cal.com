@@ -4,7 +4,6 @@ import { APP_NAME } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, showToast } from "@calcom/ui";
-import { Icon } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
 
@@ -33,7 +32,7 @@ export default function Error500() {
               <Button
                 color="secondary"
                 className="mt-2 border-0 font-sans font-normal hover:bg-gray-300"
-                StartIcon={(props) => <Icon {...props} name="copy" />}
+                StartIcon="copy"
                 onClick={() => {
                   navigator.clipboard.writeText(searchParams?.get("error") as string);
                   showToast("Link copied!", "success");

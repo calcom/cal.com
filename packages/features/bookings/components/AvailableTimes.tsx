@@ -155,7 +155,7 @@ const SlotItem = ({
                 <Button
                   variant={layout === "column_view" ? "icon" : "button"}
                   StartIcon={
-                    layout === "column_view" ? (props) => <Icon {...props} name="chevron-right" /> : undefined
+                    layout === "column_view" ? "chevron-right" : undefined
                   }
                   onClick={() =>
                     onTimeSelect(slot.time, slot?.attendees || 0, seatsPerTimeSlot, slot.bookingUid)

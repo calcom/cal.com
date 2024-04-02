@@ -73,7 +73,7 @@ const ApiKeyListItem = ({
               type="button"
               variant="icon"
               color="secondary"
-              StartIcon={(props) => <Icon {...props} name="more-horizontal" />}
+              StartIcon="more-horizontal"
             />
           </DropdownMenuTrigger>
 
@@ -82,7 +82,7 @@ const ApiKeyListItem = ({
               <DropdownItem
                 type="button"
                 onClick={onEditClick}
-                StartIcon={(props) => <Icon {...props} name="pencil" />}>
+                StartIcon="pencil">
                 {t("edit") as string}
               </DropdownItem>
             </DropdownMenuItem>
@@ -96,7 +96,7 @@ const ApiKeyListItem = ({
                     id: apiKey.id,
                   })
                 }
-                StartIcon={(props) => <Icon {...props} name="trash" />}>
+                StartIcon="trash">
                 {t("delete") as string}
               </DropdownItem>
             </DropdownMenuItem>

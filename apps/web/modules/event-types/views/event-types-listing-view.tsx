@@ -463,7 +463,7 @@ export const EventTypeList = ({
                                   target="_blank"
                                   variant="icon"
                                   href={calLink}
-                                  StartIcon={(props) => <Icon {...props} name="external-link" />}
+                                  StartIcon="external-link"
                                 />
                               </Tooltip>
 
@@ -471,7 +471,7 @@ export const EventTypeList = ({
                                 <Button
                                   color="secondary"
                                   variant="icon"
-                                  StartIcon={(props) => <Icon {...props} name="link" />}
+                                  StartIcon="link"
                                   onClick={() => {
                                     showToast(t("link_copied"), "success");
                                     navigator.clipboard.writeText(calLink);
@@ -484,7 +484,7 @@ export const EventTypeList = ({
                                   <Button
                                     color="secondary"
                                     variant="icon"
-                                    StartIcon={(props) => <Icon {...props} name="venetian-mask" />}
+                                    StartIcon="venetian-mask"
                                     onClick={() => {
                                       showToast(t("private_link_copied"), "success");
                                       navigator.clipboard.writeText(placeholderHashedLink);
@@ -500,7 +500,7 @@ export const EventTypeList = ({
                                 type="button"
                                 variant="icon"
                                 color="secondary"
-                                StartIcon={(props) => <Icon {...props} name="more-horizontal" />}
+                                StartIcon="more-horizontal"
                                 className="ltr:radix-state-open:rounded-r-md rtl:radix-state-open:rounded-l-md"
                               />
                             </DropdownMenuTrigger>
@@ -510,7 +510,7 @@ export const EventTypeList = ({
                                   <DropdownItem
                                     type="button"
                                     data-testid={`event-type-edit-${type.id}`}
-                                    StartIcon={(props) => <Icon {...props} name="pencil" />}
+                                    StartIcon="pencil"
                                     onClick={() => router.push(`/event-types/${type.id}`)}>
                                     {t("edit")}
                                   </DropdownItem>
@@ -522,7 +522,7 @@ export const EventTypeList = ({
                                     <DropdownItem
                                       type="button"
                                       data-testid={`event-type-duplicate-${type.id}`}
-                                      StartIcon={(props) => <Icon {...props} name="copy" />}
+                                      StartIcon="copy"
                                       onClick={() => openDuplicateModal(type, group)}>
                                       {t("duplicate")}
                                     </DropdownItem>
@@ -535,8 +535,7 @@ export const EventTypeList = ({
                                     namespace=""
                                     as={DropdownItem}
                                     type="button"
-                                    // @ts-expect-error the Button props fallback isn't being picked up here
-                                    StartIcon={(props) => <Icon {...props} name="code" />}
+                                    StartIcon="code"
                                     className="w-full rounded-none"
                                     embedUrl={encodeURIComponent(embedLink)}
                                     eventId={type.id}>
@@ -557,7 +556,7 @@ export const EventTypeList = ({
                                           setDeleteDialogTypeId(type.id);
                                           setDeleteDialogSchedulingType(type.schedulingType);
                                         }}
-                                        StartIcon={(props) => <Icon {...props} name="trash" />}
+                                        StartIcon="trash"
                                         className="w-full rounded-none">
                                         {t("delete")}
                                       </DropdownItem>
@@ -574,12 +573,7 @@ export const EventTypeList = ({
                 <div className="min-w-9 mx-5 flex sm:hidden">
                   <Dropdown>
                     <DropdownMenuTrigger asChild data-testid={`event-type-options-${type.id}`}>
-                      <Button
-                        type="button"
-                        variant="icon"
-                        color="secondary"
-                        StartIcon={(props) => <Icon {...props} name="more-horizontal" />}
-                      />
+                      <Button type="button" variant="icon" color="secondary" StartIcon="more-horizontal" />
                     </DropdownMenuTrigger>
                     <DropdownMenuPortal>
                       <DropdownMenuContent>
@@ -589,7 +583,7 @@ export const EventTypeList = ({
                               <DropdownItem
                                 href={calLink}
                                 target="_blank"
-                                StartIcon={(props) => <Icon {...props} name="external-link" />}
+                                StartIcon="external-link"
                                 className="w-full rounded-none">
                                 {t("preview")}
                               </DropdownItem>
@@ -601,7 +595,7 @@ export const EventTypeList = ({
                                   navigator.clipboard.writeText(calLink);
                                   showToast(t("link_copied"), "success");
                                 }}
-                                StartIcon={(props) => <Icon {...props} name="clipboard" />}
+                                StartIcon="clipboard"
                                 className="w-full rounded-none text-left">
                                 {t("copy_link")}
                               </DropdownItem>
@@ -622,7 +616,7 @@ export const EventTypeList = ({
                                   .then(() => showToast(t("link_shared"), "success"))
                                   .catch(() => showToast(t("failed"), "error"));
                               }}
-                              StartIcon={(props) => <Icon {...props} name="upload" />}
+                              StartIcon="upload"
                               className="w-full rounded-none">
                               {t("share")}
                             </DropdownItem>
@@ -632,7 +626,7 @@ export const EventTypeList = ({
                           <DropdownMenuItem className="outline-none">
                             <DropdownItem
                               onClick={() => router.push(`/event-types/${type.id}`)}
-                              StartIcon={(props) => <Icon {...props} name="pencil" />}
+                              StartIcon="pencil"
                               className="w-full rounded-none">
                               {t("edit")}
                             </DropdownItem>
@@ -642,7 +636,7 @@ export const EventTypeList = ({
                           <DropdownMenuItem className="outline-none">
                             <DropdownItem
                               onClick={() => openDuplicateModal(type, group)}
-                              StartIcon={(props) => <Icon {...props} name="copy" />}
+                              StartIcon="copy"
                               data-testid={`event-type-duplicate-${type.id}`}>
                               {t("duplicate")}
                             </DropdownItem>
@@ -660,7 +654,7 @@ export const EventTypeList = ({
                                     setDeleteDialogTypeId(type.id);
                                     setDeleteDialogSchedulingType(type.schedulingType);
                                   }}
-                                  StartIcon={(props) => <Icon {...props} name="trash" />}
+                                  StartIcon="trash"
                                   className="w-full rounded-none">
                                   {t("delete")}
                                 </DropdownItem>
@@ -789,7 +783,7 @@ const CreateFirstEventTypeView = ({ slug }: { slug: string }) => {
 
   return (
     <EmptyScreen
-      Icon={(props) => <Icon {...props} name="link" />}
+      Icon="link"
       headline={t("new_event_type_heading")}
       description={t("new_event_type_description")}
       className="mb-16"

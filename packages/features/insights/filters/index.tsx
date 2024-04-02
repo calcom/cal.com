@@ -57,7 +57,7 @@ export const Filters = () => {
                     color="secondary"
                     target="_blank"
                     rel="noreferrer"
-                    StartIcon={(props) => <Icon {...props} name="settings" />}
+                    StartIcon="settings"
                     className="h-[38px]"
                   />
                 </Tooltip>
@@ -67,7 +67,7 @@ export const Filters = () => {
             color="secondary"
             target="_blank"
             rel="noreferrer"
-            StartIcon={(props) => <Icon {...props} name="download" />}
+            StartIcon="download"
             className="h-[38px]"
           />
         </Tooltip>

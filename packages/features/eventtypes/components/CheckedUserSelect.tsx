@@ -60,7 +60,7 @@ export const CheckedUserSelect = ({
       ) : (
         <div className="mt-6">
           <EmptyScreen
-            Icon={(props) => <Icon {...props} name="user-plus" />}
+            Icon="user-plus"
             headline={t("no_assigned_members")}
             description={t("start_assigning_members_above")}
           />

@@ -226,7 +226,7 @@ export const FormBuilder = function FormBuilder({
                         onClick={() => {
                           removeField(index);
                         }}
-                        StartIcon={(props) => <Icon {...props} name="trash-2" />}
+                        StartIcon="trash-2"
                       />
                     )}
                     <Button
@@ -258,7 +258,7 @@ export const FormBuilder = function FormBuilder({
             data-testid="add-field"
             onClick={addField}
             className="mt-4"
-            StartIcon={(props) => <Icon {...props} name="plus" />}>
+            StartIcon="plus">
             {addFieldLabel}
           </Button>
         )}
@@ -367,7 +367,7 @@ function Options({
                     className="-ml-8 mb-2 hover:!bg-transparent focus:!bg-transparent focus:!outline-none focus:!ring-0"
                     size="sm"
                     color="minimal"
-                    StartIcon={(props) => <Icon {...props} name="x" />}
+                    StartIcon="x"
                     onClick={() => {
                       if (!value) {
                         return;
@@ -389,7 +389,7 @@ function Options({
               value.push({ label: "", value: "" });
               onChange(value);
             }}
-            StartIcon={(props) => <Icon {...props} name="plus" />}>
+            StartIcon="plus">
             Add an Option
           </Button>
         )}

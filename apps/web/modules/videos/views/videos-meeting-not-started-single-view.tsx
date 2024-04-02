@@ -14,7 +14,7 @@ export default function MeetingNotStarted(props: PageProps) {
       <HeadSeo title={t("this_meeting_has_not_started_yet")} description={props.booking.title} />
       <main className="mx-auto my-24 max-w-3xl">
         <EmptyScreen
-          Icon={(props) => <Icon {...props} name="clock" />}
+          Icon="clock"
           headline={t("this_meeting_has_not_started_yet")}
           description={
             <>
@@ -26,10 +26,7 @@ export default function MeetingNotStarted(props: PageProps) {
             </>
           }
           buttonRaw={
-            <Button
-              data-testid="return-home"
-              href="/event-types"
-              EndIcon={(props) => <Icon {...props} name="arrow-right" />}>
+            <Button data-testid="return-home" href="/event-types" EndIcon="arrow-right">
               {t("go_back")}
             </Button>
           }

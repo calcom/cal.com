@@ -105,7 +105,7 @@ export default function ApiKeyDialogForm({
                   }}
                   type="button"
                   className="rounded-l-none text-base"
-                  StartIcon={(props) => <Icon {...props} name="clipboard" />}>
+                  StartIcon="clipboard">
                   {t("copy")}
                 </Button>
               </Tooltip>

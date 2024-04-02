@@ -9,7 +9,7 @@ import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import { Button, Icon, showToast } from "@calcom/ui";
+import { Button, showToast } from "@calcom/ui";
 import { Spinner } from "@calcom/ui/components/icon/Spinner";
 
 interface IAlbyPaymentComponentProps {
@@ -97,7 +97,7 @@ export const AlbyPaymentComponent = (props: IAlbyPaymentComponentProps) => {
                 color="secondary"
                 onClick={() => copyToClipboard(paymentRequest)}
                 className="text-subtle rounded-md"
-                StartIcon={(props) => <Icon {...props} name={isCopied ? "clipboard-check" : "clipboard"} />}>
+                StartIcon={isCopied ? "clipboard-check" : "clipboard"}>
                 Copy Invoice
               </Button>
               <Link target="_blank" href="https://getalby.com" className="link mt-4 text-sm underline">

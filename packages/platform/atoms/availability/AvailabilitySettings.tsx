@@ -105,7 +105,7 @@ const DeleteDialogButton = ({
     <Dialog>
       <DialogTrigger asChild>
         <Button
-          StartIcon={(props) => <Icon {...props} name="trash" />}
+          StartIcon="trash"
           variant="icon"
           color="destructive"
           aria-label={t("delete")}
@@ -180,7 +180,7 @@ const DateOverride = ({
           Trigger={
             <Button
               color="secondary"
-              StartIcon={(props) => <Icon {...props} name="plus" />}
+              StartIcon="plus"
               data-testid="add-override">
               {t("add_an_override")}
             </Button>
@@ -325,7 +325,7 @@ export function AvailabilitySettings({
                   )}>
                   <div className="flex flex-row items-center pt-5">
                     <Button
-                      StartIcon={(props) => <Icon {...props} name="arrow-left" />}
+                      StartIcon="arrow-left"
                       color="minimal"
                       onClick={() => setOpenSidebar(false)}
                     />
@@ -441,7 +441,7 @@ export function AvailabilitySettings({
           </Button>
           <Button
             className="ml-3 sm:hidden"
-            StartIcon={(props) => <Icon {...props} name="more-vertical" />}
+            StartIcon="more-vertical"
             variant="icon"
             color="secondary"
             onClick={() => setOpenSidebar(true)}

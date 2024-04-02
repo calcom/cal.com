@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button, Icon } from "@calcom/ui";
+import { Button } from "@calcom/ui";
 
 import { SearchDialog } from "./SearchDialog";
 
@@ -27,7 +27,7 @@ export default function SelectGifInput(props: ISelectGifInput) {
           <Button
             color="minimal"
             type="button"
-            StartIcon={(props) => <Icon {...props} name="pencil" />}
+            StartIcon="pencil"
             onClick={() => setShowDialog(true)}
             disabled={props.disabled}>
             Change
@@ -36,7 +36,7 @@ export default function SelectGifInput(props: ISelectGifInput) {
           <Button
             color="minimal"
             type="button"
-            StartIcon={(props) => <Icon {...props} name="plus" />}
+            StartIcon="plus"
             onClick={() => setShowDialog(true)}
             disabled={props.disabled}>
             Add from Giphy
@@ -47,7 +47,7 @@ export default function SelectGifInput(props: ISelectGifInput) {
           <Button
             color="destructive"
             type="button"
-            StartIcon={(props) => <Icon {...props} name="x" />}
+            StartIcon="x"
             onClick={() => {
               setSelectedGif("");
               props.onChange("");

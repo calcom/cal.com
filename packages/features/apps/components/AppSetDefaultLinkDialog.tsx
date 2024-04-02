@@ -14,7 +14,6 @@ import {
   DialogContent,
   DialogFooter,
   Form,
-  Icon,
   showToast,
   TextField,
 } from "@calcom/ui";
@@ -57,7 +56,7 @@ export function AppSetDefaultLinkDialog({
         title={t("default_app_link_title")}
         description={t("default_app_link_description")}
         type="creation"
-        Icon={(props) => <Icon {...props} name="alert-circle" />}>
+        Icon="alert-circle">
         <Form
           form={form}
           handleSubmit={(values) => {

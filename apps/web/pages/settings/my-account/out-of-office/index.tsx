@@ -11,7 +11,6 @@ import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import {
   Button,
   DateRangePicker,
-  Icon,
   Meta,
   Select,
   showToast,
@@ -212,7 +211,7 @@ const OutOfOfficeEntriesList = () => {
                   color="minimal"
                   variant="icon"
                   disabled={deleteOutOfOfficeEntryMutation.isPending}
-                  StartIcon={(props) => <Icon {...props} name="trash-2" />}
+                  StartIcon="trash-2"
                   onClick={() => {
                     deleteOutOfOfficeEntryMutation.mutate({ outOfOfficeUid: item.uuid });
                   }}
