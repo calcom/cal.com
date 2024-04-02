@@ -28,7 +28,9 @@ test.describe("React Embed", () => {
       embeds,
     }) => {
       const calNamespace = "floating";
+      await page.waitForLoadState();
       await embeds.gotoPlayground({ url: "/floating.html", calNamespace });
+
       await page.click("text=Book my Cal");
 
       const embedIframe = await getEmbedIframe({ calNamespace, page, pathname: "/pro" });
@@ -48,6 +50,7 @@ test.describe("React Embed", () => {
     }) => {
       const calNamespace = "element-click";
       await embeds.gotoPlayground({ url: "/element-click.html", calNamespace });
+      await page.waitForLoadState();
       await page.click("text=Click me");
 
       const embedIframe = await getEmbedIframe({ calNamespace, page, pathname: "/pro" });

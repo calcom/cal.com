@@ -66,7 +66,7 @@ export const Codes = {
   export default function MyApp() {
 	useEffect(()=>{
 	  (async function () {
-		const cal = await getCalApi(${argumentForGetCalApi ? JSON.stringify(argumentForGetCalApi) : ""}});
+		const cal = await getCalApi(${argumentForGetCalApi ? JSON.stringify(argumentForGetCalApi) : ""});
 		${getApiName({ namespace, mainApiName: "cal" })}("floatingButton", ${floatingButtonArg});
 		${uiInstructionCode}
 	  })();
@@ -93,7 +93,7 @@ export const Codes = {
   export default function MyApp() {
 	useEffect(()=>{
 	  (async function () {
-		const cal = await getCalApi(${argumentForGetCalApi ? JSON.stringify(argumentForGetCalApi) : ""}});
+		const cal = await getCalApi(${argumentForGetCalApi ? JSON.stringify(argumentForGetCalApi) : ""});
 		${uiInstructionCode}
 	  })();
 	}, [])
