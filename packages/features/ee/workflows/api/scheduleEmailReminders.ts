@@ -228,6 +228,20 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
             name || "",
             !!reminder.booking.user?.hideBranding
           );
+        } else if (reminder.workflowStep.template === WorkflowTemplates.RATING) {
+          emailContent = emailRatingTemplate({
+            isEditingMode: true,
+            action: reminder.workflowStep.action,
+            timeFormat: getTimeFormatStringFromUserTimeFormat(reminder.booking.user?.timeFormat),
+            startTime: reminder.booking.startTime.toISOString() || "",
+            endTime: reminder.booking.endTime.toISOString() || "",
+            eventName: reminder.booking.eventType?.title || "",
+            timeZone: timeZone || "",
+            organizer: organizerName || "",
+            name: name || "",
+            ratingUrl: ratingUrl || "",
+            noShowUrl: noShowUrl || "",
+          });
         }
 
         if (emailContent.emailSubject.length > 0 && !emailBodyEmpty && sendTo) {
