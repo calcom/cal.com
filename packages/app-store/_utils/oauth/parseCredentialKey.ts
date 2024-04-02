@@ -24,8 +24,9 @@ export type ParseCredentialKeyRefreshResponse<S extends z.ZodTypeAny> =
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const parseCredentialKey = (response: any, schema: z.ZodTypeAny) => {
   let refreshTokenResponse;
-  const credentialSyncingEnabled =
-    APP_CREDENTIAL_SHARING_ENABLED && process.env.CALCOM_CREDENTIAL_SYNC_ENDPOINT;
+  const credentialSyncingEnabled = !!(
+    APP_CREDENTIAL_SHARING_ENABLED && process.env.CALCOM_CREDENTIAL_SYNC_ENDPOINT
+  );
   if (APP_CREDENTIAL_SHARING_ENABLED && process.env.CALCOM_CREDENTIAL_SYNC_ENDPOINT) {
     refreshTokenResponse = minimumTokenResponseSchema.safeParse(response);
   } else {
@@ -40,7 +41,7 @@ const parseCredentialKey = (response: any, schema: z.ZodTypeAny) => {
     refreshTokenResponse.data.refresh_token = "refresh_token";
   }
 
-  return refreshTokenResponse.data;
+  return refreshTokenResponse;
 };
 
 export default parseCredentialKey;

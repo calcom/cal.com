@@ -107,7 +107,7 @@ const zoomAuth = (credential: CredentialPayload) => {
     const newTokens: ParseCredentialKeyRefreshResponse<typeof zoomRefreshedTokenSchema> = parseCredentialKey(
       responseBody,
       zoomRefreshedTokenSchema
-    );
+    ).data;
 
     const key = credential.key as ZoomToken;
     key.access_token = newTokens.access_token ?? key.access_token;

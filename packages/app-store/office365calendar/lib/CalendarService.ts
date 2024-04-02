@@ -262,7 +262,7 @@ export default class Office365CalendarService implements Calendar {
       );
       const responseJson = await handleErrorsJson(response);
       const tokenResponse: ParseCredentialKeyRefreshResponse<typeof refreshTokenResponseSchema> =
-        parseCredentialKey(responseJson, refreshTokenResponseSchema);
+        parseCredentialKey(responseJson, refreshTokenResponseSchema).data;
       o365AuthCredentials = { ...o365AuthCredentials, ...tokenResponse };
       await prisma.credential.update({
         where: {

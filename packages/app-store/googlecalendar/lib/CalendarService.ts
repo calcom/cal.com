@@ -99,7 +99,7 @@ export default class GoogleCalendarService implements Calendar {
         googleCredentials.access_token = token.access_token;
         googleCredentials.expiry_date = token.expiry_date;
         const parsedKey: ParseCredentialKeyRefreshResponse<typeof googleCredentialSchema> =
-          parseCredentialKey(googleCredentials, googleCredentialSchema);
+          parseCredentialKey(googleCredentials, googleCredentialSchema).data;
         await prisma.credential.update({
           where: { id: credential.id },
           data: { key: { ...parsedKey } as Prisma.InputJsonValue },
