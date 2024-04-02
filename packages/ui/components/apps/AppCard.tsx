@@ -1,5 +1,4 @@
-import { usePathname } from "next/navigation";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
@@ -14,14 +13,14 @@ import type { AppFrontendPayload as App } from "@calcom/types/App";
 import type { CredentialFrontendPayload as Credential } from "@calcom/types/Credential";
 import type { ButtonProps } from "@calcom/ui";
 import {
-  Dropdown,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuPortal,
-  DropdownMenuLabel,
-  DropdownItem,
   Avatar,
   Badge,
+  Dropdown,
+  DropdownItem,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuPortal,
+  DropdownMenuTrigger,
 } from "@calcom/ui";
 
 import { Button } from "../button";

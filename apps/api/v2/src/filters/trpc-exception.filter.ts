@@ -40,6 +40,7 @@ export class TRPCExceptionFilter implements ExceptionFilter {
     }
     this.logger.error(`TRPC Exception Filter: ${exception?.message}`, {
       exception,
+      request,
     });
     response.status(statusCode).json({
       status: ERROR_STATUS,

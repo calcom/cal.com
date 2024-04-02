@@ -50,7 +50,7 @@ export const TeamsFilter = ({
       if (selectedTeamsNames) {
         checkedOptions.push(...selectedTeamsNames);
       }
-      return `${t("team")}: ${checkedOptions.join(",")}`;
+      return `${checkedOptions.join(",")}`;
     }
     if (users) {
       return t("yours");

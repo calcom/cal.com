@@ -1,10 +1,9 @@
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { usePathname, useRouter } from "next/navigation";
-import { useMemo } from "react";
-import type { ReactNode, ForwardRefExoticComponent, ReactElement } from "react";
-import React, { useState } from "react";
+import type { ForwardRefExoticComponent, ReactElement, ReactNode } from "react";
+import React, { useMemo, useState } from "react";
 
-import { useIsPlatform, Dialog as PlatformDialogPrimitives } from "@calcom/atoms/monorepo";
+import { Dialog as PlatformDialogPrimitives, useIsPlatform } from "@calcom/atoms/monorepo";
 import classNames from "@calcom/lib/classNames";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";

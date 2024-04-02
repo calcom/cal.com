@@ -3,8 +3,8 @@ import { useRouter } from "next/navigation";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { trpc } from "@calcom/trpc/react";
-import { CreateButtonWithTeamsList, EmptyScreen as ClassicEmptyScreen, Icon, showToast } from "@calcom/ui";
 import type { IconName } from "@calcom/ui";
+import { CreateButtonWithTeamsList, EmptyScreen as ClassicEmptyScreen, Icon, showToast } from "@calcom/ui";
 
 type WorkflowExampleType = {
   Icon: IconName;
