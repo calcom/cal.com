@@ -1,8 +1,8 @@
 import classNames from "classnames";
+import type { LucideProps } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { TOP_BANNER_HEIGHT } from "@calcom/lib/constants";
-import type { LucideProps } from "@calcom/ui/components/icon";
 
 import { Icon, type IconName } from "../..";
 
