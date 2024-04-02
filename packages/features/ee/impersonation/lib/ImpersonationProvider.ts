@@ -3,8 +3,8 @@ import type { Session } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { z } from "zod";
 
+import { ensureOrganizationIsReviewed } from "@calcom/ee/organizations/lib/ensureOrganizationIsReviewed";
 import { getSession } from "@calcom/features/auth/lib/getSession";
-import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
@@ -332,26 +332,6 @@ const ImpersonationProvider = CredentialsProvider({
 });
 
 export default ImpersonationProvider;
-/**
- * It assumes that a user can only impersonate the members of the organization he is logged in to.
- * Note: Ensuring that one organization's member can't impersonate other organization's member isn't the job of this function
- */
-async function ensureOrganizationIsReviewed(loggedInUserOrgId: number | undefined) {
-  if (loggedInUserOrgId) {
-    const org = await OrganizationRepository.findByIdIncludeOrganizationSettings({
-      id: loggedInUserOrgId,
-    });
-
-    if (!org) {
-      throw new Error("Error-OrgNotFound: You do not have permission to do this.");
-    }
-
-    if (!org.organizationSettings?.isAdminReviewed) {
-      // If the org is not reviewed, we can't allow impersonation
-      throw new Error("Error-OrgNotReviewed: You do not have permission to do this.");
-    }
-  }
-}
 
 async function findProfile(returningUser: { id: number; username: string | null }) {
   const allOrgProfiles = await ProfileRepository.findAllProfilesForUserIncludingMovedUser({
