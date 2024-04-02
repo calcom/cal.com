@@ -171,8 +171,6 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
         const paymentApp = (await appStore[app.dirName as keyof typeof appStore]?.()) as PaymentApp | null;
         if (paymentApp && "lib" in paymentApp && paymentApp?.lib && "PaymentService" in paymentApp?.lib) {
           const PaymentService = paymentApp.lib.PaymentService;
-          console.log("🚀 ~ enabledApps.map ~ credential:", credential);
-
           const paymentInstance = new PaymentService(credential);
           isSetupAlready = paymentInstance.isSetupAlready();
         }
