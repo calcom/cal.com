@@ -533,12 +533,15 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/CreateEventTypeOutput"
                 }
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Event types"
+        ]
       },
       "get": {
         "operationId": "EventTypesController_getEventTypes",
@@ -554,7 +557,10 @@
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Event types"
+        ]
       }
     },
     "/api/v2/event-types/{eventTypeId}": {
@@ -581,7 +587,76 @@
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Event types"
+        ]
+      },
+      "patch": {
+        "operationId": "EventTypesController_updateEventType",
+        "parameters": [
+          {
+            "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateEventTypeInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Event types"
+        ]
+      },
+      "delete": {
+        "operationId": "EventTypesController_deleteEventType",
+        "parameters": [
+          {
+            "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Event types"
+        ]
       }
     },
     "/api/v2/event-types/{username}/public": {
@@ -608,7 +683,10 @@
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Event types"
+        ]
       }
     },
     "/api/v2/ee/gcal/oauth/auth-url": {
@@ -1324,11 +1402,11 @@
         "properties": {
           "status": {
             "type": "string",
-            "example": "success",
             "enum": [
               "success",
               "error"
-            ]
+            ],
+            "example": "success"
           },
           "data": {
             "example": {
@@ -1367,7 +1445,8 @@
             "example": 3
           },
           "logo": {
-            "type": "object",
+            "type": "string",
+            "nullable": true,
             "example": "https://example.com/logo.png"
           },
           "redirectUris": {
@@ -1530,7 +1609,118 @@
           "refreshToken"
         ]
       },
+      "EventTypeLocation": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "link"
+          },
+          "link": {
+            "type": "string",
+            "example": "https://masterchief.com/argentina/flan/video/9129412"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
       "CreateEventTypeInput": {
+        "type": "object",
+        "properties": {
+          "length": {
+            "type": "number",
+            "minimum": 1,
+            "example": 60
+          },
+          "slug": {
+            "type": "string",
+            "example": "cooking-class"
+          },
+          "title": {
+            "type": "string",
+            "example": "Learn the secrets of masterchief!"
+          },
+          "description": {
+            "type": "string",
+            "example": "Discover the culinary wonders of the Argentina by making the best flan ever!"
+          },
+          "locations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EventTypeLocation"
+            }
+          }
+        },
+        "required": [
+          "length",
+          "slug",
+          "title"
+        ]
+      },
+      "EventTypeOutput": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1
+          },
+          "length": {
+            "type": "number",
+            "example": 60
+          },
+          "slug": {
+            "type": "string",
+            "example": "cooking-class"
+          },
+          "title": {
+            "type": "string",
+            "example": "Learn the secrets of masterchief!"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "example": "Discover the culinary wonders of the Argentina by making the best flan ever!"
+          },
+          "locations": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/EventTypeLocation"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "length",
+          "slug",
+          "title",
+          "description",
+          "locations"
+        ]
+      },
+      "CreateEventTypeOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/EventTypeOutput"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "UpdateEventTypeInput": {
         "type": "object",
         "properties": {
           "length": {
@@ -1542,13 +1732,20 @@
           },
           "title": {
             "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "hidden": {
+            "type": "boolean"
+          },
+          "locations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EventTypeLocation"
+            }
           }
-        },
-        "required": [
-          "length",
-          "slug",
-          "title"
-        ]
+        }
       },
       "CreateAvailabilityInput": {
         "type": "object",
