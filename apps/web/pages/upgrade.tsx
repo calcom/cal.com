@@ -37,7 +37,7 @@ export default function UpgradePage() {
           <EmptyScreen
             headline="Your upgrade is here"
             description="Improve your scheduling experience by upgrading to the new plan and enjoy the new features."
-            Icon="arrow-up-circle"
+            Icon="circle-arrow-up"
             buttonRaw={
               <Button
                 onClick={() => {
@@ -51,7 +51,7 @@ export default function UpgradePage() {
           <EmptyScreen
             headline="You are all set"
             description="You are already on the latest plan. Nothing to upgrade. Enjoy the new features and reach out to us with any questions!"
-            Icon="check-circle"
+            Icon="circle-check"
             buttonRaw={<Button href="mailto:support@cal.com">{t("contact_support")}</Button>}
           />
         )}

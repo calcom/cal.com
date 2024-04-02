@@ -26,7 +26,7 @@ export default function AppsLayout({ children, actions, emptyStore, ...rest }: A
         <main className="w-full">
           {emptyStore ? (
             <EmptyScreen
-              Icon="alert-circle"
+              Icon="circle-alert"
               headline={isAdmin ? t("no_apps") : t("no_apps_configured")}
               description={isAdmin ? t("enable_in_settings") : t("please_contact_admin")}
               buttonText={isAdmin ? t("apps_settings") : ""}

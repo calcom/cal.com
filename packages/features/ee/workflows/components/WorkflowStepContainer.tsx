@@ -370,12 +370,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   <div>
                     <Dropdown>
                       <DropdownMenuTrigger asChild>
-                        <Button
-                          type="button"
-                          color="minimal"
-                          variant="icon"
-                          StartIcon="more-horizontal"
-                        />
+                        <Button type="button" color="minimal" variant="icon" StartIcon="ellipsis" />
                       </DropdownMenuTrigger>
                       <DropdownMenuContent>
                         <DropdownMenuItem>
@@ -888,7 +883,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   <div className="mt-3 ">
                     <button type="button" onClick={() => setIsAdditionalInputsDialogOpen(true)}>
                       <div className="text-default mt-2 flex text-sm">
-                        <Icon name="help-circle" className="mt-[3px] h-3 w-3 ltr:mr-2 rtl:ml-2" />
+                        <Icon name="circle-help" className="mt-[3px] h-3 w-3 ltr:mr-2 rtl:ml-2" />
                         <p className="text-left">{t("using_booking_questions_as_variables")}</p>
                       </div>
                     </button>

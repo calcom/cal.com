@@ -500,7 +500,7 @@ export const EventTypeList = ({
                                 type="button"
                                 variant="icon"
                                 color="secondary"
-                                StartIcon="more-horizontal"
+                                StartIcon="ellipsis"
                                 className="ltr:radix-state-open:rounded-r-md rtl:radix-state-open:rounded-l-md"
                               />
                             </DropdownMenuTrigger>
@@ -573,7 +573,7 @@ export const EventTypeList = ({
                 <div className="min-w-9 mx-5 flex sm:hidden">
                   <Dropdown>
                     <DropdownMenuTrigger asChild data-testid={`event-type-options-${type.id}`}>
-                      <Button type="button" variant="icon" color="secondary" StartIcon="more-horizontal" />
+                      <Button type="button" variant="icon" color="secondary" StartIcon="ellipsis" />
                     </DropdownMenuTrigger>
                     <DropdownMenuPortal>
                       <DropdownMenuContent>

@@ -84,7 +84,7 @@ export function ScheduleListItem({
               type="button"
               variant="icon"
               color="secondary"
-              StartIcon="more-horizontal"
+              StartIcon="ellipsis"
             />
           </DropdownMenuTrigger>
           {!isPending && data && (

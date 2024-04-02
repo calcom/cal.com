@@ -144,7 +144,7 @@ export const AppDependencyComponent = ({
             <div className="items-start space-x-2.5">
               <div className="text-info flex items-start">
                 <div>
-                  <Icon name="alert-circle" className="mr-2 mt-1 font-semibold" />
+                  <Icon name="circle-alert" className="mr-2 mt-1 font-semibold" />
                 </div>
                 <div>
                   <span className="font-semibold">

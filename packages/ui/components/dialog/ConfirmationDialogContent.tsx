@@ -49,12 +49,12 @@ export const ConfirmationContent = (props: PropsWithChildren<ConfirmationDialogC
           <div className="mt-0.5 ltr:mr-3">
             {variety === "danger" && (
               <div className="bg-error mx-auto rounded-full p-2 text-center">
-                <Icon name="alert-circle" className="h-5 w-5 text-red-600 dark:text-red-100" />
+                <Icon name="circle-alert" className="h-5 w-5 text-red-600 dark:text-red-100" />
               </div>
             )}
             {variety === "warning" && (
               <div className="bg-attention mx-auto rounded-full p-2 text-center">
-                <Icon name="alert-circle" className="h-5 w-5 text-orange-600" />
+                <Icon name="circle-alert" className="h-5 w-5 text-orange-600" />
               </div>
             )}
             {variety === "success" && (

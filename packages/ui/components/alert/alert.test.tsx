@@ -16,7 +16,7 @@ describe("Tests for Alert component", () => {
 
   test("Should render corresponding icon: error", () => {
     render(<Alert severity="error" />);
-    expect(screen.getByTestId("x-circle")).toBeInTheDocument();
+    expect(screen.getByTestId("circle-x")).toBeInTheDocument();
   });
 
   test("Should render corresponding icon: warning", () => {
@@ -36,6 +36,6 @@ describe("Tests for Alert component", () => {
 
   test("Should render corresponding icon: success", () => {
     render(<Alert severity="success" />);
-    expect(screen.getByTestId("check-circle-2")).toBeInTheDocument();
+    expect(screen.getByTestId("circle-check")).toBeInTheDocument();
   });
 });

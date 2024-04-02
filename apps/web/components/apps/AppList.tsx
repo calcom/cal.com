@@ -81,7 +81,7 @@ export const AppList = ({ data, handleDisconnect, variant, listClassName }: AppL
             <div className="flex justify-end">
               <Dropdown modal={false}>
                 <DropdownMenuTrigger asChild>
-                  <Button StartIcon="more-horizontal" variant="icon" color="secondary" />
+                  <Button StartIcon="ellipsis" variant="icon" color="secondary" />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
                   {!appIsDefault && variant === "conferencing" && !item.credentialOwner?.teamId && (

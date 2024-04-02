@@ -256,7 +256,7 @@ export default function WorkflowListPage({ workflows }: Props) {
                                 type="button"
                                 color="minimal"
                                 variant="icon"
-                                StartIcon="more-horizontal"
+                                StartIcon="ellipsis"
                               />
                             </DropdownMenuTrigger>
                             <DropdownMenuContent>

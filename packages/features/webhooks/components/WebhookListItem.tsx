@@ -11,7 +11,6 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  Icon,
   showToast,
   Switch,
   Tooltip,
@@ -129,7 +128,7 @@ export default function WebhookListItem(props: {
 
           <Dropdown>
             <DropdownMenuTrigger asChild>
-              <Button className="lg:hidden" StartIcon="more-horizontal" variant="icon" color="secondary" />
+              <Button className="lg:hidden" StartIcon="ellipsis" variant="icon" color="secondary" />
             </DropdownMenuTrigger>
             <DropdownMenuContent>
               <DropdownMenuItem>

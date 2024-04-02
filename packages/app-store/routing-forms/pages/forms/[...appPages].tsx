@@ -109,7 +109,7 @@ export default function RoutingForms({
       description: t("reporting_feature"),
     },
     {
-      icon: <Icon name="check-circle" className="h-5 w-5 text-teal-500" />,
+      icon: <Icon name="circle-check" className="h-5 w-5 text-teal-500" />,
       title: t("test_routing_form"),
       description: t("test_preview_description"),
     },

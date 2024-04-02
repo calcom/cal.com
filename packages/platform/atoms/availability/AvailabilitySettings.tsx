@@ -441,7 +441,7 @@ export function AvailabilitySettings({
           </Button>
           <Button
             className="ml-3 sm:hidden"
-            StartIcon="more-vertical"
+            StartIcon="ellipsis-vertical"
             variant="icon"
             color="secondary"
             onClick={() => setOpenSidebar(true)}

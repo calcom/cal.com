@@ -92,7 +92,7 @@ function getNavigation({
     {
       name: "event_advanced_tab_title",
       href: `/event-types/${id}?tabName=advanced`,
-      icon: "sliders",
+      icon: "sliders-vertical",
       info: `event_advanced_tab_description`,
     },
     {
@@ -408,7 +408,7 @@ function EventTypeSingleLayout({
 
           <Dropdown>
             <DropdownMenuTrigger asChild>
-              <Button className="lg:hidden" StartIcon="more-horizontal" variant="icon" color="secondary" />
+              <Button className="lg:hidden" StartIcon="ellipsis" variant="icon" color="secondary" />
             </DropdownMenuTrigger>
             <DropdownMenuContent style={{ minWidth: "200px" }}>
               <DropdownMenuItem className="focus:ring-muted">

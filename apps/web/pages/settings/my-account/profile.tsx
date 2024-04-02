@@ -349,7 +349,7 @@ const ProfileView = () => {
           title={t("delete_account_modal_title")}
           description={t("confirm_delete_account_modal", { appName: APP_NAME })}
           type="creation"
-          Icon="alert-triangle">
+          Icon="triangle-alert">
           <>
             <div className="mb-10">
               <p className="text-default mb-4">{t("delete_account_confirmation_message")}</p>
@@ -392,7 +392,7 @@ const ProfileView = () => {
           title={t("confirm_password")}
           description={t("confirm_password_change_email")}
           type="creation"
-          Icon="alert-triangle">
+          Icon="triangle-alert">
           <div className="mb-10">
             <div className="mb-4 grid gap-2 md:grid-cols-2">
               <div>
@@ -441,7 +441,7 @@ const ProfileView = () => {
           title={t("confirm_auth_change")}
           description={t("confirm_auth_email_change")}
           type="creation"
-          Icon="alert-triangle">
+          Icon="triangle-alert">
           <DialogFooter>
             <Button
               color="primary"

@@ -56,7 +56,7 @@ export const ChargeCardDialog = (props: IRescheduleDialog) => {
 
             {chargeError && (
               <div className="mt-4 flex text-red-500">
-                <Icon name="alert-triangle" className="mr-2 h-5 w-5 " aria-hidden="true" />
+                <Icon name="triangle-alert" className="mr-2 h-5 w-5 " aria-hidden="true" />
                 <p className="text-sm">{t("error_charging_card")}</p>
               </div>
             )}

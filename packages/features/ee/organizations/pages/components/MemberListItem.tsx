@@ -86,7 +86,7 @@ export default function MemberListItem(props: Props) {
                     type="button"
                     variant="icon"
                     color="minimal"
-                    StartIcon="more-horizontal"
+                    StartIcon="ellipsis"
                   />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>

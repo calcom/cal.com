@@ -88,7 +88,7 @@ export default function PayPalSetup() {
               </p>
 
               <p className="text-lgf text-default mt-5 inline-flex font-bold">
-                <Icon name="alert-circle" className="mr-2 mt-1 h-4 w-4" /> Important requirements:
+                <Icon name="circle-alert" className="mr-2 mt-1 h-4 w-4" /> Important requirements:
               </p>
               <ul className="text-default ml-1 mt-2 list-disc pl-2">
                 <li>Paypal Business account</li>
@@ -140,7 +140,7 @@ export default function PayPalSetup() {
                 <li>You should be all setup after this.</li>
               </ol>
               <p className="text-default mt-5 inline-flex font-bold">
-                <Icon name="alert-circle" className="mr-2 mt-1 h-4 w-4" />
+                <Icon name="circle-alert" className="mr-2 mt-1 h-4 w-4" />
                 Reminder:
               </p>
               <p className="text-default mt-2">

@@ -11,7 +11,6 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-  Icon,
   showToast,
 } from "@calcom/ui";
 
@@ -69,20 +68,12 @@ const ApiKeyListItem = ({
       <div>
         <Dropdown>
           <DropdownMenuTrigger asChild>
-            <Button
-              type="button"
-              variant="icon"
-              color="secondary"
-              StartIcon="more-horizontal"
-            />
+            <Button type="button" variant="icon" color="secondary" StartIcon="ellipsis" />
           </DropdownMenuTrigger>
 
           <DropdownMenuContent>
             <DropdownMenuItem>
-              <DropdownItem
-                type="button"
-                onClick={onEditClick}
-                StartIcon="pencil">
+              <DropdownItem type="button" onClick={onEditClick} StartIcon="pencil">
                 {t("edit") as string}
               </DropdownItem>
             </DropdownMenuItem>

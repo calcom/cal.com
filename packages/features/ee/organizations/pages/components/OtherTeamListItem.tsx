@@ -13,7 +13,6 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-  Icon,
   showToast,
   Tooltip,
 } from "@calcom/ui";
@@ -94,7 +93,7 @@ export default function OtherTeamListItem(props: Props) {
                     type="button"
                     color="secondary"
                     variant="icon"
-                    StartIcon="more-horizontal"
+                    StartIcon="ellipsis"
                   />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent hidden={hideDropdown}>

@@ -28,7 +28,7 @@ function SkeletonItem() {
           type="button"
           variant="icon"
           color="secondary"
-          StartIcon="more-horizontal"
+          StartIcon="ellipsis"
           disabled
         />
       </div>

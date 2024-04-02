@@ -70,7 +70,7 @@ const CustomEmailTextField = ({
           <Dropdown>
             <DropdownMenuTrigger asChild>
               <Button
-                StartIcon="more-horizontal"
+                StartIcon="ellipsis"
                 variant="icon"
                 size="sm"
                 color="secondary"

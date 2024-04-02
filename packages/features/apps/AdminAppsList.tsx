@@ -296,7 +296,7 @@ const AdminAppsListContainer = () => {
   if (!apps || apps.length === 0) {
     return (
       <EmptyScreen
-        Icon="alert-circle"
+        Icon="circle-alert"
         headline={t("no_available_apps")}
         description={t("no_available_apps_description")}
       />

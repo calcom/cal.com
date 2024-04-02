@@ -179,7 +179,7 @@ export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
         {mutation.isError && (
           <div className="bg-error mb-4 flex p-4 text-sm text-red-700">
             <div className="flex-shrink-0">
-              <Icon name="alert-triangle" className="h-5 w-5" />
+              <Icon name="triangle-alert" className="h-5 w-5" />
             </div>
             <div className="ml-3 flex-grow">
               <p className="font-medium">{t("feedback_error")}</p>

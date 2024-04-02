@@ -59,7 +59,7 @@ export const LockedIndicator = (
             )}>
             {!options.simple && (
               <span className="inline-flex">
-                <Icon name={isLocked ? "lock" : "unlock"} className="text-subtle h-3 w-3" />
+                <Icon name={isLocked ? "lock" : "lock-open"} className="text-subtle h-3 w-3" />
                 <span className="ml-1 font-medium">{stateText}</span>
               </span>
             )}

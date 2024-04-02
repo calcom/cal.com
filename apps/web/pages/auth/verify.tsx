@@ -63,7 +63,7 @@ const querySchema = z.object({
 
 const PaymentFailedIcon = () => (
   <div className="rounded-full bg-orange-900 p-3">
-    <Icon name="alert-triangle" className="h-6 w-6 flex-shrink-0 p-0.5 font-extralight text-orange-100" />
+    <Icon name="triangle-alert" className="h-6 w-6 flex-shrink-0 p-0.5 font-extralight text-orange-100" />
   </div>
 );
 

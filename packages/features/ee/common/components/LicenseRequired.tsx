@@ -57,7 +57,7 @@ const LicenseRequired = ({ children, as = "", ...rest }: LicenseRequiredProps) =
         </>
       ) : (
         <EmptyScreen
-          Icon="alert-triangle"
+          Icon="triangle-alert"
           headline={t("enterprise_license")}
           description={
             <Trans i18nKey="enterprise_license_description">

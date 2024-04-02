@@ -21,7 +21,6 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  Icon,
   showToast,
   Tooltip,
   UserAvatar,
@@ -221,7 +220,7 @@ export default function MemberListItem(props: Props) {
                       className="radix-state-open:rounded-r-md"
                       color="secondary"
                       variant="icon"
-                      StartIcon="more-horizontal"
+                      StartIcon="ellipsis"
                     />
                   </DropdownMenuTrigger>
                   <DropdownMenuContent>
@@ -278,12 +277,7 @@ export default function MemberListItem(props: Props) {
             <div className="flex md:hidden">
               <Dropdown>
                 <DropdownMenuTrigger asChild>
-                  <Button
-                    type="button"
-                    variant="icon"
-                    color="minimal"
-                    StartIcon="more-horizontal"
-                  />
+                  <Button type="button" variant="icon" color="minimal" StartIcon="ellipsis" />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
                   <DropdownMenuItem className="outline-none">

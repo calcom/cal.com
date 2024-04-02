@@ -30,7 +30,7 @@ export function TopBanner(props: TopBannerProps) {
   const renderDefaultIconByVariant = () => {
     switch (variant) {
       case "error":
-        return <Icon {...defaultIconProps} name="alert-triangle" data-testid="variant-error" />;
+        return <Icon {...defaultIconProps} name="triangle-alert" data-testid="variant-error" />;
       case "warning":
         return <Icon {...defaultIconProps} name="info" data-testid="variant-warning" />;
       default:

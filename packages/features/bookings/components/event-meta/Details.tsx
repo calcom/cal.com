@@ -149,7 +149,7 @@ export const EventDetails = ({ event, blocks = defaultEventDetailsBlocks }: Even
             if (!event.requiresConfirmation) return null;
 
             return (
-              <EventMetaBlock key={block} icon="check-square">
+              <EventMetaBlock key={block} icon="square-check">
                 {t("requires_confirmation")}
               </EventMetaBlock>
             );

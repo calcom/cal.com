@@ -48,15 +48,15 @@ export const Alert = forwardRef<HTMLDivElement, AlertProps>((props, ref) => {
           <div className="flex-shrink-0">
             {severity === "error" && (
               <Icon
-                name="x-circle"
-                data-testid="x-circle"
+                name="circle-x"
+                data-testid="circle-x"
                 className={classNames("h-5 w-5 text-red-900 dark:text-red-200", iconClassName)}
                 aria-hidden="true"
               />
             )}
             {severity === "warning" && (
               <Icon
-                name="alert-triangle"
+                name="triangle-alert"
                 data-testid="alert-triangle"
                 className={classNames("text-attention h-5 w-5 dark:text-orange-200", iconClassName)}
                 aria-hidden="true"
@@ -80,8 +80,8 @@ export const Alert = forwardRef<HTMLDivElement, AlertProps>((props, ref) => {
             )}
             {severity === "success" && (
               <Icon
-                name="check-circle-2"
-                data-testid="check-circle-2"
+                name="circle-check"
+                data-testid="circle-check"
                 className={classNames("fill-muted text-default h-5 w-5", iconClassName)}
                 aria-hidden="true"
               />

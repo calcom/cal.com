@@ -527,7 +527,7 @@ function UserDropdown({ small }: UserDropdownProps) {
                 <DropdownMenuItem>
                   <DropdownItem
                     type="button"
-                    StartIcon="help-circle"
+                    StartIcon="circle-help"
                     aria-hidden="true"
                     onClick={() => setHelpOpen(true)}>
                     {t("help")}
@@ -642,7 +642,7 @@ const navigation: NavigationItemType[] = [
   {
     name: MORE_SEPARATOR_NAME,
     href: "/more",
-    icon: "more-horizontal",
+    icon: "ellipsis",
   },
   {
     name: "Routing Forms",

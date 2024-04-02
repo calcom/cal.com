@@ -56,7 +56,7 @@ export function AppSetDefaultLinkDialog({
         title={t("default_app_link_title")}
         description={t("default_app_link_description")}
         type="creation"
-        Icon="alert-circle">
+        Icon="circle-alert">
         <Form
           form={form}
           handleSubmit={(values) => {
