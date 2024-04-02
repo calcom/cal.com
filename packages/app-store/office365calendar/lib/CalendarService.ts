@@ -277,7 +277,7 @@ export default class Office365CalendarService implements Calendar {
 
     return {
       getToken: () =>
-        parseCredentialKey(o365AuthCredentials, refreshTokenResponseSchema) &&
+        parseCredentialKey(o365AuthCredentials, refreshTokenResponseSchema).success &&
         !isExpired(o365AuthCredentials.expires_in)
           ? Promise.resolve(o365AuthCredentials.access_token)
           : refreshAccessToken(o365AuthCredentials),
