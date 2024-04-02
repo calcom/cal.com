@@ -122,7 +122,7 @@ export const InstallAppButtonChild = ({
                 data-testid={team.isUser ? "install-app-button-personal" : "anything else"}
                 key={team.id}
                 disabled={isInstalled}
-                StartIcon={(props) => (
+                StartIcon={(props: { className?: string }) => (
                   <Avatar
                     alt={team.logo || ""}
                     imageSrc={team.logo || `${WEBAPP_URL}/${team.logo}/avatar.png`} // if no image, use default avatar

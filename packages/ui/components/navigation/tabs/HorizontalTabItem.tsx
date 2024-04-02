@@ -4,6 +4,7 @@ import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useUrlMatchesCurrentUrl } from "@calcom/lib/hooks/useUrlMatchesCurrentUrl";
 import type { SVGComponent } from "@calcom/types/SVGComponent";
+import type { LucideIcon } from "@calcom/ui/components/icon";
 
 import { Avatar } from "../../avatar";
 import { SkeletonText } from "../../skeleton";
@@ -16,7 +17,7 @@ export type HorizontalTabItemProps = {
   href: string;
   linkShallow?: boolean;
   linkScroll?: boolean;
-  icon?: SVGComponent;
+  icon?: SVGComponent | LucideIcon;
   avatar?: string;
 };
 
