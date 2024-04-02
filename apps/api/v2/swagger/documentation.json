@@ -582,7 +582,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/GetEventTypeOutput"
                 }
               }
             }
@@ -1713,6 +1713,37 @@
           },
           "data": {
             "$ref": "#/components/schemas/EventTypeOutput"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "Data": {
+        "type": "object",
+        "properties": {
+          "eventType": {
+            "$ref": "#/components/schemas/EventTypeOutput"
+          }
+        },
+        "required": [
+          "eventType"
+        ]
+      },
+      "GetEventTypeOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/Data"
           }
         },
         "required": [
