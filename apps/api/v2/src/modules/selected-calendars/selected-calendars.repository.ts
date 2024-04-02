@@ -15,4 +15,12 @@ export class SelectedCalendarsRepository {
       },
     });
   }
+
+  getUserSelectedCalendars(userId: number) {
+    return this.dbRead.prisma.selectedCalendar.findMany({
+      where: {
+        userId,
+      },
+    });
+  }
 }

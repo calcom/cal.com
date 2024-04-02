@@ -16,6 +16,7 @@ export class ZodExceptionFilter implements ExceptionFilter {
 
     this.logger.error(`ZodError: ${error.message}`, {
       error,
+      request,
     });
 
     response.status(HttpStatus.BAD_REQUEST).json({
