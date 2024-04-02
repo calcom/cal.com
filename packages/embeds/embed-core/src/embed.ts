@@ -480,7 +480,7 @@ class CalApi {
       },
     });
 
-    // If it is ensured that there is one instance for a namespace,
+    // If someone re-executes inline embed instruction, we want to ensure that duplicate inlineEl isn't added to the page per namespace
     if (this.cal.inlineEl && document.body.contains(this.cal.inlineEl)) {
       console.warn("Inline embed already exists. Ignoring this call");
       return;

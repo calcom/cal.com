@@ -30,6 +30,7 @@ test.describe("Inline Embed", () => {
         case: "doubleInstallSnippetWithInlineEmbedWithNonDefaultNamespace",
       },
     });
+    expect(await page.locator("iframe").count()).toBe(1);
   });
 
   test("Double install Embed Snippet with inline embed without a namespace(i.e. default namespace)", async ({
@@ -46,5 +47,6 @@ test.describe("Inline Embed", () => {
         case: "doubleInstallSnippetWithInlineEmbed",
       },
     });
+    expect(await page.locator("iframe").count()).toBe(1);
   });
 });
