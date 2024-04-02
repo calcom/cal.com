@@ -242,6 +242,8 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
       timeZone,
       organizer: evt.organizer.name,
       name,
+      ratingUrl,
+      noShowUrl,
     });
   }
 
