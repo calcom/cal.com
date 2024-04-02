@@ -59,9 +59,9 @@ const webexAuth = (credential: CredentialPayload) => {
   const refreshAccessToken = async (refreshToken: string) => {
     const { client_id, client_secret } = await getWebexAppKeys();
 
-    const response = await refreshOAuthTokens(
-      async () =>
-        await fetch("https://webexapis.com/v1/access_token", {
+    const responseBody = await refreshOAuthTokens(
+      async () => {
+        const response = await fetch("https://webexapis.com/v1/access_token", {
           method: "POST",
           headers: {
             "Content-type": "application/x-www-form-urlencoded",
@@ -72,12 +72,13 @@ const webexAuth = (credential: CredentialPayload) => {
             client_secret: client_secret,
             refresh_token: refreshToken,
           }),
-        }),
+        });
+
+        return await handleWebexResponse(response, credential.id);
+      },
       "webex",
       credential.userId
     );
-
-    const responseBody = await handleWebexResponse(response, credential.id);
 
     if (responseBody.error) {
       if (responseBody.error === "invalid_grant") {

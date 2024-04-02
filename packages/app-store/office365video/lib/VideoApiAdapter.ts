@@ -58,9 +58,9 @@ const o365Auth = async (credential: CredentialPayload) => {
   const o365AuthCredentials = credential.key as unknown as O365AuthCredentials;
 
   const refreshAccessToken = async (refreshToken: string) => {
-    const response = await refreshOAuthTokens(
-      async () =>
-        await fetch("https://login.microsoftonline.com/common/oauth2/v2.0/token", {
+    const responseBody = await refreshOAuthTokens(
+      async () => {
+        const response = await fetch("https://login.microsoftonline.com/common/oauth2/v2.0/token", {
           method: "POST",
           headers: { "Content-Type": "application/x-www-form-urlencoded" },
           body: new URLSearchParams({
@@ -69,12 +69,13 @@ const o365Auth = async (credential: CredentialPayload) => {
             grant_type: "refresh_token",
             client_secret,
           }),
-        }),
+        });
+
+        return await handleErrorsJson<ITokenResponse>(response);
+      },
       "msteams",
       credential.userId
     );
-
-    const responseBody = await handleErrorsJson<ITokenResponse>(response);
 
     if (responseBody?.error) {
       console.error(responseBody);

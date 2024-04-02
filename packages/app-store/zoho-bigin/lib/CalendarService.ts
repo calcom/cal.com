@@ -83,31 +83,35 @@ export default class BiginCalendarService implements Calendar {
     };
 
     const tokenInfo = await refreshOAuthTokens(
-      async () =>
-        await axios.post(accountsUrl, qs.stringify(formData), {
+      async () => {
+        const response = await fetch(accountsUrl, {
+          method: "POST",
+          body: qs.stringify(formData),
           headers: {
             "Content-Type": "application/x-www-form-urlencoded;charset=utf-8",
           },
-        }),
+        });
+        return await response.json();
+      },
       "zoho-bigin",
       credentialId
     );
 
-    if (!tokenInfo.data.error) {
+    if (!tokenInfo?.data.error) {
       // set expiry date as offset from current time.
-      tokenInfo.data.expiryDate = Math.round(Date.now() + tokenInfo.data.expires_in);
-      tokenInfo.data.accountServer = credentialKey.accountServer;
-      tokenInfo.data.refresh_token = credentialKey.refresh_token;
+      tokenInfo.body.expiryDate = Math.round(Date.now() + tokenInfo.data.expires_in);
+      tokenInfo.body.accountServer = credentialKey.accountServer;
+      tokenInfo.body.refresh_token = credentialKey.refresh_token;
 
       await prisma.credential.update({
         where: {
           id: credentialId,
         },
         data: {
-          key: tokenInfo.data as BiginToken,
+          key: tokenInfo.body as BiginToken,
         },
       });
-      this.log.debug("Fetched token", tokenInfo.data.access_token);
+      this.log.debug("Fetched token", tokenInfo.body.access_token);
     } else {
       this.log.error(tokenInfo.data);
     }

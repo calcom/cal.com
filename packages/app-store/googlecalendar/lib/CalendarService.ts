@@ -87,15 +87,14 @@ export default class GoogleCalendarService implements Calendar {
 
     const refreshAccessToken = async (myGoogleAuth: Awaited<ReturnType<typeof getGoogleAuth>>) => {
       try {
-        const res = await refreshOAuthTokens(
+        const token = await refreshOAuthTokens(
           async () => {
             const fetchTokens = await myGoogleAuth.refreshToken(googleCredentials.refresh_token);
-            return fetchTokens.res;
+            return fetchTokens.res?.data;
           },
           "google-calendar",
           credential.userId
         );
-        const token = res?.data;
         googleCredentials.access_token = token.access_token;
         googleCredentials.expiry_date = token.expiry_date;
         const parsedKey: ParseRefreshTokenResponse<typeof googleCredentialSchema> = parseRefreshTokenResponse(

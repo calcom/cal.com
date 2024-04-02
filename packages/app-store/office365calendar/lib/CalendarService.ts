@@ -244,9 +244,9 @@ export default class Office365CalendarService implements Calendar {
 
     const refreshAccessToken = async (o365AuthCredentials: O365AuthCredentials) => {
       const { client_id, client_secret } = await getOfficeAppKeys();
-      const response = await refreshOAuthTokens(
-        async () =>
-          await fetch("https://login.microsoftonline.com/common/oauth2/v2.0/token", {
+      const responseJson = await refreshOAuthTokens(
+        async () => {
+          const response = await fetch("https://login.microsoftonline.com/common/oauth2/v2.0/token", {
             method: "POST",
             headers: { "Content-Type": "application/x-www-form-urlencoded" },
             body: new URLSearchParams({
@@ -256,11 +256,13 @@ export default class Office365CalendarService implements Calendar {
               grant_type: "refresh_token",
               client_secret,
             }),
-          }),
+          });
+          return await handleErrorsJson(response);
+        },
         "office365-calendar",
         credential.userId
       );
-      const responseJson = await handleErrorsJson(response);
+
       const tokenResponse: ParseRefreshTokenResponse<typeof refreshTokenResponseSchema> =
         parseRefreshTokenResponse(responseJson, refreshTokenResponseSchema);
       o365AuthCredentials = { ...o365AuthCredentials, ...tokenResponse };

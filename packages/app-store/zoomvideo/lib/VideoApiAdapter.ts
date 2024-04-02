@@ -79,9 +79,9 @@ const zoomAuth = (credential: CredentialPayload) => {
     const { client_id, client_secret } = await getZoomAppKeys();
     const authHeader = `Basic ${Buffer.from(`${client_id}:${client_secret}`).toString("base64")}`;
 
-    const response = await refreshOAuthTokens(
-      async () =>
-        await fetch("https://zoom.us/oauth/token", {
+    const responseBody = await refreshOAuthTokens(
+      async () => {
+        const response = await fetch("https://zoom.us/oauth/token", {
           method: "POST",
           headers: {
             Authorization: authHeader,
@@ -91,12 +91,12 @@ const zoomAuth = (credential: CredentialPayload) => {
             refresh_token: refreshToken,
             grant_type: "refresh_token",
           }),
-        }),
+        });
+        return await handleZoomResponse(response, credential.id);
+      },
       metadata.slug,
       credential.userId
     );
-
-    const responseBody = await handleZoomResponse(response, credential.id);
 
     if (responseBody.error) {
       if (responseBody.error === "invalid_grant") {
