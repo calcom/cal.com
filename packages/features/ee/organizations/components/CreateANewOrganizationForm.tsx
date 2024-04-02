@@ -10,7 +10,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
 import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { trpc } from "@calcom/trpc/react";
-import { Button, Form, TextField, Alert } from "@calcom/ui";
+import { Button, Form, TextField, Alert, SettingsToggle } from "@calcom/ui";
 import { ArrowRight } from "@calcom/ui/components/icon";
 
 function extractDomainFromEmail(email: string) {
@@ -34,9 +34,11 @@ export const CreateANewOrganizationForm = ({ slug }: { slug?: string }) => {
     slug: string;
     adminEmail: string;
     adminUsername: string;
+    isPlatform: boolean;
   }>({
     defaultValues: {
       slug: `${slug ?? ""}`,
+      isPlatform: false,
     },
   });
   const watchAdminEmail = newOrganizationFormMethods.watch("adminEmail");
@@ -192,6 +194,25 @@ export const CreateANewOrganizationForm = ({ slug }: { slug?: string }) => {
                   newOrganizationFormMethods.clearErrors("slug");
                 }}
               />
+            )}
+          />
+        </div>
+
+        <div className="mb-5">
+          <Controller
+            name="isPlatform"
+            control={newOrganizationFormMethods.control}
+            defaultValue={false}
+            render={({ field: { value } }) => (
+              <div className="[&_label]:mt-1">
+                <SettingsToggle
+                  title={t("organization_is_platform")}
+                  checked={value}
+                  onCheckedChange={(checked) => {
+                    newOrganizationFormMethods.setValue("isPlatform", checked);
+                  }}
+                />
+              </div>
             )}
           />
         </div>

@@ -104,6 +104,7 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
       data: {
         name,
         isOrganization: true,
+        isPlatform,
         ...(!IS_TEAM_BILLING_ENABLED ? { slug } : {}),
         organizationSettings: {
           create: {
