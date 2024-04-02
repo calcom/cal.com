@@ -16,6 +16,7 @@ export class SentryFilter extends BaseExceptionFilter {
 
     this.logger.error(`Sentry Exception Filter: ${exception?.message}`, {
       exception,
+      request,
     });
 
     // capture if client has been init
