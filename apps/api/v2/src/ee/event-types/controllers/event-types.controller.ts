@@ -1,6 +1,7 @@
 import { CreateEventTypeInput } from "@/ee/event-types/inputs/create-event-type.input";
 import { UpdateEventTypeInput } from "@/ee/event-types/inputs/update-event-type.input";
 import { CreateEventTypeOutput } from "@/ee/event-types/outputs/create-event-type.output";
+import { DeleteEventTypeOutput } from "@/ee/event-types/outputs/delete-event-type.output";
 import { GetEventTypeOutput } from "@/ee/event-types/outputs/get-event-type.output";
 import { GetEventTypesOutput } from "@/ee/event-types/outputs/get-event-types.output";
 import { EventTypesService } from "@/ee/event-types/services/event-types.service";
@@ -23,7 +24,6 @@ import {
   Delete,
 } from "@nestjs/common";
 import { ApiTags as DocsTags } from "@nestjs/swagger";
-import { EventType } from "@prisma/client";
 
 import { EVENT_TYPE_READ, EVENT_TYPE_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
 import type { EventTypesPublic, UpdateEventTypeReturn } from "@calcom/platform-libraries";
@@ -126,12 +126,17 @@ export class EventTypesController {
   async deleteEventType(
     @Param("eventTypeId") eventTypeId: number,
     @GetUser("id") userId: number
-  ): Promise<ApiResponse<EventType>> {
+  ): Promise<DeleteEventTypeOutput> {
     const eventType = await this.eventTypesService.deleteEventType(eventTypeId, userId);
 
     return {
       status: SUCCESS_STATUS,
-      data: eventType,
+      data: {
+        id: eventType.id,
+        length: eventType.length,
+        slug: eventType.slug,
+        title: eventType.title,
+      },
     };
   }
 }

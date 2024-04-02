@@ -648,7 +648,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/DeleteEventTypeOutput"
                 }
               }
             }
@@ -1825,6 +1825,53 @@
             }
           }
         }
+      },
+      "DeleteData": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1
+          },
+          "length": {
+            "type": "number",
+            "example": 60
+          },
+          "slug": {
+            "type": "string",
+            "example": "cooking-class"
+          },
+          "title": {
+            "type": "string",
+            "example": "Learn the secrets of masterchief!"
+          }
+        },
+        "required": [
+          "id",
+          "length",
+          "slug",
+          "title"
+        ]
+      },
+      "DeleteEventTypeOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/DeleteData"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
       },
       "CreateAvailabilityInput": {
         "type": "object",
