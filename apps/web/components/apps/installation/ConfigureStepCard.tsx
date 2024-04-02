@@ -34,18 +34,24 @@ type ConfigureStepCardProps = {
   setConfigureStep: Dispatch<SetStateAction<boolean>>;
 };
 
-type EventTypeAppSettingsWrapperProps = {
-  slug: string;
-  userName: string;
-  categories: AppCategories[];
-  credentialId?: number;
+type EventTypeAppSettingsFormProps = Pick<
+  ConfigureStepCardProps,
+  "slug" | "userName" | "categories" | "credentialId"
+> & {
   eventType: TEventType;
   handleDelete: () => void;
   onSubmit: (values: z.infer<typeof EventTypeMetaDataSchema>) => void;
 };
 
+type EventTypeAppSettingsWrapperProps = Pick<
+  ConfigureStepCardProps,
+  "slug" | "userName" | "categories" | "credentialId"
+> & {
+  eventType: TEventType;
+};
+
 const EventTypeAppSettingsWrapper: FC<
-  Omit<EventTypeAppSettingsWrapperProps, "handleDelete" | "onSubmit" | "buttonRef">
+  Omit<EventTypeAppSettingsWrapperProps, "handleDelete" | "onSubmit">
 > = ({ slug, eventType, categories, credentialId }) => {
   const { t } = useLocale();
   const formMethods = useForm<FormValues>();
@@ -72,7 +78,7 @@ const EventTypeAppSettingsWrapper: FC<
   );
 };
 
-const EventTypeAppSettingsForm = forwardRef<HTMLButtonElement, EventTypeAppSettingsWrapperProps>(
+const EventTypeAppSettingsForm = forwardRef<HTMLButtonElement, EventTypeAppSettingsFormProps>(
   function EventTypeAppSettingsForm(props, ref) {
     const { handleDelete, onSubmit, eventType } = props;
 
