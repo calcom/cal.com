@@ -120,7 +120,7 @@ export class EventTypesService {
   async updateEventType(eventTypeId: number, body: UpdateEventTypeInput, user: UserWithProfile) {
     this.checkCanUpdateEventType(user.id, eventTypeId);
     const eventTypeUser = await this.getUserToUpdateEvent(user);
-    const { eventType } = await updateEventType({
+    await updateEventType({
       input: { id: eventTypeId, ...body },
       ctx: {
         user: eventTypeUser,
@@ -129,6 +129,8 @@ export class EventTypesService {
         prisma: this.dbWrite.prisma,
       },
     });
+
+    const { eventType } = await this.getUserEventTypeForAtom(user, eventTypeId);
 
     return eventType;
   }
