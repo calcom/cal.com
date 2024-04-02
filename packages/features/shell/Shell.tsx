@@ -482,9 +482,7 @@ function UserDropdown({ small }: UserDropdownProps) {
                 <DropdownMenuItem>
                   <DropdownItem
                     type="button"
-                    CustomStartIcon={
-                      <Icon name="user" className={classNames("text-default")} aria-hidden="true" />
-                    }
+                    CustomStartIcon={<Icon name="user" className="text-default h-4 w-4" aria-hidden="true" />}
                     href="/settings/my-account/profile">
                     {t("my_profile")}
                   </DropdownItem>
@@ -493,7 +491,7 @@ function UserDropdown({ small }: UserDropdownProps) {
                   <DropdownItem
                     type="button"
                     CustomStartIcon={
-                      <Icon name="settings" className={classNames("text-default")} aria-hidden="true" />
+                      <Icon name="settings" className="text-default h-4 w-4" aria-hidden="true" />
                     }
                     href="/settings/my-account/general">
                     {t("my_settings")}
@@ -502,9 +500,7 @@ function UserDropdown({ small }: UserDropdownProps) {
                 <DropdownMenuItem>
                   <DropdownItem
                     type="button"
-                    CustomStartIcon={
-                      <Icon name="moon" className={classNames("text-default")} aria-hidden="true" />
-                    }
+                    CustomStartIcon={<Icon name="moon" className="text-default h-4 w-4" aria-hidden="true" />}
                     href="/settings/my-account/out-of-office">
                     {t("out_of_office")}
                   </DropdownItem>
@@ -512,7 +508,7 @@ function UserDropdown({ small }: UserDropdownProps) {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem>
                   <DropdownItem
-                    CustomStartIcon={<Discord />}
+                    CustomStartIcon={<Discord className="text-default h-4 w-4" />}
                     target="_blank"
                     rel="noreferrer"
                     href={JOIN_DISCORD}>
