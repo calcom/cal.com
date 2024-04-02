@@ -7,6 +7,7 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { Toaster } from "react-hot-toast";
 import { RRule } from "rrule";
 import { z } from "zod";
 
@@ -149,8 +150,11 @@ export default function Success(props: PageProps) {
   const [calculatedDuration, setCalculatedDuration] = useState<number | undefined>(undefined);
 
   const mutation = trpc.viewer.public.submitRating.useMutation({
-    onSuccess: () => {
+    onSuccess: async () => {
       showToast("Thank you, feedback submitted", "success");
+    },
+    onError: (err) => {
+      showToast(err.message, "error");
     },
   });
 
@@ -904,6 +908,7 @@ export default function Success(props: PageProps) {
           </div>
         </div>
       </main>
+      <Toaster position="bottom-right" />
     </div>
   );
 }
