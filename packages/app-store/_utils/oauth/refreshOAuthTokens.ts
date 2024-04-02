@@ -25,7 +25,15 @@ const refreshOAuthTokens = async (refreshFunction: () => any, appSlug: string, u
         appSlug,
       }),
     });
-    return response;
+
+    if (!response.ok) {
+      throw new Error(
+        `Failed to refresh OAuth tokens for ${appSlug} userId ${userId}: ${response.statusText}`
+      );
+    }
+
+    const responseBody = await response.json();
+    return responseBody;
   } else {
     const response = await refreshFunction();
     return response;
