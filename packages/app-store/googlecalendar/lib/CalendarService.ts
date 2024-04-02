@@ -76,7 +76,7 @@ export default class GoogleCalendarService implements Calendar {
   }
 
   private googleAuth = (credential: CredentialPayload) => {
-    const googleCredentials = parseCredentialKey(credential.key, googleCredentialSchema);
+    const googleCredentials = parseCredentialKey(credential.key, googleCredentialSchema).data;
 
     async function getGoogleAuth() {
       const { client_id, client_secret, redirect_uris } = await getGoogleAppKeys();
