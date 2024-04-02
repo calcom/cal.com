@@ -1,3 +1,4 @@
+import { getEnv } from "@/env";
 import { AppsRepository } from "@/modules/apps/apps.repository";
 import { GcalService } from "@/modules/apps/services/gcal.service";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
@@ -22,6 +23,7 @@ import {
   Headers,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
+import { ApiExcludeController as DocsExcludeController, ApiTags as DocsTags } from "@nestjs/swagger";
 import { Request } from "express";
 import { google } from "googleapis";
 import { z } from "zod";
@@ -43,6 +45,8 @@ const CALENDAR_SCOPES = [
   path: "ee/gcal",
   version: "2",
 })
+@DocsExcludeController(getEnv("NODE_ENV") === "production")
+@DocsTags("Development only - Google Calendar")
 export class GcalController {
   private readonly logger = new Logger("Platform Gcal Provider");
 

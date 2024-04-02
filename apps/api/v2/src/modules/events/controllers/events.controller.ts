@@ -1,5 +1,7 @@
+import { getEnv } from "@/env";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { Controller, Get, NotFoundException, InternalServerErrorException, Query } from "@nestjs/common";
+import { ApiExcludeController as DocsExcludeController, ApiTags as DocsTags } from "@nestjs/swagger";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { getPublicEvent } from "@calcom/platform-libraries";
@@ -11,6 +13,8 @@ import { PrismaClient } from "@calcom/prisma";
   path: "events",
   version: "2",
 })
+@DocsExcludeController(getEnv("NODE_ENV") === "production")
+@DocsTags("Development only - Events")
 export class EventsController {
   constructor(private readonly prismaReadService: PrismaReadService) {}
 

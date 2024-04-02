@@ -1,3 +1,4 @@
+import { getEnv } from "@/env";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
@@ -15,6 +16,7 @@ import {
   UnauthorizedException,
   UseGuards,
 } from "@nestjs/common";
+import { ApiExcludeController as DocsExcludeController, ApiTags as DocsTags } from "@nestjs/swagger";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { ApiResponse } from "@calcom/platform-types";
@@ -23,6 +25,8 @@ import { ApiResponse } from "@calcom/platform-types";
   path: "ee/provider",
   version: "2",
 })
+@DocsExcludeController(getEnv("NODE_ENV") === "production")
+@DocsTags("Development only - Provider")
 export class CalProviderController {
   private readonly logger = new Logger("Platform Provider Controller");
 

@@ -21,6 +21,7 @@ import {
   BadRequestException,
   Delete,
 } from "@nestjs/common";
+import { ApiTags as DocsTags } from "@nestjs/swagger";
 import { User } from "@prisma/client";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
@@ -30,6 +31,7 @@ import { ApiResponse } from "@calcom/platform-types";
   path: "oauth-clients/:clientId/users",
   version: "2",
 })
+@DocsTags("OAuth Managed users")
 export class OAuthClientUsersController {
   private readonly logger = new Logger("UserController");
 

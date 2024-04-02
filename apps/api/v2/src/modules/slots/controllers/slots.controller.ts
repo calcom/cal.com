@@ -1,6 +1,8 @@
+import { getEnv } from "@/env";
 import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
 import { SlotsService } from "@/modules/slots/services/slots.service";
 import { Query, Body, Controller, Get, Delete, Post, Req, Res, UseGuards } from "@nestjs/common";
+import { ApiExcludeController as DocsExcludeController, ApiTags as DocsTags } from "@nestjs/swagger";
 import { Response as ExpressResponse, Request as ExpressRequest } from "express";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
@@ -14,6 +16,8 @@ import { ApiResponse, GetAvailableSlotsInput } from "@calcom/platform-types";
   version: "2",
 })
 @UseGuards(AccessTokenGuard)
+@DocsExcludeController(getEnv("NODE_ENV") === "production")
+@DocsTags("Development only - Slots")
 export class SlotsController {
   constructor(private readonly slotsService: SlotsService) {}
 
