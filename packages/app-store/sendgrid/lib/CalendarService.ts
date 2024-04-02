@@ -45,9 +45,7 @@ export default class CloseComCalendarService implements Calendar {
       const { api_key } = JSON.parse(decrypted);
       this.sendgrid = new Sendgrid(api_key);
     } else {
-      throw Error(
-        `No API Key found for userId ${credential.userId} and appId ${credential.appId}: ${parsedCredentialKey.error}`
-      );
+      throw Error(`No API Key found for userId ${credential.userId} and appId ${credential.appId}`);
     }
   }
 
