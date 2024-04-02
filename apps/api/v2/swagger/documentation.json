@@ -611,7 +611,7 @@
         }
       }
     },
-    "/api/v2/platform/gcal/oauth/auth-url": {
+    "/api/v2/ee/gcal/oauth/auth-url": {
       "get": {
         "operationId": "GcalController_redirect",
         "parameters": [
@@ -638,7 +638,7 @@
         }
       }
     },
-    "/api/v2/platform/gcal/oauth/save": {
+    "/api/v2/ee/gcal/oauth/save": {
       "get": {
         "operationId": "GcalController_save",
         "parameters": [
@@ -673,7 +673,7 @@
         }
       }
     },
-    "/api/v2/platform/gcal/check": {
+    "/api/v2/ee/gcal/check": {
       "get": {
         "operationId": "GcalController_check",
         "parameters": [],
@@ -691,7 +691,7 @@
         }
       }
     },
-    "/api/v2/platform/provider/{clientId}": {
+    "/api/v2/ee/provider/{clientId}": {
       "get": {
         "operationId": "CalProviderController_verifyClientId",
         "parameters": [
@@ -718,7 +718,7 @@
         }
       }
     },
-    "/api/v2/platform/provider/{clientId}/access-token": {
+    "/api/v2/ee/provider/{clientId}/access-token": {
       "get": {
         "operationId": "CalProviderController_verifyAccessToken",
         "parameters": [
@@ -792,24 +792,6 @@
     "/api/v2/schedules/default": {
       "get": {
         "operationId": "SchedulesController_getDefaultSchedule",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v2/schedules/time-zones": {
-      "get": {
-        "operationId": "SchedulesController_getTimeZones",
         "parameters": [],
         "responses": {
           "200": {
@@ -903,7 +885,7 @@
         }
       }
     },
-    "/api/v2/me": {
+    "/api/v2/ee/me": {
       "get": {
         "operationId": "MeController_getMe",
         "parameters": [],
@@ -984,6 +966,22 @@
       }
     },
     "/api/v2/ee/bookings": {
+      "get": {
+        "operationId": "BookingsController_getBookings",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      },
       "post": {
         "operationId": "BookingsController_createBooking",
         "parameters": [],
@@ -993,6 +991,97 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/CreateBookingInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/ee/bookings/{bookingUid}": {
+      "get": {
+        "operationId": "BookingsController_getBooking",
+        "parameters": [
+          {
+            "name": "bookingUid",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/ee/bookings/{bookingUid}/reschedule": {
+      "get": {
+        "operationId": "BookingsController_getBookingForReschedule",
+        "parameters": [
+          {
+            "name": "bookingUid",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/ee/bookings/{bookingId}/cancel": {
+      "post": {
+        "operationId": "BookingsController_cancelBooking",
+        "parameters": [
+          {
+            "name": "bookingId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CancelBookingInput"
               }
             }
           }
@@ -1119,6 +1208,24 @@
     "/api/v2/slots/available": {
       "get": {
         "operationId": "SlotsController_getAvailableSlots",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/timezones": {
+      "get": {
+        "operationId": "TimezonesController_getTimeZones",
         "parameters": [],
         "responses": {
           "200": {
@@ -1555,6 +1662,10 @@
           "metadata",
           "hashedLink"
         ]
+      },
+      "CancelBookingInput": {
+        "type": "object",
+        "properties": {}
       },
       "ReserveSlotInput": {
         "type": "object",
