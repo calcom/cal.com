@@ -1,210 +1,224 @@
+import { Editable } from "@/ee/event-types/inputs/enums/editable";
+import { BaseField } from "@/ee/event-types/inputs/enums/field-type";
+import { Frequency } from "@/ee/event-types/inputs/enums/frequency";
 import { EventTypeLocation } from "@/ee/event-types/inputs/event-type-location.input";
 import { Type } from "class-transformer";
-import { IsString, IsBoolean, IsOptional, ValidateNested, Min, IsInt } from "class-validator";
+import {
+  IsString,
+  IsBoolean,
+  IsOptional,
+  ValidateNested,
+  Min,
+  IsInt,
+  IsEnum,
+  IsArray,
+  IsDate,
+  IsNumber,
+} from "class-validator";
 
 // note(Lauris): We will gradually expose more properties if any customer needs them.
 // Just uncomment any below when requested. Go to bottom of file to see UpdateEventTypeInput.
 
-// class Option {
-//   @IsString()
-//   value!: string;
+class Option {
+  @IsString()
+  value!: string;
 
-//   @IsString()
-//   label!: string;
-// }
+  @IsString()
+  label!: string;
+}
 
-// class Source {
-//   @IsString()
-//   id!: string;
+class Source {
+  @IsString()
+  id!: string;
 
-//   @IsString()
-//   type!: string;
+  @IsString()
+  type!: string;
 
-//   @IsString()
-//   label!: string;
+  @IsString()
+  label!: string;
 
-//   @IsOptional()
-//   @IsString()
-//   editUrl?: string;
+  @IsOptional()
+  @IsString()
+  editUrl?: string;
 
-//   @IsOptional()
-//   @IsBoolean()
-//   fieldRequired?: boolean;
-// }
+  @IsOptional()
+  @IsBoolean()
+  fieldRequired?: boolean;
+}
 
-// class View {
-//   @IsString()
-//   id!: string;
+class View {
+  @IsString()
+  id!: string;
 
-//   @IsString()
-//   label!: string;
+  @IsString()
+  label!: string;
 
-//   @IsOptional()
-//   @IsString()
-//   description?: string;
-// }
+  @IsOptional()
+  @IsString()
+  description?: string;
+}
 
-// class OptionsInput {
-//   @IsString()
-//   type!: "address" | "text" | "phone";
+class OptionsInput {
+  @IsString()
+  type!: "address" | "text" | "phone";
 
-//   @IsOptional()
-//   @IsBoolean()
-//   required?: boolean;
+  @IsOptional()
+  @IsBoolean()
+  required?: boolean;
 
-//   @IsOptional()
-//   @IsString()
-//   placeholder?: string;
-// }
+  @IsOptional()
+  @IsString()
+  placeholder?: string;
+}
 
-// class VariantField {
-//   @IsString()
-//   type!: BaseField; -> import { BaseField } from "@/ee/event-types/inputs/enums/field-type";
+class VariantField {
+  @IsString()
+  type!: BaseField;
 
-//   @IsString()
-//   name!: string;
+  @IsString()
+  name!: string;
 
-//   @IsOptional()
-//   @IsString()
-//   label?: string;
+  @IsOptional()
+  @IsString()
+  label?: string;
 
-//   @IsOptional()
-//   @IsString()
-//   labelAsSafeHtml?: string;
+  @IsOptional()
+  @IsString()
+  labelAsSafeHtml?: string;
 
-//   @IsOptional()
-//   @IsString()
-//   placeholder?: string;
+  @IsOptional()
+  @IsString()
+  placeholder?: string;
 
-//   @IsOptional()
-//   @IsBoolean()
-//   required?: boolean;
-// }
+  @IsOptional()
+  @IsBoolean()
+  required?: boolean;
+}
 
-// class Variant {
-//   @ValidateNested({ each: true })
-//   @Type(() => VariantField)
-//   fields!: VariantField[];
-// }
+class Variant {
+  @ValidateNested({ each: true })
+  @Type(() => VariantField)
+  fields!: VariantField[];
+}
 
-// class VariantsConfig {
-//   variants!: Record<string, Variant>;
-// }
+class VariantsConfig {
+  variants!: Record<string, Variant>;
+}
 
-// class BookingField {
-//   @IsEnum(BaseField)
-//   type!: BaseField; -> import { BaseField } from "@/ee/event-types/inputs/enums/field-type";
+export class BookingField {
+  @IsEnum(BaseField)
+  type!: BaseField;
 
-//   @IsString()
-//   name!: string;
+  @IsString()
+  name!: string;
 
-//   @IsOptional()
-//   @ValidateNested({ each: true })
-//   @Type(() => Option)
-//   options?: Option[];
+  @IsOptional()
+  @ValidateNested({ each: true })
+  @Type(() => Option)
+  options?: Option[];
 
-//   @IsOptional()
-//   @IsString()
-//   label?: string;
+  @IsOptional()
+  @IsString()
+  label?: string;
 
-//   @IsOptional()
-//   @IsString()
-//   labelAsSafeHtml?: string;
+  @IsOptional()
+  @IsString()
+  labelAsSafeHtml?: string;
 
-//   @IsOptional()
-//   @IsString()
-//   defaultLabel?: string;
+  @IsOptional()
+  @IsString()
+  defaultLabel?: string;
 
-//   @IsOptional()
-//   @IsString()
-//   placeholder?: string;
+  @IsOptional()
+  @IsString()
+  placeholder?: string;
 
-//   @IsOptional()
-//   @IsBoolean()
-//   required?: boolean;
+  @IsOptional()
+  @IsBoolean()
+  required?: boolean;
 
-//   @IsOptional()
-//   @IsString()
-//   getOptionsAt?: string;
+  @IsOptional()
+  @IsString()
+  getOptionsAt?: string;
 
-//   @IsOptional()
-//   @IsArray()
-//   @ValidateNested({ each: true })
-//   @Type(() => OptionsInput)
-//   optionsInputs?: Record<string, OptionsInput>;
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => OptionsInput)
+  optionsInputs?: Record<string, OptionsInput>;
 
-//   @IsOptional()
-//   @IsString()
-//   variant?: string;
+  @IsOptional()
+  @IsString()
+  variant?: string;
 
-//   @IsOptional()
-//   @ValidateNested()
-//   @Type(() => VariantsConfig)
-//   variantsConfig?: VariantsConfig;
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => VariantsConfig)
+  variantsConfig?: VariantsConfig;
 
-//   @IsOptional()
-//   @ValidateNested({ each: true })
-//   @Type(() => View)
-//   views?: View[];
+  @IsOptional()
+  @ValidateNested({ each: true })
+  @Type(() => View)
+  views?: View[];
 
-//   @IsOptional()
-//   @IsBoolean()
-//   hideWhenJustOneOption?: boolean;
+  @IsOptional()
+  @IsBoolean()
+  hideWhenJustOneOption?: boolean;
 
-//   @IsOptional()
-//   @IsBoolean()
-//   hidden?: boolean;
+  @IsOptional()
+  @IsBoolean()
+  hidden?: boolean;
 
-//   @IsOptional()
-//   @IsEnum(Editable)
-//   editable?: Editable; -> import { Editable } from "@/ee/event-types/inputs/enums/editable";
+  @IsOptional()
+  @IsEnum(Editable)
+  editable?: Editable;
 
-//   @IsOptional()
-//   @ValidateNested({ each: true })
-//   @Type(() => Source)
-//   sources?: Source[];
-// }
+  @IsOptional()
+  @ValidateNested({ each: true })
+  @Type(() => Source)
+  sources?: Source[];
+}
 
-// class RecurringEvent {
-//   @IsDate()
-//   @IsOptional()
-//   dtstart?: Date;
+export class RecurringEvent {
+  @IsDate()
+  @IsOptional()
+  dtstart?: Date;
 
-//   @IsInt()
-//   interval!: number;
+  @IsInt()
+  interval!: number;
 
-//   @IsInt()
-//   count!: number;
+  @IsInt()
+  count!: number;
 
-//   @IsEnum(Frequency)
-//   freq!: Frequency; -> import { Frequency } from "@/ee/event-types/inputs/enums/frequency";
+  @IsEnum(Frequency)
+  freq!: Frequency;
 
-//   @IsDate()
-//   @IsOptional()
-//   until?: Date;
+  @IsDate()
+  @IsOptional()
+  until?: Date;
 
-//   @IsString()
-//   @IsOptional()
-//   tzid?: string;
-// }
+  @IsString()
+  @IsOptional()
+  tzid?: string;
+}
 
-// class IntervalLimits {
-//   @IsNumber()
-//   @IsOptional()
-//   PER_DAY?: number;
+export class IntervalLimits {
+  @IsNumber()
+  @IsOptional()
+  PER_DAY?: number;
 
-//   @IsNumber()
-//   @IsOptional()
-//   PER_WEEK?: number;
+  @IsNumber()
+  @IsOptional()
+  PER_WEEK?: number;
 
-//   @IsNumber()
-//   @IsOptional()
-//   PER_MONTH?: number;
+  @IsNumber()
+  @IsOptional()
+  PER_MONTH?: number;
 
-//   @IsNumber()
-//   @IsOptional()
-//   PER_YEAR?: number;
-// }
+  @IsNumber()
+  @IsOptional()
+  PER_YEAR?: number;
+}
 
 export class UpdateEventTypeInput {
   @IsInt()

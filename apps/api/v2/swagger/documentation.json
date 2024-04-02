@@ -533,7 +533,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/CreateEventTypeOutput"
                 }
               }
             }
@@ -1402,11 +1402,11 @@
         "properties": {
           "status": {
             "type": "string",
-            "example": "success",
             "enum": [
               "success",
               "error"
-            ]
+            ],
+            "example": "success"
           },
           "data": {
             "example": {
@@ -1445,7 +1445,8 @@
             "example": 3
           },
           "logo": {
-            "type": "object",
+            "type": "string",
+            "nullable": true,
             "example": "https://example.com/logo.png"
           },
           "redirectUris": {
@@ -1655,6 +1656,68 @@
           "length",
           "slug",
           "title"
+        ]
+      },
+      "EventTypeOutput": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1
+          },
+          "length": {
+            "type": "number",
+            "example": 60
+          },
+          "slug": {
+            "type": "string",
+            "example": "cooking-class"
+          },
+          "title": {
+            "type": "string",
+            "example": "Learn the secrets of masterchief!"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "example": "Discover the culinary wonders of the Argentina by making the best flan ever!"
+          },
+          "locations": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/EventTypeLocation"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "length",
+          "slug",
+          "title",
+          "description",
+          "locations"
+        ]
+      },
+      "CreateEventTypeOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/EventTypeOutput"
+          }
+        },
+        "required": [
+          "status",
+          "data"
         ]
       },
       "UpdateEventTypeInput": {

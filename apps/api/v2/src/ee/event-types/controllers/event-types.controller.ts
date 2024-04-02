@@ -1,5 +1,6 @@
 import { CreateEventTypeInput } from "@/ee/event-types/inputs/create-event-type.input";
 import { UpdateEventTypeInput } from "@/ee/event-types/inputs/update-event-type.input";
+import { CreateEventTypeOutput } from "@/ee/event-types/outputs/create-event-type.output";
 import { EventTypesService } from "@/ee/event-types/services/event-types.service";
 import { ForAtom } from "@/lib/atoms/decorators/for-atom.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
@@ -48,7 +49,7 @@ export class EventTypesController {
   async createEventType(
     @Body() body: CreateEventTypeInput,
     @GetUser() user: UserWithProfile
-  ): Promise<ApiResponse<EventType>> {
+  ): Promise<CreateEventTypeOutput> {
     const eventType = await this.eventTypesService.createUserEventType(user, body);
 
     return {
