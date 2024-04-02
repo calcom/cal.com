@@ -1657,35 +1657,6 @@
           "title"
         ]
       },
-      "Location": {
-        "type": "object",
-        "properties": {
-          "type": {
-            "type": "string"
-          },
-          "address": {
-            "type": "string"
-          },
-          "link": {
-            "type": "string"
-          },
-          "displayLocationPublicly": {
-            "type": "boolean"
-          },
-          "hostPhoneNumber": {
-            "type": "string"
-          },
-          "credentialId": {
-            "type": "number"
-          },
-          "teamName": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "type"
-        ]
-      },
       "UpdateEventTypeInput": {
         "type": "object",
         "properties": {
@@ -1708,7 +1679,7 @@
           "locations": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/Location"
+              "$ref": "#/components/schemas/EventTypeLocation"
             }
           }
         }

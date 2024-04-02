@@ -1,5 +1,6 @@
+import { EventTypeLocation } from "@/ee/event-types/inputs/event-type-location.input";
 import { Type } from "class-transformer";
-import { IsString, IsNumber, IsBoolean, IsOptional, ValidateNested, Min, IsInt } from "class-validator";
+import { IsString, IsBoolean, IsOptional, ValidateNested, Min, IsInt } from "class-validator";
 
 // note(Lauris): We will gradually expose more properties if any customer needs them.
 // Just uncomment any below when requested. Go to bottom of file to see UpdateEventTypeInput.
@@ -164,34 +165,6 @@ import { IsString, IsNumber, IsBoolean, IsOptional, ValidateNested, Min, IsInt }
 //   sources?: Source[];
 // }
 
-class Location {
-  @IsString()
-  type!: string;
-
-  @IsString()
-  @IsOptional()
-  address?: string;
-
-  @IsString()
-  @IsOptional()
-  link?: string;
-
-  @IsBoolean()
-  @IsOptional()
-  displayLocationPublicly?: boolean;
-
-  @IsString()
-  @IsOptional()
-  hostPhoneNumber?: string;
-
-  @IsNumber()
-  @IsOptional()
-  credentialId?: number;
-
-  @IsString()
-  @IsOptional()
-  teamName?: string;
-}
 // class RecurringEvent {
 //   @IsDate()
 //   @IsOptional()
@@ -256,9 +229,9 @@ export class UpdateEventTypeInput {
   hidden?: boolean;
 
   @ValidateNested({ each: true })
-  @Type(() => Location)
+  @Type(() => EventTypeLocation)
   @IsOptional()
-  locations?: Location[];
+  locations?: EventTypeLocation[];
 
   // @IsInt()
   // @IsOptional()
