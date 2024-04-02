@@ -15,6 +15,7 @@ export class ZodExceptionFilter implements ExceptionFilter {
     const request = ctx.getRequest();
     this.logger.error(`ZodError: ${error.message}`, {
       error,
+      request,
     });
     response.status(HttpStatus.BAD_REQUEST).json({
       status: ERROR_STATUS,
