@@ -2,6 +2,7 @@ import { CreateEventTypeInput } from "@/ee/event-types/inputs/create-event-type.
 import { UpdateEventTypeInput } from "@/ee/event-types/inputs/update-event-type.input";
 import { CreateEventTypeOutput } from "@/ee/event-types/outputs/create-event-type.output";
 import { GetEventTypeOutput } from "@/ee/event-types/outputs/get-event-type.output";
+import { GetEventTypesOutput } from "@/ee/event-types/outputs/get-event-types.output";
 import { EventTypesService } from "@/ee/event-types/services/event-types.service";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
@@ -24,7 +25,6 @@ import {
 import { ApiTags as DocsTags } from "@nestjs/swagger";
 import { EventType } from "@prisma/client";
 
-import { EventTypesByViewer } from "@calcom/lib";
 import { EVENT_TYPE_READ, EVENT_TYPE_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
 import type { EventTypesPublic, UpdateEventTypeReturn } from "@calcom/platform-libraries";
 import { getEventTypesByViewer } from "@calcom/platform-libraries";
@@ -76,7 +76,7 @@ export class EventTypesController {
   @Get("/")
   @Permissions([EVENT_TYPE_READ])
   @UseGuards(AccessTokenGuard)
-  async getEventTypes(@GetUser() user: UserWithProfile): Promise<ApiSuccessResponse<EventTypesByViewer>> {
+  async getEventTypes(@GetUser() user: UserWithProfile): Promise<GetEventTypesOutput> {
     const eventTypes = await getEventTypesByViewer({
       id: user.id,
       profile: {

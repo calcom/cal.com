@@ -552,7 +552,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/GetEventTypesOutput"
                 }
               }
             }
@@ -1744,6 +1744,54 @@
           },
           "data": {
             "$ref": "#/components/schemas/Data"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "EventTypeGroup": {
+        "type": "object",
+        "properties": {
+          "eventTypes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EventTypeOutput"
+            }
+          }
+        },
+        "required": [
+          "eventTypes"
+        ]
+      },
+      "GetEventTypesData": {
+        "type": "object",
+        "properties": {
+          "eventTypeGroups": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EventTypeGroup"
+            }
+          }
+        },
+        "required": [
+          "eventTypeGroups"
+        ]
+      },
+      "GetEventTypesOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/GetEventTypesData"
           }
         },
         "required": [
