@@ -9,12 +9,12 @@ const rule = createRule({
         if (!node.specifiers.length) return null;
         if (!["dayjs", "lucide-react"].includes(node.source.value)) return null;
         node.specifiers.forEach((item) => {
-          console.log("item.local.name", item.local.name);
           if (item.local.name === "lucide-react") {
             return context.report({
               node: item,
               loc: node.loc,
               messageId: "lucide-moved",
+              fix: (fixer) => fixer.replaceText(node, "import { Icon } from '@calcom/ui'"),
             });
           }
           if (item.local.name === "dayjs") {
@@ -39,7 +39,7 @@ const rule = createRule({
     },
     messages: {
       "dayjs-moved": `Import dayjs from '@calcom/daysjs' to avoid plugin conflicts.`,
-      "lucide-moved": `Import icons from '@calcom/ui/components/icon' to avoid bundle size and memory issues.`,
+      "lucide-moved": `Import { Icon } from '@calcom/ui' to avoid bundle size and memory issues.`,
     },
     type: "suggestion",
     schema: [],
