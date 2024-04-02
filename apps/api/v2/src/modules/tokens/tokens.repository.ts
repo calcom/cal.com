@@ -48,7 +48,7 @@ export class TokensRepository {
   }
 
   async createOAuthTokens(clientId: string, ownerId: number) {
-    const accessExpiry = DateTime.now().plus({ minute: 1 }).startOf("minute").toJSDate();
+    const accessExpiry = DateTime.now().plus({ minute: 60 }).startOf("minute").toJSDate();
     const refreshExpiry = DateTime.now().plus({ year: 1 }).startOf("day").toJSDate();
     const [accessToken, refreshToken] = await this.dbWrite.prisma.$transaction([
       this.dbWrite.prisma.accessToken.create({
