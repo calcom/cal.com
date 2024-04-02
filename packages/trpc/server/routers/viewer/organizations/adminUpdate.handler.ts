@@ -108,7 +108,7 @@ async function throwIfSlugConflicts({ id, slug }: { id: number; slug: string }) 
   // If foundOrg isn't same as the org being edited
   if (foundOrg.id !== id) {
     throw new HttpError({
-      message: "Organization with same slug already exists",
+      message: "Organization or a Team with same slug already exists",
       statusCode: 400,
     });
   }
