@@ -13,9 +13,11 @@ export class ZodExceptionFilter implements ExceptionFilter {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest();
+
     this.logger.error(`ZodError: ${error.message}`, {
       error,
     });
+
     response.status(HttpStatus.BAD_REQUEST).json({
       status: ERROR_STATUS,
       timestamp: new Date().toISOString(),
