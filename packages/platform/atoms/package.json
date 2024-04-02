@@ -47,7 +47,7 @@
     "@tanstack/react-query": "^5.17.15",
     "class-variance-authority": "^0.4.0",
     "clsx": "^2.0.0",
-    "lucide-react": "^0.363.0",
+    "lucide-react": "^0.364.0",
     "react-use": "^17.4.2",
     "tailwind-merge": "^1.13.2",
     "tailwindcss": "^3.3.3",
