@@ -103,12 +103,12 @@ describe("Tests for navigation folder", () => {
       });
     });
 
-    test("Should render correctly if props are passed", () => {
+    test("Should render correctly if props are passed", async () => {
       render(<VerticalTabs tabs={mockTabs} />);
 
-      const iconElement = screen.getAllByTestId("icon-component");
-      const externalLink = screen.getAllByTestId("external-link");
-      const chevronRight = screen.getAllByTestId("chevron-right");
+      const iconElement = await screen.findAllByTestId("icon-component");
+      const externalLink = await screen.findAllByTestId("external-link");
+      const chevronRight = await screen.findAllByTestId("chevron-right");
 
       mockTabs.forEach((tab) => {
         const tabName = screen.getByText(tab.name);

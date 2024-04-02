@@ -42,9 +42,9 @@ describe("Tests for Badge component", () => {
     expect(screen.getByText(children)).toBeInTheDocument();
   });
 
-  test("Should render WithDot if the prop is true and shouldn't render if is false", () => {
+  test("Should render WithDot if the prop is true and shouldn't render if is false", async () => {
     const { rerender } = render(<Badge withDot>{children}</Badge>);
-    expect(screen.getByTestId("go-primitive-dot")).toBeInTheDocument();
+    expect(await screen.findByTestId("go-primitive-dot")).toBeInTheDocument();
 
     rerender(<Badge>{children}</Badge>);
     expect(screen.queryByTestId("go-primitive-dot")).not.toBeInTheDocument();
