@@ -242,8 +242,8 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
       timeZone,
       organizer: evt.organizer.name,
       name,
-      ratingUrl,
-      noShowUrl,
+      ratingUrl: `${evt.bookerUrl}/booking/${evt.uid}?rating`,
+      noShowUrl: `${evt.bookerUrl}/booking/${evt.uid}?noShow=true`,
     });
   }
 

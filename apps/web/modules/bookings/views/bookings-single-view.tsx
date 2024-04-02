@@ -46,7 +46,7 @@ import { localStorage } from "@calcom/lib/webstorage";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
-import { Alert, Badge, Button, EmailInput, HeadSeo, useCalcomTheme, TextArea } from "@calcom/ui";
+import { Alert, Badge, Button, EmailInput, HeadSeo, useCalcomTheme, TextArea, showToast } from "@calcom/ui";
 import { AlertCircle, Calendar, Check, ChevronLeft, ExternalLink, X } from "@calcom/ui/components/icon";
 
 import { timeZone } from "@lib/clock";
@@ -271,7 +271,8 @@ export default function Success(props: PageProps) {
     return t(`emailed_you_and_attendees${titleSuffix}`);
   }
   const [comment, setComment] = useState("");
-  const [rateValue, setRateValue] = useState<number>(parseInt(rating, 10) || 3);
+  const defaultRating = rating ? parseInt(rating, 10) : 3;
+  const [rateValue, setRateValue] = useState<number>(defaultRating);
   // This is a weird case where the same route can be opened in booking flow as a success page or as a booking detail page from the app
   // As Booking Page it has to support configured theme, but as booking detail page it should not do any change. Let Shell.tsx handle it.
   useTheme(isSuccessBookingPage ? props.profile.theme : "system");

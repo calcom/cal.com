@@ -27,6 +27,7 @@ import {
 } from "../lib/reminders/providers/sendgridProvider";
 import type { VariablesType } from "../lib/reminders/templates/customTemplate";
 import customTemplate from "../lib/reminders/templates/customTemplate";
+import emailRatingTemplate from "../lib/reminders/templates/emailRatingTemplate";
 import emailReminderTemplate from "../lib/reminders/templates/emailReminderTemplate";
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -229,18 +230,29 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
             !!reminder.booking.user?.hideBranding
           );
         } else if (reminder.workflowStep.template === WorkflowTemplates.RATING) {
+          // TODO:: extract these functions out for reusability
+          const organizerOrganizationProfile = await prisma.profile.findFirst({
+            where: {
+              userId: reminder.booking.user?.id,
+            },
+          });
+
+          const organizerOrganizationId = organizerOrganizationProfile?.organizationId;
+          const bookerUrl = await getBookerBaseUrl(
+            reminder.booking.eventType?.team?.parentId ?? organizerOrganizationId ?? null
+          );
           emailContent = emailRatingTemplate({
             isEditingMode: true,
-            action: reminder.workflowStep.action,
+            action: reminder.workflowStep.action || WorkflowActions.EMAIL_ADDRESS,
             timeFormat: getTimeFormatStringFromUserTimeFormat(reminder.booking.user?.timeFormat),
             startTime: reminder.booking.startTime.toISOString() || "",
             endTime: reminder.booking.endTime.toISOString() || "",
             eventName: reminder.booking.eventType?.title || "",
             timeZone: timeZone || "",
-            organizer: organizerName || "",
+            organizer: reminder.booking.user?.name || "",
             name: name || "",
-            ratingUrl: ratingUrl || "",
-            noShowUrl: noShowUrl || "",
+            ratingUrl: `${bookerUrl}/booking/${reminder.booking.uid}?rating` || "",
+            noShowUrl: `${bookerUrl}/booking/${reminder.booking.uid}?noShow=true` || "",
           });
         }
 
