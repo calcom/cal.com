@@ -183,6 +183,7 @@
   "2fa_confirm_current_password": "Xác nhận lại mật khẩu hiện tại của bạn để bắt đầu.",
   "2fa_scan_image_or_use_code": "Quét hình ảnh dưới đây với ứng dụng \bxác thực hai yếu tố trên điện thoại bạn hoặc nhập mã code.",
   "text": "Chữ",
+  "your_phone_number": "Số điện thoại của bạn",
   "multiline_text": "Chữ nhiều dòng",
   "number": "Số",
   "checkbox": "Checkbox",
