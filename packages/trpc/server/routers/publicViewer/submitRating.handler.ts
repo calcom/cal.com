@@ -8,7 +8,7 @@ type SubmitRatingOptions = {
 
 export const submitRatingHandler = async ({ input }: SubmitRatingOptions) => {
   const { bookingUid, rating, comment } = input;
-  await prisma.booking.update({
+  const updatedBooking = await prisma.booking.update({
     where: {
       uid: bookingUid,
     },
@@ -16,7 +16,13 @@ export const submitRatingHandler = async ({ input }: SubmitRatingOptions) => {
       rating: rating,
       ratingFeedback: comment,
     },
+    select: {
+      rating: true,
+      ratingFeedback: true,
+    },
   });
+
+  return updatedBooking;
 };
 
 export default submitRatingHandler;
