@@ -620,7 +620,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/UpdateEventTypeOutput"
                 }
               }
             }
@@ -678,7 +678,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/GetEventTypesPublicOutput"
                 }
               }
             }
@@ -1799,6 +1799,60 @@
           "data"
         ]
       },
+      "PublicEventType": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1
+          },
+          "length": {
+            "type": "number",
+            "example": 60
+          },
+          "slug": {
+            "type": "string",
+            "example": "cooking-class"
+          },
+          "title": {
+            "type": "string",
+            "example": "Learn the secrets of masterchief!"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "length",
+          "slug",
+          "title"
+        ]
+      },
+      "GetEventTypesPublicOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PublicEventType"
+            }
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
       "UpdateEventTypeInput": {
         "type": "object",
         "properties": {
@@ -1825,6 +1879,26 @@
             }
           }
         }
+      },
+      "UpdateEventTypeOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/EventTypeOutput"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
       },
       "DeleteData": {
         "type": "object",

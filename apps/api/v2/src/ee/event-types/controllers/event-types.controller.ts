@@ -3,7 +3,9 @@ import { UpdateEventTypeInput } from "@/ee/event-types/inputs/update-event-type.
 import { CreateEventTypeOutput } from "@/ee/event-types/outputs/create-event-type.output";
 import { DeleteEventTypeOutput } from "@/ee/event-types/outputs/delete-event-type.output";
 import { GetEventTypeOutput } from "@/ee/event-types/outputs/get-event-type.output";
+import { GetEventTypesPublicOutput } from "@/ee/event-types/outputs/get-event-types-public.output";
 import { GetEventTypesOutput } from "@/ee/event-types/outputs/get-event-types.output";
+import { UpdateEventTypeOutput } from "@/ee/event-types/outputs/update-event-type.output";
 import { EventTypesService } from "@/ee/event-types/services/event-types.service";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
@@ -26,9 +28,7 @@ import {
 import { ApiTags as DocsTags } from "@nestjs/swagger";
 
 import { EVENT_TYPE_READ, EVENT_TYPE_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
-import type { EventTypesPublic, UpdateEventTypeReturn } from "@calcom/platform-libraries";
 import { getEventTypesByViewer } from "@calcom/platform-libraries";
-import { ApiResponse, ApiSuccessResponse } from "@calcom/platform-types";
 
 @Controller({
   path: "event-types",
@@ -92,9 +92,7 @@ export class EventTypesController {
 
   @Get("/:username/public")
   @Permissions([EVENT_TYPE_READ])
-  async getPublicEventTypes(
-    @Param("username") username: string
-  ): Promise<ApiSuccessResponse<EventTypesPublic>> {
+  async getPublicEventTypes(@Param("username") username: string): Promise<GetEventTypesPublicOutput> {
     const eventTypes = await this.eventTypesService.getEventTypesPublicByUsername(username);
 
     return {
@@ -111,7 +109,7 @@ export class EventTypesController {
     @Param("eventTypeId") eventTypeId: number,
     @Body() body: UpdateEventTypeInput,
     @GetUser() user: UserWithProfile
-  ): Promise<ApiResponse<UpdateEventTypeReturn["eventType"]>> {
+  ): Promise<UpdateEventTypeOutput> {
     const eventType = await this.eventTypesService.updateEventType(eventTypeId, body, user);
 
     return {
