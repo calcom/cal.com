@@ -39,7 +39,7 @@ interface LoginValues {
 }
 
 const GoogleIcon = () => (
-  <img className={classNames("text-subtle  mr-2 h-4 w-4 dark:invert")} src="/google-icon.svg" alt="" />
+  <img className="text-subtle mr-2 h-4 w-4 dark:invert" src="/google-icon.svg" alt="" />
 );
 export default function Login({
   csrfToken,
