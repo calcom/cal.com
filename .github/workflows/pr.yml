@@ -9,6 +9,9 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
+env:
+  PR_NUMBER: ${{ github.event.number }}
+
 jobs:
   check-if-should-run-jobs:
     name: Check if should run jobs (target main or core team)
@@ -19,10 +22,9 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
+            console.log({{ github.event.number }})
             console.log("This triggers")
             console.log(context.payload.number)
-            console.log(context.payload)
-            console.log(github.event)
             const targetBranch = context.base_ref;
             console.log(`targetBranch: ${targetBranch}`);
             if (targetBranch.includes("main")) {
