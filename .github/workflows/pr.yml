@@ -1,16 +1,14 @@
 name: PR Update
 
 on:
-  pull_request_target:
+  pull_request:
+    types: [opened, synchronize, reopened]
   merge_group:
   workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
-
-env:
-  PR_NUMBER: ${{ github.event.number }}
 
 jobs:
   check-if-should-run-jobs:
@@ -22,7 +20,7 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            console.log({{ github.event.number }})
+            console.log(steps)
             console.log("This triggers")
             console.log(context.payload.number)
             const targetBranch = context.base_ref;
