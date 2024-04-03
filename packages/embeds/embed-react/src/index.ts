@@ -5,7 +5,7 @@ import EmbedSnippet from "@calcom/embed-snippet";
 
 import Cal from "./Cal";
 
-export function getCalApi(options: {
+export function getCalApi(options?: {
   embedJsUrl?: string;
   namespace?: string;
 }): Promise<GlobalCal | GlobalCalWithoutNs>;
