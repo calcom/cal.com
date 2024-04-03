@@ -24,9 +24,7 @@ jobs:
               core.setOutput("shouldRunJobs", "true");
               exit 0;
             }
-
             const authorTeams = context.actor.teams.map(team => team.slug);
-
             if (authorTeams.includes("core")) {
               core.setOutput("shouldRunJobs", "true");
               exit 0;
