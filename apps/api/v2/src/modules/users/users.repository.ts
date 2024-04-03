@@ -21,7 +21,7 @@ export class UsersRepository {
   ) {
     this.formatInput(user);
 
-    return this.dbRead.prisma.user.create({
+    return this.dbWrite.prisma.user.create({
       data: {
         ...user,
         username,
@@ -34,7 +34,7 @@ export class UsersRepository {
   }
 
   async addToOAuthClient(userId: number, oAuthClientId: string) {
-    return this.dbRead.prisma.user.update({
+    return this.dbWrite.prisma.user.update({
       data: {
         platformOAuthClients: {
           connect: { id: oAuthClientId },
