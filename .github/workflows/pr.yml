@@ -21,6 +21,7 @@ jobs:
           script: |
             console.log("This triggers")
             console.log(context)
+            console.log(context.actor)
             const targetBranch = context.base_ref;
             console.log(`targetBranch: ${targetBranch}`);
             if (targetBranch.includes("main")) {
