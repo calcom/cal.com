@@ -12,14 +12,16 @@ export default async function Home() {
 
   return (
     <main className="bg-slate-50">
-      <div className="flex h-96 flex-col items-center bg-center pt-32 bg-no-repeat bg-cover justify-center text-white" style={{backgroundImage: "url('/hero.jpg')"}} >
+      <div
+        className="flex h-96 flex-col items-center justify-center bg-cover bg-center bg-no-repeat pt-32 text-white"
+        style={{ backgroundImage: "url('/hero.jpg')" }}
+      >
         <div className="flex gap-2">
           <Input className="w-full" type="text" placeholder="Search for ..." />
           <Button>Search</Button>
         </div>
       </div>
       <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16 ">
-        
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-8">
           <Link
             className="flex max-w-xs flex-col gap-4 rounded-xl bg-white/10 p-4 hover:bg-white/20"
@@ -45,12 +47,12 @@ export default async function Home() {
           </Link>
         </div>
         <div className="flex flex-col items-center gap-2">
-          <p className="text-2xl text-white">
+          <p className="text-2xl">
             {hello ? hello.greeting : "Loading tRPC query..."}
           </p>
 
           <div className="flex flex-col items-center justify-center gap-4">
-            <p className="text-center text-2xl text-white">
+            <p className="text-center text-2xl">
               {session && <span>Logged in as {session.user?.name}</span>}
             </p>
             <Link
