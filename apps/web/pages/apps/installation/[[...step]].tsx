@@ -100,13 +100,13 @@ const OnboardingPage = ({
   const [configureStep, setConfigureStep] = useState(false);
   const [isSelectingAccount, setIsSelectingAccount] = useState(false);
 
-  const curerentStep: AppOnboardingSteps = useMemo(() => {
+  const currentStep: AppOnboardingSteps = useMemo(() => {
     if (step == AppOnboardingSteps.EVENT_TYPES_STEP && configureStep) {
       return AppOnboardingSteps.CONFIGURE_STEP;
     }
     return step;
   }, [step, configureStep]);
-  const stepObj = STEPS_MAP[curerentStep];
+  const stepObj = STEPS_MAP[currentStep];
 
   const utils = trpc.useContext();
 
@@ -239,7 +239,7 @@ const OnboardingPage = ({
                 subtitle={stepObj.getDescription(appMetadata.name)}>
                 <Steps maxSteps={MAX_NUMBER_OF_STEPS} currentStep={stepObj.stepNumber} disableNavigation />
               </StepHeader>
-              {curerentStep === AppOnboardingSteps.ACCOUNTS_STEP && (
+              {currentStep === AppOnboardingSteps.ACCOUNTS_STEP && (
                 <AccountsStepCard
                   teams={teams}
                   personalAccount={personalAccount}
@@ -247,12 +247,12 @@ const OnboardingPage = ({
                   loading={isSelectingAccount}
                 />
               )}
-              {curerentStep === AppOnboardingSteps.EVENT_TYPES_STEP &&
+              {currentStep === AppOnboardingSteps.EVENT_TYPES_STEP &&
                 eventTypes &&
                 Boolean(eventTypes?.length) && (
                   <EventTypesStepCard setConfigureStep={setConfigureStep} userName={userName} />
                 )}
-              {curerentStep === AppOnboardingSteps.CONFIGURE_STEP && formPortalRef.current && (
+              {currentStep === AppOnboardingSteps.CONFIGURE_STEP && formPortalRef.current && (
                 <ConfigureStepCard
                   slug={appMetadata.slug}
                   categories={appMetadata.categories}
