@@ -1,9 +1,7 @@
 import { CalendarsService } from "@/ee/calendars/services/calendars.service";
-import { getEnv } from "@/env";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
 import { UserWithProfile } from "@/modules/users/users.repository";
-import { ApiExcludeController as DocsExcludeController, ApiTags as DocsTags } from "@nestjs/swagger";
 import { Controller, Get, UseGuards, Query } from "@nestjs/common";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
@@ -17,8 +15,6 @@ import { EventBusyDate } from "@calcom/types/Calendar";
   version: "2",
 })
 @UseGuards(AccessTokenGuard)
-@DocsExcludeController(getEnv("NODE_ENV") === "production")
-@DocsTags("Development only - Calendars")
 export class CalendarsController {
   constructor(private readonly calendarsService: CalendarsService) {}
 

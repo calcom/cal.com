@@ -1,6 +1,5 @@
 import { ResponseService } from "@/ee/schedules/services/response/response.service";
 import { SchedulesService } from "@/ee/schedules/services/schedules.service";
-import { getEnv } from "@/env";
 import { ForAtom } from "@/lib/atoms/decorators/for-atom.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
@@ -19,7 +18,6 @@ import {
   Patch,
   UseGuards,
 } from "@nestjs/common";
-import { ApiExcludeController as DocsExcludeController, ApiTags as DocsTags } from "@nestjs/swagger";
 
 import { SCHEDULE_READ, SCHEDULE_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
 import type { ScheduleWithAvailabilitiesForWeb } from "@calcom/platform-libraries";
@@ -34,8 +32,6 @@ import { CreateScheduleInput } from "../inputs/create-schedule.input";
   path: "schedules",
   version: "2",
 })
-@DocsExcludeController(getEnv("NODE_ENV") === "production")
-@DocsTags("Development only - Schedules")
 @UseGuards(AccessTokenGuard, PermissionsGuard)
 export class SchedulesController {
   constructor(

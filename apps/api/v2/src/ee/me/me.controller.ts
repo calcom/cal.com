@@ -1,5 +1,4 @@
 import { SchedulesService } from "@/ee/schedules/services/schedules.service";
-import { getEnv } from "@/env";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
 import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
@@ -7,7 +6,6 @@ import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.
 import { UpdateManagedPlatformUserInput } from "@/modules/users/inputs/update-managed-platform-user.input";
 import { UserWithProfile, UsersRepository } from "@/modules/users/users.repository";
 import { Controller, UseGuards, Get, Patch, Body } from "@nestjs/common";
-import { ApiExcludeController as DocsExcludeController, ApiTags as DocsTags } from "@nestjs/swagger";
 
 import { PROFILE_READ, PROFILE_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
 import { UserResponse, userSchemaResponse } from "@calcom/platform-types";
@@ -18,8 +16,6 @@ import { ApiResponse } from "@calcom/platform-types";
   version: "2",
 })
 @UseGuards(AccessTokenGuard, PermissionsGuard)
-@DocsExcludeController(getEnv("NODE_ENV") === "production")
-@DocsTags("Development only - Me")
 export class MeController {
   constructor(
     private readonly usersRepository: UsersRepository,

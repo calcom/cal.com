@@ -1,6 +1,5 @@
 import { CreateBookingInput } from "@/ee/bookings/inputs/create-booking.input";
 import { CreateReccuringBookingInput } from "@/ee/bookings/inputs/create-reccuring-booking.input";
-import { getEnv } from "@/env";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
 import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
@@ -21,7 +20,6 @@ import {
   NotFoundException,
   UseGuards,
 } from "@nestjs/common";
-import { ApiExcludeEndpoint as DocsExcludeEndpoint, ApiTags as DocsTags } from "@nestjs/swagger";
 import { User } from "@prisma/client";
 import { Request } from "express";
 import { NextApiRequest } from "next/types";
@@ -60,8 +58,6 @@ export class BookingsController {
   // note(Rajiv): currently this endpoint is atoms only
   @Get("/")
   @UseGuards(AccessTokenGuard)
-  @DocsExcludeEndpoint(getEnv("NODE_ENV") === "production")
-  @DocsTags("Development only - Bookings")
   async getBookings(
     @GetUser() user: User,
     @Query() queryParams: GetBookingsInput
@@ -86,8 +82,6 @@ export class BookingsController {
 
   // note(Rajiv): currently this endpoint is atoms only
   @Get("/:bookingUid")
-  @DocsTags("Development only - Bookings")
-  @DocsExcludeEndpoint(getEnv("NODE_ENV") === "production")
   async getBooking(@Param("bookingUid") bookingUid: string): Promise<ApiResponse<unknown>> {
     const { bookingInfo } = await getBookingInfo(bookingUid);
 
@@ -103,7 +97,6 @@ export class BookingsController {
 
   // note(Rajiv): currently this endpoint is atoms only
   @Get("/:bookingUid/reschedule")
-  @DocsTags("Bookings")
   async getBookingForReschedule(@Param("bookingUid") bookingUid: string): Promise<ApiResponse<unknown>> {
     const booking = await getBookingForReschedule(bookingUid);
 
@@ -119,8 +112,6 @@ export class BookingsController {
 
   @Post("/")
   @Permissions([BOOKING_WRITE])
-  @DocsTags("Development only - Bookings")
-  @DocsExcludeEndpoint(getEnv("NODE_ENV") === "production")
   async createBooking(
     @Req() req: Request & { userId?: number },
     @Body() _: CreateBookingInput
@@ -141,7 +132,6 @@ export class BookingsController {
 
   @Post("/:bookingId/cancel")
   @Permissions([BOOKING_WRITE])
-  @DocsTags("Bookings")
   async cancelBooking(
     @Req() req: Request & { userId?: number },
     @Param("bookingId") bookingId: string,
@@ -166,8 +156,6 @@ export class BookingsController {
 
   @Post("/reccuring")
   @Permissions([BOOKING_WRITE])
-  @DocsExcludeEndpoint(getEnv("NODE_ENV") === "production")
-  @DocsTags("Development only - Bookings")
   async createReccuringBooking(
     @Req() req: Request & { userId?: number },
     @Body() _: CreateReccuringBookingInput[]
@@ -190,8 +178,6 @@ export class BookingsController {
 
   @Post("/instant")
   @Permissions([BOOKING_WRITE])
-  @DocsExcludeEndpoint(getEnv("NODE_ENV") === "production")
-  @DocsTags("Development only - Bookings")
   async createInstantBooking(
     @Req() req: Request & { userId?: number },
     @Body() _: CreateBookingInput
