@@ -2097,6 +2097,9 @@
   "extensive_whitelabeling": "Posvećena podrška za uvodnu obuku i inženjering",
   "need_help": "Potrebna vam je pomoć?",
   "show_more": "Prikaži više",
+  "email_team_invite|subject|invited_to_regular_team": "{{user}} vas je pozvao da se pridružite timu {{team}} na {{appName}}",
+  "email_team_invite|heading|invited_to_regular_team": "Pozvani ste da se pridružite timu {{appName}}",
+  "email_team_invite|content|invited_to_regular_team": "{{invitedBy}} vas je pozvao/la da se pridružite njihovom timu `{{teamName}}` u {{appName}}. {{appName}} je planer za koordinaciju događaja koji omogućava vama i vašem timu da zakazujete sastanke bez dopisivanja imejlovima.",
   "privacy": "Privatnost",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodajte svoje nove stringove iznad ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

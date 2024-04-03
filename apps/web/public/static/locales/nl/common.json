@@ -2097,6 +2097,9 @@
   "extensive_whitelabeling": "Speciale onboarding en technische ondersteuning",
   "need_help": "Hulp nodig?",
   "show_more": "Meer weergeven",
+  "email_team_invite|subject|invited_to_regular_team": "{{user}} heeft u uitgenodigd om lid te worden van het team {{team}} op {{appName}}",
+  "email_team_invite|heading|invited_to_regular_team": "U bent uitgenodigd om lid te worden van een {{appName}}-team",
+  "email_team_invite|content|invited_to_regular_team": "{{invitedBy}} heeft u uitgenodigd om lid te worden van zijn team '{{teamName}}' op {{appName}}. {{appName}} is de gebeurtenissenplanner die u en uw team in staat stelt afspraken te plannen zonder heen en weer te e-mailen.",
   "privacy": "Privacy",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Voeg uw nieuwe strings hierboven toe ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

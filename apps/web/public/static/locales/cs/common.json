@@ -2097,6 +2097,9 @@
   "extensive_whitelabeling": "Vyhrazená podpora zaškolovací a inženýrská podpora",
   "need_help": "Potřebujete pomoc?",
   "show_more": "Zobrazit více",
+  "email_team_invite|subject|invited_to_regular_team": "{{user}} vás pozval, abyste se připojili k týmu {{team}} na {{appName}}",
+  "email_team_invite|heading|invited_to_regular_team": "Byli jste pozváni do týmu {{appName}}",
+  "email_team_invite|content|invited_to_regular_team": "Uživatel {{invitedBy}} vás pozval, abyste se připojili k jeho týmu „{{teamName}}“ v aplikaci {{appName}}. {{appName}} je plánovač událostí, který vám a vašemu týmu umožňuje plánovat schůzky bez e-mailového pingpongu.",
   "privacy": "Ochrana soukromí",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Přidejte své nové řetězce nahoru ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
