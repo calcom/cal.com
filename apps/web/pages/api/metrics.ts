@@ -1,5 +1,6 @@
 import { compose, defaultHandler, defaultResponder, modularize } from "@calcom/lib/server";
 import type { Handler } from "@calcom/lib/server/compose";
+import { rateLimitHandler } from "@calcom/lib/server/rateLimit";
 import prisma from "@calcom/prisma";
 
 import { HttpError } from "@lib/core/http/error";
@@ -19,6 +20,13 @@ const validateCronApiKey =
     return handler(req, res);
   };
 
+const rateLimit =
+  (handler: Handler): Handler =>
+  async (req, res) => {
+    await rateLimitHandler(req, res);
+    return handler(req, res);
+  };
+
 const handler: Handler = async (req, res) => {
   const metrics = await prisma.$metrics.json();
   res.status(200).json(metrics);
@@ -31,6 +39,7 @@ export default compose(
     getHandler,
     defaultResponder,
     validateCronApiKey,
+    rateLimit,
   ],
   handler
 );
