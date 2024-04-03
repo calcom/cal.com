@@ -108,6 +108,7 @@ export interface BaseCardProps extends CVACardType {
     href?: string;
     child: ReactNode;
     onClick?: (event: React.MouseEvent<HTMLElement, MouseEvent>) => void;
+    "data-testId"?: string;
   };
   learnMore?: {
     href: string;
@@ -177,6 +178,7 @@ export function Card({
           target="_blank"
           rel="noreferrer"
           href={mediaLink}
+          data-testId={actionButton?.["data-testId"]}
           className="group relative my-3 flex aspect-video items-center overflow-hidden rounded">
           <div className="absolute inset-0 bg-black bg-opacity-50 transition-opacity group-hover:bg-opacity-40" />
           <svg
@@ -202,13 +204,18 @@ export function Card({
       )}
 
       {/* TODO: this should be CardActions https://mui.com/material-ui/api/card-actions/ */}
-      <div>
-        {variant === "basic" && (
-          <Button color="secondary" href={actionButton?.href} className="mt-10" EndIcon={ArrowRight}>
+      {variant === "basic" && actionButton && (
+        <div>
+          <Button
+            color="secondary"
+            href={actionButton?.href}
+            className="mt-10"
+            EndIcon={ArrowRight}
+            data-testId={actionButton["data-testId"]}>
             {actionButton?.child}
           </Button>
-        )}
-      </div>
+        </div>
+      )}
 
       {variant === "SidebarCard" && (
         <div className="mt-2 flex items-center justify-between">
@@ -226,6 +233,7 @@ export function Card({
             <button
               className="text-default hover:text-emphasis p-0 text-xs font-normal"
               color="minimal"
+              data-testId={actionButton?.["data-testId"]}
               onClick={actionButton?.onClick}>
               {actionButton?.child}
             </button>
