@@ -20,7 +20,8 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             console.log("This triggers")
-            console.log(context)
+            console.log(context.payload.number)
+            console.log(context.payload)
             console.log(github.event)
             const targetBranch = context.base_ref;
             console.log(`targetBranch: ${targetBranch}`);
