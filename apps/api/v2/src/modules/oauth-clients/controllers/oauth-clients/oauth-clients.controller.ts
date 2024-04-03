@@ -4,6 +4,7 @@ import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { NextAuthGuard } from "@/modules/auth/guards/next-auth/next-auth.guard";
 import { OrganizationRolesGuard } from "@/modules/auth/guards/organization-roles/organization-roles.guard";
 import { CreateOAuthClientResponseDto } from "@/modules/oauth-clients/controllers/oauth-clients/responses/CreateOAuthClientResponse.dto";
+import { DeleteOAuthClientResponseDto } from "@/modules/oauth-clients/controllers/oauth-clients/responses/DeleteOAuthClientResponse.dto";
 import { GetOAuthClientResponseDto } from "@/modules/oauth-clients/controllers/oauth-clients/responses/GetOAuthClientResponse.dto";
 import { GetOAuthClientsResponseDto } from "@/modules/oauth-clients/controllers/oauth-clients/responses/GetOAuthClientsResponse.dto";
 import { UpdateOAuthClientInput } from "@/modules/oauth-clients/inputs/update-oauth-client.input";
@@ -113,9 +114,9 @@ export class OAuthClientsController {
   @HttpCode(HttpStatus.OK)
   @Roles([MembershipRole.ADMIN, MembershipRole.OWNER])
   @DocsOperation({ description: AUTH_DOCUMENTATION })
-  async deleteOAuthClient(@Param("clientId") clientId: string): Promise<GetOAuthClientResponseDto> {
+  async deleteOAuthClient(@Param("clientId") clientId: string): Promise<DeleteOAuthClientResponseDto> {
     this.logger.log(`Deleting OAuth Client with ID: ${clientId}`);
     const client = await this.oauthClientRepository.deleteOAuthClient(clientId);
-    return { status: SUCCESS_STATUS, data: client };
+    return { status: SUCCESS_STATUS, data: { id: client.id, name: client.name } };
   }
 }
