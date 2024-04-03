@@ -1,5 +1,5 @@
 import { CreateBookingInput } from "@/ee/bookings/inputs/create-booking.input";
-import { IsBoolean, IsNumber, IsString, IsOptional, IsArray } from "class-validator";
+import { IsBoolean, IsNumber, IsOptional } from "class-validator";
 
 import type { AppsStatus } from "@calcom/platform-libraries";
 

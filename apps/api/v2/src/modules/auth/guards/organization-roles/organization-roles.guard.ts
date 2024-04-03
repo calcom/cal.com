@@ -38,7 +38,7 @@ export class OrganizationRolesGuard implements CanActivate {
   async isPlatform(organizationId: number) {
     const isPlatform = await this.organizationsService.isPlatform(organizationId);
     if (!isPlatform) {
-      throw new ForbiddenException("Organization is not a platform.");
+      throw new ForbiddenException("Organization is not a platform (SHP).");
     }
   }
 
