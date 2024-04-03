@@ -19,7 +19,9 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
+            console.log("This triggers")
             const targetBranch = context.base_ref;
+            console.log(`targetBranch: ${targetBranch}`);
             if (targetBranch.includes("main")) {
               core.setOutput("shouldRunJobs", "true");
               exit 0;
