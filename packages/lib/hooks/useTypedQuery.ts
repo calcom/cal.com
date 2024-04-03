@@ -103,8 +103,6 @@ export function useTypedQuery<T extends z.AnyZodObject>(schema: T) {
     } else {
       // @ts-expect-error this is too much for TS it seems
       removeByKey(key);
-      //@ts-expect-error this is too much for TS it seems
-      removeByKeyFromLocalStorage(key);
     }
   }
 
