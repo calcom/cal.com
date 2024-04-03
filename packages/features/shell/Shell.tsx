@@ -675,11 +675,6 @@ const navigation: NavigationItemType[] = [
     isCurrent: ({ pathname }) => pathname?.startsWith("/apps/routing-forms/") ?? false,
   },
   {
-    name: "Cal.ai",
-    href: "/ai",
-    icon: Sparkles,
-  },
-  {
     name: "workflows",
     href: "/workflows",
     icon: Zap,
