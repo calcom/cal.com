@@ -407,7 +407,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                         showToast(t("invite_link_copied"), "success");
                       }
                     } catch (e) {
-                      showToast(t("something_went_wrong_on_our_end"), "error");
+                      showToast(t("error_404"), "error");
                       console.error(e);
                     }
                   }}
