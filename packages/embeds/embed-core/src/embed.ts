@@ -445,6 +445,7 @@ class CalApi {
    * It allows default queue to take care of instantiation of the non-default namespace queue
    */
   initNamespace(namespace: string) {
+    // Creating this instance automatically starts processing the queue for the namespace
     globalCal.ns[namespace].instance =
       globalCal.ns[namespace].instance || new Cal(namespace, globalCal.ns[namespace].q);
   }

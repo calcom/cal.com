@@ -1,5 +1,3 @@
-import EmbedSnippet from "@calcom/embed-snippet";
-
 const searchParams = new URL(document.URL).searchParams;
 const embedType = searchParams.get("embedType");
 const calLink = searchParams.get("calLink");
@@ -8,8 +6,48 @@ const embedLibUrl = searchParams.get("embedLibUrl");
 if (!bookerUrl || !embedLibUrl) {
   throw new Error('Can\'t Preview: Missing "bookerUrl" or "embedLibUrl" query parameter');
 }
+// TODO: Reuse the embed code snippet from the embed-snippet package - Not able to use it because of circular dependency
 // Install Cal Embed Code Snippet
-EmbedSnippet();
+(function (C, A, L) {
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  //@ts-ignore
+  const p = function (a, ar) {
+    a.q.push(ar);
+  };
+  const d = C.document;
+  C.Cal =
+    C.Cal ||
+    function () {
+      const cal = C.Cal;
+
+      // eslint-disable-next-line prefer-rest-params
+      const ar = arguments;
+      if (!cal.loaded) {
+        cal.ns = {};
+        cal.q = cal.q || [];
+        d.head.appendChild(d.createElement("script")).src = A;
+        cal.loaded = true;
+      }
+      if (ar[0] === L) {
+        const api = function () {
+          // eslint-disable-next-line prefer-rest-params
+          p(api, arguments);
+        };
+        const namespace = ar[1];
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        //@ts-ignore
+        api.q = api.q || [];
+        if (typeof namespace === "string") {
+          // Make sure that even after re-execution of the snippet, the namespace is not overridden
+          cal.ns[namespace] = cal.ns[namespace] || api;
+          p(cal.ns[namespace], ar);
+          p(cal, ["initNamespace", namespace]);
+        } else p(cal, ar);
+        return;
+      }
+      p(cal, ar);
+    };
+})(window, "//localhost:3000/embed/embed.js", "init");
 const previewWindow = window;
 previewWindow.Cal.fingerprint = process.env.EMBED_PUBLIC_EMBED_FINGER_PRINT as string;
 
