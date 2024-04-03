@@ -26,11 +26,7 @@ import { Form, Steps, showToast } from "@calcom/ui";
 import { HttpError } from "@lib/core/http/error";
 
 import PageWrapper from "@components/PageWrapper";
-import type {
-  PersonalAccountProps,
-  TeamsProp,
-  onSelectParams,
-} from "@components/apps/installation/AccountsStepCard";
+import type { PersonalAccountProps, TeamsProp } from "@components/apps/installation/AccountsStepCard";
 import { AccountsStepCard } from "@components/apps/installation/AccountsStepCard";
 import { ConfigureStepCard } from "@components/apps/installation/ConfigureStepCard";
 import { EventTypesStepCard } from "@components/apps/installation/EventTypesStepCard";
@@ -157,7 +153,7 @@ const OnboardingPage = ({
     },
   });
 
-  const handleSelectAccount = async ({ id: teamId }: onSelectParams) => {
+  const handleSelectAccount = async (teamId?: number) => {
     try {
       setIsSelectingAccount(true);
       if (appMetadata.isOAuth) {

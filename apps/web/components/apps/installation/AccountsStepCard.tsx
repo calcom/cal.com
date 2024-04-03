@@ -1,5 +1,5 @@
 import type { FC } from "react";
-import React from "react";
+import React, { useState } from "react";
 
 import { classNames } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
@@ -12,17 +12,25 @@ type AccountSelectorProps = {
   name: string;
   alreadyInstalled: boolean;
   onClick?: () => void;
+  loading: boolean;
 };
 
-const AccountSelector: FC<AccountSelectorProps> = ({ avatar, alreadyInstalled, name, onClick }) => {
+const AccountSelector: FC<AccountSelectorProps> = ({ avatar, alreadyInstalled, name, onClick, loading }) => {
   const { t } = useLocale();
+  const [selected, setSelected] = useState(false);
   return (
     <div
       className={classNames(
         "hover:bg-muted flex cursor-pointer flex-row items-center gap-2 p-1",
-        alreadyInstalled && "cursor-not-allowed"
+        (alreadyInstalled || loading) && "cursor-not-allowed",
+        selected && "bg-muted animate-pulse"
       )}
-      onClick={onClick}>
+      onClick={() => {
+        if (onClick) {
+          setSelected(true);
+          onClick();
+        }
+      }}>
       <Avatar
         alt={avatar || ""}
         imageSrc={avatar || `${CAL_URL}/${avatar}`} // if no image, use default avatar
@@ -42,16 +50,10 @@ export type TeamsProp = (Pick<Team, "id" | "name" | "logo"> & {
   alreadyInstalled: boolean;
 })[];
 
-type onSelectPersonalAccParams = { type: "personal"; id?: undefined };
-type onSelectPersonalTeamParams = { type: "team"; id: number };
-export type onSelectParams = onSelectPersonalAccParams | onSelectPersonalTeamParams;
-
-export type onSelectProp = (params: onSelectParams) => void;
-
 type AccountStepCardProps = {
   teams: TeamsProp;
   personalAccount: PersonalAccountProps;
-  onSelect: onSelectProp;
+  onSelect: (id?: number) => void;
   loading: boolean;
 };
 
@@ -60,16 +62,13 @@ export const AccountsStepCard: FC<AccountStepCardProps> = ({ teams, personalAcco
   return (
     <StepCard>
       <div className="text-sm font-medium text-gray-400">{t("install_app_on")}</div>
-      <div
-        className={classNames(
-          "mt-2 flex flex-col gap-2 ",
-          loading && "bg-muted pointer-events-none animate-pulse"
-        )}>
+      <div className={classNames("mt-2 flex flex-col gap-2 ")}>
         <AccountSelector
           avatar={personalAccount.avatar ?? ""}
           name={personalAccount.name ?? ""}
           alreadyInstalled={personalAccount.alreadyInstalled}
-          onClick={() => !personalAccount.alreadyInstalled && onSelect({ type: "personal" })}
+          onClick={() => !personalAccount.alreadyInstalled && !loading && onSelect()}
+          loading={loading}
         />
         {teams.map((team) => (
           <AccountSelector
@@ -77,7 +76,8 @@ export const AccountsStepCard: FC<AccountStepCardProps> = ({ teams, personalAcco
             alreadyInstalled={team.alreadyInstalled}
             avatar={team.logo ?? ""}
             name={team.name}
-            onClick={() => !team.alreadyInstalled && onSelect({ type: "team", id: team.id })}
+            onClick={() => !team.alreadyInstalled && !loading && onSelect(team.id)}
+            loading={loading}
           />
         ))}
       </div>
