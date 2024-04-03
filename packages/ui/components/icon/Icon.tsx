@@ -14,7 +14,7 @@ const IconDev = dynamic(() => import("./IconDev"));
 const IconProd = dynamic(() => import("./IconProd"));
 
 const Icon = memo((props: IconProps) => {
-  // Fast refresh doens't play nice with dynamic imports
+  // Fast refresh doesn't play nice with dynamic imports
   // This prevent slowdowns in development mode
   if (process.env.NODE_ENV === "development") return <IconDev {...props} />;
   return <IconProd {...props} />;

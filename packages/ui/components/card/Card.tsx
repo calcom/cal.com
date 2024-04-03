@@ -209,7 +209,7 @@ export function Card({
             color="secondary"
             href={actionButton?.href}
             className="mt-10"
-            EndIcon={ArrowRight}
+            EndIcon="arrow-right"
             data-testId={actionButton["data-testId"]}>
             {actionButton?.child}
           </Button>
