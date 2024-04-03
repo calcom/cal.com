@@ -33,7 +33,7 @@ type ConfigureStepCardProps = {
 
 type EventTypeAppSettingsFormProps = Pick<
   ConfigureStepCardProps,
-  "slug" | "userName" | "categories" | "credentialId"
+  "slug" | "userName" | "categories" | "credentialId" | "loading"
 > & {
   eventType: TEventType;
   handleDelete: () => void;
@@ -72,7 +72,7 @@ const EventTypeAppSettingsWrapper: FC<EventTypeAppSettingsWrapperProps> = ({
 
 const EventTypeAppSettingsForm = forwardRef<HTMLButtonElement, EventTypeAppSettingsFormProps>(
   function EventTypeAppSettingsForm(props, ref) {
-    const { handleDelete, onSubmit, eventType } = props;
+    const { handleDelete, onSubmit, eventType, loading } = props;
 
     const formMethods = useForm<TFormType>({
       defaultValues: {
@@ -97,7 +97,10 @@ const EventTypeAppSettingsForm = forwardRef<HTMLButtonElement, EventTypeAppSetti
               </small>
             </div>
             <EventTypeAppSettingsWrapper {...props} />
-            <X className="absolute right-4 top-4 h-4 w-4 cursor-pointer" onClick={() => handleDelete()} />
+            <X
+              className="absolute right-4 top-4 h-4 w-4 cursor-pointer"
+              onClick={() => !loading && handleDelete()}
+            />
             <button type="submit" className="hidden" ref={ref}>
               Save
             </button>
@@ -160,6 +163,7 @@ export const ConfigureStepCard: FC<ConfigureStepCardProps> = ({
                 <EventTypeAppSettingsForm
                   key={field.fieldId}
                   eventType={field}
+                  loading={loading}
                   handleDelete={() => {
                     const eventMetadataDb = eventTypes?.find(
                       (eventType) => eventType.id == field.id
