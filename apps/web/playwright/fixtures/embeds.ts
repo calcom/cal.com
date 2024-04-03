@@ -4,7 +4,7 @@ export const createEmbedsFixture = (page: Page) => {
   return {
     /**
      * @deprecated
-     * Use 'gotoPlayground' instead to navigate which calls it automatically
+     * Use 'gotoPlayground' instead, to navigate. It calls `addEmbedListeners` automatically.
      */
     async addEmbedListeners(calNamespace: string) {
       await page.addInitScript(

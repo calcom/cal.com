@@ -1,3 +1,5 @@
+import EmbedSnippet from "@calcom/embed-snippet";
+
 const searchParams = new URL(document.URL).searchParams;
 const embedType = searchParams.get("embedType");
 const calLink = searchParams.get("calLink");
@@ -7,41 +9,7 @@ if (!bookerUrl || !embedLibUrl) {
   throw new Error('Can\'t Preview: Missing "bookerUrl" or "embedLibUrl" query parameter');
 }
 // Install Cal Embed Code Snippet
-(function (C, A, L) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const p = function (a: any, ar: any) {
-    a.q.push(ar);
-  };
-  const d = C.document;
-  C.Cal =
-    C.Cal ||
-    function () {
-      const cal = C.Cal;
-      // eslint-disable-next-line prefer-rest-params
-      const ar = arguments;
-      if (!cal.loaded) {
-        cal.ns = {};
-        cal.q = cal.q || [];
-        d.head.appendChild(d.createElement("script")).src = A;
-        cal.loaded = true;
-      }
-      if (ar[0] === L) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const api: { (): void; q?: any[] } = function () {
-          // eslint-disable-next-line prefer-rest-params
-          p(api, arguments);
-        };
-        const namespace = ar[1];
-        api.q = api.q || [];
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        //@ts-ignore
-        typeof namespace === "string" ? (cal.ns[namespace] = api) && p(api, ar) : p(cal, ar);
-        return;
-      }
-      p(cal, ar);
-    };
-})(window, embedLibUrl, "init");
-
+EmbedSnippet();
 const previewWindow = window;
 previewWindow.Cal.fingerprint = process.env.EMBED_PUBLIC_EMBED_FINGER_PRINT as string;
 

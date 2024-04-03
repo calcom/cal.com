@@ -1,10 +1,6 @@
-/* First make sure that you have installed the package */
-
-/* If you are using yarn */
-// yarn add @calcom/embed-react
-
-/* If you are using npm */
-// npm install @calcom/embed-react
+/**
+ * @fileoverview This file is an example file and tells how to use floating popup button in a React application. This is also used by playwright e2e
+ */
 import { useEffect } from "react";
 import * as React from "react";
 import ReactDom from "react-dom";

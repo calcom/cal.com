@@ -211,7 +211,7 @@ export class Cal {
     return instruction;
   }
 
-  processQueue(queue: IArguments[]) {
+  processQueue(queue: Queue) {
     queue.forEach((instruction) => {
       this.processInstruction(instruction);
     });
@@ -315,7 +315,7 @@ export class Cal {
     }
   }
 
-  constructor(namespace: string, q: IArguments[]) {
+  constructor(namespace: string, q: Queue) {
     this.__config = {
       // Use WEBAPP_URL till full page reload problem with website URL is solved
       calOrigin: WEBAPP_URL,
@@ -794,13 +794,16 @@ class CalApi {
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type Queue = any[];
+
 // This is a full fledged Cal instance but doesn't have ns property because it would be nested inside an ns instance already
 export interface GlobalCalWithoutNs {
   <T extends keyof SingleInstructionMap>(methodName: T, ...arg: Rest<SingleInstructionMap[T]>): void;
   /** Marks that the embed.js is loaded. Avoids re-downloading it. */
   loaded?: boolean;
   /** Maintains a queue till the time embed.js isn't loaded */
-  q: IArguments[];
+  q: Queue;
   /** If user registers multiple namespaces, those are available here */
   instance?: Cal;
   __css?: string;

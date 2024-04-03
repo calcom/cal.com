@@ -1,3 +1,6 @@
+/**
+ * @fileoverview This file is an example file and tells how to use the Cal component in a React application. This is also used by playwright e2e
+ */
 import * as React from "react";
 import { useEffect } from "react";
 import { useState } from "react";
@@ -21,7 +24,6 @@ function App() {
       console.log(event.detail);
     };
     api.then((api) => {
-      debugger;
       api("on", {
         action: "*",
         callback,
