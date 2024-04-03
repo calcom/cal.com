@@ -27,6 +27,7 @@ export class OAuthClientUsersService {
       const username = generateShortHash(body.email, oAuthClientId);
       user = await this.userRepository.create(body, username, oAuthClientId, isPlatformManaged);
     } else {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const [_, emailDomain] = body.email.split("@");
       user = (
         await createNewUsersConnectToOrgIfExists({

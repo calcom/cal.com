@@ -1,4 +1,4 @@
-import { BaseStrategy } from "@/lib/passport/strategies/types";
+import { NextAuthPassportStrategy } from "@/lib/passport/strategies/types";
 import { UsersRepository } from "@/modules/users/users.repository";
 import { Injectable, UnauthorizedException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
@@ -7,7 +7,7 @@ import type { Request } from "express";
 import { getToken } from "next-auth/jwt";
 
 @Injectable()
-export class NextAuthStrategy extends PassportStrategy(BaseStrategy, "next-auth") {
+export class NextAuthStrategy extends PassportStrategy(NextAuthPassportStrategy, "next-auth") {
   constructor(private readonly userRepository: UsersRepository, private readonly config: ConfigService) {
     super();
   }
@@ -25,7 +25,7 @@ export class NextAuthStrategy extends PassportStrategy(BaseStrategy, "next-auth"
         throw new UnauthorizedException("Email not found in the authentication token.");
       }
 
-      const user = await this.userRepository.findByEmail(payload.email);
+      const user = await this.userRepository.findByEmailWithProfile(payload.email);
       if (!user) {
         throw new UnauthorizedException("User associated with the authentication token email not found.");
       }

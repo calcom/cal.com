@@ -2097,6 +2097,9 @@
   "extensive_whitelabeling": "専用のオンボーディングサポートとエンジニアリングサポート",
   "need_help": "サポートが必要ですか？",
   "show_more": "さらに表示",
+  "email_team_invite|subject|invited_to_regular_team": "{{user}} があなたを {{appName}} のチーム {{team}} に招待しました",
+  "email_team_invite|heading|invited_to_regular_team": "{{appName}} チームに参加するよう招待されました",
+  "email_team_invite|content|invited_to_regular_team": "{{invitedBy}}から{{appName}}の「{{teamName}}」に参加するよう招待されました。{{appName}}はイベント調整スケジューラーで、チーム内で延々とメールのやりとりをすることなく、ミーティングのスケジュールを設定できます。",
   "privacy": "プライバシー",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ この上に新しい文字列を追加してください ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

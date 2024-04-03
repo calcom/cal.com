@@ -60,14 +60,16 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
     isOrg,
   });
 
-  const { autoAcceptEmailDomain, orgVerified } = getIsOrgVerified(isOrg, team);
+  const { autoAcceptEmailDomain, orgVerified, orgConfigured, orgPublished } = getIsOrgVerified(isOrg, team);
 
   const usernameOrEmailsToInvite = await getUsernameOrEmailsToInvite(input.usernameOrEmail);
   const orgConnectInfoByUsernameOrEmail = usernameOrEmailsToInvite.reduce((acc, usernameOrEmail) => {
     return {
       ...acc,
       [usernameOrEmail]: getOrgConnectionInfo({
+        orgConfigured,
         orgVerified,
+        orgPublished,
         orgAutoAcceptDomain: autoAcceptEmailDomain,
         usersEmail: usernameOrEmail,
         team,
@@ -75,19 +77,24 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
       }),
     };
   }, {} as Record<string, ReturnType<typeof getOrgConnectionInfo>>);
-  const existingUsersWithMembersips = await getUsersToInvite({
+  const existingUsersWithMemberships = await getUsersToInvite({
     usernamesOrEmails: usernameOrEmailsToInvite,
     isInvitedToOrg: isOrg,
     team,
   });
 
-  const existingUsersEmailsAndUsernames = existingUsersWithMembersips.reduce(
+  const existingUsersWithMembershipsThatNeedToBeInvited = existingUsersWithMemberships.filter(
+    (invitee) => invitee.canBeInvited
+  );
+
+  const existingUsersEmailsAndUsernames = existingUsersWithMemberships.reduce(
     (acc, user) => ({
       emails: user.email ? [...acc.emails, user.email] : acc.emails,
       usernames: user.username ? [...acc.usernames, user.username] : acc.usernames,
     }),
     { emails: [], usernames: [] } as { emails: string[]; usernames: string[] }
   );
+
   const newUsersEmailsOrUsernames = usernameOrEmailsToInvite.filter(
     (usernameOrEmail) =>
       !existingUsersEmailsAndUsernames.emails.includes(usernameOrEmail) &&
@@ -99,7 +106,8 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
     safeStringify({
       usernameOrEmailsToInvite,
       orgConnectInfoByUsernameOrEmail,
-      existingUsersWithMembersips,
+      existingUsersWithMembershipsThatNeedToBeInvited: existingUsersWithMembershipsThatNeedToBeInvited,
+      existingUsersWithMemberships,
       existingUsersEmailsAndUsernames,
       newUsersEmailsOrUsernames,
     })
@@ -127,13 +135,16 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
     sendEmails(sendVerifEmailsPromises);
   }
 
+  const organization = ctx.user.profile.organization;
+  const orgSlug = organization ? organization.slug || organization.requestedSlug : null;
   // deal with existing users invited to join the team/org
   await handleExistingUsersInvites({
-    existingUsersWithMembersips,
+    existingUsersWithMembersips: existingUsersWithMembershipsThatNeedToBeInvited,
     team,
     orgConnectInfoByUsernameOrEmail,
     input,
     inviter: ctx.user,
+    orgSlug,
   });
 
   if (IS_TEAM_BILLING_ENABLED) {
@@ -154,6 +165,7 @@ async function handleExistingUsersInvites({
   orgConnectInfoByUsernameOrEmail,
   input,
   inviter,
+  orgSlug,
 }: {
   existingUsersWithMembersips: Awaited<ReturnType<typeof getUsersToInvite>>;
   team: TeamWithParent;
@@ -168,6 +180,7 @@ async function handleExistingUsersInvites({
   inviter: {
     name: string | null;
   };
+  orgSlug: string | null;
 }) {
   if (!existingUsersWithMembersips.length) {
     return;
@@ -176,7 +189,12 @@ async function handleExistingUsersInvites({
   const translation = await getTranslation(input.language ?? "en", "common");
   if (!team.isOrganization) {
     const [autoJoinUsers, regularUsers] = groupUsersByJoinability({
-      existingUsersWithMembersips,
+      existingUsersWithMembersips: existingUsersWithMembersips.map((u) => {
+        return {
+          ...u,
+          profile: null,
+        };
+      }),
       team,
       connectionInfoMap: orgConnectInfoByUsernameOrEmail,
     });
@@ -213,6 +231,7 @@ async function handleExistingUsersInvites({
         teamId: team.id,
         isAutoJoin: true,
         currentUserParentTeamName: team?.parent?.name,
+        orgSlug,
       });
     }
 
@@ -233,6 +252,7 @@ async function handleExistingUsersInvites({
         teamId: team.id,
         isAutoJoin: false,
         currentUserParentTeamName: team?.parent?.name,
+        orgSlug,
       });
     }
 
@@ -246,7 +266,11 @@ async function handleExistingUsersInvites({
           .filter((u) => u.needToCreateProfile)
           .map((user) =>
             createAProfileForAnExistingUser({
-              user: user,
+              user: {
+                id: user.id,
+                email: user.email,
+                currentUsername: user.username,
+              },
               organizationId: parsedOrg.id,
             })
           ),
@@ -261,32 +285,43 @@ async function handleExistingUsersInvites({
       })
     );
 
-    const autoJoinUsers = existingUsersWithMembersips.filter(
+    const existingUsersWithMembershipsNew = await Promise.all(
+      existingUsersWithMembersips.map(async (user) => {
+        const shouldAutoAccept = orgConnectInfoByUsernameOrEmail[user.email].autoAccept;
+        let profile = null;
+        if (shouldAutoAccept) {
+          profile = await createAProfileForAnExistingUser({
+            user: {
+              id: user.id,
+              email: user.email,
+              currentUsername: user.username,
+            },
+            organizationId: organization.id,
+          });
+        }
+
+        await prisma.membership.create({
+          data: {
+            userId: user.id,
+            teamId: team.id,
+            accepted: shouldAutoAccept,
+            role: input.role,
+          },
+        });
+        return {
+          ...user,
+          profile,
+        };
+      })
+    );
+
+    const autoJoinUsers = existingUsersWithMembershipsNew.filter(
       (user) => orgConnectInfoByUsernameOrEmail[user.email].autoAccept
     );
 
-    const regularUsers = existingUsersWithMembersips.filter(
+    const regularUsers = existingUsersWithMembershipsNew.filter(
       (user) => !orgConnectInfoByUsernameOrEmail[user.email].autoAccept
     );
-
-    for (const user of existingUsersWithMembersips) {
-      const shouldAutoAccept = orgConnectInfoByUsernameOrEmail[user.email].autoAccept;
-      if (shouldAutoAccept) {
-        await createAProfileForAnExistingUser({
-          user: user,
-          organizationId: organization.id,
-        });
-      }
-
-      await prisma.membership.create({
-        data: {
-          userId: user.id,
-          teamId: team.id,
-          accepted: shouldAutoAccept,
-          role: input.role,
-        },
-      });
-    }
 
     // Send emails to user who auto-joined
     await sendExistingUserTeamInviteEmails({
@@ -298,6 +333,7 @@ async function handleExistingUsersInvites({
       teamId: team.id,
       isAutoJoin: true,
       currentUserParentTeamName: team?.parent?.name,
+      orgSlug,
     });
 
     // Send emails to user who need to accept invite
@@ -310,6 +346,7 @@ async function handleExistingUsersInvites({
       teamId: team.id,
       isAutoJoin: false,
       currentUserParentTeamName: team?.parent?.name,
+      orgSlug,
     });
   }
 }

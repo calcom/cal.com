@@ -2129,6 +2129,10 @@
   "extensive_whitelabeling": "Технічна підтримка й підтримка під час ознайомлення",
   "need_help": "Потрібна допомога?",
   "show_more": "Більше",
+  "email_team_invite|subject|invited_to_subteam": "{{user}} запросив вас приєднатися до команди {{team}} організації {{parentTeamName}} {{appName}}",
+  "email_team_invite|subject|invited_to_regular_team": "{{user}} запросив(-ла) вас приєднатися до команди «{{team}}» у {{appName}}",
+  "email_team_invite|heading|invited_to_regular_team": "Вас запрошено приєднатися до команди в застосунку {{appName}}",
+  "email_team_invite|content|invited_to_regular_team": "{{invitedBy}} запрошує вас приєднатися до команди «{{teamName}}» в {{appName}}. {{appName}} — планувальник подій, який дає змогу вам і вашій команді планувати зустрічі без тривалої переписки електронною поштою.",
   "privacy": "Політика конфіденційності",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

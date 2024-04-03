@@ -7,7 +7,7 @@ import { PrismaClient } from "@prisma/client";
 export class PrismaWriteService implements OnModuleInit {
   public prisma: PrismaClient;
 
-  constructor(private readonly configService: ConfigService) {
+  constructor(readonly configService: ConfigService) {
     const dbUrl = configService.get("db.writeUrl", { infer: true });
 
     this.prisma = new PrismaClient({
