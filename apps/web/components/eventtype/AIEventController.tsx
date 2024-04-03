@@ -199,6 +199,22 @@ const AISettings = ({ eventType }: { eventType: EventTypeSetup }) => {
 
         <TextField
           type="text"
+          hint="Variable: {email}"
+          label={t("guest_email")}
+          placeholder="jane@acme.com"
+          {...formMethods.register("aiPhoneCallConfig.guestEmail")}
+        />
+
+        <TextField
+          type="text"
+          hint="Variable: {company}"
+          label={t("guest_company")}
+          placeholder="Acme"
+          {...formMethods.register("aiPhoneCallConfig.guestCompany")}
+        />
+
+        <TextField
+          type="text"
           hint="For eg:- cal_live_0123.."
           label={t("provide_api_key")}
           name="calApiKey"
