@@ -104,8 +104,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   await createOAuthAppCredential({ appId: "msteams", type: "office365_video" }, responseBody, req);
 
-  if (state?.appOnbaordingRedirectUrl && state.appOnbaordingRedirectUrl !== "") {
-    return res.redirect(state.appOnbaordingRedirectUrl);
+  if (state?.appOnboardingRedirectUrl && state.appOnboardingRedirectUrl !== "") {
+    return res.redirect(state.appOnboardingRedirectUrl);
   }
 
   return res.redirect(

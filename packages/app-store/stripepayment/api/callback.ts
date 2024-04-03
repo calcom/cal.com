@@ -53,8 +53,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     req
   );
 
-  if (state?.appOnbaordingRedirectUrl && state.appOnbaordingRedirectUrl !== "") {
-    return res.redirect(state.appOnbaordingRedirectUrl);
+  if (state?.appOnboardingRedirectUrl && state.appOnboardingRedirectUrl !== "") {
+    return res.redirect(state.appOnboardingRedirectUrl);
   }
 
   const returnTo = getReturnToValueFromQueryState(req);

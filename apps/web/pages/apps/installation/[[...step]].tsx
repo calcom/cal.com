@@ -165,7 +165,7 @@ const OnboardingPage = ({
       setIsSelectingAccount(true);
       if (appMetadata.isOAuth) {
         const state = JSON.stringify({
-          appOnbaordingRedirectUrl: getAppOnboardingRedirectUrl(appMetadata.slug, teamId),
+          appOnboardingRedirectUrl: getAppOnboardingRedirectUrl(appMetadata.slug, teamId),
           teamId,
         });
 
