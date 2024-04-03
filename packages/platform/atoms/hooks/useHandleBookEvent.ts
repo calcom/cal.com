@@ -2,12 +2,14 @@ import type { UseBookingFormReturnType } from "@calcom/features/bookings/Booker/
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import type { useEventReturnType } from "@calcom/features/bookings/Booker/utils/event";
 import {
-  useTimePreferences,
   mapBookingToMutationInput,
   mapRecurringBookingToMutationInput,
+  useTimePreferences,
 } from "@calcom/features/bookings/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { BookingCreateBody } from "@calcom/prisma/zod-utils";
+
+import { useCsrfToken } from "./useCsrfToken";
 
 type UseHandleBookingProps = {
   bookingForm: UseBookingFormReturnType["bookingForm"];
@@ -39,6 +41,7 @@ export const useHandleBookEvent = ({
   const bookingData = useBookerStore((state) => state.bookingData);
   const seatedEventData = useBookerStore((state) => state.seatedEventData);
   const isInstantMeeting = useBookerStore((state) => state.isInstantMeeting);
+  const csrfToken = useCsrfToken();
   const handleBookEvent = () => {
     const values = bookingForm.getValues();
     if (timeslot) {
@@ -80,7 +83,7 @@ export const useHandleBookEvent = ({
       } else if (event.data?.recurringEvent?.freq && recurringEventCount && !rescheduleUid) {
         handleRecBooking(mapRecurringBookingToMutationInput(bookingInput, recurringEventCount));
       } else {
-        handleBooking(mapBookingToMutationInput(bookingInput));
+        handleBooking({ ...mapBookingToMutationInput(bookingInput), csrfToken });
       }
       // Clears form values stored in store, so old values won't stick around.
       setFormValues({});

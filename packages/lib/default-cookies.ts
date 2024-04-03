@@ -2,6 +2,8 @@ import type { CookieOption, CookiesOptions } from "next-auth";
 
 import { isENVDev } from "@calcom/lib/env";
 
+import { WEBAPP_URL } from "./constants";
+
 /**
  * Copy from 'https://github.com/nextauthjs/next-auth/blob/227ff2259f/src/core/lib/cookie.ts' as we can't import it directly
  *
@@ -15,6 +17,9 @@ import { isENVDev } from "@calcom/lib/env";
  */
 
 const NEXTAUTH_COOKIE_DOMAIN = process.env.NEXTAUTH_COOKIE_DOMAIN || "";
+const COOKIE_PREFIX = WEBAPP_URL.startsWith("https://") ? "__Secure-" : "";
+export const NEXTAUTH_CSRF_COOKIE_NAME = `next-auth.csrf-token`;
+export const PREFIXED_NEXTAUTH_CSRF_COOKIE_NAME = `${COOKIE_PREFIX}${NEXTAUTH_CSRF_COOKIE_NAME}`;
 
 export function defaultCookies(useSecureCookies: boolean): CookiesOptions {
   const cookiePrefix = useSecureCookies ? "__Secure-" : "";
@@ -46,7 +51,7 @@ export function defaultCookies(useSecureCookies: boolean): CookiesOptions {
       options: defaultOptions,
     },
     csrfToken: {
-      name: `${cookiePrefix}next-auth.csrf-token`,
+      name: `${cookiePrefix}${NEXTAUTH_CSRF_COOKIE_NAME}`,
       options: {
         ...defaultOptions,
         httpOnly: true,

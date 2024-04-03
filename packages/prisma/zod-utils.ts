@@ -214,6 +214,7 @@ export const stringToDayjs = (val: string) => {
 export const stringToDayjsZod = z.string().transform(stringToDayjs);
 
 export const bookingCreateBodySchema = z.object({
+  csrfToken: z.string(),
   end: z.string().optional(),
   eventTypeId: z.number(),
   eventTypeSlug: z.string().optional(),
@@ -290,9 +291,9 @@ export const bookingCreateSchemaLegacyPropsForApi = z.object({
 });
 
 // This is the schema that is used for the API. It has all the legacy props that are part of `responses` now.
-export const bookingCreateBodySchemaForApi = extendedBookingCreateBody.merge(
-  bookingCreateSchemaLegacyPropsForApi.partial()
-);
+export const bookingCreateBodySchemaForApi = extendedBookingCreateBody
+  .merge(bookingCreateSchemaLegacyPropsForApi.partial())
+  .omit({ csrfToken: true });
 
 export const schemaBookingCancelParams = z.object({
   id: z.number().optional(),
