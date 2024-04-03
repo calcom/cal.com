@@ -2,7 +2,6 @@ import { getEnv } from "@/env";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
-import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import {
   BadRequestException,
@@ -10,7 +9,6 @@ import {
   Get,
   HttpCode,
   HttpStatus,
-  Logger,
   NotFoundException,
   Param,
   UnauthorizedException,
@@ -28,12 +26,7 @@ import { ApiResponse } from "@calcom/platform-types";
 @DocsExcludeController(getEnv("NODE_ENV") === "production")
 @DocsTags("Development only - Provider")
 export class CalProviderController {
-  private readonly logger = new Logger("Platform Provider Controller");
-
-  constructor(
-    private readonly tokensRepository: TokensRepository,
-    private readonly oauthClientRepository: OAuthClientRepository
-  ) {}
+  constructor(private readonly oauthClientRepository: OAuthClientRepository) {}
 
   @Get("/:clientId")
   @HttpCode(HttpStatus.OK)
