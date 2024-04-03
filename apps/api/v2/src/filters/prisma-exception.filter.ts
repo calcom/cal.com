@@ -34,6 +34,7 @@ export class PrismaExceptionFilter implements ExceptionFilter {
     const request = ctx.getRequest();
     this.logger.error(`PrismaError: ${error.message}`, {
       error,
+      request,
     });
     response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
       status: ERROR_STATUS,

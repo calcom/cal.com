@@ -30,7 +30,7 @@ export const useOAuthClient = ({ clientId, apiUrl, refreshUrl, onError, onSucces
   useEffect(() => {
     if (clientId && http.getUrl() && prevClientId !== clientId) {
       try {
-        http.get<ApiResponse>(`/platform/provider/${clientId}`).catch((err: AxiosError) => {
+        http.get<ApiResponse>(`/ee/provider/${clientId}`).catch((err: AxiosError) => {
           if (err.response?.status === 401) {
             onError("Invalid oAuth Client.");
           } else {

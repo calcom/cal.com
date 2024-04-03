@@ -6,6 +6,7 @@ import React, { forwardRef } from "react";
 
 import classNames from "@calcom/lib/classNames";
 import type { SVGComponent } from "@calcom/types/SVGComponent";
+import type { LucideIcon } from "@calcom/ui/components/icon";
 
 import { Plus } from "../icon";
 import { Tooltip } from "../tooltip";
@@ -17,9 +18,9 @@ export type ButtonBaseProps = {
   /** Action that happens when the button is clicked */
   onClick?: (event: React.MouseEvent<HTMLElement, MouseEvent>) => void;
   /**Left aligned icon*/
-  StartIcon?: SVGComponent | React.ElementType;
+  StartIcon?: SVGComponent | React.ElementType | LucideIcon;
   /**Right aligned icon */
-  EndIcon?: SVGComponent;
+  EndIcon?: SVGComponent | LucideIcon;
   shallow?: boolean;
   /**Tool tip used when icon size is set to small */
   tooltip?: string;
