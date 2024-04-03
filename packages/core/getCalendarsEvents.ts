@@ -5,16 +5,17 @@ import logger from "@calcom/lib/logger";
 import { getPiiFreeCredential, getPiiFreeSelectedCalendar } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { performance } from "@calcom/lib/server/perfObserver";
-import type { EventBusyDate } from "@calcom/types/Calendar";
-import type { CredentialPayload } from "@calcom/types/Credential";
+import type { EventBusyData } from "@calcom/types/Calendar";
+import type { CredentialPayload, OverlayCredentialPayload } from "@calcom/types/Credential";
 
 const log = logger.getSubLogger({ prefix: ["getCalendarsEvents"] });
 const getCalendarsEvents = async (
-  withCredentials: CredentialPayload[],
+  withCredentials: CredentialPayload[] | OverlayCredentialPayload[],
   dateFrom: string,
   dateTo: string,
-  selectedCalendars: SelectedCalendar[]
-): Promise<EventBusyDate[][]> => {
+  selectedCalendars: SelectedCalendar[],
+  isOverlayUser?: boolean
+): Promise<EventBusyData[][]> => {
   const calendarCredentials = withCredentials
     .filter((credential) => credential.type.endsWith("_calendar"))
     // filter out invalid credentials - these won't work.
@@ -44,7 +45,7 @@ const getCalendarsEvents = async (
         selectedCalendars: passedSelectedCalendars.map(getPiiFreeSelectedCalendar),
       })
     );
-    const eventBusyDates = await c.getAvailability(dateFrom, dateTo, passedSelectedCalendars);
+    const eventBusyDates = await c.getAvailability(dateFrom, dateTo, passedSelectedCalendars, isOverlayUser);
     performance.mark("eventBusyDatesEnd");
     performance.measure(
       `[getAvailability for ${selectedCalendarIds.join(", ")}][$1]'`,

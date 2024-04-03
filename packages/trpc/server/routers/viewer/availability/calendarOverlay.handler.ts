@@ -1,7 +1,9 @@
 import { getBusyCalendarTimes } from "@calcom/core/CalendarManager";
 import dayjs from "@calcom/dayjs";
 import { prisma } from "@calcom/prisma";
+import { overlayCredentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { EventBusyDate } from "@calcom/types/Calendar";
+import type { CredentialPayload, OverlayCredentialPayload } from "@calcom/types/Credential";
 
 import { TRPCError } from "@trpc/server";
 
@@ -29,28 +31,41 @@ export const calendarOverlayHandler = async ({ ctx, input }: ListOptions) => {
   // To call getCalendar we need
 
   // Ensure that the user has access to all of the credentialIds
-  const credentials = await prisma.credential.findMany({
-    where: {
-      id: {
-        in: uniqueCredentialIds,
+  let credentials: Array<CredentialPayload> | Array<OverlayCredentialPayload>;
+  if ("isOverlayUser" in user) {
+    credentials = await prisma.overlayCredential.findMany({
+      where: {
+        id: {
+          in: uniqueCredentialIds,
+        },
+        userId: user.id,
       },
-      userId: user.id,
-    },
-    select: {
-      id: true,
-      type: true,
-      key: true,
-      userId: true,
-      teamId: true,
-      appId: true,
-      invalid: true,
-      user: {
-        select: {
-          email: true,
+      select: overlayCredentialForCalendarServiceSelect,
+    });
+  } else {
+    credentials = await prisma.credential.findMany({
+      where: {
+        id: {
+          in: uniqueCredentialIds,
+        },
+        userId: user.id,
+      },
+      select: {
+        id: true,
+        type: true,
+        key: true,
+        userId: true,
+        teamId: true,
+        appId: true,
+        invalid: true,
+        user: {
+          select: {
+            email: true,
+          },
         },
       },
-    },
-  });
+    });
+  }
 
   if (credentials.length !== uniqueCredentialIds.length) {
     throw new TRPCError({
@@ -80,7 +95,8 @@ export const calendarOverlayHandler = async ({ ctx, input }: ListOptions) => {
     credentials,
     dateFrom,
     dateTo,
-    composedSelectedCalendars
+    composedSelectedCalendars,
+    true
   );
 
   // Convert to users timezone
