@@ -12,7 +12,7 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
-import type { CalendarEvent, NewCalendarEventType, Person } from "@calcom/types/Calendar";
+import type { CalendarEvent, NewCalendarEventType } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 import type { CRM, ContactCreateInput, Contact } from "@calcom/types/CrmService";
 
@@ -41,56 +41,6 @@ export default class HubspotCalendarService implements CRM {
 
     this.log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
   }
-
-  private hubspotContactCreate = async (attendees: Person[]) => {
-    const simplePublicObjectInputs: SimplePublicObjectInput[] = attendees.map((attendee) => {
-      const [firstname, lastname] = attendee.name ? attendee.name.split(" ") : [attendee.email, ""];
-      return {
-        properties: {
-          firstname,
-          lastname,
-          email: attendee.email,
-        },
-      };
-    });
-    return Promise.all(
-      simplePublicObjectInputs.map((contact) =>
-        hubspotClient.crm.contacts.basicApi.create(contact).catch((error) => {
-          // If multiple events are created, subsequent events may fail due to
-          // contact was created by previous event creation, so we introduce a
-          // fallback taking advantage of the error message providing the contact id
-          if (error.body.message.includes("Contact already exists. Existing ID:")) {
-            const split = error.body.message.split("Contact already exists. Existing ID: ");
-            return { id: split[1] };
-          } else {
-            throw error;
-          }
-        })
-      )
-    );
-  };
-
-  private hubspotContactSearch = async (event: CalendarEvent) => {
-    const publicObjectSearchRequest: PublicObjectSearchRequest = {
-      filterGroups: event.attendees.map((attendee) => ({
-        filters: [
-          {
-            value: attendee.email,
-            propertyName: "email",
-            operator: "EQ",
-          },
-        ],
-      })),
-      sorts: ["hs_object_id"],
-      properties: ["hs_object_id", "email"],
-      limit: 10,
-      after: 0,
-    };
-
-    return await hubspotClient.crm.contacts.searchApi
-      .doSearch(publicObjectSearchRequest)
-      .then((apiResponse) => apiResponse.results);
-  };
 
   private getHubspotMeetingBody = (event: CalendarEvent): string => {
     return `<b>${event.organizer.language.translate("invitee_timezone")}:</b> ${

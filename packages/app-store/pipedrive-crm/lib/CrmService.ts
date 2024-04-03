@@ -33,7 +33,7 @@ type ContactCreateResult = {
   };
 };
 
-export default class PipedriveCalendarService implements CRM {
+export default class PipedriveCrmService implements CRM {
   private log: typeof logger;
   private tenantId: string;
   private revertApiKey: string;
