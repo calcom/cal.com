@@ -9,9 +9,6 @@ import type { z } from "zod";
 
 import { EventTypeAppSettings } from "@calcom/app-store/_components/EventTypeAppSettingsInterface";
 import type { EventTypeAppsList } from "@calcom/app-store/utils";
-import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
-import type { FormValues } from "@calcom/features/eventtypes/lib/types";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AppCategories } from "@calcom/prisma/enums";
 import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { Button, Form } from "@calcom/ui";
@@ -53,13 +50,6 @@ type EventTypeAppSettingsWrapperProps = Pick<
 const EventTypeAppSettingsWrapper: FC<
   Omit<EventTypeAppSettingsWrapperProps, "handleDelete" | "onSubmit">
 > = ({ slug, eventType, categories, credentialId }) => {
-  const { t } = useLocale();
-  const formMethods = useForm<FormValues>();
-  const { shouldLockDisableProps } = useLockedFieldsManager({
-    eventType,
-    translate: t,
-    formMethods,
-  });
   const { getAppDataGetter, getAppDataSetter } = useAppsData();
 
   useEffect(() => {
@@ -70,7 +60,6 @@ const EventTypeAppSettingsWrapper: FC<
   return (
     <EventTypeAppSettings
       slug={slug}
-      disabled={shouldLockDisableProps("apps").disabled}
       eventType={eventType}
       getAppData={getAppDataGetter(slug as EventTypeAppsList)}
       setAppData={getAppDataSetter(slug as EventTypeAppsList, categories, credentialId)}
@@ -197,7 +186,7 @@ export const ConfigureStepCard: FC<ConfigureStepCardProps> = ({
         <Button
           className="text-md mt-6 w-full justify-center"
           type="button"
-          onClick={(e) => {
+          onClick={() => {
             submitRefs.current.reverse().map((ref) => ref.current?.click());
             setSubmit(true);
           }}
