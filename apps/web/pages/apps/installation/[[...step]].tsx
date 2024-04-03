@@ -57,7 +57,7 @@ type StepObj = Record<
   {
     getTitle: (appName: string) => string;
     getDescription: (appName: string) => string;
-    getStepNumber: (hasTeams: boolean, isOAuth: boolean) => number;
+    stepNumber: number;
   }
 >;
 
@@ -65,22 +65,21 @@ const STEPS_MAP: StepObj = {
   [AppOnboardingSteps.ACCOUNTS_STEP]: {
     getTitle: () => "Select Account",
     getDescription: (appName) => `Install ${appName} on your personal account or on a team account.`,
-    getStepNumber: () => 1,
+    stepNumber: 1,
   },
   [AppOnboardingSteps.EVENT_TYPES_STEP]: {
     getTitle: () => "Select Event Type",
     getDescription: (appName) => `On which event type do you want to install ${appName}?`,
-    getStepNumber: () => 2,
+    stepNumber: 2,
   },
   [AppOnboardingSteps.CONFIGURE_STEP]: {
     getTitle: (appName) => `Configure ${appName}`,
     getDescription: () => "Finalise the App setup. You can change these settings later.",
-    getStepNumber: () => 3,
+    stepNumber: 3,
   },
 } as const;
 
 type OnboardingPageProps = {
-  hasTeams: boolean;
   appMetadata: AppMeta;
   step: StepType;
   teams: TeamsProp;
@@ -91,7 +90,6 @@ type OnboardingPageProps = {
 };
 
 const OnboardingPage = ({
-  hasTeams,
   step,
   teams,
   personalAccount,
@@ -210,7 +208,9 @@ const OnboardingPage = ({
       className="dark:bg-brand dark:text-brand-contrast text-emphasis min-h-screen px-4"
       data-testid="onboarding">
       <Head>
-        <title>Install {appMetadata?.name ?? ""}</title>
+        <title>
+          {t("install")} {appMetadata?.name ?? ""}
+        </title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <div className="mx-auto py-6 sm:px-4 md:py-24">
@@ -242,11 +242,7 @@ const OnboardingPage = ({
               <StepHeader
                 title={stepObj.getTitle(appMetadata.name)}
                 subtitle={stepObj.getDescription(appMetadata.name)}>
-                <Steps
-                  maxSteps={MAX_NUMBER_OF_STEPS}
-                  currentStep={stepObj.getStepNumber(hasTeams, appMetadata.isOAuth ?? false)}
-                  disableNavigation
-                />
+                <Steps maxSteps={MAX_NUMBER_OF_STEPS} currentStep={stepObj.stepNumber} disableNavigation />
               </StepHeader>
               {curerentStep === AppOnboardingSteps.ACCOUNTS_STEP && (
                 <AccountsStepCard
@@ -470,7 +466,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     return {
       props: {
         ...(await serverSideTranslations(locale, ["common"])),
-        hasTeams,
         app,
         appMetadata,
         step: parsedStepParam,
