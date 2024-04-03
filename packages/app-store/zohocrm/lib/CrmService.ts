@@ -5,15 +5,9 @@ import { getLocation } from "@calcom/lib/CalEventParser";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
-import type {
-  Calendar,
-  CalendarEvent,
-  EventBusyDate,
-  IntegrationCalendar,
-  NewCalendarEventType,
-  Person,
-} from "@calcom/types/Calendar";
+import type { CalendarEvent, NewCalendarEventType } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
+import type { CRM, Contact, ContactCreateInput } from "@calcom/types/CrmService";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import refreshOAuthTokens from "../../_utils/oauth/refreshOAuthTokens";
@@ -50,7 +44,7 @@ const toISO8601String = (date: Date) => {
     Math.abs(tzo) % 60
   )}`;
 };
-export default class ZohoCrmCalendarService implements Calendar {
+export default class ZohoCrmCrmService implements CRM {
   private integrationName = "";
   private auth: Promise<{ getToken: () => Promise<void> }>;
   private log: typeof logger;
@@ -64,13 +58,15 @@ export default class ZohoCrmCalendarService implements Calendar {
     this.log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
   }
 
-  private createContacts = async (attendees: Person[]) => {
-    const contacts = attendees.map((attendee) => {
-      const [firstname, lastname] = !!attendee.name ? attendee.name.split(" ") : [attendee.email, "-"];
+  async createContacts(contactsToCreate: ContactCreateInput[]) {
+    const contacts = contactsToCreate.map((contactToCreate) => {
+      const [firstname, lastname] = !!contactToCreate.name
+        ? contactToCreate.name.split(" ")
+        : [contactToCreate.email, "-"];
       return {
         First_Name: firstname,
         Last_Name: lastname || "-",
-        Email: attendee.email,
+        Email: contactToCreate.email,
       };
     });
     return axios({
@@ -82,12 +78,12 @@ export default class ZohoCrmCalendarService implements Calendar {
       },
       data: JSON.stringify({ data: contacts }),
     });
-  };
+  }
 
-  private contactSearch = async (event: CalendarEvent) => {
-    const searchCriteria = `(${event.attendees
-      .map((attendee) => `(Email:equals:${encodeURI(attendee.email)})`)
-      .join("or")})`;
+  async getContacts(emails: string | string[]) {
+    const emailsArray = Array.isArray(emails) ? emails : [emails];
+
+    const searchCriteria = `(${emailsArray.map((email) => `(Email:equals:${encodeURI(email)})`).join("or")})`;
 
     return await axios({
       method: "get",
@@ -98,7 +94,7 @@ export default class ZohoCrmCalendarService implements Calendar {
     })
       .then((data) => data.data)
       .catch((e) => this.log.error(e, e.response?.data));
-  };
+  }
 
   private getMeetingBody = (event: CalendarEvent): string => {
     return `<b>${event.organizer.language.translate("invitee_timezone")}:</b> ${
@@ -108,14 +104,14 @@ export default class ZohoCrmCalendarService implements Calendar {
     }`;
   };
 
-  private createZohoEvent = async (event: CalendarEvent, contacts: CalendarEvent["attendees"]) => {
+  private createZohoEvent = async (event: CalendarEvent, contacts: Contact[]) => {
     const zohoEvent = {
       Event_Title: event.title,
       Start_DateTime: toISO8601String(new Date(event.startTime)),
       End_DateTime: toISO8601String(new Date(event.endTime)),
       Description: this.getMeetingBody(event),
       Venue: getLocation(event),
-      Who_Id: contacts[0], // Link the first attendee as the primary Who_Id
+      Who_Id: contacts[0].id, // Link the first attendee as the primary Who_Id
     };
 
     return axios({
@@ -235,7 +231,7 @@ export default class ZohoCrmCalendarService implements Calendar {
     };
   };
 
-  async handleEventCreation(event: CalendarEvent, contacts: CalendarEvent["attendees"]) {
+  async handleEventCreation(event: CalendarEvent, contacts: Contact[]) {
     const meetingEvent = await this.createZohoEvent(event, contacts);
     if (meetingEvent.data && meetingEvent.data.length && meetingEvent.data[0].status === "success") {
       this.log.debug("event:creation:ok", { meetingEvent });
@@ -252,54 +248,10 @@ export default class ZohoCrmCalendarService implements Calendar {
     return Promise.reject("Something went wrong when creating a meeting in ZohoCRM");
   }
 
-  async createEvent(event: CalendarEvent): Promise<NewCalendarEventType> {
+  async createEvent(event: CalendarEvent, contacts: Contact[]): Promise<NewCalendarEventType> {
     const auth = await this.auth;
     await auth.getToken();
-    const contacts = await this.contactSearch(event);
-    if (contacts.data && contacts.data.length) {
-      if (contacts.data.length === event.attendees.length) {
-        // all contacts are in Zoho CRM already.
-        this.log.debug("contact:search:all", { event, contacts: contacts.data });
-        return await this.handleEventCreation(event, contacts.data);
-      } else {
-        // Some attendees don't exist in ZohoCRM
-        // Get the existing contacts' email to filter out
-        this.log.debug("contact:search:notAll", { event, contacts });
-        const existingContacts = contacts.data.map((contact: ZohoContact) => contact.Email);
-        this.log.debug("contact:filter:existing", { existingContacts });
-        // Get non existing contacts filtering out existing from attendees
-        const nonExistingContacts: Person[] = event.attendees.filter(
-          (attendee) => !existingContacts.includes(attendee.email)
-        );
-        this.log.debug("contact:filter:nonExisting", { nonExistingContacts });
-        // Only create contacts in ZohoCRM that were not present in the previous contact search
-        const createContacts = await this.createContacts(nonExistingContacts);
-        this.log.debug("contact:created", { createContacts });
-        // Continue with event creation and association only when all contacts are present in Zoho
-        if (createContacts.data?.data[0].status === "success") {
-          this.log.debug("contact:creation:ok");
-          return await this.handleEventCreation(
-            event,
-            [createContacts.data?.data[0]?.details].concat(contacts.data)
-          );
-        }
-        return Promise.reject({
-          calError: "Something went wrong when creating non-existing attendees in ZohoCRM",
-        });
-      }
-    } else {
-      this.log.debug("contact:search:none", { event, contacts });
-      const createContacts = await this.createContacts(event.attendees);
-      this.log.debug("contact:created", { createContacts });
-      if (createContacts.data?.data[0].status === "success") {
-        this.log.debug("contact:creation:ok");
-        return await this.handleEventCreation(event, [createContacts.data.data[0].details]);
-      }
-    }
-
-    return Promise.reject({
-      calError: "Something went wrong when searching/creating the attendees in ZohoCRM",
-    });
+    return await this.handleEventCreation(event, contacts);
   }
 
   async updateEvent(uid: string, event: CalendarEvent): Promise<NewCalendarEventType> {
@@ -312,17 +264,5 @@ export default class ZohoCrmCalendarService implements Calendar {
     const auth = await this.auth;
     await auth.getToken();
     return await this.deleteMeeting(uid);
-  }
-
-  async getAvailability(
-    _dateFrom: string,
-    _dateTo: string,
-    _selectedCalendars: IntegrationCalendar[]
-  ): Promise<EventBusyDate[]> {
-    return Promise.resolve([]);
-  }
-
-  async listCalendars(_event?: CalendarEvent): Promise<IntegrationCalendar[]> {
-    return Promise.resolve([]);
   }
 }
