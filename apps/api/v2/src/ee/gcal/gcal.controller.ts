@@ -1,5 +1,5 @@
 import { getEnv } from "@/env";
-import { GcalService } from "@/modules/apps/services/gcal.service";
+import { GCalService } from "@/modules/apps/services/gcal.service";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
 import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
