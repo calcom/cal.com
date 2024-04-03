@@ -1535,5 +1535,6 @@
   "timezone_variable": "Tidszone",
   "confirm_your_details": "Bekræft dine oplysninger",
   "overlay_my_calendar": "Vis min kalender",
-  "need_help": "Brug for hjælp?"
+  "need_help": "Brug for hjælp?",
+  "email_team_invite|subject|invited_to_regular_team": "{{user}} inviterede dig til at deltage i teamet {{team}} på {{appName}}"
 }
