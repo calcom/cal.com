@@ -9,48 +9,43 @@ import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import type { PrismaClient } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
+import type { EventTypeLocation } from "@calcom/prisma/zod/custom/eventtype";
 
 import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../trpc";
 import type { TCreateInputSchema } from "./create.schema";
 
+type SessionUser = NonNullable<TrpcSessionUser>;
+type User = {
+  id: SessionUser["id"];
+  organizationId: SessionUser["organizationId"];
+  organization: {
+    isOrgAdmin: SessionUser["organization"]["isOrgAdmin"];
+  };
+  profile: {
+    id: SessionUser["id"] | null;
+  };
+  metadata: SessionUser["metadata"];
+};
+
 type CreateOptions = {
   ctx: {
-    user: NonNullable<TrpcSessionUser>;
+    user: User;
     prisma: PrismaClient;
   };
   input: TCreateInputSchema;
 };
 
 export const createHandler = async ({ ctx, input }: CreateOptions) => {
-  const { schedulingType, teamId, metadata, ...rest } = input;
+  const { schedulingType, teamId, metadata, locations: inputLocations, ...rest } = input;
 
   const userId = ctx.user.id;
   const isManagedEventType = schedulingType === SchedulingType.MANAGED;
-  // Get Users default conferencing app
+  const isOrgAdmin = !!ctx.user?.organization?.isOrgAdmin;
 
-  const defaultConferencingData = userMetadataSchema.parse(ctx.user.metadata)?.defaultConferencingApp;
-  const appKeys = await getAppKeysFromSlug("daily-video");
-
-  let locations: { type: string; link?: string }[] = [];
-
-  // If no locations are passed in and the user has a daily api key then default to daily
-  if (
-    (typeof rest?.locations === "undefined" || rest.locations?.length === 0) &&
-    typeof appKeys.api_key === "string"
-  ) {
-    locations = [{ type: DailyLocationType }];
-  }
-
-  if (defaultConferencingData && defaultConferencingData.appSlug !== "daily-video") {
-    const credentials = await getUsersCredentials(ctx.user);
-    const foundApp = getApps(credentials, true).filter(
-      (app) => app.slug === defaultConferencingData.appSlug
-    )[0]; // There is only one possible install here so index [0] is the one we are looking for ;
-    const locationType = foundApp?.locationOption?.value ?? DailyLocationType; // Default to Daily if no location type is found
-    locations = [{ type: locationType, link: defaultConferencingData.appLink }];
-  }
+  const locations: EventTypeLocation[] =
+    inputLocations && inputLocations.length !== 0 ? inputLocations : await getDefaultLocations(ctx.user);
 
   const data: Prisma.EventTypeCreateInput = {
     ...rest,
@@ -70,8 +65,6 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
       },
     });
 
-    const isOrgAdmin = !!ctx.user?.organization?.isOrgAdmin;
-
     if (!hasMembership?.role || !(["ADMIN", "OWNER"].includes(hasMembership.role) || isOrgAdmin)) {
       console.warn(`User ${userId} does not have permission to create this new event type`);
       throw new TRPCError({ code: "UNAUTHORIZED" });
@@ -83,6 +76,27 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
       },
     };
     data.schedulingType = schedulingType;
+  }
+
+  // If we are in an organization & they are not admin & they are not creating an event on a teamID
+  // Check if evenTypes are locked.
+  if (ctx.user.organizationId && !ctx.user?.organization?.isOrgAdmin && !teamId) {
+    const orgSettings = await ctx.prisma.organizationSettings.findUnique({
+      where: {
+        organizationId: ctx.user.organizationId,
+      },
+      select: {
+        lockEventTypeCreationForUsers: true,
+      },
+    });
+
+    const orgHasLockedEventTypes = !!orgSettings?.lockEventTypeCreationForUsers;
+    if (orgHasLockedEventTypes) {
+      console.warn(
+        `User ${userId} does not have permission to create this new event type - Locked status: ${orgHasLockedEventTypes}`
+      );
+      throw new TRPCError({ code: "UNAUTHORIZED" });
+    }
   }
 
   const profile = ctx.user.profile;
@@ -102,3 +116,23 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
     throw new TRPCError({ code: "BAD_REQUEST" });
   }
 };
+
+async function getDefaultLocations(user: User): Promise<EventTypeLocation[]> {
+  const defaultConferencingData = userMetadataSchema.parse(user.metadata)?.defaultConferencingApp;
+  const appKeys = await getAppKeysFromSlug("daily-video");
+
+  if (typeof appKeys.api_key === "string") {
+    return [{ type: DailyLocationType }];
+  }
+
+  if (defaultConferencingData && defaultConferencingData.appSlug !== "daily-video") {
+    const credentials = await getUsersCredentials(user);
+    const foundApp = getApps(credentials, true).filter(
+      (app) => app.slug === defaultConferencingData.appSlug
+    )[0]; // There is only one possible install here so index [0] is the one we are looking for ;
+    const locationType = foundApp?.locationOption?.value ?? DailyLocationType; // Default to Daily if no location type is found
+    return [{ type: locationType, link: defaultConferencingData.appLink }];
+  }
+
+  return [];
+}

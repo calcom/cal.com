@@ -2,7 +2,7 @@ import { keepPreviousData } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Plus } from "lucide-react";
 import { useSession } from "next-auth/react";
-import { useCallback, useEffect, useMemo, useReducer, useRef } from "react";
+import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -115,11 +115,12 @@ export function UserListTable() {
   const [state, dispatch] = useReducer(reducer, initialState);
   const { t } = useLocale();
   const orgBranding = useOrgBranding();
-
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const { data, isPending, fetchNextPage, isFetching } =
     trpc.viewer.organizations.listMembers.useInfiniteQuery(
       {
         limit: 10,
+        searchTerm: debouncedSearchTerm,
       },
       {
         getNextPageParam: (lastPage) => lastPage.nextCursor,
@@ -310,7 +311,7 @@ export function UserListTable() {
   return (
     <>
       <DataTable
-        searchKey="member"
+        onSearch={(value) => setDebouncedSearchTerm(value)}
         selectionOptions={[
           {
             type: "render",

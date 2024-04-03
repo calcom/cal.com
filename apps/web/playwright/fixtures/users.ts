@@ -107,17 +107,22 @@ const createTeamAndAddUser = async (
     isOrgVerified,
     hasSubteam,
     organizationId,
+    isDnsSetup,
+    index,
   }: {
     user: { id: number; email: string; username: string | null; role?: MembershipRole };
     isUnpublished?: boolean;
     isOrg?: boolean;
     isOrgVerified?: boolean;
+    isDnsSetup?: boolean;
     hasSubteam?: true;
     organizationId?: number | null;
+    index?: number;
   },
   workerInfo: WorkerInfo
 ) => {
-  const slug = `${isOrg ? "org" : "team"}-${workerInfo.workerIndex}-${Date.now()}`;
+  const slugIndex = index ? `-count-${index}` : "";
+  const slug = `${isOrg ? "org" : "team"}-${workerInfo.workerIndex}-${Date.now()}${slugIndex}`;
   const data: PrismaType.TeamCreateInput = {
     name: `user-id-${user.id}'s ${isOrg ? "Org" : "Team"}`,
     isOrganization: isOrg,
@@ -128,9 +133,9 @@ const createTeamAndAddUser = async (
   if (isOrg) {
     data.organizationSettings = {
       create: {
-        isOrganizationVerified: !!isOrgVerified,
         orgAutoAcceptEmail: user.email.split("@")[1],
-        isOrganizationConfigured: false,
+        isOrganizationVerified: !!isOrgVerified,
+        isOrganizationConfigured: isDnsSetup,
       },
     };
   }
@@ -211,6 +216,7 @@ export const createUsersFixture = (
       scenario: {
         seedRoutingForms?: boolean;
         hasTeam?: true;
+        numberOfTeams?: number;
         teamRole?: MembershipRole;
         teammates?: CustomUserOpts[];
         schedulingType?: SchedulingType;
@@ -219,6 +225,7 @@ export const createUsersFixture = (
         teamEventLength?: number;
         isOrg?: boolean;
         isOrgVerified?: boolean;
+        isDnsSetup?: boolean;
         hasSubteam?: true;
         isUnpublished?: true;
       } = {}
@@ -382,103 +389,108 @@ export const createUsersFixture = (
         include: userIncludes,
       });
       if (scenario.hasTeam) {
-        const team = await createTeamAndAddUser(
-          {
-            user: {
-              id: user.id,
-              email: user.email,
-              username: user.username,
-              role: scenario.teamRole || "OWNER",
+        const numberOfTeams = scenario.numberOfTeams || 1;
+        for (let i = 0; i < numberOfTeams; i++) {
+          const team = await createTeamAndAddUser(
+            {
+              user: {
+                id: user.id,
+                email: user.email,
+                username: user.username,
+                role: scenario.teamRole || "OWNER",
+              },
+              isUnpublished: scenario.isUnpublished,
+              isOrg: scenario.isOrg,
+              isOrgVerified: scenario.isOrgVerified,
+              isDnsSetup: scenario.isDnsSetup,
+              hasSubteam: scenario.hasSubteam,
+              organizationId: opts?.organizationId,
             },
-            isUnpublished: scenario.isUnpublished,
-            isOrg: scenario.isOrg,
-            isOrgVerified: scenario.isOrgVerified,
-            hasSubteam: scenario.hasSubteam,
-            organizationId: opts?.organizationId,
-          },
-          workerInfo
-        );
-        store.teams.push(team);
-        const teamEvent = await createTeamEventType(user, team, scenario);
-        if (scenario.teammates) {
-          // Create Teammate users
-          const teamMates = [];
-          for (const teammateObj of scenario.teammates) {
-            const teamUser = await prisma.user.create({
-              data: createUser(workerInfo, teammateObj),
-            });
+            workerInfo
+          );
+          store.teams.push(team);
+          const teamEvent = await createTeamEventType(user, team, scenario);
+          if (scenario.teammates) {
+            // Create Teammate users
+            const teamMates = [];
+            for (const teammateObj of scenario.teammates) {
+              const teamUser = await prisma.user.create({
+                data: createUser(workerInfo, teammateObj),
+              });
 
-            // Add teammates to the team
-            await prisma.membership.create({
-              data: {
-                teamId: team.id,
-                userId: teamUser.id,
-                role: MembershipRole.MEMBER,
-                accepted: true,
-              },
-            });
-
-            // Add teammate to the host list of team event
-            await prisma.host.create({
-              data: {
-                userId: teamUser.id,
-                eventTypeId: teamEvent.id,
-                isFixed: scenario.schedulingType === SchedulingType.COLLECTIVE ? true : false,
-              },
-            });
-
-            const teammateFixture = createUserFixture(
-              await prisma.user.findUniqueOrThrow({
-                where: { id: teamUser.id },
-                include: userIncludes,
-              }),
-              store.page
-            );
-            teamMates.push(teamUser);
-            store.users.push(teammateFixture);
-          }
-          // Add Teammates to OrgUsers
-          if (scenario.isOrg) {
-            const orgProfilesCreate = teamMates
-              .map((teamUser) => ({
-                user: {
-                  connect: {
-                    id: teamUser.id,
-                  },
+              // Add teammates to the team
+              await prisma.membership.create({
+                data: {
+                  teamId: team.id,
+                  userId: teamUser.id,
+                  role: MembershipRole.MEMBER,
+                  accepted: true,
                 },
-                uid: v4(),
-                username: teamUser.username || teamUser.email.split("@")[0],
-              }))
-              .concat([
-                {
-                  user: { connect: { id: user.id } },
-                  uid: v4(),
-                  username: user.username || user.email.split("@")[0],
+              });
+
+              // Add teammate to the host list of team event
+              await prisma.host.create({
+                data: {
+                  userId: teamUser.id,
+                  eventTypeId: teamEvent.id,
+                  isFixed: scenario.schedulingType === SchedulingType.COLLECTIVE ? true : false,
                 },
-              ]);
+              });
 
-            const existingProfiles = await prisma.profile.findMany({
-              where: {
-                userId: _user.id,
-              },
-            });
-
-            await prisma.team.update({
-              where: {
-                id: team.id,
-              },
-              data: {
-                orgProfiles: _user.profiles.length
-                  ? {
-                      connect: _user.profiles.map((profile) => ({ id: profile.id })),
-                    }
-                  : {
-                      create: orgProfilesCreate.filter(
-                        (profile) => !existingProfiles.map((p) => p.userId).includes(profile.user.connect.id)
-                      ),
+              const teammateFixture = createUserFixture(
+                await prisma.user.findUniqueOrThrow({
+                  where: { id: teamUser.id },
+                  include: userIncludes,
+                }),
+                store.page
+              );
+              teamMates.push(teamUser);
+              store.users.push(teammateFixture);
+            }
+            // Add Teammates to OrgUsers
+            if (scenario.isOrg) {
+              const orgProfilesCreate = teamMates
+                .map((teamUser) => ({
+                  user: {
+                    connect: {
+                      id: teamUser.id,
                     },
-              },
-            });
+                  },
+                  uid: v4(),
+                  username: teamUser.username || teamUser.email.split("@")[0],
+                }))
+                .concat([
+                  {
+                    user: { connect: { id: user.id } },
+                    uid: v4(),
+                    username: user.username || user.email.split("@")[0],
+                  },
+                ]);
+
+              const existingProfiles = await prisma.profile.findMany({
+                where: {
+                  userId: _user.id,
+                },
+              });
+
+              await prisma.team.update({
+                where: {
+                  id: team.id,
+                },
+                data: {
+                  orgProfiles: _user.profiles.length
+                    ? {
+                        connect: _user.profiles.map((profile) => ({ id: profile.id })),
+                      }
+                    : {
+                        create: orgProfilesCreate.filter(
+                          (profile) =>
+                            !existingProfiles.map((p) => p.userId).includes(profile.user.connect.id)
+                        ),
+                      },
+                },
+              });
+            }
           }
         }
       }

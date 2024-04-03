@@ -1,9 +1,10 @@
 import React from "react";
 
 import type { SVGComponent } from "@calcom/types/SVGComponent";
+import type { LucideIcon } from "@calcom/ui/components/icon";
 
 interface LinkIconButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  Icon: SVGComponent;
+  Icon: SVGComponent | LucideIcon;
 }
 
 export default function LinkIconButton(props: LinkIconButtonProps) {

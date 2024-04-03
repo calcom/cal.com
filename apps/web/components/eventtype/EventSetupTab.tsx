@@ -126,7 +126,7 @@ export const EventSetupTab = (
   });
 
   const multipleDurationOptions = [
-    5, 10, 15, 20, 25, 30, 45, 50, 60, 75, 80, 90, 120, 150, 180, 240, 480,
+    5, 10, 15, 20, 25, 30, 45, 50, 60, 75, 80, 90, 120, 150, 180, 240, 300, 360, 420, 480,
   ].map((mins) => ({
     value: mins,
     label: t("multiple_duration_mins", { count: mins }),
@@ -284,6 +284,23 @@ export const EventSetupTab = (
                             }),
                           });
                           showToast(t("location_already_exists"), "warning");
+                        }
+                        // Whenever location changes, we need to reset the locations item in booking questions list else it overflows
+                        // previously added values resulting in wrong behaviour
+                        const existingBookingFields = formMethods.getValues("bookingFields");
+                        const findLocation = existingBookingFields.findIndex(
+                          (field) => field.name === "location"
+                        );
+                        if (findLocation >= 0) {
+                          existingBookingFields[findLocation] = {
+                            ...existingBookingFields[findLocation],
+                            type: "radioInput",
+                            label: "",
+                            placeholder: "",
+                          };
+                          formMethods.setValue("bookingFields", existingBookingFields, {
+                            shouldDirty: true,
+                          });
                         }
                       }
                     }}
