@@ -95,8 +95,21 @@ export class OAuthClientRepository {
   }
 
   async deleteOAuthClient(clientId: string): Promise<PlatformOAuthClient> {
-    return this.dbWrite.prisma.platformOAuthClient.delete({
-      where: { id: clientId },
+    return await this.dbWrite.prisma.$transaction(async (prisma) => {
+      await prisma.user.deleteMany({
+        where: {
+          platformOAuthClients: {
+            some: {
+              id: clientId,
+            },
+          },
+          isPlatformManaged: true,
+        },
+      });
+
+      return await prisma.platformOAuthClient.delete({
+        where: { id: clientId },
+      });
     });
   }
 }
