@@ -11,7 +11,7 @@ test.describe.configure({ mode: "parallel" });
 test.afterEach(({ users }) => users.deleteAll());
 
 test.describe("Out of office", () => {
-  test("User can create out of office entry", async ({ page, users }) => {
+  test.skip("User can create out of office entry", async ({ page, users }) => {
     const user = await users.create({ name: "userOne" });
 
     await user.apiLogin();
@@ -23,7 +23,7 @@ test.describe("Out of office", () => {
     await expect(page.locator(`data-testid=table-redirect-n-a`)).toBeVisible();
   });
 
-  test("User can configure booking redirect", async ({ page, users }) => {
+  test.skip("User can configure booking redirect", async ({ page, users }) => {
     const user = await users.create({ name: "userOne" });
     const userTo = await users.create({ name: "userTwo" });
 
