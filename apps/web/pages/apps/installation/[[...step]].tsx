@@ -2,7 +2,7 @@ import type { GetServerSidePropsContext } from "next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Head from "next/head";
 import { usePathname, useRouter } from "next/navigation";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Toaster } from "react-hot-toast";
 import { z } from "zod";
@@ -124,6 +124,10 @@ const OnboardingPage = ({
       eventTypes,
     },
   });
+
+  useEffect(() => {
+    eventTypes && formMethods.setValue("eventTypes", eventTypes);
+  }, [eventTypes]);
 
   const updateMutation = trpc.viewer.eventTypes.update.useMutation({
     onSuccess: async (data) => {
@@ -396,7 +400,7 @@ const getAppInstallsBySlug = async (appSlug: string, userId: number, teamIds?: n
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   try {
-    // let eventTypes: TEventType[] = [];
+    let eventTypes: TEventType[] | null = null;
     const { req, res, query, params } = context;
     const stepsEnum = z.enum(STEPS);
     const parsedAppSlug = z.coerce.string().parse(query?.slug);
@@ -432,12 +436,13 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       }
     }
 
-    const eventTypes = await getEventTypes(user.id, parsedTeamIdParam);
-
-    if (parsedStepParam == AppOnboardingSteps.EVENT_TYPES_STEP && eventTypes.length === 0) {
-      return {
-        redirect: { permanent: false, destination: `/apps/installed/${appMetadata.categories[0]}` },
-      };
+    if (parsedStepParam == AppOnboardingSteps.EVENT_TYPES_STEP) {
+      eventTypes = await getEventTypes(user.id, parsedTeamIdParam);
+      if (eventTypes.length === 0) {
+        return {
+          redirect: { permanent: false, destination: `/apps/installed/${appMetadata.categories[0]}` },
+        };
+      }
     }
 
     const personalAccount = {
