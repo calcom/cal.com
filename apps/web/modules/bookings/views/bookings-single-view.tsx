@@ -148,8 +148,24 @@ export default function Success(props: PageProps) {
   const shouldAlignCentrallyInEmbed = useEmbedNonStylesConfig("align") !== "left";
   const shouldAlignCentrally = !isEmbed || shouldAlignCentrallyInEmbed;
   const [calculatedDuration, setCalculatedDuration] = useState<number | undefined>(undefined);
+  const [comment, setComment] = useState("");
+  const parsedRating = parseInt(rating, 10);
+
+  const defaultRating = isNaN(parsedRating) ? 3 : parsedRating > 5 ? 5 : parsedRating < 1 ? 1 : parsedRating;
+  const [rateValue, setRateValue] = useState<number>(defaultRating);
+  const [isFeedbackSubmitted, setIsFeedbackSubmitted] = useState(false);
 
   const mutation = trpc.viewer.public.submitRating.useMutation({
+    onSuccess: async () => {
+      setIsFeedbackSubmitted(true);
+      showToast("Thank you, feedback submitted", "success");
+    },
+    onError: (err) => {
+      showToast(err.message, "error");
+    },
+  });
+
+  const noShowMutation = trpc.viewer.public.noShow.useMutation({
     onSuccess: async () => {
       showToast("Thank you, feedback submitted", "success");
     },
@@ -157,6 +173,17 @@ export default function Success(props: PageProps) {
       showToast(err.message, "error");
     },
   });
+
+  useEffect(() => {
+    if (noShow) {
+      noShowMutation.mutate({ bookingUid: bookingInfo.uid });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // const markNoShow = async () => {
+  //   noShowMutation.mutate({ bookingUid: bookingInfo.uid });
+  // };
 
   const sendFeedback = async (rating: string, comment: string) => {
     mutation.mutate({ bookingUid: bookingInfo.uid, rating: rateValue, comment: comment });
@@ -274,9 +301,7 @@ export default function Success(props: PageProps) {
     }
     return t(`emailed_you_and_attendees${titleSuffix}`);
   }
-  const [comment, setComment] = useState("");
-  const defaultRating = rating ? parseInt(rating, 10) : 3;
-  const [rateValue, setRateValue] = useState<number>(defaultRating);
+
   // This is a weird case where the same route can be opened in booking flow as a success page or as a booking detail page from the app
   // As Booking Page it has to support configured theme, but as booking detail page it should not do any change. Let Shell.tsx handle it.
   useTheme(isSuccessBookingPage ? props.profile.theme : "system");
@@ -812,10 +837,25 @@ export default function Success(props: PageProps) {
                 )}
                 {isFeedbackMode &&
                   (noShow ? (
-                    <div className="">
-                      Apologies your host wasn&apos;t there. We have informed them. Would you like to
-                      reschedule?
-                    </div>
+                    <>
+                      <div className="">
+                        Apologies your host wasn&apos;t there. We have informed them. Would you like to
+                        reschedule?
+                      </div>
+                      <div className="my-4 flex justify-start">
+                        {!props.recurringBookings && (
+                          <span className="text-default inline">
+                            <span className="underline" data-testid="reschedule-link-noshow">
+                              <Link
+                                href={`/reschedule/${seatReferenceUid || bookingInfo?.uid}`}
+                                legacyBehavior>
+                                {t("reschedule")}
+                              </Link>
+                            </span>
+                          </span>
+                        )}
+                      </div>
+                    </>
                   ) : (
                     <>
                       <div className="my-3 flex justify-end">
@@ -824,6 +864,7 @@ export default function Success(props: PageProps) {
                             "m-1 items-center justify-center rounded-full border p-1 text-2xl hover:opacity-100",
                             rateValue === 1 ? "border-subtle" : "border-muted opacity-50"
                           )}
+                          disabled={isFeedbackSubmitted}
                           onClick={() => setRateValue(1)}>
                           😠
                         </button>
@@ -832,6 +873,7 @@ export default function Success(props: PageProps) {
                             "m-1 items-center justify-center rounded-full border p-1 text-2xl hover:opacity-100",
                             rateValue === 2 ? "border-subtle" : "border-muted opacity-50"
                           )}
+                          disabled={isFeedbackSubmitted}
                           onClick={() => setRateValue(2)}>
                           🙁
                         </button>
@@ -840,6 +882,7 @@ export default function Success(props: PageProps) {
                             "m-1 items-center justify-center rounded-full border p-1 text-2xl hover:opacity-100",
                             rateValue === 3 ? "border-subtle" : " border-muted opacity-50"
                           )}
+                          disabled={isFeedbackSubmitted}
                           onClick={() => setRateValue(3)}>
                           😐
                         </button>
@@ -848,6 +891,7 @@ export default function Success(props: PageProps) {
                             "m-1 items-center justify-center rounded-full border p-1 text-2xl hover:opacity-100",
                             rateValue === 4 ? "border-subtle" : "border-muted opacity-50"
                           )}
+                          disabled={isFeedbackSubmitted}
                           onClick={() => setRateValue(4)}>
                           😄
                         </button>
@@ -856,6 +900,7 @@ export default function Success(props: PageProps) {
                             "m-1 items-center justify-center rounded-full border p-1 text-2xl hover:opacity-100",
                             rateValue === 5 ? "border-subtle" : "border-muted opacity-50"
                           )}
+                          disabled={isFeedbackSubmitted}
                           onClick={() => setRateValue(5)}>
                           😍
                         </button>
@@ -867,12 +912,15 @@ export default function Success(props: PageProps) {
                       <TextArea
                         id="comment"
                         name="comment"
+                        placeholder="Next time I would like to ..."
                         rows={3}
+                        disabled={isFeedbackSubmitted}
                         onChange={(event) => setComment(event.target.value)}
                       />
                       <div className="my-4 flex justify-start">
                         <Button
                           loading={mutation.isPending}
+                          disabled={isFeedbackSubmitted}
                           onClick={async () => {
                             if (rating) {
                               await sendFeedback(rating, comment);
