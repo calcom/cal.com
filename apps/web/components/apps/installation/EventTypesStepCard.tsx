@@ -4,6 +4,7 @@ import type { FC } from "react";
 import React from "react";
 import { useFieldArray, useFormContext } from "react-hook-form";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { ScrollableArea, Badge, Button } from "@calcom/ui";
 import { Clock } from "@calcom/ui/components/icon";
@@ -14,6 +15,7 @@ type EventTypesCardProps = {
 };
 
 export const EventTypesStepCard: FC<EventTypesCardProps> = ({ setConfigureStep, userName }) => {
+  const { t } = useLocale();
   const { control } = useFormContext<TEventTypesForm>();
   const { fields, update } = useFieldArray({
     control,
@@ -44,7 +46,7 @@ export const EventTypesStepCard: FC<EventTypesCardProps> = ({ setConfigureStep, 
           setConfigureStep(true);
         }}
         disabled={!fields.some((field) => field.selected === true)}>
-        Save
+        {t("save")}
       </Button>
     </>
   );

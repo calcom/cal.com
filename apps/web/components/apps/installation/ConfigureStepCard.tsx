@@ -9,6 +9,7 @@ import type { z } from "zod";
 
 import { EventTypeAppSettings } from "@calcom/app-store/_components/EventTypeAppSettingsInterface";
 import type { EventTypeAppsList } from "@calcom/app-store/utils";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AppCategories } from "@calcom/prisma/enums";
 import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { Button, Form } from "@calcom/ui";
@@ -118,6 +119,7 @@ export const ConfigureStepCard: FC<ConfigureStepCardProps> = ({
   setConfigureStep,
   ...props
 }) => {
+  const { t } = useLocale();
   const { control, getValues } = useFormContext<TEventTypesForm>();
   const { fields, update } = useFieldArray({
     control,
@@ -195,7 +197,7 @@ export const ConfigureStepCard: FC<ConfigureStepCardProps> = ({
             setSubmit(true);
           }}
           loading={loading}>
-          Save
+          {t("save")}
         </Button>
       </div>,
       formPortalRef?.current

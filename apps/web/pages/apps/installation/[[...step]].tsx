@@ -61,24 +61,6 @@ type StepObj = Record<
   }
 >;
 
-const STEPS_MAP: StepObj = {
-  [AppOnboardingSteps.ACCOUNTS_STEP]: {
-    getTitle: () => "Select Account",
-    getDescription: (appName) => `Install ${appName} on your personal account or on a team account.`,
-    stepNumber: 1,
-  },
-  [AppOnboardingSteps.EVENT_TYPES_STEP]: {
-    getTitle: () => "Select Event Type",
-    getDescription: (appName) => `On which event type do you want to install ${appName}?`,
-    stepNumber: 2,
-  },
-  [AppOnboardingSteps.CONFIGURE_STEP]: {
-    getTitle: (appName) => `Configure ${appName}`,
-    getDescription: () => "Finalise the App setup. You can change these settings later.",
-    stepNumber: 3,
-  },
-} as const;
-
 type OnboardingPageProps = {
   appMetadata: AppMeta;
   step: StepType;
@@ -98,9 +80,27 @@ const OnboardingPage = ({
   userName,
   credentialId,
 }: OnboardingPageProps) => {
+  const { t } = useLocale();
   const pathname = usePathname();
   const router = useRouter();
 
+  const STEPS_MAP: StepObj = {
+    [AppOnboardingSteps.ACCOUNTS_STEP]: {
+      getTitle: () => `${t("select_account_header")}`,
+      getDescription: (appName) => `${t("select_account_description", { appName })}`,
+      stepNumber: 1,
+    },
+    [AppOnboardingSteps.EVENT_TYPES_STEP]: {
+      getTitle: () => `${t("select_event_types_header")}`,
+      getDescription: (appName) => `${t("select_event_types_description", { appName })}`,
+      stepNumber: 2,
+    },
+    [AppOnboardingSteps.CONFIGURE_STEP]: {
+      getTitle: (appName) => `${t("configure_app_header", { appName })}`,
+      getDescription: () => `${t("configure_app_description")}`,
+      stepNumber: 3,
+    },
+  } as const;
   const [configureStep, setConfigureStep] = useState(false);
   const [isSelectingAccount, setIsSelectingAccount] = useState(false);
 
@@ -112,7 +112,6 @@ const OnboardingPage = ({
   }, [step, configureStep]);
   const stepObj = STEPS_MAP[curerentStep];
 
-  const { t } = useLocale();
   const utils = trpc.useContext();
 
   const formPortalRef = useRef<HTMLDivElement>(null);
