@@ -18,6 +18,12 @@ const config = {
       },
     },
     extend: {
+      fontFamily: {
+        display: [
+          ['Cal Sans', 'sans-serif'],
+          { fontVariationSettings: '"wdth" 125' },
+        ],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",

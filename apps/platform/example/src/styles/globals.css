@@ -66,6 +66,16 @@
   }
 }
 
+@font-face {
+  font-family: 'Cal Sans';
+  font-weight: 200 900;
+  font-display: block;
+  font-style: normal;
+  font-stretch: 75% 125%;
+  src: url('../fonts/CalSans-SemiBold.woff2') format('woff2');
+}
+
+
 @layer base {
   * {
     @apply border-border;

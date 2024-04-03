@@ -13,12 +13,15 @@ export default async function Home() {
   return (
     <main className="bg-slate-50">
       <div
-        className="flex h-96 flex-col items-center justify-center bg-cover bg-center bg-no-repeat pt-32 text-white"
+        className="flex h-96 flex-col items-center justify-center bg-cover bg-center bg-no-repeat text-white"
         style={{ backgroundImage: "url('/hero.jpg')" }}
       >
-        <div className="flex gap-2">
+        <h1 className="font-display mb-10 mt-16 text-4xl">
+          Find your best Cal.com expert
+        </h1>
+        <div className="flex min-w-[500px] gap-2">
           <Input className="w-full" type="text" placeholder="Search for ..." />
-          <Button>Search</Button>
+          <Button variant="secondary">Search</Button>
         </div>
       </div>
       <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16 ">
