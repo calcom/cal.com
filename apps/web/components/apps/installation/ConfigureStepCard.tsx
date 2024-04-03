@@ -47,9 +47,12 @@ type EventTypeAppSettingsWrapperProps = Pick<
   eventType: TEventType;
 };
 
-const EventTypeAppSettingsWrapper: FC<
-  Omit<EventTypeAppSettingsWrapperProps, "handleDelete" | "onSubmit">
-> = ({ slug, eventType, categories, credentialId }) => {
+const EventTypeAppSettingsWrapper: FC<EventTypeAppSettingsWrapperProps> = ({
+  slug,
+  eventType,
+  categories,
+  credentialId,
+}) => {
   const { getAppDataGetter, getAppDataSetter } = useAppsData();
 
   useEffect(() => {
@@ -165,12 +168,9 @@ export const ConfigureStepCard: FC<ConfigureStepCardProps> = ({
                   }}
                   onSubmit={(data) => {
                     update(index, { ...field, metadata: data });
-                    setUpdatedEventTypesStatus((prev) => {
-                      const temp = prev.map((item) =>
-                        item.id === field.id ? { ...item, updated: true } : item
-                      );
-                      return temp;
-                    });
+                    setUpdatedEventTypesStatus((prev) =>
+                      prev.map((item) => (item.id === field.id ? { ...item, updated: true } : item))
+                    );
                   }}
                   ref={submitRefs.current[index]}
                   {...props}
