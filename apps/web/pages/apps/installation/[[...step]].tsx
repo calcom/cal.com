@@ -34,7 +34,6 @@ import type {
 import { AccountsStepCard } from "@components/apps/installation/AccountsStepCard";
 import { ConfigureStepCard } from "@components/apps/installation/ConfigureStepCard";
 import { EventTypesStepCard } from "@components/apps/installation/EventTypesStepCard";
-import { StepFooter } from "@components/apps/installation/StepFooter";
 import { StepHeader } from "@components/apps/installation/StepHeader";
 
 export type TEventType = EventTypeAppSettingsComponentProps["eventType"] &
@@ -143,6 +142,9 @@ const OnboardingPage = ({
 
       if (err.data?.code === "UNAUTHORIZED") {
         message = `${err.data.code}: ${t("error_event_type_unauthorized_update")}`;
+      }
+
+      if (err.data?.code === "PARSE_ERROR" || err.data?.code === "BAD_REQUEST") {
         message = `${err.data.code}: ${t(err.message)}`;
       }
 
@@ -151,7 +153,6 @@ const OnboardingPage = ({
       }
 
       showToast(message ? t(message) : t(err.message), "error");
-      router.push("/apps");
     },
   });
 
@@ -203,16 +204,7 @@ const OnboardingPage = ({
     <div
       key={pathname}
       className="dark:bg-brand dark:text-brand-contrast text-emphasis min-h-screen px-4"
-      data-testid="onboarding"
-      // style={
-      //   {
-      //     "--cal-brand": "#111827",
-      //     "--cal-brand-emphasis": "#101010",
-      //     "--cal-brand-text": "white",
-      //     "--cal-brand-subtle": "#9CA3AF",
-      //   } as CSSProperties
-      // }
-    >
+      data-testid="onboarding">
       <Head>
         <title>Install {appMetadata?.name ?? ""}</title>
         <link rel="icon" href="/favicon.ico" />
@@ -277,7 +269,6 @@ const OnboardingPage = ({
                   eventTypes={eventTypes}
                 />
               )}
-              <StepFooter />
             </Form>
           </div>
         </div>
