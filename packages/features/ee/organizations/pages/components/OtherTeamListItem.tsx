@@ -16,7 +16,6 @@ import {
   showToast,
   Tooltip,
 } from "@calcom/ui";
-import { Edit2, ExternalLink, Link as LinkIcon, MoreHorizontal, Trash } from "@calcom/ui/components/icon";
 
 import { useOrgBranding } from "../../../organizations/context/provider";
 
@@ -83,7 +82,7 @@ export default function OtherTeamListItem(props: Props) {
                       showToast(t("link_copied"), "success");
                     }}
                     variant="icon"
-                    StartIcon={LinkIcon}
+                    StartIcon="link"
                   />
                 </Tooltip>
               )}
@@ -94,7 +93,7 @@ export default function OtherTeamListItem(props: Props) {
                     type="button"
                     color="secondary"
                     variant="icon"
-                    StartIcon={MoreHorizontal}
+                    StartIcon="ellipsis"
                   />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent hidden={hideDropdown}>
@@ -102,7 +101,7 @@ export default function OtherTeamListItem(props: Props) {
                     <DropdownItem
                       type="button"
                       href={`/settings/teams/other/${team.id}/profile`}
-                      StartIcon={Edit2}>
+                      StartIcon="pencil">
                       {t("edit_team") as string}
                     </DropdownItem>
                   </DropdownMenuItem>
@@ -117,7 +116,7 @@ export default function OtherTeamListItem(props: Props) {
                             ? `${orgBranding.fullDomain}`
                             : `${process.env.NEXT_PUBLIC_WEBSITE_URL}/team/other`
                         }/${team.slug}`}
-                        StartIcon={ExternalLink}>
+                        StartIcon="external-link">
                         {t("preview_team") as string}
                       </DropdownItem>
                     </DropdownMenuItem>
@@ -129,7 +128,7 @@ export default function OtherTeamListItem(props: Props) {
                         <DropdownItem
                           color="destructive"
                           type="button"
-                          StartIcon={Trash}
+                          StartIcon="trash"
                           onClick={(e) => {
                             e.stopPropagation();
                           }}>

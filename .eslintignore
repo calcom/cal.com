@@ -4,3 +4,4 @@ node_modules
 **/**/public
 packages/prisma/zod
 apps/web/public/embed
+packages/ui/components/icon/dynamicIconImports.tsx

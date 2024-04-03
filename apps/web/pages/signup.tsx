@@ -1,7 +1,6 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { CalendarHeart, Info, Link2, ShieldCheckIcon, StarIcon, Users } from "lucide-react";
 import { signIn } from "next-auth/react";
 import { Trans } from "next-i18next";
 import Link from "next/link";
@@ -28,7 +27,17 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { signupSchema as apiSignupSchema } from "@calcom/prisma/zod-utils";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
-import { Button, HeadSeo, PasswordField, TextField, Form, Alert, showToast, CheckboxField } from "@calcom/ui";
+import {
+  Button,
+  HeadSeo,
+  PasswordField,
+  TextField,
+  Form,
+  Alert,
+  showToast,
+  CheckboxField,
+  Icon,
+} from "@calcom/ui";
 
 import { getServerSideProps } from "@lib/signup/getServerSideProps";
 
@@ -49,17 +58,17 @@ const FEATURES = [
     i18nOptions: {
       appName: APP_NAME,
     },
-    icon: CalendarHeart,
+    icon: "calendar-heart" as const,
   },
   {
     title: "set_availability",
     description: "set_availbility_description",
-    icon: Users,
+    icon: "users" as const,
   },
   {
     title: "share_a_link_or_embed",
     description: "share_a_link_or_embed_description",
-    icon: Link2,
+    icon: "link-2" as const,
     i18nOptions: {
       appName: APP_NAME,
     },
@@ -128,12 +137,12 @@ function UsernameField({
           <div className="text-sm ">
             {usernameTaken ? (
               <div className="text-error flex items-center">
-                <Info className="mr-1 inline-block h-4 w-4" />
+                <Icon name="info" className="mr-1 inline-block h-4 w-4" />
                 <p>{t("already_in_use_error")}</p>
               </div>
             ) : premium ? (
               <div data-testid="premium-username-warning" className="flex items-center">
-                <StarIcon className="mr-1 inline-block h-4 w-4" />
+                <Icon name="star" className="mr-1 inline-block h-4 w-4" />
                 <p>
                   {t("premium_username", {
                     price: getPremiumPlanPriceValue(),
@@ -394,18 +403,16 @@ export default function Signup({
                       color="secondary"
                       disabled={!!formMethods.formState.errors.username || premiumUsername}
                       loading={isGoogleLoading}
-                      StartIcon={() => (
-                        <>
-                          <img
-                            className={classNames(
-                              "text-subtle  mr-2 h-4 w-4 dark:invert",
-                              premiumUsername && "opacity-50"
-                            )}
-                            src="/google-icon.svg"
-                            alt=""
-                          />
-                        </>
-                      )}
+                      CustomStartIcon={
+                        <img
+                          className={classNames(
+                            "text-subtle  mr-2 h-4 w-4 dark:invert",
+                            premiumUsername && "opacity-50"
+                          )}
+                          src="/google-icon.svg"
+                          alt=""
+                        />
+                      }
                       className={classNames(
                         "w-full justify-center rounded-md text-center",
                         formMethods.formState.errors.username ? "opacity-50" : ""
@@ -467,7 +474,7 @@ export default function Signup({
                           `${process.env.NEXT_PUBLIC_WEBAPP_URL}/auth/sso/saml` + `?${sp.toString()}`
                         );
                       }}>
-                      <ShieldCheckIcon className="mr-2 h-5 w-5" />
+                      <Icon name="shield-check" className="mr-2 h-5 w-5" />
                       {t("saml_sso")}
                     </Button>
                   ) : null}
@@ -574,7 +581,7 @@ export default function Signup({
                 <>
                   <div className="max-w-52 mb-8 flex flex-col leading-none sm:mb-0">
                     <div className="text-emphasis items-center">
-                      <feature.icon className="mb-1 h-4 w-4" />
+                      <Icon name={feature.icon} className="mb-1 h-4 w-4" />
                       <span className="text-sm font-medium">{t(feature.title)}</span>
                     </div>
                     <div className="text-subtle text-sm">
