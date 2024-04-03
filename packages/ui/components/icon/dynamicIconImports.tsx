@@ -6,6 +6,8 @@ import dynamic from "next/dynamic";
 
 const loading = () => <div className="bg-emphasis h-4 w-4 animate-pulse rounded-lg" />;
 
+export type IconName = keyof typeof dynamicIconImports;
+
 export const dynamicIconImports = {
   "a-arrow-down": dynamic(() => import("lucide-react/dist/esm/icons/a-arrow-down"), { loading }),
   "a-arrow-up": dynamic(() => import("lucide-react/dist/esm/icons/a-arrow-up"), { loading }),
