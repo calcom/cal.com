@@ -34,19 +34,18 @@ export const SearchForm = () => {
   return (
     <form id="search-query" onSubmit={onSubmit}>
       <div className="mx-auto mt-6 flex max-w-7xl flex-col items-center space-y-8 px-6 lg:px-8">
-        <div className="relative">
+        <div className="relative flex gap-3">
           <Label htmlFor="query" className="sr-only">
             Service
           </Label>
           <Input
             id="query"
             name="query"
-            className="shadow-muted-foreground/8 block w-[35rem] rounded-full bg-muted/25 px-8 py-6 pr-12 text-base shadow-md"
+            className="block w-[35rem] rounded-full px-8 py-6 pr-12 text-base shadow-md"
             placeholder="Search for profession or service..."
           />
-          <SearchIcon className="pointer-events-none absolute right-4 top-1/2 h-6 w-6 -translate-y-[50%] stroke-border" />
+        {/* <SubmitButton>Search Marketplace</SubmitButton> */}
         </div>
-        <SubmitButton>Search Marketplace</SubmitButton>
       </div>
     </form>
   );

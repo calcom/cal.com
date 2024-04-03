@@ -21,7 +21,7 @@ export const ProCard = () => {
       <CardContent>
         <div className="grid gap-4">
           <Link href="/pro">
-            <Button className="w-full hover:scale-105">Sign Up</Button>
+            <Button className="w-full">Sign Up</Button>
           </Link>
         </div>
         <div className="mt-4 text-center text-sm">

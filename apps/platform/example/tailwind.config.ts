@@ -18,6 +18,12 @@ const config = {
       },
     },
     extend: {
+      fontFamily: {
+        display: [
+          ['Cal Sans', 'sans-serif'],
+          { fontVariationSettings: '"wdth" 125' },
+        ],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -72,10 +78,6 @@ const config = {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
       },
-      dropShadow: {
-        glow: "0px 0px 11px rgba(164, 170, 182, 0.5)",
-        "cal-gray": "0px 4px 0px #E5E7EB",
-      }
     },
   },
   plugins: [require("tailwindcss-animate")],
