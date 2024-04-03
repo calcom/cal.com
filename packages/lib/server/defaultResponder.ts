@@ -3,7 +3,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { getServerErrorFromUnknown } from "./getServerErrorFromUnknown";
 import { performance } from "./perfObserver";
 
-type Handle<T> = (req: NextApiRequest, res: NextApiResponse) => Promise<T>;
+type Handle<T> = (req: NextApiRequest, res: NextApiResponse) => Promise<T> | T;
 
 /** Allows us to get type inference from API handler responses */
 export function defaultResponder<T>(f: Handle<T>) {
