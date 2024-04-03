@@ -83,6 +83,17 @@ export class UsersRepository {
     });
   }
 
+  async findByEmailWithProfile(email: string) {
+    return this.dbRead.prisma.user.findUnique({
+      where: {
+        email,
+      },
+      include: {
+        movedToProfile: true,
+      },
+    });
+  }
+
   async findByUsername(username: string) {
     return this.dbRead.prisma.user.findFirst({
       where: {

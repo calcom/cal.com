@@ -364,6 +364,8 @@ export const teamMetadataSchema = z
     paymentId: z.string(),
     subscriptionId: z.string().nullable(),
     subscriptionItemId: z.string().nullable(),
+    orgSeats: z.number().nullable(),
+    orgPricePerSeat: z.number().nullable(),
     migratedToOrgFrom: z
       .object({
         teamSlug: z.string().or(z.null()).optional(),

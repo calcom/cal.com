@@ -12,6 +12,7 @@ export class TRPCExceptionFilter implements ExceptionFilter {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest();
+
     let statusCode = 500;
     switch (exception.code) {
       case "UNAUTHORIZED":
@@ -38,10 +39,12 @@ export class TRPCExceptionFilter implements ExceptionFilter {
         statusCode = 500;
         break;
     }
+
     this.logger.error(`TRPC Exception Filter: ${exception?.message}`, {
       exception,
       request,
     });
+
     response.status(statusCode).json({
       status: ERROR_STATUS,
       timestamp: new Date().toISOString(),
