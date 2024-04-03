@@ -379,6 +379,7 @@ export async function getBookings({
         AND: [passedBookingsStatusFilter, ...filtersCombined],
       },
       orderBy,
+      select: { uid: true, id: true },
       take: take + 1,
       skip,
     }),
