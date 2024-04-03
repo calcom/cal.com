@@ -2097,6 +2097,9 @@
   "extensive_whitelabeling": "Dedikerad registrering och teknisk support",
   "need_help": "Behöver du hjälp?",
   "show_more": "Visa mer",
+  "email_team_invite|subject|invited_to_regular_team": "{{user}} bjöd in dig till teamet {{team}} på {{appName}}",
+  "email_team_invite|heading|invited_to_regular_team": "Du har blivit inbjuden att gå med i ett {{appName}}-team",
+  "email_team_invite|content|invited_to_regular_team": "{{invitedBy}} har bjudit in dig att gå med i sitt team {{teamName}} den {{appName}}. {{appName}} är en händelsejonglerande schemaläggare som du och ditt team kan använda för att planera möten utan att skicka e-post fram och tillbaka.",
   "privacy": "Sekretess",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
