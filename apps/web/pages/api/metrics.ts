@@ -28,6 +28,7 @@ const rateLimit =
   };
 
 const handler: Handler = async (req, res) => {
+  // @ts-expect-error FIXME: This is a bug in Prisma
   const metrics = await prisma.$metrics.json();
   res.status(200).json(metrics);
   return;
