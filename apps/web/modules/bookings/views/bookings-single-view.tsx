@@ -149,7 +149,7 @@ export default function Success(props: PageProps) {
   const shouldAlignCentrally = !isEmbed || shouldAlignCentrallyInEmbed;
   const [calculatedDuration, setCalculatedDuration] = useState<number | undefined>(undefined);
   const [comment, setComment] = useState("");
-  const parsedRating = parseInt(rating, 10);
+  const parsedRating = rating ? parseInt(rating, 10) : 3;
 
   const defaultRating = isNaN(parsedRating) ? 3 : parsedRating > 5 ? 5 : parsedRating < 1 ? 1 : parsedRating;
   const [rateValue, setRateValue] = useState<number>(defaultRating);
