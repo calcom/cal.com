@@ -34,15 +34,15 @@ export const SearchForm = () => {
   return (
     <form id="search-query" onSubmit={onSubmit}>
       <div className="mx-auto mt-6 flex max-w-7xl flex-col items-center space-y-8 px-6 lg:px-8">
-        <div className="relative flex gap-3">
+        <div className="relative flex gap-3 px-4">
           <Label htmlFor="query" className="sr-only">
             Service
           </Label>
           <Input
             id="query"
             name="query"
-            className="block w-[35rem] rounded-full px-8 py-6 pr-12 text-base shadow-md"
-            placeholder="Search for profession or service..."
+            className="w-full flex rounded-full px-8 py-6 pr-12 text-base shadow-md"
+            placeholder="Search for a service..."
           />
         {/* <SubmitButton>Search Marketplace</SubmitButton> */}
         </div>
