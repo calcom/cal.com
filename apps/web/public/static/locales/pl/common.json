@@ -2097,6 +2097,9 @@
   "extensive_whitelabeling": "Dedykowane wsparcie w zakresie wdrożenia i obsługi technicznej",
   "need_help": "Potrzebujesz pomocy?",
   "show_more": "Wyświetl więcej",
+  "email_team_invite|subject|invited_to_regular_team": "{{user}} zaprosił Cię do dołączenia do zespołu {{team}} na {{appName}}",
+  "email_team_invite|heading|invited_to_regular_team": "Zaproszono Cię do dołączenia do zespołu {{appName}}",
+  "email_team_invite|content|invited_to_regular_team": "Użytkownik {{invitedBy}} zaprasza Cię do dołączenia do jego zespołu „{{teamName}}” w aplikacji {{appName}}. Aplikacja {{appName}} to terminarz do planowania wydarzeń, który umożliwi Tobie i Twojemu zespołowi planowanie spotkań bez czasochłonnej wymiany wiadomości e-mail.",
   "privacy": "Prywatność",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodaj nowe ciągi powyżej ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

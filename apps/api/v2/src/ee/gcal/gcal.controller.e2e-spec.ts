@@ -32,6 +32,7 @@ describe("Platform Gcal Endpoints", () => {
   let gcalCredentials: Credential;
   let accessTokenSecret: string;
   let refreshTokenSecret: string;
+
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
       providers: [PrismaExceptionFilter, HttpExceptionFilter],

@@ -82,7 +82,7 @@ export const OAuthClients = () => {
           ) : (
             <EmptyScreen
               headline="Create your first OAuth client"
-              description="OAuth clients faciliate acceess to cal.com on users behalf"
+              description="OAuth clients facilitate access to Cal.com on behalf of users"
               Icon={Plus}
               className="rounded-b-lg rounded-t-none border-t-0"
               buttonRaw={<NewOAuthClientButton />}
