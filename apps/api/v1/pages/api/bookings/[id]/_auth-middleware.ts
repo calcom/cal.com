@@ -24,7 +24,9 @@ async function authMiddleware(req: NextApiRequest) {
     },
   });
 
-  if (!userWithBookingsAndTeamIds) throw new HttpError({ statusCode: 404, message: "User not found" });
+  if (!userWithBookingsAndTeamIds) {
+    throw new HttpError({ statusCode: 404, message: "User not found" });
+  }
 
   const userBookingIds = userWithBookingsAndTeamIds.bookings.map((booking) => booking.id);
 
