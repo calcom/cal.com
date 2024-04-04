@@ -256,6 +256,8 @@ const EventTypePage = (props: EventTypeSetupProps) => {
         enabled: eventType.aiPhoneCallConfig?.enabled,
         beginMessage: eventType.aiPhoneCallConfig?.beginMessage ?? DEFAULT_BEGIN_MESSAGE,
         guestName: eventType.aiPhoneCallConfig?.guestName,
+        guestEmail: eventType.aiPhoneCallConfig?.guestEmail,
+        guestCompany: eventType.aiPhoneCallConfig?.guestCompany,
         yourPhoneNumber: eventType.aiPhoneCallConfig?.yourPhoneNumber,
         numberToCall: eventType.aiPhoneCallConfig?.numberToCall,
       },
