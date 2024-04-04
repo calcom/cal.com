@@ -39,7 +39,7 @@ export const PlatformAvailabilitySettingsWrapper = ({
   const { timeFormat } = me?.data || { timeFormat: null };
   const { toast } = useToast();
 
-  const { mutate: deleteSchedule, isPending: isDeletionInProgress } = useDeleteSchedule({
+  const { mutate: deleteSchedule, isLoading: isDeletionInProgress } = useDeleteSchedule({
     onSuccess: (res) => {
       onDeleteSuccess?.(res);
       toast({
@@ -54,7 +54,7 @@ export const PlatformAvailabilitySettingsWrapper = ({
     },
   });
 
-  const { mutate: updateSchedule, isPending: isSavingInProgress } = useUpdateSchedule({
+  const { mutate: updateSchedule, isLoading: isSavingInProgress } = useUpdateSchedule({
     onSuccess: (res) => {
       onUpdateSuccess?.(res);
       toast({
@@ -98,28 +98,24 @@ export const PlatformAvailabilitySettingsWrapper = ({
       weekStart="Sunday"
       timeFormat={timeFormat}
       isLoading={isLoading}
-      schedule={
-        userSchedule
-          ? {
-              name: userSchedule.name,
-              id: userSchedule.id,
-              isLastSchedule: userSchedule.isLastSchedule,
-              isDefault: userSchedule.isDefault,
-              workingHours: userSchedule.workingHours,
-              dateOverrides: userSchedule.dateOverrides,
-              timeZone: userSchedule.timeZone,
-              availability: userSchedule.availability,
-              schedule:
-                userSchedule.schedule.reduce(
-                  (acc: Schedule[], avail: Schedule) => [
-                    ...acc,
-                    { ...avail, startTime: new Date(avail.startTime), endTime: new Date(avail.endTime) },
-                  ],
-                  [] as Schedule[]
-                ) || [],
-            }
-          : undefined
-      }
+      schedule={{
+        name: userSchedule.name,
+        id: userSchedule.id,
+        isLastSchedule: userSchedule.isLastSchedule,
+        isDefault: userSchedule.isDefault,
+        workingHours: userSchedule.workingHours,
+        dateOverrides: userSchedule.dateOverrides,
+        timeZone: userSchedule.timeZone,
+        availability: userSchedule.availability,
+        schedule:
+          userSchedule.schedule.reduce(
+            (acc: Schedule[], avail: Schedule) => [
+              ...acc,
+              { ...avail, startTime: new Date(avail.startTime), endTime: new Date(avail.endTime) },
+            ],
+            [] as Schedule[]
+          ) || [],
+      }}
       isDeleting={isDeletionInProgress}
       isSaving={isSavingInProgress}
       backPath=""
