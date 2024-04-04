@@ -27,7 +27,7 @@ export const DatePicker = ({
 
   return (
     <DatePickerComponent
-      isPending={schedule.isPending}
+      isPending={schedule.isLoading}
       onChange={(date: Dayjs | null) => {
         setSelectedDate(date === null ? date : date.format("YYYY-MM-DD"));
       }}
