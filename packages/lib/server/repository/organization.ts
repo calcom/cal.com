@@ -45,13 +45,13 @@ export class OrganizationRepository {
             isOrganizationVerified: true,
             isOrganizationConfigured: orgData.isOrganizationConfigured,
             orgAutoAcceptEmail: orgData.autoAcceptEmail,
-            isPlatform: orgData.isPlatform,
           },
         },
         metadata: {
           ...(IS_TEAM_BILLING_ENABLED ? { requestedSlug: orgData.slug } : {}),
           orgSeats: orgData.seats,
           orgPricePerSeat: orgData.pricePerSeat,
+          isPlatform: orgData.isPlatform,
         },
       },
     });
