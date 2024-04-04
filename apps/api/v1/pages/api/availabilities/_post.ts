@@ -87,13 +87,16 @@ async function postHandler(req: NextApiRequest) {
 
 async function checkPermissions(req: NextApiRequest) {
   const { userId, isAdmin } = req;
-  if (isAdmin) return;
+  if (isAdmin) {
+    return;
+  }
   const data = schemaAvailabilityCreateBodyParams.parse(req.body);
   const schedule = await prisma.schedule.findFirst({
     where: { userId, id: data.scheduleId },
   });
-  if (!schedule)
+  if (!schedule) {
     throw new HttpError({ statusCode: 401, message: "You can't add availabilities to this schedule" });
+  }
 }
 
 export default defaultResponder(postHandler);
