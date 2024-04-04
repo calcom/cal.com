@@ -90,7 +90,9 @@ import { schemaUserCreateBodyParams } from "~/lib/validations/user";
 async function postHandler(req: NextApiRequest) {
   const { isAdmin } = req;
   // If user is not ADMIN, return unauthorized.
-  if (!isAdmin) throw new HttpError({ statusCode: 401, message: "You are not authorized" });
+  if (!isAdmin) {
+    throw new HttpError({ statusCode: 401, message: "You are not authorized" });
+  }
   const data = await schemaUserCreateBodyParams.parseAsync(req.body);
   const user = await prisma.user.create({ data });
   req.statusCode = 201;
