@@ -21,6 +21,7 @@ import {
   getBookingInfo,
   handleNewRecurringBooking,
   handleInstantMeeting,
+  getBookingForReschedule,
 } from "@calcom/platform-libraries";
 import { ApiSuccessResponse, ApiResponse } from "@calcom/platform-types";
 
@@ -104,7 +105,7 @@ describe("Bookings Endpoints", () => {
         });
     });
 
-    it("should get bookings", async () => {
+    it("should get all user bookings", async () => {
       return request(app.getHttpServer())
         .get("/api/v2/ee/bookings")
         .then((response) => {
@@ -125,7 +126,7 @@ describe("Bookings Endpoints", () => {
         });
     });
 
-    it("should get booking", async () => {
+    it("should get booking based on the booking id", async () => {
       return request(app.getHttpServer())
         .get(`/api/v2/ee/bookings/${createdBooking.uid}`)
         .then((response) => {
@@ -224,6 +225,25 @@ describe("Bookings Endpoints", () => {
 
           expect(bookingId).toBeDefined();
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
+        });
+    });
+
+    it("should reschedule a booking", async () => {
+      const bookingUid = createdBooking.uid;
+
+      return request(app.getHttpServer())
+        .get(`/api/v2/ee/bookings/${bookingUid}/reschedule`)
+        .then((response) => {
+          const responseBody: ApiSuccessResponse<Awaited<ReturnType<typeof getBookingForReschedule>>> =
+            response.body;
+          const bookingToReschedule = responseBody.data;
+
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+          expect(responseBody.data).toBeDefined();
+          expect(bookingToReschedule?.uid).toBeDefined();
+          expect(bookingToReschedule?.uid).toEqual(bookingUid);
+          expect(bookingToReschedule?.id).toEqual(createdBooking.id);
+          expect(bookingToReschedule?.user).toEqual(createdBooking.user);
         });
     });
 
