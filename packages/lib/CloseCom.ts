@@ -211,7 +211,7 @@ export default class CloseCom {
     },
     create: async (data: {
       person: { name: string | null; email: string };
-      leadId?: string;
+      leadId: string;
     }): Promise<CloseComContactSearch["data"][number]> => {
       return this._post({ urlPath: "/contact/", data: closeComQueries.contact.create(data) });
     },

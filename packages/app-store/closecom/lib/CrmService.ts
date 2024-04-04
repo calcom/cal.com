@@ -136,24 +136,45 @@ export default class CloseComCRMService implements CRM {
   }
 
   async createContacts(contactsToCreate: ContactCreateInput[]): Promise<Contact[]> {
-    const createContactPromise = [];
-    for (const contact of contactsToCreate) {
-      createContactPromise.push(
-        this.closeCom.contact.create({
-          person: {
-            email: contact.email,
-            name: contact.name,
-          },
-        })
-      );
-    }
-    const createdContacts = await Promise.all(createContactPromise);
-    return createdContacts.map((contact) => {
-      return {
-        id: contact.id,
-        email: contact.emails[0].email,
-        name: contact.name,
-      };
+    // In Close.com contacts need to be attached to a lead
+    // Assume all attendees in an event belong under a lead
+
+    const contacts = [];
+
+    // Create main lead
+    const lead = await this.closeCom.lead.create({
+      contactName: contactsToCreate[0].name,
+      contactEmail: contactsToCreate[0].email,
     });
+
+    contacts.push({
+      id: lead.contacts[0].id,
+      email: lead.contacts[0].emails[0].email,
+    });
+
+    // Check if we need to crate more contacts under the lead
+    if (contactsToCreate.length > 1) {
+      const createContactPromise = [];
+      for (const contact of contactsToCreate) {
+        createContactPromise.push(
+          this.closeCom.contact.create({
+            leadId: lead.id,
+            person: {
+              email: contact.email,
+              name: contact.name,
+            },
+          })
+        );
+        const createdContacts = await Promise.all(createContactPromise);
+        for (const createdContact of createdContacts) {
+          contacts.push({
+            id: createdContact.id,
+            email: createdContact.emails[0].email,
+          });
+        }
+      }
+    }
+
+    return contacts;
   }
 }
