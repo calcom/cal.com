@@ -54,7 +54,9 @@ async function postHandler(req: NextApiRequest) {
   const { userId: bodyUserId, ...body } = schemaSelectedCalendarBodyParams.parse(req.body);
   const args: Prisma.SelectedCalendarCreateArgs = { data: { ...body, userId } };
 
-  if (!isAdmin && bodyUserId) throw new HttpError({ statusCode: 403, message: `ADMIN required for userId` });
+  if (!isAdmin && bodyUserId) {
+    throw new HttpError({ statusCode: 403, message: `ADMIN required for userId` });
+  }
 
   if (isAdmin && bodyUserId) {
     const where: Prisma.UserWhereInput = { id: bodyUserId };
