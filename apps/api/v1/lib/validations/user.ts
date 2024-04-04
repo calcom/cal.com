@@ -60,8 +60,12 @@ const usernameSchema = z
   .superRefine(async (val, ctx) => {
     if (val) {
       const result = await checkUsername(val);
-      if (!result.available) ctx.addIssue({ code: z.ZodIssueCode.custom, message: "already_in_use_error" });
-      if (result.premium) ctx.addIssue({ code: z.ZodIssueCode.custom, message: "premium_username" });
+      if (!result.available) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: "already_in_use_error" });
+      }
+      if (result.premium) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: "premium_username" });
+      }
     }
   });
 
