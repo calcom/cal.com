@@ -33,7 +33,9 @@ async function getHandler(req: NextApiRequest) {
   const { userId, isAdmin } = req;
   const where: Prisma.TeamWhereInput = {};
   // If user is not ADMIN, return only his data.
-  if (!isAdmin) where.members = { some: { userId } };
+  if (!isAdmin) {
+    where.members = { some: { userId } };
+  }
   const data = await prisma.team.findMany({ where });
   return { teams: schemaTeamsReadPublic.parse(data) };
 }
