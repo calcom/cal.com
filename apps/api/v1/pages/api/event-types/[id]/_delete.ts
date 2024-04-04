@@ -48,10 +48,14 @@ export async function deleteHandler(req: NextApiRequest) {
 async function checkPermissions(req: NextApiRequest) {
   const { userId, isAdmin } = req;
   const { id } = schemaQueryIdParseInt.parse(req.query);
-  if (isAdmin) return;
+  if (isAdmin) {
+    return;
+  }
   /** Only event type owners can delete it */
   const eventType = await prisma.eventType.findFirst({ where: { id, userId } });
-  if (!eventType) throw new HttpError({ statusCode: 403, message: "Forbidden" });
+  if (!eventType) {
+    throw new HttpError({ statusCode: 403, message: "Forbidden" });
+  }
 }
 
 export default defaultResponder(deleteHandler);
