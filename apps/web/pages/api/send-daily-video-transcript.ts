@@ -42,19 +42,19 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     return res.status(200).json({ message: "Test request successful" });
   }
 
-  // const hmacSecret = process.env.DAILY_WEBHOOK_SECRET;
-  // if (!hmacSecret) {
-  //   return res.status(405).json({ message: "No Daily Webhook Secret" });
-  // }
+  const hmacSecret = process.env.DAILY_MEETING_ENDED_WEBHOOK_SECRET;
+  if (!hmacSecret) {
+    return res.status(405).json({ message: "No Daily Webhook Secret" });
+  }
 
-  // const signature = `${req.headers["x-webhook-timestamp"]}.${JSON.stringify(req.body)}`;
-  // const base64DecodedSecret = Buffer.from(hmacSecret, "base64");
-  // const hmac = createHmac("sha256", base64DecodedSecret);
-  // const computed_signature = hmac.update(signature).digest("base64");
+  const signature = `${req.headers["x-webhook-timestamp"]}.${JSON.stringify(req.body)}`;
+  const base64DecodedSecret = Buffer.from(hmacSecret, "base64");
+  const hmac = createHmac("sha256", base64DecodedSecret);
+  const computed_signature = hmac.update(signature).digest("base64");
 
-  // if (req.headers["x-webhook-signature"] !== computed_signature) {
-  //   return res.status(403).json({ message: "Signature does not match" });
-  // }
+  if (req.headers["x-webhook-signature"] !== computed_signature) {
+    return res.status(403).json({ message: "Signature does not match" });
+  }
 
   const response = schema.safeParse(req.body);
 
