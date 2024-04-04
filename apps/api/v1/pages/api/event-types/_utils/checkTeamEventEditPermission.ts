@@ -11,7 +11,7 @@ export default async function checkTeamEventEditPermission(
   body: Pick<z.infer<typeof schemaEventTypeCreateBodyParams>, "teamId" | "userId">
 ) {
   const { isAdmin } = req;
-  let userId = req.userId;
+  let { userId } = req;
   if (isAdmin && body.userId) {
     userId = body.userId;
   }
