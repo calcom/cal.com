@@ -27,7 +27,7 @@ import {
   Tooltip,
   VerticalDivider,
 } from "@calcom/ui";
-import { ArrowLeft, Info, MoreVertical, Plus, Trash } from "@calcom/ui/components/icon";
+import { Icon } from "@calcom/ui";
 
 import { Shell as PlatformShell } from "../src/components/ui/shell";
 import { cn } from "../src/lib/utils";
@@ -105,7 +105,7 @@ const DeleteDialogButton = ({
     <Dialog>
       <DialogTrigger asChild>
         <Button
-          StartIcon={Trash}
+          StartIcon="trash"
           variant="icon"
           color="destructive"
           aria-label={t("delete")}
@@ -158,7 +158,7 @@ const DateOverride = ({
         {t("date_overrides")}{" "}
         <Tooltip content={t("date_overrides_info")}>
           <span className="inline-block align-middle">
-            <Info className="h-4 w-4" />
+            <Icon name="info" className="h-4 w-4" />
           </span>
         </Tooltip>
       </h3>
@@ -178,7 +178,10 @@ const DateOverride = ({
           onChange={(ranges) => ranges.forEach((range) => append({ ranges: [range] }))}
           userTimeFormat={userTimeFormat}
           Trigger={
-            <Button color="secondary" StartIcon={Plus} data-testid="add-override">
+            <Button
+              color="secondary"
+              StartIcon="plus"
+              data-testid="add-override">
               {t("add_an_override")}
             </Button>
           }
@@ -321,7 +324,11 @@ export function AvailabilitySettings({
                     openSidebar ? "translate-x-0 opacity-100" : "translate-x-full opacity-0"
                   )}>
                   <div className="flex flex-row items-center pt-5">
-                    <Button StartIcon={ArrowLeft} color="minimal" onClick={() => setOpenSidebar(false)} />
+                    <Button
+                      StartIcon="arrow-left"
+                      color="minimal"
+                      onClick={() => setOpenSidebar(false)}
+                    />
                     <p className="-ml-2">{t("availability_settings")}</p>
                     <DeleteDialogButton
                       buttonClassName="ml-16 inline"
@@ -434,7 +441,7 @@ export function AvailabilitySettings({
           </Button>
           <Button
             className="ml-3 sm:hidden"
-            StartIcon={MoreVertical}
+            StartIcon="ellipsis-vertical"
             variant="icon"
             color="secondary"
             onClick={() => setOpenSidebar(true)}

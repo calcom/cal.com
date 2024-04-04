@@ -20,7 +20,6 @@ import useTheme from "@calcom/lib/hooks/useTheme";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import { Avatar, Button, HeadSeo, UnpublishedEntity, UserAvatarGroup } from "@calcom/ui";
-import { ArrowRight } from "@calcom/ui/components/icon";
 
 import { useToggleQuery } from "@lib/hooks/useToggleQuery";
 import { getServerSideProps } from "@lib/team/[slug]/getServerSideProps";
@@ -236,7 +235,7 @@ function TeamPage({
                     <aside className="dark:text-inverted mt-8 flex justify-center text-center">
                       <Button
                         color="minimal"
-                        EndIcon={ArrowRight}
+                        EndIcon="arrow-right"
                         data-testid="book-a-team-member-btn"
                         className="dark:hover:bg-darkgray-200"
                         href={{

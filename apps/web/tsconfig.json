@@ -26,7 +26,9 @@
     "../../packages/types/next-auth.d.ts",
     "**/*.ts",
     "**/*.tsx",
-    ".next/types/**/*.ts"
+    ".next/types/**/*.ts",
+    "../../packages/features/bookings/lib/getBookingInfo.ts",
+    "../../packages/features/bookings/lib/getUserBooking.ts"
   ],
   "exclude": ["node_modules"]
 }

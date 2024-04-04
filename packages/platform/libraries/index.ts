@@ -1,10 +1,15 @@
+import { getBookingForReschedule } from "@calcom/features/bookings/lib/get-booking";
+import getBookingInfo from "@calcom/features/bookings/lib/getBookingInfo";
+import handleCancelBooking from "@calcom/features/bookings/lib/handleCancelBooking";
 import * as newBookingMethods from "@calcom/features/bookings/lib/handleNewBooking";
 import { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
 import * as instantMeetingMethods from "@calcom/features/instant-meeting/handleInstantMeeting";
+import getAllUserBookings from "@calcom/lib/bookings/getAllUserBookings";
 import { updateHandler as updateScheduleHandler } from "@calcom/trpc/server/routers/viewer/availability/schedule/update.handler";
 import { getAvailableSlots } from "@calcom/trpc/server/routers/viewer/slots/util";
 import { createNewUsersConnectToOrgIfExists } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
 
+export { getBookingForReschedule };
 export { updateScheduleHandler };
 export type UpdateScheduleOutputType = Awaited<
   ReturnType<
@@ -14,10 +19,15 @@ export type UpdateScheduleOutputType = Awaited<
 export { getEventTypeById } from "@calcom/lib/event-types/getEventTypeById";
 export { getEventTypesByViewer } from "@calcom/lib/event-types/getEventTypesByViewer";
 export { getEventTypesPublic } from "@calcom/lib/event-types/getEventTypesPublic";
+export { createHandler as createEventType } from "@calcom/trpc/server/routers/viewer/eventTypes/create.handler";
+export { updateHandler as updateEventType } from "@calcom/trpc/server/routers/viewer/eventTypes/update.handler";
+
+export { SchedulingType, PeriodType } from "@calcom/prisma/enums";
 
 export type { EventType } from "@calcom/lib/event-types/getEventTypeById";
 export type { EventTypesByViewer } from "@calcom/lib/event-types/getEventTypesByViewer";
 export type { EventTypesPublic } from "@calcom/lib/event-types/getEventTypesPublic";
+export type { UpdateEventTypeReturn } from "@calcom/trpc/server/routers/viewer/eventTypes/update.handler";
 
 export type PublicEventType = Awaited<ReturnType<typeof getPublicEvent>>;
 export { getPublicEvent };
@@ -62,3 +72,7 @@ export { TRPCError } from "@trpc/server";
 export type { TUpdateInputSchema } from "@calcom/trpc/server/routers/viewer/availability/schedule/update.schema";
 
 export { createNewUsersConnectToOrgIfExists };
+
+export { getAllUserBookings };
+export { getBookingInfo };
+export { handleCancelBooking };

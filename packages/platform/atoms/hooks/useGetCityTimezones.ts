@@ -7,7 +7,7 @@ import http from "../lib/http";
 const useGetCityTimezones = () => {
   const endpoint = new URL(BASE_URL);
 
-  endpoint.pathname = `api/${API_VERSION}/schedules/time-zones`;
+  endpoint.pathname = `api/${API_VERSION}/timezones`;
 
   const { isLoading, data } = useQuery({
     queryKey: ["city-timezones"],

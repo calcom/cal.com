@@ -7,7 +7,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { PERMISSIONS_GROUPED_MAP } from "@calcom/platform-constants/permissions";
 import { showToast } from "@calcom/ui";
 import { Meta, Button, TextField, Label } from "@calcom/ui";
-import { Plus, Trash } from "@calcom/ui/components/icon";
 
 import { useCreateOAuthClient } from "@lib/hooks/settings/organizations/platform/oauth-clients/usePersistOAuthClient";
 
@@ -156,7 +155,7 @@ export const OAuthClientForm: FC = () => {
                     type="button"
                     color="minimal"
                     variant="icon"
-                    StartIcon={Plus}
+                    StartIcon="plus"
                     className="text-default mx-2 mb-2"
                     onClick={() => {
                       append({ uri: "" });
@@ -168,7 +167,7 @@ export const OAuthClientForm: FC = () => {
                       type="button"
                       color="destructive"
                       variant="icon"
-                      StartIcon={Trash}
+                      StartIcon="trash"
                       className="text-default mx-2 mb-2"
                       onClick={() => {
                         remove(index);
@@ -191,7 +190,7 @@ export const OAuthClientForm: FC = () => {
                   <Avatar
                     alt=""
                     imageSrc={value}
-                    fallback={<Plus className="text-subtle h-4 w-4" />}
+                    fallback={<Icon name="plus" className="text-subtle h-4 w-4" />}
                     size="sm"
                   />
                   <div className="ms-4">

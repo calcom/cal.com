@@ -1,7 +1,5 @@
 import { render, screen } from "@testing-library/react";
 
-import { ArrowDown } from "@calcom/ui/components/icon";
-
 import { TopBanner } from "./TopBanner";
 
 describe("Tests for TopBanner component", () => {
@@ -22,24 +20,24 @@ describe("Tests for TopBanner component", () => {
     expect(ctaElt).toBeInTheDocument();
   });
 
-  test("Should render the default variant", () => {
-    render(<TopBanner text="the banner test" Icon={ArrowDown} />);
+  test("Should render the default variant", async () => {
+    render(<TopBanner text="the banner test" icon="arrow-down" />);
 
-    const variant = screen.getByTestId("variant-default");
+    const variant = await screen.findByTestId("variant-default");
     expect(variant).toBeInTheDocument();
   });
 
-  test("Should render the alert variant", () => {
+  test("Should render the alert variant", async () => {
     render(<TopBanner text="the banner test" variant="error" />);
 
-    const variant = screen.getByTestId("variant-error");
+    const variant = await screen.findByTestId("variant-error");
     expect(variant).toBeInTheDocument();
   });
 
-  test("Should render the warning variant", () => {
+  test("Should render the warning variant", async () => {
     render(<TopBanner text="the banner test" variant="warning" />);
 
-    const variant = screen.getByTestId("variant-warning");
+    const variant = await screen.findByTestId("variant-warning");
     expect(variant).toBeInTheDocument();
   });
 });
