@@ -190,7 +190,7 @@ const AISettings = ({ eventType }: { eventType: EventTypeSetup }) => {
 
         <TextField
           type="text"
-          hint="Variable: {name}"
+          hint="Variable: {{name}}"
           label={t("guest_name")}
           placeholder="Jane Doe"
           {...formMethods.register("aiPhoneCallConfig.guestName")}
@@ -198,7 +198,7 @@ const AISettings = ({ eventType }: { eventType: EventTypeSetup }) => {
 
         <TextField
           type="text"
-          hint="Variable: {email}"
+          hint="Variable: {{email}}"
           label={t("guest_email")}
           placeholder="jane@acme.com"
           {...formMethods.register("aiPhoneCallConfig.guestEmail")}
@@ -206,7 +206,7 @@ const AISettings = ({ eventType }: { eventType: EventTypeSetup }) => {
 
         <TextField
           type="text"
-          hint="Variable: {company}"
+          hint="Variable: {{company}}"
           label={t("guest_company")}
           placeholder="Acme"
           {...formMethods.register("aiPhoneCallConfig.guestCompany")}
