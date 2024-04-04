@@ -46,8 +46,9 @@ async function getHandler(req: NextApiRequest) {
     },
   });
 
-  if (allDestinationCalendars.length === 0)
+  if (allDestinationCalendars.length === 0) {
     new HttpError({ statusCode: 404, message: "No destination calendars were found" });
+  }
 
   return {
     destinationCalendars: allDestinationCalendars.map((destinationCalendar) =>
