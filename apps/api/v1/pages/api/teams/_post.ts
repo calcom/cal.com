@@ -96,7 +96,9 @@ async function postHandler(req: NextApiRequest) {
         },
       },
     });
-    if (alreadyExist) throw new HttpError({ statusCode: 409, message: "Team slug already exists" });
+    if (alreadyExist) {
+      throw new HttpError({ statusCode: 409, message: "Team slug already exists" });
+    }
   }
 
   // Check if parentId is related to this user
@@ -104,11 +106,12 @@ async function postHandler(req: NextApiRequest) {
     const parentTeam = await prisma.team.findFirst({
       where: { id: data.parentId, members: { some: { userId, role: { in: ["OWNER", "ADMIN"] } } } },
     });
-    if (!parentTeam)
+    if (!parentTeam) {
       throw new HttpError({
         statusCode: 401,
         message: "Unauthorized: Invalid parent id. You can only use parent id of your own teams.",
       });
+    }
   }
 
   // TODO: Perhaps there is a better fix for this?
@@ -166,11 +169,12 @@ async function checkPermissions(req: NextApiRequest) {
   const body = schemaTeamCreateBodyParams.parse(req.body);
 
   /* Non-admin users can only create teams for themselves */
-  if (!isAdmin && body.ownerId)
+  if (!isAdmin && body.ownerId) {
     throw new HttpError({
       statusCode: 401,
       message: "ADMIN required for `ownerId`",
     });
+  }
 }
 
 const generateTeamCheckoutSession = async ({
@@ -208,11 +212,12 @@ const generateTeamCheckoutSession = async ({
     },
   });
 
-  if (!session.url)
+  if (!session.url) {
     throw new HttpError({
       statusCode: 500,
       message: "Failed generating a checkout session URL.",
     });
+  }
 
   return session;
 };
