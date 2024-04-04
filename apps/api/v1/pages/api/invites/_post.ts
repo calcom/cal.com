@@ -16,7 +16,7 @@ async function postHandler(req: NextApiRequest, res: NextApiResponse) {
   const data = ZInviteMemberInputSchema.parse(req.body);
   await checkPermissions(req, data);
 
-  async function sessionGetter() {
+  const sessionGetter = async () => {
     return {
       user: {
         id: req.userId,
@@ -33,7 +33,7 @@ async function postHandler(req: NextApiRequest, res: NextApiResponse) {
       expires: "",
       upId: "",
     };
-  }
+  };
 
   const ctx = await createContext({ req, res }, sessionGetter);
   try {
@@ -59,15 +59,20 @@ async function postHandler(req: NextApiRequest, res: NextApiResponse) {
 
 async function checkPermissions(req: NextApiRequest, body: TInviteMemberInputSchema) {
   const { userId, isAdmin } = req;
-  if (isAdmin) return;
+  if (isAdmin) {
+    return;
+  }
   // To prevent auto-accepted invites, limit it to ADMIN users
-  if (!isAdmin && "accepted" in body)
+  if (!isAdmin && "accepted" in body) {
     throw new HttpError({ statusCode: 403, message: "ADMIN needed for `accepted`" });
+  }
   // Only team OWNERS and ADMINS can add other members
   const membership = await prisma.membership.findFirst({
     where: { userId, teamId: body.teamId, role: { in: ["ADMIN", "OWNER"] } },
   });
-  if (!membership) throw new HttpError({ statusCode: 403, message: "You can't add members to this team" });
+  if (!membership) {
+    throw new HttpError({ statusCode: 403, message: "You can't add members to this team" });
+  }
 }
 
 export default defaultResponder(postHandler);
