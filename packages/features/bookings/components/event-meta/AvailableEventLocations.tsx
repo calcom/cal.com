@@ -8,9 +8,7 @@ import { useIsPlatform } from "@calcom/atoms/monorepo";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import invertLogoOnDark from "@calcom/lib/invertLogoOnDark";
-import { Tooltip } from "@calcom/ui";
-import { Link } from "@calcom/ui/components/icon";
-import { Video } from "@calcom/ui/components/icon";
+import { Icon, Tooltip } from "@calcom/ui";
 
 const excludeNullValues = (value: unknown) => !!value;
 
@@ -24,7 +22,7 @@ function RenderIcon({
   const isPlatform = useIsPlatform();
 
   if (isPlatform) {
-    return <Video className="me-[10px] h-4 w-4" />;
+    return <Icon name="video" className="me-[10px] h-4 w-4" />;
   }
 
   return (
@@ -87,7 +85,7 @@ export function AvailableEventLocations({ locations }: { locations: LocationObje
       return (
         <div key={`${location.type}-${index}`} className="flex flex-row items-center text-sm font-medium">
           {eventLocationType.iconUrl === "/link.svg" ? (
-            <Link className="text-default h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
+            <Icon name="link" className="text-default h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
           ) : (
             <RenderIcon eventLocationType={eventLocationType} isTooltip={false} />
           )}

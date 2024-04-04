@@ -3,8 +3,7 @@
 import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { detectBrowserTimeFormat } from "@calcom/lib/timeFormat";
-import { Button, HeadSeo } from "@calcom/ui";
-import { ArrowRight, Calendar, X } from "@calcom/ui/components/icon";
+import { Button, HeadSeo, Icon } from "@calcom/ui";
 
 import { type PageProps } from "./videos-meeting-ended-single-view.getServerSideProps";
 
@@ -28,7 +27,7 @@ export default function MeetingUnavailable(props: PageProps) {
                 aria-labelledby="modal-headline">
                 <div>
                   <div className="bg-error mx-auto flex h-12 w-12 items-center justify-center rounded-full">
-                    <X className="h-6 w-6 text-red-600" />
+                    <Icon name="x" className="h-6 w-6 text-red-600" />
                   </div>
                   <div className="mt-3 text-center sm:mt-5">
                     <h3 className="text-emphasis text-lg font-medium leading-6" id="modal-headline">
@@ -40,14 +39,14 @@ export default function MeetingUnavailable(props: PageProps) {
                       {props.booking.title}
                     </h2>
                     <p className="text-subtle text-center">
-                      <Calendar className="-mt-1 mr-1 inline-block h-4 w-4" />
+                      <Icon name="calendar" className="-mt-1 mr-1 inline-block h-4 w-4" />
                       {dayjs(props.booking.startTime).format(`${detectBrowserTimeFormat}, dddd DD MMMM YYYY`)}
                     </p>
                   </div>
                 </div>
                 <div className="mt-5 text-center sm:mt-6">
                   <div className="mt-5">
-                    <Button data-testid="return-home" href="/event-types" EndIcon={ArrowRight}>
+                    <Button data-testid="return-home" href="/event-types" EndIcon="arrow-right">
                       {t("go_back")}
                     </Button>
                   </div>

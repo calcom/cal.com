@@ -2164,6 +2164,9 @@
   "extensive_whitelabeling": "专门的入门和工程支持",
   "need_help": "需要帮助？",
   "show_more": "显示更多",
+  "email_team_invite|subject|invited_to_regular_team": "{{user}} 邀请您在 {{appName}} 上加入 {{team}} 团队",
+  "email_team_invite|heading|invited_to_regular_team": "您已被邀请加入 {{appName}} 团队",
+  "email_team_invite|content|invited_to_regular_team": "{{invitedBy}} 已邀请您加入他们在 {{appName}} 上的团队“{{teamName}}”。{{appName}} 是一个活动安排调度程序，让您和您的团队无需通过电子邮件沟通即可安排会议。",
   "privacy": "隐私",
   "cookie_consent_checkbox": "我同意 Cal.com 的隐私政策以及 cookie 使用政策",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 在此上方添加您的新字符串 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
