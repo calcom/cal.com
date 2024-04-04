@@ -404,7 +404,7 @@ const AppearanceView = ({
       {/* TODO future PR to preview brandColors */}
       {/* <Button
         color="secondary"
-        EndIcon={ExternalLink}
+        EndIcon="external-link"
         className="mt-6"
         onClick={() => window.open(`${WEBAPP_URL}/${user.username}/${user.eventTypes[0].title}`, "_blank")}>
         Preview

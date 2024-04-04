@@ -1,5 +1,4 @@
-import { AppsRepository } from "@/modules/apps/apps.repository";
-import { GcalService } from "@/modules/apps/services/gcal.service";
+import { GCalService } from "@/modules/apps/services/gcal.service";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
 import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
@@ -47,12 +46,11 @@ export class GcalController {
   private readonly logger = new Logger("Platform Gcal Provider");
 
   constructor(
-    private readonly appRepository: AppsRepository,
     private readonly credentialRepository: CredentialsRepository,
     private readonly tokensRepository: TokensRepository,
     private readonly selectedCalendarsRepository: SelectedCalendarsRepository,
     private readonly config: ConfigService,
-    private readonly gcalService: GcalService
+    private readonly gcalService: GCalService
   ) {}
 
   private redirectUri = `${this.config.get("api.url")}/ee/gcal/oauth/save`;
