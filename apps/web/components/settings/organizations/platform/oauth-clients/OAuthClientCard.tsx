@@ -1,10 +1,9 @@
-import { Asterisk, Clipboard } from "lucide-react";
 import React from "react";
 
 import { classNames } from "@calcom/lib";
 import { PERMISSIONS_GROUPED_MAP } from "@calcom/platform-constants";
 import type { Avatar } from "@calcom/prisma/client";
-import { Button, showToast } from "@calcom/ui";
+import { Button, Icon, showToast } from "@calcom/ui";
 
 import { hasPermission } from "../../../../../../../packages/platform/utils/permissions";
 
@@ -75,7 +74,8 @@ export const OAuthClientCard = ({
           <div className="flex flex-row items-center gap-2">
             <div className="font-semibold">Client Id:</div>
             <div>{id}</div>
-            <Clipboard
+            <Icon
+              name="clipboard"
               type="button"
               className="h-4 w-4 cursor-pointer"
               onClick={() => {
@@ -89,9 +89,10 @@ export const OAuthClientCard = ({
           <div className="font-semibold">Client Secret:</div>
           <div className="flex items-center justify-center rounded-md">
             {[...new Array(20)].map((_, index) => (
-              <Asterisk key={`${index}asterisk`} className="h-2 w-2" />
+              <Icon name="asterisk" key={`${index}asterisk`} className="h-2 w-2" />
             ))}
-            <Clipboard
+            <Icon
+              name="clipboard"
               type="button"
               className="ml-2 h-4 w-4 cursor-pointer"
               onClick={() => {

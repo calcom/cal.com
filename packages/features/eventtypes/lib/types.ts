@@ -58,6 +58,16 @@ export type FormValues = {
     credentialId?: number;
     teamName?: string;
   }[];
+  aiPhoneCallConfig: {
+    generalPrompt: string;
+    enabled: boolean;
+    beginMessage: string;
+    yourPhoneNumber: string;
+    numberToCall: string;
+    guestName: string;
+    guestEmail: string;
+    guestCompany: string;
+  };
   customInputs: CustomInputParsed[];
   schedule: number | null;
   periodType: PeriodType;
