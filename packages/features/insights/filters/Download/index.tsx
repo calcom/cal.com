@@ -1,10 +1,8 @@
-import { FileDownIcon } from "lucide-react";
-
 import { useFilterContext } from "@calcom/features/insights/context/provider";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc";
 import { trpc } from "@calcom/trpc";
-import { Dropdown, DropdownItem, DropdownMenuContent, DropdownMenuTrigger, Button } from "@calcom/ui";
+import { Button, Dropdown, DropdownItem, DropdownMenuContent, DropdownMenuTrigger, Icon } from "@calcom/ui";
 
 const Download = () => {
   const { filter } = useFilterContext();
@@ -58,7 +56,7 @@ const Download = () => {
     <Dropdown modal={false}>
       <DropdownMenuTrigger asChild>
         <Button
-          EndIcon={FileDownIcon}
+          EndIcon="file-down"
           color="secondary"
           {...(isPending && { loading: isPending })}
           className="self-end sm:self-baseline">

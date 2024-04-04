@@ -11,13 +11,12 @@ import {
   Alert,
   Button,
   EmptyScreen,
-  List,
-  AppSkeletonLoader as SkeletonLoader,
-  ShellSubHeading,
   Label,
+  List,
+  ShellSubHeading,
+  AppSkeletonLoader as SkeletonLoader,
   showToast,
 } from "@calcom/ui";
-import { Calendar } from "@calcom/ui/components/icon";
 
 import { QueryCell } from "@lib/QueryCell";
 import useRouterQuery from "@lib/hooks/useRouterQuery";
@@ -267,7 +266,7 @@ export function CalendarListContainer(props: { heading?: boolean; fromOnboarding
               </>
             ) : (
               <EmptyScreen
-                Icon={Calendar}
+                Icon="calendar"
                 headline={t("no_category_apps", {
                   category: t("calendar").toLowerCase(),
                 })}
