@@ -9,12 +9,16 @@ async function authMiddleware(req: NextApiRequest) {
   const { userId, isAdmin } = req;
   const { id } = schemaQueryIdParseInt.parse(req.query);
   // Admins can just skip this check
-  if (isAdmin) return;
+  if (isAdmin) {
+    return;
+  }
   // Check if the current user can access the schedule
   const schedule = await prisma.schedule.findFirst({
     where: { id, userId },
   });
-  if (!schedule) throw new HttpError({ statusCode: 403, message: "Forbidden" });
+  if (!schedule) {
+    throw new HttpError({ statusCode: 403, message: "Forbidden" });
+  }
 }
 
 export default authMiddleware;
