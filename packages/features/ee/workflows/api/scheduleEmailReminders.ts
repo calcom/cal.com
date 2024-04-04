@@ -230,7 +230,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
             !!reminder.booking.user?.hideBranding
           );
         } else if (reminder.workflowStep.template === WorkflowTemplates.RATING) {
-          // TODO:: extract these functions out for reusability
           const organizerOrganizationProfile = await prisma.profile.findFirst({
             where: {
               userId: reminder.booking.user?.id,
