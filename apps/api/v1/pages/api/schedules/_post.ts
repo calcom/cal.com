@@ -85,10 +85,13 @@ async function postHandler(req: NextApiRequest) {
   let args: Prisma.ScheduleCreateArgs = { data: { ...body, userId } };
 
   /* If ADMIN we create the schedule for selected user */
-  if (isAdmin && body.userId) args = { data: { ...body, userId: body.userId } };
+  if (isAdmin && body.userId) {
+    args = { data: { ...body, userId: body.userId } };
+  }
 
-  if (!isAdmin && body.userId)
+  if (!isAdmin && body.userId) {
     throw new HttpError({ statusCode: 403, message: "ADMIN required for `userId`" });
+  }
 
   // We create default availabilities for the schedule
   args.data.availability = {
