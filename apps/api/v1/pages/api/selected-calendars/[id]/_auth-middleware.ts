@@ -8,9 +8,13 @@ async function authMiddleware(req: NextApiRequest) {
   const { userId, isAdmin } = req;
   const { userId: queryUserId } = selectedCalendarIdSchema.parse(req.query);
   // Admins can just skip this check
-  if (isAdmin) return;
+  if (isAdmin) {
+    return;
+  }
   // Check if the current user requesting is the same as the one being requested
-  if (userId !== queryUserId) throw new HttpError({ statusCode: 403, message: "Forbidden" });
+  if (userId !== queryUserId) {
+    throw new HttpError({ statusCode: 403, message: "Forbidden" });
+  }
 }
 
 export default authMiddleware;
