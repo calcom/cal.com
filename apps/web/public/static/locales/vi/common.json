@@ -2105,6 +2105,9 @@
   "need_help": "Cần hỗ trợ?",
   "instant_tab_title": "Đặt Cuộc Họp Ngay",
   "show_more": "Hiện thêm",
+  "email_team_invite|subject|invited_to_regular_team": "{{user}} đã mời bạn để gia nhập nhóm {{team}} trên {{appName}}",
+  "email_team_invite|heading|invited_to_regular_team": "Bạn đã được mời gia nhập nhóm {{appName}}",
+  "email_team_invite|content|invited_to_regular_team": "{{invitedBy}} đã mời bạn gia nhập nhóm '{{teamName}}' của họ trên {{appName}}. {{appName}} là công cụ lên lịch sắp xếp sự kiện cho phép bạn và nhóm bạn lên lịch các cuộc gặp mà không cần trao đổi email nhiều.",
   "privacy": "Quyền riêng tư",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
