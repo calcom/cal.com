@@ -39,9 +39,13 @@ export async function canUserAccessTeamWithRole(
 ) {
   const args: Prisma.TeamFindFirstArgs = { where: { id: teamId } };
   /** If not ADMIN then we check if the actual user belongs to team and matches the required role */
-  if (!isAdmin) args.where = { ...args.where, members: { some: { userId, role } } };
+  if (!isAdmin) {
+    args.where = { ...args.where, members: { some: { userId, role } } };
+  }
   const team = await prisma.team.findFirst(args);
-  if (!team) throw new HttpError({ statusCode: 401, message: `Unauthorized: ${role.toString()} required` });
+  if (!team) {
+    throw new HttpError({ statusCode: 401, message: `Unauthorized: ${role.toString()} required` });
+  }
   return team;
 }
 
