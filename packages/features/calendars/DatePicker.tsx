@@ -11,8 +11,6 @@ import { daysInMonth, yyyymmdd } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { weekdayNames } from "@calcom/lib/weekday";
 import { Button, SkeletonText } from "@calcom/ui";
-import { ChevronLeft, ChevronRight } from "@calcom/ui/components/icon";
-import { ArrowRight } from "@calcom/ui/components/icon";
 
 export type DatePickerProps = {
   /** which day of the week to render the calendar. Usually Sunday (=0) or Monday (=1) - default: Sunday */
@@ -95,7 +93,7 @@ const NoAvailabilityOverlay = ({
   return (
     <div className="bg-muted border-subtle absolute left-1/2 top-40 -mt-10 w-max -translate-x-1/2 -translate-y-1/2 transform rounded-md border p-8 shadow-sm">
       <h4 className="text-emphasis mb-4 font-medium">{t("no_availability_in_month", { month: month })}</h4>
-      <Button onClick={nextMonthButton} color="primary" EndIcon={ArrowRight} data-testid="view_next_month">
+      <Button onClick={nextMonthButton} color="primary" EndIcon="arrow-right" data-testid="view_next_month">
         {t("view_next_month")}
       </Button>
     </div>
@@ -286,7 +284,7 @@ const DatePicker = ({
               data-testid="decrementMonth"
               color="minimal"
               variant="icon"
-              StartIcon={ChevronLeft}
+              StartIcon="chevron-left"
             />
             <Button
               className="group p-1 opacity-70 hover:opacity-100 rtl:rotate-180"
@@ -294,7 +292,7 @@ const DatePicker = ({
               data-testid="incrementMonth"
               color="minimal"
               variant="icon"
-              StartIcon={ChevronRight}
+              StartIcon="chevron-right"
             />
           </div>
         </div>
@@ -306,7 +304,7 @@ const DatePicker = ({
           </div>
         ))}
       </div>
-      <div className="relative grid grid-cols-7 gap-1 text-center">
+      <div className="relative grid grid-cols-7 grid-rows-6 gap-1 text-center">
         <Days
           weekStart={weekStart}
           selected={selected}

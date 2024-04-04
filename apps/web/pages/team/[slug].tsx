@@ -20,7 +20,6 @@ import useTheme from "@calcom/lib/hooks/useTheme";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import { Avatar, Button, HeadSeo, UnpublishedEntity, UserAvatarGroup } from "@calcom/ui";
-import { ArrowRight } from "@calcom/ui/components/icon";
 
 import { useToggleQuery } from "@lib/hooks/useToggleQuery";
 import { getServerSideProps } from "@lib/team/[slug]/getServerSideProps";
@@ -49,6 +48,8 @@ function TeamPage({
   const teamName = team.name || "Nameless Team";
   const isBioEmpty = !team.bio || !team.bio.replace("<p><br></p>", "").length;
   const metadata = teamMetadataSchema.parse(team.metadata);
+
+  const teamOrOrgIsPrivate = team.isPrivate || (team?.parent?.isOrganization && team.parent?.isPrivate);
 
   useEffect(() => {
     telemetry.event(
@@ -194,11 +195,17 @@ function TeamPage({
           )}
         </div>
         {team.isOrganization ? (
-          <SubTeams />
+          !teamOrOrgIsPrivate ? (
+            <SubTeams />
+          ) : (
+            <div className="w-full text-center">
+              <h2 className="text-emphasis font-semibold">{t("you_cannot_see_teams_of_org")}</h2>
+            </div>
+          )
         ) : (
           <>
             {(showMembers.isOn || !team.eventTypes?.length) &&
-              (team.isPrivate ? (
+              (teamOrOrgIsPrivate ? (
                 <div className="w-full text-center">
                   <h2 data-testid="you-cannot-see-team-members" className="text-emphasis font-semibold">
                     {t("you_cannot_see_team_members")}
@@ -212,7 +219,7 @@ function TeamPage({
                 <EventTypes eventTypes={team.eventTypes} />
 
                 {/* Hide "Book a team member button when team is private or hideBookATeamMember is true" */}
-                {!team.hideBookATeamMember && !team.isPrivate && (
+                {!team.hideBookATeamMember && !teamOrOrgIsPrivate && (
                   <div>
                     <div className="relative mt-12">
                       <div className="absolute inset-0 flex items-center" aria-hidden="true">
@@ -228,7 +235,7 @@ function TeamPage({
                     <aside className="dark:text-inverted mt-8 flex justify-center text-center">
                       <Button
                         color="minimal"
-                        EndIcon={ArrowRight}
+                        EndIcon="arrow-right"
                         data-testid="book-a-team-member-btn"
                         className="dark:hover:bg-darkgray-200"
                         href={{

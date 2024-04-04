@@ -2,7 +2,7 @@ import { useRouter } from "next/navigation";
 import type { Dispatch, SetStateAction } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Check } from "@calcom/ui/components/icon";
+import { Icon } from "@calcom/ui";
 
 const StepDone = (props: {
   currentStep: number;
@@ -24,7 +24,10 @@ const StepDone = (props: {
       }}>
       <div className="min-h-36 my-6 flex flex-col items-center justify-center">
         <div className="dark:bg-default flex h-[72px] w-[72px] items-center justify-center rounded-full bg-gray-600">
-          <Check className="text-inverted dark:bg-default dark:text-default inline-block h-10 w-10" />
+          <Icon
+            name="check"
+            className="text-inverted dark:bg-default dark:text-default inline-block h-10 w-10"
+          />
         </div>
         <div className="max-w-[420px] text-center">
           <h2 className="mb-1 mt-6 text-lg font-medium dark:text-gray-300">{t("all_done")}</h2>

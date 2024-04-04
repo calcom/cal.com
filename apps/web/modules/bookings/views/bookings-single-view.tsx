@@ -24,7 +24,11 @@ import {
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
 import { Price } from "@calcom/features/bookings/components/event-meta/Price";
-import { SMS_REMINDER_NUMBER_FIELD, SystemField } from "@calcom/features/bookings/lib/SystemField";
+import {
+  SMS_REMINDER_NUMBER_FIELD,
+  SystemField,
+  TITLE_FIELD,
+} from "@calcom/features/bookings/lib/SystemField";
 import { APP_NAME } from "@calcom/lib/constants";
 import {
   formatToLocalizedDate,
@@ -41,8 +45,7 @@ import { getIs24hClockFromLocalStorage, isBrowserLocale24h } from "@calcom/lib/t
 import { localStorage } from "@calcom/lib/webstorage";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
-import { Alert, Badge, Button, EmailInput, HeadSeo, useCalcomTheme } from "@calcom/ui";
-import { AlertCircle, Calendar, Check, ChevronLeft, ExternalLink, X } from "@calcom/ui/components/icon";
+import { Alert, Badge, Button, EmailInput, HeadSeo, Icon, useCalcomTheme } from "@calcom/ui";
 
 import { timeZone } from "@lib/clock";
 
@@ -91,6 +94,7 @@ export default function Success(props: PageProps) {
   const pathname = usePathname();
   const searchParams = useCompatSearchParams();
   const { eventType, bookingInfo, requiresLoginToUpdate } = props;
+
   const {
     allRemainingBookings,
     isSuccessBookingPage,
@@ -308,7 +312,7 @@ export default function Success(props: PageProps) {
             href={allRemainingBookings ? "/bookings/recurring" : "/bookings/upcoming"}
             data-testid="back-to-bookings"
             className="hover:bg-subtle text-subtle hover:text-default mt-2 inline-flex px-1 py-2 text-sm dark:hover:bg-transparent">
-            <ChevronLeft className="h-5 w-5 rtl:rotate-180" /> {t("back_to_bookings")}
+            <Icon name="chevron-left" className="h-5 w-5 rtl:rotate-180" /> {t("back_to_bookings")}
           </Link>
         </div>
       )}
@@ -345,17 +349,19 @@ export default function Success(props: PageProps) {
                     !giphyImage && !isCancelled && needsConfirmation
                       ? "bg-subtle h-12 w-12 rounded-full"
                       : "",
-                    isCancelled ? "bg-error h-12 w-12 rounded-full" : ""
+                    isCancelled ? "bg-error h-12 w-12 rounded-full " : ""
                   )}>
                   {giphyImage && !needsConfirmation && !isCancelled && (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={giphyImage} alt="Gif from Giphy" />
                   )}
                   {!giphyImage && !needsConfirmation && !isCancelled && (
-                    <Check className="h-5 w-5 text-green-600 dark:text-green-400" />
+                    <Icon name="check" className="h-5 w-5 text-green-600 dark:text-green-400" />
                   )}
-                  {needsConfirmation && !isCancelled && <Calendar className="text-emphasis h-5 w-5" />}
-                  {isCancelled && <X className="h-5 w-5 text-red-600 dark:text-red-200" />}
+                  {needsConfirmation && !isCancelled && (
+                    <Icon name="calendar" className="text-emphasis h-5 w-5" />
+                  )}
+                  {isCancelled && <Icon name="x" className="h-5 w-5 text-red-600 dark:text-red-200" />}
                 </div>
                 <div className="mb-8 mt-6 text-center last:mb-0">
                   <h3
@@ -518,7 +524,13 @@ export default function Success(props: PageProps) {
                       if (!field) return null;
                       const isSystemField = SystemField.safeParse(field.name);
                       // SMS_REMINDER_NUMBER_FIELD is a system field but doesn't have a dedicated place in the UI. So, it would be shown through the following responses list
-                      if (isSystemField.success && field.name !== SMS_REMINDER_NUMBER_FIELD) return null;
+                      // TITLE is also an identifier for booking question "What is this meeting about?"
+                      if (
+                        isSystemField.success &&
+                        field.name !== SMS_REMINDER_NUMBER_FIELD &&
+                        field.name !== TITLE_FIELD
+                      )
+                        return null;
 
                       const label = field.label || t(field.defaultLabel || "");
 
@@ -773,7 +785,7 @@ export default function Success(props: PageProps) {
                       </span>
                     </div>
                   }
-                  CustomIcon={AlertCircle}
+                  CustomIcon="circle-alert"
                   customIconColor="text-attention dark:text-orange-200"
                 />
               )}
@@ -802,7 +814,7 @@ const DisplayLocation = ({
       className={classNames("text-default flex items-center gap-2", className)}
       rel="noreferrer">
       {providerName || "Link"}
-      <ExternalLink className="text-default inline h-4 w-4" />
+      <Icon name="external-link" className="text-default inline h-4 w-4" />
     </a>
   ) : (
     <p className={className}>{locationToDisplay}</p>

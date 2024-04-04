@@ -115,6 +115,7 @@ export default class EventManager {
    */
   public async create(event: CalendarEvent): Promise<CreateUpdateResult> {
     const evt = processLocation(event);
+
     // Fallback to cal video if no location is set
     if (!evt.location) {
       // See if cal video is enabled & has keys
@@ -328,7 +329,7 @@ export default class EventManager {
     rescheduleUid: string,
     newBookingId?: number,
     changedOrganizer?: boolean,
-    newDestinationCalendar?: DestinationCalendar[] | null
+    previousHostDestinationCalendar?: DestinationCalendar[] | null
   ): Promise<CreateUpdateResult> {
     const originalEvt = processLocation(event);
     const evt = cloneDeep(originalEvt);
@@ -380,16 +381,21 @@ export default class EventManager {
     if (evt.requiresConfirmation) {
       log.debug("RescheduleRequiresConfirmation: Deleting Event and Meeting for previous booking");
       // As the reschedule requires confirmation, we can't update the events and meetings to new time yet. So, just delete them and let it be handled when organizer confirms the booking.
-      await this.deleteEventsAndMeetings({ booking, event });
+      await this.deleteEventsAndMeetings({
+        booking,
+        event: { ...event, destinationCalendar: previousHostDestinationCalendar },
+      });
     } else {
       if (changedOrganizer) {
         log.debug("RescheduleOrganizerChanged: Deleting Event and Meeting for previous booking");
-        await this.deleteEventsAndMeetings({ booking, event });
+        await this.deleteEventsAndMeetings({
+          booking,
+          event: { ...event, destinationCalendar: previousHostDestinationCalendar },
+        });
 
         log.debug("RescheduleOrganizerChanged: Creating Event and Meeting for for new booking");
 
-        const newEvent = { ...evt, destinationCalendar: newDestinationCalendar };
-        const createdEvent = await this.create(newEvent);
+        const createdEvent = await this.create(originalEvt);
         results.push(...createdEvent.results);
         bookingReferenceChangedOrganizer.push(...createdEvent.referencesToCreate);
       } else {
@@ -453,14 +459,14 @@ export default class EventManager {
     const videoReferences = booking.references.filter((reference) => reference.type.includes("_video"));
     log.debug("deleteEventsAndMeetings", safeStringify({ calendarReferences, videoReferences }));
     const calendarPromises = calendarReferences.map(async (bookingCalendarReference) => {
-      return await this.deleteCalendarEventForBookingReference({
+      return this.deleteCalendarEventForBookingReference({
         bookingCalendarReference,
         event,
       });
     });
 
     const videoPromises = videoReferences.map(async (bookingVideoReference) => {
-      return await this.deleteVideoEventForBookingReference({
+      return this.deleteVideoEventForBookingReference({
         bookingVideoReference,
       });
     });

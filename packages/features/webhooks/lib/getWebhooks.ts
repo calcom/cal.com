@@ -18,6 +18,9 @@ const getWebhooks = async (options: GetSubscriberOptions, prisma: PrismaClient =
     where: {
       OR: [
         {
+          platform: true,
+        },
+        {
           userId,
         },
         {

@@ -76,6 +76,7 @@ function PageWrapper(props: AppProps) {
         id="page-status"
         dangerouslySetInnerHTML={{ __html: `window.CalComPageStatus = '${pageStatus}'` }}
       />
+
       <style jsx global>{`
         :root {
           --font-inter: ${interFont.style.fontFamily};
