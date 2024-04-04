@@ -10,7 +10,10 @@ import { getEventTypeById } from "@calcom/platform-libraries";
 export class EventTypesRepository {
   constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
 
-  async createUserEventType(userId: number, body: CreateEventTypeInput) {
+  async createUserEventType(
+    userId: number,
+    body: Pick<CreateEventTypeInput, "title" | "slug" | "length" | "hidden">
+  ) {
     return this.dbWrite.prisma.eventType.create({
       data: {
         ...body,
@@ -58,5 +61,20 @@ export class EventTypesRepository {
 
   async getEventTypeById(eventTypeId: number) {
     return this.dbRead.prisma.eventType.findUnique({ where: { id: eventTypeId } });
+  }
+
+  async getUserEventTypeBySlug(userId: number, slug: string) {
+    return this.dbRead.prisma.eventType.findUnique({
+      where: {
+        userId_slug: {
+          userId: userId,
+          slug: slug,
+        },
+      },
+    });
+  }
+
+  async deleteEventType(eventTypeId: number) {
+    return this.dbWrite.prisma.eventType.delete({ where: { id: eventTypeId } });
   }
 }

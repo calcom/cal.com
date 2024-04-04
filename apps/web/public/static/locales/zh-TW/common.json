@@ -2107,6 +2107,9 @@
   "need_help": "需要協助？",
   "user_redirect_description": "在此期間，{{profile.username}} 將代表 {{username}} 負責所有新安排的會議。",
   "show_more": "顯示更多",
+  "email_team_invite|subject|invited_to_regular_team": "受到 {{user}} 的邀請加入 {{appName}} 上的 {{team}} 團隊",
+  "email_team_invite|heading|invited_to_regular_team": "您已獲邀加入 {{appName}} 團隊",
+  "email_team_invite|content|invited_to_regular_team": "{{invitedBy}} 已邀請您加入對方在 {{appName}} 上的「{{teamName}}」團隊。{{appName}} 為一款活動多功能排程工具，可讓您和團隊無須透過繁複的電子郵件往來，就能輕鬆預定會議。",
   "privacy": "隱私權",
   "team_will_be_under_org": "新的團隊將會在您的組織下。",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 請在此處新增您的字串 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"

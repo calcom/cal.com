@@ -1,19 +1,22 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { SVGComponent } from "@calcom/types/SVGComponent";
+import type { IconName } from "@calcom/ui";
 import {
   Dropdown,
+  DropdownItem,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownItem,
   DropdownMenuTrigger,
+  Icon,
   Tooltip,
 } from "@calcom/ui";
-import type { LucideIcon } from "@calcom/ui/components/icon";
-import { Plus, Link, User, Check } from "@calcom/ui/components/icon";
 
 import { useFilterContext } from "../context/provider";
 
-type Option = { value: "event-type" | "user"; label: string; StartIcon?: SVGComponent | LucideIcon };
+type Option = {
+  value: "event-type" | "user";
+  label: string;
+  StartIcon: IconName;
+};
 
 export const FilterType = () => {
   const { t } = useLocale();
@@ -24,12 +27,12 @@ export const FilterType = () => {
     {
       label: t("event_type"),
       value: "event-type",
-      StartIcon: Link,
+      StartIcon: "link",
     },
     {
       label: t("user"),
       value: "user",
-      StartIcon: User,
+      StartIcon: "user",
     },
   ];
 
@@ -46,7 +49,7 @@ export const FilterType = () => {
     <Dropdown>
       <DropdownMenuTrigger asChild>
         <div className="hover:border-emphasis border-default text-default hover:text-emphasis focus:border-subtle mb-4 flex h-9 max-h-72 items-center justify-between whitespace-nowrap rounded-md border px-3 py-2 text-sm hover:cursor-pointer focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:ring-offset-1">
-          <Plus className="mr-2 h-4 w-4" />
+          <Icon name="plus" className="mr-2 h-4 w-4" />
           <Tooltip content={t("add_filter")}>
             <div>{t("add_filter")}</div>
           </Tooltip>
@@ -67,7 +70,7 @@ export const FilterType = () => {
               childrenClassName="w-full">
               <div className="flex w-full items-center justify-between">
                 {t(option.label)}
-                {filterValue?.value === option.value && <Check className="h-4 w-4" />}
+                {filterValue?.value === option.value && <Icon name="check" className="h-4 w-4" />}
               </div>
             </DropdownItem>
           </DropdownMenuItem>

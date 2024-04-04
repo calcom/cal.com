@@ -278,5 +278,6 @@
   "disable_guests": "Απενεργοποίηση επισκεπτών",
   "location_variable": "Τοποθεσία",
   "additional_notes_variable": "Πρόσθετες σημειώσεις",
-  "already_have_account": "Έχετε ήδη λογαριασμό;"
+  "already_have_account": "Έχετε ήδη λογαριασμό;",
+  "email_team_invite|subject|invited_to_regular_team": "Ο χρήστης {{user}} σας προσκάλεσε να συμμετάσχετε στην ομάδα {{team}} στο {{appName}}"
 }

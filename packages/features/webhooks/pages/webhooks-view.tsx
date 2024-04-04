@@ -16,7 +16,6 @@ import {
   SkeletonContainer,
   SkeletonText,
 } from "@calcom/ui";
-import { Link as LinkIcon } from "@calcom/ui/components/icon";
 
 import { getLayout } from "../../settings/layouts/SettingsLayout";
 import { WebhookListItem } from "../components";
@@ -158,7 +157,7 @@ const WebhooksList = ({
           )}
           {!webhookGroups.length && (
             <EmptyScreen
-              Icon={LinkIcon}
+              Icon="link"
               headline={t("create_your_first_webhook")}
               description={t("create_your_first_webhook_description", { appName: APP_NAME })}
               className="rounded-b-lg rounded-t-none border-t-0"

@@ -16,7 +16,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import { Alert, Button, EmptyScreen, SettingsToggle, Dialog, DialogContent, showToast } from "@calcom/ui";
-import { PhoneCall, Plus, Lock, Webhook as TbWebhook } from "@calcom/ui/components/icon";
 
 type InstantEventControllerProps = {
   eventType: EventTypeSetup;
@@ -48,7 +47,7 @@ export default function InstantEventController({
         {!isOrg || !isTeamEvent ? (
           <EmptyScreen
             headline={t("instant_tab_title")}
-            Icon={PhoneCall}
+            Icon="phone-call"
             description={t("uprade_to_create_instant_bookings")}
             buttonRaw={<Button href="/enterprise">{t("upgrade")}</Button>}
           />
@@ -171,7 +170,7 @@ const InstantMeetingWebhooks = ({ eventType }: { eventType: EventTypeSetup }) =>
       <Button
         color="secondary"
         data-testid="new_webhook"
-        StartIcon={Plus}
+        StartIcon="plus"
         onClick={() => setCreateModalOpen(true)}>
         {t("new_webhook")}
       </Button>
@@ -218,12 +217,12 @@ const InstantMeetingWebhooks = ({ eventType }: { eventType: EventTypeSetup }) =>
                   {t("warning_payment_instant_meeting_event")}
                 </p>
                 <EmptyScreen
-                  Icon={TbWebhook}
+                  Icon="webhook"
                   headline={t("create_your_first_webhook")}
                   description={t("create_instant_meeting_webhook_description")}
                   buttonRaw={
                     isChildrenManagedEventType && !isManagedEventType ? (
-                      <Button StartIcon={Lock} color="secondary" disabled>
+                      <Button StartIcon="lock" color="secondary" disabled>
                         {t("locked_by_admin")}
                       </Button>
                     ) : (

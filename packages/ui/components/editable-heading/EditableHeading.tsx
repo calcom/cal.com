@@ -2,7 +2,7 @@ import classNames from "classnames";
 import { useState } from "react";
 import type { ControllerRenderProps } from "react-hook-form";
 
-import { Edit2 } from "@calcom/ui/components/icon";
+import { Icon } from "../..";
 
 export const EditableHeading = function EditableHeading({
   value,
@@ -23,7 +23,10 @@ export const EditableHeading = function EditableHeading({
         <label className="min-w-8 relative inline-block">
           <span className="whitespace-pre text-xl tracking-normal text-transparent">{value}&nbsp;</span>
           {!isEditing && isReady && (
-            <Edit2 className=" text-subtle group-hover:text-subtle -mt-px ml-1 inline  h-3 w-3" />
+            <Icon
+              name="pencil"
+              className=" text-subtle group-hover:text-subtle -mt-px ml-1 inline  h-3 w-3"
+            />
           )}
           <input
             {...passThroughProps}

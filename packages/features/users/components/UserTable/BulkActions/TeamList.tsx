@@ -1,18 +1,18 @@
 import type { Table } from "@tanstack/react-table";
-import { Users, Check } from "lucide-react";
 import { useState } from "react";
 
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import {
+  Button,
   Command,
-  CommandInput,
-  CommandList,
-  CommandItem,
   CommandEmpty,
   CommandGroup,
-  Button,
+  CommandInput,
+  CommandItem,
+  CommandList,
+  Icon,
   Popover,
   PopoverContent,
   PopoverTrigger,
@@ -68,7 +68,7 @@ export function TeamListBulkAction({ table }: Props) {
     <>
       <Popover>
         <PopoverTrigger asChild>
-          <Button StartIcon={Users}>{t("add_to_team")}</Button>
+          <Button StartIcon="users">{t("add_to_team")}</Button>
         </PopoverTrigger>
         {/* We dont really use shadows much - but its needed here  */}
         <PopoverContent className="w-[200px] p-0 shadow-md" align="start" sideOffset={12}>
@@ -96,7 +96,7 @@ export function TeamListBulkAction({ table }: Props) {
                             "border-subtle ml-auto flex h-4 w-4 items-center justify-center rounded-sm border",
                             isSelected ? "text-emphasis" : "opacity-50 [&_svg]:invisible"
                           )}>
-                          <Check className={classNames("h-4 w-4")} />
+                          <Icon name="check" className={classNames("h-4 w-4")} />
                         </div>
                       </CommandItem>
                     );

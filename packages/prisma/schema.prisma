@@ -392,9 +392,13 @@ model OrganizationSettings {
   organization                  Team       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   organizationId                Int        @unique
   isOrganizationConfigured      Boolean    @default(false)
+  // It decides if new organization members can be auto-accepted or not
   isOrganizationVerified        Boolean    @default(false)
   orgAutoAcceptEmail            String
   lockEventTypeCreationForUsers Boolean    @default(false)
+  // It decides if instance ADMIN has reviewed the organization or not. 
+  // It is used to allow super sensitive operations like 'impersonation of Org members by Org admin'
+  isAdminReviewed               Boolean    @default(false)
   dSyncData                     DSyncData?
 }
 

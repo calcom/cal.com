@@ -2097,6 +2097,9 @@
   "extensive_whitelabeling": "전담 온보딩 및 엔지니어링 지원",
   "need_help": "도움이 필요하세요?",
   "show_more": "더 보기",
+  "email_team_invite|subject|invited_to_regular_team": "{{user}} 님께서 {{appName}}의 {{team}} 으로 초대하셨습니다.",
+  "email_team_invite|heading|invited_to_regular_team": "{{appName}} 팀에 참여 초대를 받으셨습니다",
+  "email_team_invite|content|invited_to_regular_team": "{{invitedBy}}님이 {{appName}}에서 자신의 `{{teamName}}` 팀에 가입하도록 당신을 초대했습니다. {{appName}}은 유저와 팀이 이메일을 주고 받지 않고도 회의 일정을 잡을 수 있게 하는 이벤트 조율 스케줄러입니다.",
   "privacy": "개인정보보호",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 여기에 새 문자열을 추가하세요 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

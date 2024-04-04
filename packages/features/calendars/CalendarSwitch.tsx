@@ -4,8 +4,7 @@ import { useState } from "react";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { showToast, Switch } from "@calcom/ui";
-import { ArrowLeft, RotateCw } from "@calcom/ui/components/icon";
+import { Icon, showToast, Switch } from "@calcom/ui";
 
 interface ICalendarSwitchProps {
   title: string;
@@ -81,11 +80,13 @@ const CalendarSwitch = (props: ICalendarSwitchProps) => {
       </label>
       {!!props.destination && (
         <span className="bg-subtle text-default ml-8 inline-flex items-center gap-1 rounded-md px-2 py-1 text-sm font-normal sm:ml-4">
-          <ArrowLeft className="h-4 w-4" />
+          <Icon name="arrow-left" className="h-4 w-4" />
           {t("adding_events_to")}
         </span>
       )}
-      {mutation.isPending && <RotateCw className="text-muted h-4 w-4 animate-spin ltr:ml-1 rtl:mr-1" />}
+      {mutation.isPending && (
+        <Icon name="rotate-cw" className="text-muted h-4 w-4 animate-spin ltr:ml-1 rtl:mr-1" />
+      )}
     </div>
   );
 };
