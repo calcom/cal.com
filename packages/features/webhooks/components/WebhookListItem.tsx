@@ -9,13 +9,12 @@ import {
   DropdownItem,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger,
   DropdownMenuSeparator,
+  DropdownMenuTrigger,
   showToast,
   Switch,
   Tooltip,
 } from "@calcom/ui";
-import { Edit, MoreHorizontal, Trash, Zap } from "@calcom/ui/components/icon";
 
 type WebhookProps = {
   id: string;
@@ -93,7 +92,7 @@ export default function WebhookListItem(props: {
                 key={trigger}
                 className="mt-2.5 basis-1/5 ltr:mr-2 rtl:ml-2"
                 variant="gray"
-                startIcon={Zap}>
+                startIcon="zap">
                 {t(`${trigger.toLowerCase()}`)}
               </Badge>
             ))}
@@ -122,25 +121,25 @@ export default function WebhookListItem(props: {
           <Button
             className="hidden lg:flex"
             color="destructive"
-            StartIcon={Trash}
+            StartIcon="trash"
             variant="icon"
             onClick={onDeleteWebhook}
           />
 
           <Dropdown>
             <DropdownMenuTrigger asChild>
-              <Button className="lg:hidden" StartIcon={MoreHorizontal} variant="icon" color="secondary" />
+              <Button className="lg:hidden" StartIcon="ellipsis" variant="icon" color="secondary" />
             </DropdownMenuTrigger>
             <DropdownMenuContent>
               <DropdownMenuItem>
-                <DropdownItem StartIcon={Edit} color="secondary" onClick={props.onEditWebhook}>
+                <DropdownItem StartIcon="pencil" color="secondary" onClick={props.onEditWebhook}>
                   {t("edit")}
                 </DropdownItem>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
 
               <DropdownMenuItem>
-                <DropdownItem StartIcon={Trash} color="destructive" onClick={onDeleteWebhook}>
+                <DropdownItem StartIcon="trash" color="destructive" onClick={onDeleteWebhook}>
                   {t("delete")}
                 </DropdownItem>
               </DropdownMenuItem>

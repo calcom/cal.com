@@ -1,5 +1,4 @@
 import type { Webhook } from "@prisma/client";
-import { Webhook as TbWebhook } from "lucide-react";
 import { Trans } from "next-i18next";
 import Link from "next/link";
 import type { EventTypeSetupProps } from "pages/event-types/[type]";
@@ -16,7 +15,6 @@ import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Alert, Button, Dialog, DialogContent, EmptyScreen, showToast } from "@calcom/ui";
-import { Plus, Lock } from "@calcom/ui/components/icon";
 
 export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "eventType">) => {
   const { t } = useLocale();
@@ -92,7 +90,7 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
       <Button
         color="secondary"
         data-testid="new_webhook"
-        StartIcon={Plus}
+        StartIcon="plus"
         onClick={() => setCreateModalOpen(true)}>
         {t("new_webhook")}
       </Button>
@@ -160,12 +158,12 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
                   </>
                 ) : (
                   <EmptyScreen
-                    Icon={TbWebhook}
+                    Icon="webhook"
                     headline={t("create_your_first_webhook")}
                     description={t("first_event_type_webhook_description")}
                     buttonRaw={
                       isChildrenManagedEventType && !isManagedEventType ? (
-                        <Button StartIcon={Lock} color="secondary" disabled>
+                        <Button StartIcon="lock" color="secondary" disabled>
                           {t("locked_by_team_admin")}
                         </Button>
                       ) : (
