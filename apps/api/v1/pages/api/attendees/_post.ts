@@ -61,7 +61,9 @@ async function postHandler(req: NextApiRequest) {
       select: { id: true },
     });
     // Here we make sure to only return attendee's of the user's own bookings.
-    if (!userBooking) throw new HttpError({ statusCode: 403, message: "Forbidden" });
+    if (!userBooking) {
+      throw new HttpError({ statusCode: 403, message: "Forbidden" });
+    }
   }
 
   const data = await prisma.attendee.create({
