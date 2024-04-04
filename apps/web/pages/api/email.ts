@@ -12,14 +12,6 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
   res.setHeader("Content-Type", "text/html");
   res.setHeader("Cache-Control", "no-cache, no-store, private, must-revalidate");
-  // res.write(
-  //   await renderEmail("DailyVideoDownloadTranscriptEmail", {
-  //     language: t,
-  //     title: "30min Event",
-  //     date: "29-03-2024",
-  //     name: "Udit Takkar",
-  //   })
-  // );
 
   res.write(
     await renderEmail("MonthlyDigestEmail", {

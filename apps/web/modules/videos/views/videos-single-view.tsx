@@ -48,8 +48,8 @@ export default function JoinCall(props: PageProps) {
       url: meetingUrl,
       ...(typeof meetingPassword === "string" && { token: meetingPassword }),
       customTrayButtons: {
-        "cal-ai": {
-          label: "Cal AI Assistant",
+        transcription: {
+          label: "Enable Transcription",
           tooltip: "Toggle Transcription",
           iconPath: `${WEBAPP_URL}/sparkles.svg`,
           iconPathDarkMode: `${WEBAPP_URL}/sparkles.svg`,

@@ -6,7 +6,7 @@ import { V2BaseEmailHtml, CallToAction } from "../components";
 
 interface DailyVideoDownloadTranscriptEmailProps {
   language: TFunction;
-  transcriptDownloadLinkArray: Array<string>;
+  transcriptDownloadLinks: Array<string>;
   title: string;
   date: string;
   name: string;
@@ -58,7 +58,7 @@ export const DailyVideoDownloadTranscriptEmail = (
         <>{props.language("transcript_from_previous_call", { appName: APP_NAME })}</>
       </p>
 
-      {transcriptDownloadLinkArray.map((downloadLink) => {
+      {props.transcriptDownloadLinks.map((downloadLink, index) => {
         return (
           <div
             key={downloadLink}
@@ -85,9 +85,9 @@ export const DailyVideoDownloadTranscriptEmail = (
                 marginTop: "0px",
                 color: "black",
               }}>
-              {props.date}
+              {props.date} Transcript {index + 1}
             </p>
-            <CallToAction label={props.language("download_recording")} href={downloadLink} />
+            <CallToAction label={props.language("download_transcript")} href={downloadLink} />
           </div>
         );
       })}

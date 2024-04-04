@@ -4,19 +4,19 @@ import { APP_NAME } from "@calcom/lib/constants";
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
-import { renderEmail } from "../";
+import { renderEmail } from "..";
 import BaseEmail from "./_base-email";
 
-export default class OrganizerDailyVideoTranscriptEmail extends BaseEmail {
+export default class OrganizerDailyVideoDownloadTranscriptEmail extends BaseEmail {
   calEvent: CalendarEvent;
-  downloadLink: string;
+  transcriptDownloadLinks: Array<string>;
   t: TFunction;
 
-  constructor(calEvent: CalendarEvent, downloadLink: string) {
+  constructor(calEvent: CalendarEvent, transcriptDownloadLinks: string[]) {
     super();
     this.name = "SEND_TRANSCRIPT_DOWNLOAD_LINK";
     this.calEvent = calEvent;
-    this.downloadLink = downloadLink;
+    this.transcriptDownloadLinks = transcriptDownloadLinks;
     this.t = this.calEvent.organizer.language.translate;
   }
   protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
@@ -28,10 +28,10 @@ export default class OrganizerDailyVideoTranscriptEmail extends BaseEmail {
         title: this.calEvent.title,
         date: this.getFormattedDate(),
       })}`,
-      html: await renderEmail("DailyVideoDownloadRecordingEmail", {
+      html: await renderEmail("DailyVideoDownloadTranscriptEmail", {
         title: this.calEvent.title,
         date: this.getFormattedDate(),
-        downloadLink: this.downloadLink,
+        transcriptDownloadLinks: this.transcriptDownloadLinks,
         language: this.t,
         name: this.calEvent.organizer.name,
       }),

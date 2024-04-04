@@ -2,9 +2,11 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 
 import { getAllTranscriptsAccessLinkFromRoomName } from "@calcom/core/videoClient";
+import { sendDailyVideoTranscriptEmails } from "@calcom/emails";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { defaultHandler } from "@calcom/lib/server";
+import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
@@ -19,12 +21,14 @@ const schema = z
     version: z.string(),
     type: z.string(),
     id: z.string(),
-    payload: z.object({
-      meeting_id: z.string(),
-      end_ts: z.number().optional(),
-      room: z.string(),
-      start_ts: z.number().optional(),
-    }),
+    payload: z
+      .object({
+        meeting_id: z.string(),
+        end_ts: z.number().optional(),
+        room: z.string(),
+        start_ts: z.number().optional(),
+      })
+      .passthrough(),
     event_ts: z.number().optional(),
   })
   .passthrough();
@@ -77,9 +81,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
     if (!bookingReference || !bookingReference.bookingId) {
       log.error(
-        "bookingReference:",
+        "bookingReference Not found:",
         safeStringify({
           bookingReference,
+          requestBody: req.body,
         })
       );
       return res.status(404).send({ message: "Booking reference not found" });
@@ -116,9 +121,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
     if (!booking) {
       log.error(
-        "Booking:",
+        "Booking Not Found:",
         safeStringify({
           booking,
+          requestBody: req.body,
         })
       );
 
@@ -127,7 +133,26 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       });
     }
 
-    const response = await getAllTranscriptsAccessLinkFromRoomName(room);
+    const transcripts = await getAllTranscriptsAccessLinkFromRoomName(room);
+
+    if (!transcripts || !transcripts.length)
+      return res.status(200).json({ message: `No Transcripts found for room name ${room}` });
+
+    const t = await getTranslation(booking?.user?.locale ?? "en", "common");
+    const attendeesListPromises = booking.attendees.map(async (attendee) => {
+      return {
+        id: attendee.id,
+        name: attendee.name,
+        email: attendee.email,
+        timeZone: attendee.timeZone,
+        language: {
+          translate: await getTranslation(attendee.locale ?? "en", "common"),
+          locale: attendee.locale ?? "en",
+        },
+      };
+    });
+
+    const attendeesList = await Promise.all(attendeesListPromises);
 
     // Send emails
     const evt: CalendarEvent = {
@@ -146,9 +171,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       uid: booking.uid,
     };
 
-    return res.status(200).json({ message: "Success" });
+    await sendDailyVideoTranscriptEmails(evt, transcripts);
 
-    console.log("e");
+    return res.status(200).json({ message: "Success" });
   } catch (err) {
     console.error("Error in /send-daily-video-transcript", err);
     return res.status(500).json({ message: "something went wrong" });
