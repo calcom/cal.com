@@ -50,7 +50,9 @@ export async function getHandler(req: NextApiRequest) {
   } = req;
   const where: Prisma.UserWhereInput = {};
   // If user is not ADMIN, return only his data.
-  if (!isAdmin) where.id = userId;
+  if (!isAdmin) {
+    where.id = userId;
+  }
 
   if (req.query.email) {
     const validationResult = schemaQuerySingleOrMultipleUserEmails.parse(req.query);
