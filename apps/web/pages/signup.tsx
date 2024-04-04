@@ -3,6 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signIn } from "next-auth/react";
 import { Trans } from "next-i18next";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Script from "next/script";
@@ -16,9 +17,15 @@ import getStripe from "@calcom/app-store/stripepayment/lib/client";
 import { getPremiumPlanPriceValue } from "@calcom/app-store/stripepayment/lib/utils";
 import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getOrgUsernameFromEmail";
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
-import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { classNames } from "@calcom/lib";
-import { APP_NAME, URL_PROTOCOL_REGEX, IS_CALCOM, WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
+import {
+  APP_NAME,
+  URL_PROTOCOL_REGEX,
+  IS_CALCOM,
+  WEBAPP_URL,
+  WEBSITE_URL,
+  CLOUDFLARE_SITE_ID,
+} from "@calcom/lib/constants";
 import { fetchUsername } from "@calcom/lib/fetchUsername";
 import { pushGTMEvent } from "@calcom/lib/gtm";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
@@ -45,7 +52,10 @@ import PageWrapper from "@components/PageWrapper";
 
 const signupSchema = apiSignupSchema.extend({
   apiError: z.string().optional(), // Needed to display API errors doesnt get passed to the API
+  cfToken: z.string().optional(),
 });
+
+const TurnstileCaptcha = dynamic(() => import("@components/auth/Turnstile"), { ssr: false });
 
 type FormValues = z.infer<typeof signupSchema>;
 
@@ -171,6 +181,7 @@ export default function Signup({
   isSAMLLoginEnabled,
   orgAutoAcceptEmail,
   redirectUrl,
+  emailVerificationEnabled,
 }: SignupProps) {
   const [premiumUsername, setPremiumUsername] = useState(false);
   const [usernameTaken, setUsernameTaken] = useState(false);
@@ -179,7 +190,6 @@ export default function Signup({
   const telemetry = useTelemetry();
   const { t, i18n } = useLocale();
   const router = useRouter();
-  const flags = useFlagMap();
   const formMethods = useForm<FormValues>({
     resolver: zodResolver(signupSchema),
     defaultValues: prepopulateFormValues satisfies FormValues,
@@ -225,7 +235,8 @@ export default function Signup({
 
   const isOrgInviteByLink = orgSlug && !prepopulateFormValues?.username;
 
-  const signUp: SubmitHandler<FormValues> = async (data) => {
+  const signUp: SubmitHandler<FormValues> = async (_data) => {
+    const { cfToken, ...data } = _data;
     await fetch("/api/auth/signup", {
       body: JSON.stringify({
         ...data,
@@ -234,6 +245,7 @@ export default function Signup({
       }),
       headers: {
         "Content-Type": "application/json",
+        "cf-access-token": cfToken ?? "invalid-token",
       },
       method: "POST",
     })
@@ -243,7 +255,7 @@ export default function Signup({
           pushGTMEvent("create_account", { email: data.email, user: data.username, lang: data.language });
 
         telemetry.event(telemetryEventTypes.signup, collectPageParameters());
-        const verifyOrGettingStarted = flags["email-verification"] ? "auth/verify-email" : "getting-started";
+        const verifyOrGettingStarted = emailVerificationEnabled ? "auth/verify-email" : "getting-started";
         const callBackUrl = `${
           searchParams?.get("callbackUrl")
             ? isOrgInviteByLink
@@ -362,6 +374,16 @@ export default function Signup({
                   {...register("password")}
                   hintErrors={["caplow", "min", "num"]}
                 />
+                {/* Cloudflare Turnstile Captcha */}
+                {CLOUDFLARE_SITE_ID ? (
+                  <TurnstileCaptcha
+                    appearance="interaction-only"
+                    onVerify={(token) => {
+                      formMethods.setValue("cfToken", token);
+                    }}
+                  />
+                ) : null}
+
                 <CheckboxField
                   onChange={() => handleConsentChange(COOKIE_CONSENT)}
                   description={t("cookie_consent_checkbox")}
@@ -375,6 +397,9 @@ export default function Signup({
                     !!formMethods.formState.errors.email ||
                     !formMethods.getValues("email") ||
                     !formMethods.getValues("password") ||
+                    (CLOUDFLARE_SITE_ID &&
+                      !process.env.NEXT_PUBLIC_IS_E2E &&
+                      !formMethods.getValues("cfToken")) ||
                     isSubmitting ||
                     usernameTaken
                   }>
@@ -497,14 +522,14 @@ export default function Signup({
                       className="text-emphasis hover:underline"
                       href={`${WEBSITE_URL}/terms`}
                       target="_blank">
-                      <a>Terms</a>
+                      Terms
                     </Link>{" "}
                     and{" "}
                     <Link
                       className="text-emphasis hover:underline"
                       href={`${WEBSITE_URL}/privacy`}
                       target="_blank">
-                      <a>Privacy Policy</a>
+                      Privacy Policy
                     </Link>
                     .
                   </Trans>
