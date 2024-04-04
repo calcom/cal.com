@@ -1,5 +1,6 @@
 import { GCalService } from "@/modules/apps/services/gcal.service";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
+import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
 import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
@@ -24,7 +25,12 @@ import { Request } from "express";
 import { google } from "googleapis";
 import { z } from "zod";
 
-import { GOOGLE_CALENDAR_ID, GOOGLE_CALENDAR_TYPE, SUCCESS_STATUS } from "@calcom/platform-constants";
+import {
+  APPS_READ,
+  GOOGLE_CALENDAR_ID,
+  GOOGLE_CALENDAR_TYPE,
+  SUCCESS_STATUS,
+} from "@calcom/platform-constants";
 import { ApiRedirectResponseType, ApiResponse } from "@calcom/platform-types";
 
 const CALENDAR_SCOPES = [
@@ -126,6 +132,7 @@ export class GcalController {
   @Get("/check")
   @HttpCode(HttpStatus.OK)
   @UseGuards(AccessTokenGuard, PermissionsGuard)
+  @Permissions([APPS_READ])
   async check(@GetUser("id") userId: number): Promise<ApiResponse> {
     const gcalCredentials = await this.credentialRepository.getByTypeAndUserId("google_calendar", userId);
 
