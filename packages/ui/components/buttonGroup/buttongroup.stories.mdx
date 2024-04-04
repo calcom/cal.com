@@ -10,8 +10,8 @@ import {
   VariantRow,
 } from "@calcom/storybook/components";
 
+import { Icon } from "../..";
 import { Button } from "../button/Button";
-import { Trash, Navigation, Clipboard } from "../icon";
 import { ButtonGroup } from "./ButtonGroup";
 
 <Meta title="UI/Button Group" component={ButtonGroup} />
@@ -39,16 +39,16 @@ Button group enables multiple buttons to be combined into a single unit. It offe
   }>
   <Example title="Default">
     <ButtonGroup>
-      <Button StartIcon={Trash} variant="icon" color="secondary" />
-      <Button StartIcon={Navigation} variant="icon" color="secondary" />
-      <Button StartIcon={Clipboard} variant="icon" color="secondary" />
+      <Button StartIcon="trash" variant="icon" color="secondary" />
+      <Button StartIcon="navigation" variant="icon" color="secondary" />
+      <Button StartIcon="clipboard" variant="icon" color="secondary" />
     </ButtonGroup>
   </Example>
   <Example title="Combined">
     <ButtonGroup combined>
-      <Button StartIcon={Trash} variant="icon" color="secondary" />
-      <Button StartIcon={Navigation} variant="icon" color="secondary" />
-      <Button StartIcon={Clipboard} variant="icon" color="secondary" />
+      <Button StartIcon="trash" variant="icon" color="secondary" />
+      <Button StartIcon="navigation" variant="icon" color="secondary" />
+      <Button StartIcon="clipboard" variant="icon" color="secondary" />
     </ButtonGroup>
   </Example>
 </Examples>
@@ -58,31 +58,31 @@ Button group enables multiple buttons to be combined into a single unit. It offe
     <VariantsTable titles={["Default", "Secondary", "Minimal"]} columnMinWidth={150}>
       <VariantRow variant="Default">
         <ButtonGroup>
-          <Button StartIcon={Trash} variant="icon" />
-          <Button StartIcon={Navigation} variant="icon" />
-          <Button StartIcon={Clipboard} variant="icon" />
+          <Button StartIcon="trash" variant="icon" />
+          <Button StartIcon="navigation" variant="icon" />
+          <Button StartIcon="clipboard" variant="icon" />
         </ButtonGroup>
         <ButtonGroup>
-          <Button StartIcon={Trash} variant="icon" color="secondary" />
-          <Button StartIcon={Navigation} variant="icon" color="secondary" />
-          <Button StartIcon={Clipboard} variant="icon" color="secondary" />
+          <Button StartIcon="trash" variant="icon" color="secondary" />
+          <Button StartIcon="navigation" variant="icon" color="secondary" />
+          <Button StartIcon="clipboard" variant="icon" color="secondary" />
         </ButtonGroup>
         <ButtonGroup>
-          <Button StartIcon={Trash} variant="icon" color="minimal" />
-          <Button StartIcon={Navigation} variant="icon" color="minimal" />
-          <Button StartIcon={Clipboard} variant="icon" color="minimal" />
+          <Button StartIcon="trash" variant="icon" color="minimal" />
+          <Button StartIcon="navigation" variant="icon" color="minimal" />
+          <Button StartIcon="clipboard" variant="icon" color="minimal" />
         </ButtonGroup>
       </VariantRow>
       <VariantRow variant="Combined">
         <ButtonGroup combined>
-          <Button StartIcon={Trash} variant="icon" />
-          <Button StartIcon={Navigation} variant="icon" />
-          <Button StartIcon={Clipboard} variant="icon" />
+          <Button StartIcon="trash" variant="icon" />
+          <Button StartIcon="navigation" variant="icon" />
+          <Button StartIcon="clipboard" variant="icon" />
         </ButtonGroup>
         <ButtonGroup combined>
-          <Button StartIcon={Trash} variant="icon" color="secondary" />
-          <Button StartIcon={Navigation} variant="icon" color="secondary" />
-          <Button StartIcon={Clipboard} variant="icon" color="secondary" />
+          <Button StartIcon="trash" variant="icon" color="secondary" />
+          <Button StartIcon="navigation" variant="icon" color="secondary" />
+          <Button StartIcon="clipboard" variant="icon" color="secondary" />
         </ButtonGroup>
       </VariantRow>
     </VariantsTable>
@@ -113,9 +113,9 @@ Button group enables multiple buttons to be combined into a single unit. It offe
       <VariantsTable titles={[`${color}`]} columnMinWidth={150}>
         <VariantRow variant="">
           <ButtonGroup combined={combined}>
-            <Button StartIcon={Trash} variant="icon" color={color} />
-            <Button StartIcon={Navigation} variant="icon" color={color} />
-            <Button StartIcon={Clipboard} variant="icon" color={color} />
+            <Button StartIcon="trash" variant="icon" color={color} />
+            <Button StartIcon="navigation" variant="icon" color={color} />
+            <Button StartIcon="clipboard" variant="icon" color={color} />
           </ButtonGroup>
         </VariantRow>
       </VariantsTable>

@@ -392,9 +392,13 @@ model OrganizationSettings {
   organization                  Team       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   organizationId                Int        @unique
   isOrganizationConfigured      Boolean    @default(false)
+  // It decides if new organization members can be auto-accepted or not
   isOrganizationVerified        Boolean    @default(false)
   orgAutoAcceptEmail            String
   lockEventTypeCreationForUsers Boolean    @default(false)
+  // It decides if instance ADMIN has reviewed the organization or not.
+  // It is used to allow super sensitive operations like 'impersonation of Org members by Org admin'
+  isAdminReviewed               Boolean    @default(false)
   dSyncData                     DSyncData?
 }
 
@@ -543,6 +547,9 @@ model Booking {
   iCalUID               String?              @default("")
   iCalSequence          Int                  @default(0)
   instantMeetingToken   InstantMeetingToken?
+  rating                Int?
+  ratingFeedback        String?
+  noShowHost            Boolean?
 
   @@index([eventTypeId])
   @@index([userId])
@@ -915,6 +922,8 @@ model AIPhoneCallConfiguration {
   yourPhoneNumber String
   numberToCall    String
   guestName       String
+  guestEmail      String
+  guestCompany    String
   enabled         Boolean   @default(false)
   beginMessage    String?
   llmId           String?
@@ -988,6 +997,7 @@ enum WorkflowTemplates {
   CANCELLED
   RESCHEDULED
   COMPLETED
+  RATING
 }
 
 enum WorkflowMethods {
@@ -1186,21 +1196,19 @@ model OutOfOfficeEntry {
 model PlatformOAuthClient {
   id             String   @id @default(cuid())
   name           String
-  secret         String // auth secret?
+  secret         String
   permissions    Int
   users          User[]
   logo           String?
-  redirectUris   String[] @map("redirect_uris")
-  organizationId Int      @map("organization_id")
+  redirectUris   String[]
+  organizationId Int
   organization   Team     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   accessTokens        AccessToken[]
   refreshToken        RefreshToken[]
   authorizationTokens PlatformAuthorizationToken[]
 
-  createdAt DateTime @default(now()) @map("created_at")
-
-  @@map(name: "platform_oauth_clients")
+  createdAt DateTime @default(now())
 }
 
 model PlatformAuthorizationToken {
@@ -1209,45 +1217,40 @@ model PlatformAuthorizationToken {
   owner  User                @relation(fields: [userId], references: [id], onDelete: Cascade)
   client PlatformOAuthClient @relation(fields: [platformOAuthClientId], references: [id], onDelete: Cascade)
 
-  platformOAuthClientId String @map("platform_oauth_client_id")
-  userId                Int    @map("user_id")
+  platformOAuthClientId String
+  userId                Int
 
-  createdAt DateTime @default(now()) @map("created_at")
+  createdAt DateTime @default(now())
 
   @@unique([userId, platformOAuthClientId])
-  @@map("platform_authorization_token")
 }
 
 model AccessToken {
   id Int @id @default(autoincrement())
 
   secret    String   @unique
-  createdAt DateTime @default(now()) @map("created_at")
-  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now())
+  expiresAt DateTime
 
   owner  User                @relation(fields: [userId], references: [id], onDelete: Cascade)
   client PlatformOAuthClient @relation(fields: [platformOAuthClientId], references: [id], onDelete: Cascade)
 
-  platformOAuthClientId String @map("platform_oauth_client_id")
-  userId                Int    @map("user_id")
-
-  @@map("platform_access_tokens")
+  platformOAuthClientId String
+  userId                Int
 }
 
 model RefreshToken {
   id Int @id @default(autoincrement())
 
   secret    String   @unique
-  createdAt DateTime @default(now()) @map("created_at")
-  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now())
+  expiresAt DateTime
 
   owner  User                @relation(fields: [userId], references: [id], onDelete: Cascade)
   client PlatformOAuthClient @relation(fields: [platformOAuthClientId], references: [id], onDelete: Cascade)
 
-  platformOAuthClientId String @map("platform_oauth_client_id")
-  userId                Int    @map("user_id")
-
-  @@map("platform_refresh_token")
+  platformOAuthClientId String
+  userId                Int
 }
 
 model DSyncData {

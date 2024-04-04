@@ -44,9 +44,9 @@ export const bootstrap = (app: NestExpressApplication): NestExpressApplication =
     })
   );
 
-  if (process.env.SENTRY_DNS) {
+  if (process.env.SENTRY_DSN) {
     Sentry.init({
-      dsn: getEnv("SENTRY_DNS"),
+      dsn: getEnv("SENTRY_DSN"),
     });
   }
 

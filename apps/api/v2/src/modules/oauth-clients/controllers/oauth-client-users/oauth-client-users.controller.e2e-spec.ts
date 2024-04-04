@@ -179,6 +179,21 @@ describe("OAuth Client Users Endpoints", () => {
       ).toBeTruthy();
     }
 
+    it(`/GET: return list of managed users`, async () => {
+      const response = await request(app.getHttpServer())
+        .get(`/api/v2/oauth-clients/${oAuthClient.id}/users?limit=10&offset=0`)
+        .set("x-cal-secret-key", oAuthClient.secret)
+        .set("Origin", `${CLIENT_REDIRECT_URI}`)
+        .expect(200);
+
+      const responseBody: ApiSuccessResponse<UserReturned[]> = response.body;
+
+      expect(responseBody.status).toEqual(SUCCESS_STATUS);
+      expect(responseBody.data).toBeDefined();
+      expect(responseBody.data?.length).toBeGreaterThan(0);
+      expect(responseBody.data[0].email).toEqual(postResponseData.user.email);
+    });
+
     it(`/GET/:id`, async () => {
       const response = await request(app.getHttpServer())
         .get(`/api/v2/oauth-clients/${oAuthClient.id}/users/${postResponseData.user.id}`)
