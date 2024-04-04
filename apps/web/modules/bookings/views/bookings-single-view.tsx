@@ -3,6 +3,7 @@
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import classNames from "classnames";
 import { createEvent } from "ics";
+import { UserX } from "lucide-react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -47,7 +48,17 @@ import { localStorage } from "@calcom/lib/webstorage";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
-import { Alert, Badge, Button, EmailInput, HeadSeo, useCalcomTheme, TextArea, showToast } from "@calcom/ui";
+import {
+  Alert,
+  Badge,
+  Button,
+  EmailInput,
+  HeadSeo,
+  useCalcomTheme,
+  TextArea,
+  showToast,
+  EmptyScreen,
+} from "@calcom/ui";
 import { AlertCircle, Calendar, Check, ChevronLeft, ExternalLink, X } from "@calcom/ui/components/icon";
 
 import { timeZone } from "@lib/clock";
@@ -180,10 +191,6 @@ export default function Success(props: PageProps) {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  // const markNoShow = async () => {
-  //   noShowMutation.mutate({ bookingUid: bookingInfo.uid });
-  // };
 
   const sendFeedback = async (rating: string, comment: string) => {
     mutation.mutate({ bookingUid: bookingInfo.uid, rating: rateValue, comment: comment });
@@ -838,23 +845,20 @@ export default function Success(props: PageProps) {
                 {isFeedbackMode &&
                   (noShow ? (
                     <>
-                      <div className="">
-                        Apologies your host wasn&apos;t there. We have informed them. Would you like to
-                        reschedule?
-                      </div>
-                      <div className="my-4 flex justify-start">
-                        {!props.recurringBookings && (
-                          <span className="text-default inline">
-                            <span className="underline" data-testid="reschedule-link-noshow">
-                              <Link
-                                href={`/reschedule/${seatReferenceUid || bookingInfo?.uid}`}
-                                legacyBehavior>
-                                {t("reschedule")}
-                              </Link>
-                            </span>
-                          </span>
-                        )}
-                      </div>
+                      <EmptyScreen
+                        Icon={UserX}
+                        iconClassName="text-error"
+                        iconWrapperClassName="bg-error"
+                        headline={t("host_no_show")}
+                        description={t("no_show_description")}
+                        buttonRaw={
+                          !props.recurringBookings ? (
+                            <Button href={`/reschedule/${seatReferenceUid || bookingInfo?.uid}`}>
+                              {t("reschedule")}
+                            </Button>
+                          ) : undefined
+                        }
+                      />
                     </>
                   ) : (
                     <>
@@ -862,7 +866,9 @@ export default function Success(props: PageProps) {
                         <button
                           className={classNames(
                             "m-1 items-center justify-center rounded-full border p-1 text-2xl hover:opacity-100",
-                            rateValue === 1 ? "border-subtle" : "border-muted opacity-50"
+                            rateValue === 1
+                              ? "border-focus bg-emphasis"
+                              : "border-muted bg-default opacity-50"
                           )}
                           disabled={isFeedbackSubmitted}
                           onClick={() => setRateValue(1)}>
@@ -871,7 +877,9 @@ export default function Success(props: PageProps) {
                         <button
                           className={classNames(
                             "m-1 items-center justify-center rounded-full border p-1 text-2xl hover:opacity-100",
-                            rateValue === 2 ? "border-subtle" : "border-muted opacity-50"
+                            rateValue === 2
+                              ? "border-focus bg-emphasis"
+                              : "border-muted bg-default opacity-50"
                           )}
                           disabled={isFeedbackSubmitted}
                           onClick={() => setRateValue(2)}>
@@ -880,7 +888,9 @@ export default function Success(props: PageProps) {
                         <button
                           className={classNames(
                             "m-1 items-center justify-center rounded-full border p-1 text-2xl hover:opacity-100",
-                            rateValue === 3 ? "border-subtle" : " border-muted opacity-50"
+                            rateValue === 3
+                              ? "border-focus bg-emphasis"
+                              : " border-muted bg-default opacity-50"
                           )}
                           disabled={isFeedbackSubmitted}
                           onClick={() => setRateValue(3)}>
@@ -889,7 +899,9 @@ export default function Success(props: PageProps) {
                         <button
                           className={classNames(
                             "m-1 items-center justify-center rounded-full border p-1 text-2xl hover:opacity-100",
-                            rateValue === 4 ? "border-subtle" : "border-muted opacity-50"
+                            rateValue === 4
+                              ? "border-focus bg-emphasis"
+                              : "border-muted bg-default opacity-50"
                           )}
                           disabled={isFeedbackSubmitted}
                           onClick={() => setRateValue(4)}>
@@ -898,7 +910,9 @@ export default function Success(props: PageProps) {
                         <button
                           className={classNames(
                             "m-1 items-center justify-center rounded-full border p-1 text-2xl hover:opacity-100",
-                            rateValue === 5 ? "border-subtle" : "border-muted opacity-50"
+                            rateValue === 5
+                              ? "border-focus bg-emphasis"
+                              : "border-muted bg-default opacity-50"
                           )}
                           disabled={isFeedbackSubmitted}
                           onClick={() => setRateValue(5)}>
@@ -906,8 +920,8 @@ export default function Success(props: PageProps) {
                         </button>
                       </div>
                       <div className="my-4 space-y-1 text-center">
-                        <h2 className="text-lg font-medium">Thank you for your feedback</h2>
-                        <p className="text-sm">How can we improve our service?</p>
+                        <h2 className="text-lg font-medium">{t("submitted_feedback")}</h2>
+                        <p className="text-sm">{rateValue < 4 ? t("how_can_we_improve") : t("most_liked")}</p>
                       </div>
                       <TextArea
                         id="comment"
