@@ -87,14 +87,18 @@ async function checkPermissions<T extends BaseEventTypeCheckPermissions>(
   req: NextApiRequest,
   eventType: (T & Partial<Omit<T, keyof BaseEventTypeCheckPermissions>>) | null
 ) {
-  if (req.isAdmin) return true;
+  if (req.isAdmin) {
+    return true;
+  }
   if (eventType?.teamId) {
     req.query.teamId = String(eventType.teamId);
     await canAccessTeamEventOrThrow(req, {
       in: [MembershipRole.OWNER, MembershipRole.ADMIN, MembershipRole.MEMBER],
     });
   }
-  if (eventType?.userId === req.userId) return true; // is owner.
+  if (eventType?.userId === req.userId) {
+    return true;
+  } // is owner.
   throw new HttpError({ statusCode: 403, message: "Forbidden" });
 }
 
