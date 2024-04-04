@@ -79,7 +79,7 @@ export const EventMeta = ({
     : "text-bookinghighlight";
 
   return (
-    <div className="relative z-10 p-6" data-testid="event-meta">
+    <div className="relative z-10 p-6 text-white" data-testid="event-meta">
       {isPending && (
         <m.div {...fadeInUp} initial="visible" layout>
           <EventMetaSkeleton />
@@ -117,6 +117,7 @@ export const EventMeta = ({
             )}
             {selectedTimeslot && (
               <EventMetaBlock icon={Calendar}>
+                hiii
                 <FromToTime
                   date={selectedTimeslot}
                   duration={selectedDuration || event.length}
@@ -126,8 +127,9 @@ export const EventMeta = ({
                 />
               </EventMetaBlock>
             )}
+            this is the event details
             <EventDetails event={event} />
-
+            End of event details
             <EventMetaBlock
               className="cursor-pointer [&_.current-timezone:before]:focus-within:opacity-100 [&_.current-timezone:before]:hover:opacity-100"
               contentClassName="relative max-w-[90%]"

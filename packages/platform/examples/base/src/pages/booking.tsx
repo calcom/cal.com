@@ -16,7 +16,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
   const eventTypeSlugQueryParam = (router.query.eventTypeSlug as string) ?? "";
   return (
     <main
-      className={`flex min-h-screen flex-col ${inter.className} main text-default flex min-h-full w-full flex-col items-center overflow-visible`}>
+      className={`flex min-h-screen flex-col bg-white ${inter.className} main text-default flex min-h-full w-full flex-col items-center overflow-visible`}>
       <Navbar username={props.calUsername} />
       <div>
         <h1 className="mx-10 my-4 text-2xl font-semibold">{props.calUsername} Public Booking Page</h1>

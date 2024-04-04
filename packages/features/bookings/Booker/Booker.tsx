@@ -27,7 +27,7 @@ import { BookerSection } from "./components/Section";
 import { Away, NotFound } from "./components/Unavailable";
 import { fadeInLeft, getBookerSizeClassNames, useBookerResizeAnimation } from "./config";
 import { useBookerStore } from "./store";
-import type { BookerProps, WrappedBookerProps } from "./types";
+import type { BookerProps, WrappedBookerProps, CustomClassNames } from "./types";
 
 const loadFramerFeatures = () => import("./framer-features").then((res) => res.default);
 const PoweredBy = dynamic(() => import("@calcom/ee/components/PoweredBy"));
@@ -66,7 +66,8 @@ const BookerComponent = ({
   verifyCode,
   isPlatform,
   orgBannerUrl,
-}: BookerProps & WrappedBookerProps) => {
+  customClassNames,
+}: BookerProps & WrappedBookerProps & { customClassNames?: CustomClassNames }) => {
   const { t } = useLocale();
   const [bookerState, setBookerState] = useBookerStore((state) => [state.state, state.setState], shallow);
   const selectedDate = useBookerStore((state) => state.selectedDate);
@@ -284,13 +285,19 @@ const BookerComponent = ({
           ref={animationScope}
           className={classNames(
             // Sets booker size css variables for the size of all the columns.
+            // somewhere below is where the outside border color is being set
             ...getBookerSizeClassNames(layout, bookerState, hideEventTypeDetails),
-            "bg-default dark:bg-muted grid max-w-full items-start border-[2px] border-yellow-500 bg-red-500 text-white dark:[color-scheme:dark] sm:transition-[width] sm:duration-300 sm:motion-reduce:transition-none md:flex-row",
+            "bg-default dark:bg-muted grid max-w-full items-start border border-yellow-500 bg-red-500 text-white dark:[color-scheme:dark] sm:transition-[width] sm:duration-300 sm:motion-reduce:transition-none md:flex-row",
             // We remove border only when the content covers entire viewport. Because in embed, it can almost never be the case that it covers entire viewport, we show the border there
-            (layout === BookerLayouts.MONTH_VIEW || isEmbed) && "border-subtle rounded-md border",
+            (layout === BookerLayouts.MONTH_VIEW || isEmbed) &&
+              "border-subtle rounded-md border border-blue-500",
             !isEmbed && "sm:transition-[width] sm:duration-300",
-            isEmbed && layout === BookerLayouts.MONTH_VIEW && "border-booker sm:border-booker-width",
-            !isEmbed && layout === BookerLayouts.MONTH_VIEW && "border-subtle"
+            isEmbed &&
+              layout === BookerLayouts.MONTH_VIEW &&
+              "border-booker sm:border-booker-width border border-green-500",
+            // border subtle below preceds the incoming style thats why border should be conditional
+            // border subtle should only be shown if there are no other incoming classnames
+            !isEmbed && layout === BookerLayouts.MONTH_VIEW && "border border-blue-500"
           )}>
           <AnimatePresence>
             {!isInstantMeeting && (
@@ -371,7 +378,7 @@ const BookerComponent = ({
             <BookerSection
               key="book-event-form"
               area="main"
-              className="border-subtle sticky top-0 ml-[-1px] h-full p-6 md:w-[var(--booker-main-width)] md:border-l"
+              className="sticky top-0 ml-[-1px] h-full border border-yellow-500 p-6 md:w-[var(--booker-main-width)] md:border-l"
               {...fadeInLeft}
               visible={bookerState === "booking" && !shouldShowFormInDialog}>
               This is the event booker
@@ -384,7 +391,8 @@ const BookerComponent = ({
               visible={bookerState !== "booking" && layout === BookerLayouts.MONTH_VIEW}
               {...fadeInLeft}
               initial="visible"
-              className="md:border-subtle ml-[-1px] h-full flex-shrink px-5 py-3 md:border-l lg:w-[var(--booker-main-width)]">
+              // this is the component that controls the middle inside borders
+              className="ml-[-1px] h-full flex-shrink border border-blue-500 px-5 py-3 md:border-l lg:w-[var(--booker-main-width)]">
               <DatePicker event={event} schedule={schedule} />
               This is the date picker
             </BookerSection>
@@ -452,22 +460,13 @@ const BookerComponent = ({
           </m.span>
         )}
       </div>
+
       <BookFormAsModal
         onCancel={() => setSelectedTimeslot(null)}
         visible={bookerState === "booking" && shouldShowFormInDialog}>
         This is the event booker inside of the book form modal
         {EventBooker}
       </BookFormAsModal>
-      {/* {!isPlatform ? (
-        <BookFormAsModal
-          onCancel={() => setSelectedTimeslot(null)}
-          visible={bookerState === "booking" && shouldShowFormInDialog}>
-          This is the event booker inside of the book form modal
-          {EventBooker}
-        </BookFormAsModal>
-      ) : (
-        <>This is the event booker inside of the book form modal</>
-      )} */}
     </>
   );
 };

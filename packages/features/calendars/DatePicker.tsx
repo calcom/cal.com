@@ -62,8 +62,8 @@ export const Day = ({
         active
           ? "bg-brand-default text-brand"
           : !disabled
-          ? " hover:border-brand-default text-emphasis bg-emphasis"
-          : "text-muted"
+          ? " hover:border-brand-default bg-red-500 text-white"
+          : "bg-red-500 text-white"
       )}
       data-testid="day"
       data-disabled={disabled}
@@ -258,11 +258,11 @@ const DatePicker = ({
   return (
     <div className={className}>
       <div className="mb-1 flex items-center justify-between text-xl">
-        <span className="text-default w-1/2 text-base">
+        <span className="text-default w-1/2 text-base text-white">
           {browsingDate ? (
             <>
-              <strong className="text-emphasis font-semibold">{month}</strong>{" "}
-              <span className="text-subtle font-medium">{browsingDate.format("YYYY")}</span>
+              <strong className="font-semibold text-white">{month}</strong>{" "}
+              <span className="font-medium text-white">{browsingDate.format("YYYY")}</span>
             </>
           ) : (
             <SkeletonText className="h-8 w-24" />
@@ -296,12 +296,12 @@ const DatePicker = ({
       </div>
       <div className="border-subtle mb-2 grid grid-cols-7 gap-4 border-b border-t text-center md:mb-0 md:border-0">
         {weekdayNames(locale, weekStart, "short").map((weekDay) => (
-          <div key={weekDay} className="text-emphasis my-4 text-xs font-medium uppercase tracking-widest">
+          <div key={weekDay} className="my-4 text-xs font-medium uppercase tracking-widest text-white">
             {weekDay}
           </div>
         ))}
       </div>
-      <div className="relative grid grid-cols-7 grid-rows-6 gap-1 text-center">
+      <div className="relative grid grid-cols-7 grid-rows-6 gap-1 text-center text-white">
         <Days
           weekStart={weekStart}
           selected={selected}

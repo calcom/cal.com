@@ -124,3 +124,16 @@ export type WrappedBookerProps = WrappedBookerPropsForPlatform | WrappedBookerPr
 export type BookerState = "loading" | "selecting_date" | "selecting_time" | "booking";
 export type BookerLayout = BookerLayouts | "mobile";
 export type BookerAreas = "calendar" | "timeslots" | "main" | "meta" | "header";
+
+type ContainerClassnames = {
+  backgroundColor?: string;
+  textColor?: string;
+  borderColor?: string;
+};
+
+export type CustomClassNames = {
+  bookerContainer?: ContainerClassnames;
+  eventMetaContainer?: ContainerClassnames;
+  datePickerContainer?: ContainerClassnames;
+  availableTimeSlotsContainer?: ContainerClassnames;
+};
