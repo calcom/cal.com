@@ -347,9 +347,6 @@ export default function Success(props: PageProps) {
 
   return (
     <div className={isEmbed ? "" : "h-screen"} data-testid="success-page">
-      {/* {isFeedbackMode && (
-       
-      )} */}
       {!isEmbed && !isFeedbackMode && (
         <EventReservationSchema
           reservationId={bookingInfo.uid}
