@@ -38,16 +38,21 @@ async function postHandler(req: NextApiRequest) {
 
 async function checkPermissions(req: NextApiRequest) {
   const { userId, isAdmin } = req;
-  if (isAdmin) return;
+  if (isAdmin) {
+    return;
+  }
   const body = membershipCreateBodySchema.parse(req.body);
   // To prevent auto-accepted invites, limit it to ADMIN users
-  if (!isAdmin && "accepted" in body)
+  if (!isAdmin && "accepted" in body) {
     throw new HttpError({ statusCode: 403, message: "ADMIN needed for `accepted`" });
+  }
   // Only team OWNERS and ADMINS can add other members
   const membership = await prisma.membership.findFirst({
     where: { userId, teamId: body.teamId, role: { in: ["ADMIN", "OWNER"] } },
   });
-  if (!membership) throw new HttpError({ statusCode: 403, message: "You can't add members to this team" });
+  if (!membership) {
+    throw new HttpError({ statusCode: 403, message: "You can't add members to this team" });
+  }
 }
 
 export default defaultResponder(postHandler);
