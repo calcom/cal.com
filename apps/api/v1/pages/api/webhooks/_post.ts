@@ -76,16 +76,22 @@ async function postHandler(req: NextApiRequest) {
   const args: Prisma.WebhookCreateArgs = { data: { id: uuidv4(), ...body } };
 
   // If no event type, we assume is for the current user. If admin we run more checks below...
-  if (!eventTypeId) args.data.userId = userId;
+  if (!eventTypeId) {
+    args.data.userId = userId;
+  }
 
   if (eventTypeId) {
     const where: Prisma.EventTypeWhereInput = { id: eventTypeId };
-    if (!isAdmin) where.userId = userId;
+    if (!isAdmin) {
+      where.userId = userId;
+    }
     await prisma.eventType.findFirstOrThrow({ where });
     args.data.eventTypeId = eventTypeId;
   }
 
-  if (!isAdmin && bodyUserId) throw new HttpError({ statusCode: 403, message: `ADMIN required for userId` });
+  if (!isAdmin && bodyUserId) {
+    throw new HttpError({ statusCode: 403, message: `ADMIN required for userId` });
+  }
 
   if (isAdmin && bodyUserId) {
     const where: Prisma.UserWhereInput = { id: bodyUserId };
