@@ -152,7 +152,7 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
   });
   const {
     mutate: createBooking,
-    isLoading: creatingBooking,
+    isPending: creatingBooking,
     error: createBookingError,
     isError: isCreateBookingError,
   } = useCreateBooking({
@@ -164,7 +164,7 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
   });
   const {
     mutate: createRecBooking,
-    isLoading: creatingRecBooking,
+    isPending: creatingRecBooking,
 
     error: createRecBookingError,
     isError: isCreateRecBookingError,
@@ -177,7 +177,7 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
   });
   const {
     mutate: createInstantBooking,
-    isLoading: creatingInstantBooking,
+    isPending: creatingInstantBooking,
     error: createInstantBookingError,
     isError: isCreateInstantBookingError,
   } = useCreateInstantBooking({
@@ -193,7 +193,7 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
     (state) => [state.calendarSettingsOverlayModal, state.setCalendarSettingsOverlayModal],
     shallow
   );
-  const { data: connectedCalendars, isLoading: fetchingConnectedCalendars } = useConnectedCalendars({
+  const { data: connectedCalendars, isPending: fetchingConnectedCalendars } = useConnectedCalendars({
     enabled: !!calendarSettingsOverlay,
   });
   const calendars = connectedCalendars as ConnectedDestinationCalendars;

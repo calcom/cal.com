@@ -33,7 +33,7 @@ export const useEvent = () => {
     data: event?.data,
     isSuccess: event?.isSuccess,
     isError: event?.isError,
-    isLoading: event?.isPending,
+    isPending: event?.isPending,
   };
 };
 
@@ -104,6 +104,7 @@ export const useScheduleForEvent = ({
 
   return {
     data: schedule?.data,
+    isPending: schedule?.isPending,
     isError: schedule?.isError,
     isSuccess: schedule?.isSuccess,
     isLoading: schedule?.isLoading,

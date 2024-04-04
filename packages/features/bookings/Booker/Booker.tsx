@@ -134,7 +134,7 @@ const BookerComponent = ({
   } = calendars;
 
   useEffect(() => {
-    if (event.isLoading) return setBookerState("loading");
+    if (event.isPending) return setBookerState("loading");
     if (!selectedDate) return setBookerState("selecting_date");
     if (!selectedTimeslot) return setBookerState("selecting_time");
     return setBookerState("booking");
@@ -354,7 +354,7 @@ const BookerComponent = ({
                   />
                 )}
 
-                <EventMeta event={event.data} isPending={event.isLoading} isPlatform={isPlatform} />
+                <EventMeta event={event.data} isPending={event.isPending} isPlatform={isPlatform} />
                 {layout !== BookerLayouts.MONTH_VIEW &&
                   !(layout === "mobile" && bookerState === "booking") && (
                     <div className="mt-auto px-5 py-3 ">
@@ -392,7 +392,7 @@ const BookerComponent = ({
               <LargeCalendar
                 extraDays={extraDays}
                 schedule={schedule.data}
-                isLoading={schedule.isLoading}
+                isLoading={schedule.isPending}
                 event={event}
               />
             </BookerSection>
@@ -416,7 +416,7 @@ const BookerComponent = ({
                 extraDays={extraDays}
                 limitHeight={layout === BookerLayouts.MONTH_VIEW}
                 schedule={schedule?.data}
-                isLoading={schedule.isLoading}
+                isLoading={schedule.isPending}
                 seatsPerTimeSlot={event.data?.seatsPerTimeSlot}
                 showAvailableSeatsCount={event.data?.seatsShowAvailabilityCount}
                 event={event}
