@@ -8,7 +8,9 @@ import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransform
 async function authMiddleware(req: NextApiRequest) {
   const { userId, isAdmin } = req;
   const { id } = schemaQueryIdParseInt.parse(req.query);
-  if (isAdmin) return;
+  if (isAdmin) {
+    return;
+  }
   const userEventTypes = await prisma.eventType.findMany({
     where: { userId },
     select: { id: true },
@@ -26,8 +28,9 @@ async function authMiddleware(req: NextApiRequest) {
       ],
     },
   });
-  if (!destinationCalendar)
+  if (!destinationCalendar) {
     throw new HttpError({ statusCode: 404, message: "Destination calendar not found" });
+  }
 }
 
 export default authMiddleware;
