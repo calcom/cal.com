@@ -3,7 +3,6 @@
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import classNames from "classnames";
 import { createEvent } from "ics";
-import { UserX } from "lucide-react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -412,12 +411,12 @@ export default function Success(props: PageProps) {
                         <img src={giphyImage} alt="Gif from Giphy" />
                       )}
                       {!giphyImage && !needsConfirmation && !isCancelled && (
-                        <Icon name="Check" className="h-5 w-5 text-green-600 dark:text-green-400" />
+                        <Icon name="check" className="h-5 w-5 text-green-600 dark:text-green-400" />
                       )}
                       {needsConfirmation && !isCancelled && (
-                        <Icon name="Calendar" className="text-emphasis h-5 w-5" />
+                        <Icon name="calendar" className="text-emphasis h-5 w-5" />
                       )}
-                      {isCancelled && <Icon name="X" className="h-5 w-5 text-red-600 dark:text-red-200" />}
+                      {isCancelled && <Icon name="x" className="h-5 w-5 text-red-600 dark:text-red-200" />}
                     </div>
                     <div className="mb-8 mt-6 text-center last:mb-0">
                       <h3
@@ -845,7 +844,7 @@ export default function Success(props: PageProps) {
                   (noShow ? (
                     <>
                       <EmptyScreen
-                        Icon={UserX}
+                        Icon="user-x"
                         iconClassName="text-error"
                         iconWrapperClassName="bg-error"
                         headline={t("host_no_show")}

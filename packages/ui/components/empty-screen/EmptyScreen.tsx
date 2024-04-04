@@ -47,16 +47,16 @@ export function EmptyScreen({
           <div className="flex h-[72px] w-[72px] items-center justify-center rounded-full">{avatar}</div>
         )}
 
-        {!Icon ? null : (
+        {!icon ? null : (
           <div
             className={classNames(
               "bg-emphasis flex h-[72px] w-[72px] items-center justify-center rounded-full ",
               iconWrapperClassName
             )}>
             <Icon
+              name={icon}
               className={classNames("text-default inline-block h-10 w-10 stroke-[1.3px]", iconClassName)}
             />
-
           </div>
         )}
         <div className="flex max-w-[420px] flex-col items-center">
