@@ -191,7 +191,7 @@ const availabilitySchema = z
 async function handler(req: NextApiRequest) {
   const { isAdmin, userId: reqUserId } = req;
   const { username, userId, eventTypeId, dateTo, dateFrom, teamId } = availabilitySchema.parse(req.query);
-  if (!teamId)
+  if (!teamId) {
     return getUserAvailability({
       username,
       dateFrom,
@@ -200,12 +200,17 @@ async function handler(req: NextApiRequest) {
       userId,
       returnDateOverrides: true,
     });
+  }
   const team = await prisma.team.findUnique({
     where: { id: teamId },
     select: { members: true },
   });
-  if (!team) throw new HttpError({ statusCode: 404, message: "teamId not found" });
-  if (!team.members) throw new HttpError({ statusCode: 404, message: "team has no members" });
+  if (!team) {
+    throw new HttpError({ statusCode: 404, message: "teamId not found" });
+  }
+  if (!team.members) {
+    throw new HttpError({ statusCode: 404, message: "team has no members" });
+  }
   const allMemberIds = team.members.reduce((allMemberIds: number[], member) => {
     if (member.accepted) {
       allMemberIds.push(member.userId);
@@ -225,7 +230,9 @@ async function handler(req: NextApiRequest) {
     memberRoles[reqUserId] == MembershipRole.ADMIN ||
     memberRoles[reqUserId] == MembershipRole.OWNER ||
     isAdmin;
-  if (!isUserAdminOrOwner) throw new HttpError({ statusCode: 403, message: "Forbidden" });
+  if (!isUserAdminOrOwner) {
+    throw new HttpError({ statusCode: 403, message: "Forbidden" });
+  }
   const availabilities = members.map(async (user) => {
     return {
       userId: user.id,
@@ -239,11 +246,12 @@ async function handler(req: NextApiRequest) {
     };
   });
   const settled = await Promise.all(availabilities);
-  if (!settled)
+  if (!settled) {
     throw new HttpError({
       statusCode: 401,
       message: "We had an issue retrieving all your members availabilities",
     });
+  }
   return settled;
 }
 
