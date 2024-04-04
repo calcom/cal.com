@@ -41,7 +41,9 @@ export async function getHandler(req: NextApiRequest) {
   const { teamId } = schemaQueryTeamId.parse(req.query);
   const where: Prisma.TeamWhereInput = { id: teamId };
   // Non-admins can only query the teams they're part of
-  if (!isAdmin) where.members = { some: { userId } };
+  if (!isAdmin) {
+    where.members = { some: { userId } };
+  }
   const data = await prisma.team.findFirstOrThrow({ where });
   return { team: schemaTeamReadPublic.parse(data) };
 }
