@@ -66,6 +66,7 @@ module.exports = {
         muted: "var(--cal-border-muted, #F3F4F6)",
         booker: `var(--cal-border-booker, ${subtleColor})`,
         error: "var(--cal-border-error, #AA2E26)",
+        focus: "var(--cal-border-focus, #1A1A1A)",
       },
       textColor: {
         emphasis: "var(--cal-text-emphasis, #111827)",
