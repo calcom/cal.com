@@ -63,7 +63,9 @@ async function getHandler(req: NextApiRequest) {
     },
   });
   // this really should return [], but backwards compatibility..
-  if (data.length === 0) new HttpError({ statusCode: 404, message: "No event types were found" });
+  if (data.length === 0) {
+    new HttpError({ statusCode: 404, message: "No event types were found" });
+  }
   return {
     event_types: (await defaultScheduleId<(typeof data)[number]>({ eventTypes: data, prisma, userIds })).map(
       (eventType) => {
@@ -99,7 +101,9 @@ async function defaultScheduleId<T extends DefaultScheduleIdEventTypeBase>({
   userIds: number[];
 }) {
   // there is no event types without a scheduleId, skip the user query
-  if (eventTypes.every((eventType) => eventType.scheduleId)) return eventTypes;
+  if (eventTypes.every((eventType) => eventType.scheduleId)) {
+    return eventTypes;
+  }
 
   const users = await prisma.user.findMany({
     where: {
@@ -124,7 +128,9 @@ async function defaultScheduleId<T extends DefaultScheduleIdEventTypeBase>({
 
   return eventTypes.map((eventType) => {
     // realistically never happens, userId should't be null on personal event types.
-    if (!eventType.userId) return eventType;
+    if (!eventType.userId) {
+      return eventType;
+    }
     return {
       ...eventType,
       scheduleId: eventType.scheduleId || defaultScheduleIds[eventType.userId],
