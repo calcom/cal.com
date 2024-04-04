@@ -40,12 +40,16 @@ async function getHandler(req: NextApiRequest) {
     : { where: { OR: [{ eventType: { userId } }, { userId }] } };
 
   /** Only admins can query other users */
-  if (!isAdmin && req.query.userId) throw new HttpError({ statusCode: 403, message: "ADMIN required" });
+  if (!isAdmin && req.query.userId) {
+    throw new HttpError({ statusCode: 403, message: "ADMIN required" });
+  }
   if (isAdmin && req.query.userId) {
     const query = schemaQuerySingleOrMultipleUserIds.parse(req.query);
     const userIds = Array.isArray(query.userId) ? query.userId : [query.userId || userId];
     args.where = { OR: [{ eventType: { userId: { in: userIds } } }, { userId: { in: userIds } }] };
-    if (Array.isArray(query.userId)) args.orderBy = { userId: "asc", eventType: { userId: "asc" } };
+    if (Array.isArray(query.userId)) {
+      args.orderBy = { userId: "asc", eventType: { userId: "asc" } };
+    }
   }
 
   const data = await prisma.webhook.findMany(args);
