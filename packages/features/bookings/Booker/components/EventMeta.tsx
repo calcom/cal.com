@@ -29,7 +29,7 @@ export const EventMeta = ({
   isPlatform = true,
 }: {
   event: useEventReturnType["data"];
-  isPending: useEventReturnType["isLoading"];
+  isPending: useEventReturnType["isPending"];
   isPlatform?: boolean;
 }) => {
   const { setTimezone, timeFormat, timezone } = useTimePreferences();
