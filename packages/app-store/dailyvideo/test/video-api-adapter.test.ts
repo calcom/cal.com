@@ -252,7 +252,14 @@ describe("Daily Video API Adapter", () => {
       fetchMocker.mockClear();
       commonSetup({ mainFetchEndpoint: "/rooms" });
       const result = await DailyVideoApiAdapter()?.createInstantCalVideoRoom?.(new Date().toISOString());
-      await assertRequests(true);
+      const requests = fetchMocker.requests();
+      const mainRequest = await requests[0].json();
+      const tokenRequest = await requests[1].json();
+      expect(mainRequest).toEqual({
+        ...expectedBodyMainFetchWithPlan,
+        properties: { ...expectedBodyMainFetchWithPlan.properties, start_video_off: true },
+      });
+      expect(tokenRequest).toEqual(expectedBodyTokenFetch);
       expect(result).toStrictEqual(createAndUpdateResult);
     });
   });
