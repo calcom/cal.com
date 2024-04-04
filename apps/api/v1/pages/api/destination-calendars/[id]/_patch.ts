@@ -103,7 +103,9 @@ export async function patchHandler(req: NextApiRequest) {
     currentCredentialId: destinationCalendarObject.credentialId,
   });
   // If the user has passed eventTypeId, we need to remove userId from the update data to make sure we don't link it to user as well
-  if (parsedBody.eventTypeId) parsedBody.userId = undefined;
+  if (parsedBody.eventTypeId) {
+    parsedBody.userId = undefined;
+  }
   const destinationCalendar = await prisma.destinationCalendar.update({
     where: { id },
     data: { ...parsedBody, credentialId },
@@ -197,11 +199,12 @@ async function verifyCredentialsAndGetId({
       (c) => c.externalId === parsedBody.externalId && c.integration === parsedBody.integration
     );
 
-    if (!calendar?.credentialId)
+    if (!calendar?.credentialId) {
       throw new HttpError({
         statusCode: 400,
         message: "Bad request, credential id invalid",
       });
+    }
     return calendar?.credentialId;
   }
   return currentCredentialId;
