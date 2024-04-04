@@ -577,7 +577,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/GetEventTypesOutput"
                 }
               }
             }
@@ -607,7 +607,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/GetEventTypeOutput"
                 }
               }
             }
@@ -645,7 +645,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/UpdateEventTypeOutput"
                 }
               }
             }
@@ -673,7 +673,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/DeleteEventTypeOutput"
                 }
               }
             }
@@ -703,7 +703,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/GetEventTypesPublicOutput"
                 }
               }
             }
@@ -1745,6 +1745,139 @@
           "data"
         ]
       },
+      "Data": {
+        "type": "object",
+        "properties": {
+          "eventType": {
+            "$ref": "#/components/schemas/EventTypeOutput"
+          }
+        },
+        "required": [
+          "eventType"
+        ]
+      },
+      "GetEventTypeOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/Data"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "EventTypeGroup": {
+        "type": "object",
+        "properties": {
+          "eventTypes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EventTypeOutput"
+            }
+          }
+        },
+        "required": [
+          "eventTypes"
+        ]
+      },
+      "GetEventTypesData": {
+        "type": "object",
+        "properties": {
+          "eventTypeGroups": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EventTypeGroup"
+            }
+          }
+        },
+        "required": [
+          "eventTypeGroups"
+        ]
+      },
+      "GetEventTypesOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/GetEventTypesData"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "PublicEventType": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1
+          },
+          "length": {
+            "type": "number",
+            "example": 60
+          },
+          "slug": {
+            "type": "string",
+            "example": "cooking-class"
+          },
+          "title": {
+            "type": "string",
+            "example": "Learn the secrets of masterchief!"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "length",
+          "slug",
+          "title"
+        ]
+      },
+      "GetEventTypesPublicOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PublicEventType"
+            }
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
       "UpdateEventTypeInput": {
         "type": "object",
         "properties": {
@@ -1771,6 +1904,73 @@
             }
           }
         }
+      },
+      "UpdateEventTypeOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/EventTypeOutput"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "DeleteData": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1
+          },
+          "length": {
+            "type": "number",
+            "example": 60
+          },
+          "slug": {
+            "type": "string",
+            "example": "cooking-class"
+          },
+          "title": {
+            "type": "string",
+            "example": "Learn the secrets of masterchief!"
+          }
+        },
+        "required": [
+          "id",
+          "length",
+          "slug",
+          "title"
+        ]
+      },
+      "DeleteEventTypeOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/DeleteData"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
       },
       "CreateAvailabilityInput": {
         "type": "object",
