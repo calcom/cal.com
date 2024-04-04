@@ -76,11 +76,12 @@ async function postHandler(req: NextApiRequest) {
     select: credentialForCalendarServiceSelect,
   });
 
-  if (userCredentials.length === 0)
+  if (userCredentials.length === 0) {
     throw new HttpError({
       statusCode: 400,
       message: "Bad request, credential id invalid",
     });
+  }
 
   const calendarCredentials = getCalendarCredentials(userCredentials);
 
@@ -90,22 +91,24 @@ async function postHandler(req: NextApiRequest) {
   const calendar = eligibleCalendars?.find(
     (c) => c.externalId === parsedBody.externalId && c.integration === parsedBody.integration
   );
-  if (!calendar?.credentialId)
+  if (!calendar?.credentialId) {
     throw new HttpError({
       statusCode: 400,
       message: "Bad request, credential id invalid",
     });
-  const credentialId = calendar.credentialId;
+  }
+  const { credentialId } = calendar;
 
   if (parsedBody.eventTypeId) {
     const eventType = await prisma.eventType.findFirst({
       where: { id: parsedBody.eventTypeId, userId: parsedBody.userId },
     });
-    if (!eventType)
+    if (!eventType) {
       throw new HttpError({
         statusCode: 400,
         message: "Bad request, eventTypeId invalid",
       });
+    }
     parsedBody.userId = undefined;
   }
 
@@ -124,17 +127,22 @@ async function checkPermissions(req: NextApiRequest, userId: number) {
   const body = schemaDestinationCalendarCreateBodyParams.parse(req.body);
 
   /* Non-admin users can only create destination calendars for themselves */
-  if (!isAdmin && body.userId)
+  if (!isAdmin && body.userId) {
     throw new HttpError({
       statusCode: 401,
       message: "ADMIN required for `userId`",
     });
+  }
   /* Admin users are required to pass in a userId */
-  if (isAdmin && !body.userId) throw new HttpError({ statusCode: 400, message: "`userId` required" });
+  if (isAdmin && !body.userId) {
+    throw new HttpError({ statusCode: 400, message: "`userId` required" });
+  }
   /* User should only be able to create for their own destination calendars*/
   if (!isAdmin && body.eventTypeId) {
     const ownsEventType = await prisma.eventType.findFirst({ where: { id: body.eventTypeId, userId } });
-    if (!ownsEventType) throw new HttpError({ statusCode: 401, message: "Unauthorized" });
+    if (!ownsEventType) {
+      throw new HttpError({ statusCode: 401, message: "Unauthorized" });
+    }
   }
   // TODO:: Add support for team event types with validation
 }
