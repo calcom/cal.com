@@ -34,8 +34,8 @@ const getIPAddress = async (url: string): Promise<string> => {
 
 export const createHandler = async ({ input, ctx }: CreateOptions) => {
   const { slug, name, orgOwnerEmail, seats, pricePerSeat, isPlatform } = input;
-
-  if (!ORG_SELF_SERVE_ENABLED && ctx.user.role !== UserPermissionRole.ADMIN) {
+  const IS_USER_ADMIN = ctx.user.role === UserPermissionRole.ADMIN;
+  if (!ORG_SELF_SERVE_ENABLED && !IS_USER_ADMIN) {
     throw new TRPCError({ code: "FORBIDDEN", message: "Only admins can create organizations" });
   }
 
@@ -106,6 +106,7 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
       name,
       slug,
       isOrganizationConfigured,
+      isOrganizationAdminReviewed: IS_USER_ADMIN,
       autoAcceptEmail,
       seats: seats ?? null,
       pricePerSeat: pricePerSeat ?? null,

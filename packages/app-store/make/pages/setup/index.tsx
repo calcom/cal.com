@@ -6,8 +6,7 @@ import { Toaster } from "react-hot-toast";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Button, Tooltip, showToast } from "@calcom/ui";
-import { Clipboard } from "@calcom/ui/components/icon";
+import { Button, Icon, showToast, Tooltip } from "@calcom/ui";
 
 import type { getServerSideProps } from "./_getServerSideProps";
 
@@ -164,7 +163,7 @@ const CopyApiKey = ({ apiKey }: { apiKey: string }) => {
             }}
             type="button"
             className="mt-4 text-base sm:mt-0 sm:rounded-l-none">
-            <Clipboard className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
+            <Icon name="clipboard" className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
             {t("copy")}
           </Button>
         </Tooltip>

@@ -102,6 +102,21 @@ export class UsersRepository {
     });
   }
 
+  async findManagedUsersByOAuthClientId(oauthClientId: string, cursor: number, limit: number) {
+    return this.dbRead.prisma.user.findMany({
+      where: {
+        platformOAuthClients: {
+          some: {
+            id: oauthClientId,
+          },
+        },
+        isPlatformManaged: true,
+      },
+      take: limit,
+      skip: cursor,
+    });
+  }
+
   async update(userId: number, updateData: UpdateManagedPlatformUserInput) {
     this.formatInput(updateData);
 

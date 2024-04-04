@@ -53,6 +53,8 @@ export type Event = {
     yourPhoneNumber: string;
     numberToCall: string;
     guestName: string;
+    guestEmail: string;
+    guestCompany: string;
   };
   schedulingType: string;
   length: number;
