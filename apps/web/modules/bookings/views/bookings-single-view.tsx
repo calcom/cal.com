@@ -58,8 +58,8 @@ import {
   TextArea,
   showToast,
   EmptyScreen,
+  Icon,
 } from "@calcom/ui";
-import { AlertCircle, Calendar, Check, ChevronLeft, ExternalLink, X } from "@calcom/ui/components/icon";
 
 import { timeZone } from "@lib/clock";
 
@@ -397,7 +397,6 @@ export default function Success(props: PageProps) {
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="modal-headline">
-
                 {!isFeedbackMode && (
                   <>
                     <div
@@ -416,10 +415,12 @@ export default function Success(props: PageProps) {
                         <img src={giphyImage} alt="Gif from Giphy" />
                       )}
                       {!giphyImage && !needsConfirmation && !isCancelled && (
-                        <Check className="h-5 w-5 text-green-600 dark:text-green-400" />
+                        <Icon name="Check" className="h-5 w-5 text-green-600 dark:text-green-400" />
                       )}
-                      {needsConfirmation && !isCancelled && <Calendar className="text-emphasis h-5 w-5" />}
-                      {isCancelled && <X className="h-5 w-5 text-red-600 dark:text-red-200" />}
+                      {needsConfirmation && !isCancelled && (
+                        <Icon name="Calendar" className="text-emphasis h-5 w-5" />
+                      )}
+                      {isCancelled && <Icon name="X" className="h-5 w-5 text-red-600 dark:text-red-200" />}
                     </div>
                     <div className="mb-8 mt-6 text-center last:mb-0">
                       <h3
@@ -921,7 +922,7 @@ export default function Success(props: PageProps) {
                         </button>
                       </div>
                       <div className="my-4 space-y-1 text-center">
-                        <h2 className="text-lg font-medium">{t("submitted_feedback")}</h2>
+                        <h2 className="font-cal text-lg">{t("submitted_feedback")}</h2>
                         <p className="text-sm">{rateValue < 4 ? t("how_can_we_improve") : t("most_liked")}</p>
                       </div>
                       <TextArea
