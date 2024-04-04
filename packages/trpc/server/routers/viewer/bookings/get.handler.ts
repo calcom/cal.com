@@ -40,15 +40,12 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
   };
 };
 
-const set = new Set();
-const getUniqueBookings = <T extends { uid: string }>(arr: T[]) => {
-  const unique = arr.filter((booking) => {
-    const duplicate = set.has(booking.uid);
-    set.add(booking.uid);
-    return !duplicate;
+const getUniqueBookings = <T extends { id: number }>(arr: T[]) => {
+  const unique = new Set<number>();
+  arr.forEach((booking) => {
+    unique.add(booking.id);
   });
-  set.clear();
-  return unique;
+  return Array.from(unique.values());
 };
 
 export async function getBookings({
@@ -379,7 +376,7 @@ export async function getBookings({
         AND: [passedBookingsStatusFilter, ...filtersCombined],
       },
       orderBy,
-      select: { uid: true, id: true },
+      select: { id: true },
       take: take + 1,
       skip,
     }),
@@ -454,7 +451,7 @@ export async function getBookings({
     await prisma.booking.findMany({
       where: {
         id: {
-          in: plainBookings.map((booking) => booking.id),
+          in: plainBookings,
         },
       },
       select: bookingSelect,
