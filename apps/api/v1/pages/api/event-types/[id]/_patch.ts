@@ -239,10 +239,14 @@ export async function patchHandler(req: NextApiRequest) {
 async function checkPermissions(req: NextApiRequest, body: z.infer<typeof schemaEventTypeBaseBodyParams>) {
   const { userId, isAdmin } = req;
   const { id } = schemaQueryIdParseInt.parse(req.query);
-  if (isAdmin) return;
+  if (isAdmin) {
+    return;
+  }
   /** Only event type owners can modify it */
   const eventType = await prisma.eventType.findFirst({ where: { id, userId } });
-  if (!eventType) throw new HttpError({ statusCode: 403, message: "Forbidden" });
+  if (!eventType) {
+    throw new HttpError({ statusCode: 403, message: "Forbidden" });
+  }
   await checkTeamEventEditPermission(req, body);
 }
 
