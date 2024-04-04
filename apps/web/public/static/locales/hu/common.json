@@ -2332,6 +2332,10 @@
   "email_team_invite|content|invited_to_subteam": "{{invitedBy}} meghívott, hogy csatlakozzon a(z) {{parentTeamName}} szervezetéhez tartozó <strong>{{teamName}}</strong> csapathoz. Az {{appName}} az esemény-ütemező, amellyel Ön és csapata e-mail-tenisz nélkül is ütemezhet értekezleteket.",
   "email_team_invite|content|invited_to_regular_team": "{{invitedBy}} meghívott téged a(z) {{teamName}} csapatába a(z) {{appName}} napon. Az {{appName}} az eseményzsonglőr ütemező, amellyel Ön és csapata e-mail-tenisz nélkül is ütemezhet értekezleteket.",
   "email|existing_user_added_link_will_change": "A meghívó elfogadásakor a link a szervezet domainjére változik, de ne aggódjon, az összes korábbi link továbbra is működik, és megfelelően irányítja át.<br /><br />Kérjük, vegye figyelembe: az összes személyes eseménytípus átkerül a <strong>{teamName}</strong> szervezetbe, amely potenciális személyes kapcsolatot is tartalmazhat. <br /><br />Személyes eseményekhez javasoljuk, hogy hozzon létre egy új fiókot személyes e-mail címmel.",
+  "email|existing_user_added_link_changed": "Az Ön linkje <a href={`https://${prevLink}`}>{prevLinkWithoutProtocol}</a> helyett <a href={`https://${newLink}`}>{newLinkWithoutProtocol}</a>, de ne aggódjon, az összes korábbi link továbbra is működik, és megfelelően átirányít. <br /><br />Kérjük, vegye figyelembe: Minden személyes eseménytípusát áthelyeztük a <strong>{teamName}</strong> szervezetbe, amely potenciális személyes linket is tartalmazhat.<br /><br /> Kérjük, jelentkezzen be, és győződjön meg arról, hogy nincs privát eseménye az új szervezeti fiókjában.<br /><br />Személyes eseményekhez javasoljuk, hogy hozzon létre új fiókot személyes e-mail címmel.<br /><br />Új tiszta link: <a href={`https://${newLink}`}>{newLinkWithoutProtocol}</a>",
+  "email_organization_created|subject": "Szervezete létrejött",
+  "your_current_plan": "A jelenlegi előfizetése",
+  "organization_price_per_user_month": "37 USD felhasználónként havonta (minimum 30 hely)",
   "privacy_organization_description": "Kezelje szervezete adatvédelmi beállításait",
   "privacy": "Adatvédelem",
   "team_will_be_under_org": "Új csapatok a szervezeted alá fognak tartozni",
@@ -2355,5 +2359,8 @@
   "lock_org_users_eventtypes_description": "Megakadályozza, hogy a tagok saját eseménytípusokat hozzanak létre.",
   "cookie_consent_checkbox": "Hozzájárulok adatvédelmi szabályzathoz és cookie-használatához",
   "make_a_call": "Hívás",
+  "review": "Felülvizsgálat",
+  "reviewed": "Áttekintve",
+  "unreviewed": "Nincs felülvizsgálva",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adja hozzá az új karakterláncokat fent ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
