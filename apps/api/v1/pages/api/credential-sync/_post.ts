@@ -109,7 +109,9 @@ async function handler(req: NextApiRequest) {
 
   if (createCalendarResources) {
     const calendar = await getCalendar(credential);
-    if (!calendar) throw new HttpError({ message: "Calendar missing for credential", statusCode: 500 });
+    if (!calendar) {
+      throw new HttpError({ message: "Calendar missing for credential", statusCode: 500 });
+    }
     const calendars = await calendar.listCalendars();
     const calendarToCreate = calendars.find((calendar) => calendar.primary) || calendars[0];
 
