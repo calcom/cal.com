@@ -19,6 +19,7 @@ import { teamsAndUserProfilesQuery } from "./procedures/teamsAndUserProfilesQuer
 import { ZRoutingFormOrderInputSchema } from "./routingFormOrder.schema";
 import { ZSetDestinationCalendarInputSchema } from "./setDestinationCalendar.schema";
 import { ZSubmitFeedbackInputSchema } from "./submitFeedback.schema";
+import { ZSyncBookingLimitsInputSchema } from "./syncBookingLimits.schema";
 import { ZUpdateProfileInputSchema } from "./updateProfile.schema";
 import { ZUpdateUserDefaultConferencingAppInputSchema } from "./updateUserDefaultConferencingApp.schema";
 import { ZWorkflowOrderInputSchema } from "./workflowOrder.schema";
@@ -55,6 +56,8 @@ type AppsRouterHandlerCache = {
   outOfOfficeEntriesList?: typeof import("./outOfOffice.handler").outOfOfficeEntriesList;
   outOfOfficeEntryDelete?: typeof import("./outOfOffice.handler").outOfOfficeEntryDelete;
   addSecondaryEmail?: typeof import("./addSecondaryEmail.handler").addSecondaryEmailHandler;
+  globalSettings?: typeof import("./globalSettings.handler").globalSettingsHandler;
+  syncBookingLimits?: typeof import("./syncBookingLimits.handler").syncBookingLimitsHandler;
 };
 
 const UNSTABLE_HANDLER_CACHE: AppsRouterHandlerCache = {};
@@ -483,5 +486,33 @@ export const loggedInViewerRouter = router({
     }
 
     return UNSTABLE_HANDLER_CACHE.addSecondaryEmail({ ctx, input });
+  }),
+  globalSettings: authedProcedure.query(async ({ ctx }) => {
+    if (!UNSTABLE_HANDLER_CACHE.globalSettings) {
+      UNSTABLE_HANDLER_CACHE.globalSettings = (
+        await import("./globalSettings.handler")
+      ).globalSettingsHandler;
+    }
+
+    // Unreachable code but required for type safety
+    if (!UNSTABLE_HANDLER_CACHE.globalSettings) {
+      throw new Error("Failed to load handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.globalSettings({ ctx });
+  }),
+  syncBookingLimits: authedProcedure.input(ZSyncBookingLimitsInputSchema).mutation(async ({ ctx, input }) => {
+    if (!UNSTABLE_HANDLER_CACHE.syncBookingLimits) {
+      UNSTABLE_HANDLER_CACHE.syncBookingLimits = (
+        await import("./syncBookingLimits.handler")
+      ).syncBookingLimitsHandler;
+    }
+
+    // Unreachable code but required for type safety
+    if (!UNSTABLE_HANDLER_CACHE.syncBookingLimits) {
+      throw new Error("Failed to load handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.syncBookingLimits({ ctx, input });
   }),
 });

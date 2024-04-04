@@ -3,7 +3,6 @@ CREATE TABLE "GlobalSettings" (
     "id" SERIAL NOT NULL,
     "userId" INTEGER NOT NULL,
     "bookingLimits" JSONB,
-    "durationLimits" JSONB,
     "periodType" "PeriodType" NOT NULL DEFAULT 'unlimited',
     "periodStartDate" TIMESTAMP(3),
     "periodEndDate" TIMESTAMP(3),

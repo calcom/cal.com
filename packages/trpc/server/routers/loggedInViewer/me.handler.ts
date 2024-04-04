@@ -38,23 +38,6 @@ export const meHandler = async ({ ctx }: MeOptions) => {
     },
   });
 
-  const globalSettings = await prisma.globalSettings.findUnique({
-    where: {
-      userId: user.id,
-    },
-    select: {
-      periodType: true,
-      bookingLimits: true,
-      periodCountCalendarDays: true,
-      periodDays: true,
-      periodStartDate: true,
-      periodEndDate: true,
-      minimumBookingNotice: true,
-      beforeEventBuffer: true,
-      afterEventBuffer: true,
-    },
-  });
-
   // Destructuring here only makes it more illegible
   // pick only the part we want to expose in the API
   return {
@@ -97,6 +80,5 @@ export const meHandler = async ({ ctx }: MeOptions) => {
     profile: user.profile ?? null,
     profiles: allUserEnrichedProfiles,
     secondaryEmails,
-    globalSettings,
   };
 };

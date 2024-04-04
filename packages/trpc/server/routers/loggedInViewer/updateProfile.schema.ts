@@ -42,7 +42,7 @@ export const ZUpdateProfileInputSchema = z.object({
   bookingLimits: intervalLimitsType.optional(),
   futureBookingLimits: z
     .object({
-      periodType: z.nativeEnum(PeriodType),
+      periodType: z.nativeEnum(PeriodType).optional(),
       periodDates: z
         .object({
           startDate: coerceToDate.optional(),

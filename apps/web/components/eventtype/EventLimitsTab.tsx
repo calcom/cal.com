@@ -111,21 +111,25 @@ export const MinimumBookingNoticeInput = React.forwardRef<
 });
 
 type ShouldLockDisableProps = {
-  disabled: boolean;
-  LockedIcon: React.ReactNode;
-  isLocked: boolean;
+  disabled?: boolean;
+  LockedIcon?: React.ReactNode;
+  isLocked?: boolean;
 };
 
 type BookingLimitsProps = {
   formMethods: ReturnType<typeof useForm>;
   bookingLimitsLocked?: ShouldLockDisableProps;
+  sectionDescription?: string;
   childrenContainerClassName?: string;
+  children?: React.ReactNode;
 };
 export const BookingLimits = ({
   formMethods,
   bookingLimitsLocked = {},
+  sectionDescription = "limit_booking_frequency_description",
   childrenContainerClassName = "",
-}): BookingLimitsProps => {
+  children,
+}: BookingLimitsProps) => {
   const { t } = useLocale();
   return (
     <Controller
@@ -138,7 +142,7 @@ export const BookingLimits = ({
             labelClassName="text-sm"
             title={t("limit_booking_frequency")}
             {...bookingLimitsLocked}
-            description={t("limit_booking_frequency_description")}
+            description={t(sectionDescription)}
             checked={isChecked}
             onCheckedChange={(active) => {
               if (active) {
@@ -169,6 +173,7 @@ export const BookingLimits = ({
                 defaultLimit={1}
                 step={1}
               />
+              {children}
             </div>
           </SettingsToggle>
         );
@@ -180,15 +185,17 @@ export const BookingLimits = ({
 type FutureBookingLimitsProps = {
   formMethods: ReturnType<typeof useForm>;
   periodTypeLocked?: ShouldLockDisableProps;
+  sectionDescription?: string;
   childrenContainerClassName?: string;
   children?: React.ReactNode;
 };
 export const FutureBookingLimits = ({
   formMethods,
   periodTypeLocked = {},
+  sectionDescription = "limit_future_bookings_description",
   childrenContainerClassName = "",
   children,
-}): FutureBookingLimitsProps => {
+}: FutureBookingLimitsProps) => {
   const { t } = useLocale();
   const watchPeriodType = formMethods.watch("periodType");
 
@@ -228,7 +235,7 @@ export const FutureBookingLimits = ({
             )}
             childrenClassName="lg:ml-0"
             title={t("limit_future_bookings")}
-            description={t("limit_future_bookings_description")}
+            description={t(sectionDescription)}
             {...periodTypeLocked}
             checked={isChecked}
             onCheckedChange={(bool) => {
@@ -347,7 +354,7 @@ export const BufferBeforeAndAfter = ({
   beforeBufferTimeDisabled = false,
   afterBufferTimeLockIndicator,
   afterBufferTimeDisabled = false,
-}): BufferBeforeAndAfterProps => {
+}: BufferBeforeAndAfterProps) => {
   const { t } = useLocale();
   return (
     <div className="flex flex-col space-y-4 lg:flex-row lg:space-x-4 lg:space-y-0">
@@ -426,8 +433,6 @@ export const BufferBeforeAndAfter = ({
 export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventType">) => {
   const { t, i18n } = useLocale();
   const formMethods = useFormContext<FormValues>();
-
-  const watchPeriodType = formMethods.watch("periodType");
 
   const { shouldLockIndicator, shouldLockDisableProps } = useLockedFieldsManager({
     eventType,

@@ -1275,8 +1275,6 @@ model GlobalSettings {
   userId                  Int
   /// @zod.custom(imports.intervalLimitsType)
   bookingLimits           Json?
-  /// @zod.custom(imports.intervalLimitsType)
-  durationLimits          Json?
   periodType              PeriodType @default(UNLIMITED)
   /// @zod.custom(imports.coerceToDate)
   periodStartDate         DateTime?
