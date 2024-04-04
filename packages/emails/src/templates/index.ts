@@ -33,3 +33,4 @@ export { MonthlyDigestEmail } from "./MonthlyDigestEmail";
 export { AdminOrganizationNotificationEmail } from "./AdminOrganizationNotificationEmail";
 export { BookingRedirectEmailNotification } from "./BookingRedirectEmailNotification";
 export { VerifyEmailChangeEmail } from "./VerifyEmailChangeEmail";
+export { OrganizationCreationEmail } from "./OrganizationCreationEmail";

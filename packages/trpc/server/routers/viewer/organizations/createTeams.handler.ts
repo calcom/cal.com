@@ -1,14 +1,19 @@
+import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
+import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
-import { MembershipRole } from "@calcom/prisma/enums";
+import { MembershipRole, RedirectType } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../trpc";
+import inviteMemberHandler from "../teams/inviteMember/inviteMember.handler";
 import type { TCreateTeamsSchema } from "./createTeams.schema";
 
+const log = logger.getSubLogger({ prefix: ["viewer/organizations/createTeams.handler"] });
 type CreateTeamsOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
@@ -24,7 +29,10 @@ export const createTeamsHandler = async ({ ctx, input }: CreateTeamsOptions) => 
     throw new NoUserError();
   }
 
-  const { teamNames, orgId } = input;
+  const { orgId, moveTeams } = input;
+
+  // Remove empty team names that could be there due to the default empty team name
+  const teamNames = input.teamNames.filter((name) => name.trim().length > 0);
 
   if (orgId !== user.organizationId) {
     throw new NotAuthorizedError();
@@ -52,7 +60,7 @@ export const createTeamsHandler = async ({ ctx, input }: CreateTeamsOptions) => 
 
   const organization = await prisma.team.findFirst({
     where: { id: orgId },
-    select: { slug: true, metadata: true },
+    select: { slug: true, id: true, metadata: true },
   });
 
   if (!organization) throw new NoOrganizationError();
@@ -82,9 +90,21 @@ export const createTeamsHandler = async ({ ctx, input }: CreateTeamsOptions) => 
     teamNames.map((item) => slugify(item)).includes(slug)
   );
 
+  await Promise.all(
+    moveTeams.map(async ({ id: teamId, newSlug }) => {
+      await moveTeam({
+        teamId,
+        newSlug,
+        org: organization,
+        ctx,
+      });
+    })
+  );
+
   if (duplicatedSlugs.length === teamNames.length) {
     return { duplicatedSlugs };
   }
+
   await prisma.$transaction(
     teamNames.flatMap((name) => {
       if (!duplicatedSlugs.includes(slugify(name))) {
@@ -138,3 +158,128 @@ class NoOrganizationSlugError extends TRPCError {
 }
 
 export default createTeamsHandler;
+
+async function moveTeam({
+  teamId,
+  newSlug,
+  org,
+  ctx,
+}: {
+  teamId: number;
+  newSlug?: string | null;
+  org: {
+    id: number;
+    slug: string | null;
+  };
+  ctx: CreateTeamsOptions["ctx"];
+}) {
+  log.debug("Moving team", safeStringify({ teamId, newSlug, org }));
+  const team = await prisma.team.findUnique({
+    where: {
+      id: teamId,
+    },
+    select: {
+      slug: true,
+      members: {
+        select: {
+          role: true,
+          userId: true,
+          user: {
+            select: {
+              email: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (!team) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: `Team with id: ${teamId} not found`,
+    });
+  }
+
+  newSlug = newSlug ?? team.slug;
+  await prisma.team.update({
+    where: {
+      id: teamId,
+    },
+    data: {
+      slug: newSlug,
+      parentId: org.id,
+    },
+  });
+
+  await Promise.all(
+    // TODO: Support different role for different members in usernameOrEmail list and then remove this map
+    team.members.map(async (membership) => {
+      // Invite team members to the new org. They are already members of the team.
+      await inviteMemberHandler({
+        ctx,
+        input: {
+          teamId: org.id,
+          language: "en",
+          role: membership.role,
+          usernameOrEmail: membership.user.email,
+          isOrg: true,
+        },
+      });
+    })
+  );
+
+  await addTeamRedirect({
+    oldTeamSlug: team.slug,
+    teamSlug: newSlug,
+    orgSlug: org.slug,
+  });
+}
+
+async function addTeamRedirect({
+  oldTeamSlug,
+  teamSlug,
+  orgSlug,
+}: {
+  oldTeamSlug: string | null;
+  teamSlug: string | null;
+  orgSlug: string | null;
+}) {
+  logger.info(`Adding redirect for team: ${oldTeamSlug} -> ${teamSlug}`);
+  if (!oldTeamSlug) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "No oldSlug for team. Not adding the redirect",
+    });
+  }
+  if (!teamSlug) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "No slug for team. Not adding the redirect",
+    });
+  }
+  if (!orgSlug) {
+    logger.warn(`No slug for org. Not adding the redirect`);
+    return;
+  }
+  const orgUrlPrefix = getOrgFullOrigin(orgSlug);
+
+  await prisma.tempOrgRedirect.upsert({
+    where: {
+      from_type_fromOrgId: {
+        type: RedirectType.Team,
+        from: oldTeamSlug,
+        fromOrgId: 0,
+      },
+    },
+    create: {
+      type: RedirectType.Team,
+      from: oldTeamSlug,
+      fromOrgId: 0,
+      toUrl: `${orgUrlPrefix}/${teamSlug}`,
+    },
+    update: {
+      toUrl: `${orgUrlPrefix}/${teamSlug}`,
+    },
+  });
+}

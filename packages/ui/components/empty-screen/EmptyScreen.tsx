@@ -1,14 +1,14 @@
-import type { LucideIcon as IconType } from "lucide-react";
 import type { ReactNode } from "react";
 import React from "react";
 
 import { classNames } from "@calcom/lib";
-import type { SVGComponent } from "@calcom/types/SVGComponent";
 
+import type { IconName } from "../..";
+import { Icon } from "../..";
 import { Button } from "../../components/button";
 
 export function EmptyScreen({
-  Icon,
+  Icon: icon,
   avatar,
   headline,
   description,
@@ -19,7 +19,7 @@ export function EmptyScreen({
   dashedBorder = true,
   className,
 }: {
-  Icon?: SVGComponent | IconType;
+  Icon?: IconName;
   avatar?: React.ReactElement;
   headline: string | React.ReactElement;
   description?: string | React.ReactElement;
@@ -42,16 +42,16 @@ export function EmptyScreen({
         {!avatar ? null : (
           <div className="flex h-[72px] w-[72px] items-center justify-center rounded-full">{avatar}</div>
         )}
-        {!Icon ? null : (
+        {!icon ? null : (
           <div className="bg-emphasis flex h-[72px] w-[72px] items-center justify-center rounded-full ">
-            <Icon className="text-default inline-block h-10 w-10 stroke-[1.3px]" />
+            <Icon name={icon} className="text-default inline-block h-10 w-10 stroke-[1.3px]" />
           </div>
         )}
         <div className="flex max-w-[420px] flex-col items-center">
           <h2
             className={classNames(
               "text-semibold font-cal text-emphasis text-center text-xl",
-              Icon && "mt-6"
+              icon && "mt-6"
             )}>
             {headline}
           </h2>
