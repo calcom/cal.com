@@ -2256,6 +2256,8 @@
   "troubleshooter": "Troubleshooter",
   "number_to_call": "Number to Call",
   "guest_name": "Guest Name",
+  "guest_email": "Guest Email",
+  "guest_company": "Guest Company",
   "please_install_a_calendar": "Please install a calendar",
   "instant_tab_title": "Instant Booking",
   "instant_event_tab_description": "Let people book immediately",

@@ -60,8 +60,17 @@ const createPhoneCallHandler = async ({ input, ctx }: CreatePhoneCallProps) => {
     identifier: `createPhoneCall:${ctx.user.id}`,
   });
 
-  const { yourPhoneNumber, numberToCall, guestName, eventTypeId, beginMessage, generalPrompt, calApiKey } =
-    input;
+  const {
+    yourPhoneNumber,
+    numberToCall,
+    guestName,
+    guestEmail,
+    guestCompany,
+    eventTypeId,
+    beginMessage,
+    generalPrompt,
+    calApiKey,
+  } = input;
 
   const aiPhoneCallConfig = await ctx.prisma.aIPhoneCallConfiguration.upsert({
     where: {
@@ -72,6 +81,8 @@ const createPhoneCallHandler = async ({ input, ctx }: CreatePhoneCallProps) => {
       generalPrompt,
       enabled: true,
       guestName,
+      guestEmail,
+      guestCompany,
       numberToCall,
       yourPhoneNumber,
     },
@@ -81,6 +92,8 @@ const createPhoneCallHandler = async ({ input, ctx }: CreatePhoneCallProps) => {
       generalPrompt,
       enabled: true,
       guestName,
+      guestEmail,
+      guestCompany,
       numberToCall,
       yourPhoneNumber,
     },
@@ -169,7 +182,7 @@ const createPhoneCallHandler = async ({ input, ctx }: CreatePhoneCallProps) => {
     body: JSON.stringify({
       from_number: yourPhoneNumber,
       to_number: numberToCall,
-      retell_llm_dynamic_variables: { name: guestName },
+      retell_llm_dynamic_variables: { name: guestName, company: guestCompany, email: guestEmail },
     }),
   }).then(createPhoneSchema.parse);
 
