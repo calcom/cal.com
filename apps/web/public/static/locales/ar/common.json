@@ -2097,6 +2097,9 @@
   "extensive_whitelabeling": "عملية انضمام ودعم هندسي مخصصين",
   "need_help": "هل تحتاج إلى مساعدة؟",
   "show_more": "إظهار المزيد",
+  "email_team_invite|subject|invited_to_regular_team": "قام {{user}} بدعوتك للانضمام إلى فريق {{team}} على {{appName}}",
+  "email_team_invite|heading|invited_to_regular_team": "تمت دعوتك للانضمام إلى فريق {{appName}}",
+  "email_team_invite|content|invited_to_regular_team": "دعاك {{invitedBy}} للانضمام إلى فريقه {{teamName}} على {{appName}}. إن {{appName}} هو برنامج جدولة الأحداث الذي يمكّنك أنت وفريقك من جدولة الاجتماعات دون الحاجة إلى المراسلة عبر البريد الإلكتروني.",
   "privacy": "الخصوصية",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ أضف السلاسل الجديدة أعلاه هنا ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

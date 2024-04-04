@@ -2098,6 +2098,9 @@
   "extensive_whitelabeling": "Индивидуальная техподдержка и помощь при онбординге",
   "need_help": "Нужна помощь?",
   "show_more": "Показать больше",
+  "email_team_invite|subject|invited_to_regular_team": "{{user}} пригласил вас присоединиться к команде {{team}} в {{appName}}",
+  "email_team_invite|heading|invited_to_regular_team": "Вас пригласили в команду {{appName}}",
+  "email_team_invite|content|invited_to_regular_team": "{{invitedBy}} пригласил(а) вас в команду в `{{teamName}}` в приложении {{appName}}. {{appName}} — это гибкий планировщик событий, с помощью которого пользователи и целые команды могут планировать встречи без утомительной переписки по электронной почте.",
   "privacy": "Конфиденциальность",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Добавьте строки выше ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

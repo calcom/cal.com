@@ -1,30 +1,30 @@
 import { useEffect } from "react";
 import type { z } from "zod";
 
-import Widgets from "@calcom/app-store/routing-forms/components/react-awesome-query-builder/widgets";
 import type {
-  TextLikeComponentProps,
   SelectLikeComponentProps,
+  TextLikeComponentProps,
 } from "@calcom/app-store/routing-forms/components/react-awesome-query-builder/widgets";
+import Widgets from "@calcom/app-store/routing-forms/components/react-awesome-query-builder/widgets";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import {
-  PhoneInput,
   AddressInput,
   Button,
-  Label,
-  Group,
-  RadioField,
-  EmailField,
-  Tooltip,
-  InputField,
   CheckboxField,
+  EmailField,
+  Group,
+  Icon,
+  InfoBadge,
+  InputField,
+  Label,
+  PhoneInput,
+  RadioField,
+  Tooltip,
 } from "@calcom/ui";
-import { InfoBadge } from "@calcom/ui";
-import { UserPlus, X } from "@calcom/ui/components/icon";
 
 import { ComponentForField } from "./FormBuilderField";
 import { propsTypes } from "./propsTypes";
-import type { FieldType, variantsConfigSchema, fieldSchema } from "./schema";
+import type { fieldSchema, FieldType, variantsConfigSchema } from "./schema";
 import { preprocessNameFieldDataWithVariant } from "./utils";
 
 export const isValidValueProp: Record<Component["propsType"], (val: unknown) => boolean> = {
@@ -264,7 +264,7 @@ export const Components: Record<FieldType, Component> = {
                         !readOnly ? (
                           <Tooltip content="Remove email">
                             <button className="m-1" type="button">
-                              <X width={12} className="text-default" />
+                              <Icon name="x" width={12} className="text-default" />
                             </button>
                           </Tooltip>
                         ) : null
@@ -278,7 +278,7 @@ export const Components: Record<FieldType, Component> = {
                   data-testid="add-another-guest"
                   type="button"
                   color="minimal"
-                  StartIcon={UserPlus}
+                  StartIcon="user-plus"
                   className="my-2.5"
                   onClick={() => {
                     value.push("");
@@ -297,7 +297,7 @@ export const Components: Record<FieldType, Component> = {
               data-testid="add-guests"
               color="minimal"
               variant="button"
-              StartIcon={UserPlus}
+              StartIcon="user-plus"
               onClick={() => {
                 value.push("");
                 setValue(value);

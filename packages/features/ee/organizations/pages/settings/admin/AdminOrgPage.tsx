@@ -8,15 +8,14 @@ import LicenseRequired from "@calcom/ee/common/components/LicenseRequired";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import {
-  Meta,
-  DropdownActions,
-  showToast,
-  Table,
   Badge,
   ConfirmationDialogContent,
   Dialog,
+  DropdownActions,
+  Meta,
+  showToast,
+  Table,
 } from "@calcom/ui";
-import { Check, CheckCheck, Trash, Edit, BookOpenCheck } from "@calcom/ui/components/icon";
 
 import { getLayout } from "../../../../../settings/layouts/SettingsLayout";
 import { subdomainSuffix } from "../../../../organizations/lib/orgDomains";
@@ -45,8 +44,7 @@ function AdminOrgTable() {
       });
     },
     onError: (err) => {
-      console.error(err.message);
-      showToast(t("org_error_processing"), "error");
+      showToast(err.message, "error");
     },
   });
 
@@ -146,7 +144,7 @@ function AdminOrgTable() {
                                   orgId: org.id,
                                 });
                               },
-                              icon: Check,
+                              icon: "check" as const,
                             },
                           ]
                         : []),
@@ -163,7 +161,7 @@ function AdminOrgTable() {
                                   },
                                 });
                               },
-                              icon: CheckCheck,
+                              icon: "check-check" as const,
                             },
                           ]
                         : []),
@@ -171,7 +169,7 @@ function AdminOrgTable() {
                         id: "edit",
                         label: t("edit"),
                         href: `/settings/admin/organizations/${org.id}/edit`,
-                        icon: Edit,
+                        icon: "pencil" as const,
                       },
                       ...(!org.slug
                         ? [
@@ -181,7 +179,7 @@ function AdminOrgTable() {
                               onClick: () => {
                                 publishOrg(org);
                               },
-                              icon: BookOpenCheck,
+                              icon: "book-open-check" as const,
                             },
                           ]
                         : []),
@@ -191,7 +189,7 @@ function AdminOrgTable() {
                         onClick: () => {
                           setOrgToDelete(org);
                         },
-                        icon: Trash,
+                        icon: "trash" as const,
                       },
                     ]}
                   />

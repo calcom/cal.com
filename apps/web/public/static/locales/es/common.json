@@ -2096,6 +2096,9 @@
   "extensive_whitelabeling": "Asistencia dedicada en materia de incorporación e ingeniería",
   "need_help": "¿Necesita ayuda?",
   "show_more": "Mostrar más",
+  "email_team_invite|subject|invited_to_regular_team": "{{user}} te invitó a unirte al equipo {{team}} en {{appName}}",
+  "email_team_invite|heading|invited_to_regular_team": "Lo han invitado a unirse a un equipo en {{appName}}",
+  "email_team_invite|content|invited_to_regular_team": "{{invitedBy}} lo ha invitado a unirse a su equipo \"{{teamName}}\" en {{appName}}. {{appName}} es el planificador de eventos que le permite a usted y a su equipo programar reuniones sin correos electrónicos de ida y vuelta.",
   "privacy": "Privacidad",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Agregue sus nuevas cadenas arriba ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
