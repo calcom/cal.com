@@ -34,7 +34,7 @@ type ContactCreateResult = {
   };
 };
 
-export default class HubspotRevertCalendarService implements Calendar {
+export default class HubSpotRevertCalendarService implements Calendar {
   private log: typeof logger;
   private tenantId: string;
   private revertApiKey: string;
@@ -78,8 +78,6 @@ export default class HubspotRevertCalendarService implements Calendar {
   };
 
   private contactSearch = async (event: CalendarEvent) => {
-    const attendeeEmails = event.attendees.map((attendee) => attendee.email);
-
     const headers = new Headers();
     headers.append("x-revert-api-token", this.revertApiKey);
     headers.append("x-revert-t-id", this.tenantId);
@@ -87,17 +85,15 @@ export default class HubspotRevertCalendarService implements Calendar {
 
     const bodyRaw = JSON.stringify({
       searchCriteria: {
-        filterGroups: [
-          {
-            filters: [
-              {
-                propertyName: "email",
-                operator: "IN",
-                values: attendeeEmails,
-              },
-            ],
-          },
-        ],
+        filterGroups: event.attendees.map((attendee) => ({
+          filters: [
+            {
+              value: attendee.email,
+              propertyName: "email",
+              operator: "EQ",
+            },
+          ],
+        })),
       },
     });
 
@@ -124,7 +120,7 @@ export default class HubspotRevertCalendarService implements Calendar {
     }`;
   };
 
-  private createHubspotEvent = async (event: CalendarEvent, contacts: CalendarEvent["attendees"]) => {
+  private createHubSpotEvent = async (event: CalendarEvent, contacts: CalendarEvent["attendees"]) => {
     const eventPayload = {
       subject: event.title,
       startDateTime: event.startTime,
@@ -187,7 +183,7 @@ export default class HubspotRevertCalendarService implements Calendar {
   };
 
   async handleEventCreation(event: CalendarEvent, contacts: CalendarEvent["attendees"]) {
-    const meetingEvent = await (await this.createHubspotEvent(event, contacts)).json();
+    const meetingEvent = await (await this.createHubSpotEvent(event, contacts)).json();
     if (meetingEvent && meetingEvent.status === "ok") {
       this.log.debug("event:creation:ok", { meetingEvent });
       return Promise.resolve({
@@ -200,7 +196,7 @@ export default class HubspotRevertCalendarService implements Calendar {
       });
     }
     this.log.debug("meeting:creation:notOk", { meetingEvent, event, contacts });
-    return Promise.reject("Something went wrong when creating a meeting in PipedriveCRM");
+    return Promise.reject("Something went wrong when creating a meeting in HubSpot CRM");
   }
 
   async createEvent(event: CalendarEvent): Promise<NewCalendarEventType> {
@@ -221,7 +217,7 @@ export default class HubspotRevertCalendarService implements Calendar {
         });
         return await this.handleEventCreation(event, existingPeople);
       } else {
-        // Some attendees don't exist in PipedriveCRM
+        // Some attendees don't exist in HubSpot CRM
         // Get the existing contacts' email to filter out
         this.log.debug("contact:search:notAll", { event, contacts });
         const existingContacts = contacts.results.map((contact) => contact.email);
@@ -231,7 +227,7 @@ export default class HubspotRevertCalendarService implements Calendar {
           (attendee) => !existingContacts.includes(attendee.email)
         );
         this.log.debug("contact:filter:nonExisting", { nonExistingContacts });
-        // Only create contacts in PipedriveCRM that were not present in the previous contact search
+        // Only create contacts in HubSpot CRM that were not present in the previous contact search
         const createdContacts = await this.createContacts(nonExistingContacts);
         this.log.debug("contact:created", { createdContacts });
         // Continue with event creation and association only when all contacts are present in hubspot
@@ -265,7 +261,7 @@ export default class HubspotRevertCalendarService implements Calendar {
           return await this.handleEventCreation(event, allContacts);
         }
         return Promise.reject({
-          calError: "Something went wrong when creating non-existing attendees in PipedriveCRM",
+          calError: "Something went wrong when creating non-existing attendees in HubSpot CRM",
         });
       }
     } else {
@@ -287,7 +283,7 @@ export default class HubspotRevertCalendarService implements Calendar {
       }
     }
     return Promise.reject({
-      calError: "Something went wrong when searching/creating the attendees in PipedriveCRM",
+      calError: "Something went wrong when searching/creating the attendees in HubSpot CRM",
     });
   }
 
@@ -315,7 +311,7 @@ export default class HubspotRevertCalendarService implements Calendar {
       });
     }
     this.log.debug("meeting:updation:notOk", { meetingEvent, event });
-    return Promise.reject("Something went wrong when updating a meeting in PipedriveCRM");
+    return Promise.reject("Something went wrong when updating a meeting in HubSpot CRM");
   }
 
   async deleteEvent(uid: string): Promise<void> {

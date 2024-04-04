@@ -33,7 +33,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     teamId: Number(teamId),
   });
   const tenantId = teamId ? teamId : userId;
-  const scopes = ["crm.objects.contacts.read", "crm.objects.contacts.write"];
+  const scopes = [
+    "crm.objects.contacts.read",
+    "crm.objects.contacts.write",
+    "crm.objects.marketing_events.read",
+    "crm.objects.marketing_events.write",
+  ];
   res.status(200).json({
     url: `https://app.hubspot.com/oauth/authorize?client_id=${
       appKeys.client_id

@@ -31,7 +31,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     teamId: Number(teamId),
   });
   const tenantId = teamId ? teamId : userId;
-  //  @TODO check scopes before deployment
   const scopes = ["ZohoCRM.modules.ALL", "ZohoCRM.users.READ", "AaaServer.profile.READ"];
 
   const queryParams = {
