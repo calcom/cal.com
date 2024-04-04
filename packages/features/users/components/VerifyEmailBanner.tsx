@@ -2,7 +2,6 @@ import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import { TopBanner, showToast } from "@calcom/ui";
-import { Mail } from "@calcom/ui/components/icon";
 
 import { useFlagMap } from "../../flags/context/provider";
 
@@ -20,7 +19,7 @@ function VerifyEmailBanner({ data }: VerifyEmailBannerProps) {
   return (
     <>
       <TopBanner
-        Icon={Mail}
+        icon="mail"
         text={t("verify_email_banner_body", { appName: APP_NAME })}
         variant="warning"
         actions={

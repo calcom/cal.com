@@ -6,8 +6,7 @@ import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import logger from "@calcom/lib/logger";
 import { trpc } from "@calcom/trpc/react";
-import { Button, Dialog, DialogContent, DialogFooter, DialogHeader, showToast } from "@calcom/ui";
-import { Clock } from "@calcom/ui/components/icon";
+import { Button, Dialog, DialogContent, DialogFooter, DialogHeader, Icon, showToast } from "@calcom/ui";
 
 interface IConfirmDialogWipe {
   isOpenDialog: boolean;
@@ -80,7 +79,7 @@ export const ConfirmDialog = (props: IConfirmDialogWipe) => {
       <DialogContent onOpenAutoFocus={(e) => e.preventDefault()}>
         <div className="flex flex-row space-x-3">
           <div className="flex h-10 w-10 flex-shrink-0 justify-center rounded-full bg-[#FAFAFA]">
-            <Clock className="m-auto h-5 w-5" />
+            <Icon name="clock" className="m-auto h-5 w-5" />
           </div>
           <div className="pt-1">
             <DialogHeader title="Wipe My Calendar" />

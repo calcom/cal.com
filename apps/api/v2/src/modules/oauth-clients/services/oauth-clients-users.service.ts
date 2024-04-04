@@ -27,7 +27,6 @@ export class OAuthClientUsersService {
       const username = generateShortHash(body.email, oAuthClientId);
       user = await this.userRepository.create(body, username, oAuthClientId, isPlatformManaged);
     } else {
-      const [_, emailDomain] = body.email.split("@");
       user = (
         await createNewUsersConnectToOrgIfExists({
           usernamesOrEmails: [body.email],
@@ -39,7 +38,7 @@ export class OAuthClientUsersService {
             language: "en",
           },
           parentId: null,
-          autoAcceptEmailDomain: emailDomain,
+          autoAcceptEmailDomain: "never-auto-accept-email-domain-for-managed-users",
           connectionInfoMap: {
             [body.email]: {
               orgId: organizationId,

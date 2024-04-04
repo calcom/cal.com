@@ -1,14 +1,13 @@
 import type { TFunction } from "next-i18next";
 import { Trans } from "next-i18next";
 import Link from "next/link";
-import { useState, useMemo } from "react";
+import { useMemo, useState } from "react";
 import type { FieldError } from "react-hook-form";
 
 import { IS_CALCOM, WEBSITE_URL } from "@calcom/lib/constants";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Alert, Button, EmptyScreen, Form } from "@calcom/ui";
-import { Calendar } from "@calcom/ui/components/icon";
+import { Alert, Button, EmptyScreen, Form, Icon } from "@calcom/ui";
 
 import { useBookerStore } from "../../store";
 import type { useEventReturnType } from "../../utils/event";
@@ -70,7 +69,7 @@ export const BookEventForm = ({
       <EmptyScreen
         headline={t("timeslot_missing_title")}
         description={t("timeslot_missing_description")}
-        Icon={Calendar}
+        Icon="calendar"
         buttonText={t("timeslot_missing_cta")}
         buttonOnClick={onCancel}
       />

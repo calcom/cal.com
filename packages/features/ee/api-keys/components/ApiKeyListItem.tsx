@@ -13,7 +13,6 @@ import {
   DropdownMenuTrigger,
   showToast,
 } from "@calcom/ui";
-import { MoreHorizontal, Edit2, Trash } from "@calcom/ui/components/icon";
 
 export type TApiKeys = RouterOutputs["viewer"]["apiKeys"]["list"][number];
 
@@ -69,12 +68,12 @@ const ApiKeyListItem = ({
       <div>
         <Dropdown>
           <DropdownMenuTrigger asChild>
-            <Button type="button" variant="icon" color="secondary" StartIcon={MoreHorizontal} />
+            <Button type="button" variant="icon" color="secondary" StartIcon="ellipsis" />
           </DropdownMenuTrigger>
 
           <DropdownMenuContent>
             <DropdownMenuItem>
-              <DropdownItem type="button" onClick={onEditClick} StartIcon={Edit2}>
+              <DropdownItem type="button" onClick={onEditClick} StartIcon="pencil">
                 {t("edit") as string}
               </DropdownItem>
             </DropdownMenuItem>
@@ -88,7 +87,7 @@ const ApiKeyListItem = ({
                     id: apiKey.id,
                   })
                 }
-                StartIcon={Trash}>
+                StartIcon="trash">
                 {t("delete") as string}
               </DropdownItem>
             </DropdownMenuItem>

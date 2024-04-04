@@ -1,5 +1,5 @@
 import { useRouter } from "next/navigation";
-import { useState, Suspense, useEffect } from "react";
+import { Suspense, useEffect, useState } from "react";
 
 import dayjs from "@calcom/dayjs";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
@@ -9,9 +9,7 @@ import type { RecordingItemSchema } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { PartialReference } from "@calcom/types/EventManager";
-import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui";
-import { Button } from "@calcom/ui";
-import { Download } from "@calcom/ui/components/icon";
+import { Button, Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, Icon } from "@calcom/ui";
 
 import RecordingListSkeleton from "./components/RecordingListSkeleton";
 
@@ -129,7 +127,7 @@ const ViewRecordingsList = ({ roomName, hasTeamPlan }: { roomName: string; hasTe
                 </div>
                 {hasTeamPlan ? (
                   <Button
-                    StartIcon={Download}
+                    StartIcon="download"
                     className="ml-4 lg:ml-0"
                     loading={isFetching && recordingId === recording.id}
                     onClick={() => handleDownloadClick(recording.id)}>
