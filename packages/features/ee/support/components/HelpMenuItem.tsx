@@ -7,7 +7,7 @@ import { useHasPaidPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button, showToast, TextArea } from "@calcom/ui";
-import { ExternalLink, AlertTriangle } from "@calcom/ui/components/icon";
+import { Icon } from "@calcom/ui";
 
 import { useFreshChat } from "../lib/freshchat/FreshChatProvider";
 import { isFreshChatEnabled } from "../lib/freshchat/FreshChatScript";
@@ -59,7 +59,8 @@ export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
           className="hover:bg-subtle hover:text-emphasis text-default flex w-full px-5 py-2 pr-4 text-sm font-medium"
           rel="noreferrer">
           {t("documentation")}
-          <ExternalLink
+          <Icon
+            name="external-link"
             className={classNames(
               "group-hover:text-subtle text-muted",
               "ml-1 mt-px h-4 w-4 flex-shrink-0 ltr:mr-3"
@@ -178,7 +179,7 @@ export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
         {mutation.isError && (
           <div className="bg-error mb-4 flex p-4 text-sm text-red-700">
             <div className="flex-shrink-0">
-              <AlertTriangle className="h-5 w-5" />
+              <Icon name="triangle-alert" className="h-5 w-5" />
             </div>
             <div className="ml-3 flex-grow">
               <p className="font-medium">{t("feedback_error")}</p>

@@ -4,7 +4,7 @@ import PrimitiveDatePicker from "react-date-picker/dist/entry.nostyle";
 
 import classNames from "@calcom/lib/classNames";
 
-import { Calendar } from "../../icon";
+import { Icon } from "../../..";
 
 type Props = {
   date: Date;
@@ -23,7 +23,7 @@ const DatePicker = ({ minDate, disabled, date, onDatesChange, className }: Props
       )}
       calendarClassName="rounded-md dark:text-black"
       clearIcon={null}
-      calendarIcon={<Calendar className="text-subtle h-5 w-5 rounded-md" />}
+      calendarIcon={<Icon name="calendar" className="text-subtle h-5 w-5 rounded-md" />}
       value={date}
       minDate={minDate}
       disabled={disabled}

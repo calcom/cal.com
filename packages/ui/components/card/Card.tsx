@@ -6,7 +6,6 @@ import type { ReactNode } from "react";
 import React from "react";
 
 import classNames from "@calcom/lib/classNames";
-import { ArrowRight } from "@calcom/ui/components/icon";
 
 import { Button } from "../button";
 
@@ -210,7 +209,7 @@ export function Card({
             color="secondary"
             href={actionButton?.href}
             className="mt-10"
-            EndIcon={ArrowRight}
+            EndIcon="arrow-right"
             data-testId={actionButton["data-testId"]}>
             {actionButton?.child}
           </Button>

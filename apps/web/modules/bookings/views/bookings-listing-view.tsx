@@ -17,7 +17,6 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { HorizontalTabItemProps, VerticalTabItemProps } from "@calcom/ui";
 import { Alert, Button, EmptyScreen, HorizontalTabs } from "@calcom/ui";
-import { Calendar } from "@calcom/ui/components/icon";
 
 import { useInViewObserver } from "@lib/hooks/useInViewObserver";
 import useMeQuery from "@lib/hooks/useMeQuery";
@@ -241,7 +240,7 @@ export default function Bookings() {
             {query.status === "success" && isEmpty && (
               <div className="flex items-center justify-center pt-2 xl:pt-0">
                 <EmptyScreen
-                  Icon={Calendar}
+                  Icon="calendar"
                   headline={t("no_status_bookings_yet", { status: t(status).toLowerCase() })}
                   description={t("no_status_bookings_yet_description", {
                     status: t(status).toLowerCase(),
