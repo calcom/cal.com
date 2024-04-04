@@ -20,14 +20,13 @@ export interface Contact {
 }
 
 export interface CrmEvent {
-  id?: string;
-  success: boolean;
+  id: string;
 }
 
 export interface CRM {
   createEvent: (event: CalendarEvent, contacts: Contact[]) => Promise<CrmEvent>;
   updateEvent: (uid: string, event: CalendarEvent) => Promise<CrmEvent>;
-  deleteEvent: (uid: string) => Promise<CrmEvent>;
+  deleteEvent: (uid: string) => Promise<void>;
   getContacts: (emails: string | string[]) => Promise<Contact[]>;
   createContacts: (contactsToCreate: ContactCreateInput[]) => Promise<Contact[]>;
 }

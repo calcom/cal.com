@@ -5,9 +5,9 @@ import CloseCom from "@calcom/lib/CloseCom";
 import { getCustomActivityTypeInstanceData } from "@calcom/lib/CloseComeUtils";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import logger from "@calcom/lib/logger";
-import type { CalendarEvent, NewCalendarEventType } from "@calcom/types/Calendar";
+import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
-import type { CRM, ContactCreateInput } from "@calcom/types/CrmService";
+import type { CRM, ContactCreateInput, CrmEvent, Contact } from "@calcom/types/CrmService";
 
 const apiKeySchema = z.object({
   encrypted: z.string(),
@@ -86,7 +86,7 @@ export default class CloseComCRMService implements CRM {
     return this.closeCom.activity.custom.delete(uid);
   };
 
-  async createEvent(event: CalendarEvent): Promise<NewCalendarEventType> {
+  async createEvent(event: CalendarEvent): Promise<CrmEvent> {
     const customActivityTypeInstanceData = await getCustomActivityTypeInstanceData(
       event,
       calComCustomActivityFields,
@@ -105,25 +105,37 @@ export default class CloseComCRMService implements CRM {
       additionalInfo: {
         customActivityTypeInstanceData,
       },
+      success: true,
     });
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async updateEvent(uid: string, event: CalendarEvent): Promise<any> {
-    return await this.closeComUpdateCustomActivity(uid, event);
+  async updateEvent(uid: string, event: CalendarEvent): Promise<CrmEvent> {
+    const updatedEvent = await this.closeComUpdateCustomActivity(uid, event);
+    return {
+      id: updatedEvent.id,
+    };
   }
 
   async deleteEvent(uid: string): Promise<void> {
-    return await this.closeComDeleteCustomActivity(uid);
+    await this.closeComDeleteCustomActivity(uid);
   }
 
-  async getContacts(emails: string | string[]) {
-    return await this.closeCom.contact.search({
+  async getContacts(emails: string | string[]): Promise<Contact[]> {
+    const contactsQuery = await this.closeCom.contact.search({
       emails: Array.isArray(emails) ? emails : [emails],
+    });
+
+    return contactsQuery.data.map((contact) => {
+      return {
+        id: contact.id,
+        email: contact.emails[0].email,
+        name: contact.name,
+      };
     });
   }
 
-  async createContacts(contactsToCreate: ContactCreateInput[]) {
+  async createContacts(contactsToCreate: ContactCreateInput[]): Promise<Contact[]> {
     const createContactPromise = [];
     for (const contact of contactsToCreate) {
       createContactPromise.push(
@@ -135,5 +147,13 @@ export default class CloseComCRMService implements CRM {
         })
       );
     }
+    const createdContacts = await Promise.all(createContactPromise);
+    return createdContacts.map((contact) => {
+      return {
+        id: contact.id,
+        email: contact.emails[0].email,
+        name: contact.name,
+      };
+    });
   }
 }

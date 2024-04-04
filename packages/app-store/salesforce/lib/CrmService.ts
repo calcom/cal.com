@@ -8,9 +8,9 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
-import type { CalendarEvent, NewCalendarEventType, Person } from "@calcom/types/Calendar";
+import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
-import type { CRM, Contact } from "@calcom/types/CrmService";
+import type { CRM, Contact, CrmEvent } from "@calcom/types/CrmService";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import type { ParseRefreshTokenResponse } from "../../_utils/oauth/parseRefreshTokenResponse";
@@ -235,7 +235,7 @@ export default class SalesforceCRMService implements CRM {
     });
   }
 
-  async createEvent(event: CalendarEvent, contacts: Contact[]): Promise<NewCalendarEventType> {
+  async createEvent(event: CalendarEvent, contacts: Contact[]): Promise<CrmEvent> {
     const sfEvent = await this.salesforceCreateEvent(event, contacts);
     if (sfEvent.success) {
       return Promise.resolve({
@@ -251,7 +251,7 @@ export default class SalesforceCRMService implements CRM {
     return Promise.reject("Something went wrong when creating an event in Salesforce");
   }
 
-  async updateEvent(uid: string, event: CalendarEvent): Promise<NewCalendarEventType> {
+  async updateEvent(uid: string, event: CalendarEvent): Promise<CrmEvent> {
     const updatedEvent = await this.salesforceUpdateEvent(uid, event);
     if (updatedEvent.success) {
       return Promise.resolve({
@@ -280,7 +280,6 @@ export default class SalesforceCRMService implements CRM {
     const conn = await this.conn;
     const emails = Array.isArray(email) ? email : [email];
     const soql = `SELECT Id, Email FROM Contact WHERE Email IN ('${emails.join("','")}')`;
-    // const soql = `SELECT Id, Name, Email FROM Contact`;
     const results = await conn.query(soql);
     return results.records
       ? results.records.map((record) => ({
@@ -290,7 +289,7 @@ export default class SalesforceCRMService implements CRM {
       : [];
   }
 
-  async createContact(contactsToCreate: { email: string; name: string }[]) {
+  async createContacts(contactsToCreate: { email: string; name: string }[]) {
     const conn = await this.conn;
     const createdContacts = await Promise.all(
       contactsToCreate.map(async (attendee) => {

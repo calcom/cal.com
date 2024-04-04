@@ -131,7 +131,7 @@ export default class BiginCrmService implements CRM {
       };
     });
 
-    return axios({
+    const response = await axios({
       method: "post",
       url: token.api_domain + this.contactsSlug,
       headers: {
@@ -140,6 +140,8 @@ export default class BiginCrmService implements CRM {
       },
       data: JSON.stringify({ data: contacts }),
     });
+
+    return response.data;
   }
 
   /***

@@ -45,7 +45,7 @@ export default class PipedriveCrmService implements CRM {
     this.log = logger.getSubLogger({ prefix: [`[[lib] ${appConfig.slug}`] });
   }
 
-  async createContacts(contactsToCreate: ContactCreateInput[]) {
+  async createContacts(contactsToCreate: ContactCreateInput[]): Promise<Contact[]> {
     const result = contactsToCreate.map(async (attendee) => {
       const headers = new Headers();
       headers.append("x-revert-api-token", this.revertApiKey);
@@ -73,10 +73,12 @@ export default class PipedriveCrmService implements CRM {
         return Promise.reject(error);
       }
     });
-    return await Promise.all(result);
+
+    const results = await Promise.all(result);
+    return results.map((result) => result.result);
   }
 
-  async getContacts(email: string | string[]) {
+  async getContacts(email: string | string[]): Promise<Contact[]> {
     const emailArray = Array.isArray(email) ? email : [email];
 
     const result = emailArray.map(async (attendeeEmail) => {
@@ -101,7 +103,8 @@ export default class PipedriveCrmService implements CRM {
         return { status: "error", results: [] };
       }
     });
-    return await Promise.all(result);
+    const results = await Promise.all(result);
+    return results[0].results;
   }
 
   private getMeetingBody = (event: CalendarEvent): string => {

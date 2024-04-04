@@ -69,7 +69,7 @@ export default class ZohoCrmCrmService implements CRM {
         Email: contactToCreate.email,
       };
     });
-    return axios({
+    const response = await axios({
       method: "post",
       url: `https://www.zohoapis.com/crm/v3/Contacts`,
       headers: {
@@ -78,6 +78,9 @@ export default class ZohoCrmCrmService implements CRM {
       },
       data: JSON.stringify({ data: contacts }),
     });
+
+    const { data } = response.data;
+    return data;
   }
 
   async getContacts(emails: string | string[]) {

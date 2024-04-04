@@ -929,17 +929,17 @@ export default class EventManager {
       createdEvents.push({
         type: credential.type,
         appName: credential.appId || "",
-        uid: createdEvent.id || "",
+        uid: createdEvent?.id || "",
         success,
         createdEvent: {
-          id: createdEvent.id || "",
-          uid: createdEvent.id || "",
+          id: createdEvent?.id || "",
+          uid: createdEvent?.id || "",
           type: credential.type,
           url: "",
           credentialId: credential.id,
           password: "",
         },
-        id: createdEvent.id || "",
+        id: createdEvent?.id || "",
         originalEvent: event,
         credentialId: credential.id,
       });
@@ -964,7 +964,7 @@ export default class EventManager {
           type: credential.type,
           appName: credential.appId || "",
           success,
-          uid: updatedEvent.id || "",
+          uid: updatedEvent?.id || "",
           originalEvent: event,
         });
       }

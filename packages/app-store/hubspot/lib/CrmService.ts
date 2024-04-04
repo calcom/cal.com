@@ -12,9 +12,9 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
-import type { CalendarEvent, NewCalendarEventType } from "@calcom/types/Calendar";
+import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
-import type { CRM, ContactCreateInput, Contact } from "@calcom/types/CrmService";
+import type { CRM, ContactCreateInput, Contact, CrmEvent } from "@calcom/types/CrmService";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import refreshOAuthTokens from "../../_utils/oauth/refreshOAuthTokens";
@@ -155,7 +155,7 @@ export default class HubspotCalendarService implements CRM {
     };
   };
 
-  async handleMeetingCreation(event: CalendarEvent, contacts: CustomPublicObjectInput[]) {
+  async handleMeetingCreation(event: CalendarEvent, contacts: Contact[]) {
     const contactIds: { id?: string }[] = contacts.map((contact) => ({ id: contact.id }));
     const meetingEvent = await this.hubspotCreateMeeting(event);
     if (meetingEvent) {
@@ -178,7 +178,7 @@ export default class HubspotCalendarService implements CRM {
     return Promise.reject("Something went wrong when creating a meeting in HubSpot");
   }
 
-  async createEvent(event: CalendarEvent, contacts: Contact[]): Promise<NewCalendarEventType> {
+  async createEvent(event: CalendarEvent, contacts: Contact[]): Promise<CrmEvent> {
     const auth = await this.auth;
     await auth.getToken();
 
@@ -198,7 +198,7 @@ export default class HubspotCalendarService implements CRM {
     return await this.hubspotDeleteMeeting(uid);
   }
 
-  async getContacts(emails: string | string[]) {
+  async getContacts(emails: string | string[]): Promise<Contact[]> {
     const auth = await this.auth;
     await auth.getToken();
 
@@ -220,16 +220,23 @@ export default class HubspotCalendarService implements CRM {
       after: 0,
     };
 
-    return await hubspotClient.crm.contacts.searchApi
+    const contacts = await hubspotClient.crm.contacts.searchApi
       .doSearch(publicObjectSearchRequest)
       .then((apiResponse) => apiResponse.results);
+
+    return contacts.map((contact) => {
+      return {
+        id: contact.id,
+        email: contact.properties.email,
+      };
+    });
   }
 
-  async createContacts(contactsToCreate: ContactCreateInput[]) {
+  async createContacts(contactsToCreate: ContactCreateInput[]): Promise<Contact[]> {
     const auth = await this.auth;
     await auth.getToken();
 
-    const simplePublicObjectInputs: SimplePublicObjectInput[] = contactsToCreate.map((attendee) => {
+    const simplePublicObjectInputs = contactsToCreate.map((attendee) => {
       const [firstname, lastname] = attendee.name ? attendee.name.split(" ") : [attendee.email, ""];
       return {
         properties: {
@@ -239,7 +246,7 @@ export default class HubspotCalendarService implements CRM {
         },
       };
     });
-    return Promise.all(
+    const createdContacts = await Promise.all(
       simplePublicObjectInputs.map((contact) =>
         hubspotClient.crm.contacts.basicApi.create(contact).catch((error) => {
           // If multiple events are created, subsequent events may fail due to
@@ -247,12 +254,19 @@ export default class HubspotCalendarService implements CRM {
           // fallback taking advantage of the error message providing the contact id
           if (error.body.message.includes("Contact already exists. Existing ID:")) {
             const split = error.body.message.split("Contact already exists. Existing ID: ");
-            return { id: split[1] };
+            return { id: split[1], properties: contact.properties };
           } else {
             throw error;
           }
         })
       )
     );
+
+    return createdContacts.map((contact) => {
+      return {
+        id: contact.id,
+        email: contact.properties.email,
+      };
+    });
   }
 }
