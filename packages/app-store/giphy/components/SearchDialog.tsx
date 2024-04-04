@@ -3,10 +3,8 @@ import { useState } from "react";
 
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { SVGComponent } from "@calcom/types/SVGComponent";
-import { Alert, Button, Dialog, DialogClose, DialogContent, DialogFooter, Input } from "@calcom/ui";
-import { Link, Search } from "@calcom/ui/components/icon";
-import type { LucideIcon } from "@calcom/ui/components/icon";
+import type { IconName } from "@calcom/ui";
+import { Alert, Button, Dialog, DialogClose, DialogContent, DialogFooter, Icon, Input } from "@calcom/ui";
 
 interface ISearchDialog {
   isOpenDialog: boolean;
@@ -86,7 +84,7 @@ export const SearchDialog = (props: ISearchDialog) => {
     return null;
   };
 
-  const renderTab = (Icon: SVGComponent | LucideIcon, text: string, mode: Mode) => (
+  const renderTab = (iconName: IconName, text: string, mode: Mode) => (
     <div
       className={classNames(
         "flex cursor-pointer items-center border-b-2 p-2 text-sm ",
@@ -97,7 +95,7 @@ export const SearchDialog = (props: ISearchDialog) => {
         setGifImage("");
         setSelectedMode(mode);
       }}>
-      <Icon className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
+      <Icon name={iconName} className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
       {text}
     </div>
   );
@@ -120,8 +118,8 @@ export const SearchDialog = (props: ISearchDialog) => {
         </h3>
         <p className="text-subtle mb-3 text-sm font-light">{t("find_gif_spice_confirmation")}</p>
         <div className="border-emphasis flex items-center border-b border-solid">
-          {renderTab(Search, t("search_giphy"), MODE_SEARCH)}
-          {renderTab(Link, t("add_link_from_giphy"), MODE_URL)}
+          {renderTab("search", t("search_giphy"), MODE_SEARCH)}
+          {renderTab("link", t("add_link_from_giphy"), MODE_URL)}
         </div>
         <form
           className="flex w-full justify-center space-x-2 space-y-2 rtl:space-x-reverse"

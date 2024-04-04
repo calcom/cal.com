@@ -8,8 +8,7 @@ import {
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import { AnimatedPopover, Avatar, Divider } from "@calcom/ui";
-import { Layers, User } from "@calcom/ui/components/icon";
+import { AnimatedPopover, Avatar, Divider, Icon } from "@calcom/ui";
 
 import { useFilterContext } from "../context/provider";
 
@@ -87,7 +86,7 @@ export const TeamAndSelfList = () => {
         {isSuccess && data?.length > 0 && data[0].isOrg && (
           <FilterCheckboxField
             id="all"
-            icon={<Layers className="h-4 w-4" />}
+            icon={<Icon name="layers" className="h-4 w-4" />}
             checked={isAll}
             onChange={(e) => {
               setConfigFilters({
@@ -141,7 +140,7 @@ export const TeamAndSelfList = () => {
 
         <FilterCheckboxField
           id="yours"
-          icon={<User className="h-4 w-4" />}
+          icon={<Icon name="user" className="h-4 w-4" />}
           checked={selectedUserId === session.data?.user.id}
           onChange={(e) => {
             if (e.target.checked) {

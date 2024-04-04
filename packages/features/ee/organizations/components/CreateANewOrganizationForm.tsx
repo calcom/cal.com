@@ -1,6 +1,5 @@
-import { useSession } from "next-auth/react";
-import { signIn } from "next-auth/react";
 import type { SessionContextValue } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -14,8 +13,7 @@ import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { UserPermissionRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { Ensure } from "@calcom/types/utils";
-import { Button, Form, TextField, Alert, RadioGroup as RadioArea } from "@calcom/ui";
-import { ArrowRight } from "@calcom/ui/components/icon";
+import { Alert, Button, Form, RadioGroup as RadioArea, TextField } from "@calcom/ui";
 
 function extractDomainFromEmail(email: string) {
   let out = "";
@@ -273,7 +271,7 @@ const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionC
               newOrganizationFormMethods.formState.isSubmitting || createOrganizationMutation.isPending
             }
             color="primary"
-            EndIcon={ArrowRight}
+            EndIcon="arrow-right"
             type="submit"
             form="createOrg"
             className="w-full justify-center">
