@@ -8,7 +8,9 @@ async function authMiddleware(req: NextApiRequest) {
   const { userId, isAdmin, query } = req;
   const { id } = schemaQueryIdParseInt.parse(query);
   /** Admins can skip the ownership verification */
-  if (isAdmin) return;
+  if (isAdmin) {
+    return;
+  }
   /**
    * There's a caveat here. If the availability exists but the user doesn't own it,
    * the user will see a 404 error which may or not be the desired behavior.
