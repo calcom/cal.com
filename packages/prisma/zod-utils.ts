@@ -353,6 +353,7 @@ export const orgSettingsSchema = z
   .object({
     isOrganizationVerified: z.boolean().optional(),
     isOrganizationConfigured: z.boolean().optional(),
+    isAdminReviewed: z.boolean().optional(),
     orgAutoAcceptEmail: z.string().optional(),
   })
   .nullable();
@@ -700,6 +701,12 @@ export const AIPhoneSettingSchema = z.object({
   numberToCall: z.string().refine((val) => isValidPhoneNumber(val)),
   guestName: z.string().trim().min(1, {
     message: "Please enter Guest Name",
+  }),
+  guestEmail: z.string().trim().email().min(1, {
+    message: "Please enter Guest Email",
+  }),
+  guestCompany: z.string().trim().min(1, {
+    message: "Please enter Guest Company",
   }),
   generalPrompt: z.string().trim().min(1, {
     message: "Please enter prompt",

@@ -3,9 +3,7 @@ import { useRouter } from "next/navigation";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Avatar, Button } from "@calcom/ui";
-import { Info } from "@calcom/ui/components/icon";
-import { Plus } from "@calcom/ui/components/icon";
+import { Avatar, Button, Icon } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
 
@@ -69,7 +67,7 @@ export default function Authorize() {
           {client.logo ? (
             <Avatar
               alt=""
-              fallback={<Plus className="text-subtle h-6 w-6" />}
+              fallback={<Icon name="plus" className="text-subtle h-6 w-6" />}
               className="items-center"
               imageSrc={client.logo}
               size="lg"
@@ -77,7 +75,7 @@ export default function Authorize() {
           ) : (
             <Avatar
               alt=""
-              fallback={<Plus className="text-subtle h-6 w-6" />}
+              fallback={<Icon name="plus" className="text-subtle h-6 w-6" />}
               className="items-center"
               imageSrc="/cal-com-icon.svg"
               size="lg"
@@ -100,7 +98,7 @@ export default function Authorize() {
         <ul className="space-y-4 text-sm text-black">{permissions}</ul>
         <div className="bg-subtle mb-8 mt-8 flex rounded-md p-3">
           <div>
-            <Info className="mr-1 mt-0.5 h-4 w-4" />
+            <Icon name="info" className="mr-1 mt-0.5 h-4 w-4" />
           </div>
           <div className="ml-1 ">
             <div className="mb-1 text-sm font-medium">

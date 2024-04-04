@@ -71,6 +71,31 @@
       }
     },
     "/api/v2/oauth-clients/{clientId}/users": {
+      "get": {
+        "operationId": "OAuthClientUsersController_getManagedUsers",
+        "parameters": [
+          {
+            "name": "clientId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      },
       "post": {
         "operationId": "OAuthClientUsersController_createUser",
         "parameters": [

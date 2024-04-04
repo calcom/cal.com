@@ -369,7 +369,7 @@ export default function Success(props: PageProps) {
             href={allRemainingBookings ? "/bookings/recurring" : "/bookings/upcoming"}
             data-testid="back-to-bookings"
             className="hover:bg-subtle text-subtle hover:text-default mt-2 inline-flex px-1 py-2 text-sm dark:hover:bg-transparent">
-            <ChevronLeft className="h-5 w-5 rtl:rotate-180" /> {t("back_to_bookings")}
+            <Icon name="chevron-left" className="h-5 w-5 rtl:rotate-180" /> {t("back_to_bookings")}
           </Link>
         </div>
       )}
@@ -397,6 +397,7 @@ export default function Success(props: PageProps) {
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="modal-headline">
+
                 {!isFeedbackMode && (
                   <>
                     <div
@@ -962,7 +963,7 @@ export default function Success(props: PageProps) {
                       </span>
                     </div>
                   }
-                  CustomIcon={AlertCircle}
+                  CustomIcon="circle-alert"
                   customIconColor="text-attention dark:text-orange-200"
                 />
               )}
@@ -992,7 +993,7 @@ const DisplayLocation = ({
       className={classNames("text-default flex items-center gap-2", className)}
       rel="noreferrer">
       {providerName || "Link"}
-      <ExternalLink className="text-default inline h-4 w-4" />
+      <Icon name="external-link" className="text-default inline h-4 w-4" />
     </a>
   ) : (
     <p className={className}>{locationToDisplay}</p>
