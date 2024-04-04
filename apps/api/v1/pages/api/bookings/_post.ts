@@ -205,7 +205,9 @@ import { defaultResponder } from "@calcom/lib/server";
  */
 async function handler(req: NextApiRequest) {
   const { userId, isAdmin } = req;
-  if (isAdmin) req.userId = req.body.userId || userId;
+  if (isAdmin) {
+    req.userId = req.body.userId || userId;
+  }
 
   return await handleNewBooking(req, getBookingDataSchemaForApi);
 }
