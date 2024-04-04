@@ -32,7 +32,9 @@ const fetchBookings = async ({
 
   const response = await fetch(url);
 
-  if (response.status === 401) throw new Error("Unauthorized");
+  if (response.status === 401) {
+    throw new Error("Unauthorized");
+  }
 
   const data = await response.json();
 
@@ -42,9 +44,7 @@ const fetchBookings = async ({
 
   const bookings: Booking[] = data.bookings
     .filter((booking: Booking) => {
-      const notCancelled = booking.status !== BOOKING_STATUS.CANCELLED;
-
-      return notCancelled;
+      return booking.status !== BOOKING_STATUS.CANCELLED;
     })
     .map(({ endTime, eventTypeId, id, startTime, status, title }: Booking) => ({
       endTime,
