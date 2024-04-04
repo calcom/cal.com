@@ -35,9 +35,7 @@ const send = async ({
   };
 
   const res = await mail.send(msg);
-  const success = !!res;
-
-  return success;
+  return !!res;
 };
 
 export default send;
