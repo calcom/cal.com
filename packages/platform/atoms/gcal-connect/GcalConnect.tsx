@@ -1,7 +1,6 @@
 import type { FC } from "react";
 
-import { Button } from "@calcom/ui";
-import { CalendarDays } from "@calcom/ui/components/icon";
+import { Button, Icon } from "@calcom/ui";
 
 import { useAtomsContext } from "../hooks/useAtomsContext";
 import { useGcal } from "../hooks/useGcal";
@@ -26,7 +25,7 @@ export const GcalConnect: FC<GcalConnectProps> = ({
 
   return (
     <Button
-      StartIcon={CalendarDays}
+      StartIcon="calendar-days"
       color="primary"
       disabled={!allowConnect}
       className={cn("", className)}

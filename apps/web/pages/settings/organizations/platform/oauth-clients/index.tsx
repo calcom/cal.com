@@ -1,5 +1,4 @@
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
-import { Plus } from "lucide-react";
 import { useRouter } from "next/router";
 import React from "react";
 
@@ -39,7 +38,7 @@ export const OAuthClients = () => {
           router.push("/settings/organizations/platform/oauth-clients/create");
         }}
         color="secondary"
-        StartIcon={Plus}>
+        StartIcon="plus">
         Add
       </Button>
     );
@@ -83,7 +82,7 @@ export const OAuthClients = () => {
             <EmptyScreen
               headline="Create your first OAuth client"
               description="OAuth clients facilitate access to Cal.com on behalf of users"
-              Icon={Plus}
+              Icon="plus"
               className="rounded-b-lg rounded-t-none border-t-0"
               buttonRaw={<NewOAuthClientButton />}
             />
