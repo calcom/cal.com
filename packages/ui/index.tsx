@@ -1,11 +1,10 @@
-export {
-  Avatar,
-  AvatarGroup,
-  UserAvatar,
-  UserAvatarGroup,
-  UserAvatarGroupWithOrg,
-} from "./components/avatar";
-export type { AvatarProps, AvatarGroupProps } from "./components/avatar";
+export { default as Avatar } from "./components/Avatar";
+export { default as AvatarGroup } from "./components/AvatarGroup";
+export { default as UserAvatar } from "./components/UserAvatar";
+export { default as UserAvatarGroup } from "./components/UserAvatarGroup";
+export { default as UserAvatarGroupWithOrg } from "./components/UserAvatarGroupWithOrg";
+
+export type { AvatarProps, AvatarGroupProps } from "./components/Avatar";
 export { ArrowButton } from "./components/arrow-button";
 export type { ArrowButtonProps } from "./components/arrow-button";
 export { Badge, UpgradeTeamsBadge, InfoBadge } from "./components/badge";

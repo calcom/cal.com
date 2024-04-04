@@ -1,7 +1,7 @@
 export { Avatar } from "./Avatar";
 export { UserAvatar } from "./UserAvatar";
 export type { AvatarProps } from "./Avatar";
-export { AvatarGroup } from "./AvatarGroup";
+export { AvatarGroup } from "../AvatarGroup/AvatarGroup";
 export { UserAvatarGroup } from "./UserAvatarGroup";
 export { UserAvatarGroupWithOrg } from "./UserAvatarGroupWithOrg";
-export type { AvatarGroupProps } from "./AvatarGroup";
+export type { AvatarGroupProps } from "../AvatarGroup/AvatarGroup";
