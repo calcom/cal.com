@@ -4038,7 +4038,7 @@ __metadata:
     "@vitejs/plugin-react": ^2.2.0
     class-variance-authority: ^0.4.0
     clsx: ^2.0.0
-    lucide-react: ^0.363.0
+    lucide-react: ^0.364.0
     react-use: ^17.4.2
     rollup-plugin-node-builtins: ^2.1.2
     tailwind-merge: ^1.13.2
@@ -4219,7 +4219,7 @@ __metadata:
     swr: ^1.2.2
     tailwindcss: ^3.3.3
     typescript: ^4.9.4
-    zod: ^3.22.2
+    zod: ^3.22.4
   languageName: unknown
   linkType: soft
 
@@ -4941,6 +4941,7 @@ __metadata:
     axios: ^1.6.7
     axios-retry: ^4.0.0
     lodash: ^4.17.21
+    openapi-typescript: ^6.7.5
     release-it: ^17.1.1
     rollup: ^4.12.0
     rollup-plugin-bundle-size: ^1.0.3
@@ -5156,7 +5157,6 @@ __metadata:
     "@radix-ui/react-popover": ^1.0.2
     "@radix-ui/react-portal": ^1.0.0
     "@radix-ui/react-select": ^0.1.1
-    "@react-icons/all-files": ^4.1.0
     "@storybook/blocks": ^7.6.3
     "@storybook/react": ^7.6.3
     "@tanstack/react-query": ^5.17.15
@@ -5168,14 +5168,13 @@ __metadata:
     cmdk: ^0.2.0
     cmk: ^0.1.1
     downshift: ^6.1.9
-    lucide-react: ^0.363.0
+    lucide-react: ^0.364.0
     next: ^13.5.4
     next-seo: ^6.0.0
     react: ^18.2.0
     react-colorful: ^5.6.0
     react-feather: ^2.0.10
     react-hook-form: ^7.43.3
-    react-icons: ^4.4.0
     react-select: ^5.7.0
     react-virtual: ^2.10.4
     typescript: ^4.9.4
@@ -5446,9 +5445,9 @@ __metadata:
     i18n-unused: ^0.13.0
     iframe-resizer-react: ^1.1.0
     keen-slider: ^6.8.0
-    lucide-react: ^0.363.0
+    lucide-react: ^0.364.0
     micro: ^10.0.1
-    next: ^14.1
+    next: ^14.1.3
     next-auth: ^4.22.1
     next-axiom: ^0.17.0
     next-i18next: ^13.2.2
@@ -5461,7 +5460,7 @@ __metadata:
     react-datocms: ^3.1.0
     react-device-detect: ^2.2.2
     react-dom: ^18.2.0
-    react-fast-marquee: ^1.3.5
+    react-fast-marquee: ^1.6.4
     react-github-btn: ^1.4.0
     react-hook-form: ^7.43.3
     react-hot-toast: ^2.3.0
@@ -12546,15 +12545,6 @@ __metadata:
     react: ^16.8.0 || 17.x
     react-dom: ^16.8.0 || 17.x
   checksum: 36bc0eb41a71798eb6186b23de265ba709e51dae5bf214fb8505c66bb3f2e6a41bb2401457350436ba89ca9e3a50f93a04fe7c33d15648ce11e568a85622d770
-  languageName: node
-  linkType: hard
-
-"@react-icons/all-files@npm:^4.1.0":
-  version: 4.1.0
-  resolution: "@react-icons/all-files@npm:4.1.0"
-  peerDependencies:
-    react: "*"
-  checksum: c34c644650a144e4f2157c20b3106200ac1f76b3132dcda1a40f061e000a34c78df188266395afae571d5c85bf48365824db7b1bf8b7ae6229fdc148c941ab85
   languageName: node
   linkType: hard
 
@@ -20073,7 +20063,6 @@ __metadata:
     jest-diff: ^29.5.0
     jsdom: ^22.0.0
     lint-staged: ^12.5.0
-    lucide-react: ^0.363.0
     mailhog: ^4.16.0
     next-router-mock: ^0.9.12
     node-ical: ^0.16.1
@@ -32846,12 +32835,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lucide-react@npm:^0.363.0":
-  version: 0.363.0
-  resolution: "lucide-react@npm:0.363.0"
+"lucide-react@npm:^0.364.0":
+  version: 0.364.0
+  resolution: "lucide-react@npm:0.364.0"
   peerDependencies:
     react: ^16.5.1 || ^17.0.0 || ^18.0.0
-  checksum: abe8fad469a2f14181eca6f3682403c5d53a4a354f333b0f7d3b575471d451c6f3fd36f59d96745a5a823e4cc55eeb2dcda70774a6fe438834ea3fb6fa5b75af
+  checksum: 954f6274df46ffa172130d9e60eb630a377435c7dbf0ddb5ceebf284602dde3b99755dcd5c0757e697ee734a32c808a3cd2c25ad88fec1d8f627a2317f00e3e6
   languageName: node
   linkType: hard
 
@@ -35245,7 +35234,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"next@npm:^14.1":
+"next@npm:^14.1.3":
   version: 14.1.4
   resolution: "next@npm:14.1.4"
   dependencies:
@@ -36331,6 +36320,22 @@ __metadata:
   version: 12.1.3
   resolution: "openapi-types@npm:12.1.3"
   checksum: 7fa5547f87a58d2aa0eba6e91d396f42d7d31bc3ae140e61b5d60b47d2fd068b48776f42407d5a8da7280cf31195aa128c2fc285e8bb871d1105edee5647a0bb
+  languageName: node
+  linkType: hard
+
+"openapi-typescript@npm:^6.7.5":
+  version: 6.7.5
+  resolution: "openapi-typescript@npm:6.7.5"
+  dependencies:
+    ansi-colors: ^4.1.3
+    fast-glob: ^3.3.2
+    js-yaml: ^4.1.0
+    supports-color: ^9.4.0
+    undici: ^5.28.2
+    yargs-parser: ^21.1.1
+  bin:
+    openapi-typescript: bin/cli.js
+  checksum: f404cf8e5cdc59a6773cfd9adfd3545159a2d59d7393f97d003d9f8be6a28e0a71cfbb502da66bdd7c38ec2ad92b5b570202aa243bda908fafe31ea130c9f976
   languageName: node
   linkType: hard
 
@@ -39142,7 +39147,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-fast-marquee@npm:^1.3.5":
+"react-fast-marquee@npm:^1.6.4":
   version: 1.6.4
   resolution: "react-fast-marquee@npm:1.6.4"
   peerDependencies:
@@ -39224,15 +39229,6 @@ __metadata:
     react-native:
       optional: true
   checksum: fe3f360e5184bc63861734e94bf625a09b9ec0d28fab41779a68758af258fd1737dde25ff7a88ddb66c1571a3e3de5b3403825a91b4949bf9832a00615acb87a
-  languageName: node
-  linkType: hard
-
-"react-icons@npm:^4.4.0":
-  version: 4.4.0
-  resolution: "react-icons@npm:4.4.0"
-  peerDependencies:
-    react: "*"
-  checksum: dd93a1dcc8ac8a3cf46a2b33e80b586fa967331fa5fcb90d061abf276155a8363a331643e203d67cb9bab4261d00a757da854bcce1fce2c6e4258bf3e33f711b
   languageName: node
   linkType: hard
 
@@ -43432,6 +43428,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"supports-color@npm:^9.4.0":
+  version: 9.4.0
+  resolution: "supports-color@npm:9.4.0"
+  checksum: cb8ff8daeaf1db642156f69a9aa545b6c01dd9c4def4f90a49f46cbf24be0c245d392fcf37acd119cd1819b99dad2cc9b7e3260813f64bcfd7f5b18b5a1eefb8
+  languageName: node
+  linkType: hard
+
 "supports-hyperlinks@npm:^2.0.0, supports-hyperlinks@npm:^2.2.0":
   version: 2.3.0
   resolution: "supports-hyperlinks@npm:2.3.0"
@@ -45392,6 +45395,15 @@ __metadata:
   dependencies:
     "@fastify/busboy": ^2.0.0
   checksum: fa1e65aff896c5e2ee23637b632e306f9e3a2b32a3dc0b23ea71e5555ad350bcc25713aea894b3dccc0b7dc2c5e92a5a58435ebc2033b731a5524506f573dfd2
+  languageName: node
+  linkType: hard
+
+"undici@npm:^5.28.2":
+  version: 5.28.4
+  resolution: "undici@npm:5.28.4"
+  dependencies:
+    "@fastify/busboy": ^2.0.0
+  checksum: a8193132d84540e4dc1895ecc8dbaa176e8a49d26084d6fbe48a292e28397cd19ec5d13bc13e604484e76f94f6e334b2bdc740d5f06a6e50c44072818d0c19f9
   languageName: node
   linkType: hard
 

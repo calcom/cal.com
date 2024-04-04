@@ -11,10 +11,10 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  Icon,
   Tooltip,
   UserAvatar,
 } from "@calcom/ui";
-import { ExternalLink, MoreHorizontal } from "@calcom/ui/components/icon";
 
 interface Props {
   member: RouterOutputs["viewer"]["organizations"]["listOtherTeamMembers"]["rows"][number];
@@ -73,7 +73,7 @@ export default function MemberListItem(props: Props) {
                   color="secondary"
                   className={classNames("rounded-r-md")}
                   variant="icon"
-                  StartIcon={ExternalLink}
+                  StartIcon="external-link"
                   disabled={!member.accepted}
                 />
               </Tooltip>
@@ -82,7 +82,12 @@ export default function MemberListItem(props: Props) {
             <div className="flex md:hidden">
               <Dropdown>
                 <DropdownMenuTrigger asChild>
-                  <Button type="button" variant="icon" color="minimal" StartIcon={MoreHorizontal} />
+                  <Button
+                    type="button"
+                    variant="icon"
+                    color="minimal"
+                    StartIcon="ellipsis"
+                  />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
                   <DropdownMenuItem className="outline-none">
@@ -91,7 +96,7 @@ export default function MemberListItem(props: Props) {
                       href={`/${user.username}`}
                       target="_blank"
                       type="button"
-                      StartIcon={ExternalLink}>
+                      StartIcon="external-link">
                       {t("view_public_page")}
                     </DropdownItem>
                   </DropdownMenuItem>

@@ -1,7 +1,4 @@
-import React from "react";
-
 import { Button, SkeletonText } from "@calcom/ui";
-import { MoreHorizontal } from "@calcom/ui/components/icon";
 
 import classNames from "@lib/classNames";
 
@@ -31,7 +28,7 @@ function SkeletonItem() {
           type="button"
           variant="icon"
           color="secondary"
-          StartIcon={MoreHorizontal}
+          StartIcon="ellipsis"
           disabled
         />
       </div>

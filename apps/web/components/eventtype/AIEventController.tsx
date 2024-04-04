@@ -21,7 +21,6 @@ import {
   PhoneInput,
   showToast,
 } from "@calcom/ui";
-import { Sparkles } from "@calcom/ui/components/icon";
 
 type AIEventControllerProps = {
   eventType: EventTypeSetup;
@@ -44,7 +43,7 @@ export default function AIEventController({ eventType, isTeamEvent }: AIEventCon
         {!isOrg || !isTeamEvent ? (
           <EmptyScreen
             headline={t("Cal.ai")}
-            Icon={Sparkles}
+            Icon="sparkles"
             description={t("upgrade_to_cal_ai_phone_number_description")}
             buttonRaw={<Button href="/enterprise">{t("upgrade")}</Button>}
           />
