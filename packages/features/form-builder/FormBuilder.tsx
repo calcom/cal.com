@@ -120,6 +120,9 @@ export const FormBuilder = function FormBuilder({
               : field.getOptionsAt
               ? dataStore.options[field.getOptionsAt as keyof typeof dataStore]
               : [];
+            if (field.type === "boolean") {
+              field = { ...field, labelAsSafeHtml: field.label };
+            }
             const { hidden } = getAndUpdateNormalizedValues({ ...field, options }, t);
             if (field.hideWhenJustOneOption && (hidden || !options?.length)) {
               return null;
