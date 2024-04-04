@@ -65,7 +65,9 @@ export async function patchHandler(req: NextApiRequest) {
     include: { members: true },
     where: { id: teamId, members: { some: { userId, role: { in: ["OWNER", "ADMIN"] } } } },
   });
-  if (!_team) throw new HttpError({ statusCode: 401, message: "Unauthorized: OWNER or ADMIN required" });
+  if (!_team) {
+    throw new HttpError({ statusCode: 401, message: "Unauthorized: OWNER or ADMIN required" });
+  }
 
   const slugAlreadyExists = await prisma.team.findFirst({
     where: {
@@ -76,8 +78,9 @@ export async function patchHandler(req: NextApiRequest) {
     },
   });
 
-  if (slugAlreadyExists && data.slug !== _team.slug)
+  if (slugAlreadyExists && data.slug !== _team.slug) {
     throw new HttpError({ statusCode: 409, message: "Team slug already exists" });
+  }
 
   // Check if parentId is related to this user
   if (data.parentId && data.parentId === teamId) {
@@ -90,11 +93,12 @@ export async function patchHandler(req: NextApiRequest) {
     const parentTeam = await prisma.team.findFirst({
       where: { id: data.parentId, members: { some: { userId, role: { in: ["OWNER", "ADMIN"] } } } },
     });
-    if (!parentTeam)
+    if (!parentTeam) {
       throw new HttpError({
         statusCode: 401,
         message: "Unauthorized: Invalid parent id. You can only use parent id of your own teams.",
       });
+    }
   }
 
   let paymentUrl;
@@ -111,11 +115,12 @@ export async function patchHandler(req: NextApiRequest) {
         userId,
         pricePerSeat: null,
       });
-      if (!checkoutSession.url)
+      if (!checkoutSession.url) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Failed retrieving a checkout session URL.",
         });
+      }
       paymentUrl = checkoutSession.url;
     }
   }
