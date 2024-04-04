@@ -703,10 +703,10 @@ export const AIPhoneSettingSchema = z.object({
     message: "Please enter Guest Name",
   }),
   guestEmail: z.string().trim().email().min(1, {
-    message: "Please enter Guest Name",
+    message: "Please enter Guest Email",
   }),
   guestCompany: z.string().trim().min(1, {
-    message: "Please enter Guest Name",
+    message: "Please enter Guest Company",
   }),
   generalPrompt: z.string().trim().min(1, {
     message: "Please enter prompt",
