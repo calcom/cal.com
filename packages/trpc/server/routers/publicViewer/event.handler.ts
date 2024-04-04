@@ -14,6 +14,7 @@ export const eventHandler = async ({ ctx, input }: EventHandlerOptions) => {
     input.eventSlug,
     input.isTeamEvent,
     input.org,
+    input.isARedirectFromOldLink,
     ctx.prisma
   );
   return event;

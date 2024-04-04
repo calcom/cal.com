@@ -22,6 +22,7 @@ export interface BookerProps {
    * Whether is a team or org, we gather basic info from both
    */
   entity: {
+    isARedirectFromOldLink: boolean;
     isUnpublished?: boolean;
     orgSlug?: string | null;
     teamSlug?: string | null;

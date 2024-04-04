@@ -5,6 +5,7 @@ export const ZEventInputSchema = z.object({
   eventSlug: z.string(),
   isTeamEvent: z.boolean().optional(),
   org: z.string().nullable(),
+  isARedirectFromOldLink: z.boolean().optional().default(false),
 });
 
 export type TEventInputSchema = z.infer<typeof ZEventInputSchema>;

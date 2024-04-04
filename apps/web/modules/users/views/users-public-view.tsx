@@ -54,7 +54,7 @@ export function UserPage(props: InferGetServerSidePropsType<typeof getServerSide
     }
   }, [telemetry, router.asPath]); */
 
-  if (entity?.isUnpublished) {
+  if (entity?.isUnpublished && !entity.isARedirectFromOldLink) {
     return (
       <div className="flex h-full min-h-[100dvh] items-center justify-center">
         <UnpublishedEntity {...entity} />

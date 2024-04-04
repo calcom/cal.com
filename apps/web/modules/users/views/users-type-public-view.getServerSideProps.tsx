@@ -76,7 +76,10 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
   return {
     props: {
       eventData: {
-        entity: eventData.entity,
+        entity: {
+          isARedirectFromOldLink: context.query.cameFromUserLink === "true",
+          ...eventData.entity,
+        },
         length: eventData.length,
         metadata: {
           ...eventData.metadata,
@@ -170,7 +173,10 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
     props: {
       booking,
       eventData: {
-        entity: eventData.entity,
+        entity: {
+          isARedirectFromOldLink: context.query.cameFromUserLink === "true",
+          ...eventData.entity,
+        },
         length: eventData.length,
         metadata: eventData.metadata,
       },
