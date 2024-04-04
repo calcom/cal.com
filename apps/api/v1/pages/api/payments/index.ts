@@ -26,14 +26,17 @@ async function allPayments({ userId }: NextApiRequest, res: NextApiResponse<Paym
     where: { id: userId },
     include: { bookings: true },
   });
-  if (!userWithBookings) throw new Error("No user found");
-  const bookings = userWithBookings.bookings;
+  if (!userWithBookings) {
+    throw new Error("No user found");
+  }
+  const { bookings } = userWithBookings;
   const bookingIds = bookings.map((booking) => booking.id);
   const data = await prisma.payment.findMany({ where: { bookingId: { in: bookingIds } } });
   const payments = data.map((payment) => schemaPaymentPublic.parse(payment));
 
-  if (payments) res.status(200).json({ payments });
-  else
+  if (payments) {
+    res.status(200).json({ payments });
+  } else
     (error: Error) =>
       res.status(404).json({
         message: "No Payments were found",
