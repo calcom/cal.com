@@ -63,7 +63,7 @@ export const LargeCalendar = ({
         id,
         start: dayjs(event.start).toDate(),
         end: dayjs(event.end).toDate(),
-        title: "Busy",
+        title: event.title ?? "Busy",
         options: {
           status: "ACCEPTED",
         },
