@@ -31,7 +31,9 @@ export const fetchAvailability = async ({
 
   const response = await fetch(url);
 
-  if (response.status === 401) throw new Error("Unauthorized");
+  if (response.status === 401) {
+    throw new Error("Unauthorized");
+  }
 
   const data = await response.json();
 
