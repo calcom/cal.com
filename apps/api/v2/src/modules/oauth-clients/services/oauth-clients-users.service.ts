@@ -2,7 +2,7 @@ import { EventTypesService } from "@/ee/event-types/services/event-types.service
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { CreateManagedPlatformUserInput } from "@/modules/users/inputs/create-managed-platform-user.input";
 import { UsersRepository } from "@/modules/users/users.repository";
-import { Injectable } from "@nestjs/common";
+import { BadRequestException, Injectable } from "@nestjs/common";
 import { User } from "@prisma/client";
 import * as crypto from "crypto";
 
@@ -24,23 +24,24 @@ export class OAuthClientUsersService {
   ) {
     let user: User;
     if (!organizationId) {
-      const username = generateShortHash(body.email, oAuthClientId);
-      user = await this.userRepository.create(body, username, oAuthClientId, isPlatformManaged);
+      throw new BadRequestException("You cannot create a managed user outside of an organization");
     } else {
+      const [username, emailDomain] = body.email.split("@");
+      const email = `${username}+${oAuthClientId}@${emailDomain}`;
       user = (
         await createNewUsersConnectToOrgIfExists({
-          usernamesOrEmails: [body.email],
+          usernamesOrEmails: [email],
           input: {
             teamId: organizationId,
             role: "MEMBER",
-            usernameOrEmail: [body.email],
+            usernameOrEmail: [email],
             isOrg: true,
             language: "en",
           },
           parentId: null,
           autoAcceptEmailDomain: "never-auto-accept-email-domain-for-managed-users",
           connectionInfoMap: {
-            [body.email]: {
+            [email]: {
               orgId: organizationId,
               autoAccept: true,
             },
