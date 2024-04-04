@@ -151,6 +151,7 @@ const createPhoneCallHandler = async ({ input, ctx }: CreatePhoneCallProps) => {
         method: "PATCH",
         body: JSON.stringify({
           general_prompt: generalPrompt,
+          begin_message: beginMessage,
         }),
       }).then(getRetellLLMSchema.parse);
 
