@@ -434,6 +434,19 @@ export const sendDailyVideoRecordingEmails = async (calEvent: CalendarEvent, dow
   await Promise.all(emailsToSend);
 };
 
+export const sendDailyVideoTranscriptEmails = async (calEvent: CalendarEvent, transcripts: string[]) => {
+  const emailsToSend: Promise<unknown>[] = [];
+
+  emailsToSend.push(sendEmail(() => new OrganizerDailyVideoDownloadRecordingEmail(calEvent, downloadLink)));
+
+  for (const attendee of calEvent.attendees) {
+    emailsToSend.push(
+      sendEmail(() => new AttendeeDailyVideoDownloadRecordingEmail(calEvent, attendee, downloadLink))
+    );
+  }
+  await Promise.all(emailsToSend);
+};
+
 export const sendOrganizationEmailVerification = async (sendOrgInput: OrganizationEmailVerify) => {
   await sendEmail(() => new OrganizationEmailVerification(sendOrgInput));
 };

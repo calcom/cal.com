@@ -6,6 +6,7 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { defaultHandler } from "@calcom/lib/server";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
+import type { CalendarEvent } from "@calcom/types/Calendar";
 
 const testRequestSchema = z.object({
   test: z.enum(["test"]),
@@ -129,6 +130,21 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     const response = await getAllTranscriptsAccessLinkFromRoomName(room);
 
     // Send emails
+    const evt: CalendarEvent = {
+      type: booking.title,
+      title: booking.title,
+      description: booking.description || undefined,
+      startTime: booking.startTime.toISOString(),
+      endTime: booking.endTime.toISOString(),
+      organizer: {
+        email: booking?.userPrimaryEmail || booking.user?.email || "Email-less",
+        name: booking.user?.name || "Nameless",
+        timeZone: booking.user?.timeZone || "Europe/London",
+        language: { translate: t, locale: booking?.user?.locale ?? "en" },
+      },
+      attendees: attendeesList,
+      uid: booking.uid,
+    };
 
     return res.status(200).json({ message: "Success" });
 
