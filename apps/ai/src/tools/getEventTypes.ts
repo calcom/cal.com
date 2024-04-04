@@ -22,7 +22,9 @@ export const fetchEventTypes = async ({ apiKey, userId }: { apiKey: string; user
 
   const response = await fetch(url);
 
-  if (response.status === 401) throw new Error("Unauthorized");
+  if (response.status === 401) {
+    throw new Error("Unauthorized");
+  }
 
   const data = await response.json();
 
