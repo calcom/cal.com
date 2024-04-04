@@ -3,8 +3,7 @@ import { useState } from "react";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Badge, TextField, showToast } from "@calcom/ui";
-import { X, Plus } from "@calcom/ui/components/icon";
+import { Badge, Icon, showToast, TextField } from "@calcom/ui";
 
 interface GroupNameCellProps {
   groupNames: string[];
@@ -76,7 +75,7 @@ const GroupNameCell = ({ groupNames, teamId, directoryId }: GroupNameCellProps) 
           <div className="flex items-center space-x-2 ">
             <p>{name}</p>
             <div className="hover:bg-emphasis rounded p-1">
-              <X className="h-4 w-4 stroke-[3px]" onClick={() => removeGroupName(name)} />
+              <Icon name="x" className="h-4 w-4 stroke-[3px]" onClick={() => removeGroupName(name)} />
             </div>
           </div>
         </Badge>
@@ -106,7 +105,7 @@ const GroupNameCell = ({ groupNames, teamId, directoryId }: GroupNameCellProps) 
             <p>{t("add_group_name")}</p>
           )}
           <div className={classNames("rounded p-1", showTextInput && "hover:bg-emphasis ml-2")}>
-            <Plus className="h-4 w-4 stroke-[3px]" onClick={() => addGroupName(newGroupName)} />
+            <Icon name="plus" className="h-4 w-4 stroke-[3px]" onClick={() => addGroupName(newGroupName)} />
           </div>
         </div>
       </Badge>

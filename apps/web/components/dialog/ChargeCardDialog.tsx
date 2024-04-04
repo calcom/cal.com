@@ -1,5 +1,5 @@
-import { useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
+import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -10,9 +10,9 @@ import {
   DialogContent,
   DialogFooter,
   DialogHeader,
+  Icon,
   showToast,
 } from "@calcom/ui";
-import { CreditCard, AlertTriangle } from "@calcom/ui/components/icon";
 
 interface IRescheduleDialog {
   isOpenDialog: boolean;
@@ -48,7 +48,7 @@ export const ChargeCardDialog = (props: IRescheduleDialog) => {
       <DialogContent>
         <div className="flex flex-row space-x-3">
           <div className=" bg-subtle flex h-10 w-10 flex-shrink-0 justify-center rounded-full">
-            <CreditCard className="m-auto h-6 w-6" />
+            <Icon name="credit-card" className="m-auto h-6 w-6" />
           </div>
           <div className="pt-1">
             <DialogHeader title={t("charge_card")} />
@@ -56,7 +56,7 @@ export const ChargeCardDialog = (props: IRescheduleDialog) => {
 
             {chargeError && (
               <div className="mt-4 flex text-red-500">
-                <AlertTriangle className="mr-2 h-5 w-5 " aria-hidden="true" />
+                <Icon name="triangle-alert" className="mr-2 h-5 w-5 " aria-hidden="true" />
                 <p className="text-sm">{t("error_charging_card")}</p>
               </div>
             )}
