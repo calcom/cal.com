@@ -4,6 +4,7 @@ import { z } from "zod";
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { validPassword } from "@calcom/features/auth/lib/validPassword";
 import prisma from "@calcom/prisma";
+import { IdentityProvider } from "@calcom/prisma/enums";
 
 const passwordResetRequestSchema = z.object({
   password: z.string().refine(validPassword, () => ({
@@ -36,7 +37,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // never existed within Cal. In this case we do not want to disclose the email's existence.
   // instead, we just return 404
   try {
-    await prisma.user.update({
+    const updatedUser = await prisma.user.update({
       where: {
         email: maybeRequest.email,
       },
@@ -50,6 +51,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         emailVerified: new Date(),
       },
     });
+
+    // Change Identity Provider to CAL if it was previously Google
+    if (updatedUser.identityProvider === IdentityProvider.GOOGLE) {
+      await prisma.user.update({
+        where: {
+          email: maybeRequest.email,
+          identityProvider: IdentityProvider.GOOGLE,
+        },
+        data: {
+          identityProvider: IdentityProvider.CAL,
+          identityProviderId: null,
+        },
+      });
+    }
   } catch (e) {
     return res.status(404).end();
   }
