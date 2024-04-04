@@ -81,17 +81,20 @@ async function handler(req: NextApiRequest) {
   const args: Prisma.ScheduleFindManyArgs = isAdmin ? {} : { where: { userId } };
   args.include = { availability: true };
 
-  if (!isAdmin && req.query.userId)
+  if (!isAdmin && req.query.userId) {
     throw new HttpError({
       statusCode: 401,
       message: "Unauthorized: Only admins can query other users",
     });
+  }
 
   if (isAdmin && req.query.userId) {
     const query = schemaQuerySingleOrMultipleUserIds.parse(req.query);
     const userIds = Array.isArray(query.userId) ? query.userId : [query.userId || userId];
     args.where = { userId: { in: userIds } };
-    if (Array.isArray(query.userId)) args.orderBy = { userId: "asc" };
+    if (Array.isArray(query.userId)) {
+      args.orderBy = { userId: "asc" };
+    }
   }
   const data = await prisma.schedule.findMany(args);
   return { schedules: data.map((s) => schemaSchedulePublic.parse(s)) };
