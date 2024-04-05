@@ -224,7 +224,6 @@ const Layout = (props: LayoutProps) => {
     return (activeBanners?.length ?? 0) * TOP_BANNER_HEIGHT;
   }, [banners]);
 
-  const [helpOpen, setHelpOpen] = useState(false);
   useFormbricks();
 
   return (
@@ -282,29 +281,6 @@ const Layout = (props: LayoutProps) => {
           <div className="flex w-0 flex-1 flex-col">
             <MainContainer {...props} />
           </div>
-        </div>
-        <div className="fixed bottom-12 right-12 hidden md:flex">
-          <Dropdown open={helpOpen}>
-            <DropdownMenuTrigger asChild onClick={() => setHelpOpen((prev) => !prev)}>
-              <Button className="">Intercom</Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuPortal>
-              <FreshChatProvider>
-                <DropdownMenuContent
-                  align="start"
-                  onInteractOutside={() => {
-                    setHelpOpen(false);
-                  }}
-                  className="group m-2 overflow-hidden rounded-md">
-                  <HelpMenuItem
-                    onHelpItemSelect={() => {
-                      setHelpOpen(false);
-                    }}
-                  />
-                </DropdownMenuContent>
-              </FreshChatProvider>
-            </DropdownMenuPortal>
-          </Dropdown>
         </div>
       </div>
     </>
