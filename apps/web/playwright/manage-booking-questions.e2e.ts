@@ -10,13 +10,13 @@ import type { CalendarEvent } from "@calcom/types/Calendar";
 import { test } from "./lib/fixtures";
 import { createHttpServer, selectFirstAvailableTimeSlotNextMonth } from "./lib/testUtils";
 
-async function getLabelText(field: Locator) {
+function getLabelLocator(field: Locator) {
   // There are 2 labels right now. Will be one in future. The second one is hidden
-  return await field.locator("label").first().locator("span").first().innerText();
+  return field.locator("label").first();
 }
 
-function getLabelLocator(field: Locator) {
-  return field.locator("label").first();
+async function getLabelText(field: Locator) {
+  return await getLabelLocator(field).locator("span").first().innerText();
 }
 
 test.describe.configure({ mode: "parallel" });
@@ -53,7 +53,7 @@ test.describe("Manage Booking Questions", () => {
       context,
     }, testInfo) => {
       // Considering there are many steps in it, it would need more than default test timeout
-      test.setTimeout(testInfo.timeout * 3);
+      test.setTimeout(testInfo.timeout * 2);
       const user = await createAndLoginUserWithEventTypes({ users, page });
 
       // const webhookReceiver = await addWebhook(user);
