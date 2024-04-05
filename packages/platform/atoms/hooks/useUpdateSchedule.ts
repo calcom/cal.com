@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { BASE_URL, API_VERSION, V2_ENDPOINTS } from "@calcom/platform-constants";
+import { V2_ENDPOINTS } from "@calcom/platform-constants";
 import type { UpdateScheduleOutputType } from "@calcom/platform-libraries";
 import type { ApiResponse, UpdateScheduleInput, ApiErrorResponse } from "@calcom/platform-types";
 
@@ -23,15 +23,13 @@ const useUpdateSchedule = (
     },
   }
 ) => {
-  const endpoint = new URL(BASE_URL);
   const queryClient = useQueryClient();
 
   const mutation = useMutation<ApiResponse<UpdateScheduleOutputType>, unknown, UpdateScheduleInput>({
     mutationFn: (data) => {
-      endpoint.pathname = `api/${API_VERSION}/${V2_ENDPOINTS.availability}/${data.scheduleId}`;
-      endpoint.searchParams.set("for", "atom");
+      const pathname = `/${V2_ENDPOINTS.availability}/${data.scheduleId}?for=atom`;
 
-      return http.patch<ApiResponse<UpdateScheduleOutputType>>(endpoint.toString(), data).then((res) => {
+      return http.patch<ApiResponse<UpdateScheduleOutputType>>(pathname, data).then((res) => {
         return res.data;
       });
     },

@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { BASE_URL, API_VERSION, V2_ENDPOINTS } from "@calcom/platform-constants";
+import { V2_ENDPOINTS } from "@calcom/platform-constants";
 import type { ApiResponse, ApiErrorResponse } from "@calcom/platform-types";
 
 import http from "../lib/http";
@@ -26,16 +26,14 @@ const useDeleteSchedule = (
     },
   }
 ) => {
-  const endpoint = new URL(BASE_URL);
   const queryClient = useQueryClient();
 
   const mutation = useMutation<ApiResponse<undefined>, unknown, DeleteScheduleInput>({
     mutationFn: (data) => {
       const { id } = data;
-      endpoint.pathname = `api/${API_VERSION}/${V2_ENDPOINTS.availability}/${id}`;
-      endpoint.searchParams.set("for", "atom");
+      const pathname = `/${V2_ENDPOINTS.availability}/${id}?for=atom`;
 
-      return http?.delete(endpoint.toString()).then((res) => res.data);
+      return http?.delete(pathname).then((res) => res.data);
     },
     onSuccess: (data) => {
       if (data.status === SUCCESS_STATUS) {

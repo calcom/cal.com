@@ -18,6 +18,8 @@ export function EmptyScreen({
   border = true,
   dashedBorder = true,
   className,
+  iconClassName,
+  iconWrapperClassName,
 }: {
   Icon?: IconName;
   avatar?: React.ReactElement;
@@ -28,6 +30,8 @@ export function EmptyScreen({
   buttonRaw?: ReactNode; // Used incase you want to provide your own button.
   border?: boolean;
   dashedBorder?: boolean;
+  iconWrapperClassName?: string;
+  iconClassName?: string;
 } & React.HTMLAttributes<HTMLDivElement>) {
   return (
     <>
@@ -42,9 +46,17 @@ export function EmptyScreen({
         {!avatar ? null : (
           <div className="flex h-[72px] w-[72px] items-center justify-center rounded-full">{avatar}</div>
         )}
+
         {!icon ? null : (
-          <div className="bg-emphasis flex h-[72px] w-[72px] items-center justify-center rounded-full ">
-            <Icon name={icon} className="text-default inline-block h-10 w-10 stroke-[1.3px]" />
+          <div
+            className={classNames(
+              "bg-emphasis flex h-[72px] w-[72px] items-center justify-center rounded-full ",
+              iconWrapperClassName
+            )}>
+            <Icon
+              name={icon}
+              className={classNames("text-default inline-block h-10 w-10 stroke-[1.3px]", iconClassName)}
+            />
           </div>
         )}
         <div className="flex max-w-[420px] flex-col items-center">
