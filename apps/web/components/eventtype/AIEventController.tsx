@@ -130,7 +130,7 @@ const AISettings = ({ eventType }: { eventType: EventTypeSetup }) => {
         beginMessage: values.beginMessage,
         enabled: values.enabled,
         guestName: values.guestName,
-        guestEmail: values.guestCompany.trim().length ? values.guestEmail : undefined,
+        guestEmail: values.guestEmail.trim().length ? values.guestEmail : undefined,
         guestCompany: values.guestCompany.trim().length ? values.guestCompany : undefined,
         eventTypeId: eventType.id,
         numberToCall: values.numberToCall,
