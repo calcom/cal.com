@@ -17,7 +17,7 @@ export const PeopleFilter = () => {
 
   const { data: currentOrg } = trpc.viewer.organizations.listCurrent.useQuery();
   const isAdmin = currentOrg?.user.role === "ADMIN" || currentOrg?.user.role === "OWNER";
-  const hasPermToView = currentOrg?.isPrivate ? isAdmin : true;
+  const hasPermToView = !currentOrg?.isPrivate || isAdmin;
 
   const { data: query, pushItemToKey, removeItemByKeyAndValue, removeAllQueryParams } = useFilterQuery();
   const [searchText, setSearchText] = useState("");
