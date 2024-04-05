@@ -1,5 +1,5 @@
 import { getRequestedSlugError } from "@calcom/app-store/stripepayment/lib/team-billing";
-import { purchaseTeamSubscription } from "@calcom/features/ee/teams/lib/payments";
+import { purchaseTeamOrOrgSubscription } from "@calcom/features/ee/teams/lib/payments";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
 import { closeComUpdateTeam } from "@calcom/lib/sync/SyncServiceManager";
@@ -37,12 +37,14 @@ export const publishHandler = async ({ ctx }: PublishOptions) => {
 
   // Since this is an ORG we need to make sure ORG members are scyned with the team. Every time a user is added to the TEAM, we need to add them to the ORG
   if (IS_TEAM_BILLING_ENABLED) {
-    const checkoutSession = await purchaseTeamSubscription({
+    const checkoutSession = await purchaseTeamOrOrgSubscription({
       teamId: prevTeam.id,
-      seats: prevTeam.members.length,
+      seats: Math.max(prevTeam.members.length, metadata.data?.orgSeats ?? 0),
       userId: ctx.user.id,
       isOrg: true,
+      pricePerSeat: metadata.data?.orgPricePerSeat ?? null,
     });
+
     if (!checkoutSession.url)
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",

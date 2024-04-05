@@ -1,9 +1,9 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { CalendarHeart, Info, Link2, ShieldCheckIcon, StarIcon, Users } from "lucide-react";
 import { signIn } from "next-auth/react";
 import { Trans } from "next-i18next";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Script from "next/script";
@@ -17,9 +17,15 @@ import getStripe from "@calcom/app-store/stripepayment/lib/client";
 import { getPremiumPlanPriceValue } from "@calcom/app-store/stripepayment/lib/utils";
 import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getOrgUsernameFromEmail";
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
-import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { classNames } from "@calcom/lib";
-import { APP_NAME, URL_PROTOCOL_REGEX, IS_CALCOM, WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
+import {
+  APP_NAME,
+  URL_PROTOCOL_REGEX,
+  IS_CALCOM,
+  WEBAPP_URL,
+  WEBSITE_URL,
+  CLOUDFLARE_SITE_ID,
+} from "@calcom/lib/constants";
 import { fetchUsername } from "@calcom/lib/fetchUsername";
 import { pushGTMEvent } from "@calcom/lib/gtm";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
@@ -28,7 +34,17 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { signupSchema as apiSignupSchema } from "@calcom/prisma/zod-utils";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
-import { Button, HeadSeo, PasswordField, TextField, Form, Alert, showToast, CheckboxField } from "@calcom/ui";
+import {
+  Button,
+  HeadSeo,
+  PasswordField,
+  TextField,
+  Form,
+  Alert,
+  showToast,
+  CheckboxField,
+  Icon,
+} from "@calcom/ui";
 
 import { getServerSideProps } from "@lib/signup/getServerSideProps";
 
@@ -36,7 +52,10 @@ import PageWrapper from "@components/PageWrapper";
 
 const signupSchema = apiSignupSchema.extend({
   apiError: z.string().optional(), // Needed to display API errors doesnt get passed to the API
+  cfToken: z.string().optional(),
 });
+
+const TurnstileCaptcha = dynamic(() => import("@components/auth/Turnstile"), { ssr: false });
 
 type FormValues = z.infer<typeof signupSchema>;
 
@@ -49,17 +68,17 @@ const FEATURES = [
     i18nOptions: {
       appName: APP_NAME,
     },
-    icon: CalendarHeart,
+    icon: "calendar-heart" as const,
   },
   {
     title: "set_availability",
     description: "set_availbility_description",
-    icon: Users,
+    icon: "users" as const,
   },
   {
     title: "share_a_link_or_embed",
     description: "share_a_link_or_embed_description",
-    icon: Link2,
+    icon: "link-2" as const,
     i18nOptions: {
       appName: APP_NAME,
     },
@@ -128,12 +147,12 @@ function UsernameField({
           <div className="text-sm ">
             {usernameTaken ? (
               <div className="text-error flex items-center">
-                <Info className="mr-1 inline-block h-4 w-4" />
+                <Icon name="info" className="mr-1 inline-block h-4 w-4" />
                 <p>{t("already_in_use_error")}</p>
               </div>
             ) : premium ? (
               <div data-testid="premium-username-warning" className="flex items-center">
-                <StarIcon className="mr-1 inline-block h-4 w-4" />
+                <Icon name="star" className="mr-1 inline-block h-4 w-4" />
                 <p>
                   {t("premium_username", {
                     price: getPremiumPlanPriceValue(),
@@ -162,6 +181,7 @@ export default function Signup({
   isSAMLLoginEnabled,
   orgAutoAcceptEmail,
   redirectUrl,
+  emailVerificationEnabled,
 }: SignupProps) {
   const [premiumUsername, setPremiumUsername] = useState(false);
   const [usernameTaken, setUsernameTaken] = useState(false);
@@ -170,7 +190,6 @@ export default function Signup({
   const telemetry = useTelemetry();
   const { t, i18n } = useLocale();
   const router = useRouter();
-  const flags = useFlagMap();
   const formMethods = useForm<FormValues>({
     resolver: zodResolver(signupSchema),
     defaultValues: prepopulateFormValues satisfies FormValues,
@@ -216,7 +235,8 @@ export default function Signup({
 
   const isOrgInviteByLink = orgSlug && !prepopulateFormValues?.username;
 
-  const signUp: SubmitHandler<FormValues> = async (data) => {
+  const signUp: SubmitHandler<FormValues> = async (_data) => {
+    const { cfToken, ...data } = _data;
     await fetch("/api/auth/signup", {
       body: JSON.stringify({
         ...data,
@@ -225,6 +245,7 @@ export default function Signup({
       }),
       headers: {
         "Content-Type": "application/json",
+        "cf-access-token": cfToken ?? "invalid-token",
       },
       method: "POST",
     })
@@ -234,7 +255,7 @@ export default function Signup({
           pushGTMEvent("create_account", { email: data.email, user: data.username, lang: data.language });
 
         telemetry.event(telemetryEventTypes.signup, collectPageParameters());
-        const verifyOrGettingStarted = flags["email-verification"] ? "auth/verify-email" : "getting-started";
+        const verifyOrGettingStarted = emailVerificationEnabled ? "auth/verify-email" : "getting-started";
         const callBackUrl = `${
           searchParams?.get("callbackUrl")
             ? isOrgInviteByLink
@@ -353,6 +374,16 @@ export default function Signup({
                   {...register("password")}
                   hintErrors={["caplow", "min", "num"]}
                 />
+                {/* Cloudflare Turnstile Captcha */}
+                {CLOUDFLARE_SITE_ID ? (
+                  <TurnstileCaptcha
+                    appearance="interaction-only"
+                    onVerify={(token) => {
+                      formMethods.setValue("cfToken", token);
+                    }}
+                  />
+                ) : null}
+
                 <CheckboxField
                   onChange={() => handleConsentChange(COOKIE_CONSENT)}
                   description={t("cookie_consent_checkbox")}
@@ -366,6 +397,9 @@ export default function Signup({
                     !!formMethods.formState.errors.email ||
                     !formMethods.getValues("email") ||
                     !formMethods.getValues("password") ||
+                    (CLOUDFLARE_SITE_ID &&
+                      !process.env.NEXT_PUBLIC_IS_E2E &&
+                      !formMethods.getValues("cfToken")) ||
                     isSubmitting ||
                     usernameTaken
                   }>
@@ -394,18 +428,16 @@ export default function Signup({
                       color="secondary"
                       disabled={!!formMethods.formState.errors.username || premiumUsername}
                       loading={isGoogleLoading}
-                      StartIcon={() => (
-                        <>
-                          <img
-                            className={classNames(
-                              "text-subtle  mr-2 h-4 w-4 dark:invert",
-                              premiumUsername && "opacity-50"
-                            )}
-                            src="/google-icon.svg"
-                            alt=""
-                          />
-                        </>
-                      )}
+                      CustomStartIcon={
+                        <img
+                          className={classNames(
+                            "text-subtle  mr-2 h-4 w-4 dark:invert",
+                            premiumUsername && "opacity-50"
+                          )}
+                          src="/google-icon.svg"
+                          alt=""
+                        />
+                      }
                       className={classNames(
                         "w-full justify-center rounded-md text-center",
                         formMethods.formState.errors.username ? "opacity-50" : ""
@@ -467,7 +499,7 @@ export default function Signup({
                           `${process.env.NEXT_PUBLIC_WEBAPP_URL}/auth/sso/saml` + `?${sp.toString()}`
                         );
                       }}>
-                      <ShieldCheckIcon className="mr-2 h-5 w-5" />
+                      <Icon name="shield-check" className="mr-2 h-5 w-5" />
                       {t("saml_sso")}
                     </Button>
                   ) : null}
@@ -490,14 +522,14 @@ export default function Signup({
                       className="text-emphasis hover:underline"
                       href={`${WEBSITE_URL}/terms`}
                       target="_blank">
-                      <a>Terms</a>
+                      Terms
                     </Link>{" "}
                     and{" "}
                     <Link
                       className="text-emphasis hover:underline"
                       href={`${WEBSITE_URL}/privacy`}
                       target="_blank">
-                      <a>Privacy Policy</a>
+                      Privacy Policy
                     </Link>
                     .
                   </Trans>
@@ -574,7 +606,7 @@ export default function Signup({
                 <>
                   <div className="max-w-52 mb-8 flex flex-col leading-none sm:mb-0">
                     <div className="text-emphasis items-center">
-                      <feature.icon className="mb-1 h-4 w-4" />
+                      <Icon name={feature.icon} className="mb-1 h-4 w-4" />
                       <span className="text-sm font-medium">{t(feature.title)}</span>
                     </div>
                     <div className="text-subtle text-sm">

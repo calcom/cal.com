@@ -3,8 +3,8 @@ import { components as reactSelectComponents } from "react-select";
 
 import { classNames } from "@calcom/lib";
 
+import { Icon } from "../../..";
 import { UpgradeTeamsBadge, UpgradeOrgsBadge } from "../../badge";
-import { Check } from "../../icon";
 import type { SelectProps } from "./Select";
 
 export const InputComponent = <
@@ -55,7 +55,7 @@ export const OptionComponent = <
         ) : (
           <></>
         )}
-        {props.isSelected && <Check className="ml-2 h-4 w-4" />}
+        {props.isSelected && <Icon name="check" className="ml-2 h-4 w-4" />}
       </div>
     </reactSelectComponents.Option>
   );
