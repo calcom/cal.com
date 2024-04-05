@@ -425,15 +425,11 @@ const BookerComponent = ({
         )}
       </div>
 
-      {!isPlatform ? (
-        <BookFormAsModal
-          onCancel={() => setSelectedTimeslot(null)}
-          visible={bookerState === "booking" && shouldShowFormInDialog}>
-          {EventBooker}
-        </BookFormAsModal>
-      ) : (
-        <></>
-      )}
+      <BookFormAsModal
+        onCancel={() => setSelectedTimeslot(null)}
+        visible={bookerState === "booking" && shouldShowFormInDialog}>
+        {EventBooker}
+      </BookFormAsModal>
     </>
   );
 };

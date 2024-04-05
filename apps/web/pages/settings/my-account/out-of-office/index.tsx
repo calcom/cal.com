@@ -1,7 +1,4 @@
-import { Clock, Plus, Trash2 } from "lucide-react";
-import { Trans } from "next-i18next";
-import { useSearchParams } from "next/navigation";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Controller, useForm, useFormState } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
@@ -12,21 +9,20 @@ import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import {
   Button,
-  Meta,
-  showToast,
-  Select,
-  SkeletonText,
-  UpgradeTeamsBadge,
-  Switch,
   DateRangePicker,
-  Dialog,
-  DialogHeader,
-  DialogContent,
-  DialogFooter,
-  TextArea,
-  EmptyScreen,
+  Meta,
+  Select,
+  showToast,
+  SkeletonText,
+  Switch,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableNew,
+  TableRow,
+  UpgradeTeamsBadge,
 } from "@calcom/ui";
-import { TableNew, TableBody, TableCell, TableRow } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
 
@@ -331,7 +327,7 @@ const OutOfOfficeEntriesList = () => {
                   color="minimal"
                   variant="icon"
                   disabled={deleteOutOfOfficeEntryMutation.isPending}
-                  StartIcon={Trash2}
+                  StartIcon="trash-2"
                   onClick={() => {
                     deleteOutOfOfficeEntryMutation.mutate({ outOfOfficeUid: item.uuid });
                   }}

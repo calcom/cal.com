@@ -1,5 +1,3 @@
-import { StopCircle, Users } from "lucide-react";
-
 export type DataTableUserStorybook = {
   id: string;
   username: string;
@@ -13,14 +11,14 @@ export const dataTableSelectionActions = [
     onClick: () => {
       console.log("Add To Team");
     },
-    icon: Users,
+    icon: "users",
   },
   {
     label: "Delete",
     onClick: () => {
       console.log("Delete");
     },
-    icon: StopCircle,
+    icon: "stop-circle",
   },
 ];
 
