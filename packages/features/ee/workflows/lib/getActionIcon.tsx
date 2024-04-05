@@ -2,25 +2,35 @@ import type { WorkflowStep } from "@prisma/client";
 
 import { isSMSOrWhatsappAction } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
 import { classNames } from "@calcom/lib";
-import { WorkflowActions } from "@calcom/prisma/enums";
-import { Zap, Smartphone, Mail, Bell } from "@calcom/ui/components/icon";
+import { Icon } from "@calcom/ui";
 
 export function getActionIcon(steps: WorkflowStep[], className?: string): JSX.Element {
   if (steps.length === 0) {
-    return <Zap className={classNames(className ? className : "mr-1.5 inline h-3 w-3")} aria-hidden="true" />;
+    return (
+      <Icon
+        name="zap"
+        className={classNames(className ? className : "mr-1.5 inline h-3 w-3")}
+        aria-hidden="true"
+      />
+    );
   }
 
   if (steps.length === 1) {
     if (isSMSOrWhatsappAction(steps[0].action)) {
       return (
-        <Smartphone
+        <Icon
+          name="smartphone"
           className={classNames(className ? className : "mr-1.5 inline h-3 w-3")}
           aria-hidden="true"
         />
       );
     } else {
       return (
-        <Mail className={classNames(className ? className : "mr-1.5 inline h-3 w-3")} aria-hidden="true" />
+        <Icon
+          name="mail"
+          className={classNames(className ? className : "mr-1.5 inline h-3 w-3")}
+          aria-hidden="true"
+        />
       );
     }
   }
@@ -43,21 +53,34 @@ export function getActionIcon(steps: WorkflowStep[], className?: string): JSX.El
     switch (messageType) {
       case "SMS":
         return (
-          <Smartphone
+          <Icon
+            name="smartphone"
             className={classNames(className ? className : "mr-1.5 inline h-3 w-3")}
             aria-hidden="true"
           />
         );
       case "EMAIL":
         return (
-          <Mail className={classNames(className ? className : "mr-1.5 inline h-3 w-3")} aria-hidden="true" />
+          <Icon
+            name="mail"
+            className={classNames(className ? className : "mr-1.5 inline h-3 w-3")}
+            aria-hidden="true"
+          />
         );
       case "MIX":
         return (
-          <Bell className={classNames(className ? className : "mr-1.5 inline h-3 w-3")} aria-hidden="true" />
+          <Icon
+            name="bell"
+            className={classNames(className ? className : "mr-1.5 inline h-3 w-3")}
+            aria-hidden="true"
+          />
         );
       default:
-        <Zap className={classNames(className ? className : "mr-1.5 inline h-3 w-3")} aria-hidden="true" />;
+        <Icon
+          name="zap"
+          className={classNames(className ? className : "mr-1.5 inline h-3 w-3")}
+          aria-hidden="true"
+        />;
     }
   }
 
