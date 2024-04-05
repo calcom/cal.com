@@ -19,6 +19,7 @@ import {
 } from "@calcom/features/ee/organizations/components/OrgUpgradeBanner";
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import HelpMenuItem from "@calcom/features/ee/support/components/HelpMenuItem";
+import useIntercom from "@calcom/features/ee/support/lib/intercom/useIntercom";
 import { TeamsUpgradeBanner, type TeamsUpgradeBannerProps } from "@calcom/features/ee/teams/components";
 import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { KBarContent, KBarRoot, KBarTrigger } from "@calcom/features/kbar/Kbar";
@@ -52,6 +53,7 @@ import { useFormbricks } from "@calcom/lib/formbricks-client";
 import getBrandColours from "@calcom/lib/getBrandColours";
 import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { isKeyInObject } from "@calcom/lib/isKeyInObject";
 import type { User } from "@calcom/prisma/client";
@@ -213,7 +215,16 @@ const useBanners = () => {
 const Layout = (props: LayoutProps) => {
   const banners = useBanners();
 
+  const isMobile = useMediaQuery("(max-width: 768px)");
+  const { data: user } = useMeQuery();
+  const { boot } = useIntercom();
   const pageTitle = typeof props.heading === "string" && !props.title ? props.heading : props.title;
+
+  useEffect(() => {
+    if (user?.showSupport && !isMobile) {
+      boot();
+    }
+  }, [user?.showSupport, isMobile]);
 
   const bannersHeight = useMemo(() => {
     const activeBanners =
@@ -476,7 +487,7 @@ function UserDropdown({ small }: UserDropdownProps) {
             }}
             className="group overflow-hidden rounded-md">
             {helpOpen ? (
-              <HelpMenuItem onHelpItemSelect={() => onHelpItemSelect()} />
+              <HelpMenuItem onHelpItemSelect={() => onHelpItemSelect()} showSupport={user.showSupport} />
             ) : (
               <>
                 <DropdownMenuItem>

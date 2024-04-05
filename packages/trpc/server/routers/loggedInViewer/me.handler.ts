@@ -80,5 +80,6 @@ export const meHandler = async ({ ctx }: MeOptions) => {
     profile: user.profile ?? null,
     profiles: allUserEnrichedProfiles,
     secondaryEmails,
+    showSupport: user.showSupport,
   };
 };

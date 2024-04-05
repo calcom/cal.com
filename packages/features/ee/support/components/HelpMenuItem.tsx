@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useChat } from "react-live-chat-loader";
 
 import classNames from "@calcom/lib/classNames";
-import { JOIN_DISCORD } from "@calcom/lib/constants";
 import { useHasPaidPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -16,16 +15,18 @@ import ContactMenuItem from "./ContactMenuItem";
 
 interface HelpMenuItemProps {
   onHelpItemSelect: () => void;
+  showSupport: boolean;
 }
 
-export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
+export default function HelpMenuItem({ onHelpItemSelect, showSupport }: HelpMenuItemProps) {
   const [rating, setRating] = useState<null | string>(null);
-  const { open } = useIntercom();
+  const { open, shutdown } = useIntercom();
   const [comment, setComment] = useState("");
   const [disableSubmit, setDisableSubmit] = useState(true);
   const [active, setActive] = useState(false);
   const [, loadChat] = useChat();
   const { t } = useLocale();
+  const utils = trpc.useContext();
 
   const { setActive: setFreshChat } = useFreshChat();
 
@@ -34,6 +35,12 @@ export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
       setDisableSubmit(true);
       showToast("Thank you, feedback submitted", "success");
       onHelpItemSelect();
+    },
+  });
+
+  const showIntercomMutation = trpc.viewer.updateProfile.useMutation({
+    onSuccess: async () => {
+      await utils.viewer.me.invalidate();
     },
   });
 
@@ -71,7 +78,6 @@ export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
           <ContactMenuItem onHelpItemSelect={onHelpItemSelect} />
         </div>
       </div>
-
       <hr className="border-muted" />
       <div className="w-full p-5">
         <p className="text-subtle mb-1">{t("feedback").toUpperCase()}</p>
@@ -188,13 +194,30 @@ export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
           </div>
         )}
       </div>
-      <div className="text-subtle bg-muted w-full p-5">
-        <p className="">{t("specific_issue")}</p>
-        {hasPaidPlan ? (
-          <button
-            className="hover:text-emphasis text-defualt font-medium underline"
-            onClick={async () => {
-              setActive(true);
+      {/* visible on desktop */}
+      <div className="text-subtle bg-muted hidden w-full flex-col p-5 md:block">
+        <p className="">{showSupport ? t("no_support_needed") : t("specific_issue")}</p>
+        <button
+          className="hover:text-emphasis text-defualt font-medium underline"
+          onClick={async () => {
+            setActive(true);
+            if (showSupport) {
+              if (isFreshChatEnabled) {
+                setFreshChat(false);
+              } else if (isInterComEnabled) {
+                shutdown();
+              }
+              showIntercomMutation.mutate(
+                {
+                  showSupport: false,
+                },
+                {
+                  onSuccess: () => {
+                    showToast(t("settings_updated_successfully"), "success");
+                  },
+                }
+              );
+            } else {
               if (isFreshChatEnabled) {
                 setFreshChat(true);
               } else if (isInterComEnabled) {
@@ -202,19 +225,44 @@ export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
               } else {
                 loadChat({ open: true });
               }
+              showIntercomMutation.mutate({
+                showSupport: true,
+              });
+            }
+            onHelpItemSelect();
+          }}>
+          {showSupport ? t("hide_support") : t("contact_support")}
+        </button>
+        <span> {t("or").toLowerCase()} </span>
+        <a
+          onClick={() => onHelpItemSelect()}
+          className="hover:text-emphasis text-defualt font-medium underline"
+          href="https://cal.com/docs"
+          target="_blank"
+          rel="noreferrer">
+          {t("browse_our_docs")}
+        </a>
+        .
+      </div>
+      {/* visible on mobile */}
+      <div className="text-subtle bg-muted w-full p-5 md:hidden">
+        <p className="">{t("specific_issue")}</p>
+        <button
+          className="hover:text-emphasis text-defualt font-medium underline"
+          onClick={async () => {
+            setActive(true);
+            if (isFreshChatEnabled) {
+              setFreshChat(true);
+            } else if (isInterComEnabled) {
+              await open();
+            } else {
+              loadChat({ open: true });
+            }
 
-              onHelpItemSelect();
-            }}>
-            {t("contact_support")}
-          </button>
-        ) : (
-          <a
-            href={JOIN_DISCORD}
-            target="_blank"
-            className="hover:text-emphasis text-defualt font-medium underline">
-            {t("community_support")}
-          </a>
-        )}
+            onHelpItemSelect();
+          }}>
+          {t("contact_support")}
+        </button>
         <span> {t("or").toLowerCase()} </span>
         <a
           onClick={() => onHelpItemSelect()}
