@@ -1,6 +1,8 @@
 import { z } from "zod";
 
-export const appDataSchema = z.object({});
+export const appDataSchema = z.object({
+  enabled: z.boolean().optional(),
+});
 
 export const appKeysSchema = z.object({
   consumer_key: z.string().min(1),
