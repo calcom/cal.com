@@ -6,6 +6,7 @@ import { fetcher } from "@calcom/lib/retellAIFetcher";
 import { defaultHandler } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 import { getRetellLLMSchema } from "@calcom/prisma/zod-utils";
+import type { TGetRetellLLMSchema } from "@calcom/prisma/zod-utils";
 import { getAvailableSlots } from "@calcom/trpc/server/routers/viewer/slots/util";
 
 const schema = z.object({
@@ -14,7 +15,7 @@ const schema = z.object({
   to_number: z.string(),
 });
 
-const getEventTypeIdFromRetellLLM = (generalTools) => {
+const getEventTypeIdFromRetellLLM = (generalTools: TGetRetellLLMSchema["general_tools"]) => {
   const generalTool = generalTools.find((tool) => !!tool.event_type_id && !!tool.timezone);
 
   const { event_type_id, timezone } = generalTool;
@@ -62,23 +63,23 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   const startTime = now.startOf("month").toISOString();
   const endTime = now.add(2, "month").endOf("month").toISOString();
-  const orgSlug = eventType?.team?.parent?.slug;
+  const orgSlug = eventType?.team?.parent?.slug ?? undefined;
 
-  const input = {
-    startTime,
-    endTime,
-    eventTypeId,
-    isTeamEvent: !!eventType?.teamId,
-    orgSlug,
-  };
-
-  const availableSlots = await getAvailableSlots({ input });
+  const availableSlots = await getAvailableSlots({
+    input: {
+      startTime,
+      endTime,
+      eventTypeId,
+      isTeamEvent: !!eventType?.teamId,
+      orgSlug,
+    },
+  });
 
   const firstAvailableDate = Object.keys(availableSlots.slots)[0];
-  const firstSlot = availableSlots.slots[firstAvailableDate][0].time;
+  const firstSlot = availableSlots?.slots?.[firstAvailableDate]?.[0]?.time;
 
   return res.status(200).json({
-    next_available: dayjs.utc(firstSlot).format("DD MMMM YYYY h:mmA [GMT]"),
+    next_available: firstSlot ? dayjs.utc(firstSlot).format("DD MMMM YYYY h:mmA [GMT]") : undefined,
   });
 }
 

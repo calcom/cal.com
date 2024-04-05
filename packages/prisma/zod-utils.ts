@@ -737,3 +737,5 @@ export const getRetellLLMSchema = z
     ),
   })
   .passthrough();
+
+export type TGetRetellLLMSchema = z.infer<typeof getRetellLLMSchema>;
