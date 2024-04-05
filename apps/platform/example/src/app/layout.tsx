@@ -49,7 +49,6 @@ export default function RootLayout({
       <AxiomWebVitals />
       <body
         className={cn(
-          // TODO add cal's fonts
           "antialiased",
           calFont.variable,
           interFont.variable,
