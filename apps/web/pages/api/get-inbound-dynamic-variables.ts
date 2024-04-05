@@ -15,7 +15,9 @@ const schema = z.object({
   to_number: z.string(),
 });
 
-const getEventTypeIdFromRetellLLM = (generalTools: TGetRetellLLMSchema["general_tools"]) => {
+const getEventTypeIdFromRetellLLM = (
+  generalTools: TGetRetellLLMSchema["general_tools"]
+): { eventTypeId: number; timezone: string } => {
   const generalTool = generalTools.find((tool) => !!tool.event_type_id && !!tool.timezone);
 
   const { event_type_id, timezone } = generalTool;
