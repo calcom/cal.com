@@ -103,14 +103,12 @@ export class EventTypesService {
   async createUserDefaultEventTypes(userId: number) {
     const { sixtyMinutes, sixtyMinutesVideo, thirtyMinutes, thirtyMinutesVideo } = DEFAULT_EVENT_TYPES;
 
-    const defaultEventTypes = await Promise.all([
+    return await Promise.all([
       this.eventTypesRepository.createUserEventType(userId, thirtyMinutes),
       this.eventTypesRepository.createUserEventType(userId, sixtyMinutes),
       this.eventTypesRepository.createUserEventType(userId, thirtyMinutesVideo),
       this.eventTypesRepository.createUserEventType(userId, sixtyMinutesVideo),
     ]);
-
-    return defaultEventTypes;
   }
 
   async updateEventType(eventTypeId: number, body: UpdateEventTypeInput, user: UserWithProfile) {
