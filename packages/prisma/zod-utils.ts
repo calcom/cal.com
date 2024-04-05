@@ -702,12 +702,8 @@ export const AIPhoneSettingSchema = z.object({
   guestName: z.string().trim().min(1, {
     message: "Please enter Guest Name",
   }),
-  guestEmail: z.string().trim().email().min(1, {
-    message: "Please enter Guest Email",
-  }),
-  guestCompany: z.string().trim().min(1, {
-    message: "Please enter Guest Company",
-  }),
+  guestEmail: z.string().email().optional(),
+  guestCompany: z.string().optional(),
   generalPrompt: z.string().trim().min(1, {
     message: "Please enter prompt",
   }),
@@ -717,3 +713,25 @@ export const AIPhoneSettingSchema = z.object({
     message: "Please enter CAL API Key",
   }),
 });
+
+export const getRetellLLMSchema = z
+  .object({
+    general_prompt: z.string(),
+    begin_message: z.string().nullable(),
+    llm_id: z.string(),
+    llm_websocket_url: z.string(),
+    general_tools: z.array(
+      z
+        .object({
+          name: z.string(),
+          type: z.string(),
+          cal_api_key: z.string().optional(),
+          event_type_id: z.number().optional(),
+          timezone: z.string().optional(),
+        })
+        .passthrough()
+    ),
+  })
+  .passthrough();
+
+export type TGetRetellLLMSchema = z.infer<typeof getRetellLLMSchema>;
