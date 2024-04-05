@@ -19,7 +19,9 @@ export class AccessTokenMockStrategy extends PassportStrategy(BaseStrategy, "acc
       return this.success(user);
     } catch (error) {
       console.error(error);
-      if (error instanceof Error) return this.error(error);
+      if (error instanceof Error) {
+        return this.error(error);
+      }
     }
   }
 }
