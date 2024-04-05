@@ -35,7 +35,9 @@ export class SchedulesService {
   async getUserScheduleDefault(userId: number) {
     const user = await this.usersRepository.findById(userId);
 
-    if (!user?.defaultScheduleId) return null;
+    if (!user?.defaultScheduleId) {
+      return null;
+    }
 
     return this.schedulesRepository.getScheduleById(user.defaultScheduleId);
   }
