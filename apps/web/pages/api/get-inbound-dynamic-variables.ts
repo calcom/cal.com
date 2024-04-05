@@ -81,7 +81,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   const firstSlot = availableSlots?.slots?.[firstAvailableDate]?.[0]?.time;
 
   return res.status(200).json({
-    next_available: firstSlot ? dayjs.utc(firstSlot).format("dddd [the] D [at] h:mma [GMT]") : undefined,
+    next_available: firstSlot ? dayjs.utc(firstSlot).format("dddd [the] Do [at] h:mma [GMT]") : undefined,
   });
 }
 
