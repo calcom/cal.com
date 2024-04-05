@@ -50,6 +50,7 @@ import {
 } from "../lib/actionHelperFunctions";
 import { DYNAMIC_TEXT_VARIABLES } from "../lib/constants";
 import { getWorkflowTemplateOptions, getWorkflowTriggerOptions } from "../lib/getOptions";
+import emailRatingTemplate from "../lib/reminders/templates/emailRatingTemplate";
 import emailReminderTemplate from "../lib/reminders/templates/emailReminderTemplate";
 import smsReminderTemplate from "../lib/reminders/templates/smsReminderTemplate";
 import { whatsappReminderTemplate } from "../lib/reminders/templates/whatsapp";
@@ -739,6 +740,15 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                                   emailReminderTemplate(true, action, timeFormat).emailSubject
                                 );
                               }
+                            } else if (val.value === WorkflowTemplates.RATING) {
+                              form.setValue(
+                                `steps.${step.stepNumber - 1}.reminderBody`,
+                                emailRatingTemplate({ isEditingMode: true, action, timeFormat }).emailBody
+                              );
+                              form.setValue(
+                                `steps.${step.stepNumber - 1}.emailSubject`,
+                                emailRatingTemplate({ isEditingMode: true, action, timeFormat }).emailSubject
+                              );
                             } else {
                               if (isWhatsappAction(action)) {
                                 form.setValue(
