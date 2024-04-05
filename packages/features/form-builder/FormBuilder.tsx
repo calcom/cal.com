@@ -120,6 +120,13 @@ export const FormBuilder = function FormBuilder({
               : field.getOptionsAt
               ? dataStore.options[field.getOptionsAt as keyof typeof dataStore]
               : [];
+
+            // Note: We recently started calling getAndUpdateNormalizedValues in the FormBuilder. It was supposed to be called only on booking pages earlier.
+            // Due to this we have to meet some strict requirements like of labelAsSafeHtml.
+            if (fieldsThatSupportLabelAsSafeHtml.includes(field.type)) {
+              field = { ...field, labelAsSafeHtml: markdownToSafeHTML(field.label ?? "") };
+            }
+
             const { hidden } = getAndUpdateNormalizedValues({ ...field, options }, t);
             if (field.hideWhenJustOneOption && (hidden || !options?.length)) {
               return null;
