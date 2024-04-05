@@ -85,7 +85,7 @@ test.describe("Manage Booking Questions", () => {
           expect(await getLabelText(userFieldLocator)).toBe("Agree to terms");
           // Verify that markdown is working
           expect(await getLabelLocator(userFieldLocator).locator("a").getAttribute("href")).toBe(
-            "https://example.com/terdms"
+            "https://example.com/terms"
           );
           await expect(userFieldLocator.locator("input")).toBeVisible();
         });
