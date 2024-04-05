@@ -101,7 +101,7 @@ describe("Event types Endpoints", () => {
       await app.init();
     });
 
-    async function createOAuthClient(organizationId: number) {
+    const createOAuthClient = async (organizationId: number) => {
       const data = {
         logo: "logo-url",
         name: "name",
@@ -110,9 +110,8 @@ describe("Event types Endpoints", () => {
       };
       const secret = "secret";
 
-      const client = await oauthClientRepositoryFixture.create(organizationId, data, secret);
-      return client;
-    }
+      return await oauthClientRepositoryFixture.create(organizationId, data, secret);
+    };
 
     it("should be defined", () => {
       expect(oauthClientRepositoryFixture).toBeDefined();
