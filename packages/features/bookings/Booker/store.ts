@@ -118,6 +118,8 @@ export type BookerStore = {
   rescheduleUid: string | null;
   bookingUid: string | null;
   bookingData: GetBookingType | null;
+  setBookingData: (bookingData: GetBookingType | null | undefined) => void;
+
   /**
    * Method called by booker component to set initial data.
    */
@@ -316,6 +318,9 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
   setSelectedDuration: (selectedDuration: number | null) => {
     set({ selectedDuration });
     updateQueryParam("duration", selectedDuration ?? "");
+  },
+  setBookingData: (bookingData: GetBookingType | null | undefined) => {
+    set({ bookingData: bookingData ?? null });
   },
   recurringEventCount: null,
   setRecurringEventCount: (recurringEventCount: number | null) => set({ recurringEventCount }),

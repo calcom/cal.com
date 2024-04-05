@@ -4,7 +4,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { ButtonProps } from "@calcom/ui";
 import { Button, ConfirmationDialogContent, Dialog, DialogTrigger, showToast } from "@calcom/ui";
-import { Trash } from "@calcom/ui/components/icon";
 
 export default function DisconnectIntegration({
   credentialId,
@@ -47,7 +46,7 @@ export default function DisconnectIntegration({
         <DialogTrigger asChild>
           <Button
             color={buttonProps?.color || "destructive"}
-            StartIcon={trashIcon ? Trash : undefined}
+            StartIcon={!trashIcon ? undefined : "trash"}
             size="base"
             variant={trashIcon && !label ? "icon" : "button"}
             disabled={isGlobal}

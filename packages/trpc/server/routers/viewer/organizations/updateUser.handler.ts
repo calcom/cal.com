@@ -1,5 +1,6 @@
 import type { Prisma, PrismaPromise, User, Membership, Profile } from "@prisma/client";
 
+import { ensureOrganizationIsReviewed } from "@calcom/ee/organizations/lib/ensureOrganizationIsReviewed";
 import { checkRegularUsername } from "@calcom/lib/server/checkRegularUsername";
 import { isOrganisationAdmin, isOrganisationOwner } from "@calcom/lib/server/queries/organisations";
 import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
@@ -41,6 +42,8 @@ export const updateUserHandler = async ({ ctx, input }: UpdateUserOptions) => {
     throw new TRPCError({ code: "UNAUTHORIZED", message: "You must be a memeber of an organizaiton" });
 
   if (!(await isOrganisationAdmin(userId, organizationId))) throw new TRPCError({ code: "UNAUTHORIZED" });
+
+  await ensureOrganizationIsReviewed(organizationId);
 
   const isUpdaterAnOwner = await isOrganisationOwner(userId, organizationId);
   // only OWNER can update the role to OWNER

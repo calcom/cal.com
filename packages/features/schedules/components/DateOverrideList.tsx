@@ -1,7 +1,6 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { TimeRange, WorkingHours } from "@calcom/types/schedule";
-import { Button, DialogTrigger, Tooltip } from "@calcom/ui";
-import { Edit2, Trash2 } from "@calcom/ui/components/icon";
+import { Button, DialogTrigger, Icon, Tooltip } from "@calcom/ui";
 
 import DateOverrideInputDialog from "./DateOverrideInputDialog";
 
@@ -13,6 +12,7 @@ const sortByDate = (a: { ranges: TimeRange[]; id: string }, b: { ranges: TimeRan
 const DateOverrideList = ({
   workingHours,
   excludedDates = [],
+  userTimeFormat,
   hour12,
   replace,
   fields,
@@ -22,6 +22,7 @@ const DateOverrideList = ({
   fields: { ranges: TimeRange[]; id: string }[];
   workingHours: WorkingHours[];
   excludedDates?: string[];
+  userTimeFormat: number | null;
   hour12: boolean;
 }) => {
   const { t, i18n } = useLocale();
@@ -68,6 +69,7 @@ const DateOverrideList = ({
           </div>
           <div className="flex flex-row-reverse gap-5 space-x-2 rtl:space-x-reverse">
             <DateOverrideInputDialog
+              userTimeFormat={userTimeFormat}
               excludedDates={excludedDates}
               workingHours={workingHours}
               value={item.ranges}
@@ -83,7 +85,7 @@ const DateOverrideList = ({
                     className="text-default"
                     color="minimal"
                     variant="icon"
-                    StartIcon={Edit2}
+                    StartIcon="pencil"
                   />
                 </DialogTrigger>
               }
@@ -102,7 +104,7 @@ const DateOverrideList = ({
                 })}
                 color="destructive"
                 variant="icon"
-                StartIcon={Trash2}
+                StartIcon="trash-2"
                 onClick={() => {
                   replace([...fields.filter((currentItem) => currentItem.id !== item.id)]);
                 }}

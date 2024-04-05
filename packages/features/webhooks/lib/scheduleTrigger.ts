@@ -302,6 +302,11 @@ export async function scheduleTrigger(
         payload,
         startAfter: triggerEvent === WebhookTriggerEvents.MEETING_ENDED ? booking.endTime : booking.startTime,
         subscriberUrl,
+        webhook: {
+          connect: {
+            id: subscriber.id,
+          },
+        },
       },
     });
 
