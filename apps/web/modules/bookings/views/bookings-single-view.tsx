@@ -48,7 +48,6 @@ import { BookingStatus } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import {
-  Alert,
   Badge,
   Button,
   EmailInput,
@@ -59,6 +58,7 @@ import {
   EmptyScreen,
   Icon,
 } from "@calcom/ui";
+import { Alert } from "@calcom/ui/alert";
 
 import { timeZone } from "@lib/clock";
 

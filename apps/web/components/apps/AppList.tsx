@@ -11,7 +11,6 @@ import type { AppCategories } from "@calcom/prisma/enums";
 import { trpc, type RouterOutputs } from "@calcom/trpc";
 import type { App } from "@calcom/types/App";
 import {
-  Alert,
   Button,
   Dropdown,
   DropdownItem,
@@ -21,6 +20,7 @@ import {
   List,
   showToast,
 } from "@calcom/ui";
+import { Alert } from "@calcom/ui/alert";
 
 import AppListCard from "@components/AppListCard";
 

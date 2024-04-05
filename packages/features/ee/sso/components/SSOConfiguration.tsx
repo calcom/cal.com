@@ -4,7 +4,8 @@ import OIDCConnection from "@calcom/features/ee/sso/components/OIDCConnection";
 import SAMLConnection from "@calcom/features/ee/sso/components/SAMLConnection";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Meta, Alert, SkeletonContainer, SkeletonText } from "@calcom/ui";
+import { Meta, SkeletonContainer, SkeletonText } from "@calcom/ui";
+import { Alert } from "@calcom/ui/alert";
 
 const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
   return (

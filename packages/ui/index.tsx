@@ -97,8 +97,6 @@ export { TableActions, DropdownActions } from "./components/table/TableActions";
 export type { ActionType } from "./components/table/TableActions";
 export { ErrorBoundary } from "./components/errorBoundary";
 export { Logo } from "./components/logo";
-export { Alert } from "./components/alert";
-export type { AlertProps } from "./components/alert";
 export { Credits } from "./components/credits";
 export { Divider, VerticalDivider } from "./components/divider";
 export { EmptyScreen } from "./components/empty-screen";

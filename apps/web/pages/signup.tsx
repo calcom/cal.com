@@ -34,17 +34,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { signupSchema as apiSignupSchema } from "@calcom/prisma/zod-utils";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
-import {
-  Button,
-  HeadSeo,
-  PasswordField,
-  TextField,
-  Form,
-  Alert,
-  showToast,
-  CheckboxField,
-  Icon,
-} from "@calcom/ui";
+import { Button, HeadSeo, PasswordField, TextField, Form, showToast, CheckboxField, Icon } from "@calcom/ui";
+import { Alert } from "@calcom/ui/alert";
 
 import { getServerSideProps } from "@lib/signup/getServerSideProps";
 

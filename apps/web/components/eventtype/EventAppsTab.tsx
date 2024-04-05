@@ -11,7 +11,8 @@ import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hook
 import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Alert, Button, EmptyScreen } from "@calcom/ui";
+import { Button, EmptyScreen } from "@calcom/ui";
+import { Alert } from "@calcom/ui/alert";
 
 export type EventType = Pick<EventTypeSetupProps, "eventType">["eventType"] &
   EventTypeAppCardComponentProps["eventType"];

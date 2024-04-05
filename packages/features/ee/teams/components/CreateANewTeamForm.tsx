@@ -5,7 +5,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import { Alert, Button, DialogFooter, Form, TextField } from "@calcom/ui";
+import { Button, DialogFooter, Form, TextField } from "@calcom/ui";
+import { Alert } from "@calcom/ui/alert";
 
 import { useOrgBranding } from "../../organizations/context/provider";
 import { subdomainSuffix } from "../../organizations/lib/orgDomains";

@@ -11,7 +11,8 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import { TRPCClientError } from "@calcom/trpc/react";
-import { Button, EmptyScreen, Alert } from "@calcom/ui";
+import { Button, EmptyScreen } from "@calcom/ui";
+import { Alert } from "@calcom/ui/alert";
 
 import PageWrapper from "@components/PageWrapper";
 

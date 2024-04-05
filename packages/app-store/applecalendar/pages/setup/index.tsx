@@ -5,7 +5,8 @@ import { Toaster } from "react-hot-toast";
 
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Alert, Button, Form, PasswordField, TextField } from "@calcom/ui";
+import { Button, Form, PasswordField, TextField } from "@calcom/ui";
+import { Alert } from "@calcom/ui/alert";
 
 export default function AppleCalendarSetup() {
   const { t } = useLocale();

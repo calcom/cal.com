@@ -8,7 +8,6 @@ import DestinationCalendarSelector from "@calcom/features/calendars/DestinationC
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import {
-  Alert,
   Button,
   EmptyScreen,
   Label,
@@ -17,6 +16,7 @@ import {
   AppSkeletonLoader as SkeletonLoader,
   showToast,
 } from "@calcom/ui";
+import { Alert } from "@calcom/ui/alert";
 
 import { QueryCell } from "@lib/QueryCell";
 import useRouterQuery from "@lib/hooks/useRouterQuery";

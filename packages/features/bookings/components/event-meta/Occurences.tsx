@@ -4,8 +4,9 @@ import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { parseRecurringDates } from "@calcom/lib/parse-dates";
 import { getRecurringFreq } from "@calcom/lib/recurringStrings";
-import { Tooltip, Alert } from "@calcom/ui";
+import { Tooltip } from "@calcom/ui";
 import { Input } from "@calcom/ui";
+import { Alert } from "@calcom/ui/alert";
 
 import { useTimePreferences } from "../../lib";
 import type { PublicEvent } from "../../types";

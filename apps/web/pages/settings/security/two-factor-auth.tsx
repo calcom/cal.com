@@ -5,15 +5,8 @@ import { useState } from "react";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import {
-  Badge,
-  Meta,
-  SkeletonButton,
-  SkeletonContainer,
-  SkeletonText,
-  Alert,
-  SettingsToggle,
-} from "@calcom/ui";
+import { Badge, Meta, SkeletonButton, SkeletonContainer, SkeletonText, SettingsToggle } from "@calcom/ui";
+import { Alert } from "@calcom/ui/alert";
 
 import PageWrapper from "@components/PageWrapper";
 import DisableTwoFactorModal from "@components/settings/DisableTwoFactorModal";

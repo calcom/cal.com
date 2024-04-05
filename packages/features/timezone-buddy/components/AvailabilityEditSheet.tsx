@@ -10,7 +10,6 @@ import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import type { Schedule as ScheduleType, TimeRange, WorkingHours } from "@calcom/types/schedule";
 import {
-  Alert,
   Button,
   Form,
   Label,
@@ -21,6 +20,7 @@ import {
   showToast,
   TimezoneSelect,
 } from "@calcom/ui";
+import { Alert } from "@calcom/ui/alert";
 
 import type { SliderUser } from "./AvailabilitySliderTable";
 
@@ -71,11 +71,7 @@ const DateOverride = ({ workingHours, disabled }: { workingHours: WorkingHours[]
           excludedDates={excludedDates}
           onChange={(ranges) => ranges.forEach((range) => append({ ranges: [range] }))}
           Trigger={
-            <Button
-              color="secondary"
-              StartIcon="plus"
-              data-testid="add-override"
-              disabled={disabled}>
+            <Button color="secondary" StartIcon="plus" data-testid="add-override" disabled={disabled}>
               {t("add_an_override")}
             </Button>
           }

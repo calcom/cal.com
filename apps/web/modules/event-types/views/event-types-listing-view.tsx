@@ -32,7 +32,6 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc, TRPCClientError } from "@calcom/trpc/react";
 import type { UserProfile } from "@calcom/types/UserProfile";
 import {
-  Alert,
   Badge,
   Button,
   ButtonGroup,
@@ -57,6 +56,7 @@ import {
   Tooltip,
   ArrowButton,
 } from "@calcom/ui";
+import { Alert } from "@calcom/ui/alert";
 import { Avatar, UserAvatarGroup } from "@calcom/ui/avatar";
 
 import type { AppProps } from "@lib/app-providers";

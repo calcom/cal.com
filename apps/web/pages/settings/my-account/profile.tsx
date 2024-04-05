@@ -24,7 +24,6 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/server/routers/_app";
 import type { Ensure } from "@calcom/types/utils";
 import {
-  Alert,
   Button,
   Dialog,
   DialogClose,
@@ -45,6 +44,7 @@ import {
   TextField,
   UserAvatar,
 } from "@calcom/ui";
+import { Alert } from "@calcom/ui/alert";
 
 import PageWrapper from "@components/PageWrapper";
 import TwoFactor from "@components/auth/TwoFactor";

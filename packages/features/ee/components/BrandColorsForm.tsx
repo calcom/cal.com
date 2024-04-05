@@ -6,7 +6,8 @@ import { classNames } from "@calcom/lib";
 import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR } from "@calcom/lib/constants";
 import { checkWCAGContrastColor } from "@calcom/lib/getBrandColours";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button, ColorPicker, SettingsToggle, Alert } from "@calcom/ui";
+import { Button, ColorPicker, SettingsToggle } from "@calcom/ui";
+import { Alert } from "@calcom/ui/alert";
 
 type BrandColorsFormValues = {
   brandColor: string;

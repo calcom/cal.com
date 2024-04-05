@@ -5,7 +5,8 @@ import React, { Fragment, useEffect } from "react";
 
 import { SUPPORT_MAIL_ADDRESS, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { EmptyScreen, Alert } from "@calcom/ui";
+import { EmptyScreen } from "@calcom/ui";
+import { Alert } from "@calcom/ui/alert";
 
 type LicenseRequiredProps = {
   as?: keyof JSX.IntrinsicElements | "";

@@ -24,7 +24,8 @@ import { stringOrNumber } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui";
-import { Alert, Badge, Button, Form, showToast } from "@calcom/ui";
+import { Badge, Button, Form, showToast } from "@calcom/ui";
+import { Alert } from "@calcom/ui/alert";
 
 import LicenseRequired from "../../common/components/LicenseRequired";
 import SkeletonLoader from "../components/SkeletonLoaderEdit";

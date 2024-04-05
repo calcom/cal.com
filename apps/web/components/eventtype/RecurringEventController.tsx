@@ -8,7 +8,8 @@ import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Frequency } from "@calcom/prisma/zod-utils";
 import type { RecurringEvent } from "@calcom/types/Calendar";
-import { Alert, Select, SettingsToggle, TextField } from "@calcom/ui";
+import { Select, SettingsToggle, TextField } from "@calcom/ui";
+import { Alert } from "@calcom/ui/alert";
 
 type RecurringEventControllerProps = {
   eventType: EventTypeSetup;

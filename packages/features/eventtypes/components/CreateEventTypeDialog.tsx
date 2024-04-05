@@ -18,7 +18,6 @@ import { unlockedManagedEventTypeProps } from "@calcom/prisma/zod-utils";
 import { createEventTypeInput } from "@calcom/prisma/zod/custom/eventtype";
 import { trpc } from "@calcom/trpc/react";
 import {
-  Alert,
   Button,
   Dialog,
   DialogClose,
@@ -30,6 +29,7 @@ import {
   showToast,
   TextField,
 } from "@calcom/ui";
+import { Alert } from "@calcom/ui/alert";
 
 // this describes the uniform data needed to create a new event type on Profile or Team
 export interface EventTypeParent {

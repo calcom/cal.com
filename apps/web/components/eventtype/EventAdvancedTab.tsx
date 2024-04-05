@@ -25,7 +25,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { Prisma } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
 import {
-  Alert,
   Button,
   Badge,
   CheckboxField,
@@ -38,6 +37,7 @@ import {
   Tooltip,
   showToast,
 } from "@calcom/ui";
+import { Alert } from "@calcom/ui/alert";
 
 import RequiresConfirmationController from "./RequiresConfirmationController";
 
