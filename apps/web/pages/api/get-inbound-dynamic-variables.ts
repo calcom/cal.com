@@ -17,12 +17,12 @@ const schema = z.object({
 
 const getEventTypeIdFromRetellLLM = (
   generalTools: TGetRetellLLMSchema["general_tools"]
-): { eventTypeId: number; timezone: string } => {
+): { eventTypeId?: number } => {
   const generalTool = generalTools.find((tool) => !!tool.event_type_id && !!tool.timezone);
 
-  const { event_type_id, timezone } = generalTool;
+  const { event_type_id } = generalTool;
 
-  return { eventTypeId: event_type_id, timezone };
+  return { eventTypeId: event_type_id };
 };
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -38,7 +38,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   const retellLLM = await fetcher(`/get-retell-llm/${body.llm_id}`).then(getRetellLLMSchema.parse);
 
-  const { eventTypeId, timezone } = getEventTypeIdFromRetellLLM(retellLLM.general_tools);
+  const { eventTypeId } = getEventTypeIdFromRetellLLM(retellLLM.general_tools);
+
+  if (!eventType) return res.status(404).json({ message: "eventTypeId and timezone not found" });
 
   const eventType = await prisma.eventType.findUnique({
     where: {
@@ -59,7 +61,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     },
   });
 
-  if (!eventType) return res.status(500).json({ message: "eventType not found id" });
+  if (!eventType) return res.status(404).json({ message: "eventType not found id" });
 
   const now = dayjs();
 
