@@ -33,10 +33,11 @@ export { getServerSideProps };
 export type PageProps = inferSSRProps<typeof getServerSideProps>;
 function TeamPage({
   team,
-  isUnpublished,
+  shouldShowAsUnpublished,
   markdownStrippedBio,
   isValidOrgDomain,
   currentOrgDomain,
+  organization,
 }: PageProps) {
   useTheme(team.theme);
   const routerQuery = useRouterQuery();
@@ -58,13 +59,15 @@ function TeamPage({
     );
   }, [telemetry, pathname]);
 
-  if (isUnpublished) {
+  if (shouldShowAsUnpublished) {
     const slug = team.slug || metadata?.requestedSlug;
     return (
       <div className="flex h-full min-h-[100dvh] items-center justify-center">
         <UnpublishedEntity
-          {...(team?.isOrganization || team.parentId ? { orgSlug: slug } : { teamSlug: slug })}
-          name={teamName}
+          {...(organization
+            ? { orgSlug: organization.slug ?? organization.metadata?.requestedSlug }
+            : { teamSlug: slug })}
+          name={organization ? organization.name : team.name}
         />
       </div>
     );

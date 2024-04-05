@@ -124,7 +124,7 @@ export const getPublicEvent = async (
   eventSlug: string,
   isTeamEvent: boolean | undefined,
   org: string | null,
-  isARedirectFromOldLink: boolean,
+  isARedirectFromNonOrgLink: boolean,
   prisma: PrismaClient
 ) => {
   const usernameList = getUsernameList(username);
@@ -187,7 +187,7 @@ export const getPublicEvent = async (
         ),
       },
       entity: {
-        isARedirectFromOldLink,
+        isARedirectFromNonOrgLink,
         isUnpublished: unPublishedOrgUser !== undefined,
         orgSlug: org,
         name: unPublishedOrgUser?.profile?.organization?.name ?? null,

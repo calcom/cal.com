@@ -19,14 +19,17 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     },
   });
   if (team) {
-    return GSSTeamPage({ ...ctx, query: { slug: ctx.query.user } });
+    return GSSTeamPage({
+      ...ctx,
+      query: { slug: ctx.query.user, orgRedirection: ctx.query.orgRedirection },
+    });
   }
   return GSSUserPage({
     ...ctx,
     query: {
       user: ctx.query.user,
       redirect: ctx.query.redirect,
-      cameFromUserLink: ctx.query.cameFromUserLink,
+      orgRedirection: ctx.query.orgRedirection,
     },
   });
 };

@@ -53,8 +53,8 @@ export function UserPage(props: InferGetServerSidePropsType<typeof getServerSide
       telemetry.event(telemetryEventTypes.embedView, collectPageParameters("/[user]"));
     }
   }, [telemetry, router.asPath]); */
-
-  if (entity?.isUnpublished && !entity.isARedirectFromOldLink) {
+  const shouldShowAsUnpublished = entity?.isUnpublished && !entity.isARedirectFromNonOrgLink;
+  if (shouldShowAsUnpublished) {
     return (
       <div className="flex h-full min-h-[100dvh] items-center justify-center">
         <UnpublishedEntity {...entity} />

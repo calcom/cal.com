@@ -83,7 +83,10 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   return {
     props: {
       eventData: {
-        entity: eventData.entity,
+        entity: {
+          isARedirectFromNonOrgLink: context.query.orgRedirection === "true",
+          ...eventData.entity,
+        },
         length: eventData.length,
         metadata: eventData.metadata,
       },

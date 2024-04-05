@@ -47,6 +47,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   });
 
   const team = await getTeamWithMembers({
+    // It only finds those teams that have slug set. So, if only requestedSlug is set, it won't get that team
     slug: slugify(slug ?? ""),
     orgSlug: currentOrgDomain,
     isTeamView: true,
@@ -78,17 +79,13 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     return { notFound: true } as const;
   }
 
-  if (!team || (team.parent && !team.parent.slug)) {
+  if (!team) {
     const unpublishedTeam = await prisma.team.findFirst({
       where: {
-        ...(team?.parent
-          ? { id: team.parent.id }
-          : {
-              metadata: {
-                path: ["requestedSlug"],
-                equals: slug,
-              },
-            }),
+        metadata: {
+          path: ["requestedSlug"],
+          equals: slug,
+        },
       },
       include: {
         parent: {
@@ -96,8 +93,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
             id: true,
             slug: true,
             name: true,
-            isPrivate: true,
             isOrganization: true,
+            isPrivate: true,
           },
         },
       },
@@ -107,7 +104,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
     return {
       props: {
-        isUnpublished: true,
+        shouldShowAsUnpublished: true,
         team: { ...unpublishedTeam, createdAt: null },
         trpcState: ssr.dehydrate(),
       },
@@ -152,6 +149,34 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const { inviteToken: _inviteToken, ...serializableTeam } = team;
 
+  // For a team we check if it's unpublished
+  // For a subteam, we check if the parent org is unpublished. A subteam can never be unpublished in itself
+  const isUnpublished = team.parent ? !team.parent.slug : !team.slug;
+  const isARedirectFromNonOrgLink = context.query.orgRedirection === "true";
+  const organization = team.parent
+    ? {
+        ...team.parent,
+        metadata: team.parent.metadata ? teamMetadataSchema.parse(team.parent.metadata) : null,
+      }
+    : null;
+
+  const shouldShowAsUnpublished = isUnpublished && !isARedirectFromNonOrgLink;
+
+  if (shouldShowAsUnpublished) {
+    console.log({
+      team,
+      organization,
+    });
+    return {
+      props: {
+        shouldShowAsUnpublished: true,
+        team: { ...serializableTeam },
+        organization,
+        trpcState: ssr.dehydrate(),
+      },
+    } as const;
+  }
+
   return {
     props: {
       team: {
@@ -161,6 +186,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         metadata,
         children: isTeamOrParentOrgPrivate ? [] : team.children,
       },
+      organization,
       themeBasis: serializableTeam.slug,
       trpcState: ssr.dehydrate(),
       markdownStrippedBio,
