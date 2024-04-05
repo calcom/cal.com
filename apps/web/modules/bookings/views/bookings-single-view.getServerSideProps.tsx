@@ -47,7 +47,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   let tz: string | null = null;
   let userTimeFormat: number | null = null;
   let requiresLoginToUpdate = false;
-  if (session) {
+  if (session && !session.user.isOverlayUser) {
     const user = await ssr.viewer.me.fetch();
     tz = user.timeZone;
     userTimeFormat = user.timeFormat;
@@ -80,7 +80,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     } as const;
   }
 
-  if (eventTypeRaw.seatsPerTimeSlot && !seatReferenceUid && !session) {
+  if (eventTypeRaw.seatsPerTimeSlot && !seatReferenceUid && (!session || session?.user?.isOverlayUser)) {
     requiresLoginToUpdate = true;
   }
 
@@ -145,6 +145,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const userId = session?.user?.id;
   const isLoggedInUserHost =
+    !session?.user?.isOverlayUser &&
     userId &&
     (eventType.users.some((user) => user.id === userId) ||
       eventType.hosts.some(({ user }) => user.id === userId));
