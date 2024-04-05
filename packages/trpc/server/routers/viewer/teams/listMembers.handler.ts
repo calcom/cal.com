@@ -14,6 +14,13 @@ type ListMembersOptions = {
 
 export const listMembersHandler = async ({ ctx, input }: ListMembersOptions) => {
   const { prisma } = ctx;
+  const { isOrgAdmin } = ctx.user.organization;
+  const hasPermsToView = ctx.user.organization.isPrivate ? isOrgAdmin : true;
+
+  if (!hasPermsToView) {
+    return [];
+  }
+
   const teams = await prisma.team.findMany({
     where: {
       id: {
