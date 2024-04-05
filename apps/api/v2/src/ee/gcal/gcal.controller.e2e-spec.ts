@@ -61,7 +61,7 @@ describe("Platform Gcal Endpoints", () => {
     await app.init();
   });
 
-  async function createOAuthClient(organizationId: number) {
+  const createOAuthClient = async (organizationId: number) => {
     const data = {
       logo: "logo-url",
       name: "name",
@@ -70,9 +70,8 @@ describe("Platform Gcal Endpoints", () => {
     };
     const secret = "secret";
 
-    const client = await oauthClientRepositoryFixture.create(organizationId, data, secret);
-    return client;
-  }
+    return await oauthClientRepositoryFixture.create(organizationId, data, secret);
+  };
 
   it("should be defined", () => {
     expect(oauthClientRepositoryFixture).toBeDefined();
@@ -96,7 +95,7 @@ describe("Platform Gcal Endpoints", () => {
       .set("Authorization", `Bearer ${accessTokenSecret}`)
       .set("Origin", CLIENT_REDIRECT_URI)
       .expect(200);
-    const data = response.body.data;
+    const { data } = response.body;
     expect(data.authUrl).toBeDefined();
   });
 
