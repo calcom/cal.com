@@ -1,6 +1,5 @@
 /* eslint-disable @calcom/eslint/deprecated-imports */
 import dayjs from "dayjs";
-import advancedFormat from "dayjs/plugin/advancedFormat";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import duration from "dayjs/plugin/duration";
 import isBetween from "dayjs/plugin/isBetween";
@@ -25,7 +24,6 @@ dayjs.extend(toArray);
 dayjs.extend(utc);
 dayjs.extend(minmax);
 dayjs.extend(duration);
-dayjs.extend(advancedFormat);
 
 export type Dayjs = dayjs.Dayjs;
 

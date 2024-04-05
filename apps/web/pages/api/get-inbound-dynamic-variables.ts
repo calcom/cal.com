@@ -1,3 +1,4 @@
+import advancedFormat from "dayjs/plugin/advancedFormat";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 
@@ -8,6 +9,8 @@ import prisma from "@calcom/prisma";
 import { getRetellLLMSchema } from "@calcom/prisma/zod-utils";
 import type { TGetRetellLLMSchema } from "@calcom/prisma/zod-utils";
 import { getAvailableSlots } from "@calcom/trpc/server/routers/viewer/slots/util";
+
+dayjs.extend(advancedFormat);
 
 const schema = z.object({
   llm_id: z.string(),
