@@ -13,7 +13,6 @@ import { MembershipRole } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import {
-  Avatar,
   Badge,
   Button,
   ButtonGroup,
@@ -29,6 +28,7 @@ import {
   showToast,
   Tooltip,
 } from "@calcom/ui";
+import { Avatar } from "@calcom/ui/avatar";
 
 import { TeamRole } from "./TeamPill";
 

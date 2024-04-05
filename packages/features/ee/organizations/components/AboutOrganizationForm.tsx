@@ -6,7 +6,8 @@ import z from "zod";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { trpc } from "@calcom/trpc/react";
-import { Alert, Avatar, Button, Form, Icon, ImageUploader, Label, TextAreaField } from "@calcom/ui";
+import { Alert, Button, Form, Icon, ImageUploader, Label, TextAreaField } from "@calcom/ui";
+import { Avatar } from "@calcom/ui/avatar";
 
 const querySchema = z.object({
   id: z.string(),

@@ -16,9 +16,9 @@ import {
   TimezoneSelect,
   Label,
   showToast,
-  Avatar,
   ImageUploader,
 } from "@calcom/ui";
+import { Avatar } from "@calcom/ui/avatar";
 
 import type { Action } from "../UserListTable";
 import { useEditMode } from "./store";

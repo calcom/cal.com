@@ -7,7 +7,8 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
-import { Avatar, Badge, Button, Checkbox, DataTable } from "@calcom/ui";
+import { Badge, Button, Checkbox, DataTable } from "@calcom/ui";
+import { Avatar } from "@calcom/ui/avatar";
 
 import { useOrgBranding } from "../../../ee/organizations/context/provider";
 import { DeleteBulkUsers } from "./BulkActions/DeleteBulkUsers";

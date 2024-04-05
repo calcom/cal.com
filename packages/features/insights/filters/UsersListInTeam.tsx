@@ -6,7 +6,8 @@ import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc";
 import { trpc } from "@calcom/trpc";
-import { AnimatedPopover, Avatar } from "@calcom/ui";
+import { AnimatedPopover } from "@calcom/ui";
+import { Avatar } from "@calcom/ui/avatar";
 
 import { useFilterContext } from "../context/provider";
 

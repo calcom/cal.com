@@ -17,12 +17,10 @@ import turndown from "@calcom/lib/turndownService";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import {
-  Avatar,
   BannerUploader,
   Button,
   Editor,
   Form,
-  Icon,
   ImageUploader,
   Label,
   LinkIconButton,
@@ -34,6 +32,7 @@ import {
   SkeletonText,
   TextField,
 } from "@calcom/ui";
+import { Avatar } from "@calcom/ui/avatar";
 
 import { getLayout } from "../../../../settings/layouts/SettingsLayout";
 import { useOrgBranding } from "../../../organizations/context/provider";

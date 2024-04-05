@@ -6,7 +6,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localeOptions } from "@calcom/lib/i18n";
 import { nameOfDay } from "@calcom/lib/weekday";
 import {
-  Avatar,
   Button,
   EmailField,
   Form,
@@ -16,6 +15,7 @@ import {
   TextField,
   TimezoneSelect,
 } from "@calcom/ui";
+import { Avatar } from "@calcom/ui/avatar";
 
 import type { UserAdminRouterOutputs } from "../server/trpc-router";
 

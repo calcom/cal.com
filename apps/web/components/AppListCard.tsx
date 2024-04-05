@@ -9,7 +9,8 @@ import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
-import { Avatar, Badge, Icon, ListItemText } from "@calcom/ui";
+import { Badge, Icon, ListItemText } from "@calcom/ui";
+import { Avatar } from "@calcom/ui/avatar";
 
 type ShouldHighlight =
   | {

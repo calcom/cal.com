@@ -10,7 +10,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import {
   ArrowButton,
-  Avatar,
   Badge,
   Button,
   ButtonGroup,
@@ -22,6 +21,7 @@ import {
   Icon,
   Tooltip,
 } from "@calcom/ui";
+import { Avatar } from "@calcom/ui/avatar";
 
 import { getActionIcon } from "../lib/getActionIcon";
 import { DeleteDialog } from "./DeleteDialog";
@@ -252,12 +252,7 @@ export default function WorkflowListPage({ workflows }: Props) {
                         <div className="block sm:hidden">
                           <Dropdown>
                             <DropdownMenuTrigger asChild>
-                              <Button
-                                type="button"
-                                color="minimal"
-                                variant="icon"
-                                StartIcon="ellipsis"
-                              />
+                              <Button type="button" color="minimal" variant="icon" StartIcon="ellipsis" />
                             </DropdownMenuTrigger>
                             <DropdownMenuContent>
                               <DropdownMenuItem>

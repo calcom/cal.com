@@ -8,7 +8,6 @@ import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import {
-  Avatar,
   Badge,
   Button,
   ConfirmationDialogContent,
@@ -22,6 +21,7 @@ import {
   Table,
   TextField,
 } from "@calcom/ui";
+import { Avatar } from "@calcom/ui/avatar";
 
 import { withLicenseRequired } from "../../common/components/LicenseRequired";
 

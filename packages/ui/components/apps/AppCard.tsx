@@ -13,7 +13,6 @@ import type { AppFrontendPayload as App } from "@calcom/types/App";
 import type { CredentialFrontendPayload as Credential } from "@calcom/types/Credential";
 import type { ButtonProps } from "@calcom/ui";
 import {
-  Avatar,
   Badge,
   Dropdown,
   DropdownItem,
@@ -22,6 +21,7 @@ import {
   DropdownMenuPortal,
   DropdownMenuTrigger,
 } from "@calcom/ui";
+import { Avatar } from "@calcom/ui/avatar";
 
 import { Button } from "../button";
 import { showToast } from "../toast";

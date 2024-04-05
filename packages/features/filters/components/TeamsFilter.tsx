@@ -8,7 +8,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import { AnimatedPopover, Avatar, Divider, Icon, Tooltip, VerticalDivider } from "@calcom/ui";
+import { AnimatedPopover, Divider, Icon, Tooltip, VerticalDivider } from "@calcom/ui";
+import { Avatar } from "@calcom/ui/avatar";
 
 import { filterQuerySchema } from "../lib/getTeamsFiltersFromQuery";
 

@@ -1,5 +1,6 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { EmptyScreen, Avatar } from "@calcom/ui";
+import { EmptyScreen } from "@calcom/ui";
+import { Avatar } from "@calcom/ui/avatar";
 
 export type UnpublishedEntityProps = {
   teamSlug?: string | null;

@@ -2,7 +2,6 @@ import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import {
-  Avatar,
   Button,
   ButtonGroup,
   ConfirmationDialogContent,
@@ -16,6 +15,7 @@ import {
   showToast,
   Tooltip,
 } from "@calcom/ui";
+import { Avatar } from "@calcom/ui/avatar";
 
 import { useOrgBranding } from "../../../organizations/context/provider";
 

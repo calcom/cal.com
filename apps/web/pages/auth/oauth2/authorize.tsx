@@ -7,7 +7,8 @@ import { APP_NAME } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Avatar, Button, Icon, Select } from "@calcom/ui";
+import { Button, Icon, Select } from "@calcom/ui";
+import { Avatar } from "@calcom/ui/avatar";
 
 import PageWrapper from "@components/PageWrapper";
 

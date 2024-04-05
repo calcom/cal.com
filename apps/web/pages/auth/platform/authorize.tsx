@@ -3,7 +3,8 @@ import { useRouter } from "next/navigation";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Avatar, Button, Icon } from "@calcom/ui";
+import { Button, Icon } from "@calcom/ui";
+import { Avatar } from "@calcom/ui/avatar";
 
 import PageWrapper from "@components/PageWrapper";
 

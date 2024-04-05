@@ -59,7 +59,6 @@ import { trpc } from "@calcom/trpc/react";
 import useEmailVerifyCheck from "@calcom/trpc/react/hooks/useEmailVerifyCheck";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import {
-  Avatar,
   Button,
   ButtonOrLink,
   Credits,
@@ -80,6 +79,7 @@ import {
   useCalcomTheme,
   type IconName,
 } from "@calcom/ui";
+import { Avatar } from "@calcom/ui/avatar";
 import { Discord } from "@calcom/ui/components/icon/Discord";
 
 import { useOrgBranding } from "../ee/organizations/context/provider";

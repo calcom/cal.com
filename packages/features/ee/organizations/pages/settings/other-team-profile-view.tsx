@@ -21,14 +21,12 @@ import slugify from "@calcom/lib/slugify";
 import turndown from "@calcom/lib/turndownService";
 import { trpc } from "@calcom/trpc/react";
 import {
-  Avatar,
   Button,
   ConfirmationDialogContent,
   Dialog,
   DialogTrigger,
   Editor,
   Form,
-  Icon,
   ImageUploader,
   Label,
   LinkIconButton,
@@ -38,6 +36,7 @@ import {
   SkeletonText,
   TextField,
 } from "@calcom/ui";
+import { Avatar } from "@calcom/ui/avatar";
 
 import { getLayout } from "../../../../settings/layouts/SettingsLayout";
 import { subdomainSuffix } from "../../../organizations/lib/orgDomains";
@@ -300,9 +299,7 @@ const OtherTeamProfileView = () => {
               </div>
               <div className="">
                 <Link href={permalink} passHref={true} target="_blank">
-                  <LinkIconButton Icon="external-link">
-                    {t("preview")}
-                  </LinkIconButton>
+                  <LinkIconButton Icon="external-link">{t("preview")}</LinkIconButton>
                 </Link>
                 <LinkIconButton
                   Icon="link"
@@ -321,10 +318,7 @@ const OtherTeamProfileView = () => {
 
           <Dialog>
             <DialogTrigger asChild>
-              <Button
-                color="destructive"
-                className="border"
-                StartIcon="trash-2">
+              <Button color="destructive" className="border" StartIcon="trash-2">
                 {t("disband_team")}
               </Button>
             </DialogTrigger>

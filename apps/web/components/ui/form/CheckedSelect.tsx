@@ -2,8 +2,8 @@ import React from "react";
 import type { Props } from "react-select";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Avatar } from "@calcom/ui";
 import { Icon } from "@calcom/ui";
+import { Avatar } from "@calcom/ui/avatar";
 
 import Select from "@components/ui/form/Select";
 

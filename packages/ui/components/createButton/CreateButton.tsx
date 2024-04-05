@@ -4,7 +4,6 @@ import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { ButtonColor } from "@calcom/ui";
 import {
-  Avatar,
   Button,
   Dropdown,
   DropdownItem,
@@ -13,6 +12,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@calcom/ui";
+import { Avatar } from "@calcom/ui/avatar";
 
 export interface Option {
   platform?: boolean;

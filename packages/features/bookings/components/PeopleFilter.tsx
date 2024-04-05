@@ -9,7 +9,8 @@ import {
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { AnimatedPopover, Avatar, Divider, FilterSearchField, Icon } from "@calcom/ui";
+import { AnimatedPopover, Divider, FilterSearchField, Icon } from "@calcom/ui";
+import { Avatar } from "@calcom/ui/avatar";
 
 export const PeopleFilter = () => {
   const { t } = useLocale();

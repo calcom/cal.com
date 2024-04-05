@@ -7,7 +7,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { ITimezone } from "@calcom/ui";
-import { Avatar, DatePicker, Label, Select, TimezoneSelect } from "@calcom/ui";
+import { DatePicker, Label, Select, TimezoneSelect } from "@calcom/ui";
+import { Avatar } from "@calcom/ui/avatar";
 
 import TeamAvailabilityTimes from "./TeamAvailabilityTimes";
 

@@ -33,7 +33,6 @@ import { trpc, TRPCClientError } from "@calcom/trpc/react";
 import type { UserProfile } from "@calcom/types/UserProfile";
 import {
   Alert,
-  Avatar,
   Badge,
   Button,
   ButtonGroup,
@@ -57,8 +56,8 @@ import {
   Switch,
   Tooltip,
   ArrowButton,
-  UserAvatarGroup,
 } from "@calcom/ui";
+import { Avatar, UserAvatarGroup } from "@calcom/ui/avatar";
 
 import type { AppProps } from "@lib/app-providers";
 import useMeQuery from "@lib/hooks/useMeQuery";

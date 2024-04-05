@@ -8,7 +8,6 @@ import type { FormValues, Host } from "@calcom/features/eventtypes/lib/types";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import {
-  Avatar,
   Button,
   Dialog,
   DialogClose,
@@ -19,6 +18,7 @@ import {
   Select,
   Tooltip,
 } from "@calcom/ui";
+import { Avatar } from "@calcom/ui/avatar";
 
 export type CheckedSelectOption = {
   avatar: string;

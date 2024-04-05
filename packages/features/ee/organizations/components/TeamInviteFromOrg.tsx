@@ -4,7 +4,8 @@ import { useState } from "react";
 import classNames from "@calcom/lib/classNames";
 import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import type { RouterOutputs } from "@calcom/trpc";
-import { Avatar, TextField } from "@calcom/ui";
+import { TextField } from "@calcom/ui";
+import { Avatar } from "@calcom/ui/avatar";
 
 type TeamInviteFromOrgProps = PropsWithChildren<{
   selectedEmails?: string | string[];

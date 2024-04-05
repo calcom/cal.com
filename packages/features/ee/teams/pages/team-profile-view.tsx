@@ -25,7 +25,6 @@ import { MembershipRole } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import {
-  Avatar,
   Button,
   ConfirmationDialogContent,
   Dialog,
@@ -43,6 +42,7 @@ import {
   SkeletonText,
   TextField,
 } from "@calcom/ui";
+import { Avatar } from "@calcom/ui/avatar";
 
 import { getLayout } from "../../../settings/layouts/SettingsLayout";
 

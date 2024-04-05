@@ -1,0 +1,167 @@
+import { Canvas, Meta, Story, ArgsTable } from "@storybook/addon-docs";
+
+import {
+  Examples,
+  Example,
+  Note,
+  Title,
+  CustomArgsTable,
+  VariantsTable,
+  VariantRow,
+} from "@calcom/storybook/components";
+
+import { Avatar } from "./Avatar";
+import { AvatarGroup } from "./AvatarGroup";
+
+<Meta title="UI/Avatar" component={Avatar} />
+
+<Title title="Avatar" suffix="Brief" subtitle="Version 2.0 — Last Update: 22 Aug 2022" />
+
+## Definition
+
+An avatar group signals that there is more than 1 person associated with an item
+
+## Structure
+
+Avatar group can be composed differently based on the number of user profile.
+
+<CustomArgsTable of={Avatar} />
+
+<Examples title="Avatar style">
+  <Example title="Small">
+    <Avatar size="sm" alt="Avatar Story" />
+  </Example>
+  <Example title="Large">
+    <Avatar size="lg" alt="Avatar Story" />
+  </Example>
+</Examples>
+
+<ArgsTable of={Avatar} />
+
+### Avatar Group
+
+<ArgsTable of={AvatarGroup} />
+<Examples title="Avatar Group ">
+  <Example title="Small">
+    <AvatarGroup
+      size="sm"
+      items={[
+        {
+          image: "https://cal.com/stakeholder/peer.jpg",
+          alt: "Peer",
+          title: "Peer Richelsen",
+        },
+        {
+          image: "https://cal.com/stakeholder/bailey.jpg",
+          alt: "Bailey",
+          title: "Bailey Pumfleet",
+        },
+        {
+          image: "https://cal.com/stakeholder/alex-van-andel.jpg",
+          alt: "Alex",
+          title: "Alex Van Andel",
+        },
+        {
+          image: "https://cal.com/stakeholder/ciaran.jpg",
+          alt: "Ciarán",
+          title: "Ciarán Hanrahan",
+        },
+        {
+          image: "https://cal.com/stakeholder/peer.jpg",
+          alt: "Peer",
+          title: "Peer Richelsen",
+        },
+        {
+          image: "https://cal.com/stakeholder/bailey.jpg",
+          alt: "Bailey",
+          title: "Bailey Pumfleet",
+        },
+        {
+          image: "https://cal.com/stakeholder/alex-van-andel.jpg",
+          alt: "Alex",
+          title: "Alex Van Andel",
+        },
+        {
+          image: "https://cal.com/stakeholder/ciaran.jpg",
+          alt: "Ciarán",
+          title: "Ciarán Hanrahan",
+        },
+      ]}
+    />
+  </Example>
+  <Example title="large">
+    <AvatarGroup
+      size="lg"
+      items={[
+        {
+          image: "https://cal.com/stakeholder/peer.jpg",
+          alt: "Peer",
+          title: "Peer Richelsen",
+        },
+        {
+          image: "https://cal.com/stakeholder/bailey.jpg",
+          alt: "Bailey",
+          title: "Bailey Pumfleet",
+        },
+        {
+          image: "https://cal.com/stakeholder/alex-van-andel.jpg",
+          alt: "Alex",
+          title: "Alex Van Andel",
+        },
+        {
+          image: "https://cal.com/stakeholder/ciaran.jpg",
+          alt: "Ciarán",
+          title: "Ciarán Hanrahan",
+        },
+        {
+          image: "https://cal.com/stakeholder/peer.jpg",
+          alt: "Peer",
+          title: "Peer Richelsen",
+        },
+        {
+          image: "https://cal.com/stakeholder/bailey.jpg",
+          alt: "Bailey",
+          title: "Bailey Pumfleet",
+        },
+        {
+          image: "https://cal.com/stakeholder/alex-van-andel.jpg",
+          alt: "Alex",
+          title: "Alex Van Andel",
+        },
+        {
+          image: "https://cal.com/stakeholder/ciaran.jpg",
+          alt: "Ciarán",
+          title: "Ciarán Hanrahan",
+        },
+      ]}
+    />
+  </Example>
+</Examples>
+
+<Title offset title="Avatar" suffix="Variants" />
+
+<Canvas>
+  <Story
+    name="Avatar"
+    args={{
+      size: "sm",
+      alt: "Avatar Story",
+    }}
+    argTypes={{
+      size: {
+        control: {
+          type: "inline-radio",
+          options: ["sm", "lg"],
+        },
+      },
+      alt: { control: "text" },
+    }}>
+    {({ size, alt }) => (
+      <VariantsTable titles={["Default"]} columnMinWidth={150}>
+        <VariantRow variant={size}>
+          <Avatar size={size} alt={alt} />
+        </VariantRow>
+      </VariantsTable>
+    )}
+  </Story>
+</Canvas>

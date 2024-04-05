@@ -8,7 +8,8 @@ import {
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import { AnimatedPopover, Avatar, Divider, Icon } from "@calcom/ui";
+import { AnimatedPopover, Divider, Icon } from "@calcom/ui";
+import { Avatar } from "@calcom/ui/avatar";
 
 import { useFilterContext } from "../context/provider";
 

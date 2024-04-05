@@ -16,8 +16,9 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { Button, Form, Meta, showToast, SettingsToggle, Avatar, ImageUploader } from "@calcom/ui";
+import { Button, Form, Meta, showToast, SettingsToggle, ImageUploader } from "@calcom/ui";
 import { Icon } from "@calcom/ui";
+import { Avatar } from "@calcom/ui/avatar";
 
 type BrandColorsFormValues = {
   brandColor: string;

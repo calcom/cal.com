@@ -8,7 +8,6 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import type { AppFrontendPayload } from "@calcom/types/App";
 import type { ButtonProps } from "@calcom/ui";
 import {
-  Avatar,
   Button,
   Dropdown,
   DropdownItem,
@@ -18,6 +17,7 @@ import {
   DropdownMenuTrigger,
   showToast,
 } from "@calcom/ui";
+import { Avatar } from "@calcom/ui/avatar";
 
 export const InstallAppButtonChild = ({
   userAdminTeams,

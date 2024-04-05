@@ -5,7 +5,8 @@ import { useTranslation } from "react-i18next";
 import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import { classNames } from "@calcom/lib";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { Switch, Badge, Avatar, Button, Icon } from "@calcom/ui";
+import { Switch, Badge, Button, Icon } from "@calcom/ui";
+import { Avatar } from "@calcom/ui/avatar";
 
 import type { CredentialOwner } from "../types";
 import OmniInstallAppButton from "./OmniInstallAppButton";

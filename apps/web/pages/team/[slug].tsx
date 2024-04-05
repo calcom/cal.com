@@ -19,7 +19,8 @@ import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
-import { Avatar, Button, HeadSeo, UnpublishedEntity, UserAvatarGroup } from "@calcom/ui";
+import { Button, HeadSeo, UnpublishedEntity } from "@calcom/ui";
+import { Avatar, UserAvatarGroup } from "@calcom/ui/avatar";
 
 import { useToggleQuery } from "@lib/hooks/useToggleQuery";
 import { getServerSideProps } from "@lib/team/[slug]/getServerSideProps";
