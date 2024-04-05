@@ -211,7 +211,6 @@ test.describe("Payment app", () => {
     await prisma.credential.create({
       data: {
         type: "ga4_analytics",
-        appId: "ga4",
         userId: user.id,
         appId: "ga4",
         invalid: false,
