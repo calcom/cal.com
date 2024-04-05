@@ -1,4 +1,6 @@
-import React, { useState } from "react";
+import { Trans } from "next-i18next";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import { Controller, useForm, useFormState } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
@@ -10,6 +12,12 @@ import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import {
   Button,
   DateRangePicker,
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  EmptyScreen,
+  Icon,
   Meta,
   Select,
   showToast,
@@ -17,10 +25,9 @@ import {
   Switch,
   TableBody,
   TableCell,
-  TableHead,
-  TableHeader,
   TableNew,
   TableRow,
+  TextArea,
   UpgradeTeamsBadge,
 } from "@calcom/ui";
 
@@ -271,7 +278,7 @@ const OutOfOfficeEntriesList = () => {
                   <div className="w-12" />
                 </div>
                 <div className="dark:bg-darkgray-50 relative z-0 flex h-[70px] w-[70px] items-center justify-center rounded-3xl border-2 border-[#e5e7eb] bg-white">
-                  <Clock size={28} />
+                  <Icon name="clock" size={28} />
                   <div className="dark:bg-darkgray-50 absolute right-4 top-5 h-[12px] w-[12px] rotate-[56deg] bg-white text-lg font-bold" />
                   <span className="absolute right-4 top-3 font-sans text-sm font-extrabold">z</span>
                 </div>
@@ -384,7 +391,7 @@ const OutOfOfficePage = () => {
             className="flex w-20 items-center justify-between px-4"
             onClick={() => setOpenModal(true)}
             data-testid="add_entry_ooo">
-            <Plus size={16} /> {t("add")}
+            <Icon name="plus" size={16} /> {t("add")}
           </Button>
         }
       />
