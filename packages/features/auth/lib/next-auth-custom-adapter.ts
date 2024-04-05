@@ -14,7 +14,7 @@ export default function CalComAdapter(prismaClient: PrismaClient) {
     getUserByEmail: (email: User["email"]) => prismaClient.user.findUnique({ where: { email } }),
     async getUserByAccount(provider_providerAccountId: {
       providerAccountId: Account["providerAccountId"];
-      provider: User["identityProvider"];
+      provider: User["identityProvider"] | "google-for-overlay";
     }) {
       let _account;
       const account = await prismaClient.account.findUnique({
@@ -28,6 +28,16 @@ export default function CalComAdapter(prismaClient: PrismaClient) {
           _account !== void 0
           ? _account
           : null;
+      }
+      // check overlayUser table for overlay user account
+      if (provider_providerAccountId?.provider === "google-for-overlay") {
+        const overlayUser = prismaClient.overlayUser.findFirst({
+          where: {
+            provider: "google",
+            providerAccountId: provider_providerAccountId?.providerAccountId,
+          },
+        });
+        return overlayUser || null;
       }
 
       // NOTE: this code it's our fallback to users without Account but credentials in User Table
