@@ -1,4 +1,4 @@
-import type { Prisma, Webhook } from "@prisma/client";
+import type { Prisma, Webhook, Booking } from "@prisma/client";
 import { v4 } from "uuid";
 
 import { getHumanReadableLocationValue } from "@calcom/core/location";
@@ -332,7 +332,8 @@ export async function cancelScheduledJobs(
   booking: { uid: string; scheduledJobs?: string[] },
   appId?: string | null,
   isReschedule?: boolean,
-  triggerEvent?: WebhookTriggerEvents
+  triggerEvent?: WebhookTriggerEvents,
+  webhookId?: string
 ) {
   if (!booking.scheduledJobs) return;
 
@@ -353,10 +354,10 @@ export async function cancelScheduledJobs(
         const shouldContain = `"triggerEvent":"${triggerEvent}"`;
         await prisma.webhookScheduledTriggers.deleteMany({
           where: {
-            jobName: scheduledJob,
             payload: {
               contains: shouldContain,
             },
+            webhookId: webhookId,
           },
         });
       } else {
@@ -403,18 +404,44 @@ export async function updateTriggerForExistingBookings(
   if (addedEventTriggers.length === 0 && removedEventTriggers.length === 0) return;
 
   const currentTime = new Date();
-  const bookings = await prisma.booking.findMany({
-    where: {
-      eventTypeId: webhook.eventTypeId,
-      status: BookingStatus.ACCEPTED,
-      OR: [{ startTime: { gt: currentTime } }, { endTime: { gt: currentTime } }],
-    },
-  });
+  const where: Prisma.BookingWhereInput = {
+    AND: [{ status: BookingStatus.ACCEPTED }],
+    OR: [{ startTime: { gt: currentTime }, endTime: { gt: currentTime } }],
+  };
+
+  let bookings: Booking[] = [];
+
+  if (Array.isArray(where.AND)) {
+    if (webhook.teamId) {
+      const teamEvents = await prisma.eventType.findMany({
+        where: {
+          teamId: webhook.teamId,
+        },
+        select: {
+          bookings: {
+            where,
+          },
+        },
+      });
+
+      bookings = teamEvents.flatMap((event) => event.bookings);
+    } else {
+      if (webhook.eventTypeId) {
+        where.AND.push({ eventTypeId: webhook.eventTypeId });
+      } else if (webhook.userId) {
+        where.AND.push({ userId: webhook.userId });
+      }
+
+      bookings = await prisma.booking.findMany({
+        where,
+      });
+    }
+  }
 
   if (bookings.length === 0) return;
 
   if (addedEventTriggers.length > 0) {
-    const promise = bookings.flatMap((booking) => {
+    const promise = bookings.map((booking) => {
       return addedEventTriggers.map((trigger) => {
         scheduleTrigger(booking, webhook.subscriberUrl, webhook, trigger);
       });
@@ -430,7 +457,8 @@ export async function updateTriggerForExistingBookings(
           { uid: booking.uid, scheduledJobs: booking.scheduledJobs },
           undefined,
           false,
-          trigger
+          trigger,
+          webhook.id
         )
       );
     });
