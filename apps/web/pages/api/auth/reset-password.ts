@@ -37,7 +37,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // never existed within Cal. In this case we do not want to disclose the email's existence.
   // instead, we just return 404
   try {
-    const updatedUser = await prisma.user.update({
+    await prisma.user.update({
       where: {
         email: maybeRequest.email,
       },
@@ -49,22 +49,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           },
         },
         emailVerified: new Date(),
+        identityProvider: IdentityProvider.CAL,
+        identityProviderId: null,
       },
     });
-
-    // Change Identity Provider to CAL if it was previously Google
-    if (updatedUser.identityProvider === IdentityProvider.GOOGLE) {
-      await prisma.user.update({
-        where: {
-          email: maybeRequest.email,
-          identityProvider: IdentityProvider.GOOGLE,
-        },
-        data: {
-          identityProvider: IdentityProvider.CAL,
-          identityProviderId: null,
-        },
-      });
-    }
   } catch (e) {
     return res.status(404).end();
   }
