@@ -57,7 +57,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     },
   });
 
-  if (!eventType) return { message: "eventType not found id" };
+  if (!eventType) return res.status(500).json({ message: "eventType not found id" });
 
   const now = dayjs();
 
