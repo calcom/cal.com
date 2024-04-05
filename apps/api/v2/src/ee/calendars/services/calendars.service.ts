@@ -60,7 +60,7 @@ export class CalendarsService {
         dateTo,
         composedSelectedCalendars
       );
-      const calendarBusyTimesConverted = calendarBusyTimes.map((busyTime) => {
+      return calendarBusyTimes.map((busyTime) => {
         const busyTimeStart = DateTime.fromJSDate(new Date(busyTime.start)).setZone(timezone);
         const busyTimeEnd = DateTime.fromJSDate(new Date(busyTime.end)).setZone(timezone);
         const busyTimeStartDate = busyTimeStart.toJSDate();
@@ -71,7 +71,6 @@ export class CalendarsService {
           end: busyTimeEndDate,
         };
       });
-      return calendarBusyTimesConverted;
     } catch (error) {
       throw new InternalServerErrorException(
         "Unable to fetch connected calendars events. Please try again later."
@@ -95,7 +94,7 @@ export class CalendarsService {
     calendarsToLoad: Calendar[],
     userId: User["id"]
   ) {
-    const composedSelectedCalendars = calendarsToLoad.map((calendar) => {
+    return calendarsToLoad.map((calendar) => {
       const credential = credentials.find((item) => item.id === calendar.credentialId);
       if (!credential) {
         throw new UnauthorizedException("These credentials do not belong to you");
@@ -106,6 +105,5 @@ export class CalendarsService {
         integration: credential.type,
       };
     });
-    return composedSelectedCalendars;
   }
 }
