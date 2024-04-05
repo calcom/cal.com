@@ -1,11 +1,12 @@
+// eslint-disable-next-line no-restricted-imports
+import isEqual from "lodash/isEqual";
+
 import { getEventTypesByViewer } from "@calcom/lib";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import prisma from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
-
-import { Prisma } from ".prisma/client";
 
 type GlobalSettingsOptions = {
   ctx: {
@@ -40,27 +41,45 @@ export const globalSettingsHandler = async ({ ctx }: GlobalSettingsOptions) => {
     select: commonSelect,
   });
 
-  let whereClause: Prisma.EventTypeWhereInput = {};
+  const { eventTypeGroups } = await getEventTypesByViewer(user, undefined, false);
+  let bookingFreqLimit = eventTypeGroups;
   if (globalSettings?.bookingLimits) {
-    whereClause = {
-      OR: [
-        {
-          bookingLimits: { not: globalSettings.bookingLimits },
-        },
-        // For some reason, when the column doesnt have any value i.e., null, the records doesn't return
-        {
-          bookingLimits: { equals: Prisma.AnyNull },
-        },
-      ],
-    };
+    bookingFreqLimit = eventTypeGroups.map((eventTypeGroup) => ({
+      ...eventTypeGroup,
+      eventTypes: eventTypeGroup.eventTypes.filter(
+        (eventType) =>
+          !eventType?.bookingLimits || !isEqual(eventType.bookingLimits, globalSettings.bookingLimits)
+      ),
+    }));
   }
-  const eventTypes = await getEventTypesByViewer(user, undefined, false, whereClause);
+
+  const futureBookingEventTypeGroups = eventTypeGroups.map((eventTypeGroup) => ({
+    ...eventTypeGroup,
+    eventTypes: eventTypeGroup.eventTypes.filter(
+      (eventType) =>
+        eventType?.periodType !== globalSettings?.periodType ||
+        eventType?.periodCountCalendarDays !== globalSettings?.periodCountCalendarDays ||
+        eventType?.periodDays !== globalSettings?.periodDays ||
+        eventType?.periodStartDate !== globalSettings?.periodStartDate ||
+        eventType?.periodEndDate !== globalSettings?.periodEndDate ||
+        eventType?.minimumBookingNotice !== globalSettings?.minimumBookingNotice ||
+        eventType?.beforeEventBuffer !== globalSettings?.beforeEventBuffer ||
+        eventType?.afterEventBuffer !== globalSettings?.afterEventBuffer
+    ),
+  }));
 
   return {
     globalSettings,
-    eventCount: eventTypes.eventTypeGroups.reduce((acc, currValue) => acc + currValue.eventTypes.length, 0),
-    eventTypeGroups: eventTypes.eventTypeGroups.filter(
+    bookingFreqLimitCount: bookingFreqLimit.reduce((acc, currValue) => acc + currValue.eventTypes.length, 0),
+    bookingFreqEventTypeGroups: bookingFreqLimit.filter(
       (eventTypeGroup) => eventTypeGroup.eventTypes.length > 0
+    ),
+    futureBookingEventTypeGroups: futureBookingEventTypeGroups.filter(
+      (eventTypeGroup) => eventTypeGroup.eventTypes.length > 0
+    ),
+    futureBookingLimitsCount: futureBookingEventTypeGroups.reduce(
+      (acc, currValue) => acc + currValue.eventTypes.length,
+      0
     ),
   };
 };

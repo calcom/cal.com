@@ -5,6 +5,7 @@ import SectionBottomActions from "@calcom/features/settings/SectionBottomActions
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { classNames, validateIntervalLimitOrder } from "@calcom/lib";
 import { APP_NAME } from "@calcom/lib/constants";
+import type { EventType } from "@calcom/lib/event-types/getEventTypeById";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -51,8 +52,16 @@ const SkeletonLoader = ({ title, description }: { title: string; description: st
 
 const BookingsView = ({ data }: { data: RouterOutputs["viewer"]["globalSettings"] }) => {
   const { t } = useLocale();
-  const [showSyncBookingLimits, setShowSyncBookingLimits] = useState(false);
-  const { globalSettings, eventTypeGroups, eventCount } = data;
+  const [showSyncBookingLimits, setShowSyncBookingLimits] = useState<
+    { title: string; data: EventType; isFuture: boolean } | undefined
+  >();
+  const {
+    globalSettings,
+    bookingFreqEventTypeGroups,
+    bookingFreqLimitCount,
+    futureBookingEventTypeGroups,
+    futureBookingLimitsCount,
+  } = data;
   const bookingsLimitFormMethods = useForm({
     defaultValues: {
       bookingLimits: globalSettings?.bookingLimits,
@@ -88,6 +97,7 @@ const BookingsView = ({ data }: { data: RouterOutputs["viewer"]["globalSettings"
       setShowSyncBookingLimits(false);
       await utils.viewer.globalSettings.invalidate();
       showToast(res.message, "success");
+      bookingsLimitFormMethods.reset();
     },
   });
 
@@ -118,15 +128,21 @@ const BookingsView = ({ data }: { data: RouterOutputs["viewer"]["globalSettings"
           formMethods={bookingsLimitFormMethods}
           sectionDescription="global_limit_booking_frequency_description"
           childrenContainerClassName="rounded-none border-b-0">
-          {eventCount > 0 && (
+          {bookingFreqLimitCount > 0 && (
             <div className="flex">
               <span className="text-subtle text-sm font-normal">
-                {t("event_type_different_limiting_frequencies", { eventCount })}
+                {t("event_type_different_limiting_frequencies", { eventCount: bookingFreqLimitCount })}
               </span>
               &nbsp;
               <span
                 className="cursor-pointer text-sm font-normal text-[#101010] underline"
-                onClick={() => setShowSyncBookingLimits(true)}>
+                onClick={() =>
+                  setShowSyncBookingLimits({
+                    title: "sync_booking_frequencies",
+                    data: bookingFreqEventTypeGroups,
+                    isFuture: false,
+                  })
+                }>
                 {t("review")}
               </span>
             </div>
@@ -170,6 +186,25 @@ const BookingsView = ({ data }: { data: RouterOutputs["viewer"]["globalSettings"
               </div>
             </div>
           </div>
+          {futureBookingLimitsCount > 0 && (
+            <div className="mt-3 flex">
+              <span className="text-subtle text-sm font-normal">
+                {t("event_type_different_limiting_frequencies", { eventCount: futureBookingLimitsCount })}
+              </span>
+              &nbsp;
+              <span
+                className="cursor-pointer text-sm font-normal text-[#101010] underline"
+                onClick={() =>
+                  setShowSyncBookingLimits({
+                    title: "sync_booking_frequencies",
+                    data: futureBookingEventTypeGroups,
+                    isFuture: true,
+                  })
+                }>
+                {t("review")}
+              </span>
+            </div>
+          )}
         </FutureBookingLimits>
         {showLimitFutureBookings && (
           <SectionBottomActions align="end">
@@ -183,22 +218,22 @@ const BookingsView = ({ data }: { data: RouterOutputs["viewer"]["globalSettings"
           </SectionBottomActions>
         )}
       </Form>
-      <Dialog open={showSyncBookingLimits} onOpenChange={setShowSyncBookingLimits}>
+      <Dialog open={!!showSyncBookingLimits} onOpenChange={() => setShowSyncBookingLimits(undefined)}>
         <DialogContent
-          title={t("sync_booking_frequencies")}
+          title={t(showSyncBookingLimits?.title)}
           description={t("event_types_different_layouts")}
           type="creation"
           enableOverflow>
           <Form
             form={bookingsLimitFormMethods}
-            handleSubmit={(values) => {
-              console.log(values);
+            handleSubmit={() =>
               syncBookingLimitsMutation.mutate({
                 eventIds: bookingsLimitFormMethods.getValues("syncBookingLimitsEventIds"),
-              });
-            }}>
+                isFuture: !!showSyncBookingLimits?.isFuture,
+              })
+            }>
             <div className="flex flex-col">
-              {eventTypeGroups.map((eventGroup, index) => (
+              {(showSyncBookingLimits?.data || []).map((eventGroup, index) => (
                 <div className="mb-2 flex flex-col" key={`eventGroup-${index}`}>
                   <div className="flex items-center px-3 py-1.5">
                     <Avatar
