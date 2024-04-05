@@ -15,10 +15,9 @@ import { filterQuerySchema } from "../lib/getTeamsFiltersFromQuery";
 export type IEventTypesFilters = RouterOutputs["viewer"]["eventTypes"]["listWithTeam"];
 export type IEventTypeFilter = IEventTypesFilters[0];
 
-export const TEAMS_FILTER_KEY = "TEAMS_FILTER_KEY";
 function useFilterQuery() {
   // passthrough allows additional params to not be removed
-  return useTypedQuery(filterQuerySchema.passthrough(), TEAMS_FILTER_KEY);
+  return useTypedQuery(filterQuerySchema.passthrough());
 }
 
 export const TeamsFilter = ({
@@ -32,11 +31,14 @@ export const TeamsFilter = ({
 }) => {
   const { t } = useLocale();
   const session = useSession();
+
   const { data: query, pushItemToKey, removeItemByKeyAndValue, removeAllQueryParams } = useFilterQuery();
+
   const { data: teams } = trpc.viewer.teams.list.useQuery(undefined, {
     // Teams don't change that frequently
     refetchOnWindowFocus: false,
   });
+
   const getCheckedOptionsNames = () => {
     const checkedOptions: string[] = [];
     const teamIds = query.teamIds;
