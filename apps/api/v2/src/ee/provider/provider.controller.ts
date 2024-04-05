@@ -32,7 +32,9 @@ export class CalProviderController {
     }
     const oAuthClient = await this.oauthClientRepository.getOAuthClient(clientId);
 
-    if (!oAuthClient) throw new UnauthorizedException();
+    if (!oAuthClient) {
+      throw new UnauthorizedException();
+    }
 
     return {
       status: SUCCESS_STATUS,
