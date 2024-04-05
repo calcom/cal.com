@@ -3,7 +3,7 @@ import { useForm, Controller } from "react-hook-form";
 
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
-import { classNames } from "@calcom/lib";
+import { classNames, validateIntervalLimitOrder } from "@calcom/lib";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -107,7 +107,11 @@ const BookingsView = ({ data }: { data: RouterOutputs["viewer"]["globalSettings"
       <Form
         form={bookingsLimitFormMethods}
         handleSubmit={async (values) => {
-          console.log(values);
+          const { bookingLimits } = values;
+          if (bookingLimits) {
+            const isValid = validateIntervalLimitOrder(bookingLimits);
+            if (!isValid) throw new Error(t("event_setup_booking_limits_error"));
+          }
           updateProfileMutation.mutate(values);
         }}>
         <BookingLimits
@@ -143,12 +147,11 @@ const BookingsView = ({ data }: { data: RouterOutputs["viewer"]["globalSettings"
 
       <Form
         form={bookingFutureLimitFormMethods}
-        handleSubmit={(values) => {
-          console.log(values);
+        handleSubmit={(values) =>
           updateProfileMutation.mutate({
             futureBookingLimits: values,
-          });
-        }}>
+          })
+        }>
         <FutureBookingLimits
           formMethods={bookingFutureLimitFormMethods}
           sectionDescription="global_limit_future_booking_frequency_description"

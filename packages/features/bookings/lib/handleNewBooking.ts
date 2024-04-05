@@ -84,6 +84,7 @@ import {
   EventTypeMetaDataSchema,
   userMetadata as userMetadataSchema,
 } from "@calcom/prisma/zod-utils";
+import { getBookingLimits } from "@calcom/trpc/server/routers/viewer/slots/util";
 import type {
   AdditionalInformation,
   AppsStatus,
@@ -340,7 +341,8 @@ export async function ensureAvailableUsers(
       )
     : undefined;
 
-  const bookingLimits = parseBookingLimit(eventType?.bookingLimits);
+  const rawBookingLimits = await getBookingLimits(eventType.userId, eventType?.bookingLimits);
+  const bookingLimits = parseBookingLimit(rawBookingLimits);
   const durationLimits = parseDurationLimit(eventType?.durationLimits);
   let busyTimesFromLimitsBookingsAllUsers: Awaited<ReturnType<typeof getBusyTimesForLimitChecks>> = [];
 
@@ -1105,17 +1107,13 @@ async function handler(
 
   let rescheduleUid = reqBody.rescheduleUid;
 
-  if (
-    Object.prototype.hasOwnProperty.call(eventType, "bookingLimits") ||
-    Object.prototype.hasOwnProperty.call(eventType, "durationLimits")
-  ) {
+  const rawBookingLimits = await getBookingLimits(eventType.userId, eventType?.bookingLimits);
+
+  if (rawBookingLimits || Object.prototype.hasOwnProperty.call(eventType, "durationLimits")) {
     const startAsDate = dayjs(reqBody.start).toDate();
-    if (
-      eventType.bookingLimits &&
-      /* Empty object is truthy */ Object.keys(eventType.bookingLimits).length > 0
-    ) {
+    if (rawBookingLimits && /* Empty object is truthy */ Object.keys(rawBookingLimits).length > 0) {
       await checkBookingLimits(
-        eventType.bookingLimits as IntervalLimit,
+        rawBookingLimits as IntervalLimit,
         startAsDate,
         eventType.id,
         rescheduleUid,

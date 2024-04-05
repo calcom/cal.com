@@ -18,6 +18,7 @@ import prisma, { availabilityUserSelect } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { EventTypeMetaDataSchema, stringToDayjsZod } from "@calcom/prisma/zod-utils";
+import { getBookingLimits } from "@calcom/trpc/server/routers/viewer/slots/util";
 import type {
   EventBusyDate,
   EventBusyDetails,
@@ -58,6 +59,7 @@ const _getEventType = async (id: number) => {
       id: true,
       seatsPerTimeSlot: true,
       bookingLimits: true,
+      userId: true,
       durationLimits: true,
       assignAllTeamMembers: true,
       timeZone: true,
@@ -220,7 +222,8 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     currentSeats = await getCurrentSeats(eventType.id, dateFrom, dateTo);
   }
 
-  const bookingLimits = parseBookingLimit(eventType?.bookingLimits);
+  const rawBookingLimits = await getBookingLimits(eventType.userId, eventType?.bookingLimits);
+  const bookingLimits = parseBookingLimit(rawBookingLimits);
   const durationLimits = parseDurationLimit(eventType?.durationLimits);
 
   const busyTimesFromLimits =

@@ -24,12 +24,33 @@ import { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-import type { EventBusyDate } from "@calcom/types/Calendar";
+import type { EventBusyDate, IntervalLimit } from "@calcom/types/Calendar";
 
 import { TRPCError } from "@trpc/server";
 
 import type { GetScheduleOptions } from "./getSchedule.handler";
 import type { TGetScheduleInputSchema } from "./getSchedule.schema";
+
+export const getBookingLimits = async (userId: number, bookingLimits?: IntervalLimit) => {
+  const globalSettings = await prisma.globalSettings.findUnique({
+    where: {
+      userId,
+    },
+    select: {
+      bookingLimits: true,
+    },
+  });
+  let rawBookingLimits = bookingLimits;
+  if (
+    (!rawBookingLimits || !Object.keys(rawBookingLimits).length) &&
+    globalSettings?.bookingLimits &&
+    Object.keys(globalSettings?.bookingLimits).length
+  ) {
+    rawBookingLimits = globalSettings?.bookingLimits;
+  }
+
+  return rawBookingLimits;
+};
 
 export const checkIfIsAvailable = ({
   time,
@@ -157,6 +178,7 @@ export async function getEventType(
       beforeEventBuffer: true,
       afterEventBuffer: true,
       bookingLimits: true,
+      userId: true,
       durationLimits: true,
       assignAllTeamMembers: true,
       schedulingType: true,
@@ -423,7 +445,9 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
     },
   });
 
-  const bookingLimits = parseBookingLimit(eventType?.bookingLimits);
+  const rawBookingLimits = await getBookingLimits(eventType.userId, eventType?.bookingLimits);
+
+  const bookingLimits = parseBookingLimit(rawBookingLimits);
   const durationLimits = parseDurationLimit(eventType?.durationLimits);
   let busyTimesFromLimitsBookingsAllUsers: Awaited<ReturnType<typeof getBusyTimesForLimitChecks>> = [];
 
