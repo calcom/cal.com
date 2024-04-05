@@ -14,13 +14,13 @@ import {
   EmailField,
   Group,
   Icon,
-  InfoBadge,
   InputField,
   Label,
   PhoneInput,
   RadioField,
   Tooltip,
 } from "@calcom/ui";
+import { InfoBadge } from "@calcom/ui/badge";
 
 import { ComponentForField } from "./FormBuilderField";
 import { propsTypes } from "./propsTypes";

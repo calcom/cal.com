@@ -3,7 +3,8 @@ import type { ReactNode } from "react";
 import { useIsPlatform, useGetEventTypeById } from "@calcom/atoms/monorepo";
 import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Badge, Dialog, DialogContent } from "@calcom/ui";
+import { Dialog, DialogContent } from "@calcom/ui";
+import { Badge } from "@calcom/ui/badge";
 
 import { useTimePreferences } from "../../../lib";
 import { useBookerStore } from "../../store";

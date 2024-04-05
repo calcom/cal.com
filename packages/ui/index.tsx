@@ -1,7 +1,5 @@
 export { ArrowButton } from "./components/arrow-button";
 export type { ArrowButtonProps } from "./components/arrow-button";
-export { Badge, UpgradeTeamsBadge, InfoBadge } from "./components/badge";
-export type { BadgeProps } from "./components/badge";
 export { Breadcrumb, BreadcrumbContainer, BreadcrumbItem } from "./components/breadcrumb";
 export { Button, LinkIconButton } from "./components/button";
 export type { ButtonBaseProps, ButtonProps } from "./components/button";

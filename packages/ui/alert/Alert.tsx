@@ -2,7 +2,8 @@ import classNames from "classnames";
 import type { ReactNode } from "react";
 import { forwardRef } from "react";
 
-import { Icon, type IconName } from "../..";
+import type { IconName } from "..";
+import Icon from "../components/icon/Icon";
 
 export interface AlertProps {
   title?: ReactNode;

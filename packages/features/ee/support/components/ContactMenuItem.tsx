@@ -1,7 +1,8 @@
 import { JOIN_DISCORD } from "@calcom/lib/constants";
 import { useHasPaidPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Icon, UpgradeTeamsBadge } from "@calcom/ui";
+import { Icon } from "@calcom/ui";
+import { UpgradeTeamsBadge } from "@calcom/ui/badge";
 
 import FreshChatMenuItem from "../lib/freshchat/FreshChatMenuItem";
 import HelpscoutMenuItem from "../lib/helpscout/HelpscoutMenuItem";

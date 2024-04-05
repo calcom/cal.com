@@ -10,7 +10,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import {
   ArrowButton,
-  Badge,
   Button,
   ButtonGroup,
   Dropdown,
@@ -22,6 +21,7 @@ import {
   Tooltip,
 } from "@calcom/ui";
 import { Avatar } from "@calcom/ui/avatar";
+import { Badge } from "@calcom/ui/badge";
 
 import { getActionIcon } from "../lib/getActionIcon";
 import { DeleteDialog } from "./DeleteDialog";

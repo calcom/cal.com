@@ -6,7 +6,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import {
-  Badge,
   Button,
   Dropdown,
   DropdownItem,
@@ -16,6 +15,7 @@ import {
   Icon,
   showToast,
 } from "@calcom/ui";
+import { Badge } from "@calcom/ui/badge";
 
 export function ScheduleListItem({
   schedule,

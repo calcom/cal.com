@@ -9,7 +9,6 @@ import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import {
-  Badge,
   BooleanToggleGroupField,
   Button,
   Dialog,
@@ -26,6 +25,7 @@ import {
   showToast,
   Switch,
 } from "@calcom/ui";
+import { Badge } from "@calcom/ui/badge";
 
 import { fieldTypesConfigMap } from "./fieldTypes";
 import { fieldsThatSupportLabelAsSafeHtml } from "./fieldsThatSupportLabelAsSafeHtml";

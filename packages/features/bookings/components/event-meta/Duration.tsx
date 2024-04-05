@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Badge } from "@calcom/ui";
+import { Badge } from "@calcom/ui/badge";
 
 import type { PublicEvent } from "../../types";
 
