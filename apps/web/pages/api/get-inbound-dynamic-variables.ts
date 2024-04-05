@@ -20,7 +20,7 @@ const getEventTypeIdFromRetellLLM = (
 ): number | undefined => {
   const generalTool = generalTools.find((tool) => !!tool.event_type_id && !!tool.timezone);
 
-  return generalTool.event_type_id;
+  return generalTool?.event_type_id;
 };
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -81,7 +81,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   const firstSlot = availableSlots?.slots?.[firstAvailableDate]?.[0]?.time;
 
   return res.status(200).json({
-    next_available: firstSlot ? dayjs.utc(firstSlot).format("DD MMMM YYYY h:mmA [GMT]") : undefined,
+    next_available: firstSlot ? dayjs.utc(firstSlot).format("dddd [the] D [at] h:mma [GMT]") : undefined,
   });
 }
 
