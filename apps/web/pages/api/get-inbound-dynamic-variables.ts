@@ -17,12 +17,10 @@ const schema = z.object({
 
 const getEventTypeIdFromRetellLLM = (
   generalTools: TGetRetellLLMSchema["general_tools"]
-): { eventTypeId?: number } => {
+): number | undefined => {
   const generalTool = generalTools.find((tool) => !!tool.event_type_id && !!tool.timezone);
 
-  const { event_type_id } = generalTool;
-
-  return { eventTypeId: event_type_id };
+  return generalTool.event_type_id;
 };
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -38,9 +36,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   const retellLLM = await fetcher(`/get-retell-llm/${body.llm_id}`).then(getRetellLLMSchema.parse);
 
-  const { eventTypeId } = getEventTypeIdFromRetellLLM(retellLLM.general_tools);
+  const eventTypeId = getEventTypeIdFromRetellLLM(retellLLM.general_tools);
 
-  if (!eventType) return res.status(404).json({ message: "eventTypeId and timezone not found" });
+  if (!eventTypeId) return res.status(404).json({ message: "eventTypeId not found" });
 
   const eventType = await prisma.eventType.findUnique({
     where: {
