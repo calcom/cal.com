@@ -1,6 +1,6 @@
 import { GcalController } from "@/ee/gcal/gcal.controller";
 import { AppsRepository } from "@/modules/apps/apps.repository";
-import { GcalService } from "@/modules/apps/services/gcal.service";
+import { GCalService } from "@/modules/apps/services/gcal.service";
 import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
 import { OAuthClientModule } from "@/modules/oauth-clients/oauth-client.module";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
@@ -11,7 +11,7 @@ import { ConfigService } from "@nestjs/config";
 
 @Module({
   imports: [PrismaModule, TokensModule, OAuthClientModule],
-  providers: [AppsRepository, ConfigService, CredentialsRepository, SelectedCalendarsRepository, GcalService],
+  providers: [AppsRepository, ConfigService, CredentialsRepository, SelectedCalendarsRepository, GCalService],
   controllers: [GcalController],
 })
 export class GcalModule {}

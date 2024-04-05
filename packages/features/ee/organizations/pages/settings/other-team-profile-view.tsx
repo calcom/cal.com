@@ -5,7 +5,7 @@ import type { Prisma } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, useLayoutEffect, useEffect } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -20,23 +20,24 @@ import objectKeys from "@calcom/lib/objectKeys";
 import slugify from "@calcom/lib/slugify";
 import turndown from "@calcom/lib/turndownService";
 import { trpc } from "@calcom/trpc/react";
-import { SkeletonContainer, SkeletonText } from "@calcom/ui";
 import {
   Avatar,
   Button,
   ConfirmationDialogContent,
   Dialog,
   DialogTrigger,
+  Editor,
   Form,
+  Icon,
   ImageUploader,
   Label,
   LinkIconButton,
   Meta,
   showToast,
+  SkeletonContainer,
+  SkeletonText,
   TextField,
-  Editor,
 } from "@calcom/ui";
-import { ExternalLink, Link as LinkIcon, Trash2 } from "@calcom/ui/components/icon";
 
 import { getLayout } from "../../../../settings/layouts/SettingsLayout";
 import { subdomainSuffix } from "../../../organizations/lib/orgDomains";
@@ -299,10 +300,12 @@ const OtherTeamProfileView = () => {
               </div>
               <div className="">
                 <Link href={permalink} passHref={true} target="_blank">
-                  <LinkIconButton Icon={ExternalLink}>{t("preview")}</LinkIconButton>
+                  <LinkIconButton Icon="external-link">
+                    {t("preview")}
+                  </LinkIconButton>
                 </Link>
                 <LinkIconButton
-                  Icon={LinkIcon}
+                  Icon="link"
                   onClick={() => {
                     navigator.clipboard.writeText(permalink);
                     showToast("Copied to clipboard", "success");
@@ -318,7 +321,10 @@ const OtherTeamProfileView = () => {
 
           <Dialog>
             <DialogTrigger asChild>
-              <Button color="destructive" className="border" StartIcon={Trash2}>
+              <Button
+                color="destructive"
+                className="border"
+                StartIcon="trash-2">
                 {t("disband_team")}
               </Button>
             </DialogTrigger>

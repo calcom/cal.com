@@ -11,17 +11,16 @@ import type { AppCategories } from "@calcom/prisma/enums";
 import { trpc, type RouterOutputs } from "@calcom/trpc";
 import type { App } from "@calcom/types/App";
 import {
+  Alert,
+  Button,
   Dropdown,
   DropdownItem,
   DropdownMenuContent,
+  DropdownMenuItem,
   DropdownMenuTrigger,
   List,
   showToast,
-  Button,
-  DropdownMenuItem,
-  Alert,
 } from "@calcom/ui";
-import { MoreHorizontal, Trash, Video } from "@calcom/ui/components/icon";
 
 import AppListCard from "@components/AppListCard";
 
@@ -82,7 +81,7 @@ export const AppList = ({ data, handleDisconnect, variant, listClassName }: AppL
             <div className="flex justify-end">
               <Dropdown modal={false}>
                 <DropdownMenuTrigger asChild>
-                  <Button StartIcon={MoreHorizontal} variant="icon" color="secondary" />
+                  <Button StartIcon="ellipsis" variant="icon" color="secondary" />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
                   {!appIsDefault && variant === "conferencing" && !item.credentialOwner?.teamId && (
@@ -90,7 +89,7 @@ export const AppList = ({ data, handleDisconnect, variant, listClassName }: AppL
                       <DropdownItem
                         type="button"
                         color="secondary"
-                        StartIcon={Video}
+                        StartIcon="video"
                         onClick={() => {
                           const locationType = getEventLocationTypeFromApp(item?.locationOption?.value ?? "");
                           if (locationType?.linkType === "static") {
@@ -214,7 +213,7 @@ function ConnectOrDisconnectIntegrationMenuItem(props: {
           color="destructive"
           onClick={() => handleDisconnect(credentialId, teamId)}
           disabled={isGlobal}
-          StartIcon={Trash}>
+          StartIcon="trash">
           {t("remove_app")}
         </DropdownItem>
       </DropdownMenuItem>
