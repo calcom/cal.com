@@ -40,7 +40,7 @@ export class SchedulesRepository {
       };
     }
 
-    const createdSchedule = await this.dbWrite.prisma.schedule.create({
+    return await this.dbWrite.prisma.schedule.create({
       data: {
         ...createScheduleData,
       },
@@ -48,12 +48,10 @@ export class SchedulesRepository {
         availability: true,
       },
     });
-
-    return createdSchedule;
   }
 
   async getScheduleById(scheduleId: number) {
-    const schedule = await this.dbRead.prisma.schedule.findUnique({
+    return await this.dbRead.prisma.schedule.findUnique({
       where: {
         id: scheduleId,
       },
@@ -61,12 +59,10 @@ export class SchedulesRepository {
         availability: true,
       },
     });
-
-    return schedule;
   }
 
   async getSchedulesByUserId(userId: number) {
-    const schedules = await this.dbRead.prisma.schedule.findMany({
+    return await this.dbRead.prisma.schedule.findMany({
       where: {
         userId,
       },
@@ -74,8 +70,6 @@ export class SchedulesRepository {
         availability: true,
       },
     });
-
-    return schedules;
   }
 
   async updateScheduleWithAvailabilities(scheduleId: number, schedule: UpdateScheduleInput) {
@@ -94,8 +88,12 @@ export class SchedulesRepository {
         },
       },
     };
-    if (schedule.name) updatedScheduleData.name = schedule.name;
-    if (schedule.timeZone) updatedScheduleData.timeZone = schedule.timeZone;
+    if (schedule.name) {
+      updatedScheduleData.name = schedule.name;
+    }
+    if (schedule.timeZone) {
+      updatedScheduleData.timeZone = schedule.timeZone;
+    }
 
     if (schedule.availabilities && schedule.availabilities.length > 0) {
       await this.dbWrite.prisma.availability.deleteMany({
@@ -112,15 +110,13 @@ export class SchedulesRepository {
       };
     }
 
-    const updatedSchedule = await this.dbWrite.prisma.schedule.update({
+    return await this.dbWrite.prisma.schedule.update({
       where: { id: scheduleId },
       data: updatedScheduleData,
       include: {
         availability: true,
       },
     });
-
-    return updatedSchedule;
   }
 
   async deleteScheduleById(scheduleId: number) {
