@@ -1,6 +1,5 @@
 import { ResponseService } from "@/ee/schedules/services/response/response.service";
 import { SchedulesService } from "@/ee/schedules/services/schedules.service";
-import { ForAtom } from "@/lib/atoms/decorators/for-atom.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
 import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
@@ -24,7 +23,7 @@ import { SCHEDULE_READ, SCHEDULE_WRITE, SUCCESS_STATUS } from "@calcom/platform-
 import type { ScheduleWithAvailabilitiesForWeb } from "@calcom/platform-libraries";
 import { updateScheduleHandler } from "@calcom/platform-libraries";
 import type { UpdateScheduleOutputType } from "@calcom/platform-libraries";
-import { ApiSuccessResponse, ScheduleResponse, UpdateScheduleInput } from "@calcom/platform-types";
+import { ApiSuccessResponse, UpdateScheduleInput } from "@calcom/platform-types";
 import { ApiResponse } from "@calcom/platform-types";
 
 import { CreateScheduleInput } from "../inputs/create-schedule.input";
@@ -45,11 +44,10 @@ export class SchedulesController {
   @Permissions([SCHEDULE_WRITE])
   async createSchedule(
     @GetUser() user: UserWithProfile,
-    @Body() bodySchedule: CreateScheduleInput,
-    @ForAtom() forAtom: boolean
-  ): Promise<ApiSuccessResponse<ScheduleResponse | ScheduleWithAvailabilitiesForWeb>> {
+    @Body() bodySchedule: CreateScheduleInput
+  ): Promise<ApiSuccessResponse<ScheduleWithAvailabilitiesForWeb>> {
     const schedule = await this.schedulesService.createUserSchedule(user.id, bodySchedule);
-    const scheduleFormatted = await this.schedulesResponseService.formatSchedule(forAtom, user, schedule);
+    const scheduleFormatted = await this.schedulesResponseService.formatScheduleForAtom(user, schedule);
 
     return {
       status: SUCCESS_STATUS,
@@ -60,12 +58,11 @@ export class SchedulesController {
   @Get("/default")
   @Permissions([SCHEDULE_READ])
   async getDefaultSchedule(
-    @GetUser() user: UserWithProfile,
-    @ForAtom() forAtom: boolean
-  ): Promise<ApiResponse<ScheduleResponse | ScheduleWithAvailabilitiesForWeb | null>> {
+    @GetUser() user: UserWithProfile
+  ): Promise<ApiResponse<ScheduleWithAvailabilitiesForWeb | null>> {
     const schedule = await this.schedulesService.getUserScheduleDefault(user.id);
     const scheduleFormatted = schedule
-      ? await this.schedulesResponseService.formatSchedule(forAtom, user, schedule)
+      ? await this.schedulesResponseService.formatScheduleForAtom(user, schedule)
       : null;
 
     return {
@@ -78,11 +75,10 @@ export class SchedulesController {
   @Permissions([SCHEDULE_READ])
   async getSchedule(
     @GetUser() user: UserWithProfile,
-    @Param("scheduleId") scheduleId: number,
-    @ForAtom() forAtom: boolean
-  ): Promise<ApiSuccessResponse<ScheduleResponse | ScheduleWithAvailabilitiesForWeb>> {
+    @Param("scheduleId") scheduleId: number
+  ): Promise<ApiSuccessResponse<ScheduleWithAvailabilitiesForWeb>> {
     const schedule = await this.schedulesService.getUserSchedule(user.id, scheduleId);
-    const scheduleFormatted = await this.schedulesResponseService.formatSchedule(forAtom, user, schedule);
+    const scheduleFormatted = await this.schedulesResponseService.formatScheduleForAtom(user, schedule);
 
     return {
       status: SUCCESS_STATUS,
@@ -93,11 +89,10 @@ export class SchedulesController {
   @Get("/")
   @Permissions([SCHEDULE_READ])
   async getSchedules(
-    @GetUser() user: UserWithProfile,
-    @ForAtom() forAtom: boolean
-  ): Promise<ApiSuccessResponse<ScheduleResponse[] | ScheduleWithAvailabilitiesForWeb[]>> {
+    @GetUser() user: UserWithProfile
+  ): Promise<ApiSuccessResponse<ScheduleWithAvailabilitiesForWeb[]>> {
     const schedules = await this.schedulesService.getUserSchedules(user.id);
-    const schedulesFormatted = await this.schedulesResponseService.formatSchedules(forAtom, user, schedules);
+    const schedulesFormatted = await this.schedulesResponseService.formatSchedulesForAtom(user, schedules);
 
     return {
       status: SUCCESS_STATUS,

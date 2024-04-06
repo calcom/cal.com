@@ -11,37 +11,27 @@ import type {
   ScheduleWithAvailabilities,
   ScheduleWithAvailabilitiesForWeb,
 } from "@calcom/platform-libraries";
-import { ScheduleResponse, schemaScheduleResponse } from "@calcom/platform-types";
 
 @Injectable()
 export class ResponseService {
   constructor(private readonly schedulesRepository: SchedulesRepository) {}
 
-  async formatSchedule(
-    forAtom: boolean,
+  async formatScheduleForAtom(
     user: User,
     schedule: ScheduleWithAvailabilities
-  ): Promise<ScheduleResponse | ScheduleWithAvailabilitiesForWeb> {
-    if (forAtom) {
-      const usersSchedulesCount = await this.schedulesRepository.getUserSchedulesCount(user.id);
-      return this.transformScheduleForAtom(schedule, usersSchedulesCount, user);
-    }
-
-    return schemaScheduleResponse.parse(schedule);
+  ): Promise<ScheduleWithAvailabilitiesForWeb> {
+    const usersSchedulesCount = await this.schedulesRepository.getUserSchedulesCount(user.id);
+    return this.transformScheduleForAtom(schedule, usersSchedulesCount, user);
   }
 
-  async formatSchedules(
-    forAtom: boolean,
+  async formatSchedulesForAtom(
     user: User,
     schedules: ScheduleWithAvailabilities[]
-  ): Promise<ScheduleResponse[] | ScheduleWithAvailabilitiesForWeb[]> {
-    if (forAtom) {
-      const usersSchedulesCount = await this.schedulesRepository.getUserSchedulesCount(user.id);
-      return Promise.all(
-        schedules.map((schedule) => this.transformScheduleForAtom(schedule, usersSchedulesCount, user))
-      );
-    }
-    return schedules.map((schedule) => schemaScheduleResponse.parse(schedule));
+  ): Promise<ScheduleWithAvailabilitiesForWeb[]> {
+    const usersSchedulesCount = await this.schedulesRepository.getUserSchedulesCount(user.id);
+    return Promise.all(
+      schedules.map((schedule) => this.transformScheduleForAtom(schedule, usersSchedulesCount, user))
+    );
   }
 
   async transformScheduleForAtom(
