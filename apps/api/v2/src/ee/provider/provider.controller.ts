@@ -13,6 +13,7 @@ import {
   UnauthorizedException,
   UseGuards,
 } from "@nestjs/common";
+import { ApiTags as DocsTags } from "@nestjs/swagger";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { ApiResponse } from "@calcom/platform-types";
@@ -21,6 +22,7 @@ import { ApiResponse } from "@calcom/platform-types";
   path: "ee/provider",
   version: "2",
 })
+@DocsTags("Cal provider")
 export class CalProviderController {
   constructor(private readonly oauthClientRepository: OAuthClientRepository) {}
 

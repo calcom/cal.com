@@ -20,6 +20,7 @@ import {
   NotFoundException,
   UseGuards,
 } from "@nestjs/common";
+import { ApiTags as DocsTags } from "@nestjs/swagger";
 import { User } from "@prisma/client";
 import { Request } from "express";
 import { NextApiRequest } from "next/types";
@@ -47,6 +48,7 @@ import { PrismaClient } from "@calcom/prisma";
   version: "2",
 })
 @UseGuards(PermissionsGuard)
+@DocsTags("Bookings")
 export class BookingsController {
   private readonly logger = new Logger("ee bookings controller");
 

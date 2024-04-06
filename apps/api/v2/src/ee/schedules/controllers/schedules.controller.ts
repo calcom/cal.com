@@ -18,6 +18,7 @@ import {
   Patch,
   UseGuards,
 } from "@nestjs/common";
+import { ApiTags as DocsTags } from "@nestjs/swagger";
 
 import { SCHEDULE_READ, SCHEDULE_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
 import type { ScheduleWithAvailabilitiesForWeb } from "@calcom/platform-libraries";
@@ -33,6 +34,7 @@ import { CreateScheduleInput } from "../inputs/create-schedule.input";
   version: "2",
 })
 @UseGuards(AccessTokenGuard, PermissionsGuard)
+@DocsTags("Schedules")
 export class SchedulesController {
   constructor(
     private readonly schedulesService: SchedulesService,

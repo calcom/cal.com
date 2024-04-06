@@ -16,7 +16,10 @@
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Health - development only"
+        ]
       }
     },
     "/api/v2/events/public": {
@@ -67,7 +70,10 @@
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Event types"
+        ]
       }
     },
     "/api/v2/oauth-clients/{clientId}/users": {
@@ -94,7 +100,10 @@
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Managed users"
+        ]
       },
       "post": {
         "operationId": "OAuthClientUsersController_createUser",
@@ -129,7 +138,10 @@
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Managed users"
+        ]
       }
     },
     "/api/v2/oauth-clients/{clientId}/users/{userId}": {
@@ -164,7 +176,10 @@
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Managed users"
+        ]
       },
       "patch": {
         "operationId": "OAuthClientUsersController_updateUser",
@@ -207,7 +222,10 @@
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Managed users"
+        ]
       },
       "delete": {
         "operationId": "OAuthClientUsersController_deleteUser",
@@ -240,7 +258,10 @@
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Managed users"
+        ]
       }
     },
     "/api/v2/oauth-clients": {
@@ -272,7 +293,7 @@
           }
         },
         "tags": [
-          "Development only"
+          "OAuth - development only"
         ]
       },
       "get": {
@@ -293,7 +314,7 @@
           }
         },
         "tags": [
-          "Development only"
+          "OAuth - development only"
         ]
       }
     },
@@ -325,7 +346,7 @@
           }
         },
         "tags": [
-          "Development only"
+          "OAuth - development only"
         ]
       },
       "patch": {
@@ -365,7 +386,7 @@
           }
         },
         "tags": [
-          "Development only"
+          "OAuth - development only"
         ]
       },
       "delete": {
@@ -395,7 +416,7 @@
           }
         },
         "tags": [
-          "Development only"
+          "OAuth - development only"
         ]
       }
     },
@@ -433,7 +454,7 @@
           }
         },
         "tags": [
-          "Development only"
+          "OAuth - development only"
         ]
       }
     },
@@ -486,7 +507,7 @@
           }
         },
         "tags": [
-          "Development only"
+          "OAuth - development only"
         ]
       }
     },
@@ -534,7 +555,7 @@
           }
         },
         "tags": [
-          "Development only"
+          "OAuth - development only"
         ]
       }
     },
@@ -738,7 +759,10 @@
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Google Calendar"
+        ]
       }
     },
     "/api/v2/ee/gcal/oauth/save": {
@@ -773,7 +797,10 @@
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Google Calendar"
+        ]
       }
     },
     "/api/v2/ee/gcal/check": {
@@ -791,7 +818,10 @@
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Google Calendar"
+        ]
       }
     },
     "/api/v2/ee/provider/{clientId}": {
@@ -818,7 +848,10 @@
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Cal provider"
+        ]
       }
     },
     "/api/v2/ee/provider/{clientId}/access-token": {
@@ -845,7 +878,10 @@
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Cal provider"
+        ]
       }
     },
     "/api/v2/schedules": {
@@ -873,7 +909,10 @@
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Schedules"
+        ]
       },
       "get": {
         "operationId": "SchedulesController_getSchedules",
@@ -889,7 +928,10 @@
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Schedules"
+        ]
       }
     },
     "/api/v2/schedules/default": {
@@ -907,7 +949,10 @@
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Schedules"
+        ]
       }
     },
     "/api/v2/schedules/{scheduleId}": {
@@ -934,7 +979,10 @@
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Schedules"
+        ]
       },
       "patch": {
         "operationId": "SchedulesController_updateSchedule",
@@ -960,7 +1008,10 @@
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Schedules"
+        ]
       },
       "delete": {
         "operationId": "SchedulesController_deleteSchedule",
@@ -985,7 +1036,10 @@
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Schedules"
+        ]
       }
     },
     "/api/v2/ee/me": {
@@ -1003,7 +1057,10 @@
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Me"
+        ]
       },
       "patch": {
         "operationId": "MeController_updateMe",
@@ -1029,7 +1086,10 @@
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Me"
+        ]
       }
     },
     "/api/v2/ee/calendars/busy-times": {
@@ -1047,7 +1107,10 @@
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Calendars"
+        ]
       }
     },
     "/api/v2/ee/calendars": {
@@ -1065,7 +1128,10 @@
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Calendars"
+        ]
       }
     },
     "/api/v2/ee/bookings": {
@@ -1083,7 +1149,10 @@
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Bookings"
+        ]
       },
       "post": {
         "operationId": "BookingsController_createBooking",
@@ -1109,7 +1178,10 @@
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Bookings"
+        ]
       }
     },
     "/api/v2/ee/bookings/{bookingUid}": {
@@ -1136,7 +1208,10 @@
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Bookings"
+        ]
       }
     },
     "/api/v2/ee/bookings/{bookingUid}/reschedule": {
@@ -1163,7 +1238,10 @@
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Bookings"
+        ]
       }
     },
     "/api/v2/ee/bookings/{bookingId}/cancel": {
@@ -1200,7 +1278,10 @@
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Bookings"
+        ]
       }
     },
     "/api/v2/ee/bookings/reccuring": {
@@ -1231,7 +1312,10 @@
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Bookings"
+        ]
       }
     },
     "/api/v2/ee/bookings/instant": {
@@ -1259,7 +1343,10 @@
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Bookings"
+        ]
       }
     },
     "/api/v2/slots/reserve": {
@@ -1287,7 +1374,10 @@
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Slots"
+        ]
       }
     },
     "/api/v2/slots/selected-slot": {
@@ -1305,7 +1395,10 @@
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Slots"
+        ]
       }
     },
     "/api/v2/slots/available": {
@@ -1323,7 +1416,10 @@
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Slots"
+        ]
       }
     },
     "/api/v2/timezones": {
@@ -1341,7 +1437,10 @@
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Timezones"
+        ]
       }
     }
   },

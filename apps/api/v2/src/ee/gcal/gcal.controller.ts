@@ -21,6 +21,7 @@ import {
   Headers,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
+import { ApiTags as DocsTags } from "@nestjs/swagger";
 import { Request } from "express";
 import { google } from "googleapis";
 import { z } from "zod";
@@ -42,6 +43,7 @@ const CALENDAR_SCOPES = [
   path: "ee/gcal",
   version: "2",
 })
+@DocsTags("Google Calendar")
 export class GcalController {
   private readonly logger = new Logger("Platform Gcal Provider");
 

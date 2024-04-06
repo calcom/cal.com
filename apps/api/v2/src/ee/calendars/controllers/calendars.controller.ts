@@ -3,6 +3,7 @@ import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { Controller, Get, UseGuards, Query } from "@nestjs/common";
+import { ApiTags as DocsTags } from "@nestjs/swagger";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { ConnectedDestinationCalendars } from "@calcom/platform-libraries";
@@ -15,6 +16,7 @@ import { EventBusyDate } from "@calcom/types/Calendar";
   version: "2",
 })
 @UseGuards(AccessTokenGuard)
+@DocsTags("Calendars")
 export class CalendarsController {
   constructor(private readonly calendarsService: CalendarsService) {}
 

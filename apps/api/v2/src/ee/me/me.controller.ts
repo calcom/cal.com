@@ -6,6 +6,7 @@ import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.
 import { UpdateManagedPlatformUserInput } from "@/modules/users/inputs/update-managed-platform-user.input";
 import { UserWithProfile, UsersRepository } from "@/modules/users/users.repository";
 import { Controller, UseGuards, Get, Patch, Body } from "@nestjs/common";
+import { ApiTags as DocsTags } from "@nestjs/swagger";
 
 import { PROFILE_READ, PROFILE_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
 import { UserResponse, userSchemaResponse } from "@calcom/platform-types";
@@ -16,6 +17,7 @@ import { ApiResponse } from "@calcom/platform-types";
   version: "2",
 })
 @UseGuards(AccessTokenGuard, PermissionsGuard)
+@DocsTags("Me")
 export class MeController {
   constructor(
     private readonly usersRepository: UsersRepository,
