@@ -1,10 +1,9 @@
 import { EventTypesService } from "@/ee/event-types/services/event-types.service";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
-import { CreateManagedPlatformUserInput } from "@/modules/users/inputs/create-managed-platform-user.input";
+import { CreateManagedUserInput } from "@/modules/users/inputs/create-managed-user.input";
 import { UsersRepository } from "@/modules/users/users.repository";
 import { BadRequestException, Injectable } from "@nestjs/common";
 import { User } from "@prisma/client";
-import * as crypto from "crypto";
 
 import { createNewUsersConnectToOrgIfExists } from "@calcom/platform-libraries";
 
@@ -18,7 +17,7 @@ export class OAuthClientUsersService {
 
   async createOauthClientUser(
     oAuthClientId: string,
-    body: CreateManagedPlatformUserInput,
+    body: CreateManagedUserInput,
     isPlatformManaged: boolean,
     organizationId?: number
   ) {
@@ -50,7 +49,6 @@ export class OAuthClientUsersService {
         })
       )[0];
       await this.userRepository.addToOAuthClient(user.id, oAuthClientId);
-      await this.userRepository.update(user.id, { name: body.name ?? user.username ?? undefined });
     }
 
     const { accessToken, refreshToken } = await this.tokensRepository.createOAuthTokens(
@@ -67,23 +65,4 @@ export class OAuthClientUsersService {
       },
     };
   }
-}
-
-function generateShortHash(email: string, clientId: string): string {
-  // Get the current timestamp
-  const timestamp = Date.now().toString();
-
-  // Concatenate the timestamp and email
-  const data = timestamp + email + clientId;
-
-  // Create a SHA256 hash
-  const hash = crypto
-    .createHash("sha256")
-    .update(data)
-    .digest("base64")
-    .replace("=", "")
-    .replace("/", "")
-    .replace("+", "");
-
-  return hash.toLowerCase();
 }

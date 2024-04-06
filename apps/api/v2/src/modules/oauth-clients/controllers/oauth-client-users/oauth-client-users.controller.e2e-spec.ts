@@ -7,8 +7,8 @@ import {
   CreateUserResponse,
   UserReturned,
 } from "@/modules/oauth-clients/controllers/oauth-client-users/oauth-client-users.controller";
-import { CreateManagedPlatformUserInput } from "@/modules/users/inputs/create-managed-platform-user.input";
-import { UpdateManagedPlatformUserInput } from "@/modules/users/inputs/update-managed-platform-user.input";
+import { CreateManagedUserInput } from "@/modules/users/inputs/create-managed-user.input";
+import { UpdateManagedUserInput } from "@/modules/users/inputs/update-managed-user.input";
 import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
@@ -117,7 +117,7 @@ describe("OAuth Client Users Endpoints", () => {
     });
 
     it(`should fail /POST with incorrect timeZone`, async () => {
-      const requestBody: CreateManagedPlatformUserInput = {
+      const requestBody: CreateManagedUserInput = {
         email: "oauth-client-user@gmail.com",
         timeZone: "incorrect-time-zone",
       };
@@ -130,7 +130,7 @@ describe("OAuth Client Users Endpoints", () => {
     });
 
     it(`/POST`, async () => {
-      const requestBody: CreateManagedPlatformUserInput = {
+      const requestBody: CreateManagedUserInput = {
         email: "oauth-client-user@gmail.com",
       };
 
@@ -210,7 +210,7 @@ describe("OAuth Client Users Endpoints", () => {
 
     it(`/PUT/:id`, async () => {
       const userUpdatedEmail = "pineapple-pizza@gmail.com";
-      const body: UpdateManagedPlatformUserInput = { email: userUpdatedEmail };
+      const body: UpdateManagedUserInput = { email: userUpdatedEmail };
 
       const response = await request(app.getHttpServer())
         .patch(`/api/v2/oauth-clients/${oAuthClient.id}/users/${postResponseData.user.id}`)

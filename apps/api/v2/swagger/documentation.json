@@ -95,7 +95,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/GetManagedUsersOutput"
                 }
               }
             }
@@ -122,7 +122,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateManagedPlatformUserInput"
+                "$ref": "#/components/schemas/CreateManagedUserInput"
               }
             }
           }
@@ -133,7 +133,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/CreateManagedUserOutput"
                 }
               }
             }
@@ -171,7 +171,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/GetManagedUserOutput"
                 }
               }
             }
@@ -206,7 +206,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateManagedPlatformUserInput"
+                "$ref": "#/components/schemas/UpdateManagedUserInput"
               }
             }
           }
@@ -217,7 +217,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/UpdateManagedUserOutput"
                 }
               }
             }
@@ -253,7 +253,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/DeleteManagedUserOutput"
                 }
               }
             }
@@ -1070,7 +1070,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateManagedPlatformUserInput"
+                "$ref": "#/components/schemas/UpdateManagedUserInput"
               }
             }
           }
@@ -1454,36 +1454,169 @@
   "servers": [],
   "components": {
     "schemas": {
-      "CreateManagedPlatformUserInput": {
+      "ManagedUserOutput": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1
+          },
+          "email": {
+            "type": "string",
+            "example": "alice@example.com"
+          },
+          "username": {
+            "type": "string",
+            "nullable": true,
+            "example": "alice"
+          },
+          "timeZone": {
+            "type": "string",
+            "example": "America/New_York"
+          },
+          "weekStart": {
+            "type": "string",
+            "example": "Sunday"
+          },
+          "createdDate": {
+            "type": "string",
+            "example": "2024-04-01T00:00:00.000Z"
+          },
+          "timeFormat": {
+            "type": "number",
+            "nullable": true,
+            "example": 12
+          },
+          "defaultScheduleId": {
+            "type": "number",
+            "nullable": true,
+            "example": null
+          }
+        },
+        "required": [
+          "id",
+          "email",
+          "username",
+          "timeZone",
+          "weekStart",
+          "createdDate",
+          "timeFormat",
+          "defaultScheduleId"
+        ]
+      },
+      "GetManagedUsersOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ManagedUserOutput"
+            }
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "CreateManagedUserInput": {
         "type": "object",
         "properties": {
           "email": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
+            "type": "string",
+            "example": "alice@example.com"
           },
           "timeFormat": {
-            "type": "number"
+            "type": "number",
+            "example": 12
           },
           "weekStart": {
-            "type": "string"
+            "type": "string",
+            "example": "Sunday"
           },
           "timeZone": {
-            "type": "string"
+            "type": "string",
+            "example": "America/New_York"
           }
         },
         "required": [
           "email"
         ]
       },
-      "UpdateManagedPlatformUserInput": {
+      "CreateManagedUserData": {
+        "type": "object",
+        "properties": {
+          "user": {
+            "$ref": "#/components/schemas/ManagedUserOutput"
+          },
+          "accessToken": {
+            "type": "string"
+          },
+          "refreshToken": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "user",
+          "accessToken",
+          "refreshToken"
+        ]
+      },
+      "CreateManagedUserOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/CreateManagedUserData"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "GetManagedUserOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/ManagedUserOutput"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "UpdateManagedUserInput": {
         "type": "object",
         "properties": {
           "email": {
             "type": "string"
           },
-          "name": {
+          "username": {
             "type": "string"
           },
           "timeFormat": {
@@ -1499,6 +1632,46 @@
             "type": "string"
           }
         }
+      },
+      "UpdateManagedUserOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/ManagedUserOutput"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "DeleteManagedUserOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/ManagedUserOutput"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
       },
       "CreateOAuthClientInput": {
         "type": "object",
