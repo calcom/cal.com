@@ -1,4 +1,5 @@
 import { get } from "@vercel/edge-config";
+import { getToken } from "next-auth/jwt";
 import { collectEvents } from "next-collect/server";
 import { cookies } from "next/headers";
 import type { NextRequest } from "next/server";
@@ -22,8 +23,16 @@ const safeGet = async <T = any>(key: string): Promise<T | undefined> => {
 const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
   const url = req.nextUrl;
   const requestHeaders = new Headers(req.headers);
+  const token = await getToken({ req });
 
   requestHeaders.set("x-url", req.url);
+
+  if (token?.isOverlayUser && !overlayUserAllowedRoutesRegex.some((regex) => regex.test(url.pathname))) {
+    const nextUrl = new URL(url.href);
+    nextUrl.pathname = "/auth/login";
+    console.log(token, url.pathname);
+    return NextResponse.redirect(nextUrl);
+  }
 
   if (!url.pathname.startsWith("/api")) {
     //
@@ -164,6 +173,15 @@ export const config = {
     "/future/teams/",
   ],
 };
+
+// allowing the following routes and not redirecting to login page for overlay user: "/api/auth/signup", "/login", "/auth/login", "/future/auth/login", /api/trpc/:path*
+const overlayUserAllowedRoutesRegex = [
+  /^\/api\/auth\/signup$/,
+  /^\/login$/,
+  /^\/auth\/login$/,
+  /^\/future\/auth\/login$/,
+  /^\/api\/trpc\/.*/,
+];
 
 export default collectEvents({
   middleware: abTestMiddlewareFactory(middleware),

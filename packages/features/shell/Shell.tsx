@@ -148,7 +148,7 @@ function useRedirectToLoginIfUnauthenticated(isPublic = false) {
       return;
     }
 
-    if (!loading && !session) {
+    if (!loading && (!session || session.user.isOverlayUser)) {
       const urlSearchParams = new URLSearchParams();
       urlSearchParams.set("callbackUrl", `${WEBAPP_URL}${location.pathname}${location.search}`);
       router.replace(`/auth/login?${urlSearchParams.toString()}`);

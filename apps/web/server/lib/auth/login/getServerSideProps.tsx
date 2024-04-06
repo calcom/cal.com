@@ -51,7 +51,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     }
   }
 
-  if (session) {
+  if (session && !session.user.isOverlayUser) {
     const { callbackUrl } = query;
 
     if (callbackUrl) {
