@@ -20,10 +20,10 @@ const schema = z.object({
 
 const getEventTypeIdFromRetellLLM = (
   generalTools: TGetRetellLLMSchema["general_tools"]
-): number | undefined => {
+): { eventTypeId: number | undefined; timezone: string | undefined } => {
   const generalTool = generalTools.find((tool) => !!tool.event_type_id && !!tool.timezone);
 
-  return generalTool?.event_type_id;
+  return { eventTypeId: generalTool?.event_type_id, timezone: generalTool?.timezone };
 };
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -39,9 +39,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   const retellLLM = await fetcher(`/get-retell-llm/${body.llm_id}`).then(getRetellLLMSchema.parse);
 
-  const eventTypeId = getEventTypeIdFromRetellLLM(retellLLM.general_tools);
+  const { eventTypeId, timezone } = getEventTypeIdFromRetellLLM(retellLLM.general_tools);
 
-  if (!eventTypeId) return res.status(404).json({ message: "eventTypeId not found" });
+  if (!eventTypeId || !timezone)
+    return res.status(404).json({ message: "eventTypeId or Timezone not found" });
 
   const eventType = await prisma.eventType.findUnique({
     where: {
@@ -84,7 +85,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   const firstSlot = availableSlots?.slots?.[firstAvailableDate]?.[0]?.time;
 
   return res.status(200).json({
-    next_available: firstSlot ? dayjs.utc(firstSlot).format("dddd [the] Do [at] h:mma [GMT]") : undefined,
+    next_available: firstSlot
+      ? dayjs.utc(firstSlot).tz(timezone).format(`dddd [the] Do [at] h:mma [${timezone} timezone]`)
+      : undefined,
   });
 }
 
