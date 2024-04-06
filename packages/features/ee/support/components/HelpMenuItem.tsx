@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useChat } from "react-live-chat-loader";
 
 import classNames from "@calcom/lib/classNames";
-import { useHasPaidPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button, showToast, TextArea } from "@calcom/ui";
@@ -52,8 +51,6 @@ export default function HelpMenuItem({ onHelpItemSelect, showSupport }: HelpMenu
   const sendFeedback = async (rating: string, comment: string) => {
     mutation.mutate({ rating: rating, comment: comment });
   };
-
-  const { hasPaidPlan } = useHasPaidPlan();
 
   return (
     <div className="bg-default border-default w-full rounded-md">
@@ -207,16 +204,9 @@ export default function HelpMenuItem({ onHelpItemSelect, showSupport }: HelpMenu
               } else if (isInterComEnabled) {
                 shutdown();
               }
-              showIntercomMutation.mutate(
-                {
-                  showSupport: false,
-                },
-                {
-                  onSuccess: () => {
-                    showToast(t("settings_updated_successfully"), "success");
-                  },
-                }
-              );
+              showIntercomMutation.mutate({
+                showSupport: false,
+              });
             } else {
               if (isFreshChatEnabled) {
                 setFreshChat(true);
