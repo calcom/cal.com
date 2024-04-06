@@ -1981,11 +1981,10 @@
           },
           "locations": {
             "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/EventTypeLocation"
-              }
-            ]
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EventTypeLocation"
+            }
           }
         },
         "required": [
