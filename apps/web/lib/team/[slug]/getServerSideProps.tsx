@@ -9,6 +9,7 @@ import { getTeamWithMembers } from "@calcom/lib/server/queries/teams";
 import slugify from "@calcom/lib/slugify";
 import { stripMarkdown } from "@calcom/lib/stripMarkdown";
 import prisma from "@calcom/prisma";
+import type { Team } from "@calcom/prisma/client";
 import { RedirectType } from "@calcom/prisma/client";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
@@ -80,6 +81,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   }
 
   if (!team) {
+    // Because we are fetching by requestedSlug being set, it can either be an organization or a regular team. But it can't be a sub-team i.e.
     const unpublishedTeam = await prisma.team.findFirst({
       where: {
         metadata: {
@@ -93,19 +95,24 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
             id: true,
             slug: true,
             name: true,
-            isOrganization: true,
             isPrivate: true,
+            isOrganization: true,
+            metadata: true,
           },
         },
       },
     });
 
     if (!unpublishedTeam) return { notFound: true } as const;
-
+    const teamParent = unpublishedTeam.parent ? getTeamWithoutMetadata(unpublishedTeam.parent) : null;
     return {
       props: {
-        shouldShowAsUnpublished: true,
-        team: { ...unpublishedTeam, createdAt: null },
+        considerUnpublished: true,
+        team: {
+          ...unpublishedTeam,
+          parent: teamParent,
+          createdAt: null,
+        },
         trpcState: ssr.dehydrate(),
       },
     } as const;
@@ -147,31 +154,20 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const markdownStrippedBio = stripMarkdown(team?.bio || "");
 
-  const { inviteToken: _inviteToken, ...serializableTeam } = team;
+  const serializableTeam = getSerializableTeam(team);
 
-  // For a team we check if it's unpublished
-  // For a subteam, we check if the parent org is unpublished. A subteam can never be unpublished in itself
+  // For a team or Organization we check if it's unpublished
+  // For a subteam, we check if the parent org is unpublished. A subteam can't be unpublished in itself
   const isUnpublished = team.parent ? !team.parent.slug : !team.slug;
   const isARedirectFromNonOrgLink = context.query.orgRedirection === "true";
-  const organization = team.parent
-    ? {
-        ...team.parent,
-        metadata: team.parent.metadata ? teamMetadataSchema.parse(team.parent.metadata) : null,
-      }
-    : null;
 
-  const shouldShowAsUnpublished = isUnpublished && !isARedirectFromNonOrgLink;
+  const considerUnpublished = isUnpublished && !isARedirectFromNonOrgLink;
 
-  if (shouldShowAsUnpublished) {
-    console.log({
-      team,
-      organization,
-    });
+  if (considerUnpublished) {
     return {
       props: {
-        shouldShowAsUnpublished: true,
+        considerUnpublished: true,
         team: { ...serializableTeam },
-        organization,
         trpcState: ssr.dehydrate(),
       },
     } as const;
@@ -186,7 +182,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         metadata,
         children: isTeamOrParentOrgPrivate ? [] : team.children,
       },
-      organization,
       themeBasis: serializableTeam.slug,
       trpcState: ssr.dehydrate(),
       markdownStrippedBio,
@@ -195,3 +190,29 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     },
   } as const;
 };
+
+/**
+ * Removes sensitive data from team and ensures that the object is serialiable by Next.js
+ */
+function getSerializableTeam(team: NonNullable<Awaited<ReturnType<typeof getTeamWithMembers>>>) {
+  const { inviteToken: _inviteToken, ...serializableTeam } = team;
+
+  const teamParent = team.parent ? getTeamWithoutMetadata(team.parent) : null;
+
+  return {
+    ...serializableTeam,
+    parent: teamParent,
+  };
+}
+
+/**
+ * Removes metadata from team and just adds requestedSlug
+ */
+function getTeamWithoutMetadata<T extends Pick<Team, "metadata">>(team: T) {
+  const { metadata, ...rest } = team;
+  const teamMetadata = teamMetadataSchema.parse(metadata);
+  return {
+    ...rest,
+    requestedSlug: teamMetadata?.requestedSlug,
+  };
+}

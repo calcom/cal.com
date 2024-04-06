@@ -65,6 +65,7 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
     username: usernames.join("+"),
     eventSlug: slug,
     org,
+    fromRedirectOfNonOrgLink: context.query.orgRedirection === "true",
   });
 
   if (!eventData) {
@@ -76,10 +77,7 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
   return {
     props: {
       eventData: {
-        entity: {
-          isARedirectFromNonOrgLink: context.query.orgRedirection === "true",
-          ...eventData.entity,
-        },
+        entity: eventData.entity,
         length: eventData.length,
         metadata: {
           ...eventData.metadata,
@@ -161,6 +159,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
     username,
     eventSlug: slug,
     org,
+    fromRedirectOfNonOrgLink: context.query.orgRedirection === "true",
   });
 
   if (!eventData) {
@@ -173,10 +172,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
     props: {
       booking,
       eventData: {
-        entity: {
-          isARedirectFromNonOrgLink: context.query.orgRedirection === "true",
-          ...eventData.entity,
-        },
+        entity: eventData.entity,
         length: eventData.length,
         metadata: eventData.metadata,
       },

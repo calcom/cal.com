@@ -47,8 +47,7 @@ export type UserPageProps = {
   markdownStrippedBio: string;
   safeBio: string;
   entity: {
-    isARedirectFromNonOrgLink: boolean;
-    isUnpublished?: boolean;
+    considerUnpublished: boolean;
     orgSlug?: string | null;
     name?: string | null;
   };
@@ -208,8 +207,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
         profile: user.profile,
       })),
       entity: {
-        isUnpublished: org?.slug === null,
-        isARedirectFromNonOrgLink: isARedirectFromNonOrgLink,
+        considerUnpublished: !isARedirectFromNonOrgLink && org?.slug === null,
         orgSlug: currentOrgDomain,
         name: org?.name ?? null,
       },

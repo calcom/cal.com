@@ -72,6 +72,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     eventSlug: meetingSlug,
     isTeamEvent: true,
     org,
+    fromRedirectOfNonOrgLink: context.query.orgRedirection === "true",
   });
 
   if (!eventData) {
@@ -83,10 +84,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   return {
     props: {
       eventData: {
-        entity: {
-          isARedirectFromNonOrgLink: context.query.orgRedirection === "true",
-          ...eventData.entity,
-        },
+        entity: eventData.entity,
         length: eventData.length,
         metadata: eventData.metadata,
       },

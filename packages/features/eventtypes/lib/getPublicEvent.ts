@@ -119,13 +119,14 @@ const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   assignAllTeamMembers: true,
 });
 
+// TODO: Convert it to accept a single parameter with structured data
 export const getPublicEvent = async (
   username: string,
   eventSlug: string,
   isTeamEvent: boolean | undefined,
   org: string | null,
-  isARedirectFromNonOrgLink: boolean,
-  prisma: PrismaClient
+  prisma: PrismaClient,
+  fromRedirectOfNonOrgLink: boolean
 ) => {
   const usernameList = getUsernameList(username);
   const orgQuery = org ? getSlugOrRequestedSlug(org) : null;
@@ -187,8 +188,7 @@ export const getPublicEvent = async (
         ),
       },
       entity: {
-        isARedirectFromNonOrgLink,
-        isUnpublished: unPublishedOrgUser !== undefined,
+        considerUnpublished: !fromRedirectOfNonOrgLink && unPublishedOrgUser !== undefined,
         orgSlug: org,
         name: unPublishedOrgUser?.profile?.organization?.name ?? null,
       },
@@ -291,10 +291,11 @@ export const getPublicEvent = async (
     profile: getProfileFromEvent(eventWithUserProfiles),
     users,
     entity: {
-      isUnpublished:
-        eventWithUserProfiles.team?.slug === null ||
-        eventWithUserProfiles.owner?.profile?.organization?.slug === null ||
-        eventWithUserProfiles.team?.parent?.slug === null,
+      considerUnpublished:
+        !fromRedirectOfNonOrgLink &&
+        (eventWithUserProfiles.team?.slug === null ||
+          eventWithUserProfiles.owner?.profile?.organization?.slug === null ||
+          eventWithUserProfiles.team?.parent?.slug === null),
       orgSlug: org,
       teamSlug: (eventWithUserProfiles.team?.slug || teamMetadata?.requestedSlug) ?? null,
       name:

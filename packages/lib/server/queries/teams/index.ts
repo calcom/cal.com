@@ -104,6 +104,7 @@ export async function getTeamWithMembers(args: {
           metadata: true,
         },
       },
+      parentId: true,
       children: {
         select: {
           name: true,
