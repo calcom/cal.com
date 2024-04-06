@@ -5,7 +5,7 @@ export class ManagedUserOutput {
   @ApiProperty({ example: 1 })
   id!: number;
 
-  @ApiProperty({ example: "alice@example.com" })
+  @ApiProperty({ example: "alice+cluo37fwd0001khkzqqynkpj3@example.com" })
   email!: string;
 
   @ApiProperty({ example: "alice" })

@@ -1463,7 +1463,7 @@
           },
           "email": {
             "type": "string",
-            "example": "alice@example.com"
+            "example": "alice+cluo37fwd0001khkzqqynkpj3@example.com"
           },
           "username": {
             "type": "string",
