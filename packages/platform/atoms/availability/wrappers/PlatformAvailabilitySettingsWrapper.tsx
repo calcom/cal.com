@@ -98,28 +98,24 @@ export const PlatformAvailabilitySettingsWrapper = ({
       weekStart="Sunday"
       timeFormat={timeFormat}
       isLoading={isLoading}
-      schedule={
-        userSchedule
-          ? {
-              name: userSchedule.name,
-              id: userSchedule.id,
-              isLastSchedule: userSchedule.isLastSchedule,
-              isDefault: userSchedule.isDefault,
-              workingHours: userSchedule.workingHours,
-              dateOverrides: userSchedule.dateOverrides,
-              timeZone: userSchedule.timeZone,
-              availability: userSchedule.availability,
-              schedule:
-                userSchedule.schedule.reduce(
-                  (acc: Schedule[], avail: Schedule) => [
-                    ...acc,
-                    { ...avail, startTime: new Date(avail.startTime), endTime: new Date(avail.endTime) },
-                  ],
-                  [] as Schedule[]
-                ) || [],
-            }
-          : undefined
-      }
+      schedule={{
+        name: userSchedule.name,
+        id: userSchedule.id,
+        isLastSchedule: userSchedule.isLastSchedule,
+        isDefault: userSchedule.isDefault,
+        workingHours: userSchedule.workingHours,
+        dateOverrides: userSchedule.dateOverrides,
+        timeZone: userSchedule.timeZone,
+        availability: userSchedule.availability,
+        schedule:
+          userSchedule.schedule.reduce(
+            (acc: Schedule[], avail: Schedule) => [
+              ...acc,
+              { ...avail, startTime: new Date(avail.startTime), endTime: new Date(avail.endTime) },
+            ],
+            [] as Schedule[]
+          ) || [],
+      }}
       isDeleting={isDeletionInProgress}
       isSaving={isSavingInProgress}
       backPath=""

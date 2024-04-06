@@ -1,3 +1,4 @@
+import { ScheduleOutput } from "@/ee/schedules/outputs/schedule.output";
 import { SchedulesRepository } from "@/ee/schedules/schedules.repository";
 import { Injectable } from "@nestjs/common";
 import { User } from "@prisma/client";
@@ -7,19 +8,13 @@ import {
   transformAvailabilityForClient,
   transformDateOverridesForClient,
 } from "@calcom/platform-libraries";
-import type {
-  ScheduleWithAvailabilities,
-  ScheduleWithAvailabilitiesForWeb,
-} from "@calcom/platform-libraries";
+import type { ScheduleWithAvailabilities } from "@calcom/platform-libraries";
 
 @Injectable()
 export class ResponseService {
   constructor(private readonly schedulesRepository: SchedulesRepository) {}
 
-  async formatScheduleForAtom(
-    user: User,
-    schedule: ScheduleWithAvailabilities
-  ): Promise<ScheduleWithAvailabilitiesForWeb> {
+  async formatScheduleForAtom(user: User, schedule: ScheduleWithAvailabilities): Promise<ScheduleOutput> {
     const usersSchedulesCount = await this.schedulesRepository.getUserSchedulesCount(user.id);
     return this.transformScheduleForAtom(schedule, usersSchedulesCount, user);
   }
@@ -27,7 +22,7 @@ export class ResponseService {
   async formatSchedulesForAtom(
     user: User,
     schedules: ScheduleWithAvailabilities[]
-  ): Promise<ScheduleWithAvailabilitiesForWeb[]> {
+  ): Promise<ScheduleOutput[]> {
     const usersSchedulesCount = await this.schedulesRepository.getUserSchedulesCount(user.id);
     return Promise.all(
       schedules.map((schedule) => this.transformScheduleForAtom(schedule, usersSchedulesCount, user))
@@ -38,7 +33,7 @@ export class ResponseService {
     schedule: ScheduleWithAvailabilities,
     userSchedulesCount: number,
     user: Pick<User, "id" | "defaultScheduleId" | "timeZone">
-  ): Promise<ScheduleWithAvailabilitiesForWeb> {
+  ): Promise<ScheduleOutput> {
     const timeZone = schedule.timeZone || user.timeZone;
 
     return {

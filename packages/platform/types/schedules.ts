@@ -1,5 +1,6 @@
+import { ApiProperty as DocsProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { IsNumber, IsString, IsBoolean, IsOptional, ValidateNested, IsArray, IsDate } from "class-validator";
+import { IsString, IsBoolean, IsOptional, ValidateNested, IsArray, IsDate } from "class-validator";
 import { DateTime } from "luxon";
 import { z } from "zod";
 
@@ -56,28 +57,30 @@ class DateOverride {
 }
 
 export class UpdateScheduleInput {
-  @IsNumber()
-  scheduleId!: number;
-
   @IsString()
   @IsOptional()
+  @DocsProperty()
   timeZone?: string;
 
   @IsString()
   @IsOptional()
+  @DocsProperty()
   name?: string;
 
   @IsBoolean()
   @IsOptional()
+  @DocsProperty()
   isDefault?: boolean;
 
   @ValidateNested({ each: true })
   @Type(() => ScheduleItem)
+  @DocsProperty()
   schedule!: ScheduleItem[][];
 
   @IsOptional()
   @ValidateNested({ each: true })
   @Type(() => DateOverride)
   @IsArray()
+  @DocsProperty()
   dateOverrides?: DateOverride[];
 }

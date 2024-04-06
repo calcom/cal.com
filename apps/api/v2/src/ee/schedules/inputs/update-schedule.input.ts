@@ -1,6 +1,6 @@
 import { CreateAvailabilityInput } from "@/modules/availabilities/inputs/create-availability.input";
 import { Type } from "class-transformer";
-import { IsBoolean, IsOptional, IsString, IsTimeZone, ValidateNested } from "class-validator";
+import { IsArray, IsBoolean, IsOptional, IsString, IsTimeZone, ValidateNested } from "class-validator";
 
 export class UpdateScheduleInput {
   @IsString()
@@ -14,6 +14,7 @@ export class UpdateScheduleInput {
   @ValidateNested({ each: true })
   @Type(() => CreateAvailabilityInput)
   @IsOptional()
+  @IsArray()
   availabilities?: CreateAvailabilityInput[];
 
   @IsBoolean()

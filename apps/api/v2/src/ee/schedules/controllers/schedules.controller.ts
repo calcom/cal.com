@@ -1,3 +1,9 @@
+import { CreateScheduleOutput } from "@/ee/schedules/outputs/create-schedule.output";
+import { DeleteScheduleOutput } from "@/ee/schedules/outputs/delete-schedule.output";
+import { GetDefaultScheduleOutput } from "@/ee/schedules/outputs/get-default-schedule.output";
+import { GetScheduleOutput } from "@/ee/schedules/outputs/get-schedule.output";
+import { GetSchedulesOutput } from "@/ee/schedules/outputs/get-schedules.output";
+import { UpdateScheduleOutput } from "@/ee/schedules/outputs/update-schedule.output";
 import { ResponseService } from "@/ee/schedules/services/response/response.service";
 import { SchedulesService } from "@/ee/schedules/services/schedules.service";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
@@ -20,11 +26,8 @@ import {
 import { ApiTags as DocsTags } from "@nestjs/swagger";
 
 import { SCHEDULE_READ, SCHEDULE_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
-import type { ScheduleWithAvailabilitiesForWeb } from "@calcom/platform-libraries";
 import { updateScheduleHandler } from "@calcom/platform-libraries";
-import type { UpdateScheduleOutputType } from "@calcom/platform-libraries";
-import { ApiSuccessResponse, UpdateScheduleInput } from "@calcom/platform-types";
-import { ApiResponse } from "@calcom/platform-types";
+import { UpdateScheduleInput } from "@calcom/platform-types";
 
 import { CreateScheduleInput } from "../inputs/create-schedule.input";
 
@@ -45,7 +48,7 @@ export class SchedulesController {
   async createSchedule(
     @GetUser() user: UserWithProfile,
     @Body() bodySchedule: CreateScheduleInput
-  ): Promise<ApiSuccessResponse<ScheduleWithAvailabilitiesForWeb>> {
+  ): Promise<CreateScheduleOutput> {
     const schedule = await this.schedulesService.createUserSchedule(user.id, bodySchedule);
     const scheduleFormatted = await this.schedulesResponseService.formatScheduleForAtom(user, schedule);
 
@@ -57,9 +60,7 @@ export class SchedulesController {
 
   @Get("/default")
   @Permissions([SCHEDULE_READ])
-  async getDefaultSchedule(
-    @GetUser() user: UserWithProfile
-  ): Promise<ApiResponse<ScheduleWithAvailabilitiesForWeb | null>> {
+  async getDefaultSchedule(@GetUser() user: UserWithProfile): Promise<GetDefaultScheduleOutput | null> {
     const schedule = await this.schedulesService.getUserScheduleDefault(user.id);
     const scheduleFormatted = schedule
       ? await this.schedulesResponseService.formatScheduleForAtom(user, schedule)
@@ -76,7 +77,7 @@ export class SchedulesController {
   async getSchedule(
     @GetUser() user: UserWithProfile,
     @Param("scheduleId") scheduleId: number
-  ): Promise<ApiSuccessResponse<ScheduleWithAvailabilitiesForWeb>> {
+  ): Promise<GetScheduleOutput> {
     const schedule = await this.schedulesService.getUserSchedule(user.id, scheduleId);
     const scheduleFormatted = await this.schedulesResponseService.formatScheduleForAtom(user, schedule);
 
@@ -88,9 +89,7 @@ export class SchedulesController {
 
   @Get("/")
   @Permissions([SCHEDULE_READ])
-  async getSchedules(
-    @GetUser() user: UserWithProfile
-  ): Promise<ApiSuccessResponse<ScheduleWithAvailabilitiesForWeb[]>> {
+  async getSchedules(@GetUser() user: UserWithProfile): Promise<GetSchedulesOutput> {
     const schedules = await this.schedulesService.getUserSchedules(user.id);
     const schedulesFormatted = await this.schedulesResponseService.formatSchedulesForAtom(user, schedules);
 
@@ -105,10 +104,23 @@ export class SchedulesController {
   @Permissions([SCHEDULE_WRITE])
   async updateSchedule(
     @GetUser() user: UserWithProfile,
-    @Body() bodySchedule: UpdateScheduleInput
-  ): Promise<ApiSuccessResponse<UpdateScheduleOutputType>> {
-    const updatedSchedule: UpdateScheduleOutputType = await updateScheduleHandler({
-      input: bodySchedule,
+    @Body() bodySchedule: UpdateScheduleInput,
+    @Param("scheduleId") scheduleId: string
+  ): Promise<UpdateScheduleOutput> {
+    const schedule = await this.schedulesService.getUserSchedule(user.id, Number(scheduleId));
+    const scheduleFormatted = await this.schedulesResponseService.formatScheduleForAtom(user, schedule);
+
+    if (!bodySchedule.schedule) {
+      // note(Lauris): When updating an availability in cal web app, lets say only its name, also
+      // the schedule is sent and then passed to the update handler. Notably, availability is passed too
+      // and they have same shape, so to match shapes I attach "scheduleFormatted.availability" to reflect
+      // schedule that would be passed by the web app. If we don't, then updating schedule name will erase
+      // schedule.
+      bodySchedule.schedule = scheduleFormatted.availability;
+    }
+
+    const updatedSchedule = await updateScheduleHandler({
+      input: { scheduleId: Number(scheduleId), ...bodySchedule },
       ctx: { user },
     });
 
@@ -124,7 +136,7 @@ export class SchedulesController {
   async deleteSchedule(
     @GetUser("id") userId: number,
     @Param("scheduleId") scheduleId: number
-  ): Promise<ApiResponse> {
+  ): Promise<DeleteScheduleOutput> {
     await this.schedulesService.deleteUserSchedule(userId, scheduleId);
 
     return {

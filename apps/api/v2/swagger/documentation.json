@@ -904,7 +904,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/CreateScheduleOutput"
                 }
               }
             }
@@ -923,7 +923,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/GetSchedulesOutput"
                 }
               }
             }
@@ -974,7 +974,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/GetScheduleOutput"
                 }
               }
             }
@@ -986,7 +986,16 @@
       },
       "patch": {
         "operationId": "SchedulesController_updateSchedule",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "scheduleId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -1003,7 +1012,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/UpdateScheduleOutput"
                 }
               }
             }
@@ -1031,7 +1040,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/DeleteScheduleOutput"
                 }
               }
             }
@@ -2383,9 +2392,365 @@
           "isDefault"
         ]
       },
+      "WorkingHours": {
+        "type": "object",
+        "properties": {
+          "days": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "startTime": {
+            "type": "number"
+          },
+          "endTime": {
+            "type": "number"
+          },
+          "userId": {
+            "type": "number",
+            "nullable": true
+          }
+        },
+        "required": [
+          "days",
+          "startTime",
+          "endTime"
+        ]
+      },
+      "AvailabilityModel": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "userId": {
+            "type": "number",
+            "nullable": true
+          },
+          "eventTypeId": {
+            "type": "number",
+            "nullable": true
+          },
+          "days": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "startTime": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "endTime": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "date": {
+            "format": "date-time",
+            "type": "string",
+            "nullable": true
+          },
+          "scheduleId": {
+            "type": "number",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "days",
+          "startTime",
+          "endTime"
+        ]
+      },
+      "TimeRange": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "number",
+            "nullable": true
+          },
+          "start": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "end": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "start",
+          "end"
+        ]
+      },
+      "ScheduleOutput": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "name": {
+            "type": "string"
+          },
+          "isManaged": {
+            "type": "boolean"
+          },
+          "workingHours": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkingHours"
+            }
+          },
+          "schedule": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AvailabilityModel"
+            }
+          },
+          "availability": {
+            "type": "array",
+            "items": {
+              "required": true,
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/TimeRange"
+              }
+            }
+          },
+          "timeZone": {
+            "type": "string"
+          },
+          "dateOverrides": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "isDefault": {
+            "type": "boolean"
+          },
+          "isLastSchedule": {
+            "type": "boolean"
+          },
+          "readOnly": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "isManaged",
+          "workingHours",
+          "schedule",
+          "availability",
+          "timeZone",
+          "dateOverrides",
+          "isDefault",
+          "isLastSchedule",
+          "readOnly"
+        ]
+      },
+      "CreateScheduleOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/ScheduleOutput"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "GetScheduleOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/ScheduleOutput"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "GetSchedulesOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/ScheduleOutput"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
       "UpdateScheduleInput": {
         "type": "object",
-        "properties": {}
+        "properties": {
+          "timeZone": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "isDefault": {
+            "type": "boolean"
+          },
+          "schedule": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "dateOverrides": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "timeZone",
+          "name",
+          "isDefault",
+          "schedule",
+          "dateOverrides"
+        ]
+      },
+      "UpdatedScheduleSchedule": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "userId": {
+            "type": "number"
+          },
+          "name": {
+            "type": "string"
+          },
+          "availability": {
+            "type": "object"
+          },
+          "timeZone": {
+            "type": "string"
+          },
+          "eventType": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "userId",
+          "name",
+          "availability",
+          "timeZone",
+          "eventType"
+        ]
+      },
+      "UpdatedScheduleOutput": {
+        "type": "object",
+        "properties": {
+          "schedule": {
+            "$ref": "#/components/schemas/UpdatedScheduleSchedule"
+          },
+          "availability": {
+            "type": "array",
+            "items": {
+              "required": true,
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/TimeRange"
+              }
+            }
+          },
+          "timeZone": {
+            "type": "string"
+          },
+          "isDefault": {
+            "type": "boolean"
+          },
+          "prevDefaultId": {
+            "type": "boolean"
+          },
+          "currentDefaultId": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "schedule",
+          "availability",
+          "timeZone",
+          "isDefault",
+          "prevDefaultId",
+          "currentDefaultId"
+        ]
+      },
+      "UpdateScheduleOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/UpdatedScheduleOutput"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "DeleteScheduleOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          }
+        },
+        "required": [
+          "status"
+        ]
       },
       "CreateBookingInput": {
         "type": "object",
