@@ -45,4 +45,5 @@ export const EventTypeAddonMap = {
     import("./templates/event-type-app-card/components/EventTypeAppCardInterface")
   ),
   "zoho-bigin": dynamic(() => import("./zoho-bigin/components/EventTypeAppCardInterface")),
+  zohocrm: dynamic(() => import("./zohocrm/components/EventTypeAppCardInterface")),
 };
