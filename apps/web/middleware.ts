@@ -30,7 +30,6 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
   if (token?.isOverlayUser && !overlayUserAllowedRoutesRegex.some((regex) => regex.test(url.pathname))) {
     const nextUrl = new URL(url.href);
     nextUrl.pathname = "/auth/login";
-    console.log(token, url.pathname);
     return NextResponse.redirect(nextUrl);
   }
 
