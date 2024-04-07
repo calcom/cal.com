@@ -1,5 +1,7 @@
 import { CreateBookingInput } from "@/ee/bookings/inputs/create-booking.input";
 import { CreateReccuringBookingInput } from "@/ee/bookings/inputs/create-reccuring-booking.input";
+import { GetBookingOutput } from "@/ee/bookings/outputs/get-booking.output";
+import { GetBookingsOutput } from "@/ee/bookings/outputs/get-bookings.output";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
 import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
@@ -20,7 +22,7 @@ import {
   NotFoundException,
   UseGuards,
 } from "@nestjs/common";
-import { ApiTags as DocsTags } from "@nestjs/swagger";
+import { ApiQuery, ApiTags as DocsTags } from "@nestjs/swagger";
 import { User } from "@prisma/client";
 import { Request } from "express";
 import { NextApiRequest } from "next/types";
@@ -39,7 +41,7 @@ import {
   handleNewRecurringBooking,
   handleInstantMeeting,
 } from "@calcom/platform-libraries";
-import { GetBookingsInput, CancelBookingInput } from "@calcom/platform-types";
+import { GetBookingsInput, CancelBookingInput, Status } from "@calcom/platform-types";
 import { ApiResponse } from "@calcom/platform-types";
 import { PrismaClient } from "@calcom/prisma";
 
@@ -60,10 +62,13 @@ export class BookingsController {
   // note(Rajiv): currently this endpoint is atoms only
   @Get("/")
   @UseGuards(AccessTokenGuard)
+  @ApiQuery({ name: "filters[status]", enum: Status, required: true })
+  @ApiQuery({ name: "limit", type: "number", required: false })
+  @ApiQuery({ name: "cursor", type: "number", required: false })
   async getBookings(
     @GetUser() user: User,
     @Query() queryParams: GetBookingsInput
-  ): Promise<ApiResponse<unknown>> {
+  ): Promise<GetBookingsOutput> {
     const { filters, cursor, limit } = queryParams;
     const bookings = await getAllUserBookings({
       bookingListingByStatus: filters.status,
@@ -84,7 +89,7 @@ export class BookingsController {
 
   // note(Rajiv): currently this endpoint is atoms only
   @Get("/:bookingUid")
-  async getBooking(@Param("bookingUid") bookingUid: string): Promise<ApiResponse<unknown>> {
+  async getBooking(@Param("bookingUid") bookingUid: string): Promise<GetBookingOutput> {
     const { bookingInfo } = await getBookingInfo(bookingUid);
 
     if (!bookingInfo) {

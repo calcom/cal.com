@@ -1146,14 +1146,46 @@
     "/api/v2/ee/bookings": {
       "get": {
         "operationId": "BookingsController_getBookings",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "cursor",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "filters[status]",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "upcoming",
+                "recurring",
+                "past",
+                "cancelled",
+                "unconfirmed"
+              ],
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/GetBookingsOutput"
                 }
               }
             }
@@ -1212,7 +1244,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/GetBookingOutput"
                 }
               }
             }
@@ -3207,6 +3239,441 @@
           "data"
         ]
       },
+      "Attendee": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "email": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "timeZone": {
+            "type": "string"
+          },
+          "locale": {
+            "type": "string",
+            "nullable": true
+          },
+          "bookingId": {
+            "type": "number",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "email",
+          "name",
+          "timeZone",
+          "locale",
+          "bookingId"
+        ]
+      },
+      "EventType": {
+        "type": "object",
+        "properties": {
+          "slug": {
+            "type": "string"
+          },
+          "id": {
+            "type": "number"
+          },
+          "eventName": {
+            "type": "string",
+            "nullable": true
+          },
+          "price": {
+            "type": "number"
+          },
+          "recurringEvent": {
+            "type": "object"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "metadata": {
+            "type": "object"
+          },
+          "seatsShowAttendees": {
+            "type": "object"
+          },
+          "seatsShowAvailabilityCount": {
+            "type": "object"
+          },
+          "team": {
+            "type": "object",
+            "nullable": true
+          }
+        },
+        "required": [
+          "price",
+          "currency",
+          "metadata"
+        ]
+      },
+      "Reference": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "type": {
+            "type": "string"
+          },
+          "uid": {
+            "type": "string"
+          },
+          "meetingId": {
+            "type": "string",
+            "nullable": true
+          },
+          "thirdPartyRecurringEventId": {
+            "type": "string",
+            "nullable": true
+          },
+          "meetingPassword": {
+            "type": "string",
+            "nullable": true
+          },
+          "meetingUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "bookingId": {
+            "type": "number",
+            "nullable": true
+          },
+          "externalCalendarId": {
+            "type": "string",
+            "nullable": true
+          },
+          "deleted": {
+            "type": "object"
+          },
+          "credentialId": {
+            "type": "number",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "uid",
+          "meetingPassword",
+          "bookingId",
+          "externalCalendarId",
+          "credentialId"
+        ]
+      },
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "email": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "email"
+        ]
+      },
+      "GetBookingsDataEntry": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "title": {
+            "type": "string"
+          },
+          "userPrimaryEmail": {
+            "type": "string",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "customInputs": {
+            "type": "object"
+          },
+          "startTime": {
+            "type": "string"
+          },
+          "endTime": {
+            "type": "string"
+          },
+          "attendees": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Attendee"
+            }
+          },
+          "metadata": {
+            "type": "object"
+          },
+          "uid": {
+            "type": "string"
+          },
+          "recurringEventId": {
+            "type": "string",
+            "nullable": true
+          },
+          "location": {
+            "type": "string",
+            "nullable": true
+          },
+          "eventType": {
+            "$ref": "#/components/schemas/EventType"
+          },
+          "status": {
+            "type": "object"
+          },
+          "paid": {
+            "type": "boolean"
+          },
+          "payment": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "references": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Reference"
+            }
+          },
+          "isRecorded": {
+            "type": "boolean"
+          },
+          "seatsReferences": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "user": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/User"
+              }
+            ]
+          },
+          "rescheduled": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "description",
+          "customInputs",
+          "startTime",
+          "endTime",
+          "attendees",
+          "metadata",
+          "uid",
+          "recurringEventId",
+          "location",
+          "eventType",
+          "status",
+          "paid",
+          "payment",
+          "references",
+          "isRecorded",
+          "seatsReferences",
+          "user"
+        ]
+      },
+      "GetBookingsData": {
+        "type": "object",
+        "properties": {
+          "bookings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GetBookingsDataEntry"
+            }
+          },
+          "recurringInfo": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "nextCursor": {
+            "type": "number",
+            "nullable": true
+          }
+        },
+        "required": [
+          "bookings",
+          "recurringInfo",
+          "nextCursor"
+        ]
+      },
+      "GetBookingsOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/GetBookingsData"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "GetBookingData": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "id": {
+            "type": "number"
+          },
+          "uid": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "customInputs": {
+            "type": "object"
+          },
+          "smsReminderNumber": {
+            "type": "string",
+            "nullable": true
+          },
+          "recurringEventId": {
+            "type": "string",
+            "nullable": true
+          },
+          "startTime": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "endTime": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "location": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "string"
+          },
+          "metadata": {
+            "type": "object"
+          },
+          "cancellationReason": {
+            "type": "string",
+            "nullable": true
+          },
+          "responses": {
+            "type": "object"
+          },
+          "rejectionReason": {
+            "type": "string",
+            "nullable": true
+          },
+          "userPrimaryEmail": {
+            "type": "string",
+            "nullable": true
+          },
+          "user": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/User"
+              }
+            ]
+          },
+          "attendees": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Attendee"
+            }
+          },
+          "eventTypeId": {
+            "type": "number",
+            "nullable": true
+          },
+          "eventType": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/EventType"
+              }
+            ]
+          }
+        },
+        "required": [
+          "title",
+          "id",
+          "uid",
+          "description",
+          "customInputs",
+          "smsReminderNumber",
+          "recurringEventId",
+          "startTime",
+          "endTime",
+          "location",
+          "status",
+          "metadata",
+          "cancellationReason",
+          "responses",
+          "rejectionReason",
+          "userPrimaryEmail",
+          "user",
+          "attendees",
+          "eventTypeId",
+          "eventType"
+        ]
+      },
+      "GetBookingOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/GetBookingData"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
       "CreateBookingInput": {
         "type": "object",
         "properties": {
@@ -3268,7 +3735,30 @@
       },
       "CancelBookingInput": {
         "type": "object",
-        "properties": {}
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "uid": {
+            "type": "string"
+          },
+          "allRemainingBookings": {
+            "type": "boolean"
+          },
+          "cancellationReason": {
+            "type": "string"
+          },
+          "seatReferenceUid": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "uid",
+          "allRemainingBookings",
+          "cancellationReason",
+          "seatReferenceUid"
+        ]
       },
       "ReserveSlotInput": {
         "type": "object",
