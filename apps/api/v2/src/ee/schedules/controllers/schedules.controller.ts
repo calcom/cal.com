@@ -4,7 +4,6 @@ import { GetDefaultScheduleOutput } from "@/ee/schedules/outputs/get-default-sch
 import { GetScheduleOutput } from "@/ee/schedules/outputs/get-schedule.output";
 import { GetSchedulesOutput } from "@/ee/schedules/outputs/get-schedules.output";
 import { UpdateScheduleOutput } from "@/ee/schedules/outputs/update-schedule.output";
-import { ResponseService } from "@/ee/schedules/services/response/response.service";
 import { SchedulesService } from "@/ee/schedules/services/schedules.service";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
@@ -37,10 +36,7 @@ import { CreateScheduleInput } from "../inputs/create-schedule.input";
 @UseGuards(AccessTokenGuard, PermissionsGuard)
 @DocsTags("Schedules")
 export class SchedulesController {
-  constructor(
-    private readonly schedulesService: SchedulesService,
-    private readonly schedulesResponseService: ResponseService
-  ) {}
+  constructor(private readonly schedulesService: SchedulesService) {}
 
   @Post("/")
   @Permissions([SCHEDULE_WRITE])
@@ -49,7 +45,7 @@ export class SchedulesController {
     @Body() bodySchedule: CreateScheduleInput
   ): Promise<CreateScheduleOutput> {
     const schedule = await this.schedulesService.createUserSchedule(user.id, bodySchedule);
-    const scheduleFormatted = await this.schedulesResponseService.formatScheduleForAtom(user, schedule);
+    const scheduleFormatted = await this.schedulesService.formatScheduleForAtom(user, schedule);
 
     return {
       status: SUCCESS_STATUS,
@@ -63,7 +59,7 @@ export class SchedulesController {
   async getDefaultSchedule(@GetUser() user: UserWithProfile): Promise<GetDefaultScheduleOutput | null> {
     const schedule = await this.schedulesService.getUserScheduleDefault(user.id);
     const scheduleFormatted = schedule
-      ? await this.schedulesResponseService.formatScheduleForAtom(user, schedule)
+      ? await this.schedulesService.formatScheduleForAtom(user, schedule)
       : null;
 
     return {
@@ -79,7 +75,7 @@ export class SchedulesController {
     @Param("scheduleId") scheduleId: number
   ): Promise<GetScheduleOutput> {
     const schedule = await this.schedulesService.getUserSchedule(user.id, scheduleId);
-    const scheduleFormatted = await this.schedulesResponseService.formatScheduleForAtom(user, schedule);
+    const scheduleFormatted = await this.schedulesService.formatScheduleForAtom(user, schedule);
 
     return {
       status: SUCCESS_STATUS,
@@ -91,7 +87,7 @@ export class SchedulesController {
   @Permissions([SCHEDULE_READ])
   async getSchedules(@GetUser() user: UserWithProfile): Promise<GetSchedulesOutput> {
     const schedules = await this.schedulesService.getUserSchedules(user.id);
-    const schedulesFormatted = await this.schedulesResponseService.formatSchedulesForAtom(user, schedules);
+    const schedulesFormatted = await this.schedulesService.formatSchedulesForAtom(user, schedules);
 
     return {
       status: SUCCESS_STATUS,

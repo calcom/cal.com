@@ -1,19 +1,25 @@
 import { CreateScheduleInput } from "@/ee/schedules/inputs/create-schedule.input";
+import { ScheduleOutput } from "@/ee/schedules/outputs/schedule.output";
 import { SchedulesRepository } from "@/ee/schedules/schedules.repository";
-import { ResponseService } from "@/ee/schedules/services/response/response.service";
 import { AvailabilitiesService } from "@/modules/availabilities/availabilities.service";
 import { UserWithProfile, UsersRepository } from "@/modules/users/users.repository";
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 import { Schedule } from "@prisma/client";
+import { User } from "@prisma/client";
 
+import type { ScheduleWithAvailabilities } from "@calcom/platform-libraries";
 import { updateScheduleHandler } from "@calcom/platform-libraries";
+import {
+  transformWorkingHoursForClient,
+  transformAvailabilityForClient,
+  transformDateOverridesForClient,
+} from "@calcom/platform-libraries";
 import { UpdateScheduleInput } from "@calcom/platform-types";
 
 @Injectable()
 export class SchedulesService {
   constructor(
     private readonly schedulesRepository: SchedulesRepository,
-    private readonly schedulesResponseService: ResponseService,
     private readonly availabilitiesService: AvailabilitiesService,
     private readonly usersRepository: UsersRepository
   ) {}
@@ -70,7 +76,7 @@ export class SchedulesService {
     this.checkUserOwnsSchedule(user.id, existingSchedule);
 
     const schedule = await this.getUserSchedule(user.id, Number(scheduleId));
-    const scheduleFormatted = await this.schedulesResponseService.formatScheduleForAtom(user, schedule);
+    const scheduleFormatted = await this.formatScheduleForAtom(user, schedule);
 
     if (!bodySchedule.schedule) {
       // note(Lauris): When updating an availability in cal web app, lets say only its name, also
@@ -97,6 +103,44 @@ export class SchedulesService {
     this.checkUserOwnsSchedule(userId, existingSchedule);
 
     return this.schedulesRepository.deleteScheduleById(scheduleId);
+  }
+
+  async formatScheduleForAtom(user: User, schedule: ScheduleWithAvailabilities): Promise<ScheduleOutput> {
+    const usersSchedulesCount = await this.schedulesRepository.getUserSchedulesCount(user.id);
+    return this.transformScheduleForAtom(schedule, usersSchedulesCount, user);
+  }
+
+  async formatSchedulesForAtom(
+    user: User,
+    schedules: ScheduleWithAvailabilities[]
+  ): Promise<ScheduleOutput[]> {
+    const usersSchedulesCount = await this.schedulesRepository.getUserSchedulesCount(user.id);
+    return Promise.all(
+      schedules.map((schedule) => this.transformScheduleForAtom(schedule, usersSchedulesCount, user))
+    );
+  }
+
+  async transformScheduleForAtom(
+    schedule: ScheduleWithAvailabilities,
+    userSchedulesCount: number,
+    user: Pick<User, "id" | "defaultScheduleId" | "timeZone">
+  ): Promise<ScheduleOutput> {
+    const timeZone = schedule.timeZone || user.timeZone;
+    const defaultSchedule = await this.getUserScheduleDefault(user.id);
+
+    return {
+      id: schedule.id,
+      name: schedule.name,
+      isManaged: schedule.userId !== user.id,
+      workingHours: transformWorkingHoursForClient(schedule),
+      schedule: schedule.availability,
+      availability: transformAvailabilityForClient(schedule),
+      timeZone,
+      dateOverrides: transformDateOverridesForClient(schedule, timeZone),
+      isDefault: defaultSchedule?.id === schedule.id,
+      isLastSchedule: userSchedulesCount <= 1,
+      readOnly: schedule.userId !== user.id,
+    };
   }
 
   checkUserOwnsSchedule(userId: number, schedule: Pick<Schedule, "id" | "userId">) {

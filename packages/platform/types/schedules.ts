@@ -72,6 +72,7 @@ export class UpdateScheduleInput {
   @DocsProperty()
   isDefault?: boolean;
 
+  @IsOptional()
   @ValidateNested({ each: true })
   @Type(() => ScheduleItem)
   @DocsProperty()

@@ -17,5 +17,5 @@ export class CreateScheduleInput {
 
   @IsBoolean()
   @IsOptional()
-  isDefault = true;
+  isDefault?: boolean;
 }
