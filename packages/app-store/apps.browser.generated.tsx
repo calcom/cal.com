@@ -23,6 +23,7 @@ export const AppSettingsComponentsMap = {
 export const EventTypeAddonMap = {
   alby: dynamic(() => import("./alby/components/EventTypeAppCardInterface")),
   basecamp3: dynamic(() => import("./basecamp3/components/EventTypeAppCardInterface")),
+  closecom: dynamic(() => import("./closecom/components/EventTypeAppCardInterface")),
   fathom: dynamic(() => import("./fathom/components/EventTypeAppCardInterface")),
   ga4: dynamic(() => import("./ga4/components/EventTypeAppCardInterface")),
   giphy: dynamic(() => import("./giphy/components/EventTypeAppCardInterface")),
