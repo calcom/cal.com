@@ -12,6 +12,6 @@ import { Module } from "@nestjs/common";
   imports: [PrismaModule, AvailabilitiesModule, UsersModule, TokensModule],
   providers: [SchedulesRepository, SchedulesService, ResponseService],
   controllers: [SchedulesController],
-  exports: [SchedulesService],
+  exports: [SchedulesService, SchedulesRepository, ResponseService],
 })
 export class SchedulesModule {}
