@@ -1,8 +1,8 @@
 import { z } from "zod";
 
-export const appDataSchema = z.object({
-  enabled: z.boolean().optional(),
-});
+import { eventTypeAppCardZod } from "../eventTypeAppCardZod";
+
+export const appDataSchema = eventTypeAppCardZod;
 
 export const appKeysSchema = z.object({
   consumer_key: z.string().min(1),

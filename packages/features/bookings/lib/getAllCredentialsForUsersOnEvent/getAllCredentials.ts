@@ -17,7 +17,7 @@ export const getAllCredentials = async (
   user: User & { credentials: CredentialPayload[] },
   eventType: Awaited<ReturnType<typeof getEventTypesFromDB>>
 ) => {
-  const allCredentials = user.credentials;
+  let allCredentials = user.credentials;
 
   // If it's a team event type query for team credentials
   if (eventType.team?.id) {
@@ -72,6 +72,31 @@ export const getAllCredentials = async (
       allCredentials.push(...org.credentials);
     }
   }
+
+  // Only return CRM credentials that are enabled on the event type
+  const eventTypeAppMetadata = eventType?.metadata?.apps;
+  console.log("🚀 ~ eventTypeAppMetadata:", eventTypeAppMetadata);
+
+  const crmCredentialIds = [];
+
+  for (const appKey in eventTypeAppMetadata) {
+    const app = eventTypeAppMetadata[appKey];
+    if (app.enabled && app.appCategories && app.appCategories.some((category) => category === "crm")) {
+      crmCredentialIds.push(app.credentialId);
+    }
+  }
+  console.log("🚀 ~ crmCredentialIds:", crmCredentialIds);
+
+  allCredentials = allCredentials.filter((credential) => {
+    if (!credential.type.includes("_crm") && !credential.type.includes("_other_calendar")) {
+      console.log("🚀 ~ allCredentials=allCredentials.filter ~ credential:", credential);
+      return credential;
+    }
+
+    if (crmCredentialIds.some((id) => id === credential.id)) {
+      return credential;
+    }
+  });
 
   return allCredentials;
 };
