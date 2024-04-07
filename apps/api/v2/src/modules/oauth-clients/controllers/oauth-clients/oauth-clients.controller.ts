@@ -8,6 +8,7 @@ import { GetOAuthClientResponseDto } from "@/modules/oauth-clients/controllers/o
 import { GetOAuthClientsResponseDto } from "@/modules/oauth-clients/controllers/oauth-clients/responses/GetOAuthClientsResponse.dto";
 import { UpdateOAuthClientInput } from "@/modules/oauth-clients/inputs/update-oauth-client.input";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
+import { UserWithProfile } from "@/modules/users/users.repository";
 import {
   Body,
   Controller,
@@ -57,9 +58,10 @@ export class OAuthClientsController {
     type: CreateOAuthClientResponseDto,
   })
   async createOAuthClient(
-    @GetUser("organizationId") organizationId: number,
+    @GetUser() user: UserWithProfile,
     @Body() body: CreateOAuthClientInput
   ): Promise<CreateOAuthClientResponseDto> {
+    const organizationId = (user.movedToProfile?.organizationId ?? user.organizationId) as number;
     this.logger.log(
       `For organisation ${organizationId} creating OAuth Client with data: ${JSON.stringify(body)}`
     );
@@ -77,9 +79,9 @@ export class OAuthClientsController {
   @HttpCode(HttpStatus.OK)
   @Roles([MembershipRole.ADMIN, MembershipRole.OWNER, MembershipRole.MEMBER])
   @DocsOperation({ description: AUTH_DOCUMENTATION })
-  async getOAuthClients(
-    @GetUser("organizationId") organizationId: number
-  ): Promise<GetOAuthClientsResponseDto> {
+  async getOAuthClients(@GetUser() user: UserWithProfile): Promise<GetOAuthClientsResponseDto> {
+    const organizationId = (user.movedToProfile?.organizationId ?? user.organizationId) as number;
+
     const clients = await this.oauthClientRepository.getOrganizationOAuthClients(organizationId);
     return { status: SUCCESS_STATUS, data: clients };
   }
