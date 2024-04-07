@@ -75,7 +75,6 @@ export const getAllCredentials = async (
 
   // Only return CRM credentials that are enabled on the event type
   const eventTypeAppMetadata = eventType?.metadata?.apps;
-  console.log("🚀 ~ eventTypeAppMetadata:", eventTypeAppMetadata);
 
   const crmCredentialIds = [];
 
@@ -85,11 +84,9 @@ export const getAllCredentials = async (
       crmCredentialIds.push(app.credentialId);
     }
   }
-  console.log("🚀 ~ crmCredentialIds:", crmCredentialIds);
 
   allCredentials = allCredentials.filter((credential) => {
     if (!credential.type.includes("_crm") && !credential.type.includes("_other_calendar")) {
-      console.log("🚀 ~ allCredentials=allCredentials.filter ~ credential:", credential);
       return credential;
     }
 
