@@ -548,6 +548,9 @@ model Booking {
   iCalUID               String?              @default("")
   iCalSequence          Int                  @default(0)
   instantMeetingToken   InstantMeetingToken?
+  rating                Int?
+  ratingFeedback        String?
+  noShowHost            Boolean?
 
   @@index([eventTypeId])
   @@index([userId])
@@ -689,23 +692,24 @@ enum WebhookTriggerEvents {
 }
 
 model Webhook {
-  id              String                 @id @unique
-  userId          Int?
-  teamId          Int?
-  eventTypeId     Int?
+  id                String                     @id @unique
+  userId            Int?
+  teamId            Int?
+  eventTypeId       Int?
   /// @zod.url()
-  subscriberUrl   String
-  payloadTemplate String?
-  createdAt       DateTime               @default(now())
-  active          Boolean                @default(true)
-  eventTriggers   WebhookTriggerEvents[]
-  user            User?                  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  team            Team?                  @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  eventType       EventType?             @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
-  app             App?                   @relation(fields: [appId], references: [slug], onDelete: Cascade)
-  appId           String?
-  secret          String?
-  platform        Boolean                @default(false)
+  subscriberUrl     String
+  payloadTemplate   String?
+  createdAt         DateTime                   @default(now())
+  active            Boolean                    @default(true)
+  eventTriggers     WebhookTriggerEvents[]
+  user              User?                      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  team              Team?                      @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  eventType         EventType?                 @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+  app               App?                       @relation(fields: [appId], references: [slug], onDelete: Cascade)
+  appId             String?
+  secret            String?
+  platform          Boolean                    @default(false)
+  scheduledTriggers WebhookScheduledTriggers[]
 
   @@unique([userId, subscriberUrl], name: "courseIdentifier")
 }
@@ -920,8 +924,8 @@ model AIPhoneCallConfiguration {
   yourPhoneNumber String
   numberToCall    String
   guestName       String
-  guestEmail      String
-  guestCompany    String
+  guestEmail      String?
+  guestCompany    String?
   enabled         Boolean   @default(false)
   beginMessage    String?
   llmId           String?
@@ -987,6 +991,8 @@ model WebhookScheduledTriggers {
   startAfter    DateTime
   retryCount    Int       @default(0)
   createdAt     DateTime? @default(now())
+  webhookId     String?
+  webhook       Webhook?  @relation(fields: [webhookId], references: [id], onDelete: Cascade)
 }
 
 enum WorkflowTemplates {
@@ -995,6 +1001,7 @@ enum WorkflowTemplates {
   CANCELLED
   RESCHEDULED
   COMPLETED
+  RATING
 }
 
 enum WorkflowMethods {

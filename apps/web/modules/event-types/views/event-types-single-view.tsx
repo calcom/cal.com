@@ -56,7 +56,7 @@ const DEFAULT_PROMPT_VALUE = `## You are helping user set up a call with the sup
 
   ## Task Steps
   1. I am here to learn more about your issue and help schedule an appointment with our support team.
-  2. Use name {{name}} and email {{email}} for creating booking.
+  2. If {{email}} is not unknown then Use name {{name}} and email {{email}} for creating booking else Ask for user name and email and Confirm the name and email with user by reading it back to user.
   3. Ask user for \"When would you want to meet with one of our representive\".
   4. Call function check_availability to check for availability in the user provided time range.
     - if availability exists, inform user about the availability range (do not repeat the detailed available slot) and ask user to choose from it. Make sure user chose a slot within detailed available slot.
@@ -68,7 +68,7 @@ const DEFAULT_PROMPT_VALUE = `## You are helping user set up a call with the sup
   7. Inform the user booking is successful, and ask if user have any questions. Answer them if there are any.
   8. After all questions answered, call function end_call to hang up.`;
 
-const DEFAULT_BEGIN_MESSAGE = "Hi {{name}} from {{company}}. How are you doing?";
+const DEFAULT_BEGIN_MESSAGE = "Hi. How are you doing?";
 
 // These can't really be moved into calcom/ui due to the fact they use infered getserverside props typings;
 const EventSetupTab = dynamic(() =>
