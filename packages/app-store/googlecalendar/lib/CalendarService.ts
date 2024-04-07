@@ -64,7 +64,7 @@ function handleMinMax(min: string, max: string) {
 
 export default class GoogleCalendarService implements Calendar {
   private integrationName = "";
-  private auth: { getToken: () => Promise<MyGoogleAuth> };
+  private auth: { getToken: (isOverlayUser?: boolean) => Promise<MyGoogleAuth> };
   private log: typeof logger;
   private credential: CredentialPayload | OverlayCredentialPayload;
 
@@ -86,7 +86,10 @@ export default class GoogleCalendarService implements Calendar {
       return myGoogleAuth;
     }
 
-    const refreshAccessToken = async (myGoogleAuth: Awaited<ReturnType<typeof getGoogleAuth>>) => {
+    const refreshAccessToken = async (
+      myGoogleAuth: Awaited<ReturnType<typeof getGoogleAuth>>,
+      isOverlayUser?: boolean
+    ) => {
       try {
         const res = await refreshOAuthTokens(
           async () => {
@@ -94,7 +97,8 @@ export default class GoogleCalendarService implements Calendar {
             return fetchTokens.res;
           },
           "google-calendar",
-          credential.userId
+          credential.userId,
+          isOverlayUser
         );
         const token = res?.data;
         googleCredentials.access_token = token.access_token;
@@ -103,10 +107,17 @@ export default class GoogleCalendarService implements Calendar {
           googleCredentials,
           googleCredentialSchema
         );
-        await prisma.credential.update({
-          where: { id: credential.id },
-          data: { key: { ...parsedKey } as Prisma.InputJsonValue },
-        });
+        if (isOverlayUser) {
+          await prisma.overlayCredential.update({
+            where: { id: credential.id },
+            data: { key: { ...parsedKey } as Prisma.InputJsonValue },
+          });
+        } else {
+          await prisma.credential.update({
+            where: { id: credential.id },
+            data: { key: { ...parsedKey } as Prisma.InputJsonValue },
+          });
+        }
         myGoogleAuth.setCredentials(googleCredentials);
       } catch (err) {
         this.log.error("Error Refreshing Google Token", safeStringify(err));
@@ -118,26 +129,35 @@ export default class GoogleCalendarService implements Calendar {
         // when the error is invalid grant, it's unrecoverable and the credential marked invalid.
         // TODO: Evaluate bubbling up and handling this in the CalendarManager. IMO this should be done
         //       but this is a bigger refactor.
-        await prisma.credential.update({
-          where: { id: credential.id },
-          data: {
-            invalid: true,
-          },
-        });
+        if (isOverlayUser) {
+          await prisma.overlayCredential.update({
+            where: { id: credential.id },
+            data: {
+              invalid: true,
+            },
+          });
+        } else {
+          await prisma.credential.update({
+            where: { id: credential.id },
+            data: {
+              invalid: true,
+            },
+          });
+        }
       }
       return myGoogleAuth;
     };
     return {
-      getToken: async () => {
+      getToken: async (isOverlayUser?: boolean) => {
         const myGoogleAuth = await getGoogleAuth();
         const isExpired = () => myGoogleAuth.isTokenExpiring();
-        return !isExpired() ? Promise.resolve(myGoogleAuth) : refreshAccessToken(myGoogleAuth);
+        return !isExpired() ? Promise.resolve(myGoogleAuth) : refreshAccessToken(myGoogleAuth, isOverlayUser);
       },
     };
   };
 
-  public authedCalendar = async () => {
-    const myGoogleAuth = await this.auth.getToken();
+  public authedCalendar = async (isOverlayUser?: boolean) => {
+    const myGoogleAuth = await this.auth.getToken(isOverlayUser);
     const calendar = google.calendar({
       version: "v3",
       auth: myGoogleAuth,
@@ -463,8 +483,9 @@ export default class GoogleCalendarService implements Calendar {
     timeMin: string;
     timeMax: string;
     items: { id: string }[];
+    isOverlayUser?: boolean;
   }): Promise<EventBusyData[] | null> {
-    const calendar = await this.authedCalendar();
+    const calendar = await this.authedCalendar(args.isOverlayUser);
     const { timeMin, timeMax, items } = args;
     const events = await Promise.all(
       items.map(async (item) => {
@@ -600,6 +621,7 @@ export default class GoogleCalendarService implements Calendar {
             timeMin: dateFrom,
             timeMax: dateTo,
             items: calsIds.map((id) => ({ id })),
+            isOverlayUser,
           });
           if (!eventsListData) throw new Error("No response from google calendar");
           return eventsListData;
@@ -629,6 +651,7 @@ export default class GoogleCalendarService implements Calendar {
                 timeMin: startDate.format(),
                 timeMax: endDate.format(),
                 items: calsIds.map((id) => ({ id })),
+                isOverlayUser,
               })) || [])
             );
           } else {

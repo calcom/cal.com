@@ -5,9 +5,15 @@ import {
 } from "@calcom/lib/constants";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const refreshOAuthTokens = async (refreshFunction: () => any, appSlug: string, userId: number | null) => {
-  // Check that app syncing is enabled and that the credential belongs to a user
+const refreshOAuthTokens = async (
+  refreshFunction: () => any,
+  appSlug: string,
+  userId: number | null,
+  isOverlayUser?: boolean
+) => {
+  // Check that app syncing is enabled and that the credential belongs to a User
   if (
+    !isOverlayUser &&
     APP_CREDENTIAL_SHARING_ENABLED &&
     process.env.CALCOM_CREDENTIAL_SYNC_ENDPOINT &&
     CREDENTIAL_SYNC_SECRET &&
