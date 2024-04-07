@@ -1132,7 +1132,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/ConnectedCalendarsOutput"
                 }
               }
             }
@@ -2923,6 +2923,283 @@
             "items": {
               "$ref": "#/components/schemas/BusyTimesOutput"
             }
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "Integration": {
+        "type": "object",
+        "properties": {
+          "appData": {
+            "type": "object",
+            "nullable": true
+          },
+          "dirName": {
+            "type": "string"
+          },
+          "__template": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "installed": {
+            "type": "boolean"
+          },
+          "type": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "variant": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string"
+          },
+          "categories": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "logo": {
+            "type": "string"
+          },
+          "publisher": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "locationOption": {
+            "type": "object",
+            "nullable": true
+          }
+        },
+        "required": [
+          "appData",
+          "dirName",
+          "__template",
+          "name",
+          "description",
+          "installed",
+          "type",
+          "title",
+          "variant",
+          "category",
+          "categories",
+          "logo",
+          "publisher",
+          "slug",
+          "url",
+          "email",
+          "locationOption"
+        ]
+      },
+      "Primary": {
+        "type": "object",
+        "properties": {
+          "externalId": {
+            "type": "string"
+          },
+          "integration": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "primary": {
+            "type": "boolean"
+          },
+          "readOnly": {
+            "type": "boolean"
+          },
+          "email": {
+            "type": "string"
+          },
+          "isSelected": {
+            "type": "boolean"
+          },
+          "credentialId": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "externalId",
+          "integration",
+          "name",
+          "primary",
+          "readOnly",
+          "email",
+          "isSelected",
+          "credentialId"
+        ]
+      },
+      "Calendar": {
+        "type": "object",
+        "properties": {
+          "externalId": {
+            "type": "string"
+          },
+          "integration": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "primary": {
+            "type": "boolean"
+          },
+          "readOnly": {
+            "type": "boolean"
+          },
+          "email": {
+            "type": "string"
+          },
+          "isSelected": {
+            "type": "boolean"
+          },
+          "credentialId": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "externalId",
+          "integration",
+          "name",
+          "readOnly",
+          "email",
+          "isSelected",
+          "credentialId"
+        ]
+      },
+      "ConnectedCalendar": {
+        "type": "object",
+        "properties": {
+          "integration": {
+            "$ref": "#/components/schemas/Integration"
+          },
+          "credentialId": {
+            "type": "number"
+          },
+          "primary": {
+            "$ref": "#/components/schemas/Primary"
+          },
+          "calendars": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Calendar"
+            }
+          }
+        },
+        "required": [
+          "integration",
+          "credentialId",
+          "primary",
+          "calendars"
+        ]
+      },
+      "DestinationCalendar": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "integration": {
+            "type": "string"
+          },
+          "externalId": {
+            "type": "string"
+          },
+          "primaryEmail": {
+            "type": "string"
+          },
+          "userId": {
+            "type": "number"
+          },
+          "eventTypeId": {
+            "type": "number",
+            "nullable": true
+          },
+          "credentialId": {
+            "type": "number"
+          },
+          "name": {
+            "type": "string"
+          },
+          "primary": {
+            "type": "boolean"
+          },
+          "readOnly": {
+            "type": "boolean"
+          },
+          "email": {
+            "type": "string"
+          },
+          "integrationTitle": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "integration",
+          "externalId",
+          "primaryEmail",
+          "userId",
+          "eventTypeId",
+          "credentialId",
+          "name",
+          "primary",
+          "readOnly",
+          "email",
+          "integrationTitle"
+        ]
+      },
+      "ConnectedCalendarsData": {
+        "type": "object",
+        "properties": {
+          "connectedCalendars": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ConnectedCalendar"
+            }
+          },
+          "destinationCalendar": {
+            "$ref": "#/components/schemas/DestinationCalendar"
+          }
+        },
+        "required": [
+          "connectedCalendars",
+          "destinationCalendar"
+        ]
+      },
+      "ConnectedCalendarsOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/ConnectedCalendarsData"
           }
         },
         "required": [
