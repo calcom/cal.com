@@ -33,6 +33,7 @@ export const EventTypeAddonMap = {
   metapixel: dynamic(() => import("./metapixel/components/EventTypeAppCardInterface")),
   "mock-payment-app": dynamic(() => import("./mock-payment-app/components/EventTypeAppCardInterface")),
   paypal: dynamic(() => import("./paypal/components/EventTypeAppCardInterface")),
+  "pipedrive-crm": dynamic(() => import("./pipedrive-crm/components/EventTypeAppCardInterface")),
   plausible: dynamic(() => import("./plausible/components/EventTypeAppCardInterface")),
   qr_code: dynamic(() => import("./qr_code/components/EventTypeAppCardInterface")),
   salesforce: dynamic(() => import("./salesforce/components/EventTypeAppCardInterface")),
