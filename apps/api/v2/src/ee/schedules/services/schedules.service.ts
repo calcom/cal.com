@@ -1,15 +1,19 @@
 import { CreateScheduleInput } from "@/ee/schedules/inputs/create-schedule.input";
-import { UpdateScheduleInput } from "@/ee/schedules/inputs/update-schedule.input";
 import { SchedulesRepository } from "@/ee/schedules/schedules.repository";
+import { ResponseService } from "@/ee/schedules/services/response/response.service";
 import { AvailabilitiesService } from "@/modules/availabilities/availabilities.service";
-import { UsersRepository } from "@/modules/users/users.repository";
+import { UserWithProfile, UsersRepository } from "@/modules/users/users.repository";
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 import { Schedule } from "@prisma/client";
+
+import { updateScheduleHandler } from "@calcom/platform-libraries";
+import { UpdateScheduleInput } from "@calcom/platform-types";
 
 @Injectable()
 export class SchedulesService {
   constructor(
     private readonly schedulesRepository: SchedulesRepository,
+    private readonly schedulesResponseService: ResponseService,
     private readonly availabilitiesService: AvailabilitiesService,
     private readonly usersRepository: UsersRepository
   ) {}
@@ -56,25 +60,31 @@ export class SchedulesService {
     return this.schedulesRepository.getSchedulesByUserId(userId);
   }
 
-  async updateUserSchedule(userId: number, scheduleId: number, schedule: UpdateScheduleInput) {
+  async updateUserSchedule(user: UserWithProfile, scheduleId: number, bodySchedule: UpdateScheduleInput) {
     const existingSchedule = await this.schedulesRepository.getScheduleById(scheduleId);
 
     if (!existingSchedule) {
       throw new NotFoundException(`Schedule with ID=${scheduleId} does not exist.`);
     }
 
-    this.checkUserOwnsSchedule(userId, existingSchedule);
+    this.checkUserOwnsSchedule(user.id, existingSchedule);
 
-    const updatedSchedule = await this.schedulesRepository.updateScheduleWithAvailabilities(
-      scheduleId,
-      schedule
-    );
+    const schedule = await this.getUserSchedule(user.id, Number(scheduleId));
+    const scheduleFormatted = await this.schedulesResponseService.formatScheduleForAtom(user, schedule);
 
-    if (schedule.isDefault) {
-      await this.usersRepository.setDefaultSchedule(userId, updatedSchedule.id);
+    if (!bodySchedule.schedule) {
+      // note(Lauris): When updating an availability in cal web app, lets say only its name, also
+      // the schedule is sent and then passed to the update handler. Notably, availability is passed too
+      // and they have same shape, so to match shapes I attach "scheduleFormatted.availability" to reflect
+      // schedule that would be passed by the web app. If we don't, then updating schedule name will erase
+      // schedule.
+      bodySchedule.schedule = scheduleFormatted.availability;
     }
 
-    return updatedSchedule;
+    return updateScheduleHandler({
+      input: { scheduleId: Number(scheduleId), ...bodySchedule },
+      ctx: { user },
+    });
   }
 
   async deleteUserSchedule(userId: number, scheduleId: number) {

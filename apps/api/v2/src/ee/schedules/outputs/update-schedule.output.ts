@@ -1,4 +1,4 @@
-import { UpdatedScheduleOutput } from "@/ee/schedules/outputs/schedule.output";
+import { UpdatedScheduleOutput } from "@/ee/schedules/outputs/schedule-updated.output";
 import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { IsEnum, IsNotEmptyObject, ValidateNested } from "class-validator";

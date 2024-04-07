@@ -940,11 +940,11 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": "",
+            "description": "Returns the default schedule",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/GetDefaultScheduleOutput"
                 }
               }
             }
@@ -2346,6 +2346,10 @@
         "type": "object",
         "properties": {
           "days": {
+            "example": [
+              1,
+              2
+            ],
             "type": "array",
             "items": {
               "type": "number"
@@ -2571,6 +2575,31 @@
           "data"
         ]
       },
+      "GetDefaultScheduleOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ScheduleOutput"
+              }
+            ]
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
       "GetScheduleOutput": {
         "type": "object",
         "properties": {
@@ -2624,27 +2653,69 @@
             "type": "boolean"
           },
           "schedule": {
-            "type": "array",
+            "example": [
+              [],
+              [
+                {
+                  "start": "2022-01-01T00:00:00.000Z",
+                  "end": "2022-01-02T00:00:00.000Z"
+                }
+              ],
+              [],
+              [],
+              [],
+              [],
+              []
+            ],
             "items": {
-              "type": "string"
-            }
+              "type": "array"
+            },
+            "type": "array"
           },
           "dateOverrides": {
-            "type": "array",
+            "example": [
+              [],
+              [
+                {
+                  "start": "2022-01-01T00:00:00.000Z",
+                  "end": "2022-01-02T00:00:00.000Z"
+                }
+              ],
+              [],
+              [],
+              [],
+              [],
+              []
+            ],
             "items": {
-              "type": "string"
-            }
+              "type": "array"
+            },
+            "type": "array"
           }
         },
         "required": [
           "timeZone",
           "name",
           "isDefault",
-          "schedule",
-          "dateOverrides"
+          "schedule"
         ]
       },
-      "UpdatedScheduleSchedule": {
+      "EventTypeModel": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "eventName": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id"
+        ]
+      },
+      "ScheduleModel": {
         "type": "object",
         "properties": {
           "id": {
@@ -2656,64 +2727,53 @@
           "name": {
             "type": "string"
           },
-          "availability": {
-            "type": "object"
-          },
           "timeZone": {
-            "type": "string"
+            "type": "string",
+            "nullable": true
           },
           "eventType": {
             "type": "array",
             "items": {
-              "type": "object"
+              "$ref": "#/components/schemas/EventTypeModel"
+            }
+          },
+          "availability": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AvailabilityModel"
             }
           }
         },
         "required": [
           "id",
           "userId",
-          "name",
-          "availability",
-          "timeZone",
-          "eventType"
+          "name"
         ]
       },
       "UpdatedScheduleOutput": {
         "type": "object",
         "properties": {
           "schedule": {
-            "$ref": "#/components/schemas/UpdatedScheduleSchedule"
-          },
-          "availability": {
-            "type": "array",
-            "items": {
-              "required": true,
-              "type": "array",
-              "items": {
-                "$ref": "#/components/schemas/TimeRange"
-              }
-            }
-          },
-          "timeZone": {
-            "type": "string"
+            "$ref": "#/components/schemas/ScheduleModel"
           },
           "isDefault": {
             "type": "boolean"
           },
+          "timeZone": {
+            "type": "string"
+          },
           "prevDefaultId": {
-            "type": "boolean"
+            "type": "number",
+            "nullable": true
           },
           "currentDefaultId": {
-            "type": "boolean"
+            "type": "number",
+            "nullable": true
           }
         },
         "required": [
           "schedule",
-          "availability",
-          "timeZone",
-          "isDefault",
-          "prevDefaultId",
-          "currentDefaultId"
+          "isDefault"
         ]
       },
       "UpdateScheduleOutput": {
