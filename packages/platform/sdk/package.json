@@ -10,7 +10,8 @@
   ],
   "scripts": {
     "build": "rollup -c --bundleConfigAsCjs",
-    "release": "release-it --only-version"
+    "release": "release-it --only-version",
+    "generate-types": "openapi-typescript http://localhost:5555/docs-yaml -o ./src/swagger-types.d.ts"
   },
   "packageManager": "yarn@3.4.1",
   "devDependencies": {
@@ -18,6 +19,7 @@
     "@rollup/plugin-json": "^6.1.0",
     "@rollup/plugin-node-resolve": "^15.2.3",
     "@rollup/plugin-typescript": "^11.1.6",
+    "openapi-typescript": "^6.7.5",
     "release-it": "^17.1.1",
     "rollup": "^4.12.0",
     "rollup-plugin-bundle-size": "^1.0.3",

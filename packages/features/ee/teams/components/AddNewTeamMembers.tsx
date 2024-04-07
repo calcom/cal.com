@@ -1,6 +1,6 @@
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import InviteLinkSettingsModal from "@calcom/features/ee/teams/components/InviteLinkSettingsModal";
@@ -9,20 +9,20 @@ import { classNames } from "@calcom/lib";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { useTelemetry, telemetryEventTypes } from "@calcom/lib/telemetry";
+import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import {
   Badge,
   Button,
+  Icon,
   showToast,
   SkeletonButton,
   SkeletonContainer,
   SkeletonText,
   UserAvatar,
 } from "@calcom/ui";
-import { ArrowRight, Plus, Trash2 } from "@calcom/ui/components/icon";
 
 type TeamMember = RouterOutputs["viewer"]["teams"]["get"]["members"][number];
 
@@ -120,7 +120,7 @@ export const AddNewTeamMembersForm = ({
         <Button
           color="secondary"
           data-testid="new-member-button"
-          StartIcon={Plus}
+          StartIcon="plus"
           onClick={() => setMemberInviteModal(true)}
           className={classNames("w-full justify-center", defaultValues.members.length > 0 && "mt-6")}>
           {isOrg ? t("add_org_members") : t("add_team_member")}
@@ -196,7 +196,7 @@ export const AddNewTeamMembersForm = ({
       <hr className="border-subtle my-6" />
       <Button
         data-testid="publish-button"
-        EndIcon={!orgBranding || isOrg ? ArrowRight : undefined}
+        EndIcon={!orgBranding || isOrg ? "arrow-right" : undefined}
         color="primary"
         className="w-full justify-center"
         disabled={publishTeamMutation.isPending}
@@ -287,7 +287,7 @@ const PendingMemberItem = (props: { member: TeamMember; index: number; teamId: n
       {(member.role !== "OWNER" || isOrgAdminOrOwner) && member.id !== session.data?.user.id && (
         <Button
           data-testid="remove-member-button"
-          StartIcon={Trash2}
+          StartIcon="trash-2"
           variant="icon"
           color="secondary"
           className="h-[36px] w-[36px]"

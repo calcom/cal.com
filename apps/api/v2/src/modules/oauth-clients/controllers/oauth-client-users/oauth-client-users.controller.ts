@@ -20,11 +20,12 @@ import {
   Patch,
   BadRequestException,
   Delete,
+  Query,
 } from "@nestjs/common";
 import { User } from "@prisma/client";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { ApiResponse } from "@calcom/platform-types";
+import { ApiResponse, Pagination } from "@calcom/platform-types";
 
 @Controller({
   path: "oauth-clients/:clientId/users",
@@ -38,6 +39,27 @@ export class OAuthClientUsersController {
     private readonly oAuthClientUsersService: OAuthClientUsersService,
     private readonly oauthRepository: OAuthClientRepository
   ) {}
+
+  @Get("/")
+  @UseGuards(OAuthClientCredentialsGuard)
+  async getManagedUsers(
+    @Param("clientId") oAuthClientId: string,
+    @Query() queryParams: Pagination
+  ): Promise<ApiResponse<User[]>> {
+    this.logger.log(`getting managed users with data for OAuth Client with ID ${oAuthClientId}`);
+    const { offset, limit } = queryParams;
+
+    const existingUsers = await this.userRepository.findManagedUsersByOAuthClientId(
+      oAuthClientId,
+      offset ?? 0,
+      limit ?? 50
+    );
+
+    return {
+      status: SUCCESS_STATUS,
+      data: existingUsers,
+    };
+  }
 
   @Post("/")
   @UseGuards(OAuthClientCredentialsGuard)

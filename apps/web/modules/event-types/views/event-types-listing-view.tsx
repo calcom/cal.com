@@ -50,6 +50,7 @@ import {
   EmptyScreen,
   HeadSeo,
   HorizontalTabs,
+  Icon,
   Label,
   showToast,
   Skeleton,
@@ -58,20 +59,6 @@ import {
   ArrowButton,
   UserAvatarGroup,
 } from "@calcom/ui";
-import {
-  Clipboard,
-  Code,
-  Copy,
-  Edit,
-  Edit2,
-  ExternalLink,
-  Link as LinkIcon,
-  MoreHorizontal,
-  Trash,
-  Upload,
-  Users,
-  VenetianMask,
-} from "@calcom/ui/components/icon";
 
 import type { AppProps } from "@lib/app-providers";
 import useMeQuery from "@lib/hooks/useMeQuery";
@@ -476,7 +463,7 @@ export const EventTypeList = ({
                                   target="_blank"
                                   variant="icon"
                                   href={calLink}
-                                  StartIcon={ExternalLink}
+                                  StartIcon="external-link"
                                 />
                               </Tooltip>
 
@@ -484,7 +471,7 @@ export const EventTypeList = ({
                                 <Button
                                   color="secondary"
                                   variant="icon"
-                                  StartIcon={LinkIcon}
+                                  StartIcon="link"
                                   onClick={() => {
                                     showToast(t("link_copied"), "success");
                                     navigator.clipboard.writeText(calLink);
@@ -497,7 +484,7 @@ export const EventTypeList = ({
                                   <Button
                                     color="secondary"
                                     variant="icon"
-                                    StartIcon={VenetianMask}
+                                    StartIcon="venetian-mask"
                                     onClick={() => {
                                       showToast(t("private_link_copied"), "success");
                                       navigator.clipboard.writeText(placeholderHashedLink);
@@ -513,7 +500,7 @@ export const EventTypeList = ({
                                 type="button"
                                 variant="icon"
                                 color="secondary"
-                                StartIcon={MoreHorizontal}
+                                StartIcon="ellipsis"
                                 className="ltr:radix-state-open:rounded-r-md rtl:radix-state-open:rounded-l-md"
                               />
                             </DropdownMenuTrigger>
@@ -523,7 +510,7 @@ export const EventTypeList = ({
                                   <DropdownItem
                                     type="button"
                                     data-testid={`event-type-edit-${type.id}`}
-                                    StartIcon={Edit2}
+                                    StartIcon="pencil"
                                     onClick={() => router.push(`/event-types/${type.id}`)}>
                                     {t("edit")}
                                   </DropdownItem>
@@ -535,7 +522,7 @@ export const EventTypeList = ({
                                     <DropdownItem
                                       type="button"
                                       data-testid={`event-type-duplicate-${type.id}`}
-                                      StartIcon={Copy}
+                                      StartIcon="copy"
                                       onClick={() => openDuplicateModal(type, group)}>
                                       {t("duplicate")}
                                     </DropdownItem>
@@ -548,7 +535,7 @@ export const EventTypeList = ({
                                     namespace=""
                                     as={DropdownItem}
                                     type="button"
-                                    StartIcon={Code}
+                                    StartIcon="code"
                                     className="w-full rounded-none"
                                     embedUrl={encodeURIComponent(embedLink)}
                                     eventId={type.id}>
@@ -569,7 +556,7 @@ export const EventTypeList = ({
                                           setDeleteDialogTypeId(type.id);
                                           setDeleteDialogSchedulingType(type.schedulingType);
                                         }}
-                                        StartIcon={Trash}
+                                        StartIcon="trash"
                                         className="w-full rounded-none">
                                         {t("delete")}
                                       </DropdownItem>
@@ -586,7 +573,7 @@ export const EventTypeList = ({
                 <div className="min-w-9 mx-5 flex sm:hidden">
                   <Dropdown>
                     <DropdownMenuTrigger asChild data-testid={`event-type-options-${type.id}`}>
-                      <Button type="button" variant="icon" color="secondary" StartIcon={MoreHorizontal} />
+                      <Button type="button" variant="icon" color="secondary" StartIcon="ellipsis" />
                     </DropdownMenuTrigger>
                     <DropdownMenuPortal>
                       <DropdownMenuContent>
@@ -596,7 +583,7 @@ export const EventTypeList = ({
                               <DropdownItem
                                 href={calLink}
                                 target="_blank"
-                                StartIcon={ExternalLink}
+                                StartIcon="external-link"
                                 className="w-full rounded-none">
                                 {t("preview")}
                               </DropdownItem>
@@ -608,7 +595,7 @@ export const EventTypeList = ({
                                   navigator.clipboard.writeText(calLink);
                                   showToast(t("link_copied"), "success");
                                 }}
-                                StartIcon={Clipboard}
+                                StartIcon="clipboard"
                                 className="w-full rounded-none text-left">
                                 {t("copy_link")}
                               </DropdownItem>
@@ -629,7 +616,7 @@ export const EventTypeList = ({
                                   .then(() => showToast(t("link_shared"), "success"))
                                   .catch(() => showToast(t("failed"), "error"));
                               }}
-                              StartIcon={Upload}
+                              StartIcon="upload"
                               className="w-full rounded-none">
                               {t("share")}
                             </DropdownItem>
@@ -639,7 +626,7 @@ export const EventTypeList = ({
                           <DropdownMenuItem className="outline-none">
                             <DropdownItem
                               onClick={() => router.push(`/event-types/${type.id}`)}
-                              StartIcon={Edit}
+                              StartIcon="pencil"
                               className="w-full rounded-none">
                               {t("edit")}
                             </DropdownItem>
@@ -649,7 +636,7 @@ export const EventTypeList = ({
                           <DropdownMenuItem className="outline-none">
                             <DropdownItem
                               onClick={() => openDuplicateModal(type, group)}
-                              StartIcon={Copy}
+                              StartIcon="copy"
                               data-testid={`event-type-duplicate-${type.id}`}>
                               {t("duplicate")}
                             </DropdownItem>
@@ -667,7 +654,7 @@ export const EventTypeList = ({
                                     setDeleteDialogTypeId(type.id);
                                     setDeleteDialogSchedulingType(type.schedulingType);
                                   }}
-                                  StartIcon={Trash}
+                                  StartIcon="trash"
                                   className="w-full rounded-none">
                                   {t("delete")}
                                 </DropdownItem>
@@ -768,7 +755,7 @@ const EventTypeListHeading = ({
           <span className="text-subtle relative -top-px me-2 ms-2 text-xs">
             <Link href={`/settings/teams/${teamId}/members`}>
               <Badge variant="gray">
-                <Users className="-mt-px mr-1 inline h-3 w-3" />
+                <Icon name="users" className="-mt-px mr-1 inline h-3 w-3" />
                 {membershipCount}
               </Badge>
             </Link>
@@ -796,7 +783,7 @@ const CreateFirstEventTypeView = ({ slug }: { slug: string }) => {
 
   return (
     <EmptyScreen
-      Icon={LinkIcon}
+      Icon="link"
       headline={t("new_event_type_heading")}
       description={t("new_event_type_description")}
       className="mb-16"
