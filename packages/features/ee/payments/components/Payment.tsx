@@ -7,8 +7,7 @@ import type { SyntheticEvent } from "react";
 import { useEffect, useState } from "react";
 
 import getStripe from "@calcom/app-store/stripepayment/lib/client";
-import { getBookingRedirectExtraParams, useBookingSuccessRedirect } from "@calcom/lib/bookingSuccessRedirect";
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import { useBookingSuccessRedirect } from "@calcom/lib/bookingSuccessRedirect";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, CheckboxField } from "@calcom/ui";
@@ -46,27 +45,6 @@ type States =
   | {
       status: "ok";
     };
-
-const getReturnUrl = (props: Props) => {
-  if (!props.eventType.successRedirectUrl) {
-    return `${WEBAPP_URL}/booking/${props.booking.uid}`;
-  }
-
-  const returnUrl = new URL(props.eventType.successRedirectUrl);
-
-  if (props.eventType.forwardParamsSuccessRedirect) {
-    const queryParams = getBookingRedirectExtraParams(props.booking);
-
-    Object.entries(queryParams).forEach(([key, value]) => {
-      if (value === null || value === undefined) {
-        return;
-      }
-      returnUrl.searchParams.append(key, String(value));
-    });
-  }
-
-  return returnUrl.toString();
-};
 
 const PaymentForm = (props: Props) => {
   const {
@@ -107,16 +85,12 @@ const PaymentForm = (props: Props) => {
     if (paymentOption === "HOLD" && "setupIntent" in props.payment.data) {
       payload = await stripe.confirmSetup({
         elements,
-        confirmParams: {
-          return_url: getReturnUrl(props),
-        },
+        redirect: "if_required",
       });
     } else if (paymentOption === "ON_BOOKING") {
       payload = await stripe.confirmPayment({
         elements,
-        confirmParams: {
-          return_url: getReturnUrl(props),
-        },
+        redirect: "if_required",
       });
     }
 
