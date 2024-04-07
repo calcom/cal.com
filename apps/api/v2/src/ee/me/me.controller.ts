@@ -1,3 +1,5 @@
+import { GetMeOutput } from "@/ee/me/outputs/get-me.output";
+import { UpdateMeOutput } from "@/ee/me/outputs/update-me.output";
 import { SchedulesService } from "@/ee/schedules/services/schedules.service";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
@@ -9,8 +11,7 @@ import { Controller, UseGuards, Get, Patch, Body } from "@nestjs/common";
 import { ApiTags as DocsTags } from "@nestjs/swagger";
 
 import { PROFILE_READ, PROFILE_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
-import { UserResponse, userSchemaResponse } from "@calcom/platform-types";
-import { ApiResponse } from "@calcom/platform-types";
+import { userSchemaResponse } from "@calcom/platform-types";
 
 @Controller({
   path: "ee/me",
@@ -26,7 +27,7 @@ export class MeController {
 
   @Get("/")
   @Permissions([PROFILE_READ])
-  async getMe(@GetUser() user: UserWithProfile): Promise<ApiResponse<UserResponse>> {
+  async getMe(@GetUser() user: UserWithProfile): Promise<GetMeOutput> {
     const me = userSchemaResponse.parse(user);
 
     return {
@@ -40,7 +41,7 @@ export class MeController {
   async updateMe(
     @GetUser() user: UserWithProfile,
     @Body() bodySchedule: UpdateManagedUserInput
-  ): Promise<ApiResponse<UserResponse>> {
+  ): Promise<UpdateMeOutput> {
     const updatedUser = await this.usersRepository.update(user.id, bodySchedule);
     if (bodySchedule.timeZone && user.defaultScheduleId) {
       await this.schedulesRepository.updateUserSchedule(user, user.defaultScheduleId, {

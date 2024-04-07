@@ -145,7 +145,7 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
     event: event.data,
     sessionEmail: session?.data?.email,
     sessionUsername: session?.data?.username,
-    sessionName: session?.data?.name,
+    sessionName: session?.data?.username,
     hasSession,
     extraOptions: {},
     prefillFormParams: prefillFormParams,

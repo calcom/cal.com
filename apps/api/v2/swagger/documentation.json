@@ -1061,7 +1061,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/GetMeOutput"
                 }
               }
             }
@@ -1090,7 +1090,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/UpdateMeOutput"
                 }
               }
             }
@@ -2808,6 +2808,82 @@
         },
         "required": [
           "status"
+        ]
+      },
+      "MeOutput": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "username": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "timeFormat": {
+            "type": "number"
+          },
+          "defaultScheduleId": {
+            "type": "number",
+            "nullable": true
+          },
+          "weekStart": {
+            "type": "string"
+          },
+          "timeZone": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "username",
+          "email",
+          "timeFormat",
+          "defaultScheduleId",
+          "weekStart",
+          "timeZone"
+        ]
+      },
+      "GetMeOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/MeOutput"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "UpdateMeOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/MeOutput"
+          }
+        },
+        "required": [
+          "status",
+          "data"
         ]
       },
       "CreateBookingInput": {
