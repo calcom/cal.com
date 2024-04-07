@@ -62,7 +62,6 @@ export default function OmniInstallAppButton({
                 type: app.type,
                 variant: app.variant,
                 slug: app.slug,
-                isOmniInstall: true,
                 ...(teamId && { teamId }),
               });
             },
