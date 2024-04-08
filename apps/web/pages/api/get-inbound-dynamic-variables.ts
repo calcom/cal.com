@@ -19,11 +19,27 @@ const schema = z.object({
 });
 
 const getEventTypeIdFromRetellLLM = (
-  generalTools: TGetRetellLLMSchema["general_tools"]
-): number | undefined => {
-  const generalTool = generalTools.find((tool) => !!tool.event_type_id && !!tool.timezone);
+  retellLLM: TGetRetellLLMSchema
+): { eventTypeId: number | undefined; timezone: string | undefined } => {
+  const { general_tools, states } = retellLLM;
 
-  return generalTool?.event_type_id;
+  const generalTool = general_tools.find((tool) => tool.event_type_id && tool.timezone);
+
+  if (generalTool) {
+    return { eventTypeId: generalTool.event_type_id, timezone: generalTool.timezone };
+  }
+
+  // If no general tool found, search in states
+  if (states) {
+    for (const state of states) {
+      const tool = state.tools.find((tool) => tool.event_type_id && tool.timezone);
+      if (tool) {
+        return { eventTypeId: tool.event_type_id, timezone: tool.timezone };
+      }
+    }
+  }
+
+  return { eventTypeId: undefined, timezone: undefined };
 };
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -39,9 +55,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   const retellLLM = await fetcher(`/get-retell-llm/${body.llm_id}`).then(getRetellLLMSchema.parse);
 
-  const eventTypeId = getEventTypeIdFromRetellLLM(retellLLM.general_tools);
+  const { eventTypeId, timezone } = getEventTypeIdFromRetellLLM(retellLLM);
 
-  if (!eventTypeId) return res.status(404).json({ message: "eventTypeId not found" });
+  if (!eventTypeId || !timezone)
+    return res.status(404).json({ message: "eventTypeId or Timezone not found" });
 
   const eventType = await prisma.eventType.findUnique({
     where: {
@@ -84,7 +101,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   const firstSlot = availableSlots?.slots?.[firstAvailableDate]?.[0]?.time;
 
   return res.status(200).json({
-    next_available: firstSlot ? dayjs.utc(firstSlot).format("dddd [the] Do [at] h:mma [GMT]") : undefined,
+    next_available: firstSlot
+      ? dayjs.utc(firstSlot).tz(timezone).format(`dddd [the] Do [at] h:mma [${timezone} timezone]`)
+      : undefined,
   });
 }
 
