@@ -1,5 +1,5 @@
 import { Balancer } from "react-wrap-balancer";
-import { AutocompleteSearch, ComboboxDemo, Option } from "~/app/_components/autocomplete";
+import { AutocompleteSearch, Option } from "~/app/_components/autocomplete";
 import ProCard from "~/app/_components/pro-card";
 const services = [
   { label: "Hair dresser", value: "hair dresser" },
@@ -21,9 +21,7 @@ export default async function Home() {
             <Balancer>Find your Cal.com Expert</Balancer>
           </h1>
           <div>
-            {/* <AutocompleteSearch options={services} /> */}
-            {/* The below is a copy-past from shadcn and all options are disabled (idk why) */}
-            <ComboboxDemo />
+            <AutocompleteSearch options={services} />
           </div>
         </div>
       </div>

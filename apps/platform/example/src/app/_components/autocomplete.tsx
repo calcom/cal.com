@@ -1,137 +1,96 @@
 "use client";
+import { useState } from "react";
 import {
   Command,
-  CommandGroup,
   CommandEmpty,
+  CommandGroup,
+  CommandInput,
   CommandItem,
   CommandList,
-  CommandInput,
 } from "~/components/ui/command";
-import { useState, useEffect } from "react";
 
 import { Check } from "lucide-react";
 import { cn } from "~/lib/utils";
+import { useRouter } from "next/navigation";
 
 export type Option = { value: string; label: string };
 export const AutocompleteSearch = (props: { options: Array<Option> }) => {
   const [value, setValue] = useState("");
   const [open, setOpen] = useState(false);
-  useEffect(() => {
-    console.log("value: ", value);
-  }, [value]);
+  const [query, setQuery] = useState("");
+  const router = useRouter();
+
   return (
-    <Command value={value} onValueChange={setValue}>
-      <CommandInput placeholder="Search framework..." />
-      <CommandList>
-        <CommandEmpty>No framework found.</CommandEmpty>
-        <CommandGroup>
-          {props.options.map((option) => (
-            <CommandItem
-              key={option.value}
-              value={option.value}
-              onSelect={(currentValue) => {
-                setValue(() => (currentValue === value ? "" : currentValue));
-                setOpen(() => false);
-              }}
-              onPointerMove={() => {
-                console.log("pointer move");
-              }}
+    <div
+      className="relative"
+      onBlur={(e) => {
+        if (e.currentTarget.contains(e.relatedTarget)) return;
+
+        if (value && !query) {
+          setQuery(
+            props.options.find((option) => option.value === value)?.label || "",
+          );
+        }
+        setOpen(false);
+      }}
+    >
+      <Command data-open={open} className={"data-[open=true]:rounded-b-none"}>
+        <CommandInput
+          value={query}
+          placeholder="Search an expert..."
+          onFocus={() => {
+            setOpen(true);
+            if (
+              query ===
+              props.options.find((option) => option.value === value)?.label
+            ) {
+              setQuery("");
+            }
+          }}
+          onValueChange={(value) => setQuery(value)}
+          className="leading-[2.75rem]"
+        />
+
+        <CommandList>
+          {open && (
+            <div
+              data-open={open}
+              className="absolute left-0 right-0 top-full rounded-b-md bg-background p-0 shadow !duration-150 data-[open=true]:animate-in data-[open=true]:fade-in"
             >
-              <Check
-                className={cn(
-                  "mr-2 h-4 w-4",
-                  value === option.value ? "opacity-100" : "opacity-0",
-                )}
-              />
-              {option.label}
-            </CommandItem>
-          ))}
-        </CommandGroup>
-      </CommandList>
-    </Command>
+              <CommandEmpty>No expert found.</CommandEmpty>
+              <CommandGroup>
+                {props.options.map((option) => (
+                  <CommandItem
+                    key={option.value}
+                    value={option.value}
+                    onFocus={() => console.log("focus")}
+                    onSelect={(newValue) => {
+                      setValue(newValue);
+                      setQuery(
+                        props.options.find(
+                          (option) => option.value === newValue,
+                        )?.label || "",
+                      );
+
+                      setOpen(false);
+
+                      router.push(`/experts?${new URLSearchParams({ q: newValue })}`);
+                    }}
+                  >
+                    <Check
+                      className={cn(
+                        "mr-2 h-4 w-4",
+                        value === option.value ? "opacity-100" : "opacity-0",
+                      )}
+                    />
+                    {option.label}
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            </div>
+          )}
+        </CommandList>
+      </Command>
+    </div>
   );
 };
-// FROM shadcn to debug why it's disabled
-// Remove the below at some point
-import * as React from "react";
-import { ChevronsUpDown } from "lucide-react";
-
-import { Button } from "~/components/ui/button";
-
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "~/components/ui/popover";
-
-const frameworks = [
-  {
-    value: "next.js",
-    label: "Next.js",
-  },
-  {
-    value: "sveltekit",
-    label: "SvelteKit",
-  },
-  {
-    value: "nuxt.js",
-    label: "Nuxt.js",
-  },
-  {
-    value: "remix",
-    label: "Remix",
-  },
-  {
-    value: "astro",
-    label: "Astro",
-  },
-];
-
-export function ComboboxDemo() {
-  const [open, setOpen] = React.useState(false);
-  const [value, setValue] = React.useState("");
-
-  return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          role="combobox"
-          aria-expanded={open}
-          className="w-[200px] justify-between"
-        >
-          {value
-            ? frameworks.find((framework) => framework.value === value)?.label
-            : "Select framework..."}
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-[200px] p-0">
-        <Command>
-          <CommandInput placeholder="Search framework..." />
-          <CommandEmpty>No framework found.</CommandEmpty>
-          <CommandGroup>
-            {frameworks.map((framework) => (
-              <CommandItem
-                key={framework.value}
-                value={framework.value}
-                onSelect={(currentValue) => {
-                  setValue(currentValue === value ? "" : currentValue);
-                  setOpen(false);
-                }}
-              >
-                <Check
-                  className={cn(
-                    "mr-2 h-4 w-4",
-                    value === framework.value ? "opacity-100" : "opacity-0",
-                  )}
-                />
-                {framework.label}
-              </CommandItem>
-            ))}
-          </CommandGroup>
-        </Command>
-      </PopoverContent>
-    </Popover>
-  );
-}
