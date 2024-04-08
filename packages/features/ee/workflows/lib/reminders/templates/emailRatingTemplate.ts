@@ -54,11 +54,11 @@ const emailRatingTemplate = ({
 
   const introHtml = `<body>Hi${
     name ? ` ${name}` : ""
-  },<br><br>We're always looking to improve our customer's experience. How satisfied were you with your recent meeting?<br><br>`;
+  },<br><br>We're always looking to improve our customer's experience. How satisfied were you with your recent meeting?`;
 
-  const ratingHtml = `<a href="${ratingUrl}=1">😠</a> <a href="${ratingUrl}=2">🙁</a> <a href="${ratingUrl}=3">😐</a> <a href="${ratingUrl}=4">😄</a> <a href="${ratingUrl}=5">😍</a><br><br>`;
+  const ratingHtml = `<h6><a href="${ratingUrl}=1">😠</a> <a href="${ratingUrl}=2">🙁</a> <a href="${ratingUrl}=3">😐</a> <a href="${ratingUrl}=4">😄</a> <a href="${ratingUrl}=5">😍</a></h6><br>`;
 
-  const noShowHtml = `<div><a href="${noShowUrl}">${organizer} didn't join the meeting</a></div><br><br>`;
+  const noShowHtml = `<p><br><div><a href="${noShowUrl}">${organizer} didn't join the meeting</a></div><br><br>`;
 
   const eventHtml = `<div><strong class="editor-text-bold">Event: </strong></div>${eventName}<br><br>`;
 
@@ -68,7 +68,7 @@ const emailRatingTemplate = ({
 
   const branding = !isBrandingDisabled && !isEditingMode ? `<br><br>_<br><br>Scheduling by ${APP_NAME}` : "";
 
-  const endingHtml = `This survey was triggered by a Workflow in Cal.${branding}</body>`;
+  const endingHtml = `This survey was triggered by a Workflow in Cal.${branding}</p></body>`;
 
   const emailBody =
     introHtml + ratingHtml + noShowHtml + eventHtml + dateTimeHtml + attendeeHtml + endingHtml;
