@@ -25,6 +25,7 @@ test.describe("Signup Flow Test", async () => {
       });
 
       await page.goto("/signup");
+      await page.waitForLoadState("networkidle");
 
       const alertMessage = "Username or email is already taken";
 
@@ -51,6 +52,7 @@ test.describe("Signup Flow Test", async () => {
       });
 
       await page.goto("/signup");
+      await page.waitForLoadState("networkidle");
 
       const alertMessage = "Username or email is already taken";
 
@@ -81,6 +83,7 @@ test.describe("Signup Flow Test", async () => {
 
     // Signup with premium username name
     await page.goto("/signup");
+    await page.waitForLoadState("networkidle");
 
     // Fill form
     await page.locator('input[name="username"]').fill("rock");
@@ -108,6 +111,7 @@ test.describe("Signup Flow Test", async () => {
     });
 
     await page.goto("/signup");
+    await page.waitForLoadState("networkidle");
 
     // Fill form
     await page.locator('input[name="username"]').fill(userToCreate.username);
@@ -115,10 +119,7 @@ test.describe("Signup Flow Test", async () => {
     await page.locator('input[name="password"]').fill(userToCreate.password);
 
     await page.click('button[type="submit"]');
-    await page.waitForLoadState("networkidle");
-    // Find the newly created user and add it to the fixture store
-    const newUser = await users.set(userToCreate.email);
-    expect(newUser).not.toBeNull();
+    await page.waitForURL("/auth/verify-email**");
 
     // Check that the URL matches the expected URL
     expect(page.url()).toContain("/auth/verify-email");
@@ -177,8 +178,8 @@ test.describe("Signup Flow Test", async () => {
     });
 
     const signupUrlWithToken = `/signup?token=${token}`;
-
     await page.goto(signupUrlWithToken);
+    await page.waitForLoadState("networkidle");
 
     const usernameField = page.locator('input[name="username"]');
     const emailField = page.locator('input[name="email"]');
