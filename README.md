@@ -198,6 +198,28 @@ echo 'NEXT_PUBLIC_DEBUG=1' >> .env
    ```
 
    <details>
+   <summary>If you don't know how to configure the DATABASE_URL, then follow the steps here to create a quick local DB using Docker (Recommended)</summary>
+
+   1. Setup the database with Docker
+
+   ```sh
+   docker run -d \
+      --name calendso-postgres \
+      -p 5450:5432 \
+      -e POSTGRES_DB=calendso \
+      -e POSTGRES_USER=postgres \
+      -e POSTGRES_PASSWORD=password \
+      --restart always \
+      postgres:latest
+   ```
+
+   > If you don't have Docker installed, you can install it from [here](https://docs.docker.com/get-docker/).
+
+   2. Your `DATABASE_URL` will be `postgresql://postgres:password@localhost:5450/calendso`.
+
+   </details>
+
+   <details>
    <summary>If you don't know how to configure the DATABASE_URL, then follow the steps here to create a quick local DB</summary>
 
    1. [Download](https://www.postgresql.org/download/) and install postgres in your local (if you don't have it already).
