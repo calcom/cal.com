@@ -16,8 +16,8 @@ export const EventTypeUpdateInput = _EventTypeModel
         yourPhoneNumber: z.string().default(""),
         numberToCall: z.string().default(""),
         guestName: z.string().default(""),
-        guestEmail: z.string().default(""),
-        guestCompany: z.string().default(""),
+        guestEmail: z.string().default(null),
+        guestCompany: z.string().default(null),
       })
       .optional(),
     calAiPhoneScript: z.string().optional(),

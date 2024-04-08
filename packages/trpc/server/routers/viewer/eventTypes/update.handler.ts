@@ -372,9 +372,17 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         where: {
           eventTypeId: id,
         },
-        update: aiPhoneCallConfig,
+        update: {
+          ...aiPhoneCallConfig,
+          guestEmail: aiPhoneCallConfig.guestEmail.trim().length > 0 ? aiPhoneCallConfig.guestEmail : null,
+          guestCompany:
+            aiPhoneCallConfig.guestCompany.trim().length > 0 ? aiPhoneCallConfig.guestCompany : null,
+        },
         create: {
           ...aiPhoneCallConfig,
+          guestEmail: aiPhoneCallConfig.guestEmail.trim().length > 0 ? aiPhoneCallConfig.guestEmail : null,
+          guestCompany:
+            aiPhoneCallConfig.guestCompany.trim().length > 0 ? aiPhoneCallConfig.guestCompany : null,
           eventTypeId: id,
         },
       });
