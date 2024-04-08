@@ -20,6 +20,7 @@ import { ZGetOtherTeamInputSchema } from "./getOtherTeam.handler";
 import { ZGetUserInput } from "./getUser.schema";
 import { ZListMembersSchema } from "./listMembers.schema";
 import { ZListOtherTeamMembersSchema } from "./listOtherTeamMembers.handler";
+import { getBrand } from "./procedures/getBrand";
 import { ZSetPasswordSchema } from "./setPassword.schema";
 import { ZUpdateInputSchema } from "./update.schema";
 import { ZUpdateUserInputSchema } from "./updateUser.schema";
@@ -72,10 +73,7 @@ export const viewerOrganizationsRouter = router({
     const handler = await importHandler(namespaced("listMembers"), () => import("./listMembers.handler"));
     return handler(opts);
   }),
-  getBrand: authedProcedure.query(async (opts) => {
-    const handler = await importHandler(namespaced("getBrand"), () => import("./getBrand.handler"));
-    return handler(opts);
-  }),
+  getBrand,
   getUser: authedProcedure.input(ZGetUserInput).query(async (opts) => {
     const handler = await importHandler(namespaced("getUser"), () => import("./getUser.handler"));
     return handler(opts);

@@ -16,6 +16,7 @@ import DynamicHelpscoutProvider from "@calcom/features/ee/support/lib/helpscout/
 import DynamicIntercomProvider from "@calcom/features/ee/support/lib/intercom/providerDynamic";
 import { FeatureProvider } from "@calcom/features/flags/context/provider";
 import { useFlags } from "@calcom/features/flags/hooks";
+import { trpc } from "@calcom/trpc";
 import { MetaProvider } from "@calcom/ui";
 
 import useIsBookingPage from "@lib/hooks/useIsBookingPage";
@@ -248,7 +249,13 @@ function useOrgBrandingValues() {
 
 function OrgBrandProvider({ children }: { children: React.ReactNode }) {
   const orgBrand = useOrgBrandingValues();
-  return <OrgBrandingProvider value={{ orgBrand }}>{children}</OrgBrandingProvider>;
+  const { data } = trpc.viewer.organizations.getBrand.useQuery();
+  return (
+    <OrgBrandingProvider
+      value={{ orgBrand: { ...orgBrand, fullDomain: data?.fullDomain ?? orgBrand?.fullDomain ?? "" } }}>
+      {children}
+    </OrgBrandingProvider>
+  );
 }
 
 const AppProviders = (props: PageWrapperProps) => {
