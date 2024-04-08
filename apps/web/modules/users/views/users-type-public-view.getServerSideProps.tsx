@@ -161,12 +161,14 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
     orgBannerUrl: null,
   };
 
-  const processRescheduleResult = await processReschedule({ props, rescheduleUid, session });
-  if (processRescheduleResult) {
-    return processRescheduleResult;
+  if (rescheduleUid) {
+    const processRescheduleResult = await processReschedule({ props, rescheduleUid, session });
+    if (processRescheduleResult) {
+      return processRescheduleResult;
+    }
+  } else if (bookingUid) {
+    await processSeatedEvent({ props, bookingUid });
   }
-
-  await processSeatedEvent({ props, bookingUid });
 
   return {
     props,
@@ -253,12 +255,14 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
     orgBannerUrl: eventData?.owner?.profile?.organization?.bannerUrl ?? null,
   };
 
-  const processRescheduleResult = await processReschedule({ props, rescheduleUid, session });
-  if (processRescheduleResult) {
-    return processRescheduleResult;
+  if (rescheduleUid) {
+    const processRescheduleResult = await processReschedule({ props, rescheduleUid, session });
+    if (processRescheduleResult) {
+      return processRescheduleResult;
+    }
+  } else if (bookingUid) {
+    await processSeatedEvent({ props, bookingUid });
   }
-
-  await processSeatedEvent({ props, bookingUid });
 
   return {
     props,
