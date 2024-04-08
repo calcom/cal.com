@@ -1,7 +1,7 @@
 import type { Prisma } from "@prisma/client";
 import z from "zod";
 
-import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
+import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import { prisma } from "@calcom/prisma";
 
@@ -115,10 +115,11 @@ export const listOtherTeamMembers = async ({ input }: ListOptions) => {
     });
   }
   return {
-    rows: enrichedMemberships.map((m) => {
+    rows: enrichedMemberships.map(async (m) => {
+      const bookerUrl = await getBookerBaseUrl(m.user.profile?.organization.id);
       return {
         ...m,
-        bookerUrl: getBookerBaseUrlSync(m.user.profile?.organization?.slug || ""),
+        bookerUrl,
       };
     }),
     nextCursor,

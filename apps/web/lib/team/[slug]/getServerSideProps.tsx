@@ -2,7 +2,7 @@ import type { GetServerSidePropsContext } from "next";
 
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { getFeatureFlag } from "@calcom/features/flags/server/utils";
-import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
+import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import logger from "@calcom/lib/logger";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { getTeamWithMembers } from "@calcom/lib/server/queries/teams";
@@ -131,7 +131,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const safeBio = markdownToSafeHTML(team.bio) || "";
 
   const members = !isTeamOrParentOrgPrivate
-    ? team.members.map((member) => {
+    ? team.members.map(async (member) => {
+        const bookerUrl = await getBookerBaseUrl(member.organization?.id);
         return {
           name: member.name,
           id: member.id,
@@ -143,7 +144,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
           accepted: member.accepted,
           organizationId: member.organizationId,
           safeBio: markdownToSafeHTML(member.bio || ""),
-          bookerUrl: getBookerBaseUrlSync(member.organization?.slug || ""),
+          bookerUrl,
         };
       })
     : [];

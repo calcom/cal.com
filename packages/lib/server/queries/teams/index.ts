@@ -12,7 +12,7 @@ import {
 } from "@calcom/prisma/zod-utils";
 
 import { WEBAPP_URL } from "../../../constants";
-import { getBookerBaseUrlSync } from "../../../getBookerUrl/client";
+import { getBookerBaseUrl } from "../../../getBookerUrl/server";
 import { getTeam, getOrg } from "../../repository/team";
 import { UserRepository } from "../../repository/user";
 
@@ -165,8 +165,9 @@ export async function getTeamWithMembers(args: {
       }),
     });
   }
-  const members = teamOrOrgMemberships.map((m) => {
+  const members = teamOrOrgMemberships.map(async (m) => {
     const { credentials, profile, ...restUser } = m.user;
+    const bookerUrl = await getBookerBaseUrl(profile?.organization?.id);
     return {
       ...restUser,
       username: profile?.username ?? restUser.username,
@@ -182,7 +183,7 @@ export async function getTeamWithMembers(args: {
             .map((membership) => membership.team.slug)
         : null,
       avatar: `${WEBAPP_URL}/${m.user.username}/avatar.png`,
-      bookerUrl: getBookerBaseUrlSync(profile?.organization?.slug || ""),
+      bookerUrl,
       connectedApps: !isTeamView
         ? credentials?.map((cred) => {
             const appSlug = cred.app?.slug;

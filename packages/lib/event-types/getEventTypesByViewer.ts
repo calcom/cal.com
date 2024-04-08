@@ -3,7 +3,6 @@ import { orderBy } from "lodash";
 
 import { hasFilter } from "@calcom/features/filters/lib/hasFilter";
 import { getOrgAvatarUrl, getTeamAvatarUrl, getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
-import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import logger from "@calcom/lib/logger";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
@@ -245,10 +244,11 @@ export const getEventTypesByViewer = async (user: User, filters?: Filters, forRo
           }
 
           const eventTypes = await Promise.all(team.eventTypes.map(mapEventType));
+          const bookerUrl = await getBookerBaseUrl(team.parent?.id ?? null);
           return {
             teamId: team.id,
             parentId: team.parentId,
-            bookerUrl: getBookerBaseUrlSync(team.parent?.slug ?? null),
+            bookerUrl,
             membershipRole:
               orgMembership && compareMembership(orgMembership, membership.role)
                 ? orgMembership
