@@ -210,7 +210,7 @@ echo 'NEXT_PUBLIC_DEBUG=1' >> .env
       ![image](https://user-images.githubusercontent.com/39329182/236612291-51d87f69-6dc1-4a23-bf4d-1ca1754e0a35.png)
 
    5. Now extract all the info and add it to your DATABASE_URL. The url would look something like this
-      `postgresql://postgres:postgres@localhost:5432/Your-DB-Name`.
+      `postgresql://postgres:postgres@localhost:5432/Your-DB-Name`. The port is configurable and does not have to be 5432.
 
    </details>
 
