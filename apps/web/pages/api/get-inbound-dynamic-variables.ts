@@ -19,11 +19,29 @@ const schema = z.object({
 });
 
 const getEventTypeIdFromRetellLLM = (
-  generalTools: TGetRetellLLMSchema["general_tools"]
+  retellLLM: TGetRetellLLMSchema
 ): { eventTypeId: number | undefined; timezone: string | undefined } => {
+  const generalTools = retellLLM.general_tools;
   const generalTool = generalTools.find((tool) => !!tool.event_type_id && !!tool.timezone);
 
-  return { eventTypeId: generalTool?.event_type_id, timezone: generalTool?.timezone };
+  let eventTypeId = generalTool?.event_type_id;
+  let timezone = generalTool?.timezone;
+
+  if (!eventTypeId) {
+    const tool = retellLLM.states.find(
+      (state) =>
+        !!state.tools.find((tool) => {
+          if (!!tool.event_type_id && !!tool.timezone) {
+            eventTypeId = tool.event_type_id;
+            timezone = tool.timezone;
+            return true;
+          }
+          return false;
+        })
+    );
+  }
+
+  return { eventTypeId, timezone };
 };
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -39,7 +57,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   const retellLLM = await fetcher(`/get-retell-llm/${body.llm_id}`).then(getRetellLLMSchema.parse);
 
-  const { eventTypeId, timezone } = getEventTypeIdFromRetellLLM(retellLLM.general_tools);
+  const { eventTypeId, timezone } = getEventTypeIdFromRetellLLM(retellLLM);
 
   if (!eventTypeId || !timezone)
     return res.status(404).json({ message: "eventTypeId or Timezone not found" });
