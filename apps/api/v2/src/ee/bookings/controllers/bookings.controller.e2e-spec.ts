@@ -4,7 +4,6 @@ import { GetBookingOutput } from "@/ee/bookings/outputs/get-booking.output";
 import { GetBookingsOutput } from "@/ee/bookings/outputs/get-bookings.output";
 import { CreateScheduleInput } from "@/ee/schedules/inputs/create-schedule.input";
 import { SchedulesModule } from "@/ee/schedules/schedules.module";
-import { SchedulesRepository } from "@/ee/schedules/schedules.repository";
 import { SchedulesService } from "@/ee/schedules/services/schedules.service";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { AvailabilitiesModule } from "@/modules/availabilities/availabilities.module";
@@ -21,13 +20,7 @@ import { UserRepositoryFixture } from "test/fixtures/repository/users.repository
 import { withAccessTokenAuth } from "test/utils/withAccessTokenAuth";
 
 import { SUCCESS_STATUS, ERROR_STATUS } from "@calcom/platform-constants";
-import {
-  getAllUserBookings,
-  handleNewBooking,
-  getBookingInfo,
-  handleNewRecurringBooking,
-  handleInstantMeeting,
-} from "@calcom/platform-libraries";
+import { handleNewBooking } from "@calcom/platform-libraries";
 import { ApiSuccessResponse, ApiResponse } from "@calcom/platform-types";
 
 describe("Bookings Endpoints", () => {
@@ -182,6 +175,7 @@ describe("Bookings Endpoints", () => {
         });
     });
 
+    // note(Lauris) : found this test broken here - first thing to fix is that recurring endpoint accepts an array not 1 object.
     // it("should create a recurring booking", async () => {
     //   const bookingStart = "2040-05-25T09:30:00.000Z";
     //   const bookingEnd = "2040-05-25T10:30:00.000Z";
@@ -216,10 +210,12 @@ describe("Bookings Endpoints", () => {
     //     });
     // });
 
+    // note(Lauris) : found this test broken here - first thing to fix is that the eventTypeId must be team event type, because
+    // instant bookings only work for teams.
     // it("should create an instant booking", async () => {
     //   const bookingStart = "2040-05-25T09:30:00.000Z";
     //   const bookingEnd = "2040-25T10:30:00.000Z";
-    //   const bookingEventTypeId = eventTypeId;
+    //   const bookingEventTypeId = 7;
     //   const bookingTimeZone = "Europe/London";
     //   const bookingLanguage = "en";
     //   const bookingHashedLink = "";
