@@ -27,8 +27,8 @@ type Props = {
     "id" | "length" | "metadata" | "entity"
   >;
   booking?: GetBookingType;
-  rescheduleUid: string | string[] | null;
-  bookingUid: string | string[] | null;
+  rescheduleUid: string | null;
+  bookingUid: string | null;
   user: string;
   slug: string;
   away: boolean;
@@ -53,7 +53,7 @@ async function processReschedule({
   // if no booking found, no eventTypeId (dynamic) or it matches this eventData - return void (success).
   if (booking === null || !booking.eventTypeId || booking?.eventTypeId === props.eventData?.id) {
     props.booking = booking;
-    props.rescheduleUid = rescheduleUid;
+    props.rescheduleUid = Array.isArray(rescheduleUid) ? rescheduleUid[0] : rescheduleUid;
     return;
   }
   // handle redirect response
@@ -87,7 +87,7 @@ async function processSeatedEvent({
 }) {
   if (!bookingUid) return;
   props.booking = await getBookingForSeatedEvent(`${bookingUid}`);
-  props.bookingUid = bookingUid;
+  props.bookingUid = Array.isArray(bookingUid) ? bookingUid[0] : bookingUid;
 }
 
 async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
