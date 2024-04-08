@@ -227,19 +227,17 @@ export const TeamInviteEmail = (
     if (typeOfInvite === "TO_SUBTEAM") {
       return (
         <>
-          (
           {autoJoinType === "added" ? (
             <Trans i18nKey="email_team_invite|content|added_to_subteam">
               {invitedBy} has added you to the team <strong>{teamName}</strong> in their organization{" "}
-              <strong>{parentTeamName}</strong>
+              <strong>{parentTeamName}</strong>.
             </Trans>
           ) : (
             <Trans i18nKey="email_team_invite|content|invited_to_subteam">
               {invitedBy} has added you to the team <strong>{teamName}</strong> in their organization{" "}
-              <strong>{parentTeamName}</strong>
+              <strong>{parentTeamName}</strong>.
             </Trans>
-          )}
-          )
+          )}{" "}
           <Trans>
             {appName} is the event-juggling scheduler that enables you and your team to schedule meetings
             without the email tennis.
