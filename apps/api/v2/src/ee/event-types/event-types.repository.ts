@@ -45,7 +45,7 @@ export class EventTypesRepository {
     eventTypeId: number
   ) {
     try {
-      return getEventTypeById({
+      return await getEventTypeById({
         currentOrganizationId: user.movedToProfile?.organizationId || user.organizationId,
         eventTypeId,
         userId: user.id,
@@ -55,7 +55,7 @@ export class EventTypesRepository {
         isUserOrganizationAdmin,
       });
     } catch (error) {
-      throw new NotFoundException(`User with id ${user.id} has no event type with id ${eventTypeId}`);
+      return null;
     }
   }
 
