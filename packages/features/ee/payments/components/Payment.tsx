@@ -78,6 +78,9 @@ const PaymentForm = (props: Props) => {
       uid: string;
       email: string | null;
       location?: string;
+      payment_intent?: string;
+      payment_intent_client_secret?: string;
+      redirect_status?: string;
     } = {
       uid: props.booking.uid,
       email: searchParams?.get("email"),
@@ -87,11 +90,21 @@ const PaymentForm = (props: Props) => {
         elements,
         redirect: "if_required",
       });
+      if (payload.setupIntent) {
+        params.payment_intent = payload.setupIntent.id;
+        params.payment_intent_client_secret = payload.setupIntent.client_secret || undefined;
+        params.redirect_status = payload.setupIntent.status;
+      }
     } else if (paymentOption === "ON_BOOKING") {
       payload = await stripe.confirmPayment({
         elements,
         redirect: "if_required",
       });
+      if (payload.paymentIntent) {
+        params.payment_intent = payload.paymentIntent.id;
+        params.payment_intent_client_secret = payload.paymentIntent.client_secret || undefined;
+        params.redirect_status = payload.paymentIntent.status;
+      }
     }
 
     if (payload?.error) {
