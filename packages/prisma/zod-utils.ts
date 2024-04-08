@@ -731,6 +731,26 @@ export const getRetellLLMSchema = z
         })
         .passthrough()
     ),
+    states: z
+      .array(
+        z
+          .object({
+            name: z.string(),
+            tools: z.array(
+              z
+                .object({
+                  name: z.string(),
+                  type: z.string(),
+                  cal_api_key: z.string().optional(),
+                  event_type_id: z.number().optional(),
+                  timezone: z.string().optional(),
+                })
+                .passthrough()
+            ),
+          })
+          .passthrough()
+      )
+      .nullable(),
   })
   .passthrough();
 

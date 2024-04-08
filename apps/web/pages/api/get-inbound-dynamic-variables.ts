@@ -30,10 +30,12 @@ const getEventTypeIdFromRetellLLM = (
   }
 
   // If no general tool found, search in states
-  for (const state of states) {
-    const tool = state.tools.find((tool) => tool.event_type_id && tool.timezone);
-    if (tool) {
-      return { eventTypeId: tool.event_type_id, timezone: tool.timezone };
+  if (states) {
+    for (const state of states) {
+      const tool = state.tools.find((tool) => tool.event_type_id && tool.timezone);
+      if (tool) {
+        return { eventTypeId: tool.event_type_id, timezone: tool.timezone };
+      }
     }
   }
 
