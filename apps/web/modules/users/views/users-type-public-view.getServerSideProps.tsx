@@ -50,29 +50,32 @@ async function processReschedule({
 }) {
   if (!rescheduleUid) return;
   const booking = await getBookingForReschedule(`${rescheduleUid}`, session?.user?.id);
-  if (booking && booking.eventTypeId && booking.eventTypeId !== props.eventData?.id) {
-    const redirectEventTypeTarget = await prisma.eventType.findUnique({
-      where: {
-        id: booking.eventTypeId,
-      },
-      select: {
-        slug: true,
-      },
-    });
-    if (!redirectEventTypeTarget) {
-      return {
-        notFound: true,
-      } as const;
-    }
-    return {
-      redirect: {
-        permanent: false,
-        destination: redirectEventTypeTarget.slug,
-      },
-    };
+  // if no booking found, no eventTypeId (dynamic) or it matches this eventData - return void (success).
+  if (booking === null || !booking.eventTypeId || booking?.eventTypeId === props.eventData?.id) {
+    props.booking = booking;
+    props.rescheduleUid = rescheduleUid;
+    return;
   }
-  props.booking = booking;
-  props.rescheduleUid = rescheduleUid;
+  // handle redirect response
+  const redirectEventTypeTarget = await prisma.eventType.findUnique({
+    where: {
+      id: booking.eventTypeId,
+    },
+    select: {
+      slug: true,
+    },
+  });
+  if (!redirectEventTypeTarget) {
+    return {
+      notFound: true,
+    } as const;
+  }
+  return {
+    redirect: {
+      permanent: false,
+      destination: redirectEventTypeTarget.slug,
+    },
+  };
 }
 
 async function processSeatedEvent({
