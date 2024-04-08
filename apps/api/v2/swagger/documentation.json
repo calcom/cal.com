@@ -3671,6 +3671,49 @@
           "data"
         ]
       },
+      "Location": {
+        "type": "object",
+        "properties": {
+          "optionValue": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "optionValue",
+          "value"
+        ]
+      },
+      "Response": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "guests": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "location": {
+            "$ref": "#/components/schemas/Location"
+          },
+          "notes": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "email",
+          "guests"
+        ]
+      },
       "CreateBookingInput": {
         "type": "object",
         "properties": {
@@ -3719,6 +3762,9 @@
           },
           "seatReferenceUid": {
             "type": "string"
+          },
+          "responses": {
+            "$ref": "#/components/schemas/Response"
           }
         },
         "required": [
@@ -3727,7 +3773,8 @@
           "timeZone",
           "language",
           "metadata",
-          "hashedLink"
+          "hashedLink",
+          "responses"
         ]
       },
       "CancelBookingInput": {
