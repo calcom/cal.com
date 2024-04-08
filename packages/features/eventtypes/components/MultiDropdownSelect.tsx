@@ -1,8 +1,7 @@
 import type { GroupBase, Props, ValueContainerProps } from "react-select";
 import { components } from "react-select";
 
-import { Select } from "@calcom/ui";
-import { Icon } from "@calcom/ui";
+import { Icon, Select } from "@calcom/ui";
 
 const LimitedChipsContainer = <Option, IsMulti extends boolean, Group extends GroupBase<Option>>({
   children,
