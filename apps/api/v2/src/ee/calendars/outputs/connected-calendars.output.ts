@@ -18,13 +18,15 @@ import { SUCCESS_STATUS, ERROR_STATUS } from "@calcom/platform-constants";
 class Integration {
   @IsOptional()
   @IsObject()
-  appData!: object | null;
+  appData?: object | null;
 
+  @IsOptional()
   @IsString()
-  dirName!: string;
+  dirName?: string;
 
+  @IsOptional()
   @IsString()
-  __template!: string;
+  __template?: string;
 
   @IsString()
   name!: string;
@@ -32,20 +34,23 @@ class Integration {
   @IsString()
   description!: string;
 
+  @IsOptional()
   @IsBoolean()
-  installed!: boolean;
+  installed?: boolean;
 
   @IsString()
   type!: string;
 
+  @IsOptional()
   @IsString()
-  title!: string;
+  title?: string;
 
   @IsString()
   variant!: string;
 
+  @IsOptional()
   @IsString()
-  category!: string;
+  category?: string;
 
   @IsArray()
   @IsString({ each: true })
@@ -76,19 +81,22 @@ class Primary {
   externalId!: string;
 
   @IsString()
-  integration!: string;
+  @IsOptional()
+  integration?: string;
 
+  @IsOptional()
   @IsEmail()
-  name!: string;
+  name?: string;
 
   @IsBoolean()
-  primary!: boolean;
+  primary!: boolean | null;
 
   @IsBoolean()
   readOnly!: boolean;
 
   @IsEmail()
-  email!: string;
+  @IsOptional()
+  email?: string;
 
   @IsBoolean()
   isSelected!: boolean;
@@ -102,20 +110,23 @@ class Calendar {
   externalId!: string;
 
   @IsString()
-  integration!: string;
+  @IsOptional()
+  integration?: string;
 
   @IsEmail()
-  name!: string;
+  @IsOptional()
+  name?: string;
 
   @IsOptional()
   @IsBoolean()
-  primary?: boolean;
+  primary?: boolean | null;
 
   @IsBoolean()
   readOnly!: boolean;
 
   @IsEmail()
-  email!: string;
+  @IsOptional()
+  email?: string;
 
   @IsBoolean()
   isSelected!: boolean;
@@ -134,11 +145,13 @@ class ConnectedCalendar {
 
   @ValidateNested()
   @IsObject()
-  primary!: Primary;
+  @IsOptional()
+  primary?: Primary;
 
   @ValidateNested({ each: true })
   @IsArray()
-  calendars!: Calendar[];
+  @IsOptional()
+  calendars?: Calendar[];
 }
 
 class DestinationCalendar {
@@ -152,32 +165,37 @@ class DestinationCalendar {
   externalId!: string;
 
   @IsEmail()
-  primaryEmail!: string;
+  primaryEmail!: string | null;
 
   @IsInt()
-  userId!: number;
+  userId!: number | null;
 
   @IsOptional()
   @IsInt()
   eventTypeId!: number | null;
 
   @IsInt()
-  credentialId!: number;
+  credentialId!: number | null;
 
   @IsString()
-  name!: string;
+  @IsOptional()
+  name?: string | null;
 
   @IsBoolean()
-  primary!: boolean;
+  @IsOptional()
+  primary?: boolean;
 
   @IsBoolean()
-  readOnly!: boolean;
+  @IsOptional()
+  readOnly?: boolean;
 
   @IsEmail()
-  email!: string;
+  @IsOptional()
+  email?: string;
 
   @IsString()
-  integrationTitle!: string;
+  @IsOptional()
+  integrationTitle?: string;
 }
 
 class ConnectedCalendarsData {
