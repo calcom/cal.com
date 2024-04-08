@@ -16,6 +16,5 @@ export class CreateScheduleInput {
   availabilities?: CreateAvailabilityInput[];
 
   @IsBoolean()
-  @IsOptional()
-  isDefault?: boolean;
+  isDefault!: boolean;
 }

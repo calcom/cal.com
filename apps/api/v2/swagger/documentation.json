@@ -2426,7 +2426,8 @@
         },
         "required": [
           "name",
-          "timeZone"
+          "timeZone",
+          "isDefault"
         ]
       },
       "WorkingHours": {
