@@ -78,6 +78,8 @@ describe("OAuth Client Users Endpoints", () => {
 
     let postResponseData: CreateUserResponse;
 
+    const userEmail = "oauth-client-user@gmail.com";
+
     beforeAll(async () => {
       const moduleRef = await Test.createTestingModule({
         providers: [PrismaExceptionFilter, HttpExceptionFilter],
@@ -118,7 +120,7 @@ describe("OAuth Client Users Endpoints", () => {
 
     it(`should fail /POST with incorrect timeZone`, async () => {
       const requestBody: CreateManagedUserInput = {
-        email: "oauth-client-user@gmail.com",
+        email: userEmail,
         timeZone: "incorrect-time-zone",
       };
 
@@ -131,7 +133,7 @@ describe("OAuth Client Users Endpoints", () => {
 
     it(`/POST`, async () => {
       const requestBody: CreateManagedUserInput = {
-        email: "oauth-client-user@gmail.com",
+        email: userEmail,
       };
 
       const response = await request(app.getHttpServer())
@@ -150,7 +152,7 @@ describe("OAuth Client Users Endpoints", () => {
 
       expect(responseBody.status).toEqual(SUCCESS_STATUS);
       expect(responseBody.data).toBeDefined();
-      expect(responseBody.data.user.email).toEqual(requestBody.email);
+      expect(responseBody.data.user.email).toEqual(getOAuthUserEmail(oAuthClient.id, requestBody.email));
       expect(responseBody.data.accessToken).toBeDefined();
       expect(responseBody.data.refreshToken).toBeDefined();
 
@@ -205,7 +207,7 @@ describe("OAuth Client Users Endpoints", () => {
 
       expect(responseBody.status).toEqual(SUCCESS_STATUS);
       expect(responseBody.data).toBeDefined();
-      expect(responseBody.data.email).toEqual(postResponseData.user.email);
+      expect(responseBody.data.email).toEqual(getOAuthUserEmail(oAuthClient.id, userEmail));
     });
 
     it(`/PUT/:id`, async () => {
@@ -223,7 +225,7 @@ describe("OAuth Client Users Endpoints", () => {
 
       expect(responseBody.status).toEqual(SUCCESS_STATUS);
       expect(responseBody.data).toBeDefined();
-      expect(responseBody.data.email).toEqual(userUpdatedEmail);
+      expect(responseBody.data.email).toEqual(getOAuthUserEmail(oAuthClient.id, userUpdatedEmail));
     });
 
     it(`/DELETE/:id`, () => {
@@ -233,6 +235,13 @@ describe("OAuth Client Users Endpoints", () => {
         .set("Origin", `${CLIENT_REDIRECT_URI}`)
         .expect(200);
     });
+
+    function getOAuthUserEmail(oAuthClientId: string, userEmail: string) {
+      const [username, emailDomain] = userEmail.split("@");
+      const email = `${username}+${oAuthClientId}@${emailDomain}`;
+
+      return email;
+    }
 
     afterAll(async () => {
       await oauthClientRepositoryFixture.delete(oAuthClient.id);
