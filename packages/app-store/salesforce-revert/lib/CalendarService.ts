@@ -1,83 +1,19 @@
 import { getLocation } from "@calcom/lib/CalEventParser";
-import logger from "@calcom/lib/logger";
-import type {
-  Calendar,
-  CalendarEvent,
-  EventBusyDate,
-  IntegrationCalendar,
-  NewCalendarEventType,
-  Person,
-} from "@calcom/types/Calendar";
+import type { CalendarEvent, NewCalendarEventType, Person } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
+import type { ContactSearchResult } from "../../_utils/crms/RevertCRMAppService";
+import RevertCRMAppService from "../../_utils/crms/RevertCRMAppService";
 import appConfig from "../config.json";
 
-type ContactSearchResult = {
-  status: string;
-  results: Array<{
-    id: string;
-    email: string;
-    firstName: string;
-    lastName: string;
-    name: string;
-  }>;
-};
-
-type ContactCreateResult = {
-  status: string;
-  result: {
-    id: string;
-    email: string;
-    firstName: string;
-    lastName: string;
-    name: string;
-  };
-};
-
-export default class SalesforceRevertCalendarService implements Calendar {
-  private log: typeof logger;
-  private tenantId: string;
-  private revertApiKey: string;
-  private revertApiUrl: string;
+export default class SalesforceAppService extends RevertCRMAppService {
   constructor(credential: CredentialPayload) {
-    this.revertApiKey = process.env.REVERT_API_KEY || "";
-    this.revertApiUrl = process.env.REVERT_API_URL || "https://api.revert.dev/";
-    this.tenantId = String(credential.teamId ? credential.teamId : credential.userId); // Question: Is this a reasonable assumption to be made? Get confirmation on the exact field to be used here.
-    this.log = logger.getSubLogger({ prefix: [`[[lib] ${appConfig.slug}`] });
+    super(credential);
+    this.log = this.log.getSubLogger({ prefix: [appConfig.slug] });
+    this.appSlug = appConfig.slug;
   }
 
-  private createContacts = async (attendees: Person[]) => {
-    const result = attendees.map(async (attendee) => {
-      const headers = new Headers();
-      headers.append("x-revert-api-token", this.revertApiKey);
-      headers.append("x-revert-t-id", this.tenantId);
-      headers.append("Content-Type", "application/json");
-
-      const [firstname, lastname] = !!attendee.name ? attendee.name.split(" ") : [attendee.email, "-"];
-      const bodyRaw = JSON.stringify({
-        firstName: firstname,
-        lastName: lastname || "-",
-        email: attendee.email,
-      });
-
-      const requestOptions = {
-        method: "POST",
-        headers: headers,
-        body: bodyRaw,
-      };
-
-      try {
-        const response = await fetch(`${this.revertApiUrl}crm/contacts`, requestOptions);
-        const result = (await response.json()) as ContactCreateResult;
-        return result;
-      } catch (error) {
-        return Promise.reject(error);
-      }
-    });
-    return await Promise.all(result);
-  };
-
-  private contactSearch = async (event: CalendarEvent) => {
+  protected contactSearch = async (event: CalendarEvent) => {
     const result = event.attendees.map(async (attendee) => {
       const headers = new Headers();
       headers.append("x-revert-api-token", this.revertApiKey);
@@ -105,15 +41,7 @@ export default class SalesforceRevertCalendarService implements Calendar {
     return await Promise.all(result);
   };
 
-  private getMeetingBody = (event: CalendarEvent): string => {
-    return `<b>${event.organizer.language.translate("invitee_timezone")}:</b> ${
-      event.attendees[0].timeZone
-    }<br><br><b>${event.organizer.language.translate("share_additional_notes")}</b><br>${
-      event.additionalNotes || "-"
-    }`;
-  };
-
-  private createSalesforceEvent = async (event: CalendarEvent, contacts: CalendarEvent["attendees"]) => {
+  protected createCRMEvent = async (event: CalendarEvent, contacts: CalendarEvent["attendees"]) => {
     const eventPayload = {
       subject: event.title,
       startDateTime: event.startTime,
@@ -138,60 +66,6 @@ export default class SalesforceRevertCalendarService implements Calendar {
 
     return await fetch(`${this.revertApiUrl}crm/events`, requestOptions);
   };
-
-  private updateMeeting = async (uid: string, event: CalendarEvent) => {
-    const eventPayload = {
-      subject: event.title,
-      startDateTime: event.startTime,
-      endDateTime: event.endTime,
-      description: this.getMeetingBody(event),
-      location: getLocation(event),
-    };
-    const headers = new Headers();
-    headers.append("x-revert-api-token", this.revertApiKey);
-    headers.append("x-revert-t-id", this.tenantId);
-    headers.append("Content-Type", "application/json");
-
-    const eventBody = JSON.stringify(eventPayload);
-    const requestOptions = {
-      method: "PATCH",
-      headers: headers,
-      body: eventBody,
-    };
-
-    return await fetch(`${this.revertApiUrl}crm/events/${uid}`, requestOptions);
-  };
-
-  private deleteMeeting = async (uid: string) => {
-    const headers = new Headers();
-    headers.append("x-revert-api-token", this.revertApiKey);
-    headers.append("x-revert-t-id", this.tenantId);
-
-    const requestOptions = {
-      method: "DELETE",
-      headers: headers,
-    };
-
-    return await fetch(`${this.revertApiUrl}crm/events/${uid}`, requestOptions);
-  };
-
-  async handleEventCreation(event: CalendarEvent, contacts: CalendarEvent["attendees"]) {
-    const meetingEvent = await (await this.createSalesforceEvent(event, contacts)).json();
-    if (meetingEvent && meetingEvent.status === "ok") {
-      this.log.debug("event:creation:ok", { meetingEvent });
-      return Promise.resolve({
-        uid: meetingEvent.result.id,
-        id: meetingEvent.result.id,
-        type: appConfig.slug,
-        password: "",
-        url: "",
-        additionalInfo: { contacts, meetingEvent },
-      });
-    }
-    this.log.debug("meeting:creation:notOk", { meetingEvent, event, contacts });
-    return Promise.reject("Something went wrong when creating a meeting in SFDC");
-  }
-
   async createEvent(event: CalendarEvent): Promise<NewCalendarEventType> {
     let contacts = await this.contactSearch(event);
     contacts = contacts.filter((c) => c.results.length >= 1);
@@ -308,21 +182,5 @@ export default class SalesforceRevertCalendarService implements Calendar {
     }
     this.log.debug("meeting:updation:notOk", { meetingEvent, event });
     return Promise.reject("Something went wrong when updating a meeting in SFDC");
-  }
-
-  async deleteEvent(uid: string): Promise<void> {
-    await this.deleteMeeting(uid);
-  }
-
-  async getAvailability(
-    _dateFrom: string,
-    _dateTo: string,
-    _selectedCalendars: IntegrationCalendar[]
-  ): Promise<EventBusyDate[]> {
-    return Promise.resolve([]);
-  }
-
-  async listCalendars(_event?: CalendarEvent): Promise<IntegrationCalendar[]> {
-    return Promise.resolve([]);
   }
 }
