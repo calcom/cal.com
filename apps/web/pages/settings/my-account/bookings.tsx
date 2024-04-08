@@ -74,8 +74,8 @@ const BookingsView = ({ data }: { data: RouterOutputs["viewer"]["globalSettings"
       periodCountCalendarDays: !!globalSettings?.periodCountCalendarDays,
       periodDays: globalSettings?.periodDays,
       periodDates: {
-        startDate: globalSettings?.periodStartDate,
-        endDate: globalSettings?.periodEndDate,
+        startDate: globalSettings?.periodStartDate ?? new Date(),
+        endDate: globalSettings?.periodEndDate ?? new Date(),
       },
       minimumBookingNotice: globalSettings?.minimumBookingNotice,
       beforeEventBuffer: globalSettings?.beforeEventBuffer,

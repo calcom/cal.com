@@ -60,8 +60,8 @@ export const globalSettingsHandler = async ({ ctx }: GlobalSettingsOptions) => {
         eventType?.periodType !== globalSettings?.periodType ||
         eventType?.periodCountCalendarDays !== globalSettings?.periodCountCalendarDays ||
         eventType?.periodDays !== globalSettings?.periodDays ||
-        eventType?.periodStartDate !== globalSettings?.periodStartDate ||
-        eventType?.periodEndDate !== globalSettings?.periodEndDate ||
+        eventType?.periodStartDate?.toString() !== globalSettings?.periodStartDate?.toString() ||
+        eventType?.periodEndDate?.toString() !== globalSettings?.periodEndDate?.toString() ||
         eventType?.minimumBookingNotice !== globalSettings?.minimumBookingNotice ||
         eventType?.beforeEventBuffer !== globalSettings?.beforeEventBuffer ||
         eventType?.afterEventBuffer !== globalSettings?.afterEventBuffer
