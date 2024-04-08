@@ -182,7 +182,7 @@ export default function AvailabilityPage() {
               }}
               options={[
                 { value: "mine", label: t("my_availability") },
-                // { value: "team", label: t("team_availability") },
+                { value: "team", label: t("team_availability") },
               ]}
             />
             <NewScheduleButton />

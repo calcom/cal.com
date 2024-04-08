@@ -13,7 +13,6 @@ import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { Meta, showToast, Button } from "@calcom/ui";
-import { Plus } from "@calcom/ui/components/icon";
 
 import { getLayout } from "../../../../settings/layouts/SettingsLayout";
 import MakeTeamPrivateSwitch from "../../../teams/components/MakeTeamPrivateSwitch";
@@ -149,21 +148,21 @@ const MembersView = () => {
       <Meta
         title={t("team_members")}
         description={t("members_team_description")}
-        CTA={
-          isOrgAdminOrOwner ? (
-            <Button
-              type="button"
-              color="primary"
-              StartIcon={Plus}
-              className="ml-auto"
-              onClick={() => setShowMemberInvitationModal(true)}
-              data-testid="new-member-button">
-              {t("add")}
-            </Button>
-          ) : (
-            <></>
-          )
-        }
+        // CTA={
+        //   isOrgAdminOrOwner ? (
+        //     <Button
+        //       type="button"
+        //       color="primary"
+        //       StartIcon={Plus}
+        //       className="ml-auto"
+        //       onClick={() => setShowMemberInvitationModal(true)}
+        //       data-testid="new-member-button">
+        //       {t("add")}
+        //     </Button>
+        //   ) : (
+        //     <></>
+        //   )
+        // }
       />
       {!isPending && (
         <>

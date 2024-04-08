@@ -26,9 +26,6 @@ import { trpc } from "@calcom/trpc/react";
 import {
   Avatar,
   Button,
-  ConfirmationDialogContent,
-  Dialog,
-  DialogTrigger,
   Editor,
   Form,
   ImageUploader,
@@ -42,7 +39,7 @@ import {
   SkeletonAvatar,
   SkeletonButton,
 } from "@calcom/ui";
-import { ExternalLink, Link as LinkIcon, LogOut, Trash2 } from "@calcom/ui/components/icon";
+import { ExternalLink, Link as LinkIcon } from "@calcom/ui/components/icon";
 
 import { getLayout } from "../../../settings/layouts/SettingsLayout";
 
@@ -194,13 +191,13 @@ const ProfileView = () => {
         </div>
       )}
 
-      <div className="border-subtle mt-6 rounded-lg rounded-b-none border border-b-0 p-6">
+      {/* <div className="border-subtle mt-6 rounded-lg rounded-b-none border border-b-0 p-6">
         <Label className="mb-0 text-base font-semibold text-red-700">{t("danger_zone")}</Label>
         {team?.membership.role === "OWNER" && (
           <p className="text-subtle text-sm">{t("team_deletion_cannot_be_undone")}</p>
         )}
-      </div>
-      {team?.membership.role === "OWNER" ? (
+      </div> */}
+      {/* {team?.membership.role === "OWNER" ? (
         <Dialog>
           <SectionBottomActions align="end">
             <DialogTrigger asChild>
@@ -238,7 +235,7 @@ const ProfileView = () => {
             {t("leave_team_confirmation_message")}
           </ConfirmationDialogContent>
         </Dialog>
-      )}
+      )} */}
     </>
   );
 };

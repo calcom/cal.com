@@ -163,13 +163,13 @@ export const KBarRoot = ({ children }: { children: React.ReactNode }) => {
         keywords: "change modify brand color",
         perform: () => router.push("/settings/my-account/appearance"),
       },
-      // {
-      //   id: "teams",
-      //   name: "teams",
-      //   shortcut: ["t", "s"],
-      //   keywords: "add manage modify team",
-      //   perform: () => router.push("/settings/teams"),
-      // },
+      {
+        id: "teams",
+        name: "teams",
+        shortcut: ["t", "s"],
+        keywords: "add manage modify team",
+        perform: () => router.push("/settings/teams"),
+      },
       // {
       //   id: "password",
       //   name: "change_password",

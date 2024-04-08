@@ -8,7 +8,7 @@ import React, { Suspense, useEffect, useState } from "react";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import Shell from "@calcom/features/shell/Shell";
 import { classNames } from "@calcom/lib";
-import { HOSTED_CAL_FEATURES, WEBAPP_URL } from "@calcom/lib/constants";
+import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
@@ -24,7 +24,6 @@ import {
   Loader,
   Lock,
   Menu,
-  Plus,
   Terminal,
   User,
   Users,
@@ -100,12 +99,12 @@ const tabs: VerticalTabItemProps[] = [
       },
     ],
   },
-  // {
-  //   name: "teams",
-  //   href: "/teams",
-  //   icon: Users,
-  //   children: [],
-  // },
+  {
+    name: "teams",
+    href: "/teams",
+    icon: Users,
+    children: [],
+  },
   {
     name: "admin",
     href: "/settings/admin",
@@ -430,12 +429,12 @@ const SettingsSidebarContainer = ({
                                     {/* Hide if there is a parent ID */}
                                     {!team.parentId ? (
                                       <>
-                                        <VerticalTabItem
+                                        {/* <VerticalTabItem
                                           name={t("billing")}
                                           href={`/settings/teams/${team.id}/billing`}
                                           textClassNames="px-3 text-emphasis font-medium text-sm"
                                           disableChevron
-                                        />
+                                        /> */}
                                         {HOSTED_CAL_FEATURES && (
                                           <VerticalTabItem
                                             name={t("saml_config")}
@@ -452,7 +451,7 @@ const SettingsSidebarContainer = ({
                             </Collapsible>
                           );
                       })}
-                    {(!currentOrg || (currentOrg && currentOrg?.user?.role !== "MEMBER")) && (
+                    {/* {(!currentOrg || (currentOrg && currentOrg?.user?.role !== "MEMBER")) && (
                       <VerticalTabItem
                         name={t("add_a_team")}
                         href={`${WEBAPP_URL}/settings/teams/new`}
@@ -460,7 +459,7 @@ const SettingsSidebarContainer = ({
                         icon={Plus}
                         disableChevron
                       />
-                    )}
+                    )} */}
                   </div>
                 </React.Fragment>
               )}
