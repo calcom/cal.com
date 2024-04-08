@@ -1,45 +1,38 @@
 /* eslint-disable turbo/no-undeclared-env-vars */
-import crypto from "crypto";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 
 import prisma from "@calcom/prisma";
 
-export const FunnelhubSignupSchema = z.object({
-  email: z.string().email(),
-  name: z.string().min(3),
+export const DeleteMemberFromTeamSchema = z.object({
   funnelHubUserId: z.string(),
+  workspaceId: z.string(),
 });
-
-const generateRandomString = (length: number) => {
-  return crypto
-    .randomBytes(Math.ceil(length / 2))
-    .toString("hex") // Convert to hexadecimal format
-    .slice(0, length); // Trim to desired length
-};
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const funnelHubToken = process.env.FUNNELHUB_API_TOKEN;
   const funnelHubApiToken = req.headers["funnehub-calendar-token"];
   const isFunnelHubOrigin = funnelHubToken === funnelHubApiToken;
 
+  if (req.method.toLowerCase() !== "delete") return res.status(404).json({ message: "method not allowed" });
+
   if (!isFunnelHubOrigin) return res.status(401).json({ message: "Invalid funnelhub api token " });
 
-  const userValidation = FunnelhubSignupSchema.safeParse(req.body);
+  const userValidation = DeleteMemberFromTeamSchema.safeParse(req.body);
 
   if (!userValidation.success)
     return res.status(422).json({ errors: userValidation.error.flatten().fieldErrors });
 
-  const { email, name, funnelHubUserId } = userValidation.data;
-  await prisma.user.create({
-    data: {
-      name,
-      email,
-      funnelHubUserId,
-      emailVerified: new Date(),
-      timeZone: "America/Sao_Paulo",
-      locale: "pt-BR",
-      username: `${name.toLowerCase().replace(" ", "-")}-${generateRandomString(5)}`,
+  const { funnelHubUserId, workspaceId } = userValidation.data;
+  const user = await prisma.user.findFirst({ where: { funnelHubUserId } });
+  if (!user) res.status(404).json({ errors: ["User not found"] });
+  const team = await prisma.team.findFirst({ where: { funnelhubWorkspaceId: workspaceId } });
+  if (!team) res.status(404).json({ errors: ["Team not found"] });
+
+  await prisma.membership.deleteMany({
+    where: {
+      userId: user?.id as number,
+      teamId: team?.id as number,
     },
   });
 
