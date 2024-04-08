@@ -23,6 +23,11 @@ export class OAuthClientUsersService {
     isPlatformManaged: boolean,
     organizationId?: number
   ) {
+    const existsWithEmail = await this.userExistsWithEmail(oAuthClientId, body.email);
+    if (existsWithEmail) {
+      throw new BadRequestException("User with the provided e-mail already exists.");
+    }
+
     let user: User;
     if (!organizationId) {
       throw new BadRequestException("You cannot create a managed user outside of an organization");
@@ -65,6 +70,12 @@ export class OAuthClientUsersService {
         refreshToken,
       },
     };
+  }
+
+  async userExistsWithEmail(oAuthClientId: string, email: string) {
+    const oAuthEmail = this.getOAuthUserEmail(oAuthClientId, email);
+    const user = await this.userRepository.findByEmail(oAuthEmail);
+    return !!user;
   }
 
   async updateOAuthClientUser(oAuthClientId: string, userId: number, body: UpdateManagedUserInput) {
