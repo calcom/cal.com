@@ -3027,16 +3027,10 @@
           }
         },
         "required": [
-          "appData",
-          "dirName",
-          "__template",
           "name",
           "description",
-          "installed",
           "type",
-          "title",
           "variant",
-          "category",
           "categories",
           "logo",
           "publisher",
@@ -3059,7 +3053,8 @@
             "type": "string"
           },
           "primary": {
-            "type": "boolean"
+            "type": "boolean",
+            "nullable": true
           },
           "readOnly": {
             "type": "boolean"
@@ -3076,11 +3071,8 @@
         },
         "required": [
           "externalId",
-          "integration",
-          "name",
           "primary",
           "readOnly",
-          "email",
           "isSelected",
           "credentialId"
         ]
@@ -3098,7 +3090,8 @@
             "type": "string"
           },
           "primary": {
-            "type": "boolean"
+            "type": "boolean",
+            "nullable": true
           },
           "readOnly": {
             "type": "boolean"
@@ -3115,10 +3108,7 @@
         },
         "required": [
           "externalId",
-          "integration",
-          "name",
           "readOnly",
-          "email",
           "isSelected",
           "credentialId"
         ]
@@ -3144,9 +3134,7 @@
         },
         "required": [
           "integration",
-          "credentialId",
-          "primary",
-          "calendars"
+          "credentialId"
         ]
       },
       "DestinationCalendar": {
@@ -3162,20 +3150,24 @@
             "type": "string"
           },
           "primaryEmail": {
-            "type": "string"
+            "type": "string",
+            "nullable": true
           },
           "userId": {
-            "type": "number"
+            "type": "number",
+            "nullable": true
           },
           "eventTypeId": {
             "type": "number",
             "nullable": true
           },
           "credentialId": {
-            "type": "number"
+            "type": "number",
+            "nullable": true
           },
           "name": {
-            "type": "string"
+            "type": "string",
+            "nullable": true
           },
           "primary": {
             "type": "boolean"
@@ -3197,12 +3189,7 @@
           "primaryEmail",
           "userId",
           "eventTypeId",
-          "credentialId",
-          "name",
-          "primary",
-          "readOnly",
-          "email",
-          "integrationTitle"
+          "credentialId"
         ]
       },
       "ConnectedCalendarsData": {
