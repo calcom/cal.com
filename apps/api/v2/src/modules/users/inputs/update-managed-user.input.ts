@@ -7,6 +7,10 @@ export class UpdateManagedUserInput {
   @IsOptional()
   email?: string;
 
+  @IsString()
+  @IsOptional()
+  name?: string;
+
   @IsNumber()
   @IsOptional()
   @Validate(IsTimeFormat)

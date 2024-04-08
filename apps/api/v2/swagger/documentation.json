@@ -1586,6 +1586,9 @@
           "timeZone": {
             "type": "string",
             "example": "America/New_York"
+          },
+          "name": {
+            "type": "string"
           }
         },
         "required": [
@@ -1655,6 +1658,9 @@
         "type": "object",
         "properties": {
           "email": {
+            "type": "string"
+          },
+          "name": {
             "type": "string"
           },
           "timeFormat": {
