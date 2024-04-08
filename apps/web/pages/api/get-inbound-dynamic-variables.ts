@@ -21,27 +21,23 @@ const schema = z.object({
 const getEventTypeIdFromRetellLLM = (
   retellLLM: TGetRetellLLMSchema
 ): { eventTypeId: number | undefined; timezone: string | undefined } => {
-  const generalTools = retellLLM.general_tools;
-  const generalTool = generalTools.find((tool) => !!tool.event_type_id && !!tool.timezone);
+  const { general_tools, states } = retellLLM;
 
-  let eventTypeId = generalTool?.event_type_id;
-  let timezone = generalTool?.timezone;
+  const generalTool = general_tools.find((tool) => tool.event_type_id && tool.timezone);
 
-  if (!eventTypeId) {
-    const tool = retellLLM.states.find(
-      (state) =>
-        !!state.tools.find((tool) => {
-          if (!!tool.event_type_id && !!tool.timezone) {
-            eventTypeId = tool.event_type_id;
-            timezone = tool.timezone;
-            return true;
-          }
-          return false;
-        })
-    );
+  if (generalTool) {
+    return { eventTypeId: generalTool.event_type_id, timezone: generalTool.timezone };
   }
 
-  return { eventTypeId, timezone };
+  // If no general tool found, search in states
+  for (const state of states) {
+    const tool = state.tools.find((tool) => tool.event_type_id && tool.timezone);
+    if (tool) {
+      return { eventTypeId: tool.event_type_id, timezone: tool.timezone };
+    }
+  }
+
+  return { eventTypeId: undefined, timezone: undefined };
 };
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
