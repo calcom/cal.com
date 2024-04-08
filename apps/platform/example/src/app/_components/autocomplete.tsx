@@ -12,17 +12,33 @@ import {
 import { Check } from "lucide-react";
 import { cn } from "~/lib/utils";
 import { useRouter } from "next/navigation";
+export const defaultSort = {
+  title: "Relevance",
+  slug: null,
+  sortKey: "RELEVANCE",
+  reverse: false,
+};
 
+export const sorting = [
+  defaultSort,
+  {
+    title: "Availability",
+    slug: "available-desc",
+    sortKey: "MOST_AVAILABLE",
+    reverse: false,
+  }, // asc
+];
 export type Option = { value: string; label: string };
-export const AutocompleteSearch = (props: { options: Array<Option> }) => {
-  const [value, setValue] = useState("");
+export const AutocompleteSearch = (props: { options: Array<Option>; initialSearch?: string }) => {
+  const initialSeletion = props.options.find((option) => option.value === props.initialSearch);
+  const [value, setValue] = useState(initialSeletion?.value || "");
   const [open, setOpen] = useState(false);
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(initialSeletion?.label || "");
   const router = useRouter();
 
   return (
     <div
-      className="relative"
+      className="relative z-10"
       onBlur={(e) => {
         if (e.currentTarget.contains(e.relatedTarget)) return;
 
@@ -74,7 +90,10 @@ export const AutocompleteSearch = (props: { options: Array<Option> }) => {
 
                       setOpen(false);
 
-                      router.push(`/experts?${new URLSearchParams({ q: newValue })}`);
+                      router.push(
+                        `/experts?${new URLSearchParams({ q: newValue })}`,
+                        {scroll: false}
+                      );
                     }}
                   >
                     <Check

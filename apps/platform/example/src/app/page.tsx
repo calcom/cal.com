@@ -1,15 +1,11 @@
 import { Balancer } from "react-wrap-balancer";
-import { AutocompleteSearch, Option } from "~/app/_components/autocomplete";
+import { AutocompleteSearch } from "~/app/_components/autocomplete";
 import ProCard from "~/app/_components/pro-card";
-const services = [
-  { label: "Hair dresser", value: "hair dresser" },
-  { label: "Therapist", value: "therapist" },
-  { label: "Dermatologist", value: "dermatologist" },
-] as const satisfies Array<Option>;
+import { professions } from "~/lib/constants";
+
+
 
 export default async function Home() {
-  console.log("options: ");
-
   return (
     <main>
       <div
@@ -21,7 +17,7 @@ export default async function Home() {
             <Balancer>Find your Cal.com Expert</Balancer>
           </h1>
           <div>
-            <AutocompleteSearch options={services} />
+            <AutocompleteSearch options={professions} />
           </div>
         </div>
       </div>
