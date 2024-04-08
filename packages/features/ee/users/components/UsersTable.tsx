@@ -17,11 +17,11 @@ import {
   DialogContent,
   DialogFooter,
   DropdownActions,
+  Icon,
   showToast,
   Table,
   TextField,
 } from "@calcom/ui";
-import { Edit, Lock, Trash, User, VenetianMask, Shield } from "@calcom/ui/components/icon";
 
 import { withLicenseRequired } from "../../common/components/LicenseRequired";
 
@@ -191,7 +191,7 @@ function UsersTableBare() {
                       <span className="ml-3">/{user.username}</span>
                       {user.locked && (
                         <span className="ml-3">
-                          <Lock />
+                          <Icon name="lock" />
                         </span>
                       )}
                       <br />
@@ -213,25 +213,25 @@ function UsersTableBare() {
                           id: "edit",
                           label: "Edit",
                           href: `/settings/admin/users/${user.id}/edit`,
-                          icon: Edit,
+                          icon: "pencil",
                         },
                         {
                           id: "reset-password",
                           label: "Reset Password",
                           onClick: () => sendPasswordResetEmail.mutate({ userId: user.id }),
-                          icon: Lock,
+                          icon: "lock",
                         },
                         {
                           id: "impersonate-user",
                           label: "Impersonate User",
                           onClick: () => handleImpersonateUser(user?.username),
-                          icon: User,
+                          icon: "user",
                         },
                         {
                           id: "lock-user",
                           label: user.locked ? "Unlock User Account" : "Lock User Account",
                           onClick: () => lockUserAccount.mutate({ userId: user.id, locked: !user.locked }),
-                          icon: Lock,
+                          icon: "lock",
                         },
                         {
                           id: "impersonation",
@@ -240,21 +240,21 @@ function UsersTableBare() {
                             setSelectedUser(user.username);
                             setShowImpersonateModal(true);
                           },
-                          icon: VenetianMask,
+                          icon: "venetian-mask",
                         },
                         {
                           id: "remove-2fa",
                           label: "Remove 2FA",
                           color: "destructive",
                           onClick: () => removeTwoFactor.mutate({ userId: user.id }),
-                          icon: Shield,
+                          icon: "shield",
                         },
                         {
                           id: "delete",
                           label: "Delete",
                           color: "destructive",
                           onClick: () => setUserToDelete(user.id),
-                          icon: Trash,
+                          icon: "trash",
                         },
                       ]}
                     />

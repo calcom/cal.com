@@ -13,7 +13,7 @@ import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { Meta, showToast, Button } from "@calcom/ui";
-import { Plus } from "@calcom/ui/components/icon";
+import { Icon } from "@calcom/ui";
 
 import { getLayout } from "../../../../settings/layouts/SettingsLayout";
 import MakeTeamPrivateSwitch from "../../../teams/components/MakeTeamPrivateSwitch";
@@ -145,7 +145,7 @@ const MembersView = () => {
             <Button
               type="button"
               color="primary"
-              StartIcon={Plus}
+              StartIcon="plus"
               className="ml-auto"
               onClick={() => setShowMemberInvitationModal(true)}
               data-testid="new-member-button">

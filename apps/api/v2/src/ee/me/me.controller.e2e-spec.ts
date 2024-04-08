@@ -65,7 +65,7 @@ describe("Me Endpoints", () => {
 
     it("should get user associated with access token", async () => {
       return request(app.getHttpServer())
-        .get("/api/v2/me")
+        .get("/api/v2/ee/me")
         .expect(200)
         .then((response) => {
           const responseBody: ApiSuccessResponse<UserResponse> = response.body;
@@ -84,7 +84,7 @@ describe("Me Endpoints", () => {
       const body: UpdateManagedPlatformUserInput = { timeZone: "Europe/Rome" };
 
       return request(app.getHttpServer())
-        .patch("/api/v2/me")
+        .patch("/api/v2/ee/me")
         .send(body)
         .expect(200)
         .then(async (response) => {
@@ -108,19 +108,22 @@ describe("Me Endpoints", () => {
     it("should not update user associated with access token given invalid timezone", async () => {
       const bodyWithIncorrectTimeZone: UpdateManagedPlatformUserInput = { timeZone: "Narnia/Woods" };
 
-      return request(app.getHttpServer()).patch("/api/v2/me").send(bodyWithIncorrectTimeZone).expect(400);
+      return request(app.getHttpServer()).patch("/api/v2/ee/me").send(bodyWithIncorrectTimeZone).expect(400);
     });
 
     it("should not update user associated with access token given invalid time format", async () => {
       const bodyWithIncorrectTimeFormat: UpdateManagedPlatformUserInput = { timeFormat: 100 };
 
-      return request(app.getHttpServer()).patch("/api/v2/me").send(bodyWithIncorrectTimeFormat).expect(400);
+      return request(app.getHttpServer())
+        .patch("/api/v2/ee/me")
+        .send(bodyWithIncorrectTimeFormat)
+        .expect(400);
     });
 
     it("should not update user associated with access token given invalid week start", async () => {
       const bodyWithIncorrectWeekStart: UpdateManagedPlatformUserInput = { weekStart: "waba luba dub dub" };
 
-      return request(app.getHttpServer()).patch("/api/v2/me").send(bodyWithIncorrectWeekStart).expect(400);
+      return request(app.getHttpServer()).patch("/api/v2/ee/me").send(bodyWithIncorrectWeekStart).expect(400);
     });
 
     afterAll(async () => {

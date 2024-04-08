@@ -26,6 +26,11 @@ vi.mock("@calcom/atoms/monorepo", () => ({
     return false;
   },
 }));
+vi.mock("@calcom/lib", () => ({
+  classNames: (...args: string[]) => {
+    return args.filter(Boolean).join(" ");
+  },
+}));
 
 vi.mock("@calcom/lib/event-types/getEventTypesByViewer", () => ({}));
 vi.mock("@calcom/lib/event-types/getEventTypesPublic", () => ({}));
