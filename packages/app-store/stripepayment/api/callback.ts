@@ -2,8 +2,6 @@ import type { Prisma } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { stringify } from "querystring";
 
-import { getAppOnboardingRedirectUrl } from "@calcom/lib/getAppOnboardingRedirectUrl";
-
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import createOAuthAppCredential from "../../_utils/oauth/createOAuthAppCredential";
 import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
@@ -55,8 +53,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     req
   );
 
-  if (state?.returnToOnboarding) {
-    return res.redirect(getAppOnboardingRedirectUrl("stripe", state.teamId));
+  if (state?.appOnboardingRedirectUrl && state.appOnboardingRedirectUrl !== "") {
+    return res.redirect(state.appOnboardingRedirectUrl);
   }
 
   const returnTo = getReturnToValueFromQueryState(req);

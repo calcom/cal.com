@@ -1,8 +1,4 @@
-import { useRouter } from "next/navigation";
-
-import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { classNames } from "@calcom/lib";
-import { getAppOnboardingRedirectUrl } from "@calcom/lib/getAppOnboardingRedirectUrl";
 import useApp from "@calcom/lib/hooks/useApp";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -28,7 +24,6 @@ export default function OmniInstallAppButton({
   teamId?: number;
 }) {
   const { t } = useLocale();
-  const router = useRouter();
   const { data: app } = useApp(appId);
   const utils = trpc.useContext();
 
@@ -53,18 +48,13 @@ export default function OmniInstallAppButton({
     return null;
   }
 
-  const appMetadata = appStoreMetadata[app.dirName as keyof typeof appStoreMetadata];
-  const hasEventTypes = appMetadata.extendsFeature == "EventType";
-  const isOAuth = appMetadata.isOAuth;
-  const redirectToAppOnboarding = hasEventTypes || isOAuth;
-
   return (
     <InstallAppButton
       type={app.type}
       teamsPlanRequired={app.teamsPlanRequired}
       wrapperClassName={classNames("[@media(max-width:260px)]:w-full", className)}
       render={({ useDefaultComponent, ...props }) => {
-        if (useDefaultComponent && !redirectToAppOnboarding) {
+        if (useDefaultComponent) {
           props = {
             ...props,
             onClick: () => {
@@ -75,15 +65,6 @@ export default function OmniInstallAppButton({
                 isOmniInstall: true,
                 ...(teamId && { teamId }),
               });
-            },
-          };
-        }
-
-        if (redirectToAppOnboarding) {
-          props = {
-            ...props,
-            onClick: () => {
-              router.push(getAppOnboardingRedirectUrl(app.slug, teamId));
             },
           };
         }

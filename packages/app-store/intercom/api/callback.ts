@@ -1,7 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import { getAppOnboardingRedirectUrl } from "@calcom/lib/getAppOnboardingRedirectUrl";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
@@ -89,8 +88,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const state = decodeOAuthState(req);
 
-  if (state?.returnToOnboarding) {
-    return res.redirect(getAppOnboardingRedirectUrl("slug", state.teamId));
+  if (state?.appOnboardingRedirectUrl && state.appOnboardingRedirectUrl !== "") {
+    return res.redirect(state.appOnboardingRedirectUrl);
   }
 
   res.redirect(
