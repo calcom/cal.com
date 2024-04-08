@@ -1,11 +1,11 @@
 name: "Deploy - Web"
 
 on:
-  push:
-    branches:
-      - funnelhub
-    paths:
-      - apps/web/**
+  # push:
+  #   branches:
+  #     - funnelhub
+  #   paths:
+  #     - apps/web/**
   workflow_dispatch:
 
 env:
