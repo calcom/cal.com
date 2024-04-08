@@ -55,6 +55,7 @@ describe("Me Endpoints", () => {
 
       user = await userRepositoryFixture.create({
         email: userEmail,
+        username: userEmail,
       });
 
       app = moduleRef.createNestApplication();
