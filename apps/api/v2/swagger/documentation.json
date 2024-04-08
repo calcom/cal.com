@@ -1657,9 +1657,6 @@
           "email": {
             "type": "string"
           },
-          "username": {
-            "type": "string"
-          },
           "timeFormat": {
             "type": "number"
           },

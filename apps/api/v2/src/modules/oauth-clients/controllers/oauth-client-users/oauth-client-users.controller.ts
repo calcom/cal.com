@@ -134,7 +134,7 @@ export class OAuthClientUsersController {
   async updateUser(
     // @Param("clientId") is added to generate OpenAPI schema correctly: clientId is in @Controller path, and unless
     // also added here as @Param, then it does not appear in OpenAPI schema.
-    @Param("clientId") _: string,
+    @Param("clientId") oAuthClientId: string,
     @GetUser("id") accessTokenUserId: number,
     @Param("userId") userId: number,
     @Body() body: UpdateManagedUserInput
@@ -145,7 +145,7 @@ export class OAuthClientUsersController {
 
     this.logger.log(`Updating user with ID ${userId}: ${JSON.stringify(body, null, 2)}`);
 
-    const user = await this.userRepository.update(userId, body);
+    const user = await this.oAuthClientUsersService.updateOAuthClientUser(oAuthClientId, userId, body);
 
     return {
       status: SUCCESS_STATUS,

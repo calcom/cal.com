@@ -1,11 +1,13 @@
 import { EventTypesService } from "@/ee/event-types/services/event-types.service";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { CreateManagedUserInput } from "@/modules/users/inputs/create-managed-user.input";
+import { UpdateManagedUserInput } from "@/modules/users/inputs/update-managed-user.input";
 import { UsersRepository } from "@/modules/users/users.repository";
 import { BadRequestException, Injectable } from "@nestjs/common";
 import { User } from "@prisma/client";
 
 import { createNewUsersConnectToOrgIfExists } from "@calcom/platform-libraries";
+import { slugify } from "@calcom/platform-libraries";
 
 @Injectable()
 export class OAuthClientUsersService {
@@ -25,8 +27,7 @@ export class OAuthClientUsersService {
     if (!organizationId) {
       throw new BadRequestException("You cannot create a managed user outside of an organization");
     } else {
-      const [username, emailDomain] = body.email.split("@");
-      const email = `${username}+${oAuthClientId}@${emailDomain}`;
+      const email = this.getOAuthUserEmail(oAuthClientId, body.email);
       user = (
         await createNewUsersConnectToOrgIfExists({
           usernamesOrEmails: [email],
@@ -64,5 +65,23 @@ export class OAuthClientUsersService {
         refreshToken,
       },
     };
+  }
+
+  async updateOAuthClientUser(oAuthClientId: string, userId: number, body: UpdateManagedUserInput) {
+    if (body.email) {
+      const emailWithOAuthId = this.getOAuthUserEmail(oAuthClientId, body.email);
+      body.email = emailWithOAuthId;
+      const newUsername = slugify(emailWithOAuthId);
+      await this.userRepository.updateUsername(userId, newUsername);
+    }
+
+    return this.userRepository.update(userId, body);
+  }
+
+  getOAuthUserEmail(oAuthClientId: string, userEmail: string) {
+    const [username, emailDomain] = userEmail.split("@");
+    const email = `${username}+${oAuthClientId}@${emailDomain}`;
+
+    return email;
   }
 }

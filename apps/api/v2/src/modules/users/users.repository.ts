@@ -126,6 +126,15 @@ export class UsersRepository {
     });
   }
 
+  async updateUsername(userId: number, newUsername: string) {
+    return this.dbWrite.prisma.user.update({
+      where: { id: userId },
+      data: {
+        username: newUsername,
+      },
+    });
+  }
+
   async delete(userId: number): Promise<User> {
     return this.dbWrite.prisma.user.delete({
       where: { id: userId },
