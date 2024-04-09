@@ -24,33 +24,12 @@ import { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-import type { EventBusyDate, IntervalLimit } from "@calcom/types/Calendar";
+import type { EventBusyDate } from "@calcom/types/Calendar";
 
 import { TRPCError } from "@trpc/server";
 
 import type { GetScheduleOptions } from "./getSchedule.handler";
 import type { TGetScheduleInputSchema } from "./getSchedule.schema";
-
-export const getBookingLimits = async (userId: number, bookingLimits?: IntervalLimit) => {
-  const globalSettings = await prisma.globalSettings.findUnique({
-    where: {
-      userId,
-    },
-    select: {
-      bookingLimits: true,
-    },
-  });
-  let rawBookingLimits = bookingLimits;
-  if (
-    (!rawBookingLimits || !Object.keys(rawBookingLimits).length) &&
-    globalSettings?.bookingLimits &&
-    Object.keys(globalSettings?.bookingLimits).length
-  ) {
-    rawBookingLimits = globalSettings?.bookingLimits;
-  }
-
-  return rawBookingLimits;
-};
 
 export const checkIfIsAvailable = ({
   time,
