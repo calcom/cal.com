@@ -43,6 +43,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         userId: user?.id as number,
         teamId: team?.id as number,
         role,
+        accepted: true,
       },
     });
   } else {
@@ -54,6 +55,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         userId: user?.id as number,
         teamId: team?.id as number,
         role,
+        accepted: true,
       },
     });
   }

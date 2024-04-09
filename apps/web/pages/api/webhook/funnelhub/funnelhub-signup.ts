@@ -73,6 +73,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       teamId: userTeam.id,
       userId: user.id,
       role: MembershipRole.OWNER,
+      accepted: true,
     },
   });
 
