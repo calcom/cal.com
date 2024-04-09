@@ -13,7 +13,6 @@ import { FiltersProvider } from "@calcom/features/insights/context/FiltersProvid
 import { Filters } from "@calcom/features/insights/filters";
 import { ShellMain } from "@calcom/features/shell/Shell";
 import { UpgradeTip } from "@calcom/features/tips";
-import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import { Button, ButtonGroup } from "@calcom/ui";
@@ -57,9 +56,9 @@ export default function InsightsPage() {
           buttons={
             <div className="space-y-2 rtl:space-x-reverse sm:space-x-2">
               <ButtonGroup>
-                <Button color="primary" href={`${WEBAPP_URL}/settings/teams/new`}>
+                {/* <Button color="primary" href={`${WEBAPP_URL}/settings/teams/new`}>
                   {t("create_team")}
-                </Button>
+                </Button> */}
                 <Button color="minimal" href="https://go.cal.com/insights" target="_blank">
                   {t("learn_more")}
                 </Button>

@@ -320,6 +320,7 @@ model Team {
   accessCodes          AccessCode[]
   instantMeetingTokens InstantMeetingToken[]
   pendingPayment       Boolean                 @default(false)
+  funnelhubWorkspaceId String?
 
   @@unique([slug, parentId])
 }

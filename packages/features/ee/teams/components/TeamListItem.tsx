@@ -17,9 +17,6 @@ import {
   Badge,
   Button,
   ButtonGroup,
-  ConfirmationDialogContent,
-  Dialog,
-  DialogTrigger,
   Dropdown,
   DropdownItem,
   DropdownMenuContent,
@@ -35,10 +32,7 @@ import {
   ExternalLink,
   Globe,
   Link as LinkIcon,
-  LogOut,
   MoreHorizontal,
-  Send,
-  Trash,
   X,
 } from "@calcom/ui/components/icon";
 
@@ -291,7 +285,7 @@ export default function TeamListItem(props: Props) {
                         </DropdownItem>
                       </DropdownMenuItem>
                     )}
-                    {isAdmin && (
+                    {/* {isAdmin && (
                       <DropdownMenuItem>
                         <DropdownItem
                           type="button"
@@ -302,9 +296,9 @@ export default function TeamListItem(props: Props) {
                           {t("invite_team_member") as string}
                         </DropdownItem>
                       </DropdownMenuItem>
-                    )}
+                    )} */}
                     <DropdownMenuSeparator />
-                    {isOwner && (
+                    {/* {isOwner && (
                       <DropdownMenuItem>
                         <Dialog open={hideDropdown} onOpenChange={setHideDropdown}>
                           <DialogTrigger asChild>
@@ -330,9 +324,9 @@ export default function TeamListItem(props: Props) {
                           </ConfirmationDialogContent>
                         </Dialog>
                       </DropdownMenuItem>
-                    )}
+                    )} */}
 
-                    {!isOwner && (
+                    {/* {!isOwner && (
                       <DropdownMenuItem>
                         <Dialog>
                           <DialogTrigger asChild>
@@ -355,7 +349,7 @@ export default function TeamListItem(props: Props) {
                           </ConfirmationDialogContent>
                         </Dialog>
                       </DropdownMenuItem>
-                    )}
+                    )} */}
                   </DropdownMenuContent>
                 </Dropdown>
               </ButtonGroup>

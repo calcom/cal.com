@@ -77,10 +77,12 @@ import {
   MoreHorizontal,
   Settings,
   User as UserIcon,
+  Users,
 } from "@calcom/ui/components/icon";
 
 import { useOrgBranding } from "../ee/organizations/context/provider";
 import FreshChatProvider from "../ee/support/lib/freshchat/FreshChatProvider";
+import { TeamInviteBadge } from "./TeamInviteBadge";
 
 // need to import without ssr to prevent hydration errors
 const Tips = dynamic(() => import("@calcom/features/tips").then((mod) => mod.Tips), {
@@ -519,13 +521,13 @@ const navigation: NavigationItemType[] = [
     href: "/availability",
     icon: Clock,
   },
-  // {
-  //   name: "teams",
-  //   href: "/teams",
-  //   icon: Users,
-  //   onlyDesktop: true,
-  //   badge: <TeamInviteBadge />,
-  // },
+  {
+    name: "teams",
+    href: "/teams",
+    icon: Users,
+    onlyDesktop: true,
+    badge: <TeamInviteBadge />,
+  },
   {
     name: "apps",
     href: "/apps",

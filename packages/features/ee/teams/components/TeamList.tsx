@@ -4,7 +4,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { Card, showToast } from "@calcom/ui";
-import { UserPlus, Users, Edit } from "@calcom/ui/components/icon";
+import { Users, Edit } from "@calcom/ui/components/icon";
 
 import TeamListItem from "./TeamListItem";
 
@@ -65,7 +65,7 @@ export default function TeamList(props: Props) {
                 <div className="bg-subtle p-6">
                   <h3 className="text-emphasis mb-4 text-sm font-semibold">{t("recommended_next_steps")}</h3>
                   <div className="grid-col-1 grid gap-2 md:grid-cols-3">
-                    <Card
+                    {/* <Card
                       icon={<UserPlus className="h-5 w-5 text-green-700" />}
                       variant="basic"
                       title={t("invite_team_member")}
@@ -74,7 +74,7 @@ export default function TeamList(props: Props) {
                         href: `/settings/teams/${team.id}/members`,
                         child: t("invite"),
                       }}
-                    />
+                    /> */}
                     <Card
                       icon={<Users className="h-5 w-5 text-orange-700" />}
                       variant="basic"

@@ -10,8 +10,7 @@ import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import { Button, Meta, showToast, TextField } from "@calcom/ui";
-import { Plus } from "@calcom/ui/components/icon";
+import { Meta, showToast, TextField } from "@calcom/ui";
 
 import { getLayout } from "../../../settings/layouts/SettingsLayout";
 import DisableTeamImpersonation from "../components/DisableTeamImpersonation";
@@ -142,21 +141,21 @@ const MembersView = () => {
       <Meta
         title={t("team_members")}
         description={t("members_team_description")}
-        CTA={
-          isAdmin || isOrgAdminOrOwner ? (
-            <Button
-              type="button"
-              color="primary"
-              StartIcon={Plus}
-              className="ml-auto"
-              onClick={() => setShowMemberInvitationModal(true)}
-              data-testid="new-member-button">
-              {t("add")}
-            </Button>
-          ) : (
-            <></>
-          )
-        }
+        // CTA={
+        //   isAdmin || isOrgAdminOrOwner ? (
+        //     <Button
+        //       type="button"
+        //       color="primary"
+        //       StartIcon={Plus}
+        //       className="ml-auto"
+        //       onClick={() => setShowMemberInvitationModal(true)}
+        //       data-testid="new-member-button">
+        //       {t("add")}
+        //     </Button>
+        //   ) : (
+        //     <></>
+        //   )
+        // }
       />
       {!isPending && (
         <>

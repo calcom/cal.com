@@ -1,5 +1,4 @@
 import classNames from "classnames";
-import { SendIcon } from "lucide-react";
 import { signIn } from "next-auth/react";
 import { useState } from "react";
 
@@ -21,13 +20,12 @@ import {
   DropdownItem,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
   showToast,
   Tooltip,
 } from "@calcom/ui";
 import { UserAvatar } from "@calcom/ui";
-import { ExternalLink, MoreHorizontal, Edit2, Lock, UserX } from "@calcom/ui/components/icon";
+import { ExternalLink, MoreHorizontal, Edit2, UserX } from "@calcom/ui/components/icon";
 
 import MemberChangeRoleModal from "./MemberChangeRoleModal";
 import TeamAvailabilityModal from "./TeamAvailabilityModal";
@@ -212,7 +210,7 @@ export default function MemberListItem(props: Props) {
                   />
                 </Tooltip>
               )}
-              {editMode && (
+              {/* {editMode && (
                 <Dropdown>
                   <DropdownMenuTrigger asChild>
                     <Button
@@ -271,7 +269,7 @@ export default function MemberListItem(props: Props) {
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </Dropdown>
-              )}
+              )} */}
             </ButtonGroup>
             <div className="flex md:hidden">
               <Dropdown>
