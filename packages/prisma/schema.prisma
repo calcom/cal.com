@@ -923,8 +923,8 @@ model AIPhoneCallConfiguration {
   yourPhoneNumber String
   numberToCall    String
   guestName       String
-  guestEmail      String
-  guestCompany    String
+  guestEmail      String?
+  guestCompany    String?
   enabled         Boolean   @default(false)
   beginMessage    String?
   llmId           String?
