@@ -1437,6 +1437,7 @@
   "download_transcript": "Download Transcript",
   "recording_from_your_recent_call": "A recording from your recent call on {{appName}} is ready for download",
   "transcript_from_previous_call": "Transcript from your recent call on {{appName}} is ready to download. Links are valid only for 1 Hour",
+  "link_valid_for_12_hrs":"Note: The download link is valid only for 12 hours. You can generate new download link by following instructions <1>here</1>.",
   "create_your_first_form": "Create your first form",
   "create_your_first_form_description": "With Routing Forms you can ask qualifying questions and route to the correct person or event type.",
   "create_your_first_webhook": "Create your first Webhook",
@@ -1718,7 +1719,7 @@
   "hide_navigation": "Hide navigation",
   "verification_code_sent": "Verification code sent",
   "verified_successfully": "Verified successfully",
-  "wrong_code": "Wong verification code",
+  "wrong_code": "Wrong verification code",
   "not_verified": "Not yet verified",
   "no_availability_in_month": "No availability in {{month}}",
   "view_next_month": "View next month",
@@ -2326,7 +2327,7 @@
   "field_identifiers_as_variables": "Use field identifiers as variables for your custom event redirect",
   "field_identifiers_as_variables_with_example": "Use field identifiers as variables for your custom event redirect (e.g. {{variable}})",
   "account_already_linked": "Account is already linked",
-  
+
   "email_team_invite|subject|added_to_org": "{{user}} added you to the organization {{team}} on {{appName}}",
   "email_team_invite|subject|invited_to_org": "{{user}} invited you to join the organization {{team}} on {{appName}}",
   "email_team_invite|subject|added_to_subteam": "{{user}} added you to the team {{team}} of organization {{parentTeamName}} on {{appName}}",

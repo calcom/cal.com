@@ -126,8 +126,15 @@ const AISettings = ({ eventType }: { eventType: EventTypeSetup }) => {
       const values = formMethods.getValues("aiPhoneCallConfig");
 
       const data = await AIPhoneSettingSchema.parseAsync({
-        ...values,
+        generalPrompt: values.generalPrompt,
+        beginMessage: values.beginMessage,
+        enabled: values.enabled,
+        guestName: values.guestName,
+        guestEmail: values.guestEmail.trim().length ? values.guestEmail : undefined,
+        guestCompany: values.guestCompany.trim().length ? values.guestCompany : undefined,
         eventTypeId: eventType.id,
+        numberToCall: values.numberToCall,
+        yourPhoneNumber: values.yourPhoneNumber,
         calApiKey,
       });
 

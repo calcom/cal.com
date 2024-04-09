@@ -245,10 +245,11 @@ export const getEventTypesByViewer = async (user: User, filters?: Filters, forRo
           }
 
           const eventTypes = await Promise.all(team.eventTypes.map(mapEventType));
+          const teamParentMetadata = team.parent ? teamMetadataSchema.parse(team.parent.metadata) : null;
           return {
             teamId: team.id,
             parentId: team.parentId,
-            bookerUrl: getBookerBaseUrlSync(team.parent?.slug ?? null),
+            bookerUrl: getBookerBaseUrlSync(team.parent?.slug ?? teamParentMetadata?.requestedSlug ?? null),
             membershipRole:
               orgMembership && compareMembership(orgMembership, membership.role)
                 ? orgMembership

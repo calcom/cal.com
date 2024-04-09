@@ -224,7 +224,14 @@ const BookerComponent = ({
     isPlatform,
   ]);
 
-  if (entity.isUnpublished) {
+  /**
+   * Unpublished organization handling - Below
+   * - Reschedule links in email are of the organization event for an unpublished org, so we need to allow rescheduling unpublished event
+   * - Ideally, we should allow rescheduling only for the event that has an old link(non-org link) but that's a bit complex and we are fine showing all reschedule links on unpublished organization
+   */
+  const considerUnpublished = entity.considerUnpublished && !rescheduleUid;
+
+  if (considerUnpublished) {
     return <UnpublishedEntity {...entity} />;
   }
 
