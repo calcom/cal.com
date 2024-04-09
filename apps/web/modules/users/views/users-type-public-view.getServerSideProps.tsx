@@ -65,6 +65,7 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
     username: usernames.join("+"),
     eventSlug: slug,
     org,
+    fromRedirectOfNonOrgLink: context.query.orgRedirection === "true",
   });
 
   if (!eventData) {
@@ -158,6 +159,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
     username,
     eventSlug: slug,
     org,
+    fromRedirectOfNonOrgLink: context.query.orgRedirection === "true",
   });
 
   if (!eventData) {

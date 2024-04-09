@@ -203,6 +203,7 @@
   "2fa_confirm_current_password": "输入您当前的密码来开始设置。",
   "2fa_scan_image_or_use_code": "请用您的手机上的身份验证器扫描下面的图像，或者手动输入验证码。",
   "text": "文本",
+  "your_phone_number": "您的电话号码",
   "multiline_text": "多行文本",
   "number": "数字",
   "checkbox": "复选框",
@@ -2163,6 +2164,9 @@
   "extensive_whitelabeling": "专门的入门和工程支持",
   "need_help": "需要帮助？",
   "show_more": "显示更多",
+  "email_team_invite|subject|invited_to_regular_team": "{{user}} 邀请您在 {{appName}} 上加入 {{team}} 团队",
+  "email_team_invite|heading|invited_to_regular_team": "您已被邀请加入 {{appName}} 团队",
+  "email_team_invite|content|invited_to_regular_team": "{{invitedBy}} 已邀请您加入他们在 {{appName}} 上的团队“{{teamName}}”。{{appName}} 是一个活动安排调度程序，让您和您的团队无需通过电子邮件沟通即可安排会议。",
   "privacy": "隐私",
   "cookie_consent_checkbox": "我同意 Cal.com 的隐私政策以及 cookie 使用政策",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 在此上方添加您的新字符串 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
