@@ -46,7 +46,7 @@ export type UserPageProps = {
   markdownStrippedBio: string;
   safeBio: string;
   entity: {
-    isUnpublished?: boolean;
+    considerUnpublished: boolean;
     orgSlug?: string | null;
     name?: string | null;
   };
@@ -74,6 +74,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req, context.params?.orgSlug);
 
   const usernameList = getUsernameList(context.query.user as string);
+  const isARedirectFromNonOrgLink = context.query.orgRedirection === "true";
   const isOrgContext = isValidOrgDomain && !!currentOrgDomain;
 
   const dataFetchStart = Date.now();
@@ -196,7 +197,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
         away: user.away,
       })),
       entity: {
-        isUnpublished: org?.slug === null,
+        considerUnpublished: !isARedirectFromNonOrgLink && org?.slug === null,
         orgSlug: currentOrgDomain,
         name: org?.name ?? null,
       },

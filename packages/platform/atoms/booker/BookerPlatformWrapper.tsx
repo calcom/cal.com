@@ -234,7 +234,7 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
       username={props.username}
       entity={
         event?.data?.entity ?? {
-          isUnpublished: undefined,
+          considerUnpublished: false,
           orgSlug: undefined,
           teamSlug: undefined,
           name: undefined,

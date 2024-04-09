@@ -1711,7 +1711,7 @@
   "hide_navigation": "Hide navigation",
   "verification_code_sent": "Verification code sent",
   "verified_successfully": "Verified successfully",
-  "wrong_code": "Wong verification code",
+  "wrong_code": "Wrong verification code",
   "not_verified": "Not yet verified",
   "no_availability_in_month": "No availability in {{month}}",
   "view_next_month": "View next month",
