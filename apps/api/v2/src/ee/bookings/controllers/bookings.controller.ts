@@ -13,6 +13,7 @@ import {
   Req,
   InternalServerErrorException,
   Body,
+  Headers,
   HttpException,
   Param,
   Get,
@@ -25,6 +26,7 @@ import { Request } from "express";
 import { NextApiRequest } from "next/types";
 
 import { BOOKING_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
+import { X_CAL_CLIENT_ID } from "@calcom/platform-constants";
 import {
   getAllUserBookings,
   getBookingInfo,
@@ -41,6 +43,14 @@ import {
 import { GetBookingsInput, CancelBookingInput } from "@calcom/platform-types";
 import { ApiResponse } from "@calcom/platform-types";
 import { PrismaClient } from "@calcom/prisma";
+
+type CustomRequest = Request & {
+  userId?: number;
+  platformClientId?: string;
+  platformRescheduleUrl?: string;
+  platformCancelUrl?: string;
+  platformBookingUrl?: string;
+};
 
 @Controller({
   path: "ee/bookings",
@@ -113,13 +123,23 @@ export class BookingsController {
   @Post("/")
   @Permissions([BOOKING_WRITE])
   async createBooking(
-    @Req() req: Request & { userId?: number },
-    @Body() _: CreateBookingInput
+    @Req() req: CustomRequest,
+    @Body() body: CreateBookingInput,
+    @Headers(X_CAL_CLIENT_ID) clientId: string
   ): Promise<ApiResponse<unknown>> {
+    const oAuthClientId = clientId?.toString();
     req.userId = await this.getOwnerId(req);
-    req.body = { ...req.body, noEmail: true };
+    if (oAuthClientId) {
+      req.platformClientId = oAuthClientId;
+      req.platformCancelUrl = "http://platform/cancel";
+      req.platformRescheduleUrl = "http://platform/reschedule";
+      req.platformBookingUrl = "http://platform/booking";
+    }
+    req.body = { ...req.body, noEmail: !Boolean(oAuthClientId) };
     try {
-      const booking = await handleNewBooking(req as unknown as NextApiRequest & { userId?: number });
+      const booking = await handleNewBooking(
+        req as unknown as NextApiRequest & { userId?: number; platformClientId?: string }
+      );
       return {
         status: SUCCESS_STATUS,
         data: booking,
@@ -133,13 +153,21 @@ export class BookingsController {
   @Post("/:bookingId/cancel")
   @Permissions([BOOKING_WRITE])
   async cancelBooking(
-    @Req() req: Request & { userId?: number },
+    @Req() req: CustomRequest,
     @Param("bookingId") bookingId: string,
-    @Body() body: CancelBookingInput
+    @Body() _: CancelBookingInput,
+    @Headers(X_CAL_CLIENT_ID) clientId: string
   ): Promise<ApiResponse> {
+    const oAuthClientId = clientId?.toString();
     if (bookingId) {
       req.userId = await this.getOwnerId(req);
-      req.body = { ...body, id: parseInt(bookingId) };
+      if (oAuthClientId) {
+        req.platformClientId = oAuthClientId;
+        req.platformCancelUrl = "http://platform/cancel";
+        req.platformRescheduleUrl = "http://platform/reschedule";
+        req.platformBookingUrl = "http://platform/booking";
+      }
+      req.body = { ...req.body, noEmail: !Boolean(oAuthClientId) };
       try {
         await handleCancelBooking(req as unknown as NextApiRequest & { userId?: number });
         return {
@@ -157,11 +185,19 @@ export class BookingsController {
   @Post("/reccuring")
   @Permissions([BOOKING_WRITE])
   async createReccuringBooking(
-    @Req() req: Request & { userId?: number },
-    @Body() _: CreateReccuringBookingInput[]
+    @Req() req: CustomRequest,
+    @Body() _: CreateReccuringBookingInput[],
+    @Headers(X_CAL_CLIENT_ID) clientId: string
   ): Promise<ApiResponse<BookingResponse[]>> {
+    const oAuthClientId = clientId?.toString();
     req.userId = await this.getOwnerId(req);
-    req.body = { ...req.body, noEmail: true };
+    if (oAuthClientId) {
+      req.platformClientId = oAuthClientId;
+      req.platformCancelUrl = "http://platform/cancel";
+      req.platformRescheduleUrl = "http://platform/reschedule";
+      req.platformBookingUrl = "http://platform/booking";
+    }
+    req.body = { ...req.body, noEmail: !Boolean(oAuthClientId) };
     try {
       const createdBookings: BookingResponse[] = await handleNewRecurringBooking(
         req as unknown as NextApiRequest & { userId?: number }
@@ -179,11 +215,19 @@ export class BookingsController {
   @Post("/instant")
   @Permissions([BOOKING_WRITE])
   async createInstantBooking(
-    @Req() req: Request & { userId?: number },
-    @Body() _: CreateBookingInput
+    @Req() req: CustomRequest,
+    @Body() _: CreateBookingInput,
+    @Headers(X_CAL_CLIENT_ID) clientId: string
   ): Promise<ApiResponse<Awaited<ReturnType<typeof handleInstantMeeting>>>> {
+    const oAuthClientId = clientId?.toString();
     req.userId = await this.getOwnerId(req);
-    req.body = { ...req.body, noEmail: true };
+    if (oAuthClientId) {
+      req.platformClientId = oAuthClientId;
+      req.platformCancelUrl = "http://platform/cancel";
+      req.platformRescheduleUrl = "http://platform/reschedule";
+      req.platformBookingUrl = "http://platform/booking";
+    }
+    req.body = { ...req.body, noEmail: !Boolean(oAuthClientId) };
     try {
       const instantMeeting = await handleInstantMeeting(
         req as unknown as NextApiRequest & { userId?: number }

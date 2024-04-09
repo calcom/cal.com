@@ -155,23 +155,50 @@ const getSeatReferenceId = (calEvent: CalendarEvent): string => {
 };
 
 export const getManageLink = (calEvent: CalendarEvent, t: TFunction) => {
+  if (calEvent.platformClientId && calEvent.platformBookingUrl) {
+    return `${t("need_to_reschedule_or_cancel")} ${calEvent.platformBookingUrl}/${getUid(calEvent)}?slug=${
+      calEvent.type
+    }&username=${calEvent.organizer.username}&changes=true`;
+  }
   return `${t("need_to_reschedule_or_cancel")}${calEvent.bookerUrl ?? WEBAPP_URL}/booking/${getUid(
     calEvent
   )}?changes=true`;
 };
 
 export const getCancelLink = (calEvent: CalendarEvent): string => {
-  const cancelLink = new URL(`${calEvent.bookerUrl ?? WEBAPP_URL}/booking/${getUid(calEvent)}`);
+  const Uid = getUid(calEvent);
+  const seatReferenceUid = getSeatReferenceId(calEvent);
+
+  if (calEvent.platformClientId && calEvent.platformCancelUrl) {
+    const platformCancelLink = new URL(`${calEvent.platformCancelUrl}/${Uid}`);
+    platformCancelLink.searchParams.append("slug", calEvent.type);
+    calEvent.organizer.username &&
+      platformCancelLink.searchParams.append("username", calEvent.organizer.username);
+    platformCancelLink.searchParams.append("cancel", "true");
+    platformCancelLink.searchParams.append("allRemainingBookings", String(!!calEvent.recurringEvent));
+    return platformCancelLink.toString();
+  }
+
+  const cancelLink = new URL(`${calEvent.bookerUrl ?? WEBAPP_URL}/booking/${Uid}`);
   cancelLink.searchParams.append("cancel", "true");
   cancelLink.searchParams.append("allRemainingBookings", String(!!calEvent.recurringEvent));
-  const seatReferenceUid = getSeatReferenceId(calEvent);
   if (seatReferenceUid) cancelLink.searchParams.append("seatReferenceUid", seatReferenceUid);
   return cancelLink.toString();
 };
 
 export const getRescheduleLink = (calEvent: CalendarEvent): string => {
+  console.log(calEvent);
   const Uid = getUid(calEvent);
   const seatUid = getSeatReferenceId(calEvent);
+
+  if (calEvent.platformClientId && calEvent.platformRescheduleUrl) {
+    const platformRescheduleLink = new URL(`${calEvent.platformRescheduleUrl}/${seatUid ? seatUid : Uid}`);
+    platformRescheduleLink.searchParams.append("slug", calEvent.type);
+    calEvent.organizer.username &&
+      platformRescheduleLink.searchParams.append("username", calEvent.organizer.username);
+    platformRescheduleLink.searchParams.append("reschedule", "true");
+    return platformRescheduleLink.toString();
+  }
 
   return `${calEvent.bookerUrl ?? WEBAPP_URL}/reschedule/${seatUid ? seatUid : Uid}`;
 };

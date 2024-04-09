@@ -1087,7 +1087,16 @@
       },
       "post": {
         "operationId": "BookingsController_createBooking",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "x-cal-client-id",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -1177,6 +1186,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "x-cal-client-id",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "requestBody": {
@@ -1206,7 +1223,16 @@
     "/api/v2/ee/bookings/reccuring": {
       "post": {
         "operationId": "BookingsController_createReccuringBooking",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "x-cal-client-id",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -1237,7 +1263,16 @@
     "/api/v2/ee/bookings/instant": {
       "post": {
         "operationId": "BookingsController_createInstantBooking",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "x-cal-client-id",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -2026,6 +2061,27 @@
         "type": "object",
         "properties": {}
       },
+      "Responses": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "guests": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "email",
+          "name"
+        ]
+      },
       "CreateBookingInput": {
         "type": "object",
         "properties": {
@@ -2074,6 +2130,9 @@
           },
           "seatReferenceUid": {
             "type": "string"
+          },
+          "responses": {
+            "$ref": "#/components/schemas/Responses"
           }
         },
         "required": [
@@ -2082,7 +2141,8 @@
           "timeZone",
           "language",
           "metadata",
-          "hashedLink"
+          "hashedLink",
+          "responses"
         ]
       },
       "CancelBookingInput": {
