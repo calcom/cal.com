@@ -5,6 +5,7 @@ import type { TFunction } from "next-i18next";
 import type { EventNameObjectType } from "@calcom/core/event";
 import { getEventName } from "@calcom/core/event";
 import type BaseEmail from "@calcom/emails/templates/_base-email";
+import { formatCalEvent } from "@calcom/lib/formatCalendarEvent";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import type { MonthlyDigestEmailData } from "./src/templates/MonthlyDigestEmail";
@@ -65,26 +66,6 @@ const sendEmail = (prepare: () => BaseEmail) => {
       reject(console.error(`${prepare.constructor.name}.sendEmail failed`, e));
     }
   });
-};
-
-const formatCalEvent = (calEvent: CalendarEvent) => {
-  const attendees = calEvent.platformClientId
-    ? calEvent.attendees.map((attendee) => ({
-        ...attendee,
-        email: attendee.email.replace(`+${calEvent.platformClientId}`, ""),
-      }))
-    : calEvent.attendees;
-  const organizer = calEvent.platformClientId
-    ? {
-        ...calEvent.organizer,
-        email: calEvent.organizer.email.replace(`+${calEvent.platformClientId}`, ""),
-      }
-    : calEvent.organizer;
-  return {
-    ...calEvent,
-    attendees,
-    organizer,
-  };
 };
 
 export const sendScheduledEmails = async (
