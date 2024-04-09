@@ -126,8 +126,15 @@ const AISettings = ({ eventType }: { eventType: EventTypeSetup }) => {
       const values = formMethods.getValues("aiPhoneCallConfig");
 
       const data = await AIPhoneSettingSchema.parseAsync({
-        ...values,
+        generalPrompt: values.generalPrompt,
+        beginMessage: values.beginMessage,
+        enabled: values.enabled,
+        guestName: values.guestName,
+        guestEmail: values.guestEmail.trim().length ? values.guestEmail : undefined,
+        guestCompany: values.guestCompany.trim().length ? values.guestCompany : undefined,
         eventTypeId: eventType.id,
+        numberToCall: values.numberToCall,
+        yourPhoneNumber: values.yourPhoneNumber,
         calApiKey,
       });
 
@@ -190,10 +197,26 @@ const AISettings = ({ eventType }: { eventType: EventTypeSetup }) => {
 
         <TextField
           type="text"
-          hint="Variable: {name}"
+          hint="Variable: {{name}}"
           label={t("guest_name")}
           placeholder="Jane Doe"
           {...formMethods.register("aiPhoneCallConfig.guestName")}
+        />
+
+        <TextField
+          type="text"
+          hint="Variable: {{email}}"
+          label={t("guest_email")}
+          placeholder="jane@acme.com"
+          {...formMethods.register("aiPhoneCallConfig.guestEmail")}
+        />
+
+        <TextField
+          type="text"
+          hint="Variable: {{company}}"
+          label={t("guest_company")}
+          placeholder="Acme"
+          {...formMethods.register("aiPhoneCallConfig.guestCompany")}
         />
 
         <TextField

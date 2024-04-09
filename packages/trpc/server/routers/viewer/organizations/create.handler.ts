@@ -142,6 +142,7 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
       autoAcceptEmail,
       seats: seats ?? null,
       pricePerSeat: pricePerSeat ?? null,
+      isPlatform,
     },
     owner: {
       id: orgOwner.id,
