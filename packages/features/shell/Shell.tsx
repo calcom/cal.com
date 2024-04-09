@@ -56,6 +56,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { isKeyInObject } from "@calcom/lib/isKeyInObject";
+import { localStorage } from "@calcom/lib/webstorage";
 import type { User } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
 import useEmailVerifyCheck from "@calcom/trpc/react/hooks/useEmailVerifyCheck";
@@ -215,16 +216,15 @@ const useBanners = () => {
 const Layout = (props: LayoutProps) => {
   const banners = useBanners();
 
+  const showIntercom = localStorage.getItem("showIntercom");
   const isMobile = useMediaQuery("(max-width: 768px)");
-  const { data: user } = useMeQuery();
   const { boot } = useIntercom();
   const pageTitle = typeof props.heading === "string" && !props.title ? props.heading : props.title;
 
   useEffect(() => {
-    if (user?.showSupport && !isMobile) {
-      boot();
-    }
-  }, [user?.showSupport, isMobile]);
+    if (showIntercom === "false" || isMobile) return;
+    boot();
+  }, [showIntercom, isMobile]);
 
   const bannersHeight = useMemo(() => {
     const activeBanners =
@@ -487,7 +487,7 @@ function UserDropdown({ small }: UserDropdownProps) {
             }}
             className="group overflow-hidden rounded-md">
             {helpOpen ? (
-              <HelpMenuItem onHelpItemSelect={() => onHelpItemSelect()} showSupport={user.showSupport} />
+              <HelpMenuItem onHelpItemSelect={() => onHelpItemSelect()} />
             ) : (
               <>
                 <DropdownMenuItem>

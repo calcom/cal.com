@@ -38,7 +38,6 @@ export const ZUpdateProfileInputSchema = z.object({
       })
     )
     .optional(),
-  showSupport: z.boolean().optional(),
 });
 
 export type TUpdateProfileInputSchema = z.infer<typeof ZUpdateProfileInputSchema>;

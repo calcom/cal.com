@@ -3,6 +3,7 @@ import { useChat } from "react-live-chat-loader";
 
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { localStorage } from "@calcom/lib/webstorage";
 import { trpc } from "@calcom/trpc/react";
 import { Button, showToast, TextArea } from "@calcom/ui";
 import { Icon } from "@calcom/ui";
@@ -14,18 +15,24 @@ import ContactMenuItem from "./ContactMenuItem";
 
 interface HelpMenuItemProps {
   onHelpItemSelect: () => void;
-  showSupport: boolean;
 }
 
-export default function HelpMenuItem({ onHelpItemSelect, showSupport }: HelpMenuItemProps) {
+export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
   const [rating, setRating] = useState<null | string>(null);
+  const [showIntercom, setShowIntercom] = useState<boolean>(
+    localStorage.getItem("showIntercom") === "false" ? false : true
+  );
   const { open, shutdown } = useIntercom();
   const [comment, setComment] = useState("");
   const [disableSubmit, setDisableSubmit] = useState(true);
   const [active, setActive] = useState(false);
   const [, loadChat] = useChat();
   const { t } = useLocale();
-  const utils = trpc.useContext();
+
+  const toggleIntercom = (value: boolean) => {
+    setShowIntercom(value);
+    localStorage.setItem("showIntercom", String(value));
+  };
 
   const { setActive: setFreshChat } = useFreshChat();
 
@@ -34,12 +41,6 @@ export default function HelpMenuItem({ onHelpItemSelect, showSupport }: HelpMenu
       setDisableSubmit(true);
       showToast("Thank you, feedback submitted", "success");
       onHelpItemSelect();
-    },
-  });
-
-  const showIntercomMutation = trpc.viewer.updateProfile.useMutation({
-    onSuccess: async () => {
-      await utils.viewer.me.invalidate();
     },
   });
 
@@ -193,20 +194,18 @@ export default function HelpMenuItem({ onHelpItemSelect, showSupport }: HelpMenu
       </div>
       {/* visible on desktop */}
       <div className="text-subtle bg-muted hidden w-full flex-col p-5 md:block">
-        <p className="">{showSupport ? t("no_support_needed") : t("specific_issue")}</p>
+        <p className="">{showIntercom ? t("no_support_needed") : t("specific_issue")}</p>
         <button
           className="hover:text-emphasis text-defualt font-medium underline"
           onClick={async () => {
             setActive(true);
-            if (showSupport) {
+            if (showIntercom) {
               if (isFreshChatEnabled) {
                 setFreshChat(false);
               } else if (isInterComEnabled) {
                 shutdown();
               }
-              showIntercomMutation.mutate({
-                showSupport: false,
-              });
+              toggleIntercom(false);
             } else {
               if (isFreshChatEnabled) {
                 setFreshChat(true);
@@ -215,13 +214,11 @@ export default function HelpMenuItem({ onHelpItemSelect, showSupport }: HelpMenu
               } else {
                 loadChat({ open: true });
               }
-              showIntercomMutation.mutate({
-                showSupport: true,
-              });
+              toggleIntercom(true);
             }
             onHelpItemSelect();
           }}>
-          {showSupport ? t("hide_support") : t("contact_support")}
+          {showIntercom ? t("hide_support") : t("contact_support")}
         </button>
         <span> {t("or").toLowerCase()} </span>
         <a
