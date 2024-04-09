@@ -157,7 +157,6 @@ export async function getEventType(
       beforeEventBuffer: true,
       afterEventBuffer: true,
       bookingLimits: true,
-      userId: true,
       durationLimits: true,
       assignAllTeamMembers: true,
       schedulingType: true,
@@ -424,9 +423,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
     },
   });
 
-  const rawBookingLimits = await getBookingLimits(eventType.userId, eventType?.bookingLimits);
-
-  const bookingLimits = parseBookingLimit(rawBookingLimits);
+  const bookingLimits = parseBookingLimit(eventType?.bookingLimits);
   const durationLimits = parseDurationLimit(eventType?.durationLimits);
   let busyTimesFromLimitsBookingsAllUsers: Awaited<ReturnType<typeof getBusyTimesForLimitChecks>> = [];
 

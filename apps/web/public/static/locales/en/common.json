@@ -2335,6 +2335,7 @@
   "event_type_different_limiting_frequencies": "{{eventCount}} event types has different limit booking frequencies",
   "review": "Review",
   "sync_booking_frequencies": "Sync your booking limits frequencies",
+  "sync_future_frequencies": "Sync your future limits frequencies",
   "event_types_different_layouts": "The following event types have different layout settings. Select which ones you want to sync with your general settings.",
   "sync_selected_event_types": "Sync selected event types",
   "global_limit_booking_frequency_description": "Limit how many times events can be booked",

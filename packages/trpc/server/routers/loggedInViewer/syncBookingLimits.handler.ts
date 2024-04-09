@@ -1,8 +1,9 @@
-import type { Prisma } from "@prisma/client";
-
-import { getEventTypesByViewer } from "@calcom/lib";
+import { getEventTypesByViewer, parseBookingLimit } from "@calcom/lib";
 import prisma from "@calcom/prisma";
 import type { PeriodType } from "@calcom/prisma/enums";
+import type { IntervalLimit } from "@calcom/types/Calendar";
+
+import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../trpc";
 import type { TSyncBookingLimitsInputSchema } from "./syncBookingLimits.schema";
@@ -33,6 +34,14 @@ export const syncBookingLimitsHandler = async ({ ctx, input }: SyncBookingLimits
       afterEventBuffer: true,
     },
   });
+
+  if (!globalSettings) {
+    throw new TRPCError({
+      code: "INTERNAL_SERVER_ERROR",
+      message: "No global settings found",
+    });
+  }
+
   const eventTypes = await getEventTypesByViewer(user, undefined, false, {
     id: {
       in: input.eventIds,
@@ -41,33 +50,41 @@ export const syncBookingLimitsHandler = async ({ ctx, input }: SyncBookingLimits
 
   const recordsToModifyQueue: {
     id: number;
-    bookingLimits: Prisma.JsonValue | undefined;
-    periodType: PeriodType;
-    periodCountCalendarDays: boolean | null;
-    periodDays: number | null;
-    periodStartDate: string | null;
-    periodEndDate: string | null;
-    minimumBookingNotice: number;
-    beforeEventBuffer: number;
-    afterEventBuffer: number;
+    data: {
+      bookingLimits: IntervalLimit;
+      periodType: PeriodType;
+      periodCountCalendarDays: boolean | null;
+      periodDays: number | null;
+      periodStartDate: string | null;
+      periodEndDate: string | null;
+      minimumBookingNotice: number;
+      beforeEventBuffer: number;
+      afterEventBuffer: number;
+    };
   }[] = [];
   eventTypes.eventTypeGroups.forEach((eventTypeGroup) => {
     eventTypeGroup.eventTypes.forEach((eventType) => {
+      const bookingLimits =
+        parseBookingLimit(isFuture ? eventType.bookingLimits : globalSettings.bookingLimits) || {};
+      const periodStartDate = isFuture ? globalSettings.periodStartDate : eventType.periodStartDate;
+      const periodEndDate = isFuture ? globalSettings.periodEndDate : eventType.periodEndDate;
       recordsToModifyQueue.push({
         id: eventType.id,
-        bookingLimits: isFuture ? eventType.bookingLimits : globalSettings?.bookingLimits,
-        periodType: isFuture ? globalSettings?.periodType : eventType?.periodType,
-        periodCountCalendarDays: isFuture
-          ? globalSettings?.periodCountCalendarDays
-          : eventType?.periodCountCalendarDays,
-        periodDays: isFuture ? globalSettings?.periodDays : eventType?.periodDays,
-        periodStartDate: isFuture ? globalSettings?.periodStartDate : eventType?.periodStartDate,
-        periodEndDate: isFuture ? globalSettings?.periodEndDate : eventType?.periodEndDate,
-        minimumBookingNotice: isFuture
-          ? globalSettings?.minimumBookingNotice
-          : eventType?.minimumBookingNotice,
-        beforeEventBuffer: isFuture ? globalSettings?.beforeEventBuffer : eventType?.beforeEventBuffer,
-        afterEventBuffer: isFuture ? globalSettings?.afterEventBuffer : eventType?.afterEventBuffer,
+        data: {
+          bookingLimits,
+          periodType: isFuture ? globalSettings.periodType : eventType.periodType,
+          periodCountCalendarDays: isFuture
+            ? globalSettings.periodCountCalendarDays
+            : eventType.periodCountCalendarDays,
+          periodDays: isFuture ? globalSettings.periodDays : eventType.periodDays,
+          periodStartDate: periodStartDate?.toString() || null,
+          periodEndDate: periodEndDate?.toString() || null,
+          minimumBookingNotice: isFuture
+            ? globalSettings.minimumBookingNotice
+            : eventType.minimumBookingNotice,
+          beforeEventBuffer: isFuture ? globalSettings.beforeEventBuffer : eventType.beforeEventBuffer,
+          afterEventBuffer: isFuture ? globalSettings.afterEventBuffer : eventType.afterEventBuffer,
+        },
       });
     });
   });
@@ -77,7 +94,7 @@ export const syncBookingLimitsHandler = async ({ ctx, input }: SyncBookingLimits
         where: {
           id: record.id,
         },
-        data: record,
+        data: record.data,
       });
     }
   });
