@@ -3,7 +3,12 @@ import { lookup } from "dns";
 import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
 import { sendAdminOrganizationNotification, sendOrganizationCreationEmail } from "@calcom/emails";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
-import { RESERVED_SUBDOMAINS, WEBAPP_URL, ORG_SELF_SERVE_ENABLED } from "@calcom/lib/constants";
+import {
+  RESERVED_SUBDOMAINS,
+  WEBAPP_URL,
+  ORG_SELF_SERVE_ENABLED,
+  ORG_MINIMUM_PUBLISHED_TEAMS_SELF_SERVE,
+} from "@calcom/lib/constants";
 import { createDomain } from "@calcom/lib/domainManager/organization";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
@@ -34,9 +39,36 @@ const getIPAddress = async (url: string): Promise<string> => {
 
 export const createHandler = async ({ input, ctx }: CreateOptions) => {
   const { slug, name, orgOwnerEmail, seats, pricePerSeat, isPlatform } = input;
-  const IS_USER_ADMIN = ctx.user.role === UserPermissionRole.ADMIN;
+  const loggedInUser = await prisma.user.findUnique({
+    where: {
+      id: ctx.user.id,
+    },
+    select: {
+      id: true,
+      role: true,
+      teams: {
+        select: {
+          team: {
+            select: {
+              slug: true,
+            },
+          },
+        },
+      },
+    },
+  });
+  if (!loggedInUser) throw new TRPCError({ code: "UNAUTHORIZED", message: "You are not authorized." });
+
+  const IS_USER_ADMIN = loggedInUser.role === UserPermissionRole.ADMIN;
+
   if (!ORG_SELF_SERVE_ENABLED && !IS_USER_ADMIN) {
     throw new TRPCError({ code: "FORBIDDEN", message: "Only admins can create organizations" });
+  }
+
+  const publishedTeams = loggedInUser.teams.filter((team) => !!team.team.slug);
+
+  if (!IS_USER_ADMIN && publishedTeams.length < ORG_MINIMUM_PUBLISHED_TEAMS_SELF_SERVE) {
+    throw new TRPCError({ code: "FORBIDDEN", message: "You need to have atleast two published teams." });
   }
 
   const orgOwner = await prisma.user.findUnique({
@@ -66,7 +98,7 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
   }
 
   // If we are making the loggedIn user the owner of the organization and he is already a part of an organization, we don't allow it because multi-org is not supported yet
-  const isLoggedInUserOrgOwner = orgOwner.id === ctx.user.id;
+  const isLoggedInUserOrgOwner = orgOwner.id === loggedInUser.id;
   if (ctx.user.profile.organizationId && isLoggedInUserOrgOwner) {
     throw new TRPCError({ code: "FORBIDDEN", message: "User is part of an organization already" });
   }
@@ -100,7 +132,7 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
   }
 
   const autoAcceptEmail = orgOwnerEmail.split("@")[1];
-  const nonOrgUsernameForOwner = ctx.user.profile.username || "";
+  const nonOrgUsernameForOwner = orgOwner.username || "";
   const { organization, ownerProfile } = await OrganizationRepository.createWithOwner({
     orgData: {
       name,
@@ -129,7 +161,7 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
     ownerOldUsername: nonOrgUsernameForOwner,
     orgDomain: getOrgFullOrigin(slug, { protocol: false }),
     orgName: organization.name,
-    prevLink: `${getOrgFullOrigin("", { protocol: true })}/${ctx.user.username}`,
+    prevLink: `${getOrgFullOrigin("", { protocol: true })}/${nonOrgUsernameForOwner}`,
     newLink: `${getOrgFullOrigin(slug, { protocol: true })}/${ownerProfile.username}`,
   });
 
