@@ -2169,7 +2169,6 @@
   "email_team_invite|content|invited_to_regular_team": "{{invitedBy}} 已邀请您加入他们在 {{appName}} 上的团队“{{teamName}}”。{{appName}} 是一个活动安排调度程序，让您和您的团队无需通过电子邮件沟通即可安排会议。",
   "privacy": "隐私",
   "cookie_consent_checkbox": "我同意 Cal.com 的隐私政策以及 cookie 使用政策",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 在此上方添加您的新字符串 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
   "old_email_address": "旧邮箱",
   "already_signed_up_for_this_booking_error": "您已经注册了此预订。",
   "hosts_unavailable_for_booking": "有些主持人无法预订。",
@@ -2372,5 +2371,6 @@
   "reviewed": "已评论",
   "unreviewed": "未评论",
   "rating_url_info": "评级反馈表的 URL",
-  "no_show_url_info": "无反馈的 URL"
+  "no_show_url_info": "无反馈的 URL",
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 在此上方添加您的新字符串 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
