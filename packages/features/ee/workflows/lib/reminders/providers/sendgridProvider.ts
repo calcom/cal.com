@@ -121,9 +121,10 @@ function addHTMLStyles(html?: string) {
   // Select all <a> tags inside <h6> elements --> only used for emojis in rating template
   const links = document.querySelectorAll("h6 a");
 
-  links.forEach((link: HTMLElement) => {
-    link.style.fontSize = "20px";
-    link.style.textDecoration = "none";
+  links.forEach((link) => {
+    const htmlLink = link as HTMLElement;
+    htmlLink.style.fontSize = "20px";
+    htmlLink.style.textDecoration = "none";
   });
 
   return dom.serialize();
