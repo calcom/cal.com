@@ -40,6 +40,8 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
           team: {
             select: {
               id: true,
+              slug: true,
+              hideBranding: true,
             },
           },
         },
@@ -47,23 +49,40 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
     },
   });
 
-  const username = hashedLink?.eventType.users[0]?.username;
+  let name: string;
+  let isAway = false;
+  let hideBranding = false;
 
   const notFound = {
     notFound: true,
   } as const;
 
-  if (!hashedLink || !username) {
+  if (!hashedLink) {
     return notFound;
   }
 
-  const [user] = await UserRepository.findUsersByUsername({
-    usernameList: [username],
-    orgSlug: org,
-  });
+  if (hashedLink.eventType.team) {
+    name = hashedLink.eventType.team.slug || "";
+    hideBranding = hashedLink.eventType.team.hideBranding;
+  } else {
+    const username = hashedLink.eventType.users[0]?.username;
 
-  if (!user) {
-    return notFound;
+    if (!username) {
+      return notFound;
+    }
+
+    const [user] = await UserRepository.findUsersByUsername({
+      usernameList: [username],
+      orgSlug: org,
+    });
+
+    if (!user) {
+      return notFound;
+    }
+
+    name = username;
+    isAway = user.away;
+    hideBranding = user.hideBranding;
   }
 
   let booking: GetBookingType | null = null;
@@ -75,7 +94,12 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
 
   // We use this to both prefetch the query on the server,
   // as well as to check if the event exist, so we c an show a 404 otherwise.
-  const eventData = await ssr.viewer.public.event.fetch({ username, eventSlug: slug, isTeamEvent, org });
+  const eventData = await ssr.viewer.public.event.fetch({
+    username: name,
+    eventSlug: slug,
+    isTeamEvent,
+    org,
+  });
 
   if (!eventData) {
     return notFound;
@@ -90,11 +114,11 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
         eventData.length
       ),
       booking,
-      away: user?.away,
-      user: username,
+      away: isAway,
+      user: name,
       slug,
       trpcState: ssr.dehydrate(),
-      isBrandingHidden: user?.hideBranding,
+      isBrandingHidden: hideBranding,
       // Sending the team event from the server, because this template file
       // is reused for both team and user events.
       isTeamEvent,
