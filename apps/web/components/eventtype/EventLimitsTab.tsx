@@ -120,6 +120,7 @@ type BookingLimitsProps = {
   formMethods: ReturnType<typeof useForm>;
   bookingLimitsLocked?: ShouldLockDisableProps;
   sectionDescription?: string;
+  settingsToggleClass?: string;
   childrenContainerClassName?: string;
   children?: React.ReactNode;
 };
@@ -127,6 +128,7 @@ export const BookingLimits = ({
   formMethods,
   bookingLimitsLocked = {},
   sectionDescription = "limit_booking_frequency_description",
+  settingsToggleClass = "",
   childrenContainerClassName = "",
   children,
 }: BookingLimitsProps) => {
@@ -159,7 +161,8 @@ export const BookingLimits = ({
             }}
             switchContainerClassName={classNames(
               "border-subtle mt-6 rounded-lg border py-6 px-4 sm:px-6",
-              isChecked && "rounded-b-none"
+              isChecked && "rounded-b-none",
+              settingsToggleClass
             )}
             childrenClassName="lg:ml-0">
             <div
@@ -186,6 +189,7 @@ type FutureBookingLimitsProps = {
   formMethods: ReturnType<typeof useForm>;
   periodTypeLocked?: ShouldLockDisableProps;
   sectionDescription?: string;
+  settingsToggleClass?: string;
   childrenContainerClassName?: string;
   children?: React.ReactNode;
 };
@@ -193,6 +197,7 @@ export const FutureBookingLimits = ({
   formMethods,
   periodTypeLocked = {},
   sectionDescription = "limit_future_bookings_description",
+  settingsToggleClass = "",
   childrenContainerClassName = "",
   children,
 }: FutureBookingLimitsProps) => {
@@ -231,7 +236,8 @@ export const FutureBookingLimits = ({
             toggleSwitchAtTheEnd={true}
             switchContainerClassName={classNames(
               "border-subtle mt-6 rounded-lg border py-6 px-4 sm:px-6",
-              isChecked && "rounded-b-none"
+              isChecked && "rounded-b-none",
+              settingsToggleClass
             )}
             childrenClassName="lg:ml-0"
             title={t("limit_future_bookings")}

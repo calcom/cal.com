@@ -77,7 +77,7 @@ const BookingsView = ({ data }: { data: RouterOutputs["viewer"]["globalSettings"
         startDate: globalSettings?.periodStartDate ?? new Date(),
         endDate: globalSettings?.periodEndDate ?? new Date(),
       },
-      minimumBookingNotice: globalSettings?.minimumBookingNotice,
+      minimumBookingNotice: globalSettings?.minimumBookingNotice || 120,
       beforeEventBuffer: globalSettings?.beforeEventBuffer,
       afterEventBuffer: globalSettings?.afterEventBuffer,
     },
@@ -127,6 +127,7 @@ const BookingsView = ({ data }: { data: RouterOutputs["viewer"]["globalSettings"
         <BookingLimits
           formMethods={bookingsLimitFormMethods}
           sectionDescription="global_limit_booking_frequency_description"
+          settingsToggleClass="rounded-b-none"
           childrenContainerClassName="rounded-none border-b-0">
           {bookingFreqLimitCount > 0 && (
             <div className="flex">
@@ -148,17 +149,15 @@ const BookingsView = ({ data }: { data: RouterOutputs["viewer"]["globalSettings"
             </div>
           )}
         </BookingLimits>
-        {showLimitFrequency && (
-          <SectionBottomActions align="end">
-            <Button
-              color="primary"
-              type="submit"
-              loading={updateProfileMutation.isPending}
-              disabled={!bookingsLimitFormMethods.formState.dirtyFields.bookingLimits}>
-              {t("update")}
-            </Button>
-          </SectionBottomActions>
-        )}
+        <SectionBottomActions align="end" className={!showLimitFrequency ? "border-t-0" : ""}>
+          <Button
+            color="primary"
+            type="submit"
+            loading={updateProfileMutation.isPending}
+            disabled={!bookingsLimitFormMethods.formState.dirtyFields.bookingLimits}>
+            {t("update")}
+          </Button>
+        </SectionBottomActions>
       </Form>
 
       <Form
@@ -171,6 +170,7 @@ const BookingsView = ({ data }: { data: RouterOutputs["viewer"]["globalSettings"
         <FutureBookingLimits
           formMethods={bookingFutureLimitFormMethods}
           sectionDescription="global_limit_future_booking_frequency_description"
+          settingsToggleClass="rounded-b-none"
           childrenContainerClassName="rounded-none border-b-0">
           <div className="mt-4 flex flex-col">
             <Label className="text-emphasis text-sm font-medium leading-none">{t("buffer_limits")}</Label>
@@ -206,17 +206,15 @@ const BookingsView = ({ data }: { data: RouterOutputs["viewer"]["globalSettings"
             </div>
           )}
         </FutureBookingLimits>
-        {showLimitFutureBookings && (
-          <SectionBottomActions align="end">
-            <Button
-              color="primary"
-              type="submit"
-              loading={updateProfileMutation.isPending}
-              disabled={!Object.keys(bookingFutureLimitFormMethods.formState.dirtyFields).length}>
-              {t("update")}
-            </Button>
-          </SectionBottomActions>
-        )}
+        <SectionBottomActions align="end" className={!showLimitFutureBookings ? "border-t-0" : ""}>
+          <Button
+            color="primary"
+            type="submit"
+            loading={updateProfileMutation.isPending}
+            disabled={!Object.keys(bookingFutureLimitFormMethods.formState.dirtyFields).length}>
+            {t("update")}
+          </Button>
+        </SectionBottomActions>
       </Form>
       <Dialog open={!!showSyncBookingLimits} onOpenChange={() => setShowSyncBookingLimits(undefined)}>
         <DialogContent
