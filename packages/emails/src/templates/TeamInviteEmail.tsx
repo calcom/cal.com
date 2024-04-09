@@ -179,7 +179,7 @@ export const TeamInviteEmail = (
                   <br />
                   <br />
                   Enjoy your new clean link:{" "}
-                  <a href={`${newLink}?orgRedirection=true` ?? ""}>{newLinkWithoutProtocol}</a>
+                  <a href={`${newLink}?orgRedirection=true`}>{newLinkWithoutProtocol}</a>
                 </Trans>
               </>
             ) : (

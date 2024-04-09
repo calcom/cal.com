@@ -68,8 +68,7 @@ export const OrganizationCreationEmail = (
           For personal events we recommend creating a new account with a personal email address.
           <br />
           <br />
-          Enjoy your new clean link:{" "}
-          <a href={`${newLink}?orgRedirection=true` ?? ""}>{newLinkWithoutProtocol}</a>
+          Enjoy your new clean link: <a href={`${newLink}?orgRedirection=true`}>{newLinkWithoutProtocol}</a>
         </Trans>
       </p>
 
