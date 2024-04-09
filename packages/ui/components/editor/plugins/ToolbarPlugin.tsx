@@ -376,12 +376,7 @@ export default function ToolbarPlugin(props: TextEditorProps) {
         editor.registerUpdateListener(({ editorState, prevEditorState }) => {
           editorState.read(() => {
             const textInHtml = $generateHtmlFromNodes(editor).replace(/&lt;/g, "<").replace(/&gt;/g, ">");
-            props.setText(
-              textInHtml.replace(
-                /<p\s+class="editor-paragraph"[^>]*>\s*<br>\s*<\/p>/g,
-                '<p class="editor-paragraph"></p>'
-              )
-            );
+            props.setText(textInHtml.replace(/<p\s+class="editor-paragraph"[^>]*>\s*<br>\s*<\/p>/g, "<br>"));
           });
           if (!prevEditorState._selection) editor.blur();
         });

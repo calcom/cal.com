@@ -860,10 +860,10 @@ export default function Success(props: PageProps) {
                     </>
                   ) : (
                     <>
-                      <div className="my-3 flex justify-end">
+                      <div className="my-3 flex justify-center space-x-1">
                         <button
                           className={classNames(
-                            "m-1 items-center justify-center rounded-full border p-1 text-2xl hover:opacity-100",
+                            "flex h-10 w-10 items-center justify-center rounded-full border text-2xl hover:opacity-100",
                             rateValue === 1
                               ? "border-focus bg-emphasis"
                               : "border-muted bg-default opacity-50"
@@ -874,7 +874,7 @@ export default function Success(props: PageProps) {
                         </button>
                         <button
                           className={classNames(
-                            "m-1 items-center justify-center rounded-full border p-1 text-2xl hover:opacity-100",
+                            "flex h-10 w-10 items-center justify-center rounded-full border text-2xl hover:opacity-100",
                             rateValue === 2
                               ? "border-focus bg-emphasis"
                               : "border-muted bg-default opacity-50"
@@ -885,7 +885,7 @@ export default function Success(props: PageProps) {
                         </button>
                         <button
                           className={classNames(
-                            "m-1 items-center justify-center rounded-full border p-1 text-2xl hover:opacity-100",
+                            "flex h-10 w-10 items-center justify-center rounded-full border text-2xl hover:opacity-100",
                             rateValue === 3
                               ? "border-focus bg-emphasis"
                               : " border-muted bg-default opacity-50"
@@ -896,7 +896,7 @@ export default function Success(props: PageProps) {
                         </button>
                         <button
                           className={classNames(
-                            "m-1 items-center justify-center rounded-full border p-1 text-2xl hover:opacity-100",
+                            "flex h-10 w-10 items-center justify-center rounded-full border text-2xl hover:opacity-100",
                             rateValue === 4
                               ? "border-focus bg-emphasis"
                               : "border-muted bg-default opacity-50"
@@ -907,7 +907,7 @@ export default function Success(props: PageProps) {
                         </button>
                         <button
                           className={classNames(
-                            "m-1 items-center justify-center rounded-full border p-1 text-2xl hover:opacity-100",
+                            "flex h-10 w-10 items-center justify-center rounded-full border text-2xl hover:opacity-100",
                             rateValue === 5
                               ? "border-focus bg-emphasis"
                               : "border-muted bg-default opacity-50"

@@ -52,14 +52,12 @@
   font-style: italic;
 }
 
-//only used for emoji links
+// h6 is only used for emoji links
 .editor-heading-h6 {
-  font-size: 20px ;
-  text-decoration: none !important;
 }
 
 h6 a {
-  font-size: 20px ;
+  font-size: 20px !important;
   text-decoration: none !important;
 }
 
@@ -74,6 +72,7 @@ h6 a {
 
 .editor-paragraph {
   margin: 0;
+  margin-top:14px;
   position: relative;
   color: var(--cal-text);
 }
