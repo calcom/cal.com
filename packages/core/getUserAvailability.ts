@@ -58,7 +58,6 @@ const _getEventType = async (id: number) => {
       id: true,
       seatsPerTimeSlot: true,
       bookingLimits: true,
-      userId: true,
       durationLimits: true,
       assignAllTeamMembers: true,
       timeZone: true,

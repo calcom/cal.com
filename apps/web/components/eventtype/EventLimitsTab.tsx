@@ -3,7 +3,7 @@ import * as RadioGroup from "@radix-ui/react-radio-group";
 import type { EventTypeSetupProps } from "pages/event-types/[type]";
 import type { Key } from "react";
 import React, { useEffect, useState } from "react";
-import type { UseFormRegisterReturn, useForm } from "react-hook-form";
+import type { UseFormRegisterReturn, UseFormReturn } from "react-hook-form";
 import { Controller, useFormContext } from "react-hook-form";
 import type { SingleValue } from "react-select";
 
@@ -117,18 +117,18 @@ type ShouldLockDisableProps = {
 };
 
 type BookingLimitsProps = {
-  formMethods: ReturnType<typeof useForm>;
   bookingLimitsLocked?: ShouldLockDisableProps;
   sectionDescription?: string;
   settingsToggleClass?: string;
+  onCheckedChange: (field: string, value: IntervalLimit, shouldDirty: boolean) => void;
   childrenContainerClassName?: string;
   children?: React.ReactNode;
 };
 export const BookingLimits = ({
-  formMethods,
   bookingLimitsLocked = {},
   sectionDescription = "limit_booking_frequency_description",
   settingsToggleClass = "",
+  onCheckedChange,
   childrenContainerClassName = "",
   children,
 }: BookingLimitsProps) => {
@@ -148,15 +148,15 @@ export const BookingLimits = ({
             checked={isChecked}
             onCheckedChange={(active) => {
               if (active) {
-                formMethods.setValue(
+                onCheckedChange(
                   "bookingLimits",
                   {
                     PER_DAY: 1,
                   },
-                  { shouldDirty: true }
+                  true
                 );
               } else {
-                formMethods.setValue("bookingLimits", {}, { shouldDirty: true });
+                onCheckedChange("bookingLimits", {}, true);
               }
             }}
             switchContainerClassName={classNames(
@@ -186,7 +186,7 @@ export const BookingLimits = ({
 };
 
 type FutureBookingLimitsProps = {
-  formMethods: ReturnType<typeof useForm>;
+  formMethods: UseFormReturn<any>;
   periodTypeLocked?: ShouldLockDisableProps;
   sectionDescription?: string;
   settingsToggleClass?: string;
@@ -202,7 +202,7 @@ export const FutureBookingLimits = ({
   children,
 }: FutureBookingLimitsProps) => {
   const { t } = useLocale();
-  const watchPeriodType = formMethods.watch("periodType");
+  const watchPeriodType = formMethods.watch("periodType" as const);
 
   const PERIOD_TYPES = [
     {
@@ -520,7 +520,12 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
           </div>
         </div>
       </div>
-      <BookingLimits formMethods={formMethods} bookingLimitsLocked={bookingLimitsLocked} />
+      <BookingLimits
+        bookingLimitsLocked={bookingLimitsLocked}
+        onCheckedChange={(key: string, value: IntervalLimit, shouldDirty: boolean) =>
+          formMethods.setValue(key as keyof FormValues, value, { shouldDirty })
+        }
+      />
       <Controller
         name="onlyShowFirstAvailableSlot"
         render={({ field: { onChange, value } }) => {
