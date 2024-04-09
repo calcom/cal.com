@@ -78,7 +78,7 @@ const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
       darkBrandColor: true,
       slug: true,
       name: true,
-      logo: true,
+      logoUrl: true,
       theme: true,
       parent: {
         select: {
@@ -348,7 +348,7 @@ function getProfileFromEvent(event: Event) {
           },
           avatarUrl: nonTeamprofile?.avatarUrl,
         }),
-    logo: !team ? undefined : team.logo,
+    logo: !team ? undefined : team.logoUrl,
     brandColor: profile.brandColor,
     darkBrandColor: profile.darkBrandColor,
     theme: profile.theme,
