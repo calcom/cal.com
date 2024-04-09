@@ -132,7 +132,7 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
   }
 
   const autoAcceptEmail = orgOwnerEmail.split("@")[1];
-  const nonOrgUsernameForOwner = ctx.user.profile.username || "";
+  const nonOrgUsernameForOwner = orgOwner.username || "";
   const { organization, ownerProfile } = await OrganizationRepository.createWithOwner({
     orgData: {
       name,
@@ -160,7 +160,7 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
     ownerOldUsername: nonOrgUsernameForOwner,
     orgDomain: getOrgFullOrigin(slug, { protocol: false }),
     orgName: organization.name,
-    prevLink: `${getOrgFullOrigin("", { protocol: true })}/${ctx.user.username}`,
+    prevLink: `${getOrgFullOrigin("", { protocol: true })}/${nonOrgUsernameForOwner}`,
     newLink: `${getOrgFullOrigin(slug, { protocol: true })}/${ownerProfile.username}`,
   });
 
