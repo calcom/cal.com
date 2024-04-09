@@ -8,7 +8,7 @@ const LOCALES_PATH = join(__dirname, "../public/static/locales");
 const ALL_LOCALES = readdirSync(LOCALES_PATH);
 
 const templateJsonPath = join(LOCALES_PATH, `${TEMPLATE_LANGUAGE}/common.json`);
-const templateJson = JSON.parse(readFileSync(templateJsonPath, "utf-8"));
+const templateJson: { [key: string]: string } = JSON.parse(readFileSync(templateJsonPath, "utf-8"));
 
 const missingTranslationLocales: string[] = [];
 // If locales are not specified, then check all folders under `public/static/locales`
@@ -24,18 +24,23 @@ const missingTranslationLocales: string[] = [];
   }
 
   const localeJsonPath = join(LOCALES_PATH, `${locale}/common.json`);
-  const localeJson = JSON.parse(readFileSync(localeJsonPath, "utf8"));
+  const localeJson: { [key: string]: string } = JSON.parse(readFileSync(localeJsonPath, "utf8"));
 
   if (Object.keys(templateJson).length === Object.keys(localeJson).length) return;
 
+  const missingTranslations: { [key: string]: string } = {};
   missingTranslationLocales.push(locale);
-  Object.keys(templateJson).forEach((key) => {
+  Object.entries(templateJson).forEach(([key, value]: [string, string]) => {
     if (key in localeJson) return;
 
-    localeJson[key] = templateJson[key];
+    missingTranslations[key] = value;
   });
 
-  writeFileSync(localeJsonPath, JSON.stringify(localeJson, null, 2));
+  const newLocaleJson = {
+    ...missingTranslations,
+    ...localeJson,
+  };
+  writeFileSync(localeJsonPath, JSON.stringify(newLocaleJson, null, 2));
 });
 
 if (missingTranslationLocales.length) {
