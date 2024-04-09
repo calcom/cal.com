@@ -170,6 +170,12 @@ function preprocess<T extends z.ZodType>({
           }
 
           if (!emailsParsed.success) {
+            // If additional guests are shown but all inputs are empty then don't show any errors
+            if (bookingField.name === "guests" && value.every((email: string) => email === "")) {
+              // reset guests to empty array, otherwise it adds "" for every input
+              responses[bookingField.name] = [];
+              continue;
+            }
             ctx.addIssue({
               code: z.ZodIssueCode.custom,
               message: m("email_validation_error"),
