@@ -109,6 +109,7 @@ function preprocess<T extends z.ZodType>({
         // if eventType has been deleted, we won't have bookingFields and thus we can't validate the responses.
         return;
       }
+      console.log("bookingFields", bookingFields);
       for (const bookingField of bookingFields) {
         const value = responses[bookingField.name];
         const stringSchema = z.string();
