@@ -86,8 +86,6 @@ export const BookEventForm = ({
     return <Alert severity="warning" message={t("error_booking_event")} />;
   }
 
-  console.log("eventType.bookingFields", eventType.bookingFields);
-
   return (
     <div className="flex h-full flex-col">
       <Form

@@ -16,7 +16,12 @@ import { TRPCError } from "@trpc/server";
 import type { TrpcSessionUser } from "../../../trpc";
 import { setDestinationCalendarHandler } from "../../loggedInViewer/setDestinationCalendar.handler";
 import type { TUpdateInputSchema } from "./update.schema";
-import { ensureUniqueBookingFields, handleCustomInputs, handlePeriodType } from "./util";
+import {
+  ensureUniqueBookingFields,
+  ensureEmailOrPhoneNumberIsNotHidden,
+  handleCustomInputs,
+  handlePeriodType,
+} from "./util";
 
 type SessionUser = NonNullable<TrpcSessionUser>;
 type User = {
@@ -128,6 +133,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   const teamId = input.teamId || eventType.team?.id;
 
   ensureUniqueBookingFields(bookingFields);
+  ensureEmailOrPhoneNumberIsNotHidden(bookingFields);
 
   const data: Prisma.EventTypeUpdateInput = {
     ...rest,

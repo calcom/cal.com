@@ -109,7 +109,23 @@ function preprocess<T extends z.ZodType>({
         // if eventType has been deleted, we won't have bookingFields and thus we can't validate the responses.
         return;
       }
-      console.log("bookingFields", bookingFields);
+      const isAttendeePhoneNumberFieldHidden = !!bookingFields.find(
+        (field) => field.name === "attendeePhoneNumber"
+      )?.hidden;
+
+      const isEmailFieldHidden = !!bookingFields.find((field) => field.name === "email")?.hidden;
+
+      if (isEmailFieldHidden && !isAttendeePhoneNumberFieldHidden) {
+        responses["email"] = "booked-with-sms@cal.com";
+      }
+
+      if (isEmailFieldHidden && isAttendeePhoneNumberFieldHidden) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `Both Email and Attendee Phone Number cannot be hidden`,
+        });
+      }
+
       for (const bookingField of bookingFields) {
         const value = responses[bookingField.name];
         const stringSchema = z.string();

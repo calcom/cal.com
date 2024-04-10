@@ -240,6 +240,7 @@ async function handler(
     language,
     appsStatus: reqAppsStatus,
     name: bookerName,
+    attendeePhoneNumber: bookerPhoneNumber,
     email: bookerEmail,
     guests: reqGuests,
     location,
@@ -706,6 +707,7 @@ async function handler(
     {
       email: bookerEmail,
       name: fullName,
+      phoneNumber: bookerPhoneNumber,
       firstName: (typeof bookerName === "object" && bookerName.firstName) || "",
       lastName: (typeof bookerName === "object" && bookerName.lastName) || "",
       timeZone: attendeeTimezone,

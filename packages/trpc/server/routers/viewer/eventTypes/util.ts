@@ -145,3 +145,22 @@ export function ensureUniqueBookingFields(fields: z.infer<typeof EventTypeUpdate
     return discoveredFields;
   }, {} as Record<string, true>);
 }
+
+export function ensureEmailOrPhoneNumberIsNotHidden(
+  fields: z.infer<typeof EventTypeUpdateInput>["bookingFields"]
+) {
+  if (!fields) {
+    return;
+  }
+  const isAttendeePhoneNumberFieldHidden = !!fields.find((field) => field.name === "attendeePhoneNumber")
+    ?.hidden;
+
+  const isEmailFieldHidden = !!fields.find((field) => field.name === "email")?.hidden;
+
+  if (isEmailFieldHidden && isAttendeePhoneNumberFieldHidden) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: `Both Email and Attendee Phone Number cannot be hidden`,
+    });
+  }
+}
