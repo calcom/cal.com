@@ -123,8 +123,11 @@ export const AvailableTimeSlots = ({
         {!isLoading &&
           slotsPerDay.length > 0 &&
           slotsPerDay.map((slots) => (
-            <div key={slots.date} className="scroll-bar h-full w-full overflow-y-auto overflow-x-hidden">
+            <div
+              key={slots.date}
+              className={`scroll-bar h-full w-full overflow-y-auto overflow-x-hidden ${customClassnames?.availableTimeSlotsContainer}`}>
               <AvailableTimes
+                customClassnames={customClassnames?.availableTimes}
                 showTimeFormatToggle={!isColumnView}
                 onTimeSelect={onTimeSelect}
                 slots={slots.slots}
