@@ -7,7 +7,6 @@ import { useFieldArray, useFormContext } from "react-hook-form";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { ScrollableArea, Badge, Button } from "@calcom/ui";
-import { Clock } from "@calcom/ui/components/icon";
 
 type EventTypesCardProps = {
   userName: string;
@@ -99,7 +98,7 @@ const EventTypeCard: FC<EventTypeCardProps> = ({
           <div className="mt-2 flex flex-row flex-wrap gap-2">
             {Boolean(durations.length) &&
               durations.map((duration) => (
-                <Badge key={`event-type-${id}-duration-${duration}`} variant="gray" startIcon={Clock}>
+                <Badge key={`event-type-${id}-duration-${duration}`} variant="gray" startIcon="clock">
                   {duration}m
                 </Badge>
               ))}

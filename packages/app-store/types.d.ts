@@ -65,7 +65,6 @@ export type EventTypeAppSettingsComponentProps = {
     "id" | "title" | "description" | "teamId" | "length" | "recurringEvent" | "seatsPerTimeSlot" | "team"
   > & {
     URL: string;
-    selected: boolean;
   };
   getAppData: GetAppData;
   setAppData: SetAppData;

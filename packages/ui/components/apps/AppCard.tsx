@@ -232,7 +232,7 @@ const InstallAppButtonChild = ({
       <Button
         color="secondary"
         className="[@media(max-width:260px)]:w-full [@media(max-width:260px)]:justify-center"
-        StartIcon={Plus}
+        StartIcon="plus"
         onClick={_onClick}
         data-testid="install-app-button"
         {...props}>
@@ -249,7 +249,7 @@ const InstallAppButtonChild = ({
       <Button
         color="secondary"
         className="[@media(max-width:260px)]:w-full [@media(max-width:260px)]:justify-center"
-        StartIcon={Plus}
+        StartIcon="plus"
         onClick={_onClick}
         data-testid="install-app-button"
         {...props}>
@@ -263,7 +263,7 @@ const InstallAppButtonChild = ({
       <Button
         color="secondary"
         className="[@media(max-width:260px)]:w-full [@media(max-width:260px)]:justify-center"
-        StartIcon={Plus}
+        StartIcon="plus"
         data-testid="install-app-button"
         onClick={_onClick}
         {...props}
