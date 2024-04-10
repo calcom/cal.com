@@ -125,11 +125,11 @@ export class BookingsController {
   async createBooking(
     @Req() req: CustomRequest,
     @Body() _: CreateBookingInput,
-    @Headers(X_CAL_CLIENT_ID) clientId: string
+    @Headers(X_CAL_CLIENT_ID) clientId?: string
   ): Promise<ApiResponse<unknown>> {
     const oAuthClientId = clientId?.toString();
     req.userId = await this.getOwnerId(req);
-    req = await this.setCustomPlatformRequest(req, clientId);
+    oAuthClientId && (await this.setCustomPlatformRequest(req, oAuthClientId));
     req.body = { ...req.body, noEmail: !Boolean(oAuthClientId) };
     try {
       const booking = await handleNewBooking(
@@ -151,12 +151,12 @@ export class BookingsController {
     @Req() req: CustomRequest,
     @Param("bookingId") bookingId: string,
     @Body() _: CancelBookingInput,
-    @Headers(X_CAL_CLIENT_ID) clientId: string
+    @Headers(X_CAL_CLIENT_ID) clientId?: string
   ): Promise<ApiResponse> {
     const oAuthClientId = clientId?.toString();
     if (bookingId) {
       req.userId = await this.getOwnerId(req);
-      req = await this.setCustomPlatformRequest(req, clientId);
+      oAuthClientId && (await this.setCustomPlatformRequest(req, oAuthClientId));
       req.body = { ...req.body, noEmail: !Boolean(oAuthClientId) };
       try {
         await handleCancelBooking(req as unknown as NextApiRequest & { userId?: number });
@@ -177,11 +177,11 @@ export class BookingsController {
   async createReccuringBooking(
     @Req() req: CustomRequest,
     @Body() _: CreateReccuringBookingInput[],
-    @Headers(X_CAL_CLIENT_ID) clientId: string
+    @Headers(X_CAL_CLIENT_ID) clientId?: string
   ): Promise<ApiResponse<BookingResponse[]>> {
     const oAuthClientId = clientId?.toString();
     req.userId = await this.getOwnerId(req);
-    req = await this.setCustomPlatformRequest(req, clientId);
+    oAuthClientId && (await this.setCustomPlatformRequest(req, oAuthClientId));
     req.body = { ...req.body, noEmail: !Boolean(oAuthClientId) };
     try {
       const createdBookings: BookingResponse[] = await handleNewRecurringBooking(
@@ -202,11 +202,11 @@ export class BookingsController {
   async createInstantBooking(
     @Req() req: CustomRequest,
     @Body() _: CreateBookingInput,
-    @Headers(X_CAL_CLIENT_ID) clientId: string
+    @Headers(X_CAL_CLIENT_ID) clientId?: string
   ): Promise<ApiResponse<Awaited<ReturnType<typeof handleInstantMeeting>>>> {
     const oAuthClientId = clientId?.toString();
     req.userId = await this.getOwnerId(req);
-    req = await this.setCustomPlatformRequest(req, clientId);
+    oAuthClientId && (await this.setCustomPlatformRequest(req, oAuthClientId));
     req.body = { ...req.body, noEmail: !Boolean(oAuthClientId) };
     try {
       const instantMeeting = await handleInstantMeeting(
@@ -233,15 +233,12 @@ export class BookingsController {
     }
   }
 
-  async setCustomPlatformRequest(req: CustomRequest, clientId: string): Promise<CustomRequest> {
-    if (clientId) {
-      // fetch oAuthClient from db and use data stored in db to set these values
-      req.platformClientId = clientId;
-      req.platformCancelUrl = "http://platform/cancel";
-      req.platformRescheduleUrl = "http://platform/reschedule";
-      req.platformBookingUrl = "http://platform/booking";
-    }
-    return req;
+  async setCustomPlatformRequest(req: CustomRequest, clientId: string): Promise<void> {
+    // fetch oAuthClient from db and use data stored in db to set these values
+    req.platformClientId = clientId;
+    req.platformCancelUrl = "http://platform/cancel";
+    req.platformRescheduleUrl = "http://platform/reschedule";
+    req.platformBookingUrl = "http://platform/booking";
   }
 }
 
