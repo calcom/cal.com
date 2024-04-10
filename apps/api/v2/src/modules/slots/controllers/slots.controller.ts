@@ -14,7 +14,6 @@ import { ApiResponse, GetAvailableSlotsInput } from "@calcom/platform-types";
   path: "slots",
   version: "2",
 })
-@UseGuards(AccessTokenGuard)
 @DocsTags("Slots")
 export class SlotsController {
   constructor(private readonly slotsService: SlotsService) {}
@@ -66,7 +65,7 @@ export class SlotsController {
 
     return {
       data: availableSlots,
-      status: "success",
+      status: SUCCESS_STATUS,
     };
   }
 }
