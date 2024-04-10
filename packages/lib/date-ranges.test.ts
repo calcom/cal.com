@@ -391,7 +391,7 @@ describe("buildDateRanges", () => {
 
     const timeZone = "America/New_York";
 
-    const { dateRanges, dateRangesWithoutOOO } = buildDateRanges({
+    const { dateRanges, oooExcludedDateRanges } = buildDateRanges({
       availability: items,
       timeZone,
       dateFrom,
@@ -408,8 +408,8 @@ describe("buildDateRanges", () => {
       start: dayjs("2023-06-14T12:00:00Z").tz(timeZone),
       end: dayjs("2023-06-14T21:00:00Z").tz(timeZone),
     });
-    expect(dateRangesWithoutOOO.length).toBe(1);
-    expect(dateRangesWithoutOOO[0]).toEqual({
+    expect(oooExcludedDateRanges.length).toBe(1);
+    expect(oooExcludedDateRanges[0]).toEqual({
       start: dayjs("2023-06-14T12:00:00Z").tz(timeZone),
       end: dayjs("2023-06-14T21:00:00Z").tz(timeZone),
     });

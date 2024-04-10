@@ -128,7 +128,7 @@ export function buildDateRanges({
   dateFrom: Dayjs;
   dateTo: Dayjs;
   outOfOffice?: IOutOfOfficeData;
-}): { dateRanges: DateRange[]; dateRangesWithoutOOO: DateRange[] } {
+}): { dateRanges: DateRange[]; oooExcludedDateRanges: DateRange[] } {
   const dateFromOrganizerTZ = dateFrom.tz(timeZone);
   const groupedWorkingHours = groupByDate(
     availability.reduce((processed: DateRange[], item) => {
@@ -178,7 +178,7 @@ export function buildDateRanges({
     (ranges) => ranges.filter((range) => range.start.valueOf() !== range.end.valueOf())
   );
 
-  const dateRangesWithoutOOO = Object.values({
+  const oooExcludedDateRanges = Object.values({
     ...groupedWorkingHours,
     ...groupedDateOverrides,
     ...groupedOOO,
@@ -187,7 +187,7 @@ export function buildDateRanges({
     (ranges) => ranges.filter((range) => range.start.valueOf() !== range.end.valueOf())
   );
 
-  return { dateRanges: dateRanges.flat(), dateRangesWithoutOOO: dateRangesWithoutOOO.flat() };
+  return { dateRanges: dateRanges.flat(), oooExcludedDateRanges: oooExcludedDateRanges.flat() };
 }
 
 export function groupByDate(ranges: DateRange[]): { [x: string]: DateRange[] } {

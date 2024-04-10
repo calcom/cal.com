@@ -461,7 +461,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
       const {
         busy,
         dateRanges,
-        dateRangesWithoutOOO,
+        oooExcludedDateRanges,
         currentSeats: _currentSeats,
         timeZone,
         datesOutOfOffice,
@@ -497,7 +497,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
       return {
         timeZone,
         dateRanges,
-        dateRangesWithoutOOO,
+        oooExcludedDateRanges,
         busy,
         user: currentUser,
         datesOutOfOffice,
