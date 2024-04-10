@@ -332,18 +332,6 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     }
   }
 
-  const dateRanges = buildDateRanges({
-    dateFrom,
-    dateTo,
-    availability,
-    timeZone,
-  });
-
-  const formattedBusyTimes = detailedBusyTimes.map((busy) => ({
-    start: dayjs(busy.start),
-    end: dayjs(busy.end),
-  }));
-
   const datesOutOfOffice = await getOutOfOfficeDays({
     userId: user.id,
     dateFrom,
@@ -351,7 +339,22 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     availability,
   });
 
+  const { dateRanges, dateRangesWithoutOOO } = buildDateRanges({
+    dateFrom,
+    dateTo,
+    availability,
+    timeZone,
+    outOfOffice: datesOutOfOffice,
+  });
+
+  const formattedBusyTimes = detailedBusyTimes.map((busy) => ({
+    start: dayjs(busy.start),
+    end: dayjs(busy.end),
+  }));
+
   const dateRangesInWhichUserIsAvailable = subtract(dateRanges, formattedBusyTimes);
+
+  const dateRangesInWhichUserIsAvailableWithoutOOO = subtract(dateRangesWithoutOOO, formattedBusyTimes);
 
   log.debug(
     `getWorkingHours took ${endGetWorkingHours - startGetWorkingHours}ms for userId ${userId}`,
@@ -368,6 +371,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     busy: detailedBusyTimes,
     timeZone,
     dateRanges: dateRangesInWhichUserIsAvailable,
+    dateRangesWithoutOOO: dateRangesInWhichUserIsAvailableWithoutOOO,
     workingHours,
     dateOverrides,
     currentSeats,

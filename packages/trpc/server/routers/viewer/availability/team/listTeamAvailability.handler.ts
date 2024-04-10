@@ -97,7 +97,7 @@ async function buildMember(member: Member, dateFrom: Dayjs, dateTo: Dayjs) {
   });
   const timeZone = schedule?.timeZone || member.user.timeZone;
 
-  const dateRanges = buildDateRanges({
+  const { dateRanges } = buildDateRanges({
     dateFrom,
     dateTo,
     timeZone,
