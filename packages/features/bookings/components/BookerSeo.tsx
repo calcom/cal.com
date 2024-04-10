@@ -31,7 +31,6 @@ export const BookerSeo = (props: BookerSeoProps) => {
     bookingData,
   } = props;
   const { t } = useLocale();
-  console.log("BookerSeo Event Params", { username, eventSlug, isTeamEvent, org: entity.orgSlug ?? null });
   const { data: event } = trpc.viewer.public.event.useQuery(
     {
       username,
