@@ -53,6 +53,7 @@ function SingleAppPage(props: inferSSRProps<typeof getStaticProps>) {
       slug={data.slug}
       variant={data.variant}
       type={data.type}
+      dirName={data.dirName}
       logo={data.logo}
       categories={data.categories ?? [data.category]}
       author={data.publisher}
