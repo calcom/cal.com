@@ -1,10 +1,12 @@
 import { BadRequestException } from "@nestjs/common";
+import { ApiProperty } from "@nestjs/swagger";
 import { Transform, TransformFnParams } from "class-transformer";
 import { IsArray, IsDate, IsNumber } from "class-validator";
 
 export class CreateAvailabilityInput {
   @IsArray()
   @IsNumber({}, { each: true })
+  @ApiProperty({ example: [1, 2] })
   days!: number[];
 
   @IsDate()

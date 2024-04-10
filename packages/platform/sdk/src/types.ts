@@ -27,6 +27,11 @@ export type SdkAuthOptions = {
   refreshToken?: string;
 };
 
+export type PaginationOptions = {
+  limit?: number;
+  skip?: number;
+};
+
 export * from "./endpoints/slots/types";
 export * from "./endpoints/schedules/types";
 export * from "./endpoints/events/types";

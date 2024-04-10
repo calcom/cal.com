@@ -1,5 +1,6 @@
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { Controller, Get, NotFoundException, InternalServerErrorException, Query } from "@nestjs/common";
+import { ApiTags as DocsTags } from "@nestjs/swagger";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { getPublicEvent } from "@calcom/platform-libraries";
@@ -11,6 +12,7 @@ import { PrismaClient } from "@calcom/prisma";
   path: "events",
   version: "2",
 })
+@DocsTags("Event types")
 export class EventsController {
   constructor(private readonly prismaReadService: PrismaReadService) {}
 
