@@ -2,7 +2,7 @@
   "/*": "Don't modify slug - If required, do it using cli edit command",
   "name": "Pipedrive CRM",
   "slug": "pipedrive-crm",
-  "type": "pipedrive-crm_other_calendar",
+  "type": "pipedrive-crm_crm",
   "logo": "icon.svg",
   "url": "https://revert.dev",
   "variant": "crm",

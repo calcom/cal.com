@@ -163,10 +163,9 @@ export const TeamInviteEmail = (
                 <Trans
                   i18nKey="email_team_invite|content_addition|existing_user_added"
                   values={{ prevLink: props.prevLink, newLink: props.newLink, teamName: props.teamName }}>
-                  Your link has been changed from{" "}
-                  <a href={`https://${prevLink}`}>{prevLinkWithoutProtocol}</a> to{" "}
-                  <a href={`https://${newLink}`}>{newLinkWithoutProtocol}</a> but don&apos;t worry, all
-                  previous links still work and redirect appropriately.
+                  Your link has been changed from <a href={prevLink ?? ""}>{prevLinkWithoutProtocol}</a> to{" "}
+                  <a href={newLink ?? ""}>{newLinkWithoutProtocol}</a> but don&apos;t worry, all previous
+                  links still work and redirect appropriately.
                   <br />
                   <br />
                   Please note: All of your personal event types have been moved into the{" "}
@@ -179,7 +178,8 @@ export const TeamInviteEmail = (
                   For personal events we recommend creating a new account with a personal email address.
                   <br />
                   <br />
-                  Enjoy your new clean link: <a href={`https://${newLink}`}>{newLinkWithoutProtocol}</a>
+                  Enjoy your new clean link:{" "}
+                  <a href={`${newLink}?orgRedirection=true`}>{newLinkWithoutProtocol}</a>
                 </Trans>
               </>
             ) : (
@@ -227,19 +227,17 @@ export const TeamInviteEmail = (
     if (typeOfInvite === "TO_SUBTEAM") {
       return (
         <>
-          (
           {autoJoinType === "added" ? (
             <Trans i18nKey="email_team_invite|content|added_to_subteam">
               {invitedBy} has added you to the team <strong>{teamName}</strong> in their organization{" "}
-              <strong>{parentTeamName}</strong>
+              <strong>{parentTeamName}</strong>.
             </Trans>
           ) : (
             <Trans i18nKey="email_team_invite|content|invited_to_subteam">
               {invitedBy} has added you to the team <strong>{teamName}</strong> in their organization{" "}
-              <strong>{parentTeamName}</strong>
+              <strong>{parentTeamName}</strong>.
             </Trans>
-          )}
-          )
+          )}{" "}
           <Trans>
             {appName} is the event-juggling scheduler that enables you and your team to schedule meetings
             without the email tennis.

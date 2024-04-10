@@ -25,6 +25,7 @@ export class OrganizationRepository {
       autoAcceptEmail: string;
       seats: number | null;
       pricePerSeat: number | null;
+      isPlatform: boolean;
     };
     owner: {
       id: number;
@@ -50,6 +51,7 @@ export class OrganizationRepository {
           ...(IS_TEAM_BILLING_ENABLED ? { requestedSlug: orgData.slug } : {}),
           orgSeats: orgData.seats,
           orgPricePerSeat: orgData.pricePerSeat,
+          isPlatform: orgData.isPlatform,
         },
       },
     });
