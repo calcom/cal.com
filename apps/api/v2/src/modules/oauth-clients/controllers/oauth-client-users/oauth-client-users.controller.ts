@@ -1,8 +1,8 @@
-import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
-import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
+import { KeysResponseDto } from "@/modules/oauth-clients/controllers/oauth-flow/responses/KeysResponse.dto";
 import { OAuthClientCredentialsGuard } from "@/modules/oauth-clients/guards/oauth-client-credentials/oauth-client-credentials.guard";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { OAuthClientUsersService } from "@/modules/oauth-clients/services/oauth-clients-users.service";
+import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { CreateManagedPlatformUserInput } from "@/modules/users/inputs/create-managed-platform-user.input";
 import { UpdateManagedPlatformUserInput } from "@/modules/users/inputs/update-managed-platform-user.input";
 import { UsersRepository } from "@/modules/users/users.repository";
@@ -15,12 +15,12 @@ import {
   Get,
   HttpCode,
   HttpStatus,
-  NotFoundException,
   Param,
   Patch,
   BadRequestException,
   Delete,
   Query,
+  NotFoundException,
 } from "@nestjs/common";
 import { User } from "@prisma/client";
 
@@ -31,17 +31,18 @@ import { ApiResponse, Pagination } from "@calcom/platform-types";
   path: "oauth-clients/:clientId/users",
   version: "2",
 })
+@UseGuards(OAuthClientCredentialsGuard)
 export class OAuthClientUsersController {
   private readonly logger = new Logger("UserController");
 
   constructor(
     private readonly userRepository: UsersRepository,
     private readonly oAuthClientUsersService: OAuthClientUsersService,
-    private readonly oauthRepository: OAuthClientRepository
+    private readonly oauthRepository: OAuthClientRepository,
+    private readonly tokensRepository: TokensRepository
   ) {}
 
   @Get("/")
-  @UseGuards(OAuthClientCredentialsGuard)
   async getManagedUsers(
     @Param("clientId") oAuthClientId: string,
     @Query() queryParams: Pagination
@@ -62,7 +63,6 @@ export class OAuthClientUsersController {
   }
 
   @Post("/")
-  @UseGuards(OAuthClientCredentialsGuard)
   async createUser(
     @Param("clientId") oAuthClientId: string,
     @Body() body: CreateManagedPlatformUserInput
@@ -101,48 +101,30 @@ export class OAuthClientUsersController {
 
   @Get("/:userId")
   @HttpCode(HttpStatus.OK)
-  @UseGuards(AccessTokenGuard)
   async getUserById(
-    // @Param("clientId") is added to generate OpenAPI schema correctly: clientId is in @Controller path, and unless
-    // also added here as @Param, then it does not appear in OpenAPI schema.
-    @Param("clientId") _: string,
-    @GetUser("id") accessTokenUserId: number,
+    @Param("clientId") clientId: string,
     @Param("userId") userId: number
   ): Promise<ApiResponse<UserReturned>> {
-    if (accessTokenUserId !== userId) {
-      throw new BadRequestException("userId parameter does not match access token");
-    }
-
-    const user = await this.userRepository.findById(userId);
-    if (!user) {
-      throw new NotFoundException(`User with ID ${userId} not found.`);
-    }
+    const { id, username, email } = await this.validateManagedUserOwnership(clientId, userId);
 
     return {
       status: SUCCESS_STATUS,
       data: {
-        id: user.id,
-        email: user.email,
-        username: user.username,
+        id,
+        email,
+        username,
       },
     };
   }
 
   @Patch("/:userId")
   @HttpCode(HttpStatus.OK)
-  @UseGuards(AccessTokenGuard)
   async updateUser(
-    // @Param("clientId") is added to generate OpenAPI schema correctly: clientId is in @Controller path, and unless
-    // also added here as @Param, then it does not appear in OpenAPI schema.
-    @Param("clientId") _: string,
-    @GetUser("id") accessTokenUserId: number,
+    @Param("clientId") clientId: string,
     @Param("userId") userId: number,
     @Body() body: UpdateManagedPlatformUserInput
   ): Promise<ApiResponse<UserReturned>> {
-    if (accessTokenUserId !== userId) {
-      throw new BadRequestException("userId parameter does not match access token");
-    }
-
+    await this.validateManagedUserOwnership(clientId, userId);
     this.logger.log(`Updating user with ID ${userId}: ${JSON.stringify(body, null, 2)}`);
 
     const user = await this.userRepository.update(userId, body);
@@ -159,40 +141,57 @@ export class OAuthClientUsersController {
 
   @Delete("/:userId")
   @HttpCode(HttpStatus.OK)
-  @UseGuards(AccessTokenGuard)
   async deleteUser(
-    // @Param("clientId") is added to generate OpenAPI schema correctly: clientId is in @Controller path, and unless
-    // also added here as @Param, then it does not appear in OpenAPI schema.
-    @Param("clientId") _: string,
-    @GetUser("id") accessTokenUserId: number,
+    @Param("clientId") clientId: string,
     @Param("userId") userId: number
   ): Promise<ApiResponse<UserReturned>> {
-    if (accessTokenUserId !== userId) {
-      throw new BadRequestException("userId parameter does not match access token");
-    }
+    const { id, email, username } = await this.validateManagedUserOwnership(clientId, userId);
+    await this.userRepository.delete(userId);
 
-    this.logger.log(`Deleting user with ID: ${userId}`);
-
-    const existingUser = await this.userRepository.findById(userId);
-
-    if (!existingUser) {
-      throw new NotFoundException(`User with ID=${userId} does not exist`);
-    }
-
-    if (!existingUser.isPlatformManaged) {
-      throw new BadRequestException(`Can't delete non managed user with ID=${userId}`);
-    }
-
-    const user = await this.userRepository.delete(userId);
+    this.logger.warn(`Deleting user with ID: ${userId}`);
 
     return {
       status: SUCCESS_STATUS,
       data: {
-        id: user.id,
-        email: user.email,
-        username: user.username,
+        id,
+        email,
+        username,
       },
     };
+  }
+
+  @Post("/:userId/force-refresh")
+  @HttpCode(HttpStatus.OK)
+  async forceRefresh(
+    @Param("userId") userId: number,
+    @Param("clientId") oAuthClientId: string
+  ): Promise<KeysResponseDto> {
+    this.logger.log(`Forcing new access tokens for managed user with ID ${userId}`);
+
+    const { id } = await this.validateManagedUserOwnership(oAuthClientId, userId);
+
+    const { accessToken, refreshToken } = await this.tokensRepository.createOAuthTokens(
+      oAuthClientId,
+      id,
+      true
+    );
+
+    return {
+      status: SUCCESS_STATUS,
+      data: {
+        accessToken,
+        refreshToken,
+      },
+    };
+  }
+
+  private async validateManagedUserOwnership(clientId: string, userId: number): Promise<User> {
+    const user = await this.userRepository.findByIdWithinPlatformScope(userId, clientId);
+    if (!user) {
+      throw new NotFoundException(`User with ID ${userId} is not part of this OAuth client.`);
+    }
+
+    return user;
   }
 }
 

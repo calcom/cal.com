@@ -52,6 +52,20 @@ export class UsersRepository {
     });
   }
 
+  async findByIdWithinPlatformScope(userId: number, clientId: string) {
+    return this.dbRead.prisma.user.findFirst({
+      where: {
+        id: userId,
+        isPlatformManaged: true,
+        platformOAuthClients: {
+          some: {
+            id: clientId,
+          },
+        },
+      },
+    });
+  }
+
   async findByIdWithProfile(userId: number): Promise<UserWithProfile | null> {
     return this.dbRead.prisma.user.findUnique({
       where: {
