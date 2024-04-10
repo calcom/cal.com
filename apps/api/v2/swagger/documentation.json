@@ -16,7 +16,10 @@
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Health - development only"
+        ]
       }
     },
     "/api/v2/events/public": {
@@ -67,7 +70,10 @@
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Event types"
+        ]
       }
     },
     "/api/v2/oauth-clients/{clientId}/users": {
@@ -89,12 +95,15 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/GetManagedUsersOutput"
                 }
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Managed users"
+        ]
       },
       "post": {
         "operationId": "OAuthClientUsersController_createUser",
@@ -113,7 +122,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateManagedPlatformUserInput"
+                "$ref": "#/components/schemas/CreateManagedUserInput"
               }
             }
           }
@@ -124,12 +133,15 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/CreateManagedUserOutput"
                 }
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Managed users"
+        ]
       }
     },
     "/api/v2/oauth-clients/{clientId}/users/{userId}": {
@@ -159,12 +171,15 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/GetManagedUserOutput"
                 }
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Managed users"
+        ]
       },
       "patch": {
         "operationId": "OAuthClientUsersController_updateUser",
@@ -191,7 +206,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateManagedPlatformUserInput"
+                "$ref": "#/components/schemas/UpdateManagedUserInput"
               }
             }
           }
@@ -202,12 +217,15 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/UpdateManagedUserOutput"
                 }
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Managed users"
+        ]
       },
       "delete": {
         "operationId": "OAuthClientUsersController_deleteUser",
@@ -235,12 +253,15 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/DeleteManagedUserOutput"
                 }
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Managed users"
+        ]
       }
     },
     "/api/v2/oauth-clients": {
@@ -272,7 +293,7 @@
           }
         },
         "tags": [
-          "Development only"
+          "OAuth - development only"
         ]
       },
       "get": {
@@ -293,7 +314,7 @@
           }
         },
         "tags": [
-          "Development only"
+          "OAuth - development only"
         ]
       }
     },
@@ -325,7 +346,7 @@
           }
         },
         "tags": [
-          "Development only"
+          "OAuth - development only"
         ]
       },
       "patch": {
@@ -365,7 +386,7 @@
           }
         },
         "tags": [
-          "Development only"
+          "OAuth - development only"
         ]
       },
       "delete": {
@@ -395,7 +416,7 @@
           }
         },
         "tags": [
-          "Development only"
+          "OAuth - development only"
         ]
       }
     },
@@ -433,7 +454,7 @@
           }
         },
         "tags": [
-          "Development only"
+          "OAuth - development only"
         ]
       }
     },
@@ -486,7 +507,7 @@
           }
         },
         "tags": [
-          "Development only"
+          "OAuth - development only"
         ]
       }
     },
@@ -534,7 +555,7 @@
           }
         },
         "tags": [
-          "Development only"
+          "OAuth - development only"
         ]
       }
     },
@@ -733,12 +754,15 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/GcalAuthUrlOutput"
                 }
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Google Calendar"
+        ]
       }
     },
     "/api/v2/ee/gcal/oauth/save": {
@@ -768,12 +792,15 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/GcalSaveRedirectOutput"
                 }
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Google Calendar"
+        ]
       }
     },
     "/api/v2/ee/gcal/check": {
@@ -786,12 +813,15 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/GcalCheckOutput"
                 }
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Google Calendar"
+        ]
       }
     },
     "/api/v2/ee/provider/{clientId}": {
@@ -813,12 +843,15 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/ProviderVerifyClientOutput"
                 }
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Cal provider"
+        ]
       }
     },
     "/api/v2/ee/provider/{clientId}/access-token": {
@@ -840,12 +873,15 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/ProviderVerifyAccessTokenOutput"
                 }
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Cal provider"
+        ]
       }
     },
     "/api/v2/schedules": {
@@ -868,12 +904,15 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/CreateScheduleOutput"
                 }
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Schedules"
+        ]
       },
       "get": {
         "operationId": "SchedulesController_getSchedules",
@@ -884,12 +923,15 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/GetSchedulesOutput"
                 }
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Schedules"
+        ]
       }
     },
     "/api/v2/schedules/default": {
@@ -898,16 +940,19 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": "",
+            "description": "Returns the default schedule",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/GetDefaultScheduleOutput"
                 }
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Schedules"
+        ]
       }
     },
     "/api/v2/schedules/{scheduleId}": {
@@ -929,16 +974,28 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/GetScheduleOutput"
                 }
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Schedules"
+        ]
       },
       "patch": {
         "operationId": "SchedulesController_updateSchedule",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "scheduleId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -955,12 +1012,15 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/UpdateScheduleOutput"
                 }
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Schedules"
+        ]
       },
       "delete": {
         "operationId": "SchedulesController_deleteSchedule",
@@ -980,12 +1040,15 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/DeleteScheduleOutput"
                 }
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Schedules"
+        ]
       }
     },
     "/api/v2/ee/me": {
@@ -998,12 +1061,15 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/GetMeOutput"
                 }
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Me"
+        ]
       },
       "patch": {
         "operationId": "MeController_updateMe",
@@ -1013,7 +1079,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateManagedPlatformUserInput"
+                "$ref": "#/components/schemas/UpdateManagedUserInput"
               }
             }
           }
@@ -1024,12 +1090,15 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/UpdateMeOutput"
                 }
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Me"
+        ]
       }
     },
     "/api/v2/ee/calendars/busy-times": {
@@ -1042,12 +1111,15 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/GetBusyTimesOutput"
                 }
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Calendars"
+        ]
       }
     },
     "/api/v2/ee/calendars": {
@@ -1060,30 +1132,68 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/ConnectedCalendarsOutput"
                 }
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Calendars"
+        ]
       }
     },
     "/api/v2/ee/bookings": {
       "get": {
         "operationId": "BookingsController_getBookings",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "cursor",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "filters[status]",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "upcoming",
+                "recurring",
+                "past",
+                "cancelled",
+                "unconfirmed"
+              ],
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/GetBookingsOutput"
                 }
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Bookings"
+        ]
       },
       "post": {
         "operationId": "BookingsController_createBooking",
@@ -1109,7 +1219,10 @@
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Bookings"
+        ]
       }
     },
     "/api/v2/ee/bookings/{bookingUid}": {
@@ -1131,12 +1244,15 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/GetBookingOutput"
                 }
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Bookings"
+        ]
       }
     },
     "/api/v2/ee/bookings/{bookingUid}/reschedule": {
@@ -1163,7 +1279,10 @@
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Bookings"
+        ]
       }
     },
     "/api/v2/ee/bookings/{bookingId}/cancel": {
@@ -1200,7 +1319,10 @@
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Bookings"
+        ]
       }
     },
     "/api/v2/ee/bookings/reccuring": {
@@ -1231,7 +1353,10 @@
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Bookings"
+        ]
       }
     },
     "/api/v2/ee/bookings/instant": {
@@ -1259,7 +1384,10 @@
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Bookings"
+        ]
       }
     },
     "/api/v2/slots/reserve": {
@@ -1287,7 +1415,10 @@
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Slots"
+        ]
       }
     },
     "/api/v2/slots/selected-slot": {
@@ -1305,7 +1436,10 @@
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Slots"
+        ]
       }
     },
     "/api/v2/slots/available": {
@@ -1323,7 +1457,10 @@
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Slots"
+        ]
       }
     },
     "/api/v2/timezones": {
@@ -1341,7 +1478,10 @@
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Timezones"
+        ]
       }
     }
   },
@@ -1355,22 +1495,99 @@
   "servers": [],
   "components": {
     "schemas": {
-      "CreateManagedPlatformUserInput": {
+      "ManagedUserOutput": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1
+          },
+          "email": {
+            "type": "string",
+            "example": "alice+cluo37fwd0001khkzqqynkpj3@example.com"
+          },
+          "username": {
+            "type": "string",
+            "nullable": true,
+            "example": "alice"
+          },
+          "timeZone": {
+            "type": "string",
+            "example": "America/New_York"
+          },
+          "weekStart": {
+            "type": "string",
+            "example": "Sunday"
+          },
+          "createdDate": {
+            "type": "string",
+            "example": "2024-04-01T00:00:00.000Z"
+          },
+          "timeFormat": {
+            "type": "number",
+            "nullable": true,
+            "example": 12
+          },
+          "defaultScheduleId": {
+            "type": "number",
+            "nullable": true,
+            "example": null
+          }
+        },
+        "required": [
+          "id",
+          "email",
+          "username",
+          "timeZone",
+          "weekStart",
+          "createdDate",
+          "timeFormat",
+          "defaultScheduleId"
+        ]
+      },
+      "GetManagedUsersOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ManagedUserOutput"
+            }
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "CreateManagedUserInput": {
         "type": "object",
         "properties": {
           "email": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
+            "type": "string",
+            "example": "alice@example.com"
           },
           "timeFormat": {
-            "type": "number"
+            "type": "number",
+            "example": 12
           },
           "weekStart": {
-            "type": "string"
+            "type": "string",
+            "example": "Sunday"
           },
           "timeZone": {
+            "type": "string",
+            "example": "America/New_York"
+          },
+          "name": {
             "type": "string"
           }
         },
@@ -1378,7 +1595,66 @@
           "email"
         ]
       },
-      "UpdateManagedPlatformUserInput": {
+      "CreateManagedUserData": {
+        "type": "object",
+        "properties": {
+          "user": {
+            "$ref": "#/components/schemas/ManagedUserOutput"
+          },
+          "accessToken": {
+            "type": "string"
+          },
+          "refreshToken": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "user",
+          "accessToken",
+          "refreshToken"
+        ]
+      },
+      "CreateManagedUserOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/CreateManagedUserData"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "GetManagedUserOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/ManagedUserOutput"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "UpdateManagedUserInput": {
         "type": "object",
         "properties": {
           "email": {
@@ -1400,6 +1676,46 @@
             "type": "string"
           }
         }
+      },
+      "UpdateManagedUserOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/ManagedUserOutput"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "DeleteManagedUserOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/ManagedUserOutput"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
       },
       "CreateOAuthClientInput": {
         "type": "object",
@@ -1709,11 +2025,10 @@
           },
           "locations": {
             "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/EventTypeLocation"
-              }
-            ]
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EventTypeLocation"
+            }
           }
         },
         "required": [
@@ -1972,10 +2287,104 @@
           "data"
         ]
       },
+      "AuthUrlData": {
+        "type": "object",
+        "properties": {
+          "authUrl": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "authUrl"
+        ]
+      },
+      "GcalAuthUrlOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/AuthUrlData"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "GcalSaveRedirectOutput": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "url"
+        ]
+      },
+      "GcalCheckOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "ProviderVerifyClientOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "ProviderVerifyAccessTokenOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
       "CreateAvailabilityInput": {
         "type": "object",
         "properties": {
           "days": {
+            "example": [
+              1,
+              2
+            ],
             "type": "array",
             "items": {
               "type": "number"
@@ -2012,8 +2421,7 @@
             }
           },
           "isDefault": {
-            "type": "object",
-            "default": true
+            "type": "boolean"
           }
         },
         "required": [
@@ -2022,9 +2430,1283 @@
           "isDefault"
         ]
       },
+      "WorkingHours": {
+        "type": "object",
+        "properties": {
+          "days": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "startTime": {
+            "type": "number"
+          },
+          "endTime": {
+            "type": "number"
+          },
+          "userId": {
+            "type": "number",
+            "nullable": true
+          }
+        },
+        "required": [
+          "days",
+          "startTime",
+          "endTime"
+        ]
+      },
+      "AvailabilityModel": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "userId": {
+            "type": "number",
+            "nullable": true
+          },
+          "eventTypeId": {
+            "type": "number",
+            "nullable": true
+          },
+          "days": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "startTime": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "endTime": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "date": {
+            "format": "date-time",
+            "type": "string",
+            "nullable": true
+          },
+          "scheduleId": {
+            "type": "number",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "days",
+          "startTime",
+          "endTime"
+        ]
+      },
+      "TimeRange": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "number",
+            "nullable": true
+          },
+          "start": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "end": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "start",
+          "end"
+        ]
+      },
+      "ScheduleOutput": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "name": {
+            "type": "string"
+          },
+          "isManaged": {
+            "type": "boolean"
+          },
+          "workingHours": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkingHours"
+            }
+          },
+          "schedule": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AvailabilityModel"
+            }
+          },
+          "availability": {
+            "type": "array",
+            "items": {
+              "required": true,
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/TimeRange"
+              }
+            }
+          },
+          "timeZone": {
+            "type": "string"
+          },
+          "dateOverrides": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "isDefault": {
+            "type": "boolean"
+          },
+          "isLastSchedule": {
+            "type": "boolean"
+          },
+          "readOnly": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "isManaged",
+          "workingHours",
+          "schedule",
+          "availability",
+          "timeZone",
+          "dateOverrides",
+          "isDefault",
+          "isLastSchedule",
+          "readOnly"
+        ]
+      },
+      "CreateScheduleOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/ScheduleOutput"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "GetDefaultScheduleOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ScheduleOutput"
+              }
+            ]
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "GetScheduleOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/ScheduleOutput"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "GetSchedulesOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/ScheduleOutput"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
       "UpdateScheduleInput": {
         "type": "object",
-        "properties": {}
+        "properties": {
+          "timeZone": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "isDefault": {
+            "type": "boolean"
+          },
+          "schedule": {
+            "example": [
+              [],
+              [
+                {
+                  "start": "2022-01-01T00:00:00.000Z",
+                  "end": "2022-01-02T00:00:00.000Z"
+                }
+              ],
+              [],
+              [],
+              [],
+              [],
+              []
+            ],
+            "items": {
+              "type": "array"
+            },
+            "type": "array"
+          },
+          "dateOverrides": {
+            "example": [
+              [],
+              [
+                {
+                  "start": "2022-01-01T00:00:00.000Z",
+                  "end": "2022-01-02T00:00:00.000Z"
+                }
+              ],
+              [],
+              [],
+              [],
+              [],
+              []
+            ],
+            "items": {
+              "type": "array"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "timeZone",
+          "name",
+          "isDefault",
+          "schedule"
+        ]
+      },
+      "EventTypeModel": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "eventName": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id"
+        ]
+      },
+      "ScheduleModel": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "userId": {
+            "type": "number"
+          },
+          "name": {
+            "type": "string"
+          },
+          "timeZone": {
+            "type": "string",
+            "nullable": true
+          },
+          "eventType": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EventTypeModel"
+            }
+          },
+          "availability": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AvailabilityModel"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "userId",
+          "name"
+        ]
+      },
+      "UpdatedScheduleOutput": {
+        "type": "object",
+        "properties": {
+          "schedule": {
+            "$ref": "#/components/schemas/ScheduleModel"
+          },
+          "isDefault": {
+            "type": "boolean"
+          },
+          "timeZone": {
+            "type": "string"
+          },
+          "prevDefaultId": {
+            "type": "number",
+            "nullable": true
+          },
+          "currentDefaultId": {
+            "type": "number",
+            "nullable": true
+          }
+        },
+        "required": [
+          "schedule",
+          "isDefault"
+        ]
+      },
+      "UpdateScheduleOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/UpdatedScheduleOutput"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "DeleteScheduleOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "MeOutput": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "username": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "timeFormat": {
+            "type": "number"
+          },
+          "defaultScheduleId": {
+            "type": "number",
+            "nullable": true
+          },
+          "weekStart": {
+            "type": "string"
+          },
+          "timeZone": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "username",
+          "email",
+          "timeFormat",
+          "defaultScheduleId",
+          "weekStart",
+          "timeZone"
+        ]
+      },
+      "GetMeOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/MeOutput"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "UpdateMeOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/MeOutput"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "BusyTimesOutput": {
+        "type": "object",
+        "properties": {
+          "start": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "end": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "source": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "start",
+          "end"
+        ]
+      },
+      "GetBusyTimesOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BusyTimesOutput"
+            }
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "Integration": {
+        "type": "object",
+        "properties": {
+          "appData": {
+            "type": "object",
+            "nullable": true
+          },
+          "dirName": {
+            "type": "string"
+          },
+          "__template": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "installed": {
+            "type": "boolean"
+          },
+          "type": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "variant": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string"
+          },
+          "categories": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "logo": {
+            "type": "string"
+          },
+          "publisher": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "locationOption": {
+            "type": "object",
+            "nullable": true
+          }
+        },
+        "required": [
+          "name",
+          "description",
+          "type",
+          "variant",
+          "categories",
+          "logo",
+          "publisher",
+          "slug",
+          "url",
+          "email",
+          "locationOption"
+        ]
+      },
+      "Primary": {
+        "type": "object",
+        "properties": {
+          "externalId": {
+            "type": "string"
+          },
+          "integration": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "primary": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "readOnly": {
+            "type": "boolean"
+          },
+          "email": {
+            "type": "string"
+          },
+          "isSelected": {
+            "type": "boolean"
+          },
+          "credentialId": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "externalId",
+          "primary",
+          "readOnly",
+          "isSelected",
+          "credentialId"
+        ]
+      },
+      "Calendar": {
+        "type": "object",
+        "properties": {
+          "externalId": {
+            "type": "string"
+          },
+          "integration": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "primary": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "readOnly": {
+            "type": "boolean"
+          },
+          "email": {
+            "type": "string"
+          },
+          "isSelected": {
+            "type": "boolean"
+          },
+          "credentialId": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "externalId",
+          "readOnly",
+          "isSelected",
+          "credentialId"
+        ]
+      },
+      "ConnectedCalendar": {
+        "type": "object",
+        "properties": {
+          "integration": {
+            "$ref": "#/components/schemas/Integration"
+          },
+          "credentialId": {
+            "type": "number"
+          },
+          "primary": {
+            "$ref": "#/components/schemas/Primary"
+          },
+          "calendars": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Calendar"
+            }
+          }
+        },
+        "required": [
+          "integration",
+          "credentialId"
+        ]
+      },
+      "DestinationCalendar": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "integration": {
+            "type": "string"
+          },
+          "externalId": {
+            "type": "string"
+          },
+          "primaryEmail": {
+            "type": "string",
+            "nullable": true
+          },
+          "userId": {
+            "type": "number",
+            "nullable": true
+          },
+          "eventTypeId": {
+            "type": "number",
+            "nullable": true
+          },
+          "credentialId": {
+            "type": "number",
+            "nullable": true
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "primary": {
+            "type": "boolean"
+          },
+          "readOnly": {
+            "type": "boolean"
+          },
+          "email": {
+            "type": "string"
+          },
+          "integrationTitle": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "integration",
+          "externalId",
+          "primaryEmail",
+          "userId",
+          "eventTypeId",
+          "credentialId"
+        ]
+      },
+      "ConnectedCalendarsData": {
+        "type": "object",
+        "properties": {
+          "connectedCalendars": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ConnectedCalendar"
+            }
+          },
+          "destinationCalendar": {
+            "$ref": "#/components/schemas/DestinationCalendar"
+          }
+        },
+        "required": [
+          "connectedCalendars",
+          "destinationCalendar"
+        ]
+      },
+      "ConnectedCalendarsOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/ConnectedCalendarsData"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "Attendee": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "email": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "timeZone": {
+            "type": "string"
+          },
+          "locale": {
+            "type": "string",
+            "nullable": true
+          },
+          "bookingId": {
+            "type": "number",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "email",
+          "name",
+          "timeZone",
+          "locale",
+          "bookingId"
+        ]
+      },
+      "EventType": {
+        "type": "object",
+        "properties": {
+          "slug": {
+            "type": "string"
+          },
+          "id": {
+            "type": "number"
+          },
+          "eventName": {
+            "type": "string",
+            "nullable": true
+          },
+          "price": {
+            "type": "number"
+          },
+          "recurringEvent": {
+            "type": "object"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "metadata": {
+            "type": "object"
+          },
+          "seatsShowAttendees": {
+            "type": "object"
+          },
+          "seatsShowAvailabilityCount": {
+            "type": "object"
+          },
+          "team": {
+            "type": "object",
+            "nullable": true
+          }
+        },
+        "required": [
+          "price",
+          "currency",
+          "metadata"
+        ]
+      },
+      "Reference": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "type": {
+            "type": "string"
+          },
+          "uid": {
+            "type": "string"
+          },
+          "meetingId": {
+            "type": "string",
+            "nullable": true
+          },
+          "thirdPartyRecurringEventId": {
+            "type": "string",
+            "nullable": true
+          },
+          "meetingPassword": {
+            "type": "string",
+            "nullable": true
+          },
+          "meetingUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "bookingId": {
+            "type": "number",
+            "nullable": true
+          },
+          "externalCalendarId": {
+            "type": "string",
+            "nullable": true
+          },
+          "deleted": {
+            "type": "object"
+          },
+          "credentialId": {
+            "type": "number",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "uid",
+          "meetingPassword",
+          "bookingId",
+          "externalCalendarId",
+          "credentialId"
+        ]
+      },
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "email": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "email"
+        ]
+      },
+      "GetBookingsDataEntry": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "title": {
+            "type": "string"
+          },
+          "userPrimaryEmail": {
+            "type": "string",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "customInputs": {
+            "type": "object"
+          },
+          "startTime": {
+            "type": "string"
+          },
+          "endTime": {
+            "type": "string"
+          },
+          "attendees": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Attendee"
+            }
+          },
+          "metadata": {
+            "type": "object"
+          },
+          "uid": {
+            "type": "string"
+          },
+          "recurringEventId": {
+            "type": "string",
+            "nullable": true
+          },
+          "location": {
+            "type": "string",
+            "nullable": true
+          },
+          "eventType": {
+            "$ref": "#/components/schemas/EventType"
+          },
+          "status": {
+            "type": "object"
+          },
+          "paid": {
+            "type": "boolean"
+          },
+          "payment": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "references": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Reference"
+            }
+          },
+          "isRecorded": {
+            "type": "boolean"
+          },
+          "seatsReferences": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "user": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/User"
+              }
+            ]
+          },
+          "rescheduled": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "description",
+          "customInputs",
+          "startTime",
+          "endTime",
+          "attendees",
+          "metadata",
+          "uid",
+          "recurringEventId",
+          "location",
+          "eventType",
+          "status",
+          "paid",
+          "payment",
+          "references",
+          "isRecorded",
+          "seatsReferences",
+          "user"
+        ]
+      },
+      "GetBookingsData": {
+        "type": "object",
+        "properties": {
+          "bookings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GetBookingsDataEntry"
+            }
+          },
+          "recurringInfo": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "nextCursor": {
+            "type": "number",
+            "nullable": true
+          }
+        },
+        "required": [
+          "bookings",
+          "recurringInfo",
+          "nextCursor"
+        ]
+      },
+      "GetBookingsOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/GetBookingsData"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "GetBookingData": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "id": {
+            "type": "number"
+          },
+          "uid": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "customInputs": {
+            "type": "object"
+          },
+          "smsReminderNumber": {
+            "type": "string",
+            "nullable": true
+          },
+          "recurringEventId": {
+            "type": "string",
+            "nullable": true
+          },
+          "startTime": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "endTime": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "location": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "string"
+          },
+          "metadata": {
+            "type": "object"
+          },
+          "cancellationReason": {
+            "type": "string",
+            "nullable": true
+          },
+          "responses": {
+            "type": "object"
+          },
+          "rejectionReason": {
+            "type": "string",
+            "nullable": true
+          },
+          "userPrimaryEmail": {
+            "type": "string",
+            "nullable": true
+          },
+          "user": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/User"
+              }
+            ]
+          },
+          "attendees": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Attendee"
+            }
+          },
+          "eventTypeId": {
+            "type": "number",
+            "nullable": true
+          },
+          "eventType": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/EventType"
+              }
+            ]
+          }
+        },
+        "required": [
+          "title",
+          "id",
+          "uid",
+          "description",
+          "customInputs",
+          "smsReminderNumber",
+          "recurringEventId",
+          "startTime",
+          "endTime",
+          "location",
+          "status",
+          "metadata",
+          "cancellationReason",
+          "responses",
+          "rejectionReason",
+          "userPrimaryEmail",
+          "user",
+          "attendees",
+          "eventTypeId",
+          "eventType"
+        ]
+      },
+      "GetBookingOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/GetBookingData"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "Location": {
+        "type": "object",
+        "properties": {
+          "optionValue": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "optionValue",
+          "value"
+        ]
+      },
+      "Response": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "guests": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "location": {
+            "$ref": "#/components/schemas/Location"
+          },
+          "notes": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "email",
+          "guests"
+        ]
       },
       "CreateBookingInput": {
         "type": "object",
@@ -2074,6 +3756,9 @@
           },
           "seatReferenceUid": {
             "type": "string"
+          },
+          "responses": {
+            "$ref": "#/components/schemas/Response"
           }
         },
         "required": [
@@ -2082,12 +3767,36 @@
           "timeZone",
           "language",
           "metadata",
-          "hashedLink"
+          "hashedLink",
+          "responses"
         ]
       },
       "CancelBookingInput": {
         "type": "object",
-        "properties": {}
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "uid": {
+            "type": "string"
+          },
+          "allRemainingBookings": {
+            "type": "boolean"
+          },
+          "cancellationReason": {
+            "type": "string"
+          },
+          "seatReferenceUid": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "uid",
+          "allRemainingBookings",
+          "cancellationReason",
+          "seatReferenceUid"
+        ]
       },
       "ReserveSlotInput": {
         "type": "object",
