@@ -145,7 +145,18 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
       Boolean(timezone) &&
       // Should only wait for one or the other, not both.
       (Boolean(eventSlug) || Boolean(event?.data?.id) || event?.data?.id === 0),
+    eventTypeSlug: getEventTypeSlug(),
+    orgSlug: event.data?.entity.orgSlug,
   });
+
+  const getEventTypeSlug = useEffect(() => {
+    const isDynamic = getUsernameList(props.username ?? "").length > 1;
+    if (isDynamic) {
+      return "dynamic";
+    }
+
+    return event?.data.slug || undefined;
+  }, [event?.data.slug, props.username]);
 
   const bookerForm = useBookingForm({
     event: event.data,

@@ -37,6 +37,10 @@ export class GetAvailableSlotsInput {
   @IsString()
   @IsOptional()
   timeZone?: string;
+
+  @IsString()
+  @IsOptional()
+  orgSlug?: string;
 }
 
 export class RemoveSelectedSlotInput {
