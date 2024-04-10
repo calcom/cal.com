@@ -2,6 +2,7 @@
 import { countBy } from "lodash";
 import { v4 as uuid } from "uuid";
 
+import CrmManager from "@calcom/core/crmManager/crmManager";
 import { getAggregatedAvailability } from "@calcom/core/getAggregatedAvailability";
 import { getBusyTimesForLimitChecks } from "@calcom/core/getBusyTimes";
 import type { CurrentSeats } from "@calcom/core/getUserAvailability";
@@ -344,13 +345,61 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
   }
   let currentSeats: CurrentSeats | undefined;
 
-  let usersWithCredentials = eventType.users.map((user) => ({
-    isFixed: !eventType.schedulingType || eventType.schedulingType === SchedulingType.COLLECTIVE,
-    ...user,
-  }));
-  // overwrite if it is a team event & hosts is set, otherwise keep using users.
-  if (eventType.schedulingType && !!eventType.hosts?.length) {
+  let usersWithCredentials;
+  let teamMember;
+
+  if (eventType.schedulingType === SchedulingType.ROUND_ROBIN && input.bookerEmail) {
+    let crmRoundRobinLeadSkip;
+    // See if CRM app is enabled and skip RR assignment
+    const eventTypeAppMetadata = eventType?.metadata?.apps;
+    for (const appKey in eventTypeAppMetadata) {
+      const app = eventTypeAppMetadata[appKey];
+      if (
+        app.enabled &&
+        app.appCategories &&
+        app.appCategories.some((category) => category === "crm") &&
+        app.roundRobinLeadSkip
+      ) {
+        crmRoundRobinLeadSkip = app;
+        break;
+      }
+    }
+
+    if (crmRoundRobinLeadSkip) {
+      const crmCredential = await prisma.credential.findUnique({
+        where: {
+          id: crmRoundRobinLeadSkip.credentialId,
+        },
+        include: {
+          user: {
+            select: {
+              email: true,
+            },
+          },
+        },
+      });
+      if (crmCredential) {
+        const crm = new CrmManager(crmCredential);
+        const contact = await crm.getContacts(input.bookerEmail, true);
+        if (contact) {
+          // Since this is enabled for round robin event, we iterate through hosts
+          const contactOwner = eventType.hosts.find((host) => host.user.email === contact[0].ownerEmail);
+          if (contactOwner) {
+            teamMember = contactOwner.user.email;
+            usersWithCredentials = [contactOwner.user];
+          }
+        }
+      }
+    }
+  } else if (eventType.schedulingType && !!eventType.hosts?.length) {
     usersWithCredentials = eventType.hosts.map(({ isFixed, user }) => ({ isFixed, ...user }));
+  }
+
+  if (!usersWithCredentials) {
+    usersWithCredentials = eventType.users.map((user) => ({
+      isFixed: !eventType.schedulingType || eventType.schedulingType === SchedulingType.COLLECTIVE,
+      ...user,
+    }));
   }
 
   const durationToUse = input.duration || 0;
@@ -655,6 +704,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
 
   return {
     slots: computedAvailableSlots,
+    teamMember,
   };
 }
 

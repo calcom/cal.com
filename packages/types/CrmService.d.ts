@@ -17,6 +17,8 @@ export interface ContactCreateInput {
 export interface Contact {
   id: string;
   email: string;
+  ownerId?: string;
+  ownerEmail?: string;
 }
 
 export interface CrmEvent {

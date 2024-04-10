@@ -275,7 +275,7 @@ export default class SalesforceCRMService implements CRM {
       const contactsWithOwners = results.records.map((record) => {
         const ownerEmail = ownersQuery.find((user) => user.records[0].Id === record.OwnerId)?.records[0]
           .Email;
-        return { ...record, ownerEmail };
+        return { id: record.Id, email: record.Email, ownerId: record.OwnerId, ownerEmail };
       });
       return contactsWithOwners;
     }
