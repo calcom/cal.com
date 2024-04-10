@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 
-import { BASE_URL, API_VERSION, V2_ENDPOINTS, SUCCESS_STATUS } from "@calcom/platform-constants";
+import { V2_ENDPOINTS, SUCCESS_STATUS } from "@calcom/platform-constants";
 import type { getBookingForReschedule } from "@calcom/platform-libraries";
 import type { ApiResponse, ApiSuccessResponse } from "@calcom/platform-types";
 
@@ -24,15 +24,13 @@ export const useGetBookingForReschedule = (
     uid: "",
   }
 ) => {
-  const endpoint = new URL(BASE_URL);
-
-  endpoint.pathname = `api/${API_VERSION}/${V2_ENDPOINTS.bookings}/${props.uid}/reschedule`;
+  const pathname = `/${V2_ENDPOINTS.bookings}/${props.uid}/reschedule`;
 
   const bookingQuery = useQuery({
     queryKey: [QUERY_KEY, props.uid],
     queryFn: () => {
       return http
-        .get<ApiResponse<Awaited<ReturnType<typeof getBookingForReschedule>>>>(endpoint.toString())
+        .get<ApiResponse<Awaited<ReturnType<typeof getBookingForReschedule>>>>(pathname)
         .then((res) => {
           if (res.data.status === SUCCESS_STATUS) {
             props.onSuccess?.(

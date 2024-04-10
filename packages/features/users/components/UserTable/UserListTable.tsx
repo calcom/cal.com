@@ -1,6 +1,5 @@
 import { keepPreviousData } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
-import { Plus } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 
@@ -109,7 +108,7 @@ function reducer(state: State, action: Action): State {
 
 export function UserListTable() {
   const { data: session } = useSession();
-  const { data: currentMembership } = trpc.viewer.organizations.listCurrent.useQuery();
+  const { data: org } = trpc.viewer.organizations.listCurrent.useQuery();
   const { data: teams } = trpc.viewer.organizations.getTeams.useQuery();
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const [state, dispatch] = useReducer(reducer, initialState);
@@ -127,9 +126,8 @@ export function UserListTable() {
         placeholderData: keepPreviousData,
       }
     );
-
   const totalDBRowCount = data?.pages?.[0]?.meta?.totalRowCount ?? 0;
-  const adminOrOwner = currentMembership?.user.role === "ADMIN" || currentMembership?.user.role === "OWNER";
+  const adminOrOwner = org?.user.role === "ADMIN" || org?.user.role === "OWNER";
   const domain = orgBranding?.fullDomain ?? WEBAPP_URL;
 
   const memorisedColumns = useMemo(() => {
@@ -266,7 +264,8 @@ export function UserListTable() {
           const permissionsForUser = {
             canEdit: permissionsRaw.canEdit && user.accepted && !isSelf,
             canRemove: permissionsRaw.canRemove && !isSelf,
-            canImpersonate: user.accepted && !user.disableImpersonation && !isSelf,
+            canImpersonate:
+              user.accepted && !user.disableImpersonation && !isSelf && !!org?.canAdminImpersonate,
             canLeave: user.accepted && isSelf,
             canResendInvitation: permissionsRaw.canResendInvitation && !user.accepted,
           };
@@ -333,7 +332,7 @@ export function UserListTable() {
             <Button
               type="button"
               color="primary"
-              StartIcon={Plus}
+              StartIcon="plus"
               size="sm"
               className="rounded-md"
               onClick={() =>
