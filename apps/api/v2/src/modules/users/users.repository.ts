@@ -1,7 +1,7 @@
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
-import { CreateManagedPlatformUserInput } from "@/modules/users/inputs/create-managed-platform-user.input";
-import { UpdateManagedPlatformUserInput } from "@/modules/users/inputs/update-managed-platform-user.input";
+import { CreateManagedUserInput } from "@/modules/users/inputs/create-managed-user.input";
+import { UpdateManagedUserInput } from "@/modules/users/inputs/update-managed-user.input";
 import { Injectable } from "@nestjs/common";
 import type { Profile, User } from "@prisma/client";
 
@@ -14,7 +14,7 @@ export class UsersRepository {
   constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
 
   async create(
-    user: CreateManagedPlatformUserInput,
+    user: CreateManagedUserInput,
     username: string,
     oAuthClientId: string,
     isPlatformManaged: boolean
@@ -117,12 +117,21 @@ export class UsersRepository {
     });
   }
 
-  async update(userId: number, updateData: UpdateManagedPlatformUserInput) {
+  async update(userId: number, updateData: UpdateManagedUserInput) {
     this.formatInput(updateData);
 
     return this.dbWrite.prisma.user.update({
       where: { id: userId },
       data: updateData,
+    });
+  }
+
+  async updateUsername(userId: number, newUsername: string) {
+    return this.dbWrite.prisma.user.update({
+      where: { id: userId },
+      data: {
+        username: newUsername,
+      },
     });
   }
 
@@ -132,7 +141,7 @@ export class UsersRepository {
     });
   }
 
-  formatInput(userInput: CreateManagedPlatformUserInput | UpdateManagedPlatformUserInput) {
+  formatInput(userInput: CreateManagedUserInput | UpdateManagedUserInput) {
     if (userInput.weekStart) {
       userInput.weekStart = capitalize(userInput.weekStart);
     }

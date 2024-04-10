@@ -1,10 +1,16 @@
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
+import { CreateManagedUserOutput } from "@/modules/oauth-clients/controllers/oauth-client-users/outputs/create-managed-user.output";
+import { DeleteManagedUserOutput } from "@/modules/oauth-clients/controllers/oauth-client-users/outputs/delete-managed-user.output";
+import { GetManagedUserOutput } from "@/modules/oauth-clients/controllers/oauth-client-users/outputs/get-managed-user.output";
+import { GetManagedUsersOutput } from "@/modules/oauth-clients/controllers/oauth-client-users/outputs/get-managed-users.output";
+import { ManagedUserOutput } from "@/modules/oauth-clients/controllers/oauth-client-users/outputs/managed-user.output";
+import { UpdateManagedUserOutput } from "@/modules/oauth-clients/controllers/oauth-client-users/outputs/update-managed-user.output";
 import { OAuthClientCredentialsGuard } from "@/modules/oauth-clients/guards/oauth-client-credentials/oauth-client-credentials.guard";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { OAuthClientUsersService } from "@/modules/oauth-clients/services/oauth-clients-users.service";
-import { CreateManagedPlatformUserInput } from "@/modules/users/inputs/create-managed-platform-user.input";
-import { UpdateManagedPlatformUserInput } from "@/modules/users/inputs/update-managed-platform-user.input";
+import { CreateManagedUserInput } from "@/modules/users/inputs/create-managed-user.input";
+import { UpdateManagedUserInput } from "@/modules/users/inputs/update-managed-user.input";
 import { UsersRepository } from "@/modules/users/users.repository";
 import {
   Body,
@@ -22,15 +28,17 @@ import {
   Delete,
   Query,
 } from "@nestjs/common";
+import { ApiTags as DocsTags } from "@nestjs/swagger";
 import { User } from "@prisma/client";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { ApiResponse, Pagination } from "@calcom/platform-types";
+import { Pagination } from "@calcom/platform-types";
 
 @Controller({
   path: "oauth-clients/:clientId/users",
   version: "2",
 })
+@DocsTags("Managed users")
 export class OAuthClientUsersController {
   private readonly logger = new Logger("UserController");
 
@@ -45,7 +53,7 @@ export class OAuthClientUsersController {
   async getManagedUsers(
     @Param("clientId") oAuthClientId: string,
     @Query() queryParams: Pagination
-  ): Promise<ApiResponse<User[]>> {
+  ): Promise<GetManagedUsersOutput> {
     this.logger.log(`getting managed users with data for OAuth Client with ID ${oAuthClientId}`);
     const { offset, limit } = queryParams;
 
@@ -57,7 +65,7 @@ export class OAuthClientUsersController {
 
     return {
       status: SUCCESS_STATUS,
-      data: existingUsers,
+      data: existingUsers.map((user) => getResponseUser(user)),
     };
   }
 
@@ -65,8 +73,8 @@ export class OAuthClientUsersController {
   @UseGuards(OAuthClientCredentialsGuard)
   async createUser(
     @Param("clientId") oAuthClientId: string,
-    @Body() body: CreateManagedPlatformUserInput
-  ): Promise<ApiResponse<CreateUserResponse>> {
+    @Body() body: CreateManagedUserInput
+  ): Promise<CreateManagedUserOutput> {
     this.logger.log(
       `Creating user with data: ${JSON.stringify(body, null, 2)} for OAuth Client with ID ${oAuthClientId}`
     );
@@ -88,11 +96,7 @@ export class OAuthClientUsersController {
     return {
       status: SUCCESS_STATUS,
       data: {
-        user: {
-          id: user.id,
-          email: user.email,
-          username: user.username,
-        },
+        user: getResponseUser(user),
         accessToken: tokens.accessToken,
         refreshToken: tokens.refreshToken,
       },
@@ -108,7 +112,7 @@ export class OAuthClientUsersController {
     @Param("clientId") _: string,
     @GetUser("id") accessTokenUserId: number,
     @Param("userId") userId: number
-  ): Promise<ApiResponse<UserReturned>> {
+  ): Promise<GetManagedUserOutput> {
     if (accessTokenUserId !== userId) {
       throw new BadRequestException("userId parameter does not match access token");
     }
@@ -120,11 +124,7 @@ export class OAuthClientUsersController {
 
     return {
       status: SUCCESS_STATUS,
-      data: {
-        id: user.id,
-        email: user.email,
-        username: user.username,
-      },
+      data: getResponseUser(user),
     };
   }
 
@@ -134,26 +134,22 @@ export class OAuthClientUsersController {
   async updateUser(
     // @Param("clientId") is added to generate OpenAPI schema correctly: clientId is in @Controller path, and unless
     // also added here as @Param, then it does not appear in OpenAPI schema.
-    @Param("clientId") _: string,
+    @Param("clientId") oAuthClientId: string,
     @GetUser("id") accessTokenUserId: number,
     @Param("userId") userId: number,
-    @Body() body: UpdateManagedPlatformUserInput
-  ): Promise<ApiResponse<UserReturned>> {
+    @Body() body: UpdateManagedUserInput
+  ): Promise<UpdateManagedUserOutput> {
     if (accessTokenUserId !== userId) {
       throw new BadRequestException("userId parameter does not match access token");
     }
 
     this.logger.log(`Updating user with ID ${userId}: ${JSON.stringify(body, null, 2)}`);
 
-    const user = await this.userRepository.update(userId, body);
+    const user = await this.oAuthClientUsersService.updateOAuthClientUser(oAuthClientId, userId, body);
 
     return {
       status: SUCCESS_STATUS,
-      data: {
-        id: user.id,
-        email: user.email,
-        username: user.username,
-      },
+      data: getResponseUser(user),
     };
   }
 
@@ -166,7 +162,7 @@ export class OAuthClientUsersController {
     @Param("clientId") _: string,
     @GetUser("id") accessTokenUserId: number,
     @Param("userId") userId: number
-  ): Promise<ApiResponse<UserReturned>> {
+  ): Promise<DeleteManagedUserOutput> {
     if (accessTokenUserId !== userId) {
       throw new BadRequestException("userId parameter does not match access token");
     }
@@ -187,13 +183,22 @@ export class OAuthClientUsersController {
 
     return {
       status: SUCCESS_STATUS,
-      data: {
-        id: user.id,
-        email: user.email,
-        username: user.username,
-      },
+      data: getResponseUser(user),
     };
   }
+}
+
+function getResponseUser(user: User): ManagedUserOutput {
+  return {
+    id: user.id,
+    email: user.email,
+    username: user.username,
+    timeZone: user.timeZone,
+    weekStart: user.weekStart,
+    createdDate: user.createdDate,
+    timeFormat: user.timeFormat,
+    defaultScheduleId: user.defaultScheduleId,
+  };
 }
 
 export type UserReturned = Pick<User, "id" | "email" | "username">;
