@@ -33,7 +33,7 @@ export { getServerSideProps };
 export type PageProps = inferSSRProps<typeof getServerSideProps>;
 function TeamPage({
   team,
-  isUnpublished,
+  considerUnpublished,
   markdownStrippedBio,
   isValidOrgDomain,
   currentOrgDomain,
@@ -58,13 +58,16 @@ function TeamPage({
     );
   }, [telemetry, pathname]);
 
-  if (isUnpublished) {
-    const slug = team.slug || metadata?.requestedSlug;
+  if (considerUnpublished) {
+    const teamSlug = team.slug || metadata?.requestedSlug;
+    const parentSlug = team.parent?.slug || team.parent?.requestedSlug;
+    // Show unpublished state for parent Organization itself, if the team is a subteam(team.parent is NOT NULL)
+    const slugPropertyName = team.parent || team.isOrganization ? "orgSlug" : "teamSlug";
     return (
       <div className="flex h-full min-h-[100dvh] items-center justify-center">
         <UnpublishedEntity
-          {...(team?.isOrganization || team.parentId ? { orgSlug: slug } : { teamSlug: slug })}
-          name={teamName}
+          {...{ [slugPropertyName]: team.parent ? parentSlug : teamSlug }}
+          name={team.parent ? team.parent.name : team.name}
         />
       </div>
     );

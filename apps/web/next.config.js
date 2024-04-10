@@ -50,6 +50,10 @@ if (!process.env.EMAIL_FROM) {
 
 if (!process.env.NEXTAUTH_URL) throw new Error("Please set NEXTAUTH_URL");
 
+if (!process.env.NEXT_PUBLIC_API_V2_URL) {
+  console.error("Please set NEXT_PUBLIC_API_V2_URL");
+}
+
 const validJson = (jsonString) => {
   try {
     const o = JSON.parse(jsonString);

@@ -1,8 +1,12 @@
 import { CreateEventTypeInput } from "@/ee/event-types/inputs/create-event-type.input";
 import { UpdateEventTypeInput } from "@/ee/event-types/inputs/update-event-type.input";
 import { CreateEventTypeOutput } from "@/ee/event-types/outputs/create-event-type.output";
+import { DeleteEventTypeOutput } from "@/ee/event-types/outputs/delete-event-type.output";
+import { GetEventTypeOutput } from "@/ee/event-types/outputs/get-event-type.output";
+import { GetEventTypesPublicOutput } from "@/ee/event-types/outputs/get-event-types-public.output";
+import { GetEventTypesOutput } from "@/ee/event-types/outputs/get-event-types.output";
+import { UpdateEventTypeOutput } from "@/ee/event-types/outputs/update-event-type.output";
 import { EventTypesService } from "@/ee/event-types/services/event-types.service";
-import { ForAtom } from "@/lib/atoms/decorators/for-atom.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
 import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
@@ -22,17 +26,9 @@ import {
   Delete,
 } from "@nestjs/common";
 import { ApiTags as DocsTags } from "@nestjs/swagger";
-import { EventType } from "@prisma/client";
 
-import { EventTypesByViewer } from "@calcom/lib";
 import { EVENT_TYPE_READ, EVENT_TYPE_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
-import type {
-  EventType as AtomEventType,
-  EventTypesPublic,
-  UpdateEventTypeReturn,
-} from "@calcom/platform-libraries";
 import { getEventTypesByViewer } from "@calcom/platform-libraries";
-import { ApiResponse, ApiSuccessResponse } from "@calcom/platform-types";
 
 @Controller({
   path: "event-types",
@@ -63,12 +59,9 @@ export class EventTypesController {
   @UseGuards(AccessTokenGuard)
   async getEventType(
     @Param("eventTypeId") eventTypeId: string,
-    @ForAtom() forAtom: boolean,
     @GetUser() user: UserWithProfile
-  ): Promise<ApiSuccessResponse<EventType | AtomEventType>> {
-    const eventType = forAtom
-      ? await this.eventTypesService.getUserEventTypeForAtom(user, Number(eventTypeId))
-      : await this.eventTypesService.getUserEventType(user.id, Number(eventTypeId));
+  ): Promise<GetEventTypeOutput> {
+    const eventType = await this.eventTypesService.getUserEventTypeForAtom(user, Number(eventTypeId));
 
     if (!eventType) {
       throw new NotFoundException(`Event type with id ${eventTypeId} not found`);
@@ -83,7 +76,7 @@ export class EventTypesController {
   @Get("/")
   @Permissions([EVENT_TYPE_READ])
   @UseGuards(AccessTokenGuard)
-  async getEventTypes(@GetUser() user: UserWithProfile): Promise<ApiSuccessResponse<EventTypesByViewer>> {
+  async getEventTypes(@GetUser() user: UserWithProfile): Promise<GetEventTypesOutput> {
     const eventTypes = await getEventTypesByViewer({
       id: user.id,
       profile: {
@@ -99,9 +92,7 @@ export class EventTypesController {
 
   @Get("/:username/public")
   @Permissions([EVENT_TYPE_READ])
-  async getPublicEventTypes(
-    @Param("username") username: string
-  ): Promise<ApiSuccessResponse<EventTypesPublic>> {
+  async getPublicEventTypes(@Param("username") username: string): Promise<GetEventTypesPublicOutput> {
     const eventTypes = await this.eventTypesService.getEventTypesPublicByUsername(username);
 
     return {
@@ -118,7 +109,7 @@ export class EventTypesController {
     @Param("eventTypeId") eventTypeId: number,
     @Body() body: UpdateEventTypeInput,
     @GetUser() user: UserWithProfile
-  ): Promise<ApiResponse<UpdateEventTypeReturn["eventType"]>> {
+  ): Promise<UpdateEventTypeOutput> {
     const eventType = await this.eventTypesService.updateEventType(eventTypeId, body, user);
 
     return {
@@ -133,12 +124,17 @@ export class EventTypesController {
   async deleteEventType(
     @Param("eventTypeId") eventTypeId: number,
     @GetUser("id") userId: number
-  ): Promise<ApiResponse<EventType>> {
+  ): Promise<DeleteEventTypeOutput> {
     const eventType = await this.eventTypesService.deleteEventType(eventTypeId, userId);
 
     return {
       status: SUCCESS_STATUS,
-      data: eventType,
+      data: {
+        id: eventType.id,
+        length: eventType.length,
+        slug: eventType.slug,
+        title: eventType.title,
+      },
     };
   }
 }

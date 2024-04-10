@@ -56,6 +56,13 @@ jobs:
     uses: ./.github/workflows/production-build.yml
     secrets: inherit
 
+  build-api-v1:
+    name: Production build
+    needs: [changes]
+    if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    uses: ./.github/workflows/api-v1-production-build.yml
+    secrets: inherit
+
   build-without-database:
     name: Production build (without database)
     needs: [changes]
@@ -99,7 +106,7 @@ jobs:
     secrets: inherit
 
   required:
-    needs: [changes, lint, type-check, test, build, e2e, e2e-embed, e2e-embed-react, e2e-app-store]
+    needs: [changes, lint, type-check, test, build, build-api-v1, e2e, e2e-embed, e2e-embed-react, e2e-app-store]
     if: always()
     runs-on: buildjet-4vcpu-ubuntu-2204
     steps:

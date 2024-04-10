@@ -7,7 +7,7 @@ import type { FieldError } from "react-hook-form";
 import { IS_CALCOM, WEBSITE_URL } from "@calcom/lib/constants";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Alert, Button, EmptyScreen, Form, Icon } from "@calcom/ui";
+import { Alert, Button, EmptyScreen, Form } from "@calcom/ui";
 
 import { useBookerStore } from "../../store";
 import type { useEventReturnType } from "../../utils/event";
