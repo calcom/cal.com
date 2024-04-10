@@ -211,18 +211,20 @@ export const AvailableTimes = ({
             </p>
           </div>
         )}
-        {slots.map((slot) => (
-          <SlotItem
-            customClassnames={customClassnames}
-            key={slot.time}
-            onTimeSelect={onTimeSelect}
-            slot={slot}
-            selectedSlots={selectedSlots}
-            seatsPerTimeSlot={seatsPerTimeSlot}
-            showAvailableSeatsCount={showAvailableSeatsCount}
-            event={event}
-          />
-        ))}
+        {slots.map((slot) => {
+          if (slot.away) return null;
+          return (
+            <SlotItem
+              key={slot.time}
+              onTimeSelect={onTimeSelect}
+              slot={slot}
+              selectedSlots={selectedSlots}
+              seatsPerTimeSlot={seatsPerTimeSlot}
+              showAvailableSeatsCount={showAvailableSeatsCount}
+              event={event}
+            />
+          );
+        })}
       </div>
     </div>
   );
