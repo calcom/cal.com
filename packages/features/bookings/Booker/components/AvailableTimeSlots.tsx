@@ -20,6 +20,12 @@ type AvailableTimeSlotsProps = {
   seatsPerTimeSlot?: number | null;
   showAvailableSeatsCount?: boolean | null;
   event: useEventReturnType;
+  customClassnames?: {
+    availableTimeSlotsContainer?: string;
+    availableTimeSlotsTitle?: string;
+    availableTimeSlotsTimeFormatToggle: string;
+    availableTimes?: string;
+  };
 };
 
 /**
@@ -37,6 +43,7 @@ export const AvailableTimeSlots = ({
   schedule,
   isLoading,
   event,
+  customClassnames,
 }: AvailableTimeSlotsProps) => {
   const selectedDate = useBookerStore((state) => state.selectedDate);
   const setSelectedTimeslot = useBookerStore((state) => state.setSelectedTimeslot);
@@ -81,13 +88,17 @@ export const AvailableTimeSlots = ({
 
   return (
     <>
-      <div className="flex">
+      <div className={`flex ${customClassnames?.availableTimeSlotsContainer}`}>
         {isLoading ? (
           <div className="mb-3 h-8" />
         ) : (
           slotsPerDay.length > 0 &&
           slotsPerDay.map((slots) => (
             <AvailableTimesHeader
+              customClassnames={{
+                availableTimeSlotTitle: customClassnames?.availableTimeSlotsTitle,
+                availableTimeSlotTimeFormatToggle: customClassnames?.availableTimeSlotsTimeFormatToggle,
+              }}
               key={slots.date}
               date={dayjs(slots.date)}
               showTimeFormatToggle={!isColumnView}
@@ -103,6 +114,7 @@ export const AvailableTimeSlots = ({
       <div
         ref={containerRef}
         className={classNames(
+          `${customClassnames?.availableTimeSlotsContainer}`,
           limitHeight && "scroll-bar flex-grow overflow-auto md:h-[400px]",
           !limitHeight && "flex h-full w-full flex-row gap-4"
         )}>
@@ -112,7 +124,8 @@ export const AvailableTimeSlots = ({
           : slotsPerDay.length > 0 &&
             slotsPerDay.map((slots) => (
               <AvailableTimes
-                className="scroll-bar w-full overflow-y-auto overflow-x-hidden"
+                className={`scroll-bar w-full overflow-y-auto overflow-x-hidden ${customClassnames?.availableTimeSlotsContainer}`}
+                customClassnames={customClassnames?.availableTimes}
                 key={slots.date}
                 showTimeFormatToggle={!isColumnView}
                 onTimeSelect={onTimeSelect}

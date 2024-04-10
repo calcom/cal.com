@@ -14,12 +14,18 @@ type AvailableTimesHeaderProps = {
   date: Dayjs;
   showTimeFormatToggle?: boolean;
   availableMonth?: string | undefined;
+  customClassnames?: {
+    availableTimeSlotContainer?: string;
+    availableTimeSlotTitle?: string;
+    availableTimeSlotTimeFormatToggle?: string;
+  };
 };
 
 export const AvailableTimesHeader = ({
   date,
   showTimeFormatToggle = true,
   availableMonth,
+  customClassnames,
 }: AvailableTimesHeaderProps) => {
   const { t, i18n } = useLocale();
   const [layout] = useBookerStore((state) => [state.layout], shallow);
@@ -28,20 +34,27 @@ export const AvailableTimesHeader = ({
   const isToday = dayjs().isSame(date, "day");
 
   return (
-    <header className="bg-default before:bg-default dark:bg-muted dark:before:bg-muted mb-3 flex w-full flex-row items-center font-medium">
+    <header
+      className={`dark:bg-muted dark:before:bg-muted mb-3 flex w-full flex-row items-center font-medium ${
+        customClassnames?.availableTimeSlotContainer
+          ? `${customClassnames?.availableTimeSlotContainer}`
+          : " bg-default before:bg-default "
+      }`}>
       <span
         className={classNames(
           isColumnView && "w-full text-center",
           isColumnView ? "text-subtle text-xs uppercase" : "text-emphasis font-semibold"
         )}>
-        <span className={classNames(isToday && "!text-default")}>
+        <span className={classNames(isToday && "!text-default", customClassnames?.availableTimeSlotTitle)}>
           {nameOfDay(i18n.language, Number(date.format("d")), "short")}
         </span>
         <span
           className={classNames(
             isColumnView && isToday && "bg-brand-default text-brand ml-2",
             "inline-flex items-center justify-center rounded-3xl px-1 pt-0.5 font-medium",
-            isMonthView ? "text-default text-sm" : "text-xs"
+            isMonthView
+              ? `text-default text-sm ${customClassnames?.availableTimeSlotTitle}`
+              : `text-xs ${customClassnames?.availableTimeSlotTitle}`
           )}>
           {date.format("DD")}
           {availableMonth && `, ${availableMonth}`}
@@ -50,7 +63,7 @@ export const AvailableTimesHeader = ({
 
       {showTimeFormatToggle && (
         <div className="ml-auto rtl:mr-auto">
-          <TimeFormatToggle />
+          <TimeFormatToggle customClassname={customClassnames?.availableTimeSlotTimeFormatToggle} />
         </div>
       )}
     </header>

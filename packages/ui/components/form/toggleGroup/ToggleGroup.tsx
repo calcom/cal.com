@@ -32,7 +32,13 @@ const OptionalTooltipWrapper = ({
   return <>{children}</>;
 };
 
-export const ToggleGroup = ({ options, onValueChange, isFullWidth, ...props }: ToggleGroupProps) => {
+export const ToggleGroup = ({
+  options,
+  onValueChange,
+  isFullWidth,
+  customClassnames,
+  ...props
+}: ToggleGroupProps & { customClassnames?: string }) => {
   return (
     <>
       <RadixToggleGroup.Root
@@ -40,7 +46,7 @@ export const ToggleGroup = ({ options, onValueChange, isFullWidth, ...props }: T
         {...props}
         onValueChange={onValueChange}
         className={classNames(
-          "min-h-9 border-default bg-default relative inline-flex gap-0.5 rounded-md border p-1 rtl:flex-row-reverse",
+          `min-h-9 border-default bg-default relative inline-flex gap-0.5 rounded-md border p-1 rtl:flex-row-reverse ${customClassnames}`,
           props.className,
           isFullWidth && "w-full"
         )}>

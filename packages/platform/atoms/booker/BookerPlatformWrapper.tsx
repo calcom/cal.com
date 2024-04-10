@@ -53,17 +53,27 @@ type BookerPlatformWrapperAtomProps = Omit<BookerProps, "entity"> & {
   onDeleteSlotError?: (data: ApiErrorResponse) => void;
 };
 
-type ContainerClassnames = {
-  backgroundColor?: string;
-  textColor?: string;
-  borderColor?: string;
-};
-
 export type CustomClassNames = {
-  bookerContainer?: ContainerClassnames;
-  eventMetaContainer?: ContainerClassnames;
-  datePickerContainer?: ContainerClassnames;
-  availableTimeSlotsContainer?: ContainerClassnames;
+  bookerContainer?: string;
+  eventMetaCustomClassname?: {
+    eventMetaContainer?: string;
+    eventMetaTitle?: string;
+    eventMetaTimezoneSelect?: string;
+  };
+  datePickerCustomClassname?: {
+    datePickerContainer?: string;
+    datePickerTitle?: string;
+    datePickerDays?: string;
+    datePickerDate?: string;
+    datePickerDatesActive?: string;
+    datePickerToggle?: string;
+  };
+  availableTimeSlotsCustomClassname?: {
+    availableTimeSlotsContainer?: string;
+    availableTimeSlotsTitle?: string;
+    availableTimeSlotsTimeFormatToggle?: string;
+    availableTimes?: string;
+  };
 };
 
 export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => {
@@ -244,6 +254,7 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
 
   return (
     <BookerComponent
+      customClassNames={props.customClassNames}
       eventSlug={props.eventSlug}
       username={props.username}
       entity={

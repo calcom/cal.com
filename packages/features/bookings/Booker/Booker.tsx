@@ -261,7 +261,7 @@ const BookerComponent = ({
           "text-default flex min-h-full w-full flex-col items-center",
           layout === BookerLayouts.MONTH_VIEW ? "overflow-visible" : "overflow-clip"
         )}>
-        {/* redirect from other user profile */}I dont know what this is
+        {/* redirect from other user profile */}
         {isRedirect && (
           <div className="mb-8 rounded-md bg-blue-100 p-4 dark:border dark:bg-transparent">
             <h2 className="text-default mb-2 text-sm font-semibold">
@@ -284,20 +284,13 @@ const BookerComponent = ({
         <div
           ref={animationScope}
           className={classNames(
-            // Sets booker size css variables for the size of all the columns.
-            // somewhere below is where the outside border color is being set
             ...getBookerSizeClassNames(layout, bookerState, hideEventTypeDetails),
-            "bg-default dark:bg-muted grid max-w-full items-start border border-yellow-500 bg-red-500 text-white dark:[color-scheme:dark] sm:transition-[width] sm:duration-300 sm:motion-reduce:transition-none md:flex-row",
+            `bg-default ${customClassNames?.bookerContainer} dark:bg-muted grid max-w-full items-start border dark:[color-scheme:dark] sm:transition-[width] sm:duration-300 sm:motion-reduce:transition-none md:flex-row`,
             // We remove border only when the content covers entire viewport. Because in embed, it can almost never be the case that it covers entire viewport, we show the border there
-            (layout === BookerLayouts.MONTH_VIEW || isEmbed) &&
-              "border-subtle rounded-md border border-blue-500",
+            (layout === BookerLayouts.MONTH_VIEW || isEmbed) && "border-subtle rounded-md",
             !isEmbed && "sm:transition-[width] sm:duration-300",
-            isEmbed &&
-              layout === BookerLayouts.MONTH_VIEW &&
-              "border-booker sm:border-booker-width border border-green-500",
-            // border subtle below preceds the incoming style thats why border should be conditional
-            // border subtle should only be shown if there are no other incoming classnames
-            !isEmbed && layout === BookerLayouts.MONTH_VIEW && "border border-blue-500"
+            isEmbed && layout === BookerLayouts.MONTH_VIEW && "border-booker sm:border-booker-width",
+            !isEmbed && layout === BookerLayouts.MONTH_VIEW && `border-subtle`
           )}>
           <AnimatePresence>
             {!isInstantMeeting && (
@@ -308,7 +301,6 @@ const BookerComponent = ({
                   (layout === BookerLayouts.COLUMN_VIEW || layout === BookerLayouts.WEEK_VIEW) &&
                     "bg-default dark:bg-muted sticky top-0 z-10"
                 )}>
-                This is something I wanna find out
                 {!isPlatform ? (
                   <Header
                     isMyLink={Boolean(username === sessionUsername)}
@@ -322,7 +314,6 @@ const BookerComponent = ({
                         <></>
                       ) : (
                         <>
-                          This is the overlay calendar
                           <OverlayCalendar
                             isOverlayCalendarEnabled={isOverlayCalendarEnabled}
                             connectedCalendars={connectedCalendars}
@@ -363,12 +354,20 @@ const BookerComponent = ({
                     src={orgBannerUrl}
                   />
                 )}
-                This is the booker meta section
-                <EventMeta event={event.data} isPending={event.isPending} isPlatform={isPlatform} />
+                <EventMeta
+                  classNames={{
+                    eventMetaContainer: customClassNames?.eventMetaCustomClassname?.eventMetaContainer,
+                    eventMetaTitle: customClassNames?.eventMetaCustomClassname?.eventMetaTitle,
+                    eventMetaTimezoneSelect:
+                      customClassNames?.eventMetaCustomClassname?.eventMetaTimezoneSelect,
+                  }}
+                  event={event.data}
+                  isPending={event.isPending}
+                  isPlatform={isPlatform}
+                />
                 {layout !== BookerLayouts.MONTH_VIEW &&
                   !(layout === "mobile" && bookerState === "booking") && (
                     <div className="mt-auto px-5 py-3 ">
-                      This is the date picker for the mobile view
                       <DatePicker event={event} schedule={schedule} />
                     </div>
                   )}
@@ -381,7 +380,6 @@ const BookerComponent = ({
               className="sticky top-0 ml-[-1px] h-full border border-yellow-500 p-6 md:w-[var(--booker-main-width)] md:border-l"
               {...fadeInLeft}
               visible={bookerState === "booking" && !shouldShowFormInDialog}>
-              This is the event booker
               {EventBooker}
             </BookerSection>
 
@@ -391,10 +389,19 @@ const BookerComponent = ({
               visible={bookerState !== "booking" && layout === BookerLayouts.MONTH_VIEW}
               {...fadeInLeft}
               initial="visible"
-              // this is the component that controls the middle inside borders
-              className="ml-[-1px] h-full flex-shrink border border-blue-500 px-5 py-3 md:border-l lg:w-[var(--booker-main-width)]">
-              <DatePicker event={event} schedule={schedule} />
-              This is the date picker
+              className="md:border-subtle ml-[-1px] h-full flex-shrink px-5 py-3 md:border-l lg:w-[var(--booker-main-width)]">
+              <DatePicker
+                classNames={{
+                  datePickerContainer: customClassNames?.datePickerCustomClassname?.datePickerContainer,
+                  datePickerTitle: customClassNames?.datePickerCustomClassname?.datePickerTitle,
+                  datePickerDays: customClassNames?.datePickerCustomClassname?.datePickerDays,
+                  datePickerDate: customClassNames?.datePickerCustomClassname?.datePickerDate,
+                  datePickerDatesActive: customClassNames?.datePickerCustomClassname?.datePickerDatesActive,
+                  datePickerToggle: customClassNames?.datePickerCustomClassname?.datePickerToggle,
+                }}
+                event={event}
+                schedule={schedule}
+              />
             </BookerSection>
 
             <BookerSection
@@ -420,15 +427,15 @@ const BookerComponent = ({
                 layout === BookerLayouts.COLUMN_VIEW
               }
               className={classNames(
-                "border-subtle rtl:border-default flex h-full w-full flex-col overflow-x-auto px-5 py-3 pb-0 rtl:border-r ltr:md:border-l",
+                `border-subtle flex h-full w-full flex-col overflow-x-auto px-5 py-3 pb-0 rtl:border-r ltr:md:border-l`,
                 layout === BookerLayouts.MONTH_VIEW &&
                   "h-full overflow-hidden md:w-[var(--booker-timeslots-width)]",
                 layout !== BookerLayouts.MONTH_VIEW && "sticky top-0"
               )}
               ref={timeslotsRef}
               {...fadeInLeft}>
-              This is the available time slots section
               <AvailableTimeSlots
+                customClassnames={customClassNames?.availableTimeSlotsCustomClassname}
                 extraDays={extraDays}
                 limitHeight={layout === BookerLayouts.MONTH_VIEW}
                 schedule={schedule?.data}
@@ -471,7 +478,7 @@ const BookerComponent = ({
   );
 };
 
-export const Booker = (props: BookerProps & WrappedBookerProps) => {
+export const Booker = (props: BookerProps & WrappedBookerProps & { customClassNames?: CustomClassNames }) => {
   if (props.isAway) return <Away />;
 
   return (

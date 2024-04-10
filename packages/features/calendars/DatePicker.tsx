@@ -45,25 +45,35 @@ export const Day = ({
   date,
   active,
   disabled,
+  customClassname,
   ...props
 }: JSX.IntrinsicElements["button"] & {
   active: boolean;
   date: Dayjs;
+  customClassname?: {
+    dayContainer?: string;
+    dayActive?: string;
+  };
 }) => {
   const { t } = useLocale();
   const enabledDateButtonEmbedStyles = useEmbedStyles("enabledDateButton");
   const disabledDateButtonEmbedStyles = useEmbedStyles("disabledDateButton");
+
   return (
     <button
       type="button"
       style={disabled ? { ...disabledDateButtonEmbedStyles } : { ...enabledDateButtonEmbedStyles }}
       className={classNames(
-        "disabled:text-bookinglighter absolute bottom-0 left-0 right-0 top-0 mx-auto w-full rounded-md border-2 border-transparent text-center text-sm font-medium disabled:cursor-default disabled:border-transparent disabled:font-light ",
+        `disabled:text-bookinglighter absolute bottom-0 left-0 right-0 top-0 mx-auto w-full rounded-md border-2 border-transparent text-center text-sm font-medium disabled:cursor-default disabled:border-transparent disabled:font-light ${customClassname?.dayContainer}`,
         active
           ? "bg-brand-default text-brand"
           : !disabled
-          ? " hover:border-brand-default bg-red-500 text-white"
-          : "bg-red-500 text-white"
+          ? `${
+              !customClassname?.dayActive
+                ? "hover:border-brand-default text-emphasis bg-emphasis"
+                : `hover:border-brand-default ${customClassname.dayActive}`
+            }`
+          : `${customClassname ? "" : " text-mute"}`
       )}
       data-testid="day"
       data-disabled={disabled}
@@ -112,6 +122,7 @@ const Days = ({
   month,
   nextMonthButton,
   eventSlug,
+  customClassname,
   ...props
 }: Omit<DatePickerProps, "locale" | "className" | "weekStart"> & {
   DayComponent?: React.FC<React.ComponentProps<typeof Day>>;
@@ -119,6 +130,10 @@ const Days = ({
   weekStart: number;
   month: string | null;
   nextMonthButton: () => void;
+  customClassname?: {
+    datePickerDate?: string;
+    datePickerDateActive?: string;
+  };
 }) => {
   // Create placeholder elements for empty days in first week
   const weekdayOfFirst = browsingDate.date(1).day();
@@ -215,6 +230,10 @@ const Days = ({
             </button>
           ) : (
             <DayComponent
+              customClassname={{
+                dayContainer: customClassname?.datePickerDate,
+                dayActive: customClassname?.datePickerDateActive,
+              }}
               date={day}
               onClick={() => {
                 props.onChange(day);
@@ -236,11 +255,21 @@ const Days = ({
 const DatePicker = ({
   weekStart = 0,
   className,
+  customClassNames,
   locale,
   selected,
   onMonthChange,
   ...passThroughProps
-}: DatePickerProps & Partial<React.ComponentProps<typeof Days>>) => {
+}: DatePickerProps &
+  Partial<React.ComponentProps<typeof Days>> & {
+    customClassNames?: {
+      datePickerTitle?: string;
+      datePickerDays?: string;
+      datePickersDates?: string;
+      datePickerDatesActive?: string;
+      datePickerToggle?: string;
+    };
+  }) => {
   const browsingDate = passThroughProps.browsingDate || dayjs().startOf("month");
   const { i18n } = useLocale();
 
@@ -258,11 +287,15 @@ const DatePicker = ({
   return (
     <div className={className}>
       <div className="mb-1 flex items-center justify-between text-xl">
-        <span className="text-default w-1/2 text-base text-white">
+        <span className="text-default w-1/2 text-base">
           {browsingDate ? (
             <>
-              <strong className="font-semibold text-white">{month}</strong>{" "}
-              <span className="font-medium text-white">{browsingDate.format("YYYY")}</span>
+              <strong className={`text-emphasis font-semibold ${customClassNames?.datePickerTitle}`}>
+                {month}
+              </strong>{" "}
+              <span className={`text-subtle font-medium ${customClassNames?.datePickerTitle}`}>
+                {browsingDate.format("YYYY")}
+              </span>
             </>
           ) : (
             <SkeletonText className="h-8 w-24" />
@@ -272,9 +305,9 @@ const DatePicker = ({
           <div className="flex">
             <Button
               className={classNames(
-                "group p-1 opacity-70 hover:opacity-100 rtl:rotate-180",
+                `group p-1 opacity-70 hover:opacity-100 rtl:rotate-180 ${customClassNames?.datePickerToggle}`,
                 !browsingDate.isAfter(dayjs()) &&
-                  "disabled:text-bookinglighter hover:bg-background hover:opacity-70"
+                  ` disabled:text-bookinglighter hover:bg-background hover:opacity-70 ${customClassNames?.datePickerToggle}`
               )}
               onClick={() => changeMonth(-1)}
               disabled={!browsingDate.isAfter(dayjs())}
@@ -284,7 +317,7 @@ const DatePicker = ({
               StartIcon={ChevronLeft}
             />
             <Button
-              className="group p-1 opacity-70 hover:opacity-100 rtl:rotate-180"
+              className={`group p-1 opacity-70 hover:opacity-100 rtl:rotate-180 ${customClassNames?.datePickerToggle}`}
               onClick={() => changeMonth(+1)}
               data-testid="incrementMonth"
               color="minimal"
@@ -296,13 +329,19 @@ const DatePicker = ({
       </div>
       <div className="border-subtle mb-2 grid grid-cols-7 gap-4 border-b border-t text-center md:mb-0 md:border-0">
         {weekdayNames(locale, weekStart, "short").map((weekDay) => (
-          <div key={weekDay} className="my-4 text-xs font-medium uppercase tracking-widest text-white">
+          <div
+            key={weekDay}
+            className={`text-emphasis my-4 text-xs font-medium uppercase tracking-widest ${customClassNames?.datePickerDays}`}>
             {weekDay}
           </div>
         ))}
       </div>
-      <div className="relative grid grid-cols-7 grid-rows-6 gap-1 text-center text-white">
+      <div className="relative grid grid-cols-7 grid-rows-6 gap-1 text-center">
         <Days
+          customClassname={{
+            datePickerDate: customClassNames?.datePickersDates,
+            datePickerDateActive: customClassNames?.datePickerDatesActive,
+          }}
           weekStart={weekStart}
           selected={selected}
           {...passThroughProps}
