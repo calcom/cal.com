@@ -87,7 +87,7 @@ export default class GoogleCalendarService implements Calendar {
 
     const refreshAccessToken = async (myGoogleAuth: Awaited<ReturnType<typeof getGoogleAuth>>) => {
       try {
-        const res = await refreshOAuthTokens(
+        const token = await refreshOAuthTokens(
           async () => {
             const fetchTokens = await myGoogleAuth.refreshToken(googleCredentials.refresh_token);
             return fetchTokens.res;
@@ -95,7 +95,7 @@ export default class GoogleCalendarService implements Calendar {
           "google-calendar",
           credential.userId
         );
-        const token = res?.data;
+
         googleCredentials.access_token = token.access_token;
         googleCredentials.expiry_date = token.expiry_date;
         const parsedKey: ParseRefreshTokenResponse<typeof googleCredentialSchema> = parseRefreshTokenResponse(
@@ -108,10 +108,10 @@ export default class GoogleCalendarService implements Calendar {
         });
         myGoogleAuth.setCredentials(googleCredentials);
       } catch (err) {
-        this.log.error("Error Refreshing Google Token", safeStringify(err));
         let message;
         if (err instanceof Error) message = err.message;
         else message = String(err);
+        this.log.error("Error Refreshing Google Token:", message);
         // if not invalid_grant, default behaviour (which admittedly isn't great)
         if (message !== "invalid_grant") return myGoogleAuth;
         // when the error is invalid grant, it's unrecoverable and the credential marked invalid.

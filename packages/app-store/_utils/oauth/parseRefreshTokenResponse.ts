@@ -1,7 +1,9 @@
 import { z } from "zod";
 
 import { APP_CREDENTIAL_SHARING_ENABLED } from "@calcom/lib/constants";
+import logger from "@calcom/lib/logger";
 
+const log = logger.getSubLogger({ prefix: ["parseRefreshTokenResponse"] });
 export const minimumTokenResponseSchema = z
   .object({
     access_token: z.string(),
@@ -27,8 +29,10 @@ const parseRefreshTokenResponse = (response: any, schema: z.ZodTypeAny) => {
   const credentialSyncingEnabled =
     APP_CREDENTIAL_SHARING_ENABLED && process.env.CALCOM_CREDENTIAL_SYNC_ENDPOINT;
   if (APP_CREDENTIAL_SHARING_ENABLED && process.env.CALCOM_CREDENTIAL_SYNC_ENDPOINT) {
+    log.debug("Parsing refresh token response with minimumTokenResponseSchema");
     refreshTokenResponse = minimumTokenResponseSchema.safeParse(response);
   } else {
+    log.debug("Parsing refresh token response with regular schema");
     refreshTokenResponse = schema.safeParse(response);
   }
 
