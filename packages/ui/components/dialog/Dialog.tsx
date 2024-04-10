@@ -175,11 +175,12 @@ export function DialogHeader(props: DialogHeaderProps) {
 type DialogFooterProps = {
   children: React.ReactNode;
   showDivider?: boolean;
+  noSticky?: boolean;
 } & React.HTMLAttributes<HTMLDivElement>;
 
 export function DialogFooter(props: DialogFooterProps) {
   return (
-    <div className={classNames("bg-default sticky bottom-0", props.className)}>
+    <div className={classNames("bg-default bottom-0", props?.noSticky ? "" : "sticky", props.className)}>
       {props.showDivider && (
         // TODO: the -mx-8 is causing overflow in the dialog buttons
         <hr data-testid="divider" className="border-subtle -mx-8" />
