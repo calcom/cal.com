@@ -26,7 +26,6 @@ import {
   TimezoneSelect,
   SettingsToggle,
 } from "@calcom/ui";
-import { Plus, Trash2 } from "@calcom/ui/components/icon";
 
 import PageWrapper from "@components/PageWrapper";
 import TravelScheduleModal from "@components/settings/TravelScheduleModal";
@@ -264,7 +263,7 @@ const GeneralView = ({ localeProp, user, travelSchedules }: GeneralViewProps) =>
                         color="secondary"
                         className="ml-auto"
                         variant="icon"
-                        StartIcon={Trash2}
+                        StartIcon="trash-2"
                         onClick={() => {
                           const updatedSchedules = watchedTzSchedules.filter(
                             (s, filterIndex) => filterIndex !== index
@@ -277,7 +276,7 @@ const GeneralView = ({ localeProp, user, travelSchedules }: GeneralViewProps) =>
                 })}
               </div>
               <Button
-                StartIcon={Plus}
+                StartIcon="plus"
                 color="secondary"
                 className="mt-4"
                 onClick={() => setIsTZScheduleOpen(true)}>
