@@ -28,5 +28,5 @@ export interface CRM {
   updateEvent: (uid: string, event: CalendarEvent) => Promise<CrmEvent>;
   deleteEvent: (uid: string) => Promise<void>;
   getContacts: (emails: string | string[]) => Promise<Contact[]>;
-  createContacts: (contactsToCreate: ContactCreateInput[]) => Promise<Contact[]>;
+  createContacts: (contactsToCreate: ContactCreateInput[], organizerEmail?: string) => Promise<Contact[]>;
 }
