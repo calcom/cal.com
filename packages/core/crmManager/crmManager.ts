@@ -51,9 +51,9 @@ export default class CrmManager {
     return await this.crmService?.deleteEvent(uid);
   }
 
-  public async getContacts(email: string | string[]) {
+  public async getContacts(email: string | string[], includeOwner?: boolean) {
     await this.getCrmService(this.credential);
-    const contacts = await this.crmService?.getContacts(email);
+    const contacts = await this.crmService?.getContacts(email, includeOwner);
     return contacts;
   }
 

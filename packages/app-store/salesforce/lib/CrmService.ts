@@ -112,9 +112,14 @@ export default class SalesforceCRMService implements CRM {
     });
   };
 
-  private getSalesforceUser = async (email: string) => {
+  private getSalesforceUserFromEmail = async (email: string) => {
     const conn = await this.conn;
     return await conn.query(`SELECT Id, Email FROM User WHERE Email = '${email}'`);
+  };
+
+  private getSalesforceUserFromOwnerId = async (ownerId: string) => {
+    const conn = await this.conn;
+    return await conn.query(`SELECT Id, Email FROM User WHERE Id = '${ownerId}'`);
   };
 
   private getSalesforceEventBody = (event: CalendarEvent): string => {
@@ -247,12 +252,34 @@ export default class SalesforceCRMService implements CRM {
     }
   }
 
-  async getContacts(email: string | string[]) {
+  async getContacts(email: string | string[], includeOwner?: boolean) {
     const conn = await this.conn;
     const emails = Array.isArray(email) ? email : [email];
     // TODO get the user associated with the contact. Return the email
-    const soql = `SELECT Id, Email FROM Contact WHERE Email IN ('${emails.join("','")}')`;
+    const soql = `SELECT Id, Email, OwnerId FROM Contact WHERE Email IN ('${emails.join("','")}')`;
     const results = await conn.query(soql);
+
+    if (!results || !results.records.length) return [];
+
+    if (includeOwner) {
+      const ownerIds = new Set();
+      results.records.forEach((record) => {
+        ownerIds.add(record.OwnerId);
+      });
+
+      const ownersQuery = await Promise.all(
+        Array.from(ownerIds).map(async (ownerId) => {
+          return this.getSalesforceUserFromOwnerId(ownerId);
+        })
+      );
+      const contactsWithOwners = results.records.map((record) => {
+        const ownerEmail = ownersQuery.find((user) => user.records[0].Id === record.OwnerId)?.records[0]
+          .Email;
+        return { ...record, ownerEmail };
+      });
+      return contactsWithOwners;
+    }
+
     return results.records
       ? results.records.map((record) => ({
           id: record.Id,
@@ -267,7 +294,7 @@ export default class SalesforceCRMService implements CRM {
     // See if the organizer exists in the CRM
     let organizerId: string;
     if (organizerEmail) {
-      const userQuery = await this.getSalesforceUser(organizerEmail);
+      const userQuery = await this.getSalesforceUserFromEmail(organizerEmail);
       if (userQuery) {
         organizerId = (userQuery.records[0] as { Email: string; Id: string }).Id;
       }
