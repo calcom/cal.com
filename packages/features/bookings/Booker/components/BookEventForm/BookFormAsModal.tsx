@@ -65,7 +65,7 @@ export const BookEventFormWrapperComponent = ({
         </Badge>
         {(selectedDuration || eventLength) && (
           <Badge variant="grayWithoutHover" startIcon="clock" size="lg">
-            <span>{getDurationFormatted(selectedDuration ?? data?.length, t)}</span>
+            <span>{getDurationFormatted(selectedDuration || eventLength, t)}</span>
           </Badge>
         )}
       </div>
