@@ -35,7 +35,6 @@ const http = (function () {
       return instance.defaults.headers.common?.["Authorization"]?.toString() ?? "";
     },
     setClientIdHeader: (clientId: string) => {
-      console.log("SET CLIENT HEASER", clientId);
       instance.defaults.headers.common["x-cal-client-id"] = clientId;
     },
     getClientIdHeader: () => {
