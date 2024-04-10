@@ -3,20 +3,18 @@ import type { GetServerSideProps } from "next";
 import { encode } from "querystring";
 import type { z } from "zod";
 
-import { handleUserRedirection } from "@calcom/features/booking-redirect/handle-user";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { DEFAULT_DARK_BRAND_COLOR, DEFAULT_LIGHT_BRAND_COLOR } from "@calcom/lib/constants";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
+import { getEventTypesPublic } from "@calcom/lib/event-types/getEventTypesPublic";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import logger from "@calcom/lib/logger";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import { stripMarkdown } from "@calcom/lib/stripMarkdown";
-import prisma from "@calcom/prisma";
 import { RedirectType, type EventType, type User } from "@calcom/prisma/client";
-import { baseEventTypeSelect } from "@calcom/prisma/selects";
-import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { UserProfile } from "@calcom/types/UserProfile";
 
 import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
@@ -48,7 +46,7 @@ export type UserPageProps = {
   markdownStrippedBio: string;
   safeBio: string;
   entity: {
-    isUnpublished?: boolean;
+    considerUnpublished: boolean;
     orgSlug?: string | null;
     name?: string | null;
   };
@@ -71,75 +69,15 @@ export type UserPageProps = {
   >)[];
 } & EmbedProps;
 
-export const getEventTypesWithHiddenFromDB = async (userId: number) => {
-  const eventTypes = await prisma.eventType.findMany({
-    where: {
-      AND: [
-        {
-          teamId: null,
-        },
-        {
-          OR: [
-            {
-              userId,
-            },
-            {
-              users: {
-                some: {
-                  id: userId,
-                },
-              },
-            },
-          ],
-        },
-      ],
-    },
-    orderBy: [
-      {
-        position: "desc",
-      },
-      {
-        id: "asc",
-      },
-    ],
-    select: {
-      ...baseEventTypeSelect,
-      metadata: true,
-    },
-  });
-  // map and filter metadata, exclude eventType entirely when faulty metadata is found.
-  // report error to exception so we don't lose the error.
-  return eventTypes.reduce<typeof eventTypes>((eventTypes, eventType) => {
-    const parsedMetadata = EventTypeMetaDataSchema.safeParse(eventType.metadata);
-    if (!parsedMetadata.success) {
-      log.error(parsedMetadata.error);
-      return eventTypes;
-    }
-    eventTypes.push({
-      ...eventType,
-      metadata: parsedMetadata.data,
-    });
-    return eventTypes;
-  }, []);
-};
-
 export const getServerSideProps: GetServerSideProps<UserPageProps> = async (context) => {
   const ssr = await ssrInit(context);
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req, context.params?.orgSlug);
-  const usernameList = getUsernameList(context.query.user as string);
-  const isOrgContext = isValidOrgDomain && currentOrgDomain;
-  const dataFetchStart = Date.now();
-  let outOfOffice = false;
 
-  if (usernameList.length === 1) {
-    const result = await handleUserRedirection({ username: usernameList[0] });
-    if (result && result.outOfOffice) {
-      outOfOffice = true;
-    }
-    if (result && result.redirect?.destination) {
-      return result;
-    }
-  }
+  const usernameList = getUsernameList(context.query.user as string);
+  const isARedirectFromNonOrgLink = context.query.orgRedirection === "true";
+  const isOrgContext = isValidOrgDomain && !!currentOrgDomain;
+
+  const dataFetchStart = Date.now();
 
   if (!isOrgContext) {
     // If there is no org context, see if some redirect is setup due to org migration
@@ -220,21 +158,15 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
     organization: user.profile.organization,
   };
 
-  const eventTypesWithHidden = await getEventTypesWithHiddenFromDB(user.id);
   const dataFetchEnd = Date.now();
   if (context.query.log === "1") {
     context.res.setHeader("X-Data-Fetch-Time", `${dataFetchEnd - dataFetchStart}ms`);
   }
-  const eventTypesRaw = eventTypesWithHidden.filter((evt) => !evt.hidden);
 
-  const eventTypes = eventTypesRaw.map((eventType) => ({
-    ...eventType,
-    metadata: EventTypeMetaDataSchema.parse(eventType.metadata || {}),
-    descriptionAsSafeHTML: markdownToSafeHTML(eventType.description),
-  }));
+  const eventTypes = await getEventTypesPublic(user.id);
 
   // if profile only has one public event-type, redirect to it
-  if (eventTypes.length === 1 && context.query.redirect !== "false" && !outOfOffice) {
+  if (eventTypes.length === 1 && context.query.redirect !== "false") {
     // Redirect but don't change the URL
     const urlDestination = `/${user.profile.username}/${eventTypes[0].slug}`;
     const { query } = context;
@@ -260,12 +192,12 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
         username: user.username,
         bio: user.bio,
         avatarUrl: user.avatarUrl,
-        away: usernameList.length === 1 ? outOfOffice : user.away,
         verified: user.verified,
         profile: user.profile,
+        away: user.away,
       })),
       entity: {
-        isUnpublished: org?.slug === null,
+        considerUnpublished: !isARedirectFromNonOrgLink && org?.slug === null,
         orgSlug: currentOrgDomain,
         name: org?.name ?? null,
       },

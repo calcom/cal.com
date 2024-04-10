@@ -16,7 +16,7 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import { Button, ButtonGroup } from "@calcom/ui";
-import { RefreshCcw, UserPlus, Users } from "@calcom/ui/components/icon";
+import { Icon } from "@calcom/ui";
 
 import { getServerSideProps } from "@lib/insights/getServerSideProps";
 
@@ -28,17 +28,17 @@ export default function InsightsPage() {
 
   const features = [
     {
-      icon: <Users className="h-5 w-5" />,
+      icon: <Icon name="users" className="h-5 w-5" />,
       title: t("view_bookings_across"),
       description: t("view_bookings_across_description"),
     },
     {
-      icon: <RefreshCcw className="h-5 w-5" />,
+      icon: <Icon name="refresh-ccw" className="h-5 w-5" />,
       title: t("identify_booking_trends"),
       description: t("identify_booking_trends_description"),
     },
     {
-      icon: <UserPlus className="h-5 w-5" />,
+      icon: <Icon name="user-plus" className="h-5 w-5" />,
       title: t("spot_popular_event_types"),
       description: t("spot_popular_event_types_description"),
     },

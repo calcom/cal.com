@@ -1,8 +1,9 @@
 import { parseRecurringEvent } from "@calcom/lib";
+import getAllUserBookings from "@calcom/lib/bookings/getAllUserBookings";
 import type { PrismaClient } from "@calcom/prisma";
 import { bookingMinimalSelect } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
-import { BookingStatus } from "@calcom/prisma/enums";
+import type { BookingStatus } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import type { TrpcSessionUser } from "../../../trpc";
@@ -23,76 +24,14 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
   const skip = input.cursor ?? 0;
   const { prisma, user } = ctx;
   const bookingListingByStatus = input.filters.status;
-  const bookingListingFilters: Record<typeof bookingListingByStatus, Prisma.BookingWhereInput> = {
-    upcoming: {
-      endTime: { gte: new Date() },
-      // These changes are needed to not show confirmed recurring events,
-      // as rescheduling or cancel for recurring event bookings should be
-      // handled separately for each occurrence
-      OR: [
-        {
-          recurringEventId: { not: null },
-          status: { equals: BookingStatus.ACCEPTED },
-        },
-        {
-          recurringEventId: { equals: null },
-          status: { notIn: [BookingStatus.CANCELLED, BookingStatus.REJECTED] },
-        },
-      ],
-    },
-    recurring: {
-      endTime: { gte: new Date() },
-      AND: [
-        { NOT: { recurringEventId: { equals: null } } },
-        { status: { notIn: [BookingStatus.CANCELLED, BookingStatus.REJECTED] } },
-      ],
-    },
-    past: {
-      endTime: { lte: new Date() },
-      AND: [
-        { NOT: { status: { equals: BookingStatus.CANCELLED } } },
-        { NOT: { status: { equals: BookingStatus.REJECTED } } },
-      ],
-    },
-    cancelled: {
-      OR: [{ status: { equals: BookingStatus.CANCELLED } }, { status: { equals: BookingStatus.REJECTED } }],
-    },
-    unconfirmed: {
-      endTime: { gte: new Date() },
-      status: { equals: BookingStatus.PENDING },
-    },
-  };
-  const bookingListingOrderby: Record<
-    typeof bookingListingByStatus,
-    Prisma.BookingOrderByWithAggregationInput
-  > = {
-    upcoming: { startTime: "asc" },
-    recurring: { startTime: "asc" },
-    past: { startTime: "desc" },
-    cancelled: { startTime: "desc" },
-    unconfirmed: { startTime: "asc" },
-  };
 
-  const passedBookingsStatusFilter = bookingListingFilters[bookingListingByStatus];
-  const orderBy = bookingListingOrderby[bookingListingByStatus];
-
-  const { bookings, recurringInfo } = await getBookings({
-    user,
-    prisma,
-    passedBookingsStatusFilter,
+  const { bookings, recurringInfo, nextCursor } = await getAllUserBookings({
+    ctx: { user: { id: user.id, email: user.email }, prisma: prisma },
+    bookingListingByStatus: bookingListingByStatus,
+    take: take,
+    skip: skip,
     filters: input.filters,
-    orderBy,
-    take,
-    skip,
   });
-
-  const bookingsFetched = bookings.length;
-  let nextCursor: typeof skip | null = skip;
-  if (bookingsFetched > take) {
-    nextCursor += bookingsFetched;
-  } else {
-    nextCursor = null;
-  }
 
   return {
     bookings,
@@ -101,18 +40,15 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
   };
 };
 
-const set = new Set();
-const getUniqueBookings = <T extends { uid: string }>(arr: T[]) => {
-  const unique = arr.filter((booking) => {
-    const duplicate = set.has(booking.uid);
-    set.add(booking.uid);
-    return !duplicate;
+const getUniqueBookings = <T extends { id: number }>(arr: T[]) => {
+  const unique = new Set<number>();
+  arr.forEach((booking) => {
+    unique.add(booking.id);
   });
-  set.clear();
-  return unique;
+  return Array.from(unique.values());
 };
 
-async function getBookings({
+export async function getBookings({
   user,
   prisma,
   passedBookingsStatusFilter,
@@ -189,7 +125,6 @@ async function getBookings({
       ],
     },
   };
-
   const filtersCombined: Prisma.BookingWhereInput[] = !filters
     ? []
     : Object.keys(filters)
@@ -257,60 +192,135 @@ async function getBookings({
     },
   };
 
-  const [
-    // Quering these in parallel to save time.
-    // Note that because we are applying `take` to individual queries, we will usually get more bookings then we need. It is okay to have more bookings faster than having what we need slower
-    bookingsQueryUserId,
-    bookingsQueryAttendees,
-    bookingsQueryTeamMember,
-    bookingsQuerySeatReference,
-    //////////////////////////
-
-    recurringInfoBasic,
-    recurringInfoExtended,
-    // We need all promises to be successful, so we are not using Promise.allSettled
-  ] = await Promise.all([
-    prisma.booking.findMany({
-      where: {
-        OR: [
-          {
-            userId: user.id,
-          },
-        ],
-        AND: [passedBookingsStatusFilter, ...filtersCombined],
+  const userBookingsFilter: Prisma.BookingWhereInput = {
+    userId: user.id,
+  };
+  const userAttendingBookingsFilter: Prisma.BookingWhereInput = {
+    attendees: {
+      some: {
+        email: user.email,
       },
-      orderBy,
-      take: take + 1,
-      skip,
-    }),
-    prisma.booking.findMany({
-      where: {
-        OR: [
-          {
-            attendees: {
-              some: {
-                email: user.email,
+    },
+  };
+  // all (collective + round-robin) team bookings should be visible to team-owner and team-admins
+  const teamBookingsFilter: Prisma.BookingWhereInput = {
+    eventType: {
+      team: {
+        members: {
+          some: {
+            userId: user.id,
+            role: {
+              in: ["ADMIN", "OWNER"],
+            },
+          },
+        },
+      },
+    },
+  };
+  // all (collective + round-robin) team bookings should be visible to org-owner and org-admins
+  const organizationBookingsFilter: Prisma.BookingWhereInput = {
+    eventType: {
+      team: {
+        parent: {
+          members: {
+            some: {
+              userId: user.id,
+              role: {
+                in: ["ADMIN", "OWNER"],
               },
             },
           },
-        ],
-        AND: [passedBookingsStatusFilter, ...filtersCombined],
+        },
       },
-      orderBy,
-      take: take + 1,
-      skip,
-    }),
-    prisma.booking.findMany({
-      where: {
+    },
+  };
+
+  // all managed team bookings should be visible to team-owner and team-admins
+  const teamManagedBookingsFilter: Prisma.BookingWhereInput = {
+    eventType: {
+      parent: {
+        team: {
+          members: {
+            some: {
+              userId: user.id,
+              role: {
+                in: ["ADMIN", "OWNER"],
+              },
+            },
+          },
+        },
+      },
+    },
+  };
+
+  // all managed team bookings should be visible to org-owner and org-admins
+  const organizationManagedBookingsFilter: Prisma.BookingWhereInput = {
+    eventType: {
+      parent: {
+        team: {
+          parent: {
+            members: {
+              some: {
+                userId: user.id,
+                role: {
+                  in: ["ADMIN", "OWNER"],
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  };
+
+  // show personal booking to org-owner and org-admins
+  const organizationPersonalBookingsFilter: Prisma.BookingWhereInput = {
+    AND: [
+      {
+        user: {
+          teams: {
+            some: {
+              team: {
+                parentId: { gt: 0 },
+              },
+            },
+          },
+        },
+      },
+      {
         OR: [
           {
-            eventType: {
-              team: {
-                members: {
-                  some: {
-                    userId: user.id,
-                    role: {
-                      in: ["ADMIN", "OWNER"],
+            user: {
+              teams: {
+                some: {
+                  team: {
+                    parent: {
+                      members: {
+                        some: {
+                          userId: user.id,
+                          role: {
+                            in: ["ADMIN", "OWNER"],
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          {
+            user: {
+              teams: {
+                some: {
+                  team: {
+                    members: {
+                      some: {
+                        userId: user.id,
+                        role: {
+                          in: ["ADMIN", "OWNER"],
+                        },
+                      },
                     },
                   },
                 },
@@ -318,28 +328,55 @@ async function getBookings({
             },
           },
         ],
-        AND: [passedBookingsStatusFilter, ...filtersCombined],
       },
-      orderBy,
-      take: take + 1,
-      skip,
-    }),
+      // filter out all (collective + round-robin) event bookings
+      {
+        eventType: {
+          teamId: null,
+        },
+      },
+      // filter out all (managed) event bookings
+      {
+        eventType: {
+          parentId: null,
+        },
+      },
+    ],
+  };
+
+  const seatsReferenceFilter: Prisma.BookingWhereInput = {
+    seatsReferences: {
+      some: {
+        attendee: {
+          email: user.email,
+        },
+      },
+    },
+  };
+  const [
+    // Quering these in parallel to save time.
+    // Note that because we are applying `take` to individual queries, we will usually get more bookings then we need. It is okay to have more bookings faster than having what we need slower
+    bookingsQueryUserId,
+    recurringInfoBasic,
+    recurringInfoExtended,
+    // We need all promises to be successful, so we are not using Promise.allSettled
+  ] = await Promise.all([
     prisma.booking.findMany({
       where: {
         OR: [
-          {
-            seatsReferences: {
-              some: {
-                attendee: {
-                  email: user.email,
-                },
-              },
-            },
-          },
+          userBookingsFilter,
+          userAttendingBookingsFilter,
+          teamBookingsFilter,
+          organizationBookingsFilter,
+          teamManagedBookingsFilter,
+          organizationManagedBookingsFilter,
+          organizationPersonalBookingsFilter,
+          seatsReferenceFilter,
         ],
         AND: [passedBookingsStatusFilter, ...filtersCombined],
       },
       orderBy,
+      select: { id: true },
       take: take + 1,
       skip,
     }),
@@ -406,9 +443,6 @@ async function getBookings({
   const plainBookings = getUniqueBookings(
     // It's going to mess up the orderBy as we are concatenating independent queries results
     bookingsQueryUserId
-      .concat(bookingsQueryAttendees)
-      .concat(bookingsQueryTeamMember)
-      .concat(bookingsQuerySeatReference)
   );
 
   // Now enrich bookings with relation data. We could have queried the relation data along with the bookings, but that would cause unnecessary queries to the database.
@@ -417,7 +451,7 @@ async function getBookings({
     await prisma.booking.findMany({
       where: {
         id: {
-          in: plainBookings.map((booking) => booking.id),
+          in: plainBookings,
         },
       },
       select: bookingSelect,

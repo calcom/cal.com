@@ -50,8 +50,6 @@ const BookerComponent = ({
   onClickOverlayContinue,
   onOverlaySwitchStateChange,
   sessionUsername,
-  isRedirect,
-  fromUserNameRedirected,
   rescheduleUid,
   hasSession,
   extraOptions,
@@ -93,6 +91,7 @@ const BookerComponent = ({
   const nonEmptyScheduleDays = useNonEmptyScheduleDays(schedule?.data?.slots).filter(
     (slot) => dayjs(selectedDate).diff(slot, "day") <= 0
   );
+
   const totalWeekDays = 7;
   const addonDays =
     nonEmptyScheduleDays.length < extraDays
@@ -116,7 +115,7 @@ const BookerComponent = ({
 
   const { bookerFormErrorRef, key, formEmail, bookingForm, errors: formErrors } = bookerForm;
 
-  const { handleBookEvent, errors, loadingStates, expiryTime } = bookings;
+  const { handleBookEvent, errors, loadingStates, expiryTime, instantVideoMeetingUrl } = bookings;
 
   const {
     isEmailVerificationModalVisible,
@@ -181,6 +180,7 @@ const BookerComponent = ({
             <RedirectToInstantMeetingModal
               expiryTime={expiryTime}
               bookingId={parseInt(getQueryParam("bookingId") || "0")}
+              instantVideoMeetingUrl={instantVideoMeetingUrl}
               onGoBack={() => {
                 onGoBackInstantMeeting();
               }}
@@ -193,6 +193,7 @@ const BookerComponent = ({
     );
   }, [
     bookerFormErrorRef,
+    instantVideoMeetingUrl,
     bookerState,
     bookingForm,
     errors,
@@ -222,7 +223,14 @@ const BookerComponent = ({
     isPlatform,
   ]);
 
-  if (entity.isUnpublished) {
+  /**
+   * Unpublished organization handling - Below
+   * - Reschedule links in email are of the organization event for an unpublished org, so we need to allow rescheduling unpublished event
+   * - Ideally, we should allow rescheduling only for the event that has an old link(non-org link) but that's a bit complex and we are fine showing all reschedule links on unpublished organization
+   */
+  const considerUnpublished = entity.considerUnpublished && !rescheduleUid;
+
+  if (considerUnpublished) {
     return <UnpublishedEntity {...entity} />;
   }
 
@@ -257,26 +265,6 @@ const BookerComponent = ({
           "text-default flex min-h-full w-full flex-col items-center",
           layout === BookerLayouts.MONTH_VIEW ? "overflow-visible" : "overflow-clip"
         )}>
-        {/* redirect from other user profile */}
-        {isRedirect && (
-          <div className="mb-8 rounded-md bg-blue-100 p-4 dark:border dark:bg-transparent">
-            <h2 className="text-default mb-2 text-sm font-semibold">
-              {t("user_redirect_title", {
-                username: fromUserNameRedirected,
-              })}{" "}
-              🏝️
-            </h2>
-            <p className="text-default text-sm">
-              {t("user_redirect_description", {
-                profile: {
-                  username: username,
-                },
-                username: fromUserNameRedirected,
-              })}{" "}
-              😄
-            </p>
-          </div>
-        )}
         <div
           ref={animationScope}
           className={classNames(
@@ -394,7 +382,6 @@ const BookerComponent = ({
                 event={event}
               />
             </BookerSection>
-
             <BookerSection
               key="timeslots"
               area={{ default: "main", month_view: "timeslots" }}
@@ -445,15 +432,11 @@ const BookerComponent = ({
         )}
       </div>
 
-      {!isPlatform ? (
-        <BookFormAsModal
-          onCancel={() => setSelectedTimeslot(null)}
-          visible={bookerState === "booking" && shouldShowFormInDialog}>
-          {EventBooker}
-        </BookFormAsModal>
-      ) : (
-        <></>
-      )}
+      <BookFormAsModal
+        onCancel={() => setSelectedTimeslot(null)}
+        visible={bookerState === "booking" && shouldShowFormInDialog}>
+        {EventBooker}
+      </BookFormAsModal>
     </>
   );
 };

@@ -9,6 +9,7 @@ import { getTeamWithMembers } from "@calcom/lib/server/queries/teams";
 import slugify from "@calcom/lib/slugify";
 import { stripMarkdown } from "@calcom/lib/stripMarkdown";
 import prisma from "@calcom/prisma";
+import type { Team } from "@calcom/prisma/client";
 import { RedirectType } from "@calcom/prisma/client";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
@@ -47,6 +48,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   });
 
   const team = await getTeamWithMembers({
+    // It only finds those teams that have slug set. So, if only requestedSlug is set, it won't get that team
     slug: slugify(slug ?? ""),
     orgSlug: currentOrgDomain,
     isTeamView: true,
@@ -78,17 +80,14 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     return { notFound: true } as const;
   }
 
-  if (!team || (team.parent && !team.parent.slug)) {
+  if (!team) {
+    // Because we are fetching by requestedSlug being set, it can either be an organization or a regular team. But it can't be a sub-team i.e.
     const unpublishedTeam = await prisma.team.findFirst({
       where: {
-        ...(team?.parent
-          ? { id: team.parent.id }
-          : {
-              metadata: {
-                path: ["requestedSlug"],
-                equals: slug,
-              },
-            }),
+        metadata: {
+          path: ["requestedSlug"],
+          equals: slug,
+        },
       },
       include: {
         parent: {
@@ -98,17 +97,22 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
             name: true,
             isPrivate: true,
             isOrganization: true,
+            metadata: true,
           },
         },
       },
     });
 
     if (!unpublishedTeam) return { notFound: true } as const;
-
+    const teamParent = unpublishedTeam.parent ? getTeamWithoutMetadata(unpublishedTeam.parent) : null;
     return {
       props: {
-        isUnpublished: true,
-        team: { ...unpublishedTeam, createdAt: null },
+        considerUnpublished: true,
+        team: {
+          ...unpublishedTeam,
+          parent: teamParent,
+          createdAt: null,
+        },
         trpcState: ssr.dehydrate(),
       },
     } as const;
@@ -150,7 +154,24 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const markdownStrippedBio = stripMarkdown(team?.bio || "");
 
-  const { inviteToken: _inviteToken, ...serializableTeam } = team;
+  const serializableTeam = getSerializableTeam(team);
+
+  // For a team or Organization we check if it's unpublished
+  // For a subteam, we check if the parent org is unpublished. A subteam can't be unpublished in itself
+  const isUnpublished = team.parent ? !team.parent.slug : !team.slug;
+  const isARedirectFromNonOrgLink = context.query.orgRedirection === "true";
+
+  const considerUnpublished = isUnpublished && !isARedirectFromNonOrgLink;
+
+  if (considerUnpublished) {
+    return {
+      props: {
+        considerUnpublished: true,
+        team: { ...serializableTeam },
+        trpcState: ssr.dehydrate(),
+      },
+    } as const;
+  }
 
   return {
     props: {
@@ -169,3 +190,29 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     },
   } as const;
 };
+
+/**
+ * Removes sensitive data from team and ensures that the object is serialiable by Next.js
+ */
+function getSerializableTeam(team: NonNullable<Awaited<ReturnType<typeof getTeamWithMembers>>>) {
+  const { inviteToken: _inviteToken, ...serializableTeam } = team;
+
+  const teamParent = team.parent ? getTeamWithoutMetadata(team.parent) : null;
+
+  return {
+    ...serializableTeam,
+    parent: teamParent,
+  };
+}
+
+/**
+ * Removes metadata from team and just adds requestedSlug
+ */
+function getTeamWithoutMetadata<T extends Pick<Team, "metadata">>(team: T) {
+  const { metadata, ...rest } = team;
+  const teamMetadata = teamMetadataSchema.parse(metadata);
+  return {
+    ...rest,
+    requestedSlug: teamMetadata?.requestedSlug,
+  };
+}

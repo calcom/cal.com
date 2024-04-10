@@ -4,11 +4,11 @@ import {
   formatTime,
   isNextDayInTimezone,
   isPreviousDayInTimezone,
-  sortByTimezone,
   isSupportedTimeZone,
+  sortByTimezone,
 } from "@calcom/lib/date-fns";
 
-import { Globe } from "../icon";
+import { Icon } from "../..";
 
 type Attendee = {
   id: number;
@@ -67,7 +67,7 @@ const MeetingTimeInTimezones = ({
       <Popover.Trigger
         onClick={preventBubbling}
         className="popover-button text-emphasis hover:bg-emphasis focus:bg-emphasis invisible ml-2 inline-flex h-5 w-5 items-center justify-center rounded-sm transition-colors group-hover:visible">
-        <Globe className="h-3.5 w-3.5" />
+        <Icon name="globe" className="h-3.5 w-3.5" />
       </Popover.Trigger>
       <Popover.Portal>
         <Popover.Content
