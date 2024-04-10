@@ -125,15 +125,25 @@ export type BookerState = "loading" | "selecting_date" | "selecting_time" | "boo
 export type BookerLayout = BookerLayouts | "mobile";
 export type BookerAreas = "calendar" | "timeslots" | "main" | "meta" | "header";
 
-type ContainerClassnames = {
-  backgroundColor?: string;
-  textColor?: string;
-  borderColor?: string;
-};
-
 export type CustomClassNames = {
-  bookerContainer?: ContainerClassnames;
-  eventMetaContainer?: ContainerClassnames;
-  datePickerContainer?: ContainerClassnames;
-  availableTimeSlotsContainer?: ContainerClassnames;
+  bookerContainer?: string;
+  eventMetaCustomClassname?: {
+    eventMetaContainer?: string;
+    eventMetaTitle?: string;
+    eventMetaTimezoneSelect?: string;
+  };
+  datePickerCustomClassname?: {
+    datePickerContainer?: string;
+    datePickerTitle?: string;
+    datePickerDays?: string;
+    datePickerDate?: string;
+    datePickerDatesActive?: string;
+    datePickerToggle?: string;
+  };
+  availableTimeSlotsCustomClassname: {
+    availableTimeSlotsContainer?: string;
+    availableTimeSlotsTitle?: string;
+    availableTimeSlotsTimeFormatToggle: string;
+    availableTimes?: string;
+  };
 };
