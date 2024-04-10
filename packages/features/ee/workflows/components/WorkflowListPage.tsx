@@ -252,12 +252,7 @@ export default function WorkflowListPage({ workflows }: Props) {
                         <div className="block sm:hidden">
                           <Dropdown>
                             <DropdownMenuTrigger asChild>
-                              <Button
-                                type="button"
-                                color="minimal"
-                                variant="icon"
-                                StartIcon="ellipsis"
-                              />
+                              <Button type="button" color="minimal" variant="icon" StartIcon="ellipsis" />
                             </DropdownMenuTrigger>
                             <DropdownMenuContent>
                               <DropdownMenuItem>

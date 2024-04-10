@@ -178,10 +178,7 @@ const DateOverride = ({
           onChange={(ranges) => ranges.forEach((range) => append({ ranges: [range] }))}
           userTimeFormat={userTimeFormat}
           Trigger={
-            <Button
-              color="secondary"
-              StartIcon="plus"
-              data-testid="add-override">
+            <Button color="secondary" StartIcon="plus" data-testid="add-override">
               {t("add_an_override")}
             </Button>
           }
@@ -324,11 +321,7 @@ export function AvailabilitySettings({
                     openSidebar ? "translate-x-0 opacity-100" : "translate-x-full opacity-0"
                   )}>
                   <div className="flex flex-row items-center pt-5">
-                    <Button
-                      StartIcon="arrow-left"
-                      color="minimal"
-                      onClick={() => setOpenSidebar(false)}
-                    />
+                    <Button StartIcon="arrow-left" color="minimal" onClick={() => setOpenSidebar(false)} />
                     <p className="-ml-2">{t("availability_settings")}</p>
                     <DeleteDialogButton
                       buttonClassName="ml-16 inline"
