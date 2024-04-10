@@ -2,20 +2,15 @@
 
 // find all lucide icons at https://lucide.dev/
 // github https://github.com/lucide-icons/lucide
-import type { LucideProps } from "lucide-react";
 import { memo } from "react";
 
-import { dynamicIconImports } from "./dynamicIconImports";
-
-export type IconName = keyof typeof dynamicIconImports;
-
-interface IconProps extends Omit<LucideProps, "ref"> {
-  name: IconName;
-}
+import type { IconProps } from "./dynamicIconImports";
+import { getDynamicIconImports } from "./dynamicIconImports";
 
 const fallback = <div className="bg-emphasis h-4 w-4 animate-pulse rounded-lg" />;
 
 const LazyIcon = memo(({ name, ...props }: IconProps) => {
+  const dynamicIconImports = getDynamicIconImports({ loading: () => fallback, ssr: false });
   const LucideIcon = dynamicIconImports[name];
 
   // This should never happen, but just in case
