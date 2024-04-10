@@ -33,7 +33,7 @@ import { useMe } from "../hooks/useMe";
 import { usePublicEvent } from "../hooks/usePublicEvent";
 import { useSlots } from "../hooks/useSlots";
 
-type BookerPlatformWrapperAtomProps = Omit<BookerProps, "entity"> & {
+type BookerPlatformWrapperAtomProps = BookerProps & {
   rescheduleUid?: string;
   bookingUid?: string;
   firstName?: string;
@@ -74,7 +74,13 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
     };
   }, []);
 
-  const event = usePublicEvent({ username: props.username, eventSlug: props.eventSlug });
+  const event = usePublicEvent({
+    username: props.username,
+    eventSlug: props.eventSlug,
+    duration: props.duration,
+    orgSlug: props.entity.orgSlug,
+  });
+
   const bookerLayout = useBookerLayout(event.data);
   useInitializeBookerStore({
     ...props,
@@ -90,7 +96,7 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
   const month = useBookerStore((state) => state.month);
   const eventSlug = useBookerStore((state) => state.eventSlug);
 
-  const selectedDuration = useBookerStore((state) => state.selectedDuration);
+  const selectedDuration = useBookerStore((state) => state.selectedDuration) || props.duration;
 
   const { data: session } = useMe();
   const hasSession = !!session;
