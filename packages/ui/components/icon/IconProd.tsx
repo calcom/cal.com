@@ -10,7 +10,7 @@ import { getDynamicIconImports } from "./dynamicIconImports";
 const fallback = <div className="bg-emphasis h-4 w-4 animate-pulse rounded-lg" />;
 
 const LazyIcon = memo(({ name, ...props }: IconProps) => {
-  const dynamicIconImports = getDynamicIconImports({ loading: () => fallback, ssr: false });
+  const dynamicIconImports = getDynamicIconImports();
   const LucideIcon = dynamicIconImports[name];
 
   // This should never happen, but just in case
