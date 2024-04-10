@@ -1,9 +1,8 @@
 import type { Prisma } from "@prisma/client";
 import type { UnitTypeLongPlural } from "dayjs";
+import { isValidPhoneNumber } from "libphonenumber-js";
 import type { TFunction } from "next-i18next";
 import z, { ZodNullable, ZodObject, ZodOptional } from "zod";
-
-/* eslint-disable no-underscore-dangle */
 import type {
   AnyZodObject,
   objectInputType,
@@ -206,11 +205,13 @@ export const stringOrNumber = z.union([
   z.number().int(),
 ]);
 
-export const stringToDayjs = z.string().transform((val) => {
+export const stringToDayjs = (val: string) => {
   const matches = val.match(/([+-]\d{2}:\d{2})$/);
   const timezone = matches ? matches[1] : "+00:00";
   return dayjs(val).utcOffset(timezone);
-});
+};
+
+export const stringToDayjsZod = z.string().transform(stringToDayjs);
 
 export const bookingCreateBodySchema = z.object({
   end: z.string().optional(),
@@ -250,7 +251,14 @@ export const extendedBookingCreateBody = bookingCreateBodySchema.merge(
   z.object({
     noEmail: z.boolean().optional(),
     recurringCount: z.number().optional(),
-    allRecurringDates: z.string().array().optional(),
+    allRecurringDates: z
+      .array(
+        z.object({
+          start: z.string(),
+          end: z.string(),
+        })
+      )
+      .optional(),
     currentRecurringIndex: z.number().optional(),
     appsStatus: z
       .array(
@@ -264,6 +272,8 @@ export const extendedBookingCreateBody = bookingCreateBodySchema.merge(
         })
       )
       .optional(),
+    luckyUsers: z.array(z.number()).optional(),
+    customInputs: z.undefined().optional(),
   })
 );
 
@@ -301,11 +311,17 @@ export const vitalSettingsUpdateSchema = z.object({
 export const createdEventSchema = z
   .object({
     id: z.string(),
+    thirdPartyRecurringEventId: z.string(),
     password: z.union([z.string(), z.undefined()]),
     onlineMeetingUrl: z.string().nullable(),
     iCalUID: z.string().optional(),
   })
   .passthrough();
+
+const schemaDefaultConferencingApp = z.object({
+  appSlug: z.string().default("daily-video").optional(),
+  appLink: z.string().optional(),
+});
 
 export const userMetadata = z
   .object({
@@ -314,26 +330,43 @@ export const userMetadata = z
     vitalSettings: vitalSettingsUpdateSchema.optional(),
     isPremium: z.boolean().optional(),
     sessionTimeout: z.number().optional(), // Minutes
-    defaultConferencingApp: z
+    defaultConferencingApp: schemaDefaultConferencingApp.optional(),
+    defaultBookerLayouts: bookerLayouts.optional(),
+    emailChangeWaitingForVerification: z
+      .string()
+      .transform((data) => data.toLowerCase())
+      .optional(),
+    migratedToOrgFrom: z
       .object({
-        appSlug: z.string().default("daily-video").optional(),
-        appLink: z.string().optional(),
+        username: z.string().or(z.null()).optional(),
+        lastMigrationTime: z.string().optional(),
+        reverted: z.boolean().optional(),
+        revertTime: z.string().optional(),
       })
       .optional(),
-    defaultBookerLayouts: bookerLayouts.optional(),
   })
   .nullable();
 
+export type DefaultConferencingApp = z.infer<typeof schemaDefaultConferencingApp>;
+
+export const orgSettingsSchema = z
+  .object({
+    isOrganizationVerified: z.boolean().optional(),
+    isOrganizationConfigured: z.boolean().optional(),
+    isAdminReviewed: z.boolean().optional(),
+    orgAutoAcceptEmail: z.string().optional(),
+  })
+  .nullable();
+export type userMetadataType = z.infer<typeof userMetadata>;
+
 export const teamMetadataSchema = z
   .object({
-    requestedSlug: z.string(),
+    requestedSlug: z.string().or(z.null()),
     paymentId: z.string(),
     subscriptionId: z.string().nullable(),
     subscriptionItemId: z.string().nullable(),
-    isOrganization: z.boolean().nullable(),
-    isOrganizationVerified: z.boolean().nullable(),
-    isOrganizationConfigured: z.boolean().nullable(),
-    orgAutoAcceptEmail: z.string().nullable(),
+    orgSeats: z.number().nullable(),
+    orgPricePerSeat: z.number().nullable(),
     migratedToOrgFrom: z
       .object({
         teamSlug: z.string().or(z.null()).optional(),
@@ -416,6 +449,8 @@ export const successRedirectUrl = z
 export const RoutingFormSettings = z
   .object({
     emailOwnerOnSubmission: z.boolean(),
+    sendUpdatesTo: z.array(z.number()).optional(),
+    sendToAll: z.boolean().optional(),
   })
   .nullable();
 
@@ -562,6 +597,7 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   title: true,
   description: true,
   isInstantEvent: true,
+  aiPhoneCallConfig: true,
   currency: true,
   periodDays: true,
   position: true,
@@ -601,6 +637,9 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   workflows: true,
   bookingFields: true,
   durationLimits: true,
+  lockTimeZoneToggleOnBookingPage: true,
+  requiresBookerEmailVerification: true,
+  assignAllTeamMembers: true,
 };
 
 // All properties that are defined as unlocked based on all managed props
@@ -651,3 +690,68 @@ export type ZVerifyCodeInputSchema = z.infer<typeof ZVerifyCodeInputSchema>;
 export const coerceToDate = z.coerce.date();
 export const getStringAsNumberRequiredSchema = (t: TFunction) =>
   z.string().min(1, t("error_required_field")).pipe(z.coerce.number());
+
+export const bookingSeatDataSchema = z.object({
+  description: z.string().optional(),
+  responses: bookingResponses,
+});
+
+export const AIPhoneSettingSchema = z.object({
+  yourPhoneNumber: z.string().refine((val) => isValidPhoneNumber(val)),
+  numberToCall: z.string().refine((val) => isValidPhoneNumber(val)),
+  guestName: z.string().trim().min(1, {
+    message: "Please enter Guest Name",
+  }),
+  guestEmail: z.string().email().nullable().optional(),
+  guestCompany: z.string().nullable().optional(),
+  generalPrompt: z.string().trim().min(1, {
+    message: "Please enter prompt",
+  }),
+  beginMessage: z.string().nullable(),
+  eventTypeId: z.number(),
+  calApiKey: z.string().trim().min(1, {
+    message: "Please enter CAL API Key",
+  }),
+});
+
+export const getRetellLLMSchema = z
+  .object({
+    general_prompt: z.string(),
+    begin_message: z.string().nullable(),
+    llm_id: z.string(),
+    llm_websocket_url: z.string(),
+    general_tools: z.array(
+      z
+        .object({
+          name: z.string(),
+          type: z.string(),
+          cal_api_key: z.string().optional(),
+          event_type_id: z.number().optional(),
+          timezone: z.string().optional(),
+        })
+        .passthrough()
+    ),
+    states: z
+      .array(
+        z
+          .object({
+            name: z.string(),
+            tools: z.array(
+              z
+                .object({
+                  name: z.string(),
+                  type: z.string(),
+                  cal_api_key: z.string().optional(),
+                  event_type_id: z.number().optional(),
+                  timezone: z.string().optional(),
+                })
+                .passthrough()
+            ),
+          })
+          .passthrough()
+      )
+      .nullable(),
+  })
+  .passthrough();
+
+export type TGetRetellLLMSchema = z.infer<typeof getRetellLLMSchema>;

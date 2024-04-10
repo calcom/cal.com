@@ -1,10 +1,13 @@
 import { Prisma } from "@prisma/client";
 
+import { generateHashedLink } from "@calcom/lib/generateHashedLink";
+import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import { prisma } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../trpc";
+import { setDestinationCalendarHandler } from "../../loggedInViewer/setDestinationCalendar.handler";
 import type { TDuplicateInputSchema } from "./duplicate.schema";
 
 type DuplicateOptions = {
@@ -30,10 +33,16 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
       include: {
         customInputs: true,
         schedule: true,
-        users: true,
+        users: {
+          select: {
+            id: true,
+          },
+        },
         team: true,
         workflows: true,
         webhooks: true,
+        hashedLink: true,
+        destinationCalendar: true,
       },
     });
 
@@ -66,6 +75,8 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
       durationLimits,
       metadata,
       workflows,
+      hashedLink,
+      destinationCalendar,
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       id: _id,
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -75,17 +86,18 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/ban-ts-comment
       // @ts-ignore - descriptionAsSafeHTML is added on the fly using a prisma middleware it shouldn't be used to create event type. Such a property doesn't exist on schema
       descriptionAsSafeHTML: _descriptionAsSafeHTML,
+      secondaryEmailId,
       ...rest
     } = eventType;
 
-    const data: Prisma.EventTypeUncheckedCreateInput = {
+    const data: Prisma.EventTypeCreateInput = {
       ...rest,
       title: newEventTitle,
       slug: newSlug,
       description: newDescription,
       length: newLength,
       locations: locations ?? undefined,
-      teamId: team ? team.id : undefined,
+      team: team ? { connect: { id: team.id } } : undefined,
       users: users ? { connect: users.map((user) => ({ id: user.id })) } : undefined,
       recurringEvent: recurringEvent || undefined,
       bookingLimits: bookingLimits ?? undefined,
@@ -94,7 +106,25 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
       bookingFields: eventType.bookingFields === null ? Prisma.DbNull : eventType.bookingFields,
     };
 
-    const newEventType = await prisma.eventType.create({ data });
+    // Validate the secondary email
+    if (!!secondaryEmailId) {
+      const secondaryEmail = await prisma.secondaryEmail.findUnique({
+        where: {
+          id: secondaryEmailId,
+          userId: ctx.user.id,
+        },
+      });
+      // Make sure the secondary email id belongs to the current user and its a verified one
+      if (secondaryEmail && secondaryEmail.emailVerified) {
+        data.secondaryEmail = {
+          connect: {
+            id: secondaryEmailId,
+          },
+        };
+      }
+    }
+
+    const newEventType = await EventTypeRepository.create(data);
 
     // Create custom inputs
     if (customInputs) {
@@ -111,6 +141,17 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
       });
     }
 
+    if (hashedLink) {
+      await prisma.hashedLink.create({
+        data: {
+          link: generateHashedLink(users[0]?.id ?? newEventType.teamId),
+          eventType: {
+            connect: { id: newEventType.id },
+          },
+        },
+      });
+    }
+
     if (workflows.length > 0) {
       const relationCreateData = workflows.map((workflow) => {
         return { eventTypeId: newEventType.id, workflowId: workflow.workflowId };
@@ -120,11 +161,20 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
         data: relationCreateData,
       });
     }
+    if (destinationCalendar) {
+      await setDestinationCalendarHandler({
+        ctx,
+        input: {
+          ...destinationCalendar,
+          eventTypeId: newEventType.id,
+        },
+      });
+    }
 
     return {
       eventType: newEventType,
     };
   } catch (error) {
-    throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+    throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: `Error duplicating event type ${error}` });
   }
 };

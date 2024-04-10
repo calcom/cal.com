@@ -25,7 +25,7 @@ function Component({ webhookId }: { webhookId: string }) {
   const { t } = useLocale();
   const utils = trpc.useContext();
   const router = useRouter();
-  const { data: installedApps, isLoading } = trpc.viewer.integrations.useQuery(
+  const { data: installedApps, isPending } = trpc.viewer.integrations.useQuery(
     { variant: "other", onlyInstalled: true },
     {
       suspense: true,
@@ -54,7 +54,7 @@ function Component({ webhookId }: { webhookId: string }) {
     },
   });
 
-  if (isLoading || !webhook) return <SkeletonContainer />;
+  if (isPending || !webhook) return <SkeletonContainer />;
 
   return (
     <>
@@ -75,6 +75,7 @@ function Component({ webhookId }: { webhookId: string }) {
               webhooks,
               teamId: webhook.teamId ?? undefined,
               userId: webhook.userId ?? undefined,
+              platform: webhook.platform ?? undefined,
             })
           ) {
             showToast(t("webhook_subscriber_url_reserved"), "error");

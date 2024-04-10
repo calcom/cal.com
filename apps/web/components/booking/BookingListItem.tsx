@@ -29,13 +29,13 @@ import {
   DialogClose,
   DialogContent,
   DialogFooter,
+  Icon,
   MeetingTimeInTimezones,
   showToast,
   TableActions,
   TextAreaField,
   Tooltip,
 } from "@calcom/ui";
-import { Ban, Check, Clock, CreditCard, MapPin, RefreshCcw, Send, X } from "@calcom/ui/components/icon";
 
 import { ChargeCardDialog } from "@components/dialog/ChargeCardDialog";
 import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
@@ -138,8 +138,8 @@ function BookingListItem(booking: BookingItemProps) {
       onClick: () => {
         setRejectionDialogIsOpen(true);
       },
-      icon: Ban,
-      disabled: mutation.isLoading,
+      icon: "ban",
+      disabled: mutation.isPending,
     },
     // For bookings with payment, only confirm if the booking is paid for
     ...((isPending && !paymentAppData.enabled) ||
@@ -147,12 +147,13 @@ function BookingListItem(booking: BookingItemProps) {
       ? [
           {
             id: "confirm",
+            bookingId: booking.id,
             label: (isTabRecurring || isTabUnconfirmed) && isRecurring ? t("confirm_all") : t("confirm"),
             onClick: () => {
               bookingConfirm(true);
             },
-            icon: Check,
-            disabled: mutation.isLoading,
+            icon: "check" as const,
+            disabled: mutation.isPending,
           },
         ]
       : []),
@@ -161,14 +162,14 @@ function BookingListItem(booking: BookingItemProps) {
   let bookedActions: ActionType[] = [
     {
       id: "cancel",
-      label: isTabRecurring && isRecurring ? t("cancel_all_remaining") : t("cancel"),
+      label: isTabRecurring && isRecurring ? t("cancel_all_remaining") : t("cancel_event"),
       /* When cancelling we need to let the UI and the API know if the intention is to
                cancel all remaining bookings or just that booking instance. */
       href: `/booking/${booking.uid}?cancel=true${
         isTabRecurring && isRecurring ? "&allRemainingBookings=true" : ""
       }${booking.seatsReferences.length ? `&seatReferenceUid=${getSeatReferenceUid()}` : ""}
       `,
-      icon: X,
+      icon: "x" as const,
     },
     {
       id: "edit_booking",
@@ -176,7 +177,7 @@ function BookingListItem(booking: BookingItemProps) {
       actions: [
         {
           id: "reschedule",
-          icon: Clock,
+          icon: "clock" as const,
           label: t("reschedule_booking"),
           href: `${bookerUrl}/reschedule/${booking.uid}${
             booking.seatsReferences.length ? `?seatReferenceUid=${getSeatReferenceUid()}` : ""
@@ -184,7 +185,7 @@ function BookingListItem(booking: BookingItemProps) {
         },
         {
           id: "reschedule_request",
-          icon: Send,
+          icon: "send" as const,
           iconClassName: "rotate-45 w-[16px] -translate-x-0.5 ",
           label: t("send_reschedule_request"),
           onClick: () => {
@@ -197,7 +198,7 @@ function BookingListItem(booking: BookingItemProps) {
           onClick: () => {
             setIsOpenLocationDialog(true);
           },
-          icon: MapPin,
+          icon: "map-pin" as const,
         },
       ],
     },
@@ -211,7 +212,7 @@ function BookingListItem(booking: BookingItemProps) {
       onClick: () => {
         setChargeCardDialogIsOpen(true);
       },
-      icon: CreditCard,
+      icon: "credit-card" as const,
     },
   ];
 
@@ -225,7 +226,7 @@ function BookingListItem(booking: BookingItemProps) {
 
   const RequestSentMessage = () => {
     return (
-      <Badge startIcon={Send} size="md" variant="gray" data-testid="request_reschedule_sent">
+      <Badge startIcon="send" size="md" variant="gray" data-testid="request_reschedule_sent">
         {t("reschedule_request_sent")}
       </Badge>
     );
@@ -292,9 +293,11 @@ function BookingListItem(booking: BookingItemProps) {
         setViewRecordingsDialogIsOpen(true);
       },
       color: showCheckRecordingButton ? "secondary" : "primary",
-      disabled: mutation.isLoading,
+      disabled: mutation.isPending,
     },
   ];
+
+  const showPendingPayment = paymentAppData.enabled && booking.payment.length && !booking.paid;
 
   return (
     <>
@@ -347,7 +350,7 @@ function BookingListItem(booking: BookingItemProps) {
           <DialogFooter>
             <DialogClose />
             <Button
-              disabled={mutation.isLoading}
+              disabled={mutation.isPending}
               data-testid="rejection-confirm"
               onClick={() => {
                 bookingConfirm(false);
@@ -462,7 +465,7 @@ function BookingListItem(booking: BookingItemProps) {
                   {booking.eventType.team.name}
                 </Badge>
               )}
-              {!!booking?.eventType?.price && !booking.paid && (
+              {showPendingPayment && (
                 <Badge className="ltr:mr-2 rtl:ml-2 sm:hidden" variant="orange">
                   {t("pending_payment")}
                 </Badge>
@@ -489,8 +492,8 @@ function BookingListItem(booking: BookingItemProps) {
                 {title}
                 <span> </span>
 
-                {paymentAppData.enabled && !booking.paid && booking.payment.length && (
-                  <Badge className="me-2 ms-2 hidden sm:inline-flex" variant="orange">
+                {showPendingPayment && (
+                  <Badge className="hidden sm:inline-flex" variant="orange">
                     {t("pending_payment")}
                   </Badge>
                 )}
@@ -596,7 +599,8 @@ const RecurringBookingsTooltip = ({
                 );
               })}>
               <div className="text-default">
-                <RefreshCcw
+                <Icon
+                  name="refresh-ccw"
                   strokeWidth="3"
                   className="text-muted float-left mr-1 mt-1.5 inline-block h-3 w-3"
                 />

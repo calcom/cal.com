@@ -3,7 +3,6 @@ import { randomBytes } from "crypto";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
 import { prisma } from "@calcom/prisma";
-import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import { TRPCError } from "@calcom/trpc/server";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
@@ -21,8 +20,7 @@ export const createInviteHandler = async ({ ctx, input }: CreateInviteOptions) =
   const membership = await isTeamAdmin(ctx.user.id, teamId);
 
   if (!membership || !membership?.team) throw new TRPCError({ code: "UNAUTHORIZED" });
-  const teamMetadata = teamMetadataSchema.parse(membership.team.metadata);
-  const isOrganizationOrATeamInOrganization = !!(membership.team?.parentId || teamMetadata?.isOrganization);
+  const isOrganizationOrATeamInOrganization = !!(membership.team?.parentId || membership.team.isOrganization);
 
   if (input.token) {
     const existingToken = await prisma.verificationToken.findFirst({
@@ -41,6 +39,7 @@ export const createInviteHandler = async ({ ctx, input }: CreateInviteOptions) =
       identifier: `invite-link-for-teamId-${teamId}`,
       token,
       expires: new Date(new Date().setHours(168)), // +1 week,
+      expiresInDays: 7,
       teamId,
     },
   });

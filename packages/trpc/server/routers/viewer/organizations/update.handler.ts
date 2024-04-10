@@ -3,6 +3,8 @@ import type { Prisma } from "@prisma/client";
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import { getMetadataHelpers } from "@calcom/lib/getMetadataHelpers";
 import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
+import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
+import { uploadLogo } from "@calcom/lib/server/uploadLogo";
 import { closeComUpdateTeam } from "@calcom/lib/sync/SyncServiceManager";
 import { prisma } from "@calcom/prisma";
 import { UserPermissionRole } from "@calcom/prisma/enums";
@@ -52,15 +54,16 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       metadata: true,
       name: true,
       slug: true,
+      bannerUrl: true,
     },
   });
 
   if (!prevOrganisation) throw new TRPCError({ code: "NOT_FOUND", message: "Organisation not found." });
+
   const { mergeMetadata } = getMetadataHelpers(teamMetadataSchema.unwrap(), prevOrganisation.metadata);
 
   const data: Prisma.TeamUpdateArgs["data"] = {
     name: input.name,
-    logo: input.logo,
     calVideoLogo: input.calVideoLogo,
     bio: input.bio,
     hideBranding: input.hideBranding,
@@ -73,6 +76,27 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     timeFormat: input.timeFormat,
     metadata: mergeMetadata({ ...input.metadata }),
   };
+
+  if (input.banner && input.banner.startsWith("data:image/png;base64,")) {
+    const banner = await resizeBase64Image(input.banner, { maxSize: 1500 });
+    data.bannerUrl = await uploadLogo({
+      logo: banner,
+      teamId: currentOrgId,
+      isBanner: true,
+    });
+  } else if (input.banner === "") {
+    data.bannerUrl = null;
+  }
+
+  if (input.logo && input.logo.startsWith("data:image/png;base64,")) {
+    data.logo = input.logo;
+    data.logoUrl = await uploadLogo({
+      logo: input.logo,
+      teamId: currentOrgId,
+    });
+  } else if (typeof input.logo !== "undefined" && !input.logo) {
+    data.logo = data.logoUrl = null;
+  }
 
   if (input.slug) {
     if (
@@ -92,9 +116,63 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     }
   }
 
-  const updatedOrganisation = await prisma.team.update({
-    where: { id: currentOrgId },
-    data,
+  const updatedOrganisation = await prisma.$transaction(async (tx) => {
+    const updatedOrganisation = await tx.team.update({
+      where: { id: currentOrgId },
+      data,
+    });
+
+    await tx.organizationSettings.update({
+      where: {
+        organizationId: currentOrgId,
+      },
+      data: {
+        lockEventTypeCreationForUsers: !!input.lockEventTypeCreation,
+      },
+    });
+
+    if (input.lockEventTypeCreation) {
+      switch (input.lockEventTypeCreationOptions) {
+        case "HIDE":
+          await tx.eventType.updateMany({
+            where: {
+              teamId: null, // Not assigned to a team
+              parentId: null, // Not a managed event type
+              owner: {
+                profiles: {
+                  some: {
+                    organizationId: currentOrgId,
+                  },
+                },
+              },
+            },
+            data: {
+              hidden: true,
+            },
+          });
+
+          break;
+        case "DELETE":
+          await tx.eventType.deleteMany({
+            where: {
+              teamId: null, // Not assigned to a team
+              parentId: null, // Not a managed event type
+              owner: {
+                profiles: {
+                  some: {
+                    organizationId: currentOrgId,
+                  },
+                },
+              },
+            },
+          });
+          break;
+        default:
+          break;
+      }
+    }
+
+    return updatedOrganisation;
   });
 
   // Sync Services: Close.com

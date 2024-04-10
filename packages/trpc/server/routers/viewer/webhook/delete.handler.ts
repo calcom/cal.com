@@ -1,3 +1,5 @@
+import type { Prisma } from "@prisma/client";
+
 import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
@@ -13,22 +15,22 @@ type DeleteOptions = {
 export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
   const { id } = input;
 
-  const andCondition: Partial<{ id: string; eventTypeId: number; teamId: number; userId: number }>[] = [
-    { id: id },
-  ];
+  const where: Prisma.WebhookWhereInput = { AND: [{ id: id }] };
 
-  if (input.eventTypeId) {
-    andCondition.push({ eventTypeId: input.eventTypeId });
-  } else if (input.teamId) {
-    andCondition.push({ teamId: input.teamId });
-  } else {
-    andCondition.push({ userId: ctx.user.id });
+  if (Array.isArray(where.AND)) {
+    if (input.eventTypeId) {
+      where.AND.push({ eventTypeId: input.eventTypeId });
+    } else if (input.teamId) {
+      where.AND.push({ teamId: input.teamId });
+    } else if (ctx.user.role == "ADMIN") {
+      where.AND.push({ OR: [{ platform: true }, { userId: ctx.user.id }] });
+    } else {
+      where.AND.push({ userId: ctx.user.id });
+    }
   }
 
   const webhookToDelete = await prisma.webhook.findFirst({
-    where: {
-      AND: andCondition,
-    },
+    where,
   });
 
   if (webhookToDelete) {

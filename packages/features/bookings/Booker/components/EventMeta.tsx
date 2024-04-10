@@ -1,28 +1,39 @@
 import { m } from "framer-motion";
 import dynamic from "next/dynamic";
+import { useEffect, useMemo } from "react";
 import { shallow } from "zustand/shallow";
 
+import { Timezone as PlatformTimezoneSelect } from "@calcom/atoms/monorepo";
 import { useEmbedUiConfig, useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { EventDetails, EventMembers, EventMetaSkeleton, EventTitle } from "@calcom/features/bookings";
 import { SeatsAvailabilityText } from "@calcom/features/bookings/components/SeatsAvailabilityText";
 import { EventMetaBlock } from "@calcom/features/bookings/components/event-meta/Details";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Calendar, Globe, User } from "@calcom/ui/components/icon";
 
 import { fadeInUp } from "../config";
 import { useBookerStore } from "../store";
 import { FromToTime } from "../utils/dates";
-import { useEvent } from "../utils/event";
+import type { useEventReturnType } from "../utils/event";
 
-const TimezoneSelect = dynamic(() => import("@calcom/ui").then((mod) => mod.TimezoneSelect), {
-  ssr: false,
-});
+const WebTimezoneSelect = dynamic(
+  () => import("@calcom/ui/components/form/timezone-select/TimezoneSelect").then((mod) => mod.TimezoneSelect),
+  {
+    ssr: false,
+  }
+);
 
-export const EventMeta = () => {
+export const EventMeta = ({
+  event,
+  isPending,
+  isPlatform = true,
+}: {
+  event: useEventReturnType["data"];
+  isPending: useEventReturnType["isPending"];
+  isPlatform?: boolean;
+}) => {
   const { setTimezone, timeFormat, timezone } = useTimePreferences();
   const selectedDuration = useBookerStore((state) => state.selectedDuration);
-  const setSelectedDuration = useBookerStore((state) => state.setSelectedDuration);
   const selectedTimeslot = useBookerStore((state) => state.selectedTimeslot);
   const bookerState = useBookerStore((state) => state.state);
   const bookingData = useBookerStore((state) => state.bookingData);
@@ -32,10 +43,20 @@ export const EventMeta = () => {
     shallow
   );
   const { i18n, t } = useLocale();
-  const { data: event, isLoading } = useEvent();
   const embedUiConfig = useEmbedUiConfig();
   const isEmbed = useIsEmbed();
   const hideEventTypeDetails = isEmbed ? embedUiConfig.hideEventTypeDetails : false;
+  const [TimezoneSelect] = useMemo(
+    () => (isPlatform ? [PlatformTimezoneSelect] : [WebTimezoneSelect]),
+    [isPlatform]
+  );
+
+  useEffect(() => {
+    //In case the event has lockTimeZone enabled ,set the timezone to event's attached availability timezone
+    if (event && event?.lockTimeZoneToggleOnBookingPage && event?.schedule?.timeZone) {
+      setTimezone(event.schedule?.timeZone);
+    }
+  }, [event, setTimezone]);
 
   if (hideEventTypeDetails) {
     return null;
@@ -58,12 +79,12 @@ export const EventMeta = () => {
 
   return (
     <div className="relative z-10 p-6" data-testid="event-meta">
-      {isLoading && (
+      {isPending && (
         <m.div {...fadeInUp} initial="visible" layout>
           <EventMetaSkeleton />
         </m.div>
       )}
-      {!isLoading && !!event && (
+      {!isPending && !!event && (
         <m.div {...fadeInUp} layout transition={{ ...fadeInUp.transition, delay: 0.3 }}>
           <EventMembers
             schedulingType={event.schedulingType}
@@ -79,7 +100,7 @@ export const EventMeta = () => {
           )}
           <div className="space-y-4 font-medium rtl:-mr-2">
             {rescheduleUid && bookingData && (
-              <EventMetaBlock icon={Calendar}>
+              <EventMetaBlock icon="calendar">
                 {t("former_time")}
                 <br />
                 <span className="line-through" data-testid="former_time_p">
@@ -94,7 +115,7 @@ export const EventMeta = () => {
               </EventMetaBlock>
             )}
             {selectedTimeslot && (
-              <EventMetaBlock icon={Calendar}>
+              <EventMetaBlock icon="calendar">
                 <FromToTime
                   date={selectedTimeslot}
                   duration={selectedDuration || event.length}
@@ -109,7 +130,7 @@ export const EventMeta = () => {
             <EventMetaBlock
               className="cursor-pointer [&_.current-timezone:before]:focus-within:opacity-100 [&_.current-timezone:before]:hover:opacity-100"
               contentClassName="relative max-w-[90%]"
-              icon={Globe}>
+              icon="globe">
               {bookerState === "booking" ? (
                 <>{timezone}</>
               ) : (
@@ -134,7 +155,7 @@ export const EventMeta = () => {
               )}
             </EventMetaBlock>
             {bookerState === "booking" && eventTotalSeats && bookingSeatAttendeesQty ? (
-              <EventMetaBlock icon={User} className={`${colorClass}`}>
+              <EventMetaBlock icon="user" className={`${colorClass}`}>
                 <div className="text-bookinghighlight flex items-start text-sm">
                   <p>
                     <SeatsAvailabilityText

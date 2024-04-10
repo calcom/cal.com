@@ -5,7 +5,9 @@ import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { parseBookingLimit, parseDurationLimit } from "@calcom/lib";
 import { getWorkingHours } from "@calcom/lib/availability";
+import type { DateOverride, WorkingHours } from "@calcom/lib/date-ranges";
 import { buildDateRanges, subtract } from "@calcom/lib/date-ranges";
+import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
 import { descendingLimitKeys, intervalLimitKeyToUnit } from "@calcom/lib/intervalLimit";
 import logger from "@calcom/lib/logger";
@@ -16,22 +18,23 @@ import { getTotalBookingDuration } from "@calcom/lib/server/queries";
 import prisma, { availabilityUserSelect } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
-import { EventTypeMetaDataSchema, stringToDayjs } from "@calcom/prisma/zod-utils";
+import { EventTypeMetaDataSchema, stringToDayjsZod } from "@calcom/prisma/zod-utils";
 import type {
   EventBusyDate,
   EventBusyDetails,
   IntervalLimit,
   IntervalLimitUnit,
 } from "@calcom/types/Calendar";
+import type { TimeRange } from "@calcom/types/schedule";
 
-import { getBusyTimes, getBusyTimesForLimitChecks } from "./getBusyTimes";
+import { getBusyTimes } from "./getBusyTimes";
 import monitorCallbackAsync, { monitorCallbackSync } from "./sentryWrapper";
 
 const log = logger.getSubLogger({ prefix: ["getUserAvailability"] });
 const availabilitySchema = z
   .object({
-    dateFrom: stringToDayjs,
-    dateTo: stringToDayjs,
+    dateFrom: stringToDayjsZod,
+    dateTo: stringToDayjsZod,
     eventTypeId: z.number().optional(),
     username: z.string().optional(),
     userId: z.number().optional(),
@@ -39,6 +42,7 @@ const availabilitySchema = z
     beforeEventBuffer: z.number().optional(),
     duration: z.number().optional(),
     withSource: z.boolean().optional(),
+    returnDateOverrides: z.boolean(),
   })
   .refine((data) => !!data.username || !!data.userId, "Either username or userId should be filled in.");
 
@@ -56,6 +60,7 @@ const _getEventType = async (id: number) => {
       seatsPerTimeSlot: true,
       bookingLimits: true,
       durationLimits: true,
+      assignAllTeamMembers: true,
       timeZone: true,
       length: true,
       metadata: true,
@@ -93,12 +98,12 @@ const _getEventType = async (id: number) => {
 
 type EventType = Awaited<ReturnType<typeof getEventType>>;
 
-const getUser = (...args: Parameters<typeof _getUser>): ReturnType<typeof _getUser> => {
-  return monitorCallbackSync(_getUser, ...args);
+const getUser = async (...args: Parameters<typeof _getUser>): Promise<ReturnType<typeof _getUser>> => {
+  return monitorCallbackAsync(_getUser, ...args);
 };
 
-const _getUser = (where: Prisma.UserWhereInput) =>
-  prisma.user.findFirst({
+const _getUser = async (where: Prisma.UserWhereInput) => {
+  return await prisma.user.findFirst({
     where,
     select: {
       ...availabilityUserSelect,
@@ -107,17 +112,18 @@ const _getUser = (where: Prisma.UserWhereInput) =>
       },
     },
   });
+};
 
 type User = Awaited<ReturnType<typeof getUser>>;
 
-export const getCurrentSeats = (
+export const getCurrentSeats = async (
   ...args: Parameters<typeof _getCurrentSeats>
-): ReturnType<typeof _getCurrentSeats> => {
-  return monitorCallbackSync(_getCurrentSeats, ...args);
+): Promise<ReturnType<typeof _getCurrentSeats>> => {
+  return monitorCallbackAsync(_getCurrentSeats, ...args);
 };
 
-const _getCurrentSeats = (eventTypeId: number, dateFrom: Dayjs, dateTo: Dayjs) =>
-  prisma.booking.findMany({
+const _getCurrentSeats = async (eventTypeId: number, dateFrom: Dayjs, dateTo: Dayjs) => {
+  return await prisma.booking.findMany({
     where: {
       eventTypeId,
       startTime: {
@@ -136,6 +142,7 @@ const _getCurrentSeats = (eventTypeId: number, dateFrom: Dayjs, dateTo: Dayjs) =
       },
     },
   });
+};
 
 export type CurrentSeats = Awaited<ReturnType<typeof getCurrentSeats>>;
 
@@ -157,6 +164,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     afterEventBuffer?: number;
     beforeEventBuffer?: number;
     duration?: number;
+    returnDateOverrides: boolean;
   },
   initialData?: {
     user?: User;
@@ -172,10 +180,20 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
         seatsReferences: number;
       };
     })[];
+    busyTimesFromLimitsBookings: EventBusyDetails[];
   }
 ) {
-  const { username, userId, dateFrom, dateTo, eventTypeId, afterEventBuffer, beforeEventBuffer, duration } =
-    availabilitySchema.parse(query);
+  const {
+    username,
+    userId,
+    dateFrom,
+    dateTo,
+    eventTypeId,
+    afterEventBuffer,
+    beforeEventBuffer,
+    duration,
+    returnDateOverrides,
+  } = availabilitySchema.parse(query);
 
   if (!dateFrom.isValid() || !dateTo.isValid()) {
     throw new HttpError({ statusCode: 400, message: "Invalid time range given." });
@@ -215,8 +233,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
           dateTo,
           duration,
           eventType,
-          user.id,
-          initialData?.rescheduleUid
+          initialData?.busyTimesFromLimitsBookings ?? []
         )
       : [];
 
@@ -258,6 +275,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
 
   const useHostSchedulesForTeamEvent = eventType?.metadata?.config?.useHostSchedulesForTeamEvent;
   const schedule = !useHostSchedulesForTeamEvent && eventType?.schedule ? eventType.schedule : userSchedule;
+
   log.debug(
     "Using schedule:",
     safeStringify({
@@ -272,8 +290,14 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
 
   const timeZone = schedule?.timeZone || eventType?.timeZone || user.timeZone;
 
+  if (
+    !(schedule?.availability || (eventType?.availability.length ? eventType.availability : user.availability))
+  ) {
+    throw new HttpError({ statusCode: 400, message: ErrorCode.AvailabilityNotFoundInSchedule });
+  }
+
   const availability = (
-    schedule.availability || (eventType?.availability.length ? eventType.availability : user.availability)
+    schedule?.availability || (eventType?.availability.length ? eventType.availability : user.availability)
   ).map((a) => ({
     ...a,
     userId: user.id,
@@ -283,16 +307,30 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
 
   const endGetWorkingHours = performance.now();
 
-  const dateOverrides = availability
-    .filter((availability) => !!availability.date)
-    .map((override) => {
+  const dateOverrides: TimeRange[] = [];
+  // NOTE: getSchedule is currently calling this function for every user in a team event
+  // but not using these values at all, wasting CPU. Adding this check here temporarily to avoid a larger refactor
+  // since other callers do using this data.
+  if (returnDateOverrides) {
+    const availabilityWithDates = availability.filter((availability) => !!availability.date);
+
+    for (let i = 0; i < availabilityWithDates.length; i++) {
+      const override = availabilityWithDates[i];
       const startTime = dayjs.utc(override.startTime);
       const endTime = dayjs.utc(override.endTime);
-      return {
-        start: dayjs.utc(override.date).hour(startTime.hour()).minute(startTime.minute()).toDate(),
-        end: dayjs.utc(override.date).hour(endTime.hour()).minute(endTime.minute()).toDate(),
-      };
-    });
+      const overrideStartDate = dayjs.utc(override.date).hour(startTime.hour()).minute(startTime.minute());
+      const overrideEndDate = dayjs.utc(override.date).hour(endTime.hour()).minute(endTime.minute());
+      if (
+        overrideStartDate.isBetween(dateFrom, dateTo, null, "[]") ||
+        overrideEndDate.isBetween(dateFrom, dateTo, null, "[]")
+      ) {
+        dateOverrides.push({
+          start: overrideStartDate.toDate(),
+          end: overrideEndDate.toDate(),
+        });
+      }
+    }
+  }
 
   const dateRanges = buildDateRanges({
     dateFrom,
@@ -305,6 +343,13 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     start: dayjs(busy.start),
     end: dayjs(busy.end),
   }));
+
+  const datesOutOfOffice = await getOutOfOfficeDays({
+    userId: user.id,
+    dateFrom,
+    dateTo,
+    availability,
+  });
 
   const dateRangesInWhichUserIsAvailable = subtract(dateRanges, formattedBusyTimes);
 
@@ -326,6 +371,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     workingHours,
     dateOverrides,
     currentSeats,
+    datesOutOfOffice,
   };
 };
 
@@ -420,35 +466,12 @@ const _getBusyTimesFromLimits = async (
   dateTo: Dayjs,
   duration: number | undefined,
   eventType: NonNullable<EventType>,
-  userId: number,
-  rescheduleUid?: string | null
+  bookings: EventBusyDetails[]
 ) => {
   performance.mark("limitsStart");
 
   // shared amongst limiters to prevent processing known busy periods
   const limitManager = new LimitManager();
-
-  let limitDateFrom = dayjs(dateFrom);
-  let limitDateTo = dayjs(dateTo);
-
-  // expand date ranges by absolute minimum required to apply limits
-  // (yearly limits are handled separately for performance)
-  for (const key of ["PER_MONTH", "PER_WEEK", "PER_DAY"] as Exclude<keyof IntervalLimit, "PER_YEAR">[]) {
-    if (bookingLimits?.[key] || durationLimits?.[key]) {
-      const unit = intervalLimitKeyToUnit(key);
-      limitDateFrom = dayjs.min(limitDateFrom, dateFrom.startOf(unit));
-      limitDateTo = dayjs.max(limitDateTo, dateTo.endOf(unit));
-    }
-  }
-
-  // fetch only the data we need to check limits
-  const bookings = await getBusyTimesForLimitChecks({
-    userId,
-    eventTypeId: eventType.id,
-    startDate: limitDateFrom.toDate(),
-    endDate: limitDateTo.toDate(),
-    rescheduleUid: rescheduleUid,
-  });
 
   // run this first, as counting bookings should always run faster..
   if (bookingLimits) {
@@ -611,4 +634,147 @@ const _getBusyTimesFromDurationLimits = async (
       }
     }
   }
+};
+
+interface GetUserAvailabilityParamsDTO {
+  userId: number;
+  dateFrom: Dayjs;
+  dateTo: Dayjs;
+  availability: (DateOverride | WorkingHours)[];
+}
+
+export interface IFromUser {
+  id: number;
+  displayName: string | null;
+}
+
+export interface IToUser {
+  id: number;
+  username: string | null;
+  displayName: string | null;
+}
+
+export interface IOutOfOfficeData {
+  [key: string]: {
+    fromUser: IFromUser | null;
+    toUser?: IToUser | null;
+    reason?: string | null;
+    emoji?: string | null;
+  };
+}
+
+const getOutOfOfficeDays = async (
+  ...args: Parameters<typeof _getOutOfOfficeDays>
+): Promise<ReturnType<typeof _getOutOfOfficeDays>> => {
+  return monitorCallbackAsync(_getOutOfOfficeDays, ...args);
+};
+
+const _getOutOfOfficeDays = async ({
+  userId,
+  dateFrom,
+  dateTo,
+  availability,
+}: GetUserAvailabilityParamsDTO): Promise<IOutOfOfficeData> => {
+  const outOfOfficeDays = await prisma.outOfOfficeEntry.findMany({
+    where: {
+      userId,
+      OR: [
+        // outside of range
+        // (start <= 'dateTo' AND end >= 'dateFrom')
+        {
+          start: {
+            lte: dateTo.toISOString(),
+          },
+          end: {
+            gte: dateFrom.toISOString(),
+          },
+        },
+        // start is between dateFrom and dateTo but end is outside of range
+        // (start <= 'dateTo' AND end >= 'dateTo')
+        {
+          start: {
+            lte: dateTo.toISOString(),
+          },
+
+          end: {
+            gte: dateTo.toISOString(),
+          },
+        },
+        // end is between dateFrom and dateTo but start is outside of range
+        // (start <= 'dateFrom' OR end <= 'dateTo')
+        {
+          start: {
+            lte: dateFrom.toISOString(),
+          },
+
+          end: {
+            lte: dateTo.toISOString(),
+          },
+        },
+      ],
+    },
+    select: {
+      id: true,
+      start: true,
+      end: true,
+      user: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+      toUser: {
+        select: {
+          id: true,
+          username: true,
+          name: true,
+        },
+      },
+      reason: {
+        select: {
+          id: true,
+          emoji: true,
+          reason: true,
+        },
+      },
+    },
+  });
+  if (!outOfOfficeDays.length) {
+    return {};
+  }
+
+  return outOfOfficeDays.reduce((acc: IOutOfOfficeData, { start, end, toUser, user, reason }) => {
+    // here we should use startDate or today if start is before today
+    // consider timezone in start and end date range
+    const startDateRange = dayjs(start).utc().isBefore(dayjs().startOf("day").utc())
+      ? dayjs().utc().startOf("day")
+      : dayjs(start).utc().startOf("day");
+
+    // get number of day in the week and see if it's on the availability
+    const flattenDays = Array.from(new Set(availability.flatMap((a) => ("days" in a ? a.days : [])))).sort(
+      (a, b) => a - b
+    );
+
+    const endDateRange = dayjs(end).utc().endOf("day");
+
+    for (let date = startDateRange; date.isBefore(endDateRange); date = date.add(1, "day")) {
+      const dayNumberOnWeek = date.day();
+
+      if (!flattenDays?.includes(dayNumberOnWeek)) {
+        continue; // Skip to the next iteration if day not found in flattenDays
+      }
+
+      acc[date.format("YYYY-MM-DD")] = {
+        // @TODO:  would be good having start and end availability time here, but for now should be good
+        // you can obtain that from user availability defined outside of here
+        fromUser: { id: user.id, displayName: user.name },
+        // optional chaining destructuring toUser
+        toUser: !!toUser ? { id: toUser.id, displayName: toUser.name, username: toUser.username } : null,
+        reason: !!reason ? reason.reason : null,
+        emoji: !!reason ? reason.emoji : null,
+      };
+    }
+
+    return acc;
+  }, {});
 };

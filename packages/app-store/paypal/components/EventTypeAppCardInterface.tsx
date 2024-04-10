@@ -1,5 +1,5 @@
-import { useRouter } from "next/router";
-import { useState, useEffect } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
+import { useState, useEffect, useMemo } from "react";
 
 import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import AppCard from "@calcom/app-store/_components/AppCard";
@@ -24,7 +24,13 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
   eventType,
   eventTypeFormMetadata,
 }) {
-  const { asPath } = useRouter();
+  const searchParams = useSearchParams();
+  /** TODO "pathname" no longer contains square-bracket expressions. Rewrite the code relying on them if required. **/
+  const pathname = usePathname();
+  const asPath = useMemo(
+    () => `${pathname}${searchParams ? `?${searchParams.toString()}` : ""}`,
+    [pathname, searchParams]
+  );
   const { getAppData, setAppData } = useAppContextWithSchema<typeof appDataSchema>();
   const price = getAppData("price");
 

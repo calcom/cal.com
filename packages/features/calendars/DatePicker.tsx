@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { shallow } from "zustand/shallow";
 
+import type { IFromUser, IToUser } from "@calcom/core/getUserAvailability";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { useEmbedStyles } from "@calcom/embed-core/embed-iframe";
@@ -11,8 +12,6 @@ import { daysInMonth, yyyymmdd } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { weekdayNames } from "@calcom/lib/weekday";
 import { Button, SkeletonText } from "@calcom/ui";
-import { ChevronLeft, ChevronRight } from "@calcom/ui/components/icon";
-import { ArrowRight } from "@calcom/ui/components/icon";
 
 export type DatePickerProps = {
   /** which day of the week to render the calendar. Usually Sunday (=0) or Monday (=1) - default: Sunday */
@@ -36,23 +35,41 @@ export type DatePickerProps = {
   /** allows adding classes to the container */
   className?: string;
   /** Shows a small loading spinner next to the month name */
-  isLoading?: boolean;
+  isPending?: boolean;
   /** used to query the multiple selected dates */
   eventSlug?: string;
+  /** To identify days that are not available and should display OOO and redirect if toUser exists */
+  slots?: Record<
+    string,
+    {
+      time: string;
+      userIds?: number[];
+      away?: boolean;
+      fromUser?: IFromUser;
+      toUser?: IToUser;
+      reason?: string;
+      emoji?: string;
+    }[]
+  >;
 };
 
 export const Day = ({
   date,
   active,
   disabled,
+  away,
+  emoji,
   ...props
 }: JSX.IntrinsicElements["button"] & {
   active: boolean;
   date: Dayjs;
+  away?: boolean;
+  emoji?: string | null;
 }) => {
   const { t } = useLocale();
   const enabledDateButtonEmbedStyles = useEmbedStyles("enabledDateButton");
   const disabledDateButtonEmbedStyles = useEmbedStyles("disabledDateButton");
+
   return (
     <button
       type="button"
@@ -69,12 +86,13 @@ export const Day = ({
       data-disabled={disabled}
       disabled={disabled}
       {...props}>
-      {date.date()}
+      {away && <span data-testid="away-emoji">{emoji}</span>}
+      {!away && date.date()}
       {date.isToday() && (
         <span
           className={classNames(
             "bg-brand-default absolute left-1/2 top-1/2 flex h-[5px] w-[5px] -translate-x-1/2 translate-y-[8px] items-center justify-center rounded-full align-middle sm:translate-y-[12px]",
-            active && "invert"
+            active && "bg-brand-accent"
           )}>
           <span className="sr-only">{t("today")}</span>
         </span>
@@ -95,7 +113,7 @@ const NoAvailabilityOverlay = ({
   return (
     <div className="bg-muted border-subtle absolute left-1/2 top-40 -mt-10 w-max -translate-x-1/2 -translate-y-1/2 transform rounded-md border p-8 shadow-sm">
       <h4 className="text-emphasis mb-4 font-medium">{t("no_availability_in_month", { month: month })}</h4>
-      <Button onClick={nextMonthButton} color="primary" EndIcon={ArrowRight} data-testid="view_next_month">
+      <Button onClick={nextMonthButton} color="primary" EndIcon="arrow-right" data-testid="view_next_month">
         {t("view_next_month")}
       </Button>
     </div>
@@ -112,6 +130,7 @@ const Days = ({
   month,
   nextMonthButton,
   eventSlug,
+  slots,
   ...props
 }: Omit<DatePickerProps, "locale" | "className" | "weekStart"> & {
   DayComponent?: React.FC<React.ComponentProps<typeof Day>>;
@@ -164,10 +183,20 @@ const Days = ({
 
   const daysToRenderForTheMonth = days.map((day) => {
     if (!day) return { day: null, disabled: true };
+    const dateKey = yyyymmdd(day);
+    const oooInfo = slots && slots?.[dateKey] ? slots?.[dateKey]?.find((slot) => slot.away) : null;
+    const included = includedDates?.includes(dateKey);
+    const excluded = excludedDates.includes(dateKey);
+
+    const isOOOAllDay = !!(slots && slots[dateKey] && slots[dateKey].every((slot) => slot.away));
+    const away = isOOOAllDay;
+    const disabled = away ? !oooInfo?.toUser : !included || excluded;
+
     return {
       day: day,
-      disabled:
-        (includedDates && !includedDates.includes(yyyymmdd(day))) || excludedDates.includes(yyyymmdd(day)),
+      disabled,
+      away,
+      emoji: oooInfo?.emoji,
     };
   });
 
@@ -202,11 +231,11 @@ const Days = ({
 
   return (
     <>
-      {daysToRenderForTheMonth.map(({ day, disabled }, idx) => (
+      {daysToRenderForTheMonth.map(({ day, disabled, away, emoji }, idx) => (
         <div key={day === null ? `e-${idx}` : `day-${day.format()}`} className="relative w-full pt-[100%]">
           {day === null ? (
             <div key={`e-${idx}`} />
-          ) : props.isLoading ? (
+          ) : props.isPending ? (
             <button
               className="bg-muted text-muted absolute bottom-0 left-0 right-0 top-0 mx-auto flex w-full items-center justify-center rounded-sm border-transparent text-center font-medium opacity-50"
               key={`e-${idx}`}
@@ -221,12 +250,14 @@ const Days = ({
               }}
               disabled={disabled}
               active={isActive(day)}
+              away={away}
+              emoji={emoji}
             />
           )}
         </div>
       ))}
 
-      {!props.isLoading && includedDates && includedDates?.length === 0 && (
+      {!props.isPending && includedDates && includedDates?.length === 0 && (
         <NoAvailabilityOverlay month={month} nextMonthButton={nextMonthButton} />
       )}
     </>
@@ -239,6 +270,7 @@ const DatePicker = ({
   locale,
   selected,
   onMonthChange,
+  slots,
   ...passThroughProps
 }: DatePickerProps & Partial<React.ComponentProps<typeof Days>>) => {
   const browsingDate = passThroughProps.browsingDate || dayjs().startOf("month");
@@ -281,7 +313,7 @@ const DatePicker = ({
               data-testid="decrementMonth"
               color="minimal"
               variant="icon"
-              StartIcon={ChevronLeft}
+              StartIcon="chevron-left"
             />
             <Button
               className="group p-1 opacity-70 hover:opacity-100 rtl:rotate-180"
@@ -289,7 +321,7 @@ const DatePicker = ({
               data-testid="incrementMonth"
               color="minimal"
               variant="icon"
-              StartIcon={ChevronRight}
+              StartIcon="chevron-right"
             />
           </div>
         </div>
@@ -301,7 +333,7 @@ const DatePicker = ({
           </div>
         ))}
       </div>
-      <div className="relative grid grid-cols-7 gap-1 text-center">
+      <div className="relative grid grid-cols-7 grid-rows-6 gap-1 text-center">
         <Days
           weekStart={weekStart}
           selected={selected}
@@ -309,6 +341,7 @@ const DatePicker = ({
           browsingDate={browsingDate}
           month={month}
           nextMonthButton={() => changeMonth(+1)}
+          slots={slots}
         />
       </div>
     </div>

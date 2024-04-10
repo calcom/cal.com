@@ -24,7 +24,11 @@ import AttendeeScheduledEmail from "./templates/attendee-scheduled-email";
 import type { EmailVerifyCode } from "./templates/attendee-verify-email";
 import AttendeeVerifyEmail from "./templates/attendee-verify-email";
 import AttendeeWasRequestedToRescheduleEmail from "./templates/attendee-was-requested-to-reschedule-email";
+import BookingRedirectEmailNotification from "./templates/booking-redirect-notification";
+import type { IBookingRedirect } from "./templates/booking-redirect-notification";
 import BrokenIntegrationEmail from "./templates/broken-integration-email";
+import type { ChangeOfEmailVerifyLink } from "./templates/change-account-email-verify";
+import ChangeOfEmailVerifyEmail from "./templates/change-account-email-verify";
 import DisabledAppEmail from "./templates/disabled-app-email";
 import type { Feedback } from "./templates/feedback-email";
 import FeedbackEmail from "./templates/feedback-email";
@@ -34,6 +38,8 @@ import MonthlyDigestEmail from "./templates/monthly-digest-email";
 import NoShowFeeChargedEmail from "./templates/no-show-fee-charged-email";
 import type { OrgAutoInvite } from "./templates/org-auto-join-invite";
 import OrgAutoJoinEmail from "./templates/org-auto-join-invite";
+import type { OrganizationCreation } from "./templates/organization-creation-email";
+import OrganizationCreationEmail from "./templates/organization-creation-email";
 import type { OrganizationEmailVerify } from "./templates/organization-email-verification";
 import OrganizationEmailVerification from "./templates/organization-email-verification";
 import OrganizerAttendeeCancelledSeatEmail from "./templates/organizer-attendee-cancelled-seat-email";
@@ -323,6 +329,10 @@ export const sendTeamInviteEmail = async (teamInviteEvent: TeamInvite) => {
   await sendEmail(() => new TeamInviteEmail(teamInviteEvent));
 };
 
+export const sendOrganizationCreationEmail = async (organizationCreationEvent: OrganizationCreation) => {
+  await sendEmail(() => new OrganizationCreationEmail(organizationCreationEvent));
+};
+
 export const sendOrganizationAutoJoinEmail = async (orgInviteEvent: OrgAutoInvite) => {
   await sendEmail(() => new OrgAutoJoinEmail(orgInviteEvent));
 };
@@ -333,6 +343,10 @@ export const sendEmailVerificationLink = async (verificationInput: EmailVerifyLi
 
 export const sendEmailVerificationCode = async (verificationInput: EmailVerifyCode) => {
   await sendEmail(() => new AttendeeVerifyEmail(verificationInput));
+};
+
+export const sendChangeOfEmailVerificationLink = async (verificationInput: ChangeOfEmailVerifyLink) => {
+  await sendEmail(() => new ChangeOfEmailVerifyEmail(verificationInput));
 };
 
 export const sendRequestRescheduleEmail = async (
@@ -436,4 +450,8 @@ export const sendMonthlyDigestEmails = async (eventData: MonthlyDigestEmailData)
 
 export const sendAdminOrganizationNotification = async (input: OrganizationNotification) => {
   await sendEmail(() => new AdminOrganizationNotification(input));
+};
+
+export const sendBookingRedirectNotification = async (bookingRedirect: IBookingRedirect) => {
+  await sendEmail(() => new BookingRedirectEmailNotification(bookingRedirect));
 };

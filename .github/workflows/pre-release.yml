@@ -2,9 +2,6 @@ name: Pre-release checks
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
 
 jobs:
   changes:

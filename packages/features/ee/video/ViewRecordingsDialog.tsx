@@ -1,5 +1,5 @@
 import { useRouter } from "next/navigation";
-import { useState, Suspense } from "react";
+import { Suspense, useEffect, useState } from "react";
 
 import dayjs from "@calcom/dayjs";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
@@ -9,9 +9,7 @@ import type { RecordingItemSchema } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { PartialReference } from "@calcom/types/EventManager";
-import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui";
-import { Button } from "@calcom/ui";
-import { Download } from "@calcom/ui/components/icon";
+import { Button, Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui";
 
 import RecordingListSkeleton from "./components/RecordingListSkeleton";
 
@@ -64,18 +62,21 @@ const useRecordingDownload = () => {
     },
     {
       enabled: !!recordingId,
-      cacheTime: 0,
+      gcTime: 0,
       refetchOnWindowFocus: false,
       refetchOnReconnect: false,
       retry: false,
-      onSuccess: (data) => {
-        if (data && data.download_link) {
-          window.location.href = data.download_link;
-        }
-      },
     }
   );
 
+  useEffect(
+    function refactorMeWithoutEffect() {
+      if (data && data.download_link) {
+        window.location.href = data.download_link;
+      }
+    },
+    [data]
+  );
   return {
     setRecordingId: (newRecordingId: string) => {
       // may be a way to do this by default, but this is easy enough.
@@ -126,7 +127,7 @@ const ViewRecordingsList = ({ roomName, hasTeamPlan }: { roomName: string; hasTe
                 </div>
                 {hasTeamPlan ? (
                   <Button
-                    StartIcon={Download}
+                    StartIcon="download"
                     className="ml-4 lg:ml-0"
                     loading={isFetching && recordingId === recording.id}
                     onClick={() => handleDownloadClick(recording.id)}>
@@ -157,7 +158,7 @@ export const ViewRecordingsDialog = (props: IViewRecordingsDialog) => {
   const { t, i18n } = useLocale();
   const { isOpenDialog, setIsOpenDialog, booking, timeFormat } = props;
 
-  const { hasTeamPlan, isLoading: isTeamPlanStatusLoading } = useHasTeamPlan();
+  const { hasTeamPlan, isPending: isTeamPlanStatusLoading } = useHasTeamPlan();
 
   const roomName =
     booking?.references?.find((reference: PartialReference) => reference.type === "daily_video")?.meetingId ??

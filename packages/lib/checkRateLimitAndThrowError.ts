@@ -6,8 +6,13 @@ import { rateLimiter } from "./rateLimit";
 export async function checkRateLimitAndThrowError({
   rateLimitingType = "core",
   identifier,
+  onRateLimiterResponse,
+  opts,
 }: RateLimitHelper) {
-  const { remaining, reset } = await rateLimiter()({ rateLimitingType, identifier });
+  const response = await rateLimiter()({ rateLimitingType, identifier, opts });
+  const { remaining, reset } = response;
+
+  if (onRateLimiterResponse) onRateLimiterResponse(response);
 
   if (remaining < 1) {
     const convertToSeconds = (ms: number) => Math.floor(ms / 1000);

@@ -9,7 +9,7 @@ import type {
 } from "react-awesome-query-builder";
 
 import { Button as CalButton, TextField, TextArea } from "@calcom/ui";
-import { Trash, Plus } from "@calcom/ui/components/icon";
+import { Icon } from "@calcom/ui";
 
 const Select = dynamic(
   async () => (await import("@calcom/ui")).SelectWithValidation
@@ -134,7 +134,7 @@ function NumberWidget({ value, setValue, ...remainingProps }: TextLikeComponentP
       type="number"
       labelSrOnly={remainingProps.noLabel}
       containerClassName="w-full"
-      className="bg-default border-default disabled:bg-emphasis focus:ring-brand-default dark:focus:border-emphasis block w-full rounded-md text-sm focus:border-neutral-300 disabled:hover:cursor-not-allowed"
+      className="bg-default border-default disabled:bg-emphasis focus:ring-brand-default dark:focus:border-emphasis focus:border-subtle block w-full rounded-md text-sm disabled:hover:cursor-not-allowed"
       value={value}
       onChange={(e) => {
         setValue(e.target.value);
@@ -214,7 +214,7 @@ function Button({ config, type, label, onClick, readonly }: ButtonProps) {
   if (type === "delRule" || type == "delGroup") {
     return (
       <button className="ml-5">
-        <Trash className="text-subtle m-0 h-4 w-4" onClick={onClick} />
+        <Icon name="trash" className="text-subtle m-0 h-4 w-4" onClick={onClick} />
       </button>
     );
   }
@@ -228,7 +228,7 @@ function Button({ config, type, label, onClick, readonly }: ButtonProps) {
   }
   return (
     <CalButton
-      StartIcon={Plus}
+      StartIcon="plus"
       data-testid={dataTestId}
       type="button"
       color="secondary"

@@ -4,6 +4,7 @@ import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import type { DateRange } from "@calcom/lib/date-ranges";
 import { buildDateRanges } from "@calcom/lib/date-ranges";
+import { UserRepository } from "@calcom/lib/server/repository/user";
 import { prisma } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
@@ -20,16 +21,18 @@ type GetOptions = {
 
 async function getTeamMembers({
   teamId,
+  organizationId,
   teamIds,
   cursor,
   limit,
 }: {
   teamId?: number;
+  organizationId: number | null;
   teamIds?: number[];
   cursor: number | null | undefined;
   limit: number;
 }) {
-  return await prisma.membership.findMany({
+  const memberships = await prisma.membership.findMany({
     where: {
       teamId: {
         in: teamId ? [teamId] : teamIds,
@@ -40,8 +43,8 @@ async function getTeamMembers({
       role: true,
       user: {
         select: {
+          avatarUrl: true,
           id: true,
-          organizationId: true,
           username: true,
           name: true,
           email: true,
@@ -57,6 +60,18 @@ async function getTeamMembers({
     },
     distinct: ["userId"],
   });
+
+  const membershipWithUserProfile = [];
+  for (const membership of memberships) {
+    membershipWithUserProfile.push({
+      ...membership,
+      user: await UserRepository.enrichUserWithItsProfile({
+        user: membership.user,
+      }),
+    });
+  }
+
+  return membershipWithUserProfile;
 }
 
 type Member = Awaited<ReturnType<typeof getTeamMembers>>[number];
@@ -65,7 +80,7 @@ async function buildMember(member: Member, dateFrom: Dayjs, dateTo: Dayjs) {
   if (!member.user.defaultScheduleId) {
     return {
       id: member.user.id,
-      organizationId: member.user.organizationId,
+      organizationId: member.user.profile?.organizationId ?? null,
       name: member.user.name,
       username: member.user.username,
       email: member.user.email,
@@ -93,7 +108,9 @@ async function buildMember(member: Member, dateFrom: Dayjs, dateTo: Dayjs) {
     id: member.user.id,
     username: member.user.username,
     email: member.user.email,
-    organizationId: member.user.organizationId,
+    avatarUrl: member.user.avatarUrl,
+    profile: member.user.profile,
+    organizationId: member.user.profile?.organizationId,
     name: member.user.name,
     timeZone,
     role: member.role,
@@ -124,6 +141,7 @@ async function getInfoForAllTeams({ ctx, input }: GetOptions) {
 
   const teamMembers = await getTeamMembers({
     teamIds,
+    organizationId: ctx.user.organizationId,
     cursor,
     limit,
   });
@@ -180,6 +198,7 @@ export const listTeamAvailabilityHandler = async ({ ctx, input }: GetOptions) =>
         teamId,
         cursor,
         limit,
+        organizationId: ctx.user.organizationId,
       });
     }
   }

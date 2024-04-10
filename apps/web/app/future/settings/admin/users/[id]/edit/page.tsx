@@ -1,31 +1,27 @@
-import { getServerCaller } from "app/_trpc/serverClient";
 import { type Params } from "app/_types";
 import { _generateMetadata } from "app/_utils";
-import { cookies, headers } from "next/headers";
+import { WithLayout } from "app/layoutHOC";
 import { z } from "zod";
 
 import Page from "@calcom/features/ee/users/pages/users-edit-view";
-import prisma from "@calcom/prisma";
+import { getLayout } from "@calcom/features/settings/layouts/SettingsLayoutAppDir";
 
 const userIdSchema = z.object({ id: z.coerce.number() });
 
 export const generateMetadata = async ({ params }: { params: Params }) => {
   const input = userIdSchema.safeParse(params);
-
-  let title = "";
   if (!input.success) {
-    title = "Editing user";
-  } else {
-    const req = {
-      headers: headers(),
-      cookies: cookies(),
-    };
-
-    // @ts-expect-error Type '{ headers: ReadonlyHeaders; cookies: ReadonlyRequestCookies; }' is not assignable to type 'NextApiRequest'
-    const data = await getServerCaller({ req, prisma }).viewer.users.get({ userId: input.data.id });
-    const { user } = data;
-    title = `Editing user: ${user.username}`;
+    return await _generateMetadata(
+      () => "",
+      () => "Here you can edit a current user."
+    );
   }
+
+  const userId = input.data.id;
+  const { trpc } = await import("@calcom/trpc");
+  const [data] = trpc.viewer.users.get.useSuspenseQuery({ userId });
+  const { user } = data;
+  const title = `Editing user: ${user.username}`;
 
   return await _generateMetadata(
     () => title,
@@ -33,4 +29,4 @@ export const generateMetadata = async ({ params }: { params: Params }) => {
   );
 };
 
-export default Page;
+export default WithLayout({ getLayout, Page })<"P">;

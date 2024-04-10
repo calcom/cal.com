@@ -50,7 +50,6 @@ const listPaginatedHandler = async ({ input }: GetOptions) => {
       name: true,
       timeZone: true,
       role: true,
-      organizationId: true,
     },
   });
 

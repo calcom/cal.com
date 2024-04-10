@@ -1,18 +1,21 @@
-import dayjs from "@calcom/dayjs";
+import { useTimesForSchedule } from "@calcom/features/schedules/lib/use-schedule/useTimesForSchedule";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
 import { trpc } from "@calcom/trpc/react";
 
-type UseScheduleWithCacheArgs = {
+export type UseScheduleWithCacheArgs = {
   username?: string | null;
   eventSlug?: string | null;
   eventId?: number | null;
   month?: string | null;
   timezone?: string | null;
+  selectedDate?: string | null;
   prefetchNextMonth?: boolean;
   duration?: number | null;
   monthCount?: number | null;
+  dayCount?: number | null;
   rescheduleUid?: string | null;
   isTeamEvent?: boolean;
+  orgSlug?: string;
 };
 
 export const useSchedule = ({
@@ -21,17 +24,23 @@ export const useSchedule = ({
   username,
   eventSlug,
   eventId,
+  selectedDate,
   prefetchNextMonth,
   duration,
   monthCount,
+  dayCount,
   rescheduleUid,
   isTeamEvent,
+  orgSlug,
 }: UseScheduleWithCacheArgs) => {
-  const monthDayjs = month ? dayjs(month) : dayjs();
-  const nextMonthDayjs = monthDayjs.add(monthCount ? monthCount : 1, "month");
-  // Why the non-null assertions? All of these arguments are checked in the enabled condition,
-  // and the query will not run if they are null. However, the check in `enabled` does
-  // no satisfy typescript.
+  const [startTime, endTime] = useTimesForSchedule({
+    month,
+    monthCount,
+    dayCount,
+    prefetchNextMonth,
+    selectedDate,
+  });
+
   return trpc.viewer.public.slots.getSchedule.useQuery(
     {
       isTeamEvent,
@@ -42,12 +51,13 @@ export const useSchedule = ({
       ...(eventSlug ? { eventTypeSlug: eventSlug } : { eventTypeId: eventId ?? 0 }),
       // @TODO: Old code fetched 2 days ago if we were fetching the current month.
       // Do we want / need to keep that behavior?
-      startTime: monthDayjs.startOf("month").toISOString(),
+      startTime,
       // if `prefetchNextMonth` is true, two months are fetched at once.
-      endTime: (prefetchNextMonth ? nextMonthDayjs : monthDayjs).endOf("month").toISOString(),
+      endTime,
       timeZone: timezone!,
       duration: duration ? `${duration}` : undefined,
       rescheduleUid,
+      orgSlug,
     },
     {
       trpc: {

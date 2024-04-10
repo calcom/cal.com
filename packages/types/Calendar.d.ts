@@ -55,6 +55,7 @@ export type EventBusyDate = {
 export type EventBusyDetails = EventBusyDate & {
   title?: string;
   source?: string | null;
+  userId?: number | null;
 };
 
 export type CalendarServiceType = typeof Calendar;
@@ -63,6 +64,7 @@ export type AdditionalInfo = Record<string, unknown> & { calWarnings?: string[] 
 export type NewCalendarEventType = {
   uid: string;
   id: string;
+  thirdPartyRecurringEventId?: string | null;
   type: string;
   password: string;
   url: string;
@@ -140,8 +142,13 @@ export type CalEventResponses = Record<
   {
     label: string;
     value: z.infer<typeof bookingResponse>;
+    isHidden?: boolean;
   }
 >;
+
+export interface ExistingRecurringEvent {
+  recurringEventId: string;
+}
 
 // If modifying this interface, probably should update builders/calendarEvent files
 export interface CalendarEvent {
@@ -167,6 +174,7 @@ export interface CalendarEvent {
   conferenceData?: ConferenceData;
   additionalInformation?: AdditionalInformation;
   uid?: string | null;
+  existingRecurringEvent?: ExistingRecurringEvent | null;
   bookingId?: number;
   videoCallData?: VideoCallData;
   paymentInfo?: PaymentInfo | null;

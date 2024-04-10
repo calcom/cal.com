@@ -4,15 +4,14 @@ import { Fragment } from "react";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useUrlMatchesCurrentUrl } from "@calcom/lib/hooks/useUrlMatchesCurrentUrl";
-import type { SVGComponent } from "@calcom/types/SVGComponent";
 
-import { ChevronRight, ExternalLink } from "../../icon";
+import { Icon, type IconName } from "../../..";
 import { Skeleton } from "../../skeleton";
 
 export type VerticalTabItemProps = {
   name: string;
   info?: string;
-  icon?: SVGComponent;
+  icon?: IconName;
   disabled?: boolean;
   children?: VerticalTabItemProps[];
   textClassNames?: string;
@@ -62,7 +61,8 @@ const VerticalTabItem = ({
             data-testid={`vertical-tab-${name}`}
             aria-current={isCurrent ? "page" : undefined}>
             {props.icon && (
-              <props.icon
+              <Icon
+                name={props.icon}
                 className={classNames(
                   "mr-2 h-[16px] w-[16px] stroke-[2px] ltr:mr-2 rtl:ml-2 md:mt-0",
                   props.iconClassName
@@ -75,17 +75,22 @@ const VerticalTabItem = ({
                 <Skeleton title={t(name)} as="p" className="max-w-36 min-h-4 mt-px truncate">
                   {t(name)}
                 </Skeleton>
-                {props.isExternalLink ? <ExternalLink data-testid="external-link" /> : null}
+                {props.isExternalLink ? <Icon name="external-link" data-testid="external-link" /> : null}
               </span>
               {info && (
-                <Skeleton as="p" title={t(info)} className="max-w-44 mt-1 truncate text-xs font-normal">
+                <Skeleton
+                  data-testid="apps-info"
+                  as="p"
+                  title={t(info)}
+                  className="max-w-44 mt-1 truncate text-xs font-normal">
                   {t(info)}
                 </Skeleton>
               )}
             </div>
             {!disableChevron && isCurrent && (
               <div className="ml-auto self-center">
-                <ChevronRight
+                <Icon
+                  name="chevron-right"
                   width={20}
                   height={20}
                   className="text-default h-auto w-[20px] stroke-[1.5px]"

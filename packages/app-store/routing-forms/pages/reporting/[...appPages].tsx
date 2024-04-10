@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useCallback, useRef, useState } from "react";
 import type {
   BuilderProps,
@@ -32,7 +34,7 @@ type QueryBuilderUpdatedConfig = typeof QueryBuilderInitialConfig & { fields: Co
 const Result = ({ formId, jsonLogicQuery }: { formId: string; jsonLogicQuery: JsonLogicQuery | null }) => {
   const { t } = useLocale();
 
-  const { isLoading, status, data, isFetching, error, isFetchingNextPage, hasNextPage, fetchNextPage } =
+  const { isPending, status, data, isFetching, error, isFetchingNextPage, hasNextPage, fetchNextPage } =
     trpc.viewer.appRoutingForms.report.useInfiniteQuery(
       {
         formId: formId,
@@ -55,7 +57,7 @@ const Result = ({ formId, jsonLogicQuery }: { formId: string; jsonLogicQuery: Js
 
   const headers = useRef<string[] | null>(null);
 
-  if (!isLoading && !data) {
+  if (!isPending && !data) {
     return <div>Error loading report {error?.message} </div>;
   }
   headers.current = (data?.pages && data?.pages[0]?.headers) || headers.current;
@@ -79,7 +81,7 @@ const Result = ({ formId, jsonLogicQuery }: { formId: string; jsonLogicQuery: Js
             </th>
           ))}
         </tr>
-        {!isLoading &&
+        {!isPending &&
           data?.pages.map((page) => {
             return page.responses?.map((responses, rowIndex) => {
               const isLastRow = page.responses.length - 1 === rowIndex;
@@ -111,7 +113,7 @@ const Result = ({ formId, jsonLogicQuery }: { formId: string; jsonLogicQuery: Js
             });
           })}
       </table>
-      {isLoading ? <div className="text-default p-2">{t("loading")}</div> : ""}
+      {isPending ? <div className="text-default p-2">{t("loading")}</div> : ""}
       {hasNextPage && (
         <Button
           type="button"
@@ -164,18 +166,16 @@ const Reporter = ({ form }: { form: inferSSRProps<typeof getServerSideProps>["fo
     []
   );
   return (
-    <div className="flex flex-col-reverse md:flex-row">
-      <div className="cal-query-builder bg-default w-full ltr:mr-2 rtl:ml-2">
-        <Query
-          {...config}
-          value={query.state.tree}
-          onChange={(immutableTree, config) => {
-            onChange(immutableTree, config as QueryBuilderUpdatedConfig);
-          }}
-          renderBuilder={renderBuilder}
-        />
-        <Result formId={form.id} jsonLogicQuery={jsonLogicQuery as JsonLogicQuery} />
-      </div>
+    <div className="cal-query-builder bg-default fixed inset-0 w-full overflow-scroll pt-12 ltr:mr-2 rtl:ml-2 sm:pt-0">
+      <Query
+        {...config}
+        value={query.state.tree}
+        onChange={(immutableTree, config) => {
+          onChange(immutableTree, config as QueryBuilderUpdatedConfig);
+        }}
+        renderBuilder={renderBuilder}
+      />
+      <Result formId={form.id} jsonLogicQuery={jsonLogicQuery as JsonLogicQuery} />
     </div>
   );
 };

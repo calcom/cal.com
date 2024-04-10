@@ -1,5 +1,7 @@
+"use client";
+
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
@@ -15,7 +17,7 @@ import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { Button, Form, Meta, showToast, SettingsToggle, Avatar, ImageUploader } from "@calcom/ui";
-import { Plus } from "@calcom/ui/components/icon";
+import { Icon } from "@calcom/ui";
 
 type BrandColorsFormValues = {
   brandColor: string;
@@ -89,7 +91,7 @@ const OrgAppearanceView = ({
               <Avatar
                 alt="calVideoLogo"
                 imageSrc={currentOrg?.calVideoLogo}
-                fallback={<Plus className="text-subtle h-6 w-6" />}
+                fallback={<Icon name="plus" className="text-subtle h-6 w-6" />}
                 size="lg"
               />
               <div className="ms-4">
@@ -105,7 +107,7 @@ const OrgAppearanceView = ({
                         calVideoLogo: newLogo,
                       });
                     }}
-                    disabled={mutation.isLoading}
+                    disabled={mutation.isPending}
                     imageSrc={currentOrg?.calVideoLogo ?? undefined}
                     uploadInstruction={t("cal_video_logo_upload_instruction")}
                     triggerButtonColor={currentOrg?.calVideoLogo ? "secondary" : "primary"}
@@ -113,7 +115,7 @@ const OrgAppearanceView = ({
                   {currentOrg?.calVideoLogo && (
                     <Button
                       color="destructive"
-                      disabled={mutation.isLoading}
+                      disabled={mutation.isPending}
                       onClick={() => {
                         mutation.mutate({
                           calVideoLogo: null,
@@ -180,15 +182,15 @@ const OrgAppearanceView = ({
             }}>
             <BrandColorsForm
               onSubmit={onBrandColorsFormSubmit}
-              brandColor={currentOrg?.brandColor}
-              darkBrandColor={currentOrg?.darkBrandColor}
+              brandColor={currentOrg?.brandColor ?? DEFAULT_LIGHT_BRAND_COLOR}
+              darkBrandColor={currentOrg?.darkBrandColor ?? DEFAULT_DARK_BRAND_COLOR}
             />
           </Form>
 
           <SettingsToggle
             toggleSwitchAtTheEnd={true}
             title={t("disable_cal_branding", { appName: APP_NAME })}
-            disabled={mutation?.isLoading}
+            disabled={mutation?.isPending}
             description={t("removes_cal_branding", { appName: APP_NAME })}
             checked={hideBrandingValue}
             onCheckedChange={(checked) => {
@@ -210,13 +212,18 @@ const OrgAppearanceView = ({
 const OrgAppearanceViewWrapper = () => {
   const router = useRouter();
   const { t } = useLocale();
-  const { data: currentOrg, isLoading } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {
-    onError: () => {
-      router.push("/settings");
-    },
-  });
+  const { data: currentOrg, isPending, error } = trpc.viewer.organizations.listCurrent.useQuery();
 
-  if (isLoading) {
+  useEffect(
+    function refactorMeWithoutEffect() {
+      if (error) {
+        router.push("/settings");
+      }
+    },
+    [error]
+  );
+
+  if (isPending) {
     return <AppearanceSkeletonLoader title={t("appearance")} description={t("appearance_org_description")} />;
   }
 

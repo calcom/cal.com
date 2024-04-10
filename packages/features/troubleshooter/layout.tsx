@@ -1,22 +1,18 @@
 import type { ComponentProps } from "react";
 import React, { Suspense } from "react";
 
-import Shell from "@calcom/features/shell/Shell";
-import { ErrorBoundary } from "@calcom/ui";
-import { Loader } from "@calcom/ui/components/icon";
+import type Shell from "@calcom/features/shell/Shell";
+import { ErrorBoundary, Icon } from "@calcom/ui";
 
 export default function TroubleshooterLayout({
   children,
-  ...rest
 }: { children: React.ReactNode } & ComponentProps<typeof Shell>) {
   return (
-    <Shell withoutSeo={true} flexChildrenContainer hideHeadingOnMobile {...rest} SidebarContainer={<></>}>
-      <div className="flex flex-1 [&>*]:flex-1">
-        <ErrorBoundary>
-          <Suspense fallback={<Loader />}>{children}</Suspense>
-        </ErrorBoundary>
-      </div>
-    </Shell>
+    <div className="flex flex-1 [&>*]:flex-1">
+      <ErrorBoundary>
+        <Suspense fallback={<Icon name="loader" />}>{children}</Suspense>
+      </ErrorBoundary>
+    </div>
   );
 }
 

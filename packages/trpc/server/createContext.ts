@@ -10,7 +10,11 @@ import type { SelectedCalendar, User as PrismaUser } from "@calcom/prisma/client
 
 import type { CreateNextContextOptions } from "@trpc/server/adapters/next";
 
-type CreateContextOptions = CreateNextContextOptions | GetServerSidePropsContext;
+type CreateContextOptions =
+  | (Omit<CreateNextContextOptions, "info"> & {
+      info?: CreateNextContextOptions["info"];
+    })
+  | GetServerSidePropsContext;
 
 export type CreateInnerContextOptions = {
   sourceIp?: string;
@@ -43,16 +47,21 @@ export type GetSessionFn =
     }) => Promise<Session | null>)
   | (() => Promise<Session | null>);
 
+export type InnerContext = CreateInnerContextOptions & {
+  prisma: typeof prisma;
+  insightsDb: typeof readonlyPrisma;
+};
+
 /**
  * Inner context. Will always be available in your procedures, in contrast to the outer context.
  *
  * Also useful for:
  * - testing, so you don't have to mock Next.js' `req`/`res`
- * - tRPC's `createSSGHelpers` where we don't have `req`/`res`
+ * - tRPC's `createServerSideHelpers` where we don't have `req`/`res`
  *
  * @see https://trpc.io/docs/context#inner-and-outer-context
  */
-export async function createContextInner(opts: CreateInnerContextOptions) {
+export async function createContextInner(opts: CreateInnerContextOptions): Promise<InnerContext> {
   return {
     prisma,
     insightsDb: readonlyPrisma,
@@ -60,11 +69,19 @@ export async function createContextInner(opts: CreateInnerContextOptions) {
   };
 }
 
+type Context = InnerContext & {
+  req: CreateContextOptions["req"];
+  res: CreateContextOptions["res"];
+};
+
 /**
  * Creates context for an incoming request
  * @link https://trpc.io/docs/context
  */
-export const createContext = async ({ req, res }: CreateContextOptions, sessionGetter?: GetSessionFn) => {
+export const createContext = async (
+  { req, res }: CreateContextOptions,
+  sessionGetter?: GetSessionFn
+): Promise<Context> => {
   const locale = await getLocale(req);
 
   // This type may not be accurate if this request is coming from SSG init but they both should satisfy the requirements of getIP.

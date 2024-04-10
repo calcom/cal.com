@@ -11,7 +11,7 @@ export default function InstallAppButton(props: InstallAppButtonProps) {
         onClick() {
           mutation.mutate("");
         },
-        loading: mutation.isLoading,
+        loading: mutation.isPending,
       })}
     </>
   );

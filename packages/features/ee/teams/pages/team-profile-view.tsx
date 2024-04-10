@@ -1,15 +1,18 @@
+"use client";
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { Prisma } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useLayoutEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
+import { trackFormbricksAction } from "@calcom/lib/formbricks-client";
 import { getTeamUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
@@ -34,13 +37,12 @@ import {
   LinkIconButton,
   Meta,
   showToast,
+  SkeletonAvatar,
+  SkeletonButton,
   SkeletonContainer,
   SkeletonText,
   TextField,
-  SkeletonAvatar,
-  SkeletonButton,
 } from "@calcom/ui";
-import { ExternalLink, Link as LinkIcon, LogOut, Trash2 } from "@calcom/ui/components/icon";
 
 import { getLayout } from "../../../settings/layouts/SettingsLayout";
 
@@ -91,16 +93,25 @@ const ProfileView = () => {
     document.body.focus();
   }, []);
 
-  const { data: team, isLoading } = trpc.viewer.teams.get.useQuery(
+  const {
+    data: team,
+    isPending,
+    error,
+  } = trpc.viewer.teams.get.useQuery(
     { teamId, includeTeamLogo: true },
     {
       enabled: !!teamId,
-      onError: () => {
-        router.push("/settings");
-      },
     }
   );
 
+  useEffect(
+    function refactorMeWithoutEffect() {
+      if (error) {
+        router.push("/settings");
+      }
+    },
+    [error]
+  );
   const isAdmin =
     team && (team.membership.role === MembershipRole.OWNER || team.membership.role === MembershipRole.ADMIN);
 
@@ -113,6 +124,7 @@ const ProfileView = () => {
       await utils.viewer.teams.list.invalidate();
       showToast(t("your_team_disbanded_successfully"), "success");
       router.push(`${WEBAPP_URL}/teams`);
+      trackFormbricksAction("team_disbanded");
     },
   });
 
@@ -140,7 +152,7 @@ const ProfileView = () => {
       });
   }
 
-  if (isLoading) {
+  if (isPending) {
     return <SkeletonLoader title={t("profile")} description={t("profile_team_description")} />;
   }
 
@@ -169,10 +181,10 @@ const ProfileView = () => {
           </div>
           <div>
             <Link href={permalink} passHref={true} target="_blank">
-              <LinkIconButton Icon={ExternalLink}>{t("preview")}</LinkIconButton>
+              <LinkIconButton Icon="external-link">{t("preview")}</LinkIconButton>
             </Link>
             <LinkIconButton
-              Icon={LinkIcon}
+              Icon="link"
               onClick={() => {
                 navigator.clipboard.writeText(permalink);
                 showToast("Copied to clipboard", "success");
@@ -196,7 +208,7 @@ const ProfileView = () => {
               <Button
                 color="destructive"
                 className="border"
-                StartIcon={Trash2}
+                StartIcon="trash-2"
                 data-testid="disband-team-button">
                 {t("disband_team")}
               </Button>
@@ -206,7 +218,9 @@ const ProfileView = () => {
             variety="danger"
             title={t("disband_team")}
             confirmBtnText={t("confirm_disband_team")}
-            onConfirm={deleteTeam}>
+            onConfirm={() => {
+              deleteTeam();
+            }}>
             {t("disband_team_confirmation_message")}
           </ConfirmationDialogContent>
         </Dialog>
@@ -214,7 +228,7 @@ const ProfileView = () => {
         <Dialog>
           <SectionBottomActions align="end">
             <DialogTrigger asChild>
-              <Button color="destructive" className="border" StartIcon={LogOut}>
+              <Button color="destructive" className="border" StartIcon="log-out">
                 {t("leave_team")}
               </Button>
             </DialogTrigger>
@@ -310,7 +324,7 @@ const TeamProfileForm = ({ team }: TeamProfileFormProps) => {
             <Controller
               control={form.control}
               name="logo"
-              render={({ field: { value } }) => {
+              render={({ field: { value, onChange } }) => {
                 const showRemoveLogoButton = !!value;
 
                 return (
@@ -325,9 +339,7 @@ const TeamProfileForm = ({ team }: TeamProfileFormProps) => {
                         target="avatar"
                         id="avatar-upload"
                         buttonMsg={t("upload_logo")}
-                        handleAvatarChange={(newLogo) => {
-                          form.setValue("logo", newLogo, { shouldDirty: true });
-                        }}
+                        handleAvatarChange={onChange}
                         triggerButtonColor={showRemoveLogoButton ? "secondary" : "primary"}
                         imageSrc={value ?? undefined}
                       />
@@ -335,7 +347,7 @@ const TeamProfileForm = ({ team }: TeamProfileFormProps) => {
                         <Button
                           color="secondary"
                           onClick={() => {
-                            form.setValue("logo", null, { shouldDirty: true });
+                            onChange(null);
                           }}>
                           {t("remove")}
                         </Button>
@@ -351,17 +363,13 @@ const TeamProfileForm = ({ team }: TeamProfileFormProps) => {
         <Controller
           control={form.control}
           name="name"
-          render={({ field: { value } }) => (
-            <div className="mt-8">
-              <TextField
-                name="name"
-                label={t("team_name")}
-                value={value}
-                onChange={(e) => {
-                  form.setValue("name", e?.target.value, { shouldDirty: true });
-                }}
-              />
-            </div>
+          render={({ field: { name, value, onChange } }) => (
+            <TextField
+              name={name}
+              label={t("team_name")}
+              value={value}
+              onChange={(e) => onChange(e?.target.value)}
+            />
           )}
         />
         <Controller
@@ -403,7 +411,7 @@ const TeamProfileForm = ({ team }: TeamProfileFormProps) => {
         <p className="text-default mt-2 text-sm">{t("team_description")}</p>
       </div>
       <SectionBottomActions align="end">
-        <Button color="primary" type="submit" loading={mutation.isLoading} disabled={isDisabled}>
+        <Button color="primary" type="submit" loading={mutation.isPending} disabled={isDisabled}>
           {t("update")}
         </Button>
         {IS_TEAM_BILLING_ENABLED &&

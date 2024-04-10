@@ -17,8 +17,24 @@ const UserBelongsToTeamInput = z.object({
   isAll: z.boolean().optional(),
 });
 
-const userBelongsToTeamProcedure = authedProcedure.use(async ({ ctx, next, rawInput }) => {
-  const parse = UserBelongsToTeamInput.safeParse(rawInput);
+const buildHashMapForUsers = <
+  T extends { avatarUrl: string | null; id: number; username: string | null; [key: string]: unknown }
+>(
+  usersFromTeam: T[]
+) => {
+  const userHashMap = new Map<number | null, Omit<T, "avatarUrl"> & { avatarUrl: string }>();
+  usersFromTeam.forEach((user) => {
+    userHashMap.set(user.id, {
+      ...user,
+      // TODO: Use AVATAR_FALLBACK when avatar.png endpoint is fased out
+      avatarUrl: user.avatarUrl || `/${user.username}/avatar.png`,
+    });
+  });
+  return userHashMap;
+};
+
+const userBelongsToTeamProcedure = authedProcedure.use(async ({ ctx, next, getRawInput }) => {
+  const parse = UserBelongsToTeamInput.safeParse(await getRawInput());
   if (!parse.success) {
     throw new TRPCError({ code: "BAD_REQUEST" });
   }
@@ -39,6 +55,7 @@ const userBelongsToTeamProcedure = authedProcedure.use(async ({ ctx, next, rawIn
     where: membershipWhereConditional,
   });
 
+  let isOwnerAdminOfParentTeam = false;
   // Probably we couldn't find a membership because the user is not a direct member of the team
   // So that would mean ctx.user.organization is present
   if ((parse.data.isAll && ctx.user.organizationId) || (!membership && ctx.user.organizationId)) {
@@ -56,26 +73,25 @@ const userBelongsToTeamProcedure = authedProcedure.use(async ({ ctx, next, rawIn
     if (!membershipOrg) {
       throw new TRPCError({ code: "UNAUTHORIZED" });
     }
-
-    return next({
-      ctx: {
-        ...ctx,
-        user: {
-          ...ctx.user,
-          isOwnerAdminOfParentTeam: true,
-        },
-      },
-    });
+    isOwnerAdminOfParentTeam = true;
   }
 
-  return next();
+  return next({
+    ctx: {
+      user: {
+        ...ctx.user,
+        isOwnerAdminOfParentTeam,
+      },
+    },
+  });
 });
 
-const UserSelect = {
+const userSelect = {
   id: true,
   name: true,
   email: true,
   username: true,
+  avatarUrl: true,
 };
 
 const emptyResponseEventsByStatus = {
@@ -102,7 +118,7 @@ const emptyResponseEventsByStatus = {
   },
 };
 
-interface IResultTeamList {
+export interface IResultTeamList {
   id: number;
   slug: string | null;
   name: string | null;
@@ -970,9 +986,13 @@ export const insightsRouter = router({
         take: 10,
       });
 
-      const userIds = bookingsFromTeam
-        .filter((booking) => typeof booking.userId === "number")
-        .map((booking) => booking.userId);
+      const userIds = bookingsFromTeam.reduce((userIds: number[], booking) => {
+        if (typeof booking.userId === "number" && !userIds.includes(booking.userId)) {
+          userIds.push(booking.userId);
+        }
+        return userIds;
+      }, []);
+
       if (userIds.length === 0) {
         return [];
       }
@@ -980,21 +1000,20 @@ export const insightsRouter = router({
       const usersFromTeam = await ctx.insightsDb.user.findMany({
         where: {
           id: {
-            in: userIds as number[],
+            in: userIds,
           },
         },
-        select: UserSelect,
+        select: userSelect,
       });
 
-      const userHashMap = new Map();
-      usersFromTeam.forEach((user) => {
-        userHashMap.set(user.id, user);
-      });
+      const userHashMap = buildHashMapForUsers(usersFromTeam);
 
       const result = bookingsFromTeam.map((booking) => {
         return {
           userId: booking.userId,
-          user: userHashMap.get(booking.userId),
+          // We know with 100% certainty that userHashMap.get(...) will retrieve a user
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          user: userHashMap.get(booking.userId)!,
           emailMd5: md5(user?.email),
           count: booking._count.id,
         };
@@ -1103,34 +1122,35 @@ export const insightsRouter = router({
         take: 10,
       });
 
-      const userIds = bookingsFromTeam
-        .filter((booking) => typeof booking.userId === "number")
-        .map((booking) => booking.userId);
+      const userIds = bookingsFromTeam.reduce((userIds: number[], booking) => {
+        if (typeof booking.userId === "number" && !userIds.includes(booking.userId)) {
+          userIds.push(booking.userId);
+        }
+        return userIds;
+      }, []);
+
       if (userIds.length === 0) {
         return [];
       }
       const usersFromTeam = await ctx.insightsDb.user.findMany({
         where: {
           id: {
-            in: userIds as number[],
+            in: userIds,
           },
         },
-        select: UserSelect,
+        select: userSelect,
       });
 
-      const userHashMap = new Map();
-      usersFromTeam.forEach((user) => {
-        userHashMap.set(user.id, user);
-      });
+      const userHashMap = buildHashMapForUsers(usersFromTeam);
 
-      const result = bookingsFromTeam.map((booking) => {
-        return {
-          userId: booking.userId,
-          user: userHashMap.get(booking.userId),
-          emailMd5: md5(user?.email),
-          count: booking._count.id,
-        };
-      });
+      const result = bookingsFromTeam.map((booking) => ({
+        userId: booking.userId,
+        // We know with 100% certainty that userHashMap.get(...) will retrieve a user
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        user: userHashMap.get(booking.userId)!,
+        emailMd5: md5(user?.email),
+        count: booking._count.id,
+      }));
 
       return result;
     }),
@@ -1142,7 +1162,7 @@ export const insightsRouter = router({
       where: {
         id: user.id,
       },
-      select: UserSelect,
+      select: userSelect,
     });
 
     if (!userData) {
@@ -1263,7 +1283,7 @@ export const insightsRouter = router({
           },
           include: {
             user: {
-              select: UserSelect,
+              select: userSelect,
             },
           },
           distinct: ["userId"],
@@ -1279,7 +1299,7 @@ export const insightsRouter = router({
         },
         include: {
           user: {
-            select: UserSelect,
+            select: userSelect,
           },
         },
       });
@@ -1299,7 +1319,7 @@ export const insightsRouter = router({
         },
         include: {
           user: {
-            select: UserSelect,
+            select: userSelect,
           },
         },
         distinct: ["userId"],

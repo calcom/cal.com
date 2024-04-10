@@ -24,7 +24,7 @@
     "@storybook/blocks": "^7.6.3",
     "@storybook/nextjs": "^7.6.3",
     "@storybook/preview-api": "^7.6.3",
-    "next": "^13.4.6",
+    "next": "^13.5.4",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "storybook-addon-rtl-direction": "^0.0.19"

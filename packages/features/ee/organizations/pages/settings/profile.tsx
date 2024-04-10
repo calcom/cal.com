@@ -1,8 +1,9 @@
+"use client";
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { Prisma } from "@prisma/client";
-import { LinkIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState, useLayoutEffect } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -17,19 +18,21 @@ import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import {
   Avatar,
+  BannerUploader,
   Button,
+  Editor,
   Form,
+  Icon,
   ImageUploader,
   Label,
+  LinkIconButton,
   Meta,
   showToast,
-  TextField,
-  Editor,
-  LinkIconButton,
   SkeletonAvatar,
   SkeletonButton,
   SkeletonContainer,
   SkeletonText,
+  TextField,
 } from "@calcom/ui";
 
 import { getLayout } from "../../../../settings/layouts/SettingsLayout";
@@ -38,12 +41,14 @@ import { useOrgBranding } from "../../../organizations/context/provider";
 const orgProfileFormSchema = z.object({
   name: z.string(),
   logo: z.string().nullable(),
+  banner: z.string().nullable(),
   bio: z.string(),
 });
 
 type FormValues = {
   name: string;
   logo: string | null;
+  banner: string | null;
   bio: string;
   slug: string;
 };
@@ -77,13 +82,22 @@ const OrgProfileView = () => {
     document.body.focus();
   }, []);
 
-  const { data: currentOrganisation, isLoading } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {
-    onError: () => {
-      router.push("/settings");
-    },
-  });
+  const {
+    data: currentOrganisation,
+    isPending,
+    error,
+  } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {});
 
-  if (isLoading || !orgBranding || !currentOrganisation) {
+  useEffect(
+    function refactorMeWithoutEffect() {
+      if (error) {
+        router.push("/settings");
+      }
+    },
+    [error]
+  );
+
+  if (isPending || !orgBranding || !currentOrganisation) {
     return <SkeletonLoader title={t("profile")} description={t("profile_org_description")} />;
   }
 
@@ -99,6 +113,7 @@ const OrgProfileView = () => {
   const defaultValues: FormValues = {
     name: currentOrganisation?.name || "",
     logo: currentOrganisation?.logo || "",
+    banner: currentOrganisation?.bannerUrl || "",
     bio: currentOrganisation?.bio || "",
     slug:
       currentOrganisation?.slug ||
@@ -131,7 +146,7 @@ const OrgProfileView = () => {
             </div>
             <div className="">
               <LinkIconButton
-                Icon={LinkIcon}
+                Icon="link"
                 onClick={() => {
                   navigator.clipboard.writeText(orgBranding.fullDomain);
                   showToast("Copied to clipboard", "success");
@@ -167,6 +182,7 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
         name: (res.data?.name || "") as string,
         bio: (res.data?.bio || "") as string,
         slug: defaultValues["slug"],
+        banner: (res.data?.bannerUrl || "") as string,
       });
       await utils.viewer.teams.get.invalidate();
       await utils.viewer.organizations.listCurrent.invalidate();
@@ -190,6 +206,7 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
           name: values.name,
           slug: values.slug,
           bio: values.bio,
+          banner: values.banner,
         };
 
         mutation.mutate(variables);
@@ -227,6 +244,53 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
                           color="secondary"
                           onClick={() => {
                             form.setValue("logo", null, { shouldDirty: true });
+                          }}>
+                          {t("remove")}
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </>
+              );
+            }}
+          />
+        </div>
+
+        <div className="mt-2 flex items-center">
+          <Controller
+            control={form.control}
+            name="banner"
+            render={({ field: { value } }) => {
+              const showRemoveBannerButton = !!value;
+
+              return (
+                <>
+                  <Avatar
+                    data-testid="profile-upload-banner"
+                    alt={`${defaultValues.name} Banner` || ""}
+                    imageSrc={value}
+                    size="lg"
+                  />
+                  <div className="ms-4">
+                    <div className="flex gap-2">
+                      <BannerUploader
+                        height={500}
+                        width={1500}
+                        target="banner"
+                        uploadInstruction={t("org_banner_instructions", { height: 500, width: 1500 })}
+                        id="banner-upload"
+                        buttonMsg={t("upload_banner")}
+                        handleAvatarChange={(newBanner) => {
+                          form.setValue("banner", newBanner, { shouldDirty: true });
+                        }}
+                        imageSrc={value || undefined}
+                        triggerButtonColor={showRemoveBannerButton ? "secondary" : "primary"}
+                      />
+                      {showRemoveBannerButton && (
+                        <Button
+                          color="destructive"
+                          onClick={() => {
+                            form.setValue("banner", "", { shouldDirty: true });
                           }}>
                           {t("remove")}
                         </Button>
@@ -284,7 +348,7 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
         <p className="text-default mt-2 text-sm">{t("org_description")}</p>
       </div>
       <SectionBottomActions align="end">
-        <Button color="primary" type="submit" loading={mutation.isLoading} disabled={isDisabled}>
+        <Button color="primary" type="submit" loading={mutation.isPending} disabled={isDisabled}>
           {t("update")}
         </Button>
       </SectionBottomActions>

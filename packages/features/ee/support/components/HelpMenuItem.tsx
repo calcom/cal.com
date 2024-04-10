@@ -2,10 +2,12 @@ import { useState } from "react";
 import { useChat } from "react-live-chat-loader";
 
 import classNames from "@calcom/lib/classNames";
+import { JOIN_DISCORD } from "@calcom/lib/constants";
+import { useHasPaidPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button, showToast, TextArea } from "@calcom/ui";
-import { ExternalLink, AlertTriangle } from "@calcom/ui/components/icon";
+import { Icon } from "@calcom/ui";
 
 import { useFreshChat } from "../lib/freshchat/FreshChatProvider";
 import { isFreshChatEnabled } from "../lib/freshchat/FreshChatScript";
@@ -44,6 +46,8 @@ export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
     mutation.mutate({ rating: rating, comment: comment });
   };
 
+  const { hasPaidPlan } = useHasPaidPlan();
+
   return (
     <div className="bg-default border-default w-full rounded-md">
       <div className="w-full py-5">
@@ -55,7 +59,8 @@ export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
           className="hover:bg-subtle hover:text-emphasis text-default flex w-full px-5 py-2 pr-4 text-sm font-medium"
           rel="noreferrer">
           {t("documentation")}
-          <ExternalLink
+          <Icon
+            name="external-link"
             className={classNames(
               "group-hover:text-subtle text-muted",
               "ml-1 mt-px h-4 w-4 flex-shrink-0 ltr:mr-3"
@@ -162,7 +167,7 @@ export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
         <div className="my-2 flex justify-end">
           <Button
             disabled={disableSubmit}
-            loading={mutation.isLoading}
+            loading={mutation.isPending}
             onClick={async () => {
               if (rating && comment) {
                 await sendFeedback(rating, comment);
@@ -174,7 +179,7 @@ export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
         {mutation.isError && (
           <div className="bg-error mb-4 flex p-4 text-sm text-red-700">
             <div className="flex-shrink-0">
-              <AlertTriangle className="h-5 w-5" />
+              <Icon name="triangle-alert" className="h-5 w-5" />
             </div>
             <div className="ml-3 flex-grow">
               <p className="font-medium">{t("feedback_error")}</p>
@@ -185,22 +190,31 @@ export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
       </div>
       <div className="text-subtle bg-muted w-full p-5">
         <p className="">{t("specific_issue")}</p>
-        <button
-          className="hover:text-emphasis text-defualt font-medium underline"
-          onClick={async () => {
-            setActive(true);
-            if (isFreshChatEnabled) {
-              setFreshChat(true);
-            } else if (isInterComEnabled) {
-              await open();
-            } else {
-              loadChat({ open: true });
-            }
+        {hasPaidPlan ? (
+          <button
+            className="hover:text-emphasis text-defualt font-medium underline"
+            onClick={async () => {
+              setActive(true);
+              if (isFreshChatEnabled) {
+                setFreshChat(true);
+              } else if (isInterComEnabled) {
+                await open();
+              } else {
+                loadChat({ open: true });
+              }
 
-            onHelpItemSelect();
-          }}>
-          {t("contact_support")}
-        </button>
+              onHelpItemSelect();
+            }}>
+            {t("contact_support")}
+          </button>
+        ) : (
+          <a
+            href={JOIN_DISCORD}
+            target="_blank"
+            className="hover:text-emphasis text-defualt font-medium underline">
+            {t("community_support")}
+          </a>
+        )}
         <span> {t("or").toLowerCase()} </span>
         <a
           onClick={() => onHelpItemSelect()}

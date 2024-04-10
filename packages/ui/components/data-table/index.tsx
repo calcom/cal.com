@@ -30,10 +30,11 @@ export interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   searchKey?: string;
+  onSearch?: (value: string) => void;
   filterableItems?: FilterableItems;
   selectionOptions?: ActionItem<TData>[];
   tableCTA?: React.ReactNode;
-  isLoading?: boolean;
+  isPending?: boolean;
   onRowMouseclick?: (row: Row<TData>) => void;
   onScroll?: (e: React.UIEvent<HTMLDivElement, UIEvent>) => void;
   CTA?: React.ReactNode;
@@ -49,10 +50,11 @@ export function DataTable<TData, TValue>({
   searchKey,
   selectionOptions,
   tableContainerRef,
-  isLoading,
+  isPending,
   tableOverlay,
   variant,
   /** This should only really be used if you dont have actions in a row. */
+  onSearch,
   onRowMouseclick,
   onScroll,
 }: DataTableProps<TData, TValue>) {
@@ -102,6 +104,7 @@ export function DataTable<TData, TValue>({
         table={table}
         filterableItems={filterableItems}
         searchKey={searchKey}
+        onSearch={onSearch}
         tableCTA={tableCTA}
       />
       <div ref={tableContainerRef} onScroll={onScroll}>
@@ -127,7 +130,7 @@ export function DataTable<TData, TValue>({
                 <td style={{ height: `${paddingTop}px` }} />
               </tr>
             )}
-            {virtualRows && !isLoading ? (
+            {virtualRows && !isPending ? (
               virtualRows.map((virtualRow) => {
                 const row = rows[virtualRow.index] as Row<TData>;
                 return (
