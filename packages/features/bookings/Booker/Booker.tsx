@@ -471,7 +471,6 @@ const BookerComponent = ({
       <BookFormAsModal
         onCancel={() => setSelectedTimeslot(null)}
         visible={bookerState === "booking" && shouldShowFormInDialog}>
-        This is the event booker inside of the book form modal
         {EventBooker}
       </BookFormAsModal>
     </>
