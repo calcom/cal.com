@@ -6,7 +6,6 @@ import { v4 as uuidv4 } from "uuid";
 
 import stripe from "@calcom/app-store/stripepayment/lib/server";
 import { getPremiumMonthlyPlanPriceId } from "@calcom/app-store/stripepayment/lib/utils";
-import CalComAdapter from "@calcom/features/auth/lib/next-auth-custom-adapter";
 import { sendChangeOfEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
 import { getFeatureFlag } from "@calcom/features/flags/server/utils";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
@@ -183,6 +182,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
 
   if (unlinkConnectedAccount) {
     // Unlink the account
+    const CalComAdapter = (await import("@calcom/features/auth/lib/next-auth-custom-adapter")).default;
     const calcomAdapter = CalComAdapter(prisma);
     // If it fails to delete, don't stop because the users login data might not be present
     try {

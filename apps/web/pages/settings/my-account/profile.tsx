@@ -2,11 +2,11 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 // eslint-disable-next-line no-restricted-imports
-import { pick, get } from "lodash";
+import { get, pick } from "lodash";
 import { signOut, useSession } from "next-auth/react";
 import type { BaseSyntheticEvent } from "react";
 import React, { useRef, useState } from "react";
-import { Controller, useForm, useFieldArray } from "react-hook-form";
+import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
@@ -19,8 +19,8 @@ import { md } from "@calcom/lib/markdownIt";
 import turndown from "@calcom/lib/turndownService";
 import { IdentityProvider } from "@calcom/prisma/enums";
 import type { TRPCClientErrorLike } from "@calcom/trpc/client";
-import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/server/routers/_app";
 import type { Ensure } from "@calcom/types/utils";
 import {
@@ -301,14 +301,13 @@ const ProfileView = () => {
           showToast(t("email_sent"), "success");
         }}
         handleAccountDisconnect={(values) => {
-          if (!isCALIdentityProvider) {
-            if (!user?.passwordAdded) {
-              setShowCreateAccountPasswordDialog(true);
-            } else {
-              setTempFormValues(values);
-              setShowAccountDisconnectWarning(true);
-            }
+          if (isCALIdentityProvider) return;
+          if (user?.passwordAdded) {
+            setTempFormValues(values);
+            setShowAccountDisconnectWarning(true);
+            return;
           }
+          setShowCreateAccountPasswordDialog(true);
         }}
         extraField={
           <div className="mt-6">
@@ -432,7 +431,7 @@ const ProfileView = () => {
           title={t("create_account_password")}
           description={t("create_account_password_hint")}
           type="creation"
-          Icon={AlertTriangle}>
+          Icon="triangle-alert">
           <DialogFooter>
             <DialogClose />
           </DialogFooter>
@@ -448,7 +447,7 @@ const ProfileView = () => {
           <DialogFooter>
             <Button
               color="primary"
-              onClick={(e) => {
+              onClick={() => {
                 updateProfileMutation.mutate({
                   ...tempFormValues,
                   unlinkConnectedAccount: true,
