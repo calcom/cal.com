@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { shallow } from "zustand/shallow";
 
+import type { IFromUser, IToUser } from "@calcom/core/getUserAvailability";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { useEmbedStyles } from "@calcom/embed-core/embed-iframe";
@@ -37,20 +38,38 @@ export type DatePickerProps = {
   isPending?: boolean;
   /** used to query the multiple selected dates */
   eventSlug?: string;
+  /** To identify days that are not available and should display OOO and redirect if toUser exists */
+  slots?: Record<
+    string,
+    {
+      time: string;
+      userIds?: number[];
+      away?: boolean;
+      fromUser?: IFromUser;
+      toUser?: IToUser;
+      reason?: string;
+      emoji?: string;
+    }[]
+  >;
 };
 
 export const Day = ({
   date,
   active,
   disabled,
+  away,
+  emoji,
   ...props
 }: JSX.IntrinsicElements["button"] & {
   active: boolean;
   date: Dayjs;
+  away?: boolean;
+  emoji?: string | null;
 }) => {
   const { t } = useLocale();
   const enabledDateButtonEmbedStyles = useEmbedStyles("enabledDateButton");
   const disabledDateButtonEmbedStyles = useEmbedStyles("disabledDateButton");
+
   return (
     <button
       type="button"
@@ -67,7 +86,8 @@ export const Day = ({
       data-disabled={disabled}
       disabled={disabled}
       {...props}>
-      {date.date()}
+      {away && <span data-testid="away-emoji">{emoji}</span>}
+      {!away && date.date()}
       {date.isToday() && (
         <span
           className={classNames(
@@ -110,6 +130,7 @@ const Days = ({
   month,
   nextMonthButton,
   eventSlug,
+  slots,
   ...props
 }: Omit<DatePickerProps, "locale" | "className" | "weekStart"> & {
   DayComponent?: React.FC<React.ComponentProps<typeof Day>>;
@@ -162,10 +183,20 @@ const Days = ({
 
   const daysToRenderForTheMonth = days.map((day) => {
     if (!day) return { day: null, disabled: true };
+    const dateKey = yyyymmdd(day);
+    const oooInfo = slots && slots?.[dateKey] ? slots?.[dateKey]?.find((slot) => slot.away) : null;
+    const included = includedDates?.includes(dateKey);
+    const excluded = excludedDates.includes(dateKey);
+
+    const isOOOAllDay = !!(slots && slots[dateKey] && slots[dateKey].every((slot) => slot.away));
+    const away = isOOOAllDay;
+    const disabled = away ? !oooInfo?.toUser : !included || excluded;
+
     return {
       day: day,
-      disabled:
-        (includedDates && !includedDates.includes(yyyymmdd(day))) || excludedDates.includes(yyyymmdd(day)),
+      disabled,
+      away,
+      emoji: oooInfo?.emoji,
     };
   });
 
@@ -200,7 +231,7 @@ const Days = ({
 
   return (
     <>
-      {daysToRenderForTheMonth.map(({ day, disabled }, idx) => (
+      {daysToRenderForTheMonth.map(({ day, disabled, away, emoji }, idx) => (
         <div key={day === null ? `e-${idx}` : `day-${day.format()}`} className="relative w-full pt-[100%]">
           {day === null ? (
             <div key={`e-${idx}`} />
@@ -219,6 +250,8 @@ const Days = ({
               }}
               disabled={disabled}
               active={isActive(day)}
+              away={away}
+              emoji={emoji}
             />
           )}
         </div>
@@ -237,6 +270,7 @@ const DatePicker = ({
   locale,
   selected,
   onMonthChange,
+  slots,
   ...passThroughProps
 }: DatePickerProps & Partial<React.ComponentProps<typeof Days>>) => {
   const browsingDate = passThroughProps.browsingDate || dayjs().startOf("month");
@@ -307,6 +341,7 @@ const DatePicker = ({
           browsingDate={browsingDate}
           month={month}
           nextMonthButton={() => changeMonth(+1)}
+          slots={slots}
         />
       </div>
     </div>

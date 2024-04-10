@@ -9,6 +9,7 @@ import { Button } from "../../components/button";
 
 export function EmptyScreen({
   Icon: icon,
+  customIcon,
   avatar,
   headline,
   description,
@@ -22,6 +23,7 @@ export function EmptyScreen({
   iconWrapperClassName,
 }: {
   Icon?: IconName;
+  customIcon?: React.ReactElement;
   avatar?: React.ReactElement;
   headline: string | React.ReactElement;
   description?: string | React.ReactElement;
@@ -59,6 +61,7 @@ export function EmptyScreen({
             />
           </div>
         )}
+        {!customIcon ? null : <>{customIcon}</>}
         <div className="flex max-w-[420px] flex-col items-center">
           <h2
             className={classNames(
