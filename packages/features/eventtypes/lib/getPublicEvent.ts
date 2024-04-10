@@ -189,6 +189,7 @@ export const getPublicEvent = async (
       },
       entity: {
         considerUnpublished: !fromRedirectOfNonOrgLink && unPublishedOrgUser !== undefined,
+        fromRedirectOfNonOrgLink,
         orgSlug: org,
         name: unPublishedOrgUser?.profile?.organization?.name ?? null,
       },
@@ -291,6 +292,7 @@ export const getPublicEvent = async (
     profile: getProfileFromEvent(eventWithUserProfiles),
     users,
     entity: {
+      fromRedirectOfNonOrgLink,
       considerUnpublished:
         !fromRedirectOfNonOrgLink &&
         (eventWithUserProfiles.team?.slug === null ||

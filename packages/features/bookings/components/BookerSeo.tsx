@@ -11,6 +11,7 @@ interface BookerSeoProps {
   isSEOIndexable?: boolean;
   isTeamEvent?: boolean;
   entity: {
+    fromRedirectOfNonOrgLink: boolean;
     orgSlug?: string | null;
     teamSlug?: string | null;
     name?: string | null;
@@ -30,8 +31,15 @@ export const BookerSeo = (props: BookerSeoProps) => {
     bookingData,
   } = props;
   const { t } = useLocale();
+  console.log("BookerSeo Event Params", { username, eventSlug, isTeamEvent, org: entity.orgSlug ?? null });
   const { data: event } = trpc.viewer.public.event.useQuery(
-    { username, eventSlug, isTeamEvent, org: entity.orgSlug ?? null },
+    {
+      username,
+      eventSlug,
+      isTeamEvent,
+      org: entity.orgSlug ?? null,
+      fromRedirectOfNonOrgLink: entity.fromRedirectOfNonOrgLink,
+    },
     { refetchOnWindowFocus: false }
   );
 
