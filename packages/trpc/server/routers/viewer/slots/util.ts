@@ -4,7 +4,7 @@ import { v4 as uuid } from "uuid";
 
 import { getAggregatedAvailability } from "@calcom/core/getAggregatedAvailability";
 import { getBusyTimesForLimitChecks } from "@calcom/core/getBusyTimes";
-import type { CurrentSeats } from "@calcom/core/getUserAvailability";
+import type { CurrentSeats, IFromUser, IToUser } from "@calcom/core/getUserAvailability";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
@@ -296,7 +296,23 @@ function applyOccupiedSeatsToCurrentSeats(currentSeats: CurrentSeats, occupiedSe
   return currentSeats;
 }
 
-export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
+export interface IGetAvailableSlots {
+  slots: Record<
+    string,
+    {
+      time: string;
+      attendees?: number | undefined;
+      bookingUid?: string | undefined;
+      away?: boolean | undefined;
+      fromUser?: IFromUser | undefined;
+      toUser?: IToUser | undefined;
+      reason?: string | undefined;
+      emoji?: string | undefined;
+    }[]
+  >;
+}
+
+export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<IGetAvailableSlots> {
   const orgDetails = input?.orgSlug
     ? {
         currentOrgDomain: input.orgSlug,
@@ -447,6 +463,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
         dateRanges,
         currentSeats: _currentSeats,
         timeZone,
+        datesOutOfOffice,
       } = await getUserAvailability(
         {
           userId: currentUser.id,
@@ -481,6 +498,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
         dateRanges,
         busy,
         user: currentUser,
+        datesOutOfOffice,
       };
     })
   );
@@ -514,6 +532,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
     frequency: eventType.slotInterval || input.duration || eventType.length,
     organizerTimeZone:
       eventType.timeZone || eventType?.schedule?.timeZone || allUsersAvailability?.[0]?.timeZone,
+    datesOutOfOffice: allUsersAvailability[0]?.datesOutOfOffice,
   });
 
   let availableTimeSlots: typeof timeSlots = [];

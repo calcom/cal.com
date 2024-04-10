@@ -50,8 +50,6 @@ const BookerComponent = ({
   onClickOverlayContinue,
   onOverlaySwitchStateChange,
   sessionUsername,
-  isRedirect,
-  fromUserNameRedirected,
   rescheduleUid,
   hasSession,
   extraOptions,
@@ -93,6 +91,7 @@ const BookerComponent = ({
   const nonEmptyScheduleDays = useNonEmptyScheduleDays(schedule?.data?.slots).filter(
     (slot) => dayjs(selectedDate).diff(slot, "day") <= 0
   );
+
   const totalWeekDays = 7;
   const addonDays =
     nonEmptyScheduleDays.length < extraDays
@@ -266,26 +265,6 @@ const BookerComponent = ({
           "text-default flex min-h-full w-full flex-col items-center",
           layout === BookerLayouts.MONTH_VIEW ? "overflow-visible" : "overflow-clip"
         )}>
-        {/* redirect from other user profile */}
-        {isRedirect && (
-          <div className="mb-8 rounded-md bg-blue-100 p-4 dark:border dark:bg-transparent">
-            <h2 className="text-default mb-2 text-sm font-semibold">
-              {t("user_redirect_title", {
-                username: fromUserNameRedirected,
-              })}{" "}
-              🏝️
-            </h2>
-            <p className="text-default text-sm">
-              {t("user_redirect_description", {
-                profile: {
-                  username: username,
-                },
-                username: fromUserNameRedirected,
-              })}{" "}
-              😄
-            </p>
-          </div>
-        )}
         <div
           ref={animationScope}
           className={classNames(
@@ -403,7 +382,6 @@ const BookerComponent = ({
                 event={event}
               />
             </BookerSection>
-
             <BookerSection
               key="timeslots"
               area={{ default: "main", month_view: "timeslots" }}
