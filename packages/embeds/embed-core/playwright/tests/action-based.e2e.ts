@@ -1,8 +1,11 @@
 import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 
+// eslint-disable-next-line no-restricted-imports
 import { test } from "@calcom/web/playwright/lib/fixtures";
+// eslint-disable-next-line no-restricted-imports
 import type { Fixtures } from "@calcom/web/playwright/lib/fixtures";
+// eslint-disable-next-line no-restricted-imports
 import { selectFirstAvailableTimeSlotNextMonth } from "@calcom/web/playwright/lib/testUtils";
 
 import {

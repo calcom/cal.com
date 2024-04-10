@@ -1,3 +1,6 @@
+import { GcalAuthUrlOutput } from "@/ee/gcal/outputs/auth-url.output";
+import { GcalCheckOutput } from "@/ee/gcal/outputs/check.output";
+import { GcalSaveRedirectOutput } from "@/ee/gcal/outputs/save-redirect.output";
 import { GCalService } from "@/modules/apps/services/gcal.service";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
@@ -21,6 +24,7 @@ import {
   Headers,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
+import { ApiTags as DocsTags } from "@nestjs/swagger";
 import { Request } from "express";
 import { google } from "googleapis";
 import { z } from "zod";
@@ -31,7 +35,6 @@ import {
   GOOGLE_CALENDAR_TYPE,
   SUCCESS_STATUS,
 } from "@calcom/platform-constants";
-import { ApiRedirectResponseType, ApiResponse } from "@calcom/platform-types";
 
 const CALENDAR_SCOPES = [
   "https://www.googleapis.com/auth/calendar.readonly",
@@ -42,6 +45,7 @@ const CALENDAR_SCOPES = [
   path: "ee/gcal",
   version: "2",
 })
+@DocsTags("Google Calendar")
 export class GcalController {
   private readonly logger = new Logger("Platform Gcal Provider");
 
@@ -61,7 +65,7 @@ export class GcalController {
   async redirect(
     @Headers("Authorization") authorization: string,
     @Req() req: Request
-  ): Promise<ApiResponse<{ authUrl: string }>> {
+  ): Promise<GcalAuthUrlOutput> {
     const oAuth2Client = await this.gcalService.getOAuthClient(this.redirectUri);
     const accessToken = authorization.replace("Bearer ", "");
     const origin = req.get("origin") ?? req.get("host");
@@ -77,7 +81,7 @@ export class GcalController {
   @Get("/oauth/save")
   @Redirect(undefined, 301)
   @HttpCode(HttpStatus.OK)
-  async save(@Query("state") state: string, @Query("code") code: string): Promise<ApiRedirectResponseType> {
+  async save(@Query("state") state: string, @Query("code") code: string): Promise<GcalSaveRedirectOutput> {
     const stateParams = new URLSearchParams(state);
     const { accessToken, origin } = z
       .object({ accessToken: z.string(), origin: z.string() })
@@ -133,7 +137,7 @@ export class GcalController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(AccessTokenGuard, PermissionsGuard)
   @Permissions([APPS_READ])
-  async check(@GetUser("id") userId: number): Promise<ApiResponse> {
+  async check(@GetUser("id") userId: number): Promise<GcalCheckOutput> {
     const gcalCredentials = await this.credentialRepository.getByTypeAndUserId("google_calendar", userId);
 
     if (!gcalCredentials) {

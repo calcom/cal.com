@@ -290,25 +290,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@auth/core@npm:^0.1.4":
-  version: 0.1.4
-  resolution: "@auth/core@npm:0.1.4"
-  dependencies:
-    "@panva/hkdf": 1.0.2
-    cookie: 0.5.0
-    jose: 4.11.1
-    oauth4webapi: 2.0.5
-    preact: 10.11.3
-    preact-render-to-string: 5.2.3
-  peerDependencies:
-    nodemailer: 6.8.0
-  peerDependenciesMeta:
-    nodemailer:
-      optional: true
-  checksum: 64854404ea1883e0deb5535b34bed95cd43fc85094aeaf4f15a79e14045020eb944f844defe857edfc8528a0a024be89cbb2a3069dedef0e9217a74ca6c3eb79
-  languageName: node
-  linkType: hard
-
 "@aw-web-design/x-default-browser@npm:1.4.126":
   version: 1.4.126
   resolution: "@aw-web-design/x-default-browser@npm:1.4.126"
@@ -4038,7 +4019,7 @@ __metadata:
     "@vitejs/plugin-react": ^2.2.0
     class-variance-authority: ^0.4.0
     clsx: ^2.0.0
-    lucide-react: ^0.363.0
+    lucide-react: ^0.364.0
     react-use: ^17.4.2
     rollup-plugin-node-builtins: ^2.1.2
     tailwind-merge: ^1.13.2
@@ -4047,41 +4028,6 @@ __metadata:
     typescript: ^4.9.4
     vite: ^5.0.10
     vite-plugin-dts: ^3.7.3
-  languageName: unknown
-  linkType: soft
-
-"@calcom/auth@workspace:apps/auth":
-  version: 0.0.0-use.local
-  resolution: "@calcom/auth@workspace:apps/auth"
-  dependencies:
-    "@auth/core": ^0.1.4
-    "@calcom/app-store": "*"
-    "@calcom/app-store-cli": "*"
-    "@calcom/config": "*"
-    "@calcom/core": "*"
-    "@calcom/dayjs": "*"
-    "@calcom/embed-core": "workspace:*"
-    "@calcom/embed-react": "workspace:*"
-    "@calcom/embed-snippet": "workspace:*"
-    "@calcom/features": "*"
-    "@calcom/lib": "*"
-    "@calcom/prisma": "*"
-    "@calcom/trpc": "*"
-    "@calcom/tsconfig": "*"
-    "@calcom/types": "*"
-    "@calcom/ui": "*"
-    "@types/node": 16.9.1
-    "@types/react": 18.0.26
-    "@types/react-dom": ^18.0.9
-    eslint: ^8.34.0
-    eslint-config-next: ^13.2.1
-    next: ^13.5.4
-    next-auth: ^4.22.1
-    postcss: ^8.4.18
-    react: ^18.2.0
-    react-dom: ^18.2.0
-    tailwindcss: ^3.3.3
-    typescript: ^4.9.4
   languageName: unknown
   linkType: soft
 
@@ -4205,7 +4151,7 @@ __metadata:
     chart.js: ^3.7.1
     client-only: ^0.0.1
     eslint: ^8.34.0
-    next: ^13.5.4
+    next: ^13.4.6
     next-auth: ^4.22.1
     next-i18next: ^13.2.2
     postcss: ^8.4.18
@@ -4219,7 +4165,7 @@ __metadata:
     swr: ^1.2.2
     tailwindcss: ^3.3.3
     typescript: ^4.9.4
-    zod: ^3.22.2
+    zod: ^3.22.4
   languageName: unknown
   linkType: soft
 
@@ -4941,6 +4887,7 @@ __metadata:
     axios: ^1.6.7
     axios-retry: ^4.0.0
     lodash: ^4.17.21
+    openapi-typescript: ^6.7.5
     release-it: ^17.1.1
     rollup: ^4.12.0
     rollup-plugin-bundle-size: ^1.0.3
@@ -5156,7 +5103,6 @@ __metadata:
     "@radix-ui/react-popover": ^1.0.2
     "@radix-ui/react-portal": ^1.0.0
     "@radix-ui/react-select": ^0.1.1
-    "@react-icons/all-files": ^4.1.0
     "@storybook/blocks": ^7.6.3
     "@storybook/react": ^7.6.3
     "@tanstack/react-query": ^5.17.15
@@ -5168,14 +5114,13 @@ __metadata:
     cmdk: ^0.2.0
     cmk: ^0.1.1
     downshift: ^6.1.9
-    lucide-react: ^0.363.0
+    lucide-react: ^0.364.0
     next: ^13.5.4
     next-seo: ^6.0.0
     react: ^18.2.0
     react-colorful: ^5.6.0
     react-feather: ^2.0.10
     react-hook-form: ^7.43.3
-    react-icons: ^4.4.0
     react-select: ^5.7.0
     react-virtual: ^2.10.4
     typescript: ^4.9.4
@@ -5346,6 +5291,7 @@ __metadata:
     react-schemaorg: ^2.0.0
     react-select: ^5.7.0
     react-timezone-select: ^1.4.0
+    react-turnstile: ^1.1.3
     react-use-intercom: 1.5.1
     remove-markdown: ^0.5.0
     rrule: ^2.7.1
@@ -5446,9 +5392,9 @@ __metadata:
     i18n-unused: ^0.13.0
     iframe-resizer-react: ^1.1.0
     keen-slider: ^6.8.0
-    lucide-react: ^0.363.0
+    lucide-react: ^0.364.0
     micro: ^10.0.1
-    next: ^14.1
+    next: ^14.1.3
     next-auth: ^4.22.1
     next-axiom: ^0.17.0
     next-i18next: ^13.2.2
@@ -5461,7 +5407,7 @@ __metadata:
     react-datocms: ^3.1.0
     react-device-detect: ^2.2.2
     react-dom: ^18.2.0
-    react-fast-marquee: ^1.3.5
+    react-fast-marquee: ^1.6.4
     react-github-btn: ^1.4.0
     react-hook-form: ^7.43.3
     react-hot-toast: ^2.3.0
@@ -9425,6 +9371,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@next/env@npm:13.5.6":
+  version: 13.5.6
+  resolution: "@next/env@npm:13.5.6"
+  checksum: 5e8f3f6f987a15dad3cd7b2bcac64a6382c2ec372d95d0ce6ab295eb59c9731222017eebf71ff3005932de2571f7543bce7e5c6a8c90030207fb819404138dc2
+  languageName: node
+  linkType: hard
+
 "@next/env@npm:14.0.4":
   version: 14.0.4
   resolution: "@next/env@npm:14.0.4"
@@ -9464,6 +9417,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@next/swc-darwin-arm64@npm:13.5.6":
+  version: 13.5.6
+  resolution: "@next/swc-darwin-arm64@npm:13.5.6"
+  conditions: os=darwin & cpu=arm64
+  languageName: node
+  linkType: hard
+
 "@next/swc-darwin-arm64@npm:14.0.4":
   version: 14.0.4
   resolution: "@next/swc-darwin-arm64@npm:14.0.4"
@@ -9481,6 +9441,13 @@ __metadata:
 "@next/swc-darwin-x64@npm:13.5.5":
   version: 13.5.5
   resolution: "@next/swc-darwin-x64@npm:13.5.5"
+  conditions: os=darwin & cpu=x64
+  languageName: node
+  linkType: hard
+
+"@next/swc-darwin-x64@npm:13.5.6":
+  version: 13.5.6
+  resolution: "@next/swc-darwin-x64@npm:13.5.6"
   conditions: os=darwin & cpu=x64
   languageName: node
   linkType: hard
@@ -9506,6 +9473,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@next/swc-linux-arm64-gnu@npm:13.5.6":
+  version: 13.5.6
+  resolution: "@next/swc-linux-arm64-gnu@npm:13.5.6"
+  conditions: os=linux & cpu=arm64 & libc=glibc
+  languageName: node
+  linkType: hard
+
 "@next/swc-linux-arm64-gnu@npm:14.0.4":
   version: 14.0.4
   resolution: "@next/swc-linux-arm64-gnu@npm:14.0.4"
@@ -9523,6 +9497,13 @@ __metadata:
 "@next/swc-linux-arm64-musl@npm:13.5.5":
   version: 13.5.5
   resolution: "@next/swc-linux-arm64-musl@npm:13.5.5"
+  conditions: os=linux & cpu=arm64 & libc=musl
+  languageName: node
+  linkType: hard
+
+"@next/swc-linux-arm64-musl@npm:13.5.6":
+  version: 13.5.6
+  resolution: "@next/swc-linux-arm64-musl@npm:13.5.6"
   conditions: os=linux & cpu=arm64 & libc=musl
   languageName: node
   linkType: hard
@@ -9548,6 +9529,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@next/swc-linux-x64-gnu@npm:13.5.6":
+  version: 13.5.6
+  resolution: "@next/swc-linux-x64-gnu@npm:13.5.6"
+  conditions: os=linux & cpu=x64 & libc=glibc
+  languageName: node
+  linkType: hard
+
 "@next/swc-linux-x64-gnu@npm:14.0.4":
   version: 14.0.4
   resolution: "@next/swc-linux-x64-gnu@npm:14.0.4"
@@ -9565,6 +9553,13 @@ __metadata:
 "@next/swc-linux-x64-musl@npm:13.5.5":
   version: 13.5.5
   resolution: "@next/swc-linux-x64-musl@npm:13.5.5"
+  conditions: os=linux & cpu=x64 & libc=musl
+  languageName: node
+  linkType: hard
+
+"@next/swc-linux-x64-musl@npm:13.5.6":
+  version: 13.5.6
+  resolution: "@next/swc-linux-x64-musl@npm:13.5.6"
   conditions: os=linux & cpu=x64 & libc=musl
   languageName: node
   linkType: hard
@@ -9590,6 +9585,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@next/swc-win32-arm64-msvc@npm:13.5.6":
+  version: 13.5.6
+  resolution: "@next/swc-win32-arm64-msvc@npm:13.5.6"
+  conditions: os=win32 & cpu=arm64
+  languageName: node
+  linkType: hard
+
 "@next/swc-win32-arm64-msvc@npm:14.0.4":
   version: 14.0.4
   resolution: "@next/swc-win32-arm64-msvc@npm:14.0.4"
@@ -9611,6 +9613,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@next/swc-win32-ia32-msvc@npm:13.5.6":
+  version: 13.5.6
+  resolution: "@next/swc-win32-ia32-msvc@npm:13.5.6"
+  conditions: os=win32 & cpu=ia32
+  languageName: node
+  linkType: hard
+
 "@next/swc-win32-ia32-msvc@npm:14.0.4":
   version: 14.0.4
   resolution: "@next/swc-win32-ia32-msvc@npm:14.0.4"
@@ -9628,6 +9637,13 @@ __metadata:
 "@next/swc-win32-x64-msvc@npm:13.5.5":
   version: 13.5.5
   resolution: "@next/swc-win32-x64-msvc@npm:13.5.5"
+  conditions: os=win32 & cpu=x64
+  languageName: node
+  linkType: hard
+
+"@next/swc-win32-x64-msvc@npm:13.5.6":
+  version: 13.5.6
+  resolution: "@next/swc-win32-x64-msvc@npm:13.5.6"
   conditions: os=win32 & cpu=x64
   languageName: node
   linkType: hard
@@ -10271,13 +10287,6 @@ __metadata:
     "@otplib/plugin-crypto": ^12.0.1
     "@otplib/plugin-thirty-two": ^12.0.1
   checksum: 367cb09397e617c21ec748d54e920ab43f1c5dfba70cbfd88edf73aecca399cf0c09fefe32518f79c7ee8a06e7058d14b200da378cc7d46af3cac4e22a153e2f
-  languageName: node
-  linkType: hard
-
-"@panva/hkdf@npm:1.0.2":
-  version: 1.0.2
-  resolution: "@panva/hkdf@npm:1.0.2"
-  checksum: 75183b4d5ea816ef516dcea70985c610683579a9e2ac540c2d59b9a3ed27eedaff830a43a1c43c1683556a457c92ac66e09109ee995ab173090e4042c4c4bb03
   languageName: node
   linkType: hard
 
@@ -12546,15 +12555,6 @@ __metadata:
     react: ^16.8.0 || 17.x
     react-dom: ^16.8.0 || 17.x
   checksum: 36bc0eb41a71798eb6186b23de265ba709e51dae5bf214fb8505c66bb3f2e6a41bb2401457350436ba89ca9e3a50f93a04fe7c33d15648ce11e568a85622d770
-  languageName: node
-  linkType: hard
-
-"@react-icons/all-files@npm:^4.1.0":
-  version: 4.1.0
-  resolution: "@react-icons/all-files@npm:4.1.0"
-  peerDependencies:
-    react: "*"
-  checksum: c34c644650a144e4f2157c20b3106200ac1f76b3132dcda1a40f061e000a34c78df188266395afae571d5c85bf48365824db7b1bf8b7ae6229fdc148c941ab85
   languageName: node
   linkType: hard
 
@@ -20073,7 +20073,6 @@ __metadata:
     jest-diff: ^29.5.0
     jsdom: ^22.0.0
     lint-staged: ^12.5.0
-    lucide-react: ^0.363.0
     mailhog: ^4.16.0
     next-router-mock: ^0.9.12
     node-ical: ^0.16.1
@@ -30866,13 +30865,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jose@npm:4.11.1":
-  version: 4.11.1
-  resolution: "jose@npm:4.11.1"
-  checksum: cd15cba258d0fd20f6168631ce2e94fda8442df80e43c1033c523915cecdf390a1cc8efe0eab0c2d65935ca973d791c668aea80724d2aa9c2879d4e70f3081d7
-  languageName: node
-  linkType: hard
-
 "jose@npm:5.2.1":
   version: 5.2.1
   resolution: "jose@npm:5.2.1"
@@ -32846,12 +32838,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lucide-react@npm:^0.363.0":
-  version: 0.363.0
-  resolution: "lucide-react@npm:0.363.0"
+"lucide-react@npm:^0.364.0":
+  version: 0.364.0
+  resolution: "lucide-react@npm:0.364.0"
   peerDependencies:
     react: ^16.5.1 || ^17.0.0 || ^18.0.0
-  checksum: abe8fad469a2f14181eca6f3682403c5d53a4a354f333b0f7d3b575471d451c6f3fd36f59d96745a5a823e4cc55eeb2dcda70774a6fe438834ea3fb6fa5b75af
+  checksum: 954f6274df46ffa172130d9e60eb630a377435c7dbf0ddb5ceebf284602dde3b99755dcd5c0757e697ee734a32c808a3cd2c25ad88fec1d8f627a2317f00e3e6
   languageName: node
   linkType: hard
 
@@ -35199,6 +35191,61 @@ __metadata:
   languageName: node
   linkType: hard
 
+"next@npm:^13.4.6":
+  version: 13.5.6
+  resolution: "next@npm:13.5.6"
+  dependencies:
+    "@next/env": 13.5.6
+    "@next/swc-darwin-arm64": 13.5.6
+    "@next/swc-darwin-x64": 13.5.6
+    "@next/swc-linux-arm64-gnu": 13.5.6
+    "@next/swc-linux-arm64-musl": 13.5.6
+    "@next/swc-linux-x64-gnu": 13.5.6
+    "@next/swc-linux-x64-musl": 13.5.6
+    "@next/swc-win32-arm64-msvc": 13.5.6
+    "@next/swc-win32-ia32-msvc": 13.5.6
+    "@next/swc-win32-x64-msvc": 13.5.6
+    "@swc/helpers": 0.5.2
+    busboy: 1.6.0
+    caniuse-lite: ^1.0.30001406
+    postcss: 8.4.31
+    styled-jsx: 5.1.1
+    watchpack: 2.4.0
+  peerDependencies:
+    "@opentelemetry/api": ^1.1.0
+    react: ^18.2.0
+    react-dom: ^18.2.0
+    sass: ^1.3.0
+  dependenciesMeta:
+    "@next/swc-darwin-arm64":
+      optional: true
+    "@next/swc-darwin-x64":
+      optional: true
+    "@next/swc-linux-arm64-gnu":
+      optional: true
+    "@next/swc-linux-arm64-musl":
+      optional: true
+    "@next/swc-linux-x64-gnu":
+      optional: true
+    "@next/swc-linux-x64-musl":
+      optional: true
+    "@next/swc-win32-arm64-msvc":
+      optional: true
+    "@next/swc-win32-ia32-msvc":
+      optional: true
+    "@next/swc-win32-x64-msvc":
+      optional: true
+  peerDependenciesMeta:
+    "@opentelemetry/api":
+      optional: true
+    sass:
+      optional: true
+  bin:
+    next: dist/bin/next
+  checksum: c869b0014ae921ada3bf22301985027ec320aebcd6aa9c16e8afbded68bb8def5874cca034c680e8c351a79578f1e514971d02777f6f0a5a1d7290f25970ac0d
+  languageName: node
+  linkType: hard
+
 "next@npm:^13.5.4":
   version: 13.5.5
   resolution: "next@npm:13.5.5"
@@ -35254,7 +35301,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"next@npm:^14.1":
+"next@npm:^14.1.3":
   version: 14.1.4
   resolution: "next@npm:14.1.4"
   dependencies:
@@ -35853,13 +35900,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"oauth4webapi@npm:2.0.5":
-  version: 2.0.5
-  resolution: "oauth4webapi@npm:2.0.5"
-  checksum: 32d0cb7b1cca42d51dfb88075ca2d69fe33172a807e8ea50e317d17cab3bc80588ab8ebcb7eb4600c371a70af4674595b4b341daf6f3a655f1efa1ab715bb6c9
-  languageName: node
-  linkType: hard
-
 "oauth@npm:^0.9.15":
   version: 0.9.15
   resolution: "oauth@npm:0.9.15"
@@ -36340,6 +36380,22 @@ __metadata:
   version: 12.1.3
   resolution: "openapi-types@npm:12.1.3"
   checksum: 7fa5547f87a58d2aa0eba6e91d396f42d7d31bc3ae140e61b5d60b47d2fd068b48776f42407d5a8da7280cf31195aa128c2fc285e8bb871d1105edee5647a0bb
+  languageName: node
+  linkType: hard
+
+"openapi-typescript@npm:^6.7.5":
+  version: 6.7.5
+  resolution: "openapi-typescript@npm:6.7.5"
+  dependencies:
+    ansi-colors: ^4.1.3
+    fast-glob: ^3.3.2
+    js-yaml: ^4.1.0
+    supports-color: ^9.4.0
+    undici: ^5.28.2
+    yargs-parser: ^21.1.1
+  bin:
+    openapi-typescript: bin/cli.js
+  checksum: f404cf8e5cdc59a6773cfd9adfd3545159a2d59d7393f97d003d9f8be6a28e0a71cfbb502da66bdd7c38ec2ad92b5b570202aa243bda908fafe31ea130c9f976
   languageName: node
   linkType: hard
 
@@ -37974,17 +38030,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"preact-render-to-string@npm:5.2.3":
-  version: 5.2.3
-  resolution: "preact-render-to-string@npm:5.2.3"
-  dependencies:
-    pretty-format: ^3.8.0
-  peerDependencies:
-    preact: ">=10"
-  checksum: 6e46288d8956adde35b9fe3a21aecd9dea29751b40f0f155dea62f3896f27cb8614d457b32f48d33909d2da81135afcca6c55077520feacd7d15164d1371fb44
-  languageName: node
-  linkType: hard
-
 "preact-render-to-string@npm:^5.1.19":
   version: 5.2.6
   resolution: "preact-render-to-string@npm:5.2.6"
@@ -37996,7 +38041,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"preact@npm:10.11.3, preact@npm:^10.6.3":
+"preact@npm:^10.6.3":
   version: 10.11.3
   resolution: "preact@npm:10.11.3"
   checksum: 9387115aa0581e8226309e6456e9856f17dfc0e3d3e63f774de80f3d462a882ba7c60914c05942cb51d51e23e120dcfe904b8d392d46f29ad15802941fe7a367
@@ -39151,7 +39196,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-fast-marquee@npm:^1.3.5":
+"react-fast-marquee@npm:^1.6.4":
   version: 1.6.4
   resolution: "react-fast-marquee@npm:1.6.4"
   peerDependencies:
@@ -39233,15 +39278,6 @@ __metadata:
     react-native:
       optional: true
   checksum: fe3f360e5184bc63861734e94bf625a09b9ec0d28fab41779a68758af258fd1737dde25ff7a88ddb66c1571a3e3de5b3403825a91b4949bf9832a00615acb87a
-  languageName: node
-  linkType: hard
-
-"react-icons@npm:^4.4.0":
-  version: 4.4.0
-  resolution: "react-icons@npm:4.4.0"
-  peerDependencies:
-    react: "*"
-  checksum: dd93a1dcc8ac8a3cf46a2b33e80b586fa967331fa5fcb90d061abf276155a8363a331643e203d67cb9bab4261d00a757da854bcce1fce2c6e4258bf3e33f711b
   languageName: node
   linkType: hard
 
@@ -39782,6 +39818,16 @@ __metadata:
     react: ">=16.6.0"
     react-dom: ">=16.6.0"
   checksum: 75602840106aa9c6545149d6d7ae1502fb7b7abadcce70a6954c4b64a438ff1cd16fc77a0a1e5197cdd72da398f39eb929ea06f9005c45b132ed34e056ebdeb1
+  languageName: node
+  linkType: hard
+
+"react-turnstile@npm:^1.1.3":
+  version: 1.1.3
+  resolution: "react-turnstile@npm:1.1.3"
+  peerDependencies:
+    react: ">= 16.13.1"
+    react-dom: ">= 16.13.1"
+  checksum: 1bb040eca9a4b24078dc21ee70947442ad97c7bc6507ba530974c4e5730769af0168e9b221e2835f20ea194282fc7a377eeb102084509f636fab322e95314201
   languageName: node
   linkType: hard
 
@@ -43441,6 +43487,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"supports-color@npm:^9.4.0":
+  version: 9.4.0
+  resolution: "supports-color@npm:9.4.0"
+  checksum: cb8ff8daeaf1db642156f69a9aa545b6c01dd9c4def4f90a49f46cbf24be0c245d392fcf37acd119cd1819b99dad2cc9b7e3260813f64bcfd7f5b18b5a1eefb8
+  languageName: node
+  linkType: hard
+
 "supports-hyperlinks@npm:^2.0.0, supports-hyperlinks@npm:^2.2.0":
   version: 2.3.0
   resolution: "supports-hyperlinks@npm:2.3.0"
@@ -45401,6 +45454,15 @@ __metadata:
   dependencies:
     "@fastify/busboy": ^2.0.0
   checksum: fa1e65aff896c5e2ee23637b632e306f9e3a2b32a3dc0b23ea71e5555ad350bcc25713aea894b3dccc0b7dc2c5e92a5a58435ebc2033b731a5524506f573dfd2
+  languageName: node
+  linkType: hard
+
+"undici@npm:^5.28.2":
+  version: 5.28.4
+  resolution: "undici@npm:5.28.4"
+  dependencies:
+    "@fastify/busboy": ^2.0.0
+  checksum: a8193132d84540e4dc1895ecc8dbaa176e8a49d26084d6fbe48a292e28397cd19ec5d13bc13e604484e76f94f6e334b2bdc740d5f06a6e50c44072818d0c19f9
   languageName: node
   linkType: hard
 

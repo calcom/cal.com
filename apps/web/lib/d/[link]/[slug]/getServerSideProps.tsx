@@ -8,7 +8,9 @@ import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomain
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
+import { RedirectType } from "@calcom/prisma/enums";
 
+import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 import type { EmbedProps } from "@lib/withEmbedSsr";
 
@@ -55,6 +57,19 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
 
   if (!hashedLink || !username) {
     return notFound;
+  }
+
+  if (!org) {
+    const redirect = await getTemporaryOrgRedirect({
+      slugs: [username],
+      redirectType: RedirectType.User,
+      eventTypeSlug: slug,
+      currentQuery: context.query,
+    });
+
+    if (redirect) {
+      return redirect;
+    }
   }
 
   const [user] = await UserRepository.findUsersByUsername({

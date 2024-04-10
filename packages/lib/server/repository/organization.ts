@@ -6,6 +6,12 @@ import { MembershipRole } from "@calcom/prisma/enums";
 
 import { createAProfileForAnExistingUser } from "../../createAProfileForAnExistingUser";
 
+const orgSelect = {
+  id: true,
+  name: true,
+  slug: true,
+  logoUrl: true,
+};
 export class OrganizationRepository {
   static async createWithOwner({
     orgData,
@@ -15,9 +21,11 @@ export class OrganizationRepository {
       name: string;
       slug: string;
       isOrganizationConfigured: boolean;
+      isOrganizationAdminReviewed: boolean;
       autoAcceptEmail: string;
       seats: number | null;
       pricePerSeat: number | null;
+      isPlatform: boolean;
     };
     owner: {
       id: number;
@@ -33,6 +41,7 @@ export class OrganizationRepository {
         ...(!IS_TEAM_BILLING_ENABLED ? { slug: orgData.slug } : {}),
         organizationSettings: {
           create: {
+            isAdminReviewed: orgData.isOrganizationAdminReviewed,
             isOrganizationVerified: true,
             isOrganizationConfigured: orgData.isOrganizationConfigured,
             orgAutoAcceptEmail: orgData.autoAcceptEmail,
@@ -42,6 +51,7 @@ export class OrganizationRepository {
           ...(IS_TEAM_BILLING_ENABLED ? { requestedSlug: orgData.slug } : {}),
           orgSeats: orgData.seats,
           orgPricePerSeat: orgData.pricePerSeat,
+          isPlatform: orgData.isPlatform,
         },
       },
     });
@@ -64,5 +74,28 @@ export class OrganizationRepository {
       },
     });
     return { organization, ownerProfile };
+  }
+
+  static async findById({ id }: { id: number }) {
+    return prisma.team.findUnique({
+      where: {
+        id,
+        isOrganization: true,
+      },
+      select: orgSelect,
+    });
+  }
+
+  static async findByIdIncludeOrganizationSettings({ id }: { id: number }) {
+    return prisma.team.findUnique({
+      where: {
+        id,
+        isOrganization: true,
+      },
+      select: {
+        ...orgSelect,
+        organizationSettings: true,
+      },
+    });
   }
 }

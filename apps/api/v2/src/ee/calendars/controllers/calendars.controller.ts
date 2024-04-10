@@ -1,20 +1,21 @@
+import { GetBusyTimesOutput } from "@/ee/calendars/outputs/busy-times.output";
+import { ConnectedCalendarsOutput } from "@/ee/calendars/outputs/connected-calendars.output";
 import { CalendarsService } from "@/ee/calendars/services/calendars.service";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { Controller, Get, UseGuards, Query } from "@nestjs/common";
+import { ApiTags as DocsTags } from "@nestjs/swagger";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { ConnectedDestinationCalendars } from "@calcom/platform-libraries";
 import { CalendarBusyTimesInput } from "@calcom/platform-types";
-import { ApiResponse } from "@calcom/platform-types";
-import { EventBusyDate } from "@calcom/types/Calendar";
 
 @Controller({
   path: "ee/calendars",
   version: "2",
 })
 @UseGuards(AccessTokenGuard)
+@DocsTags("Calendars")
 export class CalendarsController {
   constructor(private readonly calendarsService: CalendarsService) {}
 
@@ -22,7 +23,7 @@ export class CalendarsController {
   async getBusyTimes(
     @Query() queryParams: CalendarBusyTimesInput,
     @GetUser() user: UserWithProfile
-  ): Promise<ApiResponse<EventBusyDate[]>> {
+  ): Promise<GetBusyTimesOutput> {
     const { loggedInUsersTz, dateFrom, dateTo, calendarsToLoad } = queryParams;
     if (!dateFrom || !dateTo) {
       return {
@@ -46,7 +47,7 @@ export class CalendarsController {
   }
 
   @Get("/")
-  async getCalendars(@GetUser("id") userId: number): Promise<ApiResponse<ConnectedDestinationCalendars>> {
+  async getCalendars(@GetUser("id") userId: number): Promise<ConnectedCalendarsOutput> {
     const calendars = await this.calendarsService.getCalendars(userId);
 
     return {
