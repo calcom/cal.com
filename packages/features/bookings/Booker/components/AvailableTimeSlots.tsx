@@ -123,17 +123,16 @@ export const AvailableTimeSlots = ({
             Array.from({ length: 1 + (extraDays ?? 0) }).map((_, i) => <AvailableTimesSkeleton key={i} />)
           : slotsPerDay.length > 0 &&
             slotsPerDay.map((slots) => (
-              <AvailableTimes
-                className={`scroll-bar w-full overflow-y-auto overflow-x-hidden ${customClassnames?.availableTimeSlotsContainer}`}
-                customClassnames={customClassnames?.availableTimes}
-                key={slots.date}
-                showTimeFormatToggle={!isColumnView}
-                onTimeSelect={onTimeSelect}
-                slots={slots.slots}
-                seatsPerTimeSlot={seatsPerTimeSlot}
-                showAvailableSeatsCount={showAvailableSeatsCount}
-                event={event}
-              />
+              <div key={slots.date} className="scroll-bar h-full w-full overflow-y-auto overflow-x-hidden">
+                <AvailableTimes
+                  showTimeFormatToggle={!isColumnView}
+                  onTimeSelect={onTimeSelect}
+                  slots={slots.slots}
+                  seatsPerTimeSlot={seatsPerTimeSlot}
+                  showAvailableSeatsCount={showAvailableSeatsCount}
+                  event={event}
+                />
+              </div>
             ))}
       </div>
     </>
