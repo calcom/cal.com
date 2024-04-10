@@ -1,4 +1,4 @@
-import { useMemo, useEffect } from "react";
+import { useMemo, useEffect, useCallback } from "react";
 import { shallow } from "zustand/shallow";
 
 import dayjs from "@calcom/dayjs";
@@ -40,6 +40,7 @@ type BookerPlatformWrapperAtomProps = BookerProps & {
   lastName?: string;
   guests?: string[];
   name?: string;
+  username: string | string[];
   onCreateBookingSuccess?: (data: ApiSuccessResponse<BookingResponse>) => void;
   onCreateBookingError?: (data: ApiErrorResponse | Error) => void;
   onCreateRecurringBookingSuccess?: (data: ApiSuccessResponse<BookingResponse[]>) => void;
@@ -56,7 +57,6 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
   const [bookerState, setBookerState] = useBookerStore((state) => [state.state, state.setState], shallow);
   const setSelectedDate = useBookerStore((state) => state.setSelectedDate);
   const setBookingData = useBookerStore((state) => state.setBookingData);
-
   const setSelectedTimeslot = useBookerStore((state) => state.setSelectedTimeslot);
   const { data: booking } = useGetBookingForReschedule({
     uid: props.rescheduleUid ?? props.bookingUid ?? "",
@@ -64,6 +64,9 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
       setBookingData(data);
     },
   });
+  const username = useMemo(() => {
+    return formatUsername(props.username);
+  }, [props.username]);
 
   useEffect(() => {
     // reset booker whenever it's unmounted
@@ -75,7 +78,7 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
   }, []);
 
   const event = usePublicEvent({
-    username: props.username,
+    username,
     eventSlug: props.eventSlug,
     duration: props.duration,
     orgSlug: props.entity.orgSlug,
@@ -89,6 +92,7 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
     bookingUid: props.bookingUid ?? null,
     layout: bookerLayout.defaultLayout,
     org: event.data?.entity.orgSlug,
+    username,
   });
   const [dayCount] = useBookerStore((state) => [state.dayCount, state.setDayCount], shallow);
   const selectedDate = useBookerStore((state) => state.selectedDate);
@@ -131,8 +135,18 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
     prefetchNextMonth,
     selectedDate,
   });
+
+  const getEventTypeSlug = useCallback(() => {
+    const isDynamic = getUsernameList(username ?? "").length > 1;
+    if (isDynamic) {
+      return "dynamic";
+    }
+
+    return event?.data?.slug;
+  }, [event?.data?.slug, username]);
+
   const schedule = useAvailableSlots({
-    usernameList: getUsernameList(props.username ?? ""),
+    usernameList: getUsernameList(username ?? ""),
     eventTypeId: event?.data?.id ?? 0,
     startTime,
     endTime,
@@ -140,23 +154,14 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
     duration: selectedDuration ?? undefined,
     rescheduleUid: props.rescheduleUid,
     enabled:
-      Boolean(props.username) &&
+      Boolean(username) &&
       Boolean(month) &&
       Boolean(timezone) &&
       // Should only wait for one or the other, not both.
       (Boolean(eventSlug) || Boolean(event?.data?.id) || event?.data?.id === 0),
     eventTypeSlug: getEventTypeSlug(),
-    orgSlug: event.data?.entity.orgSlug,
+    orgSlug: event.data?.entity.orgSlug ?? undefined,
   });
-
-  const getEventTypeSlug = useEffect(() => {
-    const isDynamic = getUsernameList(props.username ?? "").length > 1;
-    if (isDynamic) {
-      return "dynamic";
-    }
-
-    return event?.data.slug || undefined;
-  }, [event?.data.slug, props.username]);
 
   const bookerForm = useBookingForm({
     event: event.data,
@@ -248,7 +253,7 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
   return (
     <BookerComponent
       eventSlug={props.eventSlug}
-      username={props.username}
+      username={username}
       entity={
         event?.data?.entity ?? {
           considerUnpublished: false,
@@ -329,3 +334,10 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
     />
   );
 };
+
+function formatUsername(username: string | string[]): string {
+  if (typeof username === "string") {
+    return username;
+  }
+  return username.join("+");
+}

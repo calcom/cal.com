@@ -15,6 +15,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
   const { isLoading: isLoadingEvents, data: eventTypes } = useEventTypesPublic(props.calUsername);
   const rescheduleUid = (router.query.rescheduleUid as string) ?? "";
   const eventTypeSlugQueryParam = (router.query.eventTypeSlug as string) ?? "";
+
   return (
     <main
       className={`flex min-h-screen flex-col ${inter.className} main text-default flex min-h-full w-full flex-col items-center overflow-visible`}>
@@ -52,7 +53,6 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
         {!bookingTitle && eventTypeSlug && !rescheduleUid && (
           <Booker
             eventSlug={eventTypeSlug}
-            username={props.calUsername ?? ""}
             onCreateBookingSuccess={(data) => {
               setBookingTitle(data.data.title);
               router.push(`/${data.data.uid}`);
@@ -62,13 +62,16 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
               orgSlug: "ecorp",
               considerUnpublished: false,
             }}
+            username={[
+              "npwruvxgpl-clujvibu30001khltnifvcca8-example",
+              "fqgtsbmbmo-clujvibu30001khltnifvcca8-example",
+            ]}
           />
         )}
         {!bookingTitle && rescheduleUid && eventTypeSlugQueryParam && (
           <Booker
             rescheduleUid={rescheduleUid}
             eventSlug={eventTypeSlugQueryParam}
-            username={props.calUsername ?? ""}
             onCreateBookingSuccess={(data) => {
               setBookingTitle(data.data.title);
               router.push(`/${data.data.uid}`);
@@ -78,6 +81,10 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
               orgSlug: "ecorp",
               considerUnpublished: false,
             }}
+            username={[
+              "npwruvxgpl-clujvibu30001khltnifvcca8-example",
+              "fqgtsbmbmo-clujvibu30001khltnifvcca8-example",
+            ]}
           />
         )}
         {bookingTitle && <p>Booking created: {bookingTitle}</p>}
