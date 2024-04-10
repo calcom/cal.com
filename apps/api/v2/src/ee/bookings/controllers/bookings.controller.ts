@@ -124,17 +124,12 @@ export class BookingsController {
   @Permissions([BOOKING_WRITE])
   async createBooking(
     @Req() req: CustomRequest,
-    @Body() body: CreateBookingInput,
+    @Body() _: CreateBookingInput,
     @Headers(X_CAL_CLIENT_ID) clientId: string
   ): Promise<ApiResponse<unknown>> {
     const oAuthClientId = clientId?.toString();
     req.userId = await this.getOwnerId(req);
-    if (oAuthClientId) {
-      req.platformClientId = oAuthClientId;
-      req.platformCancelUrl = "http://platform/cancel";
-      req.platformRescheduleUrl = "http://platform/reschedule";
-      req.platformBookingUrl = "http://platform/booking";
-    }
+    req = await this.setCustomPlatformRequest(req, clientId);
     req.body = { ...req.body, noEmail: !Boolean(oAuthClientId) };
     try {
       const booking = await handleNewBooking(
@@ -161,12 +156,7 @@ export class BookingsController {
     const oAuthClientId = clientId?.toString();
     if (bookingId) {
       req.userId = await this.getOwnerId(req);
-      if (oAuthClientId) {
-        req.platformClientId = oAuthClientId;
-        req.platformCancelUrl = "http://platform/cancel";
-        req.platformRescheduleUrl = "http://platform/reschedule";
-        req.platformBookingUrl = "http://platform/booking";
-      }
+      req = await this.setCustomPlatformRequest(req, clientId);
       req.body = { ...req.body, noEmail: !Boolean(oAuthClientId) };
       try {
         await handleCancelBooking(req as unknown as NextApiRequest & { userId?: number });
@@ -191,12 +181,7 @@ export class BookingsController {
   ): Promise<ApiResponse<BookingResponse[]>> {
     const oAuthClientId = clientId?.toString();
     req.userId = await this.getOwnerId(req);
-    if (oAuthClientId) {
-      req.platformClientId = oAuthClientId;
-      req.platformCancelUrl = "http://platform/cancel";
-      req.platformRescheduleUrl = "http://platform/reschedule";
-      req.platformBookingUrl = "http://platform/booking";
-    }
+    req = await this.setCustomPlatformRequest(req, clientId);
     req.body = { ...req.body, noEmail: !Boolean(oAuthClientId) };
     try {
       const createdBookings: BookingResponse[] = await handleNewRecurringBooking(
@@ -221,12 +206,7 @@ export class BookingsController {
   ): Promise<ApiResponse<Awaited<ReturnType<typeof handleInstantMeeting>>>> {
     const oAuthClientId = clientId?.toString();
     req.userId = await this.getOwnerId(req);
-    if (oAuthClientId) {
-      req.platformClientId = oAuthClientId;
-      req.platformCancelUrl = "http://platform/cancel";
-      req.platformRescheduleUrl = "http://platform/reschedule";
-      req.platformBookingUrl = "http://platform/booking";
-    }
+    req = await this.setCustomPlatformRequest(req, clientId);
     req.body = { ...req.body, noEmail: !Boolean(oAuthClientId) };
     try {
       const instantMeeting = await handleInstantMeeting(
@@ -251,6 +231,17 @@ export class BookingsController {
     } catch (err) {
       this.logger.error(err);
     }
+  }
+
+  async setCustomPlatformRequest(req: CustomRequest, clientId: string): Promise<CustomRequest> {
+    if (clientId) {
+      // fetch oAuthClient from db and use data stored in db to set these values
+      req.platformClientId = clientId;
+      req.platformCancelUrl = "http://platform/cancel";
+      req.platformRescheduleUrl = "http://platform/reschedule";
+      req.platformBookingUrl = "http://platform/booking";
+    }
+    return req;
   }
 }
 
