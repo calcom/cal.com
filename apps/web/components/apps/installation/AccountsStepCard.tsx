@@ -13,9 +13,17 @@ type AccountSelectorProps = {
   alreadyInstalled: boolean;
   onClick?: () => void;
   loading: boolean;
+  testId: string;
 };
 
-const AccountSelector: FC<AccountSelectorProps> = ({ avatar, alreadyInstalled, name, onClick, loading }) => {
+const AccountSelector: FC<AccountSelectorProps> = ({
+  avatar,
+  alreadyInstalled,
+  name,
+  onClick,
+  loading,
+  testId,
+}) => {
   const { t } = useLocale();
   const [selected, setSelected] = useState(false);
   return (
@@ -25,6 +33,7 @@ const AccountSelector: FC<AccountSelectorProps> = ({ avatar, alreadyInstalled, n
         (alreadyInstalled || loading) && "cursor-not-allowed",
         selected && "bg-muted animate-pulse"
       )}
+      data-testid={testId}
       onClick={() => {
         if (onClick) {
           setSelected(true);
@@ -64,6 +73,7 @@ export const AccountsStepCard: FC<AccountStepCardProps> = ({ teams, personalAcco
       <div className="text-sm font-medium text-gray-400">{t("install_app_on")}</div>
       <div className={classNames("mt-2 flex flex-col gap-2 ")}>
         <AccountSelector
+          testId="install-app-on-personal-account"
           avatar={personalAccount.avatar ?? ""}
           name={personalAccount.name ?? ""}
           alreadyInstalled={personalAccount.alreadyInstalled}
@@ -73,6 +83,7 @@ export const AccountsStepCard: FC<AccountStepCardProps> = ({ teams, personalAcco
         {teams.map((team) => (
           <AccountSelector
             key={team.id}
+            testId={`install-app-on-team-${team.id}`}
             alreadyInstalled={team.alreadyInstalled}
             avatar={team.logo ?? ""}
             name={team.name}

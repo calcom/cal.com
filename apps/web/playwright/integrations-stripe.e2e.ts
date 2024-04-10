@@ -92,18 +92,13 @@ test.describe("Stripe integration", () => {
     await page.goto("/apps/stripe");
 
     /** We start the Stripe flow */
-    await Promise.all([
-      page.waitForURL("https://connect.stripe.com/oauth/v2/authorize?*"),
-      page.click('[data-testid="install-app-button"]'),
-      page.click('[data-testid="anything else"]'),
-    ]);
-
-    await Promise.all([
-      page.waitForURL("/apps/installed/payment?hl=stripe"),
-      /** We skip filling Stripe forms (testing mode only) */
-      page.click('[id="skip-account-app"]'),
-    ]);
-
+    await page.click('[data-testid="install-app-button"]');
+    await page.click(`[data-testid="install-app-on-team-${team.id}"]`);
+    await page.waitForURL("https://connect.stripe.com/oauth/v2/authorize?*");
+    await page.click('[id="skip-account-app"]');
+    await page.waitForURL(`apps/installation/event-types?slug=stripe&teamId=${team.id}`);
+    await page.goto("/apps/installed/payment?hl=stripe");
+    /** We skip filling Stripe forms (testing mode only) */
     await owner.setupEventWithPrice(teamEvent, "stripe");
 
     // Need to wait for the DB to be updated with the metadata
