@@ -76,6 +76,58 @@ const sendEmail = (prepare: () => BaseEmail) => {
   });
 };
 
+const sendSMS = ({
+  sendTo,
+  smsType,
+  attendee,
+  calEvent,
+}: {
+  sendTo: string;
+  smsType: "successfullyScheduled" | "successfullyReScheduled" | "attendeeDeclined";
+  attendee: Person;
+  calEvent: CalendarEvent;
+}) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const senderID = getSenderId(sendTo, SENDER_ID);
+
+      function getFormattedTime(time: string, format: string) {
+        return dayjs(time).tz(attendee.timeZone).locale(attendee.language.locale).format(format);
+      }
+
+      const SMS_MESSAGES = {
+        successfullyScheduled: `Hey ${attendee.name}, confirming your booking on  ${getFormattedTime(
+          calEvent.startTime,
+          `dddd, LL | ${TimeFormat.TWELVE_HOUR}`
+        )} - ${getFormattedTime(calEvent.endTime, TimeFormat.TWELVE_HOUR)} (${
+          attendee.timeZone
+        }) . \n\n You can view the booking details and add the event to your calendar from this url ${
+          calEvent.bookerUrl ?? WEBAPP_URL
+        }/booking/${calEvent.uid} `,
+
+        successfullyReScheduled: `Hey ${
+          attendee.name
+        }, your booking has been rescheduled to ${getFormattedTime(
+          calEvent.startTime,
+          `dddd, LL | ${TimeFormat.TWELVE_HOUR}`
+        )} - ${getFormattedTime(calEvent.endTime, TimeFormat.TWELVE_HOUR)} (${
+          attendee.timeZone
+        }) . \n\n You can view the booking details and add the event to your calendar from this url ${
+          calEvent.bookerUrl ?? WEBAPP_URL
+        }/booking/${calEvent.uid} `,
+
+        attendeeDeclined: `Hey ${attendee.name}, Your event request has been declined`,
+      };
+
+      const res = await twilio.sendSMS(sendTo, SMS_MESSAGES[smsType], senderID);
+
+      resolve(res);
+    } catch (e) {
+      reject(console.error(`twilio.sendSMS failed`, e));
+    }
+  });
+};
+
 export const sendScheduledEmails = async (
   calEvent: CalendarEvent,
   eventNameObject?: EventNameObjectType,
@@ -121,22 +173,9 @@ export const sendScheduledEmails = async (
   for (const attendee of calEvent.attendees) {
     const attendeePhoneNumber = attendee.phoneNumber;
     if (attendeePhoneNumber) {
-      const senderID = getSenderId(attendeePhoneNumber, SENDER_ID);
-
-      function getFormattedTime(time: string, format: string) {
-        return dayjs(time).tz(attendee.timeZone).locale(attendee.language.locale).format(format);
-      }
-
-      const smsMessage = `Hey ${attendee.name}, confirming your booking on  ${getFormattedTime(
-        calEvent.startTime,
-        `dddd, LL | ${TimeFormat.TWELVE_HOUR}`
-      )} - ${getFormattedTime(calEvent.endTime, TimeFormat.TWELVE_HOUR)} (${
-        attendee.timeZone
-      }) . \n\n You can add the event to your calendar from this url ${
-        calEvent.bookerUrl ?? WEBAPP_URL
-      }/booking/${calEvent.uid} `;
-
-      emailsAndSmsToSend.push(twilio.sendSMS(attendeePhoneNumber, smsMessage, senderID));
+      emailsAndSmsToSend.push(
+        sendSMS({ sendTo: attendeePhoneNumber, smsType: "successfullyScheduled", attendee, calEvent })
+      );
     }
   }
 
@@ -201,7 +240,16 @@ export const sendRescheduledEmails = async (calEvent: CalendarEvent) => {
     })
   );
 
-  await Promise.all(emailsToSend);
+  for (const attendee of calEvent.attendees) {
+    const attendeePhoneNumber = attendee.phoneNumber;
+    if (attendeePhoneNumber) {
+      emailsAndSmsToSend.push(
+        sendSMS({ sendTo: attendeePhoneNumber, smsType: "successfullyReScheduled", attendee, calEvent })
+      );
+    }
+  }
+
+  await Promise.all(emailsAndSmsToSend);
 };
 
 export const sendRescheduledSeatEmail = async (calEvent: CalendarEvent, attendee: Person) => {
@@ -298,6 +346,15 @@ export const sendDeclinedEmails = async (calEvent: CalendarEvent) => {
     })
   );
 
+  for (const attendee of calEvent.attendees) {
+    const attendeePhoneNumber = attendee.phoneNumber;
+    if (attendeePhoneNumber) {
+      emailsAndSmsToSend.push(
+        sendSMS({ sendTo: attendeePhoneNumber, smsType: "attendeeDeclined", attendee, calEvent })
+      );
+    }
+  }
+
   await Promise.all(emailsToSend);
 };
 
@@ -341,7 +398,16 @@ export const sendCancelledEmails = async (
     })
   );
 
-  await Promise.all(emailsToSend);
+  for (const attendee of calEvent.attendees) {
+    const attendeePhoneNumber = attendee.phoneNumber;
+    if (attendeePhoneNumber) {
+      emailsAndSmsToSend.push(
+        sendSMS({ sendTo: attendeePhoneNumber, smsType: "eventCancelled", attendee, calEvent })
+      );
+    }
+  }
+
+  await Promise.all(emailsAndSmsToSend);
 };
 
 export const sendOrganizerRequestReminderEmail = async (calEvent: CalendarEvent) => {
