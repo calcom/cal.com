@@ -3,7 +3,7 @@ Example apps using atoms - customizable UI components to integrate scheduling in
 
 ## Set up your sandbox
 
-1. Sign up for a sandbox at "https://app.cal.dev/signup"
+1. Sign up for a sandbox at "https://app.cal.dev/signup". This cannot be used for production.
 2. In the web app navigate to `https://app.cal.dev/settings/platform/new` and create a platform.
 3. In the web app navigate to `https://app.cal.dev/settings/platform/oauth-clients` and create a new oAuth client - give all permissions and set redirect uri to `http://localhost:4321` which points to example app.
 4. Start the example app by running `yarn dev` and go to `http://localhost:4321`.
