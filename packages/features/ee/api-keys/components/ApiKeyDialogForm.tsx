@@ -6,7 +6,17 @@ import type { TApiKeys } from "@calcom/ee/api-keys/components/ApiKeyListItem";
 import LicenseRequired from "@calcom/ee/common/components/LicenseRequired";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Button, DialogFooter, Form, SelectField, showToast, Switch, TextField, Tooltip } from "@calcom/ui";
+import {
+  Button,
+  DialogFooter,
+  Form,
+  Icon,
+  SelectField,
+  showToast,
+  Switch,
+  TextField,
+  Tooltip,
+} from "@calcom/ui";
 
 export default function ApiKeyDialogForm({
   defaultValues,
