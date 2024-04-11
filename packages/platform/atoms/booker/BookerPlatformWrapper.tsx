@@ -103,7 +103,7 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
     rescheduleUid: props.rescheduleUid ?? null,
     bookingUid: props.bookingUid ?? null,
     layout: bookerLayout.defaultLayout,
-    org: props.entity.orgSlug,
+    org: props.entity?.orgSlug,
     username,
   });
   const [dayCount] = useBookerStore((state) => [state.dayCount, state.setDayCount], shallow);
@@ -162,7 +162,7 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
       Boolean(timezone) &&
       // Should only wait for one or the other, not both.
       (Boolean(eventSlug) || Boolean(event?.data?.id) || event?.data?.id === 0),
-    orgSlug: props.entity.orgSlug ?? undefined,
+    orgSlug: props.entity?.orgSlug ?? undefined,
     eventTypeSlug: isDynamic ? "dynamic" : undefined,
   });
 
