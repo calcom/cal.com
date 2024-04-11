@@ -255,6 +255,7 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
   return (
     <AtomsWrapper>
       <BookerComponent
+        customClassNames={props.customClassNames}
         eventSlug={props.eventSlug}
         username={props.username}
         entity={

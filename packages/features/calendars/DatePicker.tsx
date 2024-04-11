@@ -59,12 +59,17 @@ export const Day = ({
   disabled,
   away,
   emoji,
+  customClassname,
   ...props
 }: JSX.IntrinsicElements["button"] & {
   active: boolean;
   date: Dayjs;
   away?: boolean;
   emoji?: string | null;
+  customClassname?: {
+    dayContainer?: string;
+    dayActive?: string;
+  };
 }) => {
   const { t } = useLocale();
   const enabledDateButtonEmbedStyles = useEmbedStyles("enabledDateButton");
@@ -79,8 +84,12 @@ export const Day = ({
         active
           ? "bg-brand-default text-brand"
           : !disabled
-          ? " hover:border-brand-default text-emphasis bg-emphasis"
-          : "text-muted"
+          ? `${
+              !customClassname?.dayActive
+                ? "hover:border-brand-default text-emphasis bg-emphasis"
+                : `hover:border-brand-default ${customClassname.dayActive}`
+            }`
+          : `${customClassname ? "" : " text-mute"}`
       )}
       data-testid="day"
       data-disabled={disabled}
@@ -131,6 +140,7 @@ const Days = ({
   nextMonthButton,
   eventSlug,
   slots,
+  customClassname,
   ...props
 }: Omit<DatePickerProps, "locale" | "className" | "weekStart"> & {
   DayComponent?: React.FC<React.ComponentProps<typeof Day>>;
@@ -138,6 +148,10 @@ const Days = ({
   weekStart: number;
   month: string | null;
   nextMonthButton: () => void;
+  customClassname?: {
+    datePickerDate?: string;
+    datePickerDateActive?: string;
+  };
 }) => {
   // Create placeholder elements for empty days in first week
   const weekdayOfFirst = browsingDate.date(1).day();
@@ -244,6 +258,10 @@ const Days = ({
             </button>
           ) : (
             <DayComponent
+              customClassname={{
+                dayContainer: customClassname?.datePickerDate,
+                dayActive: customClassname?.datePickerDateActive,
+              }}
               date={day}
               onClick={() => {
                 props.onChange(day);
@@ -344,6 +362,10 @@ const DatePicker = ({
       </div>
       <div className="relative grid grid-cols-7 grid-rows-6 gap-1 text-center">
         <Days
+          customClassname={{
+            datePickerDate: customClassNames?.datePickersDates,
+            datePickerDateActive: customClassNames?.datePickerDatesActive,
+          }}
           weekStart={weekStart}
           selected={selected}
           {...passThroughProps}

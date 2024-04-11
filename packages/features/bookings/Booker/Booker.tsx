@@ -27,7 +27,7 @@ import { BookerSection } from "./components/Section";
 import { Away, NotFound } from "./components/Unavailable";
 import { fadeInLeft, getBookerSizeClassNames, useBookerResizeAnimation } from "./config";
 import { useBookerStore } from "./store";
-import type { BookerProps, WrappedBookerProps, CustomClassNames } from "./types";
+import type { BookerProps, WrappedBookerProps } from "./types";
 
 const loadFramerFeatures = () => import("./framer-features").then((res) => res.default);
 const PoweredBy = dynamic(() => import("@calcom/ee/components/PoweredBy"));
@@ -65,7 +65,9 @@ const BookerComponent = ({
   isPlatform,
   orgBannerUrl,
   customClassNames,
-}: BookerProps & WrappedBookerProps & { customClassNames?: CustomClassNames }) => {
+}: BookerProps & WrappedBookerProps) => {
+  console.log(customClassNames, " custom classnames from booker");
+
   const { t } = useLocale();
   const [bookerState, setBookerState] = useBookerStore((state) => [state.state, state.setState], shallow);
   const selectedDate = useBookerStore((state) => state.selectedDate);
