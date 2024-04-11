@@ -331,7 +331,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
       label: actionString.charAt(0).toUpperCase() + actionString.slice(1),
       value: step.action,
       needsTeamsUpgrade: false,
-      needsOrgsUpgrade: false,
     };
 
     const selectedTemplate = { label: t(`${step.template.toLowerCase()}`), value: step.template };
@@ -521,8 +520,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           label: string;
                           value: WorkflowActions;
                           needsTeamsUpgrade: boolean;
-                          needsOrgsUpgrade: boolean;
-                        }) => option.needsTeamsUpgrade || option.needsOrgsUpgrade}
+                        }) => option.needsTeamsUpgrade}
                       />
                     );
                   }}
