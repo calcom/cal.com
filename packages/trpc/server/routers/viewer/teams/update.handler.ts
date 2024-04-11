@@ -1,10 +1,12 @@
 import type { Prisma } from "@prisma/client";
 
+import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
 import { uploadLogo } from "@calcom/lib/server/uploadLogo";
 import { closeComUpdateTeam } from "@calcom/lib/sync/SyncServiceManager";
 import { prisma } from "@calcom/prisma";
+import { RedirectType } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
@@ -90,6 +92,40 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     where: { id: input.id },
     data,
   });
+
+  if (updatedTeam.parentId && prevTeam.slug) {
+    // No changes made lets skip this logic
+    if (updatedTeam.slug === prevTeam.slug) return;
+
+    // Fetch parent team slug to construct toUrl
+    const parentTeam = await prisma.team.findUnique({
+      where: {
+        id: updatedTeam.parentId,
+      },
+      select: {
+        slug: true,
+      },
+    });
+
+    if (!parentTeam?.slug) {
+      throw new Error(`Parent team wth slug: ${parentTeam?.slug} not found`);
+    }
+
+    const orgUrlPrefix = getOrgFullOrigin(parentTeam.slug);
+
+    const toUrlOld = `${orgUrlPrefix}/${prevTeam.slug}`;
+    const toUrlNew = `${orgUrlPrefix}/${updatedTeam.slug}`;
+
+    await prisma.tempOrgRedirect.updateMany({
+      where: {
+        type: RedirectType.Team,
+        toUrl: toUrlOld,
+      },
+      data: {
+        toUrl: toUrlNew,
+      },
+    });
+  }
 
   // Sync Services: Close.com
   if (prevTeam) closeComUpdateTeam(prevTeam, updatedTeam);
