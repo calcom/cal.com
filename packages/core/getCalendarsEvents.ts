@@ -9,12 +9,16 @@ import type { EventBusyData } from "@calcom/types/Calendar";
 import type { CredentialPayload, OverlayCredentialPayload } from "@calcom/types/Credential";
 
 const log = logger.getSubLogger({ prefix: ["getCalendarsEvents"] });
+
+// array of calendars that fetch event titles for overlay
+const overlayCalendarsWithEventTitles = ["google_calendar"];
+
 const getCalendarsEvents = async (
   withCredentials: CredentialPayload[] | OverlayCredentialPayload[],
   dateFrom: string,
   dateTo: string,
   selectedCalendars: SelectedCalendar[],
-  isOverlayUser?: boolean
+  overlayUserType?: "overlay" | "cal"
 ): Promise<EventBusyData[][]> => {
   const calendarCredentials = withCredentials
     .filter((credential) => credential.type.endsWith("_calendar"))
@@ -45,7 +49,18 @@ const getCalendarsEvents = async (
         selectedCalendars: passedSelectedCalendars.map(getPiiFreeSelectedCalendar),
       })
     );
-    const eventBusyDates = await c.getAvailability(dateFrom, dateTo, passedSelectedCalendars, isOverlayUser);
+    let eventBusyDates = [];
+    if (overlayCalendarsWithEventTitles.includes(type)) {
+      eventBusyDates = await c.getAvailability(dateFrom, dateTo, passedSelectedCalendars, overlayUserType);
+    } else {
+      const eventData = await c.getAvailability(dateFrom, dateTo, passedSelectedCalendars);
+      eventBusyDates = eventData.map((event) => {
+        return {
+          ...event,
+          title: "Busy",
+        };
+      });
+    }
     performance.mark("eventBusyDatesEnd");
     performance.measure(
       `[getAvailability for ${selectedCalendarIds.join(", ")}][$1]'`,

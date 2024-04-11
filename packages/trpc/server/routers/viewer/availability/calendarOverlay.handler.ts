@@ -96,7 +96,7 @@ export const calendarOverlayHandler = async ({ ctx, input }: ListOptions) => {
     dateFrom,
     dateTo,
     composedSelectedCalendars,
-    true
+    "isOverlayUser" in user ? "overlay" : "cal"
   );
 
   // Convert to users timezone

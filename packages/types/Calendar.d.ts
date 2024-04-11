@@ -249,10 +249,10 @@ export interface Calendar {
     dateFrom: string,
     dateTo: string,
     selectedCalendars: IntegrationCalendar[],
-    isOverlayUser?: boolean
+    isOverlayUser?: "overlay" | "cal"
   ): Promise<EventBusyData[]>;
 
-  listCalendars(event?: CalendarEvent): Promise<IntegrationCalendar[]>;
+  listCalendars(event?: CalendarEvent, isOverlayUser?: "cal" | "overlay"): Promise<IntegrationCalendar[]>;
 }
 
 /**

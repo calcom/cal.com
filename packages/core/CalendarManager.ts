@@ -44,7 +44,8 @@ export const getCalendarCredentials = (
 export const getConnectedCalendars = async (
   calendarCredentials: ReturnType<typeof getCalendarCredentials>,
   selectedCalendars: { externalId: string }[],
-  destinationCalendarExternalId?: string
+  destinationCalendarExternalId?: string,
+  overlayUserType?: "overlay" | "cal"
 ) => {
   let destinationCalendar: IntegrationCalendar | undefined;
   const connectedCalendars = await Promise.all(
@@ -60,7 +61,7 @@ export const getConnectedCalendars = async (
             credentialId,
           };
         }
-        const cals = await calendar.listCalendars();
+        const cals = await calendar.listCalendars(undefined, overlayUserType);
         const calendars = sortBy(
           cals.map((cal: IntegrationCalendar) => {
             if (cal.externalId === destinationCalendarExternalId) destinationCalendar = cal;
@@ -210,7 +211,7 @@ export const getBusyCalendarTimes = async (
   dateFrom: string,
   dateTo: string,
   selectedCalendars: SelectedCalendar[],
-  isOverlayUser?: boolean
+  overlayUserType?: "overlay" | "cal"
 ) => {
   let results: Array<EventBusyData[]> = [];
   // const months = getMonths(dateFrom, dateTo);
@@ -219,7 +220,13 @@ export const getBusyCalendarTimes = async (
     const startDate = dayjs(dateFrom).subtract(11, "hours").format();
     // Add 14 hours from the start date to avoid problems in UTC+ time zones.
     const endDate = dayjs(dateTo).endOf("month").add(14, "hours").format();
-    results = await getCalendarsEvents(withCredentials, startDate, endDate, selectedCalendars, isOverlayUser);
+    results = await getCalendarsEvents(
+      withCredentials,
+      startDate,
+      endDate,
+      selectedCalendars,
+      overlayUserType
+    );
   } catch (e) {
     log.warn(safeStringify(e));
   }

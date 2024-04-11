@@ -55,7 +55,8 @@ export async function getConnectedDestinationCalendars(
   const { connectedCalendars, destinationCalendar } = await getConnectedCalendars(
     calendarCredentials,
     user.selectedCalendars || [],
-    user.destinationCalendar?.externalId
+    user.destinationCalendar?.externalId,
+    "isOverlayUser" in user ? "overlay" : "cal"
   );
 
   if ("isOverlayUser" in user) {
