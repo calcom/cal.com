@@ -121,6 +121,8 @@ export class BookingsController {
     @Body() _: CreateBookingInput
   ): Promise<ApiResponse<unknown>> {
     req.userId = (await this.getOwnerId(req)) ?? -1;
+    const { orgSlug } = req.body;
+    req.headers["x-cal-force-slug"] = orgSlug;
     req.body = { ...req.body, noEmail: true };
     try {
       const booking = await handleNewBooking(req as unknown as NextApiRequest & { userId?: number });

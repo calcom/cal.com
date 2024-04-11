@@ -279,12 +279,7 @@ type IsFixedAwareUser = User & {
   priority?: number;
 };
 
-const loadUsers = async (
-  eventType: NewBookingEventType,
-  dynamicUserList: string[],
-  req: IncomingMessage,
-  orgSlug?: string
-) => {
+const loadUsers = async (eventType: NewBookingEventType, dynamicUserList: string[], req: IncomingMessage) => {
   try {
     if (!eventType.id) {
       if (!Array.isArray(dynamicUserList) || dynamicUserList.length === 0) {
@@ -293,7 +288,7 @@ const loadUsers = async (
       const { isValidOrgDomain, currentOrgDomain } = orgDomainConfig(req);
       const users = await findUsersByUsername({
         usernameList: dynamicUserList,
-        orgSlug: orgSlug || (isValidOrgDomain ? currentOrgDomain : null),
+        orgSlug: isValidOrgDomain ? currentOrgDomain : null,
       });
 
       return users;
@@ -1040,7 +1035,7 @@ async function handler(
   let users: (Awaited<ReturnType<typeof loadUsers>>[number] & {
     isFixed?: boolean;
     metadata?: Prisma.JsonValue;
-  })[] = await loadUsers(eventType, dynamicUserList, req, req.body.orgSlug);
+  })[] = await loadUsers(eventType, dynamicUserList, req);
 
   const isDynamicAllowed = !users.some((user) => !user.allowDynamicBooking);
   if (!isDynamicAllowed && !eventTypeId) {
