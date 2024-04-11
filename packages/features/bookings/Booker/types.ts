@@ -14,10 +14,14 @@ import type { BookerLayouts } from "@calcom/prisma/zod-utils";
 import type { GetBookingType } from "../lib/get-booking";
 
 export interface BookerProps {
-  // put custom classnames directly here
   eventSlug: string;
   username: string;
   orgBannerUrl?: string | null;
+
+  /*
+    all custom classnames related to booker styling go here
+  */
+  customClassnames?: CustomClassNames;
 
   /**
    * Whether is a team or org, we gather basic info from both
