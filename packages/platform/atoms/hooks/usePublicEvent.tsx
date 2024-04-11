@@ -38,9 +38,15 @@ export const usePublicEvent = (props: Props) => {
         .then((res) => {
           if (res.data.status === SUCCESS_STATUS) {
             if (props.isDynamic && selectedDuration && res.data.data) {
-              // note(Lauris): In case of "dynamic" event type default event duration returned by the API is 30,
+              // note(Lauris): Mandatory - In case of "dynamic" event type default event duration returned by the API is 30,
               // but we are re-using the dynamic event type as a team event, so we must set the event length to whatever the event length is.
               res.data.data.length = selectedDuration;
+            }
+            if (props.isDynamic) {
+              // note(Lauris): Not mandatory - only requeste name, email and optionally notes.
+              res.data.data.bookingFields = res.data.data.bookingFields.filter(
+                (field) => field.defaultLabel !== "what_is_this_meeting_about"
+              );
             }
 
             return res.data.data;
