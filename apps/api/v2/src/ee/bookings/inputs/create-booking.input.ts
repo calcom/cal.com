@@ -1,4 +1,4 @@
-import { Type, Transform } from "class-transformer";
+import { Transform, Type } from "class-transformer";
 import {
   IsBoolean,
   IsTimeZone,
@@ -6,20 +6,38 @@ import {
   IsString,
   IsOptional,
   IsArray,
+  IsObject,
+  IsEmail,
   ValidateNested,
 } from "class-validator";
 
-class Responses {
+class Location {
   @IsString()
-  email!: string;
+  optionValue!: string;
 
+  @IsString()
+  value!: string;
+}
+
+class Response {
   @IsString()
   name!: string;
 
-  @IsOptional()
+  @IsEmail()
+  email!: string;
+
   @IsArray()
-  @Type(() => String)
-  guests?: string[];
+  @IsString({ each: true })
+  guests!: string[];
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => Location)
+  location?: Location;
+
+  @IsOptional()
+  @IsString()
+  notes?: string;
 }
 
 export class CreateBookingInput {
@@ -63,6 +81,7 @@ export class CreateBookingInput {
   @IsOptional()
   bookingUid?: string;
 
+  @IsObject()
   metadata!: Record<string, string>;
 
   @IsBoolean()
@@ -77,7 +96,6 @@ export class CreateBookingInput {
   @IsOptional()
   seatReferenceUid?: string;
 
-  @ValidateNested({ each: true })
-  @Type(() => Responses)
-  responses!: Responses;
+  @Type(() => Response)
+  responses!: Response;
 }

@@ -357,7 +357,7 @@ export async function ensureAvailableUsers(
   }
 
   for (const user of eventType.users) {
-    const { dateRanges, busy: bufferedBusyTimes } = await getUserAvailability(
+    const { oooExcludedDateRanges: dateRanges, busy: bufferedBusyTimes } = await getUserAvailability(
       {
         ...input,
         userId: user.id,

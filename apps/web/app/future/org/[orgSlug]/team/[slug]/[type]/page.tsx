@@ -22,7 +22,13 @@ export const generateMetadata = async ({
   const entity = eventData.entity;
   const { trpc } = await import("@calcom/trpc");
   const { data: event } = trpc.viewer.public.event.useQuery(
-    { username: user, eventSlug: slug, isTeamEvent: false, org: entity.orgSlug ?? null },
+    {
+      username: user,
+      eventSlug: slug,
+      isTeamEvent: false,
+      org: entity.orgSlug ?? null,
+      fromRedirectOfNonOrgLink: entity.fromRedirectOfNonOrgLink,
+    },
     { refetchOnWindowFocus: false }
   );
 

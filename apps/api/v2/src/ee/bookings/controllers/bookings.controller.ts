@@ -1,5 +1,7 @@
 import { CreateBookingInput } from "@/ee/bookings/inputs/create-booking.input";
 import { CreateReccuringBookingInput } from "@/ee/bookings/inputs/create-reccuring-booking.input";
+import { GetBookingOutput } from "@/ee/bookings/outputs/get-booking.output";
+import { GetBookingsOutput } from "@/ee/bookings/outputs/get-bookings.output";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
 import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
@@ -21,12 +23,13 @@ import {
   NotFoundException,
   UseGuards,
 } from "@nestjs/common";
+import { ApiQuery, ApiTags as DocsTags } from "@nestjs/swagger";
 import { User } from "@prisma/client";
 import { Request } from "express";
 import { NextApiRequest } from "next/types";
 
-import { BOOKING_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
 import { X_CAL_CLIENT_ID } from "@calcom/platform-constants";
+import { BOOKING_READ, SUCCESS_STATUS } from "@calcom/platform-constants";
 import {
   getAllUserBookings,
   getBookingInfo,
@@ -40,7 +43,7 @@ import {
   handleNewRecurringBooking,
   handleInstantMeeting,
 } from "@calcom/platform-libraries";
-import { GetBookingsInput, CancelBookingInput } from "@calcom/platform-types";
+import { GetBookingsInput, CancelBookingInput, Status } from "@calcom/platform-types";
 import { ApiResponse } from "@calcom/platform-types";
 import { PrismaClient } from "@calcom/prisma";
 
@@ -57,6 +60,7 @@ type CustomRequest = Request & {
   version: "2",
 })
 @UseGuards(PermissionsGuard)
+@DocsTags("Bookings")
 export class BookingsController {
   private readonly logger = new Logger("ee bookings controller");
 
@@ -65,13 +69,16 @@ export class BookingsController {
     private readonly prismaReadService: PrismaReadService
   ) {}
 
-  // note(Rajiv): currently this endpoint is atoms only
   @Get("/")
   @UseGuards(AccessTokenGuard)
+  @Permissions([BOOKING_READ])
+  @ApiQuery({ name: "filters[status]", enum: Status, required: true })
+  @ApiQuery({ name: "limit", type: "number", required: false })
+  @ApiQuery({ name: "cursor", type: "number", required: false })
   async getBookings(
     @GetUser() user: User,
     @Query() queryParams: GetBookingsInput
-  ): Promise<ApiResponse<unknown>> {
+  ): Promise<GetBookingsOutput> {
     const { filters, cursor, limit } = queryParams;
     const bookings = await getAllUserBookings({
       bookingListingByStatus: filters.status,
@@ -90,9 +97,8 @@ export class BookingsController {
     };
   }
 
-  // note(Rajiv): currently this endpoint is atoms only
   @Get("/:bookingUid")
-  async getBooking(@Param("bookingUid") bookingUid: string): Promise<ApiResponse<unknown>> {
+  async getBooking(@Param("bookingUid") bookingUid: string): Promise<GetBookingOutput> {
     const { bookingInfo } = await getBookingInfo(bookingUid);
 
     if (!bookingInfo) {
@@ -105,7 +111,6 @@ export class BookingsController {
     };
   }
 
-  // note(Rajiv): currently this endpoint is atoms only
   @Get("/:bookingUid/reschedule")
   async getBookingForReschedule(@Param("bookingUid") bookingUid: string): Promise<ApiResponse<unknown>> {
     const booking = await getBookingForReschedule(bookingUid);
@@ -121,14 +126,13 @@ export class BookingsController {
   }
 
   @Post("/")
-  @Permissions([BOOKING_WRITE])
   async createBooking(
     @Req() req: CustomRequest,
     @Body() _: CreateBookingInput,
     @Headers(X_CAL_CLIENT_ID) clientId?: string
   ): Promise<ApiResponse<unknown>> {
     const oAuthClientId = clientId?.toString();
-    req.userId = await this.getOwnerId(req);
+    req.userId = (await this.getOwnerId(req)) ?? -1;
     oAuthClientId && (await this.setCustomPlatformRequest(req, oAuthClientId));
     req.body = { ...req.body, noEmail: !Boolean(oAuthClientId) };
     try {
@@ -146,7 +150,6 @@ export class BookingsController {
   }
 
   @Post("/:bookingId/cancel")
-  @Permissions([BOOKING_WRITE])
   async cancelBooking(
     @Req() req: CustomRequest,
     @Param("bookingId") bookingId: string,
@@ -155,7 +158,7 @@ export class BookingsController {
   ): Promise<ApiResponse> {
     const oAuthClientId = clientId?.toString();
     if (bookingId) {
-      req.userId = await this.getOwnerId(req);
+      req.userId = (await this.getOwnerId(req)) ?? -1;
       oAuthClientId && (await this.setCustomPlatformRequest(req, oAuthClientId));
       req.body = { ...req.body, noEmail: !Boolean(oAuthClientId) };
       try {
@@ -173,14 +176,13 @@ export class BookingsController {
   }
 
   @Post("/reccuring")
-  @Permissions([BOOKING_WRITE])
   async createReccuringBooking(
     @Req() req: CustomRequest,
     @Body() _: CreateReccuringBookingInput[],
     @Headers(X_CAL_CLIENT_ID) clientId?: string
   ): Promise<ApiResponse<BookingResponse[]>> {
     const oAuthClientId = clientId?.toString();
-    req.userId = await this.getOwnerId(req);
+    req.userId = (await this.getOwnerId(req)) ?? -1;
     oAuthClientId && (await this.setCustomPlatformRequest(req, oAuthClientId));
     req.body = { ...req.body, noEmail: !Boolean(oAuthClientId) };
     try {
@@ -198,14 +200,13 @@ export class BookingsController {
   }
 
   @Post("/instant")
-  @Permissions([BOOKING_WRITE])
   async createInstantBooking(
     @Req() req: CustomRequest,
     @Body() _: CreateBookingInput,
     @Headers(X_CAL_CLIENT_ID) clientId?: string
   ): Promise<ApiResponse<Awaited<ReturnType<typeof handleInstantMeeting>>>> {
     const oAuthClientId = clientId?.toString();
-    req.userId = await this.getOwnerId(req);
+    req.userId = (await this.getOwnerId(req)) ?? -1;
     oAuthClientId && (await this.setCustomPlatformRequest(req, oAuthClientId));
     req.body = { ...req.body, noEmail: !Boolean(oAuthClientId) };
     try {
