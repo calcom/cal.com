@@ -1,4 +1,5 @@
 import { expect } from "@playwright/test";
+import { JSDOM } from "jsdom";
 
 import { randomString } from "@calcom/lib/random";
 import { SchedulingType } from "@calcom/prisma/client";
@@ -14,6 +15,7 @@ import {
   selectFirstAvailableTimeSlotNextMonth,
   testEmail,
   testName,
+  todo,
 } from "./lib/testUtils";
 
 const freeUserObj = { name: `Free-user-${randomString(3)}` };
@@ -21,6 +23,36 @@ test.describe.configure({ mode: "parallel" });
 test.afterEach(async ({ users }) => {
   await users.deleteAll();
 });
+
+test("check SSR and OG - User Event Type", async ({ page, users }) => {
+  const name = "Test User";
+  const user = await users.create({
+    name,
+  });
+  const [response] = await Promise.all([
+    // This promise resolves to the main resource response
+    page.waitForResponse(
+      (response) => response.url().includes(`/${user.username}/30-min`) && response.status() === 200
+    ),
+
+    // Trigger the page navigation
+    page.goto(`/${user.username}/30-min`),
+  ]);
+  const ssrResponse = await response.text();
+  const document = new JSDOM(ssrResponse).window.document;
+
+  const titleText = document.querySelector("title")?.textContent;
+  const ogImage = document.querySelector('meta[property="og:image"]')?.getAttribute("content");
+  expect(titleText).toContain(name);
+  // Verify that there is correct URL that would generate the awesome OG image
+  expect(ogImage).toContain(
+    "/_next/image?w=1200&q=100&url=%2Fapi%2Fsocial%2Fog%2Fimage%3Ftype%3Dmeeting%26title%3D"
+  );
+  // Verify Organizer Name in the URL
+  expect(ogImage).toContain("meetingProfileName%3DTest%2520User%26");
+});
+
+todo("check SSR and OG - Team Event Type");
 
 testBothFutureAndLegacyRoutes.describe("free user", () => {
   test.beforeEach(async ({ page, users }) => {

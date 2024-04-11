@@ -25,6 +25,7 @@ export const metadata = {
     },
   },
   dirName: "zoomvideo",
+  isOAuth: true,
 } as AppMeta;
 
 export default metadata;

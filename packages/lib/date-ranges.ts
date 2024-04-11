@@ -1,3 +1,4 @@
+import type { IOutOfOfficeData } from "@calcom/core/getUserAvailability";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import type { Availability } from "@calcom/prisma/client";
@@ -103,17 +104,31 @@ export function processDateOverride({
   };
 }
 
+function processOOO(outOfOffice: Dayjs, timeZone: string) {
+  const utcOffset = outOfOffice.tz(timeZone).utcOffset();
+  const utcDate = outOfOffice.subtract(utcOffset, "minute");
+
+  const OOOdate = utcDate.tz(timeZone);
+
+  return {
+    start: OOOdate,
+    end: OOOdate,
+  };
+}
+
 export function buildDateRanges({
   availability,
   timeZone /* Organizer timeZone */,
   dateFrom /* Attendee dateFrom */,
   dateTo /* `` dateTo */,
+  outOfOffice,
 }: {
   timeZone: string;
   availability: (DateOverride | WorkingHours)[];
   dateFrom: Dayjs;
   dateTo: Dayjs;
-}): DateRange[] {
+  outOfOffice?: IOutOfOfficeData;
+}): { dateRanges: DateRange[]; oooExcludedDateRanges: DateRange[] } {
   const dateFromOrganizerTZ = dateFrom.tz(timeZone);
   const groupedWorkingHours = groupByDate(
     availability.reduce((processed: DateRange[], item) => {
@@ -125,6 +140,11 @@ export function buildDateRanges({
       return processed;
     }, [])
   );
+  const OOOdates = outOfOffice
+    ? Object.keys(outOfOffice).map((outOfOffice) => processOOO(dayjs(outOfOffice), timeZone))
+    : [];
+
+  const groupedOOO = groupByDate(OOOdates);
 
   const groupedDateOverrides = groupByDate(
     availability.reduce((processed: DateRange[], item) => {
@@ -158,7 +178,16 @@ export function buildDateRanges({
     (ranges) => ranges.filter((range) => range.start.valueOf() !== range.end.valueOf())
   );
 
-  return dateRanges.flat();
+  const oooExcludedDateRanges = Object.values({
+    ...groupedWorkingHours,
+    ...groupedDateOverrides,
+    ...groupedOOO,
+  }).map(
+    // remove 0-length overrides && OOO dates that were kept to cancel out working dates until now.
+    (ranges) => ranges.filter((range) => range.start.valueOf() !== range.end.valueOf())
+  );
+
+  return { dateRanges: dateRanges.flat(), oooExcludedDateRanges: oooExcludedDateRanges.flat() };
 }
 
 export function groupByDate(ranges: DateRange[]): { [x: string]: DateRange[] } {
