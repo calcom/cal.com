@@ -217,7 +217,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/UpdateManagedUserOutput"
+                  "$ref": "#/components/schemas/GetManagedUserOutput"
                 }
               }
             }
@@ -253,7 +253,45 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/DeleteManagedUserOutput"
+                  "$ref": "#/components/schemas/GetManagedUserOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Managed users"
+        ]
+      }
+    },
+    "/api/v2/oauth-clients/{clientId}/users/{userId}/force-refresh": {
+      "post": {
+        "operationId": "OAuthClientUsersController_forceRefresh",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "clientId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KeysResponseDto"
                 }
               }
             }
@@ -1677,27 +1715,24 @@
           }
         }
       },
-      "UpdateManagedUserOutput": {
+      "KeysDto": {
         "type": "object",
         "properties": {
-          "status": {
+          "accessToken": {
             "type": "string",
-            "example": "success",
-            "enum": [
-              "success",
-              "error"
-            ]
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
           },
-          "data": {
-            "$ref": "#/components/schemas/ManagedUserOutput"
+          "refreshToken": {
+            "type": "string",
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
           }
         },
         "required": [
-          "status",
-          "data"
+          "accessToken",
+          "refreshToken"
         ]
       },
-      "DeleteManagedUserOutput": {
+      "KeysResponseDto": {
         "type": "object",
         "properties": {
           "status": {
@@ -1709,7 +1744,7 @@
             ]
           },
           "data": {
-            "$ref": "#/components/schemas/ManagedUserOutput"
+            "$ref": "#/components/schemas/KeysDto"
           }
         },
         "required": [
@@ -1900,43 +1935,6 @@
         },
         "required": [
           "clientSecret"
-        ]
-      },
-      "KeysDto": {
-        "type": "object",
-        "properties": {
-          "accessToken": {
-            "type": "string",
-            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
-          },
-          "refreshToken": {
-            "type": "string",
-            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
-          }
-        },
-        "required": [
-          "accessToken",
-          "refreshToken"
-        ]
-      },
-      "KeysResponseDto": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": [
-              "success",
-              "error"
-            ]
-          },
-          "data": {
-            "$ref": "#/components/schemas/KeysDto"
-          }
-        },
-        "required": [
-          "status",
-          "data"
         ]
       },
       "RefreshTokenInput": {

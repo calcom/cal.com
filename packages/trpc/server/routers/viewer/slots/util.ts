@@ -461,6 +461,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
       const {
         busy,
         dateRanges,
+        oooExcludedDateRanges,
         currentSeats: _currentSeats,
         timeZone,
         datesOutOfOffice,
@@ -496,6 +497,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
       return {
         timeZone,
         dateRanges,
+        oooExcludedDateRanges,
         busy,
         user: currentUser,
         datesOutOfOffice,
@@ -523,6 +525,11 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
   const checkForAvailabilityCount = 0;
   const aggregatedAvailability = getAggregatedAvailability(allUsersAvailability, eventType.schedulingType);
 
+  const isTeamEvent =
+    eventType.schedulingType === SchedulingType.COLLECTIVE ||
+    eventType.schedulingType === SchedulingType.ROUND_ROBIN ||
+    allUsersAvailability.length > 1;
+
   const timeSlots = getSlots({
     inviteeDate: startTime,
     eventLength: input.duration || eventType.length,
@@ -532,7 +539,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
     frequency: eventType.slotInterval || input.duration || eventType.length,
     organizerTimeZone:
       eventType.timeZone || eventType?.schedule?.timeZone || allUsersAvailability?.[0]?.timeZone,
-    datesOutOfOffice: allUsersAvailability[0]?.datesOutOfOffice,
+    datesOutOfOffice: !isTeamEvent ? allUsersAvailability[0]?.datesOutOfOffice : undefined,
   });
 
   let availableTimeSlots: typeof timeSlots = [];

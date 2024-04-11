@@ -252,8 +252,6 @@
   "already_have_an_account": "Már van fiókja?",
   "create_account": "Fiók létrehozása",
   "confirm_password": "Jelszó megerősítése",
-  "confirm_auth_change": "Ezzel megváltozik a bejelentkezés módja",
-  "confirm_auth_email_change": "Az e-mail cím módosítása leválasztja az aktuális hitelesítési módszert a Cal.com webhelyre való bejelentkezéshez. Megkérjük, hogy igazolja új e-mail címét. A továbbiakban kijelentkeztetjük, és az új e-mail címével jelentkezik be a jelenlegi hitelesítési mód helyett, miután beállította jelszavát az e-mail címére küldött utasítások követésével.",
   "reset_your_password": "Állítsa be új jelszavát az e-mail címére küldött utasítások alapján.",
   "org_banner_instructions": "Kérjük, töltsön fel {{width}} szélességű és {{height}} magasságú képet.",
   "email_change": "Jelentkezzen be új e-mail címével és jelszavával.",

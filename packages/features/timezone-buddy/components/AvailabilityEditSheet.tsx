@@ -71,11 +71,7 @@ const DateOverride = ({ workingHours, disabled }: { workingHours: WorkingHours[]
           excludedDates={excludedDates}
           onChange={(ranges) => ranges.forEach((range) => append({ ranges: [range] }))}
           Trigger={
-            <Button
-              color="secondary"
-              StartIcon="plus"
-              data-testid="add-override"
-              disabled={disabled}>
+            <Button color="secondary" StartIcon="plus" data-testid="add-override" disabled={disabled}>
               {t("add_an_override")}
             </Button>
           }

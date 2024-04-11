@@ -1,3 +1,5 @@
+import type { Prisma } from "@prisma/client";
+
 import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -172,10 +174,10 @@ async function moveTeam({
   org: {
     id: number;
     slug: string | null;
+    metadata: Prisma.JsonValue;
   };
   ctx: CreateTeamsOptions["ctx"];
 }) {
-  log.debug("Moving team", safeStringify({ teamId, newSlug, org }));
   const team = await prisma.team.findUnique({
     where: {
       id: teamId,
@@ -203,7 +205,10 @@ async function moveTeam({
     });
   }
 
+  log.debug("Moving team", safeStringify({ teamId, newSlug, org, oldSlug: team.slug }));
+
   newSlug = newSlug ?? team.slug;
+  const orgMetadata = teamMetadataSchema.parse(org.metadata);
   await prisma.team.update({
     where: {
       id: teamId,
@@ -234,7 +239,7 @@ async function moveTeam({
   await addTeamRedirect({
     oldTeamSlug: team.slug,
     teamSlug: newSlug,
-    orgSlug: org.slug,
+    orgSlug: org.slug || (orgMetadata?.requestedSlug ?? null),
   });
 }
 

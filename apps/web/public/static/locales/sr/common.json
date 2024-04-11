@@ -225,8 +225,6 @@
   "already_have_an_account": "Već imate nalog?",
   "create_account": "Napravite Nalog",
   "confirm_password": "Potvrdite lozinku",
-  "confirm_auth_change": "To će promeniti način na koji se prijavljujete",
-  "confirm_auth_email_change": "Promena imejl adrese će prekinuti trenutni način autentifikacije za prijavljivanje na Cal.com. Zatražićemo da verifikujete svoju novu imejl adresu. Nakon toga, bićete odjavljeni, i koristićete novu imejl adresu za prijavljivanje umesto trenutnog načina autentifikacije nakon što podesite lozinku prateći uputstva koja će vam biti poslata imejlom.",
   "reset_your_password": "Podesite novu lozinku pomoću uputstva poslatim na vašu imejl adresu.",
   "email_change": "Prijavite se ponovo sa novom imejl adresom i lozinkom.",
   "create_your_account": "Napravite svoj nalog",
