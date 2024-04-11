@@ -42,7 +42,7 @@ export const usePublicEvent = (props: Props) => {
               // but we are re-using the dynamic event type as a team event, so we must set the event length to whatever the event length is.
               res.data.data.length = selectedDuration;
             }
-            if (props.isDynamic) {
+            if (props.isDynamic && res.data.data?.bookingFields) {
               // note(Lauris): Not mandatory - only requeste name, email and optionally notes.
               res.data.data.bookingFields = res.data.data.bookingFields.filter(
                 (field) => field.defaultLabel !== "what_is_this_meeting_about"
