@@ -15,6 +15,18 @@ export class CreateOAuthClientInput {
 
   @IsNumber()
   permissions!: number;
+
+  @IsOptional()
+  @IsString()
+  bookingRedirectUri?: string;
+
+  @IsOptional()
+  @IsString()
+  bookingCancelRedirectUri?: string;
+
+  @IsOptional()
+  @IsString()
+  bookingRescheduleRedirectUri?: string;
 }
 
 export class DeleteOAuthClientInput {
