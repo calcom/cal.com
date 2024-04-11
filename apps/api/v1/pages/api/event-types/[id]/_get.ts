@@ -5,10 +5,9 @@ import { defaultResponder } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
-import { schemaEventTypeReadPublic } from "~/lib/validations/event-type";
-import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransformParseInt";
-import { checkPermissions as canAccessTeamEventOrThrow } from "~/pages/api/teams/[teamId]/_auth-middleware";
-
+import { schemaEventTypeReadPublic } from "../../../../lib/validations/event-type";
+import { schemaQueryIdParseInt } from "../../../../lib/validations/shared/queryIdTransformParseInt";
+import { checkPermissions as canAccessTeamEventOrThrow } from "../../../api/teams/[teamId]/_auth-middleware";
 import getCalLink from "../_utils/getCalLink";
 
 /**

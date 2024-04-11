@@ -4,8 +4,7 @@ import slugify from "@calcom/lib/slugify";
 import { _EventTypeModel as EventType, _HostModel } from "@calcom/prisma/zod";
 import { customInputSchema, eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 
-import { Frequency } from "~/lib/types";
-
+import { Frequency } from "../types";
 import { jsonSchema } from "./shared/jsonSchema";
 import { schemaQueryUserId } from "./shared/queryUserId";
 import { timeZone } from "./shared/timeZone";
