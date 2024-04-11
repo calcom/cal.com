@@ -22,6 +22,5 @@
   "isTemplate": false,
   "__createdUsingCli": true,
   "__template": "basic",
-  "concurrentMeetings": true,
-  "isAuth": true
+  "concurrentMeetings": true
 }

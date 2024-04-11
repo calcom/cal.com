@@ -18,6 +18,5 @@
       "type": "integrations:riverside_video",
       "linkType": "static"
     }
-  },
-  "isOAuth": false
+  }
 }
