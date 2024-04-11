@@ -2403,5 +2403,7 @@
   "unreviewed": "Unreviewed",
   "rating_url_info":"The URL for Rating Feedback Form",
   "no_show_url_info":"The URL for No Show Feedback",
+  "no_support_needed":"No Support Needed?",
+  "hide_support":"Hide Support",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
