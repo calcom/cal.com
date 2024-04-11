@@ -272,6 +272,7 @@ const OnboardingPage = ({
                   formPortalRef={formPortalRef}
                   setConfigureStep={setConfigureStep}
                   eventTypes={eventTypes}
+                  handleSetUpLater={handleSetUpLater}
                 />
               )}
             </Form>

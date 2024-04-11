@@ -30,6 +30,7 @@ type ConfigureStepCardProps = {
   formPortalRef: React.RefObject<HTMLDivElement>;
   eventTypes: TEventType[] | undefined;
   setConfigureStep: Dispatch<SetStateAction<boolean>>;
+  handleSetUpLater: () => void;
 };
 
 type EventTypeAppSettingsFormProps = Pick<
@@ -117,6 +118,7 @@ export const ConfigureStepCard: FC<ConfigureStepCardProps> = ({
   formPortalRef,
   eventTypes,
   setConfigureStep,
+  handleSetUpLater,
   ...props
 }) => {
   const { t } = useLocale();
@@ -199,6 +201,19 @@ export const ConfigureStepCard: FC<ConfigureStepCardProps> = ({
           loading={loading}>
           {t("save")}
         </Button>
+
+        <div className="flex w-full flex-row justify-center">
+          <Button
+            color="minimal"
+            data-testid="set-up-later"
+            onClick={(event) => {
+              event.preventDefault();
+              handleSetUpLater();
+            }}
+            className="mt-8 cursor-pointer px-4 py-2 font-sans text-sm font-medium">
+            {t("set_up_later")}
+          </Button>
+        </div>
       </div>,
       formPortalRef?.current
     )
