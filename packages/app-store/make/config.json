@@ -14,6 +14,5 @@
   "__createdUsingCli": true,
   "__template": "basic",
   "imageSrc": "icon.svg",
-  "dirName": "make",
-  "isOAuth": false
+  "dirName": "make"
 }

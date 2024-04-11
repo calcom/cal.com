@@ -1,6 +1,6 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { TimeRange, WorkingHours } from "@calcom/types/schedule";
-import { Button, DialogTrigger, Tooltip } from "@calcom/ui";
+import { Button, DialogTrigger, Icon, Tooltip } from "@calcom/ui";
 
 import DateOverrideInputDialog from "./DateOverrideInputDialog";
 

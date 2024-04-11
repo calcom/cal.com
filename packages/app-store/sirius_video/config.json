@@ -19,6 +19,5 @@
       "organizerInputPlaceholder": "https://sirius.video/sebastian",
       "urlRegExp": "^http(s)?:\\/\\/(www\\.)?sirius.video\\/[a-zA-Z0-9]*"
     }
-  },
-  "isOAuth": false
+  }
 }
