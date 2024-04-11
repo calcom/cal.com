@@ -289,6 +289,7 @@ const DatePicker = ({
   selected,
   onMonthChange,
   slots,
+  customClassNames,
   ...passThroughProps
 }: DatePickerProps &
   Partial<React.ComponentProps<typeof Days>> & {
