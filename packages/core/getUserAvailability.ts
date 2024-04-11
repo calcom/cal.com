@@ -180,7 +180,8 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
       };
     })[];
     busyTimesFromLimitsBookings: EventBusyDetails[];
-  }
+  },
+  overlayUserType?: "overlay" | "cal"
 ) {
   const {
     username,
@@ -255,6 +256,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     rescheduleUid: initialData?.rescheduleUid || null,
     duration,
     currentBookings: initialData?.currentBookings,
+    overlayUserType,
   });
 
   const detailedBusyTimes: EventBusyDetails[] = [
