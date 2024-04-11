@@ -27,6 +27,7 @@ describe("GET /api/event-types/[id]", () => {
       prismaMock.eventType.findUnique.mockResolvedValue(
         buildEventType({
           id: 123456,
+          userId: 444444,
         })
       );
 
