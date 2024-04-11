@@ -46,6 +46,7 @@ export const EventTypesStepCard: FC<EventTypesCardProps> = ({
 
       <Button
         className="text-md mt-6 w-full justify-center"
+        data-testid="save-event-types"
         onClick={() => {
           setConfigureStep(true);
         }}
@@ -92,6 +93,7 @@ const EventTypeCard: FC<EventTypeCardProps> = ({
       : [length];
   return (
     <div
+      data-testid={`select-event-type-${id}`}
       className="hover:bg-muted min-h-20 box-border flex w-full cursor-pointer select-none items-center space-x-4 px-4 py-3"
       onClick={() => handleSelect()}>
       <input

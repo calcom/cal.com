@@ -650,6 +650,12 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
           userId: user.id,
         },
       }),
+    getUserEventsAsOwner: async () =>
+      prisma.eventType.findMany({
+        where: {
+          userId: user.id,
+        },
+      }),
     getFirstTeamEvent: async (teamId: number) => {
       return prisma.eventType.findFirstOrThrow({
         where: {

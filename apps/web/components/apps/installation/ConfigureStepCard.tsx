@@ -100,6 +100,7 @@ const EventTypeAppSettingsForm = forwardRef<HTMLButtonElement, EventTypeAppSetti
             </div>
             <EventTypeAppSettingsWrapper {...props} />
             <X
+              data-testid={`remove-event-type-${eventType.id}`}
               className="absolute right-4 top-4 h-4 w-4 cursor-pointer"
               onClick={() => !loading && handleDelete()}
             />
@@ -194,6 +195,7 @@ export const ConfigureStepCard: FC<ConfigureStepCardProps> = ({
         <Button
           className="text-md mt-6 w-full justify-center"
           type="button"
+          data-testid="configure-step-save"
           onClick={() => {
             submitRefs.current.reverse().map((ref) => ref.current?.click());
             setSubmit(true);
