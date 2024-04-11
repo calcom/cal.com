@@ -59,6 +59,8 @@ export default class ZohoCrmCrmService implements CRM {
   }
 
   async createContacts(contactsToCreate: ContactCreateInput[]) {
+    const auth = await this.auth;
+    await auth.getToken();
     const contacts = contactsToCreate.map((contactToCreate) => {
       const [firstname, lastname] = !!contactToCreate.name
         ? contactToCreate.name.split(" ")
@@ -80,15 +82,22 @@ export default class ZohoCrmCrmService implements CRM {
     });
 
     const { data } = response.data;
-    return data;
+    return data.data.map((contact) => {
+      return {
+        id: contact.id,
+        email: contact.email,
+      };
+    });
   }
 
   async getContacts(emails: string | string[]) {
+    const auth = await this.auth;
+    await auth.getToken();
     const emailsArray = Array.isArray(emails) ? emails : [emails];
 
     const searchCriteria = `(${emailsArray.map((email) => `(Email:equals:${encodeURI(email)})`).join("or")})`;
 
-    return await axios({
+    const response = await axios({
       method: "get",
       url: `https://www.zohoapis.com/crm/v3/Contacts/search?criteria=${searchCriteria}`,
       headers: {
@@ -96,7 +105,18 @@ export default class ZohoCrmCrmService implements CRM {
       },
     })
       .then((data) => data.data)
-      .catch((e) => this.log.error(e, e.response?.data));
+      .catch((e) => {
+        this.log.error(e, e.response?.data);
+      });
+
+    return response
+      ? response.data.map((contact) => {
+          return {
+            id: contact.id,
+            email: contact.email,
+          };
+        })
+      : [];
   }
 
   private getMeetingBody = (event: CalendarEvent): string => {
@@ -174,7 +194,7 @@ export default class ZohoCrmCrmService implements CRM {
       throw new HttpError({ statusCode: 400, message: "Zoho CRM client_secret missing." });
     const credentialKey = credential.key as unknown as ZohoToken;
     const isTokenValid = (token: ZohoToken) => {
-      const isValid = token && token.access_token && token.expiryDate && token.expiryDate < Date.now();
+      const isValid = token && token.access_token && token.expiryDate && token.expiryDate > Date.now();
       if (isValid) {
         this.accessToken = token.access_token;
       }
@@ -220,6 +240,7 @@ export default class ZohoCrmCrmService implements CRM {
             },
           });
           this.accessToken = zohoCrmTokenInfo.data.access_token;
+          console.log("🚀 ~ ZohoCrmCrmService ~ refreshAccessToken ~ this.accessToken:", this.accessToken);
           this.log.debug("Fetched token", this.accessToken);
         } else {
           this.log.error(zohoCrmTokenInfo.data);
