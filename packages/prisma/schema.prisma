@@ -1227,6 +1227,10 @@ model PlatformOAuthClient {
   refreshToken        RefreshToken[]
   authorizationTokens PlatformAuthorizationToken[]
 
+  bookingRedirectUri           String?
+  bookingCancelRedirectUri     String?
+  bookingRescheduleRedirectUri String?
+
   createdAt DateTime @default(now())
 }
 
