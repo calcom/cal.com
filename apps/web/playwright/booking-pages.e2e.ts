@@ -24,7 +24,7 @@ test.afterEach(async ({ users }) => {
   await users.deleteAll();
 });
 
-test("check SSR and OG - User Event Types", async ({ page, users }) => {
+test("check SSR and OG - User Event Type", async ({ page, users }) => {
   const name = "Test User";
   const user = await users.create({
     name,
