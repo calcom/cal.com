@@ -113,7 +113,7 @@ To get a local copy up and running, please follow these simple steps.
 Here is what you need to be able to run Cal.com.
 
 - Node.js (Version: >=18.x)
-- PostgreSQL
+- PostgreSQL (Version: >=13.x)
 - Yarn _(recommended)_
 
 > If you want to enable any of the available integrations, you may want to obtain additional credentials for each one. More details on this can be found below under the [integrations section](#integrations).
@@ -210,7 +210,7 @@ echo 'NEXT_PUBLIC_DEBUG=1' >> .env
       ![image](https://user-images.githubusercontent.com/39329182/236612291-51d87f69-6dc1-4a23-bf4d-1ca1754e0a35.png)
 
    5. Now extract all the info and add it to your DATABASE_URL. The url would look something like this
-      `postgresql://postgres:postgres@localhost:5432/Your-DB-Name`.
+      `postgresql://postgres:postgres@localhost:5432/Your-DB-Name`. The port is configurable and does not have to be 5432.
 
    </details>
 

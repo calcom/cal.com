@@ -10,7 +10,7 @@ import { APP_NAME, SEO_IMG_OGIMG_VIDEO, WEBSITE_URL } from "@calcom/lib/constant
 import { formatToLocalizedDate, formatToLocalizedTime } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
-import { ChevronRight } from "@calcom/ui/components/icon";
+import { Icon } from "@calcom/ui";
 
 import { type PageProps } from "./videos-single-view.getServerSideProps";
 
@@ -231,7 +231,8 @@ export function VideoMeetingInfo(props: VideoMeetingInfo) {
             aria-label={`${open ? "close" : "open"} booking description sidebar`}
             className="h-20 w-6 rounded-r-md border border-l-0 border-gray-300/20 bg-black/60 text-white shadow-sm backdrop-blur-lg"
             onClick={() => setOpen(!open)}>
-            <ChevronRight
+            <Icon
+              name="chevron-right"
               aria-hidden
               className={classNames(open && "rotate-180", "w-5 transition-all duration-300 ease-in-out")}
             />
