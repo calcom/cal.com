@@ -2,6 +2,7 @@ import axios from "axios";
 import axiosRetry from "axios-retry";
 
 import { Bookings } from "./endpoints/bookings";
+import { ManagedUsers } from "./endpoints/ee/users";
 import { Events } from "./endpoints/events";
 import { EventTypes } from "./endpoints/events/event-types";
 import { OAuthFlow } from "./endpoints/oauth-flow";
@@ -21,6 +22,7 @@ export class CalSdk {
   oauth: OAuthFlow;
   eventTypes: EventTypes;
   schedules: Schedules;
+  users: ManagedUsers;
 
   private _secrets: SdkSecrets;
 
@@ -52,6 +54,7 @@ export class CalSdk {
     this.oauth = new OAuthFlow(this);
     this.eventTypes = new EventTypes(this);
     this.schedules = new Schedules(this);
+    this.users = new ManagedUsers(this);
   }
 
   private _createAxiosClientBase() {

@@ -10,13 +10,22 @@ import { OAuthClientUsersService } from "@/modules/oauth-clients/services/oauth-
 import { OAuthFlowService } from "@/modules/oauth-clients/services/oauth-flow.service";
 import { OrganizationsModule } from "@/modules/organizations/organizations.module";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
+import { TokensModule } from "@/modules/tokens/tokens.module";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { UsersModule } from "@/modules/users/users.module";
 import { Global, Module } from "@nestjs/common";
 
 @Global()
 @Module({
-  imports: [PrismaModule, AuthModule, UsersModule, MembershipsModule, EventTypesModule, OrganizationsModule],
+  imports: [
+    PrismaModule,
+    AuthModule,
+    UsersModule,
+    TokensModule,
+    MembershipsModule,
+    EventTypesModule,
+    OrganizationsModule,
+  ],
   providers: [
     OAuthClientRepository,
     OAuthClientCredentialsGuard,
