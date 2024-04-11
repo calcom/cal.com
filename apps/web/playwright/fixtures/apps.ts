@@ -17,7 +17,7 @@ export function createAppsFixture(page: Page) {
       if (shouldRedirectToAppOnboarding(appMetadata)) {
         await page.click('[data-testid="install-app-on-personal-account"]');
         await page.waitForURL(`apps/installation/event-types?slug=${app}`);
-        await page.goto(`/apps/installed/${appMetadata.categories[0]}?hl=${app}`);
+        await page.click('[data-testid="set-up-later"]');
       }
     },
     goBackToAppsPage: async () => {

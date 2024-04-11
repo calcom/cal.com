@@ -97,6 +97,7 @@ test.describe("Stripe integration", () => {
     await page.waitForURL("https://connect.stripe.com/oauth/v2/authorize?*");
     await page.click('[id="skip-account-app"]');
     await page.waitForURL(`apps/installation/event-types?slug=stripe&teamId=${team.id}`);
+    await page.click('[data-testid="set-up-later"]');
     await page.goto("/apps/installed/payment?hl=stripe");
     /** We skip filling Stripe forms (testing mode only) */
     await owner.setupEventWithPrice(teamEvent, "stripe");

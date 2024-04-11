@@ -918,5 +918,5 @@ export async function getPaymentCredential(page: Page) {
   /** We skip filling Stripe forms (testing mode only) */
   await page.click('[id="skip-account-app"]');
   await page.waitForURL("apps/installation/event-types?slug=stripe");
-  await page.goto("/apps/installed/payment?hl=stripe");
+  await page.click('[data-testid="set-up-later"]');
 }
