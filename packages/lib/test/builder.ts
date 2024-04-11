@@ -213,7 +213,6 @@ export const buildUser = <T extends Partial<UserPayload>>(
     id: 0,
     allowDynamicBooking: true,
     availability: [],
-    avatar: "",
     avatarUrl: "",
     away: false,
     backupCodes: null,

@@ -35,7 +35,9 @@ type OptionValues = {
   identityProvider: Option;
 };
 
-type FormValues = Pick<User, "avatar" | "name" | "username" | "email" | "bio"> & OptionValues;
+type FormValues = Pick<User, "avatarUrl" | "name" | "username" | "email" | "bio"> & {
+  avatar?: string | null;
+} & OptionValues;
 
 export const UserForm = ({
   defaultValues,
@@ -43,7 +45,7 @@ export const UserForm = ({
   onSubmit = noop,
   submitLabel = "save",
 }: {
-  defaultValues?: Pick<User, keyof FormValues>;
+  defaultValues?: FormValues;
   localeProp?: string;
   onSubmit: (data: FormValues) => void;
   submitLabel?: string;
@@ -78,7 +80,7 @@ export const UserForm = ({
   const defaultLocale = defaultValues?.locale || localeOptions[0].value;
   const form = useForm<FormValues>({
     defaultValues: {
-      avatar: defaultValues?.avatar,
+      avatar: defaultValues?.avatarUrl,
       name: defaultValues?.name,
       username: defaultValues?.username,
       email: defaultValues?.email,

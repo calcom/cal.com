@@ -2,13 +2,12 @@ import type { FC } from "react";
 import React, { useState } from "react";
 
 import { classNames } from "@calcom/lib";
-import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { Team, User } from "@calcom/prisma/client";
 import { Avatar, StepCard } from "@calcom/ui";
 
 type AccountSelectorProps = {
-  avatar?: string;
+  avatarUrl?: string;
   name: string;
   alreadyInstalled: boolean;
   onClick?: () => void;
@@ -17,7 +16,7 @@ type AccountSelectorProps = {
 };
 
 const AccountSelector: FC<AccountSelectorProps> = ({
-  avatar,
+  avatarUrl,
   alreadyInstalled,
   name,
   onClick,
@@ -41,8 +40,8 @@ const AccountSelector: FC<AccountSelectorProps> = ({
         }
       }}>
       <Avatar
-        alt={avatar || ""}
-        imageSrc={avatar || `${CAL_URL}/${avatar}`} // if no image, use default avatar
+        alt={avatarUrl || ""}
+        imageSrc={avatarUrl} // if no image, use default avatar
         size="sm"
       />
       <div className="text-md pt-0.5 font-medium text-gray-500">
@@ -53,9 +52,9 @@ const AccountSelector: FC<AccountSelectorProps> = ({
   );
 };
 
-export type PersonalAccountProps = Pick<User, "id" | "avatar" | "name"> & { alreadyInstalled: boolean };
+export type PersonalAccountProps = Pick<User, "id" | "avatarUrl" | "name"> & { alreadyInstalled: boolean };
 
-export type TeamsProp = (Pick<Team, "id" | "name" | "logo"> & {
+export type TeamsProp = (Pick<Team, "id" | "name" | "logoUrl"> & {
   alreadyInstalled: boolean;
 })[];
 
@@ -74,7 +73,7 @@ export const AccountsStepCard: FC<AccountStepCardProps> = ({ teams, personalAcco
       <div className={classNames("mt-2 flex flex-col gap-2 ")}>
         <AccountSelector
           testId="install-app-on-personal-account"
-          avatar={personalAccount.avatar ?? ""}
+          avatarUrl={personalAccount.avatarUrl ?? ""}
           name={personalAccount.name ?? ""}
           alreadyInstalled={personalAccount.alreadyInstalled}
           onClick={() => !personalAccount.alreadyInstalled && !loading && onSelect()}
@@ -85,7 +84,7 @@ export const AccountsStepCard: FC<AccountStepCardProps> = ({ teams, personalAcco
             key={team.id}
             testId={`install-app-on-team-${team.id}`}
             alreadyInstalled={team.alreadyInstalled}
-            avatar={team.logo ?? ""}
+            avatarUrl={team.logoUrl ?? ""}
             name={team.name}
             onClick={() => !team.alreadyInstalled && !loading && onSelect(team.id)}
             loading={loading}

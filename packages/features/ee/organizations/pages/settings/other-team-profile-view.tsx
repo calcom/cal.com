@@ -105,7 +105,7 @@ const OtherTeamProfileView = () => {
       if (team) {
         form.setValue("name", team.name || "");
         form.setValue("slug", team.slug || "");
-        form.setValue("logo", team.logo || "");
+        form.setValue("logo", team.logoUrl || "");
         form.setValue("bio", team.bio || "");
         if (team.slug === null && (team?.metadata as Prisma.JsonObject)?.requestedSlug) {
           form.setValue("slug", ((team?.metadata as Prisma.JsonObject)?.requestedSlug as string) || "");

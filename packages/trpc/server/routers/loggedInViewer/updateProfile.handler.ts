@@ -77,8 +77,6 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
 
   const data: Prisma.UserUpdateInput = {
     ...input,
-    // DO NOT OVERWRITE AVATAR.
-    avatar: undefined,
     metadata: userMetadata,
     secondaryEmails: undefined,
   };
@@ -203,14 +201,10 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
       avatar,
       userId: user.id,
     });
-    // as this is still used in the backwards compatible endpoint, we also write it here
-    // to ensure no data loss.
-    data.avatar = avatar;
   }
   // Unset avatar url if avatar is empty string.
   if ("" === input.avatar) {
     data.avatarUrl = null;
-    data.avatar = null;
   }
   if (input.completedOnboarding) {
     const userTeams = await prisma.user.findFirst({

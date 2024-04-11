@@ -9,7 +9,7 @@ import type { UserAdminTeams } from "@calcom/features/ee/teams/lib/getUserAdminT
 import { AppOnboardingSteps } from "@calcom/lib/apps/appOnboardingSteps";
 import { getAppOnboardingUrl } from "@calcom/lib/apps/getAppOnboardingUrl";
 import { shouldRedirectToAppOnboarding } from "@calcom/lib/apps/shouldRedirectToAppOnboarding";
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import type { AppFrontendPayload } from "@calcom/types/App";
@@ -162,8 +162,8 @@ export const InstallAppButtonChild = ({
                 disabled={isInstalled}
                 CustomStartIcon={
                   <Avatar
-                    alt={team.logo || ""}
-                    imageSrc={team.logo || `${WEBAPP_URL}/${team.logo}/avatar.png`} // if no image, use default avatar
+                    alt={team.logoUrl || ""}
+                    imageSrc={getPlaceholderAvatar(team.logoUrl, team.name)}
                     size="sm"
                   />
                 }

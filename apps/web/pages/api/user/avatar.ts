@@ -59,7 +59,7 @@ async function getIdentityData(req: NextApiRequest) {
               movedToProfileId: null,
             }),
       },
-      select: { avatar: true, email: true },
+      select: { avatarUrl: true, email: true },
     });
 
     if (users.length > 1) {
@@ -69,7 +69,7 @@ async function getIdentityData(req: NextApiRequest) {
     return {
       name: username,
       email: user?.email,
-      avatar: user?.avatar,
+      avatar: user?.avatarUrl, // don't break backwards compat, still return avatar:
       org,
     };
   }
@@ -80,14 +80,14 @@ async function getIdentityData(req: NextApiRequest) {
         slug: teamname,
         parent: orgQuery,
       },
-      select: { logo: true },
+      select: { logoUrl: true },
     });
 
     return {
       org,
       name: teamname,
       email: null,
-      avatar: getPlaceholderAvatar(team?.logo, teamname),
+      avatar: getPlaceholderAvatar(team?.logoUrl, teamname),
     };
   }
 

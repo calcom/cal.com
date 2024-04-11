@@ -222,7 +222,6 @@ model User {
   emailVerified       DateTime?
   password            UserPassword?
   bio                 String?
-  avatar              String?
   avatarUrl           String?
   timeZone            String               @default("Europe/London")
   weekStart           String               @default("Sunday")
@@ -343,7 +342,6 @@ model Team {
   name                  String
   /// @zod.min(1)
   slug                  String?
-  logo                  String?
   logoUrl               String?
   calVideoLogo          String?
   appLogo               String?

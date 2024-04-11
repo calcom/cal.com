@@ -259,7 +259,7 @@ const TeamProfileForm = ({ team }: TeamProfileFormProps) => {
     },
     async onSuccess(res) {
       reset({
-        logo: (res?.logo || "") as string,
+        logo: res?.logoUrl || "",
         name: (res?.name || "") as string,
         bio: (res?.bio || "") as string,
         slug: res?.slug as string,

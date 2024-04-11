@@ -177,7 +177,7 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
     },
     onSuccess: async (res) => {
       reset({
-        logo: (res.data?.logo || "") as string,
+        logo: res.data?.logoUrl || "",
         name: (res.data?.name || "") as string,
         bio: (res.data?.bio || "") as string,
         slug: defaultValues["slug"],

@@ -98,15 +98,10 @@ const ProfileView = () => {
   const { update } = useSession();
   const { data: user, isPending } = trpc.viewer.me.useQuery({ includePasswordAdded: true });
 
-  const { data: avatarData } = trpc.viewer.avatar.useQuery(undefined, {
-    enabled: !isPending && !user?.avatarUrl,
-  });
-
   const updateProfileMutation = trpc.viewer.updateProfile.useMutation({
     onSuccess: async (res) => {
       await update(res);
       utils.viewer.me.invalidate();
-      utils.viewer.avatar.invalidate();
       utils.viewer.shouldVerifyEmail.invalidate();
 
       if (res.hasEmailBeenChanged && res.sendEmailVerification) {
@@ -284,7 +279,7 @@ const ProfileView = () => {
         key={JSON.stringify(defaultValues)}
         defaultValues={defaultValues}
         isPending={updateProfileMutation.isPending}
-        isFallbackImg={!user.avatarUrl && !avatarData?.avatar}
+        isFallbackImg={!user.avatarUrl}
         user={user}
         userOrganization={user.organization}
         onSubmit={(values) => {

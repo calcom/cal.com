@@ -26,7 +26,6 @@ export const teamsAndUserProfilesQuery = async ({ ctx }: TeamsAndUserProfileOpti
       id: true,
       username: true,
       name: true,
-      avatar: true,
       teams: {
         where: {
           accepted: true,
