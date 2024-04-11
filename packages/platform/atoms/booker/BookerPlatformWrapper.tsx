@@ -160,7 +160,7 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
       // Should only wait for one or the other, not both.
       (Boolean(eventSlug) || Boolean(event?.data?.id) || event?.data?.id === 0),
     eventTypeSlug: getEventTypeSlug(),
-    orgSlug: event.data?.entity.orgSlug ?? undefined,
+    orgSlug: props.entity.orgSlug ?? undefined,
   });
 
   const bookerForm = useBookingForm({
