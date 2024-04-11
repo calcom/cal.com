@@ -6,7 +6,7 @@ import { useForm, useFieldArray } from "react-hook-form";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { PERMISSIONS_GROUPED_MAP } from "@calcom/platform-constants/permissions";
 import { showToast } from "@calcom/ui";
-import { Meta, Button, TextField, Label } from "@calcom/ui";
+import { Meta, Button, TextField, Label, Tooltip } from "@calcom/ui";
 
 import { useCreateOAuthClient } from "@lib/hooks/settings/organizations/platform/oauth-clients/usePersistOAuthClient";
 
@@ -27,6 +27,9 @@ type FormValues = {
   redirectUris: {
     uri: string;
   }[];
+  bookingRedirectUri?: string;
+  bookingCancelRedirectUri?: string;
+  bookingRescheduleRedirectUri?: string;
 };
 
 export const OAuthClientForm: FC = () => {
@@ -83,6 +86,9 @@ export const OAuthClientForm: FC = () => {
       permissions: userPermissions,
       // logo: data.logo,
       redirectUris: userRedirectUris,
+      bookingRedirectUri: data.bookingRedirectUri,
+      bookingCancelRedirectUri: data.bookingCancelRedirectUri,
+      bookingRescheduleRedirectUri: data.bookingRescheduleRedirectUri,
     });
   };
 
@@ -209,6 +215,36 @@ export const OAuthClientForm: FC = () => {
             )}
           />
         </div> */}
+        <div className="mt-6">
+          <Tooltip content="URL to which a user would get redirected after booking success">
+            <TextField
+              type="url"
+              label="Booking redirect uri"
+              className="w-[100%]"
+              {...register("bookingRedirectUri")}
+            />
+          </Tooltip>
+        </div>
+        <div className="mt-6">
+          <Tooltip content="URL to which a user would get redirected after booking cancellation">
+            <TextField
+              type="url"
+              label="Booking cancel redirect uri"
+              className="w-[100%]"
+              {...register("bookingCancelRedirectUri")}
+            />
+          </Tooltip>
+        </div>
+        <div className="mt-6">
+          <Tooltip content="URL to which a user would get redirected after booking reschedule">
+            <TextField
+              type="url"
+              label="Booking reschedule redirect uri"
+              className="w-[100%]"
+              {...register("bookingRescheduleRedirectUri")}
+            />
+          </Tooltip>
+        </div>
         <div className="mt-6">
           <div className="flex justify-between">
             <h1 className="text-base font-semibold underline">Permissions</h1>
