@@ -194,18 +194,14 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
     data.identityProviderId = null;
   }
 
-  // if defined AND a base 64 string, upload and set the avatar URL
-  if (input.avatar && input.avatar.startsWith("data:image/png;base64,")) {
-    const avatar = await resizeBase64Image(input.avatar);
+  // if defined AND a base 64 string, upload and update the avatar URL
+  if (input.avatarUrl && input.avatarUrl.startsWith("data:image/png;base64,")) {
     data.avatarUrl = await uploadAvatar({
-      avatar,
+      avatar: await resizeBase64Image(input.avatarUrl),
       userId: user.id,
     });
   }
-  // Unset avatar url if avatar is empty string.
-  if ("" === input.avatar) {
-    data.avatarUrl = null;
-  }
+
   if (input.completedOnboarding) {
     const userTeams = await prisma.user.findFirst({
       where: {
