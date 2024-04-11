@@ -142,8 +142,8 @@ export type BookerStore = {
 
   isInstantMeeting?: boolean;
 
-  org: string | null;
-  setOrg: (org: string | null) => void;
+  org?: string | null;
+  setOrg: (org: string | null | undefined) => void;
 };
 
 /**
