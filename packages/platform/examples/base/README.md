@@ -8,6 +8,7 @@ Example apps using atoms - customizable UI components to integrate scheduling in
 3. In the web app navigate to `https://app.cal.dev/settings/platform/oauth-clients` and create a new oAuth client - give all permissions and set redirect uri to `http://localhost:4321` which points to example app.
 4. Start the example app by running `yarn dev` and go to `http://localhost:4321`.
 5. You can now use and customise the Cal.com Atoms
+6. Visit https://platform.cal.dev to view this example repo as a demo
 
 ## Running examples apps locally
 
