@@ -540,6 +540,7 @@ describe("buildDateRanges", () => {
       timeZone,
       dateFrom,
       dateTo,
+      travelSchedules: [],
       outOfOffice,
     });
 
