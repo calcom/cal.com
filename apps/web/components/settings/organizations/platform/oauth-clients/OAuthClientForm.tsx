@@ -6,7 +6,7 @@ import { useForm, useFieldArray } from "react-hook-form";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { PERMISSIONS_GROUPED_MAP } from "@calcom/platform-constants/permissions";
 import { showToast } from "@calcom/ui";
-import { Meta, Button, TextField, Label } from "@calcom/ui";
+import { Meta, Button, TextField, Label, Tooltip } from "@calcom/ui";
 
 import { useCreateOAuthClient } from "@lib/hooks/settings/organizations/platform/oauth-clients/usePersistOAuthClient";
 
@@ -27,6 +27,10 @@ type FormValues = {
   redirectUris: {
     uri: string;
   }[];
+  bookingRedirectUri?: string;
+  bookingCancelRedirectUri?: string;
+  bookingRescheduleRedirectUri?: string;
+  areEmailsEnabled?: boolean;
 };
 
 export const OAuthClientForm: FC = () => {
@@ -83,6 +87,10 @@ export const OAuthClientForm: FC = () => {
       permissions: userPermissions,
       // logo: data.logo,
       redirectUris: userRedirectUris,
+      bookingRedirectUri: data.bookingRedirectUri,
+      bookingCancelRedirectUri: data.bookingCancelRedirectUri,
+      bookingRescheduleRedirectUri: data.bookingRescheduleRedirectUri,
+      areEmailsEnabled: data.areEmailsEnabled,
     });
   };
 
@@ -209,6 +217,47 @@ export const OAuthClientForm: FC = () => {
             )}
           />
         </div> */}
+        <div className="mt-6">
+          <Tooltip content="URL of your booking page">
+            <TextField
+              type="url"
+              label="Booking redirect uri"
+              className="w-[100%]"
+              {...register("bookingRedirectUri")}
+            />
+          </Tooltip>
+        </div>
+        <div className="mt-6">
+          <Tooltip content="URL of the page where your users can cancel their booking">
+            <TextField
+              type="url"
+              label="Booking cancel redirect uri"
+              className="w-[100%]"
+              {...register("bookingCancelRedirectUri")}
+            />
+          </Tooltip>
+        </div>
+        <div className="mt-6">
+          <Tooltip content="URL of the page where your users can reschedule their booking">
+            <TextField
+              type="url"
+              label="Booking reschedule redirect uri"
+              className="w-[100%]"
+              {...register("bookingRescheduleRedirectUri")}
+            />
+          </Tooltip>
+        </div>
+        <div className="mt-6">
+          <input
+            {...register("areEmailsEnabled")}
+            id="areEmailsEnabled"
+            className="bg-default border-default h-4 w-4 shrink-0 cursor-pointer rounded-[4px] border ring-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed"
+            type="checkbox"
+          />
+          <label htmlFor="areEmailsEnabled" className="cursor-pointer px-2 text-base font-semibold">
+            Enable emails
+          </label>
+        </div>
         <div className="mt-6">
           <div className="flex justify-between">
             <h1 className="text-base font-semibold underline">Permissions</h1>

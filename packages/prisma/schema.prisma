@@ -1228,6 +1228,11 @@ model PlatformOAuthClient {
   refreshToken        RefreshToken[]
   authorizationTokens PlatformAuthorizationToken[]
 
+  bookingRedirectUri           String?
+  bookingCancelRedirectUri     String?
+  bookingRescheduleRedirectUri String?
+  areEmailsEnabled             Boolean @default(false)
+
   createdAt DateTime @default(now())
 }
 
