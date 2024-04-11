@@ -11,6 +11,9 @@ type OAuthClientCardProps = {
   name: string;
   logo?: Avatar;
   redirectUris: string[];
+  bookingRedirectUri: string | null;
+  bookingCancelRedirectUri: string | null;
+  bookingRescheduleRedirectUri: string | null;
   permissions: number;
   lastItem: boolean;
   id: string;
@@ -23,6 +26,9 @@ export const OAuthClientCard = ({
   name,
   logo,
   redirectUris,
+  bookingRedirectUri,
+  bookingCancelRedirectUri,
+  bookingRescheduleRedirectUri,
   permissions,
   id,
   secret,
@@ -110,8 +116,23 @@ export const OAuthClientCard = ({
           <span className="font-semibold">Redirect uris: </span>
           {redirectUris.map((item, index) => (redirectUris.length === index + 1 ? `${item}` : `${item}, `))}
         </div>
+        {bookingRedirectUri && (
+          <div className="flex gap-1 text-sm">
+            <span className="font-semibold">Booking redirect uri: </span> {bookingRedirectUri}
+          </div>
+        )}
+        {bookingRescheduleRedirectUri && (
+          <div className="flex gap-1 text-sm">
+            <span className="font-semibold">Booking reschedule uri: </span> {bookingRescheduleRedirectUri}
+          </div>
+        )}
+        {bookingCancelRedirectUri && (
+          <div className="flex gap-1 text-sm">
+            <span className="font-semibold">Booking cancel uri: </span> {bookingCancelRedirectUri}
+          </div>
+        )}
       </div>
-      <div className="flex items-center">
+      <div className="flex items-start">
         <Button
           className="bg-red-500 text-white hover:bg-red-600"
           loading={isLoading}
