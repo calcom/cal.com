@@ -11,9 +11,14 @@ import { ScrollableArea, Badge, Button } from "@calcom/ui";
 type EventTypesCardProps = {
   userName: string;
   setConfigureStep: Dispatch<SetStateAction<boolean>>;
+  handleSetUpLater: () => void;
 };
 
-export const EventTypesStepCard: FC<EventTypesCardProps> = ({ setConfigureStep, userName }) => {
+export const EventTypesStepCard: FC<EventTypesCardProps> = ({
+  setConfigureStep,
+  userName,
+  handleSetUpLater,
+}) => {
   const { t } = useLocale();
   const { control } = useFormContext<TEventTypesForm>();
   const { fields, update } = useFieldArray({
@@ -23,7 +28,7 @@ export const EventTypesStepCard: FC<EventTypesCardProps> = ({ setConfigureStep, 
   });
 
   return (
-    <>
+    <div>
       <div className="sm:border-subtle bg-default mt-10  border dark:bg-black sm:rounded-md">
         <ScrollableArea className="rounded-md">
           <ul className="border-subtle max-h-97 !static w-full divide-y">
@@ -47,7 +52,20 @@ export const EventTypesStepCard: FC<EventTypesCardProps> = ({ setConfigureStep, 
         disabled={!fields.some((field) => field.selected === true)}>
         {t("save")}
       </Button>
-    </>
+
+      <div className="flex w-full flex-row justify-center">
+        <Button
+          color="minimal"
+          data-testid="set-up-later"
+          onClick={(event) => {
+            event.preventDefault();
+            handleSetUpLater();
+          }}
+          className="mt-8 cursor-pointer px-4 py-2 font-sans text-sm font-medium">
+          {t("set_up_later")}
+        </Button>
+      </div>
+    </div>
   );
 };
 
