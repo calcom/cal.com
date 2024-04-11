@@ -272,7 +272,16 @@ const DatePicker = ({
   onMonthChange,
   slots,
   ...passThroughProps
-}: DatePickerProps & Partial<React.ComponentProps<typeof Days>>) => {
+}: DatePickerProps &
+  Partial<React.ComponentProps<typeof Days>> & {
+    customClassNames?: {
+      datePickerTitle?: string;
+      datePickerDays?: string;
+      datePickersDates?: string;
+      datePickerDatesActive?: string;
+      datePickerToggle?: string;
+    };
+  }) => {
   const browsingDate = passThroughProps.browsingDate || dayjs().startOf("month");
   const { i18n } = useLocale();
 
