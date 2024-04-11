@@ -240,7 +240,6 @@ export default class ZohoCrmCrmService implements CRM {
             },
           });
           this.accessToken = zohoCrmTokenInfo.data.access_token;
-          console.log("🚀 ~ ZohoCrmCrmService ~ refreshAccessToken ~ this.accessToken:", this.accessToken);
           this.log.debug("Fetched token", this.accessToken);
         } else {
           this.log.error(zohoCrmTokenInfo.data);
