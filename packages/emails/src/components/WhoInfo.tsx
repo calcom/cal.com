@@ -1,17 +1,20 @@
 import type { TFunction } from "next-i18next";
 
+import { BOOKED_WITH_SMS_EMAIL } from "@calcom/lib/constants";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { Info } from "./Info";
 
-const PersonInfo = ({ name = "", email = "", role = "" }) => (
+const PersonInfo = ({ name = "", email = "", role = "", phoneNumber = "" }) => (
   <div style={{ color: "#101010", fontWeight: 400, lineHeight: "24px" }}>
-    {name} - {role}{" "}
-    <span style={{ color: "#4B5563" }}>
-      <a href={`mailto:${email}`} style={{ color: "#4B5563" }}>
-        {email}
-      </a>
-    </span>
+    {name} - {role} {phoneNumber}
+    {email !== BOOKED_WITH_SMS_EMAIL && (
+      <span style={{ color: "#4B5563" }}>
+        <a href={`mailto:${email}`} style={{ color: "#4B5563" }}>
+          {email}
+        </a>
+      </span>
+    )}
   </div>
 );
 
@@ -36,6 +39,7 @@ export function WhoInfo(props: { calEvent: CalendarEvent; t: TFunction }) {
               name={attendee.name}
               role={t("guest")}
               email={attendee.email}
+              phoneNumber={attendee.phoneNumber}
             />
           ))}
         </>
