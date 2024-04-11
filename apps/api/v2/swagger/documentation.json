@@ -3759,6 +3759,9 @@
           },
           "responses": {
             "$ref": "#/components/schemas/Response"
+          },
+          "orgSlug": {
+            "type": "string"
           }
         },
         "required": [

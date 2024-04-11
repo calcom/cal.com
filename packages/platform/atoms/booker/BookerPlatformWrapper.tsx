@@ -248,6 +248,7 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
     handleBooking: createBooking,
     handleInstantBooking: createInstantBooking,
     handleRecBooking: createRecBooking,
+    orgSlug: props.entity.orgSlug,
   });
 
   return (

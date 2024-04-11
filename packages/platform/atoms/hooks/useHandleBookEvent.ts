@@ -17,6 +17,7 @@ type UseHandleBookingProps = {
   handleBooking: (input: BookingCreateBody) => void;
   handleInstantBooking: (input: BookingCreateBody) => void;
   handleRecBooking: (input: BookingCreateBody[]) => void;
+  orgSlug?: string | null;
 };
 
 export const useHandleBookEvent = ({
@@ -27,6 +28,7 @@ export const useHandleBookEvent = ({
   handleBooking,
   handleInstantBooking,
   handleRecBooking,
+  orgSlug,
 }: UseHandleBookingProps) => {
   const setFormValues = useBookerStore((state) => state.setFormValues);
   const timeslot = useBookerStore((state) => state.selectedTimeslot);
@@ -73,6 +75,7 @@ export const useHandleBookEvent = ({
         username: username || "",
         metadata: metadata,
         hashedLink,
+        orgSlug: orgSlug ? orgSlug : undefined,
       };
 
       if (isInstantMeeting) {
