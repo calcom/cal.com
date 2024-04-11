@@ -5,7 +5,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
-import { schemaQueryTeamId } from "../../../../lib/validations/shared/queryTeamId";
+import { schemaQueryTeamId } from "~/lib/validations/shared/queryTeamId";
 
 async function authMiddleware(req: NextApiRequest) {
   const { userId, isAdmin } = req;
