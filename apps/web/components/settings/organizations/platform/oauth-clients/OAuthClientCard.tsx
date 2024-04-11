@@ -11,6 +11,10 @@ type OAuthClientCardProps = {
   name: string;
   logo?: Avatar;
   redirectUris: string[];
+  bookingRedirectUri: string | null;
+  bookingCancelRedirectUri: string | null;
+  bookingRescheduleRedirectUri: string | null;
+  areEmailsEnabled: boolean;
   permissions: number;
   lastItem: boolean;
   id: string;
@@ -23,13 +27,19 @@ export const OAuthClientCard = ({
   name,
   logo,
   redirectUris,
+  bookingRedirectUri,
+  bookingCancelRedirectUri,
+  bookingRescheduleRedirectUri,
   permissions,
   id,
   secret,
   lastItem,
   onDelete,
   isLoading,
+  areEmailsEnabled,
 }: OAuthClientCardProps) => {
+  console.log(areEmailsEnabled);
+
   const clientPermissions = Object.values(PERMISSIONS_GROUPED_MAP).map((value, index) => {
     let permissionsMessage = "";
     const hasReadPermission = hasPermission(permissions, value.read);
@@ -110,8 +120,26 @@ export const OAuthClientCard = ({
           <span className="font-semibold">Redirect uris: </span>
           {redirectUris.map((item, index) => (redirectUris.length === index + 1 ? `${item}` : `${item}, `))}
         </div>
+        {bookingRedirectUri && (
+          <div className="flex gap-1 text-sm">
+            <span className="font-semibold">Booking redirect uri: </span> {bookingRedirectUri}
+          </div>
+        )}
+        {bookingRescheduleRedirectUri && (
+          <div className="flex gap-1 text-sm">
+            <span className="font-semibold">Booking reschedule uri: </span> {bookingRescheduleRedirectUri}
+          </div>
+        )}
+        {bookingCancelRedirectUri && (
+          <div className="flex gap-1 text-sm">
+            <span className="font-semibold">Booking cancel uri: </span> {bookingCancelRedirectUri}
+          </div>
+        )}
+        <div className="flex gap-1 text-sm">
+          <span className="text-sm font-semibold">Emails enabled:</span> {areEmailsEnabled ? "Yes" : "No"}
+        </div>
       </div>
-      <div className="flex items-center">
+      <div className="flex items-start">
         <Button
           className="bg-red-500 text-white hover:bg-red-600"
           loading={isLoading}

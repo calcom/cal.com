@@ -23,6 +23,6 @@
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false
   },
-  "exclude": ["./dist"],
-  "include": ["./**/*.ts", "../../../packages/types/*.d.ts", "next-i18next.config.js"]
+  "exclude": ["./dist", "next-i18next.config.js"],
+  "include": ["./**/*.ts", "../../../packages/types/*.d.ts"]
 }
