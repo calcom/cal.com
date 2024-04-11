@@ -249,8 +249,6 @@
   "already_have_an_account": "Já tem uma conta?",
   "create_account": "Criar Conta",
   "confirm_password": "Confirmar senha",
-  "confirm_auth_change": "Isto irá alterar a forma como inicia sessão",
-  "confirm_auth_email_change": "A alteração do endereço de e-mail irá desassociar o seu método de autenticação atual para iniciar sessão no Cal.com. Vamos solicitar que confirme o seu novo endereço de e-mail. Ao continuar, a sua sessão será terminada e vai utilizar o seu novo endereço de e-mail para iniciar sessão em vez do seu método de autenticação atual, depois de definir a sua palavra-passe, de acordo com as instruções que serão enviadas para o seu e-mail.",
   "reset_your_password": "Defina a sua nova palavra-passe seguindo as instruções enviadas para o seu endereço de e-mail.",
   "email_change": "Inicie sessão novamente com o seu novo endereço de e-mail e palavra-passe.",
   "create_your_account": "Crie a sua conta",

@@ -138,7 +138,7 @@ const organizationRequiredKeys = ["organization"];
 
 const useTabs = () => {
   const session = useSession();
-  const { data: user } = trpc.viewer.me.useQuery();
+  const { data: user } = trpc.viewer.me.useQuery({ includePasswordAdded: true });
   const orgBranding = useOrgBranding();
   const isAdmin = session.data?.user.role === UserPermissionRole.ADMIN;
 
@@ -153,7 +153,8 @@ const useTabs = () => {
     } else if (
       tab.href === "/settings/security" &&
       user?.identityProvider === IdentityProvider.GOOGLE &&
-      !user?.twoFactorEnabled
+      !user?.twoFactorEnabled &&
+      !user?.passwordAdded
     ) {
       tab.children = tab?.children?.filter(
         (childTab) => childTab.href !== "/settings/security/two-factor-auth"
@@ -645,7 +646,7 @@ export default function SettingsLayout({
         <MobileSettingsContainer onSideContainerOpen={() => setSideContainerOpen(!sideContainerOpen)} />
       }>
       <div className="flex flex-1 [&>*]:flex-1">
-        <div className="mx-auto max-w-full justify-center lg:max-w-4xl">
+        <div className="mx-auto max-w-full justify-center lg:max-w-3xl">
           <ShellHeader />
           <ErrorBoundary>
             <Suspense fallback={<Icon name="loader" />}>{children}</Suspense>

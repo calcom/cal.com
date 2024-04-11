@@ -3,7 +3,6 @@ import type { GetServerSideProps } from "next";
 import { encode } from "querystring";
 import type { z } from "zod";
 
-import { handleUserRedirection } from "@calcom/features/booking-redirect/handle-user";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { DEFAULT_DARK_BRAND_COLOR, DEFAULT_LIGHT_BRAND_COLOR } from "@calcom/lib/constants";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
@@ -73,21 +72,12 @@ export type UserPageProps = {
 export const getServerSideProps: GetServerSideProps<UserPageProps> = async (context) => {
   const ssr = await ssrInit(context);
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req, context.params?.orgSlug);
+
   const usernameList = getUsernameList(context.query.user as string);
   const isARedirectFromNonOrgLink = context.query.orgRedirection === "true";
-  const isOrgContext = isValidOrgDomain && currentOrgDomain;
-  const dataFetchStart = Date.now();
-  let outOfOffice = false;
+  const isOrgContext = isValidOrgDomain && !!currentOrgDomain;
 
-  if (usernameList.length === 1) {
-    const result = await handleUserRedirection({ username: usernameList[0] });
-    if (result && result.outOfOffice) {
-      outOfOffice = true;
-    }
-    if (result && result.redirect?.destination) {
-      return result;
-    }
-  }
+  const dataFetchStart = Date.now();
 
   if (!isOrgContext) {
     // If there is no org context, see if some redirect is setup due to org migration
@@ -176,7 +166,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
   const eventTypes = await getEventTypesPublic(user.id);
 
   // if profile only has one public event-type, redirect to it
-  if (eventTypes.length === 1 && context.query.redirect !== "false" && !outOfOffice) {
+  if (eventTypes.length === 1 && context.query.redirect !== "false") {
     // Redirect but don't change the URL
     const urlDestination = `/${user.profile.username}/${eventTypes[0].slug}`;
     const { query } = context;
@@ -202,9 +192,9 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
         username: user.username,
         bio: user.bio,
         avatarUrl: user.avatarUrl,
-        away: usernameList.length === 1 ? outOfOffice : user.away,
         verified: user.verified,
         profile: user.profile,
+        away: user.away,
       })),
       entity: {
         considerUnpublished: !isARedirectFromNonOrgLink && org?.slug === null,
