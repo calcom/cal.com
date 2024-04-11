@@ -59,7 +59,7 @@ inferSSRProps<typeof getServerSideProps> & WithNonceProps<{}>) {
         .string()
         .min(1, `${t("error_required_field")}`)
         .email(`${t("enter_valid_email")}`),
-      password: !!totpEmail ? z.literal("") : z.string().min(1, `${t("error_required_field")}`),
+      ...(!!totpEmail ? {} : { password: z.string().min(1, `${t("error_required_field")}`) }),
     })
     // Passthrough other fields like totpCode
     .passthrough();
