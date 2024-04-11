@@ -216,7 +216,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     onSuccess: async (isVerified) => {
       showToast(isVerified ? t("verified_successfully") : t("wrong_code"), "success");
       setNumberVerified(isVerified);
-      form.clearErrors(`steps.${step.stepNumber - 1}.sendTo`);
+      isVerified && form.clearErrors(`steps.${step.stepNumber - 1}.sendTo`);
       utils.viewer.workflows.getVerifiedNumbers.invalidate();
     },
     onError: (err) => {
