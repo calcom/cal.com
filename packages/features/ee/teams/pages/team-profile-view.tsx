@@ -98,7 +98,7 @@ const ProfileView = () => {
     isPending,
     error,
   } = trpc.viewer.teams.get.useQuery(
-    { teamId, includeTeamLogo: true },
+    { teamId },
     {
       enabled: !!teamId,
     }
@@ -320,7 +320,7 @@ const TeamProfileForm = ({ team }: TeamProfileFormProps) => {
       }}>
       <div className="border-subtle border-x px-4 py-8 sm:px-6">
         {!team.parent && (
-          <div className="flex items-center">
+          <div className="flex items-center pb-8">
             <Controller
               control={form.control}
               name="logo"
