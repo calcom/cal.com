@@ -30,6 +30,7 @@ type FormValues = {
   bookingRedirectUri?: string;
   bookingCancelRedirectUri?: string;
   bookingRescheduleRedirectUri?: string;
+  areEmailsEnabled?: boolean;
 };
 
 export const OAuthClientForm: FC = () => {
@@ -72,6 +73,8 @@ export const OAuthClientForm: FC = () => {
     let userPermissions = 0;
     const userRedirectUris = data.redirectUris.map((uri) => uri.uri).filter((uri) => !!uri);
 
+    console.log(data);
+
     Object.keys(PERMISSIONS_GROUPED_MAP).forEach((key) => {
       const entity = key as keyof typeof PERMISSIONS_GROUPED_MAP;
       const entityKey = PERMISSIONS_GROUPED_MAP[entity].key;
@@ -89,6 +92,7 @@ export const OAuthClientForm: FC = () => {
       bookingRedirectUri: data.bookingRedirectUri,
       bookingCancelRedirectUri: data.bookingCancelRedirectUri,
       bookingRescheduleRedirectUri: data.bookingRescheduleRedirectUri,
+      areEmailsEnabled: data.areEmailsEnabled,
     });
   };
 
@@ -244,6 +248,17 @@ export const OAuthClientForm: FC = () => {
               {...register("bookingRescheduleRedirectUri")}
             />
           </Tooltip>
+        </div>
+        <div className="mt-6">
+          <input
+            {...register("areEmailsEnabled")}
+            id="areEmailsEnabled"
+            className="bg-default border-default h-4 w-4 shrink-0 cursor-pointer rounded-[4px] border ring-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed"
+            type="checkbox"
+          />
+          <label htmlFor="areEmailsEnabled" className="cursor-pointer px-2 text-base font-semibold">
+            Enable emails
+          </label>
         </div>
         <div className="mt-6">
           <div className="flex justify-between">

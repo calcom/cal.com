@@ -14,6 +14,7 @@ type OAuthClientCardProps = {
   bookingRedirectUri: string | null;
   bookingCancelRedirectUri: string | null;
   bookingRescheduleRedirectUri: string | null;
+  areEmailsEnabled: boolean;
   permissions: number;
   lastItem: boolean;
   id: string;
@@ -35,7 +36,10 @@ export const OAuthClientCard = ({
   lastItem,
   onDelete,
   isLoading,
+  areEmailsEnabled,
 }: OAuthClientCardProps) => {
+  console.log(areEmailsEnabled);
+
   const clientPermissions = Object.values(PERMISSIONS_GROUPED_MAP).map((value, index) => {
     let permissionsMessage = "";
     const hasReadPermission = hasPermission(permissions, value.read);
@@ -131,6 +135,7 @@ export const OAuthClientCard = ({
             <span className="font-semibold">Booking cancel uri: </span> {bookingCancelRedirectUri}
           </div>
         )}
+        Emails enabled: {areEmailsEnabled ? "Yes" : "No"}
       </div>
       <div className="flex items-start">
         <Button

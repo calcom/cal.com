@@ -78,6 +78,7 @@ export const OAuthClients = () => {
                       secret={client.secret}
                       isLoading={isDeleting}
                       onDelete={handleDelete}
+                      areEmailsEnabled={client.areEmailsEnabled}
                     />
                   );
                 })}
