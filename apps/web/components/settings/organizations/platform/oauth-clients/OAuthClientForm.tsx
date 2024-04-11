@@ -220,7 +220,7 @@ export const OAuthClientForm: FC = () => {
           />
         </div> */}
         <div className="mt-6">
-          <Tooltip content="URL to which a user would get redirected after booking success">
+          <Tooltip content="URL of your booking page">
             <TextField
               type="url"
               label="Booking redirect uri"
@@ -230,7 +230,7 @@ export const OAuthClientForm: FC = () => {
           </Tooltip>
         </div>
         <div className="mt-6">
-          <Tooltip content="URL to which a user would get redirected after booking cancellation">
+          <Tooltip content="URL of the page where your users can cancel their booking">
             <TextField
               type="url"
               label="Booking cancel redirect uri"
@@ -240,7 +240,7 @@ export const OAuthClientForm: FC = () => {
           </Tooltip>
         </div>
         <div className="mt-6">
-          <Tooltip content="URL to which a user would get redirected after booking reschedule">
+          <Tooltip content="URL of the page where your users can reschedule their booking">
             <TextField
               type="url"
               label="Booking reschedule redirect uri"
