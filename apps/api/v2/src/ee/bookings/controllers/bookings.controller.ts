@@ -27,7 +27,7 @@ import { User } from "@prisma/client";
 import { Request } from "express";
 import { NextApiRequest } from "next/types";
 
-import { BOOKING_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
+import { BOOKING_READ, SUCCESS_STATUS } from "@calcom/platform-constants";
 import {
   getAllUserBookings,
   getBookingInfo,
@@ -59,9 +59,9 @@ export class BookingsController {
     private readonly prismaReadService: PrismaReadService
   ) {}
 
-  // note(Rajiv): currently this endpoint is atoms only
   @Get("/")
   @UseGuards(AccessTokenGuard)
+  @Permissions([BOOKING_READ])
   @ApiQuery({ name: "filters[status]", enum: Status, required: true })
   @ApiQuery({ name: "limit", type: "number", required: false })
   @ApiQuery({ name: "cursor", type: "number", required: false })
@@ -87,7 +87,6 @@ export class BookingsController {
     };
   }
 
-  // note(Rajiv): currently this endpoint is atoms only
   @Get("/:bookingUid")
   async getBooking(@Param("bookingUid") bookingUid: string): Promise<GetBookingOutput> {
     const { bookingInfo } = await getBookingInfo(bookingUid);
@@ -102,7 +101,6 @@ export class BookingsController {
     };
   }
 
-  // note(Rajiv): currently this endpoint is atoms only
   @Get("/:bookingUid/reschedule")
   async getBookingForReschedule(@Param("bookingUid") bookingUid: string): Promise<ApiResponse<unknown>> {
     const booking = await getBookingForReschedule(bookingUid);
@@ -118,12 +116,11 @@ export class BookingsController {
   }
 
   @Post("/")
-  @Permissions([BOOKING_WRITE])
   async createBooking(
     @Req() req: Request & { userId?: number },
     @Body() _: CreateBookingInput
   ): Promise<ApiResponse<unknown>> {
-    req.userId = await this.getOwnerId(req);
+    req.userId = (await this.getOwnerId(req)) ?? -1;
     req.body = { ...req.body, noEmail: true };
     try {
       const booking = await handleNewBooking(req as unknown as NextApiRequest & { userId?: number });
@@ -138,14 +135,13 @@ export class BookingsController {
   }
 
   @Post("/:bookingId/cancel")
-  @Permissions([BOOKING_WRITE])
   async cancelBooking(
     @Req() req: Request & { userId?: number },
     @Param("bookingId") bookingId: string,
     @Body() body: CancelBookingInput
   ): Promise<ApiResponse> {
     if (bookingId) {
-      req.userId = await this.getOwnerId(req);
+      req.userId = (await this.getOwnerId(req)) ?? -1;
       req.body = { ...body, id: parseInt(bookingId) };
       try {
         await handleCancelBooking(req as unknown as NextApiRequest & { userId?: number });
@@ -162,12 +158,11 @@ export class BookingsController {
   }
 
   @Post("/reccuring")
-  @Permissions([BOOKING_WRITE])
   async createReccuringBooking(
     @Req() req: Request & { userId?: number },
     @Body() _: CreateReccuringBookingInput[]
   ): Promise<ApiResponse<BookingResponse[]>> {
-    req.userId = await this.getOwnerId(req);
+    req.userId = (await this.getOwnerId(req)) ?? -1;
     req.body = { ...req.body, noEmail: true };
     try {
       const createdBookings: BookingResponse[] = await handleNewRecurringBooking(
@@ -184,12 +179,11 @@ export class BookingsController {
   }
 
   @Post("/instant")
-  @Permissions([BOOKING_WRITE])
   async createInstantBooking(
     @Req() req: Request & { userId?: number },
     @Body() _: CreateBookingInput
   ): Promise<ApiResponse<Awaited<ReturnType<typeof handleInstantMeeting>>>> {
-    req.userId = await this.getOwnerId(req);
+    req.userId = (await this.getOwnerId(req)) ?? -1;
     req.body = { ...req.body, noEmail: true };
     try {
       const instantMeeting = await handleInstantMeeting(

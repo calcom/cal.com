@@ -250,8 +250,6 @@
   "already_have_an_account": "Já tem uma conta?",
   "create_account": "Criar Conta",
   "confirm_password": "Confirmar senha",
-  "confirm_auth_change": "Isso alterará a forma como você faz login",
-  "confirm_auth_email_change": "Ao alterar o endereço de e-mail, seu método de autenticação atual será desconectado para entrar no Cal.com. Será solicitado que você verifique seu novo endereço de e-mail. Em seguida, você sairá e seu novo endereço de e-mail será usado para entrar em vez do seu método de autenticação atual, depois que sua senha for definida segundo as instruções enviadas por e-mail.",
   "reset_your_password": "Defina sua nova senha com as instruções enviadas para seu endereço de e-mail.",
   "org_banner_instructions": "Faça upload de uma imagem com largura {{width}} e altura {{height}} .",
   "email_change": "Volte a entrar com seu novo endereço de e-mail e senha.",
