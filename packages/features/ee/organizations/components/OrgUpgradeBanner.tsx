@@ -28,6 +28,7 @@ export function OrgUpgradeBanner({ data }: OrgUpgradeBannerProps) {
   const [membership] = data;
   if (!membership) return null;
 
+  // TODO: later figure out how to not show this banner on platform since platform is different to orgs (it just uses the same code)
   if (isPlatform) return null;
 
   return (
