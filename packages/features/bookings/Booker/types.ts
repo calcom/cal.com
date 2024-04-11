@@ -21,7 +21,7 @@ export interface BookerProps {
   /*
     all custom classnames related to booker styling go here
   */
-  customClassnames?: CustomClassNames;
+  customClassNames?: CustomClassNames;
 
   /**
    * Whether is a team or org, we gather basic info from both
