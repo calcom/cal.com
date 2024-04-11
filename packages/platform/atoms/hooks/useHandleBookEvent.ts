@@ -28,7 +28,6 @@ export const useHandleBookEvent = ({
   handleBooking,
   handleInstantBooking,
   handleRecBooking,
-  orgSlug,
 }: UseHandleBookingProps) => {
   const setFormValues = useBookerStore((state) => state.setFormValues);
   const timeslot = useBookerStore((state) => state.selectedTimeslot);
@@ -41,6 +40,8 @@ export const useHandleBookEvent = ({
   const bookingData = useBookerStore((state) => state.bookingData);
   const seatedEventData = useBookerStore((state) => state.seatedEventData);
   const isInstantMeeting = useBookerStore((state) => state.isInstantMeeting);
+  const orgSlug = useBookerStore((state) => state.org);
+
   const handleBookEvent = () => {
     const values = bookingForm.getValues();
     if (timeslot) {
