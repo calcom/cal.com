@@ -3,6 +3,7 @@ import { AppModule } from "@/app.module";
 import { EventTypesModule } from "@/ee/event-types/event-types.module";
 import { CreateEventTypeInput } from "@/ee/event-types/inputs/create-event-type.input";
 import { UpdateEventTypeInput } from "@/ee/event-types/inputs/update-event-type.input";
+import { GetEventTypeOutput } from "@/ee/event-types/outputs/get-event-type.output";
 import { HttpExceptionFilter } from "@/filters/http-exception.filter";
 import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
@@ -172,14 +173,14 @@ describe("Event types Endpoints", () => {
         .set("Authorization", `Bearer whatever`)
         .expect(200);
 
-      const responseBody: ApiSuccessResponse<EventType> = response.body;
+      const responseBody: GetEventTypeOutput = response.body;
 
       expect(responseBody.status).toEqual(SUCCESS_STATUS);
       expect(responseBody.data).toBeDefined();
-      expect(responseBody.data.id).toEqual(eventType.id);
-      expect(responseBody.data.title).toEqual(eventType.title);
-      expect(responseBody.data.slug).toEqual(eventType.slug);
-      expect(responseBody.data.userId).toEqual(user.id);
+      expect(responseBody.data.eventType.id).toEqual(eventType.id);
+      expect(responseBody.data.eventType.title).toEqual(eventType.title);
+      expect(responseBody.data.eventType.slug).toEqual(eventType.slug);
+      expect(responseBody.data.eventType.userId).toEqual(user.id);
     });
 
     it(`/GET/`, async () => {

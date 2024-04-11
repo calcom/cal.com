@@ -9,6 +9,7 @@ import { updateHandler as updateScheduleHandler } from "@calcom/trpc/server/rout
 import { getAvailableSlots } from "@calcom/trpc/server/routers/viewer/slots/util";
 import { createNewUsersConnectToOrgIfExists } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
 
+export { slugify } from "@calcom/lib/slugify";
 export { getBookingForReschedule };
 export { updateScheduleHandler };
 export type UpdateScheduleOutputType = Awaited<

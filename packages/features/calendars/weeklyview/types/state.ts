@@ -1,3 +1,4 @@
+import type { IFromUser, IToUser } from "@calcom/core/getUserAvailability";
 import type { TimeRange } from "@calcom/types/schedule";
 
 import type { CalendarEvent } from "./events";
@@ -50,11 +51,18 @@ export type CalendarPrivateActions = {
   setSelectedEvent: (event: CalendarEvent) => void;
   handleDateChange: (payload: "INCREMENT" | "DECREMENT") => void;
 };
+type TimeRangeExtended = TimeRange & {
+  away?: boolean;
+  fromUser?: IFromUser;
+  toUser?: IToUser;
+  reason?: string;
+  emoji?: string;
+};
 
 export type CalendarAvailableTimeslots = {
   // Key is the date in YYYY-MM-DD format
   // start and end are ISOstring
-  [key: string]: TimeRange[];
+  [key: string]: TimeRangeExtended[];
 };
 
 export type CalendarState = {

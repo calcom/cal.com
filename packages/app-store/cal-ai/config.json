@@ -14,6 +14,7 @@
   "__createdUsingCli": true,
   "__template": "basic",
   "dirName": "cal-ai",
+  "isOAuth": false,
   "paid": {
     "priceInUsd": 8,
     "priceId": "price_1O1ziDH8UDiwIftkDHp3MCTP",
