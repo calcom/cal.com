@@ -73,8 +73,6 @@ export const OAuthClientForm: FC = () => {
     let userPermissions = 0;
     const userRedirectUris = data.redirectUris.map((uri) => uri.uri).filter((uri) => !!uri);
 
-    console.log(data);
-
     Object.keys(PERMISSIONS_GROUPED_MAP).forEach((key) => {
       const entity = key as keyof typeof PERMISSIONS_GROUPED_MAP;
       const entityKey = PERMISSIONS_GROUPED_MAP[entity].key;

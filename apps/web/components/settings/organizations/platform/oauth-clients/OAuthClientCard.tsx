@@ -135,7 +135,9 @@ export const OAuthClientCard = ({
             <span className="font-semibold">Booking cancel uri: </span> {bookingCancelRedirectUri}
           </div>
         )}
-        Emails enabled: {areEmailsEnabled ? "Yes" : "No"}
+        <div className="flex gap-1 text-sm">
+          <span className="text-sm font-semibold">Emails enabled:</span> {areEmailsEnabled ? "Yes" : "No"}
+        </div>
       </div>
       <div className="flex items-start">
         <Button
