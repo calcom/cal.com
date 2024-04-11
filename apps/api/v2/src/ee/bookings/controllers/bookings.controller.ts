@@ -6,6 +6,7 @@ import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
 import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
+import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { OAuthFlowService } from "@/modules/oauth-clients/services/oauth-flow.service";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import {
@@ -66,7 +67,8 @@ export class BookingsController {
 
   constructor(
     private readonly oAuthFlowService: OAuthFlowService,
-    private readonly prismaReadService: PrismaReadService
+    private readonly prismaReadService: PrismaReadService,
+    private readonly oAuthClientRepository: OAuthClientRepository
   ) {}
 
   @Get("/")
@@ -133,8 +135,10 @@ export class BookingsController {
   ): Promise<ApiResponse<unknown>> {
     const oAuthClientId = clientId?.toString();
     req.userId = (await this.getOwnerId(req)) ?? -1;
-    oAuthClientId && (await this.setCustomPlatformRequest(req, oAuthClientId));
-    req.body = { ...req.body, noEmail: !Boolean(oAuthClientId) };
+    const areEmailsEnabled = oAuthClientId
+      ? await this.setRedirectsAndGetEmailsStatus(req, oAuthClientId)
+      : false;
+    req.body = { ...req.body, noEmail: !areEmailsEnabled };
     try {
       const booking = await handleNewBooking(
         req as unknown as NextApiRequest & { userId?: number; platformClientId?: string }
@@ -159,8 +163,10 @@ export class BookingsController {
     const oAuthClientId = clientId?.toString();
     if (bookingId) {
       req.userId = (await this.getOwnerId(req)) ?? -1;
-      oAuthClientId && (await this.setCustomPlatformRequest(req, oAuthClientId));
-      req.body = { ...req.body, noEmail: !Boolean(oAuthClientId) };
+      const areEmailsEnabled = oAuthClientId
+        ? await this.setRedirectsAndGetEmailsStatus(req, oAuthClientId)
+        : false;
+      req.body = { ...req.body, noEmail: !areEmailsEnabled };
       try {
         await handleCancelBooking(req as unknown as NextApiRequest & { userId?: number });
         return {
@@ -183,8 +189,10 @@ export class BookingsController {
   ): Promise<ApiResponse<BookingResponse[]>> {
     const oAuthClientId = clientId?.toString();
     req.userId = (await this.getOwnerId(req)) ?? -1;
-    oAuthClientId && (await this.setCustomPlatformRequest(req, oAuthClientId));
-    req.body = { ...req.body, noEmail: !Boolean(oAuthClientId) };
+    const areEmailsEnabled = oAuthClientId
+      ? await this.setRedirectsAndGetEmailsStatus(req, oAuthClientId)
+      : false;
+    req.body = { ...req.body, noEmail: !areEmailsEnabled };
     try {
       const createdBookings: BookingResponse[] = await handleNewRecurringBooking(
         req as unknown as NextApiRequest & { userId?: number }
@@ -207,8 +215,10 @@ export class BookingsController {
   ): Promise<ApiResponse<Awaited<ReturnType<typeof handleInstantMeeting>>>> {
     const oAuthClientId = clientId?.toString();
     req.userId = (await this.getOwnerId(req)) ?? -1;
-    oAuthClientId && (await this.setCustomPlatformRequest(req, oAuthClientId));
-    req.body = { ...req.body, noEmail: !Boolean(oAuthClientId) };
+    const areEmailsEnabled = oAuthClientId
+      ? await this.setRedirectsAndGetEmailsStatus(req, oAuthClientId)
+      : false;
+    req.body = { ...req.body, noEmail: !areEmailsEnabled };
     try {
       const instantMeeting = await handleInstantMeeting(
         req as unknown as NextApiRequest & { userId?: number }
@@ -234,12 +244,22 @@ export class BookingsController {
     }
   }
 
-  async setCustomPlatformRequest(req: CustomRequest, clientId: string): Promise<void> {
-    // fetch oAuthClient from db and use data stored in db to set these values
-    req.platformClientId = clientId;
-    req.platformCancelUrl = "http://platform/cancel";
-    req.platformRescheduleUrl = "http://platform/reschedule";
-    req.platformBookingUrl = "http://platform/booking";
+  async setRedirectsAndGetEmailsStatus(req: CustomRequest, clientId: string): Promise<boolean> {
+    try {
+      const client = await this.oAuthClientRepository.getOAuthClient(clientId);
+      // fetch oAuthClient from db and use data stored in db to set these values
+      if (client) {
+        req.platformClientId = clientId;
+        req.platformCancelUrl = client.bookingCancelRedirectUri ?? "";
+        req.platformRescheduleUrl = client.bookingRescheduleRedirectUri ?? "";
+        req.platformBookingUrl = client.bookingRedirectUri ?? "";
+        return client.areEmailsEnabled;
+      }
+      return true;
+    } catch (err) {
+      this.logger.error(err);
+      return false;
+    }
   }
 }
 
