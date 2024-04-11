@@ -1,7 +1,7 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { useState, useEffect } from "react";
-import { Controller, useFieldArray, useFormContext, useForm } from "react-hook-form";
-import type { UseFormReturn, SubmitHandler } from "react-hook-form";
+import { useEffect, useState } from "react";
+import type { SubmitHandler, UseFormReturn } from "react-hook-form";
+import { Controller, useFieldArray, useForm, useFormContext } from "react-hook-form";
 import type { z } from "zod";
 
 import { getAndUpdateNormalizedValues } from "@calcom/features/form-builder/FormBuilderField";
@@ -9,23 +9,23 @@ import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import {
-  Label,
   Badge,
+  BooleanToggleGroupField,
   Button,
   Dialog,
   DialogClose,
   DialogContent,
-  DialogHeader,
   DialogFooter,
+  DialogHeader,
   Form,
-  BooleanToggleGroupField,
-  SelectField,
-  InputField,
+  Icon,
   Input,
-  Switch,
+  InputField,
+  Label,
+  SelectField,
   showToast,
+  Switch,
 } from "@calcom/ui";
-import { ArrowDown, ArrowUp, X, Plus, Trash2 } from "@calcom/ui/components/icon";
 
 import { fieldTypesConfigMap } from "./fieldTypes";
 import { fieldsThatSupportLabelAsSafeHtml } from "./fieldsThatSupportLabelAsSafeHtml";
@@ -120,6 +120,13 @@ export const FormBuilder = function FormBuilder({
               : field.getOptionsAt
               ? dataStore.options[field.getOptionsAt as keyof typeof dataStore]
               : [];
+
+            // Note: We recently started calling getAndUpdateNormalizedValues in the FormBuilder. It was supposed to be called only on booking pages earlier.
+            // Due to this we have to meet some strict requirements like of labelAsSafeHtml.
+            if (fieldsThatSupportLabelAsSafeHtml.includes(field.type)) {
+              field = { ...field, labelAsSafeHtml: markdownToSafeHTML(field.label ?? "") };
+            }
+
             const { hidden } = getAndUpdateNormalizedValues({ ...field, options }, t);
             if (field.hideWhenJustOneOption && (hidden || !options?.length)) {
               return null;
@@ -163,7 +170,7 @@ export const FormBuilder = function FormBuilder({
                         type="button"
                         className="bg-default text-muted hover:text-emphasis disabled:hover:text-muted border-subtle hover:border-emphasis invisible absolute -left-[12px] -ml-4 -mt-4 mb-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all hover:shadow disabled:hover:border-inherit disabled:hover:shadow-none group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex"
                         onClick={() => swap(index, index - 1)}>
-                        <ArrowUp className="h-5 w-5" />
+                        <Icon name="arrow-up" className="h-5 w-5" />
                       </button>
                     )}
                     {index < fields.length - 1 && (
@@ -171,7 +178,7 @@ export const FormBuilder = function FormBuilder({
                         type="button"
                         className="bg-default text-muted hover:border-emphasis border-subtle hover:text-emphasis disabled:hover:text-muted invisible absolute -left-[12px] -ml-4 mt-8 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all hover:shadow disabled:hover:border-inherit disabled:hover:shadow-none group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex"
                         onClick={() => swap(index, index + 1)}>
-                        <ArrowDown className="h-5 w-5" />
+                        <Icon name="arrow-down" className="h-5 w-5" />
                       </button>
                     )}
                   </>
@@ -226,7 +233,7 @@ export const FormBuilder = function FormBuilder({
                         onClick={() => {
                           removeField(index);
                         }}
-                        StartIcon={Trash2}
+                        StartIcon="trash-2"
                       />
                     )}
                     <Button
@@ -258,7 +265,7 @@ export const FormBuilder = function FormBuilder({
             data-testid="add-field"
             onClick={addField}
             className="mt-4"
-            StartIcon={Plus}>
+            StartIcon="plus">
             {addFieldLabel}
           </Button>
         )}
@@ -367,7 +374,7 @@ function Options({
                     className="-ml-8 mb-2 hover:!bg-transparent focus:!bg-transparent focus:!outline-none focus:!ring-0"
                     size="sm"
                     color="minimal"
-                    StartIcon={X}
+                    StartIcon="x"
                     onClick={() => {
                       if (!value) {
                         return;
@@ -389,7 +396,7 @@ function Options({
               value.push({ label: "", value: "" });
               onChange(value);
             }}
-            StartIcon={Plus}>
+            StartIcon="plus">
             Add an Option
           </Button>
         )}

@@ -5,9 +5,7 @@ import { useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import { Meta, Form, Button, TextField, showToast, Tooltip, ImageUploader, Avatar } from "@calcom/ui";
-import { Clipboard } from "@calcom/ui/components/icon";
-import { Plus } from "@calcom/ui/components/icon";
+import { Meta, Form, Button, Icon, TextField, showToast, Tooltip, ImageUploader, Avatar } from "@calcom/ui";
 
 type FormValues = {
   name: string;
@@ -67,7 +65,7 @@ export default function OAuthView() {
             <div className="mb-5 mt-5 flex items-center">
               <Avatar
                 alt=""
-                fallback={<Plus className="text-subtle h-6 w-6" />}
+                fallback={<Icon name="plus" className="text-subtle h-6 w-6" />}
                 className="mr-5 items-center"
                 imageSrc={logo}
                 size="lg"
@@ -105,7 +103,7 @@ export default function OAuthView() {
                 }}
                 type="button"
                 className="rounded-l-none text-base"
-                StartIcon={Clipboard}>
+                StartIcon="clipboard">
                 {t("copy")}
               </Button>
             </Tooltip>
@@ -127,7 +125,7 @@ export default function OAuthView() {
                     }}
                     type="button"
                     className="rounded-l-none text-base"
-                    StartIcon={Clipboard}>
+                    StartIcon="clipboard">
                     {t("copy")}
                   </Button>
                 </Tooltip>
