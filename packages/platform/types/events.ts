@@ -21,5 +21,5 @@ export class GetPublicEventInput {
   @ApiProperty({ required: false })
   @IsString()
   @IsOptional()
-  org?: string;
+  org?: string | null;
 }

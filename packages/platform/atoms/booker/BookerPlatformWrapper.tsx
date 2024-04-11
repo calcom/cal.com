@@ -1,4 +1,4 @@
-import { useMemo, useEffect, useCallback } from "react";
+import { useMemo, useEffect } from "react";
 import { shallow } from "zustand/shallow";
 
 import dayjs from "@calcom/dayjs";
@@ -57,6 +57,8 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
   const [bookerState, setBookerState] = useBookerStore((state) => [state.state, state.setState], shallow);
   const setSelectedDate = useBookerStore((state) => state.setSelectedDate);
   const setBookingData = useBookerStore((state) => state.setBookingData);
+  const setSelectedDuration = useBookerStore((state) => state.setSelectedDuration);
+  const setOrg = useBookerStore((state) => state.setOrg);
   const setSelectedTimeslot = useBookerStore((state) => state.setSelectedTimeslot);
   const { data: booking } = useGetBookingForReschedule({
     uid: props.rescheduleUid ?? props.bookingUid ?? "",
@@ -64,6 +66,7 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
       setBookingData(data);
     },
   });
+
   const username = useMemo(() => {
     return formatUsername(props.username);
   }, [props.username]);
@@ -74,14 +77,22 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
       setBookerState("loading");
       setSelectedDate(null);
       setSelectedTimeslot(null);
+      setSelectedDuration(null);
+      setOrg(null);
     };
   }, []);
+
+  setSelectedDuration(props.duration ?? null);
+  setOrg(props.entity?.orgSlug ?? null);
+
+  const isDynamic = useMemo(() => {
+    return getUsernameList(username ?? "").length > 1;
+  }, [username]);
 
   const event = usePublicEvent({
     username,
     eventSlug: props.eventSlug,
-    duration: props.duration,
-    orgSlug: props.entity.orgSlug,
+    isDynamic,
   });
 
   const bookerLayout = useBookerLayout(event.data);
@@ -91,7 +102,7 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
     rescheduleUid: props.rescheduleUid ?? null,
     bookingUid: props.bookingUid ?? null,
     layout: bookerLayout.defaultLayout,
-    org: event.data?.entity.orgSlug,
+    org: props.entity.orgSlug,
     username,
   });
   const [dayCount] = useBookerStore((state) => [state.dayCount, state.setDayCount], shallow);
@@ -100,7 +111,7 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
   const month = useBookerStore((state) => state.month);
   const eventSlug = useBookerStore((state) => state.eventSlug);
 
-  const selectedDuration = useBookerStore((state) => state.selectedDuration) || props.duration;
+  const selectedDuration = useBookerStore((state) => state.selectedDuration);
 
   const { data: session } = useMe();
   const hasSession = !!session;
@@ -136,15 +147,6 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
     selectedDate,
   });
 
-  const getEventTypeSlug = useCallback(() => {
-    const isDynamic = getUsernameList(username ?? "").length > 1;
-    if (isDynamic) {
-      return "dynamic";
-    }
-
-    return event?.data?.slug;
-  }, [event?.data?.slug, username]);
-
   const schedule = useAvailableSlots({
     usernameList: getUsernameList(username ?? ""),
     eventTypeId: event?.data?.id ?? 0,
@@ -159,8 +161,8 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
       Boolean(timezone) &&
       // Should only wait for one or the other, not both.
       (Boolean(eventSlug) || Boolean(event?.data?.id) || event?.data?.id === 0),
-    eventTypeSlug: getEventTypeSlug(),
     orgSlug: props.entity.orgSlug ?? undefined,
+    eventTypeSlug: isDynamic ? "dynamic" : undefined,
   });
 
   const bookerForm = useBookingForm({
