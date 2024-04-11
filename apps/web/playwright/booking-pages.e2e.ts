@@ -15,6 +15,7 @@ import {
   selectFirstAvailableTimeSlotNextMonth,
   testEmail,
   testName,
+  todo,
 } from "./lib/testUtils";
 
 const freeUserObj = { name: `Free-user-${randomString(3)}` };
@@ -23,7 +24,7 @@ test.afterEach(async ({ users }) => {
   await users.deleteAll();
 });
 
-test("check SSR and OG", async ({ page, users }) => {
+test("check SSR and OG - User Event Type", async ({ page, users }) => {
   const name = "Test User";
   const user = await users.create({
     name,
@@ -50,6 +51,8 @@ test("check SSR and OG", async ({ page, users }) => {
   // Verify Organizer Name in the URL
   expect(ogImage).toContain("meetingProfileName%3DTest%2520User%26");
 });
+
+todo("check SSR and OG - Team Event Type");
 
 testBothFutureAndLegacyRoutes.describe("free user", () => {
   test.beforeEach(async ({ page, users }) => {
