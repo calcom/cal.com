@@ -53,6 +53,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
         {!bookingTitle && eventTypeSlug && !rescheduleUid && (
           <Booker
             eventSlug={eventTypeSlug}
+            username={props.calUsername ?? ""}
             onCreateBookingSuccess={(data) => {
               setBookingTitle(data.data.title);
               router.push(`/${data.data.uid}`);
@@ -62,16 +63,13 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
               orgSlug: "ecorp",
               considerUnpublished: false,
             }}
-            username={[
-              "npwruvxgpl-clujvibu30001khltnifvcca8-example",
-              "fqgtsbmbmo-clujvibu30001khltnifvcca8-example",
-            ]}
           />
         )}
         {!bookingTitle && rescheduleUid && eventTypeSlugQueryParam && (
           <Booker
             rescheduleUid={rescheduleUid}
             eventSlug={eventTypeSlugQueryParam}
+            username={props.calUsername ?? ""}
             onCreateBookingSuccess={(data) => {
               setBookingTitle(data.data.title);
               router.push(`/${data.data.uid}`);
@@ -81,10 +79,6 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
               orgSlug: "ecorp",
               considerUnpublished: false,
             }}
-            username={[
-              "npwruvxgpl-clujvibu30001khltnifvcca8-example",
-              "fqgtsbmbmo-clujvibu30001khltnifvcca8-example",
-            ]}
           />
         )}
         {bookingTitle && <p>Booking created: {bookingTitle}</p>}
