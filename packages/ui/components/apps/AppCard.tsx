@@ -1,12 +1,16 @@
-import { usePathname } from "next/navigation";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useMemo } from "react";
 import { useEffect, useState } from "react";
 
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
+import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { InstallAppButton } from "@calcom/app-store/components";
 import { doesAppSupportTeamInstall } from "@calcom/app-store/utils";
 import { Spinner } from "@calcom/features/calendars/weeklyview/components/spinner/Spinner";
 import type { UserAdminTeams } from "@calcom/features/ee/teams/lib/getUserAdminTeams";
+import { AppOnboardingSteps } from "@calcom/lib/apps/appOnboardingSteps";
+import { getAppOnboardingUrl } from "@calcom/lib/apps/getAppOnboardingUrl";
+import { shouldRedirectToAppOnboarding } from "@calcom/lib/apps/shouldRedirectToAppOnboarding";
 import classNames from "@calcom/lib/classNames";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -14,18 +18,17 @@ import type { AppFrontendPayload as App } from "@calcom/types/App";
 import type { CredentialFrontendPayload as Credential } from "@calcom/types/Credential";
 import type { ButtonProps } from "@calcom/ui";
 import {
-  Dropdown,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuPortal,
-  DropdownMenuLabel,
-  DropdownItem,
   Avatar,
   Badge,
+  Dropdown,
+  DropdownItem,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuPortal,
+  DropdownMenuTrigger,
 } from "@calcom/ui";
 
 import { Button } from "../button";
-import { Plus } from "../icon";
 import { showToast } from "../toast";
 
 interface AppCardProps {
@@ -81,7 +84,7 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
         </h3>
       </div>
       {/* TODO: add reviews <div className="flex text-sm text-default">
-            <span>{props.rating} stars</span> <StarIcon className="ml-1 mt-0.5 h-4 w-4 text-yellow-600" />
+            <span>{props.rating} stars</span> <Icon name="star" className="ml-1 mt-0.5 h-4 w-4 text-yellow-600" />
             <span className="pl-1 text-subtle">{props.reviews} reviews</span>
           </div> */}
       <p
@@ -124,6 +127,7 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
                       appCategories={app.categories}
                       concurrentMeetings={app.concurrentMeetings}
                       paid={app.paid}
+                      dirName={app.dirName}
                     />
                   );
                 }}
@@ -151,6 +155,7 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
                       credentials={credentials}
                       concurrentMeetings={app.concurrentMeetings}
                       paid={app.paid}
+                      dirName={app.dirName}
                       {...props}
                     />
                   );
@@ -180,6 +185,8 @@ const InstallAppButtonChild = ({
   credentials,
   concurrentMeetings,
   paid,
+  dirName,
+  onClick,
   ...props
 }: {
   userAdminTeams?: UserAdminTeams;
@@ -187,6 +194,7 @@ const InstallAppButtonChild = ({
   appCategories: string[];
   credentials?: Credential[];
   concurrentMeetings?: boolean;
+  dirName: string | undefined;
   paid: App["paid"];
 } & ButtonProps) => {
   const { t } = useLocale();
@@ -207,6 +215,16 @@ const InstallAppButtonChild = ({
     },
   });
 
+  const appMetadata = appStoreMetadata[dirName as keyof typeof appStoreMetadata];
+  const redirectToAppOnboarding = useMemo(() => shouldRedirectToAppOnboarding(appMetadata), [appMetadata]);
+
+  const _onClick = (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
+    if (redirectToAppOnboarding) {
+      router.push(getAppOnboardingUrl({ slug: appMetadata.slug, step: AppOnboardingSteps.ACCOUNTS_STEP }));
+    } else if (onClick) {
+      onClick(e);
+    }
+  };
   // Paid apps don't support team installs at the moment
   // Also, cal.ai(the only paid app at the moment) doesn't support team install either
   if (paid) {
@@ -214,7 +232,8 @@ const InstallAppButtonChild = ({
       <Button
         color="secondary"
         className="[@media(max-width:260px)]:w-full [@media(max-width:260px)]:justify-center"
-        StartIcon={Plus}
+        StartIcon="plus"
+        onClick={_onClick}
         data-testid="install-app-button"
         {...props}>
         {paid.trial ? t("start_paid_trial") : t("subscribe")}
@@ -230,7 +249,8 @@ const InstallAppButtonChild = ({
       <Button
         color="secondary"
         className="[@media(max-width:260px)]:w-full [@media(max-width:260px)]:justify-center"
-        StartIcon={Plus}
+        StartIcon="plus"
+        onClick={_onClick}
         data-testid="install-app-button"
         {...props}>
         {t("install")}
@@ -238,13 +258,27 @@ const InstallAppButtonChild = ({
     );
   }
 
+  if (redirectToAppOnboarding) {
+    return (
+      <Button
+        color="secondary"
+        className="[@media(max-width:260px)]:w-full [@media(max-width:260px)]:justify-center"
+        StartIcon="plus"
+        data-testid="install-app-button"
+        onClick={_onClick}
+        {...props}
+        size="base">
+        {t("install")}
+      </Button>
+    );
+  }
   return (
     <Dropdown>
       <DropdownMenuTrigger asChild>
         <Button
           color="secondary"
           className="[@media(max-width:260px)]:w-full [@media(max-width:260px)]:justify-center"
-          StartIcon={Plus}
+          StartIcon="plus"
           data-testid="install-app-button"
           {...props}>
           {t("install")}
@@ -273,14 +307,13 @@ const InstallAppButtonChild = ({
                 type="button"
                 disabled={isInstalledTeamOrUser}
                 key={team.id}
-                StartIcon={(props: { className?: string }) => (
+                CustomStartIcon={
                   <Avatar
                     alt={team.logo || ""}
                     imageSrc={team.logo || `${WEBAPP_URL}/${team.logo}/avatar.png`} // if no image, use default avatar
                     size="sm"
-                    {...props}
                   />
-                )}
+                }
                 onClick={() => {
                   mutation.mutate(
                     team.isUser ? addAppMutationInput : { ...addAppMutationInput, teamId: team.id }

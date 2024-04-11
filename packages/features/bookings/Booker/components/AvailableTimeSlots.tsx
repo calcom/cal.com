@@ -111,6 +111,7 @@ export const AvailableTimeSlots = ({
           ))
         )}
       </div>
+
       <div
         ref={containerRef}
         className={classNames(

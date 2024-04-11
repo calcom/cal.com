@@ -18,14 +18,26 @@ import { setDestinationCalendarHandler } from "../../loggedInViewer/setDestinati
 import type { TUpdateInputSchema } from "./update.schema";
 import { ensureUniqueBookingFields, handleCustomInputs, handlePeriodType } from "./util";
 
+type SessionUser = NonNullable<TrpcSessionUser>;
+type User = {
+  id: SessionUser["id"];
+  username: SessionUser["username"];
+  profile: {
+    id: SessionUser["profile"]["id"] | null;
+  };
+  selectedCalendars: SessionUser["selectedCalendars"];
+};
+
 type UpdateOptions = {
   ctx: {
-    user: NonNullable<TrpcSessionUser>;
+    user: User;
     res?: NextApiResponse | GetServerSidePropsContext["res"];
     prisma: PrismaClient;
   };
   input: TUpdateInputSchema;
 };
+
+export type UpdateEventTypeReturn = Awaited<ReturnType<typeof updateHandler>>;
 
 export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   const {
@@ -56,6 +68,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   const eventType = await ctx.prisma.eventType.findUniqueOrThrow({
     where: { id },
     select: {
+      title: true,
       aiPhoneCallConfig: {
         select: {
           generalPrompt: true,
@@ -360,9 +373,15 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         where: {
           eventTypeId: id,
         },
-        update: aiPhoneCallConfig,
+        update: {
+          ...aiPhoneCallConfig,
+          guestEmail: !!aiPhoneCallConfig?.guestEmail ? aiPhoneCallConfig.guestEmail : null,
+          guestCompany: !!aiPhoneCallConfig?.guestCompany ? aiPhoneCallConfig.guestCompany : null,
+        },
         create: {
           ...aiPhoneCallConfig,
+          guestEmail: !!aiPhoneCallConfig?.guestEmail ? aiPhoneCallConfig.guestEmail : null,
+          guestCompany: !!aiPhoneCallConfig?.guestCompany ? aiPhoneCallConfig.guestCompany : null,
           eventTypeId: id,
         },
       });

@@ -1,6 +1,9 @@
 import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
 import { EventTypesModule } from "@/ee/event-types/event-types.module";
+import { CreateEventTypeInput } from "@/ee/event-types/inputs/create-event-type.input";
+import { UpdateEventTypeInput } from "@/ee/event-types/inputs/update-event-type.input";
+import { GetEventTypeOutput } from "@/ee/event-types/outputs/get-event-type.output";
 import { HttpExceptionFilter } from "@/filters/http-exception.filter";
 import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
@@ -61,7 +64,7 @@ describe("Event types Endpoints", () => {
     let eventTypesRepositoryFixture: EventTypesRepositoryFixture;
 
     const userEmail = "event-types-test-e2e@api.com";
-    const name = "bob";
+    const name = "bob the builder";
     const username = name;
     let eventType: EventType;
     let user: User;
@@ -86,6 +89,7 @@ describe("Event types Endpoints", () => {
       oauthClientRepositoryFixture = new OAuthClientRepositoryFixture(moduleRef);
       userRepositoryFixture = new UserRepositoryFixture(moduleRef);
       teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);
+      eventTypesRepositoryFixture = new EventTypesRepositoryFixture(moduleRef);
 
       organization = await teamRepositoryFixture.create({ name: "organization" });
       oAuthClient = await createOAuthClient(organization.id);
@@ -94,17 +98,6 @@ describe("Event types Endpoints", () => {
         name,
         username,
       });
-
-      eventTypesRepositoryFixture = new EventTypesRepositoryFixture(moduleRef);
-
-      eventType = await eventTypesRepositoryFixture.create(
-        {
-          length: 60,
-          title: "peer coding session",
-          slug: "peer-coding",
-        },
-        user.id
-      );
 
       await app.init();
     });
@@ -129,6 +122,50 @@ describe("Event types Endpoints", () => {
       expect(user).toBeDefined();
     });
 
+    it("should create an event type", async () => {
+      const body: CreateEventTypeInput = {
+        title: "Test Event Type",
+        slug: "test-event-type",
+        description: "A description of the test event type.",
+        length: 60,
+        hidden: false,
+        locations: [
+          {
+            type: "Online",
+            link: "https://example.com/meet",
+            displayLocationPublicly: true,
+          },
+        ],
+      };
+
+      return request(app.getHttpServer())
+        .post("/api/v2/event-types")
+        .send(body)
+        .expect(201)
+        .then(async (response) => {
+          const responseBody: ApiSuccessResponse<EventType> = response.body;
+          expect(responseBody.data).toHaveProperty("id");
+          expect(responseBody.data.title).toEqual(body.title);
+          eventType = responseBody.data;
+        });
+    });
+
+    it("should update event type", async () => {
+      const newTitle = "Updated title";
+
+      const body: UpdateEventTypeInput = {
+        title: newTitle,
+      };
+
+      return request(app.getHttpServer())
+        .patch(`/api/v2/event-types/${eventType.id}`)
+        .send(body)
+        .expect(200)
+        .then(async () => {
+          eventType.title = newTitle;
+        });
+    });
+
     it(`/GET/:id`, async () => {
       const response = await request(app.getHttpServer())
         .get(`/api/v2/event-types/${eventType.id}`)
@@ -136,14 +173,14 @@ describe("Event types Endpoints", () => {
         .set("Authorization", `Bearer whatever`)
         .expect(200);
 
-      const responseBody: ApiSuccessResponse<EventType> = response.body;
+      const responseBody: GetEventTypeOutput = response.body;
 
       expect(responseBody.status).toEqual(SUCCESS_STATUS);
       expect(responseBody.data).toBeDefined();
-      expect(responseBody.data.id).toEqual(eventType.id);
-      expect(responseBody.data.title).toEqual(eventType.title);
-      expect(responseBody.data.slug).toEqual(eventType.slug);
-      expect(responseBody.data.userId).toEqual(user.id);
+      expect(responseBody.data.eventType.id).toEqual(eventType.id);
+      expect(responseBody.data.eventType.title).toEqual(eventType.title);
+      expect(responseBody.data.eventType.slug).toEqual(eventType.slug);
+      expect(responseBody.data.eventType.userId).toEqual(user.id);
     });
 
     it(`/GET/`, async () => {
@@ -154,10 +191,8 @@ describe("Event types Endpoints", () => {
         .expect(200);
 
       const responseBody: ApiSuccessResponse<EventTypesByViewer> = response.body;
-
       expect(responseBody.status).toEqual(SUCCESS_STATUS);
       expect(responseBody.data).toBeDefined();
-      console.log("asap responseBody.data", responseBody.data);
       expect(responseBody.data.eventTypeGroups).toBeDefined();
       expect(responseBody.data.eventTypeGroups).toBeDefined();
       expect(responseBody.data.eventTypeGroups[0]).toBeDefined();
@@ -178,7 +213,6 @@ describe("Event types Endpoints", () => {
 
       expect(responseBody.status).toEqual(SUCCESS_STATUS);
       expect(responseBody.data).toBeDefined();
-      console.log("asap responseBody.data", responseBody.data);
       expect(responseBody.data).toBeDefined();
       expect(responseBody.data.length).toEqual(1);
       expect(responseBody.data[0].id).toEqual(eventType.id);
@@ -192,10 +226,18 @@ describe("Event types Endpoints", () => {
         .expect(404);
     });
 
+    it("should delete schedule", async () => {
+      return request(app.getHttpServer()).delete(`/api/v2/event-types/${eventType.id}`).expect(200);
+    });
+
     afterAll(async () => {
       await oauthClientRepositoryFixture.delete(oAuthClient.id);
       await teamRepositoryFixture.delete(organization.id);
-      await eventTypesRepositoryFixture.delete(eventType.id);
+      try {
+        await eventTypesRepositoryFixture.delete(eventType.id);
+      } catch (e) {
+        // Event type might have been deleted by the test
+      }
       try {
         await userRepositoryFixture.delete(user.id);
       } catch (e) {
