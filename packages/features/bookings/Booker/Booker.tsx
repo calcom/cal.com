@@ -462,7 +462,7 @@ const BookerComponent = ({
   );
 };
 
-export const Booker = (props: BookerProps & WrappedBookerProps & { customClassNames?: CustomClassNames }) => {
+export const Booker = (props: BookerProps & WrappedBookerProps) => {
   if (props.isAway) return <Away />;
 
   return (
