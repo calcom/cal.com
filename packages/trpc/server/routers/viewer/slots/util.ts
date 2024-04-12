@@ -386,20 +386,28 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
           const contactOwner = eventType.hosts.find((host) => host.user.email === contact[0].ownerEmail);
           if (contactOwner) {
             teamMember = contactOwner.user.email;
-            usersWithCredentials = [contactOwner.user];
+            usersWithCredentials = [
+              contactOwner.user,
+              ...eventType.hosts.reduce((fixedHosts, host) => {
+                if (host.user.email !== contactOwner.user.email && host.isFixed) fixedHosts.push(host.user);
+                return fixedHosts;
+              }, []),
+            ];
           }
         }
       }
     }
-  } else if (eventType.schedulingType && !!eventType.hosts?.length) {
-    usersWithCredentials = eventType.hosts.map(({ isFixed, user }) => ({ isFixed, ...user }));
   }
 
   if (!usersWithCredentials) {
-    usersWithCredentials = eventType.users.map((user) => ({
-      isFixed: !eventType.schedulingType || eventType.schedulingType === SchedulingType.COLLECTIVE,
-      ...user,
-    }));
+    if (eventType.schedulingType && !!eventType.hosts?.length) {
+      usersWithCredentials = eventType.hosts.map(({ isFixed, user }) => ({ isFixed, ...user }));
+    } else {
+      usersWithCredentials = eventType.users.map((user) => ({
+        isFixed: !eventType.schedulingType || eventType.schedulingType === SchedulingType.COLLECTIVE,
+        ...user,
+      }));
+    }
   }
 
   const durationToUse = input.duration || 0;
