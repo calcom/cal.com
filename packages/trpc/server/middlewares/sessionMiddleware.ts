@@ -51,6 +51,7 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
       twoFactorEnabled: true,
       disableImpersonation: true,
       identityProvider: true,
+      identityProviderId: true,
       brandColor: true,
       darkBrandColor: true,
       away: true,

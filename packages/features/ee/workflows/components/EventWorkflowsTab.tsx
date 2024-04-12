@@ -43,7 +43,7 @@ const WorkflowListItem = (props: ItemProps) => {
   );
 
   const isActive = activeEventTypeIds.includes(eventType.id);
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
 
   const activateEventTypeMutation = trpc.viewer.workflows.activateEventType.useMutation({
     onSuccess: async () => {

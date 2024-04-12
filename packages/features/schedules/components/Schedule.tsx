@@ -26,7 +26,6 @@ import {
   Dropdown,
   DropdownMenuContent,
   DropdownMenuTrigger,
-  Icon,
   Select,
   SkeletonText,
   Switch,
