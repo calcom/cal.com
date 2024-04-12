@@ -3,6 +3,7 @@ import { GetPublicEventTypeQueryParams } from "@/ee/event-types/inputs/get-publi
 import { UpdateEventTypeInput } from "@/ee/event-types/inputs/update-event-type.input";
 import { CreateEventTypeOutput } from "@/ee/event-types/outputs/create-event-type.output";
 import { DeleteEventTypeOutput } from "@/ee/event-types/outputs/delete-event-type.output";
+import { GetEventTypePublicOutput } from "@/ee/event-types/outputs/get-event-type-public.output";
 import { GetEventTypeOutput } from "@/ee/event-types/outputs/get-event-type.output";
 import { GetEventTypesPublicOutput } from "@/ee/event-types/outputs/get-event-types-public.output";
 import { GetEventTypesOutput } from "@/ee/event-types/outputs/get-event-types.output";
@@ -32,10 +33,8 @@ import {
 import { ApiTags as DocsTags } from "@nestjs/swagger";
 
 import { EVENT_TYPE_READ, EVENT_TYPE_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
-import type { PublicEventType } from "@calcom/platform-libraries";
 import { getPublicEvent } from "@calcom/platform-libraries";
 import { getEventTypesByViewer } from "@calcom/platform-libraries";
-import { ApiResponse } from "@calcom/platform-types";
 import { PrismaClient } from "@calcom/prisma";
 
 @Controller({
@@ -106,7 +105,7 @@ export class EventTypesController {
     @Param("username") username: string,
     @Param("eventSlug") eventSlug: string,
     @Query() queryParams: GetPublicEventTypeQueryParams
-  ): Promise<ApiResponse<PublicEventType>> {
+  ): Promise<GetEventTypePublicOutput> {
     try {
       const event = await getPublicEvent(
         username.toLowerCase(),
