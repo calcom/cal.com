@@ -340,7 +340,9 @@ export const OAuthClientForm: FC<{ clientId?: string }> = ({ clientId }) => {
 
         <div className="mt-6">
           <div className="flex justify-between">
-            <h1 className="text-base font-semibold underline">Permissions</h1>
+            <Tooltip side="right" content="Permissions once set cannot be modified">
+              <h1 className="text-base font-semibold underline">Permissions</h1>
+            </Tooltip>
             <Button type="button" onClick={selectAllPermissions} disabled={disabledForm || Boolean(clientId)}>
               {!isSelectAllPermissionsChecked ? "Select all" : "Discard all"}
             </Button>
