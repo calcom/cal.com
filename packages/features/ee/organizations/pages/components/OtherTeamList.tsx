@@ -13,7 +13,7 @@ interface Props {
 }
 
 export default function OtherTeamList(props: Props) {
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
 
   const [hideDropdown, setHideDropdown] = useState(false);
 

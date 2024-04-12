@@ -55,7 +55,7 @@ export function EditForm({
 }) {
   const [setMutationLoading] = useEditMode((state) => [state.setMutationloading], shallow);
   const { t } = useLocale();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const form = useForm({
     resolver: zodResolver(editSchema),
     defaultValues: {
