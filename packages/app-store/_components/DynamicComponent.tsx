@@ -8,7 +8,7 @@ export function DynamicComponent<T extends Record<string, React.ComponentType<an
   const dirName = slug === "stripe" ? "stripepayment" : slug;
 
   // There can be apps with no matching component
-  if (!componentMap[dirName]) return null;
+  if (!componentMap[slug]) return null;
 
   const Component = componentMap[dirName];
 

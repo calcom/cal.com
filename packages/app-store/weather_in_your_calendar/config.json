@@ -10,6 +10,5 @@
   "publisher": "Andreas Vejnø Andersen",
   "email": "info@vejnoe.dk",
   "description": "Get the local weather forecast with icons in your calendar\r\r",
-  "__createdUsingCli": true,
-  "isOAuth": false
+  "__createdUsingCli": true
 }

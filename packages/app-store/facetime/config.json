@@ -21,6 +21,5 @@
       "urlRegExp": "^https?:\\/\\/facetime\\.apple\\.com\\/join.+$"
     }
   },
-  "isTemplate": false,
-  "isOAuth": false
+  "isTemplate": false
 }
