@@ -165,8 +165,6 @@ export interface App {
   concurrentMeetings?: boolean;
 
   createdAt?: string;
-  /** Specifies if the App uses an OAuth flow  */
-  isOAuth?: boolean;
 }
 
 export type AppFrontendPayload = Omit<App, "key"> & {
