@@ -5,6 +5,7 @@ import AppCard from "@calcom/app-store/_components/AppCard";
 import useIsAppEnabled from "@calcom/app-store/_utils/useIsAppEnabled";
 import type { EventTypeAppCardComponent } from "@calcom/app-store/types";
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { Switch } from "@calcom/ui";
 
@@ -16,6 +17,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
   const { getAppData, setAppData, disabled } = useAppContextWithSchema<typeof appDataSchema>();
   const { enabled, updateEnabled } = useIsAppEnabled(app);
   const isRoundRobinLeadSkipEnabled = getAppData("roundRobinLeadSkip");
+  const { t } = useLocale();
 
   return (
     <AppCard
@@ -30,7 +32,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
       <>
         {eventType.schedulingType === SchedulingType.ROUND_ROBIN ? (
           <Switch
-            label="Skip round robin assignment if contact exists in Salesforce"
+            label={t("skip_rr_assignment_label")}
             labelOnLeading
             checked={isRoundRobinLeadSkipEnabled}
             onCheckedChange={(checked) => setAppData("roundRobinLeadSkip", checked)}
