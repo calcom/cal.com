@@ -35,7 +35,7 @@ export function GoogleWorkspaceInviteButton(
   props: PropsWithChildren<{ onSuccess: (data: string[]) => void }>
 ) {
   const featureFlags = useFlagMap();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const { t } = useLocale();
   const params = useParamsWithFallback();
   const teamId = Number(params.id);
