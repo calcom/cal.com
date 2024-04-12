@@ -108,7 +108,7 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
   const translateEvent = async (event: CalendarEvent) => {
     // Documentation at: https://docs.daily.co/reference#list-rooms
     // added a 1 hour buffer for room expiration
-    const exp = Math.round(new Date(event.endTime).getTime() / 1000) + 60 * 60;
+    const exp = Math.round(new Date(event.endTime).getTime() / 1000) + 60 * 60 * 24 * 14;
     const { scale_plan: scalePlan } = await getDailyAppKeys();
     const hasTeamPlan = await prisma.membership.findFirst({
       where: {
