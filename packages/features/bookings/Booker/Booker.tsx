@@ -66,8 +66,6 @@ const BookerComponent = ({
   orgBannerUrl,
   customClassNames,
 }: BookerProps & WrappedBookerProps) => {
-  console.log(customClassNames, " custom classnames from booker");
-
   const { t } = useLocale();
   const [bookerState, setBookerState] = useBookerStore((state) => [state.state, state.setState], shallow);
   const selectedDate = useBookerStore((state) => state.selectedDate);
@@ -253,7 +251,6 @@ const BookerComponent = ({
         <div
           className="animate-fade-in-up fixed bottom-2 z-40 my-2 opacity-0"
           style={{ animationDelay: "1s" }}>
-          This is the booking tag manager
           <InstantBooking
             event={event.data}
             onConnectNow={() => {
