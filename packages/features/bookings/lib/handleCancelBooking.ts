@@ -43,6 +43,7 @@ async function getBookingToDelete(id: number | undefined, uid: string | undefine
       user: {
         select: {
           id: true,
+          username: true,
           credentials: { select: credentialForCalendarServiceSelect }, // Not leaking at the moment, be careful with
           email: true,
           timeZone: true,
@@ -403,8 +404,6 @@ async function handler(req: CustomRequest) {
     });
   }
 
-  const apiDeletes = [];
-
   const isBookingInRecurringSeries = !!(
     bookingToDelete.eventType?.recurringEvent &&
     bookingToDelete.recurringEventId &&
@@ -412,7 +411,7 @@ async function handler(req: CustomRequest) {
   );
   const credentials = await getAllCredentials(bookingToDelete.user, bookingToDelete.eventType);
 
-  const eventManager = new EventManager({ credentials });
+  const eventManager = new EventManager({ ...bookingToDelete.user, credentials });
 
   await eventManager.cancelEvent(evt, bookingToDelete.references, isBookingInRecurringSeries);
 
@@ -445,13 +444,6 @@ async function handler(req: CustomRequest) {
   const prismaPromises: Promise<unknown>[] = [bookingReferenceDeletes];
 
   try {
-    const temp = prismaPromises.concat(apiDeletes);
-    const settled = await Promise.allSettled(temp);
-    const rejected = settled.filter(({ status }) => status === "rejected") as PromiseRejectedResult[];
-    if (rejected.length) {
-      throw new Error(`Reasons: ${rejected.map(({ reason }) => reason)}`);
-    }
-
     // TODO: if emails fail try to requeue them
     await sendCancelledEmails(evt, { eventName: bookingToDelete?.eventType?.eventName });
   } catch (error) {

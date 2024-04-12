@@ -71,7 +71,7 @@ export const AddNewTeamMembersForm = ({
   const { t, i18n } = useLocale();
 
   const router = useRouter();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const orgBranding = useOrgBranding();
 
   const showDialog = searchParams?.get("inviteModal") === "true";
@@ -234,7 +234,7 @@ const AddNewTeamMemberSkeleton = () => {
 const PendingMemberItem = (props: { member: TeamMember; index: number; teamId: number; isOrg?: boolean }) => {
   const { member, index, teamId } = props;
   const { t } = useLocale();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const session = useSession();
   const bookerUrl = member.bookerUrl;
   const { data: currentOrg } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {
