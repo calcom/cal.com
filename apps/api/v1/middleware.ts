@@ -16,7 +16,7 @@ export async function middleware() {
   if (!isInMaintenanceMode) return NextResponse.next();
   // If is in maintenance mode, return a 503 status code
   return NextResponse.json(
-    { message: "API is currently in maintenance. Please try again at a later time." },
+    { message: "API is currently under maintenance. Please try again at a later time." },
     { status: 503 }
   );
 }
