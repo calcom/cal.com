@@ -79,7 +79,7 @@ export default function CreateEventTypeDialog({
   }[];
   isOrganization: boolean;
 }) {
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const { t } = useLocale();
   const router = useRouter();
   const [firstRender, setFirstRender] = useState(true);

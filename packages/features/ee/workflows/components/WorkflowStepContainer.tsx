@@ -50,6 +50,7 @@ import {
 } from "../lib/actionHelperFunctions";
 import { DYNAMIC_TEXT_VARIABLES } from "../lib/constants";
 import { getWorkflowTemplateOptions, getWorkflowTriggerOptions } from "../lib/getOptions";
+import emailRatingTemplate from "../lib/reminders/templates/emailRatingTemplate";
 import emailReminderTemplate from "../lib/reminders/templates/emailReminderTemplate";
 import smsReminderTemplate from "../lib/reminders/templates/smsReminderTemplate";
 import { whatsappReminderTemplate } from "../lib/reminders/templates/whatsapp";
@@ -70,7 +71,7 @@ type WorkflowStepProps = {
 
 export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const { t } = useLocale();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
 
   const { step, form, reload, setReload, teamId } = props;
   const { data: _verifiedNumbers } = trpc.viewer.workflows.getVerifiedNumbers.useQuery(
@@ -215,6 +216,15 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     onSuccess: async (isVerified) => {
       showToast(isVerified ? t("verified_successfully") : t("wrong_code"), "success");
       setNumberVerified(isVerified);
+      if (
+        step &&
+        form?.formState?.errors?.steps &&
+        form.formState.errors.steps[step.stepNumber - 1]?.sendTo &&
+        isVerified
+      ) {
+        form.clearErrors(`steps.${step.stepNumber - 1}.sendTo`);
+      }
+
       utils.viewer.workflows.getVerifiedNumbers.invalidate();
     },
     onError: (err) => {
@@ -739,6 +749,15 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                                   emailReminderTemplate(true, action, timeFormat).emailSubject
                                 );
                               }
+                            } else if (val.value === WorkflowTemplates.RATING) {
+                              form.setValue(
+                                `steps.${step.stepNumber - 1}.reminderBody`,
+                                emailRatingTemplate({ isEditingMode: true, action, timeFormat }).emailBody
+                              );
+                              form.setValue(
+                                `steps.${step.stepNumber - 1}.emailSubject`,
+                                emailRatingTemplate({ isEditingMode: true, action, timeFormat }).emailSubject
+                              );
                             } else {
                               if (isWhatsappAction(action)) {
                                 form.setValue(
