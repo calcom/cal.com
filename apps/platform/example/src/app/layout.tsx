@@ -9,6 +9,13 @@ import { Analytics } from "@vercel/analytics/react";
 import { TailwindIndicator } from "./tailwind-indicator";
 import { Providers } from "./providers";
 import { Metadata } from "next";
+/**
+ * [@calcom] In your root layout, make sure you import the atoms' global styles so that you get our shiny styles
+ * @link https://cal.com/docs/platform/quick-start#5.3-setup-root-of-your-app
+ */
+import "@calcom/atoms/globals.min.css";
+import { currentUser } from "~/auth";
+
 
 const interFont = Inter({ subsets: ["latin"], variable: "--font-inter", preload: true, display: "swap" });
 const calFont = localFont({
@@ -38,11 +45,14 @@ export const metadata: Metadata = {
   icons: [{ rel: "icon", url: "/favicon.ico" }],
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  /** [@calcom] Fetch the user so that we can add the user's accessToken to the <CalProvider /> */
+  const user = await currentUser();
+  
   return (
     <html lang="en">
       <head />
@@ -54,10 +64,10 @@ export default function RootLayout({
           interFont.variable,
         )}
       >
-        <Providers defaultTheme="system" enableSystem attribute="class">
+        <Providers defaultTheme="system" enableSystem attribute="class" calToken={user?.calToken?.calAccessToken}>
           <div className="flex min-h-screen flex-col">
             {/* Omitting header, so that the search page is Google-style */}
-            <main>{children}</main>
+           {children}
           </div>
           <TailwindIndicator />
         </Providers>

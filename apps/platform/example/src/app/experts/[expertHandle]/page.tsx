@@ -7,7 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "~/components/ui/card";
-// import { Booker } from "@calcom/atoms";
+import { ExpertBooker } from "./_components/expert-booker";
 
 import { getExperts } from "~/lib/experts";
 import { useState } from "react";
@@ -25,7 +25,6 @@ export default async function ExpertDetails({
   if (!expert) {
     return <div>Expert not found</div>;
   }
-
 
   return (
     <div className="grid flex-1 gap-4 overflow-auto p-4 md:grid-cols-2 lg:grid-cols-3">
@@ -61,7 +60,7 @@ export default async function ExpertDetails({
                   </h3>
                   <div className="flex gap-2">
                     {expert.services.map((service) => (
-                      <Badge key={service.name} >{service.name}</Badge>
+                      <Badge key={service.name}>{service.name}</Badge>
                     ))}
                   </div>
                 </div>
@@ -70,9 +69,8 @@ export default async function ExpertDetails({
           </CardContent>
         </Card>
       </div>
-      <div className="relative flex h-full min-h-[50vh] flex-col rounded-xl bg-muted/50 p-4 lg:col-span-2 justify-center items-center">
-          {`<Booker
-          />`}
+      <div className="relative flex h-full min-h-[50vh] flex-col items-center justify-center rounded-xl bg-muted/50 p-4 lg:col-span-2">
+        <ExpertBooker expert={expert} />
       </div>
     </div>
   );

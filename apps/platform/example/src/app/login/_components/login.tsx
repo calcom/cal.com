@@ -45,7 +45,7 @@ export function LoginForm() {
             <Label htmlFor="password">Password</Label>
             <Input id="password" name="password" type="password" required />
           </div>
-          <input hidden name="redirectTo" value="/dashboard" />
+          <input hidden name="redirectTo" value="/dashboard/getting-started" />
         </CardContent>
         <CardFooter>
           <ButtonSubmit variant="default" className="w-full">

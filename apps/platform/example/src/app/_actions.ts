@@ -25,7 +25,3 @@ export async function signInWithCredentials(
     throw error;
   }
 }
-
-export async function signInWithGithub() {
-  await signIn("github", { redirectTo: "/dashboard" });
-}

@@ -1,3 +1,4 @@
+import { CalProvider } from "@calcom/atoms";
 import {
   Calendar,
   CircleUserRound,
@@ -38,10 +39,15 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "~/components/ui/tooltip";
+import { env } from "~/env";
 
-export default async function Layout({ children }: { children: React.ReactNode }) {
-  const { id: userId, username } = await currentUser()
-
+export default async function Layout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const user = await currentUser();
+  if (!user) return null;
   return (
     <div className="flex min-h-screen w-full flex-col bg-muted/40">
       <aside className="fixed inset-y-0 left-0 z-10 hidden w-14 flex-col border-r bg-background sm:flex">
@@ -190,7 +196,9 @@ export default async function Layout({ children }: { children: React.ReactNode }
           </Breadcrumb>
           <div className="relative ml-auto flex-1 md:grow-0">
             <div className="flex flex-row items-center gap-4">
-              <span className="[width:max-content] text-muted-foreground text-sm">Logged in as "{username}"</span>
+              <span className="text-sm text-muted-foreground [width:max-content]">
+                Logged in as "{user?.username}"
+              </span>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
@@ -204,24 +212,28 @@ export default async function Layout({ children }: { children: React.ReactNode }
                 <DropdownMenuContent align="end!">
                   <DropdownMenuLabel>My Account</DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem>Settings</DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <Link href="/dashboard/settings">Settings</Link>
+                  </DropdownMenuItem>
                   <DropdownMenuItem>Support</DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuLabel>
-                      <form action={async () => {
+                    <form
+                      action={async () => {
                         "use server";
                         await signOut();
                       }}
-                      ><ButtonSubmit className="w-full">Logout</ButtonSubmit></form>
+                    >
+                      <ButtonSubmit className="w-full">Logout</ButtonSubmit>
+                    </form>
                   </DropdownMenuLabel>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
           </div>
         </header>
-        <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8 lg:grid-cols-3 xl:grid-cols-3">
-          {children}
-        </main>
+
+        {children}
       </div>
     </div>
   );

@@ -56,12 +56,9 @@ export const SignupForm = () => {
               <Label htmlFor="password">Password</Label>
               <Input id="password" name="password" type="password" />
             </div>
-            <input hidden name="redirectTo" value="/dashboard" />
+            <input hidden name="redirectTo" value="/dashboard/getting-started" />
             <Button type="submit" className="w-full">
               Create an account
-            </Button>
-            <Button variant="outline" className="w-full">
-              Sign up with GitHub
             </Button>
           </div>
           <div className="mt-4 text-center text-sm">

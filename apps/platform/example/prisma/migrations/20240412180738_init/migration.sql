@@ -46,6 +46,15 @@ CREATE TABLE "User" (
 );
 
 -- CreateTable
+CREATE TABLE "CalToken" (
+    "calId" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "calAccessToken" TEXT NOT NULL,
+    "calRefreshToken" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    CONSTRAINT "CalToken_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- CreateTable
 CREATE TABLE "VerificationToken" (
     "identifier" TEXT NOT NULL,
     "token" TEXT NOT NULL,
@@ -66,6 +75,18 @@ CREATE UNIQUE INDEX "User_username_key" ON "User"("username");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "CalToken_calAccessToken_key" ON "CalToken"("calAccessToken");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "CalToken_calRefreshToken_key" ON "CalToken"("calRefreshToken");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "CalToken_userId_key" ON "CalToken"("userId");
+
+-- CreateIndex
+CREATE INDEX "CalToken_calId_calAccessToken_calRefreshToken_idx" ON "CalToken"("calId", "calAccessToken", "calRefreshToken");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "VerificationToken_token_key" ON "VerificationToken"("token");

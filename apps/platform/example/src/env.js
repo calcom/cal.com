@@ -11,11 +11,13 @@ export const env = createEnv({
       .string()
       .refine(
         (str) => !str.includes("libsql://your-database.turso.io"),
-        "You forgot to change the default TURSO URL"
+        "You forgot to change the default TURSO URL",
       ),
-      TURSO_AUTH_TOKEN: z.string().refine(
+    TURSO_AUTH_TOKEN: z
+      .string()
+      .refine(
         (str) => !str.includes("your-access-token"),
-        "You forgot to change the default TURSO token"
+        "You forgot to change the default TURSO token",
       ),
     NODE_ENV: z
       .enum(["development", "test", "production"])
@@ -29,10 +31,17 @@ export const env = createEnv({
       // Since NextAuth.js automatically uses the VERCEL_URL if present.
       (str) => process.env.VERCEL_URL ?? str,
       // VERCEL_URL doesn't include `https` so it cant be validated as a URL
-      process.env.VERCEL ? z.string() : z.string().url()
+      process.env.VERCEL ? z.string() : z.string().url(),
     ),
     DISCORD_CLIENT_ID: z.string(),
     DISCORD_CLIENT_SECRET: z.string(),
+
+    /**
+     * [@calcom] These are the server environment variables to make our atoms work:
+     * - CAL_SECRET: The secret key to authenticate our SDK requests. Follow this guide to get it 👇
+     * @link: https://cal.com/docs/platform/quick-start#2.-setting-up-an-oauth-client
+     */
+    CAL_SECRET: z.string(),
   },
 
   /**
@@ -41,7 +50,17 @@ export const env = createEnv({
    * `NEXT_PUBLIC_`.
    */
   client: {
-    // NEXT_PUBLIC_CLIENTVAR: z.string(),
+    /** [@calcom] These are the server environment variables to make our atoms work:
+     * - *NEXT_PUBLIC_CAL_OAUTH_CLIENT_ID*: The OAuth client ID to authenticate our SDK requests. Follow this guide to get it 👇
+     * @link: https://cal.com/docs/platform/quick-start#2.-setting-up-an-oauth-client
+     * - *NEXT_PUBLIC_CAL_API_URL*: Use our sandbox 'https://api.cal.dev/api/v2' for development & for production use: 'https://api.cal.com/v2'
+     * @link: https://cal.com/docs/platform/quick-start#5.2-setup-environment-variables
+     * - *NEXT_PUBLIC_REFRESH_URL*:You have to expose this URL webhook for cal to update
+     * @link: https://cal.com/docs/platform/quick-start#4.-backend:-setting-up-refresh-token-endpoint
+     */
+    NEXT_PUBLIC_CAL_OAUTH_CLIENT_ID: z.string(),
+    NEXT_PUBLIC_CAL_API_URL: z.string(),
+    NEXT_PUBLIC_REFRESH_URL: z.string(),
   },
 
   /**
@@ -56,6 +75,11 @@ export const env = createEnv({
     NEXTAUTH_URL: process.env.NEXTAUTH_URL,
     DISCORD_CLIENT_ID: process.env.DISCORD_CLIENT_ID,
     DISCORD_CLIENT_SECRET: process.env.DISCORD_CLIENT_SECRET,
+    /** [@calcom] Make sure to add the calcom variables to your runtime environment variables, so that you can use them */
+    CAL_SECRET: process.env.CAL_SECRET,
+    NEXT_PUBLIC_CAL_API_URL: process.env.NEXT_PUBLIC_CAL_API_URL,
+    NEXT_PUBLIC_CAL_OAUTH_CLIENT_ID: process.env.NEXT_PUBLIC_CAL_OAUTH_CLIENT_ID,
+    NEXT_PUBLIC_REFRESH_URL: process.env.NEXT_PUBLIC_REFRESH_URL,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

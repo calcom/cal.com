@@ -1,17 +1,37 @@
 "use client";
+/**
+ * [@calcom] Make sure to wrap your app with our `CalProvider` to enable the use of our hooks.
+ * @link https://cal.com/docs/platform/quick-start#5.3-setup-root-of-your-app
+ */
+import { CalProvider } from "@calcom/atoms";
 
 import * as React from "react";
 import { ThemeProvider as NextThemesProvider } from "next-themes";
 import type { ThemeProviderProps } from "next-themes/dist/types";
 import { TRPCReactProvider } from "~/trpc/react";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
+import { env } from "~/env";
+import { CalToken } from "@prisma/client";
 
-// Add any providers (e.g. TooltipsProvider) here
-export function Providers({ children, ...props }: ThemeProviderProps) {
+export function Providers({
+  children,
+  ...props
+}: ThemeProviderProps & { calToken?: CalToken["calAccessToken"] }) {
+  const calToken = props?.calToken;
   return (
     <TRPCReactProvider>
-      <NextThemesProvider {...props}>
-        <TooltipProvider>{children}</TooltipProvider></NextThemesProvider>
+      <CalProvider
+        clientId={env.NEXT_PUBLIC_CAL_OAUTH_CLIENT_ID}
+        options={{
+          apiUrl: env.NEXT_PUBLIC_CAL_API_URL,
+          refreshUrl: env.NEXT_PUBLIC_REFRESH_URL,
+        }}
+        {...(calToken && { accessToken: calToken })}
+      >
+        <NextThemesProvider {...props}>
+          <TooltipProvider>{children}</TooltipProvider>
+        </NextThemesProvider>
+      </CalProvider>
     </TRPCReactProvider>
   );
 }
