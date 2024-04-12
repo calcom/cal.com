@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Prisma } from "@prisma/client";
+import { OAuth2TokenResponseInDbSchema } from "_auth/universalSchema";
 import type { calendar_v3 } from "googleapis";
 import { google } from "googleapis";
 import { RRule } from "rrule";
@@ -21,11 +22,34 @@ import type {
 } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
-import type { ParseRefreshTokenResponse } from "../../_utils/oauth/parseRefreshTokenResponse";
-import parseRefreshTokenResponse from "../../_utils/oauth/parseRefreshTokenResponse";
-import refreshOAuthTokens from "../../_utils/oauth/refreshOAuthTokens";
+import { authInterface } from "../../_utils/oauth/authInterface";
+import { metadata } from "../_metadata";
 import { getGoogleAppKeys } from "./getGoogleAppKeys";
 import { googleCredentialSchema } from "./googleCredentialSchema";
+
+async function doesResponseInvalidatesToken(response: Response) {
+  if (!response.ok || (response.status < 200 && response.status >= 300)) {
+    const responseBody = await response.json();
+
+    if ((response && response.status === 124) || responseBody.error === "invalid_grant") {
+      return true;
+    }
+  }
+  return false;
+}
+function getTokenResponseFromCredential(credential: CredentialPayload) {
+  const parsedTokenResponse = OAuth2TokenResponseInDbSchema.safeParse(credential.key);
+
+  if (!parsedTokenResponse.success) {
+    throw new Error("Could not parse credential.key");
+  }
+
+  const tokenResponse = parsedTokenResponse.data;
+  if (!tokenResponse) {
+    throw new Error("credential.key is not set");
+  }
+  return tokenResponse;
+}
 
 interface GoogleCalError extends Error {
   code?: number;
@@ -66,7 +90,7 @@ export default class GoogleCalendarService implements Calendar {
   private auth: { getToken: () => Promise<MyGoogleAuth> };
   private log: typeof logger;
   private credential: CredentialPayload;
-
+  private myGoogleAuth!: MyGoogleAuth;
   constructor(credential: CredentialPayload) {
     this.integrationName = "google_calendar";
     this.credential = credential;
@@ -75,62 +99,66 @@ export default class GoogleCalendarService implements Calendar {
     this.credential = credential;
   }
 
+  private async getGoogleAuthSingleton() {
+    const googleCredentials = googleCredentialSchema.parse(this.credential.key);
+    const { client_id, client_secret, redirect_uris } = await getGoogleAppKeys();
+    this.myGoogleAuth = this.myGoogleAuth || new MyGoogleAuth(client_id, client_secret, redirect_uris[0]);
+    this.myGoogleAuth.setCredentials(googleCredentials);
+    return this.myGoogleAuth;
+  }
+
   private googleAuth = (credential: CredentialPayload) => {
-    const googleCredentials = googleCredentialSchema.parse(credential.key);
+    const tokenResponse = getTokenResponseFromCredential(credential);
+    const auth = authInterface({
+      resourceOwner: {
+        type: "user",
+        id: credential.userId,
+      },
+      appSlug: metadata.slug,
+      currentTokenResponse: tokenResponse,
+      tokenRefresh: async (refreshToken) => {
+        const myGoogleAuth = await this.getGoogleAuthSingleton();
+        const fetchTokens = await myGoogleAuth.refreshToken(refreshToken);
 
-    async function getGoogleAuth() {
-      const { client_id, client_secret, redirect_uris } = await getGoogleAppKeys();
-      const myGoogleAuth = new MyGoogleAuth(client_id, client_secret, redirect_uris[0]);
-      myGoogleAuth.setCredentials(googleCredentials);
-      return myGoogleAuth;
-    }
-
-    const refreshAccessToken = async (myGoogleAuth: Awaited<ReturnType<typeof getGoogleAuth>>) => {
-      try {
-        const token = await refreshOAuthTokens(
-          async () => {
-            const fetchTokens = await myGoogleAuth.refreshToken(googleCredentials.refresh_token);
-            return fetchTokens.res;
-          },
-          "google-calendar",
-          credential.userId
-        );
-
-        googleCredentials.access_token = token.access_token;
-        googleCredentials.expiry_date = token.expiry_date;
-        const parsedKey: ParseRefreshTokenResponse<typeof googleCredentialSchema> = parseRefreshTokenResponse(
-          googleCredentials,
-          googleCredentialSchema
-        );
-        await prisma.credential.update({
-          where: { id: credential.id },
-          data: { key: { ...parsedKey } as Prisma.InputJsonValue },
+        // Create Response from fetchToken.res
+        const response = new Response(JSON.stringify(fetchTokens.res), {
+          status: 200,
+          statusText: "OK",
         });
-        myGoogleAuth.setCredentials(googleCredentials);
-      } catch (err) {
-        let message;
-        if (err instanceof Error) message = err.message;
-        else message = String(err);
-        this.log.error("Error Refreshing Google Token:", message);
-        // if not invalid_grant, default behaviour (which admittedly isn't great)
-        if (message !== "invalid_grant") return myGoogleAuth;
-        // when the error is invalid grant, it's unrecoverable and the credential marked invalid.
-        // TODO: Evaluate bubbling up and handling this in the CalendarManager. IMO this should be done
-        //       but this is a bigger refactor.
+        return response;
+      },
+      isTokenResponseValid: () => {
+        // gauth takes care of this
+        return true;
+      },
+      doesResponseInvalidatesToken,
+      onNewTokenResponse: async (newToken) => {
+        if (!newToken) {
+          await invalidateCredential(credential.id);
+          throw new Error("Invalid grant for Cal.com Google Calendar app");
+        }
+        const myGoogleAuth = await this.getGoogleAuthSingleton();
+        myGoogleAuth.setCredentials(newToken);
+
         await prisma.credential.update({
-          where: { id: credential.id },
+          where: {
+            id: credential.id,
+          },
           data: {
-            invalid: true,
+            key: newToken,
           },
         });
-      }
-      return myGoogleAuth;
-    };
+      },
+    });
     return {
       getToken: async () => {
-        const myGoogleAuth = await getGoogleAuth();
+        const myGoogleAuth = await this.getGoogleAuthSingleton();
         const isExpired = () => myGoogleAuth.isTokenExpiring();
-        return !isExpired() ? Promise.resolve(myGoogleAuth) : refreshAccessToken(myGoogleAuth);
+        if (!isExpired()) {
+          return Promise.resolve(myGoogleAuth.getAccessToken());
+        } else {
+          return auth.getAccessTokenAndRefreshIfNeeded();
+        }
       },
     };
   };
@@ -638,3 +666,22 @@ class MyGoogleAuth extends google.auth.OAuth2 {
     return super.refreshToken(token);
   }
 }
+
+const invalidateCredential = async (credentialId: CredentialPayload["id"]) => {
+  const credential = await prisma.credential.findUnique({
+    where: {
+      id: credentialId,
+    },
+  });
+
+  if (credential) {
+    await prisma.credential.update({
+      where: {
+        id: credentialId,
+      },
+      data: {
+        invalid: true,
+      },
+    });
+  }
+};

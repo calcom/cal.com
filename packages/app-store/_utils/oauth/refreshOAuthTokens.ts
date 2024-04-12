@@ -42,20 +42,20 @@ const validateAndNormalizeToken = (
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const refreshOAuthTokens = async ({
-  refreshFunction,
+export const refreshOAuthTokens = async ({
+  refresh,
   appSlug,
   userId,
-  checkIfResponseInvalidatesToken,
+  doesResponseInvalidatesToken,
 }: {
-  refreshFunction: () => Promise<Response>;
+  refresh: () => Promise<Response>;
   appSlug: string;
   userId: number | null;
   /**
    *  @param response The response from the refreshFunction
    * `response` is a clone of the original response, so it can be consumed again
    */
-  checkIfResponseInvalidatesToken?: (response: Response) => Promise<boolean>;
+  doesResponseInvalidatesToken?: (response: Response) => Promise<boolean>;
 }) => {
   let response;
 
@@ -88,24 +88,27 @@ const refreshOAuthTokens = async ({
     });
     log.debug("Response from credential sync endpoint", await response.clone().text());
   } else {
-    response = await refreshFunction();
+    response = await refresh();
   }
 
-  const json = getJsonFromResponse({ checkIfResponseInvalidatesToken, response });
+  const json = getAndValidateJsonFromResponse({ doesResponseInvalidatesToken, response });
+  if (!json) {
+    return null;
+  }
   const token = validateAndNormalizeToken(
     OAuth2UniversalSchemaWithCalcomBackwardCompatibility.safeParse(json)
   );
   return token;
 };
 
-export async function getJsonFromResponse({
-  checkIfResponseInvalidatesToken,
+export async function getAndValidateJsonFromResponse({
+  doesResponseInvalidatesToken,
   response,
 }: {
-  checkIfResponseInvalidatesToken?: (response: Response) => Promise<boolean>;
+  doesResponseInvalidatesToken?: (response: Response) => Promise<boolean>;
   response: Response;
 }) {
-  if (checkIfResponseInvalidatesToken && (await checkIfResponseInvalidatesToken(response.clone()))) {
+  if (doesResponseInvalidatesToken && (await doesResponseInvalidatesToken(response.clone()))) {
     return null;
   }
 

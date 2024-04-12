@@ -1,19 +1,36 @@
-import { authInterface } from "_auth/auth";
-import { OAuth2UniversalSchemaWithCalcomBackwardCompatibility } from "_auth/universalSchema";
+import {
+  OAuth2TokenResponseInDbSchema,
+  OAuth2UniversalSchemaWithCalcomBackwardCompatibility,
+} from "_auth/universalSchema";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
 import prisma from "@calcom/prisma";
-import type { Credential } from "@calcom/prisma/client";
+import type { Credential, Prisma } from "@calcom/prisma/client";
 import { Frequency } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 import type { PartialReference } from "@calcom/types/EventManager";
 import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapter";
 
-import { getJsonFromResponse } from "../../_utils/oauth/refreshOAuthTokens";
+import { authInterface } from "../../_utils/oauth/authInterface";
+import { getAndValidateJsonFromResponse } from "../../_utils/oauth/refreshOAuthTokens";
 import { metadata } from "../_metadata";
 import { getZoomAppKeys } from "./getZoomAppKeys";
+
+function getTokenResponseFromCredential(credential: CredentialPayload) {
+  const parsedTokenResponse = OAuth2TokenResponseInDbSchema.safeParse(credential.key);
+
+  if (!parsedTokenResponse.success) {
+    throw new Error("Could not parse credential.key");
+  }
+
+  const tokenResponse = parsedTokenResponse.data;
+  if (!tokenResponse) {
+    throw new Error("credential.key is not set");
+  }
+  return tokenResponse;
+}
 
 /** @link https://marketplace.zoom.us/docs/api-reference/zoom-api/meetings/meetingcreate */
 const zoomEventResultSchema = z.object({
@@ -49,13 +66,15 @@ export const zoomMeetingsSchema = z.object({
   ),
 });
 
-type ZoomToken = z.infer<typeof OAuth2UniversalSchemaWithCalcomBackwardCompatibility>;
+const isTokenValid = (token: Prisma.JsonValue) => {
+  const parsedToken = OAuth2UniversalSchemaWithCalcomBackwardCompatibility.safeParse(token);
+  if (parsedToken.success) {
+    return (parsedToken.data.expires_in || parsedToken.data.expiry_date || 0) > Date.now();
+  }
+  return false;
+};
 
-const isTokenValid = (token: Partial<ZoomToken>) =>
-  OAuth2UniversalSchemaWithCalcomBackwardCompatibility.safeParse(token).success &&
-  (token.expires_in || token.expiry_date || 0) > Date.now();
-
-async function checkIfZoomTokenIsInvalid(response: Response) {
+async function doesResponseInvalidatesToken(response: Response) {
   if (!response.ok || (response.status < 200 && response.status >= 300)) {
     const responseBody = await response.json();
 
@@ -76,6 +95,8 @@ type ZoomRecurrence = {
 };
 
 const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => {
+  const tokenResponse = getTokenResponseFromCredential(credential);
+
   const translateEvent = (event: CalendarEvent) => {
     const getRecurrence = ({
       recurringEvent,
@@ -158,14 +179,47 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
   };
 
   const fetchZoomApi = async (endpoint: string, options?: RequestInit) => {
-    const clientCredentials = await getZoomAppKeys();
     const auth = authInterface({
-      clientCredentials,
-      credential: credential,
+      resourceOwner: {
+        type: "user",
+        id: credential.userId,
+      },
       appSlug: metadata.slug,
-      checkIfResponseInvalidatesToken: checkIfZoomTokenIsInvalid,
+      currentTokenResponse: tokenResponse,
+      tokenRefresh: async (refreshToken) => {
+        const clientCredentials = await getZoomAppKeys();
+        const { client_id, client_secret } = clientCredentials;
+        const authHeader = `Basic ${Buffer.from(`${client_id}:${client_secret}`).toString("base64")}`;
+        return fetch("https://zoom.us/oauth/token", {
+          method: "POST",
+          headers: {
+            Authorization: authHeader,
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: new URLSearchParams({
+            refresh_token: refreshToken,
+            grant_type: "refresh_token",
+          }),
+        });
+      },
+      isTokenResponseValid: isTokenValid,
+      doesResponseInvalidatesToken,
+      onNewTokenResponse: async (newToken) => {
+        if (!newToken) {
+          await invalidateCredential(credential.id);
+          throw new Error("Invalid grant for Cal.com zoom app");
+        }
+        await prisma.credential.update({
+          where: {
+            id: credential.id,
+          },
+          data: {
+            key: newToken,
+          },
+        });
+      },
     });
-    const accessToken = await auth.getToken();
+    const accessToken = await auth.getAccessTokenAndRefreshIfNeeded();
     const response = await fetch(`https://api.zoom.us/v2/${endpoint}`, {
       method: "GET",
       ...options,
@@ -174,9 +228,9 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
         ...options?.headers,
       },
     });
-    const object = await getJsonFromResponse({
+    const object = await getAndValidateJsonFromResponse({
       response,
-      checkIfResponseInvalidatesToken: checkIfZoomTokenIsInvalid,
+      doesResponseInvalidatesToken: doesResponseInvalidatesToken,
     });
     return object;
   };
