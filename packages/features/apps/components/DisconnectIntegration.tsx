@@ -22,7 +22,7 @@ export default function DisconnectIntegration({
 }) {
   const { t } = useLocale();
   const [modalOpen, setModalOpen] = useState(false);
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
 
   const mutation = trpc.viewer.deleteCredential.useMutation({
     onSuccess: () => {

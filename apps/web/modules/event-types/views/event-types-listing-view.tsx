@@ -230,7 +230,7 @@ export const EventTypeList = ({
   const [deleteDialogTypeSchedulingType, setDeleteDialogSchedulingType] = useState<SchedulingType | null>(
     null
   );
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const mutation = trpc.viewer.eventTypeOrder.useMutation({
     onError: async (err) => {
       console.error(err.message);
@@ -896,7 +896,7 @@ const Main = ({
                   className="mt-4 flex flex-col"
                   data-testid={`slug-${group.profile.slug}`}
                   key={group.profile.slug}>
-                  {/* If the group is readonly and empty don't leave a floating header when the user cant see the create box due 
+                  {/* If the group is readonly and empty don't leave a floating header when the user cant see the create box due
                     to it being readonly for that user */}
                   {group.eventTypes.length === 0 && group.metadata.readOnly ? null : (
                     <EventTypeListHeading
