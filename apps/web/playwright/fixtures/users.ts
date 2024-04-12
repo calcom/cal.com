@@ -912,11 +912,14 @@ export async function getPaymentCredential(page: Page) {
   await page.goto("/apps/stripe");
 
   /** We start the Stripe flow */
-  await page.click('[data-testid="install-app-button"]');
-  await page.click('[data-testid="install-app-on-personal-account"]');
-  await page.waitForURL("https://connect.stripe.com/oauth/v2/authorize?*");
-  /** We skip filling Stripe forms (testing mode only) */
-  await page.click('[id="skip-account-app"]');
-  await page.waitForURL("apps/installation/event-types?slug=stripe");
-  await page.goto("/apps/installed/payment?hl=stripe");
+  await Promise.all([
+    page.waitForURL("https://connect.stripe.com/oauth/v2/authorize?*"),
+    page.click('[data-testid="install-app-button"]'),
+  ]);
+
+  await Promise.all([
+    page.waitForURL("/apps/installed/payment?hl=stripe"),
+    /** We skip filling Stripe forms (testing mode only) */
+    page.click('[id="skip-account-app"]'),
+  ]);
 }

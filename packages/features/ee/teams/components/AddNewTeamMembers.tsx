@@ -16,6 +16,7 @@ import { trpc } from "@calcom/trpc/react";
 import {
   Badge,
   Button,
+  Icon,
   showToast,
   SkeletonButton,
   SkeletonContainer,

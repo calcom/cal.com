@@ -9,7 +9,6 @@ import { memo, useEffect, useState } from "react";
 import { z } from "zod";
 
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
-import useIntercom from "@calcom/features/ee/support/lib/intercom/useIntercom";
 import { EventTypeEmbedButton, EventTypeEmbedDialog } from "@calcom/features/embed/EventTypeEmbed";
 import { EventTypeDescription } from "@calcom/features/eventtypes/components";
 import CreateEventTypeDialog from "@calcom/features/eventtypes/components/CreateEventTypeDialog";
@@ -950,8 +949,6 @@ const EventTypesPage: React.FC & {
   getLayout?: AppProps["Component"]["getLayout"];
 } = () => {
   const { t } = useLocale();
-  const searchParams = useCompatSearchParams();
-  const { open } = useIntercom();
   const { data: user } = useMeQuery();
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [showProfileBanner, setShowProfileBanner] = useState(false);
@@ -965,13 +962,6 @@ const EventTypesPage: React.FC & {
     gcTime: 1 * 60 * 60 * 1000,
     staleTime: 1 * 60 * 60 * 1000,
   });
-
-  useEffect(() => {
-    if (searchParams?.get("openIntercom") === "true") {
-      open();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   useEffect(() => {
     setShowProfileBanner(
