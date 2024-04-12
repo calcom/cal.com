@@ -18,7 +18,6 @@ export const metadata = {
   variant: "other",
   email: "help@cal.com",
   dirName: "wipemycalother",
-  isOAuth: false,
 } as AppMeta;
 
 export default metadata;
