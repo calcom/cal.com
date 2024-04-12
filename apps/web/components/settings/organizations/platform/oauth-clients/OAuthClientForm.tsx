@@ -53,11 +53,15 @@ type FormValues = {
 export const OAuthClientForm: FC<{ clientId?: string }> = ({ clientId }) => {
   const { t } = useLocale();
   const router = useRouter();
-  const { data, isFetched, isError } = useOAuthClient(clientId);
+  const { data, isFetched, isError, refetch } = useOAuthClient(clientId);
   const { register, control, handleSubmit, setValue } = useForm<FormValues>({
     defaultValues: {
       redirectUris: [{ uri: "" }],
     },
+  });
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: "redirectUris",
   });
   useEffect(() => {
     if (isFetched && data && !isError) {
@@ -68,7 +72,8 @@ export const OAuthClientForm: FC<{ clientId?: string }> = ({ clientId }) => {
         setValue("bookingRescheduleRedirectUri", data.bookingRescheduleRedirectUri);
       setValue("areEmailsEnabled", data?.areEmailsEnabled);
       data?.redirectUris.forEach((uri: string, index: number) => {
-        setValue(`redirectUris.${index}.uri`, uri);
+        index === 0 && setValue(`redirectUris.${index}.uri`, uri);
+        index !== 0 && append({ uri });
       });
       if (hasAppsReadPermission(data.permissions)) setValue("appsRead", true);
       if (hasAppsWritePermission(data.permissions)) setValue("appsWrite", true);
@@ -83,10 +88,7 @@ export const OAuthClientForm: FC<{ clientId?: string }> = ({ clientId }) => {
     }
   }, [isFetched, data]);
   const disabledForm = Boolean(clientId && !isFetched && isError);
-  const { fields, append, remove } = useFieldArray({
-    control,
-    name: "redirectUris",
-  });
+
   const [isSelectAllPermissionsChecked, setIsSelectAllPermissionsChecked] = useState(false);
 
   const selectAllPermissions = useCallback(() => {
@@ -104,6 +106,7 @@ export const OAuthClientForm: FC<{ clientId?: string }> = ({ clientId }) => {
   const { mutateAsync: save, isPending: isSaving } = useCreateOAuthClient({
     onSuccess: () => {
       showToast("OAuth client created successfully", "success");
+      refetch();
       router.push("/settings/organizations/platform/oauth-clients");
     },
     onError: () => {
@@ -113,6 +116,7 @@ export const OAuthClientForm: FC<{ clientId?: string }> = ({ clientId }) => {
   const { mutateAsync: update, isPending: isUpdating } = useUpdateOAuthClient({
     onSuccess: () => {
       showToast("OAuth client updated successfully", "success");
+      refetch();
       router.push("/settings/organizations/platform/oauth-clients");
     },
     onError: () => {
