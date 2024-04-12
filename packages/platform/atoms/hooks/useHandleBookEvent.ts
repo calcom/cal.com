@@ -17,7 +17,6 @@ type UseHandleBookingProps = {
   handleBooking: (input: BookingCreateBody) => void;
   handleInstantBooking: (input: BookingCreateBody) => void;
   handleRecBooking: (input: BookingCreateBody[]) => void;
-  orgSlug?: string | null;
 };
 
 export const useHandleBookEvent = ({
