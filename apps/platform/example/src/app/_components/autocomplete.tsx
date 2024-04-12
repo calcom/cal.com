@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import React, { forwardRef, useState } from "react";
 import {
   Command,
   CommandEmpty,
@@ -7,11 +7,13 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
+  CommandProps,
 } from "~/components/ui/command";
 
 import { Check } from "lucide-react";
 import { cn } from "~/lib/utils";
 import { useRouter } from "next/navigation";
+import { VariantProps, cva } from "class-variance-authority";
 export const defaultSort = {
   title: "Relevance",
   slug: null,
@@ -29,87 +31,122 @@ export const sorting = [
   }, // asc
 ];
 export type Option = { value: string; label: string };
-export const AutocompleteSearch = (props: { options: Array<Option>; initialSearch?: string }) => {
-  const initialSeletion = props.options.find((option) => option.value === props.initialSearch);
-  const [value, setValue] = useState(initialSeletion?.value || "");
-  const [open, setOpen] = useState(false);
-  const [query, setQuery] = useState(initialSeletion?.label || "");
-  const router = useRouter();
 
-  return (
-    <div
-      className="relative z-10"
-      onBlur={(e) => {
-        if (e.currentTarget.contains(e.relatedTarget)) return;
+// DEBUG: remove this
+type Prettify<T> = {
+  [K in keyof T]: T[K];
+} & {};
 
-        if (value && !query) {
-          setQuery(
-            props.options.find((option) => option.value === value)?.label || "",
-          );
-        }
-        setOpen(false);
-      }}
-    >
-      <Command data-open={open} className={"data-[open=true]:rounded-b-none"}>
-        <CommandInput
-          value={query}
-          placeholder="Search an expert..."
-          onFocus={() => {
-            setOpen(true);
-            if (
-              query ===
-              props.options.find((option) => option.value === value)?.label
-            ) {
-              setQuery("");
-            }
-          }}
-          onValueChange={(value) => setQuery(value)}
-          className="leading-[2.75rem]"
-        />
+export interface AutocompleteSearchProps
+  extends React.ComponentPropsWithoutRef<typeof Command> {
+  asChild?: boolean;
+  className?: string;
+  options: Array<Option>;
+  initialSearch?: string;
+  placement?: "header";
+}
+export const AutocompleteSearch = forwardRef<
+  HTMLDivElement,
+  AutocompleteSearchProps
+>(
+  (
+    { className, placement, asChild = false, options, initialSearch, ...props },
+    ref,
+  ) => {
+    const initialSeletion = options.find(
+      (option) => option.value === initialSearch,
+    );
+    const [value, setValue] = useState(initialSeletion?.value || "");
+    const [open, setOpen] = useState(false);
+    const [query, setQuery] = useState(initialSeletion?.label || "");
+    const router = useRouter();
 
-        <CommandList>
-          {open && (
-            <div
-              data-open={open}
-              className="absolute left-0 right-0 top-full rounded-b-md bg-background p-0 shadow !duration-150 data-[open=true]:animate-in data-[open=true]:fade-in"
-            >
-              <CommandEmpty>No expert found.</CommandEmpty>
-              <CommandGroup>
-                {props.options.map((option) => (
-                  <CommandItem
-                    key={option.value}
-                    value={option.value}
-                    onFocus={() => console.log("focus")}
-                    onSelect={(newValue) => {
-                      setValue(newValue);
-                      setQuery(
-                        props.options.find(
-                          (option) => option.value === newValue,
-                        )?.label || "",
-                      );
+    return (
+      <div
+        className="relative z-10"
+        onBlur={(e) => {
+          if (e.currentTarget.contains(e.relatedTarget)) return;
 
-                      setOpen(false);
-
-                      router.push(
-                        `/experts?${new URLSearchParams({ q: newValue })}`,
-                        {scroll: false}
-                      );
-                    }}
-                  >
-                    <Check
-                      className={cn(
-                        "mr-2 h-4 w-4",
-                        value === option.value ? "opacity-100" : "opacity-0",
-                      )}
-                    />
-                    {option.label}
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            </div>
+          if (value && !query) {
+            setQuery(
+              options.find((option) => option.value === value)?.label || "",
+            );
+          }
+          setOpen(false);
+        }}
+      >
+        <Command
+          data-open={open}
+          className={cn(
+            "data-[open=true]:rounded-b-none",
+            placement === "header" && "border",
+            className,
           )}
-        </CommandList>
-      </Command>
-    </div>
-  );
-};
+          ref={ref}
+          {...props}
+        >
+          <CommandInput
+            value={query}
+            placeholder="Search an expert..."
+            onFocus={() => {
+              setOpen(true);
+              if (
+                query ===
+                options.find((option) => option.value === value)?.label
+              ) {
+                setQuery("");
+              }
+            }}
+            onValueChange={(value) => setQuery(value)}
+            className="h-full justify-center leading-[2.75rem]"
+          />
+
+          <CommandList>
+            {open && (
+              <div
+                data-open={open}
+                className={cn(
+                  "absolute left-0 right-0 top-full rounded-b-md bg-background p-0 shadow !duration-150 data-[open=true]:animate-in data-[open=true]:fade-in",
+                  placement === "header" && "border-x border-b",
+                )}
+              >
+                <CommandEmpty>No expert found.</CommandEmpty>
+                <CommandGroup>
+                  {options.map((option) => (
+                    <CommandItem
+                      key={option.value}
+                      value={option.value}
+                      onFocus={() => console.log("focus")}
+                      onSelect={(newValue) => {
+                        setValue(newValue);
+                        setQuery(
+                          options.find((option) => option.value === newValue)
+                            ?.label || "",
+                        );
+
+                        setOpen(false);
+
+                        router.push(
+                          `/experts?${new URLSearchParams({ q: newValue })}`,
+                          { scroll: false },
+                        );
+                      }}
+                    >
+                      <Check
+                        className={cn(
+                          "mr-2 h-4 w-4",
+                          value === option.value ? "opacity-100" : "opacity-0",
+                        )}
+                      />
+                      {option.label}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </div>
+            )}
+          </CommandList>
+        </Command>
+      </div>
+    );
+  },
+);

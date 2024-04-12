@@ -3,6 +3,9 @@
 
 generator client {
     provider = "prisma-client-js"
+    // This enables turso usage
+    previewFeatures = ["driverAdapters"]
+
 }
 
 datasource db {
@@ -11,7 +14,7 @@ datasource db {
     // Further reading:
     // https://next-auth.js.org/adapters/prisma#create-the-prisma-schema
     // https://www.prisma.io/docs/reference/api-reference/prisma-schema-reference#string
-    url      = env("DATABASE_URL")
+      url      = "file:./dev.db"
 }
 
 model Post {
@@ -56,8 +59,10 @@ model Session {
 model User {
     id            String    @id @default(cuid())
     name          String?
+    username     String?   @unique
     email         String?   @unique
     emailVerified DateTime?
+    hashedPassword String?
     image         String?
     accounts      Account[]
     sessions      Session[]

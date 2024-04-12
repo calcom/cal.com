@@ -15,6 +15,10 @@ const config = {
       },
     ],
   },
+  experimental: {
+    instrumentationHook: true,
+    serverComponentsExternalPackages: ["pino", "pino-pretty"],
+  },
 };
 
 export default config;

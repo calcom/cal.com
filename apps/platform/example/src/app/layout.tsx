@@ -57,7 +57,7 @@ export default function RootLayout({
         <Providers defaultTheme="system" enableSystem attribute="class">
           <div className="flex min-h-screen flex-col">
             {/* Omitting header, so that the search page is Google-style */}
-            <main className="flex flex-1 flex-col">{children}</main>
+            <main>{children}</main>
           </div>
           <TailwindIndicator />
         </Providers>

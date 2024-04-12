@@ -2,9 +2,10 @@
 import { Loader } from "lucide-react";
 import { type ReactNode } from "react";
 import { useFormStatus } from "react-dom";
-import { Button } from "~/components/ui/button";
+import { Button, ButtonProps } from "~/components/ui/button";
+import { cn } from "~/lib/utils";
 
-export const SubmitButton = (props: { children: ReactNode }) => {
+export const SubmitButton = ({className, children, ...props}: { children: ReactNode; className?: string } & ButtonProps) => {
   const status = useFormStatus();
   return (
     <>
@@ -12,7 +13,8 @@ export const SubmitButton = (props: { children: ReactNode }) => {
         type="submit"
         variant="secondary"
         disabled={status.pending}
-        className="w-48 font-normal"
+        className={cn("w-48 font-normal", className)}
+        {...props}
       >
         {status.pending ? (
           <div className="flex w-full flex-row justify-evenly">
@@ -21,14 +23,11 @@ export const SubmitButton = (props: { children: ReactNode }) => {
               // 1s feels a bit fast
               style={{ animationDuration: "2s" }}
             />
-            <p>Searching...</p>
           </div>
         ) : (
-          props.children
+          children
         )}
       </Button>
-      {status.data && <p>Data: {JSON.stringify(status.data)}</p>}
-      {status.action && <p>the action: {JSON.stringify(status.action)}</p>}
     </>
   );
 };

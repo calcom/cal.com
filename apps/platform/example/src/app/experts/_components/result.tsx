@@ -1,6 +1,6 @@
 "use client";
 import Image from "next/image";
-import { MoreHorizontal } from "lucide-react";
+import { ChevronRightIcon, MoreHorizontal } from "lucide-react";
 
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
@@ -30,6 +30,7 @@ import {
 import { Expert } from "~/app/experts/page";
 import { Separator } from "~/components/ui/separator";
 import { relativeTime } from "~/lib/utils";
+import Link from "next/link";
 
 export default function ExpertList(props: { experts: Array<Expert> }) {
   return (
@@ -52,7 +53,7 @@ export default function ExpertList(props: { experts: Array<Expert> }) {
       <CardContent>
         <Table>
           <TableHeader>
-            <TableRow>
+            <TableRow className="border-none">
               <TableHead className="hidden w-[100px] sm:table-cell">
                 <span className="sr-only">Image</span>
               </TableHead>
@@ -60,9 +61,7 @@ export default function ExpertList(props: { experts: Array<Expert> }) {
               <TableHead>Services</TableHead>
               <TableHead className="hidden md:table-cell">Profession</TableHead>
               <TableHead className="hidden md:table-cell">Location</TableHead>
-              <TableHead className="hidden md:table-cell">
-                Available
-              </TableHead>
+              <TableHead className="hidden md:table-cell">Available</TableHead>
               <TableHead>
                 <span className="sr-only">Actions</span>
               </TableHead>
@@ -74,18 +73,20 @@ export default function ExpertList(props: { experts: Array<Expert> }) {
               return (
                 <TableRow key={result.id}>
                   <TableCell className="hidden sm:table-cell">
-                    <Image
-                      alt={result.image.alt}
-                      className="aspect-square rounded-md object-cover"
-                      height="64"
-                      src={result.image.url}
-                      width="64"
-                    />
+                    <Link href={`/experts/${result.username}`}>
+                      <Image
+                        alt={result.image.alt}
+                        className="aspect-square rounded-md object-cover"
+                        height="64"
+                        src={result.image.url}
+                        width="64"
+                      />
+                    </Link>
                   </TableCell>
-                  <TableCell className="font-medium">{result.name}</TableCell>
-                  <TableCell>
-                    {result.services.map((service) => (
-                      <Badge variant="outline">{service.name}</Badge>
+                  <TableCell className="font-medium"><Link href={`/experts/${result.username}`}>{result.name}</Link></TableCell>
+                  <TableCell className="space-x-1 space-y-1">
+                    {result.services.map((service, idx) => (
+                      <Badge key={idx}>{service.name}</Badge>
                     ))}
                   </TableCell>
                   <TableCell className="hidden md:table-cell">
@@ -94,27 +95,19 @@ export default function ExpertList(props: { experts: Array<Expert> }) {
                   <TableCell className="hidden md:table-cell">
                     {result.location}
                   </TableCell>
-                  <TableCell className="hidden md:table-cell" suppressHydrationWarning>
+                  <TableCell
+                    className="hidden md:table-cell"
+                    suppressHydrationWarning
+                  >
                     {relativeTime(available)}
                   </TableCell>
                   <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          aria-haspopup="true"
-                          size="icon"
-                          variant="ghost"
-                        >
-                          <MoreHorizontal className="h-4 w-4" />
-                          <span className="sr-only">Toggle menu</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem>Edit</DropdownMenuItem>
-                        <DropdownMenuItem>Delete</DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    <Link href={`/experts/${result.username}`}>
+                    <ChevronRightIcon
+                      className="h-5 w-5 flex-none"
+                      aria-hidden="true"
+                    />
+                    </Link>
                   </TableCell>
                 </TableRow>
               );
@@ -124,7 +117,7 @@ export default function ExpertList(props: { experts: Array<Expert> }) {
       </CardContent>
       <CardFooter>
         <div className="text-xs text-muted-foreground">
-          Showing <strong>1-10</strong> of <strong>32</strong> experts
+          Showing <strong>{props.experts.length}</strong> experts
         </div>
       </CardFooter>
     </Card>

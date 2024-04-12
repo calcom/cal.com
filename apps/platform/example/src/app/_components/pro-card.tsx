@@ -20,7 +20,7 @@ export const ProCard = () => {
       </CardHeader>
       <CardContent>
         <div className="grid gap-4">
-          <Link href="/pro">
+          <Link href="/signup">
             <Button className="w-full">Sign Up</Button>
           </Link>
         </div>

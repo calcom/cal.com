@@ -2,36 +2,8 @@ import { Balancer } from "react-wrap-balancer";
 import { AutocompleteSearch } from "~/app/_components/autocomplete";
 import { sorting, defaultSort, professions } from "~/lib/constants";
 import ExpertList from "~/app/experts/_components/result";
-export type Expert = Awaited<ReturnType<typeof getExperts>>[number];
+import { getExperts } from "~/lib/experts";
 
-const getExperts = async ({
-  sortKey,
-  reverse,
-  query,
-}: {
-  query?: string;
-  reverse?: boolean;
-  sortKey?: string;
-}) => {
-  // TODO: replace w/ db call using sortKey, reverse, query
-  // const response = await fetch("https://jsonplaceholder.typicode.com/posts");
-  // return response.json();
-
-  // return an array of 100 results of type Expert:
-  return Array.from({ length: 100 }, (_, i) => ({
-    id: i,
-    profession: { name: "Hair dresser", isRemote: false },
-    services: [{ name: "Haircut" }],
-    image: {
-      url: "https://picsum.photos/200",
-      alt: "A profile picture",
-    },
-    location: "Berlin",
-    name: "John Doe",
-    updatedAt: new Date(),
-    availableAt: new Date(),
-  }));
-};
 
 export const runtime = "edge";
 
@@ -54,9 +26,9 @@ export default async function ResultsPage({
     reverse,
     query: searchValue,
   });
-  const resultsText = experts.length > 1 ? "results" : "result";
+
   return (
-    <>
+    <div className="flex flex-1 flex-col">
       {experts.length > 0 ? (
         <main className="flex min-h-screen flex-col items-center justify-center">
           <div className="flex-1">
@@ -77,13 +49,11 @@ export default async function ResultsPage({
               </div>
             </div>
             <div className="mx-auto flex max-w-[980px] flex-col items-center justify-center gap-12 px-4 py-6 md:min-w-[50vw]">
-
-              {/* <ExpertList experts={experts} /> */}
               <ExpertList experts={experts} />
             </div>
           </div>
         </main>
       ) : null}
-    </>
+    </div>
   );
 }
