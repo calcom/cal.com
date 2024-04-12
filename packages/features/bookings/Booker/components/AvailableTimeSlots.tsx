@@ -20,6 +20,12 @@ type AvailableTimeSlotsProps = {
   seatsPerTimeSlot?: number | null;
   showAvailableSeatsCount?: boolean | null;
   event: useEventReturnType;
+  customClassnames?: {
+    availableTimeSlotsContainer?: string;
+    availableTimeSlotsTitle?: string;
+    availableTimeSlotsTimeFormatToggle: string;
+    availableTimes?: string;
+  };
 };
 
 /**
@@ -37,6 +43,7 @@ export const AvailableTimeSlots = ({
   schedule,
   isLoading,
   event,
+  customClassnames,
 }: AvailableTimeSlotsProps) => {
   const selectedDate = useBookerStore((state) => state.selectedDate);
   const setSelectedTimeslot = useBookerStore((state) => state.setSelectedTimeslot);
@@ -81,13 +88,17 @@ export const AvailableTimeSlots = ({
 
   return (
     <>
-      <div className="flex">
+      <div className={classNames(`flex`, `${customClassnames?.availableTimeSlotsContainer}`)}>
         {isLoading ? (
           <div className="mb-3 h-8" />
         ) : (
           slotsPerDay.length > 0 &&
           slotsPerDay.map((slots) => (
             <AvailableTimesHeader
+              customClassnames={{
+                availableTimeSlotTitle: customClassnames?.availableTimeSlotsTitle,
+                availableTimeSlotTimeFormatToggle: customClassnames?.availableTimeSlotsTimeFormatToggle,
+              }}
               key={slots.date}
               date={dayjs(slots.date)}
               showTimeFormatToggle={!isColumnView}
@@ -105,7 +116,8 @@ export const AvailableTimeSlots = ({
         ref={containerRef}
         className={classNames(
           limitHeight && "scroll-bar flex-grow overflow-auto md:h-[400px]",
-          !limitHeight && "flex h-full w-full flex-row gap-4"
+          !limitHeight && "flex h-full w-full flex-row gap-4",
+          `${customClassnames?.availableTimeSlotsContainer}`
         )}>
         {isLoading && // Shows exact amount of days as skeleton.
           Array.from({ length: 1 + (extraDays ?? 0) }).map((_, i) => <AvailableTimesSkeleton key={i} />)}
@@ -114,6 +126,8 @@ export const AvailableTimeSlots = ({
           slotsPerDay.map((slots) => (
             <div key={slots.date} className="scroll-bar h-full w-full overflow-y-auto overflow-x-hidden">
               <AvailableTimes
+                className={customClassnames?.availableTimeSlotsContainer}
+                customClassnames={customClassnames?.availableTimes}
                 showTimeFormatToggle={!isColumnView}
                 onTimeSelect={onTimeSelect}
                 slots={slots.slots}
