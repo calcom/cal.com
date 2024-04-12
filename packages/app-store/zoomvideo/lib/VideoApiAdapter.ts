@@ -1,3 +1,5 @@
+import { authInterface } from "_auth/auth";
+import { OAuth2UniversalSchemaWithCalcomBackwardCompatibility } from "_auth/universalSchema";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
@@ -9,10 +11,8 @@ import type { CredentialPayload } from "@calcom/types/Credential";
 import type { PartialReference } from "@calcom/types/EventManager";
 import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapter";
 
-import type { ParseRefreshTokenResponse } from "../../_utils/oauth/parseRefreshTokenResponse";
-import parseRefreshTokenResponse from "../../_utils/oauth/parseRefreshTokenResponse";
-import refreshOAuthTokens from "../../_utils/oauth/refreshOAuthTokens";
-import metadata from "../_metadata";
+import { getJsonFromResponse } from "../../_utils/oauth/refreshOAuthTokens";
+import { metadata } from "../_metadata";
 import { getZoomAppKeys } from "./getZoomAppKeys";
 
 /** @link https://marketplace.zoom.us/docs/api-reference/zoom-api/meetings/meetingcreate */
@@ -49,92 +49,22 @@ export const zoomMeetingsSchema = z.object({
   ),
 });
 
-// Successful API response
-// @TODO: add link to the docs
-const zoomTokenSchema = z.object({
-  scope: z.string().regex(new RegExp("meeting:write")),
-  expiry_date: z.number(),
-  expires_in: z.number().optional(), // deprecated, purely for backwards compatibility; superseeded by expiry_date.
-  token_type: z.literal("bearer"),
-  access_token: z.string(),
-  refresh_token: z.string(),
-});
-
-type ZoomToken = z.infer<typeof zoomTokenSchema>;
+type ZoomToken = z.infer<typeof OAuth2UniversalSchemaWithCalcomBackwardCompatibility>;
 
 const isTokenValid = (token: Partial<ZoomToken>) =>
-  zoomTokenSchema.safeParse(token).success && (token.expires_in || token.expiry_date || 0) > Date.now();
+  OAuth2UniversalSchemaWithCalcomBackwardCompatibility.safeParse(token).success &&
+  (token.expires_in || token.expiry_date || 0) > Date.now();
 
-/** @link https://marketplace.zoom.us/docs/guides/auth/oauth/#request */
-const zoomRefreshedTokenSchema = z.object({
-  access_token: z.string(),
-  token_type: z.literal("bearer"),
-  refresh_token: z.string(),
-  expires_in: z.number(),
-  scope: z.string(),
-});
+async function checkIfZoomTokenIsInvalid(response: Response) {
+  if (!response.ok || (response.status < 200 && response.status >= 300)) {
+    const responseBody = await response.json();
 
-const zoomAuth = (credential: CredentialPayload) => {
-  const refreshAccessToken = async (refreshToken: string) => {
-    const { client_id, client_secret } = await getZoomAppKeys();
-    const authHeader = `Basic ${Buffer.from(`${client_id}:${client_secret}`).toString("base64")}`;
-
-    const response = await refreshOAuthTokens(
-      async () =>
-        await fetch("https://zoom.us/oauth/token", {
-          method: "POST",
-          headers: {
-            Authorization: authHeader,
-            "Content-Type": "application/x-www-form-urlencoded",
-          },
-          body: new URLSearchParams({
-            refresh_token: refreshToken,
-            grant_type: "refresh_token",
-          }),
-        }),
-      metadata.slug,
-      credential.userId
-    );
-
-    const responseBody = await handleZoomResponse(response, credential.id);
-
-    if (responseBody.error) {
-      if (responseBody.error === "invalid_grant") {
-        return Promise.reject(new Error("Invalid grant for Cal.com zoom app"));
-      }
+    if ((response && response.status === 124) || responseBody.error === "invalid_grant") {
+      return true;
     }
-    // We check the if the new credentials matches the expected response structure
-    const newTokens: ParseRefreshTokenResponse<typeof zoomRefreshedTokenSchema> = parseRefreshTokenResponse(
-      responseBody,
-      zoomRefreshedTokenSchema
-    );
-
-    const key = credential.key as ZoomToken;
-    key.access_token = newTokens.access_token ?? key.access_token;
-    key.refresh_token = (newTokens.refresh_token as string) ?? key.refresh_token;
-    // set expiry date as offset from current time.
-    key.expiry_date =
-      typeof newTokens.expires_in === "number"
-        ? Math.round(Date.now() + newTokens.expires_in * 1000)
-        : key.expiry_date;
-    // Store new tokens in database.
-    await prisma.credential.update({
-      where: { id: credential.id },
-      data: { key: { ...key, ...newTokens } },
-    });
-    return newTokens.access_token;
-  };
-
-  return {
-    getToken: async () => {
-      const credentialKey = credential.key as ZoomToken;
-
-      return isTokenValid(credentialKey)
-        ? Promise.resolve(credentialKey.access_token)
-        : refreshAccessToken(credentialKey.refresh_token);
-    },
-  };
-};
+  }
+  return false;
+}
 
 type ZoomRecurrence = {
   end_date_time?: string;
@@ -228,7 +158,13 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
   };
 
   const fetchZoomApi = async (endpoint: string, options?: RequestInit) => {
-    const auth = zoomAuth(credential);
+    const clientCredentials = await getZoomAppKeys();
+    const auth = authInterface({
+      clientCredentials,
+      credential: credential,
+      appSlug: metadata.slug,
+      checkIfResponseInvalidatesToken: checkIfZoomTokenIsInvalid,
+    });
     const accessToken = await auth.getToken();
     const response = await fetch(`https://api.zoom.us/v2/${endpoint}`, {
       method: "GET",
@@ -238,8 +174,11 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
         ...options?.headers,
       },
     });
-    const responseBody = await handleZoomResponse(response, credential.id);
-    return responseBody;
+    const object = await getJsonFromResponse({
+      response,
+      checkIfResponseInvalidatesToken: checkIfZoomTokenIsInvalid,
+    });
+    return object;
   };
 
   return {
@@ -323,28 +262,6 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
       }
     },
   };
-};
-
-const handleZoomResponse = async (response: Response, credentialId: Credential["id"]) => {
-  let _response = response.clone();
-  const responseClone = response.clone();
-  if (_response.headers.get("content-encoding") === "gzip") {
-    const responseString = await response.text();
-    _response = JSON.parse(responseString);
-  }
-  if (!response.ok || (response.status < 200 && response.status >= 300)) {
-    const responseBody = await _response.json();
-
-    if ((response && response.status === 124) || responseBody.error === "invalid_grant") {
-      await invalidateCredential(credentialId);
-    }
-    throw Error(response.statusText);
-  }
-  // handle 204 response code with empty response (causes crash otherwise as "" is invalid JSON)
-  if (response.status === 204) {
-    return;
-  }
-  return responseClone.json();
 };
 
 const invalidateCredential = async (credentialId: Credential["id"]) => {
