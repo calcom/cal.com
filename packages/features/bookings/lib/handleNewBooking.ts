@@ -1245,6 +1245,13 @@ async function handler(
           luckyUserPool: luckyUserPool.map((user) => user.id),
         })
       );
+
+      if (reqBody.teamMemberEmail) {
+        const teamMember = eventTypeWithUsers.users.find((user) => user.email === reqBody.teamMemberEmail);
+        if (teamMember) {
+          luckyUsers.push(teamMember);
+        }
+      }
       // loop through all non-fixed hosts and get the lucky users
       while (luckyUserPool.length > 0 && luckyUsers.length < 1 /* TODO: Add variable */) {
         const newLuckyUser = await getLuckyUser("MAXIMIZE_AVAILABILITY", {
