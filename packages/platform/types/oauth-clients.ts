@@ -1,4 +1,4 @@
-import { IsArray, IsNumber, IsOptional, IsString } from "class-validator";
+import { IsArray, IsNumber, IsOptional, IsBoolean, IsString } from "class-validator";
 import { z } from "zod";
 
 export class CreateOAuthClientInput {
@@ -15,6 +15,22 @@ export class CreateOAuthClientInput {
 
   @IsNumber()
   permissions!: number;
+
+  @IsOptional()
+  @IsString()
+  bookingRedirectUri?: string;
+
+  @IsOptional()
+  @IsString()
+  bookingCancelRedirectUri?: string;
+
+  @IsOptional()
+  @IsString()
+  bookingRescheduleRedirectUri?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  areEmailsEnabled?: boolean;
 }
 
 export class DeleteOAuthClientInput {
@@ -29,8 +45,7 @@ export const userSchemaResponse = z.object({
   defaultScheduleId: z.number().int().nullable(),
   weekStart: z.string(),
   timeZone: z.string().default("Europe/London"),
-  username: z.string().nullable(),
-  name: z.string().nullable(),
+  username: z.string(),
 });
 
 export type UserResponse = z.infer<typeof userSchemaResponse>;

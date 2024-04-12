@@ -231,8 +231,6 @@
   "already_have_an_account": "已經有帳號嗎？",
   "create_account": "新增帳號",
   "confirm_password": "確認密碼",
-  "confirm_auth_change": "這會變更您登入的方式",
-  "confirm_auth_email_change": "變更電子郵件地址會使您目前登入 Cal.com 的驗證方式斷線。我們會要求您驗證新的電子郵件地址。接下來系統會將重設密碼的指示傳送至您的電子郵件地址，按照相關指示操作後您就會登出並使用新的電子郵件地址登入，而不是目前的驗證方法。",
   "reset_your_password": "按照傳送至您電子郵件地址的指示來重設密碼。",
   "email_change": "使用您的新電子郵件地址和密碼重新登入。",
   "create_your_account": "新增帳號",
@@ -2107,6 +2105,9 @@
   "need_help": "需要協助？",
   "user_redirect_description": "在此期間，{{profile.username}} 將代表 {{username}} 負責所有新安排的會議。",
   "show_more": "顯示更多",
+  "email_team_invite|subject|invited_to_regular_team": "受到 {{user}} 的邀請加入 {{appName}} 上的 {{team}} 團隊",
+  "email_team_invite|heading|invited_to_regular_team": "您已獲邀加入 {{appName}} 團隊",
+  "email_team_invite|content|invited_to_regular_team": "{{invitedBy}} 已邀請您加入對方在 {{appName}} 上的「{{teamName}}」團隊。{{appName}} 為一款活動多功能排程工具，可讓您和團隊無須透過繁複的電子郵件往來，就能輕鬆預定會議。",
   "privacy": "隱私權",
   "team_will_be_under_org": "新的團隊將會在您的組織下。",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 請在此處新增您的字串 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
