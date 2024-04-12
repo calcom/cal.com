@@ -26,6 +26,8 @@ export const useOAuthClient = (clientId?: string) => {
     isError,
     isFetching,
     isSuccess,
+    isFetchedAfterMount,
+    refetch,
   } = useQuery<ApiSuccessResponse<PlatformOAuthClient>>({
     queryKey: ["oauth-client", clientId],
     queryFn: () => {
@@ -38,5 +40,15 @@ export const useOAuthClient = (clientId?: string) => {
     staleTime: Infinity,
   });
 
-  return { isLoading, error, data: response?.data, isFetched, isError, isFetching, isSuccess };
+  return {
+    isLoading,
+    error,
+    data: response?.data,
+    isFetched,
+    isError,
+    isFetching,
+    isSuccess,
+    isFetchedAfterMount,
+    refetch,
+  };
 };
