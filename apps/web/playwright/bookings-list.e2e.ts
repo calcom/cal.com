@@ -147,7 +147,22 @@ test.describe("Bookings", () => {
         },
       });
 
-      await bookTeamEvent(page, team1, eventType);
+      const hosts = await prisma.host.findMany({
+        where: {
+          eventTypeId: eventId,
+        },
+        select: {
+          user: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      });
+
+      const teamMatesName = hosts.map((host) => host.user.name || "");
+
+      await bookTeamEvent(page, team1, eventType, teamMatesName);
 
       // booking should be visible for the team host even though he is not part of the booking
       await assertBookingVisibleFor(owner1, page, eventType, true);

@@ -118,6 +118,21 @@ test.describe("Bookings list for organizations", () => {
         },
       });
 
+      const hosts = await prisma.host.findMany({
+        where: {
+          eventTypeId: eventId,
+        },
+        select: {
+          user: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      });
+
+      const teamMatesName = hosts.map((host) => host.user.name || "");
+
       await expectPageToBeNotFound({ page, url: `/team/${team1.slug}/${eventType.slug}` });
 
       await doOnOrgDomain(
@@ -126,7 +141,7 @@ test.describe("Bookings list for organizations", () => {
           page,
         },
         async () => {
-          await bookTeamEvent({ page, team: team1, event: eventType });
+          await bookTeamEvent({ page, team: team1, event: eventType, teamMatesName });
         }
       );
       // booking should be visible for the Org OWNER even though he is not part of the booking
@@ -249,13 +264,15 @@ async function bookTeamEvent({
   page,
   team,
   event,
+  teamMatesName,
 }: {
   page: Page;
   team: {
     slug: string | null;
     name: string | null;
   };
-  event: { slug: string; title: string };
+  event: { slug: string; title: string; schedulingType: SchedulingType | null };
+  teamMatesName?: string[];
 }) {
   // Note that even though the default way to access a team booking in an organization is to not use /team in the URL, but it isn't testable with playwright as the rewrite is taken care of by Next.js config which can't handle on the fly org slug's handling
   // So, we are using /team in the URL to access the team booking
@@ -267,9 +284,19 @@ async function bookTeamEvent({
   await bookTimeSlot(page);
   await expect(page.getByTestId("success-page")).toBeVisible();
 
-  // The title of the booking
-  const BookingTitle = `${event.title} between ${team.name} and ${testName}`;
-  await expect(page.getByTestId("booking-title")).toHaveText(BookingTitle);
+  if (event.schedulingType === SchedulingType.ROUND_ROBIN) {
+    const bookingTitle = await page.getByTestId("booking-title").textContent();
+
+    expect(
+      teamMatesName?.some((username) => {
+        const BookingTitle = `${event.title} between ${username} and ${testName}`;
+        return BookingTitle === bookingTitle;
+      })
+    ).toBe(true);
+  } else {
+    const BookingTitle = `${event.title} between ${team.name} and ${testName}`;
+    await expect(page.getByTestId("booking-title")).toHaveText(BookingTitle);
+  }
   // The booker should be in the attendee list
   await expect(page.getByTestId(`attendee-name-${testName}`)).toHaveText(testName);
 }

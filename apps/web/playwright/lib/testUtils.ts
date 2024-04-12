@@ -11,7 +11,7 @@ import type { Messages } from "mailhog";
 import { totp } from "otplib";
 
 import type { Prisma } from "@calcom/prisma/client";
-import { BookingStatus } from "@calcom/prisma/enums";
+import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 import type { IntervalLimit } from "@calcom/types/Calendar";
 
 import type { createEmailsFixture } from "../fixtures/emails";
@@ -383,6 +383,7 @@ export type EventType = {
   id: number;
   title: string;
   slug: string;
+  schedulingType: SchedulingType | null;
 };
 export type User = {
   id: number;
@@ -390,11 +391,22 @@ export type User = {
   username: string | null;
 };
 
-export async function bookTeamEvent(page: Page, team: Team, eventType: EventType) {
+export async function bookTeamEvent(page: Page, team: Team, eventType: EventType, teamMatesName?: string[]) {
   await page.goto(`/team/${team.slug}/${eventType.slug}/`);
   await bookEventOnThisPage(page);
-  const bookingTitle = `${eventType.title} between ${team.name} and ${testName}`;
-  await assertBookingIsCorrect(page, bookingTitle);
+
+  if (eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
+    const bookingTitle = await page.getByTestId("booking-title").textContent();
+    expect(
+      teamMatesName?.some((username) => {
+        const BookingTitle = `${eventType.title} between ${username} and ${testName}`;
+        return BookingTitle === bookingTitle;
+      })
+    ).toBe(true);
+  } else {
+    const bookingTitle = `${eventType.title} between ${team.name} and ${testName}`;
+    await assertBookingIsCorrect(page, bookingTitle);
+  }
 }
 export async function bookUserEvent(page: Page, user: User, eventType: EventType) {
   await page.goto(`/${user.username}/${eventType.slug}/`);
