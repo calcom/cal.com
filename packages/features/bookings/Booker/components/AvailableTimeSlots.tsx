@@ -88,7 +88,7 @@ export const AvailableTimeSlots = ({
 
   return (
     <>
-      <div className={`flex ${customClassnames?.availableTimeSlotsContainer}`}>
+      <div className={classNames(`flex`, `${customClassnames?.availableTimeSlotsContainer}`)}>
         {isLoading ? (
           <div className="mb-3 h-8" />
         ) : (
@@ -115,9 +115,9 @@ export const AvailableTimeSlots = ({
       <div
         ref={containerRef}
         className={classNames(
-          `${customClassnames?.availableTimeSlotsContainer}`,
           limitHeight && "scroll-bar flex-grow overflow-auto md:h-[400px]",
-          !limitHeight && "flex h-full w-full flex-row gap-4"
+          !limitHeight && "flex h-full w-full flex-row gap-4",
+          `${customClassnames?.availableTimeSlotsContainer}`
         )}>
         {isLoading && // Shows exact amount of days as skeleton.
           Array.from({ length: 1 + (extraDays ?? 0) }).map((_, i) => <AvailableTimesSkeleton key={i} />)}

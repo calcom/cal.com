@@ -2,7 +2,7 @@ import { shallow } from "zustand/shallow";
 
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
-import { classNames } from "@calcom/lib";
+import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { nameOfDay } from "@calcom/lib/weekday";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
@@ -35,11 +35,11 @@ export const AvailableTimesHeader = ({
 
   return (
     <header
-      className={`dark:bg-muted dark:before:bg-muted mb-3 flex w-full flex-row items-center font-medium ${
+      className={classNames(
+        `dark:bg-muted dark:before:bg-muted mb-3 flex w-full flex-row items-center font-medium`,
+        "bg-default before:bg-default",
         customClassnames?.availableTimeSlotContainer
-          ? `${customClassnames?.availableTimeSlotContainer}`
-          : " bg-default before:bg-default "
-      }`}>
+      )}>
       <span
         className={classNames(
           isColumnView && "w-full text-center",

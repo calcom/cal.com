@@ -322,17 +322,10 @@ const DatePicker = ({
           {browsingDate ? (
             <>
               <strong
-                className={`text-emphasis font-semibold ${
-                  customClassNames?.datePickerTitle
-                    ? `${customClassNames?.datePickerTitle}`
-                    : " text-emphasis"
-                }`}>
+                className={classNames(`text-emphasis font-semibold`, customClassNames?.datePickerTitle)}>
                 {month}
               </strong>{" "}
-              <span
-                className={`font-medium ${
-                  customClassNames?.datePickerTitle ? `${customClassNames?.datePickerTitle}` : "text-subtle"
-                }`}>
+              <span className={classNames(`text-subtle font-medium`, customClassNames?.datePickerTitle)}>
                 {browsingDate.format("YYYY")}
               </span>
             </>
@@ -356,7 +349,10 @@ const DatePicker = ({
               StartIcon="chevron-left"
             />
             <Button
-              className={`group p-1 opacity-70 hover:opacity-100 rtl:rotate-180 ${customClassNames?.datePickerToggle}`}
+              className={classNames(
+                `group p-1 opacity-70 hover:opacity-100 rtl:rotate-180`,
+                `${customClassNames?.datePickerToggle}`
+              )}
               onClick={() => changeMonth(+1)}
               data-testid="incrementMonth"
               color="minimal"
@@ -370,7 +366,10 @@ const DatePicker = ({
         {weekdayNames(locale, weekStart, "short").map((weekDay) => (
           <div
             key={weekDay}
-            className={`text-emphasis my-4 text-xs font-medium uppercase tracking-widest ${customClassNames?.datePickerDays}`}>
+            className={classNames(
+              `text-emphasis my-4 text-xs font-medium uppercase tracking-widest`,
+              customClassNames?.datePickerDays
+            )}>
             {weekDay}
           </div>
         ))}
