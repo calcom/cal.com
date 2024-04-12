@@ -130,7 +130,7 @@ function PaymentChecker(props: PaymentCheckerProps) {
   // TODO: subscribe rather than polling
   const searchParams = useCompatSearchParams();
   const bookingSuccessRedirect = useBookingSuccessRedirect();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const { t } = useLocale();
 
   useEffect(() => {

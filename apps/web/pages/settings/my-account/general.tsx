@@ -60,7 +60,7 @@ const GeneralQueryView = () => {
 };
 
 const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const { t } = useLocale();
   const { update } = useSession();
   const [isUpdateBtnLoading, setIsUpdateBtnLoading] = useState<boolean>(false);
