@@ -337,9 +337,10 @@ const DatePicker = ({
           <div className="flex">
             <Button
               className={classNames(
-                `group p-1 opacity-70 hover:opacity-100 rtl:rotate-180 ${customClassNames?.datePickerToggle}`,
+                `group p-1 opacity-70 hover:opacity-100 rtl:rotate-180`,
                 !browsingDate.isAfter(dayjs()) &&
-                  `disabled:text-bookinglighter hover:bg-background hover:opacity-70 ${customClassNames?.datePickerToggle}`
+                  `disabled:text-bookinglighter hover:bg-background hover:opacity-70`,
+                customClassNames?.datePickerToggle
               )}
               onClick={() => changeMonth(-1)}
               disabled={!browsingDate.isAfter(dayjs())}
