@@ -1,4 +1,4 @@
-import type { DestinationCalendar } from "@prisma/client";
+import type { DestinationCalendar, BookingReference } from "@prisma/client";
 // eslint-disable-next-line no-restricted-imports
 import { cloneDeep, merge } from "lodash";
 import { v5 as uuidv5 } from "uuid";
@@ -470,7 +470,10 @@ export default class EventManager {
 
   public async cancelEvent(
     event: CalendarEvent,
-    bookingReferences: PartialReference[],
+    bookingReferences: Pick<
+      BookingReference,
+      "uid" | "type" | "externalCalendarId" | "credentialId" | "thirdPartyRecurringEventId"
+    >[],
     isBookingInRecurringSeries?: boolean
   ) {
     await this.deleteEventsAndMeetings({
