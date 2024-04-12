@@ -489,10 +489,11 @@ export const Components: Record<FieldType, Component> = {
   },
   boolean: {
     propsType: propsTypes.boolean,
-    factory: ({ readOnly, label, value, setValue }) => {
+    factory: ({ readOnly, name, label, value, setValue }) => {
       return (
         <div className="flex">
           <CheckboxField
+            name={name}
             onChange={(e) => {
               if (e.target.checked) {
                 setValue(true);
