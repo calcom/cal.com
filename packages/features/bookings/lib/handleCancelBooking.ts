@@ -43,6 +43,7 @@ async function getBookingToDelete(id: number | undefined, uid: string | undefine
       user: {
         select: {
           id: true,
+          username: true,
           credentials: { select: credentialForCalendarServiceSelect }, // Not leaking at the moment, be careful with
           email: true,
           timeZone: true,
@@ -410,7 +411,7 @@ async function handler(req: CustomRequest) {
   );
   const credentials = await getAllCredentials(bookingToDelete.user, bookingToDelete.eventType);
 
-  const eventManager = new EventManager({ credentials });
+  const eventManager = new EventManager({ ...bookingToDelete.user, credentials });
 
   await eventManager.cancelEvent(evt, bookingToDelete.references, isBookingInRecurringSeries);
 
