@@ -45,7 +45,11 @@ export const AvailableTimesHeader = ({
           isColumnView && "w-full text-center",
           isColumnView ? "text-subtle text-xs uppercase" : "text-emphasis font-semibold"
         )}>
-        <span className={classNames(isToday && "!text-default", customClassnames?.availableTimeSlotTitle)}>
+        <span
+          className={classNames(
+            isToday && !customClassnames?.availableTimeSlotTitle && "!text-default",
+            customClassnames?.availableTimeSlotTitle
+          )}>
           {nameOfDay(i18n.language, Number(date.format("d")), "short")}
         </span>
         <span

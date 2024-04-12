@@ -321,8 +321,20 @@ const DatePicker = ({
         <span className="text-default w-1/2 text-base">
           {browsingDate ? (
             <>
-              <strong className="text-emphasis font-semibold">{month}</strong>{" "}
-              <span className="text-subtle font-medium">{browsingDate.format("YYYY")}</span>
+              <strong
+                className={`text-emphasis font-semibold ${
+                  customClassNames?.datePickerTitle
+                    ? `${customClassNames?.datePickerTitle}`
+                    : " text-emphasis"
+                }`}>
+                {month}
+              </strong>{" "}
+              <span
+                className={`font-medium ${
+                  customClassNames?.datePickerTitle ? `${customClassNames?.datePickerTitle}` : "text-subtle"
+                }`}>
+                {browsingDate.format("YYYY")}
+              </span>
             </>
           ) : (
             <SkeletonText className="h-8 w-24" />
@@ -332,9 +344,9 @@ const DatePicker = ({
           <div className="flex">
             <Button
               className={classNames(
-                "group p-1 opacity-70 hover:opacity-100 rtl:rotate-180",
+                `group p-1 opacity-70 hover:opacity-100 rtl:rotate-180 ${customClassNames?.datePickerToggle}`,
                 !browsingDate.isAfter(dayjs()) &&
-                  "disabled:text-bookinglighter hover:bg-background hover:opacity-70"
+                  `disabled:text-bookinglighter hover:bg-background hover:opacity-70 ${customClassNames?.datePickerToggle}`
               )}
               onClick={() => changeMonth(-1)}
               disabled={!browsingDate.isAfter(dayjs())}
@@ -344,7 +356,7 @@ const DatePicker = ({
               StartIcon="chevron-left"
             />
             <Button
-              className="group p-1 opacity-70 hover:opacity-100 rtl:rotate-180"
+              className={`group p-1 opacity-70 hover:opacity-100 rtl:rotate-180 ${customClassNames?.datePickerToggle}`}
               onClick={() => changeMonth(+1)}
               data-testid="incrementMonth"
               color="minimal"
@@ -356,7 +368,9 @@ const DatePicker = ({
       </div>
       <div className="border-subtle mb-2 grid grid-cols-7 gap-4 border-b border-t text-center md:mb-0 md:border-0">
         {weekdayNames(locale, weekStart, "short").map((weekDay) => (
-          <div key={weekDay} className="text-emphasis my-4 text-xs font-medium uppercase tracking-widest">
+          <div
+            key={weekDay}
+            className={`text-emphasis my-4 text-xs font-medium uppercase tracking-widest ${customClassNames?.datePickerDays}`}>
             {weekDay}
           </div>
         ))}
