@@ -62,10 +62,15 @@ export const OAuthClients = () => {
             <>
               <div className="border-subtle rounded-b-lg border border-t-0">
                 {data.map((client, index) => {
+                  console.log(client);
+
                   return (
                     <OAuthClientCard
                       name={client.name}
                       redirectUris={client.redirectUris}
+                      bookingRedirectUri={client.bookingRedirectUri}
+                      bookingRescheduleRedirectUri={client.bookingRescheduleRedirectUri}
+                      bookingCancelRedirectUri={client.bookingCancelRedirectUri}
                       permissions={client.permissions}
                       key={index}
                       lastItem={data.length === index + 1}
@@ -73,6 +78,7 @@ export const OAuthClients = () => {
                       secret={client.secret}
                       isLoading={isDeleting}
                       onDelete={handleDelete}
+                      areEmailsEnabled={client.areEmailsEnabled}
                     />
                   );
                 })}

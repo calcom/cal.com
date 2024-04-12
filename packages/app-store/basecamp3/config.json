@@ -13,6 +13,5 @@
   "isTemplate": false,
   "__createdUsingCli": true,
   "__template": "event-type-app-card",
-  "dirName": "basecamp3",
-  "isOAuth": true
+  "dirName": "basecamp3"
 }
