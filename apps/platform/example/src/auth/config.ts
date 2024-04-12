@@ -18,7 +18,6 @@ export const authConfig = {
   pages: { signIn: '/signup' },
   callbacks: {
     signIn: async ({ user }) => {
-      console.log("signIn callback")
       if (user.id) {
         return true
       }
@@ -32,7 +31,6 @@ export const authConfig = {
     },
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user;
-      console.log("HJIHIHI")
       const isOnDashboard = nextUrl.pathname.startsWith('/dashboard');
       if (isOnDashboard) {
         if (isLoggedIn) return true;

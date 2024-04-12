@@ -13,7 +13,7 @@ import {
   Users2,
 } from "lucide-react";
 import Link from "next/link";
-import { SubmitButton } from "~/app/_components/submit-button";
+import { ButtonSubmit } from "~/app/_components/submit-button";
 import { currentUser, signOut } from "~/auth";
 import {
   Breadcrumb,
@@ -189,30 +189,34 @@ export default async function Layout({ children }: { children: React.ReactNode }
             </BreadcrumbList>
           </Breadcrumb>
           <div className="relative ml-auto flex-1 md:grow-0">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="secondary"
-                  size="icon"
-                  className="overflow-hidden rounded-full"
-                >
-                  <User className="" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuLabel>{username ? `Logged in as "${username}"` : `My Account`}</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem>Settings</DropdownMenuItem>
-                <DropdownMenuItem>Support</DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuLabel>
-                    <form action={async () => {
-                      "use server";
-                      await signOut();
-                    }}><SubmitButton className="w-full">Logout</SubmitButton></form>
-                </DropdownMenuLabel>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <div className="flex flex-row items-center gap-4">
+              <span className="[width:max-content] text-muted-foreground text-sm">Logged in as "{username}"</span>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="secondary"
+                    size="icon"
+                    className="overflow-hidden rounded-full"
+                  >
+                    <User className="" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end!">
+                  <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem>Settings</DropdownMenuItem>
+                  <DropdownMenuItem>Support</DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuLabel>
+                      <form action={async () => {
+                        "use server";
+                        await signOut();
+                      }}
+                      ><ButtonSubmit className="w-full">Logout</ButtonSubmit></form>
+                  </DropdownMenuLabel>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
         </header>
         <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8 lg:grid-cols-3 xl:grid-cols-3">

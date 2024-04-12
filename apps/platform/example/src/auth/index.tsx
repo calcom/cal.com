@@ -10,6 +10,7 @@ import { z } from 'zod'
 
 import { authConfig } from './config'
 import { db } from 'prisma/client'
+import { User } from '@prisma/client'
 
 async function hash(password: string) {
   return new Promise<string>((resolve, reject) => {
@@ -50,37 +51,36 @@ const {
     warn: (message) => console.warn(message),
   },
   providers: [
-    Github,
+    // Github,
     Credentials({
       name: 'Credentials',
       async authorize(c) {
-        console.log("c", c)
-        const formData = z
+        const credentials = z
           .object({
             email: z.string().min(1).max(32),
             password: z.string().min(6).max(32),
-            name: z.string().min(3).max(32),
-            username: z.string().min(3).max(32),
           })
           .safeParse(c);
         
-        if (!formData.success) {
-          console.error(`[auth] Invalid sign in submission: ${formData.error.errors.map((e) => e.message).join(', ')}`)
+        if (!credentials.success) {
+          console.error(`[auth] Invalid sign in submission because of missing credentials: ${credentials.error.errors.map((e) => e.message).join(', ')}`)
           return null
         }
-        const {name, username, ...credentials} = formData.data
 
+        let user: User | null = null;
         try {
-          const user = await db.user.findFirst({
-            where: {name: credentials.email}
+          user = await db.user.findUnique({
+            where: {email: credentials.data.email}
           })
           if (user) {
+            // if user exists, this comes from our login page, let's check the password
+            console.info(`User ${user.id} attempted login with password`)
             if (!user.hashedPassword) {
               console.debug(`OAuth User ${user.id} attempted signin with password`)
               return null
             }
             const pwMatch = await compare(
-              credentials.password,
+              credentials.data.password,
               user.hashedPassword,
             )
             if (!pwMatch) {
@@ -88,19 +88,29 @@ const {
               return null
             }
             return { id: user.id, name: user.name }
+          } else {
+            // if user doesn't exist, this comes from our signup page w/ additional fields
+            console.info(`User attempted login`)
+            const signupData = z.object({
+              username: z.string().min(1).max(32),
+              name: z.string().min(1).max(32),
+            }).safeParse(c)
+            if (!signupData.success) {
+              console.error(`[auth] Invalid sign in submission because of missing signup data: ${signupData.error.errors.map((e) => e.message).join(', ')}`)
+              return null
+            }
+            // Signup new user
+            user = await db.user.create({
+              data: {
+                username: signupData.data.username,
+                name: signupData.data.name,
+                hashedPassword: await hash(credentials.data.password),
+                email: credentials.data.email,
+              },
+            })
           };
 
-          // Signup new user
-          const newUser = await db.user.create({
-
-            data: {
-              username,
-              name,
-              hashedPassword: await hash(credentials.password),
-              email: credentials.email,
-            },
-          })
-          return { id: newUser.id, name: newUser.name }
+          return { id: user.id, name: user.name }
         } catch {
           return null
         }

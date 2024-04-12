@@ -116,7 +116,6 @@ export const AutocompleteSearch = forwardRef<
                     <CommandItem
                       key={option.value}
                       value={option.value}
-                      onFocus={() => console.log("focus")}
                       onSelect={(newValue) => {
                         setValue(newValue);
                         setQuery(
