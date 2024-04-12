@@ -33,4 +33,3 @@ Example apps using Cal.com Atoms - customizable UI components to integrate sched
 1. `yarn` in `packages/platform/atoms`
 2. `yarn` in  `packages/platform/atoms/examples/base`
 3. `yarn dev` in `packages/platform/atoms/examples/base`
-4. Copy OAuth ... into ...
