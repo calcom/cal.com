@@ -11,6 +11,7 @@ import { ExpertBooker } from "./_components/expert-booker";
 
 import { getExperts } from "~/lib/experts";
 import { useState } from "react";
+import { db } from "prisma/client";
 
 export default async function ExpertDetails({
   params,
@@ -25,6 +26,11 @@ export default async function ExpertDetails({
   if (!expert) {
     return <div>Expert not found</div>;
   }
+
+  const expertUser = await db.user.findUnique({
+    where: { username: expert.username },
+    include: {calToken: true},
+  });
 
   return (
     <div className="grid flex-1 gap-4 overflow-auto p-4 md:grid-cols-2 lg:grid-cols-3">

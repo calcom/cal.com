@@ -66,11 +66,11 @@ model User {
     image         String?
     accounts      Account[]
     sessions      Session[]
-    calToken    CalToken? 
+    calToken    CalAccount? 
     posts         Post[]
 }
 
-model CalToken {
+model CalAccount {
     calId        Int      @id
     calAccessToken     String   @unique
     calRefreshToken    String   @unique

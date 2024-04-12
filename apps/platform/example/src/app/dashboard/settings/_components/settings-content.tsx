@@ -5,21 +5,22 @@ export const SettingsContent = () => {
     <div className="grid gap-6">
         <AvailabilitySettings
           customClassNames={{
-            subtitlesClassName: "text-red-500",
-            ctaClassName: "border p-4 rounded-md",
-            editableHeadingClassName: "underline font-semibold",
+            // this is to avoid layout shift when toggling days
+            scheduleClassNames: {
+                scheduleDay: "min-w-[480px]",
+            }
           }}
           onUpdateSuccess={() => {
-            console.log("Updated successfully");
+            console.log("[@calcom/atoms]: Updated successfully");
           }}
           onUpdateError={() => {
-            console.log("update error");
+            console.log("[@calcom/atoms]: Update error");
           }}
           onDeleteError={() => {
-            console.log("delete error");
+            console.log("[@calcom/atoms]: Deletion error");
           }}
           onDeleteSuccess={() => {
-            console.log("Deleted successfully");
+            console.log("[@calcom/atoms]: Deleted successfully");
           }}
         />
         </div>

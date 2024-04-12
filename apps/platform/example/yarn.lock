@@ -91,9 +91,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@calcom/atoms@npm:^1.0.14":
-  version: 1.0.14
-  resolution: "@calcom/atoms@npm:1.0.14"
+"@calcom/atoms@npm:^1.0.15":
+  version: 1.0.15
+  resolution: "@calcom/atoms@npm:1.0.15"
   dependencies:
     "@radix-ui/react-dialog": ^1.0.4
     "@radix-ui/react-slot": ^1.0.2
@@ -106,7 +106,7 @@ __metadata:
     tailwind-merge: ^1.13.2
     tailwindcss: ^3.3.3
     tailwindcss-animate: ^1.0.6
-  checksum: efcefbd2d7f3f61dbf3befe5bab3fe332a1b1ca16dfc7709a0f973650d09b231bd7963a8dc5ade9ca012fe956a03601c10bbc681af74bc25affd1ae12b11bc33
+  checksum: 985c972bba7d7cf6b32dd594112871ff21759819209b14c685d4c348449fe71a9144a86f39836b3d8bd14229b97ec5ed092632348f6687cda0200ce1a29cac75
   languageName: node
   linkType: hard
 
@@ -3011,7 +3011,7 @@ __metadata:
   resolution: "example@workspace:."
   dependencies:
     "@auth/prisma-adapter": ^1.4.0
-    "@calcom/atoms": ^1.0.14
+    "@calcom/atoms": ^1.0.15
     "@libsql/client": ^0.6.0
     "@opentelemetry/api": ^1.8.0
     "@prisma/adapter-libsql": ^5.12.1

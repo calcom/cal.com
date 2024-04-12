@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@auth/prisma-adapter": "^1.4.0",
-    "@calcom/atoms": "^1.0.14",
+    "@calcom/atoms": "^1.0.15",
     "@libsql/client": "^0.6.0",
     "@opentelemetry/api": "^1.8.0",
     "@prisma/adapter-libsql": "^5.12.1",

@@ -54,7 +54,8 @@ export default async function RootLayout({
   const user = await currentUser();
   
   return (
-    <html lang="en">
+    /** [@calcom] Ensure to set the diretion (either 'ltr' or 'rtl') since the calcom/atoms use their styles */
+    <html lang="en" dir="ltr">
       <head />
       <AxiomWebVitals />
       <body
