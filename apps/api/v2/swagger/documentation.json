@@ -1235,7 +1235,16 @@
       },
       "post": {
         "operationId": "BookingsController_createBooking",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "x-cal-client-id",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -1334,6 +1343,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "x-cal-client-id",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "requestBody": {
@@ -1366,7 +1383,16 @@
     "/api/v2/ee/bookings/reccuring": {
       "post": {
         "operationId": "BookingsController_createReccuringBooking",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "x-cal-client-id",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -1400,7 +1426,16 @@
     "/api/v2/ee/bookings/instant": {
       "post": {
         "operationId": "BookingsController_createInstantBooking",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "x-cal-client-id",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -1912,6 +1947,18 @@
             "items": {
               "type": "string"
             }
+          },
+          "bookingRedirectUri": {
+            "type": "string"
+          },
+          "bookingCancelRedirectUri": {
+            "type": "string"
+          },
+          "bookingRescheduleRedirectUri": {
+            "type": "string"
+          },
+          "areEmailsEnabled": {
+            "type": "boolean"
           }
         }
       },
