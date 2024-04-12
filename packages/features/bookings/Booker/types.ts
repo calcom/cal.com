@@ -18,6 +18,11 @@ export interface BookerProps {
   username: string;
   orgBannerUrl?: string | null;
 
+  /*
+    all custom classnames related to booker styling go here
+  */
+  customClassNames?: CustomClassNames;
+
   /**
    * Whether is a team or org, we gather basic info from both
    */
@@ -125,3 +130,26 @@ export type WrappedBookerProps = WrappedBookerPropsForPlatform | WrappedBookerPr
 export type BookerState = "loading" | "selecting_date" | "selecting_time" | "booking";
 export type BookerLayout = BookerLayouts | "mobile";
 export type BookerAreas = "calendar" | "timeslots" | "main" | "meta" | "header";
+
+export type CustomClassNames = {
+  bookerContainer?: string;
+  eventMetaCustomClassname?: {
+    eventMetaContainer?: string;
+    eventMetaTitle?: string;
+    eventMetaTimezoneSelect?: string;
+  };
+  datePickerCustomClassname?: {
+    datePickerContainer?: string;
+    datePickerTitle?: string;
+    datePickerDays?: string;
+    datePickerDate?: string;
+    datePickerDatesActive?: string;
+    datePickerToggle?: string;
+  };
+  availableTimeSlotsCustomClassname: {
+    availableTimeSlotsContainer?: string;
+    availableTimeSlotsTitle?: string;
+    availableTimeSlotsTimeFormatToggle: string;
+    availableTimes?: string;
+  };
+};

@@ -9,6 +9,7 @@ import dayjs from "@calcom/dayjs";
 import { getFeatureFlag } from "@calcom/features/flags/server/utils";
 import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
 import type CalendarService from "@calcom/lib/CalendarService";
+import { formatCalEvent } from "@calcom/lib/formatCalendarEvent";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
@@ -187,61 +188,65 @@ export default class GoogleCalendarService implements Calendar {
   };
 
   async createEvent(calEventRaw: CalendarEvent, credentialId: number): Promise<NewCalendarEventType> {
+    const formattedCalEvent = formatCalEvent(calEventRaw);
+
     const payload: calendar_v3.Schema$Event = {
-      summary: calEventRaw.title,
-      description: getRichDescription(calEventRaw),
+      summary: formattedCalEvent.title,
+      description: getRichDescription(formattedCalEvent),
       start: {
-        dateTime: calEventRaw.startTime,
-        timeZone: calEventRaw.organizer.timeZone,
+        dateTime: formattedCalEvent.startTime,
+        timeZone: formattedCalEvent.organizer.timeZone,
       },
       end: {
-        dateTime: calEventRaw.endTime,
-        timeZone: calEventRaw.organizer.timeZone,
+        dateTime: formattedCalEvent.endTime,
+        timeZone: formattedCalEvent.organizer.timeZone,
       },
-      attendees: this.getAttendees(calEventRaw),
+      attendees: this.getAttendees(formattedCalEvent),
       reminders: {
         useDefault: true,
       },
-      guestsCanSeeOtherGuests: !!calEventRaw.seatsPerTimeSlot ? calEventRaw.seatsShowAttendees : true,
-      iCalUID: calEventRaw.iCalUID,
+      guestsCanSeeOtherGuests: !!formattedCalEvent.seatsPerTimeSlot
+        ? formattedCalEvent.seatsShowAttendees
+        : true,
+      iCalUID: formattedCalEvent.iCalUID,
     };
 
-    if (calEventRaw.location) {
-      payload["location"] = getLocation(calEventRaw);
+    if (formattedCalEvent.location) {
+      payload["location"] = getLocation(formattedCalEvent);
     }
 
-    if (calEventRaw.recurringEvent) {
+    if (formattedCalEvent.recurringEvent) {
       const rule = new RRule({
-        freq: calEventRaw.recurringEvent.freq,
-        interval: calEventRaw.recurringEvent.interval,
-        count: calEventRaw.recurringEvent.count,
+        freq: formattedCalEvent.recurringEvent.freq,
+        interval: formattedCalEvent.recurringEvent.interval,
+        count: formattedCalEvent.recurringEvent.count,
       });
 
       payload["recurrence"] = [rule.toString()];
     }
 
-    if (calEventRaw.conferenceData && calEventRaw.location === MeetLocationType) {
-      payload["conferenceData"] = calEventRaw.conferenceData;
+    if (formattedCalEvent.conferenceData && formattedCalEvent.location === MeetLocationType) {
+      payload["conferenceData"] = formattedCalEvent.conferenceData;
     }
     const calendar = await this.authedCalendar();
-    // Find in calEventRaw.destinationCalendar the one with the same credentialId
+    // Find in formattedCalEvent.destinationCalendar the one with the same credentialId
 
     const selectedCalendar =
-      calEventRaw.destinationCalendar?.find((cal) => cal.credentialId === credentialId)?.externalId ||
+      formattedCalEvent.destinationCalendar?.find((cal) => cal.credentialId === credentialId)?.externalId ||
       "primary";
 
     try {
       let event;
       let recurringEventId = null;
-      if (calEventRaw.existingRecurringEvent) {
-        recurringEventId = calEventRaw.existingRecurringEvent.recurringEventId;
+      if (formattedCalEvent.existingRecurringEvent) {
+        recurringEventId = formattedCalEvent.existingRecurringEvent.recurringEventId;
         const recurringEventInstances = await calendar.events.instances({
           calendarId: selectedCalendar,
-          eventId: calEventRaw.existingRecurringEvent.recurringEventId,
+          eventId: formattedCalEvent.existingRecurringEvent.recurringEventId,
         });
         if (recurringEventInstances.data.items) {
-          const calComEventStartTime = dayjs(calEventRaw.startTime)
-            .tz(calEventRaw.organizer.timeZone)
+          const calComEventStartTime = dayjs(formattedCalEvent.startTime)
+            .tz(formattedCalEvent.organizer.timeZone)
             .format();
           for (let i = 0; i < recurringEventInstances.data.items.length; i++) {
             const instance = recurringEventInstances.data.items[i];
@@ -266,9 +271,9 @@ export default class GoogleCalendarService implements Calendar {
             calendarId: selectedCalendar,
             eventId: event.id || "",
             requestBody: {
-              location: getLocation(calEventRaw),
+              location: getLocation(formattedCalEvent),
               description: getRichDescription({
-                ...calEventRaw,
+                ...formattedCalEvent,
               }),
             },
           });
@@ -296,7 +301,7 @@ export default class GoogleCalendarService implements Calendar {
           eventId: event.id || "",
           requestBody: {
             description: getRichDescription({
-              ...calEventRaw,
+              ...formattedCalEvent,
               additionalInformation: { hangoutLink: event.hangoutLink },
             }),
           },
@@ -342,37 +347,42 @@ export default class GoogleCalendarService implements Calendar {
   }
 
   async updateEvent(uid: string, event: CalendarEvent, externalCalendarId: string): Promise<any> {
+    const formattedCalEvent = formatCalEvent(event);
+
     const payload: calendar_v3.Schema$Event = {
-      summary: event.title,
-      description: getRichDescription(event),
+      summary: formattedCalEvent.title,
+      description: getRichDescription(formattedCalEvent),
       start: {
-        dateTime: event.startTime,
-        timeZone: event.organizer.timeZone,
+        dateTime: formattedCalEvent.startTime,
+        timeZone: formattedCalEvent.organizer.timeZone,
       },
       end: {
-        dateTime: event.endTime,
-        timeZone: event.organizer.timeZone,
+        dateTime: formattedCalEvent.endTime,
+        timeZone: formattedCalEvent.organizer.timeZone,
       },
-      attendees: this.getAttendees(event),
+      attendees: this.getAttendees(formattedCalEvent),
       reminders: {
         useDefault: true,
       },
-      guestsCanSeeOtherGuests: !!event.seatsPerTimeSlot ? event.seatsShowAttendees : true,
+      guestsCanSeeOtherGuests: !!formattedCalEvent.seatsPerTimeSlot
+        ? formattedCalEvent.seatsShowAttendees
+        : true,
     };
 
-    if (event.location) {
-      payload["location"] = getLocation(event);
+    if (formattedCalEvent.location) {
+      payload["location"] = getLocation(formattedCalEvent);
     }
 
-    if (event.conferenceData && event.location === MeetLocationType) {
-      payload["conferenceData"] = event.conferenceData;
+    if (formattedCalEvent.conferenceData && formattedCalEvent.location === MeetLocationType) {
+      payload["conferenceData"] = formattedCalEvent.conferenceData;
     }
 
     const calendar = await this.authedCalendar();
 
     const selectedCalendar =
       (externalCalendarId
-        ? event.destinationCalendar?.find((cal) => cal.externalId === externalCalendarId)?.externalId
+        ? formattedCalEvent.destinationCalendar?.find((cal) => cal.externalId === externalCalendarId)
+            ?.externalId
         : undefined) || "primary";
 
     try {
@@ -397,7 +407,7 @@ export default class GoogleCalendarService implements Calendar {
           eventId: evt.data.id || "",
           requestBody: {
             description: getRichDescription({
-              ...event,
+              ...formattedCalEvent,
               additionalInformation: { hangoutLink: evt.data.hangoutLink },
             }),
           },
@@ -419,7 +429,7 @@ export default class GoogleCalendarService implements Calendar {
     } catch (error) {
       this.log.error(
         "There was an error updating event in google calendar: ",
-        safeStringify({ error, event, uid })
+        safeStringify({ error, event: formattedCalEvent, uid })
       );
       throw error;
     }
