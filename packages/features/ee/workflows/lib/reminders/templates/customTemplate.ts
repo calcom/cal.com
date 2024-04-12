@@ -21,6 +21,8 @@ export type VariablesType = {
   meetingUrl?: string;
   cancelLink?: string;
   rescheduleLink?: string;
+  ratingUrl?: string;
+  noShowUrl?: string;
 };
 
 const customTemplate = (
@@ -79,7 +81,9 @@ const customTemplate = (
     .replaceAll("{TIMEZONE}", variables.timeZone || "")
     .replaceAll("{CANCEL_URL}", cancelLink)
     .replaceAll("{RESCHEDULE_URL}", rescheduleLink)
-    .replaceAll("{MEETING_URL}", variables.meetingUrl || "");
+    .replaceAll("{MEETING_URL}", variables.meetingUrl || "")
+    .replaceAll("{RATING_URL}", variables.ratingUrl || "")
+    .replaceAll("{NO_SHOW_URL}", variables.noShowUrl || "");
 
   const customInputvariables = dynamicText.match(/\{(.+?)}/g)?.map((variable) => {
     return variable.replace("{", "").replace("}", "");

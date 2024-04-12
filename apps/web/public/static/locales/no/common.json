@@ -1389,5 +1389,6 @@
   "sso_configuration": "Enkel Pålogging",
   "booking_confirmation_failed": "Booking-bekreftelse feilet",
   "timezone_variable": "Tidssone",
-  "need_help": "Trenger du hjelp?"
+  "need_help": "Trenger du hjelp?",
+  "email_team_invite|subject|invited_to_regular_team": "{{user}} inviterte deg til å bli med i teamet {{team}} på {{appName}}"
 }

@@ -31,6 +31,11 @@ export const getCalendar = async (
   if (calendarType?.endsWith("_other_calendar")) {
     calendarType = calendarType.split("_other_calendar")[0];
   }
+  // Backwards compatibility until CRM manager is created
+  if (calendarType?.endsWith("_crm")) {
+    calendarType = calendarType.split("_crm")[0];
+  }
+
   const calendarAppImportFn = appStore[calendarType.split("_").join("") as keyof typeof appStore];
 
   if (!calendarAppImportFn) {

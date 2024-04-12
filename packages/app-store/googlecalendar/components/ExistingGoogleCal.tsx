@@ -2,7 +2,7 @@ import Link from "next/link";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { AlertCircle, ArrowRight, Check } from "@calcom/ui/components/icon";
+import { Icon } from "@calcom/ui";
 
 const ExistingGoogleCal = ({ gCalInstalled, appName }: { gCalInstalled?: boolean; appName: string }) => {
   const { t } = useLocale();
@@ -12,7 +12,7 @@ const ExistingGoogleCal = ({ gCalInstalled, appName }: { gCalInstalled?: boolean
       <div className="items-start space-x-2.5">
         <div className="flex items-start">
           <div>
-            <Check className="mr-2 mt-1 font-semibold" />
+            <Icon name="check" className="mr-2 mt-1 font-semibold" />
           </div>
           <div>
             <span className="font-semibold">{t("google_calendar_is_connected")}</span>
@@ -30,7 +30,7 @@ const ExistingGoogleCal = ({ gCalInstalled, appName }: { gCalInstalled?: boolean
       <div className="items-start space-x-2.5">
         <div className="flex items-start">
           <div>
-            <AlertCircle className="mr-2 mt-1 font-semibold" />
+            <Icon name="circle-alert" className="mr-2 mt-1 font-semibold" />
           </div>
           <div>
             <span className="font-semibold">{t("this_app_requires_google_calendar", { appName })}</span>
@@ -41,7 +41,7 @@ const ExistingGoogleCal = ({ gCalInstalled, appName }: { gCalInstalled?: boolean
                     href={`${WEBAPP_URL}/apps/google-calendar`}
                     className="text-info flex items-center underline">
                     <span className="mr-1">{t("connect_google_calendar")}</span>
-                    <ArrowRight />
+                    <Icon name="arrow-right" />
                   </Link>
                 </>
               </div>
