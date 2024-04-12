@@ -8,8 +8,6 @@ import { SignedIn, SignedOut, signOut } from "~/auth";
 import { Button } from "~/components/ui/button";
 import { professions } from "~/lib/constants";
 
-
-
 export default async function Home() {
   return (
     <main>
@@ -27,25 +25,23 @@ export default async function Home() {
         </div>
       </div>
       <div className="flex-1">
-        <div className="mt-24 flex flex-col items-center justify-center gap-4">
-        <Suspense
-        fallback={
-          <div className="relative h-max w-full max-w-sm place-self-center">
-            <div className=" absolute inset-0 z-40  grid rounded-2xl bg-slate-900 text-white">
-              <Loader className="z-50 place-self-center animate-spin" />
-            </div>
-          </div>
-        }
-      >
-        <SignedIn>
-          {({ user }) => (
-            <WelcomeCard username={user.name} />
-          )}
-        </SignedIn>
-        <SignedOut>
-          <ProCard />
-        </SignedOut>
-      </Suspense>
+        <div className="my-10">
+          <Suspense
+            fallback={
+              <div className="relative h-max w-full max-w-sm place-self-center">
+                <div className=" absolute inset-0 z-40  grid rounded-2xl bg-slate-900 text-white">
+                  <Loader className="z-50 animate-spin place-self-center" />
+                </div>
+              </div>
+            }
+          >
+            <SignedIn>
+              {({ user }) => <WelcomeCard username={user.name} />}
+            </SignedIn>
+            <SignedOut>
+              <ProCard />
+            </SignedOut>
+          </Suspense>
         </div>
       </div>
     </main>
