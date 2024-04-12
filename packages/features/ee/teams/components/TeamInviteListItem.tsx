@@ -33,7 +33,7 @@ interface Props {
 
 export default function TeamInviteListItem(props: Props) {
   const { t } = useLocale();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const team = props.team;
 
   const acceptOrLeaveMutation = trpc.viewer.teams.acceptOrLeave.useMutation({
