@@ -417,7 +417,7 @@ export default function Success(props: PageProps) {
                         className={classNames(
                           "mx-auto flex h-12 w-12 items-center justify-center rounded-full",
                           isRoundRobin &&
-                            "absolute bottom-0 right-0 z-10 h-12 w-12 border-8 border-[--cal-bg] dark:border-[--cal-bg-muted]",
+                            "border-bg dark:border-bgMuted absolute bottom-0 right-0 z-10 h-12 w-12 border-8",
                           !giphyImage && !isCancelled && !needsConfirmation ? "bg-success" : "",
                           !giphyImage && !isCancelled && needsConfirmation ? "bg-subtle" : "",
                           isCancelled ? "bg-error" : ""

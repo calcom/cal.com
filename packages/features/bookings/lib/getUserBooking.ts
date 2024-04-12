@@ -29,7 +29,6 @@ const getUserBooking = async (uid: string) => {
           email: true,
           username: true,
           timeZone: true,
-          avatar: true,
           avatarUrl: true,
         },
       },
