@@ -15,5 +15,8 @@ export async function middleware() {
   const isInMaintenanceMode = await safeGet<boolean>("isInMaintenanceMode");
   if (!isInMaintenanceMode) return NextResponse.next();
   // If is in maintenance mode, return a 503 status code
-  return NextResponse.json({ message: "API is currently in maintenance. Please try again at a later time." });
+  return NextResponse.json(
+    { message: "API is currently in maintenance. Please try again at a later time." },
+    { status: 503 }
+  );
 }
