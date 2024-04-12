@@ -37,7 +37,7 @@
     "@nestjs/passport": "^10.0.2",
     "@nestjs/platform-express": "^10.0.0",
     "@nestjs/swagger": "^7.3.0",
-    "@nestjs/throttler": "^5.1.1",
+    "@nestjs/throttler": "^5.1.2",
     "@sentry/node": "^7.86.0",
     "@sentry/tracing": "^7.86.0",
     "class-transformer": "^0.5.1",
