@@ -902,10 +902,16 @@ type BookingDataSchemaGetter =
   | typeof import("@calcom/features/bookings/lib/getBookingDataSchemaForApi").default;
 
 async function handler(
-  req: NextApiRequest & { userId?: number | undefined },
+  req: NextApiRequest & {
+    userId?: number | undefined;
+    platformClientId?: string;
+    platformRescheduleUrl?: string;
+    platformCancelUrl?: string;
+    platformBookingUrl?: string;
+  },
   bookingDataSchemaGetter: BookingDataSchemaGetter = getBookingDataSchema
 ) {
-  const { userId } = req;
+  const { userId, platformClientId, platformCancelUrl, platformBookingUrl, platformRescheduleUrl } = req;
 
   // handle dynamic user
   let eventType =
@@ -1503,6 +1509,10 @@ async function handler(
     schedulingType: eventType.schedulingType,
     iCalUID,
     iCalSequence,
+    platformClientId,
+    platformRescheduleUrl,
+    platformCancelUrl,
+    platformBookingUrl,
   };
 
   if (req.body.thirdPartyRecurringEventId) {
