@@ -198,7 +198,7 @@ export default function CreateEventTypeDialog({
                   label={`${t("url")}: ${urlPrefix}`}
                   required
                   addOnLeading={
-                    <span className="max-w-64">
+                    <span className="max-w-24 md:max-w-56">
                       /{!isManagedEventType ? pageSlug : t("username_placeholder")}/
                     </span>
                   }
@@ -218,7 +218,7 @@ export default function CreateEventTypeDialog({
                   label={t("url")}
                   required
                   addOnLeading={
-                    <span className="max-w-64">
+                    <span className="max-w-24 md:max-w-56">
                       {urlPrefix}/{!isManagedEventType ? pageSlug : t("username_placeholder")}/
                     </span>
                   }
