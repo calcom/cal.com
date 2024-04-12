@@ -255,7 +255,6 @@ export default class SalesforceCRMService implements CRM {
   async getContacts(email: string | string[], includeOwner?: boolean) {
     const conn = await this.conn;
     const emails = Array.isArray(email) ? email : [email];
-    // TODO get the user associated with the contact. Return the email
     const soql = `SELECT Id, Email, OwnerId FROM Contact WHERE Email IN ('${emails.join("','")}')`;
     const results = await conn.query(soql);
 
