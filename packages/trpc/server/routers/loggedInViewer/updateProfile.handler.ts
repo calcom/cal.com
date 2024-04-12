@@ -69,6 +69,8 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
   const locale = input.locale || user.locale;
   const emailVerification = await getFeatureFlag(prisma, "email-verification");
 
+  const { travelSchedules, ...rest } = input;
+
   const secondaryEmails = input?.secondaryEmails || [];
   delete input.secondaryEmails;
 
@@ -76,7 +78,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
   delete input.unlinkConnectedAccount;
 
   const data: Prisma.UserUpdateInput = {
-    ...input,
+    ...rest,
     // DO NOT OVERWRITE AVATAR.
     avatar: undefined,
     metadata: userMetadata,
@@ -232,6 +234,41 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
         })
       );
     }
+  }
+
+  if (travelSchedules) {
+    const existingSchedules = await prisma.travelSchedule.findMany({
+      where: {
+        userId: user.id,
+      },
+    });
+
+    const schedulesToDelete = existingSchedules.filter(
+      (schedule) =>
+        !travelSchedules || !travelSchedules.find((scheduleInput) => scheduleInput.id === schedule.id)
+    );
+
+    await prisma.travelSchedule.deleteMany({
+      where: {
+        userId: user.id,
+        id: {
+          in: schedulesToDelete.map((schedule) => schedule.id) as number[],
+        },
+      },
+    });
+
+    await prisma.travelSchedule.createMany({
+      data: travelSchedules
+        .filter((schedule) => !schedule.id)
+        .map((schedule) => {
+          return {
+            userId: user.id,
+            startDate: schedule.startDate,
+            endDate: schedule.endDate,
+            timeZone: schedule.timeZone,
+          };
+        }),
+    });
   }
 
   const updatedUserSelect = Prisma.validator<Prisma.UserDefaultArgs>()({

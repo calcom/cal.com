@@ -225,6 +225,7 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
       timeZone: true,
       schedule: {
         select: {
+          id: true,
           availability: true,
           timeZone: true,
         },
@@ -290,7 +291,6 @@ const loadUsers = async (eventType: NewBookingEventType, dynamicUserList: string
         usernameList: dynamicUserList,
         orgSlug: isValidOrgDomain ? currentOrgDomain : null,
       });
-
       return users;
     }
     const hosts = eventType.hosts || [];
