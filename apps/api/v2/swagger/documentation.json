@@ -689,7 +689,7 @@
         ]
       }
     },
-    "/api/v2/event-types/public/{username}/{eventSlug}": {
+    "/api/v2/event-types/{username}/{eventSlug}/public": {
       "get": {
         "operationId": "EventTypesController_getPublicEventType",
         "parameters": [
@@ -743,7 +743,7 @@
         ]
       }
     },
-    "/api/v2/event-types/public/{username}": {
+    "/api/v2/event-types/{username}/public": {
       "get": {
         "operationId": "EventTypesController_getPublicEventTypes",
         "parameters": [

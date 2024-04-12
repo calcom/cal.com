@@ -185,9 +185,9 @@ describe("Event types Endpoints", () => {
       expect(responseBody.data.eventType.userId).toEqual(user.id);
     });
 
-    it(`/GET/public/:username`, async () => {
+    it(`/GET/:username/public`, async () => {
       const response = await request(app.getHttpServer())
-        .get(`/api/v2/event-types/public/${username}`)
+        .get(`/api/v2/event-types/${username}/public`)
         // note: bearer token value mocked using "withAccessTokenAuth" for user which id is used when creating event type above
         .set("Authorization", `Bearer whatever`)
         .expect(200);
@@ -203,9 +203,9 @@ describe("Event types Endpoints", () => {
       expect(responseBody.data?.[0]?.length).toEqual(eventType.length);
     });
 
-    it(`/GET/public/:username/:eventSlug`, async () => {
+    it(`/GET/:username/:eventSlug/public`, async () => {
       const response = await request(app.getHttpServer())
-        .get(`/api/v2/event-types/public/${username}/${eventType.slug}`)
+        .get(`/api/v2/event-types/${username}/${eventType.slug}/public`)
         // note: bearer token value mocked using "withAccessTokenAuth" for user which id is used when creating event type above
         .set("Authorization", `Bearer whatever`)
         .expect(200);
@@ -241,7 +241,7 @@ describe("Event types Endpoints", () => {
 
     it(`/GET/public/:username/`, async () => {
       const response = await request(app.getHttpServer())
-        .get(`/api/v2/event-types/public/${username}`)
+        .get(`/api/v2/event-types/${username}/public`)
         // note: bearer token value mocked using "withAccessTokenAuth" for user which id is used when creating event type above
         .set("Authorization", `Bearer whatever`)
         .expect(200);

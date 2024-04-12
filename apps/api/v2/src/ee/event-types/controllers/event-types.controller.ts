@@ -100,7 +100,7 @@ export class EventTypesController {
     };
   }
 
-  @Get("/public/:username/:eventSlug")
+  @Get("/:username/:eventSlug/public")
   async getPublicEventType(
     @Param("username") username: string,
     @Param("eventSlug") eventSlug: string,
@@ -129,7 +129,7 @@ export class EventTypesController {
     throw new InternalServerErrorException("Could not find public event.");
   }
 
-  @Get("/public/:username")
+  @Get("/:username/public")
   async getPublicEventTypes(@Param("username") username: string): Promise<GetEventTypesPublicOutput> {
     const eventTypes = await this.eventTypesService.getEventTypesPublicByUsername(username);
 

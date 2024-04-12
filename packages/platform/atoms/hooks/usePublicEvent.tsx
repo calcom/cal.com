@@ -24,7 +24,7 @@ export const usePublicEvent = (props: { username: string; eventSlug: string }) =
     queryFn: () => {
       return http
         .get<ApiResponse<PublicEventType>>(
-          `/${V2_ENDPOINTS.eventTypes}/public/${requestUsername}/${requestEventSlug}`,
+          `/${V2_ENDPOINTS.eventTypes}/${requestUsername}/${requestEventSlug}/public`,
           {
             params: {
               isTeamEvent,
