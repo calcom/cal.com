@@ -26,7 +26,7 @@ export default async function checkTeamEventEditPermission(
 
     if (!membership?.role || !["ADMIN", "OWNER"].includes(membership.role)) {
       throw new HttpError({
-        statusCode: 401,
+        statusCode: 403,
         message: "No permission to operate on event-type for this team",
       });
     }

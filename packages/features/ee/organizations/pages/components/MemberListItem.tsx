@@ -11,6 +11,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  Icon,
   Tooltip,
   UserAvatar,
 } from "@calcom/ui";
@@ -81,7 +82,12 @@ export default function MemberListItem(props: Props) {
             <div className="flex md:hidden">
               <Dropdown>
                 <DropdownMenuTrigger asChild>
-                  <Button type="button" variant="icon" color="minimal" StartIcon="ellipsis" />
+                  <Button
+                    type="button"
+                    variant="icon"
+                    color="minimal"
+                    StartIcon="ellipsis"
+                  />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
                   <DropdownMenuItem className="outline-none">

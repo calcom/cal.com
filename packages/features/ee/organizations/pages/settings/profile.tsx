@@ -22,6 +22,7 @@ import {
   Button,
   Editor,
   Form,
+  Icon,
   ImageUploader,
   Label,
   LinkIconButton,

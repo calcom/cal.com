@@ -4,7 +4,7 @@
   "type": "module",
   "description": "Customizable UI components to integrate scheduling into your product.",
   "authors": "Cal.com, Inc.",
-  "version": "1.0.13",
+  "version": "1.0.14",
   "scripts": {
     "dev": "yarn vite build --watch & npx tailwindcss -i ./globals.css -o ./globals.min.css --postcss --minify --watch",
     "build": "yarn vite build && npx tailwindcss -i ./globals.css -o ./globals.min.css --postcss --minify",
@@ -35,14 +35,16 @@
   "exports": {
     ".": {
       "require": "./dist/cal-atoms.umd.cjs",
-      "import": "./dist/cal-atoms.js"
+      "import": "./dist/cal-atoms.js",
+      "types": "./dist/index.d.ts"
     },
     "./monorepo": {
       "import": "./monorepo.ts",
       "require": "./monorepo.ts"
     },
     "./globals.min.css": "./globals.min.css",
-    "./dist/index.ts": "./index.ts"
+    "./dist/index.ts": "./index.ts",
+    "./dist/index.d.ts": "./dist/index.d.ts"
   },
   "types": "./dist/index.d.ts",
   "dependencies": {

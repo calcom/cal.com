@@ -13,6 +13,5 @@
   "isTemplate": false,
   "__createdUsingCli": true,
   "__template": "link-as-an-app",
-  "dependencies": ["google-calendar"],
-  "isOAuth": false
+  "dependencies": ["google-calendar"]
 }
