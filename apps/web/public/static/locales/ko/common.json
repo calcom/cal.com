@@ -225,8 +225,6 @@
   "already_have_an_account": "이미 계정이 있으신가요?",
   "create_account": "계정 만들기",
   "confirm_password": "비밀번호 확인",
-  "confirm_auth_change": "이것으로 로그인 방식이 변경됩니다",
-  "confirm_auth_email_change": "이메일 주소를 변경하면 Cal.com에 로그인하는 기존 인증 방법이 연결 해제됩니다. 새 이메일 주소를 인증하라는 메시지가 표시됩니다. 앞으로는 메일로 전송되는 지침에 따라 비밀번호를 설정한 후 로그아웃하고 기존 인증 방법 대신 새 이메일 주소를 사용하여 로그인하게 됩니다.",
   "reset_your_password": "이메일 주소로 전송된 지침에 따라 새 비밀번호를 설정하십시오.",
   "email_change": "새 이메일 주소와 비밀번호로 다시 로그인하십시오.",
   "create_your_account": "계정 만들기",

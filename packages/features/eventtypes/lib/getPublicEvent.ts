@@ -78,7 +78,7 @@ const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
       darkBrandColor: true,
       slug: true,
       name: true,
-      logo: true,
+      logoUrl: true,
       theme: true,
       parent: {
         select: {
@@ -189,6 +189,7 @@ export const getPublicEvent = async (
       },
       entity: {
         considerUnpublished: !fromRedirectOfNonOrgLink && unPublishedOrgUser !== undefined,
+        fromRedirectOfNonOrgLink,
         orgSlug: org,
         name: unPublishedOrgUser?.profile?.organization?.name ?? null,
       },
@@ -291,6 +292,7 @@ export const getPublicEvent = async (
     profile: getProfileFromEvent(eventWithUserProfiles),
     users,
     entity: {
+      fromRedirectOfNonOrgLink,
       considerUnpublished:
         !fromRedirectOfNonOrgLink &&
         (eventWithUserProfiles.team?.slug === null ||
@@ -348,7 +350,7 @@ function getProfileFromEvent(event: Event) {
           },
           avatarUrl: nonTeamprofile?.avatarUrl,
         }),
-    logo: !team ? undefined : team.logo,
+    logo: !team ? undefined : team.logoUrl,
     brandColor: profile.brandColor,
     darkBrandColor: profile.darkBrandColor,
     theme: profile.theme,

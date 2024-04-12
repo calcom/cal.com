@@ -1,3 +1,4 @@
+import { ApiProperty } from "@nestjs/swagger";
 import { Type, Transform } from "class-transformer";
 import {
   ValidateNested,
@@ -11,7 +12,7 @@ import {
   IsString,
 } from "class-validator";
 
-enum Status {
+export enum Status {
   upcoming = "upcoming",
   recurring = "recurring",
   past = "past",
@@ -62,21 +63,26 @@ export class GetBookingsInput {
 export class CancelBookingInput {
   @IsNumber()
   @IsOptional()
+  @ApiProperty()
   id?: number;
 
   @IsString()
   @IsOptional()
+  @ApiProperty()
   uid?: string;
 
   @IsBoolean()
   @IsOptional()
+  @ApiProperty()
   allRemainingBookings?: boolean;
 
   @IsString()
   @IsOptional()
+  @ApiProperty()
   cancellationReason?: string;
 
   @IsString()
   @IsOptional()
+  @ApiProperty()
   seatReferenceUid?: string;
 }
