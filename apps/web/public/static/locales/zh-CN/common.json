@@ -246,8 +246,6 @@
   "already_have_an_account": "已经有帐号？",
   "create_account": "创建账户",
   "confirm_password": "确认密码",
-  "confirm_auth_change": "这将更改您的登录方式",
-  "confirm_auth_email_change": "更改电子邮件地址将断开您当前登录 Cal.com 的身份验证方法。我们将要求您验证您的新电子邮件地址。接下来，在按照发送到您邮箱的说明设置密码后，您将被注销并使用新的电子邮件地址登录，而不是当前的身份验证方法。",
   "reset_your_password": "按照发送到您的电子邮件地址的说明设置新密码。",
   "org_banner_instructions": "请上传一张宽为 {{width}}，高为 {{height}} 的照片。",
   "email_change": "使用您的新电子邮件地址和密码重新登录。",
@@ -2164,6 +2162,9 @@
   "extensive_whitelabeling": "专门的入门和工程支持",
   "need_help": "需要帮助？",
   "show_more": "显示更多",
+  "email_team_invite|subject|invited_to_regular_team": "{{user}} 邀请您在 {{appName}} 上加入 {{team}} 团队",
+  "email_team_invite|heading|invited_to_regular_team": "您已被邀请加入 {{appName}} 团队",
+  "email_team_invite|content|invited_to_regular_team": "{{invitedBy}} 已邀请您加入他们在 {{appName}} 上的团队“{{teamName}}”。{{appName}} 是一个活动安排调度程序，让您和您的团队无需通过电子邮件沟通即可安排会议。",
   "privacy": "隐私",
   "cookie_consent_checkbox": "我同意 Cal.com 的隐私政策以及 cookie 使用政策",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 在此上方添加您的新字符串 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"

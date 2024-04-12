@@ -68,8 +68,7 @@ const OrgForm = ({
       router.replace(`/settings/admin/organizations`);
     },
     onError: (err) => {
-      console.error(err.message);
-      showToast(t("org_error_processing"), "error");
+      showToast(err.message, "error");
     },
   });
 

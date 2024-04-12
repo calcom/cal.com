@@ -17,6 +17,7 @@ test.describe("Payment app", () => {
     await prisma.credential.create({
       data: {
         type: "alby_payment",
+        appId: "alby",
         userId: user.id,
         key: {
           account_id: "random",
@@ -57,6 +58,7 @@ test.describe("Payment app", () => {
     await prisma.credential.create({
       data: {
         type: "stripe_payment",
+        appId: "stripe",
         userId: user.id,
         key: {
           scope: "read_write",
@@ -101,6 +103,7 @@ test.describe("Payment app", () => {
     await prisma.credential.create({
       data: {
         type: "paypal_payment",
+        appId: "paypal",
         userId: user.id,
         key: {
           client_id: "randomString",
@@ -147,6 +150,7 @@ test.describe("Payment app", () => {
     await prisma.credential.create({
       data: {
         type: "alby_payment",
+        appId: "alby",
         userId: user.id,
         key: {},
       },
@@ -173,6 +177,7 @@ test.describe("Payment app", () => {
     await prisma.credential.create({
       data: {
         type: "paypal_payment",
+        appId: "paypal",
         userId: user.id,
         key: {},
       },
@@ -234,6 +239,7 @@ test.describe("Payment app", () => {
       data: [
         {
           type: "paypal_payment",
+          appId: "paypal",
           userId: user.id,
           key: {
             client_id: "randomString",
@@ -243,6 +249,7 @@ test.describe("Payment app", () => {
         },
         {
           type: "stripe_payment",
+          appId: "stripe",
           userId: user.id,
           key: {
             scope: "read_write",
@@ -279,6 +286,7 @@ test.describe("Payment app", () => {
       data: [
         {
           type: "paypal_payment",
+          appId: "paypal",
           userId: user.id,
           key: {
             client_id: "randomString",
@@ -288,6 +296,7 @@ test.describe("Payment app", () => {
         },
         {
           type: "stripe_payment",
+          appId: "stripe",
           userId: user.id,
           key: {
             scope: "read_write",
