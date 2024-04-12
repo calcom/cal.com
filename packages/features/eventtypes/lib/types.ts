@@ -66,6 +66,8 @@ export type FormValues = {
     yourPhoneNumber: string;
     numberToCall: string;
     guestName: string;
+    guestEmail: string;
+    guestCompany: string;
   };
   customInputs: CustomInputParsed[];
   schedule: number | null;

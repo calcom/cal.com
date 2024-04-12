@@ -10,15 +10,13 @@ interface IconProps extends Omit<LucideProps, "ref"> {
   name: IconName;
 }
 
-const IconDev = dynamic(() => import("./IconDev"));
-const IconProd = dynamic(() => import("./IconProd"));
-
-const Icon = memo((props: IconProps) => {
+const IconLazy = dynamic(
   // Fast refresh doesn't play nice with dynamic imports
   // This prevent slowdowns in development mode
-  if (process.env.NODE_ENV === "development") return <IconDev {...props} />;
-  return <IconProd {...props} />;
-});
+  process.env.NODE_ENV === "production" ? () => import("./IconProd") : () => import("./IconDev")
+);
+
+const Icon = memo((props: IconProps) => <IconLazy {...props} />);
 
 Icon.displayName = "Icon";
 

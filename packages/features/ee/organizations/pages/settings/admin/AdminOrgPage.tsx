@@ -78,14 +78,13 @@ function AdminOrgTable() {
         <Header>
           <ColumnTitle widthClassNames="w-auto">{t("organization")}</ColumnTitle>
           <ColumnTitle widthClassNames="w-auto">{t("owner")}</ColumnTitle>
-          <ColumnTitle widthClassNames="w-auto">{t("verified")}</ColumnTitle>
+          <ColumnTitle widthClassNames="w-auto">{t("reviewed")}</ColumnTitle>
           <ColumnTitle widthClassNames="w-auto">{t("dns_configured")}</ColumnTitle>
           <ColumnTitle widthClassNames="w-auto">{t("published")}</ColumnTitle>
           <ColumnTitle widthClassNames="w-auto">
             <span className="sr-only">{t("edit")}</span>
           </ColumnTitle>
         </Header>
-
         <Body>
           {data.map((org) => (
             <Row key={org.id}>
@@ -105,10 +104,10 @@ function AdminOrgTable() {
               </Cell>
               <Cell>
                 <div className="space-x-2">
-                  {!org.organizationSettings?.isOrganizationVerified ? (
-                    <Badge variant="red">{t("unverified")}</Badge>
+                  {!org.organizationSettings?.isAdminReviewed ? (
+                    <Badge variant="red">{t("unreviewed")}</Badge>
                   ) : (
-                    <Badge variant="blue">{t("verified")}</Badge>
+                    <Badge variant="green">{t("reviewed")}</Badge>
                   )}
                 </div>
               </Cell>
@@ -134,14 +133,17 @@ function AdminOrgTable() {
                 <div className="flex w-full justify-end">
                   <DropdownActions
                     actions={[
-                      ...(!org.organizationSettings?.isOrganizationVerified
+                      ...(!org.organizationSettings?.isAdminReviewed
                         ? [
                             {
-                              id: "verify",
-                              label: t("verify"),
+                              id: "review",
+                              label: t("review"),
                               onClick: () => {
-                                verifyMutation.mutate({
-                                  orgId: org.id,
+                                updateMutation.mutate({
+                                  id: org.id,
+                                  organizationSettings: {
+                                    isAdminReviewed: true,
+                                  },
                                 });
                               },
                               icon: "check" as const,

@@ -1,12 +1,14 @@
 import type { ReactNode } from "react";
+import React from "react";
 
 import { useIsPlatform, useGetEventTypeById } from "@calcom/atoms/monorepo";
-import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Badge, Dialog, DialogContent } from "@calcom/ui";
 
+import { getDurationFormatted } from "../../../components/event-meta/Duration";
 import { useTimePreferences } from "../../../lib";
 import { useBookerStore } from "../../store";
+import { FromTime } from "../../utils/dates";
 import { useEvent } from "../../utils/event";
 
 const BookEventFormWrapper = ({ children, onCancel }: { onCancel: () => void; children: ReactNode }) => {
@@ -42,10 +44,9 @@ export const BookEventFormWrapperComponent = ({
   child: ReactNode;
   eventLength?: number;
 }) => {
-  const { t } = useLocale();
+  const { i18n, t } = useLocale();
   const selectedTimeslot = useBookerStore((state) => state.selectedTimeslot);
   const selectedDuration = useBookerStore((state) => state.selectedDuration);
-  const parsedSelectedTimeslot = dayjs(selectedTimeslot);
   const { timeFormat, timezone } = useTimePreferences();
   if (!selectedTimeslot) {
     return null;
@@ -53,15 +54,18 @@ export const BookEventFormWrapperComponent = ({
   return (
     <>
       <h1 className="font-cal text-emphasis text-xl leading-5">{t("confirm_your_details")} </h1>
-      <div className="my-4 flex space-x-2 rounded-md leading-none">
+      <div className="my-4 flex flex-wrap gap-2 rounded-md leading-none">
         <Badge variant="grayWithoutHover" startIcon="calendar" size="lg">
-          <span>
-            {parsedSelectedTimeslot.format("LL")} {parsedSelectedTimeslot.tz(timezone).format(timeFormat)}
-          </span>
+          <FromTime
+            date={selectedTimeslot}
+            timeFormat={timeFormat}
+            timeZone={timezone}
+            language={i18n.language}
+          />
         </Badge>
         {(selectedDuration || eventLength) && (
           <Badge variant="grayWithoutHover" startIcon="clock" size="lg">
-            <span>{selectedDuration || eventLength}</span>
+            <span>{getDurationFormatted(selectedDuration || eventLength, t)}</span>
           </Badge>
         )}
       </div>
