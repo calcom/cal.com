@@ -202,9 +202,9 @@ describe("Event types Endpoints", () => {
       expect(responseBody.data.profiles?.[0]?.name).toEqual(name);
     });
 
-    it(`/GET/:username/public`, async () => {
+    it(`/GET/public/:username/`, async () => {
       const response = await request(app.getHttpServer())
-        .get(`/api/v2/event-types/${username}/public`)
+        .get(`/api/v2/event-types/public/${username}`)
         // note: bearer token value mocked using "withAccessTokenAuth" for user which id is used when creating event type above
         .set("Authorization", `Bearer whatever`)
         .expect(200);

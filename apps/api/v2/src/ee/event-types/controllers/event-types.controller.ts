@@ -90,7 +90,7 @@ export class EventTypesController {
     };
   }
 
-  @Get("/:username/public")
+  @Get("/public/:username")
   @Permissions([EVENT_TYPE_READ])
   async getPublicEventTypes(@Param("username") username: string): Promise<GetEventTypesPublicOutput> {
     const eventTypes = await this.eventTypesService.getEventTypesPublicByUsername(username);
