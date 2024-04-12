@@ -46,6 +46,7 @@ function Component({ webhookId }: { webhookId: string }) {
   const editWebhookMutation = trpc.viewer.webhook.edit.useMutation({
     async onSuccess() {
       await utils.viewer.webhook.list.invalidate();
+      await utils.viewer.webhook.get.invalidate({ webhookId });
       showToast(t("webhook_updated_successfully"), "success");
       router.back();
     },

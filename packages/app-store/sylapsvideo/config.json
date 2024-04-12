@@ -18,6 +18,5 @@
       "type": "integrations:sylaps_video",
       "label": "Sylaps"
     }
-  },
-  "isOAuth": false
+  }
 }

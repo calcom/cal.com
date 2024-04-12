@@ -55,11 +55,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   await createOAuthAppCredential({ appId: appConfig.slug, type: appConfig.type }, tokenInfo.data, req);
 
   const state = decodeOAuthState(req);
-
-  if (state?.appOnboardingRedirectUrl && state.appOnboardingRedirectUrl !== "") {
-    return res.redirect(state.appOnboardingRedirectUrl);
-  }
-
   res.redirect(
     getSafeRedirectUrl(state?.returnTo) ??
       getInstalledAppPath({ variant: appConfig.variant, slug: appConfig.slug })

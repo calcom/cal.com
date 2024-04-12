@@ -249,8 +249,6 @@
   "already_have_an_account": "Vous avez déjà un compte ?",
   "create_account": "Créer un compte",
   "confirm_password": "Confirmer le mot de passe",
-  "confirm_auth_change": "Cela changera la façon dont vous vous connectez",
-  "confirm_auth_email_change": "La modification de l'adresse e-mail déconnectera votre méthode d'authentification actuelle pour vous connecter à Cal.com. Nous vous demanderons de vérifier votre nouvelle adresse e-mail. Ensuite, vous serez déconnecté et devrez utiliser votre nouvelle adresse e-mail pour vous connecter après avoir défini votre mot de passe en suivant les instructions qui seront envoyées à votre adresse e-mail.",
   "reset_your_password": "Définissez votre nouveau mot de passe avec les instructions envoyées à votre adresse e-mail.",
   "org_banner_instructions": "Veuillez télécharger une image d'une largeur de {{width}} et d'une hauteur de {{height}}.",
   "email_change": "Reconnectez-vous avec votre nouvelle adresse e-mail et votre nouveau mot de passe.",
