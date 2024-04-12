@@ -1026,6 +1026,22 @@ export function ShellMain(props: LayoutProps) {
   const router = useRouter();
   const { isLocaleReady } = useLocale();
 
+  const handleNotification = async () => {
+    try {
+      const permission = await Notification.requestPermission();
+
+      if (permission === "granted") {
+        // Handle successful permission grant
+        console.log("Notifications permission granted");
+      } else {
+        // Handle permission denial (e.g., display a message)
+        console.log("Notifications permission denied");
+      }
+    } catch (error) {
+      console.error("Error requesting notification permission:", error);
+    }
+  };
+
   return (
     <>
       {(props.heading || !!props.backPath) && (
@@ -1083,6 +1099,11 @@ export function ShellMain(props: LayoutProps) {
                 </div>
               )}
               {props.actions && props.actions}
+              {props.heading === "Bookings" && (
+                <Button color="primary" onClick={handleNotification}>
+                  Allow Notifications
+                </Button>
+              )}
             </header>
           )}
         </div>
