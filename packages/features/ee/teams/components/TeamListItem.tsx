@@ -44,7 +44,7 @@ interface Props {
 export default function TeamListItem(props: Props) {
   const searchParams = useCompatSearchParams();
   const { t, i18n } = useLocale();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const user = trpc.viewer.me.useQuery().data;
   const team = props.team;
 

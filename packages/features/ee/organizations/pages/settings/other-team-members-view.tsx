@@ -66,7 +66,7 @@ const MembersView = () => {
   const params = useParamsWithFallback();
   const teamId = Number(params.id);
   const session = useSession();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   // const [query, setQuery] = useState<string | undefined>("");
   // const [queryToFetch, setQueryToFetch] = useState<string | undefined>("");
   const limit = 20;

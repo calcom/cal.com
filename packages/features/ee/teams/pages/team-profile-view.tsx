@@ -86,7 +86,7 @@ const ProfileView = () => {
   const teamId = Number(params.id);
   const { t } = useLocale();
   const router = useRouter();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const session = useSession();
 
   useLayoutEffect(() => {
@@ -249,7 +249,7 @@ const ProfileView = () => {
 export type TeamProfileFormProps = { team: RouterOutputs["viewer"]["teams"]["get"] };
 
 const TeamProfileForm = ({ team }: TeamProfileFormProps) => {
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const { t } = useLocale();
   const router = useRouter();
 
