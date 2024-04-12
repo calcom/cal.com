@@ -1,3 +1,4 @@
+import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 import type Prisma from "@prisma/client";
 
@@ -20,6 +21,22 @@ const IS_STRIPE_ENABLED = !!(
   process.env.PAYMENT_FEE_PERCENTAGE
 );
 
+type InstallStripeParamsSkipTrue = {
+  page: Page;
+  skip: true;
+};
+
+type InstallStripeParamsSkipFalse = {
+  page: Page;
+  skip: false;
+  eventTypeIds: number[];
+};
+type InstallStripeParamsUnion = InstallStripeParamsSkipTrue | InstallStripeParamsSkipFalse;
+type InstallStripeParams = InstallStripeParamsUnion & {
+  redirectUrl: string;
+  buttonSelector: string;
+};
+
 test.describe("Stripe integration", () => {
   // eslint-disable-next-line playwright/no-skipped-test
   test.skip(!IS_STRIPE_ENABLED, "It should only run if Stripe is installed");
@@ -28,22 +45,21 @@ test.describe("Stripe integration", () => {
     test("Can add Stripe integration", async ({ page, users }) => {
       const user = await users.create();
       await user.apiLogin();
-      await page.goto("/apps/installed");
 
-      await user.getPaymentCredential();
+      // await installStripe(page, "personal", true, []);
+      await installStripePersonal({ page, skip: true });
 
       await expect(page.locator(`h3:has-text("Stripe")`)).toBeVisible();
       await page.getByRole("list").getByRole("button").click();
       await expect(page.getByRole("button", { name: "Remove App" })).toBeVisible();
     });
   });
-
   test("when enabling Stripe, credentialId is included", async ({ page, users }) => {
     const user = await users.create();
     await user.apiLogin();
     await page.goto("/apps/installed");
 
-    await user.getPaymentCredential();
+    await installStripePersonal({ page, skip: true });
 
     const eventType = user.eventTypes.find((e) => e.slug === "paid") as Prisma.EventType;
     await user.setupEventWithPrice(eventType, "stripe");
@@ -68,7 +84,34 @@ test.describe("Stripe integration", () => {
     expect(stripeAppMetadata).toHaveProperty("credentialId");
     expect(typeof stripeAppMetadata?.credentialId).toBe("number");
   });
+  test("when enabling Stripe, credentialId is included skip false", async ({ page, users }) => {
+    const user = await users.create();
+    await user.apiLogin();
+    await page.goto("/apps/installed");
+    const eventTypes = await user.getUserEventsAsOwner();
+    const eventTypeIds = eventTypes.map((item) => item.id);
 
+    // await installStripe(page, "personal", false, eventTypeIds);
+    await installStripePersonal({ page, skip: false, eventTypeIds });
+
+    const eventTypeMetadatas = await prisma.eventType.findMany({
+      where: {
+        id: {
+          in: eventTypeIds,
+        },
+      },
+      select: {
+        metadata: true,
+      },
+    });
+
+    for (const eventTypeMetadata of eventTypeMetadatas) {
+      const metadata = EventTypeMetaDataSchema.parse(eventTypeMetadata?.metadata);
+      const stripeAppMetadata = metadata?.apps?.stripe;
+      expect(stripeAppMetadata).toHaveProperty("credentialId");
+      expect(typeof stripeAppMetadata?.credentialId).toBe("number");
+    }
+  });
   test("when enabling Stripe, team credentialId is included", async ({ page, users }) => {
     const ownerObj = { username: "pro-user", name: "pro-user" };
     const teamMatesObj = [
@@ -85,21 +128,10 @@ test.describe("Stripe integration", () => {
     });
     await owner.apiLogin();
     const { team } = await owner.getFirstTeamMembership();
-    const { title: teamEventTitle, slug: teamEventSlug } = await owner.getFirstTeamEvent(team.id);
 
     const teamEvent = await owner.getFirstTeamEvent(team.id);
 
-    await page.goto("/apps/stripe");
-
-    /** We start the Stripe flow */
-    await page.click('[data-testid="install-app-button"]');
-    await page.click(`[data-testid="install-app-on-team-${team.id}"]`);
-    await page.waitForURL("https://connect.stripe.com/oauth/v2/authorize?*");
-    await page.click('[id="skip-account-app"]');
-    await page.waitForURL(`apps/installation/event-types?slug=stripe&teamId=${team.id}`);
-    await page.click('[data-testid="set-up-later"]');
-    await page.goto("/apps/installed/payment?hl=stripe");
-    /** We skip filling Stripe forms (testing mode only) */
+    await installStripeTeam({ page, skip: true, teamId: team.id });
     await owner.setupEventWithPrice(teamEvent, "stripe");
 
     // Need to wait for the DB to be updated with the metadata
@@ -122,13 +154,51 @@ test.describe("Stripe integration", () => {
     expect(stripeAppMetadata).toHaveProperty("credentialId");
     expect(typeof stripeAppMetadata?.credentialId).toBe("number");
   });
+  test("when enabling Stripe, team credentialId is included skip false", async ({ page, users }) => {
+    const ownerObj = { username: "pro-user", name: "pro-user" };
+    const teamMatesObj = [
+      { name: "teammate-1" },
+      { name: "teammate-2" },
+      { name: "teammate-3" },
+      { name: "teammate-4" },
+    ];
 
+    const owner = await users.create(ownerObj, {
+      hasTeam: true,
+      teammates: teamMatesObj,
+      schedulingType: SchedulingType.COLLECTIVE,
+    });
+    await owner.apiLogin();
+    const { team } = await owner.getFirstTeamMembership();
+
+    const teamEvent = await owner.getFirstTeamEvent(team.id);
+
+    await installStripeTeam({ page, skip: false, teamId: team.id, eventTypeIds: [teamEvent.id] });
+
+    // Check event type metadata to see if credentialId is included
+    const eventTypeMetadata = await prisma.eventType.findFirst({
+      where: {
+        id: teamEvent.id,
+      },
+      select: {
+        metadata: true,
+      },
+    });
+
+    const metadata = EventTypeMetaDataSchema.parse(eventTypeMetadata?.metadata);
+
+    const stripeAppMetadata = metadata?.apps?.stripe;
+
+    expect(stripeAppMetadata).toHaveProperty("credentialId");
+    expect(typeof stripeAppMetadata?.credentialId).toBe("number");
+  });
   test("Can book a paid booking", async ({ page, users }) => {
     const user = await users.create();
     const eventType = user.eventTypes.find((e) => e.slug === "paid") as Prisma.EventType;
     await user.apiLogin();
     await page.goto("/apps/installed");
 
+    await installStripePersonal({ page, skip: true });
     await user.getPaymentCredential();
     await user.setupEventWithPrice(eventType, "stripe");
     await user.bookAndPayEvent(eventType);
@@ -136,6 +206,17 @@ test.describe("Stripe integration", () => {
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
   });
 
+  test("Can book a paid booking skip false", async ({ page, users }) => {
+    const user = await users.create();
+    const eventType = user.eventTypes.find((e) => e.slug === "paid") as Prisma.EventType;
+    await user.apiLogin();
+    await page.goto("/apps/installed");
+
+    await installStripePersonal({ page, skip: false, eventTypeIds: [eventType.id] });
+    await user.bookAndPayEvent(eventType);
+    // success
+    await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+  });
   test("Pending payment booking should not be confirmed by default", async ({ page, users }) => {
     const user = await users.create();
     const eventType = user.eventTypes.find((e) => e.slug === "paid") as Prisma.EventType;
@@ -287,3 +368,51 @@ test.describe("Stripe integration", () => {
     });
   });
 });
+
+const installStripePersonal = async (params: InstallStripeParamsUnion) => {
+  const redirectUrl = `apps/installation/event-types?slug=stripe`;
+  const buttonSelector = '[data-testid="install-app-button-personal"]';
+  await installStripe({ redirectUrl, buttonSelector, ...params });
+};
+
+const installStripeTeam = async ({ teamId, ...params }: InstallStripeParamsUnion & { teamId: number }) => {
+  const redirectUrl = `apps/installation/event-types?slug=stripe&teamId=${teamId}`;
+  const buttonSelector = `[data-testid="install-app-button-team${teamId}"]`;
+  await installStripe({ redirectUrl, buttonSelector, ...params });
+};
+
+const installStripe = async ({
+  page,
+  skip,
+  eventTypeIds,
+  redirectUrl,
+  buttonSelector,
+}: InstallStripeParams) => {
+  await page.goto("/apps/stripe");
+  /** We start the Stripe flow */
+  await page.click('[data-testid="install-app-button"]');
+  await page.click(buttonSelector);
+
+  await page.waitForURL("https://connect.stripe.com/oauth/v2/authorize?*");
+  /** We skip filling Stripe forms (testing mode only) */
+  await page.click('[id="skip-account-app"]');
+  await page.waitForURL(redirectUrl);
+  if (skip) {
+    await page.click('[data-testid="set-up-later"]');
+    return;
+  }
+  for (const id of eventTypeIds) {
+    await page.click(`[data-testid="select-event-type-${id}"]`);
+  }
+  await page.click(`[data-testid="save-event-types"]`);
+  for (let index = 0; index < eventTypeIds.length; index++) {
+    await page.locator('[data-testid="stripe-price-input"]').nth(index).fill(`1${index}`);
+  }
+  await page.click(`[data-testid="configure-step-save"]`);
+  await page.waitForURL(`event-types`);
+  for (let index = 0; index < eventTypeIds.length; index++) {
+    await page.goto(`event-types/${eventTypeIds[index]}?tabName=apps`);
+    await expect(page.getByTestId(`stripe-app-switch`)).toBeChecked();
+    await expect(page.getByTestId(`stripe-price-input`)).toHaveValue(`1${index}`);
+  }
+};

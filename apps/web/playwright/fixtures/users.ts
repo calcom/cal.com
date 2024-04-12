@@ -919,7 +919,7 @@ export async function getPaymentCredential(page: Page) {
 
   /** We start the Stripe flow */
   await page.click('[data-testid="install-app-button"]');
-  await page.click('[data-testid="install-app-on-personal-account"]');
+  await page.click('[data-testid="install-app-button-personal"]');
   await page.waitForURL("https://connect.stripe.com/oauth/v2/authorize?*");
   /** We skip filling Stripe forms (testing mode only) */
   await page.click('[id="skip-account-app"]');

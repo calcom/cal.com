@@ -15,7 +15,7 @@ export function createAppsFixture(page: Page) {
 
       const appMetadata = appStoreMetadata[app as keyof typeof appStoreMetadata];
       if (shouldRedirectToAppOnboarding(appMetadata)) {
-        await page.click('[data-testid="install-app-on-personal-account"]');
+        await page.click('[data-testid="install-app-button-personal"]');
         await page.waitForURL(`apps/installation/event-types?slug=${app}`);
         await page.click('[data-testid="set-up-later"]');
       }
@@ -27,7 +27,7 @@ export function createAppsFixture(page: Page) {
 
       const appMetadata = appStoreMetadata[app as keyof typeof appStoreMetadata];
       if (shouldRedirectToAppOnboarding(appMetadata)) {
-        await page.click('[data-testid="install-app-on-personal-account"]');
+        await page.click('[data-testid="install-app-button-personal"]');
         await page.waitForURL(`apps/installation/event-types?slug=${app}`);
 
         for (const id of eventTypeIds) {
