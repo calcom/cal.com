@@ -24,7 +24,7 @@ export const usePublicEvent = (props: Props) => {
   const selectedDuration = useBookerStore((state) => state.selectedDuration);
 
   const event = useQuery({
-    queryKey: [QUERY_KEY, username ?? props.username, eventSlug ?? props.eventSlug],
+    queryKey: [QUERY_KEY, username ?? props.username, eventSlug ?? props.eventSlug, props.isDynamic],
     queryFn: () => {
       return http
         .get<ApiResponse<PublicEventType>>("/events/public", {
