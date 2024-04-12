@@ -91,14 +91,16 @@ export const createTeamsHandler = async ({ ctx, input }: CreateTeamsOptions) => 
   );
 
   await Promise.all(
-    moveTeams.map(async ({ id: teamId, newSlug }) => {
-      await moveTeam({
-        teamId,
-        newSlug,
-        org: organization,
-        ctx,
-      });
-    })
+    moveTeams
+      .filter((team) => team.shouldMove)
+      .map(async ({ id: teamId, newSlug }) => {
+        await moveTeam({
+          teamId,
+          newSlug,
+          org: organization,
+          ctx,
+        });
+      })
   );
 
   if (duplicatedSlugs.length === teamNames.length) {

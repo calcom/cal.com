@@ -702,8 +702,8 @@ export const AIPhoneSettingSchema = z.object({
   guestName: z.string().trim().min(1, {
     message: "Please enter Guest Name",
   }),
-  guestEmail: z.string().email().optional(),
-  guestCompany: z.string().optional(),
+  guestEmail: z.string().email().nullable().optional(),
+  guestCompany: z.string().nullable().optional(),
   generalPrompt: z.string().trim().min(1, {
     message: "Please enter prompt",
   }),
@@ -731,6 +731,26 @@ export const getRetellLLMSchema = z
         })
         .passthrough()
     ),
+    states: z
+      .array(
+        z
+          .object({
+            name: z.string(),
+            tools: z.array(
+              z
+                .object({
+                  name: z.string(),
+                  type: z.string(),
+                  cal_api_key: z.string().optional(),
+                  event_type_id: z.number().optional(),
+                  timezone: z.string().optional(),
+                })
+                .passthrough()
+            ),
+          })
+          .passthrough()
+      )
+      .nullable(),
   })
   .passthrough();
 
