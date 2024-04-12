@@ -251,7 +251,7 @@ describe("buildDateRanges", () => {
 
     const timeZone = "America/New_York";
 
-    const results = buildDateRanges({ availability: items, timeZone, dateFrom, dateTo });
+    const { dateRanges: results } = buildDateRanges({ availability: items, timeZone, dateFrom, dateTo });
     // [
     //  { s: '2023-06-13T10:00:00-04:00', e: '2023-06-13T15:00:00-04:00' },
     //  { s: '2023-06-14T08:00:00-04:00', e: '2023-06-14T17:00:00-04:00' }
@@ -288,7 +288,7 @@ describe("buildDateRanges", () => {
     const dateFrom = dayjs.tz("2023-08-15", "Europe/Brussels").startOf("day");
     const dateTo = dayjs.tz("2023-08-15", "Europe/Brussels").endOf("day");
 
-    const result = buildDateRanges({ availability: item, timeZone, dateFrom, dateTo });
+    const { dateRanges: result } = buildDateRanges({ availability: item, timeZone, dateFrom, dateTo });
     // this happened only on Europe/Brussels, Europe/Amsterdam was 2023-08-15T17:00:00-10:00 (as it should be)
     expect(result[0].end.format()).not.toBe("2023-08-14T17:00:00-10:00");
   });
@@ -310,7 +310,7 @@ describe("buildDateRanges", () => {
     const dateFrom = dayjs("2023-06-13T00:00:00Z");
     const dateTo = dayjs("2023-06-15T00:00:00Z");
 
-    const results = buildDateRanges({ availability: items, timeZone, dateFrom, dateTo });
+    const { dateRanges: results } = buildDateRanges({ availability: items, timeZone, dateFrom, dateTo });
 
     expect(results[0]).toEqual({
       start: dayjs("2023-06-14T07:00:00Z").tz(timeZone),
@@ -330,7 +330,7 @@ describe("buildDateRanges", () => {
     const dateFrom = dayjs("2023-06-13T10:00:00Z");
     const dateTo = dayjs("2023-06-13T10:30:00Z");
 
-    const results = buildDateRanges({ availability: items, timeZone, dateFrom, dateTo });
+    const { dateRanges: results } = buildDateRanges({ availability: items, timeZone, dateFrom, dateTo });
 
     expect(results[0]).toEqual({
       start: dayjs("2023-06-13T08:00:00Z").tz(timeZone),
@@ -355,13 +355,61 @@ describe("buildDateRanges", () => {
     const dateFrom = dayjs("2023-06-13T00:00:00Z");
     const dateTo = dayjs("2023-06-15T00:00:00Z");
 
-    const results = buildDateRanges({ availability: items, timeZone, dateFrom, dateTo });
+    const { dateRanges: results } = buildDateRanges({ availability: items, timeZone, dateFrom, dateTo });
 
     expect(results[0]).toEqual({
       start: dayjs("2023-06-14T02:00:00Z").tz(timeZone),
       end: dayjs("2023-06-14T03:00:00Z").tz(timeZone),
     });
     expect(results[1]).toEqual({
+      start: dayjs("2023-06-14T12:00:00Z").tz(timeZone),
+      end: dayjs("2023-06-14T21:00:00Z").tz(timeZone),
+    });
+  });
+  it("should handle OOO correctly", () => {
+    const items = [
+      {
+        date: new Date(Date.UTC(2023, 5, 13)),
+        startTime: new Date(Date.UTC(0, 0, 0, 10, 0)), // 10 AM
+        endTime: new Date(Date.UTC(0, 0, 0, 15, 0)), // 3 PM
+      },
+      {
+        days: [1, 2, 3, 4, 5],
+        startTime: new Date(Date.UTC(2023, 5, 12, 8, 0)), // 8 AM
+        endTime: new Date(Date.UTC(2023, 5, 12, 17, 0)), // 5 PM
+      },
+    ];
+
+    const outOfOffice = {
+      "2023-06-13": {
+        fromUser: { id: 1, displayName: "Team Free Example" },
+      },
+    };
+
+    const dateFrom = dayjs("2023-06-13T00:00:00Z"); // 2023-06-12T20:00:00-04:00 (America/New_York)
+    const dateTo = dayjs("2023-06-15T00:00:00Z");
+
+    const timeZone = "America/New_York";
+
+    const { dateRanges, oooExcludedDateRanges } = buildDateRanges({
+      availability: items,
+      timeZone,
+      dateFrom,
+      dateTo,
+      outOfOffice,
+    });
+
+    expect(dateRanges[0]).toEqual({
+      start: dayjs("2023-06-13T14:00:00Z").tz(timeZone),
+      end: dayjs("2023-06-13T19:00:00Z").tz(timeZone),
+    });
+
+    expect(dateRanges[1]).toEqual({
+      start: dayjs("2023-06-14T12:00:00Z").tz(timeZone),
+      end: dayjs("2023-06-14T21:00:00Z").tz(timeZone),
+    });
+    expect(oooExcludedDateRanges.length).toBe(1);
+    expect(oooExcludedDateRanges[0]).toEqual({
       start: dayjs("2023-06-14T12:00:00Z").tz(timeZone),
       end: dayjs("2023-06-14T21:00:00Z").tz(timeZone),
     });

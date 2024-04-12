@@ -303,6 +303,8 @@ model User {
   secondaryEmails            SecondaryEmail[]
   isPlatformManaged          Boolean                      @default(false)
 
+  OutOfOfficeReasons OutOfOfficeReason[]
+
   @@unique([email])
   @@unique([email, username])
   @@unique([username, organizationId])
@@ -752,6 +754,7 @@ model Account {
   type              String
   provider          String
   providerAccountId String
+  providerEmail     String?
   refresh_token     String? @db.Text
   access_token      String? @db.Text
   expires_at        Int?
@@ -923,8 +926,8 @@ model AIPhoneCallConfiguration {
   yourPhoneNumber String
   numberToCall    String
   guestName       String
-  guestEmail      String
-  guestCompany    String
+  guestEmail      String?
+  guestCompany    String?
   enabled         Boolean   @default(false)
   beginMessage    String?
   llmId           String?
@@ -1177,14 +1180,17 @@ model Avatar {
 }
 
 model OutOfOfficeEntry {
-  id       Int      @id @default(autoincrement())
-  uuid     String   @unique
+  id       Int                @id @default(autoincrement())
+  uuid     String             @unique
   start    DateTime
   end      DateTime
+  notes    String?
   userId   Int
-  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user     User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   toUserId Int?
-  toUser   User?    @relation(name: "toUser", fields: [toUserId], references: [id], onDelete: Cascade)
+  toUser   User?              @relation(name: "toUser", fields: [toUserId], references: [id], onDelete: Cascade)
+  reasonId Int?
+  reason   OutOfOfficeReason? @relation(fields: [reasonId], references: [id], onDelete: SetNull)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1193,6 +1199,17 @@ model OutOfOfficeEntry {
   @@index([userId])
   @@index([toUserId])
   @@index([start, end])
+}
+
+model OutOfOfficeReason {
+  id      Int     @id @default(autoincrement())
+  emoji   String
+  reason  String  @unique
+  enabled Boolean @default(true)
+  userId  Int?
+  user    User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  entries OutOfOfficeEntry[]
 }
 
 // Platform
@@ -1210,6 +1227,11 @@ model PlatformOAuthClient {
   accessTokens        AccessToken[]
   refreshToken        RefreshToken[]
   authorizationTokens PlatformAuthorizationToken[]
+
+  bookingRedirectUri           String?
+  bookingCancelRedirectUri     String?
+  bookingRescheduleRedirectUri String?
+  areEmailsEnabled             Boolean @default(false)
 
   createdAt DateTime @default(now())
 }

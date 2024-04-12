@@ -15,6 +15,10 @@ export const PeopleFilter = () => {
   const { t } = useLocale();
   const orgBranding = useOrgBranding();
 
+  const { data: currentOrg } = trpc.viewer.organizations.listCurrent.useQuery();
+  const isAdmin = currentOrg?.user.role === "ADMIN" || currentOrg?.user.role === "OWNER";
+  const hasPermToView = !currentOrg?.isPrivate || isAdmin;
+
   const { data: query, pushItemToKey, removeItemByKeyAndValue, removeAllQueryParams } = useFilterQuery();
   const [searchText, setSearchText] = useState("");
 
@@ -36,6 +40,10 @@ export const PeopleFilter = () => {
     }
     return `${t("all")}`;
   };
+
+  if (!hasPermToView) {
+    return null;
+  }
 
   return (
     <AnimatedPopover text={getTextForPopover()} prefix={`${t("people")}: `}>

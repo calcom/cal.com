@@ -1,9 +1,11 @@
 import { z } from "zod";
 
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
-import { handleErrorsJson } from "@calcom/lib/errors";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
+import { fetcher } from "@calcom/lib/retellAIFetcher";
 import type { PrismaClient } from "@calcom/prisma";
+import { getRetellLLMSchema } from "@calcom/prisma/zod-utils";
 import type { AIPhoneSettingSchema } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
@@ -22,13 +24,6 @@ const createRetellLLMSchema = z
   })
   .passthrough();
 
-const getRetellLLMSchema = z
-  .object({
-    general_prompt: z.string(),
-    begin_message: z.string().nullable(),
-  })
-  .passthrough();
-
 const createPhoneSchema = z
   .object({
     call_id: z.string(),
@@ -41,18 +36,6 @@ const getPhoneNumberSchema = z
     agent_id: z.string(),
   })
   .passthrough();
-
-export const fetcher = async (endpoint: string, init?: RequestInit | undefined) => {
-  return fetch(`https://api.retellai.com${endpoint}`, {
-    method: "GET",
-    headers: {
-      Authorization: `Bearer ${process.env.RETELL_AI_KEY}`,
-      "Content-Type": "application/json",
-      ...init?.headers,
-    },
-    ...init,
-  }).then(handleErrorsJson);
-};
 
 const createPhoneCallHandler = async ({ input, ctx }: CreatePhoneCallProps) => {
   await checkRateLimitAndThrowError({
@@ -107,6 +90,7 @@ const createPhoneCallHandler = async ({ input, ctx }: CreatePhoneCallProps) => {
       body: JSON.stringify({
         general_prompt: generalPrompt,
         begin_message: beginMessage,
+        inbound_dynamic_variables_webhook_url: `${WEBAPP_URL}/api/get-inbound-dynamic-variables`,
         general_tools: [
           {
             type: "end_call",
@@ -152,6 +136,7 @@ const createPhoneCallHandler = async ({ input, ctx }: CreatePhoneCallProps) => {
         body: JSON.stringify({
           general_prompt: generalPrompt,
           begin_message: beginMessage,
+          inbound_dynamic_variables_webhook_url: `${WEBAPP_URL}/api/get-inbound-dynamic-variables`,
         }),
       }).then(getRetellLLMSchema.parse);
 

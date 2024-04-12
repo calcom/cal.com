@@ -2,7 +2,7 @@ import { IsTimeFormat } from "@/modules/users/inputs/validators/is-time-format";
 import { IsWeekStart } from "@/modules/users/inputs/validators/is-week-start";
 import { IsNumber, IsOptional, IsString, IsTimeZone, Validate } from "class-validator";
 
-export class UpdateManagedPlatformUserInput {
+export class UpdateManagedUserInput {
   @IsString()
   @IsOptional()
   email?: string;

@@ -241,7 +241,7 @@ export function AvailabilitySettings({
     <Shell
       headerClassName={cn(customClassNames?.containerClassName)}
       backPath={backPath}
-      title={schedule.name ? `${schedule.name} | t("availability")}` : t("availability")}
+      title={schedule.name ? `${schedule.name} | ${t("availability")}` : t("availability")}
       heading={
         <Controller
           control={form.control}
