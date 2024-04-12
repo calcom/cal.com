@@ -62,8 +62,6 @@ export const OAuthClients = () => {
             <>
               <div className="border-subtle rounded-b-lg border border-t-0">
                 {data.map((client, index) => {
-                  console.log(client);
-
                   return (
                     <OAuthClientCard
                       name={client.name}
