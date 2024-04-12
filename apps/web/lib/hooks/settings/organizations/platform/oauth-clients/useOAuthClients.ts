@@ -17,20 +17,26 @@ export const useOAuthClients = () => {
   return { ...query, data: query.data?.data ?? [] };
 };
 
-export const useOAuthClient = (clientId: string) => {
+export const useOAuthClient = (clientId?: string) => {
   const {
     isLoading,
     error,
     data: response,
+    isFetched,
+    isError,
+    isFetching,
+    isSuccess,
   } = useQuery<ApiSuccessResponse<PlatformOAuthClient>>({
-    queryKey: ["oauth-client"],
+    queryKey: ["oauth-client", clientId],
     queryFn: () => {
       return fetch(`/api/v2/oauth-clients/${clientId}`, {
         method: "get",
         headers: { "Content-type": "application/json" },
       }).then((res) => res.json());
     },
+    enabled: clientId !== undefined,
+    staleTime: Infinity,
   });
 
-  return { isLoading, error, data: response?.data };
+  return { isLoading, error, data: response?.data, isFetched, isError, isFetching, isSuccess };
 };
