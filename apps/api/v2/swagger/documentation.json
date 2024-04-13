@@ -22,61 +22,7 @@
         ]
       }
     },
-    "/v2/events/public": {
-      "get": {
-        "operationId": "EventsController_getPublicEvent",
-        "parameters": [
-          {
-            "name": "username",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "eventSlug",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "isTeamEvent",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "boolean"
-            }
-          },
-          {
-            "name": "org",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Event types"
-        ]
-      }
-    },
-    "/v2/oauth-clients/{clientId}/users": {
+    "/api/v2/oauth-clients/{clientId}/users": {
       "get": {
         "operationId": "OAuthClientUsersController_getManagedUsers",
         "parameters": [
@@ -144,7 +90,7 @@
         ]
       }
     },
-    "/v2/oauth-clients/{clientId}/users/{userId}": {
+    "/api/v2/oauth-clients/{clientId}/users/{userId}": {
       "get": {
         "operationId": "OAuthClientUsersController_getUserById",
         "parameters": [
@@ -264,7 +210,7 @@
         ]
       }
     },
-    "/v2/oauth-clients/{clientId}/users/{userId}/force-refresh": {
+    "/api/v2/oauth-clients/{clientId}/users/{userId}/force-refresh": {
       "post": {
         "operationId": "OAuthClientUsersController_forceRefresh",
         "parameters": [
@@ -302,7 +248,7 @@
         ]
       }
     },
-    "/v2/oauth-clients": {
+    "/api/v2/oauth-clients": {
       "post": {
         "operationId": "OAuthClientsController_createOAuthClient",
         "summary": "",
@@ -356,7 +302,7 @@
         ]
       }
     },
-    "/v2/oauth-clients/{clientId}": {
+    "/api/v2/oauth-clients/{clientId}": {
       "get": {
         "operationId": "OAuthClientsController_getOAuthClientById",
         "summary": "",
@@ -458,7 +404,7 @@
         ]
       }
     },
-    "/v2/oauth/{clientId}/authorize": {
+    "/api/v2/oauth/{clientId}/authorize": {
       "post": {
         "operationId": "OAuthFlowController_authorize",
         "summary": "Authorize an OAuth client",
@@ -496,7 +442,7 @@
         ]
       }
     },
-    "/v2/oauth/{clientId}/exchange": {
+    "/api/v2/oauth/{clientId}/exchange": {
       "post": {
         "operationId": "OAuthFlowController_exchange",
         "summary": "Exchange authorization code for access tokens",
@@ -549,7 +495,7 @@
         ]
       }
     },
-    "/v2/oauth/{clientId}/refresh": {
+    "/api/v2/oauth/{clientId}/refresh": {
       "post": {
         "operationId": "OAuthFlowController_refreshAccessToken",
         "parameters": [
@@ -597,7 +543,7 @@
         ]
       }
     },
-    "/v2/event-types": {
+    "/api/v2/event-types": {
       "post": {
         "operationId": "EventTypesController_createEventType",
         "parameters": [],
@@ -647,7 +593,7 @@
         ]
       }
     },
-    "/v2/event-types/{eventTypeId}": {
+    "/api/v2/event-types/{eventTypeId}": {
       "get": {
         "operationId": "EventTypesController_getEventType",
         "parameters": [
@@ -743,7 +689,61 @@
         ]
       }
     },
-    "/v2/event-types/{username}/public": {
+    "/api/v2/event-types/{username}/{eventSlug}/public": {
+      "get": {
+        "operationId": "EventTypesController_getPublicEventType",
+        "parameters": [
+          {
+            "name": "username",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "eventSlug",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "isTeamEvent",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "org",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetEventTypePublicOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Event types"
+        ]
+      }
+    },
+    "/api/v2/event-types/{username}/public": {
       "get": {
         "operationId": "EventTypesController_getPublicEventTypes",
         "parameters": [
@@ -773,7 +773,7 @@
         ]
       }
     },
-    "/v2/ee/gcal/oauth/auth-url": {
+    "/api/v2/ee/gcal/oauth/auth-url": {
       "get": {
         "operationId": "GcalController_redirect",
         "parameters": [
@@ -803,7 +803,7 @@
         ]
       }
     },
-    "/v2/ee/gcal/oauth/save": {
+    "/api/v2/ee/gcal/oauth/save": {
       "get": {
         "operationId": "GcalController_save",
         "parameters": [
@@ -841,7 +841,7 @@
         ]
       }
     },
-    "/v2/ee/gcal/check": {
+    "/api/v2/ee/gcal/check": {
       "get": {
         "operationId": "GcalController_check",
         "parameters": [],
@@ -862,7 +862,7 @@
         ]
       }
     },
-    "/v2/ee/provider/{clientId}": {
+    "/api/v2/ee/provider/{clientId}": {
       "get": {
         "operationId": "CalProviderController_verifyClientId",
         "parameters": [
@@ -892,7 +892,7 @@
         ]
       }
     },
-    "/v2/ee/provider/{clientId}/access-token": {
+    "/api/v2/ee/provider/{clientId}/access-token": {
       "get": {
         "operationId": "CalProviderController_verifyAccessToken",
         "parameters": [
@@ -922,7 +922,7 @@
         ]
       }
     },
-    "/v2/schedules": {
+    "/api/v2/schedules": {
       "post": {
         "operationId": "SchedulesController_createSchedule",
         "parameters": [],
@@ -972,7 +972,7 @@
         ]
       }
     },
-    "/v2/schedules/default": {
+    "/api/v2/schedules/default": {
       "get": {
         "operationId": "SchedulesController_getDefaultSchedule",
         "parameters": [],
@@ -993,7 +993,7 @@
         ]
       }
     },
-    "/v2/schedules/{scheduleId}": {
+    "/api/v2/schedules/{scheduleId}": {
       "get": {
         "operationId": "SchedulesController_getSchedule",
         "parameters": [
@@ -1089,7 +1089,7 @@
         ]
       }
     },
-    "/v2/ee/me": {
+    "/api/v2/ee/me": {
       "get": {
         "operationId": "MeController_getMe",
         "parameters": [],
@@ -1139,7 +1139,7 @@
         ]
       }
     },
-    "/v2/ee/calendars/busy-times": {
+    "/api/v2/ee/calendars/busy-times": {
       "get": {
         "operationId": "CalendarsController_getBusyTimes",
         "parameters": [],
@@ -1160,7 +1160,7 @@
         ]
       }
     },
-    "/v2/ee/calendars": {
+    "/api/v2/ee/calendars": {
       "get": {
         "operationId": "CalendarsController_getCalendars",
         "parameters": [],
@@ -1181,7 +1181,7 @@
         ]
       }
     },
-    "/v2/ee/bookings": {
+    "/api/v2/ee/bookings": {
       "get": {
         "operationId": "BookingsController_getBookings",
         "parameters": [
@@ -1235,16 +1235,7 @@
       },
       "post": {
         "operationId": "BookingsController_createBooking",
-        "parameters": [
-          {
-            "name": "x-cal-client-id",
-            "required": true,
-            "in": "header",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
+        "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
@@ -1272,7 +1263,7 @@
         ]
       }
     },
-    "/v2/ee/bookings/{bookingUid}": {
+    "/api/v2/ee/bookings/{bookingUid}": {
       "get": {
         "operationId": "BookingsController_getBooking",
         "parameters": [
@@ -1302,7 +1293,7 @@
         ]
       }
     },
-    "/v2/ee/bookings/{bookingUid}/reschedule": {
+    "/api/v2/ee/bookings/{bookingUid}/reschedule": {
       "get": {
         "operationId": "BookingsController_getBookingForReschedule",
         "parameters": [
@@ -1332,7 +1323,7 @@
         ]
       }
     },
-    "/v2/ee/bookings/{bookingId}/cancel": {
+    "/api/v2/ee/bookings/{bookingId}/cancel": {
       "post": {
         "operationId": "BookingsController_cancelBooking",
         "parameters": [
@@ -1340,14 +1331,6 @@
             "name": "bookingId",
             "required": true,
             "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "x-cal-client-id",
-            "required": true,
-            "in": "header",
             "schema": {
               "type": "string"
             }
@@ -1380,19 +1363,10 @@
         ]
       }
     },
-    "/v2/ee/bookings/reccuring": {
+    "/api/v2/ee/bookings/reccuring": {
       "post": {
         "operationId": "BookingsController_createReccuringBooking",
-        "parameters": [
-          {
-            "name": "x-cal-client-id",
-            "required": true,
-            "in": "header",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
+        "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
@@ -1423,19 +1397,10 @@
         ]
       }
     },
-    "/v2/ee/bookings/instant": {
+    "/api/v2/ee/bookings/instant": {
       "post": {
         "operationId": "BookingsController_createInstantBooking",
-        "parameters": [
-          {
-            "name": "x-cal-client-id",
-            "required": true,
-            "in": "header",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
+        "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
@@ -1463,7 +1428,7 @@
         ]
       }
     },
-    "/v2/slots/reserve": {
+    "/api/v2/slots/reserve": {
       "post": {
         "operationId": "SlotsController_reserveSlot",
         "parameters": [],
@@ -1494,7 +1459,7 @@
         ]
       }
     },
-    "/v2/slots/selected-slot": {
+    "/api/v2/slots/selected-slot": {
       "delete": {
         "operationId": "SlotsController_deleteSelectedSlot",
         "parameters": [],
@@ -1515,7 +1480,7 @@
         ]
       }
     },
-    "/v2/slots/available": {
+    "/api/v2/slots/available": {
       "get": {
         "operationId": "SlotsController_getAvailableSlots",
         "parameters": [],
@@ -1536,7 +1501,7 @@
         ]
       }
     },
-    "/v2/timezones": {
+    "/api/v2/timezones": {
       "get": {
         "operationId": "TimezonesController_getTimeZones",
         "parameters": [],
@@ -2177,6 +2142,462 @@
           },
           "data": {
             "$ref": "#/components/schemas/GetEventTypesData"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "Location": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "Source": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "label"
+        ]
+      },
+      "BookingField": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "defaultLabel": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "placeholder": {
+            "type": "string"
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "getOptionsAt": {
+            "type": "string"
+          },
+          "hideWhenJustOneOption": {
+            "type": "boolean"
+          },
+          "editable": {
+            "type": "string"
+          },
+          "sources": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Source"
+            }
+          }
+        },
+        "required": [
+          "name",
+          "type"
+        ]
+      },
+      "Organization": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "slug": {
+            "type": "string",
+            "nullable": true
+          },
+          "name": {
+            "type": "string"
+          },
+          "metadata": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "metadata"
+        ]
+      },
+      "Profile": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string",
+            "nullable": true
+          },
+          "id": {
+            "type": "number",
+            "nullable": true
+          },
+          "userId": {
+            "type": "number"
+          },
+          "uid": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "organizationId": {
+            "type": "number",
+            "nullable": true
+          },
+          "organization": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Organization"
+              }
+            ]
+          },
+          "upId": {
+            "type": "string"
+          },
+          "image": {
+            "type": "string"
+          },
+          "brandColor": {
+            "type": "string"
+          },
+          "darkBrandColor": {
+            "type": "string"
+          },
+          "theme": {
+            "type": "string"
+          },
+          "bookerLayouts": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "username",
+          "id",
+          "organizationId",
+          "upId"
+        ]
+      },
+      "Owner": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "avatarUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "username": {
+            "type": "string",
+            "nullable": true
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "weekStart": {
+            "type": "string"
+          },
+          "brandColor": {
+            "type": "string",
+            "nullable": true
+          },
+          "darkBrandColor": {
+            "type": "string",
+            "nullable": true
+          },
+          "theme": {
+            "type": "string",
+            "nullable": true
+          },
+          "metadata": {
+            "type": "object"
+          },
+          "defaultScheduleId": {
+            "type": "number",
+            "nullable": true
+          },
+          "nonProfileUsername": {
+            "type": "string",
+            "nullable": true
+          },
+          "profile": {
+            "$ref": "#/components/schemas/Profile"
+          }
+        },
+        "required": [
+          "id",
+          "username",
+          "name",
+          "weekStart",
+          "metadata",
+          "nonProfileUsername",
+          "profile"
+        ]
+      },
+      "Schedule": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "timeZone": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "timeZone"
+        ]
+      },
+      "User": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string",
+            "nullable": true
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "weekStart": {
+            "type": "string"
+          },
+          "organizationId": {
+            "type": "number"
+          },
+          "avatarUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "profile": {
+            "$ref": "#/components/schemas/Profile"
+          },
+          "bookerUrl": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "username",
+          "name",
+          "weekStart",
+          "profile",
+          "bookerUrl"
+        ]
+      },
+      "PublicEventTypeOutput": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "eventName": {
+            "type": "string",
+            "nullable": true
+          },
+          "slug": {
+            "type": "string"
+          },
+          "isInstantEvent": {
+            "type": "boolean"
+          },
+          "aiPhoneCallConfig": {
+            "type": "object"
+          },
+          "schedulingType": {
+            "type": "object"
+          },
+          "length": {
+            "type": "number"
+          },
+          "locations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Location"
+            }
+          },
+          "customInputs": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "disableGuests": {
+            "type": "boolean"
+          },
+          "metadata": {
+            "type": "object",
+            "nullable": true
+          },
+          "lockTimeZoneToggleOnBookingPage": {
+            "type": "boolean"
+          },
+          "requiresConfirmation": {
+            "type": "boolean"
+          },
+          "requiresBookerEmailVerification": {
+            "type": "boolean"
+          },
+          "recurringEvent": {
+            "type": "object"
+          },
+          "price": {
+            "type": "number"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "seatsPerTimeSlot": {
+            "type": "number",
+            "nullable": true
+          },
+          "seatsShowAvailabilityCount": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "bookingFields": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BookingField"
+            }
+          },
+          "team": {
+            "type": "object"
+          },
+          "successRedirectUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "workflows": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "hosts": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "owner": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Owner"
+              }
+            ]
+          },
+          "schedule": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Schedule"
+              }
+            ]
+          },
+          "hidden": {
+            "type": "boolean"
+          },
+          "assignAllTeamMembers": {
+            "type": "boolean"
+          },
+          "bookerLayouts": {
+            "type": "object"
+          },
+          "users": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/User"
+            }
+          },
+          "entity": {
+            "type": "object"
+          },
+          "isDynamic": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "description",
+          "slug",
+          "isInstantEvent",
+          "length",
+          "locations",
+          "customInputs",
+          "disableGuests",
+          "metadata",
+          "lockTimeZoneToggleOnBookingPage",
+          "requiresConfirmation",
+          "requiresBookerEmailVerification",
+          "price",
+          "currency",
+          "seatsShowAvailabilityCount",
+          "bookingFields",
+          "workflows",
+          "hosts",
+          "owner",
+          "schedule",
+          "hidden",
+          "assignAllTeamMembers",
+          "users",
+          "entity",
+          "isDynamic"
+        ]
+      },
+      "GetEventTypePublicOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PublicEventTypeOutput"
+              }
+            ]
           }
         },
         "required": [
@@ -3404,26 +3825,6 @@
           "credentialId"
         ]
       },
-      "User": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "number"
-          },
-          "name": {
-            "type": "string",
-            "nullable": true
-          },
-          "email": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "name",
-          "email"
-        ]
-      },
       "GetBookingsDataEntry": {
         "type": "object",
         "properties": {
@@ -3708,21 +4109,6 @@
         "required": [
           "status",
           "data"
-        ]
-      },
-      "Location": {
-        "type": "object",
-        "properties": {
-          "optionValue": {
-            "type": "string"
-          },
-          "value": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "optionValue",
-          "value"
         ]
       },
       "Response": {
