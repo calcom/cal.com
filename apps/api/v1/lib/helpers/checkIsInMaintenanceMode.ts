@@ -12,9 +12,11 @@ export const config = { matcher: "/:path*" };
 
 export const checkIsInMaintenanceMode: NextMiddleware = async (req, res, next) => {
   const isInMaintenanceMode = await safeGet<boolean>("isInMaintenanceMode");
-  if (!isInMaintenanceMode) return await next();
-  // If is in maintenance mode, return a 503 status code
-  return res
-    .status(503)
-    .json({ message: "API is currently under maintenance. Please try again at a later time." });
+  if (isInMaintenanceMode) {
+    return res
+      .status(503)
+      .json({ message: "API is currently under maintenance. Please try again at a later time." });
+  }
+
+  await next();
 };
