@@ -80,12 +80,6 @@ testBothFutureAndLegacyRoutes.describe("free user", () => {
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
     const { title: eventTitle } = await user.getFirstEventAsOwner();
 
-    // await expectEmailsToHaveSubject({
-    //   emails,
-    //   organizer: user,
-    //   booker: bookerObj,
-    //   eventTitle,
-    // });
     await page.goto(bookingUrl);
 
     // book same time spot again
