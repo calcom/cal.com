@@ -1393,12 +1393,18 @@ async function handler(
 
   // For static link based video apps, it would have the static URL value instead of it's type(e.g. integrations:campfire_video)
   // This ensures that createMeeting isn't called for static video apps as bookingLocation becomes just a regular value for them.
+  const locationValue = getLocationValueForDB(locationBodyString, eventType.locations);
   const { bookingLocation, conferenceCredentialId } = organizerOrFirstDynamicGroupMemberDefaultLocationUrl
     ? {
         bookingLocation: organizerOrFirstDynamicGroupMemberDefaultLocationUrl,
         conferenceCredentialId: undefined,
       }
-    : getLocationValueForDB(locationBodyString, eventType.locations);
+    : locationValue.bookingLocation.trim().length === 0
+    ? {
+        bookingLocation: "integrations:daily",
+        conferenceCredentialId: locationValue.conferenceCredentialId,
+      }
+    : locationValue;
 
   const customInputs = getCustomInputsResponses(reqBody, eventType.customInputs);
   const teamDestinationCalendars: DestinationCalendar[] = [];
