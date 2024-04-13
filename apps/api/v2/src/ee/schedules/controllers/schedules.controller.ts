@@ -71,7 +71,7 @@ export class SchedulesController {
 
   @Get("/:scheduleId")
   @Permissions([SCHEDULE_READ])
-  @Throttle({ default: { limit: 3, ttl: 60000 } }) // allow 3 requests per minute
+  @Throttle({ default: { limit: 10, ttl: 60000 } }) // allow 10 requests per minute (for :scheduleId)
   async getSchedule(
     @GetUser() user: UserWithProfile,
     @Param("scheduleId") scheduleId: number

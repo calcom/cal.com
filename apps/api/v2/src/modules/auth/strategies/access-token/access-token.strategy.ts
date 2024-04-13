@@ -29,7 +29,7 @@ export class AccessTokenStrategy extends PassportStrategy(BaseStrategy, "access-
 
       const accessTokenValid = await this.oauthFlowService.validateAccessToken(accessToken);
       if (!accessTokenValid) {
-        throw new UnauthorizedException("Access Token may no longer be valid.");
+        throw new UnauthorizedException(INVALID_ACCESS_TOKEN);
       }
 
       const client = await this.tokensRepository.getAccessTokenClient(accessToken);
