@@ -1,4 +1,5 @@
 import { AppLoggerMiddleware } from "@/app.logger.middleware";
+import { RewriterMiddleware } from "@/app.rewrites.middleware";
 import appConfig from "@/config/app";
 import { AuthModule } from "@/modules/auth/auth.module";
 import { EndpointsModule } from "@/modules/endpoints.module";
@@ -8,6 +9,7 @@ import { RedisModule } from "@/modules/redis/redis.module";
 import { RedisService } from "@/modules/redis/redis.service";
 import { MiddlewareConsumer, Module, NestModule } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
+import { RouterModule } from "@nestjs/core";
 import { ThrottlerModule, seconds } from "@nestjs/throttler";
 import { ThrottlerStorageRedisService } from "nestjs-throttler-storage-redis";
 
@@ -44,11 +46,14 @@ import { AppController } from "./app.controller";
     EndpointsModule,
     AuthModule,
     JwtModule,
+    //register prefix for all routes in EndpointsModule
+    RouterModule.register([{ path: "/v2", module: EndpointsModule }]),
   ],
   controllers: [AppController],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer): void {
     consumer.apply(AppLoggerMiddleware).forRoutes("*");
+    consumer.apply(RewriterMiddleware).forRoutes("/");
   }
 }

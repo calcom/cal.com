@@ -26,7 +26,6 @@ import {
   Dropdown,
   DropdownMenuContent,
   DropdownMenuTrigger,
-  Icon,
   Select,
   SkeletonText,
   Switch,
@@ -66,6 +65,7 @@ export const ScheduleDay = <TFieldValues extends FieldValues>({
     dayRanges?: string;
     timeRangeField?: string;
     labelAndSwitchContainer?: string;
+    scheduleContainer?: string;
   };
 }) => {
   const { watch, setValue } = useFormContext();
