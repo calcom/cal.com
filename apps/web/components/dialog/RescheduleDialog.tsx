@@ -23,7 +23,7 @@ interface IRescheduleDialog {
 
 export const RescheduleDialog = (props: IRescheduleDialog) => {
   const { t } = useLocale();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const { isOpenDialog, setIsOpenDialog, bookingUId: bookingId } = props;
   const [rescheduleReason, setRescheduleReason] = useState("");
 
