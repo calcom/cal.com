@@ -12,7 +12,6 @@ import { v5 as uuidv5 } from "uuid";
 import z from "zod";
 
 import { metadata as GoogleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
-import { DailyLocationType } from "@calcom/app-store/locations";
 import type { LocationObject } from "@calcom/app-store/locations";
 import {
   getLocationValueForDB,
@@ -1394,10 +1393,6 @@ async function handler(
 
   // For static link based video apps, it would have the static URL value instead of it's type(e.g. integrations:campfire_video)
   // This ensures that createMeeting isn't called for static video apps as bookingLocation becomes just a regular value for them.
-  if (locationBodyString.trim().length === 0) {
-    locationBodyString = DailyLocationType;
-  }
-
   const { bookingLocation, conferenceCredentialId } = organizerOrFirstDynamicGroupMemberDefaultLocationUrl
     ? {
         bookingLocation: organizerOrFirstDynamicGroupMemberDefaultLocationUrl,
