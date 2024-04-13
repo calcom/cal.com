@@ -364,10 +364,6 @@ export const getLocationValueForDB = (
     }
   });
 
-  // if (bookingLocation.trim().length === 0) {
-  //   bookingLocation = DailyLocationType;
-  // }
-
   return { bookingLocation, conferenceCredentialId };
 };
 
