@@ -14,7 +14,7 @@ type AvailableTimesHeaderProps = {
   date: Dayjs;
   showTimeFormatToggle?: boolean;
   availableMonth?: string | undefined;
-  customClassnames?: {
+  customClassNames?: {
     availableTimeSlotsHeaderContainer?: string;
     availableTimeSlotsTitle?: string;
     availableTimeSlotsTimeFormatToggle?: string;
@@ -25,7 +25,7 @@ export const AvailableTimesHeader = ({
   date,
   showTimeFormatToggle = true,
   availableMonth,
-  customClassnames,
+  customClassNames,
 }: AvailableTimesHeaderProps) => {
   const { t, i18n } = useLocale();
   const [layout] = useBookerStore((state) => [state.layout], shallow);
@@ -38,7 +38,7 @@ export const AvailableTimesHeader = ({
       className={classNames(
         `dark:bg-muted dark:before:bg-muted mb-3 flex w-full flex-row items-center font-medium`,
         "bg-default before:bg-default",
-        customClassnames?.availableTimeSlotsHeaderContainer
+        customClassNames?.availableTimeSlotsHeaderContainer
       )}>
       <span
         className={classNames(
@@ -47,8 +47,8 @@ export const AvailableTimesHeader = ({
         )}>
         <span
           className={classNames(
-            isToday && !customClassnames?.availableTimeSlotsTitle && "!text-default",
-            customClassnames?.availableTimeSlotsTitle
+            isToday && !customClassNames?.availableTimeSlotsTitle && "!text-default",
+            customClassNames?.availableTimeSlotsTitle
           )}>
           {nameOfDay(i18n.language, Number(date.format("d")), "short")}
         </span>
@@ -57,8 +57,8 @@ export const AvailableTimesHeader = ({
             isColumnView && isToday && "bg-brand-default text-brand ml-2",
             "inline-flex items-center justify-center rounded-3xl px-1 pt-0.5 font-medium",
             isMonthView
-              ? `text-default text-sm ${customClassnames?.availableTimeSlotsTitle}`
-              : `text-xs ${customClassnames?.availableTimeSlotsTitle}`
+              ? `text-default text-sm ${customClassNames?.availableTimeSlotsTitle}`
+              : `text-xs ${customClassNames?.availableTimeSlotsTitle}`
           )}>
           {date.format("DD")}
           {availableMonth && `, ${availableMonth}`}
@@ -67,7 +67,7 @@ export const AvailableTimesHeader = ({
 
       {showTimeFormatToggle && (
         <div className="ml-auto rtl:mr-auto">
-          <TimeFormatToggle customClassname={customClassnames?.availableTimeSlotsTimeFormatToggle} />
+          <TimeFormatToggle customClassname={customClassNames?.availableTimeSlotsTimeFormatToggle} />
         </div>
       )}
     </header>

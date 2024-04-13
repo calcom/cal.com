@@ -11,7 +11,7 @@ export const TimeFormatToggle = ({ customClassname }: { customClassname?: string
 
   return (
     <ToggleGroup
-      customClassnames={customClassname}
+      customClassNames={customClassname}
       onValueChange={(newFormat) => {
         if (newFormat && newFormat !== timeFormat) setTimeFormat(newFormat as TimeFormat);
       }}

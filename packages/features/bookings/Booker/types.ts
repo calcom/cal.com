@@ -114,6 +114,7 @@ export type WrappedBookerPropsMain = {
   schedule: useScheduleForEventReturnType;
   bookerLayout: UseBookerLayoutType;
   verifyEmail: UseVerifyEmailReturnType;
+  customClassNames?: CustomClassNames;
 };
 
 export type WrappedBookerPropsForPlatform = WrappedBookerPropsMain & {

@@ -419,7 +419,7 @@ const BookerComponent = ({
               ref={timeslotsRef}
               {...fadeInLeft}>
               <AvailableTimeSlots
-                customClassnames={customClassNames?.availableTimeSlotsCustomClassnames}
+                customClassNames={customClassNames?.availableTimeSlotsCustomClassnames}
                 extraDays={extraDays}
                 limitHeight={layout === BookerLayouts.MONTH_VIEW}
                 schedule={schedule?.data}

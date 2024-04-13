@@ -20,7 +20,7 @@ type AvailableTimeSlotsProps = {
   seatsPerTimeSlot?: number | null;
   showAvailableSeatsCount?: boolean | null;
   event: useEventReturnType;
-  customClassnames?: {
+  customClassNames?: {
     availableTimeSlotsContainer?: string;
     availableTimeSlotsTitle?: string;
     availableTimeSlotsHeaderContainer?: string;
@@ -44,7 +44,7 @@ export const AvailableTimeSlots = ({
   schedule,
   isLoading,
   event,
-  customClassnames,
+  customClassNames,
 }: AvailableTimeSlotsProps) => {
   const selectedDate = useBookerStore((state) => state.selectedDate);
   const setSelectedTimeslot = useBookerStore((state) => state.setSelectedTimeslot);
@@ -89,17 +89,17 @@ export const AvailableTimeSlots = ({
 
   return (
     <>
-      <div className={classNames(`flex`, `${customClassnames?.availableTimeSlotsContainer}`)}>
+      <div className={classNames(`flex`, `${customClassNames?.availableTimeSlotsContainer}`)}>
         {isLoading ? (
           <div className="mb-3 h-8" />
         ) : (
           slotsPerDay.length > 0 &&
           slotsPerDay.map((slots) => (
             <AvailableTimesHeader
-              customClassnames={{
-                availableTimeSlotsHeaderContainer: customClassnames?.availableTimeSlotsHeaderContainer,
-                availableTimeSlotsTitle: customClassnames?.availableTimeSlotsTitle,
-                availableTimeSlotsTimeFormatToggle: customClassnames?.availableTimeSlotsTimeFormatToggle,
+              customClassNames={{
+                availableTimeSlotsHeaderContainer: customClassNames?.availableTimeSlotsHeaderContainer,
+                availableTimeSlotsTitle: customClassNames?.availableTimeSlotsTitle,
+                availableTimeSlotsTimeFormatToggle: customClassNames?.availableTimeSlotsTimeFormatToggle,
               }}
               key={slots.date}
               date={dayjs(slots.date)}
@@ -119,7 +119,7 @@ export const AvailableTimeSlots = ({
         className={classNames(
           limitHeight && "scroll-bar flex-grow overflow-auto md:h-[400px]",
           !limitHeight && "flex h-full w-full flex-row gap-4",
-          `${customClassnames?.availableTimeSlotsContainer}`
+          `${customClassNames?.availableTimeSlotsContainer}`
         )}>
         {isLoading && // Shows exact amount of days as skeleton.
           Array.from({ length: 1 + (extraDays ?? 0) }).map((_, i) => <AvailableTimesSkeleton key={i} />)}
@@ -128,8 +128,8 @@ export const AvailableTimeSlots = ({
           slotsPerDay.map((slots) => (
             <div key={slots.date} className="scroll-bar h-full w-full overflow-y-auto overflow-x-hidden">
               <AvailableTimes
-                className={customClassnames?.availableTimeSlotsContainer}
-                customClassnames={customClassnames?.availableTimes}
+                className={customClassNames?.availableTimeSlotsContainer}
+                customClassNames={customClassNames?.availableTimes}
                 showTimeFormatToggle={!isColumnView}
                 onTimeSelect={onTimeSelect}
                 slots={slots.slots}

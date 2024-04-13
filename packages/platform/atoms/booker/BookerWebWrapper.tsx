@@ -21,9 +21,7 @@ import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR } from "@calcom/lib
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 
-import type { CustomClassNames } from "./BookerPlatformWrapper";
-
-type BookerWebWrapperAtomProps = BookerProps & { customClassNames?: CustomClassNames };
+type BookerWebWrapperAtomProps = BookerProps;
 
 export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
   const router = useRouter();
