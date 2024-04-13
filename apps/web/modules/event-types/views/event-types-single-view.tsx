@@ -141,7 +141,7 @@ export type EventTypeSetup = RouterOutputs["viewer"]["eventTypes"]["get"]["event
 
 const EventTypePage = (props: EventTypeSetupProps) => {
   const { t } = useLocale();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const telemetry = useTelemetry();
   const {
     data: { tabName },

@@ -36,12 +36,8 @@ export const OrganizationCreationEmail = (
           marginTop: "32px",
           lineHeightStep: "24px",
         }}>
-        <>
-          {props.language(`You have been added as an owner of the organization.`, {
-            invitedBy: props.from.toString(),
-            appName: APP_NAME,
-          })}
-        </>
+        You have been added as an owner of the organization. To publish your new organization, visit{" "}
+        <a href="https://app.cal.com/upgrade">https://app.cal.com/upgrade</a>
       </p>
       <p
         style={{
