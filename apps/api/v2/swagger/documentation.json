@@ -22,7 +22,61 @@
         ]
       }
     },
-    "/api/v2/oauth-clients/{clientId}/users": {
+    "/v2/events/public": {
+      "get": {
+        "operationId": "EventsController_getPublicEvent",
+        "parameters": [
+          {
+            "name": "username",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "eventSlug",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "isTeamEvent",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "org",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Event types"
+        ]
+      }
+    },
+    "/v2/oauth-clients/{clientId}/users": {
       "get": {
         "operationId": "OAuthClientUsersController_getManagedUsers",
         "parameters": [
@@ -90,7 +144,7 @@
         ]
       }
     },
-    "/api/v2/oauth-clients/{clientId}/users/{userId}": {
+    "/v2/oauth-clients/{clientId}/users/{userId}": {
       "get": {
         "operationId": "OAuthClientUsersController_getUserById",
         "parameters": [
@@ -210,7 +264,7 @@
         ]
       }
     },
-    "/api/v2/oauth-clients/{clientId}/users/{userId}/force-refresh": {
+    "/v2/oauth-clients/{clientId}/users/{userId}/force-refresh": {
       "post": {
         "operationId": "OAuthClientUsersController_forceRefresh",
         "parameters": [
@@ -248,7 +302,7 @@
         ]
       }
     },
-    "/api/v2/oauth-clients": {
+    "/v2/oauth-clients": {
       "post": {
         "operationId": "OAuthClientsController_createOAuthClient",
         "summary": "",
@@ -302,7 +356,7 @@
         ]
       }
     },
-    "/api/v2/oauth-clients/{clientId}": {
+    "/v2/oauth-clients/{clientId}": {
       "get": {
         "operationId": "OAuthClientsController_getOAuthClientById",
         "summary": "",
@@ -404,7 +458,7 @@
         ]
       }
     },
-    "/api/v2/oauth/{clientId}/authorize": {
+    "/v2/oauth/{clientId}/authorize": {
       "post": {
         "operationId": "OAuthFlowController_authorize",
         "summary": "Authorize an OAuth client",
@@ -442,7 +496,7 @@
         ]
       }
     },
-    "/api/v2/oauth/{clientId}/exchange": {
+    "/v2/oauth/{clientId}/exchange": {
       "post": {
         "operationId": "OAuthFlowController_exchange",
         "summary": "Exchange authorization code for access tokens",
@@ -495,7 +549,7 @@
         ]
       }
     },
-    "/api/v2/oauth/{clientId}/refresh": {
+    "/v2/oauth/{clientId}/refresh": {
       "post": {
         "operationId": "OAuthFlowController_refreshAccessToken",
         "parameters": [
@@ -543,7 +597,7 @@
         ]
       }
     },
-    "/api/v2/event-types": {
+    "/v2/event-types": {
       "post": {
         "operationId": "EventTypesController_createEventType",
         "parameters": [],
@@ -593,7 +647,7 @@
         ]
       }
     },
-    "/api/v2/event-types/{eventTypeId}": {
+    "/v2/event-types/{eventTypeId}": {
       "get": {
         "operationId": "EventTypesController_getEventType",
         "parameters": [
@@ -773,7 +827,7 @@
         ]
       }
     },
-    "/api/v2/ee/gcal/oauth/auth-url": {
+    "/v2/ee/gcal/oauth/auth-url": {
       "get": {
         "operationId": "GcalController_redirect",
         "parameters": [
@@ -803,7 +857,7 @@
         ]
       }
     },
-    "/api/v2/ee/gcal/oauth/save": {
+    "/v2/ee/gcal/oauth/save": {
       "get": {
         "operationId": "GcalController_save",
         "parameters": [
@@ -841,7 +895,7 @@
         ]
       }
     },
-    "/api/v2/ee/gcal/check": {
+    "/v2/ee/gcal/check": {
       "get": {
         "operationId": "GcalController_check",
         "parameters": [],
@@ -862,7 +916,7 @@
         ]
       }
     },
-    "/api/v2/ee/provider/{clientId}": {
+    "/v2/ee/provider/{clientId}": {
       "get": {
         "operationId": "CalProviderController_verifyClientId",
         "parameters": [
@@ -892,7 +946,7 @@
         ]
       }
     },
-    "/api/v2/ee/provider/{clientId}/access-token": {
+    "/v2/ee/provider/{clientId}/access-token": {
       "get": {
         "operationId": "CalProviderController_verifyAccessToken",
         "parameters": [
@@ -922,7 +976,7 @@
         ]
       }
     },
-    "/api/v2/schedules": {
+    "/v2/schedules": {
       "post": {
         "operationId": "SchedulesController_createSchedule",
         "parameters": [],
@@ -972,7 +1026,7 @@
         ]
       }
     },
-    "/api/v2/schedules/default": {
+    "/v2/schedules/default": {
       "get": {
         "operationId": "SchedulesController_getDefaultSchedule",
         "parameters": [],
@@ -993,7 +1047,7 @@
         ]
       }
     },
-    "/api/v2/schedules/{scheduleId}": {
+    "/v2/schedules/{scheduleId}": {
       "get": {
         "operationId": "SchedulesController_getSchedule",
         "parameters": [
@@ -1089,7 +1143,7 @@
         ]
       }
     },
-    "/api/v2/ee/me": {
+    "/v2/ee/me": {
       "get": {
         "operationId": "MeController_getMe",
         "parameters": [],
@@ -1139,7 +1193,7 @@
         ]
       }
     },
-    "/api/v2/ee/calendars/busy-times": {
+    "/v2/ee/calendars/busy-times": {
       "get": {
         "operationId": "CalendarsController_getBusyTimes",
         "parameters": [],
@@ -1160,7 +1214,7 @@
         ]
       }
     },
-    "/api/v2/ee/calendars": {
+    "/v2/ee/calendars": {
       "get": {
         "operationId": "CalendarsController_getCalendars",
         "parameters": [],
@@ -1181,7 +1235,7 @@
         ]
       }
     },
-    "/api/v2/ee/bookings": {
+    "/v2/ee/bookings": {
       "get": {
         "operationId": "BookingsController_getBookings",
         "parameters": [
@@ -1235,7 +1289,16 @@
       },
       "post": {
         "operationId": "BookingsController_createBooking",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "x-cal-client-id",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -1263,7 +1326,7 @@
         ]
       }
     },
-    "/api/v2/ee/bookings/{bookingUid}": {
+    "/v2/ee/bookings/{bookingUid}": {
       "get": {
         "operationId": "BookingsController_getBooking",
         "parameters": [
@@ -1293,7 +1356,7 @@
         ]
       }
     },
-    "/api/v2/ee/bookings/{bookingUid}/reschedule": {
+    "/v2/ee/bookings/{bookingUid}/reschedule": {
       "get": {
         "operationId": "BookingsController_getBookingForReschedule",
         "parameters": [
@@ -1323,7 +1386,7 @@
         ]
       }
     },
-    "/api/v2/ee/bookings/{bookingId}/cancel": {
+    "/v2/ee/bookings/{bookingId}/cancel": {
       "post": {
         "operationId": "BookingsController_cancelBooking",
         "parameters": [
@@ -1331,6 +1394,14 @@
             "name": "bookingId",
             "required": true,
             "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "required": true,
+            "in": "header",
             "schema": {
               "type": "string"
             }
@@ -1363,10 +1434,19 @@
         ]
       }
     },
-    "/api/v2/ee/bookings/reccuring": {
+    "/v2/ee/bookings/reccuring": {
       "post": {
         "operationId": "BookingsController_createReccuringBooking",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "x-cal-client-id",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -1397,10 +1477,19 @@
         ]
       }
     },
-    "/api/v2/ee/bookings/instant": {
+    "/v2/ee/bookings/instant": {
       "post": {
         "operationId": "BookingsController_createInstantBooking",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "x-cal-client-id",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -1428,7 +1517,7 @@
         ]
       }
     },
-    "/api/v2/slots/reserve": {
+    "/v2/slots/reserve": {
       "post": {
         "operationId": "SlotsController_reserveSlot",
         "parameters": [],
@@ -1459,7 +1548,7 @@
         ]
       }
     },
-    "/api/v2/slots/selected-slot": {
+    "/v2/slots/selected-slot": {
       "delete": {
         "operationId": "SlotsController_deleteSelectedSlot",
         "parameters": [],
@@ -1480,7 +1569,7 @@
         ]
       }
     },
-    "/api/v2/slots/available": {
+    "/v2/slots/available": {
       "get": {
         "operationId": "SlotsController_getAvailableSlots",
         "parameters": [],
@@ -1501,7 +1590,7 @@
         ]
       }
     },
-    "/api/v2/timezones": {
+    "/v2/timezones": {
       "get": {
         "operationId": "TimezonesController_getTimeZones",
         "parameters": [],

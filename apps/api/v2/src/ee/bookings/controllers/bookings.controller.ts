@@ -6,6 +6,7 @@ import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
 import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
+import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { OAuthFlowService } from "@/modules/oauth-clients/services/oauth-flow.service";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import {
@@ -15,6 +16,7 @@ import {
   Req,
   InternalServerErrorException,
   Body,
+  Headers,
   HttpException,
   Param,
   Get,
@@ -27,6 +29,7 @@ import { User } from "@prisma/client";
 import { Request } from "express";
 import { NextApiRequest } from "next/types";
 
+import { X_CAL_CLIENT_ID } from "@calcom/platform-constants";
 import { BOOKING_READ, SUCCESS_STATUS } from "@calcom/platform-constants";
 import {
   getAllUserBookings,
@@ -45,6 +48,25 @@ import { GetBookingsInput, CancelBookingInput, Status } from "@calcom/platform-t
 import { ApiResponse } from "@calcom/platform-types";
 import { PrismaClient } from "@calcom/prisma";
 
+type BookingRequest = Request & {
+  userId?: number;
+};
+
+type OAuthRequestParams = {
+  platformClientId: string;
+  platformRescheduleUrl: string;
+  platformCancelUrl: string;
+  platformBookingUrl: string;
+};
+
+const DEFAULT_PLATFORM_PARAMS = {
+  platformClientId: "",
+  platformCancelUrl: "",
+  platformRescheduleUrl: "",
+  platformBookingUrl: "",
+  areEmailsEnabled: true,
+};
+
 @Controller({
   path: "ee/bookings",
   version: "2",
@@ -56,7 +78,8 @@ export class BookingsController {
 
   constructor(
     private readonly oAuthFlowService: OAuthFlowService,
-    private readonly prismaReadService: PrismaReadService
+    private readonly prismaReadService: PrismaReadService,
+    private readonly oAuthClientRepository: OAuthClientRepository
   ) {}
 
   @Get("/")
@@ -117,13 +140,13 @@ export class BookingsController {
 
   @Post("/")
   async createBooking(
-    @Req() req: Request & { userId?: number },
-    @Body() _: CreateBookingInput
+    @Req() req: BookingRequest,
+    @Body() _: CreateBookingInput,
+    @Headers(X_CAL_CLIENT_ID) clientId?: string
   ): Promise<ApiResponse<unknown>> {
-    req.userId = (await this.getOwnerId(req)) ?? -1;
-    req.body = { ...req.body, noEmail: true };
+    const oAuthClientId = clientId?.toString();
     try {
-      const booking = await handleNewBooking(req as unknown as NextApiRequest & { userId?: number });
+      const booking = await handleNewBooking(await this.createNextApiBookingRequest(req, oAuthClientId));
       return {
         status: SUCCESS_STATUS,
         data: booking,
@@ -136,15 +159,15 @@ export class BookingsController {
 
   @Post("/:bookingId/cancel")
   async cancelBooking(
-    @Req() req: Request & { userId?: number },
+    @Req() req: BookingRequest,
     @Param("bookingId") bookingId: string,
-    @Body() body: CancelBookingInput
+    @Body() _: CancelBookingInput,
+    @Headers(X_CAL_CLIENT_ID) clientId?: string
   ): Promise<ApiResponse> {
+    const oAuthClientId = clientId?.toString();
     if (bookingId) {
-      req.userId = (await this.getOwnerId(req)) ?? -1;
-      req.body = { ...body, id: parseInt(bookingId) };
       try {
-        await handleCancelBooking(req as unknown as NextApiRequest & { userId?: number });
+        await handleCancelBooking(await this.createNextApiBookingRequest(req, oAuthClientId));
         return {
           status: SUCCESS_STATUS,
         };
@@ -159,14 +182,14 @@ export class BookingsController {
 
   @Post("/reccuring")
   async createReccuringBooking(
-    @Req() req: Request & { userId?: number },
-    @Body() _: CreateReccuringBookingInput[]
+    @Req() req: BookingRequest,
+    @Body() _: CreateReccuringBookingInput[],
+    @Headers(X_CAL_CLIENT_ID) clientId?: string
   ): Promise<ApiResponse<BookingResponse[]>> {
-    req.userId = (await this.getOwnerId(req)) ?? -1;
-    req.body = { ...req.body, noEmail: true };
+    const oAuthClientId = clientId?.toString();
     try {
       const createdBookings: BookingResponse[] = await handleNewRecurringBooking(
-        req as unknown as NextApiRequest & { userId?: number }
+        await this.createNextApiBookingRequest(req, oAuthClientId)
       );
       return {
         status: SUCCESS_STATUS,
@@ -180,14 +203,15 @@ export class BookingsController {
 
   @Post("/instant")
   async createInstantBooking(
-    @Req() req: Request & { userId?: number },
-    @Body() _: CreateBookingInput
+    @Req() req: BookingRequest,
+    @Body() _: CreateBookingInput,
+    @Headers(X_CAL_CLIENT_ID) clientId?: string
   ): Promise<ApiResponse<Awaited<ReturnType<typeof handleInstantMeeting>>>> {
+    const oAuthClientId = clientId?.toString();
     req.userId = (await this.getOwnerId(req)) ?? -1;
-    req.body = { ...req.body, noEmail: true };
     try {
       const instantMeeting = await handleInstantMeeting(
-        req as unknown as NextApiRequest & { userId?: number }
+        await this.createNextApiBookingRequest(req, oAuthClientId)
       );
       return {
         status: SUCCESS_STATUS,
@@ -208,6 +232,41 @@ export class BookingsController {
     } catch (err) {
       this.logger.error(err);
     }
+  }
+
+  async getOAuthClientsParams(
+    req: BookingRequest,
+    clientId: string
+  ): Promise<OAuthRequestParams & { areEmailsEnabled: boolean }> {
+    const res = DEFAULT_PLATFORM_PARAMS;
+    try {
+      const client = await this.oAuthClientRepository.getOAuthClient(clientId);
+      // fetch oAuthClient from db and use data stored in db to set these values
+      if (client) {
+        res.platformClientId = clientId;
+        res.platformCancelUrl = client.bookingCancelRedirectUri ?? "";
+        res.platformRescheduleUrl = client.bookingRescheduleRedirectUri ?? "";
+        res.platformBookingUrl = client.bookingRedirectUri ?? "";
+        res.areEmailsEnabled = client.areEmailsEnabled;
+      }
+      return res;
+    } catch (err) {
+      this.logger.error(err);
+      return res;
+    }
+  }
+
+  async createNextApiBookingRequest(
+    req: BookingRequest,
+    oAuthClientId?: string
+  ): Promise<NextApiRequest & { userId?: number } & OAuthRequestParams> {
+    const userId = (await this.getOwnerId(req)) ?? -1;
+    const oAuthParams = oAuthClientId
+      ? await this.getOAuthClientsParams(req, oAuthClientId)
+      : DEFAULT_PLATFORM_PARAMS;
+    Object.assign(req, { userId, ...oAuthParams });
+    req.body = { ...req.body, areEmailsEnabled: oAuthParams.areEmailsEnabled };
+    return req as unknown as NextApiRequest & { userId?: number } & OAuthRequestParams;
   }
 }
 

@@ -19,7 +19,7 @@ import { Alert, Button, Dialog, DialogContent, EmptyScreen, showToast } from "@c
 export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "eventType">) => {
   const { t } = useLocale();
 
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const formMethods = useFormContext<FormValues>();
 
   const { data: webhooks } = trpc.viewer.webhook.list.useQuery({ eventTypeId: eventType.id });
