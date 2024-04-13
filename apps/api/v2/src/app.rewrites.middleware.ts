@@ -7,6 +7,9 @@ export class RewriterMiddleware implements NestMiddleware {
     if (req.url.startsWith("/api/v2")) {
       req.url = req.url.replace("/api/v2", "/v2");
     }
+    if (req.url.startsWith("/v2/ee")) {
+      req.url = req.url.replace("/v2/ee", "/v2");
+    }
     next();
   }
 }
