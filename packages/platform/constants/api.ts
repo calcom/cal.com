@@ -1,10 +1,10 @@
 export const BASE_URL = "http://localhost:5555";
 export const API_VERSION = "v2";
 export const V2_ENDPOINTS = {
-  me: "/me",
+  me: "me",
   availability: "schedules",
   eventTypes: "event-types",
-  bookings: "/bookings",
+  bookings: "bookings",
 };
 
 export const SUCCESS_STATUS = "success";
