@@ -67,7 +67,7 @@ export const AvailableTimesHeader = ({
 
       {showTimeFormatToggle && (
         <div className="ml-auto rtl:mr-auto">
-          <TimeFormatToggle customClassname={customClassNames?.availableTimeSlotsTimeFormatToggle} />
+          <TimeFormatToggle customClassName={customClassNames?.availableTimeSlotsTimeFormatToggle} />
         </div>
       )}
     </header>
