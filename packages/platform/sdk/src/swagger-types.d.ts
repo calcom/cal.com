@@ -74,19 +74,19 @@ export interface paths {
   "/v2/event-types/{username}/public": {
     get: operations["EventTypesController_getPublicEventTypes"];
   };
-  "/v2/platform/gcal/oauth/auth-url": {
+  "/v2/gcal/oauth/auth-url": {
     get: operations["GcalController_redirect"];
   };
-  "/v2/platform/gcal/oauth/save": {
+  "/v2/gcal/oauth/save": {
     get: operations["GcalController_save"];
   };
-  "/v2/platform/gcal/check": {
+  "/v2/gcal/check": {
     get: operations["GcalController_check"];
   };
-  "/v2/platform/provider/{clientId}": {
+  "/v2/provider/{clientId}": {
     get: operations["CalProviderController_verifyClientId"];
   };
-  "/v2/platform/provider/{clientId}/access-token": {
+  "/v2/provider/{clientId}/access-token": {
     get: operations["CalProviderController_verifyAccessToken"];
   };
   "/v2/schedules": {
