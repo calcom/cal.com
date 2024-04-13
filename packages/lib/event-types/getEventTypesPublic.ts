@@ -1,5 +1,6 @@
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
+import type { EventType } from "@calcom/prisma/client";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import { markdownToSafeHTML } from "../markdownToSafeHTML";
@@ -21,7 +22,7 @@ export async function getEventTypesPublic(userId: number) {
 }
 
 const getEventTypesWithHiddenFromDB = async (userId: number) => {
-  const eventTypes = await prisma.$queryRaw`
+  const eventTypes = await prisma.$queryRaw<EventType[]>`
     SELECT "t"."id", "t"."title", "t"."description", "t"."length", "t"."schedulingType"::text, "t"."recurringEvent", "t"."slug", "t"."hidden", "t"."price", "t"."currency", "t"."lockTimeZoneToggleOnBookingPage", "t"."requiresConfirmation", "t"."requiresBookerEmailVerification", "t"."metadata", "t"."position"
     FROM (
       SELECT "et1"."id", "et1"."title", "et1"."description", "et1"."length", "et1"."schedulingType"::text, "et1"."recurringEvent", "et1"."slug", "et1"."hidden", "et1"."price", "et1"."currency", "et1"."lockTimeZoneToggleOnBookingPage", "et1"."requiresConfirmation", "et1"."requiresBookerEmailVerification", "et1"."metadata", "et1"."position"
