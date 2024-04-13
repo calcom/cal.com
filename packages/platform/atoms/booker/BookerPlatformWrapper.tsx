@@ -34,29 +34,6 @@ import { usePublicEvent } from "../hooks/usePublicEvent";
 import { useSlots } from "../hooks/useSlots";
 import { AtomsWrapper } from "../src/components/atoms-wrapper";
 
-export type CustomClassNames = {
-  bookerContainer?: string;
-  eventMetaCustomClassname?: {
-    eventMetaContainer?: string;
-    eventMetaTitle?: string;
-    eventMetaTimezoneSelect?: string;
-  };
-  datePickerCustomClassname?: {
-    datePickerContainer?: string;
-    datePickerTitle?: string;
-    datePickerDays?: string;
-    datePickerDate?: string;
-    datePickerDatesActive?: string;
-    datePickerToggle?: string;
-  };
-  availableTimeSlotsCustomClassname?: {
-    availableTimeSlotsContainer?: string;
-    availableTimeSlotsTitle?: string;
-    availableTimeSlotsTimeFormatToggle?: string;
-    availableTimes?: string;
-  };
-};
-
 type BookerPlatformWrapperAtomProps = Omit<BookerProps, "entity"> & {
   rescheduleUid?: string;
   bookingUid?: string;

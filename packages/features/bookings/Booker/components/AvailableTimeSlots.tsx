@@ -23,7 +23,8 @@ type AvailableTimeSlotsProps = {
   customClassnames?: {
     availableTimeSlotsContainer?: string;
     availableTimeSlotsTitle?: string;
-    availableTimeSlotsTimeFormatToggle: string;
+    availableTimeSlotsHeaderContainer?: string;
+    availableTimeSlotsTimeFormatToggle?: string;
     availableTimes?: string;
   };
 };
@@ -96,8 +97,9 @@ export const AvailableTimeSlots = ({
           slotsPerDay.map((slots) => (
             <AvailableTimesHeader
               customClassnames={{
-                availableTimeSlotTitle: customClassnames?.availableTimeSlotsTitle,
-                availableTimeSlotTimeFormatToggle: customClassnames?.availableTimeSlotsTimeFormatToggle,
+                availableTimeSlotsHeaderContainer: customClassnames?.availableTimeSlotsHeaderContainer,
+                availableTimeSlotsTitle: customClassnames?.availableTimeSlotsTitle,
+                availableTimeSlotsTimeFormatToggle: customClassnames?.availableTimeSlotsTimeFormatToggle,
               }}
               key={slots.date}
               date={dayjs(slots.date)}

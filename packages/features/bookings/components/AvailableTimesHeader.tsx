@@ -15,9 +15,9 @@ type AvailableTimesHeaderProps = {
   showTimeFormatToggle?: boolean;
   availableMonth?: string | undefined;
   customClassnames?: {
-    availableTimeSlotContainer?: string;
-    availableTimeSlotTitle?: string;
-    availableTimeSlotTimeFormatToggle?: string;
+    availableTimeSlotsHeaderContainer?: string;
+    availableTimeSlotsTitle?: string;
+    availableTimeSlotsTimeFormatToggle?: string;
   };
 };
 
@@ -38,7 +38,7 @@ export const AvailableTimesHeader = ({
       className={classNames(
         `dark:bg-muted dark:before:bg-muted mb-3 flex w-full flex-row items-center font-medium`,
         "bg-default before:bg-default",
-        customClassnames?.availableTimeSlotContainer
+        customClassnames?.availableTimeSlotsHeaderContainer
       )}>
       <span
         className={classNames(
@@ -47,8 +47,8 @@ export const AvailableTimesHeader = ({
         )}>
         <span
           className={classNames(
-            isToday && !customClassnames?.availableTimeSlotTitle && "!text-default",
-            customClassnames?.availableTimeSlotTitle
+            isToday && !customClassnames?.availableTimeSlotsTitle && "!text-default",
+            customClassnames?.availableTimeSlotsTitle
           )}>
           {nameOfDay(i18n.language, Number(date.format("d")), "short")}
         </span>
@@ -57,8 +57,8 @@ export const AvailableTimesHeader = ({
             isColumnView && isToday && "bg-brand-default text-brand ml-2",
             "inline-flex items-center justify-center rounded-3xl px-1 pt-0.5 font-medium",
             isMonthView
-              ? `text-default text-sm ${customClassnames?.availableTimeSlotTitle}`
-              : `text-xs ${customClassnames?.availableTimeSlotTitle}`
+              ? `text-default text-sm ${customClassnames?.availableTimeSlotsTitle}`
+              : `text-xs ${customClassnames?.availableTimeSlotsTitle}`
           )}>
           {date.format("DD")}
           {availableMonth && `, ${availableMonth}`}
@@ -67,7 +67,7 @@ export const AvailableTimesHeader = ({
 
       {showTimeFormatToggle && (
         <div className="ml-auto rtl:mr-auto">
-          <TimeFormatToggle customClassname={customClassnames?.availableTimeSlotTimeFormatToggle} />
+          <TimeFormatToggle customClassname={customClassnames?.availableTimeSlotsTimeFormatToggle} />
         </div>
       )}
     </header>
