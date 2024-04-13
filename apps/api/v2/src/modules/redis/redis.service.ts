@@ -1,10 +1,10 @@
 import { AppConfig } from "@/config/type";
-import { Injectable, OnModuleDestroy, OnModuleInit } from "@nestjs/common";
+import { Injectable, OnModuleDestroy } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { Redis } from "ioredis";
 
 @Injectable()
-export class RedisService implements OnModuleInit, OnModuleDestroy {
+export class RedisService implements OnModuleDestroy {
   public redis: Redis;
 
   constructor(readonly configService: ConfigService<AppConfig>) {
@@ -12,10 +12,6 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     if (!dbUrl) throw new Error("Misconfigured Redis, halting.");
 
     this.redis = new Redis(dbUrl);
-  }
-
-  async onModuleInit() {
-    await this.redis.connect();
   }
 
   async onModuleDestroy() {

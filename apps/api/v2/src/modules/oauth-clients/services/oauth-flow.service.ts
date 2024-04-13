@@ -18,34 +18,45 @@ export class OAuthFlowService {
   ) {}
 
   async propagateAccessToken(accessToken: string) {
-    const ownerId = await this.tokensRepository.getAccessTokenOwnerId(accessToken);
-    let expiry = await this.tokensRepository.getAccessTokenExpiryDate(accessToken);
+    try {
+      const ownerId = await this.tokensRepository.getAccessTokenOwnerId(accessToken);
+      let expiry = await this.tokensRepository.getAccessTokenExpiryDate(accessToken);
 
-    if (!expiry) {
-      this.logger.warn(`Token for ${ownerId} had no expiry time, assuming it's new.`);
-      expiry = DateTime.now().plus({ minute: 60 }).startOf("minute").toJSDate();
+      if (!expiry) {
+        this.logger.warn(`Token for ${ownerId} had no expiry time, assuming it's new.`);
+        expiry = DateTime.now().plus({ minute: 60 }).startOf("minute").toJSDate();
+      }
+
+      const cacheKey = this._generateActKey(accessToken);
+      await this.redisService.redis.hmset(cacheKey, {
+        ownerId: ownerId,
+        expiresAt: expiry?.toJSON(),
+      });
+
+      await this.redisService.redis.expireat(cacheKey, Math.floor(expiry.getTime() / 1000));
+    } catch (err) {
+      this.logger.error("Access Token Propagation Failed, falling back to DB...", err);
     }
-
-    const cacheKey = this._generateActKey(accessToken);
-    await this.redisService.redis.hmset(cacheKey, {
-      ownerId: ownerId,
-      expiresAt: expiry?.toJSON(),
-    });
-
-    await this.redisService.redis.expireat(cacheKey, Math.floor(expiry.getTime() / 1000));
   }
 
   async getOwnerId(accessToken: string) {
     const cacheKey = this._generateActKey(accessToken);
-    const ownerId = await this.redisService.redis.get(cacheKey);
-    if (ownerId) {
-      return ownerId;
+
+    try {
+      const ownerId = await this.redisService.redis.get(cacheKey);
+      if (ownerId) {
+        return Number.parseInt(ownerId);
+      }
+    } catch (err) {
+      this.logger.warn("Cache#getOwnerId fetch failed, falling back to DB...");
     }
+
     const ownerIdFromDb = await this.tokensRepository.getAccessTokenOwnerId(accessToken);
 
     if (!ownerIdFromDb) throw new Error("Invalid Access Token, not present in Redis or DB");
 
-    await this.redisService.redis.setex(cacheKey, 3600, ownerIdFromDb); // expires in 1 hour
+    // await in case of race conditions, but void it's return since cache writes shouldn't halt execution.
+    void (await this.redisService.redis.setex(cacheKey, 3600, ownerIdFromDb)); // expires in 1 hour
 
     return ownerIdFromDb;
   }
@@ -69,8 +80,10 @@ export class OAuthFlowService {
       throw new TokenExpiredException();
     }
 
-    await this.redisService.redis.hmset(cacheKey, { expiresAt: tokenExpiresAt.toJSON() });
-    await this.redisService.redis.expireat(cacheKey, Math.floor(tokenExpiresAt.getTime() / 1000));
+    // we can't use a Promise#all or similar here because we care about execution order
+    // however we can't allow caches to fail a validation hence the results are voided.
+    void (await this.redisService.redis.hmset(cacheKey, { expiresAt: tokenExpiresAt.toJSON() }));
+    void (await this.redisService.redis.expireat(cacheKey, Math.floor(tokenExpiresAt.getTime() / 1000)));
 
     return true;
   }
@@ -112,7 +125,7 @@ export class OAuthFlowService {
       authorizationToken.owner.id
     );
     await this.tokensRepository.invalidateAuthorizationToken(authorizationToken.id);
-    void this.propagateAccessToken(accessToken); // voided as we don't need to await
+    void this.propagateAccessToken(accessToken); // void result, ignored.
 
     return {
       accessToken,
