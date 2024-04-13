@@ -135,12 +135,12 @@ export type BookerAreas = "calendar" | "timeslots" | "main" | "meta" | "header";
 
 export type CustomClassNames = {
   bookerContainer?: string;
-  eventMetaCustomClassnames?: {
+  eventMetaCustomClassNames?: {
     eventMetaContainer?: string;
     eventMetaTitle?: string;
     eventMetaTimezoneSelect?: string;
   };
-  datePickerCustomClassnames?: {
+  datePickerCustomClassNames?: {
     datePickerContainer?: string;
     datePickerTitle?: string;
     datePickerDays?: string;
@@ -148,7 +148,7 @@ export type CustomClassNames = {
     datePickerDatesActive?: string;
     datePickerToggle?: string;
   };
-  availableTimeSlotsCustomClassnames?: {
+  availableTimeSlotsCustomClassNames?: {
     availableTimeSlotsContainer?: string;
     availableTimeSlotsHeaderContainer?: string;
     availableTimeSlotsTitle?: string;
