@@ -16,27 +16,13 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { IdentityProvider, MembershipRole, UserPermissionRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { VerticalTabItemProps } from "@calcom/ui";
-import { Badge, Button, ErrorBoundary, Skeleton, useMeta, VerticalTabItem } from "@calcom/ui";
-import {
-  ArrowLeft,
-  ChevronDown,
-  ChevronRight,
-  CreditCard,
-  Key,
-  Loader,
-  Lock,
-  Menu,
-  Plus,
-  Terminal,
-  User,
-  Users,
-} from "@calcom/ui/components/icon";
+import { Badge, Button, ErrorBoundary, Icon, Skeleton, useMeta, VerticalTabItem } from "@calcom/ui";
 
 const tabs: VerticalTabItemProps[] = [
   {
     name: "my_account",
     href: "/settings/my-account",
-    icon: User,
+    icon: "user",
     children: [
       { name: "profile", href: "/settings/my-account/profile" },
       { name: "general", href: "/settings/my-account/general" },
@@ -51,7 +37,7 @@ const tabs: VerticalTabItemProps[] = [
   {
     name: "security",
     href: "/settings/security",
-    icon: Key,
+    icon: "key",
     children: [
       { name: "password", href: "/settings/security/password" },
       { name: "impersonation", href: "/settings/security/impersonation" },
@@ -61,13 +47,13 @@ const tabs: VerticalTabItemProps[] = [
   {
     name: "billing",
     href: "/settings/billing",
-    icon: CreditCard,
+    icon: "credit-card",
     children: [{ name: "manage_billing", href: "/settings/billing" }],
   },
   {
     name: "developer",
     href: "/settings/developer",
-    icon: Terminal,
+    icon: "terminal",
     children: [
       //
       { name: "webhooks", href: "/settings/developer/webhooks" },
@@ -104,6 +90,11 @@ const tabs: VerticalTabItemProps[] = [
         name: "billing",
         href: "/settings/organizations/billing",
       },
+      { name: "OAuth Clients", href: "/settings/organizations/platform/oauth-clients" },
+      {
+        name: "SSO",
+        href: "/settings/organizations/sso",
+      },
       {
         name: "directory_sync",
         href: "/settings/organizations/dsync",
@@ -113,13 +104,13 @@ const tabs: VerticalTabItemProps[] = [
   {
     name: "teams",
     href: "/teams",
-    icon: Users,
+    icon: "users",
     children: [],
   },
   {
     name: "admin",
     href: "/settings/admin",
-    icon: Lock,
+    icon: "lock",
     children: [
       //
       { name: "features", href: "/settings/admin/flags" },
@@ -147,9 +138,8 @@ const organizationRequiredKeys = ["organization"];
 
 const useTabs = () => {
   const session = useSession();
-  const { data: user } = trpc.viewer.me.useQuery();
+  const { data: user } = trpc.viewer.me.useQuery({ includePasswordAdded: true });
   const orgBranding = useOrgBranding();
-
   const isAdmin = session.data?.user.role === UserPermissionRole.ADMIN;
 
   tabs.map((tab) => {
@@ -163,7 +153,8 @@ const useTabs = () => {
     } else if (
       tab.href === "/settings/security" &&
       user?.identityProvider === IdentityProvider.GOOGLE &&
-      !user?.twoFactorEnabled
+      !user?.twoFactorEnabled &&
+      !user?.passwordAdded
     ) {
       tab.children = tab?.children?.filter(
         (childTab) => childTab.href !== "/settings/security/two-factor-auth"
@@ -187,7 +178,10 @@ const BackButtonInSidebar = ({ name }: { name: string }) => {
       href="/"
       className="hover:bg-subtle todesktop:mt-10 [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis group-hover:text-default text-emphasis group my-6 flex h-6 max-h-6 w-full flex-row items-center rounded-md px-3 py-2 text-sm font-medium leading-4"
       data-testid={`vertical-tab-${name}`}>
-      <ArrowLeft className="h-4 w-4 stroke-[2px] ltr:mr-[10px] rtl:ml-[10px] rtl:rotate-180 md:mt-0" />
+      <Icon
+        name="arrow-left"
+        className="h-4 w-4 stroke-[2px] ltr:mr-[10px] rtl:ml-[10px] rtl:rotate-180 md:mt-0"
+      />
       <Skeleton title={name} as="p" className="max-w-36 min-h-4 truncate" loadingClassName="ms-3">
         {name}
       </Skeleton>
@@ -270,7 +264,7 @@ const SettingsSidebarContainer = ({
     tabsWithPermissions.splice(teamsIndex + 1, 0, {
       name: "other_teams",
       href: "/settings/organizations/teams/other",
-      icon: Users,
+      icon: "users",
       children: [],
     });
   }
@@ -296,7 +290,10 @@ const SettingsSidebarContainer = ({
                   <div className={`${!tab.children?.length ? "!mb-3" : ""}`}>
                     <div className="[&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis text-default group flex h-9 w-full flex-row items-center rounded-md px-2 text-sm font-medium leading-none">
                       {tab && tab.icon && (
-                        <tab.icon className="h-[16px] w-[16px] stroke-[2px] ltr:mr-3 rtl:ml-3 md:mt-0" />
+                        <Icon
+                          name={tab.icon}
+                          className="h-[16px] w-[16px] stroke-[2px] ltr:mr-3 rtl:ml-3 md:mt-0"
+                        />
                       )}
                       {!tab.icon && tab?.avatar && (
                         <img
@@ -338,7 +335,10 @@ const SettingsSidebarContainer = ({
                     <Link href={tab.href}>
                       <div className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis group-hover:text-default text-default group flex h-9 w-full flex-row items-center rounded-md px-2 py-[10px]  text-sm font-medium leading-none">
                         {tab && tab.icon && (
-                          <tab.icon className="h-[16px] w-[16px] stroke-[2px] ltr:mr-3 rtl:ml-3 md:mt-0" />
+                          <Icon
+                            name={tab.icon}
+                            className="h-[16px] w-[16px] stroke-[2px] ltr:mr-3 rtl:ml-3 md:mt-0"
+                          />
                         )}
                         <Skeleton
                           title={tab.name}
@@ -384,9 +384,9 @@ const SettingsSidebarContainer = ({
                                   }>
                                   <div className="me-3">
                                     {teamMenuState[index].teamMenuOpen ? (
-                                      <ChevronDown className="h-4 w-4" />
+                                      <Icon name="chevron-down" className="h-4 w-4" />
                                     ) : (
-                                      <ChevronRight className="h-4 w-4" />
+                                      <Icon name="chevron-right" className="h-4 w-4" />
                                     )}
                                   </div>
                                   {!team.parentId && (
@@ -447,14 +447,6 @@ const SettingsSidebarContainer = ({
                                           textClassNames="px-3 text-emphasis font-medium text-sm"
                                           disableChevron
                                         />
-                                        {HOSTED_CAL_FEATURES && (
-                                          <VerticalTabItem
-                                            name={t("saml_config")}
-                                            href={`/settings/teams/${team.id}/sso`}
-                                            textClassNames="px-3 text-emphasis font-medium text-sm"
-                                            disableChevron
-                                          />
-                                        )}
                                       </>
                                     ) : null}
                                   </>
@@ -468,7 +460,7 @@ const SettingsSidebarContainer = ({
                         name={t("add_a_team")}
                         href={`${WEBAPP_URL}/settings/teams/new`}
                         textClassNames="px-3 items-center mt-2 text-emphasis font-medium text-sm"
-                        icon={Plus}
+                        icon="plus"
                         disableChevron
                       />
                     )}
@@ -482,7 +474,10 @@ const SettingsSidebarContainer = ({
                     <Link href={tab.href}>
                       <div className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis group-hover:text-default text-default group flex h-9 w-full flex-row items-center rounded-md px-2 py-[10px]  text-sm font-medium leading-none">
                         {tab && tab.icon && (
-                          <tab.icon className="h-[16px] w-[16px] stroke-[2px] ltr:mr-3 rtl:ml-3 md:mt-0" />
+                          <Icon
+                            name={tab.icon}
+                            className="h-[16px] w-[16px] stroke-[2px] ltr:mr-3 rtl:ml-3 md:mt-0"
+                          />
                         )}
                         <Skeleton
                           title={t("org_admin_other_teams")}
@@ -528,9 +523,9 @@ const SettingsSidebarContainer = ({
                                   }>
                                   <div className="me-3">
                                     {otherTeamMenuState[index].teamMenuOpen ? (
-                                      <ChevronDown className="h-4 w-4" />
+                                      <Icon name="chevron-down" className="h-4 w-4" />
                                     ) : (
-                                      <ChevronRight className="h-4 w-4" />
+                                      <Icon name="chevron-right" className="h-4 w-4" />
                                     )}
                                   </div>
                                   {!otherTeam.parentId && (
@@ -589,14 +584,14 @@ const MobileSettingsContainer = (props: { onSideContainerOpen?: () => void }) =>
     <>
       <nav className="bg-muted border-muted sticky top-0 z-20 flex w-full items-center justify-between border-b py-2 sm:relative lg:hidden">
         <div className="flex items-center space-x-3 ">
-          <Button StartIcon={Menu} color="minimal" variant="icon" onClick={props.onSideContainerOpen}>
+          <Button StartIcon="menu" color="minimal" variant="icon" onClick={props.onSideContainerOpen}>
             <span className="sr-only">{t("show_navigation")}</span>
           </Button>
 
           <button
             className="hover:bg-emphasis flex items-center space-x-2 rounded-md px-3 py-1 rtl:space-x-reverse"
             onClick={() => router.back()}>
-            <ArrowLeft className="text-default h-4 w-4" />
+            <Icon name="arrow-left" className="text-default h-4 w-4" />
             <p className="text-emphasis font-semibold">{t("settings")}</p>
           </button>
         </div>
@@ -651,10 +646,10 @@ export default function SettingsLayout({
         <MobileSettingsContainer onSideContainerOpen={() => setSideContainerOpen(!sideContainerOpen)} />
       }>
       <div className="flex flex-1 [&>*]:flex-1">
-        <div className="mx-auto max-w-full justify-center lg:max-w-4xl">
+        <div className="mx-auto max-w-full justify-center lg:max-w-3xl">
           <ShellHeader />
           <ErrorBoundary>
-            <Suspense fallback={<Loader />}>{children}</Suspense>
+            <Suspense fallback={<Icon name="loader" />}>{children}</Suspense>
           </ErrorBoundary>
         </div>
       </div>
@@ -708,7 +703,7 @@ export function ShellHeader() {
         <div className="flex w-full items-center">
           {meta.backButton && (
             <a href="javascript:history.back()">
-              <ArrowLeft className="mr-7" />
+              <Icon name="arrow-left" className="mr-7" />
             </a>
           )}
           <div>

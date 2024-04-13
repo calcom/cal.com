@@ -65,6 +65,9 @@ export const buildBooking = (booking?: Partial<Booking>): Booking => {
     isRecorded: false,
     iCalUID: getICalUID({ uid }),
     iCalSequence: 0,
+    rating: null,
+    noShowHost: null,
+    ratingFeedback: null,
     ...booking,
   };
 };
@@ -136,6 +139,7 @@ export const buildWebhook = (webhook?: Partial<Webhook>): Webhook => {
     eventTriggers: [],
     teamId: null,
     ...webhook,
+    platform: false,
   };
 };
 
@@ -248,6 +252,7 @@ export const buildUser = <T extends Partial<UserPayload>>(
     receiveMonthlyDigestEmail: null,
     movedToProfileId: null,
     priority: user?.priority ?? null,
+    isPlatformManaged: false,
     ...user,
   };
 };

@@ -5,8 +5,7 @@ import type { z } from "zod";
 
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Label, InfoBadge } from "@calcom/ui";
-import { Info } from "@calcom/ui/components/icon";
+import { Icon, InfoBadge, Label } from "@calcom/ui";
 
 import { Components, isValidValueProp } from "./Components";
 import { fieldTypesConfigMap } from "./fieldTypes";
@@ -97,7 +96,7 @@ export const FormBuilderField = ({
                     <div
                       data-testid={`error-message-${field.name}`}
                       className="mt-2 flex items-center text-sm text-red-700 ">
-                      <Info className="h-3 w-3 ltr:mr-2 rtl:ml-2" />
+                      <Icon name="info" className="h-3 w-3 ltr:mr-2 rtl:ml-2" />
                       <p>{t(message || "invalid_input")}</p>
                     </div>
                   );
@@ -152,7 +151,7 @@ const WithLabel = ({
 /**
  * Ensures that `labels` and `placeholders`, wherever they are, are set properly. If direct values are not set, default values from fieldTypeConfig are used.
  */
-function getAndUpdateNormalizedValues(field: RhfFormFields[number], t: TFunction) {
+export function getAndUpdateNormalizedValues(field: RhfFormFields[number], t: TFunction) {
   let noLabel = false;
   let hidden = !!field.hidden;
   if (field.type === "radioInput") {
