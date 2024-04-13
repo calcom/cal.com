@@ -2418,7 +2418,7 @@ describe("handleNewBooking", () => {
       );
       test(
         `cannot book same slot multiple times `,
-        async ({ emails, org }) => {
+        async ({ emails }) => {
           const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
           const booker = getBooker({
             email: "booker@example.com",
@@ -2443,31 +2443,28 @@ describe("handleNewBooking", () => {
           });
 
           await createBookingScenario(
-            getScenarioData(
-              {
-                eventTypes: [
-                  {
-                    id: 1,
-                    slotInterval: 30,
-                    length: 30,
-                    useEventTypeDestinationCalendarEmail: true,
-                    users: [
-                      {
-                        id: 101,
-                      },
-                    ],
-                    destinationCalendar: {
-                      integration: "google_calendar",
-                      externalId: "event-type-1@google-calendar.com",
-                      primaryEmail: organizerDestinationCalendarEmailOnEventType,
+            getScenarioData({
+              eventTypes: [
+                {
+                  id: 1,
+                  slotInterval: 30,
+                  length: 30,
+                  useEventTypeDestinationCalendarEmail: true,
+                  users: [
+                    {
+                      id: 101,
                     },
+                  ],
+                  destinationCalendar: {
+                    integration: "google_calendar",
+                    externalId: "event-type-1@google-calendar.com",
+                    primaryEmail: organizerDestinationCalendarEmailOnEventType,
                   },
-                ],
-                organizer,
-                apps: [TestData.apps["google-calendar"], TestData.apps["daily-video"]],
-              },
-              org?.organization
-            )
+                },
+              ],
+              organizer,
+              apps: [TestData.apps["google-calendar"], TestData.apps["daily-video"]],
+            })
           );
 
           mockSuccessfulVideoMeetingCreation({
@@ -2548,7 +2545,7 @@ describe("handleNewBooking", () => {
           expectSuccessfulBookingCreationEmails({
             booking: {
               uid: createdBooking.uid!,
-              urlOrigin: org ? org.urlOrigin : WEBSITE_URL,
+              urlOrigin: WEBSITE_URL,
             },
             booker,
             organizer,
