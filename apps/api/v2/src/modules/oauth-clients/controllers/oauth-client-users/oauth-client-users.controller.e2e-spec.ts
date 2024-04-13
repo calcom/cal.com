@@ -7,8 +7,8 @@ import {
   CreateUserResponse,
   UserReturned,
 } from "@/modules/oauth-clients/controllers/oauth-client-users/oauth-client-users.controller";
-import { CreateManagedPlatformUserInput } from "@/modules/users/inputs/create-managed-platform-user.input";
-import { UpdateManagedPlatformUserInput } from "@/modules/users/inputs/update-managed-platform-user.input";
+import { CreateManagedUserInput } from "@/modules/users/inputs/create-managed-user.input";
+import { UpdateManagedUserInput } from "@/modules/users/inputs/update-managed-user.input";
 import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
@@ -78,6 +78,8 @@ describe("OAuth Client Users Endpoints", () => {
 
     let postResponseData: CreateUserResponse;
 
+    const userEmail = "oauth-client-user@gmail.com";
+
     beforeAll(async () => {
       const moduleRef = await Test.createTestingModule({
         providers: [PrismaExceptionFilter, HttpExceptionFilter],
@@ -117,8 +119,8 @@ describe("OAuth Client Users Endpoints", () => {
     });
 
     it(`should fail /POST with incorrect timeZone`, async () => {
-      const requestBody: CreateManagedPlatformUserInput = {
-        email: "oauth-client-user@gmail.com",
+      const requestBody: CreateManagedUserInput = {
+        email: userEmail,
         timeZone: "incorrect-time-zone",
       };
 
@@ -130,8 +132,8 @@ describe("OAuth Client Users Endpoints", () => {
     });
 
     it(`/POST`, async () => {
-      const requestBody: CreateManagedPlatformUserInput = {
-        email: "oauth-client-user@gmail.com",
+      const requestBody: CreateManagedUserInput = {
+        email: userEmail,
       };
 
       const response = await request(app.getHttpServer())
@@ -150,7 +152,7 @@ describe("OAuth Client Users Endpoints", () => {
 
       expect(responseBody.status).toEqual(SUCCESS_STATUS);
       expect(responseBody.data).toBeDefined();
-      expect(responseBody.data.user.email).toEqual(requestBody.email);
+      expect(responseBody.data.user.email).toEqual(getOAuthUserEmail(oAuthClient.id, requestBody.email));
       expect(responseBody.data.accessToken).toBeDefined();
       expect(responseBody.data.refreshToken).toBeDefined();
 
@@ -205,12 +207,12 @@ describe("OAuth Client Users Endpoints", () => {
 
       expect(responseBody.status).toEqual(SUCCESS_STATUS);
       expect(responseBody.data).toBeDefined();
-      expect(responseBody.data.email).toEqual(postResponseData.user.email);
+      expect(responseBody.data.email).toEqual(getOAuthUserEmail(oAuthClient.id, userEmail));
     });
 
     it(`/PUT/:id`, async () => {
       const userUpdatedEmail = "pineapple-pizza@gmail.com";
-      const body: UpdateManagedPlatformUserInput = { email: userUpdatedEmail };
+      const body: UpdateManagedUserInput = { email: userUpdatedEmail };
 
       const response = await request(app.getHttpServer())
         .patch(`/api/v2/oauth-clients/${oAuthClient.id}/users/${postResponseData.user.id}`)
@@ -223,7 +225,7 @@ describe("OAuth Client Users Endpoints", () => {
 
       expect(responseBody.status).toEqual(SUCCESS_STATUS);
       expect(responseBody.data).toBeDefined();
-      expect(responseBody.data.email).toEqual(userUpdatedEmail);
+      expect(responseBody.data.email).toEqual(getOAuthUserEmail(oAuthClient.id, userUpdatedEmail));
     });
 
     it(`/DELETE/:id`, () => {
@@ -233,6 +235,13 @@ describe("OAuth Client Users Endpoints", () => {
         .set("Origin", `${CLIENT_REDIRECT_URI}`)
         .expect(200);
     });
+
+    function getOAuthUserEmail(oAuthClientId: string, userEmail: string) {
+      const [username, emailDomain] = userEmail.split("@");
+      const email = `${username}+${oAuthClientId}@${emailDomain}`;
+
+      return email;
+    }
 
     afterAll(async () => {
       await oauthClientRepositoryFixture.delete(oAuthClient.id);
