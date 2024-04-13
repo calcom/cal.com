@@ -11,7 +11,6 @@ import { MembershipRole } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { Button, Meta, showToast, TextField } from "@calcom/ui";
-import { Icon } from "@calcom/ui";
 
 import { getLayout } from "../../../settings/layouts/SettingsLayout";
 import DisableTeamImpersonation from "../components/DisableTeamImpersonation";
@@ -82,7 +81,7 @@ const MembersView = () => {
   const router = useRouter();
   const session = useSession();
 
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const params = useParamsWithFallback();
 
   const teamId = Number(params.id);

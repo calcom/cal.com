@@ -11,6 +11,7 @@ export const OrganizationCreationEmail = (
   const { prevLink, newLink, orgName: teamName } = props;
   const prevLinkWithoutProtocol = props.prevLink?.replace(/https?:\/\//, "");
   const newLinkWithoutProtocol = props.newLink?.replace(/https?:\/\//, "");
+  const isNewUser = props.ownerOldUsername === null;
   return (
     <V2BaseEmailHtml subject={props.language(`email_organization_created|subject`)}>
       <p style={{ fontSize: "24px", marginBottom: "16px", textAlign: "center" }}>
@@ -50,26 +51,32 @@ export const OrganizationCreationEmail = (
           marginTop: "48px",
           lineHeightStep: "24px",
         }}>
-        <Trans i18nKey="email|existing_user_added_link_changed">
-          Your link has been changed from <a href={prevLink ?? ""}>{prevLinkWithoutProtocol}</a> to{" "}
-          <a href={newLink ?? ""}>{newLinkWithoutProtocol}</a> but don&apos;t worry, all previous links still
-          work and redirect appropriately.
-          <br />
-          <br />
-          Please note: All of your personal event types have been moved into the <strong>
-            {teamName}
-          </strong>{" "}
-          organisation, which may also include potential personal link.
-          <br />
-          <br />
-          Please log in and make sure you have no private events on your new organisational account.
-          <br />
-          <br />
-          For personal events we recommend creating a new account with a personal email address.
-          <br />
-          <br />
-          Enjoy your new clean link: <a href={`${newLink}?orgRedirection=true`}>{newLinkWithoutProtocol}</a>
-        </Trans>
+        {isNewUser ? (
+          <Trans>
+            Enjoy your new organization link: <a href={`${newLink}`}>{newLinkWithoutProtocol}</a>
+          </Trans>
+        ) : (
+          <Trans i18nKey="email|existing_user_added_link_changed">
+            Your link has been changed from <a href={prevLink ?? ""}>{prevLinkWithoutProtocol}</a> to{" "}
+            <a href={newLink ?? ""}>{newLinkWithoutProtocol}</a> but don&apos;t worry, all previous links
+            still work and redirect appropriately.
+            <br />
+            <br />
+            Please note: All of your personal event types have been moved into the <strong>
+              {teamName}
+            </strong>{" "}
+            organisation, which may also include potential personal link.
+            <br />
+            <br />
+            Please log in and make sure you have no private events on your new organisational account.
+            <br />
+            <br />
+            For personal events we recommend creating a new account with a personal email address.
+            <br />
+            <br />
+            Enjoy your new clean link: <a href={`${newLink}?orgRedirection=true`}>{newLinkWithoutProtocol}</a>
+          </Trans>
+        )}
       </p>
 
       <div className="">
