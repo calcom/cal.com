@@ -1,3 +1,4 @@
+import { get } from "@vercel/edge-config";
 import type { NextMiddleware } from "next-api-middleware";
 
 const safeGet = async <T = unknown>(key: string): Promise<T | undefined> => {
