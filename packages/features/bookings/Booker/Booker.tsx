@@ -342,10 +342,10 @@ const BookerComponent = ({
                 )}
                 <EventMeta
                   classNames={{
-                    eventMetaContainer: customClassNames?.eventMetaCustomClassname?.eventMetaContainer,
-                    eventMetaTitle: customClassNames?.eventMetaCustomClassname?.eventMetaTitle,
+                    eventMetaContainer: customClassNames?.eventMetaCustomClassNames?.eventMetaContainer,
+                    eventMetaTitle: customClassNames?.eventMetaCustomClassNames?.eventMetaTitle,
                     eventMetaTimezoneSelect:
-                      customClassNames?.eventMetaCustomClassname?.eventMetaTimezoneSelect,
+                      customClassNames?.eventMetaCustomClassNames?.eventMetaTimezoneSelect,
                   }}
                   event={event.data}
                   isPending={event.isPending}
@@ -378,12 +378,12 @@ const BookerComponent = ({
               className="md:border-subtle ml-[-1px] h-full flex-shrink px-5 py-3 md:border-l lg:w-[var(--booker-main-width)]">
               <DatePicker
                 classNames={{
-                  datePickerContainer: customClassNames?.datePickerCustomClassname?.datePickerContainer,
-                  datePickerTitle: customClassNames?.datePickerCustomClassname?.datePickerTitle,
-                  datePickerDays: customClassNames?.datePickerCustomClassname?.datePickerDays,
-                  datePickerDate: customClassNames?.datePickerCustomClassname?.datePickerDate,
-                  datePickerDatesActive: customClassNames?.datePickerCustomClassname?.datePickerDatesActive,
-                  datePickerToggle: customClassNames?.datePickerCustomClassname?.datePickerToggle,
+                  datePickerContainer: customClassNames?.datePickerCustomClassNames?.datePickerContainer,
+                  datePickerTitle: customClassNames?.datePickerCustomClassNames?.datePickerTitle,
+                  datePickerDays: customClassNames?.datePickerCustomClassNames?.datePickerDays,
+                  datePickerDate: customClassNames?.datePickerCustomClassNames?.datePickerDate,
+                  datePickerDatesActive: customClassNames?.datePickerCustomClassNames?.datePickerDatesActive,
+                  datePickerToggle: customClassNames?.datePickerCustomClassNames?.datePickerToggle,
                 }}
                 event={event}
                 schedule={schedule}
@@ -419,7 +419,7 @@ const BookerComponent = ({
               ref={timeslotsRef}
               {...fadeInLeft}>
               <AvailableTimeSlots
-                customClassnames={customClassNames?.availableTimeSlotsCustomClassname}
+                customClassNames={customClassNames?.availableTimeSlotsCustomClassNames}
                 extraDays={extraDays}
                 limitHeight={layout === BookerLayouts.MONTH_VIEW}
                 schedule={schedule?.data}

@@ -36,7 +36,7 @@ type AvailableTimesProps = {
   className?: string;
   selectedSlots?: string[];
   event: useEventReturnType;
-  customClassnames?: string;
+  customClassNames?: string;
 };
 
 const SlotItem = ({
@@ -46,7 +46,7 @@ const SlotItem = ({
   onTimeSelect,
   showAvailableSeatsCount,
   event,
-  customClassnames,
+  customClassNames,
 }: {
   slot: Slots[string][number];
   seatsPerTimeSlot?: number | null;
@@ -54,7 +54,7 @@ const SlotItem = ({
   onTimeSelect: TOnTimeSelect;
   showAvailableSeatsCount?: boolean | null;
   event: useEventReturnType;
-  customClassnames?: string;
+  customClassNames?: string;
 }) => {
   const { t } = useLocale();
 
@@ -126,7 +126,7 @@ const SlotItem = ({
           className={classNames(
             `min-h-9 hover:border-brand-default mb-2 flex h-auto w-full flex-grow flex-col justify-center py-2`,
             selectedSlots?.includes(slot.time) && "border-brand-default",
-            `${customClassnames}`
+            `${customClassNames}`
           )}
           color="secondary">
           <div className="flex items-center gap-2">
@@ -197,7 +197,7 @@ export const AvailableTimes = ({
   className,
   selectedSlots,
   event,
-  customClassnames,
+  customClassNames,
 }: AvailableTimesProps) => {
   const { t } = useLocale();
 
@@ -228,7 +228,7 @@ export const AvailableTimes = ({
           if (slot.away) return null;
           return (
             <SlotItem
-              customClassnames={customClassnames}
+              customClassNames={customClassNames}
               key={slot.time}
               onTimeSelect={onTimeSelect}
               slot={slot}

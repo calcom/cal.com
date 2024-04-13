@@ -59,14 +59,14 @@ export const Day = ({
   disabled,
   away,
   emoji,
-  customClassname,
+  customClassName,
   ...props
 }: JSX.IntrinsicElements["button"] & {
   active: boolean;
   date: Dayjs;
   away?: boolean;
   emoji?: string | null;
-  customClassname?: {
+  customClassName?: {
     dayContainer?: string;
     dayActive?: string;
   };
@@ -85,11 +85,11 @@ export const Day = ({
           ? "bg-brand-default text-brand"
           : !disabled
           ? `${
-              !customClassname?.dayActive
+              !customClassName?.dayActive
                 ? "hover:border-brand-default text-emphasis bg-emphasis"
-                : `hover:border-brand-default ${customClassname.dayActive}`
+                : `hover:border-brand-default ${customClassName.dayActive}`
             }`
-          : `${customClassname ? "" : " text-mute"}`
+          : `${customClassName ? "" : " text-mute"}`
       )}
       data-testid="day"
       data-disabled={disabled}
@@ -140,7 +140,7 @@ const Days = ({
   nextMonthButton,
   eventSlug,
   slots,
-  customClassname,
+  customClassName,
   ...props
 }: Omit<DatePickerProps, "locale" | "className" | "weekStart"> & {
   DayComponent?: React.FC<React.ComponentProps<typeof Day>>;
@@ -148,7 +148,7 @@ const Days = ({
   weekStart: number;
   month: string | null;
   nextMonthButton: () => void;
-  customClassname?: {
+  customClassName?: {
     datePickerDate?: string;
     datePickerDateActive?: string;
   };
@@ -258,9 +258,9 @@ const Days = ({
             </button>
           ) : (
             <DayComponent
-              customClassname={{
-                dayContainer: customClassname?.datePickerDate,
-                dayActive: customClassname?.datePickerDateActive,
+              customClassName={{
+                dayContainer: customClassName?.datePickerDate,
+                dayActive: customClassName?.datePickerDateActive,
               }}
               date={day}
               onClick={() => {
@@ -377,7 +377,7 @@ const DatePicker = ({
       </div>
       <div className="relative grid grid-cols-7 grid-rows-6 gap-1 text-center">
         <Days
-          customClassname={{
+          customClassName={{
             datePickerDate: customClassNames?.datePickersDates,
             datePickerDateActive: customClassNames?.datePickerDatesActive,
           }}
