@@ -60,7 +60,7 @@ export class GcalController {
     private readonly calendarsService: CalendarsService
   ) {}
 
-  private redirectUri = `${this.config.get("api.url")}/ee/gcal/oauth/save`;
+  private redirectUri = `${this.config.get("api.url")}/gcal/oauth/save`;
 
   @Get("/oauth/auth-url")
   @HttpCode(HttpStatus.OK)
