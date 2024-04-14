@@ -64,7 +64,7 @@ function BookingListItem(booking: BookingItemProps) {
     t,
     i18n: { language },
   } = useLocale();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const [rejectionReason, setRejectionReason] = useState<string>("");
   const [rejectionDialogIsOpen, setRejectionDialogIsOpen] = useState(false);
   const [chargeCardDialogIsOpen, setChargeCardDialogIsOpen] = useState(false);

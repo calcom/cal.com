@@ -13,7 +13,6 @@ import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { Meta, showToast, Button } from "@calcom/ui";
-import { Icon } from "@calcom/ui";
 
 import { getLayout } from "../../../../settings/layouts/SettingsLayout";
 import MakeTeamPrivateSwitch from "../../../teams/components/MakeTeamPrivateSwitch";
@@ -67,7 +66,7 @@ const MembersView = () => {
   const params = useParamsWithFallback();
   const teamId = Number(params.id);
   const session = useSession();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   // const [query, setQuery] = useState<string | undefined>("");
   // const [queryToFetch, setQueryToFetch] = useState<string | undefined>("");
   const limit = 20;

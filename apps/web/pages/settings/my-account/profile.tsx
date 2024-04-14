@@ -94,7 +94,7 @@ export type FormValues = {
 
 const ProfileView = () => {
   const { t } = useLocale();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const { update } = useSession();
   const { data: user, isPending } = trpc.viewer.me.useQuery({ includePasswordAdded: true });
 
