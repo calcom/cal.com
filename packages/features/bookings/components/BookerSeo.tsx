@@ -25,7 +25,7 @@ export const BookerSeo = (props: BookerSeoProps) => {
     username,
     rescheduleUid,
     hideBranding,
-    isTeamEvent = false,
+    isTeamEvent,
     entity,
     isSEOIndexable,
     bookingData,

@@ -81,7 +81,7 @@ const MembersView = () => {
   const router = useRouter();
   const session = useSession();
 
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const params = useParamsWithFallback();
 
   const teamId = Number(params.id);

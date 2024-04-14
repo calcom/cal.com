@@ -25,7 +25,7 @@ export const useCalendars = ({ hasSession }: UseCalendarsProps) => {
     credentialId: number;
     externalId: string;
   }>("toggledConnectedCalendars", []);
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
 
   const [calendarSettingsOverlay] = useOverlayCalendarStore(
     (state) => [state.calendarSettingsOverlayModal, state.setCalendarSettingsOverlayModal],

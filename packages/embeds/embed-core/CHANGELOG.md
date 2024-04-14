@@ -1,5 +1,11 @@
 # @calcom/embed-core
 
+## 1.4.0
+
+### Minor Changes
+
+- Added a few more events
+
 ## 1.3.2
 
 ### Patch Changes
