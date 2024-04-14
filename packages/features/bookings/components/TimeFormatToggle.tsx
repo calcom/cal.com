@@ -4,14 +4,14 @@ import { ToggleGroup } from "@calcom/ui";
 
 import { useTimePreferences } from "../lib";
 
-export const TimeFormatToggle = ({ customClassname }: { customClassname?: string }) => {
+export const TimeFormatToggle = ({ customClassName }: { customClassName?: string }) => {
   const timeFormat = useTimePreferences((state) => state.timeFormat);
   const setTimeFormat = useTimePreferences((state) => state.setTimeFormat);
   const { t } = useLocale();
 
   return (
     <ToggleGroup
-      customClassnames={customClassname}
+      customClassNames={customClassName}
       onValueChange={(newFormat) => {
         if (newFormat && newFormat !== timeFormat) setTimeFormat(newFormat as TimeFormat);
       }}

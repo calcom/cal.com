@@ -114,11 +114,13 @@ export type WrappedBookerPropsMain = {
   schedule: useScheduleForEventReturnType;
   bookerLayout: UseBookerLayoutType;
   verifyEmail: UseVerifyEmailReturnType;
+  customClassNames?: CustomClassNames;
 };
 
 export type WrappedBookerPropsForPlatform = WrappedBookerPropsMain & {
   isPlatform: true;
   verifyCode: undefined;
+  customClassNames?: CustomClassNames;
 };
 export type WrappedBookerPropsForWeb = WrappedBookerPropsMain & {
   isPlatform: false;
@@ -133,12 +135,12 @@ export type BookerAreas = "calendar" | "timeslots" | "main" | "meta" | "header";
 
 export type CustomClassNames = {
   bookerContainer?: string;
-  eventMetaCustomClassname?: {
+  eventMetaCustomClassNames?: {
     eventMetaContainer?: string;
     eventMetaTitle?: string;
     eventMetaTimezoneSelect?: string;
   };
-  datePickerCustomClassname?: {
+  datePickerCustomClassNames?: {
     datePickerContainer?: string;
     datePickerTitle?: string;
     datePickerDays?: string;
@@ -146,10 +148,11 @@ export type CustomClassNames = {
     datePickerDatesActive?: string;
     datePickerToggle?: string;
   };
-  availableTimeSlotsCustomClassname: {
+  availableTimeSlotsCustomClassNames?: {
     availableTimeSlotsContainer?: string;
+    availableTimeSlotsHeaderContainer?: string;
     availableTimeSlotsTitle?: string;
-    availableTimeSlotsTimeFormatToggle: string;
+    availableTimeSlotsTimeFormatToggle?: string;
     availableTimes?: string;
   };
 };

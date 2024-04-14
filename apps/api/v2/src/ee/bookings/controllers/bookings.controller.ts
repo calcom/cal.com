@@ -68,7 +68,7 @@ const DEFAULT_PLATFORM_PARAMS = {
 };
 
 @Controller({
-  path: "ee/bookings",
+  path: "/bookings",
   version: "2",
 })
 @UseGuards(PermissionsGuard)
