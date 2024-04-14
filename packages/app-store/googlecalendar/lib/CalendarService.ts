@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Prisma } from "@prisma/client";
-import { OAuth2TokenResponseInDbSchema } from "_auth/universalSchema";
 import type { calendar_v3 } from "googleapis";
 import { google } from "googleapis";
 import { RRule } from "rrule";
@@ -23,33 +22,26 @@ import type {
 } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
-import { authInterface } from "../../_utils/oauth/authInterface";
+import { AxiosLikeResponseToFetchResponse } from "../../_utils/oauth/AxiosLikeResponseToFetchResponse";
+import { OAuthManager } from "../../_utils/oauth/OAuthManager";
+import { getTokenObjectFromCredential } from "../../_utils/oauth/getTokenObjectFromCredential";
+import { markTokenAsExpired } from "../../_utils/oauth/markTokenAsExpired";
+import { OAuth2UniversalSchema } from "../../_utils/oauth/universalSchema";
 import { metadata } from "../_metadata";
 import { getGoogleAppKeys } from "./getGoogleAppKeys";
-import { googleCredentialSchema } from "./googleCredentialSchema";
 
-async function doesResponseInvalidatesToken(response: Response) {
+const log = logger.getSubLogger({ prefix: ["app-store/googlecalendar/lib/CalendarService"] });
+async function doesResponseInvalidateToken(response: Response) {
   if (!response.ok || (response.status < 200 && response.status >= 300)) {
     const responseBody = await response.json();
 
     if ((response && response.status === 124) || responseBody.error === "invalid_grant") {
-      return true;
+      return {
+        reason: "invalid_grant",
+      };
     }
   }
-  return false;
-}
-function getTokenResponseFromCredential(credential: CredentialPayload) {
-  const parsedTokenResponse = OAuth2TokenResponseInDbSchema.safeParse(credential.key);
-
-  if (!parsedTokenResponse.success) {
-    throw new Error("Could not parse credential.key");
-  }
-
-  const tokenResponse = parsedTokenResponse.data;
-  if (!tokenResponse) {
-    throw new Error("credential.key is not set");
-  }
-  return tokenResponse;
+  return null;
 }
 
 interface GoogleCalError extends Error {
@@ -88,84 +80,84 @@ function handleMinMax(min: string, max: string) {
 
 export default class GoogleCalendarService implements Calendar {
   private integrationName = "";
-  private auth: { getToken: () => Promise<MyGoogleAuth> };
+  private auth: ReturnType<typeof this.initGoogleAuth>;
   private log: typeof logger;
   private credential: CredentialPayload;
   private myGoogleAuth!: MyGoogleAuth;
+  private oAuthManagerInstance!: OAuthManager;
   constructor(credential: CredentialPayload) {
     this.integrationName = "google_calendar";
     this.credential = credential;
-    this.auth = this.googleAuth(credential);
-    this.log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
+    this.auth = this.initGoogleAuth(credential);
+    this.log = log.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
     this.credential = credential;
   }
 
-  private async getGoogleAuthSingleton() {
-    const googleCredentials = googleCredentialSchema.parse(this.credential.key);
+  private async getMyGoogleAuthSingleton() {
+    const googleCredentials = OAuth2UniversalSchema.parse(this.credential.key);
     const { client_id, client_secret, redirect_uris } = await getGoogleAppKeys();
     this.myGoogleAuth = this.myGoogleAuth || new MyGoogleAuth(client_id, client_secret, redirect_uris[0]);
     this.myGoogleAuth.setCredentials(googleCredentials);
     return this.myGoogleAuth;
   }
 
-  private googleAuth = (credential: CredentialPayload) => {
-    const tokenResponse = getTokenResponseFromCredential(credential);
-    const auth = authInterface({
+  private initGoogleAuth = (credential: CredentialPayload) => {
+    const currentTokenObject = getTokenObjectFromCredential(credential);
+    const auth = new OAuthManager({
       resourceOwner: {
         type: "user",
         id: credential.userId,
       },
       appSlug: metadata.slug,
-      currentTokenResponse: tokenResponse,
-      tokenRefresh: async (refreshToken) => {
-        const myGoogleAuth = await this.getGoogleAuthSingleton();
+      currentTokenObject,
+      fetchNewTokenObject: async ({ refreshToken }: { refreshToken: string | null }) => {
+        const myGoogleAuth = await this.getMyGoogleAuthSingleton();
         const fetchTokens = await myGoogleAuth.refreshToken(refreshToken);
-
         // Create Response from fetchToken.res
-        const response = new Response(JSON.stringify(fetchTokens.res), {
-          status: 200,
-          statusText: "OK",
+        const response = new Response(JSON.stringify(fetchTokens.res?.data ?? null), {
+          status: fetchTokens.res?.status,
+          statusText: fetchTokens.res?.statusText,
         });
         return response;
       },
-      isTokenResponseValid: () => {
-        // gauth takes care of this
-        return true;
+      isTokenExpired: async () => {
+        const myGoogleAuth = await this.getMyGoogleAuthSingleton();
+        return myGoogleAuth.isTokenExpiring();
       },
-      doesResponseInvalidatesToken,
-      onNewTokenResponse: async (newToken) => {
-        if (!newToken) {
-          await invalidateCredential(credential.id);
-          throw new Error("Invalid grant for Cal.com Google Calendar app");
+      doesResponseInvalidateToken,
+      invalidateTokenObject: () => invalidateCredential(this.credential.id),
+      expireAccessToken: async () => {
+        await markTokenAsExpired(this.credential);
+      },
+    });
+    this.oAuthManagerInstance = auth;
+    return {
+      getMyGoogleAuth: async () => {
+        // It would automatically update myGoogleAuth with correct token
+        const { token } = await auth.getTokenObjectOrFetch();
+        if (!token) {
+          throw new Error("Invalid grant for Google Calendar app");
         }
-        const myGoogleAuth = await this.getGoogleAuthSingleton();
-        myGoogleAuth.setCredentials(newToken);
+
+        const myGoogleAuth = await this.getMyGoogleAuthSingleton();
+        // We could do this in onNewTokenResponse
+        myGoogleAuth.setCredentials(token);
 
         await prisma.credential.update({
           where: {
             id: credential.id,
           },
           data: {
-            key: newToken,
+            key: token,
           },
         });
-      },
-    });
-    return {
-      getToken: async () => {
-        const myGoogleAuth = await this.getGoogleAuthSingleton();
-        const isExpired = () => myGoogleAuth.isTokenExpiring();
-        if (!isExpired()) {
-          return Promise.resolve(myGoogleAuth.getAccessToken());
-        } else {
-          return auth.getAccessTokenAndRefreshIfNeeded();
-        }
+        return myGoogleAuth;
       },
     };
   };
 
   public authedCalendar = async () => {
-    const myGoogleAuth = await this.auth.getToken();
+    const myGoogleAuth = await this.auth.getMyGoogleAuth();
     const calendar = google.calendar({
       version: "v3",
       auth: myGoogleAuth,
@@ -642,24 +634,27 @@ export default class GoogleCalendarService implements Calendar {
 
   async listCalendars(): Promise<IntegrationCalendar[]> {
     const calendar = await this.authedCalendar();
-    try {
-      const cals = await calendar.calendarList.list({ fields: "items(id,summary,primary,accessRole)" });
-      if (!cals.data.items) return [];
-      return cals.data.items.map(
-        (cal) =>
-          ({
-            externalId: cal.id ?? "No id",
-            integration: this.integrationName,
-            name: cal.summary ?? "No name",
-            primary: cal.primary ?? false,
-            readOnly: !(cal.accessRole === "writer" || cal.accessRole === "owner") && true,
-            email: cal.id ?? "",
-          } satisfies IntegrationCalendar)
-      );
-    } catch (error) {
-      this.log.error("There was an error getting calendars: ", safeStringify(error));
-      throw error;
-    }
+    const { json } = await this.oAuthManagerInstance.request(
+      async () =>
+        new AxiosLikeResponseToFetchResponse(
+          await calendar.calendarList.list({ fields: "items(id,summary,primary,accessRole)" })
+        )
+    );
+
+    const cals = json;
+
+    if (!cals.items) return [];
+    return cals.items.map(
+      (cal) =>
+        ({
+          externalId: cal.id ?? "No id",
+          integration: this.integrationName,
+          name: cal.summary ?? "No name",
+          primary: cal.primary ?? false,
+          readOnly: !(cal.accessRole === "writer" || cal.accessRole === "owner") && true,
+          email: cal.id ?? "",
+        } satisfies IntegrationCalendar)
+    );
   }
 }
 

@@ -1,36 +1,22 @@
-import {
-  OAuth2TokenResponseInDbSchema,
-  OAuth2UniversalSchemaWithCalcomBackwardCompatibility,
-} from "_auth/universalSchema";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
+import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
-import type { Credential, Prisma } from "@calcom/prisma/client";
+import type { Credential } from "@calcom/prisma/client";
 import { Frequency } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 import type { PartialReference } from "@calcom/types/EventManager";
 import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapter";
 
-import { authInterface } from "../../_utils/oauth/authInterface";
-import { getAndValidateJsonFromResponse } from "../../_utils/oauth/refreshOAuthTokens";
+import { OAuthManager } from "../../_utils/oauth/OAuthManager";
+import { getTokenObjectFromCredential } from "../../_utils/oauth/getTokenObjectFromCredential";
+import { markTokenAsExpired } from "../../_utils/oauth/markTokenAsExpired";
 import { metadata } from "../_metadata";
 import { getZoomAppKeys } from "./getZoomAppKeys";
 
-function getTokenResponseFromCredential(credential: CredentialPayload) {
-  const parsedTokenResponse = OAuth2TokenResponseInDbSchema.safeParse(credential.key);
-
-  if (!parsedTokenResponse.success) {
-    throw new Error("Could not parse credential.key");
-  }
-
-  const tokenResponse = parsedTokenResponse.data;
-  if (!tokenResponse) {
-    throw new Error("credential.key is not set");
-  }
-  return tokenResponse;
-}
+const log = logger.getSubLogger({ prefix: ["app-store/zoomvideo/lib/VideoApiAdapter"] });
 
 /** @link https://marketplace.zoom.us/docs/api-reference/zoom-api/meetings/meetingcreate */
 const zoomEventResultSchema = z.object({
@@ -66,23 +52,20 @@ export const zoomMeetingsSchema = z.object({
   ),
 });
 
-const isTokenValid = (token: Prisma.JsonValue) => {
-  const parsedToken = OAuth2UniversalSchemaWithCalcomBackwardCompatibility.safeParse(token);
-  if (parsedToken.success) {
-    return (parsedToken.data.expires_in || parsedToken.data.expiry_date || 0) > Date.now();
-  }
-  return false;
-};
-
-async function doesResponseInvalidatesToken(response: Response) {
+async function doesResponseInvalidateToken(response: Response) {
+  log.debug("zoomvideo:doesResponseInvalidateToken", { status: response.status, ok: response.ok });
   if (!response.ok || (response.status < 200 && response.status >= 300)) {
     const responseBody = await response.json();
 
-    if ((response && response.status === 124) || responseBody.error === "invalid_grant") {
-      return true;
+    if (
+      (response && response.status === 124) ||
+      responseBody.error === "invalid_grant" ||
+      responseBody.code === 124
+    ) {
+      return { reason: "invalid_grant" };
     }
   }
-  return false;
+  return null;
 }
 
 type ZoomRecurrence = {
@@ -95,7 +78,7 @@ type ZoomRecurrence = {
 };
 
 const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => {
-  const tokenResponse = getTokenResponseFromCredential(credential);
+  const tokenResponse = getTokenObjectFromCredential(credential);
 
   const translateEvent = (event: CalendarEvent) => {
     const getRecurrence = ({
@@ -179,14 +162,17 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
   };
 
   const fetchZoomApi = async (endpoint: string, options?: RequestInit) => {
-    const auth = authInterface({
+    const auth = new OAuthManager({
       resourceOwner: {
         type: "user",
         id: credential.userId,
       },
       appSlug: metadata.slug,
-      currentTokenResponse: tokenResponse,
-      tokenRefresh: async (refreshToken) => {
+      currentTokenObject: tokenResponse,
+      fetchNewTokenObject: async ({ refreshToken }: { refreshToken: string | null }) => {
+        if (!refreshToken) {
+          return null;
+        }
         const clientCredentials = await getZoomAppKeys();
         const { client_id, client_secret } = clientCredentials;
         const authHeader = `Basic ${Buffer.from(`${client_id}:${client_secret}`).toString("base64")}`;
@@ -202,37 +188,40 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
           }),
         });
       },
-      isTokenResponseValid: isTokenValid,
-      doesResponseInvalidatesToken,
-      onNewTokenResponse: async (newToken) => {
-        if (!newToken) {
-          await invalidateCredential(credential.id);
-          throw new Error("Invalid grant for Cal.com zoom app");
-        }
-        await prisma.credential.update({
-          where: {
-            id: credential.id,
-          },
-          data: {
-            key: newToken,
-          },
-        });
+      doesResponseInvalidateToken,
+      invalidateTokenObject: () => invalidateCredential(credential.id),
+      expireAccessToken: () => markTokenAsExpired(credential),
+    });
+
+    const { token, isUpdated } = await auth.getTokenObjectOrFetch();
+    if (!token) {
+      throw new Error("Invalid grant for Cal.com zoom app");
+    }
+
+    if (isUpdated) {
+      log.debug("Updating credential with new token");
+      await prisma.credential.update({
+        where: {
+          id: credential.id,
+        },
+        data: {
+          key: token,
+        },
+      });
+    }
+
+    const { json } = await auth.request({
+      url: `https://api.zoom.us/v2/${endpoint}`,
+      options: {
+        method: "GET",
+        ...options,
+        headers: {
+          ...options?.headers,
+        },
       },
     });
-    const accessToken = await auth.getAccessTokenAndRefreshIfNeeded();
-    const response = await fetch(`https://api.zoom.us/v2/${endpoint}`, {
-      method: "GET",
-      ...options,
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        ...options?.headers,
-      },
-    });
-    const object = await getAndValidateJsonFromResponse({
-      response,
-      doesResponseInvalidatesToken: doesResponseInvalidatesToken,
-    });
-    return object;
+
+    return json;
   };
 
   return {
@@ -261,12 +250,6 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
           },
           body: JSON.stringify(translateEvent(event)),
         });
-        if (response.error) {
-          if (response.error === "invalid_grant") {
-            await invalidateCredential(credential.id);
-            return Promise.reject(new Error("Invalid grant for Cal.com zoom app"));
-          }
-        }
 
         const result = zoomEventResultSchema.parse(response);
 

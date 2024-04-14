@@ -24,7 +24,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(403).json({ message: "Invalid credential sync secret" });
   }
 
-  const reqBody = appCredentialWebhookRequestBodySchema.parse(req.body);
+  const reqBodyParsed = appCredentialWebhookRequestBodySchema.safeParse(req.body);
+  if (!reqBodyParsed.success) {
+    return res.status(400).json({ error: reqBodyParsed.error.issues });
+  }
+
+  const reqBody = reqBodyParsed.data;
 
   const user = await prisma.user.findUnique({ where: { id: reqBody.userId } });
 

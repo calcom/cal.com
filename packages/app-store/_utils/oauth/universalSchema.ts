@@ -12,6 +12,7 @@ export const OAuth2BareMinimumUniversalSchema = z
      */
     token_type: z.string().optional(),
   })
+  // We want any other property to be passed through and stay there.
   .passthrough();
 
 export const OAuth2UniversalSchema = OAuth2BareMinimumUniversalSchema.extend({
@@ -40,4 +41,5 @@ export const OAuth2UniversalSchemaWithCalcomBackwardCompatibility = OAuth2Univer
   expires_in: z.number().optional(),
 });
 
+export const OAuth2TokenResponseInDbWhenExistsSchema = OAuth2UniversalSchemaWithCalcomBackwardCompatibility;
 export const OAuth2TokenResponseInDbSchema = OAuth2UniversalSchemaWithCalcomBackwardCompatibility.nullable();
