@@ -28,12 +28,20 @@ function isOutOfBounds(
   }: Pick<
     EventType,
     "periodType" | "periodDays" | "periodCountCalendarDays" | "periodStartDate" | "periodEndDate"
-  >
+  >,
+  minimumBookingNotice?: number
 ) {
   const date = dayjs(time);
   guardAgainstBookingInThePast(date.toDate());
 
   periodDays = periodDays || 0;
+
+  if (minimumBookingNotice) {
+    const minimumBookingStartDate = dayjs().add(minimumBookingNotice, "minutes");
+    if (date.isBefore(minimumBookingStartDate)) {
+      return true;
+    }
+  }
 
   switch (periodType) {
     case PeriodType.ROLLING: {
