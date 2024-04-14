@@ -53,13 +53,7 @@ const getCalendarsEvents = async (
     if (overlayCalendarsWithEventTitles.includes(type)) {
       eventBusyDates = await c.getAvailability(dateFrom, dateTo, passedSelectedCalendars, overlayUserType);
     } else {
-      const eventData = await c.getAvailability(dateFrom, dateTo, passedSelectedCalendars);
-      eventBusyDates = eventData.map((event) => {
-        return {
-          ...event,
-          title: "Busy",
-        };
-      });
+      eventBusyDates = await c.getAvailability(dateFrom, dateTo, passedSelectedCalendars);
     }
     performance.mark("eventBusyDatesEnd");
     performance.measure(
