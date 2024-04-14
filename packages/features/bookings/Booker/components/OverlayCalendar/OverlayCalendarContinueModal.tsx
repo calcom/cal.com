@@ -8,6 +8,10 @@ interface IOverlayCalendarContinueModalProps {
   onContinue: (provider: "calcom" | "google-for-overlay") => void;
 }
 
+const GoogleIcon = () => (
+  <img className="text-subtle mr-2 h-4 w-4 dark:invert" src="/google-icon.svg" alt="" />
+);
+
 export function OverlayCalendarContinueModal(props: IOverlayCalendarContinueModalProps) {
   const { t } = useLocale();
   return (
@@ -34,15 +38,7 @@ export function OverlayCalendarContinueModal(props: IOverlayCalendarContinueModa
                 props.onContinue("google-for-overlay");
               }}
               className="gap w-full items-center justify-center font-semibold"
-              StartIcon={() => (
-                <>
-                  <img
-                    className="text-subtle  mr-2 h-4 w-4 opacity-50 dark:invert"
-                    src="/google-icon.svg"
-                    alt=""
-                  />
-                </>
-              )}>
+              CustomStartIcon={<GoogleIcon />}>
               {t("continue_with", { appName: "Google" })}
             </Button>
           </div>
