@@ -1,5 +1,5 @@
 import { get } from "@vercel/edge-config";
-import { NextResponse } from "next/server";
+import type { NextMiddleware } from "next-api-middleware";
 
 const safeGet = async <T = unknown>(key: string): Promise<T | undefined> => {
   try {
@@ -11,12 +11,13 @@ const safeGet = async <T = unknown>(key: string): Promise<T | undefined> => {
 
 export const config = { matcher: "/:path*" };
 
-export async function middleware() {
+export const checkIsInMaintenanceMode: NextMiddleware = async (req, res, next) => {
   const isInMaintenanceMode = await safeGet<boolean>("isInMaintenanceMode");
-  if (!isInMaintenanceMode) return NextResponse.next();
-  // If is in maintenance mode, return a 503 status code
-  return NextResponse.json(
-    { message: "API is currently under maintenance. Please try again at a later time." },
-    { status: 503 }
-  );
-}
+  if (isInMaintenanceMode) {
+    return res
+      .status(503)
+      .json({ message: "API is currently under maintenance. Please try again at a later time." });
+  }
+
+  await next();
+};
