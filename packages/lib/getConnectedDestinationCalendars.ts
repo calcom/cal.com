@@ -8,7 +8,7 @@ import {
 } from "@calcom/prisma/selects/credential";
 import type { CredentialPayload, OverlayCredentialPayload } from "@calcom/types/Credential";
 
-type UserWithCalendars = Pick<User, "id"> & {
+export type UserWithCalendars = Pick<User, "id"> & {
   selectedCalendars?: Pick<SelectedCalendar, "externalId" | "integration">[];
   destinationCalendar?: DestinationCalendar | null;
   isOverlayUser?: boolean;
