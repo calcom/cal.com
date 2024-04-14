@@ -381,7 +381,7 @@ interface UserDropdownProps {
 function UserDropdown({ small }: UserDropdownProps) {
   const { t } = useLocale();
   const { data: user } = useMeQuery();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const bookerUrl = useBookerUrl();
 
   useEffect(() => {

@@ -212,6 +212,19 @@ model UserPassword {
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
+model TravelSchedule {
+  id           Int       @id @default(autoincrement())
+  userId       Int
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  timeZone     String
+  startDate    DateTime
+  endDate      DateTime?
+  prevTimeZone String?
+
+  @@index([startDate])
+  @@index([endDate])
+}
+
 // It holds Personal Profiles of a User plus it has email, password and other core things
 model User {
   id                  Int                  @id @default(autoincrement())
@@ -225,6 +238,7 @@ model User {
   avatar              String?
   avatarUrl           String?
   timeZone            String               @default("Europe/London")
+  travelSchedules     TravelSchedule[]
   weekStart           String               @default("Sunday")
   // DEPRECATED - TO BE REMOVED
   startTime           Int                  @default(0)
