@@ -6,6 +6,11 @@ import type { ApiResponse, UserResponse } from "@calcom/platform-types";
 import http from "../lib/http";
 
 export const QUERY_KEY = "get-me";
+/**
+ * Custom hook to fetch the current user's information.
+ * Access Token must be provided to CalProvider in order to use this hook
+ * @returns The result of the query containing the user's profile.
+ */
 export const useMe = () => {
   const pathname = `/${V2_ENDPOINTS.me}`;
   const me = useQuery({
