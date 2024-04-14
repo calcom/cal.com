@@ -18,6 +18,7 @@ export const useMe = () => {
         throw new Error(res.data.error.message);
       });
     },
+    enabled: Boolean(http.getAuthorizationHeader()),
   });
 
   return me;
