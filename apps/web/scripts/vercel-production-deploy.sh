@@ -40,6 +40,7 @@ rm -rf \
    app/future/payment\
    app/future/reschedule\
    app/future/routing-forms\
+   app/future/settings\
    app/future/signup\
    app/future/team
 
