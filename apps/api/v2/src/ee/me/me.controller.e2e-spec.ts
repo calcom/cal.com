@@ -71,7 +71,7 @@ describe("Me Endpoints", () => {
 
     it("should get user associated with access token", async () => {
       return request(app.getHttpServer())
-        .get("/api/v2/ee/me")
+        .get("/v2/me")
         .expect(200)
         .then((response) => {
           const responseBody: ApiSuccessResponse<UserResponse> = response.body;
@@ -90,7 +90,7 @@ describe("Me Endpoints", () => {
       const body: UpdateManagedUserInput = { timeZone: "Europe/Rome" };
 
       return request(app.getHttpServer())
-        .patch("/api/v2/ee/me")
+        .patch("/v2/me")
         .send(body)
         .expect(200)
         .then(async (response) => {
@@ -114,22 +114,19 @@ describe("Me Endpoints", () => {
     it("should not update user associated with access token given invalid timezone", async () => {
       const bodyWithIncorrectTimeZone: UpdateManagedUserInput = { timeZone: "Narnia/Woods" };
 
-      return request(app.getHttpServer()).patch("/api/v2/ee/me").send(bodyWithIncorrectTimeZone).expect(400);
+      return request(app.getHttpServer()).patch("/v2/me").send(bodyWithIncorrectTimeZone).expect(400);
     });
 
     it("should not update user associated with access token given invalid time format", async () => {
       const bodyWithIncorrectTimeFormat: UpdateManagedUserInput = { timeFormat: 100 };
 
-      return request(app.getHttpServer())
-        .patch("/api/v2/ee/me")
-        .send(bodyWithIncorrectTimeFormat)
-        .expect(400);
+      return request(app.getHttpServer()).patch("/v2/me").send(bodyWithIncorrectTimeFormat).expect(400);
     });
 
     it("should not update user associated with access token given invalid week start", async () => {
       const bodyWithIncorrectWeekStart: UpdateManagedUserInput = { weekStart: "waba luba dub dub" };
 
-      return request(app.getHttpServer()).patch("/api/v2/ee/me").send(bodyWithIncorrectWeekStart).expect(400);
+      return request(app.getHttpServer()).patch("/v2/me").send(bodyWithIncorrectWeekStart).expect(400);
     });
 
     afterAll(async () => {
