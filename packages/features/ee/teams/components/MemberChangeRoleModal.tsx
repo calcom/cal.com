@@ -45,7 +45,7 @@ export default function MemberChangeRoleModal(props: {
     }
   );
   const [errorMessage, setErrorMessage] = useState("");
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
 
   const changeRoleMutation = trpc.viewer.teams.changeMemberRole.useMutation({
     async onSuccess() {

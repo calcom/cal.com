@@ -69,7 +69,7 @@ function toggleElementInArray(value: string[] | string | undefined, element: str
 export default function MemberInvitationModal(props: MemberInvitationModalProps) {
   const { t } = useLocale();
   const { disableCopyLink = false, isOrg = false } = props;
-  const trpcContext = trpc.useContext();
+  const trpcContext = trpc.useUtils();
   const session = useSession();
   const { data: currentOrg } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {
     enabled: !!session.data?.user?.org,

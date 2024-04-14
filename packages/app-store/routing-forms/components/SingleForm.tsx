@@ -234,7 +234,7 @@ type SingleFormComponentProps = {
 };
 
 function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleFormComponentProps) {
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const { t } = useLocale();
 
   const [isTestPreviewOpen, setIsTestPreviewOpen] = useState(false);

@@ -1,5 +1,4 @@
 import type { Frame, Page } from "@playwright/test";
-import type { APIResponse } from "@playwright/test";
 import { expect } from "@playwright/test";
 import { createHash } from "crypto";
 import EventEmitter from "events";
@@ -11,7 +10,7 @@ import type { Messages } from "mailhog";
 import { totp } from "otplib";
 
 import type { Prisma } from "@calcom/prisma/client";
-import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
+import { BookingStatus } from "@calcom/prisma/enums";
 import type { IntervalLimit } from "@calcom/types/Calendar";
 
 import type { createEmailsFixture } from "../fixtures/emails";
@@ -372,65 +371,3 @@ export async function doOnOrgDomain(
 // When App directory is there, this is the 404 page text. We should work on fixing the 404 page as it changed due to app directory.
 export const NotFoundPageTextAppDir = "This page does not exist.";
 // export const NotFoundPageText = "ERROR 404";
-
-export type Team = {
-  id: number;
-  slug: string | null;
-  name: string;
-};
-
-export type EventType = {
-  id: number;
-  title: string;
-  slug: string;
-  schedulingType: SchedulingType | null;
-};
-export type User = {
-  id: number;
-  name: string | null;
-  username: string | null;
-};
-
-export async function bookTeamEvent(page: Page, team: Team, eventType: EventType, teamMatesName?: string[]) {
-  await page.goto(`/team/${team.slug}/${eventType.slug}/`);
-  await bookEventOnThisPage(page);
-
-  if (eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
-    const bookingTitle = await page.getByTestId("booking-title").textContent();
-    expect(
-      teamMatesName?.some((username) => {
-        const BookingTitle = `${eventType.title} between ${username} and ${testName}`;
-        return BookingTitle === bookingTitle;
-      })
-    ).toBe(true);
-  } else {
-    const bookingTitle = `${eventType.title} between ${team.name} and ${testName}`;
-    await assertBookingIsCorrect(page, bookingTitle);
-  }
-}
-export async function bookUserEvent(page: Page, user: User, eventType: EventType) {
-  await page.goto(`/${user.username}/${eventType.slug}/`);
-  await bookEventOnThisPage(page);
-  const bookingTitle = `${eventType.title} between ${user.name} and ${testName}`;
-  await assertBookingIsCorrect(page, bookingTitle);
-}
-
-export async function assertBookingIsCorrect(page: Page, bookingTitle: string) {
-  await expect(page.locator("[data-testid=booking-title]")).toHaveText(bookingTitle);
-  // The booker should be in the attendee list
-  await expect(page.locator(`[data-testid="attendee-name-${testName}"]`)).toHaveText(testName);
-}
-
-export const assertBookingVisibleFor = async (
-  user: { apiLogin: () => Promise<APIResponse> },
-  pageFixture: Fixtures["page"],
-  eventType: EventType,
-  shouldBeVisible: boolean
-) => {
-  await user.apiLogin();
-  await pageFixture.goto(`/bookings/upcoming`);
-  const upcomingBookingList = pageFixture.locator('[data-testid="booking-item"]');
-  shouldBeVisible
-    ? await expect(upcomingBookingList.locator(`text=${eventType.title}`)).toBeVisible()
-    : await expect(upcomingBookingList.locator(`text=${eventType.title}`)).toBeHidden();
-};

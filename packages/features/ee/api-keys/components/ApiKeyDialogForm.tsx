@@ -16,7 +16,7 @@ export default function ApiKeyDialogForm({
   handleClose: () => void;
 }) {
   const { t } = useLocale();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
 
   const updateApiKeyMutation = trpc.viewer.apiKeys.edit.useMutation({
     onSuccess() {

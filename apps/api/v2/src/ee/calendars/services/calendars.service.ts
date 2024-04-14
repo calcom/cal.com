@@ -3,6 +3,7 @@ import {
   CredentialsWithUserEmail,
 } from "@/modules/credentials/credentials.repository";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
+import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { UsersRepository } from "@/modules/users/users.repository";
 import {
   Injectable,
@@ -23,7 +24,8 @@ export class CalendarsService {
   constructor(
     private readonly usersRepository: UsersRepository,
     private readonly credentialsRepository: CredentialsRepository,
-    private readonly dbRead: PrismaReadService
+    private readonly dbRead: PrismaReadService,
+    private readonly dbWrite: PrismaWriteService
   ) {}
 
   async getCalendars(userId: number) {
@@ -35,7 +37,7 @@ export class CalendarsService {
     return getConnectedDestinationCalendars(
       userWithCalendars,
       false,
-      this.dbRead.prisma as unknown as PrismaClient
+      this.dbWrite.prisma as unknown as PrismaClient
     );
   }
 

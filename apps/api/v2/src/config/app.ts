@@ -14,7 +14,7 @@ const loadConfig = (): AppConfig => {
         process.env.API_PORT && getEnv("NODE_ENV", "development") === "development"
           ? `:${Number(getEnv("API_PORT", "5555"))}`
           : ""
-      }/api/v2`,
+      }/v2`,
     },
     db: {
       readUrl: getEnv("DATABASE_READ_URL"),
