@@ -38,7 +38,7 @@ export function useCheckOverlapWithOverlay({
 
       overlappingTimeStart = isOverlapping ? getCurrentTime(busyDateStart.toDate()) : null;
       overlappingTimeEnd = isOverlapping ? getCurrentTime(busyDateEnd.toDate()) : null;
-      overlayEventTitle = isOverlapping && busyDate.title ? busyDate.title : null;
+      overlayEventTitle = isOverlapping && busyDate.title ? busyDate.title : "Busy";
 
       return isOverlapping;
     });
