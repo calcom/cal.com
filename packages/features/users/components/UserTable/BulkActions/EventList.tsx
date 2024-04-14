@@ -1,5 +1,5 @@
 import type { Table } from "@tanstack/react-table";
-import { Users, Check } from "lucide-react";
+import { Check } from "lucide-react";
 import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 
@@ -36,7 +36,6 @@ export function EventListBulkAction({ table, teams }: Props) {
   const { data } = trpc.viewer.eventTypes.getByViewer.useQuery({
     filters: { teamIds, schedulingType: SchedulingType.ROUND_ROBIN },
   });
-  console.log("data: ", data);
   const mutation = trpc.viewer.organizations.bulkAddToEventType.useMutation({
     onError: (error) => {
       showToast(error.message, "error");
@@ -75,7 +74,7 @@ export function EventListBulkAction({ table, teams }: Props) {
     <>
       <Popover>
         <PopoverTrigger asChild>
-          <Button StartIcon={Users}>{t("add_to_event_type")}</Button>
+          <Button StartIcon="users">{t("add_to_event_type")}</Button>
         </PopoverTrigger>
         <PopoverContent className="w-[200px] p-0 shadow-md" align="start" sideOffset={12}>
           <Command>
