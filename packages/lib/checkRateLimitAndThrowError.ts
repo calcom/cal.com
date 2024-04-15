@@ -15,11 +15,17 @@ export async function checkRateLimitAndThrowError({
   if (onRateLimiterResponse) onRateLimiterResponse(response);
 
   if (remaining < 1) {
-    const convertToSeconds = (ms: number) => Math.floor(ms / 1000);
-    const secondsToWait = convertToSeconds(reset - Date.now());
-    throw new TRPCError({
-      code: "TOO_MANY_REQUESTS",
-      message: `Rate limit exceeded. Try again in ${secondsToWait} seconds.`,
-    });
+    if (rateLimitingType === "sms") {
+      // block sms feature for user
+    } else if (rateLimitingType === "smsMonth") {
+      // mark user as reviewNeeded
+    } else {
+      const convertToSeconds = (ms: number) => Math.floor(ms / 1000);
+      const secondsToWait = convertToSeconds(reset - Date.now());
+      throw new TRPCError({
+        code: "TOO_MANY_REQUESTS",
+        message: `Rate limit exceeded. Try again in ${secondsToWait} seconds.`,
+      });
+    }
   }
 }
