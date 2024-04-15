@@ -2,7 +2,6 @@
 import { AuthError } from "next-auth";
 import { isRedirectError } from "next/dist/client/components/redirect";
 import { signIn } from "~/auth";
-// import { signIn } from "next-auth/react"
 
 export async function signInWithCredentials(
   _prevState: { error?: string | null },

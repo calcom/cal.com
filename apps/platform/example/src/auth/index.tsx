@@ -10,7 +10,6 @@ import { authConfig } from "./config";
 import { db } from "prisma/client";
 import { User } from "@prisma/client";
 import { env } from "~/env";
-import { services } from "../lib/constants";
 
 async function hash(password: string) {
   return new Promise<string>((resolve, reject) => {
