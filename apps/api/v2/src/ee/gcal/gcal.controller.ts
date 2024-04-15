@@ -44,7 +44,7 @@ const CALENDAR_SCOPES = [
 
 // Controller for the GCalConnect Atom
 @Controller({
-  path: "ee/gcal",
+  path: "/gcal",
   version: "2",
 })
 @DocsTags("Google Calendar")
@@ -60,7 +60,7 @@ export class GcalController {
     private readonly calendarsService: CalendarsService
   ) {}
 
-  private redirectUri = `${this.config.get("api.url")}/ee/gcal/oauth/save`;
+  private redirectUri = `${this.config.get("api.url")}/gcal/oauth/save`;
 
   @Get("/oauth/auth-url")
   @HttpCode(HttpStatus.OK)

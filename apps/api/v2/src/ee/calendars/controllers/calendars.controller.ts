@@ -11,7 +11,7 @@ import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { CalendarBusyTimesInput } from "@calcom/platform-types";
 
 @Controller({
-  path: "ee/calendars",
+  path: "/calendars",
   version: "2",
 })
 @UseGuards(AccessTokenGuard)
