@@ -63,6 +63,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   const { mergeMetadata } = getMetadataHelpers(teamMetadataSchema.unwrap(), prevOrganisation.metadata);
 
   const data: Prisma.TeamUpdateArgs["data"] = {
+    logoUrl: input.logoUrl,
     name: input.name,
     calVideoLogo: input.calVideoLogo,
     bio: input.bio,
@@ -88,13 +89,11 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     data.bannerUrl = null;
   }
 
-  if (input.logo && input.logo.startsWith("data:image/png;base64,")) {
+  if (input.logoUrl && input.logoUrl.startsWith("data:image/png;base64,")) {
     data.logoUrl = await uploadLogo({
-      logo: input.logo,
+      logo: await resizeBase64Image(input.logoUrl),
       teamId: currentOrgId,
     });
-  } else if (typeof input.logo !== "undefined" && !input.logo) {
-    data.logoUrl = null;
   }
 
   if (input.slug) {

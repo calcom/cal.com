@@ -149,7 +149,7 @@ const useTabs = () => {
       tab.avatar = getUserAvatarUrl(user);
     } else if (tab.href === "/settings/organizations") {
       tab.name = orgBranding?.name || "organization";
-      tab.avatar = `${orgBranding?.fullDomain}/org/${orgBranding?.slug}/avatar.png`;
+      tab.avatar = getPlaceholderAvatar(orgBranding?.logoUrl, orgBranding?.name);
     } else if (
       tab.href === "/settings/security" &&
       user?.identityProvider === IdentityProvider.GOOGLE &&
@@ -299,7 +299,7 @@ const SettingsSidebarContainer = ({
                         <img
                           className="h-4 w-4 rounded-full ltr:mr-3 rtl:ml-3"
                           src={tab?.avatar}
-                          alt="User Avatar"
+                          alt="Organization Logo"
                         />
                       )}
                       <Skeleton

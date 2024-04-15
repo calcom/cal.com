@@ -27,10 +27,12 @@ declare module "next-auth" {
       id: number;
       name?: string;
       slug: string;
+      logoUrl?: string | null;
       fullDomain: string;
       domainSuffix: string;
     };
     username?: PrismaUser["username"];
+    avatarUrl?: PrismaUser["avatarUrl"];
     role?: PrismaUser["role"] | "INACTIVE_ADMIN";
     locale?: string | null;
     profile: UserProfile;
@@ -42,6 +44,7 @@ declare module "next-auth/jwt" {
     id?: string | number;
     name?: string | null;
     username?: string | null;
+    avatarUrl?: string | null;
     email?: string | null;
     upId?: string;
     profileId?: number | null;
@@ -55,6 +58,7 @@ declare module "next-auth/jwt" {
       id: number;
       name?: string;
       slug: string;
+      logoUrl?: string | null;
       fullDomain: string;
       domainSuffix: string;
     };
