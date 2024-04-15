@@ -18,7 +18,6 @@ export function Providers({
 }: ThemeProviderProps & { calUserToken?: CalAccount["accessToken"] }) {
   const accessToken = props?.calUserToken;
   return (
-    // <TRPCReactProvider>
       <CalProvider
         clientId={env.NEXT_PUBLIC_CAL_OAUTH_CLIENT_ID}
         options={{
@@ -31,6 +30,5 @@ export function Providers({
           <TooltipProvider>{children}</TooltipProvider>
         </NextThemesProvider>
       </CalProvider>
-    // </TRPCReactProvider>
   );
 }
