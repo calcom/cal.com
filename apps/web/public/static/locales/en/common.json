@@ -2340,5 +2340,6 @@
   "cookie_consent_checkbox": "I consent to our privacy policy and cookie usage",
   "make_a_call": "Make a Call",
   "skip_rr_assignment_label": "Skip round robin assignment if contact exists in Salesforce",
+  "skip_rr_description": "URL must contain the contacts email as a parameter ex. ?email=contactEmail",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

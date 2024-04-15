@@ -7,7 +7,7 @@ import type { EventTypeAppCardComponent } from "@calcom/app-store/types";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
-import { Switch } from "@calcom/ui";
+import { Switch, Alert } from "@calcom/ui";
 
 import type { appDataSchema } from "../zod";
 
@@ -31,12 +31,15 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
       hideSettingsIcon>
       <>
         {eventType.schedulingType === SchedulingType.ROUND_ROBIN ? (
-          <Switch
-            label={t("skip_rr_assignment_label")}
-            labelOnLeading
-            checked={isRoundRobinLeadSkipEnabled}
-            onCheckedChange={(checked) => setAppData("roundRobinLeadSkip", checked)}
-          />
+          <div>
+            <Switch
+              label={t("skip_rr_assignment_label")}
+              labelOnLeading
+              checked={isRoundRobinLeadSkipEnabled}
+              onCheckedChange={(checked) => setAppData("roundRobinLeadSkip", checked)}
+            />
+            <Alert className="mt-2" severity="neutral" title={t("skip_rr_description")} />
+          </div>
         ) : null}
       </>
     </AppCard>
