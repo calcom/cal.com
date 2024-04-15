@@ -54,6 +54,7 @@ const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   eventName: true,
   slug: true,
   isInstantEvent: true,
+  aiPhoneCallConfig: true,
   schedulingType: true,
   length: true,
   locations: true,
@@ -77,7 +78,7 @@ const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
       darkBrandColor: true,
       slug: true,
       name: true,
-      logo: true,
+      logoUrl: true,
       theme: true,
       parent: {
         select: {
@@ -118,12 +119,14 @@ const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   assignAllTeamMembers: true,
 });
 
+// TODO: Convert it to accept a single parameter with structured data
 export const getPublicEvent = async (
   username: string,
   eventSlug: string,
   isTeamEvent: boolean | undefined,
   org: string | null,
-  prisma: PrismaClient
+  prisma: PrismaClient,
+  fromRedirectOfNonOrgLink: boolean
 ) => {
   const usernameList = getUsernameList(username);
   const orgQuery = org ? getSlugOrRequestedSlug(org) : null;
@@ -185,7 +188,8 @@ export const getPublicEvent = async (
         ),
       },
       entity: {
-        isUnpublished: unPublishedOrgUser !== undefined,
+        considerUnpublished: !fromRedirectOfNonOrgLink && unPublishedOrgUser !== undefined,
+        fromRedirectOfNonOrgLink,
         orgSlug: org,
         name: unPublishedOrgUser?.profile?.organization?.name ?? null,
       },
@@ -288,10 +292,12 @@ export const getPublicEvent = async (
     profile: getProfileFromEvent(eventWithUserProfiles),
     users,
     entity: {
-      isUnpublished:
-        eventWithUserProfiles.team?.slug === null ||
-        eventWithUserProfiles.owner?.profile?.organization?.slug === null ||
-        eventWithUserProfiles.team?.parent?.slug === null,
+      fromRedirectOfNonOrgLink,
+      considerUnpublished:
+        !fromRedirectOfNonOrgLink &&
+        (eventWithUserProfiles.team?.slug === null ||
+          eventWithUserProfiles.owner?.profile?.organization?.slug === null ||
+          eventWithUserProfiles.team?.parent?.slug === null),
       orgSlug: org,
       teamSlug: (eventWithUserProfiles.team?.slug || teamMetadata?.requestedSlug) ?? null,
       name:
@@ -302,6 +308,7 @@ export const getPublicEvent = async (
     },
     isDynamic: false,
     isInstantEvent: eventWithUserProfiles.isInstantEvent,
+    aiPhoneCallConfig: eventWithUserProfiles.aiPhoneCallConfig,
     assignAllTeamMembers: event.assignAllTeamMembers,
   };
 };
@@ -343,7 +350,7 @@ function getProfileFromEvent(event: Event) {
           },
           avatarUrl: nonTeamprofile?.avatarUrl,
         }),
-    logo: !team ? undefined : team.logo,
+    logo: !team ? undefined : team.logoUrl,
     brandColor: profile.brandColor,
     darkBrandColor: profile.darkBrandColor,
     theme: profile.theme,

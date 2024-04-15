@@ -15,7 +15,6 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { EmptyScreen, showToast, ToggleGroup } from "@calcom/ui";
-import { Clock } from "@calcom/ui/components/icon";
 
 import { QueryCell } from "@lib/QueryCell";
 
@@ -25,7 +24,7 @@ import SkeletonLoader from "@components/availability/SkeletonLoader";
 export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availability"]["list"]) {
   const { t } = useLocale();
   const [bulkUpdateModal, setBulkUpdateModal] = useState(false);
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
 
   const meQuery = trpc.viewer.me.useQuery();
 
@@ -110,7 +109,7 @@ export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availab
       {schedules.length === 0 ? (
         <div className="flex justify-center">
           <EmptyScreen
-            Icon={Clock}
+            Icon="clock"
             headline={t("new_schedule_heading")}
             description={t("new_schedule_description")}
             className="w-full"

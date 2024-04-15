@@ -9,8 +9,7 @@ import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
-import { Badge, ListItemText, Avatar } from "@calcom/ui";
-import { AlertCircle } from "@calcom/ui/components/icon";
+import { Avatar, Badge, Icon, ListItemText } from "@calcom/ui";
 
 type ShouldHighlight =
   | {
@@ -105,7 +104,7 @@ export default function AppListCard(props: AppListCardProps) {
           <ListItemText component="p">{description}</ListItemText>
           {invalidCredential && (
             <div className="flex gap-x-2 pt-2">
-              <AlertCircle className="h-8 w-8 text-red-500 sm:h-4 sm:w-4" />
+              <Icon name="circle-alert" className="h-8 w-8 text-red-500 sm:h-4 sm:w-4" />
               <ListItemText component="p" className="whitespace-pre-wrap text-red-500">
                 {t("invalid_credential")}
               </ListItemText>
