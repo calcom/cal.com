@@ -2,6 +2,7 @@
 import { noop } from "lodash";
 import { Controller, useForm } from "react-hook-form";
 
+import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localeOptions } from "@calcom/lib/i18n";
 import { nameOfDay } from "@calcom/lib/weekday";
@@ -35,9 +36,7 @@ type OptionValues = {
   identityProvider: Option;
 };
 
-type FormValues = Pick<User, "avatarUrl" | "name" | "username" | "email" | "bio"> & {
-  avatar?: string | null;
-} & OptionValues;
+type FormValues = Pick<User, "avatarUrl" | "name" | "username" | "email" | "bio"> & OptionValues;
 
 export const UserForm = ({
   defaultValues,
@@ -45,7 +44,7 @@ export const UserForm = ({
   onSubmit = noop,
   submitLabel = "save",
 }: {
-  defaultValues?: FormValues;
+  defaultValues?: Pick<User, keyof FormValues>;
   localeProp?: string;
   onSubmit: (data: FormValues) => void;
   submitLabel?: string;
@@ -78,9 +77,10 @@ export const UserForm = ({
     { value: "SAML", label: "SAML" },
   ];
   const defaultLocale = defaultValues?.locale || localeOptions[0].value;
+
   const form = useForm<FormValues>({
     defaultValues: {
-      avatar: defaultValues?.avatarUrl,
+      avatarUrl: defaultValues?.avatarUrl,
       name: defaultValues?.name,
       username: defaultValues?.username,
       email: defaultValues?.email,
@@ -118,19 +118,25 @@ export const UserForm = ({
       <div className="flex items-center">
         <Controller
           control={form.control}
-          name="avatar"
-          render={({ field: { value } }) => (
+          name="avatarUrl"
+          render={({ field: { value, onChange } }) => (
             <>
-              <Avatar alt="" imageSrc={value} size="lg" />
+              <Avatar
+                alt={form.getValues("name") || ""}
+                imageSrc={getUserAvatarUrl({
+                  avatarUrl: value,
+                })}
+                size="lg"
+              />
               <div className="ml-4">
                 <ImageUploader
                   target="avatar"
                   id="avatar-upload"
                   buttonMsg="Change avatar"
-                  handleAvatarChange={(newAvatar) => {
-                    form.setValue("avatar", newAvatar, { shouldDirty: true });
-                  }}
-                  imageSrc={value || undefined}
+                  handleAvatarChange={onChange}
+                  imageSrc={getUserAvatarUrl({
+                    avatarUrl: value,
+                  })}
                 />
               </div>
             </>
