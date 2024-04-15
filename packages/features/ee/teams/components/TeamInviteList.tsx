@@ -20,7 +20,7 @@ interface Props {
 }
 
 export default function TeamInviteList(props: Props) {
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
 
   const [hideDropdown, setHideDropdown] = useState(false);
 

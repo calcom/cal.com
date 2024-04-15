@@ -225,8 +225,6 @@
   "already_have_an_account": "Už máte účet?",
   "create_account": "Vytvořit účet",
   "confirm_password": "Potvrdit heslo",
-  "confirm_auth_change": "Tím se změní způsob přihlašování",
-  "confirm_auth_email_change": "Změnou e-mailové adresy dojde v souvislosti s přihlášením do Cal.com k odpojení vašeho současného způsobu ověřování. Budeme po vás chtít ověření nové e-mailové adresy. Následně budete odhlášeni a po nastavení hesla podle pokynů, které vám přijdou do pošty, se k přihlašování bude namísto stávajícího způsobu ověřování používat nová e-mailová adresa.",
   "reset_your_password": "Nastavte si nové heslo podle pokynů odeslaných na vaši e-mailovou adresu.",
   "email_change": "Přihlaste se znovu pomocí nové e-mailové adresy a hesla.",
   "create_your_account": "Vytvořit účet",

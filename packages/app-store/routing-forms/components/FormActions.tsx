@@ -63,7 +63,7 @@ function NewFormDialog({ appUrl }: { appUrl: string }) {
   const routerQuery = useRouterQuery();
   const { t } = useLocale();
   const router = useRouter();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
 
   const mutation = trpc.viewer.appRoutingForms.formMutation.useMutation({
     onSuccess: (_data, variables) => {
@@ -193,7 +193,7 @@ function Dialogs({
   setDeleteDialogOpen: (open: boolean) => void;
   deleteDialogFormId: string | null;
 }) {
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const router = useRouter();
   const { t } = useLocale();
   const deleteMutation = trpc.viewer.appRoutingForms.deleteForm.useMutation({
@@ -276,7 +276,7 @@ export function FormActionsProvider({ appUrl, children }: { appUrl: string; chil
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteDialogFormId, setDeleteDialogFormId] = useState<string | null>(null);
   const { t } = useLocale();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
 
   const toggleMutation = trpc.viewer.appRoutingForms.formMutation.useMutation({
     onMutate: async ({ id: formId, disabled }) => {

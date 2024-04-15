@@ -24,7 +24,7 @@ const { Body, Cell, ColumnTitle, Header, Row } = Table;
 
 function AdminOrgTable() {
   const { t } = useLocale();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const [data] = trpc.viewer.organizations.adminGetAll.useSuspenseQuery();
   const verifyMutation = trpc.viewer.organizations.adminVerify.useMutation({
     onSuccess: async (_data, variables) => {
@@ -277,7 +277,7 @@ const DeleteOrgDialog = ({
   );
 };
 
-async function invalidateQueries(utils: ReturnType<typeof trpc.useContext>, data: { orgId: number }) {
+async function invalidateQueries(utils: ReturnType<typeof trpc.useUtils>, data: { orgId: number }) {
   await utils.viewer.organizations.adminGetAll.invalidate();
   await utils.viewer.organizations.adminGet.invalidate({
     id: data.orgId,

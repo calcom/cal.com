@@ -23,6 +23,7 @@ export const BaseEmailHtml = (props: {
   title?: string;
   subtitle?: React.ReactNode | string;
   headerType?: BodyHeadType;
+  hideLogo?: boolean;
 }) => {
   return (
     <Html>
@@ -196,7 +197,7 @@ export const BaseEmailHtml = (props: {
               </Row>
             </div>
           </div>
-          <EmailBodyLogo />
+          {!Boolean(props.hideLogo) && <EmailBodyLogo />}
           <RawHtml html="<!--[if mso | IE]></td></tr></table><![endif]-->" />
         </div>
       </body>

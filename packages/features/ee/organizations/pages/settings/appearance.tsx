@@ -32,7 +32,7 @@ const OrgAppearanceView = ({
   isAdminOrOwner: boolean;
 }) => {
   const { t } = useLocale();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
 
   const themeForm = useForm<{ theme: string | null | undefined }>({
     defaultValues: {
