@@ -78,7 +78,6 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
   delete input.unlinkConnectedAccount;
 
   const data: Prisma.UserUpdateInput = {
-    ...input,
     ...rest,
     metadata: userMetadata,
     secondaryEmails: undefined,
@@ -364,9 +363,6 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
       });
     }
   }
-
-  // don't return avatar, we don't need it anymore.
-  delete input.avatar;
 
   if (secondaryEmails.length) {
     const recordsToDelete = secondaryEmails
