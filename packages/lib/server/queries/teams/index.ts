@@ -11,7 +11,6 @@ import {
   unlockedManagedEventTypeProps,
 } from "@calcom/prisma/zod-utils";
 
-import { WEBAPP_URL } from "../../../constants";
 import { getBookerBaseUrlSync } from "../../../getBookerUrl/client";
 import { getTeam, getOrg } from "../../repository/team";
 import { UserRepository } from "../../repository/user";
@@ -99,6 +98,7 @@ export async function getTeamWithMembers(args: {
           name: true,
           isPrivate: true,
           isOrganization: true,
+          logoUrl: true,
           metadata: true,
         },
       },
@@ -181,7 +181,6 @@ export async function getTeamWithMembers(args: {
             .filter((membership) => membership.team.id !== teamOrOrg.id)
             .map((membership) => membership.team.slug)
         : null,
-      avatar: `${WEBAPP_URL}/${m.user.username}/avatar.png`,
       bookerUrl: getBookerBaseUrlSync(profile?.organization?.slug || ""),
       connectedApps: !isTeamView
         ? credentials?.map((cred) => {

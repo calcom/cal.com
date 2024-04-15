@@ -13,7 +13,7 @@ import { useEffect } from "react";
 
 import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import EventTypeDescription from "@calcom/features/eventtypes/components/EventTypeDescription";
-import { getOrgAvatarUrl, getTeamAvatarUrl } from "@calcom/lib/getAvatarUrl";
+import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import useTheme from "@calcom/lib/hooks/useTheme";
@@ -161,10 +161,7 @@ function TeamPage({
       </div>
     );
 
-  const profileImageSrc =
-    isValidOrgDomain || team.isOrganization
-      ? getOrgAvatarUrl({ slug: currentOrgDomain, logoUrl: team.logoUrl })
-      : getTeamAvatarUrl({ slug: team.slug, logoUrl: team.logoUrl, organizationId: team.parent?.id });
+  const profileImageSrc = getPlaceholderAvatar(team.logoUrl || team.parent?.logoUrl, team.name);
 
   return (
     <>
