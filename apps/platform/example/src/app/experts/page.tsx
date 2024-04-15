@@ -3,6 +3,7 @@ import { AutocompleteSearch } from "~/app/_components/autocomplete";
 import { sorting, defaultSort, professions } from "~/lib/constants";
 import ExpertList from "~/app/experts/_components/result";
 import { getExperts } from "~/lib/experts";
+import { db } from "prisma/client";
 
 
 export const runtime = "edge";
@@ -21,11 +22,21 @@ export default async function ResultsPage({
   const { sortKey, reverse } =
     sorting?.find((item) => item.slug === sort) || defaultSort;
 
-  const experts = await getExperts({
-    sortKey,
-    reverse,
-    query: searchValue,
-  });
+    const experts = await db.user.findMany({
+      where: {
+        professions: {
+          some: {
+            slug: {
+              equals: searchParams?.profession as string,
+            },
+          },
+        },
+      },
+      include: {
+        professions: true,
+        services: true,
+      }
+    });
 
   return (
     <div className="flex flex-1 flex-col">

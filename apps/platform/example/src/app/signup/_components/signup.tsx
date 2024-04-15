@@ -26,7 +26,7 @@ export const SignupForm = (props: {
 }) => {
   const { services, professions } = props;
   const [error, dispatch] = useFormState<{ error?: string | null }>(
-    signInWithCredentials,
+    signInWithCredentials as (state: { error?: string | null | undefined; }) => { error?: string | null | undefined; } | Promise<{ error?: string | null | undefined; }>,
     { error: null },
   );
 

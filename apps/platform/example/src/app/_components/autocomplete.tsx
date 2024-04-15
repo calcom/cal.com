@@ -149,3 +149,5 @@ export const AutocompleteSearch = forwardRef<
     );
   },
 );
+
+export default AutocompleteSearch;

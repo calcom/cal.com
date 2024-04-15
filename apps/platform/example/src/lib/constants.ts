@@ -1,8 +1,10 @@
+import { Option } from "~/app/_components/autocomplete";
+
 export const professions = [
   { label: "Hair dresser", value: "hair-dresser" },
   { label: "Therapist", value: "therapist" },
   { label: "Dermatologist", value: "dermatologist" },
-] as const satisfies Array<{label: string; value: string}>;
+]  satisfies Array<Option>;
 
 export const services = [
   { name: "Haircut", isRemote: false, profession: "hair-dresser" },
@@ -11,7 +13,7 @@ export const services = [
   { name: "Beard trimming", isRemote: true, profession: "hair-dresser" },
   { name: "Therapy", isRemote: true, profession: "therapist" },
   { name: "Skin consultation", isRemote: false, profession: "dermatologist"},
-] as const satisfies Array<{name: string; isRemote: boolean, profession: string}>;
+] satisfies Array<{name: string; isRemote: boolean, profession: string}>;
 
 export const defaultSort = {
   title: "Relevance",

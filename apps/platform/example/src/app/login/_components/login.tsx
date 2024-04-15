@@ -18,7 +18,7 @@ import Link from "next/link";
 
 export function LoginForm() {
   const [error, dispatch] = useFormState<{ error?: string | null }>(
-    signInWithCredentials,
+    signInWithCredentials as (state: { error?: string | null | undefined; }) => { error?: string | null | undefined; } | Promise<{ error?: string | null | undefined; }>,
     { error: null },
   );
 

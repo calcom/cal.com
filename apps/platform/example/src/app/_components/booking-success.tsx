@@ -111,7 +111,7 @@ export const BookingSuccess = () => {
               >
                 {booking.title
                   .split(`-${env.NEXT_PUBLIC_CAL_OAUTH_CLIENT_ID}`)?.[0]
-                  .replace(".", " ")}
+                  ?.replace(".", " ") ?? booking.title}
               </span>
             </li>
             <li className="flex flex-col">
@@ -124,7 +124,7 @@ export const BookingSuccess = () => {
                 )}
               >
                 {day}, {month} {dayAsNumber} {year} | {startTime} - {endTime} (
-                {booking.user.timeZone})
+                {booking?.user?.timeZone})
               </span>
             </li>
             <li className="flex flex-col">
@@ -135,13 +135,13 @@ export const BookingSuccess = () => {
                   booking.status.toLowerCase() === "cancelled" &&
                     "line-through",
                 )}>
-                  {booking.user.name} (Host) -{" "}
-                  {booking.user.email.replace(
+                  {booking?.user?.name} (Host) -{" "}
+                  {booking?.user?.email.replace(
                     `+${env.NEXT_PUBLIC_CAL_OAUTH_CLIENT_ID}`,
                     "",
                   )}
                 </li>
-                {booking.attendees.map((attendee) => (
+                {booking.attendees.map((attendee: {email: string, name: string}) => (
                   <li className={cn(
                     "text-muted-foreground",
                     booking.status.toLowerCase() === "cancelled" &&
@@ -149,7 +149,7 @@ export const BookingSuccess = () => {
                   )}>
                     {attendee.name
                       .split(`-${env.NEXT_PUBLIC_CAL_OAUTH_CLIENT_ID}`)?.[0]
-                      .replace(".", " ")}{" "}
+                      ?.replace(".", " ") ?? attendee.name}{" "}
                     -{" "}
                     {attendee.email.replace(
                       `+${env.NEXT_PUBLIC_CAL_OAUTH_CLIENT_ID}`,
@@ -173,7 +173,7 @@ export const BookingSuccess = () => {
                 ) : (
                   <Link
                     className={cn("underline", booking.status.toLowerCase() === "cancelled" && "cursor-not-allowed")}
-                    href={booking.status.toLowerCase() === "cancelled" ? "#": booking.metadata.videoCallUrl ?? "#"}
+                    href={booking.status.toLowerCase() === "cancelled" ? "#": (booking?.metadata as {videoCallUrl?: string})?.videoCallUrl ?? "#"}
                   >
                     Online (Cal Video)
                   </Link>
@@ -217,7 +217,7 @@ export const BookingSuccess = () => {
                 onClick={() => {
                   console.log("handling the onClick: ", cancelBooking);
                   return cancelBooking({
-                    id: parseInt(booking.id),
+                    id: booking.id,
                     uid: booking.uid,
                     cancellationReason: "User request",
                     allRemainingBookings: true,

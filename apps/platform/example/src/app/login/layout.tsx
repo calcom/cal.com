@@ -39,8 +39,7 @@ import { Sheet, SheetContent, SheetTrigger } from "~/components/ui/sheet";
 import { ReactNode } from "react";
 import { professions } from "~/lib/constants";
 import { AutocompleteSearch } from "~/app/_components/autocomplete";
-
-export const LoginLayout = ({ children }: { children?: ReactNode }) => {
+export default  function LoginLayout({ children }: { children?: ReactNode }) {
   return (
       <>
         <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -92,4 +91,3 @@ export const LoginLayout = ({ children }: { children?: ReactNode }) => {
       </>
   );
 };
-export default LoginLayout;

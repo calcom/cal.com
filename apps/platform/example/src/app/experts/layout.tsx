@@ -40,7 +40,7 @@ import { ReactNode } from "react";
 import { professions } from "~/lib/constants";
 import { AutocompleteSearch } from "~/app/_components/autocomplete";
 
-export const ExpertLayout = ({ children }: { children?: ReactNode }) => {
+export default  function ExpertLayout({ children }: { children?: ReactNode }) {
   return (
     <div>
       <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -114,4 +114,3 @@ export const ExpertLayout = ({ children }: { children?: ReactNode }) => {
     </div>
   );
 };
-export default ExpertLayout;

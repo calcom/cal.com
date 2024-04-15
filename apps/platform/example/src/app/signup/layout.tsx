@@ -39,8 +39,7 @@ import { Sheet, SheetContent, SheetTrigger } from "~/components/ui/sheet";
 import { ReactNode } from "react";
 import { professions } from "~/lib/constants";
 import { AutocompleteSearch } from "~/app/_components/autocomplete";
-
-export const SignupLayout = ({ children }: { children?: ReactNode }) => {
+export default  function SignupLayout({ children }: { children?: ReactNode }) {
   return (
 
       <>
@@ -93,4 +92,3 @@ export const SignupLayout = ({ children }: { children?: ReactNode }) => {
       </>
   );
 };
-export default SignupLayout;

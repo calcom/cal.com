@@ -209,7 +209,7 @@ export default async function Layout({
                     <User className="" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end!">
+                <DropdownMenuContent align="end">
                   <DropdownMenuLabel>My Account</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem>

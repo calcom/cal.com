@@ -27,12 +27,12 @@ import {
   TableHeader,
   TableRow,
 } from "~/components/ui/table";
-import { Expert } from "~/app/experts/page";
 import { Separator } from "~/components/ui/separator";
 import { relativeTime } from "~/lib/utils";
 import Link from "next/link";
+import { Profession, Service, User } from "@prisma/client";
 
-export default function ExpertList(props: { experts: Array<Expert> }) {
+export default function ExpertList(props: { experts: Array<User & {services: Service[] , professions: Profession[]}> }) {
   return (
     <Card className="border-none shadow-none">
       <CardHeader className="pb-10 text-center">
@@ -69,16 +69,16 @@ export default function ExpertList(props: { experts: Array<Expert> }) {
           </TableHeader>
           <TableBody>
             {props.experts.map((result) => {
-              const available = new Date(result.availableAt).getTime();
+              const available = new Date().getTime();
               return (
                 <TableRow key={result.id}>
                   <TableCell className="hidden sm:table-cell">
                     <Link href={`/experts/${result.username}`}>
                       <Image
-                        alt={result.image.alt}
+                        alt={""}
                         className="aspect-square rounded-md object-cover"
                         height="64"
-                        src={result.image.url}
+                        src="https://picsum.photos/200"
                         width="64"
                       />
                     </Link>
@@ -90,10 +90,10 @@ export default function ExpertList(props: { experts: Array<Expert> }) {
                     ))}
                   </TableCell>
                   <TableCell className="hidden md:table-cell">
-                    {result.profession.name}
+                    {result.professions?.[0]?.name ?? "Hair Dresser"}
                   </TableCell>
                   <TableCell className="hidden md:table-cell">
-                    {result.location}
+                    Everywhere
                   </TableCell>
                   <TableCell
                     className="hidden md:table-cell"

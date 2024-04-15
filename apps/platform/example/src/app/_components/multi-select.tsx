@@ -30,7 +30,7 @@ export function FancyMultiSelect(
   const [inputValue, setInputValue] = React.useState("");
 
   const handleUnselect = React.useCallback((option: Option) => {
-    setSelected((prev) => prev.filter((s) => s.value !== option.value));
+    setSelected((prev) => prev.filter((s) => s?.value !== option.value));
   }, []);
 
   const handleKeyDown = React.useCallback(
@@ -104,7 +104,7 @@ export function FancyMultiSelect(
             className="ml-2 flex-1 bg-transparent outline-none placeholder:text-muted-foreground"
             {...inputProps}
           />
-          <input hidden id={id} name={name} value={JSON.stringify(selected.map(s=>s.value))} />
+          <input hidden id={id} name={name} value={JSON.stringify(selected.map(s=>s?.value))} />
         </div>
       </div>
       <div className="relative mt-2">

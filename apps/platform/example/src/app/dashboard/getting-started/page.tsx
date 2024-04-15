@@ -14,7 +14,7 @@ import {
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 
-export const GettingStarted = () => {
+export default function GettingStarted() {
   return (
     <main className="flex-1">
       <div className="flex items-center justify-center p-10">
@@ -42,4 +42,4 @@ export const GettingStarted = () => {
     </main>
   );
 };
-export default GettingStarted;
+
