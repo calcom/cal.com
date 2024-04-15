@@ -136,8 +136,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
   const profile = {
     name: user.name || user.username || "",
     image: getUserAvatarUrl({
-      ...user,
-      profile: user.profile,
+      avatarUrl: user.avatarUrl,
     }),
     theme: user.theme,
     brandColor: user.brandColor ?? DEFAULT_LIGHT_BRAND_COLOR,
