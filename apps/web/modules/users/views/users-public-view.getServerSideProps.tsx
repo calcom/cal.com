@@ -109,12 +109,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
         permanent: false,
         destination: destinationUrl,
       },
-    } as {
-      redirect: {
-        permanent: false;
-        destination: string;
-      };
-    };
+    } as const;
   }
 
   const isNonOrgUser = (user: { profile: UserProfile }) => {
@@ -126,9 +121,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
   if (!usersInOrgContext.length || (!isValidOrgDomain && !isThereAnyNonOrgUser)) {
     return {
       notFound: true,
-    } as {
-      notFound: true;
-    };
+    } as const;
   }
 
   const [user] = usersInOrgContext; //to be used when dealing with single user, not dynamic group
