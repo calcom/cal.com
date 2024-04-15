@@ -53,7 +53,6 @@ import { useFormbricks } from "@calcom/lib/formbricks-client";
 import getBrandColours from "@calcom/lib/getBrandColours";
 import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { isKeyInObject } from "@calcom/lib/isKeyInObject";
 import { localStorage } from "@calcom/lib/webstorage";
@@ -217,14 +216,14 @@ const Layout = (props: LayoutProps) => {
   const banners = useBanners();
 
   const showIntercom = localStorage.getItem("showIntercom");
-  const isMobile = useMediaQuery("(max-width: 768px)");
   const { boot } = useIntercom();
   const pageTitle = typeof props.heading === "string" && !props.title ? props.heading : props.title;
 
   useEffect(() => {
-    if (showIntercom === "false" || isMobile) return;
+    // not using useMediaQuery as it toggles between true and false
+    if (showIntercom === "false" || window.innerWidth <= 768) return;
     boot();
-  }, [showIntercom, isMobile]);
+  }, [showIntercom]);
 
   const bannersHeight = useMemo(() => {
     const activeBanners =
