@@ -34,6 +34,12 @@ const http = (function () {
     getAuthorizationHeader: () => {
       return instance.defaults.headers.common?.["Authorization"]?.toString() ?? "";
     },
+    setClientIdHeader: (clientId: string) => {
+      instance.defaults.headers.common["x-cal-client-id"] = clientId;
+    },
+    getClientIdHeader: () => {
+      return instance.defaults.headers.common?.["x-cal-client-id"]?.toString() ?? "";
+    },
     refreshTokens: async (refreshUrl: string): Promise<string> => {
       const response = await fetch(`${refreshUrl}`, {
         method: "GET",
