@@ -65,7 +65,7 @@ export default async function RootLayout({
           interFont.variable,
         )}
       >
-        <Providers defaultTheme="system" enableSystem attribute="class" calToken={user?.calToken?.calAccessToken}>
+        <Providers defaultTheme="system" enableSystem attribute="class" calUserToken={user?.calAccount?.accessToken}>
           <div className="flex min-h-screen flex-col">
             {/* Omitting header, so that the search page is Google-style */}
            {children}

@@ -66,7 +66,7 @@ export const LoginLayout = ({ children }: { children?: ReactNode }) => {
                     className="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"
                   >
                     <Home className="h-5 w-5" />
-                    Signup
+                    Login
                   </Link>
                 </nav>
               </SheetContent>
@@ -81,21 +81,11 @@ export const LoginLayout = ({ children }: { children?: ReactNode }) => {
                 <BreadcrumbSeparator />
                 <BreadcrumbItem>
                   <BreadcrumbPage>
-                    Signup
+                    Login
                   </BreadcrumbPage>
                 </BreadcrumbItem>
               </BreadcrumbList>
             </Breadcrumb>
-            <div className="flex flex-1 items-center justify-between space-x-4 md:justify-end">
-        
-              <AutocompleteSearch
-                options={professions}
-                className=""
-                placement="header"
-              />
-              <span>OR</span>
-              <Link href="/signup"><Button className="hidden sm:flex">Sign up as Expert</Button></Link>
-            </div>
           </div>
         </header>
         <main className="flex-1">{children}</main>

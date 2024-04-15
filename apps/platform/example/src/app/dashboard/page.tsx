@@ -48,22 +48,12 @@ import {
   TableRow,
 } from "~/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
-import { getExperts } from "~/lib/experts";
+import { professions, services } from "~/lib/constants";
 
 export default async function Dashboard() {
-  // TODO: replace w/ db call using params.expertHandle
-  // const expert = await getExpertBySlug({slug: params.expertHandle});
   const user = await currentUser();
   if (!user) {
     return <div>Not logged in</div>;
-  }
-  const expert = (
-    await getExperts({ sortKey: "name", reverse: false, query: "" })
-  ).find((expert) => {
-    return expert.username === user.username;
-  });
-  if (!expert) {
-    return <div>Expert not found</div>;
   }
 
   return (
@@ -178,8 +168,11 @@ export default async function Dashboard() {
                         </div>
                       </TableCell>
                       <TableCell className="hidden sm:table-cell">
-                        {expert.services.map((service) => (
-                          <Badge className="mr-2 mt-2" key={service.name}>
+                        {user.services.map((service, idx) => (
+                          <Badge
+                            className="mr-2 mt-2"
+                            key={`${idx}-${service.name}`}
+                          >
                             {service.name}
                           </Badge>
                         ))}
@@ -202,8 +195,11 @@ export default async function Dashboard() {
                         </div>
                       </TableCell>
                       <TableCell className="hidden sm:table-cell">
-                        {expert.services.map((service) => (
-                          <Badge className="mr-2 mt-2" key={service.name}>
+                        {user.services.map((service, idx) => (
+                          <Badge
+                            className="mr-2 mt-2"
+                            key={`${idx}-${service.name}`}
+                          >
                             {service.name}
                           </Badge>
                         ))}
@@ -225,9 +221,13 @@ export default async function Dashboard() {
                           noah@example.com
                         </div>
                       </TableCell>
+                      {user.services.map(service => service.name)}
                       <TableCell className="hidden sm:table-cell">
-                        {expert.services.map((service) => (
-                          <Badge className="mr-2 mt-2" key={service.name}>
+                        {user.services.map((service, idx) => (
+                          <Badge
+                            className="mr-2 mt-2"
+                            key={`${idx}-${service.name}`}
+                          >
                             {service.name}
                           </Badge>
                         ))}
@@ -250,8 +250,11 @@ export default async function Dashboard() {
                         </div>
                       </TableCell>
                       <TableCell className="hidden sm:table-cell">
-                        {expert.services.map((service) => (
-                          <Badge className="mr-2 mt-2" key={service.name}>
+                        {user.services.map((service, idx) => (
+                          <Badge
+                            className="mr-2 mt-2"
+                            key={`${idx}-${service.name}`}
+                          >
                             {service.name}
                           </Badge>
                         ))}
@@ -274,8 +277,11 @@ export default async function Dashboard() {
                         </div>
                       </TableCell>
                       <TableCell className="hidden sm:table-cell">
-                        {expert.services.map((service) => (
-                          <Badge className="mr-2 mt-2" key={service.name}>
+                        {user.services.map((service, idx) => (
+                          <Badge
+                            className="mr-2 mt-2"
+                            key={`${idx}-${service.name}`}
+                          >
                             {service.name}
                           </Badge>
                         ))}
@@ -298,8 +304,11 @@ export default async function Dashboard() {
                         </div>
                       </TableCell>
                       <TableCell className="hidden sm:table-cell">
-                        {expert.services.map((service) => (
-                          <Badge className="mr-2 mt-2" key={service.name}>
+                        {user.services.map((service, idx) => (
+                          <Badge
+                            className="mr-2 mt-2"
+                            key={`${idx}-${service.name}`}
+                          >
                             {service.name}
                           </Badge>
                         ))}
@@ -322,8 +331,11 @@ export default async function Dashboard() {
                         </div>
                       </TableCell>
                       <TableCell className="hidden sm:table-cell">
-                        {expert.services.map((service) => (
-                          <Badge className="mr-2 mt-2" key={service.name}>
+                        {user.services.map((service, idx) => (
+                          <Badge
+                            className="mr-2 mt-2"
+                            key={`${idx}-${service.name}`}
+                          >
                             {service.name}
                           </Badge>
                         ))}
@@ -346,8 +358,11 @@ export default async function Dashboard() {
                         </div>
                       </TableCell>
                       <TableCell className="hidden sm:table-cell">
-                        {expert.services.map((service) => (
-                          <Badge className="mr-2 mt-2" key={service.name}>
+                        {user.services.map((service, idx) => (
+                          <Badge
+                            className="mr-2 mt-2"
+                            key={`${idx}-${service.name}`}
+                          >
                             {service.name}
                           </Badge>
                         ))}

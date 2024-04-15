@@ -2,88 +2,118 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-    provider = "prisma-client-js"
-    // This enables turso usage
-    previewFeatures = ["driverAdapters"]
-
+  provider        = "prisma-client-js"
+  // This enables turso usage
+  previewFeatures = ["driverAdapters"]
 }
 
 datasource db {
-    provider = "sqlite"
-    // NOTE: When using mysql or sqlserver, uncomment the @db.Text annotations in model Account below
-    // Further reading:
-    // https://next-auth.js.org/adapters/prisma#create-the-prisma-schema
-    // https://www.prisma.io/docs/reference/api-reference/prisma-schema-reference#string
-      url      = "file:./dev.db"
+  provider = "sqlite"
+  // NOTE: When using mysql or sqlserver, uncomment the @db.Text annotations in model Account below
+  // Further reading:
+  // https://next-auth.js.org/adapters/prisma#create-the-prisma-schema
+  // https://www.prisma.io/docs/reference/api-reference/prisma-schema-reference#string
+  url      = "file:./dev.db"
 }
 
-model Post {
-    id        Int      @id @default(autoincrement())
-    name      String
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+// Necessary for filtering services & professions on both sides of the marketplace
+model Service {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  slug      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-    createdBy   User   @relation(fields: [createdById], references: [id])
-    createdById String
+  // a service can be assigned to many professions   
+  professions  Profession? @relation(fields: [professionId], references: [id])
+  professionId String?
 
-    @@index([name])
+  //  a service can be assigned to many users
+  users User[]
+
+  @@index([name])
+}
+
+model Profession {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  slug      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  //   a profession can be assigned to many users
+  users     User[]
+
+  //   a profession can be assigned to many services
+  services Service[]
+
+  @@index([name])
 }
 
 // Necessary for Next auth
 model Account {
-    id                String  @id @default(cuid())
-    userId            String
-    type              String
-    provider          String
-    providerAccountId String
-    refresh_token     String? // @db.Text
-    access_token      String? // @db.Text
-    expires_at        Int?
-    token_type        String?
-    scope             String?
-    id_token          String? // @db.Text
-    session_state     String?
-    user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? // @db.Text
+  access_token      String? // @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? // @db.Text
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-    @@unique([provider, providerAccountId])
+  @@unique([provider, providerAccountId])
 }
 
 model Session {
-    id           String   @id @default(cuid())
-    sessionToken String   @unique
-    userId       String
-    expires      DateTime
-    user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model User {
-    id            String    @id @default(cuid())
-    name          String?
-    username     String?   @unique
-    email         String?   @unique
-    emailVerified DateTime?
-    hashedPassword String?
-    image         String?
-    accounts      Account[]
-    sessions      Session[]
-    calToken    CalAccount? 
-    posts         Post[]
+  id             String       @id @default(cuid())
+  name           String?
+  username       String?      @unique
+  email          String?      @unique
+  emailVerified  DateTime?
+  hashedPassword String?
+  image          String?
+  accounts       Account[]
+  sessions       Session[]
+  calAccount     CalAccount?
+  professions    Profession[]
+  services       Service[]
 }
 
 model CalAccount {
-    calId        Int      @id
-    calAccessToken     String   @unique
-    calRefreshToken    String   @unique
-    // expires   DateTime
-    user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-    userId    String @unique
-    @@index([calId, calAccessToken, calRefreshToken])
+  id                Int    @id
+  accessToken       String @unique
+  refreshToken      String @unique
+  username          String @unique
+  email             String @unique
+  timeZone          String
+  weekStart         String
+  createdDate       String
+  timeFormat        Int
+  defaultScheduleId Int?
+  // expires   DateTime
+  user              User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId            String @unique
+
+  @@index([id, accessToken, refreshToken, username, email])
 }
 
 model VerificationToken {
-    identifier String
-    token      String   @unique
-    expires    DateTime
+  identifier String
+  token      String   @unique
+  expires    DateTime
 
-    @@unique([identifier, token])
+  @@unique([identifier, token])
 }

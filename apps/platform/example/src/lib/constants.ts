@@ -1,8 +1,17 @@
 export const professions = [
-  { label: "Hair dresser", value: "hair dresser" },
+  { label: "Hair dresser", value: "hair-dresser" },
   { label: "Therapist", value: "therapist" },
   { label: "Dermatologist", value: "dermatologist" },
 ] as const satisfies Array<{label: string; value: string}>;
+
+export const services = [
+  { name: "Haircut", isRemote: false, profession: "hair-dresser" },
+  { name: "Hair coloring", isRemote: false, profession: "hair-dresser" },
+  { name: "Hair styling", isRemote: false, profession: "hair-dresser" },
+  { name: "Beard trimming", isRemote: true, profession: "hair-dresser" },
+  { name: "Therapy", isRemote: true, profession: "therapist" },
+  { name: "Skin consultation", isRemote: false, profession: "dermatologist"},
+] as const satisfies Array<{name: string; isRemote: boolean, profession: string}>;
 
 export const defaultSort = {
   title: "Relevance",

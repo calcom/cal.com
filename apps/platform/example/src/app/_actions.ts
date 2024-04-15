@@ -9,6 +9,7 @@ export async function signInWithCredentials(
   formData: FormData,
 ) {
   try {
+    console.log("formData: ", formData)
     await signIn("credentials", formData);
   } catch (error) {
     if (isRedirectError(error)) throw error;

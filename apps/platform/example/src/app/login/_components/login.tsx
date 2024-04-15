@@ -14,6 +14,7 @@ import {
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { useFormState } from "react-dom";
+import Link from "next/link";
 
 export function LoginForm() {
   const [error, dispatch] = useFormState<{ error?: string | null }>(
@@ -48,9 +49,18 @@ export function LoginForm() {
           <input hidden name="redirectTo" value="/dashboard/getting-started" />
         </CardContent>
         <CardFooter>
-          <ButtonSubmit variant="default" className="w-full">
-            Log in
-          </ButtonSubmit>
+          <div className="flex flex-col w-full">
+            <ButtonSubmit variant="default" className="w-full">
+              Log in
+            </ButtonSubmit>
+            <div className="mt-4 text-center text-sm">
+              Don't have an account?{" "}
+              <Link href="/signup" className="underline">
+                Sign up
+              </Link>
+              {" "}instead.
+            </div>
+          </div>
         </CardFooter>
       </Card>
     </form>

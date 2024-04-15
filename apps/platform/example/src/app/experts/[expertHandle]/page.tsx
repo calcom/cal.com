@@ -10,8 +10,9 @@ import {
 import { ExpertBooker } from "./_components/expert-booker";
 
 import { getExperts } from "~/lib/experts";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { db } from "prisma/client";
+import { Loader } from "lucide-react";
 
 export default async function ExpertDetails({
   params,
@@ -20,63 +21,73 @@ export default async function ExpertDetails({
 }) {
   // TODO: replace w/ db call using params.expertHandle
   // const expert = await getExpertBySlug({slug: params.expertHandle});
-  const expert = (
-    await getExperts({ sortKey: "name", reverse: false, query: "" })
-  ).find((expert) => expert.username === params.expertHandle);
+
+  const expert = await db.user.findUnique({
+    where: { username: params.expertHandle },
+    include: { calAccount: true, services: true, professions: true },
+  });
   if (!expert) {
     return <div>Expert not found</div>;
   }
 
-  const expertUser = await db.user.findUnique({
-    where: { username: expert.username },
-    include: {calToken: true},
-  });
+  console.log("THE EXPERT: ", expert)
 
   return (
-    <div className="grid flex-1 gap-4 overflow-auto p-4 md:grid-cols-2 lg:grid-cols-3">
-      <div className="relative hidden flex-col items-start gap-8 md:flex">
-        <Card className="overflow-hidden">
-          <CardHeader>
-            <CardTitle>{expert.name}</CardTitle>
-            <CardDescription>
-              Lipsum dolor sit amet, consectetur adipiscing elit
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-2">
-              <Image
-                alt="Expert image"
-                className="aspect-square w-full rounded-md object-cover"
-                height="300"
-                src={expert.image.url}
-                width="300"
-              />
-              <div className="grid w-full items-center gap-4">
-                <div className="flex flex-col space-y-1.5">
-                  <h3 className="font-semibold leading-none tracking-tight">
-                    Location
-                  </h3>
-                  <p className="text-sm text-muted-foreground">
-                    {expert.location}
-                  </p>
-                </div>
-                <div className="flex flex-col space-y-1.5">
-                  <h3 className="font-semibold leading-none tracking-tight">
-                    Services
-                  </h3>
-                  <div className="flex gap-2">
-                    {expert.services.map((service) => (
-                      <Badge key={service.name}>{service.name}</Badge>
-                    ))}
-                  </div>
-                </div>
-              </div>
+    <div className="flex flex-1 flex-col items-center gap-4 overflow-auto">
+      <div className="flex w-full justify-between rounded-md bg-muted/50 px-8 py-4 sm:px-10 lg:px-12">
+        <div className="flex items-center gap-x-6">
+          <Image
+            alt="Expert image"
+            className="aspect-square rounded-md object-cover"
+            src="https://picsum.photos/200"
+            height="64"
+            width="64"
+          />
+          <div>
+            <div className="text-sm leading-6 text-muted-foreground">
+              {expert?.professions.map((profession) => profession.name).join(", ")}
             </div>
-          </CardContent>
-        </Card>
+            <h1 className="text-2xl font-semibold leading-none tracking-tight">
+              {expert?.name}
+            </h1>
+          </div>
+        </div>
+        <div className="flex items-center gap-x-4 sm:gap-x-6">
+        <div className="flex flex-col space-y-1.5 p-6">
+            <div className="text-sm leading-6 text-muted-foreground">
+              Professions
+            </div>
+            <div className="flex gap-1">
+              {expert.professions.slice(0, 2).map((profession, idx) => (
+                <Badge key={idx}>{profession.name}</Badge>
+              ))}
+              {expert.professions.length > 2 && (
+                <Badge>+{expert.professions.length - 2} more</Badge>
+              )}
+            </div>
+          </div>
+          <div className="flex flex-col space-y-1.5 p-6">
+            <div className="text-sm leading-6 text-muted-foreground">
+              Services
+            </div>
+            <div className="flex gap-1">
+              {expert.services.slice(0, 2).map((service, idx) => (
+                <Badge key={idx}>{service.name}</Badge>
+              ))}
+              {expert.services.length > 2 && (
+                <Badge>+{expert.services.length - 2} more</Badge>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
-      <div className="relative flex h-full min-h-[50vh] flex-col items-center justify-center rounded-xl bg-muted/50 p-4 lg:col-span-2">
-        <ExpertBooker expert={expert} />
+      <div className="mx-auto mt-4 grid w-full gap-2 px-8 sm:px-10 lg:px-12">
+        <h2 className="text-3xl font-semibold">Availability</h2>
+      </div>
+      <div className="border-subtle mx-8 mt-12 flex aspect-[2.5/1] flex-col-reverse items-center overflow-x-clip rounded-2xl border bg-muted pb-6 pl-6 pt-6 shadow-sm max-md:pr-6 sm:mx-10 md:grid md:grid-cols-[minmax(440px,1fr)_minmax(0,2.5fr)] lg:mx-12">
+        <div className="md:min-w-[96vw] [&_.calcom-atoms]:bg-[transparent]">
+          <ExpertBooker calAccount={expert.calAccount} expert={expert}/>
+        </div>
       </div>
     </div>
   );

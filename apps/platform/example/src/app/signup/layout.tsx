@@ -87,16 +87,6 @@ export const SignupLayout = ({ children }: { children?: ReactNode }) => {
                 </BreadcrumbItem>
               </BreadcrumbList>
             </Breadcrumb>
-            <div className="flex flex-1 items-center justify-between space-x-4 md:justify-end">
-        
-              <AutocompleteSearch
-                options={professions}
-                className=""
-                placement="header"
-              />
-              <span>OR</span>
-              <Link href="/signup"><Button className="hidden sm:flex">Sign up as Expert</Button></Link>
-            </div>
           </div>
         </header>
         <main className="flex-1">{children}</main>

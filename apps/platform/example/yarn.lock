@@ -91,9 +91,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@calcom/atoms@npm:^1.0.15":
-  version: 1.0.15
-  resolution: "@calcom/atoms@npm:1.0.15"
+"@calcom/atoms@npm:^1.0.21":
+  version: 1.0.21
+  resolution: "@calcom/atoms@npm:1.0.21"
   dependencies:
     "@radix-ui/react-dialog": ^1.0.4
     "@radix-ui/react-slot": ^1.0.2
@@ -106,7 +106,168 @@ __metadata:
     tailwind-merge: ^1.13.2
     tailwindcss: ^3.3.3
     tailwindcss-animate: ^1.0.6
-  checksum: 985c972bba7d7cf6b32dd594112871ff21759819209b14c685d4c348449fe71a9144a86f39836b3d8bd14229b97ec5ed092632348f6687cda0200ce1a29cac75
+  checksum: 557d8a2399e4836dbc5bf35be93be16e7e320194af5fbb0461e16336c081b513485909887dd7ad770ef11ed50d675f99ec7f1c3e7d34a2f7cc1d5e4345ed5397
+  languageName: node
+  linkType: hard
+
+"@esbuild/aix-ppc64@npm:0.19.12":
+  version: 0.19.12
+  resolution: "@esbuild/aix-ppc64@npm:0.19.12"
+  conditions: os=aix & cpu=ppc64
+  languageName: node
+  linkType: hard
+
+"@esbuild/android-arm64@npm:0.19.12":
+  version: 0.19.12
+  resolution: "@esbuild/android-arm64@npm:0.19.12"
+  conditions: os=android & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"@esbuild/android-arm@npm:0.19.12":
+  version: 0.19.12
+  resolution: "@esbuild/android-arm@npm:0.19.12"
+  conditions: os=android & cpu=arm
+  languageName: node
+  linkType: hard
+
+"@esbuild/android-x64@npm:0.19.12":
+  version: 0.19.12
+  resolution: "@esbuild/android-x64@npm:0.19.12"
+  conditions: os=android & cpu=x64
+  languageName: node
+  linkType: hard
+
+"@esbuild/darwin-arm64@npm:0.19.12":
+  version: 0.19.12
+  resolution: "@esbuild/darwin-arm64@npm:0.19.12"
+  conditions: os=darwin & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"@esbuild/darwin-x64@npm:0.19.12":
+  version: 0.19.12
+  resolution: "@esbuild/darwin-x64@npm:0.19.12"
+  conditions: os=darwin & cpu=x64
+  languageName: node
+  linkType: hard
+
+"@esbuild/freebsd-arm64@npm:0.19.12":
+  version: 0.19.12
+  resolution: "@esbuild/freebsd-arm64@npm:0.19.12"
+  conditions: os=freebsd & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"@esbuild/freebsd-x64@npm:0.19.12":
+  version: 0.19.12
+  resolution: "@esbuild/freebsd-x64@npm:0.19.12"
+  conditions: os=freebsd & cpu=x64
+  languageName: node
+  linkType: hard
+
+"@esbuild/linux-arm64@npm:0.19.12":
+  version: 0.19.12
+  resolution: "@esbuild/linux-arm64@npm:0.19.12"
+  conditions: os=linux & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"@esbuild/linux-arm@npm:0.19.12":
+  version: 0.19.12
+  resolution: "@esbuild/linux-arm@npm:0.19.12"
+  conditions: os=linux & cpu=arm
+  languageName: node
+  linkType: hard
+
+"@esbuild/linux-ia32@npm:0.19.12":
+  version: 0.19.12
+  resolution: "@esbuild/linux-ia32@npm:0.19.12"
+  conditions: os=linux & cpu=ia32
+  languageName: node
+  linkType: hard
+
+"@esbuild/linux-loong64@npm:0.19.12":
+  version: 0.19.12
+  resolution: "@esbuild/linux-loong64@npm:0.19.12"
+  conditions: os=linux & cpu=loong64
+  languageName: node
+  linkType: hard
+
+"@esbuild/linux-mips64el@npm:0.19.12":
+  version: 0.19.12
+  resolution: "@esbuild/linux-mips64el@npm:0.19.12"
+  conditions: os=linux & cpu=mips64el
+  languageName: node
+  linkType: hard
+
+"@esbuild/linux-ppc64@npm:0.19.12":
+  version: 0.19.12
+  resolution: "@esbuild/linux-ppc64@npm:0.19.12"
+  conditions: os=linux & cpu=ppc64
+  languageName: node
+  linkType: hard
+
+"@esbuild/linux-riscv64@npm:0.19.12":
+  version: 0.19.12
+  resolution: "@esbuild/linux-riscv64@npm:0.19.12"
+  conditions: os=linux & cpu=riscv64
+  languageName: node
+  linkType: hard
+
+"@esbuild/linux-s390x@npm:0.19.12":
+  version: 0.19.12
+  resolution: "@esbuild/linux-s390x@npm:0.19.12"
+  conditions: os=linux & cpu=s390x
+  languageName: node
+  linkType: hard
+
+"@esbuild/linux-x64@npm:0.19.12":
+  version: 0.19.12
+  resolution: "@esbuild/linux-x64@npm:0.19.12"
+  conditions: os=linux & cpu=x64
+  languageName: node
+  linkType: hard
+
+"@esbuild/netbsd-x64@npm:0.19.12":
+  version: 0.19.12
+  resolution: "@esbuild/netbsd-x64@npm:0.19.12"
+  conditions: os=netbsd & cpu=x64
+  languageName: node
+  linkType: hard
+
+"@esbuild/openbsd-x64@npm:0.19.12":
+  version: 0.19.12
+  resolution: "@esbuild/openbsd-x64@npm:0.19.12"
+  conditions: os=openbsd & cpu=x64
+  languageName: node
+  linkType: hard
+
+"@esbuild/sunos-x64@npm:0.19.12":
+  version: 0.19.12
+  resolution: "@esbuild/sunos-x64@npm:0.19.12"
+  conditions: os=sunos & cpu=x64
+  languageName: node
+  linkType: hard
+
+"@esbuild/win32-arm64@npm:0.19.12":
+  version: 0.19.12
+  resolution: "@esbuild/win32-arm64@npm:0.19.12"
+  conditions: os=win32 & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"@esbuild/win32-ia32@npm:0.19.12":
+  version: 0.19.12
+  resolution: "@esbuild/win32-ia32@npm:0.19.12"
+  conditions: os=win32 & cpu=ia32
+  languageName: node
+  linkType: hard
+
+"@esbuild/win32-x64@npm:0.19.12":
+  version: 0.19.12
+  resolution: "@esbuild/win32-x64@npm:0.19.12"
+  conditions: os=win32 & cpu=x64
   languageName: node
   linkType: hard
 
@@ -377,10 +538,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@next/env@npm:14.2.0":
-  version: 14.2.0
-  resolution: "@next/env@npm:14.2.0"
-  checksum: c99722ed9cbd977aa714d767b928bb6bd84e97bdab09966c07b69dda8c87edbea69b8d2024d36285128ab46ea4b629fdba53f7928bf5043b47d2da85d1016ccc
+"@next/env@npm:14.2.1-canary.3":
+  version: 14.2.1-canary.3
+  resolution: "@next/env@npm:14.2.1-canary.3"
+  checksum: f5cdd73b8184a020e926a0fda0360bc861f9084d34d75583a970d0ac86dad0d7aac4c0ba8394274a4d2ae474542f772f094bd691b0f55841bfdf62a4009934d9
   languageName: node
   linkType: hard
 
@@ -393,65 +554,65 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@next/swc-darwin-arm64@npm:14.2.0":
-  version: 14.2.0
-  resolution: "@next/swc-darwin-arm64@npm:14.2.0"
+"@next/swc-darwin-arm64@npm:14.2.1-canary.3":
+  version: 14.2.1-canary.3
+  resolution: "@next/swc-darwin-arm64@npm:14.2.1-canary.3"
   conditions: os=darwin & cpu=arm64
   languageName: node
   linkType: hard
 
-"@next/swc-darwin-x64@npm:14.2.0":
-  version: 14.2.0
-  resolution: "@next/swc-darwin-x64@npm:14.2.0"
+"@next/swc-darwin-x64@npm:14.2.1-canary.3":
+  version: 14.2.1-canary.3
+  resolution: "@next/swc-darwin-x64@npm:14.2.1-canary.3"
   conditions: os=darwin & cpu=x64
   languageName: node
   linkType: hard
 
-"@next/swc-linux-arm64-gnu@npm:14.2.0":
-  version: 14.2.0
-  resolution: "@next/swc-linux-arm64-gnu@npm:14.2.0"
+"@next/swc-linux-arm64-gnu@npm:14.2.1-canary.3":
+  version: 14.2.1-canary.3
+  resolution: "@next/swc-linux-arm64-gnu@npm:14.2.1-canary.3"
   conditions: os=linux & cpu=arm64 & libc=glibc
   languageName: node
   linkType: hard
 
-"@next/swc-linux-arm64-musl@npm:14.2.0":
-  version: 14.2.0
-  resolution: "@next/swc-linux-arm64-musl@npm:14.2.0"
+"@next/swc-linux-arm64-musl@npm:14.2.1-canary.3":
+  version: 14.2.1-canary.3
+  resolution: "@next/swc-linux-arm64-musl@npm:14.2.1-canary.3"
   conditions: os=linux & cpu=arm64 & libc=musl
   languageName: node
   linkType: hard
 
-"@next/swc-linux-x64-gnu@npm:14.2.0":
-  version: 14.2.0
-  resolution: "@next/swc-linux-x64-gnu@npm:14.2.0"
+"@next/swc-linux-x64-gnu@npm:14.2.1-canary.3":
+  version: 14.2.1-canary.3
+  resolution: "@next/swc-linux-x64-gnu@npm:14.2.1-canary.3"
   conditions: os=linux & cpu=x64 & libc=glibc
   languageName: node
   linkType: hard
 
-"@next/swc-linux-x64-musl@npm:14.2.0":
-  version: 14.2.0
-  resolution: "@next/swc-linux-x64-musl@npm:14.2.0"
+"@next/swc-linux-x64-musl@npm:14.2.1-canary.3":
+  version: 14.2.1-canary.3
+  resolution: "@next/swc-linux-x64-musl@npm:14.2.1-canary.3"
   conditions: os=linux & cpu=x64 & libc=musl
   languageName: node
   linkType: hard
 
-"@next/swc-win32-arm64-msvc@npm:14.2.0":
-  version: 14.2.0
-  resolution: "@next/swc-win32-arm64-msvc@npm:14.2.0"
+"@next/swc-win32-arm64-msvc@npm:14.2.1-canary.3":
+  version: 14.2.1-canary.3
+  resolution: "@next/swc-win32-arm64-msvc@npm:14.2.1-canary.3"
   conditions: os=win32 & cpu=arm64
   languageName: node
   linkType: hard
 
-"@next/swc-win32-ia32-msvc@npm:14.2.0":
-  version: 14.2.0
-  resolution: "@next/swc-win32-ia32-msvc@npm:14.2.0"
+"@next/swc-win32-ia32-msvc@npm:14.2.1-canary.3":
+  version: 14.2.1-canary.3
+  resolution: "@next/swc-win32-ia32-msvc@npm:14.2.1-canary.3"
   conditions: os=win32 & cpu=ia32
   languageName: node
   linkType: hard
 
-"@next/swc-win32-x64-msvc@npm:14.2.0":
-  version: 14.2.0
-  resolution: "@next/swc-win32-x64-msvc@npm:14.2.0"
+"@next/swc-win32-x64-msvc@npm:14.2.1-canary.3":
+  version: 14.2.1-canary.3
+  resolution: "@next/swc-win32-x64-msvc@npm:14.2.1-canary.3"
   conditions: os=win32 & cpu=x64
   languageName: node
   linkType: hard
@@ -2416,6 +2577,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"dayjs@npm:^1.11.10":
+  version: 1.11.10
+  resolution: "dayjs@npm:1.11.10"
+  checksum: a6b5a3813b8884f5cd557e2e6b7fa569f4c5d0c97aca9558e38534af4f2d60daafd3ff8c2000fed3435cfcec9e805bcebd99f90130c6d1c5ef524084ced588c4
+  languageName: node
+  linkType: hard
+
 "debug@npm:4, debug@npm:^4.3.1, debug@npm:^4.3.2, debug@npm:^4.3.4":
   version: 4.3.4
   resolution: "debug@npm:4.3.4"
@@ -2723,6 +2891,86 @@ __metadata:
   languageName: node
   linkType: hard
 
+"esbuild@npm:~0.19.10":
+  version: 0.19.12
+  resolution: "esbuild@npm:0.19.12"
+  dependencies:
+    "@esbuild/aix-ppc64": 0.19.12
+    "@esbuild/android-arm": 0.19.12
+    "@esbuild/android-arm64": 0.19.12
+    "@esbuild/android-x64": 0.19.12
+    "@esbuild/darwin-arm64": 0.19.12
+    "@esbuild/darwin-x64": 0.19.12
+    "@esbuild/freebsd-arm64": 0.19.12
+    "@esbuild/freebsd-x64": 0.19.12
+    "@esbuild/linux-arm": 0.19.12
+    "@esbuild/linux-arm64": 0.19.12
+    "@esbuild/linux-ia32": 0.19.12
+    "@esbuild/linux-loong64": 0.19.12
+    "@esbuild/linux-mips64el": 0.19.12
+    "@esbuild/linux-ppc64": 0.19.12
+    "@esbuild/linux-riscv64": 0.19.12
+    "@esbuild/linux-s390x": 0.19.12
+    "@esbuild/linux-x64": 0.19.12
+    "@esbuild/netbsd-x64": 0.19.12
+    "@esbuild/openbsd-x64": 0.19.12
+    "@esbuild/sunos-x64": 0.19.12
+    "@esbuild/win32-arm64": 0.19.12
+    "@esbuild/win32-ia32": 0.19.12
+    "@esbuild/win32-x64": 0.19.12
+  dependenciesMeta:
+    "@esbuild/aix-ppc64":
+      optional: true
+    "@esbuild/android-arm":
+      optional: true
+    "@esbuild/android-arm64":
+      optional: true
+    "@esbuild/android-x64":
+      optional: true
+    "@esbuild/darwin-arm64":
+      optional: true
+    "@esbuild/darwin-x64":
+      optional: true
+    "@esbuild/freebsd-arm64":
+      optional: true
+    "@esbuild/freebsd-x64":
+      optional: true
+    "@esbuild/linux-arm":
+      optional: true
+    "@esbuild/linux-arm64":
+      optional: true
+    "@esbuild/linux-ia32":
+      optional: true
+    "@esbuild/linux-loong64":
+      optional: true
+    "@esbuild/linux-mips64el":
+      optional: true
+    "@esbuild/linux-ppc64":
+      optional: true
+    "@esbuild/linux-riscv64":
+      optional: true
+    "@esbuild/linux-s390x":
+      optional: true
+    "@esbuild/linux-x64":
+      optional: true
+    "@esbuild/netbsd-x64":
+      optional: true
+    "@esbuild/openbsd-x64":
+      optional: true
+    "@esbuild/sunos-x64":
+      optional: true
+    "@esbuild/win32-arm64":
+      optional: true
+    "@esbuild/win32-ia32":
+      optional: true
+    "@esbuild/win32-x64":
+      optional: true
+  bin:
+    esbuild: bin/esbuild
+  checksum: 2936e29107b43e65a775b78b7bc66ddd7d76febd73840ac7e825fb22b65029422ff51038a08d19b05154f543584bd3afe7d1ef1c63900429475b17fbe61cb61f
+  languageName: node
+  linkType: hard
+
 "escape-string-regexp@npm:^4.0.0":
   version: 4.0.0
   resolution: "escape-string-regexp@npm:4.0.0"
@@ -3011,7 +3259,7 @@ __metadata:
   resolution: "example@workspace:."
   dependencies:
     "@auth/prisma-adapter": ^1.4.0
-    "@calcom/atoms": ^1.0.15
+    "@calcom/atoms": ^1.0.21
     "@libsql/client": ^0.6.0
     "@opentelemetry/api": ^1.8.0
     "@prisma/adapter-libsql": ^5.12.1
@@ -3040,10 +3288,11 @@ __metadata:
     class-variance-authority: ^0.7.0
     clsx: ^2.1.0
     cmdk: ^1.0.0
+    dayjs: ^1.11.10
     eslint: ^8.57.0
     eslint-config-next: ^14.1.3
     lucide-react: ^0.364.0
-    next: ^14.2.0
+    next: canary
     next-auth: 5.0.0-beta.16
     next-axiom: ^1.1.1
     next-themes: ^0.3.0
@@ -3061,6 +3310,7 @@ __metadata:
     tailwind-merge: ^2.2.2
     tailwindcss: ^3.4.1
     tailwindcss-animate: ^1.0.7
+    tsx: ^4.7.2
     typescript: ^5.4.2
     zod: ^3.22.4
   languageName: unknown
@@ -3253,7 +3503,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fsevents@npm:~2.3.2":
+"fsevents@npm:~2.3.2, fsevents@npm:~2.3.3":
   version: 2.3.3
   resolution: "fsevents@npm:2.3.3"
   dependencies:
@@ -3263,7 +3513,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fsevents@patch:fsevents@~2.3.2#~builtin<compat/fsevents>":
+"fsevents@patch:fsevents@~2.3.2#~builtin<compat/fsevents>, fsevents@patch:fsevents@~2.3.3#~builtin<compat/fsevents>":
   version: 2.3.3
   resolution: "fsevents@patch:fsevents@npm%3A2.3.3#~builtin<compat/fsevents>::version=2.3.3&hash=df0bf1"
   dependencies:
@@ -3329,7 +3579,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"get-tsconfig@npm:^4.5.0":
+"get-tsconfig@npm:^4.5.0, get-tsconfig@npm:^4.7.2":
   version: 4.7.3
   resolution: "get-tsconfig@npm:4.7.3"
   dependencies:
@@ -4469,20 +4719,20 @@ __metadata:
   languageName: node
   linkType: hard
 
-"next@npm:^14.2.0":
-  version: 14.2.0
-  resolution: "next@npm:14.2.0"
+"next@npm:canary":
+  version: 14.2.1-canary.3
+  resolution: "next@npm:14.2.1-canary.3"
   dependencies:
-    "@next/env": 14.2.0
-    "@next/swc-darwin-arm64": 14.2.0
-    "@next/swc-darwin-x64": 14.2.0
-    "@next/swc-linux-arm64-gnu": 14.2.0
-    "@next/swc-linux-arm64-musl": 14.2.0
-    "@next/swc-linux-x64-gnu": 14.2.0
-    "@next/swc-linux-x64-musl": 14.2.0
-    "@next/swc-win32-arm64-msvc": 14.2.0
-    "@next/swc-win32-ia32-msvc": 14.2.0
-    "@next/swc-win32-x64-msvc": 14.2.0
+    "@next/env": 14.2.1-canary.3
+    "@next/swc-darwin-arm64": 14.2.1-canary.3
+    "@next/swc-darwin-x64": 14.2.1-canary.3
+    "@next/swc-linux-arm64-gnu": 14.2.1-canary.3
+    "@next/swc-linux-arm64-musl": 14.2.1-canary.3
+    "@next/swc-linux-x64-gnu": 14.2.1-canary.3
+    "@next/swc-linux-x64-musl": 14.2.1-canary.3
+    "@next/swc-win32-arm64-msvc": 14.2.1-canary.3
+    "@next/swc-win32-ia32-msvc": 14.2.1-canary.3
+    "@next/swc-win32-x64-msvc": 14.2.1-canary.3
     "@swc/helpers": 0.5.5
     busboy: 1.6.0
     caniuse-lite: ^1.0.30001579
@@ -4523,7 +4773,7 @@ __metadata:
       optional: true
   bin:
     next: dist/bin/next
-  checksum: 390f72a3465030a75e03f45fc0779d19d5b755c12b57f0352606b576ee1c106c917036183ece0fbb8c424a7aefb6afc12614106da891016a9ced41f4feb7cfa2
+  checksum: 4f5afe883887914fb8190932d538ba81ab5a96af58a5023cb78f8e5b3ac7f99e8f06be40d07092484783829bb0f11c8458510e6a6df3ac4f5e60c42580247187
   languageName: node
   linkType: hard
 
@@ -6106,6 +6356,22 @@ __metadata:
   version: 2.6.2
   resolution: "tslib@npm:2.6.2"
   checksum: 329ea56123005922f39642318e3d1f0f8265d1e7fcb92c633e0809521da75eeaca28d2cf96d7248229deb40e5c19adf408259f4b9640afd20d13aecc1430f3ad
+  languageName: node
+  linkType: hard
+
+"tsx@npm:^4.7.2":
+  version: 4.7.2
+  resolution: "tsx@npm:4.7.2"
+  dependencies:
+    esbuild: ~0.19.10
+    fsevents: ~2.3.3
+    get-tsconfig: ^4.7.2
+  dependenciesMeta:
+    fsevents:
+      optional: true
+  bin:
+    tsx: dist/cli.mjs
+  checksum: 34c4fbbfb96848e05e39d5c55da51815f0856386428ad781a6df79e88ad62d83e9a071a3997a230ea7b45654cb215262267ac1202c31b67056359d386f6a9f65
   languageName: node
   linkType: hard
 

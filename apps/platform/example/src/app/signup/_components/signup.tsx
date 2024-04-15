@@ -13,9 +13,18 @@ import {
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { useFormState } from "react-dom";
-import { AddonFieldInput, AddonFieldPrefix } from "~/app/signup/_components/input";
+import {
+  AddonFieldInput,
+  AddonFieldPrefix,
+} from "~/app/signup/_components/input";
+import { FancyMultiSelect } from "~/app/_components/multi-select";
+import { Profession, Service } from "@prisma/client";
 
-export const SignupForm = () => {
+export const SignupForm = (props: {
+  services: Array<Service>;
+  professions: Array<Profession>;
+}) => {
+  const { services, professions } = props;
   const [error, dispatch] = useFormState<{ error?: string | null }>(
     signInWithCredentials,
     { error: null },
@@ -39,8 +48,37 @@ export const SignupForm = () => {
             <div className="grid gap-2">
               <Label htmlFor="username">Username</Label>
               <AddonFieldPrefix prefix="site.com/">
-                <AddonFieldInput id="username" name="username" placeholder="john-doe" required />
+                <AddonFieldInput
+                  id="username"
+                  name="username"
+                  placeholder="john-doe"
+                  required
+                />
               </AddonFieldPrefix>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="profession">Profession</Label>
+              <FancyMultiSelect
+                options={professions.map(({ name: label, slug: value }) => ({
+                  label,
+                  value,
+                }))}
+                placeholder="Select your profession(s)"
+                name="professions"
+                id="professions"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="services">Services</Label>
+              <FancyMultiSelect
+                options={services.map(({ name: label, slug: value }) => ({
+                  label,
+                  value,
+                }))}
+                placeholder="Select your service(s)"
+                name="services"
+                id="services"
+              />
             </div>
             <div className="grid gap-2">
               <Label htmlFor="email">Email</Label>
@@ -56,7 +94,11 @@ export const SignupForm = () => {
               <Label htmlFor="password">Password</Label>
               <Input id="password" name="password" type="password" />
             </div>
-            <input hidden name="redirectTo" value="/dashboard/getting-started" />
+            <input
+              hidden
+              name="redirectTo"
+              value="/dashboard/getting-started"
+            />
             <Button type="submit" className="w-full">
               Create an account
             </Button>

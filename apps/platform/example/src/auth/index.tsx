@@ -3,7 +3,6 @@ import { randomBytes, scrypt, timingSafeEqual } from "node:crypto";
 import NextAuth from "next-auth";
 import type { Session } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
-import { redirect } from "next/navigation";
 import { cache } from "react";
 import { z } from "zod";
 
@@ -11,6 +10,7 @@ import { authConfig } from "./config";
 import { db } from "prisma/client";
 import { User } from "@prisma/client";
 import { env } from "~/env";
+import { services } from "../lib/constants";
 
 async function hash(password: string) {
   return new Promise<string>((resolve, reject) => {
@@ -45,19 +45,53 @@ type CalManageUserResponse = {
   status: string;
   data: {
     user: {
-      id: number
-      email: string
-      username: string
-      timeZone: string
-      weekStart: string
-      createdDate: string
-      timeFormat: number
-      defaultScheduleId: any
+      id: number;
+      email: string;
+      username: string;
+      timeZone: string;
+      weekStart: string;
+      createdDate: string;
+      timeFormat: number;
+      defaultScheduleId: number | null;
     };
     accessToken: string;
     refreshToken: string;
   };
-
+};
+type CalCreateScheduleResponse = {
+  status: "success";
+  data: {
+    id: number;
+    name: string;
+    isManaged: boolean;
+    workingHours: Array<{
+      days: Array<number>;
+      startTime: number;
+      endTime: number;
+      userId: number;
+    }>;
+    schedule: Array<{
+      id: number;
+      userId: number;
+      eventTypeId: any;
+      days: Array<number>;
+      startTime: string;
+      endTime: string;
+      date: any;
+      scheduleId: number;
+    }>;
+    availability: Array<
+      Array<{
+        start: string;
+        end: string;
+      }>
+    >;
+    timeZone: string;
+    dateOverrides: any[];
+    isDefault: boolean;
+    isLastSchedule: boolean;
+    readOnly: boolean;
+  };
 };
 const {
   auth: uncachedAuth,
@@ -116,11 +150,28 @@ const {
             return { id: user.id, name: user.name };
           } else {
             // if user doesn't exist, this comes from our signup page w/ additional fields
-            console.info(`User attempted signup`);
+            console.info(`User attempted signup`, {
+              username: c.username,
+              name: c.name,
+              professions: c.professions,
+              services: c.services,
+            });
             const signupData = z
               .object({
                 username: z.string().min(1).max(32),
                 name: z.string().min(1).max(32),
+                professions: z.preprocess(
+                  (val) => {
+                    if (typeof val !== "string") return val; // should error
+                    return JSON.parse(val);
+                  },
+                  z.array(z.string())),
+                services: z.preprocess(
+                  (val) => {
+                    if (typeof val !== "string") return val; // should error
+                    return JSON.parse(val);
+                  },
+                  z.array(z.string())),
               })
               .safeParse(c);
             if (!signupData.success) {
@@ -129,8 +180,7 @@ const {
               );
               return null;
             }
-            // Create a new user
-            /** [@calcom] 1. Create the user in cal */
+
             const url = `${env.NEXT_PUBLIC_CAL_API_URL}/oauth-clients/${env.NEXT_PUBLIC_CAL_OAUTH_CLIENT_ID}/users`;
             const response = await fetch(url, {
               method: "POST",
@@ -140,34 +190,175 @@ const {
                 origin:
                   env.NODE_ENV === "development"
                     ? "http://localhost:3000"
-                                // TODO: Replace this after deployment
-                    : "https://platform.cal.com",
+                    : // TODO: Replace this after deployment
+                      "https://platform.cal.com",
               },
               body: JSON.stringify({
                 email: credentials.data.email,
                 name: signupData.data.name,
               }),
             });
-            if (!response.ok) {
+            let calUser: CalManageUserResponse["data"] | null = null;
+            if (response.ok) {
+              const json = (await response.json()) as Omit<
+                CalManageUserResponse,
+                "status"
+              >;
+              calUser = json.data;
+            } else {
+              const text = await response.text();
+              if (!text.includes("already exists")) {
+                throw new Error(
+                  `Unable to create user '${credentials.data.email}': Invalid response from Cal after POSTing to ${url}
+                
+                Response text:
+                ${await response.text()}
+                `,
+                );
+              }
+              // [@calcom] This means that the user already exists on cal's end but we didn't have them in our db
+              // We can just look them up by email and create the user in our db:
+              // let's fetch all users and get it from there.
+              const res = await fetch(url, {
+                headers: {
+                  "Content-Type": "application/json",
+                  "x-cal-secret-key": env.CAL_SECRET,
+                  origin:
+                    env.NODE_ENV === "development"
+                      ? "http://localhost:3000"
+                      : // TODO: Replace this after deployment
+                        "https://platform.cal.com",
+                },
+              });
+              if (!res.ok) {
+                throw new Error(
+                  `Unable to create user '${credentials.data.email}': Invalid response from Cal after GETting: ${url}
+
+                ℹ️ This means the user already exists in cal, but we can't fetch it to get the id.
+                
+                Response text:
+                ${await res.text()}
+                `,
+                );
+              }
+              const calUsers = (await res.json()) as Omit<
+                CalManageUserResponse,
+                "data"
+              > & { data: Array<CalManageUserResponse["data"]["user"]> };
+              const fromCal = calUsers.data.find((calUser) => {
+                // [@calcom] the cal email adds `+<clientId>` before the @ in the email, so let's do the same four our matching:
+                const emailAsCal = credentials.data.email.replace(
+                  "@",
+                  `+${env.NEXT_PUBLIC_CAL_OAUTH_CLIENT_ID}@`,
+                );
+                return calUser.email === emailAsCal;
+              });
+              if (!fromCal) {
+                throw new Error(
+                  `Unable to create user '${credentials.data.email}': User not found in Cal
+
+                ℹ️ This means the user already exists in cal, but we couldn't reconcile it from the response. Here are the emails:
+                ${calUsers.data.map((u) => u.email).join(", ")}
+                `,
+                );
+              }
+              // [@calcom] OK, we reconciled the user. Let's force refreshing their tokens so that we can store everything in our db
+              const forceRefreshUrl = `${env.NEXT_PUBLIC_CAL_API_URL}/oauth-clients/${env.NEXT_PUBLIC_CAL_OAUTH_CLIENT_ID}/users/${fromCal.id}/force-refresh`;
+              const forceRefreshResponse = await fetch(forceRefreshUrl, {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  "x-cal-secret-key": env.CAL_SECRET,
+                  origin:
+                    env.NODE_ENV === "development"
+                      ? "http://localhost:3000"
+                      : // TODO: Replace this after deployment
+                        "https://platform.cal.com",
+                },
+              });
+              if (!forceRefreshResponse.ok) {
+                throw new Error(
+                  `Unable to create user '${credentials.data.email}': Invalid response from Cal after attempting to force-refresh tokens for cal user with id '${fromCal.id}'
+                
+                Endpoint URL: ${forceRefreshUrl}
+                
+                Response text:
+                ${await forceRefreshResponse.text()}
+                `,
+                );
+              }
+              const {
+                data: { accessToken, refreshToken },
+              } = (await forceRefreshResponse.json()) as {
+                status: string;
+                data: { accessToken: string; refreshToken: string };
+              };
+              // [@calcom] ✅ Now, we have successfully recovered our users tokens. Let's allocate this to our `calUser`
+              calUser = { user: fromCal, accessToken, refreshToken };
+            }
+
+            /** [@calcom] 2. After we created the user on Cal's end, we have to create a default schedule: */
+            const createScheduleUrl = `${env.NEXT_PUBLIC_CAL_API_URL}/schedules`;
+            const createScheduleOptions = {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                // [@calcom] We need to send the user's access token to create the schedule on their behalf
+                Authorization: `Bearer ${calUser.accessToken}`,
+              },
+              body: JSON.stringify({
+                name: "Default Schedule",
+                timeZone: calUser.user.timeZone,
+                isDefault: true,
+              }),
+            };
+            const createScheduleResponse = await fetch(
+              createScheduleUrl,
+              createScheduleOptions,
+            );
+
+            if (!createScheduleResponse.ok) {
               throw new Error(
-                `Unable to create user in Cal.com: Invalid response to ${url}`,
+                `Unable to create default schedule for user '${credentials.data.email}': Invalid response from Cal after attempting to create the default schedule.
+
+                -- REQUEST DETAILS --
+
+                Endpoint Url: ${createScheduleUrl}
+                
+                Options: ${JSON.stringify(createScheduleOptions)}
+
+                -- RESPONSE DETAILS --
+                Text:
+                ${await createScheduleResponse.text()}
+                `,
               );
             }
-            const body = (await response.json()) as CalManageUserResponse;
-            /** [@calcom] 2. Create the user in our db with cal's tokens */
+
+            const schedule =
+              (await createScheduleResponse.json()) as CalCreateScheduleResponse;
+            calUser.user.defaultScheduleId = schedule.data.id;
+
+            /** [@calcom] 3. Finally, create the user in our db with cal's tokens */
+            const { accessToken, refreshToken, user: toCreate } = calUser;
             user = await db.user.create({
               data: {
                 username: signupData.data.username,
                 name: signupData.data.name,
                 hashedPassword: await hash(credentials.data.password),
                 email: credentials.data.email,
+                professions: {
+                  connect: signupData.data.professions.map((slug) => ({
+                    slug,
+                  })),
+                },
+                services: {
+                  connect: signupData.data.services.map((slug) => ({
+                    slug,
+                  })),
+                },
                 /** [@calcom] 👇 These are the tokens necessary to make cal operations on behalf of the user */
-                calToken: {
-                  create: {
-                    calAccessToken: body.data.accessToken,
-                    calRefreshToken: body.data.refreshToken,
-                    calId: Number(body.data.user.id),
-                  },
+                calAccount: {
+                  create: { ...toCreate, accessToken, refreshToken },
                 },
                 /** [@calcom] 👆 */
               },
@@ -199,7 +390,11 @@ export const currentUser = cache(async () => {
   if (!sesh?.user) return null;
   const user = await db.user.findUnique({
     where: { id: sesh.user.id },
-    include: { calToken: true },
+    include: {
+      calAccount: true,
+      professions: true,
+      services: true,
+    },
   });
   return user;
 });

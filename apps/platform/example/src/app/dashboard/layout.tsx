@@ -14,6 +14,7 @@ import {
   Users2,
 } from "lucide-react";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { ButtonSubmit } from "~/app/_components/submit-button";
 import { currentUser, signOut } from "~/auth";
 import {
@@ -39,7 +40,6 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "~/components/ui/tooltip";
-import { env } from "~/env";
 
 export default async function Layout({
   children,
@@ -47,7 +47,7 @@ export default async function Layout({
   children: React.ReactNode;
 }) {
   const user = await currentUser();
-  if (!user) return null;
+  if (!user) return redirect("/login");
   return (
     <div className="flex min-h-screen w-full flex-col bg-muted/40">
       <aside className="fixed inset-y-0 left-0 z-10 hidden w-14 flex-col border-r bg-background sm:flex">
@@ -215,13 +215,12 @@ export default async function Layout({
                   <DropdownMenuItem>
                     <Link href="/dashboard/settings">Settings</Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem>Support</DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuLabel>
                     <form
                       action={async () => {
                         "use server";
-                        await signOut();
+                        await signOut({redirectTo: "/"});
                       }}
                     >
                       <ButtonSubmit className="w-full">Logout</ButtonSubmit>

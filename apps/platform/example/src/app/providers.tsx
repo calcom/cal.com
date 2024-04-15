@@ -11,13 +11,13 @@ import type { ThemeProviderProps } from "next-themes/dist/types";
 import { TRPCReactProvider } from "~/trpc/react";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { env } from "~/env";
-import { CalToken } from "@prisma/client";
+import { CalAccount } from "@prisma/client";
 
 export function Providers({
   children,
   ...props
-}: ThemeProviderProps & { calToken?: CalToken["calAccessToken"] }) {
-  const calToken = props?.calToken;
+}: ThemeProviderProps & { calUserToken?: CalAccount["accessToken"] }) {
+  const accessToken = props?.calUserToken;
   return (
     <TRPCReactProvider>
       <CalProvider
@@ -26,7 +26,7 @@ export function Providers({
           apiUrl: env.NEXT_PUBLIC_CAL_API_URL,
           refreshUrl: env.NEXT_PUBLIC_REFRESH_URL,
         }}
-        {...(calToken && { accessToken: calToken })}
+        {...(accessToken && { accessToken })}
       >
         <NextThemesProvider {...props}>
           <TooltipProvider>{children}</TooltipProvider>
