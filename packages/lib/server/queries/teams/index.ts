@@ -23,7 +23,6 @@ export async function getTeamWithMembers(args: {
   slug?: string;
   userId?: number;
   orgSlug?: string | null;
-  includeTeamLogo?: boolean;
   isTeamView?: boolean;
   currentOrg?: Pick<Team, "id"> | null;
   /**
@@ -31,7 +30,7 @@ export async function getTeamWithMembers(args: {
    */
   isOrgView?: boolean;
 }) {
-  const { id, slug, currentOrg: _currentOrg, userId, orgSlug, isTeamView, isOrgView, includeTeamLogo } = args;
+  const { id, slug, currentOrg: _currentOrg, userId, orgSlug, isTeamView, isOrgView } = args;
 
   // This should improve performance saving already app data found.
   const appDataMap = new Map();
@@ -87,7 +86,6 @@ export async function getTeamWithMembers(args: {
       name: true,
       slug: true,
       isOrganization: true,
-      ...(!!includeTeamLogo ? { logo: true } : {}),
       logoUrl: true,
       bio: true,
       hideBranding: true,
