@@ -1,16 +1,15 @@
-import { forwardRef } from "react";
 import type { MutableRefObject } from "react";
+import { forwardRef } from "react";
 
 import type { BookerLayout } from "@calcom/features/bookings/Booker/types";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { TextArea } from "@calcom/ui";
-import { Code, Trello } from "@calcom/ui/components/icon";
 
-import type { EmbedType, PreviewState, EmbedFramework } from "../types";
+import type { EmbedFramework, EmbedType, PreviewState } from "../types";
 import { Codes, doWeNeedCalOriginProp } from "./EmbedCodes";
-import { EMBED_PREVIEW_HTML_URL, embedLibUrl } from "./constants";
+import { embedLibUrl, EMBED_PREVIEW_HTML_URL } from "./constants";
 import { getApiName } from "./getApiName";
 import { getDimension } from "./getDimension";
 import { useEmbedCalOrigin } from "./hooks";
@@ -19,7 +18,7 @@ export const tabs = [
   {
     name: "HTML",
     href: "embedTabName=embed-code",
-    icon: Code,
+    icon: "code" as const,
     type: "code",
     Component: forwardRef<
       HTMLTextAreaElement | HTMLIFrameElement | null,
@@ -75,7 +74,7 @@ export const tabs = [
   {
     name: "React",
     href: "embedTabName=embed-react",
-    icon: Code,
+    icon: "code" as const,
     type: "code",
     Component: forwardRef<
       HTMLTextAreaElement | HTMLIFrameElement | null,
@@ -124,7 +123,7 @@ export const tabs = [
   {
     name: "Preview",
     href: "embedTabName=embed-preview",
-    icon: Trello,
+    icon: "trello" as const,
     type: "iframe",
     Component: forwardRef<
       HTMLIFrameElement | HTMLTextAreaElement | null,

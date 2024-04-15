@@ -1,5 +1,5 @@
 import { SkeletonAvatar, SkeletonContainer, SkeletonText } from "@calcom/ui";
-import { Clock, User } from "@calcom/ui/components/icon";
+import { Icon } from "@calcom/ui";
 
 function SkeletonLoader() {
   return (
@@ -32,11 +32,11 @@ function SkeletonItem() {
         <div className="">
           <ul className="mt-2 flex space-x-4 rtl:space-x-reverse ">
             <li className="flex items-center whitespace-nowrap">
-              <Clock className="text-subtle mr-1.5 mt-0.5 inline h-4 w-4" />
+              <Icon name="clock" className="text-subtle mr-1.5 mt-0.5 inline h-4 w-4" />
               <SkeletonText className="h-4 w-12" />
             </li>
             <li className="flex items-center whitespace-nowrap">
-              <User className="text-subtle mr-1.5 mt-0.5 inline h-4 w-4" />
+              <Icon name="user" className="text-subtle mr-1.5 mt-0.5 inline h-4 w-4" />
               <SkeletonText className="h-4 w-12" />
             </li>
           </ul>

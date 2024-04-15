@@ -93,6 +93,7 @@ async function checkPermissions<T extends BaseEventTypeCheckPermissions>(
     await canAccessTeamEventOrThrow(req, {
       in: [MembershipRole.OWNER, MembershipRole.ADMIN, MembershipRole.MEMBER],
     });
+    return true;
   }
   if (eventType?.userId === req.userId) return true; // is owner.
   throw new HttpError({ statusCode: 403, message: "Forbidden" });

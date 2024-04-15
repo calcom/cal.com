@@ -1,7 +1,7 @@
 import type { Prisma } from "@prisma/client";
 import type { NextApiRequest } from "next";
 
-import { purchaseTeamSubscription } from "@calcom/features/ee/teams/lib/payments";
+import { purchaseTeamOrOrgSubscription } from "@calcom/features/ee/teams/lib/payments";
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
@@ -105,10 +105,11 @@ export async function patchHandler(req: NextApiRequest) {
     };
     delete data.slug;
     if (IS_TEAM_BILLING_ENABLED) {
-      const checkoutSession = await purchaseTeamSubscription({
+      const checkoutSession = await purchaseTeamOrOrgSubscription({
         teamId: _team.id,
         seats: _team.members.length,
         userId,
+        pricePerSeat: null,
       });
       if (!checkoutSession.url)
         throw new TRPCError({
