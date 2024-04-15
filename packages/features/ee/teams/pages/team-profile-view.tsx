@@ -330,25 +330,21 @@ const TeamProfileForm = ({ team }: TeamProfileFormProps) => {
                 return (
                   <>
                     <Avatar
-                      alt={defaultValues.name || ""}
-                      imageSrc={getPlaceholderAvatar(value, team?.name as string)}
+                      alt={form.getValues("name")}
+                      imageSrc={getPlaceholderAvatar(value, form.getValues("name"))}
                       size="lg"
                     />
                     <div className="ms-4 flex gap-2">
                       <ImageUploader
-                        target="avatar"
+                        target="logo"
                         id="avatar-upload"
                         buttonMsg={t("upload_logo")}
                         handleAvatarChange={onChange}
                         triggerButtonColor={showRemoveLogoButton ? "secondary" : "primary"}
-                        imageSrc={value ?? undefined}
+                        imageSrc={getPlaceholderAvatar(value, form.getValues("name"))}
                       />
                       {showRemoveLogoButton && (
-                        <Button
-                          color="secondary"
-                          onClick={() => {
-                            onChange(null);
-                          }}>
+                        <Button color="secondary" onClick={() => onChange(null)}>
                           {t("remove")}
                         </Button>
                       )}
