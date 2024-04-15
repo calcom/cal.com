@@ -32,7 +32,7 @@ export async function GET(request: Request) {
           env.NODE_ENV === "development"
             ? "http://localhost:3000"
             : // TODO: Replace this after deployment
-              "https://platform.cal.com",
+              "https://platform.cal.dev",
       },
       body: JSON.stringify({
         refreshToken: calAccount.refreshToken,

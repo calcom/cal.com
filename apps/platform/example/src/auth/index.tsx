@@ -191,7 +191,7 @@ const {
                   env.NODE_ENV === "development"
                     ? "http://localhost:3000"
                     : // TODO: Replace this after deployment
-                      "https://platform.cal.com",
+                      "https://platform.cal.dev",
               },
               body: JSON.stringify({
                 email: credentials.data.email,
@@ -227,7 +227,7 @@ const {
                     env.NODE_ENV === "development"
                       ? "http://localhost:3000"
                       : // TODO: Replace this after deployment
-                        "https://platform.cal.com",
+                        "https://platform.cal.dev",
                 },
               });
               if (!res.ok) {
@@ -273,7 +273,7 @@ const {
                     env.NODE_ENV === "development"
                       ? "http://localhost:3000"
                       : // TODO: Replace this after deployment
-                        "https://platform.cal.com",
+                        "https://platform.cal.dev",
                 },
               });
               if (!forceRefreshResponse.ok) {
