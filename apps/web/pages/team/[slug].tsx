@@ -20,7 +20,6 @@ import useTheme from "@calcom/lib/hooks/useTheme";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import { Avatar, Button, HeadSeo, UnpublishedEntity, UserAvatarGroup } from "@calcom/ui";
-import { ArrowRight } from "@calcom/ui/components/icon";
 
 import { useToggleQuery } from "@lib/hooks/useToggleQuery";
 import { getServerSideProps } from "@lib/team/[slug]/getServerSideProps";
@@ -34,7 +33,7 @@ export { getServerSideProps };
 export type PageProps = inferSSRProps<typeof getServerSideProps>;
 function TeamPage({
   team,
-  isUnpublished,
+  considerUnpublished,
   markdownStrippedBio,
   isValidOrgDomain,
   currentOrgDomain,
@@ -59,13 +58,16 @@ function TeamPage({
     );
   }, [telemetry, pathname]);
 
-  if (isUnpublished) {
-    const slug = team.slug || metadata?.requestedSlug;
+  if (considerUnpublished) {
+    const teamSlug = team.slug || metadata?.requestedSlug;
+    const parentSlug = team.parent?.slug || team.parent?.requestedSlug;
+    // Show unpublished state for parent Organization itself, if the team is a subteam(team.parent is NOT NULL)
+    const slugPropertyName = team.parent || team.isOrganization ? "orgSlug" : "teamSlug";
     return (
       <div className="flex h-full min-h-[100dvh] items-center justify-center">
         <UnpublishedEntity
-          {...(team?.isOrganization || team.parentId ? { orgSlug: slug } : { teamSlug: slug })}
-          name={teamName}
+          {...{ [slugPropertyName]: team.parent ? parentSlug : teamSlug }}
+          name={team.parent ? team.parent.name : team.name}
         />
       </div>
     );
@@ -236,7 +238,7 @@ function TeamPage({
                     <aside className="dark:text-inverted mt-8 flex justify-center text-center">
                       <Button
                         color="minimal"
-                        EndIcon={ArrowRight}
+                        EndIcon="arrow-right"
                         data-testid="book-a-team-member-btn"
                         className="dark:hover:bg-darkgray-200"
                         href={{

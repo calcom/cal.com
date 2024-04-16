@@ -2,9 +2,8 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { Prisma } from "@prisma/client";
-import { LinkIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState, useLayoutEffect, useEffect } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -19,20 +18,20 @@ import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import {
   Avatar,
+  BannerUploader,
   Button,
+  Editor,
   Form,
   ImageUploader,
-  BannerUploader,
   Label,
+  LinkIconButton,
   Meta,
   showToast,
-  TextField,
-  Editor,
-  LinkIconButton,
   SkeletonAvatar,
   SkeletonButton,
   SkeletonContainer,
   SkeletonText,
+  TextField,
 } from "@calcom/ui";
 
 import { getLayout } from "../../../../settings/layouts/SettingsLayout";
@@ -146,7 +145,7 @@ const OrgProfileView = () => {
             </div>
             <div className="">
               <LinkIconButton
-                Icon={LinkIcon}
+                Icon="link"
                 onClick={() => {
                   navigator.clipboard.writeText(orgBranding.fullDomain);
                   showToast("Copied to clipboard", "success");
@@ -163,7 +162,7 @@ const OrgProfileView = () => {
 };
 
 const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const { t } = useLocale();
   const [firstRender, setFirstRender] = useState(true);
 

@@ -30,6 +30,16 @@ export const ZUpdateProfileInputSchema = z.object({
   timeFormat: z.number().optional(),
   disableImpersonation: z.boolean().optional(),
   metadata: userMetadata.optional(),
+  travelSchedules: z
+    .array(
+      z.object({
+        id: z.number().optional(),
+        timeZone: z.string(),
+        endDate: z.date().optional(),
+        startDate: z.date(),
+      })
+    )
+    .optional(),
   secondaryEmails: z
     .array(
       z.object({
@@ -56,6 +66,7 @@ export const ZUpdateProfileInputSchema = z.object({
       beforeEventBuffer: z.number().optional(),
     })
     .optional(),
+  unlinkConnectedAccount: z.boolean().optional(),
 });
 
 export type TUpdateProfileInputSchema = z.infer<typeof ZUpdateProfileInputSchema>;

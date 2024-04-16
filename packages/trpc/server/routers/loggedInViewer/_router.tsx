@@ -58,6 +58,8 @@ type AppsRouterHandlerCache = {
   addSecondaryEmail?: typeof import("./addSecondaryEmail.handler").addSecondaryEmailHandler;
   globalSettings?: typeof import("./globalSettings.handler").globalSettingsHandler;
   syncBookingLimits?: typeof import("./syncBookingLimits.handler").syncBookingLimitsHandler;
+  getTravelSchedules?: typeof import("./getTravelSchedules.handler").getTravelSchedulesHandler;
+  outOfOfficeReasonList?: typeof import("./outOfOfficeReasons.handler").outOfOfficeReasonList;
 };
 
 const UNSTABLE_HANDLER_CACHE: AppsRouterHandlerCache = {};
@@ -514,5 +516,33 @@ export const loggedInViewerRouter = router({
     }
 
     return UNSTABLE_HANDLER_CACHE.syncBookingLimits({ ctx, input });
+  }),
+  getTravelSchedules: authedProcedure.query(async ({ ctx }) => {
+    if (!UNSTABLE_HANDLER_CACHE.getTravelSchedules) {
+      UNSTABLE_HANDLER_CACHE.getTravelSchedules = (
+        await import("./getTravelSchedules.handler")
+      ).getTravelSchedulesHandler;
+    }
+
+    // Unreachable code but required for type safety
+    if (!UNSTABLE_HANDLER_CACHE.getTravelSchedules) {
+      throw new Error("Failed to load handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.getTravelSchedules({ ctx });
+  }),
+  outOfOfficeReasonList: authedProcedure.query(async () => {
+    if (!UNSTABLE_HANDLER_CACHE.outOfOfficeReasonList) {
+      UNSTABLE_HANDLER_CACHE.outOfOfficeReasonList = (
+        await import("./outOfOfficeReasons.handler")
+      ).outOfOfficeReasonList;
+    }
+
+    // Unreachable code but required for type safety
+    if (!UNSTABLE_HANDLER_CACHE.outOfOfficeReasonList) {
+      throw new Error("Failed to load handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.outOfOfficeReasonList();
   }),
 });
