@@ -154,6 +154,16 @@ const getSeatReferenceId = (calEvent: CalendarEvent): string => {
   return calEvent.attendeeSeatId ? calEvent.attendeeSeatId : "";
 };
 
+export const getBookingUrl = (calEvent: CalendarEvent) => {
+  if (calEvent.platformClientId) {
+    return `${calEvent.platformBookingUrl}/${getUid(calEvent)}?slug=${calEvent.type}&username=${
+      calEvent.organizer.username
+    }&changes=true`;
+  }
+
+  return `${calEvent.bookerUrl ?? WEBAPP_URL}/booking/${getUid(calEvent)}?changes=true`;
+};
+
 export const getPlatformManageLink = (calEvent: CalendarEvent, t: TFunction) => {
   if (calEvent.platformBookingUrl) {
     return `${t("need_to_reschedule_or_cancel")} ${calEvent.platformBookingUrl}/${getUid(calEvent)}?slug=${

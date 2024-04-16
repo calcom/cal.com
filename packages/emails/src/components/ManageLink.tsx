@@ -1,4 +1,4 @@
-import { getCancelLink, getRescheduleLink } from "@calcom/lib/CalEventParser";
+import { getCancelLink, getRescheduleLink, getBookingUrl } from "@calcom/lib/CalEventParser";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 export function ManageLink(props: { calEvent: CalendarEvent; attendee: Person }) {
@@ -7,10 +7,13 @@ export function ManageLink(props: { calEvent: CalendarEvent; attendee: Person })
   const t = props.attendee.language.translate;
   const cancelLink = getCancelLink(props.calEvent);
   const rescheduleLink = getRescheduleLink(props.calEvent);
+  const bookingLink = getBookingUrl(props.calEvent);
   if (
     (props.attendee.email === props.calEvent.attendees[0]?.email ||
       props.calEvent.organizer.email === props.attendee.email) &&
-    (Boolean(cancelLink) || (!props.calEvent.recurringEvent && Boolean(rescheduleLink)))
+    (Boolean(cancelLink) ||
+      (!props.calEvent.recurringEvent && Boolean(rescheduleLink)) ||
+      Boolean(bookingLink))
   ) {
     return (
       <div
@@ -59,6 +62,22 @@ export function ManageLink(props: { calEvent: CalendarEvent; attendee: Person })
               </a>
             </span>
           )}
+
+          {!Boolean(cancelLink) &&
+            (props.calEvent.recurringEvent || !Boolean(rescheduleLink)) &&
+            Boolean(bookingLink) && (
+              <span>
+                <a
+                  href={bookingLink}
+                  style={{
+                    color: "#374151",
+                    marginLeft: "5px",
+                    textDecoration: "underline",
+                  }}>
+                  <>{t("check_here")}</>
+                </a>
+              </span>
+            )}
         </p>
       </div>
     );
