@@ -560,6 +560,7 @@ export default class EventManager {
             if (attemptedDestinationCalendarIds.includes(potentialDestinationCalendar.externalId)) {
               continue;
             }
+            attemptedDestinationCalendarIds.push(potentialDestinationCalendar.externalId);
             credentialId = potentialDestinationCalendar.credentialId;
             destinationCalendar = potentialDestinationCalendar;
             break;
