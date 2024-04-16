@@ -540,7 +540,7 @@ export default class EventManager {
       const organizerDestinationCalendar = event.destinationCalendar[0];
       let destinationCalendar = organizerDestinationCalendar;
       let eventCreationAttempts = 0;
-      const attemptedDestinationCalendarIds = [] as string[];
+      const attemptedDestinationCalendarIds: string[] = [];
 
       while (!eventCreated && eventCreationAttempts < event.destinationCalendar.length) {
         let credentialId: number | null = null;
