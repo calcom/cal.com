@@ -171,14 +171,11 @@ export const getEndpointData = (
 
     // Here, we need to determine the correct type of params at runtime
     let constructedUri: string;
-    if (isParamsRecord(params)) {
-      // Params is a Record<string, string>, handle accordingly
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      constructedUri = endpointData.constructUri(params as Record<string, string>);
-    } else if (Array.isArray(params)) {
-      // Params is string[], handle accordingly
-      constructedUri = endpointData.constructUri(params as string[]);
+
+    if (isParamsRecord(params) || Array.isArray(params)) {
+      // Params is a Either string[] OR Record<string, string>,  in both cases convert it into string[]
+      // as endpointData.constructUri expects string[]
+      constructedUri = endpointData.constructUri(params as unknown as string[]);
     } else {
       throw new Error("Invalid parameter type for dynamic endpoint.");
     }
