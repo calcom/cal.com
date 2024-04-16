@@ -1,6 +1,7 @@
 import { Navbar } from "@/components/Navbar";
 import { Inter } from "next/font/google";
-import { useRouter } from "next/navigation";
+// eslint-disable-next-line @calcom/eslint/deprecated-imports-next-router
+import { useRouter } from "next/router";
 
 import { useGetBookings } from "@calcom/atoms";
 import dayjs from "@calcom/dayjs";
