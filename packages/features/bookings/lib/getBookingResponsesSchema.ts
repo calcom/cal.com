@@ -121,13 +121,6 @@ function preprocess<T extends z.ZodType>({
         responses["email"] = BOOKED_WITH_SMS_EMAIL;
       }
 
-      if (isEmailFieldHidden && isAttendeePhoneNumberFieldHidden) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: `Both Email and Attendee Phone Number cannot be hidden`,
-        });
-      }
-
       for (const bookingField of bookingFields) {
         const value = responses[bookingField.name];
         const stringSchema = z.string();

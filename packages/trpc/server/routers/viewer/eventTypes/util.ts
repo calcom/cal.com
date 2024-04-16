@@ -146,7 +146,7 @@ export function ensureUniqueBookingFields(fields: z.infer<typeof EventTypeUpdate
   }, {} as Record<string, true>);
 }
 
-export function ensureEmailOrPhoneNumberIsNotHidden(
+export function ensureEmailOrPhoneNumberIsPresent(
   fields: z.infer<typeof EventTypeUpdateInput>["bookingFields"]
 ) {
   if (!fields) {
@@ -162,7 +162,17 @@ export function ensureEmailOrPhoneNumberIsNotHidden(
       code: "BAD_REQUEST",
       message: `Both Email and Attendee Phone Number cannot be hidden`,
     });
-  } else if (!emailField.required && !attendeePhoneNumberField.required) {
+  } else if (emailField?.hidden && emailField?.required) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: `Email field cannot be hidden if it is a required field.`,
+    });
+  } else if (attendeePhoneNumberField?.hidden && attendeePhoneNumberField?.required) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: `Attendee Phone Number field cannot be hidden if it is a required field.`,
+    });
+  } else if (!emailField?.required && !attendeePhoneNumberField?.required) {
     throw new TRPCError({
       code: "BAD_REQUEST",
       message: `Atleast Email or Attendee Phone Number need to be required field.`,

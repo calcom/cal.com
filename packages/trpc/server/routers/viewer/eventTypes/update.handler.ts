@@ -18,7 +18,7 @@ import { setDestinationCalendarHandler } from "../../loggedInViewer/setDestinati
 import type { TUpdateInputSchema } from "./update.schema";
 import {
   ensureUniqueBookingFields,
-  ensureEmailOrPhoneNumberIsNotHidden,
+  ensureEmailOrPhoneNumberIsPresent,
   handleCustomInputs,
   handlePeriodType,
 } from "./util";
@@ -133,7 +133,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   const teamId = input.teamId || eventType.team?.id;
 
   ensureUniqueBookingFields(bookingFields);
-  ensureEmailOrPhoneNumberIsNotHidden(bookingFields);
+  ensureEmailOrPhoneNumberIsPresent(bookingFields);
 
   const data: Prisma.EventTypeUpdateInput = {
     ...rest,
