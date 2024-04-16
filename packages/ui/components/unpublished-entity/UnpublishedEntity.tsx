@@ -2,8 +2,19 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { EmptyScreen, Avatar } from "@calcom/ui";
 
 export type UnpublishedEntityProps = {
+  /**
+   * If it is passed, don't pass orgSlug
+   * It conveys two things - Slug for the team and that it is not an organization
+   */
   teamSlug?: string | null;
+  /**
+   * If it is passed, don't pass teamSlug.
+   * It conveys two things - Slug for the team and that it is an organization infact
+   */
   orgSlug?: string | null;
+  /**
+   * Team or Organization name
+   */
   name?: string | null;
 };
 

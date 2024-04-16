@@ -16,7 +16,7 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/server/routers/_app";
 import { Button, Dialog, DialogClose, DialogContent, DialogFooter, Input, Label } from "@calcom/ui";
-import { Check, Edit2, ExternalLink, Star as StarSolid } from "@calcom/ui/components/icon";
+import { Icon } from "@calcom/ui";
 
 export enum UsernameChangeStatusEnum {
   UPGRADE = "UPGRADE",
@@ -239,9 +239,13 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
                 isInputUsernamePremium ? "text-transparent" : "",
                 usernameIsAvailable ? "" : ""
               )}>
-              {isInputUsernamePremium ? <StarSolid className="mt-[2px] h-4 w-4 fill-orange-400" /> : <></>}
+              {isInputUsernamePremium ? (
+                <Icon name="star" className="mt-[2px] h-4 w-4 fill-orange-400" />
+              ) : (
+                <></>
+              )}
               {!isInputUsernamePremium && usernameIsAvailable ? (
-                <Check className="mt-[2px] h-4 w-4" />
+                <Icon name="check" className="mt-[2px] h-4 w-4" />
               ) : (
                 <></>
               )}
@@ -260,7 +264,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
 
       <Dialog open={openDialogSaveUsername}>
         <DialogContent
-          Icon={Edit2}
+          Icon="pencil"
           title={t("confirm_username_change_dialog_title")}
           description={
             <>
@@ -297,7 +301,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
                 data-testid="go-to-billing"
                 href={paymentLink}>
                 <>
-                  {t("go_to_stripe_billing")} <ExternalLink className="ml-1 h-4 w-4" />
+                  {t("go_to_stripe_billing")} <Icon name="external-link" className="ml-1 h-4 w-4" />
                 </>
               </Button>
             )}
