@@ -29,6 +29,7 @@ import {
   RadioGroup as RadioArea,
   showToast,
   TextField,
+  Tooltip,
 } from "@calcom/ui";
 
 // this describes the uniform data needed to create a new event type on Profile or Team
@@ -198,9 +199,11 @@ export default function CreateEventTypeDialog({
                   label={`${t("url")}: ${urlPrefix}`}
                   required
                   addOnLeading={
-                    <span className="max-w-24 md:max-w-56">
-                      /{!isManagedEventType ? pageSlug : t("username_placeholder")}/
-                    </span>
+                    <Tooltip content={!isManagedEventType ? pageSlug : t("username_placeholder")}>
+                      <span className="max-w-24 md:max-w-56">
+                        /{!isManagedEventType ? pageSlug : t("username_placeholder")}/
+                      </span>
+                    </Tooltip>
                   }
                   {...register("slug")}
                   onChange={(e) => {
@@ -218,9 +221,12 @@ export default function CreateEventTypeDialog({
                   label={t("url")}
                   required
                   addOnLeading={
-                    <span className="max-w-24 md:max-w-56">
-                      {urlPrefix}/{!isManagedEventType ? pageSlug : t("username_placeholder")}/
-                    </span>
+                    <Tooltip
+                      content={`${urlPrefix}/{!isManagedEventType ? pageSlug : t("username_placeholder")}/`}>
+                      <span className="max-w-24 md:max-w-56">
+                        {urlPrefix}/{!isManagedEventType ? pageSlug : t("username_placeholder")}/
+                      </span>
+                    </Tooltip>
                   }
                   {...register("slug")}
                 />
