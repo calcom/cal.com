@@ -41,14 +41,14 @@ test.describe("UploadAvatar", async () => {
         },
       });
 
-      // Wait for the avatar image with the http src to appear instead of the data uri
-      const avatar = page.getByTestId("profile-upload-avatar").locator("img[src^=http]");
+      const avatarImage = page.getByTestId("profile-upload-avatar").locator("img");
 
-      const src = await avatar.getAttribute("src");
+      await expect(avatarImage).toHaveAttribute(
+        "src",
+        new RegExp(`^\/api\/avatar\/${response.objectKey}\.png$`)
+      );
 
-      await expect(src).toContain(response.objectKey);
-
-      const urlResponse = await page.request.get(`/api/avatar/${response.objectKey}.png`, {
+      const urlResponse = await page.request.get((await avatarImage.getAttribute("src")) || "", {
         maxRedirects: 0,
       });
 
