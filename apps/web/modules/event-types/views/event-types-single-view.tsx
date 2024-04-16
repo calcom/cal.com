@@ -755,6 +755,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
               seatsShowAttendees,
               seatsShowAvailabilityCount,
               metadata,
+              hashedLink: values.hashedLink,
               customInputs,
             };
             // Filter out undefined values
