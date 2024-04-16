@@ -53,7 +53,6 @@ import { useFormbricks } from "@calcom/lib/formbricks-client";
 import getBrandColours from "@calcom/lib/getBrandColours";
 import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { isKeyInObject } from "@calcom/lib/isKeyInObject";
 import { localStorage } from "@calcom/lib/webstorage";
@@ -216,15 +215,17 @@ const useBanners = () => {
 const Layout = (props: LayoutProps) => {
   const banners = useBanners();
 
-  const showIntercom = localStorage.getItem("showIntercom");
-  const isMobile = useMediaQuery("(max-width: 768px)");
+  const { data: user } = trpc.viewer.me.useQuery();
   const { boot } = useIntercom();
   const pageTitle = typeof props.heading === "string" && !props.title ? props.heading : props.title;
 
   useEffect(() => {
-    if (showIntercom === "false" || isMobile) return;
+    // not using useMediaQuery as it toggles between true and false
+    const showIntercom = localStorage.getItem("showIntercom");
+    if (showIntercom === "false" || window.innerWidth <= 768 || !user) return;
     boot();
-  }, [showIntercom, isMobile]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   const bannersHeight = useMemo(() => {
     const activeBanners =
@@ -381,7 +382,7 @@ interface UserDropdownProps {
 function UserDropdown({ small }: UserDropdownProps) {
   const { t } = useLocale();
   const { data: user } = useMeQuery();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const bookerUrl = useBookerUrl();
 
   useEffect(() => {

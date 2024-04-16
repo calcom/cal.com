@@ -66,7 +66,7 @@ export default function RoutingForms({
   const { hasPaidPlan } = useHasPaidPlan();
   const routerQuery = useRouterQuery();
   const hookForm = useFormContext<RoutingFormWithResponseCount>();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const [parent] = useAutoAnimate<HTMLUListElement>();
 
   const mutation = trpc.viewer.routingFormOrder.useMutation({
