@@ -33,7 +33,9 @@ import { EventTypesStepCard } from "@components/apps/installation/EventTypesStep
 import { StepHeader } from "@components/apps/installation/StepHeader";
 
 export type TEventType = EventTypeAppSettingsComponentProps["eventType"] &
-  Pick<EventTypeModel, "metadata" | "schedulingType" | "slug" | "requiresConfirmation" | "position">;
+  Pick<EventTypeModel, "metadata" | "schedulingType" | "slug" | "requiresConfirmation" | "position"> & {
+    selected: boolean;
+  };
 
 export type TEventTypesForm = {
   eventTypes: TEventType[];

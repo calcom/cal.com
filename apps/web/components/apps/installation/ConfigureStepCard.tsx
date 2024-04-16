@@ -1,4 +1,5 @@
 import type { TEventType, TEventTypesForm } from "@pages/apps/installation/[[...step]]";
+import { X } from "lucide-react";
 import type { Dispatch, SetStateAction } from "react";
 import type { FC } from "react";
 import React, { forwardRef, useEffect, useRef, useState } from "react";
@@ -13,7 +14,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AppCategories } from "@calcom/prisma/enums";
 import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { Button, Form } from "@calcom/ui";
-import { X } from "@calcom/ui/components/icon";
 
 import useAppsData from "@lib/hooks/useAppsData";
 
