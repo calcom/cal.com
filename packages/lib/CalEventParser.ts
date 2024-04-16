@@ -156,6 +156,7 @@ const getSeatReferenceId = (calEvent: CalendarEvent): string => {
 
 export const getBookingUrl = (calEvent: CalendarEvent) => {
   if (calEvent.platformClientId) {
+    if (!calEvent.platformBookingUrl) return "";
     return `${calEvent.platformBookingUrl}/${getUid(calEvent)}?slug=${calEvent.type}&username=${
       calEvent.organizer.username
     }&changes=true`;
