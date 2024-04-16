@@ -11,6 +11,7 @@ import type { Logger } from "tslog";
 import { v5 as uuidv5 } from "uuid";
 import z from "zod";
 
+import processExternalId from "@calcom/app-store/_utils/calendars/processExternalId";
 import { metadata as GoogleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
 import type { LocationObject } from "@calcom/app-store/locations";
 import {
@@ -1407,7 +1408,10 @@ async function handler(
   const teamMemberPromises = users.slice(1).map(async (user) => {
     // push to teamDestinationCalendars if it's a team event but collective only
     if (isTeamEventType && eventType.schedulingType === "COLLECTIVE" && user.destinationCalendar) {
-      teamDestinationCalendars.push(user.destinationCalendar);
+      teamDestinationCalendars.push({
+        ...user.destinationCalendar,
+        externalId: processExternalId(user.destinationCalendar),
+      });
     }
 
     return {
