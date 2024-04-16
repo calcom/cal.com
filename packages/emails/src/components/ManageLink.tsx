@@ -5,6 +5,8 @@ export function ManageLink(props: { calEvent: CalendarEvent; attendee: Person })
   // Only the original attendee can make changes to the event
   // Guests cannot
   const t = props.attendee.language.translate;
+  const cancelLink = getCancelLink(props.calEvent);
+  const rescheduleLink = getRescheduleLink(props.calEvent);
   if (
     props.attendee.email === props.calEvent.attendees[0]?.email ||
     props.calEvent.organizer.email === props.attendee.email
@@ -28,7 +30,7 @@ export function ManageLink(props: { calEvent: CalendarEvent; attendee: Person })
           }}>
           <>{t("need_to_make_a_change")}</>
 
-          {!props.calEvent.recurringEvent && (
+          {!props.calEvent.recurringEvent && Boolean(rescheduleLink) && (
             <span>
               <a
                 href={getRescheduleLink(props.calEvent)}
@@ -43,17 +45,19 @@ export function ManageLink(props: { calEvent: CalendarEvent; attendee: Person })
               <>{t("or_lowercase")}</>
             </span>
           )}
-          <span>
-            <a
-              href={getCancelLink(props.calEvent)}
-              style={{
-                color: "#374151",
-                marginLeft: "5px",
-                textDecoration: "underline",
-              }}>
-              <>{t("cancel")}</>
-            </a>
-          </span>
+          {Boolean(cancelLink) && (
+            <span>
+              <a
+                href={getCancelLink(props.calEvent)}
+                style={{
+                  color: "#374151",
+                  marginLeft: "5px",
+                  textDecoration: "underline",
+                }}>
+                <>{t("cancel")}</>
+              </a>
+            </span>
+          )}
         </p>
       </div>
     );

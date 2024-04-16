@@ -265,7 +265,7 @@ export class BookingsController {
       ? await this.getOAuthClientsParams(req, oAuthClientId)
       : DEFAULT_PLATFORM_PARAMS;
     Object.assign(req, { userId, ...oAuthParams });
-    req.body = { ...req.body, areEmailsEnabled: oAuthParams.areEmailsEnabled };
+    req.body = { ...req.body, noEmail: !oAuthParams.areEmailsEnabled };
     return req as unknown as NextApiRequest & { userId?: number } & OAuthRequestParams;
   }
 }
