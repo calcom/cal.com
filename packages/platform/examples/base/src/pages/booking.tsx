@@ -1,6 +1,6 @@
 import { Navbar } from "@/components/Navbar";
 import { Inter } from "next/font/google";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { Booker, useEventTypesPublic } from "@calcom/atoms";
