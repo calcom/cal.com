@@ -110,13 +110,14 @@ function preprocess<T extends z.ZodType>({
         // if eventType has been deleted, we won't have bookingFields and thus we can't validate the responses.
         return;
       }
-      const isAttendeePhoneNumberFieldHidden = !!bookingFields.find(
-        (field) => field.name === "attendeePhoneNumber"
-      )?.hidden;
 
-      const isEmailFieldHidden = !!bookingFields.find((field) => field.name === "email")?.hidden;
+      const attendeePhoneNumberField = bookingFields.find((field) => field.name === "attendeePhoneNumber");
+      const isAttendeePhoneNumberFieldHidden = attendeePhoneNumberField?.hidden;
 
-      if (isEmailFieldHidden && !isAttendeePhoneNumberFieldHidden) {
+      const emailField = bookingFields.find((field) => field.name === "email");
+      const isEmailFieldHidden = !!emailField?.hidden;
+
+      if (isEmailFieldHidden && !emailField.required && !isAttendeePhoneNumberFieldHidden) {
         responses["email"] = BOOKED_WITH_SMS_EMAIL;
       }
 
@@ -161,7 +162,7 @@ function preprocess<T extends z.ZodType>({
 
         if (bookingField.type === "email") {
           // Email RegExp to validate if the input is a valid email
-          if (!emailSchema.safeParse(value).success) {
+          if (bookingField.required && !emailSchema.safeParse(value).success) {
             ctx.addIssue({
               code: z.ZodIssueCode.custom,
               message: m("email_validation_error"),

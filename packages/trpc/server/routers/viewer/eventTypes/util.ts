@@ -152,15 +152,20 @@ export function ensureEmailOrPhoneNumberIsNotHidden(
   if (!fields) {
     return;
   }
-  const isAttendeePhoneNumberFieldHidden = !!fields.find((field) => field.name === "attendeePhoneNumber")
-    ?.hidden;
 
-  const isEmailFieldHidden = !!fields.find((field) => field.name === "email")?.hidden;
+  const attendeePhoneNumberField = fields.find((field) => field.name === "attendeePhoneNumber");
 
-  if (isEmailFieldHidden && isAttendeePhoneNumberFieldHidden) {
+  const emailField = fields.find((field) => field.name === "email");
+
+  if (emailField?.hidden && attendeePhoneNumberField?.hidden) {
     throw new TRPCError({
       code: "BAD_REQUEST",
       message: `Both Email and Attendee Phone Number cannot be hidden`,
+    });
+  } else if (!emailField.required && !attendeePhoneNumberField.required) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: `Atleast Email or Attendee Phone Number need to be required field.`,
     });
   }
 }
