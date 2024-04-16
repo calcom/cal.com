@@ -1,3 +1,4 @@
+import { useRouter } from "next/navigation";
 import React from "react";
 
 import { classNames } from "@calcom/lib";
@@ -38,7 +39,7 @@ export const OAuthClientCard = ({
   isLoading,
   areEmailsEnabled,
 }: OAuthClientCardProps) => {
-  console.log(areEmailsEnabled);
+  const router = useRouter();
 
   const clientPermissions = Object.values(PERMISSIONS_GROUPED_MAP).map((value, index) => {
     let permissionsMessage = "";
@@ -139,7 +140,14 @@ export const OAuthClientCard = ({
           <span className="text-sm font-semibold">Emails enabled:</span> {areEmailsEnabled ? "Yes" : "No"}
         </div>
       </div>
-      <div className="flex items-start">
+      <div className="flex items-start gap-4">
+        <Button
+          className="bg-subtle hover:bg-emphasis text-white"
+          loading={isLoading}
+          disabled={isLoading}
+          onClick={() => router.push(`/settings/organizations/platform/oauth-clients/create?clientId=${id}`)}>
+          Edit
+        </Button>
         <Button
           className="bg-red-500 text-white hover:bg-red-600"
           loading={isLoading}
