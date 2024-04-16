@@ -10,3 +10,4 @@ export { useGetEventTypeById } from "./hooks/event-types/useGetEventTypeById";
 export { useCancelBooking } from "./hooks/useCancelBooking";
 export { useGetBooking } from "./hooks/useGetBooking";
 export { useGetBookings } from "./hooks/useGetBookings";
+export { useMe } from "./hooks/useMe";

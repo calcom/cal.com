@@ -61,7 +61,7 @@ const SkeletonLoader = ({ title, description }: { title: string; description: st
 const PasswordView = ({ user }: PasswordViewProps) => {
   const { data } = useSession();
   const { t } = useLocale();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const metadata = userMetadataSchema.safeParse(user?.metadata);
   const initialSessionTimeout = metadata.success ? metadata.data?.sessionTimeout : undefined;
 
