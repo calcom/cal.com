@@ -2385,6 +2385,8 @@
   "sync_selected_event_types": "Sync selected event types",
   "global_limit_booking_frequency_description": "Limit how many times events can be booked",
   "global_limit_future_booking_frequency_description": "Limit how far in the future people can book a time",
+  "failed_to_save_global_settings": "Failed to save global settings",
+  "failed_to_sync_events_with_global_settings": "Failed to sync events with global settings",
   "make_a_call": "Make a Call",
   "ooo_reasons_unspecified": "Unspecified",
   "ooo_reasons_vacation": "Vacation",

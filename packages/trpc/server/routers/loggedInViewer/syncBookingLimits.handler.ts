@@ -1,4 +1,5 @@
-import { getEventTypesByViewer, parseBookingLimit } from "@calcom/lib";
+import { parseBookingLimit } from "@calcom/lib";
+import { getEventTypesByViewer } from "@calcom/lib/event-types/getEventTypesByViewer";
 import prisma from "@calcom/prisma";
 import type { PeriodType } from "@calcom/prisma/enums";
 import type { IntervalLimit } from "@calcom/types/Calendar";
@@ -77,8 +78,8 @@ export const syncBookingLimitsHandler = async ({ ctx, input }: SyncBookingLimits
             ? globalSettings.periodCountCalendarDays
             : eventType.periodCountCalendarDays,
           periodDays: isFuture ? globalSettings.periodDays : eventType.periodDays,
-          periodStartDate: periodStartDate?.toString() || null,
-          periodEndDate: periodEndDate?.toString() || null,
+          periodStartDate: periodStartDate || null,
+          periodEndDate: periodEndDate || null,
           minimumBookingNotice: isFuture
             ? globalSettings.minimumBookingNotice
             : eventType.minimumBookingNotice,

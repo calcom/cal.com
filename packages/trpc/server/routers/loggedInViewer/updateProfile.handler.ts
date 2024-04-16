@@ -71,16 +71,10 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
   const locale = input.locale || user.locale;
   const emailVerification = await getFeatureFlag(prisma, "email-verification");
 
-  const { travelSchedules, ...rest } = input;
+  const { travelSchedules, bookingLimits, futureBookingLimits, ...rest } = input;
 
   const secondaryEmails = input?.secondaryEmails || [];
   delete input.secondaryEmails;
-
-  const bookingLimits = input?.bookingLimits;
-  delete input.bookingLimits;
-
-  const futureBookingLimits = input?.futureBookingLimits;
-  delete input.futureBookingLimits;
 
   const unlinkConnectedAccount = input?.unlinkConnectedAccount || false;
   delete input.unlinkConnectedAccount;

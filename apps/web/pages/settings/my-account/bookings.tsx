@@ -24,7 +24,6 @@ import {
   CheckboxField,
   showToast,
 } from "@calcom/ui";
-import { ExternalLink } from "@calcom/ui/components/icon";
 
 import PageWrapper from "@components/PageWrapper";
 import {
@@ -79,8 +78,8 @@ const BookingsView = ({ data }: { data: RouterOutputs["viewer"]["globalSettings"
       periodCountCalendarDays: !!globalSettings?.periodCountCalendarDays,
       periodDays: globalSettings?.periodDays,
       periodDates: {
-        startDate: globalSettings?.periodStartDate ?? new Date(),
-        endDate: globalSettings?.periodEndDate ?? new Date(),
+        startDate: globalSettings?.periodStartDate ?? new Date().toISOString(),
+        endDate: globalSettings?.periodEndDate ?? new Date().toISOString(),
       },
       minimumBookingNotice: globalSettings?.minimumBookingNotice || 120,
       beforeEventBuffer: globalSettings?.beforeEventBuffer,
@@ -95,6 +94,9 @@ const BookingsView = ({ data }: { data: RouterOutputs["viewer"]["globalSettings"
       bookingsLimitFormMethods.reset(bookingsLimitFormMethods.getValues());
       bookingFutureLimitFormMethods.reset(bookingFutureLimitFormMethods.getValues());
     },
+    onError: () => {
+      showToast(t("failed_to_save_global_settings"), "error");
+    },
   });
 
   const syncBookingLimitsMutation = trpc.viewer.syncBookingLimits.useMutation({
@@ -103,6 +105,9 @@ const BookingsView = ({ data }: { data: RouterOutputs["viewer"]["globalSettings"
       await utils.viewer.globalSettings.invalidate();
       showToast(res.message, "success");
       bookingsLimitFormMethods.reset();
+    },
+    onError: () => {
+      showToast(t("failed_to_sync_events_with_global_settings"), "error");
     },
   });
 
@@ -118,7 +123,7 @@ const BookingsView = ({ data }: { data: RouterOutputs["viewer"]["globalSettings"
     }
 
     return (
-      <div className="flex">
+      <div className="flex items-center">
         <span className="text-subtle text-sm font-normal">
           {t("event_type_different_limiting_frequencies", { eventCount })}
         </span>
@@ -287,7 +292,7 @@ const BookingsView = ({ data }: { data: RouterOutputs["viewer"]["globalSettings"
                           target="_blank"
                           variant="icon"
                           color="minimal"
-                          StartIcon={ExternalLink}
+                          StartIcon="external-link"
                           href={`/event-types/${eventType.id}?tabName=limits`}
                         />
                       </div>

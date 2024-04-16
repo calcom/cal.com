@@ -1,7 +1,7 @@
 // eslint-disable-next-line no-restricted-imports
 import isEqual from "lodash/isEqual";
 
-import { getEventTypesByViewer } from "@calcom/lib";
+import { getEventTypesByViewer } from "@calcom/lib/event-types/getEventTypesByViewer";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import prisma from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
