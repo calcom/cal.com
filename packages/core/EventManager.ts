@@ -535,78 +535,104 @@ export default class EventManager {
     };
 
     if (event.destinationCalendar && event.destinationCalendar.length > 0) {
-      // Since GCal pushes events to multiple calendars we only want to create one event per booking
-      let gCalAdded = false;
-      const destinationCalendars: DestinationCalendar[] = event.destinationCalendar.reduce(
-        (destinationCals, cal) => {
-          if (cal.integration === "google_calendar") {
-            if (gCalAdded) {
-              return destinationCals;
-            } else {
-              gCalAdded = true;
-              destinationCals.push(cal);
-            }
-          } else {
-            destinationCals.push(cal);
-          }
-          return destinationCals;
-        },
-        [] as DestinationCalendar[]
-      );
-      for (const destination of destinationCalendars) {
-        log.silly("Creating Calendar event", JSON.stringify({ destination }));
-        if (destination.credentialId) {
-          let credential = this.calendarCredentials.find((c) => c.id === destination.credentialId);
-          if (!credential) {
-            // Fetch credential from DB
-            const credentialFromDB = await prisma.credential.findUnique({
-              where: {
-                id: destination.credentialId,
-              },
-              select: credentialForCalendarServiceSelect,
-            });
-            if (credentialFromDB && credentialFromDB.appId) {
-              credential = {
-                id: credentialFromDB.id,
-                type: credentialFromDB.type,
-                key: credentialFromDB.key,
-                userId: credentialFromDB.userId,
-                teamId: credentialFromDB.teamId,
-                invalid: credentialFromDB.invalid,
-                appId: credentialFromDB.appId,
-                user: credentialFromDB.user,
-              };
-            }
-          }
-          if (credential) {
-            const createdEvent = await createEvent(credential, event, destination.externalId);
-            if (createdEvent) {
-              createdEvents.push(createdEvent);
-            }
-          }
-        } else {
-          const destinationCalendarCredentials = this.calendarCredentials.filter(
-            (c) => c.type === destination.integration
-          );
-          // It might not be the first connected calendar as it seems that the order is not guaranteed to be ascending of credentialId.
-          const firstCalendarCredential = destinationCalendarCredentials[0] as
-            | (typeof destinationCalendarCredentials)[number]
-            | undefined;
+      // Try creating a calendar event on the organizer's destination calendar, fallback to other teams if not successful
+      let eventCreated = false;
+      const organizerDestinationCalendar = event.destinationCalendar[0];
+      let destinationCalendar = organizerDestinationCalendar;
+      let eventCreationAttempts = 0;
+      const attemptedDestinationCalendarIds = [] as string[];
 
-          if (!firstCalendarCredential) {
-            log.warn(
-              "No other credentials found of the same type as the destination calendar. Falling back to first connected calendar"
+      while (!eventCreated && eventCreationAttempts < event.destinationCalendar.length) {
+        let credentialId: number | null = null;
+        // First try use the organizer's destination calendar
+        if (eventCreationAttempts === 0) {
+          credentialId = organizerDestinationCalendar.credentialId;
+          destinationCalendar = organizerDestinationCalendar;
+        } else {
+          for (let i = eventCreationAttempts; i < event.destinationCalendar.length; i++) {
+            // When trying other destination calendars, ensure we haven't already tried them
+            const potentialDestinationCalendar = event.destinationCalendar[i];
+
+            if (potentialDestinationCalendar.credentialId === organizerDestinationCalendar.credentialId) {
+              continue;
+            }
+
+            if (attemptedDestinationCalendarIds.includes(potentialDestinationCalendar.externalId)) {
+              continue;
+            }
+            credentialId = potentialDestinationCalendar.credentialId;
+            destinationCalendar = potentialDestinationCalendar;
+            break;
+          }
+        }
+
+        if (!credentialId) {
+          // Keep this logic here for other events that need to fallback to other calendars
+          if (eventCreationAttempts === 0) {
+            const destinationCalendarCredentials = this.calendarCredentials.filter(
+              (c) => c.type === destinationCalendar.integration
             );
-            await fallbackToFirstConnectedCalendar();
-          } else {
-            log.warn(
-              "No credentialId found for destination calendar, falling back to first found calendar of same type as destination calendar",
-              safeStringify({
-                destination: getPiiFreeDestinationCalendar(destination),
-                firstConnectedCalendar: getPiiFreeCredential(firstCalendarCredential),
-              })
-            );
-            createdEvents.push(await createEvent(firstCalendarCredential, event));
+            // It might not be the first connected calendar as it seems that the order is not guaranteed to be ascending of credentialId.
+            const firstCalendarCredential = destinationCalendarCredentials[0] as
+              | (typeof destinationCalendarCredentials)[number]
+              | undefined;
+
+            if (!firstCalendarCredential) {
+              log.warn(
+                "No other credentials found of the same type as the destination calendar. Falling back to first connected calendar"
+              );
+              await fallbackToFirstConnectedCalendar();
+            } else {
+              log.warn(
+                "No credentialId found for destination calendar, falling back to first found calendar of same type as destination calendar",
+                safeStringify({
+                  destination: getPiiFreeDestinationCalendar(destinationCalendar),
+                  firstConnectedCalendar: getPiiFreeCredential(firstCalendarCredential),
+                })
+              );
+              createdEvents.push(await createEvent(firstCalendarCredential, event));
+              eventCreated = true;
+              break;
+            }
+          }
+          // Move to next destination calendar
+          eventCreationAttempts++;
+          continue;
+        }
+
+        let credential;
+
+        // If we're attempting to use the organizer's destination calendar first, the credential will exist
+        if (eventCreationAttempts === 0) {
+          credential = this.calendarCredentials.find((cred) => cred.id === credentialId);
+        }
+
+        if (!credential) {
+          // Fetch credential from DB
+          const credentialFromDB = await prisma.credential.findUnique({
+            where: {
+              id: credentialId,
+            },
+            select: credentialForCalendarServiceSelect,
+          });
+          if (credentialFromDB && credentialFromDB.appId) {
+            credential = {
+              id: credentialFromDB.id,
+              type: credentialFromDB.type,
+              key: credentialFromDB.key,
+              userId: credentialFromDB.userId,
+              teamId: credentialFromDB.teamId,
+              invalid: credentialFromDB.invalid,
+              appId: credentialFromDB.appId,
+              user: credentialFromDB.user,
+            };
+          }
+        }
+        if (credential) {
+          const createdEvent = await createEvent(credential, event, destinationCalendar.externalId);
+          if (createdEvent) {
+            createdEvents.push(createdEvent);
+            eventCreated = true;
           }
         }
       }
