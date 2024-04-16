@@ -18,6 +18,11 @@ export interface BookerProps {
   username: string;
   orgBannerUrl?: string | null;
 
+  /*
+    all custom classnames related to booker styling go here
+  */
+  customClassNames?: CustomClassNames;
+
   /**
    * Whether is a team or org, we gather basic info from both
    */
@@ -109,11 +114,13 @@ export type WrappedBookerPropsMain = {
   schedule: useScheduleForEventReturnType;
   bookerLayout: UseBookerLayoutType;
   verifyEmail: UseVerifyEmailReturnType;
+  customClassNames?: CustomClassNames;
 };
 
 export type WrappedBookerPropsForPlatform = WrappedBookerPropsMain & {
   isPlatform: true;
   verifyCode: undefined;
+  customClassNames?: CustomClassNames;
 };
 export type WrappedBookerPropsForWeb = WrappedBookerPropsMain & {
   isPlatform: false;
@@ -125,3 +132,27 @@ export type WrappedBookerProps = WrappedBookerPropsForPlatform | WrappedBookerPr
 export type BookerState = "loading" | "selecting_date" | "selecting_time" | "booking";
 export type BookerLayout = BookerLayouts | "mobile";
 export type BookerAreas = "calendar" | "timeslots" | "main" | "meta" | "header";
+
+export type CustomClassNames = {
+  bookerContainer?: string;
+  eventMetaCustomClassNames?: {
+    eventMetaContainer?: string;
+    eventMetaTitle?: string;
+    eventMetaTimezoneSelect?: string;
+  };
+  datePickerCustomClassNames?: {
+    datePickerContainer?: string;
+    datePickerTitle?: string;
+    datePickerDays?: string;
+    datePickerDate?: string;
+    datePickerDatesActive?: string;
+    datePickerToggle?: string;
+  };
+  availableTimeSlotsCustomClassNames?: {
+    availableTimeSlotsContainer?: string;
+    availableTimeSlotsHeaderContainer?: string;
+    availableTimeSlotsTitle?: string;
+    availableTimeSlotsTimeFormatToggle?: string;
+    availableTimes?: string;
+  };
+};

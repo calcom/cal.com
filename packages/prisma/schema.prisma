@@ -212,6 +212,19 @@ model UserPassword {
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
+model TravelSchedule {
+  id           Int       @id @default(autoincrement())
+  userId       Int
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  timeZone     String
+  startDate    DateTime
+  endDate      DateTime?
+  prevTimeZone String?
+
+  @@index([startDate])
+  @@index([endDate])
+}
+
 // It holds Personal Profiles of a User plus it has email, password and other core things
 model User {
   id                  Int                  @id @default(autoincrement())
@@ -225,6 +238,7 @@ model User {
   avatar              String?
   avatarUrl           String?
   timeZone            String               @default("Europe/London")
+  travelSchedules     TravelSchedule[]
   weekStart           String               @default("Sunday")
   // DEPRECATED - TO BE REMOVED
   startTime           Int                  @default(0)
@@ -302,6 +316,8 @@ model User {
   movedToProfile             Profile?                     @relation("moved_to_profile", fields: [movedToProfileId], references: [id], onDelete: SetNull)
   secondaryEmails            SecondaryEmail[]
   isPlatformManaged          Boolean                      @default(false)
+
+  OutOfOfficeReasons OutOfOfficeReason[]
 
   @@unique([email])
   @@unique([email, username])
@@ -752,6 +768,7 @@ model Account {
   type              String
   provider          String
   providerAccountId String
+  providerEmail     String?
   refresh_token     String? @db.Text
   access_token      String? @db.Text
   expires_at        Int?
@@ -1177,14 +1194,17 @@ model Avatar {
 }
 
 model OutOfOfficeEntry {
-  id       Int      @id @default(autoincrement())
-  uuid     String   @unique
+  id       Int                @id @default(autoincrement())
+  uuid     String             @unique
   start    DateTime
   end      DateTime
+  notes    String?
   userId   Int
-  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user     User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   toUserId Int?
-  toUser   User?    @relation(name: "toUser", fields: [toUserId], references: [id], onDelete: Cascade)
+  toUser   User?              @relation(name: "toUser", fields: [toUserId], references: [id], onDelete: Cascade)
+  reasonId Int?
+  reason   OutOfOfficeReason? @relation(fields: [reasonId], references: [id], onDelete: SetNull)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1193,6 +1213,17 @@ model OutOfOfficeEntry {
   @@index([userId])
   @@index([toUserId])
   @@index([start, end])
+}
+
+model OutOfOfficeReason {
+  id      Int     @id @default(autoincrement())
+  emoji   String
+  reason  String  @unique
+  enabled Boolean @default(true)
+  userId  Int?
+  user    User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  entries OutOfOfficeEntry[]
 }
 
 // Platform
@@ -1210,6 +1241,11 @@ model PlatformOAuthClient {
   accessTokens        AccessToken[]
   refreshToken        RefreshToken[]
   authorizationTokens PlatformAuthorizationToken[]
+
+  bookingRedirectUri           String?
+  bookingCancelRedirectUri     String?
+  bookingRescheduleRedirectUri String?
+  areEmailsEnabled             Boolean @default(false)
 
   createdAt DateTime @default(now())
 }
