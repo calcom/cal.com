@@ -1380,9 +1380,9 @@
         ]
       }
     },
-    "/v2/bookings/reccuring": {
+    "/v2/bookings/recurring": {
       "post": {
-        "operationId": "BookingsController_createReccuringBooking",
+        "operationId": "BookingsController_createRecurringBooking",
         "parameters": [
           {
             "name": "x-cal-client-id",
