@@ -9,6 +9,7 @@ import {
   DialogClose,
   DialogContent,
   EmptyScreen,
+  Icon,
   ListItem,
   ListItemText,
   ListItemTitle,

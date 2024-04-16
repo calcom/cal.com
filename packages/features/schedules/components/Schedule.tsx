@@ -65,6 +65,7 @@ export const ScheduleDay = <TFieldValues extends FieldValues>({
     dayRanges?: string;
     timeRangeField?: string;
     labelAndSwitchContainer?: string;
+    scheduleContainer?: string;
   };
 }) => {
   const { watch, setValue } = useFormContext();

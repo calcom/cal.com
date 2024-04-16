@@ -19,6 +19,7 @@ import {
 } from "@calcom/features/ee/organizations/components/OrgUpgradeBanner";
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import HelpMenuItem from "@calcom/features/ee/support/components/HelpMenuItem";
+import useIntercom from "@calcom/features/ee/support/lib/intercom/useIntercom";
 import { TeamsUpgradeBanner, type TeamsUpgradeBannerProps } from "@calcom/features/ee/teams/components";
 import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { KBarContent, KBarRoot, KBarTrigger } from "@calcom/features/kbar/Kbar";
@@ -54,6 +55,7 @@ import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { isKeyInObject } from "@calcom/lib/isKeyInObject";
+import { localStorage } from "@calcom/lib/webstorage";
 import type { User } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
 import useEmailVerifyCheck from "@calcom/trpc/react/hooks/useEmailVerifyCheck";
@@ -213,7 +215,15 @@ const useBanners = () => {
 const Layout = (props: LayoutProps) => {
   const banners = useBanners();
 
+  const showIntercom = localStorage.getItem("showIntercom");
+  const { boot } = useIntercom();
   const pageTitle = typeof props.heading === "string" && !props.title ? props.heading : props.title;
+
+  useEffect(() => {
+    // not using useMediaQuery as it toggles between true and false
+    if (showIntercom === "false" || window.innerWidth <= 768) return;
+    boot();
+  }, [showIntercom]);
 
   const bannersHeight = useMemo(() => {
     const activeBanners =
@@ -370,7 +380,7 @@ interface UserDropdownProps {
 function UserDropdown({ small }: UserDropdownProps) {
   const { t } = useLocale();
   const { data: user } = useMeQuery();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const bookerUrl = useBookerUrl();
 
   useEffect(() => {

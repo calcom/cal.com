@@ -27,10 +27,16 @@ export const EventMeta = ({
   event,
   isPending,
   isPlatform = true,
+  classNames,
 }: {
   event: useEventReturnType["data"];
   isPending: useEventReturnType["isPending"];
   isPlatform?: boolean;
+  classNames?: {
+    eventMetaContainer?: string;
+    eventMetaTitle?: string;
+    eventMetaTimezoneSelect?: string;
+  };
 }) => {
   const { setTimezone, timeFormat, timezone } = useTimePreferences();
   const selectedDuration = useBookerStore((state) => state.selectedDuration);
@@ -78,7 +84,7 @@ export const EventMeta = ({
     : "text-bookinghighlight";
 
   return (
-    <div className="relative z-10 p-6" data-testid="event-meta">
+    <div className={`${classNames?.eventMetaContainer} relative z-10 p-6`} data-testid="event-meta">
       {isPending && (
         <m.div {...fadeInUp} initial="visible" layout>
           <EventMetaSkeleton />
@@ -92,7 +98,7 @@ export const EventMeta = ({
             profile={event.profile}
             entity={event.entity}
           />
-          <EventTitle className="my-2">{event?.title}</EventTitle>
+          <EventTitle className={`${classNames?.eventMetaTitle} my-2`}>{event?.title}</EventTitle>
           {event.description && (
             <EventMetaBlock contentClassName="mb-8 break-words max-w-full max-h-[180px] scroll-bar pr-4">
               <div dangerouslySetInnerHTML={{ __html: event.description }} />
@@ -126,7 +132,6 @@ export const EventMeta = ({
               </EventMetaBlock>
             )}
             <EventDetails event={event} />
-
             <EventMetaBlock
               className="cursor-pointer [&_.current-timezone:before]:focus-within:opacity-100 [&_.current-timezone:before]:hover:opacity-100"
               contentClassName="relative max-w-[90%]"
@@ -140,6 +145,7 @@ export const EventMeta = ({
                   }`}>
                   <TimezoneSelect
                     menuPosition="fixed"
+                    timezoneSelectCustomClassname={classNames?.eventMetaTimezoneSelect}
                     classNames={{
                       control: () => "!min-h-0 p-0 w-full border-0 bg-transparent focus-within:ring-0",
                       menu: () => "!w-64 max-w-[90vw]",
