@@ -199,6 +199,10 @@ const OnboardingPage = ({
     }
   };
 
+  const handleSetUpLater = () => {
+    router.push(`/apps/installed/${appMetadata.categories[0]}?hl=${appMetadata.slug}`);
+  };
+
   return (
     <div
       key={pathname}
@@ -252,7 +256,11 @@ const OnboardingPage = ({
               {currentStep === AppOnboardingSteps.EVENT_TYPES_STEP &&
                 eventTypes &&
                 Boolean(eventTypes?.length) && (
-                  <EventTypesStepCard setConfigureStep={setConfigureStep} userName={userName} />
+                  <EventTypesStepCard
+                    setConfigureStep={setConfigureStep}
+                    userName={userName}
+                    handleSetUpLater={handleSetUpLater}
+                  />
                 )}
               {currentStep === AppOnboardingSteps.CONFIGURE_STEP && formPortalRef.current && (
                 <ConfigureStepCard
@@ -264,6 +272,7 @@ const OnboardingPage = ({
                   formPortalRef={formPortalRef}
                   setConfigureStep={setConfigureStep}
                   eventTypes={eventTypes}
+                  handleSetUpLater={handleSetUpLater}
                 />
               )}
             </Form>
@@ -433,7 +442,10 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       eventTypes = await getEventTypes(user.id, parsedTeamIdParam);
       if (eventTypes.length === 0) {
         return {
-          redirect: { permanent: false, destination: `/apps/installed/${appMetadata.categories[0]}` },
+          redirect: {
+            permanent: false,
+            destination: `/apps/installed/${appMetadata.categories[0]}?hl=${appMetadata.slug}`,
+          },
         };
       }
     }

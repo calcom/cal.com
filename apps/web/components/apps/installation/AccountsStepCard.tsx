@@ -73,7 +73,7 @@ export const AccountsStepCard: FC<AccountStepCardProps> = ({ teams, personalAcco
       <div className="text-sm font-medium text-gray-400">{t("install_app_on")}</div>
       <div className={classNames("mt-2 flex flex-col gap-2 ")}>
         <AccountSelector
-          testId="install-app-on-personal-account"
+          testId="install-app-button-personal"
           avatar={personalAccount.avatar ?? ""}
           name={personalAccount.name ?? ""}
           alreadyInstalled={personalAccount.alreadyInstalled}
@@ -83,7 +83,7 @@ export const AccountsStepCard: FC<AccountStepCardProps> = ({ teams, personalAcco
         {teams.map((team) => (
           <AccountSelector
             key={team.id}
-            testId={`install-app-on-team-${team.id}`}
+            testId={`install-app-button-team${team.id}`}
             alreadyInstalled={team.alreadyInstalled}
             avatar={team.logo ?? ""}
             name={team.name}

@@ -119,7 +119,7 @@ test.describe("Reschedule Tests", async () => {
     test.skip(!IS_STRIPE_ENABLED, "Skipped as Stripe is not installed");
     const user = await users.create();
     await user.apiLogin();
-    await user.getPaymentCredential();
+    await user.installStripePersonal({ skip: true });
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const eventType = user.eventTypes.find((e) => e.slug === "paid")!;
     const booking = await bookings.create(user.id, user.username, eventType.id, {
@@ -160,7 +160,7 @@ test.describe("Reschedule Tests", async () => {
   test("Paid rescheduling should go to success page", async ({ page, users, bookings, payments }) => {
     const user = await users.create();
     await user.apiLogin();
-    await user.getPaymentCredential();
+    await user.installStripePersonal({ skip: true });
     await users.logout();
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const eventType = user.eventTypes.find((e) => e.slug === "paid")!;
