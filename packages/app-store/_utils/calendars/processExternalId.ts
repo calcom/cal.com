@@ -8,7 +8,8 @@ import { metadata as OutlookMetadata } from "../../office365calendar";
  */
 const processExternalId = (destinationCalendar: DestinationCalendar) => {
   if (destinationCalendar.integration === OutlookMetadata.type) {
-    return destinationCalendar.primaryEmail;
+    // Fallback to externalId if primaryEmail is not set
+    return destinationCalendar.primaryEmail || destinationCalendar.externalId;
   }
 
   return destinationCalendar.externalId;
