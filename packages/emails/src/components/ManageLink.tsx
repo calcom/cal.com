@@ -8,8 +8,9 @@ export function ManageLink(props: { calEvent: CalendarEvent; attendee: Person })
   const cancelLink = getCancelLink(props.calEvent);
   const rescheduleLink = getRescheduleLink(props.calEvent);
   if (
-    props.attendee.email === props.calEvent.attendees[0]?.email ||
-    props.calEvent.organizer.email === props.attendee.email
+    (props.attendee.email === props.calEvent.attendees[0]?.email ||
+      props.calEvent.organizer.email === props.attendee.email) &&
+    (Boolean(cancelLink) || (!props.calEvent.recurringEvent && Boolean(rescheduleLink)))
   ) {
     return (
       <div
@@ -33,7 +34,7 @@ export function ManageLink(props: { calEvent: CalendarEvent; attendee: Person })
           {!props.calEvent.recurringEvent && Boolean(rescheduleLink) && (
             <span>
               <a
-                href={getRescheduleLink(props.calEvent)}
+                href={rescheduleLink}
                 style={{
                   color: "#374151",
                   marginLeft: "5px",
@@ -48,7 +49,7 @@ export function ManageLink(props: { calEvent: CalendarEvent; attendee: Person })
           {Boolean(cancelLink) && (
             <span>
               <a
-                href={getCancelLink(props.calEvent)}
+                href={cancelLink}
                 style={{
                   color: "#374151",
                   marginLeft: "5px",
