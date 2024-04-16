@@ -123,7 +123,7 @@ function DeleteDialog({
   open,
   onOpenChange,
 }: { isManagedEvent: string; eventTypeId: number } & Pick<DialogProps, "open" | "onOpenChange">) {
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const { t } = useLocale();
   const router = useRouter();
   const deleteMutation = trpc.viewer.eventTypes.delete.useMutation({
