@@ -1,7 +1,7 @@
 import { z } from "zod";
 
-import { AVATAR_FALLBACK, CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
-import type { Team, User } from "@calcom/prisma/client";
+import { AVATAR_FALLBACK, CAL_URL } from "@calcom/lib/constants";
+import type { User } from "@calcom/prisma/client";
 
 /**
  * Gives an organization aware avatar url for a user
@@ -18,31 +18,4 @@ export const getUserAvatarUrl = (user: Pick<User, "avatarUrl"> | undefined) => {
     }
   }
   return CAL_URL + AVATAR_FALLBACK;
-};
-
-export function getTeamAvatarUrl(
-  team: Pick<Team, "slug"> & {
-    organizationId?: number | null;
-    logoUrl?: string | null;
-    requestedSlug?: string | null;
-  }
-) {
-  if (team.logoUrl) {
-    return team.logoUrl;
-  }
-  const slug = team.slug ?? team.requestedSlug;
-  return `${WEBAPP_URL}/team/${slug}/avatar.png${team.organizationId ? `?orgId=${team.organizationId}` : ""}`;
-}
-
-export const getOrgAvatarUrl = (
-  org: Pick<Team, "slug"> & {
-    logoUrl?: string | null;
-    requestedSlug?: string | null;
-  }
-) => {
-  if (org.logoUrl) {
-    return org.logoUrl;
-  }
-  const slug = org.slug ?? org.requestedSlug;
-  return `${WEBAPP_URL}/org/${slug}/avatar.png`;
 };

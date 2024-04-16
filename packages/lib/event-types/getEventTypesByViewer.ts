@@ -3,7 +3,7 @@ import { orderBy } from "lodash";
 
 import { hasFilter } from "@calcom/features/filters/lib/hasFilter";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
-import { getOrgAvatarUrl, getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
+import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import logger from "@calcom/lib/logger";
@@ -254,12 +254,8 @@ export const getEventTypesByViewer = async (user: User, filters?: Filters, forRo
                 ? orgMembership
                 : membership.role,
             profile: {
-              image: team.parentId
-                ? getOrgAvatarUrl({
-                    slug: team.parent?.slug || null,
-                    logoUrl: team.parent?.logoUrl,
-                    requestedSlug: team.slug,
-                  })
+              image: team.parent
+                ? getPlaceholderAvatar(team.parent.logoUrl, team.parent.name)
                 : getPlaceholderAvatar(team.logoUrl, team.name),
               name: team.name,
               slug,
