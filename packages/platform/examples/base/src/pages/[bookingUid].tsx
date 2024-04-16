@@ -2,7 +2,8 @@ import { Navbar } from "@/components/Navbar";
 import { CheckCircle2Icon } from "lucide-react";
 import { X } from "lucide-react";
 import { Inter } from "next/font/google";
-import { useRouter } from "next/navigation";
+// eslint-disable-next-line @calcom/eslint/deprecated-imports-next-router
+import { useRouter } from "next/router";
 
 import { useGetBooking, useCancelBooking } from "@calcom/atoms";
 import dayjs from "@calcom/dayjs";
