@@ -35,10 +35,6 @@ const schema = z
   .passthrough();
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (!process.env.SENDGRID_API_KEY || !process.env.SENDGRID_EMAIL) {
-    return res.status(405).json({ message: "No SendGrid API key or email" });
-  }
-
   if (testRequestSchema.safeParse(req.body).success) {
     return res.status(200).json({ message: "Test request successful" });
   }

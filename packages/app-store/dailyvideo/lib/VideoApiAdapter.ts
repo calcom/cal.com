@@ -141,7 +141,6 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
     }
     const body = await translateEvent(event);
     const dailyEvent = await postToDailyAPI(endpoint, body).then(dailyReturnTypeSchema.parse);
-    console.log("dailyEvent", dailyEvent);
     const meetingToken = await postToDailyAPI("/meeting-tokens", {
       properties: { room_name: dailyEvent.name, exp: dailyEvent.config.exp, is_owner: true },
     }).then(meetingTokenSchema.parse);
