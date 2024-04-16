@@ -81,7 +81,7 @@ export async function ssrInit(context: GetServerSidePropsContext, options?: { no
     // Provides a better UX to the users who have already upgraded.
     ssr.viewer.teams.hasTeamPlan.prefetch(),
     ssr.viewer.public.session.prefetch(),
-    ssr.viewer.loggedInRouter.me.prefetch(),
+    ssr.viewer.me.prefetch(),
   ]);
 
   return ssr;
