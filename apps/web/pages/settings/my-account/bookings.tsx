@@ -78,8 +78,8 @@ const BookingsView = ({ data }: { data: RouterOutputs["viewer"]["globalSettings"
       periodCountCalendarDays: !!globalSettings?.periodCountCalendarDays,
       periodDays: globalSettings?.periodDays,
       periodDates: {
-        startDate: globalSettings?.periodStartDate ?? new Date().toISOString(),
-        endDate: globalSettings?.periodEndDate ?? new Date().toISOString(),
+        startDate: globalSettings?.periodStartDate ?? new Date(),
+        endDate: globalSettings?.periodEndDate ?? new Date(),
       },
       minimumBookingNotice: globalSettings?.minimumBookingNotice || 120,
       beforeEventBuffer: globalSettings?.beforeEventBuffer,
@@ -226,7 +226,15 @@ const BookingsView = ({ data }: { data: RouterOutputs["viewer"]["globalSettings"
           </Button>
         </SectionBottomActions>
       </Form>
-      <Dialog open={!!showSyncBookingLimits} onOpenChange={() => setShowSyncBookingLimits(undefined)}>
+      <Dialog
+        open={!!showSyncBookingLimits}
+        onOpenChange={() => {
+          setShowSyncBookingLimits(undefined);
+          bookingsLimitFormMethods.reset({
+            ...bookingsLimitFormMethods.getValues(),
+            syncBookingLimitsEventIds: [],
+          });
+        }}>
         <DialogContent
           title={showSyncBookingLimits?.title ? t(showSyncBookingLimits.title) : ""}
           description={t("event_types_different_layouts")}

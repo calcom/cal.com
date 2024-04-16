@@ -78,8 +78,8 @@ export const syncBookingLimitsHandler = async ({ ctx, input }: SyncBookingLimits
             ? globalSettings.periodCountCalendarDays
             : eventType.periodCountCalendarDays,
           periodDays: isFuture ? globalSettings.periodDays : eventType.periodDays,
-          periodStartDate: periodStartDate || null,
-          periodEndDate: periodEndDate || null,
+          periodStartDate: periodStartDate ? new Date(periodStartDate).toISOString() : null,
+          periodEndDate: periodEndDate ? new Date(periodEndDate).toISOString() : null,
           minimumBookingNotice: isFuture
             ? globalSettings.minimumBookingNotice
             : eventType.minimumBookingNotice,
@@ -89,6 +89,7 @@ export const syncBookingLimitsHandler = async ({ ctx, input }: SyncBookingLimits
       });
     });
   });
+
   await prisma.$transaction(async () => {
     for (const record of recordsToModifyQueue) {
       await prisma.eventType.update({
