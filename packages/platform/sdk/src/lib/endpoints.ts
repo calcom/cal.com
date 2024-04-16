@@ -173,7 +173,7 @@ export const getEndpointData = (
     let constructedUri: string;
 
     if (isParamsRecord(params) || Array.isArray(params)) {
-      // Params is a Either string[] OR Record<string, string>,  in both cases convert it into string[]
+      // Params is a Either string[] OR Record<string, string>, in both cases convert it into string[]
       // as endpointData.constructUri expects string[]
       constructedUri = endpointData.constructUri(params as unknown as string[]);
     } else {
