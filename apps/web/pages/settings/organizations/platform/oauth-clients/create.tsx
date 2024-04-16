@@ -11,7 +11,7 @@ export const CreateOAuthClient = () => {
   const clientId = searchParams?.get("clientId") || "";
   return (
     <div>
-      <OAuthClientForm clientId={clientId as string | undefined} />
+      <OAuthClientForm clientId={clientId} />
     </div>
   );
 };
