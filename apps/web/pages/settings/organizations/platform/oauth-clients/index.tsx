@@ -1,5 +1,5 @@
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import React from "react";
 
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
@@ -62,8 +62,6 @@ export const OAuthClients = () => {
             <>
               <div className="border-subtle rounded-b-lg border border-t-0">
                 {data.map((client, index) => {
-                  console.log(client);
-
                   return (
                     <OAuthClientCard
                       name={client.name}
