@@ -152,7 +152,7 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
                 ...metadata,
                 apps: {
                   ...metadata?.apps,
-                  [appSlug]: null,
+                  [appSlug]: undefined,
                 },
               },
             },

@@ -72,6 +72,7 @@ export const getEventTypesFromDB = async (id: number) => {
       seatsPerTimeSlot: true,
       seatsShowAttendees: true,
       seatsShowAvailabilityCount: true,
+      schedulingType: true,
       periodStartDate: true,
       periodEndDate: true,
     },
