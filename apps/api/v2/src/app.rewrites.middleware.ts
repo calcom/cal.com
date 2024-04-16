@@ -10,6 +10,9 @@ export class RewriterMiddleware implements NestMiddleware {
     if (req.url.startsWith("/v2/ee")) {
       req.url = req.url.replace("/v2/ee", "/v2");
     }
+    if (req.url.contains("reccuring")) {
+      req.url = req.url.replace("reccuring", "recurring");
+    }
     next();
   }
 }
