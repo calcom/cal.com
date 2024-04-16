@@ -1,4 +1,4 @@
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import React from "react";
 
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
