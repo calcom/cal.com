@@ -1405,10 +1405,11 @@ async function handler(
 
   // Organizer or user owner of this event type it's not listed as a team member.
   const teamMemberPromises = users.slice(1).map(async (user) => {
+    // TODO: Add back once EventManager tests are ready https://github.com/calcom/cal.com/pull/14610#discussion_r1567817120
     // push to teamDestinationCalendars if it's a team event but collective only
-    if (isTeamEventType && eventType.schedulingType === "COLLECTIVE" && user.destinationCalendar) {
-      teamDestinationCalendars.push(user.destinationCalendar);
-    }
+    // if (isTeamEventType && eventType.schedulingType === "COLLECTIVE" && user.destinationCalendar) {
+    //   teamDestinationCalendars.push(user.destinationCalendar);
+    // }
 
     return {
       id: user.id,
