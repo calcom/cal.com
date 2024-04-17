@@ -45,8 +45,6 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
       !(membership.role === MembershipRole.OWNER || membership.role === MembershipRole.ADMIN) &&
       !ctx.user.organization?.isOrgAdmin);
 
-  console.log({ isOrgAdminOrOwner, isOrgPrivate, hideMembers: !isOrgAdminOrOwner && isOrgPrivate });
-
   return {
     ...restTeam,
     members: hideMembers ? [] : members,
