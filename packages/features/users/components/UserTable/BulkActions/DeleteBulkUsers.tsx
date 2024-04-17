@@ -12,7 +12,7 @@ interface Props {
 export function DeleteBulkUsers({ users, onRemove }: Props) {
   const { t } = useLocale();
   const selectedRows = users; // Get selected rows from table
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const deleteMutation = trpc.viewer.organizations.bulkDeleteUsers.useMutation({
     onSuccess: () => {
       utils.viewer.organizations.listMembers.invalidate();

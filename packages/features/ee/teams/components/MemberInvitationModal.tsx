@@ -69,15 +69,26 @@ function toggleElementInArray(value: string[] | string | undefined, element: str
 export default function MemberInvitationModal(props: MemberInvitationModalProps) {
   const { t } = useLocale();
   const { disableCopyLink = false, isOrg = false } = props;
-  const trpcContext = trpc.useContext();
+  const trpcContext = trpc.useUtils();
   const session = useSession();
   const { data: currentOrg } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {
     enabled: !!session.data?.user?.org,
   });
-  const isOrgOwner = currentOrg && currentOrg.user.role === MembershipRole.OWNER;
+
+  // Check current org role and not team role
+  const isOrgAdminOrOwner =
+    currentOrg &&
+    (currentOrg.user.role === MembershipRole.OWNER || currentOrg.user.role === MembershipRole.ADMIN);
+
+  const canSeeOrganization = !!(
+    props?.orgMembers &&
+    props.orgMembers?.length > 0 &&
+    currentOrg?.isPrivate &&
+    isOrgAdminOrOwner
+  );
 
   const [modalImportMode, setModalInputMode] = useState<ModalMode>(
-    props?.orgMembers && props.orgMembers?.length > 0 ? "ORGANIZATION" : "INDIVIDUAL"
+    canSeeOrganization ? "ORGANIZATION" : "INDIVIDUAL"
   );
 
   const createInviteMutation = trpc.viewer.teams.createInvite.useMutation({
@@ -98,12 +109,12 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
     ];
 
     // Adjust options for organizations where the user isn't the owner
-    if (isOrg && !isOrgOwner) {
+    if (isOrg && !isOrgAdminOrOwner) {
       return options.filter((option) => option.value !== MembershipRole.OWNER);
     }
 
     return options;
-  }, [t, isOrgOwner, isOrg]);
+  }, [t, isOrgAdminOrOwner, isOrg]);
 
   const toggleGroupOptions = useMemo(() => {
     const array = [
@@ -114,7 +125,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
       },
       { value: "BULK", label: t("invite_team_bulk_segment"), iconLeft: <Icon name="users" /> },
     ];
-    if (props?.orgMembers && props.orgMembers?.length > 0) {
+    if (canSeeOrganization) {
       array.unshift({
         value: "ORGANIZATION",
         label: t("organization"),
@@ -122,7 +133,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
       });
     }
     return array;
-  }, [t, props.orgMembers]);
+  }, [t, canSeeOrganization]);
 
   const newMemberFormMethods = useForm<NewMemberForm>();
 

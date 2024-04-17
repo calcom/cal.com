@@ -7,18 +7,18 @@ export interface paths {
   "/health": {
     get: operations["AppController_getHealth"];
   };
-  "/api/v2/events/public": {
+  "/v2/events/public": {
     get: operations["EventsController_getPublicEvent"];
   };
-  "/api/v2/oauth-clients/{clientId}/users": {
+  "/v2/oauth-clients/{clientId}/users": {
     post: operations["OAuthClientUsersController_createUser"];
   };
-  "/api/v2/oauth-clients/{clientId}/users/{userId}": {
+  "/v2/oauth-clients/{clientId}/users/{userId}": {
     get: operations["OAuthClientUsersController_getUserById"];
     delete: operations["OAuthClientUsersController_deleteUser"];
     patch: operations["OAuthClientUsersController_updateUser"];
   };
-  "/api/v2/oauth-clients": {
+  "/v2/oauth-clients": {
     /**
      * @description ⚠️ First, this endpoint requires `Cookie: next-auth.session-token=eyJhbGciOiJ` header. Log into Cal web app using owner of organization that was created after visiting `/settings/organizations/new`, refresh swagger docs, and the cookie will be added to requests automatically to pass the NextAuthGuard.
      * Second, make sure that the logged in user has organizationId set to pass the OrganizationRolesGuard guard.
@@ -30,7 +30,7 @@ export interface paths {
      */
     post: operations["OAuthClientsController_createOAuthClient"];
   };
-  "/api/v2/oauth-clients/{clientId}": {
+  "/v2/oauth-clients/{clientId}": {
     /**
      * @description ⚠️ First, this endpoint requires `Cookie: next-auth.session-token=eyJhbGciOiJ` header. Log into Cal web app using owner of organization that was created after visiting `/settings/organizations/new`, refresh swagger docs, and the cookie will be added to requests automatically to pass the NextAuthGuard.
      * Second, make sure that the logged in user has organizationId set to pass the OrganizationRolesGuard guard.
@@ -47,89 +47,89 @@ export interface paths {
      */
     patch: operations["OAuthClientsController_updateOAuthClient"];
   };
-  "/api/v2/oauth/{clientId}/authorize": {
+  "/v2/oauth/{clientId}/authorize": {
     /**
      * Authorize an OAuth client
      * @description Redirects the user to the specified 'redirect_uri' with an authorization code in query parameter if the client is authorized successfully. The code is then exchanged for access and refresh tokens via the `/exchange` endpoint.
      */
     post: operations["OAuthFlowController_authorize"];
   };
-  "/api/v2/oauth/{clientId}/exchange": {
+  "/v2/oauth/{clientId}/exchange": {
     /**
      * Exchange authorization code for access tokens
      * @description Exchanges the authorization code received from the `/authorize` endpoint for access and refresh tokens. The authorization code should be provided in the 'Authorization' header prefixed with 'Bearer '.
      */
     post: operations["OAuthFlowController_exchange"];
   };
-  "/api/v2/oauth/{clientId}/refresh": {
+  "/v2/oauth/{clientId}/refresh": {
     post: operations["OAuthFlowController_refreshAccessToken"];
   };
-  "/api/v2/event-types": {
+  "/v2/event-types": {
     get: operations["EventTypesController_getEventTypes"];
     post: operations["EventTypesController_createEventType"];
   };
-  "/api/v2/event-types/{eventTypeId}": {
+  "/v2/event-types/{eventTypeId}": {
     get: operations["EventTypesController_getEventType"];
   };
-  "/api/v2/event-types/{username}/public": {
+  "/v2/event-types/{username}/public": {
     get: operations["EventTypesController_getPublicEventTypes"];
   };
-  "/api/v2/platform/gcal/oauth/auth-url": {
+  "/v2/gcal/oauth/auth-url": {
     get: operations["GcalController_redirect"];
   };
-  "/api/v2/platform/gcal/oauth/save": {
+  "/v2/gcal/oauth/save": {
     get: operations["GcalController_save"];
   };
-  "/api/v2/platform/gcal/check": {
+  "/v2/gcal/check": {
     get: operations["GcalController_check"];
   };
-  "/api/v2/platform/provider/{clientId}": {
+  "/v2/provider/{clientId}": {
     get: operations["CalProviderController_verifyClientId"];
   };
-  "/api/v2/platform/provider/{clientId}/access-token": {
+  "/v2/provider/{clientId}/access-token": {
     get: operations["CalProviderController_verifyAccessToken"];
   };
-  "/api/v2/schedules": {
+  "/v2/schedules": {
     get: operations["SchedulesController_getSchedules"];
     post: operations["SchedulesController_createSchedule"];
   };
-  "/api/v2/schedules/default": {
+  "/v2/schedules/default": {
     get: operations["SchedulesController_getDefaultSchedule"];
   };
-  "/api/v2/schedules/time-zones": {
+  "/v2/schedules/time-zones": {
     get: operations["SchedulesController_getTimeZones"];
   };
-  "/api/v2/schedules/{scheduleId}": {
+  "/v2/schedules/{scheduleId}": {
     get: operations["SchedulesController_getSchedule"];
     delete: operations["SchedulesController_deleteSchedule"];
     patch: operations["SchedulesController_updateSchedule"];
   };
-  "/api/v2/me": {
+  "/v2/me": {
     get: operations["MeController_getMe"];
     patch: operations["MeController_updateMe"];
   };
-  "/api/v2/ee/calendars/busy-times": {
+  "/v2/calendars/busy-times": {
     get: operations["CalendarsController_getBusyTimes"];
   };
-  "/api/v2/ee/calendars": {
+  "/v2/calendars": {
     get: operations["CalendarsController_getCalendars"];
   };
-  "/api/v2/ee/bookings": {
+  "/v2/bookings": {
     post: operations["BookingsController_createBooking"];
   };
-  "/api/v2/ee/bookings/reccuring": {
-    post: operations["BookingsController_createReccuringBooking"];
+  "/v2/bookings/recurring": {
+    post: operations["BookingsController_createRecurringBooking"];
   };
-  "/api/v2/ee/bookings/instant": {
+  "/v2/bookings/instant": {
     post: operations["BookingsController_createInstantBooking"];
   };
-  "/api/v2/slots/reserve": {
+  "/v2/slots/reserve": {
     post: operations["SlotsController_reserveSlot"];
   };
-  "/api/v2/slots/selected-slot": {
+  "/v2/slots/selected-slot": {
     delete: operations["SlotsController_deleteSelectedSlot"];
   };
-  "/api/v2/slots/available": {
+  "/v2/slots/available": {
     get: operations["SlotsController_getAvailableSlots"];
   };
 }
@@ -814,7 +814,7 @@ export interface operations {
       };
     };
   };
-  BookingsController_createReccuringBooking: {
+  BookingsController_createRecurringBooking: {
     requestBody: {
       content: {
         "application/json": string[];
