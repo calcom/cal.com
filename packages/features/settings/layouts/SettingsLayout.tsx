@@ -136,7 +136,7 @@ tabs.find((tab) => {
 const adminRequiredKeys = ["admin"];
 const organizationRequiredKeys = ["organization"];
 
-const useTabs = () => {
+const useTabs = (isOrgAdminOrOwner: boolean | undefined) => {
   const session = useSession();
   const { data: user } = trpc.viewer.me.useQuery({ includePasswordAdded: true });
   const orgBranding = useOrgBranding();
@@ -150,6 +150,9 @@ const useTabs = () => {
     } else if (tab.href === "/settings/organizations") {
       tab.name = orgBranding?.name || "organization";
       tab.avatar = `${orgBranding?.fullDomain}/org/${orgBranding?.slug}/avatar.png`;
+      if (isOrgAdminOrOwner === false) {
+        tab.children = tab?.children?.filter((childTab) => ["profile", "members"].includes(childTab.name));
+      }
     } else if (
       tab.href === "/settings/security" &&
       user?.identityProvider === IdentityProvider.GOOGLE &&
@@ -202,7 +205,6 @@ const SettingsSidebarContainer = ({
 }: SettingsSidebarContainerProps) => {
   const searchParams = useCompatSearchParams();
   const { t } = useLocale();
-  const tabsWithPermissions = useTabs();
   const [teamMenuState, setTeamMenuState] =
     useState<{ teamId: number | undefined; teamMenuOpen: boolean }[]>();
   const [otherTeamMenuState, setOtherTeamMenuState] = useState<
@@ -216,6 +218,9 @@ const SettingsSidebarContainer = ({
   const { data: currentOrg } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {
     enabled: !!session.data?.user?.org,
   });
+  const isOrgAdminOrOwner =
+    currentOrg && currentOrg?.user?.role && ["OWNER", "ADMIN"].includes(currentOrg?.user?.role);
+  const tabsWithPermissions = useTabs(isOrgAdminOrOwner);
 
   const { data: otherTeams } = trpc.viewer.organizations.listOtherTeams.useQuery(undefined, {
     enabled: !!session.data?.user?.org,
@@ -254,10 +259,6 @@ const SettingsSidebarContainer = ({
       }, 100);
     }
   }, [searchParams?.get("id"), otherTeams]);
-
-  const isOrgAdminOrOwner =
-    currentOrg && currentOrg?.user?.role && ["OWNER", "ADMIN"].includes(currentOrg?.user?.role);
-  let bottomMargin = false;
 
   if (isOrgAdminOrOwner) {
     const teamsIndex = tabsWithPermissions.findIndex((tab) => tab.name === "teams");
@@ -314,15 +315,6 @@ const SettingsSidebarContainer = ({
                   </div>
                   <div className="my-3 space-y-0.5">
                     {tab.children?.map((child, index) => {
-                      if (tab.href === "/settings/organizations" && !isOrgAdminOrOwner) {
-                        // Only show profile and members for user role.
-                        if (!["profile", "members"].includes(child.name)) {
-                          return null;
-                        }
-                        if (child.name === "members") {
-                          bottomMargin = true;
-                        }
-                      }
                       return (
                         <VerticalTabItem
                           key={child.href}
@@ -331,7 +323,7 @@ const SettingsSidebarContainer = ({
                           href={child.href || "/"}
                           textClassNames="px-3 text-emphasis font-medium text-sm"
                           className={`my-0.5 me-5 h-7 ${
-                            ((tab.children && index === tab.children?.length - 1) || bottomMargin) && "!mb-3"
+                            tab.children && index === tab.children?.length - 1 && "!mb-3"
                           }`}
                           disableChevron
                         />
