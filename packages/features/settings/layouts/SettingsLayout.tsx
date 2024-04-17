@@ -317,7 +317,7 @@ const SettingsSidebarContainer = ({
                       if (tab.href === "/settings/organizations" && !isOrgAdminOrOwner) {
                         // Only show profile and members for user role.
                         if (!["profile", "members"].includes(child.name)) {
-                          return;
+                          return null;
                         }
                         if (child.name === "members") {
                           bottomMargin = true;
