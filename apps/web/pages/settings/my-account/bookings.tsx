@@ -105,6 +105,7 @@ const BookingsView = ({ data }: { data: RouterOutputs["viewer"]["globalSettings"
       await utils.viewer.globalSettings.invalidate();
       showToast(res.message, "success");
       bookingsLimitFormMethods.reset();
+      bookingFutureLimitFormMethods.reset();
     },
     onError: () => {
       showToast(t("failed_to_sync_events_with_global_settings"), "error");
@@ -228,12 +229,11 @@ const BookingsView = ({ data }: { data: RouterOutputs["viewer"]["globalSettings"
       </Form>
       <Dialog
         open={!!showSyncBookingLimits}
-        onOpenChange={() => {
-          setShowSyncBookingLimits(undefined);
-          bookingsLimitFormMethods.reset({
-            ...bookingsLimitFormMethods.getValues(),
-            syncBookingLimitsEventIds: [],
-          });
+        onOpenChange={(open) => {
+          if (!open) {
+            setShowSyncBookingLimits(undefined);
+            bookingsLimitFormMethods.setValue("syncBookingLimitsEventIds", [], { shouldDirty: true });
+          }
         }}>
         <DialogContent
           title={showSyncBookingLimits?.title ? t(showSyncBookingLimits.title) : ""}
