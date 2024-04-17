@@ -1,14 +1,15 @@
 import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import AppCard from "@calcom/app-store/_components/AppCard";
 import useIsAppEnabled from "@calcom/app-store/_utils/useIsAppEnabled";
+import { SelectGifInput } from "@calcom/app-store/giphy/components";
 import type { EventTypeAppCardComponent } from "@calcom/app-store/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import type { appDataSchema } from "../zod";
-import EventTypeAppSettingsInterface from "./EventTypeAppSettingsInterface";
 
 const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ app, eventType }) {
   const { getAppData, setAppData, disabled } = useAppContextWithSchema<typeof appDataSchema>();
+  const thankYouPage = getAppData("thankYouPage");
   const { enabled: showGifSelection, updateEnabled: setShowGifSelection } = useIsAppEnabled(app);
 
   const { t } = useLocale();
@@ -22,13 +23,15 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
       }}
       switchChecked={showGifSelection}
       teamId={eventType.team?.id || undefined}>
-      <EventTypeAppSettingsInterface
-        eventType={eventType}
-        slug={app.slug}
-        disabled={disabled}
-        getAppData={getAppData}
-        setAppData={setAppData}
-      />
+      {showGifSelection && (
+        <SelectGifInput
+          defaultValue={thankYouPage}
+          disabled={disabled}
+          onChange={(url: string) => {
+            setAppData("thankYouPage", url);
+          }}
+        />
+      )}
     </AppCard>
   );
 };

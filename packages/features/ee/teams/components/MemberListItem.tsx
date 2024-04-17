@@ -50,7 +50,7 @@ const checkIsOrg = (team: Props["team"]) => {
 export default function MemberListItem(props: Props) {
   const { t, i18n } = useLocale();
 
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const [showChangeMemberRoleModal, setShowChangeMemberRoleModal] = useState(false);
   const [showTeamAvailabilityModal, setShowTeamAvailabilityModal] = useState(false);
   const [showImpersonateModal, setShowImpersonateModal] = useState(false);

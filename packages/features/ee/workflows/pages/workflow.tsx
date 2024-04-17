@@ -100,7 +100,7 @@ function WorkflowPage() {
   });
 
   const { workflow: workflowId } = params ? querySchema.parse(params) : { workflow: -1 };
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
 
   const userQuery = useMeQuery();
   const user = userQuery.data;

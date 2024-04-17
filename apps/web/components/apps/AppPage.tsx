@@ -21,7 +21,6 @@ export type AppPageProps = {
   isGlobal?: AppType["isGlobal"];
   logo: string;
   slug: string;
-  dirName: string | undefined;
   variant: string;
   body: React.ReactNode;
   categories: string[];
@@ -69,7 +68,6 @@ export const AppPage = ({
   dependencies,
   concurrentMeetings,
   paid,
-  dirName,
 }: AppPageProps) => {
   const { t, i18n } = useLocale();
   const hasDescriptionItems = descriptionItems && descriptionItems.length > 0;
@@ -225,7 +223,6 @@ export const AppPage = ({
                         multiInstall
                         concurrentMeetings={concurrentMeetings}
                         paid={paid}
-                        dirName={dirName}
                         {...props}
                       />
                     );
@@ -265,7 +262,6 @@ export const AppPage = ({
                     credentials={appDbQuery.data?.credentials}
                     concurrentMeetings={concurrentMeetings}
                     paid={paid}
-                    dirName={dirName}
                     {...props}
                   />
                 );

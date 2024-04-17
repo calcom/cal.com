@@ -30,7 +30,7 @@ export function NewScheduleButton({
     name: string;
   }>();
   const { register } = form;
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
 
   const createMutation = trpc.viewer.availability.schedule.create.useMutation({
     onSuccess: async ({ schedule }) => {
