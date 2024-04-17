@@ -82,8 +82,8 @@ export function rateLimiter() {
     }),
     sms: new Ratelimit({
       rootKey: UNKEY_ROOT_KEY,
-      namespace: "sms",
-      limit: 50,
+      namespace: "test",
+      limit: 5,
       duration: "5m",
       async: true,
       timeout,
