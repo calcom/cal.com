@@ -353,7 +353,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
     });
   }
 
-  if (updatedUser) {
+  if (updatedUser && hasEmailBeenChanged) {
     // Skip sending verification email when user tries to change his primary email to a verified secondary email
     if (secondaryEmail?.emailVerified) {
       secondaryEmails.push({

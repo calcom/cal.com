@@ -161,6 +161,7 @@ const nextConfig = {
   experimental: {
     // externalize server-side node_modules with size > 1mb, to improve dev mode performance/RAM usage
     serverComponentsExternalPackages: ["next-i18next"],
+    optimizePackageImports: ["@calcom/ui"],
   },
   i18n: {
     ...i18n,

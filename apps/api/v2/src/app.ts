@@ -60,10 +60,6 @@ export const bootstrap = (app: NestExpressApplication): NestExpressApplication =
   app.useGlobalFilters(new HttpExceptionFilter());
   app.useGlobalFilters(new TRPCExceptionFilter());
 
-  app.setGlobalPrefix("api", {
-    exclude: [{ path: "health", method: RequestMethod.GET }],
-  });
-
   app.use(cookieParser());
 
   return app;

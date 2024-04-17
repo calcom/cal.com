@@ -28,6 +28,7 @@ export const useIntercom = () => {
   const { hasTeamPlan } = useHasTeamPlan();
 
   const boot = async () => {
+    if (!data) return;
     let userHash;
 
     const req = await fetch(`/api/intercom-hash`);
