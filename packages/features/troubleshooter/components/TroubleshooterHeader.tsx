@@ -2,7 +2,7 @@ import { useMemo } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button, ButtonGroup, Icon } from "@calcom/ui";
+import { Button, ButtonGroup } from "@calcom/ui";
 
 import { useTroubleshooterStore } from "../store";
 

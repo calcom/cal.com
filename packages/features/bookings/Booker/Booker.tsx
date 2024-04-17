@@ -247,18 +247,6 @@ const BookerComponent = ({
     <>
       {event.data && !isPlatform ? <BookingPageTagManager eventType={event.data} /> : <></>}
 
-      {bookerState !== "booking" && event.data?.isInstantEvent && (
-        <div
-          className="animate-fade-in-up fixed bottom-2 z-40 my-2 opacity-0"
-          style={{ animationDelay: "1s" }}>
-          <InstantBooking
-            event={event.data}
-            onConnectNow={() => {
-              onConnectNowInstantMeeting();
-            }}
-          />
-        </div>
-      )}
       <div
         className={classNames(
           // In a popup embed, if someone clicks outside the main(having main class or main tag), it closes the embed
@@ -439,6 +427,22 @@ const BookerComponent = ({
             setDayCount(null);
           }}
         />
+
+        {bookerState !== "booking" && event.data?.isInstantEvent && (
+          <div
+            className={classNames(
+              "animate-fade-in-up  z-40 my-2 opacity-0",
+              layout === BookerLayouts.MONTH_VIEW && isEmbed ? "" : "fixed bottom-2"
+            )}
+            style={{ animationDelay: "1s" }}>
+            <InstantBooking
+              event={event.data}
+              onConnectNow={() => {
+                onConnectNowInstantMeeting();
+              }}
+            />
+          </div>
+        )}
         {!hideBranding && !isPlatform && (
           <m.span
             key="logo"

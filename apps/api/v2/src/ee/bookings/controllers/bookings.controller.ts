@@ -1,5 +1,5 @@
 import { CreateBookingInput } from "@/ee/bookings/inputs/create-booking.input";
-import { CreateReccuringBookingInput } from "@/ee/bookings/inputs/create-reccuring-booking.input";
+import { CreateRecurringBookingInput } from "@/ee/bookings/inputs/create-recurring-booking.input";
 import { GetBookingOutput } from "@/ee/bookings/outputs/get-booking.output";
 import { GetBookingsOutput } from "@/ee/bookings/outputs/get-bookings.output";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
@@ -68,7 +68,7 @@ const DEFAULT_PLATFORM_PARAMS = {
 };
 
 @Controller({
-  path: "ee/bookings",
+  path: "/bookings",
   version: "2",
 })
 @UseGuards(PermissionsGuard)
@@ -180,10 +180,10 @@ export class BookingsController {
     throw new InternalServerErrorException("Could not cancel booking.");
   }
 
-  @Post("/reccuring")
-  async createReccuringBooking(
+  @Post("/recurring")
+  async createRecurringBooking(
     @Req() req: BookingRequest,
-    @Body() _: CreateReccuringBookingInput[],
+    @Body() _: CreateRecurringBookingInput[],
     @Headers(X_CAL_CLIENT_ID) clientId?: string
   ): Promise<ApiResponse<BookingResponse[]>> {
     const oAuthClientId = clientId?.toString();
