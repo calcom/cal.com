@@ -74,6 +74,8 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
   const { data: currentOrg } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {
     enabled: !!session.data?.user?.org,
   });
+
+  // Check current org role and not team role
   const isOrgAdminOrOwner =
     currentOrg &&
     (currentOrg.user.role === MembershipRole.OWNER || currentOrg.user.role === MembershipRole.ADMIN);
