@@ -8,12 +8,17 @@ export function ManageLink(props: { calEvent: CalendarEvent; attendee: Person })
   const cancelLink = getCancelLink(props.calEvent);
   const rescheduleLink = getRescheduleLink(props.calEvent);
   const bookingLink = getBookingUrl(props.calEvent);
+
+  const isOriginalAttendee = props.attendee.email === props.calEvent.attendees[0]?.email;
+  const isOrganizer = props.calEvent.organizer.email === props.attendee.email;
+  const hasCancelLink = Boolean(cancelLink);
+  const hasRescheduleLink = Boolean(rescheduleLink);
+  const hasBookingLink = Boolean(bookingLink);
+  const isRecurringEvent = props.calEvent.recurringEvent;
+
   if (
-    (props.attendee.email === props.calEvent.attendees[0]?.email ||
-      props.calEvent.organizer.email === props.attendee.email) &&
-    (Boolean(cancelLink) ||
-      (!props.calEvent.recurringEvent && Boolean(rescheduleLink)) ||
-      Boolean(bookingLink))
+    (isOriginalAttendee || isOrganizer) &&
+    (hasCancelLink || (!isRecurringEvent && hasRescheduleLink) || hasBookingLink)
   ) {
     return (
       <div
@@ -34,7 +39,7 @@ export function ManageLink(props: { calEvent: CalendarEvent; attendee: Person })
           }}>
           <>{t("need_to_make_a_change")}</>
 
-          {!props.calEvent.recurringEvent && Boolean(rescheduleLink) && (
+          {!isRecurringEvent && hasRescheduleLink && (
             <span>
               <a
                 href={rescheduleLink}
@@ -46,10 +51,10 @@ export function ManageLink(props: { calEvent: CalendarEvent; attendee: Person })
                 }}>
                 <>{t("reschedule")}</>
               </a>
-              <>{t("or_lowercase")}</>
+              {hasCancelLink && <>{t("or_lowercase")}</>}
             </span>
           )}
-          {Boolean(cancelLink) && (
+          {hasCancelLink && (
             <span>
               <a
                 href={cancelLink}
@@ -63,26 +68,24 @@ export function ManageLink(props: { calEvent: CalendarEvent; attendee: Person })
             </span>
           )}
 
-          {!Boolean(cancelLink) &&
-            (props.calEvent.recurringEvent || !Boolean(rescheduleLink)) &&
-            Boolean(bookingLink) && (
-              <span>
-                <a
-                  href={bookingLink}
-                  style={{
-                    color: "#374151",
-                    marginLeft: "5px",
-                    textDecoration: "underline",
-                  }}>
-                  <>{t("check_here")}</>
-                </a>
-              </span>
-            )}
+          {!hasCancelLink && (isRecurringEvent || !hasRescheduleLink) && hasBookingLink && (
+            <span>
+              <a
+                href={bookingLink}
+                style={{
+                  color: "#374151",
+                  marginLeft: "5px",
+                  textDecoration: "underline",
+                }}>
+                <>{t("check_here")}</>
+              </a>
+            </span>
+          )}
         </p>
       </div>
     );
   }
 
-  // Dont have the rights to the manage link
+  // Don't have the rights to the manage link
   return null;
 }
