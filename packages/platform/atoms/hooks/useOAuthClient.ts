@@ -31,7 +31,7 @@ export const useOAuthClient = ({ clientId, apiUrl, refreshUrl, onError, onSucces
     if (clientId && http.getUrl() && prevClientId !== clientId) {
       try {
         http
-          .get<ApiResponse>(`/ee/provider/${clientId}`)
+          .get<ApiResponse>(`/provider/${clientId}`)
           .then(() => {
             onSuccess();
             http.setClientIdHeader(clientId);
