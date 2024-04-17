@@ -127,7 +127,12 @@ export class OAuthManager {
       myLog.debug("Token is not expired. Returning the current token object");
       return { token: this.normalizeToken(this.currentTokenObject), isUpdated: false };
     } else {
-      const token = this.normalizeToken(await this.refreshOAuthToken());
+      const token = {
+        // Keep the old token object as it is, as some integrations don't send back all the props e.g. refresh_token isn't sent again by Google Calendar
+        // It also allows any other properties set to be retained.
+        ...this.currentTokenObject,
+        ...this.normalizeToken(await this.refreshOAuthToken()),
+      };
       myLog.debug("Token is expired. So, returning new token object");
       this.currentTokenObject = token;
       return { token, isUpdated: true };
@@ -150,6 +155,9 @@ export class OAuthManager {
     isTokenInvalid: boolean;
     json: T;
   }>;
+  /**
+   * Send request automatically adding the Authorization header with the access token. More importantly, handles token invalidation
+   */
   public async request<T>(
     customFetchOrUrlAndOptions:
       | { url: string; options: RequestInit }

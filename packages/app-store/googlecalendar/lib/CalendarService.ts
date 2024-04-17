@@ -208,6 +208,7 @@ export default class GoogleCalendarService implements Calendar {
   };
 
   async createEvent(calEventRaw: CalendarEvent, credentialId: number): Promise<NewCalendarEventType> {
+    this.log.debug("Creating event");
     const formattedCalEvent = formatCalEvent(calEventRaw);
 
     const payload: calendar_v3.Schema$Event = {
@@ -568,6 +569,7 @@ export default class GoogleCalendarService implements Calendar {
     dateTo: string,
     selectedCalendars: IntegrationCalendar[]
   ): Promise<EventBusyDate[]> {
+    this.log.debug("Getting availability");
     const calendar = await this.authedCalendar();
     const selectedCalendarIds = selectedCalendars
       .filter((e) => e.integration === this.integrationName)
@@ -633,6 +635,7 @@ export default class GoogleCalendarService implements Calendar {
   }
 
   async listCalendars(): Promise<IntegrationCalendar[]> {
+    this.log.debug("Listing calendars");
     const calendar = await this.authedCalendar();
     const { json } = await this.oAuthManagerInstance.request(
       async () =>

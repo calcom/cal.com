@@ -199,7 +199,7 @@ describe("Bookings Endpoints", () => {
     //   };
 
     //   return request(app.getHttpServer())
-    //     .post("/v2/bookings/reccuring")
+    //     .post("/v2/bookings/recurring")
     //     .send(body)
     //     .expect(201)
     //     .then((response) => {
