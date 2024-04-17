@@ -46,12 +46,13 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   };
   const eventType = await getEventTypeById(typeParam);
   if (!eventType) {
-    return {
+    const redirect = {
       redirect: {
         permanent: false,
         destination: "/event-types",
       },
     } as const;
+    return redirect;
   }
   return {
     props: {
