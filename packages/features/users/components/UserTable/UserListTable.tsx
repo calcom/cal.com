@@ -310,6 +310,7 @@ export function UserListTable() {
   return (
     <>
       <DataTable
+        data-testId="user-list-data-table"
         onSearch={(value) => setDebouncedSearchTerm(value)}
         selectionOptions={[
           {
