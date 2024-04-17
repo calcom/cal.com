@@ -481,7 +481,6 @@ function EventTypeSingleLayout({
               sticky
               linkShallow
               itemClassname="items-start"
-              iconClassName="md:mt-px"
             />
           </div>
           <div className="p-2 md:mx-0 md:p-0 xl:hidden">
