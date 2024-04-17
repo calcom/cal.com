@@ -1,5 +1,5 @@
 import prisma from "@calcom/prisma";
-import { SmsLockState } from "@calcom/prisma/enums";
+import { SMSLockState } from "@calcom/prisma/enums";
 import { TRPCError } from "@calcom/trpc/server";
 
 import type { RateLimitHelper } from "./rateLimit";
@@ -12,14 +12,15 @@ export async function checkRateLimitAndThrowError({
   opts,
 }: RateLimitHelper) {
   const response = await rateLimiter()({ rateLimitingType, identifier, opts });
-  const { reset, success } = response;
+  const { success, reset } = response;
 
   if (onRateLimiterResponse) onRateLimiterResponse(response);
+
   if (!success) {
     if (rateLimitingType === "sms" || "smsMonth") {
       await changeSMSLockStatus(
         identifier,
-        rateLimitingType === "sms" ? SmsLockState.LOCKED : SmsLockState.REVIEW_NEEDED
+        rateLimitingType === "sms" ? SMSLockState.LOCKED : SMSLockState.REVIEW_NEEDED
       );
     } else {
       const convertToSeconds = (ms: number) => Math.floor(ms / 1000);
@@ -32,7 +33,7 @@ export async function checkRateLimitAndThrowError({
   }
 }
 
-async function changeSMSLockStatus(identifier: string, status: SmsLockState) {
+async function changeSMSLockStatus(identifier: string, status: SMSLockState) {
   let userId, teamId;
 
   if (identifier.startsWith("sms:user:")) {
@@ -47,7 +48,7 @@ async function changeSMSLockStatus(identifier: string, status: SmsLockState) {
         id: userId,
       },
       data: {
-        smsLockStatus: status,
+        smsLockState: status,
       },
     });
   } else {
@@ -56,7 +57,7 @@ async function changeSMSLockStatus(identifier: string, status: SmsLockState) {
         id: teamId,
       },
       data: {
-        smsLockStatus: status,
+        smsLockState: status,
       },
     });
   }
