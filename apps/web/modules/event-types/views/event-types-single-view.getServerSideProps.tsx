@@ -37,7 +37,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const getEventTypeById = async (eventTypeId: number) => {
     await ssr.viewer.eventTypes.get.prefetch({ id: eventTypeId });
     try {
-      return await ssr.viewer.eventTypes.get.fetch({ id: eventTypeId });
+      const { eventType } = await ssr.viewer.eventTypes.get.fetch({ id: eventTypeId });
+      return eventType;
     } catch (e: unknown) {
       // reject, user has no access to this event type.
       return null;
