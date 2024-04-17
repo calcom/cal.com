@@ -101,7 +101,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                 </div>
               </div>
             </div>
-            {!!booking.location && (
+            {!!booking.location && booking.location.startsWith("http") && (
               <div className="flex gap-[70px]">
                 <div>
                   <h4>Where</h4>
