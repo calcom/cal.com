@@ -3,7 +3,7 @@ import { UpdateMeOutput } from "@/ee/me/outputs/update-me.output";
 import { SchedulesService } from "@/ee/schedules/services/schedules.service";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
-import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
+import { BearerGuard } from "@/modules/auth/guards/bearer/bearer.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { UpdateManagedUserInput } from "@/modules/users/inputs/update-managed-user.input";
 import { UserWithProfile, UsersRepository } from "@/modules/users/users.repository";
@@ -17,7 +17,7 @@ import { userSchemaResponse } from "@calcom/platform-types";
   path: "/me",
   version: "2",
 })
-@UseGuards(AccessTokenGuard, PermissionsGuard)
+@UseGuards(BearerGuard, PermissionsGuard)
 @DocsTags("Me")
 export class MeController {
   constructor(

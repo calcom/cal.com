@@ -4,7 +4,7 @@ import { Injectable } from "@nestjs/common";
 import { PassportStrategy } from "@nestjs/passport";
 
 @Injectable()
-export class AccessTokenMockStrategy extends PassportStrategy(BaseStrategy, "access-token") {
+export class BearerMockStrategy extends PassportStrategy(BaseStrategy, "bearer") {
   constructor(private readonly email: string, private readonly usersRepository: UsersRepository) {
     super();
   }

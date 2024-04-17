@@ -11,7 +11,7 @@ import { UpdateEventTypeOutput } from "@/ee/event-types/outputs/update-event-typ
 import { EventTypesService } from "@/ee/event-types/services/event-types.service";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
-import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
+import { BearerGuard } from "@/modules/auth/guards/bearer/bearer.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
@@ -51,7 +51,7 @@ export class EventTypesController {
 
   @Post("/")
   @Permissions([EVENT_TYPE_WRITE])
-  @UseGuards(AccessTokenGuard)
+  @UseGuards(BearerGuard)
   async createEventType(
     @Body() body: CreateEventTypeInput,
     @GetUser() user: UserWithProfile
@@ -66,7 +66,7 @@ export class EventTypesController {
 
   @Get("/:eventTypeId")
   @Permissions([EVENT_TYPE_READ])
-  @UseGuards(AccessTokenGuard)
+  @UseGuards(BearerGuard)
   async getEventType(
     @Param("eventTypeId") eventTypeId: string,
     @GetUser() user: UserWithProfile
@@ -85,7 +85,7 @@ export class EventTypesController {
 
   @Get("/")
   @Permissions([EVENT_TYPE_READ])
-  @UseGuards(AccessTokenGuard)
+  @UseGuards(BearerGuard)
   async getEventTypes(@GetUser() user: UserWithProfile): Promise<GetEventTypesOutput> {
     const eventTypes = await getEventTypesByViewer({
       id: user.id,
@@ -141,7 +141,7 @@ export class EventTypesController {
 
   @Patch("/:eventTypeId")
   @Permissions([EVENT_TYPE_WRITE])
-  @UseGuards(AccessTokenGuard)
+  @UseGuards(BearerGuard)
   @HttpCode(HttpStatus.OK)
   async updateEventType(
     @Param("eventTypeId") eventTypeId: number,
@@ -158,7 +158,7 @@ export class EventTypesController {
 
   @Delete("/:eventTypeId")
   @Permissions([EVENT_TYPE_WRITE])
-  @UseGuards(AccessTokenGuard)
+  @UseGuards(BearerGuard)
   async deleteEventType(
     @Param("eventTypeId") eventTypeId: number,
     @GetUser("id") userId: number

@@ -7,7 +7,7 @@ import { UpdateScheduleOutput } from "@/ee/schedules/outputs/update-schedule.out
 import { SchedulesService } from "@/ee/schedules/services/schedules.service";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
-import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
+import { BearerGuard } from "@/modules/auth/guards/bearer/bearer.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import {
@@ -33,7 +33,7 @@ import { CreateScheduleInput } from "../inputs/create-schedule.input";
   path: "schedules",
   version: "2",
 })
-@UseGuards(AccessTokenGuard, PermissionsGuard)
+@UseGuards(BearerGuard, PermissionsGuard)
 @DocsTags("Schedules")
 export class SchedulesController {
   constructor(private readonly schedulesService: SchedulesService) {}

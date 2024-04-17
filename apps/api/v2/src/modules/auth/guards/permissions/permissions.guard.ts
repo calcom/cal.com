@@ -1,4 +1,5 @@
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
+import { isApiKey } from "@/modules/auth/strategies/bearer/bearer.strategy";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { Injectable, CanActivate, ExecutionContext } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
@@ -11,19 +12,18 @@ export class PermissionsGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const requiredPermissions = this.reflector.get(Permissions, context.getHandler());
+    const request = context.switchToHttp().getRequest();
+    const bearerToken = request.get("Authorization")?.replace("Bearer ", "");
 
-    if (!requiredPermissions?.length || !Object.keys(requiredPermissions)?.length) {
+    if (!requiredPermissions?.length || !Object.keys(requiredPermissions)?.length || isApiKey(bearerToken)) {
       return true;
     }
 
-    const request = context.switchToHttp().getRequest();
-    const accessToken = request.get("Authorization")?.replace("Bearer ", "");
-
-    if (!accessToken) {
+    if (!bearerToken) {
       return false;
     }
 
-    const oAuthClientPermissions = await this.getOAuthClientPermissions(accessToken);
+    const oAuthClientPermissions = await this.getOAuthClientPermissions(bearerToken);
 
     if (!oAuthClientPermissions) {
       return false;

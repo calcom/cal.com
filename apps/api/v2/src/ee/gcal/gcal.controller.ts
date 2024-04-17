@@ -5,7 +5,7 @@ import { GcalSaveRedirectOutput } from "@/ee/gcal/outputs/save-redirect.output";
 import { GCalService } from "@/modules/apps/services/gcal.service";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
-import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
+import { BearerGuard } from "@/modules/auth/guards/bearer/bearer.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
 import { SelectedCalendarsRepository } from "@/modules/selected-calendars/selected-calendars.repository";
@@ -64,7 +64,7 @@ export class GcalController {
 
   @Get("/oauth/auth-url")
   @HttpCode(HttpStatus.OK)
-  @UseGuards(AccessTokenGuard)
+  @UseGuards(BearerGuard)
   async redirect(
     @Headers("Authorization") authorization: string,
     @Req() req: Request
@@ -138,7 +138,7 @@ export class GcalController {
 
   @Get("/check")
   @HttpCode(HttpStatus.OK)
-  @UseGuards(AccessTokenGuard, PermissionsGuard)
+  @UseGuards(BearerGuard, PermissionsGuard)
   @Permissions([APPS_READ])
   async check(@GetUser("id") userId: number): Promise<GcalCheckOutput> {
     const gcalCredentials = await this.credentialRepository.getByTypeAndUserId("google_calendar", userId);

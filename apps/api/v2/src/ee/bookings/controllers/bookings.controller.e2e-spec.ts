@@ -5,6 +5,7 @@ import { GetBookingsOutput } from "@/ee/bookings/outputs/get-bookings.output";
 import { CreateScheduleInput } from "@/ee/schedules/inputs/create-schedule.input";
 import { SchedulesModule } from "@/ee/schedules/schedules.module";
 import { SchedulesService } from "@/ee/schedules/services/schedules.service";
+import { ApiKeyModule } from "@/modules/api-key/api-key.module";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { AvailabilitiesModule } from "@/modules/availabilities/availabilities.module";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
@@ -17,7 +18,7 @@ import * as request from "supertest";
 import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
-import { withAccessTokenAuth } from "test/utils/withAccessTokenAuth";
+import { withBearerAuth } from "test/utils/withBearerAuth";
 
 import { SUCCESS_STATUS, ERROR_STATUS } from "@calcom/platform-constants";
 import { handleNewBooking } from "@calcom/platform-libraries";
@@ -40,10 +41,17 @@ describe("Bookings Endpoints", () => {
     let createdBooking: Awaited<ReturnType<typeof handleNewBooking>>;
 
     beforeAll(async () => {
-      const moduleRef = await withAccessTokenAuth(
+      const moduleRef = await withBearerAuth(
         userEmail,
         Test.createTestingModule({
-          imports: [AppModule, PrismaModule, AvailabilitiesModule, UsersModule, SchedulesModule],
+          imports: [
+            AppModule,
+            PrismaModule,
+            AvailabilitiesModule,
+            UsersModule,
+            SchedulesModule,
+            ApiKeyModule,
+          ],
         })
       )
         .overrideGuard(PermissionsGuard)

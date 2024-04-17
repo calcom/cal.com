@@ -17,7 +17,7 @@ import { User } from "@prisma/client";
 import * as request from "supertest";
 import { SchedulesRepositoryFixture } from "test/fixtures/repository/schedules.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
-import { withAccessTokenAuth } from "test/utils/withAccessTokenAuth";
+import { withBearerAuth } from "test/utils/withBearerAuth";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { UpdateScheduleInput } from "@calcom/platform-types";
@@ -38,7 +38,7 @@ describe("Schedules Endpoints", () => {
     const defaultAvailabilityEndTime = "1970-01-01T17:00:00.000Z";
 
     beforeAll(async () => {
-      const moduleRef = await withAccessTokenAuth(
+      const moduleRef = await withBearerAuth(
         userEmail,
         Test.createTestingModule({
           imports: [

@@ -1,7 +1,7 @@
 import { ProviderVerifyAccessTokenOutput } from "@/ee/provider/outputs/verify-access-token.output";
 import { ProviderVerifyClientOutput } from "@/ee/provider/outputs/verify-client.output";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
-import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
+import { BearerGuard } from "@/modules/auth/guards/bearer/bearer.guard";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import {
@@ -44,7 +44,7 @@ export class CalProviderController {
 
   @Get("/:clientId/access-token")
   @HttpCode(HttpStatus.OK)
-  @UseGuards(AccessTokenGuard)
+  @UseGuards(BearerGuard)
   async verifyAccessToken(
     @Param("clientId") clientId: string,
     @GetUser() user: UserWithProfile

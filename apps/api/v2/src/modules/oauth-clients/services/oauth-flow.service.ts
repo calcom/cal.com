@@ -1,4 +1,4 @@
-import { TokenExpiredException } from "@/modules/auth/guards/access-token/token-expired.exception";
+import { TokenExpiredException } from "@/modules/auth/guards/bearer/token-expired.exception";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { BadRequestException, Injectable, UnauthorizedException } from "@nestjs/common";
