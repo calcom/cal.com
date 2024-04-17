@@ -1,3 +1,6 @@
+import prisma from "@calcom/prisma";
+import { SMSLockState } from "@calcom/prisma/enums";
+
 export async function isLockedForSMSSending(userId?: number | null, teamId?: number | null) {
   if (userId) {
     const user = await prisma.user.findFirst({
