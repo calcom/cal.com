@@ -1,20 +1,75 @@
 "use client";
 
 import UsersTable from "@pages/settings/admin/lockedSMS/UsersTable";
+import { useState } from "react";
 
-import { Meta } from "@calcom/ui";
-
-type FormValues = {
-  name: string;
-  redirectUri: string;
-  logo: string;
-};
+import { trpc } from "@calcom/trpc";
+import { Button, Meta, TextField, showToast } from "@calcom/ui";
 
 export default function LockedSMSView() {
+  const [username, setUsername] = useState("");
+  const [teamSlug, setTeamSlug] = useState("");
+
+  const utils = trpc.useContext();
+
+  const mutation = trpc.viewer.admin.setSMSLockState.useMutation({
+    onSuccess: (data) => {
+      console.log(`success data: ${JSON.stringify(data)}`);
+      if (data) {
+        showToast(`${data.name} successfully ${data.lockStatus ? "locked" : "unlocked"}`, "success");
+      }
+      utils.viewer.admin.getSMSLockStateTeamsUsers.invalidate();
+    },
+    onError: () => {
+      showToast("Error when locking/unlocking SMS sending", "error");
+      utils.viewer.admin.getSMSLockStateTeamsUsers.invalidate();
+    },
+  });
+
   return (
     <div>
       <Meta title="lockedSMS" description="Lock or unlock SMS sending for users" />
-      <UsersTable />
+      <div className="mb-4 flex w-full items-center justify-between space-x-2 rtl:space-x-reverse">
+        <div className="flex">
+          <TextField
+            name="Lock User"
+            placeholder="username"
+            defaultValue=""
+            onChange={(event) => setUsername(event.target.value)}
+            value={username}
+          />
+          <Button
+            type="submit"
+            className="ml-2 mt-5"
+            onClick={() => {
+              mutation.mutate({ username, lock: true });
+              utils.viewer.admin.getSMSLockStateTeamsUsers.invalidate();
+            }}>
+            Lock User
+          </Button>
+        </div>
+        <div className="flex">
+          <TextField
+            name="Lock Team"
+            placeholder="team slug"
+            defaultValue=""
+            onChange={(event) => {
+              setTeamSlug(event.target.value);
+            }}
+            value={teamSlug}
+          />
+          <Button
+            type="submit"
+            className="ml-2 mt-5"
+            onClick={() => {
+              mutation.mutate({ teamSlug, lock: true });
+              utils.viewer.admin.getSMSLockStateTeamsUsers.invalidate();
+            }}>
+            Lock Team
+          </Button>
+        </div>
+      </div>
+      <UsersTable setSMSLockMutation={mutation} />
     </div>
   );
 }

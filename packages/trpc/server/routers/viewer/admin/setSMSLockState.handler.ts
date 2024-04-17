@@ -11,10 +11,10 @@ type GetOptions = {
   input: TSetSMSLockState;
 };
 
-const getSMSLockStateTeamsUsers = async ({ ctx, input }: GetOptions) => {
-  const { userId, teamId, lock } = input;
+const getSMSLockStateTeamsUsers = async ({ input }: GetOptions) => {
+  const { userId, username, teamId, teamSlug, lock } = input;
   if (userId) {
-    const updateUser = await prisma.user.update({
+    const updatedUser = await prisma.user.update({
       where: {
         id: userId,
       },
@@ -22,7 +22,25 @@ const getSMSLockStateTeamsUsers = async ({ ctx, input }: GetOptions) => {
         smsLockState: lock ? SMSLockState.LOCKED : SMSLockState.UNLOCKED,
       },
     });
-    return { name: updateUser.username, lockStatus: lock ? SMSLockState.LOCKED : SMSLockState.UNLOCKED };
+    return { name: updatedUser.username, lockStatus: lock ? SMSLockState.LOCKED : SMSLockState.UNLOCKED };
+  } else if (username) {
+    const userToUpdate = await prisma.user.findFirst({
+      where: {
+        username,
+        organizationId: null,
+      },
+    });
+    if (userToUpdate) {
+      const updatedUser = await prisma.user.update({
+        where: {
+          id: userToUpdate.id,
+        },
+        data: {
+          smsLockState: lock ? SMSLockState.LOCKED : SMSLockState.UNLOCKED,
+        },
+      });
+      return { name: updatedUser.username, lockStatus: lock ? SMSLockState.LOCKED : SMSLockState.UNLOCKED };
+    }
   } else if (teamId) {
     const updatedTeam = await prisma.team.update({
       where: {
@@ -32,8 +50,25 @@ const getSMSLockStateTeamsUsers = async ({ ctx, input }: GetOptions) => {
         smsLockState: lock ? SMSLockState.LOCKED : SMSLockState.UNLOCKED,
       },
     });
-    console.log("change here");
     return { name: updatedTeam.slug, lockStatus: lock };
+  } else if (teamSlug) {
+    const teamToUpdate = await prisma.team.findFirst({
+      where: {
+        slug: teamSlug,
+        parentId: null,
+      },
+    });
+    if (teamToUpdate) {
+      const updatedTeam = await prisma.team.update({
+        where: {
+          id: teamToUpdate.id,
+        },
+        data: {
+          smsLockState: lock ? SMSLockState.LOCKED : SMSLockState.UNLOCKED,
+        },
+      });
+      return { name: updatedTeam.slug, lockStatus: lock };
+    }
   }
 };
 

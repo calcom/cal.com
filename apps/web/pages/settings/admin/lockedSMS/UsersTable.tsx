@@ -9,7 +9,6 @@ import { Avatar, DropdownActions, showToast, Table } from "@calcom/ui";
 
 const { Cell, ColumnTitle, Header, Row } = Table;
 
-//add dialog before really performing mutation
 function UsersTable() {
   const { t } = useLocale();
   const [searchTerm, setSearchTerm] = useState<string>("");
