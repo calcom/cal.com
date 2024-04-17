@@ -11,6 +11,7 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
   return (
     <TextField
       name="Tracking ID"
+      data-testid="gtm-tracking-id-input"
       value={trackingId}
       disabled={disabled}
       onChange={(e) => {

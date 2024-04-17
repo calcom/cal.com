@@ -35,6 +35,13 @@ export function createAppsFixture(page: Page) {
         }
 
         await page.click(`[data-testid="save-event-types"]`);
+
+        // adding random-tracking-id to gtm-tracking-id-input because this field is required and the test fails without it
+        if (app === "gtm") {
+          for (let index = 0; index < eventTypeIds.length; index++) {
+            await page.getByTestId("gtm-tracking-id-input").nth(index).fill("random-tracking-id");
+          }
+        }
         await page.click(`[data-testid="configure-step-save"]`);
       }
     },
@@ -55,7 +62,7 @@ export function createAppsFixture(page: Page) {
     },
     verifyAppsInfoNew: async (app: string, eventTypeId: number, activeApps: number) => {
       await page.goto(`event-types/${eventTypeId}?tabName=apps`);
-      await page.getByTestId(`${app}-app-switch`).isChecked();
+      await expect(page.getByTestId(`${app}-app-switch`)).toBeChecked();
     },
   };
 }

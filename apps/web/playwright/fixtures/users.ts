@@ -1,4 +1,5 @@
 import type { Page, WorkerInfo } from "@playwright/test";
+import { expect } from "@playwright/test";
 import type Prisma from "@prisma/client";
 import type { Team } from "@prisma/client";
 import { Prisma as PrismaType } from "@prisma/client";
