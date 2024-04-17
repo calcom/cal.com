@@ -65,7 +65,7 @@ export function getWhatsappTemplateForTrigger(trigger: WorkflowTriggerEvents): W
   }
 }
 
-export function getWhatsappTemplateFunction(template: WorkflowTemplates): typeof whatsappReminderTemplate {
+export function getWhatsappTemplateFunction(template?: WorkflowTemplates): typeof whatsappReminderTemplate {
   switch (template) {
     case "CANCELLED":
       return whatsappEventCancelledTemplate;

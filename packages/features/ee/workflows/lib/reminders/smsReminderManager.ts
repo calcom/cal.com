@@ -10,6 +10,7 @@ import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { CalEventResponses, RecurringEvent } from "@calcom/types/Calendar";
 
 import { getSenderId } from "../alphanumericSenderIdSupport";
+import { isLockedForSMSSending } from "../isLockedForSMSSending";
 import type { ScheduleReminderArgs } from "./emailReminderManager";
 import * as twilio from "./providers/twilioProvider";
 import type { VariablesType } from "./templates/customTemplate";
@@ -86,6 +87,14 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
     isVerificationPending = false,
     seatReferenceUid,
   } = args;
+
+  const isSMSSendingLocked = await isLockedForSMSSending(userId, teamId);
+
+  if (isSMSSendingLocked) {
+    log.debug(`${userId ? `User id ${userId} ` : `Team id ${teamId} `} is locked for SMS sending `);
+    return;
+  }
+
   const { startTime, endTime } = evt;
   const uid = evt.uid as string;
   const currentDate = dayjs();
