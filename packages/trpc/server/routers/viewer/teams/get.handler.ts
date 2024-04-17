@@ -37,11 +37,15 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
   // Hide Members of team when 1) Org is private and logged in user is not admin or owner
   // OR
   // 2)Team is private and logged in user is not admin or owner of team or Organization's admin or owner
+  const isOrgPrivate = ctx.user.profile?.organization?.isPrivate;
+  const isOrgAdminOrOwner = ctx.user.organization?.isOrgAdmin;
   const hideMembers =
-    (ctx.user.profile?.organization?.isPrivate && !ctx.user.organization?.isOrgAdmin) ||
+    (isOrgPrivate && !isOrgAdminOrOwner && input.teamId === ctx.user.organizationId) ||
     (team.isPrivate &&
       !(membership.role === MembershipRole.OWNER || membership.role === MembershipRole.ADMIN) &&
       !ctx.user.organization?.isOrgAdmin);
+
+  console.log({ isOrgAdminOrOwner, isOrgPrivate, hideMembers: !isOrgAdminOrOwner && isOrgPrivate });
 
   return {
     ...restTeam,
