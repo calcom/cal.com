@@ -2,7 +2,7 @@ import { useState } from "react";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { $Enums } from "@calcom/prisma/client";
+import { SMSLockState } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
 import type { IconName } from "@calcom/ui";
 import { Avatar, DropdownActions, showToast, Table } from "@calcom/ui";
@@ -16,7 +16,7 @@ function UsersTable() {
 
   const utils = trpc.useContext();
 
-  const { data: usersAndTeams } = trpc.viewer.admin.getSMSLockStatusTeamsUsers.useQuery();
+  const { data: usersAndTeams } = trpc.viewer.admin.getSMSLockStateTeamsUsers.useQuery();
 
   const mutation = trpc.viewer.admin.setSMSLockState.useMutation({
     onSuccess: (data) => {
@@ -24,11 +24,11 @@ function UsersTable() {
       if (data) {
         showToast(`${data.name} successfully ${data.lockStatus ? "locked" : "unlocked"}`, "success");
       }
-      utils.viewer.admin.getSMSLockStatusTeamsUsers.invalidate();
+      utils.viewer.admin.getSMSLockStateTeamsUsers.invalidate();
     },
     onError: () => {
       showToast("Error when locking/unlocking SMS sending", "error");
-      utils.viewer.admin.getSMSLockStatusTeamsUsers.invalidate();
+      utils.viewer.admin.getSMSLockStateTeamsUsers.invalidate();
     },
   });
 
@@ -36,7 +36,7 @@ function UsersTable() {
     return <></>;
   }
 
-  function setSMSLockStatus({ userId, teamId, lock }: { userId?: number; teamId?: number; lock: boolean }) {
+  function setSMSLockState({ userId, teamId, lock }: { userId?: number; teamId?: number; lock: boolean }) {
     mutation.mutate({
       userId,
       teamId,
@@ -49,35 +49,29 @@ function UsersTable() {
   const users = usersAndTeams.users.locked.concat(usersAndTeams.users.reviewNeeded);
   const teams = usersAndTeams.teams.locked.concat(usersAndTeams.teams.reviewNeeded);
 
-  return (
-    <>{!!users && <LockStatusTable users={users} teams={teams} setSMSLockStatus={setSMSLockStatus} />}</>
-  );
+  return <LockStatusTable users={users} teams={teams} setSMSLockState={setSMSLockState} />;
 }
 
 const LockStatusTable = ({
   users = [],
   teams = [],
-  setSMSLockStatus,
+  setSMSLockState,
 }: {
   users?: {
     id: number;
     username: string | null;
     name: string | null;
     email: string;
-    smsLockStatus: $Enums.SmsLockState;
+    smsLockState: SMSLockState;
   }[];
   teams?: {
     id: number;
     name: string;
-    smsLockStatus: $Enums.SmsLockState;
+    smsLockState: SMSLockState;
     slug: string | null;
   }[];
-  setSMSLockStatus: (param: { userId?: number; teamId?: number; lock: boolean }) => void;
+  setSMSLockState: (param: { userId?: number; teamId?: number; lock: boolean }) => void;
 }) => {
-  if (users.length === 0 && teams.length === 0) {
-    return <></>;
-  }
-
   function getActions({
     user,
     team,
@@ -87,40 +81,40 @@ const LockStatusTable = ({
       username: string | null;
       name: string | null;
       email: string;
-      smsLockStatus: $Enums.SmsLockState;
+      smsLockState: SMSLockState;
     };
     team?: {
       id: number;
       name: string;
-      smsLockStatus: $Enums.SmsLockState;
+      smsLockState: SMSLockState;
       slug: string | null;
     };
   }) {
-    const smsLockStatus = user?.smsLockStatus ?? team?.smsLockStatus;
-    if (!smsLockStatus) return [];
+    const smsLockState = user?.smsLockState ?? team?.smsLockState;
+    if (!smsLockState) return [];
 
     const actions = [
       {
         id: "unlock-sms",
-        label: smsLockStatus === $Enums.SmsLockState.LOCKED ? "Unlock SMS sending" : "Lock SMS sending",
+        label: smsLockState === SMSLockState.LOCKED ? "Unlock SMS sending" : "Lock SMS sending",
         onClick: () =>
-          setSMSLockStatus({
+          setSMSLockState({
             userId: user ? user.id : undefined,
             teamId: team ? team.id : undefined,
-            lock: smsLockStatus !== $Enums.SmsLockState.LOCKED,
+            lock: smsLockState !== SMSLockState.LOCKED,
           }),
         icon: "lock" as IconName,
       },
     ];
-    if (smsLockStatus === $Enums.SmsLockState.REVIEW_NEEDED) {
+    if (smsLockState === SMSLockState.REVIEW_NEEDED) {
       actions.push({
         id: "reviewed",
         label: "Mark as Reviewed",
         onClick: () =>
-          setSMSLockStatus({
+          setSMSLockState({
             userId: user ? user.id : undefined,
             teamId: team ? team.id : undefined,
-            lock: smsLockStatus === $Enums.SmsLockState.REVIEW_NEEDED,
+            lock: smsLockState === SMSLockState.REVIEW_NEEDED,
           }),
         icon: "pencil" as IconName, // assuming 'review' is the correct icon for a 'Reviewed' action
       });
@@ -161,7 +155,7 @@ const LockStatusTable = ({
                 </div>
               </Cell>
 
-              <Cell>{user.smsLockStatus}</Cell>
+              <Cell>{user.smsLockState}</Cell>
               <Cell widthClassNames="w-auto">
                 <DropdownActions actions={getActions({ user })} />
               </Cell>
@@ -182,7 +176,7 @@ const LockStatusTable = ({
                   </div>
                 </div>
               </Cell>
-              <Cell>{team.smsLockStatus}</Cell>
+              <Cell>{team.smsLockState}</Cell>
               <Cell widthClassNames="w-auto">
                 <DropdownActions actions={getActions({ team })} />
               </Cell>

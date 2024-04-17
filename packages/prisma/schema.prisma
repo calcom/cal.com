@@ -318,7 +318,7 @@ model User {
   isPlatformManaged          Boolean                      @default(false)
 
   OutOfOfficeReasons OutOfOfficeReason[]
-  smsLockStatus      SmsLockState        @default(UNLOCKED)
+  smsLockState       SMSLockState        @default(UNLOCKED)
 
   @@unique([email])
   @@unique([email, username])
@@ -399,7 +399,7 @@ model Team {
   dsyncTeamGroupMapping DSyncTeamGroupMapping[]
   isPlatform            Boolean                 @default(false)
   platformOAuthClient   PlatformOAuthClient[]
-  smsLockStatus         SmsLockState            @default(UNLOCKED)
+  smsLockState          SMSLockState            @default(UNLOCKED)
 
   @@unique([slug, parentId])
   @@index([parentId])
@@ -1329,7 +1329,7 @@ model SecondaryEmail {
   @@index([userId])
 }
 
-enum SmsLockState {
+enum SMSLockState {
   LOCKED
   UNLOCKED
   REVIEW_NEEDED

@@ -1,5 +1,5 @@
 import { prisma } from "@calcom/prisma";
-import { SmsLockState } from "@calcom/prisma/client";
+import { SMSLockState } from "@calcom/prisma/client";
 
 import type { TrpcSessionUser } from "../../../trpc";
 import type { TSetSMSLockState } from "./setSMSLockState.schema";
@@ -11,7 +11,7 @@ type GetOptions = {
   input: TSetSMSLockState;
 };
 
-const getSMSLockStatusTeamsUsers = async ({ ctx, input }: GetOptions) => {
+const getSMSLockStateTeamsUsers = async ({ ctx, input }: GetOptions) => {
   const { userId, teamId, lock } = input;
   if (userId) {
     const updateUser = await prisma.user.update({
@@ -19,17 +19,17 @@ const getSMSLockStatusTeamsUsers = async ({ ctx, input }: GetOptions) => {
         id: userId,
       },
       data: {
-        smsLockStatus: lock ? SmsLockState.LOCKED : SmsLockState.UNLOCKED,
+        smsLockState: lock ? SMSLockState.LOCKED : SMSLockState.UNLOCKED,
       },
     });
-    return { name: updateUser.username, lockStatus: lock ? SmsLockState.LOCKED : SmsLockState.UNLOCKED };
+    return { name: updateUser.username, lockStatus: lock ? SMSLockState.LOCKED : SMSLockState.UNLOCKED };
   } else if (teamId) {
     const updatedTeam = await prisma.team.update({
       where: {
         id: teamId,
       },
       data: {
-        smsLockStatus: lock ? SmsLockState.LOCKED : SmsLockState.UNLOCKED,
+        smsLockState: lock ? SMSLockState.LOCKED : SMSLockState.UNLOCKED,
       },
     });
     console.log("change here");
@@ -37,4 +37,4 @@ const getSMSLockStatusTeamsUsers = async ({ ctx, input }: GetOptions) => {
   }
 };
 
-export default getSMSLockStatusTeamsUsers;
+export default getSMSLockStateTeamsUsers;

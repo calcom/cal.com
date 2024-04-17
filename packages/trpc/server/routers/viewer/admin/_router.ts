@@ -48,10 +48,10 @@ export const adminRouter = router({
     );
     return handler(opts);
   }),
-  getSMSLockStatusTeamsUsers: authedAdminProcedure.query(async (opts) => {
+  getSMSLockStateTeamsUsers: authedAdminProcedure.query(async (opts) => {
     const handler = await importHandler(
-      namespaced("getSMSLockStatusTeamsUsers"),
-      () => import("./getSMSLockStatusTeamsUsers.handler")
+      namespaced("getSMSLockStateTeamsUsers"),
+      () => import("./getSMSLockStateTeamsUsers.handler")
     );
     return handler(opts);
   }),

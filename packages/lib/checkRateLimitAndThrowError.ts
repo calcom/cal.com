@@ -18,7 +18,7 @@ export async function checkRateLimitAndThrowError({
 
   if (!success) {
     if (rateLimitingType === "sms" || "smsMonth") {
-      await changeSMSLockStatus(
+      await changeSMSLockState(
         identifier,
         rateLimitingType === "sms" ? SMSLockState.LOCKED : SMSLockState.REVIEW_NEEDED
       );
@@ -33,7 +33,7 @@ export async function checkRateLimitAndThrowError({
   }
 }
 
-async function changeSMSLockStatus(identifier: string, status: SMSLockState) {
+async function changeSMSLockState(identifier: string, status: SMSLockState) {
   let userId, teamId;
 
   if (identifier.startsWith("sms:user:")) {
