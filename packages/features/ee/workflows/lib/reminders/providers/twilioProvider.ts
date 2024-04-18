@@ -55,10 +55,12 @@ export const sendSMS = async (
     return;
   }
 
-  await checkSMSRateLimit({
-    identifier: `sms:${userId ? "user:" : "team:"}${userId || teamId}`,
-    rateLimitingType: "smsMonth",
-  });
+  if (userId) {
+    await checkSMSRateLimit({
+      identifier: `sms:user:${userId}`,
+      rateLimitingType: "smsMonth",
+    });
+  }
 
   const response = await twilio.messages.create({
     body: body,
@@ -88,10 +90,12 @@ export const scheduleSMS = async (
     return;
   }
 
-  await checkSMSRateLimit({
-    identifier: `sms:${userId ? "user:" : "team:"}${userId || teamId}`,
-    rateLimitingType: "smsMonth",
-  });
+  if (userId) {
+    await checkSMSRateLimit({
+      identifier: `sms:user:${userId || teamId}`,
+      rateLimitingType: "smsMonth",
+    });
+  }
 
   const response = await twilio.messages.create({
     body: body,

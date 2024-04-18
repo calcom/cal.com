@@ -74,7 +74,7 @@ const LockStatusTable = ({
             teamId: team ? team.id : undefined,
             lock: false,
           }),
-        icon: "pencil" as IconName, // assuming 'review' is the correct icon for a 'Reviewed' action
+        icon: "pencil" as IconName,
       });
     }
 
@@ -98,7 +98,6 @@ const LockStatusTable = ({
               <Cell widthClassNames="w-auto">
                 <div className="min-h-10 flex items-center">
                   {" "}
-                  {/* Added items-center here */}
                   <Avatar
                     size="md"
                     alt={`Avatar of ${user.username || "Nameless"}`}
