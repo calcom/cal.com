@@ -148,7 +148,7 @@ export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs) =
       triggerEvent === WorkflowTriggerEvents.RESCHEDULE_EVENT
     ) {
       try {
-        await twilio.sendSMS(reminderPhone, textMessage, "", true);
+        await twilio.sendSMS(reminderPhone, textMessage, "", userId, teamId, true);
       } catch (error) {
         console.log(`Error sending WHATSAPP with error ${error}`);
       }
