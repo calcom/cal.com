@@ -40,14 +40,17 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
   function shouldHideMembers() {
     const isOrgPrivate = ctx.user.profile?.organization?.isPrivate;
     const isOrgAdminOrOwner = ctx.user.organization?.isOrgAdmin;
-    const isTeamAdminOrOwner =
-      membership?.role === MembershipRole.OWNER || membership?.role === MembershipRole.ADMIN;
     const isTargetingOrg = input.teamId === ctx.user.organizationId;
 
-    const blockAccessToOrg = isTargetingOrg && isOrgPrivate && !isOrgAdminOrOwner;
-    const blockAccessToteam = team?.isPrivate && !isTeamAdminOrOwner && !isOrgAdminOrOwner;
+    if (isTargetingOrg && isOrgPrivate && !isOrgAdminOrOwner) {
+      return true;
+    }
+    const isTeamAdminOrOwner =
+      membership?.role === MembershipRole.OWNER || membership?.role === MembershipRole.ADMIN;
 
-    return blockAccessToOrg || blockAccessToteam;
+    if (team?.isPrivate && (!isTeamAdminOrOwner || !isOrgAdminOrOwner)) {
+      return true;
+    }
   }
 
   return {
