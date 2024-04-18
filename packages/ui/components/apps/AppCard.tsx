@@ -220,7 +220,9 @@ const InstallAppButtonChild = ({
 
   const _onClick = (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
     if (redirectToAppOnboarding) {
-      router.push(getAppOnboardingUrl({ slug: appMetadata.slug, step: AppOnboardingSteps.ACCOUNTS_STEP }));
+      router.push(
+        getAppOnboardingUrl({ slug: addAppMutationInput.slug, step: AppOnboardingSteps.ACCOUNTS_STEP })
+      );
     } else if (onClick) {
       onClick(e);
     }
@@ -234,6 +236,7 @@ const InstallAppButtonChild = ({
         className="[@media(max-width:260px)]:w-full [@media(max-width:260px)]:justify-center"
         StartIcon="plus"
         data-testid="install-app-button"
+        onClick={_onClick}
         {...props}>
         {paid.trial ? t("start_paid_trial") : t("subscribe")}
       </Button>
@@ -250,6 +253,7 @@ const InstallAppButtonChild = ({
         className="[@media(max-width:260px)]:w-full [@media(max-width:260px)]:justify-center"
         StartIcon="plus"
         data-testid="install-app-button"
+        onClick={_onClick}
         {...props}>
         {t("install")}
       </Button>
