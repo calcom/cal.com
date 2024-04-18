@@ -2,23 +2,18 @@ import { test } from "../../lib/fixtures";
 
 const ALL_APPS = ["fathom", "matomo", "plausible", "ga4", "gtm", "metapixel"];
 
-test.describe("Check analytics Apps by skipping the flow in between", () => {
-  test.beforeEach(async ({ page, users }) => {
-    // await loginUser(users);
-
-    const user = await users.create();
-    await user.apiLogin();
-    await page.goto("/apps/");
-  });
-
+test.describe("Check analytics Apps ", () => {
   test.afterEach(async ({ users }) => {
     await users.deleteAll();
   });
 
-  test("Check analytics Apps", async ({ appsPage, page, users }) => {
+  test("Check analytics Apps by skipping the configure step", async ({ appsPage, page, users }) => {
+    const user = await users.create();
+    await user.apiLogin();
+    await page.goto("/apps/");
     await appsPage.goToAppsCategory("analytics");
     for (const app of ALL_APPS) {
-      await appsPage.installApp(app);
+      await appsPage.installAppSkipConfigure(app);
       await appsPage.goBackToAppsPage();
     }
     await page.goto("/event-types");
@@ -30,10 +25,8 @@ test.describe("Check analytics Apps by skipping the flow in between", () => {
     }
     await appsPage.verifyAppsInfo(6);
   });
-});
 
-test.describe("Check analytics Apps completing the new app install flow", () => {
-  test("Check analytics Apps new flow", async ({ appsPage, page, users }) => {
+  test("Check analytics Apps using the new flow", async ({ appsPage, page, users }) => {
     const user = await users.create();
     await user.apiLogin();
     const eventTypes = await user.getUserEventsAsOwner();
@@ -41,7 +34,7 @@ test.describe("Check analytics Apps completing the new app install flow", () => 
 
     for (const app of ALL_APPS) {
       await page.goto("/apps/categories/analytics");
-      await appsPage.installUsingNewAppInstallFlow(app, eventTypesIds);
+      await appsPage.installApp(app, eventTypesIds);
       for (const id of eventTypesIds) {
         await appsPage.verifyAppsInfoNew(app, id);
       }

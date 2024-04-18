@@ -9,10 +9,9 @@ export function createAppsFixture(page: Page) {
       await page.getByTestId(`app-store-category-${category}`).nth(1).click();
       await page.goto("apps/categories/analytics");
     },
-    installApp: async (app: string) => {
+    installAppSkipConfigure: async (app: string) => {
       await page.getByTestId(`app-store-app-card-${app}`).click();
       await page.getByTestId("install-app-button").click();
-
       const appMetadata = appStoreMetadata[app as keyof typeof appStoreMetadata];
       if (shouldRedirectToAppOnboarding(appMetadata)) {
         await page.click('[data-testid="install-app-button-personal"]');
@@ -20,8 +19,7 @@ export function createAppsFixture(page: Page) {
         await page.click('[data-testid="set-up-later"]');
       }
     },
-
-    installUsingNewAppInstallFlow: async (app: string, eventTypeIds: number[]) => {
+    installApp: async (app: string, eventTypeIds: number[]) => {
       await page.getByTestId(`app-store-app-card-${app}`).click();
       (await page.waitForSelector('[data-testid="install-app-button"]')).click();
 
