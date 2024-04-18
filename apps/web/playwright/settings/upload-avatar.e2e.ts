@@ -7,7 +7,7 @@ import { test } from "../lib/fixtures";
 
 test.describe("UploadAvatar", async () => {
   test("it can upload a user profile image", async ({ page, users }) => {
-    const user = await users.create({});
+    const user = await users.create({ name: "John Doe" });
     await user.apiLogin();
 
     await test.step("Can upload an initial picture", async () => {
