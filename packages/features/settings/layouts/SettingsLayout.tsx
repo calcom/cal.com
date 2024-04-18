@@ -136,12 +136,12 @@ tabs.find((tab) => {
 const adminRequiredKeys = ["admin"];
 const organizationRequiredKeys = ["organization"];
 
-const useTabs = (isOrgAdminOrOwner: boolean | undefined) => {
+const useTabs = () => {
   const session = useSession();
   const { data: user } = trpc.viewer.me.useQuery({ includePasswordAdded: true });
+  const isOrgAdminOrOwner = user?.organization?.isOrgAdmin;
   const orgBranding = useOrgBranding();
   const isAdmin = session.data?.user.role === UserPermissionRole.ADMIN;
-
   tabs.map((tab) => {
     if (tab.href === "/settings/my-account") {
       tab.name = user?.name || "my_account";
@@ -220,7 +220,7 @@ const SettingsSidebarContainer = ({
   });
   const isOrgAdminOrOwner =
     currentOrg && currentOrg?.user?.role && ["OWNER", "ADMIN"].includes(currentOrg?.user?.role);
-  const tabsWithPermissions = useTabs(isOrgAdminOrOwner);
+  const tabsWithPermissions = useTabs();
 
   const { data: otherTeams } = trpc.viewer.organizations.listOtherTeams.useQuery(undefined, {
     enabled: !!session.data?.user?.org,
