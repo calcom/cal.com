@@ -259,12 +259,14 @@ const TeamProfileForm = ({ team }: TeamProfileFormProps) => {
     },
     async onSuccess(res) {
       reset({
-        logo: res?.logoUrl || "",
+        logo: res?.logoUrl,
         name: (res?.name || "") as string,
         bio: (res?.bio || "") as string,
         slug: res?.slug as string,
       });
       await utils.viewer.teams.get.invalidate();
+      // TODO: Not all changes require list invalidation
+      await utils.viewer.teams.list.invalidate();
       showToast(t("your_team_updated_successfully"), "success");
     },
   });
@@ -331,6 +333,7 @@ const TeamProfileForm = ({ team }: TeamProfileFormProps) => {
                   <>
                     <Avatar
                       alt={form.getValues("name")}
+                      data-testid="profile-upload-logo"
                       imageSrc={getPlaceholderAvatar(value, form.getValues("name"))}
                       size="lg"
                     />
