@@ -10,11 +10,11 @@ export async function checkRateLimitAndThrowError({
   opts,
 }: RateLimitHelper) {
   const response = await rateLimiter()({ rateLimitingType, identifier, opts });
-  const { remaining, reset } = response;
+  const { success, reset } = response;
 
   if (onRateLimiterResponse) onRateLimiterResponse(response);
 
-  if (remaining < 1) {
+  if (!success) {
     const convertToSeconds = (ms: number) => Math.floor(ms / 1000);
     const secondsToWait = convertToSeconds(reset - Date.now());
     throw new TRPCError({
