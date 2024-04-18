@@ -60,7 +60,6 @@ export function createAppsFixture(page: Page) {
     },
     verifyAppsInfoNew: async (app: string, eventTypeId: number) => {
       await page.goto(`event-types/${eventTypeId}?tabName=apps`);
-      await page.waitForLoadState("networkidle");
       await expect(page.getByTestId(`${app}-app-switch`)).toBeChecked();
     },
   };
