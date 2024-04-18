@@ -72,7 +72,7 @@ const LockStatusTable = ({
           setSMSLockState({
             userId: user ? user.id : undefined,
             teamId: team ? team.id : undefined,
-            lock: smsLockState === SMSLockState.REVIEW_NEEDED,
+            lock: false,
           }),
         icon: "pencil" as IconName, // assuming 'review' is the correct icon for a 'Reviewed' action
       });
