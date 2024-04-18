@@ -76,11 +76,6 @@ export class OAuthClientUsersController {
     this.logger.log(
       `Creating user with data: ${JSON.stringify(body, null, 2)} for OAuth Client with ID ${oAuthClientId}`
     );
-    const existingUser = await this.userRepository.findByEmail(body.email);
-
-    if (existingUser) {
-      throw new BadRequestException("A user with the provided email already exists.");
-    }
     const client = await this.oauthRepository.getOAuthClient(oAuthClientId);
 
     const isPlatformManaged = true;
