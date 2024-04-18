@@ -42,15 +42,17 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
     const isOrgAdminOrOwner = ctx.user.organization?.isOrgAdmin;
     const isTargetingOrg = input.teamId === ctx.user.organizationId;
 
-    if (isTargetingOrg && isOrgPrivate && !isOrgAdminOrOwner) {
-      return true;
+    if (isTargetingOrg) {
+      return isOrgPrivate && !isOrgAdminOrOwner;
     }
+
     const isTeamAdminOrOwner =
       membership?.role === MembershipRole.OWNER || membership?.role === MembershipRole.ADMIN;
 
-    if (team?.isPrivate && (!isTeamAdminOrOwner || !isOrgAdminOrOwner)) {
+    if (team?.isPrivate && !isTeamAdminOrOwner && !isOrgAdminOrOwner) {
       return true;
     }
+    return false;
   }
 
   return {
