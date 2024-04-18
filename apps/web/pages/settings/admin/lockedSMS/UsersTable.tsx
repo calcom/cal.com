@@ -10,6 +10,21 @@ type Props = {
   setSMSLockState: (param: { userId?: number; teamId?: number; lock: boolean }) => void;
 };
 
+type User = {
+  id: number;
+  username: string | null;
+  name: string | null;
+  email: string;
+  smsLockState: SMSLockState;
+};
+
+type Team = {
+  id: number;
+  name: string;
+  smsLockState: SMSLockState;
+  slug: string | null;
+};
+
 function UsersTable({ setSMSLockState }: Props) {
   const { data: usersAndTeams } = trpc.viewer.admin.getSMSLockStateTeamsUsers.useQuery();
 
@@ -28,39 +43,11 @@ const LockStatusTable = ({
   teams = [],
   setSMSLockState,
 }: {
-  users?: {
-    id: number;
-    username: string | null;
-    name: string | null;
-    email: string;
-    smsLockState: SMSLockState;
-  }[];
-  teams?: {
-    id: number;
-    name: string;
-    smsLockState: SMSLockState;
-    slug: string | null;
-  }[];
+  users?: User[];
+  teams?: Team[];
   setSMSLockState: (param: { userId?: number; teamId?: number; lock: boolean }) => void;
 }) => {
-  function getActions({
-    user,
-    team,
-  }: {
-    user?: {
-      id: number;
-      username: string | null;
-      name: string | null;
-      email: string;
-      smsLockState: SMSLockState;
-    };
-    team?: {
-      id: number;
-      name: string;
-      smsLockState: SMSLockState;
-      slug: string | null;
-    };
-  }) {
+  function getActions({ user, team }: { user?: User; team?: Team }) {
     const smsLockState = user?.smsLockState ?? team?.smsLockState;
     if (!smsLockState) return [];
 
