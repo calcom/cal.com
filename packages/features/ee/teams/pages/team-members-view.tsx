@@ -80,6 +80,7 @@ const MembersView = () => {
 
   const router = useRouter();
   const session = useSession();
+  const org = session?.data?.user.org;
 
   const utils = trpc.useUtils();
   const params = useParamsWithFallback();
@@ -132,9 +133,7 @@ const MembersView = () => {
   const isAdmin =
     team && (team.membership.role === MembershipRole.OWNER || team.membership.role === MembershipRole.ADMIN);
 
-  const isOrgAdminOrOwner =
-    currentOrg &&
-    (currentOrg.user.role === MembershipRole.OWNER || currentOrg.user.role === MembershipRole.ADMIN);
+  const isOrgAdminOrOwner = org.role === MembershipRole.OWNER || org.role === MembershipRole.ADMIN;
 
   return (
     <>

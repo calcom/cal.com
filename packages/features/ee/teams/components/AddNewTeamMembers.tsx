@@ -236,10 +236,8 @@ const PendingMemberItem = (props: { member: TeamMember; index: number; teamId: n
   const { t } = useLocale();
   const utils = trpc.useUtils();
   const session = useSession();
+  const orgRole = session?.data?.user.org?.role;
   const bookerUrl = member.bookerUrl;
-  const { data: currentOrg } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {
-    enabled: !!session.data?.user?.org,
-  });
   const removeMemberMutation = trpc.viewer.teams.removeMember.useMutation({
     async onSuccess() {
       await utils.viewer.teams.get.invalidate();
@@ -251,9 +249,7 @@ const PendingMemberItem = (props: { member: TeamMember; index: number; teamId: n
     },
   });
 
-  const isOrgAdminOrOwner =
-    currentOrg &&
-    (currentOrg.user.role === MembershipRole.OWNER || currentOrg.user.role === MembershipRole.ADMIN);
+  const isOrgAdminOrOwner = orgRole === MembershipRole.OWNER || orgRole === MembershipRole.ADMIN;
 
   return (
     <li
