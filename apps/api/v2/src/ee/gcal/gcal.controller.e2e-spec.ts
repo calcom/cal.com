@@ -19,38 +19,14 @@ import { UserRepositoryFixture } from "test/fixtures/repository/users.repository
 
 const CLIENT_REDIRECT_URI = "http://localhost:5555";
 
-class CalendarsServiceMock extends CalendarsService {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async getCalendars(userId: number) {
+class CalendarsServiceMock {
+  async getCalendars() {
     return {
       connectedCalendars: [
         {
-          name: "Google Calendar",
-          appId: "google-calendar",
-          userId: 10,
           integration: {
             type: "google_calendar",
           },
-          calendars: [
-            {
-              externalId: "alice@gmail.com",
-              name: "alice@gmail.com",
-              primary: true,
-              readOnly: false,
-            },
-            {
-              externalId: "addressbook#contacts@group.v.calendar.google.com",
-              name: "Dzimšanas dienas",
-              primary: false,
-              readOnly: true,
-            },
-            {
-              externalId: "en.latvian#holiday@group.v.calendar.google.com",
-              name: "Holidays in Latvia",
-              primary: false,
-              readOnly: true,
-            },
-          ],
         },
       ],
     };
