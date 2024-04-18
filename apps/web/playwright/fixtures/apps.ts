@@ -36,6 +36,7 @@ export function createAppsFixture(page: Page) {
 
         // adding random-tracking-id to gtm-tracking-id-input because this field is required and the test fails without it
         if (app === "gtm") {
+          await page.waitForLoadState("domcontentloaded");
           for (let index = 0; index < eventTypeIds.length; index++) {
             await page.getByTestId("gtm-tracking-id-input").nth(index).fill("random-tracking-id");
           }
@@ -53,14 +54,15 @@ export function createAppsFixture(page: Page) {
       await page.getByTestId("vertical-tab-apps").click();
     },
     activeApp: async (app: string) => {
-      await page.getByTestId(`${app}-app-switch`).click();
+      await page.locator(`[data-testid='${app}-app-switch']`).click();
     },
     verifyAppsInfo: async (activeApps: number) => {
       await expect(page.locator(`text=6 apps, ${activeApps} active`)).toBeVisible();
     },
     verifyAppsInfoNew: async (app: string, eventTypeId: number) => {
       await page.goto(`event-types/${eventTypeId}?tabName=apps`);
-      await expect(page.getByTestId(`${app}-app-switch`)).toBeChecked();
+      await page.waitForLoadState("domcontentloaded");
+      await expect(page.locator(`[data-testid='${app}-app-switch'][data-state="checked"]`)).toBeVisible();
     },
   };
 }
