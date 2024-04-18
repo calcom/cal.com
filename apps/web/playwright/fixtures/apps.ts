@@ -23,7 +23,7 @@ export function createAppsFixture(page: Page) {
 
     installUsingNewAppInstallFlow: async (app: string, eventTypeIds: number[]) => {
       await page.getByTestId(`app-store-app-card-${app}`).click();
-      await page.getByTestId("install-app-button").click();
+      (await page.waitForSelector('[data-testid="install-app-button"]')).click();
 
       const appMetadata = appStoreMetadata[app as keyof typeof appStoreMetadata];
       if (shouldRedirectToAppOnboarding(appMetadata)) {
@@ -60,8 +60,9 @@ export function createAppsFixture(page: Page) {
     verifyAppsInfo: async (activeApps: number) => {
       await expect(page.locator(`text=6 apps, ${activeApps} active`)).toBeVisible();
     },
-    verifyAppsInfoNew: async (app: string, eventTypeId: number, activeApps: number) => {
+    verifyAppsInfoNew: async (app: string, eventTypeId: number) => {
       await page.goto(`event-types/${eventTypeId}?tabName=apps`);
+      await page.waitForLoadState("networkidle");
       await expect(page.getByTestId(`${app}-app-switch`)).toBeChecked();
     },
   };

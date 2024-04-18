@@ -39,12 +39,11 @@ test.describe("Check analytics Apps completing the new app install flow", () => 
     const eventTypes = await user.getUserEventsAsOwner();
     const eventTypesIds = eventTypes.map((item) => item.id);
 
-    for (let index = 0; index < ALL_APPS.length; index++) {
-      const app = ALL_APPS[index];
+    for (const app of ALL_APPS) {
       await page.goto("/apps/categories/analytics");
       await appsPage.installUsingNewAppInstallFlow(app, eventTypesIds);
       for (const id of eventTypesIds) {
-        await appsPage.verifyAppsInfoNew(app, id, index + 1);
+        await appsPage.verifyAppsInfoNew(app, id);
       }
     }
     await users.deleteAll();
