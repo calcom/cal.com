@@ -9,6 +9,12 @@ import dayjs from "@calcom/dayjs";
 import { getFeatureFlag } from "@calcom/features/flags/server/utils";
 import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
 import type CalendarService from "@calcom/lib/CalendarService";
+import {
+  APP_CREDENTIAL_SHARING_ENABLED,
+  CREDENTIAL_SYNC_ENDPOINT,
+  CREDENTIAL_SYNC_SECRET,
+  CREDENTIAL_SYNC_SECRET_HEADER_NAME,
+} from "@calcom/lib/constants";
 import { formatCalEvent } from "@calcom/lib/formatCalendarEvent";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -22,6 +28,7 @@ import type {
 } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
+import { invalidateCredential } from "../../_utils/invalidateCredential";
 import { AxiosLikeResponseToFetchResponse } from "../../_utils/oauth/AxiosLikeResponseToFetchResponse";
 import { OAuthManager } from "../../_utils/oauth/OAuthManager";
 import { getTokenObjectFromCredential } from "../../_utils/oauth/getTokenObjectFromCredential";
@@ -31,18 +38,6 @@ import { metadata } from "../_metadata";
 import { getGoogleAppKeys } from "./getGoogleAppKeys";
 
 const log = logger.getSubLogger({ prefix: ["app-store/googlecalendar/lib/CalendarService"] });
-async function doesResponseInvalidateToken(response: Response) {
-  if (!response.ok || (response.status < 200 && response.status >= 300)) {
-    const responseBody = await response.json();
-
-    if ((response && response.status === 124) || responseBody.error === "invalid_grant") {
-      return {
-        reason: "invalid_grant",
-      };
-    }
-  }
-  return null;
-}
 
 interface GoogleCalError extends Error {
   code?: number;
@@ -104,6 +99,14 @@ export default class GoogleCalendarService implements Calendar {
   private initGoogleAuth = (credential: CredentialPayload) => {
     const currentTokenObject = getTokenObjectFromCredential(credential);
     const auth = new OAuthManager({
+      // Keep it false because we are not using auth.request everywhere. That would be done later as it involves many google calendar sdk functionc calls and needs to be tested well.
+      autoCheckTokenExpiryOnRequest: false,
+      credentialSyncVariables: {
+        APP_CREDENTIAL_SHARING_ENABLED: APP_CREDENTIAL_SHARING_ENABLED,
+        CREDENTIAL_SYNC_ENDPOINT: CREDENTIAL_SYNC_ENDPOINT,
+        CREDENTIAL_SYNC_SECRET: CREDENTIAL_SYNC_SECRET,
+        CREDENTIAL_SYNC_SECRET_HEADER_NAME: CREDENTIAL_SYNC_SECRET_HEADER_NAME,
+      },
       resourceOwner: {
         type: "user",
         id: credential.userId,
@@ -124,25 +127,30 @@ export default class GoogleCalendarService implements Calendar {
         const myGoogleAuth = await this.getMyGoogleAuthSingleton();
         return myGoogleAuth.isTokenExpiring();
       },
-      doesResponseInvalidateToken,
+      isTokenObjectUnusable: async function (response) {
+        // TODO: Confirm that if this logic should go to isAccessTokenUnusable
+        if (!response.ok || (response.status < 200 && response.status >= 300)) {
+          const responseBody = await response.json();
+
+          if (responseBody.error === "invalid_grant") {
+            return {
+              reason: "invalid_grant",
+            };
+          }
+        }
+        return null;
+      },
+      isAccessTokenUnusable: async () => {
+        // As long as refresh_token is valid, access_token is regenerated and fixed automatically by Google Calendar when a problem with it is detected
+        // So, a situation where access_token is invalid but refresh_token is valid should not happen
+        return null;
+      },
       invalidateTokenObject: () => invalidateCredential(this.credential.id),
       expireAccessToken: async () => {
         await markTokenAsExpired(this.credential);
       },
-    });
-    this.oAuthManagerInstance = auth;
-    return {
-      getMyGoogleAuth: async () => {
-        // It would automatically update myGoogleAuth with correct token
-        const { token } = await auth.getTokenObjectOrFetch();
-        if (!token) {
-          throw new Error("Invalid grant for Google Calendar app");
-        }
-
-        const myGoogleAuth = await this.getMyGoogleAuthSingleton();
-        // We could do this in onNewTokenResponse
-        myGoogleAuth.setCredentials(token);
-
+      updateTokenObject: async (token) => {
+        this.myGoogleAuth.setCredentials(token);
         await prisma.credential.update({
           where: {
             id: credential.id,
@@ -151,13 +159,25 @@ export default class GoogleCalendarService implements Calendar {
             key: token,
           },
         });
+      },
+    });
+    this.oAuthManagerInstance = auth;
+    return {
+      getMyGoogleAuthWithRefreshedToken: async () => {
+        // It would automatically update myGoogleAuth with correct token
+        const { token } = await auth.getTokenObjectOrFetch();
+        if (!token) {
+          throw new Error("Invalid grant for Google Calendar app");
+        }
+
+        const myGoogleAuth = await this.getMyGoogleAuthSingleton();
         return myGoogleAuth;
       },
     };
   };
 
   public authedCalendar = async () => {
-    const myGoogleAuth = await this.auth.getMyGoogleAuth();
+    const myGoogleAuth = await this.auth.getMyGoogleAuthWithRefreshedToken();
     const calendar = google.calendar({
       version: "v3",
       auth: myGoogleAuth,
@@ -674,22 +694,3 @@ class MyGoogleAuth extends google.auth.OAuth2 {
     return super.refreshToken(token);
   }
 }
-
-const invalidateCredential = async (credentialId: CredentialPayload["id"]) => {
-  const credential = await prisma.credential.findUnique({
-    where: {
-      id: credentialId,
-    },
-  });
-
-  if (credential) {
-    await prisma.credential.update({
-      where: {
-        id: credentialId,
-      },
-      data: {
-        invalid: true,
-      },
-    });
-  }
-};

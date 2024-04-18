@@ -1,15 +1,22 @@
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
+import {
+  APP_CREDENTIAL_SHARING_ENABLED,
+  CREDENTIAL_SYNC_ENDPOINT,
+  CREDENTIAL_SYNC_SECRET,
+  CREDENTIAL_SYNC_SECRET_HEADER_NAME,
+} from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
-import type { Credential } from "@calcom/prisma/client";
 import { Frequency } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 import type { PartialReference } from "@calcom/types/EventManager";
 import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapter";
 
+import { invalidateCredential } from "../../_utils/invalidateCredential";
 import { OAuthManager } from "../../_utils/oauth/OAuthManager";
 import { getTokenObjectFromCredential } from "../../_utils/oauth/getTokenObjectFromCredential";
 import { markTokenAsExpired } from "../../_utils/oauth/markTokenAsExpired";
@@ -51,22 +58,6 @@ export const zoomMeetingsSchema = z.object({
     })
   ),
 });
-
-async function doesResponseInvalidateToken(response: Response) {
-  log.debug("zoomvideo:doesResponseInvalidateToken", { status: response.status, ok: response.ok });
-  if (!response.ok || (response.status < 200 && response.status >= 300)) {
-    const responseBody = await response.json();
-
-    if (
-      (response && response.status === 124) ||
-      responseBody.error === "invalid_grant" ||
-      responseBody.code === 124
-    ) {
-      return { reason: "invalid_grant" };
-    }
-  }
-  return null;
-}
 
 type ZoomRecurrence = {
   end_date_time?: string;
@@ -163,6 +154,12 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
 
   const fetchZoomApi = async (endpoint: string, options?: RequestInit) => {
     const auth = new OAuthManager({
+      credentialSyncVariables: {
+        APP_CREDENTIAL_SHARING_ENABLED: APP_CREDENTIAL_SHARING_ENABLED,
+        CREDENTIAL_SYNC_ENDPOINT: CREDENTIAL_SYNC_ENDPOINT,
+        CREDENTIAL_SYNC_SECRET: CREDENTIAL_SYNC_SECRET,
+        CREDENTIAL_SYNC_SECRET_HEADER_NAME: CREDENTIAL_SYNC_SECRET_HEADER_NAME,
+      },
       resourceOwner: {
         type: "user",
         id: credential.userId,
@@ -188,27 +185,45 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
           }),
         });
       },
-      doesResponseInvalidateToken,
+      isTokenObjectUnusable: async function (response) {
+        const myLog = logger.getSubLogger({ prefix: ["zoomvideo:isTokenObjectUnusable"] });
+        myLog.debug(safeStringify({ status: response.status, ok: response.ok }));
+        if (!response.ok || (response.status < 200 && response.status >= 300)) {
+          const responseBody = await response.json();
+          myLog.debug(safeStringify({ responseBody }));
+
+          if (responseBody.error === "invalid_grant") {
+            return { reason: responseBody.error };
+          }
+        }
+        return null;
+      },
+      isAccessTokenUnusable: async function (response) {
+        const myLog = logger.getSubLogger({ prefix: ["zoomvideo:isAccessTokenUnusable"] });
+        myLog.debug(safeStringify({ status: response.status, ok: response.ok }));
+        if (!response.ok || (response.status < 200 && response.status >= 300)) {
+          const responseBody = await response.json();
+          myLog.debug(safeStringify({ responseBody }));
+
+          if (responseBody.code === 124) {
+            return { reason: responseBody.message ?? "" };
+          }
+        }
+        return null;
+      },
       invalidateTokenObject: () => invalidateCredential(credential.id),
       expireAccessToken: () => markTokenAsExpired(credential),
+      updateTokenObject: async (newTokenObject) => {
+        await prisma.credential.update({
+          where: {
+            id: credential.id,
+          },
+          data: {
+            key: newTokenObject,
+          },
+        });
+      },
     });
-
-    const { token, isUpdated } = await auth.getTokenObjectOrFetch();
-    if (!token) {
-      throw new Error("Invalid grant for Cal.com zoom app");
-    }
-
-    if (isUpdated) {
-      log.debug("Updating credential with new token");
-      await prisma.credential.update({
-        where: {
-          id: credential.id,
-        },
-        data: {
-          key: token,
-        },
-      });
-    }
 
     const { json } = await auth.request({
       url: `https://api.zoom.us/v2/${endpoint}`,
@@ -299,25 +314,6 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
       }
     },
   };
-};
-
-const invalidateCredential = async (credentialId: Credential["id"]) => {
-  const credential = await prisma.credential.findUnique({
-    where: {
-      id: credentialId,
-    },
-  });
-
-  if (credential) {
-    await prisma.credential.update({
-      where: {
-        id: credentialId,
-      },
-      data: {
-        invalid: true,
-      },
-    });
-  }
 };
 
 export default ZoomVideoApiAdapter;

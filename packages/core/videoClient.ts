@@ -109,7 +109,11 @@ const createMeeting = async (credential: CredentialPayload, calEvent: CalendarEv
     log.debug("created Meeting", safeStringify(returnObject));
   } catch (err) {
     await sendBrokenIntegrationEmail(calEvent, "video");
-    log.error("createMeeting failed", safeStringify({ err, calEvent: getPiiFreeCalendarEvent(calEvent) }));
+    log.error(
+      "createMeeting failed",
+      safeStringify(err),
+      safeStringify({ calEvent: getPiiFreeCalendarEvent(calEvent) })
+    );
 
     // Default to calVideo
     const defaultMeeting = await createMeetingWithCalVideo(calEvent);
