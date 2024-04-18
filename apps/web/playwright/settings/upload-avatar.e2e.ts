@@ -1,6 +1,7 @@
 import { expect } from "@playwright/test";
 import path from "path";
 
+import { CAL_URL } from "@calcom/lib/constants";
 import { prisma } from "@calcom/prisma";
 
 import { test } from "../lib/fixtures";
@@ -9,6 +10,8 @@ test.describe("User Avatar", async () => {
   test("it can upload a user profile image", async ({ page, users }) => {
     const user = await users.create({ name: "John Doe" });
     await user.apiLogin();
+
+    let objectKey: string;
 
     await test.step("Can upload an initial picture", async () => {
       await page.goto("/settings/my-account/profile");
@@ -39,18 +42,34 @@ test.describe("User Avatar", async () => {
         },
       });
 
+      objectKey = response.objectKey;
+
       const avatarImage = page.getByTestId("profile-upload-avatar").locator("img");
 
-      await expect(avatarImage).toHaveAttribute(
-        "src",
-        new RegExp(`^\/api\/avatar\/${response.objectKey}\.png$`)
-      );
+      await expect(avatarImage).toHaveAttribute("src", new RegExp(`^\/api\/avatar\/${objectKey}\.png$`));
 
       const urlResponse = await page.request.get((await avatarImage.getAttribute("src")) || "", {
         maxRedirects: 0,
       });
 
       await expect(urlResponse?.status()).toBe(200);
+    });
+
+    await test.step("View avatar on the public page", async () => {
+      await page.goto(`/${user.username}`);
+
+      await expect(page.locator(`img`)).toHaveAttribute(
+        "src",
+        new RegExp(`\/api\/avatar\/${objectKey}\.png$`)
+      );
+      // verify objectKey is passed to the OG image
+      // yes, OG image URI encodes at multiple places.. don't want to mess with that.
+      await expect(page.locator('meta[property="og:image"]')).toHaveAttribute(
+        "content",
+        new RegExp(
+          encodeURIComponent(`meetingImage=${encodeURIComponent(`${CAL_URL}/api/avatar/${objectKey}.png`)}`)
+        )
+      );
     });
   });
 });

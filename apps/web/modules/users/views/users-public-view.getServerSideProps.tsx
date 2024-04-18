@@ -180,7 +180,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
         away: user.away,
       })),
       entity: {
-        logoUrl: org?.logoUrl,
+        ...(org?.logoUrl ? { logoUrl: org?.logoUrl } : {}),
         considerUnpublished: !isARedirectFromNonOrgLink && org?.slug === null,
         orgSlug: currentOrgDomain,
         name: org?.name ?? null,
