@@ -69,7 +69,7 @@ export default function LockedSMSView() {
           </Button>
         </div>
       </div>
-      <UsersTable setSMSLockMutation={mutation} />
+      <UsersTable />
     </div>
   );
 }
