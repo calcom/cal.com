@@ -1,5 +1,7 @@
 import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
+import { CalendarsService } from "@/ee/calendars/services/calendars.service";
+import { GcalModule } from "@/ee/gcal/gcal.module";
 import { HttpExceptionFilter } from "@/filters/http-exception.filter";
 import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
@@ -17,6 +19,44 @@ import { TokensRepositoryFixture } from "test/fixtures/repository/tokens.reposit
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 
 const CLIENT_REDIRECT_URI = "http://localhost:5555";
+
+class CalendarsServiceMock extends CalendarsService {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  async getCalendars(userId: number) {
+    return {
+      connectedCalendars: [
+        {
+          name: "Google Calendar",
+          appId: "google-calendar",
+          userId: 10,
+          integration: {
+            type: "google_calendar",
+          },
+          calendars: [
+            {
+              externalId: "alice@gmail.com",
+              name: "alice@gmail.com",
+              primary: true,
+              readOnly: false,
+            },
+            {
+              externalId: "addressbook#contacts@group.v.calendar.google.com",
+              name: "Dzimšanas dienas",
+              primary: false,
+              readOnly: true,
+            },
+            {
+              externalId: "en.latvian#holiday@group.v.calendar.google.com",
+              name: "Holidays in Latvia",
+              primary: false,
+              readOnly: true,
+            },
+          ],
+        },
+      ],
+    };
+  }
+}
 
 describe("Platform Gcal Endpoints", () => {
   let app: INestApplication;
@@ -36,12 +76,14 @@ describe("Platform Gcal Endpoints", () => {
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
       providers: [PrismaExceptionFilter, HttpExceptionFilter],
-      imports: [AppModule, UsersModule, TokensModule],
+      imports: [AppModule, UsersModule, TokensModule, GcalModule],
     })
       .overrideGuard(PermissionsGuard)
       .useValue({
         canActivate: () => true,
       })
+      .overrideProvider(CalendarsService)
+      .useClass(CalendarsServiceMock)
       .compile();
 
     app = moduleRef.createNestApplication();
