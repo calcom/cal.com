@@ -10,6 +10,7 @@ import WebShell from "@calcom/features/shell/Shell";
 import { availabilityAsString } from "@calcom/lib/availability";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { RouterOutputs } from "@calcom/trpc/react";
 import type { TimeRange, WorkingHours } from "@calcom/types/schedule";
 import {
   Button,
@@ -74,6 +75,7 @@ type AvailabilitySettingsProps = {
     timeZone: string;
     schedule: Schedule[];
   };
+  travelSchedules?: RouterOutputs["viewer"]["getTravelSchedules"];
   handleDelete: () => void;
   isDeleting: boolean;
   isSaving: boolean;
@@ -143,9 +145,11 @@ const useExcludedDates = () => {
 const DateOverride = ({
   workingHours,
   userTimeFormat,
+  travelSchedules,
 }: {
   workingHours: WorkingHours[];
   userTimeFormat: number | null;
+  travelSchedules?: RouterOutputs["viewer"]["getTravelSchedules"];
 }) => {
   const { append, replace, fields } = useFieldArray<AvailabilityFormValues, "dateOverrides">({
     name: "dateOverrides",
@@ -171,6 +175,7 @@ const DateOverride = ({
           workingHours={workingHours}
           userTimeFormat={userTimeFormat}
           hour12={Boolean(userTimeFormat === 12)}
+          travelSchedules={travelSchedules}
         />
         <DateOverrideInputDialog
           workingHours={workingHours}
@@ -178,10 +183,7 @@ const DateOverride = ({
           onChange={(ranges) => ranges.forEach((range) => append({ ranges: [range] }))}
           userTimeFormat={userTimeFormat}
           Trigger={
-            <Button
-              color="secondary"
-              StartIcon="plus"
-              data-testid="add-override">
+            <Button color="secondary" StartIcon="plus" data-testid="add-override">
               {t("add_an_override")}
             </Button>
           }
@@ -213,6 +215,7 @@ const SmallScreenSideBar = ({ open, children }: { open: boolean; children: JSX.E
 
 export function AvailabilitySettings({
   schedule,
+  travelSchedules,
   handleDelete,
   isDeleting,
   isLoading,
@@ -244,7 +247,7 @@ export function AvailabilitySettings({
     <Shell
       headerClassName={cn(customClassNames?.containerClassName)}
       backPath={backPath}
-      title={schedule.name ? `${schedule.name} | t("availability")}` : t("availability")}
+      title={schedule.name ? `${schedule.name} | ${t("availability")}` : t("availability")}
       heading={
         <Controller
           control={form.control}
@@ -324,11 +327,7 @@ export function AvailabilitySettings({
                     openSidebar ? "translate-x-0 opacity-100" : "translate-x-full opacity-0"
                   )}>
                   <div className="flex flex-row items-center pt-5">
-                    <Button
-                      StartIcon="arrow-left"
-                      color="minimal"
-                      onClick={() => setOpenSidebar(false)}
-                    />
+                    <Button StartIcon="arrow-left" color="minimal" onClick={() => setOpenSidebar(false)} />
                     <p className="-ml-2">{t("availability_settings")}</p>
                     <DeleteDialogButton
                       buttonClassName="ml-16 inline"
@@ -483,8 +482,12 @@ export function AvailabilitySettings({
             </div>
             {!isPlatform ? (
               <div className="border-subtle my-6 rounded-md border">
-                {schedule.workingHours && (
-                  <DateOverride workingHours={schedule.workingHours} userTimeFormat={timeFormat} />
+                {schedule?.workingHours && (
+                  <DateOverride
+                    workingHours={schedule.workingHours}
+                    userTimeFormat={timeFormat}
+                    travelSchedules={travelSchedules}
+                  />
                 )}
               </div>
             ) : (

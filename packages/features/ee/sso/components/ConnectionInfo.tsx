@@ -21,7 +21,7 @@ export default function ConnectionInfo({
   connection: SSOConnection;
 }) {
   const { t } = useLocale();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
 
   const connectionType = connection.type.toUpperCase();
 

@@ -2,13 +2,14 @@ import * as hubspot from "@hubspot/api-client";
 import type { TokenResponseIF } from "@hubspot/api-client/lib/codegen/oauth/models/TokenResponseIF";
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import { WEBAPP_URL_FOR_OAUTH } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import createOAuthAppCredential from "../../_utils/oauth/createOAuthAppCredential";
 import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
+import metadata from "../_metadata";
 
 let client_id = "";
 let client_secret = "";
@@ -39,7 +40,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const hubspotToken: HubspotToken = await hubspotClient.oauth.tokensApi.createToken(
     "authorization_code",
     code,
-    `${WEBAPP_URL}/api/integrations/hubspot/callback`,
+    `${WEBAPP_URL_FOR_OAUTH}/api/integrations/hubspot/callback`,
     client_id,
     client_secret
   );
@@ -47,7 +48,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // set expiry date as offset from current time.
   hubspotToken.expiryDate = Math.round(Date.now() + hubspotToken.expiresIn * 1000);
 
-  await createOAuthAppCredential({ appId: "hubspot", type: "hubspot_other_calendar" }, hubspotToken, req);
+  await createOAuthAppCredential({ appId: metadata.slug, type: metadata.type }, hubspotToken, req);
 
   const state = decodeOAuthState(req);
   res.redirect(
