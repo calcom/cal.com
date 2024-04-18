@@ -2,11 +2,10 @@ import { test } from "../../lib/fixtures";
 
 const ALL_APPS = ["fathom", "matomo", "plausible", "ga4", "gtm", "metapixel"];
 
-test.describe("Check analytics Apps ", () => {
-  test.afterEach(async ({ users }) => {
-    await users.deleteAll();
-  });
+test.describe.configure({ mode: "parallel" });
+test.afterEach(({ users }) => users.deleteAll());
 
+test.describe("Check analytics Apps ", () => {
   test("Check analytics Apps by skipping the configure step", async ({ appsPage, page, users }) => {
     const user = await users.create();
     await user.apiLogin();
@@ -39,6 +38,5 @@ test.describe("Check analytics Apps ", () => {
         await appsPage.verifyAppsInfoNew(app, id);
       }
     }
-    await users.deleteAll();
   });
 });
