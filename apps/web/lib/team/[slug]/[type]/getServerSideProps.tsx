@@ -72,6 +72,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     eventSlug: meetingSlug,
     isTeamEvent: true,
     org,
+    fromRedirectOfNonOrgLink: context.query.orgRedirection === "true",
   });
 
   if (!eventData) {

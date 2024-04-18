@@ -15,7 +15,7 @@ const DisableTeamImpersonation = ({
 }) => {
   const { t } = useLocale();
 
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
 
   const query = trpc.viewer.teams.getMembershipbyUser.useQuery({ teamId, memberId });
 

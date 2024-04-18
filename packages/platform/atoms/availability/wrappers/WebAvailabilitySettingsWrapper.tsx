@@ -25,6 +25,12 @@ export const WebAvailabilitySettingsWrapper = () => {
       enabled: !!scheduleId,
     }
   );
+
+  const { data: travelSchedules, isPending: isPendingTravelSchedules } =
+    trpc.viewer.getTravelSchedules.useQuery();
+
+  const isDefaultSchedule = me.data?.defaultScheduleId === scheduleId;
+
   const updateMutation = trpc.viewer.availability.schedule.update.useMutation({
     onSuccess: async ({ prevDefaultId, currentDefaultId, ...data }) => {
       if (prevDefaultId && currentDefaultId) {
@@ -76,6 +82,7 @@ export const WebAvailabilitySettingsWrapper = () => {
   return (
     <AvailabilitySettings
       schedule={schedule}
+      travelSchedules={isDefaultSchedule ? travelSchedules || [] : []}
       isDeleting={deleteMutation.isPending}
       isLoading={isPending}
       isSaving={updateMutation.isPending}

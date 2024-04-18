@@ -10,30 +10,26 @@ import WebShell from "@calcom/features/shell/Shell";
 import { availabilityAsString } from "@calcom/lib/availability";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { RouterOutputs } from "@calcom/trpc/react";
 import type { TimeRange, WorkingHours } from "@calcom/types/schedule";
 import {
   Button,
-  ConfirmationDialogContent as WebConfirmationDialogContent,
-  Dialog as WebDialog,
-  DialogTrigger as WebDialogTrigger,
+  ConfirmationDialogContent,
   EditableHeading,
   Form,
+  SkeletonText,
+  Dialog,
+  DialogTrigger,
   Label,
   SelectSkeletonLoader,
   Skeleton,
-  SkeletonText,
   Switch,
   TimezoneSelect as WebTimezoneSelect,
   Tooltip,
   VerticalDivider,
 } from "@calcom/ui";
-import { ArrowLeft, Info, MoreVertical, Plus, Trash } from "@calcom/ui/components/icon";
+import { Icon } from "@calcom/ui";
 
-import { ConfirmationDialogContent as PlatformConfirmationDialogContent } from "../src/components/ui/confirmation-dialog-content";
-import {
-  Dialog as PlatformDialog,
-  DialogTrigger as PlatformDialogTrigger,
-} from "../src/components/ui/dialog";
 import { Shell as PlatformShell } from "../src/components/ui/shell";
 import { cn } from "../src/lib/utils";
 import { Timezone as PlatformTimzoneSelect } from "../timezone/index";
@@ -79,6 +75,7 @@ type AvailabilitySettingsProps = {
     timeZone: string;
     schedule: Schedule[];
   };
+  travelSchedules?: RouterOutputs["viewer"]["getTravelSchedules"];
   handleDelete: () => void;
   isDeleting: boolean;
   isSaving: boolean;
@@ -96,29 +93,21 @@ const DeleteDialogButton = ({
   buttonClassName,
   isPending,
   onDeleteConfirmed,
-  isPlatform,
   handleDelete,
 }: {
   disabled?: boolean;
   onDeleteConfirmed?: () => void;
   buttonClassName: string;
-  isPlatform: boolean;
   handleDelete: () => void;
   isPending: boolean;
 }) => {
-  const [Dialog, DialogTrigger, ConfirmationDialogContent] = useMemo(() => {
-    return isPlatform
-      ? [PlatformDialog, PlatformDialogTrigger, PlatformConfirmationDialogContent]
-      : [WebDialog, WebDialogTrigger, WebConfirmationDialogContent];
-  }, [isPlatform]);
-
   const { t } = useLocale();
 
   return (
     <Dialog>
       <DialogTrigger asChild>
         <Button
-          StartIcon={Trash}
+          StartIcon="trash"
           variant="icon"
           color="destructive"
           aria-label={t("delete")}
@@ -156,9 +145,11 @@ const useExcludedDates = () => {
 const DateOverride = ({
   workingHours,
   userTimeFormat,
+  travelSchedules,
 }: {
   workingHours: WorkingHours[];
   userTimeFormat: number | null;
+  travelSchedules?: RouterOutputs["viewer"]["getTravelSchedules"];
 }) => {
   const { append, replace, fields } = useFieldArray<AvailabilityFormValues, "dateOverrides">({
     name: "dateOverrides",
@@ -171,7 +162,7 @@ const DateOverride = ({
         {t("date_overrides")}{" "}
         <Tooltip content={t("date_overrides_info")}>
           <span className="inline-block align-middle">
-            <Info className="h-4 w-4" />
+            <Icon name="info" className="h-4 w-4" />
           </span>
         </Tooltip>
       </h3>
@@ -184,6 +175,7 @@ const DateOverride = ({
           workingHours={workingHours}
           userTimeFormat={userTimeFormat}
           hour12={Boolean(userTimeFormat === 12)}
+          travelSchedules={travelSchedules}
         />
         <DateOverrideInputDialog
           workingHours={workingHours}
@@ -191,7 +183,7 @@ const DateOverride = ({
           onChange={(ranges) => ranges.forEach((range) => append({ ranges: [range] }))}
           userTimeFormat={userTimeFormat}
           Trigger={
-            <Button color="secondary" StartIcon={Plus} data-testid="add-override">
+            <Button color="secondary" StartIcon="plus" data-testid="add-override">
               {t("add_an_override")}
             </Button>
           }
@@ -223,6 +215,7 @@ const SmallScreenSideBar = ({ open, children }: { open: boolean; children: JSX.E
 
 export function AvailabilitySettings({
   schedule,
+  travelSchedules,
   handleDelete,
   isDeleting,
   isLoading,
@@ -254,7 +247,7 @@ export function AvailabilitySettings({
     <Shell
       headerClassName={cn(customClassNames?.containerClassName)}
       backPath={backPath}
-      title={schedule.name ? `${schedule.name} | t("availability")}` : t("availability")}
+      title={schedule.name ? `${schedule.name} | ${t("availability")}` : t("availability")}
       heading={
         <Controller
           control={form.control}
@@ -318,7 +311,6 @@ export function AvailabilitySettings({
             disabled={schedule.isLastSchedule}
             isPending={isDeleting}
             handleDelete={handleDelete}
-            isPlatform={isPlatform}
           />
           <VerticalDivider className="hidden sm:inline" />
           <SmallScreenSideBar open={openSidebar}>
@@ -335,14 +327,13 @@ export function AvailabilitySettings({
                     openSidebar ? "translate-x-0 opacity-100" : "translate-x-full opacity-0"
                   )}>
                   <div className="flex flex-row items-center pt-5">
-                    <Button StartIcon={ArrowLeft} color="minimal" onClick={() => setOpenSidebar(false)} />
+                    <Button StartIcon="arrow-left" color="minimal" onClick={() => setOpenSidebar(false)} />
                     <p className="-ml-2">{t("availability_settings")}</p>
                     <DeleteDialogButton
                       buttonClassName="ml-16 inline"
                       disabled={schedule.isLastSchedule}
                       isPending={isDeleting}
                       handleDelete={handleDelete}
-                      isPlatform={isPlatform}
                       onDeleteConfirmed={() => {
                         setOpenSidebar(false);
                       }}
@@ -449,7 +440,7 @@ export function AvailabilitySettings({
           </Button>
           <Button
             className="ml-3 sm:hidden"
-            StartIcon={MoreVertical}
+            StartIcon="ellipsis-vertical"
             variant="icon"
             color="secondary"
             onClick={() => setOpenSidebar(true)}
@@ -491,8 +482,12 @@ export function AvailabilitySettings({
             </div>
             {!isPlatform ? (
               <div className="border-subtle my-6 rounded-md border">
-                {schedule.workingHours && (
-                  <DateOverride workingHours={schedule.workingHours} userTimeFormat={timeFormat} />
+                {schedule?.workingHours && (
+                  <DateOverride
+                    workingHours={schedule.workingHours}
+                    userTimeFormat={timeFormat}
+                    travelSchedules={travelSchedules}
+                  />
                 )}
               </div>
             ) : (
