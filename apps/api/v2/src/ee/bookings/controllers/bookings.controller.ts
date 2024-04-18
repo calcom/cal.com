@@ -57,6 +57,7 @@ type OAuthRequestParams = {
   platformRescheduleUrl: string;
   platformCancelUrl: string;
   platformBookingUrl: string;
+  platformBookingLocation?: string;
 };
 
 const DEFAULT_PLATFORM_PARAMS = {
@@ -65,6 +66,7 @@ const DEFAULT_PLATFORM_PARAMS = {
   platformRescheduleUrl: "",
   platformBookingUrl: "",
   areEmailsEnabled: true,
+  platformBookingLocation: undefined,
 };
 
 @Controller({
@@ -141,12 +143,15 @@ export class BookingsController {
   @Post("/")
   async createBooking(
     @Req() req: BookingRequest,
-    @Body() _: CreateBookingInput,
+    @Body() body: CreateBookingInput,
     @Headers(X_CAL_CLIENT_ID) clientId?: string
   ): Promise<ApiResponse<unknown>> {
     const oAuthClientId = clientId?.toString();
+    const locationUrl = body.locationUrl;
     try {
-      const booking = await handleNewBooking(await this.createNextApiBookingRequest(req, oAuthClientId));
+      const booking = await handleNewBooking(
+        await this.createNextApiBookingRequest(req, oAuthClientId, locationUrl)
+      );
       return {
         status: SUCCESS_STATUS,
         data: booking,
@@ -258,13 +263,14 @@ export class BookingsController {
 
   async createNextApiBookingRequest(
     req: BookingRequest,
-    oAuthClientId?: string
+    oAuthClientId?: string,
+    platformBookingLocation?: string
   ): Promise<NextApiRequest & { userId?: number } & OAuthRequestParams> {
     const userId = (await this.getOwnerId(req)) ?? -1;
     const oAuthParams = oAuthClientId
       ? await this.getOAuthClientsParams(req, oAuthClientId)
       : DEFAULT_PLATFORM_PARAMS;
-    Object.assign(req, { userId, ...oAuthParams });
+    Object.assign(req, { userId, ...oAuthParams, platformBookingLocation });
     req.body = { ...req.body, areEmailsEnabled: oAuthParams.areEmailsEnabled };
     return req as unknown as NextApiRequest & { userId?: number } & OAuthRequestParams;
   }

@@ -1,14 +1,32 @@
 "use client";
 
-import type { GlobalCal } from "@calcom/embed-core";
+import type { GlobalCal, GlobalCalWithoutNs } from "@calcom/embed-core";
 import EmbedSnippet from "@calcom/embed-snippet";
 
 import Cal from "./Cal";
 
-export const getCalApi = (embedJsUrl?: string): Promise<GlobalCal> =>
-  new Promise(function tryReadingFromWindow(resolve) {
-    EmbedSnippet(embedJsUrl);
-    const api = window.Cal;
+export function getCalApi(options?: {
+  embedJsUrl?: string;
+  namespace?: string;
+}): Promise<GlobalCal | GlobalCalWithoutNs>;
+export function getCalApi(embedJsUrl: string): Promise<GlobalCal | GlobalCalWithoutNs>;
+
+export function getCalApi(
+  optionsOrEmbedJsUrl?:
+    | {
+        embedJsUrl?: string;
+        namespace?: string;
+      }
+    | string
+): Promise<GlobalCal | GlobalCalWithoutNs> {
+  const options =
+    typeof optionsOrEmbedJsUrl === "string" ? { embedJsUrl: optionsOrEmbedJsUrl } : optionsOrEmbedJsUrl ?? {};
+
+  const { namespace = "", embedJsUrl } = options;
+  return new Promise(function tryReadingFromWindow(resolve) {
+    const globalCal = EmbedSnippet(embedJsUrl);
+    globalCal("init", namespace);
+    const api = namespace ? globalCal.ns[namespace as keyof typeof globalCal.ns] : globalCal;
     if (!api) {
       setTimeout(() => {
         tryReadingFromWindow(resolve);
@@ -17,5 +35,6 @@ export const getCalApi = (embedJsUrl?: string): Promise<GlobalCal> =>
     }
     resolve(api);
   });
+}
 
 export default Cal;
