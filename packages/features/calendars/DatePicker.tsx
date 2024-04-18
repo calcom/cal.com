@@ -241,9 +241,6 @@ const Days = ({
     if (!firstAvailableDateOfTheMonth) {
       props.onChange(null);
     }
-    return () => {
-      props.onChange(null);
-    };
   };
 
   useEffect(useHandleInitialDateSelection);
