@@ -135,14 +135,17 @@ tabs.find((tab) => {
 // The following keys are assigned to admin only
 const adminRequiredKeys = ["admin"];
 const organizationRequiredKeys = ["organization"];
+const organizationAdminKeys = ["privacy", "appearance", "billing", "OAuth Clients", "SSO", "directory_sync"];
 
 const useTabs = () => {
   const session = useSession();
   const { data: user } = trpc.viewer.me.useQuery({ includePasswordAdded: true });
   const orgBranding = useOrgBranding();
   const isAdmin = session.data?.user.role === UserPermissionRole.ADMIN;
+  const isOrgAdminOrOwner =
+    orgBranding?.role === MembershipRole.ADMIN || orgBranding?.role === MembershipRole.OWNER;
 
-  tabs.map((tab) => {
+  const processedTabs = tabs.map((tab) => {
     if (tab.href === "/settings/my-account") {
       tab.name = user?.name || "my_account";
       tab.icon = undefined;
@@ -150,6 +153,12 @@ const useTabs = () => {
     } else if (tab.href === "/settings/organizations") {
       tab.name = orgBranding?.name || "organization";
       tab.avatar = `${orgBranding?.fullDomain}/org/${orgBranding?.slug}/avatar.png`;
+      tab.children = tab?.children?.filter((child) => {
+        if (organizationAdminKeys.includes(child.name)) {
+          return isOrgAdminOrOwner;
+        }
+        return true;
+      });
     } else if (
       tab.href === "/settings/security" &&
       user?.identityProvider === IdentityProvider.GOOGLE &&
@@ -164,7 +173,7 @@ const useTabs = () => {
   });
 
   // check if name is in adminRequiredKeys
-  return tabs.filter((tab) => {
+  return processedTabs.filter((tab) => {
     if (organizationRequiredKeys.includes(tab.name)) return !!session.data?.user?.org;
 
     if (isAdmin) return true;
