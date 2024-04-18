@@ -15,6 +15,7 @@ export function ManageLink(props: { calEvent: CalendarEvent; attendee: Person })
   const hasRescheduleLink = Boolean(rescheduleLink);
   const hasBookingLink = Boolean(bookingLink);
   const isRecurringEvent = props.calEvent.recurringEvent;
+  const shouldDisplayRescheduleLink = Boolean(hasRescheduleLink && !isRecurringEvent);
 
   if (
     (isOriginalAttendee || isOrganizer) &&
@@ -39,7 +40,7 @@ export function ManageLink(props: { calEvent: CalendarEvent; attendee: Person })
           }}>
           <>{t("need_to_make_a_change")}</>
 
-          {!isRecurringEvent && hasRescheduleLink && (
+          {shouldDisplayRescheduleLink && (
             <span>
               <a
                 href={rescheduleLink}
@@ -68,8 +69,16 @@ export function ManageLink(props: { calEvent: CalendarEvent; attendee: Person })
             </span>
           )}
 
-          {!hasCancelLink && (isRecurringEvent || !hasRescheduleLink) && hasBookingLink && (
+          {props.calEvent.platformClientId && hasBookingLink && (
             <span>
+              {(hasCancelLink || shouldDisplayRescheduleLink) && (
+                <span
+                  style={{
+                    marginLeft: "5px",
+                  }}>
+                  {t("or_lowercase")}
+                </span>
+              )}
               <a
                 href={bookingLink}
                 style={{

@@ -166,17 +166,21 @@ export const getBookingUrl = (calEvent: CalendarEvent) => {
 };
 
 export const getPlatformManageLink = (calEvent: CalendarEvent, t: TFunction) => {
+  const shouldDisplayReschedule = !calEvent.recurringEvent && calEvent.platformRescheduleUrl;
+  let res =
+    calEvent.platformBookingUrl || shouldDisplayReschedule || calEvent.platformCancelUrl
+      ? `${t("need_to_reschedule_or_cancel")} `
+      : ``;
   if (calEvent.platformBookingUrl) {
-    return `${t("need_to_reschedule_or_cancel")} ${calEvent.platformBookingUrl}/${getUid(calEvent)}?slug=${
-      calEvent.type
-    }&username=${calEvent.organizer.username}&changes=true`;
+    res += `Check Here: ${calEvent.platformBookingUrl}/${getUid(calEvent)}?slug=${calEvent.type}&username=${
+      calEvent.organizer.username
+    }&changes=true${calEvent.platformCancelUrl || shouldDisplayReschedule ? ` ${t("or_lowercase")} ` : ""}`;
   }
-  let res = "";
   if (calEvent.platformCancelUrl) {
     res += `${t("cancel")}: ${getCancelLink(calEvent)}`;
   }
 
-  if (calEvent.platformRescheduleUrl) {
+  if (!calEvent.recurringEvent && calEvent.platformRescheduleUrl) {
     res += `${calEvent.platformCancelUrl ? ` ${t("or_lowercase")} ` : ""}${t(
       "reschedule"
     )}: ${getRescheduleLink(calEvent)}`;
