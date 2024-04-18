@@ -129,6 +129,7 @@ export type CustomRequest = NextApiRequest & {
   platformRescheduleUrl?: string;
   platformCancelUrl?: string;
   platformBookingUrl?: string;
+  arePlatformEmailsEnabled?: boolean;
 };
 
 async function handler(req: CustomRequest) {
@@ -142,6 +143,7 @@ async function handler(req: CustomRequest) {
     platformCancelUrl,
     platformClientId,
     platformRescheduleUrl,
+    arePlatformEmailsEnabled,
   } = req;
 
   if (!bookingToDelete || !bookingToDelete.user) {
@@ -559,7 +561,8 @@ async function handler(req: CustomRequest) {
     }
 
     // TODO: if emails fail try to requeue them
-    await sendCancelledEmails(evt, { eventName: bookingToDelete?.eventType?.eventName });
+    if (!platformClientId || (platformClientId && arePlatformEmailsEnabled))
+      await sendCancelledEmails(evt, { eventName: bookingToDelete?.eventType?.eventName });
   } catch (error) {
     console.error("Error deleting event", error);
   }
