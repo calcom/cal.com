@@ -2,6 +2,7 @@ import { Navbar } from "@/components/Navbar";
 import { CheckCircle2Icon } from "lucide-react";
 import { X } from "lucide-react";
 import { Inter } from "next/font/google";
+// eslint-disable-next-line @calcom/eslint/deprecated-imports-next-router
 import { useRouter } from "next/router";
 
 import { useGetBooking, useCancelBooking } from "@calcom/atoms";
@@ -86,10 +87,10 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                 <div>
                   <div>
                     <h4>
-                      {booking.user.name}{" "}
+                      {booking.user?.name}{" "}
                       <span className="rounded-md bg-blue-800 px-2 text-sm text-white">Host</span>
                     </h4>
-                    <p>{booking.user.email}</p>
+                    <p>{booking.user?.email}</p>
                   </div>
                 </div>
                 <div>
@@ -100,6 +101,16 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                 </div>
               </div>
             </div>
+            {!!booking.location && booking.location.startsWith("http") && (
+              <div className="flex gap-[70px]">
+                <div>
+                  <h4>Where</h4>
+                </div>
+                <div>
+                  <p>{booking.location}</p>
+                </div>
+              </div>
+            )}
             {booking.responses.notes && (
               <div className="flex gap-[70px]">
                 <div className="w-[40px]">
@@ -132,7 +143,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                     className="underline"
                     onClick={() => {
                       cancelBooking({
-                        id: parseInt(booking.id),
+                        id: booking.id,
                         uid: booking.uid,
                         cancellationReason: "User request",
                         allRemainingBookings: true,

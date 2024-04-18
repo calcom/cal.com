@@ -35,7 +35,7 @@ export default function WebhookListItem(props: {
   readOnly?: boolean;
 }) {
   const { t } = useLocale();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const { webhook } = props;
   const canEditWebhook = props.canEditWebhook ?? true;
 

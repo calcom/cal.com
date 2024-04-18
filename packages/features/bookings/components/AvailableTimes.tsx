@@ -3,6 +3,7 @@ import * as HoverCard from "@radix-ui/react-hover-card";
 import { AnimatePresence, m } from "framer-motion";
 import { useCallback, useState } from "react";
 
+import { useIsPlatform } from "@calcom/atoms/monorepo";
 import type { IOutOfOfficeData } from "@calcom/core/getUserAvailability";
 import dayjs from "@calcom/dayjs";
 import { OutOfOfficeInSlots } from "@calcom/features/bookings/Booker/components/OutOfOfficeInSlots";
@@ -36,6 +37,7 @@ type AvailableTimesProps = {
   className?: string;
   selectedSlots?: string[];
   event: useEventReturnType;
+  customClassNames?: string;
 };
 
 const SlotItem = ({
@@ -45,6 +47,7 @@ const SlotItem = ({
   onTimeSelect,
   showAvailableSeatsCount,
   event,
+  customClassNames,
 }: {
   slot: Slots[string][number];
   seatsPerTimeSlot?: number | null;
@@ -52,6 +55,7 @@ const SlotItem = ({
   onTimeSelect: TOnTimeSelect;
   showAvailableSeatsCount?: boolean | null;
   event: useEventReturnType;
+  customClassNames?: string;
 }) => {
   const { t } = useLocale();
 
@@ -121,8 +125,9 @@ const SlotItem = ({
           data-time={slot.time}
           onClick={onButtonClick}
           className={classNames(
-            "min-h-9 hover:border-brand-default mb-2 flex h-auto w-full flex-grow flex-col justify-center py-2",
-            selectedSlots?.includes(slot.time) && "border-brand-default"
+            `min-h-9 hover:border-brand-default mb-2 flex h-auto w-full flex-grow flex-col justify-center py-2`,
+            selectedSlots?.includes(slot.time) && "border-brand-default",
+            `${customClassNames}`
           )}
           color="secondary">
           <div className="flex items-center gap-2">
@@ -193,6 +198,7 @@ export const AvailableTimes = ({
   className,
   selectedSlots,
   event,
+  customClassNames,
 }: AvailableTimesProps) => {
   const { t } = useLocale();
 
@@ -223,6 +229,7 @@ export const AvailableTimes = ({
           if (slot.away) return null;
           return (
             <SlotItem
+              customClassNames={customClassNames}
               key={slot.time}
               onTimeSelect={onTimeSelect}
               slot={slot}
@@ -249,8 +256,10 @@ interface IOOOSlotProps {
 }
 
 const OOOSlot: React.FC<IOOOSlotProps> = (props) => {
+  const isPlatform = useIsPlatform();
   const { fromUser, toUser, reason, emoji, time, className = "" } = props;
 
+  if (isPlatform) return <></>;
   return (
     <OutOfOfficeInSlots
       fromUser={fromUser}
