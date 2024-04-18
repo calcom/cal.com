@@ -153,15 +153,17 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           teamId
         );
 
-        await prisma.workflowReminder.update({
-          where: {
-            id: reminder.id,
-          },
-          data: {
-            scheduled: true,
-            referenceId: scheduledSMS.sid,
-          },
-        });
+        if (scheduledSMS) {
+          await prisma.workflowReminder.update({
+            where: {
+              id: reminder.id,
+            },
+            data: {
+              scheduled: true,
+              referenceId: scheduledSMS.sid,
+            },
+          });
+        }
       }
     } catch (error) {
       console.log(`Error scheduling SMS with error ${error}`);

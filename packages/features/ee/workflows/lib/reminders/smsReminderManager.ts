@@ -209,17 +209,19 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
             teamId
           );
 
-          await prisma.workflowReminder.create({
-            data: {
-              bookingUid: uid,
-              workflowStepId: workflowStepId,
-              method: WorkflowMethods.SMS,
-              scheduledDate: scheduledDate.toDate(),
-              scheduled: true,
-              referenceId: scheduledSMS.sid,
-              seatReferenceId: seatReferenceUid,
-            },
-          });
+          if (scheduledSMS) {
+            await prisma.workflowReminder.create({
+              data: {
+                bookingUid: uid,
+                workflowStepId: workflowStepId,
+                method: WorkflowMethods.SMS,
+                scheduledDate: scheduledDate.toDate(),
+                scheduled: true,
+                referenceId: scheduledSMS.sid,
+                seatReferenceId: seatReferenceUid,
+              },
+            });
+          }
         } catch (error) {
           log.error(`Error scheduling SMS with error ${error}`);
         }

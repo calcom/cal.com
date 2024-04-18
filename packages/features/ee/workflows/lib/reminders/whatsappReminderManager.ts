@@ -173,17 +173,19 @@ export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs) =
             true
           );
 
-          await prisma.workflowReminder.create({
-            data: {
-              bookingUid: uid,
-              workflowStepId: workflowStepId,
-              method: WorkflowMethods.WHATSAPP,
-              scheduledDate: scheduledDate.toDate(),
-              scheduled: true,
-              referenceId: scheduledWHATSAPP.sid,
-              seatReferenceId: seatReferenceUid,
-            },
-          });
+          if (scheduledWHATSAPP) {
+            await prisma.workflowReminder.create({
+              data: {
+                bookingUid: uid,
+                workflowStepId: workflowStepId,
+                method: WorkflowMethods.WHATSAPP,
+                scheduledDate: scheduledDate.toDate(),
+                scheduled: true,
+                referenceId: scheduledWHATSAPP.sid,
+                seatReferenceId: seatReferenceUid,
+              },
+            });
+          }
         } catch (error) {
           console.log(`Error scheduling WHATSAPP with error ${error}`);
         }

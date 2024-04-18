@@ -1,6 +1,8 @@
 import { prisma } from "@calcom/prisma";
 import { SMSLockState } from "@calcom/prisma/client";
 
+import { TRPCError } from "@trpc/server";
+
 import type { TrpcSessionUser } from "../../../trpc";
 import type { TSetSMSLockState } from "./setSMSLockState.schema";
 
@@ -22,14 +24,20 @@ const getSMSLockStateTeamsUsers = async ({ input }: GetOptions) => {
         smsLockState: lock ? SMSLockState.LOCKED : SMSLockState.UNLOCKED,
       },
     });
+    if (!updatedUser) {
+      throw new TRPCError({ code: "BAD_REQUEST", message: "User not found" });
+    }
     return { name: updatedUser.username, lockStatus: lock ? SMSLockState.LOCKED : SMSLockState.UNLOCKED };
   } else if (username) {
     const userToUpdate = await prisma.user.findFirst({
       where: {
         username,
-        organizationId: null,
+        profiles: { none: {} },
       },
     });
+    if (!userToUpdate) {
+      throw new TRPCError({ code: "BAD_REQUEST", message: "User not found" });
+    }
     if (userToUpdate) {
       const updatedUser = await prisma.user.update({
         where: {
@@ -50,6 +58,9 @@ const getSMSLockStateTeamsUsers = async ({ input }: GetOptions) => {
         smsLockState: lock ? SMSLockState.LOCKED : SMSLockState.UNLOCKED,
       },
     });
+    if (!updatedTeam) {
+      throw new TRPCError({ code: "BAD_REQUEST", message: "Team not found" });
+    }
     return { name: updatedTeam.slug, lockStatus: lock };
   } else if (teamSlug) {
     const teamToUpdate = await prisma.team.findFirst({
@@ -58,6 +69,9 @@ const getSMSLockStateTeamsUsers = async ({ input }: GetOptions) => {
         parentId: null,
       },
     });
+    if (!teamToUpdate) {
+      throw new TRPCError({ code: "BAD_REQUEST", message: "Team not found" });
+    }
     if (teamToUpdate) {
       const updatedTeam = await prisma.team.update({
         where: {
@@ -70,6 +84,7 @@ const getSMSLockStateTeamsUsers = async ({ input }: GetOptions) => {
       return { name: updatedTeam.slug, lockStatus: lock };
     }
   }
+  throw new TRPCError({ code: "BAD_REQUEST", message: "Input data missing" });
 };
 
 export default getSMSLockStateTeamsUsers;

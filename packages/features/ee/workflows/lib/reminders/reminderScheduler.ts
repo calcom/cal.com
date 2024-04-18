@@ -47,8 +47,6 @@ const processWorkflowStep = async (
   }: ProcessWorkflowStepParams
 ) => {
   if (isSMSAction(step.action)) {
-    // rate limit sending and scheduling of SMS
-    // todo: don't rate limit orgs
     await checkSMSRateLimit({
       identifier: `sms:${workflow.userId ? "user:" : "team:"}${workflow.userId || workflow.teamId}`,
       rateLimitingType: "sms",

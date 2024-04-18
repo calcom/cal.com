@@ -97,15 +97,17 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           true
         );
 
-        await prisma.workflowReminder.update({
-          where: {
-            id: reminder.id,
-          },
-          data: {
-            scheduled: true,
-            referenceId: scheduledSMS.sid,
-          },
-        });
+        if (scheduledSMS) {
+          await prisma.workflowReminder.update({
+            where: {
+              id: reminder.id,
+            },
+            data: {
+              scheduled: true,
+              referenceId: scheduledSMS.sid,
+            },
+          });
+        }
       }
     } catch (error) {
       console.log(`Error scheduling WHATSAPP with error ${error}`);

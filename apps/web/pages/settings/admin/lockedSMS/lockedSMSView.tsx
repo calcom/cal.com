@@ -20,8 +20,8 @@ export default function LockedSMSView() {
       }
       utils.viewer.admin.getSMSLockStateTeamsUsers.invalidate();
     },
-    onError: () => {
-      showToast("Error when locking/unlocking SMS sending", "error");
+    onError: (error) => {
+      showToast(`${error}`, "error");
       utils.viewer.admin.getSMSLockStateTeamsUsers.invalidate();
     },
   });
