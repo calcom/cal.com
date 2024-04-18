@@ -102,4 +102,8 @@ export class CreateBookingInput {
   @IsString()
   @IsOptional()
   orgSlug?: string;
+
+  @IsString()
+  @IsOptional()
+  locationUrl?: string;
 }

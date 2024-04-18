@@ -123,7 +123,7 @@ function DeleteDialog({
   open,
   onOpenChange,
 }: { isManagedEvent: string; eventTypeId: number } & Pick<DialogProps, "open" | "onOpenChange">) {
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const { t } = useLocale();
   const router = useRouter();
   const deleteMutation = trpc.viewer.eventTypes.delete.useMutation({
@@ -481,7 +481,6 @@ function EventTypeSingleLayout({
               sticky
               linkShallow
               itemClassname="items-start"
-              iconClassName="md:mt-px"
             />
           </div>
           <div className="p-2 md:mx-0 md:p-0 xl:hidden">
