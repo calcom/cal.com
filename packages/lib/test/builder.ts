@@ -206,6 +206,7 @@ export const buildUser = <T extends Partial<UserPayload>>(
 ): UserPayload & { priority: number | null } => {
   return {
     locked: false,
+    smsLockState: "UNLOCKED",
     name: faker.name.firstName(),
     email: faker.internet.email(),
     timeZone: faker.address.timeZone(),
