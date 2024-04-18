@@ -44,10 +44,10 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
       membership?.role === MembershipRole.OWNER || membership?.role === MembershipRole.ADMIN;
     const isTargetingOrg = input.teamId === ctx.user.organizationId;
 
-    const hasAccessToOrg = isTargetingOrg && isOrgPrivate && !isOrgAdminOrOwner;
-    const hasAccessToTeam = team?.isPrivate && !isTeamAdminOrOwner && !isOrgAdminOrOwner;
+    const blockAccessToOrg = isTargetingOrg && isOrgPrivate && !isOrgAdminOrOwner;
+    const blockAccessToteam = team?.isPrivate && !isTeamAdminOrOwner && !isOrgAdminOrOwner;
 
-    return hasAccessToOrg || hasAccessToTeam;
+    return blockAccessToOrg || blockAccessToteam;
   }
 
   return {
