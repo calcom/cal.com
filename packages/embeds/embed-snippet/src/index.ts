@@ -1,5 +1,7 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
+
 /* eslint-disable @typescript-eslint/ban-ts-comment,prefer-rest-params,prefer-const */
-import type { GlobalCal, GlobalCalWithoutNs } from "@calcom/embed-core";
+import type { GlobalCal, GlobalCalWithoutNs, Queue } from "@calcom/embed-core";
 // FIXME: embed-snippet is a published package and shouldn't import from @calcom/types which is unpublished
 // This isn't a problem at the moment because embed-snippet isn't directly imported and embed-react which uses it doesn't depend on this
 // eslint-disable-next-line no-restricted-imports
@@ -15,9 +17,19 @@ const WEBAPP_URL =
 
 const EMBED_LIB_URL = import.meta.env.EMBED_PUBLIC_EMBED_LIB_URL || `${WEBAPP_URL}/embed/embed.js`;
 
+type QueuePushArg = {
+  [k: number]: Queue[number];
+};
+
+/**
+ * When modifying this snippet, make sure to keep the snippets in following places in sync
+ * 1. EmbedTabs.tsx
+ * 2. embed-core/index.html
+ * 3. app-store/wordpress/plugin.php
+ */
 export default function EmbedSnippet(url = EMBED_LIB_URL) {
   (function (C, A, L) {
-    let p = function (a: GlobalCalWithoutNs, ar: IArguments) {
+    let p = function (a: GlobalCalWithoutNs, ar: QueuePushArg) {
       a.q.push(ar);
     };
     let d = C.document;
@@ -42,10 +54,13 @@ export default function EmbedSnippet(url = EMBED_LIB_URL) {
           };
           const namespace = ar[1];
           api.q = api.q || [];
-          typeof namespace === "string"
-            ? // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              (cal.ns![namespace] = api) && p(api, ar)
-            : p(cal as GlobalCal, ar);
+          if (typeof namespace === "string") {
+            // Make sure that even after re-execution of the snippet, the namespace is not overridden
+            cal.ns![namespace] = cal.ns![namespace] || api;
+            p(cal.ns![namespace], ar);
+            // Inform the default namespace queue to initialize this namespace
+            p(cal as GlobalCal, ["initNamespace", namespace]);
+          } else p(cal as GlobalCal, ar);
           return;
         }
         p(cal as GlobalCal, ar);
