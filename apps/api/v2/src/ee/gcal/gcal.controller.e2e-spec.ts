@@ -1,7 +1,6 @@
 import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
 import { CalendarsService } from "@/ee/calendars/services/calendars.service";
-import { GcalModule } from "@/ee/gcal/gcal.module";
 import { HttpExceptionFilter } from "@/filters/http-exception.filter";
 import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
@@ -76,7 +75,7 @@ describe("Platform Gcal Endpoints", () => {
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
       providers: [PrismaExceptionFilter, HttpExceptionFilter],
-      imports: [AppModule, UsersModule, TokensModule, GcalModule],
+      imports: [AppModule, UsersModule, TokensModule],
     })
       .overrideGuard(PermissionsGuard)
       .useValue({
