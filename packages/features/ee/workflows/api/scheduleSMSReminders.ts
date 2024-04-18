@@ -13,7 +13,6 @@ import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import { getSenderId } from "../lib/alphanumericSenderIdSupport";
 import type { PartialWorkflowReminder } from "../lib/getWorkflowReminders";
 import { select } from "../lib/getWorkflowReminders";
-import { isLockedForSMSSending } from "../lib/isLockedForSMSSending";
 import * as twilio from "../lib/reminders/providers/twilioProvider";
 import type { VariablesType } from "../lib/reminders/templates/customTemplate";
 import customTemplate from "../lib/reminders/templates/customTemplate";
@@ -59,12 +58,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     }
     const userId = reminder.workflowStep.workflow.userId;
     const teamId = reminder.workflowStep.workflow.teamId;
-    const isSMSSendingLocked = await isLockedForSMSSending(userId, teamId);
-
-    if (isSMSSendingLocked) {
-      console.log(`${userId ? `User id ${userId} ` : `Team id ${teamId} `} is locked for SMS sending `);
-      continue;
-    }
 
     try {
       const sendTo =
@@ -151,7 +144,14 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       }
 
       if (message?.length && message?.length > 0 && sendTo) {
-        const scheduledSMS = await twilio.scheduleSMS(sendTo, message, reminder.scheduledDate, senderID);
+        const scheduledSMS = await twilio.scheduleSMS(
+          sendTo,
+          message,
+          reminder.scheduledDate,
+          senderID,
+          userId,
+          teamId
+        );
 
         await prisma.workflowReminder.update({
           where: {

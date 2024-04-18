@@ -8,7 +8,6 @@ import {
   WorkflowMethods,
 } from "@calcom/prisma/enums";
 
-import { isLockedForSMSSending } from "../isLockedForSMSSending";
 import * as twilio from "./providers/twilioProvider";
 import type { ScheduleTextReminderArgs, timeUnitLowerCase } from "./smsReminderManager";
 import { deleteScheduledSMSReminder } from "./smsReminderManager";
@@ -36,13 +35,6 @@ export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs) =
     isVerificationPending = false,
     seatReferenceUid,
   } = args;
-
-  const isSMSSendingLocked = await isLockedForSMSSending(userId, teamId);
-
-  if (isSMSSendingLocked) {
-    log.debug(`${userId ? `User id ${userId} ` : `Team id ${teamId} `} is locked for SMS sending `);
-    return;
-  }
 
   const { startTime, endTime } = evt;
   const uid = evt.uid as string;
@@ -176,6 +168,8 @@ export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs) =
             textMessage,
             scheduledDate.toDate(),
             "",
+            userId,
+            teamId,
             true
           );
 

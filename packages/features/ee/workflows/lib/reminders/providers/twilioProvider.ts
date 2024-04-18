@@ -1,9 +1,16 @@
 import TwilioClient from "twilio";
 
+import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
+import logger from "@calcom/lib/logger";
+import prisma from "@calcom/prisma";
+import { SMSLockState } from "@calcom/prisma/enums";
+
 declare global {
   // eslint-disable-next-line no-var
   var twilio: TwilioClient.Twilio | undefined;
 }
+
+const log = logger.getSubLogger({ prefix: ["[twilioProvider]"] });
 
 export const twilio =
   globalThis.twilio ||
@@ -31,8 +38,28 @@ function getSMSNumber(phone: string, whatsapp = false) {
   return whatsapp ? `whatsapp:${phone}` : phone;
 }
 
-export const sendSMS = async (phoneNumber: string, body: string, sender: string, whatsapp = false) => {
+export const sendSMS = async (
+  phoneNumber: string,
+  body: string,
+  sender: string,
+  userId?: number | null,
+  teamId?: number | null,
+  whatsapp = false
+) => {
   assertTwilio(twilio);
+
+  const isSMSSendingLocked = await isLockedForSMSSending(userId, teamId);
+
+  if (isSMSSendingLocked) {
+    log.debug(`${userId ? `User id ${userId} ` : `Team id ${teamId} `} is locked for SMS sending `);
+    return;
+  }
+
+  await checkRateLimitAndThrowError({
+    identifier: `sms:${userId ? "user:" : "team:"}${userId || teamId}`,
+    rateLimitingType: "smsMonth",
+  });
+
   const response = await twilio.messages.create({
     body: body,
     messagingServiceSid: process.env.TWILIO_MESSAGING_SID,
@@ -48,9 +75,24 @@ export const scheduleSMS = async (
   body: string,
   scheduledDate: Date,
   sender: string,
+  userId?: number | null,
+  teamId?: number | null,
   whatsapp = false
 ) => {
   assertTwilio(twilio);
+
+  const isSMSSendingLocked = await isLockedForSMSSending(userId, teamId);
+
+  if (isSMSSendingLocked) {
+    log.debug(`${userId ? `User id ${userId} ` : `Team id ${teamId} `} is locked for SMS sending `);
+    return;
+  }
+
+  await checkRateLimitAndThrowError({
+    identifier: `sms:${userId ? "user:" : "team:"}${userId || teamId}`,
+    rateLimitingType: "smsMonth",
+  });
+
   const response = await twilio.messages.create({
     body: body,
     messagingServiceSid: process.env.TWILIO_MESSAGING_SID,
@@ -90,3 +132,22 @@ export const verifyNumber = async (phoneNumber: string, code: string) => {
     }
   }
 };
+
+async function isLockedForSMSSending(userId?: number | null, teamId?: number | null) {
+  if (userId) {
+    const user = await prisma.user.findFirst({
+      where: {
+        id: userId,
+      },
+    });
+    return user?.smsLockState === SMSLockState.LOCKED;
+  }
+  if (teamId) {
+    const team = await prisma.team.findFirst({
+      where: {
+        id: teamId,
+      },
+    });
+    return team?.smsLockState === SMSLockState.LOCKED;
+  }
+}

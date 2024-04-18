@@ -26,6 +26,14 @@ export default function LockedSMSView() {
     },
   });
 
+  function setSMSLockState({ userId, teamId, lock }: { userId?: number; teamId?: number; lock: boolean }) {
+    mutation.mutate({
+      userId,
+      teamId,
+      lock,
+    });
+  }
+
   return (
     <div>
       <Meta title="lockedSMS" description="Lock or unlock SMS sending for users" />
@@ -69,7 +77,7 @@ export default function LockedSMSView() {
           </Button>
         </div>
       </div>
-      <UsersTable />
+      <UsersTable setSMSLockState={setSMSLockState} />
     </div>
   );
 }

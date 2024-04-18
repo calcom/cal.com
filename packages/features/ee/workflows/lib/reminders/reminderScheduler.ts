@@ -54,11 +54,6 @@ const processWorkflowStep = async (
       rateLimitingType: "sms",
     });
 
-    await checkRateLimitAndThrowError({
-      identifier: `sms:${workflow.userId ? "user:" : "team:"}${workflow.userId || workflow.teamId}`,
-      rateLimitingType: "smsMonth",
-    });
-
     const sendTo = step.action === WorkflowActions.SMS_ATTENDEE ? smsReminderNumber : step.sendTo;
     await scheduleSMSReminder({
       evt,

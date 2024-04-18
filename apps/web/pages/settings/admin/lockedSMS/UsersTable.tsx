@@ -1,49 +1,21 @@
-import { useState } from "react";
-
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SMSLockState } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
 import type { IconName } from "@calcom/ui";
-import { Avatar, DropdownActions, showToast, Table } from "@calcom/ui";
+import { Avatar, DropdownActions, Table } from "@calcom/ui";
 
 const { Cell, ColumnTitle, Header, Row } = Table;
 
-function UsersTable() {
-  const { t } = useLocale();
-  const [searchTerm, setSearchTerm] = useState<string>("");
+type Props = {
+  setSMSLockState: (param: { userId?: number; teamId?: number; lock: boolean }) => void;
+};
 
-  const utils = trpc.useContext();
-
+function UsersTable({ setSMSLockState }: Props) {
   const { data: usersAndTeams } = trpc.viewer.admin.getSMSLockStateTeamsUsers.useQuery();
-
-  const mutation = trpc.viewer.admin.setSMSLockState.useMutation({
-    onSuccess: (data) => {
-      console.log(`success data: ${JSON.stringify(data)}`);
-      if (data) {
-        showToast(`${data.name} successfully ${data.lockStatus ? "locked" : "unlocked"}`, "success");
-      }
-      utils.viewer.admin.getSMSLockStateTeamsUsers.invalidate();
-    },
-    onError: () => {
-      showToast("Error when locking/unlocking SMS sending", "error");
-      utils.viewer.admin.getSMSLockStateTeamsUsers.invalidate();
-    },
-  });
 
   if (!usersAndTeams) {
     return <></>;
   }
-
-  function setSMSLockState({ userId, teamId, lock }: { userId?: number; teamId?: number; lock: boolean }) {
-    mutation.mutate({
-      userId,
-      teamId,
-      lock,
-    });
-  }
-
-  //we must flatten the array of arrays from the useInfiniteQuery hook
 
   const users = usersAndTeams.users.locked.concat(usersAndTeams.users.reviewNeeded);
   const teams = usersAndTeams.teams.locked.concat(usersAndTeams.teams.reviewNeeded);
