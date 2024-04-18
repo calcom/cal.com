@@ -67,6 +67,7 @@ function TeamPage({
       <div className="flex h-full min-h-[100dvh] items-center justify-center">
         <UnpublishedEntity
           {...{ [slugPropertyName]: team.parent ? parentSlug : teamSlug }}
+          logoUrl={team.parent?.logoUrl || team.logoUrl}
           name={team.parent ? team.parent.name : team.name}
         />
       </div>
