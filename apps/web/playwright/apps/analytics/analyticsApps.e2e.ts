@@ -34,9 +34,10 @@ test.describe("Check analytics Apps ", () => {
     for (const app of ALL_APPS) {
       await page.goto("/apps/categories/analytics");
       await appsPage.installApp(app, eventTypesIds);
-      for (const id of eventTypesIds) {
-        await appsPage.verifyAppsInfoNew(app, id);
-      }
+    }
+
+    for (const id of eventTypesIds) {
+      await appsPage.verifyAppsInfoNew(ALL_APPS, id);
     }
   });
 });
