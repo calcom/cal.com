@@ -9,14 +9,17 @@ import {
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { BookingCreateBody } from "@calcom/prisma/zod-utils";
 
+import type { UseCreateBookingInput } from "./useCreateBooking";
+
 type UseHandleBookingProps = {
   bookingForm: UseBookingFormReturnType["bookingForm"];
   event: useEventReturnType;
   metadata: Record<string, string>;
   hashedLink?: string | null;
-  handleBooking: (input: BookingCreateBody) => void;
+  handleBooking: (input: UseCreateBookingInput) => void;
   handleInstantBooking: (input: BookingCreateBody) => void;
   handleRecBooking: (input: BookingCreateBody[]) => void;
+  locationUrl?: string;
 };
 
 export const useHandleBookEvent = ({
@@ -27,6 +30,7 @@ export const useHandleBookEvent = ({
   handleBooking,
   handleInstantBooking,
   handleRecBooking,
+  locationUrl,
 }: UseHandleBookingProps) => {
   const setFormValues = useBookerStore((state) => state.setFormValues);
   const timeslot = useBookerStore((state) => state.selectedTimeslot);
@@ -80,7 +84,7 @@ export const useHandleBookEvent = ({
       } else if (event.data?.recurringEvent?.freq && recurringEventCount && !rescheduleUid) {
         handleRecBooking(mapRecurringBookingToMutationInput(bookingInput, recurringEventCount));
       } else {
-        handleBooking(mapBookingToMutationInput(bookingInput));
+        handleBooking({ ...mapBookingToMutationInput(bookingInput), locationUrl });
       }
       // Clears form values stored in store, so old values won't stick around.
       setFormValues({});
