@@ -1,7 +1,7 @@
 import type { Workflow, WorkflowsOnEventTypes, WorkflowStep } from "@prisma/client";
 
 import { isSMSAction, isWhatsappAction } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
-import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
+import { checkSMSRateLimit } from "@calcom/lib/checkRateLimitAndThrowError";
 import { SENDER_NAME } from "@calcom/lib/constants";
 import { WorkflowActions, WorkflowMethods, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
@@ -49,7 +49,7 @@ const processWorkflowStep = async (
   if (isSMSAction(step.action)) {
     // rate limit sending and scheduling of SMS
     // todo: don't rate limit orgs
-    await checkRateLimitAndThrowError({
+    await checkSMSRateLimit({
       identifier: `sms:${workflow.userId ? "user:" : "team:"}${workflow.userId || workflow.teamId}`,
       rateLimitingType: "sms",
     });

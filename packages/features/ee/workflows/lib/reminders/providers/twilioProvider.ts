@@ -1,6 +1,6 @@
 import TwilioClient from "twilio";
 
-import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
+import { checkSMSRateLimit } from "@calcom/lib/checkRateLimitAndThrowError";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import { SMSLockState } from "@calcom/prisma/enums";
@@ -55,7 +55,7 @@ export const sendSMS = async (
     return;
   }
 
-  await checkRateLimitAndThrowError({
+  await checkSMSRateLimit({
     identifier: `sms:${userId ? "user:" : "team:"}${userId || teamId}`,
     rateLimitingType: "smsMonth",
   });
@@ -88,7 +88,7 @@ export const scheduleSMS = async (
     return;
   }
 
-  await checkRateLimitAndThrowError({
+  await checkSMSRateLimit({
     identifier: `sms:${userId ? "user:" : "team:"}${userId || teamId}`,
     rateLimitingType: "smsMonth",
   });

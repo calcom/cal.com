@@ -17,19 +17,31 @@ export async function checkRateLimitAndThrowError({
   if (onRateLimiterResponse) onRateLimiterResponse(response);
 
   if (!success) {
-    if (rateLimitingType === "sms" || "smsMonth") {
-      await changeSMSLockState(
-        identifier,
-        rateLimitingType === "sms" ? SMSLockState.LOCKED : SMSLockState.REVIEW_NEEDED
-      );
-    } else {
-      const convertToSeconds = (ms: number) => Math.floor(ms / 1000);
-      const secondsToWait = convertToSeconds(reset - Date.now());
-      throw new TRPCError({
-        code: "TOO_MANY_REQUESTS",
-        message: `Rate limit exceeded. Try again in ${secondsToWait} seconds.`,
-      });
-    }
+    const convertToSeconds = (ms: number) => Math.floor(ms / 1000);
+    const secondsToWait = convertToSeconds(reset - Date.now());
+    throw new TRPCError({
+      code: "TOO_MANY_REQUESTS",
+      message: `Rate limit exceeded. Try again in ${secondsToWait} seconds.`,
+    });
+  }
+}
+
+export async function checkSMSRateLimit({
+  rateLimitingType = "sms",
+  identifier,
+  onRateLimiterResponse,
+  opts,
+}: RateLimitHelper) {
+  const response = await rateLimiter()({ rateLimitingType, identifier, opts });
+  const { success } = response;
+
+  if (onRateLimiterResponse) onRateLimiterResponse(response);
+
+  if (!success) {
+    await changeSMSLockState(
+      identifier,
+      rateLimitingType === "sms" ? SMSLockState.LOCKED : SMSLockState.REVIEW_NEEDED
+    );
   }
 }
 
