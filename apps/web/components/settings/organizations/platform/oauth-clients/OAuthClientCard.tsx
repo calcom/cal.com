@@ -1,3 +1,4 @@
+import { useRouter } from "next/navigation";
 import React from "react";
 
 import { classNames } from "@calcom/lib";
@@ -11,6 +12,10 @@ type OAuthClientCardProps = {
   name: string;
   logo?: Avatar;
   redirectUris: string[];
+  bookingRedirectUri: string | null;
+  bookingCancelRedirectUri: string | null;
+  bookingRescheduleRedirectUri: string | null;
+  areEmailsEnabled: boolean;
   permissions: number;
   lastItem: boolean;
   id: string;
@@ -23,13 +28,19 @@ export const OAuthClientCard = ({
   name,
   logo,
   redirectUris,
+  bookingRedirectUri,
+  bookingCancelRedirectUri,
+  bookingRescheduleRedirectUri,
   permissions,
   id,
   secret,
   lastItem,
   onDelete,
   isLoading,
+  areEmailsEnabled,
 }: OAuthClientCardProps) => {
+  const router = useRouter();
+
   const clientPermissions = Object.values(PERMISSIONS_GROUPED_MAP).map((value, index) => {
     let permissionsMessage = "";
     const hasReadPermission = hasPermission(permissions, value.read);
@@ -110,8 +121,33 @@ export const OAuthClientCard = ({
           <span className="font-semibold">Redirect uris: </span>
           {redirectUris.map((item, index) => (redirectUris.length === index + 1 ? `${item}` : `${item}, `))}
         </div>
+        {bookingRedirectUri && (
+          <div className="flex gap-1 text-sm">
+            <span className="font-semibold">Booking redirect uri: </span> {bookingRedirectUri}
+          </div>
+        )}
+        {bookingRescheduleRedirectUri && (
+          <div className="flex gap-1 text-sm">
+            <span className="font-semibold">Booking reschedule uri: </span> {bookingRescheduleRedirectUri}
+          </div>
+        )}
+        {bookingCancelRedirectUri && (
+          <div className="flex gap-1 text-sm">
+            <span className="font-semibold">Booking cancel uri: </span> {bookingCancelRedirectUri}
+          </div>
+        )}
+        <div className="flex gap-1 text-sm">
+          <span className="text-sm font-semibold">Emails enabled:</span> {areEmailsEnabled ? "Yes" : "No"}
+        </div>
       </div>
-      <div className="flex items-center">
+      <div className="flex items-start gap-4">
+        <Button
+          className="bg-subtle hover:bg-emphasis text-white"
+          loading={isLoading}
+          disabled={isLoading}
+          onClick={() => router.push(`/settings/organizations/platform/oauth-clients/create?clientId=${id}`)}>
+          Edit
+        </Button>
         <Button
           className="bg-red-500 text-white hover:bg-red-600"
           loading={isLoading}

@@ -231,8 +231,6 @@
   "already_have_an_account": "已經有帳號嗎？",
   "create_account": "新增帳號",
   "confirm_password": "確認密碼",
-  "confirm_auth_change": "這會變更您登入的方式",
-  "confirm_auth_email_change": "變更電子郵件地址會使您目前登入 Cal.com 的驗證方式斷線。我們會要求您驗證新的電子郵件地址。接下來系統會將重設密碼的指示傳送至您的電子郵件地址，按照相關指示操作後您就會登出並使用新的電子郵件地址登入，而不是目前的驗證方法。",
   "reset_your_password": "按照傳送至您電子郵件地址的指示來重設密碼。",
   "email_change": "使用您的新電子郵件地址和密碼重新登入。",
   "create_your_account": "新增帳號",

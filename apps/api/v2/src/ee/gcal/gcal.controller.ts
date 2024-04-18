@@ -1,3 +1,4 @@
+import { CalendarsService } from "@/ee/calendars/services/calendars.service";
 import { GcalAuthUrlOutput } from "@/ee/gcal/outputs/auth-url.output";
 import { GcalCheckOutput } from "@/ee/gcal/outputs/check.output";
 import { GcalSaveRedirectOutput } from "@/ee/gcal/outputs/save-redirect.output";
@@ -41,8 +42,9 @@ const CALENDAR_SCOPES = [
   "https://www.googleapis.com/auth/calendar.events",
 ];
 
+// Controller for the GCalConnect Atom
 @Controller({
-  path: "ee/gcal",
+  path: "/gcal",
   version: "2",
 })
 @DocsTags("Google Calendar")
@@ -54,10 +56,11 @@ export class GcalController {
     private readonly tokensRepository: TokensRepository,
     private readonly selectedCalendarsRepository: SelectedCalendarsRepository,
     private readonly config: ConfigService,
-    private readonly gcalService: GCalService
+    private readonly gcalService: GCalService,
+    private readonly calendarsService: CalendarsService
   ) {}
 
-  private redirectUri = `${this.config.get("api.url")}/ee/gcal/oauth/save`;
+  private redirectUri = `${this.config.get("api.url")}/gcal/oauth/save`;
 
   @Get("/oauth/auth-url")
   @HttpCode(HttpStatus.OK)
@@ -146,6 +149,17 @@ export class GcalController {
 
     if (gcalCredentials.invalid) {
       throw new BadRequestException("Invalid google oauth credentials.");
+    }
+
+    const { connectedCalendars } = await this.calendarsService.getCalendars(userId);
+    const googleCalendar = connectedCalendars.find(
+      (cal: { integration: { type: string } }) => cal.integration.type === GOOGLE_CALENDAR_TYPE
+    );
+    if (!googleCalendar) {
+      throw new UnauthorizedException("Google Calendar not connected.");
+    }
+    if (googleCalendar.error?.message) {
+      throw new UnauthorizedException(googleCalendar.error?.message);
     }
 
     return { status: SUCCESS_STATUS };

@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { shallow } from "zustand/shallow";
 
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { SUCCESS_STATUS, V2_ENDPOINTS } from "@calcom/platform-constants";
 import type { PublicEventType } from "@calcom/platform-libraries";
 import type { ApiResponse } from "@calcom/platform-types";
 
@@ -16,18 +16,22 @@ export const usePublicEvent = (props: { username: string; eventSlug: string }) =
   const isTeamEvent = useBookerStore((state) => state.isTeamEvent);
   const org = useBookerStore((state) => state.org);
 
+  const requestUsername = username ?? props.username;
+  const requestEventSlug = eventSlug ?? props.eventSlug;
+
   const event = useQuery({
     queryKey: [QUERY_KEY, username ?? props.username, eventSlug ?? props.eventSlug],
     queryFn: () => {
       return http
-        .get<ApiResponse<PublicEventType>>("/events/public", {
-          params: {
-            username: username ?? props.username,
-            eventSlug: eventSlug ?? props.eventSlug,
-            isTeamEvent,
-            org: org ?? null,
-          },
-        })
+        .get<ApiResponse<PublicEventType>>(
+          `/${V2_ENDPOINTS.eventTypes}/${requestUsername}/${requestEventSlug}/public`,
+          {
+            params: {
+              isTeamEvent,
+              org: org ?? null,
+            },
+          }
+        )
         .then((res) => {
           if (res.data.status === SUCCESS_STATUS) {
             return res.data.data;

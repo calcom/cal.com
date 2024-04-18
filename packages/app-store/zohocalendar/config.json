@@ -10,6 +10,5 @@
   "logo": "icon.svg",
   "publisher": "Cal.com",
   "url": "https://cal.com/",
-  "email": "help@cal.com",
-  "isAuth": true
+  "email": "help@cal.com"
 }

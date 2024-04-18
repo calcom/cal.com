@@ -19,12 +19,17 @@ export class CreateAvailabilityInput {
 }
 
 function transformStringToDate(value: string, key: string): Date {
-  const parts = value.split(":");
+  // note(Lauris): incoming value is ISO8061 e.g. 2025-0412T13:17:56.324Z
+  const dateTimeParts = value.split("T");
+
+  const timePart = dateTimeParts[1].split(".")[0]; // Removes milliseconds
+  const parts = timePart.split(":");
 
   if (parts.length !== 3) {
-    throw new BadRequestException(`Invalid ${key} format. Expected format: HH:MM:SS. Received ${value}`);
+    throw new BadRequestException(
+      `Invalid time format. Expected format(ISO8061): 2025-0412T13:17:56.324Z. Received: ${value}`
+    );
   }
-
   const [hours, minutes, seconds] = parts.map(Number);
 
   if (hours < 0 || hours > 23) {
