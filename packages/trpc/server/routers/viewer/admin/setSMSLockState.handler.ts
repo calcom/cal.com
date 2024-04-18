@@ -13,7 +13,7 @@ type GetOptions = {
   input: TSetSMSLockState;
 };
 
-const getSMSLockStateTeamsUsers = async ({ input }: GetOptions) => {
+const setSMSLockState = async ({ input }: GetOptions) => {
   const { userId, username, teamId, teamSlug, lock } = input;
   if (userId) {
     const updatedUser = await prisma.user.update({
@@ -27,7 +27,7 @@ const getSMSLockStateTeamsUsers = async ({ input }: GetOptions) => {
     if (!updatedUser) {
       throw new TRPCError({ code: "BAD_REQUEST", message: "User not found" });
     }
-    return { name: updatedUser.username, lockStatus: lock ? SMSLockState.LOCKED : SMSLockState.UNLOCKED };
+    return { name: updatedUser.username, locked: lock };
   } else if (username) {
     const userToUpdate = await prisma.user.findFirst({
       where: {
@@ -47,7 +47,7 @@ const getSMSLockStateTeamsUsers = async ({ input }: GetOptions) => {
           smsLockState: lock ? SMSLockState.LOCKED : SMSLockState.UNLOCKED,
         },
       });
-      return { name: updatedUser.username, lockStatus: lock ? SMSLockState.LOCKED : SMSLockState.UNLOCKED };
+      return { name: updatedUser.username, locked: lock };
     }
   } else if (teamId) {
     const updatedTeam = await prisma.team.update({
@@ -61,7 +61,7 @@ const getSMSLockStateTeamsUsers = async ({ input }: GetOptions) => {
     if (!updatedTeam) {
       throw new TRPCError({ code: "BAD_REQUEST", message: "Team not found" });
     }
-    return { name: updatedTeam.slug, lockStatus: lock };
+    return { name: updatedTeam.slug, locked: lock };
   } else if (teamSlug) {
     const teamToUpdate = await prisma.team.findFirst({
       where: {
@@ -81,10 +81,10 @@ const getSMSLockStateTeamsUsers = async ({ input }: GetOptions) => {
           smsLockState: lock ? SMSLockState.LOCKED : SMSLockState.UNLOCKED,
         },
       });
-      return { name: updatedTeam.slug, lockStatus: lock };
+      return { name: updatedTeam.slug, locked: lock };
     }
   }
   throw new TRPCError({ code: "BAD_REQUEST", message: "Input data missing" });
 };
 
-export default getSMSLockStateTeamsUsers;
+export default setSMSLockState;

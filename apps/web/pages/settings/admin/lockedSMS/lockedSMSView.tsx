@@ -14,9 +14,8 @@ export default function LockedSMSView() {
 
   const mutation = trpc.viewer.admin.setSMSLockState.useMutation({
     onSuccess: (data) => {
-      console.log(`success data: ${JSON.stringify(data)}`);
       if (data) {
-        showToast(`${data.name} successfully ${data.lockStatus ? "locked" : "unlocked"}`, "success");
+        showToast(`${data.name} successfully ${data.locked ? "locked" : "unlocked"}`, "success");
       }
       utils.viewer.admin.getSMSLockStateTeamsUsers.invalidate();
     },

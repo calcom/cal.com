@@ -134,14 +134,6 @@ export const verifyNumber = async (phoneNumber: string, code: string) => {
 };
 
 async function isLockedForSMSSending(userId?: number | null, teamId?: number | null) {
-  if (userId) {
-    const user = await prisma.user.findFirst({
-      where: {
-        id: userId,
-      },
-    });
-    return user?.smsLockState === SMSLockState.LOCKED;
-  }
   if (teamId) {
     const team = await prisma.team.findFirst({
       where: {
@@ -149,5 +141,35 @@ async function isLockedForSMSSending(userId?: number | null, teamId?: number | n
       },
     });
     return team?.smsLockState === SMSLockState.LOCKED;
+  }
+
+  if (userId) {
+    const memberships = await prisma.membership.findMany({
+      where: {
+        userId: userId,
+      },
+      select: {
+        team: {
+          select: {
+            smsLockState: true,
+          },
+        },
+      },
+    });
+
+    const memberOfLockedTeam = memberships.find(
+      (membership) => membership.team.smsLockState === SMSLockState.LOCKED
+    );
+
+    if (!!memberOfLockedTeam) {
+      return true;
+    }
+
+    const user = await prisma.user.findFirst({
+      where: {
+        id: userId,
+      },
+    });
+    return user?.smsLockState === SMSLockState.LOCKED;
   }
 }
