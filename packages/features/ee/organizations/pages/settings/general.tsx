@@ -1,5 +1,6 @@
 "use client";
 
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -52,6 +53,8 @@ interface GeneralViewProps {
 const OrgGeneralView = () => {
   const { t } = useLocale();
   const router = useRouter();
+  const session = useSession();
+  const org = session?.data?.user.org;
 
   const {
     data: currentOrg,
@@ -73,9 +76,7 @@ const OrgGeneralView = () => {
   if (!currentOrg) {
     return null;
   }
-  const isAdminOrOwner =
-    currentOrg.user.role === MembershipRole.OWNER || currentOrg.user.role === MembershipRole.ADMIN;
-
+  const isAdminOrOwner = org && (org.role === MembershipRole.OWNER || org.role === MembershipRole.ADMIN);
   return (
     <LicenseRequired>
       <GeneralView
@@ -84,7 +85,7 @@ const OrgGeneralView = () => {
         localeProp={user?.locale ?? "en"}
       />
 
-      <LockEventTypeSwitch currentOrg={currentOrg} isAdminOrOwner={isAdminOrOwner} />
+      <LockEventTypeSwitch currentOrg={currentOrg} isAdminOrOwner={!!isAdminOrOwner} />
     </LicenseRequired>
   );
 };
