@@ -117,8 +117,8 @@ export interface paths {
   "/v2/bookings": {
     post: operations["BookingsController_createBooking"];
   };
-  "/v2/bookings/reccuring": {
-    post: operations["BookingsController_createReccuringBooking"];
+  "/v2/bookings/recurring": {
+    post: operations["BookingsController_createRecurringBooking"];
   };
   "/v2/bookings/instant": {
     post: operations["BookingsController_createInstantBooking"];
@@ -814,7 +814,7 @@ export interface operations {
       };
     };
   };
-  BookingsController_createReccuringBooking: {
+  BookingsController_createRecurringBooking: {
     requestBody: {
       content: {
         "application/json": string[];

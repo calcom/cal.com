@@ -288,11 +288,11 @@ const SettingsSidebarContainer = ({
               {!["teams", "other_teams"].includes(tab.name) && (
                 <React.Fragment key={tab.href}>
                   <div className={`${!tab.children?.length ? "!mb-3" : ""}`}>
-                    <div className="[&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis text-default group flex h-9 w-full flex-row items-center rounded-md px-2 text-sm font-medium leading-none">
+                    <div className="[&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis text-default group flex h-7 w-full flex-row items-center rounded-md px-2 text-sm font-medium leading-none">
                       {tab && tab.icon && (
                         <Icon
                           name={tab.icon}
-                          className="h-[16px] w-[16px] stroke-[2px] ltr:mr-3 rtl:ml-3 md:mt-0"
+                          className="text-subtle h-[16px] w-[16px] stroke-[2px] ltr:mr-3 rtl:ml-3 md:mt-0"
                         />
                       )}
                       {!tab.icon && tab?.avatar && (
@@ -305,21 +305,21 @@ const SettingsSidebarContainer = ({
                       <Skeleton
                         title={tab.name}
                         as="p"
-                        className="truncate text-sm font-medium leading-5"
+                        className="text-subtle truncate text-sm font-medium leading-5"
                         loadingClassName="ms-3">
                         {t(tab.name)}
                       </Skeleton>
                     </div>
                   </div>
-                  <div className="my-3 space-y-0.5">
+                  <div className="my-3 space-y-px">
                     {tab.children?.map((child, index) => (
                       <VerticalTabItem
                         key={child.href}
                         name={t(child.name)}
                         isExternalLink={child.isExternalLink}
                         href={child.href || "/"}
-                        textClassNames="px-3 text-emphasis font-medium text-sm"
-                        className={`my-0.5 me-5 h-7 ${
+                        textClassNames="text-emphasis font-medium text-sm"
+                        className={`me-5 h-7 !px-2 ${
                           tab.children && index === tab.children?.length - 1 && "!mb-3"
                         }`}
                         disableChevron
@@ -337,13 +337,13 @@ const SettingsSidebarContainer = ({
                         {tab && tab.icon && (
                           <Icon
                             name={tab.icon}
-                            className="h-[16px] w-[16px] stroke-[2px] ltr:mr-3 rtl:ml-3 md:mt-0"
+                            className="text-subtle h-[16px] w-[16px] stroke-[2px] ltr:mr-3 rtl:ml-3 md:mt-0"
                           />
                         )}
                         <Skeleton
                           title={tab.name}
                           as="p"
-                          className="truncate text-sm font-medium leading-5"
+                          className="text-subtle truncate text-sm font-medium leading-5"
                           loadingClassName="ms-3">
                           {t(isOrgAdminOrOwner ? "my_teams" : tab.name)}
                         </Skeleton>
@@ -372,7 +372,7 @@ const SettingsSidebarContainer = ({
                               }>
                               <CollapsibleTrigger asChild>
                                 <div
-                                  className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis text-default flex h-9 w-full flex-row items-center rounded-md px-3 py-[10px]  text-left text-sm font-medium leading-none"
+                                  className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis text-default flex h-9 w-full flex-row items-center rounded-md px-2 py-[10px]  text-left text-sm font-medium leading-none"
                                   onClick={() =>
                                     setTeamMenuState([
                                       ...teamMenuState,
@@ -476,13 +476,13 @@ const SettingsSidebarContainer = ({
                         {tab && tab.icon && (
                           <Icon
                             name={tab.icon}
-                            className="h-[16px] w-[16px] stroke-[2px] ltr:mr-3 rtl:ml-3 md:mt-0"
+                            className="text-subtle h-[16px] w-[16px] stroke-[2px] ltr:mr-3 rtl:ml-3 md:mt-0"
                           />
                         )}
                         <Skeleton
                           title={t("org_admin_other_teams")}
                           as="p"
-                          className="truncate text-sm font-medium leading-5"
+                          className="text-subtle truncate text-sm font-medium leading-5"
                           loadingClassName="ms-3">
                           {t("org_admin_other_teams")}
                         </Skeleton>
@@ -511,7 +511,7 @@ const SettingsSidebarContainer = ({
                               }>
                               <CollapsibleTrigger asChild>
                                 <div
-                                  className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis text-default flex h-9 w-full flex-row items-center rounded-md px-3 py-[10px]  text-left text-sm font-medium leading-none"
+                                  className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis text-default flex h-9 w-full flex-row items-center rounded-md px-2 py-[10px]  text-left text-sm font-medium leading-none"
                                   onClick={() =>
                                     setOtherTeamMenuState([
                                       ...otherTeamMenuState,
@@ -582,8 +582,8 @@ const MobileSettingsContainer = (props: { onSideContainerOpen?: () => void }) =>
 
   return (
     <>
-      <nav className="bg-muted border-muted sticky top-0 z-20 flex w-full items-center justify-between border-b py-2 sm:relative lg:hidden">
-        <div className="flex items-center space-x-3 ">
+      <nav className="bg-muted border-muted sticky top-0 z-20 flex w-full items-center justify-between border-b px-2 py-2 sm:relative lg:hidden">
+        <div className="flex items-center space-x-3">
           <Button StartIcon="menu" color="minimal" variant="icon" onClick={props.onSideContainerOpen}>
             <span className="sr-only">{t("show_navigation")}</span>
           </Button>

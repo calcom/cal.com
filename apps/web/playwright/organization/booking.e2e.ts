@@ -103,7 +103,7 @@ test.describe("Bookings", () => {
           page,
         },
         async () => {
-          await bookTeamEvent({ page, team, event: teamEvent });
+          await bookTeamEvent({ page, team, event: teamEvent, teamMatesObj });
 
           // Since all the users have the same leastRecentlyBooked value
           // Anyone of the teammates could be the Host of the booking.
@@ -421,13 +421,15 @@ async function bookTeamEvent({
   page,
   team,
   event,
+  teamMatesObj,
 }: {
   page: Page;
   team: {
     slug: string | null;
     name: string | null;
   };
-  event: { slug: string; title: string };
+  event: { slug: string; title: string; schedulingType: SchedulingType | null };
+  teamMatesObj?: { name: string }[];
 }) {
   // Note that even though the default way to access a team booking in an organization is to not use /team in the URL, but it isn't testable with playwright as the rewrite is taken care of by Next.js config which can't handle on the fly org slug's handling
   // So, we are using /team in the URL to access the team booking
@@ -440,8 +442,19 @@ async function bookTeamEvent({
   await expect(page.getByTestId("success-page")).toBeVisible();
 
   // The title of the booking
-  const BookingTitle = `${event.title} between ${team.name} and ${testName}`;
-  await expect(page.getByTestId("booking-title")).toHaveText(BookingTitle);
+  if (event.schedulingType === SchedulingType.ROUND_ROBIN) {
+    const bookingTitle = await page.getByTestId("booking-title").textContent();
+
+    expect(
+      teamMatesObj?.some((teamMate) => {
+        const BookingTitle = `${event.title} between ${teamMate.name} and ${testName}`;
+        return BookingTitle === bookingTitle;
+      })
+    ).toBe(true);
+  } else {
+    const BookingTitle = `${event.title} between ${team.name} and ${testName}`;
+    await expect(page.getByTestId("booking-title")).toHaveText(BookingTitle);
+  }
   // The booker should be in the attendee list
   await expect(page.getByTestId(`attendee-name-${testName}`)).toHaveText(testName);
 }
