@@ -475,6 +475,7 @@ export const AUTH_OPTIONS: AuthOptions = {
           select: {
             id: true,
             username: true,
+            avatarUrl: true,
             name: true,
             email: true,
             role: true,
@@ -510,6 +511,19 @@ export const AUTH_OPTIONS: AuthOptions = {
         }
 
         const profileOrg = profile?.organization;
+        let orgRole: MembershipRole | undefined;
+        // Get users role of org
+        if (profileOrg) {
+          const membership = await prisma.membership.findUnique({
+            where: {
+              userId_teamId: {
+                teamId: profileOrg.id,
+                userId: existingUser.id,
+              },
+            },
+          });
+          orgRole = membership?.role;
+        }
 
         return {
           ...existingUserWithoutTeamsField,
@@ -524,8 +538,10 @@ export const AUTH_OPTIONS: AuthOptions = {
                 id: profileOrg.id,
                 name: profileOrg.name,
                 slug: profileOrg.slug ?? profileOrg.requestedSlug ?? "",
+                logoUrl: profileOrg.logoUrl,
                 fullDomain: getOrgFullOrigin(profileOrg.slug ?? profileOrg.requestedSlug ?? ""),
                 domainSuffix: subdomainSuffix(),
+                role: orgRole as MembershipRole, // It can't be undefined if we have a profileOrg
               }
             : null,
         } as JWT;

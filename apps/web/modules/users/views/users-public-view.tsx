@@ -3,7 +3,6 @@
 import classNames from "classnames";
 import type { InferGetServerSidePropsType } from "next";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import { Toaster } from "react-hot-toast";
 
 import {
@@ -23,7 +22,6 @@ import { type getServerSideProps } from "./users-public-view.getServerSideProps"
 
 export function UserPage(props: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const { users, profile, eventTypes, markdownStrippedBio, entity } = props;
-  const searchParams = useSearchParams();
 
   const [user] = users; //To be used when we only have a single user, not dynamic group
   useTheme(profile.theme);
@@ -43,8 +41,6 @@ export function UserPage(props: InferGetServerSidePropsType<typeof getServerSide
     ...query
   } = useRouterQuery();
 
-  const isRedirect = searchParams?.get("redirected") === "true" || false;
-  const fromUserNameRedirected = searchParams?.get("username") || "";
   /*
    const telemetry = useTelemetry();
    useEffect(() => {
@@ -102,13 +98,13 @@ export function UserPage(props: InferGetServerSidePropsType<typeof getServerSide
               {!isOrg && user.verified && (
                 <Icon
                   name="badge-check"
-                  className=" mx-1 -mt-1 inline h-6 w-6 fill-blue-500 text-white dark:text-black"
+                  className="mx-1 -mt-1 inline h-6 w-6 fill-blue-500 text-white dark:text-black"
                 />
               )}
               {isOrg && (
                 <Icon
                   name="badge-check"
-                  className=" mx-1 -mt-1 inline h-6 w-6 fill-yellow-500 text-white dark:text-black"
+                  className="mx-1 -mt-1 inline h-6 w-6 fill-yellow-500 text-white dark:text-black"
                 />
               )}
             </h1>
@@ -125,47 +121,38 @@ export function UserPage(props: InferGetServerSidePropsType<typeof getServerSide
           <div
             className={classNames("rounded-md ", !isEventListEmpty && "border-subtle border")}
             data-testid="event-types">
-            {user.away ? (
-              <div className="overflow-hidden rounded-sm border ">
-                <div className="text-muted  p-8 text-center">
-                  <h2 className="font-cal text-default mb-2 text-3xl">😴{` ${t("user_away")}`}</h2>
-                  <p className="mx-auto max-w-md">{t("user_away_description") as string}</p>
+            {eventTypes.map((type) => (
+              <div
+                key={type.id}
+                style={{ display: "flex", ...eventTypeListItemEmbedStyles }}
+                className="bg-default border-subtle dark:bg-muted dark:hover:bg-emphasis hover:bg-muted group relative border-b first:rounded-t-md last:rounded-b-md last:border-b-0">
+                <Icon
+                  name="arrow-right"
+                  className="text-emphasis absolute right-4 top-4 h-4 w-4 opacity-0 transition-opacity group-hover:opacity-100"
+                />
+                {/* Don't prefetch till the time we drop the amount of javascript in [user][type] page which is impacting score for [user] page */}
+                <div className="block w-full p-5">
+                  <Link
+                    prefetch={false}
+                    href={{
+                      pathname: `/${user.profile.username}/${type.slug}`,
+                      query,
+                    }}
+                    passHref
+                    onClick={async () => {
+                      sdkActionManager?.fire("eventTypeSelected", {
+                        eventType: type,
+                      });
+                    }}
+                    data-testid="event-type-link">
+                    <div className="flex flex-wrap items-center">
+                      <h2 className="text-default pr-2 text-sm font-semibold">{type.title}</h2>
+                    </div>
+                    <EventTypeDescription eventType={type} isPublic={true} shortenDescription />
+                  </Link>
                 </div>
               </div>
-            ) : (
-              eventTypes.map((type) => (
-                <div
-                  key={type.id}
-                  style={{ display: "flex", ...eventTypeListItemEmbedStyles }}
-                  className="bg-default border-subtle dark:bg-muted dark:hover:bg-emphasis hover:bg-muted group relative border-b first:rounded-t-md last:rounded-b-md last:border-b-0">
-                  <Icon
-                    name="arrow-right"
-                    className="text-emphasis  absolute right-4 top-4 h-4 w-4 opacity-0 transition-opacity group-hover:opacity-100"
-                  />
-                  {/* Don't prefetch till the time we drop the amount of javascript in [user][type] page which is impacting score for [user] page */}
-                  <div className="block w-full p-5">
-                    <Link
-                      prefetch={false}
-                      href={{
-                        pathname: `/${user.profile.username}/${type.slug}`,
-                        query,
-                      }}
-                      passHref
-                      onClick={async () => {
-                        sdkActionManager?.fire("eventTypeSelected", {
-                          eventType: type,
-                        });
-                      }}
-                      data-testid="event-type-link">
-                      <div className="flex flex-wrap items-center">
-                        <h2 className=" text-default pr-2 text-sm font-semibold">{type.title}</h2>
-                      </div>
-                      <EventTypeDescription eventType={type} isPublic={true} shortenDescription />
-                    </Link>
-                  </div>
-                </div>
-              ))
-            )}
+            ))}
           </div>
 
           {isEventListEmpty && <EmptyPage name={profile.name || "User"} />}
