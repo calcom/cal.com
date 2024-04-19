@@ -225,8 +225,6 @@
   "already_have_an_account": "Aveți deja un cont?",
   "create_account": "Creează un cont",
   "confirm_password": "Confirmă parola",
-  "confirm_auth_change": "Acest lucru va schimba modul în care vă conectați",
-  "confirm_auth_email_change": "Schimbarea adresei de e-mail va deconecta metoda actuală de conectare la Cal.com. Vă vom solicita să vă verificați noua adresă de e-mail. În continuare, veți fi deconectat și veți folosi noua dvs. adresă de e-mail pentru a vă conecta în locul metodei actuale de autentificare după setarea parolei, urmând instrucțiunile care vor fi trimise pe adresa dvs. de e-mail.",
   "reset_your_password": "Setați noua parolă cu instrucțiunile trimise la adresa dvs. de e-mail.",
   "email_change": "Conectați-vă din nou cu noua adresă de e-mail și parolă.",
   "create_your_account": "Creează-ți contul",

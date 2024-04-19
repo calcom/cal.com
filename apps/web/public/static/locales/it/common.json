@@ -249,8 +249,6 @@
   "already_have_an_account": "Hai già un account?",
   "create_account": "Crea Account",
   "confirm_password": "Conferma password",
-  "confirm_auth_change": "Questo cambierà il modo il cui effettui l'accesso",
-  "confirm_auth_email_change": "Cambiando l'indirizzo e-mail disconnetterai il tuo metodo di autenticazione attuale che utilizzi per accedere a Cal.com. Ti verrà chiesto di verificare il tuo nuovo indirizzo e-mail. Continuando, verrai disconnesso e dovrai usare il nuovo indirizzo e-mail per accedere, al posto del tuo metodo di autenticazione attuale, dopo aver impostato la password seguendo le istruzioni che ti invieremo al tuo indirizzo e-mail.",
   "reset_your_password": "Imposta la nuova password seguendo le istruzioni che ti sono state inviate via e-mail.",
   "email_change": "Accedi di nuovo con il nuovo indirizzo e-mail e la nuova password.",
   "create_your_account": "Crea il tuo account",

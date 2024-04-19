@@ -53,8 +53,7 @@ export function UserPage(props: InferGetServerSidePropsType<typeof getServerSide
       telemetry.event(telemetryEventTypes.embedView, collectPageParameters("/[user]"));
     }
   }, [telemetry, router.asPath]); */
-
-  if (entity?.isUnpublished) {
+  if (entity.considerUnpublished) {
     return (
       <div className="flex h-full min-h-[100dvh] items-center justify-center">
         <UnpublishedEntity {...entity} />
@@ -88,25 +87,6 @@ export function UserPage(props: InferGetServerSidePropsType<typeof getServerSide
             isEmbed ? "border-booker border-booker-width  bg-default rounded-md border" : "",
             "max-w-3xl px-4 py-24"
           )}>
-          {isRedirect && (
-            <div className="mb-8 rounded-md bg-blue-100 p-4 dark:border dark:bg-transparent">
-              <h2 className="text-default mb-2 text-sm font-semibold dark:text-white">
-                {t("user_redirect_title", {
-                  username: fromUserNameRedirected,
-                })}{" "}
-                🏝️
-              </h2>
-              <p className="text-default text-sm">
-                {t("user_redirect_description", {
-                  profile: {
-                    username: user.username,
-                  },
-                  username: fromUserNameRedirected,
-                })}{" "}
-                😄
-              </p>
-            </div>
-          )}
           <div className="mb-8 text-center">
             <UserAvatar
               size="xl"

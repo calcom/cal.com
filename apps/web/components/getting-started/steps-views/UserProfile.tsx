@@ -25,7 +25,7 @@ const UserProfile = () => {
 
   const { data: eventTypes } = trpc.viewer.eventTypes.list.useQuery();
   const [imageSrc, setImageSrc] = useState<string>(user?.avatar || "");
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const router = useRouter();
   const createEventType = trpc.viewer.eventTypes.create.useMutation();
   const telemetry = useTelemetry();

@@ -47,7 +47,7 @@ const IntegrationContainer = ({
   handleModelOpen: (data: EditModalState) => void;
 }) => {
   const { t } = useLocale();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const [disableDialog, setDisableDialog] = useState(false);
 
   const showKeyModal = (fromEnabled?: boolean) => {
@@ -187,7 +187,7 @@ const EditKeysModal: FC<{
   fromEnabled?: boolean;
   appName?: string;
 }> = (props) => {
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const { t } = useLocale();
   const { dirName, slug, type, isOpen, keys, handleModelClose, fromEnabled, appName } = props;
   const appKeySchema = appKeysSchemas[dirName as keyof typeof appKeysSchemas];
