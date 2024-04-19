@@ -1,6 +1,7 @@
 import { createContext, useContext, createElement } from "react";
 import type z from "zod";
 
+import type { MembershipRole } from "@calcom/prisma/enums";
 import type { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 /**
@@ -16,10 +17,13 @@ export type OrganizationBranding =
       name?: string;
       /** acme */
       slug: string;
+      /** logo url */
+      logoUrl?: string | null;
       /** https://acme.cal.com */
       fullDomain: string;
       /** cal.com */
       domainSuffix: string;
+      role: MembershipRole;
     } & z.infer<typeof teamMetadataSchema>)
   | null
   | undefined;

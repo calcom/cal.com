@@ -286,7 +286,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               in: userIds as number[],
             },
           },
-          select: { id: true, name: true, email: true, avatar: true, username: true },
+          select: { id: true, name: true, email: true, avatarUrl: true, username: true },
         });
 
         const userHashMap = new Map();

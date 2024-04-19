@@ -46,6 +46,7 @@ export type UserPageProps = {
   markdownStrippedBio: string;
   safeBio: string;
   entity: {
+    logoUrl?: string | null;
     considerUnpublished: boolean;
     orgSlug?: string | null;
     name?: string | null;
@@ -98,12 +99,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
     orgSlug: isValidOrgDomain ? currentOrgDomain : null,
   });
 
-  const usersWithoutAvatar = usersInOrgContext.map((user) => {
-    const { avatar: _1, ...rest } = user;
-    return rest;
-  });
-
-  const isDynamicGroup = usersWithoutAvatar.length > 1;
+  const isDynamicGroup = usersInOrgContext.length > 1;
   log.debug(safeStringify({ usersInOrgContext, isValidOrgDomain, currentOrgDomain, isDynamicGroup }));
 
   if (isDynamicGroup) {
@@ -114,40 +110,27 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
         permanent: false,
         destination: destinationUrl,
       },
-    } as {
-      redirect: {
-        permanent: false;
-        destination: string;
-      };
-    };
+    } as const;
   }
-
-  const users = usersWithoutAvatar.map((user) => ({
-    ...user,
-    avatar: `/${user.username}/avatar.png`,
-  }));
 
   const isNonOrgUser = (user: { profile: UserProfile }) => {
     return !user.profile?.organization;
   };
 
-  const isThereAnyNonOrgUser = users.some(isNonOrgUser);
+  const isThereAnyNonOrgUser = usersInOrgContext.some(isNonOrgUser);
 
-  if (!users.length || (!isValidOrgDomain && !isThereAnyNonOrgUser)) {
+  if (!usersInOrgContext.length || (!isValidOrgDomain && !isThereAnyNonOrgUser)) {
     return {
       notFound: true,
-    } as {
-      notFound: true;
-    };
+    } as const;
   }
 
-  const [user] = users; //to be used when dealing with single user, not dynamic group
+  const [user] = usersInOrgContext; //to be used when dealing with single user, not dynamic group
 
   const profile = {
     name: user.name || user.username || "",
     image: getUserAvatarUrl({
-      ...user,
-      profile: user.profile,
+      avatarUrl: user.avatarUrl,
     }),
     theme: user.theme,
     brandColor: user.brandColor ?? DEFAULT_LIGHT_BRAND_COLOR,
@@ -183,11 +166,11 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
   const safeBio = markdownToSafeHTML(user.bio) || "";
 
   const markdownStrippedBio = stripMarkdown(user?.bio || "");
-  const org = usersWithoutAvatar[0].profile.organization;
+  const org = usersInOrgContext[0].profile.organization;
 
   return {
     props: {
-      users: users.map((user) => ({
+      users: usersInOrgContext.map((user) => ({
         name: user.name,
         username: user.username,
         bio: user.bio,
@@ -197,6 +180,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
         away: user.away,
       })),
       entity: {
+        ...(org?.logoUrl ? { logoUrl: org?.logoUrl } : {}),
         considerUnpublished: !isARedirectFromNonOrgLink && org?.slug === null,
         orgSlug: currentOrgDomain,
         name: org?.name ?? null,

@@ -26,7 +26,6 @@ import { ZWorkflowOrderInputSchema } from "./workflowOrder.schema";
 type AppsRouterHandlerCache = {
   me?: typeof import("./me.handler").meHandler;
   shouldVerifyEmail?: typeof import("./shouldVerifyEmail.handler").shouldVerifyEmailHandler;
-  avatar?: typeof import("./avatar.handler").avatarHandler;
   deleteMe?: typeof import("./deleteMe.handler").deleteMeHandler;
   deleteMeWithoutPassword?: typeof import("./deleteMeWithoutPassword.handler").deleteMeWithoutPasswordHandler;
   away?: typeof import("./away.handler").awayHandler;
@@ -63,19 +62,6 @@ const UNSTABLE_HANDLER_CACHE: AppsRouterHandlerCache = {};
 
 export const loggedInViewerRouter = router({
   me,
-
-  avatar: authedProcedure.query(async ({ ctx }) => {
-    if (!UNSTABLE_HANDLER_CACHE.avatar) {
-      UNSTABLE_HANDLER_CACHE.avatar = (await import("./avatar.handler")).avatarHandler;
-    }
-
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.avatar) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.avatar({ ctx });
-  }),
 
   deleteMe: authedProcedure.input(ZDeleteMeInputSchema).mutation(async ({ ctx, input }) => {
     if (!UNSTABLE_HANDLER_CACHE.deleteMe) {

@@ -129,8 +129,8 @@ export const TeamAndSelfList = () => {
             }}
             icon={
               <Avatar
-                alt={team?.name || ""}
-                imageSrc={getPlaceholderAvatar(team.logo, team?.name as string)}
+                alt={team.name || ""}
+                imageSrc={getPlaceholderAvatar(team.logoUrl, team.name)}
                 size="xs"
               />
             }
