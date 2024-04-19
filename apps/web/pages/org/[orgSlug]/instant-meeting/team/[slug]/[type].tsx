@@ -21,7 +21,6 @@ export default function Type({
   slug,
   user,
   booking,
-  away,
   isEmbed,
   isBrandingHidden,
   entity,
@@ -42,7 +41,6 @@ export default function Type({
         username={user}
         eventSlug={slug}
         bookingData={booking}
-        isAway={away}
         hideBranding={isBrandingHidden}
         isTeamEvent
         isInstantMeeting
@@ -110,7 +108,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         eventData.length
       ),
       booking: null,
-      away: false,
       user: teamSlug,
       teamId: team.id,
       slug: meetingSlug,

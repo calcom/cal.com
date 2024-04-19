@@ -89,7 +89,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         metadata: eventData.metadata,
       },
       booking,
-      away: false,
       user: teamSlug,
       teamId: team.id,
       slug: meetingSlug,
