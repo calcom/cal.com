@@ -34,7 +34,7 @@ import { usePublicEvent } from "../hooks/usePublicEvent";
 import { useSlots } from "../hooks/useSlots";
 import { AtomsWrapper } from "../src/components/atoms-wrapper";
 
-type BookerPlatformWrapperAtomProps = BookerProps & {
+type BookerPlatformWrapperAtomProps = Omit<BookerProps, "username"> & {
   rescheduleUid?: string;
   bookingUid?: string;
   firstName?: string;
