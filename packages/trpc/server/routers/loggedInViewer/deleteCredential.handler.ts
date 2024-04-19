@@ -136,6 +136,30 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
       }
     }
 
+    if (credential.app?.categories.includes(AppCategories.crm)) {
+      const metadata = EventTypeMetaDataSchema.parse(eventType.metadata);
+      const appSlug = credential.app?.slug;
+      if (appSlug) {
+        await prisma.$transaction(async () => {
+          await prisma.eventType.update({
+            where: {
+              id: eventType.id,
+            },
+            data: {
+              hidden: true,
+              metadata: {
+                ...metadata,
+                apps: {
+                  ...metadata?.apps,
+                  [appSlug]: null,
+                },
+              },
+            },
+          });
+        });
+      }
+    }
+
     // If it's a payment, hide the event type and set the price to 0. Also cancel all pending bookings
     if (credential.app?.categories.includes(AppCategories.payment)) {
       const metadata = EventTypeMetaDataSchema.parse(eventType.metadata);
