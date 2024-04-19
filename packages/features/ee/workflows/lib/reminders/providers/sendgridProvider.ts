@@ -1,6 +1,7 @@
 import client from "@sendgrid/client";
 import type { MailData } from "@sendgrid/helpers/classes/mail";
 import sgMail from "@sendgrid/mail";
+import { JSDOM } from "jsdom";
 
 import { SENDER_NAME } from "@calcom/lib/constants";
 import { setTestEmail } from "@calcom/lib/testEmails";
@@ -70,7 +71,7 @@ export function sendSendgridMail(
       name: addData.sender || SENDER_NAME,
     },
     subject: mailData.subject,
-    html: mailData.html || "",
+    html: addHTMLStyles(mailData.html),
     batchId: mailData.batchId,
     replyTo: mailData.replyTo || senderEmail,
     attachments: mailData.attachments,
@@ -108,4 +109,23 @@ export function deleteScheduledSend(referenceId: string | null) {
     url: `/v3/user/scheduled_sends/${referenceId}`,
     method: "DELETE",
   });
+}
+
+function addHTMLStyles(html?: string) {
+  if (!html) {
+    return "";
+  }
+  const dom = new JSDOM(html);
+  const document = dom.window.document;
+
+  // Select all <a> tags inside <h6> elements --> only used for emojis in rating template
+  const links = document.querySelectorAll("h6 a");
+
+  links.forEach((link) => {
+    const htmlLink = link as HTMLElement;
+    htmlLink.style.fontSize = "20px";
+    htmlLink.style.textDecoration = "none";
+  });
+
+  return dom.serialize();
 }

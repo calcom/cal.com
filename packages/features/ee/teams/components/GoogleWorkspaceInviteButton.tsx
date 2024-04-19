@@ -1,4 +1,3 @@
-import { UsersIcon, XIcon } from "lucide-react";
 import type { PropsWithChildren } from "react";
 import { useState } from "react";
 
@@ -36,7 +35,7 @@ export function GoogleWorkspaceInviteButton(
   props: PropsWithChildren<{ onSuccess: (data: string[]) => void }>
 ) {
   const featureFlags = useFlagMap();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const { t } = useLocale();
   const params = useParamsWithFallback();
   const teamId = Number(params.id);
@@ -75,7 +74,7 @@ export function GoogleWorkspaceInviteButton(
               mutation.mutate();
             }}
             className="w-full justify-center gap-2"
-            StartIcon={UsersIcon}
+            StartIcon="users"
             loading={mutation.isPending}>
             {t("import_from_google_workspace")}
           </Button>
@@ -84,7 +83,7 @@ export function GoogleWorkspaceInviteButton(
           <Button
             color="secondary"
             loading={removeConnectionMutation.isPending}
-            StartIcon={XIcon}
+            StartIcon="x"
             onClick={() => {
               removeConnectionMutation.mutate();
               utils.viewer.googleWorkspace.checkForGWorkspace.invalidate();
@@ -102,7 +101,7 @@ export function GoogleWorkspaceInviteButton(
       type="button"
       color="secondary"
       loading={googleWorkspaceLoading}
-      StartIcon={GoogleIcon}
+      CustomStartIcon={<GoogleIcon />}
       onClick={async () => {
         setGoogleWorkspaceLoading(true);
         const params = new URLSearchParams({

@@ -1,6 +1,5 @@
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
-import { Plus } from "lucide-react";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import React from "react";
 
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
@@ -39,7 +38,7 @@ export const OAuthClients = () => {
           router.push("/settings/organizations/platform/oauth-clients/create");
         }}
         color="secondary"
-        StartIcon={Plus}>
+        StartIcon="plus">
         Add
       </Button>
     );
@@ -67,6 +66,9 @@ export const OAuthClients = () => {
                     <OAuthClientCard
                       name={client.name}
                       redirectUris={client.redirectUris}
+                      bookingRedirectUri={client.bookingRedirectUri}
+                      bookingRescheduleRedirectUri={client.bookingRescheduleRedirectUri}
+                      bookingCancelRedirectUri={client.bookingCancelRedirectUri}
                       permissions={client.permissions}
                       key={index}
                       lastItem={data.length === index + 1}
@@ -74,6 +76,7 @@ export const OAuthClients = () => {
                       secret={client.secret}
                       isLoading={isDeleting}
                       onDelete={handleDelete}
+                      areEmailsEnabled={client.areEmailsEnabled}
                     />
                   );
                 })}
@@ -82,8 +85,8 @@ export const OAuthClients = () => {
           ) : (
             <EmptyScreen
               headline="Create your first OAuth client"
-              description="OAuth clients faciliate acceess to cal.com on users behalf"
-              Icon={Plus}
+              description="OAuth clients facilitate access to Cal.com on behalf of users"
+              Icon="plus"
               className="rounded-b-lg rounded-t-none border-t-0"
               buttonRaw={<NewOAuthClientButton />}
             />

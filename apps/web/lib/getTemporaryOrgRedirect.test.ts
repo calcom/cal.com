@@ -63,7 +63,7 @@ describe("getTemporaryOrgRedirect", () => {
     expect(redirect).toEqual({
       redirect: {
         permanent: false,
-        destination: "https://calcom.cal.com/30min",
+        destination: "https://calcom.cal.com/30min?orgRedirection=true",
       },
     });
   });
@@ -83,7 +83,7 @@ describe("getTemporaryOrgRedirect", () => {
     expect(redirect).toEqual({
       redirect: {
         permanent: false,
-        destination: "https://calcom.cal.com/30min?abc=1",
+        destination: "https://calcom.cal.com/30min?abc=1&orgRedirection=true",
       },
     });
   });
@@ -103,7 +103,7 @@ describe("getTemporaryOrgRedirect", () => {
     expect(redirect).toEqual({
       redirect: {
         permanent: false,
-        destination: "https://calcom.cal.com?abc=1",
+        destination: "https://calcom.cal.com?abc=1&orgRedirection=true",
       },
     });
   });
@@ -127,7 +127,7 @@ describe("getTemporaryOrgRedirect", () => {
     expect(redirect).toEqual({
       redirect: {
         permanent: false,
-        destination: "https://calcom.cal.com?abc=1",
+        destination: "https://calcom.cal.com?abc=1&orgRedirection=true",
       },
     });
   });
@@ -151,7 +151,7 @@ describe("getTemporaryOrgRedirect", () => {
     expect(redirect).toEqual({
       redirect: {
         permanent: false,
-        destination: "https://calcom.cal.com/30min?abc=1",
+        destination: "https://calcom.cal.com/30min?abc=1&orgRedirection=true",
       },
     });
   });
@@ -173,7 +173,7 @@ describe("getTemporaryOrgRedirect", () => {
     expect(redirect).toEqual({
       redirect: {
         permanent: false,
-        destination: "https://calcom.cal.com/30min",
+        destination: "https://calcom.cal.com/30min?orgRedirection=true",
       },
     });
   });
@@ -200,7 +200,7 @@ describe("getTemporaryOrgRedirect", () => {
     expect(redirect).toEqual({
       redirect: {
         permanent: false,
-        destination: "https://calcom.cal.com/first-in-org1+second-in-org1",
+        destination: "https://calcom.cal.com/first-in-org1+second-in-org1?orgRedirection=true",
       },
     });
   });
@@ -227,7 +227,7 @@ describe("getTemporaryOrgRedirect", () => {
     expect(redirect).toEqual({
       redirect: {
         permanent: false,
-        destination: "https://calcom.cal.com/first-in-org1+second-in-org1",
+        destination: "https://calcom.cal.com/first-in-org1+second-in-org1?orgRedirection=true",
       },
     });
 
@@ -241,7 +241,7 @@ describe("getTemporaryOrgRedirect", () => {
     expect(redirect1).toEqual({
       redirect: {
         permanent: false,
-        destination: "https://calcom.cal.com/second-in-org1+first-in-org1",
+        destination: "https://calcom.cal.com/second-in-org1+first-in-org1?orgRedirection=true",
       },
     });
   });
@@ -270,7 +270,7 @@ describe("getTemporaryOrgRedirect", () => {
     expect(redirect).toEqual({
       redirect: {
         permanent: false,
-        destination: "https://calcom.cal.com/first-in-org1+second-in-org1?abc=1",
+        destination: "https://calcom.cal.com/first-in-org1+second-in-org1?abc=1&orgRedirection=true",
       },
     });
   });
@@ -297,7 +297,7 @@ describe("getTemporaryOrgRedirect", () => {
     expect(redirect).toEqual({
       redirect: {
         permanent: false,
-        destination: "https://calcom.cal.com/first-in-org1+second-in-org1/30min",
+        destination: "https://calcom.cal.com/first-in-org1+second-in-org1/30min?orgRedirection=true",
       },
     });
   });
@@ -326,7 +326,7 @@ describe("getTemporaryOrgRedirect", () => {
     expect(redirect).toEqual({
       redirect: {
         permanent: false,
-        destination: "https://calcom.cal.com/first-in-org1+second-in-org1/30min?abc=1",
+        destination: "https://calcom.cal.com/first-in-org1+second-in-org1/30min?abc=1&orgRedirection=true",
       },
     });
   });

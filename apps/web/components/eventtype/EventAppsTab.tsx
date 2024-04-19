@@ -11,8 +11,7 @@ import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hook
 import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Button, EmptyScreen, Alert } from "@calcom/ui";
-import { Grid, Lock } from "@calcom/ui/components/icon";
+import { Alert, Button, EmptyScreen } from "@calcom/ui";
 
 export type EventType = Pick<EventTypeSetupProps, "eventType">["eventType"] &
   EventTypeAppCardComponentProps["eventType"];
@@ -116,7 +115,7 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
               // credentialIds: team?.credentialId ? [team.credentialId] : [],
               credentialOwner: {
                 name: team.name,
-                avatar: team.logo,
+                avatar: team.logoUrl,
                 teamId: team.teamId,
                 credentialId: team.credentialId,
               },
@@ -161,12 +160,12 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
           )}
           {!isPending && !installedApps?.length ? (
             <EmptyScreen
-              Icon={Grid}
+              Icon="grid-3x3"
               headline={t("empty_installed_apps_headline")}
               description={t("empty_installed_apps_description")}
               buttonRaw={
                 appsDisableProps.disabled ? (
-                  <Button StartIcon={Lock} color="secondary" disabled>
+                  <Button StartIcon="lock" color="secondary" disabled>
                     {t("locked_by_team_admin")}
                   </Button>
                 ) : (

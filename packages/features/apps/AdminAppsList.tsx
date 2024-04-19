@@ -23,6 +23,7 @@ import {
   DialogFooter,
   EmptyScreen,
   Form,
+  Icon,
   List,
   showToast,
   SkeletonButton,
@@ -31,7 +32,6 @@ import {
   Switch,
   TextField,
 } from "@calcom/ui";
-import { AlertCircle, Edit } from "@calcom/ui/components/icon";
 
 import AppListCard from "../../../apps/web/components/AppListCard";
 
@@ -47,7 +47,7 @@ const IntegrationContainer = ({
   handleModelOpen: (data: EditModalState) => void;
 }) => {
   const { t } = useLocale();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const [disableDialog, setDisableDialog] = useState(false);
 
   const showKeyModal = (fromEnabled?: boolean) => {
@@ -93,7 +93,7 @@ const IntegrationContainer = ({
           <div className="flex items-center justify-self-end">
             {app.keys && (
               <Button color="secondary" className="mr-2" onClick={() => showKeyModal()}>
-                <Edit />
+                <Icon name="pencil" />
               </Button>
             )}
 
@@ -187,7 +187,7 @@ const EditKeysModal: FC<{
   fromEnabled?: boolean;
   appName?: string;
 }> = (props) => {
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const { t } = useLocale();
   const { dirName, slug, type, isOpen, keys, handleModelClose, fromEnabled, appName } = props;
   const appKeySchema = appKeysSchemas[dirName as keyof typeof appKeysSchemas];
@@ -296,7 +296,7 @@ const AdminAppsListContainer = () => {
   if (!apps || apps.length === 0) {
     return (
       <EmptyScreen
-        Icon={AlertCircle}
+        Icon="circle-alert"
         headline={t("no_available_apps")}
         description={t("no_available_apps_description")}
       />

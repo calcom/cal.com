@@ -1,7 +1,8 @@
+import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { RouterOutputs } from "@calcom/trpc/react";
 import type { TimeRange, WorkingHours } from "@calcom/types/schedule";
 import { Button, DialogTrigger, Tooltip } from "@calcom/ui";
-import { Edit2, Trash2 } from "@calcom/ui/components/icon";
 
 import DateOverrideInputDialog from "./DateOverrideInputDialog";
 
@@ -13,6 +14,7 @@ const sortByDate = (a: { ranges: TimeRange[]; id: string }, b: { ranges: TimeRan
 const DateOverrideList = ({
   workingHours,
   excludedDates = [],
+  travelSchedules = [],
   userTimeFormat,
   hour12,
   replace,
@@ -25,6 +27,7 @@ const DateOverrideList = ({
   excludedDates?: string[];
   userTimeFormat: number | null;
   hour12: boolean;
+  travelSchedules?: RouterOutputs["viewer"]["getTravelSchedules"];
 }) => {
   const { t, i18n } = useLocale();
 
@@ -63,7 +66,17 @@ const DateOverrideList = ({
             ) : (
               item.ranges.map((range, i) => (
                 <p key={i} className="text-subtle text-xs">
-                  {timeSpan(range)}
+                  {`${timeSpan(range)} ${
+                    travelSchedules
+                      .find(
+                        (travelSchedule) =>
+                          !dayjs(item.ranges[0].start).isBefore(travelSchedule.startDate) &&
+                          (!dayjs(item.ranges[0].end).isAfter(travelSchedule.endDate) ||
+                            !travelSchedule.endDate)
+                      )
+                      ?.timeZone.replace(/_/g, " ") || ""
+                  }`}
+                  <></>
                 </p>
               ))
             )}
@@ -86,7 +99,7 @@ const DateOverrideList = ({
                     className="text-default"
                     color="minimal"
                     variant="icon"
-                    StartIcon={Edit2}
+                    StartIcon="pencil"
                   />
                 </DialogTrigger>
               }
@@ -105,7 +118,7 @@ const DateOverrideList = ({
                 })}
                 color="destructive"
                 variant="icon"
-                StartIcon={Trash2}
+                StartIcon="trash-2"
                 onClick={() => {
                   replace([...fields.filter((currentItem) => currentItem.id !== item.id)]);
                 }}

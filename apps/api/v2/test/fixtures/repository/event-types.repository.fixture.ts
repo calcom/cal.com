@@ -21,7 +21,7 @@ export class EventTypesRepositoryFixture {
     });
   }
 
-  async create(data: CreateEventTypeInput, userId: number) {
+  async create(data: Pick<CreateEventTypeInput, "title" | "slug" | "length" | "hidden">, userId: number) {
     return this.prismaWriteClient.eventType.create({
       data: {
         ...data,

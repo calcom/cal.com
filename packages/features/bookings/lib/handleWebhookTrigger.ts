@@ -1,7 +1,7 @@
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
+import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { WebhookDataType } from "@calcom/features/webhooks/lib/sendPayload";
-import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
 import logger from "@calcom/lib/logger";
 
 export async function handleWebhookTrigger(args: {

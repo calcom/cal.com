@@ -49,7 +49,11 @@ export const acceptOrLeaveHandler = async ({ ctx, input }: AcceptOrLeaveOptions)
     const needProfileUpdate = !!idOfOrganizationInContext;
     if (needProfileUpdate) {
       await createAProfileForAnExistingUser({
-        user: ctx.user,
+        user: {
+          id: ctx.user.id,
+          email: ctx.user.email,
+          currentUsername: ctx.user.username,
+        },
         organizationId: idOfOrganizationInContext,
       });
     }

@@ -1,3 +1,5 @@
+import { Transform } from "class-transformer";
+import { IsNumber, Min, Max, IsOptional } from "class-validator";
 import type { Response as BaseResponse } from "express";
 
 import type { ERROR_STATUS, SUCCESS_STATUS, API_ERROR_CODES } from "@calcom/platform-constants";
@@ -29,3 +31,19 @@ export type Response<T = unknown> = BaseResponse<ApiResponse<T>>;
 export type ApiResponse<T = undefined> = T extends undefined
   ? ApiSuccessResponseWithoutData | ApiErrorResponse
   : ApiSuccessResponse<T> | ApiErrorResponse;
+
+export class Pagination {
+  @Transform(({ value }: { value: string }) => value && parseInt(value))
+  @IsNumber()
+  @Min(1)
+  @Max(100)
+  @IsOptional()
+  limit?: number;
+
+  @Transform(({ value }: { value: string }) => value && parseInt(value))
+  @IsNumber()
+  @Min(0)
+  @Max(100)
+  @IsOptional()
+  offset?: number | null;
+}

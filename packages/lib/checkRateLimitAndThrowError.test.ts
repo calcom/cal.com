@@ -12,14 +12,14 @@ vi.mock("./rateLimit", () => {
 
 describe("checkRateLimitAndThrowError", () => {
   it("should throw an error if rate limit is exceeded", async () => {
-    process.env.UPSTASH_REDIS_REST_URL = "mockUrl";
-    process.env.UPSTASH_REDIS_REST_TOKEN = "mockToken";
+    process.env.UNKEY_ROOT_KEY = "unkey_mock";
 
     vi.mocked(rateLimiter).mockReturnValue(() => {
       return {
         limit: 10,
         remaining: -1,
         reset: Date.now() + 10000,
+        success: false,
       } as RatelimitResponse;
     });
 
@@ -30,13 +30,13 @@ describe("checkRateLimitAndThrowError", () => {
   });
 
   it("should not throw an error if rate limit is not exceeded", async () => {
-    process.env.UPSTASH_REDIS_REST_URL = "mockUrl";
-    process.env.UPSTASH_REDIS_REST_TOKEN = "mockToken";
+    process.env.UNKEY_ROOT_KEY = "unkey_mock";
     vi.mocked(rateLimiter).mockReturnValue(() => {
       return {
         limit: 10,
         remaining: 5,
         reset: Date.now() + 10000,
+        success: true,
       } as RatelimitResponse;
     });
 
