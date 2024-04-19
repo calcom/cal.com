@@ -19,7 +19,7 @@ import {
 } from "@calcom/features/ee/organizations/components/OrgUpgradeBanner";
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import HelpMenuItem from "@calcom/features/ee/support/components/HelpMenuItem";
-import useIntercom from "@calcom/features/ee/support/lib/intercom/useIntercom";
+import useIntercom, { isInterComEnabled } from "@calcom/features/ee/support/lib/intercom/useIntercom";
 import { TeamsUpgradeBanner, type TeamsUpgradeBannerProps } from "@calcom/features/ee/teams/components";
 import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { KBarContent, KBarRoot, KBarTrigger } from "@calcom/features/kbar/Kbar";
@@ -223,7 +223,7 @@ const Layout = (props: LayoutProps) => {
   useEffect(() => {
     // not using useMediaQuery as it toggles between true and false
     const showIntercom = localStorage.getItem("showIntercom");
-    if (showIntercom === "false" || window.innerWidth <= 768 || !user) return;
+    if (!isInterComEnabled || showIntercom === "false" || window.innerWidth <= 768 || !user) return;
     boot();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
