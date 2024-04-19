@@ -13,7 +13,7 @@ import { BookingStatus } from "@calcom/prisma/enums";
 
 import { createUserAndEventType } from "./seed-utils";
 
-async function createManyDifferentUsersWithDifferentEventTypesAndBookings({
+async function _createManyDifferentUsersWithDifferentEventTypesAndBookings({
   tillUser,
   startFrom = 0,
 }: {

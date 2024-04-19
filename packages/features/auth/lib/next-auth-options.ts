@@ -475,6 +475,7 @@ export const AUTH_OPTIONS: AuthOptions = {
           select: {
             id: true,
             username: true,
+            avatarUrl: true,
             name: true,
             email: true,
             role: true,
@@ -524,6 +525,7 @@ export const AUTH_OPTIONS: AuthOptions = {
                 id: profileOrg.id,
                 name: profileOrg.name,
                 slug: profileOrg.slug ?? profileOrg.requestedSlug ?? "",
+                logoUrl: profileOrg.logoUrl,
                 fullDomain: getOrgFullOrigin(profileOrg.slug ?? profileOrg.requestedSlug ?? ""),
                 domainSuffix: subdomainSuffix(),
               }

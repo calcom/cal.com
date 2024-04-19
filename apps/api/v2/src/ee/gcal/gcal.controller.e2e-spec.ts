@@ -1,5 +1,6 @@
 import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
+import { CalendarsService } from "@/ee/calendars/services/calendars.service";
 import { HttpExceptionFilter } from "@/filters/http-exception.filter";
 import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
@@ -17,6 +18,20 @@ import { TokensRepositoryFixture } from "test/fixtures/repository/tokens.reposit
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 
 const CLIENT_REDIRECT_URI = "http://localhost:5555";
+
+class CalendarsServiceMock {
+  async getCalendars() {
+    return {
+      connectedCalendars: [
+        {
+          integration: {
+            type: "google_calendar",
+          },
+        },
+      ],
+    };
+  }
+}
 
 describe("Platform Gcal Endpoints", () => {
   let app: INestApplication;
@@ -42,6 +57,8 @@ describe("Platform Gcal Endpoints", () => {
       .useValue({
         canActivate: () => true,
       })
+      .overrideProvider(CalendarsService)
+      .useClass(CalendarsServiceMock)
       .compile();
 
     app = moduleRef.createNestApplication();
