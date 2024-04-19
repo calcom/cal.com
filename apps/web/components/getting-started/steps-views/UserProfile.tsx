@@ -33,7 +33,7 @@ const UserProfile = () => {
 
   const mutation = trpc.viewer.updateProfile.useMutation({
     onSuccess: async (_data, context) => {
-      if (context.avatar) {
+      if (context.avatarUrl) {
         showToast(t("your_user_profile_updated_successfully"), "success");
         await utils.viewer.me.refetch();
       } else
@@ -74,7 +74,7 @@ const UserProfile = () => {
     event.preventDefault();
     const enteredAvatar = avatarRef.current?.value;
     mutation.mutate({
-      avatar: enteredAvatar,
+      avatarUrl: enteredAvatar,
     });
   }
 

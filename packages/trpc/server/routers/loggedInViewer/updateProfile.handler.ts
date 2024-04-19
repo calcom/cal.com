@@ -79,8 +79,6 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
 
   const data: Prisma.UserUpdateInput = {
     ...rest,
-    // DO NOT OVERWRITE AVATAR.
-    avatar: undefined,
     metadata: userMetadata,
     secondaryEmails: undefined,
   };
@@ -198,22 +196,14 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
     data.identityProviderId = null;
   }
 
-  // if defined AND a base 64 string, upload and set the avatar URL
-  if (input.avatar && input.avatar.startsWith("data:image/png;base64,")) {
-    const avatar = await resizeBase64Image(input.avatar);
+  // if defined AND a base 64 string, upload and update the avatar URL
+  if (input.avatarUrl && input.avatarUrl.startsWith("data:image/png;base64,")) {
     data.avatarUrl = await uploadAvatar({
-      avatar,
+      avatar: await resizeBase64Image(input.avatarUrl),
       userId: user.id,
     });
-    // as this is still used in the backwards compatible endpoint, we also write it here
-    // to ensure no data loss.
-    data.avatar = avatar;
   }
-  // Unset avatar url if avatar is empty string.
-  if ("" === input.avatar) {
-    data.avatarUrl = null;
-    data.avatar = null;
-  }
+
   if (input.completedOnboarding) {
     const userTeams = await prisma.user.findFirst({
       where: {
@@ -373,9 +363,6 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
       });
     }
   }
-
-  // don't return avatar, we don't need it anymore.
-  delete input.avatar;
 
   if (secondaryEmails.length) {
     const recordsToDelete = secondaryEmails
