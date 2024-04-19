@@ -103,7 +103,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     return {
       redirect: {
         permanent: false,
-        destination: `/auth/error?error=Verifciation Token is missing or has expired`,
+        destination: `/auth/error?error=Verification Token is missing or has expired`,
       },
     } as const;
   }
