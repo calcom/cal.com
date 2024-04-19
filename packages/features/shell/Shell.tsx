@@ -457,7 +457,6 @@ function UserDropdown({ small }: UserDropdownProps) {
             <span
               className={classNames(
                 "border-muted absolute -bottom-1 -right-1 rounded-full border bg-green-500",
-                user.away ? "bg-yellow-500" : "bg-green-500",
                 small ? "-bottom-0.5 -right-0.5 h-2.5 w-2.5" : "-bottom-0.5 -right-0 h-2 w-2"
               )}
             />
