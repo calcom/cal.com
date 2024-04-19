@@ -2,7 +2,8 @@
 import { orderBy } from "lodash";
 
 import { hasFilter } from "@calcom/features/filters/lib/hasFilter";
-import { getOrgAvatarUrl, getTeamAvatarUrl, getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
+import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
+import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import logger from "@calcom/lib/logger";
@@ -184,9 +185,7 @@ export const getEventTypesByViewer = async (user: User, filters?: Filters, forRo
         slug: profile.username,
         name: profile.name,
         image: getUserAvatarUrl({
-          username: profile.username,
           avatarUrl: profile.avatarUrl,
-          profile: profile,
         }),
         eventTypesLockedByOrg: parentOrgHasLockedEventTypes,
       },
@@ -255,18 +254,9 @@ export const getEventTypesByViewer = async (user: User, filters?: Filters, forRo
                 ? orgMembership
                 : membership.role,
             profile: {
-              image: team.parentId
-                ? getOrgAvatarUrl({
-                    slug: team.parent?.slug || null,
-                    logoUrl: team.parent?.logoUrl,
-                    requestedSlug: team.slug,
-                  })
-                : getTeamAvatarUrl({
-                    slug: team.slug,
-                    logoUrl: team.logoUrl,
-                    requestedSlug: team.metadata?.requestedSlug ?? null,
-                    organizationId: team.parentId,
-                  }),
+              image: team.parent
+                ? getPlaceholderAvatar(team.parent.logoUrl, team.parent.name)
+                : getPlaceholderAvatar(team.logoUrl, team.name),
               name: team.name,
               slug,
             },
