@@ -48,7 +48,7 @@ const processWorkflowStep = async (
 ) => {
   if (isSMSAction(step.action)) {
     await checkSMSRateLimit({
-      identifier: `sms:${workflow.userId ? "user:" : "team:"}${workflow.userId || workflow.teamId}`,
+      identifier: `sms:${workflow.teamId ? "team:" : "user:"}${workflow.teamId || workflow.userId}`,
       rateLimitingType: "sms",
     });
 

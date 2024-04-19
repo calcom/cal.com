@@ -51,11 +51,11 @@ export const sendSMS = async (
   const isSMSSendingLocked = await isLockedForSMSSending(userId, teamId);
 
   if (isSMSSendingLocked) {
-    log.debug(`${userId ? `User id ${userId} ` : `Team id ${teamId} `} is locked for SMS sending `);
+    log.debug(`${teamId ? `Team id ${teamId} ` : `User id ${userId} `} is locked for SMS sending `);
     return;
   }
 
-  if (userId) {
+  if (!teamId && userId) {
     await checkSMSRateLimit({
       identifier: `sms:user:${userId}`,
       rateLimitingType: "smsMonth",
@@ -86,13 +86,13 @@ export const scheduleSMS = async (
   const isSMSSendingLocked = await isLockedForSMSSending(userId, teamId);
 
   if (isSMSSendingLocked) {
-    log.debug(`${userId ? `User id ${userId} ` : `Team id ${teamId} `} is locked for SMS sending `);
+    log.debug(`${teamId ? `Team id ${teamId} ` : `User id ${userId} `} is locked for SMS sending `);
     return;
   }
 
-  if (userId) {
+  if (!teamId && userId) {
     await checkSMSRateLimit({
-      identifier: `sms:user:${userId || teamId}`,
+      identifier: `sms:user:${userId}`,
       rateLimitingType: "smsMonth",
     });
   }

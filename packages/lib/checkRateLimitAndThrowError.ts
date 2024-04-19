@@ -58,15 +58,18 @@ async function changeSMSLockState(identifier: string, status: SMSLockState) {
     await prisma.user.update({
       where: {
         id: userId,
+        profiles: { none: {} },
       },
       data: {
         smsLockState: status,
       },
     });
   } else {
-    await prisma.user.update({
+    await prisma.team.update({
       where: {
         id: teamId,
+        parentId: null,
+        isOrganization: false,
       },
       data: {
         smsLockState: status,
