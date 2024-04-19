@@ -1,17 +1,21 @@
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { z } from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { trpc } from "@calcom/trpc/react";
 import { Badge, Label } from "@calcom/ui";
 
 import { TroubleshooterListItemHeader } from "./TroubleshooterListItemContainer";
 
+const querySchema = z.object({
+  scheduleId: z.string().optional(),
+});
+
 export function EventScheduleItem() {
   const { t } = useLocale();
-  const router = useRouter();
-  const scheduleIdStr = router.query.scheduleId;
-  const scheduleId = scheduleIdStr ? Number(scheduleIdStr) : null;
+  const routerQuery = useRouterQuery();
+  const scheduleId = Number(querySchema.parse(routerQuery));
   const { data: schedule } = trpc.viewer.availability.schedule.getScheduleById.useQuery(
     {
       id: scheduleId as number,
