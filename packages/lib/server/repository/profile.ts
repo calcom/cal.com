@@ -40,6 +40,7 @@ const organizationSelect = {
   slug: true,
   name: true,
   metadata: true,
+  logoUrl: true,
   calVideoLogo: true,
   bannerUrl: true,
 };

@@ -3,7 +3,6 @@
 import classNames from "classnames";
 import type { InferGetServerSidePropsType } from "next";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import { Toaster } from "react-hot-toast";
 
 import {
@@ -23,7 +22,6 @@ import { type getServerSideProps } from "./users-public-view.getServerSideProps"
 
 export function UserPage(props: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const { users, profile, eventTypes, markdownStrippedBio, entity } = props;
-  const searchParams = useSearchParams();
 
   const [user] = users; //To be used when we only have a single user, not dynamic group
   useTheme(profile.theme);
@@ -43,8 +41,6 @@ export function UserPage(props: InferGetServerSidePropsType<typeof getServerSide
     ...query
   } = useRouterQuery();
 
-  const isRedirect = searchParams?.get("redirected") === "true" || false;
-  const fromUserNameRedirected = searchParams?.get("username") || "";
   /*
    const telemetry = useTelemetry();
    useEffect(() => {

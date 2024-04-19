@@ -115,7 +115,7 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
               // credentialIds: team?.credentialId ? [team.credentialId] : [],
               credentialOwner: {
                 name: team.name,
-                avatar: team.logo,
+                avatar: team.logoUrl,
                 teamId: team.teamId,
                 credentialId: team.credentialId,
               },

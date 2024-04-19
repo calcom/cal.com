@@ -1,3 +1,4 @@
+import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { EmptyScreen, Avatar } from "@calcom/ui";
 
@@ -12,6 +13,8 @@ export type UnpublishedEntityProps = {
    * It conveys two things - Slug for the team and that it is an organization infact
    */
   orgSlug?: string | null;
+  /* logo url for entity */
+  logoUrl?: string | null;
   /**
    * Team or Organization name
    */
@@ -24,13 +27,7 @@ export function UnpublishedEntity(props: UnpublishedEntityProps) {
   return (
     <div className="m-8 flex items-center justify-center">
       <EmptyScreen
-        avatar={
-          <Avatar
-            alt={slug ?? ""}
-            imageSrc={props.orgSlug ? `/org/${slug}/avatar.png` : `/team/${slug}/avatar.png`}
-            size="lg"
-          />
-        }
+        avatar={<Avatar alt={slug ?? ""} imageSrc={getPlaceholderAvatar(props.logoUrl, slug)} size="lg" />}
         headline={t("team_is_unpublished", {
           team: props.name,
         })}

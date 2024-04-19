@@ -16,6 +16,8 @@ export type OrganizationBranding =
       name?: string;
       /** acme */
       slug: string;
+      /** logo url */
+      logoUrl?: string | null;
       /** https://acme.cal.com */
       fullDomain: string;
       /** cal.com */
