@@ -146,10 +146,12 @@ const DateOverride = ({
   workingHours,
   userTimeFormat,
   travelSchedules,
+  weekStart,
 }: {
   workingHours: WorkingHours[];
   userTimeFormat: number | null;
   travelSchedules?: RouterOutputs["viewer"]["getTravelSchedules"];
+  weekStart: string;
 }) => {
   const { append, replace, fields } = useFieldArray<AvailabilityFormValues, "dateOverrides">({
     name: "dateOverrides",
@@ -182,6 +184,7 @@ const DateOverride = ({
           excludedDates={excludedDates}
           onChange={(ranges) => ranges.forEach((range) => append({ ranges: [range] }))}
           userTimeFormat={userTimeFormat}
+          weekStart={weekStart}
           Trigger={
             <Button color="secondary" StartIcon="plus" data-testid="add-override">
               {t("add_an_override")}
@@ -487,6 +490,11 @@ export function AvailabilitySettings({
                     workingHours={schedule.workingHours}
                     userTimeFormat={timeFormat}
                     travelSchedules={travelSchedules}
+                    weekStart={
+                      ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].indexOf(
+                        weekStart
+                      ) as 0 | 1 | 2 | 3 | 4 | 5 | 6
+                    }
                   />
                 )}
               </div>

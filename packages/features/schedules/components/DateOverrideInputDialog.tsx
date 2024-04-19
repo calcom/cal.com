@@ -28,6 +28,7 @@ const DateOverrideForm = ({
   excludedDates,
   onChange,
   userTimeFormat,
+  weekStart,
 }: {
   workingHours?: WorkingHours[];
   onChange: (newValue: TimeRange[]) => void;
@@ -35,6 +36,7 @@ const DateOverrideForm = ({
   value?: TimeRange[];
   onClose?: () => void;
   userTimeFormat: number | null;
+  weekStart: string;
 }) => {
   const [browsingDate, setBrowsingDate] = useState<Dayjs>();
   const { t, i18n, isLocaleReady } = useLocale();
@@ -142,7 +144,7 @@ const DateOverrideForm = ({
         <DialogHeader title={t("date_overrides_dialog_title")} />
         <DatePicker
           excludedDates={excludedDates}
-          weekStart={0}
+          weekStart={weekStart}
           selected={selectedDates}
           onChange={(day) => {
             if (day) onDateChange(day);
