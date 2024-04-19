@@ -30,7 +30,7 @@ export const getOtherTeamHandler = async ({ input }: GetOptions) => {
       id: true,
       name: true,
       slug: true,
-      logo: true,
+      logoUrl: true,
       bio: true,
       metadata: true,
       isPrivate: true,
