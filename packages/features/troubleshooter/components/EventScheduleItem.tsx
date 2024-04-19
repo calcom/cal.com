@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -8,7 +9,8 @@ import { TroubleshooterListItemHeader } from "./TroubleshooterListItemContainer"
 
 export function EventScheduleItem() {
   const { t } = useLocale();
-  const scheduleIdStr = new URLSearchParams(window.location.search).get("scheduleId");
+  const router = useRouter();
+  const scheduleIdStr = router.query.scheduleId;
   const scheduleId = scheduleIdStr ? Number(scheduleIdStr) : null;
   const { data: schedule } = trpc.viewer.availability.schedule.getScheduleById.useQuery(
     {
