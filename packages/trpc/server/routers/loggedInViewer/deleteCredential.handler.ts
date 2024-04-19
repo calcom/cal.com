@@ -1,6 +1,7 @@
 import z from "zod";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
+import type { eventTypeAppMetadataSchema } from "@calcom/app-store/apps.schemas.generated";
 import { DailyLocationType } from "@calcom/core/location";
 import { sendCancelledEmails } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
@@ -138,8 +139,11 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
 
     if (credential.app?.categories.includes(AppCategories.crm)) {
       const metadata = EventTypeMetaDataSchema.parse(eventType.metadata);
-      const appSlug = credential.app?.slug;
-      if (appSlug) {
+      const appSlugToDelete = credential.app?.slug;
+
+      if (appSlugToDelete) {
+        const appMetadata = removeAppFromEventTypeMetadata(appSlugToDelete, metadata);
+
         await prisma.$transaction(async () => {
           await prisma.eventType.update({
             where: {
@@ -150,8 +154,7 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
               metadata: {
                 ...metadata,
                 apps: {
-                  ...metadata?.apps,
-                  [appSlug]: null,
+                  ...appMetadata,
                 },
               },
             },
@@ -165,6 +168,8 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
       const metadata = EventTypeMetaDataSchema.parse(eventType.metadata);
       const appSlug = credential.app?.slug;
       if (appSlug) {
+        const appMetadata = removeAppFromEventTypeMetadata(appSlugToDelete, metadata);
+
         await prisma.$transaction(async () => {
           await prisma.eventType.update({
             where: {
@@ -175,8 +180,7 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
               metadata: {
                 ...metadata,
                 apps: {
-                  ...metadata?.apps,
-                  [appSlug]: null,
+                  ...appMetadata,
                 },
               },
             },
@@ -388,4 +392,20 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
       id: id,
     },
   });
+};
+
+const removeAppFromEventTypeMetadata = (
+  appName: string,
+  eventTypeMetadata: z.infer<typeof EventTypeMetaDataSchema>
+) => {
+  const appMetadata = metadata?.apps
+    ? Object.entries(metadata.apps).reduce((filteredApps, [appName, appData]) => {
+        if (appName !== appSlugToDelete) {
+          filteredApps[appName] = appData;
+        }
+        return filteredApps;
+      }, {} as z.infer<typeof eventTypeAppMetadataSchema>)
+    : {};
+
+  return appMetadata;
 };
