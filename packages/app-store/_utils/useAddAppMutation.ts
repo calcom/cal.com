@@ -83,7 +83,6 @@ function useAddAppMutation(_type: App["type"] | null, allOptions?: UseAddAppMuta
 
       const res = await fetch(`/api/integrations/${type}/add${searchParams}`);
 
-      console.log("🚀 ~ mutationFn: ~ res:", res);
       if (!res.ok) {
         const errorBody = await res.json();
         throw new Error(errorBody.message || "Something went wrong");
