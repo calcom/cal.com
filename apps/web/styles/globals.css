@@ -471,3 +471,17 @@ select:focus {
 .react-tel-input .flag-dropdown {
   @apply !border-r-default left-0.5 !border-y-0 !border-l-0;
 }
+
+
+
+.react-calendar__month-view__days{
+  gap: 0.20rem !important;
+  padding: 0 !important;
+}
+
+@media only screen and (max-width: 320px) {
+ .react-calendar__month-view__days{
+    gap: 0.15rem !important;
+    padding: 0 !important;
+  }
+}
