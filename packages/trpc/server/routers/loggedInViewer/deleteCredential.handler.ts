@@ -395,11 +395,11 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
 };
 
 const removeAppFromEventTypeMetadata = (
-  appName: string,
+  appSlugToDelete: string,
   eventTypeMetadata: z.infer<typeof EventTypeMetaDataSchema>
 ) => {
-  const appMetadata = metadata?.apps
-    ? Object.entries(metadata.apps).reduce((filteredApps, [appName, appData]) => {
+  const appMetadata = eventTypeMetadata?.apps
+    ? Object.entries(eventTypeMetadata.apps).reduce((filteredApps, [appName, appData]) => {
         if (appName !== appSlugToDelete) {
           filteredApps[appName] = appData;
         }
