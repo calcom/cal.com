@@ -151,7 +151,7 @@ const DateOverride = ({
   workingHours: WorkingHours[];
   userTimeFormat: number | null;
   travelSchedules?: RouterOutputs["viewer"]["getTravelSchedules"];
-  weekStart: string;
+  weekStart: 0 | 1 | 2 | 3 | 4 | 5 | 6;
 }) => {
   const { append, replace, fields } = useFieldArray<AvailabilityFormValues, "dateOverrides">({
     name: "dateOverrides",
