@@ -98,6 +98,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
             isPrivate: true,
             isOrganization: true,
             metadata: true,
+            logoUrl: true,
           },
         },
       },
