@@ -12,7 +12,7 @@ import { AppOnboardingSteps } from "@calcom/lib/apps/appOnboardingSteps";
 import { getAppOnboardingUrl } from "@calcom/lib/apps/getAppOnboardingUrl";
 import { shouldRedirectToAppOnboarding } from "@calcom/lib/apps/shouldRedirectToAppOnboarding";
 import classNames from "@calcom/lib/classNames";
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AppFrontendPayload as App } from "@calcom/types/App";
 import type { CredentialFrontendPayload as Credential } from "@calcom/types/Credential";
@@ -311,8 +311,8 @@ const InstallAppButtonChild = ({
                 key={team.id}
                 CustomStartIcon={
                   <Avatar
-                    alt={team.logo || ""}
-                    imageSrc={team.logo || `${WEBAPP_URL}/${team.logo}/avatar.png`} // if no image, use default avatar
+                    alt={team.name || ""}
+                    imageSrc={getPlaceholderAvatar(team.logoUrl, team.name)} // if no image, use default avatar
                     size="sm"
                   />
                 }

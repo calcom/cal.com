@@ -89,7 +89,6 @@ export const listOtherTeamMembers = async ({ input }: ListOptions) => {
           username: true,
           name: true,
           email: true,
-          avatar: true,
           avatarUrl: true,
         },
       },

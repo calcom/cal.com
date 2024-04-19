@@ -30,7 +30,6 @@ const userSelect = Prisma.validator<Prisma.UserSelect>()({
   email: true,
   emailVerified: true,
   bio: true,
-  avatar: true,
   avatarUrl: true,
   timeZone: true,
   startTime: true,

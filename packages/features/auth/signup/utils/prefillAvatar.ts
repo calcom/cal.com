@@ -47,7 +47,6 @@ export const prefillAvatar = async ({ email }: IPrefillAvatar) => {
 
   const data: Prisma.UserUpdateInput = {};
   data.avatarUrl = avatarUrl;
-  data.avatar = avatar;
 
   await prisma.user.update({
     where: { email: email },

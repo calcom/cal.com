@@ -49,6 +49,7 @@ import {
   TOP_BANNER_HEIGHT,
   WEBAPP_URL,
 } from "@calcom/lib/constants";
+import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useFormbricks } from "@calcom/lib/formbricks-client";
 import getBrandColours from "@calcom/lib/getBrandColours";
 import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
@@ -922,7 +923,7 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
                   <div className="flex items-center gap-2 font-medium">
                     <Avatar
                       alt={`${orgBranding.name} logo`}
-                      imageSrc={`${orgBranding.fullDomain}/org/${orgBranding.slug}/avatar.png`}
+                      imageSrc={getPlaceholderAvatar(orgBranding.logoUrl, orgBranding.name)}
                       size="xsm"
                     />
                     <p className="text line-clamp-1 text-sm">
