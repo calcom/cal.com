@@ -112,6 +112,14 @@ const emptyResponseEventsByStatus = {
     count: 0,
     deltaPrevious: 0,
   },
+  rating: {
+    count: 0,
+    deltaPrevious: 0,
+  },
+  no_show: {
+    count: 0,
+    deltaPrevious: 0,
+  },
   previousRange: {
     startDate: dayjs().toISOString(),
     endDate: dayjs().toISOString(),
@@ -257,6 +265,15 @@ export const insightsRouter = router({
 
       const totalCancelled = await EventsInsights.getTotalCancelledEvents(baseWhereCondition);
 
+      const totalRatingsAggregate = await EventsInsights.getAverageRating(baseWhereCondition);
+      console.log({ totalRatingsAggregate });
+      const averageRating = totalRatingsAggregate._avg.rating
+        ? parseFloat(totalRatingsAggregate._avg.rating.toFixed(1))
+        : 0;
+
+      const totalNoShow = await EventsInsights.getTotalNoShows(baseWhereCondition);
+      console.log({ totalNoShow });
+
       const lastPeriodStartDate = dayjs(startDate).subtract(startTimeEndTimeDiff, "day");
       const lastPeriodEndDate = dayjs(endDate).subtract(startTimeEndTimeDiff, "day");
 
@@ -278,6 +295,12 @@ export const insightsRouter = router({
       );
 
       const lastPeriodTotalCancelled = await EventsInsights.getTotalCancelledEvents(lastPeriodBaseCondition);
+      const lastPeriodTotalRatingsAggregate = await EventsInsights.getAverageRating(lastPeriodBaseCondition);
+      const lastPeriodAverageRating = lastPeriodTotalRatingsAggregate._avg.rating
+        ? parseFloat(lastPeriodTotalRatingsAggregate._avg.rating.toFixed(1))
+        : 0;
+
+      const lastPeriodTotalNoShow = await EventsInsights.getTotalNoShows(lastPeriodBaseCondition);
       const result = {
         empty: false,
         created: {
@@ -299,6 +322,14 @@ export const insightsRouter = router({
           count: totalCancelled,
           deltaPrevious: EventsInsights.getPercentage(totalCancelled, lastPeriodTotalCancelled),
         },
+        no_show: {
+          count: totalNoShow,
+          deltaPrevious: EventsInsights.getPercentage(totalNoShow, lastPeriodTotalNoShow),
+        },
+        rating: {
+          count: averageRating,
+          deltaPrevious: EventsInsights.getPercentage(averageRating, lastPeriodAverageRating),
+        },
         previousRange: {
           startDate: lastPeriodStartDate.format("YYYY-MM-DD"),
           endDate: lastPeriodEndDate.format("YYYY-MM-DD"),
@@ -308,7 +339,9 @@ export const insightsRouter = router({
         result.created.count === 0 &&
         result.completed.count === 0 &&
         result.rescheduled.count === 0 &&
-        result.cancelled.count === 0
+        result.cancelled.count === 0 &&
+        result.no_show.count === 0 &&
+        result.rating.count === 0
       ) {
         return emptyResponseEventsByStatus;
       }

@@ -112,6 +112,29 @@ class EventsInsights {
     });
   };
 
+  static getAverageRating = async (whereConditional: Prisma.BookingTimeStatusWhereInput) => {
+    return await prisma.bookingTimeStatus.aggregate({
+      _avg: {
+        rating: true,
+      },
+      where: {
+        ...whereConditional,
+        rating: {
+          not: null, // Exclude null ratings
+        },
+      },
+    });
+  };
+
+  static getTotalNoShows = async (whereConditional: Prisma.BookingTimeStatusWhereInput) => {
+    return await prisma.bookingTimeStatus.count({
+      where: {
+        ...whereConditional,
+        noShowHost: true,
+      },
+    });
+  };
+
   static getTimeLine = async (timeView: TimeViewType, startDate: Dayjs, endDate: Dayjs) => {
     let resultTimeLine: string[] = [];
 
