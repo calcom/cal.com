@@ -77,6 +77,18 @@ class EventsInsights {
     return result;
   };
 
+  static getNoShowHostsInTimeRange = async (
+    timeRange: ITimeRange,
+    where: Prisma.BookingTimeStatusWhereInput
+  ) => {
+    const result = await this.getBookingsInTimeRange(timeRange, {
+      ...where,
+      noShowHost: true,
+    });
+
+    return result;
+  };
+
   static getBaseBookingCountForEventStatus = async (where: Prisma.BookingTimeStatusWhereInput) => {
     const baseBookings = await prisma.bookingTimeStatus.count({
       where,

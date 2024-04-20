@@ -266,13 +266,11 @@ export const insightsRouter = router({
       const totalCancelled = await EventsInsights.getTotalCancelledEvents(baseWhereCondition);
 
       const totalRatingsAggregate = await EventsInsights.getAverageRating(baseWhereCondition);
-      console.log({ totalRatingsAggregate });
       const averageRating = totalRatingsAggregate._avg.rating
         ? parseFloat(totalRatingsAggregate._avg.rating.toFixed(1))
         : 0;
 
       const totalNoShow = await EventsInsights.getTotalNoShows(baseWhereCondition);
-      console.log({ totalNoShow });
 
       const lastPeriodStartDate = dayjs(startDate).subtract(startTimeEndTimeDiff, "day");
       const lastPeriodEndDate = dayjs(endDate).subtract(startTimeEndTimeDiff, "day");
@@ -507,6 +505,7 @@ export const insightsRouter = router({
           Completed: 0,
           Rescheduled: 0,
           Cancelled: 0,
+          NoShowHost: 0,
         };
         const startOfEndOf = timeView;
         let startDate = dayjs(date).startOf(startOfEndOf);
@@ -544,11 +543,19 @@ export const insightsRouter = router({
             },
             whereConditional
           ),
+          EventsInsights.getNoShowHostsInTimeRange(
+            {
+              start: startDate,
+              end: endDate,
+            },
+            whereConditional
+          ),
         ]);
         EventData["Created"] = promisesResult[0];
         EventData["Completed"] = promisesResult[1];
         EventData["Rescheduled"] = promisesResult[2];
         EventData["Cancelled"] = promisesResult[3];
+        EventData["NoShowHost"] = promisesResult[4];
         result.push(EventData);
       }
 
