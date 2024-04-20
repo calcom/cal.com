@@ -215,15 +215,17 @@ const useBanners = () => {
 const Layout = (props: LayoutProps) => {
   const banners = useBanners();
 
-  const showIntercom = localStorage.getItem("showIntercom");
+  const { data: user } = trpc.viewer.me.useQuery();
   const { boot } = useIntercom();
   const pageTitle = typeof props.heading === "string" && !props.title ? props.heading : props.title;
 
   useEffect(() => {
     // not using useMediaQuery as it toggles between true and false
-    if (showIntercom === "false" || window.innerWidth <= 768) return;
+    const showIntercom = localStorage.getItem("showIntercom");
+    if (showIntercom === "false" || window.innerWidth <= 768 || !user) return;
     boot();
-  }, [showIntercom]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   const bannersHeight = useMemo(() => {
     const activeBanners =
