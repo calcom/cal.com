@@ -21,7 +21,6 @@ export const Select = <
   Group extends GroupBase<Option> = GroupBase<Option>
 >({
   components,
-  menuPlacement,
   variant = "default",
   ...props
 }: SelectProps<Option, IsMulti, Group> & {
@@ -36,7 +35,7 @@ export const Select = <
     menuList?: string;
   };
 }) => {
-  const { classNames, innerClassNames, ...restProps } = props;
+  const { classNames, innerClassNames, menuPlacement = "auto", ...restProps } = props;
   const reactSelectProps = React.useMemo(() => {
     return getReactSelectProps<Option, IsMulti, Group>({
       components: components || {},
@@ -49,6 +48,7 @@ export const Select = <
   return (
     <ReactSelect
       {...reactSelectProps}
+      menuPlacement={menuPlacement}
       classNames={{
         input: () => cx("text-emphasis", innerClassNames?.input),
         option: (state) =>
@@ -84,7 +84,7 @@ export const Select = <
           ),
         menu: () =>
           cx(
-            "rounded-md bg-default text-sm leading-4 text-default mt-1 border border-subtle",
+            " rounded-md bg-default text-sm leading-4 text-default mt-1 border border-subtle",
             innerClassNames?.menu
           ),
         groupHeading: () => "leading-none text-xs uppercase text-default pl-2.5 pt-4 pb-2",

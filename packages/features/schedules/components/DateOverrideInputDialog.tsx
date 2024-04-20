@@ -165,7 +165,7 @@ const DateOverrideForm = ({
                     {t("date_overrides_unavailable")}
                   </p>
                 ) : (
-                  <DayRanges name="range" userTimeFormat={userTimeFormat} />
+                  <DayRanges name="range" userTimeFormat={userTimeFormat} menuPlacement="bottom" />
                 )}
               </div>
               <Switch
