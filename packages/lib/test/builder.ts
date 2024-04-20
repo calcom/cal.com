@@ -207,7 +207,6 @@ type UserPayload = Prisma.UserGetPayload<{
     selectedCalendars: true;
     schedules: true;
     avatarUrl: true;
-    away: true;
     backupCodes: true;
     bio: true;
     brandColor: true;
@@ -255,7 +254,6 @@ export const buildUser = <T extends Partial<UserPayload>>(
     allowDynamicBooking: true,
     availability: [],
     avatarUrl: "",
-    away: false,
     backupCodes: null,
     bio: null,
     brandColor: "#292929",

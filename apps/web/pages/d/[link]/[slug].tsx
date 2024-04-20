@@ -13,7 +13,6 @@ export default function Type({
   isEmbed,
   user,
   booking,
-  away,
   isBrandingHidden,
   isTeamEvent,
   entity,
@@ -33,7 +32,6 @@ export default function Type({
         username={user}
         eventSlug={slug}
         bookingData={booking}
-        isAway={away}
         hideBranding={isBrandingHidden}
         isTeamEvent={isTeamEvent}
         entity={entity}

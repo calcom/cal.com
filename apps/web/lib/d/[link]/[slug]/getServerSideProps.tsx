@@ -52,7 +52,6 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
   });
 
   let name: string;
-  let isAway = false;
   let hideBranding = false;
 
   const notFound = {
@@ -96,7 +95,6 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
     }
 
     name = username;
-    isAway = user.away;
     hideBranding = user.hideBranding;
   }
 
@@ -129,7 +127,6 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
         eventData.length
       ),
       booking,
-      away: isAway,
       user: name,
       slug,
       trpcState: ssr.dehydrate(),

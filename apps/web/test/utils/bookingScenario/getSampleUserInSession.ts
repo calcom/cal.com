@@ -31,7 +31,6 @@ export const getSampleUserInSession = function () {
     identityProvider: IdentityProvider.CAL,
     brandColor: "#292929",
     darkBrandColor: "#fafafa",
-    away: false,
     metadata: null,
     role: UserPermissionRole.USER,
     disableImpersonation: false,
