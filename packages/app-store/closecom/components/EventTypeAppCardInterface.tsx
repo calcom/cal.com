@@ -10,6 +10,11 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
 
   const { enabled, updateEnabled } = useIsAppEnabled(app);
 
+  // CRM backwards compatibility
+  if (enabled === undefined) {
+    updateEnabled(true);
+  }
+
   return (
     <AppCard
       returnTo={`${WEBAPP_URL}${pathname}?tabName=apps`}
@@ -18,7 +23,8 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
       switchOnClick={(e) => {
         updateEnabled(e);
       }}
-      switchChecked={enabled}
+      switchChecked={enabled || enabled === undefined}
+      hideAppCardOptions
     />
   );
 };
