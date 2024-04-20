@@ -23,7 +23,6 @@ export default function Type({
   user,
   isEmbed,
   booking,
-  away,
   isBrandingHidden,
   isSEOIndexable,
   rescheduleUid,
@@ -47,7 +46,6 @@ export default function Type({
         username={user}
         eventSlug={slug}
         bookingData={booking}
-        isAway={away}
         hideBranding={isBrandingHidden}
         entity={eventData.entity}
         durationConfig={eventData.metadata?.multipleDuration}

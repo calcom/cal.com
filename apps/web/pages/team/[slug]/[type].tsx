@@ -30,7 +30,6 @@ export default function Type({
   slug,
   user,
   booking,
-  away,
   isEmbed,
   isBrandingHidden,
   eventData,
@@ -54,7 +53,6 @@ export default function Type({
         username={user}
         eventSlug={slug}
         bookingData={booking}
-        isAway={away}
         isInstantMeeting={isInstantMeeting}
         hideBranding={isBrandingHidden}
         isTeamEvent

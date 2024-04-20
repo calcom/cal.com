@@ -750,7 +750,8 @@ export const getRetellLLMSchema = z
           })
           .passthrough()
       )
-      .nullable(),
+      .nullable()
+      .optional(),
   })
   .passthrough();
 

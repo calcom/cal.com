@@ -28,7 +28,6 @@ const userBodySchema = User.pick({
   // darkBrandColor: true,
   allowDynamicBooking: true,
   identityProvider: true,
-  // away: true,
   role: true,
   avatarUrl: true,
 });
