@@ -168,7 +168,14 @@ export const EventDetails = ({ event, blocks = defaultEventDetailsBlocks }: Even
             if (event.price <= 0 || paymentAppData.price <= 0) return null;
 
             return (
-              <EventMetaBlock key={block} customIcon={<PriceIcon currency={event.currency} />}>
+              <EventMetaBlock
+                key={block}
+                customIcon={
+                  <PriceIcon
+                    className="relative z-20 mr-2 mt-[2px] h-4 w-4 flex-shrink-0 rtl:ml-2"
+                    currency={event.currency}
+                  />
+                }>
                 <Price
                   price={paymentAppData.price}
                   currency={event.currency}
