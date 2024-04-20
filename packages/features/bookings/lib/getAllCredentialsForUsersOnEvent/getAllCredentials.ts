@@ -97,7 +97,7 @@ export const getAllCredentials = async (
     } else {
       // If the CRM app doesn't exist on the event type metadata, check that the credential belongs to the user/team/org
       if (
-        credential.userId ||
+        credential.userId === eventType.userId ||
         credential.teamId === eventType.team?.id ||
         credential.teamId === eventType.parentId
       ) {
