@@ -23,7 +23,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
       switchOnClick={(e) => {
         updateEnabled(e);
       }}
-      switchChecked={enabled || enabled === undefined}
+      switchChecked={enabled}
       hideAppCardOptions
     />
   );

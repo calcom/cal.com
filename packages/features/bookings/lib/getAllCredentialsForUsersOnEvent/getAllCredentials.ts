@@ -76,7 +76,6 @@ export const getAllCredentials = async (
   for (const appKey in eventTypeAppMetadata) {
     const app = eventTypeAppMetadata[appKey];
     if (app.appCategories && app.appCategories.some((category) => category === "crm")) {
-      // eventTypeCRMCredentials.push({ credentialId: app.credentialId, enabled: app.enabled });
       eventTypeCrmCredentials[app.credentialId] = {
         enabled: app.enabled,
       };
