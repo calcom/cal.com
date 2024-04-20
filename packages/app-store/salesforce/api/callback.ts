@@ -8,6 +8,7 @@ import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import createOAuthAppCredential from "../../_utils/oauth/createOAuthAppCredential";
 import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
+import writeAppDataToEventType from "../../_utils/writeAppDataToEventType";
 import appConfig from "../config.json";
 
 let consumer_key = "";
@@ -15,6 +16,7 @@ let consumer_secret = "";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { code } = req.query;
+  const state = decodeOAuthState(req);
 
   if (code === undefined && typeof code !== "string") {
     res.status(400).json({ message: "`code` must be a string" });
@@ -39,9 +41,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const salesforceTokenInfo = await conn.oauth2.requestToken(code as string);
 
-  await createOAuthAppCredential({ appId: appConfig.slug, type: appConfig.type }, salesforceTokenInfo, req);
+  const credential = await createOAuthAppCredential(
+    { appId: appConfig.slug, type: appConfig.type },
+    salesforceTokenInfo,
+    req
+  );
 
-  const state = decodeOAuthState(req);
+  await writeAppDataToEventType({
+    userId: req.session?.user.id,
+    teamId: state?.teamId,
+    appSlug: appConfig.slug,
+    appCategories: appConfig.categories,
+    credentialId: credential.id,
+  });
+
   res.redirect(
     getSafeRedirectUrl(state?.returnTo) ?? getInstalledAppPath({ variant: "other", slug: "salesforce" })
   );

@@ -8,6 +8,7 @@ import prisma from "@calcom/prisma";
 
 import checkSession from "../../_utils/auth";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
+import writeAppDataToEventType from "../../_utils/writeAppDataToEventType";
 import appConfig from "../config.json";
 
 export async function getHandler(req: NextApiRequest, res: NextApiResponse) {
@@ -26,8 +27,19 @@ export async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   };
 
   try {
-    await prisma.credential.create({
+    const credential = await prisma.credential.create({
       data,
+      select: {
+        id: true,
+      },
+    });
+
+    await writeAppDataToEventType({
+      userId: req.session?.user.id,
+      // TODO: add team installation
+      appSlug: appConfig.slug,
+      appCategories: appConfig.categories,
+      credentialId: credential.id,
     });
   } catch (reason) {
     logger.error("Could not add Close.com app", reason);
