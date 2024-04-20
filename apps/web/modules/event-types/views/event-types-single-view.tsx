@@ -383,13 +383,8 @@ const EventTypePage = (props: EventTypeSetupProps) => {
     ),
   });
   const {
-    reset,
     formState: { isDirty: isFormDirty, dirtyFields },
   } = formMethods;
-
-  useEffect(() => {
-    reset(defaultValues);
-  }, [defaultValues]);
 
   const appsMetadata = formMethods.getValues("metadata")?.apps;
   const availability = formMethods.watch("availability");

@@ -22,7 +22,6 @@ import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import { prisma } from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
-import { handlePeriodType } from "@calcom/trpc/server/routers/viewer/eventTypes/util";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
@@ -71,7 +70,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
   const locale = input.locale || user.locale;
   const emailVerification = await getFeatureFlag(prisma, "email-verification");
 
-  const { travelSchedules, bookingLimits, futureBookingLimits, ...rest } = input;
+  const { travelSchedules, bookingLimits, ...rest } = input;
 
   const secondaryEmails = input?.secondaryEmails || [];
   delete input.secondaryEmails;
@@ -329,34 +328,6 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
       },
       update: {
         bookingLimits,
-      },
-    });
-  }
-
-  if (futureBookingLimits) {
-    const dataToSave = {
-      ...futureBookingLimits,
-      ...(futureBookingLimits?.periodDates
-        ? {
-            periodStartDate: futureBookingLimits.periodDates.startDate,
-            periodEndDate: futureBookingLimits.periodDates.endDate,
-          }
-        : {}),
-    };
-    delete dataToSave.periodDates;
-    if (dataToSave.periodType) {
-      dataToSave.periodType = handlePeriodType(dataToSave.periodType);
-    }
-    await prisma.globalSettings.upsert({
-      where: {
-        userId: user.id,
-      },
-      create: {
-        userId: user.id,
-        ...dataToSave,
-      },
-      update: {
-        ...dataToSave,
       },
     });
   }

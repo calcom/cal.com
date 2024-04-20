@@ -185,7 +185,7 @@ export const BookingLimits = ({
 };
 
 type FutureBookingLimitsProps = {
-  formMethods: UseFormReturn<any>;
+  formMethods: UseFormReturn<FormValues>;
   periodTypeLocked?: ShouldLockDisableProps;
   sectionDescription?: string;
   settingsToggleClass?: string;

@@ -19,7 +19,6 @@ import { teamsAndUserProfilesQuery } from "./procedures/teamsAndUserProfilesQuer
 import { ZRoutingFormOrderInputSchema } from "./routingFormOrder.schema";
 import { ZSetDestinationCalendarInputSchema } from "./setDestinationCalendar.schema";
 import { ZSubmitFeedbackInputSchema } from "./submitFeedback.schema";
-import { ZSyncBookingLimitsInputSchema } from "./syncBookingLimits.schema";
 import { ZUpdateProfileInputSchema } from "./updateProfile.schema";
 import { ZUpdateUserDefaultConferencingAppInputSchema } from "./updateUserDefaultConferencingApp.schema";
 import { ZWorkflowOrderInputSchema } from "./workflowOrder.schema";
@@ -57,7 +56,6 @@ type AppsRouterHandlerCache = {
   outOfOfficeEntryDelete?: typeof import("./outOfOffice.handler").outOfOfficeEntryDelete;
   addSecondaryEmail?: typeof import("./addSecondaryEmail.handler").addSecondaryEmailHandler;
   globalSettings?: typeof import("./globalSettings.handler").globalSettingsHandler;
-  syncBookingLimits?: typeof import("./syncBookingLimits.handler").syncBookingLimitsHandler;
   getTravelSchedules?: typeof import("./getTravelSchedules.handler").getTravelSchedulesHandler;
   outOfOfficeReasonList?: typeof import("./outOfOfficeReasons.handler").outOfOfficeReasonList;
 };
@@ -502,20 +500,6 @@ export const loggedInViewerRouter = router({
     }
 
     return UNSTABLE_HANDLER_CACHE.globalSettings({ ctx });
-  }),
-  syncBookingLimits: authedProcedure.input(ZSyncBookingLimitsInputSchema).mutation(async ({ ctx, input }) => {
-    if (!UNSTABLE_HANDLER_CACHE.syncBookingLimits) {
-      UNSTABLE_HANDLER_CACHE.syncBookingLimits = (
-        await import("./syncBookingLimits.handler")
-      ).syncBookingLimitsHandler;
-    }
-
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.syncBookingLimits) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.syncBookingLimits({ ctx, input });
   }),
   getTravelSchedules: authedProcedure.query(async ({ ctx }) => {
     if (!UNSTABLE_HANDLER_CACHE.getTravelSchedules) {

@@ -1,4 +1,3 @@
-import type { Prisma } from "@prisma/client";
 // eslint-disable-next-line no-restricted-imports
 import { orderBy } from "lodash";
 
@@ -35,12 +34,7 @@ type Filters = {
 
 export type EventTypesByViewer = Awaited<ReturnType<typeof getEventTypesByViewer>>;
 
-export const getEventTypesByViewer = async (
-  user: User,
-  filters?: Filters,
-  forRoutingForms?: boolean,
-  eventFilter?: Prisma.EventTypeWhereInput
-) => {
+export const getEventTypesByViewer = async (user: User, filters?: Filters, forRoutingForms?: boolean) => {
   const userProfile = user.profile;
   const profile = await ProfileRepository.findByUpId(userProfile.upId);
   const parentOrgHasLockedEventTypes =
@@ -63,7 +57,6 @@ export const getEventTypesByViewer = async (
         where: {
           accepted: true,
         },
-        eventFilter,
       }
     ),
     shouldListUserEvents
@@ -75,7 +68,6 @@ export const getEventTypesByViewer = async (
           {
             where: {
               teamId: null,
-              ...(eventFilter || {}),
             },
             orderBy: [
               {

@@ -3,14 +3,6 @@ CREATE TABLE "GlobalSettings" (
     "id" SERIAL NOT NULL,
     "userId" INTEGER NOT NULL,
     "bookingLimits" JSONB,
-    "periodType" "PeriodType" NOT NULL DEFAULT 'unlimited',
-    "periodStartDate" TIMESTAMP(3),
-    "periodEndDate" TIMESTAMP(3),
-    "periodDays" INTEGER,
-    "periodCountCalendarDays" BOOLEAN,
-    "minimumBookingNotice" INTEGER NOT NULL DEFAULT 120,
-    "beforeEventBuffer" INTEGER NOT NULL DEFAULT 0,
-    "afterEventBuffer" INTEGER NOT NULL DEFAULT 0,
 
     CONSTRAINT "GlobalSettings_pkey" PRIMARY KEY ("id")
 );

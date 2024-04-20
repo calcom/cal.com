@@ -58,10 +58,7 @@ export class MembershipRepository {
    */
   static async findAllByUpIdIncludeTeamWithMembersAndEventTypes(
     { upId }: { upId: string },
-    {
-      where,
-      eventFilter,
-    }: { where?: Prisma.MembershipWhereInput; eventFilter?: Prisma.EventTypeWhereInput } = {}
+    { where }: { where?: Prisma.MembershipWhereInput } = {}
   ) {
     const lookupTarget = ProfileRepository.getLookupTarget(upId);
     let prismaWhere;
@@ -119,7 +116,6 @@ export class MembershipRepository {
                   },
                 },
               },
-              ...(eventFilter ? { where: eventFilter } : {}),
               // As required by getByViewHandler - Make it configurable
               orderBy: [
                 {

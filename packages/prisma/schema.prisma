@@ -1329,21 +1329,11 @@ model SecondaryEmail {
 }
 
 model GlobalSettings {
-  id                      Int        @id @default(autoincrement())
-  user                    User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId                  Int
+  id            Int   @id @default(autoincrement())
+  user          User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId        Int
   /// @zod.custom(imports.intervalLimitsType)
-  bookingLimits           Json?
-  periodType              PeriodType @default(UNLIMITED)
-  /// @zod.custom(imports.coerceToDate)
-  periodStartDate         DateTime?
-  /// @zod.custom(imports.coerceToDate)
-  periodEndDate           DateTime?
-  periodDays              Int?
-  periodCountCalendarDays Boolean?
-  minimumBookingNotice    Int        @default(120)
-  beforeEventBuffer       Int        @default(0)
-  afterEventBuffer        Int        @default(0)
+  bookingLimits Json?
 
   @@unique([userId])
   @@index([userId])
