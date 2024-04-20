@@ -521,11 +521,14 @@ export default class GoogleCalendarService implements Calendar {
     if (!calendarCacheEnabled) {
       this.log.warn("Calendar Cache is disabled - Skipping");
       const { timeMin, timeMax, items } = args;
-      const apires = await calendar.freebusy.query({
-        requestBody: { timeMin, timeMax, items },
-      });
-
-      freeBusyResult = apires.data;
+      ({ json: freeBusyResult } = await this.oAuthManagerInstance.request(
+        async () =>
+          new AxiosLikeResponseToFetchResponse(
+            await calendar.freebusy.query({
+              requestBody: { timeMin, timeMax, items },
+            })
+          )
+      ));
     } else {
       const { timeMin: _timeMin, timeMax: _timeMax, items } = args;
       const { timeMin, timeMax } = handleMinMax(_timeMin, _timeMax);
@@ -543,9 +546,14 @@ export default class GoogleCalendarService implements Calendar {
       if (cached) {
         freeBusyResult = cached.value as unknown as calendar_v3.Schema$FreeBusyResponse;
       } else {
-        const apires = await calendar.freebusy.query({
-          requestBody: { timeMin, timeMax, items },
-        });
+        ({ json: freeBusyResult } = await this.oAuthManagerInstance.request(
+          async () =>
+            new AxiosLikeResponseToFetchResponse(
+              await calendar.freebusy.query({
+                requestBody: { timeMin, timeMax, items },
+              })
+            )
+        ));
 
         // Skipping await to respond faster
         await prisma.calendarCache.upsert({
@@ -556,18 +564,16 @@ export default class GoogleCalendarService implements Calendar {
             },
           },
           update: {
-            value: JSON.parse(JSON.stringify(apires.data)),
+            value: JSON.parse(JSON.stringify(freeBusyResult)),
             expiresAt: new Date(Date.now() + CACHING_TIME),
           },
           create: {
-            value: JSON.parse(JSON.stringify(apires.data)),
+            value: JSON.parse(JSON.stringify(freeBusyResult)),
             credentialId: this.credential.id,
             key,
             expiresAt: new Date(Date.now() + CACHING_TIME),
           },
         });
-
-        freeBusyResult = apires.data;
       }
     }
     if (!freeBusyResult.calendars) return null;
@@ -657,27 +663,30 @@ export default class GoogleCalendarService implements Calendar {
   async listCalendars(): Promise<IntegrationCalendar[]> {
     this.log.debug("Listing calendars");
     const calendar = await this.authedCalendar();
-    const { json } = await this.oAuthManagerInstance.request(
-      async () =>
-        new AxiosLikeResponseToFetchResponse(
-          await calendar.calendarList.list({ fields: "items(id,summary,primary,accessRole)" })
-        )
-    );
+    try {
+      const { json: cals } = await this.oAuthManagerInstance.request(
+        async () =>
+          new AxiosLikeResponseToFetchResponse(
+            await calendar.calendarList.list({ fields: "items(id,summary,primary,accessRole)" })
+          )
+      );
 
-    const cals = json;
-
-    if (!cals.items) return [];
-    return cals.items.map(
-      (cal) =>
-        ({
-          externalId: cal.id ?? "No id",
-          integration: this.integrationName,
-          name: cal.summary ?? "No name",
-          primary: cal.primary ?? false,
-          readOnly: !(cal.accessRole === "writer" || cal.accessRole === "owner") && true,
-          email: cal.id ?? "",
-        } satisfies IntegrationCalendar)
-    );
+      if (!cals.items) return [];
+      return cals.items.map(
+        (cal) =>
+          ({
+            externalId: cal.id ?? "No id",
+            integration: this.integrationName,
+            name: cal.summary ?? "No name",
+            primary: cal.primary ?? false,
+            readOnly: !(cal.accessRole === "writer" || cal.accessRole === "owner") && true,
+            email: cal.id ?? "",
+          } satisfies IntegrationCalendar)
+      );
+    } catch (error) {
+      this.log.error("There was an error getting calendars: ", safeStringify(error));
+      throw error;
+    }
   }
 }
 

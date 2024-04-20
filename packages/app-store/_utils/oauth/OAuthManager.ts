@@ -240,6 +240,8 @@ export class OAuthManager {
       try {
         response = await customFetch();
       } catch (e) {
+        // Get response from error so that code further down can categorize it into tokenUnusable or access token unusable
+        // Those methods accept response only
         response = handleFetchError(e);
       }
     } else {
@@ -249,6 +251,7 @@ export class OAuthManager {
         ...options?.headers,
       };
       myLog.debug("Sending request using fetch", safeStringify({ customFetchOrUrlAndOptions, headers }));
+      // We don't catch fetch error here because such an error would be temporary and we shouldn't take any action on it.
       response = await fetch(url, {
         method: "GET",
         ...options,
@@ -265,7 +268,7 @@ export class OAuthManager {
       })
     );
 
-    const { tokenStatus, json } = await this.getAndValidateOAuth2Response<T>({
+    const { tokenStatus, json } = await this.getAndValidateOAuth2Response({
       response,
     });
 
@@ -275,6 +278,11 @@ export class OAuthManager {
       await this.invalidate();
     } else if (tokenStatus === TokenStatus.UNUSABLE_ACCESS_TOKEN) {
       await this.expireAccessToken();
+    }
+
+    // We are done categorizing the token status. Now, we can throw back
+    if ("myFetchError" in (json || {})) {
+      throw new Error(json.myFetchError);
     }
 
     return { tokenStatus: tokenStatus, json };
@@ -390,11 +398,11 @@ export class OAuthManager {
     return parsedToken.data;
   }
 
-  private async getAndValidateOAuth2Response<T>({ response }: { response: Response }) {
+  private async getAndValidateOAuth2Response({ response }: { response: Response }) {
     const myLog = log.getSubLogger({ prefix: ["getAndValidateOAuth2Response"] });
     const tokenObjectUsabilityRes = await this.isTokenObjectUnusable(response.clone());
     const accessTokenUsabilityRes = await this.isAccessTokenUnusable(response.clone());
-    const json = (await response.json()) as T;
+    const json = await response.json();
 
     if (tokenObjectUsabilityRes?.reason) {
       myLog.error("Token Object has become unusable");
@@ -441,11 +449,14 @@ function ensureValidResourceOwner(
   }
 }
 
+/**
+ * It converts error into a Response
+ */
 function handleFetchError(e: unknown) {
   const myLog = log.getSubLogger({ prefix: ["handleFetchError"] });
   myLog.debug("Error", safeStringify(e));
   if (e instanceof Error) {
-    return new Response(JSON.stringify({ error: e.message }), { status: 500 });
+    return new Response(JSON.stringify({ myFetchError: e.message }), { status: 500 });
   }
-  return new Response(JSON.stringify({ error: "UNKNOWN_ERROR" }), { status: 500 });
+  return new Response(JSON.stringify({ myFetchError: "UNKNOWN_ERROR" }), { status: 500 });
 }

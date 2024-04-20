@@ -1,39 +1,31 @@
-import { useRouter } from "next/router";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export default function Index() {
   const [data, setData] = useState("");
   const router = useRouter();
-  const query = router.query;
-  const appSlug = query["appSlug"];
-  const userId = query["userId"];
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const appSlug = searchParams.get("appSlug");
+  const userId = searchParams.get("userId");
 
   useEffect(() => {
-    if (!router.isReady) {
-      return;
-    }
-
     let isRedirectNeeded = false;
-
+    const newSearchParams = new URLSearchParams(new URL(document.URL).searchParams);
     if (!userId) {
-      query.userId = "1";
+      newSearchParams.set("userId", "1");
       isRedirectNeeded = true;
     }
 
     if (!appSlug) {
-      query.appSlug = "google-calendar";
+      newSearchParams.set("appSlug", "google-calendar");
       isRedirectNeeded = true;
     }
 
     if (isRedirectNeeded) {
-      router.push({
-        pathname: router.pathname,
-        query: {
-          ...query,
-        },
-      });
+      router.push(`${pathname}?${newSearchParams.toString()}`);
     }
-  }, [query, router]);
+  }, [router, pathname, userId, appSlug]);
 
   async function updateToken({ invalid } = { invalid: false }) {
     const res = await fetch(

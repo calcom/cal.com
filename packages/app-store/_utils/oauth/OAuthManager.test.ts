@@ -352,6 +352,7 @@ describe("OAuthManager", () => {
         const fakedFetchResponse = generateJsonResponse({ json: fakedFetchJsonResult });
 
         const auth = new OAuthManager({
+          autoCheckTokenExpiryOnRequest: false,
           credentialSyncVariables: useCredentialSyncVariables,
           resourceOwner: {
             type: "user",
@@ -410,6 +411,7 @@ describe("OAuthManager", () => {
         const fakedFetchResponse = generateJsonResponse({ json: fakedFetchJsonResult });
 
         const auth = new OAuthManager({
+          autoCheckTokenExpiryOnRequest: false,
           credentialSyncVariables: useCredentialSyncVariables,
           resourceOwner: {
             type: "user",
@@ -589,11 +591,11 @@ describe("OAuthManager", () => {
           expireAccessToken: expireAccessToken,
         });
 
-        const { json, tokenStatus } = await auth.request(() => {
-          throw new Error("Internal Server Error");
-        });
-        expect(tokenStatus).toBe(TokenStatus.UNUSABLE_TOKEN_OBJECT);
-        expect(json).toEqual({ error: "Internal Server Error" });
+        await expect(
+          auth.request(() => {
+            throw new Error("Internal Server Error");
+          })
+        ).rejects.toThrowError("Internal Server Error");
       });
     });
   });
