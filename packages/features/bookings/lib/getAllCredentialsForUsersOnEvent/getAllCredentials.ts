@@ -1,12 +1,7 @@
-import type { Prisma } from "@prisma/client";
-
 import { UserRepository } from "@calcom/lib/server/repository/user";
-import type { userSelect } from "@calcom/prisma";
 import prisma from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { CredentialPayload } from "@calcom/types/Credential";
-
-type User = Prisma.UserGetPayload<typeof userSelect>;
 
 /**
  * Gets credentials from the user, team, and org if applicable
@@ -75,12 +70,16 @@ export const getAllCredentials = async (
   // Only return CRM credentials that are enabled on the event type
   const eventTypeAppMetadata = eventType?.metadata?.apps;
 
-  const crmCredentialIds = [];
+  // Will be [credentialId]: { enabled: boolean }]
+  const eventTypeCrmCredentials = {};
 
   for (const appKey in eventTypeAppMetadata) {
     const app = eventTypeAppMetadata[appKey];
-    if (app.enabled && app.appCategories && app.appCategories.some((category) => category === "crm")) {
-      crmCredentialIds.push(app.credentialId);
+    if (app.appCategories && app.appCategories.some((category) => category === "crm")) {
+      // eventTypeCRMCredentials.push({ credentialId: app.credentialId, enabled: app.enabled });
+      eventTypeCrmCredentials[app.credentialId] = {
+        enabled: app.enabled,
+      };
     }
   }
 
@@ -89,8 +88,22 @@ export const getAllCredentials = async (
       return credential;
     }
 
-    if (crmCredentialIds.some((id) => id === credential.id)) {
-      return credential;
+    // Backwards compatibility: All CRM apps are triggered for every event type. Unless disabled on the event type
+    // Check if the CRM app exists on the event type
+    if (eventTypeCrmCredentials[credential.id]) {
+      if (eventTypeCrmCredentials[credential.id].enabled) {
+        return credential;
+      }
+    } else {
+      // If the CRM app doesn't exist on the event type metadata, check that the credential belongs to the user/team/org
+      if (
+        credential.userId ||
+        credential.teamId === eventType.team?.id ||
+        credential.teamId === eventType.parentId
+      ) {
+        // If the CRM app doesn't exist on the event type metadata, assume it's an older CRM credential
+        return credential;
+      }
     }
   });
 
