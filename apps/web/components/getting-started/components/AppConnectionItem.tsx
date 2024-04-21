@@ -31,7 +31,9 @@ const AppConnectionItem = (props: IAppConnectionItem) => {
             loading={buttonProps?.isPending}
             onClick={(event) => {
               // Save cookie key to return url step
-              document.cookie = `return-to=${window.location.href};path=/;max-age=3600;SameSite=Lax`;
+              document.cookie = `return-to=${encodeURIComponent(
+                window.location.href
+              )};path=/;max-age=3600;SameSite=Lax`;
               buttonProps && buttonProps.onClick && buttonProps?.onClick(event);
             }}>
             {installed ? t("installed") : t("connect")}

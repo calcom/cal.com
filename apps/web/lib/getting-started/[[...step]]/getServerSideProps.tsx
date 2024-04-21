@@ -8,7 +8,7 @@ import prisma from "@calcom/prisma";
 import { ssrInit } from "@server/lib/ssr";
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  const { req } = context;
+  const { req, query } = context;
 
   const session = await getServerSession({ req });
 
@@ -38,11 +38,27 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
           },
         },
       },
+      credentials: {
+        select: {
+          appId: true,
+          id: true,
+        },
+      },
     },
   });
 
   if (!user) {
     throw new Error("User from session not found");
+  }
+
+  if (query?.step && query.step[0] === "connected-calendar" && !!query.callbackUrl) {
+    if (
+      user.completedOnboarding ||
+      (user.credentials.length > 0 &&
+        user.credentials.find((credential) => credential.appId === "google-calendar"))
+    ) {
+      return { redirect: { permanent: false, destination: query.callbackUrl.toString() } };
+    }
   }
 
   if (user.completedOnboarding) {

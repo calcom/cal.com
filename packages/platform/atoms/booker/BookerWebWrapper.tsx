@@ -1,4 +1,4 @@
-import { useSession } from "next-auth/react";
+import { useSession, signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import { usePathname, useRouter } from "next/navigation";
 import { useMemo, useCallback } from "react";
@@ -171,12 +171,18 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
       onOverlayClickNoCalendar={() => {
         router.push("/apps/categories/calendar");
       }}
-      onClickOverlayContinue={() => {
+      onClickOverlayContinue={(provider: "calcom" | "google" = "calcom") => {
         const currentUrl = new URL(window.location.href);
-        currentUrl.pathname = "/login/";
-        currentUrl.searchParams.set("callbackUrl", window.location.pathname);
         currentUrl.searchParams.set("overlayCalendar", "true");
-        router.push(currentUrl.toString());
+        if (provider === "google") {
+          const url = new URL("/getting-started/connected-calendar", window.location.origin);
+          url.searchParams.set("callbackUrl", currentUrl.toString());
+          signIn("google", { callbackUrl: url.toString() });
+        } else {
+          currentUrl.pathname = "/login/";
+          currentUrl.searchParams.set("callbackUrl", window.location.pathname);
+          router.push(currentUrl.toString());
+        }
       }}
       onOverlaySwitchStateChange={onOverlaySwitchStateChange}
       sessionUsername={session?.user.username}
