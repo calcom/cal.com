@@ -78,11 +78,12 @@ const SlotItem = ({
 
   const offset = (usersTimezoneDate.utcOffset() - nowDate.utcOffset()) / 60;
 
-  const { isOverlapping, overlappingTimeEnd, overlappingTimeStart } = useCheckOverlapWithOverlay({
-    start: computedDateWithUsersTimezone,
-    selectedDuration: eventData?.length ?? 0,
-    offset,
-  });
+  const { isOverlapping, overlappingTimeEnd, overlappingTimeStart, overlayEventTitle } =
+    useCheckOverlapWithOverlay({
+      start: computedDateWithUsersTimezone,
+      selectedDuration: eventData?.length ?? 0,
+      offset,
+    });
 
   const [overlapConfirm, setOverlapConfirm] = useState(false);
 
@@ -174,7 +175,7 @@ const SlotItem = ({
               <HoverCard.Content side="top" align="end" sideOffset={2}>
                 <div className="text-emphasis bg-inverted w-[var(--booker-timeslots-width)] rounded-md p-3">
                   <div className="flex items-center gap-2">
-                    <p>Busy</p>
+                    <p>{overlayEventTitle}</p>
                   </div>
                   <p className="text-muted">
                     {overlappingTimeStart} - {overlappingTimeEnd}
