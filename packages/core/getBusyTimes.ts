@@ -39,6 +39,7 @@ export async function getBusyTimes(params: {
         };
       })[]
     | null;
+  isOverlayUser?: boolean;
 }) {
   const {
     credentials,
@@ -54,6 +55,7 @@ export async function getBusyTimes(params: {
     seatedEvent,
     rescheduleUid,
     duration,
+    isOverlayUser,
   } = params;
 
   logger.silly(
@@ -198,7 +200,8 @@ export async function getBusyTimes(params: {
       credentials,
       startTime,
       endTime,
-      selectedCalendars
+      selectedCalendars,
+      isOverlayUser
     );
     const endConnectedCalendarsGet = performance.now();
     logger.debug(
