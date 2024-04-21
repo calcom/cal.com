@@ -88,6 +88,7 @@ export function showToast(
   //
   const _options: ToastOptions = typeof options === "number" ? { duration: options } : options;
   if (!_options.duration) _options.duration = TOAST_VISIBLE_DURATION;
+  if (!_options.position) _options.position = "bottom-center";
 
   const onClose = (toastId: string) => {
     toast.remove(toastId);
