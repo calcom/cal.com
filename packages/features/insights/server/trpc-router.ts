@@ -1477,6 +1477,139 @@ export const insightsRouter = router({
 
       return eventTypeResult;
     }),
+  recentRatings: userBelongsToTeamProcedure
+    .input(
+      z.object({
+        teamId: z.coerce.number().nullable().optional(),
+        startDate: z.string(),
+        endDate: z.string(),
+        eventTypeId: z.coerce.number().optional(),
+        isAll: z.boolean().optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const { teamId, startDate, endDate, eventTypeId, isAll } = input;
+      if (!teamId) {
+        return [];
+      }
+      const user = ctx.user;
+
+      const bookingWhere: Prisma.BookingTimeStatusWhereInput = {
+        teamId,
+        eventTypeId,
+        createdAt: {
+          gte: dayjs(startDate).startOf("day").toDate(),
+          lte: dayjs(endDate).endOf("day").toDate(),
+        },
+        ratingFeedback: { not: null },
+      };
+
+      if (isAll && user.isOwnerAdminOfParentTeam) {
+        delete bookingWhere.teamId;
+        const teamsFromOrg = await ctx.insightsDb.team.findMany({
+          where: {
+            parentId: user?.organizationId,
+          },
+          select: {
+            id: true,
+          },
+        });
+        const usersFromTeam = await ctx.insightsDb.membership.findMany({
+          where: {
+            teamId: {
+              in: teamsFromOrg.map((t) => t.id),
+            },
+            accepted: true,
+          },
+          select: {
+            userId: true,
+          },
+        });
+
+        bookingWhere["OR"] = [
+          {
+            teamId: {
+              in: teamsFromOrg.map((t) => t.id),
+            },
+          },
+          {
+            userId: {
+              in: usersFromTeam.map((u) => u.userId),
+            },
+            teamId: null,
+          },
+        ];
+      }
+
+      if (teamId && !isAll) {
+        const usersFromTeam = await ctx.insightsDb.membership.findMany({
+          where: {
+            teamId,
+            accepted: true,
+          },
+          select: {
+            userId: true,
+          },
+        });
+        const userIdsFromTeams = usersFromTeam.map((u) => u.userId);
+        bookingWhere["OR"] = [
+          {
+            teamId,
+          },
+          {
+            userId: {
+              in: userIdsFromTeams,
+            },
+            teamId: null,
+          },
+        ];
+      }
+      const bookingsFromTeam = await ctx.insightsDb.bookingTimeStatus.findMany({
+        where: bookingWhere,
+        orderBy: {
+          endTime: "desc",
+        },
+        select: {
+          userId: true,
+          rating: true,
+          ratingFeedback: true,
+        },
+        take: 10,
+      });
+
+      const userIds = bookingsFromTeam.reduce((userIds: number[], booking) => {
+        if (typeof booking.userId === "number" && !userIds.includes(booking.userId)) {
+          userIds.push(booking.userId);
+        }
+        return userIds;
+      }, []);
+
+      if (userIds.length === 0) {
+        return [];
+      }
+      const usersFromTeam = await ctx.insightsDb.user.findMany({
+        where: {
+          id: {
+            in: userIds,
+          },
+        },
+        select: userSelect,
+      });
+
+      const userHashMap = buildHashMapForUsers(usersFromTeam);
+
+      const result = bookingsFromTeam.map((booking) => ({
+        userId: booking.userId,
+        // We know with 100% certainty that userHashMap.get(...) will retrieve a user
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        user: userHashMap.get(booking.userId)!,
+        emailMd5: md5(user?.email),
+        rating: booking.rating,
+        feedback: booking.ratingFeedback,
+      }));
+
+      return result;
+    }),
   rawData: userBelongsToTeamProcedure.input(rawDataInputSchema).query(async ({ ctx, input }) => {
     const { startDate, endDate, teamId, userId, memberUserId, isAll, eventTypeId } = input;
 

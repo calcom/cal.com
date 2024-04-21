@@ -2415,5 +2415,8 @@
   "hide_support":"Hide Support",
   "event_ratings": "Average Ratings",
   "event_no_show": "Host No Show",
+  "recent_ratings": "Recent ratings",
+  "no_ratings": "No ratings submitted",
+  "no_ratings_description": "Add a workflow with “Rating” to collect ratings after meetings",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
