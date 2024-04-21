@@ -12,7 +12,7 @@ export const TotalUserFeedbackTable = ({
         user: Pick<User, "avatarUrl" | "name">;
         emailMd5?: string;
         count?: number;
-        averageRating?: number;
+        averageRating?: number | null;
         username?: string;
       }[]
     | undefined;

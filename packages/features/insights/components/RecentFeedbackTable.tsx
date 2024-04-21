@@ -38,7 +38,7 @@ export const RecentFeedbackTable = () => {
   return (
     <CardInsights>
       <Title className="text-emphasis">{t("recent_ratings")}</Title>
-      <FeedbackTable data={data} t={t} />
+      <FeedbackTable data={data} />
     </CardInsights>
   );
 };

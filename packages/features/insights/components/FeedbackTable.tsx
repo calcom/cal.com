@@ -1,11 +1,11 @@
 import { Table, TableBody, TableCell, TableRow, Text } from "@tremor/react";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { User } from "@calcom/prisma/client";
 import { Avatar, EmptyScreen } from "@calcom/ui";
 
 export const FeedbackTable = ({
   data,
-  t,
 }: {
   data:
     | {
@@ -13,11 +13,12 @@ export const FeedbackTable = ({
         user: Pick<User, "avatarUrl" | "name">;
         emailMd5?: string;
         username?: string;
-        rating: number;
-        feedback: string;
+        rating: number | null;
+        feedback: string | null;
       }[]
     | undefined;
 }) => {
+  const { t } = useLocale();
   return (
     <Table>
       <TableBody>
