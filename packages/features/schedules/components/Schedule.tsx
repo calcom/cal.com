@@ -251,7 +251,6 @@ export const DayRanges = <TFieldValues extends FieldValues>({
   labels,
   userTimeFormat,
   className,
-  menuPlacement,
 }: {
   name: ArrayPath<TFieldValues>;
   control?: Control<TFieldValues>;
@@ -262,7 +261,6 @@ export const DayRanges = <TFieldValues extends FieldValues>({
     dayRanges?: string;
     timeRangeField?: string;
   };
-  menuPlacement: string;
 }) => {
   const { t } = useLocale();
   const { getValues } = useFormContext();
@@ -281,7 +279,6 @@ export const DayRanges = <TFieldValues extends FieldValues>({
               name={`${name}.${index}`}
               render={({ field }) => (
                 <TimeRangeField
-                  menuPlacement={menuPlacement}
                   className={className?.timeRangeField}
                   userTimeFormat={userTimeFormat}
                   {...field}
@@ -359,11 +356,9 @@ const TimeRangeField = ({
   onChange,
   disabled,
   userTimeFormat,
-  menuPlacement,
 }: {
   className?: string;
   disabled?: boolean;
-  menuPlacement: string;
   userTimeFormat: number | null;
 } & ControllerRenderProps) => {
   // this is a controlled component anyway given it uses LazySelect, so keep it RHF agnostic.
@@ -374,7 +369,7 @@ const TimeRangeField = ({
         className="flex w-[100px]"
         isDisabled={disabled}
         value={value.start}
-        menuPlacement={menuPlacement}
+        menuPlacement="bottom"
         max={value.end}
         onChange={(option) => {
           onChange({ ...value, start: new Date(option?.value as number) });
@@ -387,7 +382,7 @@ const TimeRangeField = ({
         isDisabled={disabled}
         value={value.end}
         min={value.start}
-        menuPlacement={menuPlacement}
+        menuPlacement="bottom"
         onChange={(option) => {
           onChange({ ...value, end: new Date(option?.value as number) });
         }}
