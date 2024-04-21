@@ -274,6 +274,9 @@ class EventsInsights {
         paid: true,
         userEmail: true,
         username: true,
+        rating: true,
+        ratingFeedback: true,
+        noShowHost: true,
       },
       where: whereConditional,
     });
