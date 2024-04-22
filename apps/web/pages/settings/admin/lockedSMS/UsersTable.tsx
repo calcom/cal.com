@@ -17,7 +17,7 @@ type User = {
   name: string | null;
   email: string;
   smsLockState: SMSLockState;
-  avatarUrl?: string;
+  avatarUrl?: string | null;
 };
 
 type Team = {
@@ -25,7 +25,7 @@ type Team = {
   name: string;
   smsLockState: SMSLockState;
   slug: string | null;
-  logoUrl?: string;
+  logoUrl?: string | null;
 };
 
 function UsersTable({ setSMSLockState }: Props) {
