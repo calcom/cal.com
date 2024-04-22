@@ -499,32 +499,31 @@ const _getBusyTimesFromLimits = async (
   const busyTimes = limitManager.getBusyTimes().sort((a, b) => (dayjs(a.start).isBefore(b.start) ? -1 : 1));
 
   if (eventType.seatsPerTimeSlot) {
-    const bookingsWithRemainingSeats = bookings.filter(
-      (booking) =>
-        eventType.seatsPerTimeSlot &&
+    for (let i = 0; i < bookings.length; i++) {
+      const booking = bookings[i];
+
+      if (
         booking.attendeesCount &&
         booking.attendeesCount < eventType.seatsPerTimeSlot &&
         dayjs(booking.start).isBetween(dateFrom, dateTo)
-    );
-
-    for (let i = 0; i < bookingsWithRemainingSeats.length; i++) {
-      for (let j = i; j < busyTimes.length; j++) {
-        const booking = bookingsWithRemainingSeats[i];
-        const busyTime = busyTimes[j];
-        if (dayjs(booking.start).add(1, "ms").isBetween(busyTime.start, busyTime.end)) {
-          busyTimes.splice(
-            j,
-            1,
-            {
-              start: busyTime.start,
-              end: dayjs(booking.start).subtract(1, "ms").toISOString(),
-            },
-            {
-              start: dayjs.utc(booking.end).toISOString(),
-              end: busyTime.end,
-            }
-          );
-          break;
+      ) {
+        for (let j = i; j < busyTimes.length; j++) {
+          const busyTime = busyTimes[j];
+          if (dayjs(booking.start).add(1, "ms").isBetween(busyTime.start, busyTime.end)) {
+            busyTimes.splice(
+              j,
+              1,
+              {
+                start: busyTime.start,
+                end: dayjs(booking.start).subtract(1, "ms").toISOString(),
+              },
+              {
+                start: dayjs.utc(booking.end).toISOString(),
+                end: busyTime.end,
+              }
+            );
+            break;
+          }
         }
       }
     }
