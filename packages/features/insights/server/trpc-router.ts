@@ -566,7 +566,7 @@ export const insightsRouter = router({
         EventData["Completed"] = promisesResult[1];
         EventData["Rescheduled"] = promisesResult[2];
         EventData["Cancelled"] = promisesResult[3];
-        EventData["NoShowHost"] = promisesResult[4];
+        EventData["No-Show (Host)"] = promisesResult[4];
         result.push(EventData);
       }
 

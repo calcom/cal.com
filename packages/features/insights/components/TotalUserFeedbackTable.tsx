@@ -41,7 +41,7 @@ export const TotalUserFeedbackTable = ({
                 <TableCell className="text-right">
                   <Text>
                     <strong className="text-default">
-                      {item.averageRating ? item.averageRating : item.count}
+                      {item.averageRating ? item.averageRating.toFixed(1) : item.count}
                     </strong>
                   </Text>
                 </TableCell>
