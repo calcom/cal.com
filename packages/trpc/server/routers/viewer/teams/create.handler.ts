@@ -1,6 +1,8 @@
 import { generateTeamCheckoutSession } from "@calcom/features/ee/teams/lib/payments";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
+import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
+import { uploadLogo } from "@calcom/lib/server/uploadLogo";
 import { closeComUpsertTeamUser } from "@calcom/lib/sync/SyncServiceManager";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -47,7 +49,7 @@ const generateCheckoutSession = async ({
 
 export const createHandler = async ({ ctx, input }: CreateOptions) => {
   const { user } = ctx;
-  const { slug, name, logo } = input;
+  const { slug, name } = input;
   const isOrgChildTeam = !!user.profile?.organizationId;
 
   // For orgs we want to create teams under the org
@@ -95,7 +97,6 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
     data: {
       slug,
       name,
-      logo,
       members: {
         create: {
           userId: ctx.user.id,
@@ -106,7 +107,21 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
       ...(isOrgChildTeam && { parentId: user.profile?.organizationId }),
     },
   });
-
+  // Upload logo, create doesn't allow logo removal
+  if (input.logo && input.logo.startsWith("data:image/png;base64,")) {
+    const logoUrl = await uploadLogo({
+      logo: await resizeBase64Image(input.logo),
+      teamId: createdTeam.id,
+    });
+    await prisma.team.update({
+      where: {
+        id: createdTeam.id,
+      },
+      data: {
+        logoUrl,
+      },
+    });
+  }
   // Sync Services: Close.com
   closeComUpsertTeamUser(createdTeam, ctx.user, MembershipRole.OWNER);
 
