@@ -134,7 +134,7 @@ export interface IResultTeamList {
   id: number;
   slug: string | null;
   name: string | null;
-  logo: string | null;
+  logoUrl: string | null;
   userId?: number;
   isOrg?: boolean;
 }
@@ -1246,7 +1246,7 @@ export const insightsRouter = router({
           id: true,
           slug: true,
           name: true,
-          logo: true,
+          logoUrl: true,
         },
       });
       const orgTeam = await ctx.insightsDb.team.findUnique({
@@ -1257,7 +1257,7 @@ export const insightsRouter = router({
           id: true,
           slug: true,
           name: true,
-          logo: true,
+          logoUrl: true,
         },
       });
       if (!orgTeam) {
@@ -1269,11 +1269,11 @@ export const insightsRouter = router({
           id: orgTeam.id,
           slug: orgTeam.slug,
           name: orgTeam.name,
-          logo: orgTeam.logo,
+          logoUrl: orgTeam.logoUrl,
           isOrg: true,
         },
         ...teamsFromOrg.map(
-          (team: Prisma.TeamGetPayload<{ select: { id: true; slug: true; name: true; logo: true } }>) => {
+          (team: Prisma.TeamGetPayload<{ select: { id: true; slug: true; name: true; logoUrl: true } }>) => {
             return {
               ...team,
             };
@@ -1292,7 +1292,7 @@ export const insightsRouter = router({
           select: {
             id: true,
             name: true,
-            logo: true,
+            logoUrl: true,
             slug: true,
             metadata: true,
           },
