@@ -66,7 +66,7 @@ export const BookingKPICards = () => {
       index: "no_show",
     },
     {
-      title: t("csat"),
+      title: t("csat_score"),
       index: "csat",
     },
   ];

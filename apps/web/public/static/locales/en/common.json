@@ -2421,6 +2421,6 @@
   "most_no_show_host": "Most No Show Members",
   "highest_rated_members": "Members With Highest Rated Meetings",
   "lowest_rated_members": "Members With Lowest Rated Meetings",
-  "csat": "CSAT",
+  "csat_score": "CSAT Score",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

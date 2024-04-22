@@ -159,7 +159,7 @@ class EventsInsights {
     });
 
     const totalResponses = result.length;
-    const satisfactoryResponses = result.filter((item) => item.rating > 3).length;
+    const satisfactoryResponses = result.filter((item) => item.rating && item.rating > 3).length;
     const csat = totalResponses > 0 ? (satisfactoryResponses / totalResponses) * 100 : 0;
 
     return csat;
