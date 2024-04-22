@@ -1,7 +1,6 @@
-import { usePathname, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
-import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import { InstallAppButton } from "@calcom/app-store/components";
 import { doesAppSupportTeamInstall } from "@calcom/app-store/utils";
 import type { UserAdminTeams } from "@calcom/features/ee/teams/lib/getUserAdminTeams";
@@ -15,7 +14,6 @@ import type { ButtonProps } from "@calcom/ui";
 import { Badge } from "@calcom/ui";
 
 import { Button } from "../button";
-import { showToast } from "../toast";
 
 interface AppCardProps {
   app: App;
@@ -138,7 +136,6 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
                       userAdminTeams={userAdminTeams}
                       addAppMutationInput={{ type: app.type, variant: app.variant, slug: app.slug }}
                       appCategories={app.categories}
-                      credentials={credentials}
                       concurrentMeetings={app.concurrentMeetings}
                       paid={app.paid}
                       dirName={app.dirName}
@@ -168,38 +165,20 @@ const InstallAppButtonChild = ({
   userAdminTeams,
   addAppMutationInput,
   appCategories,
-  credentials,
   concurrentMeetings,
   paid,
-  dirName,
   ...props
 }: {
   userAdminTeams?: UserAdminTeams;
   addAppMutationInput: { type: App["type"]; variant: string; slug: string };
   appCategories: string[];
-  credentials?: Credential[];
   concurrentMeetings?: boolean;
   dirName: string | undefined;
   paid: App["paid"];
 } & ButtonProps) => {
   const { t } = useLocale();
   const router = useRouter();
-  const pathname = usePathname();
   const [loading, setLoading] = useState(false);
-
-  const mutation = useAddAppMutation(null, {
-    onSuccess: (data) => {
-      // Refresh SSR page content without actual reload
-      if (pathname !== null) {
-        router.replace(pathname);
-      }
-      if (data?.setupPending) return;
-      showToast(t("app_successfully_installed"), "success");
-    },
-    onError: (error) => {
-      if (error instanceof Error) showToast(error.message || t("app_could_not_be_installed"), "error");
-    },
-  });
 
   // Paid apps don't support team installs at the moment
   // Also, cal.ai(the only paid app at the moment) doesn't support team install either
