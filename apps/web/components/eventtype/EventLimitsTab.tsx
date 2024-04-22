@@ -19,7 +19,7 @@ import type { PeriodType } from "@calcom/prisma/enums";
 import type { IntervalLimit } from "@calcom/types/Calendar";
 import { Button, DateRangePicker, InputField, Label, Select, SettingsToggle, TextField } from "@calcom/ui";
 
-export const MinimumBookingNoticeInput = React.forwardRef<
+const MinimumBookingNoticeInput = React.forwardRef<
   HTMLInputElement,
   Omit<UseFormRegisterReturn<"minimumBookingNotice">, "ref">
 >(function MinimumBookingNoticeInput({ ...passThroughProps }, ref) {

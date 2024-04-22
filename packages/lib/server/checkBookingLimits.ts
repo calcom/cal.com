@@ -11,9 +11,10 @@ import { parseBookingLimit } from "../isBookingLimits";
 export async function checkBookingLimits(
   bookingLimits: IntervalLimit,
   eventStartDate: Date,
-  eventId: number,
+  eventId?: number,
   rescheduleUid?: string | undefined,
-  timeZone?: string | null
+  timeZone?: string | null,
+  userId?: number
 ) {
   const parsedBookingLimits = parseBookingLimit(bookingLimits);
   if (!parsedBookingLimits) return false;
@@ -27,6 +28,7 @@ export async function checkBookingLimits(
       eventId,
       timeZone,
       rescheduleUid,
+      userId,
     })
   );
 
@@ -44,13 +46,15 @@ export async function checkBookingLimit({
   limitingNumber,
   rescheduleUid,
   timeZone,
+  userId,
 }: {
   eventStartDate: Date;
-  eventId: number;
+  eventId?: number;
   key: keyof IntervalLimit;
   limitingNumber: number | undefined;
   rescheduleUid?: string | undefined;
   timeZone?: string | null;
+  userId?: number;
 }) {
   {
     const eventDateInOrganizerTz = timeZone ? dayjs(eventStartDate).tz(timeZone) : dayjs(eventStartDate);
@@ -65,7 +69,7 @@ export async function checkBookingLimit({
     const bookingsInPeriod = await prisma.booking.count({
       where: {
         status: BookingStatus.ACCEPTED,
-        eventTypeId: eventId,
+        ...(eventId ? { eventTypeId: eventId } : {}),
         // FIXME: bookings that overlap on one side will never be counted
         startTime: {
           gte: startDate,
@@ -76,6 +80,13 @@ export async function checkBookingLimit({
         uid: {
           not: rescheduleUid,
         },
+        ...(userId
+          ? {
+              eventType: {
+                userId,
+              },
+            }
+          : {}),
       },
     });
 
