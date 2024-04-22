@@ -535,6 +535,7 @@ export default class EventManager {
     };
 
     if (event.destinationCalendar && event.destinationCalendar.length > 0) {
+      let eventCreated = false;
       // Since GCal pushes events to multiple calendars we only want to create one event per booking
       let gCalAdded = false;
       const destinationCalendars: DestinationCalendar[] = event.destinationCalendar.reduce(
@@ -554,6 +555,7 @@ export default class EventManager {
         [] as DestinationCalendar[]
       );
       for (const destination of destinationCalendars) {
+        if (eventCreated) break;
         log.silly("Creating Calendar event", JSON.stringify({ destination }));
         if (destination.credentialId) {
           let credential = this.calendarCredentials.find((c) => c.id === destination.credentialId);
@@ -582,6 +584,7 @@ export default class EventManager {
             const createdEvent = await createEvent(credential, event, destination.externalId);
             if (createdEvent) {
               createdEvents.push(createdEvent);
+              eventCreated = true;
             }
           }
         } else {
@@ -607,6 +610,7 @@ export default class EventManager {
               })
             );
             createdEvents.push(await createEvent(firstCalendarCredential, event));
+            eventCreated = true;
           }
         }
       }
