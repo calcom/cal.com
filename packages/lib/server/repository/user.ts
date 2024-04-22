@@ -50,7 +50,6 @@ const userSelect = Prisma.validator<Prisma.UserSelect>()({
   invitedTo: true,
   brandColor: true,
   darkBrandColor: true,
-  away: true,
   allowDynamicBooking: true,
   allowSEOIndexing: true,
   receiveMonthlyDigestEmail: true,
