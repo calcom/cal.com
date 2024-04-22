@@ -225,7 +225,6 @@ export const AppPage = ({
                         multiInstall
                         concurrentMeetings={concurrentMeetings}
                         paid={paid}
-                        dirName={dirName}
                         {...props}
                       />
                     );
@@ -265,7 +264,6 @@ export const AppPage = ({
                     credentials={appDbQuery.data?.credentials}
                     concurrentMeetings={concurrentMeetings}
                     paid={paid}
-                    dirName={dirName}
                     {...props}
                   />
                 );
