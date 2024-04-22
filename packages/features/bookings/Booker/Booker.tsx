@@ -140,6 +140,10 @@ const BookerComponent = ({
     return setBookerState("booking");
   }, [event, selectedDate, selectedTimeslot, setBookerState]);
 
+  const slot = getQueryParam("slot");
+  useEffect(() => {
+    setSelectedTimeslot(slot || null);
+  }, [slot, setSelectedTimeslot]);
   const EventBooker = useMemo(() => {
     return bookerState === "booking" ? (
       <BookEventForm
