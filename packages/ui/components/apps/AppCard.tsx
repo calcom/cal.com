@@ -1,32 +1,18 @@
 import { usePathname, useRouter } from "next/navigation";
-import { useMemo } from "react";
 import { useEffect, useState } from "react";
 
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
-import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { InstallAppButton } from "@calcom/app-store/components";
 import { doesAppSupportTeamInstall } from "@calcom/app-store/utils";
-import { Spinner } from "@calcom/features/calendars/weeklyview/components/spinner/Spinner";
 import type { UserAdminTeams } from "@calcom/features/ee/teams/lib/getUserAdminTeams";
 import { AppOnboardingSteps } from "@calcom/lib/apps/appOnboardingSteps";
 import { getAppOnboardingUrl } from "@calcom/lib/apps/getAppOnboardingUrl";
-import { shouldRedirectToAppOnboarding } from "@calcom/lib/apps/shouldRedirectToAppOnboarding";
 import classNames from "@calcom/lib/classNames";
-import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AppFrontendPayload as App } from "@calcom/types/App";
 import type { CredentialFrontendPayload as Credential } from "@calcom/types/Credential";
 import type { ButtonProps } from "@calcom/ui";
-import {
-  Avatar,
-  Badge,
-  Dropdown,
-  DropdownItem,
-  DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuPortal,
-  DropdownMenuTrigger,
-} from "@calcom/ui";
+import { Badge } from "@calcom/ui";
 
 import { Button } from "../button";
 import { showToast } from "../toast";
@@ -186,7 +172,6 @@ const InstallAppButtonChild = ({
   concurrentMeetings,
   paid,
   dirName,
-  onClick,
   ...props
 }: {
   userAdminTeams?: UserAdminTeams;
@@ -200,6 +185,7 @@ const InstallAppButtonChild = ({
   const { t } = useLocale();
   const router = useRouter();
   const pathname = usePathname();
+  const [loading, setLoading] = useState(false);
 
   const mutation = useAddAppMutation(null, {
     onSuccess: (data) => {
@@ -215,18 +201,6 @@ const InstallAppButtonChild = ({
     },
   });
 
-  const appMetadata = appStoreMetadata[dirName as keyof typeof appStoreMetadata];
-  const redirectToAppOnboarding = useMemo(() => shouldRedirectToAppOnboarding(appMetadata), [appMetadata]);
-
-  const _onClick = (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
-    if (redirectToAppOnboarding) {
-      router.push(
-        getAppOnboardingUrl({ slug: addAppMutationInput.slug, step: AppOnboardingSteps.ACCOUNTS_STEP })
-      );
-    } else if (onClick) {
-      onClick(e);
-    }
-  };
   // Paid apps don't support team installs at the moment
   // Also, cal.ai(the only paid app at the moment) doesn't support team install either
   if (paid) {
@@ -236,7 +210,6 @@ const InstallAppButtonChild = ({
         className="[@media(max-width:260px)]:w-full [@media(max-width:260px)]:justify-center"
         StartIcon="plus"
         data-testid="install-app-button"
-        onClick={_onClick}
         {...props}>
         {paid.trial ? t("start_paid_trial") : t("subscribe")}
       </Button>
@@ -253,82 +226,28 @@ const InstallAppButtonChild = ({
         className="[@media(max-width:260px)]:w-full [@media(max-width:260px)]:justify-center"
         StartIcon="plus"
         data-testid="install-app-button"
-        onClick={_onClick}
         {...props}>
         {t("install")}
       </Button>
     );
   }
 
-  if (redirectToAppOnboarding) {
-    return (
-      <Button
-        color="secondary"
-        className="[@media(max-width:260px)]:w-full [@media(max-width:260px)]:justify-center"
-        StartIcon="plus"
-        data-testid="install-app-button"
-        onClick={_onClick}
-        {...props}
-        size="base">
-        {t("install")}
-      </Button>
-    );
-  }
   return (
-    <Dropdown>
-      <DropdownMenuTrigger asChild>
-        <Button
-          color="secondary"
-          className="[@media(max-width:260px)]:w-full [@media(max-width:260px)]:justify-center"
-          StartIcon="plus"
-          data-testid="install-app-button"
-          {...props}>
-          {t("install")}
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuPortal>
-        <DropdownMenuContent
-          className="w-56"
-          onInteractOutside={(event) => {
-            if (mutation.isPending) event.preventDefault();
-          }}>
-          {mutation.isPending && (
-            <div className="z-1 fixed inset-0 flex items-center justify-center">
-              <Spinner />
-            </div>
-          )}
-          <DropdownMenuLabel>{t("install_app_on")}</DropdownMenuLabel>
-          {userAdminTeams.map((team) => {
-            const isInstalledTeamOrUser =
-              credentials &&
-              credentials.some((credential) =>
-                credential?.teamId ? credential?.teamId === team.id : credential.userId === team.id
-              );
-            return (
-              <DropdownItem
-                type="button"
-                disabled={isInstalledTeamOrUser}
-                key={team.id}
-                CustomStartIcon={
-                  <Avatar
-                    alt={team.name || ""}
-                    imageSrc={getPlaceholderAvatar(team.logoUrl, team.name)} // if no image, use default avatar
-                    size="sm"
-                  />
-                }
-                onClick={() => {
-                  mutation.mutate(
-                    team.isUser ? addAppMutationInput : { ...addAppMutationInput, teamId: team.id }
-                  );
-                }}>
-                <p className="text-left">
-                  {t(team.name)} {isInstalledTeamOrUser && `(${t("installed")})`}
-                </p>
-              </DropdownItem>
-            );
-          })}
-        </DropdownMenuContent>
-      </DropdownMenuPortal>
-    </Dropdown>
+    <Button
+      color="secondary"
+      className="[@media(max-width:260px)]:w-full [@media(max-width:260px)]:justify-center"
+      StartIcon="plus"
+      data-testid="install-app-button"
+      loading={loading}
+      {...props}
+      onClick={() => {
+        setLoading(true);
+        router.push(
+          getAppOnboardingUrl({ slug: addAppMutationInput.slug, step: AppOnboardingSteps.ACCOUNTS_STEP })
+        );
+      }}
+      size="base">
+      {t("install")}
+    </Button>
   );
 };

@@ -8,13 +8,14 @@ import { Toaster } from "react-hot-toast";
 import { z } from "zod";
 
 import checkForMultiplePaymentApps from "@calcom/app-store/_utils/payments/checkForMultiplePaymentApps";
+import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import type { EventTypeAppSettingsComponentProps, EventTypeModel } from "@calcom/app-store/types";
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { AppOnboardingSteps } from "@calcom/lib/apps/appOnboardingSteps";
-import { getAppOnboardingRedirectUrl } from "@calcom/lib/apps/getAppOnboardingRedirectUrl";
 import { getAppOnboardingUrl } from "@calcom/lib/apps/getAppOnboardingUrl";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma from "@calcom/prisma";
@@ -67,6 +68,7 @@ type OnboardingPageProps = {
   eventTypes?: TEventType[];
   userName: string;
   credentialId?: number;
+  extendsEventType: boolean;
 };
 
 const OnboardingPage = ({
@@ -77,6 +79,7 @@ const OnboardingPage = ({
   eventTypes,
   userName,
   credentialId,
+  extendsEventType,
 }: OnboardingPageProps) => {
   const { t } = useLocale();
   const pathname = usePathname();
@@ -119,6 +122,7 @@ const OnboardingPage = ({
       eventTypes,
     },
   });
+  const mutation = useAddAppMutation(null);
 
   useEffect(() => {
     eventTypes && formMethods.setValue("eventTypes", eventTypes);
@@ -156,47 +160,46 @@ const OnboardingPage = ({
   });
 
   const handleSelectAccount = async (teamId?: number) => {
-    try {
-      setIsSelectingAccount(true);
-      if (appMetadata.isOAuth) {
-        const state = JSON.stringify({
-          appOnboardingRedirectUrl: getAppOnboardingRedirectUrl(appMetadata.slug, teamId),
-          teamId,
-        });
-
-        const res = await fetch(
-          `/api/integrations/${
-            appMetadata.slug == "stripe" ? "stripepayment" : appMetadata.slug
-          }/add?state=${state}`,
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-            },
+    mutation.mutate(
+      {
+        isOmniInstall: true,
+        type: appMetadata.type,
+        variant: appMetadata.variant,
+        slug: appMetadata.slug,
+        ...(teamId && { teamId }),
+        // for oAuth apps
+        ...(extendsEventType && {
+          returnTo:
+            WEBAPP_URL +
+            getAppOnboardingUrl({
+              slug: appMetadata.slug,
+              teamId,
+              step: AppOnboardingSteps.EVENT_TYPES_STEP,
+            }),
+        }),
+      },
+      {
+        onSuccess: (data) => {
+          if (data?.setupPending) return;
+          if (extendsEventType) {
+            // for non-oAuth apps
+            router.push(
+              getAppOnboardingUrl({
+                slug: appMetadata.slug,
+                step: AppOnboardingSteps.EVENT_TYPES_STEP,
+                teamId,
+              })
+            );
+          } else {
+            router.push(`/apps/installed/${appMetadata.categories[0]}?hl=${appMetadata.slug}`);
           }
-        );
-        const oAuthUrl = (await res.json())?.url;
-        router.push(oAuthUrl);
-        return;
-      } else {
-        await fetch(`/api/integrations/${appMetadata.slug}/add${teamId ? `?teamId=${teamId}` : ""}`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
-        router.push(
-          getAppOnboardingUrl({
-            slug: appMetadata.slug,
-            step: AppOnboardingSteps.EVENT_TYPES_STEP,
-            teamId,
-          })
-        );
+          showToast(t("app_successfully_installed"), "success");
+        },
+        onError: (error) => {
+          if (error instanceof Error) showToast(error.message || t("app_could_not_be_installed"), "error");
+        },
       }
-    } catch (error) {
-      setIsSelectingAccount(false);
-      router.push(`/apps`);
-    }
+    );
   };
 
   const handleSetUpLater = () => {
@@ -413,12 +416,9 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     const locale = await getLocale(context.req);
     const app = await getAppBySlug(parsedAppSlug);
     const appMetadata = appStoreMetadata[app.dirName as keyof typeof appStoreMetadata];
-    const hasEventTypes = appMetadata?.extendsFeature === "EventType";
+    const extendsEventType = appMetadata?.extendsFeature === "EventType";
 
     if (!session?.user?.id) throw new Error(ERROR_MESSAGES.userNotAuthed);
-    if (!hasEventTypes) {
-      throw new Error(ERROR_MESSAGES.appNotExtendsEventType);
-    }
 
     const user = await getUser(session.user.id);
 
@@ -439,6 +439,14 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     }
 
     if (parsedStepParam == AppOnboardingSteps.EVENT_TYPES_STEP) {
+      if (!extendsEventType) {
+        return {
+          redirect: {
+            permanent: false,
+            destination: `/apps/installed/${appMetadata.categories[0]}?hl=${appMetadata.slug}`,
+          },
+        };
+      }
       eventTypes = await getEventTypes(user.id, parsedTeamIdParam);
       if (eventTypes.length === 0) {
         return {
@@ -477,6 +485,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         ...(await serverSideTranslations(locale, ["common"])),
         app,
         appMetadata,
+        extendsEventType,
         step: parsedStepParam,
         teams: teamsWithIsAppInstalled,
         personalAccount,
