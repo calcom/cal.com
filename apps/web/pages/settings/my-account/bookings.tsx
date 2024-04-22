@@ -45,6 +45,16 @@ const BookingsView = ({ data }: { data: RouterOutputs["viewer"]["globalSettings"
     },
   });
 
+  const handleSubmit = async (values: { bookingLimits: IntervalLimit }) => {
+    const { bookingLimits } = values;
+    const parsedBookingLimits = parseBookingLimit(bookingLimits) || {};
+    if (bookingLimits) {
+      const isValid = validateIntervalLimitOrder(parsedBookingLimits);
+      if (!isValid) throw new Error(t("event_setup_booking_limits_error"));
+    }
+    updateProfileMutation.mutate({ ...values, bookingLimits: parsedBookingLimits });
+  };
+
   const watchBookingLimits = bookingsLimitFormMethods.watch("bookingLimits");
 
   const showLimitFrequency = Object.keys(watchBookingLimits ?? {}).length > 0;
@@ -56,34 +66,27 @@ const BookingsView = ({ data }: { data: RouterOutputs["viewer"]["globalSettings"
         description={t("bookings_settings_description", { appName: APP_NAME })}
         borderInShellHeader={false}
       />
-      <Form
-        form={bookingsLimitFormMethods}
-        handleSubmit={async (values) => {
-          const { bookingLimits } = values;
-          const parsedBookingLimits = parseBookingLimit(bookingLimits) || {};
-          if (bookingLimits) {
-            const isValid = validateIntervalLimitOrder(parsedBookingLimits);
-            if (!isValid) throw new Error(t("event_setup_booking_limits_error"));
-          }
-          updateProfileMutation.mutate({ ...values, bookingLimits: parsedBookingLimits });
-        }}>
+      <Form form={bookingsLimitFormMethods} handleSubmit={handleSubmit}>
         <BookingLimits
           sectionDescription="global_limit_booking_frequency_description"
           settingsToggleClass="rounded-b-none"
-          onCheckedChange={(key: string, value: IntervalLimit, shouldDirty: boolean) =>
-            bookingsLimitFormMethods.setValue(key as "bookingLimits", value, { shouldDirty })
-          }
-          childrenContainerClassName="rounded-none border-b-0"
-        />
-        <SectionBottomActions align="end" className={!showLimitFrequency ? "border-t-0" : ""}>
-          <Button
-            color="primary"
-            type="submit"
-            loading={updateProfileMutation.isPending}
-            disabled={!bookingsLimitFormMethods.formState.dirtyFields.bookingLimits}>
-            {t("update")}
-          </Button>
-        </SectionBottomActions>
+          onCheckedChange={(key: string, value: IntervalLimit, shouldDirty: boolean) => {
+            bookingsLimitFormMethods.setValue(key as "bookingLimits", value, { shouldDirty });
+            if (!Object.keys(value).length) {
+              handleSubmit(bookingsLimitFormMethods.getValues());
+            }
+          }}
+          childrenContainerClassName="rounded-none border-b-0">
+          <SectionBottomActions align="end">
+            <Button
+              color="primary"
+              type="submit"
+              loading={updateProfileMutation.isPending}
+              disabled={!bookingsLimitFormMethods.formState.dirtyFields.bookingLimits}>
+              {t("update")}
+            </Button>
+          </SectionBottomActions>
+        </BookingLimits>
       </Form>
     </div>
   );

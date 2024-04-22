@@ -175,8 +175,8 @@ export const BookingLimits = ({
                 defaultLimit={1}
                 step={1}
               />
-              {children}
             </div>
+            {children}
           </SettingsToggle>
         );
       }}
