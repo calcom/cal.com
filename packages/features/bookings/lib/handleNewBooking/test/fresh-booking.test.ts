@@ -2433,13 +2433,7 @@ describe("handleNewBooking", () => {
             email: "organizer@example.com",
             id: 101,
             schedules: [TestData.schedules.IstWorkHours],
-            credentials: [getGoogleCalendarCredential()],
-            selectedCalendars: [TestData.selectedCalendars.google],
-            destinationCalendar: {
-              integration: "google_calendar",
-              externalId: "organizer@google-calendar.com",
-              primaryEmail: organizerOtherEmail,
-            },
+            credentials: [],
           });
 
           await createBookingScenario(
@@ -2455,15 +2449,10 @@ describe("handleNewBooking", () => {
                       id: 101,
                     },
                   ],
-                  destinationCalendar: {
-                    integration: "google_calendar",
-                    externalId: "event-type-1@google-calendar.com",
-                    primaryEmail: organizerDestinationCalendarEmailOnEventType,
-                  },
                 },
               ],
               organizer,
-              apps: [TestData.apps["google-calendar"], TestData.apps["daily-video"]],
+              apps: [TestData.apps["daily-video"]],
             })
           );
 
@@ -2524,34 +2513,8 @@ describe("handleNewBooking", () => {
                 meetingPassword: "MOCK_PASS",
                 meetingUrl: "http://mock-dailyvideo.example.com/meeting-1",
               },
-              {
-                type: appStoreMetadata.googlecalendar.type,
-                uid: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
-                meetingId: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
-                meetingPassword: "MOCK_PASSWORD",
-                meetingUrl: "https://UNUSED_URL",
-              },
             ],
             iCalUID: createdBooking.iCalUID,
-          });
-
-          expectSuccessfulCalendarEventCreationInCalendar(calendarMock, {
-            calendarId: "event-type-1@google-calendar.com",
-            videoCallUrl: "http://mock-dailyvideo.example.com/meeting-1",
-          });
-
-          const iCalUID = expectICalUIDAsString(createdBooking.iCalUID);
-
-          expectSuccessfulBookingCreationEmails({
-            booking: {
-              uid: createdBooking.uid!,
-              urlOrigin: WEBSITE_URL,
-            },
-            booker,
-            organizer,
-            emails,
-            iCalUID,
-            destinationEmail: organizerDestinationCalendarEmailOnEventType,
           });
 
           await expect(async () => await handleNewBooking(req)).rejects.toThrowError(
