@@ -58,6 +58,7 @@ type OAuthRequestParams = {
   platformCancelUrl: string;
   platformBookingUrl: string;
   platformBookingLocation?: string;
+  arePlatformEmailsEnabled: boolean;
 };
 
 const DEFAULT_PLATFORM_PARAMS = {
@@ -65,7 +66,7 @@ const DEFAULT_PLATFORM_PARAMS = {
   platformCancelUrl: "",
   platformRescheduleUrl: "",
   platformBookingUrl: "",
-  areEmailsEnabled: true,
+  arePlatformEmailsEnabled: false,
   platformBookingLocation: undefined,
 };
 
@@ -172,6 +173,7 @@ export class BookingsController {
     const oAuthClientId = clientId?.toString();
     if (bookingId) {
       try {
+        req.body.id = parseInt(bookingId);
         await handleCancelBooking(await this.createNextApiBookingRequest(req, oAuthClientId));
         return {
           status: SUCCESS_STATUS,
@@ -239,10 +241,7 @@ export class BookingsController {
     }
   }
 
-  async getOAuthClientsParams(
-    req: BookingRequest,
-    clientId: string
-  ): Promise<OAuthRequestParams & { areEmailsEnabled: boolean }> {
+  async getOAuthClientsParams(req: BookingRequest, clientId: string): Promise<OAuthRequestParams> {
     const res = DEFAULT_PLATFORM_PARAMS;
     try {
       const client = await this.oAuthClientRepository.getOAuthClient(clientId);
@@ -252,7 +251,7 @@ export class BookingsController {
         res.platformCancelUrl = client.bookingCancelRedirectUri ?? "";
         res.platformRescheduleUrl = client.bookingRescheduleRedirectUri ?? "";
         res.platformBookingUrl = client.bookingRedirectUri ?? "";
-        res.areEmailsEnabled = client.areEmailsEnabled;
+        res.arePlatformEmailsEnabled = client.areEmailsEnabled ?? false;
       }
       return res;
     } catch (err) {
@@ -271,7 +270,7 @@ export class BookingsController {
       ? await this.getOAuthClientsParams(req, oAuthClientId)
       : DEFAULT_PLATFORM_PARAMS;
     Object.assign(req, { userId, ...oAuthParams, platformBookingLocation });
-    req.body = { ...req.body, areEmailsEnabled: oAuthParams.areEmailsEnabled };
+    req.body = { ...req.body, noEmail: !oAuthParams.arePlatformEmailsEnabled };
     return req as unknown as NextApiRequest & { userId?: number } & OAuthRequestParams;
   }
 }
