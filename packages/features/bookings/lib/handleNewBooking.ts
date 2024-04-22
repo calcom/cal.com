@@ -11,6 +11,7 @@ import type { Logger } from "tslog";
 import { v5 as uuidv5 } from "uuid";
 import z from "zod";
 
+import processExternalId from "@calcom/app-store/_utils/calendars/processExternalId";
 import { metadata as GoogleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
 import type { LocationObject } from "@calcom/app-store/locations";
 import {
@@ -225,6 +226,7 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
       timeZone: true,
       schedule: {
         select: {
+          id: true,
           availability: true,
           timeZone: true,
         },
@@ -290,7 +292,6 @@ const loadUsers = async (eventType: NewBookingEventType, dynamicUserList: string
         usernameList: dynamicUserList,
         orgSlug: isValidOrgDomain ? currentOrgDomain : null,
       });
-
       return users;
     }
     const hosts = eventType.hosts || [];
@@ -357,7 +358,7 @@ export async function ensureAvailableUsers(
   }
 
   for (const user of eventType.users) {
-    const { dateRanges, busy: bufferedBusyTimes } = await getUserAvailability(
+    const { oooExcludedDateRanges: dateRanges, busy: bufferedBusyTimes } = await getUserAvailability(
       {
         ...input,
         userId: user.id,
@@ -902,10 +903,24 @@ type BookingDataSchemaGetter =
   | typeof import("@calcom/features/bookings/lib/getBookingDataSchemaForApi").default;
 
 async function handler(
-  req: NextApiRequest & { userId?: number | undefined },
+  req: NextApiRequest & {
+    userId?: number | undefined;
+    platformClientId?: string;
+    platformRescheduleUrl?: string;
+    platformCancelUrl?: string;
+    platformBookingUrl?: string;
+    platformBookingLocation?: string;
+  },
   bookingDataSchemaGetter: BookingDataSchemaGetter = getBookingDataSchema
 ) {
-  const { userId } = req;
+  const {
+    userId,
+    platformClientId,
+    platformCancelUrl,
+    platformBookingUrl,
+    platformRescheduleUrl,
+    platformBookingLocation,
+  } = req;
 
   // handle dynamic user
   let eventType =
@@ -1399,9 +1414,13 @@ async function handler(
 
   // Organizer or user owner of this event type it's not listed as a team member.
   const teamMemberPromises = users.slice(1).map(async (user) => {
+    // TODO: Add back once EventManager tests are ready https://github.com/calcom/cal.com/pull/14610#discussion_r1567817120
     // push to teamDestinationCalendars if it's a team event but collective only
     if (isTeamEventType && eventType.schedulingType === "COLLECTIVE" && user.destinationCalendar) {
-      teamDestinationCalendars.push(user.destinationCalendar);
+      teamDestinationCalendars.push({
+        ...user.destinationCalendar,
+        externalId: processExternalId(user.destinationCalendar),
+      });
     }
 
     return {
@@ -1490,7 +1509,7 @@ async function handler(
     responses: reqBody.calEventResponses || null,
     userFieldsResponses: reqBody.calEventUserFieldsResponses || null,
     attendees: attendeesList,
-    location: bookingLocation, // Will be processed by the EventManager later.
+    location: platformBookingLocation ?? bookingLocation, // Will be processed by the EventManager later.
     conferenceCredentialId,
     destinationCalendar,
     hideCalendarNotes: eventType.hideCalendarNotes,
@@ -1503,6 +1522,10 @@ async function handler(
     schedulingType: eventType.schedulingType,
     iCalUID,
     iCalSequence,
+    platformClientId,
+    platformRescheduleUrl,
+    platformCancelUrl,
+    platformBookingUrl,
   };
 
   if (req.body.thirdPartyRecurringEventId) {

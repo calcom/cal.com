@@ -225,8 +225,6 @@
   "already_have_an_account": "Masz już konto?",
   "create_account": "Utwórz Konto",
   "confirm_password": "Potwierdź hasło",
-  "confirm_auth_change": "Spowoduje to zmianę sposobu logowania.",
-  "confirm_auth_email_change": "Zmiana adresu e-mail spowoduje odłączenie bieżącej metody uwierzytelnienia używanej do logowania do Cal.com. Poprosimy Cię o zweryfikowanie nowego adresu e-mail. Następnie wylogujemy Cię, a po skonfigurowaniu hasła zgodnie z instrukcjami, które otrzymasz w wiadomości e-mail, poprosimy Cię o zalogowanie się nowym adresem e-mail zamiast bieżącej metody uwierzytelnienia.",
   "reset_your_password": "Ustaw nowe hasło zgodnie z instrukcjami wysłanymi na Twój adres e-mail.",
   "email_change": "Zaloguj się ponownie za pomocą nowego adresu e-mail i hasła.",
   "create_your_account": "Załóż swoje konto",

@@ -1,5 +1,6 @@
 import { Navbar } from "@/components/Navbar";
 import { Inter } from "next/font/google";
+// eslint-disable-next-line @calcom/eslint/deprecated-imports-next-router
 import { useRouter } from "next/router";
 
 import { useGetBookings } from "@calcom/atoms";

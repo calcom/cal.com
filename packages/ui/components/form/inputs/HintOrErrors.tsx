@@ -1,7 +1,7 @@
 import type { FieldValues } from "react-hook-form";
 import { useFormContext } from "react-hook-form";
 
-import { Check, Circle, X } from "../../icon";
+import { Icon } from "../../..";
 import { InputError } from "./InputError";
 
 type hintsOrErrorsProps = {
@@ -55,12 +55,27 @@ export function HintsOrErrors<T extends FieldValues = FieldValues>({
                 className={error !== undefined ? (submitted ? "text-red-500" : "") : "text-green-600"}>
                 {error !== undefined ? (
                   submitted ? (
-                    <X size="12" strokeWidth="3" className="-ml-1 inline-block ltr:mr-2 rtl:ml-2" />
+                    <Icon
+                      name="x"
+                      size="12"
+                      strokeWidth="3"
+                      className="-ml-1 inline-block ltr:mr-2 rtl:ml-2"
+                    />
                   ) : (
-                    <Circle fill="currentColor" size="5" className="inline-block ltr:mr-2 rtl:ml-2" />
+                    <Icon
+                      name="circle"
+                      fill="currentColor"
+                      size="5"
+                      className="inline-block ltr:mr-2 rtl:ml-2"
+                    />
                   )
                 ) : (
-                  <Check size="12" strokeWidth="3" className="-ml-1 inline-block ltr:mr-2 rtl:ml-2" />
+                  <Icon
+                    name="check"
+                    size="12"
+                    strokeWidth="3"
+                    className="-ml-1 inline-block ltr:mr-2 rtl:ml-2"
+                  />
                 )}
                 {t(`${fieldName}_hint_${key}`)}
               </li>
@@ -88,9 +103,14 @@ export function HintsOrErrors<T extends FieldValues = FieldValues>({
           return (
             <li key={key} className={!!dirty ? "text-green-600" : ""}>
               {!!dirty ? (
-                <Check size="12" strokeWidth="3" className="-ml-1 inline-block ltr:mr-2 rtl:ml-2" />
+                <Icon
+                  name="check"
+                  size="12"
+                  strokeWidth="3"
+                  className="-ml-1 inline-block ltr:mr-2 rtl:ml-2"
+                />
               ) : (
-                <Circle fill="currentColor" size="5" className="inline-block ltr:mr-2 rtl:ml-2" />
+                <Icon name="circle" fill="currentColor" size="5" className="inline-block ltr:mr-2 rtl:ml-2" />
               )}
               {t(`${fieldName}_hint_${key}`)}
             </li>

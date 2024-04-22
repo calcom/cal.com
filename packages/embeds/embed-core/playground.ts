@@ -371,6 +371,15 @@ Cal("init", "routingFormAuto", {
   origin: "http://localhost:3000",
 });
 
+Cal.ns.routingFormAuto("on", {
+  action: "routed",
+  callback: (e) => {
+    const detail = e.detail;
+    console.log("`routed` event data:", detail.data);
+    alert(`Routing Done - Check console for 'routed' event data`);
+  },
+});
+
 Cal("init", "routingFormDark", {
   debug: true,
   origin: "http://localhost:3000",

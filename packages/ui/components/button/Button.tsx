@@ -5,10 +5,8 @@ import Link from "next/link";
 import React, { forwardRef } from "react";
 
 import classNames from "@calcom/lib/classNames";
-import type { SVGComponent } from "@calcom/types/SVGComponent";
-import type { LucideIcon } from "@calcom/ui/components/icon";
 
-import { Plus } from "../icon";
+import { Icon, type IconName } from "../..";
 import { Tooltip } from "../tooltip";
 
 type InferredVariantProps = VariantProps<typeof buttonClasses>;
@@ -18,9 +16,10 @@ export type ButtonBaseProps = {
   /** Action that happens when the button is clicked */
   onClick?: (event: React.MouseEvent<HTMLElement, MouseEvent>) => void;
   /**Left aligned icon*/
-  StartIcon?: SVGComponent | React.ElementType | LucideIcon;
+  CustomStartIcon?: React.ReactNode;
+  StartIcon?: IconName;
   /**Right aligned icon */
-  EndIcon?: SVGComponent | LucideIcon;
+  EndIcon?: IconName;
   shallow?: boolean;
   /**Tool tip used when icon size is set to small */
   tooltip?: string;
@@ -129,6 +128,7 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
     tooltipSide = "top",
     tooltipOffset = 4,
     StartIcon,
+    CustomStartIcon,
     EndIcon,
     shallow,
     // attributes propagated from `HTMLAnchorProps` or `HTMLButtonProps`
@@ -155,23 +155,28 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
         : props.onClick,
     },
     <>
-      {StartIcon && (
-        <>
-          {variant === "fab" ? (
-            <>
-              <StartIcon className="hidden h-4 w-4 stroke-[1.5px] ltr:-ml-1 ltr:mr-2 rtl:-mr-1 rtl:ml-2 md:inline-flex" />
-              <Plus data-testid="plus" className="inline h-6 w-6 md:hidden" />
-            </>
-          ) : (
-            <StartIcon
-              className={classNames(
-                variant === "icon" && "h-4 w-4",
-                variant === "button" && "h-4 w-4 stroke-[1.5px] ltr:-ml-1 ltr:mr-2 rtl:-mr-1 rtl:ml-2"
-              )}
-            />
-          )}
-        </>
-      )}
+      {CustomStartIcon ||
+        (StartIcon && (
+          <>
+            {variant === "fab" ? (
+              <>
+                <Icon
+                  name={StartIcon}
+                  className="hidden h-4 w-4 stroke-[1.5px] ltr:-ml-1 ltr:mr-2 rtl:-mr-1 rtl:ml-2 md:inline-flex"
+                />
+                <Icon name="plus" data-testid="plus" className="inline h-6 w-6 md:hidden" />
+              </>
+            ) : (
+              <Icon
+                name={StartIcon}
+                className={classNames(
+                  variant === "icon" && "h-4 w-4",
+                  variant === "button" && "h-4 w-4 stroke-[1.5px] ltr:-ml-1 ltr:mr-2 rtl:-mr-1 rtl:ml-2"
+                )}
+              />
+            )}
+          </>
+        ))}
       {variant === "fab" ? <span className="hidden md:inline">{props.children}</span> : props.children}
       {loading && (
         <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 transform">
@@ -196,11 +201,12 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
         <>
           {variant === "fab" ? (
             <>
-              <EndIcon className="-mr-1 me-2 ms-2 hidden h-5 w-5 md:inline" />
-              <Plus data-testid="plus" className="inline h-6 w-6 md:hidden" />
+              <Icon name={EndIcon} className="-mr-1 me-2 ms-2 hidden h-5 w-5 md:inline" />
+              <Icon name="plus" data-testid="plus" className="inline h-6 w-6 md:hidden" />
             </>
           ) : (
-            <EndIcon
+            <Icon
+              name={EndIcon}
               className={classNames(
                 "inline-flex",
                 variant === "icon" && "h-4 w-4",

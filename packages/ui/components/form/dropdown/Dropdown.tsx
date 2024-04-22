@@ -4,9 +4,7 @@ import type { ComponentProps } from "react";
 import { forwardRef } from "react";
 
 import { classNames } from "@calcom/lib";
-import type { SVGComponent } from "@calcom/types/SVGComponent";
-import { CheckCircle } from "@calcom/ui/components/icon";
-import type { LucideIcon } from "@calcom/ui/components/icon";
+import { Icon, type IconName } from "@calcom/ui";
 
 import type { ButtonColor } from "../../button/Button";
 
@@ -78,7 +76,7 @@ export const DropdownMenuCheckboxItem = forwardRef<HTMLDivElement, DropdownMenuC
       <DropdownMenuPrimitive.CheckboxItem {...props} ref={forwardedRef} className="">
         {children}
         <DropdownMenuPrimitive.ItemIndicator>
-          <CheckCircle />
+          <Icon name="circle-check" />
         </DropdownMenuPrimitive.ItemIndicator>
       </DropdownMenuPrimitive.CheckboxItem>
     );
@@ -95,7 +93,7 @@ export const DropdownMenuRadioItem = forwardRef<HTMLDivElement, DropdownMenuRadi
       <DropdownMenuPrimitive.RadioItem {...props} ref={forwardedRef}>
         {children}
         <DropdownMenuPrimitive.ItemIndicator>
-          <CheckCircle />
+          <Icon name="circle-check" />
         </DropdownMenuPrimitive.ItemIndicator>
       </DropdownMenuPrimitive.RadioItem>
     );
@@ -106,8 +104,9 @@ DropdownMenuRadioItem.displayName = "DropdownMenuRadioItem";
 type DropdownItemProps = {
   children: React.ReactNode;
   color?: ButtonColor;
-  StartIcon?: SVGComponent | LucideIcon;
-  EndIcon?: SVGComponent | LucideIcon;
+  StartIcon?: IconName;
+  CustomStartIcon?: React.ReactNode;
+  EndIcon?: IconName;
   href?: string;
   disabled?: boolean;
   childrenClassName?: string;
@@ -132,7 +131,7 @@ export function ButtonOrLink({ href, ...props }: ButtonOrLinkProps) {
 }
 
 export const DropdownItem = (props: DropdownItemProps) => {
-  const { StartIcon, EndIcon, children, color, childrenClassName, ...rest } = props;
+  const { CustomStartIcon, StartIcon, EndIcon, children, color, childrenClassName, ...rest } = props;
 
   return (
     <ButtonOrLink
@@ -145,9 +144,9 @@ export const DropdownItem = (props: DropdownItemProps) => {
         props.className
       )}>
       <>
-        {StartIcon && <StartIcon className="h-4 w-4" />}
+        {CustomStartIcon || (StartIcon && <Icon name={StartIcon} className="h-4 w-4" />)}
         <div className={classNames("text-sm font-medium leading-5", childrenClassName)}>{children}</div>
-        {EndIcon && <EndIcon className="h-4 w-4" />}
+        {EndIcon && <Icon name={EndIcon} className="h-4 w-4" />}
       </>
     </ButtonOrLink>
   );

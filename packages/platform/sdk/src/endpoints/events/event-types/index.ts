@@ -33,6 +33,6 @@ export class EventTypes extends EndpointHandler {
       }
     );
 
-    return data.eventType;
+    return data;
   }
 }

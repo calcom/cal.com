@@ -1,4 +1,4 @@
-import { IsArray, IsOptional, IsString } from "class-validator";
+import { IsArray, IsBoolean, IsOptional, IsString } from "class-validator";
 
 export class UpdateOAuthClientInput {
   @IsOptional()
@@ -13,4 +13,20 @@ export class UpdateOAuthClientInput {
   @IsOptional()
   @IsString({ each: true })
   redirectUris?: string[] = [];
+
+  @IsOptional()
+  @IsString()
+  bookingRedirectUri?: string;
+
+  @IsOptional()
+  @IsString()
+  bookingCancelRedirectUri?: string;
+
+  @IsOptional()
+  @IsString()
+  bookingRescheduleRedirectUri?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  areEmailsEnabled?: boolean;
 }

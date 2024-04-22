@@ -225,8 +225,6 @@
   "already_have_an_account": "Zaten bir hesabınız var mı?",
   "create_account": "Hesap Oluştur",
   "confirm_password": "Şifreyi onayla",
-  "confirm_auth_change": "Bu işlem, oturum açma yönteminizi değiştirir",
-  "confirm_auth_email_change": "E-posta adresinizi değiştirmek, Cal.com'da oturum açmak için geçerli kimlik doğrulama yönteminizin ilişkisini kesecektir. Sizden yeni e-posta adresinizi onaylamanızı isteyeceğiz. Devam ettiğinizde oturumunuz sonlandırılacak ve e-postanıza gönderilecek talimatlara göre şifrenizi belirledikten sonra mevcut kimlik doğrulama yönteminiz yerine yeni e-posta adresinizi kullanarak giriş yapacaksınız.",
   "reset_your_password": "E-posta adresinize gönderilen talimatlarla yeni şifrenizi belirleyin.",
   "email_change": "Yeni e-posta adresiniz ve şifrenizle tekrar giriş yapın.",
   "create_your_account": "Hesabınızı oluşturun",

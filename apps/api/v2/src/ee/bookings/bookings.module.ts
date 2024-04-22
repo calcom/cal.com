@@ -1,4 +1,5 @@
 import { BookingsController } from "@/ee/bookings/controllers/bookings.controller";
+import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { OAuthFlowService } from "@/modules/oauth-clients/services/oauth-flow.service";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { TokensModule } from "@/modules/tokens/tokens.module";
@@ -7,7 +8,7 @@ import { Module } from "@nestjs/common";
 
 @Module({
   imports: [PrismaModule, TokensModule],
-  providers: [TokensRepository, OAuthFlowService],
+  providers: [TokensRepository, OAuthFlowService, OAuthClientRepository],
   controllers: [BookingsController],
 })
 export class BookingsModule {}

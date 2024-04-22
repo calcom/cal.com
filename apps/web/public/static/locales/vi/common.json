@@ -226,8 +226,6 @@
   "already_have_an_account": "Bạn đã có sẵn tài khoản?",
   "create_account": "Tạo tài khoản",
   "confirm_password": "Xác nhận mật khẩu",
-  "confirm_auth_change": "Thao tác này sẽ thay đổi cách thức bạn đăng nhập",
-  "confirm_auth_email_change": "Việc thay đổi địa chỉ email sẽ gây ngắt kết nối cho phương thức xác thực hiện tại mà bạn dùng để đăng nhập Cal.com. Chúng tôi sẽ yêu cầu bạn xác minh địa chỉ email mới. Sau đó, bạn sẽ được đăng xuất và sử dụng địa chỉ email mới để đăng nhập thay cho phương thức xác thực hiện tại sau khi thiết lập mật khẩu bằng cách làm theo các chỉ dẫn được gủi đến hộp thư của bạn.",
   "reset_your_password": "Thiết lập mật khẩu mới bằng những chỉ dẫn được gửi đến địa chỉ email của bạn.",
   "email_change": "Đăng nhập trở lại bằng địa chỉ email và mật khẩu mới.",
   "create_your_account": "Tạo tài khoản của bạn",

@@ -1,9 +1,8 @@
 import { CreateScheduleInput } from "@/ee/schedules/inputs/create-schedule.input";
-import { UpdateScheduleInput } from "@/ee/schedules/inputs/update-schedule.input";
 import { CreateAvailabilityInput } from "@/modules/availabilities/inputs/create-availability.input";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
-import { BadRequestException, Injectable } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
 
 @Injectable()
@@ -76,51 +75,6 @@ export class SchedulesRepository {
     });
 
     return schedules;
-  }
-
-  async updateScheduleWithAvailabilities(scheduleId: number, schedule: UpdateScheduleInput) {
-    const existingSchedule = await this.dbRead.prisma.schedule.findUnique({
-      where: { id: scheduleId },
-    });
-
-    if (!existingSchedule) {
-      throw new BadRequestException(`Schedule with ID=${scheduleId} not found`);
-    }
-
-    const updatedScheduleData: Prisma.ScheduleUpdateInput = {
-      user: {
-        connect: {
-          id: existingSchedule.userId,
-        },
-      },
-    };
-    if (schedule.name) updatedScheduleData.name = schedule.name;
-    if (schedule.timeZone) updatedScheduleData.timeZone = schedule.timeZone;
-
-    if (schedule.availabilities && schedule.availabilities.length > 0) {
-      await this.dbWrite.prisma.availability.deleteMany({
-        where: { scheduleId },
-      });
-
-      updatedScheduleData.availability = {
-        createMany: {
-          data: schedule.availabilities.map((availability) => ({
-            ...availability,
-            userId: existingSchedule.userId,
-          })),
-        },
-      };
-    }
-
-    const updatedSchedule = await this.dbWrite.prisma.schedule.update({
-      where: { id: scheduleId },
-      data: updatedScheduleData,
-      include: {
-        availability: true,
-      },
-    });
-
-    return updatedSchedule;
   }
 
   async deleteScheduleById(scheduleId: number) {

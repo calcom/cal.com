@@ -1,5 +1,6 @@
 import type { ArgumentsHost, ExceptionFilter } from "@nestjs/common";
 import { Catch, HttpStatus, Logger } from "@nestjs/common";
+import { Request } from "express";
 import { ZodError } from "zod";
 
 import { BAD_REQUEST, ERROR_STATUS } from "@calcom/platform-constants";
@@ -12,11 +13,14 @@ export class ZodExceptionFilter implements ExceptionFilter {
   catch(error: ZodError, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
-    const request = ctx.getRequest();
+    const request = ctx.getRequest<Request>();
 
     this.logger.error(`ZodError: ${error.message}`, {
       error,
-      request,
+      body: request.body,
+      headers: request.headers,
+      url: request.url,
+      method: request.method,
     });
 
     response.status(HttpStatus.BAD_REQUEST).json({

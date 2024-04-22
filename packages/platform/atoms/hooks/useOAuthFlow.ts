@@ -58,7 +58,7 @@ export const useOAuthFlow = ({ accessToken, refreshUrl, clientId, onError, onSuc
       http.setAuthorizationHeader(accessToken);
       try {
         http
-          .get<ApiResponse>(`/ee/provider/${clientId}/access-token`)
+          .get<ApiResponse>(`/provider/${clientId}/access-token`)
           .catch(async (err: AxiosError) => {
             if ((err.response?.status === 498 || err.response?.status === 401) && refreshUrl) {
               setIsRefreshing(true);

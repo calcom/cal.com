@@ -71,6 +71,7 @@ export const adminUpdateHandler = async ({ input }: AdminUpdateOptions) => {
           isOrganizationVerified:
             organizationSettings?.isOrganizationVerified ||
             existingOrg.organizationSettings?.isOrganizationVerified,
+          isAdminReviewed: organizationSettings?.isAdminReviewed,
           orgAutoAcceptEmail:
             organizationSettings?.orgAutoAcceptEmail || existingOrg.organizationSettings?.orgAutoAcceptEmail,
         },

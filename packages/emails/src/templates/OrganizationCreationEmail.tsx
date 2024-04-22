@@ -51,9 +51,9 @@ export const OrganizationCreationEmail = (
           lineHeightStep: "24px",
         }}>
         <Trans i18nKey="email|existing_user_added_link_changed">
-          Your link has been changed from <a href={`https://${prevLink}`}>{prevLinkWithoutProtocol}</a> to{" "}
-          <a href={`https://${newLink}`}>{newLinkWithoutProtocol}</a> but don&apos;t worry, all previous links
-          still work and redirect appropriately.
+          Your link has been changed from <a href={prevLink ?? ""}>{prevLinkWithoutProtocol}</a> to{" "}
+          <a href={newLink ?? ""}>{newLinkWithoutProtocol}</a> but don&apos;t worry, all previous links still
+          work and redirect appropriately.
           <br />
           <br />
           Please note: All of your personal event types have been moved into the <strong>
@@ -68,7 +68,7 @@ export const OrganizationCreationEmail = (
           For personal events we recommend creating a new account with a personal email address.
           <br />
           <br />
-          Enjoy your new clean link: <a href={`https://${newLink}`}>{newLinkWithoutProtocol}</a>
+          Enjoy your new clean link: <a href={`${newLink}?orgRedirection=true`}>{newLinkWithoutProtocol}</a>
         </Trans>
       </p>
 

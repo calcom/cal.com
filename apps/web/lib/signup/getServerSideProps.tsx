@@ -24,8 +24,10 @@ const querySchema = z.object({
 
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   const prisma = await import("@calcom/prisma").then((mod) => mod.default);
+  const emailVerificationEnabled = await getFeatureFlag(prisma, "email-verification");
+  await ssrInit(ctx);
   const signupDisabled = await getFeatureFlag(prisma, "disable-signup");
-  const ssr = await ssrInit(ctx);
+
   const token = z.string().optional().parse(ctx.query.token);
   const redirectUrlData = z
     .string()
@@ -42,8 +44,8 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     redirectUrl,
     isGoogleLoginEnabled: IS_GOOGLE_LOGIN_ENABLED,
     isSAMLLoginEnabled,
-    trpcState: ssr.dehydrate(),
     prepopulateFormValues: undefined,
+    emailVerificationEnabled,
   };
 
   // username + email prepopulated from query params

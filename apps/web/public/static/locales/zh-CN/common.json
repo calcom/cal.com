@@ -246,8 +246,6 @@
   "already_have_an_account": "已经有帐号？",
   "create_account": "创建账户",
   "confirm_password": "确认密码",
-  "confirm_auth_change": "这将更改您的登录方式",
-  "confirm_auth_email_change": "更改电子邮件地址将断开您当前登录 Cal.com 的身份验证方法。我们将要求您验证您的新电子邮件地址。接下来，在按照发送到您邮箱的说明设置密码后，您将被注销并使用新的电子邮件地址登录，而不是当前的身份验证方法。",
   "reset_your_password": "按照发送到您的电子邮件地址的说明设置新密码。",
   "org_banner_instructions": "请上传一张宽为 {{width}}，高为 {{height}} 的照片。",
   "email_change": "使用您的新电子邮件地址和密码重新登录。",

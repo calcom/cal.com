@@ -1,7 +1,7 @@
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { useFieldArray, useForm, Controller } from "react-hook-form";
+import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { classNames } from "@calcom/lib";
@@ -10,8 +10,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { UserPermissionRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
-import { Button, showToast, TextField, CheckboxField, Form } from "@calcom/ui";
-import { ArrowRight, Plus, X } from "@calcom/ui/components/icon";
+import { Button, CheckboxField, Form, Icon, showToast, TextField } from "@calcom/ui";
 
 const querySchema = z.object({
   id: z.string().transform((val) => parseInt(val)),
@@ -209,7 +208,10 @@ const AddNewTeamsFormChild = ({
                     className="group/remove mx-2 px-0 hover:bg-transparent"
                     onClick={() => handleRemoveInput(index)}
                     aria-label="Remove Team">
-                    <X className="bg-subtle text group-hover/remove:text-inverted group-hover/remove:bg-inverted h-5 w-5 rounded-full p-1" />
+                    <Icon
+                      name="x"
+                      className="bg-subtle text group-hover/remove:text-inverted group-hover/remove:bg-inverted h-5 w-5 rounded-full p-1"
+                    />
                   </Button>
                 )
               }
@@ -221,7 +223,7 @@ const AddNewTeamsFormChild = ({
         {counter === 5 && <p className="text-subtle my-2 text-sm">{t("org_max_team_warnings")}</p>}
         {counter < 5 && (
           <Button
-            StartIcon={Plus}
+            StartIcon="plus"
             color="secondary"
             disabled={createTeamsMutation.isPending}
             onClick={handleCounterIncrease}
@@ -231,7 +233,7 @@ const AddNewTeamsFormChild = ({
           </Button>
         )}
         <Button
-          EndIcon={ArrowRight}
+          EndIcon="arrow-right"
           color="primary"
           className="mt-6 w-full justify-center"
           data-testId="continue_or_checkout"

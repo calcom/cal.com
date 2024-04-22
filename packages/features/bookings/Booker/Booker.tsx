@@ -24,7 +24,7 @@ import { LargeCalendar } from "./components/LargeCalendar";
 import { OverlayCalendar } from "./components/OverlayCalendar/OverlayCalendar";
 import { RedirectToInstantMeetingModal } from "./components/RedirectToInstantMeetingModal";
 import { BookerSection } from "./components/Section";
-import { Away, NotFound } from "./components/Unavailable";
+import { NotFound } from "./components/Unavailable";
 import { fadeInLeft, getBookerSizeClassNames, useBookerResizeAnimation } from "./config";
 import { useBookerStore } from "./store";
 import type { BookerProps, WrappedBookerProps } from "./types";
@@ -50,8 +50,6 @@ const BookerComponent = ({
   onClickOverlayContinue,
   onOverlaySwitchStateChange,
   sessionUsername,
-  isRedirect,
-  fromUserNameRedirected,
   rescheduleUid,
   hasSession,
   extraOptions,
@@ -66,6 +64,7 @@ const BookerComponent = ({
   verifyCode,
   isPlatform,
   orgBannerUrl,
+  customClassNames,
 }: BookerProps & WrappedBookerProps) => {
   const { t } = useLocale();
   const [bookerState, setBookerState] = useBookerStore((state) => [state.state, state.setState], shallow);
@@ -93,6 +92,7 @@ const BookerComponent = ({
   const nonEmptyScheduleDays = useNonEmptyScheduleDays(schedule?.data?.slots).filter(
     (slot) => dayjs(selectedDate).diff(slot, "day") <= 0
   );
+
   const totalWeekDays = 7;
   const addonDays =
     nonEmptyScheduleDays.length < extraDays
@@ -224,7 +224,14 @@ const BookerComponent = ({
     isPlatform,
   ]);
 
-  if (entity.isUnpublished) {
+  /**
+   * Unpublished organization handling - Below
+   * - Reschedule links in email are of the organization event for an unpublished org, so we need to allow rescheduling unpublished event
+   * - Ideally, we should allow rescheduling only for the event that has an old link(non-org link) but that's a bit complex and we are fine showing all reschedule links on unpublished organization
+   */
+  const considerUnpublished = entity.considerUnpublished && !rescheduleUid;
+
+  if (considerUnpublished) {
     return <UnpublishedEntity {...entity} />;
   }
 
@@ -240,18 +247,6 @@ const BookerComponent = ({
     <>
       {event.data && !isPlatform ? <BookingPageTagManager eventType={event.data} /> : <></>}
 
-      {bookerState !== "booking" && event.data?.isInstantEvent && (
-        <div
-          className="animate-fade-in-up fixed bottom-2 z-40 my-2 opacity-0"
-          style={{ animationDelay: "1s" }}>
-          <InstantBooking
-            event={event.data}
-            onConnectNow={() => {
-              onConnectNowInstantMeeting();
-            }}
-          />
-        </div>
-      )}
       <div
         className={classNames(
           // In a popup embed, if someone clicks outside the main(having main class or main tag), it closes the embed
@@ -259,37 +254,17 @@ const BookerComponent = ({
           "text-default flex min-h-full w-full flex-col items-center",
           layout === BookerLayouts.MONTH_VIEW ? "overflow-visible" : "overflow-clip"
         )}>
-        {/* redirect from other user profile */}
-        {isRedirect && (
-          <div className="mb-8 rounded-md bg-blue-100 p-4 dark:border dark:bg-transparent">
-            <h2 className="text-default mb-2 text-sm font-semibold">
-              {t("user_redirect_title", {
-                username: fromUserNameRedirected,
-              })}{" "}
-              🏝️
-            </h2>
-            <p className="text-default text-sm">
-              {t("user_redirect_description", {
-                profile: {
-                  username: username,
-                },
-                username: fromUserNameRedirected,
-              })}{" "}
-              😄
-            </p>
-          </div>
-        )}
         <div
           ref={animationScope}
           className={classNames(
-            // Sets booker size css variables for the size of all the columns.
             ...getBookerSizeClassNames(layout, bookerState, hideEventTypeDetails),
-            "bg-default dark:bg-muted grid max-w-full items-start dark:[color-scheme:dark] sm:transition-[width] sm:duration-300 sm:motion-reduce:transition-none md:flex-row",
+            `bg-default dark:bg-muted grid max-w-full items-start dark:[color-scheme:dark] sm:transition-[width] sm:duration-300 sm:motion-reduce:transition-none md:flex-row`,
             // We remove border only when the content covers entire viewport. Because in embed, it can almost never be the case that it covers entire viewport, we show the border there
-            (layout === BookerLayouts.MONTH_VIEW || isEmbed) && "border-subtle rounded-md border",
+            (layout === BookerLayouts.MONTH_VIEW || isEmbed) && "border-subtle rounded-md",
             !isEmbed && "sm:transition-[width] sm:duration-300",
             isEmbed && layout === BookerLayouts.MONTH_VIEW && "border-booker sm:border-booker-width",
-            !isEmbed && layout === BookerLayouts.MONTH_VIEW && "border-subtle"
+            !isEmbed && layout === BookerLayouts.MONTH_VIEW && `border-subtle`,
+            `${customClassNames?.bookerContainer}`
           )}>
           <AnimatePresence>
             {!isInstantMeeting && (
@@ -353,8 +328,17 @@ const BookerComponent = ({
                     src={orgBannerUrl}
                   />
                 )}
-
-                <EventMeta event={event.data} isPending={event.isPending} isPlatform={isPlatform} />
+                <EventMeta
+                  classNames={{
+                    eventMetaContainer: customClassNames?.eventMetaCustomClassNames?.eventMetaContainer,
+                    eventMetaTitle: customClassNames?.eventMetaCustomClassNames?.eventMetaTitle,
+                    eventMetaTimezoneSelect:
+                      customClassNames?.eventMetaCustomClassNames?.eventMetaTimezoneSelect,
+                  }}
+                  event={event.data}
+                  isPending={event.isPending}
+                  isPlatform={isPlatform}
+                />
                 {layout !== BookerLayouts.MONTH_VIEW &&
                   !(layout === "mobile" && bookerState === "booking") && (
                     <div className="mt-auto px-5 py-3 ">
@@ -367,7 +351,7 @@ const BookerComponent = ({
             <BookerSection
               key="book-event-form"
               area="main"
-              className="border-subtle sticky top-0 ml-[-1px] h-full p-6 md:w-[var(--booker-main-width)] md:border-l"
+              className="sticky top-0 ml-[-1px] h-full p-6 md:w-[var(--booker-main-width)] md:border-l"
               {...fadeInLeft}
               visible={bookerState === "booking" && !shouldShowFormInDialog}>
               {EventBooker}
@@ -380,7 +364,18 @@ const BookerComponent = ({
               {...fadeInLeft}
               initial="visible"
               className="md:border-subtle ml-[-1px] h-full flex-shrink px-5 py-3 md:border-l lg:w-[var(--booker-main-width)]">
-              <DatePicker event={event} schedule={schedule} />
+              <DatePicker
+                classNames={{
+                  datePickerContainer: customClassNames?.datePickerCustomClassNames?.datePickerContainer,
+                  datePickerTitle: customClassNames?.datePickerCustomClassNames?.datePickerTitle,
+                  datePickerDays: customClassNames?.datePickerCustomClassNames?.datePickerDays,
+                  datePickerDate: customClassNames?.datePickerCustomClassNames?.datePickerDate,
+                  datePickerDatesActive: customClassNames?.datePickerCustomClassNames?.datePickerDatesActive,
+                  datePickerToggle: customClassNames?.datePickerCustomClassNames?.datePickerToggle,
+                }}
+                event={event}
+                schedule={schedule}
+              />
             </BookerSection>
 
             <BookerSection
@@ -396,7 +391,6 @@ const BookerComponent = ({
                 event={event}
               />
             </BookerSection>
-
             <BookerSection
               key="timeslots"
               area={{ default: "main", month_view: "timeslots" }}
@@ -413,6 +407,7 @@ const BookerComponent = ({
               ref={timeslotsRef}
               {...fadeInLeft}>
               <AvailableTimeSlots
+                customClassNames={customClassNames?.availableTimeSlotsCustomClassNames}
                 extraDays={extraDays}
                 limitHeight={layout === BookerLayouts.MONTH_VIEW}
                 schedule={schedule?.data}
@@ -424,7 +419,6 @@ const BookerComponent = ({
             </BookerSection>
           </AnimatePresence>
         </div>
-
         <HavingTroubleFindingTime
           visible={bookerState !== "booking" && layout === BookerLayouts.MONTH_VIEW && !isMobile}
           dayCount={dayCount}
@@ -434,6 +428,21 @@ const BookerComponent = ({
           }}
         />
 
+        {bookerState !== "booking" && event.data?.isInstantEvent && (
+          <div
+            className={classNames(
+              "animate-fade-in-up  z-40 my-2 opacity-0",
+              layout === BookerLayouts.MONTH_VIEW && isEmbed ? "" : "fixed bottom-2"
+            )}
+            style={{ animationDelay: "1s" }}>
+            <InstantBooking
+              event={event.data}
+              onConnectNow={() => {
+                onConnectNowInstantMeeting();
+              }}
+            />
+          </div>
+        )}
         {!hideBranding && !isPlatform && (
           <m.span
             key="logo"
@@ -457,8 +466,6 @@ const BookerComponent = ({
 };
 
 export const Booker = (props: BookerProps & WrappedBookerProps) => {
-  if (props.isAway) return <Away />;
-
   return (
     <LazyMotion strict features={loadFramerFeatures}>
       <BookerComponent {...props} />

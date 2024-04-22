@@ -195,3 +195,5 @@ export {
 export { Popover, PopoverContent, PopoverTrigger } from "./components/popover";
 
 export { StorybookTrpcProvider } from "./components/mocks/trpc";
+export { default as Icon } from "./components/icon/Icon";
+export type { IconName } from "./components/icon/dynamicIconImports";

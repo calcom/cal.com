@@ -1,8 +1,9 @@
 import { CreateEventTypeInput } from "@/ee/event-types/inputs/create-event-type.input";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
+import type { PrismaClient } from "@calcom/prisma";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 
 import { getEventTypeById } from "@calcom/platform-libraries";
 
@@ -44,19 +45,14 @@ export class EventTypesRepository {
     isUserOrganizationAdmin: boolean,
     eventTypeId: number
   ) {
-    try {
-      return getEventTypeById({
-        currentOrganizationId: user.movedToProfile?.organizationId || user.organizationId,
-        eventTypeId,
-        userId: user.id,
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        prisma: this.dbRead.prisma,
-        isUserOrganizationAdmin,
-      });
-    } catch (error) {
-      throw new NotFoundException(`User with id ${user.id} has no event type with id ${eventTypeId}`);
-    }
+    return await getEventTypeById({
+      currentOrganizationId: user.movedToProfile?.organizationId || user.organizationId,
+      eventTypeId,
+      userId: user.id,
+      prisma: this.dbRead.prisma as unknown as PrismaClient,
+      isUserOrganizationAdmin,
+      isTrpcCall: true,
+    });
   }
 
   async getEventTypeById(eventTypeId: number) {

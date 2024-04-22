@@ -1,4 +1,5 @@
 import { ArgumentsHost, Catch, ExceptionFilter, HttpException, Logger } from "@nestjs/common";
+import { Request } from "express";
 
 import { ERROR_STATUS } from "@calcom/platform-constants";
 import { Response } from "@calcom/platform-types";
@@ -10,11 +11,14 @@ export class HttpExceptionFilter implements ExceptionFilter<HttpException> {
   catch(exception: HttpException, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
-    const request = ctx.getRequest();
+    const request = ctx.getRequest<Request>();
     const statusCode = exception.getStatus();
     this.logger.error(`Http Exception Filter: ${exception?.message}`, {
       exception,
-      request,
+      body: request.body,
+      headers: request.headers,
+      url: request.url,
+      method: request.method,
     });
     response.status(statusCode).json({
       status: ERROR_STATUS,

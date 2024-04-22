@@ -225,8 +225,6 @@
   "already_have_an_account": "Har du redan ett konto?",
   "create_account": "Skapa konto",
   "confirm_password": "Bekräfta lösenord",
-  "confirm_auth_change": "Detta kommer att ändra hur du loggar in",
-  "confirm_auth_email_change": "Att ändra e-postadressen kommer att koppla bort din nuvarande autentiseringsmetod för att logga in på Cal.com. Vi kommer att be dig verifiera din nya e-postadress. Framå kommer du att loggas ut och använda din nya e-postadress för att logga in istället för din nuvarande autentiseringsmetod efter att du ställt in ditt lösenord genom att följa instruktionerna som kommer att skickas till din e-post.",
   "reset_your_password": "Konfigurera ditt nya lösenord med instruktionerna som skickas till din e-postadress.",
   "email_change": "Logga in igen med din nya e-postadress och lösenord.",
   "create_your_account": "Skapa ditt konto",

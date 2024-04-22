@@ -10,7 +10,6 @@ import turndown from "@calcom/lib/turndownService";
 import { trpc } from "@calcom/trpc/react";
 import { Button, Editor, ImageUploader, Label, showToast } from "@calcom/ui";
 import { UserAvatar } from "@calcom/ui";
-import { ArrowRight } from "@calcom/ui/components/icon";
 
 type FormData = {
   bio: string;
@@ -26,7 +25,7 @@ const UserProfile = () => {
 
   const { data: eventTypes } = trpc.viewer.eventTypes.list.useQuery();
   const [imageSrc, setImageSrc] = useState<string>(user?.avatar || "");
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const router = useRouter();
   const createEventType = trpc.viewer.eventTypes.create.useMutation();
   const telemetry = useTelemetry();
@@ -34,7 +33,7 @@ const UserProfile = () => {
 
   const mutation = trpc.viewer.updateProfile.useMutation({
     onSuccess: async (_data, context) => {
-      if (context.avatar) {
+      if (context.avatarUrl) {
         showToast(t("your_user_profile_updated_successfully"), "success");
         await utils.viewer.me.refetch();
       } else
@@ -75,7 +74,7 @@ const UserProfile = () => {
     event.preventDefault();
     const enteredAvatar = avatarRef.current?.value;
     mutation.mutate({
-      avatar: enteredAvatar,
+      avatarUrl: enteredAvatar,
     });
   }
 
@@ -147,7 +146,7 @@ const UserProfile = () => {
       </fieldset>
       <Button
         loading={mutation.isPending}
-        EndIcon={ArrowRight}
+        EndIcon="arrow-right"
         type="submit"
         className="mt-8 w-full items-center justify-center">
         {t("finish")}

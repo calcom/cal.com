@@ -4,8 +4,7 @@ import z from "zod";
 
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button } from "@calcom/ui";
-import { X } from "@calcom/ui/components/icon";
+import { Button, Icon } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
 import AuthContainer from "@components/ui/AuthContainer";
@@ -27,7 +26,7 @@ export default function Error() {
     <AuthContainer title="" description="">
       <div>
         <div className="bg-error mx-auto flex h-12 w-12 items-center justify-center rounded-full">
-          <X className="h-6 w-6 text-red-600" />
+          <Icon name="x" className="h-6 w-6 text-red-600" />
         </div>
         <div className="mt-3 text-center sm:mt-5">
           <h3 className="text-emphasis text-lg font-medium leading-6" id="modal-title">
