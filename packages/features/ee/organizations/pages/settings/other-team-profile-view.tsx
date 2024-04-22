@@ -51,7 +51,7 @@ const teamProfileFormSchema = z.object({
       message: "Url can only have alphanumeric characters(a-z, 0-9) and hyphen(-) symbol.",
     })
     .min(1, { message: "Url cannot be left empty" }),
-  logo: z.string(),
+  logoUrl: z.string().nullable(),
   bio: z.string(),
 });
 
@@ -105,7 +105,7 @@ const OtherTeamProfileView = () => {
       if (team) {
         form.setValue("name", team.name || "");
         form.setValue("slug", team.slug || "");
-        form.setValue("logo", team.logo || "");
+        form.setValue("logoUrl", team.logoUrl);
         form.setValue("bio", team.bio || "");
         if (team.slug === null && (team?.metadata as Prisma.JsonObject)?.requestedSlug) {
           form.setValue("slug", ((team?.metadata as Prisma.JsonObject)?.requestedSlug as string) || "");
@@ -179,7 +179,7 @@ const OtherTeamProfileView = () => {
               handleSubmit={(values) => {
                 if (team) {
                   const variables = {
-                    logo: values.logo,
+                    logoUrl: values.logoUrl,
                     name: values.name,
                     slug: values.slug,
                     bio: values.bio,
@@ -193,18 +193,16 @@ const OtherTeamProfileView = () => {
               <div className="flex items-center">
                 <Controller
                   control={form.control}
-                  name="logo"
-                  render={({ field: { value } }) => (
+                  name="logoUrl"
+                  render={({ field: { value, onChange } }) => (
                     <>
-                      <Avatar alt="" imageSrc={getPlaceholderAvatar(value, team?.name as string)} size="lg" />
+                      <Avatar alt="" imageSrc={getPlaceholderAvatar(value, team?.name)} size="lg" />
                       <div className="ms-4">
                         <ImageUploader
-                          target="avatar"
+                          target="logo"
                           id="avatar-upload"
                           buttonMsg={t("update")}
-                          handleAvatarChange={(newLogo) => {
-                            form.setValue("logo", newLogo);
-                          }}
+                          handleAvatarChange={onChange}
                           imageSrc={value}
                         />
                       </div>
@@ -218,15 +216,13 @@ const OtherTeamProfileView = () => {
               <Controller
                 control={form.control}
                 name="name"
-                render={({ field: { value } }) => (
+                render={({ field: { value, onChange } }) => (
                   <div className="mt-8">
                     <TextField
                       name="name"
                       label={t("team_name")}
                       value={value}
-                      onChange={(e) => {
-                        form.setValue("name", e?.target.value);
-                      }}
+                      onChange={(e) => onChange(e?.target.value)}
                     />
                   </div>
                 )}
@@ -234,7 +230,7 @@ const OtherTeamProfileView = () => {
               <Controller
                 control={form.control}
                 name="slug"
-                render={({ field: { value } }) => (
+                render={({ field: { value, onChange } }) => (
                   <div className="mt-8">
                     <TextField
                       name="slug"
@@ -245,7 +241,7 @@ const OtherTeamProfileView = () => {
                       }
                       onChange={(e) => {
                         form.clearErrors("slug");
-                        form.setValue("slug", slugify(e?.target.value, true));
+                        onChange(slugify(e?.target.value, true));
                       }}
                     />
                   </div>

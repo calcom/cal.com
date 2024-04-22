@@ -139,7 +139,7 @@ export const AppList = ({ data, handleDisconnect, variant, listClassName }: AppL
               ...app,
               credentialOwner: {
                 name: team.name,
-                avatar: team.logo,
+                avatar: team.logoUrl,
                 teamId: team.teamId,
                 credentialId: team.credentialId,
                 readOnly: !team.isAdmin,
