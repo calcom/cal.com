@@ -6,7 +6,7 @@ import { bookTimeSlot, selectFirstAvailableTimeSlotNextMonth } from "./lib/testU
 test.describe.configure({ mode: "parallel" });
 
 // TODO: This test is very flaky. Feels like tossing a coin and hope that it won't fail. Needs to be revisited.
-test.fixme("hash my url", () => {
+test.describe("hash my url", () => {
   test.beforeEach(async ({ users }) => {
     const user = await users.create();
     await user.apiLogin();
@@ -51,5 +51,17 @@ test.fixme("hash my url", () => {
     // we wait for the hashedLink setting to load
     const $newUrl = await page.locator('//*[@data-testid="generated-hash-url"]').inputValue();
     expect($url !== $newUrl).toBeTruthy();
+
+    // Ensure that private URL is enabled after modifying the event type.
+    // Additionally, if the slug is changed, ensure that the private URL is updated accordingly.
+    await page.getByTestId("vertical-tab-event_setup_tab_title").click();
+    await page.locator("[data-testid=event-title]").fill("somethingrandom");
+    await page.locator("[data-testid=event-slug]").fill("somethingrandom");
+    await page.locator("[data-testid=update-eventtype]").click();
+    await page.getByTestId("toast-success").waitFor();
+    await page.waitForLoadState("networkidle");
+    await page.locator(".primary-navigation >> text=Advanced").click();
+    const $url2 = await page.locator('//*[@data-testid="generated-hash-url"]').inputValue();
+    expect($url2.includes("somethingrandom")).toBeTruthy();
   });
 });
