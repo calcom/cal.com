@@ -639,7 +639,6 @@ export default class GoogleCalendarService implements Calendar {
                 timeMin: startDate.format(),
                 timeMax: endDate.format(),
                 items: calsIds.map((id) => ({ id })),
-                overlayUserType,
               })) || [])
             );
           } else {
