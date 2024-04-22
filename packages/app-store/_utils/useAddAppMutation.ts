@@ -44,7 +44,15 @@ function useAddAppMutation(_type: App["type"] | null, allOptions?: UseAddAppMuta
   const mutation = useMutation<
     AddAppMutationData,
     Error,
-    { type?: App["type"]; variant?: string; slug?: string; isOmniInstall?: boolean; teamId?: number } | ""
+    | {
+        type?: App["type"];
+        variant?: string;
+        slug?: string;
+        isOmniInstall?: boolean;
+        teamId?: number;
+        returnTo?: string;
+      }
+    | ""
   >({
     ...options,
     mutationFn: async (variables) => {
@@ -67,6 +75,7 @@ function useAddAppMutation(_type: App["type"] | null, allOptions?: UseAddAppMuta
       const state: IntegrationOAuthCallbackState = {
         returnTo:
           returnTo ||
+          (variables && variables.returnTo ? variables.returnTo : undefined) ||
           WEBAPP_URL +
             getInstalledAppPath(
               { variant: variables && variables.variant, slug: variables && variables.slug },

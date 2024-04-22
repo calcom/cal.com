@@ -2,7 +2,7 @@ import type { FC } from "react";
 import React, { useState } from "react";
 
 import { classNames } from "@calcom/lib";
-import { CAL_URL } from "@calcom/lib/constants";
+import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { Team, User } from "@calcom/prisma/client";
 import { Avatar, StepCard } from "@calcom/ui";
@@ -42,7 +42,7 @@ const AccountSelector: FC<AccountSelectorProps> = ({
       }}>
       <Avatar
         alt={avatar || ""}
-        imageSrc={avatar || `${CAL_URL}/${avatar}`} // if no image, use default avatar
+        imageSrc={getPlaceholderAvatar(avatar, name)} // if no image, use default avatar
         size="sm"
       />
       <div className="text-md pt-0.5 font-medium text-gray-500">
