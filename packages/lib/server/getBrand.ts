@@ -11,7 +11,7 @@ export const getBrand = async (orgId: number | null) => {
       id: orgId,
     },
     select: {
-      logo: true,
+      logoUrl: true,
       name: true,
       slug: true,
       metadata: true,

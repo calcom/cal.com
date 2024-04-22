@@ -19,7 +19,7 @@ import {
 } from "@calcom/features/ee/organizations/components/OrgUpgradeBanner";
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import HelpMenuItem from "@calcom/features/ee/support/components/HelpMenuItem";
-import useIntercom from "@calcom/features/ee/support/lib/intercom/useIntercom";
+import useIntercom, { isInterComEnabled } from "@calcom/features/ee/support/lib/intercom/useIntercom";
 import { TeamsUpgradeBanner, type TeamsUpgradeBannerProps } from "@calcom/features/ee/teams/components";
 import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { KBarContent, KBarRoot, KBarTrigger } from "@calcom/features/kbar/Kbar";
@@ -49,6 +49,7 @@ import {
   TOP_BANNER_HEIGHT,
   WEBAPP_URL,
 } from "@calcom/lib/constants";
+import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useFormbricks } from "@calcom/lib/formbricks-client";
 import getBrandColours from "@calcom/lib/getBrandColours";
 import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
@@ -222,7 +223,7 @@ const Layout = (props: LayoutProps) => {
   useEffect(() => {
     // not using useMediaQuery as it toggles between true and false
     const showIntercom = localStorage.getItem("showIntercom");
-    if (showIntercom === "false" || window.innerWidth <= 768 || !user) return;
+    if (!isInterComEnabled || showIntercom === "false" || window.innerWidth <= 768 || !user) return;
     boot();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
@@ -396,29 +397,7 @@ function UserDropdown({ small }: UserDropdownProps) {
         screenResolution: `${screen.width}x${screen.height}`,
       });
   });
-  const mutation = trpc.viewer.away.useMutation({
-    onMutate: async ({ away }) => {
-      await utils.viewer.me.cancel();
 
-      const previousValue = utils.viewer.me.getData();
-
-      if (previousValue) {
-        utils.viewer.me.setData(undefined, { ...previousValue, away });
-      }
-
-      return { previousValue };
-    },
-    onError: (_, __, context) => {
-      if (context?.previousValue) {
-        utils.viewer.me.setData(undefined, context.previousValue);
-      }
-
-      showToast(t("toggle_away_error"), "error");
-    },
-    onSettled() {
-      utils.viewer.me.invalidate();
-    },
-  });
   const [helpOpen, setHelpOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -456,7 +435,6 @@ function UserDropdown({ small }: UserDropdownProps) {
             <span
               className={classNames(
                 "border-muted absolute -bottom-1 -right-1 rounded-full border bg-green-500",
-                user.away ? "bg-yellow-500" : "bg-green-500",
                 small ? "-bottom-0.5 -right-0.5 h-2.5 w-2.5" : "-bottom-0.5 -right-0 h-2 w-2"
               )}
             />
@@ -922,7 +900,7 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
                   <div className="flex items-center gap-2 font-medium">
                     <Avatar
                       alt={`${orgBranding.name} logo`}
-                      imageSrc={`${orgBranding.fullDomain}/org/${orgBranding.slug}/avatar.png`}
+                      imageSrc={getPlaceholderAvatar(orgBranding.logoUrl, orgBranding.name)}
                       size="xsm"
                     />
                     <p className="text line-clamp-1 text-sm">

@@ -4,6 +4,7 @@ import { useSession } from "next-auth/react";
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
@@ -25,6 +26,7 @@ export interface User {
   email: string;
   timeZone: string;
   role: MembershipRole;
+  avatarUrl: string | null;
   accepted: boolean;
   disableImpersonation: boolean;
   completedOnboarding: boolean;
@@ -163,10 +165,16 @@ export function UserListTable() {
         accessorFn: (data) => data.email,
         header: `Member (${totalDBRowCount})`,
         cell: ({ row }) => {
-          const { username, email } = row.original;
+          const { username, email, avatarUrl } = row.original;
           return (
             <div className="flex items-center gap-2">
-              <Avatar size="sm" alt={username || email} imageSrc={`${domain}/${username}/avatar.png`} />
+              <Avatar
+                size="sm"
+                alt={username || email}
+                imageSrc={getUserAvatarUrl({
+                  avatarUrl,
+                })}
+              />
               <div className="">
                 <div
                   data-testid={`member-${username}-username`}
@@ -310,6 +318,7 @@ export function UserListTable() {
   return (
     <>
       <DataTable
+        data-testId="user-list-data-table"
         onSearch={(value) => setDebouncedSearchTerm(value)}
         selectionOptions={[
           {
