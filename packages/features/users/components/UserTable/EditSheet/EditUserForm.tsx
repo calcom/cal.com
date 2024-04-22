@@ -57,7 +57,7 @@ export function EditForm({
   const [setMutationLoading] = useEditMode((state) => [state.setMutationloading], shallow);
   const { t } = useLocale();
   const session = useSession();
-  const org = session?.data.user.org;
+  const org = session?.data?.user?.org;
   const utils = trpc.useUtils();
   const form = useForm({
     resolver: zodResolver(editSchema),
@@ -72,7 +72,7 @@ export function EditForm({
     },
   });
 
-  const isOwner = org.role === MembershipRole.OWNER;
+  const isOwner = org?.role === MembershipRole.OWNER;
 
   const membershipOptions = useMemo<MembershipOption[]>(() => {
     const options: MembershipOption[] = [

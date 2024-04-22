@@ -54,7 +54,7 @@ const OrgGeneralView = () => {
   const { t } = useLocale();
   const router = useRouter();
   const session = useSession();
-  const orgRole = session?.data?.user?.org.role;
+  const orgRole = session?.data?.user?.org?.role;
 
   const {
     data: currentOrg,
