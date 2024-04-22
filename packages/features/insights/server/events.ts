@@ -147,6 +147,24 @@ class EventsInsights {
     });
   };
 
+  static getTotalCSAT = async (whereConditional: Prisma.BookingTimeStatusWhereInput) => {
+    const result = await prisma.bookingTimeStatus.findMany({
+      where: {
+        ...whereConditional,
+        rating: {
+          not: null,
+        },
+      },
+      select: { rating: true },
+    });
+
+    const totalResponses = result.length;
+    const satisfactoryResponses = result.filter((item) => item.rating > 3).length;
+    const csat = totalResponses > 0 ? (satisfactoryResponses / totalResponses) * 100 : 0;
+
+    return csat;
+  };
+
   static getTimeLine = async (timeView: TimeViewType, startDate: Dayjs, endDate: Dayjs) => {
     let resultTimeLine: string[] = [];
 

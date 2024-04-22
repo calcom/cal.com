@@ -120,6 +120,10 @@ const emptyResponseEventsByStatus = {
     count: 0,
     deltaPrevious: 0,
   },
+  csat: {
+    count: 0,
+    deltaPrevious: 0,
+  },
   previousRange: {
     startDate: dayjs().toISOString(),
     endDate: dayjs().toISOString(),
@@ -271,6 +275,7 @@ export const insightsRouter = router({
         : 0;
 
       const totalNoShow = await EventsInsights.getTotalNoShows(baseWhereCondition);
+      const totalCSAT = await EventsInsights.getTotalCSAT(baseWhereCondition);
 
       const lastPeriodStartDate = dayjs(startDate).subtract(startTimeEndTimeDiff, "day");
       const lastPeriodEndDate = dayjs(endDate).subtract(startTimeEndTimeDiff, "day");
@@ -299,6 +304,8 @@ export const insightsRouter = router({
         : 0;
 
       const lastPeriodTotalNoShow = await EventsInsights.getTotalNoShows(lastPeriodBaseCondition);
+      const lastPeriodTotalCSAT = await EventsInsights.getTotalCSAT(lastPeriodBaseCondition);
+
       const result = {
         empty: false,
         created: {
@@ -327,6 +334,10 @@ export const insightsRouter = router({
         rating: {
           count: averageRating,
           deltaPrevious: EventsInsights.getPercentage(averageRating, lastPeriodAverageRating),
+        },
+        csat: {
+          count: totalCSAT,
+          deltaPrevious: EventsInsights.getPercentage(totalCSAT, lastPeriodTotalCSAT),
         },
         previousRange: {
           startDate: lastPeriodStartDate.format("YYYY-MM-DD"),

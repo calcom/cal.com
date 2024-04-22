@@ -39,7 +39,7 @@ export const BookingKPICards = () => {
 
   const categories: {
     title: string;
-    index: "created" | "completed" | "rescheduled" | "cancelled" | "no_show" | "rating";
+    index: "created" | "completed" | "rescheduled" | "cancelled" | "no_show" | "rating" | "csat";
   }[] = [
     {
       title: t("events_created"),
@@ -64,6 +64,10 @@ export const BookingKPICards = () => {
     {
       title: t("event_no_show"),
       index: "no_show",
+    },
+    {
+      title: t("csat"),
+      index: "csat",
     },
   ];
 
