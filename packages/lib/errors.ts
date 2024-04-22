@@ -12,6 +12,7 @@ export function getErrorFromUnknown(cause: unknown): Error & { statusCode?: numb
 }
 
 export async function handleErrorsJson<Type>(response: Response): Promise<Type> {
+  // FIXME: I don't know why we are handling gzipped case separately. This should be handled by fetch itself.
   if (response.headers.get("content-encoding") === "gzip") {
     const responseText = await response.text();
     return new Promise((resolve) => resolve(JSON.parse(responseText)));

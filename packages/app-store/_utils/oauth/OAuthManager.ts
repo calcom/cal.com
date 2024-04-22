@@ -117,7 +117,8 @@ export class OAuthManager {
     appSlug: string;
     /**
      *
-     * It could be null in case refresh_token isn't available. This is possible when credential sync happens from a third party who doesn't want to share refresh_token
+     * It could be null in case refresh_token isn't available. This is possible when credential sync happens from a third party who doesn't want to share refresh_token and credential syncing has been disabled after the sync has happened.
+     * If credential syncing is still enabled `fetchNewTokenObject` wouldn't be called
      */
     fetchNewTokenObject: FetchNewTokenObject;
 
@@ -248,6 +249,7 @@ export class OAuthManager {
       const { url, options } = customFetchOrUrlAndOptions;
       const headers = {
         Authorization: `Bearer ${this.currentTokenObject.access_token}`,
+        "Content-Type": "application/json",
         ...options?.headers,
       };
       myLog.debug("Sending request using fetch", safeStringify({ customFetchOrUrlAndOptions, headers }));
@@ -286,6 +288,38 @@ export class OAuthManager {
     }
 
     return { tokenStatus: tokenStatus, json };
+  }
+
+  /**
+   * It doesn't automatically detect the response for tokenObject and accessToken becoming invalid
+   * Could be used when you expect a possible non JSON response as well.
+   */
+  public async requestRaw({ url, options }: { url: string; options: RequestInit }) {
+    const myLog = log.getSubLogger({ prefix: ["requestRaw"] });
+    myLog.debug("Sending request using fetch", safeStringify({ url, options }));
+    if (this.autoCheckTokenExpiryOnRequest) {
+      await this.getTokenObjectOrFetch();
+    }
+    const headers = {
+      Authorization: `Bearer ${this.currentTokenObject.access_token}`,
+      "Content-Type": "application/json",
+      ...options?.headers,
+    };
+
+    const response = await fetch(url, {
+      method: "GET",
+      ...options,
+      headers: headers,
+    });
+    myLog.debug(
+      "Response from request",
+      safeStringify({
+        text: await response.clone().text(),
+        status: response.status,
+        statusText: response.statusText,
+      })
+    );
+    return response;
   }
 
   private async invalidate() {
