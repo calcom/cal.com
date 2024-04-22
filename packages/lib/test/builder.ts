@@ -239,6 +239,7 @@ type UserPayload = Prisma.UserGetPayload<{
     receiveMonthlyDigestEmail: true;
     movedToProfileId: true;
     isPlatformManaged: true;
+    smsLockState: true;
   };
 }>;
 export const buildUser = <T extends Partial<UserPayload>>(
