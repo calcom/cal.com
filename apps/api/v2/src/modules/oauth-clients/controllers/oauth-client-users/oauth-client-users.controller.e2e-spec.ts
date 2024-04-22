@@ -199,7 +199,7 @@ describe("OAuth Client Users Endpoints", () => {
     it(`/GET/:id`, async () => {
       const response = await request(app.getHttpServer())
         .get(`/api/v2/oauth-clients/${oAuthClient.id}/users/${postResponseData.user.id}`)
-        .set("Authorization", `Bearer ${postResponseData.accessToken}`)
+        .set("x-cal-secret-key", oAuthClient.secret)
         .set("Origin", `${CLIENT_REDIRECT_URI}`)
         .expect(200);
 
@@ -216,7 +216,7 @@ describe("OAuth Client Users Endpoints", () => {
 
       const response = await request(app.getHttpServer())
         .patch(`/api/v2/oauth-clients/${oAuthClient.id}/users/${postResponseData.user.id}`)
-        .set("Authorization", `Bearer ${postResponseData.accessToken}`)
+        .set("x-cal-secret-key", oAuthClient.secret)
         .set("Origin", `${CLIENT_REDIRECT_URI}`)
         .send(body)
         .expect(200);
@@ -231,7 +231,7 @@ describe("OAuth Client Users Endpoints", () => {
     it(`/DELETE/:id`, () => {
       return request(app.getHttpServer())
         .delete(`/api/v2/oauth-clients/${oAuthClient.id}/users/${postResponseData.user.id}`)
-        .set("Authorization", `Bearer ${postResponseData.accessToken}`)
+        .set("x-cal-secret-key", oAuthClient.secret)
         .set("Origin", `${CLIENT_REDIRECT_URI}`)
         .expect(200);
     });

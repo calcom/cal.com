@@ -53,7 +53,7 @@ export const getByViewerHandler = async ({ ctx }: GetByViewerOptions) => {
     },
     select: {
       username: true,
-      avatar: true,
+      avatarUrl: true,
       name: true,
       webhooks: true,
       teams: {

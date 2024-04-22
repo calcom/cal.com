@@ -114,7 +114,7 @@ export const TeamsFilter = ({
                 icon={
                   <Avatar
                     alt={team?.name}
-                    imageSrc={getPlaceholderAvatar(team.logo, team?.name as string)}
+                    imageSrc={getPlaceholderAvatar(team.logoUrl, team?.name as string)}
                     size="xs"
                   />
                 }

@@ -97,7 +97,6 @@ export const meHandler = async ({ ctx, input }: MeOptions) => {
     identityProviderEmail,
     brandColor: user.brandColor,
     darkBrandColor: user.darkBrandColor,
-    away: user.away,
     bio: user.bio,
     weekStart: user.weekStart,
     theme: user.theme,
