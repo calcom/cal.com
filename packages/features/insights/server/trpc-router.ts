@@ -516,7 +516,7 @@ export const insightsRouter = router({
           Completed: 0,
           Rescheduled: 0,
           Cancelled: 0,
-          NoShowHost: 0,
+          "No-Show (Host)": 0,
         };
         const startOfEndOf = timeView;
         let startDate = dayjs(date).startOf(startOfEndOf);
