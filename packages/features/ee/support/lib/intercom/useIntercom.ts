@@ -28,6 +28,7 @@ export const useIntercom = () => {
   const { hasTeamPlan } = useHasTeamPlan();
 
   const boot = async () => {
+    if (!data) return;
     let userHash;
 
     const req = await fetch(`/api/intercom-hash`);
@@ -53,6 +54,7 @@ export const useIntercom = () => {
         has_paid_plan: hasPaidPlan,
         has_team_plan: hasTeamPlan,
         metadata: data?.metadata,
+        completed_onboarding: data.completedOnboarding,
         is_logged_in: !!data,
       },
     });
@@ -84,6 +86,7 @@ export const useIntercom = () => {
         has_paid_plan: hasPaidPlan,
         has_team_plan: hasTeamPlan,
         metadata: data?.metadata,
+        completed_onboarding: data?.completedOnboarding,
         is_logged_in: !!data,
       },
     });

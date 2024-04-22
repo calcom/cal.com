@@ -98,6 +98,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
             isPrivate: true,
             isOrganization: true,
             metadata: true,
+            logoUrl: true,
           },
         },
       },
@@ -213,6 +214,9 @@ function getTeamWithoutMetadata<T extends Pick<Team, "metadata">>(team: T) {
   const teamMetadata = teamMetadataSchema.parse(metadata);
   return {
     ...rest,
-    requestedSlug: teamMetadata?.requestedSlug,
+    // add requestedSlug if available.
+    ...(typeof teamMetadata?.requestedSlug !== "undefined"
+      ? { requestedSlug: teamMetadata?.requestedSlug }
+      : {}),
   };
 }

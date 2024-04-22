@@ -13,8 +13,8 @@ import { deleteScheduledSMSReminder } from "@calcom/features/ee/workflows/lib/re
 import { deleteScheduledWhatsappReminder } from "@calcom/features/ee/workflows/lib/reminders/whatsappReminderManager";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { cancelScheduledJobs } from "@calcom/features/webhooks/lib/scheduleTrigger";
+import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
-import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { HttpError } from "@calcom/lib/http-error";
@@ -125,13 +125,26 @@ async function getBookingToDelete(id: number | undefined, uid: string | undefine
 export type CustomRequest = NextApiRequest & {
   userId?: number;
   bookingToDelete?: Awaited<ReturnType<typeof getBookingToDelete>>;
+  platformClientId?: string;
+  platformRescheduleUrl?: string;
+  platformCancelUrl?: string;
+  platformBookingUrl?: string;
+  arePlatformEmailsEnabled?: boolean;
 };
 
 async function handler(req: CustomRequest) {
   const { id, uid, allRemainingBookings, cancellationReason, seatReferenceUid } =
     schemaBookingCancelParams.parse(req.body);
   req.bookingToDelete = await getBookingToDelete(id, uid);
-  const { bookingToDelete, userId } = req;
+  const {
+    bookingToDelete,
+    userId,
+    platformBookingUrl,
+    platformCancelUrl,
+    platformClientId,
+    platformRescheduleUrl,
+    arePlatformEmailsEnabled,
+  } = req;
 
   if (!bookingToDelete || !bookingToDelete.user) {
     throw new HttpError({ statusCode: 400, message: "Booking not found" });
@@ -269,6 +282,10 @@ async function handler(req: CustomRequest) {
     seatsShowAttendees: bookingToDelete.eventType?.seatsShowAttendees,
     iCalUID: bookingToDelete.iCalUID,
     iCalSequence: bookingToDelete.iCalSequence + 1,
+    platformClientId,
+    platformRescheduleUrl,
+    platformCancelUrl,
+    platformBookingUrl,
   };
 
   const dataForWebhooks = { evt, webhooks, eventTypeInfo };
@@ -445,7 +462,8 @@ async function handler(req: CustomRequest) {
 
   try {
     // TODO: if emails fail try to requeue them
-    await sendCancelledEmails(evt, { eventName: bookingToDelete?.eventType?.eventName });
+    if (!platformClientId || (platformClientId && arePlatformEmailsEnabled))
+      await sendCancelledEmails(evt, { eventName: bookingToDelete?.eventType?.eventName });
   } catch (error) {
     console.error("Error deleting event", error);
   }

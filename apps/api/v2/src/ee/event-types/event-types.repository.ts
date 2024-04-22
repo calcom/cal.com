@@ -1,5 +1,6 @@
 import { CreateEventTypeInput } from "@/ee/event-types/inputs/create-event-type.input";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
+import type { PrismaClient } from "@calcom/prisma";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { Injectable } from "@nestjs/common";
@@ -48,9 +49,7 @@ export class EventTypesRepository {
       currentOrganizationId: user.movedToProfile?.organizationId || user.organizationId,
       eventTypeId,
       userId: user.id,
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      prisma: this.dbRead.prisma,
+      prisma: this.dbRead.prisma as unknown as PrismaClient,
       isUserOrganizationAdmin,
       isTrpcCall: true,
     });

@@ -58,7 +58,7 @@ const createTeamWorkflow = async (user: { id: number }, team: { id: number }) =>
   });
 };
 
-export const createTeamEventType = async (
+const createTeamEventType = async (
   user: { id: number },
   team: { id: number },
   scenario?: {
@@ -788,7 +788,7 @@ const createUser = (
               },
             },
             accepted: true,
-            role: MembershipRole.ADMIN,
+            role,
           },
         ],
       },
