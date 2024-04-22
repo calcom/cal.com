@@ -811,10 +811,6 @@ describe("getSchedule", () => {
           isTeamEvent: false,
         },
       });
-      console.log(
-        "🚀 ~ test ~ scheduleForEventOnADayWithCalBooking.slots:",
-        scheduleForEventOnADayWithCalBooking.slots
-      );
 
       expect(scheduleForEventOnADayWithCalBooking).toHaveTimeSlots(
         [
