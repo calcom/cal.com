@@ -1589,7 +1589,7 @@ export const insightsRouter = router({
       });
 
       const userIds = bookingsFromTeam.reduce((userIds: number[], booking) => {
-        if (typeof booking.userId === "number" && !userIds.includes(booking.userId)) {
+        if (!!booking.userId && !userIds.includes(booking.userId)) {
           userIds.push(booking.userId);
         }
         return userIds;

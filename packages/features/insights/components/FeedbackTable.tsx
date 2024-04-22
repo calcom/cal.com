@@ -1,5 +1,6 @@
 import { Table, TableBody, TableCell, TableRow, Text } from "@tremor/react";
 
+import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { User } from "@calcom/prisma/client";
 import { Avatar, EmptyScreen } from "@calcom/ui";
@@ -30,7 +31,7 @@ export const FeedbackTable = ({
                   <Avatar
                     alt={item.user.name || ""}
                     size="sm"
-                    imageSrc={item.user.avatarUrl}
+                    imageSrc={getUserAvatarUrl({ avatarUrl: item.user.avatarUrl })}
                     title={item.user.name || ""}
                     className="m-2"
                   />
