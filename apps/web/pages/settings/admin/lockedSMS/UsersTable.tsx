@@ -104,7 +104,7 @@ const LockStatusTable = ({
                   <Avatar
                     size="md"
                     alt={`Avatar of ${user.username || "Nameless"}`}
-                    imageSrc={getUserAvatarUrl(user)}
+                    imageSrc={getUserAvatarUrl(user || null)}
                   />
                   <div className="text-subtle ml-4 font-medium">
                     <span className="text-default">{user.name}</span>
