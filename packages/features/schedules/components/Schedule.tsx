@@ -290,7 +290,7 @@ export const DayRanges = <TFieldValues extends FieldValues>({
                 disabled={disabled}
                 data-testid="add-time-availability"
                 tooltip={labels?.addTime ?? t("add_time_availability")}
-                className="text-default mx-2 "
+                className="text-default mx-2"
                 type="button"
                 color="minimal"
                 variant="icon"
@@ -356,15 +356,20 @@ const TimeRangeField = ({
   onChange,
   disabled,
   userTimeFormat,
-}: { className?: string; disabled?: boolean; userTimeFormat: number | null } & ControllerRenderProps) => {
+}: {
+  className?: string;
+  disabled?: boolean;
+  userTimeFormat: number | null;
+} & ControllerRenderProps) => {
   // this is a controlled component anyway given it uses LazySelect, so keep it RHF agnostic.
   return (
     <div className={classNames("flex flex-row gap-1", className)}>
       <LazySelect
         userTimeFormat={userTimeFormat}
-        className="inline-block w-[100px]"
+        className="flex w-[100px]"
         isDisabled={disabled}
         value={value.start}
+        menuPlacement="bottom"
         max={value.end}
         onChange={(option) => {
           onChange({ ...value, start: new Date(option?.value as number) });
@@ -377,6 +382,7 @@ const TimeRangeField = ({
         isDisabled={disabled}
         value={value.end}
         min={value.start}
+        menuPlacement="bottom"
         onChange={(option) => {
           onChange({ ...value, end: new Date(option?.value as number) });
         }}
@@ -390,6 +396,7 @@ const LazySelect = ({
   min,
   max,
   userTimeFormat,
+  menuPlacement,
   ...props
 }: Omit<Props<IOption, false, GroupBase<IOption>>, "value"> & {
   value: ConfigType;
@@ -411,6 +418,7 @@ const LazySelect = ({
         if (min) filter({ offset: min });
         if (max) filter({ limit: max });
       }}
+      menuPlacement={menuPlacement}
       value={options.find((option) => option.value === dayjs(value).toDate().valueOf())}
       onMenuClose={() => filter({ current: value })}
       components={{ DropdownIndicator: () => null, IndicatorSeparator: () => null }}

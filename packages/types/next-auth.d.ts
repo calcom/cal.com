@@ -1,6 +1,8 @@
 import type { User as PrismaUser, UserPermissionRole } from "@prisma/client";
 import type { DefaultUser } from "next-auth";
 
+import type { MembershipRole } from "@calcom/prisma/enums";
+
 import type { UserProfile } from "./UserProfile";
 
 declare module "next-auth" {
@@ -30,6 +32,7 @@ declare module "next-auth" {
       logoUrl?: string | null;
       fullDomain: string;
       domainSuffix: string;
+      role: MembershipRole;
     };
     username?: PrismaUser["username"];
     avatarUrl?: PrismaUser["avatarUrl"];
@@ -61,6 +64,7 @@ declare module "next-auth/jwt" {
       logoUrl?: string | null;
       fullDomain: string;
       domainSuffix: string;
+      role: MembershipRole;
     };
     organizationId?: number | null;
     locale?: string;
