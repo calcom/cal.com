@@ -1,4 +1,5 @@
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
+import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { SMSLockState } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
 import type { IconName } from "@calcom/ui";
@@ -16,6 +17,7 @@ type User = {
   name: string | null;
   email: string;
   smsLockState: SMSLockState;
+  avatarUrl?: string;
 };
 
 type Team = {
@@ -23,6 +25,7 @@ type Team = {
   name: string;
   smsLockState: SMSLockState;
   slug: string | null;
+  logoUrl?: string;
 };
 
 function UsersTable({ setSMSLockState }: Props) {
@@ -101,7 +104,7 @@ const LockStatusTable = ({
                   <Avatar
                     size="md"
                     alt={`Avatar of ${user.username || "Nameless"}`}
-                    imageSrc={`${WEBAPP_URL}/${user.username ? user.username : "default"}/avatar.png`}
+                    imageSrc={getUserAvatarUrl(user)}
                   />
                   <div className="text-subtle ml-4 font-medium">
                     <span className="text-default">{user.name}</span>
@@ -125,7 +128,7 @@ const LockStatusTable = ({
                   <Avatar
                     size="md"
                     alt={`Avatar of ${team.name}`}
-                    imageSrc={`${WEBAPP_URL}/${team.slug ? team.slug : "default"}/avatar.png`}
+                    imageSrc={getPlaceholderAvatar(team.logoUrl, team.name)}
                   />
                   <div className="text-subtle ml-4 font-medium">
                     <span className="text-default">{team.name}</span>

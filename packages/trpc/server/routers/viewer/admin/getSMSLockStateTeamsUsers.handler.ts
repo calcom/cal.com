@@ -16,6 +16,7 @@ const getSMSLockStateTeamsUsers = async ({ ctx }: GetOptions) => {
     email: true,
     username: true,
     name: true,
+    avatarUrl: true,
   };
 
   const teamSelect = {
@@ -23,6 +24,7 @@ const getSMSLockStateTeamsUsers = async ({ ctx }: GetOptions) => {
     smsLockState: true,
     slug: true,
     name: true,
+    logoUrl: true,
   };
 
   const lockedUsers = await prisma.user.findMany({
