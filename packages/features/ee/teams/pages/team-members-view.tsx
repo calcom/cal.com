@@ -57,7 +57,9 @@ function MembersList(props: MembersListProps) {
         placeholder={`${t("search")}...`}
       />
       {membersList?.length && team ? (
-        <ul className="divide-subtle border-subtle divide-y rounded-md border ">
+        <ul
+          className="divide-subtle border-subtle divide-y rounded-md border "
+          data-testId="team-member-list-container">
           {membersList.map((member) => {
             return (
               <MemberListItem
