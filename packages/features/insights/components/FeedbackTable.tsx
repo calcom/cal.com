@@ -3,7 +3,7 @@ import { Table, TableBody, TableCell, TableRow, Text } from "@tremor/react";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { User } from "@calcom/prisma/client";
-import { Avatar, EmptyScreen } from "@calcom/ui";
+import { Avatar, EmptyScreen, Button } from "@calcom/ui";
 
 export const FeedbackTable = ({
   data,
@@ -52,7 +52,16 @@ export const FeedbackTable = ({
               </TableRow>
             ))
           ) : (
-            <EmptyScreen Icon="zap" headline={t("no_ratings")} description={t("no_ratings_description")} />
+            <EmptyScreen
+              Icon="zap"
+              headline={t("no_ratings")}
+              description={t("no_ratings_description")}
+              buttonRaw={
+                <Button target="_blank" color="secondary" href="/workflows">
+                  {t("workflows")}
+                </Button>
+              }
+            />
           )}
         </>
       </TableBody>
