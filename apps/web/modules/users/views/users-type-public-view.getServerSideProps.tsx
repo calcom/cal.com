@@ -2,7 +2,6 @@ import { type GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import { handleTypeRedirection } from "@calcom/features/booking-redirect/handle-type";
 import { getBookingForReschedule, getBookingForSeatedEvent } from "@calcom/features/bookings/lib/get-booking";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
@@ -65,6 +64,7 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
     username: usernames.join("+"),
     eventSlug: slug,
     org,
+    fromRedirectOfNonOrgLink: context.query.orgRedirection === "true",
   });
 
   if (!eventData) {
@@ -86,13 +86,13 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
       booking,
       user: usernames.join("+"),
       slug,
-      away: false,
       trpcState: ssr.dehydrate(),
       isBrandingHidden: false,
       isSEOIndexable: true,
       themeBasis: null,
       bookingUid: bookingUid ? `${bookingUid}` : null,
       rescheduleUid: rescheduleUid ? `${rescheduleUid}` : null,
+      orgBannerUrl: null,
     },
   };
 }
@@ -103,7 +103,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
   const username = usernames[0];
   const { rescheduleUid, bookingUid } = context.query;
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req, context.params?.orgSlug);
-  let outOfOffice = false;
+
   const isOrgContext = currentOrgDomain && isValidOrgDomain;
   if (!isOrgContext) {
     const redirect = await getTemporaryOrgRedirect({
@@ -130,18 +130,6 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
       notFound: true,
     } as const;
   }
-  // If user is found, quickly verify bookingRedirects
-  const result = await handleTypeRedirection({
-    userId: user.id,
-    username,
-    slug,
-  });
-  if (result && result.outOfOffice) {
-    outOfOffice = true;
-  }
-  if (result && result.redirect?.destination) {
-    return result;
-  }
 
   let booking: GetBookingType | null = null;
   if (rescheduleUid) {
@@ -157,6 +145,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
     username,
     eventSlug: slug,
     org,
+    fromRedirectOfNonOrgLink: context.query.orgRedirection === "true",
   });
 
   if (!eventData) {
@@ -173,7 +162,6 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
         length: eventData.length,
         metadata: eventData.metadata,
       },
-      away: outOfOffice,
       user: username,
       slug,
       trpcState: ssr.dehydrate(),
@@ -182,6 +170,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
       themeBasis: username,
       bookingUid: bookingUid ? `${bookingUid}` : null,
       rescheduleUid: rescheduleUid ? `${rescheduleUid}` : null,
+      orgBannerUrl: eventData?.owner?.profile?.organization?.bannerUrl ?? null,
     },
   };
 }

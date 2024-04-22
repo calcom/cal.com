@@ -1,5 +1,7 @@
 import type { TFunction } from "next-i18next";
 
+import { APP_NAME } from "@calcom/lib/constants";
+
 import { renderEmail } from "..";
 import BaseEmail from "./_base-email";
 
@@ -30,7 +32,7 @@ export default class DisabledAppEmail extends BaseEmail {
 
   protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
     return {
-      from: `Cal.com <${this.getMailerOptions().from}>`,
+      from: `${APP_NAME} <${this.getMailerOptions().from}>`,
       to: this.email,
       subject:
         this.title && this.eventTypeId

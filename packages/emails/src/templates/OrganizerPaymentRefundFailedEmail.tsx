@@ -1,5 +1,5 @@
 import { BaseEmailHtml } from "../components";
-import { OrganizerScheduledEmail } from "./OrganizerScheduledEmail";
+import type { OrganizerScheduledEmail } from "./OrganizerScheduledEmail";
 
 export const OrganizerPaymentRefundFailedEmail = (
   props: React.ComponentProps<typeof OrganizerScheduledEmail>

@@ -11,6 +11,7 @@ import type { Logger } from "tslog";
 import { v5 as uuidv5 } from "uuid";
 import z from "zod";
 
+import processExternalId from "@calcom/app-store/_utils/calendars/processExternalId";
 import { metadata as GoogleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
 import type { LocationObject } from "@calcom/app-store/locations";
 import {
@@ -225,6 +226,7 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
       timeZone: true,
       schedule: {
         select: {
+          id: true,
           availability: true,
           timeZone: true,
         },
@@ -249,6 +251,13 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
           startTime: true,
           endTime: true,
           days: true,
+        },
+      },
+      secondaryEmailId: true,
+      secondaryEmail: {
+        select: {
+          id: true,
+          email: true,
         },
       },
     },
@@ -283,7 +292,6 @@ const loadUsers = async (eventType: NewBookingEventType, dynamicUserList: string
         usernameList: dynamicUserList,
         orgSlug: isValidOrgDomain ? currentOrgDomain : null,
       });
-
       return users;
     }
     const hosts = eventType.hosts || [];
@@ -350,7 +358,7 @@ export async function ensureAvailableUsers(
   }
 
   for (const user of eventType.users) {
-    const { dateRanges, busy: bufferedBusyTimes } = await getUserAvailability(
+    const { oooExcludedDateRanges: dateRanges, busy: bufferedBusyTimes } = await getUserAvailability(
       {
         ...input,
         userId: user.id,
@@ -364,7 +372,7 @@ export async function ensureAvailableUsers(
         user,
         eventType,
         rescheduleUid: input.originalRescheduledBooking?.uid ?? null,
-        busyTimesFromLimitsBookings: busyTimesFromLimitsBookingsAllUsers.filter((b) => b.userId === user.id),
+        busyTimesFromLimitsBookings: busyTimesFromLimitsBookingsAllUsers,
       }
     );
 
@@ -857,6 +865,7 @@ export const findBookingQuery = async (bookingId: number) => {
       description: true,
       status: true,
       responses: true,
+      metadata: true,
       user: {
         select: {
           name: true,
@@ -894,10 +903,24 @@ type BookingDataSchemaGetter =
   | typeof import("@calcom/features/bookings/lib/getBookingDataSchemaForApi").default;
 
 async function handler(
-  req: NextApiRequest & { userId?: number | undefined },
+  req: NextApiRequest & {
+    userId?: number | undefined;
+    platformClientId?: string;
+    platformRescheduleUrl?: string;
+    platformCancelUrl?: string;
+    platformBookingUrl?: string;
+    platformBookingLocation?: string;
+  },
   bookingDataSchemaGetter: BookingDataSchemaGetter = getBookingDataSchema
 ) {
-  const { userId } = req;
+  const {
+    userId,
+    platformClientId,
+    platformCancelUrl,
+    platformBookingUrl,
+    platformRescheduleUrl,
+    platformBookingLocation,
+  } = req;
 
   // handle dynamic user
   let eventType =
@@ -1095,6 +1118,8 @@ async function handler(
       firstUsersMetadata?.defaultConferencingApp?.appLink;
   }
 
+  let rescheduleUid = reqBody.rescheduleUid;
+
   if (
     !eventType.seatsPerTimeSlot &&
     (Object.prototype.hasOwnProperty.call(eventType, "bookingLimits") ||
@@ -1109,6 +1134,7 @@ async function handler(
         eventType.bookingLimits as IntervalLimit,
         startAsDate,
         eventType.id,
+        rescheduleUid,
         eventType.schedule?.timeZone
       );
     }
@@ -1117,7 +1143,6 @@ async function handler(
     }
   }
 
-  let rescheduleUid = reqBody.rescheduleUid;
   let bookingSeat: BookingSeat = null;
 
   let originalRescheduledBooking: BookingType = null;
@@ -1390,9 +1415,13 @@ async function handler(
 
   // Organizer or user owner of this event type it's not listed as a team member.
   const teamMemberPromises = users.slice(1).map(async (user) => {
+    // TODO: Add back once EventManager tests are ready https://github.com/calcom/cal.com/pull/14610#discussion_r1567817120
     // push to teamDestinationCalendars if it's a team event but collective only
     if (isTeamEventType && eventType.schedulingType === "COLLECTIVE" && user.destinationCalendar) {
-      teamDestinationCalendars.push(user.destinationCalendar);
+      teamDestinationCalendars.push({
+        ...user.destinationCalendar,
+        externalId: processExternalId(user.destinationCalendar),
+      });
     }
 
     return {
@@ -1453,6 +1482,13 @@ async function handler(
     ? [organizerUser.destinationCalendar]
     : null;
 
+  let organizerEmail = organizerUser.email || "Email-less";
+  if (eventType.useEventTypeDestinationCalendarEmail && destinationCalendar?.[0]?.primaryEmail) {
+    organizerEmail = destinationCalendar[0].primaryEmail;
+  } else if (eventType.secondaryEmailId && eventType.secondaryEmail?.email) {
+    organizerEmail = eventType.secondaryEmail.email;
+  }
+
   let evt: CalendarEvent = {
     bookerUrl,
     type: eventType.slug,
@@ -1465,10 +1501,7 @@ async function handler(
     organizer: {
       id: organizerUser.id,
       name: organizerUser.name || "Nameless",
-      email:
-        eventType.useEventTypeDestinationCalendarEmail && destinationCalendar?.[0]?.primaryEmail
-          ? destinationCalendar[0].primaryEmail
-          : organizerUser.email || "Email-less",
+      email: organizerEmail,
       username: organizerUser.username || undefined,
       timeZone: organizerUser.timeZone,
       language: { translate: tOrganizer, locale: organizerUser.locale ?? "en" },
@@ -1477,7 +1510,7 @@ async function handler(
     responses: reqBody.calEventResponses || null,
     userFieldsResponses: reqBody.calEventUserFieldsResponses || null,
     attendees: attendeesList,
-    location: bookingLocation, // Will be processed by the EventManager later.
+    location: platformBookingLocation ?? bookingLocation, // Will be processed by the EventManager later.
     conferenceCredentialId,
     destinationCalendar,
     hideCalendarNotes: eventType.hideCalendarNotes,
@@ -1490,6 +1523,10 @@ async function handler(
     schedulingType: eventType.schedulingType,
     iCalUID,
     iCalSequence,
+    platformClientId,
+    platformRescheduleUrl,
+    platformCancelUrl,
+    platformBookingUrl,
   };
 
   if (req.body.thirdPartyRecurringEventId) {
@@ -1508,7 +1545,7 @@ async function handler(
     eventDescription: eventType.description,
     price: paymentAppData.price,
     currency: eventType.currency,
-    length: eventType.length,
+    length: reqEventLength,
   };
 
   const teamId = await getTeamIdFromEventType({ eventType });
@@ -1646,6 +1683,19 @@ async function handler(
     })
   );
 
+  // update original rescheduled booking (no seats event)
+  if (!eventType.seatsPerTimeSlot && originalRescheduledBooking?.uid) {
+    await prisma.booking.update({
+      where: {
+        id: originalRescheduledBooking.id,
+      },
+      data: {
+        rescheduled: true,
+        status: BookingStatus.CANCELLED,
+      },
+    });
+  }
+
   try {
     booking = await createBooking({
       originalRescheduledBooking,
@@ -1713,7 +1763,7 @@ async function handler(
       err.message
     );
     if (err.code === "P2002") {
-      throw new HttpError({ statusCode: 409, message: "booking.conflict" });
+      throw new HttpError({ statusCode: 409, message: "booking_conflict" });
     }
     throw err;
   }
@@ -1739,31 +1789,22 @@ async function handler(
 
     evt = addVideoCallDataToEvent(originalRescheduledBooking.references, evt);
 
-    //update original rescheduled booking (no seats event)
-    if (!eventType.seatsPerTimeSlot) {
-      await prisma.booking.update({
-        where: {
-          id: originalRescheduledBooking.id,
-        },
-        data: {
-          rescheduled: true,
-          status: BookingStatus.CANCELLED,
-        },
-      });
-    }
-
-    const newDesinationCalendar = evt.destinationCalendar;
-
-    evt.destinationCalendar = originalRescheduledBooking?.destinationCalendar
+    // If organizer is changed in RR event then we need to delete the previous host destination calendar events
+    const previousHostDestinationCalendar = originalRescheduledBooking?.destinationCalendar
       ? [originalRescheduledBooking?.destinationCalendar]
-      : originalRescheduledBooking?.user?.destinationCalendar
-      ? [originalRescheduledBooking?.user.destinationCalendar]
-      : evt.destinationCalendar;
+      : [];
 
     if (changedOrganizer) {
       evt.title = getEventName(eventNameObject);
       // location might changed and will be new created in eventManager.create (organizer default location)
       evt.videoCallData = undefined;
+      // To prevent "The requested identifier already exists" error while updating event, we need to remove iCalUID
+      evt.iCalUID = undefined;
+    } else {
+      // In case of rescheduling, we need to keep the previous host destination calendar
+      evt.destinationCalendar = originalRescheduledBooking?.destinationCalendar
+        ? [originalRescheduledBooking?.destinationCalendar]
+        : evt.destinationCalendar;
     }
 
     const updateManager = await eventManager.reschedule(
@@ -1771,7 +1812,7 @@ async function handler(
       originalRescheduledBooking.uid,
       undefined,
       changedOrganizer,
-      newDesinationCalendar
+      previousHostDestinationCalendar
     );
 
     // This gets overridden when updating the event - to check if notes have been hidden or not. We just reset this back
@@ -1869,6 +1910,7 @@ async function handler(
           metadata.hangoutLink ||
           results[0].createdEvent?.url ||
           organizerOrFirstDynamicGroupMemberDefaultLocationUrl ||
+          getVideoCallUrlFromCalEvent(evt) ||
           videoCallUrl;
       }
 
@@ -2077,6 +2119,7 @@ async function handler(
             calEvent: getPiiFreeCalendarEvent(evt),
           })
         );
+
         await sendScheduledEmails(
           {
             ...evt,
@@ -2117,6 +2160,10 @@ async function handler(
     );
     await sendOrganizerRequestEmail({ ...evt, additionalNotes });
     await sendAttendeeRequestEmail({ ...evt, additionalNotes }, attendeesList[0]);
+  }
+
+  if (booking.location?.startsWith("http")) {
+    videoCallUrl = booking.location;
   }
 
   const metadata = videoCallUrl
@@ -2221,10 +2268,6 @@ async function handler(
 
   loggerWithEventDetails.debug(`Booking ${organizerUser.username} completed`);
 
-  if (booking.location?.startsWith("http")) {
-    videoCallUrl = booking.location;
-  }
-
   // We are here so, booking doesn't require payment and booking is also created in DB already, through createBooking call
   if (isConfirmedByDefault) {
     try {
@@ -2310,8 +2353,7 @@ async function handler(
     loggerWithEventDetails.error("Error while creating booking references", JSON.stringify({ error }));
   }
 
-  const metadataFromEvent = videoCallUrl ? { videoCallUrl } : undefined;
-  const evtWithMetadata = { ...evt, metadata: metadataFromEvent, eventType: { slug: eventType.slug } };
+  const evtWithMetadata = { ...evt, metadata, eventType: { slug: eventType.slug } };
 
   await scheduleMandatoryReminder(
     evtWithMetadata,

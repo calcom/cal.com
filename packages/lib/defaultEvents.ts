@@ -49,6 +49,7 @@ const user: User & { credentials: CredentialPayload[] } = {
   darkBrandColor: "#efefef",
   allowDynamicBooking: true,
   timeFormat: 12,
+  travelSchedules: [],
 };
 
 const customInputs: CustomInputSchema[] = [];
@@ -102,6 +103,8 @@ const commons = {
   bookingFields: [],
   assignAllTeamMembers: false,
   useEventTypeDestinationCalendarEmail: false,
+  secondaryEmailId: null,
+  secondaryEmail: null,
 };
 
 const dynamicEvent = {

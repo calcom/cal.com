@@ -72,6 +72,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     eventSlug: meetingSlug,
     isTeamEvent: true,
     org,
+    fromRedirectOfNonOrgLink: context.query.orgRedirection === "true",
   });
 
   if (!eventData) {
@@ -88,7 +89,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         metadata: eventData.metadata,
       },
       booking,
-      away: false,
       user: teamSlug,
       teamId: team.id,
       slug: meetingSlug,
@@ -96,6 +96,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       isBrandingHidden: team?.hideBranding,
       isInstantMeeting: eventData.isInstantEvent && queryIsInstantMeeting ? true : false,
       themeBasis: null,
+      orgBannerUrl: eventData?.team?.parent?.bannerUrl ?? "",
     },
   };
 };

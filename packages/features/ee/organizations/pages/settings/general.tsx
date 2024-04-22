@@ -1,5 +1,6 @@
 "use client";
 
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -24,6 +25,8 @@ import {
   SkeletonText,
   TimezoneSelect,
 } from "@calcom/ui";
+
+import { LockEventTypeSwitch } from "../components/LockEventTypeSwitch";
 
 const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
   return (
@@ -50,6 +53,8 @@ interface GeneralViewProps {
 const OrgGeneralView = () => {
   const { t } = useLocale();
   const router = useRouter();
+  const session = useSession();
+  const orgRole = session?.data?.user?.org?.role;
 
   const {
     data: currentOrg,
@@ -71,8 +76,7 @@ const OrgGeneralView = () => {
   if (!currentOrg) {
     return null;
   }
-  const isAdminOrOwner =
-    currentOrg.user.role === MembershipRole.OWNER || currentOrg.user.role === MembershipRole.ADMIN;
+  const isAdminOrOwner = orgRole === MembershipRole.OWNER || orgRole === MembershipRole.ADMIN;
 
   return (
     <LicenseRequired>
@@ -81,6 +85,8 @@ const OrgGeneralView = () => {
         isAdminOrOwner={isAdminOrOwner}
         localeProp={user?.locale ?? "en"}
       />
+
+      <LockEventTypeSwitch currentOrg={currentOrg} isAdminOrOwner={!!isAdminOrOwner} />
     </LicenseRequired>
   );
 };

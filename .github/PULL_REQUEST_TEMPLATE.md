@@ -13,7 +13,7 @@ Fixes # (issue)
 <!-- Please provide all documents that are important to understand the reason of that PR. -->
 
 - If there is a requirement document, please, share it here.
-- If there is ab UI/UX design document, please, share it here.
+- If there is a UI/UX design document, please, share it here.
 
 ## Type of change
 

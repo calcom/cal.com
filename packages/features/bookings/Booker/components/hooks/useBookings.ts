@@ -3,19 +3,13 @@ import { useRouter } from "next/navigation";
 import { useRef, useState, useEffect } from "react";
 
 import { createPaymentLink } from "@calcom/app-store/stripepayment/lib/client";
+import { useHandleBookEvent } from "@calcom/atoms/monorepo";
 import dayjs from "@calcom/dayjs";
 import { sdkActionManager } from "@calcom/embed-core/embed-iframe";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import type { useEventReturnType } from "@calcom/features/bookings/Booker/utils/event";
 import { updateQueryParam, getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
-import {
-  createBooking,
-  createRecurringBooking,
-  mapBookingToMutationInput,
-  mapRecurringBookingToMutationInput,
-  createInstantBooking,
-  useTimePreferences,
-} from "@calcom/features/bookings/lib";
+import { createBooking, createRecurringBooking, createInstantBooking } from "@calcom/features/bookings/lib";
 import { getFullName } from "@calcom/features/form-builder/utils";
 import { useBookingSuccessRedirect } from "@calcom/lib/bookingSuccessRedirect";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -48,31 +42,26 @@ export type UseBookingsReturnType = ReturnType<typeof useBookings>;
 export const useBookings = ({ event, hashedLink, bookingForm, metadata }: IUseBookings) => {
   const router = useRouter();
   const eventSlug = useBookerStore((state) => state.eventSlug);
-  const setFormValues = useBookerStore((state) => state.setFormValues);
   const rescheduleUid = useBookerStore((state) => state.rescheduleUid);
   const bookingData = useBookerStore((state) => state.bookingData);
   const timeslot = useBookerStore((state) => state.selectedTimeslot);
-  const seatedEventData = useBookerStore((state) => state.seatedEventData);
-  const { t, i18n } = useLocale();
+  const { t } = useLocale();
   const bookingSuccessRedirect = useBookingSuccessRedirect();
   const bookerFormErrorRef = useRef<HTMLDivElement>(null);
-  const [expiryTime, setExpiryTime] = useState<Date | undefined>();
-  const recurringEventCount = useBookerStore((state) => state.recurringEventCount);
-  const isInstantMeeting = useBookerStore((state) => state.isInstantMeeting);
+  const [instantMeetingTokenExpiryTime, setExpiryTime] = useState<Date | undefined>();
+  const [instantVideoMeetingUrl, setInstantVideoMeetingUrl] = useState<string | undefined>();
   const duration = useBookerStore((state) => state.selectedDuration);
-  const { timezone } = useTimePreferences();
-  const username = useBookerStore((state) => state.username);
 
   const isRescheduling = !!rescheduleUid && !!bookingData;
 
   const bookingId = parseInt(getQueryParam("bookingId") || "0");
-  const hasInstantMeetingTokenExpired = expiryTime && new Date(expiryTime) < new Date();
+
   const _instantBooking = trpc.viewer.bookings.getInstantBookingLocation.useQuery(
     {
       bookingId: bookingId,
     },
     {
-      enabled: !!bookingId && !hasInstantMeetingTokenExpired,
+      enabled: !!bookingId,
       refetchInterval: 2000,
       refetchIntervalInBackground: true,
     }
@@ -80,16 +69,15 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata }: IUseBo
   useEffect(
     function refactorMeWithoutEffect() {
       const data = _instantBooking.data;
+
       if (!data) return;
       try {
-        showToast(t("something_went_wrong_on_our_end"), "error");
-
         const locationVideoCallUrl: string | undefined = bookingMetadataSchema.parse(
           data.booking?.metadata || {}
         )?.videoCallUrl;
 
         if (locationVideoCallUrl) {
-          router.push(locationVideoCallUrl);
+          setInstantVideoMeetingUrl(locationVideoCallUrl);
         } else {
           showToast(t("something_went_wrong_on_our_end"), "error");
         }
@@ -123,7 +111,7 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata }: IUseBo
           date: responseData?.startTime?.toString() || "",
           duration: validDuration,
           organizer: {
-            name: users?.[0].name || "Nameless",
+            name: users?.[0]?.name || "Nameless",
             email: responseData?.userPrimaryEmail || responseData.user?.email || "Email-less",
             timeZone: responseData.user?.timeZone || "Europe/London",
           },
@@ -136,7 +124,7 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata }: IUseBo
           date: responseData?.startTime?.toString() || "",
           duration: validDuration,
           organizer: {
-            name: users?.[0].name || "Nameless",
+            name: users?.[0]?.name || "Nameless",
             email: responseData?.userPrimaryEmail || responseData.user?.email || "Email-less",
             timeZone: responseData.user?.timeZone || "Europe/London",
           },
@@ -228,56 +216,15 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata }: IUseBo
     },
   });
 
-  const handleBookEvent = () => {
-    const values = bookingForm.getValues();
-    if (timeslot) {
-      // Clears form values stored in store, so old values won't stick around.
-      setFormValues({});
-      bookingForm.clearErrors();
-
-      // It shouldn't be possible that this method is fired without having event data,
-      // but since in theory (looking at the types) it is possible, we still handle that case.
-      if (!event?.data) {
-        bookingForm.setError("globalError", { message: t("error_booking_event") });
-        return;
-      }
-
-      // Ensures that duration is an allowed value, if not it defaults to the
-      // default event duration.
-      const validDuration = event.data.isDynamic
-        ? duration || event.data.length
-        : duration && event.data.metadata?.multipleDuration?.includes(duration)
-        ? duration
-        : event.data.length;
-
-      const bookingInput = {
-        values,
-        duration: validDuration,
-        event: event.data,
-        date: timeslot,
-        timeZone: timezone,
-        language: i18n.language,
-        rescheduleUid: rescheduleUid || undefined,
-        bookingUid: (bookingData && bookingData.uid) || seatedEventData?.bookingUid || undefined,
-        username: username || "",
-        metadata: metadata,
-        hashedLink,
-      };
-
-      if (isInstantMeeting) {
-        createInstantBookingMutation.mutate(mapBookingToMutationInput(bookingInput));
-      } else if (event.data?.recurringEvent?.freq && recurringEventCount && !rescheduleUid) {
-        createRecurringBookingMutation.mutate(
-          mapRecurringBookingToMutationInput(bookingInput, recurringEventCount)
-        );
-      } else {
-        createBookingMutation.mutate(mapBookingToMutationInput(bookingInput));
-      }
-      // Clears form values stored in store, so old values won't stick around.
-      setFormValues({});
-      bookingForm.clearErrors();
-    }
-  };
+  const handleBookEvent = useHandleBookEvent({
+    event,
+    bookingForm,
+    hashedLink,
+    metadata,
+    handleInstantBooking: createInstantBookingMutation.mutate,
+    handleRecBooking: createRecurringBookingMutation.mutate,
+    handleBooking: createBookingMutation.mutate,
+  });
 
   const errors = {
     hasDataErrors: Boolean(
@@ -301,11 +248,11 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata }: IUseBo
 
   return {
     handleBookEvent,
-    expiryTime,
+    expiryTime: instantMeetingTokenExpiryTime,
     bookingForm,
     bookerFormErrorRef,
     errors,
     loadingStates,
-    hasInstantMeetingTokenExpired: Boolean(hasInstantMeetingTokenExpired),
+    instantVideoMeetingUrl,
   };
 };

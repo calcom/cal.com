@@ -4,7 +4,7 @@ import React from "react";
 import { classNames } from "@calcom/lib";
 import { Tooltip } from "@calcom/ui";
 
-import { ChevronDown } from "../icon";
+import { Icon } from "../..";
 
 export const AnimatedPopover = ({
   text,
@@ -72,7 +72,8 @@ export const AnimatedPopover = ({
                   )}
                 </div>
               </Tooltip>
-              <ChevronDown
+              <Icon
+                name="chevron-down"
                 className={classNames("ml-2 w-4 transition-transform duration-150", open && "rotate-180")}
               />
             </div>

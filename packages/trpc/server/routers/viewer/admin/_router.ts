@@ -4,6 +4,7 @@ import { authedAdminProcedure } from "../../../procedures/authedProcedure";
 import { router, importHandler } from "../../../trpc";
 import { ZListMembersSchema } from "./listPaginated.schema";
 import { ZAdminLockUserAccountSchema } from "./lockUserAccount.schema";
+import { ZAdminRemoveTwoFactor } from "./removeTwoFactor.schema";
 import { ZAdminPasswordResetSchema } from "./sendPasswordReset.schema";
 
 const NAMESPACE = "admin";
@@ -39,4 +40,11 @@ export const adminRouter = router({
         data: { enabled, updatedBy: user.id },
       });
     }),
+  removeTwoFactor: authedAdminProcedure.input(ZAdminRemoveTwoFactor).mutation(async (opts) => {
+    const handler = await importHandler(
+      namespaced("removeTwoFactor"),
+      () => import("./removeTwoFactor.handler")
+    );
+    return handler(opts);
+  }),
 });

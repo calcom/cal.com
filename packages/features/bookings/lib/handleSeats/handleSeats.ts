@@ -96,8 +96,10 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
 
   // If the resultBooking is defined we should trigger workflows else, trigger in handleNewBooking
   if (resultBooking) {
-    // Obtain event metadata that includes videoCallUrl
-    const metadata = evt.videoCallData?.url ? { videoCallUrl: evt.videoCallData.url } : undefined;
+    const metadata = {
+      ...(typeof resultBooking.metadata === "object" && resultBooking.metadata),
+      ...reqBodyMetadata,
+    };
     try {
       await scheduleWorkflowReminders({
         workflows: eventType.workflows,
@@ -126,7 +128,7 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
       rescheduleEndTime: originalRescheduledBooking?.endTime
         ? dayjs(originalRescheduledBooking?.endTime).utc().format()
         : undefined,
-      metadata: { ...metadata, ...reqBodyMetadata },
+      metadata,
       eventTypeId,
       status: "ACCEPTED",
       smsReminderNumber: seatedBooking?.smsReminderNumber || undefined,

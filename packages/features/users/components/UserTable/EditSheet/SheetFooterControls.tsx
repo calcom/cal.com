@@ -1,6 +1,5 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SheetClose, Button } from "@calcom/ui";
-import { Pencil } from "@calcom/ui/components/icon";
 
 import { useEditMode } from "./store";
 
@@ -47,7 +46,7 @@ function MoreInfoFooter() {
         className="w-full justify-center gap-2"
         variant="icon"
         key="EDIT_BUTTON"
-        StartIcon={Pencil}>
+        StartIcon="pencil">
         {t("edit")}
       </Button>
     </>

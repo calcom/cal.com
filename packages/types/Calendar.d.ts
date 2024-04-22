@@ -143,6 +143,7 @@ export type CalEventResponses = Record<
   {
     label: string;
     value: z.infer<typeof bookingResponse>;
+    isHidden?: boolean;
   }
 >;
 
@@ -200,6 +201,10 @@ export interface CalendarEvent {
 
   // It just has responses to only the user fields. It allows to easily iterate over to show only user fields
   userFieldsResponses?: CalEventResponses | null;
+  platformClientId?: string | null;
+  platformRescheduleUrl?: string | null;
+  platformCancelUrl?: string | null;
+  platformBookingUrl?: string | null;
 }
 
 export interface EntryPoint {

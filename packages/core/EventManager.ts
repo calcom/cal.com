@@ -95,7 +95,10 @@ export default class EventManager {
     // This includes all calendar-related apps, traditional calendars such as Google Calendar
     // (type google_calendar) and non-traditional calendars such as CRMs like Close.com
     // (type closecom_other_calendar)
-    this.calendarCredentials = appCredentials.filter((cred) => cred.type.endsWith("_calendar"));
+    this.calendarCredentials = appCredentials.filter(
+      // Backwards compatibility until CRM manager is implemented
+      (cred) => cred.type.endsWith("_calendar") || cred.type.endsWith("_crm")
+    );
     this.videoCredentials = appCredentials
       .filter((cred) => cred.type.endsWith("_video") || cred.type.endsWith("_conferencing"))
       // Whenever a new video connection is added, latest credentials are added with the highest ID.
@@ -115,6 +118,7 @@ export default class EventManager {
    */
   public async create(event: CalendarEvent): Promise<CreateUpdateResult> {
     const evt = processLocation(event);
+
     // Fallback to cal video if no location is set
     if (!evt.location) {
       // See if cal video is enabled & has keys
@@ -328,7 +332,7 @@ export default class EventManager {
     rescheduleUid: string,
     newBookingId?: number,
     changedOrganizer?: boolean,
-    newDestinationCalendar?: DestinationCalendar[] | null
+    previousHostDestinationCalendar?: DestinationCalendar[] | null
   ): Promise<CreateUpdateResult> {
     const originalEvt = processLocation(event);
     const evt = cloneDeep(originalEvt);
@@ -380,16 +384,21 @@ export default class EventManager {
     if (evt.requiresConfirmation) {
       log.debug("RescheduleRequiresConfirmation: Deleting Event and Meeting for previous booking");
       // As the reschedule requires confirmation, we can't update the events and meetings to new time yet. So, just delete them and let it be handled when organizer confirms the booking.
-      await this.deleteEventsAndMeetings({ booking, event });
+      await this.deleteEventsAndMeetings({
+        booking,
+        event: { ...event, destinationCalendar: previousHostDestinationCalendar },
+      });
     } else {
       if (changedOrganizer) {
         log.debug("RescheduleOrganizerChanged: Deleting Event and Meeting for previous booking");
-        await this.deleteEventsAndMeetings({ booking, event });
+        await this.deleteEventsAndMeetings({
+          booking,
+          event: { ...event, destinationCalendar: previousHostDestinationCalendar },
+        });
 
         log.debug("RescheduleOrganizerChanged: Creating Event and Meeting for for new booking");
 
-        const newEvent = { ...evt, destinationCalendar: newDestinationCalendar };
-        const createdEvent = await this.create(newEvent);
+        const createdEvent = await this.create(originalEvt);
         results.push(...createdEvent.results);
         bookingReferenceChangedOrganizer.push(...createdEvent.referencesToCreate);
       } else {
@@ -453,14 +462,14 @@ export default class EventManager {
     const videoReferences = booking.references.filter((reference) => reference.type.includes("_video"));
     log.debug("deleteEventsAndMeetings", safeStringify({ calendarReferences, videoReferences }));
     const calendarPromises = calendarReferences.map(async (bookingCalendarReference) => {
-      return await this.deleteCalendarEventForBookingReference({
+      return this.deleteCalendarEventForBookingReference({
         bookingCalendarReference,
         event,
       });
     });
 
     const videoPromises = videoReferences.map(async (bookingVideoReference) => {
-      return await this.deleteVideoEventForBookingReference({
+      return this.deleteVideoEventForBookingReference({
         bookingVideoReference,
       });
     });
@@ -512,7 +521,10 @@ export default class EventManager {
        *  Not ideal but, if we don't find a destination calendar,
        *  fallback to the first connected calendar - Shouldn't be a CRM calendar
        */
-      const [credential] = this.calendarCredentials.filter((cred) => !cred.type.endsWith("other_calendar"));
+      // Backwards compatibility until CRM manager is created
+      const [credential] = this.calendarCredentials.filter(
+        (cred) => !cred.type.endsWith("other_calendar") || !cred.type.endsWith("crm")
+      );
       if (credential) {
         const createdEvent = await createEvent(credential, event);
         log.silly("Created Calendar event", safeStringify({ createdEvent }));
@@ -523,6 +535,7 @@ export default class EventManager {
     };
 
     if (event.destinationCalendar && event.destinationCalendar.length > 0) {
+      let eventCreated = false;
       // Since GCal pushes events to multiple calendars we only want to create one event per booking
       let gCalAdded = false;
       const destinationCalendars: DestinationCalendar[] = event.destinationCalendar.reduce(
@@ -542,6 +555,7 @@ export default class EventManager {
         [] as DestinationCalendar[]
       );
       for (const destination of destinationCalendars) {
+        if (eventCreated) break;
         log.silly("Creating Calendar event", JSON.stringify({ destination }));
         if (destination.credentialId) {
           let credential = this.calendarCredentials.find((c) => c.id === destination.credentialId);
@@ -570,6 +584,7 @@ export default class EventManager {
             const createdEvent = await createEvent(credential, event, destination.externalId);
             if (createdEvent) {
               createdEvents.push(createdEvent);
+              eventCreated = true;
             }
           }
         } else {
@@ -595,6 +610,7 @@ export default class EventManager {
               })
             );
             createdEvents.push(await createEvent(firstCalendarCredential, event));
+            eventCreated = true;
           }
         }
       }
@@ -612,7 +628,8 @@ export default class EventManager {
     createdEvents = createdEvents.concat(
       await Promise.all(
         this.calendarCredentials
-          .filter((cred) => cred.type.includes("other_calendar"))
+          // Backwards compatibility until CRM manager is created
+          .filter((cred) => cred.type.includes("other_calendar") || cred.type.includes("crm"))
           .map(async (cred) => await createEvent(cred, event))
       )
     );
@@ -784,7 +801,8 @@ export default class EventManager {
       // Taking care of non-traditional calendar integrations
       result = result.concat(
         this.calendarCredentials
-          .filter((cred) => cred.type.includes("other_calendar"))
+          // Backwards compatibility until CRM manager is created
+          .filter((cred) => cred.type.includes("other_calendar") && cred.type.includes("crm"))
           .map(async (cred) => {
             const calendarReference = booking.references.find((ref) => ref.type === cred.type);
 

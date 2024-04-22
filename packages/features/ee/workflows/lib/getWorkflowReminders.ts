@@ -23,7 +23,11 @@ type PartialBooking =
       | "responses"
       | "uid"
       | "attendees"
-    > & { eventType: Partial<EventType> | null } & { user: Partial<User> | null })
+      | "userPrimaryEmail"
+      | "smsReminderNumber"
+    > & { eventType: (Partial<EventType> & { team: { parentId?: number } }) | null } & {
+      user: Partial<User> | null;
+    })
   | null;
 
 export type PartialWorkflowReminder = Pick<
@@ -103,6 +107,62 @@ export async function getAllRemindersToCancel(): Promise<RemindersToCancelType[]
   return remindersToCancel;
 }
 
+export const select: Prisma.WorkflowReminderSelect = {
+  id: true,
+  scheduledDate: true,
+  isMandatoryReminder: true,
+  workflowStep: {
+    select: {
+      action: true,
+      sendTo: true,
+      reminderBody: true,
+      emailSubject: true,
+      template: true,
+      sender: true,
+      includeCalendarEvent: true,
+    },
+  },
+  booking: {
+    select: {
+      startTime: true,
+      endTime: true,
+      location: true,
+      description: true,
+      smsReminderNumber: true,
+      userPrimaryEmail: true,
+      user: {
+        select: {
+          email: true,
+          name: true,
+          timeZone: true,
+          locale: true,
+          username: true,
+          timeFormat: true,
+          hideBranding: true,
+        },
+      },
+      metadata: true,
+      uid: true,
+      customInputs: true,
+      responses: true,
+      attendees: true,
+      eventType: {
+        select: {
+          bookingFields: true,
+          title: true,
+          slug: true,
+          recurringEvent: true,
+          team: {
+            select: {
+              parentId: true,
+            },
+          },
+        },
+      },
+    },
+  },
+};
+
 export async function getAllUnscheduledReminders(): Promise<PartialWorkflowReminder[]> {
   const whereFilter: Prisma.WorkflowReminderWhereInput = {
     method: WorkflowMethods.EMAIL,
@@ -111,55 +171,6 @@ export async function getAllUnscheduledReminders(): Promise<PartialWorkflowRemin
       lte: dayjs().add(72, "hour").toISOString(),
     },
     OR: [{ cancelled: false }, { cancelled: null }],
-  };
-
-  const select: Prisma.WorkflowReminderSelect = {
-    id: true,
-    scheduledDate: true,
-    isMandatoryReminder: true,
-    workflowStep: {
-      select: {
-        action: true,
-        sendTo: true,
-        reminderBody: true,
-        emailSubject: true,
-        template: true,
-        sender: true,
-        includeCalendarEvent: true,
-      },
-    },
-    booking: {
-      select: {
-        startTime: true,
-        endTime: true,
-        location: true,
-        description: true,
-        user: {
-          select: {
-            email: true,
-            name: true,
-            timeZone: true,
-            locale: true,
-            username: true,
-            timeFormat: true,
-            hideBranding: true,
-          },
-        },
-        metadata: true,
-        uid: true,
-        customInputs: true,
-        responses: true,
-        attendees: true,
-        eventType: {
-          select: {
-            bookingFields: true,
-            title: true,
-            slug: true,
-            recurringEvent: true,
-          },
-        },
-      },
-    },
   };
 
   const unscheduledReminders = (await getWorkflowReminders(whereFilter, select)) as PartialWorkflowReminder[];

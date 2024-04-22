@@ -6,7 +6,6 @@ import InviteLinkSettingsModal from "@calcom/ee/teams/components/InviteLinkSetti
 import MemberInvitationModal from "@calcom/ee/teams/components/MemberInvitationModal";
 import classNames from "@calcom/lib/classNames";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
-import { isOrganization } from "@calcom/lib/entityPermissionUtils";
 import { getTeamUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -30,18 +29,6 @@ import {
   showToast,
   Tooltip,
 } from "@calcom/ui";
-import {
-  Check,
-  Edit2,
-  ExternalLink,
-  Globe,
-  Link as LinkIcon,
-  LogOut,
-  MoreHorizontal,
-  Send,
-  Trash,
-  X,
-} from "@calcom/ui/components/icon";
 
 import { TeamRole } from "./TeamPill";
 
@@ -57,7 +44,7 @@ interface Props {
 export default function TeamListItem(props: Props) {
   const searchParams = useCompatSearchParams();
   const { t, i18n } = useLocale();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const user = trpc.viewer.me.useQuery().data;
   const team = props.team;
 
@@ -77,7 +64,7 @@ export default function TeamListItem(props: Props) {
       utils.viewer.teams.listInvites.invalidate();
       const userOrganizationId = user?.profile?.organization?.id;
       const isSubTeamOfDifferentOrg = team.parentId ? team.parentId != userOrganizationId : false;
-      const isDifferentOrg = isOrganization({ team }) && team.id !== userOrganizationId;
+      const isDifferentOrg = team.isOrganization && team.id !== userOrganizationId;
       // If the user team being accepted is a sub-team of different organization or the different organization itself then page must be reloaded to let the session change reflect reliably everywhere.
       if (variables.accept && (isSubTeamOfDifferentOrg || isDifferentOrg)) {
         window.location.reload();
@@ -101,15 +88,15 @@ export default function TeamListItem(props: Props) {
   const { hideDropdown, setHideDropdown } = props;
 
   if (!team) return <></>;
-  const teamUrl = isOrganization({ team })
+  const teamUrl = team.isOrganization
     ? getTeamUrlSync({ orgSlug: team.slug, teamSlug: null })
     : getTeamUrlSync({ orgSlug: team.parent ? team.parent.slug : null, teamSlug: team.slug });
   const teamInfo = (
     <div className="item-center flex px-5 py-5">
       <Avatar
         size="md"
-        imageSrc={getPlaceholderAvatar(team?.logo, team?.name as string)}
-        alt="Team Logo"
+        imageSrc={getPlaceholderAvatar(team?.logoUrl || team?.parent?.logoUrl, team?.name as string)}
+        alt="Team logo"
         className="inline-flex justify-center"
       />
       <div className="ms-3 inline-block truncate">
@@ -212,7 +199,7 @@ export default function TeamListItem(props: Props) {
                   type="button"
                   color="secondary"
                   data-testid={`accept-invitation-${team.id}`}
-                  StartIcon={Check}
+                  StartIcon="check"
                   className="me-2 ms-2"
                   onClick={acceptInvite}>
                   {t("accept")}
@@ -221,16 +208,16 @@ export default function TeamListItem(props: Props) {
               <div className="block sm:hidden">
                 <Dropdown>
                   <DropdownMenuTrigger asChild>
-                    <Button type="button" color="minimal" variant="icon" StartIcon={MoreHorizontal} />
+                    <Button type="button" color="minimal" variant="icon" StartIcon="ellipsis" />
                   </DropdownMenuTrigger>
                   <DropdownMenuContent>
                     <DropdownMenuItem>
-                      <DropdownItem type="button" StartIcon={Check} onClick={acceptInvite}>
+                      <DropdownItem type="button" StartIcon="check" onClick={acceptInvite}>
                         {t("accept")}
                       </DropdownItem>
                     </DropdownMenuItem>
                     <DropdownMenuItem>
-                      <DropdownItem color="destructive" type="button" StartIcon={X} onClick={declineInvite}>
+                      <DropdownItem color="destructive" type="button" StartIcon="x" onClick={declineInvite}>
                         {t("reject")}
                       </DropdownItem>
                     </DropdownMenuItem>
@@ -256,7 +243,7 @@ export default function TeamListItem(props: Props) {
                         showToast(t("link_copied"), "success");
                       }}
                       variant="icon"
-                      StartIcon={LinkIcon}
+                      StartIcon="link"
                     />
                   </Tooltip>
                 )}
@@ -267,7 +254,7 @@ export default function TeamListItem(props: Props) {
                       type="button"
                       color="secondary"
                       variant="icon"
-                      StartIcon={MoreHorizontal}
+                      StartIcon="ellipsis"
                     />
                   </DropdownMenuTrigger>
                   <DropdownMenuContent hidden={hideDropdown}>
@@ -276,7 +263,7 @@ export default function TeamListItem(props: Props) {
                         <DropdownItem
                           type="button"
                           href={`/settings/teams/${team.id}/profile`}
-                          StartIcon={Edit2}>
+                          StartIcon="pencil">
                           {t("edit_team") as string}
                         </DropdownItem>
                       </DropdownMenuItem>
@@ -291,7 +278,7 @@ export default function TeamListItem(props: Props) {
                             orgSlug: team.parent ? team.parent.slug : null,
                             teamSlug: team.slug,
                           })}`}
-                          StartIcon={ExternalLink}>
+                          StartIcon="external-link">
                           {t("preview_team") as string}
                         </DropdownItem>
                       </DropdownMenuItem>
@@ -303,7 +290,7 @@ export default function TeamListItem(props: Props) {
                           onClick={() => {
                             setOpenMemberInvitationModal(true);
                           }}
-                          StartIcon={Send}>
+                          StartIcon="send">
                           {t("invite_team_member") as string}
                         </DropdownItem>
                       </DropdownMenuItem>
@@ -316,7 +303,7 @@ export default function TeamListItem(props: Props) {
                             <DropdownItem
                               color="destructive"
                               type="button"
-                              StartIcon={Trash}
+                              StartIcon="trash"
                               onClick={(e) => {
                                 e.stopPropagation();
                               }}>
@@ -344,7 +331,7 @@ export default function TeamListItem(props: Props) {
                             <DropdownItem
                               color="destructive"
                               type="button"
-                              StartIcon={LogOut}
+                              StartIcon="log-out"
                               onClick={(e) => {
                                 e.stopPropagation();
                               }}>
@@ -391,7 +378,7 @@ const TeamPublishButton = ({ teamId }: { teamId: number }) => {
         onClick={() => {
           publishTeamMutation.mutate({ teamId });
         }}
-        StartIcon={Globe}>
+        StartIcon="globe">
         {t("team_publish")}
       </DropdownItem>
     </DropdownMenuItem>

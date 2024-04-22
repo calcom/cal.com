@@ -38,6 +38,7 @@ export const buildBooking = (booking?: Partial<Booking>): Booking => {
     uid,
     userId: null,
     eventTypeId: null,
+    idempotencyKey: null,
     userPrimaryEmail: null,
     title: faker.lorem.sentence(),
     description: faker.lorem.paragraph(),
@@ -64,6 +65,9 @@ export const buildBooking = (booking?: Partial<Booking>): Booking => {
     isRecorded: false,
     iCalUID: getICalUID({ uid }),
     iCalSequence: 0,
+    rating: null,
+    noShowHost: null,
+    ratingFeedback: null,
     ...booking,
   };
 };
@@ -116,6 +120,7 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     bookingFields: [],
     parentId: null,
     profileId: null,
+    secondaryEmailId: null,
     ...eventType,
   };
 };
@@ -134,6 +139,7 @@ export const buildWebhook = (webhook?: Partial<Webhook>): Webhook => {
     eventTriggers: [],
     teamId: null,
     ...webhook,
+    platform: false,
   };
 };
 
@@ -187,12 +193,52 @@ export const buildCalendarEvent = (
 };
 
 type UserPayload = Prisma.UserGetPayload<{
-  include: {
+  select: {
+    locked: true;
+    name: true;
+    email: true;
+    timeZone: true;
+    username: true;
+    id: true;
+    allowDynamicBooking: true;
     credentials: true;
     destinationCalendar: true;
     availability: true;
     selectedCalendars: true;
     schedules: true;
+    avatarUrl: true;
+    backupCodes: true;
+    bio: true;
+    brandColor: true;
+    completedOnboarding: true;
+    createdDate: true;
+    bufferTime: true;
+    darkBrandColor: true;
+    defaultScheduleId: true;
+    disableImpersonation: true;
+    emailVerified: true;
+    endTime: true;
+    hideBranding: true;
+    identityProvider: true;
+    identityProviderId: true;
+    invitedTo: true;
+    locale: true;
+    metadata: true;
+    role: true;
+    startTime: true;
+    theme: true;
+    appTheme: true;
+    timeFormat: true;
+    trialEndsAt: true;
+    twoFactorEnabled: true;
+    twoFactorSecret: true;
+    verified: true;
+    weekStart: true;
+    organizationId: true;
+    allowSEOIndexing: true;
+    receiveMonthlyDigestEmail: true;
+    movedToProfileId: true;
+    isPlatformManaged: true;
   };
 }>;
 export const buildUser = <T extends Partial<UserPayload>>(
@@ -207,9 +253,7 @@ export const buildUser = <T extends Partial<UserPayload>>(
     id: 0,
     allowDynamicBooking: true,
     availability: [],
-    avatar: "",
     avatarUrl: "",
-    away: false,
     backupCodes: null,
     bio: null,
     brandColor: "#292929",
@@ -246,6 +290,7 @@ export const buildUser = <T extends Partial<UserPayload>>(
     receiveMonthlyDigestEmail: null,
     movedToProfileId: null,
     priority: user?.priority ?? null,
+    isPlatformManaged: false,
     ...user,
   };
 };
