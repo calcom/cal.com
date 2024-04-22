@@ -4,7 +4,7 @@
   "slug": "autocheckin",
   "type": "autocheckin_automation",
   "logo": "icon.svg",
-  "url": "https://autocheckin.up.railway.app",
+  "url": "https://autocheckin.app",
   "variant": "automation",
   "categories": ["automation"],
   "publisher": "Patrick Goeler von Ravensburg",
