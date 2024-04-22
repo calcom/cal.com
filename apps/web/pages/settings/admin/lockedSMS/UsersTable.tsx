@@ -17,7 +17,7 @@ type User = {
   name: string | null;
   email: string;
   smsLockState: SMSLockState;
-  avatarUrl?: string | null;
+  avatarUrl: string | null;
 };
 
 type Team = {
@@ -104,7 +104,7 @@ const LockStatusTable = ({
                   <Avatar
                     size="md"
                     alt={`Avatar of ${user.username || "Nameless"}`}
-                    imageSrc={getUserAvatarUrl(user || null)}
+                    imageSrc={getUserAvatarUrl(user)}
                   />
                   <div className="text-subtle ml-4 font-medium">
                     <span className="text-default">{user.name}</span>
