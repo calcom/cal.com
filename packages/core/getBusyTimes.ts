@@ -158,21 +158,21 @@ export async function getBusyTimes(params: {
           rest._count.seatsReferences < eventType.seatsPerTimeSlot &&
           eventTypeId === eventType?.id
         ) {
-          if (eventType?.beforeEventBuffer) {
-            aggregate.push({
-              start: dayjs(startTime)
-                .subtract((eventType.beforeEventBuffer || 0) + (afterEventBuffer || 0), "minute")
-                .toDate(),
-              end: dayjs(startTime).toDate(),
-            });
-          }
-          if (eventType?.afterEventBuffer) {
-            aggregate.push({
-              start: dayjs(endTime).toDate(),
-              end: dayjs(endTime)
-                .add((eventType.afterEventBuffer || 0) + (beforeEventBuffer || 0), "minute")
-                .toDate(),
-            });
+          if (eventType?.beforeEventBuffer || eventType?.afterEventBuffer) {
+            aggregate.push(
+              {
+                start: dayjs(startTime)
+                  .subtract((eventType.beforeEventBuffer || 0) + (afterEventBuffer || 0), "minute")
+                  .toDate(),
+                end: dayjs(startTime).toDate(),
+              },
+              {
+                start: dayjs(endTime).toDate(),
+                end: dayjs(endTime)
+                  .add((eventType.afterEventBuffer || 0) + (beforeEventBuffer || 0), "minute")
+                  .toDate(),
+              }
+            );
           }
 
           // then we do not add the booking to the busyTimes.
