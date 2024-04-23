@@ -5,7 +5,7 @@ import { Trans } from "next-i18next";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import type { FC } from "react";
-import { memo, useEffect, useState } from "react";
+import { memo, useEffect, useState, useRef } from "react";
 import { z } from "zod";
 
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
@@ -277,7 +277,7 @@ export const EventTypeList = ({
     },
   });
 
-  async function moveEventType(index: number, increment: 1 | -1) {
+  async function moveEventType(index: number, increment: number) {
     const newList = [...types.map(normalizeEventType)];
 
     const type = types[index];
@@ -369,6 +369,18 @@ export const EventTypeList = ({
   });
 
   const [isNativeShare, setNativeShare] = useState(true);
+  const source = useRef<number>(0);
+  const destination = useRef<number>(0);
+
+  function handleOnDragEnd() {
+    const newIndex = destination.current;
+    const oldIndex = source.current;
+
+    if (newIndex === oldIndex) return;
+
+    moveEventType(oldIndex, newIndex - oldIndex);
+    source.current = null;
+  }
 
   useEffect(() => {
     if (!navigator.share) {
@@ -403,8 +415,14 @@ export const EventTypeList = ({
           const isChildrenManagedEventType =
             type.metadata?.managedEventConfig !== undefined && type.schedulingType !== SchedulingType.MANAGED;
           return (
-            <li key={type.id}>
-              <div className="hover:bg-muted flex w-full items-center justify-between transition">
+            <li
+              key={type.id}
+              draggable="true"
+              onDragStart={() => (source.current = index)}
+              onDragEnter={() => (destination.current = index)}
+              onDragEnd={handleOnDragEnd}
+              onDragOver={(e) => e.preventDefault()}>
+              <div className="hover:bg-muted flex w-full cursor-move items-center justify-between">
                 <div className="group flex w-full max-w-full items-center justify-between overflow-hidden px-4 py-4 sm:px-6">
                   {!(firstItem && firstItem.id === type.id) && (
                     <ArrowButton onClick={() => moveEventType(index, -1)} arrowDirection="up" />
