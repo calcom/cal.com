@@ -3,7 +3,7 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import type { ComponentProps } from "react";
-import React, { Suspense, useEffect, useState } from "react";
+import React, { Suspense, useEffect, useState, useMemo } from "react";
 
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import Shell from "@calcom/features/shell/Shell";
@@ -135,41 +135,59 @@ tabs.find((tab) => {
 // The following keys are assigned to admin only
 const adminRequiredKeys = ["admin"];
 const organizationRequiredKeys = ["organization"];
+const organizationAdminKeys = ["privacy", "appearance", "billing", "OAuth Clients", "SSO", "directory_sync"];
 
 const useTabs = () => {
   const session = useSession();
   const { data: user } = trpc.viewer.me.useQuery({ includePasswordAdded: true });
   const orgBranding = useOrgBranding();
   const isAdmin = session.data?.user.role === UserPermissionRole.ADMIN;
+  const isOrgAdminOrOwner =
+    orgBranding?.role === MembershipRole.ADMIN || orgBranding?.role === MembershipRole.OWNER;
 
-  tabs.map((tab) => {
-    if (tab.href === "/settings/my-account") {
-      tab.name = user?.name || "my_account";
-      tab.icon = undefined;
-      tab.avatar = getUserAvatarUrl(user);
-    } else if (tab.href === "/settings/organizations") {
-      tab.name = orgBranding?.name || "organization";
-      tab.avatar = getPlaceholderAvatar(orgBranding?.logoUrl, orgBranding?.name);
-    } else if (
-      tab.href === "/settings/security" &&
-      user?.identityProvider === IdentityProvider.GOOGLE &&
-      !user?.twoFactorEnabled &&
-      !user?.passwordAdded
-    ) {
-      tab.children = tab?.children?.filter(
-        (childTab) => childTab.href !== "/settings/security/two-factor-auth"
-      );
-    }
-    return tab;
-  });
+  const processTabsMemod = useMemo(() => {
+    const processedTabs = tabs.map((tab) => {
+      if (tab.href === "/settings/my-account") {
+        return {
+          ...tab,
+          name: user?.name || "my_account",
+          icon: undefined,
+          avatar: getUserAvatarUrl(user),
+        };
+      } else if (tab.href === "/settings/organizations") {
+        const newArray = (tab?.children ?? []).filter(
+          (child) => isOrgAdminOrOwner || !organizationAdminKeys.includes(child.name)
+        );
+        return {
+          ...tab,
+          children: newArray,
+          name: orgBranding?.name || "organization",
+          avatar: getPlaceholderAvatar(orgBranding?.logoUrl, orgBranding?.name),
+        };
+      } else if (
+        tab.href === "/settings/security" &&
+        user?.identityProvider === IdentityProvider.GOOGLE &&
+        !user?.twoFactorEnabled &&
+        !user?.passwordAdded
+      ) {
+        const filtered = tab?.children?.filter(
+          (childTab) => childTab.href !== "/settings/security/two-factor-auth"
+        );
+        return { ...tab, children: filtered };
+      }
+      return tab;
+    });
 
-  // check if name is in adminRequiredKeys
-  return tabs.filter((tab) => {
-    if (organizationRequiredKeys.includes(tab.name)) return !!session.data?.user?.org;
+    // check if name is in adminRequiredKeys
+    return processedTabs.filter((tab) => {
+      if (organizationRequiredKeys.includes(tab.name)) return !!orgBranding;
 
-    if (isAdmin) return true;
-    return !adminRequiredKeys.includes(tab.name);
-  });
+      if (isAdmin) return true;
+      return !adminRequiredKeys.includes(tab.name);
+    });
+  }, [isAdmin, orgBranding, isOrgAdminOrOwner, user]);
+
+  return processTabsMemod;
 };
 
 const BackButtonInSidebar = ({ name }: { name: string }) => {

@@ -24,7 +24,7 @@ const MembersView = () => {
       <Meta title={t("organization_members")} description={t("organization_description")} />
       <div>{!isPending && canLoggedInUserSeeMembers && <UserListTable />}</div>
       {!canLoggedInUserSeeMembers && (
-        <div className="border-subtle rounded-xl border p-6">
+        <div className="border-subtle rounded-xl border p-6" data-testId="members-privacy-warning">
           <h2 className="text-default">{t("only_admin_can_see_members_of_org")}</h2>
         </div>
       )}
