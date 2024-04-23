@@ -4,6 +4,7 @@ import type {
   Row,
   SortingState,
   VisibilityState,
+  Table as TableType,
 } from "@tanstack/react-table";
 import {
   flexRender,
@@ -33,6 +34,7 @@ export interface DataTableProps<TData, TValue> {
   onSearch?: (value: string) => void;
   filterableItems?: FilterableItems;
   selectionOptions?: ActionItem<TData>[];
+  renderAboveSelection?: (table: TableType<TData>) => React.ReactNode;
   tableCTA?: React.ReactNode;
   isPending?: boolean;
   onRowMouseclick?: (row: Row<TData>) => void;
@@ -53,6 +55,7 @@ export function DataTable<TData, TValue>({
   isPending,
   tableOverlay,
   variant,
+  renderAboveSelection,
   /** This should only really be used if you dont have actions in a row. */
   onSearch,
   onRowMouseclick,
@@ -169,7 +172,11 @@ export function DataTable<TData, TValue>({
         </Table>
       </div>
       {/* <DataTablePagination table={table} /> */}
-      <DataTableSelectionBar table={table} actions={selectionOptions} />
+      <DataTableSelectionBar
+        table={table}
+        actions={selectionOptions}
+        renderAboveSelection={renderAboveSelection}
+      />
     </div>
   );
 }

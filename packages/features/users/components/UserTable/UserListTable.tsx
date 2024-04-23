@@ -1,5 +1,6 @@
 import { keepPreviousData } from "@tanstack/react-query";
-import type { ColumnDef } from "@tanstack/react-table";
+import type { ColumnDef, Table } from "@tanstack/react-table";
+import { m } from "framer-motion";
 import { useSession } from "next-auth/react";
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 
@@ -117,6 +118,7 @@ export function UserListTable() {
   const { t } = useLocale();
   const orgBranding = useOrgBranding();
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+  const [dynamicLinkVisible, setDynamicLinkVisible] = useState(false);
   const { data, isPending, fetchNextPage, isFetching } =
     trpc.viewer.organizations.listMembers.useInfiniteQuery(
       {
@@ -325,6 +327,15 @@ export function UserListTable() {
             render: (table) => <TeamListBulkAction table={table} />,
           },
           {
+            type: "action",
+            icon: "handshake",
+            label: "Group Meeting",
+            needsXSelected: 2,
+            onClick: () => {
+              setDynamicLinkVisible((old) => !old);
+            },
+          },
+          {
             type: "render",
             render: (table) => (
               <DeleteBulkUsers
@@ -334,6 +345,35 @@ export function UserListTable() {
             ),
           },
         ]}
+        renderAboveSelection={(table: Table<User>) => {
+          const numberOfSelectedRows = table.getSelectedRowModel().rows.length;
+          const isVisible = numberOfSelectedRows >= 2 && dynamicLinkVisible;
+
+          const users = table.getSelectedRowModel().flatRows.map((row) => row.original.username);
+          const usersNameAsString = users.join("+");
+
+          const domainWithouthttps = domain.replace(/https?:\/\//g, "");
+
+          const dynamicLinkOfSelectedUsers = `${domainWithouthttps}/${usersNameAsString}`;
+
+          return (
+            <>
+              {isVisible ? (
+                <m.div className="bg-brand-default text-inverted item-center animate-fade-in-bottom hidden gap-1 rounded-lg p-2 text-sm font-medium leading-none md:flex">
+                  <div className="flex w-full items-center truncate whitespace-nowrap p-2">
+                    {dynamicLinkOfSelectedUsers}
+                  </div>
+                  <Button StartIcon="copy" size="sm">
+                    Copy
+                  </Button>
+                  <Button EndIcon="external-link" size="sm">
+                    Open
+                  </Button>
+                </m.div>
+              ) : null}
+            </>
+          );
+        }}
         tableContainerRef={tableContainerRef}
         tableCTA={
           adminOrOwner && (
