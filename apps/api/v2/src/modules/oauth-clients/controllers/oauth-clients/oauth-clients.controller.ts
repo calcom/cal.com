@@ -3,12 +3,17 @@ import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { NextAuthGuard } from "@/modules/auth/guards/next-auth/next-auth.guard";
 import { OrganizationRolesGuard } from "@/modules/auth/guards/organization-roles/organization-roles.guard";
+import { ManagedUserOutput } from "@/modules/oauth-clients/controllers/oauth-client-users/outputs/managed-user.output";
 import { CreateOAuthClientResponseDto } from "@/modules/oauth-clients/controllers/oauth-clients/responses/CreateOAuthClientResponse.dto";
-import { GetOAuthClientResponseDto } from "@/modules/oauth-clients/controllers/oauth-clients/responses/GetOAuthClientResponse.dto";
+import {
+  GetOAuthClientResponseDto,
+  GetOAuthClientManagedUsersResponseDto,
+} from "@/modules/oauth-clients/controllers/oauth-clients/responses/GetOAuthClientResponse.dto";
 import { GetOAuthClientsResponseDto } from "@/modules/oauth-clients/controllers/oauth-clients/responses/GetOAuthClientsResponse.dto";
 import { UpdateOAuthClientInput } from "@/modules/oauth-clients/inputs/update-oauth-client.input";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { UserWithProfile } from "@/modules/users/users.repository";
+import { UsersRepository } from "@/modules/users/users.repository";
 import {
   Body,
   Controller,
@@ -30,6 +35,7 @@ import {
   ApiCreatedResponse as DocsCreatedResponse,
 } from "@nestjs/swagger";
 import { MembershipRole } from "@prisma/client";
+import { User } from "@prisma/client";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { CreateOAuthClientInput } from "@calcom/platform-types";
@@ -47,7 +53,10 @@ Second, make sure that the logged in user has organizationId set to pass the Org
 export class OAuthClientsController {
   private readonly logger = new Logger("OAuthClientController");
 
-  constructor(private readonly oauthClientRepository: OAuthClientRepository) {}
+  constructor(
+    private readonly oauthClientRepository: OAuthClientRepository,
+    private readonly userRepository: UsersRepository
+  ) {}
 
   @Post("/")
   @HttpCode(HttpStatus.CREATED)
@@ -98,6 +107,21 @@ export class OAuthClientsController {
     return { status: SUCCESS_STATUS, data: client };
   }
 
+  @Get("/managed-users/:clientId")
+  @HttpCode(HttpStatus.OK)
+  @Roles([MembershipRole.ADMIN, MembershipRole.OWNER, MembershipRole.MEMBER])
+  @DocsOperation({ description: AUTH_DOCUMENTATION })
+  async getOAuthClientManagedUsersById(
+    @Param("clientId") clientId: string
+  ): Promise<GetOAuthClientManagedUsersResponseDto> {
+    const existingManagedUsers = await this.userRepository.findManagedUsersByOAuthClientId(clientId, 0, 50); // second argument is for offset while third is for limit
+
+    if (!existingManagedUsers) {
+      throw new NotFoundException(`OAuth client with ID ${clientId} does not have any managed users`);
+    }
+    return { status: SUCCESS_STATUS, data: existingManagedUsers.map((user) => this.getResponseUser(user)) };
+  }
+
   @Patch("/:clientId")
   @HttpCode(HttpStatus.OK)
   @Roles([MembershipRole.ADMIN, MembershipRole.OWNER])
@@ -119,5 +143,18 @@ export class OAuthClientsController {
     this.logger.log(`Deleting OAuth Client with ID: ${clientId}`);
     const client = await this.oauthClientRepository.deleteOAuthClient(clientId);
     return { status: SUCCESS_STATUS, data: client };
+  }
+
+  private getResponseUser(user: User): ManagedUserOutput {
+    return {
+      id: user.id,
+      email: user.email,
+      username: user.username,
+      timeZone: user.timeZone,
+      weekStart: user.weekStart,
+      createdDate: user.createdDate,
+      timeFormat: user.timeFormat,
+      defaultScheduleId: user.defaultScheduleId,
+    };
   }
 }
