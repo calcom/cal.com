@@ -38,8 +38,6 @@ export const OAuthClientCard = ({
   isLoading,
   areEmailsEnabled,
 }: OAuthClientCardProps) => {
-  console.log(areEmailsEnabled);
-
   const clientPermissions = Object.values(PERMISSIONS_GROUPED_MAP).map((value, index) => {
     let permissionsMessage = "";
     const hasReadPermission = hasPermission(permissions, value.read);
@@ -114,7 +112,7 @@ export const OAuthClientCard = ({
         </div>
         <div className="border-subtle flex text-sm">
           <span className="font-semibold">Permissions: </span>
-          <div className="flex">{clientPermissions}</div>
+          {permissions ? <div className="flex">{clientPermissions}</div> : <>&nbsp;Disabled</>}
         </div>
         <div className="flex gap-1 text-sm">
           <span className="font-semibold">Redirect uris: </span>

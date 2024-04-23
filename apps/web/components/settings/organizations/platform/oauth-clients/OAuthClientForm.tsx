@@ -6,7 +6,7 @@ import { useForm, useFieldArray } from "react-hook-form";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { PERMISSIONS_GROUPED_MAP } from "@calcom/platform-constants/permissions";
 import { showToast } from "@calcom/ui";
-import { Meta, Button, TextField, Label, Tooltip } from "@calcom/ui";
+import { Button, TextField, Label, Tooltip } from "@calcom/ui";
 
 import { useCreateOAuthClient } from "@lib/hooks/settings/organizations/platform/oauth-clients/usePersistOAuthClient";
 
@@ -62,7 +62,7 @@ export const OAuthClientForm: FC = () => {
   const { mutateAsync, isPending } = useCreateOAuthClient({
     onSuccess: () => {
       showToast("OAuth client created successfully", "success");
-      router.push("/settings/organizations/platform/oauth-clients");
+      router.push("/settings/platform/");
     },
     onError: () => {
       showToast("Internal server error, please try again later", "error");
@@ -132,11 +132,6 @@ export const OAuthClientForm: FC = () => {
 
   return (
     <div>
-      <Meta
-        title={t("oauth_form_title")}
-        description={t("oauth_form_description")}
-        borderInShellHeader={true}
-      />
       <form
         className="border-subtle rounded-b-lg border border-t-0 px-4 pb-8 pt-2"
         onSubmit={handleSubmit(onSubmit)}>
