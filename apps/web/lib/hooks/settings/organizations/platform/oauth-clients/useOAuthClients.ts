@@ -28,11 +28,17 @@ export const useOAuthClients = () => {
   return { ...query, data: query.data?.data ?? [] };
 };
 
-export const useOAuthClient = (clientId: string) => {
+export const useOAuthClient = (clientId?: string) => {
   const {
     isLoading,
     error,
     data: response,
+    isFetched,
+    isError,
+    isFetching,
+    isSuccess,
+    isFetchedAfterMount,
+    refetch,
   } = useQuery<ApiSuccessResponse<PlatformOAuthClient>>({
     queryKey: ["oauth-client", clientId],
     queryFn: () => {
@@ -41,9 +47,21 @@ export const useOAuthClient = (clientId: string) => {
         headers: { "Content-type": "application/json" },
       }).then((res) => res.json());
     },
+    enabled: clientId !== undefined,
+    staleTime: Infinity,
   });
 
-  return { isLoading, error, data: response?.data };
+  return {
+    isLoading,
+    error,
+    data: response?.data,
+    isFetched,
+    isError,
+    isFetching,
+    isSuccess,
+    isFetchedAfterMount,
+    refetch,
+  };
 };
 export const useGetOAuthClientManagedUsers = (clientId: string) => {
   const {

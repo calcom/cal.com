@@ -14,7 +14,7 @@ import { PROFILE_READ, PROFILE_WRITE, SUCCESS_STATUS } from "@calcom/platform-co
 import { userSchemaResponse } from "@calcom/platform-types";
 
 @Controller({
-  path: "ee/me",
+  path: "/me",
   version: "2",
 })
 @UseGuards(AccessTokenGuard, PermissionsGuard)

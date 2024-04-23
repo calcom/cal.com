@@ -3,7 +3,7 @@ import { IsBoolean, IsNumber, IsOptional } from "class-validator";
 
 import type { AppsStatus } from "@calcom/platform-libraries";
 
-export class CreateReccuringBookingInput extends CreateBookingInput {
+export class CreateRecurringBookingInput extends CreateBookingInput {
   @IsBoolean()
   @IsOptional()
   noEmail?: boolean;

@@ -42,9 +42,6 @@ export function isEmailToAttendeeAction(action: WorkflowActions) {
   return action === WorkflowActions.EMAIL_ATTENDEE;
 }
 
-export function isTextMessageToAttendeeAction(action?: WorkflowActions) {
-  return action === WorkflowActions.SMS_ATTENDEE || action === WorkflowActions.WHATSAPP_ATTENDEE;
-}
 export function isTextMessageToSpecificNumber(action?: WorkflowActions) {
   return action === WorkflowActions.SMS_NUMBER || action === WorkflowActions.WHATSAPP_NUMBER;
 }
@@ -65,7 +62,7 @@ export function getWhatsappTemplateForTrigger(trigger: WorkflowTriggerEvents): W
   }
 }
 
-export function getWhatsappTemplateFunction(template: WorkflowTemplates): typeof whatsappReminderTemplate {
+export function getWhatsappTemplateFunction(template?: WorkflowTemplates): typeof whatsappReminderTemplate {
   switch (template) {
     case "CANCELLED":
       return whatsappEventCancelledTemplate;

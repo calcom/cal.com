@@ -221,7 +221,7 @@ const CreateANewOrganizationFormChild = ({
                         name="seats"
                         type="number"
                         label="Seats (optional)"
-                        min={MINIMUM_NUMBER_OF_ORG_SEATS}
+                        min={isAdmin ? 1 : MINIMUM_NUMBER_OF_ORG_SEATS}
                         defaultValue={value || MINIMUM_NUMBER_OF_ORG_SEATS}
                         onChange={(e) => {
                           onChange(+e.target.value);

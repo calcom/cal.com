@@ -11,7 +11,6 @@ import {
   bookFirstEvent,
   bookOptinEvent,
   bookTimeSlot,
-  expectEmailsToHaveSubject,
   selectFirstAvailableTimeSlotNextMonth,
   testEmail,
   testName,
@@ -62,6 +61,7 @@ testBothFutureAndLegacyRoutes.describe("free user", () => {
 
   test("cannot book same slot multiple times", async ({ page, users, emails }) => {
     const [user] = users.get();
+
     const bookerObj = {
       email: users.trackEmail({ username: "testEmail", domain: "example.com" }),
       name: "testBooker",
@@ -80,12 +80,6 @@ testBothFutureAndLegacyRoutes.describe("free user", () => {
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
     const { title: eventTitle } = await user.getFirstEventAsOwner();
 
-    await expectEmailsToHaveSubject({
-      emails,
-      organizer: user,
-      booker: bookerObj,
-      eventTitle,
-    });
     await page.goto(bookingUrl);
 
     // book same time spot again

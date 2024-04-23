@@ -115,7 +115,7 @@ describe("Bookings Endpoints", () => {
       };
 
       return request(app.getHttpServer())
-        .post("/api/v2/ee/bookings")
+        .post("/v2/bookings")
         .send(body)
         .expect(201)
         .then(async (response) => {
@@ -138,7 +138,7 @@ describe("Bookings Endpoints", () => {
 
     it("should get bookings", async () => {
       return request(app.getHttpServer())
-        .get("/api/v2/ee/bookings?filters[status]=upcoming")
+        .get("/v2/bookings?filters[status]=upcoming")
         .then((response) => {
           console.log("asap responseBody", JSON.stringify(response.body, null, 2));
           const responseBody: GetBookingsOutput = response.body;
@@ -159,7 +159,7 @@ describe("Bookings Endpoints", () => {
 
     it("should get booking", async () => {
       return request(app.getHttpServer())
-        .get(`/api/v2/ee/bookings/${createdBooking.uid}`)
+        .get(`/v2/bookings/${createdBooking.uid}`)
         .then((response) => {
           const responseBody: GetBookingOutput = response.body;
           const bookingInfo = responseBody.data;
@@ -199,7 +199,7 @@ describe("Bookings Endpoints", () => {
     //   };
 
     //   return request(app.getHttpServer())
-    //     .post("/api/v2/ee/bookings/reccuring")
+    //     .post("/v2/bookings/recurring")
     //     .send(body)
     //     .expect(201)
     //     .then((response) => {
@@ -231,7 +231,7 @@ describe("Bookings Endpoints", () => {
     //   };
 
     //   return request(app.getHttpServer())
-    //     .post("/api/v2/ee/bookings/instant")
+    //     .post("/v2/bookings/instant")
     //     .send(body)
     //     .expect(201)
     //     .then((response) => {
@@ -250,7 +250,7 @@ describe("Bookings Endpoints", () => {
       };
 
       return request(app.getHttpServer())
-        .post(`/api/v2/ee/bookings/${bookingId}/cancel`)
+        .post(`/v2/bookings/${bookingId}/cancel`)
         .send(body)
         .expect(201)
         .then((response) => {
