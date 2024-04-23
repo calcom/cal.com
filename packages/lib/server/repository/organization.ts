@@ -53,6 +53,7 @@ export class OrganizationRepository {
           orgPricePerSeat: orgData.pricePerSeat,
           isPlatform: orgData.isPlatform,
         },
+        isPlatform: orgData.isPlatform,
       },
     });
 
