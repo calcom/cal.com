@@ -1,15 +1,8 @@
 import type { Calendar as OfficeCalendar, User } from "@microsoft/microsoft-graph-types-beta";
 import type { DefaultBodyType } from "msw";
-import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
 import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
-import {
-  APP_CREDENTIAL_SHARING_ENABLED,
-  CREDENTIAL_SYNC_ENDPOINT,
-  CREDENTIAL_SYNC_SECRET,
-  CREDENTIAL_SYNC_SECRET_HEADER_NAME,
-} from "@calcom/lib/constants";
 import { handleErrorsJson, handleErrorsRaw } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
 import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
@@ -22,11 +15,9 @@ import type {
 } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
-import { invalidateCredential } from "../../_utils/invalidateCredential";
 import { OAuthManager } from "../../_utils/oauth/OAuthManager";
 import { getTokenObjectFromCredential } from "../../_utils/oauth/getTokenObjectFromCredential";
-import { markTokenAsExpired } from "../../_utils/oauth/markTokenAsExpired";
-import { updateTokenObject } from "../../_utils/oauth/updateTokenObject";
+import { oAuthManagerHelper } from "../../_utils/oauth/oAuthManagerHelper";
 import metadata from "../_metadata";
 import { getOfficeAppKeys } from "./getOfficeAppKeys";
 
@@ -56,14 +47,6 @@ interface BodyValue {
   start: { dateTime: string };
 }
 
-const refreshTokenResponseSchema = z.object({
-  access_token: z.string(),
-  expires_in: z
-    .number()
-    .transform((currentTimeOffsetInSeconds) => Math.round(+new Date() / 1000 + currentTimeOffsetInSeconds)),
-  refresh_token: z.string().optional(),
-});
-
 export default class Office365CalendarService implements Calendar {
   private url = "";
   private integrationName = "";
@@ -77,12 +60,7 @@ export default class Office365CalendarService implements Calendar {
     const tokenResponse = getTokenObjectFromCredential(credential);
 
     this.auth = new OAuthManager({
-      credentialSyncVariables: {
-        APP_CREDENTIAL_SHARING_ENABLED: APP_CREDENTIAL_SHARING_ENABLED,
-        CREDENTIAL_SYNC_ENDPOINT: CREDENTIAL_SYNC_ENDPOINT,
-        CREDENTIAL_SYNC_SECRET: CREDENTIAL_SYNC_SECRET,
-        CREDENTIAL_SYNC_SECRET_HEADER_NAME: CREDENTIAL_SYNC_SECRET_HEADER_NAME,
-      },
+      credentialSyncVariables: oAuthManagerHelper.credentialSyncVariables,
       resourceOwner: {
         type: "user",
         id: credential.userId,
@@ -115,9 +93,10 @@ export default class Office365CalendarService implements Calendar {
         // TODO: Implement this
         return null;
       },
-      invalidateTokenObject: () => invalidateCredential(credential.id),
-      expireAccessToken: () => markTokenAsExpired(credential),
-      updateTokenObject: (tokenObject) => updateTokenObject({ tokenObject, credentialId: credential.id }),
+      invalidateTokenObject: () => oAuthManagerHelper.invalidateCredential(credential.id),
+      expireAccessToken: () => oAuthManagerHelper.markTokenAsExpired(credential),
+      updateTokenObject: (tokenObject) =>
+        oAuthManagerHelper.updateTokenObject({ tokenObject, credentialId: credential.id }),
     });
 
     this.credential = credential;
