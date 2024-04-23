@@ -364,10 +364,10 @@ export function UserListTable() {
           return (
             <>
               {isVisible ? (
-                <m.div className="bg-brand-default text-inverted item-center animate-fade-in-bottom hidden gap-1 rounded-lg p-2 text-sm font-medium leading-none md:flex">
-                  <div className="flex w-full items-center truncate whitespace-nowrap p-2">
+                <m.div className="bg-brand-default text-inverted item-center animate-fade-in-bottom hidden w-full gap-1 rounded-lg p-2 text-sm font-medium leading-none md:flex">
+                  <p className="inline-flex items-center truncate whitespace-nowrap p-2">
                     {domainWithouthttps}
-                  </div>
+                  </p>
                   <Button
                     StartIcon="copy"
                     size="sm"
