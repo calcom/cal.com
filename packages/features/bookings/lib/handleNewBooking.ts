@@ -2354,7 +2354,6 @@ async function handler(
       isFirstRecurringEvent: true,
       hideBranding: !!eventType.owner?.hideBranding,
       seatReferenceUid: evt.attendeeSeatId,
-      eventTypeRequiresConfirmation: eventType.requiresConfirmation,
     });
   } catch (error) {
     loggerWithEventDetails.error("Error while scheduling workflow reminders", JSON.stringify({ error }));

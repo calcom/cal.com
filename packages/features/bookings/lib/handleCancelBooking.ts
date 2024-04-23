@@ -316,7 +316,6 @@ async function handler(req: CustomRequest) {
         ...{ eventType: { slug: bookingToDelete.eventType.slug } },
       },
       hideBranding: !!bookingToDelete.eventType.owner?.hideBranding,
-      eventTypeRequiresConfirmation: bookingToDelete.eventType.requiresConfirmation,
     });
   }
 

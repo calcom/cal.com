@@ -175,8 +175,7 @@ export const AddActionDialog = (props: IAddActionDialog) => {
                         label: string;
                         value: WorkflowActions;
                         needsTeamsUpgrade: boolean;
-                        needsOrgsUpgrade: boolean;
-                      }) => option.needsTeamsUpgrade || option.needsOrgsUpgrade}
+                      }) => option.needsTeamsUpgrade}
                     />
                   );
                 }}

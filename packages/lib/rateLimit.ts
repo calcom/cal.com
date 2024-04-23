@@ -6,7 +6,7 @@ import logger from "./logger";
 const log = logger.getSubLogger({ prefix: ["RateLimit"] });
 
 export type RateLimitHelper = {
-  rateLimitingType?: "core" | "forcedSlowMode" | "common" | "api" | "ai";
+  rateLimitingType?: "core" | "forcedSlowMode" | "common" | "api" | "ai" | "sms" | "smsMonth";
   identifier: string;
   opts?: LimitOptions;
   /**
@@ -77,6 +77,22 @@ export function rateLimiter() {
       namespace: "ai",
       limit: 20,
       duration: "1d",
+      async: true,
+      timeout,
+    }),
+    sms: new Ratelimit({
+      rootKey: UNKEY_ROOT_KEY,
+      namespace: "sms",
+      limit: 50,
+      duration: "5m",
+      async: true,
+      timeout,
+    }),
+    smsMonth: new Ratelimit({
+      rootKey: UNKEY_ROOT_KEY,
+      namespace: "smsMonth",
+      limit: 250,
+      duration: "30d",
       async: true,
       timeout,
     }),

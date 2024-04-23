@@ -56,6 +56,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (!reminder.workflowStep || !reminder.booking) {
       continue;
     }
+    const userId = reminder.workflowStep.workflow.userId;
+    const teamId = reminder.workflowStep.workflow.teamId;
+
     try {
       const sendTo =
         reminder.workflowStep.action === WorkflowActions.SMS_NUMBER
@@ -141,17 +144,26 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       }
 
       if (message?.length && message?.length > 0 && sendTo) {
-        const scheduledSMS = await twilio.scheduleSMS(sendTo, message, reminder.scheduledDate, senderID);
+        const scheduledSMS = await twilio.scheduleSMS(
+          sendTo,
+          message,
+          reminder.scheduledDate,
+          senderID,
+          userId,
+          teamId
+        );
 
-        await prisma.workflowReminder.update({
-          where: {
-            id: reminder.id,
-          },
-          data: {
-            scheduled: true,
-            referenceId: scheduledSMS.sid,
-          },
-        });
+        if (scheduledSMS) {
+          await prisma.workflowReminder.update({
+            where: {
+              id: reminder.id,
+            },
+            data: {
+              scheduled: true,
+              referenceId: scheduledSMS.sid,
+            },
+          });
+        }
       }
     } catch (error) {
       console.log(`Error scheduling SMS with error ${error}`);

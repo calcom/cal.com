@@ -86,6 +86,7 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
     isVerificationPending = false,
     seatReferenceUid,
   } = args;
+
   const { startTime, endTime } = evt;
   const uid = evt.uid as string;
   const currentDate = dayjs();
@@ -184,7 +185,7 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
       triggerEvent === WorkflowTriggerEvents.RESCHEDULE_EVENT
     ) {
       try {
-        await twilio.sendSMS(reminderPhone, smsMessage, senderID);
+        await twilio.sendSMS(reminderPhone, smsMessage, senderID, userId, teamId);
       } catch (error) {
         log.error(`Error sending SMS with error ${error}`);
       }
@@ -203,20 +204,24 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
             reminderPhone,
             smsMessage,
             scheduledDate.toDate(),
-            senderID
+            senderID,
+            userId,
+            teamId
           );
 
-          await prisma.workflowReminder.create({
-            data: {
-              bookingUid: uid,
-              workflowStepId: workflowStepId,
-              method: WorkflowMethods.SMS,
-              scheduledDate: scheduledDate.toDate(),
-              scheduled: true,
-              referenceId: scheduledSMS.sid,
-              seatReferenceId: seatReferenceUid,
-            },
-          });
+          if (scheduledSMS) {
+            await prisma.workflowReminder.create({
+              data: {
+                bookingUid: uid,
+                workflowStepId: workflowStepId,
+                method: WorkflowMethods.SMS,
+                scheduledDate: scheduledDate.toDate(),
+                scheduled: true,
+                referenceId: scheduledSMS.sid,
+                seatReferenceId: seatReferenceUid,
+              },
+            });
+          }
         } catch (error) {
           log.error(`Error scheduling SMS with error ${error}`);
         }

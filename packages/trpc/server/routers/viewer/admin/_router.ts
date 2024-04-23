@@ -6,6 +6,7 @@ import { ZListMembersSchema } from "./listPaginated.schema";
 import { ZAdminLockUserAccountSchema } from "./lockUserAccount.schema";
 import { ZAdminRemoveTwoFactor } from "./removeTwoFactor.schema";
 import { ZAdminPasswordResetSchema } from "./sendPasswordReset.schema";
+import { ZSetSMSLockState } from "./setSMSLockState.schema";
 
 const NAMESPACE = "admin";
 
@@ -44,6 +45,20 @@ export const adminRouter = router({
     const handler = await importHandler(
       namespaced("removeTwoFactor"),
       () => import("./removeTwoFactor.handler")
+    );
+    return handler(opts);
+  }),
+  getSMSLockStateTeamsUsers: authedAdminProcedure.query(async (opts) => {
+    const handler = await importHandler(
+      namespaced("getSMSLockStateTeamsUsers"),
+      () => import("./getSMSLockStateTeamsUsers.handler")
+    );
+    return handler(opts);
+  }),
+  setSMSLockState: authedAdminProcedure.input(ZSetSMSLockState).mutation(async (opts) => {
+    const handler = await importHandler(
+      namespaced("setSMSLockState"),
+      () => import("./setSMSLockState.handler")
     );
     return handler(opts);
   }),
