@@ -35,7 +35,7 @@ export function handleErrorsRaw(response: Response) {
     console.error({ response });
     return "{}";
   }
-  if (!response.ok && response.status < 200 && response.status >= 300) {
+  if (!response.ok || response.status < 200 || response.status >= 300) {
     response.text().then(console.log);
     throw Error(response.statusText);
   }
