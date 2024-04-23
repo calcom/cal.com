@@ -1,6 +1,5 @@
 import type { Prisma } from "@prisma/client";
 
-import type { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import type { userSelect } from "@calcom/prisma";
 import prisma from "@calcom/prisma";
@@ -14,13 +13,13 @@ type User = Prisma.UserGetPayload<typeof userSelect>;
  *
  */
 export const getAllCredentials = async (
-  user: User & { credentials: CredentialPayload[] },
-  eventType: Awaited<ReturnType<typeof getEventTypesFromDB>>
+  user: { id: number; username: string | null; credentials: CredentialPayload[] },
+  eventType: { team: { id: number | null } | null; parentId: number | null } | null
 ) => {
   const allCredentials = user.credentials;
 
   // If it's a team event type query for team credentials
-  if (eventType.team?.id) {
+  if (eventType?.team?.id) {
     const teamCredentialsQuery = await prisma.credential.findMany({
       where: {
         teamId: eventType.team.id,
@@ -31,7 +30,7 @@ export const getAllCredentials = async (
   }
 
   // If it's a managed event type, query for the parent team's credentials
-  if (eventType.parentId) {
+  if (eventType?.parentId) {
     const teamCredentialsQuery = await prisma.team.findFirst({
       where: {
         eventTypes: {
