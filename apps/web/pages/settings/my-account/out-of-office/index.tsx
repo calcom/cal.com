@@ -74,7 +74,7 @@ const CreateOutOfOfficeEntryModal = ({
         label: member.name || "",
       })) || [];
 
-  const { handleSubmit, setValue, getValues, control, register } = useForm<BookingRedirectForm>({
+  const { handleSubmit, setValue, control, register } = useForm<BookingRedirectForm>({
     defaultValues: {
       dateRange: {
         startDate: dateRange.startDate,
