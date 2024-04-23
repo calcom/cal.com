@@ -379,7 +379,6 @@ export const EventTypeList = ({
     if (newIndex === oldIndex) return;
 
     moveEventType(oldIndex, newIndex - oldIndex);
-    source.current = null;
   }
 
   useEffect(() => {
