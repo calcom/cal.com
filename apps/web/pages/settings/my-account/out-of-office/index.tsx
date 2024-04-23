@@ -132,15 +132,11 @@ const CreateOutOfOfficeEntryModal = ({
                   name="dateRange"
                   control={control}
                   defaultValue={dateRange}
-                  render={() => (
+                  render={({ field: { onChange, value } }) => (
                     <DateRangePicker
-                      startDate={getValues("dateRange").startDate}
-                      endDate={getValues("dateRange").endDate}
-                      onDatesChange={({ startDate, endDate }) => {
-                        setValue("dateRange", {
-                          startDate,
-                          endDate,
-                        });
+                      dates={{ startDate: value.startDate, endDate: value.endDate }}
+                      onDatesChange={(values) => {
+                        onChange(values);
                       }}
                     />
                   )}
