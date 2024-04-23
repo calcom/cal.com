@@ -823,7 +823,7 @@ const createUser = (
               },
             },
             accepted: true,
-            role: MembershipRole.ADMIN,
+            role,
           },
         ],
       },
