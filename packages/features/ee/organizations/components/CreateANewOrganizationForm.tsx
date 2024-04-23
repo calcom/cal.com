@@ -24,15 +24,21 @@ function extractDomainFromEmail(email: string) {
   return out.split(".")[0];
 }
 
-export const CreateANewOrganizationForm = () => {
+export const CreateANewOrganizationForm = ({ isPlatformOrg = false }: { isPlatformOrg?: boolean }) => {
   const session = useSession();
   if (!session.data) {
     return null;
   }
-  return <CreateANewOrganizationFormChild session={session} />;
+  return <CreateANewOrganizationFormChild isPlatformOrg={isPlatformOrg} session={session} />;
 };
 
-const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionContextValue, "data"> }) => {
+const CreateANewOrganizationFormChild = ({
+  session,
+  isPlatformOrg = false,
+}: {
+  session: Ensure<SessionContextValue, "data">;
+  isPlatformOrg?: boolean;
+}) => {
   const { t } = useLocale();
   const router = useRouter();
   const telemetry = useTelemetry();
@@ -46,11 +52,13 @@ const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionC
     pricePerSeat: number;
     slug: string;
     orgOwnerEmail: string;
+    isPlatform: boolean;
   }>({
     defaultValues: {
       slug: !isAdmin ? deriveSlugFromEmail(defaultOrgOwnerEmail) : undefined,
       orgOwnerEmail: !isAdmin ? defaultOrgOwnerEmail : undefined,
       name: !isAdmin ? deriveOrgNameFromEmail(defaultOrgOwnerEmail) : undefined,
+      isPlatform: false,
     },
   });
 
@@ -66,10 +74,14 @@ const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionC
         // He won't need to have access to the org directly in this way.
         signIn("impersonation-auth", {
           username: data.email,
-          callbackUrl: `/settings/organizations/${data.organizationId}/about`,
+          callbackUrl: !isPlatformOrg
+            ? `/settings/organizations/${data.organizationId}/about`
+            : `/settings/platform`,
         });
       }
-      router.push(`/settings/organizations/${data.organizationId}/about`);
+      router.push(
+        !isPlatformOrg ? `/settings/organizations/${data.organizationId}/about` : "/settings/platform"
+      );
     },
     onError: (err) => {
       if (err.message === "organization_url_taken") {
@@ -94,7 +106,11 @@ const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionC
         handleSubmit={(v) => {
           if (!createOrganizationMutation.isPending) {
             setServerErrorMessage(null);
-            createOrganizationMutation.mutate(v);
+            createOrganizationMutation.mutate({
+              ...v,
+              isPlatform: isPlatformOrg ? true : false,
+              slug: isPlatformOrg ? v.name.toLocaleLowerCase() : v.slug,
+            });
           }
         }}>
         <div>
@@ -116,7 +132,7 @@ const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionC
                   placeholder="john@acme.com"
                   name="orgOwnerEmail"
                   disabled={!isAdmin && !isImpersonated}
-                  label={t("admin_email")}
+                  label={!isPlatformOrg ? t("admin_email") : t("platform_admin_email")}
                   defaultValue={value}
                   onChange={(e) => {
                     const email = e?.target.value;
@@ -147,7 +163,7 @@ const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionC
                   className="mt-2"
                   placeholder="Acme"
                   name="name"
-                  label={t("organization_name")}
+                  label={!isPlatformOrg ? t("organization_name") : t("platform_name")}
                   defaultValue={value}
                   onChange={(e) => {
                     newOrganizationFormMethods.setValue("name", e?.target.value.trim());
@@ -162,33 +178,35 @@ const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionC
           />
         </div>
 
-        <div>
-          <Controller
-            name="slug"
-            control={newOrganizationFormMethods.control}
-            rules={{
-              required: "Must enter organization slug",
-            }}
-            render={({ field: { value } }) => (
-              <TextField
-                className="mt-2"
-                name="slug"
-                label={t("organization_url")}
-                placeholder="acme"
-                addOnSuffix={`.${subdomainSuffix()}`}
-                defaultValue={value}
-                onChange={(e) => {
-                  newOrganizationFormMethods.setValue("slug", slugify(e?.target.value), {
-                    shouldTouch: true,
-                  });
-                  newOrganizationFormMethods.clearErrors("slug");
-                }}
-              />
-            )}
-          />
-        </div>
+        {!isPlatformOrg && (
+          <div>
+            <Controller
+              name="slug"
+              control={newOrganizationFormMethods.control}
+              rules={{
+                required: "Must enter organization slug",
+              }}
+              render={({ field: { value } }) => (
+                <TextField
+                  className="mt-2"
+                  name="slug"
+                  label={t("organization_url")}
+                  placeholder="acme"
+                  addOnSuffix={`.${subdomainSuffix()}`}
+                  defaultValue={value}
+                  onChange={(e) => {
+                    newOrganizationFormMethods.setValue("slug", slugify(e?.target.value), {
+                      shouldTouch: true,
+                    });
+                    newOrganizationFormMethods.clearErrors("slug");
+                  }}
+                />
+              )}
+            />
+          </div>
+        )}
 
-        {(isAdmin || isImpersonated) && (
+        {(isAdmin || isImpersonated) && !isPlatformOrg && (
           <>
             <section className="grid grid-cols-2 gap-2">
               <div className="w-full">
