@@ -18,6 +18,7 @@ type BookingsRouterHandlerCache = {
   getBookingAttendees?: typeof import("./getBookingAttendees.handler").getBookingAttendeesHandler;
   find?: typeof import("./find.handler").getHandler;
   getInstantBookingLocation?: typeof import("./getInstantBookingLocation.handler").getHandler;
+  getUnconfirmedBookings?: typeof import("./getUnconfirmedBookings.handler").getHandler;
 };
 
 const UNSTABLE_HANDLER_CACHE: BookingsRouterHandlerCache = {};
@@ -146,4 +147,21 @@ export const bookingsRouter = router({
         input,
       });
     }),
+
+  getUnconfirmedBookings: authedProcedure.query(async ({ ctx }) => {
+    if (!UNSTABLE_HANDLER_CACHE.getUnconfirmedBookings) {
+      UNSTABLE_HANDLER_CACHE.getUnconfirmedBookings = await import("./getUnconfirmedBookings.handler").then(
+        (mod) => mod.getHandler
+      );
+    }
+
+    // Unreachable code but required for type safety
+    if (!UNSTABLE_HANDLER_CACHE.getUnconfirmedBookings) {
+      throw new Error("Failed to load handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.getUnconfirmedBookings({
+      ctx,
+    });
+  }),
 });

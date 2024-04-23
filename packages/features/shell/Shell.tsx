@@ -85,6 +85,8 @@ import {
 } from "@calcom/ui";
 import { Discord } from "@calcom/ui/components/icon/Discord";
 
+import { useNotifications } from "@lib/hooks/useNotifications";
+
 import { useOrgBranding } from "../ee/organizations/context/provider";
 import FreshChatProvider from "../ee/support/lib/freshchat/FreshChatProvider";
 import { TeamInviteBadge } from "./TeamInviteBadge";
@@ -1004,6 +1006,7 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
 export function ShellMain(props: LayoutProps) {
   const router = useRouter();
   const { isLocaleReady } = useLocale();
+  const { currentNotificationPermission, requestNotificationsPermission } = useNotifications();
 
   return (
     <>
@@ -1062,6 +1065,11 @@ export function ShellMain(props: LayoutProps) {
                 </div>
               )}
               {props.actions && props.actions}
+              {props.heading === "Bookings" && currentNotificationPermission !== "granted" && (
+                <Button color="primary" onClick={requestNotificationsPermission}>
+                  Allow Notifications
+                </Button>
+              )}
             </header>
           )}
         </div>
