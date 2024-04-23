@@ -18,7 +18,7 @@ const querySchema = z.object({
 export default function Error() {
   const { t } = useLocale();
   const searchParams = useSearchParams();
-  const { error } = querySchema.parse({ error: searchParams?.get("error") });
+  const { error } = querySchema.parse({ error: searchParams?.get("error") || undefined });
   const errorMsg = error || t("error_during_login");
   return (
     <AuthContainer title="" description="">
