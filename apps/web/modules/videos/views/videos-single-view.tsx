@@ -49,8 +49,8 @@ export default function JoinCall(props: PageProps) {
       ...(typeof meetingPassword === "string" && { token: meetingPassword }),
       customTrayButtons: {
         transcription: {
-          label: "Enable Transcription",
-          tooltip: "Toggle Transcription",
+          label: "Cal.ai",
+          tooltip: "Enable transcription powered by AI",
           iconPath: `${WEBAPP_URL}/sparkles.svg`,
           iconPathDarkMode: `${WEBAPP_URL}/sparkles.svg`,
         },
