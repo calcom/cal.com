@@ -1,6 +1,6 @@
 import type { Table } from "@tanstack/react-table";
 import type { Table as TableType } from "@tanstack/table-core/build/lib/types";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence } from "framer-motion";
 import { Fragment } from "react";
 
 import type { IconName } from "../..";
@@ -43,14 +43,7 @@ export function DataTableSelectionBar<TData>({
   return (
     <AnimatePresence>
       {isVisible ? (
-        <motion.div
-          initial={{ opacity: 0, y: 0 }}
-          animate={{ opacity: 1, y: 20 }}
-          exit={{ opacity: 0, y: 0 }}
-          style={{
-            left: `40%`,
-          }}
-          className="fixed bottom-6 hidden max-w-[40%] gap-1 md:flex md:flex-col">
+        <div className="fixed bottom-6 left-1/2 hidden -translate-x-1/2 gap-1 md:flex md:flex-col lg:max-w-[40%]">
           {renderAboveSelection && renderAboveSelection(table)}
           <div className="bg-brand-default text-brand item-center hidden justify-between rounded-lg p-2 lg:flex">
             <div className="text-brand-subtle my-auto px-2">{numberOfSelectedRows} selected</div>
@@ -68,7 +61,7 @@ export function DataTableSelectionBar<TData>({
               );
             })}
           </div>
-        </motion.div>
+        </div>
       ) : null}
     </AnimatePresence>
   );

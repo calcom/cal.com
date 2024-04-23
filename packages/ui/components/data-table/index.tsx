@@ -102,7 +102,7 @@ export function DataTable<TData, TValue>({
     virtualRows.length > 0 ? totalSize - (virtualRows?.[virtualRows.length - 1]?.end || 0) : 0;
 
   return (
-    <div className="space-y-4">
+    <div className="relative space-y-4">
       <DataTableToolbar
         table={table}
         filterableItems={filterableItems}

@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "r
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
+import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
@@ -111,6 +112,7 @@ function reducer(state: State, action: Action): State {
 
 export function UserListTable() {
   const { data: session } = useSession();
+  const { copyToClipboard, isCopied } = useCopy();
   const { data: org } = trpc.viewer.organizations.listCurrent.useQuery();
   const { data: teams } = trpc.viewer.organizations.getTeams.useQuery();
   const tableContainerRef = useRef<HTMLDivElement>(null);
@@ -349,24 +351,35 @@ export function UserListTable() {
           const numberOfSelectedRows = table.getSelectedRowModel().rows.length;
           const isVisible = numberOfSelectedRows >= 2 && dynamicLinkVisible;
 
-          const users = table.getSelectedRowModel().flatRows.map((row) => row.original.username);
+          const users = table
+            .getSelectedRowModel()
+            .flatRows.map((row) => row.original.username)
+            .filter((u) => u !== null);
+
           const usersNameAsString = users.join("+");
 
-          const domainWithouthttps = domain.replace(/https?:\/\//g, "");
-
-          const dynamicLinkOfSelectedUsers = `${domainWithouthttps}/${usersNameAsString}`;
+          const dynamicLinkOfSelectedUsers = `${domain}/${usersNameAsString}`;
+          const domainWithouthttps = dynamicLinkOfSelectedUsers.replace(/https?:\/\//g, "");
 
           return (
             <>
               {isVisible ? (
                 <m.div className="bg-brand-default text-inverted item-center animate-fade-in-bottom hidden gap-1 rounded-lg p-2 text-sm font-medium leading-none md:flex">
                   <div className="flex w-full items-center truncate whitespace-nowrap p-2">
-                    {dynamicLinkOfSelectedUsers}
+                    {domainWithouthttps}
                   </div>
-                  <Button StartIcon="copy" size="sm">
-                    Copy
+                  <Button
+                    StartIcon="copy"
+                    size="sm"
+                    onClick={() => copyToClipboard(dynamicLinkOfSelectedUsers)}>
+                    {!isCopied ? t("copy") : t("copied")}
                   </Button>
-                  <Button EndIcon="external-link" size="sm">
+                  <Button
+                    EndIcon="external-link"
+                    size="sm"
+                    href={dynamicLinkOfSelectedUsers}
+                    target="_blank"
+                    rel="noopener noreferrer">
                     Open
                   </Button>
                 </m.div>
