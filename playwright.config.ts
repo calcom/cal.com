@@ -4,6 +4,8 @@ import dotEnv from "dotenv";
 import * as os from "os";
 import * as path from "path";
 
+import { WEBAPP_URL } from "@calcom/lib/constants";
+
 dotEnv.config({ path: ".env" });
 
 const outputDir = path.join(__dirname, "test-results");
@@ -57,7 +59,17 @@ if (IS_EMBED_REACT_TEST) {
 
 const DEFAULT_CHROMIUM = {
   ...devices["Desktop Chrome"],
-  timezoneId: "Europe/London",
+  timezoneId: "Europe/Amsterdam",
+  storageState: {
+    cookies: [
+      {
+        url: WEBAPP_URL,
+        name: "calcom-timezone-dialog",
+        expires: -1,
+        value: "1",
+      },
+    ],
+  },
   locale: "en-US",
   /** If navigation takes more than this, then something's wrong, let's fail fast. */
   navigationTimeout: DEFAULT_NAVIGATION_TIMEOUT,
@@ -87,6 +99,9 @@ const config: PlaywrightTestConfig = {
     headless,
     // chromium-specific permissions - Chromium seems to be the only browser type that requires perms
     contextOptions: {
+      storageState: {
+        cookies: [],
+      },
       permissions: ["clipboard-read", "clipboard-write"],
     },
   },

@@ -251,7 +251,6 @@ const Layout = (props: LayoutProps) => {
         <Toaster position="bottom-right" />
       </div>
 
-      {/* todo: only run this if timezone is different */}
       <TimezoneChangeDialog />
 
       <div className="flex min-h-screen flex-col">
