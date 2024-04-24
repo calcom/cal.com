@@ -108,6 +108,12 @@ const tabs: VerticalTabItemProps[] = [
     children: [],
   },
   {
+    name: "other_teams",
+    href: "/settings/organizations/teams/other",
+    icon: "users",
+    children: [],
+  },
+  {
     name: "admin",
     href: "/settings/admin",
     icon: "lock",
@@ -119,6 +125,7 @@ const tabs: VerticalTabItemProps[] = [
       { name: "apps", href: "/settings/admin/apps/calendar" },
       { name: "users", href: "/settings/admin/users" },
       { name: "organizations", href: "/settings/admin/organizations" },
+      { name: "lockedSMS", href: "/settings/admin/lockedSMS" },
       { name: "oAuth", href: "/settings/admin/oAuth" },
     ],
   },
@@ -181,6 +188,7 @@ const useTabs = () => {
     // check if name is in adminRequiredKeys
     return processedTabs.filter((tab) => {
       if (organizationRequiredKeys.includes(tab.name)) return !!orgBranding;
+      if (tab.name === "other_teams" && !isOrgAdminOrOwner) return false;
 
       if (isAdmin) return true;
       return !adminRequiredKeys.includes(tab.name);
@@ -390,17 +398,6 @@ const SettingsSidebarContainer = ({
 
   const isOrgAdminOrOwner =
     currentOrg && currentOrg?.user?.role && ["OWNER", "ADMIN"].includes(currentOrg?.user?.role);
-
-  if (isOrgAdminOrOwner) {
-    const teamsIndex = tabsWithPermissions.findIndex((tab) => tab.name === "teams");
-
-    tabsWithPermissions.splice(teamsIndex + 1, 0, {
-      name: "other_teams",
-      href: "/settings/organizations/teams/other",
-      icon: "users",
-      children: [],
-    });
-  }
 
   return (
     <nav
