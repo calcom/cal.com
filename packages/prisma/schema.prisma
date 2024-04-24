@@ -213,6 +213,19 @@ model UserPassword {
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
+model TravelSchedule {
+  id           Int       @id @default(autoincrement())
+  userId       Int
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  timeZone     String
+  startDate    DateTime
+  endDate      DateTime?
+  prevTimeZone String?
+
+  @@index([startDate])
+  @@index([endDate])
+}
+
 // It holds Personal Profiles of a User plus it has email, password and other core things
 model User {
   id                  Int                  @id @default(autoincrement())
@@ -226,6 +239,7 @@ model User {
   avatar              String?
   avatarUrl           String?
   timeZone            String               @default("Europe/London")
+  travelSchedules     TravelSchedule[]
   weekStart           String               @default("Sunday")
   // DEPRECATED - TO BE REMOVED
   startTime           Int                  @default(0)
@@ -303,6 +317,9 @@ model User {
   movedToProfile             Profile?                     @relation("moved_to_profile", fields: [movedToProfileId], references: [id], onDelete: SetNull)
   secondaryEmails            SecondaryEmail[]
   isPlatformManaged          Boolean                      @default(false)
+
+  OutOfOfficeReasons OutOfOfficeReason[]
+  smsLockState       SMSLockState        @default(UNLOCKED)
 
   @@unique([email])
   @@unique([email, username])
@@ -383,6 +400,7 @@ model Team {
   dsyncTeamGroupMapping DSyncTeamGroupMapping[]
   isPlatform            Boolean                 @default(false)
   platformOAuthClient   PlatformOAuthClient[]
+  smsLockState          SMSLockState            @default(UNLOCKED)
 
   @@unique([slug, parentId])
   @@index([parentId])
@@ -393,9 +411,13 @@ model OrganizationSettings {
   organization                  Team       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   organizationId                Int        @unique
   isOrganizationConfigured      Boolean    @default(false)
+  // It decides if new organization members can be auto-accepted or not
   isOrganizationVerified        Boolean    @default(false)
   orgAutoAcceptEmail            String
   lockEventTypeCreationForUsers Boolean    @default(false)
+  // It decides if instance ADMIN has reviewed the organization or not.
+  // It is used to allow super sensitive operations like 'impersonation of Org members by Org admin'
+  isAdminReviewed               Boolean    @default(false)
   dSyncData                     DSyncData?
 }
 
@@ -544,6 +566,9 @@ model Booking {
   iCalUID               String?              @default("")
   iCalSequence          Int                  @default(0)
   instantMeetingToken   InstantMeetingToken?
+  rating                Int?
+  ratingFeedback        String?
+  noShowHost            Boolean?
 
   @@index([eventTypeId])
   @@index([userId])
@@ -685,23 +710,24 @@ enum WebhookTriggerEvents {
 }
 
 model Webhook {
-  id              String                 @id @unique
-  userId          Int?
-  teamId          Int?
-  eventTypeId     Int?
+  id                String                     @id @unique
+  userId            Int?
+  teamId            Int?
+  eventTypeId       Int?
   /// @zod.url()
-  subscriberUrl   String
-  payloadTemplate String?
-  createdAt       DateTime               @default(now())
-  active          Boolean                @default(true)
-  eventTriggers   WebhookTriggerEvents[]
-  user            User?                  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  team            Team?                  @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  eventType       EventType?             @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
-  app             App?                   @relation(fields: [appId], references: [slug], onDelete: Cascade)
-  appId           String?
-  secret          String?
-  platform        Boolean                @default(false)
+  subscriberUrl     String
+  payloadTemplate   String?
+  createdAt         DateTime                   @default(now())
+  active            Boolean                    @default(true)
+  eventTriggers     WebhookTriggerEvents[]
+  user              User?                      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  team              Team?                      @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  eventType         EventType?                 @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+  app               App?                       @relation(fields: [appId], references: [slug], onDelete: Cascade)
+  appId             String?
+  secret            String?
+  platform          Boolean                    @default(false)
+  scheduledTriggers WebhookScheduledTriggers[]
 
   @@unique([userId, subscriberUrl], name: "courseIdentifier")
 }
@@ -745,6 +771,7 @@ model Account {
   type              String
   provider          String
   providerAccountId String
+  providerEmail     String?
   refresh_token     String? @db.Text
   access_token      String? @db.Text
   expires_at        Int?
@@ -916,6 +943,8 @@ model AIPhoneCallConfiguration {
   yourPhoneNumber String
   numberToCall    String
   guestName       String
+  guestEmail      String?
+  guestCompany    String?
   enabled         Boolean   @default(false)
   beginMessage    String?
   llmId           String?
@@ -981,6 +1010,8 @@ model WebhookScheduledTriggers {
   startAfter    DateTime
   retryCount    Int       @default(0)
   createdAt     DateTime? @default(now())
+  webhookId     String?
+  webhook       Webhook?  @relation(fields: [webhookId], references: [id], onDelete: Cascade)
 }
 
 enum WorkflowTemplates {
@@ -989,6 +1020,7 @@ enum WorkflowTemplates {
   CANCELLED
   RESCHEDULED
   COMPLETED
+  RATING
 }
 
 enum WorkflowMethods {
@@ -1165,14 +1197,17 @@ model Avatar {
 }
 
 model OutOfOfficeEntry {
-  id       Int      @id @default(autoincrement())
-  uuid     String   @unique
+  id       Int                @id @default(autoincrement())
+  uuid     String             @unique
   start    DateTime
   end      DateTime
+  notes    String?
   userId   Int
-  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user     User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   toUserId Int?
-  toUser   User?    @relation(name: "toUser", fields: [toUserId], references: [id], onDelete: Cascade)
+  toUser   User?              @relation(name: "toUser", fields: [toUserId], references: [id], onDelete: Cascade)
+  reasonId Int?
+  reason   OutOfOfficeReason? @relation(fields: [reasonId], references: [id], onDelete: SetNull)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1181,6 +1216,17 @@ model OutOfOfficeEntry {
   @@index([userId])
   @@index([toUserId])
   @@index([start, end])
+}
+
+model OutOfOfficeReason {
+  id      Int     @id @default(autoincrement())
+  emoji   String
+  reason  String  @unique
+  enabled Boolean @default(true)
+  userId  Int?
+  user    User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  entries OutOfOfficeEntry[]
 }
 
 // Platform
@@ -1198,6 +1244,11 @@ model PlatformOAuthClient {
   accessTokens        AccessToken[]
   refreshToken        RefreshToken[]
   authorizationTokens PlatformAuthorizationToken[]
+
+  bookingRedirectUri           String?
+  bookingCancelRedirectUri     String?
+  bookingRescheduleRedirectUri String?
+  areEmailsEnabled             Boolean @default(false)
 
   createdAt DateTime @default(now())
 }
@@ -1277,4 +1328,30 @@ model SecondaryEmail {
   @@unique([email])
   @@unique([userId, email])
   @@index([userId])
+}
+
+// Needed to store tasks that need to be processed by a background worker or Tasker
+model Task {
+  id          String    @id @unique @default(uuid())
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  // The time at which the task should be executed
+  scheduledAt DateTime  @default(now())
+  // The time at which the task was successfully executed
+  succeededAt DateTime?
+  // The task type to be executed. Left it as a freeform string to avoid more migrations for now. Will be enforced at type level.
+  type        String
+  // Generic payload for the task
+  payload     String
+  // The number of times the task has been attempted
+  attempts    Int       @default(0)
+  // The maximum number of times the task can be attempted
+  maxAttempts Int       @default(3)
+  lastError   String?
+}
+
+enum SMSLockState {
+  LOCKED
+  UNLOCKED
+  REVIEW_NEEDED
 }

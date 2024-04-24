@@ -23,6 +23,7 @@ import {
   SettingsToggle,
   Skeleton,
   TextField,
+  Icon,
   Editor,
   SkeletonContainer,
   SkeletonText,
@@ -31,7 +32,6 @@ import {
   Button,
   showToast,
 } from "@calcom/ui";
-import { Plus, X, Check, CornerDownRight } from "@calcom/ui/components/icon";
 
 import CheckboxField from "@components/ui/form/CheckboxField";
 import type { SingleValueLocationOption } from "@components/ui/form/LocationSelect";
@@ -126,7 +126,7 @@ export const EventSetupTab = (
   });
 
   const multipleDurationOptions = [
-    5, 10, 15, 20, 25, 30, 45, 50, 60, 75, 80, 90, 120, 150, 180, 240, 480,
+    5, 10, 15, 20, 25, 30, 45, 50, 60, 75, 80, 90, 120, 150, 180, 240, 300, 360, 420, 480,
   ].map((mins) => ({
     value: mins,
     label: t("multiple_duration_mins", { count: mins }),
@@ -313,7 +313,7 @@ export const EventSetupTab = (
                       onClick={() => remove(index)}
                       aria-label={t("remove")}>
                       <div className="h-4 w-4">
-                        <X className="border-l-1 hover:text-emphasis text-subtle h-4 w-4" />
+                        <Icon name="x" className="border-l-1 hover:text-emphasis text-subtle h-4 w-4" />
                       </div>
                     </button>
                   )}
@@ -324,7 +324,7 @@ export const EventSetupTab = (
                     <div className="w-full">
                       <div className="flex gap-2">
                         <div className="flex items-center justify-center">
-                          <CornerDownRight className="h-4 w-4" />
+                          <Icon name="corner-down-right" className="h-4 w-4" />
                         </div>
                         <LocationInput
                           defaultValue={
@@ -414,7 +414,7 @@ export const EventSetupTab = (
           ) && (
             <div className="text-default flex items-center text-sm">
               <div className="mr-1.5 h-3 w-3">
-                <Check className="h-3 w-3" />
+                <Icon name="check" className="h-3 w-3" />
               </div>
               <Trans i18nKey="event_type_requres_google_cal">
                 <p>
@@ -442,7 +442,7 @@ export const EventSetupTab = (
             <li>
               <Button
                 data-testid="add-location"
-                StartIcon={Plus}
+                StartIcon="plus"
                 color="minimal"
                 onClick={() => setShowEmptyLocationSelect(true)}>
                 {t("add_location")}
@@ -480,6 +480,7 @@ export const EventSetupTab = (
             label={t("title")}
             {...(isManagedEventType || isChildrenManagedEventType ? titleLockedProps : {})}
             defaultValue={eventType.title}
+            data-testid="event-title"
             {...formMethods.register("title")}
           />
           <div>
@@ -494,6 +495,7 @@ export const EventSetupTab = (
             label={t("URL")}
             {...(isManagedEventType || isChildrenManagedEventType ? urlLockedProps : {})}
             defaultValue={eventType.slug}
+            data-testid="event-slug"
             addOnLeading={
               <>
                 {urlPrefix}/

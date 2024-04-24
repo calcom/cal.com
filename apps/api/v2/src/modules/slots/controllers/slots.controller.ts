@@ -1,6 +1,7 @@
 import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
 import { SlotsService } from "@/modules/slots/services/slots.service";
 import { Query, Body, Controller, Get, Delete, Post, Req, Res, UseGuards } from "@nestjs/common";
+import { ApiTags as DocsTags } from "@nestjs/swagger";
 import { Response as ExpressResponse, Request as ExpressRequest } from "express";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
@@ -13,7 +14,7 @@ import { ApiResponse, GetAvailableSlotsInput } from "@calcom/platform-types";
   path: "slots",
   version: "2",
 })
-@UseGuards(AccessTokenGuard)
+@DocsTags("Slots")
 export class SlotsController {
   constructor(private readonly slotsService: SlotsService) {}
 
@@ -64,7 +65,7 @@ export class SlotsController {
 
     return {
       data: availableSlots,
-      status: "success",
+      status: SUCCESS_STATUS,
     };
   }
 }

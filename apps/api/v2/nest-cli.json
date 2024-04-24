@@ -7,7 +7,7 @@
     "plugins": [
       {
         "name": "@nestjs/swagger",
-        "options": { "dtoFileNameSuffix": ".input.ts", "classValidatorShim": true }
+        "options": { "dtoFileNameSuffix": [".input.ts", ".output.ts", ".dto.ts"], "classValidatorShim": true }
       }
     ]
   }

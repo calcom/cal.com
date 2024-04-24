@@ -10,8 +10,13 @@ import type { CalendarEvent } from "@calcom/types/Calendar";
 import { test } from "./lib/fixtures";
 import { createHttpServer, selectFirstAvailableTimeSlotNextMonth } from "./lib/testUtils";
 
+function getLabelLocator(field: Locator) {
+  // There are 2 labels right now. Will be one in future. The second one is hidden
+  return field.locator("label").first();
+}
+
 async function getLabelText(field: Locator) {
-  return await field.locator("label").first().locator("span").first().innerText();
+  return await getLabelLocator(field).locator("span").first().innerText();
 }
 
 test.describe.configure({ mode: "parallel" });
@@ -21,7 +26,7 @@ test.describe("Manage Booking Questions", () => {
   });
 
   test.describe("For User EventType", () => {
-    test("Do a booking with a user added question and verify a few thing in b/w", async ({
+    test("Do a booking with a Address type question and verify a few thing in b/w", async ({
       page,
       users,
       context,
@@ -40,6 +45,51 @@ test.describe("Manage Booking Questions", () => {
       });
 
       await runTestStepsCommonForTeamAndUserEventType(page, context, webhookReceiver);
+    });
+
+    test("Do a booking with Checkbox type question and verify a few thing in b/w", async ({
+      page,
+      users,
+      context,
+    }, testInfo) => {
+      // Considering there are many steps in it, it would need more than default test timeout
+      test.setTimeout(testInfo.timeout * 2);
+      const user = await createAndLoginUserWithEventTypes({ users, page });
+
+      // const webhookReceiver = await addWebhook(user);
+
+      await test.step("Go to EventType Advanced Page ", async () => {
+        const $eventTypes = page.locator("[data-testid=event-types] > li a");
+        const firstEventTypeElement = $eventTypes.first();
+
+        await firstEventTypeElement.click();
+        await page.click('[href$="tabName=advanced"]');
+      });
+
+      await test.step("Add Question and see that it's shown on Booking Page at appropriate position", async () => {
+        await addQuestionAndSave({
+          page,
+          question: {
+            name: "agree-to-terms",
+            type: "Checkbox",
+            label: "Agree to [terms](https://example.com/terms)",
+            required: true,
+          },
+        });
+
+        await doOnFreshPreview(page, context, async (page) => {
+          const allFieldsLocator = await expectSystemFieldsToBeThereOnBookingPage({ page });
+          const userFieldLocator = allFieldsLocator.nth(5);
+
+          await expect(userFieldLocator.locator('[name="agree-to-terms"]')).toBeVisible();
+          expect(await getLabelText(userFieldLocator)).toBe("Agree to terms");
+          // Verify that markdown is working
+          expect(await getLabelLocator(userFieldLocator).locator("a").getAttribute("href")).toBe(
+            "https://example.com/terms"
+          );
+          await expect(userFieldLocator.locator("input")).toBeVisible();
+        });
+      });
     });
 
     test("Split 'Full name' into 'First name' and 'Last name'", async ({
@@ -246,7 +296,6 @@ async function runTestStepsCommonForTeamAndUserEventType(
       const userFieldLocator = allFieldsLocator.nth(5);
 
       await expect(userFieldLocator.locator('[name="how-are-you"]')).toBeVisible();
-      // There are 2 labels right now. Will be one in future. The second one is hidden
       expect(await getLabelText(userFieldLocator)).toBe("How are you?");
       await expect(userFieldLocator.locator("input")).toBeVisible();
     });

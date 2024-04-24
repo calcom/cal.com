@@ -37,7 +37,7 @@ import { SUCCESS_STATUS, X_CAL_SECRET_KEY } from "@calcom/platform-constants";
   version: "2",
 })
 @DocsExcludeController(getEnv("NODE_ENV") === "production")
-@DocsTags("Development only")
+@DocsTags("OAuth - development only")
 export class OAuthFlowController {
   constructor(
     private readonly oauthClientRepository: OAuthClientRepository,

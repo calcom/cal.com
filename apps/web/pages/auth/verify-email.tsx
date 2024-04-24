@@ -1,6 +1,5 @@
 "use client";
 
-import { MailOpenIcon } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
@@ -36,7 +35,7 @@ function VerifyEmailPage() {
           <EmptyScreen
             border
             dashedBorder={false}
-            Icon={MailOpenIcon}
+            Icon="mail-open"
             headline={t("check_your_email")}
             description={t("verify_email_page_body", { email: session?.user?.email, appName: APP_NAME })}
             className="bg-default"

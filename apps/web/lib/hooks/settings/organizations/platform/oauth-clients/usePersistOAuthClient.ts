@@ -46,6 +46,43 @@ export const useCreateOAuthClient = (
   return mutation;
 };
 
+export const useUpdateOAuthClient = (
+  { onSuccess, onError, clientId }: IPersistOAuthClient & { clientId?: string } = {
+    onSuccess: () => {
+      return;
+    },
+    onError: () => {
+      return;
+    },
+  }
+) => {
+  const mutation = useMutation<
+    ApiResponse<{ clientId: string; clientSecret: string }>,
+    unknown,
+    Omit<CreateOAuthClientInput, "permissions">
+  >({
+    mutationFn: (data) => {
+      return fetch(`/api/v2/oauth-clients/${clientId}`, {
+        method: "PATCH",
+        headers: { "Content-type": "application/json" },
+        body: JSON.stringify(data),
+      }).then((res) => res?.json());
+    },
+    onSuccess: (data) => {
+      if (data.status === SUCCESS_STATUS) {
+        onSuccess?.();
+      } else {
+        onError?.();
+      }
+    },
+    onError: () => {
+      onError?.();
+    },
+  });
+
+  return mutation;
+};
+
 export const useDeleteOAuthClient = (
   { onSuccess, onError }: IPersistOAuthClient = {
     onSuccess: () => {
@@ -62,7 +99,7 @@ export const useDeleteOAuthClient = (
       return fetch(`/api/v2/oauth-clients/${id}`, {
         method: "delete",
         headers: { "Content-type": "application/json" },
-      }).then((res) => res.json());
+      }).then((res) => res?.json());
     },
     onSuccess: (data) => {
       if (data.status === SUCCESS_STATUS) {

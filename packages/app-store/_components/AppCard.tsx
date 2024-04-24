@@ -5,8 +5,7 @@ import { useTranslation } from "react-i18next";
 import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import { classNames } from "@calcom/lib";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { Switch, Badge, Avatar, Button } from "@calcom/ui";
-import { Settings } from "@calcom/ui/components/icon";
+import { Switch, Badge, Avatar, Button, Icon } from "@calcom/ui";
 
 import type { CredentialOwner } from "../types";
 import OmniInstallAppButton from "./OmniInstallAppButton";
@@ -128,7 +127,7 @@ export default function AppCard({
             <div className="relative p-4 pt-5 text-sm [&_input]:mb-0 [&_input]:leading-4">
               {!hideSettingsIcon && (
                 <Link href={`/apps/${app.slug}/setup`} className="absolute right-4 top-4">
-                  <Settings className="text-default h-4 w-4" aria-hidden="true" />
+                  <Icon name="settings" className="text-default h-4 w-4" aria-hidden="true" />
                 </Link>
               )}
               {children}
@@ -137,7 +136,7 @@ export default function AppCard({
             <div className="flex h-64 w-full flex-col items-center justify-center gap-4 ">
               <p>{t("this_app_is_not_setup_already")}</p>
               <Link href={`/apps/${app.slug}/setup`}>
-                <Button StartIcon={Settings}>{t("setup")}</Button>
+                <Button StartIcon="settings">{t("setup")}</Button>
               </Link>
             </div>
           )

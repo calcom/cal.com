@@ -5,9 +5,9 @@ import { useOrgBranding } from "@calcom/ee/organizations/context/provider";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Sheet, SheetContent, SheetFooter, Avatar, Skeleton, Loader, Label } from "@calcom/ui";
+import { Avatar, Label, Loader, Sheet, SheetContent, SheetFooter, Skeleton } from "@calcom/ui";
 
-import type { State, Action } from "../UserListTable";
+import type { Action, State } from "../UserListTable";
 import { DisplayInfo } from "./DisplayInfo";
 import { EditForm } from "./EditUserForm";
 import { SheetFooterControls } from "./SheetFooterControls";

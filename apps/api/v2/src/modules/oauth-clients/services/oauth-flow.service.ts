@@ -1,20 +1,18 @@
 import { TokenExpiredException } from "@/modules/auth/guards/access-token/token-expired.exception";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
-import { BadRequestException, Injectable, Logger, UnauthorizedException } from "@nestjs/common";
+import { BadRequestException, Injectable, UnauthorizedException } from "@nestjs/common";
 
 import { INVALID_ACCESS_TOKEN } from "@calcom/platform-constants";
 
 @Injectable()
 export class OAuthFlowService {
-  private logger = new Logger("OAuthFlowService");
-
   constructor(
     private readonly tokensRepository: TokensRepository,
-    private readonly oAuthClientRepository: OAuthClientRepository
-  ) //private readonly redisService: RedisIOService
-  {}
+    private readonly oAuthClientRepository: OAuthClientRepository //private readonly redisService: RedisIOService
+  ) {}
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async propagateAccessToken(accessToken: string) {
     // this.logger.log("Propagating access token to redis", accessToken);
     // TODO propagate
@@ -48,6 +46,7 @@ export class OAuthFlowService {
     return true;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   private async readFromCache(secret: string) {
     return { status: "CACHE_MISS" };
   }

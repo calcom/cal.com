@@ -9,7 +9,7 @@ export type Environment = {
   NEXTAUTH_SECRET: string;
   DATABASE_URL: string;
   JWT_SECRET: string;
-  SENTRY_DNS: string;
+  SENTRY_DSN: string;
   LOG_LEVEL: keyof typeof logLevels;
   REDIS_URL: string;
 };

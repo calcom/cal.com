@@ -17,6 +17,7 @@ const useIntercomHook = isInterComEnabled
       return {
         boot: noop,
         show: noop,
+        shutdown: noop,
       };
     };
 
@@ -25,6 +26,39 @@ export const useIntercom = () => {
   const { data } = trpc.viewer.me.useQuery();
   const { hasPaidPlan } = useHasPaidPlan();
   const { hasTeamPlan } = useHasTeamPlan();
+
+  const boot = async () => {
+    if (!data) return;
+    let userHash;
+
+    const req = await fetch(`/api/intercom-hash`);
+    const res = await req.json();
+    if (res?.hash) {
+      userHash = res.hash;
+    }
+
+    hookData.boot({
+      ...(data && data?.name && { name: data.name }),
+      ...(data && data?.email && { email: data.email }),
+      ...(data && data?.id && { userId: data.id }),
+      createdAt: String(dayjs(data?.createdDate).unix()),
+      ...(userHash && { userHash }),
+      customAttributes: {
+        //keys should be snake cased
+        user_name: data?.username,
+        link: `${WEBSITE_URL}/${data?.username}`,
+        admin_link: `${WEBAPP_URL}/settings/admin/users/${data?.id}/edit`,
+        identity_provider: data?.identityProvider,
+        timezone: data?.timeZone,
+        locale: data?.locale,
+        has_paid_plan: hasPaidPlan,
+        has_team_plan: hasTeamPlan,
+        metadata: data?.metadata,
+        completed_onboarding: data.completedOnboarding,
+        is_logged_in: !!data,
+      },
+    });
+  };
 
   const open = async () => {
     let userHash;
@@ -52,12 +86,13 @@ export const useIntercom = () => {
         has_paid_plan: hasPaidPlan,
         has_team_plan: hasTeamPlan,
         metadata: data?.metadata,
+        completed_onboarding: data?.completedOnboarding,
         is_logged_in: !!data,
       },
     });
     hookData.show();
   };
-  return { ...hookData, open };
+  return { ...hookData, open, boot };
 };
 
 export default useIntercom;

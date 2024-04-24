@@ -55,6 +55,7 @@ jobs:
         env:
           ALLOWED_HOSTNAMES: ${{ vars.CI_ALLOWED_HOSTNAMES }}
           CALENDSO_ENCRYPTION_KEY: ${{ secrets.CI_CALENDSO_ENCRYPTION_KEY }}
+          DAILY_API_KEY: ${{ secrets.CI_DAILY_API_KEY }}
           DATABASE_URL: ${{ secrets.CI_DATABASE_URL }}
           DATABASE_DIRECT_URL: ${{ secrets.CI_DATABASE_URL }}
           DEPLOYSENTINEL_API_KEY: ${{ secrets.DEPLOYSENTINEL_API_KEY }}
@@ -80,6 +81,7 @@ jobs:
           SENDGRID_EMAIL: ${{ secrets.CI_SENDGRID_EMAIL }}
           TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
           TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
+          NEXT_PUBLIC_ORG_SELF_SERVE_ENABLED: ${{ vars.CI_NEXT_PUBLIC_ORG_SELF_SERVE_ENABLED }}
       - name: Upload Test Results
         if: ${{ always() }}
         uses: actions/upload-artifact@v4

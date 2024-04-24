@@ -39,6 +39,9 @@ export enum Endpoints {
   GET_SUPPORTED_TIMEZONES = "GET_SUPPORTED_TIMEZONES",
   UPDATE_SCHEDULE_BY_ID = "UPDATE_SCHEDULE_BY_ID",
   DELETE_SCHEDULE_BY_ID = "DELETE_SCHEDULE_BY_ID",
+  GET_MANAGED_USERS_BY_CLIENT_ID = "GET_MANAGED_USERS_BY_CLIENT_ID",
+  CREATE_MANAGED_USER = "CREATE_MANAGED_USER",
+  GET_MANAGED_USER_BY_ID = "GET_MANAGED_USER_BY_ID",
 }
 
 const publicEndpoint = (uri: string, version = ApiVersion.NEUTRAL): EndpointDeclaration => ({
@@ -117,6 +120,27 @@ const ENDPOINTS: Record<Endpoints, EndpointDeclaration> = {
     auth: "access_token",
     constructUri([scheduleId]) {
       return `schedules/${scheduleId}`;
+    },
+  },
+  GET_MANAGED_USERS_BY_CLIENT_ID: {
+    apiVersion: ApiVersion.V2,
+    auth: "secret",
+    constructUri([clientId]) {
+      return `oauth-clients/${clientId}/users`;
+    },
+  },
+  CREATE_MANAGED_USER: {
+    apiVersion: ApiVersion.V2,
+    auth: "secret",
+    constructUri([clientId]) {
+      return `oauth-clients/${clientId}/users`;
+    },
+  },
+  GET_MANAGED_USER_BY_ID: {
+    apiVersion: ApiVersion.V2,
+    auth: "secret",
+    constructUri([clientId, userId]) {
+      return `oauth-clients/${clientId}/users/${userId}`;
     },
   },
 } as const;

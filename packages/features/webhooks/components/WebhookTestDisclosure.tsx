@@ -5,7 +5,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { ZTestTriggerInputSchema } from "@calcom/trpc/server/routers/viewer/webhook/testTrigger.schema";
 import { Badge, Button, showToast } from "@calcom/ui";
-import { Activity } from "@calcom/ui/components/icon";
 
 export default function WebhookTestDisclosure() {
   const [subscriberUrl, webhookSecret]: [string, string] = useWatch({ name: ["subscriberUrl", "secret"] });
@@ -28,7 +27,7 @@ export default function WebhookTestDisclosure() {
           type="button"
           color="secondary"
           disabled={mutation.isPending || !subscriberUrl}
-          StartIcon={Activity}
+          StartIcon="activity"
           onClick={() => {
             try {
               ZTestTriggerInputSchema.parse({

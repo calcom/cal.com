@@ -1,16 +1,15 @@
-import { forwardRef } from "react";
 import type { MutableRefObject } from "react";
+import { forwardRef } from "react";
 
 import type { BookerLayout } from "@calcom/features/bookings/Booker/types";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { TextArea } from "@calcom/ui";
-import { Code, Trello } from "@calcom/ui/components/icon";
 
-import type { EmbedType, PreviewState, EmbedFramework } from "../types";
+import type { EmbedFramework, EmbedType, PreviewState } from "../types";
 import { Codes, doWeNeedCalOriginProp } from "./EmbedCodes";
-import { EMBED_PREVIEW_HTML_URL, embedLibUrl } from "./constants";
+import { embedLibUrl, EMBED_PREVIEW_HTML_URL } from "./constants";
 import { getApiName } from "./getApiName";
 import { getDimension } from "./getDimension";
 import { useEmbedCalOrigin } from "./hooks";
@@ -19,7 +18,7 @@ export const tabs = [
   {
     name: "HTML",
     href: "embedTabName=embed-code",
-    icon: Code,
+    icon: "code" as const,
     type: "code",
     Component: forwardRef<
       HTMLTextAreaElement | HTMLIFrameElement | null,
@@ -75,7 +74,7 @@ export const tabs = [
   {
     name: "React",
     href: "embedTabName=embed-react",
-    icon: Code,
+    icon: "code" as const,
     type: "code",
     Component: forwardRef<
       HTMLTextAreaElement | HTMLIFrameElement | null,
@@ -124,7 +123,7 @@ export const tabs = [
   {
     name: "Preview",
     href: "embedTabName=embed-preview",
-    icon: Trello,
+    icon: "trello" as const,
     type: "iframe",
     Component: forwardRef<
       HTMLIFrameElement | HTMLTextAreaElement | null,
@@ -276,7 +275,9 @@ const getInstructionString = ({
 function useGetEmbedSnippetString(namespace: string | null) {
   const bookerUrl = useBookerUrl();
   // TODO: Import this string from @calcom/embed-snippet
-  return `(function (C, A, L) { let p = function (a, ar) { a.q.push(ar); }; let d = C.document; C.Cal = C.Cal || function () { let cal = C.Cal; let ar = arguments; if (!cal.loaded) { cal.ns = {}; cal.q = cal.q || []; d.head.appendChild(d.createElement("script")).src = A; cal.loaded = true; } if (ar[0] === L) { const api = function () { p(api, arguments); }; const namespace = ar[1]; api.q = api.q || []; typeof namespace === "string" ? (cal.ns[namespace] = api) && p(api, ar) : p(cal, ar); return; } p(cal, ar); }; })(window, "${embedLibUrl}", "init");
+  // Right now the problem is that embed-snippet export is not minified and has comments which makes it unsuitable for giving it to users.
+  // If we can minify that during build time and then import the built code here, that could work
+  return `(function (C, A, L) { let p = function (a, ar) { a.q.push(ar); }; let d = C.document; C.Cal = C.Cal || function () { let cal = C.Cal; let ar = arguments; if (!cal.loaded) { cal.ns = {}; cal.q = cal.q || []; d.head.appendChild(d.createElement("script")).src = A; cal.loaded = true; } if (ar[0] === L) { const api = function () { p(api, arguments); }; const namespace = ar[1]; api.q = api.q || []; if(typeof namespace === "string"){cal.ns[namespace] = cal.ns[namespace] || api;p(cal.ns[namespace], ar);p(cal, ["initNamespace", namespace]);} else p(cal, ar); return;} p(cal, ar); }; })(window, "${embedLibUrl}", "init");
 Cal("init", ${namespace ? `"${namespace}",` : ""} {origin:"${bookerUrl}"});
 `;
 }

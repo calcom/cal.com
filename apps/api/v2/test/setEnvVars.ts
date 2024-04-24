@@ -9,7 +9,8 @@ const env: Partial<Omit<Environment, "NODE_ENV">> = {
   LOG_LEVEL: "trace",
   REDIS_URL: "redis://localhost:9199",
 };
-
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
 process.env = {
   ...env,
   ...process.env,

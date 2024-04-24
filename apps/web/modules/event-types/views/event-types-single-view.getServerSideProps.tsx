@@ -34,11 +34,26 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     } as const;
     return redirect;
   }
-
-  await ssr.viewer.eventTypes.get.prefetch({ id: typeParam });
-
-  const { eventType } = await ssr.viewer.eventTypes.get.fetch({ id: typeParam });
-
+  const getEventTypeById = async (eventTypeId: number) => {
+    await ssr.viewer.eventTypes.get.prefetch({ id: eventTypeId });
+    try {
+      const { eventType } = await ssr.viewer.eventTypes.get.fetch({ id: eventTypeId });
+      return eventType;
+    } catch (e: unknown) {
+      // reject, user has no access to this event type.
+      return null;
+    }
+  };
+  const eventType = await getEventTypeById(typeParam);
+  if (!eventType) {
+    const redirect = {
+      redirect: {
+        permanent: false,
+        destination: "/event-types",
+      },
+    } as const;
+    return redirect;
+  }
   return {
     props: {
       eventType,

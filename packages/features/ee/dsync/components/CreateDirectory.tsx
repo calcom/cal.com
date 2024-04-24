@@ -23,7 +23,7 @@ const defaultValues = {
 
 const CreateDirectory = ({ orgId }: { orgId: number | null }) => {
   const { t } = useLocale();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const form = useForm({ defaultValues });
   const [openModal, setOpenModal] = useState(false);
 
