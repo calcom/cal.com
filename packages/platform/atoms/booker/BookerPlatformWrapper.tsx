@@ -61,6 +61,7 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
   const bookingData = useBookerStore((state) => state.bookingData);
 
   const setSelectedTimeslot = useBookerStore((state) => state.setSelectedTimeslot);
+  const setSelectedMonth = useBookerStore((state) => state.setMonth);
   const { data: booking } = useGetBookingForReschedule({
     uid: props.rescheduleUid ?? props.bookingUid ?? "",
     onSuccess: (data) => {
@@ -74,6 +75,7 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
       setBookerState("loading");
       setSelectedDate(null);
       setSelectedTimeslot(null);
+      setSelectedMonth(null);
     };
   }, []);
 
