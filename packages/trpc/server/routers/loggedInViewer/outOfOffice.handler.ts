@@ -50,6 +50,13 @@ export const outOfOfficeCreate = async ({ ctx, input }: TBookingRedirect) => {
     const user = await prisma.user.findUnique({
       where: {
         id: input.toTeamUserId,
+        /** You can only create OOO for members of teams you belong to */
+        teams: {
+          some: {
+            userId: ctx.user.id,
+            accepted: true,
+          },
+        },
       },
       select: {
         id: true,
@@ -194,27 +201,17 @@ export const outOfOfficeEntryDelete = async ({ ctx, input }: TBookingRedirectDel
     throw new TRPCError({ code: "BAD_REQUEST", message: "out_of_office_id_required" });
   }
 
-  // Validate outOfOfficeEntry belongs to the user deleting it
-  const outOfOfficeEntry = await prisma.outOfOfficeEntry.findFirst({
-    select: {
-      uuid: true,
-      userId: true,
-    },
+  const deletedOutOfOfficeEntry = await prisma.outOfOfficeEntry.delete({
     where: {
       uuid: input.outOfOfficeUid,
+      /** Validate outOfOfficeEntry belongs to the user deleting it */
       userId: ctx.user.id,
     },
   });
 
-  if (!outOfOfficeEntry) {
+  if (!deletedOutOfOfficeEntry) {
     throw new TRPCError({ code: "NOT_FOUND", message: "booking_redirect_not_found" });
   }
-
-  await prisma.outOfOfficeEntry.delete({
-    where: {
-      uuid: input.outOfOfficeUid,
-    },
-  });
 
   return {};
 };
