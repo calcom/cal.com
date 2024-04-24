@@ -241,6 +241,4 @@ describe("handleNewBooking", () => {
       timeout
     );
   });
-
-  test.todo("CRM calendar events creation verification");
 });
