@@ -59,7 +59,7 @@ if (IS_EMBED_REACT_TEST) {
 
 const DEFAULT_CHROMIUM = {
   ...devices["Desktop Chrome"],
-  timezoneId: "Europe/Amsterdam",
+  timezoneId: "Europe/London",
   storageState: {
     cookies: [
       {
@@ -99,9 +99,6 @@ const config: PlaywrightTestConfig = {
     headless,
     // chromium-specific permissions - Chromium seems to be the only browser type that requires perms
     contextOptions: {
-      storageState: {
-        cookies: [],
-      },
       permissions: ["clipboard-read", "clipboard-write"],
     },
   },
