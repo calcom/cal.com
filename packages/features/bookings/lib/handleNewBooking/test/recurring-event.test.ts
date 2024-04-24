@@ -266,12 +266,8 @@ describe("handleNewBooking", () => {
             email: "organizer@example.com",
             id: 101,
             schedules: [TestData.schedules.IstWorkHours],
-            credentials: [getGoogleCalendarCredential()],
-            selectedCalendars: [TestData.selectedCalendars.google],
-            destinationCalendar: {
-              integration: "google_calendar",
-              externalId: "organizer@google-calendar.com",
-            },
+            credentials: [],
+            selectedCalendars: [],
           });
 
           const recurrence = getRecurrence({
@@ -303,10 +299,6 @@ describe("handleNewBooking", () => {
                       id: 101,
                     },
                   ],
-                  destinationCalendar: {
-                    integration: "google_calendar",
-                    externalId: "event-type-1@google-calendar.com",
-                  },
                 },
               ],
               bookings: [
@@ -320,7 +312,7 @@ describe("handleNewBooking", () => {
                 },
               ],
               organizer,
-              apps: [TestData.apps["google-calendar"], TestData.apps["daily-video"]],
+              apps: [TestData.apps["daily-video"]],
             })
           );
 
@@ -837,12 +829,7 @@ describe("handleNewBooking", () => {
           ],
           // Has morning shift with some overlap with morning shift
           schedules: [TestData.schedules.IstMorningShift],
-          credentials: [getGoogleCalendarCredential()],
-          selectedCalendars: [TestData.selectedCalendars.google],
-          destinationCalendar: {
-            integration: TestData.apps["google-calendar"].type,
-            externalId: "organizer@google-calendar.com",
-          },
+          credentials: [],
         });
 
         const otherTeamMembers = [
@@ -856,12 +843,7 @@ describe("handleNewBooking", () => {
             id: 102,
             // Has Evening shift
             schedules: [TestData.schedules.IstMorningShift],
-            credentials: [getGoogleCalendarCredential()],
-            selectedCalendars: [TestData.selectedCalendars.google],
-            destinationCalendar: {
-              integration: TestData.apps["google-calendar"].type,
-              externalId: "other-team-member-1@google-calendar.com",
-            },
+            credentials: [],
           },
         ];
 
@@ -901,10 +883,6 @@ describe("handleNewBooking", () => {
                     isFixed: true,
                   },
                 ],
-                destinationCalendar: {
-                  integration: "google_calendar",
-                  externalId: "event-type-1@google-calendar.com",
-                },
               },
             ],
             bookings: [
@@ -923,7 +901,7 @@ describe("handleNewBooking", () => {
             ],
             organizer,
             usersApartFromOrganizer: otherTeamMembers,
-            apps: [TestData.apps["google-calendar"], TestData.apps["daily-video"]],
+            apps: [TestData.apps["daily-video"]],
           })
         );
 
@@ -933,13 +911,6 @@ describe("handleNewBooking", () => {
             id: "MOCK_ID",
             password: "MOCK_PASS",
             url: `http://mock-dailyvideo.example.com/meeting-1`,
-          },
-        });
-
-        const calendarMock = mockCalendarToHaveNoBusySlots("googlecalendar", {
-          create: {
-            id: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
-            iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
           },
         });
 

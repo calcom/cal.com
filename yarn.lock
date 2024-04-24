@@ -32976,6 +32976,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"lucide-react@npm:^0.363.0":
+  version: 0.363.0
+  resolution: "lucide-react@npm:0.363.0"
+  peerDependencies:
+    react: ^16.5.1 || ^17.0.0 || ^18.0.0
+  checksum: abe8fad469a2f14181eca6f3682403c5d53a4a354f333b0f7d3b575471d451c6f3fd36f59d96745a5a823e4cc55eeb2dcda70774a6fe438834ea3fb6fa5b75af
+  languageName: node
+  linkType: hard
+
 "luxon@npm:3.3.0":
   version: 3.3.0
   resolution: "luxon@npm:3.3.0"

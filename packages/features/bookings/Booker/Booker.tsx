@@ -24,7 +24,7 @@ import { LargeCalendar } from "./components/LargeCalendar";
 import { OverlayCalendar } from "./components/OverlayCalendar/OverlayCalendar";
 import { RedirectToInstantMeetingModal } from "./components/RedirectToInstantMeetingModal";
 import { BookerSection } from "./components/Section";
-import { Away, NotFound } from "./components/Unavailable";
+import { NotFound } from "./components/Unavailable";
 import { fadeInLeft, getBookerSizeClassNames, useBookerResizeAnimation } from "./config";
 import { useBookerStore } from "./store";
 import type { BookerProps, WrappedBookerProps } from "./types";
@@ -140,6 +140,10 @@ const BookerComponent = ({
     return setBookerState("booking");
   }, [event, selectedDate, selectedTimeslot, setBookerState]);
 
+  const slot = getQueryParam("slot");
+  useEffect(() => {
+    setSelectedTimeslot(slot || null);
+  }, [slot, setSelectedTimeslot]);
   const EventBooker = useMemo(() => {
     return bookerState === "booking" ? (
       <BookEventForm
@@ -466,8 +470,6 @@ const BookerComponent = ({
 };
 
 export const Booker = (props: BookerProps & WrappedBookerProps) => {
-  if (props.isAway) return <Away />;
-
   return (
     <LazyMotion strict features={loadFramerFeatures}>
       <BookerComponent {...props} />
