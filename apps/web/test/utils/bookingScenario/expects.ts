@@ -307,41 +307,45 @@ export function expectWebhookToHaveBeenCalledWith(
 
 export function expectWorkflowToBeTriggered({
   emails,
-  organizer,
+  emailsToReceive,
   destinationEmail,
 }: {
   emails: Fixtures["emails"];
-  organizer: { email: string; name: string; timeZone: string };
+  emailsToReceive: string[];
   destinationEmail?: string;
 }) {
   const subjectPattern = /^Reminder: /i;
-  expect(emails.get()).toEqual(
-    expect.arrayContaining([
-      expect.objectContaining({
-        subject: expect.stringMatching(subjectPattern),
-        to: destinationEmail ?? organizer.email,
-      }),
-    ])
-  );
+  emailsToReceive.forEach((email) => {
+    expect(emails.get()).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          subject: expect.stringMatching(subjectPattern),
+          to: destinationEmail ?? email,
+        }),
+      ])
+    );
+  });
 }
 
 export function expectWorkflowToBeNotTriggered({
   emails,
-  organizer,
+  emailsToReceive,
 }: {
   emails: Fixtures["emails"];
-  organizer: { email: string; name: string; timeZone: string };
+  emailsToReceive: string[];
 }) {
   const subjectPattern = /^Reminder: /i;
 
-  expect(emails.get()).not.toEqual(
-    expect.arrayContaining([
-      expect.objectContaining({
-        subject: expect.stringMatching(subjectPattern),
-        to: organizer.email,
-      }),
-    ])
-  );
+  emailsToReceive.forEach((email) => {
+    expect(emails.get()).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          subject: expect.stringMatching(subjectPattern),
+          to: email,
+        }),
+      ])
+    );
+  });
 }
 
 export function expectSMSWorkflowToBeTriggered({

@@ -1,7 +1,7 @@
-import { describe } from "vitest";
+import { describe, beforeEach } from "vitest";
 
 import { resetTestSMS } from "@calcom/lib/testSMS";
-import { SMSLockState } from "@calcom/prisma/enums";
+import { SMSLockState, SchedulingType } from "@calcom/prisma/enums";
 import { test } from "@calcom/web/test/fixtures/fixtures";
 import {
   createBookingScenario,
@@ -13,6 +13,8 @@ import {
   mockSuccessfulVideoMeetingCreation,
   mockCalendarToHaveNoBusySlots,
   BookingLocations,
+  getDate,
+  Timezones,
 } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
 import { createMockNextJsRequest } from "@calcom/web/test/utils/bookingScenario/createMockNextJsRequest";
 import {
@@ -29,9 +31,13 @@ const timeout = process.env.CI ? 5000 : 20000;
 describe("handleNewBooking", () => {
   setupAndTeardown();
 
-  describe("Workflow notifications", () => {
+  beforeEach(() => {
+    resetTestSMS();
+  });
+
+  describe("User Workflows", () => {
     test(
-      "should send work email and sms when booking is created",
+      "should send workflow email and sms when booking is created",
       async ({ emails, sms }) => {
         const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
         const booker = getBooker({
@@ -138,7 +144,7 @@ describe("handleNewBooking", () => {
         });
 
         expectWorkflowToBeTriggered({
-          organizer,
+          emailsToReceive: [organizer.email],
           emails,
           destinationEmail: organizerDestinationCalendarEmailOnEventType,
         });
@@ -148,7 +154,6 @@ describe("handleNewBooking", () => {
     test(
       "should not send workflow sms when booking is created if the organizer is locked for sms sending",
       async ({ sms }) => {
-        resetTestSMS();
         const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
         const booker = getBooker({
           email: "booker@example.com",
@@ -215,6 +220,312 @@ describe("handleNewBooking", () => {
 
         const mockBookingData = getMockRequestDataForBooking({
           data: {
+            user: organizer.username,
+            eventTypeId: 1,
+            responses: {
+              email: booker.email,
+              name: booker.name,
+              location: { optionValue: "", value: BookingLocations.CalVideo },
+              smsReminderNumber: "000",
+            },
+          },
+        });
+
+        const { req } = createMockNextJsRequest({
+          method: "POST",
+          body: mockBookingData,
+        });
+
+        await handleNewBooking(req);
+
+        expectSMSWorkflowToBeNotTriggered({
+          sms,
+          toNumber: "000",
+        });
+      },
+      timeout
+    );
+  });
+  describe("Team Workflows", () => {
+    test(
+      "should send workflow email and sms when booking is created",
+      async ({ emails, sms }) => {
+        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const booker = getBooker({
+          email: "booker@example.com",
+          name: "Booker",
+        });
+
+        const organizerDestinationCalendarEmailOnEventType = "organizerEventTypeEmail@example.com";
+
+        const organizer = getOrganizer({
+          name: "Organizer",
+          email: "organizer@example.com",
+          id: 101,
+          schedules: [TestData.schedules.IstWorkHours],
+          credentials: [getGoogleCalendarCredential()],
+          selectedCalendars: [TestData.selectedCalendars.google],
+          destinationCalendar: {
+            integration: "google_calendar",
+            externalId: "organizer@google-calendar.com",
+            primaryEmail: organizerDestinationCalendarEmailOnEventType,
+          },
+          teams: [
+            {
+              membership: {
+                accepted: true,
+              },
+              team: {
+                id: 1,
+                name: "Team 1",
+                slug: "team-1",
+              },
+            },
+          ],
+        });
+
+        const otherTeamMembers = [
+          {
+            name: "Other Team Member 1",
+            username: "other-team-member-1",
+            defaultScheduleId: null,
+            email: "other-team-member-1@example.com",
+            timeZone: Timezones["+0:00"],
+            id: 102,
+            schedules: [TestData.schedules.IstWorkHours],
+            credentials: [getGoogleCalendarCredential()],
+            selectedCalendars: [TestData.selectedCalendars.google],
+            destinationCalendar: {
+              integration: TestData.apps["google-calendar"].type,
+              externalId: "other-team-member-1@google-calendar.com",
+            },
+          },
+        ];
+
+        await createBookingScenario(
+          getScenarioData({
+            webhooks: [
+              {
+                userId: organizer.id,
+                eventTriggers: ["BOOKING_CREATED"],
+                subscriberUrl: "http://my-webhook.example.com",
+                active: true,
+                eventTypeId: 1,
+                appId: null,
+              },
+            ],
+            workflows: [
+              {
+                teamId: 1,
+                trigger: "NEW_EVENT",
+                action: "EMAIL_HOST",
+                template: "REMINDER",
+                activeEventTypeId: 1,
+              },
+              {
+                teamId: 1,
+                trigger: "NEW_EVENT",
+                action: "SMS_ATTENDEE",
+                template: "REMINDER",
+                activeEventTypeId: 1,
+              },
+            ],
+            eventTypes: [
+              {
+                id: 1,
+                slotInterval: 15,
+                schedulingType: SchedulingType.COLLECTIVE,
+                length: 15,
+                users: [
+                  {
+                    id: 101,
+                  },
+                ],
+                teamId: 1,
+                destinationCalendar: {
+                  integration: TestData.apps["google-calendar"].type,
+                  externalId: "event-type-1@google-calendar.com",
+                },
+              },
+            ],
+            organizer,
+            usersApartFromOrganizer: otherTeamMembers,
+            apps: [TestData.apps["google-calendar"], TestData.apps["daily-video"]],
+          })
+        );
+
+        mockSuccessfulVideoMeetingCreation({
+          metadataLookupKey: "dailyvideo",
+          videoMeetingData: {
+            id: "MOCK_ID",
+            password: "MOCK_PASS",
+            url: `http://mock-dailyvideo.example.com/meeting-1`,
+          },
+        });
+
+        mockCalendarToHaveNoBusySlots("googlecalendar", {
+          create: {
+            id: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
+            iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
+          },
+        });
+
+        const mockBookingData = getMockRequestDataForBooking({
+          data: {
+            start: `${getDate({ dateIncrement: 1 }).dateString}T09:00:00.000Z`,
+            end: `${getDate({ dateIncrement: 1 }).dateString}T09:15:00.000Z`,
+            user: organizer.username,
+            eventTypeId: 1,
+            responses: {
+              email: booker.email,
+              name: booker.name,
+              location: { optionValue: "", value: BookingLocations.CalVideo },
+              smsReminderNumber: "000",
+            },
+          },
+        });
+
+        const { req } = createMockNextJsRequest({
+          method: "POST",
+          body: mockBookingData,
+        });
+
+        await handleNewBooking(req);
+
+        expectSMSWorkflowToBeTriggered({
+          sms,
+          toNumber: "000",
+        });
+
+        expectWorkflowToBeTriggered({
+          emailsToReceive: [organizer.email], // should send to the other team members too
+          emails,
+        });
+      },
+      timeout
+    );
+
+    test(
+      "should not send workflow email and sms when booking is created",
+      async ({ emails, sms }) => {
+        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const booker = getBooker({
+          email: "booker@example.com",
+          name: "Booker",
+        });
+
+        const organizerDestinationCalendarEmailOnEventType = "organizerEventTypeEmail@example.com";
+
+        const organizer = getOrganizer({
+          name: "Organizer",
+          email: "organizer@example.com",
+          id: 101,
+          schedules: [TestData.schedules.IstWorkHours],
+          credentials: [getGoogleCalendarCredential()],
+          selectedCalendars: [TestData.selectedCalendars.google],
+          destinationCalendar: {
+            integration: "google_calendar",
+            externalId: "organizer@google-calendar.com",
+            primaryEmail: organizerDestinationCalendarEmailOnEventType,
+          },
+          teams: [
+            {
+              membership: {
+                accepted: true,
+              },
+              team: {
+                id: 1,
+                name: "Team 1",
+                slug: "team-1",
+                smsLockState: SMSLockState.LOCKED,
+              },
+            },
+          ],
+        });
+
+        const otherTeamMembers = [
+          {
+            name: "Other Team Member 1",
+            username: "other-team-member-1",
+            defaultScheduleId: null,
+            email: "other-team-member-1@example.com",
+            timeZone: Timezones["+0:00"],
+            id: 102,
+            schedules: [TestData.schedules.IstWorkHours],
+            credentials: [getGoogleCalendarCredential()],
+            selectedCalendars: [TestData.selectedCalendars.google],
+            destinationCalendar: {
+              integration: TestData.apps["google-calendar"].type,
+              externalId: "other-team-member-1@google-calendar.com",
+            },
+          },
+        ];
+
+        await createBookingScenario(
+          getScenarioData({
+            webhooks: [
+              {
+                userId: organizer.id,
+                eventTriggers: ["BOOKING_CREATED"],
+                subscriberUrl: "http://my-webhook.example.com",
+                active: true,
+                eventTypeId: 1,
+                appId: null,
+              },
+            ],
+            workflows: [
+              {
+                teamId: 1,
+                trigger: "NEW_EVENT",
+                action: "SMS_ATTENDEE",
+                template: "REMINDER",
+                activeEventTypeId: 1,
+              },
+            ],
+            eventTypes: [
+              {
+                id: 1,
+                slotInterval: 15,
+                schedulingType: SchedulingType.COLLECTIVE,
+                length: 15,
+                users: [
+                  {
+                    id: 101,
+                  },
+                ],
+                teamId: 1,
+                destinationCalendar: {
+                  integration: TestData.apps["google-calendar"].type,
+                  externalId: "event-type-1@google-calendar.com",
+                },
+              },
+            ],
+            organizer,
+            usersApartFromOrganizer: otherTeamMembers,
+            apps: [TestData.apps["google-calendar"], TestData.apps["daily-video"]],
+          })
+        );
+
+        mockSuccessfulVideoMeetingCreation({
+          metadataLookupKey: "dailyvideo",
+          videoMeetingData: {
+            id: "MOCK_ID",
+            password: "MOCK_PASS",
+            url: `http://mock-dailyvideo.example.com/meeting-1`,
+          },
+        });
+
+        mockCalendarToHaveNoBusySlots("googlecalendar", {
+          create: {
+            id: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
+            iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
+          },
+        });
+
+        const mockBookingData = getMockRequestDataForBooking({
+          data: {
+            start: `${getDate({ dateIncrement: 1 }).dateString}T09:00:00.000Z`,
+            end: `${getDate({ dateIncrement: 1 }).dateString}T09:15:00.000Z`,
             user: organizer.username,
             eventTypeId: 1,
             responses: {

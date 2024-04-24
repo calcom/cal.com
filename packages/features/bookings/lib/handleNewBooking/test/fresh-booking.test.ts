@@ -215,7 +215,7 @@ describe("handleNewBooking", () => {
         });
 
         expectWorkflowToBeTriggered({
-          organizer,
+          emailsToReceive: [organizer.email],
           emails,
           destinationEmail: organizerDestinationCalendarEmailOnEventType,
         });
@@ -379,7 +379,7 @@ describe("handleNewBooking", () => {
             iCalUID: createdBooking.iCalUID,
           });
 
-          expectWorkflowToBeTriggered({ organizer, emails });
+          expectWorkflowToBeTriggered({ emailsToReceive: [organizer.email], emails });
           expectSuccessfulCalendarEventCreationInCalendar(calendarMock, {
             videoCallUrl: "http://mock-dailyvideo.example.com/meeting-1",
             // We won't be sending evt.destinationCalendar in this case.
@@ -541,7 +541,7 @@ describe("handleNewBooking", () => {
             iCalUID: createdBooking.iCalUID,
           });
 
-          expectWorkflowToBeTriggered({ organizer, emails });
+          expectWorkflowToBeTriggered({ emailsToReceive: [organizer.email], emails });
           expectSuccessfulCalendarEventCreationInCalendar(calendarMock, {
             calendarId: "organizer@google-calendar.com",
             videoCallUrl: "http://mock-dailyvideo.example.com/meeting-1",
@@ -675,7 +675,7 @@ describe("handleNewBooking", () => {
             ],
           });
 
-          expectWorkflowToBeTriggered({ organizer, emails });
+          expectWorkflowToBeTriggered({ emailsToReceive: [organizer.email], emails });
 
           // FIXME: We should send Broken Integration emails on calendar event creation failure
           // expectCalendarEventCreationFailureEmails({ booker, organizer, emails });
