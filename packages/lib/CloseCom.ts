@@ -19,6 +19,7 @@ export type CloseComLeadCreateResult = {
   contacts: { [key: string]: string }[];
   [key: CloseComCustomActivityCustomField<string>]: string;
   id: string;
+  emails: { email: string }[];
 };
 
 export type CloseComStatus = {
