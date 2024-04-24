@@ -310,6 +310,7 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
           url: bookingRef.meetingUrl as string,
         });
       } catch (err) {
+        log.error("Failed to update meeting", safeStringify(err));
         return Promise.reject(new Error("Failed to update meeting"));
       }
     },

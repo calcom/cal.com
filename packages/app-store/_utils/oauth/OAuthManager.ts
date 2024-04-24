@@ -489,9 +489,17 @@ export class OAuthManager {
 
   private async getAndValidateOAuth2Response({ response }: { response: Response }) {
     const myLog = log.getSubLogger({ prefix: ["getAndValidateOAuth2Response"] });
+    const clonedResponse = response.clone();
+
+    // handle empty response (causes crash otherwise on doing json() as "" is invalid JSON) which is valid in some cases like PATCH calls(with 204 response)
+    if ((await clonedResponse.text()).trim() === "") {
+      return { tokenStatus: TokenStatus.VALID, json: null, invalidReason: null } as const;
+    }
+
     const tokenObjectUsabilityRes = await this.isTokenObjectUnusable(response.clone());
     const accessTokenUsabilityRes = await this.isAccessTokenUnusable(response.clone());
     const isNotOkay = this.isResponseNotOkay(response);
+
     const json = await response.json();
 
     if (tokenObjectUsabilityRes?.reason) {
@@ -520,11 +528,6 @@ export class OAuthManager {
         invalidReason: response.statusText,
         json,
       };
-    }
-
-    // handle 204 response code with empty response (causes crash otherwise as "" is invalid JSON)
-    if (response.status === 204) {
-      return { tokenStatus: TokenStatus.VALID, json: null, invalidReason: null } as const;
     }
 
     return { tokenStatus: TokenStatus.VALID, json, invalidReason: null } as const;

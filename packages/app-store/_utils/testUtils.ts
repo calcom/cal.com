@@ -23,6 +23,21 @@ export function internalServerErrorResponse({
   return generateJsonResponse({ json, status: 500, statusText: "Internal Server Error" });
 }
 
+export function generateTextResponse({
+  text,
+  status = 200,
+  statusText = "OK",
+}: {
+  text: string;
+  status?: number;
+  statusText?: string;
+}) {
+  return new Response(text, {
+    status: status,
+    statusText: statusText,
+  });
+}
+
 export function successResponse({ json }: { json: unknown }) {
   return generateJsonResponse({ json });
 }

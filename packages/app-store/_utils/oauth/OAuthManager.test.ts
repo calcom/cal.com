@@ -2,7 +2,12 @@
 import { afterEach, expect, test, vi, describe } from "vitest";
 import "vitest-fetch-mock";
 
-import { generateJsonResponse, successResponse, internalServerErrorResponse } from "../testUtils";
+import {
+  generateJsonResponse,
+  successResponse,
+  internalServerErrorResponse,
+  generateTextResponse,
+} from "../testUtils";
 import { OAuthManager, TokenStatus } from "./OAuthManager";
 
 afterEach(() => {
@@ -35,15 +40,15 @@ function getExpiredTokenObject() {
 describe("Credential Sync Disabled", () => {
   const useCredentialSyncVariables = credentialSyncVariables;
   describe("API: `getTokenObjectOrFetch`", () => {
-    describe("fetchNewTokenObject gets called with refresh_token", async () => {
-      test('It would be null if "refresh_token" is not present in the currentTokenObject', async () => {
+    describe("`fetchNewTokenObject` gets called with refresh_token arg", async () => {
+      test('refresh_token argument would be null if "refresh_token" is not present in the currentTokenObject', async () => {
         const userId = 1;
         const invalidateTokenObject = vi.fn();
         const expireAccessToken = vi.fn();
         const updateTokenObject = vi.fn();
         const fetchNewTokenObject = vi
           .fn()
-          .mockResolvedValue(generateJsonResponse({ json: getDummyTokenObject() }));
+          .mockResolvedValue(successResponse({ json: getDummyTokenObject() }));
 
         const auth = new OAuthManager({
           credentialSyncVariables: useCredentialSyncVariables,
@@ -69,7 +74,7 @@ describe("Credential Sync Disabled", () => {
         expect(fetchNewTokenObject).toHaveBeenCalledWith({ refreshToken: null });
       });
 
-      test('It would be the value if "refresh_token" is present in the currentTokenObject', async () => {
+      test('refresh_token would be the value if "refresh_token" is present in the currentTokenObject', async () => {
         const userId = 1;
         const invalidateTokenObject = vi.fn();
         const expireAccessToken = vi.fn();
@@ -142,7 +147,7 @@ describe("Credential Sync Disabled", () => {
           expect(updateTokenObject).not.toHaveBeenCalled();
         });
 
-        test("fetchNewTokenObject is called if token has expired", async () => {
+        test("`fetchNewTokenObject` is called if token has expired. Also, `updateTokenObject` is called with currentTokenObject and newTokenObject merged", async () => {
           const userId = 1;
           const invalidateTokenObject = vi.fn();
           const expireAccessToken = vi.fn();
@@ -618,7 +623,7 @@ describe("Credential Sync Disabled", () => {
       expect(expireAccessToken).toHaveBeenCalled();
     });
 
-    test("If status is 204 make the json null because empty string which is usually the case with 204 status is not a valid json", async () => {
+    test("If the response is empty string make the json null(because empty string which is usually the case with 204 status is not a valid json). There shouldn't be any error even if `isTokenObjectUnusable` and `isAccessTokenUnusable` do json()", async () => {
       const userId = 1;
       const invalidateTokenObject = vi.fn();
       const expireAccessToken = vi.fn();
@@ -628,8 +633,7 @@ describe("Credential Sync Disabled", () => {
         .fn()
         .mockResolvedValue(generateJsonResponse({ json: getDummyTokenObject() }));
 
-      const fakedFetchJsonResult = { key: "value" };
-      const fakedFetchResponse = generateJsonResponse({ json: fakedFetchJsonResult, status: 204 });
+      const fakedFetchResponse = generateTextResponse({ text: "", status: 204 });
 
       const auth = new OAuthManager({
         credentialSyncVariables: useCredentialSyncVariables,
@@ -640,11 +644,11 @@ describe("Credential Sync Disabled", () => {
         appSlug: "demo-app",
         currentTokenObject: getDummyTokenObject(),
         fetchNewTokenObject,
-        isTokenObjectUnusable: async () => {
-          return null;
+        isTokenObjectUnusable: async (response) => {
+          return await response.json();
         },
-        isAccessTokenUnusable: async () => {
-          return null;
+        isAccessTokenUnusable: async (response) => {
+          return await response.json();
         },
         invalidateTokenObject: invalidateTokenObject,
         updateTokenObject: updateTokenObject,
