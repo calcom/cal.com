@@ -507,7 +507,7 @@ export default class EventManager {
       allPromises = [];
 
     for (const reference of bookingReferences) {
-      if (reference.type.includes("_calendar")) {
+      if (reference.type.includes("_calendar") && !reference.type.includes("other_calendar")) {
         calendarReferences.push(reference);
         allPromises.push(
           this.deleteCalendarEventForBookingReference({
@@ -527,7 +527,7 @@ export default class EventManager {
         );
       }
 
-      if (reference.type.includes("_crm")) {
+      if (reference.type.includes("_crm") || reference.type.includes("other_calendar")) {
         crmReferences.push(reference);
         allPromises.push(this.deleteCRMEvent({ reference }));
       }
