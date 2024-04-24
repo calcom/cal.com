@@ -2,7 +2,7 @@
 import { afterEach, expect, test, vi, describe } from "vitest";
 import "vitest-fetch-mock";
 
-import { generateJsonResponse, successResponse, internalServerErrorResponse } from "../_utils/testUtils";
+import { generateJsonResponse, successResponse, internalServerErrorResponse } from "../testUtils";
 import { OAuthManager, TokenStatus } from "./OAuthManager";
 
 afterEach(() => {

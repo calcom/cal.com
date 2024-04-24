@@ -112,6 +112,7 @@ export class OAuthManager {
         if (token.expires_in && isRelativeToEpoch(token.expires_in)) {
           return token.expires_in * 1000;
         }
+        // 0 means it would be expired as Date.now() is greater than that
         return 0;
       }
     },

@@ -4225,6 +4225,9 @@
           },
           "responses": {
             "$ref": "#/components/schemas/Response"
+          },
+          "locationUrl": {
+            "type": "string"
           }
         },
         "required": [

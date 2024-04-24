@@ -1326,3 +1326,23 @@ model SecondaryEmail {
   @@unique([userId, email])
   @@index([userId])
 }
+
+// Needed to store tasks that need to be processed by a background worker or Tasker
+model Task {
+  id          String    @id @unique @default(uuid())
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  // The time at which the task should be executed
+  scheduledAt DateTime  @default(now())
+  // The time at which the task was successfully executed
+  succeededAt DateTime?
+  // The task type to be executed. Left it as a freeform string to avoid more migrations for now. Will be enforced at type level.
+  type        String
+  // Generic payload for the task
+  payload     String
+  // The number of times the task has been attempted
+  attempts    Int       @default(0)
+  // The maximum number of times the task can be attempted
+  maxAttempts Int       @default(3)
+  lastError   String?
+}

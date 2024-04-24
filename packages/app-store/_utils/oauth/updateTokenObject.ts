@@ -1,7 +1,8 @@
-import type { OAuth2UniversalSchemaWithCalcomBackwardCompatibility } from "_utils/oauth/universalSchema";
 import type z from "zod";
 
 import prisma from "@calcom/prisma";
+
+import type { OAuth2UniversalSchemaWithCalcomBackwardCompatibility } from "./universalSchema";
 
 export const updateTokenObject = async ({
   tokenObject,

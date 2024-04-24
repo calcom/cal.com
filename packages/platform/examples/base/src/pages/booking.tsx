@@ -26,7 +26,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
 
         {!isLoadingEvents && !eventTypeSlug && Boolean(eventTypes?.length) && !rescheduleUid && (
           <div className="flex flex-col gap-4">
-            {eventTypes?.map((event: { id: number; slug: string; title: string }) => {
+            {eventTypes?.map((event: { id: number; slug: string; title: string; length: number }) => {
               const formatEventSlug = event.slug
                 .split("-")
                 .map((item) => `${item[0].toLocaleUpperCase()}${item.slice(1)}`)
