@@ -1,5 +1,5 @@
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 
 import Shell from "@calcom/features/shell/Shell";
@@ -22,10 +22,10 @@ import { useDeleteOAuthClient } from "@lib/hooks/settings/organizations/platform
 import useMeQuery from "@lib/hooks/useMeQuery";
 
 import PageWrapper from "@components/PageWrapper";
-import { OAuthClientCard } from "@components/settings/organizations/platform/oauth-clients/OAuthClientCard";
+import { OAuthClientCard } from "@components/settings/platform/oauth-clients/OAuthClientCard";
 
 const queryClient = new QueryClient();
-// middleware.ts
+
 export default function Platform() {
   const { data, isLoading: isOAuthClientLoading, refetch: refetchClients } = useOAuthClients();
   const [initialClientId, setInitialClientId] = useState("");
@@ -35,9 +35,6 @@ export default function Platform() {
     data: managedUserData,
     refetch: refetchManagedUsers,
   } = useGetOAuthClientManagedUsers(initialClientId);
-
-  console.log("these are all the managed users of this particular client id");
-  console.log(managedUserData?.map((user) => console.log(user)));
 
   const { mutateAsync, isPending: isDeleting } = useDeleteOAuthClient({
     onSuccess: () => {
