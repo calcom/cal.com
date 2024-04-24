@@ -24,7 +24,8 @@ export type ZohoToken = {
 };
 
 export type ZohoContact = {
-  Email: string;
+  id: string;
+  email: string;
 };
 
 /**
@@ -82,7 +83,7 @@ export default class ZohoCrmCrmService implements CRM {
     });
 
     const { data } = response.data;
-    return data.data.map((contact) => {
+    return data.data.map((contact: ZohoContact) => {
       return {
         id: contact.id,
         email: contact.email,
@@ -110,7 +111,7 @@ export default class ZohoCrmCrmService implements CRM {
       });
 
     return response
-      ? response.data.map((contact) => {
+      ? response.data.map((contact: ZohoContact) => {
           return {
             id: contact.id,
             email: contact.email,
