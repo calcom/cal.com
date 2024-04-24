@@ -32,7 +32,7 @@ function getDefaultSender(whatsapp = false) {
   if (whatsapp) {
     defaultSender = `whatsapp:+${process.env.TWILIO_WHATSAPP_PHONE_NUMBER}`;
   }
-  return defaultSender;
+  return defaultSender || "";
 }
 
 function getSMSNumber(phone: string, whatsapp = false) {

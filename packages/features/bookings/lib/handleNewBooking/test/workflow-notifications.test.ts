@@ -31,7 +31,7 @@ describe("handleNewBooking", () => {
 
   describe("Workflow notifications", () => {
     test(
-      "should send email amd sms for workflow when booking is created",
+      "should send work email and sms when booking is created",
       async ({ emails, sms }) => {
         const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
         const booker = getBooker({
@@ -146,7 +146,7 @@ describe("handleNewBooking", () => {
       timeout
     );
     test(
-      "should not send sms when booking is created if the organizer is locked for sms sending",
+      "should not send workflow sms when booking is created if the organizer is locked for sms sending",
       async ({ sms }) => {
         resetTestSMS();
         const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
