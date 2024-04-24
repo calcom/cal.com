@@ -110,6 +110,8 @@ const config: PlaywrightTestConfig = {
       expect: {
         timeout: DEFAULT_EXPECT_TIMEOUT,
       },
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore TS definitions for USE are wrong.
       use: DEFAULT_CHROMIUM,
     },
     {
@@ -119,6 +121,8 @@ const config: PlaywrightTestConfig = {
       expect: {
         timeout: DEFAULT_EXPECT_TIMEOUT,
       },
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore TS definitions for USE are wrong.
       use: DEFAULT_CHROMIUM,
     },
     {
@@ -141,6 +145,8 @@ const config: PlaywrightTestConfig = {
         timeout: DEFAULT_EXPECT_TIMEOUT,
       },
       testMatch: /.*\.e2e\.tsx?/,
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore TS definitions for USE are wrong.
       use: {
         ...DEFAULT_CHROMIUM,
         baseURL: "http://localhost:3101/",
