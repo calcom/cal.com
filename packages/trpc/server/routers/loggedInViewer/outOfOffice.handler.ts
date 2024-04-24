@@ -55,7 +55,6 @@ export const outOfOfficeCreate = async ({ ctx, input }: TBookingRedirect) => {
           some: {
             userId: ctx.user.id,
             accepted: true,
-            role: { in: ["OWNER", "ADMIN"] },
           },
         },
       },
