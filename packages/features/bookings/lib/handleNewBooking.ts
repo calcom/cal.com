@@ -1856,7 +1856,10 @@ async function handler(
             });
           }
 
-          if (googleCalResult?.createdEvent?.hangoutLink) {
+          const googleHangoutLink =
+            googleCalResult?.createdEvent?.hangoutLink ?? googleCalResult?.updatedEvent?.hangoutLink;
+
+          if (googleHangoutLink) {
             results.push({
               ...googleMeetResult,
               success: true,
@@ -1865,31 +1868,31 @@ async function handler(
             // Add google_meet to referencesToCreate in the same index as google_calendar
             updateManager.referencesToCreate[googleCalIndex] = {
               ...updateManager.referencesToCreate[googleCalIndex],
-              meetingUrl: googleCalResult.createdEvent.hangoutLink,
+              meetingUrl: googleHangoutLink,
             };
 
             // Also create a new referenceToCreate with type video for google_meet
             updateManager.referencesToCreate.push({
               type: "google_meet_video",
-              meetingUrl: googleCalResult.createdEvent.hangoutLink,
+              meetingUrl: googleHangoutLink,
               uid: googleCalResult.uid,
               credentialId: updateManager.referencesToCreate[googleCalIndex].credentialId,
             });
-          } else if (googleCalResult && !googleCalResult.createdEvent?.hangoutLink) {
+          } else if (googleCalResult && !googleHangoutLink) {
             results.push({
               ...googleMeetResult,
               success: false,
             });
           }
         }
-
-        metadata.hangoutLink = results[0].createdEvent?.hangoutLink;
-        metadata.conferenceData = results[0].createdEvent?.conferenceData;
-        metadata.entryPoints = results[0].createdEvent?.entryPoints;
+        const createdOrUpdatedEvent = results[0]?.createdEvent ?? results[0].updatedEvent;
+        metadata.hangoutLink = createdOrUpdatedEvent?.hangoutLink;
+        metadata.conferenceData = createdOrUpdatedEvent?.conferenceData;
+        metadata.entryPoints = createdOrUpdatedEvent?.entryPoints;
         evt.appsStatus = handleAppsStatus(results, booking, reqAppsStatus);
         videoCallUrl =
           metadata.hangoutLink ||
-          results[0].createdEvent?.url ||
+          createdOrUpdatedEvent?.url ||
           organizerOrFirstDynamicGroupMemberDefaultLocationUrl ||
           getVideoCallUrlFromCalEvent(evt) ||
           videoCallUrl;
