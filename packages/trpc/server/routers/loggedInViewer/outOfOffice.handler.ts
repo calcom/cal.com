@@ -50,7 +50,7 @@ export const outOfOfficeCreate = async ({ ctx, input }: TBookingRedirect) => {
     const user = await prisma.user.findUnique({
       where: {
         id: input.toTeamUserId,
-        /** You can only create OOO for members of teams you're either ADMIN or OWNER */
+        /** You can only create OOO for members of teams you belong to */
         teams: {
           some: {
             userId: ctx.user.id,
