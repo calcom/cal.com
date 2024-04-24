@@ -316,6 +316,7 @@ model User {
   isPlatformManaged          Boolean                      @default(false)
 
   OutOfOfficeReasons OutOfOfficeReason[]
+  smsLockState       SMSLockState        @default(UNLOCKED)
 
   @@unique([email])
   @@unique([email, username])
@@ -395,6 +396,7 @@ model Team {
   dsyncTeamGroupMapping DSyncTeamGroupMapping[]
   isPlatform            Boolean                 @default(false)
   platformOAuthClient   PlatformOAuthClient[]
+  smsLockState          SMSLockState            @default(UNLOCKED)
 
   @@unique([slug, parentId])
   @@index([parentId])
@@ -1342,4 +1344,10 @@ model Task {
   // The maximum number of times the task can be attempted
   maxAttempts Int       @default(3)
   lastError   String?
+}
+
+enum SMSLockState {
+  LOCKED
+  UNLOCKED
+  REVIEW_NEEDED
 }
