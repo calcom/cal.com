@@ -19,5 +19,6 @@ export function getTokenObjectFromCredential(credential: CredentialPayload) {
   if (!tokenResponse) {
     throw new Error("credential.key is not set");
   }
+
   return tokenResponse;
 }

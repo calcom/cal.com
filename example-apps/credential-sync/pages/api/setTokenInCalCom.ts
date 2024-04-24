@@ -6,6 +6,7 @@ import {
   CALCOM_APP_CREDENTIAL_ENCRYPTION_KEY,
   CALCOM_CREDENTIAL_SYNC_SECRET,
   CALCOM_CREDENTIAL_SYNC_HEADER_NAME,
+  CALCOM_ADMIN_API_KEY,
 } from "../../constants";
 import { generateGoogleCalendarAccessToken, generateZoomAccessToken } from "../../lib/integrations";
 
@@ -13,6 +14,7 @@ export default async function handler(req: NextApiRequest, res) {
   const isInvalid = req.query["invalid"] === "1";
   const userId = parseInt(req.query["userId"] as string);
   const appSlug = req.query["appSlug"];
+
   try {
     let accessToken;
     if (appSlug === "google-calendar") {
@@ -27,23 +29,26 @@ export default async function handler(req: NextApiRequest, res) {
       return res.status(500).json({ error: "Could not get access token" });
     }
 
-    const result = await fetch("http://localhost:3000/api/webhook/app-credential", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        [CALCOM_CREDENTIAL_SYNC_HEADER_NAME]: CALCOM_CREDENTIAL_SYNC_SECRET,
-      },
-      body: JSON.stringify({
-        userId,
-        appSlug,
-        keys: symmetricEncrypt(
-          JSON.stringify({
-            access_token: isInvalid ? 1233231231231 : accessToken,
-          }),
-          CALCOM_APP_CREDENTIAL_ENCRYPTION_KEY
-        ),
-      }),
-    });
+    const result = await fetch(
+      `http://localhost:3002/api/v1/credential-sync?apiKey=${CALCOM_ADMIN_API_KEY}&userId=${userId}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          [CALCOM_CREDENTIAL_SYNC_HEADER_NAME]: CALCOM_CREDENTIAL_SYNC_SECRET,
+        },
+        body: JSON.stringify({
+          appSlug,
+          encryptedKey: symmetricEncrypt(
+            JSON.stringify({
+              access_token: isInvalid ? "1233231231231" : accessToken,
+            }),
+            CALCOM_APP_CREDENTIAL_ENCRYPTION_KEY
+          ),
+        }),
+      }
+    );
+
     const clonedResult = result.clone();
     try {
       if (result.ok) {

@@ -51,6 +51,7 @@ type BookerPlatformWrapperAtomProps = Omit<BookerProps, "entity"> & {
   onReserveSlotError?: (data: ApiErrorResponse) => void;
   onDeleteSlotSuccess?: (data: ApiSuccessResponseWithoutData) => void;
   onDeleteSlotError?: (data: ApiErrorResponse) => void;
+  locationUrl?: string;
 };
 
 export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => {
@@ -227,6 +228,7 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
     handleBooking: createBooking,
     handleInstantBooking: createInstantBooking,
     handleRecBooking: createRecBooking,
+    locationUrl: props.locationUrl,
   });
 
   return (

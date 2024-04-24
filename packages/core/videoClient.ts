@@ -278,6 +278,29 @@ const getDownloadLinkOfCalVideoByRecordingId = async (recordingId: string) => {
   return videoAdapter?.getRecordingDownloadLink?.(recordingId);
 };
 
+const getAllTranscriptsAccessLinkFromRoomName = async (roomName: string) => {
+  let dailyAppKeys: Awaited<ReturnType<typeof getDailyAppKeys>>;
+  try {
+    dailyAppKeys = await getDailyAppKeys();
+  } catch (e) {
+    console.error("Error: Cal video provider is not installed.");
+    return;
+  }
+  const [videoAdapter] = await getVideoAdapters([
+    {
+      id: 0,
+      appId: "daily-video",
+      type: "daily_video",
+      userId: null,
+      user: { email: "" },
+      teamId: null,
+      key: dailyAppKeys,
+      invalid: false,
+    },
+  ]);
+  return videoAdapter?.getAllTranscriptsAccessLinkFromRoomName?.(roomName);
+};
+
 export {
   getBusyVideoTimes,
   createMeeting,
@@ -285,4 +308,5 @@ export {
   deleteMeeting,
   getRecordingsOfCalVideoByRoomName,
   getDownloadLinkOfCalVideoByRecordingId,
+  getAllTranscriptsAccessLinkFromRoomName,
 };

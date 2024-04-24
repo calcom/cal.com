@@ -2,6 +2,7 @@
 import { afterEach, expect, test, vi, describe } from "vitest";
 import "vitest-fetch-mock";
 
+import { generateJsonResponse, successResponse, internalServerErrorResponse } from "../testUtils";
 import { OAuthManager, TokenStatus } from "./OAuthManager";
 
 afterEach(() => {
@@ -15,273 +16,31 @@ const credentialSyncVariables = {
   CREDENTIAL_SYNC_ENDPOINT: "https://example.com/getToken",
 };
 
-function getDummyTokenObject(token: { refresh_token?: string; expiry_date?: number } | null = null) {
+function getDummyTokenObject(
+  token: { refresh_token?: string; expiry_date?: number; expires_in?: number } | null = null
+) {
   return {
     access_token: "ACCESS_TOKEN",
     ...token,
   };
 }
 
-function generateJsonResponse({
-  json,
-  status = 200,
-  statusText = "OK",
-}: {
-  json: unknown;
-  status?: number;
-  statusText?: string;
-}) {
-  return new Response(JSON.stringify(json), {
-    status,
-    statusText,
+function getExpiredTokenObject() {
+  return getDummyTokenObject({
+    // To make sure that existing token is used and thus refresh token doesn't happen
+    expiry_date: Date.now() - 10 * 1000,
   });
 }
 
-describe("OAuthManager", () => {
-  describe("Credential Sync Disabled", () => {
-    const useCredentialSyncVariables = credentialSyncVariables;
-    describe("API: `getTokenObjectOrFetch`", () => {
-      describe("fetchNewTokenObject gets called with refresh_token", async () => {
-        test('It would be null if "refresh_token" is not present in the currentTokenObject', async () => {
-          const userId = 1;
-          const invalidateTokenObject = vi.fn();
-          const expireAccessToken = vi.fn();
-          const fetchNewTokenObject = vi
-            .fn()
-            .mockResolvedValue(generateJsonResponse({ json: getDummyTokenObject() }));
-
-          const auth = new OAuthManager({
-            credentialSyncVariables: useCredentialSyncVariables,
-            resourceOwner: {
-              type: "user",
-              id: userId,
-            },
-            appSlug: "demo-app",
-            currentTokenObject: getDummyTokenObject(),
-            fetchNewTokenObject,
-            isTokenObjectUnusable: async () => {
-              return null;
-            },
-            isAccessTokenUnusable: async () => {
-              return null;
-            },
-            invalidateTokenObject: invalidateTokenObject,
-            updateTokenObject: vi.fn(),
-            expireAccessToken: expireAccessToken,
-          });
-
-          await auth.getTokenObjectOrFetch();
-          expect(fetchNewTokenObject).toHaveBeenCalledWith({ refreshToken: null });
-        });
-
-        test('It would be the value if "refresh_token" is present in the currentTokenObject', async () => {
-          const userId = 1;
-          const invalidateTokenObject = vi.fn();
-          const expireAccessToken = vi.fn();
-          const fetchNewTokenObject = vi
-            .fn()
-            .mockResolvedValue(generateJsonResponse({ json: getDummyTokenObject() }));
-
-          const auth1 = new OAuthManager({
-            credentialSyncVariables: useCredentialSyncVariables,
-            resourceOwner: {
-              type: "user",
-              id: userId,
-            },
-            appSlug: "demo-app",
-            currentTokenObject: getDummyTokenObject({
-              refresh_token: "REFRESH_TOKEN",
-            }),
-            fetchNewTokenObject,
-            isTokenObjectUnusable: async () => {
-              return null;
-            },
-            isAccessTokenUnusable: async () => {
-              return null;
-            },
-            invalidateTokenObject: invalidateTokenObject,
-            updateTokenObject: vi.fn(),
-            expireAccessToken: expireAccessToken,
-          });
-          await auth1.getTokenObjectOrFetch();
-          expect(fetchNewTokenObject).toHaveBeenCalledWith({ refreshToken: "REFRESH_TOKEN" });
-        });
-      });
-
-      describe("expiry_date based token refresh", () => {
-        test("fetchNewTokenObject is not called if token has not expired", async () => {
-          const userId = 1;
-          const invalidateTokenObject = vi.fn();
-          const expireAccessToken = vi.fn();
-          const fetchNewTokenObject = vi
-            .fn()
-            .mockResolvedValue(generateJsonResponse({ json: getDummyTokenObject() }));
-
-          const auth1 = new OAuthManager({
-            credentialSyncVariables: useCredentialSyncVariables,
-            resourceOwner: {
-              type: "user",
-              id: userId,
-            },
-            appSlug: "demo-app",
-            currentTokenObject: getDummyTokenObject({
-              refresh_token: "REFRESH_TOKEN",
-              expiry_date: Date.now() + 10 * 1000,
-            }),
-            fetchNewTokenObject,
-            isTokenObjectUnusable: async () => {
-              return null;
-            },
-            isAccessTokenUnusable: async () => {
-              return null;
-            },
-            invalidateTokenObject: invalidateTokenObject,
-            updateTokenObject: vi.fn(),
-            expireAccessToken: expireAccessToken,
-          });
-          await auth1.getTokenObjectOrFetch();
-          expect(fetchNewTokenObject).not.toHaveBeenCalled();
-        });
-
-        test("fetchNewTokenObject is called if token has expired", async () => {
-          const userId = 1;
-          const invalidateTokenObject = vi.fn();
-          const expireAccessToken = vi.fn();
-          const fetchNewTokenObject = vi
-            .fn()
-            .mockResolvedValue(generateJsonResponse({ json: getDummyTokenObject() }));
-
-          const auth1 = new OAuthManager({
-            credentialSyncVariables: useCredentialSyncVariables,
-            resourceOwner: {
-              type: "user",
-              id: userId,
-            },
-            appSlug: "demo-app",
-            currentTokenObject: getDummyTokenObject({
-              refresh_token: "REFRESH_TOKEN",
-              expiry_date: Date.now() - 10 * 1000,
-            }),
-            fetchNewTokenObject,
-            isTokenObjectUnusable: async () => {
-              return null;
-            },
-            isAccessTokenUnusable: async () => {
-              return null;
-            },
-            invalidateTokenObject: invalidateTokenObject,
-            updateTokenObject: vi.fn(),
-            expireAccessToken: expireAccessToken,
-          });
-          await auth1.getTokenObjectOrFetch();
-          expect(fetchNewTokenObject).toHaveBeenCalledWith({ refreshToken: "REFRESH_TOKEN" });
-        });
-      });
-
-      test("If fetchNewTokenObject returns null then auth.getTokenObjectOrFetch would throw error", async () => {
+describe("Credential Sync Disabled", () => {
+  const useCredentialSyncVariables = credentialSyncVariables;
+  describe("API: `getTokenObjectOrFetch`", () => {
+    describe("fetchNewTokenObject gets called with refresh_token", async () => {
+      test('It would be null if "refresh_token" is not present in the currentTokenObject', async () => {
         const userId = 1;
         const invalidateTokenObject = vi.fn();
         const expireAccessToken = vi.fn();
-
-        const auth = new OAuthManager({
-          credentialSyncVariables: useCredentialSyncVariables,
-          resourceOwner: {
-            type: "user",
-            id: userId,
-          },
-          appSlug: "demo-app",
-          currentTokenObject: getDummyTokenObject(),
-          fetchNewTokenObject: async () => {
-            return null;
-          },
-          isTokenObjectUnusable: async () => {
-            return null;
-          },
-          isAccessTokenUnusable: async () => {
-            return null;
-          },
-          invalidateTokenObject: invalidateTokenObject,
-          updateTokenObject: vi.fn(),
-          expireAccessToken: expireAccessToken,
-        });
-
-        expect(async () => {
-          return auth.getTokenObjectOrFetch();
-        }).rejects.toThrowError("could not refresh the token");
-      });
-
-      test("if fetchNewTokenObject throws error that's not handled by isTokenObjectUnusable and isAccessTokenUnusable then auth.getTokenObjectOrFetch would still not throw error", async () => {
-        const userId = 1;
-        const invalidateTokenObject = vi.fn();
-        const expireAccessToken = vi.fn();
-
-        const auth = new OAuthManager({
-          credentialSyncVariables: useCredentialSyncVariables,
-          resourceOwner: {
-            type: "user",
-            id: userId,
-          },
-          appSlug: "demo-app",
-          currentTokenObject: getDummyTokenObject(),
-          fetchNewTokenObject: async () => {
-            throw new Error("testError");
-          },
-          isTokenObjectUnusable: async () => {
-            return null;
-          },
-          isAccessTokenUnusable: async () => {
-            return null;
-          },
-          invalidateTokenObject: invalidateTokenObject,
-          updateTokenObject: vi.fn(),
-          expireAccessToken: expireAccessToken,
-        });
-
-        expect(async () => {
-          return auth.getTokenObjectOrFetch();
-        }).rejects.toThrowError("Internal Server Error");
-      });
-
-      test("if fetchNewTokenObject throws error that's handled by isTokenObjectUnusable then auth.getTokenObjectOrFetch would still throw error but a different one as access_token won't be available", async () => {
-        const userId = 1;
-        const invalidateTokenObject = vi.fn();
-        const expireAccessToken = vi.fn();
-
-        const auth = new OAuthManager({
-          credentialSyncVariables: useCredentialSyncVariables,
-          resourceOwner: {
-            type: "user",
-            id: userId,
-          },
-          appSlug: "demo-app",
-          currentTokenObject: getDummyTokenObject(),
-          fetchNewTokenObject: async () => {
-            throw new Error("testError");
-          },
-          isTokenObjectUnusable: async () => {
-            return {
-              reason: "some reason",
-            };
-          },
-          isAccessTokenUnusable: async () => {
-            return null;
-          },
-          invalidateTokenObject: invalidateTokenObject,
-          updateTokenObject: vi.fn(),
-          expireAccessToken: expireAccessToken,
-        });
-
-        expect(async () => {
-          return auth.getTokenObjectOrFetch();
-        }).rejects.toThrowError("Invalid token response");
-      });
-    });
-
-    describe("API: `request`", () => {
-      test("It would call fetch by adding Authorization header automatically", async () => {
-        const userId = 1;
-        const invalidateTokenObject = vi.fn();
-        const expireAccessToken = vi.fn();
+        const updateTokenObject = vi.fn();
         const fetchNewTokenObject = vi
           .fn()
           .mockResolvedValue(generateJsonResponse({ json: getDummyTokenObject() }));
@@ -302,314 +61,19 @@ describe("OAuthManager", () => {
             return null;
           },
           invalidateTokenObject: invalidateTokenObject,
-          updateTokenObject: vi.fn(),
+          updateTokenObject: updateTokenObject,
           expireAccessToken: expireAccessToken,
         });
 
-        fetchMock.mockReturnValueOnce(Promise.resolve(generateJsonResponse({ json: { key: "value" } })));
-        const response = await auth.request({
-          url: "https://example.com",
-          options: {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              key: "value",
-            }),
-          },
-        });
-
-        expect(response).toEqual({ tokenStatus: TokenStatus.VALID, json: { key: "value" } });
-        const fetchCallArguments = fetchMock.mock.calls[0];
-        expect(fetchCallArguments[0]).toBe("https://example.com");
-        // Verify that Authorization header is added automatically
-        // Along with other passed headers and other options
-        expect(fetchCallArguments[1]).toEqual(
-          expect.objectContaining({
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: "Bearer ACCESS_TOKEN",
-            },
-            body: JSON.stringify({
-              key: "value",
-            }),
-          })
-        );
+        await auth.getTokenObjectOrFetch();
+        expect(fetchNewTokenObject).toHaveBeenCalledWith({ refreshToken: null });
       });
 
-      test("If `isTokenObjectUnusable` marks the response invalid, then `invalidateTokenObject` function is called", async () => {
+      test('It would be the value if "refresh_token" is present in the currentTokenObject', async () => {
         const userId = 1;
         const invalidateTokenObject = vi.fn();
         const expireAccessToken = vi.fn();
-
-        const fetchNewTokenObject = vi
-          .fn()
-          .mockResolvedValue(generateJsonResponse({ json: getDummyTokenObject() }));
-
-        const fakedFetchJsonResult = { key: "value" };
-        const fakedFetchResponse = generateJsonResponse({ json: fakedFetchJsonResult });
-
-        const auth = new OAuthManager({
-          autoCheckTokenExpiryOnRequest: false,
-          credentialSyncVariables: useCredentialSyncVariables,
-          resourceOwner: {
-            type: "user",
-            id: userId,
-          },
-          appSlug: "demo-app",
-          currentTokenObject: getDummyTokenObject(),
-          fetchNewTokenObject,
-          isTokenObjectUnusable: async (response) => {
-            const jsonRes = await response.json();
-            expect(jsonRes).toEqual(fakedFetchJsonResult);
-            return {
-              reason: "some reason",
-            };
-          },
-          isAccessTokenUnusable: async () => {
-            return null;
-          },
-          invalidateTokenObject: invalidateTokenObject,
-          updateTokenObject: vi.fn(),
-          expireAccessToken: expireAccessToken,
-        });
-
-        fetchMock.mockReturnValueOnce(Promise.resolve(fakedFetchResponse));
-        const response = await auth.request({
-          url: "https://example.com",
-          options: {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              key: "value",
-            }),
-          },
-        });
-
-        expect(response).toEqual({
-          tokenStatus: TokenStatus.UNUSABLE_TOKEN_OBJECT,
-          json: fakedFetchJsonResult,
-        });
-        expect(invalidateTokenObject).toHaveBeenCalled();
-        expect(expireAccessToken).not.toHaveBeenCalled();
-      });
-
-      test("If `isAccessTokenUnusable` marks the response invalid, then `expireAccessToken` function is called", async () => {
-        const userId = 1;
-        const invalidateTokenObject = vi.fn();
-        const expireAccessToken = vi.fn();
-
-        const fetchNewTokenObject = vi
-          .fn()
-          .mockResolvedValue(generateJsonResponse({ json: getDummyTokenObject() }));
-
-        const fakedFetchJsonResult = { key: "value" };
-        const fakedFetchResponse = generateJsonResponse({ json: fakedFetchJsonResult });
-
-        const auth = new OAuthManager({
-          autoCheckTokenExpiryOnRequest: false,
-          credentialSyncVariables: useCredentialSyncVariables,
-          resourceOwner: {
-            type: "user",
-            id: userId,
-          },
-          appSlug: "demo-app",
-          currentTokenObject: getDummyTokenObject(),
-          fetchNewTokenObject,
-          isTokenObjectUnusable: async () => {
-            return null;
-          },
-          isAccessTokenUnusable: async (response) => {
-            const jsonRes = await response.json();
-            expect(jsonRes).toEqual(fakedFetchJsonResult);
-            return {
-              reason: "some reason",
-            };
-          },
-          invalidateTokenObject: invalidateTokenObject,
-          updateTokenObject: vi.fn(),
-          expireAccessToken: expireAccessToken,
-        });
-
-        fetchMock.mockReturnValueOnce(Promise.resolve(fakedFetchResponse));
-        const response = await auth.request({
-          url: "https://example.com",
-          options: {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              key: "value",
-            }),
-          },
-        });
-
-        expect(response).toEqual({
-          tokenStatus: TokenStatus.UNUSABLE_ACCESS_TOKEN,
-          json: fakedFetchJsonResult,
-        });
-
-        expect(invalidateTokenObject).not.toHaveBeenCalled();
-        expect(expireAccessToken).toHaveBeenCalled();
-      });
-
-      test("If status is 204 make the json null because empty string which is usually the case with 204 status is not a valid json", async () => {
-        const userId = 1;
-        const invalidateTokenObject = vi.fn();
-        const expireAccessToken = vi.fn();
-
-        const fetchNewTokenObject = vi
-          .fn()
-          .mockResolvedValue(generateJsonResponse({ json: getDummyTokenObject() }));
-
-        const fakedFetchJsonResult = { key: "value" };
-        const fakedFetchResponse = generateJsonResponse({ json: fakedFetchJsonResult, status: 204 });
-
-        const auth = new OAuthManager({
-          credentialSyncVariables: useCredentialSyncVariables,
-          resourceOwner: {
-            type: "user",
-            id: userId,
-          },
-          appSlug: "demo-app",
-          currentTokenObject: getDummyTokenObject(),
-          fetchNewTokenObject,
-          isTokenObjectUnusable: async () => {
-            return null;
-          },
-          isAccessTokenUnusable: async () => {
-            return null;
-          },
-          invalidateTokenObject: invalidateTokenObject,
-          updateTokenObject: vi.fn(),
-          expireAccessToken: expireAccessToken,
-        });
-
-        fetchMock.mockReturnValueOnce(Promise.resolve(fakedFetchResponse));
-        const response = await auth.request({
-          url: "https://example.com",
-          options: {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              key: "value",
-            }),
-          },
-        });
-
-        expect(response).toEqual({ tokenStatus: TokenStatus.VALID, json: null });
-        expect(expireAccessToken).not.toHaveBeenCalled();
-      });
-
-      test("If status is not okay it throws error with statusText", async () => {
-        const userId = 1;
-        const invalidateTokenObject = vi.fn();
-        const expireAccessToken = vi.fn();
-
-        const fetchNewTokenObject = vi
-          .fn()
-          .mockResolvedValue(generateJsonResponse({ json: getDummyTokenObject() }));
-
-        const fakedFetchJsonResult = { key: "value" };
-        const fakedFetchResponse = generateJsonResponse({
-          json: fakedFetchJsonResult,
-          status: 500,
-          statusText: "Internal Server Error",
-        });
-
-        const auth = new OAuthManager({
-          credentialSyncVariables: useCredentialSyncVariables,
-          resourceOwner: {
-            type: "user",
-            id: userId,
-          },
-          appSlug: "demo-app",
-          currentTokenObject: getDummyTokenObject(),
-          fetchNewTokenObject,
-          isTokenObjectUnusable: async () => {
-            return null;
-          },
-          isAccessTokenUnusable: async () => {
-            return null;
-          },
-          invalidateTokenObject: invalidateTokenObject,
-          updateTokenObject: vi.fn(),
-          expireAccessToken: expireAccessToken,
-        });
-
-        fetchMock.mockReturnValueOnce(Promise.resolve(fakedFetchResponse));
-        expect(async () =>
-          auth.request({
-            url: "https://example.com",
-            options: {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                key: "value",
-              }),
-            },
-          })
-        ).rejects.toThrowError("Internal Server Error");
-      });
-
-      test("if `customFetch` throws error that's handled by isTokenObjectUnusable then auth.getTokenObjectOrFetch would not throw error", async () => {
-        const userId = 1;
-        const invalidateTokenObject = vi.fn();
-        const expireAccessToken = vi.fn();
-        const fetchNewTokenObject = vi
-          .fn()
-          .mockResolvedValue(generateJsonResponse({ json: getDummyTokenObject() }));
-
-        const auth = new OAuthManager({
-          credentialSyncVariables: useCredentialSyncVariables,
-          resourceOwner: {
-            type: "user",
-            id: userId,
-          },
-          appSlug: "demo-app",
-          currentTokenObject: getDummyTokenObject(),
-          fetchNewTokenObject,
-          isTokenObjectUnusable: async () => {
-            return {
-              reason: "some reason",
-            };
-          },
-          isAccessTokenUnusable: async () => {
-            return null;
-          },
-          invalidateTokenObject: invalidateTokenObject,
-          updateTokenObject: vi.fn(),
-          expireAccessToken: expireAccessToken,
-        });
-
-        await expect(
-          auth.request(() => {
-            throw new Error("Internal Server Error");
-          })
-        ).rejects.toThrowError("Internal Server Error");
-      });
-    });
-  });
-
-  describe("Credential Sync Enabled", () => {
-    const useCredentialSyncVariables = {
-      ...credentialSyncVariables,
-      APP_CREDENTIAL_SHARING_ENABLED: true,
-    };
-    describe("API: `getTokenObjectOrFetch`", () => {
-      test("CREDENTIAL_SYNC_ENDPOINT is hit(when no expiry_date is set) instead of calling fetchNewTokenObject", async () => {
-        const userId = 1;
-        const invalidateTokenObject = vi.fn();
-        const expireAccessToken = vi.fn();
+        const updateTokenObject = vi.fn();
         const fetchNewTokenObject = vi
           .fn()
           .mockResolvedValue(generateJsonResponse({ json: getDummyTokenObject() }));
@@ -632,28 +96,21 @@ describe("OAuthManager", () => {
             return null;
           },
           invalidateTokenObject: invalidateTokenObject,
-          updateTokenObject: vi.fn(),
+          updateTokenObject: updateTokenObject,
           expireAccessToken: expireAccessToken,
         });
-
-        const fakedFetchResponse = generateJsonResponse({ json: getDummyTokenObject() });
-        fetchMock.mockReturnValueOnce(Promise.resolve(fakedFetchResponse));
-
         await auth1.getTokenObjectOrFetch();
-        expectToBeTokenGetCall({
-          fetchCall: fetchMock.mock.calls[0],
-          useCredentialSyncVariables,
-          userId,
-          appSlug: "demo-app",
-        });
-        expect(fetchNewTokenObject).not.toHaveBeenCalled();
+        expect(fetchNewTokenObject).toHaveBeenCalledWith({ refreshToken: "REFRESH_TOKEN" });
       });
+    });
 
-      describe("expiry_date based token refresh", () => {
-        test("CREDENTIAL_SYNC_ENDPOINT is not hit if token has not expired", async () => {
+    describe("expiry_date based token refresh", () => {
+      describe("checking using expiry_date", () => {
+        test("fetchNewTokenObject is not called if token has not expired", async () => {
           const userId = 1;
           const invalidateTokenObject = vi.fn();
           const expireAccessToken = vi.fn();
+          const updateTokenObject = vi.fn();
           const fetchNewTokenObject = vi
             .fn()
             .mockResolvedValue(generateJsonResponse({ json: getDummyTokenObject() }));
@@ -677,22 +134,27 @@ describe("OAuthManager", () => {
               return null;
             },
             invalidateTokenObject: invalidateTokenObject,
-            updateTokenObject: vi.fn(),
+            updateTokenObject: updateTokenObject,
             expireAccessToken: expireAccessToken,
           });
-
           await auth1.getTokenObjectOrFetch();
           expect(fetchNewTokenObject).not.toHaveBeenCalled();
-          expect(fetchMock).not.toHaveBeenCalled();
+          expect(updateTokenObject).not.toHaveBeenCalled();
         });
 
-        test("CREDENTIAL_SYNC_ENDPOINT is hit if token has expired", async () => {
+        test("fetchNewTokenObject is called if token has expired", async () => {
           const userId = 1;
           const invalidateTokenObject = vi.fn();
           const expireAccessToken = vi.fn();
+          const updateTokenObject = vi.fn();
+          const currentTokenObject = getDummyTokenObject({
+            refresh_token: "REFRESH_TOKEN",
+            expiry_date: Date.now() - 10 * 1000,
+          });
+          const newTokenObjectInResponse = getDummyTokenObject();
           const fetchNewTokenObject = vi
             .fn()
-            .mockResolvedValue(generateJsonResponse({ json: getDummyTokenObject() }));
+            .mockResolvedValue(generateJsonResponse({ json: newTokenObjectInResponse }));
 
           const auth1 = new OAuthManager({
             credentialSyncVariables: useCredentialSyncVariables,
@@ -701,10 +163,7 @@ describe("OAuthManager", () => {
               id: userId,
             },
             appSlug: "demo-app",
-            currentTokenObject: getDummyTokenObject({
-              refresh_token: "REFRESH_TOKEN",
-              expiry_date: Date.now() - 10 * 1000,
-            }),
+            currentTokenObject: currentTokenObject,
             fetchNewTokenObject,
             isTokenObjectUnusable: async () => {
               return null;
@@ -713,35 +172,721 @@ describe("OAuthManager", () => {
               return null;
             },
             invalidateTokenObject: invalidateTokenObject,
-            updateTokenObject: vi.fn(),
+            updateTokenObject: updateTokenObject,
             expireAccessToken: expireAccessToken,
           });
-          const fakedFetchResponse = generateJsonResponse({ json: getDummyTokenObject() });
-          fetchMock.mockReturnValueOnce(Promise.resolve(fakedFetchResponse));
-
           await auth1.getTokenObjectOrFetch();
-          expectToBeTokenGetCall({
-            fetchCall: fetchMock.mock.calls[0],
-            useCredentialSyncVariables,
-            userId,
-            appSlug: "demo-app",
+          expect(fetchNewTokenObject).toHaveBeenCalledWith({ refreshToken: "REFRESH_TOKEN" });
+          expect(updateTokenObject).toHaveBeenCalledWith({
+            ...currentTokenObject,
+            ...newTokenObjectInResponse,
+            // Consider the token as expired as newTokenObjectInResponse didn't have expiry
+            expiry_date: 0,
           });
-          expect(fetchNewTokenObject).not.toHaveBeenCalled();
+        });
+      });
+
+      describe("checking using expires_in", () => {
+        // eslint-disable-next-line playwright/max-nested-describe
+        describe("expires_in(relative to current time)", () => {
+          test("fetchNewTokenObject is called if expires_in is 0", async () => {
+            const userId = 1;
+            const invalidateTokenObject = vi.fn();
+            const expireAccessToken = vi.fn();
+            const updateTokenObject = vi.fn();
+            const fetchNewTokenObject = vi
+              .fn()
+              .mockResolvedValue(generateJsonResponse({ json: getDummyTokenObject() }));
+
+            const auth1 = new OAuthManager({
+              credentialSyncVariables: useCredentialSyncVariables,
+              resourceOwner: {
+                type: "user",
+                id: userId,
+              },
+              appSlug: "demo-app",
+              currentTokenObject: getDummyTokenObject({
+                refresh_token: "REFRESH_TOKEN",
+                expires_in: 0,
+              }),
+              fetchNewTokenObject,
+              isTokenObjectUnusable: async () => {
+                return null;
+              },
+              isAccessTokenUnusable: async () => {
+                return null;
+              },
+              invalidateTokenObject: invalidateTokenObject,
+              updateTokenObject: updateTokenObject,
+              expireAccessToken: expireAccessToken,
+            });
+            await auth1.getTokenObjectOrFetch();
+            expect(fetchNewTokenObject).toHaveBeenCalledWith({ refreshToken: "REFRESH_TOKEN" });
+          });
+
+          test("`fetchNewTokenObject` is not called even if expires_in is any non zero positive value(that is not 'time since epoch')", async () => {
+            const userId = 1;
+            const invalidateTokenObject = vi.fn();
+            const expireAccessToken = vi.fn();
+            const updateTokenObject = vi.fn();
+            const fetchNewTokenObject = vi
+              .fn()
+              .mockResolvedValue(generateJsonResponse({ json: getDummyTokenObject() }));
+
+            const auth1 = new OAuthManager({
+              credentialSyncVariables: useCredentialSyncVariables,
+              resourceOwner: {
+                type: "user",
+                id: userId,
+              },
+              appSlug: "demo-app",
+              currentTokenObject: getDummyTokenObject({
+                refresh_token: "REFRESH_TOKEN",
+                expires_in: 5,
+              }),
+              fetchNewTokenObject,
+              isTokenObjectUnusable: async () => {
+                return null;
+              },
+              isAccessTokenUnusable: async () => {
+                return null;
+              },
+              invalidateTokenObject: invalidateTokenObject,
+              updateTokenObject: updateTokenObject,
+              expireAccessToken: expireAccessToken,
+            });
+            await auth1.getTokenObjectOrFetch();
+            expect(fetchNewTokenObject).toHaveBeenCalledWith({ refreshToken: "REFRESH_TOKEN" });
+          });
+        });
+
+        // eslint-disable-next-line playwright/max-nested-describe
+        describe("expires_in(relative to epoch time)", () => {
+          test("fetchNewTokenObject is not called if token has not expired", async () => {
+            const userId = 1;
+            const invalidateTokenObject = vi.fn();
+            const expireAccessToken = vi.fn();
+            const updateTokenObject = vi.fn();
+            const fetchNewTokenObject = vi
+              .fn()
+              .mockResolvedValue(generateJsonResponse({ json: getDummyTokenObject() }));
+
+            const auth1 = new OAuthManager({
+              credentialSyncVariables: useCredentialSyncVariables,
+              resourceOwner: {
+                type: "user",
+                id: userId,
+              },
+              appSlug: "demo-app",
+              currentTokenObject: getDummyTokenObject({
+                refresh_token: "REFRESH_TOKEN",
+                expires_in: Date.now() / 1000 + 5,
+              }),
+              fetchNewTokenObject,
+              isTokenObjectUnusable: async () => {
+                return null;
+              },
+              isAccessTokenUnusable: async () => {
+                return null;
+              },
+              invalidateTokenObject: invalidateTokenObject,
+              updateTokenObject: updateTokenObject,
+              expireAccessToken: expireAccessToken,
+            });
+            await auth1.getTokenObjectOrFetch();
+            expect(fetchNewTokenObject).not.toHaveBeenCalledWith({ refreshToken: "REFRESH_TOKEN" });
+          });
+
+          test("fetchNewTokenObject is called if token has expired", async () => {
+            const userId = 1;
+            const invalidateTokenObject = vi.fn();
+            const expireAccessToken = vi.fn();
+            const updateTokenObject = vi.fn();
+            const fetchNewTokenObject = vi
+              .fn()
+              .mockResolvedValue(generateJsonResponse({ json: getDummyTokenObject() }));
+
+            const auth1 = new OAuthManager({
+              credentialSyncVariables: useCredentialSyncVariables,
+              resourceOwner: {
+                type: "user",
+                id: userId,
+              },
+              appSlug: "demo-app",
+              currentTokenObject: getDummyTokenObject({
+                refresh_token: "REFRESH_TOKEN",
+                expires_in: Date.now() / 1000 + 0,
+              }),
+              fetchNewTokenObject,
+              isTokenObjectUnusable: async () => {
+                return null;
+              },
+              isAccessTokenUnusable: async () => {
+                return null;
+              },
+              invalidateTokenObject: invalidateTokenObject,
+              updateTokenObject: updateTokenObject,
+              expireAccessToken: expireAccessToken,
+            });
+            await auth1.getTokenObjectOrFetch();
+            expect(fetchNewTokenObject).toHaveBeenCalledWith({ refreshToken: "REFRESH_TOKEN" });
+          });
         });
       });
     });
 
-    describe("API: `request`", () => {
-      test("If `isTokenObjectUnusable` marks the response invalid, then `invalidateTokenObject` function is called", async () => {
+    test("If fetchNewTokenObject returns null then auth.getTokenObjectOrFetch would throw error", async () => {
+      const userId = 1;
+      const invalidateTokenObject = vi.fn();
+      const expireAccessToken = vi.fn();
+      const updateTokenObject = vi.fn();
+
+      const auth = new OAuthManager({
+        credentialSyncVariables: useCredentialSyncVariables,
+        resourceOwner: {
+          type: "user",
+          id: userId,
+        },
+        appSlug: "demo-app",
+        currentTokenObject: getDummyTokenObject(),
+        fetchNewTokenObject: async () => {
+          return null;
+        },
+        isTokenObjectUnusable: async () => {
+          return null;
+        },
+        isAccessTokenUnusable: async () => {
+          return null;
+        },
+        invalidateTokenObject: invalidateTokenObject,
+        updateTokenObject: updateTokenObject,
+        expireAccessToken: expireAccessToken,
+      });
+
+      expect(async () => {
+        return auth.getTokenObjectOrFetch();
+      }).rejects.toThrowError("could not refresh the token");
+    });
+
+    test("if fetchNewTokenObject throws error that's not handled by isTokenObjectUnusable and isAccessTokenUnusable then auth.getTokenObjectOrFetch would still not throw error", async () => {
+      const userId = 1;
+      const invalidateTokenObject = vi.fn();
+      const expireAccessToken = vi.fn();
+      const updateTokenObject = vi.fn();
+
+      const auth = new OAuthManager({
+        credentialSyncVariables: useCredentialSyncVariables,
+        resourceOwner: {
+          type: "user",
+          id: userId,
+        },
+        appSlug: "demo-app",
+        currentTokenObject: getDummyTokenObject(),
+        fetchNewTokenObject: async () => {
+          throw new Error("testError");
+        },
+        isTokenObjectUnusable: async () => {
+          return null;
+        },
+        isAccessTokenUnusable: async () => {
+          return null;
+        },
+        invalidateTokenObject: invalidateTokenObject,
+        updateTokenObject: updateTokenObject,
+        expireAccessToken: expireAccessToken,
+      });
+
+      expect(async () => {
+        return auth.getTokenObjectOrFetch();
+      }).rejects.toThrowError("Invalid token response");
+    });
+
+    test("if fetchNewTokenObject throws error that's handled by isTokenObjectUnusable then auth.getTokenObjectOrFetch would still throw error but a different one as access_token won't be available", async () => {
+      const userId = 1;
+      const invalidateTokenObject = vi.fn();
+      const expireAccessToken = vi.fn();
+      const updateTokenObject = vi.fn();
+
+      const auth = new OAuthManager({
+        credentialSyncVariables: useCredentialSyncVariables,
+        resourceOwner: {
+          type: "user",
+          id: userId,
+        },
+        appSlug: "demo-app",
+        currentTokenObject: getDummyTokenObject(),
+        fetchNewTokenObject: async () => {
+          throw new Error("testError");
+        },
+        isTokenObjectUnusable: async () => {
+          return {
+            reason: "some reason",
+          };
+        },
+        isAccessTokenUnusable: async () => {
+          return null;
+        },
+        invalidateTokenObject: invalidateTokenObject,
+        updateTokenObject: updateTokenObject,
+        expireAccessToken: expireAccessToken,
+      });
+
+      expect(async () => {
+        return auth.getTokenObjectOrFetch();
+      }).rejects.toThrowError("Invalid token response");
+    });
+  });
+
+  describe("API: `request`", () => {
+    test("It would call fetch by adding Authorization and content header automatically", async () => {
+      const userId = 1;
+      const invalidateTokenObject = vi.fn();
+      const expireAccessToken = vi.fn();
+      const updateTokenObject = vi.fn();
+      const fetchNewTokenObject = vi
+        .fn()
+        .mockResolvedValue(generateJsonResponse({ json: getDummyTokenObject() }));
+
+      const auth = new OAuthManager({
+        credentialSyncVariables: useCredentialSyncVariables,
+        resourceOwner: {
+          type: "user",
+          id: userId,
+        },
+        appSlug: "demo-app",
+        currentTokenObject: getDummyTokenObject(),
+        fetchNewTokenObject,
+        isTokenObjectUnusable: async () => {
+          return null;
+        },
+        isAccessTokenUnusable: async () => {
+          return null;
+        },
+        invalidateTokenObject: invalidateTokenObject,
+        updateTokenObject: updateTokenObject,
+        expireAccessToken: expireAccessToken,
+      });
+
+      fetchMock.mockReturnValueOnce(Promise.resolve(generateJsonResponse({ json: { key: "value" } })));
+      const response = await auth.request({
+        url: "https://example.com",
+        options: {
+          method: "POST",
+          body: JSON.stringify({
+            key: "value",
+          }),
+        },
+      });
+
+      expect(response).toEqual({ tokenStatus: TokenStatus.VALID, json: { key: "value" } });
+      const fetchCallArguments = fetchMock.mock.calls[0];
+      expect(fetchCallArguments[0]).toBe("https://example.com");
+      // Verify that Authorization header is added automatically
+      // Along with other passed headers and other options
+      expect(fetchCallArguments[1]).toEqual(
+        expect.objectContaining({
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: "Bearer ACCESS_TOKEN",
+          },
+          body: JSON.stringify({
+            key: "value",
+          }),
+        })
+      );
+    });
+
+    test("If `isTokenObjectUnusable` marks the response invalid, then `invalidateTokenObject` function is called", async () => {
+      const userId = 1;
+      const invalidateTokenObject = vi.fn();
+      const expireAccessToken = vi.fn();
+      const updateTokenObject = vi.fn();
+
+      const fetchNewTokenObject = vi
+        .fn()
+        .mockResolvedValue(generateJsonResponse({ json: getDummyTokenObject() }));
+
+      const fakedFetchJsonResult = { key: "value" };
+      const fakedFetchResponse = generateJsonResponse({ json: fakedFetchJsonResult });
+
+      const auth = new OAuthManager({
+        autoCheckTokenExpiryOnRequest: false,
+        credentialSyncVariables: useCredentialSyncVariables,
+        resourceOwner: {
+          type: "user",
+          id: userId,
+        },
+        appSlug: "demo-app",
+        currentTokenObject: getDummyTokenObject(),
+        fetchNewTokenObject,
+        isTokenObjectUnusable: async (response) => {
+          const jsonRes = await response.json();
+          expect(jsonRes).toEqual(fakedFetchJsonResult);
+          return {
+            reason: "some reason",
+          };
+        },
+        isAccessTokenUnusable: async () => {
+          return null;
+        },
+        invalidateTokenObject: invalidateTokenObject,
+        updateTokenObject: updateTokenObject,
+        expireAccessToken: expireAccessToken,
+      });
+
+      fetchMock.mockReturnValueOnce(Promise.resolve(fakedFetchResponse));
+      const response = await auth.request({
+        url: "https://example.com",
+        options: {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            key: "value",
+          }),
+        },
+      });
+
+      expect(response).toEqual({
+        tokenStatus: TokenStatus.UNUSABLE_TOKEN_OBJECT,
+        json: fakedFetchJsonResult,
+      });
+      expect(invalidateTokenObject).toHaveBeenCalled();
+      expect(expireAccessToken).not.toHaveBeenCalled();
+    });
+
+    test("If `isAccessTokenUnusable` marks the response invalid, then `expireAccessToken` function is called", async () => {
+      const userId = 1;
+      const invalidateTokenObject = vi.fn();
+      const expireAccessToken = vi.fn();
+      const updateTokenObject = vi.fn();
+
+      const fetchNewTokenObject = vi
+        .fn()
+        .mockResolvedValue(generateJsonResponse({ json: getDummyTokenObject() }));
+
+      const fakedFetchJsonResult = { key: "value" };
+      const fakedFetchResponse = generateJsonResponse({ json: fakedFetchJsonResult });
+
+      const auth = new OAuthManager({
+        autoCheckTokenExpiryOnRequest: false,
+        credentialSyncVariables: useCredentialSyncVariables,
+        resourceOwner: {
+          type: "user",
+          id: userId,
+        },
+        appSlug: "demo-app",
+        currentTokenObject: getDummyTokenObject(),
+        fetchNewTokenObject,
+        isTokenObjectUnusable: async () => {
+          return null;
+        },
+        isAccessTokenUnusable: async (response) => {
+          const jsonRes = await response.json();
+          expect(jsonRes).toEqual(fakedFetchJsonResult);
+          return {
+            reason: "some reason",
+          };
+        },
+        invalidateTokenObject: invalidateTokenObject,
+        updateTokenObject: updateTokenObject,
+        expireAccessToken: expireAccessToken,
+      });
+
+      fetchMock.mockReturnValueOnce(Promise.resolve(fakedFetchResponse));
+      const response = await auth.request({
+        url: "https://example.com",
+        options: {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            key: "value",
+          }),
+        },
+      });
+
+      expect(response).toEqual({
+        tokenStatus: TokenStatus.UNUSABLE_ACCESS_TOKEN,
+        json: fakedFetchJsonResult,
+      });
+
+      expect(invalidateTokenObject).not.toHaveBeenCalled();
+      expect(expireAccessToken).toHaveBeenCalled();
+    });
+
+    test("If status is 204 make the json null because empty string which is usually the case with 204 status is not a valid json", async () => {
+      const userId = 1;
+      const invalidateTokenObject = vi.fn();
+      const expireAccessToken = vi.fn();
+      const updateTokenObject = vi.fn();
+
+      const fetchNewTokenObject = vi
+        .fn()
+        .mockResolvedValue(generateJsonResponse({ json: getDummyTokenObject() }));
+
+      const fakedFetchJsonResult = { key: "value" };
+      const fakedFetchResponse = generateJsonResponse({ json: fakedFetchJsonResult, status: 204 });
+
+      const auth = new OAuthManager({
+        credentialSyncVariables: useCredentialSyncVariables,
+        resourceOwner: {
+          type: "user",
+          id: userId,
+        },
+        appSlug: "demo-app",
+        currentTokenObject: getDummyTokenObject(),
+        fetchNewTokenObject,
+        isTokenObjectUnusable: async () => {
+          return null;
+        },
+        isAccessTokenUnusable: async () => {
+          return null;
+        },
+        invalidateTokenObject: invalidateTokenObject,
+        updateTokenObject: updateTokenObject,
+        expireAccessToken: expireAccessToken,
+      });
+
+      fetchMock.mockReturnValueOnce(Promise.resolve(fakedFetchResponse));
+      const response = await auth.request({
+        url: "https://example.com",
+        options: {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            key: "value",
+          }),
+        },
+      });
+
+      expect(response).toEqual({ tokenStatus: TokenStatus.VALID, json: null });
+      expect(expireAccessToken).not.toHaveBeenCalled();
+    });
+
+    test("If status is not okay it throws error with statusText", async () => {
+      const userId = 1;
+      const invalidateTokenObject = vi.fn();
+      const expireAccessToken = vi.fn();
+      const updateTokenObject = vi.fn();
+
+      const fetchNewTokenObject = vi
+        .fn()
+        .mockResolvedValue(generateJsonResponse({ json: getDummyTokenObject() }));
+
+      const fakedFetchJsonResult = { key: "value" };
+      const fakedFetchResponse = generateJsonResponse({
+        json: fakedFetchJsonResult,
+        status: 500,
+        statusText: "Internal Server Error",
+      });
+
+      const auth = new OAuthManager({
+        credentialSyncVariables: useCredentialSyncVariables,
+        resourceOwner: {
+          type: "user",
+          id: userId,
+        },
+        appSlug: "demo-app",
+        currentTokenObject: getDummyTokenObject(),
+        fetchNewTokenObject,
+        isTokenObjectUnusable: async () => {
+          return null;
+        },
+        isAccessTokenUnusable: async () => {
+          return null;
+        },
+        invalidateTokenObject: invalidateTokenObject,
+        updateTokenObject: updateTokenObject,
+        expireAccessToken: expireAccessToken,
+      });
+
+      fetchMock.mockReturnValueOnce(Promise.resolve(fakedFetchResponse));
+      const { json, tokenStatus } = await auth.request({
+        url: "https://example.com",
+        options: {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            key: "value",
+          }),
+        },
+      });
+      expect(json).toEqual(fakedFetchJsonResult);
+      expect(tokenStatus).toEqual(TokenStatus.INCONCLUSIVE);
+    });
+
+    test("if `customFetch` throws error that is handled by `isTokenObjectUnusable` then `request` would still throw error but also invalidate", async () => {
+      const userId = 1;
+      const invalidateTokenObject = vi.fn();
+      const expireAccessToken = vi.fn();
+      const updateTokenObject = vi.fn();
+      const fetchNewTokenObject = vi
+        .fn()
+        .mockResolvedValue(generateJsonResponse({ json: getDummyTokenObject() }));
+
+      const auth = new OAuthManager({
+        credentialSyncVariables: useCredentialSyncVariables,
+        resourceOwner: {
+          type: "user",
+          id: userId,
+        },
+        appSlug: "demo-app",
+        currentTokenObject: getDummyTokenObject(),
+        fetchNewTokenObject,
+        isTokenObjectUnusable: async () => {
+          return {
+            reason: "some reason",
+          };
+        },
+        isAccessTokenUnusable: async () => {
+          return null;
+        },
+        invalidateTokenObject: invalidateTokenObject,
+        updateTokenObject: updateTokenObject,
+        expireAccessToken: expireAccessToken,
+      });
+
+      await expect(
+        auth.request(() => {
+          throw new Error("Internal Server Error");
+        })
+      ).rejects.toThrowError("Internal Server Error");
+
+      expect(invalidateTokenObject).toHaveBeenCalled();
+    });
+  });
+
+  describe("API: `requestRaw`", () => {
+    test("It would call fetch by adding Authorization and content header automatically", async () => {
+      const userId = 1;
+      const invalidateTokenObject = vi.fn();
+      const expireAccessToken = vi.fn();
+      const updateTokenObject = vi.fn();
+      const fetchNewTokenObject = vi
+        .fn()
+        .mockResolvedValue(generateJsonResponse({ json: getDummyTokenObject() }));
+
+      const auth = new OAuthManager({
+        credentialSyncVariables: useCredentialSyncVariables,
+        resourceOwner: {
+          type: "user",
+          id: userId,
+        },
+        appSlug: "demo-app",
+        currentTokenObject: getDummyTokenObject(),
+        fetchNewTokenObject,
+        isTokenObjectUnusable: async () => {
+          return null;
+        },
+        isAccessTokenUnusable: async () => {
+          return null;
+        },
+        invalidateTokenObject: invalidateTokenObject,
+        updateTokenObject: updateTokenObject,
+        expireAccessToken: expireAccessToken,
+      });
+
+      fetchMock.mockReturnValueOnce(Promise.resolve(generateJsonResponse({ json: { key: "value" } })));
+      const response = await auth.requestRaw({
+        url: "https://example.com",
+        options: {
+          method: "POST",
+          body: JSON.stringify({
+            key: "value",
+          }),
+        },
+      });
+
+      expect(await response.json()).toEqual({ key: "value" });
+      const fetchCallArguments = fetchMock.mock.calls[0];
+      expect(fetchCallArguments[0]).toBe("https://example.com");
+      // Verify that Authorization header is added automatically
+      // Along with other passed headers and other options
+      expect(fetchCallArguments[1]).toEqual(
+        expect.objectContaining({
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: "Bearer ACCESS_TOKEN",
+          },
+          body: JSON.stringify({
+            key: "value",
+          }),
+        })
+      );
+    });
+  });
+});
+
+describe("Credential Sync Enabled", () => {
+  const useCredentialSyncVariables = {
+    ...credentialSyncVariables,
+    APP_CREDENTIAL_SHARING_ENABLED: true,
+  };
+  describe("API: `getTokenObjectOrFetch`", () => {
+    test("CREDENTIAL_SYNC_ENDPOINT is hit if no expiry_date is set in the `currentTokenObject`", async () => {
+      const userId = 1;
+      const invalidateTokenObject = vi.fn();
+      const expireAccessToken = vi.fn();
+      const updateTokenObject = vi.fn();
+      const fetchNewTokenObject = vi
+        .fn()
+        .mockResolvedValue(generateJsonResponse({ json: getDummyTokenObject() }));
+
+      const auth1 = new OAuthManager({
+        credentialSyncVariables: useCredentialSyncVariables,
+        resourceOwner: {
+          type: "user",
+          id: userId,
+        },
+        appSlug: "demo-app",
+        currentTokenObject: getDummyTokenObject({
+          refresh_token: "REFRESH_TOKEN",
+        }),
+        fetchNewTokenObject,
+        isTokenObjectUnusable: async () => {
+          return null;
+        },
+        isAccessTokenUnusable: async () => {
+          return null;
+        },
+        invalidateTokenObject: invalidateTokenObject,
+        updateTokenObject: updateTokenObject,
+        expireAccessToken: expireAccessToken,
+      });
+
+      const fakedFetchResponse = generateJsonResponse({ json: getDummyTokenObject() });
+      fetchMock.mockReturnValueOnce(Promise.resolve(fakedFetchResponse));
+
+      await auth1.getTokenObjectOrFetch();
+      expectToBeTokenGetCall({
+        fetchCall: fetchMock.mock.calls[0],
+        useCredentialSyncVariables,
+        userId,
+        appSlug: "demo-app",
+      });
+      expect(fetchNewTokenObject).not.toHaveBeenCalled();
+    });
+
+    describe("expiry_date based token refresh", () => {
+      test("CREDENTIAL_SYNC_ENDPOINT is not hit if token has not expired", async () => {
         const userId = 1;
         const invalidateTokenObject = vi.fn();
         const expireAccessToken = vi.fn();
+        const updateTokenObject = vi.fn();
+        const fetchNewTokenObject = vi
+          .fn()
+          .mockResolvedValue(generateJsonResponse({ json: getDummyTokenObject() }));
 
-        const fetchNewTokenObject = vi.fn();
-        const fakedFetchJsonResult = { key: "value" };
-        const fakedFetchResponse = generateJsonResponse({ json: fakedFetchJsonResult });
-
-        const auth = new OAuthManager({
+        const auth1 = new OAuthManager({
           credentialSyncVariables: useCredentialSyncVariables,
           resourceOwner: {
             type: "user",
@@ -749,51 +894,483 @@ describe("OAuthManager", () => {
           },
           appSlug: "demo-app",
           currentTokenObject: getDummyTokenObject({
-            // To make sure that existing token is used and thus refresh token doesn't happen
+            refresh_token: "REFRESH_TOKEN",
             expiry_date: Date.now() + 10 * 1000,
           }),
           fetchNewTokenObject,
-          isTokenObjectUnusable: async (response) => {
-            const jsonRes = await response.json();
-            expect(jsonRes).toEqual(fakedFetchJsonResult);
-            return {
-              reason: "some reason",
-            };
+          isTokenObjectUnusable: async () => {
+            return null;
           },
           isAccessTokenUnusable: async () => {
             return null;
           },
           invalidateTokenObject: invalidateTokenObject,
-          updateTokenObject: vi.fn(),
+          updateTokenObject: updateTokenObject,
           expireAccessToken: expireAccessToken,
         });
 
-        // For fetch triggered by the actual request
+        await auth1.getTokenObjectOrFetch();
+        expect(fetchNewTokenObject).not.toHaveBeenCalled();
+        expect(fetchMock).not.toHaveBeenCalled();
+      });
+
+      test("CREDENTIAL_SYNC_ENDPOINT is hit if token has expired", async () => {
+        const userId = 1;
+        const invalidateTokenObject = vi.fn();
+        const expireAccessToken = vi.fn();
+        const updateTokenObject = vi.fn();
+        const fetchNewTokenObject = vi
+          .fn()
+          .mockResolvedValue(generateJsonResponse({ json: getDummyTokenObject() }));
+
+        const auth1 = new OAuthManager({
+          credentialSyncVariables: useCredentialSyncVariables,
+          resourceOwner: {
+            type: "user",
+            id: userId,
+          },
+          appSlug: "demo-app",
+          currentTokenObject: getDummyTokenObject({
+            refresh_token: "REFRESH_TOKEN",
+            expiry_date: Date.now() - 10 * 1000,
+          }),
+          fetchNewTokenObject,
+          isTokenObjectUnusable: async () => {
+            return null;
+          },
+          isAccessTokenUnusable: async () => {
+            return null;
+          },
+          invalidateTokenObject: invalidateTokenObject,
+          updateTokenObject: updateTokenObject,
+          expireAccessToken: expireAccessToken,
+        });
+        const fakedFetchResponse = generateJsonResponse({ json: getDummyTokenObject() });
         fetchMock.mockReturnValueOnce(Promise.resolve(fakedFetchResponse));
 
-        const response = await auth.request({
-          url: "https://example.com",
-          options: {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              key: "value",
-            }),
-          },
+        await auth1.getTokenObjectOrFetch();
+        expectToBeTokenGetCall({
+          fetchCall: fetchMock.mock.calls[0],
+          useCredentialSyncVariables,
+          userId,
+          appSlug: "demo-app",
         });
-
-        expect(response).toEqual({
-          tokenStatus: TokenStatus.UNUSABLE_TOKEN_OBJECT,
-          json: fakedFetchJsonResult,
-        });
-        expect(invalidateTokenObject).not.toHaveBeenCalled();
-        expect(expireAccessToken).toHaveBeenCalled();
+        expect(fetchNewTokenObject).not.toHaveBeenCalled();
       });
     });
   });
+
+  describe("API: `request`", () => {
+    test("If `isTokenObjectUnusable` marks the response invalid, then `invalidateTokenObject` function is called", async () => {
+      const userId = 1;
+      const invalidateTokenObject = vi.fn();
+      const expireAccessToken = vi.fn();
+      const updateTokenObject = vi.fn();
+
+      const fetchNewTokenObject = vi.fn();
+      const fakedFetchJsonResult = { key: "value" };
+      const fakedFetchResponse = generateJsonResponse({ json: fakedFetchJsonResult });
+
+      const auth = new OAuthManager({
+        credentialSyncVariables: useCredentialSyncVariables,
+        resourceOwner: {
+          type: "user",
+          id: userId,
+        },
+        appSlug: "demo-app",
+        currentTokenObject: getDummyTokenObject({
+          // To make sure that existing token is used and thus refresh token doesn't happen
+          expiry_date: Date.now() + 10 * 1000,
+        }),
+        fetchNewTokenObject,
+        isTokenObjectUnusable: async (response) => {
+          const jsonRes = await response.json();
+          expect(jsonRes).toEqual(fakedFetchJsonResult);
+          return {
+            reason: "some reason",
+          };
+        },
+        isAccessTokenUnusable: async () => {
+          return null;
+        },
+        invalidateTokenObject: invalidateTokenObject,
+        updateTokenObject: updateTokenObject,
+        expireAccessToken: expireAccessToken,
+      });
+
+      // For fetch triggered by the actual request
+      fetchMock.mockReturnValueOnce(Promise.resolve(fakedFetchResponse));
+
+      const response = await auth.request({
+        url: "https://example.com",
+        options: {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            key: "value",
+          }),
+        },
+      });
+
+      expect(response).toEqual({
+        tokenStatus: TokenStatus.UNUSABLE_TOKEN_OBJECT,
+        json: fakedFetchJsonResult,
+      });
+      expect(invalidateTokenObject).not.toHaveBeenCalled();
+      expect(expireAccessToken).toHaveBeenCalled();
+    });
+
+    test("If neither of `isTokenObjectUnusable` and `isAccessTokenInvalid` mark the response invalid, but the response is still not OK then `markTokenExpired` is still called.", async () => {
+      const userId = 1;
+      const invalidateTokenObject = vi.fn();
+      const expireAccessToken = vi.fn();
+      const updateTokenObject = vi.fn();
+
+      const fetchNewTokenObject = vi.fn();
+      const fakedFetchJsonResult = { key: "value" };
+      const fakedFetchResponse = internalServerErrorResponse({ json: fakedFetchJsonResult });
+
+      const auth = new OAuthManager({
+        credentialSyncVariables: useCredentialSyncVariables,
+        resourceOwner: {
+          type: "user",
+          id: userId,
+        },
+        appSlug: "demo-app",
+        currentTokenObject: getDummyTokenObject({
+          // To make sure that existing token is used and thus refresh token doesn't happen
+          expiry_date: Date.now() + 10 * 1000,
+        }),
+        fetchNewTokenObject,
+        isTokenObjectUnusable: async () => {
+          return null;
+        },
+        isAccessTokenUnusable: async () => {
+          return null;
+        },
+        invalidateTokenObject: invalidateTokenObject,
+        updateTokenObject: updateTokenObject,
+        expireAccessToken: expireAccessToken,
+      });
+
+      // For fetch triggered by the actual request
+      fetchMock.mockReturnValueOnce(Promise.resolve(fakedFetchResponse));
+
+      const response = await auth.request({
+        url: "https://example.com",
+        options: {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            key: "value",
+          }),
+        },
+      });
+
+      expect(response).toEqual({
+        tokenStatus: TokenStatus.INCONCLUSIVE,
+        json: fakedFetchJsonResult,
+      });
+      expect(invalidateTokenObject).not.toHaveBeenCalled();
+      expect(expireAccessToken).toHaveBeenCalled();
+    });
+
+    test("If neither of `isTokenObjectUnusable` and `isAccessTokenInvalid` mark the response invalid, and the response is also OK then `markTokenExpired` is not called.", async () => {
+      const userId = 1;
+      const invalidateTokenObject = vi.fn();
+      const expireAccessToken = vi.fn();
+      const updateTokenObject = vi.fn();
+
+      const fetchNewTokenObject = vi.fn();
+      const fakedFetchJsonResult = { key: "value" };
+      const fakedFetchResponse = successResponse({ json: fakedFetchJsonResult });
+
+      const auth = new OAuthManager({
+        credentialSyncVariables: useCredentialSyncVariables,
+        resourceOwner: {
+          type: "user",
+          id: userId,
+        },
+        appSlug: "demo-app",
+        currentTokenObject: getDummyTokenObject({
+          // To make sure that existing token is used and thus refresh token doesn't happen
+          expiry_date: Date.now() + 10 * 1000,
+        }),
+        fetchNewTokenObject,
+        isTokenObjectUnusable: async () => {
+          return null;
+        },
+        isAccessTokenUnusable: async () => {
+          return null;
+        },
+        invalidateTokenObject: invalidateTokenObject,
+        updateTokenObject: updateTokenObject,
+        expireAccessToken: expireAccessToken,
+      });
+
+      // For fetch triggered by the actual request
+      fetchMock.mockReturnValueOnce(Promise.resolve(fakedFetchResponse));
+
+      const response = await auth.request({
+        url: "https://example.com",
+        options: {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            key: "value",
+          }),
+        },
+      });
+
+      expect(response).toEqual({
+        tokenStatus: TokenStatus.VALID,
+        json: fakedFetchJsonResult,
+      });
+      expect(invalidateTokenObject).not.toHaveBeenCalled();
+      expect(expireAccessToken).not.toHaveBeenCalled();
+    });
+
+    test("If `autoCheckTokenExpiryOnRequest` is true and token is expired, then token sync endpoint is hit", async () => {
+      const userId = 1;
+      const invalidateTokenObject = vi.fn();
+      const expireAccessToken = vi.fn();
+      const updateTokenObject = vi.fn();
+      const fetchNewTokenObject = vi.fn();
+      const currentTokenObject = getExpiredTokenObject();
+      const newTokenObjectInResponse = getDummyTokenObject();
+      const fakedTokenGetResponse = generateJsonResponse({ json: newTokenObjectInResponse });
+      const fakedFetchJsonResult = { key: "value" };
+      const fakedFetchResponse = successResponse({ json: fakedFetchJsonResult });
+
+      const auth = new OAuthManager({
+        autoCheckTokenExpiryOnRequest: true,
+        credentialSyncVariables: useCredentialSyncVariables,
+        resourceOwner: {
+          type: "user",
+          id: userId,
+        },
+        appSlug: "demo-app",
+        currentTokenObject,
+        fetchNewTokenObject,
+        isTokenObjectUnusable: async () => {
+          return null;
+        },
+        isAccessTokenUnusable: async () => {
+          return null;
+        },
+        invalidateTokenObject: invalidateTokenObject,
+        updateTokenObject: updateTokenObject,
+        expireAccessToken: expireAccessToken,
+      });
+
+      // For fetch triggered by the token sync request
+      fetchMock.mockReturnValueOnce(Promise.resolve(fakedTokenGetResponse));
+
+      // For fetch triggered by the request call fetch
+      fetchMock.mockReturnValueOnce(Promise.resolve(fakedFetchResponse));
+
+      const response = await auth.request({
+        url: "https://example.com",
+        options: {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            key: "value",
+          }),
+        },
+      });
+
+      expect(response).toEqual({
+        tokenStatus: TokenStatus.VALID,
+        json: fakedFetchJsonResult,
+      });
+
+      expect(updateTokenObject).toHaveBeenCalledWith(expect.objectContaining(newTokenObjectInResponse));
+      // In credential sync mode, the expiry date is set to next year as it is not explicitly set in newTokenObject
+      expectExpiryToBeNextYear(updateTokenObject.mock.calls[0][0].expiry_date);
+
+      expect(invalidateTokenObject).not.toHaveBeenCalled();
+      expect(expireAccessToken).not.toHaveBeenCalled();
+    });
+
+    test("If `autoCheckTokenExpiryOnRequest` is not set(default true is used) and token is expired, then token sync endpoint is hit", async () => {
+      const userId = 1;
+      const invalidateTokenObject = vi.fn();
+      const expireAccessToken = vi.fn();
+      const updateTokenObject = vi.fn();
+
+      const fetchNewTokenObject = vi.fn();
+      const fakedTokenGetJson = getDummyTokenObject();
+      const fakedTokenGetResponse = generateJsonResponse({ json: fakedTokenGetJson });
+      const fakedFetchJsonResult = { key: "value" };
+      const fakedFetchResponse = successResponse({ json: fakedFetchJsonResult });
+
+      const auth = new OAuthManager({
+        credentialSyncVariables: useCredentialSyncVariables,
+        resourceOwner: {
+          type: "user",
+          id: userId,
+        },
+        appSlug: "demo-app",
+        currentTokenObject: getExpiredTokenObject(),
+        fetchNewTokenObject,
+        isTokenObjectUnusable: async () => {
+          return null;
+        },
+        isAccessTokenUnusable: async () => {
+          return null;
+        },
+        invalidateTokenObject: invalidateTokenObject,
+        updateTokenObject: updateTokenObject,
+        expireAccessToken: expireAccessToken,
+      });
+
+      // For fetch triggered by the token sync request
+      fetchMock.mockReturnValueOnce(Promise.resolve(fakedTokenGetResponse));
+
+      // For fetch triggered by the request call fetch
+      fetchMock.mockReturnValueOnce(Promise.resolve(fakedFetchResponse));
+
+      const response = await auth.request({
+        url: "https://example.com",
+        options: {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            key: "value",
+          }),
+        },
+      });
+
+      expect(response).toEqual({
+        tokenStatus: TokenStatus.VALID,
+        json: fakedFetchJsonResult,
+      });
+      expect(updateTokenObject).toHaveBeenCalled();
+      expect(invalidateTokenObject).not.toHaveBeenCalled();
+      expect(expireAccessToken).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("API: `requestRaw`", () => {
+    test("Though `isTokenObjectUnusable` and `isAccessTokenInvalid` aren't applicable here, but if the response is not OK then `markTokenExpired` is still called.", async () => {
+      const userId = 1;
+      const invalidateTokenObject = vi.fn();
+      const expireAccessToken = vi.fn();
+      const updateTokenObject = vi.fn();
+
+      const fetchNewTokenObject = vi.fn();
+      const fakedFetchJsonResult = { key: "value" };
+      const fakedFetchResponse = internalServerErrorResponse({ json: fakedFetchJsonResult });
+
+      const auth = new OAuthManager({
+        autoCheckTokenExpiryOnRequest: false,
+        credentialSyncVariables: useCredentialSyncVariables,
+        resourceOwner: {
+          type: "user",
+          id: userId,
+        },
+        appSlug: "demo-app",
+        currentTokenObject: getDummyTokenObject({
+          // To make sure that existing token is used and thus refresh token doesn't happen
+          expiry_date: Date.now() + 10 * 1000,
+        }),
+        fetchNewTokenObject,
+        isTokenObjectUnusable: async () => {
+          return null;
+        },
+        isAccessTokenUnusable: async () => {
+          return null;
+        },
+        invalidateTokenObject: invalidateTokenObject,
+        updateTokenObject: updateTokenObject,
+        expireAccessToken: expireAccessToken,
+      });
+
+      // For fetch triggered by the actual request
+      fetchMock.mockReturnValueOnce(Promise.resolve(fakedFetchResponse));
+
+      const response = await auth.requestRaw({
+        url: "https://example.com",
+        options: {
+          method: "POST",
+          body: JSON.stringify({
+            key: "value",
+          }),
+        },
+      });
+
+      expect(await response.json()).toEqual(fakedFetchJsonResult);
+      expect(invalidateTokenObject).not.toHaveBeenCalled();
+      expect(expireAccessToken).toHaveBeenCalled();
+    });
+
+    test("Though `isTokenObjectUnusable` and `isAccessTokenInvalid` aren't applicable here, and the response is also OK then `markTokenExpired` is not called.", async () => {
+      const userId = 1;
+      const invalidateTokenObject = vi.fn();
+      const expireAccessToken = vi.fn();
+      const updateTokenObject = vi.fn();
+      const fetchNewTokenObject = vi.fn();
+      const fakedFetchJsonResult = { key: "value" };
+      const fakedFetchResponse = successResponse({ json: fakedFetchJsonResult });
+
+      const auth = new OAuthManager({
+        autoCheckTokenExpiryOnRequest: false,
+        credentialSyncVariables: useCredentialSyncVariables,
+        resourceOwner: {
+          type: "user",
+          id: userId,
+        },
+        appSlug: "demo-app",
+        currentTokenObject: getDummyTokenObject({
+          // To make sure that existing token is used and thus refresh token doesn't happen
+          expiry_date: Date.now() + 10 * 1000,
+        }),
+        fetchNewTokenObject,
+        isTokenObjectUnusable: async () => {
+          return null;
+        },
+        isAccessTokenUnusable: async () => {
+          return null;
+        },
+        invalidateTokenObject: invalidateTokenObject,
+        updateTokenObject: updateTokenObject,
+        expireAccessToken: expireAccessToken,
+      });
+
+      // For fetch triggered by the actual request
+      fetchMock.mockReturnValueOnce(Promise.resolve(fakedFetchResponse));
+
+      const response = await auth.requestRaw({
+        url: "https://example.com",
+        options: {
+          method: "POST",
+          body: JSON.stringify({
+            key: "value",
+          }),
+        },
+      });
+
+      expect(await response.json()).toEqual(fakedFetchJsonResult);
+      expect(invalidateTokenObject).not.toHaveBeenCalled();
+      expect(expireAccessToken).not.toHaveBeenCalled();
+    });
+  });
 });
+
+function expectExpiryToBeNextYear(expiry_date: number) {
+  expect(new Date(expiry_date).getFullYear() - new Date().getFullYear()).toBe(1);
+}
 
 function expectToBeTokenGetCall({
   fetchCall,
