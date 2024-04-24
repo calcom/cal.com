@@ -3,7 +3,9 @@ import prisma from "@calcom/prisma";
 import type { EventType, Prisma, User, WorkflowReminder, WorkflowStep } from "@calcom/prisma/client";
 import { WorkflowMethods } from "@calcom/prisma/enums";
 
-type PartialWorkflowStep = Partial<WorkflowStep> | null;
+type PartialWorkflowStep =
+  | (Partial<WorkflowStep> & { workflow: { userId?: number; teamId?: number } })
+  | null;
 
 type Booking = Prisma.BookingGetPayload<{
   include: {
@@ -120,6 +122,12 @@ export const select: Prisma.WorkflowReminderSelect = {
       template: true,
       sender: true,
       includeCalendarEvent: true,
+      workflow: {
+        select: {
+          userId: true,
+          teamId: true,
+        },
+      },
     },
   },
   booking: {
