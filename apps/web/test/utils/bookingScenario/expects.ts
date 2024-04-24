@@ -344,6 +344,38 @@ export function expectWorkflowToBeNotTriggered({
   );
 }
 
+export function expectSMSWorkflowToBeTriggered({
+  sms,
+  toNumber,
+}: {
+  sms: Fixtures["sms"];
+  toNumber: string;
+}) {
+  expect(sms.get()).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({
+        to: toNumber,
+      }),
+    ])
+  );
+}
+
+export function expectSMSWorkflowToBeNotTriggered({
+  sms,
+  toNumber,
+}: {
+  sms: Fixtures["sms"];
+  toNumber: string;
+}) {
+  expect(sms.get()).not.toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({
+        to: toNumber,
+      }),
+    ])
+  );
+}
+
 export async function expectBookingToBeInDatabase(
   booking: Partial<Booking> & Pick<Booking, "uid"> & { references?: Partial<BookingReference>[] }
 ) {
