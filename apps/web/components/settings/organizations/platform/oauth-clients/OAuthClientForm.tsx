@@ -71,7 +71,7 @@ export const OAuthClientForm: FC<{ clientId?: string }> = ({ clientId }) => {
       data.bookingRescheduleRedirectUri &&
         setValue("bookingRescheduleRedirectUri", data.bookingRescheduleRedirectUri);
       setValue("areEmailsEnabled", data?.areEmailsEnabled);
-      data?.redirectUris.forEach((uri: string, index: number) => {
+      data?.redirectUris?.forEach((uri: string, index: number) => {
         index === 0 && setValue(`redirectUris.${index}.uri`, uri);
         index !== 0 && append({ uri });
       });

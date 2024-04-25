@@ -773,6 +773,60 @@
         ]
       }
     },
+    "/v2/billing/{teamId}/check": {
+      "get": {
+        "operationId": "BillingController_checkTeamBilling",
+        "parameters": [
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckPlatformBillingResponseDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/billing/{teamId}/subscribe": {
+      "post": {
+        "operationId": "BillingController_subscribeTeamToStripe",
+        "parameters": [
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubscribeTeamToBillingResponseDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v2/gcal/oauth/auth-url": {
       "get": {
         "operationId": "GcalController_redirect",
@@ -2786,6 +2840,35 @@
         "required": [
           "status",
           "data"
+        ]
+      },
+      "CheckPlatformBillingResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string"
+          },
+          "valid": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "status",
+          "valid"
+        ]
+      },
+      "SubscribeTeamToBillingResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "object"
+          },
+          "url": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "status"
         ]
       },
       "AuthUrlData": {

@@ -15,4 +15,7 @@ export type AppConfig = {
   next: {
     authSecret: string;
   };
+  stripe: {
+    apiKey: string;
+  };
 };

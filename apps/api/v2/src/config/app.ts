@@ -24,6 +24,9 @@ const loadConfig = (): AppConfig => {
     next: {
       authSecret: getEnv("NEXTAUTH_SECRET"),
     },
+    stripe: {
+      apiKey: getEnv("STRIPE_API_KEY"),
+    },
   };
 };
 

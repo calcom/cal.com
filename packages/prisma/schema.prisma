@@ -398,6 +398,7 @@ model Team {
   dsyncTeamGroupMapping DSyncTeamGroupMapping[]
   isPlatform            Boolean                 @default(false)
   platformOAuthClient   PlatformOAuthClient[]
+  platformBilling       PlatformBilling?
 
   @@unique([slug, parentId])
   @@index([parentId])
@@ -1345,4 +1346,17 @@ model Task {
   // The maximum number of times the task can be attempted
   maxAttempts Int       @default(3)
   lastError   String?
+}
+
+model PlatformBilling {
+  id Int @id @unique // team id
+
+  customerId     String  @unique
+  subscriptionId String?
+
+  billingCycleStart Int?
+  billingCycleEnd   Int?
+  overdue           Boolean? @default(false)
+
+  team Team @relation(fields: [id], references: [id], onDelete: Cascade)
 }

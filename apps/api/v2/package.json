@@ -56,6 +56,7 @@
     "passport-jwt": "^4.0.1",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.8.1",
+    "stripe": "^15.3.0",
     "uuid": "^8.3.2",
     "winston": "^3.11.0",
     "zod": "^3.22.4"

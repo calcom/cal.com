@@ -3,11 +3,15 @@ import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { NextAuthGuard } from "@/modules/auth/guards/next-auth/next-auth.guard";
 import { OrganizationRolesGuard } from "@/modules/auth/guards/organization-roles/organization-roles.guard";
-import { CreateOAuthClientResponseDto } from "@/modules/oauth-clients/controllers/oauth-clients/responses/CreateOAuthClientResponse.dto";
+import {
+  CreateOAuthClientResponseDto,
+  CreateOauthClientRedirect,
+} from "@/modules/oauth-clients/controllers/oauth-clients/responses/CreateOAuthClientResponse.dto";
 import { GetOAuthClientResponseDto } from "@/modules/oauth-clients/controllers/oauth-clients/responses/GetOAuthClientResponse.dto";
 import { GetOAuthClientsResponseDto } from "@/modules/oauth-clients/controllers/oauth-clients/responses/GetOAuthClientsResponse.dto";
 import { UpdateOAuthClientInput } from "@/modules/oauth-clients/inputs/update-oauth-client.input";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
+import { OrganizationsRepository } from "@/modules/organizations/organizations.repository";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import {
   Body,
@@ -22,6 +26,7 @@ import {
   Logger,
   UseGuards,
   NotFoundException,
+  BadRequestException,
 } from "@nestjs/common";
 import {
   ApiTags as DocsTags,
@@ -47,7 +52,10 @@ Second, make sure that the logged in user has organizationId set to pass the Org
 export class OAuthClientsController {
   private readonly logger = new Logger("OAuthClientController");
 
-  constructor(private readonly oauthClientRepository: OAuthClientRepository) {}
+  constructor(
+    private readonly oauthClientRepository: OAuthClientRepository,
+    private readonly teamsRepository: OrganizationsRepository
+  ) {}
 
   @Post("/")
   @HttpCode(HttpStatus.CREATED)
@@ -60,11 +68,17 @@ export class OAuthClientsController {
   async createOAuthClient(
     @GetUser() user: UserWithProfile,
     @Body() body: CreateOAuthClientInput
-  ): Promise<CreateOAuthClientResponseDto> {
+  ): Promise<CreateOAuthClientResponseDto | CreateOauthClientRedirect> {
     const organizationId = (user.movedToProfile?.organizationId ?? user.organizationId) as number;
     this.logger.log(
       `For organisation ${organizationId} creating OAuth Client with data: ${JSON.stringify(body)}`
     );
+
+    const organization = await this.teamsRepository.findByIdIncludeBilling(organizationId);
+    if (!organization?.platformBilling || !organization?.platformBilling?.subscriptionId) {
+      throw new BadRequestException("Team is not subscribed, cannot create an OAuth Client.");
+    }
+
     const { id, secret } = await this.oauthClientRepository.createOAuthClient(organizationId, body);
     return {
       status: SUCCESS_STATUS,
