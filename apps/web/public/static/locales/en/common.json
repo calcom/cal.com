@@ -2413,5 +2413,6 @@
   "no_show_url_info":"The URL for No Show Feedback",
   "no_support_needed":"No Support Needed?",
   "hide_support":"Hide Support",
+  "lockedSMS": "Locked SMS",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
