@@ -145,7 +145,7 @@ export const OAuthClientCard = ({
           className="bg-subtle hover:bg-emphasis text-white"
           loading={isLoading}
           disabled={isLoading}
-          onClick={() => router.push(`/settings/platform/oauth-clients/edit?clientId=${id}`)}>
+          onClick={() => router.push(`/settings/platform/oauth-clients/${id}/edit`)}>
           Edit
         </Button>
         <Button

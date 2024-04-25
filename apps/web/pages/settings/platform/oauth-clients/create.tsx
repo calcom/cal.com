@@ -18,7 +18,7 @@ export default function CreateOAuthClient() {
                 OAuth client create form
               </h1>
               <p className="text-default text-sm ltr:mr-4 rtl:ml-4">
-                This is the form to to create a new OAuth client
+                This is the form to create a new OAuth client
               </p>
             </div>
           </div>

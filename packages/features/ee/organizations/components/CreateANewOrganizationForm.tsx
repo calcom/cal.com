@@ -108,7 +108,7 @@ const CreateANewOrganizationFormChild = ({
             setServerErrorMessage(null);
             createOrganizationMutation.mutate({
               ...v,
-              isPlatform: isPlatformOrg ? true : false,
+              isPlatform: isPlatformOrg,
               slug: isPlatformOrg ? v.name.toLocaleLowerCase() : v.slug,
             });
           }
