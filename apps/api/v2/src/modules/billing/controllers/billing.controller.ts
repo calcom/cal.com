@@ -4,8 +4,8 @@ import { NextAuthGuard } from "@/modules/auth/guards/next-auth/next-auth.guard";
 import { OrganizationRolesGuard } from "@/modules/auth/guards/organization-roles/organization-roles.guard";
 import { BillingService } from "@/modules/billing/billing.service";
 import { SubscribeToPlanInput } from "@/modules/billing/controllers/inputs/subscribe-to-plan.input";
-import { CheckPlatformBillingResponseDto } from "@/modules/billing/controllers/resposnes/CheckPlatformBillingResponse.dto";
-import { SubscribeTeamToBillingResponseDto } from "@/modules/billing/controllers/resposnes/SubscribeTeamToBillingResponse.dto";
+import { CheckPlatformBillingResponseDto } from "@/modules/billing/controllers/responses/CheckPlatformBillingResponse.dto";
+import { SubscribeTeamToBillingResponseDto } from "@/modules/billing/controllers/responses/SubscribeTeamToBillingResponse.dto";
 import {
   BadRequestException,
   Body,
