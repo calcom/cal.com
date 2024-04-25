@@ -35,7 +35,9 @@ export class HttpCaller {
     private readonly axiosClient: AxiosInstance,
     private readonly options?: HttpCallerOptions
   ) {
-    this.setupInterceptors();
+    if (options?.shouldHandleRefresh) {
+      this.setupInterceptors();
+    }
   }
 
   private async retryQueuedRequests() {
@@ -160,9 +162,5 @@ export class HttpCaller {
       headers,
       params,
     });
-  }
-
-  isAwaitingRefresh() {
-    return this.awaitingRefresh;
   }
 }

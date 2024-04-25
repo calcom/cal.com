@@ -1,7 +1,7 @@
-import type { CalSdk } from "../../../cal";
-import { Endpoints } from "../../../lib/endpoints";
-import type { BasicPlatformResponse, PaginationOptions } from "../../../types";
-import { EndpointHandler } from "../../endpoint-handler";
+import type { CalSdk } from "../../cal";
+import { Endpoints } from "../../lib/endpoints";
+import type { BasicPlatformResponse, PaginationOptions } from "../../types";
+import { EndpointHandler } from "../endpoint-handler";
 import type { CreateUserArgs, CreateUserResponse, User } from "./types";
 
 export class ManagedUsers extends EndpointHandler {
