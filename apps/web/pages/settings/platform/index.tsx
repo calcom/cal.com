@@ -149,19 +149,19 @@ export default function Platform() {
                         <Button color="secondary">{initialClientName}</Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent>
-                        {data.map((user) => {
+                        {data.map((client) => {
                           return (
-                            <div key={user.id}>
-                              {initialClientName !== user.name ? (
+                            <div key={client.id}>
+                              {initialClientName !== client.name ? (
                                 <DropdownMenuItem className="outline-none">
                                   <DropdownItem
                                     type="button"
                                     onClick={() => {
-                                      setInitialClientId(user.id);
-                                      setInitialClientName(user.name);
+                                      setInitialClientId(client.id);
+                                      setInitialClientName(client.name);
                                       refetchManagedUsers();
                                     }}>
-                                    {user.name}
+                                    {client.name}
                                   </DropdownItem>
                                 </DropdownMenuItem>
                               ) : (
