@@ -39,6 +39,7 @@ export type FormValues = {
   trigger: WorkflowTriggerEvents;
   time?: number;
   timeUnit?: TimeUnit;
+  selectAll: boolean;
 };
 
 export function onlyLettersNumbersSpaces(str: string) {
@@ -78,6 +79,7 @@ const formSchema = z.object({
       senderName: z.string().optional().nullable(),
     })
     .array(),
+  selectAll: z.boolean(),
 });
 
 const querySchema = z.object({
@@ -133,19 +135,14 @@ function WorkflowPage() {
       if (workflow.userId && workflow.activeOn.find((active) => !!active.eventType.teamId)) {
         setIsMixedEventType(true);
       }
-
-      const selectedEventTypeOptions =
+      setSelectedEventTypes(
         workflow.activeOn.flatMap((active) => {
           if (workflow.teamId && active.eventType.parentId) return [];
           return {
             value: String(active.eventType.id),
             label: active.eventType.title,
           };
-        }) || [];
-      setSelectedEventTypes(
-        workflow.isActiveOnAll
-          ? selectedEventTypeOptions.concat([{ label: "Select all", value: "all" }])
-          : selectedEventTypeOptions
+        }) || []
       );
 
       const activeOn = workflow.activeOn
@@ -183,6 +180,7 @@ function WorkflowPage() {
       form.setValue("time", workflow.time || undefined);
       form.setValue("timeUnit", workflow.timeUnit || undefined);
       form.setValue("activeOn", activeOn || []);
+      form.setValue("selectAll", workflow.isActiveOnAll || []);
       setIsAllDataLoaded(true);
     }
   }, [isPending]);
@@ -216,7 +214,6 @@ function WorkflowPage() {
         let activeOnEventTypeIds: number[] = [];
         let isEmpty = false;
         let isVerified = true;
-        let isActiveOnAll = false;
 
         values.steps.forEach((step) => {
           const strippedHtml = step.reminderBody?.replace(/<[^>]+>/g, "") || "";
@@ -259,10 +256,6 @@ function WorkflowPage() {
               .map((option) => {
                 return parseInt(option.value, 10);
               });
-
-            if (values.activeOn.find((option) => option.value !== "all")) {
-              isActiveOnAll = true;
-            }
           }
           updateMutation.mutate({
             id: workflowId,
@@ -272,7 +265,7 @@ function WorkflowPage() {
             trigger: values.trigger,
             time: values.time || null,
             timeUnit: values.timeUnit || null,
-            isActiveOnAll,
+            isActiveOnAll: values.selectAll || false,
           });
           utils.viewer.workflows.getVerifiedNumbers.invalidate();
         }

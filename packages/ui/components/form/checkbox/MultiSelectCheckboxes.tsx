@@ -53,8 +53,8 @@ type MultiSelectionCheckboxesProps = {
 
 const MultiValue = ({ index, getValue }: { index: number; getValue: () => { length: number } }) => {
   const { t } = useLocale();
-
-  return <>{!index && <div>{t("nr_event_type", { count: getValue().length })}</div>}</>;
+  const count = getValue().filter((option) => option.value !== "all").length;
+  return <>{!index && <div>{t("nr_event_type", { count })}</div>}</>;
 };
 
 export default function MultiSelectCheckboxes({
@@ -68,9 +68,13 @@ export default function MultiSelectCheckboxes({
 }: Omit<Props, "options"> & MultiSelectionCheckboxesProps) {
   const additonalComponents = { MultiValue };
 
+  const allOptions = [{ label: "Select all", value: "all" }, ...options];
+
+  const allSelected = selected.length === options.length ? allOptions : selected;
+
   return (
     <Select
-      value={selected}
+      value={allSelected}
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       onChange={(s: any, event: any) => {
         const allSelected = [];
@@ -87,7 +91,9 @@ export default function MultiSelectCheckboxes({
               if (s.find((option) => option.value === "all")) {
                 allSelected.push(...s.filter((option) => option.value !== "all"));
               } else {
-                allSelected.push(...s);
+                if (event.action === "select-option") {
+                  allSelected.push(...[...s, { label: "Select all", value: "all" }]);
+                }
               }
             } else {
               allSelected.push(...s);
@@ -99,7 +105,7 @@ export default function MultiSelectCheckboxes({
         setValue(allSelected);
       }}
       variant="checkbox"
-      options={[{ label: "Select all", value: "all" }, ...options]}
+      options={allOptions}
       isMulti
       isDisabled={isDisabled}
       className={classNames(className ? className : "w-64 text-sm")}
