@@ -277,7 +277,6 @@ function WorkflowPage() {
         }
         hideHeadingOnMobile
         heading={
-          session.data?.hasValidLicense &&
           isAllDataLoaded && (
             <div className="flex">
               <div className={classNames(workflow && !workflow.name ? "text-muted" : "")}>
