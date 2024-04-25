@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { stringify } from "querystring";
 
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import { WEBAPP_URL_FOR_OAUTH } from "@calcom/lib/constants";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import { encodeOAuthState } from "../../_utils/oauth/encodeOAuthState";
@@ -21,7 +21,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       scope: scopes.join(" "),
       client_id,
       prompt: "select_account",
-      redirect_uri: `${WEBAPP_URL}/api/integrations/office365calendar/callback`,
+      redirect_uri: `${WEBAPP_URL_FOR_OAUTH}/api/integrations/office365calendar/callback`,
       state,
     };
     const query = stringify(params);

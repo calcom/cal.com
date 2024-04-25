@@ -2,7 +2,7 @@ import type { Calendar as OfficeCalendar } from "@microsoft/microsoft-graph-type
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { renewSelectedCalendarCredentialId } from "@calcom/lib/connectedCalendar";
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import { WEBAPP_URL, WEBAPP_URL_FOR_OAUTH } from "@calcom/lib/constants";
 import { handleErrorsJson } from "@calcom/lib/errors";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import prisma from "@calcom/prisma";
@@ -50,7 +50,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     grant_type: "authorization_code",
     code,
     scope: scopes.join(" "),
-    redirect_uri: `${WEBAPP_URL}/api/integrations/office365calendar/callback`,
+    redirect_uri: `${WEBAPP_URL_FOR_OAUTH}/api/integrations/office365calendar/callback`,
     client_secret,
   });
 

@@ -1,6 +1,6 @@
 import type { NextApiRequest } from "next";
 
-import { minimumTokenResponseSchema } from "@calcom/app-store/_utils/oauth/parseRefreshTokenResponse";
+import { OAuth2UniversalSchema } from "@calcom/app-store/_utils/oauth/universalSchema";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import { defaultResponder } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
@@ -63,7 +63,7 @@ async function handler(req: NextApiRequest) {
     symmetricDecrypt(encryptedKey, process.env.CALCOM_APP_CREDENTIAL_ENCRYPTION_KEY || "")
   );
 
-  const key = minimumTokenResponseSchema.parse(decryptedKey);
+  const key = OAuth2UniversalSchema.parse(decryptedKey);
 
   const credential = await prisma.credential.update({
     where: {
