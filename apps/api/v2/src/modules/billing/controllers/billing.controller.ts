@@ -74,7 +74,7 @@ export class BillingController {
   async stripeWebhook(
     @Req() request: Request,
     @Headers("stripe-signature") stripeSignature: string
-  ): Promise<ApiResponse<unknown>> {
+  ): Promise<ApiResponse> {
     const event = await this.billingService.stripeService.stripe.webhooks.constructEventAsync(
       request.body,
       stripeSignature,
