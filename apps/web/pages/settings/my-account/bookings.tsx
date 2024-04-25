@@ -25,19 +25,18 @@ const SkeletonLoader = ({ title, description }: { title: string; description: st
   );
 };
 
-const BookingsView = ({ data }: { data: RouterOutputs["viewer"]["globalSettings"] }) => {
+const BookingsView = ({ data }: { data: RouterOutputs["viewer"]["me"] }) => {
   const { t } = useLocale();
-  const { globalSettings } = data;
   const bookingsLimitFormMethods = useForm({
     defaultValues: {
-      bookingLimits: globalSettings?.bookingLimits,
+      bookingLimits: data?.bookingLimits as IntervalLimit,
     },
   });
 
   const utils = trpc.useContext();
   const updateProfileMutation = trpc.viewer.updateProfile.useMutation({
     onSuccess: async () => {
-      await utils.viewer.globalSettings.invalidate();
+      await utils.viewer.me.invalidate();
       bookingsLimitFormMethods.reset(bookingsLimitFormMethods.getValues());
     },
     onError: () => {
@@ -56,8 +55,6 @@ const BookingsView = ({ data }: { data: RouterOutputs["viewer"]["globalSettings"
   };
 
   const watchBookingLimits = bookingsLimitFormMethods.watch("bookingLimits");
-
-  const showLimitFrequency = Object.keys(watchBookingLimits ?? {}).length > 0;
 
   return (
     <div>
@@ -93,7 +90,7 @@ const BookingsView = ({ data }: { data: RouterOutputs["viewer"]["globalSettings"
 };
 
 const BookingsViewWrapper = () => {
-  const { data, isPending } = trpc.viewer.globalSettings.useQuery();
+  const { data, isPending } = trpc.viewer.me.useQuery();
 
   const { t } = useLocale();
 

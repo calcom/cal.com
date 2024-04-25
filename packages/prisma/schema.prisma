@@ -316,9 +316,11 @@ model User {
   movedToProfile             Profile?                     @relation("moved_to_profile", fields: [movedToProfileId], references: [id], onDelete: SetNull)
   secondaryEmails            SecondaryEmail[]
   isPlatformManaged          Boolean                      @default(false)
-  GlobalSettings             GlobalSettings?
 
   OutOfOfficeReasons OutOfOfficeReason[]
+
+  /// @zod.custom(imports.intervalLimitsType)
+  bookingLimits Json?
 
   @@unique([email])
   @@unique([email, username])
@@ -1325,16 +1327,5 @@ model SecondaryEmail {
 
   @@unique([email])
   @@unique([userId, email])
-  @@index([userId])
-}
-
-model GlobalSettings {
-  id            Int   @id @default(autoincrement())
-  user          User  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId        Int
-  /// @zod.custom(imports.intervalLimitsType)
-  bookingLimits Json?
-
-  @@unique([userId])
   @@index([userId])
 }

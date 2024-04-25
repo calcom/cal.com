@@ -55,7 +55,6 @@ type AppsRouterHandlerCache = {
   outOfOfficeEntriesList?: typeof import("./outOfOffice.handler").outOfOfficeEntriesList;
   outOfOfficeEntryDelete?: typeof import("./outOfOffice.handler").outOfOfficeEntryDelete;
   addSecondaryEmail?: typeof import("./addSecondaryEmail.handler").addSecondaryEmailHandler;
-  globalSettings?: typeof import("./globalSettings.handler").globalSettingsHandler;
   getTravelSchedules?: typeof import("./getTravelSchedules.handler").getTravelSchedulesHandler;
   outOfOfficeReasonList?: typeof import("./outOfOfficeReasons.handler").outOfOfficeReasonList;
 };
@@ -486,20 +485,6 @@ export const loggedInViewerRouter = router({
     }
 
     return UNSTABLE_HANDLER_CACHE.addSecondaryEmail({ ctx, input });
-  }),
-  globalSettings: authedProcedure.query(async ({ ctx }) => {
-    if (!UNSTABLE_HANDLER_CACHE.globalSettings) {
-      UNSTABLE_HANDLER_CACHE.globalSettings = (
-        await import("./globalSettings.handler")
-      ).globalSettingsHandler;
-    }
-
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.globalSettings) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.globalSettings({ ctx });
   }),
   getTravelSchedules: authedProcedure.query(async ({ ctx }) => {
     if (!UNSTABLE_HANDLER_CACHE.getTravelSchedules) {

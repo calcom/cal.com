@@ -272,6 +272,14 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
     });
   }
 
+  if (bookingLimits) {
+    const isValid = validateIntervalLimitOrder(bookingLimits);
+    if (!isValid)
+      throw new TRPCError({ code: "BAD_REQUEST", message: "Booking limits must be in ascending order." });
+
+    data.bookingLimits = bookingLimits;
+  }
+
   const updatedUserSelect = Prisma.validator<Prisma.UserDefaultArgs>()({
     select: {
       id: true,
@@ -311,25 +319,6 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
       }
     }
     throw e; // make sure other errors are rethrown
-  }
-
-  if (bookingLimits) {
-    const isValid = validateIntervalLimitOrder(bookingLimits);
-    if (!isValid)
-      throw new TRPCError({ code: "BAD_REQUEST", message: "Booking limits must be in ascending order." });
-
-    await prisma.globalSettings.upsert({
-      where: {
-        userId: user.id,
-      },
-      create: {
-        userId: user.id,
-        bookingLimits,
-      },
-      update: {
-        bookingLimits,
-      },
-    });
   }
 
   if (user.timeZone !== data.timeZone && updatedUser.schedules.length > 0) {

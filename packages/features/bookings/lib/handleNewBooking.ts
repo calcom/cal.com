@@ -1134,15 +1134,18 @@ async function handler(
     }
   }
 
-  const globalLimits = await prisma.globalSettings.findUnique({
+  const currentUser = await prisma.user.findUnique({
     where: {
-      userId,
+      id: userId,
+    },
+    select: {
+      bookingLimits: true,
     },
   });
 
-  if (globalLimits?.bookingLimits && Object.keys(globalLimits.bookingLimits).length > 0) {
+  if (currentUser?.bookingLimits && Object.keys(currentUser.bookingLimits).length > 0) {
     await checkBookingLimits(
-      globalLimits.bookingLimits as IntervalLimit,
+      currentUser.bookingLimits as IntervalLimit,
       startAsDate,
       undefined,
       rescheduleUid,
