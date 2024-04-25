@@ -42,6 +42,7 @@ import {
 import { createMockNextJsRequest } from "@calcom/web/test/utils/bookingScenario/createMockNextJsRequest";
 import {
   expectWorkflowToBeTriggered,
+  expectWorkflowToBeNotTriggered,
   expectSuccessfulBookingCreationEmails,
   expectBookingToBeInDatabase,
   expectAwaitingPaymentEmails,
@@ -1510,7 +1511,7 @@ describe("handleNewBooking", () => {
             status: BookingStatus.PENDING,
           });
 
-          expectWorkflowToBeTriggered({ emailsToReceive: [organizer.email], emails });
+          expectWorkflowToBeNotTriggered({ emailsToReceive: [organizer.email], emails });
 
           expectBookingRequestedEmails({
             booker,
@@ -1635,7 +1636,7 @@ describe("handleNewBooking", () => {
             }),
           });
 
-          expectWorkflowToBeTriggered({ emailsToReceive: [organizer.email], emails });
+          expectWorkflowToBeNotTriggered({ emailsToReceive: [organizer.email], emails });
 
           expectBookingRequestedEmails({
             booker,
@@ -1896,7 +1897,7 @@ describe("handleNewBooking", () => {
             iCalUID: createdBooking.iCalUID,
           });
 
-          expectWorkflowToBeTriggered({ emailsToReceive: [organizer.email], emails });
+          expectWorkflowToBeNotTriggered({ emailsToReceive: [organizer.email], emails });
 
           expectBookingRequestedEmails({ booker, organizer, emails });
 
@@ -2219,7 +2220,7 @@ describe("handleNewBooking", () => {
             }),
           });
 
-          expectWorkflowToBeTriggered({ emailsToReceive: [organizer.email], emails });
+          expectWorkflowToBeNotTriggered({ emailsToReceive: [organizer.email], emails });
 
           expectAwaitingPaymentEmails({ organizer, booker, emails });
 
@@ -2373,7 +2374,7 @@ describe("handleNewBooking", () => {
             status: BookingStatus.PENDING,
           });
 
-          expectWorkflowToBeTriggered({ emailsToReceive: [organizer.email], emails });
+          expectWorkflowToBeNotTriggered({ emailsToReceive: [organizer.email], emails });
 
           expectAwaitingPaymentEmails({ organizer, booker, emails });
           expectBookingPaymentIntiatedWebhookToHaveBeenFired({
