@@ -340,6 +340,9 @@ describe("handleNewBooking", () => {
                   {
                     id: 101,
                   },
+                  {
+                    id: 102,
+                  },
                 ],
                 teamId: 1,
                 destinationCalendar: {
@@ -398,7 +401,8 @@ describe("handleNewBooking", () => {
         });
 
         expectWorkflowToBeTriggered({
-          emailsToReceive: [organizer.email], // should send to the other team members too
+          // emailsToReceive: [organizer.email].concat(otherTeamMembers.map(member => member.email)),
+          emailsToReceive: [organizer.email],
           emails,
         });
       },
@@ -406,7 +410,7 @@ describe("handleNewBooking", () => {
     );
 
     test(
-      "should not send workflow email and sms when booking is created if the team is locked for sms sending",
+      "should not send workflow sms when booking is created if the team is locked for sms sending",
       async ({ emails, sms }) => {
         const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
         const booker = getBooker({
@@ -491,6 +495,9 @@ describe("handleNewBooking", () => {
                 users: [
                   {
                     id: 101,
+                  },
+                  {
+                    id: 102,
                   },
                 ],
                 teamId: 1,
