@@ -282,7 +282,7 @@ export default class SalesforceCRMService implements CRM {
     const soql = `SELECT Id, Email FROM Contact WHERE Email IN ('${emails.join("','")}')`;
     const results = await conn.query(soql);
     return results.records
-      ? results.records.map((record: { id: string; Email: string }) => ({
+      ? results.records.map((record: { Id: string; Email: string }) => ({
           id: record.Id,
           email: record.Email,
         }))
