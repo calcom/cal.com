@@ -23,6 +23,7 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
       name: true,
       userId: true,
       teamId: true,
+      isActiveOnAll: true,
       team: {
         select: {
           id: true,

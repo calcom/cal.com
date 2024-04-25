@@ -133,15 +133,21 @@ function WorkflowPage() {
       if (workflow.userId && workflow.activeOn.find((active) => !!active.eventType.teamId)) {
         setIsMixedEventType(true);
       }
-      setSelectedEventTypes(
+
+      const selectedEventTypeOptions =
         workflow.activeOn.flatMap((active) => {
           if (workflow.teamId && active.eventType.parentId) return [];
           return {
             value: String(active.eventType.id),
             label: active.eventType.title,
           };
-        }) || []
+        }) || [];
+      setSelectedEventTypes(
+        workflow.isActiveOnAll
+          ? selectedEventTypeOptions.concat([{ label: "Select all", value: "all" }])
+          : selectedEventTypeOptions
       );
+
       const activeOn = workflow.activeOn
         ? workflow.activeOn.map((active) => ({
             value: active.eventType.id.toString(),
@@ -210,6 +216,7 @@ function WorkflowPage() {
         let activeOnEventTypeIds: number[] = [];
         let isEmpty = false;
         let isVerified = true;
+        let isActiveOnAll = false;
 
         values.steps.forEach((step) => {
           const strippedHtml = step.reminderBody?.replace(/<[^>]+>/g, "") || "";
@@ -247,9 +254,15 @@ function WorkflowPage() {
 
         if (!isEmpty && isVerified) {
           if (values.activeOn) {
-            activeOnEventTypeIds = values.activeOn.map((option) => {
-              return parseInt(option.value, 10);
-            });
+            activeOnEventTypeIds = values.activeOn
+              .filter((option) => option.value !== "all")
+              .map((option) => {
+                return parseInt(option.value, 10);
+              });
+
+            if (values.activeOn.find((option) => option.value !== "all")) {
+              isActiveOnAll = true;
+            }
           }
           updateMutation.mutate({
             id: workflowId,
@@ -259,6 +272,7 @@ function WorkflowPage() {
             trigger: values.trigger,
             time: values.time || null,
             timeUnit: values.timeUnit || null,
+            isActiveOnAll,
           });
           utils.viewer.workflows.getVerifiedNumbers.invalidate();
         }

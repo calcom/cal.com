@@ -30,6 +30,7 @@ export const ZUpdateInputSchema = z.object({
   trigger: z.enum(WORKFLOW_TRIGGER_EVENTS),
   time: z.number().nullable(),
   timeUnit: z.enum(TIME_UNIT).nullable(),
+  isActiveOnAll: z.boolean().optional(),
 });
 
 export type TUpdateInputSchema = z.infer<typeof ZUpdateInputSchema>;

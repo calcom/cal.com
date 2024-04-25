@@ -41,7 +41,7 @@ type UpdateOptions = {
 
 export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   const { user } = ctx;
-  const { id, name, activeOn, steps, trigger, time, timeUnit } = input;
+  const { id, name, activeOn, steps, trigger, time, timeUnit, isActiveOnAll } = input;
 
   const userWorkflow = await ctx.prisma.workflow.findUnique({
     where: {
@@ -747,6 +747,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       trigger,
       time,
       timeUnit,
+      isActiveOnAll,
     },
   });
 

@@ -72,12 +72,34 @@ export default function MultiSelectCheckboxes({
     <Select
       value={selected}
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      onChange={(s: any) => {
-        setSelected(s);
-        setValue(s);
+      onChange={(s: any, event: any) => {
+        const allSelected = [];
+
+        if (s !== null && s.length > 0) {
+          if (s.find((option) => option.value === "all")) {
+            if (event.action === "select-option") {
+              allSelected.push(...[{ label: "Select all", value: "all" }, ...options]);
+            } else {
+              allSelected.push(...s.filter((option) => option.value !== "all"));
+            }
+          } else {
+            if (s.length === options.length) {
+              if (s.find((option) => option.value === "all")) {
+                allSelected.push(...s.filter((option) => option.value !== "all"));
+              } else {
+                allSelected.push(...s);
+              }
+            } else {
+              allSelected.push(...s);
+            }
+          }
+        }
+
+        setSelected(allSelected);
+        setValue(allSelected);
       }}
       variant="checkbox"
-      options={options}
+      options={[{ label: "Select all", value: "all" }, ...options]}
       isMulti
       isDisabled={isDisabled}
       className={classNames(className ? className : "w-64 text-sm")}
