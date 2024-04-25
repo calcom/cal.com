@@ -30,6 +30,7 @@ export const apiHandlers = {
   googlecalendar: import("./googlecalendar/api"),
   googlevideo: import("./googlevideo/api"),
   gtm: import("./gtm/api"),
+  howareya: import("./howareya/api"),
   hubspot: import("./hubspot/api"),
   huddle01video: import("./huddle01video/api"),
   "ics-feedcalendar": import("./ics-feedcalendar/api"),

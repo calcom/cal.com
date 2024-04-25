@@ -1,0 +1,16 @@
+{
+  "/*": "Don't modify slug - If required, do it using cli edit command",
+  "name": "HowAreYa?",
+  "slug": "howareya",
+  "type": "howareya_automation",
+  "logo": "icon.svg",
+  "url": "https://checkin.raikas.dev/",
+  "variant": "automation",
+  "categories": ["automation"],
+  "publisher": "Mikroni",
+  "email": "roni@mikroni.fi",
+  "description": "HowAreYa is a tool to automatically book meetings with your contacts every now and then. Just give us their link, meeting frequency, preferred time of day and we'll take care of the rest.\r\r",
+  "isTemplate": false,
+  "__createdUsingCli": true,
+  "__template": "link-as-an-app"
+}

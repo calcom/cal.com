@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "private": true,
+  "name": "@calcom/howareya",
+  "version": "0.0.0",
+  "main": "./index.ts",
+  "dependencies": {
+    "@calcom/lib": "*"
+  },
+  "devDependencies": {
+    "@calcom/types": "*"
+  },
+  "description": "HowAreYa is a tool to automatically book meetings with your contacts every now and then. Just give us their link, meeting frequency, preferred time of day and we'll take care of the rest.\r\r"
+}
