@@ -406,7 +406,7 @@ describe("handleNewBooking", () => {
     );
 
     test(
-      "should not send workflow email and sms when booking is created",
+      "should not send workflow email and sms when booking is created if the team is locked for sms sending",
       async ({ emails, sms }) => {
         const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
         const booker = getBooker({
