@@ -215,9 +215,8 @@ describe("handleNewBooking", () => {
         });
 
         expectWorkflowToBeTriggered({
-          emailsToReceive: [organizer.email],
+          emailsToReceive: [organizerDestinationCalendarEmailOnEventType],
           emails,
-          destinationEmail: organizerDestinationCalendarEmailOnEventType,
         });
         expectSuccessfulCalendarEventCreationInCalendar(calendarMock, {
           calendarId: "event-type-1@google-calendar.com",

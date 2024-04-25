@@ -144,9 +144,8 @@ describe("handleNewBooking", () => {
         });
 
         expectWorkflowToBeTriggered({
-          emailsToReceive: [organizer.email],
+          emailsToReceive: [organizerDestinationCalendarEmailOnEventType],
           emails,
-          destinationEmail: organizerDestinationCalendarEmailOnEventType,
         });
       },
       timeout
