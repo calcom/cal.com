@@ -1,4 +1,5 @@
 import type { Membership, Team, UserPermissionRole } from "@prisma/client";
+import { PasskeyProvider, tenant } from "@teamhanko/passkeys-next-auth-provider";
 import type { AuthOptions, Session } from "next-auth";
 import type { JWT } from "next-auth/jwt";
 import { encode } from "next-auth/jwt";
@@ -13,8 +14,12 @@ import ImpersonationProvider from "@calcom/features/ee/impersonation/lib/Imperso
 import { getOrgFullOrigin, subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { clientSecretVerifier, hostedCal, isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
-import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
-import { ENABLE_PROFILE_SWITCHER, IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
+import {
+  ENABLE_PROFILE_SWITCHER,
+  HOSTED_CAL_FEATURES,
+  IS_TEAM_BILLING_ENABLED,
+  WEBAPP_URL,
+} from "@calcom/lib/constants";
 import { symmetricDecrypt, symmetricEncrypt } from "@calcom/lib/crypto";
 import { defaultCookies } from "@calcom/lib/default-cookies";
 import { isENVDev } from "@calcom/lib/env";
@@ -34,11 +39,19 @@ import CalComAdapter from "./next-auth-custom-adapter";
 import { verifyPassword } from "./verifyPassword";
 
 const log = logger.getSubLogger({ prefix: ["next-auth-options"] });
+
 const GOOGLE_API_CREDENTIALS = process.env.GOOGLE_API_CREDENTIALS || "{}";
 const { client_id: GOOGLE_CLIENT_ID, client_secret: GOOGLE_CLIENT_SECRET } =
   JSON.parse(GOOGLE_API_CREDENTIALS)?.web || {};
 const GOOGLE_LOGIN_ENABLED = process.env.GOOGLE_LOGIN_ENABLED === "true";
 const IS_GOOGLE_LOGIN_ENABLED = !!(GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET && GOOGLE_LOGIN_ENABLED);
+
+const IS_PASSKEY_LOGIN_ENABLED = !!(
+  process.env.PASSKEY_LOGIN_ENABLED === "true" &&
+  process.env.NEXT_PUBLIC_HANKO_PASSKEYS_TENANT_ID &&
+  process.env.HANKO_PASSKEYS_API_KEY
+);
+
 const ORGANIZATIONS_AUTOLINK =
   process.env.ORGANIZATIONS_AUTOLINK === "1" || process.env.ORGANIZATIONS_AUTOLINK === "true";
 
@@ -247,6 +260,61 @@ if (IS_GOOGLE_LOGIN_ENABLED) {
       clientId: GOOGLE_CLIENT_ID,
       clientSecret: GOOGLE_CLIENT_SECRET,
       allowDangerousEmailAccountLinking: true,
+    })
+  );
+}
+
+if (IS_PASSKEY_LOGIN_ENABLED) {
+  providers.push(
+    PasskeyProvider({
+      tenant: tenant({
+        apiKey: process.env.HANKO_PASSKEYS_API_KEY!,
+        tenantId: process.env.NEXT_PUBLIC_HANKO_PASSKEYS_TENANT_ID!,
+      }),
+      async authorize(data) {
+        /** The passkey API stores userIds as strings
+         * In "/web/pages/api/auth/passkeys/register/finalize.ts", we `.toString()` the userId
+         * so simply converting it back with `Number()` should be good
+         *
+         * The `!userId` check below makes sure it's not NaN
+         */
+        const userId = Number(data.userId);
+
+        // If removing this check, make sure userId is valid (e.g. not NaN)
+        if (!userId) {
+          console.error(`For some reason credentials are missing`);
+          throw new Error(ErrorCode.InternalServerError);
+        }
+
+        const user = await UserRepository.findByIdAndIncludeProfilesAndPassword({ id: userId });
+
+        if (!user) {
+          throw new Error(ErrorCode.IncorrectEmailPassword);
+        }
+
+        // Locked users cannot login
+        if (user.locked) {
+          throw new Error(ErrorCode.UserAccountLocked);
+        }
+
+        await checkRateLimitAndThrowError({
+          identifier: user.email,
+        });
+
+        // Check if the user you are logging into has any active teams
+        const hasActiveTeams = checkIfUserBelongsToActiveTeam(user);
+
+        return {
+          id: user.id,
+          username: user.username,
+          email: user.email,
+          name: user.name,
+          role: user.role,
+          belongsToActiveTeam: hasActiveTeams,
+          locale: user.locale,
+          profile: user.allProfiles[0],
+        };
+      },
     })
   );
 }

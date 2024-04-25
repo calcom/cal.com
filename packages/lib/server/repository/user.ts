@@ -241,6 +241,46 @@ export class UserRepository {
     return user;
   }
 
+  static async findByIdAndIncludeProfilesAndPassword({ id }: { id: number }) {
+    const user = await prisma.user.findUnique({
+      where: {
+        id,
+      },
+      select: {
+        locked: true,
+        role: true,
+        id: true,
+        username: true,
+        name: true,
+        email: true,
+        metadata: true,
+        identityProvider: true,
+        password: true,
+        twoFactorEnabled: true,
+        twoFactorSecret: true,
+        backupCodes: true,
+        locale: true,
+        teams: {
+          include: {
+            team: {
+              select: teamSelect,
+            },
+          },
+        },
+      },
+    });
+
+    if (!user) {
+      return null;
+    }
+
+    const allProfiles = await ProfileRepository.findAllProfilesForUserIncludingMovedUser(user);
+    return {
+      ...user,
+      allProfiles,
+    };
+  }
+
   static async findManyByOrganization({ organizationId }: { organizationId: number }) {
     const profiles = await ProfileRepository.findManyForOrg({ organizationId });
     return profiles.map((profile) => profile.user);

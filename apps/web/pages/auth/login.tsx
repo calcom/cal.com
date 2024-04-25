@@ -1,6 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { signInWithPasskey } from "@teamhanko/passkeys-next-auth-provider/client";
 import classNames from "classnames";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
@@ -44,6 +45,7 @@ const GoogleIcon = () => (
 export default function Login({
   csrfToken,
   isGoogleLoginEnabled,
+  isPasskeyLoginEnabled,
   isSAMLLoginEnabled,
   samlTenantID,
   samlProductID,
@@ -238,7 +240,9 @@ inferSSRProps<typeof getServerSideProps> & WithNonceProps<{}>) {
           </form>
           {!twoFactorRequired && (
             <>
-              {(isGoogleLoginEnabled || displaySSOLogin) && <hr className="border-subtle my-8" />}
+              {(isGoogleLoginEnabled || displaySSOLogin || isPasskeyLoginEnabled) && (
+                <hr className="border-subtle my-8" />
+              )}
               <div className="space-y-3">
                 {isGoogleLoginEnabled && (
                   <Button
@@ -252,6 +256,24 @@ inferSSRProps<typeof getServerSideProps> & WithNonceProps<{}>) {
                       await signIn("google");
                     }}>
                     {t("signin_with_google")}
+                  </Button>
+                )}
+                {isPasskeyLoginEnabled && (
+                  <Button
+                    color="secondary"
+                    className="w-full justify-center"
+                    disabled={formState.isSubmitting}
+                    StartIcon="key-round"
+                    onClick={async (e) => {
+                      e.preventDefault();
+                      await signInWithPasskey({
+                        tenantId: process.env.NEXT_PUBLIC_HANKO_PASSKEYS_TENANT_ID!,
+                      }).catch((err) => {
+                        console.error("Error signing in with passkey", err);
+                        setErrorMessage(t("passkey_login_failed"));
+                      });
+                    }}>
+                    {t("signin_with_passkey")}
                   </Button>
                 )}
                 {displaySSOLogin && (

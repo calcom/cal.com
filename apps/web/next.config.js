@@ -189,6 +189,7 @@ const nextConfig = {
     "@calcom/prisma",
     "@calcom/trpc",
     "@calcom/ui",
+    "@teamhanko/passkeys-next-auth-provider",
     "lucide-react",
   ],
   modularizeImports: {

@@ -57,6 +57,8 @@ declare namespace NodeJS {
     readonly NEXT_PUBLIC_APP_NAME: string | "Cal";
     readonly NEXT_PUBLIC_SUPPORT_MAIL_ADDRESS: string | "help@cal.com";
     readonly NEXT_PUBLIC_COMPANY_NAME: string | "Cal.com, Inc.";
+    readonly NEXT_PUBLIC_HANKO_PASSKEYS_TENANT_ID: string | undefined;
+    readonly HANKO_PASSKEYS_API_KEY: string | undefined;
     /**
      *  "strict" -> Strict CSP
      *  "non-strict" -> Strict CSP except the usage of unsafe-inline for `style-src`
