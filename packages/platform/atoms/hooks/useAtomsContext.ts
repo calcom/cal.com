@@ -25,7 +25,7 @@ export interface IAtomsContext {
   i18n: {
     language: string;
     defaultLocale: string;
-    locales: [string];
+    locales: string[];
     exists: (key: translationKeys | string) => boolean;
   };
 }
