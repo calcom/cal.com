@@ -303,16 +303,6 @@ describe("handleNewBooking", () => {
 
         await createBookingScenario(
           getScenarioData({
-            webhooks: [
-              {
-                userId: organizer.id,
-                eventTriggers: ["BOOKING_CREATED"],
-                subscriberUrl: "http://my-webhook.example.com",
-                active: true,
-                eventTypeId: 1,
-                appId: null,
-              },
-            ],
             workflows: [
               {
                 teamId: 1,
@@ -466,16 +456,6 @@ describe("handleNewBooking", () => {
 
         await createBookingScenario(
           getScenarioData({
-            webhooks: [
-              {
-                userId: organizer.id,
-                eventTriggers: ["BOOKING_CREATED"],
-                subscriberUrl: "http://my-webhook.example.com",
-                active: true,
-                eventTypeId: 1,
-                appId: null,
-              },
-            ],
             workflows: [
               {
                 teamId: 1,
