@@ -68,6 +68,7 @@ function WorkflowsPage() {
             isPending={createMutation.isPending}
             disableMobileButton={true}
             onlyShowWithNoTeams={true}
+            includeOrg={true}
           />
         ) : null
       }>
@@ -83,6 +84,7 @@ function WorkflowsPage() {
                   isPending={createMutation.isPending}
                   disableMobileButton={true}
                   onlyShowWithTeams={true}
+                  includeOrg={true}
                 />
               </div>
             </div>

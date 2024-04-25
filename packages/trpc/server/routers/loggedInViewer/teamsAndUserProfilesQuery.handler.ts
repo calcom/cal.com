@@ -7,14 +7,17 @@ import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
 
+import type { TteamsAndUserProfilesQuerySchema } from "./teamsAndUserProfilesQuery.schema";
+
 type TeamsAndUserProfileOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
     prisma: PrismaClient;
   };
+  input: TteamsAndUserProfilesQuerySchema;
 };
 
-export const teamsAndUserProfilesQuery = async ({ ctx }: TeamsAndUserProfileOptions) => {
+export const teamsAndUserProfilesQuery = async ({ ctx, input }: TeamsAndUserProfileOptions) => {
   const { prisma } = ctx;
 
   const user = await prisma.user.findUnique({
@@ -56,15 +59,17 @@ export const teamsAndUserProfilesQuery = async ({ ctx }: TeamsAndUserProfileOpti
     throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
   }
 
-  const nonOrgTeams = user.teams
-    .filter((membership) => !membership.team.isOrganization)
-    .map((membership) => ({
-      ...membership,
-      team: {
-        ...membership.team,
-        metadata: teamMetadataSchema.parse(membership.team.metadata),
-      },
-    }));
+  const teams = input?.includeOrg
+    ? user.teams
+    : user.teams.filter((membership) => !membership.team.isOrganization);
+
+  const nonOrgTeams = teams.map((membership) => ({
+    ...membership,
+    team: {
+      ...membership.team,
+      metadata: teamMetadataSchema.parse(membership.team.metadata),
+    },
+  }));
 
   return [
     {
