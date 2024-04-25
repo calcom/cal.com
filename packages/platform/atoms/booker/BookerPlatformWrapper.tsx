@@ -51,14 +51,17 @@ type BookerPlatformWrapperAtomProps = Omit<BookerProps, "entity"> & {
   onReserveSlotError?: (data: ApiErrorResponse) => void;
   onDeleteSlotSuccess?: (data: ApiSuccessResponseWithoutData) => void;
   onDeleteSlotError?: (data: ApiErrorResponse) => void;
+  locationUrl?: string;
 };
 
 export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => {
   const [bookerState, setBookerState] = useBookerStore((state) => [state.state, state.setState], shallow);
   const setSelectedDate = useBookerStore((state) => state.setSelectedDate);
   const setBookingData = useBookerStore((state) => state.setBookingData);
+  const bookingData = useBookerStore((state) => state.bookingData);
 
   const setSelectedTimeslot = useBookerStore((state) => state.setSelectedTimeslot);
+  const setSelectedMonth = useBookerStore((state) => state.setMonth);
   const { data: booking } = useGetBookingForReschedule({
     uid: props.rescheduleUid ?? props.bookingUid ?? "",
     onSuccess: (data) => {
@@ -72,6 +75,7 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
       setBookerState("loading");
       setSelectedDate(null);
       setSelectedTimeslot(null);
+      setSelectedMonth(null);
     };
   }, []);
 
@@ -84,6 +88,7 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
     bookingUid: props.bookingUid ?? null,
     layout: bookerLayout.defaultLayout,
     org: event.data?.entity.orgSlug,
+    bookingData,
   });
   const [dayCount] = useBookerStore((state) => [state.dayCount, state.setDayCount], shallow);
   const selectedDate = useBookerStore((state) => state.selectedDate);
@@ -227,6 +232,7 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
     handleBooking: createBooking,
     handleInstantBooking: createInstantBooking,
     handleRecBooking: createRecBooking,
+    locationUrl: props.locationUrl,
   });
 
   return (

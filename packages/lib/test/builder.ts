@@ -193,12 +193,53 @@ export const buildCalendarEvent = (
 };
 
 type UserPayload = Prisma.UserGetPayload<{
-  include: {
+  select: {
+    locked: true;
+    name: true;
+    email: true;
+    timeZone: true;
+    username: true;
+    id: true;
+    allowDynamicBooking: true;
     credentials: true;
     destinationCalendar: true;
     availability: true;
     selectedCalendars: true;
     schedules: true;
+    avatarUrl: true;
+    backupCodes: true;
+    bio: true;
+    brandColor: true;
+    completedOnboarding: true;
+    createdDate: true;
+    bufferTime: true;
+    darkBrandColor: true;
+    defaultScheduleId: true;
+    disableImpersonation: true;
+    emailVerified: true;
+    endTime: true;
+    hideBranding: true;
+    identityProvider: true;
+    identityProviderId: true;
+    invitedTo: true;
+    locale: true;
+    metadata: true;
+    role: true;
+    startTime: true;
+    theme: true;
+    appTheme: true;
+    timeFormat: true;
+    trialEndsAt: true;
+    twoFactorEnabled: true;
+    twoFactorSecret: true;
+    verified: true;
+    weekStart: true;
+    organizationId: true;
+    allowSEOIndexing: true;
+    receiveMonthlyDigestEmail: true;
+    movedToProfileId: true;
+    isPlatformManaged: true;
+    smsLockState: true;
   };
 }>;
 export const buildUser = <T extends Partial<UserPayload>>(
@@ -206,6 +247,7 @@ export const buildUser = <T extends Partial<UserPayload>>(
 ): UserPayload & { priority: number | null } => {
   return {
     locked: false,
+    smsLockState: "UNLOCKED",
     name: faker.name.firstName(),
     email: faker.internet.email(),
     timeZone: faker.address.timeZone(),
@@ -213,9 +255,7 @@ export const buildUser = <T extends Partial<UserPayload>>(
     id: 0,
     allowDynamicBooking: true,
     availability: [],
-    avatar: "",
     avatarUrl: "",
-    away: false,
     backupCodes: null,
     bio: null,
     brandColor: "#292929",

@@ -54,7 +54,6 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
       identityProviderId: true,
       brandColor: true,
       darkBrandColor: true,
-      away: true,
       movedToProfileId: true,
       selectedCalendars: {
         select: {

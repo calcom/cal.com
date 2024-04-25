@@ -54,6 +54,7 @@ export const useIntercom = () => {
         has_paid_plan: hasPaidPlan,
         has_team_plan: hasTeamPlan,
         metadata: data?.metadata,
+        completed_onboarding: data.completedOnboarding,
         is_logged_in: !!data,
       },
     });
@@ -85,6 +86,7 @@ export const useIntercom = () => {
         has_paid_plan: hasPaidPlan,
         has_team_plan: hasTeamPlan,
         metadata: data?.metadata,
+        completed_onboarding: data?.completedOnboarding,
         is_logged_in: !!data,
       },
     });

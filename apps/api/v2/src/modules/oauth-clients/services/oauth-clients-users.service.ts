@@ -23,7 +23,7 @@ export class OAuthClientUsersService {
     isPlatformManaged: boolean,
     organizationId?: number
   ) {
-    const existsWithEmail = await this.userExistsWithEmail(oAuthClientId, body.email);
+    const existsWithEmail = await this.managedUserExistsWithEmail(oAuthClientId, body.email);
     if (existsWithEmail) {
       throw new BadRequestException("User with the provided e-mail already exists.");
     }
@@ -73,7 +73,7 @@ export class OAuthClientUsersService {
     };
   }
 
-  async userExistsWithEmail(oAuthClientId: string, email: string) {
+  async managedUserExistsWithEmail(oAuthClientId: string, email: string) {
     const oAuthEmail = this.getOAuthUserEmail(oAuthClientId, email);
     const user = await this.userRepository.findByEmail(oAuthEmail);
     return !!user;

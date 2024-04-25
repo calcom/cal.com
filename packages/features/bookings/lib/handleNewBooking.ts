@@ -909,10 +909,18 @@ async function handler(
     platformRescheduleUrl?: string;
     platformCancelUrl?: string;
     platformBookingUrl?: string;
+    platformBookingLocation?: string;
   },
   bookingDataSchemaGetter: BookingDataSchemaGetter = getBookingDataSchema
 ) {
-  const { userId, platformClientId, platformCancelUrl, platformBookingUrl, platformRescheduleUrl } = req;
+  const {
+    userId,
+    platformClientId,
+    platformCancelUrl,
+    platformBookingUrl,
+    platformRescheduleUrl,
+    platformBookingLocation,
+  } = req;
 
   // handle dynamic user
   let eventType =
@@ -1521,7 +1529,7 @@ async function handler(
     responses: reqBody.calEventResponses || null,
     userFieldsResponses: reqBody.calEventUserFieldsResponses || null,
     attendees: attendeesList,
-    location: bookingLocation, // Will be processed by the EventManager later.
+    location: platformBookingLocation ?? bookingLocation, // Will be processed by the EventManager later.
     conferenceCredentialId,
     destinationCalendar,
     hideCalendarNotes: eventType.hideCalendarNotes,
@@ -2366,7 +2374,6 @@ async function handler(
       isFirstRecurringEvent: true,
       hideBranding: !!eventType.owner?.hideBranding,
       seatReferenceUid: evt.attendeeSeatId,
-      eventTypeRequiresConfirmation: eventType.requiresConfirmation,
     });
   } catch (error) {
     loggerWithEventDetails.error("Error while scheduling workflow reminders", JSON.stringify({ error }));

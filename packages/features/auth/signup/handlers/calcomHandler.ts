@@ -5,6 +5,7 @@ import { getPremiumMonthlyPlanPriceId } from "@calcom/app-store/stripepayment/li
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
 import { createOrUpdateMemberships } from "@calcom/features/auth/signup/utils/createOrUpdateMemberships";
+import { prefillAvatar } from "@calcom/features/auth/signup/utils/prefillAvatar";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getLocaleFromRequest } from "@calcom/lib/getLocaleFromRequest";
 import { HttpError } from "@calcom/lib/http-error";
@@ -201,7 +202,9 @@ async function handler(req: RequestWithUsernameStatus, res: NextApiResponse) {
         },
       },
     });
-
+    if (process.env.AVATARAPI_USERNAME && process.env.AVATARAPI_PASSWORD) {
+      await prefillAvatar({ email });
+    }
     sendEmailVerification({
       email,
       language: await getLocaleFromRequest(req),
