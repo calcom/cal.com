@@ -201,6 +201,7 @@ async function handler(req: CustomRequest) {
     },
     select: {
       id: true,
+      username:true,
       name: true,
       email: true,
       timeZone: true,
@@ -257,6 +258,7 @@ async function handler(req: CustomRequest) {
     endTime: bookingToDelete?.endTime ? dayjs(bookingToDelete.endTime).format() : "",
     organizer: {
       id: organizer.id,
+      username: organizer.username || undefined,
       email: bookingToDelete?.userPrimaryEmail ?? organizer.email,
       name: organizer.name ?? "Nameless",
       timeZone: organizer.timeZone,
