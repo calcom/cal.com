@@ -813,6 +813,16 @@
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubscribeToPlanInput"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": "",
@@ -823,6 +833,26 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/v2/billing/webhook": {
+      "post": {
+        "operationId": "BillingController_stripeWebhook",
+        "parameters": [
+          {
+            "name": "stripe-signature",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": ""
           }
         }
       }
@@ -2855,6 +2885,22 @@
         "required": [
           "status",
           "valid"
+        ]
+      },
+      "SubscribeToPlanInput": {
+        "type": "object",
+        "properties": {
+          "plan": {
+            "type": "string",
+            "enum": [
+              "STARTER",
+              "ESSENTIALS",
+              "ENTERPRISE"
+            ]
+          }
+        },
+        "required": [
+          "plan"
         ]
       },
       "SubscribeTeamToBillingResponseDto": {
