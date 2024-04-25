@@ -188,7 +188,7 @@ export default function Signup({
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const searchParams = useCompatSearchParams();
   const telemetry = useTelemetry();
-  const { t, i18n } = useLocale();
+  const { t, i18n, isLocaleReady } = useLocale();
   const router = useRouter();
   const formMethods = useForm<FormValues>({
     resolver: zodResolver(signupSchema),
