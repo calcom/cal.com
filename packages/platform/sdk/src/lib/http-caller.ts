@@ -68,7 +68,7 @@ export class HttpCaller {
 
             try {
               await this.secrets?.refreshAccessToken(this.clientId);
-              this.retryQueuedRequests();
+              await this.retryQueuedRequests();
             } catch (refreshError) {
               console.error("Failed to refresh token:", refreshError);
               // Optionally, clear the queue on failure to prevent hanging requests
