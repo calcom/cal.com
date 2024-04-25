@@ -17,5 +17,6 @@ export type AppConfig = {
   };
   stripe: {
     apiKey: string;
+    webhookSecret: string;
   };
 };

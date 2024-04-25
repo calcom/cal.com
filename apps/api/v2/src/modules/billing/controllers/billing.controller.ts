@@ -1,3 +1,4 @@
+import { AppConfig } from "@/config/type";
 import { BaseApiResponseDto } from "@/lib/response/response.dto";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { NextAuthGuard } from "@/modules/auth/guards/next-auth/next-auth.guard";
@@ -19,6 +20,7 @@ import {
   HttpCode,
   HttpStatus,
 } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { Request } from "express";
 import { Stripe } from "stripe";
 
@@ -29,7 +31,14 @@ import { ApiResponse } from "@calcom/platform-types";
   version: "2",
 })
 export class BillingController {
-  constructor(private readonly billingService: BillingService) {}
+  private readonly stripeWhSecret: string;
+
+  constructor(
+    private readonly billingService: BillingService,
+    private readonly configService: ConfigService<AppConfig>
+  ) {
+    this.stripeWhSecret = configService.get("stripe.webhookSecret", { infer: true }) ?? "";
+  }
 
   @Get("/:teamId/check")
   @UseGuards(NextAuthGuard, OrganizationRolesGuard)
@@ -78,7 +87,7 @@ export class BillingController {
     const event = await this.billingService.stripeService.stripe.webhooks.constructEventAsync(
       request.body,
       stripeSignature,
-      ""
+      this.stripeWhSecret
     );
     if (event.type === "customer.subscription.created.created") {
       const subscription = event.data as Stripe.Subscription;

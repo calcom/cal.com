@@ -26,6 +26,7 @@ const loadConfig = (): AppConfig => {
     },
     stripe: {
       apiKey: getEnv("STRIPE_API_KEY"),
+      webhookSecret: getEnv("STRIPE_WEBHOOK_SECRET"),
     },
   };
 };
