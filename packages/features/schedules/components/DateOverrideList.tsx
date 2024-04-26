@@ -19,7 +19,7 @@ const DateOverrideList = ({
   hour12,
   replace,
   fields,
-  weekStart,
+  weekStart = 0,
 }: {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   replace: any;
@@ -29,7 +29,7 @@ const DateOverrideList = ({
   userTimeFormat: number | null;
   hour12: boolean;
   travelSchedules?: RouterOutputs["viewer"]["getTravelSchedules"];
-  weekStart: 0 | 1 | 2 | 3 | 4 | 5 | 6;
+  weekStart?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
 }) => {
   const { t, i18n } = useLocale();
 
