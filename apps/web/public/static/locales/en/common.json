@@ -2413,6 +2413,15 @@
   "no_show_url_info":"The URL for No Show Feedback",
   "no_support_needed":"No Support Needed?",
   "hide_support":"Hide Support",
+  "event_ratings": "Average Ratings",
+  "event_no_show": "Host No Show",
+  "recent_ratings": "Recent ratings",
+  "no_ratings": "No ratings submitted",
+  "no_ratings_description": "Add a workflow with 'Rating' to collect ratings after meetings",
+  "most_no_show_host": "Most No Show Members",
+  "highest_rated_members": "Members With Highest Rated Meetings",
+  "lowest_rated_members": "Members With Lowest Rated Meetings",
+  "csat_score": "CSAT Score",
   "lockedSMS": "Locked SMS",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
