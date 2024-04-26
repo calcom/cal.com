@@ -225,7 +225,7 @@ model TravelSchedule {
   @@index([endDate])
 }
 
-// It holds Personal Profiles of a User plus it has email, password and other core things
+// It holds Personal Profiles of a User plus it has email, password and other core things..
 model User {
   id                  Int                  @id @default(autoincrement())
   username            String?
