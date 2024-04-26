@@ -261,7 +261,15 @@ export async function isTeamAdmin(userId: number, teamId: number) {
       accepted: true,
       OR: [{ role: "ADMIN" }, { role: "OWNER" }],
     },
-    include: { team: true },
+    include: {
+      team: {
+        select: {
+          metadata: true,
+          parentId: true,
+          isOrganization: true,
+        },
+      },
+    },
   });
   if (!team) return false;
   return team;

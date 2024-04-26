@@ -4,7 +4,7 @@ import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
 import { SentryFilter } from "@/filters/sentry-exception.filter";
 import { ZodExceptionFilter } from "@/filters/zod-exception.filter";
 import type { ValidationError } from "@nestjs/common";
-import { BadRequestException, RequestMethod, ValidationPipe, VersioningType } from "@nestjs/common";
+import { BadRequestException, ValidationPipe, VersioningType } from "@nestjs/common";
 import { HttpAdapterHost } from "@nestjs/core";
 import type { NestExpressApplication } from "@nestjs/platform-express";
 import * as Sentry from "@sentry/node";

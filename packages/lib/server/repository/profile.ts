@@ -348,7 +348,11 @@ export class ProfileRepository {
         user: {
           select: userSelect,
         },
-        movedFromUser: true,
+        movedFromUser: {
+          select: {
+            id: true,
+          },
+        },
         organization: {
           select: {
             calVideoLogo: true,
