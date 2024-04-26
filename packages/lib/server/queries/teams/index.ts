@@ -266,6 +266,7 @@ export async function isTeamAdmin(userId: number, teamId: number) {
         select: {
           metadata: true,
           parentId: true,
+          isOrganization: true,
         },
       },
     },
