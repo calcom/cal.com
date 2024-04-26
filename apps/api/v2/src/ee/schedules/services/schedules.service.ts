@@ -24,6 +24,16 @@ export class SchedulesService {
     private readonly usersRepository: UsersRepository
   ) {}
 
+  async createUserDefaultSchedule(userId: number, timeZone: string) {
+    const schedule = {
+      isDefault: true,
+      name: "Default schedule",
+      timeZone,
+    };
+
+    return this.createUserSchedule(userId, schedule);
+  }
+
   async createUserSchedule(userId: number, schedule: CreateScheduleInput) {
     const availabilities = schedule.availabilities?.length
       ? schedule.availabilities
