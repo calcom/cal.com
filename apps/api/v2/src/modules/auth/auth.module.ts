@@ -6,13 +6,14 @@ import { ApiKeyAuthStrategy } from "@/modules/auth/strategies/api-key-auth/api-k
 import { NextAuthStrategy } from "@/modules/auth/strategies/next-auth/next-auth.strategy";
 import { MembershipsModule } from "@/modules/memberships/memberships.module";
 import { OAuthFlowService } from "@/modules/oauth-clients/services/oauth-flow.service";
+import { RedisModule } from "@/modules/redis/redis.module";
 import { TokensModule } from "@/modules/tokens/tokens.module";
 import { UsersModule } from "@/modules/users/users.module";
 import { Module } from "@nestjs/common";
 import { PassportModule } from "@nestjs/passport";
 
 @Module({
-  imports: [PassportModule, ApiKeyModule, UsersModule, MembershipsModule, TokensModule],
+  imports: [PassportModule, RedisModule, ApiKeyModule, UsersModule, MembershipsModule, TokensModule],
   providers: [
     ApiKeyAuthStrategy,
     NextAuthGuard,
