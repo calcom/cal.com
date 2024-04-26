@@ -44,7 +44,7 @@ export class BillingController {
   @UseGuards(NextAuthGuard, OrganizationRolesGuard)
   @Roles(["OWNER", "ADMIN"])
   async checkTeamBilling(@Param("teamId") teamId: number): Promise<CheckPlatformBillingResponseDto> {
-    const teamBilling = await this.billingService.checkIfTeamHasBillingEnabled(teamId);
+    const teamBilling = await this.billingService.getBillingData(teamId);
 
     return {
       status: "success",
@@ -59,14 +59,14 @@ export class BillingController {
     @Param("teamId") teamId: number,
     @Body() input: SubscribeToPlanInput
   ): Promise<SubscribeTeamToBillingResponseDto> {
-    const teamBillingEnabled = await this.billingService.checkIfTeamHasBillingEnabled(teamId);
+    const { status } = await this.billingService.getBillingData(teamId);
 
-    if (teamBillingEnabled.status === "valid") {
+    if (status === "valid") {
       throw new BadRequestException("This team is already subscribed to a plan.");
     }
 
-    const { status, url } = await this.billingService.createSubscriptionForTeam(teamId, input.plan);
-    if (status === "redirect") {
+    const { action, url } = await this.billingService.createSubscriptionForTeam(teamId, input.plan);
+    if (action === "redirect") {
       return {
         status: "redirect",
         url,
@@ -89,7 +89,11 @@ export class BillingController {
       stripeSignature,
       this.stripeWhSecret
     );
-    if (event.type === "customer.subscription.created.created") {
+
+    if (
+      event.type === "customer.subscription.created.created" ||
+      event.type === "customer.subscription.updated"
+    ) {
       const subscription = event.data as Stripe.Subscription;
       const teamId = Number.parseInt(subscription.metadata.teamId);
 

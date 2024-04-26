@@ -28,7 +28,7 @@ export class BillingRepository {
     });
   }
 
-  async updateTeamBilling(teamId: number, billingStart: number, billingEnd: number, subscription: string) {
+  async updateTeamBilling(teamId: number, billingStart: number, billingEnd: number, subscription?: string) {
     return this.dbWrite.prisma.platformBilling.update({
       where: {
         id: teamId,

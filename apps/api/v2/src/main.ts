@@ -23,7 +23,9 @@ const run = async () => {
   try {
     bootstrap(app);
     const port = app.get(ConfigService<AppConfig, true>).get("api.port", { infer: true });
-    generateSwagger(app);
+    if (process.env.SKIP_DOCS_GENERATION !== "1") {
+      void generateSwagger(app);
+    }
     await app.listen(port);
     logger.log(`Application started on port: ${port}`);
   } catch (error) {

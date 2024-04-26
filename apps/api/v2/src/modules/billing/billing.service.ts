@@ -1,8 +1,10 @@
+import { AppConfig } from "@/config/type";
 import { BillingRepository } from "@/modules/billing/billing.repository";
 import { PlatformPlan } from "@/modules/billing/types";
 import { OrganizationsRepository } from "@/modules/organizations/organizations.repository";
 import { StripeService } from "@/modules/stripe/stripe.service";
 import { Injectable, InternalServerErrorException, Logger } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { DateTime } from "luxon";
 import Stripe from "stripe";
 
@@ -10,16 +12,20 @@ import Stripe from "stripe";
 export class BillingService {
   private logger = new Logger("BillingService");
   private plansToPriceId: Map<PlatformPlan, string>;
+  private webAppUrl: string;
 
   constructor(
     private readonly teamsRepository: OrganizationsRepository,
     public readonly stripeService: StripeService,
-    private readonly billingRepository: BillingRepository
+    private readonly billingRepository: BillingRepository,
+    private readonly configService: ConfigService<AppConfig>
   ) {
+    this.webAppUrl = configService.get("app.baseUrl", { infer: true }) ?? "https://app.cal.com";
     this.plansToPriceId = new Map<PlatformPlan, string>();
+    // TODO - load this from
   }
 
-  async checkIfTeamHasBillingEnabled(teamId: number) {
+  async getBillingData(teamId: number) {
     const teamWithBilling = await this.teamsRepository.findByIdIncludeBilling(teamId);
     if (teamWithBilling?.platformBilling) {
       if (!teamWithBilling?.platformBilling.subscriptionId) {
@@ -56,8 +62,8 @@ export class BillingService {
             price: this.plansToPriceId.get(plan),
           },
         ],
-        success_url: `http://localhost:3000/`,
-        cancel_url: "http://localhost:3000/",
+        success_url: `${this.webAppUrl}/settings/platform/oauth-clients`,
+        cancel_url: `${this.webAppUrl}/settings/platform/oauth-clients`,
         mode: "subscription",
         metadata: {
           teamId: teamId.toString(),
@@ -66,10 +72,10 @@ export class BillingService {
 
       if (!url) throw new InternalServerErrorException("Failed to create Stripe session.");
 
-      return { status: "redirect", url };
+      return { action: "redirect", url };
     }
 
-    return { status: "valid" };
+    return { action: "none" };
   }
 
   async setSubscriptionForTeam(teamId: number, subscription: Stripe.Subscription) {
@@ -103,6 +109,8 @@ export class BillingService {
 
   async increaseUsageByClientId(clientId: string) {
     const team = await this.billingRepository.findTeamIdFromClientId(clientId);
+    if (!team.id) return Promise.resolve();
+
     return this.increaseUsageForTeam(team?.id);
   }
 }

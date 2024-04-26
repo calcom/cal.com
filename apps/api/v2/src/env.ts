@@ -14,6 +14,7 @@ export type Environment = {
   REDIS_URL: string;
   STRIPE_API_KEY: string;
   STRIPE_WEBHOOK_SECRET: string;
+  WEB_APP_URL: string;
 };
 
 export const getEnv = <K extends keyof Environment>(key: K, fallback?: Environment[K]): Environment[K] => {

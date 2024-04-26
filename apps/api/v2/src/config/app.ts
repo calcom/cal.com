@@ -28,6 +28,9 @@ const loadConfig = (): AppConfig => {
       apiKey: getEnv("STRIPE_API_KEY"),
       webhookSecret: getEnv("STRIPE_WEBHOOK_SECRET"),
     },
+    app: {
+      baseUrl: getEnv("WEB_APP_URL", "https://app.cal.com"),
+    },
   };
 };
 

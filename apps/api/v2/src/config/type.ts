@@ -19,4 +19,7 @@ export type AppConfig = {
     apiKey: string;
     webhookSecret: string;
   };
+  app: {
+    baseUrl: string;
+  };
 };
