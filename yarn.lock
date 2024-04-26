@@ -3790,7 +3790,7 @@ __metadata:
     "@calcom/lib": "*"
     "@calcom/trpc": "*"
     "@calcom/ui": "*"
-    "@funnelhub/sidebar": 1.1.2
+    "@funnelhub/sidebar": 1.2.0
     "@lexical/react": ^0.9.0
     "@tanstack/react-table": ^8.9.3
     "@testing-library/react-hooks": ^8.0.1
@@ -7221,6 +7221,31 @@ __metadata:
     react: ^18
     react-dom: ^18
   checksum: e47c66f73650edc5f83346014bb78229dd3ecb1792705466f687904e7d74a607739af88dae58a92509461306654396367e9abc8ccb307db70673dab7275a71eb
+  languageName: node
+  linkType: hard
+
+"@funnelhub/sidebar@npm:1.2.0":
+  version: 1.2.0
+  resolution: "@funnelhub/sidebar@npm:1.2.0"
+  dependencies:
+    "@chakra-ui/anatomy": ^2.2.1
+    "@chakra-ui/color-mode": ^2.2.0
+    "@chakra-ui/icons": ^2.1.1
+    "@chakra-ui/layout": ^2.3.1
+    "@chakra-ui/react": ^2.8.1
+    "@chakra-ui/shared-utils": ^2.0.5
+    "@chakra-ui/theme-tools": ^2.1.1
+    "@emotion/react": ^11.11.1
+    "@emotion/styled": ^11.11.0
+    "@refinedev/core": ^4.44.9
+    antd: ^5.10.2
+    framer-motion: ^10.16.4
+    react-icons: ^4.11.0
+  peerDependencies:
+    next: 13.5.6
+    react: ^18
+    react-dom: ^18
+  checksum: d29ce88252b24fd258c18b999dfd6e23b9d87d510916db4252ddfc29db3ea89189dda1892d63f7477c1aa1c990f94daacc07b6555e4aeaa8277b1884710a46c3
   languageName: node
   linkType: hard
 

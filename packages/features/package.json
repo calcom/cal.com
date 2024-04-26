@@ -11,7 +11,7 @@
     "@calcom/lib": "*",
     "@calcom/trpc": "*",
     "@calcom/ui": "*",
-    "@funnelhub/sidebar": "1.1.2",
+    "@funnelhub/sidebar": "1.2.0",
     "@lexical/react": "^0.9.0",
     "@tanstack/react-table": "^8.9.3",
     "framer-motion": "^10.12.8",
