@@ -21,6 +21,7 @@ import {
 } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
+import PasskeyIcon from "@components/auth/PasskeyIcon";
 
 const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
   return (
@@ -41,7 +42,7 @@ interface Passkey {
   lastUsedAt?: string;
 }
 
-const PasskeyListItem = (props: Passkey & { onRemoved?: () => any }) => {
+const PasskeyListItem = (props: Passkey & { onRemoved?: () => void }) => {
   const { t } = useLocale();
 
   const remove = useMutation({
@@ -179,7 +180,11 @@ const PasskeysView = () => {
           </>
         ) : (
           <EmptyScreen
-            Icon="key-round"
+            customIcon={
+              <div className="bg-emphasis mb-6 flex h-[72px] w-[72px] items-center justify-center rounded-full">
+                <PasskeyIcon className="h-8 w-8" />
+              </div>
+            }
             headline={t("register_first_passkey")}
             description={t("register_first_passkey_description", { appName: APP_NAME })}
             className="rounded-b-lg rounded-t-none border-t-0"

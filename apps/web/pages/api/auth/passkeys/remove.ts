@@ -12,7 +12,7 @@ const passkeyApi = tenant({ tenantId, apiKey });
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (!tenantId || !apiKey) {
-    return res.status(503).json({ message: "Passkey API not configured" });
+    return res.status(501).json({ message: "Passkey API not configured" });
   }
 
   if (req.method !== "DELETE") {
