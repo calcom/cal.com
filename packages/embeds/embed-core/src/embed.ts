@@ -864,17 +864,16 @@ window.addEventListener("message", (e) => {
 
 document.addEventListener("click", (e) => {
   const targetEl = e.target;
-  if (!(targetEl instanceof HTMLElement)) {
-    return;
-  }
-  const path = targetEl.dataset.calLink;
+
+  const calLinkEl = getCalLinkEl(targetEl);
+  const path = calLinkEl?.dataset?.calLink;
   if (!path) {
     return;
   }
 
-  const namespace = targetEl.dataset.calNamespace;
-  const configString = targetEl.dataset.calConfig || "";
-  const calOrigin = targetEl.dataset.calOrigin || "";
+  const namespace = calLinkEl.dataset.calNamespace;
+  const configString = calLinkEl.dataset.calConfig || "";
+  const calOrigin = calLinkEl.dataset.calOrigin || "";
   let config;
   try {
     config = JSON.parse(configString);
@@ -897,6 +896,25 @@ document.addEventListener("click", (e) => {
     config,
     calOrigin,
   });
+
+  function getCalLinkEl(target: EventTarget | null) {
+    let calLinkEl;
+    if (!(target instanceof HTMLElement)) {
+      return null;
+    }
+    if (target?.dataset.calLink) {
+      calLinkEl = target;
+    } else {
+      // If the element clicked is a child of the cal-link element, then return the cal-link element
+      calLinkEl = Array.from(document.querySelectorAll("[data-cal-link]")).find((el) => el.contains(target));
+    }
+
+    if (!(calLinkEl instanceof HTMLElement)) {
+      return null;
+    }
+
+    return calLinkEl;
+  }
 });
 
 let currentColorScheme: string | null = null;

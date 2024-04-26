@@ -361,6 +361,11 @@ Cal("init", "popupPaidEvent", {
   origin: "http://localhost:3000",
 });
 
+Cal("init", "childElementTarget", {
+  debug: true,
+  origin: "http://localhost:3000",
+});
+
 Cal("init", "floatingButton", {
   debug: true,
   origin: "http://localhost:3000",
