@@ -474,8 +474,10 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
                               name="periodDates"
                               render={({ field: { onChange } }) => (
                                 <DateRangePicker
-                                  startDate={formMethods.getValues("periodDates").startDate}
-                                  endDate={formMethods.getValues("periodDates").endDate}
+                                  dates={{
+                                    startDate: formMethods.getValues("periodDates").startDate,
+                                    endDate: formMethods.getValues("periodDates").endDate,
+                                  }}
                                   disabled={periodTypeLocked.disabled}
                                   onDatesChange={({ startDate, endDate }) => {
                                     onChange({
