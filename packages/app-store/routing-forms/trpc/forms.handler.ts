@@ -37,7 +37,6 @@ export const formsHandler = async ({ ctx, input }: FormsHandlerOptions) => {
     include: {
       team: {
         include: {
-          // eslint-disable-next-line @calcom/eslint/no-prisma-include-true
           members: true,
         },
       },

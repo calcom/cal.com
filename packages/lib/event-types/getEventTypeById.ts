@@ -238,7 +238,6 @@ export const getEventTypeById = async ({
                   },
                 },
               },
-              // eslint-disable-next-line @calcom/eslint/no-prisma-include-true
               steps: true,
             },
           },
