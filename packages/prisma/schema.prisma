@@ -225,7 +225,7 @@ model TravelSchedule {
   @@index([endDate])
 }
 
-// It holds Personal Profiles of a User plus it has email, password and other core things
+// It holds Personal Profiles of a User plus it has email, password and other core things..
 model User {
   id                  Int                  @id @default(autoincrement())
   username            String?
@@ -318,6 +318,7 @@ model User {
   isPlatformManaged          Boolean                      @default(false)
 
   OutOfOfficeReasons OutOfOfficeReason[]
+  smsLockState       SMSLockState        @default(UNLOCKED)
 
   @@unique([email])
   @@unique([email, username])
@@ -398,6 +399,7 @@ model Team {
   dsyncTeamGroupMapping DSyncTeamGroupMapping[]
   isPlatform            Boolean                 @default(false)
   platformOAuthClient   PlatformOAuthClient[]
+  smsLockState          SMSLockState            @default(UNLOCKED)
   platformBilling       PlatformBilling?
 
   @@unique([slug, parentId])
@@ -1122,25 +1124,28 @@ enum AccessScope {
 }
 
 view BookingTimeStatus {
-  id            Int            @unique
-  uid           String?
-  eventTypeId   Int?
-  title         String?
-  description   String?
-  startTime     DateTime?
-  endTime       DateTime?
-  createdAt     DateTime?
-  location      String?
-  paid          Boolean?
-  status        BookingStatus?
-  rescheduled   Boolean?
-  userId        Int?
-  teamId        Int?
-  eventLength   Int?
-  timeStatus    String?
-  eventParentId Int?
-  userEmail     String?
-  username      String?
+  id             Int            @unique
+  uid            String?
+  eventTypeId    Int?
+  title          String?
+  description    String?
+  startTime      DateTime?
+  endTime        DateTime?
+  createdAt      DateTime?
+  location       String?
+  paid           Boolean?
+  status         BookingStatus?
+  rescheduled    Boolean?
+  userId         Int?
+  teamId         Int?
+  eventLength    Int?
+  timeStatus     String?
+  eventParentId  Int?
+  userEmail      String?
+  username       String?
+  ratingFeedback String?
+  rating         Int?
+  noShowHost     Boolean?
 }
 
 model CalendarCache {
@@ -1346,6 +1351,12 @@ model Task {
   // The maximum number of times the task can be attempted
   maxAttempts Int       @default(3)
   lastError   String?
+}
+
+enum SMSLockState {
+  LOCKED
+  UNLOCKED
+  REVIEW_NEEDED
 }
 
 model PlatformBilling {

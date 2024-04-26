@@ -29,6 +29,7 @@ const run = async () => {
     await app.listen(port);
     logger.log(`Application started on port: ${port}`);
   } catch (error) {
+    console.error(error);
     logger.error("Application crashed", {
       error,
     });

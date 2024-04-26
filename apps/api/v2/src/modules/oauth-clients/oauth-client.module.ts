@@ -1,5 +1,7 @@
 import { EventTypesModule } from "@/ee/event-types/event-types.module";
+import { SchedulesModule } from "@/ee/schedules/schedules.module";
 import { AuthModule } from "@/modules/auth/auth.module";
+import { BillingModule } from "@/modules/billing/billing.module";
 import { MembershipsModule } from "@/modules/memberships/memberships.module";
 import { OAuthClientUsersController } from "@/modules/oauth-clients/controllers/oauth-client-users/oauth-client-users.controller";
 import { OAuthClientsController } from "@/modules/oauth-clients/controllers/oauth-clients/oauth-clients.controller";
@@ -10,6 +12,7 @@ import { OAuthClientUsersService } from "@/modules/oauth-clients/services/oauth-
 import { OAuthFlowService } from "@/modules/oauth-clients/services/oauth-flow.service";
 import { OrganizationsModule } from "@/modules/organizations/organizations.module";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
+import { RedisModule } from "@/modules/redis/redis.module";
 import { StripeModule } from "@/modules/stripe/stripe.module";
 import { TokensModule } from "@/modules/tokens/tokens.module";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
@@ -20,6 +23,7 @@ import { Global, Module } from "@nestjs/common";
 @Module({
   imports: [
     PrismaModule,
+    RedisModule,
     AuthModule,
     UsersModule,
     TokensModule,
@@ -27,6 +31,8 @@ import { Global, Module } from "@nestjs/common";
     EventTypesModule,
     OrganizationsModule,
     StripeModule,
+    BillingModule,
+    SchedulesModule,
   ],
   providers: [
     OAuthClientRepository,
