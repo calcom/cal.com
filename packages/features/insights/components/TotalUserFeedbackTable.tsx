@@ -4,7 +4,7 @@ import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import type { User } from "@calcom/prisma/client";
 import { Avatar } from "@calcom/ui";
 
-export const TotalBookingUsersTable = ({
+export const TotalUserFeedbackTable = ({
   data,
 }: {
   data:
@@ -12,7 +12,8 @@ export const TotalBookingUsersTable = ({
         userId: number | null;
         user: Pick<User, "avatarUrl" | "name">;
         emailMd5?: string;
-        count: number;
+        count?: number;
+        averageRating?: number | null;
         username?: string;
       }[]
     | undefined;
@@ -21,7 +22,8 @@ export const TotalBookingUsersTable = ({
     <Table>
       <TableBody>
         <>
-          {data && data?.length > 0 ? (
+          {data &&
+            data?.length > 0 &&
             data?.map((item) => (
               <TableRow key={item.userId}>
                 <TableCell className="flex flex-row">
@@ -38,16 +40,13 @@ export const TotalBookingUsersTable = ({
                 </TableCell>
                 <TableCell className="text-right">
                   <Text>
-                    <strong className="text-default">{item.count}</strong>
+                    <strong className="text-default">
+                      {item.averageRating ? item.averageRating.toFixed(1) : item.count}
+                    </strong>
                   </Text>
                 </TableCell>
               </TableRow>
-            ))
-          ) : (
-            <TableRow>
-              <TableCell>No members found</TableCell>
-            </TableRow>
-          )}
+            ))}
         </>
       </TableBody>
     </Table>
