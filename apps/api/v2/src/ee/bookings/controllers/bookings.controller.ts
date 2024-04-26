@@ -78,7 +78,7 @@ const DEFAULT_PLATFORM_PARAMS = {
 @UseGuards(PermissionsGuard)
 @DocsTags("Bookings")
 export class BookingsController {
-  private readonly logger = new Logger("ee bookings controller");
+  private readonly logger = new Logger("BookingsController");
 
   constructor(
     private readonly oAuthFlowService: OAuthFlowService,
@@ -202,6 +202,9 @@ export class BookingsController {
       const createdBookings: BookingResponse[] = await handleNewRecurringBooking(
         await this.createNextApiBookingRequest(req, oAuthClientId)
       );
+
+      void (await this.billingService.increaseUsageByClientId(oAuthClientId!));
+
       return {
         status: SUCCESS_STATUS,
         data: createdBookings,
@@ -224,6 +227,9 @@ export class BookingsController {
       const instantMeeting = await handleInstantMeeting(
         await this.createNextApiBookingRequest(req, oAuthClientId)
       );
+
+      void (await this.billingService.increaseUsageByClientId(oAuthClientId!));
+
       return {
         status: SUCCESS_STATUS,
         data: instantMeeting,

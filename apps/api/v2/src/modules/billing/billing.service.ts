@@ -12,7 +12,7 @@ import Stripe from "stripe";
 export class BillingService {
   private logger = new Logger("BillingService");
   private plansToPriceId: Map<PlatformPlan, string>;
-  private webAppUrl: string;
+  private readonly webAppUrl: string;
 
   constructor(
     private readonly teamsRepository: OrganizationsRepository,
@@ -22,7 +22,10 @@ export class BillingService {
   ) {
     this.webAppUrl = configService.get("app.baseUrl", { infer: true }) ?? "https://app.cal.com";
     this.plansToPriceId = new Map<PlatformPlan, string>();
-    // TODO - load this from
+    // for (const plan in Object.keys(PlatformPlan)) {
+    //   const planId = configService.get<string>(`billing.${plan}`) ?? "";
+    //   this.plansToPriceId.set(plan as PlatformPlan, planId);
+    // }
   }
 
   async getBillingData(teamId: number) {
@@ -68,6 +71,11 @@ export class BillingService {
         metadata: {
           teamId: teamId.toString(),
         },
+        subscription_data: {
+          metadata: {
+            teamId: teamId.toString(),
+          },
+        },
       });
 
       if (!url) throw new InternalServerErrorException("Failed to create Stripe session.");
@@ -91,6 +99,8 @@ export class BillingService {
   }
 
   async increaseUsageForTeam(teamId: number) {
+    // TODO - if we support multiple subscription items per team, we may need to track which plan they're
+    // subscribed to so we can do one less query.
     const billingSubscription = await this.billingRepository.getBillingForTeam(teamId);
     if (!billingSubscription || !billingSubscription?.subscriptionId) {
       throw new Error(`Failed to increase usage for team ${teamId}`);
@@ -99,7 +109,7 @@ export class BillingService {
     const stripeSubscription = await this.stripeService.stripe.subscriptions.retrieve(
       billingSubscription.subscriptionId
     );
-    const items = stripeSubscription.items.data[0]; // first (and only) si.
+    const items = stripeSubscription.items.data[0]; // first (and only) subscription item.
     await this.stripeService.stripe.subscriptionItems.createUsageRecord(items.id, {
       action: "increment",
       quantity: 1,
@@ -109,7 +119,7 @@ export class BillingService {
 
   async increaseUsageByClientId(clientId: string) {
     const team = await this.billingRepository.findTeamIdFromClientId(clientId);
-    if (!team.id) return Promise.resolve();
+    if (!team.id) return Promise.resolve(); // noop resolution.
 
     return this.increaseUsageForTeam(team?.id);
   }
