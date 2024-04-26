@@ -1,10 +1,11 @@
 import { Table, TableBody, TableCell, TableRow, Text } from "@tremor/react";
 
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { User } from "@calcom/prisma/client";
-import { Avatar } from "@calcom/ui";
+import { Avatar, EmptyScreen, Button } from "@calcom/ui";
 
-export const TotalBookingUsersTable = ({
+export const FeedbackTable = ({
   data,
 }: {
   data:
@@ -12,11 +13,13 @@ export const TotalBookingUsersTable = ({
         userId: number | null;
         user: Pick<User, "avatarUrl" | "name">;
         emailMd5?: string;
-        count: number;
         username?: string;
+        rating: number | null;
+        feedback: string | null;
       }[]
     | undefined;
 }) => {
+  const { t } = useLocale();
   return (
     <Table>
       <TableBody>
@@ -38,15 +41,27 @@ export const TotalBookingUsersTable = ({
                 </TableCell>
                 <TableCell className="text-right">
                   <Text>
-                    <strong className="text-default">{item.count}</strong>
+                    <strong className="text-default">{item.rating}</strong>
+                  </Text>
+                </TableCell>
+                <TableCell className="text-right">
+                  <Text>
+                    <strong className="text-default">{item.feedback}</strong>
                   </Text>
                 </TableCell>
               </TableRow>
             ))
           ) : (
-            <TableRow>
-              <TableCell>No members found</TableCell>
-            </TableRow>
+            <EmptyScreen
+              Icon="zap"
+              headline={t("no_ratings")}
+              description={t("no_ratings_description")}
+              buttonRaw={
+                <Button target="_blank" color="secondary" href="/workflows">
+                  {t("workflows")}
+                </Button>
+              }
+            />
           )}
         </>
       </TableBody>

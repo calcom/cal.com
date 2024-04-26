@@ -77,6 +77,18 @@ class EventsInsights {
     return result;
   };
 
+  static getNoShowHostsInTimeRange = async (
+    timeRange: ITimeRange,
+    where: Prisma.BookingTimeStatusWhereInput
+  ) => {
+    const result = await this.getBookingsInTimeRange(timeRange, {
+      ...where,
+      noShowHost: true,
+    });
+
+    return result;
+  };
+
   static getBaseBookingCountForEventStatus = async (where: Prisma.BookingTimeStatusWhereInput) => {
     const baseBookings = await prisma.bookingTimeStatus.count({
       where,
@@ -110,6 +122,47 @@ class EventsInsights {
         timeStatus: "cancelled",
       },
     });
+  };
+
+  static getAverageRating = async (whereConditional: Prisma.BookingTimeStatusWhereInput) => {
+    return await prisma.bookingTimeStatus.aggregate({
+      _avg: {
+        rating: true,
+      },
+      where: {
+        ...whereConditional,
+        rating: {
+          not: null, // Exclude null ratings
+        },
+      },
+    });
+  };
+
+  static getTotalNoShows = async (whereConditional: Prisma.BookingTimeStatusWhereInput) => {
+    return await prisma.bookingTimeStatus.count({
+      where: {
+        ...whereConditional,
+        noShowHost: true,
+      },
+    });
+  };
+
+  static getTotalCSAT = async (whereConditional: Prisma.BookingTimeStatusWhereInput) => {
+    const result = await prisma.bookingTimeStatus.findMany({
+      where: {
+        ...whereConditional,
+        rating: {
+          not: null,
+        },
+      },
+      select: { rating: true },
+    });
+
+    const totalResponses = result.length;
+    const satisfactoryResponses = result.filter((item) => item.rating && item.rating > 3).length;
+    const csat = totalResponses > 0 ? (satisfactoryResponses / totalResponses) * 100 : 0;
+
+    return csat;
   };
 
   static getTimeLine = async (timeView: TimeViewType, startDate: Dayjs, endDate: Dayjs) => {
@@ -239,6 +292,9 @@ class EventsInsights {
         paid: true,
         userEmail: true,
         username: true,
+        rating: true,
+        ratingFeedback: true,
+        noShowHost: true,
       },
       where: whereConditional,
     });

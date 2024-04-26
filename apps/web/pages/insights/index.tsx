@@ -7,6 +7,10 @@ import {
   LeastBookedTeamMembersTable,
   MostBookedTeamMembersTable,
   PopularEventsTable,
+  HighestNoShowHostTable,
+  RecentFeedbackTable,
+  HighestRatedMembersTable,
+  LowestRatedMembersTable,
 } from "@calcom/features/insights/components";
 import { FiltersProvider } from "@calcom/features/insights/context/FiltersProvider";
 import { Filters } from "@calcom/features/insights/filters";
@@ -89,6 +93,12 @@ export default function InsightsPage() {
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <MostBookedTeamMembersTable />
                   <LeastBookedTeamMembersTable />
+                </div>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <RecentFeedbackTable />
+                  <HighestNoShowHostTable />
+                  <HighestRatedMembersTable />
+                  <LowestRatedMembersTable />
                 </div>
                 <small className="text-default block text-center">
                   {t("looking_for_more_insights")}{" "}
