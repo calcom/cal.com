@@ -1,18 +1,16 @@
-import type { Prisma } from "@prisma/client";
+import { z } from "zod";
 
-import { handleErrorsJson, handleErrorsRaw } from "@calcom/lib/errors";
+import { handleErrorsRaw } from "@calcom/lib/errors";
 import { HttpError } from "@calcom/lib/http-error";
-import prisma from "@calcom/prisma";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 import type { PartialReference } from "@calcom/types/EventManager";
 import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapter";
 
-import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
-import refreshOAuthTokens from "../../_utils/oauth/refreshOAuthTokens";
-
-let client_id = "";
-let client_secret = "";
+import getParsedAppKeysFromSlug from "../../_utils/getParsedAppKeysFromSlug";
+import { OAuthManager } from "../../_utils/oauth/OAuthManager";
+import { oAuthManagerHelper } from "../../_utils/oauth/oAuthManagerHelper";
+import config from "../config.json";
 
 /** @link https://docs.microsoft.com/en-us/graph/api/application-post-onlinemeetings?view=graph-rest-1.0&tabs=http#response */
 export interface TeamsEventResult {
@@ -24,90 +22,56 @@ export interface TeamsEventResult {
   subject: string;
 }
 
-interface O365AuthCredentials {
-  email: string;
-  scope: string;
-  token_type: string;
-  expiry_date: number;
-  access_token: string;
-  refresh_token: string;
-  ext_expires_in: number;
-}
+const o365VideoAppKeysSchema = z.object({
+  client_id: z.string(),
+  client_secret: z.string(),
+});
 
-interface ITokenResponse {
-  expiry_date: number;
-  expires_in?: number;
-  token_type: string;
-  scope: string;
-  access_token: string;
-  refresh_token: string;
-  error?: string;
-  error_description?: string;
-}
-
-// Checks to see if our O365 user token is valid or if we need to refresh
-const o365Auth = async (credential: CredentialPayload) => {
-  const appKeys = await getAppKeysFromSlug("msteams");
-  if (typeof appKeys.client_id === "string") client_id = appKeys.client_id;
-  if (typeof appKeys.client_secret === "string") client_secret = appKeys.client_secret;
-  if (!client_id) throw new HttpError({ statusCode: 400, message: "MS teams client_id missing." });
-  if (!client_secret) throw new HttpError({ statusCode: 400, message: "MS teams client_secret missing." });
-
-  const isExpired = (expiryDate: number) => expiryDate < Math.round(+new Date());
-
-  const o365AuthCredentials = credential.key as unknown as O365AuthCredentials;
-
-  const refreshAccessToken = async (refreshToken: string) => {
-    const response = await refreshOAuthTokens(
-      async () =>
-        await fetch("https://login.microsoftonline.com/common/oauth2/v2.0/token", {
-          method: "POST",
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          body: new URLSearchParams({
-            client_id,
-            refresh_token: refreshToken,
-            grant_type: "refresh_token",
-            client_secret,
-          }),
-        }),
-      "msteams",
-      credential.userId
-    );
-
-    const responseBody = await handleErrorsJson<ITokenResponse>(response);
-
-    if (responseBody?.error) {
-      console.error(responseBody);
-      throw new HttpError({ statusCode: 500, message: `Error contacting MS Teams: ${responseBody.error}` });
-    }
-    // set expiry date as offset from current time.
-    responseBody.expiry_date = Math.round(Date.now() + (responseBody?.expires_in || 0) * 1000);
-    delete responseBody.expires_in;
-    // Store new tokens in database.
-    await prisma.credential.update({
-      where: {
-        id: credential.id,
-      },
-      data: {
-        // @NOTE: prisma doesn't know key its a JSON so do as responseBody
-        key: responseBody as unknown as Prisma.InputJsonValue,
-      },
-    });
-    o365AuthCredentials.expiry_date = responseBody.expiry_date;
-    o365AuthCredentials.access_token = responseBody.access_token;
-    return o365AuthCredentials.access_token;
-  };
-
-  return {
-    getToken: () =>
-      isExpired(o365AuthCredentials.expiry_date)
-        ? refreshAccessToken(o365AuthCredentials.refresh_token)
-        : Promise.resolve(o365AuthCredentials.access_token),
-  };
+const getO365VideoAppKeys = async () => {
+  return getParsedAppKeysFromSlug(config.slug, o365VideoAppKeysSchema);
 };
 
 const TeamsVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => {
-  const auth = o365Auth(credential);
+  const tokenResponse = oAuthManagerHelper.getTokenObjectFromCredential(credential);
+
+  const auth = new OAuthManager({
+    credentialSyncVariables: oAuthManagerHelper.credentialSyncVariables,
+    resourceOwner: {
+      type: "user",
+      id: credential.userId,
+    },
+    appSlug: config.slug,
+    currentTokenObject: tokenResponse,
+    fetchNewTokenObject: async ({ refreshToken }: { refreshToken: string | null }) => {
+      if (!refreshToken) {
+        return null;
+      }
+      const { client_id, client_secret } = await getO365VideoAppKeys();
+      return await fetch("https://login.microsoftonline.com/common/oauth2/v2.0/token", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
+          client_id,
+          refresh_token: refreshToken,
+          grant_type: "refresh_token",
+          client_secret,
+        }),
+      });
+    },
+    isTokenObjectUnusable: async function () {
+      // TODO: Implement this. As current implementation of CalendarService doesn't handle it. It hasn't been handled in the OAuthManager implementation as well.
+      // This is a placeholder for future implementation.
+      return null;
+    },
+    isAccessTokenUnusable: async function () {
+      // TODO: Implement this
+      return null;
+    },
+    invalidateTokenObject: () => oAuthManagerHelper.invalidateCredential(credential.id),
+    expireAccessToken: () => oAuthManagerHelper.markTokenAsExpired(credential),
+    updateTokenObject: (tokenObject) =>
+      oAuthManagerHelper.updateTokenObject({ tokenObject, credentialId: credential.id }),
+  });
 
   const translateEvent = (event: CalendarEvent) => {
     return {
@@ -123,16 +87,15 @@ const TeamsVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter =>
       return Promise.resolve([]);
     },
     updateMeeting: async (bookingRef: PartialReference, event: CalendarEvent) => {
-      const accessToken = await (await auth).getToken();
-
-      const resultString = await fetch("https://graph.microsoft.com/v1.0/me/onlineMeetings", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(translateEvent(event)),
-      }).then(handleErrorsRaw);
+      const resultString = await auth
+        .requestRaw({
+          url: "https://graph.microsoft.com/v1.0/me/onlineMeetings",
+          options: {
+            method: "POST",
+            body: JSON.stringify(translateEvent(event)),
+          },
+        })
+        .then(handleErrorsRaw);
 
       const resultObject = JSON.parse(resultString);
 
@@ -140,23 +103,22 @@ const TeamsVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter =>
         type: "office365_video",
         id: resultObject.id,
         password: "",
-        url: resultObject.joinUrl,
+        url: resultObject.joinWebUrl || resultObject.joinUrl,
       });
     },
     deleteMeeting: () => {
       return Promise.resolve([]);
     },
     createMeeting: async (event: CalendarEvent): Promise<VideoCallData> => {
-      const accessToken = await (await auth).getToken();
-
-      const resultString = await fetch("https://graph.microsoft.com/v1.0/me/onlineMeetings", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(translateEvent(event)),
-      }).then(handleErrorsRaw);
+      const resultString = await auth
+        .requestRaw({
+          url: "https://graph.microsoft.com/v1.0/me/onlineMeetings",
+          options: {
+            method: "POST",
+            body: JSON.stringify(translateEvent(event)),
+          },
+        })
+        .then(handleErrorsRaw);
 
       const resultObject = JSON.parse(resultString);
 
