@@ -266,6 +266,21 @@ test.describe("Popup Tests", () => {
       pathname: calLink,
     });
   });
+
+  test("should open on clicking child element", async ({ page, embeds }) => {
+    await deleteAllBookingsByEmail("embed-user@example.com");
+    const calNamespace = "childElementTarget";
+    const configuredLink = "/free/30min";
+    await embeds.gotoPlayground({ calNamespace, url: "/" });
+
+    await page.click(`[data-cal-namespace="${calNamespace}"] b`);
+
+    const embedIframe = await getEmbedIframe({ calNamespace, page, pathname: configuredLink });
+
+    await expect(embedIframe).toBeEmbedCalLink(calNamespace, embeds.getActionFiredDetails, {
+      pathname: configuredLink,
+    });
+  });
 });
 
 async function expectPrerenderedIframe({
