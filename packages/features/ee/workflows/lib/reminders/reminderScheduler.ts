@@ -3,6 +3,7 @@ import type { Workflow, WorkflowsOnEventTypes, WorkflowStep } from "@prisma/clie
 import { isSMSAction, isWhatsappAction } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
 import { checkSMSRateLimit } from "@calcom/lib/checkRateLimitAndThrowError";
 import { SENDER_NAME } from "@calcom/lib/constants";
+import { SchedulingType } from "@calcom/prisma/enums";
 import { WorkflowActions, WorkflowMethods, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
@@ -13,7 +14,7 @@ import { deleteScheduledWhatsappReminder, scheduleWhatsappReminder } from "./wha
 
 type ExtendedCalendarEvent = CalendarEvent & {
   metadata?: { videoCallUrl: string | undefined };
-  eventType: { slug?: string };
+  eventType: { slug?: string; schedulingType?: SchedulingType | null };
 };
 
 type ProcessWorkflowStepParams = {
@@ -73,10 +74,16 @@ const processWorkflowStep = async (
     });
   } else if (step.action === WorkflowActions.EMAIL_ATTENDEE || step.action === WorkflowActions.EMAIL_HOST) {
     let sendTo: string[] = [];
+    const schedulingType = evt.eventType.schedulingType;
+    const isTeamEvent =
+      schedulingType === SchedulingType.ROUND_ROBIN || schedulingType === SchedulingType.COLLECTIVE;
 
     switch (step.action) {
       case WorkflowActions.EMAIL_HOST:
         sendTo = [evt.organizer?.email || ""];
+        if (isTeamEvent && evt.team?.members) {
+          sendTo = sendTo.concat(evt.team.members.map((member) => member.email));
+        }
         break;
       case WorkflowActions.EMAIL_ATTENDEE:
         const attendees = !!emailAttendeeSendToOverride
