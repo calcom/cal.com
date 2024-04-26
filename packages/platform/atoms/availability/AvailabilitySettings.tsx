@@ -174,6 +174,7 @@ const DateOverride = ({
           excludedDates={excludedDates}
           replace={replace}
           fields={fields}
+          weekStart={weekStart}
           workingHours={workingHours}
           userTimeFormat={userTimeFormat}
           hour12={Boolean(userTimeFormat === 12)}
