@@ -8,6 +8,8 @@ import type { useEventReturnType } from "@calcom/features/bookings/Booker/utils/
 import { MINUTES_TO_BOOK } from "@calcom/lib/constants";
 import { trpc } from "@calcom/trpc";
 
+export type UseSlotsReturnType = ReturnType<typeof useSlots>;
+
 export const useSlots = (event: useEventReturnType) => {
   const selectedDuration = useBookerStore((state) => state.selectedDuration);
   const [selectedTimeslot, setSelectedTimeslot] = useBookerStore(

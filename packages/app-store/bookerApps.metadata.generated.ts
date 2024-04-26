@@ -5,6 +5,7 @@
 import around_config_json from "./around/config.json";
 import campfire_config_json from "./campfire/config.json";
 import { metadata as dailyvideo__metadata_ts } from "./dailyvideo/_metadata";
+import demodesk_config_json from "./demodesk/config.json";
 import discord_config_json from "./discord/config.json";
 import eightxeight_config_json from "./eightxeight/config.json";
 import element_call_config_json from "./element-call/config.json";
@@ -14,6 +15,7 @@ import ga4_config_json from "./ga4/config.json";
 import { metadata as googlevideo__metadata_ts } from "./googlevideo/_metadata";
 import gtm_config_json from "./gtm/config.json";
 import { metadata as huddle01video__metadata_ts } from "./huddle01video/_metadata";
+import jelly_config_json from "./jelly/config.json";
 import { metadata as jitsivideo__metadata_ts } from "./jitsivideo/_metadata";
 import matomo_config_json from "./matomo/config.json";
 import metapixel_config_json from "./metapixel/config.json";
@@ -41,6 +43,7 @@ export const appStoreMetadata = {
   around: around_config_json,
   campfire: campfire_config_json,
   dailyvideo: dailyvideo__metadata_ts,
+  demodesk: demodesk_config_json,
   discord: discord_config_json,
   eightxeight: eightxeight_config_json,
   "element-call": element_call_config_json,
@@ -50,6 +53,7 @@ export const appStoreMetadata = {
   googlevideo: googlevideo__metadata_ts,
   gtm: gtm_config_json,
   huddle01video: huddle01video__metadata_ts,
+  jelly: jelly_config_json,
   jitsivideo: jitsivideo__metadata_ts,
   matomo: matomo_config_json,
   metapixel: metapixel_config_json,

@@ -11,7 +11,6 @@ const log = logger.getSubLogger({ prefix: ["repository/membership"] });
 type IMembership = {
   teamId: number;
   userId: number;
-  profileId: number | null;
   accepted: boolean;
   role: MembershipRole;
 };
@@ -31,6 +30,7 @@ const teamParentSelect = Prisma.validator<Prisma.TeamSelect>()({
   slug: true,
   logoUrl: true,
   parentId: true,
+  metadata: true,
 });
 
 const userSelect = Prisma.validator<Prisma.UserSelect>()({
@@ -103,11 +103,6 @@ export class MembershipRepository {
             eventTypes: {
               select: {
                 ...eventTypeSelect,
-                team: {
-                  select: {
-                    id: true,
-                  },
-                },
                 hashedLink: true,
                 users: { select: userSelect },
                 children: {

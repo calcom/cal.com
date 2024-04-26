@@ -119,7 +119,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         endTime: booking.endTime.toISOString(),
         organizer: {
           id: user.id,
-          email: user.email,
+          email: booking?.userPrimaryEmail ?? user.email,
           name,
           timeZone: user.timeZone,
           language: { translate: tOrganizer, locale: user.locale ?? "en" },

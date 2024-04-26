@@ -11,7 +11,6 @@ import {
   unlockedManagedEventTypeProps,
 } from "@calcom/prisma/zod-utils";
 
-import { WEBAPP_URL } from "../../../constants";
 import { getBookerBaseUrlSync } from "../../../getBookerUrl/client";
 import { getTeam, getOrg } from "../../repository/team";
 import { UserRepository } from "../../repository/user";
@@ -23,15 +22,14 @@ export async function getTeamWithMembers(args: {
   slug?: string;
   userId?: number;
   orgSlug?: string | null;
-  includeTeamLogo?: boolean;
   isTeamView?: boolean;
-  currentOrg?: Team | null;
+  currentOrg?: Pick<Team, "id"> | null;
   /**
    * If true, means that you are fetching an organization and not a team
    */
   isOrgView?: boolean;
 }) {
-  const { id, slug, currentOrg, userId, orgSlug, isTeamView, isOrgView, includeTeamLogo } = args;
+  const { id, slug, currentOrg: _currentOrg, userId, orgSlug, isTeamView, isOrgView } = args;
 
   // This should improve performance saving already app data found.
   const appDataMap = new Map();
@@ -86,7 +84,8 @@ export async function getTeamWithMembers(args: {
       id: true,
       name: true,
       slug: true,
-      ...(!!includeTeamLogo ? { logo: true } : {}),
+      isOrganization: true,
+      logoUrl: true,
       bio: true,
       hideBranding: true,
       hideBookATeamMember: true,
@@ -97,8 +96,13 @@ export async function getTeamWithMembers(args: {
           id: true,
           slug: true,
           name: true,
+          isPrivate: true,
+          isOrganization: true,
+          logoUrl: true,
+          metadata: true,
         },
       },
+      parentId: true,
       children: {
         select: {
           name: true,
@@ -126,8 +130,12 @@ export async function getTeamWithMembers(args: {
           },
         },
         select: {
-          users: {
-            select: userSelect,
+          hosts: {
+            select: {
+              user: {
+                select: userSelect,
+              },
+            },
           },
           metadata: true,
           ...baseEventTypeSelect,
@@ -173,7 +181,6 @@ export async function getTeamWithMembers(args: {
             .filter((membership) => membership.team.id !== teamOrOrg.id)
             .map((membership) => membership.team.slug)
         : null,
-      avatar: `${WEBAPP_URL}/${m.user.username}/avatar.png`,
       bookerUrl: getBookerBaseUrlSync(profile?.organization?.slug || ""),
       connectedApps: !isTeamView
         ? credentials?.map((cred) => {
@@ -201,7 +208,7 @@ export async function getTeamWithMembers(args: {
   const eventTypesWithUsersUserProfile = [];
   for (const eventType of teamOrOrg.eventTypes) {
     const usersWithUserProfile = [];
-    for (const user of eventType.users) {
+    for (const { user } of eventType.hosts) {
       usersWithUserProfile.push(
         await UserRepository.enrichUserWithItsProfile({
           user,
@@ -232,6 +239,7 @@ export async function getTeamWithMembers(args: {
 
   return {
     ...teamWithoutInviteTokens,
+    ...(teamWithoutInviteTokens.logoUrl ? { logo: teamWithoutInviteTokens.logoUrl } : {}),
     /** To prevent breaking we only return non-email attached token here, if we have one */
     inviteToken: inviteTokens.find(
       (token) =>

@@ -12,6 +12,7 @@ export async function checkBookingLimits(
   bookingLimits: IntervalLimit,
   eventStartDate: Date,
   eventId: number,
+  rescheduleUid?: string | undefined,
   timeZone?: string | null
 ) {
   const parsedBookingLimits = parseBookingLimit(bookingLimits);
@@ -19,7 +20,14 @@ export async function checkBookingLimits(
 
   // not iterating entries to preserve types
   const limitCalculations = ascendingLimitKeys.map((key) =>
-    checkBookingLimit({ key, limitingNumber: parsedBookingLimits[key], eventStartDate, eventId, timeZone })
+    checkBookingLimit({
+      key,
+      limitingNumber: parsedBookingLimits[key],
+      eventStartDate,
+      eventId,
+      timeZone,
+      rescheduleUid,
+    })
   );
 
   try {
@@ -34,12 +42,14 @@ export async function checkBookingLimit({
   eventId,
   key,
   limitingNumber,
+  rescheduleUid,
   timeZone,
 }: {
   eventStartDate: Date;
   eventId: number;
   key: keyof IntervalLimit;
   limitingNumber: number | undefined;
+  rescheduleUid?: string | undefined;
   timeZone?: string | null;
 }) {
   {
@@ -62,6 +72,9 @@ export async function checkBookingLimit({
         },
         endTime: {
           lte: endDate,
+        },
+        uid: {
+          not: rescheduleUid,
         },
       },
     });

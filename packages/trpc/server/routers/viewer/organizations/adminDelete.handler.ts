@@ -19,10 +19,7 @@ export const adminDeleteHandler = async ({ input }: AdminDeleteOption) => {
   const foundOrg = await prisma.team.findUnique({
     where: {
       id: input.orgId,
-      metadata: {
-        path: ["isOrganization"],
-        equals: true,
-      },
+      isOrganization: true,
     },
     include: {
       members: {
@@ -40,7 +37,11 @@ export const adminDeleteHandler = async ({ input }: AdminDeleteOption) => {
     });
 
   if (foundOrg.slug) {
-    await deleteDomain(foundOrg.slug);
+    try {
+      await deleteDomain(foundOrg.slug);
+    } catch (e) {
+      log.error(`Failed to delete domain ${foundOrg.slug}. Do a manual deletion if needed`);
+    }
   }
 
   await renameUsersToAvoidUsernameConflicts(foundOrg.members.map((member) => member.user));

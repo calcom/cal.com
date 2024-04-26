@@ -2,7 +2,7 @@ import classNames from "classnames";
 import type { ToastOptions, Toast } from "react-hot-toast";
 import toast from "react-hot-toast";
 
-import { Check, Info } from "../icon";
+import { Icon } from "../..";
 
 type IToast = {
   message: string;
@@ -19,7 +19,7 @@ export const SuccessToast = ({ message, toastVisible, onClose, toastId }: IToast
     )}
     onClick={() => onClose(toastId)}>
     <span className="mt-0.5">
-      <Check className="h-4 w-4" />
+      <Icon name="check" className="h-4 w-4" />
     </span>
     <p data-testid="toast-success" className="text-left">
       {message}
@@ -35,7 +35,7 @@ export const ErrorToast = ({ message, toastVisible, onClose, toastId }: IToast) 
     )}
     onClick={() => onClose(toastId)}>
     <span className="mt-0.5">
-      <Info className="h-4 w-4" />
+      <Icon name="info" className="h-4 w-4" />
     </span>
     <p data-testid="toast-error" className="text-left">
       {message}
@@ -51,7 +51,7 @@ export const WarningToast = ({ message, toastVisible, onClose, toastId }: IToast
     )}
     onClick={() => onClose(toastId)}>
     <span className="mt-0.5">
-      <Info className="h-4 w-4" />
+      <Icon name="info" className="h-4 w-4" />
     </span>
     <p data-testid="toast-warning" className="text-left">
       {message}
@@ -67,7 +67,7 @@ export const DefaultToast = ({ message, toastVisible, onClose, toastId }: IToast
     )}
     onClick={() => onClose(toastId)}>
     <span className="mt-0.5">
-      <Check className="h-4 w-4" />
+      <Icon name="check" className="h-4 w-4" />
     </span>
     <p data-testid="toast-default" className="text-left">
       {message}
@@ -88,6 +88,7 @@ export function showToast(
   //
   const _options: ToastOptions = typeof options === "number" ? { duration: options } : options;
   if (!_options.duration) _options.duration = TOAST_VISIBLE_DURATION;
+  if (!_options.position) _options.position = "bottom-center";
 
   const onClose = (toastId: string) => {
     toast.remove(toastId);

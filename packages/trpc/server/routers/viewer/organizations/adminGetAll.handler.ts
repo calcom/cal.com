@@ -12,20 +12,14 @@ type AdminGetAllOptions = {
 export const adminGetUnverifiedHandler = async ({}: AdminGetAllOptions) => {
   const allOrgs = await prisma.team.findMany({
     where: {
-      AND: [
-        {
-          metadata: {
-            path: ["isOrganization"],
-            equals: true,
-          },
-        },
-      ],
+      isOrganization: true,
     },
     select: {
       id: true,
       name: true,
       slug: true,
       metadata: true,
+      organizationSettings: true,
       members: {
         where: {
           role: "OWNER",

@@ -70,7 +70,7 @@ const rule = createRule({
           context.report(reportObj);
         };
 
-        nodeArgs.properties.forEach((property) => {
+        nodeArgs.properties?.forEach((property) => {
           if (property.type === "Property") {
             searchIncludeProperty(property, backReporter);
           }

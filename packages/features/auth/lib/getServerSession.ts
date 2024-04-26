@@ -4,7 +4,7 @@ import type { AuthOptions, Session } from "next-auth";
 import { getToken } from "next-auth/jwt";
 
 import checkLicense from "@calcom/features/ee/common/server/checkLicense";
-import { CAL_URL } from "@calcom/lib/constants";
+import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { UserRepository } from "@calcom/lib/server/repository/user";
@@ -33,13 +33,14 @@ export async function getServerSession(options: {
   res?: NextApiResponse | GetServerSidePropsContext["res"];
   authOptions?: AuthOptions;
 }) {
-  log.debug("Getting server session");
   const { req, authOptions: { secret } = {} } = options;
 
   const token = await getToken({
     req,
     secret,
   });
+
+  log.debug("Getting server session", safeStringify({ token }));
 
   if (!token || !token.email || !token.sub) {
     log.debug("Couldnt get token");
@@ -49,6 +50,7 @@ export async function getServerSession(options: {
   const cachedSession = CACHE.get(JSON.stringify(token));
 
   if (cachedSession) {
+    log.debug("Returning cached session", safeStringify(cachedSession));
     return cachedSession;
   }
 
@@ -56,8 +58,6 @@ export async function getServerSession(options: {
     where: {
       email: token.email.toLowerCase(),
     },
-    // TODO: Re-enable once we get confirmation from compliance that this is okay.
-    // cacheStrategy: { ttl: 60, swr: 1 },
   });
 
   if (!userFromDb) {
@@ -94,7 +94,9 @@ export async function getServerSession(options: {
       emailVerified: user.emailVerified,
       email_verified: user.emailVerified !== null,
       role: user.role,
-      image: `${CAL_URL}/${user.username}/avatar.png`,
+      image: getUserAvatarUrl({
+        avatarUrl: user.avatarUrl,
+      }),
       belongsToActiveTeam: token.belongsToActiveTeam,
       org: token.org,
       locale: user.locale ?? undefined,

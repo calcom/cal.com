@@ -107,6 +107,10 @@ testBothFutureAndLegacyRoutes.describe("Event Types tests", () => {
 
       expect(formTitle).toBe(firstTitle);
       expect(formSlug).toContain(firstSlug);
+
+      const test = await page.getByTestId("continue").click();
+      const toast = await page.waitForSelector('[data-testid="toast-success"]');
+      expect(toast).toBeTruthy();
     });
 
     test("edit first event", async ({ page }) => {

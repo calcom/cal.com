@@ -3,7 +3,7 @@ import { useMemo } from "react";
 import type { z } from "zod";
 
 import { Price } from "@calcom/features/bookings/components/event-meta/Price";
-import { getPriceIcon } from "@calcom/features/bookings/components/event-meta/getPriceIcon";
+import { PriceIcon } from "@calcom/features/bookings/components/event-meta/PriceIcon";
 import { classNames, parseRecurringEvent } from "@calcom/lib";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -11,7 +11,6 @@ import type { baseEventTypeSelect } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { EventTypeModel } from "@calcom/prisma/zod";
 import { Badge } from "@calcom/ui";
-import { Clock, Users, RefreshCw, Clipboard, Plus, User, Lock } from "@calcom/ui/components/icon";
 
 export type EventTypeDescriptionProps = {
   eventType: Pick<
@@ -59,34 +58,34 @@ export const EventTypeDescription = ({
           {eventType.metadata?.multipleDuration ? (
             eventType.metadata.multipleDuration.map((dur, idx) => (
               <li key={idx}>
-                <Badge variant="gray" startIcon={Clock}>
+                <Badge variant="gray" startIcon="clock">
                   {dur}m
                 </Badge>
               </li>
             ))
           ) : (
             <li>
-              <Badge variant="gray" startIcon={Clock}>
+              <Badge variant="gray" startIcon="clock">
                 {eventType.length}m
               </Badge>
             </li>
           )}
           {eventType.schedulingType && eventType.schedulingType !== SchedulingType.MANAGED && (
             <li>
-              <Badge variant="gray" startIcon={Users}>
+              <Badge variant="gray" startIcon="users">
                 {eventType.schedulingType === SchedulingType.ROUND_ROBIN && t("round_robin")}
                 {eventType.schedulingType === SchedulingType.COLLECTIVE && t("collective")}
               </Badge>
             </li>
           )}
           {eventType.metadata?.managedEventConfig && !isPublic && (
-            <Badge variant="gray" startIcon={Lock}>
+            <Badge variant="gray" startIcon="lock">
               {t("managed")}
             </Badge>
           )}
           {recurringEvent?.count && recurringEvent.count > 0 && (
             <li className="hidden xl:block" data-testid="repeat-eventtype">
-              <Badge variant="gray" startIcon={RefreshCw}>
+              <Badge variant="gray" startIcon="refresh-cw">
                 {t("repeats_up_to", {
                   count: recurringEvent.count,
                 })}
@@ -95,7 +94,11 @@ export const EventTypeDescription = ({
           )}
           {paymentAppData.enabled && (
             <li>
-              <Badge variant="gray" startIcon={getPriceIcon(paymentAppData.currency)}>
+              <Badge
+                variant="gray"
+                customStartIcon={
+                  <PriceIcon currency={paymentAppData.currency} className="h-3 w-3 stroke-[3px]" />
+                }>
                 <Price
                   currency={paymentAppData.currency}
                   price={paymentAppData.price}
@@ -106,7 +109,7 @@ export const EventTypeDescription = ({
           )}
           {eventType.requiresConfirmation && (
             <li className="hidden xl:block" data-testid="requires-confirmation-badge">
-              <Badge variant="gray" startIcon={Clipboard}>
+              <Badge variant="gray" startIcon="clipboard">
                 {eventType.metadata?.requiresConfirmationThreshold
                   ? t("may_require_confirmation")
                   : t("requires_confirmation")}
@@ -116,7 +119,7 @@ export const EventTypeDescription = ({
           {/* TODO: Maybe add a tool tip to this? */}
           {eventType.requiresConfirmation || (recurringEvent?.count && recurringEvent.count) ? (
             <li className="block xl:hidden">
-              <Badge variant="gray" startIcon={Plus}>
+              <Badge variant="gray" startIcon="plus">
                 <p>{[eventType.requiresConfirmation, recurringEvent?.count].filter(Boolean).length}</p>
               </Badge>
             </li>
@@ -125,7 +128,7 @@ export const EventTypeDescription = ({
           )}
           {eventType?.seatsPerTimeSlot ? (
             <li>
-              <Badge variant="gray" startIcon={User}>
+              <Badge variant="gray" startIcon="user">
                 <p>{t("event_type_seats", { numberOfSeats: eventType.seatsPerTimeSlot })} </p>
               </Badge>
             </li>

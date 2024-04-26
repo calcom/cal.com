@@ -18,14 +18,26 @@ import { setDestinationCalendarHandler } from "../../loggedInViewer/setDestinati
 import type { TUpdateInputSchema } from "./update.schema";
 import { ensureUniqueBookingFields, handleCustomInputs, handlePeriodType } from "./util";
 
+type SessionUser = NonNullable<TrpcSessionUser>;
+type User = {
+  id: SessionUser["id"];
+  username: SessionUser["username"];
+  profile: {
+    id: SessionUser["profile"]["id"] | null;
+  };
+  selectedCalendars: SessionUser["selectedCalendars"];
+};
+
 type UpdateOptions = {
   ctx: {
-    user: NonNullable<TrpcSessionUser>;
+    user: User;
     res?: NextApiResponse | GetServerSidePropsContext["res"];
     prisma: PrismaClient;
   };
   input: TUpdateInputSchema;
 };
+
+export type UpdateEventTypeReturn = Awaited<ReturnType<typeof updateHandler>>;
 
 export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   const {
@@ -48,12 +60,22 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     userId,
     bookingFields,
     offsetStart,
+    secondaryEmailId,
+    aiPhoneCallConfig,
     ...rest
   } = input;
 
   const eventType = await ctx.prisma.eventType.findUniqueOrThrow({
     where: { id },
     select: {
+      aiPhoneCallConfig: {
+        select: {
+          generalPrompt: true,
+          beginMessage: true,
+          enabled: true,
+          llmId: true,
+        },
+      },
       children: {
         select: {
           userId: true,
@@ -321,6 +343,56 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
   data.assignAllTeamMembers = assignAllTeamMembers ?? false;
 
+  // Validate the secondary email
+  if (secondaryEmailId) {
+    const secondaryEmail = await ctx.prisma.secondaryEmail.findUnique({
+      where: {
+        id: secondaryEmailId,
+        userId: ctx.user.id,
+      },
+    });
+    // Make sure the secondary email id belongs to the current user and its a verified one
+    if (secondaryEmail && secondaryEmail.emailVerified) {
+      data.secondaryEmail = {
+        connect: {
+          id: secondaryEmailId,
+        },
+      };
+      // Delete the data if the user selected his original email to send the events to, which means the value coming will be -1
+    } else if (secondaryEmailId === -1) {
+      data.secondaryEmail = {
+        disconnect: true,
+      };
+    }
+  }
+
+  if (aiPhoneCallConfig) {
+    if (aiPhoneCallConfig.enabled) {
+      await ctx.prisma.aIPhoneCallConfiguration.upsert({
+        where: {
+          eventTypeId: id,
+        },
+        update: {
+          ...aiPhoneCallConfig,
+          guestEmail: !!aiPhoneCallConfig?.guestEmail ? aiPhoneCallConfig.guestEmail : null,
+          guestCompany: !!aiPhoneCallConfig?.guestCompany ? aiPhoneCallConfig.guestCompany : null,
+        },
+        create: {
+          ...aiPhoneCallConfig,
+          guestEmail: !!aiPhoneCallConfig?.guestEmail ? aiPhoneCallConfig.guestEmail : null,
+          guestCompany: !!aiPhoneCallConfig?.guestCompany ? aiPhoneCallConfig.guestCompany : null,
+          eventTypeId: id,
+        },
+      });
+    } else if (!aiPhoneCallConfig.enabled && eventType.aiPhoneCallConfig) {
+      await ctx.prisma.aIPhoneCallConfiguration.delete({
+        where: {
+          eventTypeId: id,
+        },
+      });
+    }
+  }
+
   const updatedEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
     slug: true,
     schedulingType: true,
@@ -341,6 +413,13 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     }
     throw e;
   }
+  const updatedValues = Object.entries(data).reduce((acc, [key, value]) => {
+    if (value !== undefined) {
+      // @ts-expect-error Element implicitly has any type
+      acc[key] = value;
+    }
+    return acc;
+  }, {});
 
   // Handling updates to children event types (managed events types)
   await updateChildrenEventTypes({
@@ -353,6 +432,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     children,
     profileId: ctx.user.profile.id,
     prisma: ctx.prisma,
+    updatedValues,
   });
 
   const res = ctx.res as NextApiResponse;

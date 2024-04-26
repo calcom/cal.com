@@ -76,7 +76,7 @@ export const mapRecurringBookingToMutationInput = (
     booking.language
   );
 
-  const input = mapBookingToMutationInput(booking);
+  const input = mapBookingToMutationInput({ ...booking, bookingUid: undefined });
 
   return recurringDates.map((recurringDate) => ({
     ...input,

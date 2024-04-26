@@ -86,7 +86,8 @@ testBothFutureAndLegacyRoutes.describe("Forgot password", async () => {
     });
 
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    expect(await verifyPassword(newPassword, updatedUser.password!)).toBeTruthy();
+    const updatedPassword = updatedUser.password!.hash;
+    expect(await verifyPassword(newPassword, updatedPassword)).toBeTruthy();
 
     // finally, make sure the same URL cannot be used to reset the password again, as it should be expired.
     await page.goto(`/auth/forgot-password/${id}`);

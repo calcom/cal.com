@@ -8,16 +8,15 @@ import { getEventLocationType } from "@calcom/app-store/locations";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import {
-  showToast,
-  Dialog,
-  DialogContent,
-  Form,
-  TextField,
-  DialogFooter,
   Button,
+  Dialog,
   DialogClose,
+  DialogContent,
+  DialogFooter,
+  Form,
+  showToast,
+  TextField,
 } from "@calcom/ui";
-import { AlertCircle } from "@calcom/ui/components/icon";
 
 type LocationTypeSetLinkDialogFormProps = {
   link?: string;
@@ -57,7 +56,7 @@ export function AppSetDefaultLinkDialog({
         title={t("default_app_link_title")}
         description={t("default_app_link_description")}
         type="creation"
-        Icon={AlertCircle}>
+        Icon="circle-alert">
         <Form
           form={form}
           handleSubmit={(values) => {

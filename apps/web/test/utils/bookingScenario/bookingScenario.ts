@@ -9,6 +9,7 @@ import type Stripe from "stripe";
 import type { getMockRequestDataForBooking } from "test/utils/bookingScenario/getMockRequestDataForBooking";
 import { v4 as uuidv4 } from "uuid";
 import "vitest-fetch-mock";
+import type { z } from "zod";
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { handleStripePaymentSuccess } from "@calcom/features/ee/payments/api/webhook";
@@ -20,6 +21,7 @@ import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import type { WorkflowActions, WorkflowTemplates, WorkflowTriggerEvents } from "@calcom/prisma/client";
 import type { SchedulingType } from "@calcom/prisma/enums";
 import type { BookingStatus } from "@calcom/prisma/enums";
+import type { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { userMetadataType } from "@calcom/prisma/zod-utils";
 import type { AppMeta } from "@calcom/types/App";
 import type { NewCalendarEventType } from "@calcom/types/Calendar";
@@ -620,11 +622,19 @@ export async function createBookingScenario(data: ScenarioData) {
   };
 }
 
-export async function createOrganization(orgData: { name: string; slug: string }) {
+export async function createOrganization(orgData: {
+  name: string;
+  slug: string;
+  metadata?: z.infer<typeof teamMetadataSchema>;
+}) {
   const org = await prismock.team.create({
     data: {
       name: orgData.name,
       slug: orgData.slug,
+      metadata: {
+        ...(orgData.metadata || {}),
+        isOrganization: true,
+      },
     },
   });
   return org;

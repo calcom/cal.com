@@ -1,9 +1,12 @@
 import slugify from "@calcom/lib/slugify";
 
 import { ProfileRepository } from "./repository/profile";
+import { isUsernameReservedDueToMigration } from "./username";
 
 export async function checkRegularUsername(_username: string, currentOrgDomain?: string | null) {
+  const isCheckingUsernameInGlobalNamespace = !currentOrgDomain;
   const username = slugify(_username);
+
   const premium = !!process.env.NEXT_PUBLIC_IS_E2E && username.length < 5;
 
   const profiles = currentOrgDomain
@@ -13,7 +16,7 @@ export async function checkRegularUsername(_username: string, currentOrgDomain?:
       })
     : null;
 
-  const user = profiles ? profiles[0].user : null;
+  const user = profiles?.length ? profiles[0].user : null;
 
   if (user) {
     return {
@@ -22,8 +25,13 @@ export async function checkRegularUsername(_username: string, currentOrgDomain?:
       message: "A user exists with that username",
     };
   }
+
+  const isUsernameAvailable = isCheckingUsernameInGlobalNamespace
+    ? !(await isUsernameReservedDueToMigration(username))
+    : true;
+
   return {
-    available: true as const,
+    available: isUsernameAvailable,
     premium,
   };
 }

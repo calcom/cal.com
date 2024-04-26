@@ -1,6 +1,6 @@
 {
   "name": "@calcom/web",
-  "version": "3.7.15",
+  "version": "4.0.4",
   "private": true,
   "scripts": {
     "analyze": "ANALYZE=true next build",
@@ -38,7 +38,8 @@
     "@calcom/trpc": "*",
     "@calcom/tsconfig": "*",
     "@calcom/ui": "*",
-    "@daily-co/daily-js": "^0.37.0",
+    "@daily-co/daily-js": "^0.59.0",
+    "@daily-co/daily-react": "^0.17.2",
     "@formkit/auto-animate": "1.0.0-beta.5",
     "@glidejs/glide": "^3.5.2",
     "@hookform/error-message": "^2.0.0",
@@ -63,8 +64,7 @@
     "@tanstack/react-query": "^5.17.15",
     "@tremor/react": "^2.0.0",
     "@types/turndown": "^5.0.1",
-    "@upstash/ratelimit": "^0.4.3",
-    "@upstash/redis": "^1.21.0",
+    "@unkey/ratelimit": "^0.1.1",
     "@vercel/edge-config": "^0.1.1",
     "@vercel/edge-functions-ui": "^0.2.1",
     "@vercel/og": "^0.5.0",
@@ -116,10 +116,13 @@
     "react-multi-email": "^0.5.3",
     "react-phone-input-2": "^2.15.1",
     "react-phone-number-input": "^3.2.7",
+    "react-query": "^3.39.3",
     "react-schemaorg": "^2.0.0",
     "react-select": "^5.7.0",
     "react-timezone-select": "^1.4.0",
+    "react-turnstile": "^1.1.3",
     "react-use-intercom": "1.5.1",
+    "recoil": "^0.7.7",
     "remove-markdown": "^0.5.0",
     "rrule": "^2.7.1",
     "sanitize-html": "^2.10.0",
@@ -130,7 +133,7 @@
     "tailwindcss-radix": "^2.6.0",
     "turndown": "^7.1.1",
     "uuid": "^8.3.2",
-    "zod": "^3.22.2"
+    "zod": "^3.22.4"
   },
   "devDependencies": {
     "@babel/core": "^7.19.6",
