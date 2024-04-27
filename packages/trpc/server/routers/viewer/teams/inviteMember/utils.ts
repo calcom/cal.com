@@ -132,21 +132,12 @@ export function canBeInvited(invitee: UserWithMembership, team: TeamWithParent) 
 
 export async function getUsersToInvite({
   usernamesOrEmails,
-  isInvitedToOrg,
   team,
 }: {
   usernamesOrEmails: string[];
   isInvitedToOrg: boolean;
   team: TeamWithParent;
 }) {
-  const memberships = [];
-  if (isInvitedToOrg) {
-    memberships.push({ teamId: team.id });
-  } else {
-    memberships.push({ teamId: team.id });
-    team.parentId && memberships.push({ teamId: team.parentId });
-  }
-
   const invitees: UserWithMembership[] = await prisma.user.findMany({
     where: {
       OR: [
