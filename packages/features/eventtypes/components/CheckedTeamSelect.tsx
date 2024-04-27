@@ -87,7 +87,7 @@ export const CheckedTeamSelect = ({
               <p className="text-emphasis my-auto ms-3 text-sm">{option.label}</p>
               {option.accepted === false && (
                 <Badge variant="orange" className="ml-2 text-xs">
-                  Pending
+                  {t("pending")}
                 </Badge>
               )}
               <div className="ml-auto flex items-center">

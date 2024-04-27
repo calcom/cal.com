@@ -160,10 +160,18 @@ const AddMembersWithSwitch = ({
             onKeyDown={(e) => {
               if (e.key === "Enter") {
                 if (setMemberInviteModal && noOptionLeft && handleEmailInvite) {
+                  const targetValues = inputValue.split(/[\n,]/);
+                  const emails =
+                    targetValues.length === 1
+                      ? targetValues[0].trim().toLocaleLowerCase()
+                      : targetValues.map((email) => email.trim().toLocaleLowerCase()).join(",");
+
+                  console.log("emails: ", emails);
+
                   e.preventDefault();
                   setMemberInviteModal(true);
                   setNoOptionLeft(false);
-                  handleEmailInvite(inputValue);
+                  handleEmailInvite(emails);
                 }
               }
             }}
