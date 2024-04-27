@@ -19,11 +19,12 @@ interface CustomEventTypeModalFormProps {
   setValue: (value: string) => void;
   event: EventNameObjectType;
   defaultValue: string;
+  isNameFieldSplit: boolean;
 }
 
 const CustomEventTypeModalForm: FC<CustomEventTypeModalFormProps> = (props) => {
   const { t } = useLocale();
-  const { placeHolder, close, setValue, event } = props;
+  const { placeHolder, close, setValue, event, isNameFieldSplit } = props;
   const { register, handleSubmit, watch, getValues } = useFormContext<FormValues>();
   const onSubmit: SubmitHandler<FormValues> = (data) => {
     setValue(data.customEventName);
@@ -68,18 +69,22 @@ const CustomEventTypeModalForm: FC<CustomEventTypeModalFormProps> = (props) => {
             <p className="text-subtle ml-1 mr-5 w-28">{`{Organiser}`}</p>
             <p className="text-emphasis">{t("your_full_name")}</p>
           </div>
-          <div className="mb-2.5 flex font-normal">
-            <p className="text-subtle ml-1 mr-5 w-28">{`{Organiser first name}`}</p>
-            <p className="text-emphasis">{t("organizer_first_name")}</p>
-          </div>
+          {isNameFieldSplit && (
+            <div className="mb-2.5 flex font-normal">
+              <p className="text-subtle ml-1 mr-5 w-28">{`{Organiser first name}`}</p>
+              <p className="text-emphasis">{t("organizer_first_name")}</p>
+            </div>
+          )}
           <div className="mb-2.5 flex font-normal">
             <p className="text-subtle ml-1 mr-5 w-28">{`{Scheduler}`}</p>
             <p className="text-emphasis">{t("scheduler_full_name")}</p>
           </div>
-          <div className="mb-2.5 flex font-normal">
-            <p className="text-subtle ml-1 mr-5 w-28">{`{Scheduler first name}`}</p>
-            <p className="text-emphasis">{t("scheduler_first_name")}</p>
-          </div>
+          {isNameFieldSplit && (
+            <div className="mb-2.5 flex font-normal">
+              <p className="text-subtle ml-1 mr-5 w-28">{`{Scheduler first name}`}</p>
+              <p className="text-emphasis">{t("scheduler_first_name")}</p>
+            </div>
+          )}
           <div className="mb-1 flex font-normal">
             <p className="text-subtle ml-1 mr-5 w-28">{`{Location}`}</p>
             <p className="text-emphasis">{t("location_info")}</p>
@@ -109,12 +114,13 @@ interface CustomEventTypeModalProps {
   close: () => void;
   setValue: (value: string) => void;
   event: EventNameObjectType;
+  isNameFieldSplit: boolean;
 }
 
 const CustomEventTypeModal: FC<CustomEventTypeModalProps> = (props) => {
   const { t } = useLocale();
 
-  const { defaultValue, placeHolder, close, setValue, event } = props;
+  const { defaultValue, placeHolder, close, setValue, event, isNameFieldSplit } = props;
 
   const methods = useForm<FormValues>({
     defaultValues: {
@@ -136,6 +142,7 @@ const CustomEventTypeModal: FC<CustomEventTypeModalProps> = (props) => {
             setValue={setValue}
             placeHolder={placeHolder}
             defaultValue={defaultValue}
+            isNameFieldSplit={isNameFieldSplit}
           />
         </FormProvider>
         <DialogFooter>

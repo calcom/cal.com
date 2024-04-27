@@ -55,7 +55,6 @@ export function getEventName(eventNameObj: EventNameObjectType, forAttendeeView 
   let dynamicEventName = eventName
     // Need this for compatibility with older event names
     .replaceAll("{Event type title}", eventNameObj.eventType)
-    .replaceAll("{Scheduler first name}", attendeeName.split(" ")[0])
     .replaceAll("{Scheduler}", attendeeName)
     .replaceAll("{Organiser}", eventNameObj.host)
     .replaceAll("{Organiser first name}", eventNameObj.host.split(" ")[0])
@@ -63,6 +62,19 @@ export function getEventName(eventNameObj: EventNameObjectType, forAttendeeView 
     .replaceAll("{ATTENDEE}", attendeeName)
     .replaceAll("{HOST}", eventNameObj.host)
     .replaceAll("{HOST/ATTENDEE}", forAttendeeView ? eventNameObj.host : attendeeName);
+
+  if (
+    eventNameObj.bookingFields &&
+    eventNameObj.bookingFields.name &&
+    typeof eventNameObj.bookingFields.name === "object" &&
+    !Array.isArray(eventNameObj.bookingFields.name) &&
+    eventNameObj.bookingFields.name.firstName
+  ) {
+    dynamicEventName = dynamicEventName.replaceAll(
+      "{Scheduler first name}",
+      eventNameObj.bookingFields.name.firstName.toString()
+    );
+  }
 
   const customInputvariables = dynamicEventName.match(/\{(.+?)}/g)?.map((variable) => {
     return variable.replace("{", "").replace("}", "");
