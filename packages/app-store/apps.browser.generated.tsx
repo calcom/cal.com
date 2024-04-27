@@ -40,4 +40,5 @@ export const EventTypeAddonMap = {
   "event-type-app-card": dynamic(() =>
     import("./templates/event-type-app-card/components/EventTypeAppCardInterface")
   ),
+  twipla: dynamic(() => import("./twipla/components/EventTypeAppCardInterface")),
 };
