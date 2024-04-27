@@ -137,7 +137,6 @@ export class OrganizationRepository {
       data: {
         username: slugify(ownerUsername),
         email: owner.email,
-        emailVerified: new Date(),
         password: { create: { hash: hashedPassword } },
         // Default schedule
         schedules: {

@@ -23,7 +23,7 @@ import {
   getOrgConnectionInfo,
   getIsOrgVerified,
   sendSignupToOrganizationEmail,
-  getUsersToInvite,
+  getExistingUsersToInvite,
   createNewUsersConnectToOrgIfExists,
   createMemberships,
   groupUsersByJoinability,
@@ -41,6 +41,7 @@ type InviteMemberOptions = {
 };
 
 export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) => {
+  const myLog = log.getSubLogger({ prefix: ["inviteMemberHandler"] });
   const translation = await getTranslation(input.language ?? "en", "common");
   await checkRateLimitAndThrowError({
     identifier: `invitedBy:${ctx.user.id}`,
@@ -63,6 +64,10 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
   const { autoAcceptEmailDomain, orgVerified } = getIsOrgVerified(isOrg, team);
 
   const usernameOrEmailsToInvite = await getUsernameOrEmailsToInvite(input.usernameOrEmail);
+
+  const isBulkInvite = usernameOrEmailsToInvite.length > 1;
+  const beSilentAboutErrors = isBulkInvite;
+
   const orgConnectInfoByUsernameOrEmail = usernameOrEmailsToInvite.reduce((acc, usernameOrEmail) => {
     return {
       ...acc,
@@ -75,12 +80,12 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
       }),
     };
   }, {} as Record<string, ReturnType<typeof getOrgConnectionInfo>>);
-  const existingUsersWithMemberships = await getUsersToInvite({
+  const existingUsersWithMemberships = await getExistingUsersToInvite({
     usernamesOrEmails: usernameOrEmailsToInvite,
-    isInvitedToOrg: isOrg,
     team,
   });
 
+  // Existing users have a criteria to be invited
   const existingUsersWithMembershipsThatNeedToBeInvited = existingUsersWithMemberships.filter(
     (invitee) => invitee.canBeInvited
   );
@@ -93,14 +98,26 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
     { emails: [], usernames: [] } as { emails: string[]; usernames: string[] }
   );
 
+  // New Users can always be invited
   const newUsersEmailsOrUsernames = usernameOrEmailsToInvite.filter(
     (usernameOrEmail) =>
       !existingUsersEmailsAndUsernames.emails.includes(usernameOrEmail) &&
       !existingUsersEmailsAndUsernames.usernames.includes(usernameOrEmail)
   );
 
-  log.debug(
-    "inviteMemberHandler",
+  if (
+    !beSilentAboutErrors &&
+    existingUsersWithMemberships.length &&
+    !existingUsersWithMembershipsThatNeedToBeInvited.length
+  ) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "Could not invite the user as he might be part of another organization",
+    });
+  }
+
+  myLog.debug(
+    "Notable variables:",
     safeStringify({
       usernameOrEmailsToInvite,
       orgConnectInfoByUsernameOrEmail,
@@ -165,7 +182,7 @@ async function handleExistingUsersInvites({
   inviter,
   orgSlug,
 }: {
-  existingUsersWithMembersips: Awaited<ReturnType<typeof getUsersToInvite>>;
+  existingUsersWithMembersips: Awaited<ReturnType<typeof getExistingUsersToInvite>>;
   team: TeamWithParent;
   orgConnectInfoByUsernameOrEmail: Record<string, { orgId: number | undefined; autoAccept: boolean }>;
   input: {

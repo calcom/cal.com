@@ -101,6 +101,8 @@ export async function getUsernameOrEmailsToInvite(usernameOrEmail: string | stri
 }
 
 export function canBeInvited(invitee: UserWithMembership, team: TeamWithParent) {
+  const myLog = log.getSubLogger({ prefix: ["canBeInvited"] });
+  myLog.debug("Checking if user can be invited", safeStringify({ invitee, team }));
   const alreadyInvited = invitee.teams?.find(({ teamId: membershipTeamId }) => team.id === membershipTeamId);
   if (alreadyInvited) {
     return false;
@@ -120,9 +122,9 @@ export function canBeInvited(invitee: UserWithMembership, team: TeamWithParent) 
     return false;
   }
 
-  // user is invited to join a team in an organization where he isn't a member
   if (
     !ENABLE_PROFILE_SWITCHER &&
+    // Member of an organization is invited to join a team that is not a subteam of the organization
     invitee.profiles.find((profile) => profile.organizationId != team.parentId)
   ) {
     return false;
@@ -130,12 +132,11 @@ export function canBeInvited(invitee: UserWithMembership, team: TeamWithParent) 
   return true;
 }
 
-export async function getUsersToInvite({
+export async function getExistingUsersToInvite({
   usernamesOrEmails,
   team,
 }: {
   usernamesOrEmails: string[];
-  isInvitedToOrg: boolean;
   team: TeamWithParent;
 }) {
   const invitees: UserWithMembership[] = await prisma.user.findMany({

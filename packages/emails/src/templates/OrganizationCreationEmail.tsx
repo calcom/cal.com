@@ -37,7 +37,7 @@ export const OrganizationCreationEmail = (
           lineHeightStep: "24px",
         }}>
         You have been added as an owner of the organization. To publish your new organization, visit{" "}
-        <a href="https://app.cal.com/upgrade">https://app.cal.com/upgrade</a>
+        <a href={`${WEBAPP_URL}/upgrade`}>{WEBAPP_URL}/upgrade</a>
       </p>
       <p
         style={{
