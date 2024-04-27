@@ -17,6 +17,7 @@ import { Filters } from "@calcom/features/insights/filters";
 import Shell from "@calcom/features/shell/Shell";
 import { UpgradeTip } from "@calcom/features/tips";
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { useHasTeamPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import { Button, ButtonGroup } from "@calcom/ui";
@@ -29,6 +30,7 @@ import PageWrapper from "@components/PageWrapper";
 export default function InsightsPage() {
   const { t } = useLocale();
   const { data: user } = trpc.viewer.me.useQuery();
+  const { isPending, hasTeamPlan } = useHasTeamPlan();
 
   const features = [
     {
@@ -57,7 +59,7 @@ export default function InsightsPage() {
         title="Insights"
         description="View booking insights across your events.">
         <UpgradeTip
-          plan="team"
+          plan={hasTeamPlan ? "team" : "individual"}
           title={t("make_informed_decisions")}
           description={t("make_informed_decisions_description")}
           features={features}
@@ -70,6 +72,9 @@ export default function InsightsPage() {
                 </Button>
                 <Button color="minimal" href="https://go.cal.com/insights" target="_blank">
                   {t("learn_more")}
+                </Button>
+                <Button color="minimal" href="https://go.cal.com/insights/opt-out" target="_blank">
+                  {t("Opt out of team insights")}
                 </Button>
               </ButtonGroup>
             </div>

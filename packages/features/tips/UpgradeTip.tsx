@@ -22,10 +22,10 @@ export function UpgradeTip({
   background: string;
   features: Array<{ icon: JSX.Element; title: string; description: string }>;
   buttons?: JSX.Element;
-  /**Chldren renders when the user is in a team */
+  /**Children renders when the user is in a team */
   children: JSX.Element;
   isParentLoading?: ReactNode;
-  plan: "team" | "enterprise";
+  plan: "individual" | "team" | "enterprise";
 }) {
   const { activeTheme } = useGetTheme();
   const { t } = useLocale();
@@ -44,7 +44,7 @@ export function UpgradeTip({
 
   if (isPending) return <>{isParentLoading}</>;
 
-  return (
+  return plan !== "team" && plan !== "enterprise" ? (
     <>
       <div className="relative flex min-h-[295px] w-full items-center justify-between overflow-hidden rounded-lg pb-10">
         <picture className="absolute min-h-[295px] w-full rounded-lg object-cover">
@@ -65,6 +65,18 @@ export function UpgradeTip({
 
       <div className="mt-4 grid-cols-3 md:grid md:gap-4">
         {features.map((feature) => (
+          <div key={feature.title} className="bg-muted mb-4 min-h-[180px] w-full rounded-md  p-8 md:mb-0">
+            {feature.icon}
+            <h2 className="font-cal text-emphasis mt-4 text-lg">{feature.title}</h2>
+            <p className="text-default">{feature.description}</p>
+          </div>
+        ))}
+      </div>
+    </>
+  ) : (
+    <>
+      <div className="mt-4 grid-cols-3 md:grid md:gap-4">
+        {features.slice(1).map((feature) => (
           <div key={feature.title} className="bg-muted mb-4 min-h-[180px] w-full rounded-md  p-8 md:mb-0">
             {feature.icon}
             <h2 className="font-cal text-emphasis mt-4 text-lg">{feature.title}</h2>
