@@ -1611,6 +1611,7 @@ async function handler(
       eventTrigger,
       responses,
     });
+
     if (newBooking) {
       req.statusCode = 201;
       const bookingResponse = {
@@ -1625,6 +1626,11 @@ async function handler(
         ...bookingResponse,
         ...luckyUserResponse,
       };
+    } else {
+      // Rescheduling logic for the original seated event was handled in handleSeats
+      // We want to use new booking logic for the new timeslot
+      originalRescheduledBooking = null;
+      evt.iCalUID = getICalUID({});
     }
   }
   if (isTeamEventType) {
@@ -1756,7 +1762,7 @@ async function handler(
   let videoCallUrl;
 
   //this is the actual rescheduling logic
-  if (originalRescheduledBooking?.uid) {
+  if (!eventType.seatsPerTimeSlot && originalRescheduledBooking?.uid) {
     log.silly("Rescheduling booking", originalRescheduledBooking.uid);
     try {
       // cancel workflow reminders from previous rescheduled booking
