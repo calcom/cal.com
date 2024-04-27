@@ -101,8 +101,9 @@ export const handleNotificationWhenNoSlots = async ({
           editLink: "www.google.com",
         },
       };
-      console.log("Sending email", { payload });
       tasker.create("sendEmail", JSON.stringify(payload));
     }
+    //   Calling tasker in dev for now but itll be triggered by cron
+    await tasker.processQueue();
   }
 };
