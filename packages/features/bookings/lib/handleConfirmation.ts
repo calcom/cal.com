@@ -7,8 +7,8 @@ import { sendScheduledEmails } from "@calcom/emails";
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { scheduleTrigger } from "@calcom/features/webhooks/lib/scheduleTrigger";
+import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
-import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import logger from "@calcom/lib/logger";
@@ -288,7 +288,6 @@ export async function handleConfirmation(args: {
         calendarEvent: evtOfBooking,
         isFirstRecurringEvent: isFirstBooking,
         hideBranding: !!updatedBookings[index].eventType?.owner?.hideBranding,
-        eventTypeRequiresConfirmation: true,
       });
     }
   } catch (error) {

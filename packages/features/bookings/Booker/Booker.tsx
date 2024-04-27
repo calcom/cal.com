@@ -24,7 +24,7 @@ import { LargeCalendar } from "./components/LargeCalendar";
 import { OverlayCalendar } from "./components/OverlayCalendar/OverlayCalendar";
 import { RedirectToInstantMeetingModal } from "./components/RedirectToInstantMeetingModal";
 import { BookerSection } from "./components/Section";
-import { Away, NotFound } from "./components/Unavailable";
+import { NotFound } from "./components/Unavailable";
 import { fadeInLeft, getBookerSizeClassNames, useBookerResizeAnimation } from "./config";
 import { useBookerStore } from "./store";
 import type { BookerProps, WrappedBookerProps } from "./types";
@@ -140,6 +140,10 @@ const BookerComponent = ({
     return setBookerState("booking");
   }, [event, selectedDate, selectedTimeslot, setBookerState]);
 
+  const slot = getQueryParam("slot");
+  useEffect(() => {
+    setSelectedTimeslot(slot || null);
+  }, [slot, setSelectedTimeslot]);
   const EventBooker = useMemo(() => {
     return bookerState === "booking" ? (
       <BookEventForm
@@ -247,18 +251,6 @@ const BookerComponent = ({
     <>
       {event.data && !isPlatform ? <BookingPageTagManager eventType={event.data} /> : <></>}
 
-      {bookerState !== "booking" && event.data?.isInstantEvent && (
-        <div
-          className="animate-fade-in-up fixed bottom-2 z-40 my-2 opacity-0"
-          style={{ animationDelay: "1s" }}>
-          <InstantBooking
-            event={event.data}
-            onConnectNow={() => {
-              onConnectNowInstantMeeting();
-            }}
-          />
-        </div>
-      )}
       <div
         className={classNames(
           // In a popup embed, if someone clicks outside the main(having main class or main tag), it closes the embed
@@ -439,6 +431,22 @@ const BookerComponent = ({
             setDayCount(null);
           }}
         />
+
+        {bookerState !== "booking" && event.data?.isInstantEvent && (
+          <div
+            className={classNames(
+              "animate-fade-in-up  z-40 my-2 opacity-0",
+              layout === BookerLayouts.MONTH_VIEW && isEmbed ? "" : "fixed bottom-2"
+            )}
+            style={{ animationDelay: "1s" }}>
+            <InstantBooking
+              event={event.data}
+              onConnectNow={() => {
+                onConnectNowInstantMeeting();
+              }}
+            />
+          </div>
+        )}
         {!hideBranding && !isPlatform && (
           <m.span
             key="logo"
@@ -462,8 +470,6 @@ const BookerComponent = ({
 };
 
 export const Booker = (props: BookerProps & WrappedBookerProps) => {
-  if (props.isAway) return <Away />;
-
   return (
     <LazyMotion strict features={loadFramerFeatures}>
       <BookerComponent {...props} />

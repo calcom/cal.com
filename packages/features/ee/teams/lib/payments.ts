@@ -155,6 +155,7 @@ export const purchaseTeamOrOrgSubscription = async (input: {
         currency: priceObj.currency,
         recurring: { interval: "month" }, // Define your subscription interval
         product: typeof priceObj.product === "string" ? priceObj.product : priceObj.product.id,
+        tax_behavior: "exclusive",
       });
       return customPriceObj.id;
     } catch (e) {

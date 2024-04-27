@@ -26,7 +26,7 @@ export const useCancelBooking = (
 ) => {
   const cancelBooking = useMutation<ApiResponse, Error, inputParams>({
     mutationFn: (data) => {
-      return http.post<ApiResponse>(`/ee/bookings/${data.id}/cancel`, data).then((res) => {
+      return http.post<ApiResponse>(`/bookings/${data.id}/cancel`, data).then((res) => {
         if (res.data.status === SUCCESS_STATUS) {
           return res.data;
         }

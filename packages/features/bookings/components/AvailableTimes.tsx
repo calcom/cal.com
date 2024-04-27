@@ -3,6 +3,7 @@ import * as HoverCard from "@radix-ui/react-hover-card";
 import { AnimatePresence, m } from "framer-motion";
 import { useCallback, useState } from "react";
 
+import { useIsPlatform } from "@calcom/atoms/monorepo";
 import type { IOutOfOfficeData } from "@calcom/core/getUserAvailability";
 import dayjs from "@calcom/dayjs";
 import { OutOfOfficeInSlots } from "@calcom/features/bookings/Booker/components/OutOfOfficeInSlots";
@@ -255,8 +256,10 @@ interface IOOOSlotProps {
 }
 
 const OOOSlot: React.FC<IOOOSlotProps> = (props) => {
+  const isPlatform = useIsPlatform();
   const { fromUser, toUser, reason, emoji, time, className = "" } = props;
 
+  if (isPlatform) return <></>;
   return (
     <OutOfOfficeInSlots
       fromUser={fromUser}

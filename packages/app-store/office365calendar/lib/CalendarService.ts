@@ -1,12 +1,10 @@
 import type { Calendar as OfficeCalendar, User } from "@microsoft/microsoft-graph-types-beta";
 import type { DefaultBodyType } from "msw";
-import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
 import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
 import { handleErrorsJson, handleErrorsRaw } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
-import prisma from "@calcom/prisma";
 import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
 import type {
   Calendar,
@@ -17,10 +15,10 @@ import type {
 } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
-import type { ParseRefreshTokenResponse } from "../../_utils/oauth/parseRefreshTokenResponse";
-import parseRefreshTokenResponse from "../../_utils/oauth/parseRefreshTokenResponse";
-import refreshOAuthTokens from "../../_utils/oauth/refreshOAuthTokens";
-import type { O365AuthCredentials } from "../types/Office365Calendar";
+import { OAuthManager } from "../../_utils/oauth/OAuthManager";
+import { getTokenObjectFromCredential } from "../../_utils/oauth/getTokenObjectFromCredential";
+import { oAuthManagerHelper } from "../../_utils/oauth/oAuthManagerHelper";
+import metadata from "../_metadata";
 import { getOfficeAppKeys } from "./getOfficeAppKeys";
 
 interface IRequest {
@@ -49,26 +47,58 @@ interface BodyValue {
   start: { dateTime: string };
 }
 
-const refreshTokenResponseSchema = z.object({
-  access_token: z.string(),
-  expires_in: z
-    .number()
-    .transform((currentTimeOffsetInSeconds) => Math.round(+new Date() / 1000 + currentTimeOffsetInSeconds)),
-  refresh_token: z.string().optional(),
-});
-
 export default class Office365CalendarService implements Calendar {
   private url = "";
   private integrationName = "";
   private log: typeof logger;
-  private accessToken: string | null = null;
-  auth: { getToken: () => Promise<string> };
+  private auth: OAuthManager;
   private apiGraphUrl = "https://graph.microsoft.com/v1.0";
   private credential: CredentialPayload;
 
   constructor(credential: CredentialPayload) {
     this.integrationName = "office365_calendar";
-    this.auth = this.o365Auth(credential);
+    const tokenResponse = getTokenObjectFromCredential(credential);
+
+    this.auth = new OAuthManager({
+      credentialSyncVariables: oAuthManagerHelper.credentialSyncVariables,
+      resourceOwner: {
+        type: "user",
+        id: credential.userId,
+      },
+      appSlug: metadata.slug,
+      currentTokenObject: tokenResponse,
+      fetchNewTokenObject: async ({ refreshToken }: { refreshToken: string | null }) => {
+        if (!refreshToken) {
+          return null;
+        }
+        const { client_id, client_secret } = await getOfficeAppKeys();
+        return await fetch("https://login.microsoftonline.com/common/oauth2/v2.0/token", {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: new URLSearchParams({
+            scope: "User.Read Calendars.Read Calendars.ReadWrite",
+            client_id,
+            refresh_token: refreshToken,
+            grant_type: "refresh_token",
+            client_secret,
+          }),
+        });
+      },
+      isTokenObjectUnusable: async function () {
+        // TODO: Implement this. As current implementation of CalendarService doesn't handle it. It hasn't been handled in the OAuthManager implementation as well.
+        // This is a placeholder for future implementation.
+        return null;
+      },
+      isAccessTokenUnusable: async function () {
+        // TODO: Implement this
+        return null;
+      },
+      invalidateTokenObject: () => oAuthManagerHelper.invalidateCredential(credential.id),
+      expireAccessToken: () => oAuthManagerHelper.markTokenAsExpired(credential),
+      updateTokenObject: (tokenObject) =>
+        oAuthManagerHelper.updateTokenObject({ tokenObject, credentialId: credential.id }),
+    });
+
     this.credential = credential;
     this.log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
   }
@@ -232,58 +262,6 @@ export default class Office365CalendarService implements Calendar {
     });
   }
 
-  private o365Auth = (credential: CredentialPayload) => {
-    const isExpired = (expiryDate: number) => {
-      if (!expiryDate) {
-        return true;
-      } else {
-        return expiryDate < Math.round(+new Date() / 1000);
-      }
-    };
-    const o365AuthCredentials = credential.key as O365AuthCredentials;
-
-    const refreshAccessToken = async (o365AuthCredentials: O365AuthCredentials) => {
-      const { client_id, client_secret } = await getOfficeAppKeys();
-      const response = await refreshOAuthTokens(
-        async () =>
-          await fetch("https://login.microsoftonline.com/common/oauth2/v2.0/token", {
-            method: "POST",
-            headers: { "Content-Type": "application/x-www-form-urlencoded" },
-            body: new URLSearchParams({
-              scope: "User.Read Calendars.Read Calendars.ReadWrite",
-              client_id,
-              refresh_token: o365AuthCredentials.refresh_token,
-              grant_type: "refresh_token",
-              client_secret,
-            }),
-          }),
-        "office365-calendar",
-        credential.userId
-      );
-      const responseJson = await handleErrorsJson(response);
-      const tokenResponse: ParseRefreshTokenResponse<typeof refreshTokenResponseSchema> =
-        parseRefreshTokenResponse(responseJson, refreshTokenResponseSchema);
-      o365AuthCredentials = { ...o365AuthCredentials, ...tokenResponse };
-      await prisma.credential.update({
-        where: {
-          id: credential.id,
-        },
-        data: {
-          key: o365AuthCredentials,
-        },
-      });
-      return o365AuthCredentials.access_token;
-    };
-
-    return {
-      getToken: () =>
-        refreshTokenResponseSchema.safeParse(o365AuthCredentials).success &&
-        !isExpired(o365AuthCredentials.expires_in)
-          ? Promise.resolve(o365AuthCredentials.access_token)
-          : refreshAccessToken(o365AuthCredentials),
-    };
-  };
-
   private translateEvent = (event: CalendarEvent) => {
     return {
       subject: event.title,
@@ -339,14 +317,12 @@ export default class Office365CalendarService implements Calendar {
   };
 
   private fetcher = async (endpoint: string, init?: RequestInit | undefined) => {
-    this.accessToken = await this.auth.getToken();
-    return fetch(`${this.apiGraphUrl}${endpoint}`, {
-      method: "get",
-      headers: {
-        Authorization: `Bearer ${this.accessToken}`,
-        "Content-Type": "application/json",
+    return this.auth.requestRaw({
+      url: `${this.apiGraphUrl}${endpoint}`,
+      options: {
+        method: "get",
+        ...init,
       },
-      ...init,
     });
   };
 
