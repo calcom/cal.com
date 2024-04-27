@@ -6,7 +6,6 @@ import { sendCancelledEmails } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { cancelScheduledJobs } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
-import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { deletePayment } from "@calcom/lib/payment/deletePayment";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { bookingMinimalSelect, prisma } from "@calcom/prisma";
@@ -137,13 +136,11 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
       }
     }
 
-    const metadata = EventTypeMetaDataSchema.parse(eventType.metadata);
-
-    const stripeAppData = getPaymentAppData({ ...eventType, metadata });
-
     // If it's a payment, hide the event type and set the price to 0. Also cancel all pending bookings
     if (credential.app?.categories.includes(AppCategories.payment)) {
-      if (stripeAppData.price) {
+      const metadata = EventTypeMetaDataSchema.parse(eventType.metadata);
+      const appSlug = credential.app?.slug;
+      if (appSlug) {
         await prisma.$transaction(async () => {
           await prisma.eventType.update({
             where: {
@@ -155,11 +152,7 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
                 ...metadata,
                 apps: {
                   ...metadata?.apps,
-                  stripe: {
-                    ...metadata?.apps?.stripe,
-                    enabled: false,
-                    price: 0,
-                  },
+                  [appSlug]: undefined,
                 },
               },
             },

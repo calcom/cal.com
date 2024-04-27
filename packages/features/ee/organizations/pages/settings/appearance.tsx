@@ -1,5 +1,6 @@
 "use client";
 
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
@@ -32,7 +33,7 @@ const OrgAppearanceView = ({
   isAdminOrOwner: boolean;
 }) => {
   const { t } = useLocale();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
 
   const themeForm = useForm<{ theme: string | null | undefined }>({
     defaultValues: {
@@ -212,6 +213,8 @@ const OrgAppearanceView = ({
 const OrgAppearanceViewWrapper = () => {
   const router = useRouter();
   const { t } = useLocale();
+  const session = useSession();
+  const orgRole = session?.data?.user?.org?.role;
   const { data: currentOrg, isPending, error } = trpc.viewer.organizations.listCurrent.useQuery();
 
   useEffect(
@@ -229,9 +232,7 @@ const OrgAppearanceViewWrapper = () => {
 
   if (!currentOrg) return null;
 
-  const isAdminOrOwner =
-    currentOrg &&
-    (currentOrg.user.role === MembershipRole.OWNER || currentOrg.user.role === MembershipRole.ADMIN);
+  const isAdminOrOwner = orgRole === MembershipRole.OWNER || orgRole === MembershipRole.ADMIN;
 
   return <OrgAppearanceView currentOrg={currentOrg} isAdminOrOwner={isAdminOrOwner} />;
 };

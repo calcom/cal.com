@@ -23,7 +23,7 @@ const EditWebhook = () => {
 
 function Component({ webhookId }: { webhookId: string }) {
   const { t } = useLocale();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const router = useRouter();
   const { data: installedApps, isPending } = trpc.viewer.integrations.useQuery(
     { variant: "other", onlyInstalled: true },

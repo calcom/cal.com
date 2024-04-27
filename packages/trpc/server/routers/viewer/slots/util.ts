@@ -169,6 +169,7 @@ export async function getEventType(
       metadata: true,
       schedule: {
         select: {
+          id: true,
           availability: {
             select: {
               date: true,

@@ -59,12 +59,17 @@ export const Day = ({
   disabled,
   away,
   emoji,
+  customClassName,
   ...props
 }: JSX.IntrinsicElements["button"] & {
   active: boolean;
   date: Dayjs;
   away?: boolean;
   emoji?: string | null;
+  customClassName?: {
+    dayContainer?: string;
+    dayActive?: string;
+  };
 }) => {
   const { t } = useLocale();
   const enabledDateButtonEmbedStyles = useEmbedStyles("enabledDateButton");
@@ -79,8 +84,12 @@ export const Day = ({
         active
           ? "bg-brand-default text-brand"
           : !disabled
-          ? " hover:border-brand-default text-emphasis bg-emphasis"
-          : "text-muted"
+          ? `${
+              !customClassName?.dayActive
+                ? "hover:border-brand-default text-emphasis bg-emphasis"
+                : `hover:border-brand-default ${customClassName.dayActive}`
+            }`
+          : `${customClassName ? "" : " text-mute"}`
       )}
       data-testid="day"
       data-disabled={disabled}
@@ -131,6 +140,7 @@ const Days = ({
   nextMonthButton,
   eventSlug,
   slots,
+  customClassName,
   ...props
 }: Omit<DatePickerProps, "locale" | "className" | "weekStart"> & {
   DayComponent?: React.FC<React.ComponentProps<typeof Day>>;
@@ -138,6 +148,10 @@ const Days = ({
   weekStart: number;
   month: string | null;
   nextMonthButton: () => void;
+  customClassName?: {
+    datePickerDate?: string;
+    datePickerDateActive?: string;
+  };
 }) => {
   // Create placeholder elements for empty days in first week
   const weekdayOfFirst = browsingDate.date(1).day();
@@ -221,7 +235,9 @@ const Days = ({
       // If selected date not available in the month, select the first available date of the month
       props.onChange(firstAvailableDateOfTheMonth);
     }
-
+    if (isSelectedDateAvailable) {
+      props.onChange(dayjs(selected));
+    }
     if (!firstAvailableDateOfTheMonth) {
       props.onChange(null);
     }
@@ -244,6 +260,10 @@ const Days = ({
             </button>
           ) : (
             <DayComponent
+              customClassName={{
+                dayContainer: customClassName?.datePickerDate,
+                dayActive: customClassName?.datePickerDateActive,
+              }}
               date={day}
               onClick={() => {
                 props.onChange(day);
@@ -271,8 +291,18 @@ const DatePicker = ({
   selected,
   onMonthChange,
   slots,
+  customClassNames,
   ...passThroughProps
-}: DatePickerProps & Partial<React.ComponentProps<typeof Days>>) => {
+}: DatePickerProps &
+  Partial<React.ComponentProps<typeof Days>> & {
+    customClassNames?: {
+      datePickerTitle?: string;
+      datePickerDays?: string;
+      datePickersDates?: string;
+      datePickerDatesActive?: string;
+      datePickerToggle?: string;
+    };
+  }) => {
   const browsingDate = passThroughProps.browsingDate || dayjs().startOf("month");
   const { i18n } = useLocale();
 
@@ -293,8 +323,13 @@ const DatePicker = ({
         <span className="text-default w-1/2 text-base">
           {browsingDate ? (
             <>
-              <strong className="text-emphasis font-semibold">{month}</strong>{" "}
-              <span className="text-subtle font-medium">{browsingDate.format("YYYY")}</span>
+              <strong
+                className={classNames(`text-emphasis font-semibold`, customClassNames?.datePickerTitle)}>
+                {month}
+              </strong>{" "}
+              <span className={classNames(`text-subtle font-medium`, customClassNames?.datePickerTitle)}>
+                {browsingDate.format("YYYY")}
+              </span>
             </>
           ) : (
             <SkeletonText className="h-8 w-24" />
@@ -304,9 +339,10 @@ const DatePicker = ({
           <div className="flex">
             <Button
               className={classNames(
-                "group p-1 opacity-70 hover:opacity-100 rtl:rotate-180",
+                `group p-1 opacity-70 hover:opacity-100 rtl:rotate-180`,
                 !browsingDate.isAfter(dayjs()) &&
-                  "disabled:text-bookinglighter hover:bg-background hover:opacity-70"
+                  `disabled:text-bookinglighter hover:bg-background hover:opacity-70`,
+                customClassNames?.datePickerToggle
               )}
               onClick={() => changeMonth(-1)}
               disabled={!browsingDate.isAfter(dayjs())}
@@ -316,7 +352,10 @@ const DatePicker = ({
               StartIcon="chevron-left"
             />
             <Button
-              className="group p-1 opacity-70 hover:opacity-100 rtl:rotate-180"
+              className={classNames(
+                `group p-1 opacity-70 hover:opacity-100 rtl:rotate-180`,
+                `${customClassNames?.datePickerToggle}`
+              )}
               onClick={() => changeMonth(+1)}
               data-testid="incrementMonth"
               color="minimal"
@@ -328,13 +367,22 @@ const DatePicker = ({
       </div>
       <div className="border-subtle mb-2 grid grid-cols-7 gap-4 border-b border-t text-center md:mb-0 md:border-0">
         {weekdayNames(locale, weekStart, "short").map((weekDay) => (
-          <div key={weekDay} className="text-emphasis my-4 text-xs font-medium uppercase tracking-widest">
+          <div
+            key={weekDay}
+            className={classNames(
+              `text-emphasis my-4 text-xs font-medium uppercase tracking-widest`,
+              customClassNames?.datePickerDays
+            )}>
             {weekDay}
           </div>
         ))}
       </div>
       <div className="relative grid grid-cols-7 grid-rows-6 gap-1 text-center">
         <Days
+          customClassName={{
+            datePickerDate: customClassNames?.datePickersDates,
+            datePickerDateActive: customClassNames?.datePickerDatesActive,
+          }}
           weekStart={weekStart}
           selected={selected}
           {...passThroughProps}

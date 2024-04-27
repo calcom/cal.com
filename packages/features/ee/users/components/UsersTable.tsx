@@ -32,7 +32,7 @@ const FETCH_LIMIT = 25;
 function UsersTableBare() {
   const { t } = useLocale();
   const tableContainerRef = useRef<HTMLDivElement>(null);
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [showImpersonateModal, setShowImpersonateModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState<string | null>(null);

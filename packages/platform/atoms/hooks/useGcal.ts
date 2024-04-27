@@ -16,7 +16,7 @@ export const useGcal = ({ isAuth, onCheckError }: useGcalProps) => {
 
   const redirectToGcalOAuth = () => {
     http
-      ?.get("/ee/gcal/oauth/auth-url")
+      ?.get("/gcal/oauth/auth-url")
       .then(({ data: responseBody }) => {
         if (responseBody.data?.authUrl) {
           window.location.href = responseBody.data.authUrl;
@@ -28,7 +28,7 @@ export const useGcal = ({ isAuth, onCheckError }: useGcalProps) => {
   useEffect(() => {
     if (isAuth) {
       http
-        ?.get("/ee/gcal/check")
+        ?.get("/gcal/check")
         .then(() => setAllowConnect(false))
         .catch((err) => {
           setAllowConnect(true);

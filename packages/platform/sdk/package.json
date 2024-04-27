@@ -1,6 +1,6 @@
 {
   "name": "@calcom/sdk",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Cal.com platform SDK.",
   "main": "dist/index.cjs.js",
   "module": "dist/index.esm.js",

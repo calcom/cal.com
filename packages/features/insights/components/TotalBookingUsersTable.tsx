@@ -1,5 +1,6 @@
 import { Table, TableBody, TableCell, TableRow, Text } from "@tremor/react";
 
+import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import type { User } from "@calcom/prisma/client";
 import { Avatar } from "@calcom/ui";
 
@@ -27,7 +28,7 @@ export const TotalBookingUsersTable = ({
                   <Avatar
                     alt={item.user.name || ""}
                     size="sm"
-                    imageSrc={item.user.avatarUrl}
+                    imageSrc={getUserAvatarUrl({ avatarUrl: item.user.avatarUrl })}
                     title={item.user.name || ""}
                     className="m-2"
                   />

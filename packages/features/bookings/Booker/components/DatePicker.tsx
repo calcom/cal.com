@@ -13,9 +13,18 @@ import type { useEventReturnType, useScheduleForEventReturnType } from "../utils
 export const DatePicker = ({
   event,
   schedule,
+  classNames,
 }: {
   event: useEventReturnType;
   schedule: useScheduleForEventReturnType;
+  classNames?: {
+    datePickerContainer?: string;
+    datePickerTitle?: string;
+    datePickerDays?: string;
+    datePickerDate?: string;
+    datePickerDatesActive?: string;
+    datePickerToggle?: string;
+  };
 }) => {
   const { i18n } = useLocale();
   const [month, selectedDate] = useBookerStore((state) => [state.month, state.selectedDate], shallow);
@@ -27,6 +36,14 @@ export const DatePicker = ({
 
   return (
     <DatePickerComponent
+      customClassNames={{
+        datePickerTitle: classNames?.datePickerTitle,
+        datePickerDays: classNames?.datePickerDays,
+        datePickersDates: classNames?.datePickerDate,
+        datePickerDatesActive: classNames?.datePickerDatesActive,
+        datePickerToggle: classNames?.datePickerToggle,
+      }}
+      className={classNames?.datePickerContainer}
       isPending={schedule.isPending}
       onChange={(date: Dayjs | null) => {
         setSelectedDate(date === null ? date : date.format("YYYY-MM-DD"));

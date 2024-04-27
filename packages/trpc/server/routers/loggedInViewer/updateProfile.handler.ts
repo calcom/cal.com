@@ -69,6 +69,8 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
   const locale = input.locale || user.locale;
   const emailVerification = await getFeatureFlag(prisma, "email-verification");
 
+  const { travelSchedules, ...rest } = input;
+
   const secondaryEmails = input?.secondaryEmails || [];
   delete input.secondaryEmails;
 
@@ -76,9 +78,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
   delete input.unlinkConnectedAccount;
 
   const data: Prisma.UserUpdateInput = {
-    ...input,
-    // DO NOT OVERWRITE AVATAR.
-    avatar: undefined,
+    ...rest,
     metadata: userMetadata,
     secondaryEmails: undefined,
   };
@@ -196,22 +196,14 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
     data.identityProviderId = null;
   }
 
-  // if defined AND a base 64 string, upload and set the avatar URL
-  if (input.avatar && input.avatar.startsWith("data:image/png;base64,")) {
-    const avatar = await resizeBase64Image(input.avatar);
+  // if defined AND a base 64 string, upload and update the avatar URL
+  if (input.avatarUrl && input.avatarUrl.startsWith("data:image/png;base64,")) {
     data.avatarUrl = await uploadAvatar({
-      avatar,
+      avatar: await resizeBase64Image(input.avatarUrl),
       userId: user.id,
     });
-    // as this is still used in the backwards compatible endpoint, we also write it here
-    // to ensure no data loss.
-    data.avatar = avatar;
   }
-  // Unset avatar url if avatar is empty string.
-  if ("" === input.avatar) {
-    data.avatarUrl = null;
-    data.avatar = null;
-  }
+
   if (input.completedOnboarding) {
     const userTeams = await prisma.user.findFirst({
       where: {
@@ -232,6 +224,41 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
         })
       );
     }
+  }
+
+  if (travelSchedules) {
+    const existingSchedules = await prisma.travelSchedule.findMany({
+      where: {
+        userId: user.id,
+      },
+    });
+
+    const schedulesToDelete = existingSchedules.filter(
+      (schedule) =>
+        !travelSchedules || !travelSchedules.find((scheduleInput) => scheduleInput.id === schedule.id)
+    );
+
+    await prisma.travelSchedule.deleteMany({
+      where: {
+        userId: user.id,
+        id: {
+          in: schedulesToDelete.map((schedule) => schedule.id) as number[],
+        },
+      },
+    });
+
+    await prisma.travelSchedule.createMany({
+      data: travelSchedules
+        .filter((schedule) => !schedule.id)
+        .map((schedule) => {
+          return {
+            userId: user.id,
+            startDate: schedule.startDate,
+            endDate: schedule.endDate,
+            timeZone: schedule.timeZone,
+          };
+        }),
+    });
   }
 
   const updatedUserSelect = Prisma.validator<Prisma.UserDefaultArgs>()({
@@ -316,7 +343,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
     });
   }
 
-  if (updatedUser) {
+  if (updatedUser && hasEmailBeenChanged) {
     // Skip sending verification email when user tries to change his primary email to a verified secondary email
     if (secondaryEmail?.emailVerified) {
       secondaryEmails.push({
@@ -336,9 +363,6 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
       });
     }
   }
-
-  // don't return avatar, we don't need it anymore.
-  delete input.avatar;
 
   if (secondaryEmails.length) {
     const recordsToDelete = secondaryEmails

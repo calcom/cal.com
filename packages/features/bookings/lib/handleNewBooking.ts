@@ -11,12 +11,13 @@ import type { Logger } from "tslog";
 import { v5 as uuidv5 } from "uuid";
 import z from "zod";
 
+import processExternalId from "@calcom/app-store/_utils/calendars/processExternalId";
 import { metadata as GoogleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
 import type { LocationObject } from "@calcom/app-store/locations";
 import {
-  getLocationValueForDB,
   MeetLocationType,
   OrganizerDefaultConferencingAppType,
+  getLocationValueForDB,
 } from "@calcom/app-store/locations";
 import type { EventTypeAppsList } from "@calcom/app-store/utils";
 import { getAppFromSlug } from "@calcom/app-store/utils";
@@ -53,8 +54,12 @@ import { getFullName } from "@calcom/features/form-builder/utils";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { cancelScheduledJobs, scheduleTrigger } from "@calcom/features/webhooks/lib/scheduleTrigger";
-import { parseBookingLimit, parseDurationLimit } from "@calcom/lib";
-import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
+import {
+  isPrismaObjOrUndefined,
+  parseBookingLimit,
+  parseDurationLimit,
+  parseRecurringEvent,
+} from "@calcom/lib";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import { getDefaultEvent, getUsernameList } from "@calcom/lib/defaultEvents";
 import { ErrorCode } from "@calcom/lib/errorCodes";
@@ -79,9 +84,9 @@ import type { BookingReference } from "@calcom/prisma/client";
 import { BookingStatus, SchedulingType, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import {
+  EventTypeMetaDataSchema,
   bookingCreateSchemaLegacyPropsForApi,
   customInputSchema,
-  EventTypeMetaDataSchema,
   userMetadata as userMetadataSchema,
 } from "@calcom/prisma/zod-utils";
 import type {
@@ -192,6 +197,7 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
       lockTimeZoneToggleOnBookingPage: true,
       requiresConfirmation: true,
       requiresBookerEmailVerification: true,
+      minimumBookingNotice: true,
       userId: true,
       price: true,
       currency: true,
@@ -225,6 +231,7 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
       timeZone: true,
       schedule: {
         select: {
+          id: true,
           availability: true,
           timeZone: true,
         },
@@ -290,7 +297,6 @@ const loadUsers = async (eventType: NewBookingEventType, dynamicUserList: string
         usernameList: dynamicUserList,
         orgSlug: isValidOrgDomain ? currentOrgDomain : null,
       });
-
       return users;
     }
     const hosts = eventType.hosts || [];
@@ -700,6 +706,7 @@ async function createBooking({
       newBookingData.recurringEventId = originalRescheduledBooking.recurringEventId;
     }
   }
+
   const createBookingObj = {
     include: {
       user: {
@@ -902,10 +909,24 @@ type BookingDataSchemaGetter =
   | typeof import("@calcom/features/bookings/lib/getBookingDataSchemaForApi").default;
 
 async function handler(
-  req: NextApiRequest & { userId?: number | undefined },
+  req: NextApiRequest & {
+    userId?: number | undefined;
+    platformClientId?: string;
+    platformRescheduleUrl?: string;
+    platformCancelUrl?: string;
+    platformBookingUrl?: string;
+    platformBookingLocation?: string;
+  },
   bookingDataSchemaGetter: BookingDataSchemaGetter = getBookingDataSchema
 ) {
-  const { userId } = req;
+  const {
+    userId,
+    platformClientId,
+    platformCancelUrl,
+    platformBookingUrl,
+    platformRescheduleUrl,
+    platformBookingLocation,
+  } = req;
 
   // handle dynamic user
   let eventType =
@@ -993,13 +1014,17 @@ async function handler(
 
   let timeOutOfBounds = false;
   try {
-    timeOutOfBounds = isOutOfBounds(reqBody.start, {
-      periodType: eventType.periodType,
-      periodDays: eventType.periodDays,
-      periodEndDate: eventType.periodEndDate,
-      periodStartDate: eventType.periodStartDate,
-      periodCountCalendarDays: eventType.periodCountCalendarDays,
-    });
+    timeOutOfBounds = isOutOfBounds(
+      reqBody.start,
+      {
+        periodType: eventType.periodType,
+        periodDays: eventType.periodDays,
+        periodEndDate: eventType.periodEndDate,
+        periodStartDate: eventType.periodStartDate,
+        periodCountCalendarDays: eventType.periodCountCalendarDays,
+      },
+      eventType.minimumBookingNotice
+    );
   } catch (error) {
     loggerWithEventDetails.warn({
       message: "NewBooking: Unable set timeOutOfBounds. Using false. ",
@@ -1399,9 +1424,13 @@ async function handler(
 
   // Organizer or user owner of this event type it's not listed as a team member.
   const teamMemberPromises = users.slice(1).map(async (user) => {
+    // TODO: Add back once EventManager tests are ready https://github.com/calcom/cal.com/pull/14610#discussion_r1567817120
     // push to teamDestinationCalendars if it's a team event but collective only
     if (isTeamEventType && eventType.schedulingType === "COLLECTIVE" && user.destinationCalendar) {
-      teamDestinationCalendars.push(user.destinationCalendar);
+      teamDestinationCalendars.push({
+        ...user.destinationCalendar,
+        externalId: processExternalId(user.destinationCalendar),
+      });
     }
 
     return {
@@ -1490,7 +1519,7 @@ async function handler(
     responses: reqBody.calEventResponses || null,
     userFieldsResponses: reqBody.calEventUserFieldsResponses || null,
     attendees: attendeesList,
-    location: bookingLocation, // Will be processed by the EventManager later.
+    location: platformBookingLocation ?? bookingLocation, // Will be processed by the EventManager later.
     conferenceCredentialId,
     destinationCalendar,
     hideCalendarNotes: eventType.hideCalendarNotes,
@@ -1503,6 +1532,10 @@ async function handler(
     schedulingType: eventType.schedulingType,
     iCalUID,
     iCalSequence,
+    platformClientId,
+    platformRescheduleUrl,
+    platformCancelUrl,
+    platformBookingUrl,
   };
 
   if (req.body.thirdPartyRecurringEventId) {
@@ -2331,7 +2364,6 @@ async function handler(
       isFirstRecurringEvent: true,
       hideBranding: !!eventType.owner?.hideBranding,
       seatReferenceUid: evt.attendeeSeatId,
-      eventTypeRequiresConfirmation: eventType.requiresConfirmation,
     });
   } catch (error) {
     loggerWithEventDetails.error("Error while scheduling workflow reminders", JSON.stringify({ error }));

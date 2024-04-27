@@ -11,25 +11,47 @@ export type DateRange = {
 export type DateOverride = Pick<Availability, "date" | "startTime" | "endTime">;
 export type WorkingHours = Pick<Availability, "days" | "startTime" | "endTime">;
 
+type TravelSchedule = { startDate: Dayjs; endDate?: Dayjs; timeZone: string };
+
+function getAdjustedTimezone(date: Dayjs, timeZone: string, travelSchedules: TravelSchedule[]) {
+  let adjustedTimezone = timeZone;
+
+  for (const travelSchedule of travelSchedules) {
+    if (
+      !date.isBefore(travelSchedule.startDate) &&
+      (!travelSchedule.endDate || !date.isAfter(travelSchedule.endDate))
+    ) {
+      adjustedTimezone = travelSchedule.timeZone;
+      break;
+    }
+  }
+  return adjustedTimezone;
+}
+
 export function processWorkingHours({
   item,
   timeZone,
   dateFrom,
   dateTo,
+  travelSchedules,
 }: {
   item: WorkingHours;
   timeZone: string;
   dateFrom: Dayjs;
   dateTo: Dayjs;
+  travelSchedules: TravelSchedule[];
 }) {
   const utcDateTo = dateTo.utc();
   const results = [];
   for (let date = dateFrom.startOf("day"); utcDateTo.isAfter(date); date = date.add(1, "day")) {
     const fromOffset = dateFrom.startOf("day").utcOffset();
-    const offset = date.tz(timeZone).utcOffset();
+
+    const adjustedTimezone = getAdjustedTimezone(date, timeZone, travelSchedules);
+
+    const offset = date.tz(adjustedTimezone).utcOffset();
 
     // it always has to be start of the day (midnight) even when DST changes
-    const dateInTz = date.add(fromOffset - offset, "minutes").tz(timeZone);
+    const dateInTz = date.add(fromOffset - offset, "minutes").tz(adjustedTimezone);
     if (!item.days.includes(dateInTz.day())) {
       continue;
     }
@@ -40,14 +62,14 @@ export function processWorkingHours({
 
     let end = dateInTz.add(item.endTime.getUTCHours(), "hours").add(item.endTime.getUTCMinutes(), "minutes");
 
-    const offsetBeginningOfDay = dayjs(start.format("YYYY-MM-DD hh:mm")).tz(timeZone).utcOffset();
+    const offsetBeginningOfDay = dayjs(start.format("YYYY-MM-DD hh:mm")).tz(adjustedTimezone).utcOffset();
     const offsetDiff = start.utcOffset() - offsetBeginningOfDay; // there will be 60 min offset on the day day of DST change
 
     start = start.add(offsetDiff, "minute");
     end = end.add(offsetDiff, "minute");
 
     const startResult = dayjs.max(start, dateFrom);
-    let endResult = dayjs.min(end, dateTo.tz(timeZone));
+    let endResult = dayjs.min(end, dateTo.tz(adjustedTimezone));
 
     // INFO: We only allow users to set availability up to 11:59PM which ends up not making them available
     // up to midnight.
@@ -72,17 +94,23 @@ export function processDateOverride({
   item,
   itemDateAsUtc,
   timeZone,
+  travelSchedules,
 }: {
   item: DateOverride;
   itemDateAsUtc: Dayjs;
   timeZone: string;
+  travelSchedules: TravelSchedule[];
 }) {
+  const overrideDate = dayjs(item.date);
+
+  const adjustedTimezone = getAdjustedTimezone(overrideDate, timeZone, travelSchedules);
+
   const itemDateStartOfDay = itemDateAsUtc.startOf("day");
   const startDate = itemDateStartOfDay
     .add(item.startTime.getUTCHours(), "hours")
     .add(item.startTime.getUTCMinutes(), "minutes")
     .second(0)
-    .tz(timeZone, true);
+    .tz(adjustedTimezone, true);
 
   let endDate = itemDateStartOfDay;
   const endTimeHours = item.endTime.getUTCHours();
@@ -95,7 +123,7 @@ export function processDateOverride({
       .add(endTimeHours, "hours")
       .add(endTimeMinutes, "minutes")
       .second(0)
-      .tz(timeZone, true);
+      .tz(adjustedTimezone, true);
   }
 
   return {
@@ -121,12 +149,14 @@ export function buildDateRanges({
   timeZone /* Organizer timeZone */,
   dateFrom /* Attendee dateFrom */,
   dateTo /* `` dateTo */,
+  travelSchedules,
   outOfOffice,
 }: {
   timeZone: string;
   availability: (DateOverride | WorkingHours)[];
   dateFrom: Dayjs;
   dateTo: Dayjs;
+  travelSchedules: TravelSchedule[];
   outOfOffice?: IOutOfOfficeData;
 }): { dateRanges: DateRange[]; oooExcludedDateRanges: DateRange[] } {
   const dateFromOrganizerTZ = dateFrom.tz(timeZone);
@@ -134,7 +164,7 @@ export function buildDateRanges({
     availability.reduce((processed: DateRange[], item) => {
       if ("days" in item) {
         processed = processed.concat(
-          processWorkingHours({ item, timeZone, dateFrom: dateFromOrganizerTZ, dateTo })
+          processWorkingHours({ item, timeZone, dateFrom: dateFromOrganizerTZ, dateTo, travelSchedules })
         );
       }
       return processed;
@@ -163,7 +193,7 @@ export function buildDateRanges({
             "[]"
           )
         ) {
-          processed.push(processDateOverride({ item, itemDateAsUtc, timeZone }));
+          processed.push(processDateOverride({ item, itemDateAsUtc, timeZone, travelSchedules }));
         }
       }
       return processed;

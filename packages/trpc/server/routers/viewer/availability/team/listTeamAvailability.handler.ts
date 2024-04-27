@@ -48,6 +48,7 @@ async function getTeamMembers({
           username: true,
           name: true,
           email: true,
+          travelSchedules: true,
           timeZone: true,
           defaultScheduleId: true,
         },
@@ -102,6 +103,13 @@ async function buildMember(member: Member, dateFrom: Dayjs, dateTo: Dayjs) {
     dateTo,
     timeZone,
     availability: schedule?.availability ?? [],
+    travelSchedules: member.user.travelSchedules.map((schedule) => {
+      return {
+        startDate: dayjs(schedule.startDate),
+        endDate: schedule.endDate ? dayjs(schedule.endDate) : undefined,
+        timeZone: schedule.timeZone,
+      };
+    }),
   });
 
   return {

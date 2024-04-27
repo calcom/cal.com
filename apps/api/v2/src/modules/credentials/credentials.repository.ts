@@ -27,7 +27,7 @@ export class CredentialsRepository {
         invalid: false,
       },
       where: {
-        id: credential?.id,
+        id: credential?.id ?? 0,
       },
     });
   }

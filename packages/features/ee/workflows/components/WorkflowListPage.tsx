@@ -52,7 +52,7 @@ interface Props {
 }
 export default function WorkflowListPage({ workflows }: Props) {
   const { t } = useLocale();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [workflowToDeleteId, setwWorkflowToDeleteId] = useState(0);
   const [parent] = useAutoAnimate<HTMLUListElement>();
@@ -252,12 +252,7 @@ export default function WorkflowListPage({ workflows }: Props) {
                         <div className="block sm:hidden">
                           <Dropdown>
                             <DropdownMenuTrigger asChild>
-                              <Button
-                                type="button"
-                                color="minimal"
-                                variant="icon"
-                                StartIcon="ellipsis"
-                              />
+                              <Button type="button" color="minimal" variant="icon" StartIcon="ellipsis" />
                             </DropdownMenuTrigger>
                             <DropdownMenuContent>
                               <DropdownMenuItem>

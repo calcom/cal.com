@@ -34,7 +34,7 @@ const SkeletonLoader = ({ title, description }: { title: string; description: st
 };
 
 const TwoFactorAuthView = () => {
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
 
   const { t } = useLocale();
   const { data: user, isPending } = trpc.viewer.me.useQuery({ includePasswordAdded: true });

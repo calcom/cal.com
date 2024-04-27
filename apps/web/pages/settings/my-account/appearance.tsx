@@ -93,7 +93,7 @@ const AppearanceView = ({
   hasPaidPlan: boolean;
 }) => {
   const { t } = useLocale();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const [darkModeError, setDarkModeError] = useState(false);
   const [lightModeError, setLightModeError] = useState(false);
   const [isCustomBrandColorChecked, setIsCustomBranColorChecked] = useState(

@@ -14,7 +14,11 @@
     "jsx": "react-jsx",
     "paths": {
       "@/*": ["./src/*"],
-      "@prisma/client/*": ["@calcom/prisma/client/*"]
+      "@prisma/client/*": ["@calcom/prisma/client/*"],
+      "@calcom/platform-libraries": ["../../../packages/platform/libraries/index.ts"],
+      "@calcom/platform-constants": ["../../../packages/platform/constants/index.ts"],
+      "@calcom/platform-types": ["../../../packages/platform/types/index.ts"],
+      "@calcom/platform-utils": ["../../../packages/platform/utils/index.ts"]
     },
     "incremental": true,
     "skipLibCheck": true,
@@ -24,5 +28,10 @@
     "noFallthroughCasesInSwitch": false
   },
   "exclude": ["./dist", "next-i18next.config.js"],
-  "include": ["./**/*.ts", "../../../packages/types/*.d.ts"]
+  "include": [
+    "./**/*.ts",
+    "../../../packages/types/*.d.ts",
+    "../../../packages/platform/**/*.ts",
+    "../../../packages/platform/**/*.d.ts"
+  ]
 }

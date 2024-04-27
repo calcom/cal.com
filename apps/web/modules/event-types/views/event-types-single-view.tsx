@@ -141,7 +141,7 @@ export type EventTypeSetup = RouterOutputs["viewer"]["eventTypes"]["get"]["event
 
 const EventTypePage = (props: EventTypeSetupProps) => {
   const { t } = useLocale();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const telemetry = useTelemetry();
   const {
     data: { tabName },
@@ -767,7 +767,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
             }, {});
 
             if (dirtyFieldExists) {
-              updateMutation.mutate({ ...filteredPayload, id: eventType.id });
+              updateMutation.mutate({ ...filteredPayload, id: eventType.id, hashedLink: values.hashedLink });
             }
           }}>
           <div ref={animationParentRef}>{tabMap[tabName]}</div>

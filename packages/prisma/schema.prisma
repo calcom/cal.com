@@ -212,7 +212,20 @@ model UserPassword {
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-// It holds Personal Profiles of a User plus it has email, password and other core things
+model TravelSchedule {
+  id           Int       @id @default(autoincrement())
+  userId       Int
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  timeZone     String
+  startDate    DateTime
+  endDate      DateTime?
+  prevTimeZone String?
+
+  @@index([startDate])
+  @@index([endDate])
+}
+
+// It holds Personal Profiles of a User plus it has email, password and other core things..
 model User {
   id                  Int                  @id @default(autoincrement())
   username            String?
@@ -225,6 +238,7 @@ model User {
   avatar              String?
   avatarUrl           String?
   timeZone            String               @default("Europe/London")
+  travelSchedules     TravelSchedule[]
   weekStart           String               @default("Sunday")
   // DEPRECATED - TO BE REMOVED
   startTime           Int                  @default(0)
@@ -304,6 +318,7 @@ model User {
   isPlatformManaged          Boolean                      @default(false)
 
   OutOfOfficeReasons OutOfOfficeReason[]
+  smsLockState       SMSLockState        @default(UNLOCKED)
 
   @@unique([email])
   @@unique([email, username])
@@ -384,6 +399,7 @@ model Team {
   dsyncTeamGroupMapping DSyncTeamGroupMapping[]
   isPlatform            Boolean                 @default(false)
   platformOAuthClient   PlatformOAuthClient[]
+  smsLockState          SMSLockState            @default(UNLOCKED)
 
   @@unique([slug, parentId])
   @@index([parentId])
@@ -1107,25 +1123,28 @@ enum AccessScope {
 }
 
 view BookingTimeStatus {
-  id            Int            @unique
-  uid           String?
-  eventTypeId   Int?
-  title         String?
-  description   String?
-  startTime     DateTime?
-  endTime       DateTime?
-  createdAt     DateTime?
-  location      String?
-  paid          Boolean?
-  status        BookingStatus?
-  rescheduled   Boolean?
-  userId        Int?
-  teamId        Int?
-  eventLength   Int?
-  timeStatus    String?
-  eventParentId Int?
-  userEmail     String?
-  username      String?
+  id             Int            @unique
+  uid            String?
+  eventTypeId    Int?
+  title          String?
+  description    String?
+  startTime      DateTime?
+  endTime        DateTime?
+  createdAt      DateTime?
+  location       String?
+  paid           Boolean?
+  status         BookingStatus?
+  rescheduled    Boolean?
+  userId         Int?
+  teamId         Int?
+  eventLength    Int?
+  timeStatus     String?
+  eventParentId  Int?
+  userEmail      String?
+  username       String?
+  ratingFeedback String?
+  rating         Int?
+  noShowHost     Boolean?
 }
 
 model CalendarCache {
@@ -1311,4 +1330,30 @@ model SecondaryEmail {
   @@unique([email])
   @@unique([userId, email])
   @@index([userId])
+}
+
+// Needed to store tasks that need to be processed by a background worker or Tasker
+model Task {
+  id          String    @id @unique @default(uuid())
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  // The time at which the task should be executed
+  scheduledAt DateTime  @default(now())
+  // The time at which the task was successfully executed
+  succeededAt DateTime?
+  // The task type to be executed. Left it as a freeform string to avoid more migrations for now. Will be enforced at type level.
+  type        String
+  // Generic payload for the task
+  payload     String
+  // The number of times the task has been attempted
+  attempts    Int       @default(0)
+  // The maximum number of times the task can be attempted
+  maxAttempts Int       @default(3)
+  lastError   String?
+}
+
+enum SMSLockState {
+  LOCKED
+  UNLOCKED
+  REVIEW_NEEDED
 }

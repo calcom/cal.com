@@ -58,8 +58,6 @@ export async function getServerSession(options: {
     where: {
       email: token.email.toLowerCase(),
     },
-    // TODO: Re-enable once we get confirmation from compliance that this is okay.
-    // cacheStrategy: { ttl: 60, swr: 1 },
   });
 
   if (!userFromDb) {
@@ -97,8 +95,7 @@ export async function getServerSession(options: {
       email_verified: user.emailVerified !== null,
       role: user.role,
       image: getUserAvatarUrl({
-        ...user,
-        profile: user.profile,
+        avatarUrl: user.avatarUrl,
       }),
       belongsToActiveTeam: token.belongsToActiveTeam,
       org: token.org,
