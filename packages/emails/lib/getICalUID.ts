@@ -15,11 +15,13 @@ const getICalUID = ({
   uid,
   event,
   defaultToEventUid,
+  attendeeId,
 }: {
   uid?: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   event?: { iCalUID?: string | null; uid?: string | null; [key: string]: any };
   defaultToEventUid?: boolean;
+  attendeeId?: number;
 }) => {
   if (event?.iCalUID) return event.iCalUID;
 
@@ -30,7 +32,7 @@ const getICalUID = ({
   const translator = short();
 
   uid = translator.fromUUID(uuidv5(APP_NAME, uuidv5.URL));
-  return `${uid}@${APP_NAME}`;
+  return `${uid}${attendeeId ? `${attendeeId}` : ""}@${APP_NAME}`;
 };
 
 export default getICalUID;

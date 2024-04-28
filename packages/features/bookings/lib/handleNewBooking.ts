@@ -1628,9 +1628,11 @@ async function handler(
       };
     } else {
       // Rescheduling logic for the original seated event was handled in handleSeats
-      // We want to use new booking logic for the new timeslot
+      // We want to use new booking logic for the new time slot
       originalRescheduledBooking = null;
-      evt.iCalUID = getICalUID({});
+      evt.iCalUID = getICalUID({
+        attendeeId: bookingSeat?.attendeeId,
+      });
     }
   }
   if (isTeamEventType) {
@@ -1640,7 +1642,6 @@ async function handler(
       id: eventType.team?.id ?? 0,
     };
   }
-
   if (reqBody.recurringEventId && eventType.recurringEvent) {
     // Overriding the recurring event configuration count to be the actual number of events booked for
     // the recurring event (equal or less than recurring event configuration count)
