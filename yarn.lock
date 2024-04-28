@@ -4614,6 +4614,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/umami@workspace:packages/app-store/umami":
+  version: 0.0.0-use.local
+  resolution: "@calcom/umami@workspace:packages/app-store/umami"
+  dependencies:
+    "@calcom/lib": "*"
+    "@calcom/types": "*"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/vimcal@workspace:packages/app-store/vimcal":
   version: 0.0.0-use.local
   resolution: "@calcom/vimcal@workspace:packages/app-store/vimcal"
