@@ -17,9 +17,10 @@ const checkValidEmail = (email: string) => z.string().email().safeParse(email).s
 const querySchema = z.object({
   username: z
     .string()
+    .min(1)
     .optional()
     .transform((val) => val || ""),
-  email: z.string().email().optional(),
+  email: z.string().email().min(1).optional(),
 });
 
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
@@ -67,8 +68,8 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
         JSON.stringify({
           ...props,
           prepopulateFormValues: {
-            username: preFillusername || null,
-            email: prefilEmail || null,
+            username: preFillusername || "",
+            email: prefilEmail || "",
           },
         })
       ),
