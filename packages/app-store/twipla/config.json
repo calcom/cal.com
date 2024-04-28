@@ -3,7 +3,7 @@
   "slug": "twipla",
   "type": "twipla_analytics",
   "logo": "icon.svg",
-  "url": "https://example.com/link",
+  "url": "https://cal.com/",
   "variant": "analytics",
   "categories": ["analytics"],
   "publisher": "Cal.com, Inc.",
@@ -13,10 +13,6 @@
   "appData": {
     "tag": {
       "scripts": [
-        {
-          "src": "https://app-worker.visitor-analytics.io/main.js",
-          "attrs": {}
-        },
         {
           "content": "(function(v, i, s, a, t) {\n  v[t] = v[t] || function() {\n    (v[t].v = v[t].v || []).push(arguments);\n  };\n  if (!v._visaSettings) {\n    v._visaSettings = {};\n  }\n  v._visaSettings[a] = {\n    v: '1.0',\n    s: a,\n    a: '1',\n    t: t\n  };\n  var b = i.getElementsByTagName('body')[0];\n  var p = i.createElement('script');\n  p.defer = 1;\n  p.async = 1;\n  p.src = s + '?s=' + a;\n  b.appendChild(p);\n})(window, document, '//app-worker.visitor-analytics.io/main.js', '{SITE_ID}', 'va');"
         }
