@@ -36,7 +36,7 @@ export const useOAuthClient = (clientId?: string) => {
         headers: { "Content-type": "application/json" },
       }).then((res) => res.json());
     },
-    enabled: clientId !== undefined,
+    enabled: Boolean(clientId),
     staleTime: Infinity,
   });
 
