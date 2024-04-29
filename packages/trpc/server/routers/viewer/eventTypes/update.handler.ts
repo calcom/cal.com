@@ -226,11 +226,15 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
   if (teamId && hosts) {
     // check if all hosts can be assigned (memberships that have accepted invite)
+    const eventIsOrWillBeRoundRobin =
+      eventType.schedulingType === SchedulingType.ROUND_ROBIN ||
+      input.schedulingType === SchedulingType.ROUND_ROBIN;
+
     const memberships =
       (await ctx.prisma.membership.findMany({
         where: {
           teamId,
-          accepted: eventType.schedulingType !== SchedulingType.ROUND_ROBIN ? true : undefined,
+          accepted: !eventIsOrWillBeRoundRobin ? true : undefined,
         },
       })) || [];
     const teamMemberIds = memberships.map((membership) => membership.userId);

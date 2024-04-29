@@ -96,6 +96,8 @@ const FixedHosts = ({
   onChange,
   assignAllTeamMembers,
   setAssignAllTeamMembers,
+  handleEmailInvite,
+  setMemberInviteModal,
   isRoundRobinEvent = false,
 }: {
   value: Host[];
@@ -103,6 +105,8 @@ const FixedHosts = ({
   teamMembers: TeamMember[];
   assignAllTeamMembers: boolean;
   setAssignAllTeamMembers: Dispatch<SetStateAction<boolean>>;
+  handleEmailInvite: (email: string) => void;
+  setMemberInviteModal: Dispatch<SetStateAction<boolean>>;
   isRoundRobinEvent?: boolean;
 }) => {
   const { t } = useLocale();
@@ -128,6 +132,8 @@ const FixedHosts = ({
               assignAllTeamMembers={assignAllTeamMembers}
               setAssignAllTeamMembers={setAssignAllTeamMembers}
               automaticAddAllEnabled={!isRoundRobinEvent}
+              handleEmailInvite={handleEmailInvite}
+              setMemberInviteModal={setMemberInviteModal}
               isFixed={true}
               onActive={() =>
                 setValue(
@@ -169,6 +175,8 @@ const FixedHosts = ({
               assignAllTeamMembers={assignAllTeamMembers}
               setAssignAllTeamMembers={setAssignAllTeamMembers}
               automaticAddAllEnabled={!isRoundRobinEvent}
+              handleEmailInvite={handleEmailInvite}
+              setMemberInviteModal={setMemberInviteModal}
               isFixed={true}
               onActive={() =>
                 setValue(
@@ -195,7 +203,8 @@ const RoundRobinHosts = ({
   onChange,
   assignAllTeamMembers,
   setAssignAllTeamMembers,
-  team,
+  setMemberInviteModal,
+  handleEmailInvite,
   allMembers,
 }: {
   value: Host[];
@@ -203,27 +212,12 @@ const RoundRobinHosts = ({
   teamMembers: TeamMember[];
   assignAllTeamMembers: boolean;
   setAssignAllTeamMembers: Dispatch<SetStateAction<boolean>>;
+  setMemberInviteModal: Dispatch<SetStateAction<boolean>>;
+  handleEmailInvite: (email: string) => void;
   allMembers: TeamMember[];
 } & Pick<EventTypeSetupProps, "team">) => {
-  const { t, i18n } = useLocale();
-  const utils = trpc.useUtils();
-  const [showMemberInviteModal, setShowMemberInviteModal] = useState(false);
-  const [inviteEmail, setInviteEmail] = useState<undefined | string>(undefined);
-  const session = useSession();
-  const inviteMemberMutation = trpc.viewer.teams.inviteMember.useMutation();
-  const { data: orgMembersNotInThisTeam } = trpc.viewer.organizations.getMembers.useQuery(
-    {
-      teamIdToExclude: team?.id,
-      distinctUser: true,
-    },
-    {
-      enabled: !Number.isNaN(team?.id),
-    }
-  );
-
-  const orgId = session.data?.user.org?.id;
-
-  const { setValue, getValues } = useFormContext<FormValues>();
+  const { t } = useLocale();
+  const { setValue } = useFormContext<FormValues>();
 
   return (
     <div className="rounded-lg ">
@@ -239,8 +233,8 @@ const RoundRobinHosts = ({
           assignAllTeamMembers={assignAllTeamMembers}
           setAssignAllTeamMembers={setAssignAllTeamMembers}
           automaticAddAllEnabled={true}
-          setMemberInviteModal={setShowMemberInviteModal}
-          handleEmailInvite={(email: string) => setInviteEmail(email)}
+          setMemberInviteModal={setMemberInviteModal}
+          handleEmailInvite={handleEmailInvite}
           isFixed={false}
           onActive={() =>
             setValue(
@@ -257,53 +251,6 @@ const RoundRobinHosts = ({
           }
         />
       </div>
-      {showMemberInviteModal && team && (
-        <MemberInvitationModal
-          isOpen={showMemberInviteModal}
-          onExit={() => setShowMemberInviteModal(false)}
-          orgMembers={orgId ? orgMembersNotInThisTeam : undefined}
-          teamId={team.id}
-          inviteEmail={inviteEmail}
-          isOrg={!!orgId}
-          onSubmit={(values, resetFields) => {
-            inviteMemberMutation.mutate(
-              {
-                teamId: team.id,
-                language: i18n.language,
-                role: values.role,
-                usernameOrEmail: values.emailOrUsername,
-              },
-              {
-                onSuccess: async (data) => {
-                  await utils.viewer.eventTypes.get.invalidate({ id: getValues("id") });
-                  await utils.viewer.organizations.getMembers.invalidate();
-                  setShowMemberInviteModal(false);
-
-                  if (Array.isArray(data.usernameOrEmail)) {
-                    showToast(
-                      t("email_invite_team_bulk", {
-                        userCount: data.usernameOrEmail.length,
-                      }),
-                      "success"
-                    );
-                    resetFields();
-                  } else {
-                    showToast(
-                      t("email_invite_team", {
-                        email: data.usernameOrEmail,
-                      }),
-                      "success"
-                    );
-                  }
-                },
-                onError: (error) => {
-                  showToast(error.message, "error");
-                },
-              }
-            );
-          }}
-        />
-      )}
     </div>
   );
 };
@@ -353,7 +300,7 @@ const Hosts = ({
   assignAllTeamMembers: boolean;
   setAssignAllTeamMembers: Dispatch<SetStateAction<boolean>>;
 } & Pick<EventTypeSetupProps, "team">) => {
-  const { t } = useLocale();
+  const { t, i18n } = useLocale();
   const {
     control,
     setValue,
@@ -369,6 +316,26 @@ const Hosts = ({
     schedulingType: SchedulingType | null;
     submitCount: number;
   } | null>(null);
+  const utils = trpc.useUtils();
+  const [showMemberInviteModal, setShowMemberInviteModal] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState<undefined | string>(undefined);
+  const session = useSession();
+  const inviteMemberMutation = trpc.viewer.teams.inviteMember.useMutation();
+  const { data: orgMembersNotInThisTeam } = trpc.viewer.organizations.getMembers.useQuery(
+    {
+      teamIdToExclude: team?.id,
+      distinctUser: true,
+    },
+    {
+      enabled: !Number.isNaN(team?.id),
+    }
+  );
+
+  const orgId = session.data?.user.org?.id;
+
+  const handleEmailInvite = (email: string) => {
+    setInviteEmail(email);
+  };
 
   useEffect(() => {
     // Handles init & out of date initial value after submission.
@@ -395,6 +362,8 @@ const Hosts = ({
               onChange={onChange}
               assignAllTeamMembers={assignAllTeamMembers}
               setAssignAllTeamMembers={setAssignAllTeamMembers}
+              setMemberInviteModal={setShowMemberInviteModal}
+              handleEmailInvite={handleEmailInvite}
             />
           ),
           ROUND_ROBIN: (
@@ -407,6 +376,8 @@ const Hosts = ({
                 }}
                 assignAllTeamMembers={assignAllTeamMembers}
                 setAssignAllTeamMembers={setAssignAllTeamMembers}
+                setMemberInviteModal={setShowMemberInviteModal}
+                handleEmailInvite={handleEmailInvite}
                 isRoundRobinEvent={true}
               />
               <RoundRobinHosts
@@ -422,13 +393,66 @@ const Hosts = ({
                 }}
                 team={team}
                 assignAllTeamMembers={assignAllTeamMembers}
+                handleEmailInvite={handleEmailInvite}
+                setMemberInviteModal={setShowMemberInviteModal}
                 setAssignAllTeamMembers={setAssignAllTeamMembers}
               />
             </>
           ),
           MANAGED: <></>,
         };
-        return !!schedulingType ? schedulingTypeRender[schedulingType] : <></>;
+        return (
+          <>
+            {!!schedulingType ? schedulingTypeRender[schedulingType] : <></>}
+            {showMemberInviteModal && team && (
+              <MemberInvitationModal
+                isOpen={showMemberInviteModal}
+                onExit={() => setShowMemberInviteModal(false)}
+                orgMembers={orgId ? orgMembersNotInThisTeam : undefined}
+                teamId={team.id}
+                inviteEmail={inviteEmail}
+                isOrg={!!orgId}
+                onSubmit={(values, resetFields) => {
+                  inviteMemberMutation.mutate(
+                    {
+                      teamId: team.id,
+                      language: i18n.language,
+                      role: values.role,
+                      usernameOrEmail: values.emailOrUsername,
+                    },
+                    {
+                      onSuccess: async (data) => {
+                        await utils.viewer.eventTypes.get.invalidate({ id: getValues("id") });
+                        await utils.viewer.organizations.getMembers.invalidate();
+                        setShowMemberInviteModal(false);
+
+                        if (Array.isArray(data.usernameOrEmail)) {
+                          showToast(
+                            t("email_invite_team_bulk", {
+                              userCount: data.usernameOrEmail.length,
+                            }),
+                            "success"
+                          );
+                          resetFields();
+                        } else {
+                          showToast(
+                            t("email_invite_team", {
+                              email: data.usernameOrEmail,
+                            }),
+                            "success"
+                          );
+                        }
+                      },
+                      onError: (error) => {
+                        showToast(error.message, "error");
+                      },
+                    }
+                  );
+                }}
+              />
+            )}
+          </>
+        );
       }}
     />
   );
