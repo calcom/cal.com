@@ -118,14 +118,14 @@ body  {
 
 /*
   Desktop App specific CSS
-    https://docs.todesktop.com/
+    https://docs.mac.com/
 */
 
 /* disable user selection on buttons, links and images on desktop app */
-html.todesktop button,
-html.todesktop a,
-html.todesktop img,
-html.todesktop header {
+html.mac button,
+html.mac a,
+html.mac img,
+html.mac header {
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   -khtml-user-select: none;
@@ -135,34 +135,34 @@ html.todesktop header {
   cursor: default !important;
 }
 
-html.todesktop,
-html.todesktop div {
+html.mac,
+html.mac div {
   cursor: default !important;
 }
 
 /* make header draggable on desktop app */
-html.todesktop header {
+html.mac header {
   -webkit-app-region: drag;
 }
 
-html.todesktop header button,
-html.todesktop header a {
+html.mac header button,
+html.mac header a {
   -webkit-app-region: no-drag;
 }
 
-html.todesktop-platform-darwin.dark main.bg-default {
+html.mac-platform-darwin.dark main.bg-default {
   background: rgba(0, 0, 0, 0.6) !important;
 }
 
-html.todesktop-platform-darwin.light main.bg-default {
+html.mac-platform-darwin.light main.bg-default {
   background: rgba(255, 255, 255, 0.8) !important;
 }
 
-html.todesktop.light {
+html.mac.light {
   --cal-bg-emphasis: hsla(0, 0%, 11%, 0.1);
 }
 
-html.todesktop.dark {
+html.mac.dark {
   --cal-bg-emphasis: hsla(220, 2%, 26%, 0.3);
 }
 
