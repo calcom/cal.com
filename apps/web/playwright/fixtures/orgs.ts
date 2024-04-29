@@ -10,11 +10,12 @@ const getRandomSlug = () => `org-${Math.random().toString(36).substring(7)}`;
 export const createOrgsFixture = (page: Page) => {
   const store = { orgs: [], page } as { orgs: Team[]; page: typeof page };
   return {
-    create: async (opts: { name: string; slug?: string; requestedSlug?: string }) => {
+    create: async (opts: { name: string; slug?: string; requestedSlug?: string; isPrivate?: boolean }) => {
       const org = await createOrgInDb({
         name: opts.name,
         slug: opts.slug || getRandomSlug(),
         requestedSlug: opts.requestedSlug,
+        isPrivate: opts.isPrivate,
       });
       const orgWithMetadata = {
         ...org,
@@ -39,16 +40,19 @@ export async function createOrgInDb({
   name,
   slug,
   requestedSlug,
+  isPrivate,
 }: {
   name: string;
   slug: string | null;
   requestedSlug?: string;
+  isPrivate?: boolean;
 }) {
   return await prisma.team.create({
     data: {
       name: name,
       slug: slug,
       isOrganization: true,
+      isPrivate: isPrivate,
       metadata: {
         ...(requestedSlug
           ? {
