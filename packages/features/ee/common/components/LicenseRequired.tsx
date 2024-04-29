@@ -40,7 +40,7 @@ const LicenseRequired = ({ children, as = "", ...rest }: LicenseRequiredProps) =
             severity="warning"
             title={
               <>
-                {t("enterprise_license_locally")} {t("enterprise_license_sales")}.{" "}
+                {t("enterprise_license_locally")} {t("enterprise_license_sales")}{" "}
                 <a href="https://cal.com/sales">{t("contact_sales")}</a>
               </>
             }
