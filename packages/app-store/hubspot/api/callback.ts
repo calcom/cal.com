@@ -9,6 +9,7 @@ import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import createOAuthAppCredential from "../../_utils/oauth/createOAuthAppCredential";
 import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
+import writeAppDataToEventType from "../../_utils/writeAppDataToEventType";
 import metadata from "../_metadata";
 
 let client_id = "";
@@ -21,6 +22,7 @@ export interface HubspotToken extends TokenResponseIF {
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { code } = req.query;
+  const state = decodeOAuthState(req);
 
   if (code && typeof code !== "string") {
     res.status(400).json({ message: "`code` must be a string" });
@@ -48,9 +50,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // set expiry date as offset from current time.
   hubspotToken.expiryDate = Math.round(Date.now() + hubspotToken.expiresIn * 1000);
 
-  await createOAuthAppCredential({ appId: metadata.slug, type: metadata.type }, hubspotToken, req);
+  const credential = await createOAuthAppCredential(
+    { appId: metadata.slug, type: metadata.type },
+    hubspotToken,
+    req
+  );
 
-  const state = decodeOAuthState(req);
+  await writeAppDataToEventType({
+    userId: req.session?.user.id,
+    teamId: state?.teamId,
+    appSlug: metadata.slug,
+    appCategories: metadata.categories,
+    credentialId: credential.id,
+  });
+
   res.redirect(
     getSafeRedirectUrl(state?.returnTo) ?? getInstalledAppPath({ variant: "other", slug: "hubspot" })
   );

@@ -1,6 +1,8 @@
 import { z } from "zod";
 
-export const appDataSchema = z.object({});
+import { eventTypeAppCardZod } from "../eventTypeAppCardZod";
+
+export const appDataSchema = eventTypeAppCardZod;
 
 export const appKeysSchema = z.object({
   consumer_key: z.string().min(1),

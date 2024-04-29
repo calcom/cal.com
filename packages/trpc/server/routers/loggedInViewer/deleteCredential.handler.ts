@@ -1,6 +1,7 @@
 import z from "zod";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
+import type { eventTypeAppMetadataSchema } from "@calcom/app-store/apps.schemas.generated";
 import { DailyLocationType } from "@calcom/core/location";
 import { sendCancelledEmails } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
@@ -136,11 +137,13 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
       }
     }
 
-    // If it's a payment, hide the event type and set the price to 0. Also cancel all pending bookings
-    if (credential.app?.categories.includes(AppCategories.payment)) {
+    if (credential.app?.categories.includes(AppCategories.crm)) {
       const metadata = EventTypeMetaDataSchema.parse(eventType.metadata);
-      const appSlug = credential.app?.slug;
-      if (appSlug) {
+      const appSlugToDelete = credential.app?.slug;
+
+      if (appSlugToDelete) {
+        const appMetadata = removeAppFromEventTypeMetadata(appSlugToDelete, metadata);
+
         await prisma.$transaction(async () => {
           await prisma.eventType.update({
             where: {
@@ -151,8 +154,33 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
               metadata: {
                 ...metadata,
                 apps: {
-                  ...metadata?.apps,
-                  [appSlug]: undefined,
+                  ...appMetadata,
+                },
+              },
+            },
+          });
+        });
+      }
+    }
+
+    // If it's a payment, hide the event type and set the price to 0. Also cancel all pending bookings
+    if (credential.app?.categories.includes(AppCategories.payment)) {
+      const metadata = EventTypeMetaDataSchema.parse(eventType.metadata);
+      const appSlug = credential.app?.slug;
+      if (appSlug) {
+        const appMetadata = removeAppFromEventTypeMetadata(appSlugToDelete, metadata);
+
+        await prisma.$transaction(async () => {
+          await prisma.eventType.update({
+            where: {
+              id: eventType.id,
+            },
+            data: {
+              hidden: true,
+              metadata: {
+                ...metadata,
+                apps: {
+                  ...appMetadata,
                 },
               },
             },
@@ -364,4 +392,20 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
       id: id,
     },
   });
+};
+
+const removeAppFromEventTypeMetadata = (
+  appSlugToDelete: string,
+  eventTypeMetadata: z.infer<typeof EventTypeMetaDataSchema>
+) => {
+  const appMetadata = eventTypeMetadata?.apps
+    ? Object.entries(eventTypeMetadata.apps).reduce((filteredApps, [appName, appData]) => {
+        if (appName !== appSlugToDelete) {
+          filteredApps[appName] = appData;
+        }
+        return filteredApps;
+      }, {} as z.infer<typeof eventTypeAppMetadataSchema>)
+    : {};
+
+  return appMetadata;
 };

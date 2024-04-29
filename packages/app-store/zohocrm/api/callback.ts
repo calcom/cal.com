@@ -9,6 +9,7 @@ import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import createOAuthAppCredential from "../../_utils/oauth/createOAuthAppCredential";
 import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
+import writeAppDataToEventType from "../../_utils/writeAppDataToEventType";
 import appConfig from "../config.json";
 
 let client_id = "";
@@ -16,6 +17,8 @@ let client_secret = "";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { code } = req.query;
+  const state = decodeOAuthState(req);
+
   if (code === undefined && typeof code !== "string") {
     res.status(400).json({ message: "`code` must be a string" });
     return;
@@ -52,9 +55,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   zohoCrmTokenInfo.data.expiryDate = Math.round(Date.now() + 60 * 60);
   zohoCrmTokenInfo.data.accountServer = req.query["accounts-server"];
 
-  await createOAuthAppCredential({ appId: appConfig.slug, type: appConfig.type }, zohoCrmTokenInfo.data, req);
+  const credential = await createOAuthAppCredential(
+    { appId: appConfig.slug, type: appConfig.type },
+    zohoCrmTokenInfo.data,
+    req
+  );
 
-  const state = decodeOAuthState(req);
+  await writeAppDataToEventType({
+    userId: req.session?.user.id,
+    teamId: state?.teamId,
+    appSlug: appConfig.slug,
+    appCategories: appConfig.categories,
+    credentialId: credential.id,
+  });
+
   res.redirect(
     getSafeRedirectUrl(state?.returnTo) ?? getInstalledAppPath({ variant: "other", slug: "zohocrm" })
   );
