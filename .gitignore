@@ -100,5 +100,3 @@ apps/auth
 # examples
 examples/**/out
 examples/**/.env*.local
-# so that we avoid checking the lock file into our examples
-examples/**/yarn.lock
