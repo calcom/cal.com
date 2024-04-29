@@ -57,6 +57,7 @@ type BookerPlatformWrapperAtomProps = Omit<BookerProps, "entity"> & {
 export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => {
   const [bookerState, setBookerState] = useBookerStore((state) => [state.state, state.setState], shallow);
   const setSelectedDate = useBookerStore((state) => state.setSelectedDate);
+  const setSelectedDuration = useBookerStore((state) => state.setSelectedDuration);
   const setBookingData = useBookerStore((state) => state.setBookingData);
   const bookingData = useBookerStore((state) => state.bookingData);
 
@@ -76,6 +77,7 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
       setSelectedDate(null);
       setSelectedTimeslot(null);
       setSelectedMonth(null);
+      setSelectedDuration(null);
     };
   }, []);
 

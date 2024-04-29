@@ -10,6 +10,7 @@ import { EventTypeEmbedButton, EventTypeEmbedDialog } from "@calcom/features/emb
 import type { FormValues, AvailabilityOption } from "@calcom/features/eventtypes/lib/types";
 import Shell from "@calcom/features/shell/Shell";
 import { classNames } from "@calcom/lib";
+import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { SchedulingType } from "@calcom/prisma/enums";
@@ -94,12 +95,6 @@ function getNavigation({
       href: `/event-types/${id}?tabName=advanced`,
       icon: "sliders-vertical",
       info: `event_advanced_tab_description`,
-    },
-    {
-      name: "recurring",
-      href: `/event-types/${id}?tabName=recurring`,
-      icon: "repeat",
-      info: `recurring_event_tab_description`,
     },
     {
       name: "apps",
@@ -209,6 +204,10 @@ function EventTypeSingleLayout({
 
   const watchSchedulingType = formMethods.watch("schedulingType");
   const watchChildrenCount = formMethods.watch("children").length;
+
+  const paymentAppData = getPaymentAppData(eventType);
+  const requirePayment = paymentAppData.price > 0;
+
   // Define tab navigation here
   const EventTypeTabs = useMemo(() => {
     const navigation: VerticalTabItemProps[] = getNavigation({
@@ -222,6 +221,14 @@ function EventTypeSingleLayout({
       availability,
     });
 
+    if (!requirePayment) {
+      navigation.splice(3, 0, {
+        name: "recurring",
+        href: `/event-types/${formMethods.getValues("id")}?tabName=recurring`,
+        icon: "repeat",
+        info: `recurring_event_tab_description`,
+      });
+    }
     navigation.splice(1, 0, {
       name: "availability",
       href: `/event-types/${formMethods.getValues("id")}?tabName=availability`,
@@ -287,6 +294,7 @@ function EventTypeSingleLayout({
     isChildrenManagedEventType,
     team,
     length,
+    requirePayment,
     multipleDuration,
     formMethods.getValues("id"),
     watchSchedulingType,
