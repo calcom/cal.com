@@ -21,7 +21,7 @@ export const useCalendarsBusyTimes = ({ onError, enabled, ...rest }: UseCalendar
     ],
     queryFn: () => {
       return http
-        .get<ApiResponse<EventBusyDate[]>>("/ee/calendars/busy-times", {
+        .get<ApiResponse<EventBusyDate[]>>("/calendars/busy-times", {
           params: rest,
         })
         .then((res) => {

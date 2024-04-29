@@ -1,9 +1,8 @@
 import type { Table } from "@tanstack/react-table";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { Fragment } from "react";
 
-import type { SVGComponent } from "@calcom/types/SVGComponent";
-
+import type { IconName } from "../..";
 import { Button } from "../button";
 
 export type ActionItem<TData> =
@@ -11,7 +10,7 @@ export type ActionItem<TData> =
       type: "action";
       label: string;
       onClick: () => void;
-      icon?: SVGComponent;
+      icon?: IconName;
     }
   | {
       type: "render";

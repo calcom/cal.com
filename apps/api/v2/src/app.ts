@@ -4,12 +4,14 @@ import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
 import { SentryFilter } from "@/filters/sentry-exception.filter";
 import { ZodExceptionFilter } from "@/filters/zod-exception.filter";
 import type { ValidationError } from "@nestjs/common";
-import { BadRequestException, RequestMethod, ValidationPipe, VersioningType } from "@nestjs/common";
+import { BadRequestException, ValidationPipe, VersioningType } from "@nestjs/common";
 import { HttpAdapterHost } from "@nestjs/core";
 import type { NestExpressApplication } from "@nestjs/platform-express";
 import * as Sentry from "@sentry/node";
 import * as cookieParser from "cookie-parser";
 import helmet from "helmet";
+
+import { X_CAL_CLIENT_ID, X_CAL_SECRET_KEY } from "@calcom/platform-constants";
 
 import { TRPCExceptionFilter } from "./filters/trpc-exception.filter";
 
@@ -26,7 +28,7 @@ export const bootstrap = (app: NestExpressApplication): NestExpressApplication =
   app.enableCors({
     origin: "*",
     methods: ["GET", "PATCH", "DELETE", "HEAD", "POST", "PUT", "OPTIONS"],
-    allowedHeaders: ["Accept", "Authorization", "Content-Type", "Origin"],
+    allowedHeaders: [X_CAL_CLIENT_ID, X_CAL_SECRET_KEY, "Accept", "Authorization", "Content-Type", "Origin"],
     maxAge: 86_400,
   });
 
@@ -44,9 +46,9 @@ export const bootstrap = (app: NestExpressApplication): NestExpressApplication =
     })
   );
 
-  if (process.env.SENTRY_DNS) {
+  if (process.env.SENTRY_DSN) {
     Sentry.init({
-      dsn: getEnv("SENTRY_DNS"),
+      dsn: getEnv("SENTRY_DSN"),
     });
   }
 
@@ -57,10 +59,6 @@ export const bootstrap = (app: NestExpressApplication): NestExpressApplication =
   app.useGlobalFilters(new ZodExceptionFilter());
   app.useGlobalFilters(new HttpExceptionFilter());
   app.useGlobalFilters(new TRPCExceptionFilter());
-
-  app.setGlobalPrefix("api", {
-    exclude: [{ path: "health", method: RequestMethod.GET }],
-  });
 
   app.use(cookieParser());
 

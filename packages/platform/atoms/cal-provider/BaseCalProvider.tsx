@@ -62,6 +62,35 @@ export function BaseCalProvider({
     clientId,
   });
 
+  const translations = {
+    t: (key: string, values: Record<string, string | number | null | undefined>) => {
+      let translation = String(enTranslations[key as translationKeys] ?? "");
+      if (!translation) {
+        return "";
+      }
+      if (values) {
+        const valueKeys = Object.keys(values) as (keyof typeof values)[];
+        if (valueKeys.length) {
+          valueKeys.forEach((valueKey) => {
+            if (translation)
+              translation = translation.replace(
+                `{{${String(valueKey)}}}`,
+                values[valueKey]?.toString() ?? `{{${String(valueKey)}}}`
+              );
+          });
+        }
+      }
+
+      return replaceOccurrences(translation, enTranslations) ?? "";
+    },
+    i18n: {
+      language: "en",
+      defaultLocale: "en",
+      locales: ["en"],
+      exists: (key: translationKeys | string) => Boolean(enTranslations[key as translationKeys]),
+    },
+  };
+
   return isInit ? (
     <AtomsContext.Provider
       value={{
@@ -74,41 +103,29 @@ export function BaseCalProvider({
         isInit: isInit,
         isValidClient: Boolean(!error && clientId && isInit),
         isAuth: Boolean(isInit && !error && clientId && currentAccessToken && http.getAuthorizationHeader()),
-        t: (key, values) => {
-          let translation = String(enTranslations[key as translationKeys] ?? "");
-          if (!translation) {
-            return "";
-          }
-          if (values) {
-            const valueKeys = Object.keys(values) as (keyof typeof values)[];
-            if (valueKeys.length) {
-              valueKeys.forEach((valueKey) => {
-                if (translation)
-                  translation = translation.replace(
-                    `{{${String(valueKey)}}}`,
-                    values[valueKey]?.toString() ?? `{{${String(valueKey)}}}`
-                  );
-              });
-            }
-          }
-
-          return replaceOccurrences(translation, enTranslations) ?? "";
-        },
-        i18n: {
-          language: "en",
-          defaultLocale: "en",
-          locales: ["en"],
-          exists: (key: translationKeys | string) => Boolean(enTranslations[key as translationKeys]),
-        },
+        ...translations,
       }}>
       <TooltipProvider>{children}</TooltipProvider>
       <Toaster />
     </AtomsContext.Provider>
   ) : (
-    <>
-      {children}
-      <Toaster />
-    </>
+    <AtomsContext.Provider
+      value={{
+        clientId,
+        options,
+        error,
+        getClient: () => http,
+        isAuth: false,
+        isValidClient: Boolean(!error && clientId),
+        isInit: false,
+        isRefreshing: false,
+        ...translations,
+      }}>
+      <>
+        <TooltipProvider>{children}</TooltipProvider>
+        <Toaster />
+      </>
+    </AtomsContext.Provider>
   );
 }
 

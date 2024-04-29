@@ -6,10 +6,12 @@ import alby_config_json from "./alby/config.json";
 import amie_config_json from "./amie/config.json";
 import { metadata as applecalendar__metadata_ts } from "./applecalendar/_metadata";
 import around_config_json from "./around/config.json";
+import autocheckin_config_json from "./autocheckin/config.json";
 import basecamp3_config_json from "./basecamp3/config.json";
 import cal_ai_config_json from "./cal-ai/config.json";
 import { metadata as caldavcalendar__metadata_ts } from "./caldavcalendar/_metadata";
 import campfire_config_json from "./campfire/config.json";
+import clic_config_json from "./clic/config.json";
 import closecom_config_json from "./closecom/config.json";
 import cron_config_json from "./cron/config.json";
 import { metadata as dailyvideo__metadata_ts } from "./dailyvideo/_metadata";
@@ -91,10 +93,12 @@ export const appStoreMetadata = {
   amie: amie_config_json,
   applecalendar: applecalendar__metadata_ts,
   around: around_config_json,
+  autocheckin: autocheckin_config_json,
   basecamp3: basecamp3_config_json,
   "cal-ai": cal_ai_config_json,
   caldavcalendar: caldavcalendar__metadata_ts,
   campfire: campfire_config_json,
+  clic: clic_config_json,
   closecom: closecom_config_json,
   cron: cron_config_json,
   dailyvideo: dailyvideo__metadata_ts,

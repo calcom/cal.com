@@ -8,7 +8,7 @@ export class AppLoggerMiddleware implements NestMiddleware {
   private logger = new Logger("HTTP");
 
   use(request: Request, response: Response, next: NextFunction): void {
-    const { ip, method, protocol, originalUrl, path: url } = request;
+    const { ip, method, originalUrl } = request;
     const userAgent = request.get("user-agent") || "";
 
     response.on("close", () => {

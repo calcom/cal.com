@@ -3,10 +3,9 @@ import { Controller, useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
-import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { Alert, Button, Form, TextField, DialogFooter } from "@calcom/ui";
-import { ArrowRight } from "@calcom/ui/components/icon";
+import { trpc } from "@calcom/trpc/react";
+import { Alert, Button, DialogFooter, Form, TextField } from "@calcom/ui";
 
 import { useOrgBranding } from "../../organizations/context/provider";
 import { subdomainSuffix } from "../../organizations/lib/orgDomains";
@@ -55,7 +54,7 @@ export const CreateANewTeamForm = (props: CreateANewTeamFormProps) => {
       <Button
         disabled={newTeamFormMethods.formState.isSubmitting || createTeamMutation.isPending}
         color="primary"
-        EndIcon={ArrowRight}
+        EndIcon="arrow-right"
         type="submit"
         className="w-full justify-center"
         data-testid="continue-button">

@@ -353,6 +353,7 @@ export const orgSettingsSchema = z
   .object({
     isOrganizationVerified: z.boolean().optional(),
     isOrganizationConfigured: z.boolean().optional(),
+    isAdminReviewed: z.boolean().optional(),
     orgAutoAcceptEmail: z.string().optional(),
   })
   .nullable();
@@ -364,6 +365,8 @@ export const teamMetadataSchema = z
     paymentId: z.string(),
     subscriptionId: z.string().nullable(),
     subscriptionItemId: z.string().nullable(),
+    orgSeats: z.number().nullable(),
+    orgPricePerSeat: z.number().nullable(),
     migratedToOrgFrom: z
       .object({
         teamSlug: z.string().or(z.null()).optional(),
@@ -699,6 +702,8 @@ export const AIPhoneSettingSchema = z.object({
   guestName: z.string().trim().min(1, {
     message: "Please enter Guest Name",
   }),
+  guestEmail: z.string().email().nullable().optional(),
+  guestCompany: z.string().nullable().optional(),
   generalPrompt: z.string().trim().min(1, {
     message: "Please enter prompt",
   }),
@@ -708,3 +713,46 @@ export const AIPhoneSettingSchema = z.object({
     message: "Please enter CAL API Key",
   }),
 });
+
+export const getRetellLLMSchema = z
+  .object({
+    general_prompt: z.string(),
+    begin_message: z.string().nullable(),
+    llm_id: z.string(),
+    llm_websocket_url: z.string(),
+    general_tools: z.array(
+      z
+        .object({
+          name: z.string(),
+          type: z.string(),
+          cal_api_key: z.string().optional(),
+          event_type_id: z.number().optional(),
+          timezone: z.string().optional(),
+        })
+        .passthrough()
+    ),
+    states: z
+      .array(
+        z
+          .object({
+            name: z.string(),
+            tools: z.array(
+              z
+                .object({
+                  name: z.string(),
+                  type: z.string(),
+                  cal_api_key: z.string().optional(),
+                  event_type_id: z.number().optional(),
+                  timezone: z.string().optional(),
+                })
+                .passthrough()
+            ),
+          })
+          .passthrough()
+      )
+      .nullable()
+      .optional(),
+  })
+  .passthrough();
+
+export type TGetRetellLLMSchema = z.infer<typeof getRetellLLMSchema>;

@@ -32,6 +32,7 @@ import { useHandleBookEvent } from "../hooks/useHandleBookEvent";
 import { useMe } from "../hooks/useMe";
 import { usePublicEvent } from "../hooks/usePublicEvent";
 import { useSlots } from "../hooks/useSlots";
+import { AtomsWrapper } from "../src/components/atoms-wrapper";
 
 type BookerPlatformWrapperAtomProps = Omit<BookerProps, "entity"> & {
   rescheduleUid?: string;
@@ -50,14 +51,18 @@ type BookerPlatformWrapperAtomProps = Omit<BookerProps, "entity"> & {
   onReserveSlotError?: (data: ApiErrorResponse) => void;
   onDeleteSlotSuccess?: (data: ApiSuccessResponseWithoutData) => void;
   onDeleteSlotError?: (data: ApiErrorResponse) => void;
+  locationUrl?: string;
 };
 
 export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => {
   const [bookerState, setBookerState] = useBookerStore((state) => [state.state, state.setState], shallow);
   const setSelectedDate = useBookerStore((state) => state.setSelectedDate);
+  const setSelectedDuration = useBookerStore((state) => state.setSelectedDuration);
   const setBookingData = useBookerStore((state) => state.setBookingData);
+  const bookingData = useBookerStore((state) => state.bookingData);
 
   const setSelectedTimeslot = useBookerStore((state) => state.setSelectedTimeslot);
+  const setSelectedMonth = useBookerStore((state) => state.setMonth);
   const { data: booking } = useGetBookingForReschedule({
     uid: props.rescheduleUid ?? props.bookingUid ?? "",
     onSuccess: (data) => {
@@ -71,6 +76,8 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
       setBookerState("loading");
       setSelectedDate(null);
       setSelectedTimeslot(null);
+      setSelectedMonth(null);
+      setSelectedDuration(null);
     };
   }, []);
 
@@ -83,6 +90,7 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
     bookingUid: props.bookingUid ?? null,
     layout: bookerLayout.defaultLayout,
     org: event.data?.entity.orgSlug,
+    bookingData,
   });
   const [dayCount] = useBookerStore((state) => [state.dayCount, state.setDayCount], shallow);
   const selectedDate = useBookerStore((state) => state.selectedDate);
@@ -145,7 +153,7 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
     event: event.data,
     sessionEmail: session?.data?.email,
     sessionUsername: session?.data?.username,
-    sessionName: session?.data?.name,
+    sessionName: session?.data?.username,
     hasSession,
     extraOptions: {},
     prefillFormParams: prefillFormParams,
@@ -226,89 +234,93 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
     handleBooking: createBooking,
     handleInstantBooking: createInstantBooking,
     handleRecBooking: createRecBooking,
+    locationUrl: props.locationUrl,
   });
 
   return (
-    <BookerComponent
-      eventSlug={props.eventSlug}
-      username={props.username}
-      entity={
-        event?.data?.entity ?? {
-          isUnpublished: undefined,
-          orgSlug: undefined,
-          teamSlug: undefined,
-          name: undefined,
+    <AtomsWrapper>
+      <BookerComponent
+        customClassNames={props.customClassNames}
+        eventSlug={props.eventSlug}
+        username={props.username}
+        entity={
+          event?.data?.entity ?? {
+            considerUnpublished: false,
+            orgSlug: undefined,
+            teamSlug: undefined,
+            name: undefined,
+          }
         }
-      }
-      rescheduleUid={props.rescheduleUid ?? null}
-      bookingUid={props.bookingUid ?? null}
-      isRedirect={false}
-      fromUserNameRedirected=""
-      hasSession={hasSession}
-      onGoBackInstantMeeting={function (): void {
-        throw new Error("Function not implemented.");
-      }}
-      onConnectNowInstantMeeting={function (): void {
-        throw new Error("Function not implemented.");
-      }}
-      onOverlayClickNoCalendar={function (): void {
-        throw new Error("Function not implemented.");
-      }}
-      onClickOverlayContinue={function (): void {
-        throw new Error("Function not implemented.");
-      }}
-      onOverlaySwitchStateChange={function (state: boolean): void {
-        throw new Error("Function not implemented.");
-      }}
-      extraOptions={{}}
-      bookings={{
-        handleBookEvent: () => {
-          handleBookEvent();
-          return;
-        },
-        expiryTime: undefined,
-        bookingForm: bookerForm.bookingForm,
-        bookerFormErrorRef: bookerForm.bookerFormErrorRef,
-        errors: {
-          hasDataErrors: isCreateBookingError || isCreateRecBookingError || isCreateInstantBookingError,
-          dataErrors: createBookingError || createRecBookingError || createInstantBookingError,
-        },
-        loadingStates: {
-          creatingBooking: creatingBooking,
-          creatingRecurringBooking: creatingRecBooking,
-          creatingInstantBooking: creatingInstantBooking,
-        },
-        instantVideoMeetingUrl: undefined,
-      }}
-      slots={slots}
-      calendars={{
-        overlayBusyDates: overlayBusyDates?.data,
-        isOverlayCalendarEnabled: false,
-        connectedCalendars: calendars?.connectedCalendars || [],
-        loadingConnectedCalendar: fetchingConnectedCalendars,
-        onToggleCalendar: () => {
-          return;
-        },
-      }}
-      verifyEmail={{
-        isEmailVerificationModalVisible: false,
-        setEmailVerificationModalVisible: () => {
-          return;
-        },
-        setVerifiedEmail: () => {
-          return;
-        },
-        handleVerifyEmail: () => {
-          return;
-        },
-        renderConfirmNotVerifyEmailButtonCond: true,
-      }}
-      bookerForm={bookerForm}
-      event={event}
-      schedule={schedule}
-      bookerLayout={bookerLayout}
-      verifyCode={undefined}
-      isPlatform
-    />
+        rescheduleUid={props.rescheduleUid ?? null}
+        bookingUid={props.bookingUid ?? null}
+        isRedirect={false}
+        fromUserNameRedirected=""
+        hasSession={hasSession}
+        onGoBackInstantMeeting={function (): void {
+          throw new Error("Function not implemented.");
+        }}
+        onConnectNowInstantMeeting={function (): void {
+          throw new Error("Function not implemented.");
+        }}
+        onOverlayClickNoCalendar={function (): void {
+          throw new Error("Function not implemented.");
+        }}
+        onClickOverlayContinue={function (): void {
+          throw new Error("Function not implemented.");
+        }}
+        onOverlaySwitchStateChange={function (state: boolean): void {
+          throw new Error("Function not implemented.");
+        }}
+        extraOptions={{}}
+        bookings={{
+          handleBookEvent: () => {
+            handleBookEvent();
+            return;
+          },
+          expiryTime: undefined,
+          bookingForm: bookerForm.bookingForm,
+          bookerFormErrorRef: bookerForm.bookerFormErrorRef,
+          errors: {
+            hasDataErrors: isCreateBookingError || isCreateRecBookingError || isCreateInstantBookingError,
+            dataErrors: createBookingError || createRecBookingError || createInstantBookingError,
+          },
+          loadingStates: {
+            creatingBooking: creatingBooking,
+            creatingRecurringBooking: creatingRecBooking,
+            creatingInstantBooking: creatingInstantBooking,
+          },
+          instantVideoMeetingUrl: undefined,
+        }}
+        slots={slots}
+        calendars={{
+          overlayBusyDates: overlayBusyDates?.data,
+          isOverlayCalendarEnabled: false,
+          connectedCalendars: calendars?.connectedCalendars || [],
+          loadingConnectedCalendar: fetchingConnectedCalendars,
+          onToggleCalendar: () => {
+            return;
+          },
+        }}
+        verifyEmail={{
+          isEmailVerificationModalVisible: false,
+          setEmailVerificationModalVisible: () => {
+            return;
+          },
+          setVerifiedEmail: () => {
+            return;
+          },
+          handleVerifyEmail: () => {
+            return;
+          },
+          renderConfirmNotVerifyEmailButtonCond: true,
+        }}
+        bookerForm={bookerForm}
+        event={event}
+        schedule={schedule}
+        bookerLayout={bookerLayout}
+        verifyCode={undefined}
+        isPlatform
+      />
+    </AtomsWrapper>
   );
 };

@@ -7,6 +7,8 @@ import type { BookingCreateBody } from "@calcom/prisma/zod-utils";
 
 import http from "../lib/http";
 
+export type UseCreateBookingInput = BookingCreateBody & { locationUrl?: string };
+
 interface IUseCreateBooking {
   onSuccess?: (res: ApiSuccessResponse<BookingResponse>) => void;
   onError?: (err: ApiErrorResponse | Error) => void;
@@ -21,9 +23,9 @@ export const useCreateBooking = (
     },
   }
 ) => {
-  const createBooking = useMutation<ApiResponse<BookingResponse>, Error, BookingCreateBody>({
+  const createBooking = useMutation<ApiResponse<BookingResponse>, Error, UseCreateBookingInput>({
     mutationFn: (data) => {
-      return http.post<ApiResponse<BookingResponse>>("/ee/bookings", data).then((res) => {
+      return http.post<ApiResponse<BookingResponse>>("/bookings", data).then((res) => {
         if (res.data.status === SUCCESS_STATUS) {
           return res.data;
         }

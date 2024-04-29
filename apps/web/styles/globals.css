@@ -27,6 +27,7 @@
   --cal-border-booker: #e5e7eb;
   --cal-border-muted: hsla(220, 14%, 96%, 1);
   --cal-border-error: hsla(4, 63%, 41%, 1);
+  --cal-border-focus: hsla(0, 0%, 10%, 1);
 
   /* Content/Text */
   --cal-text-emphasis: hsla(217, 19%, 27%, 1);
@@ -71,6 +72,7 @@
   --cal-border-booker: hsla(0, 0%, 22%, 1);
   --cal-border-muted: hsla(0, 0%, 18%, 1);
   --cal-border-error: hsla(4, 63%, 41%, 1);
+  --cal-border-focus: hsla(0, 0%, 100%, 1);
 
   /* Content/Text */
   --cal-text-emphasis: hsla(240, 20%, 99%, 1);

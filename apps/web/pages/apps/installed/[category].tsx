@@ -2,28 +2,17 @@
 
 import { useReducer } from "react";
 
+import getAppCategoryTitle from "@calcom/app-store/_utils/getAppCategoryTitle";
 import DisconnectIntegrationModal from "@calcom/features/apps/components/DisconnectIntegrationModal";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { AppCategories } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
-import { Button, EmptyScreen, AppSkeletonLoader as SkeletonLoader, ShellSubHeading } from "@calcom/ui";
-import type { LucideIcon } from "@calcom/ui/components/icon";
-import {
-  BarChart,
-  Calendar,
-  Contact,
-  CreditCard,
-  Grid,
-  Mail,
-  Plus,
-  Share2,
-  Video,
-} from "@calcom/ui/components/icon";
+import type { Icon } from "@calcom/ui";
+import { AppSkeletonLoader as SkeletonLoader, Button, EmptyScreen, ShellSubHeading } from "@calcom/ui";
 
 import { QueryCell } from "@lib/QueryCell";
 import type { querySchemaType } from "@lib/apps/installed/[category]/getServerSideProps";
-import { getServerSideProps } from "@lib/apps/installed/[category]/getServerSideProps";
 
 import PageWrapper from "@components/PageWrapper";
 import { AppList } from "@components/apps/AppList";
@@ -50,17 +39,17 @@ const IntegrationsContainer = ({
   });
 
   // TODO: Refactor and reuse getAppCategories?
-  const emptyIcon: Record<AppCategories, LucideIcon> = {
-    calendar: Calendar,
-    conferencing: Video,
-    automation: Share2,
-    analytics: BarChart,
-    payment: CreditCard,
-    other: Grid,
-    web3: CreditCard, // deprecated
-    video: Video, // deprecated
-    messaging: Mail,
-    crm: Contact,
+  const emptyIcon: Record<AppCategories, React.ComponentProps<typeof Icon>["name"]> = {
+    calendar: "calendar",
+    conferencing: "video",
+    automation: "share-2",
+    analytics: "bar-chart",
+    payment: "credit-card",
+    other: "grid-3x3",
+    web3: "credit-card", // deprecated
+    video: "video", // deprecated
+    messaging: "mail",
+    crm: "contact",
   };
 
   return (
@@ -69,11 +58,13 @@ const IntegrationsContainer = ({
       customLoader={<SkeletonLoader />}
       success={({ data }) => {
         if (!data.items.length) {
+          const emptyHeaderCategory = getAppCategoryTitle(variant || "other", true);
+
           return (
             <EmptyScreen
               Icon={emptyIcon[variant || "other"]}
               headline={t("no_category_apps", {
-                category: (variant && t(variant).toLowerCase()) || t("other").toLowerCase(),
+                category: emptyHeaderCategory,
               })}
               description={t(`no_category_apps_description_${variant || "other"}`)}
               buttonRaw={
@@ -98,7 +89,7 @@ const IntegrationsContainer = ({
                   data-testid="add-apps"
                   href={variant ? `/apps/categories/${variant}` : "/apps"}
                   color="secondary"
-                  StartIcon={Plus}>
+                  StartIcon="plus">
                   {t("add")}
                 </Button>
               }
@@ -168,6 +159,6 @@ export default function InstalledApps() {
   );
 }
 
-export { getServerSideProps };
+export { getServerSideProps } from "@lib/apps/installed/[category]/getServerSideProps";
 
 InstalledApps.PageWrapper = PageWrapper;
