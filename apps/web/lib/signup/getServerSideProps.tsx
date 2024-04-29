@@ -17,10 +17,9 @@ const checkValidEmail = (email: string) => z.string().email().safeParse(email).s
 const querySchema = z.object({
   username: z
     .string()
-    .min(1)
     .optional()
     .transform((val) => val || ""),
-  email: z.string().email().min(1).optional(),
+  email: z.string().email().optional(),
 });
 
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {

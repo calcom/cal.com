@@ -115,13 +115,13 @@ export const BookEventForm = ({
         {!isPlatform && IS_CALCOM && (
           <div className="text-subtle my-3 w-full text-xs opacity-80">
             <Trans i18nKey="signing_up_terms">
-              {t("agree_to_our")}{" "}
+              By proceeding, you agree to our{" "}
               <Link className="text-emphasis hover:underline" href={`${WEBSITE_URL}/terms`} target="_blank">
-                <a>{t("terms")}</a>
+                <a>Terms</a>
               </Link>{" "}
-              {t("and")}{" "}
+              and{" "}
               <Link className="text-emphasis hover:underline" href={`${WEBSITE_URL}/privacy`} target="_blank">
-                <a>{t("privacy_policy")}</a>
+                <a>Privacy Policy</a>
               </Link>
               .
             </Trans>

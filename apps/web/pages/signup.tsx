@@ -460,7 +460,7 @@ export default function Signup({
                       Google
                     </Button>
                   ) : null}
-                  {!isSAMLLoginEnabled ? (
+                  {isSAMLLoginEnabled ? (
                     <Button
                       color="secondary"
                       disabled={
@@ -517,19 +517,19 @@ export default function Signup({
                 </div>
                 <div className="text-subtle ">
                   <Trans i18nKey="signing_up_terms">
-                    {t("agree_to_our")}{" "}
+                    By proceeding, you agree to our{" "}
                     <Link
                       className="text-emphasis hover:underline"
                       href={`${WEBSITE_URL}/terms`}
                       target="_blank">
-                      {t("terms")}
+                      Terms
                     </Link>{" "}
-                    {t("and")}{" "}
+                    and{" "}
                     <Link
                       className="text-emphasis hover:underline"
                       href={`${WEBSITE_URL}/privacy`}
                       target="_blank">
-                      {t("privacy_policy")}
+                      Privacy Policy
                     </Link>
                     .
                   </Trans>
