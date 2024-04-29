@@ -18,7 +18,7 @@ import {
 interface IAddGuestsDialog {
   isOpenDialog: boolean;
   setIsOpenDialog: Dispatch<SetStateAction<boolean>>;
-  bookingUId: string;
+  bookingId: number;
 }
 
 export const AddGuestsDialog = (props: IAddGuestsDialog) => {
