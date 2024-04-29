@@ -1,3 +1,4 @@
+import { BillingConfigService } from "@/modules/billing/billing.config.service";
 import { BillingRepository } from "@/modules/billing/billing.repository";
 import { BillingService } from "@/modules/billing/billing.service";
 import { BillingController } from "@/modules/billing/controllers/billing.controller";
@@ -9,7 +10,7 @@ import { Module } from "@nestjs/common";
 
 @Module({
   imports: [PrismaModule, StripeModule, MembershipsModule, OrganizationsModule],
-  providers: [BillingService, BillingRepository],
+  providers: [BillingConfigService, BillingService, BillingRepository],
   exports: [BillingService, BillingRepository],
   controllers: [BillingController],
 })

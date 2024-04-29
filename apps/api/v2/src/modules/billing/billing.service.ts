@@ -1,4 +1,5 @@
 import { AppConfig } from "@/config/type";
+import { BillingConfigService } from "@/modules/billing/billing.config.service";
 import { BillingRepository } from "@/modules/billing/billing.repository";
 import { PlatformPlan } from "@/modules/billing/types";
 import { OrganizationsRepository } from "@/modules/organizations/organizations.repository";
@@ -11,22 +12,16 @@ import Stripe from "stripe";
 @Injectable()
 export class BillingService {
   private logger = new Logger("BillingService");
-  private plansToPriceId: Map<PlatformPlan, string>;
   private readonly webAppUrl: string;
 
   constructor(
     private readonly teamsRepository: OrganizationsRepository,
     public readonly stripeService: StripeService,
     private readonly billingRepository: BillingRepository,
-    private readonly configService: ConfigService<AppConfig>
+    private readonly configService: ConfigService<AppConfig>,
+    private readonly billingConfigService: BillingConfigService
   ) {
     this.webAppUrl = configService.get("app.baseUrl", { infer: true }) ?? "https://app.cal.com";
-    this.plansToPriceId = new Map<PlatformPlan, string>();
-    this.plansToPriceId.set(PlatformPlan.ESSENTIALS, "price_1MelNEH8UDiwIftkmpXkd5DF");
-    // for (const plan in Object.keys(PlatformPlan)) {
-    //   const planId = configService.get<string>(`billing.${plan}`) ?? "";
-    //   this.plansToPriceId.set(plan as PlatformPlan, planId);
-    // }
   }
 
   async getBillingData(teamId: number) {
@@ -63,7 +58,7 @@ export class BillingService {
         customer: customerId,
         line_items: [
           {
-            price: this.plansToPriceId.get(plan),
+            price: this.billingConfigService.get(plan),
             quantity: 1,
           },
         ],
