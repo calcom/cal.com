@@ -326,7 +326,7 @@ function BookingListItem(booking: BookingItemProps) {
       <AddGuestsDialog
         isOpenDialog={isOpenAddGuestsDialog}
         setIsOpenDialog={setIsOpenAddGuestsDialog}
-        bookingUId={booking.uid}
+        bookingId={booking.id}
       />
       {booking.paid && booking.payment[0] && (
         <ChargeCardDialog

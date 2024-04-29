@@ -9,7 +9,7 @@ interface MultiEmailProps {
   placeholder?: string;
 }
 
-export function MultiEmail({ value, readOnly, label, setValue, placeholder }: MultiEmailProps) {
+function MultiEmail({ value, readOnly, label, setValue, placeholder }: MultiEmailProps) {
   const { t } = useLocale();
   value = value || [];
   const inputClassName =
@@ -92,3 +92,5 @@ export function MultiEmail({ value, readOnly, label, setValue, placeholder }: Mu
     </>
   );
 }
+
+export default MultiEmail;

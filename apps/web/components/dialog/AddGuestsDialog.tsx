@@ -4,7 +4,16 @@ import { z } from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Button, Dialog, DialogContent, DialogFooter, DialogHeader, MultiEmail, Icon } from "@calcom/ui";
+import {
+  Button,
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  MultiEmail,
+  Icon,
+  showToast,
+} from "@calcom/ui";
 
 interface IAddGuestsDialog {
   isOpenDialog: boolean;
@@ -15,10 +24,21 @@ interface IAddGuestsDialog {
 export const AddGuestsDialog = (props: IAddGuestsDialog) => {
   const { t } = useLocale();
   const ZAddGuestsInputSchema = z.array(z.string().email());
+  const { isOpenDialog, setIsOpenDialog, bookingId } = props;
   const utils = trpc.useUtils();
-  const { isOpenDialog, setIsOpenDialog, bookingUId: bookingId } = props;
   const [multiEmailValue, setMultiEmailValue] = useState<string[]>([""]);
   const [isInvalidEmail, setIsInvalidEmail] = useState(false);
+
+  const addGuestsMutation = trpc.viewer.bookings.addGuests.useMutation({
+    onSuccess: async () => {
+      showToast(t("guests_updated"), "success");
+      setIsOpenDialog(false);
+      utils.viewer.bookings.invalidate();
+    },
+    onError: () => {
+      showToast(t("unexpected_error_try_again"), "error");
+    },
+  });
 
   const handleAdd = () => {
     if (multiEmailValue.length === 0) {
@@ -26,7 +46,7 @@ export const AddGuestsDialog = (props: IAddGuestsDialog) => {
     }
     const validationResult = ZAddGuestsInputSchema.safeParse(multiEmailValue);
     if (validationResult.success) {
-      setIsOpenDialog(false);
+      addGuestsMutation.mutate({ bookingId, guests: multiEmailValue });
     } else {
       setIsInvalidEmail(true);
     }

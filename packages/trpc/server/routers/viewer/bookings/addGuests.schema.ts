@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const ZAddGuestsInputSchema = z.object({
-  bookingId: z.string(),
+  bookingId: z.number(),
   guests: z.array(z.string().email()),
 });
 
