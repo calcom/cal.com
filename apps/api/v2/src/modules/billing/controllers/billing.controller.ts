@@ -7,6 +7,7 @@ import { BillingService } from "@/modules/billing/billing.service";
 import { SubscribeToPlanInput } from "@/modules/billing/controllers/inputs/subscribe-to-plan.input";
 import { CheckPlatformBillingResponseDto } from "@/modules/billing/controllers/responses/CheckPlatformBillingResponse.dto";
 import { SubscribeTeamToBillingResponseDto } from "@/modules/billing/controllers/responses/SubscribeTeamToBillingResponse.dto";
+import { PlatformPlan } from "@/modules/billing/types";
 import {
   BadRequestException,
   Body,
@@ -19,6 +20,7 @@ import {
   Headers,
   HttpCode,
   HttpStatus,
+  Logger,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { Request } from "express";
@@ -32,6 +34,7 @@ import { ApiResponse } from "@calcom/platform-types";
 })
 export class BillingController {
   private readonly stripeWhSecret: string;
+  private logger = new Logger("Billing Controller");
 
   constructor(
     private readonly billingService: BillingService,
@@ -49,6 +52,7 @@ export class BillingController {
     return {
       status: "success",
       valid: teamBilling.status === "valid",
+      plan: teamBilling.team?.platformBilling?.plan,
     };
   }
 
@@ -90,14 +94,19 @@ export class BillingController {
       this.stripeWhSecret
     );
 
-    if (
-      event.type === "customer.subscription.created.created" ||
-      event.type === "customer.subscription.updated"
-    ) {
-      const subscription = event.data as Stripe.Subscription;
+    if (event.type === "customer.subscription.created" || event.type === "customer.subscription.updated") {
+      const subscription = event.data.object as Stripe.Subscription;
       const teamId = Number.parseInt(subscription.metadata.teamId);
+      const plan = subscription.metadata.plan;
+      if (!plan || !teamId) {
+        throw new Error("Invalid webhook received.");
+      }
 
-      await this.billingService.setSubscriptionForTeam(teamId, subscription);
+      await this.billingService.setSubscriptionForTeam(
+        teamId,
+        subscription,
+        PlatformPlan[plan as keyof typeof PlatformPlan]
+      );
 
       return {
         status: "success",

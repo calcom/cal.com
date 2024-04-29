@@ -2887,6 +2887,9 @@
           },
           "valid": {
             "type": "boolean"
+          },
+          "plan": {
+            "type": "string"
           }
         },
         "required": [

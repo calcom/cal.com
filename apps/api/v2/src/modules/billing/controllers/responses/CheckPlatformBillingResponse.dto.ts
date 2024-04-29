@@ -4,4 +4,6 @@ export class CheckPlatformBillingResponseDto {
   status!: typeof SUCCESS_STATUS;
 
   valid!: boolean;
+
+  plan?: string;
 }

@@ -16,6 +16,7 @@ import { loggerConfig } from "./lib/logger";
 const run = async () => {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     logger: WinstonModule.createLogger(loggerConfig()),
+    bodyParser: false,
   });
 
   const logger = new Logger("App");

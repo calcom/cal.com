@@ -1364,6 +1364,7 @@ model PlatformBilling {
 
   customerId     String  @unique
   subscriptionId String?
+  plan           String
 
   billingCycleStart Int?
   billingCycleEnd   Int?

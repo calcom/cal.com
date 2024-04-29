@@ -22,6 +22,7 @@ export class BillingService {
   ) {
     this.webAppUrl = configService.get("app.baseUrl", { infer: true }) ?? "https://app.cal.com";
     this.plansToPriceId = new Map<PlatformPlan, string>();
+    this.plansToPriceId.set(PlatformPlan.ESSENTIALS, "price_1MelNEH8UDiwIftkmpXkd5DF");
     // for (const plan in Object.keys(PlatformPlan)) {
     //   const planId = configService.get<string>(`billing.${plan}`) ?? "";
     //   this.plansToPriceId.set(plan as PlatformPlan, planId);
@@ -63,6 +64,7 @@ export class BillingService {
         line_items: [
           {
             price: this.plansToPriceId.get(plan),
+            quantity: 1,
           },
         ],
         success_url: `${this.webAppUrl}/settings/platform/oauth-clients`,
@@ -70,10 +72,12 @@ export class BillingService {
         mode: "subscription",
         metadata: {
           teamId: teamId.toString(),
+          plan: plan.toString(),
         },
         subscription_data: {
           metadata: {
             teamId: teamId.toString(),
+            plan: plan.toString(),
           },
         },
       });
@@ -86,7 +90,7 @@ export class BillingService {
     return { action: "none" };
   }
 
-  async setSubscriptionForTeam(teamId: number, subscription: Stripe.Subscription) {
+  async setSubscriptionForTeam(teamId: number, subscription: Stripe.Subscription, plan: PlatformPlan) {
     const billingCycleStart = DateTime.now().get("day");
     const billingCycleEnd = DateTime.now().plus({ month: 1 }).get("day");
 
@@ -94,6 +98,7 @@ export class BillingService {
       teamId,
       billingCycleStart,
       billingCycleEnd,
+      plan,
       subscription.id
     );
   }

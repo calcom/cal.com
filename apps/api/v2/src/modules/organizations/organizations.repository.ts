@@ -1,3 +1,4 @@
+import { PlatformPlan } from "@/modules/billing/types";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { StripeService } from "@/modules/stripe/stripe.service";
@@ -30,7 +31,7 @@ export class OrganizationsRepository {
     });
   }
 
-  async createNewBillingRelation(orgId: number) {
+  async createNewBillingRelation(orgId: number, plan?: PlatformPlan) {
     const { id } = await this.stripeService.stripe.customers.create({
       metadata: {
         createdBy: "oauth_client_no_csid", // mark in case this is needed in the future.
@@ -45,6 +46,7 @@ export class OrganizationsRepository {
         platformBilling: {
           create: {
             customerId: id,
+            plan: plan ? plan.toString() : "none",
           },
         },
       },
