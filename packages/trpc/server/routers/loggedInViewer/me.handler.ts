@@ -102,7 +102,6 @@ export const meHandler = async ({ ctx, input }: MeOptions) => {
     }
   }
 
-  console.log("sumOfTeamEventTypes: ", sumOfTeamEventTypes);
   // Destructuring here only makes it more illegible
   // pick only the part we want to expose in the API
   return {
