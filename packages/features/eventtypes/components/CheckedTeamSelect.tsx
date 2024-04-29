@@ -1,10 +1,10 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
+import { useState } from "react";
 import { useFormContext } from "react-hook-form";
 import type { Props } from "react-select";
 
-import type { Host, FormValues } from "@calcom/features/eventtypes/lib/types";
+import type { FormValues, Host } from "@calcom/features/eventtypes/lib/types";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import {
@@ -14,11 +14,11 @@ import {
   DialogClose,
   DialogContent,
   DialogFooter,
+  Icon,
   Label,
   Select,
   Tooltip,
 } from "@calcom/ui";
-import { X } from "@calcom/ui/components/icon";
 
 export type CheckedSelectOption = {
   avatar: string;
@@ -86,7 +86,8 @@ export const CheckedTeamSelect = ({
                   <></>
                 )}
 
-                <X
+                <Icon
+                  name="x"
                   onClick={() => props.onChange(value.filter((item) => item.value !== option.value))}
                   className="my-auto h-4 w-4"
                 />

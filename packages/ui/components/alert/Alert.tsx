@@ -1,10 +1,8 @@
 import classNames from "classnames";
 import type { ReactNode } from "react";
 import { forwardRef } from "react";
-import type { IconType } from "react-icons";
 
-import type { LucideIcon } from "@calcom/ui/components/icon";
-import { CheckCircle2, Info, XCircle, AlertTriangle } from "@calcom/ui/components/icon";
+import { Icon, type IconName } from "../..";
 
 export interface AlertProps {
   title?: ReactNode;
@@ -16,7 +14,7 @@ export interface AlertProps {
   iconClassName?: string;
   // @TODO: Success and info shouldn't exist as per design?
   severity: "success" | "warning" | "error" | "info" | "neutral" | "green";
-  CustomIcon?: IconType | LucideIcon;
+  CustomIcon?: IconName;
   customIconColor?: string;
 }
 export const Alert = forwardRef<HTMLDivElement, AlertProps>((props, ref) => {
@@ -39,7 +37,8 @@ export const Alert = forwardRef<HTMLDivElement, AlertProps>((props, ref) => {
       <div className="relative flex md:flex-row">
         {CustomIcon ? (
           <div className="flex-shrink-0">
-            <CustomIcon
+            <Icon
+              name={CustomIcon}
               data-testid="custom-icon"
               aria-hidden="true"
               className={classNames(`h-5 w-5`, iconClassName, customIconColor ?? "text-default")}
@@ -48,36 +47,41 @@ export const Alert = forwardRef<HTMLDivElement, AlertProps>((props, ref) => {
         ) : (
           <div className="flex-shrink-0">
             {severity === "error" && (
-              <XCircle
-                data-testid="x-circle"
+              <Icon
+                name="circle-x"
+                data-testid="circle-x"
                 className={classNames("h-5 w-5 text-red-900 dark:text-red-200", iconClassName)}
                 aria-hidden="true"
               />
             )}
             {severity === "warning" && (
-              <AlertTriangle
+              <Icon
+                name="triangle-alert"
                 data-testid="alert-triangle"
                 className={classNames("text-attention h-5 w-5 dark:text-orange-200", iconClassName)}
                 aria-hidden="true"
               />
             )}
             {severity === "info" && (
-              <Info
+              <Icon
+                name="info"
                 data-testid="info"
                 className={classNames("h-5 w-5 text-blue-900 dark:text-blue-200", iconClassName)}
                 aria-hidden="true"
               />
             )}
             {severity === "neutral" && (
-              <Info
+              <Icon
+                name="info"
                 data-testid="neutral"
                 className={classNames("text-default h-5 w-5 fill-transparent", iconClassName)}
                 aria-hidden="true"
               />
             )}
             {severity === "success" && (
-              <CheckCircle2
-                data-testid="check-circle-2"
+              <Icon
+                name="circle-check"
+                data-testid="circle-check"
                 className={classNames("fill-muted text-default h-5 w-5", iconClassName)}
                 aria-hidden="true"
               />

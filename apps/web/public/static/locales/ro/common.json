@@ -225,8 +225,6 @@
   "already_have_an_account": "Aveți deja un cont?",
   "create_account": "Creează un cont",
   "confirm_password": "Confirmă parola",
-  "confirm_auth_change": "Acest lucru va schimba modul în care vă conectați",
-  "confirm_auth_email_change": "Schimbarea adresei de e-mail va deconecta metoda actuală de conectare la Cal.com. Vă vom solicita să vă verificați noua adresă de e-mail. În continuare, veți fi deconectat și veți folosi noua dvs. adresă de e-mail pentru a vă conecta în locul metodei actuale de autentificare după setarea parolei, urmând instrucțiunile care vor fi trimise pe adresa dvs. de e-mail.",
   "reset_your_password": "Setați noua parolă cu instrucțiunile trimise la adresa dvs. de e-mail.",
   "email_change": "Conectați-vă din nou cu noua adresă de e-mail și parolă.",
   "create_your_account": "Creează-ți contul",
@@ -252,7 +250,7 @@
   "forgot": "Ai uitat?",
   "done": "Adoptat",
   "all_done": "Gata!",
-  "all": "Toate aplicațiile",
+  "all": "Toate",
   "yours": "Contul dvs.",
   "available_apps": "Aplicații disponibile",
   "available_apps_lower_case": "Aplicații disponibile",
@@ -2097,6 +2095,9 @@
   "extensive_whitelabeling": "Asistență dedicată pentru integrare și inginerie",
   "need_help": "Aveți nevoie de ajutor?",
   "show_more": "Afișare mai mult",
+  "email_team_invite|subject|invited_to_regular_team": "{{user}} v-a invitat să vă alăturați echipei {{team}} pe {{appName}}",
+  "email_team_invite|heading|invited_to_regular_team": "Ați fost invitat să faceți parte dintr-o echipă {{appName}}",
+  "email_team_invite|content|invited_to_regular_team": "{{invitedBy}} v-a invitat să faceți parte din echipa sa „{{teamName}}” de pe {{appName}}. {{appName}} este un instrument de planificare a evenimentelor, care vă permite dvs. și echipei dvs. să programați ședințe fără a face ping-pong prin e-mail.",
   "privacy": "Confidențialitate",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adăugați stringurile noi deasupra acestui rând ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

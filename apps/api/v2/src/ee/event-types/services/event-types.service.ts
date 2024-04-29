@@ -101,11 +101,7 @@ export class EventTypesService {
   }
 
   async createUserDefaultEventTypes(userId: number) {
-    const thirtyMinutes = DEFAULT_EVENT_TYPES.thirtyMinutes;
-    const thirtyMinutesVideo = DEFAULT_EVENT_TYPES.thirtyMinutesVideo;
-
-    const sixtyMinutes = DEFAULT_EVENT_TYPES.sixtyMinutes;
-    const sixtyMinutesVideo = DEFAULT_EVENT_TYPES.sixtyMinutesVideo;
+    const { sixtyMinutes, sixtyMinutesVideo, thirtyMinutes, thirtyMinutesVideo } = DEFAULT_EVENT_TYPES;
 
     const defaultEventTypes = await Promise.all([
       this.eventTypesRepository.createUserEventType(userId, thirtyMinutes),
@@ -120,7 +116,7 @@ export class EventTypesService {
   async updateEventType(eventTypeId: number, body: UpdateEventTypeInput, user: UserWithProfile) {
     this.checkCanUpdateEventType(user.id, eventTypeId);
     const eventTypeUser = await this.getUserToUpdateEvent(user);
-    const { eventType } = await updateEventType({
+    await updateEventType({
       input: { id: eventTypeId, ...body },
       ctx: {
         user: eventTypeUser,
@@ -129,6 +125,8 @@ export class EventTypesService {
         prisma: this.dbWrite.prisma,
       },
     });
+
+    const { eventType } = await this.getUserEventTypeForAtom(user, eventTypeId);
 
     return eventType;
   }

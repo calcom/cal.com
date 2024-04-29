@@ -1,10 +1,10 @@
 export const BASE_URL = "http://localhost:5555";
 export const API_VERSION = "v2";
 export const V2_ENDPOINTS = {
-  me: "ee/me",
+  me: "me",
   availability: "schedules",
   eventTypes: "event-types",
-  bookings: "ee/bookings",
+  bookings: "bookings",
 };
 
 export const SUCCESS_STATUS = "success";
@@ -46,6 +46,7 @@ export const API_ERROR_CODES = [
 
 // Request headers
 export const X_CAL_SECRET_KEY = "x-cal-secret-key";
+export const X_CAL_CLIENT_ID = "x-cal-client-id";
 
 // HTTP status codes
 export const HTTP_CODE_TOKEN_EXPIRED = 498;

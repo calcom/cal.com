@@ -10,7 +10,7 @@ import type { State, Action } from "./UserListTable";
 export function DeleteMemberModal({ state, dispatch }: { state: State; dispatch: Dispatch<Action> }) {
   const { t } = useLocale();
   const { data: session } = useSession();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const removeMemberMutation = trpc.viewer.teams.removeMember.useMutation({
     onSuccess() {
       // We don't need to wait for invalidate to finish

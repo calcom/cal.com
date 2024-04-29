@@ -211,7 +211,7 @@ export class Cal {
     return instruction;
   }
 
-  processQueue(queue: IArguments[]) {
+  processQueue(queue: Queue) {
     queue.forEach((instruction) => {
       this.processInstruction(instruction);
     });
@@ -315,7 +315,7 @@ export class Cal {
     }
   }
 
-  constructor(namespace: string, q: IArguments[]) {
+  constructor(namespace: string, q: Queue) {
     this.__config = {
       // Use WEBAPP_URL till full page reload problem with website URL is solved
       calOrigin: WEBAPP_URL,
@@ -413,9 +413,22 @@ class CalApi {
     this.cal = cal;
   }
 
+  /**
+   * If namespaceOrConfig is a string, config is available in config argument
+   * If namespaceOrConfig is an object, namespace is assumed to be default and config isn't provided
+   */
   init(namespaceOrConfig?: string | InitArgConfig, config = {} as InitArgConfig) {
+    let initForNamespace = "";
     if (typeof namespaceOrConfig !== "string") {
       config = (namespaceOrConfig || {}) as Config;
+    } else {
+      initForNamespace = namespaceOrConfig;
+    }
+
+    // Just in case 'init' instruction belongs to another namespace, ignore it
+    // Though it shouldn't happen normally as the snippet takes care of delegating the init instruction to appropriate namespace queue
+    if (initForNamespace !== this.cal.namespace) {
+      return;
     }
 
     CalApi.initializedNamespaces.push(this.cal.namespace);
@@ -425,6 +438,16 @@ class CalApi {
     this.cal.__config.calOrigin = calOrigin || origin || this.cal.__config.calOrigin;
 
     this.cal.__config = { ...this.cal.__config, ...restConfig };
+  }
+
+  /**
+   * Used when a non-default namespace is to be initialized
+   * It allows default queue to take care of instantiation of the non-default namespace queue
+   */
+  initNamespace(namespace: string) {
+    // Creating this instance automatically starts processing the queue for the namespace
+    globalCal.ns[namespace].instance =
+      globalCal.ns[namespace].instance || new Cal(namespace, globalCal.ns[namespace].q);
   }
   /**
    * It is an instruction that adds embed iframe inline as last child of the element
@@ -457,6 +480,12 @@ class CalApi {
         },
       },
     });
+
+    // If someone re-executes inline embed instruction, we want to ensure that duplicate inlineEl isn't added to the page per namespace
+    if (this.cal.inlineEl && document.body.contains(this.cal.inlineEl)) {
+      console.warn("Inline embed already exists. Ignoring this call");
+      return;
+    }
 
     config = config || {};
     if (typeof config.iframeAttrs === "string" || config.iframeAttrs instanceof Array) {
@@ -766,13 +795,16 @@ class CalApi {
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type Queue = any[];
+
 // This is a full fledged Cal instance but doesn't have ns property because it would be nested inside an ns instance already
 export interface GlobalCalWithoutNs {
   <T extends keyof SingleInstructionMap>(methodName: T, ...arg: Rest<SingleInstructionMap[T]>): void;
   /** Marks that the embed.js is loaded. Avoids re-downloading it. */
   loaded?: boolean;
   /** Maintains a queue till the time embed.js isn't loaded */
-  q: IArguments[];
+  q: Queue;
   /** If user registers multiple namespaces, those are available here */
   instance?: Cal;
   __css?: string;
@@ -800,8 +832,11 @@ export interface CalWindow extends Window {
 const DEFAULT_NAMESPACE = "";
 
 globalCal.instance = new Cal(DEFAULT_NAMESPACE, globalCal.q);
+
+// Namespaces created before embed.js executes are instantiated here for old Embed Snippets which don't use 'initNamespace' instruction
+// Snippets that support 'initNamespace' instruction don't really need this but it is okay if it's done because it's idempotent
 for (const [ns, api] of Object.entries(globalCal.ns)) {
-  api.instance = new Cal(ns, api.q);
+  api.instance = api.instance ?? new Cal(ns, api.q);
 }
 
 /**
@@ -829,17 +864,16 @@ window.addEventListener("message", (e) => {
 
 document.addEventListener("click", (e) => {
   const targetEl = e.target;
-  if (!(targetEl instanceof HTMLElement)) {
-    return;
-  }
-  const path = targetEl.dataset.calLink;
+
+  const calLinkEl = getCalLinkEl(targetEl);
+  const path = calLinkEl?.dataset?.calLink;
   if (!path) {
     return;
   }
 
-  const namespace = targetEl.dataset.calNamespace;
-  const configString = targetEl.dataset.calConfig || "";
-  const calOrigin = targetEl.dataset.calOrigin || "";
+  const namespace = calLinkEl.dataset.calNamespace;
+  const configString = calLinkEl.dataset.calConfig || "";
+  const calOrigin = calLinkEl.dataset.calOrigin || "";
   let config;
   try {
     config = JSON.parse(configString);
@@ -862,6 +896,25 @@ document.addEventListener("click", (e) => {
     config,
     calOrigin,
   });
+
+  function getCalLinkEl(target: EventTarget | null) {
+    let calLinkEl;
+    if (!(target instanceof HTMLElement)) {
+      return null;
+    }
+    if (target?.dataset.calLink) {
+      calLinkEl = target;
+    } else {
+      // If the element clicked is a child of the cal-link element, then return the cal-link element
+      calLinkEl = Array.from(document.querySelectorAll("[data-cal-link]")).find((el) => el.contains(target));
+    }
+
+    if (!(calLinkEl instanceof HTMLElement)) {
+      return null;
+    }
+
+    return calLinkEl;
+  }
 });
 
 let currentColorScheme: string | null = null;

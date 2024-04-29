@@ -55,7 +55,7 @@ export class EventTypeOutput {
   @ValidateNested({ each: true })
   @Type(() => EventTypeLocation)
   @IsArray()
-  locations!: EventTypeLocation | null;
+  locations!: EventTypeLocation[] | null;
 
   @IsInt()
   @ApiHideProperty()

@@ -50,6 +50,10 @@ if (!process.env.EMAIL_FROM) {
 
 if (!process.env.NEXTAUTH_URL) throw new Error("Please set NEXTAUTH_URL");
 
+if (!process.env.NEXT_PUBLIC_API_V2_URL) {
+  console.error("Please set NEXT_PUBLIC_API_V2_URL");
+}
+
 const validJson = (jsonString) => {
   try {
     const o = JSON.parse(jsonString);
@@ -157,6 +161,7 @@ const nextConfig = {
   experimental: {
     // externalize server-side node_modules with size > 1mb, to improve dev mode performance/RAM usage
     serverComponentsExternalPackages: ["next-i18next"],
+    optimizePackageImports: ["@calcom/ui"],
   },
   i18n: {
     ...i18n,
@@ -187,10 +192,6 @@ const nextConfig = {
     "lucide-react",
   ],
   modularizeImports: {
-    "@calcom/ui/components/icon": {
-      transform: "lucide-react/dist/esm/icons/{{ kebabCase member }}",
-      preventFullImport: true,
-    },
     "@calcom/features/insights/components": {
       transform: "@calcom/features/insights/components/{{member}}",
       skipDefaultConversion: true,

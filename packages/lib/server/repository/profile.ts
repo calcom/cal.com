@@ -40,6 +40,7 @@ const organizationSelect = {
   slug: true,
   name: true,
   metadata: true,
+  logoUrl: true,
   calVideoLogo: true,
   bannerUrl: true,
 };
@@ -347,7 +348,11 @@ export class ProfileRepository {
         user: {
           select: userSelect,
         },
-        movedFromUser: true,
+        movedFromUser: {
+          select: {
+            id: true,
+          },
+        },
         organization: {
           select: {
             calVideoLogo: true,
@@ -358,6 +363,7 @@ export class ProfileRepository {
             metadata: true,
             bannerUrl: true,
             isPrivate: true,
+            isPlatform: true,
             organizationSettings: {
               select: {
                 lockEventTypeCreationForUsers: true,

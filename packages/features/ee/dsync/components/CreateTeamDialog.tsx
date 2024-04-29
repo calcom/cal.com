@@ -12,7 +12,7 @@ const CreateTeamDialog = (props: CreateTeamDialogProps) => {
   const { open, onOpenChange } = props;
   const { t } = useLocale();
 
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent type="creation" title={t("create_new_team")} description={t("team_will_be_under_org")}>

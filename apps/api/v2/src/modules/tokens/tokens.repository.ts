@@ -47,8 +47,26 @@ export class TokensRepository {
     });
   }
 
-  async createOAuthTokens(clientId: string, ownerId: number) {
-    const accessExpiry = DateTime.now().plus({ minute: 1 }).startOf("minute").toJSDate();
+  async createOAuthTokens(clientId: string, ownerId: number, deleteOld?: boolean) {
+    if (deleteOld) {
+      try {
+        await this.dbWrite.prisma.$transaction([
+          this.dbWrite.prisma.accessToken.deleteMany({
+            where: { client: { id: clientId }, userId: ownerId, expiresAt: { lte: new Date() } },
+          }),
+          this.dbWrite.prisma.refreshToken.deleteMany({
+            where: {
+              client: { id: clientId },
+              userId: ownerId,
+            },
+          }),
+        ]);
+      } catch (err) {
+        // discard.
+      }
+    }
+
+    const accessExpiry = DateTime.now().plus({ minute: 60 }).startOf("minute").toJSDate();
     const refreshExpiry = DateTime.now().plus({ year: 1 }).startOf("day").toJSDate();
     const [accessToken, refreshToken] = await this.dbWrite.prisma.$transaction([
       this.dbWrite.prisma.accessToken.create({
@@ -101,7 +119,7 @@ export class TokensRepository {
   }
 
   async refreshOAuthTokens(clientId: string, refreshTokenSecret: string, tokenUserId: number) {
-    const accessExpiry = DateTime.now().plus({ minute: 1 }).startOf("minute").toJSDate();
+    const accessExpiry = DateTime.now().plus({ minute: 60 }).startOf("minute").toJSDate();
     const refreshExpiry = DateTime.now().plus({ year: 1 }).startOf("day").toJSDate();
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars

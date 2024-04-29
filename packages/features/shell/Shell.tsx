@@ -19,6 +19,7 @@ import {
 } from "@calcom/features/ee/organizations/components/OrgUpgradeBanner";
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import HelpMenuItem from "@calcom/features/ee/support/components/HelpMenuItem";
+import useIntercom, { isInterComEnabled } from "@calcom/features/ee/support/lib/intercom/useIntercom";
 import { TeamsUpgradeBanner, type TeamsUpgradeBannerProps } from "@calcom/features/ee/teams/components";
 import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { KBarContent, KBarRoot, KBarTrigger } from "@calcom/features/kbar/Kbar";
@@ -41,24 +42,25 @@ import classNames from "@calcom/lib/classNames";
 import {
   APP_NAME,
   DESKTOP_APP_LINK,
+  ENABLE_PROFILE_SWITCHER,
+  IS_VISUAL_REGRESSION_TESTING,
   JOIN_DISCORD,
   ROADMAP,
-  WEBAPP_URL,
-  IS_VISUAL_REGRESSION_TESTING,
   TOP_BANNER_HEIGHT,
-  ENABLE_PROFILE_SWITCHER,
+  WEBAPP_URL,
 } from "@calcom/lib/constants";
+import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useFormbricks } from "@calcom/lib/formbricks-client";
 import getBrandColours from "@calcom/lib/getBrandColours";
 import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { isKeyInObject } from "@calcom/lib/isKeyInObject";
+import { localStorage } from "@calcom/lib/webstorage";
 import type { User } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
 import useEmailVerifyCheck from "@calcom/trpc/react/hooks/useEmailVerifyCheck";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
-import type { SVGComponent } from "@calcom/types/SVGComponent";
 import {
   Avatar,
   Button,
@@ -73,38 +75,14 @@ import {
   DropdownMenuTrigger,
   ErrorBoundary,
   HeadSeo,
+  Icon,
   Logo,
   showToast,
   SkeletonText,
   Tooltip,
   useCalcomTheme,
+  type IconName,
 } from "@calcom/ui";
-import type { LucideIcon } from "@calcom/ui/components/icon";
-import {
-  ArrowLeft,
-  ArrowRight,
-  BarChart,
-  Calendar,
-  ChevronDown,
-  Clock,
-  Copy,
-  Download,
-  ExternalLink,
-  FileText,
-  Grid,
-  HelpCircle,
-  Link as LinkIcon,
-  LogOut,
-  Map,
-  Moon,
-  MoreHorizontal,
-  Settings,
-  User as UserIcon,
-  Users,
-  Sparkles,
-  Zap,
-  Check,
-} from "@calcom/ui/components/icon";
 import { Discord } from "@calcom/ui/components/icon/Discord";
 
 import { useOrgBranding } from "../ee/organizations/context/provider";
@@ -238,7 +216,17 @@ const useBanners = () => {
 const Layout = (props: LayoutProps) => {
   const banners = useBanners();
 
+  const { data: user } = trpc.viewer.me.useQuery();
+  const { boot } = useIntercom();
   const pageTitle = typeof props.heading === "string" && !props.title ? props.heading : props.title;
+
+  useEffect(() => {
+    // not using useMediaQuery as it toggles between true and false
+    const showIntercom = localStorage.getItem("showIntercom");
+    if (!isInterComEnabled || showIntercom === "false" || window.innerWidth <= 768 || !user) return;
+    boot();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   const bannersHeight = useMemo(() => {
     const activeBanners =
@@ -395,7 +383,7 @@ interface UserDropdownProps {
 function UserDropdown({ small }: UserDropdownProps) {
   const { t } = useLocale();
   const { data: user } = useMeQuery();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const bookerUrl = useBookerUrl();
 
   useEffect(() => {
@@ -409,29 +397,7 @@ function UserDropdown({ small }: UserDropdownProps) {
         screenResolution: `${screen.width}x${screen.height}`,
       });
   });
-  const mutation = trpc.viewer.away.useMutation({
-    onMutate: async ({ away }) => {
-      await utils.viewer.me.cancel();
 
-      const previousValue = utils.viewer.me.getData();
-
-      if (previousValue) {
-        utils.viewer.me.setData(undefined, { ...previousValue, away });
-      }
-
-      return { previousValue };
-    },
-    onError: (_, __, context) => {
-      if (context?.previousValue) {
-        utils.viewer.me.setData(undefined, context.previousValue);
-      }
-
-      showToast(t("toggle_away_error"), "error");
-    },
-    onSettled() {
-      utils.viewer.me.invalidate();
-    },
-  });
   const [helpOpen, setHelpOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -469,7 +435,6 @@ function UserDropdown({ small }: UserDropdownProps) {
             <span
               className={classNames(
                 "border-muted absolute -bottom-1 -right-1 rounded-full border bg-green-500",
-                user.away ? "bg-yellow-500" : "bg-green-500",
                 small ? "-bottom-0.5 -right-0.5 h-2.5 w-2.5" : "-bottom-0.5 -right-0 h-2 w-2"
               )}
             />
@@ -481,7 +446,8 @@ function UserDropdown({ small }: UserDropdownProps) {
                   {user.name || "Nameless User"}
                 </span>
               </span>
-              <ChevronDown
+              <Icon
+                name="chevron-down"
                 className="group-hover:text-subtle text-muted h-4 w-4 flex-shrink-0 rtl:mr-4"
                 aria-hidden="true"
               />
@@ -506,9 +472,7 @@ function UserDropdown({ small }: UserDropdownProps) {
                 <DropdownMenuItem>
                   <DropdownItem
                     type="button"
-                    StartIcon={(props: { className?: string }) => (
-                      <UserIcon className={classNames("text-default", props.className)} aria-hidden="true" />
-                    )}
+                    CustomStartIcon={<Icon name="user" className="text-default h-4 w-4" aria-hidden="true" />}
                     href="/settings/my-account/profile">
                     {t("my_profile")}
                   </DropdownItem>
@@ -516,9 +480,9 @@ function UserDropdown({ small }: UserDropdownProps) {
                 <DropdownMenuItem>
                   <DropdownItem
                     type="button"
-                    StartIcon={(props: { className?: string }) => (
-                      <Settings className={classNames("text-default", props.className)} aria-hidden="true" />
-                    )}
+                    CustomStartIcon={
+                      <Icon name="settings" className="text-default h-4 w-4" aria-hidden="true" />
+                    }
                     href="/settings/my-account/general">
                     {t("my_settings")}
                   </DropdownItem>
@@ -526,9 +490,7 @@ function UserDropdown({ small }: UserDropdownProps) {
                 <DropdownMenuItem>
                   <DropdownItem
                     type="button"
-                    StartIcon={(props: { className?: string }) => (
-                      <Moon className={classNames("text-default", props.className)} aria-hidden="true" />
-                    )}
+                    CustomStartIcon={<Icon name="moon" className="text-default h-4 w-4" aria-hidden="true" />}
                     href="/settings/my-account/out-of-office">
                     {t("out_of_office")}
                   </DropdownItem>
@@ -536,7 +498,7 @@ function UserDropdown({ small }: UserDropdownProps) {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem>
                   <DropdownItem
-                    StartIcon={() => <Discord className="text-default h-4 w-4" />}
+                    CustomStartIcon={<Discord className="text-default h-4 w-4" />}
                     target="_blank"
                     rel="noreferrer"
                     href={JOIN_DISCORD}>
@@ -544,22 +506,21 @@ function UserDropdown({ small }: UserDropdownProps) {
                   </DropdownItem>
                 </DropdownMenuItem>
                 <DropdownMenuItem>
-                  <DropdownItem StartIcon={Map} target="_blank" href={ROADMAP}>
+                  <DropdownItem StartIcon="map" target="_blank" href={ROADMAP}>
                     {t("visit_roadmap")}
                   </DropdownItem>
                 </DropdownMenuItem>
                 <DropdownMenuItem>
                   <DropdownItem
                     type="button"
-                    StartIcon={(props: { className?: string }) => (
-                      <HelpCircle aria-hidden="true" {...props} />
-                    )}
+                    StartIcon="circle-help"
+                    aria-hidden="true"
                     onClick={() => setHelpOpen(true)}>
                     {t("help")}
                   </DropdownItem>
                 </DropdownMenuItem>
                 <DropdownMenuItem className="todesktop:hidden hidden lg:flex">
-                  <DropdownItem StartIcon={Download} target="_blank" rel="noreferrer" href={DESKTOP_APP_LINK}>
+                  <DropdownItem StartIcon="download" target="_blank" rel="noreferrer" href={DESKTOP_APP_LINK}>
                     {t("download_desktop_app")}
                   </DropdownItem>
                 </DropdownMenuItem>
@@ -569,7 +530,8 @@ function UserDropdown({ small }: UserDropdownProps) {
                 <DropdownMenuItem>
                   <DropdownItem
                     type="button"
-                    StartIcon={(props: { className?: string }) => <LogOut aria-hidden="true" {...props} />}
+                    StartIcon="log-out"
+                    aria-hidden="true"
                     onClick={() => signOut({ callbackUrl: "/auth/logout" })}>
                     {t("sign_out")}
                   </DropdownItem>
@@ -589,7 +551,7 @@ export type NavigationItemType = {
   onClick?: React.MouseEventHandler<HTMLAnchorElement | HTMLButtonElement>;
   target?: HTMLAnchorElement["target"];
   badge?: React.ReactNode;
-  icon?: SVGComponent | LucideIcon;
+  icon?: IconName;
   child?: NavigationItemType[];
   pro?: true;
   onlyMobile?: boolean;
@@ -612,31 +574,31 @@ const navigation: NavigationItemType[] = [
   {
     name: "event_types_page_title",
     href: "/event-types",
-    icon: LinkIcon,
+    icon: "link",
   },
   {
     name: "bookings",
     href: "/bookings/upcoming",
-    icon: Calendar,
+    icon: "calendar",
     badge: <UnconfirmedBookingBadge />,
     isCurrent: ({ pathname }) => pathname?.startsWith("/bookings") ?? false,
   },
   {
     name: "availability",
     href: "/availability",
-    icon: Clock,
+    icon: "clock",
   },
   {
     name: "teams",
     href: "/teams",
-    icon: Users,
+    icon: "users",
     onlyDesktop: true,
     badge: <TeamInviteBadge />,
   },
   {
     name: "apps",
     href: "/apps",
-    icon: Grid,
+    icon: "grid-3x3",
     isCurrent: ({ pathname: path, item }) => {
       // During Server rendering path is /v2/apps but on client it becomes /apps(weird..)
       return (path?.startsWith(item.href) ?? false) && !(path?.includes("routing-forms/") ?? false);
@@ -666,28 +628,23 @@ const navigation: NavigationItemType[] = [
   {
     name: MORE_SEPARATOR_NAME,
     href: "/more",
-    icon: MoreHorizontal,
+    icon: "ellipsis",
   },
   {
     name: "Routing Forms",
     href: "/apps/routing-forms/forms",
-    icon: FileText,
+    icon: "file-text",
     isCurrent: ({ pathname }) => pathname?.startsWith("/apps/routing-forms/") ?? false,
-  },
-  {
-    name: "Cal.ai",
-    href: "/ai",
-    icon: Sparkles,
   },
   {
     name: "workflows",
     href: "/workflows",
-    icon: Zap,
+    icon: "zap",
   },
   {
     name: "insights",
     href: "/insights",
-    icon: BarChart,
+    icon: "bar-chart",
   },
 ];
 
@@ -769,7 +726,8 @@ const NavigationItem: React.FC<{
           )}
           aria-current={current ? "page" : undefined}>
           {item.icon && (
-            <item.icon
+            <Icon
+              name={item.icon}
               className="todesktop:!text-blue-500 mr-2 h-4 w-4 flex-shrink-0 rtl:ml-2 md:ltr:mx-auto lg:ltr:mr-2 [&[aria-current='page']]:text-inherit"
               aria-hidden="true"
               aria-current={current ? "page" : undefined}
@@ -840,7 +798,8 @@ const MobileNavigationItem: React.FC<{
       aria-current={current ? "page" : undefined}>
       {item.badge && <div className="absolute right-1 top-1">{item.badge}</div>}
       {item.icon && (
-        <item.icon
+        <Icon
+          name={item.icon}
           className="[&[aria-current='page']]:text-emphasis  mx-auto mb-1 block h-5 w-5 flex-shrink-0 text-center text-inherit"
           aria-hidden="true"
           aria-current={current ? "page" : undefined}
@@ -865,10 +824,12 @@ const MobileNavigationMoreItem: React.FC<{
     <li className="border-subtle border-b last:border-b-0" key={item.name}>
       <Link href={item.href} className="hover:bg-subtle flex items-center justify-between p-5 transition">
         <span className="text-default flex items-center font-semibold ">
-          {item.icon && <item.icon className="h-5 w-5 flex-shrink-0 ltr:mr-3 rtl:ml-3" aria-hidden="true" />}
+          {item.icon && (
+            <Icon name={item.icon} className="h-5 w-5 flex-shrink-0 ltr:mr-3 rtl:ml-3" aria-hidden="true" />
+          )}
           {isLocaleReady ? t(item.name) : <SkeletonText />}
         </span>
-        <ArrowRight className="text-subtle h-5 w-5" />
+        <Icon name="arrow-right" className="text-subtle h-5 w-5" />
       </Link>
     </li>
   );
@@ -907,7 +868,7 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
     {
       name: "view_public_page",
       href: publicPageUrl,
-      icon: ExternalLink,
+      icon: "external-link",
       target: "__blank",
     },
     {
@@ -918,12 +879,12 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
         navigator.clipboard.writeText(publicPageUrl);
         showToast(t("link_copied"), "success");
       },
-      icon: Copy,
+      icon: "copy",
     },
     {
       name: "settings",
       href: user?.org ? `/settings/organizations/profile` : "/settings/my-account/profile",
-      icon: Settings,
+      icon: "settings",
     },
   ];
   return (
@@ -939,7 +900,7 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
                   <div className="flex items-center gap-2 font-medium">
                     <Avatar
                       alt={`${orgBranding.name} logo`}
-                      imageSrc={`${orgBranding.fullDomain}/org/${orgBranding.slug}/avatar.png`}
+                      imageSrc={getPlaceholderAvatar(orgBranding.logoUrl, orgBranding.name)}
                       size="xsm"
                     />
                     <p className="text line-clamp-1 text-sm">
@@ -965,13 +926,19 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
                 color="minimal"
                 onClick={() => window.history.back()}
                 className="todesktop:block hover:text-emphasis text-subtle group hidden text-sm font-medium">
-                <ArrowLeft className="group-hover:text-emphasis text-subtle h-4 w-4 flex-shrink-0" />
+                <Icon
+                  name="arrow-left"
+                  className="group-hover:text-emphasis text-subtle h-4 w-4 flex-shrink-0"
+                />
               </button>
               <button
                 color="minimal"
                 onClick={() => window.history.forward()}
                 className="todesktop:block hover:text-emphasis text-subtle group hidden text-sm font-medium">
-                <ArrowRight className="group-hover:text-emphasis text-subtle h-4 w-4 flex-shrink-0" />
+                <Icon
+                  name="arrow-right"
+                  className="group-hover:text-emphasis text-subtle h-4 w-4 flex-shrink-0"
+                />
               </button>
               {!!orgBranding && (
                 <div data-testid="user-dropdown-trigger" className="flex items-center">
@@ -992,7 +959,7 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
 
         <div>
           <Tips />
-          {bottomNavItems.map(({ icon: Icon, ...item }, index) => (
+          {bottomNavItems.map((item, index) => (
             <Tooltip side="right" content={t(item.name)} className="lg:hidden" key={item.name}>
               <ButtonOrLink
                 id={item.name}
@@ -1007,8 +974,9 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
                   index === 0 && "mt-3"
                 )}
                 onClick={item.onClick}>
-                {!!Icon && (
+                {!!item.icon && (
                   <Icon
+                    name={item.icon}
                     className={classNames(
                       "h-4 w-4 flex-shrink-0 [&[aria-current='page']]:text-inherit",
                       "me-3 md:mx-auto lg:ltr:mr-2 lg:rtl:ml-2"
@@ -1054,7 +1022,7 @@ export function ShellMain(props: LayoutProps) {
               onClick={() =>
                 typeof props.backPath === "string" ? router.push(props.backPath as string) : router.back()
               }
-              StartIcon={ArrowLeft}
+              StartIcon="arrow-left"
               aria-label="Go Back"
               className="rounded-md ltr:mr-2 rtl:ml-2"
             />
@@ -1150,7 +1118,7 @@ function TopNav() {
           <button className="hover:bg-muted hover:text-subtle text-muted rounded-full p-1 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2">
             <span className="sr-only">{t("settings")}</span>
             <Link href="/settings/my-account/profile">
-              <Settings className="text-default h-4 w-4" aria-hidden="true" />
+              <Icon name="settings" className="text-default h-4 w-4" aria-hidden="true" />
             </Link>
           </button>
           <UserDropdown small />
@@ -1205,7 +1173,8 @@ function ProfileDropdown() {
             <span className="block w-20 overflow-hidden overflow-ellipsis whitespace-nowrap">
               {currentOption.label}
             </span>
-            <ChevronDown
+            <Icon
+              name="chevron-down"
               className="group-hover:text-subtle text-muted h-4 w-4 flex-shrink-0 rtl:mr-4"
               aria-hidden="true"
             />
@@ -1245,7 +1214,9 @@ function ProfileDropdown() {
                     <Avatar alt={option.label || ""} size="xsm" />
                     <span className="ml-2">{option.label}</span>
                   </span>
-                  {isSelected ? <Check className="ml-2 inline h-4 w-4" aria-hidden="true" /> : null}
+                  {isSelected ? (
+                    <Icon name="check" className="ml-2 inline h-4 w-4" aria-hidden="true" />
+                  ) : null}
                 </DropdownItem>
               </DropdownMenuItem>
             );

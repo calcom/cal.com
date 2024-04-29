@@ -10,7 +10,7 @@ export const sanitizeDisplayName = (nameAndEmail: string) => {
 };
 
 const sanitize = (name: string) => {
-  const charsToReplace = /[;,"<>()]/g;
+  const charsToReplace = /[;,"<>():]/g;
 
-  return name.replace(charsToReplace, " ");
+  return name.replace(charsToReplace, " ").replace(/\s+/g, " ");
 };

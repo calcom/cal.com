@@ -9,7 +9,7 @@ import {
   VariantsTable,
   VariantRow,
 } from "@calcom/storybook/components";
-import { ArrowRight } from "@calcom/ui/components/icon";
+import { Icon } from "@calcom/ui";
 
 import { ToggleGroup } from "./ToggleGroup";
 
@@ -32,16 +32,16 @@ The `ToggleGroup` component is used to create a group of toggle items with optio
     <TooltipProvider>
       <ToggleGroup
         options={[
-          { value: "option1", label: "Option 1", tooltip: "Tooltip for Option 1", iconLeft: <ArrowRight /> },
-          { value: "option2", label: "Option 2", iconLeft: <ArrowRight /> },
-          { value: "option3", label: "Option 3", iconLeft: <ArrowRight /> },
+          { value: "option1", label: "Option 1", tooltip: "Tooltip for Option 1", iconLeft: <Icon name="arrow-right" /> },
+          { value: "option2", label: "Option 2", iconLeft: <Icon name="arrow-right" /> },
+          { value: "option3", label: "Option 3", iconLeft: <Icon name="arrow-right" /> },
           {
             value: "option4",
             label: "Option 4",
             tooltip: "Tooltip for Option 4",
-            iconLeft: <ArrowRight />,
+            iconLeft: <Icon name="arrow-right" />,
           },
-          { value: "option5", label: "Option 5", iconLeft: <ArrowRight />, disabled: true },
+          { value: "option5", label: "Option 5", iconLeft: <Icon name="arrow-right" />, disabled: true },
         ]}
       />
     </TooltipProvider>

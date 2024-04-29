@@ -1,8 +1,8 @@
 // eslint-disable-next-line no-restricted-imports
 import { get } from "lodash";
 import type { TFunction } from "next-i18next";
-import { useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
+import { useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import type z from "zod";
 
@@ -11,8 +11,7 @@ import { classNames } from "@calcom/lib";
 import type { Prisma } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { _EventTypeModel } from "@calcom/prisma/zod/eventtype";
-import { Tooltip, Badge, Switch } from "@calcom/ui";
-import { Lock, Unlock } from "@calcom/ui/components/icon";
+import { Badge, Icon, Switch, Tooltip } from "@calcom/ui";
 
 export const LockedSwitch = (
   isManagedEventType: boolean,
@@ -60,11 +59,7 @@ export const LockedIndicator = (
             )}>
             {!options.simple && (
               <span className="inline-flex">
-                {isLocked ? (
-                  <Lock className="text-subtle h-3 w-3" />
-                ) : (
-                  <Unlock className="text-subtle h-3 w-3" />
-                )}
+                <Icon name={isLocked ? "lock" : "lock-open"} className="text-subtle h-3 w-3" />
                 <span className="ml-1 font-medium">{stateText}</span>
               </span>
             )}

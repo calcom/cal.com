@@ -4,8 +4,10 @@ import { google } from "googleapis";
 import { z } from "zod";
 
 @Injectable()
-export class GcalService {
+export class GCalService {
   private logger = new Logger("GcalService");
+
+  private gcalResponseSchema = z.object({ client_id: z.string(), client_secret: z.string() });
 
   constructor(private readonly appsRepository: AppsRepository) {}
 
@@ -17,9 +19,7 @@ export class GcalService {
       throw new NotFoundException();
     }
 
-    const { client_id, client_secret } = z
-      .object({ client_id: z.string(), client_secret: z.string() })
-      .parse(app.keys);
+    const { client_id, client_secret } = this.gcalResponseSchema.parse(app.keys);
 
     const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirectUri);
     return oAuth2Client;

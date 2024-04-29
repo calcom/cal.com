@@ -14,7 +14,7 @@ import { userBodySchema } from "../schemas/userBodySchema";
 const UsersAddView = () => {
   const pathname = usePathname();
   const router = useRouter();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const mutation = trpc.viewer.users.add.useMutation({
     onSuccess: async () => {
       showToast("User added successfully", "success");
