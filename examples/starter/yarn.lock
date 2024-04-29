@@ -3335,70 +3335,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"example@workspace:.":
-  version: 0.0.0-use.local
-  resolution: "example@workspace:."
-  dependencies:
-    "@auth/prisma-adapter": ^1.4.0
-    "@calcom/atoms": ^1.0.21
-    "@libsql/client": ^0.6.0
-    "@opentelemetry/api": ^1.8.0
-    "@prisma/adapter-libsql": ^5.12.1
-    "@prisma/client": ^5.10.2
-    "@radix-ui/react-dialog": ^1.0.5
-    "@radix-ui/react-dropdown-menu": ^2.0.6
-    "@radix-ui/react-label": ^2.0.2
-    "@radix-ui/react-popover": ^1.0.7
-    "@radix-ui/react-progress": ^1.0.3
-    "@radix-ui/react-select": ^2.0.0
-    "@radix-ui/react-separator": ^1.0.3
-    "@radix-ui/react-slot": ^1.0.2
-    "@radix-ui/react-tabs": ^1.0.4
-    "@radix-ui/react-tooltip": ^1.0.7
-    "@t3-oss/env-nextjs": ^0.9.2
-    "@tanstack/react-query": ^5.25.0
-    "@trpc/client": next
-    "@trpc/next": next
-    "@trpc/react-query": next
-    "@trpc/server": next
-    "@types/eslint": ^8.56.2
-    "@types/node": ^20.11.20
-    "@types/react": ^18.2.75
-    "@types/react-dom": ^18.2.24
-    "@typescript-eslint/eslint-plugin": ^7.1.1
-    "@typescript-eslint/parser": ^7.1.1
-    "@vercel/analytics": ^1.2.2
-    class-variance-authority: ^0.7.0
-    clsx: ^2.1.0
-    cmdk: ^1.0.0
-    dayjs: ^1.11.10
-    eslint: ^8.57.0
-    eslint-config-next: ^14.1.3
-    lucide-react: ^0.364.0
-    next: canary
-    next-auth: 5.0.0-beta.16
-    next-axiom: ^1.1.1
-    next-themes: ^0.3.0
-    pino: ^8.20.0
-    postcss: ^8.4.34
-    prettier: ^3.2.5
-    prettier-plugin-tailwindcss: ^0.5.11
-    prisma: ^5.10.2
-    react: ^18.2.0
-    react-dom: ^18.2.0
-    react-wrap-balancer: ^1.1.0
-    server-only: ^0.0.1
-    sonner: ^1.4.41
-    superjson: ^2.2.1
-    tailwind-merge: ^2.2.2
-    tailwindcss: ^3.4.1
-    tailwindcss-animate: ^1.0.7
-    tsx: ^4.7.2
-    typescript: ^5.4.2
-    zod: ^3.22.4
-  languageName: unknown
-  linkType: soft
-
 "exponential-backoff@npm:^3.1.1":
   version: 3.1.1
   resolution: "exponential-backoff@npm:3.1.1"
@@ -5765,6 +5701,70 @@ __metadata:
   checksum: 87f4164e396f0171b0a3386cc1877a817f572148ee13a7e113b238e48e8a9f2f31d009a92ec38a591ff1567d9662c6b67fd8818a2dbbaed74bc26a87a2a4a9a0
   languageName: node
   linkType: hard
+
+"root-workspace-0b6124@workspace:.":
+  version: 0.0.0-use.local
+  resolution: "root-workspace-0b6124@workspace:."
+  dependencies:
+    "@auth/prisma-adapter": ^1.4.0
+    "@calcom/atoms": ^1.0.21
+    "@libsql/client": ^0.6.0
+    "@opentelemetry/api": ^1.8.0
+    "@prisma/adapter-libsql": ^5.12.1
+    "@prisma/client": ^5.10.2
+    "@radix-ui/react-dialog": ^1.0.5
+    "@radix-ui/react-dropdown-menu": ^2.0.6
+    "@radix-ui/react-label": ^2.0.2
+    "@radix-ui/react-popover": ^1.0.7
+    "@radix-ui/react-progress": ^1.0.3
+    "@radix-ui/react-select": ^2.0.0
+    "@radix-ui/react-separator": ^1.0.3
+    "@radix-ui/react-slot": ^1.0.2
+    "@radix-ui/react-tabs": ^1.0.4
+    "@radix-ui/react-tooltip": ^1.0.7
+    "@t3-oss/env-nextjs": ^0.9.2
+    "@tanstack/react-query": ^5.25.0
+    "@trpc/client": next
+    "@trpc/next": next
+    "@trpc/react-query": next
+    "@trpc/server": next
+    "@types/eslint": ^8.56.2
+    "@types/node": ^20.11.20
+    "@types/react": ^18.2.75
+    "@types/react-dom": ^18.2.24
+    "@typescript-eslint/eslint-plugin": ^7.1.1
+    "@typescript-eslint/parser": ^7.1.1
+    "@vercel/analytics": ^1.2.2
+    class-variance-authority: ^0.7.0
+    clsx: ^2.1.0
+    cmdk: ^1.0.0
+    dayjs: ^1.11.10
+    eslint: ^8.57.0
+    eslint-config-next: ^14.1.3
+    lucide-react: ^0.364.0
+    next: canary
+    next-auth: 5.0.0-beta.16
+    next-axiom: ^1.1.1
+    next-themes: ^0.3.0
+    pino: ^8.20.0
+    postcss: ^8.4.34
+    prettier: ^3.2.5
+    prettier-plugin-tailwindcss: ^0.5.11
+    prisma: ^5.10.2
+    react: ^18.2.0
+    react-dom: ^18.2.0
+    react-wrap-balancer: ^1.1.0
+    server-only: ^0.0.1
+    sonner: ^1.4.41
+    superjson: ^2.2.1
+    tailwind-merge: ^2.2.2
+    tailwindcss: ^3.4.1
+    tailwindcss-animate: ^1.0.7
+    tsx: ^4.7.2
+    typescript: ^5.4.2
+    zod: ^3.22.4
+  languageName: unknown
+  linkType: soft
 
 "rtl-css-js@npm:^1.16.1":
   version: 1.16.1
