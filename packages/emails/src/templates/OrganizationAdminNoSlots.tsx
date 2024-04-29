@@ -27,7 +27,7 @@ export const OrganizationAdminNoSlotsEmail = (
         }}>
         <>{props.language("org_admin_no_slots|heading", { name: props.user })}</>
       </p>
-      <p style={{ fontWeight: 400, fontSize: "24px", lineHeight: "24px" }}>
+      <p style={{ fontWeight: 400, fontSize: "16px", lineHeight: "24px" }}>
         <Trans i18nKey="org_admin_no_slots|content" values={{ username: props.user, slug: props.slug }}>
           Hello Organization Admins,
           <br />
