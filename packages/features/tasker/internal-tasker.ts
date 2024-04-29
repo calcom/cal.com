@@ -1,16 +1,16 @@
 import { Task } from "./repository";
-import type { Payload, Tasker } from "./tasker";
+import { type Tasker, type TaskTypes } from "./tasker";
 import tasksMap from "./tasks";
 
 /**
  * This is the default internal Tasker that uses the Task repository to create tasks.
- * It doesn't have any external dependencies and is suitable for most use cases.
+ * It doens't have any external dependencies and is suitable for most use cases.
  * To use a different Tasker, you can create a new class that implements the Tasker interface.
  * Then, you can use the TaskerFactory to select the new Tasker.
  */
 export class InternalTasker implements Tasker {
-  async create<K extends keyof Payload>(type: K, payload: Payload[K]): Promise<string> {
-    return Task.create(type, JSON.stringify(payload));
+  async create(type: TaskTypes, payload: string): Promise<string> {
+    return Task.create(type, payload);
   }
   async processQueue(): Promise<void> {
     const tasks = await Task.getNextBatch();
