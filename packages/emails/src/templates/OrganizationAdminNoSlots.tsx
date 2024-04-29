@@ -1,4 +1,5 @@
 import type { TFunction } from "next-i18next";
+import { Trans } from "next-i18next";
 
 import { BaseEmailHtml, CallToAction } from "../components";
 
@@ -17,31 +18,40 @@ export const OrganizationAdminNoSlotsEmail = (
   props: OrganizationAdminNoSlotsEmailInput & Partial<React.ComponentProps<typeof BaseEmailHtml>>
 ) => {
   return (
-    <BaseEmailHtml subject={props.language('"org_admin_no_slots|subject', { name: props.user })}>
+    <BaseEmailHtml subject={`No availability found for ${props.user}`}>
       <p
         style={{
           fontWeight: 600,
           fontSize: "32px",
           lineHeight: "38px",
         }}>
-        <>{props.language("org_admin_no_slots|subject", { name: props.user })}</>
+        <>{props.language("org_admin_no_slots|heading", { name: props.user })}</>
       </p>
-      <p style={{ fontWeight: 400, lineHeight: "24px" }}>
-        <>
-          {props.language("org_admin_no_slots|content", {
-            username: props.user,
-            period: "XXX",
-            eventType: props.slug,
-          })}
-        </>
-      </p>
-      <CallToAction
-        label={props.language("email_user_cta", {
-          entity: "organization",
-        })}
-        href={props.editLink}
-        endIconName="linkIcon"
-      />
+      <Trans
+        i18nKey="org_admin_no_slots|content"
+        values={{ username: props.user, slug: props.slug }}
+        as="p"
+        style={{ fontWeight: 400, fontSize: "24px", lineHeight: "24px" }}>
+        Hello Organization Admins,
+        <br />
+        <br />
+        Please note: It has been brought to our attention that {props.user} has not had any availability when
+        a user has visited {props.user}/{props.slug}
+        <br />
+        <br />
+        There’s a few reasons why this could be happening
+        <br />
+        The user does not have any calendars connected
+        <br />
+        Their schedules attached to this event are not enabled
+      </Trans>
+      <div style={{ marginTop: "3rem", marginBottom: "0.75rem" }}>
+        <CallToAction
+          label={props.language("org_admin_no_slots|cta")}
+          href={props.editLink}
+          endIconName="linkIcon"
+        />
+      </div>
     </BaseEmailHtml>
   );
 };

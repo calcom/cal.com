@@ -1,7 +1,8 @@
 import { Redis } from "@upstash/redis";
 
 import type { Dayjs } from "@calcom/dayjs";
-import { getTasker } from "@calcom/features/tasker/tasker-factory";
+import { sendOrganizationAdminNoSlotsNotification } from "@calcom/emails";
+import { IS_PRODUCTION, WEBAPP_URL } from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/lib/server";
 import { prisma } from "@calcom/prisma";
 
@@ -13,7 +14,6 @@ type EventDetails = {
   visitorUid?: string;
 };
 
-// TODO: Build this key based on startTime so we can get a period of time this happens
 const constructRedisKey = (eventDetails: EventDetails, orgSlug?: string) => {
   return `${eventDetails.username}:${eventDetails.eventSlug}${orgSlug ? `@${orgSlug}` : ""}`;
 };
@@ -29,8 +29,7 @@ const constructDataHash = (eventDetails: EventDetails) => {
 };
 
 // 7 days or 60s in dev
-// const NO_SLOTS_NOTIFICATION_FREQUENCY = 604_800;
-const NO_SLOTS_NOTIFICATION_FREQUENCY = 60;
+const NO_SLOTS_NOTIFICATION_FREQUENCY = IS_PRODUCTION ? 604_800 : 60;
 
 const NO_SLOTS_COUNT_FOR_NOTIFICATION = 2;
 
@@ -80,30 +79,27 @@ export const handleNotificationWhenNoSlots = async ({
         },
       },
     });
-    //   Send Email
-    // TODO: use new tasker
-
-    const tasker = getTasker();
+    // TODO: use new tasker as we dont want this blocking loading slots (Just out of scope for this PR)
+    // Tasker isn't 100% working with emails - will refactor after i have made changes to Tasker in another PR.
+    const emailsToSend: Array<Promise<void>> = [];
+    // const tasker = getTasker();
     for (const admin of foundAdmins) {
       const translation = await getTranslation(admin.user.locale ?? "en", "common");
 
       const payload = {
-        to: admin.user.email,
-        template: "OrganizationAdminNoSlotsEmail",
-        payload: {
-          language: translation,
-          to: {
-            email: admin.user.email,
-          },
-          user: eventDetails.username,
-          slug: eventDetails.eventSlug,
-          startTime: eventDetails.startTime.format("YYYY-MM"),
-          editLink: "www.google.com",
+        language: translation,
+        to: {
+          email: admin.user.email,
         },
+        user: eventDetails.username,
+        slug: eventDetails.eventSlug,
+        startTime: eventDetails.startTime.format("YYYY-MM"),
+        // For now navigate here - when impersonation via parameter has been pushed we will impersonate and then navigate to availbability
+        editLink: `${WEBAPP_URL}/availability?type=team`,
       };
-      tasker.create("sendEmail", JSON.stringify(payload));
+
+      emailsToSend.push(sendOrganizationAdminNoSlotsNotification(payload));
     }
-    //   Calling tasker in dev for now but itll be triggered by cron
-    await tasker.processQueue();
+    Promise.all(emailsToSend);
   }
 };

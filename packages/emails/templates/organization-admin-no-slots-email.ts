@@ -29,7 +29,7 @@ export default class OrganizationAdminNoSlotsEmail extends BaseEmail {
     return {
       from: `${APP_NAME} <${this.getMailerOptions().from}>`,
       to: this.adminNoSlots.to.email,
-      subject: this.adminNoSlots.language("org_admin_no_slots|subject"),
+      subject: this.adminNoSlots.language("org_admin_no_slots|subject", { name: this.adminNoSlots.user }),
       html: await renderEmail("OrganizationAdminNoSlotsEmail", this.adminNoSlots),
       text: this.getTextBody(),
     };
@@ -37,9 +37,9 @@ export default class OrganizationAdminNoSlotsEmail extends BaseEmail {
 
   protected getTextBody(): string {
     return `
-    Hi {{orgName}} Admins,
+Hi Admins,
 
-It has been brought to our attention that {{fullname}} ({{username}}) has not had availability for the {period} when a user has visited {{username/eventType}}.
+It has been brought to our attention that ${this.adminNoSlots.user} has not had availability users have visited ${this.adminNoSlots.user}/${this.adminNoSlots.slug}.
 
 There’s a few reasons why this could be happening
 The user does not have any calendars connected
