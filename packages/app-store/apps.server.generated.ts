@@ -12,6 +12,7 @@ export const apiHandlers = {
   "cal-ai": import("./cal-ai/api"),
   caldavcalendar: import("./caldavcalendar/api"),
   campfire: import("./campfire/api"),
+  clic: import("./clic/api"),
   closecom: import("./closecom/api"),
   cron: import("./cron/api"),
   deel: import("./deel/api"),
