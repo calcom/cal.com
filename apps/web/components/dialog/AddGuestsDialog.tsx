@@ -23,7 +23,10 @@ interface IAddGuestsDialog {
 
 export const AddGuestsDialog = (props: IAddGuestsDialog) => {
   const { t } = useLocale();
-  const ZAddGuestsInputSchema = z.array(z.string().email());
+  const ZAddGuestsInputSchema = z.array(z.string().email()).refine((emails) => {
+    const uniqueEmails = new Set(emails);
+    return uniqueEmails.size === emails.length;
+  });
   const { isOpenDialog, setIsOpenDialog, bookingId } = props;
   const utils = trpc.useUtils();
   const [multiEmailValue, setMultiEmailValue] = useState<string[]>([""]);
@@ -31,8 +34,9 @@ export const AddGuestsDialog = (props: IAddGuestsDialog) => {
 
   const addGuestsMutation = trpc.viewer.bookings.addGuests.useMutation({
     onSuccess: async () => {
-      showToast(t("guests_updated"), "success");
+      showToast(t("guests_added"), "success");
       setIsOpenDialog(false);
+      setMultiEmailValue([""]);
       utils.viewer.bookings.invalidate();
     },
     onError: () => {
@@ -74,7 +78,7 @@ export const AddGuestsDialog = (props: IAddGuestsDialog) => {
                   <Icon name="triangle-alert" className="h-5 w-5" />
                 </div>
                 <div className="ml-3">
-                  <p className="font-medium">{t("email_validation_error")}</p>
+                  <p className="font-medium">{t("emails_must_be_unique_valid")}</p>
                 </div>
               </div>
             )}
@@ -90,7 +94,7 @@ export const AddGuestsDialog = (props: IAddGuestsDialog) => {
                 color="secondary">
                 {t("cancel")}
               </Button>
-              <Button data-testid="add_members" onClick={handleAdd}>
+              <Button data-testid="add_members" loading={addGuestsMutation.isPending} onClick={handleAdd}>
                 {t("add")}
               </Button>
             </DialogFooter>

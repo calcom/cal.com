@@ -13,6 +13,7 @@ import type { EmailVerifyLink } from "./templates/account-verify-email";
 import AccountVerifyEmail from "./templates/account-verify-email";
 import type { OrganizationNotification } from "./templates/admin-organization-notification";
 import AdminOrganizationNotification from "./templates/admin-organization-notification";
+import AttendeeAddGuestsEmail from "./templates/attendee-add-guests-email";
 import AttendeeAwaitingPaymentEmail from "./templates/attendee-awaiting-payment-email";
 import AttendeeCancelledEmail from "./templates/attendee-cancelled-email";
 import AttendeeCancelledSeatEmail from "./templates/attendee-cancelled-seat-email";
@@ -44,6 +45,7 @@ import type { OrganizationCreation } from "./templates/organization-creation-ema
 import OrganizationCreationEmail from "./templates/organization-creation-email";
 import type { OrganizationEmailVerify } from "./templates/organization-email-verification";
 import OrganizationEmailVerification from "./templates/organization-email-verification";
+import OrganizerAddGuestsEmail from "./templates/organizer-add-guests-email";
 import OrganizerAttendeeCancelledSeatEmail from "./templates/organizer-attendee-cancelled-seat-email";
 import OrganizerCancelledEmail from "./templates/organizer-cancelled-email";
 import OrganizerDailyVideoDownloadRecordingEmail from "./templates/organizer-daily-video-download-recording-email";
@@ -415,6 +417,28 @@ export const sendLocationChangeEmails = async (calEvent: CalendarEvent) => {
   emailsToSend.push(
     ...calendarEvent.attendees.map((attendee) => {
       return sendEmail(() => new AttendeeLocationChangeEmail(calendarEvent, attendee));
+    })
+  );
+
+  await Promise.all(emailsToSend);
+};
+export const sendAddGuestsEmails = async (calEvent: CalendarEvent) => {
+  const calendarEvent = formatCalEvent(calEvent);
+
+  const emailsToSend: Promise<unknown>[] = [];
+  emailsToSend.push(sendEmail(() => new OrganizerAddGuestsEmail({ calEvent: calendarEvent })));
+
+  if (calendarEvent.team?.members) {
+    for (const teamMember of calendarEvent.team.members) {
+      emailsToSend.push(
+        sendEmail(() => new OrganizerAddGuestsEmail({ calEvent: calendarEvent, teamMember }))
+      );
+    }
+  }
+
+  emailsToSend.push(
+    ...calendarEvent.attendees.map((attendee) => {
+      return sendEmail(() => new AttendeeAddGuestsEmail(calendarEvent, attendee));
     })
   );
 

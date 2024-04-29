@@ -35,3 +35,5 @@ export { AdminOrganizationNotificationEmail } from "./AdminOrganizationNotificat
 export { BookingRedirectEmailNotification } from "./BookingRedirectEmailNotification";
 export { VerifyEmailChangeEmail } from "./VerifyEmailChangeEmail";
 export { OrganizationCreationEmail } from "./OrganizationCreationEmail";
+export { OrganizerAddGuestsEmail } from "./OrganizerAddGuestsEmail";
+export { AttendeeAddGuestsEmail } from "./AttendeeAddGuestsEmail";
