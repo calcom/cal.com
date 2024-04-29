@@ -6,7 +6,7 @@ import { DeleteEventTypeOutput } from "@/ee/event-types/outputs/delete-event-typ
 import { GetEventTypePublicOutput } from "@/ee/event-types/outputs/get-event-type-public.output";
 import { GetEventTypeOutput } from "@/ee/event-types/outputs/get-event-type.output";
 import { GetEventTypesPublicOutput } from "@/ee/event-types/outputs/get-event-types-public.output";
-import { GetEventTypesOutput } from "@/ee/event-types/outputs/get-event-types.output";
+import { GetEventTypesData, GetEventTypesOutput } from "@/ee/event-types/outputs/get-event-types.output";
 import { UpdateEventTypeOutput } from "@/ee/event-types/outputs/update-event-type.output";
 import { EventTypesService } from "@/ee/event-types/services/event-types.service";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
@@ -96,7 +96,7 @@ export class EventTypesController {
 
     return {
       status: SUCCESS_STATUS,
-      data: eventTypes,
+      data: eventTypes as GetEventTypesData,
     };
   }
 
