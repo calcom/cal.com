@@ -8,7 +8,7 @@ export const schemaTeamBaseBodyParams = Team.omit({ id: true, createdAt: true })
   pendingPayment: true,
   isOrganization: true,
   isPlatform: true,
-  smsLockState : true,
+  smsLockState: true,
 });
 
 const schemaTeamRequiredParams = z.object({
