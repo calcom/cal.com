@@ -130,6 +130,9 @@
       "prettier --write",
       "eslint --fix"
     ],
+    "examples/**/prettier.config.js": [
+      "node -c"
+    ],
     "*.json": [
       "prettier --write"
     ],
