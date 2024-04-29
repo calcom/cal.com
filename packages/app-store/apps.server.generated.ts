@@ -73,6 +73,7 @@ export const apiHandlers = {
   "general-app-settings": import("./templates/general-app-settings/api"),
   "link-as-an-app": import("./templates/link-as-an-app/api"),
   typeform: import("./typeform/api"),
+  umami: import("./umami/api"),
   vimcal: import("./vimcal/api"),
   vital: import("./vital/api"),
   weather_in_your_calendar: import("./weather_in_your_calendar/api"),
