@@ -2,7 +2,7 @@
 CREATE TABLE "PlatformBilling" (
     "id" INTEGER NOT NULL,
     "customerId" TEXT NOT NULL,
-    "plan" TEXT NOT NULL,
+    "plan" TEXT NOT NULL DEFAULT 'none',
     "subscriptionId" TEXT,
     "billingCycleStart" INTEGER,
     "billingCycleEnd" INTEGER,
