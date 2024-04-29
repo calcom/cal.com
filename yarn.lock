@@ -4109,6 +4109,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/clic@workspace:packages/app-store/clic":
+  version: 0.0.0-use.local
+  resolution: "@calcom/clic@workspace:packages/app-store/clic"
+  dependencies:
+    "@calcom/lib": "*"
+    "@calcom/types": "*"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/closecom@workspace:packages/app-store/closecom":
   version: 0.0.0-use.local
   resolution: "@calcom/closecom@workspace:packages/app-store/closecom"

@@ -6,7 +6,7 @@ import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
 import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
-import { BillingService } from "@/modules/billing/billing.service";
+import { BillingService } from "@/modules/billing/services/billing.service";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { OAuthFlowService } from "@/modules/oauth-clients/services/oauth-flow.service";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
@@ -162,7 +162,7 @@ export class BookingsController {
         data: booking,
       };
     } catch (err) {
-      handleBookingErrors(err);
+      this.handleBookingErrors(err);
     }
     throw new InternalServerErrorException("Could not create booking.");
   }
@@ -183,7 +183,7 @@ export class BookingsController {
           status: SUCCESS_STATUS,
         };
       } catch (err) {
-        handleBookingErrors(err);
+        this.handleBookingErrors(err);
       }
     } else {
       throw new NotFoundException("Booking ID is required.");
@@ -210,7 +210,7 @@ export class BookingsController {
         data: createdBookings,
       };
     } catch (err) {
-      handleBookingErrors(err, "recurring");
+      this.handleBookingErrors(err, "recurring");
     }
     throw new InternalServerErrorException("Could not create recurring booking.");
   }
@@ -235,12 +235,12 @@ export class BookingsController {
         data: instantMeeting,
       };
     } catch (err) {
-      handleBookingErrors(err, "instant");
+      this.handleBookingErrors(err, "instant");
     }
     throw new InternalServerErrorException("Could not create instant booking.");
   }
 
-  async getOwnerId(req: Request): Promise<number | undefined> {
+  private async getOwnerId(req: Request): Promise<number | undefined> {
     try {
       const accessToken = req.get("Authorization")?.replace("Bearer ", "");
       if (accessToken) {
@@ -251,7 +251,7 @@ export class BookingsController {
     }
   }
 
-  async getOAuthClientsParams(req: BookingRequest, clientId: string): Promise<OAuthRequestParams> {
+  private async getOAuthClientsParams(clientId: string): Promise<OAuthRequestParams> {
     const res = DEFAULT_PLATFORM_PARAMS;
     try {
       const client = await this.oAuthClientRepository.getOAuthClient(clientId);
@@ -270,32 +270,32 @@ export class BookingsController {
     }
   }
 
-  async createNextApiBookingRequest(
+  private async createNextApiBookingRequest(
     req: BookingRequest,
     oAuthClientId?: string,
     platformBookingLocation?: string
   ): Promise<NextApiRequest & { userId?: number } & OAuthRequestParams> {
     const userId = (await this.getOwnerId(req)) ?? -1;
     const oAuthParams = oAuthClientId
-      ? await this.getOAuthClientsParams(req, oAuthClientId)
+      ? await this.getOAuthClientsParams(oAuthClientId)
       : DEFAULT_PLATFORM_PARAMS;
     Object.assign(req, { userId, ...oAuthParams, platformBookingLocation });
     req.body = { ...req.body, noEmail: !oAuthParams.arePlatformEmailsEnabled };
     return req as unknown as NextApiRequest & { userId?: number } & OAuthRequestParams;
   }
-}
 
-function handleBookingErrors(err: Error | HttpError | unknown, type?: "recurring" | `instant`): void {
-  const errMsg = `Error while creating ${type ? type + " " : ""}booking.`;
-  if (err instanceof HttpError) {
-    const httpError = err as HttpError;
-    throw new HttpException(httpError?.message ?? errMsg, httpError?.statusCode ?? 500);
+  private handleBookingErrors(err: Error | HttpError | unknown, type?: "recurring" | `instant`): void {
+    const errMsg = `Error while creating ${type ? type + " " : ""}booking.`;
+    if (err instanceof HttpError) {
+      const httpError = err as HttpError;
+      throw new HttpException(httpError?.message ?? errMsg, httpError?.statusCode ?? 500);
+    }
+
+    if (err instanceof Error) {
+      const error = err as Error;
+      throw new InternalServerErrorException(error?.message ?? errMsg);
+    }
+
+    throw new InternalServerErrorException(errMsg);
   }
-
-  if (err instanceof Error) {
-    const error = err as Error;
-    throw new InternalServerErrorException(error?.message ?? errMsg);
-  }
-
-  throw new InternalServerErrorException(errMsg);
 }

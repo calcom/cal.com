@@ -1,6 +1,6 @@
 import { AppConfig } from "@/config/type";
-import { BillingConfigService } from "@/modules/billing/billing.config.service";
 import { BillingRepository } from "@/modules/billing/billing.repository";
+import { BillingConfigService } from "@/modules/billing/services/billing.config.service";
 import { PlatformPlan } from "@/modules/billing/types";
 import { OrganizationsRepository } from "@/modules/organizations/organizations.repository";
 import { StripeService } from "@/modules/stripe/stripe.service";

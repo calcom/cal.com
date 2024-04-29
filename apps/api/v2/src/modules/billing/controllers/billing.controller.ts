@@ -1,12 +1,11 @@
 import { AppConfig } from "@/config/type";
-import { BaseApiResponseDto } from "@/lib/response/response.dto";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { NextAuthGuard } from "@/modules/auth/guards/next-auth/next-auth.guard";
 import { OrganizationRolesGuard } from "@/modules/auth/guards/organization-roles/organization-roles.guard";
-import { BillingService } from "@/modules/billing/billing.service";
 import { SubscribeToPlanInput } from "@/modules/billing/controllers/inputs/subscribe-to-plan.input";
-import { CheckPlatformBillingResponseDto } from "@/modules/billing/controllers/responses/CheckPlatformBillingResponse.dto";
-import { SubscribeTeamToBillingResponseDto } from "@/modules/billing/controllers/responses/SubscribeTeamToBillingResponse.dto";
+import { CheckPlatformBillingResponseDto } from "@/modules/billing/controllers/outputs/CheckPlatformBillingResponse.dto";
+import { SubscribeTeamToBillingResponseDto } from "@/modules/billing/controllers/outputs/SubscribeTeamToBillingResponse.dto";
+import { BillingService } from "@/modules/billing/services/billing.service";
 import { PlatformPlan } from "@/modules/billing/types";
 import {
   BadRequestException,
