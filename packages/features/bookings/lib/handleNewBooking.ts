@@ -181,6 +181,12 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
           id: true,
           name: true,
           parentId: true,
+          members: {
+            select: {
+              userId: true,
+              accepted: true,
+            },
+          },
         },
       },
       bookingFields: true,
@@ -300,16 +306,21 @@ const loadUsers = async (eventType: NewBookingEventType, dynamicUserList: string
       return users;
     }
     const hosts = eventType.hosts || [];
+    const teamMembers = eventType.team?.members || [];
 
     if (!Array.isArray(hosts)) {
       throw new Error("eventType.hosts is not properly defined.");
     }
 
-    const users = hosts.map(({ user, isFixed, priority }) => ({
+    let users = hosts.map(({ user, isFixed, priority }) => ({
       ...user,
       isFixed,
       priority,
     }));
+
+    users = users.filter((user) =>
+      teamMembers.some((member) => member.userId === user.id && member.accepted === true)
+    );
 
     return users.length ? users : eventType.users;
   } catch (error) {

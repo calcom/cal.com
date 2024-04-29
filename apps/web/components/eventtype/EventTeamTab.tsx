@@ -357,7 +357,7 @@ const Hosts = ({
         const schedulingTypeRender = {
           COLLECTIVE: (
             <FixedHosts
-              teamMembers={teamMembers}
+              teamMembers={allMembers}
               value={value}
               onChange={onChange}
               assignAllTeamMembers={assignAllTeamMembers}
@@ -369,7 +369,7 @@ const Hosts = ({
           ROUND_ROBIN: (
             <>
               <FixedHosts
-                teamMembers={teamMembers}
+                teamMembers={allMembers}
                 value={value}
                 onChange={(changeValue) => {
                   onChange([...value.filter((host: Host) => !host.isFixed), ...changeValue]);

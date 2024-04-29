@@ -206,6 +206,16 @@ export async function getEventType(
           ...availabilityUserSelect,
         },
       },
+      team: {
+        select: {
+          members: {
+            select: {
+              userId: true,
+              accepted: true,
+            },
+          },
+        },
+      },
     },
   });
 
@@ -367,7 +377,11 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
   }));
   // overwrite if it is a team event & hosts is set, otherwise keep using users.
   if (eventType.schedulingType && !!eventType.hosts?.length) {
-    usersWithCredentials = eventType.hosts.map(({ isFixed, user }) => ({ isFixed, ...user }));
+    const teamMembers = eventType.team?.members || [];
+    //also removes pending hosts to avoid blocking availability for all.
+    usersWithCredentials = eventType.hosts
+      .map(({ isFixed, user }) => ({ isFixed, ...user }))
+      .filter((user) => teamMembers.some((member) => member.userId === user.id && member.accepted === true));
   }
 
   const durationToUse = input.duration || 0;
