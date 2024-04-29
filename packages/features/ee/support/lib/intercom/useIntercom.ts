@@ -5,6 +5,7 @@ import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
 import { WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
+import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { useHasTeamPlan, useHasPaidPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { trpc } from "@calcom/trpc/react";
 
@@ -62,6 +63,7 @@ export const useIntercom = () => {
         has_org: !data.organizationId,
         sum_of_event_types: data.sumOfEventTypes,
         sum_of_team_event_types: data.sumOfTeamEventTypes,
+        is_premium: hasKeyInMetadata(data, "isPremium") ? !!data.metadata.isPremium : false,
       },
     });
   };
