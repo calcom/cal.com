@@ -89,10 +89,14 @@ apps/console
 apps/auth
 
 # Yarn Modern
-.pnp.*
-.yarn/*
+.pnp.
+.yarn
 !.yarn/patches
 !.yarn/plugins
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+
+# examples
+examples/**/out
+examples/**/.env*.local
