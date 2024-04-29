@@ -683,7 +683,6 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
 
   // We only want to run this on single targeted events and not dynamic
   if (!computedAvailableSlots.slots && input.usernameList?.length === 1) {
-    console.log("RUNNING");
     await handleNotificationWhenNoSlots({
       eventDetails: {
         username: input.usernameList?.[0],

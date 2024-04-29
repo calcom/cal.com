@@ -14,6 +14,11 @@ type EventDetails = {
   visitorUid?: string;
 };
 
+// 7 days or 60s in dev
+const NO_SLOTS_NOTIFICATION_FREQUENCY = IS_PRODUCTION ? 604_800 : 60;
+
+const NO_SLOTS_COUNT_FOR_NOTIFICATION = 2;
+
 const constructRedisKey = (eventDetails: EventDetails, orgSlug?: string) => {
   return `${eventDetails.username}:${eventDetails.eventSlug}${orgSlug ? `@${orgSlug}` : ""}`;
 };
@@ -28,11 +33,6 @@ const constructDataHash = (eventDetails: EventDetails) => {
   return JSON.stringify(obj);
 };
 
-// 7 days or 60s in dev
-const NO_SLOTS_NOTIFICATION_FREQUENCY = IS_PRODUCTION ? 604_800 : 60;
-
-const NO_SLOTS_COUNT_FOR_NOTIFICATION = 2;
-
 export const handleNotificationWhenNoSlots = async ({
   eventDetails,
   orgDetails,
@@ -40,9 +40,27 @@ export const handleNotificationWhenNoSlots = async ({
   eventDetails: EventDetails;
   orgDetails: { currentOrgDomain: string | null; isValidOrgDomain: boolean };
 }) => {
+  // Check for org
   if (!orgDetails.currentOrgDomain) return;
   const UPSTASH_ENV_FOUND = process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN;
   if (!UPSTASH_ENV_FOUND) return;
+
+  // Check org has this setting enabled
+  const orgSettings = await prisma.team.findFirst({
+    where: {
+      slug: orgDetails.currentOrgDomain,
+      isOrganization: true,
+    },
+    select: {
+      organizationSettings: {
+        select: {
+          adminGetsNoSlotsNotification: true,
+        },
+      },
+    },
+  });
+
+  if (!orgSettings?.organizationSettings?.adminGetsNoSlotsNotification) return;
 
   const redis = Redis.fromEnv();
 

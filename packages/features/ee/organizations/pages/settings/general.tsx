@@ -25,6 +25,7 @@ import {
   TimezoneSelect,
 } from "@calcom/ui";
 
+import { AdminNoSlotsNotificationSwitch } from "../components/AdminNoSlotsNotificationSwitch";
 import { LockEventTypeSwitch } from "../components/LockEventTypeSwitch";
 
 const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
@@ -85,6 +86,7 @@ const OrgGeneralView = () => {
       />
 
       <LockEventTypeSwitch currentOrg={currentOrg} isAdminOrOwner={isAdminOrOwner} />
+      <AdminNoSlotsNotificationSwitch currentOrg={currentOrg} isAdminOrOwner={isAdminOrOwner} />
     </LicenseRequired>
   );
 };
