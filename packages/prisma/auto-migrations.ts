@@ -19,6 +19,7 @@ async function main(): Promise<void> {
     return;
   }
   if (!process.env.DATABASE_DIRECT_URL) {
+    process.env.DATABASE_DIRECT_URL = process.env.DATABASE_URL;
     console.info("No DATABASE_DIRECT_URL found, skipping migrations");
     return;
   }
