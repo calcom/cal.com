@@ -59,7 +59,8 @@ export class EventTypeOutput {
 
   @IsInt()
   @ApiHideProperty()
-  position!: number;
+  @IsOptional()
+  position?: number;
 
   @IsInt()
   @ApiHideProperty()
@@ -71,7 +72,8 @@ export class EventTypeOutput {
 
   @IsInt()
   @ApiHideProperty()
-  profileId!: number | null;
+  @IsOptional()
+  profileId?: number | null;
 
   @IsInt()
   @ApiHideProperty()
@@ -83,7 +85,8 @@ export class EventTypeOutput {
 
   @IsInt()
   @ApiHideProperty()
-  parentId!: number | null;
+  @IsOptional()
+  parentId?: number | null;
 
   @IsOptional()
   @IsArray()
@@ -176,7 +179,8 @@ export class EventTypeOutput {
 
   @IsInt()
   @ApiHideProperty()
-  scheduleId!: number | null;
+  @IsOptional()
+  scheduleId?: number | null;
 
   @IsNumber()
   @ApiHideProperty()

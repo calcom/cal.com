@@ -71,6 +71,37 @@ export const meHandler = async ({ ctx, input }: MeOptions) => {
     identityProviderEmail = account?.providerEmail || "";
   }
 
+  const additionalUserInfo = await prisma.user.findFirst({
+    where: {
+      id: user.id,
+    },
+    select: {
+      bookings: {
+        select: { id: true },
+      },
+      selectedCalendars: true,
+      teams: {
+        select: {
+          team: {
+            select: {
+              id: true,
+              eventTypes: true,
+            },
+          },
+        },
+      },
+      eventTypes: {
+        select: { id: true },
+      },
+    },
+  });
+  let sumOfTeamEventTypes = 0;
+  for (const team of additionalUserInfo?.teams || []) {
+    for (const _eventType of team.team.eventTypes) {
+      sumOfTeamEventTypes++;
+    }
+  }
+
   // Destructuring here only makes it more illegible
   // pick only the part we want to expose in the API
   return {
@@ -113,6 +144,11 @@ export const meHandler = async ({ ctx, input }: MeOptions) => {
     profile: user.profile ?? null,
     profiles: allUserEnrichedProfiles,
     secondaryEmails,
+    sumOfBookings: additionalUserInfo?.bookings.length,
+    sumOfCalendars: additionalUserInfo?.selectedCalendars.length,
+    sumOfTeams: additionalUserInfo?.teams.length,
+    sumOfEventTypes: additionalUserInfo?.eventTypes.length,
+    sumOfTeamEventTypes,
     ...(passwordAdded ? { passwordAdded } : {}),
   };
 };

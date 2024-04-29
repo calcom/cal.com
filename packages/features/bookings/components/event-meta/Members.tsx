@@ -1,6 +1,9 @@
 import { useIsPlatform } from "@calcom/atoms/monorepo";
+import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
+import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
+import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { SchedulingType } from "@calcom/prisma/enums";
-import { UserAvatarGroup, UserAvatarGroupWithOrg } from "@calcom/ui";
+import { AvatarGroup } from "@calcom/ui";
 
 import type { PublicEvent } from "../../types";
 
@@ -17,7 +20,8 @@ export interface EventMembersProps {
 
 export const EventMembers = ({ schedulingType, users, profile, entity }: EventMembersProps) => {
   const isPlatform = useIsPlatform();
-  const showMembers = schedulingType !== SchedulingType.ROUND_ROBIN;
+  const isEmbed = useIsEmbed();
+  const showMembers = !!schedulingType && schedulingType !== SchedulingType.ROUND_ROBIN;
   const shownUsers = showMembers && !isPlatform ? users : [];
 
   // In some cases we don't show the user's names, but only show the profile name.
@@ -28,19 +32,27 @@ export const EventMembers = ({ schedulingType, users, profile, entity }: EventMe
 
   return (
     <>
-      {entity.orgSlug ? (
-        <UserAvatarGroupWithOrg
-          size="sm"
-          className="border-muted"
-          organization={{
-            slug: entity.orgSlug,
-            name: entity.name || "",
-          }}
-          users={shownUsers}
-        />
-      ) : (
-        <UserAvatarGroup size="sm" className="border-muted" users={shownUsers} />
-      )}
+      <AvatarGroup
+        size="sm"
+        className="border-muted"
+        items={[
+          {
+            // We don't want booker to be able to see the list of other users or teams inside the embed
+            href: isEmbed ? null : getBookerBaseUrlSync(entity.orgSlug),
+            image: profile.image || "",
+            alt: profile.name || "",
+            title: profile.name || "",
+          },
+          ...shownUsers.map((user) => ({
+            href: `${getBookerBaseUrlSync(user.profile?.organization?.slug ?? null)}/${
+              user.profile?.username
+            }?redirect=false`,
+            alt: user.name || "",
+            title: user.name || "",
+            image: getUserAvatarUrl(user),
+          })),
+        ]}
+      />
 
       <p className="text-subtle mt-2 text-sm font-semibold">
         {showOnlyProfileName
