@@ -12,7 +12,7 @@ export const ExpertBooker = (
     className?: string;
     calAccount: CalAccount;
     expert: User;
-  } & BookerProps,
+  } & Partial<BookerProps>,
 ) => {
   const router = useRouter();
   const searchParams = useSearchParams();
