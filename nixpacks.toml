@@ -47,4 +47,5 @@ onlyIncludeFiles = [
   "apps/api/v1/package.json",
   "apps/api/v2/package.json",
   "apps/api/package.json",
+  "packages/prisma/schema.prisma",
 ]
