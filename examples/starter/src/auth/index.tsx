@@ -1,5 +1,6 @@
 import "server-only";
 import NextAuth from "next-auth";
+import { randomBytes, scrypt, timingSafeEqual } from 'node:crypto'
 import type { Session } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { cache } from "react";
@@ -10,111 +11,32 @@ import { db } from "prisma/client";
 import { type User } from "@prisma/client";
 import { env } from "~/env";
 
-
-function timingSafeEqual(a:ArrayBuffer, b:ArrayBuffer) {
-  const uint8A = new Uint8Array(a);
-  const uint8B = new Uint8Array(b);
-  if (uint8A.length !== uint8B.length) return false;
-  let result = 0;
-  for (let i = 0; i < uint8A.length; i++) {
-    const first = uint8A[i]
-    const second = uint8B[i]
-    if (first && second) {
-    result |= first ^ second;
-  }
-  }
-  return result === 0;
-}
-
 async function hash(password: string) {
-  const encoder = new TextEncoder();
-  const passwordBuffer = encoder.encode(password);
-  const salt = crypto.getRandomValues(new Uint8Array(16));
-  try {
-    const derivedKey = await crypto.subtle.importKey(
-      "raw",
-      passwordBuffer,
-      { name: "PBKDF2" },
-      false,
-      ["deriveBits"]
-    );
-    const derivedBits = await crypto.subtle.deriveBits(
-      {
-        name: "PBKDF2",
-        salt: salt,
-        iterations: 100000,
-        hash: "SHA-256",
-      },
-      derivedKey,
-      256
-    );
-    const derivedKeyBuffer = new Uint8Array(derivedBits);
-    const derivedKeyHex = Array.prototype.map
-      .call(derivedKeyBuffer, (byte) => {
-        return ("0" + (byte & 0xff).toString(16)).slice(-2);
-      })
-      .join("");
-    const saltHex = Array.prototype.map
-      .call(salt, (byte) => {
-        return ("0" + (byte & 0xff).toString(16)).slice(-2);
-      })
-      .join("");
-    return `${saltHex}.${derivedKeyHex}`;
-  } catch (err) {
-    console.error("Error hashing password", err);
-    throw err;
-  }
+  return new Promise<string>((resolve, reject) => {
+    const salt = randomBytes(16).toString('hex')
+    scrypt(password, salt, 64, (err, derivedKey) => {
+      if (err) {
+        console.error('Error hashing password', err)
+        reject(err)
+      }
+      resolve(`${salt}.${derivedKey.toString('hex')}`)
+    })
+  })
 }
 
-async function compare(password: string, hashedPassword: string) {
-  const encoder = new TextEncoder();
-  const decoder = new TextDecoder();
-  const [salt, hashKey] = hashedPassword.split(".") as [string, string];
-  const saltBuffer = encoder.encode(salt);
-  const hashKeyBuffer = hexStringToArrayBuffer(hashKey);
-  const passwordBuffer = encoder.encode(password);
-
-  try {
-    const derivedKey = await crypto.subtle.importKey(
-      "raw",
-      passwordBuffer,
-      { name: "PBKDF2" },
-      false,
-      ["deriveBits"]
-    );
-
-    const derivedBits = await crypto.subtle.deriveBits(
-      {
-        name: "PBKDF2",
-        salt: saltBuffer,
-        iterations: 100000,
-        hash: "SHA-256",
-      },
-      derivedKey,
-      256
-    );
-
-    const derivedKeyBuffer = new Uint8Array(derivedBits);
-    const hashKeyBufferCrypto = await crypto.subtle.digest(
-      "SHA-256",
-      derivedKeyBuffer
-    );
-
-    return timingSafeEqual(hashKeyBuffer, hashKeyBufferCrypto);
-  } catch (err) {
-    console.error("Error comparing password", err);
-    throw err;
-  }
-}
-
-function hexStringToArrayBuffer(hexString: string) {
-  const arrayBuffer = new ArrayBuffer(hexString.length / 2);
-  const uint8Array = new Uint8Array(arrayBuffer);
-  for (let i = 0; i < hexString.length; i += 2) {
-    const byteValue = parseInt(hexString.substr(i, 2), 16);
-    uint8Array[i / 2] = byteValue;
-  }
-  return arrayBuffer;
+async function compare(password: string, hash: string) {
+  return new Promise<boolean>((resolve, reject) => {
+    const [salt, hashKey] = hash.split('.') as [string, string]
+    scrypt(password, salt, 64, (err, derivedKey) => {
+      if (err) {
+        console.error('Error comparing password', err)
+        reject(err)
+      }
+      console.log(Buffer.from(hashKey, 'hex').length);
+      console.log(derivedKey.length);
+      resolve(timingSafeEqual(Buffer.from(hashKey, 'hex'), derivedKey))
+    })
+  })
 }
 
 /** [@calcom] This return type is typed out from the docs
