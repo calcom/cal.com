@@ -5,6 +5,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { defaultResponder } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
+import type { AppCategories } from "@calcom/prisma/client";
 
 import checkSession from "../../_utils/auth";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
@@ -38,7 +39,7 @@ export async function getHandler(req: NextApiRequest, res: NextApiResponse) {
       userId: req.session?.user.id,
       // TODO: add team installation
       appSlug: appConfig.slug,
-      appCategories: appConfig.categories,
+      appCategories: appConfig.categories as AppCategories[],
       credentialId: credential.id,
     });
   } catch (reason) {

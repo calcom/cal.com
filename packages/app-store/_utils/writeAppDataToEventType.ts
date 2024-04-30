@@ -1,9 +1,8 @@
-import type z from "zod";
-
 import prisma from "@calcom/prisma";
 import type { AppCategories } from "@calcom/prisma/enums";
-import type { EventTypeAppMetadataSchema } from "@calcom/prisma/zod-utils";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+
+import type { appDataSchemas } from "../apps.schemas.generated";
 
 const writeAppDataToEventType = async ({
   userId,
@@ -14,7 +13,7 @@ const writeAppDataToEventType = async ({
 }: {
   userId?: number;
   teamId?: number;
-  appSlug: keyof z.infer<typeof EventTypeAppMetadataSchema>;
+  appSlug: string;
   appCategories: AppCategories[];
   credentialId: number;
 }) => {
@@ -46,7 +45,7 @@ const writeAppDataToEventType = async ({
   for (const eventType of eventTypes) {
     let metadata = EventTypeMetaDataSchema.parse(eventType.metadata);
 
-    if (metadata?.apps && metadata.apps[appSlug]) {
+    if (metadata?.apps && metadata.apps[appSlug as keyof typeof appDataSchemas]) {
       continue;
     }
 
