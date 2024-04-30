@@ -104,6 +104,12 @@ export class BillingController {
 
     if (event.type === "customer.subscription.created" || event.type === "customer.subscription.updated") {
       const subscription = event.data.object as Stripe.Subscription;
+      if (!subscription.metadata?.teamId) {
+        return {
+          status: "success",
+        };
+      }
+
       const teamId = Number.parseInt(subscription.metadata.teamId);
       const plan = subscription.metadata.plan;
       if (!plan || !teamId) {
