@@ -763,6 +763,15 @@ export function getGoogleCalendarCredential() {
   });
 }
 
+export function getGoogleMeetCredential() {
+  return getMockedCredential({
+    metadataLookupKey: "googlevideo",
+    key: {
+      scope: "",
+    },
+  });
+}
+
 export function getAppleCalendarCredential() {
   return getMockedCredential({
     metadataLookupKey: "applecalendar",
@@ -881,6 +890,17 @@ export const TestData = {
   apps: {
     "google-calendar": {
       ...appStoreMetadata.googlecalendar,
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      //@ts-ignore
+      keys: {
+        expiry_date: Infinity,
+        client_id: "client_id",
+        client_secret: "client_secret",
+        redirect_uris: ["http://localhost:3000/auth/callback"],
+      },
+    },
+    "google-meet": {
+      ...appStoreMetadata.googlevideo,
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       //@ts-ignore
       keys: {
@@ -1487,6 +1507,7 @@ export function getMockBookingAttendee(
 export const enum BookingLocations {
   CalVideo = "integrations:daily",
   ZoomVideo = "integrations:zoom",
+  GoogleMeet = "integrations:google:meet",
 }
 
 const getMockAppStatus = ({
