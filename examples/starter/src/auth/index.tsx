@@ -32,8 +32,6 @@ async function compare(password: string, hash: string) {
         console.error('Error comparing password', err)
         reject(err)
       }
-      console.log(Buffer.from(hashKey, 'hex').length);
-      console.log(derivedKey.length);
       resolve(timingSafeEqual(Buffer.from(hashKey, 'hex'), derivedKey))
     })
   })
