@@ -9,6 +9,7 @@ export const V2_ENDPOINTS = {
 
 export const SUCCESS_STATUS = "success";
 export const ERROR_STATUS = "error";
+export const REDIRECT_STATUS = "redirect";
 // Client Errors (4xx)
 export const BAD_REQUEST = "BAD_REQUEST";
 export const UNAUTHORIZED = "UNAUTHORIZED";

@@ -400,6 +400,7 @@ model Team {
   isPlatform            Boolean                 @default(false)
   platformOAuthClient   PlatformOAuthClient[]
   smsLockState          SMSLockState            @default(UNLOCKED)
+  platformBilling       PlatformBilling?
 
   @@unique([slug, parentId])
   @@index([parentId])
@@ -1356,4 +1357,18 @@ enum SMSLockState {
   LOCKED
   UNLOCKED
   REVIEW_NEEDED
+}
+
+model PlatformBilling {
+  id Int @id @unique // team id
+
+  customerId     String  @unique
+  subscriptionId String?
+  plan           String
+
+  billingCycleStart Int?
+  billingCycleEnd   Int?
+  overdue           Boolean? @default(false)
+
+  team Team @relation(fields: [id], references: [id], onDelete: Cascade)
 }

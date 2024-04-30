@@ -1,16 +1,18 @@
-import { AppLoggerMiddleware } from "@/app.logger.middleware";
-import { RewriterMiddleware } from "@/app.rewrites.middleware";
 import appConfig from "@/config/app";
+import { AppLoggerMiddleware } from "@/middleware/app.logger.middleware";
+import { RewriterMiddleware } from "@/middleware/app.rewrites.middleware";
+import { JsonBodyMiddleware } from "@/middleware/body/json.body.middleware";
+import { RawBodyMiddleware } from "@/middleware/body/raw.body.middleware";
 import { AuthModule } from "@/modules/auth/auth.module";
 import { EndpointsModule } from "@/modules/endpoints.module";
 import { JwtModule } from "@/modules/jwt/jwt.module";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { RedisModule } from "@/modules/redis/redis.module";
 import { RedisService } from "@/modules/redis/redis.service";
-import { MiddlewareConsumer, Module, NestModule } from "@nestjs/common";
+import { MiddlewareConsumer, Module, NestModule, RequestMethod } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 import { RouterModule } from "@nestjs/core";
-import { ThrottlerModule, seconds } from "@nestjs/throttler";
+import { seconds, ThrottlerModule } from "@nestjs/throttler";
 import { ThrottlerStorageRedisService } from "nestjs-throttler-storage-redis";
 
 import { AppController } from "./app.controller";
@@ -53,7 +55,17 @@ import { AppController } from "./app.controller";
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer): void {
-    consumer.apply(AppLoggerMiddleware).forRoutes("*");
-    consumer.apply(RewriterMiddleware).forRoutes("/");
+    consumer
+      .apply(RawBodyMiddleware)
+      .forRoutes({
+        path: "/api/v2/billing/webhook",
+        method: RequestMethod.POST,
+      })
+      .apply(JsonBodyMiddleware)
+      .forRoutes("*")
+      .apply(AppLoggerMiddleware)
+      .forRoutes("*")
+      .apply(RewriterMiddleware)
+      .forRoutes("/");
   }
 }

@@ -19,7 +19,7 @@ export const useCreateOAuthClient = (
     },
   }
 ) => {
-  const mutation = useMutation<
+  return useMutation<
     ApiResponse<{ clientId: string; clientSecret: string }>,
     unknown,
     CreateOAuthClientInput
@@ -42,8 +42,6 @@ export const useCreateOAuthClient = (
       onError?.();
     },
   });
-
-  return mutation;
 };
 
 export const useUpdateOAuthClient = (

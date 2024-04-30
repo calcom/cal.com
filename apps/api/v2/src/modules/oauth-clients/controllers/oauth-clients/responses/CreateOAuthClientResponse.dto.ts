@@ -2,7 +2,7 @@ import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { IsIn, ValidateNested, IsNotEmptyObject, IsString } from "class-validator";
 
-import { SUCCESS_STATUS, ERROR_STATUS } from "@calcom/platform-constants";
+import { SUCCESS_STATUS, ERROR_STATUS, REDIRECT_STATUS } from "@calcom/platform-constants";
 
 class DataDto {
   @ApiProperty({
@@ -33,4 +33,10 @@ export class CreateOAuthClientResponseDto {
   @ValidateNested()
   @Type(() => DataDto)
   data!: DataDto;
+}
+
+export class CreateOauthClientRedirect {
+  status!: typeof REDIRECT_STATUS;
+
+  url!: string;
 }

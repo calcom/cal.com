@@ -8,6 +8,7 @@ import { GetOAuthClientResponseDto } from "@/modules/oauth-clients/controllers/o
 import { GetOAuthClientsResponseDto } from "@/modules/oauth-clients/controllers/oauth-clients/responses/GetOAuthClientsResponse.dto";
 import { UpdateOAuthClientInput } from "@/modules/oauth-clients/inputs/update-oauth-client.input";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
+import { OrganizationsRepository } from "@/modules/organizations/organizations.repository";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import {
   Body,
@@ -22,6 +23,7 @@ import {
   Logger,
   UseGuards,
   NotFoundException,
+  BadRequestException,
 } from "@nestjs/common";
 import {
   ApiTags as DocsTags,
@@ -47,7 +49,10 @@ Second, make sure that the logged in user has organizationId set to pass the Org
 export class OAuthClientsController {
   private readonly logger = new Logger("OAuthClientController");
 
-  constructor(private readonly oauthClientRepository: OAuthClientRepository) {}
+  constructor(
+    private readonly oauthClientRepository: OAuthClientRepository,
+    private readonly teamsRepository: OrganizationsRepository
+  ) {}
 
   @Post("/")
   @HttpCode(HttpStatus.CREATED)
@@ -65,6 +70,12 @@ export class OAuthClientsController {
     this.logger.log(
       `For organisation ${organizationId} creating OAuth Client with data: ${JSON.stringify(body)}`
     );
+
+    const organization = await this.teamsRepository.findByIdIncludeBilling(organizationId);
+    if (!organization?.platformBilling || !organization?.platformBilling?.subscriptionId) {
+      throw new BadRequestException("Team is not subscribed, cannot create an OAuth Client.");
+    }
+
     const { id, secret } = await this.oauthClientRepository.createOAuthClient(organizationId, body);
     return {
       status: SUCCESS_STATUS,
