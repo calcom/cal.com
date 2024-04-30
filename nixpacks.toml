@@ -21,7 +21,7 @@ onlyIncludeFiles = [
   "packages/features/ee/package.json",
   "packages/features/package.json",
   "packages/prisma",
-  "packages/lib/package.json",
+  "packages/lib",
   "packages/dayjs/package.json",
   "packages/kysely/package.json",
   "packages/embeds/embed-snippet/package.json",
