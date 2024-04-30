@@ -1,5 +1,7 @@
+import { z } from "zod";
+
 import { eventTypeAppCardZod } from "../eventTypeAppCardZod";
 
 export const appDataSchema = eventTypeAppCardZod;
 
-export const appKeysSchema = {};
+export const appKeysSchema = z.object({});
