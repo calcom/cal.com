@@ -18,7 +18,7 @@ import {
   AddonFieldPrefix,
 } from "~/app/signup/_components/input";
 import { FancyMultiSelect } from "~/app/_components/multi-select";
-import { Profession, Service } from "@prisma/client";
+import { type Profession, type Service } from "@prisma/client";
 
 export const SignupForm = (props: {
   services: Array<Service>;

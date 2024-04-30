@@ -2,7 +2,6 @@ import { Balancer } from "react-wrap-balancer";
 import { AutocompleteSearch } from "~/app/_components/autocomplete";
 import { sorting, defaultSort, professions } from "~/lib/constants";
 import ExpertList from "~/app/experts/_components/result";
-import { getExperts } from "~/lib/experts";
 import { db } from "prisma/client";
 
 
@@ -16,11 +15,11 @@ export const metadata = {
 export default async function ResultsPage({
   searchParams,
 }: {
-  searchParams?: { [key: string]: string | string[] | undefined };
+  searchParams?: Record<string, string | string[] | undefined>;
 }) {
-  const { sort, q: searchValue } = searchParams as { [key: string]: string };
+  const { sort, q: searchValue } = searchParams as Record<string, string>;
   const { sortKey, reverse } =
-    sorting?.find((item) => item.slug === sort) || defaultSort;
+    sorting?.find((item) => item.slug === sort) ?? defaultSort;
 
     const experts = await db.user.findMany({
       where: {

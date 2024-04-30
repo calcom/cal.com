@@ -1,5 +1,9 @@
 "use client";
+
+import { Check } from "lucide-react";
+import { useRouter } from "next/navigation";
 import React, { forwardRef, useState } from "react";
+
 import {
   Command,
   CommandEmpty,
@@ -7,13 +11,9 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-  CommandProps,
 } from "~/components/ui/command";
-
-import { Check } from "lucide-react";
 import { cn } from "~/lib/utils";
-import { useRouter } from "next/navigation";
-import { VariantProps, cva } from "class-variance-authority";
+
 export const defaultSort = {
   title: "Relevance",
   slug: null,
@@ -32,33 +32,18 @@ export const sorting = [
 ];
 export type Option = { value: string; label: string };
 
-// DEBUG: remove this
-type Prettify<T> = {
-  [K in keyof T]: T[K];
-} & {};
-
-export interface AutocompleteSearchProps
-  extends React.ComponentPropsWithoutRef<typeof Command> {
-  asChild?: boolean;
+export interface AutocompleteSearchProps extends React.ComponentPropsWithoutRef<typeof Command> {
   className?: string;
   options: Array<Option>;
   initialSearch?: string;
   placement?: "header";
 }
-export const AutocompleteSearch = forwardRef<
-  HTMLDivElement,
-  AutocompleteSearchProps
->(
-  (
-    { className, placement, asChild = false, options, initialSearch, ...props },
-    ref,
-  ) => {
-    const initialSeletion = options.find(
-      (option) => option.value === initialSearch,
-    );
-    const [value, setValue] = useState(initialSeletion?.value || "");
+export const AutocompleteSearch = forwardRef<HTMLDivElement, AutocompleteSearchProps>(
+  ({ className, placement, options, initialSearch, ...props }, ref) => {
+    const initialSeletion = options.find((option) => option.value === initialSearch);
+    const [value, setValue] = useState(initialSeletion?.value ?? "");
     const [open, setOpen] = useState(false);
-    const [query, setQuery] = useState(initialSeletion?.label || "");
+    const [query, setQuery] = useState(initialSeletion?.label ?? "");
     const router = useRouter();
 
     return (
@@ -68,32 +53,21 @@ export const AutocompleteSearch = forwardRef<
           if (e.currentTarget.contains(e.relatedTarget)) return;
 
           if (value && !query) {
-            setQuery(
-              options.find((option) => option.value === value)?.label || "",
-            );
+            setQuery(options.find((option) => option.value === value)?.label ?? "");
           }
           setOpen(false);
-        }}
-      >
+        }}>
         <Command
           data-open={open}
-          className={cn(
-            "data-[open=true]:rounded-b-none",
-            placement === "header" && "border",
-            className,
-          )}
+          className={cn("data-[open=true]:rounded-b-none", placement === "header" && "border", className)}
           ref={ref}
-          {...props}
-        >
+          {...props}>
           <CommandInput
             value={query}
             placeholder="Search an expert..."
             onFocus={() => {
               setOpen(true);
-              if (
-                query ===
-                options.find((option) => option.value === value)?.label
-              ) {
+              if (query === options.find((option) => option.value === value)?.label) {
                 setQuery("");
               }
             }}
@@ -106,10 +80,9 @@ export const AutocompleteSearch = forwardRef<
               <div
                 data-open={open}
                 className={cn(
-                  "absolute left-0 right-0 top-full rounded-b-md bg-background p-0 shadow !duration-150 data-[open=true]:animate-in data-[open=true]:fade-in",
-                  placement === "header" && "border-x border-b",
-                )}
-              >
+                  "bg-background data-[open=true]:animate-in data-[open=true]:fade-in absolute left-0 right-0 top-full rounded-b-md p-0 shadow !duration-150",
+                  placement === "header" && "border-x border-b"
+                )}>
                 <CommandEmpty>No expert found.</CommandEmpty>
                 <CommandGroup>
                   {options.map((option) => (
@@ -118,24 +91,16 @@ export const AutocompleteSearch = forwardRef<
                       value={option.value}
                       onSelect={(newValue) => {
                         setValue(newValue);
-                        setQuery(
-                          options.find((option) => option.value === newValue)
-                            ?.label || "",
-                        );
+                        setQuery(options.find((option) => option.value === newValue)?.label ?? "");
 
                         setOpen(false);
 
-                        router.push(
-                          `/experts?${new URLSearchParams({ q: newValue })}`,
-                          { scroll: false },
-                        );
-                      }}
-                    >
+                        router.push(`/experts?${new URLSearchParams({ q: newValue }).toString()}`, {
+                          scroll: false,
+                        });
+                      }}>
                       <Check
-                        className={cn(
-                          "mr-2 h-4 w-4",
-                          value === option.value ? "opacity-100" : "opacity-0",
-                        )}
+                        className={cn("mr-2 h-4 w-4", value === option.value ? "opacity-100" : "opacity-0")}
                       />
                       {option.label}
                     </CommandItem>
@@ -147,7 +112,9 @@ export const AutocompleteSearch = forwardRef<
         </Command>
       </div>
     );
-  },
+  }
 );
+
+AutocompleteSearch.displayName = "AutocompleteSearch";
 
 export default AutocompleteSearch;

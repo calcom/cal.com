@@ -13,7 +13,7 @@ export const ProCard = () => {
   return (
     <Card className="mx-auto max-w-sm">
       <CardHeader>
-        <CardTitle className="text-xl">You're a professional?</CardTitle>
+        <CardTitle className="text-xl">You&apos;re a professional?</CardTitle>
         <CardDescription>
           Sign up & connect your calendar to get bookings from our marketplace.
         </CardDescription>

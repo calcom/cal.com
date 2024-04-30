@@ -1,9 +1,8 @@
 "use client";
 import Image from "next/image";
-import { ChevronRightIcon, MoreHorizontal } from "lucide-react";
+import { ChevronRightIcon } from "lucide-react";
 
 import { Badge } from "~/components/ui/badge";
-import { Button } from "~/components/ui/button";
 import {
   Card,
   CardContent,
@@ -12,13 +11,8 @@ import {
   CardHeader,
   CardTitle,
 } from "~/components/ui/card";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
-} from "~/components/ui/dropdown-menu";
+
+
 import {
   Table,
   TableBody,
@@ -30,7 +24,7 @@ import {
 import { Separator } from "~/components/ui/separator";
 import { relativeTime } from "~/lib/utils";
 import Link from "next/link";
-import { Profession, Service, User } from "@prisma/client";
+import { type Profession, type Service, type User } from "@prisma/client";
 
 export default function ExpertList(props: { experts: Array<User & {services: Service[] , professions: Profession[]}> }) {
   return (

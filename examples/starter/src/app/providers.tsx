@@ -10,7 +10,7 @@ import { ThemeProvider as NextThemesProvider } from "next-themes";
 import type { ThemeProviderProps } from "next-themes/dist/types";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { env } from "~/env";
-import { CalAccount } from "@prisma/client";
+import { type CalAccount } from "@prisma/client";
 
 export function Providers({
   children,

@@ -1,5 +1,4 @@
-import { ArrowRight } from "lucide-react";
-import { User } from "next-auth";
+import { type User } from "next-auth";
 import Link from "next/link";
 
 import { Button } from "~/components/ui/button";
@@ -17,7 +16,7 @@ export const WelcomeCard = (props: {username: User["name"]}) => {
       <CardHeader>
         <CardTitle className="text-xl">Welcome back!</CardTitle>
         <CardDescription>
-          You're logged in{props.username ? ` as "${props.username}"`: ""}.
+          You&apos;re logged in{props.username ? ` as "${props.username}"`: ""}.
         </CardDescription>
       </CardHeader>
       <CardContent>

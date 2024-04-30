@@ -8,7 +8,7 @@ import { Toaster } from "sonner";
 import { Analytics } from "@vercel/analytics/react";
 import { TailwindIndicator } from "./tailwind-indicator";
 import { Providers } from "./providers";
-import { Metadata } from "next";
+import { type Metadata } from "next";
 /**
  * [@calcom] In your root layout, make sure you import the atoms' global styles so that you get our shiny styles
  * @link https://cal.com/docs/platform/quick-start#5.3-setup-root-of-your-app

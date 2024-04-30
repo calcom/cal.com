@@ -1,41 +1,15 @@
 "use client";
 import { useGetBooking, useCancelBooking } from "@calcom/atoms";
 import dayjs from "dayjs";
-import { CheckCircle, CheckCircleIcon, CircleX, Loader } from "lucide-react";
+import { CheckCircleIcon, CircleX, Loader } from "lucide-react";
 import { useSearchParams } from "next/navigation";
-import { Button } from "~/components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
 } from "~/components/ui/card";
-import { Input } from "~/components/ui/input";
-import { Label } from "~/components/ui/label";
-
-import {
-  ChevronLeft,
-  ChevronRight,
-  Copy,
-  CreditCard,
-  MoreVertical,
-  Truck,
-} from "lucide-react";
-
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "~/components/ui/dropdown-menu";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-} from "~/components/ui/pagination";
 import { Separator } from "~/components/ui/separator";
 import { env } from "~/env";
 import Link from "next/link";
@@ -215,7 +189,6 @@ export const BookingSuccess = () => {
               <div
                 className="cursor-pointer underline"
                 onClick={() => {
-                  console.log("handling the onClick: ", cancelBooking);
                   return cancelBooking({
                     id: booking.id,
                     uid: booking.uid,

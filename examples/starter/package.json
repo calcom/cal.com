@@ -8,7 +8,7 @@
     "db:seed": "NODE_ENV=development prisma db seed",
     "dev": "next dev",
     "postinstall": "prisma generate",
-    "lint": "next lint",
+    "lint": "NODE_OPTIONS='--max-old-space-size=4096' next lint --fix",
     "start": "next start"
   },
   "prisma": {
@@ -22,7 +22,7 @@
     "@prisma/adapter-libsql": "^5.12.1",
     "@prisma/client": "^5.10.2",
     "@radix-ui/react-dialog": "^1.0.5",
-    "@radix-ui/react-dropdown-menu": "^2.0.6",
+    "@radix-ui/react-dropdown-menu": "2.0.2",
     "@radix-ui/react-label": "^2.0.2",
     "@radix-ui/react-popover": "^1.0.7",
     "@radix-ui/react-progress": "^1.0.3",
@@ -59,6 +59,7 @@
     "zod": "^3.22.4"
   },
   "devDependencies": {
+    "@next/eslint-plugin-next": "^14.2.3",
     "@types/eslint": "^8.56.2",
     "@types/node": "^20.11.20",
     "@types/react": "^18.2.75",
@@ -67,13 +68,20 @@
     "@typescript-eslint/parser": "^7.1.1",
     "eslint": "^8.57.0",
     "eslint-config-next": "^14.1.3",
+    "eslint-config-turbo": "^1.13.3",
+    "eslint-plugin-import": "^2.29.1",
+    "eslint-plugin-jsx-a11y": "^6.8.0",
+    "eslint-plugin-react": "^7.34.1",
+    "eslint-plugin-react-hooks": "^4.6.2",
+    "eslint-plugin-unused-imports": "^3.1.0",
     "postcss": "^8.4.34",
     "prettier": "^3.2.5",
     "prettier-plugin-tailwindcss": "^0.5.11",
     "prisma": "^5.10.2",
     "tailwindcss": "^3.4.1",
     "tsx": "^4.7.2",
-    "typescript": "^5.4.2"
+    "typescript": "^5.4.2",
+    "typescript-eslint": "^7.8.0"
   },
   "ct3aMetadata": {
     "initVersion": "7.30.0"

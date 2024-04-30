@@ -1,18 +1,8 @@
-import Image from "next/image";
 import Link from "next/link";
 import {
-  ChevronLeft,
   Home,
-  LineChart,
-  Package,
   Package2,
   PanelLeft,
-  PlusCircle,
-  Search,
-  Settings,
-  ShoppingCart,
-  Upload,
-  Users2,
 } from "lucide-react";
 
 import {
@@ -25,20 +15,11 @@ import {
 } from "~/components/ui/breadcrumb";
 import { Button } from "~/components/ui/button";
 
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "~/components/ui/dropdown-menu";
-import { Input } from "~/components/ui/input";
+
+
 
 import { Sheet, SheetContent, SheetTrigger } from "~/components/ui/sheet";
-import { ReactNode } from "react";
-import { professions } from "~/lib/constants";
-import { AutocompleteSearch } from "~/app/_components/autocomplete";
+import { type ReactNode } from "react";
 export default  function LoginLayout({ children }: { children?: ReactNode }) {
   return (
       <>

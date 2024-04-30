@@ -7,7 +7,7 @@ import { z } from "zod";
 
 import { authConfig } from "./config";
 import { db } from "prisma/client";
-import { User } from "@prisma/client";
+import { type User } from "@prisma/client";
 import { env } from "~/env";
 
 
@@ -152,11 +152,11 @@ type CalCreateScheduleResponse = {
     schedule: Array<{
       id: number;
       userId: number;
-      eventTypeId: any;
+      eventTypeId: number | null;
       days: Array<number>;
       startTime: string;
       endTime: string;
-      date: any;
+      date: Date | null;
       scheduleId: number;
     }>;
     availability: Array<
@@ -166,7 +166,10 @@ type CalCreateScheduleResponse = {
       }>
     >;
     timeZone: string;
-    dateOverrides: any[];
+    dateOverrides: Array<{ ranges: Array<{
+      start: string;
+      end: string;
+    }> }>;
     isDefault: boolean;
     isLastSchedule: boolean;
     readOnly: boolean;

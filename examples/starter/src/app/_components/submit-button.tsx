@@ -2,7 +2,7 @@
 import { Loader } from "lucide-react";
 import { type ReactNode } from "react";
 import { useFormStatus } from "react-dom";
-import { Button, ButtonProps } from "~/components/ui/button";
+import { Button, type ButtonProps } from "~/components/ui/button";
 import { cn } from "~/lib/utils";
 
 export const ButtonSubmit = ({className, children, ...props}: { children: ReactNode; className?: string } & ButtonProps) => {

@@ -1,5 +1,5 @@
 "use client";
-import { useGetBookings } from "@calcom/atoms";
+import { type useGetBookings } from "@calcom/atoms";
 import {
   ChevronLeft,
   ChevronRight,
@@ -36,24 +36,24 @@ import { cn } from "~/lib/utils";
 
 type GetBookingsInput = Parameters<typeof useGetBookings>[number];
 export const OrderDetails = (props: { className?: string; bookings: GetBookingsInput}) => {
-  const {
-    isLoading: isLoadingUpcomingBookings,
-    data: upcomingBookings,
-  } = useGetBookings({
-    limit: 1,
-    cursor: 0,
-    filters: { status: "upcoming" },
-  });
+  // TODO: Show the upcoming & next booking here
+  // const {
+  //   isLoading: isLoadingUpcomingBookings,
+  //   data: upcomingBookings,
+  // } = useGetBookings({
+  //   limit: 1,
+  //   cursor: 0,
+  //   filters: { status: "upcoming" },
+  // });
 
-  const {
-    isLoading: isLoadingPastBookings,
-    data: pastBookings,
-  } = useGetBookings({
-    limit: 1,
-    cursor: 0,
-    filters: { status: "past" },
-  });
-  console.log({upcomingBookings, pastBookings});
+  // const {
+  //   isLoading: isLoadingPastBookings,
+  //   data: pastBookings,
+  // } = useGetBookings({
+  //   limit: 1,
+  //   cursor: 0,
+  //   filters: { status: "past" },
+  // });
   return (
     <Card className={cn("overflow-hidden", props.className)} x-chunk="dashboard-05-chunk-4">
       <CardHeader className="flex flex-row items-start bg-muted/50">

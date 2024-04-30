@@ -1,12 +1,6 @@
-import { useGetBookings } from "@calcom/atoms";
 import {
-  ChevronLeft,
-  ChevronRight,
-  Copy,
-  CreditCard,
   File,
   ListFilter,
-  MoreVertical,
 } from "lucide-react";
 import { OrderDetails } from "~/app/dashboard/components/order-card";
 import { currentUser } from "~/auth";
@@ -25,19 +19,12 @@ import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
 
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-} from "~/components/ui/pagination";
 import { Progress } from "~/components/ui/progress";
-import { Separator } from "~/components/ui/separator";
 
 import {
   Table,
@@ -48,7 +35,6 @@ import {
   TableRow,
 } from "~/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
-import { professions, services } from "~/lib/constants";
 
 export default async function Dashboard() {
   const user = await currentUser();

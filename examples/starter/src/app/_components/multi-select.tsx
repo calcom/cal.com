@@ -20,12 +20,12 @@ export function FancyMultiSelect(
     placeholder: string;
   } & React.ComponentProps<typeof CommandPrimitive.Input>,
 ) {
-  const { options, placeholder, id, name, ...inputProps } = props;
+  const { options, id, name, ...inputProps } = props;
   const initiallySelected = options?.[0];
   const inputRef = React.useRef<HTMLInputElement>(null);
   const [open, setOpen] = React.useState(false);
   const [selected, setSelected] = React.useState<Array<Option | null>>([
-    initiallySelected || null,
+    initiallySelected ?? null,
   ]);
   const [inputValue, setInputValue] = React.useState("");
 
@@ -120,7 +120,7 @@ export function FancyMultiSelect(
                         e.preventDefault();
                         e.stopPropagation();
                       }}
-                      onSelect={(value) => {
+                      onSelect={(_value) => {
                         setInputValue("");
                         setSelected((prev) => [...prev, option]);
                       }}

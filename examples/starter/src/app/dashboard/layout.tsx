@@ -1,7 +1,5 @@
-import { CalProvider } from "@calcom/atoms";
 import {
   Calendar,
-  CircleUserRound,
   HandPlatter,
   Home,
   LineChart,
@@ -197,7 +195,7 @@ export default async function Layout({
           <div className="relative ml-auto flex-1 md:grow-0">
             <div className="flex flex-row items-center gap-4">
               <span className="text-sm text-muted-foreground [width:max-content]">
-                Logged in as "{user?.username}"
+                Logged in as &quot;{user?.username}&quot;
               </span>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>

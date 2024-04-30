@@ -1,8 +1,6 @@
 "use client";
 import { signInWithCredentials } from "~/app/_actions";
 import { ButtonSubmit } from "~/app/_components/submit-button";
-import { signIn } from "~/auth";
-import { Button } from "~/components/ui/button";
 import {
   Card,
   CardContent,
@@ -55,7 +53,7 @@ export function LoginForm() {
               Log in
             </ButtonSubmit>
             <div className="mt-4 text-center text-sm">
-              Don't have an account?{" "}
+              Don&apos;t have an account?{" "}
               <Link href="/signup" className="underline">
                 Sign up
               </Link>

@@ -1,6 +1,5 @@
-import { Label } from "~/components/ui/label";
-import { Input, InputProps } from "~/components/ui/input";
-import { ReactNode } from "react";
+import { Input, type InputProps } from "~/components/ui/input";
+import { type ReactNode } from "react";
 import { cn } from "~/lib/utils";
 export const AddonFieldPrefix = (props: { children?: ReactNode; prefix: string }) => {
   return (

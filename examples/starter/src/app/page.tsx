@@ -1,11 +1,10 @@
-import { Columns4, Link, Loader } from "lucide-react";
+import { Loader } from "lucide-react";
 import { Suspense } from "react";
 import { Balancer } from "react-wrap-balancer";
 import { AutocompleteSearch } from "~/app/_components/autocomplete";
 import ProCard from "~/app/_components/pro-card";
 import WelcomeCard from "~/app/_components/welcome-card";
-import { SignedIn, SignedOut, signOut } from "~/auth";
-import { Button } from "~/components/ui/button";
+import { SignedIn, SignedOut } from "~/auth";
 import { professions } from "~/lib/constants";
 
 export default async function Home() {

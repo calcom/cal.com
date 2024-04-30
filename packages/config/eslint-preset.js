@@ -11,11 +11,11 @@ module.exports = {
   plugins: ["unused-imports"],
   parserOptions: {
     tsconfigRootDir: __dirname,
-    project: ["./apps/*/tsconfig.json", "./packages/*/tsconfig.json", "./examples/*/tsconfig.json"],
+    project: ["./apps/*/tsconfig.json", "./packages/*/tsconfig.json"],
   },
   settings: {
     next: {
-      rootDir: ["apps/*/", "packages/*/", "examples/*/"],
+      rootDir: ["apps/*/", "packages/*/"],
     },
   },
   rules: {

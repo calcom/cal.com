@@ -1,4 +1,4 @@
-import { Option } from "~/app/_components/autocomplete";
+import { type Option } from "~/app/_components/autocomplete";
 
 export const professions = [
   { label: "Hair dresser", value: "hair-dresser" },

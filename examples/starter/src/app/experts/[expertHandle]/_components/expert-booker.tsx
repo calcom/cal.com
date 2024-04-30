@@ -17,30 +17,30 @@ export const ExpertBooker = (
   const router = useRouter();
   const searchParams = useSearchParams();
   const rescheduleUid = searchParams.get("rescheduleUid") ?? undefined;
-  if (!props.calAccount.username) {
-    return (
-      <div className="w-full text-center">
-        Sorry. We couldn't find this experts' user.
-      </div>
-    );
-  }
   const { isLoading: isLoadingEvents, data: eventTypes } = useEventTypesPublic(
     props.calAccount.username,
   );
+  if (!props.calAccount.username) {
+    return (
+      <div className="w-full text-center">
+        Sorry. We couldn&apos;t find this experts&apos; user.
+      </div>
+    );
+  }
   if (isLoadingEvents) {
     return <Loader className="z-50 animate-spin place-self-center" />;
   }
   if (!eventTypes?.length) {
     return (
       <div className="w-full text-center">
-        Sorry. Unable to load ${props.expert.name}'s availabilities.
+        Sorry. Unable to load ${props.expert.name}&apos;s availabilities.
       </div>
     );
   }
 
   return (
     <Booker
-      eventSlug={eventTypes[0].slug}
+      // @eslint-disabled @typescript-eslint/no-unsafe-member-access: the useEventTypesPublic hook is returning any      eventSlug={eventTypes[0].slug}
       username={props.calAccount.username}
       onCreateBookingSuccess={(booking) => {
         console.log("booking: ", booking, "uid: ", booking.data.uid);

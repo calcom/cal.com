@@ -7,7 +7,7 @@ import { Info } from 'lucide-react'
 
 
 export function AboutSection(props: React.ComponentPropsWithoutRef<'section'>) {
-  let [isExpanded, setIsExpanded] = useState(false)
+  const [isExpanded, setIsExpanded] = useState(false)
 
   return (
     <section {...props}>

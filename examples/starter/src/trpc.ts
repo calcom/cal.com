@@ -18,7 +18,8 @@ const createContext = cache(async () => {
 const nextProc = t.procedure
   .use(async (opts) => {
     const ctx = await createContext()
-    const input = await opts.getRawInput()
+    // TODO: What's this used for? Webhooks?
+    // const input = await opts.getRawInput()
 
     if (t._config.isDev) {
       // artificial delay in dev
