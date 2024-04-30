@@ -40,7 +40,7 @@ export const ExpertBooker = (
 
   return (
     <Booker
-      // @eslint-disabled @typescript-eslint/no-unsafe-member-access: the useEventTypesPublic hook is returning any      eventSlug={eventTypes[0].slug}
+      eventSlug={eventTypes[0].slug}
       username={props.calAccount.username}
       onCreateBookingSuccess={(booking) => {
         console.log("booking: ", booking, "uid: ", booking.data.uid);
