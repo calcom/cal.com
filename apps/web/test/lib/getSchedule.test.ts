@@ -630,7 +630,8 @@ describe("getSchedule", () => {
             ...TestData.users.example,
             id: 101,
             schedules: [TestData.schedules.IstWorkHours],
-            credentials: [],
+            credentials: [getGoogleCalendarCredential()],
+            selectedCalendars: [TestData.selectedCalendars.google],
           },
         ],
         bookings: [
@@ -642,7 +643,7 @@ describe("getSchedule", () => {
             status: "ACCEPTED" as BookingStatus,
           },
         ],
-        // apps: [TestData.apps.googleCalendar],
+        apps: [TestData.apps.googleCalendar],
       };
 
       await createBookingScenario(scenarioData);
