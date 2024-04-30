@@ -1,7 +1,6 @@
 import z from "zod";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
-import type { eventTypeAppMetadataSchema } from "@calcom/app-store/apps.schemas.generated";
 import { DailyLocationType } from "@calcom/core/location";
 import { sendCancelledEmails } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
@@ -12,6 +11,7 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import { bookingMinimalSelect, prisma } from "@calcom/prisma";
 import { AppCategories, BookingStatus } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
+import type { eventTypeAppMetadataSchema } from "@calcom/prisma/zod-utils";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
@@ -168,7 +168,7 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
       const metadata = EventTypeMetaDataSchema.parse(eventType.metadata);
       const appSlug = credential.app?.slug;
       if (appSlug) {
-        const appMetadata = removeAppFromEventTypeMetadata(appSlugToDelete, metadata);
+        const appMetadata = removeAppFromEventTypeMetadata(appSlug, metadata);
 
         await prisma.$transaction(async () => {
           await prisma.eventType.update({

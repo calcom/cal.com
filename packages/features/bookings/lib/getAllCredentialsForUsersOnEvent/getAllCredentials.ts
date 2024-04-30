@@ -1,6 +1,9 @@
+import type z from "zod";
+
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
+import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
 /**
@@ -9,7 +12,12 @@ import type { CredentialPayload } from "@calcom/types/Credential";
  */
 export const getAllCredentials = async (
   user: { id: number; username: string | null; credentials: CredentialPayload[] },
-  eventType: { team: { id: number | null } | null; parentId: number | null } | null
+  eventType: {
+    userId: number | null;
+    team: { id: number | null } | null;
+    parentId: number | null;
+    metadata: z.infer<typeof EventTypeMetaDataSchema>;
+  } | null
 ) => {
   let allCredentials = user.credentials;
 
@@ -71,10 +79,10 @@ export const getAllCredentials = async (
   const eventTypeAppMetadata = eventType?.metadata?.apps;
 
   // Will be [credentialId]: { enabled: boolean }]
-  const eventTypeCrmCredentials = {};
+  const eventTypeCrmCredentials: Record<number, { enabled: boolean }> = {};
 
   for (const appKey in eventTypeAppMetadata) {
-    const app = eventTypeAppMetadata[appKey];
+    const app = eventTypeAppMetadata[appKey as keyof typeof eventTypeAppMetadata];
     if (app.appCategories && app.appCategories.some((category) => category === "crm")) {
       eventTypeCrmCredentials[app.credentialId] = {
         enabled: app.enabled,
@@ -96,9 +104,9 @@ export const getAllCredentials = async (
     } else {
       // If the CRM app doesn't exist on the event type metadata, check that the credential belongs to the user/team/org
       if (
-        credential.userId === eventType.userId ||
-        credential.teamId === eventType.team?.id ||
-        credential.teamId === eventType.parentId
+        credential.userId === eventType?.userId ||
+        credential.teamId === eventType?.team?.id ||
+        credential.teamId === eventType?.parentId
       ) {
         // If the CRM app doesn't exist on the event type metadata, assume it's an older CRM credential
         return credential;
