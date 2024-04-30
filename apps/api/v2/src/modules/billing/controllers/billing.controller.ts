@@ -22,6 +22,7 @@ import {
   Logger,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
+import { ApiExcludeController } from "@nestjs/swagger";
 import { Request } from "express";
 import { Stripe } from "stripe";
 
@@ -31,6 +32,7 @@ import { ApiResponse } from "@calcom/platform-types";
   path: "/billing",
   version: "2",
 })
+@ApiExcludeController(true)
 export class BillingController {
   private readonly stripeWhSecret: string;
   private logger = new Logger("Billing Controller");
@@ -46,12 +48,12 @@ export class BillingController {
   @UseGuards(NextAuthGuard, OrganizationRolesGuard)
   @Roles(["OWNER", "ADMIN"])
   async checkTeamBilling(@Param("teamId") teamId: number): Promise<CheckPlatformBillingResponseDto> {
-    const teamBilling = await this.billingService.getBillingData(teamId);
+    const { status, plan } = await this.billingService.getBillingData(teamId);
 
     return {
       status: "success",
-      valid: teamBilling.status === "valid",
-      plan: teamBilling.team?.platformBilling?.plan,
+      valid: status === "valid",
+      plan,
     };
   }
 

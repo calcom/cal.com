@@ -28,12 +28,12 @@ export class BillingService {
     const teamWithBilling = await this.teamsRepository.findByIdIncludeBilling(teamId);
     if (teamWithBilling?.platformBilling) {
       if (!teamWithBilling?.platformBilling.subscriptionId) {
-        return { team: teamWithBilling, status: "no_subscription" };
+        return { team: teamWithBilling, status: "no_subscription", plan: "none" };
       }
 
-      return { team: teamWithBilling, status: "valid" };
+      return { team: teamWithBilling, status: "valid", plan: teamWithBilling.platformBilling.plan };
     } else {
-      return { team: teamWithBilling, status: "no_billing" };
+      return { team: teamWithBilling, status: "no_billing", plan: "none" };
     }
   }
 

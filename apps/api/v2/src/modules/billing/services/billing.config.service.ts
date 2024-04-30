@@ -1,7 +1,5 @@
 import { PlatformPlan } from "@/modules/billing/types";
 import { Injectable } from "@nestjs/common";
-import * as fs from "node:fs";
-import { join } from "path";
 
 @Injectable()
 export class BillingConfigService {
@@ -10,9 +8,12 @@ export class BillingConfigService {
   constructor() {
     this.config = new Map<PlatformPlan, string>();
 
-    const jsonCfg = JSON.parse(fs.readFileSync(join(__dirname, "../../config/stripe.config.json"), "utf-8"));
-    for (const key of Object.keys(jsonCfg.plans)) {
-      this.config.set(PlatformPlan[key as keyof typeof PlatformPlan], jsonCfg[key] as string);
+    const planKeys = Object.keys(PlatformPlan).filter((key) => isNaN(Number(key)));
+    for (const key of planKeys) {
+      this.config.set(
+        PlatformPlan[key as keyof typeof PlatformPlan],
+        process.env[`STRIPE_PRICE_ID_${key}`] ?? ""
+      );
     }
   }
 
