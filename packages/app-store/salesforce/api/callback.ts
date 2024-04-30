@@ -3,6 +3,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import { WEBAPP_URL_FOR_OAUTH } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
+import type { AppCategories } from "@calcom/prisma/enums";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
@@ -51,7 +52,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     userId: req.session?.user.id,
     teamId: state?.teamId,
     appSlug: appConfig.slug,
-    appCategories: appConfig.categories,
+    appCategories: appConfig.categories as AppCategories[],
     credentialId: credential.id,
   });
 

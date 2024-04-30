@@ -11,7 +11,7 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import { bookingMinimalSelect, prisma } from "@calcom/prisma";
 import { AppCategories, BookingStatus } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
-import type { eventTypeAppMetadataSchema } from "@calcom/prisma/zod-utils";
+import type { EventTypeAppMetadataSchema } from "@calcom/prisma/zod-utils";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
@@ -401,10 +401,10 @@ const removeAppFromEventTypeMetadata = (
   const appMetadata = eventTypeMetadata?.apps
     ? Object.entries(eventTypeMetadata.apps).reduce((filteredApps, [appName, appData]) => {
         if (appName !== appSlugToDelete) {
-          filteredApps[appName] = appData;
+          filteredApps[appName as keyof typeof eventTypeMetadata.apps] = appData;
         }
         return filteredApps;
-      }, {} as z.infer<typeof eventTypeAppMetadataSchema>)
+      }, {} as z.infer<typeof EventTypeAppMetadataSchema>)
     : {};
 
   return appMetadata;

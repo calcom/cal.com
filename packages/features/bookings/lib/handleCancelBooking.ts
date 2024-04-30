@@ -24,7 +24,7 @@ import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { BookingStatus, WorkflowMethods } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
-import { schemaBookingCancelParams } from "@calcom/prisma/zod-utils";
+import { EventTypeMetaDataSchema, schemaBookingCancelParams } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { getAllCredentials } from "./getAllCredentialsForUsersOnEvent/getAllCredentials";
@@ -79,6 +79,7 @@ async function getBookingToDelete(id: number | undefined, uid: string | undefine
               name: true,
             },
           },
+          userId: true,
           recurringEvent: true,
           title: true,
           eventName: true,
@@ -90,6 +91,7 @@ async function getBookingToDelete(id: number | undefined, uid: string | undefine
           seatsPerTimeSlot: true,
           bookingFields: true,
           seatsShowAttendees: true,
+          metadata: true,
           hosts: {
             select: {
               user: true,
@@ -425,7 +427,13 @@ async function handler(req: CustomRequest) {
     bookingToDelete.recurringEventId &&
     allRemainingBookings
   );
-  const credentials = await getAllCredentials(bookingToDelete.user, bookingToDelete.eventType);
+
+  const bookingToDeleteEventTypeMetadata = EventTypeMetaDataSchema.parse(bookingToDelete.eventType?.metadata);
+
+  const credentials = await getAllCredentials(bookingToDelete.user, {
+    ...bookingToDelete.eventType,
+    metadata: bookingToDeleteEventTypeMetadata,
+  });
 
   const eventManager = new EventManager({ ...bookingToDelete.user, credentials });
 

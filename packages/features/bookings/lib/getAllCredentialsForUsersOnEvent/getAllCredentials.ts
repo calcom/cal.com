@@ -13,9 +13,9 @@ import type { CredentialPayload } from "@calcom/types/Credential";
 export const getAllCredentials = async (
   user: { id: number; username: string | null; credentials: CredentialPayload[] },
   eventType: {
-    userId: number | null;
-    team: { id: number | null } | null;
-    parentId: number | null;
+    userId?: number | null;
+    team?: { id: number | null } | null;
+    parentId?: number | null;
     metadata: z.infer<typeof EventTypeMetaDataSchema>;
   } | null
 ) => {
@@ -83,7 +83,7 @@ export const getAllCredentials = async (
 
   for (const appKey in eventTypeAppMetadata) {
     const app = eventTypeAppMetadata[appKey as keyof typeof eventTypeAppMetadata];
-    if (app.appCategories && app.appCategories.some((category) => category === "crm")) {
+    if (app.appCategories && app.appCategories.some((category: string) => category === "crm")) {
       eventTypeCrmCredentials[app.credentialId] = {
         enabled: app.enabled,
       };

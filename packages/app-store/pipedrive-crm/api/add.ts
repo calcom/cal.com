@@ -3,6 +3,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { createDefaultInstallation } from "@calcom/app-store/_utils/installation";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { HttpError } from "@calcom/lib/http-error";
+import type { AppCategories } from "@calcom/prisma/client";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import writeAppDataToEventType from "../../_utils/writeAppDataToEventType";
@@ -33,7 +34,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     userId: req.session?.user.id,
     // TODO: Add team installation
     appSlug: appConfig.slug,
-    appCategories: appConfig.categories,
+    appCategories: appConfig.categories as AppCategories[],
     credentialId: credential.id,
   });
   const tenantId = teamId ? teamId : userId;
