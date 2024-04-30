@@ -67,7 +67,7 @@ export class BillingController {
   async subscribeTeamToStripe(
     @Param("teamId") teamId: number,
     @Body() input: SubscribeToPlanInput
-  ): Promise<ApiResponse<SubscribeTeamToBillingResponseDto>> {
+  ): Promise<ApiResponse<SubscribeTeamToBillingResponseDto | undefined>> {
     const { status } = await this.billingService.getBillingData(teamId);
 
     if (status === "valid") {
@@ -87,7 +87,6 @@ export class BillingController {
 
     return {
       status: "success",
-      data: {},
     };
   }
 
