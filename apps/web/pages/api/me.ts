@@ -3,8 +3,6 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { performance } from "@calcom/lib/server/perfObserver";
 
-// hey
-
 let isCold = true;
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
