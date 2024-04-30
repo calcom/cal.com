@@ -45,7 +45,7 @@ export default function WorkflowDetailsPage(props: Props) {
   const { data, isPending } = trpc.viewer.eventTypes.getByViewer.useQuery();
 
   const searchParams = useSearchParams();
-  const eventTypeId = searchParams.get("eventTypeId");
+  const eventTypeId = searchParams?.get("eventTypeId");
 
   const eventTypeOptions = useMemo(
     () =>
