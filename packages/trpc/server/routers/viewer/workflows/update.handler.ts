@@ -297,8 +297,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
             };
             if (
               step.action === WorkflowActions.EMAIL_HOST ||
-              step.action === WorkflowActions.EMAIL_ATTENDEE /*||
-                  step.action === WorkflowActions.EMAIL_ADDRESS*/
+              step.action === WorkflowActions.EMAIL_ATTENDEE ||
+              step.action === WorkflowActions.EMAIL_ADDRESS
             ) {
               let sendTo: string[] = [];
 
@@ -309,8 +309,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
                 case WorkflowActions.EMAIL_ATTENDEE:
                   sendTo = bookingInfo.attendees.map((attendee) => attendee.email);
                   break;
-                /*case WorkflowActions.EMAIL_ADDRESS:
-                      sendTo = step.sendTo || "";*/
+                case WorkflowActions.EMAIL_ADDRESS:
+                  sendTo = step.sendTo ? [step.sendTo] : [];
               }
 
               await scheduleEmailReminder({
@@ -432,10 +432,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         },
         data: {
           action: newStep.action,
-          sendTo: requiresSender /*||
-                newStep.action === WorkflowActions.EMAIL_ADDRESS*/
-            ? newStep.sendTo
-            : null,
+          sendTo: requiresSender || newStep.action === WorkflowActions.EMAIL_ADDRESS ? newStep.sendTo : null,
           stepNumber: newStep.stepNumber,
           workflowId: newStep.workflowId,
           reminderBody: newStep.reminderBody,
@@ -522,8 +519,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           };
           if (
             newStep.action === WorkflowActions.EMAIL_HOST ||
-            newStep.action === WorkflowActions.EMAIL_ATTENDEE /*||
-                newStep.action === WorkflowActions.EMAIL_ADDRESS*/
+            newStep.action === WorkflowActions.EMAIL_ATTENDEE ||
+            newStep.action === WorkflowActions.EMAIL_ADDRESS
           ) {
             let sendTo: string[] = [];
 
@@ -534,8 +531,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
               case WorkflowActions.EMAIL_ATTENDEE:
                 sendTo = bookingInfo.attendees.map((attendee) => attendee.email);
                 break;
-              /*case WorkflowActions.EMAIL_ADDRESS:
-                    sendTo = newStep.sendTo || "";*/
+              case WorkflowActions.EMAIL_ADDRESS:
+                sendTo = newStep.sendTo ? [newStep.sendTo] : [];
             }
 
             await scheduleEmailReminder({
@@ -665,8 +662,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
             if (
               step.action === WorkflowActions.EMAIL_ATTENDEE ||
-              step.action === WorkflowActions.EMAIL_HOST /*||
-                  step.action === WorkflowActions.EMAIL_ADDRESS*/
+              step.action === WorkflowActions.EMAIL_HOST ||
+              step.action === WorkflowActions.EMAIL_ADDRESS
             ) {
               let sendTo: string[] = [];
 
@@ -677,8 +674,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
                 case WorkflowActions.EMAIL_ATTENDEE:
                   sendTo = bookingInfo.attendees.map((attendee) => attendee.email);
                   break;
-                /*case WorkflowActions.EMAIL_ADDRESS:
-                      sendTo = step.sendTo || "";*/
+                case WorkflowActions.EMAIL_ADDRESS:
+                  sendTo = step.sendTo ? [step.sendTo] : [];
               }
 
               await scheduleEmailReminder({

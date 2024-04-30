@@ -173,6 +173,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     );
 
   const [numberVerified, setNumberVerified] = useState(getNumberVerificationStatus());
+  const [emailVerified, setEmailVerified] = useState(false);
 
   useEffect(() => setNumberVerified(getNumberVerificationStatus()), [verifiedNumbers.length]);
 
@@ -231,6 +232,35 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     },
   });
 
+  const sendEmailVerificationCodeMutation = trpc.viewer.auth.sendVerifyEmailCode.useMutation({
+    onSuccess() {
+      showToast(t("email_sent"), "success");
+    },
+    onError: () => {
+      showToast(t("email_not_sent"), "error");
+    },
+  });
+
+  const verifyEmailCodeMutation = trpc.viewer.auth.verifyCodeUnAuthenticated.useMutation({
+    onSuccess: (isVerified) => {
+      showToast(isVerified ? t("verified_successfully") : t("wrong_code"), "success");
+      setEmailVerified(true);
+      if (
+        step &&
+        form?.formState?.errors?.steps &&
+        form.formState.errors.steps[step.stepNumber - 1]?.sendTo &&
+        isVerified
+      ) {
+        form.clearErrors(`steps.${step.stepNumber - 1}.sendTo`);
+      }
+    },
+    onError: (err) => {
+      if (err.message === "invalid_code") {
+        showToast(t("code_provided_invalid"), "error");
+        setEmailVerified(false);
+      }
+    },
+  });
   /* const testActionMutation = trpc.viewer.workflows.testAction.useMutation({
     onSuccess: async () => {
       showToast(t("notification_sent"), "success");
@@ -685,12 +715,88 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
               )}
               {isEmailAddressNeeded && (
                 <div className="bg-muted mt-5 rounded-md p-4">
-                  <EmailField
-                    required
-                    disabled={props.readOnly}
-                    label={t("email_address")}
-                    {...form.register(`steps.${step.stepNumber - 1}.sendTo`)}
-                  />
+                  <Label>{t("email_address")}</Label>
+                  <div className="block sm:flex">
+                    <Controller
+                      name={`steps.${step.stepNumber - 1}.sendTo`}
+                      render={({ field: { value, onChange } }) => (
+                        <EmailField
+                          required
+                          containerClassName="w-full"
+                          className="h-10 min-w-fit sm:rounded-r-none sm:rounded-bl-md sm:rounded-tl-md"
+                          placeholder={t("email_address")}
+                          value={value}
+                          disabled={props.readOnly}
+                          onChange={(val) => {
+                            onChange(val);
+                          }}
+                        />
+                      )}
+                    />
+                    <Button
+                      color="secondary"
+                      disabled={emailVerified || props.readOnly || false}
+                      className={classNames(
+                        "-ml-[3px] h-[40px] min-w-fit sm:block sm:rounded-bl-none sm:rounded-tl-none",
+                        emailVerified ? "hidden" : "mt-3 sm:mt-0"
+                      )}
+                      onClick={() => {
+                        const email = form.getValues(`steps.${step.stepNumber - 1}.sendTo`) || "";
+                        sendEmailVerificationCodeMutation.mutate({
+                          email,
+                        });
+                      }}>
+                      {t("send_code")}
+                    </Button>
+                  </div>
+
+                  {form.formState.errors.steps &&
+                    form.formState?.errors?.steps[step.stepNumber - 1]?.sendTo && (
+                      <p className="mt-1 text-xs text-red-500">
+                        {form.formState?.errors?.steps[step.stepNumber - 1]?.sendTo?.message || ""}
+                      </p>
+                    )}
+
+                  {emailVerified ? (
+                    <div className="mt-1">
+                      <Badge variant="green">{t("email_verified")}</Badge>
+                    </div>
+                  ) : (
+                    !props.readOnly && (
+                      <>
+                        <div className="mt-3 flex">
+                          <TextField
+                            className="rounded-r-none border-r-transparent"
+                            placeholder="Verification code"
+                            disabled={props.readOnly}
+                            value={verificationCode}
+                            onChange={(e) => {
+                              setVerificationCode(e.target.value);
+                            }}
+                            required
+                          />
+                          <Button
+                            color="secondary"
+                            className="-ml-[3px] h-[36px] min-w-fit py-0 sm:block sm:rounded-bl-none sm:rounded-tl-none "
+                            disabled={verifyPhoneNumberMutation.isPending || props.readOnly}
+                            onClick={() => {
+                              verifyEmailCodeMutation.mutate({
+                                code: verificationCode,
+                                email: form.getValues(`steps.${step.stepNumber - 1}.sendTo`) || "",
+                              });
+                            }}>
+                            {t("verify")}
+                          </Button>
+                        </div>
+                        {form.formState.errors.steps &&
+                          form.formState?.errors?.steps[step.stepNumber - 1]?.sendTo && (
+                            <p className="mt-1 text-xs text-red-500">
+                              {form.formState?.errors?.steps[step.stepNumber - 1]?.sendTo?.message || ""}
+                            </p>
+                          )}
+                      </>
+                    )
+                  )}
                 </div>
               )}
               <div className="mt-5">
