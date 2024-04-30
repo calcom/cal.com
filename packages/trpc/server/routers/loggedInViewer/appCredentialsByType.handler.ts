@@ -14,12 +14,7 @@ type AppCredentialsByTypeOptions = {
 /** Used for grabbing credentials on specific app pages */
 export const appCredentialsByTypeHandler = async ({ ctx, input }: AppCredentialsByTypeOptions) => {
   const { user } = ctx;
-  const userAdminTeams = await getUserAdminTeams({ userId: ctx.user.id, getUserInfo: true });
-
-  const teamIds = userAdminTeams.reduce((teamIds, team) => {
-    if (!team.isUser) teamIds.push(team.id);
-    return teamIds;
-  }, [] as number[]);
+  const userAdminTeams = await getUserAdminTeams(ctx.user.id);
 
   const credentials = await prisma.credential.findMany({
     where: {
@@ -27,7 +22,7 @@ export const appCredentialsByTypeHandler = async ({ ctx, input }: AppCredentials
         { userId: user.id },
         {
           teamId: {
-            in: teamIds,
+            in: userAdminTeams,
           },
         },
       ],
