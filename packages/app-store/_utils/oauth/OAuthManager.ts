@@ -174,7 +174,7 @@ export class OAuthManager {
      */
     isTokenExpired?: IsTokenExpired;
   }) {
-    ensureValidResourceOwner(resourceOwner);
+    // ensureValidResourceOwner(resourceOwner);
     this.resourceOwner = resourceOwner;
     this.currentTokenObject = currentTokenObject;
     this.appSlug = appSlug;
