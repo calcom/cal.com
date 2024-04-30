@@ -39,6 +39,14 @@ const config = {
         },
       },
     ],
+    /** 
+     * These rules should error, but since the @calcom/atoms return types are broken we're warning
+    */
+    "@typescript-eslint/no-unsafe-assignment": "warn",
+    "@typescript-eslint/no-unsafe-member-access": "warn",
+    "@typescript-eslint/no-unsafe-return": "warn",
+    "@typescript-eslint/no-unsafe-call": "warn",
+    "@typescript-eslint/no-unsafe-argument": "warn",
   },
 };
 module.exports = config;

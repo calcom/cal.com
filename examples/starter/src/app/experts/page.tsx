@@ -4,9 +4,6 @@ import { sorting, defaultSort, professions } from "~/lib/constants";
 import ExpertList from "~/app/experts/_components/result";
 import { db } from "prisma/client";
 
-
-export const runtime = "edge";
-
 export const metadata = {
   title: "Search",
   description: "Search for experts on the marketplace.",

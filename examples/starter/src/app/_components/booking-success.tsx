@@ -44,7 +44,7 @@ export const BookingSuccess = () => {
   );
   const endTime = dayjs(booking?.endTime).format(12 === 12 ? "h:mma" : "HH:mm");
   const date = dayjs(booking?.startTime).toDate();
-  const dateToday = dayjs(booking?.startTime).date();
+  // const dateToday = dayjs(booking?.startTime).date();
   const year = dayjs(booking?.startTime).year();
   const day = dayjs(date).format("dddd");
   const dayAsNumber = dayjs(date).format("DD");
@@ -115,8 +115,8 @@ export const BookingSuccess = () => {
                     "",
                   )}
                 </li>
-                {booking.attendees.map((attendee: {email: string, name: string}) => (
-                  <li className={cn(
+                {(booking.attendees as Array<{email: string, name: string}>).map((attendee, idx) => (
+                  <li key={idx} className={cn(
                     "text-muted-foreground",
                     booking.status.toLowerCase() === "cancelled" &&
                       "line-through",
