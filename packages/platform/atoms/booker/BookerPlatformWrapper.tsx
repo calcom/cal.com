@@ -60,7 +60,6 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
   const setSelectedDate = useBookerStore((state) => state.setSelectedDate);
   const setSelectedDuration = useBookerStore((state) => state.setSelectedDuration);
   const setBookingData = useBookerStore((state) => state.setBookingData);
-  const setSelectedDuration = useBookerStore((state) => state.setSelectedDuration);
   const setOrg = useBookerStore((state) => state.setOrg);
   const bookingData = useBookerStore((state) => state.bookingData);
   const setSelectedTimeslot = useBookerStore((state) => state.setSelectedTimeslot);
