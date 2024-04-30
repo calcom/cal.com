@@ -31,7 +31,6 @@
   "include": [
     "./**/*.ts",
     "../../../packages/types/*.d.ts",
-    "./**/*.config.json",
     "../../../packages/platform/libraries/**/*.ts",
     "../../../packages/platform/libraries/**/*.d.ts",
     "../../../packages/platform/constants/**/*.ts",
