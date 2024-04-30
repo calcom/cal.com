@@ -118,7 +118,7 @@ export class BillingService {
   }
 
   async increaseUsageByClientId(clientId: string) {
-    const team = await this.billingRepository.findTeamIdFromClientId(clientId);
+    const team = await this.teamsRepository.findTeamIdFromClientId(clientId);
     if (!team.id) return Promise.resolve(); // noop resolution.
 
     return this.increaseUsageForTeam(team?.id);

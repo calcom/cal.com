@@ -14,21 +14,6 @@ export class BillingRepository {
       },
     });
 
-  async findTeamIdFromClientId(clientId: string) {
-    return this.dbRead.prisma.team.findFirstOrThrow({
-      where: {
-        platformOAuthClient: {
-          some: {
-            id: clientId,
-          },
-        },
-      },
-      select: {
-        id: true,
-      },
-    });
-  }
-
   async updateTeamBilling(
     teamId: number,
     billingStart: number,

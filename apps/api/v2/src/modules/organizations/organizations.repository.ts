@@ -54,4 +54,19 @@ export class OrganizationsRepository {
 
     return id;
   }
+
+  async findTeamIdFromClientId(clientId: string) {
+    return this.dbRead.prisma.team.findFirstOrThrow({
+      where: {
+        platformOAuthClient: {
+          some: {
+            id: clientId,
+          },
+        },
+      },
+      select: {
+        id: true,
+      },
+    });
+  }
 }

@@ -3,10 +3,7 @@ import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { NextAuthGuard } from "@/modules/auth/guards/next-auth/next-auth.guard";
 import { OrganizationRolesGuard } from "@/modules/auth/guards/organization-roles/organization-roles.guard";
-import {
-  CreateOAuthClientResponseDto,
-  CreateOauthClientRedirect,
-} from "@/modules/oauth-clients/controllers/oauth-clients/responses/CreateOAuthClientResponse.dto";
+import { CreateOAuthClientResponseDto } from "@/modules/oauth-clients/controllers/oauth-clients/responses/CreateOAuthClientResponse.dto";
 import { GetOAuthClientResponseDto } from "@/modules/oauth-clients/controllers/oauth-clients/responses/GetOAuthClientResponse.dto";
 import { GetOAuthClientsResponseDto } from "@/modules/oauth-clients/controllers/oauth-clients/responses/GetOAuthClientsResponse.dto";
 import { UpdateOAuthClientInput } from "@/modules/oauth-clients/inputs/update-oauth-client.input";
@@ -68,7 +65,7 @@ export class OAuthClientsController {
   async createOAuthClient(
     @GetUser() user: UserWithProfile,
     @Body() body: CreateOAuthClientInput
-  ): Promise<CreateOAuthClientResponseDto | CreateOauthClientRedirect> {
+  ): Promise<CreateOAuthClientResponseDto> {
     const organizationId = (user.movedToProfile?.organizationId ?? user.organizationId) as number;
     this.logger.log(
       `For organisation ${organizationId} creating OAuth Client with data: ${JSON.stringify(body)}`

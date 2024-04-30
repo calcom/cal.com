@@ -1,12 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
 
-import { REDIRECT_STATUS, SUCCESS_STATUS } from "@calcom/platform-constants";
-import type {
-  ApiResponse,
-  ApiResponseMaybeRedirect,
-  CreateOAuthClientInput,
-  DeleteOAuthClientInput,
-} from "@calcom/platform-types";
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import type { ApiResponse, CreateOAuthClientInput, DeleteOAuthClientInput } from "@calcom/platform-types";
 import type { OAuthClient } from "@calcom/prisma/client";
 
 interface IPersistOAuthClient {
@@ -25,7 +20,7 @@ export const useCreateOAuthClient = (
   }
 ) => {
   return useMutation<
-    ApiResponseMaybeRedirect<{ clientId: string; clientSecret: string }>,
+    ApiResponse<{ clientId: string; clientSecret: string }>,
     unknown,
     CreateOAuthClientInput
   >({
@@ -39,8 +34,6 @@ export const useCreateOAuthClient = (
     onSuccess: (data) => {
       if (data.status === SUCCESS_STATUS) {
         onSuccess?.();
-      } else if (data.status === REDIRECT_STATUS) {
-        window.location.href = data.url;
       } else {
         onError?.();
       }

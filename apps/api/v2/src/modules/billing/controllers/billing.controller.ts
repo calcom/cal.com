@@ -47,13 +47,17 @@ export class BillingController {
   @Get("/:teamId/check")
   @UseGuards(NextAuthGuard, OrganizationRolesGuard)
   @Roles(["OWNER", "ADMIN"])
-  async checkTeamBilling(@Param("teamId") teamId: number): Promise<CheckPlatformBillingResponseDto> {
+  async checkTeamBilling(
+    @Param("teamId") teamId: number
+  ): Promise<ApiResponse<CheckPlatformBillingResponseDto>> {
     const { status, plan } = await this.billingService.getBillingData(teamId);
 
     return {
       status: "success",
-      valid: status === "valid",
-      plan,
+      data: {
+        valid: status === "valid",
+        plan,
+      },
     };
   }
 
@@ -63,7 +67,7 @@ export class BillingController {
   async subscribeTeamToStripe(
     @Param("teamId") teamId: number,
     @Body() input: SubscribeToPlanInput
-  ): Promise<SubscribeTeamToBillingResponseDto> {
+  ): Promise<ApiResponse<SubscribeTeamToBillingResponseDto>> {
     const { status } = await this.billingService.getBillingData(teamId);
 
     if (status === "valid") {
@@ -73,13 +77,17 @@ export class BillingController {
     const { action, url } = await this.billingService.createSubscriptionForTeam(teamId, input.plan);
     if (action === "redirect") {
       return {
-        status: "redirect",
-        url,
+        status: "success",
+        data: {
+          action: "redirect",
+          url,
+        },
       };
     }
 
     return {
       status: "success",
+      data: {},
     };
   }
 
