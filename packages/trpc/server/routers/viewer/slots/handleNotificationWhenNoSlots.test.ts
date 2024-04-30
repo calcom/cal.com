@@ -1,8 +1,7 @@
 import prismaMock from "../../../../../../tests/libs/__mocks__/prismaMock";
 
-import type { Redis } from "@upstash/redis";
-import { vi, beforeAll, afterAll, beforeEach, describe, it } from "vitest";
-import { mock } from "vitest-mock-extended";
+import { Redis } from "@upstash/redis";
+import { vi, beforeAll, afterAll, beforeEach, describe, it, expect } from "vitest";
 
 import dayjs from "@calcom/dayjs";
 
@@ -16,8 +15,9 @@ vi.mock("@upstash/redis", () => {
   };
 
   return {
-    Redis: vi.fn().mockImplementation(() => mockedInstance),
-    fromEnv: vi.fn(() => mockedInstance),
+    Redis: vi.fn().mockImplementation(() => ({
+      fromEnv: vi.fn().mockImplementation(() => mockedInstance),
+    })),
   };
 });
 
@@ -33,15 +33,13 @@ afterAll(() => {
 });
 
 beforeEach(() => {
-  vi.resetAllMocks();
+  vi.clearAllMocks();
 });
 
 describe("handleNotificationWhenNoSlots", () => {
   it("(Happy) It should send a notification to admins", async () => {
     // Setup your input data
-    const mockedRedis = mock<Redis>;
-    const instance = mockedRedis.fromEnv();
-
+    const mockedRedis = vi.mocked(Redis.fromEnv());
     const eventDetails = { username: "mocked_username", eventSlug: "mocked_slug", startTime: dayjs() };
     const orgDetails = { currentOrgDomain: "mock_domain", isValidOrgDomain: true };
 
@@ -53,8 +51,11 @@ describe("handleNotificationWhenNoSlots", () => {
 
     mockedRedis.lrange.mockResolvedValue([]);
 
-    await handleNotificationWhenNoSlots({ eventDetails, orgDetails });
+    const expiresSpyOn = vi.spyOn(mockedRedis, "expire");
 
+    await handleNotificationWhenNoSlots({ eventDetails, orgDetails });
     // Ensure we set the expiry once
+
+    expect(expiresSpyOn).toHaveBeenCalled();
   });
 });
