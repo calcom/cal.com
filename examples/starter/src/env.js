@@ -75,7 +75,8 @@ export const env = createEnv({
     /** [@calcom] Make sure to add the calcom variables to your runtime environment variables, so that you can use them */
     CAL_SECRET: process.env.CAL_SECRET,
     NEXT_PUBLIC_CAL_API_URL: process.env.NEXT_PUBLIC_CAL_API_URL,
-    NEXT_PUBLIC_CAL_OAUTH_CLIENT_ID: process.env.NEXT_PUBLIC_CAL_OAUTH_CLIENT_ID,
+    NEXT_PUBLIC_CAL_OAUTH_CLIENT_ID:
+      process.env.NEXT_PUBLIC_CAL_OAUTH_CLIENT_ID,
     NEXT_PUBLIC_REFRESH_URL: process.env.NEXT_PUBLIC_REFRESH_URL,
   },
   /**
