@@ -59,7 +59,7 @@ export class OAuthClientRepository {
   }
 
   async getOAuthClientWithRefreshSecret(clientId: string, clientSecret: string, refreshToken: string) {
-    return await this.dbRead.prisma.platformOAuthClient.findFirst({
+    return this.dbRead.prisma.platformOAuthClient.findFirst({
       where: {
         id: clientId,
         secret: clientSecret,
