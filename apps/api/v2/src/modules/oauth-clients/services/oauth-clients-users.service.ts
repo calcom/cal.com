@@ -1,4 +1,5 @@
 import { EventTypesService } from "@/ee/event-types/services/event-types.service";
+import { SchedulesService } from "@/ee/schedules/services/schedules.service";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { CreateManagedUserInput } from "@/modules/users/inputs/create-managed-user.input";
 import { UpdateManagedUserInput } from "@/modules/users/inputs/update-managed-user.input";
@@ -14,7 +15,8 @@ export class OAuthClientUsersService {
   constructor(
     private readonly userRepository: UsersRepository,
     private readonly tokensRepository: TokensRepository,
-    private readonly eventTypesService: EventTypesService
+    private readonly eventTypesService: EventTypesService,
+    private readonly schedulesService: SchedulesService
   ) {}
 
   async createOauthClientUser(
@@ -62,7 +64,13 @@ export class OAuthClientUsersService {
       oAuthClientId,
       user.id
     );
+
     await this.eventTypesService.createUserDefaultEventTypes(user.id);
+
+    if (body.timeZone) {
+      const defaultSchedule = await this.schedulesService.createUserDefaultSchedule(user.id, body.timeZone);
+      user.defaultScheduleId = defaultSchedule.id;
+    }
 
     return {
       user,

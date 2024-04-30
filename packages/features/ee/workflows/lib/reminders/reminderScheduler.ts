@@ -1,10 +1,7 @@
 import type { Workflow, WorkflowsOnEventTypes, WorkflowStep } from "@prisma/client";
 
-import {
-  isSMSAction,
-  isTextMessageToAttendeeAction,
-  isWhatsappAction,
-} from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
+import { isSMSAction, isWhatsappAction } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
+import { checkSMSRateLimit } from "@calcom/lib/checkRateLimitAndThrowError";
 import { SENDER_NAME } from "@calcom/lib/constants";
 import { WorkflowActions, WorkflowMethods, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
@@ -25,7 +22,6 @@ type ProcessWorkflowStepParams = {
   emailAttendeeSendToOverride?: string;
   hideBranding?: boolean;
   seatReferenceUid?: string;
-  eventTypeRequiresConfirmation?: boolean;
 };
 
 export interface ScheduleWorkflowRemindersArgs extends ProcessWorkflowStepParams {
@@ -48,12 +44,14 @@ const processWorkflowStep = async (
     emailAttendeeSendToOverride,
     hideBranding,
     seatReferenceUid,
-    eventTypeRequiresConfirmation,
   }: ProcessWorkflowStepParams
 ) => {
-  if (isTextMessageToAttendeeAction(step.action) && !eventTypeRequiresConfirmation) return;
-
   if (isSMSAction(step.action)) {
+    await checkSMSRateLimit({
+      identifier: `sms:${workflow.teamId ? "team:" : "user:"}${workflow.teamId || workflow.userId}`,
+      rateLimitingType: "sms",
+    });
+
     const sendTo = step.action === WorkflowActions.SMS_ATTENDEE ? smsReminderNumber : step.sendTo;
     await scheduleSMSReminder({
       evt,
@@ -141,7 +139,6 @@ export const scheduleWorkflowReminders = async (args: ScheduleWorkflowRemindersA
     emailAttendeeSendToOverride = "",
     hideBranding,
     seatReferenceUid,
-    eventTypeRequiresConfirmation = false,
   } = args;
   if (isNotConfirmed || !workflows.length) return;
 
@@ -173,7 +170,6 @@ export const scheduleWorkflowReminders = async (args: ScheduleWorkflowRemindersA
         smsReminderNumber,
         hideBranding,
         seatReferenceUid,
-        eventTypeRequiresConfirmation,
       });
     }
   }
@@ -204,11 +200,10 @@ export interface SendCancelledRemindersArgs {
   smsReminderNumber: string | null;
   evt: ExtendedCalendarEvent;
   hideBranding?: boolean;
-  eventTypeRequiresConfirmation?: boolean;
 }
 
 export const sendCancelledReminders = async (args: SendCancelledRemindersArgs) => {
-  const { workflows, smsReminderNumber, evt, hideBranding, eventTypeRequiresConfirmation } = args;
+  const { workflows, smsReminderNumber, evt, hideBranding } = args;
   if (!workflows.length) return;
 
   for (const workflowRef of workflows) {
@@ -221,7 +216,6 @@ export const sendCancelledReminders = async (args: SendCancelledRemindersArgs) =
         smsReminderNumber,
         hideBranding,
         calendarEvent: evt,
-        eventTypeRequiresConfirmation,
       });
     }
   }
