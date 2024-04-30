@@ -2,7 +2,12 @@ import { Transform } from "class-transformer";
 import { IsNumber, Min, Max, IsOptional } from "class-validator";
 import type { Response as BaseResponse } from "express";
 
-import type { ERROR_STATUS, SUCCESS_STATUS, API_ERROR_CODES } from "@calcom/platform-constants";
+import type {
+  ERROR_STATUS,
+  SUCCESS_STATUS,
+  API_ERROR_CODES,
+  REDIRECT_STATUS,
+} from "@calcom/platform-constants";
 
 export type ApiSuccessResponse<T> = { status: typeof SUCCESS_STATUS; data: T };
 export type ApiSuccessResponseWithoutData = { status: typeof SUCCESS_STATUS };
@@ -23,6 +28,7 @@ export type ApiErrorResponse = {
 };
 
 export type ApiRedirectResponseType = {
+  status: typeof REDIRECT_STATUS;
   url: string;
 };
 
@@ -31,6 +37,8 @@ export type Response<T = unknown> = BaseResponse<ApiResponse<T>>;
 export type ApiResponse<T = undefined> = T extends undefined
   ? ApiSuccessResponseWithoutData | ApiErrorResponse
   : ApiSuccessResponse<T> | ApiErrorResponse;
+
+export type ApiResponseMaybeRedirect<T = undefined> = ApiResponse<T> | ApiRedirectResponseType;
 
 export class Pagination {
   @Transform(({ value }: { value: string }) => value && parseInt(value))
