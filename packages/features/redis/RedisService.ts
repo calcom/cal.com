@@ -4,7 +4,6 @@ import type { IRedisService } from "./IRedisService";
 
 export class RedisService implements IRedisService {
   private redis: Redis;
-  public hasKeysInEnv = process.env.UPSTASH_REDIS_REST_TOKEN && process.env.UPSTASH_REDIS_REST_URL;
 
   constructor() {
     this.redis = Redis.fromEnv();

@@ -1,38 +1,41 @@
 import prismaMock from "../../../../../../tests/libs/__mocks__/prismaMock";
 
-import { vi, beforeAll, afterAll, beforeEach, describe, it, expect } from "vitest";
-import { mock } from "vitest-mock-extended";
+import { vi, describe, it, expect, beforeAll, afterAll } from "vitest";
 
 import dayjs from "@calcom/dayjs";
 import { RedisService } from "@calcom/features/redis/RedisService";
 
 import { handleNotificationWhenNoSlots } from "./handleNotificationWhenNoSlots";
 
-vi.mock("@calcom/features/redis/RedisService", () => ({
-  RedisService: mock<RedisService>,
-}));
-
-// Mock the upstash tokens for this unit
-beforeAll(() => {
-  process.env.UPSTASH_REDIS_REST_URL = "mocked_url";
-  process.env.UPSTASH_REDIS_REST_TOKEN = "mocked_token";
+vi.mock("@calcom/features/redis/RedisService", () => {
+  return {
+    RedisService: vi.fn().mockImplementation(() => ({
+      lrange: vi.fn(),
+      lpush: vi.fn(),
+      expire: vi.fn(),
+    })),
+  };
 });
 
-afterAll(() => {
-  delete process.env.UPSTASH_REDIS_REST_URL;
-  delete process.env.UPSTASH_REDIS_REST_TOKEN;
-});
+describe("handleNotificationWhenNoSlots", () => {
+  beforeAll(() => {
+    // Setup env vars
+    vi.stubEnv("UPSTASH_REDIS_REST_TOKEN", "mocked_token");
+    vi.stubEnv("UPSTASH_REDIS_REST_URL", "mocked_url");
+  });
 
-beforeEach(() => {
-  vi.clearAllMocks();
-});
+  afterAll(() => {
+    vi.unstubAllEnvs();
+  });
 
-describe("handleNotificationWhenNoSlots", async () => {
-  it("(Happy) It should send a notification to admins", async () => {
-    // Setup your input data
-    const mockedRedis = vi.mocked(RedisService.prototype);
-    const eventDetails = { username: "mocked_username", eventSlug: "mocked_slug", startTime: dayjs() };
-    const orgDetails = { currentOrgDomain: "mock_domain", isValidOrgDomain: true };
+  it("Should send a notification if the org has them enabled", async () => {
+    // const redisService = mock<RedisService>();
+    const redisService = new RedisService();
+    const mocked = vi.mocked(redisService);
+    // Mocking the return values
+    mocked.lrange.mockResolvedValue(["", ""]);
+    mocked.lpush.mockResolvedValue(1);
+    mocked.expire.mockResolvedValue(1);
 
     prismaMock.team.findFirst.mockResolvedValue({
       organizationSettings: {
@@ -40,13 +43,28 @@ describe("handleNotificationWhenNoSlots", async () => {
       },
     });
 
-    mockedRedis.lrange.mockResolvedValue([]);
+    // Define event and organization details
+    const eventDetails = {
+      username: "user1",
+      eventSlug: "event1",
+      startTime: dayjs(), // Mocking Dayjs format function
+    };
+    const orgDetails = {
+      currentOrgDomain: "org1",
+      isValidOrgDomain: true,
+    };
 
-    const expiresSpyOn = vi.spyOn(mockedRedis, "expire");
+    const expiresSpy = vi.spyOn(redisService, "expire");
+
+    // Call the function
+    await handleNotificationWhenNoSlots({ eventDetails, orgDetails });
+
+    expect(expiresSpy).toHaveBeenCalled();
+
+    mocked.lrange.mockResolvedValue([""]);
 
     await handleNotificationWhenNoSlots({ eventDetails, orgDetails });
-    // Ensure we set the expiry once
-
-    expect(expiresSpyOn).toHaveBeenCalled();
+    // We won't call this fn again as the count will have incremented
+    expect(expiresSpy).not.toHaveBeenCalled();
   });
 });

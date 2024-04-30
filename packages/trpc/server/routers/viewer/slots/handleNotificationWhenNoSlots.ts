@@ -41,7 +41,7 @@ export const handleNotificationWhenNoSlots = async ({
 }) => {
   // Check for org
   if (!orgDetails.currentOrgDomain) return;
-  const UPSTASH_ENV_FOUND = RedisService.hasKeysInEnv;
+  const UPSTASH_ENV_FOUND = process.env.UPSTASH_REDIS_REST_TOKEN && process.env.UPSTASH_REDIS_REST_URL;
   if (!UPSTASH_ENV_FOUND) return;
 
   // Check org has this setting enabled
