@@ -428,7 +428,9 @@ async function handler(req: CustomRequest) {
     allRemainingBookings
   );
 
-  const bookingToDeleteEventTypeMetadata = EventTypeMetaDataSchema.parse(bookingToDelete.eventType?.metadata);
+  const bookingToDeleteEventTypeMetadata = EventTypeMetaDataSchema.parse(
+    bookingToDelete.eventType?.metadata || null
+  );
 
   const credentials = await getAllCredentials(bookingToDelete.user, {
     ...bookingToDelete.eventType,
