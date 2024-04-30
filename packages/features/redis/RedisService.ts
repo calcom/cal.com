@@ -33,6 +33,6 @@ export class RedisService implements IRedisService {
   }
 
   async lpush<TData>(key: string, ...elements: TData[]): Promise<number> {
-    return this.redis.lrange(key, elements);
+    return this.redis.lpush(key, elements);
   }
 }
