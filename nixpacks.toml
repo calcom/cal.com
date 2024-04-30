@@ -15,6 +15,7 @@ onlyIncludeFiles = [
   "packages/ui/package.json",
   "packages/types/package.json",
   "packages/core/package.json",
+  "packages/app-store/package.json",
   "packages/app-store-cli/package.json",
   "packages/config/package.json",
   "packages/trpc/package.json",
