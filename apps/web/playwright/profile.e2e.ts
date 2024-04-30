@@ -8,6 +8,7 @@ import type { PrismaClient } from "@calcom/prisma";
 import type { createEmailsFixture } from "./fixtures/emails";
 import { test } from "./lib/fixtures";
 import { getEmailsReceivedByUser } from "./lib/testUtils";
+import { expectInvitationEmailToBeReceived } from "./team/expects";
 
 test.describe.configure({ mode: "parallel" });
 

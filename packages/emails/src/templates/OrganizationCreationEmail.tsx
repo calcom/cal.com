@@ -40,6 +40,7 @@ export const OrganizationCreationEmail = (
         <a href={`${WEBAPP_URL}/upgrade`}>{WEBAPP_URL}/upgrade</a>
       </p>
       <p
+        data-testid="organization-link-info"
         style={{
           fontWeight: 400,
           lineHeight: "24px",

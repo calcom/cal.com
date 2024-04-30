@@ -11,6 +11,7 @@ import type { createEmailsFixture } from "../fixtures/emails";
 import { test } from "../lib/fixtures";
 import { fillStripeTestCheckout } from "../lib/testUtils";
 import { getEmailsReceivedByUser } from "../lib/testUtils";
+import { gotoPathAndExpectRedirectToOrgDomain } from "./lib/gotoPathAndExpectRedirectToOrgDomain";
 
 async function expectEmailWithSubject(
   page: Page,
@@ -33,12 +34,51 @@ async function expectEmailWithSubject(
   return dom;
 }
 
-export async function expectOrganizationCreationEmailToBeSent(
-  page: Page,
-  emails: ReturnType<typeof createEmailsFixture>,
-  userEmail: string
-) {
-  return expectEmailWithSubject(page, emails, userEmail, "Your organization has been created");
+export async function expectOrganizationCreationEmailToBeSent({
+  page,
+  emails,
+  userEmail,
+  orgSlug,
+}: {
+  page: Page;
+  emails: ReturnType<typeof createEmailsFixture>;
+  userEmail: string;
+  orgSlug: string;
+}) {
+  const dom = await expectEmailWithSubject(page, emails, userEmail, "Your organization has been created");
+  const document = dom?.window?.document;
+  expect(document?.querySelector(`[href*=${orgSlug}]`)).toBeTruthy();
+  return dom;
+}
+
+async function expectOrganizationCreationEmailToBeSentWithLinks({
+  page,
+  emails,
+  userEmail,
+  oldUsername,
+  newUsername,
+  orgSlug,
+}: {
+  page: Page;
+  emails: ReturnType<typeof createEmailsFixture>;
+  userEmail: string;
+  oldUsername: string;
+  newUsername: string;
+  orgSlug: string;
+}) {
+  const dom = await expectOrganizationCreationEmailToBeSent({
+    page,
+    emails,
+    userEmail,
+    orgSlug,
+  });
+  const document = dom?.window.document;
+  const links = document?.querySelectorAll(`[data-testid="organization-link-info"] [href]`);
+  if (!links) {
+    throw new Error(`data-testid="organization-link-info doesn't have links`);
+  }
+  expect((links[0] as unknown as HTMLAnchorElement).href).toContain(oldUsername);
+  expect((links[1] as unknown as HTMLAnchorElement).href).toContain(newUsername);
 }
 
 export async function expectEmailVerificationEmailToBeSent(
@@ -63,7 +103,7 @@ function capitalize(text: string) {
 }
 
 test.describe("Organization", () => {
-  test.only("Admin should be able to create an org where an existing user is an owner", async ({
+  test("Admin should be able to create an org where an existing user is made an owner", async ({
     page,
     users,
     emails,
@@ -72,21 +112,24 @@ test.describe("Organization", () => {
       role: "ADMIN",
     });
     await appLevelAdmin.apiLogin();
-    const stringUUID = uuid();
 
-    const orgOwnerUsername = `owner-${stringUUID}`;
+    const orgOwnerUsernamePrefix = "owner";
 
-    const targetOrgEmail = users.trackEmail({
-      username: orgOwnerUsername,
+    const orgOwnerEmail = users.trackEmail({
+      username: orgOwnerUsernamePrefix,
       domain: `example.com`,
     });
+
     const orgOwnerUser = await users.create({
-      username: orgOwnerUsername,
-      email: targetOrgEmail,
+      username: orgOwnerUsernamePrefix,
+      email: orgOwnerEmail,
       role: "ADMIN",
     });
 
-    const orgName = capitalize(`${orgOwnerUsername}`);
+    const orgOwnerUsernameOutsideOrg = orgOwnerUser.username;
+    const orgOwnerUsernameInOrg = orgOwnerEmail.split("@")[0];
+    const orgName = capitalize(`${orgOwnerUser.username}`);
+    const orgSlug = `myOrg-${uuid()}`.toLowerCase();
     await page.goto("/settings/organizations/new");
     await page.waitForLoadState("networkidle");
 
@@ -96,20 +139,18 @@ test.describe("Organization", () => {
       await expect(page.locator(".text-red-700")).toHaveCount(3);
 
       // Happy path
-      await page.locator("input[name=orgOwnerEmail]").fill(targetOrgEmail);
-      // Since we are admin fill in this infomation instead of deriving it
-      await page.locator("input[name=name]").fill(orgName);
-      await page.locator("input[name=slug]").fill(orgOwnerUsername);
-
-      // Fill in seat infomation
-      await page.locator("input[name=seats]").fill("30");
-      await page.locator("input[name=pricePerSeat]").fill("30");
-
-      await page.locator("button[type=submit]").click();
-      await page.waitForLoadState("networkidle");
+      await fillAndSubmitFirstStepAsAdmin(page, orgOwnerEmail, orgName, orgSlug);
     });
 
-    await page.goto(`/${orgOwnerUsername}`);
+    await expectOrganizationCreationEmailToBeSentWithLinks({
+      page,
+      emails,
+      userEmail: orgOwnerEmail,
+      oldUsername: orgOwnerUsernameOutsideOrg || "",
+      newUsername: orgOwnerUsernameInOrg,
+      orgSlug,
+    });
+
     await test.step("About the organization", async () => {
       // Choosing an avatar
       await page.locator('button:text("Upload")').click();
@@ -197,6 +238,16 @@ test.describe("Organization", () => {
 
       await expect(upgradeButtonHidden).toBeHidden();
     });
+
+    // Verify that the owner's old username redirect is properly set
+    await gotoPathAndExpectRedirectToOrgDomain({
+      page,
+      org: {
+        slug: orgSlug,
+      },
+      path: `/${orgOwnerUsernameOutsideOrg}`,
+      expectedPath: `/${orgOwnerUsernameInOrg}`,
+    });
   });
 
   test("Admin should be able to create an org where the owner doesn't exist yet", async ({
@@ -225,20 +276,15 @@ test.describe("Organization", () => {
       await expect(page.locator(".text-red-700")).toHaveCount(3);
 
       // Happy path
-      await page.locator("input[name=orgOwnerEmail]").fill(orgOwnerEmail);
-      // Since we are admin fill in this infomation instead of deriving it
-      await page.locator("input[name=name]").fill(orgName);
-      await page.locator("input[name=slug]").fill(orgSlug);
-
-      // Fill in seat infomation
-      await page.locator("input[name=seats]").fill("30");
-      await page.locator("input[name=pricePerSeat]").fill("30");
-
-      await page.locator("button[type=submit]").click();
-      await page.waitForLoadState("networkidle");
+      await fillAndSubmitFirstStepAsAdmin(page, orgOwnerEmail, orgName, orgSlug);
     });
 
-    const dom = await expectOrganizationCreationEmailToBeSent(page, emails, orgOwnerEmail);
+    const dom = await expectOrganizationCreationEmailToBeSent({
+      page,
+      emails,
+      userEmail: orgOwnerEmail,
+      orgSlug,
+    });
     expect(dom?.window.document.querySelector(`[href*=${orgSlug}]`)).toBeTruthy();
     await expectEmailVerificationEmailToBeSent(page, emails, orgOwnerEmail);
     // Rest of the steps remain same as org creation with existing user as owner. So skipping them
@@ -519,3 +565,24 @@ test.describe("Organization", () => {
     });
   });
 });
+
+async function fillAndSubmitFirstStepAsAdmin(
+  page: Page,
+  targetOrgEmail: string,
+  orgName: string,
+  orgSlug: string
+) {
+  await page.locator("input[name=orgOwnerEmail]").fill(targetOrgEmail);
+  // Since we are admin fill in this infomation instead of deriving it
+  await page.locator("input[name=name]").fill(orgName);
+  await page.locator("input[name=slug]").fill(orgSlug);
+
+  // Fill in seat infomation
+  await page.locator("input[name=seats]").fill("30");
+  await page.locator("input[name=pricePerSeat]").fill("30");
+
+  await Promise.all([
+    page.waitForResponse("**/api/trpc/organizations/create**"),
+    page.locator("button[type=submit]").click(),
+  ]);
+}
