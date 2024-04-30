@@ -61,6 +61,7 @@ export const useIntercom = () => {
         sum_of_calendars: data.sumOfCalendars,
         sum_of_teams: data.sumOfTeams,
         has_org: !data.organizationId,
+        organization_id: data.organizationId,
         sum_of_event_types: data.sumOfEventTypes,
         sum_of_team_event_types: data.sumOfTeamEventTypes,
         is_premium: hasKeyInMetadata(data, "isPremium") ? !!data.metadata.isPremium : false,
@@ -96,6 +97,14 @@ export const useIntercom = () => {
         metadata: data?.metadata,
         completed_onboarding: data?.completedOnboarding,
         is_logged_in: !!data,
+        sum_of_bookings: data.sumOfBookings,
+        sum_of_calendars: data.sumOfCalendars,
+        sum_of_teams: data.sumOfTeams,
+        has_org: !data.organizationId,
+        organization_id: data.organizationId,
+        sum_of_event_types: data.sumOfEventTypes,
+        sum_of_team_event_types: data.sumOfTeamEventTypes,
+        is_premium: hasKeyInMetadata(data, "isPremium") ? !!data.metadata.isPremium : false,
       },
     });
     hookData.show();
