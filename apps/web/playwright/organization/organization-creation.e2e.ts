@@ -1,11 +1,54 @@
+import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
+import { JSDOM } from "jsdom";
+import type { Messages } from "mailhog";
 import path from "path";
 import { uuid } from "short-uuid";
 
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 
+import type { createEmailsFixture } from "../fixtures/emails";
 import { test } from "../lib/fixtures";
 import { fillStripeTestCheckout } from "../lib/testUtils";
+import { getEmailsReceivedByUser } from "../lib/testUtils";
+
+async function expectEmailWithSubject(
+  page: Page,
+  emails: ReturnType<typeof createEmailsFixture>,
+  userEmail: string,
+  subject: string
+) {
+  if (!emails) return null;
+
+  // eslint-disable-next-line playwright/no-wait-for-timeout
+  await page.waitForTimeout(2000);
+  const receivedEmails = await getEmailsReceivedByUser({ emails, userEmail });
+
+  const allEmails = (receivedEmails as Messages).items;
+  const email = allEmails.find((email) => email.subject === subject);
+  if (!email) {
+    throw new Error(`Email with subject ${subject} not found`);
+  }
+  const dom = new JSDOM(email.html);
+  return dom;
+}
+
+export async function expectOrganizationCreationEmailToBeSent(
+  page: Page,
+  emails: ReturnType<typeof createEmailsFixture>,
+  userEmail: string
+) {
+  return expectEmailWithSubject(page, emails, userEmail, "Your organization has been created");
+}
+
+export async function expectEmailVerificationEmailToBeSent(
+  page: Page,
+  emails: ReturnType<typeof createEmailsFixture>,
+  userEmail: string
+) {
+  const subject = "Cal.com: Verify your account";
+  return expectEmailWithSubject(page, emails, userEmail, subject);
+}
 
 test.afterAll(({ users, orgs }) => {
   users.deleteAll();
@@ -20,7 +63,11 @@ function capitalize(text: string) {
 }
 
 test.describe("Organization", () => {
-  test("Admin should be able to create an org for a target user", async ({ page, users, emails }) => {
+  test.only("Admin should be able to create an org where an existing user is an owner", async ({
+    page,
+    users,
+    emails,
+  }) => {
     const appLevelAdmin = await users.create({
       role: "ADMIN",
     });
@@ -62,6 +109,7 @@ test.describe("Organization", () => {
       await page.waitForLoadState("networkidle");
     });
 
+    await page.goto(`/${orgOwnerUsername}`);
     await test.step("About the organization", async () => {
       // Choosing an avatar
       await page.locator('button:text("Upload")').click();
@@ -149,6 +197,51 @@ test.describe("Organization", () => {
 
       await expect(upgradeButtonHidden).toBeHidden();
     });
+  });
+
+  test("Admin should be able to create an org where the owner doesn't exist yet", async ({
+    page,
+    users,
+    emails,
+  }) => {
+    const appLevelAdmin = await users.create({
+      role: "ADMIN",
+    });
+    await appLevelAdmin.apiLogin();
+    const orgOwnerUsername = `owner`;
+    const orgName = capitalize(`${orgOwnerUsername}`);
+    const orgSlug = `myOrg-${uuid()}`.toLowerCase();
+    const orgOwnerEmail = users.trackEmail({
+      username: orgOwnerUsername,
+      domain: `example.com`,
+    });
+
+    await page.goto("/settings/organizations/new");
+    await page.waitForLoadState("networkidle");
+
+    await test.step("Basic info", async () => {
+      // Check required fields
+      await page.locator("button[type=submit]").click();
+      await expect(page.locator(".text-red-700")).toHaveCount(3);
+
+      // Happy path
+      await page.locator("input[name=orgOwnerEmail]").fill(orgOwnerEmail);
+      // Since we are admin fill in this infomation instead of deriving it
+      await page.locator("input[name=name]").fill(orgName);
+      await page.locator("input[name=slug]").fill(orgSlug);
+
+      // Fill in seat infomation
+      await page.locator("input[name=seats]").fill("30");
+      await page.locator("input[name=pricePerSeat]").fill("30");
+
+      await page.locator("button[type=submit]").click();
+      await page.waitForLoadState("networkidle");
+    });
+
+    const dom = await expectOrganizationCreationEmailToBeSent(page, emails, orgOwnerEmail);
+    expect(dom?.window.document.querySelector(`[href*=${orgSlug}]`)).toBeTruthy();
+    await expectEmailVerificationEmailToBeSent(page, emails, orgOwnerEmail);
+    // Rest of the steps remain same as org creation with existing user as owner. So skipping them
   });
 
   test("User can create and upgrade a org", async ({ page, users, emails }) => {
