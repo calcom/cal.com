@@ -58,7 +58,6 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
   const bookingFields: Prisma.JsonObject = {};
 
   const workflows = eventType.workflows.map((workflowOnEventType) => workflowOnEventType.workflow);
-  console.log("🚀 ~ EventAdvancedTab ~ workflows:", workflows);
   const selectedThemeIsDark =
     user?.theme === "dark" ||
     (!user?.theme && typeof document !== "undefined" && document.documentElement.classList.contains("dark"));
