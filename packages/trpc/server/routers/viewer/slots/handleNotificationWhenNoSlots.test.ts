@@ -1,25 +1,16 @@
 import prismaMock from "../../../../../../tests/libs/__mocks__/prismaMock";
 
-import { Redis } from "@upstash/redis";
 import { vi, beforeAll, afterAll, beforeEach, describe, it, expect } from "vitest";
+import { mock } from "vitest-mock-extended";
 
 import dayjs from "@calcom/dayjs";
+import { RedisService } from "@calcom/features/redis/RedisService";
 
 import { handleNotificationWhenNoSlots } from "./handleNotificationWhenNoSlots";
 
-vi.mock("@upstash/redis", () => {
-  const mockedInstance = {
-    lrange: vi.fn(),
-    lpush: vi.fn(),
-    expire: vi.fn(),
-  };
-
-  return {
-    Redis: vi.fn().mockImplementation(() => ({
-      fromEnv: vi.fn().mockImplementation(() => mockedInstance),
-    })),
-  };
-});
+vi.mock("@calcom/features/redis/RedisService", () => ({
+  RedisService: mock<RedisService>,
+}));
 
 // Mock the upstash tokens for this unit
 beforeAll(() => {
@@ -36,10 +27,10 @@ beforeEach(() => {
   vi.clearAllMocks();
 });
 
-describe("handleNotificationWhenNoSlots", () => {
+describe("handleNotificationWhenNoSlots", async () => {
   it("(Happy) It should send a notification to admins", async () => {
     // Setup your input data
-    const mockedRedis = vi.mocked(Redis.fromEnv());
+    const mockedRedis = vi.mocked(RedisService.prototype);
     const eventDetails = { username: "mocked_username", eventSlug: "mocked_slug", startTime: dayjs() };
     const orgDetails = { currentOrgDomain: "mock_domain", isValidOrgDomain: true };
 

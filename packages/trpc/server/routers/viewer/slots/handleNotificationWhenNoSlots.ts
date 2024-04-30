@@ -1,7 +1,6 @@
-import { Redis } from "@upstash/redis";
-
 import type { Dayjs } from "@calcom/dayjs";
 import { sendOrganizationAdminNoSlotsNotification } from "@calcom/emails";
+import { RedisService } from "@calcom/features/redis/RedisService";
 import { IS_PRODUCTION, WEBAPP_URL } from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/lib/server";
 import { prisma } from "@calcom/prisma";
@@ -42,7 +41,7 @@ export const handleNotificationWhenNoSlots = async ({
 }) => {
   // Check for org
   if (!orgDetails.currentOrgDomain) return;
-  const UPSTASH_ENV_FOUND = process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN;
+  const UPSTASH_ENV_FOUND = RedisService.hasKeysInEnv;
   if (!UPSTASH_ENV_FOUND) return;
 
   // Check org has this setting enabled
@@ -62,7 +61,7 @@ export const handleNotificationWhenNoSlots = async ({
 
   if (!orgSettings?.organizationSettings?.adminGetsNoSlotsNotification) return;
 
-  const redis = Redis.fromEnv();
+  const redis = new RedisService();
 
   const usersUniqueKey = constructRedisKey(eventDetails, orgDetails.currentOrgDomain);
   // Get only the required amount of data so the request is as small as possible
