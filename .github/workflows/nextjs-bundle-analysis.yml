@@ -9,7 +9,7 @@ on:
 
 jobs:
   build:
-    name: Production build
+    name: Production builds
     if: ${{ github.event_name == 'push' }}
     uses: ./.github/workflows/production-build-without-database.yml
     secrets: inherit

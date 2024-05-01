@@ -1,4 +1,4 @@
-name: Production Build
+name: Production Builds
 
 on:
   workflow_call:
@@ -39,7 +39,7 @@ env:
 
 jobs:
   build:
-    name: Build API V1
+    name: API V1
     runs-on: buildjet-4vcpu-ubuntu-2204
     timeout-minutes: 30
     services:

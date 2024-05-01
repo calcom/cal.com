@@ -39,7 +39,7 @@ jobs:
     secrets: inherit
 
   build:
-    name: Production build
+    name: Production builds (without database)
     uses: ./.github/workflows/production-build-without-database.yml
     secrets: inherit
 
@@ -67,13 +67,8 @@ jobs:
     uses: ./.github/workflows/e2e-embed-react.yml
     secrets: inherit
 
-  build-without-database:
-    name: Production build (without database)
-    uses: ./.github/workflows/production-build-without-database.yml
-    secrets: inherit
-
   required:
-    needs: [e2e, e2e-app-store, e2e-embed, e2e-embed-react, build-without-database]
+    needs: [e2e, e2e-app-store, e2e-embed, e2e-embed-react]
     if: always()
     runs-on: buildjet-4vcpu-ubuntu-2204
     steps:
