@@ -10,11 +10,12 @@ import { RedisService } from "@calcom/features/redis/RedisService";
 import { handleNotificationWhenNoSlots } from "./handleNotificationWhenNoSlots";
 
 vi.mock("@calcom/features/redis/RedisService", () => {
-  RedisService.prototype.lrange = vi.fn();
-  RedisService.prototype.lpush = vi.fn();
-  RedisService.prototype.expire = vi.fn();
+  const mockedRedis = vi.fn();
+  mockedRedis.prototype.lrange = vi.fn();
+  mockedRedis.prototype.lpush = vi.fn();
+  mockedRedis.prototype.expire = vi.fn();
   return {
-    RedisService,
+    RedisService: mockedRedis,
   };
 });
 
@@ -62,11 +63,6 @@ describe("handleNotificationWhenNoSlots", () => {
   it("Should send a notification if the org has them enabled", async () => {
     const redisService = new RedisService();
     const mocked = vi.mocked(redisService);
-
-    mocked.lrange.mockResolvedValueOnce([]);
-    mocked.lpush.mockResolvedValueOnce(1);
-    mocked.expire.mockResolvedValueOnce(1);
-
     prismaMock.team.findFirst.mockResolvedValue({
       organizationSettings: {
         adminGetsNoSlotsNotification: true,
@@ -89,11 +85,13 @@ describe("handleNotificationWhenNoSlots", () => {
 
     expect(CalcomEmails.sendOrganizationAdminNoSlotsNotification).not.toHaveBeenCalled();
 
+    mocked.lrange.mockResolvedValueOnce([""]);
+
     await handleNotificationWhenNoSlots({ eventDetails, orgDetails });
     expect(CalcomEmails.sendOrganizationAdminNoSlotsNotification).toHaveBeenCalled();
   });
   it("Should not send a notification if the org has them disabled", async () => {
-    prismaMock.team.findFirst.mockResolvedValue({
+    prismaMock.team.findFirst.mockResolvedValueOnce({
       organizationSettings: {
         adminGetsNoSlotsNotification: false,
       },
@@ -113,6 +111,6 @@ describe("handleNotificationWhenNoSlots", () => {
     // Call the function
     await handleNotificationWhenNoSlots({ eventDetails, orgDetails });
 
-    expect(CalcomEmails.sendEmail).not.toHaveBeenCalled();
+    expect(CalcomEmails.sendOrganizationAdminNoSlotsNotification).not.toHaveBeenCalled();
   });
 });
