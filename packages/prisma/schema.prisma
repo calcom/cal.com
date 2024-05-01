@@ -225,7 +225,7 @@ model TravelSchedule {
   @@index([endDate])
 }
 
-// It holds Personal Profiles of a User plus it has email, password and other core things
+// It holds Personal Profiles of a User plus it has email, password and other core things..
 model User {
   id                  Int                  @id @default(autoincrement())
   username            String?
@@ -400,6 +400,7 @@ model Team {
   isPlatform            Boolean                 @default(false)
   platformOAuthClient   PlatformOAuthClient[]
   smsLockState          SMSLockState            @default(UNLOCKED)
+  platformBilling       PlatformBilling?
 
   @@unique([slug, parentId])
   @@index([parentId])
@@ -1123,25 +1124,28 @@ enum AccessScope {
 }
 
 view BookingTimeStatus {
-  id            Int            @unique
-  uid           String?
-  eventTypeId   Int?
-  title         String?
-  description   String?
-  startTime     DateTime?
-  endTime       DateTime?
-  createdAt     DateTime?
-  location      String?
-  paid          Boolean?
-  status        BookingStatus?
-  rescheduled   Boolean?
-  userId        Int?
-  teamId        Int?
-  eventLength   Int?
-  timeStatus    String?
-  eventParentId Int?
-  userEmail     String?
-  username      String?
+  id             Int            @unique
+  uid            String?
+  eventTypeId    Int?
+  title          String?
+  description    String?
+  startTime      DateTime?
+  endTime        DateTime?
+  createdAt      DateTime?
+  location       String?
+  paid           Boolean?
+  status         BookingStatus?
+  rescheduled    Boolean?
+  userId         Int?
+  teamId         Int?
+  eventLength    Int?
+  timeStatus     String?
+  eventParentId  Int?
+  userEmail      String?
+  username       String?
+  ratingFeedback String?
+  rating         Int?
+  noShowHost     Boolean?
 }
 
 model CalendarCache {
@@ -1353,4 +1357,18 @@ enum SMSLockState {
   LOCKED
   UNLOCKED
   REVIEW_NEEDED
+}
+
+model PlatformBilling {
+  id Int @id @unique // team id
+
+  customerId     String  @unique
+  subscriptionId String?
+  plan           String
+
+  billingCycleStart Int?
+  billingCycleEnd   Int?
+  overdue           Boolean? @default(false)
+
+  team Team @relation(fields: [id], references: [id], onDelete: Cascade)
 }
