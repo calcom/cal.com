@@ -144,7 +144,7 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
 
   // Create a new user and invite them as the owner of the organization
   if (!orgOwner) {
-    const data = await OrganizationRepository.createOrganizationAndOwner({
+    const data = await OrganizationRepository.createWithNonExistentOwner({
       orgData,
       owner: {
         email: orgOwnerEmail,
