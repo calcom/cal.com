@@ -112,57 +112,27 @@ export async function deleteSubscription({
   } | null;
 }) {
   try {
-    const webhook = await prisma.webhook.findFirst({
-      where: {
-        id: webhookId,
-      },
-    });
-
-    if (webhook?.eventTriggers.includes(WebhookTriggerEvents.MEETING_ENDED)) {
-      const where: Prisma.BookingWhereInput = {};
-
-      if (appApiKey) {
-        if (appApiKey.teamId) {
-          where.eventType = { teamId: appApiKey.teamId };
-        } else {
-          where.userId = appApiKey.userId;
-        }
-      } else if (account) {
-        if (account.isTeam) {
-          where.eventType = { teamId: account.id };
-        } else {
-          where.userId = account.id;
-        }
+    if (appApiKey) {
+      if (appApiKey.teamId) {
+        where = { teamId: appApiKey.teamId };
+      } else {
+        where = appApiKey.userId;
       }
-
-      const bookingsWithScheduledJobs = await prisma.booking.findMany({
-        where: {
-          ...where,
-          scheduledJobs: {
-            isEmpty: false,
-          },
-        },
-      });
-      for (const booking of bookingsWithScheduledJobs) {
-        const updatedScheduledJobs = booking.scheduledJobs.filter(
-          (scheduledJob) => scheduledJob !== `${appId}_${webhook.id}`
-        );
-        await prisma.booking.update({
-          where: {
-            id: booking.id,
-          },
-          data: {
-            scheduledJobs: updatedScheduledJobs,
-          },
-        });
+    } else if (account) {
+      if (account.isTeam) {
+        where = { teamId: account.id };
+      } else {
+        where = { userId: account.id };
       }
     }
 
     const deleteWebhook = await prisma.webhook.delete({
       where: {
         id: webhookId,
+        ...where,
       },
     });
+
     if (!deleteWebhook) {
       throw new Error(`Unable to delete webhook ${webhookId}`);
     }
