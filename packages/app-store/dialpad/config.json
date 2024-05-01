@@ -1,0 +1,25 @@
+{
+  "/*": "Don't modify slug - If required, do it using cli edit command",
+  "name": "Dialpad",
+  "slug": "dialpad",
+  "type": "dialpad_conferencing",
+  "logo": "icon.png",
+  "url": "https://www.dialpad.com/",
+  "variant": "conferencing",
+  "categories": ["conferencing"],
+  "publisher": "cal.com",
+  "email": "help@cal.com",
+  "appData": {
+    "location": {
+      "type": "integrations:dialpad_video",
+      "label": "Dialpad",
+      "linkType": "static",
+      "organizerInputPlaceholder": "https://meetings.dialpad.com/room/dialpad/my-room",
+      "urlRegExp": "^http(s)?:\\/\\/(www\\.)?meetings.dialpad.com\\/room\\/dialpad\\/[a-zA-Z0-9]*"
+    }
+  },
+  "description": "Connect with your guest via Dialpad conferencing.",
+  "isTemplate": false,
+  "__createdUsingCli": true,
+  "__template": "event-type-location-video-static"
+}

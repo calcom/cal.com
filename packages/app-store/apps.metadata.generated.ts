@@ -17,6 +17,7 @@ import cron_config_json from "./cron/config.json";
 import { metadata as dailyvideo__metadata_ts } from "./dailyvideo/_metadata";
 import deel_config_json from "./deel/config.json";
 import demodesk_config_json from "./demodesk/config.json";
+import dialpad_config_json from "./dialpad/config.json";
 import discord_config_json from "./discord/config.json";
 import eightxeight_config_json from "./eightxeight/config.json";
 import element_call_config_json from "./element-call/config.json";
@@ -104,6 +105,7 @@ export const appStoreMetadata = {
   dailyvideo: dailyvideo__metadata_ts,
   deel: deel_config_json,
   demodesk: demodesk_config_json,
+  dialpad: dialpad_config_json,
   discord: discord_config_json,
   eightxeight: eightxeight_config_json,
   "element-call": element_call_config_json,
