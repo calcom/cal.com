@@ -290,25 +290,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@auth/core@npm:^0.1.4":
-  version: 0.1.4
-  resolution: "@auth/core@npm:0.1.4"
-  dependencies:
-    "@panva/hkdf": 1.0.2
-    cookie: 0.5.0
-    jose: 4.11.1
-    oauth4webapi: 2.0.5
-    preact: 10.11.3
-    preact-render-to-string: 5.2.3
-  peerDependencies:
-    nodemailer: 6.8.0
-  peerDependenciesMeta:
-    nodemailer:
-      optional: true
-  checksum: 64854404ea1883e0deb5535b34bed95cd43fc85094aeaf4f15a79e14045020eb944f844defe857edfc8528a0a024be89cbb2a3069dedef0e9217a74ca6c3eb79
-  languageName: node
-  linkType: hard
-
 "@aw-web-design/x-default-browser@npm:1.4.126":
   version: 1.4.126
   resolution: "@aw-web-design/x-default-browser@npm:1.4.126"
@@ -3891,7 +3872,7 @@ __metadata:
     "@nestjs/schematics": ^10.0.0
     "@nestjs/swagger": ^7.3.0
     "@nestjs/testing": ^10.0.0
-    "@nestjs/throttler": ^5.1.1
+    "@nestjs/throttler": ^5.1.2
     "@sentry/node": ^7.86.0
     "@sentry/tracing": ^7.86.0
     "@types/cookie-parser": ^1.4.6
@@ -3902,6 +3883,7 @@ __metadata:
     "@types/node": ^20.3.1
     "@types/passport-jwt": ^3.0.13
     "@types/supertest": ^2.0.12
+    body-parser: ^1.20.2
     class-transformer: ^0.5.1
     class-validator: ^0.14.0
     cookie-parser: ^1.4.6
@@ -3921,6 +3903,7 @@ __metadata:
     reflect-metadata: ^0.1.13
     rxjs: ^7.8.1
     source-map-support: ^0.5.21
+    stripe: ^15.3.0
     supertest: ^6.3.3
     ts-jest: ^29.1.1
     ts-loader: ^9.4.3
@@ -4055,38 +4038,12 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@calcom/auth@workspace:apps/auth":
+"@calcom/autocheckin@workspace:packages/app-store/autocheckin":
   version: 0.0.0-use.local
-  resolution: "@calcom/auth@workspace:apps/auth"
+  resolution: "@calcom/autocheckin@workspace:packages/app-store/autocheckin"
   dependencies:
-    "@auth/core": ^0.1.4
-    "@calcom/app-store": "*"
-    "@calcom/app-store-cli": "*"
-    "@calcom/config": "*"
-    "@calcom/core": "*"
-    "@calcom/dayjs": "*"
-    "@calcom/embed-core": "workspace:*"
-    "@calcom/embed-react": "workspace:*"
-    "@calcom/embed-snippet": "workspace:*"
-    "@calcom/features": "*"
     "@calcom/lib": "*"
-    "@calcom/prisma": "*"
-    "@calcom/trpc": "*"
-    "@calcom/tsconfig": "*"
     "@calcom/types": "*"
-    "@calcom/ui": "*"
-    "@types/node": 16.9.1
-    "@types/react": 18.0.26
-    "@types/react-dom": ^18.0.9
-    eslint: ^8.34.0
-    eslint-config-next: ^13.2.1
-    next: ^13.5.4
-    next-auth: ^4.22.1
-    postcss: ^8.4.18
-    react: ^18.2.0
-    react-dom: ^18.2.0
-    tailwindcss: ^3.3.3
-    typescript: ^4.9.4
   languageName: unknown
   linkType: soft
 
@@ -4146,6 +4103,15 @@ __metadata:
 "@calcom/campfire@workspace:packages/app-store/campfire":
   version: 0.0.0-use.local
   resolution: "@calcom/campfire@workspace:packages/app-store/campfire"
+  dependencies:
+    "@calcom/lib": "*"
+    "@calcom/types": "*"
+  languageName: unknown
+  linkType: soft
+
+"@calcom/clic@workspace:packages/app-store/clic":
+  version: 0.0.0-use.local
+  resolution: "@calcom/clic@workspace:packages/app-store/clic"
   dependencies:
     "@calcom/lib": "*"
     "@calcom/types": "*"
@@ -5195,12 +5161,14 @@ __metadata:
     class-variance-authority: ^0.4.0
     cmdk: ^0.2.0
     cmk: ^0.1.1
+    date-fns: ^3.6.0
     downshift: ^6.1.9
     lucide-react: ^0.364.0
     next: ^13.5.4
     next-seo: ^6.0.0
     react: ^18.2.0
     react-colorful: ^5.6.0
+    react-day-picker: ^8.10.1
     react-feather: ^2.0.10
     react-hook-form: ^7.43.3
     react-select: ^5.7.0
@@ -9488,7 +9456,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nestjs/throttler@npm:^5.1.1":
+"@nestjs/throttler@npm:^5.1.2":
   version: 5.1.2
   resolution: "@nestjs/throttler@npm:5.1.2"
   peerDependencies:
@@ -10371,13 +10339,6 @@ __metadata:
     "@otplib/plugin-crypto": ^12.0.1
     "@otplib/plugin-thirty-two": ^12.0.1
   checksum: 367cb09397e617c21ec748d54e920ab43f1c5dfba70cbfd88edf73aecca399cf0c09fefe32518f79c7ee8a06e7058d14b200da378cc7d46af3cac4e22a153e2f
-  languageName: node
-  linkType: hard
-
-"@panva/hkdf@npm:1.0.2":
-  version: 1.0.2
-  resolution: "@panva/hkdf@npm:1.0.2"
-  checksum: 75183b4d5ea816ef516dcea70985c610683579a9e2ac540c2d59b9a3ed27eedaff830a43a1c43c1683556a457c92ac66e09109ee995ab173090e4042c4c4bb03
   languageName: node
   linkType: hard
 
@@ -19705,7 +19666,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"body-parser@npm:1.20.2":
+"body-parser@npm:1.20.2, body-parser@npm:^1.20.2":
   version: 1.20.2
   resolution: "body-parser@npm:1.20.2"
   dependencies:
@@ -22763,6 +22724,13 @@ __metadata:
   dependencies:
     "@babel/runtime": ^7.21.0
   checksum: f7be01523282e9bb06c0cd2693d34f245247a29098527d4420628966a2d9aad154bd0e90a6b1cf66d37adcb769cd108cf8a7bd49d76db0fb119af5cdd13644f4
+  languageName: node
+  linkType: hard
+
+"date-fns@npm:^3.6.0":
+  version: 3.6.0
+  resolution: "date-fns@npm:3.6.0"
+  checksum: 0daa1e9a436cf99f9f2ae9232b55e11f3dd46132bee10987164f3eebd29f245b2e066d7d7db40782627411ecf18551d8f4c9fcdf2226e48bb66545407d448ab7
   languageName: node
   linkType: hard
 
@@ -31146,13 +31114,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jose@npm:4.11.1":
-  version: 4.11.1
-  resolution: "jose@npm:4.11.1"
-  checksum: cd15cba258d0fd20f6168631ce2e94fda8442df80e43c1033c523915cecdf390a1cc8efe0eab0c2d65935ca973d791c668aea80724d2aa9c2879d4e70f3081d7
-  languageName: node
-  linkType: hard
-
 "jose@npm:5.2.1":
   version: 5.2.1
   resolution: "jose@npm:5.2.1"
@@ -36152,13 +36113,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"oauth4webapi@npm:2.0.5":
-  version: 2.0.5
-  resolution: "oauth4webapi@npm:2.0.5"
-  checksum: 32d0cb7b1cca42d51dfb88075ca2d69fe33172a807e8ea50e317d17cab3bc80588ab8ebcb7eb4600c371a70af4674595b4b341daf6f3a655f1efa1ab715bb6c9
-  languageName: node
-  linkType: hard
-
 "oauth@npm:^0.9.15":
   version: 0.9.15
   resolution: "oauth@npm:0.9.15"
@@ -38333,17 +38287,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"preact-render-to-string@npm:5.2.3":
-  version: 5.2.3
-  resolution: "preact-render-to-string@npm:5.2.3"
-  dependencies:
-    pretty-format: ^3.8.0
-  peerDependencies:
-    preact: ">=10"
-  checksum: 6e46288d8956adde35b9fe3a21aecd9dea29751b40f0f155dea62f3896f27cb8614d457b32f48d33909d2da81135afcca6c55077520feacd7d15164d1371fb44
-  languageName: node
-  linkType: hard
-
 "preact-render-to-string@npm:^5.1.19":
   version: 5.2.6
   resolution: "preact-render-to-string@npm:5.2.6"
@@ -38355,7 +38298,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"preact@npm:10.11.3, preact@npm:^10.6.3":
+"preact@npm:^10.6.3":
   version: 10.11.3
   resolution: "preact@npm:10.11.3"
   checksum: 9387115aa0581e8226309e6456e9856f17dfc0e3d3e63f774de80f3d462a882ba7c60914c05942cb51d51e23e120dcfe904b8d392d46f29ad15802941fe7a367
@@ -39390,6 +39333,16 @@ __metadata:
   peerDependencies:
     react: ">= 16.12.0"
   checksum: 22c20152afb54424acfe967a2c8c525cd9f132a33374f2aba0231f16ea64dade389b096e2dac8de9ffded612bc32e9891d725609ee947639fe1cef907cb143f5
+  languageName: node
+  linkType: hard
+
+"react-day-picker@npm:^8.10.1":
+  version: 8.10.1
+  resolution: "react-day-picker@npm:8.10.1"
+  peerDependencies:
+    date-fns: ^2.28.0 || ^3.0.0
+    react: ^16.8.0 || ^17.0.0 || ^18.0.0
+  checksum: daf7fb5aad1e355df9149e954fafc2cd40ceb90de799db4f36ef86d24729aaecfdf022fa9e63f24d093d81dc2beb60f65ae796741dff0f7305a2af80b333fb4c
   languageName: node
   linkType: hard
 
@@ -43649,6 +43602,16 @@ __metadata:
     "@types/node": ">=8.1.0"
     qs: ^6.10.3
   checksum: 0ccf3c66a259450a63b8d6f27920e04be1fad1207fb6a9c93bdffc250008e1dc915c44bac1d8b4a63be10fcd1865d4aa3de90c79f7966798c43fecab7e4f489d
+  languageName: node
+  linkType: hard
+
+"stripe@npm:^15.3.0":
+  version: 15.4.0
+  resolution: "stripe@npm:15.4.0"
+  dependencies:
+    "@types/node": ">=8.1.0"
+    qs: ^6.11.0
+  checksum: 0302b740ef76084b8cc0fbec14f80c864101a0b04b1d85ecd120d921f3d665a512230a905be1388f777d9677850ffcf066c8cce37935e2f8f3d0d3d5d29d7a4b
   languageName: node
   linkType: hard
 
