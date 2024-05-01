@@ -95,31 +95,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         id: job.id,
       },
     });
-
-    //we don't need scheduledJobs anymore
-    const booking = await prisma.booking.findUnique({
-      where: { id: parsedJobPayload.id },
-      select: { id: true, scheduledJobs: true },
-    });
-
-    if (!booking) {
-      console.log("Error finding booking in webhook trigger:", parsedJobPayload);
-      return res.json({ ok: false });
-    }
-
-    //remove scheduled job from bookings once triggered
-    const updatedScheduledJobs = booking.scheduledJobs.filter((scheduledJob) => {
-      return scheduledJob !== job.jobName;
-    });
-
-    await prisma.booking.update({
-      where: {
-        id: booking.id,
-      },
-      data: {
-        scheduledJobs: updatedScheduledJobs,
-      },
-    });
   }
 
   Promise.allSettled(fetchPromises);
