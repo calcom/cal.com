@@ -293,13 +293,14 @@ export async function scheduleTrigger(
 ) {
   try {
     const payload = JSON.stringify({ triggerEvent, ...booking });
-    const jobName = `${subscriber.appId}_${subscriber.id}`;
+    const jobName = `${subscriber.appId}_${subscriber.id}`; // we probably don't need that no more
 
     // add scheduled job to database
     const createTrigger = prisma.webhookScheduledTriggers.create({
       data: {
         jobName,
         payload,
+        appId: subscriber.appId,
         startAfter: triggerEvent === WebhookTriggerEvents.MEETING_ENDED ? booking.endTime : booking.startTime,
         subscriberUrl,
         webhook: {
@@ -307,10 +308,16 @@ export async function scheduleTrigger(
             id: subscriber.id,
           },
         },
+        booking: {
+          connect: {
+            id: booking.id,
+          },
+        },
       },
     });
 
     //add scheduled job name to booking
+    //I probably don't need that no more
     const updateBooking = prisma.booking.update({
       where: {
         id: booking.id,
