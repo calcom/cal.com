@@ -91,6 +91,7 @@ export const ScheduleDay = <TFieldValues extends FieldValues>({
                 disabled={!watchDayRange || disabled}
                 defaultChecked={watchDayRange && watchDayRange.length > 0}
                 checked={watchDayRange && !!watchDayRange.length}
+                data-testid={`${weekday}-switch`}
                 onCheckedChange={(isChecked) => {
                   setValue(name, (isChecked ? [DEFAULT_DAY_RANGE] : []) as TFieldValues[typeof name]);
                 }}
