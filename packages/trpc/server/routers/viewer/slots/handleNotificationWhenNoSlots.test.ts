@@ -1,7 +1,7 @@
 import i18nMock from "../../../../../../tests/libs/__mocks__/libServerI18n";
 import prismaMock from "../../../../../../tests/libs/__mocks__/prismaMock";
 
-import { vi, describe, it, beforeAll, afterAll, expect, beforeEach } from "vitest";
+import { vi, describe, it, beforeAll, afterAll, expect, beforeEach, afterEach } from "vitest";
 
 import dayjs from "@calcom/dayjs";
 import * as CalcomEmails from "@calcom/emails";
@@ -55,9 +55,12 @@ describe("(Orgs) Send admin notifications when a user has no availability", () =
     });
   });
 
+  afterEach(() => {
+    vi.resetAllMocks();
+  });
+
   afterAll(() => {
     vi.unstubAllEnvs();
-    vi.resetAllMocks();
   });
 
   it("Should send a notification after 2 times if the org has them enabled", async () => {
