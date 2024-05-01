@@ -17,6 +17,7 @@ const SCHEDULING_TRIGGER: WebhookTriggerEvents[] = [
 
 const log = logger.getSubLogger({ prefix: ["[node-scheduler]"] });
 
+//todo
 export async function addSubscription({
   appApiKey,
   triggerEvent,
@@ -96,6 +97,7 @@ export async function addSubscription({
   }
 }
 
+//done
 export async function deleteSubscription({
   appApiKey,
   webhookId,
@@ -255,6 +257,7 @@ export async function listBookings(
   }
 }
 
+//done
 export async function scheduleTrigger(
   booking: { id: number; endTime: Date; startTime: Date; scheduledJobs: string[] },
   subscriberUrl: string,
@@ -286,25 +289,13 @@ export async function scheduleTrigger(
       },
     });
 
-    //add scheduled job name to booking
-    //I probably don't need that no more
-    const updateBooking = prisma.booking.update({
-      where: {
-        id: booking.id,
-      },
-      data: {
-        scheduledJobs: {
-          push: jobName,
-        },
-      },
-    });
-
     await prisma.$transaction([createTrigger, updateBooking]);
   } catch (error) {
     console.error("Error cancelling scheduled jobs", error);
   }
 }
 
+//done
 export async function deleteWebhookScheduledTriggers(
   booking?: { id: number; uid: string; scheduledJobs?: string[] },
   appId?: string | null,
@@ -353,6 +344,7 @@ export async function deleteWebhookScheduledTriggers(
   }
 }
 
+//done
 export async function updateTriggerForExistingBookings(
   webhook: Webhook,
   existingEventTriggers: WebhookTriggerEvents[],
