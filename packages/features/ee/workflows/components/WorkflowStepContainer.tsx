@@ -78,9 +78,12 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     { enabled: !!teamId }
   );
 
+  const { data: _verifiedEmails } = trpc.viewer.workflows.getVerifiedEmails.useQuery({ teamId });
+
   const timeFormat = getTimeFormatStringFromUserTimeFormat(props.user.timeFormat);
 
   const verifiedNumbers = _verifiedNumbers?.map((number) => number.phoneNumber) || [];
+  const verifiedEmails = _verifiedEmails?.map((verified) => verified.email) || [];
   const [isAdditionalInputsDialogOpen, setIsAdditionalInputsDialogOpen] = useState(false);
 
   const [verificationCode, setVerificationCode] = useState("");
@@ -172,10 +175,15 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
       (number: string) => number === form.getValues(`steps.${step.stepNumber - 1}.sendTo`)
     );
 
+  const getEmailVerificationStatus = () =>
+    !!step &&
+    !!verifiedEmails.find((email: string) => email === form.getValues(`steps.${step.stepNumber - 1}.sendTo`));
+
   const [numberVerified, setNumberVerified] = useState(getNumberVerificationStatus());
-  const [emailVerified, setEmailVerified] = useState(false);
+  const [emailVerified, setEmailVerified] = useState(getEmailVerificationStatus());
 
   useEffect(() => setNumberVerified(getNumberVerificationStatus()), [verifiedNumbers.length]);
+  useEffect(() => setEmailVerified(getEmailVerificationStatus()), [verifiedEmails.length]);
 
   const addVariableBody = (variable: string) => {
     if (step) {
@@ -241,7 +249,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     },
   });
 
-  const verifyEmailCodeMutation = trpc.viewer.auth.verifyCodeUnAuthenticated.useMutation({
+  const verifyEmailCodeMutation = trpc.viewer.workflows.verifyEmailCode.useMutation({
     onSuccess: (isVerified) => {
       showToast(isVerified ? t("verified_successfully") : t("wrong_code"), "success");
       setEmailVerified(true);
@@ -253,6 +261,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
       ) {
         form.clearErrors(`steps.${step.stepNumber - 1}.sendTo`);
       }
+      utils.viewer.workflows.getVerifiedEmails.invalidate();
     },
     onError: (err) => {
       if (err.message === "invalid_code") {
@@ -728,6 +737,10 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           value={value}
                           disabled={props.readOnly}
                           onChange={(val) => {
+                            const isAlreadyVerified = !!verifiedEmails
+                              ?.concat([])
+                              .find((email) => email === val.target.value);
+                            setEmailVerified(isAlreadyVerified);
                             onChange(val);
                           }}
                         />
