@@ -335,29 +335,37 @@ export async function scheduleTrigger(
   }
 }
 
-export async function cancelScheduledJobs(
-  booking: { uid: string; scheduledJobs?: string[] },
+export async function deleteWebhookScheduledTriggers(
+  booking?: { id: number; uid: string; scheduledJobs?: string[] },
   appId?: string | null,
-  isReschedule?: boolean,
   triggerEvent?: WebhookTriggerEvents,
-  webhookId?: string
+  webhookId?: string,
+  userId?: number,
+  teamId?: number
 ) {
-  if (!booking.scheduledJobs) return;
-
-  let scheduledJobs = booking.scheduledJobs || [];
-  const promises = booking.scheduledJobs.map(async (scheduledJob) => {
+  try {
     if (appId) {
-      if (scheduledJob.startsWith(appId)) {
+      await prisma.webhookScheduledTriggers.deleteMany({
+        where: {
+          appId: appId,
+          booking: {
+            eventType: {
+              OR: [
+                { userId: userId }, //does that work for managed event types?
+                { teamId: teamId },
+              ],
+            },
+          },
+        },
+      });
+    } else if (booking) {
+      if (!triggerEvent) {
         await prisma.webhookScheduledTriggers.deleteMany({
           where: {
-            jobName: scheduledJob,
+            bookingId: booking.id,
           },
         });
-        scheduledJobs = scheduledJobs?.filter((job) => scheduledJob !== job) || [];
-      }
-    } else {
-      //if no specific appId given, delete all scheduled jobs of booking
-      if (triggerEvent) {
+      } else {
         const shouldContain = `"triggerEvent":"${triggerEvent}"`;
         await prisma.webhookScheduledTriggers.deleteMany({
           where: {
@@ -367,32 +375,10 @@ export async function cancelScheduledJobs(
             webhookId: webhookId,
           },
         });
-      } else {
-        await prisma.webhookScheduledTriggers.deleteMany({
-          where: {
-            jobName: scheduledJob,
-          },
-        });
-        scheduledJobs = [];
       }
     }
-
-    if (!isReschedule) {
-      await prisma.booking.update({
-        where: {
-          uid: booking.uid,
-        },
-        data: {
-          scheduledJobs: scheduledJobs,
-        },
-      });
-    }
-  });
-
-  try {
-    await Promise.all(promises);
   } catch (error) {
-    console.error("Error cancelling scheduled jobs", error);
+    console.error("Error deleting webhookScheduledTriggers ", error);
   }
 }
 
