@@ -53,7 +53,10 @@ import {
 import { getFullName } from "@calcom/features/form-builder/utils";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
-import { cancelScheduledJobs, scheduleTrigger } from "@calcom/features/webhooks/lib/scheduleTrigger";
+import {
+  deleteWebhookScheduledTriggers,
+  scheduleTrigger,
+} from "@calcom/features/webhooks/lib/scheduleTrigger";
 import {
   isPrismaObjOrUndefined,
   parseBookingLimit,
@@ -2261,38 +2264,38 @@ async function handler(
 
   // We are here so, booking doesn't require payment and booking is also created in DB already, through createBooking call
   if (isConfirmedByDefault) {
-    try {
-      const subscribersMeetingEnded = await getWebhooks(subscriberOptionsMeetingEnded);
-      const subscribersMeetingStarted = await getWebhooks(subscriberOptionsMeetingStarted);
+    const subscribersMeetingEnded = await getWebhooks(subscriberOptionsMeetingEnded);
+    const subscribersMeetingStarted = await getWebhooks(subscriberOptionsMeetingStarted);
 
-      subscribersMeetingEnded.forEach((subscriber) => {
-        if (rescheduleUid && originalRescheduledBooking) {
-          cancelScheduledJobs(originalRescheduledBooking, undefined, true);
-        }
-        if (booking && booking.status === BookingStatus.ACCEPTED) {
-          scheduleTrigger(booking, subscriber.subscriberUrl, subscriber, WebhookTriggerEvents.MEETING_ENDED);
-        }
-      });
+    let deleteWebhookScheduledTriggerPromise: Promise<unknown> = Promise.resolve();
+    const scheduleTriggerPromises = [];
 
-      subscribersMeetingStarted.forEach((subscriber) => {
-        if (rescheduleUid && originalRescheduledBooking) {
-          cancelScheduledJobs(originalRescheduledBooking, undefined, true);
-        }
-        if (booking && booking.status === BookingStatus.ACCEPTED) {
-          scheduleTrigger(
-            booking,
-            subscriber.subscriberUrl,
-            subscriber,
-            WebhookTriggerEvents.MEETING_STARTED
-          );
-        }
-      });
-    } catch (error) {
+    if (rescheduleUid && originalRescheduledBooking) {
+      //delete all scheduled triggers for meeting ended and meeting started of booking
+      deleteWebhookScheduledTriggerPromise = deleteWebhookScheduledTriggers(originalRescheduledBooking);
+    }
+
+    if (booking && booking.status === BookingStatus.ACCEPTED) {
+      for (const subscriber of subscribersMeetingEnded) {
+        scheduleTriggerPromises.push(
+          scheduleTrigger(booking, subscriber.subscriberUrl, subscriber, WebhookTriggerEvents.MEETING_ENDED)
+        );
+      }
+
+      for (const subscriber of subscribersMeetingStarted) {
+        scheduleTriggerPromises.push(
+          scheduleTrigger(booking, subscriber.subscriberUrl, subscriber, WebhookTriggerEvents.MEETING_STARTED)
+        );
+      }
+    }
+
+    //we don't need to wait for that
+    Promise.all([deleteWebhookScheduledTriggerPromise, ...scheduleTriggerPromises]).catch((error) => {
       loggerWithEventDetails.error(
-        "Error while running scheduledJobs for booking",
+        "Error while scheduling or canceling webhook triggers",
         JSON.stringify({ error })
       );
-    }
+    });
 
     // Send Webhook call if hooked to BOOKING_CREATED & BOOKING_RESCHEDULED
     await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData });
