@@ -2,7 +2,7 @@ import type { Dayjs } from "@calcom/dayjs";
 import { sendOrganizationAdminNoSlotsNotification } from "@calcom/emails";
 import { RedisService } from "@calcom/features/redis/RedisService";
 import { IS_PRODUCTION, WEBAPP_URL } from "@calcom/lib/constants";
-import { getTranslation } from "@calcom/lib/server";
+import { getTranslation } from "@calcom/lib/server/i18n";
 import { prisma } from "@calcom/prisma";
 
 type EventDetails = {
@@ -67,7 +67,8 @@ export const handleNotificationWhenNoSlots = async ({
   // Get only the required amount of data so the request is as small as possible
   // We may need to get more data and check the startDate occurrence of this
   // Not trigger email if the start months are the same
-  const usersExistingNoSlots = await redis.lrange(usersUniqueKey, 0, NO_SLOTS_COUNT_FOR_NOTIFICATION - 1);
+  const usersExistingNoSlots =
+    (await redis.lrange(usersUniqueKey, 0, NO_SLOTS_COUNT_FOR_NOTIFICATION - 1)) ?? [];
   await redis.lpush(usersUniqueKey, constructDataHash(eventDetails));
 
   if (!usersExistingNoSlots.length) {
@@ -111,7 +112,7 @@ export const handleNotificationWhenNoSlots = async ({
         user: eventDetails.username,
         slug: eventDetails.eventSlug,
         startTime: eventDetails.startTime.format("YYYY-MM"),
-        // For now navigate here - when impersonation via parameter has been pushed we will impersonate and then navigate to availbability
+        // For now navigate here - when impersonation via parameter has been pushed we will impersonate and then navigate to availability
         editLink: `${WEBAPP_URL}/availability?type=team`,
       };
 
