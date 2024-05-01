@@ -28,7 +28,7 @@ vi.mock("@calcom/features/flags/server/utils", () => {
 
 vi.spyOn(CalcomEmails, "sendOrganizationAdminNoSlotsNotification");
 
-describe("handleNotificationWhenNoSlots", () => {
+describe("(Orgs) Send admin notifications when a user has no availability", () => {
   beforeAll(() => {
     // Setup env vars
     vi.stubEnv("UPSTASH_REDIS_REST_TOKEN", "mocked_token");
@@ -60,7 +60,7 @@ describe("handleNotificationWhenNoSlots", () => {
     vi.resetAllMocks();
   });
 
-  it("Should send a notification if the org has them enabled", async () => {
+  it("Should send a notification after 2 times if the org has them enabled", async () => {
     const redisService = new RedisService();
     const mocked = vi.mocked(redisService);
     prismaMock.team.findFirst.mockResolvedValue({
@@ -85,6 +85,7 @@ describe("handleNotificationWhenNoSlots", () => {
 
     expect(CalcomEmails.sendOrganizationAdminNoSlotsNotification).not.toHaveBeenCalled();
 
+    // Mock length to be one then recall to trigger email
     mocked.lrange.mockResolvedValueOnce([""]);
 
     await handleNotificationWhenNoSlots({ eventDetails, orgDetails });
