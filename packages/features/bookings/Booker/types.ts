@@ -98,7 +98,7 @@ export type WrappedBookerPropsMain = {
   onGoBackInstantMeeting: () => void;
   onConnectNowInstantMeeting: () => void;
   onOverlayClickNoCalendar: () => void;
-  onClickOverlayContinue: (provider: "calcom" | "google") => void;
+  onClickOverlayContinue: (provider: "calcom" | "google" | "azure-ad") => void;
   onOverlaySwitchStateChange: (state: boolean) => void;
   extraOptions: Record<string, string | string[]>;
   bookings: UseBookingsReturnType;

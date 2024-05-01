@@ -51,11 +51,17 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     throw new Error("User from session not found");
   }
 
-  if (query?.step && query.step[0] === "connected-calendar" && !!query.callbackUrl) {
+  if (
+    query?.step &&
+    query.step[0] === "connected-calendar" &&
+    !!(query.callbackUrl && query.overlayProvider)
+  ) {
     if (
       user.completedOnboarding ||
       (user.credentials.length > 0 &&
-        user.credentials.find((credential) => credential.appId === "google-calendar"))
+        user.credentials.find(
+          (credential) => credential.appId === "google-calendar" || credential.appId === "office365-calendar"
+        ))
     ) {
       return { redirect: { permanent: false, destination: query.callbackUrl.toString() } };
     }

@@ -18,13 +18,21 @@ const ConnectedCalendars = (props: IConnectCalendarsProps) => {
   const { nextStep } = props;
   const searchParams = useSearchParams();
   const callbackBookerUrl = searchParams?.get("callbackUrl");
+  const overlayProvider = searchParams?.get("overlayProvider");
   const queryConnectedCalendars = trpc.viewer.connectedCalendars.useQuery({ onboarding: true });
   const { t } = useLocale();
   const queryIntegrations = trpc.viewer.integrations.useQuery({
     variant: "calendar",
     onlyInstalled: false,
     sortByMostPopular: true,
-    appId: callbackBookerUrl ? "google-calendar" : undefined,
+    appId:
+      callbackBookerUrl && overlayProvider
+        ? overlayProvider === "google"
+          ? "google-calendar"
+          : overlayProvider === "azure-ad"
+          ? "office365-calendar"
+          : undefined
+        : undefined,
   });
 
   const firstCalendar = queryConnectedCalendars.data?.connectedCalendars.find(

@@ -14,7 +14,7 @@ type OverlayCalendarProps = Pick<
 > & {
   handleClickNoCalendar: () => void;
   hasSession: boolean;
-  handleClickContinue: (provider: "calcom" | "google") => void;
+  handleClickContinue: (provider: "calcom" | "google" | "azure-ad") => void;
   handleSwitchStateChange: (state: boolean) => void;
 };
 

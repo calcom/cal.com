@@ -5,11 +5,15 @@ import { Button, Dialog, DialogContent, DialogFooter } from "@calcom/ui";
 interface IOverlayCalendarContinueModalProps {
   open?: boolean;
   onClose?: (state: boolean) => void;
-  onContinue: (provider: "calcom" | "google") => void;
+  onContinue: (provider: "calcom" | "google" | "azure-ad") => void;
 }
 
 const GoogleIcon = () => (
   <img className="text-subtle mr-2 h-4 w-4 dark:invert" src="/google-icon.svg" alt="" />
+);
+
+const MicrosoftIcon = () => (
+  <img className="text-subtle mr-2 h-4 w-4 dark:invert" src="/microsoft-icon.svg" alt="" />
 );
 
 export function OverlayCalendarContinueModal(props: IOverlayCalendarContinueModalProps) {
@@ -40,6 +44,16 @@ export function OverlayCalendarContinueModal(props: IOverlayCalendarContinueModa
               className="gap w-full items-center justify-center font-semibold"
               CustomStartIcon={<GoogleIcon />}>
               {t("continue_with", { appName: "Google" })}
+            </Button>
+            <Button
+              color="secondary"
+              data-testid="overlay-calendar-microsoft-button"
+              onClick={() => {
+                props.onContinue("azure-ad");
+              }}
+              className="gap w-full items-center justify-center font-semibold"
+              CustomStartIcon={<MicrosoftIcon />}>
+              {t("continue_with", { appName: "Microsoft" })}
             </Button>
           </div>
           <DialogFooter>

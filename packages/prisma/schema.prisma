@@ -179,6 +179,7 @@ enum IdentityProvider {
   CAL
   GOOGLE
   SAML
+  MICROSOFT
 }
 
 model DestinationCalendar {
@@ -774,6 +775,7 @@ model Account {
   refresh_token     String? @db.Text
   access_token      String? @db.Text
   expires_at        Int?
+  ext_expires_in    Int?
   token_type        String?
   scope             String?
   id_token          String? @db.Text
