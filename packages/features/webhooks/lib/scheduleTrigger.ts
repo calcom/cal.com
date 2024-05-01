@@ -443,19 +443,8 @@ export async function updateTriggerForExistingBookings(
     await Promise.all(promise);
   }
 
-  if (removedEventTriggers.length > 0) {
-    const promise = bookings.map((booking) => {
-      removedEventTriggers.map((trigger) =>
-        cancelScheduledJobs(
-          { uid: booking.uid, scheduledJobs: booking.scheduledJobs },
-          undefined,
-          false,
-          trigger,
-          webhook.id
-        )
-      );
-    });
-
-    await Promise.all(promise);
-  }
+  const promise = removedEventTriggers.map((trigger) =>
+    deleteWebhookScheduledTriggers(undefined, undefined, trigger, webhook.id)
+  );
+  await Promise.all(promise);
 }
