@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Controller, useFieldArray, useForm, useWatch } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
@@ -236,6 +236,14 @@ export function AvailabilitySettings({
       schedule: schedule.availability || [],
     },
   });
+
+  useEffect(() => {
+    const subscription = form.watch((value) => handleSubmit(value as AvailabilityFormValues), {
+      ...schedule,
+      schedule: schedule.availability || [],
+    });
+    return () => subscription.unsubscribe();
+  }, [form.watch]);
 
   const [Shell, Schedule, TimezoneSelect] = useMemo(() => {
     return isPlatform
