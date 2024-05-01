@@ -778,7 +778,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           <Button
                             color="secondary"
                             className="-ml-[3px] h-[36px] min-w-fit py-0 sm:block sm:rounded-bl-none sm:rounded-tl-none "
-                            disabled={verifyPhoneNumberMutation.isPending || props.readOnly}
+                            disabled={verifyEmailCodeMutation.isPending || props.readOnly}
                             onClick={() => {
                               verifyEmailCodeMutation.mutate({
                                 code: verificationCode,
