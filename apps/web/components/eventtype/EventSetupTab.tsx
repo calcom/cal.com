@@ -480,6 +480,7 @@ export const EventSetupTab = (
             label={t("title")}
             {...(isManagedEventType || isChildrenManagedEventType ? titleLockedProps : {})}
             defaultValue={eventType.title}
+            data-testid="event-title"
             {...formMethods.register("title")}
           />
           <div>
@@ -494,6 +495,7 @@ export const EventSetupTab = (
             label={t("URL")}
             {...(isManagedEventType || isChildrenManagedEventType ? urlLockedProps : {})}
             defaultValue={eventType.slug}
+            data-testid="event-slug"
             addOnLeading={
               <>
                 {urlPrefix}/
