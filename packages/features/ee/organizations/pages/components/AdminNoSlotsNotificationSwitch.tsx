@@ -13,8 +13,8 @@ interface GeneralViewProps {
 export const AdminNoSlotsNotificationSwitch = ({ currentOrg, isAdminOrOwner }: GeneralViewProps) => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
-  const [notifcationActive, setNotifcationActive] = useState(
-    currentOrg.organizationSettings.adminGetsNoSlotsNotification
+  const [notificationActive, setNotificationActive] = useState(
+    !!currentOrg.organizationSettings.adminGetsNoSlotsNotification
   );
 
   const mutation = trpc.viewer.organizations.update.useMutation({
@@ -38,12 +38,12 @@ export const AdminNoSlotsNotificationSwitch = ({ currentOrg, isAdminOrOwner }: G
         title={t("organization_no_slots_notification_switch_title")}
         disabled={mutation?.isPending || !isAdminOrOwner}
         description={t("organization_no_slots_notification_switch_description")}
-        checked={notifcationActive}
+        checked={notificationActive}
         onCheckedChange={(checked) => {
           mutation.mutate({
             adminGetsNoSlotsNotification: checked,
           });
-          setNotifcationActive(checked);
+          setNotificationActive(checked);
         }}
         switchContainerClassName="mt-6"
       />
