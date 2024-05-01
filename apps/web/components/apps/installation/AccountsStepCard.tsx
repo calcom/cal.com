@@ -11,7 +11,7 @@ type AccountSelectorProps = {
   avatar?: string;
   name: string;
   alreadyInstalled: boolean;
-  onClick?: () => void;
+  onClick: () => void;
   loading: boolean;
   testId: string;
 };
@@ -35,7 +35,7 @@ const AccountSelector: FC<AccountSelectorProps> = ({
       )}
       data-testid={testId}
       onClick={() => {
-        if (onClick) {
+        if (!alreadyInstalled && !loading) {
           setSelected(true);
           onClick();
         }
@@ -77,7 +77,7 @@ export const AccountsStepCard: FC<AccountStepCardProps> = ({ teams, personalAcco
           avatar={personalAccount.avatar ?? ""}
           name={personalAccount.name ?? ""}
           alreadyInstalled={personalAccount.alreadyInstalled}
-          onClick={() => !personalAccount.alreadyInstalled && !loading && onSelect()}
+          onClick={() => onSelect()}
           loading={loading}
         />
         {teams.map((team) => (
@@ -87,7 +87,7 @@ export const AccountsStepCard: FC<AccountStepCardProps> = ({ teams, personalAcco
             alreadyInstalled={team.alreadyInstalled}
             avatar={team.logo ?? ""}
             name={team.name}
-            onClick={() => !team.alreadyInstalled && !loading && onSelect(team.id)}
+            onClick={() => onSelect(team.id)}
             loading={loading}
           />
         ))}

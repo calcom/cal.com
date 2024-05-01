@@ -688,7 +688,6 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
         },
       });
     },
-    getPaymentCredential: async () => getPaymentCredential(store.page),
     setupEventWithPrice: async (eventType: Pick<Prisma.EventType, "id">, slug: string) =>
       setupEventWithPrice(eventType, slug, store.page),
     bookAndPayEvent: async (eventType: Pick<Prisma.EventType, "slug">) =>
@@ -823,7 +822,7 @@ const createUser = (
               },
             },
             accepted: true,
-            role: MembershipRole.ADMIN,
+            role,
           },
         ],
       },
@@ -941,19 +940,6 @@ export async function makePaymentUsingStripe(page: Page) {
     await stripeFrame.locator('[name="postalCode"]').fill("111111");
   }
   await page.click('button:has-text("Pay now")');
-}
-
-export async function getPaymentCredential(page: Page) {
-  await page.goto("/apps/stripe");
-
-  /** We start the Stripe flow */
-  await page.click('[data-testid="install-app-button"]');
-  await page.click('[data-testid="install-app-button-personal"]');
-  await page.waitForURL("https://connect.stripe.com/oauth/v2/authorize?*");
-  /** We skip filling Stripe forms (testing mode only) */
-  await page.click('[id="skip-account-app"]');
-  await page.waitForURL("apps/installation/event-types?slug=stripe");
-  await page.click('[data-testid="set-up-later"]');
 }
 
 const installStripePersonal = async (params: InstallStripePersonalPramas) => {

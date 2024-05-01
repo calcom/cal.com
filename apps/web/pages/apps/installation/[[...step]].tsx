@@ -131,7 +131,6 @@ const OnboardingPage = ({
   const updateMutation = trpc.viewer.eventTypes.update.useMutation({
     onSuccess: async (data) => {
       showToast(t("event_type_updated_successfully", { eventTypeTitle: data.eventType?.title }), "success");
-      router.push("/event-types");
     },
     async onSettled() {
       await utils.viewer.eventTypes.get.invalidate();
@@ -241,7 +240,12 @@ const OnboardingPage = ({
                       metadata: value.metadata,
                     });
                   });
-                await Promise.all(mutationPromises);
+                try {
+                  await Promise.all(mutationPromises);
+                  router.push("/event-types");
+                } catch (err) {
+                  console.error(err);
+                }
               }}>
               <StepHeader
                 title={stepObj.getTitle(appMetadata.name)}

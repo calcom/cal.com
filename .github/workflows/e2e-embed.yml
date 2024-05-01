@@ -81,6 +81,7 @@ jobs:
           SENDGRID_EMAIL: ${{ secrets.CI_SENDGRID_EMAIL }}
           TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
           TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
+          NEXT_PUBLIC_ORG_SELF_SERVE_ENABLED: ${{ vars.CI_NEXT_PUBLIC_ORG_SELF_SERVE_ENABLED }}
       - name: Upload Test Results
         if: ${{ always() }}
         uses: actions/upload-artifact@v4
