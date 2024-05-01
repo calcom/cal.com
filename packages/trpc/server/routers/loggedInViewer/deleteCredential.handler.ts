@@ -4,7 +4,7 @@ import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { DailyLocationType } from "@calcom/core/location";
 import { sendCancelledEmails } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
-import { cancelScheduledJobs } from "@calcom/features/webhooks/lib/scheduleTrigger";
+import { deleteWebhookScheduledTriggers } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { deletePayment } from "@calcom/lib/payment/deletePayment";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -306,6 +306,7 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
 
   // if zapier get disconnected, delete zapier apiKey, delete zapier webhooks and cancel all scheduled jobs from zapier
   if (credential.app?.slug === "zapier") {
+    //I need to see if that works
     await prisma.apiKey.deleteMany({
       where: {
         userId: ctx.user.id,
@@ -318,17 +319,15 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
         appId: "zapier",
       },
     });
-    const bookingsWithScheduledJobs = await prisma.booking.findMany({
-      where: {
-        userId: ctx.user.id,
-        scheduledJobs: {
-          isEmpty: false,
-        },
-      },
-    });
-    for (const booking of bookingsWithScheduledJobs) {
-      cancelScheduledJobs(booking, credential.appId);
-    }
+
+    deleteWebhookScheduledTriggers(
+      undefined,
+      credential.appId,
+      undefined,
+      undefined,
+      teamId ? undefined : ctx.user.id,
+      teamId
+    );
   }
 
   // Backwards compatibility. Selected calendars cascade on delete when deleting a credential
