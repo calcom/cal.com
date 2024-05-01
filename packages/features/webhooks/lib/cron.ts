@@ -49,10 +49,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   // run jobs
   for (const job of jobsToRun) {
     // Fetch the webhook configuration so that we can get the secret.
-    const [appId, subscriberId] = job.jobName.split("_");
     let webhook = job.webhook;
 
-    if (!webhook) {
+    // only needed to support old jobs that don't have the webhook relationship yet
+    if (!webhook && job.jobName) {
+      const [appId, subscriberId] = job.jobName.split("_");
       try {
         webhook = await prisma.webhook.findUniqueOrThrow({
           where: { id: subscriberId, appId: appId !== "null" ? appId : null },
@@ -95,10 +96,12 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       },
     });
 
+    //we don't need scheduledJobs anymore
     const booking = await prisma.booking.findUnique({
       where: { id: parsedJobPayload.id },
       select: { id: true, scheduledJobs: true },
     });
+
     if (!booking) {
       console.log("Error finding booking in webhook trigger:", parsedJobPayload);
       return res.json({ ok: false });
