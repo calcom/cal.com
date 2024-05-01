@@ -179,7 +179,7 @@ export function getAndUpdateNormalizedValues(field: RhfFormFields[number], t: TF
     throw new Error(`${field.name}:${field.type} type must have labelAsSafeHtml set`);
   }
 
-  const label = noLabel ? "" : field.labelAsSafeHtml || field.label || t(field.defaultLabel || "");
+  const label = noLabel ? "" : field.labelAsSafeHtml || t(field.label || "") || t(field.defaultLabel || "");
   const placeholder = field.placeholder || t(field.defaultPlaceholder || "");
 
   if (field.variantsConfig?.variants) {
