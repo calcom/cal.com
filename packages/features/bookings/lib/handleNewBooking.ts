@@ -216,9 +216,11 @@ async function handler(
       ? getDefaultEvent(req.body.eventTypeSlug)
       : await getEventTypesFromDB(req.body.eventTypeId);
 
+  const isTeamEvent = !!eventType?.team ?? !!eventType?.teamId;
+
   eventType = {
     ...eventType,
-    bookingFields: getBookingFieldsWithSystemFields(eventType),
+    bookingFields: getBookingFieldsWithSystemFields({ ...eventType, isTeamEvent }),
   };
 
   const bookingDataSchema = bookingDataSchemaGetter({

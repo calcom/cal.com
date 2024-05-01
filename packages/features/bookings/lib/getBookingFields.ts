@@ -58,6 +58,7 @@ export const getSmsReminderNumberSource = ({
 export const getBookingFieldsWithSystemFields = ({
   bookingFields,
   disableGuests,
+  isTeamEvent = false,
   disableBookingTitle,
   customInputs,
   metadata,
@@ -65,6 +66,7 @@ export const getBookingFieldsWithSystemFields = ({
 }: {
   bookingFields: Fields | EventType["bookingFields"];
   disableGuests: boolean;
+  isTeamEvent?: boolean;
   disableBookingTitle?: boolean;
   customInputs: EventTypeCustomInput[] | z.infer<typeof customInputSchema>[];
   metadata: EventType["metadata"] | z.infer<typeof EventTypeMetaDataSchema>;
@@ -79,6 +81,7 @@ export const getBookingFieldsWithSystemFields = ({
   return ensureBookingInputsHaveSystemFields({
     bookingFields: parsedBookingFields,
     disableGuests,
+    isTeamEvent,
     disableBookingTitle,
     additionalNotesRequired: parsedMetaData?.additionalNotesRequired || false,
     customInputs: parsedCustomInputs,
@@ -89,6 +92,7 @@ export const getBookingFieldsWithSystemFields = ({
 export const ensureBookingInputsHaveSystemFields = ({
   bookingFields,
   disableGuests,
+  isTeamEvent,
   disableBookingTitle,
   additionalNotesRequired,
   customInputs,
@@ -96,6 +100,7 @@ export const ensureBookingInputsHaveSystemFields = ({
 }: {
   bookingFields: Fields;
   disableGuests: boolean;
+  isTeamEvent: boolean;
   disableBookingTitle?: boolean;
   additionalNotesRequired: boolean;
   customInputs: z.infer<typeof customInputSchema>[];
@@ -153,7 +158,7 @@ export const ensureBookingInputsHaveSystemFields = ({
       type: "email",
       name: "email",
       required: true,
-      editable: "system-but-optional",
+      editable: isTeamEvent ? "system-but-optional" : "system",
       sources: [
         {
           label: "Default",
@@ -162,21 +167,7 @@ export const ensureBookingInputsHaveSystemFields = ({
         },
       ],
     },
-    {
-      defaultLabel: "phone_number",
-      type: "phone",
-      name: "attendeePhoneNumber",
-      required: true,
-      hidden: true,
-      editable: "system-but-optional",
-      sources: [
-        {
-          label: "Default",
-          id: "default",
-          type: "default",
-        },
-      ],
-    },
+
     {
       defaultLabel: "location",
       type: "radioInput",
@@ -206,6 +197,23 @@ export const ensureBookingInputsHaveSystemFields = ({
       ],
     },
   ];
+  if (isTeamEvent) {
+    systemBeforeFields.splice(2, 0, {
+      defaultLabel: "attendee_phone_number",
+      type: "phone",
+      name: "attendeePhoneNumber",
+      required: true,
+      hidden: true,
+      editable: "system-but-optional",
+      sources: [
+        {
+          label: "Default",
+          id: "default",
+          type: "default",
+        },
+      ],
+    });
+  }
 
   // These fields should be added after other user fields
   const systemAfterFields: typeof bookingFields = [
