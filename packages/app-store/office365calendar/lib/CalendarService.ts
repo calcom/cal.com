@@ -9,7 +9,7 @@ import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
 import type {
   Calendar,
   CalendarEvent,
-  EventBusyDate,
+  EventBusyData,
   IntegrationCalendar,
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
@@ -45,6 +45,7 @@ interface BodyValue {
   end: { dateTime: string };
   evt: { showAs: string };
   start: { dateTime: string };
+  subject?: string;
 }
 
 export default class Office365CalendarService implements Calendar {
@@ -162,8 +163,9 @@ export default class Office365CalendarService implements Calendar {
   async getAvailability(
     dateFrom: string,
     dateTo: string,
-    selectedCalendars: IntegrationCalendar[]
-  ): Promise<EventBusyDate[]> {
+    selectedCalendars: IntegrationCalendar[],
+    isOverlayUser?: boolean
+  ): Promise<EventBusyData[]> {
     const dateFromParsed = new Date(dateFrom);
     const dateToParsed = new Date(dateTo);
 
@@ -171,7 +173,9 @@ export default class Office365CalendarService implements Calendar {
       dateFromParsed.toISOString()
     )}&endDateTime=${encodeURIComponent(dateToParsed.toISOString())}`;
 
-    const calendarSelectParams = "$select=showAs,start,end";
+    const calendarSelectParams = isOverlayUser
+      ? "$select=showAs,start,end,subject"
+      : "$select=showAs,start,end";
 
     try {
       const selectedCalendarIds = selectedCalendars
@@ -457,6 +461,7 @@ export default class Office365CalendarService implements Calendar {
             return acc.concat({
               start: `${evt.start.dateTime}Z`,
               end: `${evt.end.dateTime}Z`,
+              title: `${evt.subject}` ?? "",
             });
           }, [])
         );
