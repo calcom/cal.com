@@ -1013,7 +1013,7 @@ model WebhookScheduledTriggers {
   appId         String?
   webhookId     String?
   webhook       Webhook?  @relation(fields: [webhookId], references: [id], onDelete: Cascade)
-  bookingId     Int
+  bookingId     Int?
   booking       Booking?  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
 }
 

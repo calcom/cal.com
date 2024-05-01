@@ -358,22 +358,23 @@ export async function deleteWebhookScheduledTriggers(
           },
         },
       });
-    } else if (booking) {
-      if (!triggerEvent) {
+    } else {
+      if (booking) {
         await prisma.webhookScheduledTriggers.deleteMany({
           where: {
             bookingId: booking.id,
           },
         });
-      } else {
-        const shouldContain = `"triggerEvent":"${triggerEvent}"`;
+      } else if (webhookId) {
+        const where: Prisma.WebhookScheduledTriggersWhereInput = { webhookId: webhookId };
+
+        if (triggerEvent) {
+          const shouldContain = `"triggerEvent":"${triggerEvent}"`;
+          where.payload = { contains: shouldContain };
+        }
+
         await prisma.webhookScheduledTriggers.deleteMany({
-          where: {
-            payload: {
-              contains: shouldContain,
-            },
-            webhookId: webhookId,
-          },
+          where,
         });
       }
     }
