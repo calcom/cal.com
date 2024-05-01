@@ -40,7 +40,7 @@ jobs:
 
   build:
     name: Production build
-    uses: ./.github/workflows/production-build.yml
+    uses: ./.github/workflows/production-build-without-database.yml
     secrets: inherit
 
   e2e:

@@ -11,7 +11,7 @@ jobs:
   build:
     name: Production build
     if: ${{ github.event_name == 'push' }}
-    uses: ./.github/workflows/production-build.yml
+    uses: ./.github/workflows/production-build-without-database.yml
     secrets: inherit
   analyze:
     needs: build
