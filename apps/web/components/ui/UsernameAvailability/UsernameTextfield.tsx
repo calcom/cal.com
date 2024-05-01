@@ -11,7 +11,7 @@ import type { TRPCClientErrorLike } from "@calcom/trpc/client";
 import { trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/server/routers/_app";
 import { Button, Dialog, DialogClose, DialogContent, TextField, DialogFooter, Tooltip } from "@calcom/ui";
-import { Check, Edit2 } from "@calcom/ui/components/icon";
+import { Icon } from "@calcom/ui";
 
 interface ICustomUsernameProps {
   currentUsername: string | undefined;
@@ -137,7 +137,11 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
           {currentUsername !== inputUsernameValue && (
             <div className="absolute right-[2px] top-6 flex h-7 flex-row">
               <span className={classNames("bg-default mx-0 p-3")}>
-                {usernameIsAvailable ? <Check className="relative bottom-[6px] h-4 w-4" /> : <></>}
+                {usernameIsAvailable ? (
+                  <Icon name="check" className="relative bottom-[6px] h-4 w-4" />
+                ) : (
+                  <></>
+                )}
               </span>
             </div>
           )}
@@ -154,7 +158,7 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
         </div>
       )}
       <Dialog open={openDialogSaveUsername}>
-        <DialogContent type="confirmation" Icon={Edit2} title={t("confirm_username_change_dialog_title")}>
+        <DialogContent type="confirmation" Icon="pencil" title={t("confirm_username_change_dialog_title")}>
           <div className="flex flex-row">
             <div className="mb-4 w-full pt-1">
               <div className="bg-subtle flex w-full flex-wrap justify-between gap-6 rounded-sm  px-4 py-3 text-sm">

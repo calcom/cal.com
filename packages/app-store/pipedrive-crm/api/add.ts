@@ -3,8 +3,10 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { createDefaultInstallation } from "@calcom/app-store/_utils/installation";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { HttpError } from "@calcom/lib/http-error";
+import type { AppCategories } from "@calcom/prisma/client";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
+import writeAppDataToEventType from "../../_utils/writeAppDataToEventType";
 import appConfig from "../config.json";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -21,12 +23,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     throw new HttpError({ statusCode: 401, message: "You must be logged in to do this" });
   }
   const userId = user.id;
-  await createDefaultInstallation({
+  const credential = await createDefaultInstallation({
     appType: `${appConfig.slug}_other_calendar`,
     user,
     slug: appConfig.slug,
     key: {},
     teamId: Number(teamId),
+  });
+  await writeAppDataToEventType({
+    userId: req.session?.user.id,
+    // TODO: Add team installation
+    appSlug: appConfig.slug,
+    appCategories: appConfig.categories as AppCategories[],
+    credentialId: credential.id,
   });
   const tenantId = teamId ? teamId : userId;
   res.status(200).json({

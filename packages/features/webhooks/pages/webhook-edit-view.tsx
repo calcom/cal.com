@@ -23,7 +23,7 @@ const EditWebhook = () => {
 
 function Component({ webhookId }: { webhookId: string }) {
   const { t } = useLocale();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const router = useRouter();
   const { data: installedApps, isPending } = trpc.viewer.integrations.useQuery(
     { variant: "other", onlyInstalled: true },
@@ -46,6 +46,7 @@ function Component({ webhookId }: { webhookId: string }) {
   const editWebhookMutation = trpc.viewer.webhook.edit.useMutation({
     async onSuccess() {
       await utils.viewer.webhook.list.invalidate();
+      await utils.viewer.webhook.get.invalidate({ webhookId });
       showToast(t("webhook_updated_successfully"), "success");
       router.back();
     },

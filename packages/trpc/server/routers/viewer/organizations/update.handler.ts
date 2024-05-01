@@ -6,6 +6,7 @@ import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
 import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
 import { uploadLogo } from "@calcom/lib/server/uploadLogo";
 import { closeComUpdateTeam } from "@calcom/lib/sync/SyncServiceManager";
+import type { PrismaClient } from "@calcom/prisma";
 import { prisma } from "@calcom/prisma";
 import { UserPermissionRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
@@ -20,6 +21,70 @@ type UpdateOptions = {
     user: NonNullable<TrpcSessionUser>;
   };
   input: TUpdateInputSchema;
+};
+
+const updateOrganizationSettings = async ({
+  organizationId,
+  input,
+  tx,
+}: {
+  organizationId: number;
+  input: TUpdateInputSchema;
+  tx: Parameters<Parameters<PrismaClient["$transaction"]>[0]>[0];
+}) => {
+  // if lockEventTypeCreation isn't given we don't do anything.
+  if (typeof input.lockEventTypeCreation === "undefined") {
+    return;
+  }
+  await tx.organizationSettings.update({
+    where: {
+      organizationId,
+    },
+    data: {
+      lockEventTypeCreationForUsers: !!input.lockEventTypeCreation,
+    },
+  });
+
+  if (input.lockEventTypeCreation) {
+    switch (input.lockEventTypeCreationOptions) {
+      case "HIDE":
+        await tx.eventType.updateMany({
+          where: {
+            teamId: null, // Not assigned to a team
+            parentId: null, // Not a managed event type
+            owner: {
+              profiles: {
+                some: {
+                  organizationId,
+                },
+              },
+            },
+          },
+          data: {
+            hidden: true,
+          },
+        });
+
+        break;
+      case "DELETE":
+        await tx.eventType.deleteMany({
+          where: {
+            teamId: null, // Not assigned to a team
+            parentId: null, // Not a managed event type
+            owner: {
+              profiles: {
+                some: {
+                  organizationId,
+                },
+              },
+            },
+          },
+        });
+        break;
+      default:
+        break;
+    }
+  }
 };
 
 export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
@@ -63,6 +128,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   const { mergeMetadata } = getMetadataHelpers(teamMetadataSchema.unwrap(), prevOrganisation.metadata);
 
   const data: Prisma.TeamUpdateArgs["data"] = {
+    logoUrl: input.logoUrl,
     name: input.name,
     calVideoLogo: input.calVideoLogo,
     bio: input.bio,
@@ -88,14 +154,11 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     data.bannerUrl = null;
   }
 
-  if (input.logo && input.logo.startsWith("data:image/png;base64,")) {
-    data.logo = input.logo;
+  if (input.logoUrl && input.logoUrl.startsWith("data:image/png;base64,")) {
     data.logoUrl = await uploadLogo({
-      logo: input.logo,
+      logo: await resizeBase64Image(input.logoUrl),
       teamId: currentOrgId,
     });
-  } else if (typeof input.logo !== "undefined" && !input.logo) {
-    data.logo = data.logoUrl = null;
   }
 
   if (input.slug) {
@@ -122,55 +185,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       data,
     });
 
-    await tx.organizationSettings.update({
-      where: {
-        organizationId: currentOrgId,
-      },
-      data: {
-        lockEventTypeCreationForUsers: !!input.lockEventTypeCreation,
-      },
-    });
-
-    if (input.lockEventTypeCreation) {
-      switch (input.lockEventTypeCreationOptions) {
-        case "HIDE":
-          await tx.eventType.updateMany({
-            where: {
-              teamId: null, // Not assigned to a team
-              parentId: null, // Not a managed event type
-              owner: {
-                profiles: {
-                  some: {
-                    organizationId: currentOrgId,
-                  },
-                },
-              },
-            },
-            data: {
-              hidden: true,
-            },
-          });
-
-          break;
-        case "DELETE":
-          await tx.eventType.deleteMany({
-            where: {
-              teamId: null, // Not assigned to a team
-              parentId: null, // Not a managed event type
-              owner: {
-                profiles: {
-                  some: {
-                    organizationId: currentOrgId,
-                  },
-                },
-              },
-            },
-          });
-          break;
-        default:
-          break;
-      }
-    }
+    await updateOrganizationSettings({ tx, input, organizationId: currentOrgId });
 
     return updatedOrganisation;
   });
@@ -178,7 +193,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   // Sync Services: Close.com
   if (prevOrganisation) closeComUpdateTeam(prevOrganisation, updatedOrganisation);
 
-  return { update: true, userId: ctx.user.id, data };
+  return { update: true, userId: ctx.user.id, data: updatedOrganisation };
 };
 
 export default updateHandler;

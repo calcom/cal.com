@@ -6,8 +6,7 @@ import { Toaster } from "react-hot-toast";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Button, Tooltip, showToast } from "@calcom/ui";
-import { Clipboard } from "@calcom/ui/components/icon";
+import { Button, Icon, showToast, Tooltip } from "@calcom/ui";
 
 import type { getServerSideProps } from "./_getServerSideProps";
 
@@ -17,7 +16,7 @@ export default function MakeSetup({ inviteLink }: InferGetServerSidePropsType<ty
   const [newApiKeys, setNewApiKeys] = useState<Record<string, string>>({});
 
   const { t } = useLocale();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const integrations = trpc.viewer.integrations.useQuery({ variant: "automation" });
   const oldApiKey = trpc.viewer.apiKeys.findKeyOfType.useQuery({ appId: MAKE });
   const teamsList = trpc.viewer.teams.listOwnedTeams.useQuery(undefined, {
@@ -164,7 +163,7 @@ const CopyApiKey = ({ apiKey }: { apiKey: string }) => {
             }}
             type="button"
             className="mt-4 text-base sm:mt-0 sm:rounded-l-none">
-            <Clipboard className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
+            <Icon name="clipboard" className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
             {t("copy")}
           </Button>
         </Tooltip>

@@ -1,7 +1,8 @@
+import { ProviderVerifyAccessTokenOutput } from "@/ee/provider/outputs/verify-access-token.output";
+import { ProviderVerifyClientOutput } from "@/ee/provider/outputs/verify-client.output";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
-import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import {
   BadRequestException,
@@ -9,31 +10,26 @@ import {
   Get,
   HttpCode,
   HttpStatus,
-  Logger,
   NotFoundException,
   Param,
   UnauthorizedException,
   UseGuards,
 } from "@nestjs/common";
+import { ApiTags as DocsTags } from "@nestjs/swagger";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { ApiResponse } from "@calcom/platform-types";
 
 @Controller({
-  path: "ee/provider",
+  path: "/provider",
   version: "2",
 })
+@DocsTags("Cal provider")
 export class CalProviderController {
-  private readonly logger = new Logger("Platform Provider Controller");
-
-  constructor(
-    private readonly tokensRepository: TokensRepository,
-    private readonly oauthClientRepository: OAuthClientRepository
-  ) {}
+  constructor(private readonly oauthClientRepository: OAuthClientRepository) {}
 
   @Get("/:clientId")
   @HttpCode(HttpStatus.OK)
-  async verifyClientId(@Param("clientId") clientId: string): Promise<ApiResponse> {
+  async verifyClientId(@Param("clientId") clientId: string): Promise<ProviderVerifyClientOutput> {
     if (!clientId) {
       throw new NotFoundException();
     }
@@ -52,7 +48,7 @@ export class CalProviderController {
   async verifyAccessToken(
     @Param("clientId") clientId: string,
     @GetUser() user: UserWithProfile
-  ): Promise<ApiResponse> {
+  ): Promise<ProviderVerifyAccessTokenOutput> {
     if (!clientId) {
       throw new BadRequestException();
     }

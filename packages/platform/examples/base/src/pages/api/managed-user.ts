@@ -69,6 +69,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 async function createDefaultSchedule(accessToken: string) {
   const name = "Default Schedule";
   const timeZone = "Europe/London";
+  const isDefault = true;
 
   const response = await fetch(
     // eslint-disable-next-line turbo/no-undeclared-env-vars
@@ -83,6 +84,7 @@ async function createDefaultSchedule(accessToken: string) {
       body: JSON.stringify({
         name,
         timeZone,
+        isDefault,
       }),
     }
   );

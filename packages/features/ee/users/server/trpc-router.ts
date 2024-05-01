@@ -1,7 +1,7 @@
 import { z } from "zod";
 
-import { WEBAPP_URL } from "@calcom/lib/constants";
-import { AVATAR_FALLBACK } from "@calcom/lib/constants";
+import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
+import { RedirectType } from "@calcom/prisma/enums";
 import { _UserModel as User } from "@calcom/prisma/zod";
 import type { inferRouterOutputs } from "@calcom/trpc";
 import { TRPCError } from "@calcom/trpc";
@@ -28,31 +28,9 @@ const userBodySchema = User.pick({
   // darkBrandColor: true,
   allowDynamicBooking: true,
   identityProvider: true,
-  // away: true,
   role: true,
-  avatar: true,
+  avatarUrl: true,
 });
-
-/**
- * @deprecated in favour of @calcom/lib/getAvatarUrl
- */
-/** This helps to prevent reaching the 4MB payload limit by avoiding base64 and instead passing the avatar url */
-export function getAvatarUrlFromUser(user: {
-  avatar: string | null;
-  username: string | null;
-  email: string;
-}) {
-  if (!user.avatar || !user.username) return AVATAR_FALLBACK;
-  return `${WEBAPP_URL}/${user.username}/avatar.png`;
-}
-
-/** @see https://www.prisma.io/docs/concepts/components/prisma-client/excluding-fields#excluding-the-password-field */
-function exclude<UserType, Key extends keyof UserType>(user: UserType, keys: Key[]): Omit<UserType, Key> {
-  for (const key of keys) {
-    delete user[key];
-  }
-  return user;
-}
 
 /** Reusable logic that checks for admin permissions and if the requested user exists */
 //const authedAdminWithUserMiddleware = middleware();
@@ -81,15 +59,7 @@ export const userAdminRouter = router({
     const { prisma } = ctx;
     // TODO: Add search, pagination, etc.
     const users = await prisma.user.findMany();
-    return users.map((user) => ({
-      ...user,
-      /**
-       * FIXME: This should be either a prisma extension or middleware
-       * @see https://www.prisma.io/docs/concepts/components/prisma-client/middleware
-       * @see https://www.prisma.io/docs/concepts/components/prisma-client/client-extensions/result
-       **/
-      avatar: getAvatarUrlFromUser(user),
-    }));
+    return users;
   }),
   add: authedAdminProcedure.input(userBodySchema).mutation(async ({ ctx, input }) => {
     const { prisma } = ctx;
@@ -106,7 +76,7 @@ export const userAdminRouter = router({
 
         // If the profile has been moved to an Org -> we can easily access the profile we need to update
         if (requestedUser.movedToProfileId && input.username) {
-          await tx.profile.update({
+          const profile = await tx.profile.update({
             where: {
               id: requestedUser.movedToProfileId,
             },
@@ -114,6 +84,37 @@ export const userAdminRouter = router({
               username: input.username,
             },
           });
+
+          // Update all of this users tempOrgRedirectUrls
+          if (requestedUser.username && profile.organizationId) {
+            const data = await prisma.team.findUnique({
+              where: {
+                id: profile.organizationId,
+              },
+              select: {
+                slug: true,
+              },
+            });
+
+            // We should never hit this
+            if (!data?.slug) {
+              throw new Error("Team has no attached slug.");
+            }
+
+            const orgUrlPrefix = getOrgFullOrigin(data.slug);
+
+            const toUrl = `${orgUrlPrefix}/${input.username}`;
+
+            await prisma.tempOrgRedirect.updateMany({
+              where: {
+                type: RedirectType.User,
+                from: requestedUser.username, // Old username
+              },
+              data: {
+                toUrl,
+              },
+            });
+          }
 
           return userInternal;
         }

@@ -1,7 +1,7 @@
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
-import { CreateManagedPlatformUserInput } from "@/modules/users/inputs/create-managed-platform-user.input";
-import { UpdateManagedPlatformUserInput } from "@/modules/users/inputs/update-managed-platform-user.input";
+import { CreateManagedUserInput } from "@/modules/users/inputs/create-managed-user.input";
+import { UpdateManagedUserInput } from "@/modules/users/inputs/update-managed-user.input";
 import { Injectable } from "@nestjs/common";
 import type { Profile, User } from "@prisma/client";
 
@@ -14,14 +14,14 @@ export class UsersRepository {
   constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
 
   async create(
-    user: CreateManagedPlatformUserInput,
+    user: CreateManagedUserInput,
     username: string,
     oAuthClientId: string,
     isPlatformManaged: boolean
   ) {
     this.formatInput(user);
 
-    return this.dbRead.prisma.user.create({
+    return this.dbWrite.prisma.user.create({
       data: {
         ...user,
         username,
@@ -34,7 +34,7 @@ export class UsersRepository {
   }
 
   async addToOAuthClient(userId: number, oAuthClientId: string) {
-    return this.dbRead.prisma.user.update({
+    return this.dbWrite.prisma.user.update({
       data: {
         platformOAuthClients: {
           connect: { id: oAuthClientId },
@@ -48,6 +48,20 @@ export class UsersRepository {
     return this.dbRead.prisma.user.findUnique({
       where: {
         id: userId,
+      },
+    });
+  }
+
+  async findByIdWithinPlatformScope(userId: number, clientId: string) {
+    return this.dbRead.prisma.user.findFirst({
+      where: {
+        id: userId,
+        isPlatformManaged: true,
+        platformOAuthClients: {
+          some: {
+            id: clientId,
+          },
+        },
       },
     });
   }
@@ -83,6 +97,17 @@ export class UsersRepository {
     });
   }
 
+  async findByEmailWithProfile(email: string) {
+    return this.dbRead.prisma.user.findUnique({
+      where: {
+        email,
+      },
+      include: {
+        movedToProfile: true,
+      },
+    });
+  }
+
   async findByUsername(username: string) {
     return this.dbRead.prisma.user.findFirst({
       where: {
@@ -91,12 +116,36 @@ export class UsersRepository {
     });
   }
 
-  async update(userId: number, updateData: UpdateManagedPlatformUserInput) {
+  async findManagedUsersByOAuthClientId(oauthClientId: string, cursor: number, limit: number) {
+    return this.dbRead.prisma.user.findMany({
+      where: {
+        platformOAuthClients: {
+          some: {
+            id: oauthClientId,
+          },
+        },
+        isPlatformManaged: true,
+      },
+      take: limit,
+      skip: cursor,
+    });
+  }
+
+  async update(userId: number, updateData: UpdateManagedUserInput) {
     this.formatInput(updateData);
 
     return this.dbWrite.prisma.user.update({
       where: { id: userId },
       data: updateData,
+    });
+  }
+
+  async updateUsername(userId: number, newUsername: string) {
+    return this.dbWrite.prisma.user.update({
+      where: { id: userId },
+      data: {
+        username: newUsername,
+      },
     });
   }
 
@@ -106,7 +155,7 @@ export class UsersRepository {
     });
   }
 
-  formatInput(userInput: CreateManagedPlatformUserInput | UpdateManagedPlatformUserInput) {
+  formatInput(userInput: CreateManagedUserInput | UpdateManagedUserInput) {
     if (userInput.weekStart) {
       userInput.weekStart = capitalize(userInput.weekStart);
     }

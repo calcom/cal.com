@@ -1,26 +1,28 @@
-import type { Prisma } from "@prisma/client";
+import type z from "zod";
 
-import type { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking";
 import { UserRepository } from "@calcom/lib/server/repository/user";
-import type { userSelect } from "@calcom/prisma";
 import prisma from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
+import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { CredentialPayload } from "@calcom/types/Credential";
-
-type User = Prisma.UserGetPayload<typeof userSelect>;
 
 /**
  * Gets credentials from the user, team, and org if applicable
  *
  */
 export const getAllCredentials = async (
-  user: User & { credentials: CredentialPayload[] },
-  eventType: Awaited<ReturnType<typeof getEventTypesFromDB>>
+  user: { id: number; username: string | null; credentials: CredentialPayload[] },
+  eventType: {
+    userId?: number | null;
+    team?: { id: number | null } | null;
+    parentId?: number | null;
+    metadata: z.infer<typeof EventTypeMetaDataSchema>;
+  } | null
 ) => {
   let allCredentials = user.credentials;
 
   // If it's a team event type query for team credentials
-  if (eventType.team?.id) {
+  if (eventType?.team?.id) {
     const teamCredentialsQuery = await prisma.credential.findMany({
       where: {
         teamId: eventType.team.id,
@@ -31,7 +33,7 @@ export const getAllCredentials = async (
   }
 
   // If it's a managed event type, query for the parent team's credentials
-  if (eventType.parentId) {
+  if (eventType?.parentId) {
     const teamCredentialsQuery = await prisma.team.findFirst({
       where: {
         eventTypes: {
@@ -76,12 +78,15 @@ export const getAllCredentials = async (
   // Only return CRM credentials that are enabled on the event type
   const eventTypeAppMetadata = eventType?.metadata?.apps;
 
-  const crmCredentialIds = [];
+  // Will be [credentialId]: { enabled: boolean }]
+  const eventTypeCrmCredentials: Record<number, { enabled: boolean }> = {};
 
   for (const appKey in eventTypeAppMetadata) {
-    const app = eventTypeAppMetadata[appKey];
-    if (app.enabled && app.appCategories && app.appCategories.some((category) => category === "crm")) {
-      crmCredentialIds.push(app.credentialId);
+    const app = eventTypeAppMetadata[appKey as keyof typeof eventTypeAppMetadata];
+    if (app.appCategories && app.appCategories.some((category: string) => category === "crm")) {
+      eventTypeCrmCredentials[app.credentialId] = {
+        enabled: app.enabled,
+      };
     }
   }
 
@@ -90,8 +95,22 @@ export const getAllCredentials = async (
       return credential;
     }
 
-    if (crmCredentialIds.some((id) => id === credential.id)) {
-      return credential;
+    // Backwards compatibility: All CRM apps are triggered for every event type. Unless disabled on the event type
+    // Check if the CRM app exists on the event type
+    if (eventTypeCrmCredentials[credential.id]) {
+      if (eventTypeCrmCredentials[credential.id].enabled) {
+        return credential;
+      }
+    } else {
+      // If the CRM app doesn't exist on the event type metadata, check that the credential belongs to the user/team/org
+      if (
+        credential.userId === eventType?.userId ||
+        credential.teamId === eventType?.team?.id ||
+        credential.teamId === eventType?.parentId
+      ) {
+        // If the CRM app doesn't exist on the event type metadata, assume it's an older CRM credential
+        return credential;
+      }
     }
   });
 

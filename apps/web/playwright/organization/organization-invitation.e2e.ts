@@ -195,9 +195,14 @@ test.describe("Organization", () => {
     });
   });
 
-  test.describe("Email matching orgAutoAcceptEmail and a Verified Organization", () => {
+  test.describe("Email matching orgAutoAcceptEmail and a Verified Organization with DNS Setup Done", () => {
     test("nonexisting user is invited to Org", async ({ browser, page, users, emails }) => {
-      const orgOwner = await users.create(undefined, { hasTeam: true, isOrg: true, isOrgVerified: true });
+      const orgOwner = await users.create(undefined, {
+        hasTeam: true,
+        isOrg: true,
+        isOrgVerified: true,
+        isDnsSetup: true,
+      });
       const { team: org } = await orgOwner.getOrgMembership();
       await orgOwner.apiLogin();
       await page.goto("/settings/organizations/members");
@@ -263,7 +268,12 @@ test.describe("Organization", () => {
 
     // Such a user has user.username changed directly in addition to having the new username in the profile.username
     test("existing user migrated to an organization", async ({ users, page, emails }) => {
-      const orgOwner = await users.create(undefined, { hasTeam: true, isOrg: true, isOrgVerified: true });
+      const orgOwner = await users.create(undefined, {
+        hasTeam: true,
+        isOrg: true,
+        isOrgVerified: true,
+        isDnsSetup: true,
+      });
       const { team: org } = await orgOwner.getOrgMembership();
       await orgOwner.apiLogin();
       const { existingUser } = await test.step("Invite an existing user to an organization", async () => {
@@ -312,6 +322,7 @@ test.describe("Organization", () => {
         isOrg: true,
         hasSubteam: true,
         isOrgVerified: true,
+        isDnsSetup: true,
       });
       const { team: org } = await orgOwner.getOrgMembership();
       const { team } = await orgOwner.getFirstTeamMembership();

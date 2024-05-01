@@ -1,9 +1,13 @@
 import { CreateBookingInput } from "@/ee/bookings/inputs/create-booking.input";
-import { CreateReccuringBookingInput } from "@/ee/bookings/inputs/create-reccuring-booking.input";
+import { CreateRecurringBookingInput } from "@/ee/bookings/inputs/create-recurring-booking.input";
+import { GetBookingOutput } from "@/ee/bookings/outputs/get-booking.output";
+import { GetBookingsOutput } from "@/ee/bookings/outputs/get-bookings.output";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
 import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
+import { BillingService } from "@/modules/billing/services/billing.service";
+import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { OAuthFlowService } from "@/modules/oauth-clients/services/oauth-flow.service";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import {
@@ -13,6 +17,7 @@ import {
   Req,
   InternalServerErrorException,
   Body,
+  Headers,
   HttpException,
   Param,
   Get,
@@ -20,11 +25,13 @@ import {
   NotFoundException,
   UseGuards,
 } from "@nestjs/common";
+import { ApiQuery, ApiTags as DocsTags } from "@nestjs/swagger";
 import { User } from "@prisma/client";
 import { Request } from "express";
 import { NextApiRequest } from "next/types";
 
-import { BOOKING_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
+import { X_CAL_CLIENT_ID } from "@calcom/platform-constants";
+import { BOOKING_READ, SUCCESS_STATUS } from "@calcom/platform-constants";
 import {
   getAllUserBookings,
   getBookingInfo,
@@ -38,30 +45,58 @@ import {
   handleNewRecurringBooking,
   handleInstantMeeting,
 } from "@calcom/platform-libraries";
-import { GetBookingsInput, CancelBookingInput } from "@calcom/platform-types";
+import { GetBookingsInput, CancelBookingInput, Status } from "@calcom/platform-types";
 import { ApiResponse } from "@calcom/platform-types";
 import { PrismaClient } from "@calcom/prisma";
 
+type BookingRequest = Request & {
+  userId?: number;
+};
+
+type OAuthRequestParams = {
+  platformClientId: string;
+  platformRescheduleUrl: string;
+  platformCancelUrl: string;
+  platformBookingUrl: string;
+  platformBookingLocation?: string;
+  arePlatformEmailsEnabled: boolean;
+};
+
+const DEFAULT_PLATFORM_PARAMS = {
+  platformClientId: "",
+  platformCancelUrl: "",
+  platformRescheduleUrl: "",
+  platformBookingUrl: "",
+  arePlatformEmailsEnabled: false,
+  platformBookingLocation: undefined,
+};
+
 @Controller({
-  path: "ee/bookings",
+  path: "/bookings",
   version: "2",
 })
 @UseGuards(PermissionsGuard)
+@DocsTags("Bookings")
 export class BookingsController {
-  private readonly logger = new Logger("ee bookings controller");
+  private readonly logger = new Logger("BookingsController");
 
   constructor(
     private readonly oAuthFlowService: OAuthFlowService,
-    private readonly prismaReadService: PrismaReadService
+    private readonly prismaReadService: PrismaReadService,
+    private readonly oAuthClientRepository: OAuthClientRepository,
+    private readonly billingService: BillingService
   ) {}
 
-  // note(Rajiv): currently this endpoint is atoms only
   @Get("/")
   @UseGuards(AccessTokenGuard)
+  @Permissions([BOOKING_READ])
+  @ApiQuery({ name: "filters[status]", enum: Status, required: true })
+  @ApiQuery({ name: "limit", type: "number", required: false })
+  @ApiQuery({ name: "cursor", type: "number", required: false })
   async getBookings(
     @GetUser() user: User,
     @Query() queryParams: GetBookingsInput
-  ): Promise<ApiResponse<unknown>> {
+  ): Promise<GetBookingsOutput> {
     const { filters, cursor, limit } = queryParams;
     const bookings = await getAllUserBookings({
       bookingListingByStatus: filters.status,
@@ -80,9 +115,8 @@ export class BookingsController {
     };
   }
 
-  // note(Rajiv): currently this endpoint is atoms only
   @Get("/:bookingUid")
-  async getBooking(@Param("bookingUid") bookingUid: string): Promise<ApiResponse<unknown>> {
+  async getBooking(@Param("bookingUid") bookingUid: string): Promise<GetBookingOutput> {
     const { bookingInfo } = await getBookingInfo(bookingUid);
 
     if (!bookingInfo) {
@@ -95,7 +129,6 @@ export class BookingsController {
     };
   }
 
-  // note(Rajiv): currently this endpoint is atoms only
   @Get("/:bookingUid/reschedule")
   async getBookingForReschedule(@Param("bookingUid") bookingUid: string): Promise<ApiResponse<unknown>> {
     const booking = await getBookingForReschedule(bookingUid);
@@ -111,42 +144,46 @@ export class BookingsController {
   }
 
   @Post("/")
-  @Permissions([BOOKING_WRITE])
   async createBooking(
-    @Req() req: Request & { userId?: number },
-    @Body() _: CreateBookingInput
+    @Req() req: BookingRequest,
+    @Body() body: CreateBookingInput,
+    @Headers(X_CAL_CLIENT_ID) clientId?: string
   ): Promise<ApiResponse<unknown>> {
-    req.userId = await this.getOwnerId(req);
-    req.body = { ...req.body, noEmail: true };
+    const oAuthClientId = clientId?.toString();
+    const locationUrl = body.locationUrl;
     try {
-      const booking = await handleNewBooking(req as unknown as NextApiRequest & { userId?: number });
+      const booking = await handleNewBooking(
+        await this.createNextApiBookingRequest(req, oAuthClientId, locationUrl)
+      );
+
+      void (await this.billingService.increaseUsageByClientId(oAuthClientId!));
       return {
         status: SUCCESS_STATUS,
         data: booking,
       };
     } catch (err) {
-      handleBookingErrors(err);
+      this.handleBookingErrors(err);
     }
     throw new InternalServerErrorException("Could not create booking.");
   }
 
   @Post("/:bookingId/cancel")
-  @Permissions([BOOKING_WRITE])
   async cancelBooking(
-    @Req() req: Request & { userId?: number },
+    @Req() req: BookingRequest,
     @Param("bookingId") bookingId: string,
-    @Body() body: CancelBookingInput
+    @Body() _: CancelBookingInput,
+    @Headers(X_CAL_CLIENT_ID) clientId?: string
   ): Promise<ApiResponse> {
+    const oAuthClientId = clientId?.toString();
     if (bookingId) {
-      req.userId = await this.getOwnerId(req);
-      req.body = { ...body, id: parseInt(bookingId) };
       try {
-        await handleCancelBooking(req as unknown as NextApiRequest & { userId?: number });
+        req.body.id = parseInt(bookingId);
+        await handleCancelBooking(await this.createNextApiBookingRequest(req, oAuthClientId));
         return {
           status: SUCCESS_STATUS,
         };
       } catch (err) {
-        handleBookingErrors(err);
+        this.handleBookingErrors(err);
       }
     } else {
       throw new NotFoundException("Booking ID is required.");
@@ -154,51 +191,56 @@ export class BookingsController {
     throw new InternalServerErrorException("Could not cancel booking.");
   }
 
-  @Post("/reccuring")
-  @Permissions([BOOKING_WRITE])
-  async createReccuringBooking(
-    @Req() req: Request & { userId?: number },
-    @Body() _: CreateReccuringBookingInput[]
+  @Post("/recurring")
+  async createRecurringBooking(
+    @Req() req: BookingRequest,
+    @Body() _: CreateRecurringBookingInput[],
+    @Headers(X_CAL_CLIENT_ID) clientId?: string
   ): Promise<ApiResponse<BookingResponse[]>> {
-    req.userId = await this.getOwnerId(req);
-    req.body = { ...req.body, noEmail: true };
+    const oAuthClientId = clientId?.toString();
     try {
       const createdBookings: BookingResponse[] = await handleNewRecurringBooking(
-        req as unknown as NextApiRequest & { userId?: number }
+        await this.createNextApiBookingRequest(req, oAuthClientId)
       );
+
+      void (await this.billingService.increaseUsageByClientId(oAuthClientId!));
+
       return {
         status: SUCCESS_STATUS,
         data: createdBookings,
       };
     } catch (err) {
-      handleBookingErrors(err, "recurring");
+      this.handleBookingErrors(err, "recurring");
     }
     throw new InternalServerErrorException("Could not create recurring booking.");
   }
 
   @Post("/instant")
-  @Permissions([BOOKING_WRITE])
   async createInstantBooking(
-    @Req() req: Request & { userId?: number },
-    @Body() _: CreateBookingInput
+    @Req() req: BookingRequest,
+    @Body() _: CreateBookingInput,
+    @Headers(X_CAL_CLIENT_ID) clientId?: string
   ): Promise<ApiResponse<Awaited<ReturnType<typeof handleInstantMeeting>>>> {
-    req.userId = await this.getOwnerId(req);
-    req.body = { ...req.body, noEmail: true };
+    const oAuthClientId = clientId?.toString();
+    req.userId = (await this.getOwnerId(req)) ?? -1;
     try {
       const instantMeeting = await handleInstantMeeting(
-        req as unknown as NextApiRequest & { userId?: number }
+        await this.createNextApiBookingRequest(req, oAuthClientId)
       );
+
+      void (await this.billingService.increaseUsageByClientId(oAuthClientId!));
+
       return {
         status: SUCCESS_STATUS,
         data: instantMeeting,
       };
     } catch (err) {
-      handleBookingErrors(err, "instant");
+      this.handleBookingErrors(err, "instant");
     }
     throw new InternalServerErrorException("Could not create instant booking.");
   }
 
-  async getOwnerId(req: Request): Promise<number | undefined> {
+  private async getOwnerId(req: Request): Promise<number | undefined> {
     try {
       const accessToken = req.get("Authorization")?.replace("Bearer ", "");
       if (accessToken) {
@@ -208,19 +250,52 @@ export class BookingsController {
       this.logger.error(err);
     }
   }
-}
 
-function handleBookingErrors(err: Error | HttpError | unknown, type?: "recurring" | `instant`): void {
-  const errMsg = `Error while creating ${type ? type + " " : ""}booking.`;
-  if (err instanceof HttpError) {
-    const httpError = err as HttpError;
-    throw new HttpException(httpError?.message ?? errMsg, httpError?.statusCode ?? 500);
+  private async getOAuthClientsParams(clientId: string): Promise<OAuthRequestParams> {
+    const res = DEFAULT_PLATFORM_PARAMS;
+    try {
+      const client = await this.oAuthClientRepository.getOAuthClient(clientId);
+      // fetch oAuthClient from db and use data stored in db to set these values
+      if (client) {
+        res.platformClientId = clientId;
+        res.platformCancelUrl = client.bookingCancelRedirectUri ?? "";
+        res.platformRescheduleUrl = client.bookingRescheduleRedirectUri ?? "";
+        res.platformBookingUrl = client.bookingRedirectUri ?? "";
+        res.arePlatformEmailsEnabled = client.areEmailsEnabled ?? false;
+      }
+      return res;
+    } catch (err) {
+      this.logger.error(err);
+      return res;
+    }
   }
 
-  if (err instanceof Error) {
-    const error = err as Error;
-    throw new InternalServerErrorException(error?.message ?? errMsg);
+  private async createNextApiBookingRequest(
+    req: BookingRequest,
+    oAuthClientId?: string,
+    platformBookingLocation?: string
+  ): Promise<NextApiRequest & { userId?: number } & OAuthRequestParams> {
+    const userId = (await this.getOwnerId(req)) ?? -1;
+    const oAuthParams = oAuthClientId
+      ? await this.getOAuthClientsParams(oAuthClientId)
+      : DEFAULT_PLATFORM_PARAMS;
+    Object.assign(req, { userId, ...oAuthParams, platformBookingLocation });
+    req.body = { ...req.body, noEmail: !oAuthParams.arePlatformEmailsEnabled };
+    return req as unknown as NextApiRequest & { userId?: number } & OAuthRequestParams;
   }
 
-  throw new InternalServerErrorException(errMsg);
+  private handleBookingErrors(err: Error | HttpError | unknown, type?: "recurring" | `instant`): void {
+    const errMsg = `Error while creating ${type ? type + " " : ""}booking.`;
+    if (err instanceof HttpError) {
+      const httpError = err as HttpError;
+      throw new HttpException(httpError?.message ?? errMsg, httpError?.statusCode ?? 500);
+    }
+
+    if (err instanceof Error) {
+      const error = err as Error;
+      throw new InternalServerErrorException(error?.message ?? errMsg);
+    }
+
+    throw new InternalServerErrorException(errMsg);
+  }
 }

@@ -1,10 +1,10 @@
-import { Asterisk, Clipboard } from "lucide-react";
+import { useRouter } from "next/navigation";
 import React from "react";
 
 import { classNames } from "@calcom/lib";
 import { PERMISSIONS_GROUPED_MAP } from "@calcom/platform-constants";
 import type { Avatar } from "@calcom/prisma/client";
-import { Button, showToast } from "@calcom/ui";
+import { Button, Icon, showToast } from "@calcom/ui";
 
 import { hasPermission } from "../../../../../../../packages/platform/utils/permissions";
 
@@ -12,6 +12,10 @@ type OAuthClientCardProps = {
   name: string;
   logo?: Avatar;
   redirectUris: string[];
+  bookingRedirectUri: string | null;
+  bookingCancelRedirectUri: string | null;
+  bookingRescheduleRedirectUri: string | null;
+  areEmailsEnabled: boolean;
   permissions: number;
   lastItem: boolean;
   id: string;
@@ -24,13 +28,19 @@ export const OAuthClientCard = ({
   name,
   logo,
   redirectUris,
+  bookingRedirectUri,
+  bookingCancelRedirectUri,
+  bookingRescheduleRedirectUri,
   permissions,
   id,
   secret,
   lastItem,
   onDelete,
   isLoading,
+  areEmailsEnabled,
 }: OAuthClientCardProps) => {
+  const router = useRouter();
+
   const clientPermissions = Object.values(PERMISSIONS_GROUPED_MAP).map((value, index) => {
     let permissionsMessage = "";
     const hasReadPermission = hasPermission(permissions, value.read);
@@ -75,7 +85,8 @@ export const OAuthClientCard = ({
           <div className="flex flex-row items-center gap-2">
             <div className="font-semibold">Client Id:</div>
             <div>{id}</div>
-            <Clipboard
+            <Icon
+              name="clipboard"
               type="button"
               className="h-4 w-4 cursor-pointer"
               onClick={() => {
@@ -89,9 +100,10 @@ export const OAuthClientCard = ({
           <div className="font-semibold">Client Secret:</div>
           <div className="flex items-center justify-center rounded-md">
             {[...new Array(20)].map((_, index) => (
-              <Asterisk key={`${index}asterisk`} className="h-2 w-2" />
+              <Icon name="asterisk" key={`${index}asterisk`} className="h-2 w-2" />
             ))}
-            <Clipboard
+            <Icon
+              name="clipboard"
               type="button"
               className="ml-2 h-4 w-4 cursor-pointer"
               onClick={() => {
@@ -109,8 +121,33 @@ export const OAuthClientCard = ({
           <span className="font-semibold">Redirect uris: </span>
           {redirectUris.map((item, index) => (redirectUris.length === index + 1 ? `${item}` : `${item}, `))}
         </div>
+        {bookingRedirectUri && (
+          <div className="flex gap-1 text-sm">
+            <span className="font-semibold">Booking redirect uri: </span> {bookingRedirectUri}
+          </div>
+        )}
+        {bookingRescheduleRedirectUri && (
+          <div className="flex gap-1 text-sm">
+            <span className="font-semibold">Booking reschedule uri: </span> {bookingRescheduleRedirectUri}
+          </div>
+        )}
+        {bookingCancelRedirectUri && (
+          <div className="flex gap-1 text-sm">
+            <span className="font-semibold">Booking cancel uri: </span> {bookingCancelRedirectUri}
+          </div>
+        )}
+        <div className="flex gap-1 text-sm">
+          <span className="text-sm font-semibold">Emails enabled:</span> {areEmailsEnabled ? "Yes" : "No"}
+        </div>
       </div>
-      <div className="flex items-center">
+      <div className="flex items-start gap-4">
+        <Button
+          className="bg-subtle hover:bg-emphasis text-white"
+          loading={isLoading}
+          disabled={isLoading}
+          onClick={() => router.push(`/settings/organizations/platform/oauth-clients/create?clientId=${id}`)}>
+          Edit
+        </Button>
         <Button
           className="bg-red-500 text-white hover:bg-red-600"
           loading={isLoading}

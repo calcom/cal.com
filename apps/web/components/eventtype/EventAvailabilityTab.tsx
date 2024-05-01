@@ -13,8 +13,7 @@ import { weekdayNames } from "@calcom/lib/weekday";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
-import { Badge, Button, Select, SettingsToggle, SkeletonText } from "@calcom/ui";
-import { ExternalLink, Globe } from "@calcom/ui/components/icon";
+import { Badge, Button, Icon, Select, SettingsToggle, SkeletonText } from "@calcom/ui";
 
 import { SelectSkeletonLoader } from "@components/availability/SkeletonLoader";
 
@@ -130,7 +129,7 @@ const EventTypeScheduleDetails = memo(
         </div>
         <div className="bg-muted border-subtle flex flex-col justify-center gap-2 rounded-b-md border p-6 sm:flex-row sm:justify-between">
           <span className="text-default flex items-center justify-center text-sm sm:justify-start">
-            <Globe className="h-3.5 w-3.5 ltr:mr-2 rtl:ml-2" />
+            <Icon name="globe" className="h-3.5 w-3.5 ltr:mr-2 rtl:ml-2" />
             {schedule?.timeZone || <SkeletonText className="block h-5 w-32" />}
           </span>
           {!!schedule?.id && !schedule.isManaged && !schedule.readOnly && (
@@ -138,7 +137,7 @@ const EventTypeScheduleDetails = memo(
               href={`/availability/${schedule.id}`}
               disabled={isPending}
               color="minimal"
-              EndIcon={ExternalLink}
+              EndIcon="external-link"
               target="_blank"
               rel="noopener noreferrer">
               {t("edit_availability")}

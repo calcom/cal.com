@@ -17,3 +17,4 @@ packages/prisma/zod
 packages/prisma/enums
 apps/web/public/embed
 apps/api/v2/swagger/documentation.json
+packages/ui/components/icon/dynamicIconImports.tsx

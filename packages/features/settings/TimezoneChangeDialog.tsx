@@ -10,7 +10,7 @@ import { Dialog, DialogClose, DialogContent, DialogFooter, showToast } from "@ca
 export default function TimezoneChangeDialog() {
   const { t } = useLocale();
   const { data: user, isPending } = trpc.viewer.me.useQuery();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const userTz = user?.timeZone;
   const currentTz = dayjs.tz.guess() || "Europe/London";
   const formattedCurrentTz = currentTz?.replace("_", " ");

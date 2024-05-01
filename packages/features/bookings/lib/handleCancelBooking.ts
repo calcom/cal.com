@@ -13,8 +13,8 @@ import { deleteScheduledSMSReminder } from "@calcom/features/ee/workflows/lib/re
 import { deleteScheduledWhatsappReminder } from "@calcom/features/ee/workflows/lib/reminders/whatsappReminderManager";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { cancelScheduledJobs } from "@calcom/features/webhooks/lib/scheduleTrigger";
+import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
-import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { HttpError } from "@calcom/lib/http-error";
@@ -24,7 +24,7 @@ import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { BookingStatus, WorkflowMethods } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
-import { schemaBookingCancelParams } from "@calcom/prisma/zod-utils";
+import { EventTypeMetaDataSchema, schemaBookingCancelParams } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { getAllCredentials } from "./getAllCredentialsForUsersOnEvent/getAllCredentials";
@@ -43,6 +43,7 @@ async function getBookingToDelete(id: number | undefined, uid: string | undefine
       user: {
         select: {
           id: true,
+          username: true,
           credentials: { select: credentialForCalendarServiceSelect }, // Not leaking at the moment, be careful with
           email: true,
           timeZone: true,
@@ -78,6 +79,7 @@ async function getBookingToDelete(id: number | undefined, uid: string | undefine
               name: true,
             },
           },
+          userId: true,
           recurringEvent: true,
           title: true,
           eventName: true,
@@ -89,6 +91,7 @@ async function getBookingToDelete(id: number | undefined, uid: string | undefine
           seatsPerTimeSlot: true,
           bookingFields: true,
           seatsShowAttendees: true,
+          metadata: true,
           hosts: {
             select: {
               user: true,
@@ -124,13 +127,26 @@ async function getBookingToDelete(id: number | undefined, uid: string | undefine
 export type CustomRequest = NextApiRequest & {
   userId?: number;
   bookingToDelete?: Awaited<ReturnType<typeof getBookingToDelete>>;
+  platformClientId?: string;
+  platformRescheduleUrl?: string;
+  platformCancelUrl?: string;
+  platformBookingUrl?: string;
+  arePlatformEmailsEnabled?: boolean;
 };
 
 async function handler(req: CustomRequest) {
   const { id, uid, allRemainingBookings, cancellationReason, seatReferenceUid } =
     schemaBookingCancelParams.parse(req.body);
   req.bookingToDelete = await getBookingToDelete(id, uid);
-  const { bookingToDelete, userId } = req;
+  const {
+    bookingToDelete,
+    userId,
+    platformBookingUrl,
+    platformCancelUrl,
+    platformClientId,
+    platformRescheduleUrl,
+    arePlatformEmailsEnabled,
+  } = req;
 
   if (!bookingToDelete || !bookingToDelete.user) {
     throw new HttpError({ statusCode: 400, message: "Booking not found" });
@@ -230,7 +246,7 @@ async function handler(req: CustomRequest) {
 
   const evt: CalendarEvent = {
     title: bookingToDelete?.title,
-    type: bookingToDelete?.eventType?.slug as string,
+    type: bookingToDelete?.eventType?.title as string,
     description: bookingToDelete?.description || "",
     customInputs: isPrismaObjOrUndefined(bookingToDelete.customInputs),
     eventTypeId: bookingToDelete.eventTypeId as number,
@@ -268,6 +284,10 @@ async function handler(req: CustomRequest) {
     seatsShowAttendees: bookingToDelete.eventType?.seatsShowAttendees,
     iCalUID: bookingToDelete.iCalUID,
     iCalSequence: bookingToDelete.iCalSequence + 1,
+    platformClientId,
+    platformRescheduleUrl,
+    platformCancelUrl,
+    platformBookingUrl,
   };
 
   const dataForWebhooks = { evt, webhooks, eventTypeInfo };
@@ -298,7 +318,6 @@ async function handler(req: CustomRequest) {
         ...{ eventType: { slug: bookingToDelete.eventType.slug } },
       },
       hideBranding: !!bookingToDelete.eventType.owner?.hideBranding,
-      eventTypeRequiresConfirmation: bookingToDelete.eventType.requiresConfirmation,
     });
   }
 
@@ -403,16 +422,22 @@ async function handler(req: CustomRequest) {
     });
   }
 
-  const apiDeletes = [];
-
   const isBookingInRecurringSeries = !!(
     bookingToDelete.eventType?.recurringEvent &&
     bookingToDelete.recurringEventId &&
     allRemainingBookings
   );
-  const credentials = await getAllCredentials(bookingToDelete.user, bookingToDelete.eventType);
 
-  const eventManager = new EventManager({ credentials });
+  const bookingToDeleteEventTypeMetadata = EventTypeMetaDataSchema.parse(
+    bookingToDelete.eventType?.metadata || null
+  );
+
+  const credentials = await getAllCredentials(bookingToDelete.user, {
+    ...bookingToDelete.eventType,
+    metadata: bookingToDeleteEventTypeMetadata,
+  });
+
+  const eventManager = new EventManager({ ...bookingToDelete.user, credentials });
 
   await eventManager.cancelEvent(evt, bookingToDelete.references, isBookingInRecurringSeries);
 
@@ -445,15 +470,9 @@ async function handler(req: CustomRequest) {
   const prismaPromises: Promise<unknown>[] = [bookingReferenceDeletes];
 
   try {
-    const temp = prismaPromises.concat(apiDeletes);
-    const settled = await Promise.allSettled(temp);
-    const rejected = settled.filter(({ status }) => status === "rejected") as PromiseRejectedResult[];
-    if (rejected.length) {
-      throw new Error(`Reasons: ${rejected.map(({ reason }) => reason)}`);
-    }
-
     // TODO: if emails fail try to requeue them
-    await sendCancelledEmails(evt, { eventName: bookingToDelete?.eventType?.eventName });
+    if (!platformClientId || (platformClientId && arePlatformEmailsEnabled))
+      await sendCancelledEmails(evt, { eventName: bookingToDelete?.eventType?.eventName });
   } catch (error) {
     console.error("Error deleting event", error);
   }

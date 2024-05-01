@@ -1,8 +1,8 @@
-import { ArrowRight, InfoIcon } from "lucide-react";
 import { useState } from "react";
 
 import { BOOKER_NUMBER_OF_DAYS_TO_LOAD } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { Icon } from "@calcom/ui";
 
 type Props = {
   onButtonClick: () => void;
@@ -30,7 +30,7 @@ export function HavingTroubleFindingTime(props: Props) {
   return (
     <div className="bg-default border-subtle mt-6 flex w-1/2 min-w-0 items-center justify-between rounded-[32px] border p-3 text-sm leading-none shadow-sm lg:w-1/3">
       <div className="flex items-center gap-2 overflow-x-hidden">
-        <InfoIcon className="text-default h-4 w-4" />
+        <Icon name="info" className="text-default h-4 w-4" />
         <p className="w-full  leading-none">{t("having_trouble_finding_time")}</p>
       </div>
       {/* TODO: we should give this more of a touch target on mobile */}
@@ -41,7 +41,7 @@ export function HavingTroubleFindingTime(props: Props) {
           props.onButtonClick();
           setInternalClick(true);
         }}>
-        {t("show_more")} <ArrowRight className="h-4 w-4" />
+        {t("show_more")} <Icon name="arrow-right" className="h-4 w-4" />
       </button>
     </div>
   );

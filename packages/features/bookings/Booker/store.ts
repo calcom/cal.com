@@ -209,6 +209,10 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
   },
   month: getQueryParam("month") || getQueryParam("date") || dayjs().format("YYYY-MM"),
   setMonth: (month: string | null) => {
+    if (!month) {
+      removeQueryParam("month");
+      return;
+    }
     set({ month, selectedTimeslot: null });
     updateQueryParam("month", month ?? "");
     get().setSelectedDate(null);
@@ -309,7 +313,7 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
       });
       updateQueryParam("month", month);
       updateQueryParam("date", selectedDate ?? "");
-      updateQueryParam("slot", selectedTimeslot ?? "");
+      updateQueryParam("slot", selectedTimeslot ?? "", false);
     }
     //removeQueryParam("layout");
   },
@@ -332,7 +336,7 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
   selectedTimeslot: getQueryParam("slot") || null,
   setSelectedTimeslot: (selectedTimeslot: string | null) => {
     set({ selectedTimeslot });
-    updateQueryParam("slot", selectedTimeslot ?? "");
+    updateQueryParam("slot", selectedTimeslot ?? "", false);
   },
   formValues: {},
   setFormValues: (formValues: Record<string, any>) => {
