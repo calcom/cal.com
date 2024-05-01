@@ -14,14 +14,14 @@ export const getUserAdminTeams = async (userId: number): Promise<number[]> => {
           accepted: true,
           role: { in: [MembershipRole.ADMIN, MembershipRole.OWNER] },
         },
-        select: { id: true },
+        select: { teamId: true },
       },
     },
   });
 
   const teamIds = [];
   for (const team of user?.teams || []) {
-    teamIds.push(team.id);
+    teamIds.push(team.teamId);
   }
   return teamIds;
 };
