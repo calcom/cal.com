@@ -80,6 +80,11 @@ const checkOrgOwnerCreationRequirements = async (
       isOrganization: true,
     },
   });
+
+  // Allow creating an organization with same requestedSlug as a non-org Team's slug
+  // It is needed so that later we can migrate the non-org Team(with the conflicting slug) to the newly created org
+  // Publishing the organization would fail if the team with the same slug is not migrated first
+
   if (hasAnOrgWithSameSlug || RESERVED_SUBDOMAINS.includes(slug))
     throw new TRPCError({ code: "BAD_REQUEST", message: "organization_url_taken" });
 
@@ -97,7 +102,6 @@ const checkOrgOwnerCreationRequirements = async (
   return { orgOwner };
 };
 
-//this is not used for platform, only for orgs
 const configureOrg = async (orgOwnerEmail: string, slug: NonNullable<Team["slug"]>, t: TFunction) => {
   const isOrganizationConfigured = await createDomain(slug);
 
@@ -142,7 +146,6 @@ const persistOrganization = async ({
 }: PersistOrganizationProps) => {
   const autoAcceptEmail = orgOwner.email.split("@")[1];
   const nonOrgUsernameForOwner = orgOwner.username || "";
-  // this is where an org with its owner gets created
   const { organization, ownerProfile } = await OrganizationRepository.createWithOwner({
     orgData: {
       name,
@@ -255,13 +258,10 @@ const createPlatformUser = async ({
   team: { slug, ownerEmail },
   input,
 }: CreatePlatformUserProps) => {
-  // checkUserIsLoggedIn
   const loggedInUser = await checkLoginStatus(userId);
 
-  // checkOrgOwnerCreationRequirements
   const { orgOwner } = await checkOrgOwnerCreationRequirements(ownerEmail, slug, loggedInUser.id, orgId);
 
-  // persistOrganization
   const organization = await persistOrganization({
     orgOwner,
     input,
@@ -272,7 +272,6 @@ const createPlatformUser = async ({
 
   if (!organization.id) throw Error("User not created");
 
-  // enrich user
   const availability = getAvailabilityFromSchedule(DEFAULT_SCHEDULE);
   const user = await enrichUserProfile(organization.id, orgOwner, availability);
 
@@ -287,23 +286,18 @@ const createOrg = async ({
   profile: { username, orgId },
   input,
 }: CreateOrgProps) => {
-  // CheckUserIsLoggedIn
   const loggedInUser = await checkLoginStatus(userId);
 
-  // check for user admin or not
   const isAdmin = checkUserIsAdmin(loggedInUser.role);
-  // checkPulishedTeams
+
   checkOrgPublishedTeams(loggedInUser.teams, isAdmin);
 
-  // checkOrgOwnerCreationRequirements
   const { orgOwner } = await checkOrgOwnerCreationRequirements(ownerEmail, slug, loggedInUser.id, orgId);
 
-  // configureOrg
   const t = await getTranslation(userLocale ?? "en", "common");
 
   const isOrganizationConfigured = await configureOrg(orgOwnerEmail, slug, t);
 
-  // persistOrganization
   const organization = await persistOrganization({
     orgOwner,
     input,
@@ -313,7 +307,6 @@ const createOrg = async ({
   });
   if (!organization.id) throw Error("User not created");
 
-  // enrich user
   const availability = getAvailabilityFromSchedule(DEFAULT_SCHEDULE);
   const user = await enrichUserProfile(organization.id, orgOwner, availability);
 
