@@ -114,11 +114,12 @@ export async function deleteSubscription({
   } | null;
 }) {
   try {
+    let where: Prisma.WebhookWhereInput = {};
     if (appApiKey) {
       if (appApiKey.teamId) {
         where = { teamId: appApiKey.teamId };
       } else {
-        where = appApiKey.userId;
+        where = { userId: appApiKey.userId };
       }
     } else if (account) {
       if (account.isTeam) {
@@ -130,8 +131,8 @@ export async function deleteSubscription({
 
     const deleteWebhook = await prisma.webhook.delete({
       where: {
-        id: webhookId,
         ...where,
+        id: webhookId,
       },
     });
 
