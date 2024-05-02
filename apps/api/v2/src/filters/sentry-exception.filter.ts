@@ -14,6 +14,7 @@ export class SentryFilter extends BaseExceptionFilter {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
+    const requestId = request.headers["X-Request-Id"];
 
     this.logger.error(`Sentry Exception Filter: ${exception?.message}`, {
       exception,
@@ -21,6 +22,7 @@ export class SentryFilter extends BaseExceptionFilter {
       headers: request.headers,
       url: request.url,
       method: request.method,
+      requestId,
     });
 
     // capture if client has been init
