@@ -41,12 +41,15 @@ export class TRPCExceptionFilter implements ExceptionFilter {
         break;
     }
 
+    const requestId = request.headers["X-Request-Id"];
+
     this.logger.error(`TRPC Exception Filter: ${exception?.message}`, {
       exception,
       body: request.body,
       headers: request.headers,
       url: request.url,
       method: request.method,
+      requestId,
     });
 
     response.status(statusCode).json({

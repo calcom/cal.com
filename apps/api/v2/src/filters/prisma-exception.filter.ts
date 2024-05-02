@@ -33,12 +33,15 @@ export class PrismaExceptionFilter implements ExceptionFilter {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
+    const requestId = request.headers["X-Request-Id"];
+
     this.logger.error(`PrismaError: ${error.message}`, {
       error,
       body: request.body,
       headers: request.headers,
       url: request.url,
       method: request.method,
+      requestId,
     });
     response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
       status: ERROR_STATUS,
