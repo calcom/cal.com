@@ -694,7 +694,8 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
       });
     } catch (e) {
       loggerWithEventDetails.error(
-        "Something has went wrong. Upstash could be down and we have caught the error to not block availability"
+        `Something has went wrong. Upstash could be down and we have caught the error to not block availability:
+ ${e}`
       );
     }
   }
