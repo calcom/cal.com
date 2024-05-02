@@ -42,7 +42,7 @@ export const handleNotificationWhenNoSlots = async ({
   orgDetails,
 }: {
   eventDetails: EventDetails;
-  orgDetails: { currentOrgDomain: string | null; isValidOrgDomain: boolean };
+  orgDetails: { currentOrgDomain: string | null;};
 }) => {
   // Check for org
   if (!orgDetails.currentOrgDomain) return;
