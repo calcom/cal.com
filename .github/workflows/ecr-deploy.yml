@@ -39,7 +39,7 @@ jobs:
     - name: build
       shell: bash
       run: |
-        docker build --build-arg NEXT_PUBLIC_WEBAPP_URL='http://localhost:3000' --build-arg NEXT_PUBLIC_PROJECT_VAR_TRANSLATIONS=${{ secrets.NEXT_PUBLIC_PROJECT_VAR_TRANSLATIONS }} --build-arg NEXT_PUBLIC_LICENSE_CONSENT='agree' --build-arg NEXT_PUBLIC_TELEMETRY_KEY=1234567 --build-arg CALCOM_TELEMETRY_DISABLED=1 --build-arg DATABASE_URL=postgresql://postgres:postgres@172.17.0.1:5432/postgres --build-arg DATABASE_DIRECT_URL=postgresql://postgres:postgres@172.17.0.1:5432/postgres  -t "${{ github.ref_name }}" -f Dockerfile .
+        docker build --build-arg NEXT_PUBLIC_WEBAPP_URL='http://localhost:3000' --build-arg NEXT_PUBLIC_PROJECT_VAR_TRANSLATIONS=${{ secrets.NEXT_PUBLIC_PROJECT_VAR_TRANSLATIONS }} --build-arg NEXT_PUBLIC_PHONE_LABEL=${{ secrets.NEXT_PUBLIC_PHONE_LABEL }} --build-arg NEXT_PUBLIC_LICENSE_CONSENT='agree' --build-arg NEXT_PUBLIC_TELEMETRY_KEY=1234567 --build-arg CALCOM_TELEMETRY_DISABLED=1 --build-arg DATABASE_URL=postgresql://postgres:postgres@172.17.0.1:5432/postgres --build-arg DATABASE_DIRECT_URL=postgresql://postgres:postgres@172.17.0.1:5432/postgres  -t "${{ github.ref_name }}" -f Dockerfile .
 
     - name: push ecr
       uses: Deep-Consulting-Solutions/ecr-deploy-action@main
