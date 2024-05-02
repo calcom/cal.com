@@ -2022,7 +2022,7 @@
   "invite_as": "Invite as",
   "form_updated_successfully": "Form updated successfully.",
   "disable_attendees_confirmation_emails": "Disable default confirmation emails for attendees",
-  "disable_attendees_confirmation_emails_description": "At least one workflow is active on this event type that sends an email to the attendees when the event is booked.",
+  "disable_attendees_confirmation_emails_description": "At least one workflow is active on this event type that sends a booking confirmation to the attendees.",
   "disable_host_confirmation_emails": "Disable default confirmation emails for host",
   "disable_host_confirmation_emails_description": "At least one workflow is active on this event type that sends an email to the host when the event is booked.",
   "add_an_override": "Add an override",
