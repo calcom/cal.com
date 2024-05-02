@@ -114,7 +114,7 @@ export const useDeleteOAuthClient = (
   return mutation;
 };
 
-export const useCheckTeamBilling = (teamId: number) => {
+export const useCheckTeamBilling = (teamId?: number | null) => {
   const QUERY_KEY = "check-team-billing";
   const isTeamBilledAlready = useQuery({
     queryKey: [QUERY_KEY, teamId],
@@ -125,7 +125,7 @@ export const useCheckTeamBilling = (teamId: number) => {
       });
       const data = await response.json();
 
-      return data.valid;
+      return data.data;
     },
     enabled: !!teamId,
   });
