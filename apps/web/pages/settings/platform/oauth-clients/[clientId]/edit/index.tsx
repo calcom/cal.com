@@ -1,13 +1,70 @@
 import { useParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 import Shell from "@calcom/features/shell/Shell";
+import { PERMISSIONS_GROUPED_MAP } from "@calcom/platform-constants";
+import { showToast } from "@calcom/ui";
+
+import { useOAuthClient } from "@lib/hooks/settings/organizations/platform/oauth-clients/useOAuthClients";
+import { useUpdateOAuthClient } from "@lib/hooks/settings/organizations/platform/oauth-clients/usePersistOAuthClient";
 
 import PageWrapper from "@components/PageWrapper";
-import { EditOAuthClientForm } from "@components/settings/platform/oauth-clients/oauth-client-form/edit";
+import type { FormValues } from "@components/settings/platform/oauth-clients/oauth-client-form";
+import { OAuthClientForm as EditOAuthClientForm } from "@components/settings/platform/oauth-clients/oauth-client-form";
+
+import {
+  hasAppsReadPermission,
+  hasAppsWritePermission,
+  hasBookingReadPermission,
+  hasBookingWritePermission,
+  hasEventTypeReadPermission,
+  hasEventTypeWritePermission,
+  hasProfileReadPermission,
+  hasProfileWritePermission,
+  hasScheduleReadPermission,
+  hasScheduleWritePermission,
+} from "../../../../../../../../packages/platform/utils/permissions";
 
 export default function EditOAuthClient() {
+  const router = useRouter();
   const params = useParams<{ clientId: string }>();
   const clientId = params?.clientId || "";
+  const { data, isFetched, isFetching, isError, refetch } = useOAuthClient(clientId);
+  const { mutateAsync: update, isPending: isUpdating } = useUpdateOAuthClient({
+    onSuccess: () => {
+      showToast("OAuth client updated successfully", "success");
+      refetch();
+      router.push("/settings/platform/");
+    },
+    onError: () => {
+      showToast("Internal server error, please try again later", "error");
+    },
+    clientId,
+  });
+
+  const onSubmit = (data: FormValues) => {
+    let userPermissions = 0;
+    const userRedirectUris = data.redirectUris.map((uri) => uri.uri).filter((uri) => !!uri);
+
+    Object.keys(PERMISSIONS_GROUPED_MAP).forEach((key) => {
+      const entity = key as keyof typeof PERMISSIONS_GROUPED_MAP;
+      const entityKey = PERMISSIONS_GROUPED_MAP[entity].key;
+      const read = PERMISSIONS_GROUPED_MAP[entity].read;
+      const write = PERMISSIONS_GROUPED_MAP[entity].write;
+      if (data[`${entityKey}Read`]) userPermissions |= read;
+      if (data[`${entityKey}Write`]) userPermissions |= write;
+    });
+
+    update({
+      name: data.name,
+      // logo: data.logo,
+      redirectUris: userRedirectUris,
+      bookingRedirectUri: data.bookingRedirectUri,
+      bookingCancelRedirectUri: data.bookingCancelRedirectUri,
+      bookingRescheduleRedirectUri: data.bookingRescheduleRedirectUri,
+      areEmailsEnabled: data.areEmailsEnabled,
+    });
+  };
 
   return (
     <div>
@@ -23,7 +80,33 @@ export default function EditOAuthClient() {
               </p>
             </div>
           </div>
-          <EditOAuthClientForm clientId={clientId} />
+          {(!Boolean(clientId) || (isFetched && !data)) && <p>OAuth Client not found.</p>}
+          {isFetched && !!data && (
+            <EditOAuthClientForm
+              defaultValues={{
+                name: data?.name ?? "",
+                areEmailsEnabled: data.areEmailsEnabled ?? false,
+                redirectUris: data?.redirectUris?.map((uri) => ({ uri })) ?? [{ uri: "" }],
+                bookingRedirectUri: data?.bookingRedirectUri ?? "",
+                bookingCancelRedirectUri: data?.bookingCancelRedirectUri ?? "",
+                bookingRescheduleRedirectUri: data?.bookingRescheduleRedirectUri ?? "",
+                appsRead: hasAppsReadPermission(data?.permissions),
+                appsWrite: hasAppsWritePermission(data?.permissions),
+                bookingRead: hasBookingReadPermission(data?.permissions),
+                bookingWrite: hasBookingWritePermission(data?.permissions),
+                eventTypeRead: hasEventTypeReadPermission(data?.permissions),
+                eventTypeWrite: hasEventTypeWritePermission(data?.permissions),
+                profileRead: hasProfileReadPermission(data?.permissions),
+                profileWrite: hasProfileWritePermission(data?.permissions),
+                scheduleRead: hasScheduleReadPermission(data?.permissions),
+                scheduleWrite: hasScheduleWritePermission(data?.permissions),
+              }}
+              onSubmit={onSubmit}
+              isPending={isUpdating}
+            />
+          )}
+          {isFetching && <p>Loading...</p>}
+          {isError && <p>Something went wrong.</p>}
         </div>
       </Shell>
     </div>
