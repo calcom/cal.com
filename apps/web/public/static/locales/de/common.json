@@ -980,8 +980,6 @@
   "verify_wallet": "Wallet verifizieren",
   "create_events_on": "Erstelle Termine in:",
   "enterprise_license": "Das ist eine Enterprise-Funktion",
-  "enterprise_license_description": "Um diese Funktion zu aktivieren, holen Sie sich einen Deployment-Schlüssel von der {{consoleUrl}}-Konsole und fügen Sie ihn als CALCOM_LICENSE_KEY zu Ihrer .env hinzu. Wenn Ihr Team bereits eine Lizenz hat, wenden Sie sich bitte an {{supportMail}} für Hilfe.",
-  "enterprise_license_development": "Sie können diese Funktion im Entwicklungsmodus testen. Zur Nutzung im regulären Arbeitsumfeld, besuchen Sie bitte <2>/auth/setup</2>, um einen Lizenzschlüssel einzugeben.",
   "missing_license": "Lizenz fehlt",
   "next_steps": "Nächste Schritte",
   "acquire_commercial_license": "Eine kommerzielle Lizenz erwerben",
