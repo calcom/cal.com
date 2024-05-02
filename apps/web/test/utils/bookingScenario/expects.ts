@@ -307,38 +307,72 @@ export function expectWebhookToHaveBeenCalledWith(
 
 export function expectWorkflowToBeTriggered({
   emails,
-  organizer,
-  destinationEmail,
+  emailsToReceive,
 }: {
   emails: Fixtures["emails"];
-  organizer: { email: string; name: string; timeZone: string };
-  destinationEmail?: string;
+  emailsToReceive: string[];
 }) {
   const subjectPattern = /^Reminder: /i;
-  expect(emails.get()).toEqual(
+  emailsToReceive.forEach((email) => {
+    expect(emails.get()).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          subject: expect.stringMatching(subjectPattern),
+          to: email,
+        }),
+      ])
+    );
+  });
+}
+
+export function expectWorkflowToBeNotTriggered({
+  emails,
+  emailsToReceive,
+}: {
+  emails: Fixtures["emails"];
+  emailsToReceive: string[];
+}) {
+  const subjectPattern = /^Reminder: /i;
+
+  emailsToReceive.forEach((email) => {
+    expect(emails.get()).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          subject: expect.stringMatching(subjectPattern),
+          to: email,
+        }),
+      ])
+    );
+  });
+}
+
+export function expectSMSWorkflowToBeTriggered({
+  sms,
+  toNumber,
+}: {
+  sms: Fixtures["sms"];
+  toNumber: string;
+}) {
+  expect(sms.get()).toEqual(
     expect.arrayContaining([
       expect.objectContaining({
-        subject: expect.stringMatching(subjectPattern),
-        to: destinationEmail ?? organizer.email,
+        to: toNumber,
       }),
     ])
   );
 }
 
-export function expectWorkflowToBeNotTriggered({
-  emails,
-  organizer,
+export function expectSMSWorkflowToBeNotTriggered({
+  sms,
+  toNumber,
 }: {
-  emails: Fixtures["emails"];
-  organizer: { email: string; name: string; timeZone: string };
+  sms: Fixtures["sms"];
+  toNumber: string;
 }) {
-  const subjectPattern = /^Reminder: /i;
-
-  expect(emails.get()).not.toEqual(
+  expect(sms.get()).not.toEqual(
     expect.arrayContaining([
       expect.objectContaining({
-        subject: expect.stringMatching(subjectPattern),
-        to: organizer.email,
+        to: toNumber,
       }),
     ])
   );
