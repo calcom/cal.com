@@ -1,18 +1,8 @@
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 
 import Shell from "@calcom/features/shell/Shell";
-import {
-  showToast,
-  EmptyScreen,
-  Button,
-  Dropdown,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownItem,
-} from "@calcom/ui";
+import { showToast } from "@calcom/ui";
 
 import {
   useOAuthClients,
@@ -22,7 +12,9 @@ import { useDeleteOAuthClient } from "@lib/hooks/settings/organizations/platform
 import useMeQuery from "@lib/hooks/useMeQuery";
 
 import PageWrapper from "@components/PageWrapper";
-import { OAuthClientCard } from "@components/settings/platform/oauth-clients/OAuthClientCard";
+import { MangedUserList } from "@components/settings/platform/dashboard/managed-user-list";
+import { OAuthClientsList } from "@components/settings/platform/dashboard/oauth-clients-list";
+import { PlatformPricing } from "@components/settings/platform/pricing/platform-pricing";
 
 const queryClient = new QueryClient();
 
@@ -49,29 +41,16 @@ export default function Platform() {
   };
   const { data: user, isLoading } = useMeQuery();
   const isPlatformUser = user?.organization.isPlatform;
+  const isPaidUser = false;
 
   useEffect(() => {
     setInitialClientId(data[0]?.id);
     setInitialClientName(data[0]?.name);
   }, [data]);
 
-  const NewOAuthClientButton = () => {
-    const router = useRouter();
-
-    return (
-      <Button
-        onClick={(e) => {
-          e.preventDefault();
-          router.push("/settings/platform/oauth-clients/create");
-        }}
-        color="secondary"
-        StartIcon="plus">
-        Add
-      </Button>
-    );
-  };
-
   if (isLoading || isOAuthClientLoading) return <div className="m-5">Loading...</div>;
+
+  if (isPlatformUser && !isPaidUser) return <PlatformPricing />;
 
   if (isPlatformUser) {
     return (
@@ -84,141 +63,19 @@ export default function Platform() {
             withoutMain={false}
             subtitle="Manage everything related to platform."
             isPlatformUser={true}>
-            <div className="mb-10">
-              <div className="border-subtle mx-auto block justify-between rounded-t-lg border px-4 py-6 sm:flex sm:px-6">
-                <div className="flex w-full flex-col">
-                  <h1 className="font-cal text-emphasis mb-1 text-xl font-semibold leading-5 tracking-wide">
-                    OAuth Clients
-                  </h1>
-                  <p className="text-default text-sm ltr:mr-4 rtl:ml-4">
-                    Connect your platform to cal.com with OAuth
-                  </p>
-                </div>
-                <div>
-                  <NewOAuthClientButton />
-                </div>
-              </div>
-              {Array.isArray(data) && data.length ? (
-                <>
-                  <div className="border-subtle rounded-b-lg border border-t-0">
-                    {data.map((client, index) => {
-                      return (
-                        <OAuthClientCard
-                          name={client.name}
-                          redirectUris={client.redirectUris}
-                          bookingRedirectUri={client.bookingRedirectUri}
-                          bookingRescheduleRedirectUri={client.bookingRescheduleRedirectUri}
-                          bookingCancelRedirectUri={client.bookingCancelRedirectUri}
-                          permissions={client.permissions}
-                          key={index}
-                          lastItem={data.length === index + 1}
-                          id={client.id}
-                          secret={client.secret}
-                          isLoading={isDeleting}
-                          onDelete={handleDelete}
-                          areEmailsEnabled={client.areEmailsEnabled}
-                        />
-                      );
-                    })}
-                  </div>
-                </>
-              ) : (
-                <EmptyScreen
-                  headline="Create your first OAuth client"
-                  description="OAuth clients facilitate access to Cal.com on behalf of users"
-                  Icon="plus"
-                  className=""
-                  buttonRaw={<NewOAuthClientButton />}
-                />
-              )}
-            </div>
-            <div>
-              <div className="border-subtle mx-auto block justify-between rounded-t-lg border px-4 py-6 sm:flex sm:px-6">
-                <div className="flex w-full flex-col">
-                  <h1 className="font-cal text-emphasis mb-1 text-xl font-semibold leading-5 tracking-wide">
-                    Managed Users
-                  </h1>
-                  <p className="text-default text-sm ltr:mr-4 rtl:ml-4">
-                    See all the managed users created by your OAuth client.
-                  </p>
-                </div>
-                {Array.isArray(data) && data.length && (
-                  <div>
-                    <Dropdown modal={false}>
-                      <DropdownMenuTrigger asChild>
-                        <Button color="secondary">{initialClientName}</Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent>
-                        {data.map((client) => {
-                          return (
-                            <div key={client.id}>
-                              {initialClientName !== client.name ? (
-                                <DropdownMenuItem className="outline-none">
-                                  <DropdownItem
-                                    type="button"
-                                    onClick={() => {
-                                      setInitialClientId(client.id);
-                                      setInitialClientName(client.name);
-                                      refetchManagedUsers();
-                                    }}>
-                                    {client.name}
-                                  </DropdownItem>
-                                </DropdownMenuItem>
-                              ) : (
-                                <></>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </DropdownMenuContent>
-                    </Dropdown>
-                  </div>
-                )}
-              </div>
-              {Array.isArray(managedUserData) && !isManagedUserLoading && managedUserData.length ? (
-                <>
-                  <table className="w-[100%] rounded-lg">
-                    <colgroup
-                      className="border-subtle overflow-hidden rounded-b-lg border border-b-0"
-                      span={3}
-                    />
-                    <tr>
-                      <td className="border-subtle border px-4 py-3 md:text-center">Id</td>
-                      <td className="border-subtle border px-4 py-3 md:text-center">Username</td>
-                      <td className="border-subtle border px-4 py-3 md:text-center">Email</td>
-                    </tr>
-                    {managedUserData.map((user) => {
-                      return (
-                        <tr key={user.id} className="">
-                          <td className="border-subtle overflow-hidden border px-4 py-3 md:text-center">
-                            {user.id}
-                          </td>
-                          <td className="border-subtle border px-4 py-3 md:text-center">{user.username}</td>
-                          <td className="border-subtle overflow-hidden border px-4 py-3 md:overflow-auto md:text-center">
-                            {user.email}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </table>
-                </>
-              ) : (
-                <EmptyScreen
-                  limitWidth={false}
-                  headline={
-                    initialClientId == undefined
-                      ? "OAuth client is missing. You need to create an OAuth client first in order to create a managed user."
-                      : `OAuth client ${initialClientId} does not have a managed user present.`
-                  }
-                  description={
-                    initialClientId == undefined
-                      ? "Refer to the Platform Docs from the sidebar in order to create an OAuth client."
-                      : "Refer to the Platform Docs from the sidebar in order to create a managed user."
-                  }
-                  className="items-center border"
-                />
-              )}
-            </div>
+            <OAuthClientsList oauthClients={data} isDeleting={isDeleting} handleDelete={handleDelete} />
+            <MangedUserList
+              oauthClients={data}
+              managedUsers={managedUserData}
+              isManagedUserLoading={isManagedUserLoading}
+              initialClientName={initialClientName}
+              initialClientId={initialClientId}
+              handleChange={(id: string, name: string) => {
+                setInitialClientId(id);
+                setInitialClientName(name);
+                refetchManagedUsers();
+              }}
+            />
           </Shell>
         </div>
       </QueryClientProvider>
