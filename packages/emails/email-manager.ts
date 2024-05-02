@@ -11,6 +11,7 @@ import * as twilio from "@calcom/features/ee/workflows/lib/reminders/providers/t
 import { SENDER_ID } from "@calcom/lib/constants";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { formatCalEvent } from "@calcom/lib/formatCalendarEvent";
+import logger from "@calcom/lib/logger";
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
@@ -64,6 +65,8 @@ import OrganizerScheduledEmail from "./templates/organizer-scheduled-email";
 import SlugReplacementEmail from "./templates/slug-replacement-email";
 import type { TeamInvite } from "./templates/team-invite-email";
 import TeamInviteEmail from "./templates/team-invite-email";
+
+const log = logger.getSubLogger({ prefix: ["[TEST]"] });
 
 const sendEmail = (prepare: () => BaseEmail) => {
   return new Promise((resolve, reject) => {
@@ -120,8 +123,7 @@ class SMSManager {
       smsToSend.push(this.sendSMSToAttendee(attendee));
     }
 
-    const res = await Promise.all(smsToSend);
-    console.log("res", res);
+    await Promise.all(smsToSend);
   }
 }
 

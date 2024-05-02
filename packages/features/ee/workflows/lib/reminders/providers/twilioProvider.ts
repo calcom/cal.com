@@ -38,6 +38,8 @@ export const sendSMS = async (
   teamId?: number | null,
   whatsapp = false
 ) => {
+  log.silly("sendSMS", JSON.stringify({ phoneNumber, body, sender, userId, teamId }));
+
   const isSMSSendingLocked = await isLockedForSMSSending(userId, teamId);
 
   if (isSMSSendingLocked) {
@@ -55,8 +57,11 @@ export const sendSMS = async (
       "Skipped sending SMS because process.env.NEXT_PUBLIC_IS_E2E or process.env.INTEGRATION_TEST_MODE is set. SMS are available in globalThis.testSMS"
     );
 
+    // return new Promise((resolve) => resolve("Skipped sendSMS for Unit Tests"));
     return;
   }
+
+  assertTwilio(twilio);
 
   const twilio = createTwilioClient();
 
