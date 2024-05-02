@@ -1366,7 +1366,7 @@ model PlatformBilling {
 
   customerId     String  @unique
   subscriptionId String?
-  plan           String
+  plan           String  @default("none")
 
   billingCycleStart Int?
   billingCycleEnd   Int?
