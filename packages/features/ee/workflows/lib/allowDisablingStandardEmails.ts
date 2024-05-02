@@ -22,6 +22,9 @@ export function allowDisablingAttendeeConfirmationEmails(
   return !!workflows.find(
     (workflow) =>
       workflow.trigger === WorkflowTriggerEvents.NEW_EVENT &&
-      !!workflow.steps.find((step) => step.action === WorkflowActions.EMAIL_ATTENDEE)
+      !!workflow.steps.find(
+        (step) =>
+          step.action === WorkflowActions.EMAIL_ATTENDEE || step.action === WorkflowActions.SMS_ATTENDEE
+      )
   );
 }
