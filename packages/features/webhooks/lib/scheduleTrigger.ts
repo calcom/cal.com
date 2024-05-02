@@ -266,12 +266,10 @@ export async function scheduleTrigger(
 ) {
   try {
     const payload = JSON.stringify({ triggerEvent, ...booking });
-    const jobName = `${subscriber.appId}_${subscriber.id}`; // we probably don't need that no more
 
     // add scheduled job to database
     const createTrigger = prisma.webhookScheduledTriggers.create({
       data: {
-        jobName,
         payload,
         appId: subscriber.appId,
         startAfter: triggerEvent === WebhookTriggerEvents.MEETING_ENDED ? booking.endTime : booking.startTime,
@@ -289,7 +287,7 @@ export async function scheduleTrigger(
       },
     });
 
-    await prisma.$transaction([createTrigger, updateBooking]);
+    await prisma.$transaction([createTrigger]);
   } catch (error) {
     console.error("Error cancelling scheduled jobs", error);
   }
