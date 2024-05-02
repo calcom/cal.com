@@ -5,6 +5,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 
+import { withMiddleware } from "~/lib/helpers/withMiddleware";
 import { getAccessibleUsers, retrieveScopedAccessibleUsers } from "~/lib/utils/retrieveScopedAccessibleUsers";
 import { schemaBookingGetParams, schemaBookingReadPublic } from "~/lib/validations/booking";
 import { schemaQuerySingleOrMultipleAttendeeEmails } from "~/lib/validations/shared/queryAttendeeEmail";
@@ -163,10 +164,18 @@ function buildWhereClause(
 }
 
 async function handler(req: NextApiRequest) {
-  const { userId, isSystemWideAdmin, isOrganizationOwnerOrAdmin, isTeamOwnerOrAdmin } = req;
+  const {
+    userId,
+    isSystemWideAdmin,
+    isOrganizationOwnerOrAdmin,
+    isTeamOwnerOrAdmin,
+    pagination: { take, skip },
+  } = req;
   const { dateFrom, dateTo } = schemaBookingGetParams.parse(req.query);
 
   const args: Prisma.BookingFindManyArgs = {};
+  args.take = take;
+  args.skip = skip;
   args.include = {
     attendees: true,
     user: true,
@@ -261,4 +270,4 @@ async function handler(req: NextApiRequest) {
   return { bookings: data.map((booking) => schemaBookingReadPublic.parse(booking)) };
 }
 
-export default defaultResponder(handler);
+export default withMiddleware("pagination")(defaultResponder(handler));
