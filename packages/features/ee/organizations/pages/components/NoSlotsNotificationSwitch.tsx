@@ -10,7 +10,7 @@ interface GeneralViewProps {
   isAdminOrOwner: boolean;
 }
 
-export const AdminNoSlotsNotificationSwitch = ({ currentOrg, isAdminOrOwner }: GeneralViewProps) => {
+export const NoSlotsNotificationSwitch = ({ currentOrg, isAdminOrOwner }: GeneralViewProps) => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
   const [notificationActive, setNotificationActive] = useState(
@@ -36,7 +36,7 @@ export const AdminNoSlotsNotificationSwitch = ({ currentOrg, isAdminOrOwner }: G
       <SettingsToggle
         toggleSwitchAtTheEnd={true}
         title={t("organization_no_slots_notification_switch_title")}
-        disabled={mutation?.isPending || !isAdminOrOwner}
+        disabled={mutation?.isPending}
         description={t("organization_no_slots_notification_switch_description")}
         checked={notificationActive}
         onCheckedChange={(checked) => {
