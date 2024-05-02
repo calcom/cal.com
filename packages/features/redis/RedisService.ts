@@ -18,13 +18,9 @@ export class RedisService implements IRedisService {
     return this.redis.set(key, value);
   }
 
-  async expire(
-    key: string,
-    seconds: number,
-    option?: "NX" | "nx" | "XX" | "xx" | "GT" | "gt" | "LT" | "lt"
-  ): Promise<0 | 1> {
+  async expire(key: string, seconds: number): Promise<0 | 1> {
     // Implementation for setting expiration time for key in Redis
-    return this.redis.expire(key, seconds, option);
+    return this.redis.expire(key, seconds);
   }
 
   async lrange<TResult = string>(key: string, start: number, end: number): Promise<TResult[]> {
