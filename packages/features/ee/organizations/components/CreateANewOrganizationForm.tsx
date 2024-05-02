@@ -260,7 +260,7 @@ const CreateANewOrganizationFormChild = ({
         )}
 
         {/* This radio group does nothing - its just for visuall purposes */}
-        {!isAdmin && (
+        {!isAdmin && !isPlatformOrg && (
           <>
             <div className="bg-subtle space-y-5  rounded-lg p-5">
               <h3 className="font-cal text-default text-lg font-semibold leading-4">
