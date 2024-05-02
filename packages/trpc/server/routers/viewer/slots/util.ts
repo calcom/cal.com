@@ -683,14 +683,20 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
 
   // We only want to run this on single targeted events and not dynamic
   if (!computedAvailableSlots.slots && input.usernameList?.length === 1) {
-    await handleNotificationWhenNoSlots({
-      eventDetails: {
-        username: input.usernameList?.[0],
-        startTime: startTime,
-        eventSlug: eventType.slug,
-      },
-      orgDetails,
-    });
+    try {
+      await handleNotificationWhenNoSlots({
+        eventDetails: {
+          username: input.usernameList?.[0],
+          startTime: startTime,
+          eventSlug: eventType.slug,
+        },
+        orgDetails,
+      });
+    } catch (e) {
+      loggerWithEventDetails.error(
+        "Something has went wrong. Upstash could be down and we have caught the error to not block availability"
+      );
+    }
   }
 
   return {
