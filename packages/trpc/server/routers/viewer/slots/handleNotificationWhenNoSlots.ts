@@ -17,7 +17,7 @@ type EventDetails = {
 const REDIS_KEY_VERSION = "V1";
 
 // 7 days or 60s in dev
-const NO_SLOTS_NOTIFICATION_FREQUENCY = IS_PRODUCTION ? 7*24*3600 : 60;
+const NO_SLOTS_NOTIFICATION_FREQUENCY = IS_PRODUCTION ? 7 * 24 * 3600 : 60;
 
 const NO_SLOTS_COUNT_FOR_NOTIFICATION = 2;
 
@@ -42,7 +42,7 @@ export const handleNotificationWhenNoSlots = async ({
   orgDetails,
 }: {
   eventDetails: EventDetails;
-  orgDetails: { currentOrgDomain: string | null;};
+  orgDetails: { currentOrgDomain: string | null };
 }) => {
   // Check for org
   if (!orgDetails.currentOrgDomain) return;
@@ -123,6 +123,6 @@ export const handleNotificationWhenNoSlots = async ({
 
       emailsToSend.push(sendOrganizationAdminNoSlotsNotification(payload));
     }
-    Promise.all(emailsToSend);
+    await Promise.all(emailsToSend);
   }
 };
