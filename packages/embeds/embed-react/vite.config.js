@@ -27,6 +27,12 @@ export default defineConfig({
           "react-dom": "ReactDOM",
         },
       },
+      onLog(level, log, handler) {
+        if (log.cause && log.cause.message === `Can't resolve original location of error.`) {
+          return;
+        }
+        handler(level, log);
+      },
     },
   },
 });
