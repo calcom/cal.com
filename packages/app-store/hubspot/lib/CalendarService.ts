@@ -1,306 +1,191 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import * as hubspot from "@hubspot/api-client";
-import type { BatchInputPublicAssociation } from "@hubspot/api-client/lib/codegen/crm/associations";
-import type { PublicObjectSearchRequest } from "@hubspot/api-client/lib/codegen/crm/contacts";
-import type {
-  SimplePublicObject,
-  SimplePublicObjectInput,
-} from "@hubspot/api-client/lib/codegen/crm/objects/meetings";
-
 import { getLocation } from "@calcom/lib/CalEventParser";
-import { WEBAPP_URL } from "@calcom/lib/constants";
-import { HttpError } from "@calcom/lib/http-error";
-import logger from "@calcom/lib/logger";
-import prisma from "@calcom/prisma";
-import type {
-  Calendar,
-  CalendarEvent,
-  EventBusyDate,
-  IntegrationCalendar,
-  NewCalendarEventType,
-  Person,
-} from "@calcom/types/Calendar";
+import type { CalendarEvent, NewCalendarEventType, Person } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
-import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
-import refreshOAuthTokens from "../../_utils/oauth/refreshOAuthTokens";
-import type { HubspotToken } from "../api/callback";
+import type { ContactSearchResult } from "../../_utils/crms/RevertCRMAppService";
+import RevertCRMAppService from "../../_utils/crms/RevertCRMAppService";
+import appConfig from "../config.json";
 
-const hubspotClient = new hubspot.Client();
-
-interface CustomPlublicObjectInput extends SimplePublicObjectInput {
-  id?: string;
-}
-
-export default class HubspotCalendarService implements Calendar {
-  private url = "";
-  private integrationName = "";
-  private auth: Promise<{ getToken: () => Promise<HubspotToken | void | never[]> }>;
-  private log: typeof logger;
-  private client_id = "";
-  private client_secret = "";
-
+export default class HubSpotAppService extends RevertCRMAppService {
   constructor(credential: CredentialPayload) {
-    this.integrationName = "hubspot_other_calendar";
-
-    this.auth = this.hubspotAuth(credential).then((r) => r);
-
-    this.log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
+    super(credential);
+    this.log = this.log.getSubLogger({ prefix: [appConfig.slug] });
+    this.appSlug = appConfig.slug;
   }
 
-  private hubspotContactCreate = async (attendees: Person[]) => {
-    const simplePublicObjectInputs: SimplePublicObjectInput[] = attendees.map((attendee) => {
-      const [firstname, lastname] = attendee.name ? attendee.name.split(" ") : [attendee.email, ""];
-      return {
-        properties: {
-          firstname,
-          lastname,
-          email: attendee.email,
-        },
-      };
+  protected contactSearch = async (event: CalendarEvent) => {
+    const headers = new Headers();
+    headers.append("x-revert-api-token", this.revertApiKey);
+    headers.append("x-revert-t-id", this.tenantId);
+    headers.append("Content-Type", "application/json");
+
+    const bodyRaw = JSON.stringify({
+      searchCriteria: {
+        filterGroups: event.attendees.map((attendee) => ({
+          filters: [
+            {
+              value: attendee.email,
+              propertyName: "email",
+              operator: "EQ",
+            },
+          ],
+        })),
+      },
     });
-    return Promise.all(
-      simplePublicObjectInputs.map((contact) =>
-        hubspotClient.crm.contacts.basicApi.create(contact).catch((error) => {
-          // If multiple events are created, subsequent events may fail due to
-          // contact was created by previous event creation, so we introduce a
-          // fallback taking advantage of the error message providing the contact id
-          if (error.body.message.includes("Contact already exists. Existing ID:")) {
-            const split = error.body.message.split("Contact already exists. Existing ID: ");
-            return { id: split[1] };
-          } else {
-            throw error;
-          }
-        })
-      )
-    );
-  };
 
-  private hubspotContactSearch = async (event: CalendarEvent) => {
-    const publicObjectSearchRequest: PublicObjectSearchRequest = {
-      filterGroups: event.attendees.map((attendee) => ({
-        filters: [
-          {
-            value: attendee.email,
-            propertyName: "email",
-            operator: "EQ",
-          },
-        ],
-      })),
-      sorts: ["hs_object_id"],
-      properties: ["hs_object_id", "email"],
-      limit: 10,
-      after: 0,
+    const requestOptions = {
+      method: "POST",
+      headers: headers,
+      body: bodyRaw,
     };
 
-    return await hubspotClient.crm.contacts.searchApi
-      .doSearch(publicObjectSearchRequest)
-      .then((apiResponse) => apiResponse.results);
-  };
-
-  private getHubspotMeetingBody = (event: CalendarEvent): string => {
-    return `<b>${event.organizer.language.translate("invitee_timezone")}:</b> ${
-      event.attendees[0].timeZone
-    }<br><br><b>${event.organizer.language.translate("share_additional_notes")}</b><br>${
-      event.additionalNotes || "-"
-    }`;
-  };
-
-  private hubspotCreateMeeting = async (event: CalendarEvent) => {
-    const simplePublicObjectInput: SimplePublicObjectInput = {
-      properties: {
-        hs_timestamp: Date.now().toString(),
-        hs_meeting_title: event.title,
-        hs_meeting_body: this.getHubspotMeetingBody(event),
-        hs_meeting_location: getLocation(event),
-        hs_meeting_start_time: new Date(event.startTime).toISOString(),
-        hs_meeting_end_time: new Date(event.endTime).toISOString(),
-        hs_meeting_outcome: "SCHEDULED",
-      },
-    };
-
-    return hubspotClient.crm.objects.meetings.basicApi.create(simplePublicObjectInput);
-  };
-
-  private hubspotAssociate = async (meeting: SimplePublicObject, contacts: Array<{ id: string }>) => {
-    const batchInputPublicAssociation: BatchInputPublicAssociation = {
-      inputs: contacts.map((contact: { id: string }) => ({
-        _from: { id: meeting.id },
-        to: { id: contact.id },
-        type: "meeting_event_to_contact",
-      })),
-    };
-    return hubspotClient.crm.associations.batchApi.create(
-      "meetings",
-      "contacts",
-      batchInputPublicAssociation
-    );
-  };
-
-  private hubspotUpdateMeeting = async (uid: string, event: CalendarEvent) => {
-    const simplePublicObjectInput: SimplePublicObjectInput = {
-      properties: {
-        hs_timestamp: Date.now().toString(),
-        hs_meeting_title: event.title,
-        hs_meeting_body: this.getHubspotMeetingBody(event),
-        hs_meeting_location: getLocation(event),
-        hs_meeting_start_time: new Date(event.startTime).toISOString(),
-        hs_meeting_end_time: new Date(event.endTime).toISOString(),
-        hs_meeting_outcome: "RESCHEDULED",
-      },
-    };
-
-    return hubspotClient.crm.objects.meetings.basicApi.update(uid, simplePublicObjectInput);
-  };
-
-  private hubspotDeleteMeeting = async (uid: string) => {
-    return hubspotClient.crm.objects.meetings.basicApi.archive(uid);
-  };
-
-  private hubspotAuth = async (credential: CredentialPayload) => {
-    const appKeys = await getAppKeysFromSlug("hubspot");
-    if (typeof appKeys.client_id === "string") this.client_id = appKeys.client_id;
-    if (typeof appKeys.client_secret === "string") this.client_secret = appKeys.client_secret;
-    if (!this.client_id) throw new HttpError({ statusCode: 400, message: "Hubspot client_id missing." });
-    if (!this.client_secret)
-      throw new HttpError({ statusCode: 400, message: "Hubspot client_secret missing." });
-    const credentialKey = credential.key as unknown as HubspotToken;
-    const isTokenValid = (token: HubspotToken) =>
-      token &&
-      token.tokenType &&
-      token.accessToken &&
-      token.expiryDate &&
-      (token.expiresIn || token.expiryDate) < Date.now();
-
-    const refreshAccessToken = async (refreshToken: string) => {
-      try {
-        const hubspotRefreshToken: HubspotToken = await refreshOAuthTokens(
-          async () =>
-            await hubspotClient.oauth.tokensApi.createToken(
-              "refresh_token",
-              undefined,
-              `${WEBAPP_URL}/api/integrations/hubspot/callback`,
-              this.client_id,
-              this.client_secret,
-              refreshToken
-            ),
-          "hubspot",
-          credential.userId
-        );
-
-        // set expiry date as offset from current time.
-        hubspotRefreshToken.expiryDate = Math.round(Date.now() + hubspotRefreshToken.expiresIn * 1000);
-        await prisma.credential.update({
-          where: {
-            id: credential.id,
-          },
-          data: {
-            key: hubspotRefreshToken as any,
-          },
-        });
-
-        hubspotClient.setAccessToken(hubspotRefreshToken.accessToken);
-      } catch (e: unknown) {
-        this.log.error(e);
-      }
-    };
-
-    return {
-      getToken: () =>
-        !isTokenValid(credentialKey) ? Promise.resolve([]) : refreshAccessToken(credentialKey.refreshToken),
-    };
-  };
-
-  async handleMeetingCreation(event: CalendarEvent, contacts: CustomPlublicObjectInput[]) {
-    const contactIds: { id?: string }[] = contacts.map((contact) => ({ id: contact.id }));
-    const meetingEvent = await this.hubspotCreateMeeting(event);
-    if (meetingEvent) {
-      this.log.debug("meeting:creation:ok", { meetingEvent });
-      const associatedMeeting = await this.hubspotAssociate(meetingEvent, contactIds as any);
-      if (associatedMeeting) {
-        this.log.debug("association:creation:ok", { associatedMeeting });
-        return Promise.resolve({
-          uid: meetingEvent.id,
-          id: meetingEvent.id,
-          type: "hubspot_other_calendar",
-          password: "",
-          url: "",
-          additionalInfo: { contacts, associatedMeeting },
-        });
-      }
-      return Promise.reject("Something went wrong when associating the meeting and attendees in HubSpot");
+    try {
+      const response = await fetch(`${this.revertApiUrl}crm/contacts/search`, requestOptions);
+      const result = (await response.json()) as ContactSearchResult;
+      return result;
+    } catch (error) {
+      return { status: "error", results: [] };
     }
-    this.log.debug("meeting:creation:notOk", { meetingEvent, event, contacts });
-    return Promise.reject("Something went wrong when creating a meeting in HubSpot");
-  }
+  };
+
+  protected createCRMEvent = async (event: CalendarEvent, contacts: CalendarEvent["attendees"]) => {
+    const eventPayload = {
+      subject: event.title,
+      startDateTime: event.startTime,
+      endDateTime: event.endTime,
+      description: this.getMeetingBody(event),
+      location: getLocation(event),
+      associations: {
+        contactId: String(contacts[0].id),
+      },
+    };
+    const headers = new Headers();
+    headers.append("x-revert-api-token", this.revertApiKey);
+    headers.append("x-revert-t-id", this.tenantId);
+    headers.append("Content-Type", "application/json");
+
+    const eventBody = JSON.stringify(eventPayload);
+    const requestOptions = {
+      method: "POST",
+      headers: headers,
+      body: eventBody,
+    };
+
+    return await fetch(`${this.revertApiUrl}crm/events`, requestOptions);
+  };
 
   async createEvent(event: CalendarEvent): Promise<NewCalendarEventType> {
-    const auth = await this.auth;
-    await auth.getToken();
-    const contacts = await this.hubspotContactSearch(event);
-    if (contacts.length) {
-      if (contacts.length == event.attendees.length) {
-        // All attendees do exist in HubSpot
-        this.log.debug("contact:search:all", { event, contacts });
-        return await this.handleMeetingCreation(event, contacts);
+    const contacts = await this.contactSearch(event);
+
+    if (contacts && contacts.results.length) {
+      if (contacts.results.length === event.attendees.length) {
+        // All contacts are in HubSpot CRM already.
+        this.log.debug("contact:search:all", { event, contacts: contacts });
+        const existingPeople = contacts.results.map((c) => {
+          return {
+            id: Number(c.id),
+            name: `${c.firstName} ${c.lastName}`,
+            email: c.email,
+            timeZone: event.attendees[0].timeZone,
+            language: event.attendees[0].language,
+          };
+        });
+        return await this.handleEventCreation(event, existingPeople);
       } else {
-        // Some attendees don't exist in HubSpot
+        // Some attendees don't exist in HubSpot CRM
         // Get the existing contacts' email to filter out
         this.log.debug("contact:search:notAll", { event, contacts });
-        const existingContacts = contacts.map((contact) => contact.properties.email);
+        const existingContacts = contacts.results.map((contact) => contact.email);
         this.log.debug("contact:filter:existing", { existingContacts });
-        // Get non existing contacts filtering out existing from attendees
-        const nonExistingContacts = event.attendees.filter(
+        // Get non-existing contacts filtering out existing from attendees
+        const nonExistingContacts: Person[] = event.attendees.filter(
           (attendee) => !existingContacts.includes(attendee.email)
         );
         this.log.debug("contact:filter:nonExisting", { nonExistingContacts });
-        // Only create contacts in HubSpot that were not present in the previous contact search
-        const createContacts = await this.hubspotContactCreate(nonExistingContacts);
-        this.log.debug("contact:created", { createContacts });
-        // Continue with meeting creation and association only when all contacts are present in HubSpot
-        if (createContacts.length) {
+        // Only create contacts in HubSpot CRM that were not present in the previous contact search
+        const createdContacts = await this.createContacts(nonExistingContacts);
+        this.log.debug("contact:created", { createdContacts });
+        // Continue with event creation and association only when all contacts are present in HubSpot
+        if (createdContacts[0] && createdContacts[0].status === "ok") {
           this.log.debug("contact:creation:ok");
-          return await this.handleMeetingCreation(
-            event,
-            createContacts.concat(contacts) as SimplePublicObjectInput[]
-          );
+          const existingPeople = contacts.results.map((c) => {
+            return {
+              id: Number(c.id),
+              name: c.name,
+              email: c.email,
+              timeZone: nonExistingContacts[0].timeZone,
+              language: nonExistingContacts[0].language,
+            };
+          });
+          const newlyCreatedPeople = createdContacts.map((c) => {
+            return {
+              id: Number(c.result.id),
+              name: c.result.name,
+              email: c.result.email,
+              timeZone: nonExistingContacts[0].timeZone,
+              language: nonExistingContacts[0].language,
+            };
+          });
+          const allContacts = existingPeople.concat(newlyCreatedPeople);
+          // Ensure the order of attendees is maintained.
+          allContacts.sort((a, b) => {
+            const indexA = event.attendees.findIndex((c) => c.email === a.email);
+            const indexB = event.attendees.findIndex((c) => c.email === b.email);
+            return indexA - indexB;
+          });
+          return await this.handleEventCreation(event, allContacts);
         }
-        return Promise.reject("Something went wrong when creating non-existing attendees in HubSpot");
+        return Promise.reject({
+          calError: "Something went wrong when creating non-existing attendees in HubSpot CRM",
+        });
       }
     } else {
       this.log.debug("contact:search:none", { event, contacts });
-      const createContacts = await this.hubspotContactCreate(event.attendees);
-      this.log.debug("contact:created", { createContacts });
-      if (createContacts.length) {
+      const createdContacts = await this.createContacts(event.attendees);
+      this.log.debug("contact:created", { createdContacts });
+      if (createdContacts[0] && createdContacts[0].status === "ok") {
         this.log.debug("contact:creation:ok");
-        return await this.handleMeetingCreation(event, createContacts as SimplePublicObjectInput[]);
+        const newContacts = createdContacts.map((c) => {
+          return {
+            id: Number(c.result.id),
+            name: c.result.name,
+            email: c.result.email,
+            timeZone: event.attendees[0].timeZone,
+            language: event.attendees[0].language,
+          };
+        });
+        return await this.handleEventCreation(event, newContacts);
       }
     }
-    return Promise.reject("Something went wrong when searching/creating the attendees in HubSpot");
+    return Promise.reject({
+      calError: "Something went wrong when searching/creating the attendees in HubSpot CRM",
+    });
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async updateEvent(uid: string, event: CalendarEvent): Promise<any> {
-    const auth = await this.auth;
-    await auth.getToken();
-    return await this.hubspotUpdateMeeting(uid, event);
-  }
+  async updateEvent(uid: string, event: CalendarEvent): Promise<NewCalendarEventType> {
+    const contacts = await this.contactSearch(event);
 
-  async deleteEvent(uid: string): Promise<void> {
-    const auth = await this.auth;
-    await auth.getToken();
-    return await this.hubspotDeleteMeeting(uid);
-  }
+    const existingContacts = contacts.results.map((contact) => contact.email);
+    const nonExistingContacts = event.attendees.filter(
+      (contact) => !existingContacts.includes(contact.email)
+    );
+    if (nonExistingContacts && nonExistingContacts.length >= 1) {
+      await this.createContacts(nonExistingContacts);
+    }
 
-  async getAvailability(
-    _dateFrom: string,
-    _dateTo: string,
-    _selectedCalendars: IntegrationCalendar[]
-  ): Promise<EventBusyDate[]> {
-    return Promise.resolve([]);
-  }
-
-  async listCalendars(_event?: CalendarEvent): Promise<IntegrationCalendar[]> {
-    return Promise.resolve([]);
+    const meetingEvent = await (await this.updateMeeting(uid, event)).json();
+    if (meetingEvent && meetingEvent.status === "ok") {
+      this.log.debug("event:updation:ok", { meetingEvent });
+      return Promise.resolve({
+        uid: meetingEvent.result.id,
+        id: meetingEvent.result.id,
+        type: appConfig.slug,
+        password: "",
+        url: "",
+        additionalInfo: { meetingEvent },
+      });
+    }
+    this.log.debug("meeting:updation:notOk", { meetingEvent, event });
+    return Promise.reject("Something went wrong when updating a meeting in HubSpot CRM");
   }
 }

@@ -32,7 +32,6 @@ export const apiHandlers = {
   googlevideo: import("./googlevideo/api"),
   gtm: import("./gtm/api"),
   hubspot: import("./hubspot/api"),
-  "hubspot-revert": import("./hubspot-revert/api"),
   huddle01video: import("./huddle01video/api"),
   "ics-feedcalendar": import("./ics-feedcalendar/api"),
   intercom: import("./intercom/api"),
@@ -59,7 +58,6 @@ export const apiHandlers = {
   roam: import("./roam/api"),
   "routing-forms": import("./routing-forms/api"),
   salesforce: import("./salesforce/api"),
-  "salesforce-revert": import("./salesforce-revert/api"),
   salesroom: import("./salesroom/api"),
   sendgrid: import("./sendgrid/api"),
   shimmervideo: import("./shimmervideo/api"),
@@ -88,6 +86,5 @@ export const apiHandlers = {
   "zoho-bigin": import("./zoho-bigin/api"),
   zohocalendar: import("./zohocalendar/api"),
   zohocrm: import("./zohocrm/api"),
-  "zohocrm-revert": import("./zohocrm-revert/api"),
   zoomvideo: import("./zoomvideo/api"),
 };
