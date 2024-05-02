@@ -2419,8 +2419,8 @@
   "no_ratings": "No ratings submitted",
   "no_ratings_description": "Add a workflow with 'Rating' to collect ratings after meetings",
   "most_no_show_host": "Most No Show Members",
-  "highest_rated_members": "Members With Highest Rated Meetings",
-  "lowest_rated_members": "Members With Lowest Rated Meetings",
+  "highest_rated_members": "Members with highest rated meetings",
+  "lowest_rated_members": "Members with lowest rated meetings",
   "csat_score": "CSAT Score",
   "lockedSMS": "Locked SMS",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
