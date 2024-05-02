@@ -37,7 +37,6 @@ export const verifyApiKey: NextMiddleware = async (req, res, next) => {
   // save the user id in the request for later use
   req.userId = apiKey.userId;
   const { isAdmin, scope } = await isAdminGuard(req);
-  console.log({ isAdmin }, { scope });
 
   req.isSystemWideAdmin = isAdmin && scope === ScopeOfAdmin.Instance;
   req.isOrganizationOwnerOrAdmin = isAdmin && scope === ScopeOfAdmin.OrgOwnerOrAdmin;

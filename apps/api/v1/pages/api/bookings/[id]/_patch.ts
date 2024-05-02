@@ -109,8 +109,8 @@ export async function patchHandler(req: NextApiRequest) {
 }
 
 async function checkPermissions(req: NextApiRequest, body: z.infer<typeof schemaBookingEditBodyParams>) {
-  const { isAdmin } = req;
-  if (body.userId && !isAdmin) {
+  const { isSystemWideAdmin } = req;
+  if (body.userId && !isSystemWideAdmin) {
     // Organizer has to be a cal user and we can't allow a booking to be transfered to some other cal user's name
     throw new HttpError({
       statusCode: 403,

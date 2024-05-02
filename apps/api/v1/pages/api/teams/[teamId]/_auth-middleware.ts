@@ -8,10 +8,10 @@ import { MembershipRole } from "@calcom/prisma/enums";
 import { schemaQueryTeamId } from "~/lib/validations/shared/queryTeamId";
 
 async function authMiddleware(req: NextApiRequest) {
-  const { userId, isAdmin } = req;
+  const { userId, isSystemWideAdmin } = req;
   const { teamId } = schemaQueryTeamId.parse(req.query);
   /** Admins can skip the ownership verification */
-  if (isAdmin) return;
+  if (isSystemWideAdmin) return;
   /** Non-members will see a 404 error which may or not be the desired behavior. */
   await prisma.team.findFirstOrThrow({
     where: { id: teamId, members: { some: { userId } } },
@@ -22,13 +22,13 @@ export async function checkPermissions(
   req: NextApiRequest,
   role: Prisma.MembershipWhereInput["role"] = MembershipRole.OWNER
 ) {
-  const { userId, isAdmin } = req;
+  const { userId, isSystemWideAdmin } = req;
   const { teamId } = schemaQueryTeamId.parse({
     teamId: req.query.teamId,
     version: req.query.version,
     apiKey: req.query.apiKey,
   });
-  return canUserAccessTeamWithRole(userId, isAdmin, teamId, role);
+  return canUserAccessTeamWithRole(userId, isSystemWideAdmin, teamId, role);
 }
 
 export async function canUserAccessTeamWithRole(

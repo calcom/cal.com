@@ -6,8 +6,8 @@ import prisma from "@calcom/prisma";
 import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransformParseInt";
 
 async function authMiddleware(req: NextApiRequest) {
-  const { userId, isAdmin, query } = req;
-  if (isAdmin) {
+  const { userId, isSystemWideAdmin, query } = req;
+  if (isSystemWideAdmin) {
     return;
   }
 
