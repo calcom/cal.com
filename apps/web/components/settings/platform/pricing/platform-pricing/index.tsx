@@ -1,7 +1,26 @@
+import { useRouter } from "next/navigation";
+
+import { showToast } from "@calcom/ui";
+
+import { useSubscribeTeamToStripe } from "@lib/hooks/settings/organizations/platform/oauth-clients/usePersistOAuthClient";
+
 import { platformPlans } from "@components/settings/platform/platformUtils";
 import { PlatformBillingCard } from "@components/settings/platform/pricing/billing-card";
 
-export const PlatformPricing = () => {
+type PlatformPricingProps = { teamId?: number };
+
+export const PlatformPricing = ({ teamId }: PlatformPricingProps) => {
+  const router = useRouter();
+  const { mutateAsync, isPending } = useSubscribeTeamToStripe({
+    onSuccess: () => {
+      console.log("Subscription created successfully");
+    },
+    onError: () => {
+      showToast("Internal server error, please try again later", "error");
+    },
+    teamId,
+  });
+
   return (
     <div className="flex h-auto flex-col items-center justify-center px-5 py-5 md:px-10 md:py-0 lg:h-[100vh]">
       <div className="mb-5 text-center text-2xl font-semibold">
@@ -16,6 +35,13 @@ export const PlatformPricing = () => {
                 description={plan.description}
                 pricing={plan.pricing}
                 includes={plan.includes}
+                isLoading={isPending}
+                handleSubscribe={() => {
+                  !!teamId &&
+                    (plan.plan === "Enterprise"
+                      ? router.push("https://i.cal.com/sales/exploration")
+                      : mutateAsync({ plan: plan.plan.toLocaleUpperCase() }));
+                }}
               />
             </div>
           );
