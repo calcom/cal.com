@@ -68,8 +68,12 @@ export const FormBuilderField = ({
         // Make it a variable
         name={`responses.${field.name}`}
         render={({ field: { value, onChange }, fieldState: { error } }) => {
+          let className = "";
+          if (field.name === "phone" && getValues().responses?.location?.value === "phone") {
+            className = "hidden";
+          }
           return (
-            <div>
+            <div className={className}>
               <ComponentForField
                 field={{ ...field, label, placeholder, hidden }}
                 value={value}
@@ -90,6 +94,9 @@ export const FormBuilderField = ({
                   onChange(eventVal);
                 }}
               />
+              {field.name === "phone" && Boolean(process.env.NEXT_PUBLIC_PHONE_LABEL) ? (
+                <small className="text-muted leading-3">{process.env.NEXT_PUBLIC_PHONE_LABEL}</small>
+              ) : null}
               <ErrorMessage
                 name="responses"
                 errors={formState.errors}
