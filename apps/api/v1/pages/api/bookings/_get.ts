@@ -5,6 +5,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 
+import { getAccessibleUsers, retrieveScopedAccessibleUsers } from "~/lib/utils/retrieveScopedAccessibleUsers";
 import { schemaBookingGetParams, schemaBookingReadPublic } from "~/lib/validations/booking";
 import { schemaQuerySingleOrMultipleAttendeeEmails } from "~/lib/validations/shared/queryAttendeeEmail";
 import { schemaQuerySingleOrMultipleUserIds } from "~/lib/validations/shared/queryUserId";
@@ -162,8 +163,7 @@ function buildWhereClause(
 }
 
 async function handler(req: NextApiRequest) {
-  const { userId, isAdmin } = req;
-
+  const { userId, isSystemWideAdmin, isOrganizationOwnerOrAdmin, isTeamOwnerOrAdmin } = req;
   const { dateFrom, dateTo } = schemaBookingGetParams.parse(req.query);
 
   const args: Prisma.BookingFindManyArgs = {};
@@ -182,7 +182,7 @@ async function handler(req: NextApiRequest) {
   const filterByAttendeeEmails = attendeeEmails.length > 0;
 
   /** Only admins can query other users */
-  if (isAdmin) {
+  if (isSystemWideAdmin) {
     if (req.query.userId) {
       const query = schemaQuerySingleOrMultipleUserIds.parse(req.query);
       const userIds = Array.isArray(query.userId) ? query.userId : [query.userId || userId];
@@ -195,6 +195,42 @@ async function handler(req: NextApiRequest) {
     } else if (filterByAttendeeEmails) {
       args.where = buildWhereClause(null, attendeeEmails, [], []);
     }
+  } else if (isOrganizationOwnerOrAdmin || isTeamOwnerOrAdmin) {
+    // if req.query.userId provided, ensure that user exists in their domain, and return accordingly
+    if (req.query.userId) {
+      const query = schemaQuerySingleOrMultipleUserIds.parse(req.query);
+      const userIds = Array.isArray(query.userId) ? query.userId : [query.userId || userId];
+      const accessibleUsersIds = await getAccessibleUsers({
+        adminUserId: userId,
+        memberUserIds: userIds,
+      });
+      if (!accessibleUsersIds.length) throw new HttpError({ message: "Users not found", statusCode: 404 });
+
+      // get bookings for al accessibleUsers
+      const users = await prisma.user.findMany({
+        where: { id: { in: accessibleUsersIds } },
+        select: { email: true },
+      });
+      const userEmails = users.map((u) => u.email);
+      args.where = buildWhereClause(userId, attendeeEmails, accessibleUsersIds, userEmails);
+    } else {
+      const accessibleUsersIds = await retrieveScopedAccessibleUsers({ adminId: userId });
+      // TODO:: Remove the console log
+      console.log({ accessibleUsersIds });
+      const users = await prisma.user.findMany({
+        where: { id: { in: accessibleUsersIds } },
+        select: { email: true },
+      });
+      const userEmails = users.map((u) => u.email);
+      args.where = buildWhereClause(userId, attendeeEmails, accessibleUsersIds, userEmails);
+    }
+    // else get userList for all members of all teams in the organization and return their bookings in pagination
+    // if filterByAttendeeEmails provided, preform the filter else return all bookings without filter
+    // }
+    // else if (isTeamOwnerOrAdmin) {
+    //   // if req.query.userId provided, ensure that user exists in their domain, and return accordingly
+    //   // else get userList for all members of the team and return their bookings in pagination
+    //   // if filterByAttendeeEmails provided, preform the filter else return all bookings without filter
   } else {
     const user = await prisma.user.findUnique({
       where: { id: userId },
