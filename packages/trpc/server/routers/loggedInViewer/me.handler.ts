@@ -107,6 +107,7 @@ export const meHandler = async ({ ctx, input }: MeOptions) => {
     allowDynamicBooking: user.allowDynamicBooking,
     allowSEOIndexing: user.allowSEOIndexing,
     receiveMonthlyDigestEmail: user.receiveMonthlyDigestEmail,
+    notficationsAllowed: user.notficationsAllowed,
     organizationId: user.profile?.organizationId ?? null,
     organization: user.organization,
     username: user.profile?.username ?? user.username ?? null,

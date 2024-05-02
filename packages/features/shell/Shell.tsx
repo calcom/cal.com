@@ -9,6 +9,7 @@ import { Toaster } from "react-hot-toast";
 
 import dayjs from "@calcom/dayjs";
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
+import AllowNotificationsToggle from "@calcom/features/bookings/AllowNotificationsToggle";
 import UnconfirmedBookingBadge from "@calcom/features/bookings/UnconfirmedBookingBadge";
 import ImpersonatingBanner, {
   type ImpersonatingBannerProps,
@@ -1062,6 +1063,7 @@ export function ShellMain(props: LayoutProps) {
                 </div>
               )}
               {props.actions && props.actions}
+              {props.heading === "Bookings" && <AllowNotificationsToggle />}
             </header>
           )}
         </div>

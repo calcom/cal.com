@@ -53,6 +53,7 @@ const userSelect = Prisma.validator<Prisma.UserSelect>()({
   allowDynamicBooking: true,
   allowSEOIndexing: true,
   receiveMonthlyDigestEmail: true,
+  notficationsAllowed: true,
   verified: true,
   disableImpersonation: true,
   locked: true,

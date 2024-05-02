@@ -42,5 +42,6 @@ export const getSampleUserInSession = function () {
     completedOnboarding: false,
     allowSEOIndexing: false,
     receiveMonthlyDigestEmail: false,
+    notficationsAllowed: false,
   };
 };
