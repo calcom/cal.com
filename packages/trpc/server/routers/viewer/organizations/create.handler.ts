@@ -278,7 +278,7 @@ const createPlatformUser = async ({
   return { userId: user.id, email: user.email, organizationId: user.organizationId, upId: user.profile.upId };
 };
 
-const createOrg = async ({
+const createOrgUser = async ({
   userId,
   orgOwnerEmail,
   userLocale,
@@ -317,14 +317,14 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
   const { slug, orgOwnerEmail, isPlatform } = input;
 
   if (isPlatform) {
-    createPlatformUser({
+    return await createPlatformUser({
       userId: ctx.user.id,
       profile: { username: ctx.user.profile.username, orgId: ctx.user.profile.organizationId },
       team: { slug, ownerEmail: orgOwnerEmail },
       input,
     });
   } else {
-    createOrg({
+    return await createOrgUser({
       userId: ctx.user.id,
       userLocale: ctx.user.locale,
       orgOwnerEmail,
