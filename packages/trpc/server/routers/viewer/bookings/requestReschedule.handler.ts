@@ -71,7 +71,6 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
       dynamicGroupSlugRef: true,
       destinationCalendar: true,
       smsReminderNumber: true,
-      scheduledJobs: true,
       workflowReminders: true,
       responses: true,
       iCalUID: true,

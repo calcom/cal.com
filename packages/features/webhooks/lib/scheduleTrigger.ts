@@ -259,7 +259,7 @@ export async function listBookings(
 
 //done
 export async function scheduleTrigger(
-  booking: { id: number; endTime: Date; startTime: Date; scheduledJobs: string[] },
+  booking: { id: number; endTime: Date; startTime: Date },
   subscriberUrl: string,
   subscriber: { id: string; appId: string | null },
   triggerEvent: WebhookTriggerEvents
@@ -297,7 +297,7 @@ export async function scheduleTrigger(
 
 //done
 export async function deleteWebhookScheduledTriggers(
-  booking?: { id: number; uid: string; scheduledJobs?: string[] },
+  booking?: { id: number; uid: string },
   appId?: string | null,
   triggerEvent?: WebhookTriggerEvents,
   webhookId?: string,

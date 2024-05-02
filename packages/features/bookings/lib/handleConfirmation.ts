@@ -113,7 +113,6 @@ export async function handleConfirmation(args: {
     }
   }
   let updatedBookings: {
-    scheduledJobs: string[];
     id: number;
     description: string | null;
     location: string | null;
@@ -201,7 +200,6 @@ export async function handleConfirmation(args: {
           smsReminderNumber: true,
           customInputs: true,
           id: true,
-          scheduledJobs: true,
         },
       })
     );
@@ -256,7 +254,6 @@ export async function handleConfirmation(args: {
         location: true,
         customInputs: true,
         id: true,
-        scheduledJobs: true,
       },
     });
     updatedBookings.push(updatedBooking);

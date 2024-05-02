@@ -116,7 +116,6 @@ async function getBookingToDelete(id: number | undefined, uid: string | undefine
       destinationCalendar: true,
       smsReminderNumber: true,
       workflowReminders: true,
-      scheduledJobs: true,
       seatsReferences: true,
       responses: true,
       iCalUID: true,
@@ -326,7 +325,6 @@ async function handler(req: CustomRequest) {
     id: number;
     uid: string;
     workflowReminders: WorkflowReminder[];
-    scheduledJobs: string[];
     references: {
       type: string;
       credentialId: number | null;
@@ -375,7 +373,6 @@ async function handler(req: CustomRequest) {
         },
         workflowReminders: true,
         uid: true,
-        scheduledJobs: true,
       },
     });
     updatedBookings = updatedBookings.concat(allUpdatedBookings);
@@ -412,7 +409,6 @@ async function handler(req: CustomRequest) {
         },
         workflowReminders: true,
         uid: true,
-        scheduledJobs: true,
       },
     });
     updatedBookings.push(updatedBooking);

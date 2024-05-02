@@ -85,7 +85,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     const parsedJobPayload = JSON.parse(job.payload) as {
       id: number; // booking id
       endTime: string;
-      scheduledJobs: string[];
       triggerEvent: string;
     };
 

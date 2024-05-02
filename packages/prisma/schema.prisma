@@ -557,7 +557,7 @@ model Booking {
   recurringEventId      String?
   smsReminderNumber     String?
   workflowReminders     WorkflowReminder[]
-  scheduledJobs         String[] // scheduledJobs is deprecated, use scheduledTriggers instead
+  scheduledJobs         String[] // scheduledJobs is deprecated, please use scheduledTriggers instead
   seatsReferences       BookingSeat[]
   /// @zod.custom(imports.bookingMetadataSchema)
   metadata              Json?
@@ -1004,7 +1004,7 @@ model WorkflowReminder {
 
 model WebhookScheduledTriggers {
   id            Int       @id @default(autoincrement())
-  jobName       String? // jobName is depreciated, not needed anymore when Webhook and booking is set
+  jobName       String? // jobName is deprecated, not needed when webhook and booking is set
   subscriberUrl String
   payload       String
   startAfter    DateTime
