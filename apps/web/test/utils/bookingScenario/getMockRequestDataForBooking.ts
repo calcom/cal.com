@@ -28,10 +28,10 @@ export function getMockRequestDataForBooking({
     recurringCount?: number;
     schedulingType?: SchedulingType;
     responses: {
-      email: string;
+      email?: string;
       name: string;
       location: { optionValue: ""; value: string };
-      attendeePhoenNumber?: string;
+      attendeePhoneNumber?: string;
       smsReminderNumber?: string;
     };
   };

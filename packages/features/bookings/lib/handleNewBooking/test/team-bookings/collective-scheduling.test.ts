@@ -34,7 +34,7 @@ import { describe, expect, beforeEach } from "vitest";
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { OrganizerDefaultConferencingAppType } from "@calcom/app-store/locations";
-import { WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
+import { WEBAPP_URL, WEBSITE_URL, BOOKED_WITH_SMS_EMAIL } from "@calcom/lib/constants";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { resetTestSMS } from "@calcom/lib/testSMS";
 import { SchedulingType } from "@calcom/prisma/enums";
@@ -785,7 +785,7 @@ describe("handleNewBooking", () => {
             const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
             const TEST_ATTENDEE_NUMBER = "+918888888888";
             const booker = getBooker({
-              email: "booker@example.com",
+              email: BOOKED_WITH_SMS_EMAIL,
               name: "Booker",
               attendeePhoneNumber: TEST_ATTENDEE_NUMBER,
             });
