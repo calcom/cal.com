@@ -937,8 +937,6 @@
   "verify_wallet": "تأكيد المحفظة",
   "create_events_on": "إنشاء أحداث في",
   "enterprise_license": "هذه هي ميزة للمؤسسات",
-  "enterprise_license_description": "لتمكين هذه الميزة، احصل على مفتاح نشر في وحدة التحكم {{consoleUrl}} وأضفه إلى وحدة التحكم الخاصة بك. nv باسم CALCOM_LICENSE_KEY. إذا كان لدى فريقك بالفعل ترخيص، يرجى الاتصال بـ {{supportMail}} للحصول على المساعدة.",
-  "enterprise_license_development": "يمكنك اختبار هذه الميزة في وضع التطوير. لاستخدام الإنتاج، يرجى مطالبة المسؤول بالذهاب إلى <2>/auth/setup</2> لإدخال مفتاح الترخيص.",
   "missing_license": "الترخيص مفقود",
   "next_steps": "الخطوات التالية",
   "acquire_commercial_license": "الحصول على ترخيص تجاري",

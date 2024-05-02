@@ -981,8 +981,6 @@
   "verify_wallet": "Verificar carteira",
   "create_events_on": "Criar eventos em",
   "enterprise_license": "Este não é um recurso corporativo",
-  "enterprise_license_description": "Para ativar este recurso, obtenha uma chave de desenvolvimento no console {{consoleUrl}} e adicione ao seu .env como CALCOM_LICENSE_KEY. Caso sua equipe já tenha uma licença, entre em contato com {{supportMail}} para obter ajuda.",
-  "enterprise_license_development": "Você pode testar este recurso no modo de desenvolvimento. Para uso em produção, solicite que um administrador acesse <2>/auth/setup</2> e insira uma chave de licença.",
   "missing_license": "Falta a licença",
   "next_steps": "Próximos passos",
   "acquire_commercial_license": "Adquira uma licença comercial",

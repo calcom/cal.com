@@ -980,8 +980,6 @@
   "verify_wallet": "Verificar carteira",
   "create_events_on": "Criar eventos em:",
   "enterprise_license": "Esta é uma funcionalidade empresarial",
-  "enterprise_license_description": "Para ativar esta funcionalidade, obtenha uma chave de instalação na consola {{consoleUrl}} e adicione-a ao seu .env como CALCOM_LICENSE_KEY. Se a sua equipa já tem uma licença, entre em contacto com {{supportMail}} para obter ajuda.",
-  "enterprise_license_development": "Pode testar esta funcionalidade no modo de desenvolvimento. Para utilização em produção, um administrador deverá aceder a <2>/auth/setup</2> para inserir a chave da licença.",
   "missing_license": "Licença em falta",
   "next_steps": "Passos seguintes",
   "acquire_commercial_license": "Adquira uma licença comercial",

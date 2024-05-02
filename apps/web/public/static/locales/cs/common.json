@@ -937,8 +937,6 @@
   "verify_wallet": "Ověřit peněženku",
   "create_events_on": "Vytvořit události v:",
   "enterprise_license": "Jedná se o firemní funkci",
-  "enterprise_license_description": "Pokud chcete povolit tuto funkci, získejte klíč pro nasazení v konzoli {{consoleUrl}} a přidejte ho do souboru .env jako CALCOM_LICENSE_KEY. Pokud váš tým již licenci má, kontaktujte prosím {{supportMail}} a požádejte o pomoc.",
-  "enterprise_license_development": "Tuto funkci můžete vyzkoušet v režimu vývoje. Produkční použití vyžaduje od správce zadání licenčního klíče v <2>/auth/setup</2>.",
   "missing_license": "Chybějící licence",
   "next_steps": "Další kroky",
   "acquire_commercial_license": "Získat komerční licenci",

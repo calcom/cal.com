@@ -937,8 +937,6 @@
   "verify_wallet": "Verifikuj Wallet",
   "create_events_on": "Kreiraj događaje na",
   "enterprise_license": "Ovo je enterprise funkcija",
-  "enterprise_license_description": "Da biste omogućili ovu funkciju, nabavite ključ za primenu na {{consoleUrl}} konzoli i dodajte ga u svoj .env kao CALCOM_LICENCE_KEY. Ako vaš tim već ima licencu, obratite se na {{supportMail}} za pomoć.",
-  "enterprise_license_development": "Ovu funkciju možete testirati u razvojnom režimu. Za proizvodnu upotrebu neka administrator ode na <2>/auth/setup</2> da unese ključ za licencu.",
   "missing_license": "Nedostaje Licenca",
   "next_steps": "Sledeći koraci",
   "acquire_commercial_license": "Steknite komercijalnu licencu",

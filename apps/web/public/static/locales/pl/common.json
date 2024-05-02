@@ -937,8 +937,6 @@
   "verify_wallet": "Zweryfikuj portfel",
   "create_events_on": "Utwórz wydarzenia w",
   "enterprise_license": "To funkcja dla przedsiębiorstw",
-  "enterprise_license_description": "Aby włączyć tę funkcję, uzyskaj klucz wdrożenia na konsoli {{consoleUrl}} i dodaj go do swojego pliku .env jako CALCOM_LICENSE_KEY. Jeśli Twój zespół ma już licencję, napisz na adres {{supportMail}}, aby uzyskać pomoc.",
-  "enterprise_license_development": "Możesz przetestować tę funkcję w trybie deweloperskim. Aby wykorzystać ją w celach produkcyjnych, poproś administratora o wprowadzenie klucza licencyjnego w obszarze <2>/auth/setup</2>.",
   "missing_license": "Brakująca licencja",
   "next_steps": "Następne kroki",
   "acquire_commercial_license": "Uzyskaj licencję komercyjną",

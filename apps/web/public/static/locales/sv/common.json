@@ -937,8 +937,6 @@
   "verify_wallet": "Verifiera plånbok",
   "create_events_on": "Skapa händelser i",
   "enterprise_license": "Det här är en företagsfunktion",
-  "enterprise_license_description": "För att aktivera den här funktionen hämtar du en distributionsnyckel i konsolen {{consoleUrl}} och lägger till den i din .env som CALCOM_LICENSE_KEY. Om ditt team redan har en licens kan du kontakta {{supportMail}} för att få hjälp.",
-  "enterprise_license_development": "Du kan testa den här funktionen i utvecklingsläge. För produktionsanvändning ska en administratör gå till <2>/auth/setup</2> för att ange en licensnyckel.",
   "missing_license": "Licens saknas",
   "next_steps": "Kommande steg",
   "acquire_commercial_license": "Skaffa en kommersiell licens",
