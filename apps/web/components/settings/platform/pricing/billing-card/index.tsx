@@ -5,6 +5,7 @@ type PlatformBillingCardProps = {
   description: string;
   pricing?: number;
   includes: string[];
+  isLoading?: boolean;
   handleSubscribe?: () => void;
 };
 
@@ -13,6 +14,7 @@ export const PlatformBillingCard = ({
   description,
   pricing,
   includes,
+  isLoading,
   handleSubscribe,
 }: PlatformBillingCardProps) => {
   return (
@@ -29,7 +31,10 @@ export const PlatformBillingCard = ({
         </h1>
       </div>
       <div>
-        <Button onClick={handleSubscribe} className="flex w-[100%] items-center justify-center">
+        <Button
+          loading={isLoading}
+          onClick={handleSubscribe}
+          className="flex w-[100%] items-center justify-center">
           {pricing ? "Subscribe" : "Schedule a time"}
         </Button>
       </div>
