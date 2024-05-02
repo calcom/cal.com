@@ -1,6 +1,7 @@
 import { expect } from "@playwright/test";
 
 import { getEmbedIframe } from "@calcom/embed-core/playwright/lib/testUtils";
+// eslint-disable-next-line no-restricted-imports
 import { test } from "@calcom/web/playwright/lib/fixtures";
 
 test.describe("React Embed", () => {
