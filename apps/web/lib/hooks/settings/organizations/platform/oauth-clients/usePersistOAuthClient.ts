@@ -1,4 +1,4 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import type { ApiResponse, CreateOAuthClientInput, DeleteOAuthClientInput } from "@calcom/platform-types";
@@ -112,4 +112,23 @@ export const useDeleteOAuthClient = (
   });
 
   return mutation;
+};
+
+export const useCheckTeamBilling = (teamId: number) => {
+  const QUERY_KEY = "check-team-billing";
+  const isTeamBilledAlready = useQuery({
+    queryKey: [QUERY_KEY, teamId],
+    queryFn: async () => {
+      const response = await fetch(`/api/v2/billing/${teamId}/check`, {
+        method: "get",
+        headers: { "Content-type": "application/json" },
+      });
+      const data = await response.json();
+
+      return data.valid;
+    },
+    enabled: !!teamId,
+  });
+
+  return isTeamBilledAlready;
 };
