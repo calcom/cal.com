@@ -13,13 +13,18 @@ type EventDetails = {
   visitorUid?: string;
 };
 
+// Incase any updates are made - lets version the key so we can invalidate
+const REDIS_KEY_VERSION = "V1";
+
 // 7 days or 60s in dev
 const NO_SLOTS_NOTIFICATION_FREQUENCY = IS_PRODUCTION ? 604_800 : 60;
 
 const NO_SLOTS_COUNT_FOR_NOTIFICATION = 2;
 
 const constructRedisKey = (eventDetails: EventDetails, orgSlug?: string) => {
-  return `${eventDetails.username}:${eventDetails.eventSlug}${orgSlug ? `@${orgSlug}` : ""}`;
+  return `${REDIS_KEY_VERSION}.${eventDetails.username}:${eventDetails.eventSlug}${
+    orgSlug ? `@${orgSlug}` : ""
+  }`;
 };
 
 const constructDataHash = (eventDetails: EventDetails) => {
