@@ -15,4 +15,11 @@ export type AppConfig = {
   next: {
     authSecret: string;
   };
+  stripe: {
+    apiKey: string;
+    webhookSecret: string;
+  };
+  app: {
+    baseUrl: string;
+  };
 };
