@@ -94,8 +94,8 @@ export default function InsightsPage() {
                   <MostBookedTeamMembersTable />
                   <LeastBookedTeamMembersTable />
                 </div>
+                <RecentFeedbackTable />
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <RecentFeedbackTable />
                   <HighestNoShowHostTable />
                   <HighestRatedMembersTable />
                   <LowestRatedMembersTable />
