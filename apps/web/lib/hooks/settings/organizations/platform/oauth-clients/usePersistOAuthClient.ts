@@ -1,7 +1,12 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import type { ApiResponse, CreateOAuthClientInput, DeleteOAuthClientInput } from "@calcom/platform-types";
+import type {
+  ApiResponse,
+  CreateOAuthClientInput,
+  DeleteOAuthClientInput,
+  SubscribeTeamInput,
+} from "@calcom/platform-types";
 import type { OAuthClient } from "@calcom/prisma/client";
 
 interface IPersistOAuthClient {
@@ -131,4 +136,37 @@ export const useCheckTeamBilling = (teamId?: number | null) => {
   });
 
   return isTeamBilledAlready;
+};
+
+export const useSubscribeTeamToStripe = (
+  { onSuccess, onError, teamId }: IPersistOAuthClient & { teamId?: number | null } = {
+    onSuccess: () => {
+      return;
+    },
+    onError: () => {
+      return;
+    },
+  }
+) => {
+  const mutation = useMutation<ApiResponse<{ status: typeof SUCCESS_STATUS }>, unknown, SubscribeTeamInput>({
+    mutationFn: (data) => {
+      return fetch(`/api/v2/${teamId}/subscribe`, {
+        method: "post",
+        headers: { "Content-type": "application/json" },
+        body: JSON.stringify(data),
+      }).then((res) => res?.json());
+    },
+    onSuccess: (data) => {
+      if (data.status === SUCCESS_STATUS) {
+        onSuccess?.();
+      } else {
+        onError?.();
+      }
+    },
+    onError: () => {
+      onError?.();
+    },
+  });
+
+  return mutation;
 };
