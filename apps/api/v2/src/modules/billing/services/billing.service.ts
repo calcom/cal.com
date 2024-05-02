@@ -99,22 +99,36 @@ export class BillingService {
   }
 
   async increaseUsageForTeam(teamId: number) {
-    // TODO - if we support multiple subscription items per team, we may need to track which plan they're
-    // subscribed to so we can do one less query.
-    const billingSubscription = await this.billingRepository.getBillingForTeam(teamId);
-    if (!billingSubscription || !billingSubscription?.subscriptionId) {
-      throw new Error(`Failed to increase usage for team ${teamId}`);
-    }
+    try {
+      const billingSubscription = await this.billingRepository.getBillingForTeam(teamId);
+      if (!billingSubscription || !billingSubscription?.subscriptionId) {
+        this.logger.error("Team did not have stripe subscription associated to it", {
+          teamId,
+        });
+        return void 0;
+      }
 
-    const stripeSubscription = await this.stripeService.stripe.subscriptions.retrieve(
-      billingSubscription.subscriptionId
-    );
-    const items = stripeSubscription.items.data[0]; // first (and only) subscription item.
-    await this.stripeService.stripe.subscriptionItems.createUsageRecord(items.id, {
-      action: "increment",
-      quantity: 1,
-      timestamp: "now",
-    });
+      const stripeSubscription = await this.stripeService.stripe.subscriptions.retrieve(
+        billingSubscription.subscriptionId
+      );
+      const item = stripeSubscription.items.data[0];
+      // legacy plans are licensed, we cannot create usage records against them
+      if (item.price?.recurring?.usage_type === "licensed") {
+        return void 0;
+      }
+
+      await this.stripeService.stripe.subscriptionItems.createUsageRecord(item.id, {
+        action: "increment",
+        quantity: 1,
+        timestamp: "now",
+      });
+    } catch (error) {
+      // don't fail the request, log it.
+      this.logger.error("Failed to increase usage for team", {
+        teamId: teamId,
+        error,
+      });
+    }
   }
 
   async increaseUsageByClientId(clientId: string) {
