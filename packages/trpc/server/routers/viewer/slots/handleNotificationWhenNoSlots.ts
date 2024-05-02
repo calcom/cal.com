@@ -29,9 +29,9 @@ const constructRedisKey = (eventDetails: EventDetails, orgSlug?: string) => {
 
 const constructDataHash = (eventDetails: EventDetails) => {
   const obj = {
-    startTime: eventDetails.startTime.format("YYYY-MM-DD"),
-    visitorTimezone: eventDetails?.visitorTimezone,
-    visitorUid: eventDetails?.visitorUid,
+    st: eventDetails.startTime.format("YYYY-MM-DD"),
+    vTz: eventDetails?.visitorTimezone,
+    vUuid: eventDetails?.visitorUid,
   };
 
   return JSON.stringify(obj);
