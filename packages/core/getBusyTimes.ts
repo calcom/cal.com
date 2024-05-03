@@ -89,13 +89,13 @@ export async function getBusyTimes(params: {
 
   // to also get bookings that are outside of start and end time, but the buffer falls within the start and end time
   const maxBuffer = getDefinedBufferTimes()[getDefinedBufferTimes().length - 1];
-  const startTimeAdjustWithMaxBuffer = dayjs(startTimeDate).subtract(maxBuffer, "minute").toDate();
-  const endTimeAdjustWithMaxBuffer = dayjs(endTimeDate).add(maxBuffer, "minute").toDate();
+  const startTimeAdjustedWithMaxBuffer = dayjs(startTimeDate).subtract(maxBuffer, "minute").toDate();
+  const endTimeAdjustedWithMaxBuffer = dayjs(endTimeDate).add(maxBuffer, "minute").toDate();
 
   // startTime is less than endTimeDate and endTime grater than startTimeDate
   const sharedQuery = {
-    startTime: { lte: endTimeAdjustWithMaxBuffer },
-    endTime: { gte: startTimeAdjustWithMaxBuffer },
+    startTime: { lte: endTimeAdjustedWithMaxBuffer },
+    endTime: { gte: startTimeAdjustedWithMaxBuffer },
     status: {
       in: [BookingStatus.ACCEPTED],
     },
