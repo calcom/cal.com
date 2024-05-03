@@ -8,8 +8,10 @@ import { Prisma } from "@prisma/client";
 export class SchedulesRepository {
   constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
 
-  async createScheduleWithAvailability(userId: number, schedule: ScheduleTransformed) {
+  async createSchedule(userId: number, schedule: ScheduleTransformed) {
     const availability = schedule.availability;
+    const overrides = schedule.overrides;
+
     const createScheduleData: Prisma.ScheduleCreateInput = {
       user: {
         connect: {
@@ -20,17 +22,34 @@ export class SchedulesRepository {
       timeZone: schedule.timeZone,
     };
 
+    const availabilitiesAndOverrides: Prisma.AvailabilityCreateManyInput[] = [];
+
     if (availability.length > 0) {
+      availability.forEach((availability) => {
+        availabilitiesAndOverrides.push({
+          days: availability.days,
+          startTime: this.createDateFromHoursMinutes(availability.startTime),
+          endTime: this.createDateFromHoursMinutes(availability.endTime),
+          userId,
+        });
+      });
+    }
+
+    if (overrides && overrides.length > 0) {
+      overrides.forEach((override) => {
+        availabilitiesAndOverrides.push({
+          date: new Date(override.date),
+          startTime: this.createDateFromHoursMinutes(override.startTime),
+          endTime: this.createDateFromHoursMinutes(override.endTime),
+          userId,
+        });
+      });
+    }
+
+    if (availabilitiesAndOverrides.length > 0) {
       createScheduleData.availability = {
         createMany: {
-          data: availability.map((availability) => {
-            return {
-              days: availability.days,
-              startTime: this.createDateFromTimeString(availability.startTime),
-              endTime: this.createDateFromTimeString(availability.endTime),
-              userId,
-            };
-          }),
+          data: availabilitiesAndOverrides,
         },
       };
     }
@@ -47,8 +66,8 @@ export class SchedulesRepository {
     return createdSchedule;
   }
 
-  createDateFromTimeString(timeString: string): Date {
-    const parts = timeString.split(":");
+  createDateFromHoursMinutes(hoursMinutes: string): Date {
+    const parts = hoursMinutes.split(":");
 
     if (parts.length < 2) {
       throw new Error("Invalid time format. Please use 'hh:mm'.");

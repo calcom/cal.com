@@ -42,7 +42,7 @@ export class SchedulesService {
   async createUserSchedule(userId: number, scheduleInput: CreateScheduleInput): Promise<ScheduleOutput> {
     const schedule = this.transformCreateScheduleInputForInternalUse(scheduleInput);
 
-    const createdSchedule = await this.schedulesRepository.createScheduleWithAvailability(userId, schedule);
+    const createdSchedule = await this.schedulesRepository.createSchedule(userId, schedule);
 
     if (schedule.isDefault) {
       await this.usersRepository.setDefaultSchedule(userId, createdSchedule.id);
@@ -52,17 +52,34 @@ export class SchedulesService {
       throw new Error("Failed to create schedule because its timezone is not set.");
     }
 
+    const createdScheduleAvailabilities = createdSchedule.availability.filter(
+      (availability) => !!availability.days.length
+    );
+    const createdScheduleOverrides = createdSchedule.availability.filter(
+      (availability) => !availability.days.length
+    );
+
     return {
       id: createdSchedule.id,
       name: createdSchedule.name,
       timeZone: createdSchedule.timeZone,
-      availability: createdSchedule.availability.map((availability) => ({
+      availability: createdScheduleAvailabilities.map((availability) => ({
         days: availability.days.map(transformNumberToDay),
-        startTime: availability.startTime.getHours() + ":" + availability.startTime.getMinutes(),
-        endTime: availability.endTime.getHours() + ":" + availability.endTime.getMinutes(),
+        startTime: availability.startTime.getUTCHours() + ":" + availability.startTime.getUTCMinutes(),
+        endTime: availability.endTime.getUTCHours() + ":" + availability.endTime.getUTCMinutes(),
       })),
       isDefault: schedule.isDefault,
-      overrides: schedule.overrides || [],
+      overrides: createdScheduleOverrides.map((availability) => ({
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        date:
+          availability.date!.getUTCFullYear() +
+          "-" +
+          (availability.date!.getUTCMonth() + 1) +
+          "-" +
+          availability.date!.getUTCDate(),
+        startTime: availability.startTime.getUTCHours() + ":" + availability.startTime.getUTCMinutes(),
+        endTime: availability.endTime.getUTCHours() + ":" + availability.endTime.getUTCMinutes(),
+      })),
     };
   }
 
