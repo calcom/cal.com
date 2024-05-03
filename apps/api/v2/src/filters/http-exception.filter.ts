@@ -13,13 +13,17 @@ export class HttpExceptionFilter implements ExceptionFilter<HttpException> {
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
     const statusCode = exception.getStatus();
+    const requestId = request.headers["X-Request-Id"];
+
     this.logger.error(`Http Exception Filter: ${exception?.message}`, {
       exception,
       body: request.body,
       headers: request.headers,
       url: request.url,
       method: request.method,
+      requestId,
     });
+
     response.status(statusCode).json({
       status: ERROR_STATUS,
       timestamp: new Date().toISOString(),
