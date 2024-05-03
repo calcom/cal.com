@@ -7,7 +7,7 @@ import { useSubscribeTeamToStripe } from "@lib/hooks/settings/organizations/plat
 import { platformPlans } from "@components/settings/platform/platformUtils";
 import { PlatformBillingCard } from "@components/settings/platform/pricing/billing-card";
 
-type PlatformPricingProps = { teamId?: number };
+type PlatformPricingProps = { teamId?: number | null };
 
 export const PlatformPricing = ({ teamId }: PlatformPricingProps) => {
   const router = useRouter();

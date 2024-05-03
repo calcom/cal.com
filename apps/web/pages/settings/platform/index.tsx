@@ -56,7 +56,7 @@ export default function Platform() {
 
   if (isLoading || isOAuthClientLoading) return <div className="m-5">Loading...</div>;
 
-  if (isPlatformUser && !isPaidUser) return <PlatformPricing />;
+  if (isPlatformUser && !isPaidUser) return <PlatformPricing teamId={user?.organizationId} />;
 
   if (isPlatformUser) {
     return (
