@@ -794,3 +794,43 @@ const _getOutOfOfficeDays = async ({
     return acc;
   }, {});
 };
+
+type GetUserAvailabilityQuery = Parameters<typeof getUserAvailability>[0];
+type GetUserAvailabilityInitialData = NonNullable<Parameters<typeof getUserAvailability>[1]>;
+
+const _getUsersAvailability = async ({
+  users,
+  query,
+  initialData,
+}: {
+  users: (NonNullable<GetUserAvailabilityInitialData["user"]> & {
+    currentBookings?: GetUserAvailabilityInitialData["currentBookings"];
+  })[];
+  query: Omit<GetUserAvailabilityQuery, "userId" | "username">;
+  initialData?: Omit<GetUserAvailabilityInitialData, "user">;
+}) => {
+  return await Promise.all(
+    users.map((user) =>
+      _getUserAvailability(
+        {
+          ...query,
+          userId: user.id,
+          username: user.username || "",
+        },
+        initialData
+          ? {
+              ...initialData,
+              user,
+              currentBookings: user.currentBookings,
+            }
+          : undefined
+      )
+    )
+  );
+};
+
+export const getUsersAvailability = async (
+  ...args: Parameters<typeof _getUsersAvailability>
+): Promise<ReturnType<typeof _getUsersAvailability>> => {
+  return monitorCallbackAsync(_getUsersAvailability, ...args);
+};
