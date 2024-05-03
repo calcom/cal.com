@@ -505,12 +505,12 @@ export function getAutoJoinStatus({
 
 // split invited users between ones that can autojoin and the others who cannot autojoin
 export const groupUsersByJoinability = ({
-  existingUsersWithMembersips,
+  existingUsersWithMemberships,
   team,
   connectionInfoMap,
 }: {
   team: TeamWithParent;
-  existingUsersWithMembersips: (UserWithMembership & {
+  existingUsersWithMemberships: (UserWithMembership & {
     profile: {
       username: string;
     } | null;
@@ -520,8 +520,8 @@ export const groupUsersByJoinability = ({
   const usersToAutoJoin = [];
   const regularUsers = [];
 
-  for (let index = 0; index < existingUsersWithMembersips.length; index++) {
-    const existingUserWithMembersips = existingUsersWithMembersips[index];
+  for (let index = 0; index < existingUsersWithMemberships.length; index++) {
+    const existingUserWithMembersips = existingUsersWithMemberships[index];
 
     const autoJoinStatus = getAutoJoinStatus({
       invitee: existingUserWithMembersips,
@@ -553,7 +553,7 @@ export const sendEmails = async (emailPromises: Promise<void>[]) => {
 };
 
 export const sendExistingUserTeamInviteEmails = async ({
-  existingUsersWithMembersips,
+  existingUsersWithMemberships,
   language,
   currentUserTeamName,
   currentUserName,
@@ -565,7 +565,7 @@ export const sendExistingUserTeamInviteEmails = async ({
 }: {
   language: TFunction;
   isAutoJoin: boolean;
-  existingUsersWithMembersips: (UserWithMembership & {
+  existingUsersWithMemberships: (UserWithMembership & {
     profile: {
       username: string;
     } | null;
@@ -577,7 +577,7 @@ export const sendExistingUserTeamInviteEmails = async ({
   teamId: number;
   orgSlug: string | null;
 }) => {
-  const sendEmailsPromises = existingUsersWithMembersips.map(async (user) => {
+  const sendEmailsPromises = existingUsersWithMemberships.map(async (user) => {
     let sendTo = user.email;
     if (!isEmail(user.email)) {
       sendTo = user.email;
