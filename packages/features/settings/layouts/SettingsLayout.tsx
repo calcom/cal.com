@@ -184,7 +184,7 @@ const useTabs = () => {
     if (!!session.data?.user?.org?.id) {
       processedTabs.forEach((tab) => {
         if (tab.href === "/settings/my-account") {
-          tab.children = tab.children.filter((child) => child.href !== "/settings/my-account/appearance");
+          tab.children = tab?.children?.filter((child) => child.href !== "/settings/my-account/appearance");
         }
       });
     }
