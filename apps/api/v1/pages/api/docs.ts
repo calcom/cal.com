@@ -57,6 +57,11 @@ const swaggerHandler = withSwagger({
               type: "string",
               example: "Europe/London",
             },
+            fromReschedule: {
+              type: "string",
+              nullable: true,
+              format: "uuid",
+            },
             attendees: {
               type: "array",
               items: {
