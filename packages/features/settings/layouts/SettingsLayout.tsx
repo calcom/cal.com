@@ -83,10 +83,6 @@ const tabs: VerticalTabItemProps[] = [
         href: "/settings/organizations/privacy",
       },
       {
-        name: "appearance",
-        href: "/settings/organizations/appearance",
-      },
-      {
         name: "billing",
         href: "/settings/organizations/billing",
       },
@@ -142,7 +138,7 @@ tabs.find((tab) => {
 // The following keys are assigned to admin only
 const adminRequiredKeys = ["admin"];
 const organizationRequiredKeys = ["organization"];
-const organizationAdminKeys = ["privacy", "appearance", "billing", "OAuth Clients", "SSO", "directory_sync"];
+const organizationAdminKeys = ["privacy", "billing", "OAuth Clients", "SSO", "directory_sync"];
 
 const useTabs = () => {
   const session = useSession();
@@ -184,6 +180,14 @@ const useTabs = () => {
       }
       return tab;
     });
+
+    if (!!session.data?.user?.org?.id) {
+      processedTabs.forEach((tab) => {
+        if (tab.href === "/settings/my-account") {
+          tab.children = tab.children.filter((child) => child.href !== "/settings/my-account/appearance");
+        }
+      });
+    }
 
     // check if name is in adminRequiredKeys
     return processedTabs.filter((tab) => {

@@ -9,6 +9,7 @@ import { z } from "zod";
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
+import OrgAppearanceViewWrapper from "@calcom/features/ee/organizations/pages/settings/appearance";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -16,6 +17,7 @@ import { md } from "@calcom/lib/markdownIt";
 import turndown from "@calcom/lib/turndownService";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
+import { Icon } from "@calcom/ui";
 import {
   Avatar,
   BannerUploader,
@@ -125,7 +127,10 @@ const OrgProfileView = () => {
       <Meta title={t("profile")} description={t("profile_org_description")} borderInShellHeader={true} />
       <>
         {isOrgAdminOrOwner ? (
-          <OrgProfileForm defaultValues={defaultValues} />
+          <>
+            <OrgProfileForm defaultValues={defaultValues} />
+            <OrgAppearanceViewWrapper />
+          </>
         ) : (
           <div className="border-subtle flex rounded-b-md border border-t-0 px-4 py-8 sm:px-6">
             <div className="flex-grow">
@@ -165,6 +170,7 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
   const utils = trpc.useUtils();
   const { t } = useLocale();
   const [firstRender, setFirstRender] = useState(true);
+  const { data: currentOrg } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {});
 
   const form = useForm({
     defaultValues,
@@ -287,6 +293,48 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
               );
             }}
           />
+        </div>
+        <div className="my-6">
+          <div className="flex items-center text-sm">
+            <Avatar
+              alt="calVideoLogo"
+              imageSrc={currentOrg?.calVideoLogo}
+              fallback={<Icon name="plus" className="text-subtle h-6 w-6" />}
+              size="lg"
+            />
+            <div className="ms-4">
+              <div className="flex gap-2">
+                <ImageUploader
+                  target="avatar"
+                  id="cal-video-logo-upload"
+                  buttonMsg={
+                    currentOrg?.calVideoLogo ? t("update_cal_video_logo") : t("upload_cal_video_logo")
+                  }
+                  handleAvatarChange={(newLogo) => {
+                    mutation.mutate({
+                      calVideoLogo: newLogo,
+                    });
+                  }}
+                  disabled={mutation.isPending}
+                  imageSrc={currentOrg?.calVideoLogo ?? undefined}
+                  uploadInstruction={t("cal_video_logo_upload_instruction")}
+                  triggerButtonColor={currentOrg?.calVideoLogo ? "secondary" : "primary"}
+                />
+                {currentOrg?.calVideoLogo && (
+                  <Button
+                    color="destructive"
+                    disabled={mutation.isPending}
+                    onClick={() => {
+                      mutation.mutate({
+                        calVideoLogo: null,
+                      });
+                    }}>
+                    {t("remove")}
+                  </Button>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
 
         <Controller
