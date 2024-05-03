@@ -30,6 +30,7 @@ export const ZUpdateInputSchema = z.object({
   metadata: teamMetadataSchema.unwrap().optional(),
   lockEventTypeCreation: z.boolean().optional(),
   lockEventTypeCreationOptions: z.enum(["DELETE", "HIDE"]).optional(),
+  adminGetsNoSlotsNotification: z.boolean().optional(),
 });
 
 export type TUpdateInputSchema = z.infer<typeof ZUpdateInputSchema>;
