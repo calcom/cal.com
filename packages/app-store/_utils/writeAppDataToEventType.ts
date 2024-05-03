@@ -40,36 +40,31 @@ const writeAppDataToEventType = async ({
 
   const newAppMetadata = { [appSlug]: { enabled: false, credentialId, appCategories: appCategories } };
 
-  const updateEventTypeMetadataPromises = [];
+  await Promise.all(
+    eventTypes.map((eventType) => {
+      const metadata = EventTypeMetaDataSchema.parse(eventType.metadata);
+      if (metadata?.apps && metadata.apps[appSlug as keyof typeof appDataSchemas]) {
+        return;
+      }
 
-  for (const eventType of eventTypes) {
-    let metadata = EventTypeMetaDataSchema.parse(eventType.metadata);
+      metadata = {
+        ...metadata,
+        apps: {
+          ...metadata?.apps,
+          ...newAppMetadata,
+        },
+      };
 
-    if (metadata?.apps && metadata.apps[appSlug as keyof typeof appDataSchemas]) {
-      continue;
-    }
-
-    metadata = {
-      ...metadata,
-      apps: {
-        ...metadata?.apps,
-        ...newAppMetadata,
-      },
-    };
-
-    updateEventTypeMetadataPromises.push(
-      prisma.eventType.update({
+      return prisma.eventType.update({
         where: {
           id: eventType.id,
         },
         data: {
           metadata,
         },
-      })
-    );
-  }
-
-  await Promise.all(updateEventTypeMetadataPromises);
+      });
+    })
+  );
 };
 
 export default writeAppDataToEventType;
