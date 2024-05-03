@@ -22,6 +22,9 @@ test.describe("Availablity", () => {
 
   test("Date Overrides", async ({ page }) => {
     await page.getByTestId("schedules").first().click();
+    await page.locator('[data-testid="Sunday-switch"]').first().click();
+    await page.locator('[data-testid="Saturday-switch"]').first().click();
+
     await page.getByTestId("add-override").click();
     await page.locator('[id="modal-title"]').waitFor();
     await page.getByTestId("incrementMonth").click();
