@@ -1,6 +1,6 @@
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import type { Dispatch, SetStateAction } from "react";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import { Controller } from "react-hook-form";
 
@@ -44,6 +44,9 @@ export default function WorkflowDetailsPage(props: Props) {
 
   const { data, isPending } = trpc.viewer.eventTypes.getByViewer.useQuery();
 
+  const searchParams = useSearchParams();
+  const eventTypeId = searchParams?.get("eventTypeId");
+
   const eventTypeOptions = useMemo(
     () =>
       data?.eventTypeGroups.reduce((options, group) => {
@@ -82,6 +85,16 @@ export default function WorkflowDetailsPage(props: Props) {
       return !duplicate;
     });
   }
+
+  useEffect(() => {
+    const matchingOption = allEventTypeOptions.find((option) => option.value === eventTypeId);
+    if (matchingOption && !selectedEventTypes.find((option) => option.value === eventTypeId)) {
+      const newOptions = [...selectedEventTypes, matchingOption];
+      setSelectedEventTypes(newOptions);
+      form.setValue("activeOn", newOptions);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [eventTypeId, allEventTypeOptions]);
 
   const addAction = (
     action: WorkflowActions,
