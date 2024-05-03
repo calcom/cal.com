@@ -435,7 +435,7 @@ const AppearanceViewWrapper = () => {
   const session = useSession();
   const router = useRouter();
   if (!!session.data?.user?.org?.id) {
-    router.replace("settings/organizations/profile");
+    router.replace("/settings/organizations/profile");
   }
   const { t } = useLocale();
 
