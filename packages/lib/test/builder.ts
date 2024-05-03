@@ -59,6 +59,7 @@ export const buildBooking = (booking?: Partial<Booking>): Booking => {
     fromReschedule: null,
     recurringEventId: null,
     smsReminderNumber: null,
+    scheduledJobs: [],
     metadata: null,
     responses: null,
     isRecorded: false,
