@@ -39,7 +39,7 @@ export function WhoInfo(props: { calEvent: CalendarEvent; t: TFunction }) {
               name={attendee.name}
               role={t("guest")}
               email={attendee.email}
-              phoneNumber={attendee.phoneNumber}
+              phoneNumber={attendee.phoneNumber ?? undefined}
             />
           ))}
         </>

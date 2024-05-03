@@ -167,7 +167,7 @@ class EventSuccessfullyReScheduledSMS extends SMSManager {
       attendee,
       this.calEvent.startTime,
       `dddd, LL | ${TimeFormat.TWELVE_HOUR}`
-    )} - ${this.getFormattedTime(attendee, calEvent.endTime, TimeFormat.TWELVE_HOUR)} (${
+    )} - ${this.getFormattedTime(attendee, this.calEvent.endTime, TimeFormat.TWELVE_HOUR)} (${
       attendee.timeZone
     }) . \n\n You can view the booking details and add the event to your calendar from this url ${
       this.calEvent.bookerUrl ?? WEBAPP_URL
@@ -447,7 +447,7 @@ export const sendCancelledEmails = async (
     })
   );
 
-  await Promise.all(emailsAndSmsToSend);
+  await Promise.all(emailsToSend);
   const eventCancelledSms = new EventCancelledSMS(calEvent);
   await eventCancelledSms.sendSMSToAttendees();
 };
