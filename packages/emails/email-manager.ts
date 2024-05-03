@@ -79,7 +79,17 @@ const sendEmail = (prepare: () => BaseEmail) => {
   });
 };
 
-const handleSendingSMS = ({ reminderPhone, smsMessage, senderID, teamId }) => {
+const handleSendingSMS = ({
+  reminderPhone,
+  smsMessage,
+  senderID,
+  teamId,
+}: {
+  reminderPhone: string;
+  smsMessage: string;
+  senderID: string;
+  teamId?: number;
+}) => {
   return new Promise(async (resolve, reject) => {
     try {
       const sms = twilio.sendSMS(reminderPhone, smsMessage, senderID, teamId);
@@ -90,7 +100,7 @@ const handleSendingSMS = ({ reminderPhone, smsMessage, senderID, teamId }) => {
   });
 };
 
-class SMSManager {
+abstract class SMSManager {
   calEvent: CalendarEvent;
   isTeamEvent = false;
 
@@ -103,8 +113,10 @@ class SMSManager {
     return dayjs(time).tz(attendee.timeZone).locale(attendee.language.locale).format(format);
   }
 
+  abstract getMessage(attendee: Person): string;
+
   async sendSMSToAttendee(attendee: Person) {
-    if (!this.isTeamEvent) return;
+    if (!this.isTeamEvent || !this.calEvent?.team?.id) return;
 
     const attendeePhoneNumber = attendee.phoneNumber;
     if (attendeePhoneNumber) {
@@ -117,7 +129,7 @@ class SMSManager {
 
   async sendSMSToAttendees() {
     if (!this.isTeamEvent) return;
-    const smsToSend: Promise<any> = [];
+    const smsToSend: Promise<unknown>[] = [];
 
     for (const attendee of this.calEvent.attendees) {
       smsToSend.push(this.sendSMSToAttendee(attendee));
@@ -128,7 +140,7 @@ class SMSManager {
 }
 
 class EventSuccessfullyScheduledSMS extends SMSManager {
-  constructor(calEvent) {
+  constructor(calEvent: CalendarEvent) {
     super(calEvent);
   }
 
@@ -146,7 +158,7 @@ class EventSuccessfullyScheduledSMS extends SMSManager {
 }
 
 class EventSuccessfullyReScheduledSMS extends SMSManager {
-  constructor(calEvent) {
+  constructor(calEvent: CalendarEvent) {
     super(calEvent);
   }
 
@@ -164,7 +176,7 @@ class EventSuccessfullyReScheduledSMS extends SMSManager {
 }
 
 class EventDeclinedSMS extends SMSManager {
-  constructor(calEvent) {
+  constructor(calEvent: CalendarEvent) {
     super(calEvent);
   }
 
@@ -175,7 +187,7 @@ class EventDeclinedSMS extends SMSManager {
 }
 
 class EventCancelledSMS extends SMSManager {
-  constructor(calEvent) {
+  constructor(calEvent: CalendarEvent) {
     super(calEvent);
   }
 
