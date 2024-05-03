@@ -157,7 +157,7 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
 
     const translation = await getTranslation(input.language ?? "en", "common");
 
-    sendEmailVerification({
+    await sendEmailVerification({
       email: orgOwnerEmail,
       language: ctx.user.locale,
       username: ownerProfile.username || "",
