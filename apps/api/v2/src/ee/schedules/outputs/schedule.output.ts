@@ -1,105 +1,76 @@
 import { Type } from "class-transformer";
-import { IsDate, IsOptional, IsArray, IsBoolean, IsInt, IsString, ValidateNested } from "class-validator";
+import {
+  IsBoolean,
+  IsEnum,
+  IsOptional,
+  IsString,
+  ValidateNested,
+  IsArray,
+  Matches,
+  IsISO8601,
+  IsTimeZone,
+  IsNumber,
+} from "class-validator";
 
-class AvailabilityModel {
-  @IsInt()
-  id!: number;
-
-  @IsOptional()
-  @IsInt()
-  userId?: number | null;
-
-  @IsOptional()
-  @IsInt()
-  eventTypeId?: number | null;
-
-  @IsArray()
-  @IsInt({ each: true })
-  days!: number[];
-
-  @IsDate()
-  @Type(() => Date)
-  startTime!: Date;
-
-  @IsDate()
-  @Type(() => Date)
-  endTime!: Date;
-
-  @IsOptional()
-  @IsDate()
-  @Type(() => Date)
-  date?: Date | null;
-
-  @IsOptional()
-  @IsInt()
-  scheduleId?: number | null;
+export enum WeekDay {
+  Monday = "Monday",
+  Tuesday = "Tuesday",
+  Wednesday = "Wednesday",
+  Thursday = "Thursday",
+  Friday = "Friday",
+  Saturday = "Saturday",
+  Sunday = "Sunday",
 }
 
-class WorkingHours {
-  @IsArray()
-  @IsInt({ each: true })
-  days!: number[];
+const TIME_FORMAT_HH_MM = /^([01]\d|2[0-3]):([0-5]\d)$/;
 
-  @IsInt()
-  startTime!: number;
+class ScheduleAvailability {
+  @IsEnum(WeekDay, { each: true })
+  days!: WeekDay[];
 
-  @IsInt()
-  endTime!: number;
+  @IsString()
+  @Matches(TIME_FORMAT_HH_MM, { message: "startTime must be a valid time format HH:MM" })
+  startTime!: string;
 
-  @IsOptional()
-  @IsInt()
-  userId?: number | null;
+  @IsString()
+  @Matches(TIME_FORMAT_HH_MM, { message: "endTime must be a valid time format HH:MM" })
+  endTime!: string;
 }
 
-class TimeRange {
-  @IsOptional()
-  @IsInt()
-  userId?: number | null;
+class ScheduleOverride {
+  @IsISO8601({ strict: true })
+  date!: string;
 
-  @IsDate()
-  start!: Date;
+  @IsString()
+  @Matches(TIME_FORMAT_HH_MM, { message: "startTime must be a valid time format HH:MM" })
+  startTime!: string;
 
-  @IsDate()
-  end!: Date;
+  @IsString()
+  @Matches(TIME_FORMAT_HH_MM, { message: "endTime must be a valid time format HH:MM" })
+  endTime!: string;
 }
 
 export class ScheduleOutput {
-  @IsInt()
+  @IsNumber()
   id!: number;
 
   @IsString()
   name!: string;
 
-  @IsBoolean()
-  isManaged!: boolean;
-
-  @ValidateNested({ each: true })
-  @Type(() => WorkingHours)
-  workingHours!: WorkingHours[];
-
-  @ValidateNested({ each: true })
-  @Type(() => AvailabilityModel)
-  @IsArray()
-  schedule!: AvailabilityModel[];
-
-  availability!: TimeRange[][];
-
-  @IsString()
+  @IsTimeZone()
   timeZone!: string;
 
-  @ValidateNested({ each: true })
   @IsArray()
-  // note(Lauris) it should be
-  // dateOverrides!: { ranges: TimeRange[] }[];
-  // but docs aren't generating correctly it results in array of strings
-  dateOverrides!: unknown[];
+  @ValidateNested({ each: true })
+  @Type(() => ScheduleAvailability)
+  availability!: ScheduleAvailability[];
 
   @IsBoolean()
   isDefault!: boolean;
 
-  @IsBoolean()
-  isLastSchedule!: boolean;
-
-  @IsBoolean()
-  readOnly!: boolean;
+  @IsArray()
+  @IsOptional()
+  @ValidateNested({ each: true })
+  @Type(() => ScheduleOverride)
+  overrides!: ScheduleOverride[];
 }

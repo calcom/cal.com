@@ -1,7 +1,8 @@
-import { CreateScheduleInput } from "@/ee/schedules/inputs/create-schedule.input";
+import { CreateScheduleInput, WeekDay } from "@/ee/schedules/inputs/create-schedule.input";
 import { ScheduleOutput } from "@/ee/schedules/outputs/schedule.output";
 import { SchedulesRepository } from "@/ee/schedules/schedules.repository";
 import { AvailabilitiesService } from "@/modules/availabilities/availabilities.service";
+import { ScheduleAvailability } from "@/modules/availabilities/types/schedule-availability";
 import { UserWithProfile, UsersRepository } from "@/modules/users/users.repository";
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 import { Schedule } from "@prisma/client";
@@ -15,6 +16,10 @@ import {
   transformDateOverridesForClient,
 } from "@calcom/platform-libraries";
 import { UpdateScheduleInput } from "@calcom/platform-types";
+
+export type ScheduleTransformed = Omit<CreateScheduleInput, "availability"> & {
+  availability: ScheduleAvailability[];
+};
 
 @Injectable()
 export class SchedulesService {
@@ -34,22 +39,54 @@ export class SchedulesService {
     return this.createUserSchedule(userId, schedule);
   }
 
-  async createUserSchedule(userId: number, schedule: CreateScheduleInput) {
-    const availabilities = schedule.availabilities?.length
-      ? schedule.availabilities
-      : [this.availabilitiesService.getDefaultAvailabilityInput()];
+  async createUserSchedule(userId: number, scheduleInput: CreateScheduleInput): Promise<ScheduleOutput> {
+    const schedule = this.transformCreateScheduleInputForInternalUse(scheduleInput);
 
-    const createdSchedule = await this.schedulesRepository.createScheduleWithAvailabilities(
-      userId,
-      schedule,
-      availabilities
-    );
+    const createdSchedule = await this.schedulesRepository.createScheduleWithAvailability(userId, schedule);
 
     if (schedule.isDefault) {
       await this.usersRepository.setDefaultSchedule(userId, createdSchedule.id);
     }
 
-    return createdSchedule;
+    if (!createdSchedule.timeZone) {
+      throw new Error("Failed to create schedule because its timezone is not set.");
+    }
+
+    return {
+      id: createdSchedule.id,
+      name: createdSchedule.name,
+      timeZone: createdSchedule.timeZone,
+      availability: createdSchedule.availability.map((availability) => ({
+        days: availability.days.map(transformNumberToDay),
+        startTime: availability.startTime.getHours() + ":" + availability.startTime.getMinutes(),
+        endTime: availability.endTime.getHours() + ":" + availability.endTime.getMinutes(),
+      })),
+      isDefault: schedule.isDefault,
+      overrides: schedule.overrides || [],
+    };
+  }
+
+  transformCreateScheduleInputForInternalUse(schedule: CreateScheduleInput): ScheduleTransformed {
+    const availability = this.transformCreateScheduleAvailabilityForInternalUse(schedule);
+
+    const transformedSchedule = {
+      ...schedule,
+      availability,
+    };
+
+    return transformedSchedule;
+  }
+
+  transformCreateScheduleAvailabilityForInternalUse(schedule: CreateScheduleInput): ScheduleAvailability[] {
+    if (schedule.availability) {
+      return schedule.availability.map((availability) => ({
+        days: availability.days.map(transformDayToNumber),
+        startTime: availability.startTime,
+        endTime: availability.endTime,
+      }));
+    }
+
+    return [this.availabilitiesService.getDefaultAvailabilityInput()];
   }
 
   async getUserScheduleDefault(userId: number) {
@@ -115,15 +152,12 @@ export class SchedulesService {
     return this.schedulesRepository.deleteScheduleById(scheduleId);
   }
 
-  async formatScheduleForAtom(user: User, schedule: ScheduleWithAvailabilities): Promise<ScheduleOutput> {
+  async formatScheduleForAtom(user: User, schedule: ScheduleWithAvailabilities) {
     const usersSchedulesCount = await this.schedulesRepository.getUserSchedulesCount(user.id);
     return this.transformScheduleForAtom(schedule, usersSchedulesCount, user);
   }
 
-  async formatSchedulesForAtom(
-    user: User,
-    schedules: ScheduleWithAvailabilities[]
-  ): Promise<ScheduleOutput[]> {
+  async formatSchedulesForAtom(user: User, schedules: ScheduleWithAvailabilities[]) {
     const usersSchedulesCount = await this.schedulesRepository.getUserSchedulesCount(user.id);
     return Promise.all(
       schedules.map((schedule) => this.transformScheduleForAtom(schedule, usersSchedulesCount, user))
@@ -134,7 +168,7 @@ export class SchedulesService {
     schedule: ScheduleWithAvailabilities,
     userSchedulesCount: number,
     user: Pick<User, "id" | "defaultScheduleId" | "timeZone">
-  ): Promise<ScheduleOutput> {
+  ) {
     const timeZone = schedule.timeZone || user.timeZone;
     const defaultSchedule = await this.getUserScheduleDefault(user.id);
 
@@ -158,4 +192,30 @@ export class SchedulesService {
       throw new ForbiddenException(`User with ID=${userId} does not own schedule with ID=${schedule.id}`);
     }
   }
+}
+
+function transformDayToNumber(day: WeekDay): number {
+  const weekMap: { [key in WeekDay]: number } = {
+    [WeekDay.Sunday]: 0,
+    [WeekDay.Monday]: 1,
+    [WeekDay.Tuesday]: 2,
+    [WeekDay.Wednesday]: 3,
+    [WeekDay.Thursday]: 4,
+    [WeekDay.Friday]: 5,
+    [WeekDay.Saturday]: 6,
+  };
+  return weekMap[day];
+}
+
+function transformNumberToDay(day: number): WeekDay {
+  const weekMap: { [key: number]: WeekDay } = {
+    0: WeekDay.Sunday,
+    1: WeekDay.Monday,
+    2: WeekDay.Tuesday,
+    3: WeekDay.Wednesday,
+    4: WeekDay.Thursday,
+    5: WeekDay.Friday,
+    6: WeekDay.Saturday,
+  };
+  return weekMap[day];
 }

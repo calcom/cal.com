@@ -1,16 +1,13 @@
-import { CreateAvailabilityInput } from "@/modules/availabilities/inputs/create-availability.input";
+import { ScheduleAvailability } from "@/modules/availabilities/types/schedule-availability";
 import { Injectable } from "@nestjs/common";
 
 @Injectable()
 export class AvailabilitiesService {
-  getDefaultAvailabilityInput(): CreateAvailabilityInput {
-    const startTime = new Date(new Date().setUTCHours(9, 0, 0, 0));
-    const endTime = new Date(new Date().setUTCHours(17, 0, 0, 0));
-
+  getDefaultAvailabilityInput(): ScheduleAvailability {
     return {
       days: [1, 2, 3, 4, 5],
-      startTime,
-      endTime,
+      startTime: "09:00",
+      endTime: "17:00",
     };
   }
 }

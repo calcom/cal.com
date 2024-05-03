@@ -46,18 +46,17 @@ export class SchedulesController {
     @Body() bodySchedule: CreateScheduleInput
   ): Promise<CreateScheduleOutput> {
     const schedule = await this.schedulesService.createUserSchedule(user.id, bodySchedule);
-    const scheduleFormatted = await this.schedulesService.formatScheduleForAtom(user, schedule);
 
     return {
       status: SUCCESS_STATUS,
-      data: scheduleFormatted,
+      data: schedule,
     };
   }
 
   @Get("/default")
   @Permissions([SCHEDULE_READ])
   @ApiResponse({ status: 200, description: "Returns the default schedule", type: GetDefaultScheduleOutput })
-  async getDefaultSchedule(@GetUser() user: UserWithProfile): Promise<GetDefaultScheduleOutput | null> {
+  async getDefaultSchedule(@GetUser() user: UserWithProfile): Promise<any | null> {
     const schedule = await this.schedulesService.getUserScheduleDefault(user.id);
     const scheduleFormatted = schedule
       ? await this.schedulesService.formatScheduleForAtom(user, schedule)
@@ -72,10 +71,7 @@ export class SchedulesController {
   @Get("/:scheduleId")
   @Permissions([SCHEDULE_READ])
   @Throttle({ default: { limit: 10, ttl: 60000 } }) // allow 10 requests per minute (for :scheduleId)
-  async getSchedule(
-    @GetUser() user: UserWithProfile,
-    @Param("scheduleId") scheduleId: number
-  ): Promise<GetScheduleOutput> {
+  async getSchedule(@GetUser() user: UserWithProfile, @Param("scheduleId") scheduleId: number): Promise<any> {
     const schedule = await this.schedulesService.getUserSchedule(user.id, scheduleId);
     const scheduleFormatted = await this.schedulesService.formatScheduleForAtom(user, schedule);
 
@@ -87,7 +83,7 @@ export class SchedulesController {
 
   @Get("/")
   @Permissions([SCHEDULE_READ])
-  async getSchedules(@GetUser() user: UserWithProfile): Promise<GetSchedulesOutput> {
+  async getSchedules(@GetUser() user: UserWithProfile): Promise<any> {
     const schedules = await this.schedulesService.getUserSchedules(user.id);
     const schedulesFormatted = await this.schedulesService.formatSchedulesForAtom(user, schedules);
 
