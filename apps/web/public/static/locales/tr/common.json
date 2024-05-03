@@ -937,8 +937,6 @@
   "verify_wallet": "Cüzdanı Doğrula",
   "create_events_on": "Şurada etkinlik oluşturun:",
   "enterprise_license": "Bu bir kurumsal özelliktir",
-  "enterprise_license_description": "Bu özelliği etkinleştirmek için {{consoleUrl}} konsolundan bir dağıtım anahtarı alın ve bunu .env dosyanıza CALCOM_LICENSE_KEY olarak ekleyin. Ekibinizin zaten bir lisansı varsa yardım için lütfen {{supportMail}} adresinden iletişime geçin.",
-  "enterprise_license_development": "Bu özelliği, geliştirme modunda deneyebilirsiniz. Üretim kullanımı için lütfen bir yöneticinin lisans anahtarını girmesi için <2>/auth/setup</2> adımlarını izlemesini sağlayın.",
   "missing_license": "Eksik Lisans",
   "next_steps": "Sonraki Adımlar",
   "acquire_commercial_license": "Ticari bir lisans edinin",
