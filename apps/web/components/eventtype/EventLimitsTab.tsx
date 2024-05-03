@@ -494,6 +494,47 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
                       </div>
                     );
                   })}
+                  {/* <div
+                    className={classNames(
+                      "text-default mb-2 flex flex-wrap items-center text-sm",
+                      watchPeriodType === "UNLIMITED" && "pointer-events-none opacity-30"
+                    )}>
+                    <RadioGroup.Item
+                      id="moving-days"
+                      value="moving-days"
+                      className="min-w-4 bg-default border-default flex h-4 w-4 cursor-pointer items-center rounded-full border focus:border-2 focus:outline-none ltr:mr-2 rtl:ml-2">
+                      <RadioGroup.Indicator className="after:bg-inverted relative flex h-4 w-4 items-center justify-center after:block after:h-2 after:w-2 after:rounded-full" />
+                    </RadioGroup.Item>
+                    <div className="flex items-center">
+                      <TextField
+                        labelSrOnly
+                        type="number"
+                        className="border-default my-0 block w-16 text-sm [appearance:textfield] ltr:mr-2 rtl:ml-2"
+                        placeholder="30"
+                        disabled={periodTypeLocked.disabled}
+                        {...formMethods.register("periodDays", { valueAsNumber: true })}
+                      />
+                      <Select
+                        options={optionsPeriod}
+                        isSearchable={false}
+                        isDisabled={periodTypeLocked.disabled}
+                        // onChange={(opt) => {
+                        //   formMethods.setValue("periodCountCalendarDays", opt?.value === 1 ? true : false, {
+                        //     shouldDirty: true,
+                        //   });
+                        // }}
+                        name="periodCoundCalendarDays"
+                        // value={optionsPeriod.find((opt) => {
+                        //   opt.value === (formMethods.getValues("periodCountCalendarDays") === true ? 1 : 0);
+                        // })}
+                        defaultValue={optionsPeriod.find(
+                          (opt) =>
+                            opt.value === (formMethods.getValues("periodCountCalendarDays") === true ? 1 : 0)
+                        )}
+                      />
+                      <span className="me-2 ms-2">&nbsp;available</span>
+                    </div>
+                  </div> */}
                 </RadioGroup.Root>
               </div>
             </SettingsToggle>
