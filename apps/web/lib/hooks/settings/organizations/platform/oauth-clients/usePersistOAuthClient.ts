@@ -150,7 +150,7 @@ export const useSubscribeTeamToStripe = (
 ) => {
   const mutation = useMutation<ApiResponse<{ status: typeof SUCCESS_STATUS }>, unknown, SubscribeTeamInput>({
     mutationFn: (data) => {
-      return fetch(`/api/v2/${teamId}/subscribe`, {
+      return fetch(`/api/v2/billing/${teamId}/subscribe`, {
         method: "post",
         headers: { "Content-type": "application/json" },
         body: JSON.stringify(data),
