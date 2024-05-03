@@ -32,17 +32,24 @@ const updateOrganizationSettings = async ({
   input: TUpdateInputSchema;
   tx: Parameters<Parameters<PrismaClient["$transaction"]>[0]>[0];
 }) => {
-  // if lockEventTypeCreation isn't given we don't do anything.
-  if (typeof input.lockEventTypeCreation === "undefined") {
-    return;
+  const data: Prisma.OrganizationSettingsUpdateInput = {};
+
+  if (input.hasOwnProperty("lockEventTypeCreation")) {
+    data.lockEventTypeCreationForUsers = input.lockEventTypeCreation;
   }
+
+  if (input.hasOwnProperty("adminGetsNoSlotsNotification")) {
+    data.adminGetsNoSlotsNotification = input.adminGetsNoSlotsNotification;
+  }
+
+  // If no settings values have changed lets skip this update
+  if (Object.keys(data).length === 0) return;
+
   await tx.organizationSettings.update({
     where: {
       organizationId,
     },
-    data: {
-      lockEventTypeCreationForUsers: !!input.lockEventTypeCreation,
-    },
+    data,
   });
 
   if (input.lockEventTypeCreation) {

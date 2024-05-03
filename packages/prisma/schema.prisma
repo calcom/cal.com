@@ -415,6 +415,7 @@ model OrganizationSettings {
   isOrganizationVerified        Boolean    @default(false)
   orgAutoAcceptEmail            String
   lockEventTypeCreationForUsers Boolean    @default(false)
+  adminGetsNoSlotsNotification  Boolean    @default(false)
   // It decides if instance ADMIN has reviewed the organization or not.
   // It is used to allow super sensitive operations like 'impersonation of Org members by Org admin'
   isAdminReviewed               Boolean    @default(false)
