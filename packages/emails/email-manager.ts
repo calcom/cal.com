@@ -9,6 +9,7 @@ import { formatCalEvent } from "@calcom/lib/formatCalendarEvent";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import type { MonthlyDigestEmailData } from "./src/templates/MonthlyDigestEmail";
+import type { OrganizationAdminNoSlotsEmailInput } from "./src/templates/OrganizationAdminNoSlots";
 import type { EmailVerifyLink } from "./templates/account-verify-email";
 import AccountVerifyEmail from "./templates/account-verify-email";
 import type { OrganizationNotification } from "./templates/admin-organization-notification";
@@ -38,8 +39,7 @@ import type { PasswordReset } from "./templates/forgot-password-email";
 import ForgotPasswordEmail from "./templates/forgot-password-email";
 import MonthlyDigestEmail from "./templates/monthly-digest-email";
 import NoShowFeeChargedEmail from "./templates/no-show-fee-charged-email";
-import type { OrgAutoInvite } from "./templates/org-auto-join-invite";
-import OrgAutoJoinEmail from "./templates/org-auto-join-invite";
+import OrganizationAdminNoSlotsEmail from "./templates/organization-admin-no-slots-email";
 import type { OrganizationCreation } from "./templates/organization-creation-email";
 import OrganizationCreationEmail from "./templates/organization-creation-email";
 import type { OrganizationEmailVerify } from "./templates/organization-email-verification";
@@ -367,8 +367,10 @@ export const sendOrganizationCreationEmail = async (organizationCreationEvent: O
   await sendEmail(() => new OrganizationCreationEmail(organizationCreationEvent));
 };
 
-export const sendOrganizationAutoJoinEmail = async (orgInviteEvent: OrgAutoInvite) => {
-  await sendEmail(() => new OrgAutoJoinEmail(orgInviteEvent));
+export const sendOrganizationAdminNoSlotsNotification = async (
+  orgInviteEvent: OrganizationAdminNoSlotsEmailInput
+) => {
+  await sendEmail(() => new OrganizationAdminNoSlotsEmail(orgInviteEvent));
 };
 
 export const sendEmailVerificationLink = async (verificationInput: EmailVerifyLink) => {
