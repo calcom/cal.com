@@ -67,8 +67,8 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
         JSON.stringify({
           ...props,
           prepopulateFormValues: {
-            username: preFillusername || "",
-            email: prefilEmail || "",
+            username: preFillusername || null,
+            email: prefilEmail || null,
           },
         })
       ),

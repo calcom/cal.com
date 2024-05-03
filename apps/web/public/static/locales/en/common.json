@@ -2423,6 +2423,6 @@
   "lowest_rated_members": "Members With Lowest Rated Meetings",
   "csat_score": "CSAT Score",
   "lockedSMS": "Locked SMS",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
-  "signing_up_terms": "By proceeding, you agree to our <1>Terms</1> and <2>Privacy Policy</2>."
+  "signing_up_terms": "By proceeding, you agree to our <1>Terms</1> and <2>Privacy Policy</2>.",
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
