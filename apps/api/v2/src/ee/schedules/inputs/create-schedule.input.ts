@@ -57,6 +57,7 @@ export class CreateScheduleInput {
   timeZone!: string;
 
   @IsArray()
+  @IsOptional()
   @ValidateNested({ each: true })
   @Type(() => ScheduleAvailability)
   availability?: ScheduleAvailability[];

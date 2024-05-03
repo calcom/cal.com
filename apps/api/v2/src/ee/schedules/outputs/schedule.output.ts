@@ -54,6 +54,9 @@ export class ScheduleOutput {
   @IsNumber()
   id!: number;
 
+  @IsNumber()
+  ownerId!: number;
+
   @IsString()
   name!: string;
 

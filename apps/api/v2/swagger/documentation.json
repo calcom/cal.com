@@ -2879,6 +2879,9 @@
           "id": {
             "type": "number"
           },
+          "ownerId": {
+            "type": "number"
+          },
           "name": {
             "type": "string"
           },
@@ -2903,6 +2906,7 @@
         },
         "required": [
           "id",
+          "ownerId",
           "name",
           "timeZone",
           "availability",

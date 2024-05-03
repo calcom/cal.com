@@ -61,12 +61,17 @@ export class SchedulesService {
 
     return {
       id: createdSchedule.id,
+      ownerId: userId,
       name: createdSchedule.name,
       timeZone: createdSchedule.timeZone,
       availability: createdScheduleAvailabilities.map((availability) => ({
         days: availability.days.map(transformNumberToDay),
-        startTime: availability.startTime.getUTCHours() + ":" + availability.startTime.getUTCMinutes(),
-        endTime: availability.endTime.getUTCHours() + ":" + availability.endTime.getUTCMinutes(),
+        startTime: this.padHoursMinutesWithZeros(
+          availability.startTime.getUTCHours() + ":" + availability.startTime.getUTCMinutes()
+        ),
+        endTime: this.padHoursMinutesWithZeros(
+          availability.endTime.getUTCHours() + ":" + availability.endTime.getUTCMinutes()
+        ),
       })),
       isDefault: schedule.isDefault,
       overrides: createdScheduleOverrides.map((availability) => ({
@@ -74,11 +79,15 @@ export class SchedulesService {
         date:
           availability.date!.getUTCFullYear() +
           "-" +
-          (availability.date!.getUTCMonth() + 1) +
+          (availability.date!.getUTCMonth() + 1).toString().padStart(2, "0") +
           "-" +
-          availability.date!.getUTCDate(),
-        startTime: availability.startTime.getUTCHours() + ":" + availability.startTime.getUTCMinutes(),
-        endTime: availability.endTime.getUTCHours() + ":" + availability.endTime.getUTCMinutes(),
+          availability.date!.getUTCDate().toString().padStart(2, "0"),
+        startTime: this.padHoursMinutesWithZeros(
+          availability.startTime.getUTCHours() + ":" + availability.startTime.getUTCMinutes()
+        ),
+        endTime: this.padHoursMinutesWithZeros(
+          availability.endTime.getUTCHours() + ":" + availability.endTime.getUTCMinutes()
+        ),
       })),
     };
   }
@@ -104,6 +113,15 @@ export class SchedulesService {
     }
 
     return [this.availabilitiesService.getDefaultAvailabilityInput()];
+  }
+
+  padHoursMinutesWithZeros(hhMM: string) {
+    const [hours, minutes] = hhMM.split(":");
+
+    const formattedHours = hours.padStart(2, "0");
+    const formattedMinutes = minutes.padStart(2, "0");
+
+    return `${formattedHours}:${formattedMinutes}`;
   }
 
   async getUserScheduleDefault(userId: number) {
