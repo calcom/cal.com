@@ -973,8 +973,6 @@
   "verify_wallet": "验证钱包",
   "create_events_on": "活动创建于：",
   "enterprise_license": "这是企业版功能",
-  "enterprise_license_description": "要启用此功能，请在 {{consoleUrl}} 控制台获取一个部署密钥，并将其添加到您的 .env 中作为 CALCOM_LICENSE_KEY。如果您的团队已经有许可证，请联系 {{supportMail}} 获取帮助。",
-  "enterprise_license_development": "您可以在开发模式下测试此功能。对于生产用途，请让管理员转到 <2>/auth/setup</2> 输入许可证密钥。",
   "missing_license": "缺少许可证",
   "next_steps": "下一步",
   "acquire_commercial_license": "获取商业许可证",

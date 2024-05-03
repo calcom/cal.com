@@ -936,8 +936,6 @@
   "verify_wallet": "Verificar billetera",
   "create_events_on": "Crear eventos en",
   "enterprise_license": "Esta es una función empresarial",
-  "enterprise_license_description": "Para habilitar esta función, obtenga una clave de despliegue en la consola {{consoleUrl}} y añádala a su .env como CALCOM_LICENSE_KEY. Si su equipo ya tiene una licencia, póngase en contacto con {{supportMail}} para obtener ayuda.",
-  "enterprise_license_development": "Puede probar esta función en el modo de desarrollo. Para el uso de producción, haga que un administrador vaya a <2>/auth/setup</2> para ingresar una clave de licencia.",
   "missing_license": "Falta la licencia",
   "next_steps": "Pasos siguientes",
   "acquire_commercial_license": "Adquirir una licencia comercial",
