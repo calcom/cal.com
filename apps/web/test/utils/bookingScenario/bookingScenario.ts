@@ -1739,7 +1739,7 @@ export function getMockBookingReference(
 }
 
 export function getMockBookingAttendee(
-  attendee: Omit<Attendee, "bookingId"> & {
+  attendee: Omit<Attendee, "bookingId", "phoneNumber"> & {
     bookingSeat?: AttendeeBookingSeatInput;
     phoneNumber?: string | null;
   }
@@ -1751,7 +1751,7 @@ export function getMockBookingAttendee(
     email: attendee.email,
     locale: attendee.locale,
     bookingSeat: attendee.bookingSeat || null,
-    phoneNumber: attendee.phoneNumber,
+    phoneNumber: attendee.phoneNumber ?? undefined,
   };
 }
 
@@ -1795,7 +1795,7 @@ export const replaceDates = (dates: string[], replacement: Record<string, string
   });
 };
 
-export const getDefaultBookingFields = (bookingFields?: Fields = []) => {
+export const getDefaultBookingFields = (bookingFields: Fields = []) => {
   return [
     {
       name: "name",
