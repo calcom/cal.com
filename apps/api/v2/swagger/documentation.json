@@ -812,7 +812,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/GetSchedulesOutput"
                 }
               }
             }
@@ -863,7 +863,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/GetScheduleOutput"
                 }
               }
             }
@@ -2952,6 +2952,51 @@
                 "$ref": "#/components/schemas/ScheduleOutput"
               }
             ]
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "GetScheduleOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ScheduleOutput"
+              }
+            ]
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "GetSchedulesOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/ScheduleOutput"
           }
         },
         "required": [

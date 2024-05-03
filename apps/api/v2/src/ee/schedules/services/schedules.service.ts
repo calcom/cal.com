@@ -48,48 +48,7 @@ export class SchedulesService {
       await this.usersRepository.setDefaultSchedule(userId, createdSchedule.id);
     }
 
-    if (!createdSchedule.timeZone) {
-      throw new Error("Failed to create schedule because its timezone is not set.");
-    }
-
-    const createdScheduleAvailabilities = createdSchedule.availability.filter(
-      (availability) => !!availability.days.length
-    );
-    const createdScheduleOverrides = createdSchedule.availability.filter(
-      (availability) => !availability.days.length
-    );
-
-    return {
-      id: createdSchedule.id,
-      ownerId: userId,
-      name: createdSchedule.name,
-      timeZone: createdSchedule.timeZone,
-      availability: createdScheduleAvailabilities.map((availability) => ({
-        days: availability.days.map(transformNumberToDay),
-        startTime: this.padHoursMinutesWithZeros(
-          availability.startTime.getUTCHours() + ":" + availability.startTime.getUTCMinutes()
-        ),
-        endTime: this.padHoursMinutesWithZeros(
-          availability.endTime.getUTCHours() + ":" + availability.endTime.getUTCMinutes()
-        ),
-      })),
-      isDefault: schedule.isDefault,
-      overrides: createdScheduleOverrides.map((availability) => ({
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        date:
-          availability.date!.getUTCFullYear() +
-          "-" +
-          (availability.date!.getUTCMonth() + 1).toString().padStart(2, "0") +
-          "-" +
-          availability.date!.getUTCDate().toString().padStart(2, "0"),
-        startTime: this.padHoursMinutesWithZeros(
-          availability.startTime.getUTCHours() + ":" + availability.startTime.getUTCMinutes()
-        ),
-        endTime: this.padHoursMinutesWithZeros(
-          availability.endTime.getUTCHours() + ":" + availability.endTime.getUTCMinutes()
-        ),
-      })),
-    };
+    return this.getResponseSchedule(createdSchedule);
   }
 
   transformCreateScheduleInputForInternalUse(schedule: CreateScheduleInput): ScheduleTransformed {
@@ -115,6 +74,55 @@ export class SchedulesService {
     return [this.availabilitiesService.getDefaultAvailabilityInput()];
   }
 
+  async getResponseSchedule(fetchedSchedule: ScheduleWithAvailabilities) {
+    if (!fetchedSchedule.timeZone) {
+      throw new Error("Failed to create schedule because its timezone is not set.");
+    }
+
+    const ownerDefaultScheduleId = await this.getUserScheduleDefaultId(fetchedSchedule.userId);
+
+    const createdScheduleAvailabilities = fetchedSchedule.availability.filter(
+      (availability) => !!availability.days.length
+    );
+    const createdScheduleOverrides = fetchedSchedule.availability.filter(
+      (availability) => !availability.days.length
+    );
+
+    return {
+      id: fetchedSchedule.id,
+      ownerId: fetchedSchedule.userId,
+      name: fetchedSchedule.name,
+      timeZone: fetchedSchedule.timeZone,
+      availability: createdScheduleAvailabilities.map((availability) => ({
+        days: availability.days.map(transformNumberToDay),
+        startTime: this.padHoursMinutesWithZeros(
+          availability.startTime.getUTCHours() + ":" + availability.startTime.getUTCMinutes()
+        ),
+        endTime: this.padHoursMinutesWithZeros(
+          availability.endTime.getUTCHours() + ":" + availability.endTime.getUTCMinutes()
+        ),
+      })),
+      isDefault: fetchedSchedule.id === ownerDefaultScheduleId,
+      overrides: createdScheduleOverrides.map((availability) => ({
+        date:
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          availability.date!.getUTCFullYear() +
+          "-" +
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          (availability.date!.getUTCMonth() + 1).toString().padStart(2, "0") +
+          "-" +
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          availability.date!.getUTCDate().toString().padStart(2, "0"),
+        startTime: this.padHoursMinutesWithZeros(
+          availability.startTime.getUTCHours() + ":" + availability.startTime.getUTCMinutes()
+        ),
+        endTime: this.padHoursMinutesWithZeros(
+          availability.endTime.getUTCHours() + ":" + availability.endTime.getUTCMinutes()
+        ),
+      })),
+    };
+  }
+
   padHoursMinutesWithZeros(hhMM: string) {
     const [hours, minutes] = hhMM.split(":");
 
@@ -129,7 +137,21 @@ export class SchedulesService {
 
     if (!user?.defaultScheduleId) return null;
 
-    return this.schedulesRepository.getScheduleById(user.defaultScheduleId);
+    const defaultSchedule = await this.schedulesRepository.getScheduleById(user.defaultScheduleId);
+
+    if (!defaultSchedule) return null;
+    return this.getResponseSchedule(defaultSchedule);
+  }
+
+  async getUserScheduleDefaultId(userId: number) {
+    const user = await this.usersRepository.findById(userId);
+
+    if (!user?.defaultScheduleId) return null;
+
+    const defaultSchedule = await this.schedulesRepository.getScheduleById(user.defaultScheduleId);
+    if (!defaultSchedule) return null;
+
+    return defaultSchedule.id;
   }
 
   async getUserSchedule(userId: number, scheduleId: number) {
@@ -141,11 +163,16 @@ export class SchedulesService {
 
     this.checkUserOwnsSchedule(userId, existingSchedule);
 
-    return existingSchedule;
+    return this.getResponseSchedule(existingSchedule);
   }
 
   async getUserSchedules(userId: number) {
-    return this.schedulesRepository.getSchedulesByUserId(userId);
+    const schedules = await this.schedulesRepository.getSchedulesByUserId(userId);
+    return Promise.all(
+      schedules.map(async (schedule) => {
+        return this.getResponseSchedule(schedule);
+      })
+    );
   }
 
   async updateUserSchedule(user: UserWithProfile, scheduleId: number, bodySchedule: UpdateScheduleInput) {
@@ -157,8 +184,7 @@ export class SchedulesService {
 
     this.checkUserOwnsSchedule(user.id, existingSchedule);
 
-    const schedule = await this.getUserSchedule(user.id, Number(scheduleId));
-    const scheduleFormatted = await this.formatScheduleForAtom(user, schedule);
+    const scheduleFormatted = await this.formatScheduleForAtom(user, existingSchedule);
 
     if (!bodySchedule.schedule) {
       // note(Lauris): When updating an availability in cal web app, lets say only its name, also

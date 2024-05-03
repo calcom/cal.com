@@ -16,5 +16,5 @@ export class GetScheduleOutput {
   @IsNotEmptyObject()
   @ValidateNested()
   @Type(() => ScheduleOutput)
-  data!: ScheduleOutput;
+  data!: ScheduleOutput | null;
 }

@@ -56,40 +56,38 @@ export class SchedulesController {
   @Get("/default")
   @Permissions([SCHEDULE_READ])
   @ApiResponse({ status: 200, description: "Returns the default schedule", type: GetDefaultScheduleOutput })
-  async getDefaultSchedule(@GetUser() user: UserWithProfile): Promise<any | null> {
+  async getDefaultSchedule(@GetUser() user: UserWithProfile): Promise<GetScheduleOutput> {
     const schedule = await this.schedulesService.getUserScheduleDefault(user.id);
-    const scheduleFormatted = schedule
-      ? await this.schedulesService.formatScheduleForAtom(user, schedule)
-      : null;
 
     return {
       status: SUCCESS_STATUS,
-      data: scheduleFormatted,
+      data: schedule,
     };
   }
 
   @Get("/:scheduleId")
   @Permissions([SCHEDULE_READ])
   @Throttle({ default: { limit: 10, ttl: 60000 } }) // allow 10 requests per minute (for :scheduleId)
-  async getSchedule(@GetUser() user: UserWithProfile, @Param("scheduleId") scheduleId: number): Promise<any> {
+  async getSchedule(
+    @GetUser() user: UserWithProfile,
+    @Param("scheduleId") scheduleId: number
+  ): Promise<GetScheduleOutput> {
     const schedule = await this.schedulesService.getUserSchedule(user.id, scheduleId);
-    const scheduleFormatted = await this.schedulesService.formatScheduleForAtom(user, schedule);
 
     return {
       status: SUCCESS_STATUS,
-      data: scheduleFormatted,
+      data: schedule,
     };
   }
 
   @Get("/")
   @Permissions([SCHEDULE_READ])
-  async getSchedules(@GetUser() user: UserWithProfile): Promise<any> {
+  async getSchedules(@GetUser() user: UserWithProfile): Promise<GetSchedulesOutput> {
     const schedules = await this.schedulesService.getUserSchedules(user.id);
-    const schedulesFormatted = await this.schedulesService.formatSchedulesForAtom(user, schedules);
 
     return {
       status: SUCCESS_STATUS,
-      data: schedulesFormatted,
+      data: schedules,
     };
   }
 
