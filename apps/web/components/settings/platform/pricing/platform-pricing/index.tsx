@@ -12,8 +12,8 @@ type PlatformPricingProps = { teamId?: number | null };
 export const PlatformPricing = ({ teamId }: PlatformPricingProps) => {
   const router = useRouter();
   const { mutateAsync, isPending } = useSubscribeTeamToStripe({
-    onSuccess: () => {
-      console.log("Subscription created successfully");
+    onSuccess: (redirectUrl: string) => {
+      router.push(redirectUrl);
     },
     onError: () => {
       showToast("Internal server error, please try again later", "error");
