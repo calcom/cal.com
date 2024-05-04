@@ -1,6 +1,9 @@
 ---
 items:
-  - iframe: { src: https://26224744.fs1.hubspotusercontent-eu1.net/hubfs/26224744/__hs-marketplace__/Salesroom%20Demo%2001%20(1).mp4 }
+  - iframe:
+      {
+        src: https://26224744.fs1.hubspotusercontent-eu1.net/hubfs/26224744/__hs-marketplace__/Salesroom%20Demo%2001%20(1).mp4,
+      }
   - 1.jpeg
   - 2.jpeg
   - 3.jpeg

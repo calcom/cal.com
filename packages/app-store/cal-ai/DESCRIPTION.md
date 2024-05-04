@@ -23,10 +23,11 @@ items:
 - "Move my meeting at 2pm tomorrow to next week on Friday at 5pm"
 
 ### Or, any of that in a thread:
+
 - What meetings do I have this week?
   - Meeting 1, Meeting 2
 - Cancel that first meeting
 
-
 ### Or, doing multiple things:
+
 - Cancel all my meetings tomorrow then book a quick chat with @joe at noon, a long meeting with @jane at 1 (both tomorrow). Also see if Toby is down to grab dinner this week (toby@gmail.com). Finally send me my updated agenda of everything I have coming up in the next couple days.
