@@ -205,7 +205,6 @@ const RoundRobinHosts = ({
   setAssignAllTeamMembers,
   setMemberInviteModal,
   handleEmailInvite,
-  allMembers,
 }: {
   value: Host[];
   onChange: (hosts: Host[]) => void;
@@ -214,7 +213,6 @@ const RoundRobinHosts = ({
   setAssignAllTeamMembers: Dispatch<SetStateAction<boolean>>;
   setMemberInviteModal: Dispatch<SetStateAction<boolean>>;
   handleEmailInvite: (email: string) => void;
-  allMembers: TeamMember[];
 } & Pick<EventTypeSetupProps, "team">) => {
   const { t } = useLocale();
   const { setValue } = useFormContext<FormValues>();
@@ -227,7 +225,7 @@ const RoundRobinHosts = ({
       </div>
       <div className="border-subtle rounded-b-md border border-t-0">
         <AddMembersWithSwitch
-          teamMembers={allMembers}
+          teamMembers={teamMembers}
           value={value}
           onChange={onChange}
           assignAllTeamMembers={assignAllTeamMembers}
@@ -292,11 +290,9 @@ const Hosts = ({
   teamMembers,
   assignAllTeamMembers,
   setAssignAllTeamMembers,
-  allMembers,
   team,
 }: {
   teamMembers: TeamMember[];
-  allMembers: TeamMember[];
   assignAllTeamMembers: boolean;
   setAssignAllTeamMembers: Dispatch<SetStateAction<boolean>>;
 } & Pick<EventTypeSetupProps, "team">) => {
@@ -357,7 +353,7 @@ const Hosts = ({
         const schedulingTypeRender = {
           COLLECTIVE: (
             <FixedHosts
-              teamMembers={allMembers}
+              teamMembers={teamMembers}
               value={value}
               onChange={onChange}
               assignAllTeamMembers={assignAllTeamMembers}
@@ -369,7 +365,7 @@ const Hosts = ({
           ROUND_ROBIN: (
             <>
               <FixedHosts
-                teamMembers={allMembers}
+                teamMembers={teamMembers}
                 value={value}
                 onChange={(changeValue) => {
                   onChange([...value.filter((host: Host) => !host.isFixed), ...changeValue]);
@@ -381,7 +377,6 @@ const Hosts = ({
                 isRoundRobinEvent={true}
               />
               <RoundRobinHosts
-                allMembers={allMembers}
                 teamMembers={teamMembers}
                 value={value}
                 onChange={(changeValue) => {
@@ -483,9 +478,6 @@ export const EventTeamTab = ({
   ];
   const pendingMembers = (member: (typeof teamMembers)[number]) =>
     !!eventType.team?.parentId || !!member.username;
-  const teamMembersOptions = teamMembers
-    .filter(pendingMembers)
-    .map((member) => mapUserToValue(member, t("pending")));
   const childrenEventTypeOptions = teamMembers.filter(pendingMembers).map((member) => {
     return mapMemberToChildrenOption(
       { ...member, eventTypes: member.eventTypes.filter((et) => et !== eventType.slug) },
@@ -493,19 +485,20 @@ export const EventTeamTab = ({
       t("pending")
     );
   });
-  const allMembers = team?.members.map((member) =>
-    mapUserToValue(
-      {
-        id: member.user.id,
-        avatar: member.user.avatarUrl,
-        name: member.user.name,
-        email: member.user.email,
-        username: member.user.username,
-        accepted: member.accepted,
-      },
-      t("pending")
-    )
-  );
+  const allMembers =
+    team?.members.map((member) =>
+      mapUserToValue(
+        {
+          id: member.user.id,
+          avatar: member.user.avatarUrl,
+          name: member.user.name,
+          email: member.user.email,
+          username: member.user.username,
+          accepted: member.accepted,
+        },
+        t("pending")
+      )
+    ) || [];
   const isManagedEventType = eventType.schedulingType === SchedulingType.MANAGED;
   const { getValues, setValue } = useFormContext<FormValues>();
   const [assignAllTeamMembers, setAssignAllTeamMembers] = useState<boolean>(
@@ -545,8 +538,7 @@ export const EventTeamTab = ({
           <Hosts
             assignAllTeamMembers={assignAllTeamMembers}
             setAssignAllTeamMembers={setAssignAllTeamMembers}
-            teamMembers={teamMembersOptions}
-            allMembers={allMembers ?? teamMembersOptions}
+            teamMembers={allMembers}
             team={team}
           />
         </>
