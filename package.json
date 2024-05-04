@@ -95,7 +95,7 @@
     "i18n-unused": "^0.13.0",
     "jest-diff": "^29.5.0",
     "jsdom": "^22.0.0",
-    "lint-staged": "^12.5.0",
+    "lint-staged": "^15.2.2",
     "mailhog": "^4.16.0",
     "next-router-mock": "^0.9.12",
     "node-ical": "^0.16.1",
@@ -112,7 +112,8 @@
     "@daily-co/daily-js": "^0.59.0",
     "city-timezones": "^1.2.1",
     "eslint": "^8.34.0",
-    "turbo": "^1.10.1"
+    "turbo": "^1.10.1",
+    "turbo-http": "^0.3.2"
   },
   "resolutions": {
     "types-ramda": "0.29.4",
