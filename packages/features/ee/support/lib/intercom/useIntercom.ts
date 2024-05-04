@@ -5,7 +5,6 @@ import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
 import { WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
-import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { useHasTeamPlan, useHasPaidPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { trpc } from "@calcom/trpc/react";
 
@@ -57,13 +56,14 @@ export const useIntercom = () => {
         metadata: data?.metadata,
         completed_onboarding: data.completedOnboarding,
         is_logged_in: !!data,
-        sum_of_bookings: data.sumOfBookings,
-        sum_of_calendars: data.sumOfCalendars,
-        sum_of_teams: data.sumOfTeams,
-        has_org: !data.organizationId,
-        sum_of_event_types: data.sumOfEventTypes,
-        sum_of_team_event_types: data.sumOfTeamEventTypes,
-        is_premium: hasKeyInMetadata(data, "isPremium") ? !!data.metadata.isPremium : false,
+        sum_of_bookings: data?.sumOfBookings,
+        sum_of_calendars: data?.sumOfCalendars,
+        sum_of_teams: data?.sumOfTeams,
+        has_org: !data?.organizationId,
+        organization: data?.organization?.slug,
+        sum_of_event_types: data?.sumOfEventTypes,
+        sum_of_team_event_types: data?.sumOfTeamEventTypes,
+        is_premium: data?.isPremium,
       },
     });
   };
@@ -96,6 +96,14 @@ export const useIntercom = () => {
         metadata: data?.metadata,
         completed_onboarding: data?.completedOnboarding,
         is_logged_in: !!data,
+        sum_of_bookings: data?.sumOfBookings,
+        sum_of_calendars: data?.sumOfCalendars,
+        sum_of_teams: data?.sumOfTeams,
+        has_org: !data?.organizationId,
+        organization: data?.organization?.slug,
+        sum_of_event_types: data?.sumOfEventTypes,
+        sum_of_team_event_types: data?.sumOfTeamEventTypes,
+        is_premium: data?.isPremium,
       },
     });
     hookData.show();

@@ -19,7 +19,7 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import type { WorkflowActions, WorkflowTemplates, WorkflowTriggerEvents } from "@calcom/prisma/client";
-import type { SchedulingType } from "@calcom/prisma/enums";
+import type { SchedulingType, SMSLockState } from "@calcom/prisma/enums";
 import type { BookingStatus } from "@calcom/prisma/enums";
 import type { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { userMetadataType } from "@calcom/prisma/zod-utils";
@@ -972,6 +972,7 @@ export function getOrganizer({
   teams,
   organizationId,
   metadata,
+  smsLockState,
 }: {
   name: string;
   email: string;
@@ -985,6 +986,7 @@ export function getOrganizer({
   weekStart?: WeekDays;
   teams?: InputUser["teams"];
   metadata?: userMetadataType;
+  smsLockState?: SMSLockState;
 }) {
   return {
     ...TestData.users.example,
@@ -1001,6 +1003,7 @@ export function getOrganizer({
     organizationId,
     profiles: [],
     metadata,
+    smsLockState,
   };
 }
 
