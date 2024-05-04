@@ -471,3 +471,39 @@ select:focus {
 .react-tel-input .flag-dropdown {
   @apply !border-r-default left-0.5 !border-y-0 !border-l-0;
 }
+
+/* Define a CSS class called .borderClass */
+.borderClass {
+  /* Remove rounded corners for a square look */
+  border-radius: 0.375rem;
+  border-width: -1px;
+  border-color: var(--cal-border-emphasis, #000000);
+  /* Add padding for spacing */
+  padding: 1px; /* Adjust as needed */
+  /* Add a subtle shadow to create depth */
+  /* Add a transition effect for smoother changes */
+  transition: all 0.3s ease;
+}
+
+/* Selected radio button */
+.borderClass.checked {
+  border-color: #000000; /* White border color */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Hide the default dot indicating selection */
+.borderClass input[type="radio"] {
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+/* Make the entire box clickable */
+.borderClass label {
+  cursor: pointer;
+}
+
+.poppins-regular {
+  font-family: "Poppins", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+}

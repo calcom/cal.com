@@ -16,24 +16,30 @@ const RadioArea = ({ children, className, classNames: innerClassNames, ...props 
   return (
     <div
       className={classNames(
-        "border-subtle [&:has(input:checked)]:border-emphasis relative flex items-start rounded-md border ",
+        "borderClass relative flex items-start rounded-md border ", // Apply border class
         className
-      )}>
+      )}
+      style={{ marginBottom: "10px" }} // Add spacing between options
+    >
       <RadioGroupPrimitive.Item
         id={id}
         {...props}
         className={classNames(
-          "hover:bg-subtle disabled:hover:bg-default border-default focus:ring-emphasis absolute left-3 top-[0.9rem] mt-0.5 h-4 w-4 flex-shrink-0 rounded-full border focus:ring-2 disabled:cursor-not-allowed",
+          "hover:bg-subtle disabled:hover:bg-default border-default focus:ring-emphasis mt-0.5 h-4 w-4 flex-shrink-0 rounded-full border focus:ring-2 disabled:cursor-not-allowed",
           props.disabled && "opacity-60"
-        )}>
+        )}
+        style={{ marginRight: "10px" }} // Add spacing between radio button and label
+      >
         <RadioGroupPrimitive.Indicator
           className={classNames(
-            "after:bg-default dark:after:bg-inverted relative flex h-full w-full items-center justify-center rounded-full bg-black after:h-[6px] after:w-[6px] after:rounded-full after:content-['']",
-            props.disabled ? "after:bg-muted" : "bg-black"
+            "dark:bg-inverted relative flex h-full w-full items-center justify-center rounded-md bg-black", // Square appearance
+            props.disabled ? "bg-muted" : "bg-black"
           )}
         />
+        <div className="absolute inset-0 cursor-pointer" />{" "}
+        {/* Transparent overlay to make whole box selectable */}
       </RadioGroupPrimitive.Item>
-      <label htmlFor={id} className={classNames("text-default p-4 pl-10 pt-3", innerClassNames?.container)}>
+      <label htmlFor={id} className={classNames("text-default", innerClassNames?.container)}>
         {children}
       </label>
     </div>

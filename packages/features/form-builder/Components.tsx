@@ -377,6 +377,7 @@ export const Components: Record<FieldType, Component> = {
                 key={`option.${i}.radio`}
                 value={option.label}
                 id={`${name}.option.${i}.radio`}
+                checked={value === option.label} // Determine if option is checked
               />
             ))}
           </>

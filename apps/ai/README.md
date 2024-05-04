@@ -48,7 +48,7 @@ Here is the full architecture:
 
 ### Email Router
 
-To expose the AI app, you can use either [Tunnelmole](https://github.com/robbie-cahill/tunnelmole-client), an open source tunnelling tool; or [nGrok](https://ngrok.com/), a popular closed source tunnelling tool. 
+To expose the AI app, you can use either [Tunnelmole](https://github.com/robbie-cahill/tunnelmole-client), an open source tunnelling tool; or [nGrok](https://ngrok.com/), a popular closed source tunnelling tool.
 
 For Tunnelmole, run `tmole 3005` (or the AI app's port number) in a new terminal. Please replace `3005` with the port number if it is different. In the output, you'll see two URLs, one http and a https (we recommend using the https url for privacy and security). To install Tunnelmole, use `curl -O https://install.tunnelmole.com/8dPBw/install && sudo bash install`. (On Windows, download [tmole.exe](https://tunnelmole.com/downloads/tmole.exe))
 

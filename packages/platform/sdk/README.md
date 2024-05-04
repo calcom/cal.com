@@ -27,12 +27,13 @@ const sdk = new Cal("your_client_id", {
 ```
 
 ### Authenticating as a User
+
 The SDK is also meant to be used as an authenticated user, to do that, you need to pass the `accessToken` to the `authOptions` in the SDK constructor.
 
 ```typescript
 const authedSdk = new Cal("your_client_id", {
   clientSecret: "your_client_secret",
-  accessToken: "your_user_access_token"
+  accessToken: "your_user_access_token",
 });
 
 const schedule = await authedSdk.schedules.createSchedule({
@@ -52,6 +53,7 @@ const schedule = await authedSdk.schedules.createSchedule({
 You can manually refresh access tokens, or you can let the SDK handle token refreshes via the `handleRefresh` option.
 
 To manually update an access token, you can use the following snippet:
+
 ```typescript
 sdk.secrets().updateAccessToken(oauth.accessToken, oauth.refreshToken);
 ```
@@ -59,7 +61,7 @@ sdk.secrets().updateAccessToken(oauth.accessToken, oauth.refreshToken);
 ## Configuration
 
 | Option                     | Required | Description                                                                                         |
-|----------------------------|----------|-----------------------------------------------------------------------------------------------------|
+| -------------------------- | -------- | --------------------------------------------------------------------------------------------------- |
 | `authOptions.clientSecret` | `TRUE`   | The Client Secret corresponding to the client ID passed as the first parameter.                     |
 | `authOptions.accessToken`  | `FALSE`  | `Optional` Access token when authenticating as a specific user.                                     |
 | `authOptions.refreshToken` | `FALSE`  | `Optional` If provided, the SDK can handle refreshing access tokens automatically when they expire. |
