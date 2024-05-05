@@ -517,19 +517,19 @@ export default function Signup({
                 </div>
                 <div className="text-subtle ">
                   <Trans i18nKey="signing_up_terms">
-                    By proceeding, you agree to our{" "}
+                    {t("by_proceeding_you_agree_to_our ")}
                     <Link
                       className="text-emphasis hover:underline"
                       href={`${WEBSITE_URL}/terms`}
                       target="_blank">
-                      Terms
+                      {t("terms")}
                     </Link>{" "}
-                    and{" "}
+                    {t("and ")}
                     <Link
                       className="text-emphasis hover:underline"
                       href={`${WEBSITE_URL}/privacy`}
                       target="_blank">
-                      Privacy Policy
+                      {t("privacy_policy")}
                     </Link>
                     .
                   </Trans>
