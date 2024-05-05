@@ -81,7 +81,6 @@ const verifyEmailSender = async (
 export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   const { user } = ctx;
   const { id, name, activeOn, steps, trigger, time, timeUnit } = input;
-  console.log("active on: ", activeOn);
 
   const userWorkflow = await ctx.prisma.workflow.findUnique({
     where: {
