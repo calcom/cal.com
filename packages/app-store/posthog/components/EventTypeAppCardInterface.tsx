@@ -14,6 +14,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
 
   return (
     <AppCard
+      hideSettingsIcon
       app={app}
       switchOnClick={(e) => {
         updateEnabled(e);
@@ -22,6 +23,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
       teamId={eventType.team?.id || undefined}>
       <div className="flex flex-col gap-2">
         <TextField
+          required
           disabled={disabled}
           name="Tracking ID"
           value={trackingId}
@@ -31,6 +33,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
           }}
         />
         <TextField
+          required
           disabled={disabled}
           name="Api host"
           value={apiHost}
