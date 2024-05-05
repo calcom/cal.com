@@ -2423,5 +2423,10 @@
   "lowest_rated_members": "Members With Lowest Rated Meetings",
   "csat_score": "CSAT Score",
   "lockedSMS": "Locked SMS",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "leave_without_assigning_anyone": "Leave without assigning anyone?",
+  "leave_without_adding_attendees": "Are you sure want to leave this event without adding attendees?",
+  "no_availability_shown_to_bookers": "If you don't assign anyone for this event, there will be no availability shown to bookers.",
+  "go_back_and_assign": "Go back and Assign",
+  "leave_without_assigning": "Leave without Assigning"
 }
