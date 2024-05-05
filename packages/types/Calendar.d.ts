@@ -249,6 +249,12 @@ export interface Calendar {
 
   deleteEvent(uid: string, event: CalendarEvent, externalCalendarId?: string | null): Promise<unknown>;
 
+  getEventList?(
+    dateFrom: string,
+    dateTo: string,
+    selectedCalendars: IntegrationCalendar[]
+  ): Promise<EventBusyData[]>;
+
   getAvailability(
     dateFrom: string,
     dateTo: string,
