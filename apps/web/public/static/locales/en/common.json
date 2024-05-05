@@ -2364,6 +2364,7 @@
   "organization_price_per_user_month":"$37 per user per month (30 seats minimum)",
   "privacy_organization_description": "Manage privacy settings for your organization",
   "privacy": "Privacy",
+  "policy": "Policy",
   "team_will_be_under_org": "New teams will be under your organization",
   "add_group_name": "Add group name",
   "group_name": "Group Name",
@@ -2430,5 +2431,7 @@
   "lowest_rated_members": "Members with lowest rated meetings",
   "csat_score": "CSAT Score",
   "lockedSMS": "Locked SMS",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "terms": "Terms",
+  "by_proceeding_you_agree_to_our": "By proceeding, you agree to our"
 }
