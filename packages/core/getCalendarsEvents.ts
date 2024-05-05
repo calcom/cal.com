@@ -46,9 +46,9 @@ const getCalendarsEvents = async (
       })
     );
     let eventBusyDates = [];
-    // we are getting event titles from only google calendar service for now
-    if (type === "google_calendar" || type === "office365_calendar") {
-      eventBusyDates = await c.getAvailability(dateFrom, dateTo, passedSelectedCalendars, isOverlayUser);
+    // we are getting event titles from only google calendar and office 365 calendar services for now
+    if (isOverlayUser && (type === "google_calendar" || type === "office365_calendar")) {
+      eventBusyDates = c.getEventList ? await c.getEventList(dateFrom, dateTo, passedSelectedCalendars) : [];
     } else {
       eventBusyDates = await c.getAvailability(dateFrom, dateTo, passedSelectedCalendars);
     }
