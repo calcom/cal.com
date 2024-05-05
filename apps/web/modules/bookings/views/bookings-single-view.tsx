@@ -6,6 +6,7 @@ import { createEvent } from "ics";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import React from "react";
 import { useEffect, useState } from "react";
 import { Toaster } from "react-hot-toast";
 import { RRule } from "rrule";
@@ -592,14 +593,8 @@ export default function Success(props: PageProps) {
                       <div className="text-bookingdark dark:border-darkgray-200 mt-8 text-left dark:text-gray-300">
                         {Object.entries(bookingInfo.responses).map(([name, response]) => {
                           const field = eventType.bookingFields.find((field) => field.name === name);
-                          // We show location in the "where" section
-                          // We show Booker Name, Emails and guests in Who section
-                          // We show notes in additional notes section
-                          // We show rescheduleReason at the top
                           if (!field) return null;
                           const isSystemField = SystemField.safeParse(field.name);
-                          // SMS_REMINDER_NUMBER_FIELD is a system field but doesn't have a dedicated place in the UI. So, it would be shown through the following responses list
-                          // TITLE is also an identifier for booking question "What is this meeting about?"
                           if (
                             isSystemField.success &&
                             field.name !== SMS_REMINDER_NUMBER_FIELD &&
@@ -620,7 +615,19 @@ export default function Success(props: PageProps) {
                                   ? response
                                     ? t("yes")
                                     : t("no")
-                                  : response.toString()}
+                                  : response
+                                      .toString()
+                                      .split("<br>")
+                                      .map((line, index) => (
+                                        <React.Fragment key={index}>
+                                          {line.includes("<big>") ? (
+                                            <span>{line.replace("<big>", "").replace("</big>", "")}</span>
+                                          ) : (
+                                            line
+                                          )}
+                                          <br />
+                                        </React.Fragment>
+                                      ))}
                               </p>
                             </>
                           );
