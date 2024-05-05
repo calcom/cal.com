@@ -1,5 +1,6 @@
 import { useRouter } from "next/navigation";
-import type { Dispatch, SetStateAction, ForwardedRef } from "react";
+import type { Dispatch, SetStateAction } from "react";
+import type { MutableRefObject } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Dialog, ConfirmationDialogContent } from "@calcom/ui";
@@ -8,7 +9,7 @@ interface IAssignmentWarningDialog {
   isOpenAssignmentWarnDialog: boolean;
   setIsOpenAssignmentWarnDialog: Dispatch<SetStateAction<boolean>>;
   pendingRoute: string;
-  isConfirm: ForwardedRef<HTMLInputElement>;
+  isConfirm: MutableRefObject<boolean>;
 }
 const AssignmentWarningDialog = (props: IAssignmentWarningDialog) => {
   const { t } = useLocale();
