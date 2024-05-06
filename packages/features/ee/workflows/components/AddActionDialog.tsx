@@ -175,8 +175,7 @@ export const AddActionDialog = (props: IAddActionDialog) => {
                         label: string;
                         value: WorkflowActions;
                         needsTeamsUpgrade: boolean;
-                        needsOrgsUpgrade: boolean;
-                      }) => option.needsTeamsUpgrade || option.needsOrgsUpgrade}
+                      }) => option.needsTeamsUpgrade}
                     />
                   );
                 }}
@@ -251,7 +250,7 @@ export const AddActionDialog = (props: IAddActionDialog) => {
                 />
               </div>
             )}
-            <DialogFooter showDivider className="mt-12">
+            <DialogFooter showDivider className="relative mt-12">
               <DialogClose
                 onClick={() => {
                   setIsOpenDialog(false);
