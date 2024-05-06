@@ -7,7 +7,7 @@ jobs:
   e2e:
     timeout-minutes: 20
     name: E2E tests (${{ matrix.shard }}/${{ strategy.job-total }})
-    runs-on: buildjet-4vcpu-ubuntu-2204
+    runs-on: buildjet-8vcpu-ubuntu-2204
     services:
       postgres:
         image: postgres:13
