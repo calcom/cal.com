@@ -24,7 +24,7 @@
     "rollup": "^4.12.0",
     "rollup-plugin-bundle-size": "^1.0.3",
     "ts-essentials": "^9.4.1",
-    "typescript": "^5.3.3"
+    "typescript": "^5.4.5"
   },
   "dependencies": {
     "axios": "^1.6.7",
