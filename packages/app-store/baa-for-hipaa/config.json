@@ -12,5 +12,9 @@
   "description": "Request a signed Business Associate Agreement for your HIPAA compliance records",
   "isTemplate": false,
   "__createdUsingCli": true,
-  "__template": "link-as-an-app"
+  "__template": "link-as-an-app",
+  "paid": {
+    "priceInUsd": 300,
+    "mode": "subscription"
+  }
 }
