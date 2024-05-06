@@ -79,14 +79,6 @@ export const getAccessibleUsers = async ({ memberUserIds, adminUserId }: Accessi
     return Array.from(accessibleUserIds);
   }
 
-  const adminTeamIds = adminMemberships.map((m) => m.team.id);
-  if (!!adminTeamIds.length) {
-    userMemberships
-      .filter((um) => adminTeamIds.includes(um.team.id))
-      .forEach((um) => accessibleUserIds.add(um.userId));
-    return Array.from(accessibleUserIds);
-  }
-
   return [];
 };
 
