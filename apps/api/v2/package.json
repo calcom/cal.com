@@ -13,7 +13,7 @@
     "dev:build": "yarn workspace @calcom/platform-constants build && yarn workspace @calcom/platform-utils build && yarn workspace @calcom/platform-types build && yarn workspace @calcom/platform-libraries build",
     "dev": "yarn dev:build && docker-compose up -d && yarn copy-swagger-module && yarn start --watch",
     "start:debug": "nest start --debug --watch",
-    "start:prod": "SKIP_DOCS_GENERATION=1 node ./dist/apps/api/v2/src/main.js",
+    "start:prod": "node ./dist/apps/api/v2/src/main.js",
     "test": "yarn dev:build && jest",
     "test:watch": "yarn dev:build && jest --watch",
     "test:cov": "yarn dev:build && jest --coverage",
