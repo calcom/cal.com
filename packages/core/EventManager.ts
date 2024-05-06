@@ -930,6 +930,7 @@ export default class EventManager {
         success = false;
         log.warn(`Error creating crm event for ${credential.type}`, error);
       });
+
       createdEvents.push({
         type: credential.type,
         appName: credential.appId || "",
@@ -937,11 +938,8 @@ export default class EventManager {
         success,
         createdEvent: {
           id: createdEvent?.id || "",
-          uid: createdEvent?.id || "",
           type: credential.type,
-          url: "",
           credentialId: credential.id,
-          password: "",
         },
         id: createdEvent?.id || "",
         originalEvent: event,
