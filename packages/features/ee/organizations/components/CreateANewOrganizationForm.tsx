@@ -131,7 +131,7 @@ const CreateANewOrganizationFormChild = ({
                   placeholder="john@acme.com"
                   name="orgOwnerEmail"
                   disabled={!isAdmin}
-                  label={!isPlatformOrg ? t("admin_email") : t("platform_admin_email")}
+                  label={t("admin_email")}
                   defaultValue={value}
                   onChange={(e) => {
                     const email = e?.target.value;
@@ -205,7 +205,7 @@ const CreateANewOrganizationFormChild = ({
           </div>
         )}
 
-        {isAdmin && !isPlatformOrg && (
+        {isAdmin && (
           <>
             <section className="grid grid-cols-2 gap-2">
               <div className="w-full">
