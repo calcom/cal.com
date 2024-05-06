@@ -23,7 +23,7 @@ import {
   getOrgConnectionInfo,
   getIsOrgVerified,
   sendSignupToOrganizationEmail,
-  getUsersToInvite,
+  getExistingUsersToInvite,
   createNewUsersConnectToOrgIfExists,
   createMemberships,
   groupUsersByJoinability,
@@ -41,6 +41,7 @@ type InviteMemberOptions = {
 };
 
 export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) => {
+  const myLog = log.getSubLogger({ prefix: ["inviteMemberHandler"] });
   const translation = await getTranslation(input.language ?? "en", "common");
   await checkRateLimitAndThrowError({
     identifier: `invitedBy:${ctx.user.id}`,
@@ -63,6 +64,10 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
   const { autoAcceptEmailDomain, orgVerified } = getIsOrgVerified(isOrg, team);
 
   const usernameOrEmailsToInvite = await getUsernameOrEmailsToInvite(input.usernameOrEmail);
+
+  const isBulkInvite = usernameOrEmailsToInvite.length > 1;
+  const beSilentAboutErrors = isBulkInvite;
+
   const orgConnectInfoByUsernameOrEmail = usernameOrEmailsToInvite.reduce((acc, usernameOrEmail) => {
     return {
       ...acc,
@@ -75,12 +80,12 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
       }),
     };
   }, {} as Record<string, ReturnType<typeof getOrgConnectionInfo>>);
-  const existingUsersWithMemberships = await getUsersToInvite({
+  const existingUsersWithMemberships = await getExistingUsersToInvite({
     usernamesOrEmails: usernameOrEmailsToInvite,
-    isInvitedToOrg: isOrg,
     team,
   });
 
+  // Existing users have a criteria to be invited
   const existingUsersWithMembershipsThatNeedToBeInvited = existingUsersWithMemberships.filter(
     (invitee) => invitee.canBeInvited
   );
@@ -93,14 +98,26 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
     { emails: [], usernames: [] } as { emails: string[]; usernames: string[] }
   );
 
+  // New Users can always be invited
   const newUsersEmailsOrUsernames = usernameOrEmailsToInvite.filter(
     (usernameOrEmail) =>
       !existingUsersEmailsAndUsernames.emails.includes(usernameOrEmail) &&
       !existingUsersEmailsAndUsernames.usernames.includes(usernameOrEmail)
   );
 
-  log.debug(
-    "inviteMemberHandler",
+  if (
+    !beSilentAboutErrors &&
+    existingUsersWithMemberships.length &&
+    !existingUsersWithMembershipsThatNeedToBeInvited.length
+  ) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "Could not invite the user as he might be part of another organization",
+    });
+  }
+
+  myLog.debug(
+    "Notable variables:",
     safeStringify({
       usernameOrEmailsToInvite,
       orgConnectInfoByUsernameOrEmail,
@@ -137,7 +154,7 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
   const orgSlug = organization ? organization.slug || organization.requestedSlug : null;
   // deal with existing users invited to join the team/org
   await handleExistingUsersInvites({
-    existingUsersWithMembersips: existingUsersWithMembershipsThatNeedToBeInvited,
+    existingUsersWithMemberships: existingUsersWithMembershipsThatNeedToBeInvited,
     team,
     orgConnectInfoByUsernameOrEmail,
     input,
@@ -158,14 +175,14 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
 export default inviteMemberHandler;
 
 async function handleExistingUsersInvites({
-  existingUsersWithMembersips,
+  existingUsersWithMemberships,
   team,
   orgConnectInfoByUsernameOrEmail,
   input,
   inviter,
   orgSlug,
 }: {
-  existingUsersWithMembersips: Awaited<ReturnType<typeof getUsersToInvite>>;
+  existingUsersWithMemberships: Awaited<ReturnType<typeof getExistingUsersToInvite>>;
   team: TeamWithParent;
   orgConnectInfoByUsernameOrEmail: Record<string, { orgId: number | undefined; autoAccept: boolean }>;
   input: {
@@ -180,14 +197,14 @@ async function handleExistingUsersInvites({
   };
   orgSlug: string | null;
 }) {
-  if (!existingUsersWithMembersips.length) {
+  if (!existingUsersWithMemberships.length) {
     return;
   }
 
   const translation = await getTranslation(input.language ?? "en", "common");
   if (!team.isOrganization) {
     const [autoJoinUsers, regularUsers] = groupUsersByJoinability({
-      existingUsersWithMembersips: existingUsersWithMembersips.map((u) => {
+      existingUsersWithMemberships: existingUsersWithMemberships.map((u) => {
         return {
           ...u,
           profile: null,
@@ -223,7 +240,7 @@ async function handleExistingUsersInvites({
       await sendExistingUserTeamInviteEmails({
         currentUserName: inviter.name,
         currentUserTeamName: team?.name,
-        existingUsersWithMembersips: autoJoinUsers,
+        existingUsersWithMemberships: autoJoinUsers,
         language: translation,
         isOrg: input.isOrg,
         teamId: team.id,
@@ -244,7 +261,7 @@ async function handleExistingUsersInvites({
       await sendExistingUserTeamInviteEmails({
         currentUserName: inviter.name,
         currentUserTeamName: team?.name,
-        existingUsersWithMembersips: regularUsers,
+        existingUsersWithMemberships: regularUsers,
         language: translation,
         isOrg: input.isOrg,
         teamId: team.id,
@@ -279,12 +296,12 @@ async function handleExistingUsersInvites({
     log.debug(
       "Inviting existing users to an organization",
       safeStringify({
-        existingUsersWithMembersips,
+        existingUsersWithMemberships,
       })
     );
 
     const existingUsersWithMembershipsNew = await Promise.all(
-      existingUsersWithMembersips.map(async (user) => {
+      existingUsersWithMemberships.map(async (user) => {
         const shouldAutoAccept = orgConnectInfoByUsernameOrEmail[user.email].autoAccept;
         let profile = null;
         if (shouldAutoAccept) {
@@ -325,7 +342,7 @@ async function handleExistingUsersInvites({
     await sendExistingUserTeamInviteEmails({
       currentUserName: inviter.name,
       currentUserTeamName: team?.name,
-      existingUsersWithMembersips: autoJoinUsers,
+      existingUsersWithMemberships: autoJoinUsers,
       language: translation,
       isOrg: input.isOrg,
       teamId: team.id,
@@ -338,7 +355,7 @@ async function handleExistingUsersInvites({
     await sendExistingUserTeamInviteEmails({
       currentUserName: inviter.name,
       currentUserTeamName: team?.name,
-      existingUsersWithMembersips: regularUsers,
+      existingUsersWithMemberships: regularUsers,
       language: translation,
       isOrg: input.isOrg,
       teamId: team.id,
