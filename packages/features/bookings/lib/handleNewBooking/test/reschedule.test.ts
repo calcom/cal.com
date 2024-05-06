@@ -892,203 +892,6 @@ describe("handleNewBooking", () => {
         );
 
         test(
-          `should reschedule a booking(Collective Event type where location is 'Organizer default App' and default app is google meet) that requires confirmation in PENDING state - When a booker(who is not the organizer himself) is doing the reschedule
-          1. Should cancel the existing booking
-          2. Should delete existing calendar invite
-          2. Should create a new booking in the database in PENDING state
-          3. Should send BOOKING Requested scenario emails to the booker as well as organizer
-          4. Should trigger BOOKING_REQUESTED webhook instead of BOOKING_RESCHEDULED
-    `,
-          async ({ emails }) => {
-            const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
-            const subscriberUrl = "http://my-webhook.example.com";
-            const booker = getBooker({
-              email: "booker@example.com",
-              name: "Booker",
-            });
-
-            const organizer = getOrganizer({
-              name: "Organizer",
-              email: "organizer@example.com",
-              id: 101,
-              schedules: [TestData.schedules.IstWorkHours],
-              credentials: [getGoogleCalendarCredential(), getGoogleMeetCredential()],
-              selectedCalendars: [TestData.selectedCalendars.google],
-              metadata: { defaultConferencingApp: { appSlug: "google-meet" } },
-            });
-            const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
-            const uidOfBookingToBeRescheduled = "n5Wv3eHgconAED2j4gcVhP";
-
-            const scenarioData = getScenarioData({
-              webhooks: [
-                {
-                  userId: organizer.id,
-                  eventTriggers: ["BOOKING_CREATED"],
-                  subscriberUrl,
-                  active: true,
-                  eventTypeId: 1,
-                  appId: null,
-                },
-              ],
-              workflows: [
-                {
-                  userId: organizer.id,
-                  trigger: "RESCHEDULE_EVENT",
-                  action: "EMAIL_HOST",
-                  template: "REMINDER",
-                  activeEventTypeId: 1,
-                },
-              ],
-              eventTypes: [
-                {
-                  id: 1,
-                  slotInterval: 15,
-                  schedulingType: SchedulingType.COLLECTIVE,
-                  requiresConfirmation: true,
-                  length: 15,
-                  users: [
-                    {
-                      id: 101,
-                    },
-                  ],
-                  locations: [
-                    {
-                      type: OrganizerDefaultConferencingAppType,
-                    },
-                  ],
-                  destinationCalendar: {
-                    integration: TestData.apps["google-calendar"].type,
-                    externalId: "event-type-1@google-calendar.com",
-                  },
-                },
-              ],
-              bookings: [
-                {
-                  uid: uidOfBookingToBeRescheduled,
-                  eventTypeId: 1,
-                  status: BookingStatus.ACCEPTED,
-                  location: BookingLocations.GoogleMeet,
-                  startTime: `${plus1DateString}T05:00:00.000Z`,
-                  endTime: `${plus1DateString}T05:15:00.000Z`,
-                  metadata: { videoCallUrl: "https://UNUSED_URL" },
-                  references: [
-                    getMockBookingReference({
-                      type: appStoreMetadata.googlecalendar.type,
-                      uid: "MOCK_ID",
-                      meetingId: "MOCK_ID",
-                      meetingPassword: "MOCK_PASSWORD",
-                      meetingUrl: "https://UNUSED_URL",
-                      externalCalendarId: "MOCK_EXTERNAL_CALENDAR_ID",
-                      credentialId: 1,
-                    }),
-                    getMockBookingReference({
-                      type: appStoreMetadata.googlevideo.type,
-                      uid: "MOCK_ID",
-                      meetingId: "MOCK_ID",
-                      meetingPassword: "MOCK_PASSWORD",
-                      meetingUrl: "https://UNUSED_URL",
-                      externalCalendarId: "MOCK_EXTERNAL_CALENDAR_ID",
-                      credentialId: 1,
-                    }),
-                  ],
-                },
-              ],
-              organizer,
-              apps: [TestData.apps["google-calendar"], TestData.apps["google-meet"]],
-            });
-            await createBookingScenario(scenarioData);
-
-            const calendarMock = mockCalendarToHaveNoBusySlots("googlecalendar", {
-              create: {
-                uid: "MOCK_ID",
-              },
-              update: {
-                uid: "UPDATED_MOCK_ID",
-                iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
-              },
-            });
-
-            const mockBookingData = getMockRequestDataForBooking({
-              data: {
-                eventTypeId: 1,
-                rescheduleUid: uidOfBookingToBeRescheduled,
-                start: `${plus1DateString}T04:00:00.000Z`,
-                end: `${plus1DateString}T04:15:00.000Z`,
-                responses: {
-                  email: booker.email,
-                  name: booker.name,
-                  location: { optionValue: "", value: OrganizerDefaultConferencingAppType },
-                },
-              },
-            });
-
-            const { req } = createMockNextJsRequest({
-              method: "POST",
-              body: mockBookingData,
-            });
-
-            const createdBooking = await handleNewBooking(req);
-
-            expect(createdBooking.responses).toContain({
-              email: booker.email,
-              name: booker.name,
-            });
-
-            await expectBookingInDBToBeRescheduledFromTo({
-              from: {
-                uid: uidOfBookingToBeRescheduled,
-              },
-              to: {
-                description: "",
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                uid: createdBooking.uid!,
-                eventTypeId: mockBookingData.eventTypeId,
-                // Rescheduled booking sill stays in pending state
-                status: BookingStatus.PENDING,
-                location: BookingLocations.GoogleMeet,
-                responses: expect.objectContaining({
-                  email: booker.email,
-                  name: booker.name,
-                }),
-                references: [
-                  {
-                    type: appStoreMetadata.googlecalendar.type,
-                    uid: "MOCK_ID",
-                    meetingId: "MOCK_ID",
-                    meetingPassword: "MOCK_PASSWORD",
-                    meetingUrl: "https://UNUSED_URL",
-                    externalCalendarId: "MOCK_EXTERNAL_CALENDAR_ID",
-                  },
-                ],
-              },
-            });
-
-            expectWorkflowToBeTriggered({ emails, organizer });
-
-            expectBookingRequestedEmails({
-              booker,
-              organizer,
-              emails,
-            });
-
-            expectBookingRequestedWebhookToHaveBeenFired({
-              booker,
-              organizer,
-              location: OrganizerDefaultConferencingAppType,
-              subscriberUrl,
-              eventType: scenarioData.eventTypes[0],
-            });
-
-            expectSuccessfulCalendarEventDeletionInCalendar(calendarMock, {
-              externalCalendarId: "MOCK_EXTERNAL_CALENDAR_ID",
-              calEvent: {},
-              uid: "MOCK_ID",
-            });
-          },
-          timeout
-        );
-
-        test(
           `should rechedule a booking, that requires confirmation, without confirmation - When booker is the organizer of the existing booking as well as the event-type
           1. Should cancel the existing booking
           2. Should delete existing calendar invite and Video meeting
@@ -1963,6 +1766,217 @@ describe("handleNewBooking", () => {
             prevOrganizer: roundRobinHost1,
             newOrganizer: roundRobinHost2,
             emails,
+          });
+        },
+        timeout
+      );
+      // TODO:
+      test(
+        `should reschedule a booking(Collective Event type where location is 'Organizer default App' and default app is google meet) that requires confirmation in PENDING state - When a booker(who is not the organizer himself) is doing the reschedule
+        1. Should cancel the existing booking
+        2. Should delete existing calendar invite
+        2. Should create a new booking in the database in PENDING state
+        3. Should send BOOKING Requested scenario emails to the booker as well as organizer
+        4. Should trigger BOOKING_REQUESTED webhook instead of BOOKING_RESCHEDULED
+  `,
+        async ({ emails }) => {
+          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const subscriberUrl = "http://my-webhook.example.com";
+          const booker = getBooker({
+            email: "booker@example.com",
+            name: "Booker",
+          });
+
+          const organizer = getOrganizer({
+            name: "Organizer",
+            email: "organizer@example.com",
+            id: 101,
+            schedules: [TestData.schedules.IstWorkHours],
+            credentials: [getGoogleCalendarCredential(), getGoogleMeetCredential()],
+            selectedCalendars: [TestData.selectedCalendars.google],
+            metadata: { defaultConferencingApp: { appSlug: "google-meet" } },
+            teams: [
+              {
+                membership: {
+                  accepted: true,
+                },
+                team: {
+                  id: 1,
+                  name: "Team 1",
+                  slug: "team-1",
+                },
+              },
+            ],
+          });
+          const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+          const uidOfBookingToBeRescheduled = "n5Wv3eHgconAED2j4gcVhP";
+
+          const scenarioData = getScenarioData({
+            webhooks: [
+              {
+                userId: organizer.id,
+                eventTriggers: ["BOOKING_CREATED"],
+                subscriberUrl,
+                active: true,
+                eventTypeId: 1,
+                appId: null,
+              },
+            ],
+            workflows: [
+              {
+                userId: organizer.id,
+                trigger: "RESCHEDULE_EVENT",
+                action: "EMAIL_HOST",
+                template: "REMINDER",
+                activeEventTypeId: 1,
+              },
+            ],
+            eventTypes: [
+              {
+                id: 1,
+                slotInterval: 15,
+                schedulingType: SchedulingType.COLLECTIVE,
+                requiresConfirmation: true,
+                length: 15,
+                teamId: 1,
+                users: [
+                  {
+                    id: 101,
+                  },
+                ],
+                locations: [
+                  {
+                    type: OrganizerDefaultConferencingAppType,
+                  },
+                ],
+                destinationCalendar: {
+                  integration: TestData.apps["google-calendar"].type,
+                  externalId: "event-type-1@google-calendar.com",
+                },
+              },
+            ],
+            bookings: [
+              {
+                uid: uidOfBookingToBeRescheduled,
+                eventTypeId: 1,
+                status: BookingStatus.ACCEPTED,
+                location: BookingLocations.GoogleMeet,
+                startTime: `${plus1DateString}T05:00:00.000Z`,
+                endTime: `${plus1DateString}T05:15:00.000Z`,
+                metadata: { videoCallUrl: "https://UNUSED_URL" },
+                references: [
+                  getMockBookingReference({
+                    type: appStoreMetadata.googlecalendar.type,
+                    uid: "MOCK_ID",
+                    meetingId: "MOCK_ID",
+                    meetingPassword: "MOCK_PASSWORD",
+                    meetingUrl: "https://UNUSED_URL",
+                    externalCalendarId: "MOCK_EXTERNAL_CALENDAR_ID",
+                    credentialId: 1,
+                  }),
+                  getMockBookingReference({
+                    type: appStoreMetadata.googlevideo.type,
+                    uid: "MOCK_ID",
+                    meetingId: "MOCK_ID",
+                    meetingPassword: "MOCK_PASSWORD",
+                    meetingUrl: "https://UNUSED_URL",
+                    externalCalendarId: "MOCK_EXTERNAL_CALENDAR_ID",
+                    credentialId: 1,
+                  }),
+                ],
+              },
+            ],
+            organizer,
+            apps: [TestData.apps["google-calendar"], TestData.apps["google-meet"]],
+          });
+          await createBookingScenario(scenarioData);
+
+          const calendarMock = mockCalendarToHaveNoBusySlots("googlecalendar", {
+            create: {
+              uid: "MOCK_ID",
+            },
+            update: {
+              uid: "UPDATED_MOCK_ID",
+              iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
+            },
+          });
+
+          const mockBookingData = getMockRequestDataForBooking({
+            data: {
+              eventTypeId: 1,
+              rescheduleUid: uidOfBookingToBeRescheduled,
+              start: `${plus1DateString}T04:00:00.000Z`,
+              end: `${plus1DateString}T04:15:00.000Z`,
+              responses: {
+                email: booker.email,
+                name: booker.name,
+                location: { optionValue: "", value: OrganizerDefaultConferencingAppType },
+              },
+            },
+          });
+
+          const { req } = createMockNextJsRequest({
+            method: "POST",
+            body: mockBookingData,
+          });
+
+          const createdBooking = await handleNewBooking(req);
+          console.log("createdBooking", createdBooking);
+
+          expect(createdBooking.responses).toContain({
+            email: booker.email,
+            name: booker.name,
+          });
+
+          await expectBookingInDBToBeRescheduledFromTo({
+            from: {
+              uid: uidOfBookingToBeRescheduled,
+            },
+            to: {
+              description: "",
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+              uid: createdBooking.uid!,
+              eventTypeId: mockBookingData.eventTypeId,
+              // Rescheduled booking sill stays in pending state
+              status: BookingStatus.PENDING,
+              location: BookingLocations.GoogleMeet,
+              responses: expect.objectContaining({
+                email: booker.email,
+                name: booker.name,
+              }),
+              references: [
+                {
+                  type: appStoreMetadata.googlecalendar.type,
+                  uid: "MOCK_ID",
+                  meetingId: "MOCK_ID",
+                  meetingPassword: "MOCK_PASSWORD",
+                  meetingUrl: "https://UNUSED_URL",
+                  externalCalendarId: "MOCK_EXTERNAL_CALENDAR_ID",
+                },
+              ],
+            },
+          });
+
+          expectWorkflowToBeTriggered({ emails, organizer });
+
+          expectBookingRequestedEmails({
+            booker,
+            organizer,
+            emails,
+          });
+
+          expectBookingRequestedWebhookToHaveBeenFired({
+            booker,
+            organizer,
+            location: OrganizerDefaultConferencingAppType,
+            subscriberUrl,
+            eventType: scenarioData.eventTypes[0],
+          });
+
+          expectSuccessfulCalendarEventDeletionInCalendar(calendarMock, {
+            externalCalendarId: "MOCK_EXTERNAL_CALENDAR_ID",
+            calEvent: {},
+            uid: "MOCK_ID",
           });
         },
         timeout
