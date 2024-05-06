@@ -6,7 +6,7 @@ import logger from "@calcom/lib/logger";
 import { createWebhookSignature, jsonParse } from "./sendPayload";
 
 export async function handleWebhookScheduledTriggers(prisma: PrismaClient) {
-  const test = await prisma.webhookScheduledTriggers.deleteMany({
+  await prisma.webhookScheduledTriggers.deleteMany({
     where: {
       startAfter: {
         lte: dayjs().subtract(1, "day").toDate(),
