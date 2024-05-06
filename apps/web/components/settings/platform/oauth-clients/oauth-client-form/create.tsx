@@ -7,7 +7,7 @@ import { PERMISSIONS_GROUPED_MAP } from "@calcom/platform-constants/permissions"
 import { showToast } from "@calcom/ui";
 import { Button, TextField, Label, Tooltip } from "@calcom/ui";
 
-import { useCreateOAuthClient } from "@lib/hooks/settings/organizations/platform/oauth-clients/usePersistOAuthClient";
+import { useCreateOAuthClient } from "@lib/hooks/settings/platform/oauth-clients/usePersistOAuthClient";
 
 type FormValues = {
   name: string;

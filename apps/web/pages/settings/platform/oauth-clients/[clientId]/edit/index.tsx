@@ -5,8 +5,8 @@ import Shell from "@calcom/features/shell/Shell";
 import { PERMISSIONS_GROUPED_MAP } from "@calcom/platform-constants";
 import { showToast } from "@calcom/ui";
 
-import { useOAuthClient } from "@lib/hooks/settings/organizations/platform/oauth-clients/useOAuthClients";
-import { useUpdateOAuthClient } from "@lib/hooks/settings/organizations/platform/oauth-clients/usePersistOAuthClient";
+import { useOAuthClient } from "@lib/hooks/settings/platform/oauth-clients/useOAuthClients";
+import { useUpdateOAuthClient } from "@lib/hooks/settings/platform/oauth-clients/usePersistOAuthClient";
 
 import PageWrapper from "@components/PageWrapper";
 import type { FormValues } from "@components/settings/platform/oauth-clients/oauth-client-form";

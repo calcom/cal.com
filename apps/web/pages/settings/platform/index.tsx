@@ -7,11 +7,11 @@ import { showToast } from "@calcom/ui";
 import {
   useOAuthClients,
   useGetOAuthClientManagedUsers,
-} from "@lib/hooks/settings/organizations/platform/oauth-clients/useOAuthClients";
+} from "@lib/hooks/settings/platform/oauth-clients/useOAuthClients";
 import {
   useDeleteOAuthClient,
   useCheckTeamBilling,
-} from "@lib/hooks/settings/organizations/platform/oauth-clients/usePersistOAuthClient";
+} from "@lib/hooks/settings/platform/oauth-clients/usePersistOAuthClient";
 import useMeQuery from "@lib/hooks/useMeQuery";
 
 import PageWrapper from "@components/PageWrapper";

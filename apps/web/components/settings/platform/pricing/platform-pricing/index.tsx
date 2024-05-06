@@ -2,7 +2,7 @@ import { useRouter } from "next/navigation";
 
 import { showToast } from "@calcom/ui";
 
-import { useSubscribeTeamToStripe } from "@lib/hooks/settings/organizations/platform/oauth-clients/usePersistOAuthClient";
+import { useSubscribeTeamToStripe } from "@lib/hooks/settings/platform/oauth-clients/usePersistOAuthClient";
 
 import { platformPlans } from "@components/settings/platform/platformUtils";
 import { PlatformBillingCard } from "@components/settings/platform/pricing/billing-card";

@@ -1,7 +1,7 @@
 import type { PlatformOAuthClient } from "@calcom/prisma/client";
 import { EmptyScreen } from "@calcom/ui";
 
-import type { ManagedUser } from "@lib/hooks/settings/organizations/platform/oauth-clients/useOAuthClients";
+import type { ManagedUser } from "@lib/hooks/settings/platform/oauth-clients/useOAuthClients";
 
 import { OAuthClientsDropdown } from "@components/settings/platform/dashboard/oauth-client-dropdown";
 
