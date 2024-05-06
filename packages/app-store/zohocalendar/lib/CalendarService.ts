@@ -56,6 +56,11 @@ export default class ZohoCalendarService implements Calendar {
 
         const token = await res.json();
 
+        // Revert if access_token is not present
+        if (!token.access_token) {
+          throw new Error("Invalid token response");
+        }
+
         const key: ZohoAuthCredentials = {
           access_token: token.access_token,
           refresh_token: zohoCredentials.refresh_token,
@@ -260,6 +265,37 @@ export default class ZohoCalendarService implements Calendar {
     );
   }
 
+  private async getUnavailability(
+    range: { start: string; end: string },
+    calendarId: string
+  ): Promise<Array<{ start: string; end: string }>> {
+    const query = stringify({
+      range: JSON.stringify(range),
+    });
+    this.log.debug("getUnavailability query", query);
+    try {
+      // List all events within the range
+      const response = await this.fetcher(`/calendars/${calendarId}/events?${query}`);
+      const data = await this.handleData(response, this.log);
+
+      // Check for no data scenario
+      if (!data.events || data.events.length === 0) return [];
+
+      return (
+        data.events
+          .filter((event: any) => event.isprivate === false)
+          .map((event: any) => {
+            const start = dayjs(event.dateandtime.start, "YYYYMMDD[T]HHmmssZ").utc().toISOString();
+            const end = dayjs(event.dateandtime.end, "YYYYMMDD[T]HHmmssZ").utc().toISOString();
+            return { start, end };
+          }) || []
+      );
+    } catch (error) {
+      this.log.error(error);
+      return [];
+    }
+  }
+
   async getAvailability(
     dateFrom: string,
     dateTo: string,
@@ -296,7 +332,22 @@ export default class ZohoCalendarService implements Calendar {
           originalEndDate.format("YYYYMMDD[T]HHmmss[Z]"),
           userInfo.Email
         );
-        return busyData;
+
+        const unavailabilityData = await Promise.all(
+          queryIds.map((calendarId) =>
+            this.getUnavailability(
+              {
+                start: originalStartDate.format("YYYYMMDD[T]HHmmss[Z]"),
+                end: originalEndDate.format("YYYYMMDD[T]HHmmss[Z]"),
+              },
+              calendarId
+            )
+          )
+        );
+
+        const unavailability = unavailabilityData.flat();
+
+        return busyData.concat(unavailability);
       } else {
         // Zoho only supports 31 days of freebusy data
         const busyData = [];
@@ -316,6 +367,22 @@ export default class ZohoCalendarService implements Calendar {
               userInfo.Email
             ))
           );
+
+          const unavailabilityData = await Promise.all(
+            queryIds.map((calendarId) =>
+              this.getUnavailability(
+                {
+                  start: startDate.format("YYYYMMDD[T]HHmmss[Z]"),
+                  end: endDate.format("YYYYMMDD[T]HHmmss[Z]"),
+                },
+                calendarId
+              )
+            )
+          );
+
+          const unavailability = unavailabilityData.flat();
+
+          busyData.push(...unavailability);
 
           startDate = endDate.add(1, "minutes");
           endDate = startDate.add(30, "days");
