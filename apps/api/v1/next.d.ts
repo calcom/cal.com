@@ -13,7 +13,6 @@ export declare module "next" {
     // query: Partial<{ [key: string]: string | string[] }>;
     isSystemWideAdmin: boolean;
     isOrganizationOwnerOrAdmin: boolean;
-    isTeamOwnerOrAdmin: boolean;
     pagination: { take: number; skip: number };
   }
 }

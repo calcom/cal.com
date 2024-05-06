@@ -40,7 +40,7 @@ describe("Verify API key", () => {
     };
 
     vi.mocked(checkLicense).mockResolvedValue(false);
-    vi.mocked(isAdminGuard).mockResolvedValue(false);
+    vi.mocked(isAdminGuard).mockResolvedValue({ isAdmin: false, scope: null });
 
     const serverNext = vi.fn((next: void) => Promise.resolve(next));
 
@@ -62,7 +62,7 @@ describe("Verify API key", () => {
     };
 
     vi.mocked(checkLicense).mockResolvedValue(true);
-    vi.mocked(isAdminGuard).mockResolvedValue(false);
+    vi.mocked(isAdminGuard).mockResolvedValue({ isAdmin: false, scope: null });
 
     const serverNext = vi.fn((next: void) => Promise.resolve(next));
 
