@@ -14,7 +14,7 @@ concurrency:
 jobs:
   changes:
     name: Detect changes
-    runs-on: buildjet-4vcpu-ubuntu-2204
+    runs-on: buildjet-2vcpu-ubuntu-2204
     permissions:
       pull-requests: read
     outputs:
@@ -108,7 +108,7 @@ jobs:
   required:
     needs: [changes, lint, type-check, test, build, build-api-v1, e2e, e2e-embed, e2e-embed-react, e2e-app-store]
     if: always()
-    runs-on: buildjet-4vcpu-ubuntu-2204
+    runs-on: buildjet-2vcpu-ubuntu-2204
     steps:
       - name: fail if conditional jobs failed
         if: needs.changes.outputs.has-files-requiring-all-checks == 'true' && (contains(needs.*.result, 'failure') || contains(needs.*.result, 'skipped') || contains(needs.*.result, 'cancelled'))
