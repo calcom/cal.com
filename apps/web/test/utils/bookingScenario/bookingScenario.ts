@@ -1104,6 +1104,12 @@ export function mockNoTranslations() {
   });
 }
 
+export const enum BookingLocations {
+  CalVideo = "integrations:daily",
+  ZoomVideo = "integrations:zoom",
+  GoogleMeet = "integrations:google:meet",
+}
+
 /**
  * @param metadataLookupKey
  * @param calendarData Specify uids and other data to be faked to be returned by createEvent and updateEvent
@@ -1184,18 +1190,40 @@ export function mockCalendar(
               log.silly("mockCalendar.updateEvent", JSON.stringify({ uid, event, externalCalendarId }));
               // eslint-disable-next-line prefer-rest-params
               updateEventCalls.push(rest);
-              return Promise.resolve({
-                type: app.type,
-                additionalInfo: {},
-                uid: "PROBABLY_UNUSED_UID",
-                iCalUID: normalizedCalendarData.update?.iCalUID,
+              if (event.location === BookingLocations.GoogleMeet) {
+                return Promise.resolve({
+                  type: app.type,
+                  additionalInfo: {},
+                  uid: "PROBABLY_UNUSED_UID",
+                  iCalUID: normalizedCalendarData.update?.iCalUID,
 
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                id: normalizedCalendarData.update?.uid || "FALLBACK_MOCK_ID",
-                // Password and URL seems useless for CalendarService, plan to remove them if that's the case
-                password: "MOCK_PASSWORD",
-                url: "https://UNUSED_URL",
-              });
+                  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                  id: normalizedCalendarData.update?.uid || "FALLBACK_MOCK_ID",
+                  // Password and URL seems useless for CalendarService, plan to remove them if that's the case
+                  password: "MOCK_PASSWORD",
+                  url: "https://UNUSED_URL",
+                  location: "https://UNUSED_URL",
+                  hangoutLink: "https://UNUSED_URL",
+                  conferenceData: event.conferenceData,
+                  organizer: {
+                    email: event.organizer.email,
+                    self: true,
+                  },
+                });
+              } else {
+                return Promise.resolve({
+                  type: app.type,
+                  additionalInfo: {},
+                  uid: "PROBABLY_UNUSED_UID",
+                  iCalUID: normalizedCalendarData.update?.iCalUID,
+
+                  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                  id: normalizedCalendarData.update?.uid || "FALLBACK_MOCK_ID",
+                  // Password and URL seems useless for CalendarService, plan to remove them if that's the case
+                  password: "MOCK_PASSWORD",
+                  url: "https://UNUSED_URL",
+                });
+              }
             },
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             deleteEvent: async (...rest: any[]) => {
@@ -1505,12 +1533,6 @@ export function getMockBookingAttendee(
     locale: attendee.locale,
     bookingSeat: attendee.bookingSeat || null,
   };
-}
-
-export const enum BookingLocations {
-  CalVideo = "integrations:daily",
-  ZoomVideo = "integrations:zoom",
-  GoogleMeet = "integrations:google:meet",
 }
 
 const getMockAppStatus = ({

@@ -1868,8 +1868,6 @@ async function handler(
             });
           }
 
-          console.log("googleCalResult.googleCalResult", googleCalResult);
-
           const googleHangoutLink =
             googleCalResult?.createdEvent?.hangoutLink ??
             (Array.isArray(googleCalResult?.updatedEvent)
