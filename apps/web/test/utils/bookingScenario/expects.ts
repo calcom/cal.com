@@ -975,6 +975,44 @@ export function expectBookingRescheduledWebhookToHaveBeenFired({
   });
 }
 
+export function expectBookingCancelledWebhookToHaveBeenFired({
+  booker,
+  location,
+  subscriberUrl,
+  payload,
+}: {
+  organizer: { email: string; name: string };
+  booker: { email: string; name: string };
+  subscriberUrl: string;
+  location: string;
+  payload?: Record<string, unknown>;
+}) {
+  expectWebhookToHaveBeenCalledWith(subscriberUrl, {
+    triggerEvent: "BOOKING_CANCELLED",
+    payload: {
+      ...payload,
+      metadata: null,
+      responses: {
+        booker: {
+          label: "your_name",
+          value: booker.name,
+          isHidden: false,
+        },
+        email: {
+          label: "email_address",
+          value: booker.email,
+          isHidden: false,
+        },
+        location: {
+          label: "location",
+          value: { optionValue: "", value: location },
+          isHidden: false,
+        },
+      },
+    },
+  });
+}
+
 export function expectBookingPaymentIntiatedWebhookToHaveBeenFired({
   booker,
   location,
