@@ -937,8 +937,6 @@
   "verify_wallet": "Wallet verifiëren",
   "create_events_on": "Maak gebeurtenissen aan in de",
   "enterprise_license": "Dit is een bedrijfsfunctie",
-  "enterprise_license_description": "Om deze functie in te schakelen, krijgt u een implementatiesleutel op de {{consoleUrl}}-console en voegt u deze toe aan uw .env als CALCOM_LICENSE_KEY. Als uw team al een licentie heeft, neem dan contact op met {{supportMail}} voor hulp.",
-  "enterprise_license_development": "U kunt deze functie testen in de in ontwikkelingsmodus. Voor productiegebruik moet een beheerder naar <2>/auth/setup</2> gaan om een licentiecode in te voeren.",
   "missing_license": "Ontbrekende licentie",
   "next_steps": "Volgende stappen",
   "acquire_commercial_license": "Verkrijg een commerciële licentie",
