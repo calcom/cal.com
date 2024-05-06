@@ -1,0 +1,46 @@
+---
+title: "How to sync third party apps with a self-hosted Cal.com instance"
+---
+
+
+
+1. Add the required variables in your `.env` file
+    1. `CALCOM_WEBHOOK_SECRET` 
+        1. You can generate this by running `openssl rand -base64 32`. This is required when sending 3rd party app credentials from your platform to your instance of Cal.com.
+    2. On your self-hosted instance of Cal.com visit settings/admin/apps under an admin account. Here you can enable/disable apps on Cal.com and set the app keys (client id, client secret, etc.). These keys should match the ones on your platform.
+    3. `CALCOM_WEBHOOK_HEADER_NAME` 
+        1. The header name is expected to contain the webhook secret. The default is `calcom-webhook-secret` 
+    5. `CALCOM_CREDENTIAL_SYNC_ENDPOINT`
+        1. The endpoint on your platform that your instance of [Cal.com](http://Cal.com) will make a request to if the 3rd party app credentials are expired.
+    5. `CALCOM_APP_CREDENTIAL_ENCRYPTION_KEY`
+        1. When sending 3rd party app credentials between your platform and your instance Cal.com, we expect these to be encrypted using AES256. When you encrypt the 3rd party app credentials, ensure the same key is used.
+2. When a user adds a 3rd party app on your platform, you should send the credentials that are created to your instance of [Cal.com](http://Cal.com) to `${CALCOM_WEBAPP_URL}/api/webhook/app-credential` . The payload should contain the following
+
+    ```javascript
+    {
+      // UserId of the Cal.com user
+      userId: number;
+
+      // The app slug that is on Cal.com. 
+      // Can be found in the Cal.com database in the App table
+      appSlug: string;
+
+      // The credentials from the 3rd party app. (ex. Access token, refresh token).
+      // Ideally it should contain the access token and expiry date
+      // AES256 encrypted with CALCOM_APP_CREDENTIAL_ENCRYPTION_KEY
+      keys: string;
+    }
+    ```
+3. When [Cal.com](http://Cal.com) needs to refresh the app credentials it will make a request to `CALCOM_CREDENTIAL_SYNC_ENDPOINT`. The request contains the following.
+
+    ```javascript
+    {
+      calcomUserId: string;
+      // App slug on Cal.com
+      appSlug: string;
+    }
+    ```
+
+{% note %}
+This only works if you have integrated [Cal.com](http://cal.com/) into your platform. Users **must** consent to give access to your platform, and you are simply using [Cal.com](http://cal.com/)'s code within your platform.
+{% /note %}

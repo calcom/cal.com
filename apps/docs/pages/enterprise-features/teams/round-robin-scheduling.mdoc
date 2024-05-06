@@ -1,0 +1,39 @@
+---
+title: "Round-robin scheduling"
+---
+{% label type="paid"/%}
+
+Round robin event type allows you to distribute the meetings amongst team members based on one the optimization methods. At the moment, it is based on availability, so it optimises all options regardless of individual load. So, the booking will be assigned to the person least recently booked.
+
+{% youtube src="https://www.youtube.com/watch?v=93iOmzHieCU" /%}
+
+### Underlying Mechanism
+The round robin events when **not** using a common schedule offer slots which are formed using the union of all slots available for each round robin host. Once an available slot is chosen by the scheduler, the underlying mechanism of host assignment kicks in. The mechanism has a couple of options:
+
+{% img src="/docs/images/i1600x900-C_UH53xMxD-i_qiunh8.png" /%}
+
+#### Priority Ranking
+Every round-robin host has a priority, by default 'medium'. The priority level assigned to a host directly influences their likelihood of being selected for bookings. A higher priority signals a stronger preference, positioning them as a more desirable option for hosting duties. This system ensures that hosts with higher designated priorities are given precedence in the booking process, optimizing the allocation of resources and streamlining event organization.
+
+For instance, if John Doe & Jane Doe are both available in the same slot, but John has a priority `High` compared to Jane's priority of `Medium`, John will be booked. If several users have the same priority it will choose the least recently booked user.
+
+You have the option to select priority for each host and based on their priority (and availability in the selected slot), the hosts will be booked.
+{%img src="/docs/images/i1600x900-sPtSh0GS1Fh8_uxplud.png" /%}
+
+#### Least Recently Booked
+
+This is the fallback where the round robin host available on the selected slot & was least recently booked is chosen. If there are more than one hosts fulfilling this criteria, one of them is chosen at random. 
+
+### Fixed hosts
+
+If you wish to bring in Collective behavior into round-robin events, it is possible with Cal.com. You can now select which hosts you wish to always attend the meeting whilst the other selected team members who are booked on a round-robin basis.
+
+{% img src="/docs/images/i1600x899-2GVNR4Q0fjRI_smxuoj.png" /%}
+
+{% note %}
+**Fixed Hosts** are individuals who are consistently present at every meeting.
+
+**Round-Robin Hosts** are members of a group who take turns attending meetings. Rather than everyone in this group attending every meeting, only one person from the group will attend each time.
+{% /note %}
+
+For tasks like scheduling sales calls or product demos, where you have a pool of people among whom you'd like to distribute meetings, round robin is the perfect choice.

@@ -1,0 +1,100 @@
+---
+title: "Workflows"
+---
+{% label type="free-cloud"/%}
+
+Workflows allow you to automate notifications and reminders. A workflow can be attached to different event types, has one specific trigger event, and can have several action steps. For example, you can use workflows for sending email or SMS reminders before an event starts to the person who booked the meeting to avoid no-shows.
+
+Workflows can also be used for sending follow-up emails or SMS messages to the attendee after a meeting ends. That could be a feedback survey, providing some additional information to the meeting, or just a simple thank you note.
+
+Each Workflow is made up of a single trigger and one or more actions. Triggers include things like the cancellation of an event, start times, end times, and new bookings.
+
+{% img src="/docs/images/1667924409-dynamic-workflows_puiikg.svg" /%}
+
+### Triggers
+
+* Minutes/Hours/Days before an event starts
+* When an event is cancelled
+* When a new event is booked
+* Minutes/Hours/Days after an event ends
+* When event is rescheduled
+
+{% img src="/docs/images/i634x321-1Yns9vlEhaTg_uwwwlk.png" /%}
+
+### Actions
+
+* Send an email to the host
+* Send an email to the attendee
+* Send an SMS to the attendee
+* Send an SMS to a specific number
+* Send Whatsapp message to the attendee
+* Send Whatsapp message to a specific number
+
+Actions are a designated notification type. For example, sending a reminder to an attendee, a specific phone number or an email address.
+
+{% img src="/docs/images/i631x742-lNQTiHBjCByM_atlmdf.png" /%}
+
+#### Custom template
+
+You can either use the default template for the email/SMS or even use a custom template and use additional inputs as variables within that
+
+{% img src="/docs/images/i613x610-AY-VfSOKXkSF_nbmcsu.png" /%}
+
+
+The Workflow system also lets you choose between using Cal.com’s default message template or creating a custom one.
+
+#### Dynamic text variables
+
+{% note type="info" %}
+If the location is a video conferencing app then the {LOCATION} would be ‘Zoom’ or ‘Google Meet’ and {MEETING_URL} would be the actual link to the meeting. If the location is not a video conferring app then {MEETING_URL} is empty.
+{% /note %}
+
+{% table %}
+* VARIABLE
+* Description
+---
+* {EVENT_NAME}
+* The event type name
+---
+* {EVENT_DATE}
+* The event date
+---
+* {EVENT_TIME}
+* The event start time
+---
+* {LOCATION}
+* The event location
+---
+* {ORGANIZER}
+* Organizer’s name
+---
+* {ATTENDEE}
+* The attendee's name
+---
+* {ATTENDEE_EMAIL}
+* The attendee's email
+---
+* {ADDITIONAL_NOTES}
+* The additional notes of booking
+---
+* {MEETING_URL}
+* The link to the meeting if Location is Zoom or Google Meet
+---
+* {EVENT_END_TIME}
+* The event end time
+---
+* {TIMEZONE}
+* Timezone of the person receiving the message
+---
+* {CANCEL_URL}
+* The URL to cancel the booking
+---
+* {RESCHEDULE_URL}
+* The URL to reschedule the booking
+{% /table %}
+
+Workflow is one of many tools that Cal.com users can take advantage of in order to simplify scheduling, save time, and focus on what really matters.
+
+{% note type="info" %}
+The SMS/Whatsapp action to specific numbers is only available for Teams, Enterprise and Platform plans except SMS/Whatsapp to attendee which is only available to orgs
+{% /note %}

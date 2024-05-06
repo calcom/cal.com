@@ -1,0 +1,68 @@
+---
+title: "How to use OAuth to authorize apps with cal.com accounts"
+---
+
+As an example, you can view our OAuth flow in action on Zapier. Try to connect your cal.com account [here](https://zapier.com/apps/calcom/integrations).
+To enable OAuth in one of your apps, you will need a Client ID, Client Secret, Authorization URL, Access Token Request URL, and Refresh Token Request URL.
+
+### OAuth Client Credentials
+Only the cal.com team can create new OAuth clients. Please contact us at [support@cal.com](mailto:support@cal.com) with the following details: client name, redirect URI (provided by the app), app logo, and a link to the app.
+
+The Cal.com team will register the app and provide you with the Client ID and Client Secret. Keep these credentials confidential and secure.
+
+### Authorization URL
+To initiate the OAuth flow, direct users to the following authorization URL:
+- `https://app.cal.com/auth/oauth2/authorize`
+- URL Parameters:
+    - *client_id*
+    - *state*: A securely generated random string to mitigate CSRF attacks
+    - *redirect_uri*: This is where users will be redirected after authorization
+    - *scope*: Specify the required scopes. Current scopes include READ_BOOKING and READ_PROFILE. Additional scopes can be added as needed.
+
+After users click *Allow*, they will be redirected to the redirect_uri with the code (authorization code) and state as URL parameters.
+
+### Access Token Request
+Endpoint: `POST https://app.cal.com/api/auth/oauth/token`
+
+Request Body:
+- *code*: The authorization code received in the redirect URI
+- *client_id*
+- *client_secret*
+- *grant_type*: "authorization_code"
+- *redirect_uri*
+
+Response: 
+```
+{
+    access_token: “exampleAccessToken”
+    refresh_token: “exampleRefreshToken”
+}
+```
+
+### Refresh Token Request
+Endpoint: `POST https://app.cal.com/api/auth/oauth/refreshToken`
+
+Request Body:
+- *grant_type*: "refresh_token"
+- *client_id*
+- *client_secret*
+
+Response:
+```
+{
+    access_token: “exampleAccessToken”
+}
+```
+
+### Testing OAuth Credentials
+To verify the correct setup and functionality of OAuth credentials you can use the following endpoint:
+`GET https://app.cal.com/api/auth/oauth/me`
+
+Headers:
+- Authorization: Bearer *exampleAccessToken*
+
+
+### Authorize requests with Bearer token
+Ensure that Cal.com endpoints accessed by the app support authentication via Bearer Token. 
+If this is not the case, it will be necessary to update the code accordingly.
+Here is an example of an endpoint that supports both apiKey and Bearer token authentication: [/listBookings endpoint](https://github.com/calcom/cal.com/blob/main/packages/app-store/zapier/api/subscriptions/listBookings.ts)

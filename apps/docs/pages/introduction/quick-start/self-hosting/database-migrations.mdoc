@@ -1,0 +1,58 @@
+---
+title: "Database migrations"
+---
+
+As described in the [upgrade guide](https://cal.com/docs/introduction/quick-start/self-hosting/upgrading), you should use the `yarn workspace @calcom/prisma db-migrate`or `yarn workspace @calcom/prisma db-deploy` command to update the database.
+
+We use database migrations in order to handle changes to the database schema in a more secure and stable way. This is actually very common. The thing is that when just changing the schema in `schema.prisma` without creating migrations, the update to the newer database schema can damage or delete all data in production mode, since the system sometimes doesn't know how to transform the data from A to B. Using migrations, each step is reproducable, transparent and can be undone in a simple way.
+
+### Creating migrations
+
+If you are modifying the codebase and make a change to the `schema.prisma` file, you must create a migration.
+
+To create a migration for your previously changed `schema.prisma`, simply run the following:
+
+```
+yarn workspace @calcom/prisma db-migrate
+```
+
+Now, you must create a short name for your migration to describe what changed (for example, "user_add_email_verified"). Then just add and commit it with the corresponding code that uses your new database schema.
+
+{% note type="error" %}**Always keep an eye on what migrations Prisma is generating.** Prisma often happily will drop entire columns of data because it can't figure out what to do.{% /note %}
+
+### Error: The database schema is not empty
+
+Prisma uses a database called `_prisma_migrations` to keep track of which migrations have been applied and which haven't. If your local migrations database doesn't match up with what's in the actual database, then Prisma will throw the following error:
+
+```
+Error: P3005
+
+The database schema for `localhost:5432` is not empty. Read more about how to baseline an existing production database: https://pris.ly/d/migrate-baseline
+```
+
+In order to fix this, we need to tell Prisma which migrations have already been applied.
+
+This can be done by running the following command, replacing `migration_name` with each migration that you have already applied:
+
+```
+yarn prisma migrate resolve --applied migration_name
+```
+
+You will need to run the command for each migration that you want to mark as applied.
+
+### Resetting Prisma migrate
+
+When your local Prisma database runs out of sync with migrations on local and you are tearing your hair out, I’ve been there, so you don’t have to:
+
+**PostgreSQL**
+
+```
+DELETE FROM "_prisma_migrations";
+```
+
+**Quickly re-index**
+
+```
+# Run the following to easily apply all migrations in the prisma/migrations directory
+ls -1a prisma/migrations/ | grep 2021 | xargs -I{} prisma migrate resolve --applied {}
+```

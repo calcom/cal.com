@@ -1,0 +1,17 @@
+---
+title: "Authentication"
+---
+
+The Cal.com API uses API keys to authenticate requests. You can view and manage your API keys in your settings page under the security tab in Cal.com.
+
+{% img src="/docs/images/i1600x899-DllqhV6w_3Vj_oxtjov.png" /%}
+
+API Keys are under Settings > Security
+
+Test mode secret keys have the prefix `cal_` and live mode secret keys have the prefix `cal_live_`.
+
+Your API keys carry many privileges, so be sure to keep them secure! Do not share your secret API keys in publicly accessible areas such as GitHub, client-side code, and so forth.
+
+Authentication to the API is performed via URL Query Params. Provide your API key as a query param like: `https://api.cal.com/v1/?apiKey=cal_live_xxxxxx`
+
+All API requests must be made over HTTPS. Calls made over plain HTTP will fail. API requests without authentication will also fail.

@@ -1,0 +1,186 @@
+---
+title: "Installation"
+---
+
+There are multiple ways in which you can deploy Cal.com, providing support for customers who want to implement Cal.com within their existing infrastructure stack. Let's go through them one-by-one. You can find the instructions for deployment in our README file, which is the section you see when you scroll down in our GitHub repository, or if you've got a copy of Cal.com downloaded already, you can open the file contained in the downloaded repository called `README.md`.
+
+## Requirements
+
+Cal.com runs with pretty minimal hardware requirements by itself. The most intensive part for the software is when you actually build the software, but once it's running it's relatively lightweight.
+
+Cal.com works with a very large range of operating systems, as it only requires JavaScript execution to run. **Cal.com is known to work well with Windows, Mac, Linux and BSD.** Although they do work well on all of them, for production deployments we would suggest Linux as the ideal platform. Any operating system that runs Node.js should be able to work too, but these are some of the common operating systems that we know work well.
+
+To run Cal.com, you need to install a few things. **Node.js, yarn, Git and PostgreSQL**. We use **Prisma** for database maintenance, and is one of the dependencies. We won’t publish installation guides for these as they have their own resources available on the internet. If you're on Linux/BSD, all of these things should be readily available on your package manager. Your best bet is searching for something like **Debian 12 PostgreSQL**, which will give you a guide to installing and configuring PostgreSQL on Debian Linux 12.
+
+{% note %}
+To ensure optimal performance and compatibility, we highly recommend using Node.js version 18 for your development environment. This version provides the best balance of stability, features, and security for this project. Please make sure to update your Node.js installation if necessary.
+{% /note %}
+
+## Prisma Data Proxy
+
+To use cal.com with prisma data proxy, you can:
+1. Set in the .env file
+    ```
+    PRISMA_GENERATE_DATAPROXY=true
+    ```
+2. Set **DATABASE_URL** in the .env file equal to the prisma connection string
+    ```
+    DATABASE_URL="prisma://****:****@****"
+    ```
+
+## Development Setup & Production Build
+
+1. **First, you git clone the repository** with the following command, so you have a copy of the code.
+    ```
+    git clone https://github.com/calcom/cal.com.git
+    ```
+
+{% note type="warning" %}
+If you are on windows, you would need to use the following command when cloning, with **admin privileges**:
+```
+git clone -c core.symlinks=true https://github.com/calcom/cal.com.git
+```
+{% /note %}
+
+2. Then, go into the directory you just cloned with
+    ```
+    cd cal.com
+    ```
+    and run
+    ```
+    yarn
+    ```
+    to install all of the dependencies. Essentially, dependencies are just things that Cal.com needs to install to be able to work.
+
+3. Then, you just need to set up a couple of things. For that, we use a `.env` file. We just need to copy and paste the `.env.example` file and rename the copy to `.env`. Here you'll have a template with comments showing you the settings you need/might want to set.
+
+{% note %}
+For preview deployments on **Vercel**, please leave the following environment variables empty:
+ - **NEXTAUTH_URL**
+ - **NEXT_PUBLIC_WEBSITE_URL**
+ - **NEXT_PUBLIC_WEBAPP_URL**
+{% /note %}
+
+4. Next, use the command
+    ```
+    openssl rand -base64 32
+    ```
+    (or another secret generator tool if you prefer) to generate a key and add it under `NEXTAUTH_SECRET` in the .env file.
+
+5. You'll also want to fill out the `.env.appStore` file similar to the `.env` file as this includes keys to enable apps.
+
+**Development tips**
+
+> Add `NEXT_PUBLIC_DEBUG=1` anywhere in your `.env` to get logging information for all the queries and mutations driven by **trpc**.
+
+```
+echo 'NEXT_PUBLIC_DEBUG=1' >> .env
+```
+
+> For email testing, set it to "1" if you need to email checks in E2E tests locally. Make sure to run mailhog container manually or with `yarn dx`.
+
+```
+echo 'E2E_TEST_MAILHOG_ENABLED=1' >> .env
+```
+
+
+
+**Manual setup**
+
+1. Configure environment variables in the .env file. Replace `<user>`, `<pass>`, `<db-host>`, `<db-port>` with their applicable values
+
+    ```
+    DATABASE_URL='postgresql://<user>:<pass>@<db-host>:<db-port>'
+    ```
+
+2. Set a 24 character random string in your .env file for the `CALENDSO_ENCRYPTION_KEY` (You can use a command like
+    ```
+    openssl rand -base64 24
+    ```
+    to generate one).
+
+3. Set up the database using the Prisma schema (found in `apps/web/prisma/schema.prisma`)
+
+    ```
+    yarn workspace @calcom/prisma db-deploy
+    ```
+
+4. Run (in development mode)
+
+    ```
+    yarn dev
+    ```
+
+{% note %}
+When you're testing out the enterprise features locally, you should see a warning shown in the image below, clarifying the need to purchase a license for such features in production.
+{% img src="/docs/images/i1600x900-E4RcIPb1_bYp_hcpsya.png" /%}
+{% /note %}
+
+**Setting up your first user**
+
+In case you didn't use quick start with `yarn dx`, you can set up your first user as follows:
+
+1. Open [Prisma Studio](https://www.prisma.io/studio) to look at or modify the database content:
+
+    ```
+    yarn db-studio
+    ```
+
+2. Click on the `User` model to add a new user record.
+
+3. Fill out the fields `email`, `username`, `password`, and set `metadata` to empty `{}` (remembering to encrypt your password with [BCrypt](https://bcrypt-generator.com/)) and click `Save 1 Record` to create your first user.
+
+4. Open a browser to [http://localhost:3000](http://localhost:3000/) and login with your just created, first user.
+
+#### Production Build
+
+For a production build, **please make sure** to set up [E2E testing](/docs/introduction/quick-start/self-hosting/e2e-testing) and [Upgrading](/docs/introduction/quick-start/self-hosting/upgrading) the database from earlier version, and the proceed to build as follows:
+
+```
+yarn build
+yarn start
+```
+
+{% note type="warning"%} Please make sure to upgrade your database before you build for production {% /note %}
+
+
+## **Development quick start with** **`yarn dx`**
+
+> * **Requires Docker and Docker Compose to be installed**
+>
+>
+> * Will start a local Postgres instance with a few test users - the credentials will be logged in the console
+>
+
+```
+yarn dx
+```
+
+## **Cron Jobs**
+
+There are a few features which require cron job setup. When self-hosting, you would probably need to set up cron jobs according to the hosting platform you are using.
+For instance, if you are hosting on Vercel, you would need to set up cron jobs by following [this document](https://vercel.com/guides/how-to-setup-cron-jobs-on-vercel).
+
+At cal.com, the cron jobs are found in the following directory:
+```
+/apps/web/pages/api/cron
+```
+
+
+## App store seeder
+
+
+
+{% note %}
+We recommend using the admin UI/wizard instead of the seeder to enable app store apps
+{% /note %}
+
+## Vercel
+
+As Cal.com is written in Next.js, Vercel is the perfect platform to host this on (Vercel built Next.js). You can simply follow the [instructions provided by Vercel to get started](https://vercel.com/docs/concepts/get-started). All you do is fork your own version of the repository, click new on Vercel and select the repository. It'll pretty much do the rest for you. The one thing you will need to do is set the environment variables (the .env file). As you can't create a .env file on Vercel, you can go into the settings and manually add each variable. Use the .env.example file for reference as to what you should add. You can learn more about [setting environment variables on Vercel here](https://vercel.com/docs/concepts/projects/environment-variables).
+
+## **Other environments**
+
+Cal.com effectively is just a Next.js application, so any possible solution you find online pertaining to Next.js applications should work. One example is Netlify, which is pretty similar to Vercel. It says it supports Next.js, so you can deploy Cal.com on Netlify. Refer to Netlify's docs on Next.js projects for more info. Another example is on a self hosted instance people may want to configure complex reverse proxies, SSL gateways and all sorts of other stuff. We can't officially support every configuration, but for any edge case where you may want to deploy Cal.com with X, just refer to X's docs on Next.js applications and you should be fine.
+
+That's it. Your new self hosted Cal.com instance should now be up and running.

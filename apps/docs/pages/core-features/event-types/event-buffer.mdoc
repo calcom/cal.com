@@ -1,0 +1,35 @@
+---
+title: "Event buffer"
+---
+{% label /%}
+
+Event buffers are time spaces that can be appended before and/or after an event. This is helpful in scheduling your availability such that you have time to prepare for a meeting, take breather between two meetings/events or to accommodate travel time in case of events on a physical location.
+
+You can customize buffer time for each event so that you can accommodate the needs of that specific event type to further optimize your event type setup.
+
+{% img src="/docs/images/i1600x900-uzADteTYBNdE_dtrrdz.png" /%}
+
+The before event buffer time allows the space of time of chosen length **before** the events being booked on Cal based on your availability. The after event buffer time allows the space of time of chosen length **after** the events being booked on Cal based on your availability. Hidden events are flexible; they can be whatever you need them to be. Whether you want to use hidden events to facilitate sponsorship meetings, organize a fundraising drive, or offer one-on-one mentoring sessions, this feature can help you make the most of your meetings while keeping them out of the public eye.
+
+Event buffers are a great way to maintain a breathing space between multiple events in a day. Buffers are taken into consideration while booking a Cal event, if that Cal event has a buffer time selected. This simply means that buffers cannot overlap Cal events and thus a Cal event with buffer time can only be booked respecting the buffer time (before event, after event or both).
+
+### An example
+
+Given the availability from 9am to 5pm (09:00-17:00) and a 60-minute event with a 30-minute buffer before and a 30-minute buffer after, the total calendar time required for an event is indeed 120 minutes. But the buffer is applied around busy times and **not to the start or end of the working day**.
+
+So, in this scenario (considering you didn't modify the [Custom time-slot intervals](/docs/core-features/event-types/custom-time-slot-intervals) in this example):
+
+1. The first available time slot starts at 9am. The buffer before doesn't push this since there's no preceding busy time.
+2. The event itself is for 60 minutes.
+3. There's a 30-minute buffer before & 30-minute buffer after the event. But again, if there's no following busy time immediately after, this buffer doesn't push the next available slot.
+
+Thus, the sequence is:
+
+- **9:00-10:00am**: First available slot
+- a. **10:00-11:00am**: If Slot 1 is booked, this slot will be blocked as buffer (after) to allow the buffer period relative to the 9-10am slot.
+
+  b. **10:00-11:00am**: If Slot 1 is free, this slot will be free
+
+  c. **10:00-11:00am**: If Slot 2 (10:00-11:00) is booked, since booking slot 1 (9:00-10:00) would imply that there will not be an after buffer (as 10-11 is already booked). Hence, slot 1 will not remain bookable anymore.
+
+You can take a look at our guide to learn [How to set buffer time](/docs/how-to-guides/how-to-set-buffer-time).

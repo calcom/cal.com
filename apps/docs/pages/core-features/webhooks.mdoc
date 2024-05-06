@@ -1,0 +1,254 @@
+---
+title: "Webhooks"
+---
+{% label /%}
+
+Webhooks offer a great way to automate the flow with other apps when invitees schedule, cancel or reschedule events, or when the meeting ends. 
+
+{% youtube src="https://www.youtube.com/watch?v=Yy9me5E09LA" /%}
+
+The webhook subscription allows you to listen to specific trigger events, such as when a booking has been scheduled, for example. You can always listen to the webhook by providing a custom subscriber URL with your own development work. However, if you wish to trigger automations without any development work, you can use the integration with Zapier which connects Cal.com to your apps.
+
+{% note %}
+Please note that the webhooks can be associated with user as well as individual event types, including team event types.
+{% /note %}
+
+### Creating a webhook subscription
+
+To create a new webhook subscription, visit `/settings/developer/webhooks` and proceed to enter the following details:
+
+1. Subscriber URL: The listener URL where the payload will be sent to, when an event trigger is triggered.
+
+2. Event triggers: You can decide which triggers specifically to listen to. Currently, we offer listening to `Booking Cancelled`, `Booking Created`, `Booking Rescheduled`, `Booking Rejected`, `Booking Requested`, `Booking Payment Initiated`, `Booking Paid`, `Meeting Started`, `Recording Ready`, `Form Submitted` and `Meeting Ended`.
+
+3. Secret: You can provide a secret key with this webhook and then [verify it](/docs/core-features/webhooks#verifying-the-authenticity-of-the-received-payload) on the subscriber URL when receiving a payload to confirm if the payload is authentic or adulterated. You can leave it blank, if you don't wish to secure the webhook with a secret key.
+
+4. Custom Payload: You have the option to [customize the payload](/docs/core-features/webhooks#adding-a-custom-payload-template) you receive when a subscribed event is triggered.
+
+### An example webhook payload
+
+```json
+{
+    "triggerEvent": "BOOKING_CREATED",
+    "createdAt": "2023-05-24T09:30:00.538Z",
+    "payload": {
+        "type": "60min",
+        "title": "60min between Pro Example and John Doe",
+        "description": "",
+        "additionalNotes": "",
+        "customInputs": {},
+        "startTime": "2023-05-25T09:30:00Z",
+        "endTime": "2023-05-25T10:30:00Z",
+        "organizer": {
+            "id": 5,
+            "name": "Pro Example",
+            "email": "pro@example.com",
+            "username": "pro",
+            "timeZone": "Asia/Kolkata",
+            "language": {
+                "locale": "en"
+            },
+            "timeFormat": "h:mma"
+        },
+        "responses": {
+            "name": {
+                "label": "your_name",
+                "value": "John Doe"
+            },
+            "email": {
+                "label": "email_address",
+                "value": "john.doe@example.com"
+            },
+            "location": {
+                "label": "location",
+                "value": {
+                    "optionValue": "",
+                    "value": "inPerson"
+                }
+            },
+            "notes": {
+                "label": "additional_notes"
+            },
+            "guests": {
+                "label": "additional_guests"
+            },
+            "rescheduleReason": {
+                "label": "reschedule_reason"
+            }
+        },
+        "userFieldsResponses": {},
+        "attendees": [
+            {
+                "email": "john.doe@example.com",
+                "name": "John Doe",
+                "timeZone": "Asia/Kolkata",
+                "language": {
+                    "locale": "en"
+                }
+            }
+        ],
+        "location": "Calcom HQ",
+        "destinationCalendar": {
+            "id": 10,
+            "integration": "apple_calendar",
+            "externalId": "https://caldav.icloud.com/1234567/calendars/XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX/",
+            "userId": 5,
+            "eventTypeId": null,
+            "credentialId": 1
+        },
+        "hideCalendarNotes": false,
+        "requiresConfirmation": null,
+        "eventTypeId": 7,
+        "seatsShowAttendees": true,
+        "seatsPerTimeSlot": null,
+        "uid": "bFJeNb2uX8ANpT3JL5EfXw",
+        "appsStatus": [
+            {
+                "appName": "Apple Calendar",
+                "type": "apple_calendar",
+                "success": 1,
+                "failures": 0,
+                "errors": [],
+                "warnings": []
+            }
+        ],
+        "eventTitle": "60min",
+        "eventDescription": "",
+        "price": 0,
+        "currency": "usd",
+        "length": 60,
+        "bookingId": 91,
+        "metadata": {},
+        "status": "ACCEPTED"
+    }
+}
+
+```
+
+### Verifying the authenticity of the received payload
+
+1. Simply add a new **secret key** to your webhook and save.
+
+2. Wait for the webhook to be triggered (event created, cancelled, rescheduled, or meeting ended)
+
+3. Use the **secret key** to create an `hmac`, and update that with the webhook payload received to create an SHA256.
+
+4. Compare the hash received in the header of the webhook `(X-Cal-Signature-256)` with the one created using the **secret key** and the body of the payload. If they don't match, the received payload was adulterated and cannot be trusted.
+
+### Adding a custom payload template
+
+Customizable webhooks are a great way reduce the development effort and in many cases remove the need for a developer to build an additional integration service.
+
+An example of a custom payload template is provided here:
+
+```json
+{
+  "content": "A new event has been scheduled",
+  "type": "{{type}}",
+  "name": "{{title}}",
+  "organizer": "{{organizer.name}}",
+  "booker": "{{attendees.0.name}}"
+}
+```
+
+where `{{type}}` represents the event type slug and `{{title}}` represents the title of the event type. Note that the variables should be added with a double parenthesis as shown above. Here’s a breakdown of the payload that you would receive via an incoming webhook, with an exhaustive list of all the supported variables provided below:
+
+#### Webhook variable list
+
+{% table %}
+* Variable
+* Type
+* Description
+---
+* triggerEvent
+* String
+* The name of the trigger event [BOOKING_CREATED, BOOKING_RESCHEDULED, BOOKING_CANCELLED, MEETING_ENDED, BOOKING_REJECTED, BOOKING_REQUESTED, BOOKING_PAYMENT_INITIATED, BOOKING_PAID, MEETING_STARTED, RECORDING_READY, FORM_SUBMITTED]
+---
+* createdAt
+* Datetime
+* The Time of the webhook
+---
+* type
+* String
+* The event type slug
+---
+* title
+* String
+* The event type name
+---
+* startTime
+* Datetime
+* The event's start time
+---
+* endTime
+* Datetime
+* The event's end time
+---
+* description
+* String
+* The event's description as described in the event type settings
+---
+* location
+* String
+* Location of the event
+---
+* organizer
+* Person
+* The organizer of the event
+---
+* attendees
+* Person[]
+* The event booker & any guests
+---
+* uid
+* String
+* The UID of the booking
+---
+* rescheduleUid
+* String
+* The UID for rescheduling
+---
+* cancellationReason
+* String
+* Reason for cancellation
+---
+* rejectionReason
+* String
+* Reason for rejection
+---
+* team.name
+* String
+* Name of the team booked
+---
+* team.members
+* String[]
+* Members of the team booked
+---
+* metadata
+* JSON
+* Contains a metadata of the booking, including the meeting URL (videoCallUrl) in case of Google Meet and Cal Video
+{% /table %}
+
+#### Person Structure
+
+{% table %}
+* Variable
+* Type
+* Description
+---
+* name
+* String
+* Name of the individual
+---
+* email
+* Email
+* Email of the individual
+---
+* timezone
+* String
+* Timezone of the individual ("America/New_York", "Asia/Kolkata", etc.)
+---
+* language?.locale
+* String
+* Locale of the individual ("en", "fr", etc.)
+{% /table %}

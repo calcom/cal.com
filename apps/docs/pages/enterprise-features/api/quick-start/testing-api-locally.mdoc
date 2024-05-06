@@ -1,0 +1,21 @@
+---
+title: "Testing API locally"
+---
+
+To test API locally, you need a test License Key. You can use the following:
+```
+edcb46b5-530b-441d-b523-60503ef3e3a4
+```
+
+
+1. Copy over the test license key provided above and paste it in as your `CALCOM_LICENSE_KEY` env variable's value
+2. Now, head over to your localhost webapp (not localhost API) and log in to an account.
+3. Go to `settings/developer/api-keys` and create a new API key.
+4. Give it a name and set the expiration settings, click Save.
+    {% img src="/docs/images/i1600x1161-lj8HI2WajBon_ppgcoi.png" /%}
+
+5. You should see the generated API key, make sure to copy it and store in a safe location as you will **NOT** be able to recover an API key once lost, only create new ones
+    {% img src="/docs/images/i1600x1076-4DSndgM6Yyvv_gxmy7w.png" /%}
+
+
+6. Now, you're all set to run API server and start making test API calls.

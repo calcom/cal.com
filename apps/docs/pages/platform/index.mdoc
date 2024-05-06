@@ -1,0 +1,80 @@
+---
+title: Welcome to Platform! 
+description: The one stop destination to build your next scheduling business.
+---
+
+{% img src="/docs/images/Platform_banner.png" width="800" height="800" /%}
+
+Platform is the best choice for starting a scheduling business. You can white-label the design or change every line of code to make it work for you. It consists of our newly created set of apis and plug and play UI components called atoms.
+
+## Atoms
+
+Atoms are customizable UI components handling scheduling on behalf of your users. Everything from the frontend to the backend is being handled by the atom, all you need to is import the atom and drop it in your code and you're good to go.
+
+## How to use atoms
+
+Here's some examples around how you can use atoms in your project.
+
+### 1. Google Calendar connect atom
+
+The below code snippet renders the Gooogle calendar connect button which syncs a user's google calendar.  
+
+{% img src="/docs/images/gcal_connect_atom.png" /%}
+
+If you need to customize the appearance of any atom, you can pass in custom css styles via a className prop 
+
+{% img src="/docs/images/gcal_connect_atom_classname.png" /%}
+
+This is how the google calendar connect button actually looks like
+
+{% img src="/docs/images/gcal_atom.png" /%}
+
+### 2. Availability settings atom
+
+The below code snippet renders the availability settings atom through which a user can set their available time slots.
+
+{% img src="/docs/images/availability_settings_atom.png" /%}
+
+This is how the availability settings atom actually looks like
+
+{% img src="/docs/images/availability_settings.png" /%}
+
+### 3. Booker atom
+
+The below code snippet renders the booker atom through which a user can be booked for any event that they have set.
+
+{% img src="/docs/images/booker_atom.png" /%}
+
+This is how the booker atom actually looks like
+
+{% img src="/docs/images/booker.png" /%}
+
+## Platform apis
+
+We've also created a set of new and scalable apis for our platform customers called v2 which we plan to make the successor for our v1 apis. Internally all the atoms use the new platform apis to handle scheduling.
+
+## How to use platform apis
+
+Once you set up an OAuth client and create a managed user for that particular OAuth client you're ready to use the platform api. Below are some examples around how you can use the platform api endpoints in your project.
+
+### 1. me 
+
+The `/me` endpoint returns a response containing all the info about a managed user. It includes properties such as the name, email, id, timeZone of that particular user and much more. The below code snippet shows a custom hook that uses the `/me` endpoint to return all the data of a managed user.
+
+{% img src="/docs/images/useMe.png" /%}
+
+The below code snippet shows how the returned response looks like.
+
+{% img src="/docs/images/me_data.png" /%}
+
+### 2. schedules
+
+The `/schedules` endpoint returns a given schedule for a managed user based on the id of that particular schedule. The below code snippet shows a custom hook that uses the `/schedules` endpoint to return the default schedule of a managed user.
+
+{% img src="/docs/images/get_schedule.png" /%}
+
+The below code snippet shows how the returned response looks like.
+
+{% img src="/docs/images/availabilities.png" /%}
+
+To check all the available endpoints click [here](https://api.cal.com/v2/docs#/)

@@ -1,0 +1,5 @@
+/**/.next/
+**/dist/
+apps/site/external/nango-integrations/models.ts
+apps/site/external/nango-integrations/dist/
+client/

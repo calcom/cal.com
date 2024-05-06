@@ -1,0 +1,15 @@
+{
+  "index": "Home",
+  "self-hosting": "Self-hosting",
+  "availability": "Availability",
+  "bookings": "Bookings",
+  "event-types": "Event Types",
+  "teams": "Teams",
+  "integrations": "Integrations",
+  "webhooks": "Webhooks",
+  "settings": "Settings",
+  "import": "Import",
+  "billing": "Billing",
+  "developer": "Developer",
+  "faq": "FAQs"
+}

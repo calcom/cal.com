@@ -1,0 +1,30 @@
+---
+title: "Rate limits"
+---
+
+We limit the number of calls you can make over a certain period of time. Rate limits vary and are specified by the following header in all responses:
+
+{% table %}
+* Header
+* Description
+---
+* X-RateLimit-Limit
+* The maximum number of requests that the consumer is permitted to make.
+---
+* X-RateLimit-Remaining
+* The number of requests remaining in the current rate limit window.
+---
+* X-RateLimit-Reset
+* The time at which the current rate limit window resets in UTC epoch seconds.
+{% /table %}
+
+When the rate limit is **exceeded**, an error is returned with the status **"429 Too Many Requests"**:
+
+```json
+{
+  "error": {
+    "code": "too_many_requests",
+    "message": "Rate limit exceeded",
+  }
+}
+```

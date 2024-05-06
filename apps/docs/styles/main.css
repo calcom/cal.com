@@ -1,0 +1,402 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import 'markprompt.css';
+
+@font-face {
+  font-family: "Cal Sans";
+  src: url("https://cal.com/fonts/cal-sans/CalSans-SemiBold.woff2")
+    format("woff2");
+}
+
+@font-face {
+  font-family: "Matter";
+  src: url("https://cal.com/fonts/matter/Matter-Regular.woff") format("woff");
+  font-weight: normal;
+}
+
+@font-face {
+  font-family: "Matter";
+  src: url("https://cal.com/fonts/matter/Matter-SemiBold.woff") format("woff");
+  font-weight: 600;
+}
+
+@font-face {
+  font-family: "Matter";
+  src: url("https://cal.com/fonts/matter/Matter-Bold.woff") format("woff");
+  font-weight: 700;
+}
+
+body {
+  @apply antialiased bg-primary-50 overflow-x-hidden;
+  font-family: Matter, Inter, sans-serif;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: "Cal Sans";
+  scroll-margin-top: 120px !important;
+  line-height: 1.1 !important;
+}
+
+h1 {
+  margin-bottom: 20px !important;
+}
+
+h2 {
+  margin-bottom: 16px !important;
+}
+
+h3 {
+  margin-bottom: 12px !important;
+}
+
+hr {
+  @apply opacity-0;
+}
+
+p {
+  line-height: 1.6 !important;
+}
+
+a.plainLink {
+  @apply text-primary-700 hover:text-primary-700/60 no-underline transition;
+}
+
+/* Sometimes, Tailwind fails to apply tailwind.config.js prose settings to
+   links, so we add a manual `like-prose` class here. */
+.like-prose a {
+  @apply text-neutral-900 font-semibold no-underline border-b border-primary-500 hover:text-primary-500 transition;
+}
+
+.footer a {
+  @apply text-white hover:text-white/50 no-underline transition;
+}
+
+.sectionInfo {
+  @apply flex flex-col gap-3 sm:gap-4;
+}
+
+.showcase-subtitle a {
+  @apply text-primary-700 hover:text-neutral-900 font-medium no-underline transition;
+}
+
+/* Tailwind fails to detect some values like top-[120px], so we add them
+here in the vanilla CSS way. */
+.sticky-top {
+  top: 120px !important;
+}
+
+/* pageTitle is used in Motif (and has "user-select: none") so don't use here to
+   avoid conflict. */
+h1.customPageTitle {
+  @apply text-3xl sm:text-4xl md:text-5xl leading-tight sm:leading-tight md:leading-tight;
+}
+
+h1.indexTitle {
+  @apply text-3xl sm:text-4xl md:text-5xl leading-tight sm:leading-tight md:leading-tight;
+}
+
+h1.xl5 {
+  @apply text-3xl sm:text-4xl md:text-5xl leading-tight sm:leading-tight md:leading-tight;
+}
+
+h1.xl4 {
+  @apply text-2xl sm:text-3xl md:text-4xl leading-tight sm:leading-tight md:leading-tight;
+}
+
+h1.xl2 {
+  @apply text-lg sm:text-xl md:text-2xl leading-tight sm:leading-tight md:leading-tight;
+}
+
+p.indexDescription {
+  @apply text-lg sm:text-2xl mt-4 text-neutral-500;
+}
+
+.hiddenScrollbar::-webkit-scrollbar,
+pre::-webkit-scrollbar {
+  display: none;
+}
+
+.hiddenScrollbar,
+pre {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+@keyframes caret {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.animate-caret {
+  animation: caret 1s cubic-bezier(0.14, 0, 0.16, 1) forwards infinite;
+}
+
+.sunrise-shadow {
+  box-shadow: 0px 40px 100px -12px rgba(197, 0, 59, 0.7);
+}
+
+.small-bounce {
+  animation: small-bounce 1s infinite;
+}
+
+@keyframes small-bounce {
+  0%,
+  100% {
+    transform: translateY(-22%);
+    animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+  }
+  50% {
+    transform: translateY(0);
+    animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+  }
+}
+
+.slow-bounce {
+  animation: slow-bounce 8s infinite;
+}
+
+@keyframes slow-bounce {
+  0%,
+  100% {
+    transform: translateY(-8%);
+    animation-timing-function: ease-in-out;
+  }
+  50% {
+    transform: translateY(0);
+    animation-timing-function: ease-in-out;
+  }
+}
+
+@keyframes bounce {
+  0%,
+  100% {
+    transform: translateY(-50%);
+    animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+  }
+  50% {
+    transform: translateY(0);
+    animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+  }
+}
+
+.full-width {
+  width: 100vw;
+  position: relative;
+  left: 50%;
+  right: 50%;
+  margin-left: -50vw;
+  margin-right: -50vw;
+}
+
+.animate-path {
+  stroke-dasharray: 477;
+  stroke-dashoffset: 477;
+  animation: draw 150ms ease-out forwards;
+}
+
+@keyframes draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Syntax highlighting */
+
+.token.tag,
+.token.class-name,
+.token.selector,
+.token.selector .class,
+.token.function {
+  @apply text-fuchsia-300;
+}
+
+.token.attr-name,
+.token.keyword,
+.token.rule,
+.token.operator,
+.token.pseudo-class,
+.token.important {
+  @apply text-teal-400;
+}
+
+.token.attr-value,
+.token.class,
+.token.string,
+.token.number,
+.token.unit,
+.token.color {
+  @apply text-lime-300;
+}
+
+.token.punctuation,
+.token.module,
+.token.property {
+  @apply text-sky-200;
+}
+
+.token.atapply .token:not(.rule):not(.important) {
+  color: inherit;
+}
+
+.language-shell .token:not(.comment) {
+  color: inherit;
+}
+
+.language-css .token.function {
+  color: inherit;
+}
+
+.token.comment {
+  @apply text-neutral-400;
+}
+
+.token.deleted:not(.prefix) {
+  @apply relative block -mx-4 px-4;
+}
+
+.token.deleted:not(.prefix)::after {
+  content: "";
+  @apply pointer-events-none absolute inset-0 block bg-rose-400 bg-opacity-25;
+}
+
+.token.deleted.prefix {
+  @apply text-neutral-400 select-none;
+}
+
+.token.inserted:not(.prefix) {
+  @apply block bg-emerald-700 bg-opacity-50 -mx-4 px-4;
+}
+
+.token.inserted.prefix {
+  @apply text-emerald-200 text-opacity-75 select-none;
+}
+
+pre {
+  @apply text-white bg-black dark:bg-white/10 dark:text-white overflow-x-auto text-base rounded-md !important;
+  line-height: 1.7142857 !important;
+  margin-top: 1.7142857em !important;
+  margin-bottom: 1.7142857em !important;
+  padding: 0.8571429em 1.1428571em !important;
+}
+
+.collapse-content pre {
+  @apply w-full ml-0 !important;
+}
+
+.collapse-content .note {
+  @apply w-full ml-0 !important;
+}
+
+.prose blockquote p {
+  font-style: normal !important;
+}
+
+.prose blockquote p:first-of-type::before {
+  content: "" !important;
+}
+
+.prose blockquote p:first-of-type::after {
+  content: "" !important;
+}
+
+.loading-dots {
+  @apply inline-flex text-center items-center leading-7;
+}
+
+.loading-dots > span {
+  @apply rounded-full w-1 h-1 !important;
+  animation-name: blink;
+  animation-duration: 1.4s;
+  animation-iteration-count: infinite;
+  animation-fill-mode: both;
+  margin: 0 3px 0 0;
+}
+
+.loading-dots > span:nth-of-type(2) {
+  animation-delay: 0.2s;
+}
+
+.loading-dots > span:nth-of-type(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes blink {
+  0% {
+    opacity: 0.2;
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.2;
+  }
+}
+
+.MarkpromptOverlay {
+  z-index: 90;
+}
+
+.MarkpromptContentDialog {
+  z-index: 100;
+}
+
+.MarkpromptPromptWrapper {
+  @apply py-2 pl-4 pr-0 rounded-full border-2;
+
+}
+
+.MarkpromptPromptSubmitButton {
+  @apply rounded-full bg-black text-white py-2 pl-4 pr-2 disabled:bg-neutral-200 text-base !important;
+}
+
+.MarkpromptClose {
+  @apply p-1 text-xs bg-white;
+}
+
+.MarkpromptPromptSubmitButton {
+  @apply px-2 py-1;
+}
+
+.MarkpromptMessageAnswer {
+  @apply pt-4 pb-8;
+}
+
+.MarkpromptGhostThumbButton {
+  @apply p-1;
+}
+
+.MarkpromptReferences ul {
+  @apply pl-16 pt-2;
+}
+
+.MarkpromptMessagePromptText {
+  @apply py-4 mb-0 m-0 !important;
+}
+
+.MarkpromptReference {
+  @apply text-black;
+}
+
+.MarkpromptSelectToggle {
+  @apply p-2;
+}
+
+.MarkpromptFooter {
+  @apply -mt-2 pt-0 !important;
+}
+
+.MarkpromptFooter a {
+  @apply text-black !important;
+}

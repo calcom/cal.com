@@ -1,0 +1,62 @@
+{
+  "name": "@calcom/docs",
+  "version": "0.0.1",
+  "description": "",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@headlessui/react": "1.7.8",
+    "@markdoc/markdoc": "^0.4.0",
+    "@markdoc/next.js": "^0.3.7",
+    "@markprompt/css": "^0.23.1",
+    "@markprompt/react": "^0.38.0",
+    "@mdx-js/loader": "^3.0.1",
+    "@mdx-js/mdx": "^3.0.1",
+    "@mdx-js/react": "^3.0.1",
+    "@next/mdx": "^14.1.0",
+    "@tippyjs/react": "^4.2.6",
+    "@types/mdx": "^2.0.11",
+    "classnames": "^2.5.1",
+    "copy-to-clipboard": "^3.3.3",
+    "date-fns": "^3.3.1",
+    "fuse.js": "^7.0.0",
+    "lodash-es": "^4.17.21",
+    "next": "^14.1.0",
+    "prismjs": "^1.29.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-hot-toast": "^2.4.1",
+    "remark-frontmatter": "^5.0.0",
+    "remark-gfm": "^4.0.0",
+    "remark-math": "^6.0.0",
+    "remark-mdx-frontmatter": "^4.0.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/typography": "^0.5.10",
+    "@types/fast-levenshtein": "^0.0.4",
+    "@types/minimatch": "^5.1.2",
+    "@types/node": "^20.11.17",
+    "@types/prismjs": "^1.26.3",
+    "@types/react": "^18.2.55",
+    "autoprefixer": "^10.4.17",
+    "eslint": "^8.56.0",
+    "fast-levenshtein": "^3.0.0",
+    "glob": "^10.3.10",
+    "gray-matter": "^4.0.3",
+    "minimatch": "^9.0.3",
+    "postcss": "^8.4.35",
+    "simple-functional-loader": "^1.2.1",
+    "tailwindcss": "^3.4.1",
+    "typescript": "^5.3.3",
+    "webpack": "^5.90.1"
+  }
+}

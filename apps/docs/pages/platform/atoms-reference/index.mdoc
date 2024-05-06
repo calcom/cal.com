@@ -1,0 +1,42 @@
+---
+title: Atoms reference
+description: Everything related to atoms from props to styling.
+---
+
+## Props 
+
+Below is a list of tables that contains all the available props each atom contains.
+
+### 1. Google calendar connect atom
+
+{% table atom="google calendar" /%}
+
+### 2. Availability settings atom
+
+{% table atom="availability settings" /%}
+
+### 3. Booker atom
+
+{% table atom="booker" /%}
+
+## Styling
+
+Below is a list of tables that contains all the available classnames that can be used for each atom.
+
+### 1. Google calendar connect atom
+
+{% classnamesTable atom="google calendar" /%}
+
+### 2. Availability settings atom
+
+Availability settings atom accepts custom styles via the **customClassNames** prop. All the props that we see below fall under this **customClassNames** prop.
+
+{% classnamesTable atom="availability settings" /%}
+
+### 3. Booker atom
+
+Booker atom accepts custom styles via the **customClassNames** prop. All the props that we see below fall under this **customClassNames** prop. In terms of styling there are four major classnames for the Booker, i.e. **bookerContainer**, **eventMetaCustomClassNames**, **datePickerCustomClassNames** and **availableTimeSlotsCustomClassNames**. Most of the classnames below fall under one of these sub classes.
+
+{% classnamesTable atom="booker" /%}
+
+{% note type="info" %}Please note that sometimes the custom classnames may fail to override the styling with the classnames that you might have passed via props. That is because the **clsx** utility function that we use to override classnames inside our components has some limitations. A simple get around to solve this issue is to just prefix your classnames with **!** property just before passing in any classname.{% /note %}

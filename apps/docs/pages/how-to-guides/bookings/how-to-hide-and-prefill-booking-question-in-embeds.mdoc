@@ -1,0 +1,40 @@
+---
+title: "How to hide and prefill booking questions in embeds"
+---
+
+You may have come across a scenario where you want to pre-fill some information in the booking form for your clients and/or hide them. For example, you may want it to be hidden from the scheduler but shown on your Google Calendar after it is scheduled. Here's a step-by-step guide on how you can achieve this:
+
+### Step 1: Accessing the event-type settings
+1. Login to your Cal.com account
+
+2. Navigate to the event-type you wish to add the hidden booking field to
+
+3. Click on advanced tab
+
+4. In the booking questions section, click on Add a question
+
+5. Fill up the question and take note of the identifier, you'll need it when prefilling it
+    {%img src="/docs/images/i1600x900-47y0alnT10YZ_fzzmcz.png" /%}
+
+6. Click **Add**
+
+### Step 2: Hiding a booking question
+
+1. Notice the newly added booking question
+
+    {% img src="/docs/images/i1600x900-Jlnk4oK6linw_jectdb.png" /%}
+
+2. Disable the toggle now, if you want it to be hidden from the booking page. You can do that by clicking on the toggle.
+    {% img src="/docs/images/i1600x900-WAFfPUiF_FSM_rsqssy.png" /%}
+
+3. Click **Save**
+
+### Step 3: Pre-filling a booking question
+
+If you want to pre-fill a certain question, you'll need to append a query parameter to the booking page URL.
+
+The query parameter should match the identifier for the field you wish to pre-fill. As long as it is hidden, the booker shouldn't see that in the booking page, and you can send any custom information you want through this method.
+
+You can learn more about [prefilling in embed here](https://cal.com/docs/core-features/embed/prefill-booking-form-in-embed)
+
+That's it.

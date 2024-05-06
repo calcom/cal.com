@@ -5,6 +5,7 @@
   "workspaces": [
     "apps/*",
     "apps/api/*",
+    "apps/docs/*",
     "packages/*",
     "packages/embeds/*",
     "packages/features/*",
@@ -39,6 +40,7 @@
     "dev:api": "turbo run dev --scope=\"@calcom/web\" --scope=\"@calcom/api-proxy\" --scope=\"@calcom/api\"",
     "dev:api:console": "turbo run dev --scope=\"@calcom/web\" --scope=\"@calcom/api-proxy\" --scope=\"@calcom/api\" --scope=\"@calcom/console\"",
     "dev:console": "turbo run dev --scope=\"@calcom/web\" --scope=\"@calcom/console\"",
+    "dev:docs": "turbo run dev --scope=\"@calcom/docs\"",
     "dev:swagger": "turbo run dev --scope=\"@calcom/api-proxy\" --scope=\"@calcom/api\" --scope=\"@calcom/swagger\"",
     "dev:website": "turbo run dev --scope=\"@calcom/web\" --scope=\"@calcom/website\"",
     "dev": "turbo run dev --scope=\"@calcom/web\"",
