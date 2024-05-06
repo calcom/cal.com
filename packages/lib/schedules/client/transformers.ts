@@ -26,7 +26,9 @@ export function transformWorkingHoursForClient(schedule: ScheduleWithAvailabilit
   );
 }
 
-export function transformAvailabilityForClient(schedule: ScheduleWithAvailabilities) {
+export function transformAvailabilityForClient(schedule: {
+  availability: Pick<AvailabilityModel, "days" | "startTime" | "endTime">[];
+}) {
   return transformScheduleToAvailabilityForClient(schedule).map((a) =>
     a.map((startAndEnd) => ({
       ...startAndEnd,
@@ -67,9 +69,9 @@ export function transformDateOverridesForClient(schedule: ScheduleWithAvailabili
   }, [] as { ranges: TimeRange[] }[]);
 }
 
-export const transformScheduleToAvailabilityForClient = (
-  schedule: Partial<ScheduleModel> & { availability: AvailabilityModel[] }
-) => {
+export const transformScheduleToAvailabilityForClient = (schedule: {
+  availability: Pick<AvailabilityModel, "days" | "startTime" | "endTime">[];
+}) => {
   return schedule.availability.reduce(
     (schedule: Schedule, availability) => {
       availability.days.forEach((day) => {

@@ -1,6 +1,15 @@
-import { ApiProperty as DocsProperty, ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { IsString, IsBoolean, IsOptional, ValidateNested, IsArray, IsDate } from "class-validator";
+import {
+  IsString,
+  IsBoolean,
+  IsOptional,
+  ValidateNested,
+  IsArray,
+  IsTimeZone,
+  Matches,
+  IsISO8601,
+  IsEnum,
+} from "class-validator";
 import { DateTime } from "luxon";
 import { z } from "zod";
 
@@ -38,78 +47,67 @@ export const schemaScheduleResponse = z
 
 export type ScheduleResponse = z.infer<typeof schemaScheduleResponse>;
 
-class ScheduleItem {
-  @IsString()
-  start!: Date;
-
-  @IsString()
-  end!: Date;
+export enum WeekDay {
+  Monday = "Monday",
+  Tuesday = "Tuesday",
+  Wednesday = "Wednesday",
+  Thursday = "Thursday",
+  Friday = "Friday",
+  Saturday = "Saturday",
+  Sunday = "Sunday",
 }
 
-class DateOverride {
-  @IsDate()
-  @Type(() => Date)
-  start!: Date;
+const TIME_FORMAT_HH_MM = /^([01]\d|2[0-3]):([0-5]\d)$/;
 
-  @IsDate()
-  @Type(() => Date)
-  end!: Date;
+class ScheduleAvailability {
+  @IsEnum(WeekDay, { each: true })
+  days!: WeekDay[];
+
+  @IsString()
+  @Matches(TIME_FORMAT_HH_MM, { message: "startTime must be a valid time format HH:MM" })
+  startTime!: string;
+
+  @IsString()
+  @Matches(TIME_FORMAT_HH_MM, { message: "endTime must be a valid time format HH:MM" })
+  endTime!: string;
+}
+
+export class ScheduleOverride {
+  @IsISO8601({ strict: true })
+  date!: string;
+
+  @IsString()
+  @Matches(TIME_FORMAT_HH_MM, { message: "startTime must be a valid time format HH:MM" })
+  startTime!: string;
+
+  @IsString()
+  @Matches(TIME_FORMAT_HH_MM, { message: "endTime must be a valid time format HH:MM" })
+  endTime!: string;
 }
 
 export class UpdateScheduleInput {
   @IsString()
   @IsOptional()
-  @DocsProperty()
+  name?: string;
+
+  @IsTimeZone()
+  @IsOptional()
   timeZone?: string;
 
-  @IsString()
+  @IsArray()
   @IsOptional()
-  @DocsProperty()
-  name?: string;
+  @IsOptional()
+  @ValidateNested({ each: true })
+  @Type(() => ScheduleAvailability)
+  availability?: ScheduleAvailability[];
 
   @IsBoolean()
   @IsOptional()
-  @DocsProperty()
   isDefault?: boolean;
 
+  @IsArray()
   @IsOptional()
   @ValidateNested({ each: true })
-  @Type(() => ScheduleItem)
-  @DocsProperty()
-  @IsArray()
-  @ApiProperty({
-    type: [[ScheduleItem]],
-    example: [
-      [],
-      [{ start: "2022-01-01T00:00:00.000Z", end: "2022-01-02T00:00:00.000Z" }],
-      [],
-      [],
-      [],
-      [],
-      [],
-    ],
-    isArray: true,
-  })
-  schedule?: ScheduleItem[][];
-
-  @IsOptional()
-  @ValidateNested({ each: true })
-  @Type(() => DateOverride)
-  @IsArray()
-  @DocsProperty()
-  @ApiProperty({
-    type: [DateOverride],
-    example: [
-      [],
-      [{ start: "2022-01-01T00:00:00.000Z", end: "2022-01-02T00:00:00.000Z" }],
-      [],
-      [],
-      [],
-      [],
-      [],
-    ],
-    isArray: true,
-    required: false,
-  })
-  dateOverrides?: DateOverride[];
+  @Type(() => ScheduleOverride)
+  overrides?: ScheduleOverride[];
 }

@@ -15,11 +15,17 @@ import {
   transformAvailabilityForClient,
   transformDateOverridesForClient,
 } from "@calcom/platform-libraries";
-import { UpdateScheduleInput } from "@calcom/platform-types";
+import { ScheduleOverride, UpdateScheduleInput } from "@calcom/platform-types";
 
-export type ScheduleTransformed = Omit<CreateScheduleInput, "availability"> & {
+export type CreateScheduleTransformed = Omit<CreateScheduleInput, "availability"> & {
   availability: ScheduleAvailability[];
 };
+
+type UpdateScheduleTransformed = Partial<
+  Omit<CreateScheduleInput, "availability"> & {
+    availability: ScheduleAvailability[];
+  }
+>;
 
 @Injectable()
 export class SchedulesService {
@@ -51,8 +57,8 @@ export class SchedulesService {
     return this.getResponseSchedule(createdSchedule);
   }
 
-  transformCreateScheduleInputForInternalUse(schedule: CreateScheduleInput): ScheduleTransformed {
-    const availability = this.transformCreateScheduleAvailabilityForInternalUse(schedule);
+  transformCreateScheduleInputForInternalUse(schedule: CreateScheduleInput): CreateScheduleTransformed {
+    const availability = this.transformInputScheduleAvailabilityForInternalUse(schedule);
 
     const transformedSchedule = {
       ...schedule,
@@ -62,16 +68,55 @@ export class SchedulesService {
     return transformedSchedule;
   }
 
-  transformCreateScheduleAvailabilityForInternalUse(schedule: CreateScheduleInput): ScheduleAvailability[] {
+  transformUpdateScheduleInputForInternalUse(schedule: UpdateScheduleInput): UpdateScheduleTransformed {
+    const availability = this.transformInputScheduleAvailabilityForInternalUse(schedule);
+
+    const transformedSchedule = {
+      ...schedule,
+      availability,
+    };
+
+    return transformedSchedule;
+  }
+
+  transformInputScheduleAvailabilityForInternalUse(
+    schedule: CreateScheduleInput | UpdateScheduleInput
+  ): ScheduleAvailability[] {
     if (schedule.availability) {
       return schedule.availability.map((availability) => ({
         days: availability.days.map(transformDayToNumber),
-        startTime: availability.startTime,
-        endTime: availability.endTime,
+        startTime: this.createDateFromHoursMinutes(availability.startTime),
+        endTime: this.createDateFromHoursMinutes(availability.endTime),
       }));
     }
 
     return [this.availabilitiesService.getDefaultAvailabilityInput()];
+  }
+
+  createDateFromHoursMinutes(hoursMinutes: string): Date {
+    const parts = hoursMinutes.split(":");
+
+    if (parts.length < 2) {
+      throw new Error("Invalid time format. Please use 'hh:mm'.");
+    }
+
+    const hours = parseInt(parts[0], 10);
+    const minutes = parseInt(parts[1], 10);
+
+    if (isNaN(hours) || hours < 0 || hours > 23) {
+      throw new Error("Hours must be a number between 0 and 23.");
+    }
+    if (isNaN(minutes) || minutes < 0 || minutes > 59) {
+      throw new Error("Minutes must be a number between 0 and 59.");
+    }
+
+    const today = new Date();
+
+    const utcDate = new Date(
+      Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), hours, minutes)
+    );
+
+    return utcDate;
   }
 
   async getResponseSchedule(fetchedSchedule: ScheduleWithAvailabilities) {
@@ -184,21 +229,41 @@ export class SchedulesService {
 
     this.checkUserOwnsSchedule(user.id, existingSchedule);
 
-    const scheduleFormatted = await this.formatScheduleForAtom(user, existingSchedule);
+    const schedule = this.transformUpdateScheduleInputForInternalUse(bodySchedule);
 
-    if (!bodySchedule.schedule) {
-      // note(Lauris): When updating an availability in cal web app, lets say only its name, also
-      // the schedule is sent and then passed to the update handler. Notably, availability is passed too
-      // and they have same shape, so to match shapes I attach "scheduleFormatted.availability" to reflect
-      // schedule that would be passed by the web app. If we don't, then updating schedule name will erase
-      // schedule.
-      bodySchedule.schedule = scheduleFormatted.availability;
-    }
+    const handlerSchedule = {
+      scheduleId,
+      timeZone: bodySchedule.timeZone || existingSchedule.timeZone || undefined,
+      name: bodySchedule.name || existingSchedule.name,
+      isDefault: bodySchedule.isDefault || user.defaultScheduleId === scheduleId,
+      schedule: transformAvailabilityForClient(
+        schedule.availability ? { availability: schedule.availability } : { availability: [] }
+      ),
+      dateOverrides: this.convertOverridesToDateOverrides(schedule.overrides || []),
+    };
 
-    return updateScheduleHandler({
-      input: { scheduleId: Number(scheduleId), ...bodySchedule },
+    await updateScheduleHandler({
+      input: handlerSchedule,
       ctx: { user },
     });
+
+    return this.getUserSchedule(user.id, scheduleId);
+  }
+
+  convertOverridesToDateOverrides(overrides: ScheduleOverride[]) {
+    return overrides.map((override) => {
+      const date = new Date(override.date);
+      const start = this.convertTimeToDate(date, override.startTime);
+      const end = this.convertTimeToDate(date, override.endTime);
+      return { start, end };
+    });
+  }
+
+  convertTimeToDate(baseDate: Date, time: string): Date {
+    const [hours, minutes] = time.split(":").map(Number);
+    const newDate = new Date(baseDate);
+    newDate.setHours(hours, minutes, 0, 0);
+    return newDate;
   }
 
   async deleteUserSchedule(userId: number, scheduleId: number) {

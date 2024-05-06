@@ -1,7 +1,6 @@
 export class ScheduleAvailability {
+  // note(Lauris): days example: [1, 2, 3, 4, 5] aka Monday to Friday, and 0 is Sunday and 6 is Saturday.
   days!: number[];
-  // note(Lauris): startTime example: 09:00 aka format HH:MM
-  startTime!: string;
-  // note(Lauris): endTime example: 17:00 aka format HH:MM
-  endTime!: string;
+  startTime!: Date;
+  endTime!: Date;
 }

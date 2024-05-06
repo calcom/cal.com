@@ -1,4 +1,4 @@
-import { UpdatedScheduleOutput } from "@/ee/schedules/outputs/schedule-updated.output";
+import { ScheduleOutput } from "@/ee/schedules/outputs/schedule.output";
 import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { IsEnum, IsNotEmptyObject, ValidateNested } from "class-validator";
@@ -11,10 +11,10 @@ export class UpdateScheduleOutput {
   status!: typeof SUCCESS_STATUS | typeof ERROR_STATUS;
 
   @ApiProperty({
-    type: UpdatedScheduleOutput,
+    type: ScheduleOutput,
   })
   @IsNotEmptyObject()
   @ValidateNested()
-  @Type(() => UpdatedScheduleOutput)
-  data!: UpdatedScheduleOutput;
+  @Type(() => ScheduleOutput)
+  data!: ScheduleOutput;
 }
