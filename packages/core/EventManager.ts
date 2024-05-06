@@ -9,6 +9,7 @@ import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApi
 import { appKeysSchema as calVideoKeysSchema } from "@calcom/app-store/dailyvideo/zod";
 import { getEventLocationTypeFromApp, MeetLocationType } from "@calcom/app-store/locations";
 import getApps from "@calcom/app-store/utils";
+import { getUid } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
 import {
   getPiiFreeDestinationCalendar,
@@ -920,6 +921,7 @@ export default class EventManager {
 
   private async createAllCRMEvents(event: CalendarEvent) {
     const createdEvents = [];
+    const uid = getUid(event);
     for (const credential of this.crmCredentials) {
       const crm = new CrmManager(credential);
 
@@ -931,7 +933,7 @@ export default class EventManager {
       createdEvents.push({
         type: credential.type,
         appName: credential.appId || "",
-        uid: event.uid,
+        uid,
         success,
         createdEvent: {
           id: createdEvent?.id || "",
