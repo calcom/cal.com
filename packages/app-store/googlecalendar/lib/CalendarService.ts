@@ -85,13 +85,15 @@ export default class GoogleCalendarService implements Calendar {
     this.credential = credential;
     this.auth = this.initGoogleAuth(credential);
     this.log = log.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
-    this.credential = credential;
   }
 
   private async getMyGoogleAuthSingleton() {
-    const googleCredentials = OAuth2UniversalSchema.parse(this.credential.key);
+    if (this.myGoogleAuth) {
+      return this.myGoogleAuth;
+    }
     const { client_id, client_secret, redirect_uris } = await getGoogleAppKeys();
-    this.myGoogleAuth = this.myGoogleAuth || new MyGoogleAuth(client_id, client_secret, redirect_uris[0]);
+    const googleCredentials = OAuth2UniversalSchema.parse(this.credential.key);
+    this.myGoogleAuth = new MyGoogleAuth(client_id, client_secret, redirect_uris[0]);
     this.myGoogleAuth.setCredentials(googleCredentials);
     return this.myGoogleAuth;
   }
@@ -151,7 +153,8 @@ export default class GoogleCalendarService implements Calendar {
       },
       updateTokenObject: async (token) => {
         this.myGoogleAuth.setCredentials(token);
-        await prisma.credential.update({
+
+        const { key } = await prisma.credential.update({
           where: {
             id: credential.id,
           },
@@ -159,6 +162,9 @@ export default class GoogleCalendarService implements Calendar {
             key: token,
           },
         });
+
+        // Update cached credential as well
+        this.credential.key = key;
       },
     });
     this.oAuthManagerInstance = auth;
