@@ -137,7 +137,7 @@ const DateOverrideForm = ({
         );
         setSelectedDates([]);
       }}
-      className="p-6 sm:flex sm:p-0 md:flex-col lg:flex-col xl:flex-row">
+      className="p-6 sm:flex sm:p-0 xl:flex-row">
       <div className="sm:border-subtle w-full sm:border-r sm:p-4 sm:pr-6 md:p-8">
         <DialogHeader title={t("date_overrides_dialog_title")} />
         <DatePicker
