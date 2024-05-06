@@ -106,7 +106,7 @@ export default function JoinCall(props: PageProps) {
               alt="Logo"
               style={{
                 top: 9,
-                left: "calc(50% -45px)",
+                left: "calc(50% - 45px)",
               }}
             />
           )}
