@@ -155,11 +155,7 @@ export function doesAppSupportTeamInstall({
   if (isPaid) {
     return false;
   }
-  return !appCategories.some(
-    (category) =>
-      category === "calendar" ||
-      (defaultVideoAppCategories.includes(category as AppCategories) && !concurrentMeetings)
-  );
+  return !appCategories.some((category) => category === "calendar");
 }
 
 export const defaultVideoAppCategories: AppCategories[] = [

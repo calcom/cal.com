@@ -60,13 +60,20 @@ export type TeamsProp = (Pick<Team, "id" | "name" | "logo"> & {
 })[];
 
 type AccountStepCardProps = {
-  teams: TeamsProp;
+  teams?: TeamsProp;
   personalAccount: PersonalAccountProps;
   onSelect: (id?: number) => void;
   loading: boolean;
+  isConferencing: boolean;
 };
 
-export const AccountsStepCard: FC<AccountStepCardProps> = ({ teams, personalAccount, onSelect, loading }) => {
+export const AccountsStepCard: FC<AccountStepCardProps> = ({
+  teams,
+  personalAccount,
+  onSelect,
+  loading,
+  isConferencing,
+}) => {
   const { t } = useLocale();
   return (
     <StepCard>
@@ -80,17 +87,18 @@ export const AccountsStepCard: FC<AccountStepCardProps> = ({ teams, personalAcco
           onClick={() => onSelect()}
           loading={loading}
         />
-        {teams.map((team) => (
-          <AccountSelector
-            key={team.id}
-            testId={`install-app-button-team${team.id}`}
-            alreadyInstalled={team.alreadyInstalled}
-            avatar={team.logo ?? ""}
-            name={team.name}
-            onClick={() => onSelect(team.id)}
-            loading={loading}
-          />
-        ))}
+        {!isConferencing &&
+          teams?.map((team) => (
+            <AccountSelector
+              key={team.id}
+              testId={`install-app-button-team${team.id}`}
+              alreadyInstalled={team.alreadyInstalled}
+              avatar={team.logo ?? ""}
+              name={team.name}
+              onClick={() => onSelect(team.id)}
+              loading={loading}
+            />
+          ))}
       </div>
     </StepCard>
   );

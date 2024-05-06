@@ -1,3 +1,4 @@
+import type { EventTypeSetupProps } from "@pages/event-types/[type]";
 import type { GetServerSidePropsContext } from "next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Head from "next/head";
@@ -10,7 +11,9 @@ import { z } from "zod";
 import checkForMultiplePaymentApps from "@calcom/app-store/_utils/payments/checkForMultiplePaymentApps";
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
+import { getLocationGroupedOptions } from "@calcom/app-store/server";
 import type { EventTypeAppSettingsComponentProps, EventTypeModel } from "@calcom/app-store/types";
+import { defaultVideoAppCategories } from "@calcom/app-store/utils";
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { AppOnboardingSteps } from "@calcom/lib/apps/appOnboardingSteps";
@@ -18,7 +21,9 @@ import { getAppOnboardingUrl } from "@calcom/lib/apps/getAppOnboardingUrl";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { getTranslation } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
+import { SchedulingType, type AppCategories } from "@calcom/prisma/enums";
 import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import type { AppMeta } from "@calcom/types/App";
@@ -34,10 +39,21 @@ import { EventTypesStepCard } from "@components/apps/installation/EventTypesStep
 import { StepHeader } from "@components/apps/installation/StepHeader";
 
 export type TEventType = EventTypeAppSettingsComponentProps["eventType"] &
-  Pick<EventTypeModel, "metadata" | "schedulingType" | "slug" | "requiresConfirmation" | "position"> & {
+  Pick<
+    EventTypeModel,
+    | "metadata"
+    | "schedulingType"
+    | "slug"
+    | "requiresConfirmation"
+    | "position"
+    | "locations"
+    | "userId"
+    | "destinationCalendar"
+    | "bookingFields"
+  > & {
     selected: boolean;
+    locationOptions?: Pick<EventTypeSetupProps, "locationOptions">["locationOptions"];
   };
-
 export type TEventTypesForm = {
   eventTypes: TEventType[];
 };
@@ -63,12 +79,13 @@ type StepObj = Record<
 type OnboardingPageProps = {
   appMetadata: AppMeta;
   step: StepType;
-  teams: TeamsProp;
+  teams?: TeamsProp;
   personalAccount: PersonalAccountProps;
   eventTypes?: TEventType[];
   userName: string;
   credentialId?: number;
-  extendsEventType: boolean;
+  showEventTypesStep: boolean;
+  isConferencing: boolean;
 };
 
 const OnboardingPage = ({
@@ -79,7 +96,8 @@ const OnboardingPage = ({
   eventTypes,
   userName,
   credentialId,
-  extendsEventType,
+  showEventTypesStep,
+  isConferencing,
 }: OnboardingPageProps) => {
   const { t } = useLocale();
   const pathname = usePathname();
@@ -167,7 +185,7 @@ const OnboardingPage = ({
         slug: appMetadata.slug,
         ...(teamId && { teamId }),
         // for oAuth apps
-        ...(extendsEventType && {
+        ...(showEventTypesStep && {
           returnTo:
             WEBAPP_URL +
             getAppOnboardingUrl({
@@ -180,7 +198,7 @@ const OnboardingPage = ({
       {
         onSuccess: (data) => {
           if (data?.setupPending) return;
-          if (extendsEventType) {
+          if (showEventTypesStep) {
             // for non-oAuth apps
             router.push(
               getAppOnboardingUrl({
@@ -258,6 +276,7 @@ const OnboardingPage = ({
                   personalAccount={personalAccount}
                   onSelect={handleSelectAccount}
                   loading={isSelectingAccount}
+                  isConferencing={isConferencing}
                 />
               )}
               {currentStep === AppOnboardingSteps.EVENT_TYPES_STEP &&
@@ -280,6 +299,7 @@ const OnboardingPage = ({
                   setConfigureStep={setConfigureStep}
                   eventTypes={eventTypes}
                   handleSetUpLater={handleSetUpLater}
+                  isConferencing={isConferencing}
                 />
               )}
             </Form>
@@ -371,15 +391,21 @@ const getEventTypes = async (userId: number, teamId?: number) => {
         users: { select: { username: true } },
         seatsPerTimeSlot: true,
         slug: true,
+        locations: true,
+        userId: true,
+        destinationCalendar: true,
+        bookingFields: true,
       },
       where: teamId ? { teamId } : { userId },
     })
   ).sort((eventTypeA, eventTypeB) => {
     return eventTypeB.position - eventTypeA.position;
   });
+
   if (eventTypes.length === 0) {
     return [];
   }
+
   return eventTypes.map((item) => ({
     ...item,
     URL: `${CAL_URL}/${item.team ? `team/${item.team.slug}` : item?.users?.[0]?.username}/${item.slug}`,
@@ -420,7 +446,11 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     const locale = await getLocale(context.req);
     const app = await getAppBySlug(parsedAppSlug);
     const appMetadata = appStoreMetadata[app.dirName as keyof typeof appStoreMetadata];
-    const extendsEventType = appMetadata?.extendsFeature === "EventType";
+    const exteandsEventType = appMetadata?.extendsFeature === "EventType";
+    const isConferencing = appMetadata.categories.some((category) =>
+      defaultVideoAppCategories.includes(category as AppCategories)
+    );
+    const showEventTypesStep = exteandsEventType || isConferencing;
 
     if (!session?.user?.id) throw new Error(ERROR_MESSAGES.userNotAuthed);
 
@@ -443,7 +473,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     }
 
     if (parsedStepParam == AppOnboardingSteps.EVENT_TYPES_STEP) {
-      if (!extendsEventType) {
+      if (!showEventTypesStep) {
         return {
           redirect: {
             permanent: false,
@@ -452,6 +482,46 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         };
       }
       eventTypes = await getEventTypes(user.id, parsedTeamIdParam);
+      if (isConferencing) {
+        const t = await getTranslation(context.locale ?? "en", "common");
+        const locationOptions = await getLocationGroupedOptions({ userId: user.id }, t);
+        for (let index = 0; index < eventTypes.length; index++) {
+          let eventType = eventTypes[index];
+          let destinationCalendar = eventType.destinationCalendar;
+          if (!destinationCalendar) {
+            destinationCalendar = await prisma.destinationCalendar.findFirst({
+              where: {
+                userId: user.id,
+                eventTypeId: null,
+              },
+            });
+
+            eventType = { ...eventType, destinationCalendar };
+          }
+          if (eventType.schedulingType === SchedulingType.MANAGED) {
+            eventType = {
+              ...eventType,
+              locationOptions: [
+                {
+                  label: t("default"),
+                  options: [
+                    {
+                      label: t("members_default_location"),
+                      value: "",
+                      icon: "/user-check.svg",
+                    },
+                  ],
+                },
+                ...locationOptions,
+              ],
+            };
+          } else {
+            eventType = { ...eventType, locationOptions };
+          }
+          eventTypes[index] = eventType;
+        }
+      }
+
       if (eventTypes.length === 0) {
         return {
           redirect: {
@@ -489,7 +559,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         ...(await serverSideTranslations(locale, ["common"])),
         app,
         appMetadata,
-        extendsEventType,
+        showEventTypesStep,
         step: parsedStepParam,
         teams: teamsWithIsAppInstalled,
         personalAccount,
@@ -497,6 +567,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         teamId: parsedTeamIdParam ?? null,
         userName: user.username,
         credentialId,
+        isConferencing,
       } as OnboardingPageProps,
     };
   } catch (err) {
