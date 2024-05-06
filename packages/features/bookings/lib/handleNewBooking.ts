@@ -1260,7 +1260,12 @@ async function handler(
         loggerWithEventDetails
       );
       const luckyUsers: typeof users = [];
-      const luckyUserPool = availableUsers.filter((user) => !user.isFixed);
+      const luckyUserPool: IsFixedAwareUser[] = [];
+      const fixedUserPool: IsFixedAwareUser[] = [];
+      availableUsers.forEach((user) => {
+        user.isFixed ? fixedUserPool.push(user) : luckyUserPool.push(user);
+      });
+
       const notAvailableLuckyUsers: typeof users = [];
 
       loggerWithEventDetails.debug(
@@ -1272,11 +1277,18 @@ async function handler(
       );
 
       if (reqBody.teamMemberEmail) {
-        const teamMember = eventTypeWithUsers.users.find((user) => user.email === reqBody.teamMemberEmail);
-        if (teamMember) {
-          luckyUsers.push(teamMember);
+        // If requested user is not a fixed host, assign the lucky user as the team member
+        if (!fixedUserPool.some((user) => user.email === reqBody.teamMemberEmail)) {
+          const teamMember = eventTypeWithUsers.users.find((user) => user.email === reqBody.teamMemberEmail);
+          if (teamMember) {
+            luckyUsers.push(teamMember);
+          }
         }
       }
+
+      // Check if teamMember is a fixed host, then find new lucky user
+      // If not then assign the lucky user as the team member
+
       // loop through all non-fixed hosts and get the lucky users
       while (luckyUserPool.length > 0 && luckyUsers.length < 1 /* TODO: Add variable */) {
         const newLuckyUser = await getLuckyUser("MAXIMIZE_AVAILABILITY", {
@@ -1324,16 +1336,9 @@ async function handler(
         }
       }
       // ALL fixed users must be available
-      if (
-        availableUsers.filter((user) => user.isFixed).length !== users.filter((user) => user.isFixed).length
-      ) {
+      if (fixedUserPool.length !== users.filter((user) => user.isFixed).length) {
         throw new Error(ErrorCode.HostsUnavailableForBooking);
       }
-      // Pushing fixed user before the luckyUser guarantees the (first) fixed user as the organizer.
-      users = [
-        ...availableUsers.filter((user) => user.isFixed && user.email !== reqBody.teamMemberEmail),
-        ...luckyUsers,
-      ];
       luckyUserResponse = { luckyUsers: luckyUsers.map((u) => u.id) };
     } else if (req.body.allRecurringDates && eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
       // all recurring slots except the first one
@@ -1350,7 +1355,10 @@ async function handler(
     throw new Error(ErrorCode.NoAvailableUsersFound);
   }
 
-  const [organizerUser] = users;
+  // If the team member is requested then they should be the organizer
+  const organizerUser = reqBody.teamMemberEmail
+    ? users.find((user) => user.email === reqBody.teamMemberEmail)
+    : users[0];
 
   const tOrganizer = await getTranslation(organizerUser?.locale ?? "en", "common");
   const allCredentials = await getAllCredentials(organizerUser, eventType);
