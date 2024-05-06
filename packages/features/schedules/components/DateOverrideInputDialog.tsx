@@ -28,6 +28,7 @@ const DateOverrideForm = ({
   excludedDates,
   onChange,
   userTimeFormat,
+  weekStart,
 }: {
   workingHours?: WorkingHours[];
   onChange: (newValue: TimeRange[]) => void;
@@ -35,6 +36,7 @@ const DateOverrideForm = ({
   value?: TimeRange[];
   onClose?: () => void;
   userTimeFormat: number | null;
+  weekStart: 0 | 1 | 2 | 3 | 4 | 5 | 6;
 }) => {
   const [browsingDate, setBrowsingDate] = useState<Dayjs>();
   const { t, i18n, isLocaleReady } = useLocale();
@@ -142,7 +144,7 @@ const DateOverrideForm = ({
         <DialogHeader title={t("date_overrides_dialog_title")} />
         <DatePicker
           excludedDates={excludedDates}
-          weekStart={0}
+          weekStart={weekStart}
           selected={selectedDates}
           onChange={(day) => {
             if (day) onDateChange(day);
@@ -204,6 +206,7 @@ const DateOverrideInputDialog = ({
   Trigger,
   excludedDates = [],
   userTimeFormat,
+  weekStart = 0,
   ...passThroughProps
 }: {
   workingHours: WorkingHours[];
@@ -212,6 +215,7 @@ const DateOverrideInputDialog = ({
   onChange: (newValue: TimeRange[]) => void;
   value?: TimeRange[];
   userTimeFormat: number | null;
+  weekStart?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
 }) => {
   const [open, setOpen] = useState(false);
   return (
@@ -221,6 +225,7 @@ const DateOverrideInputDialog = ({
       <DialogContent enableOverflow={true} size="md" className="p-0">
         <DateOverrideForm
           excludedDates={excludedDates}
+          weekStart={weekStart}
           {...passThroughProps}
           onClose={() => setOpen(false)}
           userTimeFormat={userTimeFormat}
