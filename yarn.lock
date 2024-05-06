@@ -3907,7 +3907,7 @@ __metadata:
     ts-loader: ^9.4.3
     ts-node: ^10.9.1
     tsconfig-paths: ^4.1.0
-    typescript: ^5.4.5
+    typescript: ^4.9.4
     uuid: ^8.3.2
     winston: ^3.11.0
     zod: ^3.22.4
@@ -3937,7 +3937,7 @@ __metadata:
     next-swagger-doc: ^0.3.6
     next-validations: ^0.2.0
     node-mocks-http: ^1.11.0
-    typescript: ^5.4.5
+    typescript: ^4.9.4
     tzdata: ^1.0.30
     uuid: ^8.3.2
     zod: ^3.22.4
@@ -3959,7 +3959,7 @@ __metadata:
     meow: ^9.0.0
     react: ^18.2.0
     ts-node: ^10.9.1
-    typescript: ^5.4.5
+    typescript: ^4.9.4
   bin:
     app-store-cli: dist/cli.js
   languageName: unknown
@@ -4033,6 +4033,8 @@ __metadata:
     typescript: ^5.4.5
     vite: ^5.0.10
     vite-plugin-dts: ^3.7.3
+  peerDependencies:
+    typescript: ">=5.4.5"
   languageName: unknown
   linkType: soft
 
@@ -4133,7 +4135,7 @@ __metadata:
     prettier-plugin-tailwindcss: ^0.2.5
     tailwind-scrollbar: ^2.0.1
     tailwindcss: ^3.3.3
-    typescript: ^5.4.5
+    typescript: ^4.9.4
   languageName: unknown
   linkType: soft
 
@@ -4169,7 +4171,7 @@ __metadata:
     react-live-chat-loader: ^2.8.1
     swr: ^1.2.2
     tailwindcss: ^3.3.3
-    typescript: ^5.4.5
+    typescript: ^4.9.4
     zod: ^3.22.4
   languageName: unknown
   linkType: soft
@@ -4308,7 +4310,7 @@ __metadata:
     npm-run-all: ^4.1.5
     postcss: ^8.4.18
     tailwindcss: ^3.3.3
-    typescript: ^5.4.5
+    typescript: ^4.9.4
     vite: ^4.1.2
     vite-plugin-environment: ^1.1.3
   languageName: unknown
@@ -4326,7 +4328,7 @@ __metadata:
     "@vitejs/plugin-react": ^2.2.0
     eslint: ^8.34.0
     npm-run-all: ^4.1.5
-    typescript: ^5.4.5
+    typescript: ^4.9.4
     vite: ^4.1.2
   peerDependencies:
     react: ^18.2.0
@@ -4339,7 +4341,7 @@ __metadata:
   resolution: "@calcom/embed-snippet@workspace:packages/embeds/embed-snippet"
   dependencies:
     "@calcom/embed-core": "workspace:*"
-    typescript: ^5.4.5
+    typescript: ^4.9.4
     vite: ^4.1.2
   languageName: unknown
   linkType: soft
@@ -4352,7 +4354,7 @@ __metadata:
     "@typescript-eslint/parser": ^5.52.0
     "@typescript-eslint/utils": ^5.52.0
     ts-node: ^10.9.1
-    typescript: ^5.4.5
+    typescript: ^4.9.4
   languageName: unknown
   linkType: soft
 
@@ -4616,7 +4618,7 @@ __metadata:
     tailwind-merge: ^1.13.2
     tsdav: 2.0.3
     tslog: ^4.9.2
-    typescript: ^5.4.5
+    typescript: ^4.9.4
     uuid: ^8.3.2
   languageName: unknown
   linkType: soft
@@ -4985,7 +4987,7 @@ __metadata:
     storybook-addon-rtl-direction: ^0.0.19
     storybook-react-i18next: ^2.0.9
     tailwindcss: ^3.3.3
-    typescript: ^5.4.5
+    typescript: ^4.9.4
     vite: ^4.1.2
   languageName: unknown
   linkType: soft
@@ -5025,7 +5027,7 @@ __metadata:
     react: ^18.2.0
     react-dom: ^18.2.0
     swagger-ui-react: 4.11.1
-    typescript: ^5.4.5
+    typescript: ^4.9.4
   languageName: unknown
   linkType: soft
 
@@ -5128,7 +5130,7 @@ __metadata:
     react-hook-form: ^7.43.3
     react-select: ^5.7.0
     react-virtual: ^2.10.4
-    typescript: ^5.4.5
+    typescript: ^4.9.4
   languageName: unknown
   linkType: soft
 
@@ -5312,7 +5314,7 @@ __metadata:
     tailwindcss-radix: ^2.6.0
     ts-node: ^10.9.1
     turndown: ^7.1.1
-    typescript: ^5.4.5
+    typescript: ^4.9.4
     uuid: ^8.3.2
     zod: ^3.22.4
   languageName: unknown
@@ -5436,7 +5438,7 @@ __metadata:
     tailwind-merge: ^1.13.2
     tailwindcss: ^3.3.3
     ts-node: ^10.9.1
-    typescript: ^5.4.5
+    typescript: ^4.9.4
     wait-on: ^7.0.1
     xml2js: ^0.6.0
     zod: ^3.22.2
@@ -20195,7 +20197,7 @@ __metadata:
     resize-observer-polyfill: ^1.5.1
     tsc-absolute: ^1.0.0
     turbo: ^1.10.1
-    typescript: ^5.4.5
+    typescript: ^4.9.4
     vitest: ^0.34.6
     vitest-fetch-mock: ^0.2.2
     vitest-mock-extended: ^1.1.3
@@ -45566,6 +45568,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"typescript@npm:^4.9.4":
+  version: 4.9.5
+  resolution: "typescript@npm:4.9.5"
+  bin:
+    tsc: bin/tsc
+    tsserver: bin/tsserver
+  checksum: ee000bc26848147ad423b581bd250075662a354d84f0e06eb76d3b892328d8d4440b7487b5a83e851b12b255f55d71835b008a66cbf8f255a11e4400159237db
+  languageName: node
+  linkType: hard
+
 "typescript@npm:^5.2.2":
   version: 5.4.2
   resolution: "typescript@npm:5.4.2"
@@ -45593,6 +45605,16 @@ __metadata:
     tsc: bin/tsc
     tsserver: bin/tsserver
   checksum: f61375590b3162599f0f0d5b8737877ac0a7bc52761dbb585d67e7b8753a3a4c42d9a554c4cc929f591ffcf3a2b0602f65ae3ce74714fd5652623a816862b610
+  languageName: node
+  linkType: hard
+
+"typescript@patch:typescript@^4.9.4#~builtin<compat/typescript>":
+  version: 4.9.5
+  resolution: "typescript@patch:typescript@npm%3A4.9.5#~builtin<compat/typescript>::version=4.9.5&hash=23ec76"
+  bin:
+    tsc: bin/tsc
+    tsserver: bin/tsserver
+  checksum: ab417a2f398380c90a6cf5a5f74badd17866adf57f1165617d6a551f059c3ba0a3e4da0d147b3ac5681db9ac76a303c5876394b13b3de75fdd5b1eaa06181c9d
   languageName: node
   linkType: hard
 
