@@ -4,8 +4,7 @@ import prisma from "@calcom/prisma";
 import { UserPermissionRole, MembershipRole } from "@calcom/prisma/enums";
 
 export const ScopeOfAdmin = {
-  Instance: "Instance",
-  TeamOwnerOrAdmin: "TeamOwnerOrAdmin",
+  SystemWide: "SystemWide",
   OrgOwnerOrAdmin: "OrgOwnerOrAdmin",
 } as const;
 
@@ -16,14 +15,14 @@ export const isAdminGuard = async (req: NextApiRequest) => {
 
   const { role: userRole } = user;
 
-  if (userRole === UserPermissionRole.ADMIN) return { isAdmin: true, scope: ScopeOfAdmin.Instance };
+  if (userRole === UserPermissionRole.ADMIN) return { isAdmin: true, scope: ScopeOfAdmin.SystemWide };
 
   const ownerOrAdminMemberships = await prisma.membership.findMany({
     where: {
       userId: userId,
       OR: [{ role: MembershipRole.OWNER }, { role: MembershipRole.ADMIN }],
     },
-    include: {
+    select: {
       team: {
         select: {
           id: true,
@@ -41,5 +40,5 @@ export const isAdminGuard = async (req: NextApiRequest) => {
 
   if (isOrganization) return { isAdmin: true, scope: ScopeOfAdmin.OrgOwnerOrAdmin };
 
-  return { isAdmin: true, scope: ScopeOfAdmin.TeamOwnerOrAdmin };
+  return { isAdmin: false, scope: null };
 };

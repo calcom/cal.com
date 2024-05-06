@@ -1,6 +1,9 @@
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
+import { ScopeOfAdmin } from "~/lib/utils/isAdmin";
+
+type ScopeOfAdminValue = (typeof ScopeOfAdmin)[keyof typeof ScopeOfAdmin];
 type AccessibleUsersType = {
   memberUserIds: number[];
   adminUserId: number;
@@ -87,9 +90,8 @@ export const getAccessibleUsers = async ({ memberUserIds, adminUserId }: Accessi
   return [];
 };
 
-export const retrieveScopedAccessibleUsers = async ({ adminId }: { adminId: number }) => {
+export const retrieveOrgScopedAccessibleUsers = async ({ adminId }: { adminId: number }) => {
   const adminMemberships = await getAllAdminMemberships(adminId);
-
   const adminOrganizationId = adminMemberships.filter((m) => m.team.isOrganization).map((m) => m.team.id)[0];
   if (adminOrganizationId) {
     const teamsInOrganization = await getTeamsInOrganization(adminOrganizationId);
@@ -99,10 +101,26 @@ export const retrieveScopedAccessibleUsers = async ({ adminId }: { adminId: numb
     const userIds = new Set(allMembershipsInteams.map((membership) => membership.userId));
     return Array.from(userIds);
   }
+  return [];
+};
 
-  const adminTeamIds = adminMemberships.map((m) => m.team.id);
-  if (!!adminTeamIds.length) {
-    const allMembershipsInteams = await getAllUsersInTeams(adminTeamIds);
+export const retrieveScopedAccessibleUsers = async ({
+  adminId,
+  scope,
+}: {
+  adminId: number;
+  scope: ScopeOfAdminValue;
+}) => {
+  const adminMemberships = await getAllAdminMemberships(adminId);
+
+  if (scope === ScopeOfAdmin.OrgOwnerOrAdmin) {
+    const adminOrganizationId = adminMemberships
+      .filter((m) => m.team.isOrganization)
+      .map((m) => m.team.id)[0];
+    const teamsInOrganization = await getTeamsInOrganization(adminOrganizationId);
+    const teamIds = teamsInOrganization.map((team) => team.id);
+
+    const allMembershipsInteams = await getAllUsersInTeams(teamIds);
     const userIds = new Set(allMembershipsInteams.map((membership) => membership.userId));
     return Array.from(userIds);
   }

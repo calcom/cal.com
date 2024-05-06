@@ -38,12 +38,8 @@ export const verifyApiKey: NextMiddleware = async (req, res, next) => {
   req.userId = apiKey.userId;
   const { isAdmin, scope } = await isAdminGuard(req);
 
-  req.isSystemWideAdmin = isAdmin && scope === ScopeOfAdmin.Instance;
+  req.isSystemWideAdmin = isAdmin && scope === ScopeOfAdmin.SystemWide;
   req.isOrganizationOwnerOrAdmin = isAdmin && scope === ScopeOfAdmin.OrgOwnerOrAdmin;
-  req.isTeamOwnerOrAdmin = isAdmin && scope === ScopeOfAdmin.TeamOwnerOrAdmin;
 
-  // req.isSystemWideAdmin = await isAdminGuard(req);
-  // req. = await getScopeOfAdmin(req.userId);
-  // have another functionality to check the type of admin, maybe above itself => instanceAdmin, teamOwnerOrAdmin, orgOwnerOrAdmin
   await next();
 };
