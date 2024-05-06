@@ -115,9 +115,7 @@ import { schemaQuerySingleOrMultipleUserIds } from "~/lib/validations/shared/que
  */
 type GetAdminArgsType = {
   adminDidQueryUserIds?: boolean;
-  query: {
-    userId: (number | number[]) & (number | number[] | undefined);
-  };
+  requestedUserIds: number[];
   userId: number;
 };
 /**
@@ -200,27 +198,30 @@ async function handler(req: NextApiRequest) {
 
   /** Only admins can query other users */
   if (isSystemWideAdmin) {
-    const query = schemaQuerySingleOrMultipleUserIds.parse(req.query);
     if (req.query.userId || filterByAttendeeEmails) {
+      const query = schemaQuerySingleOrMultipleUserIds.parse(req.query);
+      const requestedUserIds = Array.isArray(query.userId) ? query.userId : [query.userId || userId];
       const systemWideAdminArgs = {
-        adminDidQueryUserIds: !!req.query.userIds,
-        query,
+        adminDidQueryUserIds: !!req.query.userId,
+        requestedUserIds,
         userId,
       };
       const { userId: argUserId, userIds, userEmails } = await handleSystemWideAdminArgs(systemWideAdminArgs);
       args.where = buildWhereClause(argUserId, attendeeEmails, userIds, userEmails);
     }
   } else if (isOrganizationOwnerOrAdmin) {
+    let requestedUserIds = [userId];
     if (req.query.userId || filterByAttendeeEmails) {
       const query = schemaQuerySingleOrMultipleUserIds.parse(req.query);
-      const orgWideAdminArgs = {
-        adminDidQueryUserIds: !!req.query.userIds,
-        query,
-        userId,
-      };
-      const { userId: argUserId, userIds, userEmails } = await handleOrgWideAdminArgs(orgWideAdminArgs);
-      args.where = buildWhereClause(argUserId, attendeeEmails, userIds, userEmails);
+      requestedUserIds = Array.isArray(query.userId) ? query.userId : [query.userId || userId];
     }
+    const orgWideAdminArgs = {
+      adminDidQueryUserIds: !!req.query.userId,
+      requestedUserIds,
+      userId,
+    };
+    const { userId: argUserId, userIds, userEmails } = await handleOrgWideAdminArgs(orgWideAdminArgs);
+    args.where = buildWhereClause(argUserId, attendeeEmails, userIds, userEmails);
   } else {
     const user = await prisma.user.findUnique({
       where: { id: userId },
@@ -251,28 +252,34 @@ async function handler(req: NextApiRequest) {
   return { bookings: data.map((booking) => schemaBookingReadPublic.parse(booking)) };
 }
 
-const handleSystemWideAdminArgs = async ({ adminDidQueryUserIds, query, userId }: GetAdminArgsType) => {
+const handleSystemWideAdminArgs = async ({
+  adminDidQueryUserIds,
+  requestedUserIds,
+  userId,
+}: GetAdminArgsType) => {
   if (adminDidQueryUserIds) {
-    const userIds = Array.isArray(query.userId) ? query.userId : [query.userId || userId];
     const users = await prisma.user.findMany({
-      where: { id: { in: userIds } },
+      where: { id: { in: requestedUserIds } },
       select: { email: true },
     });
     const userEmails = users.map((u) => u.email);
-    return { userId, userIds, userEmails };
+    return { userId, requestedUserIds, userEmails };
   }
   return { userId: null, userIds: [], userEmails: [] };
 };
 
-const handleOrgWideAdminArgs = async ({ adminDidQueryUserIds, query, userId }: GetAdminArgsType) => {
+const handleOrgWideAdminArgs = async ({
+  adminDidQueryUserIds,
+  requestedUserIds,
+  userId,
+}: GetAdminArgsType) => {
   if (adminDidQueryUserIds) {
-    const userIds = Array.isArray(query.userId) ? query.userId : [query.userId || userId];
+    // const requestedUserIds = Array.isArray(query.userId) ? query.userId : [query.userId || userId];
     const accessibleUsersIds = await getAccessibleUsers({
       adminUserId: userId,
-      memberUserIds: userIds,
+      memberUserIds: requestedUserIds,
     });
     if (!accessibleUsersIds.length) throw new HttpError({ message: "No User found", statusCode: 404 });
-
     const users = await prisma.user.findMany({
       where: { id: { in: accessibleUsersIds } },
       select: { email: true },
@@ -283,8 +290,7 @@ const handleOrgWideAdminArgs = async ({ adminDidQueryUserIds, query, userId }: G
     const accessibleUsersIds = await retrieveOrgScopedAccessibleUsers({
       adminId: userId,
     });
-    // TODO:: Remove the console log
-    console.log({ accessibleUsersIds });
+
     const users = await prisma.user.findMany({
       where: { id: { in: accessibleUsersIds } },
       select: { email: true },

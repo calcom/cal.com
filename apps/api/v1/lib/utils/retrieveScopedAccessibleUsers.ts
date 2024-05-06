@@ -11,7 +11,7 @@ type AccessibleUsersType = {
 
 const getAllMemberships = async (userIds: number[]) => {
   return await prisma.membership.findMany({
-    where: { id: { in: userIds } },
+    where: { userId: { in: userIds } },
     select: {
       userId: true,
       team: {
@@ -64,11 +64,13 @@ const getAllUsersInTeams = async (teamIds: number[]) => {
   });
 };
 
-export const getAccessibleUsers = async ({ memberUserIds, adminUserId }: AccessibleUsersType) => {
+export const getAccessibleUsers = async ({
+  memberUserIds,
+  adminUserId,
+}: AccessibleUsersType): Promise<number[]> => {
   const userMemberships = await getAllMemberships(memberUserIds);
   const adminMemberships = await getAllAdminMemberships(adminUserId);
 
-  // Prepare to collect user IDs from matching memberships
   const accessibleUserIds = new Set<number>();
 
   const adminOrganizationId = adminMemberships.filter((m) => m.team.isOrganization).map((m) => m.team.id)[0];
