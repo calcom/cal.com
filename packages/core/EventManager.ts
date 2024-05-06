@@ -926,6 +926,7 @@ export default class EventManager {
       let success = true;
       const createdEvent = await crm.createEvent(event).catch((error) => {
         success = false;
+        log.warn(`Error creating crm event for ${credential.type}`, error);
       });
       createdEvents.push({
         type: credential.type,
@@ -959,6 +960,7 @@ export default class EventManager {
         const crm = new CrmManager(credential);
         const updatedEvent = await crm.updateEvent(reference.uid, event).catch((error) => {
           success = false;
+          log.warn(`Error updating crm event for ${credential.type}`, error);
         });
 
         updatedEvents.push({
