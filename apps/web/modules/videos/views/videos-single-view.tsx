@@ -101,12 +101,12 @@ export default function JoinCall(props: PageProps) {
             />
           ) : (
             <img
-              className="fixed z-10 hidden sm:inline-block"
+              className="fixed z-10 inline-block h-4"
               src={`${WEBSITE_URL}/cal-logo-word-dark.svg`}
               alt="Logo"
               style={{
-                top: 32,
-                left: 32,
+                top: 9,
+                left: "calc(50% - 45px)",
               }}
             />
           )}
