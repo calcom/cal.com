@@ -217,10 +217,12 @@ export const AddActionDialog = (props: IAddActionDialog) => {
             {isSenderIdNeeded && (
               <>
                 <div className="mt-5">
-                  <div className="flex">
+                  <div className="flex items-center">
                     <Label>{t("sender_id")}</Label>
                     <Tooltip content={t("sender_id_info")}>
-                      <Icon name="info" className="ml-2 mr-1 mt-0.5 h-4 w-4 text-gray-500" />
+                      <span>
+                        <Icon name="info" className="mb-2 ml-2 mr-1 mt-0.5 h-4 w-4 text-gray-500" />
+                      </span>
                     </Tooltip>
                   </div>
                   <Input type="text" placeholder={SENDER_ID} maxLength={11} {...form.register(`senderId`)} />
