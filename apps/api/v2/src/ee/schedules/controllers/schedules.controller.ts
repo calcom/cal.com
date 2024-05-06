@@ -91,7 +91,6 @@ export class SchedulesController {
     };
   }
 
-  // note(Lauris): currently this endpoint is atoms only
   @Patch("/:scheduleId")
   @Permissions([SCHEDULE_WRITE])
   async updateSchedule(
