@@ -9,6 +9,12 @@ import dayjs from "@calcom/dayjs";
 import { getFeatureFlag } from "@calcom/features/flags/server/utils";
 import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
 import type CalendarService from "@calcom/lib/CalendarService";
+import {
+  APP_CREDENTIAL_SHARING_ENABLED,
+  CREDENTIAL_SYNC_ENDPOINT,
+  CREDENTIAL_SYNC_SECRET,
+  CREDENTIAL_SYNC_SECRET_HEADER_NAME,
+} from "@calcom/lib/constants";
 import { formatCalEvent } from "@calcom/lib/formatCalendarEvent";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -22,11 +28,16 @@ import type {
 } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
-import type { ParseRefreshTokenResponse } from "../../_utils/oauth/parseRefreshTokenResponse";
-import parseRefreshTokenResponse from "../../_utils/oauth/parseRefreshTokenResponse";
-import refreshOAuthTokens from "../../_utils/oauth/refreshOAuthTokens";
+import { invalidateCredential } from "../../_utils/invalidateCredential";
+import { AxiosLikeResponseToFetchResponse } from "../../_utils/oauth/AxiosLikeResponseToFetchResponse";
+import { OAuthManager } from "../../_utils/oauth/OAuthManager";
+import { getTokenObjectFromCredential } from "../../_utils/oauth/getTokenObjectFromCredential";
+import { markTokenAsExpired } from "../../_utils/oauth/markTokenAsExpired";
+import { OAuth2UniversalSchema } from "../../_utils/oauth/universalSchema";
+import { metadata } from "../_metadata";
 import { getGoogleAppKeys } from "./getGoogleAppKeys";
-import { googleCredentialSchema } from "./googleCredentialSchema";
+
+const log = logger.getSubLogger({ prefix: ["app-store/googlecalendar/lib/CalendarService"] });
 
 interface GoogleCalError extends Error {
   code?: number;
@@ -64,80 +75,115 @@ function handleMinMax(min: string, max: string) {
 
 export default class GoogleCalendarService implements Calendar {
   private integrationName = "";
-  private auth: { getToken: () => Promise<MyGoogleAuth> };
+  private auth: ReturnType<typeof this.initGoogleAuth>;
   private log: typeof logger;
   private credential: CredentialPayload;
-
+  private myGoogleAuth!: MyGoogleAuth;
+  private oAuthManagerInstance!: OAuthManager;
   constructor(credential: CredentialPayload) {
     this.integrationName = "google_calendar";
     this.credential = credential;
-    this.auth = this.googleAuth(credential);
-    this.log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
-    this.credential = credential;
+    this.auth = this.initGoogleAuth(credential);
+    this.log = log.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
   }
 
-  private googleAuth = (credential: CredentialPayload) => {
-    const googleCredentials = googleCredentialSchema.parse(credential.key);
-
-    async function getGoogleAuth() {
-      const { client_id, client_secret, redirect_uris } = await getGoogleAppKeys();
-      const myGoogleAuth = new MyGoogleAuth(client_id, client_secret, redirect_uris[0]);
-      myGoogleAuth.setCredentials(googleCredentials);
-      return myGoogleAuth;
+  private async getMyGoogleAuthSingleton() {
+    if (this.myGoogleAuth) {
+      return this.myGoogleAuth;
     }
+    const { client_id, client_secret, redirect_uris } = await getGoogleAppKeys();
+    const googleCredentials = OAuth2UniversalSchema.parse(this.credential.key);
+    this.myGoogleAuth = new MyGoogleAuth(client_id, client_secret, redirect_uris[0]);
+    this.myGoogleAuth.setCredentials(googleCredentials);
+    return this.myGoogleAuth;
+  }
 
-    const refreshAccessToken = async (myGoogleAuth: Awaited<ReturnType<typeof getGoogleAuth>>) => {
-      try {
-        const res = await refreshOAuthTokens(
-          async () => {
-            const fetchTokens = await myGoogleAuth.refreshToken(googleCredentials.refresh_token);
-            return fetchTokens.res;
-          },
-          "google-calendar",
-          credential.userId
-        );
-        const token = res?.data;
-        googleCredentials.access_token = token.access_token;
-        googleCredentials.expiry_date = token.expiry_date;
-        const parsedKey: ParseRefreshTokenResponse<typeof googleCredentialSchema> = parseRefreshTokenResponse(
-          googleCredentials,
-          googleCredentialSchema
-        );
-        await prisma.credential.update({
-          where: { id: credential.id },
-          data: { key: { ...parsedKey } as Prisma.InputJsonValue },
+  private initGoogleAuth = (credential: CredentialPayload) => {
+    const currentTokenObject = getTokenObjectFromCredential(credential);
+    const auth = new OAuthManager({
+      // Keep it false because we are not using auth.request everywhere. That would be done later as it involves many google calendar sdk functionc calls and needs to be tested well.
+      autoCheckTokenExpiryOnRequest: false,
+      credentialSyncVariables: {
+        APP_CREDENTIAL_SHARING_ENABLED: APP_CREDENTIAL_SHARING_ENABLED,
+        CREDENTIAL_SYNC_ENDPOINT: CREDENTIAL_SYNC_ENDPOINT,
+        CREDENTIAL_SYNC_SECRET: CREDENTIAL_SYNC_SECRET,
+        CREDENTIAL_SYNC_SECRET_HEADER_NAME: CREDENTIAL_SYNC_SECRET_HEADER_NAME,
+      },
+      resourceOwner: {
+        type: "user",
+        id: credential.userId,
+      },
+      appSlug: metadata.slug,
+      currentTokenObject,
+      fetchNewTokenObject: async ({ refreshToken }: { refreshToken: string | null }) => {
+        const myGoogleAuth = await this.getMyGoogleAuthSingleton();
+        const fetchTokens = await myGoogleAuth.refreshToken(refreshToken);
+        // Create Response from fetchToken.res
+        const response = new Response(JSON.stringify(fetchTokens.res?.data ?? null), {
+          status: fetchTokens.res?.status,
+          statusText: fetchTokens.res?.statusText,
         });
-        myGoogleAuth.setCredentials(googleCredentials);
-      } catch (err) {
-        this.log.error("Error Refreshing Google Token", safeStringify(err));
-        let message;
-        if (err instanceof Error) message = err.message;
-        else message = String(err);
-        // if not invalid_grant, default behaviour (which admittedly isn't great)
-        if (message !== "invalid_grant") return myGoogleAuth;
-        // when the error is invalid grant, it's unrecoverable and the credential marked invalid.
-        // TODO: Evaluate bubbling up and handling this in the CalendarManager. IMO this should be done
-        //       but this is a bigger refactor.
-        await prisma.credential.update({
-          where: { id: credential.id },
+        return response;
+      },
+      isTokenExpired: async () => {
+        const myGoogleAuth = await this.getMyGoogleAuthSingleton();
+        return myGoogleAuth.isTokenExpiring();
+      },
+      isTokenObjectUnusable: async function (response) {
+        // TODO: Confirm that if this logic should go to isAccessTokenUnusable
+        if (!response.ok || (response.status < 200 && response.status >= 300)) {
+          const responseBody = await response.json();
+
+          if (responseBody.error === "invalid_grant") {
+            return {
+              reason: "invalid_grant",
+            };
+          }
+        }
+        return null;
+      },
+      isAccessTokenUnusable: async () => {
+        // As long as refresh_token is valid, access_token is regenerated and fixed automatically by Google Calendar when a problem with it is detected
+        // So, a situation where access_token is invalid but refresh_token is valid should not happen
+        return null;
+      },
+      invalidateTokenObject: () => invalidateCredential(this.credential.id),
+      expireAccessToken: async () => {
+        await markTokenAsExpired(this.credential);
+      },
+      updateTokenObject: async (token) => {
+        this.myGoogleAuth.setCredentials(token);
+
+        const { key } = await prisma.credential.update({
+          where: {
+            id: credential.id,
+          },
           data: {
-            invalid: true,
+            key: token,
           },
         });
-      }
-      return myGoogleAuth;
-    };
+
+        // Update cached credential as well
+        this.credential.key = key;
+      },
+    });
+    this.oAuthManagerInstance = auth;
     return {
-      getToken: async () => {
-        const myGoogleAuth = await getGoogleAuth();
-        const isExpired = () => myGoogleAuth.isTokenExpiring();
-        return !isExpired() ? Promise.resolve(myGoogleAuth) : refreshAccessToken(myGoogleAuth);
+      getMyGoogleAuthWithRefreshedToken: async () => {
+        // It would automatically update myGoogleAuth with correct token
+        const { token } = await auth.getTokenObjectOrFetch();
+        if (!token) {
+          throw new Error("Invalid grant for Google Calendar app");
+        }
+
+        const myGoogleAuth = await this.getMyGoogleAuthSingleton();
+        return myGoogleAuth;
       },
     };
   };
 
   public authedCalendar = async () => {
-    const myGoogleAuth = await this.auth.getToken();
+    const myGoogleAuth = await this.auth.getMyGoogleAuthWithRefreshedToken();
     const calendar = google.calendar({
       version: "v3",
       auth: myGoogleAuth,
@@ -188,6 +234,7 @@ export default class GoogleCalendarService implements Calendar {
   };
 
   async createEvent(calEventRaw: CalendarEvent, credentialId: number): Promise<NewCalendarEventType> {
+    this.log.debug("Creating event");
     const formattedCalEvent = formatCalEvent(calEventRaw);
 
     const payload: calendar_v3.Schema$Event = {
@@ -480,11 +527,14 @@ export default class GoogleCalendarService implements Calendar {
     if (!calendarCacheEnabled) {
       this.log.warn("Calendar Cache is disabled - Skipping");
       const { timeMin, timeMax, items } = args;
-      const apires = await calendar.freebusy.query({
-        requestBody: { timeMin, timeMax, items },
-      });
-
-      freeBusyResult = apires.data;
+      ({ json: freeBusyResult } = await this.oAuthManagerInstance.request(
+        async () =>
+          new AxiosLikeResponseToFetchResponse(
+            await calendar.freebusy.query({
+              requestBody: { timeMin, timeMax, items },
+            })
+          )
+      ));
     } else {
       const { timeMin: _timeMin, timeMax: _timeMax, items } = args;
       const { timeMin, timeMax } = handleMinMax(_timeMin, _timeMax);
@@ -502,9 +552,14 @@ export default class GoogleCalendarService implements Calendar {
       if (cached) {
         freeBusyResult = cached.value as unknown as calendar_v3.Schema$FreeBusyResponse;
       } else {
-        const apires = await calendar.freebusy.query({
-          requestBody: { timeMin, timeMax, items },
-        });
+        ({ json: freeBusyResult } = await this.oAuthManagerInstance.request(
+          async () =>
+            new AxiosLikeResponseToFetchResponse(
+              await calendar.freebusy.query({
+                requestBody: { timeMin, timeMax, items },
+              })
+            )
+        ));
 
         // Skipping await to respond faster
         await prisma.calendarCache.upsert({
@@ -515,18 +570,16 @@ export default class GoogleCalendarService implements Calendar {
             },
           },
           update: {
-            value: JSON.parse(JSON.stringify(apires.data)),
+            value: JSON.parse(JSON.stringify(freeBusyResult)),
             expiresAt: new Date(Date.now() + CACHING_TIME),
           },
           create: {
-            value: JSON.parse(JSON.stringify(apires.data)),
+            value: JSON.parse(JSON.stringify(freeBusyResult)),
             credentialId: this.credential.id,
             key,
             expiresAt: new Date(Date.now() + CACHING_TIME),
           },
         });
-
-        freeBusyResult = apires.data;
       }
     }
     if (!freeBusyResult.calendars) return null;
@@ -548,6 +601,7 @@ export default class GoogleCalendarService implements Calendar {
     dateTo: string,
     selectedCalendars: IntegrationCalendar[]
   ): Promise<EventBusyDate[]> {
+    this.log.debug("Getting availability");
     const calendar = await this.authedCalendar();
     const selectedCalendarIds = selectedCalendars
       .filter((e) => e.integration === this.integrationName)
@@ -613,11 +667,18 @@ export default class GoogleCalendarService implements Calendar {
   }
 
   async listCalendars(): Promise<IntegrationCalendar[]> {
+    this.log.debug("Listing calendars");
     const calendar = await this.authedCalendar();
     try {
-      const cals = await calendar.calendarList.list({ fields: "items(id,summary,primary,accessRole)" });
-      if (!cals.data.items) return [];
-      return cals.data.items.map(
+      const { json: cals } = await this.oAuthManagerInstance.request(
+        async () =>
+          new AxiosLikeResponseToFetchResponse(
+            await calendar.calendarList.list({ fields: "items(id,summary,primary,accessRole)" })
+          )
+      );
+
+      if (!cals.items) return [];
+      return cals.items.map(
         (cal) =>
           ({
             externalId: cal.id ?? "No id",

@@ -54,7 +54,16 @@ export const useIntercom = () => {
         has_paid_plan: hasPaidPlan,
         has_team_plan: hasTeamPlan,
         metadata: data?.metadata,
+        completed_onboarding: data.completedOnboarding,
         is_logged_in: !!data,
+        sum_of_bookings: data?.sumOfBookings,
+        sum_of_calendars: data?.sumOfCalendars,
+        sum_of_teams: data?.sumOfTeams,
+        has_org: !data?.organizationId,
+        organization: data?.organization?.slug,
+        sum_of_event_types: data?.sumOfEventTypes,
+        sum_of_team_event_types: data?.sumOfTeamEventTypes,
+        is_premium: data?.isPremium,
       },
     });
   };
@@ -85,7 +94,16 @@ export const useIntercom = () => {
         has_paid_plan: hasPaidPlan,
         has_team_plan: hasTeamPlan,
         metadata: data?.metadata,
+        completed_onboarding: data?.completedOnboarding,
         is_logged_in: !!data,
+        sum_of_bookings: data?.sumOfBookings,
+        sum_of_calendars: data?.sumOfCalendars,
+        sum_of_teams: data?.sumOfTeams,
+        has_org: !data?.organizationId,
+        organization: data?.organization?.slug,
+        sum_of_event_types: data?.sumOfEventTypes,
+        sum_of_team_event_types: data?.sumOfTeamEventTypes,
+        is_premium: data?.isPremium,
       },
     });
     hookData.show();
