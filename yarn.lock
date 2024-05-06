@@ -4018,7 +4018,7 @@ __metadata:
     "@types/react-dom": ^18.0.9
     "@vitejs/plugin-react": ^2.2.0
     autoprefixer: ^10.4.19
-    class-variance-authority: ^0.4.0
+    class-variance-authority: ^0.7.0
     clsx: ^2.0.0
     lucide-react: ^0.364.0
     postcss: ^8.4.38
