@@ -9,6 +9,7 @@ import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApi
 import { appKeysSchema as calVideoKeysSchema } from "@calcom/app-store/dailyvideo/zod";
 import { getEventLocationTypeFromApp, MeetLocationType } from "@calcom/app-store/locations";
 import getApps from "@calcom/app-store/utils";
+import { getUid } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
 import {
   getPiiFreeDestinationCalendar,
@@ -580,7 +581,6 @@ export default class EventManager {
        *  Not ideal but, if we don't find a destination calendar,
        *  fallback to the first connected calendar - Shouldn't be a CRM calendar
        */
-      // Backwards compatibility until CRM manager is created
       const [credential] = this.calendarCredentials.filter((cred) => !cred.type.endsWith("other_calendar"));
       if (credential) {
         const createdEvent = await createEvent(credential, event);
@@ -685,7 +685,6 @@ export default class EventManager {
     createdEvents = createdEvents.concat(
       await Promise.all(
         this.calendarCredentials
-          // Backwards compatibility until CRM manager is created
           .filter((cred) => cred.type.includes("other_calendar"))
           .map(async (cred) => await createEvent(cred, event))
       )
@@ -858,8 +857,7 @@ export default class EventManager {
       // Taking care of non-traditional calendar integrations
       result = result.concat(
         this.calendarCredentials
-          // Backwards compatibility until CRM manager is created
-          .filter((cred) => cred.type.includes("other_calendar") && cred.type.includes("crm"))
+          .filter((cred) => cred.type.includes("other_calendar"))
           .map(async (cred) => {
             const calendarReference = booking.references.find((ref) => ref.type === cred.type);
 
@@ -923,25 +921,25 @@ export default class EventManager {
 
   private async createAllCRMEvents(event: CalendarEvent) {
     const createdEvents = [];
+    const uid = getUid(event);
     for (const credential of this.crmCredentials) {
       const crm = new CrmManager(credential);
 
       let success = true;
       const createdEvent = await crm.createEvent(event).catch((error) => {
         success = false;
+        log.warn(`Error creating crm event for ${credential.type}`, error);
       });
+
       createdEvents.push({
         type: credential.type,
         appName: credential.appId || "",
-        uid: createdEvent?.id || "",
+        uid,
         success,
         createdEvent: {
           id: createdEvent?.id || "",
-          uid: createdEvent?.id || "",
           type: credential.type,
-          url: "",
           credentialId: credential.id,
-          password: "",
         },
         id: createdEvent?.id || "",
         originalEvent: event,
@@ -962,6 +960,7 @@ export default class EventManager {
         const crm = new CrmManager(credential);
         const updatedEvent = await crm.updateEvent(reference.uid, event).catch((error) => {
           success = false;
+          log.warn(`Error updating crm event for ${credential.type}`, error);
         });
 
         updatedEvents.push({

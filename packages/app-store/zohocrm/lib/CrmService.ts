@@ -54,7 +54,7 @@ export default class ZohoCrmCrmService implements CRM {
   private accessToken = "";
 
   constructor(credential: CredentialPayload) {
-    this.integrationName = "zohocrm_other_calendar";
+    this.integrationName = "zohocrm_crm";
     this.auth = this.zohoCrmAuth(credential).then((r) => r);
     this.log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
   }
@@ -82,7 +82,7 @@ export default class ZohoCrmCrmService implements CRM {
       data: JSON.stringify({ data: contacts }),
     });
 
-    const { data } = response.data;
+    const { data } = response;
     return data.data.map((contact: ZohoContact) => {
       return {
         id: contact.id,
