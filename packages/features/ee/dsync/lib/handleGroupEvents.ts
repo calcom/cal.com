@@ -161,7 +161,7 @@ const handleGroupEvents = async (event: DirectorySyncEvent, organizationId: numb
         const translation = await getTranslation(user.locale || "en", "common");
         return sendExistingUserTeamInviteEmails({
           currentUserTeamName: group.team.name,
-          existingUsersWithMembersips: [
+          existingUsersWithMemberships: [
             {
               ...user,
               profile: null,
