@@ -931,7 +931,7 @@ export default class EventManager {
       createdEvents.push({
         type: credential.type,
         appName: credential.appId || "",
-        uid: createdEvent?.id || "",
+        uid: event.uid,
         success,
         createdEvent: {
           id: createdEvent?.id || "",
