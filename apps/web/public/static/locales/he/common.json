@@ -988,8 +988,6 @@
   "verify_wallet": "אימות הארנק",
   "create_events_on": "ליצור אירועים ב-",
   "enterprise_license": "תכונה זו זמינה רק במינוי Enterprise",
-  "enterprise_license_description": "כדי להפעיל את יכולת זו, בקש ממנהל לגשת אל הקישור {{setupUrl}} והקלדת הרישיון. אם כבר יש רישיון מוגדר, צור קשר עם {{supportMail}} לעזרה.",
-  "enterprise_license_development": "ניתן לבדוק את התכונה הזו במצב פיתוח. לשימוש מצב הייצור, מנהל/ת מערכת צריך/ה לעבור אל <2>/auth/setup</2> ולהזין מפתח רישיון.",
   "missing_license": "חסר רישיון",
   "next_steps": "השלבים הבאים",
   "acquire_commercial_license": "רכישת רישיון לשימוש מסחרי",

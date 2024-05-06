@@ -24,7 +24,7 @@ import { getAppFromSlug } from "@calcom/app-store/utils";
 import EventManager from "@calcom/core/EventManager";
 import { getEventName } from "@calcom/core/event";
 import { getBusyTimesForLimitChecks } from "@calcom/core/getBusyTimes";
-import { getUserAvailability } from "@calcom/core/getUserAvailability";
+import { getUsersAvailability } from "@calcom/core/getUserAvailability";
 import dayjs from "@calcom/dayjs";
 import { scheduleMandatoryReminder } from "@calcom/ee/workflows/lib/reminders/scheduleMandatoryReminder";
 import {
@@ -373,24 +373,25 @@ export async function ensureAvailableUsers(
     });
   }
 
-  for (const user of eventType.users) {
-    const { oooExcludedDateRanges: dateRanges, busy: bufferedBusyTimes } = await getUserAvailability(
-      {
+  (
+    await getUsersAvailability({
+      users: eventType.users,
+      query: {
         ...input,
-        userId: user.id,
         eventTypeId: eventType.id,
         duration: originalBookingDuration,
         returnDateOverrides: false,
         dateFrom: startDateTimeUtc.format(),
         dateTo: endDateTimeUtc.format(),
       },
-      {
-        user,
+      initialData: {
         eventType,
         rescheduleUid: input.originalRescheduledBooking?.uid ?? null,
         busyTimesFromLimitsBookings: busyTimesFromLimitsBookingsAllUsers,
-      }
-    );
+      },
+    })
+  ).forEach(({ oooExcludedDateRanges: dateRanges, busy: bufferedBusyTimes }, index) => {
+    const user = eventType.users[index];
 
     log.debug(
       "calendarBusyTimes==>>>",
@@ -406,7 +407,7 @@ export async function ensureAvailableUsers(
           input,
         })
       );
-      continue;
+      return;
     }
 
     let foundConflict = false;
@@ -433,7 +434,7 @@ export async function ensureAvailableUsers(
           input,
         })
       );
-      continue;
+      return;
     }
 
     try {
@@ -445,7 +446,8 @@ export async function ensureAvailableUsers(
     if (!foundConflict) {
       availableUsers.push(user);
     }
-  }
+  });
+
   if (!availableUsers.length) {
     loggerWithEventDetails.error(
       `No available users found.`,

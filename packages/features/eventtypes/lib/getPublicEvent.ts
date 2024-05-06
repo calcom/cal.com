@@ -7,7 +7,7 @@ import { getAppFromSlug } from "@calcom/app-store/utils";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { isRecurringEvent, parseRecurringEvent } from "@calcom/lib";
-import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
+import { getOrgOrTeamAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getDefaultEvent, getUsernameList } from "@calcom/lib/defaultEvents";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
@@ -86,6 +86,7 @@ const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
           slug: true,
           name: true,
           bannerUrl: true,
+          logoUrl: true,
         },
       },
     },
@@ -335,11 +336,10 @@ function getProfileFromEvent(event: Event) {
     name: profile.name,
     weekStart,
     image: team
-      ? undefined
+      ? getOrgOrTeamAvatar(team)
       : getUserAvatarUrl({
           avatarUrl: nonTeamprofile?.avatarUrl,
         }),
-    logo: !team ? undefined : getPlaceholderAvatar(team.logoUrl, team.name),
     brandColor: profile.brandColor,
     darkBrandColor: profile.darkBrandColor,
     theme: profile.theme,
