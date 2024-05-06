@@ -1286,9 +1286,6 @@ async function handler(
         }
       }
 
-      // Check if teamMember is a fixed host, then find new lucky user
-      // If not then assign the lucky user as the team member
-
       // loop through all non-fixed hosts and get the lucky users
       while (luckyUserPool.length > 0 && luckyUsers.length < 1 /* TODO: Add variable */) {
         const newLuckyUser = await getLuckyUser("MAXIMIZE_AVAILABILITY", {
