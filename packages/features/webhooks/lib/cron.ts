@@ -3,6 +3,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import { defaultHandler } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma";
 
 import { handleWebhookScheduledTriggers } from "./handleWebhookScheduledTriggers";
 
