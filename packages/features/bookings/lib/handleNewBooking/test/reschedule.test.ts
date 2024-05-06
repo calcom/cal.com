@@ -1365,6 +1365,13 @@ describe("handleNewBooking", () => {
               organizer,
               emails,
               iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
+              appsStatus: [
+                getMockPassingAppStatus({ slug: appStoreMetadata.googlecalendar.slug }),
+                getMockPassingAppStatus({
+                  slug: appStoreMetadata.googlevideo.slug,
+                  overrideName: "Google Meet",
+                }),
+              ],
             });
             expectBookingRescheduledWebhookToHaveBeenFired({
               booker,

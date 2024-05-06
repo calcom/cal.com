@@ -1539,10 +1539,12 @@ const getMockAppStatus = ({
   slug,
   failures,
   success,
+  overrideName,
 }: {
   slug: string;
   failures: number;
   success: number;
+  overrideName?: string;
 }) => {
   const foundEntry = Object.entries(appStoreMetadata).find(([, app]) => {
     return app.slug === slug;
@@ -1552,7 +1554,7 @@ const getMockAppStatus = ({
   }
   const foundApp = foundEntry[1];
   return {
-    appName: foundApp.slug,
+    appName: overrideName ?? foundApp.slug,
     type: foundApp.type,
     failures,
     success,
@@ -1563,6 +1565,6 @@ export const getMockFailingAppStatus = ({ slug }: { slug: string }) => {
   return getMockAppStatus({ slug, failures: 1, success: 0 });
 };
 
-export const getMockPassingAppStatus = ({ slug }: { slug: string }) => {
-  return getMockAppStatus({ slug, failures: 0, success: 1 });
+export const getMockPassingAppStatus = ({ slug, overrideName }: { slug: string; overrideName?: string }) => {
+  return getMockAppStatus({ slug, overrideName, failures: 0, success: 1 });
 };
