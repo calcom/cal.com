@@ -71,16 +71,17 @@ const DEFAULT_PROMPT_VALUE = `## You are helping user set up a call with the sup
 const DEFAULT_BEGIN_MESSAGE = "Hi. How are you doing?";
 
 // These can't really be moved into calcom/ui due to the fact they use infered getserverside props typings;
+
+const EventTeamTab = dynamic(() =>
+  import("@components/eventtype/EventTeamTab").then((mod) => mod.EventTeamTab)
+);
+
 const EventSetupTab = dynamic(() =>
   import("@components/eventtype/EventSetupTab").then((mod) => mod.EventSetupTab)
 );
 
 const EventAvailabilityTab = dynamic(() =>
   import("@components/eventtype/EventAvailabilityTab").then((mod) => mod.EventAvailabilityTab)
-);
-
-const EventTeamTab = dynamic(() =>
-  import("@components/eventtype/EventTeamTab").then((mod) => mod.EventTeamTab)
 );
 
 const EventLimitsTab = dynamic(() =>
@@ -120,13 +121,13 @@ export type CustomInputParsed = typeof customInputSchema._output;
 const querySchema = z.object({
   tabName: z
     .enum([
+      "team",
       "setup",
       "availability",
       "apps",
       "limits",
       "instant",
       "recurring",
-      "team",
       "advanced",
       "workflows",
       "webhooks",
@@ -401,6 +402,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
     eventType.slug
   }`;
   const tabMap = {
+    team: <EventTeamTab teamMembers={teamMembers} team={team} eventType={eventType} />,
     setup: (
       <EventSetupTab
         eventType={eventType}
@@ -411,7 +413,6 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       />
     ),
     availability: <EventAvailabilityTab eventType={eventType} isTeamEvent={!!team} />,
-    team: <EventTeamTab teamMembers={teamMembers} team={team} eventType={eventType} />,
     limits: <EventLimitsTab eventType={eventType} />,
     advanced: <EventAdvancedTab eventType={eventType} team={team} />,
     instant: <EventInstantTab eventType={eventType} isTeamEvent={!!team} />,
@@ -631,9 +632,9 @@ const EventTypePage = (props: EventTypeSetupProps) => {
   useEffect(() => {
     const timeout = setTimeout(() => {
       const Components = [
+        EventTeamTab,
         EventSetupTab,
         EventAvailabilityTab,
-        EventTeamTab,
         EventLimitsTab,
         EventAdvancedTab,
         EventInstantTab,

@@ -248,7 +248,7 @@ function EventTypeSingleLayout({
     });
     // If there is a team put this navigation item within the tabs
     if (team) {
-      navigation.splice(2, 0, {
+      navigation.splice(0, 0, {
         name: "assignment",
         href: `/event-types/${formMethods.getValues("id")}?tabName=team`,
         icon: "users",
