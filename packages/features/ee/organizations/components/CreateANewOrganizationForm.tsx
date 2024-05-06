@@ -44,7 +44,6 @@ const CreateANewOrganizationFormChild = ({
   const telemetry = useTelemetry();
   const [serverErrorMessage, setServerErrorMessage] = useState<string | null>(null);
   const isAdmin = session.data.user.role === UserPermissionRole.ADMIN;
-  const isImpersonated = session.data.user.impersonatedBy;
   const defaultOrgOwnerEmail = session.data.user.email ?? "";
   const newOrganizationFormMethods = useForm<{
     name: string;
@@ -131,7 +130,7 @@ const CreateANewOrganizationFormChild = ({
                   containerClassName="w-full"
                   placeholder="john@acme.com"
                   name="orgOwnerEmail"
-                  disabled={!isAdmin && !isImpersonated}
+                  disabled={!isAdmin}
                   label={!isPlatformOrg ? t("admin_email") : t("platform_admin_email")}
                   defaultValue={value}
                   onChange={(e) => {
@@ -206,7 +205,7 @@ const CreateANewOrganizationFormChild = ({
           </div>
         )}
 
-        {(isAdmin || isImpersonated) && !isPlatformOrg && (
+        {isAdmin && !isPlatformOrg && (
           <>
             <section className="grid grid-cols-2 gap-2">
               <div className="w-full">
