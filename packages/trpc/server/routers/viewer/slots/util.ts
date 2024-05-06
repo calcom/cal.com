@@ -5,7 +5,7 @@ import { v4 as uuid } from "uuid";
 import { getAggregatedAvailability } from "@calcom/core/getAggregatedAvailability";
 import { getBusyTimesForLimitChecks } from "@calcom/core/getBusyTimes";
 import type { CurrentSeats, IFromUser, IToUser } from "@calcom/core/getUserAvailability";
-import { getUserAvailability } from "@calcom/core/getUserAvailability";
+import { getUsersAvailability } from "@calcom/core/getUserAvailability";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { getSlugOrRequestedSlug, orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
@@ -30,6 +30,7 @@ import { TRPCError } from "@trpc/server";
 
 import type { GetScheduleOptions } from "./getSchedule.handler";
 import type { TGetScheduleInputSchema } from "./getSchedule.schema";
+import { handleNotificationWhenNoSlots } from "./handleNotificationWhenNoSlots";
 
 export const checkIfIsAvailable = ({
   time,
@@ -456,44 +457,44 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
     });
   }
 
+  const users = usersWithCredentials.map((currentUser) => {
+    return {
+      ...currentUser,
+      currentBookings: currentBookingsAllUsers
+        .filter((b) => b.userId === currentUser.id || b.attendees?.some((a) => a.email === currentUser.email))
+        .map((bookings) => {
+          const { attendees: _attendees, ...bookingWithoutAttendees } = bookings;
+          return bookingWithoutAttendees;
+        }),
+    };
+  });
+
   /* We get all users working hours and busy slots */
-  const allUsersAvailability = await Promise.all(
-    usersWithCredentials.map(async (currentUser) => {
-      const {
-        busy,
-        dateRanges,
-        oooExcludedDateRanges,
-        currentSeats: _currentSeats,
-        timeZone,
-        datesOutOfOffice,
-      } = await getUserAvailability(
-        {
-          userId: currentUser.id,
-          username: currentUser.username || "",
-          dateFrom: startTime.format(),
-          dateTo: endTime.format(),
-          eventTypeId: eventType.id,
-          afterEventBuffer: eventType.afterEventBuffer,
-          beforeEventBuffer: eventType.beforeEventBuffer,
-          duration: input.duration || 0,
-          returnDateOverrides: false,
-        },
-        {
-          user: currentUser,
-          eventType,
-          currentSeats,
-          rescheduleUid: input.rescheduleUid,
-          currentBookings: currentBookingsAllUsers
-            .filter(
-              (b) => b.userId === currentUser.id || b.attendees?.some((a) => a.email === currentUser.email)
-            )
-            .map((bookings) => {
-              const { attendees: _attendees, ...bookingWithoutAttendees } = bookings;
-              return bookingWithoutAttendees;
-            }),
-          busyTimesFromLimitsBookings: busyTimesFromLimitsBookingsAllUsers,
-        }
-      );
+  const allUsersAvailability = (
+    await getUsersAvailability({
+      users,
+      query: {
+        dateFrom: startTime.format(),
+        dateTo: endTime.format(),
+        eventTypeId: eventType.id,
+        afterEventBuffer: eventType.afterEventBuffer,
+        beforeEventBuffer: eventType.beforeEventBuffer,
+        duration: input.duration || 0,
+        returnDateOverrides: false,
+      },
+      initialData: {
+        eventType,
+        currentSeats,
+        rescheduleUid: input.rescheduleUid,
+        busyTimesFromLimitsBookings: busyTimesFromLimitsBookingsAllUsers,
+      },
+    })
+  ).map(
+    (
+      { busy, dateRanges, oooExcludedDateRanges, currentSeats: _currentSeats, timeZone, datesOutOfOffice },
+      index
+    ) => {
+      const currentUser = users[index];
       if (!currentSeats && _currentSeats) currentSeats = _currentSeats;
       return {
         timeZone,
@@ -503,7 +504,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
         user: currentUser,
         datesOutOfOffice,
       };
-    })
+    }
   );
 
   const availabilityCheckProps = {
@@ -679,6 +680,25 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
     `checkForAvailability took ${checkForAvailabilityTime}ms and executed ${checkForAvailabilityCount} times`
   );
   loggerWithEventDetails.debug(`Available slots: ${JSON.stringify(computedAvailableSlots)}`);
+
+  // We only want to run this on single targeted events and not dynamic
+  if (!computedAvailableSlots.slots && input.usernameList?.length === 1) {
+    try {
+      await handleNotificationWhenNoSlots({
+        eventDetails: {
+          username: input.usernameList?.[0],
+          startTime: startTime,
+          eventSlug: eventType.slug,
+        },
+        orgDetails,
+      });
+    } catch (e) {
+      loggerWithEventDetails.error(
+        `Something has went wrong. Upstash could be down and we have caught the error to not block availability:
+ ${e}`
+      );
+    }
+  }
 
   return {
     slots: computedAvailableSlots,
