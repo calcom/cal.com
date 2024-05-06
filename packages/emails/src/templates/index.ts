@@ -35,3 +35,4 @@ export { AdminOrganizationNotificationEmail } from "./AdminOrganizationNotificat
 export { BookingRedirectEmailNotification } from "./BookingRedirectEmailNotification";
 export { VerifyEmailChangeEmail } from "./VerifyEmailChangeEmail";
 export { OrganizationCreationEmail } from "./OrganizationCreationEmail";
+export { OrganizationAdminNoSlotsEmail } from "./OrganizationAdminNoSlots";
