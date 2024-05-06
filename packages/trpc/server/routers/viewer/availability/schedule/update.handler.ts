@@ -78,6 +78,20 @@ export const updateHandler = async ({ input, ctx }: UpdateOptions) => {
     };
   }
 
+  const deleteConditions = [];
+  if (input.schedule) {
+    deleteConditions.push({
+      scheduleId: { equals: input.scheduleId },
+      date: null,
+    });
+  }
+  if (input.dateOverrides) {
+    deleteConditions.push({
+      scheduleId: { equals: input.scheduleId },
+      NOT: { date: null },
+    });
+  }
+
   const schedule = await prisma.schedule.update({
     where: {
       id: input.scheduleId,
@@ -86,11 +100,7 @@ export const updateHandler = async ({ input, ctx }: UpdateOptions) => {
       timeZone: input.timeZone,
       name: input.name,
       availability: {
-        deleteMany: {
-          scheduleId: {
-            equals: input.scheduleId,
-          },
-        },
+        deleteMany: deleteConditions,
         createMany: {
           data: [
             ...availability,
