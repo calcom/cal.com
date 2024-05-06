@@ -101,6 +101,8 @@ export async function getUsernameOrEmailsToInvite(usernameOrEmail: string | stri
 }
 
 export function canBeInvited(invitee: UserWithMembership, team: TeamWithParent) {
+  const myLog = log.getSubLogger({ prefix: ["canBeInvited"] });
+  myLog.debug("Checking if user can be invited", safeStringify({ invitee, team }));
   const alreadyInvited = invitee.teams?.find(({ teamId: membershipTeamId }) => team.id === membershipTeamId);
   if (alreadyInvited) {
     return false;
@@ -120,9 +122,9 @@ export function canBeInvited(invitee: UserWithMembership, team: TeamWithParent) 
     return false;
   }
 
-  // user is invited to join a team in an organization where he isn't a member
   if (
     !ENABLE_PROFILE_SWITCHER &&
+    // Member of an organization is invited to join a team that is not a subteam of the organization
     invitee.profiles.find((profile) => profile.organizationId != team.parentId)
   ) {
     return false;
@@ -130,23 +132,13 @@ export function canBeInvited(invitee: UserWithMembership, team: TeamWithParent) 
   return true;
 }
 
-export async function getUsersToInvite({
+export async function getExistingUsersToInvite({
   usernamesOrEmails,
-  isInvitedToOrg,
   team,
 }: {
   usernamesOrEmails: string[];
-  isInvitedToOrg: boolean;
   team: TeamWithParent;
 }) {
-  const memberships = [];
-  if (isInvitedToOrg) {
-    memberships.push({ teamId: team.id });
-  } else {
-    memberships.push({ teamId: team.id });
-    team.parentId && memberships.push({ teamId: team.parentId });
-  }
-
   const invitees: UserWithMembership[] = await prisma.user.findMany({
     where: {
       OR: [
@@ -513,12 +505,12 @@ export function getAutoJoinStatus({
 
 // split invited users between ones that can autojoin and the others who cannot autojoin
 export const groupUsersByJoinability = ({
-  existingUsersWithMembersips,
+  existingUsersWithMemberships,
   team,
   connectionInfoMap,
 }: {
   team: TeamWithParent;
-  existingUsersWithMembersips: (UserWithMembership & {
+  existingUsersWithMemberships: (UserWithMembership & {
     profile: {
       username: string;
     } | null;
@@ -528,8 +520,8 @@ export const groupUsersByJoinability = ({
   const usersToAutoJoin = [];
   const regularUsers = [];
 
-  for (let index = 0; index < existingUsersWithMembersips.length; index++) {
-    const existingUserWithMembersips = existingUsersWithMembersips[index];
+  for (let index = 0; index < existingUsersWithMemberships.length; index++) {
+    const existingUserWithMembersips = existingUsersWithMemberships[index];
 
     const autoJoinStatus = getAutoJoinStatus({
       invitee: existingUserWithMembersips,
@@ -561,7 +553,7 @@ export const sendEmails = async (emailPromises: Promise<void>[]) => {
 };
 
 export const sendExistingUserTeamInviteEmails = async ({
-  existingUsersWithMembersips,
+  existingUsersWithMemberships,
   language,
   currentUserTeamName,
   currentUserName,
@@ -573,7 +565,7 @@ export const sendExistingUserTeamInviteEmails = async ({
 }: {
   language: TFunction;
   isAutoJoin: boolean;
-  existingUsersWithMembersips: (UserWithMembership & {
+  existingUsersWithMemberships: (UserWithMembership & {
     profile: {
       username: string;
     } | null;
@@ -585,7 +577,7 @@ export const sendExistingUserTeamInviteEmails = async ({
   teamId: number;
   orgSlug: string | null;
 }) => {
-  const sendEmailsPromises = existingUsersWithMembersips.map(async (user) => {
+  const sendEmailsPromises = existingUsersWithMemberships.map(async (user) => {
     let sendTo = user.email;
     if (!isEmail(user.email)) {
       sendTo = user.email;
