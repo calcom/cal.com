@@ -22,6 +22,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import type { Prisma } from "@calcom/prisma/client";
+import { PeriodType } from "@calcom/prisma/enums";
 import type { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -587,7 +588,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { availability, users, scheduleName, ...rest } = input;
+    const { availability, users, rollingExcludeUnavailableDays, scheduleName, ...rest } = input;
     const payload = {
       ...rest,
       length,
@@ -596,6 +597,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       periodStartDate: periodDates?.startDate,
       periodEndDate: periodDates?.endDate,
       periodCountCalendarDays,
+      periodType: rollingExcludeUnavailableDays ? PeriodType.ROLLING_WINDOW : rest.periodType,
       id: eventType.id,
       beforeEventBuffer,
       afterEventBuffer,
@@ -735,7 +737,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
               throw new Error(t("event_setup_multiple_payment_apps_error"));
 
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const { availability, users, scheduleName, ...rest } = input;
+            const { availability, users, scheduleName, rollingExcludeUnavailableDays, ...rest } = input;
             const payload = {
               ...rest,
               children,
@@ -745,6 +747,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
               periodStartDate: periodDates?.startDate,
               periodEndDate: periodDates?.endDate,
               periodCountCalendarDays,
+              periodType: rollingExcludeUnavailableDays ? PeriodType.ROLLING_WINDOW : rest.periodType,
               id: eventType.id,
               beforeEventBuffer,
               afterEventBuffer,

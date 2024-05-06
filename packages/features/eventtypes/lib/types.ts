@@ -70,10 +70,27 @@ export type FormValues = {
   };
   customInputs: CustomInputParsed[];
   schedule: number | null;
+
   periodType: PeriodType;
+  /**
+   * Number of days(Applicable only for ROLLING period type)
+   */
   periodDays: number;
+  /**
+   * Should consider Calendar Days(and not Business Days)(Applicable only for ROLLING period type)
+   */
   periodCountCalendarDays: boolean;
+
+  /**
+   * Should exclude unavailable days from the periodDays(Applicable only for ROLLING period type)
+   * Note: This is mapped to periodType = ROLLING_WINDOW in backend
+   */
+  rollingExcludeUnavailableDays: boolean;
+  /**
+   * Date Range(Applicable only for RANGE period type)
+   */
   periodDates: { startDate: Date; endDate: Date };
+
   seatsPerTimeSlot: number | null;
   seatsShowAttendees: boolean | null;
   seatsShowAvailabilityCount: boolean | null;

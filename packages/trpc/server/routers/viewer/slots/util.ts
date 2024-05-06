@@ -511,13 +511,20 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
     currentSeats,
   };
 
-  const isTimeWithinBounds = (_time: Parameters<typeof isTimeOutOfBounds>[0]) =>
-    !isTimeOutOfBounds(_time, {
+  const isTimeWithinBounds = ({
+    time,
+    availableDates,
+  }: {
+    time: Parameters<typeof isTimeOutOfBounds>[0];
+    availableDates: string[];
+  }) =>
+    !isTimeOutOfBounds(time, {
       periodType: eventType.periodType,
       periodStartDate: eventType.periodStartDate,
       periodEndDate: eventType.periodEndDate,
       periodCountCalendarDays: eventType.periodCountCalendarDays,
       periodDays: eventType.periodDays,
+      availableDates,
     });
 
   const getSlotsTime = 0;
@@ -629,7 +636,6 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
       );
   }
 
-  availableTimeSlots = availableTimeSlots.filter((slot) => isTimeWithinBounds(slot.time));
   // fr-CA uses YYYY-MM-DD
   const formatter = new Intl.DateTimeFormat("fr-CA", {
     year: "numeric",
@@ -638,7 +644,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
     timeZone: input.timeZone,
   });
 
-  const computedAvailableSlots = availableTimeSlots.reduce(
+  const slotsMappedToDate = availableTimeSlots.reduce(
     (
       r: Record<string, { time: string; attendees?: number; bookingUid?: string }[]>,
       { time, ...passThroughProps }
@@ -673,15 +679,21 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
     Object.create(null)
   );
 
+  const availableDates = Object.keys(slotsMappedToDate);
+  const unavailableDates = getUnavailableDates();
+  const withinBoundsSlotsMappedToDate = Object.entries(slotsMappedToDate).map(([date, slots]) => {
+    slots.filter((slot) => isTimeWithinBounds({ time: slot.time, availableDates }));
+  });
+
   loggerWithEventDetails.debug(`getSlots took ${getSlotsTime}ms and executed ${getSlotsCount} times`);
 
   loggerWithEventDetails.debug(
     `checkForAvailability took ${checkForAvailabilityTime}ms and executed ${checkForAvailabilityCount} times`
   );
-  loggerWithEventDetails.debug(`Available slots: ${JSON.stringify(computedAvailableSlots)}`);
+  loggerWithEventDetails.debug(`Available slots: ${JSON.stringify(withinBoundsSlotsMappedToDate)}`);
 
   return {
-    slots: computedAvailableSlots,
+    slots: withinBoundsSlotsMappedToDate,
   };
 }
 
@@ -713,4 +725,20 @@ async function getTeamIdFromSlug(
     },
   });
   return team?.id;
+}
+
+function getAllDatesWithBookabilityStatus(availableDates: string[]) {
+  const firstDate = availableDates[0];
+  const lastDate = availableDates[availableDates.length - 1];
+  const allDates = [
+    {
+      date: firstDate,
+      isBookable: true,
+    },
+  ];
+
+  const currentDate = firstDate;
+  // while (currentDate. <= lastDate) {
+  //   currentDate =
+  // }
 }

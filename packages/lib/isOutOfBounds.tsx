@@ -25,10 +25,11 @@ function isOutOfBounds(
     periodCountCalendarDays,
     periodStartDate,
     periodEndDate,
+    availableDates,
   }: Pick<
     EventType,
     "periodType" | "periodDays" | "periodCountCalendarDays" | "periodStartDate" | "periodEndDate"
-  >,
+  > & { availableDates: string[] },
   minimumBookingNotice?: number
 ) {
   const date = dayjs(time);
@@ -43,11 +44,21 @@ function isOutOfBounds(
     }
   }
 
+  const currentDayBeginning = dayjs().utcOffset(date.utcOffset());
+
   switch (periodType) {
     case PeriodType.ROLLING: {
       const periodRollingEndDay = periodCountCalendarDays
-        ? dayjs().utcOffset(date.utcOffset()).add(periodDays, "days").endOf("day")
-        : dayjs().utcOffset(date.utcOffset()).businessDaysAdd(periodDays).endOf("day");
+        ? currentDayBeginning.add(periodDays, "days").endOf("day")
+        : currentDayBeginning.businessDaysAdd(periodDays).endOf("day");
+      return date.endOf("day").isAfter(periodRollingEndDay);
+    }
+
+    case PeriodType.ROLLING_WINDOW: {
+      const periodRollingEndDay = periodCountCalendarDays
+        ? currentDayBeginning.add(periodDays, "days").endOf("day")
+        : currentDayBeginning.businessDaysAdd(periodDays).endOf("day");
+
       return date.endOf("day").isAfter(periodRollingEndDay);
     }
 
