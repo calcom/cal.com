@@ -989,8 +989,6 @@
   "verify_wallet": "A Tárca ellenőrzése",
   "create_events_on": "Események létrehozása",
   "enterprise_license": "Ez egy vállalati szolgáltatás",
-  "enterprise_license_description": "A funkció engedélyezéséhez kérjen meg egy rendszergazdát, hogy lépjen a <2>/auth/setup</2> oldalra, és adja meg a licenckulcsot. Ha már van licenckulcs, segítségért forduljon a következőhöz: <5>{{SUPPORT_MAIL_ADDRESS}}</5>.",
-  "enterprise_license_development": "Ezt a funkciót fejlesztési módban tesztelheti. Éles használathoz kérjen meg egy rendszergazdát, hogy lépjen be a <2>/auth/setup</2> oldalra, és adja meg a licenckulcsot.",
   "missing_license": "Hiányzó licenc",
   "next_steps": "Következő lépések",
   "acquire_commercial_license": "Szerezzen kereskedelmi licenc-et",
