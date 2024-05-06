@@ -14,7 +14,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     return;
   }
 
-  await handleWebhookScheduledTriggers(prisma as PrismaClient);
+  await handleWebhookScheduledTriggers(prisma as unknown as PrismaClient);
 
   res.json({ ok: true });
 }
