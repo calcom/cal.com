@@ -1205,10 +1205,6 @@ export function mockCalendar(
                   location: "https://UNUSED_URL",
                   hangoutLink: "https://UNUSED_URL",
                   conferenceData: event.conferenceData,
-                  organizer: {
-                    email: event.organizer.email,
-                    self: true,
-                  },
                 });
               } else {
                 return Promise.resolve({

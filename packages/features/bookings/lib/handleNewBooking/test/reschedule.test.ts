@@ -1140,7 +1140,7 @@ describe("handleNewBooking", () => {
           timeout
         );
         test(
-          `[GOOGLE MEET AS LOCATIOn]should rechedule a booking, that requires confirmation, without confirmation - When booker is the organizer of the existing booking as well as the event-type
+          `[GOOGLE MEET AS LOCATION]should rechedule a booking, that requires confirmation, without confirmation - When booker is the organizer of the existing booking as well as the event-type
           1. Should cancel the existing booking
           2. Should delete existing calendar invite and Video meeting
           2. Should create a new booking in the database in ACCEPTED state

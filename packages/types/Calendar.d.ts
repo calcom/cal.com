@@ -70,17 +70,9 @@ export type NewCalendarEventType = {
   url: string;
   additionalInfo: AdditionalInfo;
   iCalUID?: string | null;
-  location?: string;
-  hangoutLink?: string;
-  conferenceData?: {
-    createRequest: {
-      requestId: string;
-    };
-  };
-  organizer?: {
-    email: string;
-    self: boolean;
-  };
+  location?: string | null;
+  hangoutLink?: string | null;
+  conferenceData?: ConferenceData;
 };
 
 export type CalendarEventType = {
