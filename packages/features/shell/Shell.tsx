@@ -85,6 +85,8 @@ import {
 import { Discord } from "@calcom/ui/components/icon/Discord";
 import { useGetUserAttributes } from "@calcom/web/components/settings/platform/hooks/useGetUserAttributes";
 
+import { useNotifications } from "@lib/hooks/useNotifications";
+
 import { useOrgBranding } from "../ee/organizations/context/provider";
 import FreshChatProvider from "../ee/support/lib/freshchat/FreshChatProvider";
 import { TeamInviteBadge } from "./TeamInviteBadge";
@@ -1071,6 +1073,7 @@ function SideBar({ bannersHeight, user, isPlatformUser = false }: SideBarProps) 
 export function ShellMain(props: LayoutProps) {
   const router = useRouter();
   const { isLocaleReady } = useLocale();
+  const { buttonToShow, isLoading, enableNotifications, disableNotifications } = useNotifications();
 
   return (
     <>
@@ -1130,6 +1133,22 @@ export function ShellMain(props: LayoutProps) {
                 </div>
               )}
               {props.actions && props.actions}
+              {props.heading === "Bookings" &&
+                (buttonToShow === "allow" ? (
+                  <Button color="primary" onClick={enableNotifications} loading={isLoading}>
+                    Allow Notifications
+                  </Button>
+                ) : buttonToShow === "disable" ? (
+                  <Button color="primary" onClick={disableNotifications} loading={isLoading}>
+                    Disable Notifications
+                  </Button>
+                ) : buttonToShow === "denied" ? (
+                  <Tooltip content="You have denied the notifications. You will have to reset the permission from browser settings to enable them.">
+                    <Button color="primary" disabled>
+                      Allow Notifications
+                    </Button>
+                  </Tooltip>
+                ) : null)}
             </header>
           )}
         </div>
