@@ -1868,11 +1868,9 @@ async function handler(
             });
           }
 
-          const googleHangoutLink =
-            googleCalResult?.createdEvent?.hangoutLink ??
-            (Array.isArray(googleCalResult?.updatedEvent)
-              ? googleCalResult.updatedEvent[0]?.hangoutLink
-              : googleCalResult?.updatedEvent?.hangoutLink);
+          const googleHangoutLink = Array.isArray(googleCalResult?.updatedEvent)
+            ? googleCalResult.updatedEvent[0]?.hangoutLink
+            : googleCalResult?.updatedEvent?.hangoutLink ?? googleCalResult?.createdEvent?.hangoutLink;
 
           if (googleHangoutLink) {
             results.push({
@@ -1900,9 +1898,9 @@ async function handler(
             });
           }
         }
-        const createdOrUpdatedEvent =
-          results[0]?.createdEvent ??
-          (Array.isArray(results[0]?.updatedEvent) ? results[0]?.updatedEvent[0] : results[0]?.updatedEvent);
+        const createdOrUpdatedEvent = Array.isArray(results[0]?.updatedEvent)
+          ? results[0]?.updatedEvent[0]
+          : results[0]?.updatedEvent ?? results[0]?.createdEvent;
         metadata.hangoutLink = createdOrUpdatedEvent?.hangoutLink;
         metadata.conferenceData = createdOrUpdatedEvent?.conferenceData;
         metadata.entryPoints = createdOrUpdatedEvent?.entryPoints;
