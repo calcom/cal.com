@@ -35,6 +35,8 @@ export const listHandler = async ({ ctx }: ListHandlerInput) => {
     },
     select: {
       lockEventTypeCreationForUsers: true,
+      adminGetsNoSlotsNotification: true,
+      isAdminReviewed: true,
     },
   });
 
@@ -48,8 +50,10 @@ export const listHandler = async ({ ctx }: ListHandlerInput) => {
   const metadata = teamMetadataSchema.parse(membership?.team.metadata);
 
   return {
+    canAdminImpersonate: !!organizationSettings?.isAdminReviewed,
     organizationSettings: {
       lockEventTypeCreationForUsers: organizationSettings?.lockEventTypeCreationForUsers,
+      adminGetsNoSlotsNotification: organizationSettings?.adminGetsNoSlotsNotification,
     },
     user: {
       role: membership?.role,

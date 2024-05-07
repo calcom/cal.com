@@ -2,7 +2,7 @@
 
 import { useSearchParams } from "next/navigation";
 
-import { Booker } from "@calcom/atoms";
+import { Booker } from "@calcom/atoms/monorepo";
 import { getBookerWrapperClasses } from "@calcom/features/bookings/Booker/utils/getBookerWrapperClasses";
 import { BookerSeo } from "@calcom/features/bookings/components/BookerSeo";
 
@@ -30,7 +30,6 @@ export default function Type({
   slug,
   user,
   booking,
-  away,
   isEmbed,
   isBrandingHidden,
   eventData,
@@ -54,7 +53,6 @@ export default function Type({
         username={user}
         eventSlug={slug}
         bookingData={booking}
-        isAway={away}
         isInstantMeeting={isInstantMeeting}
         hideBranding={isBrandingHidden}
         isTeamEvent

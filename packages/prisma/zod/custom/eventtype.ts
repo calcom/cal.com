@@ -28,3 +28,5 @@ export const createEventTypeInput = z.object({
     description: z.string(),
     length: z.number(),
   }).strict();
+
+export type EventTypeLocation = (z.infer<typeof imports.eventTypeLocations>)[number];

@@ -11,7 +11,7 @@
 
 Welcome to the Enterprise Edition ("/ee") of Cal.com.
 
-The [/ee](https://github.com/calcom/cal.com/tree/main/packages/features/ee) subfolder is the place for all the **Enterprise Edition** features from our [hosted](https://cal.com/pricing) plan and enterprise-grade features for [Ultimate](https://cal.com/ultimate) such as SSO, SAML, OIDC, SCIM, SIEM and much more or [Platform](https://cal.com/platform) plan to build a marketplace.
+The [/ee](https://github.com/calcom/cal.com/tree/main/packages/features/ee) subfolder is the place for all the **Enterprise Edition** features from our [hosted](https://cal.com/pricing) plan and enterprise-grade features for [Ultimate](https://cal.com/emterprise) such as SSO, SAML, OIDC, SCIM, SIEM and much more or [Platform](https://cal.com/platform) plan to build a marketplace.
 
 > _❗ WARNING: This repository is copyrighted (unlike our [main repo](https://github.com/calcom/cal.com)). You are not allowed to use this code to host your own version of app.cal.com without obtaining a proper [license](https://console.cal.com/) first❗_
 

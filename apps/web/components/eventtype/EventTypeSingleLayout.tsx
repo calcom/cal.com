@@ -1,4 +1,3 @@
-import { Webhook as TbWebhook } from "lucide-react";
 import type { TFunction } from "next-i18next";
 import { Trans } from "next-i18next";
 import { useRouter } from "next/navigation";
@@ -11,11 +10,12 @@ import { EventTypeEmbedButton, EventTypeEmbedDialog } from "@calcom/features/emb
 import type { FormValues, AvailabilityOption } from "@calcom/features/eventtypes/lib/types";
 import Shell from "@calcom/features/shell/Shell";
 import { classNames } from "@calcom/lib";
+import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { trpc, TRPCClientError } from "@calcom/trpc/react";
-import type { DialogProps } from "@calcom/ui";
+import type { DialogProps, VerticalTabItemProps } from "@calcom/ui";
 import {
   Button,
   ButtonGroup,
@@ -29,6 +29,7 @@ import {
   DropdownMenuTrigger,
   HorizontalTabs,
   Label,
+  Icon,
   showToast,
   Skeleton,
   Switch,
@@ -36,22 +37,6 @@ import {
   VerticalDivider,
   VerticalTabs,
 } from "@calcom/ui";
-import {
-  Link as LinkIcon,
-  Calendar,
-  Clock,
-  Sliders,
-  Repeat,
-  Grid,
-  Zap,
-  Users,
-  ExternalLink,
-  Code,
-  Trash,
-  PhoneCall,
-  MoreHorizontal,
-  Loader,
-} from "@calcom/ui/components/icon";
 
 type Props = {
   children: React.ReactNode;
@@ -96,41 +81,35 @@ function getNavigation({
     {
       name: "event_setup_tab_title",
       href: `/event-types/${id}?tabName=setup`,
-      icon: LinkIcon,
+      icon: "link",
       info: `${duration} ${t("minute_timeUnit")}`, // TODO: Get this from props
     },
     {
       name: "event_limit_tab_title",
       href: `/event-types/${id}?tabName=limits`,
-      icon: Clock,
+      icon: "clock",
       info: `event_limit_tab_description`,
     },
     {
       name: "event_advanced_tab_title",
       href: `/event-types/${id}?tabName=advanced`,
-      icon: Sliders,
+      icon: "sliders-vertical",
       info: `event_advanced_tab_description`,
-    },
-    {
-      name: "recurring",
-      href: `/event-types/${id}?tabName=recurring`,
-      icon: Repeat,
-      info: `recurring_event_tab_description`,
     },
     {
       name: "apps",
       href: `/event-types/${id}?tabName=apps`,
-      icon: Grid,
+      icon: "grid-3x3",
       //TODO: Handle proper translation with count handling
       info: `${installedAppsNumber} apps, ${enabledAppsNumber} ${t("active")}`,
     },
     {
       name: "workflows",
       href: `/event-types/${id}?tabName=workflows`,
-      icon: Zap,
+      icon: "zap",
       info: `${enabledWorkflowsNumber} ${t("active")}`,
     },
-  ];
+  ] satisfies VerticalTabItemProps[];
 }
 
 function DeleteDialog({
@@ -139,7 +118,7 @@ function DeleteDialog({
   open,
   onOpenChange,
 }: { isManagedEvent: string; eventTypeId: number } & Pick<DialogProps, "open" | "onOpenChange">) {
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const { t } = useLocale();
   const router = useRouter();
   const deleteMutation = trpc.viewer.eventTypes.delete.useMutation({
@@ -225,9 +204,13 @@ function EventTypeSingleLayout({
 
   const watchSchedulingType = formMethods.watch("schedulingType");
   const watchChildrenCount = formMethods.watch("children").length;
+
+  const paymentAppData = getPaymentAppData(eventType);
+  const requirePayment = paymentAppData.price > 0;
+
   // Define tab navigation here
   const EventTypeTabs = useMemo(() => {
-    const navigation = getNavigation({
+    const navigation: VerticalTabItemProps[] = getNavigation({
       t,
       length,
       multipleDuration,
@@ -238,10 +221,18 @@ function EventTypeSingleLayout({
       availability,
     });
 
+    if (!requirePayment) {
+      navigation.splice(3, 0, {
+        name: "recurring",
+        href: `/event-types/${formMethods.getValues("id")}?tabName=recurring`,
+        icon: "repeat",
+        info: `recurring_event_tab_description`,
+      });
+    }
     navigation.splice(1, 0, {
       name: "availability",
       href: `/event-types/${formMethods.getValues("id")}?tabName=availability`,
-      icon: Calendar,
+      icon: "calendar",
       info:
         isManagedEventType || isChildrenManagedEventType
           ? formMethods.getValues("schedule") === null
@@ -260,7 +251,7 @@ function EventTypeSingleLayout({
       navigation.splice(2, 0, {
         name: "assignment",
         href: `/event-types/${formMethods.getValues("id")}?tabName=team`,
-        icon: Users,
+        icon: "users",
         info: `${t(watchSchedulingType?.toLowerCase() ?? "")}${
           isManagedEventType ? ` - ${t("number_member", { count: watchChildrenCount || 0 })}` : ""
         }`,
@@ -272,15 +263,24 @@ function EventTypeSingleLayout({
         navigation.push({
           name: "instant_tab_title",
           href: `/event-types/${eventType.id}?tabName=instant`,
-          icon: PhoneCall,
+          icon: "phone-call",
           info: `instant_event_tab_description`,
         });
       }
       navigation.push({
         name: "webhooks",
         href: `/event-types/${formMethods.getValues("id")}?tabName=webhooks`,
-        icon: TbWebhook,
+        icon: "webhook",
         info: `${activeWebhooksNumber} ${t("active")}`,
+      });
+    }
+    const hidden = true; // hidden while in alpha trial. you can access it with tabName=ai
+    if (team && hidden) {
+      navigation.push({
+        name: "Cal.ai",
+        href: `/event-types/${eventType.id}?tabName=ai`,
+        icon: "sparkles",
+        info: "cal_ai_event_tab_description", // todo `cal_ai_event_tab_description`,
       });
     }
     return navigation;
@@ -294,6 +294,7 @@ function EventTypeSingleLayout({
     isChildrenManagedEventType,
     team,
     length,
+    requirePayment,
     multipleDuration,
     formMethods.getValues("id"),
     watchSchedulingType,
@@ -368,14 +369,14 @@ function EventTypeSingleLayout({
                     variant="icon"
                     href={permalink}
                     rel="noreferrer"
-                    StartIcon={ExternalLink}
+                    StartIcon="external-link"
                   />
                 </Tooltip>
 
                 <Button
                   color="secondary"
                   variant="icon"
-                  StartIcon={LinkIcon}
+                  StartIcon="link"
                   tooltip={t("copy_link")}
                   tooltipSide="bottom"
                   tooltipOffset={4}
@@ -386,7 +387,7 @@ function EventTypeSingleLayout({
                 />
                 <EventTypeEmbedButton
                   embedUrl={encodeURIComponent(embedLink)}
-                  StartIcon={Code}
+                  StartIcon="code"
                   color="secondary"
                   variant="icon"
                   namespace=""
@@ -401,7 +402,7 @@ function EventTypeSingleLayout({
               <Button
                 color="destructive"
                 variant="icon"
-                StartIcon={Trash}
+                StartIcon="trash"
                 tooltip={t("delete")}
                 tooltipSide="bottom"
                 tooltipOffset={4}
@@ -415,14 +416,14 @@ function EventTypeSingleLayout({
 
           <Dropdown>
             <DropdownMenuTrigger asChild>
-              <Button className="lg:hidden" StartIcon={MoreHorizontal} variant="icon" color="secondary" />
+              <Button className="lg:hidden" StartIcon="ellipsis" variant="icon" color="secondary" />
             </DropdownMenuTrigger>
             <DropdownMenuContent style={{ minWidth: "200px" }}>
               <DropdownMenuItem className="focus:ring-muted">
                 <DropdownItem
                   target="_blank"
                   type="button"
-                  StartIcon={ExternalLink}
+                  StartIcon="external-link"
                   href={permalink}
                   rel="noreferrer">
                   {t("preview")}
@@ -431,7 +432,7 @@ function EventTypeSingleLayout({
               <DropdownMenuItem className="focus:ring-muted">
                 <DropdownItem
                   type="button"
-                  StartIcon={LinkIcon}
+                  StartIcon="link"
                   onClick={() => {
                     navigator.clipboard.writeText(permalink);
                     showToast("Link copied!", "success");
@@ -443,7 +444,7 @@ function EventTypeSingleLayout({
                 <DropdownItem
                   type="button"
                   color="destructive"
-                  StartIcon={Trash}
+                  StartIcon="trash"
                   disabled={!hasPermsToDelete}
                   onClick={() => setDeleteDialogOpen(true)}>
                   {t("delete")}
@@ -479,7 +480,7 @@ function EventTypeSingleLayout({
           </Button>
         </div>
       }>
-      <Suspense fallback={<Loader />}>
+      <Suspense fallback={<Icon name="loader" />}>
         <div className="flex flex-col xl:flex-row xl:space-x-6">
           <div className="hidden xl:block">
             <VerticalTabs
@@ -488,7 +489,6 @@ function EventTypeSingleLayout({
               sticky
               linkShallow
               itemClassname="items-start"
-              iconClassName="md:mt-px"
             />
           </div>
           <div className="p-2 md:mx-0 md:p-0 xl:hidden">

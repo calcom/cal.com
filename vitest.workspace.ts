@@ -34,6 +34,42 @@ const workspaces = packagedEmbedTestsOnly
   : [
       {
         test: {
+          include: ["packages/**/*.{test,spec}.{ts,js}", "apps/**/*.{test,spec}.{ts,js}"],
+          exclude: [
+            "**/node_modules/**/*",
+            "**/.next/**/*",
+            "packages/embeds/**/*",
+            "packages/lib/hooks/**/*",
+            "packages/platform/**/*",
+            "apps/api/v1/**/*",
+            "apps/api/v2/**/*",
+          ],
+          name: "@calcom/core",
+          setupFiles: ["setupVitest.ts"],
+        },
+      },
+      {
+        test: {
+          include: ["apps/api/v1/**/*.{test,spec}.{ts,js}"],
+          exclude: [
+            "**/node_modules/**/*",
+            "**/.next/**/*",
+            "packages/embeds/**/*",
+            "packages/lib/hooks/**/*",
+            "packages/platform/**/*",
+            "apps/api/v2/**/*",
+          ],
+          name: "@calcom/api",
+          setupFiles: ["setupVitest.ts"],
+        },
+        resolve: {
+          alias: {
+            "~": new URL("./apps/api/v1", import.meta.url).pathname,
+          },
+        },
+      },
+      {
+        test: {
           globals: true,
           name: "@calcom/features",
           include: ["packages/features/**/*.{test,spec}.tsx"],

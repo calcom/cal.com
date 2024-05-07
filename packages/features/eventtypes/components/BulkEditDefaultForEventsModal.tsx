@@ -17,7 +17,7 @@ export function BulkEditDefaultForEventsModal(props: {
   isPending: boolean;
 }) {
   const { t } = useLocale();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const { data, isFetching } = trpc.viewer.eventTypes.bulkEventFetch.useQuery();
   const form = useForm({
     resolver: zodResolver(BulkUpdateEventSchema),

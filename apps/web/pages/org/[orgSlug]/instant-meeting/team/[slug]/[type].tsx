@@ -1,7 +1,7 @@
 import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
-import { Booker } from "@calcom/atoms";
+import { Booker } from "@calcom/atoms/monorepo";
 import { getBookerWrapperClasses } from "@calcom/features/bookings/Booker/utils/getBookerWrapperClasses";
 import { BookerSeo } from "@calcom/features/bookings/components/BookerSeo";
 import { getMultipleDurationValue } from "@calcom/features/bookings/lib/get-booking";
@@ -21,7 +21,6 @@ export default function Type({
   slug,
   user,
   booking,
-  away,
   isEmbed,
   isBrandingHidden,
   entity,
@@ -42,7 +41,6 @@ export default function Type({
         username={user}
         eventSlug={slug}
         bookingData={booking}
-        isAway={away}
         hideBranding={isBrandingHidden}
         isTeamEvent
         isInstantMeeting
@@ -92,6 +90,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     eventSlug: meetingSlug,
     isTeamEvent: true,
     org,
+    fromRedirectOfNonOrgLink: context.query.orgRedirection === "true",
   });
 
   if (!eventData || !org) {
@@ -109,7 +108,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         eventData.length
       ),
       booking: null,
-      away: false,
       user: teamSlug,
       teamId: team.id,
       slug: meetingSlug,

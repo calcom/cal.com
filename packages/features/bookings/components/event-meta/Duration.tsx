@@ -1,6 +1,7 @@
 import type { TFunction } from "next-i18next";
 import { useEffect } from "react";
 
+import { useIsPlatform } from "@calcom/atoms/monorepo";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -9,7 +10,9 @@ import { Badge } from "@calcom/ui";
 import type { PublicEvent } from "../../types";
 
 /** Render X mins as X hours or X hours Y mins instead of in minutes once >= 60 minutes */
-const getDurationFormatted = (mins: number, t: TFunction) => {
+export const getDurationFormatted = (mins: number | undefined, t: TFunction) => {
+  if (!mins) return null;
+
   const hours = Math.floor(mins / 60);
   mins %= 60;
   // format minutes string
@@ -35,6 +38,7 @@ const getDurationFormatted = (mins: number, t: TFunction) => {
 
 export const EventDuration = ({ event }: { event: PublicEvent }) => {
   const { t } = useLocale();
+  const isPlatform = useIsPlatform();
   const [selectedDuration, setSelectedDuration, state] = useBookerStore((state) => [
     state.selectedDuration,
     state.setSelectedDuration,
@@ -50,7 +54,7 @@ export const EventDuration = ({ event }: { event: PublicEvent }) => {
       setSelectedDuration(event.length);
   }, [selectedDuration, setSelectedDuration, event.metadata?.multipleDuration, event.length, isDynamicEvent]);
 
-  if (!event?.metadata?.multipleDuration && !isDynamicEvent)
+  if ((!event?.metadata?.multipleDuration && !isDynamicEvent) || isPlatform)
     return <>{getDurationFormatted(event.length, t)}</>;
 
   const durations = event?.metadata?.multipleDuration || [15, 30, 60, 90];

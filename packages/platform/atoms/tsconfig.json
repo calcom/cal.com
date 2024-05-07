@@ -1,0 +1,47 @@
+{
+  "extends": "@calcom/tsconfig/react-library.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "~/*": ["/*"],
+      "@/*": ["./src/*"],
+      "@calcom/lib": ["../../lib"],
+      "@calcom/lib/*": ["../../lib/*"],
+      "@calcom/features": ["../../features"],
+      "@calcom/features/*": ["../../features/*"],
+      "@calcom/prisma": ["../../prisma"],
+      "@calcom/dayjs": ["../../dayjs"],
+      "@calcom/prisma/*": ["../../prisma/*"],
+      "@calcom/dayjs/*": ["../../dayjs/*"],
+      "@calcom/platform-constants": ["../constants/index.ts"],
+      "@calcom/platform-types": ["../types/index.ts"],
+      "@calcom/platform-libraries": ["../libraries/index.ts"],
+      "@calcom/platform-utils": ["../constants/index.ts"],
+      "@calcom/trpc": ["../../trpc"],
+      "@calcom/app-store": ["../../app-store"],
+      "@calcom/app-store/*": ["../../app-store/*"],
+      "@calcom/trpc/*": ["../../trpc/*"]
+    },
+    "resolveJsonModule": true,
+    "outDir": "./dist"
+  },
+  "include": [
+    ".",
+    "../../types/next-auth.d.ts",
+    "../../types/next.d.ts",
+    "../../types/@wojtekmaj__react-daterange-picker.d.ts",
+    "../../types/business-days-plugin.d.ts",
+    "../../types/window.d.ts",
+    "../../lib",
+    "../../features",
+    "../types",
+    "../constants",
+    "../utils",
+    "../libraries",
+    "../../prisma",
+    "../../dayjs",
+    "../../trpc",
+    "../../app-store"
+  ],
+  "exclude": ["dist", "build", "node_modules"]
+}

@@ -7,7 +7,6 @@ import { z } from "zod";
 
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { classNames } from "@calcom/lib";
-import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
@@ -30,6 +29,7 @@ import {
   RadioGroup as RadioArea,
   showToast,
   TextField,
+  Tooltip,
 } from "@calcom/ui";
 
 // this describes the uniform data needed to create a new event type on Profile or Team
@@ -80,7 +80,7 @@ export default function CreateEventTypeDialog({
   }[];
   isOrganization: boolean;
 }) {
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const { t } = useLocale();
   const router = useRouter();
   const [firstRender, setFirstRender] = useState(true);
@@ -91,8 +91,6 @@ export default function CreateEventTypeDialog({
   } = useTypedQuery(querySchema);
 
   const teamProfile = profileOptions.find((profile) => profile.teamId === teamId);
-  const isSelfHosted = !HOSTED_CAL_FEATURES;
-  const isEE = !!(isSelfHosted || isOrganization);
   const form = useForm<z.infer<typeof createEventTypeInput>>({
     defaultValues: {
       length: 15,
@@ -200,7 +198,13 @@ export default function CreateEventTypeDialog({
                 <TextField
                   label={`${t("url")}: ${urlPrefix}`}
                   required
-                  addOnLeading={<>/{!isManagedEventType ? pageSlug : t("username_placeholder")}/</>}
+                  addOnLeading={
+                    <Tooltip content={!isManagedEventType ? pageSlug : t("username_placeholder")}>
+                      <span className="max-w-24 md:max-w-56">
+                        /{!isManagedEventType ? pageSlug : t("username_placeholder")}/
+                      </span>
+                    </Tooltip>
+                  }
                   {...register("slug")}
                   onChange={(e) => {
                     form.setValue("slug", slugify(e?.target.value), { shouldTouch: true });
@@ -217,9 +221,12 @@ export default function CreateEventTypeDialog({
                   label={t("url")}
                   required
                   addOnLeading={
-                    <>
-                      {urlPrefix}/{!isManagedEventType ? pageSlug : t("username_placeholder")}/
-                    </>
+                    <Tooltip
+                      content={`${urlPrefix}/${!isManagedEventType ? pageSlug : t("username_placeholder")}/`}>
+                      <span className="max-w-24 md:max-w-56">
+                        {urlPrefix}/{!isManagedEventType ? pageSlug : t("username_placeholder")}/
+                      </span>
+                    </Tooltip>
                   }
                   {...register("slug")}
                 />
@@ -288,7 +295,7 @@ export default function CreateEventTypeDialog({
                     <p>{t("round_robin_description")}</p>
                   </RadioArea.Item>
                   <>
-                    {isAdmin && isEE && (
+                    {isAdmin && (
                       <RadioArea.Item
                         {...register("schedulingType")}
                         value={SchedulingType.MANAGED}

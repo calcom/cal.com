@@ -2,7 +2,6 @@ import type { Directory } from "@boxyhq/saml-jackson";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, showToast, Label, Tooltip } from "@calcom/ui";
-import { Clipboard } from "@calcom/ui/components/icon";
 
 const DirectoryInfo = ({ directory }: { directory: Directory }) => {
   const { t } = useLocale();
@@ -28,7 +27,7 @@ const DirectoryInfo = ({ directory }: { directory: Directory }) => {
               }}
               type="button"
               className="rounded-l-none text-base"
-              StartIcon={Clipboard}>
+              StartIcon="clipboard">
               {t("copy")}
             </Button>
           </Tooltip>
@@ -50,7 +49,7 @@ const DirectoryInfo = ({ directory }: { directory: Directory }) => {
               }}
               type="button"
               className="rounded-l-none text-base"
-              StartIcon={Clipboard}>
+              StartIcon="clipboard">
               {t("copy")}
             </Button>
           </Tooltip>

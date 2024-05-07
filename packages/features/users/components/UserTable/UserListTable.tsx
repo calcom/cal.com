@@ -1,10 +1,10 @@
 import { keepPreviousData } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
-import { Plus } from "lucide-react";
 import { useSession } from "next-auth/react";
-import { useCallback, useEffect, useMemo, useReducer, useRef } from "react";
+import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
@@ -26,6 +26,7 @@ export interface User {
   email: string;
   timeZone: string;
   role: MembershipRole;
+  avatarUrl: string | null;
   accepted: boolean;
   disableImpersonation: boolean;
   completedOnboarding: boolean;
@@ -109,26 +110,26 @@ function reducer(state: State, action: Action): State {
 
 export function UserListTable() {
   const { data: session } = useSession();
-  const { data: currentMembership } = trpc.viewer.organizations.listCurrent.useQuery();
+  const { data: org } = trpc.viewer.organizations.listCurrent.useQuery();
   const { data: teams } = trpc.viewer.organizations.getTeams.useQuery();
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const [state, dispatch] = useReducer(reducer, initialState);
   const { t } = useLocale();
   const orgBranding = useOrgBranding();
-
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const { data, isPending, fetchNextPage, isFetching } =
     trpc.viewer.organizations.listMembers.useInfiniteQuery(
       {
         limit: 10,
+        searchTerm: debouncedSearchTerm,
       },
       {
         getNextPageParam: (lastPage) => lastPage.nextCursor,
         placeholderData: keepPreviousData,
       }
     );
-
   const totalDBRowCount = data?.pages?.[0]?.meta?.totalRowCount ?? 0;
-  const adminOrOwner = currentMembership?.user.role === "ADMIN" || currentMembership?.user.role === "OWNER";
+  const adminOrOwner = org?.user.role === "ADMIN" || org?.user.role === "OWNER";
   const domain = orgBranding?.fullDomain ?? WEBAPP_URL;
 
   const memorisedColumns = useMemo(() => {
@@ -164,10 +165,16 @@ export function UserListTable() {
         accessorFn: (data) => data.email,
         header: `Member (${totalDBRowCount})`,
         cell: ({ row }) => {
-          const { username, email } = row.original;
+          const { username, email, avatarUrl } = row.original;
           return (
             <div className="flex items-center gap-2">
-              <Avatar size="sm" alt={username || email} imageSrc={`${domain}/${username}/avatar.png`} />
+              <Avatar
+                size="sm"
+                alt={username || email}
+                imageSrc={getUserAvatarUrl({
+                  avatarUrl,
+                })}
+              />
               <div className="">
                 <div
                   data-testid={`member-${username}-username`}
@@ -265,7 +272,8 @@ export function UserListTable() {
           const permissionsForUser = {
             canEdit: permissionsRaw.canEdit && user.accepted && !isSelf,
             canRemove: permissionsRaw.canRemove && !isSelf,
-            canImpersonate: user.accepted && !user.disableImpersonation && !isSelf,
+            canImpersonate:
+              user.accepted && !user.disableImpersonation && !isSelf && !!org?.canAdminImpersonate,
             canLeave: user.accepted && isSelf,
             canResendInvitation: permissionsRaw.canResendInvitation && !user.accepted,
           };
@@ -310,7 +318,8 @@ export function UserListTable() {
   return (
     <>
       <DataTable
-        searchKey="member"
+        data-testId="user-list-data-table"
+        onSearch={(value) => setDebouncedSearchTerm(value)}
         selectionOptions={[
           {
             type: "render",
@@ -332,7 +341,7 @@ export function UserListTable() {
             <Button
               type="button"
               color="primary"
-              StartIcon={Plus}
+              StartIcon="plus"
               size="sm"
               className="rounded-md"
               onClick={() =>

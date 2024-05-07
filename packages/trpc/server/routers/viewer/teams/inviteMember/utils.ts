@@ -1,6 +1,7 @@
 import { randomBytes } from "crypto";
 import type { TFunction } from "next-i18next";
 
+import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
 import { sendTeamInviteEmail } from "@calcom/emails";
 import { ENABLE_PROFILE_SWITCHER, WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
@@ -99,13 +100,12 @@ export async function getUsernameOrEmailsToInvite(usernameOrEmail: string | stri
   return emailsToInvite;
 }
 
-export function validateInviteeEligibility(invitee: UserWithMembership, team: TeamWithParent) {
+export function canBeInvited(invitee: UserWithMembership, team: TeamWithParent) {
+  const myLog = log.getSubLogger({ prefix: ["canBeInvited"] });
+  myLog.debug("Checking if user can be invited", safeStringify({ invitee, team }));
   const alreadyInvited = invitee.teams?.find(({ teamId: membershipTeamId }) => team.id === membershipTeamId);
   if (alreadyInvited) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: `${invitee.email} has already been invited.`,
-    });
+    return false;
   }
 
   const orgMembership = invitee.teams?.find((membersip) => membersip.teamId === team.parentId);
@@ -114,46 +114,31 @@ export function validateInviteeEligibility(invitee: UserWithMembership, team: Te
     team.parentId &&
     UserRepository.isAMemberOfOrganization({ user: invitee, organizationId: team.parentId })
   ) {
-    return;
+    return true;
   }
 
   // user invited to join a team inside an org, but has not accepted invite to org yet
   if (team.parentId && orgMembership && !orgMembership.accepted) {
-    throw new TRPCError({
-      code: "FORBIDDEN",
-      message: `User ${invitee.username} needs to accept the invitation to join your organization first.`,
-    });
+    return false;
   }
 
-  // user is invited to join a team in an organization where he isn't a member
   if (
     !ENABLE_PROFILE_SWITCHER &&
+    // Member of an organization is invited to join a team that is not a subteam of the organization
     invitee.profiles.find((profile) => profile.organizationId != team.parentId)
   ) {
-    throw new TRPCError({
-      code: "FORBIDDEN",
-      message: `User ${invitee.username} is already a member of another organization.`,
-    });
+    return false;
   }
+  return true;
 }
 
-export async function getUsersToInvite({
+export async function getExistingUsersToInvite({
   usernamesOrEmails,
-  isInvitedToOrg,
   team,
 }: {
   usernamesOrEmails: string[];
-  isInvitedToOrg: boolean;
   team: TeamWithParent;
-}): Promise<UserWithMembership[]> {
-  const memberships = [];
-  if (isInvitedToOrg) {
-    memberships.push({ teamId: team.id });
-  } else {
-    memberships.push({ teamId: team.id });
-    team.parentId && memberships.push({ teamId: team.parentId });
-  }
-
+}) {
   const invitees: UserWithMembership[] = await prisma.user.findMany({
     where: {
       OR: [
@@ -183,10 +168,12 @@ export async function getUsersToInvite({
   });
 
   // Check if the users found in the database can be invited to join the team/org
-  invitees.forEach((invitee) => {
-    validateInviteeEligibility(invitee, team);
+  return invitees.map((invitee) => {
+    return {
+      ...invitee,
+      canBeInvited: canBeInvited(invitee, team),
+    };
   });
-  return invitees;
 }
 
 export function getOrgConnectionInfo({
@@ -197,7 +184,7 @@ export function getOrgConnectionInfo({
   team,
 }: {
   orgAutoAcceptDomain?: string | null;
-  orgVerified?: boolean | null;
+  orgVerified: boolean;
   usersEmail: string;
   team: TeamWithParent;
   isOrg: boolean;
@@ -208,7 +195,10 @@ export function getOrgConnectionInfo({
   if (team.parentId || isOrg) {
     orgId = team.parentId || team.id;
     if (usersEmail.split("@")[1] == orgAutoAcceptDomain) {
-      autoAccept = orgVerified ?? true;
+      // We discourage self-served organizations from being able to auto-accept feature by having a barrier of a fixed number of paying teams in the account for creating the organization
+      // We can't put restriction of a published organization here because when we move teams during the onboarding of the organization, it isn't published at the moment and we really need those members to be auto-added
+      // Further, sensitive operations like member editing and impersonating are disabled by default, unless reviewed by the ADMIN team
+      autoAccept = orgVerified;
     } else {
       orgId = undefined;
       autoAccept = false;
@@ -224,18 +214,21 @@ export async function createNewUsersConnectToOrgIfExists({
   parentId,
   autoAcceptEmailDomain,
   connectionInfoMap,
+  isPlatformManaged,
 }: {
   usernamesOrEmails: string[];
   input: InviteMemberOptions["input"];
   parentId?: number | null;
   autoAcceptEmailDomain?: string;
   connectionInfoMap: Record<string, ReturnType<typeof getOrgConnectionInfo>>;
+  isPlatformManaged?: boolean;
 }) {
   // fail if we have invalid emails
   usernamesOrEmails.forEach((usernameOrEmail) => checkInputEmailIsValid(usernameOrEmail));
   // from this point we know usernamesOrEmails contains only emails
-  await prisma.$transaction(
+  const createdUsers = await prisma.$transaction(
     async (tx) => {
+      const createdUsers = [];
       for (let index = 0; index < usernamesOrEmails.length; index++) {
         const usernameOrEmail = usernamesOrEmails[index];
         // Weird but orgId is defined only if the invited user email matches orgAutoAcceptEmail
@@ -259,6 +252,7 @@ export async function createNewUsersConnectToOrgIfExists({
             email: usernameOrEmail,
             verified: true,
             invitedTo: input.teamId,
+            isPlatformManaged: !!isPlatformManaged,
             organizationId: orgId || null, // If the user is invited to a child team, they are automatically added to the parent org
             ...(orgId
               ? {
@@ -296,10 +290,13 @@ export async function createNewUsersConnectToOrgIfExists({
             },
           });
         }
+        createdUsers.push(createdUser);
       }
+      return createdUsers;
     },
     { timeout: 10000 }
   );
+  return createdUsers;
 }
 
 export async function createMemberships({
@@ -403,6 +400,10 @@ export async function sendSignupToOrganizationEmail({
     isOrg: isOrg,
     parentTeamName: team?.parent?.name,
     isAutoJoin: false,
+    isExistingUserMovedToOrg: false,
+    // For a new user there is no prev and new links.
+    prevLink: null,
+    newLink: null,
   });
 }
 
@@ -422,19 +423,29 @@ export function getIsOrgVerified(
     return {
       isInOrgScope: true,
       orgVerified: team.organizationSettings.isOrganizationVerified,
+      orgConfigured: team.organizationSettings.isOrganizationConfigured,
       autoAcceptEmailDomain: team.organizationSettings.orgAutoAcceptEmail,
+      orgPublished: !!team.slug,
     };
   } else if (parentSettings?.orgAutoAcceptEmail) {
     return {
       isInOrgScope: true,
       orgVerified: parentSettings.isOrganizationVerified,
+      orgConfigured: parentSettings.isOrganizationConfigured,
       autoAcceptEmailDomain: parentSettings.orgAutoAcceptEmail,
+      orgPublished: !!team.parent?.slug,
     };
   }
 
   return {
     isInOrgScope: false,
-  } as { isInOrgScope: false; orgVerified: never; autoAcceptEmailDomain: never };
+  } as {
+    isInOrgScope: false;
+    orgVerified: never;
+    autoAcceptEmailDomain: never;
+    orgConfigured: never;
+    orgPublished: never;
+  };
 }
 
 export function getAutoJoinStatus({
@@ -494,19 +505,23 @@ export function getAutoJoinStatus({
 
 // split invited users between ones that can autojoin and the others who cannot autojoin
 export const groupUsersByJoinability = ({
-  existingUsersWithMembersips,
+  existingUsersWithMemberships,
   team,
   connectionInfoMap,
 }: {
   team: TeamWithParent;
-  existingUsersWithMembersips: UserWithMembership[];
+  existingUsersWithMemberships: (UserWithMembership & {
+    profile: {
+      username: string;
+    } | null;
+  })[];
   connectionInfoMap: Record<string, ReturnType<typeof getOrgConnectionInfo>>;
 }) => {
   const usersToAutoJoin = [];
   const regularUsers = [];
 
-  for (let index = 0; index < existingUsersWithMembersips.length; index++) {
-    const existingUserWithMembersips = existingUsersWithMembersips[index];
+  for (let index = 0; index < existingUsersWithMemberships.length; index++) {
+    const existingUserWithMembersips = existingUsersWithMemberships[index];
 
     const autoJoinStatus = getAutoJoinStatus({
       invitee: existingUserWithMembersips,
@@ -532,13 +547,13 @@ export const sendEmails = async (emailPromises: Promise<void>[]) => {
   const sentEmails = await Promise.allSettled(emailPromises);
   sentEmails.forEach((sentEmail) => {
     if (sentEmail.status === "rejected") {
-      logger.error("Could not send email to user");
+      logger.error("Could not send email to user. Reason:", sentEmail.reason);
     }
   });
 };
 
 export const sendExistingUserTeamInviteEmails = async ({
-  existingUsersWithMembersips,
+  existingUsersWithMemberships,
   language,
   currentUserTeamName,
   currentUserName,
@@ -546,19 +561,24 @@ export const sendExistingUserTeamInviteEmails = async ({
   isOrg,
   teamId,
   isAutoJoin,
+  orgSlug,
 }: {
   language: TFunction;
   isAutoJoin: boolean;
-  existingUsersWithMembersips: UserWithMembership[];
+  existingUsersWithMemberships: (UserWithMembership & {
+    profile: {
+      username: string;
+    } | null;
+  })[];
   currentUserTeamName?: string;
   currentUserParentTeamName: string | undefined;
   currentUserName?: string | null;
   isOrg: boolean;
   teamId: number;
+  orgSlug: string | null;
 }) => {
-  const sendEmailsPromises = existingUsersWithMembersips.map(async (user) => {
+  const sendEmailsPromises = existingUsersWithMemberships.map(async (user) => {
     let sendTo = user.email;
-
     if (!isEmail(user.email)) {
       sendTo = user.email;
     }
@@ -610,6 +630,9 @@ export const sendExistingUserTeamInviteEmails = async ({
         ...inviteTeamOptions,
         isOrg: isOrg,
         parentTeamName: currentUserParentTeamName,
+        isExistingUserMovedToOrg: true,
+        prevLink: `${getOrgFullOrigin("")}/${user.username || ""}`,
+        newLink: user.profile ? `${getOrgFullOrigin(orgSlug ?? "")}/${user.profile.username}` : null,
       });
     }
   });
