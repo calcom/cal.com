@@ -5,7 +5,7 @@ import type { ManagedUser } from "@lib/hooks/settings/platform/oauth-clients/use
 
 import { OAuthClientsDropdown } from "@components/settings/platform/dashboard/oauth-client-dropdown";
 
-type MangedUserListProps = {
+type ManagedUserListProps = {
   oauthClients: PlatformOAuthClient[];
   managedUsers?: ManagedUser[];
   initialClientName: string;
@@ -14,14 +14,14 @@ type MangedUserListProps = {
   handleChange: (clientId: string, clientName: string) => void;
 };
 
-export const MangedUserList = ({
+export const ManagedUserList = ({
   initialClientName,
   initialClientId,
   oauthClients,
   managedUsers,
   isManagedUserLoading,
   handleChange,
-}: MangedUserListProps) => {
+}: ManagedUserListProps) => {
   return (
     <div>
       <div className="border-subtle mx-auto block justify-between rounded-t-lg border px-4 py-6 sm:flex sm:px-6">

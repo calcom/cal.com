@@ -15,7 +15,7 @@ import {
 import useMeQuery from "@lib/hooks/useMeQuery";
 
 import PageWrapper from "@components/PageWrapper";
-import { MangedUserList } from "@components/settings/platform/dashboard/managed-user-list";
+import { ManagedUserList } from "@components/settings/platform/dashboard/managed-user-list";
 import { OAuthClientsList } from "@components/settings/platform/dashboard/oauth-clients-list";
 import { PlatformPricing } from "@components/settings/platform/pricing/platform-pricing";
 
@@ -70,7 +70,7 @@ export default function Platform() {
             subtitle="Manage everything related to platform."
             isPlatformUser={true}>
             <OAuthClientsList oauthClients={data} isDeleting={isDeleting} handleDelete={handleDelete} />
-            <MangedUserList
+            <ManagedUserList
               oauthClients={data}
               managedUsers={managedUserData}
               isManagedUserLoading={isManagedUserLoading}
