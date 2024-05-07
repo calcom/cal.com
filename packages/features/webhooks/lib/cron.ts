@@ -3,7 +3,6 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import { defaultHandler } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
-import type { PrismaClient } from "@calcom/prisma";
 
 import { handleWebhookScheduledTriggers } from "./handleWebhookScheduledTriggers";
 
@@ -14,7 +13,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     return;
   }
 
-  await handleWebhookScheduledTriggers(prisma as unknown as PrismaClient);
+  await handleWebhookScheduledTriggers(prisma);
 
   res.json({ ok: true });
 }
