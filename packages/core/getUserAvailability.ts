@@ -59,8 +59,18 @@ const _getEventType = async (id: number) => {
       id: true,
       seatsPerTimeSlot: true,
       bookingLimits: true,
+      hosts: {
+        select: {
+          user: {
+            select: {
+              email: true,
+            },
+          },
+        },
+      },
       durationLimits: true,
       assignAllTeamMembers: true,
+      schedulingType: true,
       timeZone: true,
       length: true,
       metadata: true,
@@ -123,8 +133,14 @@ export const getCurrentSeats = async (
   return monitorCallbackAsync(_getCurrentSeats, ...args);
 };
 
-const _getCurrentSeats = async (eventTypeId: number, dateFrom: Dayjs, dateTo: Dayjs) => {
-  return await prisma.booking.findMany({
+const _getCurrentSeats = async (
+  eventTypeId: number,
+  dateFrom: Dayjs,
+  dateTo: Dayjs,
+  isTeamEvent?: boolean,
+  hosts?: string[]
+) => {
+  const bookings = await prisma.booking.findMany({
     where: {
       eventTypeId,
       startTime: {
@@ -136,12 +152,39 @@ const _getCurrentSeats = async (eventTypeId: number, dateFrom: Dayjs, dateTo: Da
     select: {
       uid: true,
       startTime: true,
+      attendees: {
+        select: {
+          email: true,
+        },
+      },
       _count: {
         select: {
           attendees: true,
         },
       },
     },
+  });
+
+  if (!isTeamEvent) {
+    return bookings.map((booking) => ({
+      uid: booking.uid,
+      startTime: booking.startTime,
+      _count: {
+        attendees: booking.attendees.length,
+      },
+    }));
+  }
+
+  return bookings.map((booking) => {
+    const filteredAttendees = booking.attendees.filter((attendee) => !hosts?.includes(attendee.email));
+
+    return {
+      uid: booking.uid,
+      startTime: booking.startTime,
+      _count: {
+        attendees: filteredAttendees.length,
+      },
+    };
   });
 };
 
@@ -215,11 +258,13 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
   let eventType: EventType | null = initialData?.eventType || null;
   if (!eventType && eventTypeId) eventType = await getEventType(eventTypeId);
 
+  const isTeamEvent = eventType?.schedulingType !== null;
+  const hostEmails = eventType?.hosts.map((host) => host.user.email);
   /* Current logic is if a booking is in a time slot mark it as busy, but seats can have more than one attendee so grab
     current bookings with a seats event type and display them on the calendar, even if they are full */
   let currentSeats: CurrentSeats | null = initialData?.currentSeats || null;
   if (!currentSeats && eventType?.seatsPerTimeSlot) {
-    currentSeats = await getCurrentSeats(eventType.id, dateFrom, dateTo);
+    currentSeats = await getCurrentSeats(eventType.id, dateFrom, dateTo, isTeamEvent, hostEmails);
   }
 
   const bookingLimits = parseBookingLimit(eventType?.bookingLimits);
