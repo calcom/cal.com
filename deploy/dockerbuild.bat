@@ -1,6 +1,6 @@
 docker build ^
 --platform linux/amd64 ^
---tag ghcr.io/nischay876/hamzacalprodimage:v2 ^
+--tag ghcr.io/nischay876/hamzacalprodimage:v1 ^
 --build-arg NEXT_PUBLIC_WEBAPP_URL=https://cal.nischay.eu.org ^
 --build-arg NEXTAUTH_URL=https://cal.nischay.eu.org ^
 --build-arg NEXT_PUBLIC_LICENSE_CONSENT=true ^
