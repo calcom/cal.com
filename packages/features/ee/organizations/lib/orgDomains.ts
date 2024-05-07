@@ -53,9 +53,16 @@ export function getOrgSlug(hostname: string, forcedSlug?: string) {
 }
 
 export function orgDomainConfig(req: IncomingMessage | undefined, fallback?: string | string[]) {
+  const forPlatform = isPlatformRequest(req);
   const forcedSlugHeader = req?.headers?.["x-cal-force-slug"];
-
   const forcedSlug = forcedSlugHeader instanceof Array ? forcedSlugHeader[0] : forcedSlugHeader;
+
+  if (forPlatform && forcedSlug) {
+    return {
+      isValidOrgDomain: true,
+      currentOrgDomain: forcedSlug,
+    };
+  }
 
   const hostname = req?.headers?.host || "";
   return getOrgDomainConfigFromHostname({
@@ -63,6 +70,10 @@ export function orgDomainConfig(req: IncomingMessage | undefined, fallback?: str
     fallback,
     forcedSlug,
   });
+}
+
+function isPlatformRequest(req: IncomingMessage | undefined) {
+  return !!req?.headers?.["x-cal-client-id"];
 }
 
 export function getOrgDomainConfigFromHostname({

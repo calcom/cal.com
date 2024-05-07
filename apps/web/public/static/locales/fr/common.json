@@ -983,8 +983,6 @@
   "verify_wallet": "Vérifier le portefeuille",
   "create_events_on": "Créer des événements dans :",
   "enterprise_license": "Il s'agit d'une fonctionnalité d'entreprise",
-  "enterprise_license_description": "Pour activer cette fonctionnalité, demandez à un administrateur d'accéder à <2>/auth/setup</2> pour saisir une clé de licence. Si une clé de licence est déjà en place, veuillez contacter <5>{{SUPPORT_MAIL_ADDRESS}}</5> pour obtenir de l'aide.",
-  "enterprise_license_development": "Vous pouvez tester cette fonctionnalité en mode développement. Pour une utilisation en production, veuillez demander à un administrateur d'aller à <2>/auth/setup</2> pour entrer une clé de licence.",
   "missing_license": "Licence manquante",
   "next_steps": "Prochaines étapes",
   "acquire_commercial_license": "Obtenir une licence commerciale",

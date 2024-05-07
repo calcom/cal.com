@@ -1,0 +1,42 @@
+name: Production Build
+
+on:
+  workflow_call:
+
+env:
+  DATABASE_URL: ${{ secrets.CI_DATABASE_URL }}
+  DATABASE_DIRECT_URL: ${{ secrets.CI_DATABASE_URL }}
+
+jobs:
+  build:
+    name: Build API v2
+    runs-on: buildjet-4vcpu-ubuntu-2204
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:13
+        credentials:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: calendso
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/dangerous-git-checkout
+      - uses: ./.github/actions/yarn-install
+      - run: |
+          export NODE_OPTIONS="--max_old_space_size=8192"
+          yarn workspace @calcom/api-v2 run generate-schemas
+          rm -rf apps/api/v2/node_modules
+          yarn install
+          yarn workspace @calcom/api-v2 run build
+        shell: bash

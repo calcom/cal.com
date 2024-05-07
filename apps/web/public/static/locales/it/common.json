@@ -980,8 +980,6 @@
   "verify_wallet": "Verifica Wallet",
   "create_events_on": "Crea eventi su:",
   "enterprise_license": "Questa è una funzione Enterprise",
-  "enterprise_license_description": "Per abilitare questa funzione, ottenere una chiave di distribuzione presso la console {{consoleUrl}} e aggiungerla al proprio .env come CALCOM_LICENSE_KEY. Nel caso il team possieda già una licenza, contattare {{supportMail}} per assistenza.",
-  "enterprise_license_development": "Puoi testare questa funzionalità in modalità sviluppo. Per l'utilizzo in produzione, l'amministratore deve accedere a <2>/auth/setup</2> e immettere la chiave di licenza.",
   "missing_license": "Licenza mancante",
   "next_steps": "Prossimi Passi",
   "acquire_commercial_license": "Acquista una licenza commerciale",
