@@ -12,7 +12,6 @@ import { Prisma } from "@calcom/prisma/client";
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
-import updateAppServerLocation from "../../_utils/updateAppServerLocation";
 import config from "../config.json";
 import type { ZohoAuthCredentials } from "../types/ZohoCalendar";
 import { appKeysSchema as zohoKeysSchema } from "../zod";
@@ -33,16 +32,17 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     return;
   }
 
+  if (location && typeof location !== "string") {
+    res.status(400).json({ message: "`location` must be a string" });
+    return;
+  }
+
   if (!req.session?.user?.id) {
     return res.status(401).json({ message: "You must be logged in to do this" });
   }
 
-  if (location && typeof location === "string") {
-    updateAppServerLocation(config.slug, location);
-  }
-
   const appKeys = await getAppKeysFromSlug(config.slug);
-  const { client_id, client_secret, server_location } = zohoKeysSchema.parse(appKeys);
+  const { client_id, client_secret } = zohoKeysSchema.parse(appKeys);
 
   const params = {
     client_id,
@@ -51,6 +51,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     redirect_uri: `${WEBAPP_URL}/api/integrations/${config.slug}/callback`,
     code,
   };
+  const server_location = location === "us" ? "com" : location;
 
   const query = stringify(params);
 
@@ -72,6 +73,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     access_token: responseBody.access_token,
     refresh_token: responseBody.refresh_token,
     expires_in: Math.round(+new Date() / 1000 + responseBody.expires_in),
+    server_location: server_location || "com",
   };
 
   function getCalenderUri(domain: string): string {
