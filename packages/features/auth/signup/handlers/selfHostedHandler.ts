@@ -24,7 +24,7 @@ import {
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const data = req.body;
-  const { email, password, language, token } = signupSchema.parse(data);
+  const { email, password, language, token, sourceSignup } = signupSchema.parse(data);
 
   const username = slugify(data.username);
   const userEmail = email.toLowerCase();
@@ -104,12 +104,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           },
           emailVerified: new Date(Date.now()),
           identityProvider: IdentityProvider.CAL,
+          metadata: {
+            sourceSignup,
+          },
         },
         create: {
           username: correctedUsername,
           email: userEmail,
           password: { create: { hash: hashedPassword } },
           identityProvider: IdentityProvider.CAL,
+          metadata: {
+            sourceSignup,
+          },
         },
       });
 
@@ -162,12 +168,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         },
         emailVerified: new Date(Date.now()),
         identityProvider: IdentityProvider.CAL,
+        metadata: {
+          sourceSignup,
+        },
       },
       create: {
         username: correctedUsername,
         email: userEmail,
         password: { create: { hash: hashedPassword } },
         identityProvider: IdentityProvider.CAL,
+        metadata: {
+          sourceSignup,
+        },
       },
     });
 

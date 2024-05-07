@@ -237,6 +237,11 @@ export default function Signup({
 
   const signUp: SubmitHandler<FormValues> = async (_data) => {
     const { cfToken, ...data } = _data;
+    const queryParams = new URLSearchParams(window.location.search);
+    const sourceSignup = queryParams.get("source-signup");
+    if (sourceSignup) {
+      data.sourceSignup = sourceSignup;
+    }
     await fetch("/api/auth/signup", {
       body: JSON.stringify({
         ...data,

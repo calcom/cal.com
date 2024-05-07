@@ -344,6 +344,7 @@ export const userMetadata = z
         revertTime: z.string().optional(),
       })
       .optional(),
+    sourceSignup: z.string().optional(),
   })
   .nullable();
 
@@ -677,6 +678,7 @@ export const signupSchema = z.object({
     });
   }),
   language: z.string().optional(),
+  sourceSignup: z.string().optional(),
   token: z.string().optional(),
 });
 
