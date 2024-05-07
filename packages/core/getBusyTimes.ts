@@ -88,7 +88,8 @@ export async function getBusyTimes(params: {
     rescheduleUid && duration ? dayjs(endTime).add(duration, "minute").toDate() : new Date(endTime);
 
   // to also get bookings that are outside of start and end time, but the buffer falls within the start and end time
-  const maxBuffer = getDefinedBufferTimes()[getDefinedBufferTimes().length - 1];
+  const definedBufferTimes = getDefinedBufferTimes();
+  const maxBuffer = definedBufferTimes[definedBufferTimes.length - 1];
   const startTimeAdjustedWithMaxBuffer = dayjs(startTimeDate).subtract(maxBuffer, "minute").toDate();
   const endTimeAdjustedWithMaxBuffer = dayjs(endTimeDate).add(maxBuffer, "minute").toDate();
 
