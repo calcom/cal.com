@@ -722,6 +722,7 @@
             "required": false,
             "in": "query",
             "schema": {
+              "nullable": true,
               "type": "string"
             }
           }
@@ -4225,6 +4226,9 @@
           },
           "responses": {
             "$ref": "#/components/schemas/Response"
+          },
+          "orgSlug": {
+            "type": "string"
           },
           "locationUrl": {
             "type": "string"

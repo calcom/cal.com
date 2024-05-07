@@ -150,7 +150,9 @@ export class BookingsController {
     @Headers(X_CAL_CLIENT_ID) clientId?: string
   ): Promise<ApiResponse<unknown>> {
     const oAuthClientId = clientId?.toString();
-    const locationUrl = body.locationUrl;
+
+    const { orgSlug, locationUrl } = body;
+    req.headers["x-cal-force-slug"] = orgSlug;
     try {
       const booking = await handleNewBooking(
         await this.createNextApiBookingRequest(req, oAuthClientId, locationUrl)

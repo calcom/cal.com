@@ -11,10 +11,12 @@ const inter = Inter({ subsets: ["latin"] });
 export default function Bookings(props: { calUsername: string; calEmail: string }) {
   const [bookingTitle, setBookingTitle] = useState<string | null>(null);
   const [eventTypeSlug, setEventTypeSlug] = useState<string | null>(null);
+  const [eventTypeDuration, setEventTypeDuration] = useState<number | null>(null);
   const router = useRouter();
   const { isLoading: isLoadingEvents, data: eventTypes } = useEventTypesPublic(props.calUsername);
   const rescheduleUid = (router.query.rescheduleUid as string) ?? "";
   const eventTypeSlugQueryParam = (router.query.eventTypeSlug as string) ?? "";
+
   return (
     <main
       className={`flex min-h-screen flex-col ${inter.className} main text-default flex min-h-full w-full flex-col items-center overflow-visible`}>
@@ -34,7 +36,10 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
 
               return (
                 <div
-                  onClick={() => setEventTypeSlug(event.slug)}
+                  onClick={() => {
+                    setEventTypeSlug(event.slug);
+                    setEventTypeDuration(event.length);
+                  }}
                   className="mx-10 w-[80vw] cursor-pointer rounded-md border-[0.8px] border-black px-10 py-4"
                   key={event.id}>
                   <h1 className="text-lg font-semibold">{formatEventSlug}</h1>
@@ -51,8 +56,22 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
             eventSlug={eventTypeSlug}
             username={props.calUsername ?? ""}
             onCreateBookingSuccess={(data) => {
-              setBookingTitle(data.data.title);
+              setBookingTitle(data.data.title ?? "");
               router.push(`/${data.data.uid}`);
+            }}
+            duration={eventTypeDuration}
+            customClassNames={{
+              bookerContainer: "!bg-[#F5F2FE] [&_button:!rounded-full] border-subtle border",
+              datePickerCustomClassNames: {
+                datePickerDatesActive: "!bg-[#D7CEF5]",
+              },
+              eventMetaCustomClassNames: {
+                eventMetaTitle: "text-[#7151DC]",
+              },
+              availableTimeSlotsCustomClassNames: {
+                availableTimeSlotsHeaderContainer: "!bg-[#F5F2FE]",
+                availableTimes: "!bg-[#D7CEF5]",
+              },
             }}
           />
         )}
@@ -62,8 +81,13 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
             eventSlug={eventTypeSlugQueryParam}
             username={props.calUsername ?? ""}
             onCreateBookingSuccess={(data) => {
-              setBookingTitle(data.data.title);
+              setBookingTitle(data.data.title ?? "");
               router.push(`/${data.data.uid}`);
+            }}
+            duration={eventTypeDuration}
+            entity={{
+              orgSlug: "ecorp",
+              considerUnpublished: false,
             }}
           />
         )}

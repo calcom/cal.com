@@ -1,4 +1,3 @@
-import { useIsPlatform } from "@calcom/atoms/monorepo";
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
@@ -19,10 +18,9 @@ export interface EventMembersProps {
 }
 
 export const EventMembers = ({ schedulingType, users, profile, entity }: EventMembersProps) => {
-  const isPlatform = useIsPlatform();
   const isEmbed = useIsEmbed();
   const showMembers = !!schedulingType && schedulingType !== SchedulingType.ROUND_ROBIN;
-  const shownUsers = showMembers && !isPlatform ? users : [];
+  const shownUsers = showMembers ? users : [];
 
   // In some cases we don't show the user's names, but only show the profile name.
   const showOnlyProfileName =
