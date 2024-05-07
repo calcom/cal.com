@@ -63,6 +63,13 @@ jobs:
     uses: ./.github/workflows/api-v1-production-build.yml
     secrets: inherit
 
+  build-api-v2:
+    name: Production build
+    needs: [changes]
+    if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    uses: ./.github/workflows/api-v2-production-build.yml
+    secrets: inherit
+
   build-without-database:
     name: Production build (without database)
     needs: [changes]
@@ -72,28 +79,28 @@ jobs:
 
   e2e:
     name: E2E tests
-    needs: [changes, lint, build]
+    needs: [changes, lint, build, build-api-v1, build-api-v2]
     if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/e2e.yml
     secrets: inherit
 
   e2e-app-store:
     name: E2E App Store tests
-    needs: [changes, lint, build]
+    needs: [changes, lint, build, build-api-v1, build-api-v2]
     if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/e2e-app-store.yml
     secrets: inherit
 
   e2e-embed:
     name: E2E embeds tests
-    needs: [changes, lint, build]
+    needs: [changes, lint, build, build-api-v1, build-api-v2]
     if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/e2e-embed.yml
     secrets: inherit
 
   e2e-embed-react:
     name: E2E React embeds tests
-    needs: [changes, lint, build]
+    needs: [changes, lint, build, build-api-v1, build-api-v2]
     if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/e2e-embed-react.yml
     secrets: inherit
@@ -106,7 +113,7 @@ jobs:
     secrets: inherit
 
   required:
-    needs: [changes, lint, type-check, test, build, build-api-v1, e2e, e2e-embed, e2e-embed-react, e2e-app-store]
+    needs: [changes, lint, type-check, test, build, build-api-v1, build-api-v2, e2e, e2e-embed, e2e-embed-react, e2e-app-store]
     if: always()
     runs-on: buildjet-2vcpu-ubuntu-2204
     steps:

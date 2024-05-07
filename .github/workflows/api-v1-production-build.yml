@@ -39,7 +39,7 @@ env:
 
 jobs:
   build:
-    name: Build API V1
+    name: Build API v1
     runs-on: buildjet-4vcpu-ubuntu-2204
     timeout-minutes: 30
     services:
