@@ -800,7 +800,6 @@
   "verify_wallet": "Verificér Wallet",
   "create_events_on": "Opret begivenheder på",
   "enterprise_license": "Dette er en virksomhedsfunktion",
-  "enterprise_license_description": "For at aktivere denne funktion, skal du gå til {{setupUrl}} for at indtaste en licensnøgle. Hvis en licensnøgle allerede er på plads, bedes du kontakte {{supportMail}} for hjælp.",
   "missing_license": "Manglende Licens",
   "next_steps": "Næste Trin",
   "acquire_commercial_license": "Erhverv en kommerciel licens",

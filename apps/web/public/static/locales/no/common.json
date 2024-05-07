@@ -788,7 +788,6 @@
   "verify_wallet": "Verifiser Lommebok",
   "create_events_on": "Opprett hendelser på",
   "enterprise_license": "Dette er en bedriftsfunksjon",
-  "enterprise_license_description": "For å aktivere denne funksjonen, skaff deg en distribusjonsnøkkel på {{consoleUrl}}-konsollen og legg den til i .env som CALCOM_LICENSE_KEY. Hvis teamet ditt allerede har en lisens, vennligst kontakt {{supportMail}} for å få hjelp.",
   "missing_license": "Mangler Lisens",
   "next_steps": "Neste Skritt",
   "acquire_commercial_license": "Skaff en kommersiell lisens",
