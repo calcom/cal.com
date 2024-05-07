@@ -259,23 +259,7 @@ export const insightsRouter = router({
         },
       };
 
-      const baseBookingsCount = await EventsInsights.getBaseBookingCountForEventStatus(baseWhereCondition);
-
       const startTimeEndTimeDiff = dayjs(endDate).diff(dayjs(startDate), "day");
-
-      const totalCompleted = await EventsInsights.getTotalCompletedEvents(baseWhereCondition);
-
-      const totalRescheduled = await EventsInsights.getTotalRescheduledEvents(baseWhereCondition);
-
-      const totalCancelled = await EventsInsights.getTotalCancelledEvents(baseWhereCondition);
-
-      const totalRatingsAggregate = await EventsInsights.getAverageRating(baseWhereCondition);
-      const averageRating = totalRatingsAggregate._avg.rating
-        ? parseFloat(totalRatingsAggregate._avg.rating.toFixed(1))
-        : 0;
-
-      const totalNoShow = await EventsInsights.getTotalNoShows(baseWhereCondition);
-      const totalCSAT = await EventsInsights.getTotalCSAT(baseWhereCondition);
 
       const lastPeriodStartDate = dayjs(startDate).subtract(startTimeEndTimeDiff, "day");
       const lastPeriodEndDate = dayjs(endDate).subtract(startTimeEndTimeDiff, "day");
@@ -289,22 +273,42 @@ export const insightsRouter = router({
         teamId: teamId,
       };
 
-      const lastPeriodBaseBookingsCount = await EventsInsights.getBaseBookingCountForEventStatus(
-        lastPeriodBaseCondition
-      );
+      const [
+        countGroupedByStatus,
+        totalRatingsAggregate,
+        totalNoShow,
+        totalCSAT,
+        lastPeriodCountGroupedByStatus,
+        lastPeriodTotalRatingsAggregate,
+        lastPeriodTotalNoShow,
+        lastPeriodTotalCSAT,
+      ] = await Promise.all([
+        EventsInsights.countGroupedByStatus(baseWhereCondition),
+        EventsInsights.getAverageRating(baseWhereCondition),
+        EventsInsights.getTotalNoShows(baseWhereCondition),
+        EventsInsights.getTotalCSAT(baseWhereCondition),
+        EventsInsights.countGroupedByStatus(lastPeriodBaseCondition),
+        EventsInsights.getAverageRating(lastPeriodBaseCondition),
+        EventsInsights.getTotalNoShows(lastPeriodBaseCondition),
+        EventsInsights.getTotalCSAT(lastPeriodBaseCondition),
+      ]);
 
-      const lastPeriodTotalRescheduled = await EventsInsights.getTotalRescheduledEvents(
-        lastPeriodBaseCondition
-      );
+      const baseBookingsCount = countGroupedByStatus["_all"];
+      const totalCompleted = countGroupedByStatus["completed"];
+      const totalRescheduled = countGroupedByStatus["rescheduled"];
+      const totalCancelled = countGroupedByStatus["cancelled"];
 
-      const lastPeriodTotalCancelled = await EventsInsights.getTotalCancelledEvents(lastPeriodBaseCondition);
-      const lastPeriodTotalRatingsAggregate = await EventsInsights.getAverageRating(lastPeriodBaseCondition);
+      const averageRating = totalRatingsAggregate._avg.rating
+        ? parseFloat(totalRatingsAggregate._avg.rating.toFixed(1))
+        : 0;
+
+      const lastPeriodBaseBookingsCount = lastPeriodCountGroupedByStatus["_all"];
+      const lastPeriodTotalRescheduled = lastPeriodCountGroupedByStatus["rescheduled"];
+      const lastPeriodTotalCancelled = lastPeriodCountGroupedByStatus["cancelled"];
+
       const lastPeriodAverageRating = lastPeriodTotalRatingsAggregate._avg.rating
         ? parseFloat(lastPeriodTotalRatingsAggregate._avg.rating.toFixed(1))
         : 0;
-
-      const lastPeriodTotalNoShow = await EventsInsights.getTotalNoShows(lastPeriodBaseCondition);
-      const lastPeriodTotalCSAT = await EventsInsights.getTotalCSAT(lastPeriodBaseCondition);
 
       const result = {
         empty: false,
@@ -525,48 +529,25 @@ export const insightsRouter = router({
           startDate = dayjs(date).startOf("day");
           endDate = dayjs(date).add(6, "day").endOf("day");
         }
+
+        whereConditional = {
+          ...whereConditional,
+          createdAt: {
+            gte: startDate.toISOString(),
+            lte: endDate.toISOString(),
+          },
+        };
+
         const promisesResult = await Promise.all([
-          EventsInsights.getCreatedEventsInTimeRange(
-            {
-              start: startDate,
-              end: endDate,
-            },
-            whereConditional
-          ),
-          EventsInsights.getCompletedEventsInTimeRange(
-            {
-              start: startDate,
-              end: endDate,
-            },
-            whereConditional
-          ),
-          EventsInsights.getRescheduledEventsInTimeRange(
-            {
-              start: startDate,
-              end: endDate,
-            },
-            whereConditional
-          ),
-          EventsInsights.getCancelledEventsInTimeRange(
-            {
-              start: startDate,
-              end: endDate,
-            },
-            whereConditional
-          ),
-          EventsInsights.getNoShowHostsInTimeRange(
-            {
-              start: startDate,
-              end: endDate,
-            },
-            whereConditional
-          ),
+          EventsInsights.countGroupedByStatus(whereConditional),
+          EventsInsights.getTotalNoShows(whereConditional),
         ]);
-        EventData["Created"] = promisesResult[0];
-        EventData["Completed"] = promisesResult[1];
-        EventData["Rescheduled"] = promisesResult[2];
-        EventData["Cancelled"] = promisesResult[3];
-        EventData["No-Show (Host)"] = promisesResult[4];
+
+        EventData["Created"] = promisesResult[0]["_all"];
+        EventData["Completed"] = promisesResult[0]["completed"];
+        EventData["Rescheduled"] = promisesResult[0]["rescheduled"];
+        EventData["Cancelled"] = promisesResult[0]["cancelled"];
+        EventData["No-Show (Host)"] = promisesResult[1];
         result.push(EventData);
       }
 
