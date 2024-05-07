@@ -1,0 +1,26 @@
+docker run -d -p 3000:3000 \
+--restart always \
+-e NEXTAUTH_URL='https://cal.nischay.eu.org' \
+-e NEXT_PUBLIC_WEBSITE_URL='https://cal.nischay.eu.org' \
+-e NEXT_PUBLIC_CONSOLE_URL='https://cal.nischay.eu.org' \
+-e NEXT_PUBLIC_EMBED_LIB_URL='https://cal.nischay.eu.org/embed/embed.js' \
+-e NEXT_PUBLIC_LICENSE_CONSENT=true \
+-e CALCOM_TELEMETRY_DISABLED=1 \
+-e DATABASE_URL="postgresql://publicuser:mysecretpassword@172.17.0.2:5432/mainprodbcal" \
+-e DATABASE_DIRECT_URL="postgresql://publicuser:mysecretpassword@172.17.0.2:5432/mainprodbcal" \
+-e ALLOWED_HOSTNAMES='"local.host.local","https://cal.nischay.eu.org","cal.nischay.eu.org","cal.com","cal.dev","cal-staging.com","cal.community","cal.local:3000","localhost:3000"' \
+-e NEXTAUTH_SECRET='LKF3NfrA5NXDFKKzKiFBel7ATnXY3922U9vmuV+IOHM=' \
+-e CALENDSO_ENCRYPTION_KEY='Ei+Q9JJOo1+BJvWYsUFW0qLpkgebN/j/Aji9YGUqnLo=' \
+-e NEXT_PUBLIC_API_V2_URL=https://cal.nischay.eu.org/api/v2 \
+-e EMAIL_FROM=no-reply@nischay876.serv00.net \
+-e EMAIL_SERVER_HOST=mail2.serv00.com \
+-e EMAIL_SERVER_PORT=587 \
+-e EMAIL_SERVER_USER=no-reply@nischay876.serv00.net \
+-e EMAIL_SERVER_PASSWORD='NischaySH123*' \
+-e API_KEY_PREFIX='cal_*' \
+-e NEXT_PUBLIC_APP_NAME="Hamza" \
+-e NEXT_PUBLIC_SUPPORT_MAIL_ADDRESS="help@hamza.com" \
+-e NEXT_PUBLIC_COMPANY_NAME="Hamza, Inc." \
+-e NEXT_PUBLIC_DISABLE_SIGNUP=true \
+-e ORGANIZATIONS_ENABLED=false \
+ghcr.io/nischay876/hamzacalprodimage:v1

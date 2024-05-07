@@ -8,6 +8,7 @@ import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 import {
   BaseEmailHtml,
   Info,
+  InfoD,
   LocationInfo,
   ManageLink,
   WhenInfo,
@@ -84,7 +85,7 @@ export const BaseScheduledEmail = (
       <WhenInfo timeFormat={timeFormat} calEvent={props.calEvent} t={t} timeZone={timeZone} locale={locale} />
       <WhoInfo calEvent={props.calEvent} t={t} />
       <LocationInfo calEvent={props.calEvent} t={t} />
-      <Info label={t("description")} description={props.calEvent.description} withSpacer formatted />
+      <InfoD label={t("description")} description={props.calEvent.description} withSpacer formatted />
       <Info label={t("additional_notes")} description={props.calEvent.additionalNotes} withSpacer />
       {props.includeAppsStatus && <AppsStatus calEvent={props.calEvent} t={t} />}
       <UserFieldsResponses t={t} calEvent={props.calEvent} isOrganizer={props.isOrganizer} />
