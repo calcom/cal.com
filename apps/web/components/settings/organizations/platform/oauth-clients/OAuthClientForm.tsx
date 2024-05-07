@@ -71,10 +71,11 @@ export const OAuthClientForm: FC<{ clientId?: string }> = ({ clientId }) => {
       data.bookingRescheduleRedirectUri &&
         setValue("bookingRescheduleRedirectUri", data.bookingRescheduleRedirectUri);
       setValue("areEmailsEnabled", data?.areEmailsEnabled);
-      data?.redirectUris.forEach((uri: string, index: number) => {
+      data.redirectUris?.forEach?.((uri: string, index: number) => {
         index === 0 && setValue(`redirectUris.${index}.uri`, uri);
         index !== 0 && append({ uri });
       });
+      if (!data.permissions) return;
       if (hasAppsReadPermission(data.permissions)) setValue("appsRead", true);
       if (hasAppsWritePermission(data.permissions)) setValue("appsWrite", true);
       if (hasBookingReadPermission(data.permissions)) setValue("bookingRead", true);

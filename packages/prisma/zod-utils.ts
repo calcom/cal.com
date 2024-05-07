@@ -228,6 +228,7 @@ export const bookingCreateBodySchema = z.object({
   hasHashedBookingLink: z.boolean().optional(),
   hashedLink: z.string().nullish(),
   seatReferenceUid: z.string().optional(),
+  orgSlug: z.string().optional(),
 });
 
 export const requiredCustomInputSchema = z.union([
@@ -663,7 +664,7 @@ export const signupSchema = z.object({
   // Username is marked optional here because it's requirement depends on if it's the Organization invite or a team invite which isn't easily done in zod
   // It's better handled beyond zod in `validateAndGetCorrectedUsernameAndEmail`
   username: z.string().optional(),
-  email: z.string().email(),
+  email: z.string().email({ message: "Invalid email" }),
   password: z.string().superRefine((data, ctx) => {
     const isStrict = false;
     const result = isPasswordValid(data, true, isStrict);
@@ -751,7 +752,8 @@ export const getRetellLLMSchema = z
           })
           .passthrough()
       )
-      .nullable(),
+      .nullable()
+      .optional(),
   })
   .passthrough();
 

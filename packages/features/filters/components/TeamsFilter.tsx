@@ -3,7 +3,7 @@ import type { InputHTMLAttributes, ReactNode } from "react";
 import { forwardRef } from "react";
 
 import { classNames } from "@calcom/lib";
-import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
+import { getOrgOrTeamAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -111,13 +111,7 @@ export const TeamsFilter = ({
                     removeItemByKeyAndValue("teamIds", team.id);
                   }
                 }}
-                icon={
-                  <Avatar
-                    alt={team?.name}
-                    imageSrc={getPlaceholderAvatar(team.logo, team?.name as string)}
-                    size="xs"
-                  />
-                }
+                icon={<Avatar alt={team?.name} imageSrc={getOrgOrTeamAvatar(team)} size="xs" />}
               />
             ))}
         </FilterCheckboxFieldsContainer>

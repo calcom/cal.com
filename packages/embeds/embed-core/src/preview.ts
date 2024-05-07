@@ -6,10 +6,12 @@ const embedLibUrl = searchParams.get("embedLibUrl");
 if (!bookerUrl || !embedLibUrl) {
   throw new Error('Can\'t Preview: Missing "bookerUrl" or "embedLibUrl" query parameter');
 }
+// TODO: Reuse the embed code snippet from the embed-snippet package - Not able to use it because of circular dependency
 // Install Cal Embed Code Snippet
 (function (C, A, L) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const p = function (a: any, ar: any) {
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  //@ts-ignore
+  const p = function (a, ar) {
     a.q.push(ar);
   };
   const d = C.document;
@@ -17,6 +19,7 @@ if (!bookerUrl || !embedLibUrl) {
     C.Cal ||
     function () {
       const cal = C.Cal;
+
       // eslint-disable-next-line prefer-rest-params
       const ar = arguments;
       if (!cal.loaded) {
@@ -26,22 +29,25 @@ if (!bookerUrl || !embedLibUrl) {
         cal.loaded = true;
       }
       if (ar[0] === L) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const api: { (): void; q?: any[] } = function () {
+        const api = function () {
           // eslint-disable-next-line prefer-rest-params
           p(api, arguments);
         };
         const namespace = ar[1];
-        api.q = api.q || [];
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         //@ts-ignore
-        typeof namespace === "string" ? (cal.ns[namespace] = api) && p(api, ar) : p(cal, ar);
+        api.q = api.q || [];
+        if (typeof namespace === "string") {
+          // Make sure that even after re-execution of the snippet, the namespace is not overridden
+          cal.ns[namespace] = cal.ns[namespace] || api;
+          p(cal.ns[namespace], ar);
+          p(cal, ["initNamespace", namespace]);
+        } else p(cal, ar);
         return;
       }
       p(cal, ar);
     };
 })(window, embedLibUrl, "init");
-
 const previewWindow = window;
 previewWindow.Cal.fingerprint = process.env.EMBED_PUBLIC_EMBED_FINGER_PRINT as string;
 

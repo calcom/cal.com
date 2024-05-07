@@ -42,7 +42,7 @@ const inviteExistingUserToOrg = async ({
   await sendExistingUserTeamInviteEmails({
     currentUserName: user.username,
     currentUserTeamName: org.name,
-    existingUsersWithMembersips: [user],
+    existingUsersWithMemberships: [user],
     language: translation,
     isOrg: true,
     teamId: org.id,

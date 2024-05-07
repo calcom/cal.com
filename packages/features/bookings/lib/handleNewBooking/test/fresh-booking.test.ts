@@ -42,6 +42,7 @@ import {
 import { createMockNextJsRequest } from "@calcom/web/test/utils/bookingScenario/createMockNextJsRequest";
 import {
   expectWorkflowToBeTriggered,
+  expectWorkflowToBeNotTriggered,
   expectSuccessfulBookingCreationEmails,
   expectBookingToBeInDatabase,
   expectAwaitingPaymentEmails,
@@ -51,7 +52,6 @@ import {
   expectBookingPaymentIntiatedWebhookToHaveBeenFired,
   expectBrokenIntegrationEmails,
   expectSuccessfulCalendarEventCreationInCalendar,
-  expectWorkflowToBeNotTriggered,
   expectICalUIDAsString,
 } from "@calcom/web/test/utils/bookingScenario/expects";
 import { getMockRequestDataForBooking } from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForBooking";
@@ -215,9 +215,8 @@ describe("handleNewBooking", () => {
         });
 
         expectWorkflowToBeTriggered({
-          organizer,
+          emailsToReceive: [organizerDestinationCalendarEmailOnEventType],
           emails,
-          destinationEmail: organizerDestinationCalendarEmailOnEventType,
         });
         expectSuccessfulCalendarEventCreationInCalendar(calendarMock, {
           calendarId: "event-type-1@google-calendar.com",
@@ -379,7 +378,7 @@ describe("handleNewBooking", () => {
             iCalUID: createdBooking.iCalUID,
           });
 
-          expectWorkflowToBeTriggered({ organizer, emails });
+          expectWorkflowToBeTriggered({ emailsToReceive: [organizer.email], emails });
           expectSuccessfulCalendarEventCreationInCalendar(calendarMock, {
             videoCallUrl: "http://mock-dailyvideo.example.com/meeting-1",
             // We won't be sending evt.destinationCalendar in this case.
@@ -541,7 +540,7 @@ describe("handleNewBooking", () => {
             iCalUID: createdBooking.iCalUID,
           });
 
-          expectWorkflowToBeTriggered({ organizer, emails });
+          expectWorkflowToBeTriggered({ emailsToReceive: [organizer.email], emails });
           expectSuccessfulCalendarEventCreationInCalendar(calendarMock, {
             calendarId: "organizer@google-calendar.com",
             videoCallUrl: "http://mock-dailyvideo.example.com/meeting-1",
@@ -675,7 +674,7 @@ describe("handleNewBooking", () => {
             ],
           });
 
-          expectWorkflowToBeTriggered({ organizer, emails });
+          expectWorkflowToBeTriggered({ emailsToReceive: [organizer.email], emails });
 
           // FIXME: We should send Broken Integration emails on calendar event creation failure
           // expectCalendarEventCreationFailureEmails({ booker, organizer, emails });
@@ -825,7 +824,7 @@ describe("handleNewBooking", () => {
             iCalUID: createdBooking.iCalUID,
           });
 
-          expectWorkflowToBeTriggered({ organizer, emails });
+          expectWorkflowToBeTriggered({ emailsToReceive: [organizer.email], emails });
 
           expectSuccessfulCalendarEventCreationInCalendar(calendarMock, {
             calendarId: "organizer@google-calendar.com",
@@ -982,7 +981,7 @@ describe("handleNewBooking", () => {
             ],
           });
 
-          expectWorkflowToBeTriggered({ organizer, emails });
+          expectWorkflowToBeTriggered({ emailsToReceive: [organizer.email], emails });
           expectSuccessfulCalendarEventCreationInCalendar(calendarMock, {
             calendarId: "organizer@google-calendar.com",
             videoCallUrl: "http://mock-dailyvideo.example.com/meeting-1",
@@ -1511,7 +1510,7 @@ describe("handleNewBooking", () => {
             status: BookingStatus.PENDING,
           });
 
-          expectWorkflowToBeNotTriggered({ organizer, emails });
+          expectWorkflowToBeNotTriggered({ emailsToReceive: [organizer.email], emails });
 
           expectBookingRequestedEmails({
             booker,
@@ -1636,7 +1635,7 @@ describe("handleNewBooking", () => {
             }),
           });
 
-          expectWorkflowToBeNotTriggered({ organizer, emails });
+          expectWorkflowToBeNotTriggered({ emailsToReceive: [organizer.email], emails });
 
           expectBookingRequestedEmails({
             booker,
@@ -1764,7 +1763,7 @@ describe("handleNewBooking", () => {
             iCalUID: createdBooking.iCalUID,
           });
 
-          expectWorkflowToBeTriggered({ organizer, emails });
+          expectWorkflowToBeTriggered({ emailsToReceive: [organizer.email], emails });
 
           const iCalUID = expectICalUIDAsString(createdBooking.iCalUID);
 
@@ -1897,7 +1896,7 @@ describe("handleNewBooking", () => {
             iCalUID: createdBooking.iCalUID,
           });
 
-          expectWorkflowToBeNotTriggered({ organizer, emails });
+          expectWorkflowToBeNotTriggered({ emailsToReceive: [organizer.email], emails });
 
           expectBookingRequestedEmails({ booker, organizer, emails });
 
@@ -2076,7 +2075,7 @@ describe("handleNewBooking", () => {
           iCalUID: createdBooking.iCalUID,
         });
 
-        expectWorkflowToBeTriggered({ organizer, emails });
+        expectWorkflowToBeTriggered({ emailsToReceive: [organizer.email], emails });
 
         const iCalUID = expectICalUIDAsString(createdBooking.iCalUID);
 
@@ -2220,7 +2219,7 @@ describe("handleNewBooking", () => {
             }),
           });
 
-          expectWorkflowToBeNotTriggered({ organizer, emails });
+          expectWorkflowToBeNotTriggered({ emailsToReceive: [organizer.email], emails });
 
           expectAwaitingPaymentEmails({ organizer, booker, emails });
 
@@ -2244,7 +2243,7 @@ describe("handleNewBooking", () => {
             status: BookingStatus.ACCEPTED,
           });
 
-          expectWorkflowToBeTriggered({ organizer, emails });
+          expectWorkflowToBeTriggered({ emailsToReceive: [organizer.email], emails });
 
           expectBookingCreatedWebhookToHaveBeenFired({
             booker,
@@ -2374,7 +2373,7 @@ describe("handleNewBooking", () => {
             status: BookingStatus.PENDING,
           });
 
-          expectWorkflowToBeNotTriggered({ organizer, emails });
+          expectWorkflowToBeNotTriggered({ emailsToReceive: [organizer.email], emails });
 
           expectAwaitingPaymentEmails({ organizer, booker, emails });
           expectBookingPaymentIntiatedWebhookToHaveBeenFired({

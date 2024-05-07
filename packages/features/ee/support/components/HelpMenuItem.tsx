@@ -204,17 +204,17 @@ export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
                 setFreshChat(false);
               } else if (isInterComEnabled) {
                 shutdown();
+                toggleIntercom(false);
               }
-              toggleIntercom(false);
             } else {
               if (isFreshChatEnabled) {
                 setFreshChat(true);
               } else if (isInterComEnabled) {
                 await open();
+                toggleIntercom(true);
               } else {
                 loadChat({ open: true });
               }
-              toggleIntercom(true);
             }
             onHelpItemSelect();
           }}>
