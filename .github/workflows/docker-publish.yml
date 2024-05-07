@@ -1,19 +1,15 @@
 name: Docker
 
-# This workflow uses actions that are not certified by GitHub.
-# They are provided by a third-party and are governed by
-# separate terms of service, privacy policy, and support
-# documentation.
-
 on:
   schedule:
-    - cron: '23 15 * * *'
+    - cron: '32 12 * * *'
   push:
     branches: [ "main" ]
     # Publish semver tags as releases.
     tags: [ 'v*.*.*' ]
   pull_request:
     branches: [ "main" ]
+  workflow_dispatch: # Manual trigger
 
 env:
   # Use docker.io for Docker Hub if empty
@@ -37,7 +33,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Install the cosign tool except on PR
+      # Install cosign tool except on PR
       # https://github.com/sigstore/cosign-installer
       - name: Install cosign
         if: github.event_name != 'pull_request'
@@ -61,6 +57,24 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      # Docker build and push step
+      - name: Docker build and push
+        run: |
+          docker buildx build \
+          --platform linux/amd64 \
+          --push \
+          --tag ghcr.io/${{ github.repository }}:latest \
+          --build-arg NEXT_PUBLIC_WEBAPP_URL=https://your-actual-url.com \
+          --build-arg NEXT_PUBLIC_LICENSE_CONSENT=true \
+          --build-arg CALCOM_TELEMETRY_DISABLED=1 \
+          --build-arg DATABASE_URL=postgresql://unicorn_user:magical_password@database:5432/calendso \
+          --build-arg NEXTAUTH_SECRET=secret \
+          --build-arg CALENDSO_ENCRYPTION_KEY=secret \
+          --build-arg NEXT_PUBLIC_SENTRY_DSN=your-sentry-dsn \
+          --build-arg NEXT_PUBLIC_API_V2_URL=https://not-set-up.outro.com/api/v2 \
+          .
+        shell: bash
+
       # Extract metadata (tags, labels) for Docker
       # https://github.com/docker/metadata-action
       - name: Extract Docker metadata
@@ -68,19 +82,6 @@ jobs:
         uses: docker/metadata-action@96383f45573cb7f253c731d3b3ab81c87ef81934 # v5.0.0
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-
-      # Build and push Docker image with Buildx (don't push on PR)
-      # https://github.com/docker/build-push-action
-      - name: Build and push Docker image
-        id: build-and-push
-        uses: docker/build-push-action@0565240e2d4ab88bba5387d719585280857ece09 # v5.0.0
-        with:
-          context: .
-          push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
 
       # Sign the resulting Docker image digest except on PRs.
       # This will only write to the public Rekor transparency log when the Docker
