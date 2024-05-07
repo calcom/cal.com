@@ -108,7 +108,9 @@ const CreateANewOrganizationFormChild = ({
             createOrganizationMutation.mutate({
               ...v,
               isPlatform: isPlatformOrg,
-              slug: isPlatformOrg ? v.name.toLocaleLowerCase() : v.slug,
+              // we dont have checks to see if an organization url is taken or not if it is a platform user
+              // hence if its a platform org append _platform at the end
+              slug: isPlatformOrg ? `${v.name.toLocaleLowerCase()}_platform` : v.slug,
             });
           }
         }}>
