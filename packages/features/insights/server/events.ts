@@ -13,115 +13,29 @@ interface ITimeRange {
 type TimeViewType = "week" | "month" | "year" | "day";
 
 class EventsInsights {
-  static getBookingsInTimeRange = async (
-    timeRange: ITimeRange,
-    where: Prisma.BookingTimeStatusWhereInput
-  ) => {
-    const { start, end } = timeRange;
-
-    const events = await prisma.bookingTimeStatus.count({
-      where: {
-        ...where,
-        createdAt: {
-          gte: start.toISOString(),
-          lte: end.toISOString(),
-        },
-      },
-    });
-
-    return events;
-  };
-
-  static getCreatedEventsInTimeRange = async (
-    timeRange: ITimeRange,
-    where: Prisma.BookingTimeStatusWhereInput
-  ) => {
-    const result = await this.getBookingsInTimeRange(timeRange, where);
-
-    return result;
-  };
-
-  static getCancelledEventsInTimeRange = async (
-    timeRange: ITimeRange,
-    where: Prisma.BookingTimeStatusWhereInput
-  ) => {
-    const result = await this.getBookingsInTimeRange(timeRange, {
-      ...where,
-      timeStatus: "cancelled",
-    });
-
-    return result;
-  };
-
-  static getCompletedEventsInTimeRange = async (
-    timeRange: ITimeRange,
-    where: Prisma.BookingTimeStatusWhereInput
-  ) => {
-    const result = await this.getBookingsInTimeRange(timeRange, {
-      ...where,
-      timeStatus: "completed",
-    });
-
-    return result;
-  };
-
-  static getRescheduledEventsInTimeRange = async (
-    timeRange: ITimeRange,
-    where: Prisma.BookingTimeStatusWhereInput
-  ) => {
-    const result = await this.getBookingsInTimeRange(timeRange, {
-      ...where,
-      timeStatus: "rescheduled",
-    });
-
-    return result;
-  };
-
-  static getNoShowHostsInTimeRange = async (
-    timeRange: ITimeRange,
-    where: Prisma.BookingTimeStatusWhereInput
-  ) => {
-    const result = await this.getBookingsInTimeRange(timeRange, {
-      ...where,
-      noShowHost: true,
-    });
-
-    return result;
-  };
-
-  static getBaseBookingCountForEventStatus = async (where: Prisma.BookingTimeStatusWhereInput) => {
-    const baseBookings = await prisma.bookingTimeStatus.count({
+  static countGroupedByStatus = async (where: Prisma.BookingTimeStatusWhereInput) => {
+    const data = await prisma.bookingTimeStatus.groupBy({
       where,
-    });
-
-    return baseBookings;
-  };
-
-  static getTotalCompletedEvents = async (whereConditional: Prisma.BookingTimeStatusWhereInput) => {
-    return await prisma.bookingTimeStatus.count({
-      where: {
-        ...whereConditional,
-        timeStatus: "completed",
+      by: ["timeStatus"],
+      _count: {
+        _all: true,
       },
     });
-  };
-
-  static getTotalRescheduledEvents = async (whereConditional: Prisma.BookingTimeStatusWhereInput) => {
-    return await prisma.bookingTimeStatus.count({
-      where: {
-        ...whereConditional,
-        timeStatus: "rescheduled",
+    return data.reduce(
+      (aggregate: { [x: string]: number }, item) => {
+        if (typeof item.timeStatus === "string") {
+          aggregate[item.timeStatus] = item._count._all;
+          aggregate["_all"] += item._count._all;
+        }
+        return aggregate;
       },
-    });
-  };
-
-  static getTotalCancelledEvents = async (whereConditional: Prisma.BookingTimeStatusWhereInput) => {
-    return await prisma.bookingTimeStatus.count({
-      where: {
-        ...whereConditional,
-        timeStatus: "cancelled",
-      },
-    });
+      {
+        completed: 0,
+        rescheduled: 0,
+        cancelled: 0,
+        _all: 0,
+      }
+    );
   };
 
   static getAverageRating = async (whereConditional: Prisma.BookingTimeStatusWhereInput) => {
