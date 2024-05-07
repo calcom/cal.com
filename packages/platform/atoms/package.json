@@ -4,7 +4,7 @@
   "type": "module",
   "description": "Customizable UI components to integrate scheduling into your product.",
   "authors": "Cal.com, Inc.",
-  "version": "1.0.35",
+  "version": "1.0.40",
   "scripts": {
     "dev": "yarn vite build --watch & npx tailwindcss -i ./globals.css -o ./globals.min.css --postcss --minify --watch",
     "build": "yarn vite build && npx tailwindcss -i ./globals.css -o ./globals.min.css --postcss --minify",
