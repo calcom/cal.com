@@ -1,12 +1,16 @@
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import type { IframeHTMLAttributes } from "react";
 import React, { useEffect, useState } from "react";
 
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import { AppDependencyComponent, InstallAppButton } from "@calcom/app-store/components";
+import { doesAppSupportTeamInstall, isConfrencing } from "@calcom/app-store/utils";
 import DisconnectIntegration from "@calcom/features/apps/components/DisconnectIntegration";
+import { AppOnboardingSteps } from "@calcom/lib/apps/appOnboardingSteps";
+import { getAppOnboardingUrl } from "@calcom/lib/apps/getAppOnboardingUrl";
 import classNames from "@calcom/lib/classNames";
-import { APP_NAME, COMPANY_NAME, SUPPORT_MAIL_ADDRESS } from "@calcom/lib/constants";
+import { APP_NAME, COMPANY_NAME, SUPPORT_MAIL_ADDRESS, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { App as AppType } from "@calcom/types/App";
@@ -72,6 +76,7 @@ export const AppPage = ({
   dirName,
 }: AppPageProps) => {
   const { t, i18n } = useLocale();
+  const router = useRouter();
   const hasDescriptionItems = descriptionItems && descriptionItems.length > 0;
 
   const mutation = useAddAppMutation(null, {
@@ -83,6 +88,51 @@ export const AppPage = ({
       if (error instanceof Error) showToast(error.message || t("app_could_not_be_installed"), "error");
     },
   });
+
+  const handleAppInstall = () => {
+    if (isConfrencing(categories)) {
+      mutation.mutate(
+        {
+          isOmniInstall: true,
+          type,
+          variant,
+          slug,
+          returnTo:
+            WEBAPP_URL +
+            getAppOnboardingUrl({
+              slug,
+              step: AppOnboardingSteps.EVENT_TYPES_STEP,
+            }),
+        },
+        {
+          onSuccess: (data) => {
+            if (data?.setupPending) return;
+            // for non-oAuth apps
+            router.push(
+              getAppOnboardingUrl({
+                slug,
+                step: AppOnboardingSteps.EVENT_TYPES_STEP,
+              })
+            );
+            showToast(t("app_successfully_installed"), "success");
+          },
+          onError: (error) => {
+            if (error instanceof Error) showToast(error.message || t("app_could_not_be_installed"), "error");
+          },
+        }
+      );
+    } else if (
+      !doesAppSupportTeamInstall({
+        appCategories: categories,
+        concurrentMeetings: concurrentMeetings,
+        isPaid: !!paid,
+      })
+    ) {
+      mutation.mutate({ type });
+    } else {
+      router.push(getAppOnboardingUrl({ slug, step: AppOnboardingSteps.ACCOUNTS_STEP }));
+    }
+  };
 
   const priceInDollar = Intl.NumberFormat("en-US", {
     style: "currency",
@@ -212,22 +262,12 @@ export const AppPage = ({
                       props = {
                         ...props,
                         onClick: () => {
-                          mutation.mutate({ type, variant, slug });
+                          handleAppInstall();
                         },
                         loading: mutation.isPending,
                       };
                     }
-                    return (
-                      <InstallAppButtonChild
-                        appCategories={categories}
-                        userAdminTeams={appDbQuery.data?.userAdminTeams}
-                        addAppMutationInput={{ type, variant, slug }}
-                        multiInstall
-                        concurrentMeetings={concurrentMeetings}
-                        paid={paid}
-                        {...props}
-                      />
-                    );
+                    return <InstallAppButtonChild multiInstall paid={paid} {...props} />;
                   }}
                 />
               )}
@@ -251,21 +291,13 @@ export const AppPage = ({
                   props = {
                     ...props,
                     onClick: () => {
-                      mutation.mutate({ type, variant, slug });
+                      handleAppInstall();
                     },
                     loading: mutation.isPending,
                   };
                 }
                 return (
-                  <InstallAppButtonChild
-                    appCategories={categories}
-                    userAdminTeams={appDbQuery.data?.userAdminTeams}
-                    addAppMutationInput={{ type, variant, slug }}
-                    credentials={appDbQuery.data?.credentials}
-                    concurrentMeetings={concurrentMeetings}
-                    paid={paid}
-                    {...props}
-                  />
+                  <InstallAppButtonChild credentials={appDbQuery.data?.credentials} paid={paid} {...props} />
                 );
               }}
             />
