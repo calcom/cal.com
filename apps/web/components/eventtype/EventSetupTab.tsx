@@ -251,7 +251,6 @@ export const EventSetupTab = (
                   isManagedEventType={isManagedEventType}
                   disableLocationProp={shouldLockDisableProps("locations").disabled}
                   showAppStoreLink={true}
-                  parentFormMethods={formMethods}
                   {...props}
                 />
               )}

@@ -13,7 +13,7 @@ import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { getLocationGroupedOptions } from "@calcom/app-store/server";
 import type { EventTypeAppSettingsComponentProps, EventTypeModel } from "@calcom/app-store/types";
-import { defaultVideoAppCategories } from "@calcom/app-store/utils";
+import { isConfrencing as isAppConfrencing } from "@calcom/app-store/utils";
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { AppOnboardingSteps } from "@calcom/lib/apps/appOnboardingSteps";
@@ -23,7 +23,7 @@ import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { getTranslation } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
-import { SchedulingType, type AppCategories } from "@calcom/prisma/enums";
+import { SchedulingType } from "@calcom/prisma/enums";
 import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import type { AppMeta } from "@calcom/types/App";
@@ -447,9 +447,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     const app = await getAppBySlug(parsedAppSlug);
     const appMetadata = appStoreMetadata[app.dirName as keyof typeof appStoreMetadata];
     const exteandsEventType = appMetadata?.extendsFeature === "EventType";
-    const isConferencing = appMetadata.categories.some((category) =>
-      defaultVideoAppCategories.includes(category as AppCategories)
-    );
+    const isConferencing = isAppConfrencing(appMetadata.categories);
+
     const showEventTypesStep = exteandsEventType || isConferencing;
 
     if (!session?.user?.id) throw new Error(ERROR_MESSAGES.userNotAuthed);
