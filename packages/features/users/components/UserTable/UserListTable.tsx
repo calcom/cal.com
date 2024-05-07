@@ -364,11 +364,13 @@ export function UserListTable() {
           return (
             <>
               {isVisible ? (
-                <m.div className="bg-brand-default text-inverted item-center animate-fade-in-bottom hidden w-full gap-1 rounded-lg p-2 text-sm font-medium leading-none md:flex">
-                  <p className="inline-flex w-full items-center truncate whitespace-nowrap p-2">
-                    {domainWithoutHttps}
-                  </p>
-                  <div className="pl-auto flex items-center">
+                <m.div
+                  layout
+                  className="bg-brand-default text-inverted item-center animate-fade-in-bottom hidden w-full gap-1 rounded-lg p-2 text-sm font-medium leading-none md:flex">
+                  <div className="w-[300px] items-center truncate p-2">
+                    <p>{domainWithoutHttps}</p>
+                  </div>
+                  <div className="ml-auto flex items-center">
                     <Button
                       StartIcon="copy"
                       size="sm"
