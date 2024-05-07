@@ -102,11 +102,12 @@ export const getAllCredentials = async (
         return credential;
       }
     } else {
-      // If the CRM app doesn't exist on the event type metadata, check that the credential belongs to the user/team/org
+      // If the CRM app doesn't exist on the event type metadata, check that the credential belongs to the user/team/org and is an old CRM credential
       if (
-        credential.userId === eventType?.userId ||
-        credential.teamId === eventType?.team?.id ||
-        credential.teamId === eventType?.team.parentId
+        credential.type.includes("_other_calendar") &&
+        (credential.userId === eventType?.userId ||
+          credential.teamId === eventType?.team?.id ||
+          credential.teamId === eventType?.team?.parentId)
       ) {
         // If the CRM app doesn't exist on the event type metadata, assume it's an older CRM credential
         return credential;
