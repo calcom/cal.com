@@ -1190,36 +1190,22 @@ export function mockCalendar(
               log.silly("mockCalendar.updateEvent", JSON.stringify({ uid, event, externalCalendarId }));
               // eslint-disable-next-line prefer-rest-params
               updateEventCalls.push(rest);
-              if (event.location === BookingLocations.GoogleMeet) {
-                return Promise.resolve({
-                  type: app.type,
-                  additionalInfo: {},
-                  uid: "PROBABLY_UNUSED_UID",
-                  iCalUID: normalizedCalendarData.update?.iCalUID,
+              const isGoogleMeetLocation = event.location === BookingLocations.GoogleMeet;
+              return Promise.resolve({
+                type: app.type,
+                additionalInfo: {},
+                uid: "PROBABLY_UNUSED_UID",
+                iCalUID: normalizedCalendarData.update?.iCalUID,
 
-                  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                  id: normalizedCalendarData.update?.uid || "FALLBACK_MOCK_ID",
-                  // Password and URL seems useless for CalendarService, plan to remove them if that's the case
-                  password: "MOCK_PASSWORD",
-                  url: "https://UNUSED_URL",
-                  location: "https://UNUSED_URL",
-                  hangoutLink: "https://UNUSED_URL",
-                  conferenceData: event.conferenceData,
-                });
-              } else {
-                return Promise.resolve({
-                  type: app.type,
-                  additionalInfo: {},
-                  uid: "PROBABLY_UNUSED_UID",
-                  iCalUID: normalizedCalendarData.update?.iCalUID,
-
-                  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                  id: normalizedCalendarData.update?.uid || "FALLBACK_MOCK_ID",
-                  // Password and URL seems useless for CalendarService, plan to remove them if that's the case
-                  password: "MOCK_PASSWORD",
-                  url: "https://UNUSED_URL",
-                });
-              }
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                id: normalizedCalendarData.update?.uid || "FALLBACK_MOCK_ID",
+                // Password and URL seems useless for CalendarService, plan to remove them if that's the case
+                password: "MOCK_PASSWORD",
+                url: "https://UNUSED_URL",
+                location: isGoogleMeetLocation ? "https://UNUSED_URL" : undefined,
+                hangoutLink: isGoogleMeetLocation ? "https://UNUSED_URL" : undefined,
+                conferenceData: isGoogleMeetLocation ? event.conferenceData : undefined,
+              });
             },
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             deleteEvent: async (...rest: any[]) => {
