@@ -56,13 +56,22 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
             eventSlug={eventTypeSlug}
             username={props.calUsername ?? ""}
             onCreateBookingSuccess={(data) => {
-              setBookingTitle(data.data.title);
+              setBookingTitle(data.data.title ?? "");
               router.push(`/${data.data.uid}`);
             }}
             duration={eventTypeDuration}
-            entity={{
-              orgSlug: "ecorp",
-              considerUnpublished: false,
+            customClassNames={{
+              bookerContainer: "!bg-[#F5F2FE] [&_button:!rounded-full] border-subtle border",
+              datePickerCustomClassNames: {
+                datePickerDatesActive: "!bg-[#D7CEF5]",
+              },
+              eventMetaCustomClassNames: {
+                eventMetaTitle: "text-[#7151DC]",
+              },
+              availableTimeSlotsCustomClassNames: {
+                availableTimeSlotsHeaderContainer: "!bg-[#F5F2FE]",
+                availableTimes: "!bg-[#D7CEF5]",
+              },
             }}
           />
         )}
@@ -72,7 +81,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
             eventSlug={eventTypeSlugQueryParam}
             username={props.calUsername ?? ""}
             onCreateBookingSuccess={(data) => {
-              setBookingTitle(data.data.title);
+              setBookingTitle(data.data.title ?? "");
               router.push(`/${data.data.uid}`);
             }}
             duration={eventTypeDuration}

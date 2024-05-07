@@ -34,7 +34,7 @@ import { usePublicEvent } from "../hooks/usePublicEvent";
 import { useSlots } from "../hooks/useSlots";
 import { AtomsWrapper } from "../src/components/atoms-wrapper";
 
-type BookerPlatformWrapperAtomProps = Omit<BookerProps, "username"> & {
+type BookerPlatformWrapperAtomProps = Omit<BookerProps, "username" | "entity"> & {
   rescheduleUid?: string;
   bookingUid?: string;
   firstName?: string;
@@ -42,6 +42,7 @@ type BookerPlatformWrapperAtomProps = Omit<BookerProps, "username"> & {
   guests?: string[];
   name?: string;
   username: string | string[];
+  entity?: BookerProps["entity"];
   onCreateBookingSuccess?: (data: ApiSuccessResponse<BookingResponse>) => void;
   onCreateBookingError?: (data: ApiErrorResponse | Error) => void;
   onCreateRecurringBookingSuccess?: (data: ApiSuccessResponse<BookingResponse[]>) => void;
