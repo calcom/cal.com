@@ -274,7 +274,6 @@ const handleOrgWideAdminArgs = async ({
   userId,
 }: GetAdminArgsType) => {
   if (adminDidQueryUserIds) {
-    // const requestedUserIds = Array.isArray(query.userId) ? query.userId : [query.userId || userId];
     const accessibleUsersIds = await getAccessibleUsers({
       adminUserId: userId,
       memberUserIds: requestedUserIds,

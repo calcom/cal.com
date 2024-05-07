@@ -204,8 +204,17 @@ import { defaultResponder } from "@calcom/lib/server";
  *         description: Authorization information is missing or invalid.
  */
 async function handler(req: NextApiRequest) {
-  const { userId, isSystemWideAdmin } = req;
+  const { userId, isSystemWideAdmin, isOrganizationOwnerOrAdmin } = req;
   if (isSystemWideAdmin) req.userId = req.body.userId || userId;
+
+  if (isOrganizationOwnerOrAdmin) {
+    const accessibleUsersIds = await getAccessibleUsers({
+      adminUserId: userId,
+      memberUserIds: requestedUserIds,
+    });
+    const [requestedUserId] = accessibleUsersIds;
+    req.userId = requestedUserId || userId;
+  }
 
   return await handleNewBooking(req, getBookingDataSchemaForApi);
 }
