@@ -854,6 +854,18 @@ describe("handleNewBooking", () => {
             defaultScheduleId: null,
             email: "other-team-member-1@example.com",
             id: 102,
+            teams: [
+              {
+                membership: {
+                  accepted: true,
+                },
+                team: {
+                  id: 1,
+                  name: "Team 1",
+                  slug: "team-1",
+                },
+              },
+            ],
             // Has Evening shift
             schedules: [TestData.schedules.IstMorningShift],
             credentials: [getGoogleCalendarCredential()],
@@ -891,6 +903,7 @@ describe("handleNewBooking", () => {
                 schedulingType: SchedulingType.ROUND_ROBIN,
                 length: 30,
                 recurringEvent: recurrence,
+                teamId: 1,
                 hosts: [
                   {
                     userId: 101,
