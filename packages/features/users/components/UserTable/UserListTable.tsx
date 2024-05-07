@@ -359,29 +359,31 @@ export function UserListTable() {
           const usersNameAsString = users.join("+");
 
           const dynamicLinkOfSelectedUsers = `${domain}/${usersNameAsString}`;
-          const domainWithouthttps = dynamicLinkOfSelectedUsers.replace(/https?:\/\//g, "");
+          const domainWithoutHttps = dynamicLinkOfSelectedUsers.replace(/https?:\/\//g, "");
 
           return (
             <>
               {isVisible ? (
                 <m.div className="bg-brand-default text-inverted item-center animate-fade-in-bottom hidden w-full gap-1 rounded-lg p-2 text-sm font-medium leading-none md:flex">
-                  <p className="inline-flex items-center truncate whitespace-nowrap p-2">
-                    {domainWithouthttps}
+                  <p className="inline-flex w-full items-center truncate whitespace-nowrap p-2">
+                    {domainWithoutHttps}
                   </p>
-                  <Button
-                    StartIcon="copy"
-                    size="sm"
-                    onClick={() => copyToClipboard(dynamicLinkOfSelectedUsers)}>
-                    {!isCopied ? t("copy") : t("copied")}
-                  </Button>
-                  <Button
-                    EndIcon="external-link"
-                    size="sm"
-                    href={dynamicLinkOfSelectedUsers}
-                    target="_blank"
-                    rel="noopener noreferrer">
-                    Open
-                  </Button>
+                  <div className="pl-auto flex items-center">
+                    <Button
+                      StartIcon="copy"
+                      size="sm"
+                      onClick={() => copyToClipboard(dynamicLinkOfSelectedUsers)}>
+                      {!isCopied ? t("copy") : t("copied")}
+                    </Button>
+                    <Button
+                      EndIcon="external-link"
+                      size="sm"
+                      href={dynamicLinkOfSelectedUsers}
+                      target="_blank"
+                      rel="noopener noreferrer">
+                      Open
+                    </Button>
+                  </div>
                 </m.div>
               ) : null}
             </>
