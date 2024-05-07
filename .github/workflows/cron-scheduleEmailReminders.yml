@@ -4,8 +4,8 @@ on:
   # "Scheduled workflows run on the latest commit on the default or base branch."
   # — https://docs.github.com/en/actions/learn-github-actions/events-that-trigger-workflows#schedule
   schedule:
-    # Runs "At every 15th minute." (see https://crontab.guru)
-    - cron: "*/15 * * * *"
+    # Runs "Every day." (see https://crontab.guru)
+    - cron: "0 0 * * *"
 jobs:
   cron-scheduleEmailReminders:
     env:
