@@ -2272,24 +2272,35 @@ async function handler(
 
     if (rescheduleUid && originalRescheduledBooking) {
       //delete all scheduled triggers for meeting ended and meeting started of booking
-      deleteWebhookScheduledTriggerPromise = deleteWebhookScheduledTriggers(originalRescheduledBooking);
+      deleteWebhookScheduledTriggerPromise = deleteWebhookScheduledTriggers({
+        booking: originalRescheduledBooking,
+      });
     }
 
     if (booking && booking.status === BookingStatus.ACCEPTED) {
       for (const subscriber of subscribersMeetingEnded) {
         scheduleTriggerPromises.push(
-          scheduleTrigger(booking, subscriber.subscriberUrl, subscriber, WebhookTriggerEvents.MEETING_ENDED)
+          scheduleTrigger({
+            booking,
+            subscriberUrl: subscriber.subscriberUrl,
+            subscriber,
+            triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
+          })
         );
       }
 
       for (const subscriber of subscribersMeetingStarted) {
         scheduleTriggerPromises.push(
-          scheduleTrigger(booking, subscriber.subscriberUrl, subscriber, WebhookTriggerEvents.MEETING_STARTED)
+          scheduleTrigger({
+            booking,
+            subscriberUrl: subscriber.subscriberUrl,
+            subscriber,
+            triggerEvent: WebhookTriggerEvents.MEETING_STARTED,
+          })
         );
       }
     }
 
-    //we don't need to wait for that
     Promise.all([deleteWebhookScheduledTriggerPromise, ...scheduleTriggerPromises]).catch((error) => {
       loggerWithEventDetails.error(
         "Error while scheduling or canceling webhook triggers",

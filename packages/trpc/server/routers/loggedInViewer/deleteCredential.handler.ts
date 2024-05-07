@@ -320,14 +320,11 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
       },
     });
 
-    deleteWebhookScheduledTriggers(
-      undefined,
-      credential.appId,
-      undefined,
-      undefined,
-      teamId ? undefined : ctx.user.id,
-      teamId
-    );
+    deleteWebhookScheduledTriggers({
+      appId: credential.appId,
+      userId: teamId ? undefined : ctx.user.id,
+      teamId,
+    });
   }
 
   // Backwards compatibility. Selected calendars cascade on delete when deleting a credential

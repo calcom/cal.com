@@ -47,7 +47,7 @@ export const editHandler = async ({ input, ctx }: EditOptions) => {
     const activeTriggersBefore = webhook.active ? webhook.eventTriggers : [];
     await updateTriggerForExistingBookings(webhook, activeTriggersBefore, updatedWebhook.eventTriggers);
   } else if (!data.active && webhook.active) {
-    await deleteWebhookScheduledTriggers(undefined, undefined, undefined, webhook.id);
+    await deleteWebhookScheduledTriggers({ webhookId: webhook.id });
   }
 
   return updatedWebhook;

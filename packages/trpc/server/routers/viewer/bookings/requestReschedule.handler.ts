@@ -149,7 +149,7 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
 
   // delete scheduled jobs of previous booking
   const WebhookWorkflowPromises = [];
-  WebhookWorkflowPromises.push(deleteWebhookScheduledTriggers(bookingToReschedule));
+  WebhookWorkflowPromises.push(deleteWebhookScheduledTriggers({ booking: bookingToReschedule }));
 
   //cancel workflow reminders of previous booking
   for (const reminder of bookingToReschedule.workflowReminders) {

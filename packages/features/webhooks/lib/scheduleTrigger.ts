@@ -17,7 +17,6 @@ const SCHEDULING_TRIGGER: WebhookTriggerEvents[] = [
 
 const log = logger.getSubLogger({ prefix: ["[node-scheduler]"] });
 
-//todo
 export async function addSubscription({
   appApiKey,
   triggerEvent,
@@ -60,7 +59,7 @@ export async function addSubscription({
       if (teamId) {
         where.eventType = { teamId };
       } else {
-        where.userId = userId;
+        where.eventType = { userId };
       }
       const bookings = await prisma.booking.findMany({
         where: {
@@ -73,15 +72,15 @@ export async function addSubscription({
       });
 
       for (const booking of bookings) {
-        scheduleTrigger(
+        scheduleTrigger({
           booking,
-          createSubscription.subscriberUrl,
-          {
+          subscriberUrl: createSubscription.subscriberUrl,
+          subscriber: {
             id: createSubscription.id,
             appId: createSubscription.appId,
           },
-          triggerEvent
-        );
+          triggerEvent,
+        });
       }
     }
 
@@ -97,7 +96,6 @@ export async function addSubscription({
   }
 }
 
-//done
 export async function deleteSubscription({
   appApiKey,
   webhookId,
@@ -113,25 +111,20 @@ export async function deleteSubscription({
     isTeam: boolean;
   } | null;
 }) {
+  const userId = appApiKey ? appApiKey.userId : account && !account.isTeam ? account.id : null;
+  const teamId = appApiKey ? appApiKey.teamId : account && account.isTeam ? account.id : null;
   try {
     let where: Prisma.WebhookWhereInput = {};
-    if (appApiKey) {
-      if (appApiKey.teamId) {
-        where = { teamId: appApiKey.teamId };
-      } else {
-        where = { userId: appApiKey.userId };
-      }
-    } else if (account) {
-      if (account.isTeam) {
-        where = { teamId: account.id };
-      } else {
-        where = { userId: account.id };
-      }
+    if (teamId) {
+      where = { teamId };
+    } else {
+      where = { userId };
     }
 
     const deleteWebhook = await prisma.webhook.delete({
       where: {
         ...where,
+        appId: appId,
         id: webhookId,
       },
     });
@@ -161,27 +154,16 @@ export async function listBookings(
     isTeam: boolean;
   } | null
 ) {
+  const userId = appApiKey ? appApiKey.userId : account && !account.isTeam ? account.id : null;
+  const teamId = appApiKey ? appApiKey.teamId : account && account.isTeam ? account.id : null;
   try {
     const where: Prisma.BookingWhereInput = {};
-    if (appApiKey) {
-      if (appApiKey.teamId) {
-        where.eventType = {
-          OR: [{ teamId: appApiKey.teamId }, { parent: { teamId: appApiKey.teamId } }],
-        };
-      } else {
-        where.userId = appApiKey.userId;
-      }
-    } else if (account) {
-      if (!account.isTeam) {
-        where.userId = account.id;
-        where.eventType = {
-          teamId: null,
-        };
-      } else {
-        where.eventType = {
-          OR: [{ teamId: account.id }, { parent: { teamId: account.id } }],
-        };
-      }
+    if (teamId) {
+      where.eventType = {
+        OR: [{ teamId }, { parent: { teamId } }],
+      };
+    } else {
+      where.eventType = { userId, teamId: null };
     }
 
     const bookings = await prisma.booking.findMany({
@@ -258,18 +240,21 @@ export async function listBookings(
   }
 }
 
-//done
-export async function scheduleTrigger(
-  booking: { id: number; endTime: Date; startTime: Date },
-  subscriberUrl: string,
-  subscriber: { id: string; appId: string | null },
-  triggerEvent: WebhookTriggerEvents
-) {
+export async function scheduleTrigger({
+  booking,
+  subscriberUrl,
+  subscriber,
+  triggerEvent,
+}: {
+  booking: { id: number; endTime: Date; startTime: Date };
+  subscriberUrl: string;
+  subscriber: { id: string; appId: string | null };
+  triggerEvent: WebhookTriggerEvents;
+}) {
   try {
     const payload = JSON.stringify({ triggerEvent, ...booking });
 
-    // add scheduled job to database
-    const createTrigger = prisma.webhookScheduledTriggers.create({
+    await prisma.webhookScheduledTriggers.create({
       data: {
         payload,
         appId: subscriber.appId,
@@ -287,22 +272,26 @@ export async function scheduleTrigger(
         },
       },
     });
-
-    await prisma.$transaction([createTrigger]);
   } catch (error) {
     console.error("Error cancelling scheduled jobs", error);
   }
 }
 
-//done
-export async function deleteWebhookScheduledTriggers(
-  booking?: { id: number; uid: string },
-  appId?: string | null,
-  triggerEvent?: WebhookTriggerEvents,
-  webhookId?: string,
-  userId?: number,
-  teamId?: number
-) {
+export async function deleteWebhookScheduledTriggers({
+  booking,
+  appId,
+  triggerEvent,
+  webhookId,
+  userId,
+  teamId,
+}: {
+  booking?: { id: number; uid: string };
+  appId?: string | null;
+  triggerEvent?: WebhookTriggerEvents;
+  webhookId?: string;
+  userId?: number;
+  teamId?: number;
+}) {
   try {
     if (appId) {
       await prisma.webhookScheduledTriggers.deleteMany({
@@ -343,7 +332,6 @@ export async function deleteWebhookScheduledTriggers(
   }
 }
 
-//done
 export async function updateTriggerForExistingBookings(
   webhook: Webhook,
   existingEventTriggers: WebhookTriggerEvents[],
@@ -397,16 +385,16 @@ export async function updateTriggerForExistingBookings(
 
   if (addedEventTriggers.length > 0) {
     const promise = bookings.map((booking) => {
-      return addedEventTriggers.map((trigger) => {
-        scheduleTrigger(booking, webhook.subscriberUrl, webhook, trigger);
+      return addedEventTriggers.map((triggerEvent) => {
+        scheduleTrigger({ booking, subscriberUrl: webhook.subscriberUrl, subscriber: webhook, triggerEvent });
       });
     });
 
     await Promise.all(promise);
   }
 
-  const promise = removedEventTriggers.map((trigger) =>
-    deleteWebhookScheduledTriggers(undefined, undefined, trigger, webhook.id)
+  const promise = removedEventTriggers.map((triggerEvent) =>
+    deleteWebhookScheduledTriggers({ triggerEvent, webhookId: webhook.id })
   );
   await Promise.all(promise);
 }

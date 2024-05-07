@@ -323,12 +323,22 @@ export async function handleConfirmation(args: {
 
     subscribersMeetingStarted.forEach((subscriber) => {
       updatedBookings.forEach((booking) => {
-        scheduleTrigger(booking, subscriber.subscriberUrl, subscriber, WebhookTriggerEvents.MEETING_STARTED);
+        scheduleTrigger({
+          booking,
+          subscriberUrl: subscriber.subscriberUrl,
+          subscriber,
+          triggerEvent: WebhookTriggerEvents.MEETING_STARTED,
+        });
       });
     });
     subscribersMeetingEnded.forEach((subscriber) => {
       updatedBookings.forEach((booking) => {
-        scheduleTrigger(booking, subscriber.subscriberUrl, subscriber, WebhookTriggerEvents.MEETING_ENDED);
+        scheduleTrigger({
+          booking,
+          subscriberUrl: subscriber.subscriberUrl,
+          subscriber,
+          triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
+        });
       });
     });
 
