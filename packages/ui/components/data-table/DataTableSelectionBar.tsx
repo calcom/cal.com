@@ -43,10 +43,12 @@ export function DataTableSelectionBar<TData>({
   return (
     <AnimatePresence>
       {isVisible ? (
-        <div className="fade-in fixed bottom-6 left-1/2 hidden -translate-x-1/2 gap-1 md:flex md:flex-col lg:max-w-[40%]">
+        <div className="fade-in fixed bottom-6 left-1/2 hidden -translate-x-1/2 gap-1 md:flex md:flex-col">
           {renderAboveSelection && renderAboveSelection(table)}
-          <div className="bg-brand-default text-brand item-center hidden justify-between rounded-lg p-2 lg:flex">
-            <div className="text-brand-subtle my-auto px-2">{numberOfSelectedRows} selected</div>
+          <div className="bg-brand-default text-brand hidden items-center justify-between rounded-lg p-2 md:flex">
+            <p className="text-brand-subtle w-full px-2 text-center leading-none">
+              {numberOfSelectedRows} selected
+            </p>
             {actionsVisible?.map((action, index) => {
               return (
                 <Fragment key={index}>
