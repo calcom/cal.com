@@ -70,6 +70,9 @@ export type NewCalendarEventType = {
   url: string;
   additionalInfo: AdditionalInfo;
   iCalUID?: string | null;
+  location?: string | null;
+  hangoutLink?: string | null;
+  conferenceData?: ConferenceData;
 };
 
 export type CalendarEventType = {
