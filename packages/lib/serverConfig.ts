@@ -5,7 +5,23 @@ import { isENVDev } from "@calcom/lib/env";
 
 import { getAdditionalEmailHeaders } from "./getAdditionalEmailHeaders";
 
-function detectTransport(): SendmailTransport.Options | SMTPConnection.Options | string {
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const mg = require("nodemailer-mailgun-transport");
+
+function detectTransport(): SendmailTransport.Options | SMTPConnection.Options | string | any {
+  // start customRemove
+  if (true) {
+    const auth = {
+      auth: {
+        api_key: process.env.MAIL_GUN_API_KEY,
+        domain: process.env.EMAIL_DOMAIN,
+      },
+    };
+
+    return mg(auth);
+  }
+  // end customRemove
+
   if (process.env.RESEND_API_KEY) {
     const transport = {
       host: "smtp.resend.com",

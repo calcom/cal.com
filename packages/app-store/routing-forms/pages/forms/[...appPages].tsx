@@ -62,6 +62,7 @@ export default function RoutingForms({
 }: inferSSRProps<typeof getServerSideProps> & {
   appUrl: string;
 }) {
+  return <></>; // customRemove
   const { t } = useLocale();
   const { hasPaidPlan } = useHasPaidPlan();
   const routerQuery = useRouterQuery();

@@ -81,7 +81,7 @@ export enum DefaultEventLocationTypeEnum {
 }
 
 export const defaultLocations: DefaultEventLocationType[] = [
-  {
+  /* // customRemove {
     default: true,
     type: DefaultEventLocationTypeEnum.AttendeeInPerson,
     label: "in_person_attendee_address",
@@ -116,7 +116,7 @@ export const defaultLocations: DefaultEventLocationType[] = [
     defaultValueVariable: "hostDefault",
     category: "conferencing",
     messageForOrganizer: "",
-  },
+  },*/
   {
     default: true,
     type: DefaultEventLocationTypeEnum.Link,

@@ -41,11 +41,8 @@ import VerifyEmailBanner, {
 import classNames from "@calcom/lib/classNames";
 import {
   APP_NAME,
-  DESKTOP_APP_LINK,
   ENABLE_PROFILE_SWITCHER,
   IS_VISUAL_REGRESSION_TESTING,
-  JOIN_DISCORD,
-  ROADMAP,
   TOP_BANNER_HEIGHT,
   WEBAPP_URL,
 } from "@calcom/lib/constants";
@@ -83,11 +80,9 @@ import {
   useCalcomTheme,
   type IconName,
 } from "@calcom/ui";
-import { Discord } from "@calcom/ui/components/icon/Discord";
 
 import { useOrgBranding } from "../ee/organizations/context/provider";
 import FreshChatProvider from "../ee/support/lib/freshchat/FreshChatProvider";
-import { TeamInviteBadge } from "./TeamInviteBadge";
 
 // need to import without ssr to prevent hydration errors
 const Tips = dynamic(() => import("@calcom/features/tips").then((mod) => mod.Tips), {
@@ -495,35 +490,6 @@ function UserDropdown({ small }: UserDropdownProps) {
                     {t("out_of_office")}
                   </DropdownItem>
                 </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem>
-                  <DropdownItem
-                    CustomStartIcon={<Discord className="text-default h-4 w-4" />}
-                    target="_blank"
-                    rel="noreferrer"
-                    href={JOIN_DISCORD}>
-                    {t("join_our_discord")}
-                  </DropdownItem>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <DropdownItem StartIcon="map" target="_blank" href={ROADMAP}>
-                    {t("visit_roadmap")}
-                  </DropdownItem>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <DropdownItem
-                    type="button"
-                    StartIcon="circle-help"
-                    aria-hidden="true"
-                    onClick={() => setHelpOpen(true)}>
-                    {t("help")}
-                  </DropdownItem>
-                </DropdownMenuItem>
-                <DropdownMenuItem className="todesktop:hidden hidden lg:flex">
-                  <DropdownItem StartIcon="download" target="_blank" rel="noreferrer" href={DESKTOP_APP_LINK}>
-                    {t("download_desktop_app")}
-                  </DropdownItem>
-                </DropdownMenuItem>
 
                 <DropdownMenuSeparator />
 
@@ -588,14 +554,14 @@ const navigation: NavigationItemType[] = [
     href: "/availability",
     icon: "clock",
   },
-  {
+  /* // customRemove {
     name: "teams",
     href: "/teams",
     icon: "users",
     onlyDesktop: true,
     badge: <TeamInviteBadge />,
-  },
-  {
+  },*/
+  /* // customRemove {
     name: "apps",
     href: "/apps",
     icon: "grid-3x3",
@@ -624,7 +590,7 @@ const navigation: NavigationItemType[] = [
           (path?.startsWith("/v2/apps/installed/") ?? false),
       },
     ],
-  },
+  },*/
   {
     name: MORE_SEPARATOR_NAME,
     href: "/more",
@@ -921,7 +887,7 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
                 </span>
               </div>
             )}
-            <div className="flex justify-end rtl:space-x-reverse">
+            <div className="customRemove flex justify-end rtl:space-x-reverse">
               <button
                 color="minimal"
                 onClick={() => window.history.back()}
@@ -1112,7 +1078,7 @@ function TopNav() {
           <Logo />
         </Link>
         <div className="flex items-center gap-2 self-center">
-          <span className="hover:bg-muted hover:text-emphasis text-default group flex items-center rounded-full text-sm font-medium lg:hidden">
+          <span className="customRemove hover:bg-muted hover:text-emphasis text-default group flex items-center rounded-full text-sm font-medium lg:hidden">
             <KBarTrigger />
           </span>
           <button className="hover:bg-muted hover:text-subtle text-muted rounded-full p-1 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2">

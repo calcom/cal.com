@@ -23,6 +23,7 @@ import SkeletonLoader from "../components/SkeletonLoaderList";
 import WorkflowList from "../components/WorkflowListPage";
 
 function WorkflowsPage() {
+  return <></>; // customRemove
   const { t } = useLocale();
   const session = useSession();
   const router = useRouter();

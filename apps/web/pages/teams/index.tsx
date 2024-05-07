@@ -1,6 +1,6 @@
 "use client";
 
-import { TeamsListing } from "@calcom/features/ee/teams/components";
+//import { TeamsListing } from "@calcom/features/ee/teams/components"; // customRemove
 import Shell from "@calcom/features/shell/Shell";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -12,6 +12,7 @@ import PageWrapper from "@components/PageWrapper";
 export { getServerSideProps } from "@lib/teams/getServerSideProps";
 
 function Teams() {
+  return <></>; // customRemove
   const { t } = useLocale();
   const [user] = trpc.viewer.me.useSuspenseQuery();
 
@@ -35,7 +36,7 @@ function Teams() {
           </Button>
         )
       }>
-      <TeamsListing />
+      {/* // customRemove <TeamsListing /> */}
     </Shell>
   );
 }

@@ -16,6 +16,7 @@ import PageWrapper from "@components/PageWrapper";
 
 export type PageProps = InferGetStaticPropsType<typeof getStaticProps>;
 export default function Apps({ apps }: PageProps) {
+  return <></>; // customRemove
   const searchParams = useCompatSearchParams();
   const { t, isLocaleReady } = useLocale();
   const category = searchParams?.get("category");

@@ -450,7 +450,7 @@ export const EventSetupTab = (
             </li>
           )}
         </ul>
-        <p className="text-default mt-2 text-sm">
+        <p className="customRemove text-default mt-2 text-sm">
           <Trans i18nKey="cant_find_the_right_video_app_visit_our_app_store">
             Can&apos;t find the right video app? Visit our
             <Link className="cursor-pointer text-blue-500 underline" href="/apps/categories/video">

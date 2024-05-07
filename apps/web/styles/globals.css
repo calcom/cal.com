@@ -471,3 +471,12 @@ select:focus {
 .react-tel-input .flag-dropdown {
   @apply !border-r-default left-0.5 !border-y-0 !border-l-0;
 }
+
+
+/*
+CUSTOM
+*/
+aside div[data-testid="card-container"], .customRemove, nav a[data-test-id="teams"], nav a[data-test-id="apps"], nav a[data-test-id="Routing Forms"]
+, nav a[data-test-id="workflows"], nav a[data-test-id="insights"], nav a[href="/more"] {
+  display: none !important;
+}

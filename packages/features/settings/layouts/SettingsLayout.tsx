@@ -8,7 +8,7 @@ import React, { Suspense, useEffect, useState, useMemo } from "react";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import Shell from "@calcom/features/shell/Shell";
 import { classNames } from "@calcom/lib";
-import { HOSTED_CAL_FEATURES, WEBAPP_URL } from "@calcom/lib/constants";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
@@ -26,8 +26,8 @@ const tabs: VerticalTabItemProps[] = [
     children: [
       { name: "profile", href: "/settings/my-account/profile" },
       { name: "general", href: "/settings/my-account/general" },
-      { name: "calendars", href: "/settings/my-account/calendars" },
-      { name: "conferencing", href: "/settings/my-account/conferencing" },
+      // customRemove { name: "calendars", href: "/settings/my-account/calendars" },
+      // customRemove { name: "conferencing", href: "/settings/my-account/conferencing" },
       { name: "appearance", href: "/settings/my-account/appearance" },
       { name: "out_of_office", href: "/settings/my-account/out-of-office" },
       // TODO
@@ -40,17 +40,18 @@ const tabs: VerticalTabItemProps[] = [
     icon: "key",
     children: [
       { name: "password", href: "/settings/security/password" },
-      { name: "impersonation", href: "/settings/security/impersonation" },
-      { name: "2fa_auth", href: "/settings/security/two-factor-auth" },
+      // customRemove { name: "impersonation", href: "/settings/security/impersonation" },
+      // customRemove { name: "2fa_auth", href: "/settings/security/two-factor-auth" },
     ],
   },
+  /* // customRemove 
   {
     name: "billing",
     href: "/settings/billing",
     icon: "credit-card",
     children: [{ name: "manage_billing", href: "/settings/billing" }],
-  },
-  {
+  },*/
+  /* // customRemove  {
     name: "developer",
     href: "/settings/developer",
     icon: "terminal",
@@ -61,7 +62,7 @@ const tabs: VerticalTabItemProps[] = [
       // TODO: Add profile level for embeds
       // { name: "embeds", href: "/v2/settings/developer/embeds" },
     ],
-  },
+  },*/
   {
     name: "organization",
     href: "/settings/organizations",
@@ -101,12 +102,12 @@ const tabs: VerticalTabItemProps[] = [
       },
     ],
   },
-  {
+  /* // customRemove {
     name: "teams",
     href: "/teams",
     icon: "users",
     children: [],
-  },
+  },*/
   {
     name: "other_teams",
     href: "/settings/organizations/teams/other",
@@ -131,13 +132,15 @@ const tabs: VerticalTabItemProps[] = [
   },
 ];
 
+/*
+// customRemove
 tabs.find((tab) => {
   if (tab.name === "security" && !HOSTED_CAL_FEATURES) {
     tab.children?.push({ name: "sso_configuration", href: "/settings/security/sso" });
     // TODO: Enable dsync for self hosters
     // tab.children?.push({ name: "directory_sync", href: "/settings/security/dsync" });
   }
-});
+});*/
 
 // The following keys are assigned to admin only
 const adminRequiredKeys = ["admin"];

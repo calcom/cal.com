@@ -27,6 +27,7 @@ import { getServerSideProps } from "@lib/insights/getServerSideProps";
 import PageWrapper from "@components/PageWrapper";
 
 export default function InsightsPage() {
+  return <></>; // customRemove
   const { t } = useLocale();
   const { data: user } = trpc.viewer.me.useQuery();
 

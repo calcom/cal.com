@@ -9,12 +9,11 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import type { HorizontalTabItemProps } from "@calcom/ui";
 import {
-  AllApps,
-  AppStoreCategories,
+  // customRemove AllApps,
+  // customRemove AppStoreCategories,
   HorizontalTabs,
-  TextField,
-  PopularAppsSlider,
-  RecentAppsSlider,
+  TextField, // customRemove PopularAppsSlider,
+  // customRemove RecentAppsSlider,
 } from "@calcom/ui";
 import { Icon } from "@calcom/ui";
 
@@ -61,6 +60,7 @@ export default function Apps({
   appStore,
   userAdminTeams,
 }: Omit<inferSSRProps<typeof getServerSideProps>, "trpcState">) {
+  return <></>; // customRemove
   const { t } = useLocale();
   const [searchText, setSearchText] = useState<string | undefined>(undefined);
 
@@ -84,17 +84,21 @@ export default function Apps({
       <div className="flex flex-col gap-y-8">
         {!searchText && (
           <>
+            {/* // customRemove
             <AppStoreCategories categories={categories} />
             <PopularAppsSlider items={appStore} />
             <RecentAppsSlider items={appStore} />
+            */}
           </>
         )}
+        {/* // customRemove
         <AllApps
           apps={appStore}
           searchText={searchText}
           categories={categories.map((category) => category.name)}
           userAdminTeams={userAdminTeams}
         />
+        */}
       </div>
     </AppsLayout>
   );

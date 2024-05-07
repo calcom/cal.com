@@ -129,6 +129,11 @@ export async function getLocationGroupedOptions(
 
   // Translating labels and pushing into array
   for (const category in apps) {
+    // start customRemove
+    if (category == "conferencing") {
+      continue;
+    }
+    // end customRemove
     const tmp = {
       label: t(category),
       options: apps[category].map((l) => ({

@@ -12,6 +12,7 @@ import { getServerSideProps } from "@lib/apps/categories/getServerSideProps";
 import PageWrapper from "@components/PageWrapper";
 
 export default function Apps({ categories }: Omit<inferSSRProps<typeof getServerSideProps>, "trpcState">) {
+  return <></>; // customRemove
   const { t, isLocaleReady } = useLocale();
 
   return (

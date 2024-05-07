@@ -209,7 +209,7 @@ export default function AvailabilityPage() {
         CTA={
           <div className="flex gap-2">
             <ToggleGroup
-              className="hidden md:block"
+              className="customRemove hidden md:block"
               defaultValue={searchParams?.get("type") ?? "mine"}
               onValueChange={(value) => {
                 if (!value) return;

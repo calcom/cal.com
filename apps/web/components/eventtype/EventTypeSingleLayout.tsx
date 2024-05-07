@@ -96,19 +96,19 @@ function getNavigation({
       icon: "sliders-vertical",
       info: `event_advanced_tab_description`,
     },
-    {
+    /* // customRemove {
       name: "apps",
       href: `/event-types/${id}?tabName=apps`,
       icon: "grid-3x3",
       //TODO: Handle proper translation with count handling
       info: `${installedAppsNumber} apps, ${enabledAppsNumber} ${t("active")}`,
-    },
-    {
+    },*/
+    /* // customRemove{
       name: "workflows",
       href: `/event-types/${id}?tabName=workflows`,
       icon: "zap",
       info: `${enabledWorkflowsNumber} ${t("active")}`,
-    },
+    },*/
   ] satisfies VerticalTabItemProps[];
 }
 

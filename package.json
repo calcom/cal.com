@@ -112,6 +112,7 @@
     "@daily-co/daily-js": "^0.59.0",
     "city-timezones": "^1.2.1",
     "eslint": "^8.34.0",
+    "nodemailer-mailgun-transport": "^2.1.5",
     "turbo": "^1.10.1"
   },
   "resolutions": {
