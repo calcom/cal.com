@@ -4,6 +4,7 @@ export { CallToAction } from "./CallToAction";
 export { CallToActionTable } from "./CallToActionTable";
 export { UserFieldsResponses } from "./UserFieldsResponses";
 export { Info } from "./Info";
+export { InfoD } from "./InfoD";
 export { CallToActionIcon } from "./CallToActionIcon";
 export { LocationInfo } from "./LocationInfo";
 export { ManageLink } from "./ManageLink";
