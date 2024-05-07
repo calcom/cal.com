@@ -47,7 +47,7 @@ const getIPAddress = async (url: string): Promise<string> => {
   });
 };
 
-const checkUserIsAdmin = (
+const checkUserIsAdminOrThrow = (
   userRole: LoggedInUserType["role"],
   loggedInUserEmail: string,
   orgOwnerEmail: string
@@ -93,38 +93,19 @@ const checkLoginStatus = async (userId: number) => {
 };
 
 const checkOrgPublishedTeams = (teams: LoggedInUserType["teams"], isAdmin: boolean) => {
+  if (isAdmin) return;
+
   const publishedTeams = teams.filter((team) => !!team.team.slug);
-  if (!isAdmin && publishedTeams.length < ORG_MINIMUM_PUBLISHED_TEAMS_SELF_SERVE) {
+
+  if (publishedTeams.length < ORG_MINIMUM_PUBLISHED_TEAMS_SELF_SERVE) {
     throw new TRPCError({ code: "FORBIDDEN", message: "You need to have atleast two published teams." });
   }
 };
 
-const enrichUserProfile = async (
-  organizationId: number,
-  orgOwner: User
-  // availability: {
-  //   id: number;
-  //   userId: number | null;
-  //   eventTypeId: number | null;
-  //   days: number[];
-  //   startTime: Date;
-  //   endTime: Date;
-  //   date: Date | null;
-  //   scheduleId: number | null;
-  // }[]
-) => {
+const enrichUserProfile = async (organizationId: number, orgOwner: User) => {
   const user = await UserRepository.enrichUserWithItsProfile({
     user: { ...orgOwner, organizationId },
   });
-
-  // await prisma.availability.createMany({
-  //   data: availability.map((schedule) => ({
-  //     days: schedule.days,
-  //     startTime: schedule.startTime,
-  //     endTime: schedule.endTime,
-  //     userId: user.id,
-  //   })),
-  // });
 
   return {
     userId: user.id,
@@ -134,8 +115,211 @@ const enrichUserProfile = async (
   };
 };
 
+const createDefaultAvailability = async (
+  availability: {
+    id: number;
+    userId: number | null;
+    eventTypeId: number | null;
+    days: number[];
+    startTime: Date;
+    endTime: Date;
+    date: Date | null;
+    scheduleId: number | null;
+  }[],
+  userId: number
+) => {
+  await prisma.availability.createMany({
+    data: availability.map((schedule) => ({
+      days: schedule.days,
+      startTime: schedule.startTime,
+      endTime: schedule.endTime,
+      userId,
+    })),
+  });
+};
+
+const isOrgSlugTaken = async (orgSlug: string) => {
+  const hasAnOrgWithSameSlug = await prisma.team.findFirst({
+    where: {
+      slug: orgSlug,
+      parentId: null,
+      isOrganization: true,
+    },
+  });
+
+  // Allow creating an organization with same requestedSlug as a non-org Team's slug
+  // It is needed so that later we can migrate the non-org Team(with the conflicting slug) to the newly created org
+  // Publishing the organization would fail if the team with the same slug is not migrated first
+
+  if (hasAnOrgWithSameSlug || RESERVED_SUBDOMAINS.includes(orgSlug))
+    throw new TRPCError({ code: "BAD_REQUEST", message: "organization_url_taken" });
+};
+
+const configureOrg = async (
+  orgOwnerEmail: string,
+  slug: NonNullable<Team["slug"]>,
+  locale: string,
+  language?: string
+) => {
+  const isOrganizationConfigured = await createDomain(slug);
+  const loggedInUserTranslation = await getTranslation(locale, "common");
+  const inputLanguageTranslation = await getTranslation(language ?? "en", "common");
+
+  // this I think is only for orgs
+  if (!isOrganizationConfigured) {
+    // Otherwise, we proceed to send an administrative email to admins regarding
+    // the need to configure DNS registry to support the newly created org
+    const instanceAdmins = await prisma.user.findMany({
+      where: { role: UserPermissionRole.ADMIN },
+      select: { email: true },
+    });
+    if (instanceAdmins.length) {
+      await sendAdminOrganizationNotification({
+        instanceAdmins,
+        orgSlug: slug,
+        ownerEmail: orgOwnerEmail,
+        webappIPAddress: await getIPAddress(
+          WEBAPP_URL.replace("https://", "")?.replace("http://", "").replace(/(:.*)/, "")
+        ),
+        t: loggedInUserTranslation,
+      });
+    } else {
+      console.warn("Organization created: subdomain not configured and couldn't notify adminnistrators");
+    }
+  }
+};
+
+const sendEmailAndEnrichProfile = async (isOrgOwner: boolean) => {
+  await sendOrganizationCreationEmail({
+    language: inputLanguageTranslation,
+    from: ctx.user.name ?? `${organization.name}'s admin`,
+    to: orgOwnerEmail,
+    ownerNewUsername: ownerProfile.username,
+    ownerOldUsername: nonOrgUsernameForOwner,
+    orgDomain: getOrgFullOrigin(slug, { protocol: false }),
+    orgName: organization.name,
+    prevLink: `${getOrgFullOrigin("", { protocol: true })}/${nonOrgUsernameForOwner}`,
+    newLink: `${getOrgFullOrigin(slug, { protocol: true })}/${ownerProfile.username}`,
+  });
+
+  // start function enrichUserProfile here
+  if (isOrgOwner) {
+    await createDefaultAvailability();
+  }
+
+  await enrichUserProfile();
+};
+
+type OrgData = {
+  name: string;
+  slug: string;
+  isOrganizationConfigured: boolean;
+  isOrganizationAdminReviewed: boolean;
+  autoAcceptEmail: string;
+  seats: number | null;
+  pricePerSeat: number | null;
+  isPlatform: boolean;
+};
+
+const persistOrganization = async (orgData: OrgData, orgOwnerEmail: string) => {
+  const orgOwner = await prisma.user.findUnique({
+    where: {
+      email: orgOwnerEmail,
+    },
+  });
+
+  if (!orgOwner) {
+    // do stuff for not org owner
+    const data = await OrganizationRepository.createWithNonExistentOwner({
+      orgData,
+      owner: {
+        email: orgOwnerEmail,
+      },
+    });
+
+    orgOwner = data.orgOwner;
+
+    const { organization, ownerProfile } = data;
+
+    const translation = await getTranslation(input.language ?? "en", "common");
+
+    await sendEmailVerification({
+      email: orgOwnerEmail,
+      language: ctx.user.locale,
+      username: ownerProfile.username || "",
+    });
+
+    await sendEmailAndEnrichProfile(false);
+  } else {
+    // do stuff for org owner
+    // If we are making the loggedIn user the owner of the organization and he is already a part of an organization, we don't allow it because multi-org is not supported yet
+    const isLoggedInUserOrgOwner = orgOwner.id === loggedInUser.id;
+    if (ctx.user.profile.organizationId && isLoggedInUserOrgOwner) {
+      throw new TRPCError({ code: "FORBIDDEN", message: "User is part of an organization already" });
+    }
+
+    const nonOrgUsernameForOwner = orgOwner.username || "";
+    const { organization, ownerProfile } = await OrganizationRepository.createWithExistingUserAsOwner({
+      orgData,
+      owner: {
+        id: orgOwner.id,
+        email: orgOwnerEmail,
+        nonOrgUsername: nonOrgUsernameForOwner,
+      },
+    });
+
+    // this will be standalone line
+    if (!organization.id) throw Error("User not created");
+
+    // this repeats for both if else cases
+    await sendEmailAndEnrichProfile(true);
+  }
+};
+
+const checkOrgOwnerCreationRequirements = async () => {
+  // check for admin
+  const isAdmin = checkUserIsAdminOrThrow();
+
+  // check for published team
+  checkOrgPublishedTeams();
+
+  // check for url is taken or not
+  await isOrgSlugTaken();
+
+  return isAdmin;
+};
+
+const createOrgUser = async () => {
+  const loggedInUser = await checkLoginStatus();
+
+  const isAdmin = await checkOrgOwnerCreationRequirements();
+
+  // this is also included for createPlatformOrg fn
+  const availability = getAvailabilityFromSchedule(DEFAULT_SCHEDULE);
+
+  // this is also included for createPlatformOrg fn
+  await configureOrg();
+
+  // this is also included for createPlatformOrg fn
+  await persistOrganization();
+};
+
+const createPlatformUser = async () => {
+  const loggedInUser = await checkLoginStatus();
+
+  // this is also included for createPlatformOrg fn
+  const availability = getAvailabilityFromSchedule(DEFAULT_SCHEDULE);
+
+  // this is also included for createPlatformOrg fn
+  await configureOrg();
+
+  // this is also included for createPlatformOrg fn
+  await persistOrganization();
+};
+
 export const createHandler = async ({ input, ctx }: CreateOptions) => {
   const { slug, name, orgOwnerEmail, seats, pricePerSeat, isPlatform } = input;
+  // this is done under checkLoginStatus fn for create org
   const loggedInUser = await prisma.user.findUnique({
     where: {
       id: ctx.user.id,
@@ -156,7 +340,9 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
     },
   });
   if (!loggedInUser) throw new TRPCError({ code: "UNAUTHORIZED", message: "You are not authorized." });
+  // this is done under checkLoginStatus fn for create org
 
+  // this is done under checkUserIsAdminOrThrow fn for create org
   // start function checkUserIsAdmin from here
   const IS_USER_ADMIN = loggedInUser.role === UserPermissionRole.ADMIN;
 
@@ -171,9 +357,11 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
     });
   }
   // end function checkUserIsAdmin from here
+  // this is done under checkUserIsAdminOrThrow fn for create org
 
   // split between two functions
 
+  // this is done - checkOrgPublishedTeams fn name
   // start function checkOrgPublishedTeams from here
   const publishedTeams = loggedInUser.teams.filter((team) => !!team.team.slug);
 
@@ -181,13 +369,9 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
     throw new TRPCError({ code: "FORBIDDEN", message: "You need to have minimum published teams." });
   }
   // end function checkOrgPublishedTeams from here
+  // this is done - checkOrgPublishedTeams fn name
 
-  let orgOwner = await prisma.user.findUnique({
-    where: {
-      email: orgOwnerEmail,
-    },
-  });
-
+  // start function check if org url has been taken or not
   const hasAnOrgWithSameSlug = await prisma.team.findFirst({
     where: {
       slug: slug,
@@ -202,15 +386,18 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
 
   if (hasAnOrgWithSameSlug || RESERVED_SUBDOMAINS.includes(slug))
     throw new TRPCError({ code: "BAD_REQUEST", message: "organization_url_taken" });
+  // end function check if org url has been taken or not
 
+  // this is also standalone
   const availability = getAvailabilityFromSchedule(DEFAULT_SCHEDULE);
 
+  // isOrganizationConfigured is only for orgs, for plattform this is true
+  // start here configureOrg fn
   const isOrganizationConfigured = isPlatform ? true : await createDomain(slug);
   const loggedInUserTranslation = await getTranslation(ctx.user.locale, "common");
   const inputLanguageTranslation = await getTranslation(input.language ?? "en", "common");
 
   // this I think is only for orgs
-  // start here isOrgConfigured fn
   if (!isOrganizationConfigured) {
     // Otherwise, we proceed to send an administrative email to admins regarding
     // the need to configure DNS registry to support the newly created org
@@ -234,6 +421,7 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
   }
   // end here
 
+  // maybe these two are also not standalone
   const autoAcceptEmail = orgOwnerEmail.split("@")[1];
 
   const orgData = {
@@ -246,6 +434,14 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
     pricePerSeat: pricePerSeat ?? null,
     isPlatform,
   };
+
+  // this is standalone
+  // maybe this can go under below one
+  let orgOwner = await prisma.user.findUnique({
+    where: {
+      email: orgOwnerEmail,
+    },
+  });
 
   // Create a new user and invite them as the owner of the organization
   // new function will have to be created that checks if there is org owner or not
