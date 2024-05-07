@@ -155,12 +155,19 @@ export function doesAppSupportTeamInstall({
   if (isPaid) {
     return false;
   }
-  return !appCategories.some((category) => category === "calendar");
+  return !appCategories.some(
+    (category) =>
+      category === "calendar" ||
+      (defaultVideoAppCategories.includes(category as AppCategories) && !concurrentMeetings)
+  );
 }
 
+export function isConfrencing(appCategories: string[]) {
+  return appCategories.some((category) => category === "conferencing" || category === "video");
+}
 export const defaultVideoAppCategories: AppCategories[] = [
-  "conferencing",
   "messaging",
+  "conferencing",
   // Legacy name for conferencing
   "video",
 ];

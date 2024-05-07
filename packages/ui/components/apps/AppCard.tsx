@@ -1,17 +1,19 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
+import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import { InstallAppButton } from "@calcom/app-store/components";
-import { doesAppSupportTeamInstall } from "@calcom/app-store/utils";
+import { doesAppSupportTeamInstall, isConfrencing } from "@calcom/app-store/utils";
 import type { UserAdminTeams } from "@calcom/features/ee/teams/lib/getUserAdminTeams";
 import { AppOnboardingSteps } from "@calcom/lib/apps/appOnboardingSteps";
 import { getAppOnboardingUrl } from "@calcom/lib/apps/getAppOnboardingUrl";
 import classNames from "@calcom/lib/classNames";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AppFrontendPayload as App } from "@calcom/types/App";
 import type { CredentialFrontendPayload as Credential } from "@calcom/types/Credential";
 import type { ButtonProps } from "@calcom/ui";
-import { Badge } from "@calcom/ui";
+import { Badge, showToast } from "@calcom/ui";
 
 import { Button } from "../button";
 
@@ -24,6 +26,7 @@ interface AppCardProps {
 
 export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCardProps) {
   const { t } = useLocale();
+  const router = useRouter();
   const allowedMultipleInstalls = app.categories && app.categories.indexOf("calendar") > -1;
   const appAdded = (credentials && credentials.length) || 0;
   const enabledOnTeams = doesAppSupportTeamInstall({
@@ -34,11 +37,58 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
 
   const appInstalled = enabledOnTeams && userAdminTeams ? userAdminTeams.length < appAdded : appAdded > 0;
 
+  const mutation = useAddAppMutation(null);
+
   const [searchTextIndex, setSearchTextIndex] = useState<number | undefined>(undefined);
 
   useEffect(() => {
     setSearchTextIndex(searchText ? app.name.toLowerCase().indexOf(searchText.toLowerCase()) : undefined);
   }, [app.name, searchText]);
+
+  const handleAppInstall = () => {
+    if (isConfrencing(app.categories)) {
+      mutation.mutate(
+        {
+          isOmniInstall: true,
+          type: app.type,
+          variant: app.variant,
+          slug: app.slug,
+          returnTo:
+            WEBAPP_URL +
+            getAppOnboardingUrl({
+              slug: app.slug,
+              step: AppOnboardingSteps.EVENT_TYPES_STEP,
+            }),
+        },
+        {
+          onSuccess: (data) => {
+            if (data?.setupPending) return;
+            // for non-oAuth apps
+            router.push(
+              getAppOnboardingUrl({
+                slug: app.slug,
+                step: AppOnboardingSteps.EVENT_TYPES_STEP,
+              })
+            );
+            showToast(t("app_successfully_installed"), "success");
+          },
+          onError: (error) => {
+            if (error instanceof Error) showToast(error.message || t("app_could_not_be_installed"), "error");
+          },
+        }
+      );
+    } else if (
+      !doesAppSupportTeamInstall({
+        appCategories: app.categories,
+        concurrentMeetings: app.concurrentMeetings,
+        isPaid: !!app.paid,
+      })
+    ) {
+      mutation.mutate({ type: app.type });
+    } else {
+      router.push(getAppOnboardingUrl({ slug: app.slug, step: AppOnboardingSteps.ACCOUNTS_STEP }));
+    }
+  };
 
   return (
     <div className="border-subtle relative flex h-64 flex-col rounded-md border p-5">
@@ -101,19 +151,13 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
                   if (useDefaultComponent) {
                     props = {
                       ...props,
+                      onClick: () => {
+                        handleAppInstall();
+                      },
+                      loading: mutation.isPending,
                     };
                   }
-                  return (
-                    <InstallAppButtonChild
-                      userAdminTeams={userAdminTeams}
-                      {...props}
-                      addAppMutationInput={{ type: app.type, variant: app.variant, slug: app.slug }}
-                      appCategories={app.categories}
-                      concurrentMeetings={app.concurrentMeetings}
-                      paid={app.paid}
-                      dirName={app.dirName}
-                    />
-                  );
+                  return <InstallAppButtonChild paid={app.paid} {...props} />;
                 }}
               />
             )
@@ -129,19 +173,13 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
                     props = {
                       ...props,
                       disabled: !!props.disabled,
+                      onClick: () => {
+                        handleAppInstall();
+                      },
+                      loading: mutation.isPending,
                     };
                   }
-                  return (
-                    <InstallAppButtonChild
-                      userAdminTeams={userAdminTeams}
-                      addAppMutationInput={{ type: app.type, variant: app.variant, slug: app.slug }}
-                      appCategories={app.categories}
-                      concurrentMeetings={app.concurrentMeetings}
-                      paid={app.paid}
-                      dirName={app.dirName}
-                      {...props}
-                    />
-                  );
+                  return <InstallAppButtonChild paid={app.paid} {...props} />;
                 }}
               />
             )}
@@ -162,24 +200,12 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
 }
 
 const InstallAppButtonChild = ({
-  userAdminTeams,
-  addAppMutationInput,
-  appCategories,
-  concurrentMeetings,
   paid,
   ...props
 }: {
-  userAdminTeams?: UserAdminTeams;
-  addAppMutationInput: { type: App["type"]; variant: string; slug: string };
-  appCategories: string[];
-  concurrentMeetings?: boolean;
-  dirName: string | undefined;
   paid: App["paid"];
 } & ButtonProps) => {
   const { t } = useLocale();
-  const router = useRouter();
-  const [loading, setLoading] = useState(false);
-
   // Paid apps don't support team installs at the moment
   // Also, cal.ai(the only paid app at the moment) doesn't support team install either
   if (paid) {
@@ -195,36 +221,13 @@ const InstallAppButtonChild = ({
     );
   }
 
-  if (
-    !userAdminTeams?.length ||
-    !doesAppSupportTeamInstall({ appCategories, concurrentMeetings, isPaid: !!paid })
-  ) {
-    return (
-      <Button
-        color="secondary"
-        className="[@media(max-width:260px)]:w-full [@media(max-width:260px)]:justify-center"
-        StartIcon="plus"
-        data-testid="install-app-button"
-        {...props}>
-        {t("install")}
-      </Button>
-    );
-  }
-
   return (
     <Button
       color="secondary"
       className="[@media(max-width:260px)]:w-full [@media(max-width:260px)]:justify-center"
       StartIcon="plus"
       data-testid="install-app-button"
-      loading={loading}
       {...props}
-      onClick={() => {
-        setLoading(true);
-        router.push(
-          getAppOnboardingUrl({ slug: addAppMutationInput.slug, step: AppOnboardingSteps.ACCOUNTS_STEP })
-        );
-      }}
       size="base">
       {t("install")}
     </Button>
