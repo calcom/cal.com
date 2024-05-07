@@ -148,21 +148,21 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
   });
 
   // delete scheduled jobs of previous booking
-  const WebhookWorkflowPromises = [];
-  WebhookWorkflowPromises.push(deleteWebhookScheduledTriggers({ booking: bookingToReschedule }));
+  const webhookWorkflowPromises = [];
+  webhookWorkflowPromises.push(deleteWebhookScheduledTriggers({ booking: bookingToReschedule }));
 
   //cancel workflow reminders of previous booking
   for (const reminder of bookingToReschedule.workflowReminders) {
     if (reminder.method === WorkflowMethods.EMAIL) {
-      WebhookWorkflowPromises.push(deleteScheduledEmailReminder(reminder.id, reminder.referenceId));
+      webhookWorkflowPromises.push(deleteScheduledEmailReminder(reminder.id, reminder.referenceId));
     } else if (reminder.method === WorkflowMethods.SMS) {
-      WebhookWorkflowPromises.push(deleteScheduledSMSReminder(reminder.id, reminder.referenceId));
+      webhookWorkflowPromises.push(deleteScheduledSMSReminder(reminder.id, reminder.referenceId));
     } else if (reminder.method === WorkflowMethods.WHATSAPP) {
-      WebhookWorkflowPromises.push(deleteScheduledWhatsappReminder(reminder.id, reminder.referenceId));
+      webhookWorkflowPromises.push(deleteScheduledWhatsappReminder(reminder.id, reminder.referenceId));
     }
   }
 
-  Promise.all(WebhookWorkflowPromises).catch((error) => {
+  Promise.all(webhookWorkflowPromises).catch((error) => {
     log.error("Error while scheduling or canceling webhook triggers", JSON.stringify({ error }));
   });
 

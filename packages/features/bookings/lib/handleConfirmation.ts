@@ -321,26 +321,34 @@ export async function handleConfirmation(args: {
       teamId: booking.eventType?.teamId,
     });
 
+    const scheduleTriggerPromises: Promise<unknown>[] = [];
+
     subscribersMeetingStarted.forEach((subscriber) => {
       updatedBookings.forEach((booking) => {
-        scheduleTrigger({
-          booking,
-          subscriberUrl: subscriber.subscriberUrl,
-          subscriber,
-          triggerEvent: WebhookTriggerEvents.MEETING_STARTED,
-        });
+        scheduleTriggerPromises.push(
+          scheduleTrigger({
+            booking,
+            subscriberUrl: subscriber.subscriberUrl,
+            subscriber,
+            triggerEvent: WebhookTriggerEvents.MEETING_STARTED,
+          })
+        );
       });
     });
     subscribersMeetingEnded.forEach((subscriber) => {
       updatedBookings.forEach((booking) => {
-        scheduleTrigger({
-          booking,
-          subscriberUrl: subscriber.subscriberUrl,
-          subscriber,
-          triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
-        });
+        scheduleTriggerPromises.push(
+          scheduleTrigger({
+            booking,
+            subscriberUrl: subscriber.subscriberUrl,
+            subscriber,
+            triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
+          })
+        );
       });
     });
+
+    Promise.all(scheduleTriggerPromises);
 
     const eventTypeInfo: EventTypeInfo = {
       eventTitle: booking.eventType?.title,

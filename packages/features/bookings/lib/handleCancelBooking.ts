@@ -443,7 +443,7 @@ async function handler(req: CustomRequest) {
   const workflowReminderPromises = [];
 
   for (const booking of updatedBookings) {
-    // delete scheduled jobs of cancelled bookings
+    // delete scheduled webhook triggers of cancelled bookings
     webhookTriggerPromises.push(deleteWebhookScheduledTriggers({ booking }));
 
     //Workflows - cancel all reminders for cancelled bookings

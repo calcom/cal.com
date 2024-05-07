@@ -306,7 +306,6 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
 
   // if zapier get disconnected, delete zapier apiKey, delete zapier webhooks and cancel all scheduled jobs from zapier
   if (credential.app?.slug === "zapier") {
-    //I need to see if that works
     await prisma.apiKey.deleteMany({
       where: {
         userId: ctx.user.id,

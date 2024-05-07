@@ -163,7 +163,7 @@ export async function listBookings(
         OR: [{ teamId }, { parent: { teamId } }],
       };
     } else {
-      where.eventType = { userId, teamId: null };
+      where.eventType = { userId };
     }
 
     const bookings = await prisma.booking.findMany({
@@ -293,18 +293,17 @@ export async function deleteWebhookScheduledTriggers({
   teamId?: number;
 }) {
   try {
-    if (appId) {
+    if (appId && (userId || teamId)) {
+      const where: Prisma.BookingWhereInput = {};
+      if (userId) {
+        where.eventType = { userId };
+      } else {
+        where.eventType = { teamId };
+      }
       await prisma.webhookScheduledTriggers.deleteMany({
         where: {
           appId: appId,
-          booking: {
-            eventType: {
-              OR: [
-                { userId: userId }, //does that work for managed event types?
-                { teamId: teamId },
-              ],
-            },
-          },
+          booking: where,
         },
       });
     } else {
