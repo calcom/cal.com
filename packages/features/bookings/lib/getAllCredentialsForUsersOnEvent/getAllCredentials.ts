@@ -14,7 +14,7 @@ export const getAllCredentials = async (
   user: { id: number; username: string | null; credentials: CredentialPayload[] },
   eventType: {
     userId?: number | null;
-    team?: { id: number | null } | null;
+    team?: { id: number | null; parentId: number | null } | null;
     parentId?: number | null;
     metadata: z.infer<typeof EventTypeMetaDataSchema>;
   } | null
@@ -106,7 +106,7 @@ export const getAllCredentials = async (
       if (
         credential.userId === eventType?.userId ||
         credential.teamId === eventType?.team?.id ||
-        credential.teamId === eventType?.parentId
+        credential.teamId === eventType?.team.parentId
       ) {
         // If the CRM app doesn't exist on the event type metadata, assume it's an older CRM credential
         return credential;

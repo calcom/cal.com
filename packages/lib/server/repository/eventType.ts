@@ -202,7 +202,9 @@ export class EventTypeRepository {
             teamId,
           },
           {
-            parentId: teamId,
+            parent: {
+              teamId,
+            },
           },
         ],
       },
