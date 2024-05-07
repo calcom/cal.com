@@ -763,6 +763,15 @@ export function getGoogleCalendarCredential() {
   });
 }
 
+export function getGoogleMeetCredential() {
+  return getMockedCredential({
+    metadataLookupKey: "googlevideo",
+    key: {
+      scope: "",
+    },
+  });
+}
+
 export function getAppleCalendarCredential() {
   return getMockedCredential({
     metadataLookupKey: "applecalendar",
@@ -881,6 +890,17 @@ export const TestData = {
   apps: {
     "google-calendar": {
       ...appStoreMetadata.googlecalendar,
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      //@ts-ignore
+      keys: {
+        expiry_date: Infinity,
+        client_id: "client_id",
+        client_secret: "client_secret",
+        redirect_uris: ["http://localhost:3000/auth/callback"],
+      },
+    },
+    "google-meet": {
+      ...appStoreMetadata.googlevideo,
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       //@ts-ignore
       keys: {
@@ -1084,6 +1104,12 @@ export function mockNoTranslations() {
   });
 }
 
+export const enum BookingLocations {
+  CalVideo = "integrations:daily",
+  ZoomVideo = "integrations:zoom",
+  GoogleMeet = "integrations:google:meet",
+}
+
 /**
  * @param metadataLookupKey
  * @param calendarData Specify uids and other data to be faked to be returned by createEvent and updateEvent
@@ -1164,6 +1190,7 @@ export function mockCalendar(
               log.silly("mockCalendar.updateEvent", JSON.stringify({ uid, event, externalCalendarId }));
               // eslint-disable-next-line prefer-rest-params
               updateEventCalls.push(rest);
+              const isGoogleMeetLocation = event.location === BookingLocations.GoogleMeet;
               return Promise.resolve({
                 type: app.type,
                 additionalInfo: {},
@@ -1175,6 +1202,9 @@ export function mockCalendar(
                 // Password and URL seems useless for CalendarService, plan to remove them if that's the case
                 password: "MOCK_PASSWORD",
                 url: "https://UNUSED_URL",
+                location: isGoogleMeetLocation ? "https://UNUSED_URL" : undefined,
+                hangoutLink: isGoogleMeetLocation ? "https://UNUSED_URL" : undefined,
+                conferenceData: isGoogleMeetLocation ? event.conferenceData : undefined,
               });
             },
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -1487,19 +1517,16 @@ export function getMockBookingAttendee(
   };
 }
 
-export const enum BookingLocations {
-  CalVideo = "integrations:daily",
-  ZoomVideo = "integrations:zoom",
-}
-
 const getMockAppStatus = ({
   slug,
   failures,
   success,
+  overrideName,
 }: {
   slug: string;
   failures: number;
   success: number;
+  overrideName?: string;
 }) => {
   const foundEntry = Object.entries(appStoreMetadata).find(([, app]) => {
     return app.slug === slug;
@@ -1509,7 +1536,7 @@ const getMockAppStatus = ({
   }
   const foundApp = foundEntry[1];
   return {
-    appName: foundApp.slug,
+    appName: overrideName ?? foundApp.slug,
     type: foundApp.type,
     failures,
     success,
@@ -1520,6 +1547,6 @@ export const getMockFailingAppStatus = ({ slug }: { slug: string }) => {
   return getMockAppStatus({ slug, failures: 1, success: 0 });
 };
 
-export const getMockPassingAppStatus = ({ slug }: { slug: string }) => {
-  return getMockAppStatus({ slug, failures: 0, success: 1 });
+export const getMockPassingAppStatus = ({ slug, overrideName }: { slug: string; overrideName?: string }) => {
+  return getMockAppStatus({ slug, overrideName, failures: 0, success: 1 });
 };

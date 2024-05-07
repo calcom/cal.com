@@ -682,7 +682,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
   loggerWithEventDetails.debug(`Available slots: ${JSON.stringify(computedAvailableSlots)}`);
 
   // We only want to run this on single targeted events and not dynamic
-  if (!computedAvailableSlots.slots && input.usernameList?.length === 1) {
+  if (!Object.keys(computedAvailableSlots).length && input.usernameList?.length === 1) {
     try {
       await handleNotificationWhenNoSlots({
         eventDetails: {

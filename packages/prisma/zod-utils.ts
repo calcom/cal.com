@@ -230,6 +230,7 @@ export const bookingCreateBodySchema = z.object({
   hasHashedBookingLink: z.boolean().optional(),
   hashedLink: z.string().nullish(),
   seatReferenceUid: z.string().optional(),
+  orgSlug: z.string().optional(),
 });
 
 export const requiredCustomInputSchema = z.union([
@@ -625,6 +626,7 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   seatsPerTimeSlot: true,
   seatsShowAttendees: true,
   seatsShowAvailabilityCount: true,
+  forwardParamsSuccessRedirect: true,
   periodType: true,
   hashedLink: true,
   webhooks: true,
