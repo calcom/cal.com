@@ -9,7 +9,7 @@ import { z } from "zod";
 
 import Shell from "@calcom/features/shell/Shell";
 import { classNames } from "@calcom/lib";
-import { SENDER_ID } from "@calcom/lib/constants";
+import { CALCOM_ENV, SENDER_ID } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import { HttpError } from "@calcom/lib/http-error";
@@ -47,6 +47,8 @@ export function onlyLettersNumbersSpaces(str: string) {
   }
   return false;
 }
+
+const IS_DEV = CALCOM_ENV === "development";
 
 const formSchema = z.object({
   name: z.string(),
@@ -277,7 +279,7 @@ function WorkflowPage() {
         }
         hideHeadingOnMobile
         heading={
-          (process.env.NODE_ENV === "development" || session.data?.hasValidLicense) &&
+          (IS_DEV || session.data?.hasValidLicense) &&
           isAllDataLoaded && (
             <div className="flex">
               <div className={classNames(workflow && !workflow.name ? "text-muted" : "")}>
