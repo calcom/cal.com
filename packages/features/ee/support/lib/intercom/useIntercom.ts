@@ -48,6 +48,9 @@ export const useIntercom = () => {
         user_name: data?.username,
         link: `${WEBSITE_URL}/${data?.username}`,
         admin_link: `${WEBAPP_URL}/settings/admin/users/${data?.id}/edit`,
+        impersonate_user: `${WEBAPP_URL}/settings/admin/impersonation?username=${
+          data?.email ?? data?.username
+        }`,
         identity_provider: data?.identityProvider,
         timezone: data?.timeZone,
         locale: data?.locale,
@@ -88,6 +91,9 @@ export const useIntercom = () => {
         user_name: data?.username,
         link: `${WEBSITE_URL}/${data?.username}`,
         admin_link: `${WEBAPP_URL}/settings/admin/users/${data?.id}/edit`,
+        impersonate_user: `${WEBAPP_URL}/settings/admin/impersonation?username=${
+          data?.email ?? data?.username
+        }`,
         identity_provider: data?.identityProvider,
         timezone: data?.timeZone,
         locale: data?.locale,
