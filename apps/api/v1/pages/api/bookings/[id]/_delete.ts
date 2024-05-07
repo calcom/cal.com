@@ -70,9 +70,33 @@ async function handler(req: NextApiRequest) {
       ...req.query,
       allRemainingBookings: req.query.allRemainingBookings === "true",
     });
+  await checkPermissions(req, data);
   // Normalizing for universal handler
   req.body = { id, allRemainingBookings, cancellationReason };
   return await handleCancelBooking(req);
+}
+
+async function checkPermissions(req: NextApiRequest, body: z.infer<typeof schemaBookingEditBodyParams>) {
+  const { isSystemWideAdmin, isOrganizationOwnerOrAdmin } = req;
+  if (body.userId && !isSystemWideAdmin && !isOrganizationOwnerOrAdmin) {
+    // Organizer has to be a cal user and we can't allow a booking to be transfered to some other cal user's name
+    throw new HttpError({
+      statusCode: 403,
+      message: "Only admin can cancel a booking for the organizer",
+    });
+  }
+  if (isOrganizationOwnerOrAdmin) {
+    const accessibleUsersIds = await getAccessibleUsers({
+      adminUserId: userId,
+      memberUserIds: requestedUserIds,
+    });
+    if (accessibleUsersIds.length === 0) {
+      throw new HttpError({
+        statusCode: 403,
+        message: "Only admin can cancel a booking for the organizer",
+      });
+    }
+  }
 }
 
 export default defaultResponder(handler);

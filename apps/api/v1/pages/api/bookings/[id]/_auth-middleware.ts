@@ -3,15 +3,32 @@ import type { NextApiRequest } from "next";
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
 
+import { getAccessibleUsers } from "~/lib/utils/retrieveScopedAccessibleUsers";
 import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransformParseInt";
 
 async function authMiddleware(req: NextApiRequest) {
-  const { userId, isSystemWideAdmin, query } = req;
+  const { userId, isSystemWideAdmin, isOrganizationOwnerOrAdmin, query } = req;
   if (isSystemWideAdmin) {
     return;
   }
 
+  // Extract the id and fetch the user associated with the id. Then, check if user belongs to the org
   const { id } = schemaQueryIdParseInt.parse(query);
+  if (isOrganizationOwnerOrAdmin) {
+    const booking = await prisma.booking.findUnique({
+      where: { id },
+      select: { userId: true },
+    });
+    if (booking) {
+      const bookingUserId = booking.userId;
+      const accessibleUsersIds = await getAccessibleUsers({
+        adminUserId: userId,
+        memberUserIds: [bookingUserId],
+      });
+      if (accessibleUsersIds > 0) return;
+    }
+  }
+
   const userWithBookingsAndTeamIds = await prisma.user.findUnique({
     where: { id: userId },
     include: {

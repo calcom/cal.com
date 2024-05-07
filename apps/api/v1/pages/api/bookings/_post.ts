@@ -4,6 +4,8 @@ import getBookingDataSchemaForApi from "@calcom/features/bookings/lib/getBooking
 import handleNewBooking from "@calcom/features/bookings/lib/handleNewBooking";
 import { defaultResponder } from "@calcom/lib/server";
 
+import { getAccessibleUsers } from "~/lib/utils/retrieveScopedAccessibleUsers";
+
 /**
  * @swagger
  * /bookings:
