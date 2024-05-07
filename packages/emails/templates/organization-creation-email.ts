@@ -10,10 +10,10 @@ export type OrganizationCreation = {
   from: string;
   to: string;
   ownerNewUsername: string;
-  ownerOldUsername: string;
+  ownerOldUsername: string | null;
   orgDomain: string;
   orgName: string;
-  prevLink: string;
+  prevLink: string | null;
   newLink: string;
 };
 

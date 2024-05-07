@@ -629,10 +629,12 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   {isSenderIsNeeded ? (
                     <>
                       <div className="pt-4">
-                        <div className="flex">
+                        <div className="flex items-center">
                           <Label>{t("sender_id")}</Label>
                           <Tooltip content={t("sender_id_info")}>
-                            <Icon name="info" className="ml-2 mr-1 mt-0.5 h-4 w-4 text-gray-500" />
+                            <span>
+                              <Icon name="info" className="mb-2 ml-2 mr-1 mt-0.5 h-4 w-4 text-gray-500" />
+                            </span>
                           </Tooltip>
                         </div>
                         <Input
