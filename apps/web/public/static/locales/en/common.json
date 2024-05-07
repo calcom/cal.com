@@ -2314,6 +2314,7 @@
   "redirect_to": "Redirect to",
   "having_trouble_finding_time": "Having trouble finding a time?",
   "show_more": "Show more",
+  "forward_params_redirect": "Forward parameters such as ?email=...&name=.... and more",
   "assignment_description": "Schedule meetings when everyone is available or rotate through members on your team",
   "lowest": "lowest",
   "low": "low",
