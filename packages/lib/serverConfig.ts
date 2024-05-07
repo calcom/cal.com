@@ -17,7 +17,6 @@ function detectTransport(): SendmailTransport.Options | SMTPConnection.Options |
         domain: process.env.EMAIL_DOMAIN,
       },
     };
-
     return mg(auth);
   }
   // end customRemove
