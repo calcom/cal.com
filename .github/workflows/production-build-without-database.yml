@@ -1,5 +1,4 @@
-name: Production Build (without database)
-
+name: Production Builds
 on:
   workflow_call:
 
@@ -37,8 +36,8 @@ env:
 
 jobs:
   build:
-    name: Build
-    runs-on: ubuntu-latest
+    name: Web App
+    runs-on: buildjet-4vcpu-ubuntu-2204
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v3
