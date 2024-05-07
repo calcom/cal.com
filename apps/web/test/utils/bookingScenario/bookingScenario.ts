@@ -181,11 +181,12 @@ async function addHostsToDb(eventTypes: InputEventType[]) {
   }
 }
 
-async function addEventTypesToDb(
+export async function addEventTypesToDb(
   eventTypes: (Omit<
     Prisma.EventTypeCreateInput,
     "users" | "worflows" | "destinationCalendar" | "schedule"
   > & {
+    id?: number;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     users?: any[];
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -247,7 +248,7 @@ async function addEventTypesToDb(
   return allEventTypes;
 }
 
-async function addEventTypes(eventTypes: InputEventType[], usersStore: InputUser[]) {
+export async function addEventTypes(eventTypes: InputEventType[], usersStore: InputUser[]) {
   const baseEventType = {
     title: "Base EventType Title",
     slug: "base-event-type-slug",
@@ -465,7 +466,9 @@ async function addWorkflows(workflows: InputWorkflow[]) {
   await addWorkflowsToDb(workflows);
 }
 
-async function addUsersToDb(users: (Prisma.UserCreateInput & { schedules: Prisma.ScheduleCreateInput[] })[]) {
+export async function addUsersToDb(
+  users: (Prisma.UserCreateInput & { schedules: Prisma.ScheduleCreateInput[]; id?: number })[]
+) {
   log.silly("TestData: Creating Users", JSON.stringify(users));
   await prismock.user.createMany({
     data: users,
@@ -491,7 +494,7 @@ async function addUsersToDb(users: (Prisma.UserCreateInput & { schedules: Prisma
   );
 }
 
-async function addTeamsToDb(teams: NonNullable<InputUser["teams"]>[number]["team"][]) {
+export async function addTeamsToDb(teams: NonNullable<InputUser["teams"]>[number]["team"][]) {
   log.silly("TestData: Creating Teams", JSON.stringify(teams));
   await prismock.team.createMany({
     data: teams,
@@ -638,6 +641,21 @@ export async function createOrganization(orgData: {
     },
   });
   return org;
+}
+
+export async function createCredentials(
+  credentialData: {
+    type: string;
+    key: any;
+    id?: number;
+    userId?: number | null;
+    teamId?: number | null;
+  }[]
+) {
+  const credentials = await prismock.credential.createMany({
+    data: credentialData,
+  });
+  return credentials;
 }
 
 // async function addPaymentsToDb(payments: Prisma.PaymentCreateInput[]) {
