@@ -13,10 +13,18 @@ jobs:
       CRON_API_KEY: ${{ secrets.CRON_API_KEY }}
     runs-on: ubuntu-latest
     steps:
-      - name: cURL request
+      - name: Booking cURL request
         if: ${{ env.APP_URL && env.CRON_API_KEY }}
         run: |
           curl ${{ secrets.APP_URL }}/api/cron/bookingReminder \
+            -X POST \
+            -H 'content-type: application/json' \
+            -H 'authorization: ${{ secrets.CRON_API_KEY }}' \
+            -sSf
+      - name: App Meta cURL request
+        if: ${{ env.APP_URL && env.CRON_API_KEY }}
+        run: |
+          curl ${{ secrets.APP_URL }}/api/cron/syncAppMeta \
             -X POST \
             -H 'content-type: application/json' \
             -H 'authorization: ${{ secrets.CRON_API_KEY }}' \
