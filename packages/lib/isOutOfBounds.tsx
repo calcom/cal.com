@@ -18,21 +18,22 @@ function guardAgainstBookingInThePast(date: Date) {
 }
 
 function isOutOfBounds(
-  time: dayjs.ConfigType,
+  dateString: string,
   {
     periodType,
     periodDays,
     periodCountCalendarDays,
     periodStartDate,
     periodEndDate,
-    availableDates,
+    allDatesWithBookabilityStatus,
   }: Pick<
     EventType,
     "periodType" | "periodDays" | "periodCountCalendarDays" | "periodStartDate" | "periodEndDate"
-  > & { availableDates: string[] },
+  > & { allDatesWithBookabilityStatus: Record<string, { isBookable: boolean }> },
   minimumBookingNotice?: number
 ) {
-  const date = dayjs(time);
+  console.log("isOutOfBounds");
+  const date = dayjs(dateString);
   guardAgainstBookingInThePast(date.toDate());
 
   periodDays = periodDays || 0;
@@ -55,10 +56,31 @@ function isOutOfBounds(
     }
 
     case PeriodType.ROLLING_WINDOW: {
-      const periodRollingEndDay = periodCountCalendarDays
-        ? currentDayBeginning.add(periodDays, "days").endOf("day")
-        : currentDayBeginning.businessDaysAdd(periodDays).endOf("day");
+      let currentDate = currentDayBeginning;
+      let bookableDaysCount = 0;
+      let counter = 1;
+      const maxDaysToCheck = 30;
+      let periodRollingEndDay;
+      // Add periodDays to currentDate, skipping non-bookable days.
+      while (bookableDaysCount < periodDays) {
+        const currentDateString = currentDate.format("YYYY-MM-DD");
+        const isBookable = !!allDatesWithBookabilityStatus[currentDateString]?.isBookable;
+        if (isBookable) {
+          bookableDaysCount++;
+          periodRollingEndDay = currentDate;
+        }
 
+        currentDate = periodCountCalendarDays
+          ? currentDate.add(1, "days").endOf("day")
+          : currentDate.businessDaysAdd(1).endOf("day");
+
+        if (counter > maxDaysToCheck) {
+          break;
+        }
+        counter++;
+      }
+
+      console.log({ periodRollingEndDay: periodRollingEndDay.format("YYYY-MM-DD") });
       return date.endOf("day").isAfter(periodRollingEndDay);
     }
 

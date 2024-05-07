@@ -5,7 +5,7 @@ import { v4 as uuid } from "uuid";
 import { getAggregatedAvailability } from "@calcom/core/getAggregatedAvailability";
 import { getBusyTimesForLimitChecks } from "@calcom/core/getBusyTimes";
 import type { CurrentSeats, IFromUser, IToUser } from "@calcom/core/getUserAvailability";
-import { getUserAvailability } from "@calcom/core/getUserAvailability";
+import { getUsersAvailability } from "@calcom/core/getUserAvailability";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { getSlugOrRequestedSlug, orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
@@ -30,6 +30,7 @@ import { TRPCError } from "@trpc/server";
 
 import type { GetScheduleOptions } from "./getSchedule.handler";
 import type { TGetScheduleInputSchema } from "./getSchedule.schema";
+import { handleNotificationWhenNoSlots } from "./handleNotificationWhenNoSlots";
 
 export const checkIfIsAvailable = ({
   time,
@@ -456,44 +457,44 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
     });
   }
 
+  const users = usersWithCredentials.map((currentUser) => {
+    return {
+      ...currentUser,
+      currentBookings: currentBookingsAllUsers
+        .filter((b) => b.userId === currentUser.id || b.attendees?.some((a) => a.email === currentUser.email))
+        .map((bookings) => {
+          const { attendees: _attendees, ...bookingWithoutAttendees } = bookings;
+          return bookingWithoutAttendees;
+        }),
+    };
+  });
+
   /* We get all users working hours and busy slots */
-  const allUsersAvailability = await Promise.all(
-    usersWithCredentials.map(async (currentUser) => {
-      const {
-        busy,
-        dateRanges,
-        oooExcludedDateRanges,
-        currentSeats: _currentSeats,
-        timeZone,
-        datesOutOfOffice,
-      } = await getUserAvailability(
-        {
-          userId: currentUser.id,
-          username: currentUser.username || "",
-          dateFrom: startTime.format(),
-          dateTo: endTime.format(),
-          eventTypeId: eventType.id,
-          afterEventBuffer: eventType.afterEventBuffer,
-          beforeEventBuffer: eventType.beforeEventBuffer,
-          duration: input.duration || 0,
-          returnDateOverrides: false,
-        },
-        {
-          user: currentUser,
-          eventType,
-          currentSeats,
-          rescheduleUid: input.rescheduleUid,
-          currentBookings: currentBookingsAllUsers
-            .filter(
-              (b) => b.userId === currentUser.id || b.attendees?.some((a) => a.email === currentUser.email)
-            )
-            .map((bookings) => {
-              const { attendees: _attendees, ...bookingWithoutAttendees } = bookings;
-              return bookingWithoutAttendees;
-            }),
-          busyTimesFromLimitsBookings: busyTimesFromLimitsBookingsAllUsers,
-        }
-      );
+  const allUsersAvailability = (
+    await getUsersAvailability({
+      users,
+      query: {
+        dateFrom: startTime.format(),
+        dateTo: endTime.format(),
+        eventTypeId: eventType.id,
+        afterEventBuffer: eventType.afterEventBuffer,
+        beforeEventBuffer: eventType.beforeEventBuffer,
+        duration: input.duration || 0,
+        returnDateOverrides: false,
+      },
+      initialData: {
+        eventType,
+        currentSeats,
+        rescheduleUid: input.rescheduleUid,
+        busyTimesFromLimitsBookings: busyTimesFromLimitsBookingsAllUsers,
+      },
+    })
+  ).map(
+    (
+      { busy, dateRanges, oooExcludedDateRanges, currentSeats: _currentSeats, timeZone, datesOutOfOffice },
+      index
+    ) => {
+      const currentUser = users[index];
       if (!currentSeats && _currentSeats) currentSeats = _currentSeats;
       return {
         timeZone,
@@ -503,7 +504,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
         user: currentUser,
         datesOutOfOffice,
       };
-    })
+    }
   );
 
   const availabilityCheckProps = {
@@ -513,10 +514,10 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
 
   const isTimeWithinBounds = ({
     time,
-    availableDates,
+    allDatesWithBookabilityStatus,
   }: {
     time: Parameters<typeof isTimeOutOfBounds>[0];
-    availableDates: string[];
+    allDatesWithBookabilityStatus: Record<string, { isBookable: boolean }>;
   }) =>
     !isTimeOutOfBounds(time, {
       periodType: eventType.periodType,
@@ -524,7 +525,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
       periodEndDate: eventType.periodEndDate,
       periodCountCalendarDays: eventType.periodCountCalendarDays,
       periodDays: eventType.periodDays,
-      availableDates,
+      allDatesWithBookabilityStatus,
     });
 
   const getSlotsTime = 0;
@@ -680,9 +681,20 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
   );
 
   const availableDates = Object.keys(slotsMappedToDate);
-  const unavailableDates = getUnavailableDates();
-  const withinBoundsSlotsMappedToDate = Object.entries(slotsMappedToDate).map(([date, slots]) => {
-    slots.filter((slot) => isTimeWithinBounds({ time: slot.time, availableDates }));
+  const allDatesWithBookabilityStatus = getAllDatesWithBookabilityStatus(availableDates);
+  const withinBoundsSlotsMappedToDate: typeof slotsMappedToDate = {};
+
+  console.log({
+    slotsMappedToDate,
+    allDatesWithBookabilityStatus,
+  });
+
+  Object.entries(slotsMappedToDate).forEach(([date, slots]) => {
+    const isDateWithinBound = isTimeWithinBounds({ time: date, allDatesWithBookabilityStatus });
+
+    if (isDateWithinBound) {
+      withinBoundsSlotsMappedToDate[date] = slots;
+    }
   });
 
   loggerWithEventDetails.debug(`getSlots took ${getSlotsTime}ms and executed ${getSlotsCount} times`);
@@ -691,6 +703,25 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
     `checkForAvailability took ${checkForAvailabilityTime}ms and executed ${checkForAvailabilityCount} times`
   );
   loggerWithEventDetails.debug(`Available slots: ${JSON.stringify(withinBoundsSlotsMappedToDate)}`);
+
+  // We only want to run this on single targeted events and not dynamic
+  if (!withinBoundsSlotsMappedToDate.slots && input.usernameList?.length === 1) {
+    try {
+      await handleNotificationWhenNoSlots({
+        eventDetails: {
+          username: input.usernameList?.[0],
+          startTime: startTime,
+          eventSlug: eventType.slug,
+        },
+        orgDetails,
+      });
+    } catch (e) {
+      loggerWithEventDetails.error(
+        `Something has went wrong. Upstash could be down and we have caught the error to not block availability:
+ ${e}`
+      );
+    }
+  }
 
   return {
     slots: withinBoundsSlotsMappedToDate,
@@ -728,17 +759,18 @@ async function getTeamIdFromSlug(
 }
 
 function getAllDatesWithBookabilityStatus(availableDates: string[]) {
-  const firstDate = availableDates[0];
-  const lastDate = availableDates[availableDates.length - 1];
-  const allDates = [
-    {
-      date: firstDate,
-      isBookable: true,
-    },
-  ];
+  const availableDatesSet = new Set(availableDates);
+  const firstDate = dayjs(availableDates[0]);
+  const lastDate = dayjs(availableDates[availableDates.length - 1]);
+  const allDates: Record<string, { isBookable: boolean }> = {};
 
-  const currentDate = firstDate;
-  // while (currentDate. <= lastDate) {
-  //   currentDate =
-  // }
+  let currentDate = firstDate;
+  while (currentDate <= lastDate) {
+    allDates[currentDate.format("YYYY-MM-DD")] = {
+      isBookable: availableDatesSet.has(currentDate.format("YYYY-MM-DD")),
+    };
+
+    currentDate = currentDate.add(1, "day");
+  }
+  return allDates;
 }

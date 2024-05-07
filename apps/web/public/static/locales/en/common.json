@@ -2333,6 +2333,13 @@
   "date": "Date",
   "overlaps_with_existing_schedule": "This overlaps with an existing schedule. Please select a different date.",
 
+  "org_admin_no_slots|subject": "No availability found for {{name}}",
+  "org_admin_no_slots|heading": "No availability found for {{name}}",
+  "org_admin_no_slots|content": "Hello Organization Admins,<br /><br />Please note: It has been brought to our attention that {{username}} has not had any availability when a user has visited {{username}}/{{slug}}<br /><br />There’s a few reasons why this could be happening<br />The user does not have any calendars connected<br />Their schedules attached to this event are not enabled<br /> <br />We recommend checking their availability to resolve this.",
+  "org_admin_no_slots|cta": "Open users availability",
+  "organization_no_slots_notification_switch_title": "Get notifications when your team has no availability",
+  "organization_no_slots_notification_switch_description": "Admins will get email notifications when a user tries to book a team member and is faced with 'No availability'. We trigger this email after two occurrences and remind you every 7 days per user.  ",
+
   "email_team_invite|subject|added_to_org": "{{user}} added you to the organization {{team}} on {{appName}}",
   "email_team_invite|subject|invited_to_org": "{{user}} invited you to join the organization {{team}} on {{appName}}",
   "email_team_invite|subject|added_to_subteam": "{{user}} added you to the team {{team}} of organization {{parentTeamName}} on {{appName}}",
@@ -2423,5 +2430,6 @@
   "lowest_rated_members": "Members with lowest rated meetings",
   "csat_score": "CSAT Score",
   "lockedSMS": "Locked SMS",
+  "signing_up_terms": "By proceeding, you agree to our <1>Terms</1> and <2>Privacy Policy</2>.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
