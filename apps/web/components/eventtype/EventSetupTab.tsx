@@ -623,7 +623,7 @@ export const EventSetupTab = (
               name="locations"
               control={formMethods.control}
               defaultValue={eventType.locations || []}
-              render={() => <Locations />}
+              render={() => <Locations showAppStoreLink={true} {...props} />}
             />
           </div>
         </div>
