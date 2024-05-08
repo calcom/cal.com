@@ -12,14 +12,16 @@ import { getSlugOrRequestedSlug, orgDomainConfig } from "@calcom/ee/organization
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import { parseBookingLimit, parseDurationLimit } from "@calcom/lib";
 import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
+import { getUTCOffsetByTimezone } from "@calcom/lib/date-fns";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
-import isTimeOutOfBounds from "@calcom/lib/isOutOfBounds";
+import { isDateOutOfBounds, calculatePeriodLimits } from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import { performance } from "@calcom/lib/server/perfObserver";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import getSlots from "@calcom/lib/slots";
 import prisma, { availabilityUserSelect } from "@calcom/prisma";
-import { Prisma } from "@calcom/prisma/client";
+import { PeriodType, Prisma } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
@@ -337,6 +339,18 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
     logger.settings.minLevel = 2;
   }
 
+  const isRollingWindowPeriodType = eventType.periodType === PeriodType.ROLLING_WINDOW;
+  const startTimeAsIsoString = input.startTime;
+  const isStartTimeInPast = dayjs(startTimeAsIsoString).isBefore(dayjs().subtract(1, "day").startOf("day"));
+
+  // If startTime is already sent in the past, we don't need to adjust it.
+  // We assume that the client is already sending startTime as per their requirement.
+  // Note: We could optimize it further to go back 1 month in past only for the 2nd month because that is what we are putting a hard limit at.
+  const startTimeAdjustedForRollingWindowComputation =
+    isStartTimeInPast || !isRollingWindowPeriodType
+      ? startTimeAsIsoString
+      : dayjs(startTimeAsIsoString).subtract(1, "month").toISOString();
+
   const loggerWithEventDetails = logger.getSubLogger({
     prefix: ["getAvailableSlots", `${eventType.id}:${input.usernameList}/${input.eventTypeSlug}`],
   });
@@ -353,7 +367,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
     return startTimeMin.isAfter(startTime) ? startTimeMin.tz(timeZone) : startTime;
   };
 
-  const startTime = getStartTime(input.startTime, input.timeZone);
+  const startTime = getStartTime(startTimeAdjustedForRollingWindowComputation, input.timeZone);
   const endTime =
     input.timeZone === "Etc/GMT" ? dayjs.utc(input.endTime) : dayjs(input.endTime).utc().tz(input.timeZone);
 
@@ -512,22 +526,6 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
     currentSeats,
   };
 
-  const isTimeWithinBounds = ({
-    time,
-    allDatesWithBookabilityStatus,
-  }: {
-    time: Parameters<typeof isTimeOutOfBounds>[0];
-    allDatesWithBookabilityStatus: Record<string, { isBookable: boolean }>;
-  }) =>
-    !isTimeOutOfBounds(time, {
-      periodType: eventType.periodType,
-      periodStartDate: eventType.periodStartDate,
-      periodEndDate: eventType.periodEndDate,
-      periodCountCalendarDays: eventType.periodCountCalendarDays,
-      periodDays: eventType.periodDays,
-      allDatesWithBookabilityStatus,
-    });
-
   const getSlotsTime = 0;
   const checkForAvailabilityTime = 0;
   const getSlotsCount = 0;
@@ -682,20 +680,34 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
 
   const availableDates = Object.keys(slotsMappedToDate);
   const allDatesWithBookabilityStatus = getAllDatesWithBookabilityStatus(availableDates);
-  const withinBoundsSlotsMappedToDate: typeof slotsMappedToDate = {};
+  loggerWithEventDetails.debug(safeStringify({ availableDates }));
 
-  console.log({
-    slotsMappedToDate,
+  const periodLimits = calculatePeriodLimits({
+    periodType: eventType.periodType,
+    periodDays: eventType.periodDays,
+    periodCountCalendarDays: eventType.periodCountCalendarDays,
+    periodStartDate: eventType.periodStartDate,
+    periodEndDate: eventType.periodEndDate,
     allDatesWithBookabilityStatus,
+    utcOffset: input.timeZone ? getUTCOffsetByTimezone(input.timeZone) ?? 0 : 0,
   });
 
-  Object.entries(slotsMappedToDate).forEach(([date, slots]) => {
-    const isDateWithinBound = isTimeWithinBounds({ time: date, allDatesWithBookabilityStatus });
-
-    if (isDateWithinBound) {
-      withinBoundsSlotsMappedToDate[date] = slots;
-    }
-  });
+  let foundALimitViolation = false;
+  const withinBoundsSlotsMappedToDate = Object.entries(slotsMappedToDate).reduce(
+    (withinBoundsSlotsMappedToDate, [date, slots]) => {
+      if (foundALimitViolation) {
+        return withinBoundsSlotsMappedToDate;
+      }
+      const isDateWithinBound = !isDateOutOfBounds({ dateString: date, periodLimits });
+      if (isDateWithinBound) {
+        withinBoundsSlotsMappedToDate[date] = slots;
+      } else {
+        foundALimitViolation = true;
+      }
+      return withinBoundsSlotsMappedToDate;
+    },
+    {} as typeof slotsMappedToDate
+  );
 
   loggerWithEventDetails.debug(`getSlots took ${getSlotsTime}ms and executed ${getSlotsCount} times`);
 
