@@ -11,6 +11,7 @@ import {
   useEmbedStyles,
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
+import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { EventTypeDescriptionLazy as EventTypeDescription } from "@calcom/features/eventtypes/components";
 import EmptyPage from "@calcom/features/eventtypes/components/EmptyPage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -63,6 +64,7 @@ export function UserPage(props: InferGetServerSidePropsType<typeof getServerSide
   return (
     <>
       <HeadSeo
+        origin={getOrgFullOrigin(entity.orgSlug ?? null)}
         title={profile.name}
         description={markdownStrippedBio}
         meeting={{
