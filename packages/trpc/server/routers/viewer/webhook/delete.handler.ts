@@ -1,5 +1,6 @@
 import type { Prisma } from "@prisma/client";
 
+import { updateTriggerForExistingBookings } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
@@ -39,6 +40,8 @@ export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
         id: webhookToDelete.id,
       },
     });
+
+    await updateTriggerForExistingBookings(webhookToDelete, webhookToDelete.eventTriggers, []);
   }
 
   return {

@@ -1,3 +1,7 @@
+import { CalendarsService } from "@/ee/calendars/services/calendars.service";
+import { GcalAuthUrlOutput } from "@/ee/gcal/outputs/auth-url.output";
+import { GcalCheckOutput } from "@/ee/gcal/outputs/check.output";
+import { GcalSaveRedirectOutput } from "@/ee/gcal/outputs/save-redirect.output";
 import { GCalService } from "@/modules/apps/services/gcal.service";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
@@ -21,6 +25,7 @@ import {
   Headers,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
+import { ApiTags as DocsTags } from "@nestjs/swagger";
 import { Request } from "express";
 import { google } from "googleapis";
 import { z } from "zod";
@@ -31,17 +36,18 @@ import {
   GOOGLE_CALENDAR_TYPE,
   SUCCESS_STATUS,
 } from "@calcom/platform-constants";
-import { ApiRedirectResponseType, ApiResponse } from "@calcom/platform-types";
 
 const CALENDAR_SCOPES = [
   "https://www.googleapis.com/auth/calendar.readonly",
   "https://www.googleapis.com/auth/calendar.events",
 ];
 
+// Controller for the GCalConnect Atom
 @Controller({
-  path: "ee/gcal",
+  path: "/gcal",
   version: "2",
 })
+@DocsTags("Google Calendar")
 export class GcalController {
   private readonly logger = new Logger("Platform Gcal Provider");
 
@@ -50,10 +56,11 @@ export class GcalController {
     private readonly tokensRepository: TokensRepository,
     private readonly selectedCalendarsRepository: SelectedCalendarsRepository,
     private readonly config: ConfigService,
-    private readonly gcalService: GCalService
+    private readonly gcalService: GCalService,
+    private readonly calendarsService: CalendarsService
   ) {}
 
-  private redirectUri = `${this.config.get("api.url")}/ee/gcal/oauth/save`;
+  private redirectUri = `${this.config.get("api.url")}/gcal/oauth/save`;
 
   @Get("/oauth/auth-url")
   @HttpCode(HttpStatus.OK)
@@ -61,7 +68,7 @@ export class GcalController {
   async redirect(
     @Headers("Authorization") authorization: string,
     @Req() req: Request
-  ): Promise<ApiResponse<{ authUrl: string }>> {
+  ): Promise<GcalAuthUrlOutput> {
     const oAuth2Client = await this.gcalService.getOAuthClient(this.redirectUri);
     const accessToken = authorization.replace("Bearer ", "");
     const origin = req.get("origin") ?? req.get("host");
@@ -77,7 +84,7 @@ export class GcalController {
   @Get("/oauth/save")
   @Redirect(undefined, 301)
   @HttpCode(HttpStatus.OK)
-  async save(@Query("state") state: string, @Query("code") code: string): Promise<ApiRedirectResponseType> {
+  async save(@Query("state") state: string, @Query("code") code: string): Promise<GcalSaveRedirectOutput> {
     const stateParams = new URLSearchParams(state);
     const { accessToken, origin } = z
       .object({ accessToken: z.string(), origin: z.string() })
@@ -133,7 +140,7 @@ export class GcalController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(AccessTokenGuard, PermissionsGuard)
   @Permissions([APPS_READ])
-  async check(@GetUser("id") userId: number): Promise<ApiResponse> {
+  async check(@GetUser("id") userId: number): Promise<GcalCheckOutput> {
     const gcalCredentials = await this.credentialRepository.getByTypeAndUserId("google_calendar", userId);
 
     if (!gcalCredentials) {
@@ -142,6 +149,17 @@ export class GcalController {
 
     if (gcalCredentials.invalid) {
       throw new BadRequestException("Invalid google oauth credentials.");
+    }
+
+    const { connectedCalendars } = await this.calendarsService.getCalendars(userId);
+    const googleCalendar = connectedCalendars.find(
+      (cal: { integration: { type: string } }) => cal.integration.type === GOOGLE_CALENDAR_TYPE
+    );
+    if (!googleCalendar) {
+      throw new UnauthorizedException("Google Calendar not connected.");
+    }
+    if (googleCalendar.error?.message) {
+      throw new UnauthorizedException(googleCalendar.error?.message);
     }
 
     return { status: SUCCESS_STATUS };

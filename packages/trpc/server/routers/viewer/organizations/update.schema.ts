@@ -1,6 +1,5 @@
 import { z } from "zod";
 
-import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 export const ZUpdateInputSchema = z.object({
@@ -12,11 +11,7 @@ export const ZUpdateInputSchema = z.object({
     .or(z.number())
     .optional(),
   bio: z.string().optional(),
-  logo: z
-    .string()
-    .transform(async (val) => await resizeBase64Image(val))
-    .optional()
-    .nullable(),
+  logoUrl: z.string().optional().nullable(),
   calVideoLogo: z
     .string()
     .optional()
@@ -35,6 +30,7 @@ export const ZUpdateInputSchema = z.object({
   metadata: teamMetadataSchema.unwrap().optional(),
   lockEventTypeCreation: z.boolean().optional(),
   lockEventTypeCreationOptions: z.enum(["DELETE", "HIDE"]).optional(),
+  adminGetsNoSlotsNotification: z.boolean().optional(),
 });
 
 export type TUpdateInputSchema = z.infer<typeof ZUpdateInputSchema>;

@@ -50,28 +50,28 @@ const emailRatingTemplate = ({
     endTime = dayjs(endTime).tz(timeZone).format(currentTimeFormat);
   }
 
-  const emailSubject = `How was your recent experience?: ${eventName}`;
+  const emailSubject = `How was your recent experience? ${eventName}`;
 
-  const introHtml = `<body>Hi${
+  const introHtml = `<p>Hi${
     name ? ` ${name}` : ""
-  },<br><br>We're always looking to improve our customer's experience. How satisfied were you with your recent meeting?<br><br>`;
+  },<br><br>We're always looking to improve our customer's experience. How satisfied were you with your recent meeting?<br></p>`;
 
-  const ratingHtml = `<a href="${ratingUrl}=1">😠</a> <a href="${ratingUrl}=2">🙁</a> <a href="${ratingUrl}=3">😐</a> <a href="${ratingUrl}=4">😄</a> <a href="${ratingUrl}=5">😍</a><br><br>`;
+  const ratingHtml = `<h6><a href="${ratingUrl}=1">😠 </a> <a href="${ratingUrl}=2">🙁 </a> <a href="${ratingUrl}=3">😐 </a> <a href="${ratingUrl}=4">😄 </a> <a href="${ratingUrl}=5">😍</a></h6>`;
 
-  const noShowHtml = `<div><a href="${noShowUrl}">${organizer} didn't join the meeting</a></div><br><br>`;
+  const noShowHtml = `${organizer} didn't join the meeting?<a href="${noShowUrl}"> Reschedule here</a><br><br>`;
 
-  const eventHtml = `<div><strong class="editor-text-bold">Event: </strong></div>${eventName}<br><br>`;
+  const eventHtml = `<strong>Event: </strong>${eventName}<br><br>`;
 
-  const dateTimeHtml = `<div><strong class="editor-text-bold">Date & Time: </strong></div>${eventDate} - ${endTime} (${timeZone})<br><br>`;
+  const dateTimeHtml = `<strong>Date & Time: </strong>${eventDate} - ${endTime} (${timeZone})<br><br>`;
 
-  const attendeeHtml = `<div><strong class="editor-text-bold">Attendees: </strong></div>You & ${organizer}<br><br>`;
+  const attendeeHtml = `<strong>Attendees: </strong>You & ${organizer}<br><br>`;
 
-  const branding = !isBrandingDisabled && !isEditingMode ? `<br><br>_<br><br>Scheduling by ${APP_NAME}` : "";
+  const branding =
+    !isBrandingDisabled && !isEditingMode ? `<div>_<br><br>Scheduling by ${APP_NAME}</div>` : "";
 
-  const endingHtml = `This survey was triggered by a Workflow in Cal.${branding}</body>`;
+  const endingHtml = `This survey was triggered by a Workflow in Cal.${branding}`;
 
-  const emailBody =
-    introHtml + ratingHtml + noShowHtml + eventHtml + dateTimeHtml + attendeeHtml + endingHtml;
+  const emailBody = `<body>${introHtml}${ratingHtml}<p>${noShowHtml}${eventHtml}${dateTimeHtml}${attendeeHtml}${endingHtml}</p></body>`;
 
   return { emailSubject, emailBody };
 };

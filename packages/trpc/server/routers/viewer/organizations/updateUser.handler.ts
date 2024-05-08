@@ -111,7 +111,6 @@ export const updateUserHandler = async ({ ctx, input }: UpdateUserOptions) => {
     name: input.name,
     timeZone: input.timeZone,
     username: input.username,
-    avatar: undefined,
   };
 
   if (input.avatar && input.avatar.startsWith("data:image/png;base64,")) {
@@ -120,11 +119,9 @@ export const updateUserHandler = async ({ ctx, input }: UpdateUserOptions) => {
       avatar,
       userId: user.id,
     });
-    data.avatar = avatar;
   }
   if (input.avatar === "") {
     data.avatarUrl = null;
-    data.avatar = null;
   }
 
   // Update user

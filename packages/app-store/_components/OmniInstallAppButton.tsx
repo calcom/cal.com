@@ -24,7 +24,7 @@ export default function OmniInstallAppButton({
 }) {
   const { t } = useLocale();
   const { data: app } = useApp(appId);
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
 
   const mutation = useAddAppMutation(null, {
     returnTo,

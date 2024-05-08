@@ -13,7 +13,7 @@ import { useEffect } from "react";
 
 import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import EventTypeDescription from "@calcom/features/eventtypes/components/EventTypeDescription";
-import { getOrgAvatarUrl, getTeamAvatarUrl } from "@calcom/lib/getAvatarUrl";
+import { getOrgOrTeamAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import useTheme from "@calcom/lib/hooks/useTheme";
@@ -33,7 +33,7 @@ export { getServerSideProps };
 export type PageProps = inferSSRProps<typeof getServerSideProps>;
 function TeamPage({
   team,
-  isUnpublished,
+  considerUnpublished,
   markdownStrippedBio,
   isValidOrgDomain,
   currentOrgDomain,
@@ -58,13 +58,17 @@ function TeamPage({
     );
   }, [telemetry, pathname]);
 
-  if (isUnpublished) {
-    const slug = team.slug || metadata?.requestedSlug;
+  if (considerUnpublished) {
+    const teamSlug = team.slug || metadata?.requestedSlug;
+    const parentSlug = team.parent?.slug || team.parent?.requestedSlug;
+    // Show unpublished state for parent Organization itself, if the team is a subteam(team.parent is NOT NULL)
+    const slugPropertyName = team.parent || team.isOrganization ? "orgSlug" : "teamSlug";
     return (
       <div className="flex h-full min-h-[100dvh] items-center justify-center">
         <UnpublishedEntity
-          {...(team?.isOrganization || team.parentId ? { orgSlug: slug } : { teamSlug: slug })}
-          name={teamName}
+          {...{ [slugPropertyName]: team.parent ? parentSlug : teamSlug }}
+          logoUrl={team.parent?.logoUrl || team.logoUrl}
+          name={team.parent ? team.parent.name : team.name}
         />
       </div>
     );
@@ -158,10 +162,7 @@ function TeamPage({
       </div>
     );
 
-  const profileImageSrc =
-    isValidOrgDomain || team.isOrganization
-      ? getOrgAvatarUrl({ slug: currentOrgDomain, logoUrl: team.logoUrl })
-      : getTeamAvatarUrl({ slug: team.slug, logoUrl: team.logoUrl, organizationId: team.parent?.id });
+  const profileImageSrc = getOrgOrTeamAvatar(team);
 
   return (
     <>

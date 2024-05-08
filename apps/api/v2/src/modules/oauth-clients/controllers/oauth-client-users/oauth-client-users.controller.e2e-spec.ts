@@ -7,8 +7,8 @@ import {
   CreateUserResponse,
   UserReturned,
 } from "@/modules/oauth-clients/controllers/oauth-client-users/oauth-client-users.controller";
-import { CreateManagedPlatformUserInput } from "@/modules/users/inputs/create-managed-platform-user.input";
-import { UpdateManagedPlatformUserInput } from "@/modules/users/inputs/update-managed-platform-user.input";
+import { CreateManagedUserInput } from "@/modules/users/inputs/create-managed-user.input";
+import { UpdateManagedUserInput } from "@/modules/users/inputs/update-managed-user.input";
 import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
@@ -17,6 +17,7 @@ import { PlatformOAuthClient, Team, User } from "@prisma/client";
 import * as request from "supertest";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
+import { SchedulesRepositoryFixture } from "test/fixtures/repository/schedules.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 
@@ -75,8 +76,12 @@ describe("OAuth Client Users Endpoints", () => {
     let oauthClientRepositoryFixture: OAuthClientRepositoryFixture;
     let teamRepositoryFixture: TeamRepositoryFixture;
     let eventTypesRepositoryFixture: EventTypesRepositoryFixture;
+    let schedulesRepositoryFixture: SchedulesRepositoryFixture;
 
     let postResponseData: CreateUserResponse;
+
+    const userEmail = "oauth-client-user@gmail.com";
+    const userTimeZone = "Europe/Rome";
 
     beforeAll(async () => {
       const moduleRef = await Test.createTestingModule({
@@ -91,6 +96,7 @@ describe("OAuth Client Users Endpoints", () => {
       userRepositoryFixture = new UserRepositoryFixture(moduleRef);
       teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);
       eventTypesRepositoryFixture = new EventTypesRepositoryFixture(moduleRef);
+      schedulesRepositoryFixture = new SchedulesRepositoryFixture(moduleRef);
       organization = await teamRepositoryFixture.create({ name: "organization" });
       oAuthClient = await createOAuthClient(organization.id);
 
@@ -117,8 +123,8 @@ describe("OAuth Client Users Endpoints", () => {
     });
 
     it(`should fail /POST with incorrect timeZone`, async () => {
-      const requestBody: CreateManagedPlatformUserInput = {
-        email: "oauth-client-user@gmail.com",
+      const requestBody: CreateManagedUserInput = {
+        email: userEmail,
         timeZone: "incorrect-time-zone",
       };
 
@@ -130,8 +136,9 @@ describe("OAuth Client Users Endpoints", () => {
     });
 
     it(`/POST`, async () => {
-      const requestBody: CreateManagedPlatformUserInput = {
-        email: "oauth-client-user@gmail.com",
+      const requestBody: CreateManagedUserInput = {
+        email: userEmail,
+        timeZone: userTimeZone,
       };
 
       const response = await request(app.getHttpServer())
@@ -150,12 +157,13 @@ describe("OAuth Client Users Endpoints", () => {
 
       expect(responseBody.status).toEqual(SUCCESS_STATUS);
       expect(responseBody.data).toBeDefined();
-      expect(responseBody.data.user.email).toEqual(requestBody.email);
+      expect(responseBody.data.user.email).toEqual(getOAuthUserEmail(oAuthClient.id, requestBody.email));
       expect(responseBody.data.accessToken).toBeDefined();
       expect(responseBody.data.refreshToken).toBeDefined();
 
       await userConnectedToOAuth(responseBody.data.user.email);
       await userHasDefaultEventTypes(responseBody.data.user.id);
+      await userHasDefaultSchedule(responseBody.data.user.id, responseBody.data.user.defaultScheduleId);
     });
 
     async function userConnectedToOAuth(userEmail: string) {
@@ -179,6 +187,17 @@ describe("OAuth Client Users Endpoints", () => {
       ).toBeTruthy();
     }
 
+    async function userHasDefaultSchedule(userId: number, scheduleId: number | null) {
+      expect(scheduleId).toBeDefined();
+      expect(scheduleId).not.toBeNull();
+
+      const user = await userRepositoryFixture.get(userId);
+      expect(user?.defaultScheduleId).toEqual(scheduleId);
+
+      const schedule = scheduleId ? await schedulesRepositoryFixture.getById(scheduleId) : null;
+      expect(schedule?.userId).toEqual(userId);
+    }
+
     it(`/GET: return list of managed users`, async () => {
       const response = await request(app.getHttpServer())
         .get(`/api/v2/oauth-clients/${oAuthClient.id}/users?limit=10&offset=0`)
@@ -197,7 +216,7 @@ describe("OAuth Client Users Endpoints", () => {
     it(`/GET/:id`, async () => {
       const response = await request(app.getHttpServer())
         .get(`/api/v2/oauth-clients/${oAuthClient.id}/users/${postResponseData.user.id}`)
-        .set("Authorization", `Bearer ${postResponseData.accessToken}`)
+        .set("x-cal-secret-key", oAuthClient.secret)
         .set("Origin", `${CLIENT_REDIRECT_URI}`)
         .expect(200);
 
@@ -205,16 +224,16 @@ describe("OAuth Client Users Endpoints", () => {
 
       expect(responseBody.status).toEqual(SUCCESS_STATUS);
       expect(responseBody.data).toBeDefined();
-      expect(responseBody.data.email).toEqual(postResponseData.user.email);
+      expect(responseBody.data.email).toEqual(getOAuthUserEmail(oAuthClient.id, userEmail));
     });
 
     it(`/PUT/:id`, async () => {
       const userUpdatedEmail = "pineapple-pizza@gmail.com";
-      const body: UpdateManagedPlatformUserInput = { email: userUpdatedEmail };
+      const body: UpdateManagedUserInput = { email: userUpdatedEmail };
 
       const response = await request(app.getHttpServer())
         .patch(`/api/v2/oauth-clients/${oAuthClient.id}/users/${postResponseData.user.id}`)
-        .set("Authorization", `Bearer ${postResponseData.accessToken}`)
+        .set("x-cal-secret-key", oAuthClient.secret)
         .set("Origin", `${CLIENT_REDIRECT_URI}`)
         .send(body)
         .expect(200);
@@ -223,16 +242,23 @@ describe("OAuth Client Users Endpoints", () => {
 
       expect(responseBody.status).toEqual(SUCCESS_STATUS);
       expect(responseBody.data).toBeDefined();
-      expect(responseBody.data.email).toEqual(userUpdatedEmail);
+      expect(responseBody.data.email).toEqual(getOAuthUserEmail(oAuthClient.id, userUpdatedEmail));
     });
 
     it(`/DELETE/:id`, () => {
       return request(app.getHttpServer())
         .delete(`/api/v2/oauth-clients/${oAuthClient.id}/users/${postResponseData.user.id}`)
-        .set("Authorization", `Bearer ${postResponseData.accessToken}`)
+        .set("x-cal-secret-key", oAuthClient.secret)
         .set("Origin", `${CLIENT_REDIRECT_URI}`)
         .expect(200);
     });
+
+    function getOAuthUserEmail(oAuthClientId: string, userEmail: string) {
+      const [username, emailDomain] = userEmail.split("@");
+      const email = `${username}+${oAuthClientId}@${emailDomain}`;
+
+      return email;
+    }
 
     afterAll(async () => {
       await oauthClientRepositoryFixture.delete(oAuthClient.id);

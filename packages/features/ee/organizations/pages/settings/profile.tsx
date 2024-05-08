@@ -22,7 +22,6 @@ import {
   Button,
   Editor,
   Form,
-  Icon,
   ImageUploader,
   Label,
   LinkIconButton,
@@ -40,14 +39,14 @@ import { useOrgBranding } from "../../../organizations/context/provider";
 
 const orgProfileFormSchema = z.object({
   name: z.string(),
-  logo: z.string().nullable(),
+  logoUrl: z.string().nullable(),
   banner: z.string().nullable(),
   bio: z.string(),
 });
 
 type FormValues = {
   name: string;
-  logo: string | null;
+  logoUrl: string | null;
   banner: string | null;
   bio: string;
   slug: string;
@@ -112,7 +111,7 @@ const OrgProfileView = () => {
 
   const defaultValues: FormValues = {
     name: currentOrganisation?.name || "",
-    logo: currentOrganisation?.logo || "",
+    logoUrl: currentOrganisation?.logoUrl,
     banner: currentOrganisation?.bannerUrl || "",
     bio: currentOrganisation?.bio || "",
     slug:
@@ -163,7 +162,7 @@ const OrgProfileView = () => {
 };
 
 const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const { t } = useLocale();
   const [firstRender, setFirstRender] = useState(true);
 
@@ -178,7 +177,7 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
     },
     onSuccess: async (res) => {
       reset({
-        logo: (res.data?.logo || "") as string,
+        logoUrl: res.data?.logoUrl,
         name: (res.data?.name || "") as string,
         bio: (res.data?.bio || "") as string,
         slug: defaultValues["slug"],
@@ -202,7 +201,7 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
       form={form}
       handleSubmit={(values) => {
         const variables = {
-          logo: values.logo,
+          logoUrl: values.logoUrl,
           name: values.name,
           slug: values.slug,
           bio: values.bio,
@@ -215,36 +214,29 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
         <div className="flex items-center">
           <Controller
             control={form.control}
-            name="logo"
-            render={({ field: { value } }) => {
-              const showRemoveLogoButton = !!value;
-
+            name="logoUrl"
+            render={({ field: { value, onChange } }) => {
+              const showRemoveLogoButton = value !== null;
               return (
                 <>
                   <Avatar
-                    data-testid="profile-upload-avatar"
-                    alt={defaultValues.name || ""}
-                    imageSrc={getPlaceholderAvatar(value, defaultValues.name as string)}
+                    data-testid="profile-upload-logo"
+                    alt={form.getValues("name")}
+                    imageSrc={getPlaceholderAvatar(value, form.getValues("name"))}
                     size="lg"
                   />
                   <div className="ms-4">
                     <div className="flex gap-2">
                       <ImageUploader
-                        target="avatar"
+                        target="logo"
                         id="avatar-upload"
                         buttonMsg={t("upload_logo")}
-                        handleAvatarChange={(newLogo) => {
-                          form.setValue("logo", newLogo, { shouldDirty: true });
-                        }}
-                        imageSrc={value || undefined}
+                        handleAvatarChange={onChange}
+                        imageSrc={getPlaceholderAvatar(value, form.getValues("name"))}
                         triggerButtonColor={showRemoveLogoButton ? "secondary" : "primary"}
                       />
                       {showRemoveLogoButton && (
-                        <Button
-                          color="secondary"
-                          onClick={() => {
-                            form.setValue("logo", null, { shouldDirty: true });
-                          }}>
+                        <Button color="secondary" onClick={() => onChange(null)}>
                           {t("remove")}
                         </Button>
                       )}
@@ -260,7 +252,7 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
           <Controller
             control={form.control}
             name="banner"
-            render={({ field: { value } }) => {
+            render={({ field: { value, onChange } }) => {
               const showRemoveBannerButton = !!value;
 
               return (
@@ -280,18 +272,12 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
                         uploadInstruction={t("org_banner_instructions", { height: 500, width: 1500 })}
                         id="banner-upload"
                         buttonMsg={t("upload_banner")}
-                        handleAvatarChange={(newBanner) => {
-                          form.setValue("banner", newBanner, { shouldDirty: true });
-                        }}
+                        handleAvatarChange={onChange}
                         imageSrc={value || undefined}
                         triggerButtonColor={showRemoveBannerButton ? "secondary" : "primary"}
                       />
                       {showRemoveBannerButton && (
-                        <Button
-                          color="destructive"
-                          onClick={() => {
-                            form.setValue("banner", "", { shouldDirty: true });
-                          }}>
+                        <Button color="destructive" onClick={() => onChange(null)}>
                           {t("remove")}
                         </Button>
                       )}

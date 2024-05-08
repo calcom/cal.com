@@ -38,7 +38,6 @@ const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionC
   const telemetry = useTelemetry();
   const [serverErrorMessage, setServerErrorMessage] = useState<string | null>(null);
   const isAdmin = session.data.user.role === UserPermissionRole.ADMIN;
-  const isImpersonated = session.data.user.impersonatedBy;
   const defaultOrgOwnerEmail = session.data.user.email ?? "";
   const newOrganizationFormMethods = useForm<{
     name: string;
@@ -115,7 +114,7 @@ const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionC
                   containerClassName="w-full"
                   placeholder="john@acme.com"
                   name="orgOwnerEmail"
-                  disabled={!isAdmin && !isImpersonated}
+                  disabled={!isAdmin}
                   label={t("admin_email")}
                   defaultValue={value}
                   onChange={(e) => {
@@ -188,7 +187,7 @@ const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionC
           />
         </div>
 
-        {(isAdmin || isImpersonated) && (
+        {isAdmin && (
           <>
             <section className="grid grid-cols-2 gap-2">
               <div className="w-full">
@@ -203,7 +202,7 @@ const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionC
                         name="seats"
                         type="number"
                         label="Seats (optional)"
-                        min={MINIMUM_NUMBER_OF_ORG_SEATS}
+                        min={isAdmin ? 1 : MINIMUM_NUMBER_OF_ORG_SEATS}
                         defaultValue={value || MINIMUM_NUMBER_OF_ORG_SEATS}
                         onChange={(e) => {
                           onChange(+e.target.value);

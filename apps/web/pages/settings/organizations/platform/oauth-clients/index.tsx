@@ -1,5 +1,5 @@
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import React from "react";
 
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
@@ -66,6 +66,9 @@ export const OAuthClients = () => {
                     <OAuthClientCard
                       name={client.name}
                       redirectUris={client.redirectUris}
+                      bookingRedirectUri={client.bookingRedirectUri}
+                      bookingRescheduleRedirectUri={client.bookingRescheduleRedirectUri}
+                      bookingCancelRedirectUri={client.bookingCancelRedirectUri}
                       permissions={client.permissions}
                       key={index}
                       lastItem={data.length === index + 1}
@@ -73,6 +76,7 @@ export const OAuthClients = () => {
                       secret={client.secret}
                       isLoading={isDeleting}
                       onDelete={handleDelete}
+                      areEmailsEnabled={client.areEmailsEnabled}
                     />
                   );
                 })}

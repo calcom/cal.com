@@ -1,5 +1,6 @@
 import { Navbar } from "@/components/Navbar";
 import { Inter } from "next/font/google";
+// eslint-disable-next-line @calcom/eslint/deprecated-imports-next-router
 import { useRouter } from "next/router";
 
 import { useGetBookings } from "@calcom/atoms";
@@ -29,6 +30,8 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
       <h1 className="my-4 text-2xl font-semibold">{props.calUsername} Bookings</h1>
       {isLoading && <p>Loading...</p>}
       {!isLoading &&
+        pastBookings?.bookings &&
+        upcomingBookings?.bookings &&
         (Boolean(upcomingBookings?.bookings.length) || Boolean(pastBookings?.bookings.length)) &&
         [...pastBookings?.bookings, ...upcomingBookings?.bookings].map((booking) => {
           const date = dayjs(booking.startTime).toDate();
@@ -61,7 +64,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                 </div>
                 <div className="px-6">
                   <p>
-                    {booking.user.name} and {booking.attendees[0].name}
+                    {booking?.user?.name} and {booking.attendees[0].name}
                   </p>{" "}
                   <p />
                 </div>

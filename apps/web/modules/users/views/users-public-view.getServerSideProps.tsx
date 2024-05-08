@@ -3,7 +3,6 @@ import type { GetServerSideProps } from "next";
 import { encode } from "querystring";
 import type { z } from "zod";
 
-import { handleUserRedirection } from "@calcom/features/booking-redirect/handle-user";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { DEFAULT_DARK_BRAND_COLOR, DEFAULT_LIGHT_BRAND_COLOR } from "@calcom/lib/constants";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
@@ -40,14 +39,15 @@ export type UserPageProps = {
     allowSEOIndexing: boolean;
     username: string | null;
   };
-  users: (Pick<User, "away" | "name" | "username" | "bio" | "verified" | "avatarUrl"> & {
+  users: (Pick<User, "name" | "username" | "bio" | "verified" | "avatarUrl"> & {
     profile: UserProfile;
   })[];
   themeBasis: string | null;
   markdownStrippedBio: string;
   safeBio: string;
   entity: {
-    isUnpublished?: boolean;
+    logoUrl?: string | null;
+    considerUnpublished: boolean;
     orgSlug?: string | null;
     name?: string | null;
   };
@@ -73,20 +73,12 @@ export type UserPageProps = {
 export const getServerSideProps: GetServerSideProps<UserPageProps> = async (context) => {
   const ssr = await ssrInit(context);
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req, context.params?.orgSlug);
-  const usernameList = getUsernameList(context.query.user as string);
-  const isOrgContext = isValidOrgDomain && currentOrgDomain;
-  const dataFetchStart = Date.now();
-  let outOfOffice = false;
 
-  if (usernameList.length === 1) {
-    const result = await handleUserRedirection({ username: usernameList[0] });
-    if (result && result.outOfOffice) {
-      outOfOffice = true;
-    }
-    if (result && result.redirect?.destination) {
-      return result;
-    }
-  }
+  const usernameList = getUsernameList(context.query.user as string);
+  const isARedirectFromNonOrgLink = context.query.orgRedirection === "true";
+  const isOrgContext = isValidOrgDomain && !!currentOrgDomain;
+
+  const dataFetchStart = Date.now();
 
   if (!isOrgContext) {
     // If there is no org context, see if some redirect is setup due to org migration
@@ -107,56 +99,40 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
     orgSlug: isValidOrgDomain ? currentOrgDomain : null,
   });
 
-  const usersWithoutAvatar = usersInOrgContext.map((user) => {
-    const { avatar: _1, ...rest } = user;
-    return rest;
-  });
-
-  const isDynamicGroup = usersWithoutAvatar.length > 1;
+  const isDynamicGroup = usersInOrgContext.length > 1;
   log.debug(safeStringify({ usersInOrgContext, isValidOrgDomain, currentOrgDomain, isDynamicGroup }));
 
   if (isDynamicGroup) {
     const destinationUrl = `/${usernameList.join("+")}/dynamic`;
+    const originalQueryString = new URLSearchParams(context.query as Record<string, string>).toString();
+    const destinationWithQuery = `${destinationUrl}?${originalQueryString}`;
     log.debug(`Dynamic group detected, redirecting to ${destinationUrl}`);
     return {
       redirect: {
         permanent: false,
-        destination: destinationUrl,
+        destination: destinationWithQuery,
       },
-    } as {
-      redirect: {
-        permanent: false;
-        destination: string;
-      };
-    };
+    } as const;
   }
-
-  const users = usersWithoutAvatar.map((user) => ({
-    ...user,
-    avatar: `/${user.username}/avatar.png`,
-  }));
 
   const isNonOrgUser = (user: { profile: UserProfile }) => {
     return !user.profile?.organization;
   };
 
-  const isThereAnyNonOrgUser = users.some(isNonOrgUser);
+  const isThereAnyNonOrgUser = usersInOrgContext.some(isNonOrgUser);
 
-  if (!users.length || (!isValidOrgDomain && !isThereAnyNonOrgUser)) {
+  if (!usersInOrgContext.length || (!isValidOrgDomain && !isThereAnyNonOrgUser)) {
     return {
       notFound: true,
-    } as {
-      notFound: true;
-    };
+    } as const;
   }
 
-  const [user] = users; //to be used when dealing with single user, not dynamic group
+  const [user] = usersInOrgContext; //to be used when dealing with single user, not dynamic group
 
   const profile = {
     name: user.name || user.username || "",
     image: getUserAvatarUrl({
-      ...user,
-      profile: user.profile,
+      avatarUrl: user.avatarUrl,
     }),
     theme: user.theme,
     brandColor: user.brandColor ?? DEFAULT_LIGHT_BRAND_COLOR,
@@ -175,7 +151,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
   const eventTypes = await getEventTypesPublic(user.id);
 
   // if profile only has one public event-type, redirect to it
-  if (eventTypes.length === 1 && context.query.redirect !== "false" && !outOfOffice) {
+  if (eventTypes.length === 1 && context.query.redirect !== "false") {
     // Redirect but don't change the URL
     const urlDestination = `/${user.profile.username}/${eventTypes[0].slug}`;
     const { query } = context;
@@ -192,21 +168,21 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
   const safeBio = markdownToSafeHTML(user.bio) || "";
 
   const markdownStrippedBio = stripMarkdown(user?.bio || "");
-  const org = usersWithoutAvatar[0].profile.organization;
+  const org = usersInOrgContext[0].profile.organization;
 
   return {
     props: {
-      users: users.map((user) => ({
+      users: usersInOrgContext.map((user) => ({
         name: user.name,
         username: user.username,
         bio: user.bio,
         avatarUrl: user.avatarUrl,
-        away: usernameList.length === 1 ? outOfOffice : user.away,
         verified: user.verified,
         profile: user.profile,
       })),
       entity: {
-        isUnpublished: org?.slug === null,
+        ...(org?.logoUrl ? { logoUrl: org?.logoUrl } : {}),
+        considerUnpublished: !isARedirectFromNonOrgLink && org?.slug === null,
         orgSlug: currentOrgDomain,
         name: org?.name ?? null,
       },

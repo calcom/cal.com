@@ -9,7 +9,6 @@ import { memo, useEffect, useState } from "react";
 import { z } from "zod";
 
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
-import useIntercom from "@calcom/features/ee/support/lib/intercom/useIntercom";
 import { EventTypeEmbedButton, EventTypeEmbedDialog } from "@calcom/features/embed/EventTypeEmbed";
 import { EventTypeDescription } from "@calcom/features/eventtypes/components";
 import CreateEventTypeDialog from "@calcom/features/eventtypes/components/CreateEventTypeDialog";
@@ -231,7 +230,7 @@ export const EventTypeList = ({
   const [deleteDialogTypeSchedulingType, setDeleteDialogSchedulingType] = useState<SchedulingType | null>(
     null
   );
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const mutation = trpc.viewer.eventTypeOrder.useMutation({
     onError: async (err) => {
       console.error(err.message);
@@ -897,7 +896,7 @@ const Main = ({
                   className="mt-4 flex flex-col"
                   data-testid={`slug-${group.profile.slug}`}
                   key={group.profile.slug}>
-                  {/* If the group is readonly and empty don't leave a floating header when the user cant see the create box due 
+                  {/* If the group is readonly and empty don't leave a floating header when the user cant see the create box due
                     to it being readonly for that user */}
                   {group.eventTypes.length === 0 && group.metadata.readOnly ? null : (
                     <EventTypeListHeading
@@ -950,8 +949,6 @@ const EventTypesPage: React.FC & {
   getLayout?: AppProps["Component"]["getLayout"];
 } = () => {
   const { t } = useLocale();
-  const searchParams = useCompatSearchParams();
-  const { open } = useIntercom();
   const { data: user } = useMeQuery();
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [showProfileBanner, setShowProfileBanner] = useState(false);
@@ -965,13 +962,6 @@ const EventTypesPage: React.FC & {
     gcTime: 1 * 60 * 60 * 1000,
     staleTime: 1 * 60 * 60 * 1000,
   });
-
-  useEffect(() => {
-    if (searchParams?.get("openIntercom") === "true") {
-      open();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   useEffect(() => {
     setShowProfileBanner(

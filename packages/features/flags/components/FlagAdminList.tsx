@@ -31,7 +31,7 @@ const FlagToggle = (props: { flag: Flag }) => {
   const {
     flag: { slug, enabled },
   } = props;
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const mutation = trpc.viewer.admin.toggleFeatureFlag.useMutation({
     onSuccess: () => {
       showToast("Flags successfully updated", "success");

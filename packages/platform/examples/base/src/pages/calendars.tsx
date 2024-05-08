@@ -27,7 +27,7 @@ export default function Calendars(props: { calUsername: string; calEmail: string
           connectedCalendars.map((connectedCalendar) => (
             <div key={connectedCalendar.credentialId}>
               <h1 className="text-md font-bold">{connectedCalendar.integration.name}</h1>
-              {connectedCalendar.calendars.map((calendar) => (
+              {connectedCalendar.calendars?.map((calendar) => (
                 <div key={calendar.id}>
                   <h2>{calendar.name}</h2>
                 </div>

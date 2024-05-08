@@ -171,60 +171,10 @@ describe("Invite Member Utils", () => {
     const orgAutoAcceptDomain = "example.com";
     const usersEmail = "user@example.com";
 
-    it("should return orgId and autoAccept as true if team has parent and usersEmail domain matches orgAutoAcceptDomain and orgConfigured is true", () => {
-      const result = getOrgConnectionInfo({
-        orgAutoAcceptDomain,
-        orgConfigured: true,
-        orgPublished: true,
-        orgVerified: true,
-        usersEmail,
-        team: {
-          ...mockedRegularTeam,
-          parentId: 2,
-        },
-        isOrg: false,
-      });
-      expect(result).toEqual({ orgId: 2, autoAccept: true });
-    });
-
-    it("should return autoAccept:false when orgConfigured is false even if usersEmail domain matches orgAutoAcceptDomain and orgVerified and orgPublished is true ", () => {
-      const result = getOrgConnectionInfo({
-        orgAutoAcceptDomain,
-        orgConfigured: false,
-        orgPublished: true,
-        orgVerified: true,
-        usersEmail,
-        team: {
-          ...mockedRegularTeam,
-          parentId: 2,
-        },
-        isOrg: false,
-      });
-      expect(result).toEqual({ orgId: 2, autoAccept: false });
-    });
-
-    it("should return autoAccept:false when orgVerified is false even if usersEmail domain matches orgAutoAcceptDomain and orgConfigured and orgPublished is true ", () => {
+    it("should return autoAccept:false when orgVerified is false even if usersEmail domain matches orgAutoAcceptDomain", () => {
       const result = getOrgConnectionInfo({
         orgAutoAcceptDomain,
         orgVerified: false,
-        orgConfigured: true,
-        orgPublished: true,
-        usersEmail,
-        team: {
-          ...mockedRegularTeam,
-          parentId: 2,
-        },
-        isOrg: false,
-      });
-      expect(result).toEqual({ orgId: 2, autoAccept: false });
-    });
-
-    it("should return autoAccept:false when orgPublished is false even if usersEmail domain matches orgAutoAcceptDomain and orgVerified and orgConfigured is true ", () => {
-      const result = getOrgConnectionInfo({
-        orgAutoAcceptDomain,
-        orgPublished: false,
-        orgConfigured: true,
-        orgVerified: true,
         usersEmail,
         team: {
           ...mockedRegularTeam,
@@ -238,9 +188,7 @@ describe("Invite Member Utils", () => {
     it("should return orgId and autoAccept as false if team has parent and usersEmail domain does not match orgAutoAcceptDomain", () => {
       const result = getOrgConnectionInfo({
         orgAutoAcceptDomain,
-        orgConfigured: false,
-        orgVerified: false,
-        orgPublished: true,
+        orgVerified: true,
         usersEmail: "user@other.com",
         team: {
           ...mockedRegularTeam,
@@ -251,25 +199,10 @@ describe("Invite Member Utils", () => {
       expect(result).toEqual({ orgId: undefined, autoAccept: false });
     });
 
-    it("should return orgId and autoAccept as false if team has parent and usersEmail domain matches orgAutoAcceptDomain but orgConfigured is false", () => {
+    it("should return orgId and autoAccept as true if team has no parent and isOrg is true and usersEmail domain matches orgAutoAcceptDomain", () => {
       const result = getOrgConnectionInfo({
         orgAutoAcceptDomain,
-        orgConfigured: false,
-        orgVerified: false,
-        orgPublished: true,
-        usersEmail,
-        team: { ...mockedRegularTeam },
-        isOrg: false,
-      });
-      expect(result).toEqual({ orgId: undefined, autoAccept: false });
-    });
-
-    it("should return orgId and autoAccept as true if team has no parent and isOrg is true and usersEmail domain matches orgAutoAcceptDomain and orgConfigured is true", () => {
-      const result = getOrgConnectionInfo({
-        orgAutoAcceptDomain,
-        orgConfigured: true,
         orgVerified: true,
-        orgPublished: true,
         usersEmail,
         team: { ...mockedRegularTeam, parentId: null },
         isOrg: true,
@@ -281,8 +214,6 @@ describe("Invite Member Utils", () => {
       const result = getOrgConnectionInfo({
         orgAutoAcceptDomain,
         orgVerified: false,
-        orgConfigured: false,
-        orgPublished: true,
         usersEmail: "user@other.com",
         team: { ...mockedRegularTeam, parentId: null },
         isOrg: true,
@@ -293,9 +224,7 @@ describe("Invite Member Utils", () => {
     it("should return orgId and autoAccept as false if team has no parent and isOrg is true and usersEmail domain matches orgAutoAcceptDomain but orgVerified is false", () => {
       const result = getOrgConnectionInfo({
         orgAutoAcceptDomain,
-        orgConfigured: false,
         orgVerified: false,
-        orgPublished: true,
         usersEmail,
         team: { ...mockedRegularTeam, parentId: null },
         isOrg: true,

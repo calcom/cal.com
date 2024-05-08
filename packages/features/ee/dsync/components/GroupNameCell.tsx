@@ -15,7 +15,7 @@ const GroupNameCell = ({ groupNames, teamId, directoryId }: GroupNameCellProps) 
   const [showTextInput, setShowTextInput] = useState(false);
   const [newGroupName, setNewGroupName] = useState("");
   const { t } = useLocale();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
 
   const createMutation = trpc.viewer.dsync.teamGroupMapping.create.useMutation({
     onSuccess: (data) => {

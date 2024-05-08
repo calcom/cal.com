@@ -101,6 +101,8 @@ export async function getUsernameOrEmailsToInvite(usernameOrEmail: string | stri
 }
 
 export function canBeInvited(invitee: UserWithMembership, team: TeamWithParent) {
+  const myLog = log.getSubLogger({ prefix: ["canBeInvited"] });
+  myLog.debug("Checking if user can be invited", safeStringify({ invitee, team }));
   const alreadyInvited = invitee.teams?.find(({ teamId: membershipTeamId }) => team.id === membershipTeamId);
   if (alreadyInvited) {
     return false;
@@ -120,9 +122,9 @@ export function canBeInvited(invitee: UserWithMembership, team: TeamWithParent) 
     return false;
   }
 
-  // user is invited to join a team in an organization where he isn't a member
   if (
     !ENABLE_PROFILE_SWITCHER &&
+    // Member of an organization is invited to join a team that is not a subteam of the organization
     invitee.profiles.find((profile) => profile.organizationId != team.parentId)
   ) {
     return false;
@@ -130,23 +132,13 @@ export function canBeInvited(invitee: UserWithMembership, team: TeamWithParent) 
   return true;
 }
 
-export async function getUsersToInvite({
+export async function getExistingUsersToInvite({
   usernamesOrEmails,
-  isInvitedToOrg,
   team,
 }: {
   usernamesOrEmails: string[];
-  isInvitedToOrg: boolean;
   team: TeamWithParent;
 }) {
-  const memberships = [];
-  if (isInvitedToOrg) {
-    memberships.push({ teamId: team.id });
-  } else {
-    memberships.push({ teamId: team.id });
-    team.parentId && memberships.push({ teamId: team.parentId });
-  }
-
   const invitees: UserWithMembership[] = await prisma.user.findMany({
     where: {
       OR: [
@@ -186,17 +178,13 @@ export async function getUsersToInvite({
 
 export function getOrgConnectionInfo({
   orgAutoAcceptDomain,
-  orgConfigured,
   orgVerified,
-  orgPublished,
   isOrg,
   usersEmail,
   team,
 }: {
   orgAutoAcceptDomain?: string | null;
-  orgConfigured: boolean;
   orgVerified: boolean;
-  orgPublished: boolean;
   usersEmail: string;
   team: TeamWithParent;
   isOrg: boolean;
@@ -207,11 +195,10 @@ export function getOrgConnectionInfo({
   if (team.parentId || isOrg) {
     orgId = team.parentId || team.id;
     if (usersEmail.split("@")[1] == orgAutoAcceptDomain) {
-      // If there is a failure in DNS setup(orgConfigured is false), we can't let the user auto-join. It could be due to that domain not being allowed to be created.
-      // If the org is not verified, we can't let the user auto-join. It could be due to the org not being verified.
-      // If the org is not published, we can't let the user auto-join. This is to prevent someone squatting a domain without paying. Because only after payment, the org is published.
-      // Also, this is to discourage someone creating an org like yahoo.cal.com and auto-adding any yahoo.com email user to it.
-      autoAccept = orgConfigured && orgVerified && orgPublished;
+      // We discourage self-served organizations from being able to auto-accept feature by having a barrier of a fixed number of paying teams in the account for creating the organization
+      // We can't put restriction of a published organization here because when we move teams during the onboarding of the organization, it isn't published at the moment and we really need those members to be auto-added
+      // Further, sensitive operations like member editing and impersonating are disabled by default, unless reviewed by the ADMIN team
+      autoAccept = orgVerified;
     } else {
       orgId = undefined;
       autoAccept = false;
@@ -518,12 +505,12 @@ export function getAutoJoinStatus({
 
 // split invited users between ones that can autojoin and the others who cannot autojoin
 export const groupUsersByJoinability = ({
-  existingUsersWithMembersips,
+  existingUsersWithMemberships,
   team,
   connectionInfoMap,
 }: {
   team: TeamWithParent;
-  existingUsersWithMembersips: (UserWithMembership & {
+  existingUsersWithMemberships: (UserWithMembership & {
     profile: {
       username: string;
     } | null;
@@ -533,8 +520,8 @@ export const groupUsersByJoinability = ({
   const usersToAutoJoin = [];
   const regularUsers = [];
 
-  for (let index = 0; index < existingUsersWithMembersips.length; index++) {
-    const existingUserWithMembersips = existingUsersWithMembersips[index];
+  for (let index = 0; index < existingUsersWithMemberships.length; index++) {
+    const existingUserWithMembersips = existingUsersWithMemberships[index];
 
     const autoJoinStatus = getAutoJoinStatus({
       invitee: existingUserWithMembersips,
@@ -566,7 +553,7 @@ export const sendEmails = async (emailPromises: Promise<void>[]) => {
 };
 
 export const sendExistingUserTeamInviteEmails = async ({
-  existingUsersWithMembersips,
+  existingUsersWithMemberships,
   language,
   currentUserTeamName,
   currentUserName,
@@ -578,7 +565,7 @@ export const sendExistingUserTeamInviteEmails = async ({
 }: {
   language: TFunction;
   isAutoJoin: boolean;
-  existingUsersWithMembersips: (UserWithMembership & {
+  existingUsersWithMemberships: (UserWithMembership & {
     profile: {
       username: string;
     } | null;
@@ -590,7 +577,7 @@ export const sendExistingUserTeamInviteEmails = async ({
   teamId: number;
   orgSlug: string | null;
 }) => {
-  const sendEmailsPromises = existingUsersWithMembersips.map(async (user) => {
+  const sendEmailsPromises = existingUsersWithMemberships.map(async (user) => {
     let sendTo = user.email;
     if (!isEmail(user.email)) {
       sendTo = user.email;
