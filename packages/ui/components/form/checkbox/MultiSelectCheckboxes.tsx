@@ -49,12 +49,21 @@ type MultiSelectionCheckboxesProps = {
   setSelected: Dispatch<SetStateAction<Option[]>>;
   selected: Option[];
   setValue: (s: Option[]) => unknown;
+  countText?: string;
 };
 
-const MultiValue = ({ index, getValue }: { index: number; getValue: () => { length: number } }) => {
+const MultiValue = ({
+  index,
+  getValue,
+  countText,
+}: {
+  index: number;
+  getValue: () => Option[];
+  countText: string;
+}) => {
   const { t } = useLocale();
   const count = getValue().filter((option) => option.value !== "all").length;
-  return <>{!index && <div>{t("nr_event_type", { count })}</div>}</>;
+  return <>{!index && count !== 0 && <div>{t(countText, { count })}</div>}</>;
 };
 
 export default function MultiSelectCheckboxes({
@@ -65,8 +74,11 @@ export default function MultiSelectCheckboxes({
   setValue,
   className,
   isDisabled,
+  countText,
 }: Omit<Props, "options"> & MultiSelectionCheckboxesProps) {
-  const additonalComponents = { MultiValue };
+  const additonalComponents = {
+    MultiValue: (props) => <MultiValue {...props} countText={countText || "selected"} />,
+  };
 
   const allOptions = [{ label: "Select all", value: "all" }, ...options];
 

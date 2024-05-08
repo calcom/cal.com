@@ -1231,6 +1231,8 @@
   "may_require_confirmation": "May require confirmation",
   "nr_event_type_one": "{{count}} event type",
   "nr_event_type_other": "{{count}} event types",
+  "nr_team_one": "{{count}} team",
+  "nr_team_other": "{{count}} teams",
   "add_action": "Add action",
   "set_whereby_link": "Set Whereby link",
   "invalid_whereby_link": "Please enter a valid Whereby Link",
