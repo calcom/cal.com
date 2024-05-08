@@ -1,7 +1,7 @@
 "use client";
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
-import { CreateANewOrganizationForm } from "@calcom/features/ee/organizations/components";
+import { CreateANewPlatformForm } from "@calcom/features/ee/platform/components/index";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { WizardLayout, Meta, WizardLayoutAppDir } from "@calcom/ui";
 
@@ -17,7 +17,7 @@ const CreateNewOrganizationPage = () => {
         title={t("set_up_your_platform_organization")}
         description={t("platform_organization_description")}
       />
-      <CreateANewOrganizationForm isPlatformOrg={true} />
+      <CreateANewPlatformForm />
     </LicenseRequired>
   );
 };
