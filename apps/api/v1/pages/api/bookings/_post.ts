@@ -212,7 +212,7 @@ async function handler(req: NextApiRequest) {
   if (isOrganizationOwnerOrAdmin) {
     const accessibleUsersIds = await getAccessibleUsers({
       adminUserId: userId,
-      memberUserIds: requestedUserIds,
+      memberUserIds: [req.body.userId || userId],
     });
     const [requestedUserId] = accessibleUsersIds;
     req.userId = requestedUserId || userId;

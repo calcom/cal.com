@@ -117,18 +117,18 @@ async function checkPermissions(req: NextApiRequest, body: z.infer<typeof schema
       statusCode: 403,
       message: "Only admin can change the organizer of a booking",
     });
+  }
 
-    if (isOrganizationOwnerOrAdmin) {
-      const accessibleUsersIds = await getAccessibleUsers({
-        adminUserId: userId,
-        memberUserIds: [body.userId],
+  if (body.userId && isOrganizationOwnerOrAdmin) {
+    const accessibleUsersIds = await getAccessibleUsers({
+      adminUserId: userId,
+      memberUserIds: [body.userId],
+    });
+    if (accessibleUsersIds.length === 0) {
+      throw new HttpError({
+        statusCode: 403,
+        message: "Only admin can change the organizer of a booking",
       });
-      if (accessibleUsersIds.length === 0) {
-        throw new HttpError({
-          statusCode: 403,
-          message: "Only admin can change the organizer of a booking",
-        });
-      }
     }
   }
 }
