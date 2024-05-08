@@ -72,7 +72,7 @@ export const useGetOAuthClientManagedUsers = (clientId: string) => {
   } = useQuery<ApiSuccessResponse<ManagedUser[]>>({
     queryKey: ["oauth-client-managed-users", clientId],
     queryFn: () => {
-      return fetch(`/api/v2/oauth-clients/managed-users/${clientId}`, {
+      return fetch(`/api/v2/oauth-clients/${clientId}/managed-users`, {
         method: "get",
         headers: { "Content-type": "application/json" },
       }).then((res) => res.json());

@@ -9,7 +9,7 @@ import { useCreateOAuthClient } from "@lib/hooks/settings/platform/oauth-clients
 
 import PageWrapper from "@components/PageWrapper";
 import type { FormValues } from "@components/settings/platform/oauth-clients/oauth-client-form";
-import { OAuthClientForm as CreateOAuthClientForm } from "@components/settings/platform/oauth-clients/oauth-client-form";
+import { OAuthClientForm } from "@components/settings/platform/oauth-clients/oauth-client-form";
 
 export default function CreateOAuthClient() {
   const searchParams = useCompatSearchParams();
@@ -65,7 +65,7 @@ export default function CreateOAuthClient() {
               </p>
             </div>
           </div>
-          <CreateOAuthClientForm isPending={isSaving} onSubmit={onSubmit} />
+          <OAuthClientForm isPending={isSaving} onSubmit={onSubmit} />
         </div>
       </Shell>
     </div>
