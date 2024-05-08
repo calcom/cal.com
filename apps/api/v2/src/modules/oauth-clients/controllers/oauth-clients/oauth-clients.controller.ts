@@ -5,10 +5,7 @@ import { NextAuthGuard } from "@/modules/auth/guards/next-auth/next-auth.guard";
 import { OrganizationRolesGuard } from "@/modules/auth/guards/organization-roles/organization-roles.guard";
 import { ManagedUserOutput } from "@/modules/oauth-clients/controllers/oauth-client-users/outputs/managed-user.output";
 import { CreateOAuthClientResponseDto } from "@/modules/oauth-clients/controllers/oauth-clients/responses/CreateOAuthClientResponse.dto";
-import {
-  GetOAuthClientResponseDto,
-  GetOAuthClientManagedUsersResponseDto,
-} from "@/modules/oauth-clients/controllers/oauth-clients/responses/GetOAuthClientResponse.dto";
+import { GetOAuthClientResponseDto } from "@/modules/oauth-clients/controllers/oauth-clients/responses/GetOAuthClientResponse.dto";
 import { GetOAuthClientsResponseDto } from "@/modules/oauth-clients/controllers/oauth-clients/responses/GetOAuthClientsResponse.dto";
 import { UpdateOAuthClientInput } from "@/modules/oauth-clients/inputs/update-oauth-client.input";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
@@ -23,7 +20,6 @@ import {
   Patch,
   Delete,
   Param,
-  Query,
   HttpCode,
   HttpStatus,
   Logger,
@@ -41,7 +37,7 @@ import { MembershipRole } from "@prisma/client";
 import { User } from "@prisma/client";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { CreateOAuthClientInput, OAuthClientManagedUsersInput } from "@calcom/platform-types";
+import { CreateOAuthClientInput } from "@calcom/platform-types";
 
 const AUTH_DOCUMENTATION = `⚠️ First, this endpoint requires \`Cookie: next-auth.session-token=eyJhbGciOiJ\` header. Log into Cal web app using owner of organization that was created after visiting \`/settings/organizations/new\`, refresh swagger docs, and the cookie will be added to requests automatically to pass the NextAuthGuard.
 Second, make sure that the logged in user has organizationId set to pass the OrganizationRolesGuard guard.`;
@@ -115,24 +111,6 @@ export class OAuthClientsController {
       throw new NotFoundException(`OAuth client with ID ${clientId} not found`);
     }
     return { status: SUCCESS_STATUS, data: client };
-  }
-
-  @Get("/:clientId/managed-users")
-  @HttpCode(HttpStatus.OK)
-  @Roles([MembershipRole.ADMIN, MembershipRole.OWNER, MembershipRole.MEMBER])
-  @DocsOperation({ description: AUTH_DOCUMENTATION })
-  async getOAuthClientManagedUsersById(
-    @Param("clientId") clientId: string,
-    @Query() queryParams: OAuthClientManagedUsersInput
-  ): Promise<GetOAuthClientManagedUsersResponseDto> {
-    const { offset, limit } = queryParams;
-    const existingManagedUsers = await this.userRepository.findManagedUsersByOAuthClientId(
-      clientId,
-      offset ?? 0,
-      limit ?? 50
-    );
-
-    return { status: SUCCESS_STATUS, data: existingManagedUsers.map((user) => this.getResponseUser(user)) };
   }
 
   @Patch("/:clientId")

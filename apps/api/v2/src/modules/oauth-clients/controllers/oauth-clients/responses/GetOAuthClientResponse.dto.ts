@@ -1,4 +1,3 @@
-import { ManagedUserOutput } from "@/modules/oauth-clients/controllers/oauth-client-users/outputs/managed-user.output";
 import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import {
@@ -62,18 +61,4 @@ export class GetOAuthClientResponseDto {
   @ValidateNested()
   @Type(() => PlatformOAuthClientDto)
   data!: PlatformOAuthClientDto;
-}
-
-export class GetOAuthClientManagedUsersResponseDto {
-  @ApiProperty({ example: SUCCESS_STATUS, enum: [SUCCESS_STATUS, ERROR_STATUS] })
-  @IsEnum([SUCCESS_STATUS, ERROR_STATUS])
-  status!: typeof SUCCESS_STATUS | typeof ERROR_STATUS;
-
-  @ApiProperty({
-    type: ManagedUserOutput,
-  })
-  @IsNotEmptyObject()
-  @ValidateNested()
-  @Type(() => ManagedUserOutput)
-  data!: ManagedUserOutput[];
 }
