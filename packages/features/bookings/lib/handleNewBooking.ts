@@ -1281,7 +1281,7 @@ async function handler(
       if (reqBody.teamMemberEmail) {
         // If requested user is not a fixed host, assign the lucky user as the team member
         if (!fixedUserPool.some((user) => user.email === reqBody.teamMemberEmail)) {
-          const teamMember = eventTypeWithUsers.users.find((user) => user.email === reqBody.teamMemberEmail);
+          const teamMember = availableUsers.find((user) => user.email === reqBody.teamMemberEmail);
           if (teamMember) {
             luckyUsers.push(teamMember);
           }
@@ -1338,14 +1338,15 @@ async function handler(
       if (fixedUserPool.length !== users.filter((user) => user.isFixed).length) {
         throw new Error(ErrorCode.HostsUnavailableForBooking);
       }
+      // Pushing fixed user before the luckyUser guarantees the (first) fixed user as the organizer.
+      users = [...fixedUserPool, ...luckyUsers];
       luckyUserResponse = { luckyUsers: luckyUsers.map((u) => u.id) };
     } else if (req.body.allRecurringDates && eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
       // all recurring slots except the first one
       const luckyUsersFromFirstBooking = luckyUsers
         ? eventTypeWithUsers.users.filter((user) => luckyUsers.find((luckyUserId) => luckyUserId === user.id))
         : [];
-      const fixedHosts = eventTypeWithUsers.users.filter((user: IsFixedAwareUser) => user.isFixed);
-      users = [...fixedHosts, ...luckyUsersFromFirstBooking];
+      users = [...fixedUserPool, ...luckyUsersFromFirstBooking];
     }
   }
 
