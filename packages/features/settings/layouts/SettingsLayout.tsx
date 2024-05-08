@@ -151,6 +151,9 @@ const useTabs = () => {
   const processTabsMemod = useMemo(() => {
     const processedTabs = tabs.map((tab) => {
       if (tab.href === "/settings/my-account") {
+        if (!!session.data?.user?.org?.id) {
+          tab.children = tab?.children?.filter((child) => child.href !== "/settings/my-account/appearance");
+        }
         return {
           ...tab,
           name: user?.name || "my_account",
@@ -180,14 +183,6 @@ const useTabs = () => {
       }
       return tab;
     });
-
-    if (!!session.data?.user?.org?.id) {
-      processedTabs.forEach((tab) => {
-        if (tab.href === "/settings/my-account") {
-          tab.children = tab?.children?.filter((child) => child.href !== "/settings/my-account/appearance");
-        }
-      });
-    }
 
     // check if name is in adminRequiredKeys
     return processedTabs.filter((tab) => {
