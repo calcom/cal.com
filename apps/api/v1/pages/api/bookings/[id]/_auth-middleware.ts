@@ -21,11 +21,13 @@ async function authMiddleware(req: NextApiRequest) {
     });
     if (booking) {
       const bookingUserId = booking.userId;
-      const accessibleUsersIds = await getAccessibleUsers({
-        adminUserId: userId,
-        memberUserIds: [bookingUserId],
-      });
-      if (accessibleUsersIds > 0) return;
+      if (bookingUserId) {
+        const accessibleUsersIds = await getAccessibleUsers({
+          adminUserId: userId,
+          memberUserIds: [bookingUserId],
+        });
+        if (accessibleUsersIds.length > 0) return;
+      }
     }
   }
 
