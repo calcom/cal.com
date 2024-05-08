@@ -34,7 +34,10 @@ export function useInitialFormValues({
   extraOptions,
   prefillFormParams,
 }: UseInitialFormValuesProps) {
-  const [initialValues, setDefaultValues] = useState<Record<string, unknown>>({});
+  const [initialValues, setDefaultValues] = useState<{
+    responses?: Partial<z.infer<ReturnType<typeof getBookingResponsesSchema>>>;
+    bookingId?: number;
+  }>({});
   const bookingData = useBookerStore((state) => state.bookingData);
   const formValues = useBookerStore((state) => state.formValues);
   useEffect(() => {

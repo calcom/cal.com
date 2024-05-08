@@ -93,6 +93,7 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
       setSelectedMonth(null);
       setSelectedDuration(null);
       if (props.rescheduleUid) {
+        // clean booking data from cache
         queryClient.removeQueries({
           queryKey: [BOOKING_RESCHEDULE_KEY, props.rescheduleUid],
           exact: true,
