@@ -30,10 +30,12 @@ interface Props {
   user: User;
   isMixedEventType: boolean;
   readOnly: boolean;
+  isOrg: boolean;
 }
 
 export default function WorkflowDetailsPage(props: Props) {
-  const { form, workflowId, selectedEventTypes, setSelectedEventTypes, teamId, isMixedEventType } = props;
+  const { form, workflowId, selectedEventTypes, setSelectedEventTypes, teamId, isMixedEventType, isOrg } =
+    props;
   const { t } = useLocale();
   const router = useRouter();
 
@@ -43,6 +45,8 @@ export default function WorkflowDetailsPage(props: Props) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const { data, isPending } = trpc.viewer.eventTypes.getByViewer.useQuery();
+
+  // get all teams of org here
 
   const searchParams = useSearchParams();
   const eventTypeId = searchParams?.get("eventTypeId");
@@ -148,7 +152,7 @@ export default function WorkflowDetailsPage(props: Props) {
               {...form.register("name")}
             />
           </div>
-          <Label>{t("which_event_type_apply")}</Label>
+          {isOrg ? <Label>{t("which_team_apply")}</Label> : <Label>{t("which_event_type_apply")}</Label>}
           <Controller
             name="activeOn"
             control={form.control}

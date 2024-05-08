@@ -130,6 +130,8 @@ function WorkflowPage() {
     workflow?.team?.members?.find((member) => member.userId === session.data?.user.id)?.role ===
     MembershipRole.MEMBER;
 
+  const isOrg = workflow?.team?.isOrganization ?? false;
+
   useEffect(() => {
     if (workflow && !isPending) {
       if (workflow.userId && workflow.activeOn.find((active) => !!active.eventType.teamId)) {
@@ -180,7 +182,7 @@ function WorkflowPage() {
       form.setValue("time", workflow.time || undefined);
       form.setValue("timeUnit", workflow.timeUnit || undefined);
       form.setValue("activeOn", activeOn || []);
-      form.setValue("selectAll", workflow.isActiveOnAll || []);
+      form.setValue("selectAll", workflow.isActiveOnAll ?? false);
       setIsAllDataLoaded(true);
     }
   }, [isPending]);
@@ -316,6 +318,7 @@ function WorkflowPage() {
                     teamId={workflow ? workflow.teamId || undefined : undefined}
                     isMixedEventType={isMixedEventType}
                     readOnly={readOnly}
+                    isOrg={isOrg}
                   />
                 </>
               ) : (

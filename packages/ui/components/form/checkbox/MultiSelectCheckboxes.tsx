@@ -105,7 +105,7 @@ export default function MultiSelectCheckboxes({
         setValue(allSelected);
       }}
       variant="checkbox"
-      options={allOptions}
+      options={allOptions.length > 1 ? allOptions : []}
       isMulti
       isDisabled={isDisabled}
       className={classNames(className ? className : "w-64 text-sm")}
