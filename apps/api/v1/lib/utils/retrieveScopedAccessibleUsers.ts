@@ -91,8 +91,8 @@ export const retrieveOrgScopedAccessibleUsers = async ({ adminId }: { adminId: n
     const teamsInOrganization = await getTeamsInOrganization(adminOrganizationId);
     const teamIds = teamsInOrganization.map((team) => team.id);
 
-    const allMembershipsInteams = await getAllUsersInTeams(teamIds);
-    const userIds = new Set(allMembershipsInteams.map((membership) => membership.userId));
+    const allMembershipsInTeams = await getAllUsersInTeams(teamIds);
+    const userIds = new Set(allMembershipsInTeams.map((membership) => membership.userId));
     return Array.from(userIds);
   }
   return [];
