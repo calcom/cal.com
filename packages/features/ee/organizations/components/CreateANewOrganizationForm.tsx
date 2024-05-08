@@ -24,17 +24,16 @@ function extractDomainFromEmail(email: string) {
   return out.split(".")[0];
 }
 
-export const CreateANewOrganizationForm = ({ isPlatformOrg = false }: { isPlatformOrg?: boolean }) => {
+export const CreateANewOrganizationForm = () => {
   const session = useSession();
   if (!session.data) {
     return null;
   }
-  return <CreateANewOrganizationFormChild isPlatformOrg={isPlatformOrg} session={session} />;
+  return <CreateANewOrganizationFormChild session={session} />;
 };
 
 const CreateANewOrganizationFormChild = ({
   session,
-  isPlatformOrg = false,
 }: {
   session: Ensure<SessionContextValue, "data">;
   isPlatformOrg?: boolean;
@@ -51,13 +50,11 @@ const CreateANewOrganizationFormChild = ({
     pricePerSeat: number;
     slug: string;
     orgOwnerEmail: string;
-    isPlatform: boolean;
   }>({
     defaultValues: {
       slug: !isAdmin ? deriveSlugFromEmail(defaultOrgOwnerEmail) : undefined,
       orgOwnerEmail: !isAdmin ? defaultOrgOwnerEmail : undefined,
       name: !isAdmin ? deriveOrgNameFromEmail(defaultOrgOwnerEmail) : undefined,
-      isPlatform: false,
     },
   });
 
@@ -73,14 +70,10 @@ const CreateANewOrganizationFormChild = ({
         // He won't need to have access to the org directly in this way.
         signIn("impersonation-auth", {
           username: data.email,
-          callbackUrl: !isPlatformOrg
-            ? `/settings/organizations/${data.organizationId}/about`
-            : `/settings/platform`,
+          callbackUrl: `/settings/organizations/${data.organizationId}/about`,
         });
       }
-      router.push(
-        !isPlatformOrg ? `/settings/organizations/${data.organizationId}/about` : "/settings/platform"
-      );
+      router.push(`/settings/organizations/${data.organizationId}/about`);
     },
     onError: (err) => {
       if (err.message === "organization_url_taken") {
@@ -105,13 +98,7 @@ const CreateANewOrganizationFormChild = ({
         handleSubmit={(v) => {
           if (!createOrganizationMutation.isPending) {
             setServerErrorMessage(null);
-            createOrganizationMutation.mutate({
-              ...v,
-              isPlatform: isPlatformOrg,
-              // we dont have checks to see if an organization url is taken or not if it is a platform user
-              // hence if its a platform org append _platform at the end
-              slug: isPlatformOrg ? `${v.name.toLocaleLowerCase()}_platform` : v.slug,
-            });
+            createOrganizationMutation.mutate(v);
           }
         }}>
         <div>
@@ -133,7 +120,7 @@ const CreateANewOrganizationFormChild = ({
                   placeholder="john@acme.com"
                   name="orgOwnerEmail"
                   disabled={!isAdmin}
-                  label={!isPlatformOrg ? t("admin_email") : t("platform_admin_email")}
+                  label={t("admin_email")}
                   defaultValue={value}
                   onChange={(e) => {
                     const email = e?.target.value;
@@ -164,7 +151,7 @@ const CreateANewOrganizationFormChild = ({
                   className="mt-2"
                   placeholder="Acme"
                   name="name"
-                  label={!isPlatformOrg ? t("organization_name") : t("platform_name")}
+                  label={t("organization_name")}
                   defaultValue={value}
                   onChange={(e) => {
                     newOrganizationFormMethods.setValue("name", e?.target.value.trim());
@@ -179,35 +166,33 @@ const CreateANewOrganizationFormChild = ({
           />
         </div>
 
-        {!isPlatformOrg && (
-          <div>
-            <Controller
-              name="slug"
-              control={newOrganizationFormMethods.control}
-              rules={{
-                required: "Must enter organization slug",
-              }}
-              render={({ field: { value } }) => (
-                <TextField
-                  className="mt-2"
-                  name="slug"
-                  label={t("organization_url")}
-                  placeholder="acme"
-                  addOnSuffix={`.${subdomainSuffix()}`}
-                  defaultValue={value}
-                  onChange={(e) => {
-                    newOrganizationFormMethods.setValue("slug", slugify(e?.target.value), {
-                      shouldTouch: true,
-                    });
-                    newOrganizationFormMethods.clearErrors("slug");
-                  }}
-                />
-              )}
-            />
-          </div>
-        )}
+        <div>
+          <Controller
+            name="slug"
+            control={newOrganizationFormMethods.control}
+            rules={{
+              required: "Must enter organization slug",
+            }}
+            render={({ field: { value } }) => (
+              <TextField
+                className="mt-2"
+                name="slug"
+                label={t("organization_url")}
+                placeholder="acme"
+                addOnSuffix={`.${subdomainSuffix()}`}
+                defaultValue={value}
+                onChange={(e) => {
+                  newOrganizationFormMethods.setValue("slug", slugify(e?.target.value), {
+                    shouldTouch: true,
+                  });
+                  newOrganizationFormMethods.clearErrors("slug");
+                }}
+              />
+            )}
+          />
+        </div>
 
-        {isAdmin && !isPlatformOrg && (
+        {isAdmin && (
           <>
             <section className="grid grid-cols-2 gap-2">
               <div className="w-full">
@@ -261,7 +246,7 @@ const CreateANewOrganizationFormChild = ({
         )}
 
         {/* This radio group does nothing - its just for visuall purposes */}
-        {!isAdmin && !isPlatformOrg && (
+        {!isAdmin && (
           <>
             <div className="bg-subtle space-y-5  rounded-lg p-5">
               <h3 className="font-cal text-default text-lg font-semibold leading-4">
@@ -302,13 +287,13 @@ const CreateANewOrganizationFormChild = ({
   );
 };
 
-function deriveSlugFromEmail(email: string) {
+export function deriveSlugFromEmail(email: string) {
   const domain = extractDomainFromEmail(email);
 
   return domain;
 }
 
-function deriveOrgNameFromEmail(email: string) {
+export function deriveOrgNameFromEmail(email: string) {
   const domain = extractDomainFromEmail(email);
 
   return domain.charAt(0).toUpperCase() + domain.slice(1);
