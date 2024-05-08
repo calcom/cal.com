@@ -12,7 +12,7 @@ class EventTypeGroup {
   eventTypes!: EventTypeOutput[];
 }
 
-class GetEventTypesData {
+export class GetEventTypesData {
   @ValidateNested({ each: true })
   @Type(() => EventTypeGroup)
   @IsArray()

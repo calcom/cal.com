@@ -82,4 +82,5 @@ export const schemaBookingReadPublic = Booking.extend({
   metadata: true,
   status: true,
   responses: true,
+  fromReschedule: true,
 });

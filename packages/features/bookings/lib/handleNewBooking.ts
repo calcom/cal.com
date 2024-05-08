@@ -15,16 +15,16 @@ import processExternalId from "@calcom/app-store/_utils/calendars/processExterna
 import { metadata as GoogleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
 import type { LocationObject } from "@calcom/app-store/locations";
 import {
-  getLocationValueForDB,
   MeetLocationType,
   OrganizerDefaultConferencingAppType,
+  getLocationValueForDB,
 } from "@calcom/app-store/locations";
 import type { EventTypeAppsList } from "@calcom/app-store/utils";
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import EventManager from "@calcom/core/EventManager";
 import { getEventName } from "@calcom/core/event";
 import { getBusyTimesForLimitChecks } from "@calcom/core/getBusyTimes";
-import { getUserAvailability } from "@calcom/core/getUserAvailability";
+import { getUsersAvailability } from "@calcom/core/getUserAvailability";
 import dayjs from "@calcom/dayjs";
 import { scheduleMandatoryReminder } from "@calcom/ee/workflows/lib/reminders/scheduleMandatoryReminder";
 import {
@@ -54,8 +54,12 @@ import { getFullName } from "@calcom/features/form-builder/utils";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { cancelScheduledJobs, scheduleTrigger } from "@calcom/features/webhooks/lib/scheduleTrigger";
-import { parseBookingLimit, parseDurationLimit } from "@calcom/lib";
-import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
+import {
+  isPrismaObjOrUndefined,
+  parseBookingLimit,
+  parseDurationLimit,
+  parseRecurringEvent,
+} from "@calcom/lib";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import { getDefaultEvent, getUsernameList } from "@calcom/lib/defaultEvents";
 import { ErrorCode } from "@calcom/lib/errorCodes";
@@ -80,9 +84,9 @@ import type { BookingReference } from "@calcom/prisma/client";
 import { BookingStatus, SchedulingType, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import {
+  EventTypeMetaDataSchema,
   bookingCreateSchemaLegacyPropsForApi,
   customInputSchema,
-  EventTypeMetaDataSchema,
   userMetadata as userMetadataSchema,
 } from "@calcom/prisma/zod-utils";
 import type {
@@ -193,6 +197,7 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
       lockTimeZoneToggleOnBookingPage: true,
       requiresConfirmation: true,
       requiresBookerEmailVerification: true,
+      minimumBookingNotice: true,
       userId: true,
       price: true,
       currency: true,
@@ -357,24 +362,25 @@ export async function ensureAvailableUsers(
     });
   }
 
-  for (const user of eventType.users) {
-    const { oooExcludedDateRanges: dateRanges, busy: bufferedBusyTimes } = await getUserAvailability(
-      {
+  (
+    await getUsersAvailability({
+      users: eventType.users,
+      query: {
         ...input,
-        userId: user.id,
         eventTypeId: eventType.id,
         duration: originalBookingDuration,
         returnDateOverrides: false,
         dateFrom: startDateTimeUtc.format(),
         dateTo: endDateTimeUtc.format(),
       },
-      {
-        user,
+      initialData: {
         eventType,
         rescheduleUid: input.originalRescheduledBooking?.uid ?? null,
         busyTimesFromLimitsBookings: busyTimesFromLimitsBookingsAllUsers,
-      }
-    );
+      },
+    })
+  ).forEach(({ oooExcludedDateRanges: dateRanges, busy: bufferedBusyTimes }, index) => {
+    const user = eventType.users[index];
 
     log.debug(
       "calendarBusyTimes==>>>",
@@ -390,7 +396,7 @@ export async function ensureAvailableUsers(
           input,
         })
       );
-      continue;
+      return;
     }
 
     let foundConflict = false;
@@ -417,7 +423,7 @@ export async function ensureAvailableUsers(
           input,
         })
       );
-      continue;
+      return;
     }
 
     try {
@@ -429,7 +435,8 @@ export async function ensureAvailableUsers(
     if (!foundConflict) {
       availableUsers.push(user);
     }
-  }
+  });
+
   if (!availableUsers.length) {
     loggerWithEventDetails.error(
       `No available users found.`,
@@ -701,6 +708,7 @@ async function createBooking({
       newBookingData.recurringEventId = originalRescheduledBooking.recurringEventId;
     }
   }
+
   const createBookingObj = {
     include: {
       user: {
@@ -1008,13 +1016,17 @@ async function handler(
 
   let timeOutOfBounds = false;
   try {
-    timeOutOfBounds = isOutOfBounds(reqBody.start, {
-      periodType: eventType.periodType,
-      periodDays: eventType.periodDays,
-      periodEndDate: eventType.periodEndDate,
-      periodStartDate: eventType.periodStartDate,
-      periodCountCalendarDays: eventType.periodCountCalendarDays,
-    });
+    timeOutOfBounds = isOutOfBounds(
+      reqBody.start,
+      {
+        periodType: eventType.periodType,
+        periodDays: eventType.periodDays,
+        periodEndDate: eventType.periodEndDate,
+        periodStartDate: eventType.periodStartDate,
+        periodCountCalendarDays: eventType.periodCountCalendarDays,
+      },
+      eventType.minimumBookingNotice
+    );
   } catch (error) {
     loggerWithEventDetails.warn({
       message: "NewBooking: Unable set timeOutOfBounds. Using false. ",
@@ -1856,7 +1868,11 @@ async function handler(
             });
           }
 
-          if (googleCalResult?.createdEvent?.hangoutLink) {
+          const googleHangoutLink = Array.isArray(googleCalResult?.updatedEvent)
+            ? googleCalResult.updatedEvent[0]?.hangoutLink
+            : googleCalResult?.updatedEvent?.hangoutLink ?? googleCalResult?.createdEvent?.hangoutLink;
+
+          if (googleHangoutLink) {
             results.push({
               ...googleMeetResult,
               success: true,
@@ -1865,31 +1881,33 @@ async function handler(
             // Add google_meet to referencesToCreate in the same index as google_calendar
             updateManager.referencesToCreate[googleCalIndex] = {
               ...updateManager.referencesToCreate[googleCalIndex],
-              meetingUrl: googleCalResult.createdEvent.hangoutLink,
+              meetingUrl: googleHangoutLink,
             };
 
             // Also create a new referenceToCreate with type video for google_meet
             updateManager.referencesToCreate.push({
               type: "google_meet_video",
-              meetingUrl: googleCalResult.createdEvent.hangoutLink,
+              meetingUrl: googleHangoutLink,
               uid: googleCalResult.uid,
               credentialId: updateManager.referencesToCreate[googleCalIndex].credentialId,
             });
-          } else if (googleCalResult && !googleCalResult.createdEvent?.hangoutLink) {
+          } else if (googleCalResult && !googleHangoutLink) {
             results.push({
               ...googleMeetResult,
               success: false,
             });
           }
         }
-
-        metadata.hangoutLink = results[0].createdEvent?.hangoutLink;
-        metadata.conferenceData = results[0].createdEvent?.conferenceData;
-        metadata.entryPoints = results[0].createdEvent?.entryPoints;
+        const createdOrUpdatedEvent = Array.isArray(results[0]?.updatedEvent)
+          ? results[0]?.updatedEvent[0]
+          : results[0]?.updatedEvent ?? results[0]?.createdEvent;
+        metadata.hangoutLink = createdOrUpdatedEvent?.hangoutLink;
+        metadata.conferenceData = createdOrUpdatedEvent?.conferenceData;
+        metadata.entryPoints = createdOrUpdatedEvent?.entryPoints;
         evt.appsStatus = handleAppsStatus(results, booking, reqAppsStatus);
         videoCallUrl =
           metadata.hangoutLink ||
-          results[0].createdEvent?.url ||
+          createdOrUpdatedEvent?.url ||
           organizerOrFirstDynamicGroupMemberDefaultLocationUrl ||
           getVideoCallUrlFromCalEvent(evt) ||
           videoCallUrl;
