@@ -53,8 +53,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         lte: dayjs().add(7, "day").toISOString(),
       },
     },
-    select,
-  })) as PartialWorkflowReminder[];
+    select: {
+      ...select,
+      retryCount: true,
+    },
+  })) as (PartialWorkflowReminder & { retryCount: number })[];
 
   if (!unscheduledReminders.length) {
     res.json({ ok: true });
@@ -172,9 +175,26 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
               referenceId: scheduledSMS.sid,
             },
           });
+        } else {
+          await prisma.workflowReminder.update({
+            where: {
+              id: reminder.id,
+            },
+            data: {
+              retryCount: reminder.retryCount + 1,
+            },
+          });
         }
       }
     } catch (error) {
+      await prisma.workflowReminder.update({
+        where: {
+          id: reminder.id,
+        },
+        data: {
+          retryCount: reminder.retryCount + 1,
+        },
+      });
       console.log(`Error scheduling SMS with error ${error}`);
     }
   }
