@@ -57,8 +57,6 @@ export const getAllCredentials = async (
     user: user,
   });
 
-  console.log(profile);
-
   // If the user is a part of an organization, query for the organization's credentials
   if (profile?.organizationId) {
     const org = await prisma.team.findUnique({

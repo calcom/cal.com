@@ -16,6 +16,10 @@ import {
 
 describe("getAllCredentials", () => {
   test("Get an individual's credentials", async () => {
+    vi.spyOn(UserRepository, "enrichUserWithItsProfile").mockReturnValue({
+      profile: null,
+    });
+
     const getAllCredentials = (await import("./getAllCredentials")).getAllCredentials;
 
     const userCredential = {
@@ -56,6 +60,10 @@ describe("getAllCredentials", () => {
     describe("If CRM is enabled on the event type", () => {
       describe("With _crm credentials", () => {
         test("For users", async () => {
+          vi.spyOn(UserRepository, "enrichUserWithItsProfile").mockReturnValue({
+            profile: null,
+          });
+
           const getAllCredentials = (await import("./getAllCredentials")).getAllCredentials;
 
           const crmCredential = {
@@ -125,6 +133,10 @@ describe("getAllCredentials", () => {
           expect(credentials).toContainEqual(expect.objectContaining({ userId: 1, type: "salesforce_crm" }));
         });
         test("For teams", async () => {
+          vi.spyOn(UserRepository, "enrichUserWithItsProfile").mockReturnValue({
+            profile: null,
+          });
+
           const getAllCredentials = (await import("./getAllCredentials")).getAllCredentials;
 
           const crmCredential = {
@@ -187,6 +199,10 @@ describe("getAllCredentials", () => {
           expect(credentials).toContainEqual(expect.objectContaining({ teamId: 1, type: "salesforce_crm" }));
         });
         test("For child of managed event type", async () => {
+          vi.spyOn(UserRepository, "enrichUserWithItsProfile").mockReturnValue({
+            profile: null,
+          });
+
           const getAllCredentials = (await import("./getAllCredentials")).getAllCredentials;
 
           const teamId = 1;
