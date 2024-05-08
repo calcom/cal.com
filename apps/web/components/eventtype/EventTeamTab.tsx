@@ -399,8 +399,8 @@ export const EventTeamTab = ({
   });
   const isManagedEventType = eventType.schedulingType === SchedulingType.MANAGED;
   const [isOpenAssignmentWarnDialog, setIsOpenAssignmentWarnDialog] = useState<boolean>(false);
-  const [pendingRoute, setpendingRoute] = useState("");
-  const isConfirm = useRef(false);
+  const [pendingRoute, setPendingRoute] = useState("");
+  const leaveWithoutAssigningHosts = useRef(false);
   const { getValues, setValue } = useFormContext<FormValues>();
   const [assignAllTeamMembers, setAssignAllTeamMembers] = useState<boolean>(
     getValues("assignAllTeamMembers") ?? false
@@ -409,10 +409,17 @@ export const EventTeamTab = ({
 
   useEffect(() => {
     const handleRouteChange = (url: string) => {
-      if (getValues("hosts").length === 0 && getValues("children").length === 0 && !isConfirm.current) {
+      if (
+        getValues("hosts").length === 0 &&
+        getValues("children").length === 0 &&
+        !leaveWithoutAssigningHosts.current
+      ) {
         setIsOpenAssignmentWarnDialog(true);
-        setpendingRoute(url);
-        router.events.emit("routeChangeError", new Error(`Aborted route change to ${url}`));
+        setPendingRoute(url);
+        router.events.emit(
+          "routeChangeError",
+          new Error(`Aborted route change to ${url} because none was assigned to team event`)
+        );
         throw "Aborted";
       }
     };
@@ -470,7 +477,7 @@ export const EventTeamTab = ({
         isOpenAssignmentWarnDialog={isOpenAssignmentWarnDialog}
         setIsOpenAssignmentWarnDialog={setIsOpenAssignmentWarnDialog}
         pendingRoute={pendingRoute}
-        isConfirm={isConfirm}
+        leaveWithoutAssigningHosts={leaveWithoutAssigningHosts}
       />
     </div>
   );

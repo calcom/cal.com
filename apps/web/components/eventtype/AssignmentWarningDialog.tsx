@@ -5,15 +5,20 @@ import type { MutableRefObject } from "react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Dialog, ConfirmationDialogContent } from "@calcom/ui";
 
-interface IAssignmentWarningDialog {
+interface AssignmentWarningDialogProps {
   isOpenAssignmentWarnDialog: boolean;
   setIsOpenAssignmentWarnDialog: Dispatch<SetStateAction<boolean>>;
   pendingRoute: string;
-  isConfirm: MutableRefObject<boolean>;
+  leaveWithoutAssigningHosts: MutableRefObject<boolean>;
 }
-const AssignmentWarningDialog = (props: IAssignmentWarningDialog) => {
+const AssignmentWarningDialog = (props: AssignmentWarningDialogProps) => {
   const { t } = useLocale();
-  const { isOpenAssignmentWarnDialog, setIsOpenAssignmentWarnDialog, pendingRoute, isConfirm } = props;
+  const {
+    isOpenAssignmentWarnDialog,
+    setIsOpenAssignmentWarnDialog,
+    pendingRoute,
+    leaveWithoutAssigningHosts,
+  } = props;
   const router = useRouter();
   return (
     <Dialog open={isOpenAssignmentWarnDialog} onOpenChange={setIsOpenAssignmentWarnDialog}>
@@ -25,7 +30,7 @@ const AssignmentWarningDialog = (props: IAssignmentWarningDialog) => {
         onConfirm={(e) => {
           e.preventDefault();
           setIsOpenAssignmentWarnDialog(false);
-          isConfirm.current = true;
+          leaveWithoutAssigningHosts.current = true;
           router.replace(pendingRoute);
         }}>
         <div>
