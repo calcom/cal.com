@@ -23,6 +23,7 @@ import { getBatchId, sendSendgridMail } from "./providers/sendgridProvider";
 import type { AttendeeInBookingInfo, BookingInfo, timeUnitLowerCase } from "./smsReminderManager";
 import type { VariablesType } from "./templates/customTemplate";
 import customTemplate from "./templates/customTemplate";
+import emailRatingTemplate from "./templates/emailRatingTemplate";
 import emailReminderTemplate from "./templates/emailReminderTemplate";
 
 const log = logger.getSubLogger({ prefix: ["[emailReminderManager]"] });
@@ -198,8 +199,10 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
       additionalNotes: evt.additionalNotes,
       responses: evt.responses,
       meetingUrl: bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl,
-      cancelLink: `/booking/${evt.uid}?cancel=true`,
-      rescheduleLink: `/${evt.organizer.username}/${evt.eventType.slug}?rescheduleUid=${evt.uid}`,
+      cancelLink: `${evt.bookerUrl}/booking/${evt.uid}?cancel=true`,
+      rescheduleLink: `${evt.bookerUrl}/reschedule/${evt.uid}`,
+      ratingUrl: `${evt.bookerUrl}/booking/${evt.uid}?rating`,
+      noShowUrl: `${evt.bookerUrl}/booking/${evt.uid}?noShow=true`,
     };
 
     const locale =
@@ -228,6 +231,20 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
       attendeeName,
       name
     );
+  } else if (template === WorkflowTemplates.RATING) {
+    emailContent = emailRatingTemplate({
+      isEditingMode: true,
+      action,
+      timeFormat: evt.organizer.timeFormat,
+      startTime,
+      endTime,
+      eventName: evt.title,
+      timeZone,
+      organizer: evt.organizer.name,
+      name,
+      ratingUrl: `${evt.bookerUrl}/booking/${evt.uid}?rating`,
+      noShowUrl: `${evt.bookerUrl}/booking/${evt.uid}?noShow=true`,
+    });
   }
 
   // Allows debugging generated email content without waiting for sendgrid to send emails

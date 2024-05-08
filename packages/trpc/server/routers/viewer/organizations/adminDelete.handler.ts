@@ -19,10 +19,7 @@ export const adminDeleteHandler = async ({ input }: AdminDeleteOption) => {
   const foundOrg = await prisma.team.findUnique({
     where: {
       id: input.orgId,
-      metadata: {
-        path: ["isOrganization"],
-        equals: true,
-      },
+      isOrganization: true,
     },
     include: {
       members: {

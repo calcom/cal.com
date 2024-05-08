@@ -10,7 +10,10 @@ import type { OrderedResponses } from "../types/types";
 import type { Response, SerializableForm } from "../types/types";
 
 export async function onFormSubmission(
-  form: Ensure<SerializableForm<App_RoutingForms_Form> & { user: Pick<User, "id" | "email"> }, "fields">,
+  form: Ensure<
+    SerializableForm<App_RoutingForms_Form> & { user: Pick<User, "id" | "email">; userWithEmails?: string[] },
+    "fields"
+  >,
   response: Response
 ) {
   const fieldResponsesByName: Record<
@@ -71,19 +74,24 @@ export async function onFormSubmission(
     logger.debug(
       `Preparing to send Form Response email for Form:${form.id} to form owner: ${form.user.email}`
     );
-    await sendResponseEmail(form, orderedResponses, form.user.email);
+    await sendResponseEmail(form, orderedResponses, [form.user.email]);
+  } else if (form.userWithEmails?.length) {
+    logger.debug(
+      `Preparing to send Form Response email for Form:${form.id} to users: ${form.userWithEmails.join(",")}`
+    );
+    await sendResponseEmail(form, orderedResponses, form.userWithEmails);
   }
 }
 
 export const sendResponseEmail = async (
   form: Pick<App_RoutingForms_Form, "id" | "name">,
   orderedResponses: OrderedResponses,
-  ownerEmail: string
+  toAddresses: string[]
 ) => {
   try {
     if (typeof window === "undefined") {
       const { default: ResponseEmail } = await import("../emails/templates/response-email");
-      const email = new ResponseEmail({ form: form, toAddresses: [ownerEmail], orderedResponses });
+      const email = new ResponseEmail({ form: form, toAddresses, orderedResponses });
       await email.sendEmail();
     }
   } catch (e) {

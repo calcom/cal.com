@@ -148,6 +148,7 @@
   "2fa_confirm_current_password": "Bekreft ditt nåværende passord for å komme i gang.",
   "2fa_scan_image_or_use_code": "Skann bildet nedenfor med autentiseringsappen på telefonen eller skriv inn tekstkoden manuelt i stedet.",
   "text": "Tekst",
+  "your_phone_number": "Ditt Telefonnummer",
   "multiline_text": "Flerlinjetekst",
   "number": "Tall",
   "checkbox": "Avmerkingsboks",
@@ -787,7 +788,6 @@
   "verify_wallet": "Verifiser Lommebok",
   "create_events_on": "Opprett hendelser på",
   "enterprise_license": "Dette er en bedriftsfunksjon",
-  "enterprise_license_description": "For å aktivere denne funksjonen, skaff deg en distribusjonsnøkkel på {{consoleUrl}}-konsollen og legg den til i .env som CALCOM_LICENSE_KEY. Hvis teamet ditt allerede har en lisens, vennligst kontakt {{supportMail}} for å få hjelp.",
   "missing_license": "Mangler Lisens",
   "next_steps": "Neste Skritt",
   "acquire_commercial_license": "Skaff en kommersiell lisens",
@@ -1388,5 +1388,6 @@
   "sso_configuration": "Enkel Pålogging",
   "booking_confirmation_failed": "Booking-bekreftelse feilet",
   "timezone_variable": "Tidssone",
-  "need_help": "Trenger du hjelp?"
+  "need_help": "Trenger du hjelp?",
+  "email_team_invite|subject|invited_to_regular_team": "{{user}} inviterte deg til å bli med i teamet {{team}} på {{appName}}"
 }

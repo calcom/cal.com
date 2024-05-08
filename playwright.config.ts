@@ -85,6 +85,10 @@ const config: PlaywrightTestConfig = {
     locale: "en-US",
     trace: "retain-on-failure",
     headless,
+    // chromium-specific permissions - Chromium seems to be the only browser type that requires perms
+    contextOptions: {
+      permissions: ["clipboard-read", "clipboard-write"],
+    },
   },
   projects: [
     {

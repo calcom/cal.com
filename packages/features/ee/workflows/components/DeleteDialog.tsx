@@ -15,7 +15,7 @@ interface IDeleteDialog {
 export const DeleteDialog = (props: IDeleteDialog) => {
   const { t } = useLocale();
   const { isOpenDialog, setIsOpenDialog, workflowId, additionalFunction } = props;
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
 
   const deleteMutation = trpc.viewer.workflows.delete.useMutation({
     onSuccess: async () => {

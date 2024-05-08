@@ -1,5 +1,3 @@
-import { CalendarSearch } from "lucide-react";
-
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, Dialog, DialogContent, DialogFooter } from "@calcom/ui";
@@ -26,7 +24,7 @@ export function OverlayCalendarContinueModal(props: IOverlayCalendarContinueModa
                 props.onContinue();
               }}
               className="gap w-full items-center justify-center font-semibold"
-              StartIcon={CalendarSearch}>
+              StartIcon="calendar-search">
               {t("continue_with", { appName: APP_NAME })}
             </Button>
           </div>

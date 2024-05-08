@@ -1,10 +1,10 @@
 import { keepPreviousData } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
-import { Plus } from "lucide-react";
 import { useSession } from "next-auth/react";
-import { useCallback, useEffect, useMemo, useReducer, useRef } from "react";
+import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
@@ -26,6 +26,7 @@ export interface User {
   email: string;
   timeZone: string;
   role: MembershipRole;
+  avatarUrl: string | null;
   accepted: boolean;
   disableImpersonation: boolean;
   completedOnboarding: boolean;
@@ -109,24 +110,26 @@ function reducer(state: State, action: Action): State {
 
 export function UserListTable() {
   const { data: session } = useSession();
-  const { data: currentMembership } = trpc.viewer.organizations.listCurrent.useQuery();
+  const { data: org } = trpc.viewer.organizations.listCurrent.useQuery();
+  const { data: teams } = trpc.viewer.organizations.getTeams.useQuery();
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const [state, dispatch] = useReducer(reducer, initialState);
   const { t } = useLocale();
   const orgBranding = useOrgBranding();
-
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const { data, isPending, fetchNextPage, isFetching } =
     trpc.viewer.organizations.listMembers.useInfiniteQuery(
       {
         limit: 10,
+        searchTerm: debouncedSearchTerm,
       },
       {
         getNextPageParam: (lastPage) => lastPage.nextCursor,
         placeholderData: keepPreviousData,
       }
     );
-
-  const adminOrOwner = currentMembership?.user.role === "ADMIN" || currentMembership?.user.role === "OWNER";
+  const totalDBRowCount = data?.pages?.[0]?.meta?.totalRowCount ?? 0;
+  const adminOrOwner = org?.user.role === "ADMIN" || org?.user.role === "OWNER";
   const domain = orgBranding?.fullDomain ?? WEBAPP_URL;
 
   const memorisedColumns = useMemo(() => {
@@ -160,12 +163,18 @@ export function UserListTable() {
       {
         id: "member",
         accessorFn: (data) => data.email,
-        header: "Member",
+        header: `Member (${totalDBRowCount})`,
         cell: ({ row }) => {
-          const { username, email } = row.original;
+          const { username, email, avatarUrl } = row.original;
           return (
             <div className="flex items-center gap-2">
-              <Avatar size="sm" alt={username || email} imageSrc={`${domain}/${username}/avatar.png`} />
+              <Avatar
+                size="sm"
+                alt={username || email}
+                imageSrc={getUserAvatarUrl({
+                  avatarUrl,
+                })}
+              />
               <div className="">
                 <div
                   data-testid={`member-${username}-username`}
@@ -205,13 +214,20 @@ export function UserListTable() {
           );
         },
         filterFn: (rows, id, filterValue) => {
+          if (filterValue.includes("PENDING")) {
+            if (filterValue.length === 1) return !rows.original.accepted;
+            else return !rows.original.accepted || filterValue.includes(rows.getValue(id));
+          }
+
+          // Show only the selected roles
           return filterValue.includes(rows.getValue(id));
         },
       },
       {
         id: "teams",
+        accessorFn: (data) => data.teams.map((team) => team.name),
         header: "Teams",
-        cell: ({ row }) => {
+        cell: ({ row, table }) => {
           const { teams, accepted, email, username } = row.original;
           // TODO: Implement click to filter
           return (
@@ -221,17 +237,29 @@ export function UserListTable() {
                   data-testid2={`member-${username}-pending`}
                   variant="red"
                   className="text-xs"
-                  data-testid={`email-${email.replace("@", "")}-pending`}>
+                  data-testid={`email-${email.replace("@", "")}-pending`}
+                  onClick={() => {
+                    table.getColumn("role")?.setFilterValue(["PENDING"]);
+                  }}>
                   Pending
                 </Badge>
               )}
               {teams.map((team) => (
-                <Badge key={team.id} variant="gray">
+                <Badge
+                  key={team.id}
+                  variant="gray"
+                  onClick={() => {
+                    table.getColumn("teams")?.setFilterValue([team.name]);
+                  }}>
                   {team.name}
                 </Badge>
               ))}
             </div>
           );
+        },
+        filterFn: (rows, _, filterValue: string[]) => {
+          const teamNames = rows.original.teams.map((team) => team.name);
+          return filterValue.some((value: string) => teamNames.includes(value));
         },
       },
       {
@@ -244,7 +272,8 @@ export function UserListTable() {
           const permissionsForUser = {
             canEdit: permissionsRaw.canEdit && user.accepted && !isSelf,
             canRemove: permissionsRaw.canRemove && !isSelf,
-            canImpersonate: user.accepted && !user.disableImpersonation && !isSelf,
+            canImpersonate:
+              user.accepted && !user.disableImpersonation && !isSelf && !!org?.canAdminImpersonate,
             canLeave: user.accepted && isSelf,
             canResendInvitation: permissionsRaw.canResendInvitation && !user.accepted,
           };
@@ -262,11 +291,10 @@ export function UserListTable() {
     ];
 
     return cols;
-  }, [session?.user.id, adminOrOwner, dispatch, domain]);
+  }, [session?.user.id, adminOrOwner, dispatch, domain, totalDBRowCount]);
 
   //we must flatten the array of arrays from the useInfiniteQuery hook
   const flatData = useMemo(() => data?.pages?.flatMap((page) => page.rows) ?? [], [data]) as User[];
-  const totalDBRowCount = data?.pages?.[0]?.meta?.totalRowCount ?? 0;
   const totalFetched = flatData.length;
 
   //called on scroll and possibly on mount to fetch more data as the user scrolls and reaches bottom of table
@@ -290,7 +318,8 @@ export function UserListTable() {
   return (
     <>
       <DataTable
-        searchKey="member"
+        data-testId="user-list-data-table"
+        onSearch={(value) => setDebouncedSearchTerm(value)}
         selectionOptions={[
           {
             type: "render",
@@ -312,7 +341,7 @@ export function UserListTable() {
             <Button
               type="button"
               color="primary"
-              StartIcon={Plus}
+              StartIcon="plus"
               size="sm"
               className="rounded-md"
               onClick={() =>
@@ -340,7 +369,13 @@ export function UserListTable() {
               { label: "Owner", value: "OWNER" },
               { label: "Admin", value: "ADMIN" },
               { label: "Member", value: "MEMBER" },
+              { label: "Pending", value: "PENDING" },
             ],
+          },
+          {
+            tableAccessor: "teams",
+            title: "Teams",
+            options: teams ? teams.map((team) => ({ label: team.name, value: team.name })) : [],
           },
         ]}
       />

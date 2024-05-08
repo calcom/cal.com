@@ -3,18 +3,21 @@ import { useState } from "react";
 import { useFilterQuery } from "@calcom/features/bookings/lib/useFilterQuery";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import {
-  FilterCheckboxFieldsContainer,
   FilterCheckboxField,
+  FilterCheckboxFieldsContainer,
 } from "@calcom/features/filters/components/TeamsFilter";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { AnimatedPopover, Avatar, Divider, FilterSearchField } from "@calcom/ui";
-import { User } from "@calcom/ui/components/icon";
+import { AnimatedPopover, Avatar, Divider, FilterSearchField, Icon } from "@calcom/ui";
 
 export const PeopleFilter = () => {
   const { t } = useLocale();
   const orgBranding = useOrgBranding();
+
+  const { data: currentOrg } = trpc.viewer.organizations.listCurrent.useQuery();
+  const isAdmin = currentOrg?.user.role === "ADMIN" || currentOrg?.user.role === "OWNER";
+  const hasPermToView = !currentOrg?.isPrivate || isAdmin;
 
   const { data: query, pushItemToKey, removeItemByKeyAndValue, removeAllQueryParams } = useFilterQuery();
   const [searchText, setSearchText] = useState("");
@@ -38,12 +41,16 @@ export const PeopleFilter = () => {
     return `${t("all")}`;
   };
 
+  if (!hasPermToView) {
+    return null;
+  }
+
   return (
     <AnimatedPopover text={getTextForPopover()} prefix={`${t("people")}: `}>
       <FilterCheckboxFieldsContainer>
         <FilterCheckboxField
           id="all"
-          icon={<User className="h-4 w-4" />}
+          icon={<Icon name="user" className="h-4 w-4" />}
           checked={!query.userIds?.length}
           onChange={removeAllQueryParams}
           label={t("all_users_filter_label")}

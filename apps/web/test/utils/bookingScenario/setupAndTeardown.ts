@@ -16,7 +16,7 @@ export function setupAndTeardown() {
     // process.env.DAILY_API_KEY = "MOCK_DAILY_API_KEY";
 
     // Ensure that Rate Limiting isn't enforced for tests
-    delete process.env.UPSTASH_REDIS_REST_URL;
+    delete process.env.UNKEY_ROOT_KEY;
     mockNoTranslations();
     // mockEnableEmailFeature();
     enableEmailFeature();

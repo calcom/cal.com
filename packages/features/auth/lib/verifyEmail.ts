@@ -19,9 +19,15 @@ interface VerifyEmailType {
   username?: string;
   email: string;
   language?: string;
+  secondaryEmailId?: number;
 }
 
-export const sendEmailVerification = async ({ email, language, username }: VerifyEmailType) => {
+export const sendEmailVerification = async ({
+  email,
+  language,
+  username,
+  secondaryEmailId,
+}: VerifyEmailType) => {
   const token = randomBytes(32).toString("hex");
   const translation = await getTranslation(language ?? "en", "common");
   const emailVerification = await getFeatureFlag(prisma, "email-verification");
@@ -41,6 +47,7 @@ export const sendEmailVerification = async ({ email, language, username }: Verif
       identifier: email,
       token,
       expires: new Date(Date.now() + 24 * 3600 * 1000), // +1 day
+      secondaryEmailId: secondaryEmailId || null,
     },
   });
 
@@ -55,6 +62,7 @@ export const sendEmailVerification = async ({ email, language, username }: Verif
       email,
       name: username,
     },
+    isSecondaryEmailVerification: !!secondaryEmailId,
   });
 
   return { ok: true, skipped: false };

@@ -12,8 +12,8 @@ import { z } from "zod";
 import checkForMultiplePaymentApps from "@calcom/app-store/_utils/payments/checkForMultiplePaymentApps";
 import { getEventLocationType } from "@calcom/app-store/locations";
 import { validateCustomEventName } from "@calcom/core/event";
-import type { EventLocationType } from "@calcom/core/location";
 import type { ChildrenEventType } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
+import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import { validateIntervalLimitOrder } from "@calcom/lib";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -22,24 +22,53 @@ import { HttpError } from "@calcom/lib/http-error";
 import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import type { Prisma } from "@calcom/prisma/client";
-import type { PeriodType, SchedulingType } from "@calcom/prisma/enums";
-import type {
-  BookerLayoutSettings,
-  customInputSchema,
-  EventTypeMetaDataSchema,
-} from "@calcom/prisma/zod-utils";
+import type { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import type { IntervalLimit, RecurringEvent } from "@calcom/types/Calendar";
 import { Form, showToast } from "@calcom/ui";
 
 import type { AppProps } from "@lib/app-providers";
 
-import type { AvailabilityOption } from "@components/eventtype/EventAvailabilityTab";
 import { EventTypeSingleLayout } from "@components/eventtype/EventTypeSingleLayout";
 
 import { type PageProps } from "~/event-types/views/event-types-single-view.getServerSideProps";
+
+const DEFAULT_PROMPT_VALUE = `## You are helping user set up a call with the support team. The appointment is 15 min long. You are a pleasant and friendly.
+
+  ## Style Guardrails
+  Be Concise: Respond succinctly, addressing one topic at most.
+  Embrace Variety: Use diverse language and rephrasing to enhance clarity without repeating content.
+  Be Conversational: Use everyday language, making the chat feel like talking to a friend.
+  Be Proactive: Lead the conversation, often wrapping up with a question or next-step suggestion.
+  Avoid multiple questions in a single response.
+  Get clarity: If the user only partially answers a question, or if the answer is unclear, keep asking to get clarity.
+  Use a colloquial way of referring to the date (like Friday, Jan 14th, or Tuesday, Jan 12th, 2024 at 8am).
+  If you are saying a time like 8:00 AM, just say 8 AM and emit the trailing zeros.
+
+  ## Response Guideline
+  Adapt and Guess: Try to understand transcripts that may contain transcription errors. Avoid mentioning \"transcription error\" in the response.
+  Stay in Character: Keep conversations within your role'''s scope, guiding them back creatively without repeating.
+  Ensure Fluid Dialogue: Respond in a role-appropriate, direct manner to maintain a smooth conversation flow.
+
+  ## Schedule Rule
+  Current time is {{current_time}}. You only schedule time in current calendar year, you cannot schedule time that'''s in the past.
+
+  ## Task Steps
+  1. I am here to learn more about your issue and help schedule an appointment with our support team.
+  2. If {{email}} is not unknown then Use name {{name}} and email {{email}} for creating booking else Ask for user name and email and Confirm the name and email with user by reading it back to user.
+  3. Ask user for \"When would you want to meet with one of our representive\".
+  4. Call function check_availability to check for availability in the user provided time range.
+    - if availability exists, inform user about the availability range (do not repeat the detailed available slot) and ask user to choose from it. Make sure user chose a slot within detailed available slot.
+    - if availability does not exist, ask user to select another time range for the appointment, repeat this step 3.
+  5. Confirm the date and time selected by user: \"Just to confirm, you want to book the appointment at ...\".
+  6. Once confirmed, call function book_appointment to book the appointment.
+    - if booking returned booking detail, it means booking is successful, proceed to step 7.
+    - if booking returned error message, let user know why the booking was not successful, and maybe start over with step 3.
+  7. Inform the user booking is successful, and ask if user have any questions. Answer them if there are any.
+  8. After all questions answered, call function end_call to hang up.`;
+
+const DEFAULT_BEGIN_MESSAGE = "Hi. How are you doing?";
 
 // These can't really be moved into calcom/ui due to the fact they use infered getserverside props typings;
 const EventSetupTab = dynamic(() =>
@@ -80,76 +109,11 @@ const EventWebhooksTab = dynamic(() =>
   import("@components/eventtype/EventWebhooksTab").then((mod) => mod.EventWebhooksTab)
 );
 
+const EventAITab = dynamic(() => import("@components/eventtype/EventAITab").then((mod) => mod.EventAITab));
+
 const ManagedEventTypeDialog = dynamic(() => import("@components/eventtype/ManagedEventDialog"));
 
 export type Host = { isFixed: boolean; userId: number; priority: number };
-
-export type FormValues = {
-  id: number;
-  title: string;
-  eventTitle: string;
-  eventName: string;
-  slug: string;
-  isInstantEvent: boolean;
-  length: number;
-  offsetStart: number;
-  description: string;
-  disableGuests: boolean;
-  lockTimeZoneToggleOnBookingPage: boolean;
-  requiresConfirmation: boolean;
-  requiresBookerEmailVerification: boolean;
-  recurringEvent: RecurringEvent | null;
-  schedulingType: SchedulingType | null;
-  hidden: boolean;
-  hideCalendarNotes: boolean;
-  hashedLink: string | undefined;
-  locations: {
-    type: EventLocationType["type"];
-    address?: string;
-    attendeeAddress?: string;
-    link?: string;
-    hostPhoneNumber?: string;
-    displayLocationPublicly?: boolean;
-    phone?: string;
-    hostDefault?: string;
-    credentialId?: number;
-    teamName?: string;
-  }[];
-  customInputs: CustomInputParsed[];
-  schedule: number | null;
-  periodType: PeriodType;
-  periodDays: number;
-  periodCountCalendarDays: boolean;
-  periodDates: { startDate: Date; endDate: Date };
-  seatsPerTimeSlot: number | null;
-  seatsShowAttendees: boolean | null;
-  seatsShowAvailabilityCount: boolean | null;
-  seatsPerTimeSlotEnabled: boolean;
-  scheduleName: string;
-  minimumBookingNotice: number;
-  minimumBookingNoticeInDurationType: number;
-  beforeEventBuffer: number;
-  afterEventBuffer: number;
-  slotInterval: number | null;
-  metadata: z.infer<typeof EventTypeMetaDataSchema>;
-  destinationCalendar: {
-    integration: string;
-    externalId: string;
-  };
-  successRedirectUrl: string;
-  durationLimits?: IntervalLimit;
-  bookingLimits?: IntervalLimit;
-  onlyShowFirstAvailableSlot: boolean;
-  children: ChildrenEventType[];
-  hosts: Host[];
-  bookingFields: z.infer<typeof eventTypeBookingFields>;
-  availability?: AvailabilityOption;
-  bookerLayouts: BookerLayoutSettings;
-  multipleDurationEnabled: boolean;
-  users: EventTypeSetup["users"];
-  assignAllTeamMembers: boolean;
-  useEventTypeDestinationCalendarEmail: boolean;
-};
 
 export type CustomInputParsed = typeof customInputSchema._output;
 
@@ -166,6 +130,7 @@ const querySchema = z.object({
       "advanced",
       "workflows",
       "webhooks",
+      "ai",
     ])
     .optional()
     .default("setup"),
@@ -176,7 +141,7 @@ export type EventTypeSetup = RouterOutputs["viewer"]["eventTypes"]["get"]["event
 
 const EventTypePage = (props: EventTypeSetupProps) => {
   const { t } = useLocale();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const telemetry = useTelemetry();
   const {
     data: { tabName },
@@ -300,8 +265,10 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       metadata,
       hosts: eventType.hosts,
       successRedirectUrl: eventType.successRedirectUrl || "",
+      forwardParamsSuccessRedirect: eventType.forwardParamsSuccessRedirect,
       users: eventType.users,
       useEventTypeDestinationCalendarEmail: eventType.useEventTypeDestinationCalendarEmail,
+      secondaryEmailId: eventType?.secondaryEmailId || -1,
       children: eventType.children.map((ch) => ({
         ...ch,
         created: true,
@@ -316,6 +283,16 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       })),
       seatsPerTimeSlotEnabled: eventType.seatsPerTimeSlot,
       assignAllTeamMembers: eventType.assignAllTeamMembers,
+      aiPhoneCallConfig: {
+        generalPrompt: eventType.aiPhoneCallConfig?.generalPrompt ?? DEFAULT_PROMPT_VALUE,
+        enabled: eventType.aiPhoneCallConfig?.enabled,
+        beginMessage: eventType.aiPhoneCallConfig?.beginMessage ?? DEFAULT_BEGIN_MESSAGE,
+        guestName: eventType.aiPhoneCallConfig?.guestName,
+        guestEmail: eventType.aiPhoneCallConfig?.guestEmail,
+        guestCompany: eventType.aiPhoneCallConfig?.guestCompany,
+        yourPhoneNumber: eventType.aiPhoneCallConfig?.yourPhoneNumber,
+        numberToCall: eventType.aiPhoneCallConfig?.numberToCall,
+      },
     };
   }, [eventType, periodDates, metadata]);
   const formMethods = useForm<FormValues>({
@@ -436,7 +413,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
     ),
     availability: <EventAvailabilityTab eventType={eventType} isTeamEvent={!!team} />,
     team: <EventTeamTab teamMembers={teamMembers} team={team} eventType={eventType} />,
-    limits: <EventLimitsTab />,
+    limits: <EventLimitsTab eventType={eventType} />,
     advanced: <EventAdvancedTab eventType={eventType} team={team} />,
     instant: <EventInstantTab eventType={eventType} isTeamEvent={!!team} />,
     recurring: <EventRecurringTab eventType={eventType} />,
@@ -448,6 +425,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       />
     ),
     webhooks: <EventWebhooksTab eventType={eventType} />,
+    ai: <EventAITab eventType={eventType} isTeamEvent={!!team} />,
   } as const;
   const isObject = <T,>(value: T): boolean => {
     return value !== null && typeof value === "object" && !Array.isArray(value);
@@ -790,7 +768,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
             }, {});
 
             if (dirtyFieldExists) {
-              updateMutation.mutate({ ...filteredPayload, id: eventType.id });
+              updateMutation.mutate({ ...filteredPayload, id: eventType.id, hashedLink: values.hashedLink });
             }
           }}>
           <div ref={animationParentRef}>{tabMap[tabName]}</div>

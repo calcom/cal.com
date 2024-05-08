@@ -30,6 +30,7 @@ export interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   searchKey?: string;
+  onSearch?: (value: string) => void;
   filterableItems?: FilterableItems;
   selectionOptions?: ActionItem<TData>[];
   tableCTA?: React.ReactNode;
@@ -39,6 +40,7 @@ export interface DataTableProps<TData, TValue> {
   CTA?: React.ReactNode;
   tableOverlay?: React.ReactNode;
   variant?: "default" | "compact";
+  "data-testId"?: string;
 }
 
 export function DataTable<TData, TValue>({
@@ -53,8 +55,10 @@ export function DataTable<TData, TValue>({
   tableOverlay,
   variant,
   /** This should only really be used if you dont have actions in a row. */
+  onSearch,
   onRowMouseclick,
   onScroll,
+  ...rest
 }: DataTableProps<TData, TValue>) {
   const [rowSelection, setRowSelection] = useState({});
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
@@ -102,10 +106,11 @@ export function DataTable<TData, TValue>({
         table={table}
         filterableItems={filterableItems}
         searchKey={searchKey}
+        onSearch={onSearch}
         tableCTA={tableCTA}
       />
-      <div ref={tableContainerRef} onScroll={onScroll}>
-        <Table>
+      <div ref={tableContainerRef} onScroll={onScroll} data-testId={rest["data-testId"] ?? "data-table"}>
+        <Table data-testId="">
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
