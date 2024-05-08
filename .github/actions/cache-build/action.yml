@@ -11,11 +11,14 @@ runs:
       uses: buildjet/cache@v3
       id: cache-build
       env:
+        # WARN: Don't touch this cache key. Currently github.sha refers to the latest commit in main
+        # and not the branch that's attempting to merge to main, which causes CI errors when merged
+        # to main.
+        # TODO: Fix this problem if intending to modify this cache key.
         cache-name: prod-build
         key-1: ${{ inputs.node_version }}-${{ hashFiles('yarn.lock') }}
         key-2: ${{ hashFiles('apps/**/**.[jt]s', 'apps/**/**.[jt]sx', 'packages/**/**.[jt]s', 'packages/**/**.[jt]sx', '!**/node_modules') }}
         key-3: ${{ github.event.pull_request.number || github.ref }}
-        # Ensures production-build.yml will always be fresh
         key-4: ${{ github.sha }}
       with:
         path: |
