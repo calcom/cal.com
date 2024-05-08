@@ -49,3 +49,13 @@ export const userSchemaResponse = z.object({
 });
 
 export type UserResponse = z.infer<typeof userSchemaResponse>;
+
+export class OAuthClientManagedUsersInput {
+  @IsOptional()
+  @IsNumber()
+  offset?: number;
+
+  @IsOptional()
+  @IsNumber()
+  limit?: number;
+}
