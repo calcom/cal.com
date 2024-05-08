@@ -26,7 +26,7 @@ export const platformPlans: IndividualPlatformPlan[] = [
       "Your essential package with sophisticated support, hosted platform APIs, Cal.com Atoms (React components) and more.",
     pricing: 299,
     includes: [
-      "Up to 500 bookings a month. $0,60 overage beyondh",
+      "Up to 500 bookings a month. $0,60 overage beyond",
       "Everything in Starter",
       "Cal Atoms (React Library)",
       "User Management and Analytics",
@@ -52,11 +52,6 @@ export const platformPlans: IndividualPlatformPlan[] = [
   {
     plan: "Enterprise",
     description: "Everything in Scale with generous volume discounts beyond 50,000 bookings a month.",
-    includes: [
-      "Beyond 50,000 bookings a month",
-      "Everything in Scale",
-      "Cal Atoms (React Library)",
-      "Up to 50% discount on overages",
-    ],
+    includes: ["Beyond 50,000 bookings a month", "Everything in Scale", "Up to 50% discount on overages"],
   },
 ];
