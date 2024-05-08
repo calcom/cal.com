@@ -104,6 +104,7 @@ export function useInitialFormValues({
 
       const defaults = {
         responses: {} as Partial<z.infer<ReturnType<typeof getBookingResponsesSchema>>>,
+        bookingId: bookingData?.id,
       };
 
       const responses = eventType.bookingFields.reduce((responses, field) => {
@@ -126,6 +127,7 @@ export function useInitialFormValues({
     formValues,
     isRescheduling,
     bookingData,
+    bookingData?.id,
     rescheduleUid,
     email,
     name,
@@ -134,7 +136,8 @@ export function useInitialFormValues({
   ]);
 
   // When initialValues is available(after doing async schema parsing) or session is available(so that we can prefill logged-in user email and name), we need to reset the form with the initialValues
-  const key = `${Object.keys(initialValues).length}_${hasSession ? 1 : 0}`;
+  // We also need the key to change if the bookingId changes, so that the form is reset and rerendered with the new initialValues
+  const key = `${Object.keys(initialValues).length}_${hasSession ? 1 : 0}_${initialValues?.bookingId ?? 0}`;
 
   return { initialValues, key };
 }

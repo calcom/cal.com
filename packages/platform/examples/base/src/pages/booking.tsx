@@ -85,10 +85,6 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
               router.push(`/${data.data.uid}`);
             }}
             duration={eventTypeDuration}
-            entity={{
-              orgSlug: "ecorp",
-              considerUnpublished: false,
-            }}
           />
         )}
         {bookingTitle && <p>Booking created: {bookingTitle}</p>}
