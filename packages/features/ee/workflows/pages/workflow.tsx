@@ -199,7 +199,6 @@ function WorkflowPage() {
           "success"
         );
       }
-      router.push("/workflows");
     },
     onError: (err) => {
       if (err instanceof HttpError) {

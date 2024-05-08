@@ -11,7 +11,7 @@ import { WorkflowTemplates } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui";
-import { Button, Icon, Label, MultiSelectCheckboxes, TextField } from "@calcom/ui";
+import { Button, Icon, Label, MultiSelectCheckboxes, TextField, CheckboxField } from "@calcom/ui";
 
 import { isSMSAction, isWhatsappAction } from "../lib/actionHelperFunctions";
 import type { FormValues } from "../pages/workflow";
@@ -152,7 +152,7 @@ export default function WorkflowDetailsPage(props: Props) {
               {...form.register("name")}
             />
           </div>
-          {isOrg ? <Label>{t("which_team_apply")}</Label> : <Label>{t("which_event_type_apply")}</Label>}
+          <Label>{isOrg ? t("which_team_apply") : t("which_event_type_apply")}</Label>
           <Controller
             name="activeOn"
             control={form.control}
@@ -172,6 +172,19 @@ export default function WorkflowDetailsPage(props: Props) {
               );
             }}
           />
+          <div className="mt-3">
+            <Controller
+              name="selectAll"
+              render={({ field: { value, onChange } }) => (
+                <CheckboxField
+                  description={isOrg ? t("apply_to_all_event_types") : t("apply_to_all_teams")}
+                  disabled={props.readOnly}
+                  onChange={(e) => onChange(e)}
+                  checked={value}
+                />
+              )}
+            />
+          </div>
           <div className="md:border-subtle my-7 border-transparent md:border-t" />
           {!props.readOnly && (
             <Button
