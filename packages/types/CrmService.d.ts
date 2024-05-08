@@ -4,6 +4,8 @@ export interface CrmData {
   id: string;
   type: string;
   credentialId: number;
+  password?: string;
+  url?: string;
 }
 
 export interface ContactCreateInput {

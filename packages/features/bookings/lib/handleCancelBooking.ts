@@ -77,8 +77,10 @@ async function getBookingToDelete(id: number | undefined, uid: string | undefine
             select: {
               id: true,
               name: true,
+              parentId: true,
             },
           },
+          parentId: true,
           userId: true,
           recurringEvent: true,
           title: true,
@@ -106,7 +108,6 @@ async function getBookingToDelete(id: number | undefined, uid: string | undefine
               },
             },
           },
-          parentId: true,
         },
       },
       uid: true,
@@ -203,7 +204,7 @@ async function handler(req: CustomRequest) {
     },
     select: {
       id: true,
-      username:true,
+      username: true,
       name: true,
       email: true,
       timeZone: true,
@@ -278,8 +279,8 @@ async function handler(req: CustomRequest) {
     destinationCalendar: bookingToDelete?.destinationCalendar
       ? [bookingToDelete?.destinationCalendar]
       : bookingToDelete?.user.destinationCalendar
-        ? [bookingToDelete?.user.destinationCalendar]
-        : [],
+      ? [bookingToDelete?.user.destinationCalendar]
+      : [],
     cancellationReason: cancellationReason,
     ...(teamMembers && {
       team: { name: bookingToDelete?.eventType?.team?.name || "Nameless", members: teamMembers, id: teamId! },
