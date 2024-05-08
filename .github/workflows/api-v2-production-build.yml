@@ -45,8 +45,6 @@ jobs:
           key-4: ${{ github.sha }}
         with:
           path: |
-            ${{ github.workspace }}/apps/api/v2/.next
-            **/.turbo/**
             **/dist/**
           key: ${{ runner.os }}-${{ env.cache-name }}-${{ env.key-1 }}-${{ env.key-2 }}-${{ env.key-3 }}-${{ env.key-4 }}
       - run: |
