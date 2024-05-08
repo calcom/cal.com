@@ -1459,6 +1459,54 @@ export function mockErrorOnVideoMeetingCreation({
   });
 }
 
+export function mockCrmApp(
+  metadataLookupKey: string,
+  crmData?: {
+    createContacts?: {
+      id: string;
+      email: string;
+    }[];
+    getContacts: {
+      id: string;
+      email: string;
+    }[];
+  }
+) {
+  const contactsCreated = [];
+  const contactsQueried = [];
+  const eventsCreated = [];
+  const app = appStoreMetadata[metadataLookupKey as keyof typeof appStoreMetadata];
+  console.log("app", app);
+  const appMock = appStoreMock.default[metadataLookupKey as keyof typeof appStoreMock.default];
+  console.log("appMock", appMock);
+  appMock.mockResolvedValue({
+    lib: {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      //@ts-ignore
+      CrmService: () => ({
+        createContact: () => {
+          contactsCreated.push(crmData?.createContacts);
+          return Promise.resolve(crmData?.createContacts);
+        },
+        getContacts: () => {
+          contactsQueried.push(crmData?.getContacts);
+          return Promise.resolve(crmData?.getContacts);
+        },
+        createEvent: () => {
+          eventsCreated.push(true);
+          return Promise.resolve({});
+        },
+      }),
+    },
+  });
+
+  return {
+    contactsCreated,
+    contactsQueried,
+    eventsCreated,
+  };
+}
+
 export function getBooker({ name, email }: { name: string; email: string }) {
   return {
     name,
