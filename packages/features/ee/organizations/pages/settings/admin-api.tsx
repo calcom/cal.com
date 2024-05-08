@@ -12,7 +12,7 @@ const AdminAPIViewWrapper = () => {
   const features = [
     {
       icon: <Icon name="terminal" className="h-5 w-5 text-pink-500" />,
-      title: "Admin API",
+      title: t("admin_api"),
       description: t("leverage_our_api"),
     },
     {

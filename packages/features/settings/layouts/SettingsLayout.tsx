@@ -100,7 +100,7 @@ const tabs: VerticalTabItemProps[] = [
         href: "/settings/organizations/dsync",
       },
       {
-        name: "Admin API",
+        name: "admin_api",
         href: "/settings/organizations/admin-api",
       },
     ],
