@@ -28,10 +28,19 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   //delete all scheduled sms reminders where scheduled date is past current date
   await prisma.workflowReminder.deleteMany({
     where: {
-      method: WorkflowMethods.SMS,
-      scheduledDate: {
-        lte: dayjs().toISOString(),
-      },
+      OR: [
+        {
+          method: WorkflowMethods.SMS,
+          scheduledDate: {
+            lte: dayjs().toISOString(),
+          },
+        },
+        {
+          retryCount: {
+            gt: 1,
+          },
+        },
+      ],
     },
   });
 
