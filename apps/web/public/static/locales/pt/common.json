@@ -2250,7 +2250,7 @@
   "advanced_managed_events_description": "Adicione um único cartão de crédito para pagar todas as subscrições da sua equipa",
   "enterprise_description": "Atualize para Enterprise para criar a sua Organização",
   "create_your_org": "Crie a sua Organização",
-  "create_your_org_description": "Atualize para Enterprise e receba um subdomínio, faturação unificada, Insights, personalização abrangente da imagem corporativa e muito mais",
+  "create_your_org_description": "Atualize para Organizations e receba um subdomínio, faturação unificada, Insights, personalização abrangente da imagem corporativa e muito mais",
   "other_payment_app_enabled": "Só pode ativar uma aplicação de pagamento por tipo de evento",
   "admin_delete_organization_description": "<ul><li>As equipas que são membros desta organização também serão eliminadas, em conjunto com os respetivos tipos de evento</li><li>Utilizadores que faziam parte da organização não serão eliminados e os seus tipos de evento também permanecerão intactos.</li><li>Os nomes de utilizador serão alterados para permitir que possam existir fora da organização</li></ul>",
   "admin_delete_organization_title": "Eliminar {{organizationName}}?",

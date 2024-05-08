@@ -126,6 +126,21 @@ testBothFutureAndLegacyRoutes.describe("pro user", () => {
     });
   });
 
+  test("it redirects when a rescheduleUid does not match the current event type", async ({
+    page,
+    users,
+    bookings,
+  }) => {
+    const [pro] = users.get();
+    const [eventType] = pro.eventTypes;
+    const bookingFixture = await bookings.create(pro.id, pro.username, eventType.id);
+
+    // open the wrong eventType (rescheduleUid created for /30min event)
+    await page.goto(`${pro.username}/${pro.eventTypes[1].slug}?rescheduleUid=${bookingFixture.uid}`);
+
+    await expect(page).toHaveURL(new RegExp(`${pro.username}/${eventType.slug}`));
+  });
+
   test("Can cancel the recently created booking and rebook the same timeslot", async ({
     page,
     users,
