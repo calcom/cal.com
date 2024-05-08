@@ -2,8 +2,8 @@
 
 <!-- Please include a summary of the change and which issue is fixed. Please also include relevant motivation and context. List any dependencies that are required for this change. -->
 
-Fixes #XXXX (GitHub issue number)
-Fixes CAL-XXXX (Linear issue number)
+- Fixes #XXXX (GitHub issue number)
+- Fixes CAL-XXXX (Linear issue number - should be visible at the bottom of the GitHub issue description)
 
 <!-- Please provide a loom video for visual changes to speed up reviews
  Loom Video: https://www.loom.com/
@@ -12,7 +12,7 @@ Fixes CAL-XXXX (Linear issue number)
 ## Mandatory Tasks (DO NOT REMOVE)
 
 - [ ] I have self-reviewed the code (A decent size PR without self-review might be rejected)
-- [ ] I have added the "docs" label if this PR makes changes that would require a [documentation change](https://docs.cal.com)
+- [ ] I have added a Docs issue [here](https://github.com/calcom/docs/issues/new) if this PR makes changes that would require a [documentation change](https://docs.cal.com)
 - [ ] I have added or modified automated tests that prove my fix is effective or that my feature works (PRs might be rejected if logical changes are not properly tested)
 
 ## How should this be tested?
