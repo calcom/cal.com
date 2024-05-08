@@ -13,9 +13,11 @@ export const ManagedUserTable = ({
   isManagedUserLoading,
   initialClientId,
 }: ManagedUserTableProps) => {
+  const showUsers = !isManagedUserLoading && managedUsers?.length;
+
   return (
     <div>
-      {Array.isArray(managedUsers) && !isManagedUserLoading && managedUsers.length ? (
+      {showUsers ? (
         <>
           <table className="w-[100%] rounded-lg">
             <colgroup className="border-subtle overflow-hidden rounded-b-lg border border-b-0" span={3} />
