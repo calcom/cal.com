@@ -29,6 +29,17 @@ describe("crmManager tests", () => {
   describe("creating events", () => {
     test("If the contact exists, create the event", async () => {
       const tFunc = vi.fn(() => "foo");
+
+      const spy = vi.spyOn(CrmManager.prototype as any, "getCrmService").mockReturnValue({
+        getContacts: () => {
+          return [
+            {
+              id: "contact-id",
+              email: "test@test.com",
+            },
+          ];
+        },
+      });
       //   This mock is defaulting to non implemented mock return
       const mockedCrmApp = mockCrmApp("salesforce", {
         getContacts: [
