@@ -164,6 +164,121 @@ test.describe("BOOKING_CREATED", async () => {
   });
 });
 
+test.describe("BOOKING_CANCELLED", async () => {
+  test("can book an event and then cancel it", async ({ page, users, bookings }) => {
+    const webhookReceiver = createHttpServer();
+    const user = await users.create();
+    const [eventType] = user.eventTypes;
+    await user.apiLogin();
+    await page.goto(`/settings/developer/webhooks`);
+
+    // --- add webhook
+    await page.click('[data-testid="new_webhook"]');
+
+    await page.fill('[name="subscriberUrl"]', webhookReceiver.url);
+
+    await page.fill('[name="secret"]', "secret");
+
+    await Promise.all([
+      page.click("[type=submit]"),
+      page.waitForURL((url) => url.pathname.endsWith("/settings/developer/webhooks")),
+    ]);
+
+    // page contains the url
+    expect(page.locator(`text='${webhookReceiver.url}'`)).toBeDefined();
+
+    // --- Book the first available day next month in the pro user's "30min"-event
+    await page.goto(`/${user.username}/${eventType.slug}`);
+    await selectFirstAvailableTimeSlotNextMonth(page);
+    await bookTimeSlot(page);
+
+    await page.waitForLoadState("networkidle");
+    await page.locator('[data-testid="cancel"]').click();
+    await page.locator('[data-testid="confirm_cancel"]').click();
+
+    await webhookReceiver.waitForRequestCount(2);
+
+    const [_, secondRequest] = webhookReceiver.requestList;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const body: any = secondRequest.body;
+
+    body.createdAt = dynamic;
+    body.payload.startTime = dynamic;
+    body.payload.endTime = dynamic;
+    body.payload.location = dynamic;
+    for (const attendee of body.payload.attendees) {
+      attendee.timeZone = dynamic;
+      attendee.language = dynamic;
+    }
+    body.payload.organizer.id = dynamic;
+    body.payload.organizer.email = dynamic;
+    body.payload.organizer.timeZone = dynamic;
+    body.payload.organizer.language = dynamic;
+    body.payload.uid = dynamic;
+    body.payload.bookingId = dynamic;
+    body.payload.additionalInformation = dynamic;
+    body.payload.requiresConfirmation = dynamic;
+    body.payload.eventTypeId = dynamic;
+    body.payload.videoCallData = dynamic;
+    body.payload.appsStatus = dynamic;
+    expect(body).toMatchObject({
+      triggerEvent: "BOOKING_CANCELLED",
+      createdAt: "[redacted/dynamic]",
+      payload: {
+        type: "30 min",
+        title: "30 min between Nameless and Test Testson",
+        customInputs: {},
+        startTime: "[redacted/dynamic]",
+        endTime: "[redacted/dynamic]",
+        organizer: {
+          id: "[redacted/dynamic]",
+          name: "Nameless",
+          email: "[redacted/dynamic]",
+          timeZone: "[redacted/dynamic]",
+          language: "[redacted/dynamic]",
+        },
+        responses: {
+          email: {
+            value: "test@example.com",
+            label: "email",
+          },
+          name: {
+            value: "Test Testson",
+            label: "name",
+          },
+        },
+        userFieldsResponses: {},
+        attendees: [
+          {
+            email: "test@example.com",
+            name: "Test Testson",
+            timeZone: "[redacted/dynamic]",
+            language: "[redacted/dynamic]",
+          },
+        ],
+        location: "[redacted/dynamic]",
+        destinationCalendar: [],
+        // hideCalendarNotes: false,
+        requiresConfirmation: "[redacted/dynamic]",
+        eventTypeId: "[redacted/dynamic]",
+        seatsShowAttendees: false,
+        seatsPerTimeSlot: null,
+        uid: "[redacted/dynamic]",
+        eventTitle: "30 min",
+        eventDescription: null,
+        price: null,
+        currency: "usd",
+        length: 30,
+        bookingId: "[redacted/dynamic]",
+        status: "CANCELLED",
+        additionalInformation: "[redacted/dynamic]",
+      },
+    });
+
+    webhookReceiver.close();
+  });
+});
+
 test.describe("BOOKING_REJECTED", async () => {
   test("can book an event that requires confirmation and then that booking can be rejected by organizer", async ({
     page,
