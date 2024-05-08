@@ -104,11 +104,13 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
 
   if (isDynamicGroup) {
     const destinationUrl = `/${usernameList.join("+")}/dynamic`;
+    const originalQueryString = new URLSearchParams(context.query as Record<string, string>).toString();
+    const destinationWithQuery = `${destinationUrl}?${originalQueryString}`;
     log.debug(`Dynamic group detected, redirecting to ${destinationUrl}`);
     return {
       redirect: {
         permanent: false,
-        destination: destinationUrl,
+        destination: destinationWithQuery,
       },
     } as const;
   }
