@@ -24,6 +24,7 @@ import { BookerLayouts } from "@calcom/prisma/zod-utils";
 import { useAvailableSlots } from "../hooks/useAvailableSlots";
 import { useCalendarsBusyTimes } from "../hooks/useCalendarsBusyTimes";
 import { useConnectedCalendars } from "../hooks/useConnectedCalendars";
+import type { UseCreateBookingInput } from "../hooks/useCreateBooking";
 import { useCreateBooking } from "../hooks/useCreateBooking";
 import { useCreateInstantBooking } from "../hooks/useCreateInstantBooking";
 import { useCreateRecurringBooking } from "../hooks/useCreateRecurringBooking";
@@ -43,6 +44,7 @@ type BookerPlatformWrapperAtomProps = Omit<BookerProps, "username" | "entity"> &
   name?: string;
   username: string | string[];
   entity?: BookerProps["entity"];
+  handleCreateBooking?: (input: UseCreateBookingInput) => void;
   onCreateBookingSuccess?: (data: ApiSuccessResponse<BookingResponse>) => void;
   onCreateBookingError?: (data: ApiErrorResponse | Error) => void;
   onCreateRecurringBookingSuccess?: (data: ApiSuccessResponse<BookingResponse[]>) => void;
@@ -255,7 +257,7 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
     bookingForm: bookerForm.bookingForm,
     hashedLink: props.hashedLink,
     metadata: {},
-    handleBooking: createBooking,
+    handleBooking: props?.handleCreateBooking ?? createBooking,
     handleInstantBooking: createInstantBooking,
     handleRecBooking: createRecBooking,
     locationUrl: props.locationUrl,
