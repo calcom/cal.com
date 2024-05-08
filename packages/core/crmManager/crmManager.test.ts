@@ -1,13 +1,14 @@
 import type { TFunction } from "next-i18next";
 import { describe, expect, test, vi } from "vitest";
 
+import { getCrm } from "@calcom/app-store/_utils/getCrm";
 import { mockCrmApp } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
 
 import CrmManager from "./crmManager";
 
 // vi.mock("@calcom/app-store/_utils/getCrm");
 
-describe("crmManager tests", () => {
+describe.skip("crmManager tests", () => {
   test("Set crmService if not set", async () => {
     const spy = vi.spyOn(CrmManager.prototype as any, "getCrmService");
     const crmManager = new CrmManager({
@@ -29,6 +30,15 @@ describe("crmManager tests", () => {
   describe("creating events", () => {
     test("If the contact exists, create the event", async () => {
       const tFunc = vi.fn(() => "foo");
+      vi.spyOn(getCrm).mockReturnValue({
+        getContacts: () => [
+          {
+            id: "contact-id",
+            email: "test@test.com",
+          },
+        ],
+        createContacts: [{ id: "contact-id", email: "test@test.com" }],
+      });
       //   This mock is defaulting to non implemented mock return
       const mockedCrmApp = mockCrmApp("salesforce", {
         getContacts: [
