@@ -65,6 +65,8 @@ export const EventDuration = ({ event }: { event: PublicEvent }) => {
         .filter((dur) => state !== "booking" || dur === selectedDuration)
         .map((duration) => (
           <Badge
+            data-testId={`multiple-choice-${duration}mins`}
+            data-active={selectedDuration === duration ? "true" : "false"}
             variant="gray"
             className={classNames(selectedDuration === duration && "bg-brand-default text-brand")}
             size="md"
