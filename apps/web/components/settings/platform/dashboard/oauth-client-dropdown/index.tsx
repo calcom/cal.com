@@ -21,28 +21,30 @@ export const OAuthClientsDropdown = ({
 }: OAuthClientsDropdownProps) => {
   return (
     <div>
-      <Dropdown modal={false}>
-        <DropdownMenuTrigger asChild>
-          <Button color="secondary">{initialClientName}</Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent>
-          {oauthClients.map((client) => {
-            return (
-              <div key={client.id}>
-                {initialClientName !== client.name ? (
-                  <DropdownMenuItem className="outline-none">
-                    <DropdownItem type="button" onClick={() => handleChange(client.id, client.name)}>
-                      {client.name}
-                    </DropdownItem>
-                  </DropdownMenuItem>
-                ) : (
-                  <></>
-                )}
-              </div>
-            );
-          })}
-        </DropdownMenuContent>
-      </Dropdown>
+      {Array.isArray(oauthClients) && oauthClients.length > 0 ? (
+        <Dropdown modal={false}>
+          <DropdownMenuTrigger asChild>
+            <Button color="secondary">{initialClientName}</Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            {oauthClients.map((client) => {
+              return (
+                <div key={client.id}>
+                  {initialClientName !== client.name ? (
+                    <DropdownMenuItem className="outline-none">
+                      <DropdownItem type="button" onClick={() => handleChange(client.id, client.name)}>
+                        {client.name}
+                      </DropdownItem>
+                    </DropdownMenuItem>
+                  ) : (
+                    <></>
+                  )}
+                </div>
+              );
+            })}
+          </DropdownMenuContent>
+        </Dropdown>
+      ) : null}
     </div>
   );
 };
