@@ -2250,7 +2250,7 @@
   "advanced_managed_events_description": "Indica una singola carta di credito per pagare tutti gli abbonamenti del tuo team",
   "enterprise_description": "Passa a Enterprise per creare la tua organizzazione",
   "create_your_org": "Crea la tua organizzazione",
-  "create_your_org_description": "Passa a Enterprise per avere sottodominio, fatturazione unificata, approfondimenti, personalizzazione completa e altro ancora",
+  "create_your_org_description": "Passa a Organizations per avere sottodominio, fatturazione unificata, approfondimenti, personalizzazione completa e altro ancora",
   "other_payment_app_enabled": "Puoi attivare solo un'app di pagamento per ciascun tipo di evento",
   "admin_delete_organization_description": "<ul><li>Verranno eliminati anche i team che sono membri di questa organizzazione, insieme ai rispettivi tipi di evento</li><li>Gli utenti che facevano parte dell'organizzazione non verranno eliminati e anche i loro tipi di evento rimarranno inalterati.</li><li>I nomi utente saranno modificati in modo che possano esistere al di fuori dell'organizzazione</li></ul>",
   "admin_delete_organization_title": "Eliminare {{organizationName}}?",
