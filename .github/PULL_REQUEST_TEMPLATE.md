@@ -2,8 +2,8 @@
 
 <!-- Please include a summary of the change and which issue is fixed. Please also include relevant motivation and context. List any dependencies that are required for this change. -->
 
-Fixes # (GitHub issue number)
-Fixes CAL-XXX (Linear issue number)
+Fixes #XXXX (GitHub issue number)
+Fixes CAL-XXXX (Linear issue number)
 
 <!-- Please provide a loom video for visual changes to speed up reviews
  Loom Video: https://www.loom.com/
