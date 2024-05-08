@@ -39,8 +39,8 @@ jobs:
     secrets: inherit
 
   build:
-    name: Production build
-    uses: ./.github/workflows/production-build.yml
+    name: Production builds
+    uses: ./.github/workflows/production-build-without-database.yml
     secrets: inherit
 
   e2e:
@@ -67,15 +67,10 @@ jobs:
     uses: ./.github/workflows/e2e-embed-react.yml
     secrets: inherit
 
-  build-without-database:
-    name: Production build (without database)
-    uses: ./.github/workflows/production-build-without-database.yml
-    secrets: inherit
-
   required:
-    needs: [e2e, e2e-app-store, e2e-embed, e2e-embed-react, build-without-database]
+    needs: [changes, lint, build, e2e, e2e-app-store, e2e-embed, e2e-embed-react]
     if: always()
-    runs-on: buildjet-4vcpu-ubuntu-2204
+    runs-on: buildjet-2vcpu-ubuntu-2204
     steps:
       - name: fail if conditional jobs failed
         if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'skipped') || contains(needs.*.result, 'cancelled')
