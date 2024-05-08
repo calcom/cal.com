@@ -40,7 +40,7 @@ export class OAuthFlowService {
   }
 
   async getOwnerId(accessToken: string) {
-    const cacheKey = this._generateActKey(accessToken);
+    const cacheKey = this._generateOwnerIdKey(accessToken);
 
     try {
       const ownerId = await this.redisService.redis.get(cacheKey);
@@ -164,5 +164,9 @@ export class OAuthFlowService {
 
   private _generateActKey(accessToken: string) {
     return `act_${accessToken}`;
+  }
+
+  private _generateOwnerIdKey(accessToken: string) {
+    return `owner_${accessToken}`;
   }
 }
