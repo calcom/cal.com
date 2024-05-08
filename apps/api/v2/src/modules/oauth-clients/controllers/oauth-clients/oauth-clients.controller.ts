@@ -23,6 +23,7 @@ import {
   Patch,
   Delete,
   Param,
+  Query,
   HttpCode,
   HttpStatus,
   Logger,
@@ -40,7 +41,7 @@ import { MembershipRole } from "@prisma/client";
 import { User } from "@prisma/client";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { CreateOAuthClientInput } from "@calcom/platform-types";
+import { CreateOAuthClientInput, OAuthClientManagedUsersInput } from "@calcom/platform-types";
 
 const AUTH_DOCUMENTATION = `⚠️ First, this endpoint requires \`Cookie: next-auth.session-token=eyJhbGciOiJ\` header. Log into Cal web app using owner of organization that was created after visiting \`/settings/organizations/new\`, refresh swagger docs, and the cookie will be added to requests automatically to pass the NextAuthGuard.
 Second, make sure that the logged in user has organizationId set to pass the OrganizationRolesGuard guard.`;
@@ -116,18 +117,21 @@ export class OAuthClientsController {
     return { status: SUCCESS_STATUS, data: client };
   }
 
-  @Get("/managed-users/:clientId")
+  @Get("/:clientId/managed-users")
   @HttpCode(HttpStatus.OK)
   @Roles([MembershipRole.ADMIN, MembershipRole.OWNER, MembershipRole.MEMBER])
   @DocsOperation({ description: AUTH_DOCUMENTATION })
   async getOAuthClientManagedUsersById(
-    @Param("clientId") clientId: string
+    @Param("clientId") clientId: string,
+    @Query() queryParams: OAuthClientManagedUsersInput
   ): Promise<GetOAuthClientManagedUsersResponseDto> {
-    const existingManagedUsers = await this.userRepository.findManagedUsersByOAuthClientId(clientId, 0, 50); // second argument is for offset while third is for limit
+    const { offset, limit } = queryParams;
+    const existingManagedUsers = await this.userRepository.findManagedUsersByOAuthClientId(
+      clientId,
+      offset ?? 0,
+      limit ?? 50
+    );
 
-    if (!existingManagedUsers) {
-      throw new NotFoundException(`OAuth client with ID ${clientId} does not have any managed users`);
-    }
     return { status: SUCCESS_STATUS, data: existingManagedUsers.map((user) => this.getResponseUser(user)) };
   }
 
