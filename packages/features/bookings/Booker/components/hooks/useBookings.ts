@@ -164,6 +164,10 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, teamMemb
         successRedirectUrl: event?.data?.successRedirectUrl || "",
         query,
         booking: responseData,
+        forwardParamsSuccessRedirect:
+          event?.data?.forwardParamsSuccessRedirect === undefined
+            ? true
+            : event?.data?.forwardParamsSuccessRedirect,
       });
     },
     onError: (err, _, ctx) => {
@@ -213,6 +217,10 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, teamMemb
         successRedirectUrl: event?.data?.successRedirectUrl || "",
         query,
         booking,
+        forwardParamsSuccessRedirect:
+          event?.data?.forwardParamsSuccessRedirect === undefined
+            ? true
+            : event?.data?.forwardParamsSuccessRedirect,
       });
     },
   });

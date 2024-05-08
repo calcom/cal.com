@@ -3,13 +3,11 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import { WEBAPP_URL_FOR_OAUTH } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
-import type { AppCategories } from "@calcom/prisma/enums";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import createOAuthAppCredential from "../../_utils/oauth/createOAuthAppCredential";
 import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
-import writeAppDataToEventType from "../../_utils/writeAppDataToEventType";
 import appConfig from "../config.json";
 
 let consumer_key = "";
@@ -42,19 +40,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const salesforceTokenInfo = await conn.oauth2.requestToken(code as string);
 
-  const credential = await createOAuthAppCredential(
-    { appId: appConfig.slug, type: appConfig.type },
-    salesforceTokenInfo,
-    req
-  );
-
-  await writeAppDataToEventType({
-    userId: req.session?.user.id,
-    teamId: state?.teamId,
-    appSlug: appConfig.slug,
-    appCategories: appConfig.categories as AppCategories[],
-    credentialId: credential.id,
-  });
+  await createOAuthAppCredential({ appId: appConfig.slug, type: appConfig.type }, salesforceTokenInfo, req);
 
   res.redirect(
     getSafeRedirectUrl(state?.returnTo) ?? getInstalledAppPath({ variant: "other", slug: "salesforce" })

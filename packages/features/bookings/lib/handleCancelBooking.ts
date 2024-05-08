@@ -77,8 +77,10 @@ async function getBookingToDelete(id: number | undefined, uid: string | undefine
             select: {
               id: true,
               name: true,
+              parentId: true,
             },
           },
+          parentId: true,
           userId: true,
           recurringEvent: true,
           title: true,
@@ -106,7 +108,6 @@ async function getBookingToDelete(id: number | undefined, uid: string | undefine
               },
             },
           },
-          parentId: true,
         },
       },
       uid: true,

@@ -20,6 +20,7 @@ export type BookingOptions = {
   seatReferenceUid?: string;
   hashedLink?: string | null;
   teamMemberEmail?: string;
+  orgSlug?: string;
 };
 
 export const mapBookingToMutationInput = ({
@@ -36,6 +37,7 @@ export const mapBookingToMutationInput = ({
   seatReferenceUid,
   hashedLink,
   teamMemberEmail,
+  orgSlug,
 }: BookingOptions): BookingCreateBody => {
   return {
     ...values,
@@ -56,6 +58,7 @@ export const mapBookingToMutationInput = ({
     seatReferenceUid,
     hashedLink,
     teamMemberEmail,
+    orgSlug,
   };
 };
 

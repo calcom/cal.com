@@ -45,6 +45,8 @@ export const useHandleBookEvent = ({
   const bookingData = useBookerStore((state) => state.bookingData);
   const seatedEventData = useBookerStore((state) => state.seatedEventData);
   const isInstantMeeting = useBookerStore((state) => state.isInstantMeeting);
+  const orgSlug = useBookerStore((state) => state.org);
+
   const handleBookEvent = () => {
     const values = bookingForm.getValues();
     if (timeslot) {
@@ -80,6 +82,7 @@ export const useHandleBookEvent = ({
         metadata: metadata,
         hashedLink,
         teamMemberEmail,
+        orgSlug: orgSlug ? orgSlug : undefined,
       };
 
       if (isInstantMeeting) {

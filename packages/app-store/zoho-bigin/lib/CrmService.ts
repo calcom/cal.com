@@ -29,6 +29,7 @@ export type BiginToken = {
 };
 
 export type BiginContact = {
+  id: string;
   email: string;
 };
 
@@ -141,7 +142,14 @@ export default class BiginCrmService implements CRM {
       data: JSON.stringify({ data: contacts }),
     });
 
-    return response.data;
+    return response
+      ? response.data.map((contact: BiginContact) => {
+          return {
+            id: contact.id,
+            email: contact.email,
+          };
+        })
+      : [];
   }
 
   /***
@@ -153,15 +161,22 @@ export default class BiginCrmService implements CRM {
 
     const searchCriteria = `(${emailsArray.map((email) => `(Email:equals:${encodeURI(email)})`).join("or")})`;
 
-    return await axios({
+    const response = await axios({
       method: "get",
       url: `${token.api_domain}${this.contactsSlug}/search?criteria=${searchCriteria}`,
       headers: {
         authorization: `Zoho-oauthtoken ${token.access_token}`,
       },
-    })
-      .then((data) => data.data)
-      .catch((e) => this.log.error("Error searching contact:", JSON.stringify(e), e.response?.data));
+    }).catch((e) => this.log.error("Error searching contact:", JSON.stringify(e), e.response?.data));
+
+    return response
+      ? response.data.map((contact: BiginContact) => {
+          return {
+            id: contact.id,
+            email: contact.email,
+          };
+        })
+      : [];
   }
 
   /***

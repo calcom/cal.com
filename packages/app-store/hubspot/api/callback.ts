@@ -9,7 +9,6 @@ import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import createOAuthAppCredential from "../../_utils/oauth/createOAuthAppCredential";
 import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
-import writeAppDataToEventType from "../../_utils/writeAppDataToEventType";
 import metadata from "../_metadata";
 
 let client_id = "";
@@ -50,19 +49,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // set expiry date as offset from current time.
   hubspotToken.expiryDate = Math.round(Date.now() + hubspotToken.expiresIn * 1000);
 
-  const credential = await createOAuthAppCredential(
-    { appId: metadata.slug, type: metadata.type },
-    hubspotToken,
-    req
-  );
-
-  await writeAppDataToEventType({
-    userId: req.session?.user.id,
-    teamId: state?.teamId,
-    appSlug: metadata.slug,
-    appCategories: metadata.categories,
-    credentialId: credential.id,
-  });
+  await createOAuthAppCredential({ appId: metadata.slug, type: metadata.type }, hubspotToken, req);
 
   res.redirect(
     getSafeRedirectUrl(state?.returnTo) ?? getInstalledAppPath({ variant: "other", slug: "hubspot" })

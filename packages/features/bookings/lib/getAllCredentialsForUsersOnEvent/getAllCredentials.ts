@@ -14,7 +14,7 @@ export const getAllCredentials = async (
   user: { id: number; username: string | null; credentials: CredentialPayload[] },
   eventType: {
     userId?: number | null;
-    team?: { id: number | null } | null;
+    team?: { id: number | null; parentId: number | null } | null;
     parentId?: number | null;
     metadata: z.infer<typeof EventTypeMetaDataSchema>;
   } | null
@@ -77,6 +77,7 @@ export const getAllCredentials = async (
 
   // Only return CRM credentials that are enabled on the event type
   const eventTypeAppMetadata = eventType?.metadata?.apps;
+  console.log(eventTypeAppMetadata);
 
   // Will be [credentialId]: { enabled: boolean }]
   const eventTypeCrmCredentials: Record<number, { enabled: boolean }> = {};
@@ -102,11 +103,13 @@ export const getAllCredentials = async (
         return credential;
       }
     } else {
-      // If the CRM app doesn't exist on the event type metadata, check that the credential belongs to the user/team/org
+      // If the CRM app doesn't exist on the event type metadata, check that the credential belongs to the user/team/org and is an old CRM credential
       if (
-        credential.userId === eventType?.userId ||
-        credential.teamId === eventType?.team?.id ||
-        credential.teamId === eventType?.parentId
+        credential.type.includes("_other_calendar") &&
+        (credential.userId === eventType?.userId ||
+          credential.teamId === eventType?.team?.id ||
+          credential.teamId === eventType?.team?.parentId ||
+          credential.teamId === profile?.organizationId)
       ) {
         // If the CRM app doesn't exist on the event type metadata, assume it's an older CRM credential
         return credential;
