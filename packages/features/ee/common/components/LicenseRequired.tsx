@@ -41,7 +41,9 @@ const LicenseRequired = ({ children, as = "", ...rest }: LicenseRequiredProps) =
             title={
               <>
                 {t("enterprise_license_locally")} {t("enterprise_license_sales")}{" "}
-                <a className="underline" href="https://cal.com/sales">{t("contact_sales")}</a>
+                <a className="underline" href="https://cal.com/sales">
+                  {t("contact_sales")}
+                </a>
               </>
             }
           />

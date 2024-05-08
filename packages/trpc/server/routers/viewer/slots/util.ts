@@ -717,7 +717,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
   loggerWithEventDetails.debug(`Available slots: ${JSON.stringify(withinBoundsSlotsMappedToDate)}`);
 
   // We only want to run this on single targeted events and not dynamic
-  if (!withinBoundsSlotsMappedToDate.slots && input.usernameList?.length === 1) {
+  if (!Object.keys(withinBoundsSlotsMappedToDate).length && input.usernameList?.length === 1) {
     try {
       await handleNotificationWhenNoSlots({
         eventDetails: {
