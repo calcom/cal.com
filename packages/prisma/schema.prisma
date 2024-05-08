@@ -125,7 +125,7 @@ model EventType {
   metadata                             Json?
   /// @zod.custom(imports.successRedirectUrl)
   successRedirectUrl                   String?
-  forwardParamsSuccessRedirect         Boolean?                @default(true)
+  forwardParamsSuccessRedirect         Boolean?                  @default(true)
   workflows                            WorkflowsOnEventTypes[]
   /// @zod.custom(imports.intervalLimitsType)
   bookingLimits                        Json?
