@@ -46,7 +46,17 @@ export default function WorkflowDetailsPage(props: Props) {
 
   const { data, isPending } = trpc.viewer.eventTypes.getByViewer.useQuery();
 
-  // get all teams of org here
+  const teamOptions =
+    isOrg && data
+      ? data?.profiles
+          .filter((profile) => !!profile.teamId)
+          .map((profile) => {
+            return {
+              value: String(profile.teamId),
+              label: profile.name || profile.slug,
+            };
+          })
+      : [];
 
   const searchParams = useSearchParams();
   const eventTypeId = searchParams?.get("eventTypeId");
@@ -159,7 +169,7 @@ export default function WorkflowDetailsPage(props: Props) {
             render={() => {
               return (
                 <MultiSelectCheckboxes
-                  options={allEventTypeOptions}
+                  options={isOrg ? teamOptions : allEventTypeOptions}
                   isDisabled={props.readOnly}
                   isLoading={isPending}
                   className="w-full md:w-64"
@@ -178,7 +188,7 @@ export default function WorkflowDetailsPage(props: Props) {
               name="selectAll"
               render={({ field: { value, onChange } }) => (
                 <CheckboxField
-                  description={isOrg ? t("apply_to_all_event_types") : t("apply_to_all_teams")}
+                  description={isOrg ? t("apply_to_all_teams") : t("apply_to_all_event_types")}
                   disabled={props.readOnly}
                   onChange={(e) => onChange(e)}
                   checked={value}
