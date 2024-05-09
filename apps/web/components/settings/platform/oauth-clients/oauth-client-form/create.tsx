@@ -94,8 +94,6 @@ export const OAuthClientForm = () => {
     });
   };
 
-  const isPending = isSaving;
-
   const permissionsCheckboxes = Object.keys(PERMISSIONS_GROUPED_MAP).map((key) => {
     const entity = key as keyof typeof PERMISSIONS_GROUPED_MAP;
     const permissionKey = PERMISSIONS_GROUPED_MAP[entity].key;
@@ -264,7 +262,7 @@ export const OAuthClientForm = () => {
           </div>
           <div>{permissionsCheckboxes}</div>
         </div>
-        <Button className="mt-6" type="submit" loading={isPending}>
+        <Button className="mt-6" type="submit" loading={isSaving}>
           Submit
         </Button>
       </form>

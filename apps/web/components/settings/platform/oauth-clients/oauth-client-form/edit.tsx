@@ -138,8 +138,6 @@ export const EditOAuthClientForm: FC<{ clientId: string }> = ({ clientId }) => {
     });
   };
 
-  const isPending = isUpdating;
-
   const permissionsCheckboxes = Object.keys(PERMISSIONS_GROUPED_MAP).map((key) => {
     const entity = key as keyof typeof PERMISSIONS_GROUPED_MAP;
     const permissionKey = PERMISSIONS_GROUPED_MAP[entity].key;
@@ -317,7 +315,7 @@ export const EditOAuthClientForm: FC<{ clientId: string }> = ({ clientId }) => {
           </div>
           <div>{permissionsCheckboxes}</div>
         </div>
-        <Button className="mt-6" type="submit" loading={isPending} disabled={disabledForm}>
+        <Button className="mt-6" type="submit" loading={isUpdating} disabled={disabledForm}>
           Update
         </Button>
       </form>
