@@ -262,7 +262,7 @@ export class SchedulesService {
   convertTimeToDate(baseDate: Date, time: string): Date {
     const [hours, minutes] = time.split(":").map(Number);
     const newDate = new Date(baseDate);
-    newDate.setHours(hours, minutes, 0, 0);
+    newDate.setUTCHours(hours, minutes, 0, 0);
     return newDate;
   }
 

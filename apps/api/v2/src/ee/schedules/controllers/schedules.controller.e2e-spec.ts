@@ -132,6 +132,8 @@ describe("Schedules Endpoints", () => {
       expect(outputScheduleAvailability?.days).toEqual(expected.availability?.[0].days);
       expect(outputScheduleAvailability?.startTime).toEqual(expected.availability?.[0].startTime);
       expect(outputScheduleAvailability?.endTime).toEqual(expected.availability?.[0].endTime);
+
+      expect(JSON.stringify(outputSchedule?.overrides)).toEqual(JSON.stringify(expected.overrides));
     }
 
     it("should get default schedule", async () => {
@@ -171,7 +173,7 @@ describe("Schedules Endpoints", () => {
     });
 
     it("should update schedule name", async () => {
-      const newScheduleName = "new-schedule-name";
+      const newScheduleName = "updated-schedule-name";
 
       const body: UpdateScheduleInput = {
         name: newScheduleName,
@@ -184,15 +186,41 @@ describe("Schedules Endpoints", () => {
         .then((response: any) => {
           const responseData: UpdateScheduleOutput = response.body;
           expect(responseData.status).toEqual(SUCCESS_STATUS);
-          createdSchedule = responseData.data;
+          const responseSchedule = responseData.data;
 
-          const expectedSchedule = {
-            ...createScheduleInput,
-            availability: defaultAvailability,
-            overrides: [],
-            name: newScheduleName,
-          };
-          outputScheduleMatchesExpected(createdSchedule, expectedSchedule, 1);
+          const expectedSchedule = { ...createdSchedule, name: newScheduleName };
+          outputScheduleMatchesExpected(responseSchedule, expectedSchedule, 1);
+
+          createdSchedule = responseSchedule;
+        });
+    });
+
+    it("should add overrides", async () => {
+      const overrides = [
+        {
+          date: "2026-05-05",
+          startTime: "10:00",
+          endTime: "12:00",
+        },
+      ];
+
+      const body: UpdateScheduleInput = {
+        overrides,
+      };
+
+      return request(app.getHttpServer())
+        .patch(`/api/v2/schedules/${createdSchedule.id}`)
+        .send(body)
+        .expect(200)
+        .then((response: any) => {
+          const responseData: UpdateScheduleOutput = response.body;
+          expect(responseData.status).toEqual(SUCCESS_STATUS);
+          const responseSchedule = responseData.data;
+
+          const expectedSchedule = { ...createdSchedule, overrides };
+          outputScheduleMatchesExpected(responseSchedule, expectedSchedule, 1);
+
+          createdSchedule = responseSchedule;
         });
     });
 
