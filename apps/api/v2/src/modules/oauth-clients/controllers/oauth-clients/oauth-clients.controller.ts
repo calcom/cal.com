@@ -3,6 +3,7 @@ import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { NextAuthGuard } from "@/modules/auth/guards/next-auth/next-auth.guard";
 import { OrganizationRolesGuard } from "@/modules/auth/guards/organization-roles/organization-roles.guard";
+import { GetManagedUsersOutput } from "@/modules/oauth-clients/controllers/oauth-client-users/outputs/get-managed-users.output";
 import { ManagedUserOutput } from "@/modules/oauth-clients/controllers/oauth-client-users/outputs/managed-user.output";
 import { CreateOAuthClientResponseDto } from "@/modules/oauth-clients/controllers/oauth-clients/responses/CreateOAuthClientResponse.dto";
 import { GetOAuthClientResponseDto } from "@/modules/oauth-clients/controllers/oauth-clients/responses/GetOAuthClientResponse.dto";
@@ -15,6 +16,7 @@ import { UsersRepository } from "@/modules/users/users.repository";
 import {
   Body,
   Controller,
+  Query,
   Get,
   Post,
   Patch,
@@ -38,6 +40,7 @@ import { User } from "@prisma/client";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { CreateOAuthClientInput } from "@calcom/platform-types";
+import { Pagination } from "@calcom/platform-types";
 
 const AUTH_DOCUMENTATION = `⚠️ First, this endpoint requires \`Cookie: next-auth.session-token=eyJhbGciOiJ\` header. Log into Cal web app using owner of organization that was created after visiting \`/settings/organizations/new\`, refresh swagger docs, and the cookie will be added to requests automatically to pass the NextAuthGuard.
 Second, make sure that the logged in user has organizationId set to pass the OrganizationRolesGuard guard.`;
@@ -111,6 +114,24 @@ export class OAuthClientsController {
       throw new NotFoundException(`OAuth client with ID ${clientId} not found`);
     }
     return { status: SUCCESS_STATUS, data: client };
+  }
+
+  @Get("/:clientId/managed-users")
+  @HttpCode(HttpStatus.OK)
+  @Roles([MembershipRole.ADMIN, MembershipRole.OWNER, MembershipRole.MEMBER])
+  @DocsOperation({ description: AUTH_DOCUMENTATION })
+  async getOAuthClientManagedUsersById(
+    @Param("clientId") clientId: string,
+    @Query() queryParams: Pagination
+  ): Promise<GetManagedUsersOutput> {
+    const { offset, limit } = queryParams;
+    const existingManagedUsers = await this.userRepository.findManagedUsersByOAuthClientId(
+      clientId,
+      offset ?? 0,
+      limit ?? 50
+    );
+
+    return { status: SUCCESS_STATUS, data: existingManagedUsers.map((user) => this.getResponseUser(user)) };
   }
 
   @Patch("/:clientId")
