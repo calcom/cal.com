@@ -1,8 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -14,7 +13,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import { md } from "@calcom/lib/markdownIt";
 import slugify from "@calcom/lib/slugify";
 import turndown from "@calcom/lib/turndownService";
-import { SchedulingType, MembershipRole } from "@calcom/prisma/enums";
+import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 import { unlockedManagedEventTypeProps } from "@calcom/prisma/zod-utils";
 import { createEventTypeInput } from "@calcom/prisma/zod/custom/eventtype";
 import { trpc } from "@calcom/trpc/react";
@@ -24,12 +23,13 @@ import {
   Dialog,
   DialogClose,
   DialogContent,
+  DialogFooter,
+  Editor,
   Form,
   RadioGroup as RadioArea,
   showToast,
   TextField,
-  Editor,
-  DialogFooter,
+  Tooltip,
 } from "@calcom/ui";
 
 // this describes the uniform data needed to create a new event type on Profile or Team
@@ -70,6 +70,7 @@ const querySchema = z.object({
 
 export default function CreateEventTypeDialog({
   profileOptions,
+  isOrganization,
 }: {
   profileOptions: {
     teamId: number | null | undefined;
@@ -77,8 +78,9 @@ export default function CreateEventTypeDialog({
     image: string | undefined;
     membershipRole: MembershipRole | null | undefined;
   }[];
+  isOrganization: boolean;
 }) {
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const { t } = useLocale();
   const router = useRouter();
   const [firstRender, setFirstRender] = useState(true);
@@ -87,8 +89,8 @@ export default function CreateEventTypeDialog({
   const {
     data: { teamId, eventPage: pageSlug },
   } = useTypedQuery(querySchema);
-  const teamProfile = profileOptions.find((profile) => profile.teamId === teamId);
 
+  const teamProfile = profileOptions.find((profile) => profile.teamId === teamId);
   const form = useForm<z.infer<typeof createEventTypeInput>>({
     defaultValues: {
       length: 15,
@@ -196,7 +198,13 @@ export default function CreateEventTypeDialog({
                 <TextField
                   label={`${t("url")}: ${urlPrefix}`}
                   required
-                  addOnLeading={<>/{!isManagedEventType ? pageSlug : t("username_placeholder")}/</>}
+                  addOnLeading={
+                    <Tooltip content={!isManagedEventType ? pageSlug : t("username_placeholder")}>
+                      <span className="max-w-24 md:max-w-56">
+                        /{!isManagedEventType ? pageSlug : t("username_placeholder")}/
+                      </span>
+                    </Tooltip>
+                  }
                   {...register("slug")}
                   onChange={(e) => {
                     form.setValue("slug", slugify(e?.target.value), { shouldTouch: true });
@@ -213,9 +221,12 @@ export default function CreateEventTypeDialog({
                   label={t("url")}
                   required
                   addOnLeading={
-                    <>
-                      {urlPrefix}/{!isManagedEventType ? pageSlug : t("username_placeholder")}/
-                    </>
+                    <Tooltip
+                      content={`${urlPrefix}/${!isManagedEventType ? pageSlug : t("username_placeholder")}/`}>
+                      <span className="max-w-24 md:max-w-56">
+                        {urlPrefix}/{!isManagedEventType ? pageSlug : t("username_placeholder")}/
+                      </span>
+                    </Tooltip>
                   }
                   {...register("slug")}
                 />

@@ -6,7 +6,7 @@ import {
   sendEmailVerificationLink,
   sendChangeOfEmailVerificationLink,
 } from "@calcom/emails/email-manager";
-import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
+import { getFeatureFlag } from "@calcom/features/flags/server/utils";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
@@ -19,14 +19,20 @@ interface VerifyEmailType {
   username?: string;
   email: string;
   language?: string;
+  secondaryEmailId?: number;
 }
 
-export const sendEmailVerification = async ({ email, language, username }: VerifyEmailType) => {
+export const sendEmailVerification = async ({
+  email,
+  language,
+  username,
+  secondaryEmailId,
+}: VerifyEmailType) => {
   const token = randomBytes(32).toString("hex");
   const translation = await getTranslation(language ?? "en", "common");
-  const flags = await getFeatureFlagMap(prisma);
+  const emailVerification = await getFeatureFlag(prisma, "email-verification");
 
-  if (!flags["email-verification"]) {
+  if (!emailVerification) {
     log.warn("Email verification is disabled - Skipping");
     return { ok: true, skipped: true };
   }
@@ -41,6 +47,7 @@ export const sendEmailVerification = async ({ email, language, username }: Verif
       identifier: email,
       token,
       expires: new Date(Date.now() + 24 * 3600 * 1000), // +1 day
+      secondaryEmailId: secondaryEmailId || null,
     },
   });
 
@@ -55,6 +62,7 @@ export const sendEmailVerification = async ({ email, language, username }: Verif
       email,
       name: username,
     },
+    isSecondaryEmailVerification: !!secondaryEmailId,
   });
 
   return { ok: true, skipped: false };
@@ -93,9 +101,9 @@ interface ChangeOfEmail {
 export const sendChangeOfEmailVerification = async ({ user, language }: ChangeOfEmail) => {
   const token = randomBytes(32).toString("hex");
   const translation = await getTranslation(language ?? "en", "common");
-  const flags = await getFeatureFlagMap(prisma);
+  const emailVerification = await getFeatureFlag(prisma, "email-verification");
 
-  if (!flags["email-verification"]) {
+  if (!emailVerification) {
     log.warn("Email verification is disabled - Skipping");
     return { ok: true, skipped: true };
   }

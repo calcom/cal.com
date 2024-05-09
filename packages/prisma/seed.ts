@@ -8,11 +8,12 @@ import googleMeetMeta from "@calcom/app-store/googlevideo/_metadata";
 import zoomMeta from "@calcom/app-store/zoomvideo/_metadata";
 import dayjs from "@calcom/dayjs";
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
-import { BookingStatus, MembershipRole } from "@calcom/prisma/enums";
+import { BookingStatus, MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 import type { Ensure } from "@calcom/types/utils";
 
 import prisma from ".";
 import mainAppStore from "./seed-app-store";
+import mainHugeEventTypesSeed from "./seed-huge-event-types";
 import { createUserAndEventType } from "./seed-utils";
 import type { teamMetadataSchema } from "./zod-utils";
 
@@ -84,7 +85,9 @@ async function createOrganizationAndAddMembersAndTeams({
   usersOutsideOrg,
 }: {
   org: {
-    orgData: Ensure<Partial<Prisma.TeamCreateInput>, "name" | "slug">;
+    orgData: Ensure<Partial<Prisma.TeamCreateInput>, "name" | "slug"> & {
+      organizationSettings: Prisma.OrganizationSettingsCreateWithoutOrganizationInput;
+    };
     members: {
       memberData: Ensure<Partial<Prisma.UserCreateInput>, "username" | "name" | "email" | "password">;
       orgMembership: Partial<Membership>;
@@ -121,7 +124,11 @@ async function createOrganizationAndAddMembersAndTeams({
           data: {
             ...member.memberData,
             emailVerified: new Date(),
-            password: await hashPassword(member.memberData.password),
+            password: {
+              create: {
+                hash: await hashPassword(member.memberData.password.create?.hash || ""),
+              },
+            },
           },
         })),
         inTeams: member.inTeams,
@@ -148,16 +155,22 @@ async function createOrganizationAndAddMembersAndTeams({
           name: user.name,
           email: user.email,
           emailVerified: new Date(),
-          password: await hashPassword(user.username),
+          password: {
+            create: {
+              hash: await hashPassword(user.username),
+            },
+          },
         },
       });
     }),
   ]);
 
+  const { organizationSettings, ...restOrgData } = orgData;
+
   // Create organization with those users as members
   const orgInDb = await prisma.team.create({
     data: {
-      ...orgData,
+      ...restOrgData,
       metadata: {
         ...(orgData.metadata && typeof orgData.metadata === "object" ? orgData.metadata : {}),
         isOrganization: true,
@@ -172,6 +185,11 @@ async function createOrganizationAndAddMembersAndTeams({
             },
           },
         })),
+      },
+      organizationSettings: {
+        create: {
+          ...organizationSettings,
+        },
       },
       members: {
         create: orgMembersInDb.map((member) => ({
@@ -254,7 +272,11 @@ async function createOrganizationAndAddMembersAndTeams({
         await prisma.user.create({
           data: {
             ...nonOrgMember,
-            password: await hashPassword(nonOrgMember.password),
+            password: {
+              create: {
+                hash: await hashPassword(nonOrgMember.username),
+              },
+            },
             emailVerified: new Date(),
           },
         })
@@ -289,8 +311,9 @@ async function createOrganizationAndAddMembersAndTeams({
     // Create event for each team
     await prisma.eventType.create({
       data: {
-        title: `${team.teamData.name} Event1`,
+        title: `${team.teamData.name} Event 1`,
         slug: `${team.teamData.slug}-event-1`,
+        schedulingType: SchedulingType.ROUND_ROBIN,
         length: 15,
         team: {
           connect: {
@@ -797,7 +820,8 @@ async function main() {
       orgData: {
         name: "Acme Inc",
         slug: "acme",
-        metadata: {
+        isOrganization: true,
+        organizationSettings: {
           isOrganizationVerified: true,
           orgAutoAcceptEmail: "acme.com",
         },
@@ -806,7 +830,11 @@ async function main() {
         {
           memberData: {
             email: "owner1-acme@example.com",
-            password: "owner1-acme",
+            password: {
+              create: {
+                hash: "owner1-acme",
+              },
+            },
             username: "owner1-acme",
             name: "Owner 1",
           },
@@ -824,6 +852,51 @@ async function main() {
             },
           ],
         },
+        {
+          memberData: {
+            email: "member1-acme@example.com",
+            password: {
+              create: {
+                hash: "member1-acme",
+              },
+            },
+            username: "member1-acme",
+            name: "Member 1",
+          },
+          orgMembership: {
+            role: "MEMBER",
+            accepted: true,
+          },
+          orgProfile: {
+            username: "member1",
+          },
+          inTeams: [
+            {
+              slug: "team1",
+              role: "ADMIN",
+            },
+          ],
+        },
+        {
+          memberData: {
+            email: "member2-acme@example.com",
+            password: {
+              create: {
+                hash: "member2-acme",
+              },
+            },
+            username: "member2-acme",
+            name: "Member 2",
+          },
+          orgMembership: {
+            role: "MEMBER",
+            accepted: true,
+          },
+          orgProfile: {
+            username: "member2",
+          },
+          inTeams: [],
+        },
       ],
     },
     teams: [
@@ -835,7 +908,11 @@ async function main() {
         nonOrgMembers: [
           {
             email: "non-acme-member-1@example.com",
-            password: "non-acme-member-1",
+            password: {
+              create: {
+                hash: "non-acme-member-1",
+              },
+            },
             username: "non-acme-member-1",
             name: "NonAcme Member1",
           },
@@ -856,7 +933,8 @@ async function main() {
       orgData: {
         name: "Dunder Mifflin",
         slug: "dunder-mifflin",
-        metadata: {
+        isOrganization: true,
+        organizationSettings: {
           isOrganizationVerified: true,
           orgAutoAcceptEmail: "dunder-mifflin.com",
         },
@@ -865,7 +943,11 @@ async function main() {
         {
           memberData: {
             email: "owner1-dunder@example.com",
-            password: "owner1-dunder",
+            password: {
+              create: {
+                hash: "owner1-dunder",
+              },
+            },
             username: "owner1-dunder",
             name: "Owner 1",
           },
@@ -894,7 +976,11 @@ async function main() {
         nonOrgMembers: [
           {
             email: "non-dunder-member-1@example.com",
-            password: "non-dunder-member-1",
+            password: {
+              create: {
+                hash: "non-dunder-member-1",
+              },
+            },
             username: "non-dunder-member-1",
             name: "NonDunder Member1",
           },
@@ -913,6 +999,7 @@ async function main() {
 
 main()
   .then(() => mainAppStore())
+  .then(() => mainHugeEventTypesSeed())
   .catch((e) => {
     console.error(e);
     process.exit(1);

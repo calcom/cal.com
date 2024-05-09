@@ -6,7 +6,7 @@ import { z } from "zod";
 import { getDownloadLinkOfCalVideoByRecordingId } from "@calcom/core/videoClient";
 import { sendDailyVideoRecordingEmails } from "@calcom/emails";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
-import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
+import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -15,7 +15,7 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
-const log = logger.getSubLogger({ prefix: ["recorded-daily-video"] });
+const log = logger.getSubLogger({ prefix: ["daily-video-webhook-handler"] });
 
 const schema = z
   .object({
@@ -116,7 +116,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   const response = schema.safeParse(req.body);
 
   log.debug(
-    "Recording Request Body:",
+    "Daily video recording webhook Request Body:",
     safeStringify({
       response,
     })
@@ -230,7 +230,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       startTime: booking.startTime.toISOString(),
       endTime: booking.endTime.toISOString(),
       organizer: {
-        email: booking.user?.email || "Email-less",
+        email: booking?.userPrimaryEmail || booking.user?.email || "Email-less",
         name: booking.user?.name || "Nameless",
         timeZone: booking.user?.timeZone || "Europe/London",
         language: { translate: t, locale: booking?.user?.locale ?? "en" },

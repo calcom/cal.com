@@ -1,29 +1,28 @@
 import { v4 as uuidv4 } from "uuid";
 import { describe, expect } from "vitest";
 
-import { WEBAPP_URL, CAL_URL } from "@calcom/lib/constants";
+import { WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import logger from "@calcom/lib/logger";
 import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 import { test } from "@calcom/web/test/fixtures/fixtures";
 import {
   createBookingScenario,
-  getGoogleCalendarCredential,
-  TestData,
-  getOrganizer,
   getBooker,
-  getScenarioData,
-  mockSuccessfulVideoMeetingCreation,
-  mockCalendarToHaveNoBusySlots,
   getDate,
+  getGoogleCalendarCredential,
+  getOrganizer,
+  getScenarioData,
+  mockCalendarToHaveNoBusySlots,
+  mockSuccessfulVideoMeetingCreation,
+  TestData,
   Timezones,
 } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
 import { createMockNextJsRequest } from "@calcom/web/test/utils/bookingScenario/createMockNextJsRequest";
 import {
-  // expectWorkflowToBeTriggered,
-  expectSuccessfulBookingCreationEmails,
-  expectBookingToBeInDatabase,
   expectBookingCreatedWebhookToHaveBeenFired,
+  expectBookingToBeInDatabase, // expectWorkflowToBeTriggered,
+  expectSuccessfulBookingCreationEmails,
   expectSuccessfulCalendarEventCreationInCalendar,
 } from "@calcom/web/test/utils/bookingScenario/expects";
 import { getMockRequestDataForBooking } from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForBooking";
@@ -211,7 +210,7 @@ describe("handleNewBooking", () => {
             booking: {
               // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
               uid: createdBookings[0].uid!,
-              urlOrigin: CAL_URL,
+              urlOrigin: WEBSITE_URL,
             },
             organizer,
             emails,
@@ -559,7 +558,7 @@ describe("handleNewBooking", () => {
             booking: {
               // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
               uid: createdBookings[0].uid!,
-              urlOrigin: CAL_URL,
+              urlOrigin: WEBSITE_URL,
             },
             organizer,
             emails,
@@ -773,7 +772,7 @@ describe("handleNewBooking", () => {
             booking: {
               // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
               uid: createdBookings[0].uid!,
-              urlOrigin: CAL_URL,
+              urlOrigin: WEBSITE_URL,
             },
             booker,
             organizer,

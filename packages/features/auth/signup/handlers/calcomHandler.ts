@@ -5,16 +5,18 @@ import { getPremiumMonthlyPlanPriceId } from "@calcom/app-store/stripepayment/li
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
 import { createOrUpdateMemberships } from "@calcom/features/auth/signup/utils/createOrUpdateMemberships";
+import { prefillAvatar } from "@calcom/features/auth/signup/utils/prefillAvatar";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getLocaleFromRequest } from "@calcom/lib/getLocaleFromRequest";
 import { HttpError } from "@calcom/lib/http-error";
+import logger from "@calcom/lib/logger";
 import { usernameHandler, type RequestWithUsernameStatus } from "@calcom/lib/server/username";
 import { createWebUser as syncServicesCreateWebUser } from "@calcom/lib/sync/SyncServiceManager";
 import { closeComUpsertTeamUser } from "@calcom/lib/sync/SyncServiceManager";
 import { validateAndGetCorrectedUsernameAndEmail } from "@calcom/lib/validateUsername";
 import { prisma } from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
-import { signupSchema, teamMetadataSchema } from "@calcom/prisma/zod-utils";
+import { signupSchema } from "@calcom/prisma/zod-utils";
 
 import { joinAnyChildTeamOnOrgInvite } from "../utils/organization";
 import {
@@ -22,6 +24,8 @@ import {
   throwIfTokenExpired,
   validateAndGetCorrectedUsernameForTeam,
 } from "../utils/token";
+
+const log = logger.getSubLogger({ prefix: ["signupCalcomHandler"] });
 
 async function handler(req: RequestWithUsernameStatus, res: NextApiResponse) {
   const {
@@ -35,6 +39,9 @@ async function handler(req: RequestWithUsernameStatus, res: NextApiResponse) {
       token: true,
     })
     .parse(req.body);
+
+  log.debug("handler", { email: _email });
+
   let username: string | null = req.usernameStatus.requestedUserName;
   let checkoutSessionId: string | null = null;
 
@@ -128,31 +135,39 @@ async function handler(req: RequestWithUsernameStatus, res: NextApiResponse) {
         id: foundToken.teamId,
       },
       include: {
-        parent: true,
+        parent: {
+          select: {
+            id: true,
+            slug: true,
+            organizationSettings: true,
+          },
+        },
+        organizationSettings: true,
       },
     });
     if (team) {
-      const teamMetadata = teamMetadataSchema.parse(team?.metadata);
-
       const user = await prisma.user.upsert({
         where: { email },
         update: {
           username,
-          password: hashedPassword,
           emailVerified: new Date(Date.now()),
           identityProvider: IdentityProvider.CAL,
+          password: {
+            upsert: {
+              create: { hash: hashedPassword },
+              update: { hash: hashedPassword },
+            },
+          },
         },
         create: {
           username,
           email,
-          password: hashedPassword,
           identityProvider: IdentityProvider.CAL,
+          password: { create: { hash: hashedPassword } },
         },
       });
-
       // Wrapping in a transaction as if one fails we want to rollback the whole thing to preventa any data inconsistencies
       const { membership } = await createOrUpdateMemberships({
-        teamMetadata,
         user,
         team,
       });
@@ -180,14 +195,16 @@ async function handler(req: RequestWithUsernameStatus, res: NextApiResponse) {
       data: {
         username,
         email,
-        password: hashedPassword,
+        password: { create: { hash: hashedPassword } },
         metadata: {
           stripeCustomerId: customer.id,
           checkoutSessionId,
         },
       },
     });
-
+    if (process.env.AVATARAPI_USERNAME && process.env.AVATARAPI_PASSWORD) {
+      await prefillAvatar({ email });
+    }
     sendEmailVerification({
       email,
       language: await getLocaleFromRequest(req),

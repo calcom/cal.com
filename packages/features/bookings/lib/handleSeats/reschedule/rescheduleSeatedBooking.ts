@@ -1,12 +1,12 @@
 // eslint-disable-next-line no-restricted-imports
 import EventManager from "@calcom/core/EventManager";
 import dayjs from "@calcom/dayjs";
+import { refreshCredentials } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/refreshCredentials";
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { Person } from "@calcom/types/Calendar";
 
-import { refreshCredentials } from "../../handleNewBooking";
 import type { createLoggerWithEventDetails } from "../../handleNewBooking";
 import type {
   HandleSeatsResultBooking,

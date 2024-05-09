@@ -1,4 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useSession } from "next-auth/react";
 import type { Dispatch } from "react";
 import { useMemo } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -30,6 +31,7 @@ type MembershipOption = {
 
 const editSchema = z.object({
   name: z.string(),
+  username: z.string(),
   email: z.string().email(),
   avatar: z.string(),
   bio: z.string(),
@@ -54,11 +56,14 @@ export function EditForm({
 }) {
   const [setMutationLoading] = useEditMode((state) => [state.setMutationloading], shallow);
   const { t } = useLocale();
-  const utils = trpc.useContext();
+  const session = useSession();
+  const org = session?.data?.user?.org;
+  const utils = trpc.useUtils();
   const form = useForm({
     resolver: zodResolver(editSchema),
     defaultValues: {
       name: selectedUser?.name ?? "",
+      username: selectedUser?.username ?? "",
       email: selectedUser?.email ?? "",
       avatar: avatarUrl,
       bio: selectedUser?.bio ?? "",
@@ -67,8 +72,7 @@ export function EditForm({
     },
   });
 
-  const { data: currentMembership } = trpc.viewer.organizations.listCurrent.useQuery();
-  const isOwner = currentMembership?.user.role === MembershipRole.OWNER;
+  const isOwner = org?.role === MembershipRole.OWNER;
 
   const membershipOptions = useMemo<MembershipOption[]>(() => {
     const options: MembershipOption[] = [
@@ -121,6 +125,7 @@ export function EditForm({
         mutation.mutate({
           userId: selectedUser?.id ?? "",
           role: values.role,
+          username: values.username,
           name: values.name,
           email: values.email,
           avatar: values.avatar,
@@ -157,6 +162,7 @@ export function EditForm({
         </div>
       </div>
       <div className="mt-6 flex flex-col space-y-3">
+        <TextField label={t("username")} {...form.register("username")} />
         <TextField label={t("name")} {...form.register("name")} />
         <TextField label={t("email")} {...form.register("email")} />
 

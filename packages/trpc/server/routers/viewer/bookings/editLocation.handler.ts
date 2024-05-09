@@ -74,7 +74,7 @@ export const editLocationHandler = async ({ ctx, input }: EditLocationOptions) =
       startTime: booking.startTime ? dayjs(booking.startTime).format() : "",
       endTime: booking.endTime ? dayjs(booking.endTime).format() : "",
       organizer: {
-        email: organizer.email,
+        email: booking?.userPrimaryEmail ?? organizer.email,
         name: organizer.name ?? "Nameless",
         timeZone: organizer.timeZone,
         language: { translate: tOrganizer, locale: organizer.locale ?? "en" },

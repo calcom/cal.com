@@ -1,10 +1,8 @@
-import type { UseFieldArrayRemove } from "react-hook-form";
-
+import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
+import type { RouterOutputs } from "@calcom/trpc/react";
 import type { TimeRange, WorkingHours } from "@calcom/types/schedule";
 import { Button, DialogTrigger, Tooltip } from "@calcom/ui";
-import { Edit2, Trash2 } from "@calcom/ui/components/icon";
 
 import DateOverrideInputDialog from "./DateOverrideInputDialog";
 
@@ -12,37 +10,35 @@ const sortByDate = (a: { ranges: TimeRange[]; id: string }, b: { ranges: TimeRan
   return a.ranges[0].start > b.ranges[0].start ? 1 : -1;
 };
 
-const useSettings = () => {
-  const { data } = useMeQuery();
-  return {
-    hour12: data?.timeFormat === 12,
-    timeZone: data?.timeZone,
-  };
-};
-
+// I would like this to be decoupled, but RHF really doesn't support this.
 const DateOverrideList = ({
-  items,
-  remove,
-  replace,
   workingHours,
   excludedDates = [],
+  travelSchedules = [],
+  userTimeFormat,
+  hour12,
+  replace,
+  fields,
+  weekStart = 0,
 }: {
-  remove: UseFieldArrayRemove;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   replace: any;
-  items: { ranges: TimeRange[]; id: string }[];
+  fields: { ranges: TimeRange[]; id: string }[];
   workingHours: WorkingHours[];
   excludedDates?: string[];
+  userTimeFormat: number | null;
+  hour12: boolean;
+  travelSchedules?: RouterOutputs["viewer"]["getTravelSchedules"];
+  weekStart?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
 }) => {
   const { t, i18n } = useLocale();
-  const { hour12 } = useSettings();
 
-  const unsortedFieldArrayMap = items.reduce(
+  const unsortedFieldArrayMap = fields.reduce(
     (map: { [id: string]: number }, { id }, index) => ({ ...map, [id]: index }),
     {}
   );
 
-  if (!items.length) {
+  if (!fields.length) {
     return <></>;
   }
 
@@ -56,12 +52,12 @@ const DateOverrideList = ({
 
   return (
     <ul className="border-subtle rounded border" data-testid="date-overrides-list">
-      {items.sort(sortByDate).map((item) => (
+      {fields.sort(sortByDate).map((item) => (
         <li key={item.id} className="border-subtle flex justify-between border-b px-5 py-4 last:border-b-0">
           <div>
             <h3 className="text-emphasis text-sm">
-              {new Intl.DateTimeFormat("en-GB", {
-                weekday: "short",
+              {new Intl.DateTimeFormat(i18n.language, {
+                weekday: "long",
                 month: "long",
                 day: "numeric",
                 timeZone: "UTC",
@@ -72,19 +68,31 @@ const DateOverrideList = ({
             ) : (
               item.ranges.map((range, i) => (
                 <p key={i} className="text-subtle text-xs">
-                  {timeSpan(range)}
+                  {`${timeSpan(range)} ${
+                    travelSchedules
+                      .find(
+                        (travelSchedule) =>
+                          !dayjs(item.ranges[0].start).isBefore(travelSchedule.startDate) &&
+                          (!dayjs(item.ranges[0].end).isAfter(travelSchedule.endDate) ||
+                            !travelSchedule.endDate)
+                      )
+                      ?.timeZone.replace(/_/g, " ") || ""
+                  }`}
+                  <></>
                 </p>
               ))
             )}
           </div>
           <div className="flex flex-row-reverse gap-5 space-x-2 rtl:space-x-reverse">
             <DateOverrideInputDialog
+              userTimeFormat={userTimeFormat}
               excludedDates={excludedDates}
               workingHours={workingHours}
               value={item.ranges}
+              weekStart={weekStart}
               onChange={(ranges) => {
                 // update has very weird side-effects with sorting.
-                replace([...items.filter((currentItem) => currentItem.id !== item.id), { ranges }]);
+                replace([...fields.filter((currentItem) => currentItem.id !== item.id), { ranges }]);
                 delete unsortedFieldArrayMap[item.id];
               }}
               Trigger={
@@ -94,7 +102,7 @@ const DateOverrideList = ({
                     className="text-default"
                     color="minimal"
                     variant="icon"
-                    StartIcon={Edit2}
+                    StartIcon="pencil"
                   />
                 </DialogTrigger>
               }
@@ -102,10 +110,21 @@ const DateOverrideList = ({
             <Tooltip content="Delete">
               <Button
                 className="text-default"
+                data-testid="delete-button"
+                title={t("date_overrides_delete_on_date", {
+                  date: new Intl.DateTimeFormat(i18n.language, {
+                    weekday: "long",
+                    month: "long",
+                    day: "numeric",
+                    timeZone: "UTC",
+                  }).format(item.ranges[0].start),
+                })}
                 color="destructive"
                 variant="icon"
-                StartIcon={Trash2}
-                onClick={() => remove(unsortedFieldArrayMap[item.id])}
+                StartIcon="trash-2"
+                onClick={() => {
+                  replace([...fields.filter((currentItem) => currentItem.id !== item.id)]);
+                }}
               />
             </Tooltip>
           </div>

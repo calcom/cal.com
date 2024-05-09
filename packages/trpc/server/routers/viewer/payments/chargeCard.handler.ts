@@ -67,7 +67,7 @@ export const chargeCardHandler = async ({ ctx, input }: ChargeCardHandlerOptions
     startTime: dayjs(booking.startTime).format(),
     endTime: dayjs(booking.endTime).format(),
     organizer: {
-      email: booking.user?.email || "",
+      email: booking?.userPrimaryEmail ?? booking.user?.email ?? "",
       name: booking.user?.name || "Nameless",
       timeZone: booking.user?.timeZone || "",
       language: { translate: tOrganizer, locale: booking.user?.locale ?? "en" },

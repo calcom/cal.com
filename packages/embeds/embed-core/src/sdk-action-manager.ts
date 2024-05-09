@@ -35,6 +35,32 @@ export type EventDataMap = {
     };
     confirmed: boolean;
   };
+  rescheduleBookingSuccessful: {
+    booking: unknown;
+    eventType: unknown;
+    date: string;
+    duration: number | undefined;
+    organizer: {
+      name: string;
+      email: string;
+      timeZone: string;
+    };
+    confirmed: boolean;
+  };
+  bookingCancelled: {
+    booking: unknown;
+    organizer: {
+      name: string;
+      email: string;
+      timeZone?: string | undefined;
+    };
+    eventType: unknown;
+  };
+  routed: {
+    actionType: "customPageMessage" | "externalRedirectUrl" | "eventTypeRedirectUrl";
+    actionValue: string;
+  };
+  navigatedToBooker: Record<string, never>;
   "*": Record<string, unknown>;
   __routeChanged: Record<string, never>;
   __windowLoadComplete: Record<string, never>;

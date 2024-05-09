@@ -4,6 +4,7 @@ const exampleTheme = {
   heading: {
     h1: "editor-heading-h1",
     h2: "editor-heading-h2",
+    h6: "editor-heading-h6",
   },
   list: {
     nested: {

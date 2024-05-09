@@ -7,22 +7,46 @@ import { getAppFromSlug } from "@calcom/app-store/utils";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { isRecurringEvent, parseRecurringEvent } from "@calcom/lib";
+import { getOrgOrTeamAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getDefaultEvent, getUsernameList } from "@calcom/lib/defaultEvents";
+import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import type { PrismaClient } from "@calcom/prisma";
 import type { BookerLayoutSettings } from "@calcom/prisma/zod-utils";
 import {
-  bookerLayoutOptions,
-  EventTypeMetaDataSchema,
-  customInputSchema,
-  userMetadata as userMetadataSchema,
-  bookerLayouts as bookerLayoutsSchema,
   BookerLayouts,
+  EventTypeMetaDataSchema,
+  bookerLayoutOptions,
+  bookerLayouts as bookerLayoutsSchema,
+  customInputSchema,
   teamMetadataSchema,
+  userMetadata as userMetadataSchema,
 } from "@calcom/prisma/zod-utils";
 import type { UserProfile } from "@calcom/types/UserProfile";
+
+const userSelect = Prisma.validator<Prisma.UserSelect>()({
+  id: true,
+  avatarUrl: true,
+  username: true,
+  name: true,
+  weekStart: true,
+  brandColor: true,
+  darkBrandColor: true,
+  theme: true,
+  metadata: true,
+  organization: {
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+      calVideoLogo: true,
+      bannerUrl: true,
+    },
+  },
+  defaultScheduleId: true,
+});
 
 const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   id: true,
@@ -31,6 +55,7 @@ const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   eventName: true,
   slug: true,
   isInstantEvent: true,
+  aiPhoneCallConfig: true,
   schedulingType: true,
   length: true,
   locations: true,
@@ -54,17 +79,20 @@ const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
       darkBrandColor: true,
       slug: true,
       name: true,
-      logo: true,
+      logoUrl: true,
       theme: true,
       parent: {
         select: {
           slug: true,
           name: true,
+          bannerUrl: true,
+          logoUrl: true,
         },
       },
     },
   },
   successRedirectUrl: true,
+  forwardParamsSuccessRedirect: true,
   workflows: {
     include: {
       workflow: {
@@ -77,43 +105,31 @@ const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   hosts: {
     select: {
       user: {
-        select: {
-          id: true,
-          avatarUrl: true,
-          username: true,
-          name: true,
-          weekStart: true,
-          brandColor: true,
-          darkBrandColor: true,
-          theme: true,
-          metadata: true,
-        },
+        select: userSelect,
       },
     },
   },
   owner: {
+    select: userSelect,
+  },
+  schedule: {
     select: {
       id: true,
-      avatarUrl: true,
-      weekStart: true,
-      username: true,
-      name: true,
-      theme: true,
-      metadata: true,
-      brandColor: true,
-      darkBrandColor: true,
+      timeZone: true,
     },
   },
   hidden: true,
   assignAllTeamMembers: true,
 });
 
+// TODO: Convert it to accept a single parameter with structured data
 export const getPublicEvent = async (
   username: string,
   eventSlug: string,
   isTeamEvent: boolean | undefined,
   org: string | null,
-  prisma: PrismaClient
+  prisma: PrismaClient,
+  fromRedirectOfNonOrgLink: boolean
 ) => {
   const usernameList = getUsernameList(username);
   const orgQuery = org ? getSlugOrRequestedSlug(org) : null;
@@ -163,7 +179,9 @@ export const getPublicEvent = async (
         username: users[0].username,
         name: users[0].name,
         weekStart: users[0].weekStart,
-        image: `/${users[0].username}/avatar.png`,
+        image: getUserAvatarUrl({
+          avatarUrl: users[0].avatarUrl,
+        }),
         brandColor: users[0].brandColor,
         darkBrandColor: users[0].darkBrandColor,
         theme: null,
@@ -172,7 +190,8 @@ export const getPublicEvent = async (
         ),
       },
       entity: {
-        isUnpublished: unPublishedOrgUser !== undefined,
+        considerUnpublished: !fromRedirectOfNonOrgLink && unPublishedOrgUser !== undefined,
+        fromRedirectOfNonOrgLink,
         orgSlug: org,
         name: unPublishedOrgUser?.profile?.organization?.name ?? null,
       },
@@ -240,12 +259,26 @@ export const getPublicEvent = async (
     hosts: hosts,
   };
 
-  const users = getUsersFromEvent(eventWithUserProfiles) || (await getOwnerFromUsersArray(prisma, event.id));
+  const users =
+    (await getUsersFromEvent(eventWithUserProfiles, prisma)) ||
+    (await getOwnerFromUsersArray(prisma, event.id));
 
   if (users === null) {
     throw new Error("Event has no owner");
   }
-
+  //In case the event schedule is not defined ,use the event owner's default schedule
+  if (!eventWithUserProfiles.schedule && eventWithUserProfiles.owner?.defaultScheduleId) {
+    const eventOwnerDefaultSchedule = await prisma.schedule.findUnique({
+      where: {
+        id: eventWithUserProfiles.owner?.defaultScheduleId,
+      },
+      select: {
+        id: true,
+        timeZone: true,
+      },
+    });
+    eventWithUserProfiles.schedule = eventOwnerDefaultSchedule;
+  }
   return {
     ...eventWithUserProfiles,
     bookerLayouts: bookerLayoutsSchema.parse(eventMetaData?.bookerLayouts || null),
@@ -261,10 +294,12 @@ export const getPublicEvent = async (
     profile: getProfileFromEvent(eventWithUserProfiles),
     users,
     entity: {
-      isUnpublished:
-        eventWithUserProfiles.team?.slug === null ||
-        eventWithUserProfiles.owner?.profile?.organization?.slug === null ||
-        eventWithUserProfiles.team?.parent?.slug === null,
+      fromRedirectOfNonOrgLink,
+      considerUnpublished:
+        !fromRedirectOfNonOrgLink &&
+        (eventWithUserProfiles.team?.slug === null ||
+          eventWithUserProfiles.owner?.profile?.organization?.slug === null ||
+          eventWithUserProfiles.team?.parent?.slug === null),
       orgSlug: org,
       teamSlug: (eventWithUserProfiles.team?.slug || teamMetadata?.requestedSlug) ?? null,
       name:
@@ -275,6 +310,7 @@ export const getPublicEvent = async (
     },
     isDynamic: false,
     isInstantEvent: eventWithUserProfiles.isInstantEvent,
+    aiPhoneCallConfig: eventWithUserProfiles.aiPhoneCallConfig,
     assignAllTeamMembers: event.assignAllTeamMembers,
   };
 };
@@ -287,12 +323,12 @@ type Event = Prisma.EventTypeGetPayload<typeof eventData>;
 
 function getProfileFromEvent(event: Event) {
   const { team, hosts, owner } = event;
-  const profile = team || hosts?.[0]?.user || owner;
+  const nonTeamprofile = hosts?.[0]?.user || owner;
+  const profile = team || nonTeamprofile;
   if (!profile) throw new Error("Event has no owner");
 
   const username = "username" in profile ? profile.username : team?.slug;
   const weekStart = hosts?.[0]?.user?.weekStart || owner?.weekStart || "Monday";
-  const basePath = team ? `/team/${username}` : `/${username}`;
   const eventMetaData = EventTypeMetaDataSchema.parse(event.metadata || {});
   const userMetaData = userMetadataSchema.parse(profile.metadata || {});
 
@@ -300,8 +336,11 @@ function getProfileFromEvent(event: Event) {
     username,
     name: profile.name,
     weekStart,
-    image: team ? undefined : `${basePath}/avatar.png`,
-    logo: !team ? undefined : team.logo,
+    image: team
+      ? getOrgOrTeamAvatar(team)
+      : getUserAvatarUrl({
+          avatarUrl: nonTeamprofile?.avatarUrl,
+        }),
     brandColor: profile.brandColor,
     darkBrandColor: profile.darkBrandColor,
     theme: profile.theme,
@@ -311,7 +350,7 @@ function getProfileFromEvent(event: Event) {
     ),
   };
 }
-function getUsersFromEvent(
+async function getUsersFromEvent(
   event: Omit<Event, "owner" | "hosts"> & {
     owner:
       | (Event["owner"] & {
@@ -323,11 +362,15 @@ function getUsersFromEvent(
         profile: UserProfile;
       };
     })[];
-  }
+  },
+  prisma: PrismaClient
 ) {
-  const { team, hosts, owner } = event;
+  const { team, hosts, owner, id } = event;
   if (team) {
-    return (hosts || []).filter((host) => host.user.username).map(mapHostsToUsers);
+    // getOwnerFromUsersArray is used here for backward compatibility when team event type has users[] but not hosts[]
+    return hosts.length
+      ? hosts.filter((host) => host.user.username).map(mapHostsToUsers)
+      : (await getOwnerFromUsersArray(prisma, id)) ?? [];
   }
   if (!owner) {
     return null;

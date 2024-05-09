@@ -8,6 +8,19 @@ export const EventTypeUpdateInput = _EventTypeModel
   /** Optional fields */
   .extend({
     isInstantEvent: z.boolean().optional(),
+    aiPhoneCallConfig: z
+      .object({
+        generalPrompt: z.string(),
+        enabled: z.boolean(),
+        beginMessage: z.string().nullable(),
+        yourPhoneNumber: z.string().default(""),
+        numberToCall: z.string().default(""),
+        guestName: z.string().default(""),
+        guestEmail: z.string().nullable().default(null),
+        guestCompany: z.string().nullable().default(null),
+      })
+      .optional(),
+    calAiPhoneScript: z.string().optional(),
     customInputs: z.array(customInputSchema).optional(),
     destinationCalendar: _DestinationCalendarModel
       .pick({
@@ -35,6 +48,7 @@ export const EventTypeUpdateInput = _EventTypeModel
           userId: z.number(),
           profileId: z.number().or(z.null()).optional(),
           isFixed: z.boolean().optional(),
+          priority: z.number().optional().nullable(),
         })
       )
       .optional(),
@@ -54,11 +68,3 @@ export const EventTypeUpdateInput = _EventTypeModel
         id: true,
       })
   );
-
-export const EventTypeDuplicateInput = z.object({
-  id: z.number(),
-  slug: z.string(),
-  title: z.string(),
-  description: z.string(),
-  length: z.number(),
-});

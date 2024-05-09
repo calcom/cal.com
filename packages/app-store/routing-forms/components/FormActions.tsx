@@ -8,7 +8,7 @@ import { z } from "zod";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { RoutingFormEmbedButton, RoutingFormEmbedDialog } from "@calcom/features/embed/RoutingFormEmbed";
 import { classNames } from "@calcom/lib";
-import { CAL_URL } from "@calcom/lib/constants";
+import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
@@ -33,7 +33,6 @@ import {
   TextAreaField,
   TextField,
 } from "@calcom/ui";
-import { MoreHorizontal } from "@calcom/ui/components/icon";
 
 import getFieldIdentifier from "../lib/getFieldIdentifier";
 import type { SerializableForm } from "../types/types";
@@ -64,7 +63,7 @@ function NewFormDialog({ appUrl }: { appUrl: string }) {
   const routerQuery = useRouterQuery();
   const { t } = useLocale();
   const router = useRouter();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
 
   const mutation = trpc.viewer.appRoutingForms.formMutation.useMutation({
     onSuccess: (_data, variables) => {
@@ -174,7 +173,7 @@ export const FormActionsDropdown = ({
             variant="icon"
             color="secondary"
             className={classNames("radix-state-open:rounded-r-md", disabled && "opacity-30")}
-            StartIcon={MoreHorizontal}
+            StartIcon="ellipsis"
           />
         </DropdownMenuTrigger>
         <DropdownMenuContent>{children}</DropdownMenuContent>
@@ -194,7 +193,7 @@ function Dialogs({
   setDeleteDialogOpen: (open: boolean) => void;
   deleteDialogFormId: string | null;
 }) {
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const router = useRouter();
   const { t } = useLocale();
   const deleteMutation = trpc.viewer.appRoutingForms.deleteForm.useMutation({
@@ -277,7 +276,7 @@ export function FormActionsProvider({ appUrl, children }: { appUrl: string; chil
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteDialogFormId, setDeleteDialogFormId] = useState<string | null>(null);
   const { t } = useLocale();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
 
   const toggleMutation = trpc.viewer.appRoutingForms.formMutation.useMutation({
     onMutate: async ({ id: formId, disabled }) => {
@@ -405,8 +404,8 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
   const embedLink = `forms/${routingForm?.id}`;
   const orgBranding = useOrgBranding();
 
-  const formLink = `${orgBranding?.fullDomain ?? CAL_URL}/${embedLink}`;
-  let redirectUrl = `${orgBranding?.fullDomain ?? CAL_URL}/router?form=${routingForm?.id}`;
+  const formLink = `${orgBranding?.fullDomain ?? WEBSITE_URL}/${embedLink}`;
+  let redirectUrl = `${orgBranding?.fullDomain ?? WEBSITE_URL}/router?form=${routingForm?.id}`;
 
   routingForm?.fields?.forEach((field) => {
     redirectUrl += `&${getFieldIdentifier(field)}={Recalled_Response_For_This_Field}`;

@@ -1,4 +1,5 @@
 import { expect } from "@playwright/test";
+import { JSDOM } from "jsdom";
 
 import { randomString } from "@calcom/lib/random";
 import { SchedulingType } from "@calcom/prisma/client";
@@ -10,10 +11,10 @@ import {
   bookFirstEvent,
   bookOptinEvent,
   bookTimeSlot,
-  expectEmailsToHaveSubject,
   selectFirstAvailableTimeSlotNextMonth,
   testEmail,
   testName,
+  todo,
 } from "./lib/testUtils";
 
 const freeUserObj = { name: `Free-user-${randomString(3)}` };
@@ -21,6 +22,36 @@ test.describe.configure({ mode: "parallel" });
 test.afterEach(async ({ users }) => {
   await users.deleteAll();
 });
+
+test("check SSR and OG - User Event Type", async ({ page, users }) => {
+  const name = "Test User";
+  const user = await users.create({
+    name,
+  });
+  const [response] = await Promise.all([
+    // This promise resolves to the main resource response
+    page.waitForResponse(
+      (response) => response.url().includes(`/${user.username}/30-min`) && response.status() === 200
+    ),
+
+    // Trigger the page navigation
+    page.goto(`/${user.username}/30-min`),
+  ]);
+  const ssrResponse = await response.text();
+  const document = new JSDOM(ssrResponse).window.document;
+
+  const titleText = document.querySelector("title")?.textContent;
+  const ogImage = document.querySelector('meta[property="og:image"]')?.getAttribute("content");
+  expect(titleText).toContain(name);
+  // Verify that there is correct URL that would generate the awesome OG image
+  expect(ogImage).toContain(
+    "/_next/image?w=1200&q=100&url=%2Fapi%2Fsocial%2Fog%2Fimage%3Ftype%3Dmeeting%26title%3D"
+  );
+  // Verify Organizer Name in the URL
+  expect(ogImage).toContain("meetingProfileName%3DTest%2520User%26");
+});
+
+todo("check SSR and OG - Team Event Type");
 
 testBothFutureAndLegacyRoutes.describe("free user", () => {
   test.beforeEach(async ({ page, users }) => {
@@ -30,6 +61,7 @@ testBothFutureAndLegacyRoutes.describe("free user", () => {
 
   test("cannot book same slot multiple times", async ({ page, users, emails }) => {
     const [user] = users.get();
+
     const bookerObj = {
       email: users.trackEmail({ username: "testEmail", domain: "example.com" }),
       name: "testBooker",
@@ -48,12 +80,6 @@ testBothFutureAndLegacyRoutes.describe("free user", () => {
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
     const { title: eventTitle } = await user.getFirstEventAsOwner();
 
-    await expectEmailsToHaveSubject({
-      emails,
-      organizer: user,
-      booker: bookerObj,
-      eventTitle,
-    });
     await page.goto(bookingUrl);
 
     // book same time spot again
@@ -98,6 +124,21 @@ testBothFutureAndLegacyRoutes.describe("pro user", () => {
     await page.waitForURL((url) => {
       return url.pathname.startsWith("/booking");
     });
+  });
+
+  test("it redirects when a rescheduleUid does not match the current event type", async ({
+    page,
+    users,
+    bookings,
+  }) => {
+    const [pro] = users.get();
+    const [eventType] = pro.eventTypes;
+    const bookingFixture = await bookings.create(pro.id, pro.username, eventType.id);
+
+    // open the wrong eventType (rescheduleUid created for /30min event)
+    await page.goto(`${pro.username}/${pro.eventTypes[1].slug}?rescheduleUid=${bookingFixture.uid}`);
+
+    await expect(page).toHaveURL(new RegExp(`${pro.username}/${eventType.slug}`));
   });
 
   test("Can cancel the recently created booking and rebook the same timeslot", async ({
@@ -173,6 +214,35 @@ testBothFutureAndLegacyRoutes.describe("pro user", () => {
     ]);
     // This is the only booking in there that needed confirmation and now it should be empty screen
     await expect(page.locator('[data-testid="empty-screen"]')).toBeVisible();
+  });
+
+  test("can book an unconfirmed event multiple times", async ({ page, users }) => {
+    await page.locator('[data-testid="event-type-link"]:has-text("Opt in")').click();
+    await selectFirstAvailableTimeSlotNextMonth(page);
+
+    const pageUrl = page.url();
+
+    await bookTimeSlot(page);
+    await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+
+    // go back to the booking page to re-book.
+    await page.goto(pageUrl);
+    await bookTimeSlot(page, { email: "test2@example.com" });
+    await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+  });
+
+  test("cannot book an unconfirmed event multiple times with the same email", async ({ page, users }) => {
+    await page.locator('[data-testid="event-type-link"]:has-text("Opt in")').click();
+    await selectFirstAvailableTimeSlotNextMonth(page);
+
+    const pageUrl = page.url();
+
+    await bookTimeSlot(page);
+    // go back to the booking page to re-book.
+    await page.goto(pageUrl);
+
+    await bookTimeSlot(page);
+    await expect(page.getByText("Could not book the meeting.")).toBeVisible();
   });
 
   test("can book with multiple guests", async ({ page, users }) => {

@@ -147,8 +147,13 @@ testBothFutureAndLegacyRoutes.describe("Teams - NonOrg", (routeVariant) => {
     await expect(page.locator(`[data-testid="attendee-name-${testName}"]`)).toHaveText(testName);
 
     // The title of the booking
-    const BookingTitle = `${teamEventTitle} between ${team.name} and ${testName}`;
-    await expect(page.locator("[data-testid=booking-title]")).toHaveText(BookingTitle);
+    const bookingTitle = await page.getByTestId("booking-title").textContent();
+    expect(
+      teamMatesObj?.some((teamMate) => {
+        const BookingTitle = `${teamEventTitle} between ${teamMate.name} and ${testName}`;
+        return BookingTitle === bookingTitle;
+      })
+    ).toBe(true);
 
     // Since all the users have the same leastRecentlyBooked value
     // Anyone of the teammates could be the Host of the booking.
@@ -274,6 +279,44 @@ testBothFutureAndLegacyRoutes.describe("Teams - NonOrg", (routeVariant) => {
     await page.goto(`/team/${team.slug}?members=1`);
     await expect(page.locator('[data-testid="you-cannot-see-team-members"]')).toBeVisible();
     await expect(page.locator('[data-testid="team-members-container"]')).toBeHidden();
+  });
+  test("Email Embeds slots are loading for team event types", async ({ page, users }) => {
+    const teamMatesObj = [
+      { name: "teammate-1" },
+      { name: "teammate-2" },
+      { name: "teammate-3" },
+      { name: "teammate-4" },
+    ];
+
+    const owner = await users.create(
+      { username: "pro-user", name: "pro-user" },
+      {
+        hasTeam: true,
+        teammates: teamMatesObj,
+        schedulingType: SchedulingType.COLLECTIVE,
+      }
+    );
+
+    await owner.apiLogin();
+    const { team } = await owner.getFirstTeamMembership();
+    const {
+      title: teamEventTitle,
+      slug: teamEventSlug,
+      id: teamEventId,
+    } = await owner.getFirstTeamEvent(team.id);
+
+    await page.goto("/event-types");
+
+    await page.getByTestId(`event-type-options-${teamEventId}`).first().click();
+    await page.getByTestId("embed").click();
+    await page.getByTestId("email").click();
+    await page.getByTestId("incrementMonth").click();
+
+    await expect(page.getByTestId("no-slots-available")).toBeHidden();
+
+    // Check Team Url
+    const availableTimesUrl = await page.getByTestId("see_all_available_times").getAttribute("href");
+    await expect(availableTimesUrl).toContain(`/team/${team.slug}/${teamEventSlug}`);
   });
 
   todo("Create a Round Robin with different leastRecentlyBooked hosts");

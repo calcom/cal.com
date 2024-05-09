@@ -3,16 +3,22 @@ import type { Session } from "next-auth";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { UserRepository } from "@calcom/lib/server/repository/user";
+import prisma from "@calcom/prisma";
+import { IdentityProvider } from "@calcom/prisma/enums";
+import { userMetadata } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
+
+import type { TMeInputSchema } from "./me.schema";
 
 type MeOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
     session: Session;
   };
+  input: TMeInputSchema;
 };
 
-export const meHandler = async ({ ctx }: MeOptions) => {
+export const meHandler = async ({ ctx, input }: MeOptions) => {
   const crypto = await import("crypto");
 
   const { user: sessionUser, session } = ctx;
@@ -26,6 +32,78 @@ export const meHandler = async ({ ctx }: MeOptions) => {
     upId: session.upId,
   });
 
+  const secondaryEmails = await prisma.secondaryEmail.findMany({
+    where: {
+      userId: user.id,
+    },
+    select: {
+      id: true,
+      email: true,
+      emailVerified: true,
+    },
+  });
+
+  let passwordAdded = false;
+  if (user.identityProvider !== IdentityProvider.CAL && input?.includePasswordAdded) {
+    const userWithPassword = await prisma.user.findUnique({
+      where: {
+        id: user.id,
+      },
+      select: {
+        password: true,
+      },
+    });
+    if (userWithPassword?.password?.hash) {
+      passwordAdded = true;
+    }
+  }
+
+  let identityProviderEmail = "";
+  if (user.identityProviderId) {
+    const account = await prisma.account.findUnique({
+      where: {
+        provider_providerAccountId: {
+          provider: user.identityProvider.toLocaleLowerCase(),
+          providerAccountId: user.identityProviderId,
+        },
+      },
+      select: { providerEmail: true },
+    });
+    identityProviderEmail = account?.providerEmail || "";
+  }
+
+  const additionalUserInfo = await prisma.user.findFirst({
+    where: {
+      id: user.id,
+    },
+    select: {
+      bookings: {
+        select: { id: true },
+      },
+      selectedCalendars: true,
+      teams: {
+        select: {
+          team: {
+            select: {
+              id: true,
+              eventTypes: true,
+            },
+          },
+        },
+      },
+      eventTypes: {
+        select: { id: true },
+      },
+    },
+  });
+  let sumOfTeamEventTypes = 0;
+  for (const team of additionalUserInfo?.teams || []) {
+    for (const _eventType of team.team.eventTypes) {
+      sumOfTeamEventTypes++;
+    }
+  }
+  const userMetadataPrased = userMetadata.parse(user.metadata);
+
   // Destructuring here only makes it more illegible
   // pick only the part we want to expose in the API
   return {
@@ -33,6 +111,7 @@ export const meHandler = async ({ ctx }: MeOptions) => {
     name: user.name,
     email: user.email,
     emailMd5: crypto.createHash("md5").update(user.email).digest("hex"),
+    emailVerified: user.emailVerified,
     startTime: user.startTime,
     endTime: user.endTime,
     bufferTime: user.bufferTime,
@@ -48,12 +127,13 @@ export const meHandler = async ({ ctx }: MeOptions) => {
     twoFactorEnabled: user.twoFactorEnabled,
     disableImpersonation: user.disableImpersonation,
     identityProvider: user.identityProvider,
+    identityProviderEmail,
     brandColor: user.brandColor,
     darkBrandColor: user.darkBrandColor,
-    away: user.away,
     bio: user.bio,
     weekStart: user.weekStart,
     theme: user.theme,
+    appTheme: user.appTheme,
     hideBranding: user.hideBranding,
     metadata: user.metadata,
     defaultBookerLayouts: user.defaultBookerLayouts,
@@ -65,5 +145,13 @@ export const meHandler = async ({ ctx }: MeOptions) => {
     username: user.profile?.username ?? user.username ?? null,
     profile: user.profile ?? null,
     profiles: allUserEnrichedProfiles,
+    secondaryEmails,
+    sumOfBookings: additionalUserInfo?.bookings.length,
+    sumOfCalendars: additionalUserInfo?.selectedCalendars.length,
+    sumOfTeams: additionalUserInfo?.teams.length,
+    sumOfEventTypes: additionalUserInfo?.eventTypes.length,
+    isPremium: userMetadataPrased?.isPremium,
+    sumOfTeamEventTypes,
+    ...(passwordAdded ? { passwordAdded } : {}),
   };
 };

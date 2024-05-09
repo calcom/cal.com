@@ -23,6 +23,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
       teamId={eventType.team?.id || undefined}>
       <div className="flex flex-col gap-2">
         <TextField
+          dataTestid={`${app.slug}-url`}
           name="Matomo URL"
           placeholder="Enter your Matomo URL here"
           value={matomoUrl}
@@ -32,6 +33,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
           }}
         />
         <TextField
+          dataTestid={`${app.slug}-site-id`}
           disabled={disabled}
           name="Site ID"
           placeholder="Enter your Site ID"

@@ -1,12 +1,17 @@
+import { createHash } from "crypto";
+
 import { whereClauseForOrgWithSlugOrRequestedSlug } from "@calcom/ee/organizations/lib/orgDomains";
+import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
+import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
+import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import type { User as UserType } from "@calcom/prisma/client";
 import type { UpId, UserProfile } from "@calcom/types/UserProfile";
 
-import { isOrganization } from "../../entityPermissionUtils";
-import logger from "../../logger";
-import { safeStringify } from "../../safeStringify";
+import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "../../availability";
+import slugify from "../../slugify";
 import { ProfileRepository } from "./profile";
 import { getParsedTeam } from "./teamUtils";
 
@@ -20,6 +25,8 @@ const teamSelect = Prisma.validator<Prisma.TeamSelect>()({
   slug: true,
   metadata: true,
   logoUrl: true,
+  organizationSettings: true,
+  isOrganization: true,
 });
 
 const userSelect = Prisma.validator<Prisma.UserSelect>()({
@@ -29,7 +36,6 @@ const userSelect = Prisma.validator<Prisma.UserSelect>()({
   email: true,
   emailVerified: true,
   bio: true,
-  avatar: true,
   avatarUrl: true,
   timeZone: true,
   startTime: true,
@@ -50,7 +56,6 @@ const userSelect = Prisma.validator<Prisma.UserSelect>()({
   invitedTo: true,
   brandColor: true,
   darkBrandColor: true,
-  away: true,
   allowDynamicBooking: true,
   allowSEOIndexing: true,
   receiveMonthlyDigestEmail: true,
@@ -90,8 +95,8 @@ export class UserRepository {
       userId,
     });
 
-    const acceptedOrgMemberships = acceptedTeamMemberships.filter((membership) =>
-      isOrganization({ team: membership.team })
+    const acceptedOrgMemberships = acceptedTeamMemberships.filter(
+      (membership) => membership.team.isOrganization
     );
 
     const organizations = acceptedOrgMemberships.map((membership) => membership.team);
@@ -364,6 +369,7 @@ export class UserRepository {
               id: number;
               name: string;
               calVideoLogo: string | null;
+              bannerUrl: string | null;
               slug: string | null;
               metadata: Prisma.JsonValue;
             };
@@ -429,6 +435,54 @@ export class UserRepository {
           ? {
               connect: {
                 id: data.movedToProfileId,
+              },
+            }
+          : undefined,
+      },
+    });
+  }
+
+  static async create({
+    email,
+    username,
+    organizationId,
+  }: {
+    email: string;
+    username: string;
+    organizationId: number | null;
+  }) {
+    const password = createHash("md5").update(`${email}${process.env.CALENDSO_ENCRYPTION_KEY}`).digest("hex");
+    const hashedPassword = await hashPassword(password);
+    const t = await getTranslation("en", "common");
+    const availability = getAvailabilityFromSchedule(DEFAULT_SCHEDULE);
+
+    return await prisma.user.create({
+      data: {
+        username: slugify(username),
+        email: email,
+        password: { create: { hash: hashedPassword } },
+        // Default schedule
+        schedules: {
+          create: {
+            name: t("default_schedule_name"),
+            availability: {
+              createMany: {
+                data: availability.map((schedule) => ({
+                  days: schedule.days,
+                  startTime: schedule.startTime,
+                  endTime: schedule.endTime,
+                })),
+              },
+            },
+          },
+        },
+        organizationId: organizationId,
+        profiles: organizationId
+          ? {
+              create: {
+                username: slugify(username),
+                organizationId: organizationId,
+                uid: ProfileRepository.generateProfileUid(),
               },
             }
           : undefined,

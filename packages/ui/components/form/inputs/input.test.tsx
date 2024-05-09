@@ -162,10 +162,10 @@ describe("Tests for NumberInput Component", () => {
 });
 
 describe("Tests for FilterSearchField Component", () => {
-  test("Should render correctly with Search icon and input", () => {
-    const { getByRole, getByTestId } = render(<FilterSearchField name="searchField" />);
+  test("Should render correctly with Search icon and input", async () => {
+    const { getByRole, findByTestId } = render(<FilterSearchField name="searchField" />);
     const searchInput = getByRole("textbox");
-    const searchIcon = getByTestId("search-icon");
+    const searchIcon = await findByTestId("search-icon");
 
     expect(searchInput).toBeInTheDocument();
     expect(searchIcon).toBeInTheDocument();

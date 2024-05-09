@@ -1,4 +1,4 @@
-import { CAL_URL, IS_SELF_HOSTED, WEBAPP_URL } from "@calcom/lib/constants";
+import { WEBSITE_URL, IS_SELF_HOSTED, WEBAPP_URL } from "@calcom/lib/constants";
 
 import type { PreviewState } from "../types";
 import { embedLibUrl } from "./constants";
@@ -7,8 +7,8 @@ import { getDimension } from "./getDimension";
 
 export const doWeNeedCalOriginProp = (embedCalOrigin: string) => {
   // If we are self hosted, calOrigin won't be app.cal.com so we need to pass it
-  // If we are not self hosted but it's still different from WEBAPP_URL and CAL_URL, we need to pass it -> It happens for organization booking URL at the moment
-  return IS_SELF_HOSTED || (embedCalOrigin !== WEBAPP_URL && embedCalOrigin !== CAL_URL);
+  // If we are not self hosted but it's still different from WEBAPP_URL and WEBSITE_URL, we need to pass it -> It happens for organization booking URL at the moment
+  return IS_SELF_HOSTED || (embedCalOrigin !== WEBAPP_URL && embedCalOrigin !== WEBSITE_URL);
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -30,13 +30,14 @@ export const Codes = {
       const width = getDimension(previewState.inline.width);
       const height = getDimension(previewState.inline.height);
       const namespaceProp = `${namespace ? `namespace="${namespace}"` : ""}`;
+      const argumentForGetCalApi = getArgumentForGetCalApi(namespace);
       return code`
   import Cal, { getCalApi } from "@calcom/embed-react";
   import { useEffect } from "react";
   export default function MyApp() {
 	useEffect(()=>{
 	  (async function () {
-		const cal = await getCalApi();
+		const cal = await getCalApi(${argumentForGetCalApi ? JSON.stringify(argumentForGetCalApi) : ""});
 		${uiInstructionCode}
 	  })();
 	}, [])
@@ -58,13 +59,14 @@ export const Codes = {
       uiInstructionCode: string;
       namespace: string;
     }) => {
+      const argumentForGetCalApi = getArgumentForGetCalApi(namespace);
       return code`
   import { getCalApi } from "@calcom/embed-react";
   import { useEffect } from "react";
   export default function MyApp() {
 	useEffect(()=>{
 	  (async function () {
-		const cal = await getCalApi(${IS_SELF_HOSTED ? `"${embedLibUrl}"` : ""});
+		const cal = await getCalApi(${argumentForGetCalApi ? JSON.stringify(argumentForGetCalApi) : ""});
 		${getApiName({ namespace, mainApiName: "cal" })}("floatingButton", ${floatingButtonArg});
 		${uiInstructionCode}
 	  })();
@@ -84,13 +86,14 @@ export const Codes = {
       embedCalOrigin: string;
       namespace: string;
     }) => {
+      const argumentForGetCalApi = getArgumentForGetCalApi(namespace);
       return code`
   import { getCalApi } from "@calcom/embed-react";
   import { useEffect } from "react";
   export default function MyApp() {
 	useEffect(()=>{
 	  (async function () {
-		const cal = await getCalApi(${IS_SELF_HOSTED ? `"${embedLibUrl}"` : ""});
+		const cal = await getCalApi(${argumentForGetCalApi ? JSON.stringify(argumentForGetCalApi) : ""});
 		${uiInstructionCode}
 	  })();
 	}, [])
@@ -121,7 +124,7 @@ export const Codes = {
 	calLink: "${calLink}",
 	layout: "${previewState.layout}"
   });
-  
+
   ${uiInstructionCode}`;
     },
 
@@ -155,7 +158,7 @@ export const Codes = {
   // \`data-cal-config='${JSON.stringify({
     layout: previewState.layout,
   })}'\`
-  
+
   ${uiInstructionCode}`;
     },
   },
@@ -196,3 +199,9 @@ const code = (partsWithoutBlock: TemplateStringsArray, ...blocksOrVariables: str
   }
   return constructedCode.join("");
 };
+
+function getArgumentForGetCalApi(namespace: string) {
+  const libUrl = IS_SELF_HOSTED ? embedLibUrl : undefined;
+  const argumentForGetCalApi = namespace ? { namespace, embedLibUrl: libUrl } : { embedLibUrl: libUrl };
+  return argumentForGetCalApi;
+}

@@ -13,6 +13,7 @@ import { appKeysSchema as googlecalendar_zod_ts } from "./googlecalendar/zod";
 import { appKeysSchema as gtm_zod_ts } from "./gtm/zod";
 import { appKeysSchema as hubspot_zod_ts } from "./hubspot/zod";
 import { appKeysSchema as intercom_zod_ts } from "./intercom/zod";
+import { appKeysSchema as jelly_zod_ts } from "./jelly/zod";
 import { appKeysSchema as jitsivideo_zod_ts } from "./jitsivideo/zod";
 import { appKeysSchema as larkcalendar_zod_ts } from "./larkcalendar/zod";
 import { appKeysSchema as make_zod_ts } from "./make/zod";
@@ -24,6 +25,7 @@ import { appKeysSchema as office365video_zod_ts } from "./office365video/zod";
 import { appKeysSchema as paypal_zod_ts } from "./paypal/zod";
 import { appKeysSchema as pipedrive_crm_zod_ts } from "./pipedrive-crm/zod";
 import { appKeysSchema as plausible_zod_ts } from "./plausible/zod";
+import { appKeysSchema as posthog_zod_ts } from "./posthog/zod";
 import { appKeysSchema as qr_code_zod_ts } from "./qr_code/zod";
 import { appKeysSchema as routing_forms_zod_ts } from "./routing-forms/zod";
 import { appKeysSchema as salesforce_zod_ts } from "./salesforce/zod";
@@ -53,6 +55,7 @@ export const appKeysSchemas = {
   gtm: gtm_zod_ts,
   hubspot: hubspot_zod_ts,
   intercom: intercom_zod_ts,
+  jelly: jelly_zod_ts,
   jitsivideo: jitsivideo_zod_ts,
   larkcalendar: larkcalendar_zod_ts,
   make: make_zod_ts,
@@ -64,6 +67,7 @@ export const appKeysSchemas = {
   paypal: paypal_zod_ts,
   "pipedrive-crm": pipedrive_crm_zod_ts,
   plausible: plausible_zod_ts,
+  posthog: posthog_zod_ts,
   qr_code: qr_code_zod_ts,
   "routing-forms": routing_forms_zod_ts,
   salesforce: salesforce_zod_ts,

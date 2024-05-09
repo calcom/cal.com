@@ -6,6 +6,7 @@ import { RRule } from "rrule";
 import dayjs from "@calcom/dayjs";
 import { getRichDescription } from "@calcom/lib/CalEventParser";
 import { getWhen } from "@calcom/lib/CalEventParser";
+import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 export enum BookingAction {
@@ -33,6 +34,8 @@ const generateIcsString = ({
   isRequestReschedule?: boolean;
   t?: TFunction;
 }) => {
+  const location = getVideoCallUrlFromCalEvent(event) || event.location;
+
   // Taking care of recurrence rule
   let recurrenceRule: string | undefined = undefined;
   const partstat: ParticipationStatus = "ACCEPTED";
@@ -93,6 +96,7 @@ const generateIcsString = ({
           }))
         : []),
     ],
+    location: location ?? undefined,
     method: "REQUEST",
     status,
   });

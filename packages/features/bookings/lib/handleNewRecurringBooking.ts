@@ -40,7 +40,7 @@ export const handleNewRecurringBooking = async (
     };
 
     const firstBookingResult = await handleNewBooking(recurringEventReq);
-    luckyUsers = firstBookingResult.luckyUsers?.map((user) => user.id);
+    luckyUsers = firstBookingResult.luckyUsers;
   }
 
   for (let key = isRoundRobin ? 1 : 0; key < data.length; key++) {
