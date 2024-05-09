@@ -5,7 +5,7 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import { encodeOAuthState } from "../../_utils/oauth/encodeOAuthState";
-import appConfig from "../config.json";
+import { metadata as appConfig } from "../_metadata";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "GET") {

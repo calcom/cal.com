@@ -1,0 +1,16 @@
+import type { AppMeta } from "@calcom/types/App";
+
+export const metadata = {
+  "/*": "Don't modify slug - If required, do it using cli edit command",
+  name: "Weather in your Calendar",
+  slug: "weather_in_your_calendar",
+  type: "weather_in_your_calendar_other",
+  logo: "icon.svg",
+  url: "https://github.com/vejnoe",
+  variant: "other",
+  categories: ["other"],
+  publisher: "Andreas Vejnø Andersen",
+  email: "info@vejnoe.dk",
+  description: "Get the local weather forecast with icons in your calendar\r\r",
+  __createdUsingCli: true,
+} as AppMeta;

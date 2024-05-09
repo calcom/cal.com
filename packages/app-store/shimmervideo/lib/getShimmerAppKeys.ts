@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
-import config from "../config.json";
+import { metadata as config } from "../_metadata";
 
 const shimmerAppKeysSchema = z.object({
   api_key: z.string(),

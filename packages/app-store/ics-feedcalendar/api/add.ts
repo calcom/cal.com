@@ -5,7 +5,7 @@ import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
-import appConfig from "../config.json";
+import { metadata as appConfig } from "../_metadata";
 import { CalendarService } from "../lib";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {

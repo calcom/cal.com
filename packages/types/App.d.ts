@@ -67,7 +67,8 @@ export interface App {
     | `${string}_automation`
     | `${string}_analytics`
     | `${string}_crm`
-    | `${string}_other_calendar`;
+    | `${string}_other_calendar`
+    | `${string}_conferencing`;
 
   /**
    * @deprecated
@@ -88,7 +89,9 @@ export interface App {
     | "other"
     | "other_calendar"
     | "automation"
-    | "crm";
+    | "crm"
+    | "messaging"
+    | "analytics";
   /** The slug for the app store public page inside `/apps/[slug] */
   slug: string;
 
@@ -165,6 +168,7 @@ export interface App {
   concurrentMeetings?: boolean;
 
   createdAt?: string;
+  scope?: string;
 }
 
 export type AppFrontendPayload = Omit<App, "key"> & {

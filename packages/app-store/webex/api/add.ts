@@ -5,7 +5,7 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 
-import config from "../config.json";
+import { metadata as config } from "../_metadata";
 import { getWebexAppKeys } from "../lib/getWebexAppKeys";
 
 async function handler(req: NextApiRequest) {

@@ -9,7 +9,7 @@ import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import createOAuthAppCredential from "../../_utils/oauth/createOAuthAppCredential";
 import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
-import appConfig from "../config.json";
+import { metadata as appConfig } from "../_metadata";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { code, "accounts-server": accountsServer } = req.query;

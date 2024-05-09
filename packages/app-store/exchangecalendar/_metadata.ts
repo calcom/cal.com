@@ -1,0 +1,18 @@
+import type { AppMeta } from "@calcom/types/App";
+
+export const metadata = {
+  "/*": "Don't modify slug - If required, do it using cli edit command",
+  title: "Microsoft Exchange",
+  name: "Microsoft Exchange",
+  slug: "exchange",
+  dirName: "exchangecalendar",
+  type: "exchange_calendar",
+  logo: "icon.svg",
+  url: "https://cal.com",
+  variant: "calendar",
+  categories: ["calendar"],
+  publisher: "Cal.com",
+  email: "help@cal.com",
+  description: "Fetch Microsoft Exchange calendars and availabilities using Exchange Web Services (EWS).",
+  __createdUsingCli: true,
+} as AppMeta;

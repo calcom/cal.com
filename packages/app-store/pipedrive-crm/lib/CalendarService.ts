@@ -10,7 +10,7 @@ import type {
 } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
-import appConfig from "../config.json";
+import { metadata as appConfig } from "../_metadata";
 
 type ContactSearchResult = {
   status: string;

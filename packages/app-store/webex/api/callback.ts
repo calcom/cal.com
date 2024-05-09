@@ -5,7 +5,7 @@ import prisma from "@calcom/prisma";
 
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import createOAuthAppCredential from "../../_utils/oauth/createOAuthAppCredential";
-import config from "../config.json";
+import { metadata as config } from "../_metadata";
 import { getWebexAppKeys } from "../lib/getWebexAppKeys";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {

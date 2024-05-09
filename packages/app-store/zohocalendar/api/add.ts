@@ -6,7 +6,7 @@ import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import { encodeOAuthState } from "../../_utils/oauth/encodeOAuthState";
-import config from "../config.json";
+import { metadata as config } from "../_metadata";
 import { appKeysSchema as zohoKeysSchema } from "../zod";
 
 const OAUTH_BASE_URL = "https://accounts.zoho.com/oauth/v2";

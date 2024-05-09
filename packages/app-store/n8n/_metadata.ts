@@ -1,0 +1,17 @@
+import type { AppMeta } from "@calcom/types/App";
+
+export const metadata = {
+  "/*": "Don't modify slug - If required, do it using cli edit command",
+  name: "n8n",
+  slug: "n8n",
+  type: "n8n_automation",
+  logo: "icon.svg",
+  url: "https://cal.com/",
+  variant: "automation",
+  categories: ["automation"],
+  publisher: "Cal.com, Inc.",
+  email: "help@cal.com",
+  description:
+    "Automate without limits. The workflow automation platform that doesn't box you in, that you never outgrow",
+  __createdUsingCli: true,
+} as AppMeta;
