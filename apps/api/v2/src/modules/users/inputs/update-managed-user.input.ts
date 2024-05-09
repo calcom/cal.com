@@ -1,6 +1,6 @@
-import { IsTimeFormat } from "@/modules/users/inputs/validators/is-time-format";
-import { IsWeekStart } from "@/modules/users/inputs/validators/is-week-start";
-import { IsNumber, IsOptional, IsString, IsTimeZone, Validate } from "class-validator";
+import { TimeFormat, WeekDay } from "@/modules/users/inputs/create-managed-user.input";
+import { ApiProperty } from "@nestjs/swagger";
+import { IsNumber, IsOptional, IsString, IsTimeZone } from "class-validator";
 
 export class UpdateManagedUserInput {
   @IsString()
@@ -11,19 +11,21 @@ export class UpdateManagedUserInput {
   @IsOptional()
   name?: string;
 
-  @IsNumber()
   @IsOptional()
-  @Validate(IsTimeFormat)
-  timeFormat?: number;
+  @ApiProperty({ example: 12, enum: [12, 24], description: "Must be 12 or 24" })
+  timeFormat?: TimeFormat;
 
   @IsNumber()
   @IsOptional()
   defaultScheduleId?: number;
 
-  @IsString()
   @IsOptional()
-  @Validate(IsWeekStart)
-  weekStart?: string;
+  @IsString()
+  @ApiProperty({
+    example: "Monday",
+    enum: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+  })
+  weekStart?: WeekDay;
 
   @IsTimeZone()
   @IsOptional()

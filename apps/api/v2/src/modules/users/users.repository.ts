@@ -157,7 +157,7 @@ export class UsersRepository {
 
   formatInput(userInput: CreateManagedUserInput | UpdateManagedUserInput) {
     if (userInput.weekStart) {
-      userInput.weekStart = capitalize(userInput.weekStart);
+      userInput.weekStart = userInput.weekStart;
     }
 
     if (userInput.timeZone) {
