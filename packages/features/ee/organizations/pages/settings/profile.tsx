@@ -294,45 +294,41 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
             }}
           />
         </div>
-        <div className="my-6">
-          <div className="flex items-center text-sm">
-            <Avatar
-              alt="calVideoLogo"
-              imageSrc={currentOrg?.calVideoLogo}
-              fallback={<Icon name="plus" className="text-subtle h-6 w-6" />}
-              size="lg"
-            />
-            <div className="ms-4">
-              <div className="flex gap-2">
-                <ImageUploader
-                  target="avatar"
-                  id="cal-video-logo-upload"
-                  buttonMsg={
-                    currentOrg?.calVideoLogo ? t("update_cal_video_logo") : t("upload_cal_video_logo")
-                  }
-                  handleAvatarChange={(newLogo) => {
-                    mutation.mutate({
-                      calVideoLogo: newLogo,
-                    });
-                  }}
+        <div className="mt-2 flex items-center">
+          <Avatar
+            alt="calVideoLogo"
+            imageSrc={currentOrg?.calVideoLogo}
+            fallback={<Icon name="plus" className="text-subtle h-6 w-6" />}
+            size="lg"
+          />
+          <div className="ms-4">
+            <div className="flex gap-2">
+              <ImageUploader
+                target="avatar"
+                id="cal-video-logo-upload"
+                buttonMsg={currentOrg?.calVideoLogo ? t("update_cal_video_logo") : t("upload_cal_video_logo")}
+                handleAvatarChange={(newLogo) => {
+                  mutation.mutate({
+                    calVideoLogo: newLogo,
+                  });
+                }}
+                disabled={mutation.isPending}
+                imageSrc={currentOrg?.calVideoLogo ?? undefined}
+                uploadInstruction={t("cal_video_logo_upload_instruction")}
+                triggerButtonColor={currentOrg?.calVideoLogo ? "secondary" : "primary"}
+              />
+              {currentOrg?.calVideoLogo && (
+                <Button
+                  color="destructive"
                   disabled={mutation.isPending}
-                  imageSrc={currentOrg?.calVideoLogo ?? undefined}
-                  uploadInstruction={t("cal_video_logo_upload_instruction")}
-                  triggerButtonColor={currentOrg?.calVideoLogo ? "secondary" : "primary"}
-                />
-                {currentOrg?.calVideoLogo && (
-                  <Button
-                    color="destructive"
-                    disabled={mutation.isPending}
-                    onClick={() => {
-                      mutation.mutate({
-                        calVideoLogo: null,
-                      });
-                    }}>
-                    {t("remove")}
-                  </Button>
-                )}
-              </div>
+                  onClick={() => {
+                    mutation.mutate({
+                      calVideoLogo: null,
+                    });
+                  }}>
+                  {t("remove")}
+                </Button>
+              )}
             </div>
           </div>
         </div>
