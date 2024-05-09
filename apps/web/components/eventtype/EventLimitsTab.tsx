@@ -70,7 +70,7 @@ function RangeLimitRadioItem({
 }: {
   radioValue: string;
   isDisabled: boolean;
-  formMethods: UseFormReturn<FormValues, any>;
+  formMethods: UseFormReturn<FormValues>;
 }) {
   const { t } = useLocale();
   return (
@@ -120,7 +120,7 @@ function RollingLimitRadioItem({
 }: {
   radioValue: IPeriodType;
   isDisabled: boolean;
-  formMethods: UseFormReturn<FormValues, any>;
+  formMethods: UseFormReturn<FormValues>;
   onChange: (opt: { value: number } | null) => void;
   rollingExcludeUnavailableDays: boolean;
 }) {

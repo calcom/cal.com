@@ -678,6 +678,8 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
     Object.create(null)
   );
 
+  loggerWithEventDetails.debug(safeStringify({ slotsMappedToDate }));
+
   const availableDates = Object.keys(slotsMappedToDate);
   const allDatesWithBookabilityStatus = getAllDatesWithBookabilityStatus(availableDates);
   loggerWithEventDetails.debug(safeStringify({ availableDates }));
@@ -770,7 +772,7 @@ async function getTeamIdFromSlug(
   return team?.id;
 }
 
-function getAllDatesWithBookabilityStatus(availableDates: string[]) {
+export function getAllDatesWithBookabilityStatus(availableDates: string[]) {
   const availableDatesSet = new Set(availableDates);
   const firstDate = dayjs(availableDates[0]);
   const lastDate = dayjs(availableDates[availableDates.length - 1]);

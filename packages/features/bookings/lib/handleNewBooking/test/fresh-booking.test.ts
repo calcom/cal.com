@@ -2098,6 +2098,87 @@ describe("handleNewBooking", () => {
       timeout
     );
 
+    test(
+      `should fail booking if the start date is in the past`,
+      async ({}) => {
+        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const booker = getBooker({
+          email: "booker@example.com",
+          name: "Booker",
+        });
+
+        const organizer = getOrganizer({
+          name: "Organizer",
+          email: "organizer@example.com",
+          id: 101,
+          schedules: [TestData.schedules.IstWorkHours],
+          credentials: [getGoogleCalendarCredential()],
+          selectedCalendars: [TestData.selectedCalendars.google],
+        });
+
+        const mockBookingData = getMockRequestDataForBooking({
+          data: {
+            user: organizer.username,
+            eventTypeId: 1,
+            start: `${getDate({ dateIncrement: -1 }).dateString}T05:00:00.000Z`,
+            end: `${getDate({ dateIncrement: -1 }).dateString}T05:30:00.000Z`,
+            responses: {
+              email: booker.email,
+              name: booker.name,
+              location: { optionValue: "", value: "New York" },
+            },
+          },
+        });
+
+        const { req } = createMockNextJsRequest({
+          method: "POST",
+          body: mockBookingData,
+        });
+
+        const scenarioData = getScenarioData({
+          webhooks: [
+            {
+              userId: organizer.id,
+              eventTriggers: ["BOOKING_CREATED"],
+              subscriberUrl: "http://my-webhook.example.com",
+              active: true,
+              eventTypeId: 1,
+              appId: null,
+            },
+          ],
+          workflows: [
+            {
+              userId: organizer.id,
+              trigger: "NEW_EVENT",
+              action: "EMAIL_HOST",
+              template: "REMINDER",
+              activeEventTypeId: 1,
+            },
+          ],
+          eventTypes: [
+            {
+              id: 1,
+              slotInterval: 30,
+              length: 30,
+              users: [
+                {
+                  id: 101,
+                },
+              ],
+            },
+          ],
+          organizer,
+          apps: [TestData.apps["google-calendar"], TestData.apps["daily-video"]],
+        });
+
+        mockCalendarToHaveNoBusySlots("googlecalendar", {});
+        await createBookingScenario(scenarioData);
+
+        await expect(() => handleNewBooking(req)).rejects.toThrowError("book a meeting in the past");
+      },
+      timeout
+    );
+
     describe("Paid Events", () => {
       test(
         `Event Type that doesn't require confirmation

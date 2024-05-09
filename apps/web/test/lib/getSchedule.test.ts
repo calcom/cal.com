@@ -6,9 +6,11 @@ import { describe, expect, vi, beforeEach, afterEach, test } from "vitest";
 
 import dayjs from "@calcom/dayjs";
 import type { BookingStatus } from "@calcom/prisma/enums";
+import { PeriodType } from "@calcom/prisma/enums";
 import type { Slot } from "@calcom/trpc/server/routers/viewer/slots/types";
 import { getAvailableSlots as getSchedule } from "@calcom/trpc/server/routers/viewer/slots/util";
 
+import type { ScenarioData } from "../utils/bookingScenario/bookingScenario";
 import {
   getDate,
   getGoogleCalendarCredential,
@@ -28,7 +30,8 @@ declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace jest {
     interface Matchers<R> {
-      toHaveTimeSlots(expectedSlots: string[], date: { dateString: string }): R;
+      toHaveTimeSlots(expectedSlots: string[], date: { dateString: string; doExactMatch?: boolean }): R;
+      toHaveNoTimeSlots(date: { dateString: string }): R;
     }
   }
 }
@@ -37,7 +40,7 @@ expect.extend({
   toHaveTimeSlots(
     schedule: { slots: Record<string, Slot[]> },
     expectedSlots: string[],
-    { dateString }: { dateString: string }
+    { dateString, doExactMatch }: { dateString: string; doExactMatch: boolean }
   ) {
     if (!schedule.slots[`${dateString}`]) {
       return {
@@ -45,6 +48,7 @@ expect.extend({
         message: () => `has no timeslots for ${dateString}`,
       };
     }
+
     if (
       !schedule.slots[`${dateString}`]
         .map((slot) => slot.time)
@@ -61,9 +65,33 @@ expect.extend({
           )}`,
       };
     }
+
+    if (doExactMatch) {
+      return {
+        pass: expectedSlots.length === schedule.slots[`${dateString}`].length,
+        message: () =>
+          `number of slots don't match for ${dateString}. Expected ${expectedSlots.length} but got ${
+            schedule.slots[`${dateString}`].length
+          }`,
+      };
+    }
+
     return {
       pass: true,
       message: () => "has correct timeslots ",
+    };
+  },
+
+  toHaveNoTimeSlots(schedule: { slots: Record<string, Slot[]> }, dateString: string) {
+    if (!schedule.slots[`${dateString}`] || schedule.slots[`${dateString}`].length === 0) {
+      return {
+        pass: true,
+        message: () => `has no timeslots for ${dateString}`,
+      };
+    }
+    return {
+      pass: false,
+      message: () => `has timeslots for ${dateString}`,
     };
   },
 });
@@ -86,7 +114,7 @@ const TestData = {
   schedules: {
     IstWorkHours: {
       id: 1,
-      name: "9:30AM to 6PM in India - 4:00AM to 12:30PM in GMT",
+      name: "9:30AM to 6PM in India(All Days) - 4:00AM to 12:30PM in GMT",
       availability: [
         {
           userId: null,
@@ -148,6 +176,21 @@ const TestData = {
   },
 };
 
+const expectedSlotsForSchedule = {
+  IstWorkHours: {
+    allPossibleSlots: [
+      "04:30:00.000Z",
+      "05:30:00.000Z",
+      "06:30:00.000Z",
+      "07:30:00.000Z",
+      "08:30:00.000Z",
+      "09:30:00.000Z",
+      "10:30:00.000Z",
+      "11:30:00.000Z",
+    ],
+  },
+};
+
 const cleanup = async () => {
   await prismock.eventType.deleteMany();
   await prismock.user.deleteMany();
@@ -156,6 +199,7 @@ const cleanup = async () => {
   await prismock.credential.deleteMany();
   await prismock.booking.deleteMany();
   await prismock.app.deleteMany();
+  vi.useRealTimers();
 };
 
 beforeEach(async () => {
@@ -879,6 +923,7 @@ describe("getSchedule", () => {
         }
       );
     });
+
     test("test that booking limit is working correctly if user is all day available", async () => {
       const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
       const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
@@ -938,6 +983,7 @@ describe("getSchedule", () => {
             ],
           },
         ],
+        // One bookings for each(E1 and E2) on plus2Date
         bookings: [
           {
             userId: 101,
@@ -996,6 +1042,85 @@ describe("getSchedule", () => {
         });
       }
       expect(availableSlotsInTz.filter((slot) => slot.format().startsWith(plus2DateString)).length).toBe(23); // 2 booking per day as limit, only one booking on that
+    });
+
+    describe("Future Limits", () => {
+      test.only("PeriodType=ROLLING", async () => {
+        const { dateString: yesterdayDateString } = getDate({ dateIncrement: -1 });
+        const { dateString: todayDateString } = getDate();
+        const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+        const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
+        const { dateString: plus3DateString } = getDate({ dateIncrement: 3 });
+        const { dateString: plus4DateString } = getDate({ dateIncrement: 4 });
+        const { dateString: plus5DateString } = getDate({ dateIncrement: 5 });
+        timeTravelToTheBeginningOfToday();
+
+        const scenarioData = {
+          eventTypes: [
+            {
+              id: 1,
+              length: 60,
+              ...getPeriodTypeData({
+                type: "ROLLING",
+                periodDays: 2,
+                periodCountCalendarDays: true,
+              }),
+              users: [
+                {
+                  id: 101,
+                },
+              ],
+            },
+          ],
+          users: [
+            {
+              ...TestData.users.example,
+              id: 101,
+              schedules: [TestData.schedules.IstWorkHours],
+            },
+          ],
+        } satisfies ScenarioData;
+
+        await createBookingScenario(scenarioData);
+
+        const scheduleForEvent = await getSchedule({
+          input: {
+            eventTypeId: 1,
+            eventTypeSlug: "",
+            usernameList: [],
+            // Because this time is in GMT, it will be 00:00 in IST with todayDateString
+            startTime: `${yesterdayDateString}T18:30:00.000Z`,
+            endTime: `${plus5DateString}T18:29:59.999Z`,
+            timeZone: Timezones["+5:30"],
+            isTeamEvent: false,
+          },
+        });
+
+        expect(scheduleForEvent).toHaveTimeSlots(expectedSlotsForSchedule["IstWorkHours"].allPossibleSlots, {
+          dateString: todayDateString,
+          doExactMatch: true,
+        });
+
+        expect(scheduleForEvent).toHaveTimeSlots(expectedSlotsForSchedule["IstWorkHours"].allPossibleSlots, {
+          dateString: plus1DateString,
+          doExactMatch: true,
+        });
+
+        // No Timeslots available as plus2Date and futher dates are beyond the rolling period
+        expect(scheduleForEvent).toHaveNoTimeSlots({
+          dateString: plus2DateString,
+        });
+
+        // No Timeslots beyond plus2Date as beyond the rolling period
+        expect(scheduleForEvent).toHaveNoTimeSlots({
+          dateString: plus3DateString,
+        });
+
+        // No Timeslots beyond plus2Date as beyond the rolling period
+        expect(scheduleForEvent).toHaveNoTimeSlots({
+          dateString: plus4DateString,
+        });
+      });
     });
   });
 
@@ -1329,3 +1454,59 @@ describe("getSchedule", () => {
     });
   });
 });
+
+function timeTravelToTheBeginningOfDay(yesterdayDateString: string) {
+  vi.setSystemTime(`${yesterdayDateString}T18:30:00.000Z`);
+}
+
+function getPeriodTypeData({
+  type,
+  periodDays,
+  periodCountCalendarDays,
+  periodStartDate,
+  periodEndDate,
+}: {
+  type: PeriodType;
+  periodDays?: number;
+  periodCountCalendarDays?: boolean;
+  periodStartDate?: Date;
+  periodEndDate?: Date;
+}) {
+  if (type === PeriodType.ROLLING) {
+    if (!periodCountCalendarDays || !periodDays) {
+      throw new Error("periodCountCalendarDays and periodDays are required for ROLLING period type");
+    }
+    return {
+      periodType: PeriodType.ROLLING,
+      periodDays,
+      periodCountCalendarDays,
+    };
+  }
+
+  if (type === PeriodType.ROLLING_WINDOW) {
+    if (!periodCountCalendarDays || !periodDays) {
+      throw new Error("periodCountCalendarDays and periodDays are required for ROLLING period type");
+    }
+    return {
+      periodType: PeriodType.ROLLING_WINDOW,
+      periodDays,
+      periodCountCalendarDays,
+    };
+  }
+
+  if (type === PeriodType.RANGE) {
+    if (!periodStartDate || !periodEndDate) {
+      throw new Error("periodStartDate and periodEndDate are required for RANGE period type");
+    }
+    return {
+      periodType: PeriodType.RANGE,
+      periodStartDate,
+      periodEndDate,
+    };
+  }
+}
+
+function timeTravelToTheBeginningOfToday() {
+  const { dateString: yesterdayDateString } = getDate({ dateIncrement: -1 });
+  vi.setSystemTime(`${yesterdayDateString}T18:30:00.000Z`);
+}
