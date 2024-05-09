@@ -405,9 +405,9 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
           if (contactOwner) {
             teamMember = contactOwner.user.email;
             usersWithCredentials = [
-              contactOwner.user,
-              ...eventType.hosts.reduce((fixedHosts, host) => {
-                if (host.user.email !== contactOwner.user.email && host.isFixed) fixedHosts.push(host.user);
+              { ...contactOwner.user, isFixed: true },
+              ...eventType.hosts.reduce((hostsArray, host) => {
+                if (host.user.email !== contactOwner.user.email) hostsArray.push(host.user);
                 return fixedHosts;
               }, []),
             ];
