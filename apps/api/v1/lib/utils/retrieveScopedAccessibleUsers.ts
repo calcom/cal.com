@@ -82,7 +82,6 @@ export const getAccessibleUsers = async ({
 export const retrieveOrgScopedAccessibleUsers = async ({ adminId }: { adminId: number }) => {
   const adminMemberships = await getAllAdminMemberships(adminId);
   const organizationId = adminMemberships.find((membership) => membership.team.isOrganization)?.team.id;
-  // note that a user MUST be a part of the org, so once you have orgId, just check if the user has membership with that orgId
   if (organizationId) {
     const allMemberships = await getAllOrganizationMembers(organizationId);
     return allMemberships.map((membership) => membership.userId);
