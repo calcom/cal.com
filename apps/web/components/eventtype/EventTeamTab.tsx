@@ -409,10 +409,12 @@ export const EventTeamTab = ({
 
   useEffect(() => {
     const handleRouteChange = (url: string) => {
+      const paths = url.split("/");
       if (
         getValues("hosts").length === 0 &&
         getValues("children").length === 0 &&
-        !leaveWithoutAssigningHosts.current
+        !leaveWithoutAssigningHosts.current &&
+        (url === "/event-types" || paths[1] !== "event-types")
       ) {
         setIsOpenAssignmentWarnDialog(true);
         setPendingRoute(url);
