@@ -1,3 +1,4 @@
+import type { User, Team } from "@prisma/client";
 import { lookup } from "dns";
 
 import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
@@ -29,6 +30,14 @@ type CreateOptions = {
   input: TCreateInputSchema;
 };
 
+type LoggedInUserType = {
+  id: User["id"];
+  role: User["role"];
+  teams: {
+    team: { slug: Team["slug"] };
+  }[];
+};
+
 const getIPAddress = async (url: string): Promise<string> => {
   return new Promise((resolve, reject) => {
     lookup(url, (err, address) => {
@@ -38,11 +47,10 @@ const getIPAddress = async (url: string): Promise<string> => {
   });
 };
 
-export const createHandler = async ({ input, ctx }: CreateOptions) => {
-  const { slug, name, orgOwnerEmail, seats, pricePerSeat, isPlatform } = input;
+const checkLoginStatus = async (userId: number) => {
   const loggedInUser = await prisma.user.findUnique({
     where: {
-      id: ctx.user.id,
+      id: userId,
     },
     select: {
       id: true,
@@ -61,18 +69,34 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
   });
   if (!loggedInUser) throw new TRPCError({ code: "UNAUTHORIZED", message: "You are not authorized." });
 
-  const IS_USER_ADMIN = loggedInUser.role === UserPermissionRole.ADMIN;
+  return loggedInUser;
+};
 
-  if (!ORG_SELF_SERVE_ENABLED && !IS_USER_ADMIN && !isPlatform) {
+const checkUserIsAdminOrThrow = (
+  userRole: LoggedInUserType["role"],
+  loggedInUserEmail: string,
+  orgOwnerEmail: string
+) => {
+  const IS_USER_ADMIN = userRole === UserPermissionRole.ADMIN;
+  if (!ORG_SELF_SERVE_ENABLED && !IS_USER_ADMIN) {
     throw new TRPCError({ code: "FORBIDDEN", message: "Only admins can create organizations" });
   }
 
-  if (!IS_USER_ADMIN && loggedInUser.email !== orgOwnerEmail && !isPlatform) {
+  if (!IS_USER_ADMIN && loggedInUserEmail !== orgOwnerEmail) {
     throw new TRPCError({
       code: "FORBIDDEN",
       message: "You can only create organization where you are the owner",
     });
   }
+
+  return IS_USER_ADMIN;
+};
+
+export const createHandler = async ({ input, ctx }: CreateOptions) => {
+  const { slug, name, orgOwnerEmail, seats, pricePerSeat, isPlatform } = input;
+  const loggedInUser = await checkLoginStatus(ctx.user.id);
+
+  const IS_USER_ADMIN = checkUserIsAdminOrThrow(loggedInUser.role, loggedInUser.email, orgOwnerEmail);
 
   const publishedTeams = loggedInUser.teams.filter((team) => !!team.team.slug);
 
