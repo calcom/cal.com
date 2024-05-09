@@ -38,6 +38,12 @@ type LoggedInUserType = {
   }[];
 };
 
+type checkOrgOwnerCreationRequirementsProps = {
+  user: { role: LoggedInUserType["role"]; email: string };
+  org: { email: string; slug: string };
+  teams: LoggedInUserType["teams"];
+};
+
 const getIPAddress = async (url: string): Promise<string> => {
   return new Promise((resolve, reject) => {
     lookup(url, (err, address) => {
@@ -92,27 +98,21 @@ const checkUserIsAdminOrThrow = (
   return IS_USER_ADMIN;
 };
 
-export const createHandler = async ({ input, ctx }: CreateOptions) => {
-  const { slug, name, orgOwnerEmail, seats, pricePerSeat, isPlatform } = input;
-  const loggedInUser = await checkLoginStatus(ctx.user.id);
+const checkOrgPublishedTeams = (teams: LoggedInUserType["teams"], isAdmin: boolean) => {
+  if (isAdmin) return;
 
-  const IS_USER_ADMIN = checkUserIsAdminOrThrow(loggedInUser.role, loggedInUser.email, orgOwnerEmail);
+  const publishedTeams = teams.filter((team) => !!team.team.slug);
 
-  const publishedTeams = loggedInUser.teams.filter((team) => !!team.team.slug);
-
-  if (!IS_USER_ADMIN && publishedTeams.length < ORG_MINIMUM_PUBLISHED_TEAMS_SELF_SERVE && !isPlatform) {
-    throw new TRPCError({ code: "FORBIDDEN", message: "You need to have minimum published teams." });
+  if (publishedTeams.length < ORG_MINIMUM_PUBLISHED_TEAMS_SELF_SERVE) {
+    throw new TRPCError({ code: "FORBIDDEN", message: "You need to have atleast two published teams." });
   }
+};
 
-  let orgOwner = await prisma.user.findUnique({
-    where: {
-      email: orgOwnerEmail,
-    },
-  });
-
+const isOrgSlugTaken = async (orgSlug: string) => {
+  // is org slug done here
   const hasAnOrgWithSameSlug = await prisma.team.findFirst({
     where: {
-      slug: slug,
+      slug: orgSlug,
       parentId: null,
       isOrganization: true,
     },
@@ -122,14 +122,18 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
   // It is needed so that later we can migrate the non-org Team(with the conflicting slug) to the newly created org
   // Publishing the organization would fail if the team with the same slug is not migrated first
 
-  if (hasAnOrgWithSameSlug || RESERVED_SUBDOMAINS.includes(slug))
+  if (hasAnOrgWithSameSlug || RESERVED_SUBDOMAINS.includes(orgSlug))
     throw new TRPCError({ code: "BAD_REQUEST", message: "organization_url_taken" });
+};
 
-  const availability = getAvailabilityFromSchedule(DEFAULT_SCHEDULE);
-
-  const isOrganizationConfigured = isPlatform ? true : await createDomain(slug);
-  const loggedInUserTranslation = await getTranslation(ctx.user.locale, "common");
-  const inputLanguageTranslation = await getTranslation(input.language ?? "en", "common");
+const createOrgDomainAndNotifyAdmins = async (
+  isOrganizationConfigured: boolean,
+  orgOwnerEmail: string,
+  slug: NonNullable<Team["slug"]>,
+  locale: string
+) => {
+  // start
+  const loggedInUserTranslation = await getTranslation(locale, "common");
 
   if (!isOrganizationConfigured) {
     // Otherwise, we proceed to send an administrative email to admins regarding
@@ -148,12 +152,45 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
         ),
         t: loggedInUserTranslation,
       });
-    } else {
-      console.warn("Organization created: subdomain not configured and couldn't notify adminnistrators");
-    }
-  }
 
+      return;
+    }
+
+    console.warn("Organization created: subdomain not configured and couldn't notify adminnistrators");
+  }
+};
+
+const checkOrgOwnerCreationRequirements = async ({
+  user: { email, role },
+  org: { email: orgOwnerEmail, slug: orgSlug },
+  teams,
+}: checkOrgOwnerCreationRequirementsProps) => {
+  const IS_USER_ADMIN = checkUserIsAdminOrThrow(role, email, orgOwnerEmail);
+
+  checkOrgPublishedTeams(teams, IS_USER_ADMIN);
+
+  await isOrgSlugTaken(orgSlug);
+
+  return IS_USER_ADMIN;
+};
+
+export const createHandler = async ({ input, ctx }: CreateOptions) => {
+  const { slug, name, orgOwnerEmail, seats, pricePerSeat, isPlatform } = input;
+
+  const inputLanguageTranslation = await getTranslation(input.language ?? "en", "common");
+  const availability = getAvailabilityFromSchedule(DEFAULT_SCHEDULE);
   const autoAcceptEmail = orgOwnerEmail.split("@")[1];
+
+  const loggedInUser = await checkLoginStatus(ctx.user.id);
+  const isOrganizationConfigured = isPlatform ? true : await createDomain(slug);
+
+  const IS_USER_ADMIN = await checkOrgOwnerCreationRequirements({
+    user: { email: loggedInUser.email, role: loggedInUser.role },
+    org: { email: orgOwnerEmail, slug: slug },
+    teams: loggedInUser.teams,
+  });
+
+  await createOrgDomainAndNotifyAdmins(isOrganizationConfigured, orgOwnerEmail, slug, ctx.user.locale);
 
   const orgData = {
     name,
@@ -165,6 +202,12 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
     pricePerSeat: pricePerSeat ?? null,
     isPlatform,
   };
+
+  let orgOwner = await prisma.user.findUnique({
+    where: {
+      email: orgOwnerEmail,
+    },
+  });
 
   // Create a new user and invite them as the owner of the organization
   if (!orgOwner) {
