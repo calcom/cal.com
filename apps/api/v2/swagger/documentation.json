@@ -1650,14 +1650,17 @@
             "example": "alice@example.com"
           },
           "timeFormat": {
+            "type": "number",
+            "example": 12,
             "enum": [
               12,
               24
             ],
-            "type": "number",
-            "example": 12
+            "description": "Must be 12 or 24"
           },
           "weekStart": {
+            "type": "string",
+            "example": "Monday",
             "enum": [
               "Monday",
               "Tuesday",
@@ -1666,9 +1669,7 @@
               "Friday",
               "Saturday",
               "Sunday"
-            ],
-            "type": "string",
-            "example": "Sunday"
+            ]
           },
           "timeZone": {
             "type": "string",
@@ -1744,20 +1745,36 @@
       "UpdateManagedUserInput": {
         "type": "object",
         "properties": {
+          "timeFormat": {
+            "type": "number",
+            "example": 12,
+            "enum": [
+              12,
+              24
+            ],
+            "description": "Must be 12 or 24"
+          },
+          "weekStart": {
+            "type": "string",
+            "example": "Monday",
+            "enum": [
+              "Monday",
+              "Tuesday",
+              "Wednesday",
+              "Thursday",
+              "Friday",
+              "Saturday",
+              "Sunday"
+            ]
+          },
           "email": {
             "type": "string"
           },
           "name": {
             "type": "string"
           },
-          "timeFormat": {
-            "type": "number"
-          },
           "defaultScheduleId": {
             "type": "number"
-          },
-          "weekStart": {
-            "type": "string"
           },
           "timeZone": {
             "type": "string"
