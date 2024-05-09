@@ -8,6 +8,7 @@ import { Controller, useFormContext } from "react-hook-form";
 import type { SingleValue } from "react-select";
 
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
+import { getDefinedBufferTimes } from "@calcom/features/eventtypes/lib/getDefinedBufferTimes";
 import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import { classNames } from "@calcom/lib";
 import type { DurationType } from "@calcom/lib/convertToNewDurationType";
@@ -172,7 +173,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
                     label: t("event_buffer_default"),
                     value: 0,
                   },
-                  ...[5, 10, 15, 20, 30, 45, 60, 90, 120].map((minutes) => ({
+                  ...getDefinedBufferTimes().map((minutes) => ({
                     label: `${minutes} ${t("minutes")}`,
                     value: minutes,
                   })),
