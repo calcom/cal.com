@@ -12,7 +12,6 @@ async function authMiddleware(req: NextApiRequest) {
     return;
   }
 
-  // Extract the id and fetch the user associated with the id. Then, check if user belongs to the org
   const { id } = schemaQueryIdParseInt.parse(query);
   if (isOrganizationOwnerOrAdmin) {
     const booking = await prisma.booking.findUnique({
