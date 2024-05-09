@@ -7,13 +7,17 @@ import type { EventTypeAppCardApp } from "../types";
 function useIsAppEnabled(app: EventTypeAppCardApp) {
   const { getAppData, setAppData } = useAppContextWithSchema();
   const [enabled, setEnabled] = useState(() => {
+    const isAppEnabled = getAppData("enabled");
+
     if (!app.credentialOwner) {
       return getAppData("enabled");
     }
+
     const credentialId = getAppData("credentialId");
     const isAppEnabledForCredential =
-      app.userCredentialIds.some((id) => id === credentialId) ||
-      app.credentialOwner.credentialId === credentialId;
+      isAppEnabled &&
+      (app.userCredentialIds.some((id) => id === credentialId) ||
+        app.credentialOwner.credentialId === credentialId);
     return isAppEnabledForCredential;
   });
 
