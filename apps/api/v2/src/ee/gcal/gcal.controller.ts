@@ -26,6 +26,7 @@ import {
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { ApiTags as DocsTags } from "@nestjs/swagger";
+import { Prisma } from "@prisma/client";
 import { Request } from "express";
 import { google } from "googleapis";
 import { z } from "zod";
@@ -106,10 +107,11 @@ export class GcalController {
 
     const oAuth2Client = await this.gcalService.getOAuthClient(this.redirectUri);
     const token = await oAuth2Client.getToken(parsedCode);
-    const key = token.res?.data;
+    // Google oAuth Credentials are stored in token.tokens
+    const key = token.tokens;
     const credential = await this.credentialRepository.createAppCredential(
       GOOGLE_CALENDAR_TYPE,
-      key,
+      key as Prisma.InputJsonValue,
       ownerId
     );
 
