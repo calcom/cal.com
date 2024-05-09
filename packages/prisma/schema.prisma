@@ -829,6 +829,7 @@ model App {
   Webhook     Webhook[]
   ApiKey      ApiKey[]
   enabled     Boolean         @default(false)
+  settings    Json?
 
   @@index([enabled])
 }
