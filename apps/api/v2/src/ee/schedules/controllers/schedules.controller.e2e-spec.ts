@@ -100,7 +100,11 @@ describe("Schedules Endpoints", () => {
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           createdSchedule = response.body.data;
 
-          const expectedSchedule = { ...createScheduleInput, availability: defaultAvailability };
+          const expectedSchedule = {
+            ...createScheduleInput,
+            availability: defaultAvailability,
+            overrides: [],
+          };
           outputScheduleMatchesExpected(createdSchedule, expectedSchedule, 1);
 
           const scheduleOwner = createdSchedule.ownerId
@@ -112,7 +116,9 @@ describe("Schedules Endpoints", () => {
 
     function outputScheduleMatchesExpected(
       outputSchedule: ScheduleOutput | null,
-      expected: CreateScheduleInput & { availability: CreateScheduleInput["availability"] },
+      expected: CreateScheduleInput & { availability: CreateScheduleInput["availability"] } & {
+        overrides: CreateScheduleInput["overrides"];
+      },
       expectedAvailabilityLength: number
     ) {
       expect(outputSchedule).toBeTruthy();
@@ -137,7 +143,11 @@ describe("Schedules Endpoints", () => {
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           const outputSchedule = responseBody.data;
 
-          const expectedSchedule = { ...createScheduleInput, availability: defaultAvailability };
+          const expectedSchedule = {
+            ...createScheduleInput,
+            availability: defaultAvailability,
+            overrides: [],
+          };
           outputScheduleMatchesExpected(outputSchedule, expectedSchedule, 1);
         });
     });
@@ -151,7 +161,11 @@ describe("Schedules Endpoints", () => {
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           const outputSchedule = responseBody.data[0];
 
-          const expectedSchedule = { ...createScheduleInput, availability: defaultAvailability };
+          const expectedSchedule = {
+            ...createScheduleInput,
+            availability: defaultAvailability,
+            overrides: [],
+          };
           outputScheduleMatchesExpected(outputSchedule, expectedSchedule, 1);
         });
     });
@@ -175,6 +189,7 @@ describe("Schedules Endpoints", () => {
           const expectedSchedule = {
             ...createScheduleInput,
             availability: defaultAvailability,
+            overrides: [],
             name: newScheduleName,
           };
           outputScheduleMatchesExpected(createdSchedule, expectedSchedule, 1);
