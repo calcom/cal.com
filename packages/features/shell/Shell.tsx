@@ -656,7 +656,7 @@ const platformNavigation: NavigationItemType[] = [
     icon: "layout-dashboard",
   },
   {
-    name: "Platform docs",
+    name: "Documentation",
     href: "https://docs.cal.com/docs/platform",
     icon: "bar-chart",
     target: "_blank",
@@ -668,15 +668,9 @@ const platformNavigation: NavigationItemType[] = [
     target: "_blank",
   },
   {
-    name: "Cal.com atoms",
+    name: "Atoms",
     href: "https://docs.cal.com/docs/platform#atoms",
     icon: "atom",
-    target: "_blank",
-  },
-  {
-    name: "Examples app",
-    href: "https://platform.cal.dev/",
-    icon: "code",
     target: "_blank",
   },
   {
