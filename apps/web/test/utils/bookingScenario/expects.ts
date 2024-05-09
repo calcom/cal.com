@@ -289,12 +289,6 @@ export function expectWebhookToHaveBeenCalledWith(
   expect(parsedBody.triggerEvent).toBe(data.triggerEvent);
 
   if (parsedBody.payload) {
-    if (parsedBody.payload.metadata?.videoCallUrl) {
-      parsedBody.payload.metadata.videoCallUrl = parsedBody.payload.metadata.videoCallUrl
-        ? parsedBody.payload.metadata.videoCallUrl
-        : parsedBody.payload.metadata.videoCallUrl;
-    }
-
     if (data.payload) {
       if (data.payload.metadata !== undefined) {
         expect(parsedBody.payload.metadata).toEqual(expect.objectContaining(data.payload.metadata));
