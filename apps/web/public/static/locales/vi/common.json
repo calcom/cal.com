@@ -940,8 +940,6 @@
   "verify_wallet": "Xác minh Ví",
   "create_events_on": "Tạo sự kiện trên",
   "enterprise_license": "Đây là tính năng doanh nghiệp",
-  "enterprise_license_description": "Để bật tính năng này, nhận khoá triển khai tại console {{consoleUrl}} và thêm nó vào .env của bạn ở dạng CALCOM_LICENSE_KEY. Nếu nhóm của bạn đã có giấy phép, vui lòng liên hệ {{supportMail}} để được trợ giúp.",
-  "enterprise_license_development": "Bạn có thể thử nghiệm tính năng này ở chế độ phát triển. Để sử dụng cho sản xuất, hãy nhờ quản trị viên vào phần <2>/auth/setup</2> để nhập một khoá giấy phép.",
   "missing_license": "Giấy phép bị thiếu",
   "next_steps": "Bước tiếp theo",
   "acquire_commercial_license": "Lấy giấy phép thương mại",

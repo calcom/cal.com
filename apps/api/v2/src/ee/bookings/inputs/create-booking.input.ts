@@ -98,4 +98,12 @@ export class CreateBookingInput {
 
   @Type(() => Response)
   responses!: Response;
+
+  @IsString()
+  @IsOptional()
+  orgSlug?: string;
+
+  @IsString()
+  @IsOptional()
+  locationUrl?: string;
 }

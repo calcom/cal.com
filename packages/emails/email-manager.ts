@@ -9,6 +9,7 @@ import { formatCalEvent } from "@calcom/lib/formatCalendarEvent";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import type { MonthlyDigestEmailData } from "./src/templates/MonthlyDigestEmail";
+import type { OrganizationAdminNoSlotsEmailInput } from "./src/templates/OrganizationAdminNoSlots";
 import type { EmailVerifyLink } from "./templates/account-verify-email";
 import AccountVerifyEmail from "./templates/account-verify-email";
 import type { OrganizationNotification } from "./templates/admin-organization-notification";
@@ -17,6 +18,7 @@ import AttendeeAwaitingPaymentEmail from "./templates/attendee-awaiting-payment-
 import AttendeeCancelledEmail from "./templates/attendee-cancelled-email";
 import AttendeeCancelledSeatEmail from "./templates/attendee-cancelled-seat-email";
 import AttendeeDailyVideoDownloadRecordingEmail from "./templates/attendee-daily-video-download-recording-email";
+import AttendeeDailyVideoDownloadTranscriptEmail from "./templates/attendee-daily-video-download-transcript-email";
 import AttendeeDeclinedEmail from "./templates/attendee-declined-email";
 import AttendeeLocationChangeEmail from "./templates/attendee-location-change-email";
 import AttendeeRequestEmail from "./templates/attendee-request-email";
@@ -37,8 +39,7 @@ import type { PasswordReset } from "./templates/forgot-password-email";
 import ForgotPasswordEmail from "./templates/forgot-password-email";
 import MonthlyDigestEmail from "./templates/monthly-digest-email";
 import NoShowFeeChargedEmail from "./templates/no-show-fee-charged-email";
-import type { OrgAutoInvite } from "./templates/org-auto-join-invite";
-import OrgAutoJoinEmail from "./templates/org-auto-join-invite";
+import OrganizationAdminNoSlotsEmail from "./templates/organization-admin-no-slots-email";
 import type { OrganizationCreation } from "./templates/organization-creation-email";
 import OrganizationCreationEmail from "./templates/organization-creation-email";
 import type { OrganizationEmailVerify } from "./templates/organization-email-verification";
@@ -46,6 +47,7 @@ import OrganizationEmailVerification from "./templates/organization-email-verifi
 import OrganizerAttendeeCancelledSeatEmail from "./templates/organizer-attendee-cancelled-seat-email";
 import OrganizerCancelledEmail from "./templates/organizer-cancelled-email";
 import OrganizerDailyVideoDownloadRecordingEmail from "./templates/organizer-daily-video-download-recording-email";
+import OrganizerDailyVideoDownloadTranscriptEmail from "./templates/organizer-daily-video-download-transcript-email";
 import OrganizerLocationChangeEmail from "./templates/organizer-location-change-email";
 import OrganizerPaymentRefundFailedEmail from "./templates/organizer-payment-refund-failed-email";
 import OrganizerRequestEmail from "./templates/organizer-request-email";
@@ -365,8 +367,10 @@ export const sendOrganizationCreationEmail = async (organizationCreationEvent: O
   await sendEmail(() => new OrganizationCreationEmail(organizationCreationEvent));
 };
 
-export const sendOrganizationAutoJoinEmail = async (orgInviteEvent: OrgAutoInvite) => {
-  await sendEmail(() => new OrgAutoJoinEmail(orgInviteEvent));
+export const sendOrganizationAdminNoSlotsNotification = async (
+  orgInviteEvent: OrganizationAdminNoSlotsEmailInput
+) => {
+  await sendEmail(() => new OrganizationAdminNoSlotsEmail(orgInviteEvent));
 };
 
 export const sendEmailVerificationLink = async (verificationInput: EmailVerifyLink) => {
@@ -476,6 +480,19 @@ export const sendDailyVideoRecordingEmails = async (calEvent: CalendarEvent, dow
   for (const attendee of calendarEvent.attendees) {
     emailsToSend.push(
       sendEmail(() => new AttendeeDailyVideoDownloadRecordingEmail(calendarEvent, attendee, downloadLink))
+    );
+  }
+  await Promise.all(emailsToSend);
+};
+
+export const sendDailyVideoTranscriptEmails = async (calEvent: CalendarEvent, transcripts: string[]) => {
+  const emailsToSend: Promise<unknown>[] = [];
+
+  emailsToSend.push(sendEmail(() => new OrganizerDailyVideoDownloadTranscriptEmail(calEvent, transcripts)));
+
+  for (const attendee of calEvent.attendees) {
+    emailsToSend.push(
+      sendEmail(() => new AttendeeDailyVideoDownloadTranscriptEmail(calEvent, attendee, transcripts))
     );
   }
   await Promise.all(emailsToSend);

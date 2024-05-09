@@ -5,6 +5,7 @@ import { UserWithProfile } from "@/modules/users/users.repository";
 import { Injectable } from "@nestjs/common";
 
 import { getEventTypeById } from "@calcom/platform-libraries";
+import type { PrismaClient } from "@calcom/prisma";
 
 @Injectable()
 export class EventTypesRepository {
@@ -48,9 +49,7 @@ export class EventTypesRepository {
       currentOrganizationId: user.movedToProfile?.organizationId || user.organizationId,
       eventTypeId,
       userId: user.id,
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      prisma: this.dbRead.prisma,
+      prisma: this.dbRead.prisma as unknown as PrismaClient,
       isUserOrganizationAdmin,
       isTrpcCall: true,
     });

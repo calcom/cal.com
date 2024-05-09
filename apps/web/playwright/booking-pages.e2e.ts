@@ -11,7 +11,6 @@ import {
   bookFirstEvent,
   bookOptinEvent,
   bookTimeSlot,
-  expectEmailsToHaveSubject,
   selectFirstAvailableTimeSlotNextMonth,
   testEmail,
   testName,
@@ -62,6 +61,7 @@ testBothFutureAndLegacyRoutes.describe("free user", () => {
 
   test("cannot book same slot multiple times", async ({ page, users, emails }) => {
     const [user] = users.get();
+
     const bookerObj = {
       email: users.trackEmail({ username: "testEmail", domain: "example.com" }),
       name: "testBooker",
@@ -80,12 +80,6 @@ testBothFutureAndLegacyRoutes.describe("free user", () => {
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
     const { title: eventTitle } = await user.getFirstEventAsOwner();
 
-    await expectEmailsToHaveSubject({
-      emails,
-      organizer: user,
-      booker: bookerObj,
-      eventTitle,
-    });
     await page.goto(bookingUrl);
 
     // book same time spot again
@@ -130,6 +124,21 @@ testBothFutureAndLegacyRoutes.describe("pro user", () => {
     await page.waitForURL((url) => {
       return url.pathname.startsWith("/booking");
     });
+  });
+
+  test("it redirects when a rescheduleUid does not match the current event type", async ({
+    page,
+    users,
+    bookings,
+  }) => {
+    const [pro] = users.get();
+    const [eventType] = pro.eventTypes;
+    const bookingFixture = await bookings.create(pro.id, pro.username, eventType.id);
+
+    // open the wrong eventType (rescheduleUid created for /30min event)
+    await page.goto(`${pro.username}/${pro.eventTypes[1].slug}?rescheduleUid=${bookingFixture.uid}`);
+
+    await expect(page).toHaveURL(new RegExp(`${pro.username}/${eventType.slug}`));
   });
 
   test("Can cancel the recently created booking and rebook the same timeslot", async ({

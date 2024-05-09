@@ -2,6 +2,7 @@ import type { GetServerSidePropsContext } from "next";
 
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { getFeatureFlag } from "@calcom/features/flags/server/utils";
+import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import logger from "@calcom/lib/logger";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
@@ -98,6 +99,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
             isPrivate: true,
             isOrganization: true,
             metadata: true,
+            logoUrl: true,
           },
         },
       },
@@ -126,7 +128,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       users: !isTeamOrParentOrgPrivate
         ? type.users.map((user) => ({
             ...user,
-            avatar: `/${user.username}/avatar.png`,
+            avatar: getUserAvatarUrl(user),
           }))
         : [],
       descriptionAsSafeHTML: markdownToSafeHTML(type.description),
@@ -213,6 +215,9 @@ function getTeamWithoutMetadata<T extends Pick<Team, "metadata">>(team: T) {
   const teamMetadata = teamMetadataSchema.parse(metadata);
   return {
     ...rest,
-    requestedSlug: teamMetadata?.requestedSlug,
+    // add requestedSlug if available.
+    ...(typeof teamMetadata?.requestedSlug !== "undefined"
+      ? { requestedSlug: teamMetadata?.requestedSlug }
+      : {}),
   };
 }
