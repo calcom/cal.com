@@ -92,7 +92,7 @@ function WorkflowPage() {
   const router = useRouter();
   const params = useParamsWithFallback();
 
-  const [selectedEventTypes, setSelectedEventTypes] = useState<Option[]>([]);
+  const [selectedOptions, setSelectedOptions] = useState<Option[]>([]);
   const [isAllDataLoaded, setIsAllDataLoaded] = useState(false);
   const [isMixedEventType, setIsMixedEventType] = useState(false); //for old event types before team workflows existed
 
@@ -137,15 +137,28 @@ function WorkflowPage() {
       if (workflow.userId && workflow.activeOn.find((active) => !!active.eventType.teamId)) {
         setIsMixedEventType(true);
       }
-      setSelectedEventTypes(
-        workflow.activeOn.flatMap((active) => {
-          if (workflow.teamId && active.eventType.parentId) return [];
-          return {
-            value: String(active.eventType.id),
-            label: active.eventType.title,
-          };
-        }) || []
-      );
+
+      if (isOrg) {
+        setSelectedOptions(
+          workflow.activeOnTeams.flatMap((active) => {
+            if (workflow.teamId && active.eventType.parentId) return [];
+            return {
+              value: String(active.team.id),
+              label: active.team.slug,
+            };
+          }) || []
+        );
+      } else {
+        setSelectedOptions(
+          workflow.activeOn.flatMap((active) => {
+            if (workflow.teamId && active.eventType.parentId) return [];
+            return {
+              value: String(active.eventType.id),
+              label: active.eventType.title,
+            };
+          }) || []
+        );
+      }
 
       const activeOn = workflow.activeOn
         ? workflow.activeOn.map((active) => ({
@@ -212,7 +225,7 @@ function WorkflowPage() {
     <Form
       form={form}
       handleSubmit={async (values) => {
-        let activeOnEventTypeIds: number[] = [];
+        let activeOnIds: number[] = [];
         let isEmpty = false;
         let isVerified = true;
 
@@ -252,7 +265,7 @@ function WorkflowPage() {
 
         if (!isEmpty && isVerified) {
           if (values.activeOn) {
-            activeOnEventTypeIds = values.activeOn
+            activeOnIds = values.activeOn
               .filter((option) => option.value !== "all")
               .map((option) => {
                 return parseInt(option.value, 10);
@@ -261,7 +274,7 @@ function WorkflowPage() {
           updateMutation.mutate({
             id: workflowId,
             name: values.name,
-            activeOn: activeOnEventTypeIds,
+            activeOn: activeOnIds,
             steps: values.steps,
             trigger: values.trigger,
             time: values.time || null,
@@ -312,8 +325,8 @@ function WorkflowPage() {
                     form={form}
                     workflowId={+workflowId}
                     user={user}
-                    selectedEventTypes={selectedEventTypes}
-                    setSelectedEventTypes={setSelectedEventTypes}
+                    selectedOptions={selectedOptions}
+                    setSelectedOptions={setSelectedOptions}
                     teamId={workflow ? workflow.teamId || undefined : undefined}
                     isMixedEventType={isMixedEventType}
                     readOnly={readOnly}

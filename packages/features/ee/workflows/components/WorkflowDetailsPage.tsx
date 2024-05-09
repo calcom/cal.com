@@ -24,8 +24,8 @@ type User = RouterOutputs["viewer"]["me"];
 interface Props {
   form: UseFormReturn<FormValues>;
   workflowId: number;
-  selectedEventTypes: Option[];
-  setSelectedEventTypes: Dispatch<SetStateAction<Option[]>>;
+  selectedOptions: Option[];
+  setSelectedOptions: Dispatch<SetStateAction<Option[]>>;
   teamId?: number;
   user: User;
   isMixedEventType: boolean;
@@ -34,8 +34,7 @@ interface Props {
 }
 
 export default function WorkflowDetailsPage(props: Props) {
-  const { form, workflowId, selectedEventTypes, setSelectedEventTypes, teamId, isMixedEventType, isOrg } =
-    props;
+  const { form, workflowId, selectedOptions, setSelectedOptions, teamId, isMixedEventType, isOrg } = props;
   const { t } = useLocale();
   const router = useRouter();
 
@@ -92,7 +91,7 @@ export default function WorkflowDetailsPage(props: Props) {
   const distinctEventTypes = new Set();
 
   if (!teamId && isMixedEventType) {
-    allEventTypeOptions = [...eventTypeOptions, ...selectedEventTypes];
+    allEventTypeOptions = [...eventTypeOptions, ...selectedOptions];
     allEventTypeOptions = allEventTypeOptions.filter((option) => {
       const duplicate = distinctEventTypes.has(option.value);
       distinctEventTypes.add(option.value);
@@ -102,9 +101,9 @@ export default function WorkflowDetailsPage(props: Props) {
 
   useEffect(() => {
     const matchingOption = allEventTypeOptions.find((option) => option.value === eventTypeId);
-    if (matchingOption && !selectedEventTypes.find((option) => option.value === eventTypeId)) {
-      const newOptions = [...selectedEventTypes, matchingOption];
-      setSelectedEventTypes(newOptions);
+    if (matchingOption && !selectedOptions.find((option) => option.value === eventTypeId)) {
+      const newOptions = [...selectedOptions, matchingOption];
+      setSelectedOptions(newOptions);
       form.setValue("activeOn", newOptions);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -170,11 +169,11 @@ export default function WorkflowDetailsPage(props: Props) {
               return (
                 <MultiSelectCheckboxes
                   options={isOrg ? teamOptions : allEventTypeOptions}
-                  isDisabled={props.readOnly}
+                  isDisabled={props.readOnly || form.getValues("selectAll")}
                   isLoading={isPending}
                   className="w-full md:w-64"
-                  setSelected={setSelectedEventTypes}
-                  selected={selectedEventTypes}
+                  setSelected={setSelectedOptions}
+                  selected={selectedOptions}
                   setValue={(s: Option[]) => {
                     form.setValue("activeOn", s);
                   }}
@@ -190,7 +189,12 @@ export default function WorkflowDetailsPage(props: Props) {
                 <CheckboxField
                   description={isOrg ? t("apply_to_all_teams") : t("apply_to_all_event_types")}
                   disabled={props.readOnly}
-                  onChange={(e) => onChange(e)}
+                  onChange={(e) => {
+                    onChange(e);
+                    if (e.target.value) {
+                      setSelectedOptions(isOrg ? teamOptions : allEventTypeOptions);
+                    }
+                  }}
                   checked={value}
                 />
               )}
