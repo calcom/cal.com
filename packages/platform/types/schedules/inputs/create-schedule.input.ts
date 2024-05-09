@@ -9,20 +9,9 @@ import {
   Matches,
   IsISO8601,
   IsTimeZone,
-  IsNumber,
 } from "class-validator";
 
-export enum WeekDay {
-  Monday = "Monday",
-  Tuesday = "Tuesday",
-  Wednesday = "Wednesday",
-  Thursday = "Thursday",
-  Friday = "Friday",
-  Saturday = "Saturday",
-  Sunday = "Sunday",
-}
-
-const TIME_FORMAT_HH_MM = /^([01]\d|2[0-3]):([0-5]\d)$/;
+import { TIME_FORMAT_HH_MM, WeekDay } from "../constants";
 
 class ScheduleAvailability {
   @IsEnum(WeekDay, { each: true })
@@ -50,13 +39,7 @@ class ScheduleOverride {
   endTime!: string;
 }
 
-export class ScheduleOutput {
-  @IsNumber()
-  id!: number;
-
-  @IsNumber()
-  ownerId!: number;
-
+export class CreateScheduleInput {
   @IsString()
   name!: string;
 
@@ -64,9 +47,10 @@ export class ScheduleOutput {
   timeZone!: string;
 
   @IsArray()
+  @IsOptional()
   @ValidateNested({ each: true })
   @Type(() => ScheduleAvailability)
-  availability!: ScheduleAvailability[];
+  availability?: ScheduleAvailability[];
 
   @IsBoolean()
   isDefault!: boolean;
@@ -75,5 +59,5 @@ export class ScheduleOutput {
   @IsOptional()
   @ValidateNested({ each: true })
   @Type(() => ScheduleOverride)
-  overrides!: ScheduleOverride[];
+  overrides?: ScheduleOverride[];
 }

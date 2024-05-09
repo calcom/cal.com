@@ -777,16 +777,6 @@
       "post": {
         "operationId": "SchedulesController_createSchedule",
         "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateScheduleInput"
-              }
-            }
-          }
-        },
         "responses": {
           "201": {
             "description": "",
@@ -829,14 +819,7 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": "Returns the default schedule",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetDefaultScheduleOutput"
-                }
-              }
-            }
+            "description": "Returns the default schedule"
           }
         },
         "tags": [
@@ -2842,37 +2825,6 @@
           "endTime"
         ]
       },
-      "CreateScheduleInput": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string"
-          },
-          "timeZone": {
-            "type": "string"
-          },
-          "availability": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ScheduleAvailability"
-            }
-          },
-          "isDefault": {
-            "type": "boolean"
-          },
-          "overrides": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ScheduleOverride"
-            }
-          }
-        },
-        "required": [
-          "name",
-          "timeZone",
-          "isDefault"
-        ]
-      },
       "ScheduleOutput": {
         "type": "object",
         "properties": {
@@ -2927,31 +2879,6 @@
           },
           "data": {
             "$ref": "#/components/schemas/ScheduleOutput"
-          }
-        },
-        "required": [
-          "status",
-          "data"
-        ]
-      },
-      "GetDefaultScheduleOutput": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": [
-              "success",
-              "error"
-            ]
-          },
-          "data": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/ScheduleOutput"
-              }
-            ]
           }
         },
         "required": [

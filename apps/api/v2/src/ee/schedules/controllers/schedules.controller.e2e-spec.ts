@@ -1,9 +1,5 @@
 import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
-import { CreateScheduleInput } from "@/ee/schedules/inputs/create-schedule.input";
-import { CreateScheduleOutput } from "@/ee/schedules/outputs/create-schedule.output";
-import { GetSchedulesOutput } from "@/ee/schedules/outputs/get-schedules.output";
-import { UpdateScheduleOutput } from "@/ee/schedules/outputs/update-schedule.output";
 import { SchedulesModule } from "@/ee/schedules/schedules.module";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { AvailabilitiesModule } from "@/modules/availabilities/availabilities.module";
@@ -20,6 +16,15 @@ import { UserRepositoryFixture } from "test/fixtures/repository/users.repository
 import { withAccessTokenAuth } from "test/utils/withAccessTokenAuth";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import {
+  CreateScheduleInput,
+  CreateScheduleOutput,
+  GetScheduleOutput,
+  GetSchedulesOutput,
+  ScheduleOutput,
+  UpdateScheduleOutput,
+  WeekDay,
+} from "@calcom/platform-types";
 import { UpdateScheduleInput } from "@calcom/platform-types";
 
 describe("Schedules Endpoints", () => {
@@ -32,10 +37,21 @@ describe("Schedules Endpoints", () => {
     const userEmail = "schedules-controller-e2e@api.com";
     let user: User;
 
+    const createScheduleInput: CreateScheduleInput = {
+      name: "work",
+      timeZone: "Europe/Rome",
+      isDefault: true,
+    };
+
+    const defaultAvailability: CreateScheduleInput["availability"] = [
+      {
+        days: [WeekDay.Monday, WeekDay.Tuesday, WeekDay.Wednesday, WeekDay.Thursday, WeekDay.Friday],
+        startTime: "09:00",
+        endTime: "17:00",
+      },
+    ];
+
     let createdSchedule: CreateScheduleOutput["data"];
-    const responseDefaultAvailabilityDays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
-    const responseDefaultAvailabilityStartTime = "09:00";
-    const responseDefaultAvailabilityEndTime = "17:00";
 
     beforeAll(async () => {
       const moduleRef = await withAccessTokenAuth(
@@ -75,58 +91,54 @@ describe("Schedules Endpoints", () => {
     });
 
     it("should create a default schedule", async () => {
-      const scheduleName = "schedule-name";
-      const scheduleTimeZone = "Europe/Rome";
-      const isDefault = true;
-
-      const body: CreateScheduleInput = {
-        name: scheduleName,
-        timeZone: scheduleTimeZone,
-        isDefault,
-      };
-
       return request(app.getHttpServer())
         .post("/api/v2/schedules")
-        .send(body)
+        .send(createScheduleInput)
         .expect(201)
         .then(async (response) => {
-          const responseData: CreateScheduleOutput = response.body;
-          const schedule = responseData.data;
-          expect(responseData.status).toEqual(SUCCESS_STATUS);
-          expect(schedule).toBeDefined();
-          expect(schedule.isDefault).toEqual(isDefault);
-          expect(schedule.timeZone).toEqual(scheduleTimeZone);
-          expect(schedule.name).toEqual(scheduleName);
-          expect(schedule.availability.length).toEqual(1);
+          const responseBody: CreateScheduleOutput = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+          createdSchedule = response.body.data;
 
-          const availability = schedule.availability[0];
-          expect(availability.days).toEqual(responseDefaultAvailabilityDays);
-          expect(availability.startTime).toEqual(responseDefaultAvailabilityStartTime);
-          expect(availability.endTime).toEqual(responseDefaultAvailabilityEndTime);
+          const expectedSchedule = { ...createScheduleInput, availability: defaultAvailability };
+          outputScheduleMatchesExpected(createdSchedule, expectedSchedule, 1);
 
-          const scheduleUser = schedule.ownerId ? await userRepositoryFixture.get(schedule.ownerId) : null;
-          expect(scheduleUser?.defaultScheduleId).toEqual(responseData.data.id);
-          createdSchedule = responseData.data;
+          const scheduleOwner = createdSchedule.ownerId
+            ? await userRepositoryFixture.get(createdSchedule.ownerId)
+            : null;
+          expect(scheduleOwner?.defaultScheduleId).toEqual(createdSchedule.id);
         });
     });
+
+    function outputScheduleMatchesExpected(
+      outputSchedule: ScheduleOutput | null,
+      expected: CreateScheduleInput & { availability: CreateScheduleInput["availability"] },
+      expectedAvailabilityLength: number
+    ) {
+      expect(outputSchedule).toBeTruthy();
+      expect(outputSchedule?.name).toEqual(expected.name);
+      expect(outputSchedule?.timeZone).toEqual(expected.timeZone);
+      expect(outputSchedule?.isDefault).toEqual(expected.isDefault);
+      expect(outputSchedule?.availability.length).toEqual(expectedAvailabilityLength);
+
+      const outputScheduleAvailability = outputSchedule?.availability[0];
+      expect(outputScheduleAvailability).toBeDefined();
+      expect(outputScheduleAvailability?.days).toEqual(expected.availability?.[0].days);
+      expect(outputScheduleAvailability?.startTime).toEqual(expected.availability?.[0].startTime);
+      expect(outputScheduleAvailability?.endTime).toEqual(expected.availability?.[0].endTime);
+    }
 
     it("should get default schedule", async () => {
       return request(app.getHttpServer())
         .get("/api/v2/schedules/default")
         .expect(200)
         .then(async (response) => {
-          const responseData: CreateScheduleOutput = response.body;
-          expect(responseData.status).toEqual(SUCCESS_STATUS);
-          expect(responseData.data).toBeDefined();
-          expect(responseData.data.id).toEqual(createdSchedule.id);
-          expect(responseData.data.schedule?.[0].userId).toEqual(createdSchedule.schedule[0].userId);
+          const responseBody: GetScheduleOutput = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+          const outputSchedule = responseBody.data;
 
-          const schedule = responseData.data.schedule;
-          expect(schedule).toBeDefined();
-          expect(schedule.length).toEqual(1);
-          expect(schedule?.[0]?.days).toEqual(responseDefaultAvailabilityDays);
-          expect(schedule?.[0]?.startTime).toEqual(responseDefaultAvailabilityStartTime);
-          expect(schedule?.[0]?.endTime).toEqual(responseDefaultAvailabilityEndTime);
+          const expectedSchedule = { ...createScheduleInput, availability: defaultAvailability };
+          outputScheduleMatchesExpected(outputSchedule, expectedSchedule, 1);
         });
     });
 
@@ -135,18 +147,12 @@ describe("Schedules Endpoints", () => {
         .get(`/api/v2/schedules`)
         .expect(200)
         .then((response) => {
-          const responseData: GetSchedulesOutput = response.body;
-          expect(responseData.status).toEqual(SUCCESS_STATUS);
-          expect(responseData.data).toBeDefined();
-          expect(responseData.data?.[0].id).toEqual(createdSchedule.id);
-          expect(responseData.data?.[0].schedule?.[0].userId).toEqual(createdSchedule.schedule[0].userId);
+          const responseBody: GetSchedulesOutput = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+          const outputSchedule = responseBody.data[0];
 
-          const schedule = responseData.data?.[0].schedule;
-          expect(schedule).toBeDefined();
-          expect(schedule.length).toEqual(1);
-          expect(schedule?.[0]?.days).toEqual(responseDefaultAvailabilityDays);
-          expect(schedule?.[0]?.startTime).toEqual(responseDefaultAvailabilityStartTime);
-          expect(schedule?.[0]?.endTime).toEqual(responseDefaultAvailabilityEndTime);
+          const expectedSchedule = { ...createScheduleInput, availability: defaultAvailability };
+          outputScheduleMatchesExpected(outputSchedule, expectedSchedule, 1);
         });
     });
 
@@ -164,19 +170,14 @@ describe("Schedules Endpoints", () => {
         .then((response: any) => {
           const responseData: UpdateScheduleOutput = response.body;
           expect(responseData.status).toEqual(SUCCESS_STATUS);
-          expect(responseData.data).toBeDefined();
-          expect(responseData.data.schedule.name).toEqual(newScheduleName);
-          expect(responseData.data.schedule.id).toEqual(createdSchedule.id);
-          expect(responseData.data.schedule.userId).toEqual(createdSchedule.schedule[0].userId);
+          createdSchedule = responseData.data;
 
-          const availability = responseData.data.schedule.availability;
-          expect(availability).toBeDefined();
-          expect(availability?.length).toEqual(1);
-          expect(availability?.[0]?.days).toEqual(responseDefaultAvailabilityDays);
-          expect(availability?.[0]?.startTime).toEqual(responseDefaultAvailabilityStartTime);
-          expect(availability?.[0]?.endTime).toEqual(responseDefaultAvailabilityEndTime);
-
-          createdSchedule.name = newScheduleName;
+          const expectedSchedule = {
+            ...createScheduleInput,
+            availability: defaultAvailability,
+            name: newScheduleName,
+          };
+          outputScheduleMatchesExpected(createdSchedule, expectedSchedule, 1);
         });
     });
 

@@ -1,9 +1,3 @@
-import { CreateScheduleOutput } from "@/ee/schedules/outputs/create-schedule.output";
-import { DeleteScheduleOutput } from "@/ee/schedules/outputs/delete-schedule.output";
-import { GetDefaultScheduleOutput } from "@/ee/schedules/outputs/get-default-schedule.output";
-import { GetScheduleOutput } from "@/ee/schedules/outputs/get-schedule.output";
-import { GetSchedulesOutput } from "@/ee/schedules/outputs/get-schedules.output";
-import { UpdateScheduleOutput } from "@/ee/schedules/outputs/update-schedule.output";
 import { SchedulesService } from "@/ee/schedules/services/schedules.service";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
@@ -26,9 +20,16 @@ import { ApiResponse, ApiTags as DocsTags } from "@nestjs/swagger";
 import { Throttle } from "@nestjs/throttler";
 
 import { SCHEDULE_READ, SCHEDULE_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
-import { UpdateScheduleInput } from "@calcom/platform-types";
-
-import { CreateScheduleInput } from "../inputs/create-schedule.input";
+import {
+  CreateScheduleOutput,
+  CreateScheduleInput,
+  UpdateScheduleInput,
+  GetScheduleOutput,
+  UpdateScheduleOutput,
+  GetDefaultScheduleOutput,
+  DeleteScheduleOutput,
+  GetSchedulesOutput,
+} from "@calcom/platform-types";
 
 @Controller({
   path: "schedules",

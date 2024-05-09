@@ -1,5 +1,3 @@
-import { CreateScheduleInput, WeekDay } from "@/ee/schedules/inputs/create-schedule.input";
-import { ScheduleOutput } from "@/ee/schedules/outputs/schedule.output";
 import { SchedulesRepository } from "@/ee/schedules/schedules.repository";
 import { AvailabilitiesService } from "@/modules/availabilities/availabilities.service";
 import { ScheduleAvailability } from "@/modules/availabilities/types/schedule-availability";
@@ -15,7 +13,9 @@ import {
   transformAvailabilityForClient,
   transformDateOverridesForClient,
 } from "@calcom/platform-libraries";
+import { CreateScheduleInput, ScheduleOutput } from "@calcom/platform-types";
 import { ScheduleOverride, UpdateScheduleInput } from "@calcom/platform-types";
+import { WeekDay } from "@calcom/platform-types";
 
 export type CreateScheduleTransformed = Omit<CreateScheduleInput, "availability"> & {
   availability: ScheduleAvailability[];
