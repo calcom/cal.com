@@ -52,9 +52,9 @@ export default class CrmManager {
     return await crmService?.deleteEvent(uid);
   }
 
-  public async getContacts(emailOrEmails: string | string[]) {
+  public async getContacts(emailOrEmails: string | string[], includeOwner?: boolean) {
     const crmService = await this.getCrmService(this.credential);
-    const contacts = await crmService?.getContacts(emailOrEmails);
+    const contacts = await crmService?.getContacts(emailOrEmails, includeOwner);
     return contacts;
   }
 
