@@ -8,7 +8,7 @@ import checkSession from "../../_utils/auth";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import { checkInstalled, createDefaultInstallation } from "../../_utils/installation";
 import { withStripeCallback } from "../../_utils/paid-apps";
-import appConfig from "../config.json";
+import { metadata as appConfig } from "../_metadata";
 
 export async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   const session = checkSession(req);
