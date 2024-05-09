@@ -3,6 +3,17 @@ import { useQuery } from "@tanstack/react-query";
 import type { ApiSuccessResponse } from "@calcom/platform-types";
 import type { PlatformOAuthClient } from "@calcom/prisma/client";
 
+export type ManagedUser = {
+  id: number;
+  email: string;
+  username: string | null;
+  timeZone: string;
+  weekStart: string;
+  createdDate: Date;
+  timeFormat: number | null;
+  defaultScheduleId: number | null;
+};
+
 export const useOAuthClients = () => {
   const query = useQuery<ApiSuccessResponse<PlatformOAuthClient[]>>({
     queryKey: ["oauth-clients"],
@@ -51,4 +62,22 @@ export const useOAuthClient = (clientId?: string) => {
     isFetchedAfterMount,
     refetch,
   };
+};
+export const useGetOAuthClientManagedUsers = (clientId: string) => {
+  const {
+    isLoading,
+    error,
+    data: response,
+    refetch,
+  } = useQuery<ApiSuccessResponse<ManagedUser[]>>({
+    queryKey: ["oauth-client-managed-users", clientId],
+    queryFn: () => {
+      return fetch(`/api/v2/oauth-clients/${clientId}/managed-users`, {
+        method: "get",
+        headers: { "Content-type": "application/json" },
+      }).then((res) => res.json());
+    },
+  });
+
+  return { isLoading, error, data: response?.data, refetch };
 };

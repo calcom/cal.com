@@ -63,11 +63,11 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
 
   const IS_USER_ADMIN = loggedInUser.role === UserPermissionRole.ADMIN;
 
-  if (!ORG_SELF_SERVE_ENABLED && !IS_USER_ADMIN) {
+  if (!ORG_SELF_SERVE_ENABLED && !IS_USER_ADMIN && !isPlatform) {
     throw new TRPCError({ code: "FORBIDDEN", message: "Only admins can create organizations" });
   }
 
-  if (!IS_USER_ADMIN && loggedInUser.email !== orgOwnerEmail) {
+  if (!IS_USER_ADMIN && loggedInUser.email !== orgOwnerEmail && !isPlatform) {
     throw new TRPCError({
       code: "FORBIDDEN",
       message: "You can only create organization where you are the owner",
@@ -76,7 +76,7 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
 
   const publishedTeams = loggedInUser.teams.filter((team) => !!team.team.slug);
 
-  if (!IS_USER_ADMIN && publishedTeams.length < ORG_MINIMUM_PUBLISHED_TEAMS_SELF_SERVE) {
+  if (!IS_USER_ADMIN && publishedTeams.length < ORG_MINIMUM_PUBLISHED_TEAMS_SELF_SERVE && !isPlatform) {
     throw new TRPCError({ code: "FORBIDDEN", message: "You need to have minimum published teams." });
   }
 
