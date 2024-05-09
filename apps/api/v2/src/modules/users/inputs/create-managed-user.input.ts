@@ -1,7 +1,8 @@
-import { TimeFormat, WeekDay } from "@/modules/users/inputs/enums";
 import { ApiProperty } from "@nestjs/swagger";
-import { IsOptional, IsTimeZone, IsString, IsEnum } from "class-validator";
+import { IsOptional, IsTimeZone, IsString } from "class-validator";
 
+export type WeekDay = "Monday" | "Tuesday" | "Wednesday" | "Thursday" | "Friday" | "Saturday" | "Sunday";
+export type TimeFormat = 12 | 24;
 export class CreateManagedUserInput {
   @IsString()
   @ApiProperty({ example: "alice@example.com" })
@@ -11,14 +12,16 @@ export class CreateManagedUserInput {
   @IsOptional()
   name?: string;
 
-  @IsEnum(TimeFormat)
   @IsOptional()
-  @ApiProperty({ example: TimeFormat.Hour12, enum: TimeFormat })
+  @ApiProperty({ example: 12, enum: [12, 24], description: "Must be 12 or 24" })
   timeFormat?: TimeFormat;
 
-  @IsEnum(WeekDay)
   @IsOptional()
-  @ApiProperty({ example: WeekDay.Sunday, enum: WeekDay })
+  @IsString()
+  @ApiProperty({
+    example: "Monday",
+    enum: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+  })
   weekStart?: WeekDay;
 
   @IsTimeZone()
