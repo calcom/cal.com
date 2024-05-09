@@ -201,6 +201,7 @@ async function handler(req: NextApiRequest) {
     if (req.query.userId || filterByAttendeeEmails) {
       const query = schemaQuerySingleOrMultipleUserIds.parse(req.query);
       const requestedUserIds = Array.isArray(query.userId) ? query.userId : [query.userId || userId];
+
       const systemWideAdminArgs = {
         adminDidQueryUserIds: !!req.query.userId,
         requestedUserIds,
@@ -263,7 +264,8 @@ const handleSystemWideAdminArgs = async ({
       select: { email: true },
     });
     const userEmails = users.map((u) => u.email);
-    return { userId, requestedUserIds, userEmails };
+
+    return { userId, userIds: requestedUserIds, userEmails };
   }
   return { userId: null, userIds: [], userEmails: [] };
 };
@@ -278,6 +280,7 @@ const handleOrgWideAdminArgs = async ({
       adminUserId: userId,
       memberUserIds: requestedUserIds,
     });
+
     // currently admin making the call is part of the accessibleUsersIds list. Need to remove him
     if (!accessibleUsersIds.length) throw new HttpError({ message: "No User found", statusCode: 404 });
     const users = await prisma.user.findMany({
