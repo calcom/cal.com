@@ -162,7 +162,7 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
     }
   }
 
-  Promise.all(webhookWorkflowPromises).catch((error) => {
+  await Promise.all(webhookWorkflowPromises).catch((error) => {
     log.error("Error while scheduling or canceling webhook triggers", JSON.stringify({ error }));
   });
 

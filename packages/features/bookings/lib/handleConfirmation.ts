@@ -348,7 +348,7 @@ export async function handleConfirmation(args: {
       });
     });
 
-    Promise.all(scheduleTriggerPromises);
+    await Promise.all(scheduleTriggerPromises);
 
     const eventTypeInfo: EventTypeInfo = {
       eventTitle: booking.eventType?.title,

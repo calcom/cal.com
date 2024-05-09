@@ -2309,7 +2309,7 @@ async function handler(
       }
     }
 
-    Promise.all([deleteWebhookScheduledTriggerPromise, ...scheduleTriggerPromises]).catch((error) => {
+    await Promise.all([deleteWebhookScheduledTriggerPromise, ...scheduleTriggerPromises]).catch((error) => {
       loggerWithEventDetails.error(
         "Error while scheduling or canceling webhook triggers",
         JSON.stringify({ error })
