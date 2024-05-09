@@ -4,16 +4,14 @@ import type { TFunction } from "next-i18next";
 
 import type { EventNameObjectType } from "@calcom/core/event";
 import { getEventName } from "@calcom/core/event";
-import dayjs from "@calcom/dayjs";
 import type BaseEmail from "@calcom/emails/templates/_base-email";
-import { getSenderId } from "@calcom/features/ee/workflows/lib/alphanumericSenderIdSupport";
-import * as twilio from "@calcom/features/ee/workflows/lib/reminders/providers/twilioProvider";
-import { SENDER_ID } from "@calcom/lib/constants";
-import { WEBAPP_URL } from "@calcom/lib/constants";
 import { formatCalEvent } from "@calcom/lib/formatCalendarEvent";
-import { TimeFormat } from "@calcom/lib/timeFormat";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
+import EventCancelledSMS from "../sms/event-cancelled-sms";
+import EventDeclinedSMS from "../sms/event-declined-sms";
+import EventSuccessfullyReScheduledSMS from "../sms/event-rescheduled-sms";
+import EventSuccessfullyScheduledSMS from "../sms/event-scheduled-sms";
 import type { MonthlyDigestEmailData } from "./src/templates/MonthlyDigestEmail";
 import type { OrganizationAdminNoSlotsEmailInput } from "./src/templates/OrganizationAdminNoSlots";
 import type { EmailVerifyLink } from "./templates/account-verify-email";
@@ -76,125 +74,7 @@ const sendEmail = (prepare: () => BaseEmail) => {
   });
 };
 
-const handleSendingSMS = ({
-  reminderPhone,
-  smsMessage,
-  senderID,
-  teamId,
-}: {
-  reminderPhone: string;
-  smsMessage: string;
-  senderID: string;
-  teamId?: number;
-}) => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      const sms = twilio.sendSMS(reminderPhone, smsMessage, senderID, teamId);
-      resolve(sms);
-    } catch (e) {
-      reject(console.error(`twilio.sendSMS failed`, e));
-    }
-  });
-};
-
-abstract class SMSManager {
-  calEvent: CalendarEvent;
-  isTeamEvent = false;
-
-  constructor(calEvent: CalendarEvent) {
-    this.calEvent = calEvent;
-    this.isTeamEvent = !!calEvent?.team;
-  }
-
-  getFormattedTime(attendee: Person, time: string, format: string) {
-    return dayjs(time).tz(attendee.timeZone).locale(attendee.language.locale).format(format);
-  }
-
-  abstract getMessage(attendee: Person): string;
-
-  async sendSMSToAttendee(attendee: Person) {
-    if (!this.isTeamEvent || !this.calEvent?.team?.id) return;
-
-    const attendeePhoneNumber = attendee.phoneNumber;
-    if (attendeePhoneNumber) {
-      const smsMessage = this.getMessage(attendee);
-      const senderID = getSenderId(attendeePhoneNumber, SENDER_ID);
-      const teamId = this.calEvent.team.id;
-      return handleSendingSMS({ reminderPhone: attendeePhoneNumber, smsMessage, senderID, teamId });
-    }
-  }
-
-  async sendSMSToAttendees() {
-    if (!this.isTeamEvent) return;
-    const smsToSend: Promise<unknown>[] = [];
-
-    for (const attendee of this.calEvent.attendees) {
-      smsToSend.push(this.sendSMSToAttendee(attendee));
-    }
-
-    await Promise.all(smsToSend);
-  }
-}
-
-class EventSuccessfullyScheduledSMS extends SMSManager {
-  constructor(calEvent: CalendarEvent) {
-    super(calEvent);
-  }
-
-  getMessage(attendee: Person) {
-    return `Hey ${attendee.name}, confirming your booking on  ${this.getFormattedTime(
-      attendee,
-      this.calEvent.startTime,
-      `dddd, LL | ${TimeFormat.TWELVE_HOUR}`
-    )} - ${this.getFormattedTime(attendee, this.calEvent.endTime, TimeFormat.TWELVE_HOUR)} (${
-      attendee.timeZone
-    }) . \n\n You can view the booking details and add the event to your calendar from this url ${
-      this.calEvent.bookerUrl ?? WEBAPP_URL
-    }/booking/${this.calEvent.uid} `;
-  }
-}
-
-class EventSuccessfullyReScheduledSMS extends SMSManager {
-  constructor(calEvent: CalendarEvent) {
-    super(calEvent);
-  }
-
-  getMessage(attendee: Person) {
-    return `Hey ${attendee.name}, your booking has been rescheduled to ${this.getFormattedTime(
-      attendee,
-      this.calEvent.startTime,
-      `dddd, LL | ${TimeFormat.TWELVE_HOUR}`
-    )} - ${this.getFormattedTime(attendee, this.calEvent.endTime, TimeFormat.TWELVE_HOUR)} (${
-      attendee.timeZone
-    }) . \n\n You can view the booking details and add the event to your calendar from this url ${
-      this.calEvent.bookerUrl ?? WEBAPP_URL
-    }/booking/${this.calEvent.uid} `;
-  }
-}
-
-class EventDeclinedSMS extends SMSManager {
-  constructor(calEvent: CalendarEvent) {
-    super(calEvent);
-  }
-
-  // TODO: change this message
-  getMessage(attendee: Person) {
-    return `Hey ${attendee.name}, Your event request has been declined`;
-  }
-}
-
-class EventCancelledSMS extends SMSManager {
-  constructor(calEvent: CalendarEvent) {
-    super(calEvent);
-  }
-
-  // TODO: change this message
-  getMessage(attendee: Person) {
-    return `Hey ${attendee.name}, your booking has been cancelled`;
-  }
-}
-
-export const sendScheduledEmails = async (
+export const sendScheduledEmailsAndSMS = async (
   calEvent: CalendarEvent,
   eventNameObject?: EventNameObjectType,
   hostEmailDisabled?: boolean,
@@ -254,7 +134,7 @@ export const sendRoundRobinScheduledEmails = async (calEvent: CalendarEvent, mem
   await Promise.all(emailsToSend);
 };
 
-export const sendRoundRobinRescheduledEmails = async (
+export const sendRoundRobinRescheduledEmailsAndSMS = async (
   calEvent: CalendarEvent,
   teamMembersAndAttendees: Person[]
 ) => {
@@ -283,7 +163,7 @@ export const sendRoundRobinCancelledEmails = async (calEvent: CalendarEvent, mem
   await Promise.all(emailsToSend);
 };
 
-export const sendRescheduledEmails = async (calEvent: CalendarEvent) => {
+export const sendRescheduledEmailsAndSMS = async (calEvent: CalendarEvent) => {
   const calendarEvent = formatCalEvent(calEvent);
   const emailsToSend: Promise<unknown>[] = [];
 
@@ -308,7 +188,7 @@ export const sendRescheduledEmails = async (calEvent: CalendarEvent) => {
   await successfullyReScheduledSms.sendSMSToAttendees();
 };
 
-export const sendRescheduledSeatEmail = async (calEvent: CalendarEvent, attendee: Person) => {
+export const sendRescheduledSeatEmailAndSMS = async (calEvent: CalendarEvent, attendee: Person) => {
   const calendarEvent = formatCalEvent(calEvent);
 
   const clonedCalEvent = cloneDeep(calendarEvent);
@@ -317,7 +197,8 @@ export const sendRescheduledSeatEmail = async (calEvent: CalendarEvent, attendee
     sendEmail(() => new OrganizerRescheduledEmail({ calEvent: calendarEvent })),
   ];
 
-  // TODO: send SMS to attendee
+  const successfullyReScheduledSMS = new EventSuccessfullyReScheduledSMS(calEvent);
+  await successfullyReScheduledSMS.sendSMSToAttendee(attendee);
 
   await Promise.all(emailsToSend);
 };
@@ -394,7 +275,7 @@ export const sendAttendeeRequestEmail = async (calEvent: CalendarEvent, attendee
   await sendEmail(() => new AttendeeRequestEmail(calendarEvent, attendee));
 };
 
-export const sendDeclinedEmails = async (calEvent: CalendarEvent) => {
+export const sendDeclinedEmailsAndSMS = async (calEvent: CalendarEvent) => {
   const calendarEvent = formatCalEvent(calEvent);
   const emailsToSend: Promise<unknown>[] = [];
 
@@ -409,7 +290,7 @@ export const sendDeclinedEmails = async (calEvent: CalendarEvent) => {
   await eventDeclindedSms.sendSMSToAttendees();
 };
 
-export const sendCancelledEmails = async (
+export const sendCancelledEmailsAndSMS = async (
   calEvent: CalendarEvent,
   eventNameObject: Pick<EventNameObjectType, "eventName">
 ) => {

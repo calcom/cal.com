@@ -1,4 +1,4 @@
-import { sendScheduledEmails } from "@calcom/emails";
+import { sendScheduledEmailsAndSMS } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { isPrismaObjOrUndefined } from "@calcom/lib";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -204,7 +204,7 @@ export const Handler = async ({ ctx, input }: Options) => {
     videoCallData,
   };
 
-  await sendScheduledEmails(
+  await sendScheduledEmailsAndSMS(
     {
       ...evt,
     },
