@@ -278,6 +278,7 @@ const handleOrgWideAdminArgs = async ({
       adminUserId: userId,
       memberUserIds: requestedUserIds,
     });
+    // currently admin making the call is part of the accessibleUsersIds list. Need to remove him
     if (!accessibleUsersIds.length) throw new HttpError({ message: "No User found", statusCode: 404 });
     const users = await prisma.user.findMany({
       where: { id: { in: accessibleUsersIds } },

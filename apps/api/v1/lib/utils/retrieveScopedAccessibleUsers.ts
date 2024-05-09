@@ -1,26 +1,25 @@
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
-import { ScopeOfAdmin } from "~/lib/utils/isAdmin";
-
-type ScopeOfAdminValue = (typeof ScopeOfAdmin)[keyof typeof ScopeOfAdmin];
 type AccessibleUsersType = {
   memberUserIds: number[];
   adminUserId: number;
 };
 
-const getAllMemberships = async (userIds: number[]) => {
-  return await prisma.membership.findMany({
-    where: { userId: { in: userIds } },
-    select: {
-      userId: true,
-      team: {
-        select: {
-          id: true,
-        },
-      },
-    },
-  });
+const getAllMemberships = async (
+  memberships: {
+    userId: number;
+    role: MembershipRole;
+    teamId: number;
+  }[],
+  orgId: number
+) => {
+  return memberships.reduce<number[]>((acc, membership) => {
+    if (membership.teamId === orgId) {
+      acc.push(membership.userId);
+    }
+    return acc;
+  }, []);
 };
 
 const getAllAdminMemberships = async (userId: number) => {
@@ -40,23 +39,10 @@ const getAllAdminMemberships = async (userId: number) => {
   });
 };
 
-const getTeamsInOrganization = async (adminOrganizationId: number) => {
-  return await prisma.team.findMany({
-    where: {
-      parentId: adminOrganizationId,
-    },
-    select: {
-      id: true,
-    },
-  });
-};
-
-const getAllUsersInTeams = async (teamIds: number[]) => {
+const getAllOrganizationMembers = async (organizationId: number) => {
   return await prisma.membership.findMany({
     where: {
-      teamId: {
-        in: teamIds,
-      },
+      teamId: organizationId,
     },
     select: {
       userId: true,
@@ -68,56 +54,38 @@ export const getAccessibleUsers = async ({
   memberUserIds,
   adminUserId,
 }: AccessibleUsersType): Promise<number[]> => {
-  const userMemberships = await getAllMemberships(memberUserIds);
-  const adminMemberships = await getAllAdminMemberships(adminUserId);
+  const memberships = await prisma.membership.findMany({
+    where: {
+      team: {
+        isOrganization: true,
+      },
+      OR: [
+        { userId: { in: memberUserIds } },
+        { userId: adminUserId, role: { in: [MembershipRole.OWNER, MembershipRole.ADMIN] } },
+      ],
+    },
+    select: {
+      userId: true,
+      role: true,
+      teamId: true,
+    },
+  });
 
-  const accessibleUserIds = new Set<number>();
+  const orgId = memberships.find((membership) => membership.userId === adminUserId)?.teamId;
+  if (!orgId) return [];
 
-  const adminOrganizationId = adminMemberships.filter((m) => m.team.isOrganization).map((m) => m.team.id)[0];
-  if (adminOrganizationId) {
-    userMemberships
-      .filter((um) => um.team.id === adminOrganizationId)
-      .forEach((um) => accessibleUserIds.add(um.userId));
-    return Array.from(accessibleUserIds);
-  }
-
-  return [];
+  const allAccessibleMemberUserIds = await getAllMemberships(memberships, orgId);
+  const accessibleUserIds = allAccessibleMemberUserIds.filter((userId) => userId !== adminUserId);
+  return accessibleUserIds;
 };
 
 export const retrieveOrgScopedAccessibleUsers = async ({ adminId }: { adminId: number }) => {
   const adminMemberships = await getAllAdminMemberships(adminId);
-  const adminOrganizationId = adminMemberships.filter((m) => m.team.isOrganization).map((m) => m.team.id)[0];
-  if (adminOrganizationId) {
-    const teamsInOrganization = await getTeamsInOrganization(adminOrganizationId);
-    const teamIds = teamsInOrganization.map((team) => team.id);
-
-    const allMembershipsInTeams = await getAllUsersInTeams(teamIds);
-    const userIds = new Set(allMembershipsInTeams.map((membership) => membership.userId));
-    return Array.from(userIds);
+  const organizationId = adminMemberships.find((membership) => membership.team.isOrganization)?.team.id;
+  // note that a user MUST be a part of the org, so once you have orgId, just check if the user has membership with that orgId
+  if (organizationId) {
+    const allMemberships = await getAllOrganizationMembers(organizationId);
+    return allMemberships.map((membership) => membership.userId);
   }
-  return [];
-};
-
-export const retrieveScopedAccessibleUsers = async ({
-  adminId,
-  scope,
-}: {
-  adminId: number;
-  scope: ScopeOfAdminValue;
-}) => {
-  const adminMemberships = await getAllAdminMemberships(adminId);
-
-  if (scope === ScopeOfAdmin.OrgOwnerOrAdmin) {
-    const adminOrganizationId = adminMemberships
-      .filter((m) => m.team.isOrganization)
-      .map((m) => m.team.id)[0];
-    const teamsInOrganization = await getTeamsInOrganization(adminOrganizationId);
-    const teamIds = teamsInOrganization.map((team) => team.id);
-
-    const allMembershipsInteams = await getAllUsersInTeams(teamIds);
-    const userIds = new Set(allMembershipsInteams.map((membership) => membership.userId));
-    return Array.from(userIds);
-  }
-
   return [];
 };

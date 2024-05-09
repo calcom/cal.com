@@ -14,12 +14,14 @@ export const isAdminGuard = async (req: NextApiRequest) => {
   if (!user) return { isAdmin: false, scope: null };
 
   const { role: userRole } = user;
-
   if (userRole === UserPermissionRole.ADMIN) return { isAdmin: true, scope: ScopeOfAdmin.SystemWide };
 
-  const ownerOrAdminMemberships = await prisma.membership.findMany({
+  const orgOwnerOrAdminMemberships = await prisma.membership.findMany({
     where: {
       userId: userId,
+      team: {
+        isOrganization: true,
+      },
       OR: [{ role: MembershipRole.OWNER }, { role: MembershipRole.ADMIN }],
     },
     select: {
@@ -31,14 +33,7 @@ export const isAdminGuard = async (req: NextApiRequest) => {
       },
     },
   });
-  if (!ownerOrAdminMemberships.length) return { isAdmin: false, scope: null };
+  if (!orgOwnerOrAdminMemberships.length) return { isAdmin: false, scope: null };
 
-  const organizations = ownerOrAdminMemberships.filter(
-    (membership) => membership.team.isOrganization === true
-  );
-  const isOrganization = !!organizations.length;
-
-  if (isOrganization) return { isAdmin: true, scope: ScopeOfAdmin.OrgOwnerOrAdmin };
-
-  return { isAdmin: false, scope: null };
+  return { isAdmin: true, scope: ScopeOfAdmin.OrgOwnerOrAdmin };
 };
