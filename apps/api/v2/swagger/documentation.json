@@ -1650,10 +1650,23 @@
             "example": "alice@example.com"
           },
           "timeFormat": {
+            "enum": [
+              12,
+              24
+            ],
             "type": "number",
             "example": 12
           },
           "weekStart": {
+            "enum": [
+              "Monday",
+              "Tuesday",
+              "Wednesday",
+              "Thursday",
+              "Friday",
+              "Saturday",
+              "Sunday"
+            ],
             "type": "string",
             "example": "Sunday"
           },
