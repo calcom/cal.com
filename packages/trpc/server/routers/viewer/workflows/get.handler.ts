@@ -40,6 +40,11 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
           eventType: true,
         },
       },
+      activeOnTeams: {
+        select: {
+          team: true,
+        },
+      },
       trigger: true,
       steps: {
         orderBy: {

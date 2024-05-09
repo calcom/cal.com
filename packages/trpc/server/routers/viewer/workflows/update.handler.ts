@@ -13,6 +13,11 @@ import {
   deleteScheduledWhatsappReminder,
   scheduleWhatsappReminder,
 } from "@calcom/features/ee/workflows/lib/reminders/whatsappReminderManager";
+import {
+  deleteRemindersFromRemovedEventTypes,
+  isAuthorizedToAddEventtypes,
+  getBookingsForReminders,
+} from "@calcom/features/ee/workflows/lib/updateHelperFunctions";
 import { IS_SELF_HOSTED } from "@calcom/lib/constants";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
@@ -42,7 +47,6 @@ type UpdateOptions = {
 export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   const { user } = ctx;
   const { id, name, activeOn, steps, trigger, time, timeUnit, isActiveOnAll } = input;
-
   const userWorkflow = await ctx.prisma.workflow.findUnique({
     where: {
       id,
@@ -50,6 +54,11 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     select: {
       id: true,
       userId: true,
+      team: {
+        select: {
+          isOrganization: true,
+        },
+      },
       teamId: true,
       user: {
         select: {
@@ -60,6 +69,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       activeOn: true,
     },
   });
+
+  const isOrg = !!userWorkflow?.team?.isOrganization;
 
   const isUserAuthorized = await isAuthorized(userWorkflow, ctx.prisma, ctx.user.id, true);
 
@@ -78,141 +89,100 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     const { hasTeamPlan } = await hasTeamPlanHandler({ ctx });
     isTeamsPlan = !!hasTeamPlan;
   }
-  const hasPaidPlan = IS_SELF_HOSTED || isCurrentUsernamePremium || isTeamsPlan;
+  const hasPaidPlan = IS_SELF_HOSTED || isCurrentUsernamePremium || isTeamsPlan || isOrg;
 
   const where: Prisma.EventTypeWhereInput = {};
   where.id = {
     in: activeOn,
   };
-  if (userWorkflow.teamId) {
-    //all children managed event types are added after
-    where.parentId = null;
-  }
-  const activeOnEventTypes = await ctx.prisma.eventType.findMany({
-    where,
-    select: {
-      id: true,
-      children: {
-        select: {
-          id: true,
-        },
-      },
-    },
-  });
 
-  const activeOnWithChildren = activeOnEventTypes
-    .map((eventType) => [eventType.id].concat(eventType.children.map((child) => child.id)))
-    .flat();
+  let remindersToDelete: {
+    id: number;
+    referenceId: string | null;
+    method: string;
+    scheduled: boolean;
+  }[] = [];
 
-  const oldActiveOnEventTypes = await ctx.prisma.workflowsOnEventTypes.findMany({
-    where: {
-      workflowId: id,
-    },
-    select: {
-      eventTypeId: true,
-      eventType: {
-        include: {
-          children: true,
-        },
-      },
-    },
-  });
-
-  const oldActiveOnEventTypeIds = oldActiveOnEventTypes
-    .map((eventTypeRel) =>
-      [eventTypeRel.eventType.id].concat(eventTypeRel.eventType.children.map((child) => child.id))
-    )
-    .flat();
-
-  const newActiveEventTypes = activeOn.filter(
-    (eventType) =>
-      !oldActiveOnEventTypes ||
-      !oldActiveOnEventTypes
-        .map((oldEventType) => {
-          return oldEventType.eventTypeId;
-        })
-        .includes(eventType)
-  );
-
-  //check if new event types belong to user or team
-  for (const newEventTypeId of newActiveEventTypes) {
-    const newEventType = await ctx.prisma.eventType.findFirst({
-      where: {
-        id: newEventTypeId,
-      },
-      include: {
-        users: {
+  let newActiveOn: number[] = [];
+  let activeOnEventTypes: {
+    id: number;
+    children: {
+      id: number;
+    }[];
+  }[] = [];
+  const removedActiveOn: number[] = [];
+  let activeOnWithChildren: number[] = [];
+  if (!isOrg) {
+    activeOnEventTypes = await ctx.prisma.eventType.findMany({
+      where,
+      select: {
+        id: true,
+        children: {
           select: {
             id: true,
           },
         },
-        team: {
-          include: {
-            members: true,
-          },
-        },
-        children: true,
       },
     });
 
-    if (newEventType) {
-      if (userWorkflow.teamId && userWorkflow.teamId !== newEventType.teamId) {
-        throw new TRPCError({ code: "UNAUTHORIZED" });
-      }
+    activeOnWithChildren = activeOnEventTypes
+      .map((eventType) => [eventType.id].concat(eventType.children.map((child) => child.id)))
+      .flat();
 
-      if (
-        !userWorkflow.teamId &&
-        userWorkflow.userId &&
-        newEventType.userId !== userWorkflow.userId &&
-        !newEventType?.users.find((eventTypeUser) => eventTypeUser.id === userWorkflow.userId)
-      ) {
-        throw new TRPCError({ code: "UNAUTHORIZED" });
-      }
-    }
-  }
-
-  //remove all scheduled Email and SMS reminders for eventTypes that are not active any more
-  const removedEventTypes = oldActiveOnEventTypeIds.filter(
-    (eventTypeId) => !activeOnWithChildren.includes(eventTypeId)
-  );
-
-  const remindersToDeletePromise: Prisma.PrismaPromise<
-    {
-      id: number;
-      referenceId: string | null;
-      method: string;
-      scheduled: boolean;
-    }[]
-  >[] = [];
-
-  removedEventTypes.forEach((eventTypeId) => {
-    const reminderToDelete = ctx.prisma.workflowReminder.findMany({
+    const oldActiveOnEventTypes = await ctx.prisma.workflowsOnEventTypes.findMany({
       where: {
-        booking: {
-          eventTypeId: eventTypeId,
-          userId: ctx.user.id,
-        },
-        workflowStepId: {
-          in: userWorkflow.steps.map((step) => {
-            return step.id;
-          }),
-        },
+        workflowId: id,
       },
       select: {
-        id: true,
-        referenceId: true,
-        method: true,
-        scheduled: true,
+        eventTypeId: true,
+        eventType: {
+          include: {
+            children: true,
+          },
+        },
       },
     });
 
-    remindersToDeletePromise.push(reminderToDelete);
-  });
+    const oldActiveOnEventTypeIds = oldActiveOnEventTypes
+      .map((eventTypeRel) =>
+        [eventTypeRel.eventType.id].concat(eventTypeRel.eventType.children.map((child) => child.id))
+      )
+      .flat();
 
-  const remindersToDelete = await Promise.all(remindersToDeletePromise);
+    newActiveOn = activeOn.filter(
+      (eventType) =>
+        !oldActiveOnEventTypes ||
+        !oldActiveOnEventTypes
+          .map((oldEventType) => {
+            return oldEventType.eventTypeId;
+          })
+          .includes(eventType)
+    );
 
+    await isAuthorizedToAddEventtypes(newActiveOn, userWorkflow?.teamId, userWorkflow?.userId);
+
+    //remove all scheduled Email and SMS reminders for eventTypes that are not active any more
+    const removedActiveOn = oldActiveOnEventTypeIds.filter(
+      (eventTypeId) => !activeOnWithChildren.includes(eventTypeId)
+    );
+
+    remindersToDelete = await deleteRemindersFromRemovedEventTypes(
+      removedActiveOn,
+      userWorkflow.steps,
+      ctx.user.id
+    );
+  } else {
+    // handle activeOnTeams
+  }
+
+  if (userWorkflow.teamId) {
+    //all children managed event types are added after
+    where.parentId = null;
+  }
+
+  // todo: also add all reminders to delete for the team workflows
   //cancel workflow reminders for all bookings from event types that got disabled
-  remindersToDelete.flat().forEach((reminder) => {
+  remindersToDelete.forEach((reminder) => {
     if (reminder.method === WorkflowMethods.EMAIL) {
       deleteScheduledEmailReminder(reminder.id, reminder.referenceId);
     } else if (reminder.method === WorkflowMethods.SMS) {
@@ -230,36 +200,18 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   });
 
   let newEventTypes: number[] = [];
+  let newTeams: number[] = [];
+
   if (activeOn.length) {
     if (trigger === WorkflowTriggerEvents.BEFORE_EVENT || trigger === WorkflowTriggerEvents.AFTER_EVENT) {
-      newEventTypes = newActiveEventTypes;
+      newEventTypes = isOrg ? newActiveOn : [];
+      newTeams = isOrg ? newActiveOn : [];
     }
-    if (newEventTypes.length > 0) {
-      //create reminders for all bookings with newEventTypes
-      const bookingsForReminders = await ctx.prisma.booking.findMany({
-        where: {
-          OR: [
-            { eventTypeId: { in: newEventTypes } },
-            {
-              eventType: {
-                parentId: {
-                  in: newEventTypes,
-                },
-              },
-            },
-          ],
-          status: BookingStatus.ACCEPTED,
-          startTime: {
-            gte: new Date(),
-          },
-        },
-        include: {
-          attendees: true,
-          eventType: true,
-          user: true,
-        },
-      });
 
+    const bookingsForReminders = await getBookingsForReminders(newEventTypes, newTeams);
+
+    if (bookingsForReminders.length > 0) {
+      //create reminders for all bookings with newEventTypes
       const promiseSteps = userWorkflow.steps.map(async (step) => {
         if (
           step.action !== WorkflowActions.SMS_ATTENDEE &&
@@ -287,8 +239,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
                     timeFormat: getTimeFormatStringFromUserTimeFormat(booking.user.timeFormat),
                   }
                 : { name: "", email: "", timeZone: "", language: { locale: "" } },
-              startTime: booking.startTime.toISOString(),
-              endTime: booking.endTime.toISOString(),
+              startTime: booking.startTime?.toISOString(),
+              endTime: booking.endTime?.toISOString(),
               title: booking.title,
               language: { locale: booking?.user?.locale || defaultLocale },
               eventType: {
@@ -786,7 +738,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         step.action === WorkflowActions.SMS_ATTENDEE || step.action === WorkflowActions.WHATSAPP_ATTENDEE
     );
 
-  for (const removedEventType of removedEventTypes) {
+  for (const removedEventType of removedActiveOn) {
     await removeSmsReminderFieldForBooking({
       workflowId: id,
       eventTypeId: removedEventType,
