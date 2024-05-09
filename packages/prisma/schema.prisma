@@ -402,6 +402,7 @@ model Team {
   platformOAuthClient   PlatformOAuthClient[]
   smsLockState          SMSLockState            @default(UNLOCKED)
   platformBilling       PlatformBilling?
+  activeOrgWorkflows    WorkflowsOnTeams[]
 
   @@unique([slug, parentId])
   @@index([parentId])
@@ -928,6 +929,7 @@ model Workflow {
   team          Team?                   @relation(fields: [teamId], references: [id], onDelete: Cascade)
   teamId        Int?
   activeOn      WorkflowsOnEventTypes[]
+  activeOnTeams WorkflowsOnTeams[]
   isActiveOnAll Boolean                 @default(false)
   trigger       WorkflowTriggerEvents
   time          Int?
@@ -966,6 +968,18 @@ model WorkflowsOnEventTypes {
   @@unique([workflowId, eventTypeId])
   @@index([workflowId])
   @@index([eventTypeId])
+}
+
+model WorkflowsOnTeams {
+  id         Int      @id @default(autoincrement())
+  workflow   Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  workflowId Int
+  team       Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamId     Int
+
+  @@unique([workflowId, teamId])
+  @@index([workflowId])
+  @@index([teamId])
 }
 
 model Deployment {
