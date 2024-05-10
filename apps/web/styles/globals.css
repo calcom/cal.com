@@ -17,7 +17,7 @@
   --cal-bg-info: hsla(218,83%,98%,1);
   --cal-bg-success: hsla(134,76%,94%,1);
   --cal-bg-attention: hsla(37, 86%, 92%, 1);
-  --cal-bg-error: hsla(3,66,93,1);
+  --cal-bg-error: hsla(3,66%,93%,1);
   --cal-bg-dark-error: hsla(2, 55%, 30%, 1);
 
   /* Borders */
@@ -27,6 +27,7 @@
   --cal-border-booker: #e5e7eb;
   --cal-border-muted: hsla(220, 14%, 96%, 1);
   --cal-border-error: hsla(4, 63%, 41%, 1);
+  --cal-border-focus: hsla(0, 0%, 10%, 1);
 
   /* Content/Text */
   --cal-text-emphasis: hsla(217, 19%, 27%, 1);
@@ -71,6 +72,7 @@
   --cal-border-booker: hsla(0, 0%, 22%, 1);
   --cal-border-muted: hsla(0, 0%, 18%, 1);
   --cal-border-error: hsla(4, 63%, 41%, 1);
+  --cal-border-focus: hsla(0, 0%, 100%, 1);
 
   /* Content/Text */
   --cal-text-emphasis: hsla(240, 20%, 99%, 1);
@@ -95,7 +97,7 @@
 
 @layer base {
   * {
-    @apply border-default 
+    @apply border-default
   }
 }
 
@@ -118,6 +120,10 @@ body  {
   Desktop App specific CSS
     https://docs.todesktop.com/
 */
+
+html.todesktop-platform-win32 .todesktop\:\!bg-transparent{
+  background: inherit !important;
+}
 
 /* disable user selection on buttons, links and images on desktop app */
 html.todesktop button,
@@ -146,6 +152,10 @@ html.todesktop header {
 html.todesktop header button,
 html.todesktop header a {
   -webkit-app-region: no-drag;
+}
+
+html.todesktop-platform-darwin body, html.todesktop-platform-darwin aside {
+  background: transparent !important;
 }
 
 html.todesktop-platform-darwin.dark main.bg-default {

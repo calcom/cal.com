@@ -629,11 +629,13 @@ const Routes = ({
 export default function RouteBuilder({
   form,
   appUrl,
+  enrichedWithUserProfileForm,
 }: inferSSRProps<typeof getServerSideProps> & { appUrl: string }) {
   return (
     <SingleForm
       form={form}
       appUrl={appUrl}
+      enrichedWithUserProfileForm={enrichedWithUserProfileForm}
       Page={({ hookForm, form }) => {
         // If hookForm hasn't been initialized, don't render anything
         // This is important here because some states get initialized which aren't reset when the hookForm is reset with the form values and they don't get the updated values

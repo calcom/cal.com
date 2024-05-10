@@ -7,9 +7,9 @@ export type {
   CustomInputParsed,
   EventTypeSetup,
   EventTypeSetupProps,
-  FormValues,
   Host,
 } from "~/event-types/views/event-types-single-view";
+export type { FormValues } from "@calcom/features/eventtypes/lib/types";
 
 EventTypePageWrapper.PageWrapper = PageWrapper;
 

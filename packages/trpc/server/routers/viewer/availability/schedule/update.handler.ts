@@ -9,9 +9,10 @@ import type { TrpcSessionUser } from "../../../../trpc";
 import { setupDefaultSchedule } from "../util";
 import type { TUpdateInputSchema } from "./update.schema";
 
+type User = NonNullable<TrpcSessionUser>;
 type UpdateOptions = {
   ctx: {
-    user: NonNullable<TrpcSessionUser>;
+    user: { id: User["id"]; defaultScheduleId: User["defaultScheduleId"]; timeZone: User["timeZone"] };
   };
   input: TUpdateInputSchema;
 };

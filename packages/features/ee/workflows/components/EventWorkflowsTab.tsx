@@ -1,17 +1,18 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useFormContext } from "react-hook-form";
+import { Trans } from "react-i18next";
 
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
-import { isTextMessageToAttendeeAction } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
+import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { WorkflowActions } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import { Button, EmptyScreen, showToast, Switch, Tooltip, Alert } from "@calcom/ui";
-import { ExternalLink, Zap, Lock, Info } from "@calcom/ui/components/icon";
+import { Alert, Button, EmptyScreen, Icon, showToast, Switch, Tooltip } from "@calcom/ui";
 
 import LicenseRequired from "../../common/components/LicenseRequired";
 import { getActionIcon } from "../lib/getActionIcon";
@@ -41,7 +42,7 @@ const WorkflowListItem = (props: ItemProps) => {
   );
 
   const isActive = activeEventTypeIds.includes(eventType.id);
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
 
   const activateEventTypeMutation = trpc.viewer.workflows.activateEventType.useMutation({
     onSuccess: async () => {
@@ -103,12 +104,6 @@ const WorkflowListItem = (props: ItemProps) => {
     }
   });
 
-  const needsRequiresConfirmationWarning =
-    !eventType.requiresConfirmation &&
-    workflow.steps.find((step) => {
-      return isTextMessageToAttendeeAction(step.action);
-    });
-
   return (
     <div className="border-subtle w-full overflow-hidden rounded-md border p-6 px-3 md:p-6">
       <div className="flex items-center ">
@@ -148,7 +143,7 @@ const WorkflowListItem = (props: ItemProps) => {
             <Link href={`/workflows/${workflow.id}`} passHref={true} target="_blank">
               <Button type="button" color="minimal" className="mr-4">
                 <div className="hidden ltr:mr-2 rtl:ml-2 sm:block">{t("edit")}</div>
-                <ExternalLink className="text-default -mt-[2px] h-4 w-4 stroke-2" />
+                <Icon name="external-link" className="text-default -mt-[2px] h-4 w-4 stroke-2" />
               </Button>
             </Link>
           </div>
@@ -157,7 +152,7 @@ const WorkflowListItem = (props: ItemProps) => {
           content={
             t(
               workflow.readOnly && props.isChildrenManagedEventType
-                ? "locked_by_admin"
+                ? "locked_by_team_admin"
                 : isActive
                 ? "turn_off"
                 : "turn_on"
@@ -165,7 +160,7 @@ const WorkflowListItem = (props: ItemProps) => {
           }>
           <div className="flex items-center ltr:mr-2 rtl:ml-2">
             {workflow.readOnly && props.isChildrenManagedEventType && (
-              <Lock className="text-subtle h-4 w-4 ltr:mr-2 rtl:ml-2" />
+              <Icon name="lock" className="text-subtle h-4 w-4 ltr:mr-2 rtl:ml-2" />
             )}
             <Switch
               checked={isActive}
@@ -177,15 +172,6 @@ const WorkflowListItem = (props: ItemProps) => {
           </div>
         </Tooltip>
       </div>
-
-      {needsRequiresConfirmationWarning ? (
-        <div className="text-attention -mb-2 mt-3 flex">
-          <Info className="mr-1 mt-0.5 h-4 w-4" />
-          <p className="text-sm">{t("requires_confirmation_mandatory")}</p>
-        </div>
-      ) : (
-        <></>
-      )}
     </div>
   );
 };
@@ -200,11 +186,17 @@ type Props = {
 function EventWorkflowsTab(props: Props) {
   const { workflows, eventType } = props;
   const { t } = useLocale();
-  const { isManagedEventType, isChildrenManagedEventType } = useLockedFieldsManager(
+  const formMethods = useFormContext<FormValues>();
+  const { shouldLockDisableProps, isManagedEventType, isChildrenManagedEventType } = useLockedFieldsManager({
     eventType,
-    t("locked_fields_admin_description"),
-    t("locked_fields_member_description")
-  );
+    translate: t,
+    formMethods,
+  });
+
+  const workflowsDisableProps = shouldLockDisableProps("workflows", { simple: true });
+
+  const lockedText = workflowsDisableProps.isLocked ? "locked" : "unlocked";
+
   const { data, isPending } = trpc.viewer.workflows.list.useQuery({
     teamId: eventType.team?.id,
     userId: !isChildrenManagedEventType ? eventType.userId || undefined : undefined,
@@ -223,19 +215,25 @@ function EventWorkflowsTab(props: Props) {
       });
       const disabledWorkflows = data.workflows.filter(
         (workflow) =>
+          (!workflow.teamId || eventType.teamId === workflow.teamId) &&
           !workflows
             .map((workflow) => {
               return workflow.id;
             })
             .includes(workflow.id)
       );
-      setSortedWorkflows(activeWorkflows.concat(disabledWorkflows));
+      const allSortedWorkflows =
+        workflowsDisableProps.isLocked && !isManagedEventType
+          ? activeWorkflows
+          : activeWorkflows.concat(disabledWorkflows);
+      setSortedWorkflows(allSortedWorkflows);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isPending]);
 
   const createMutation = trpc.viewer.workflows.create.useMutation({
     onSuccess: async ({ workflow }) => {
-      await router.replace(`/workflows/${workflow.id}`);
+      await router.replace(`/workflows/${workflow.id}?eventTypeId=${eventType.id}`);
     },
     onError: (err) => {
       if (err instanceof HttpError) {
@@ -254,15 +252,31 @@ function EventWorkflowsTab(props: Props) {
     <LicenseRequired>
       {!isPending ? (
         <>
-          {isManagedEventType && (
+          {(isManagedEventType || isChildrenManagedEventType) && (
             <Alert
-              severity="neutral"
+              severity={workflowsDisableProps.isLocked ? "neutral" : "green"}
               className="mb-2"
-              title={t("locked_for_members")}
-              message={t("locked_workflows_description")}
+              title={
+                <Trans i18nKey={`${lockedText}_${isManagedEventType ? "for_members" : "by_team_admins"}`}>
+                  {lockedText[0].toUpperCase()}
+                  {lockedText.slice(1)} {isManagedEventType ? "for members" : "by team admins"}
+                </Trans>
+              }
+              actions={<div className="flex h-full items-center">{workflowsDisableProps.LockedIcon}</div>}
+              message={
+                <Trans
+                  i18nKey={`workflows_${lockedText}_${
+                    isManagedEventType ? "for_members" : "by_team_admins"
+                  }_description`}>
+                  {isManagedEventType ? "Members" : "You"}{" "}
+                  {workflowsDisableProps.isLocked
+                    ? "will be able to see the active workflows but will not be able to edit any workflow settings"
+                    : "will be able to see the active workflow and will be able to edit any workflow settings"}
+                </Trans>
+              }
             />
           )}
-          {data?.workflows && data?.workflows.length > 0 ? (
+          {data?.workflows && sortedWorkflows.length > 0 ? (
             <div>
               <div className="space-y-4">
                 {sortedWorkflows.map((workflow) => {
@@ -280,11 +294,12 @@ function EventWorkflowsTab(props: Props) {
           ) : (
             <div className="pt-2 before:border-0">
               <EmptyScreen
-                Icon={Zap}
+                Icon="zap"
                 headline={t("workflows")}
                 description={t("no_workflows_description")}
                 buttonRaw={
                   <Button
+                    disabled={workflowsDisableProps.isLocked && !isManagedEventType}
                     target="_blank"
                     color="secondary"
                     onClick={() => createMutation.mutate({ teamId: eventType.team?.id })}

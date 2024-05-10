@@ -109,7 +109,11 @@ const createMeeting = async (credential: CredentialPayload, calEvent: CalendarEv
     log.debug("created Meeting", safeStringify(returnObject));
   } catch (err) {
     await sendBrokenIntegrationEmail(calEvent, "video");
-    log.error("createMeeting failed", safeStringify({ err, calEvent: getPiiFreeCalendarEvent(calEvent) }));
+    log.error(
+      "createMeeting failed",
+      safeStringify(err),
+      safeStringify({ calEvent: getPiiFreeCalendarEvent(calEvent) })
+    );
 
     // Default to calVideo
     const defaultMeeting = await createMeetingWithCalVideo(calEvent);
@@ -274,6 +278,29 @@ const getDownloadLinkOfCalVideoByRecordingId = async (recordingId: string) => {
   return videoAdapter?.getRecordingDownloadLink?.(recordingId);
 };
 
+const getAllTranscriptsAccessLinkFromRoomName = async (roomName: string) => {
+  let dailyAppKeys: Awaited<ReturnType<typeof getDailyAppKeys>>;
+  try {
+    dailyAppKeys = await getDailyAppKeys();
+  } catch (e) {
+    console.error("Error: Cal video provider is not installed.");
+    return;
+  }
+  const [videoAdapter] = await getVideoAdapters([
+    {
+      id: 0,
+      appId: "daily-video",
+      type: "daily_video",
+      userId: null,
+      user: { email: "" },
+      teamId: null,
+      key: dailyAppKeys,
+      invalid: false,
+    },
+  ]);
+  return videoAdapter?.getAllTranscriptsAccessLinkFromRoomName?.(roomName);
+};
+
 export {
   getBusyVideoTimes,
   createMeeting,
@@ -281,4 +308,5 @@ export {
   deleteMeeting,
   getRecordingsOfCalVideoByRoomName,
   getDownloadLinkOfCalVideoByRecordingId,
+  getAllTranscriptsAccessLinkFromRoomName,
 };
