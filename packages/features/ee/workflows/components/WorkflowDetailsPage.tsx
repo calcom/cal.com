@@ -51,8 +51,8 @@ export default function WorkflowDetailsPage(props: Props) {
           .filter((profile) => !!profile.teamId)
           .map((profile) => {
             return {
-              value: String(profile.teamId),
-              label: profile.name || profile.slug,
+              value: String(profile.teamId) || "",
+              label: profile.name || profile.slug || "",
             };
           })
       : [];
