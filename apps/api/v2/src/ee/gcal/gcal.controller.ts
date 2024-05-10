@@ -31,12 +31,7 @@ import { Request } from "express";
 import { google } from "googleapis";
 import { z } from "zod";
 
-import {
-  APPS_READ,
-  GOOGLE_CALENDAR_ID,
-  GOOGLE_CALENDAR_TYPE,
-  SUCCESS_STATUS,
-} from "@calcom/platform-constants";
+import { APPS_READ, GOOGLE_CALENDAR_TYPE, SUCCESS_STATUS } from "@calcom/platform-constants";
 
 const CALENDAR_SCOPES = [
   "https://www.googleapis.com/auth/calendar.readonly",
@@ -131,7 +126,7 @@ export class GcalController {
         primaryCal.id,
         credential.id,
         ownerId,
-        GOOGLE_CALENDAR_ID
+        GOOGLE_CALENDAR_TYPE
       );
     }
 
