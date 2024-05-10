@@ -418,7 +418,13 @@ const EmailEmbedPreview = ({
                                   <tr style={{ height: "25px" }}>
                                     {selectedDateAndTime[key]?.length > 0 &&
                                       selectedDateAndTime[key].map((time) => {
-                                        const bookingURL = `${WEBSITE_URL}/${username}/${eventType.slug}?duration=${eventType.length}&date=${key}&month=${month}&slot=${time}`;
+                                        // If teamId is present on eventType and is not null, it means it is a team event.
+                                        // So we add 'team/' to the url.
+                                        const bookingURL = `${WEBSITE_URL}/${
+                                          eventType.teamId !== null ? "team/" : ""
+                                        }${username}/${eventType.slug}?duration=${
+                                          eventType.length
+                                        }&date=${key}&month=${month}&slot=${time}`;
                                         return (
                                           <td
                                             key={time}
