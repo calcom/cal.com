@@ -9,7 +9,7 @@ import {
   IsNumber,
 } from "class-validator";
 
-import { ScheduleAvailability, ScheduleOverride } from "../inputs/create-schedule.input";
+import { ScheduleAvailabilityInput, ScheduleOverrideInput } from "../inputs/create-schedule.input";
 
 export class ScheduleOutput {
   @IsNumber()
@@ -26,8 +26,8 @@ export class ScheduleOutput {
 
   @IsArray()
   @ValidateNested({ each: true })
-  @Type(() => ScheduleAvailability)
-  availability!: ScheduleAvailability[];
+  @Type(() => ScheduleAvailabilityInput)
+  availability!: ScheduleAvailabilityInput[];
 
   @IsBoolean()
   isDefault!: boolean;
@@ -35,6 +35,6 @@ export class ScheduleOutput {
   @IsArray()
   @IsOptional()
   @ValidateNested({ each: true })
-  @Type(() => ScheduleOverride)
-  overrides!: ScheduleOverride[];
+  @Type(() => ScheduleOverrideInput)
+  overrides!: ScheduleOverrideInput[];
 }

@@ -100,7 +100,7 @@ export class SchedulesController {
     @Param("scheduleId") scheduleId: string
   ): Promise<UpdateScheduleOutput> {
     const updatedSchedule = await this.schedulesService.updateUserSchedule(
-      user,
+      user.id,
       Number(scheduleId),
       bodySchedule
     );

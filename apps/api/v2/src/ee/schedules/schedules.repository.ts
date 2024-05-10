@@ -1,16 +1,16 @@
-import { CreateScheduleTransformed } from "@/ee/schedules/services/schedules.service";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { Injectable } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
 
+import { CreateScheduleInputTransformed } from "./services/input-schedules.service";
+
 @Injectable()
 export class SchedulesRepository {
   constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
 
-  async createSchedule(userId: number, schedule: CreateScheduleTransformed) {
-    const availability = schedule.availability;
-    const overrides = schedule.overrides;
+  async createSchedule(userId: number, schedule: Omit<CreateScheduleInputTransformed, "isDefault">) {
+    const { availability, overrides } = schedule;
 
     const createScheduleData: Prisma.ScheduleCreateInput = {
       user: {
@@ -24,7 +24,7 @@ export class SchedulesRepository {
 
     const availabilitiesAndOverrides: Prisma.AvailabilityCreateManyInput[] = [];
 
-    if (availability.length > 0) {
+    if (availability && availability.length > 0) {
       availability.forEach((availability) => {
         availabilitiesAndOverrides.push({
           days: availability.days,
@@ -38,7 +38,7 @@ export class SchedulesRepository {
     if (overrides && overrides.length > 0) {
       overrides.forEach((override) => {
         availabilitiesAndOverrides.push({
-          date: new Date(override.date),
+          date: override.date,
           startTime: override.startTime,
           endTime: override.endTime,
           userId,
@@ -77,6 +77,81 @@ export class SchedulesRepository {
     });
 
     return schedule;
+  }
+
+  async updateSchedule(
+    userId: number,
+    scheduleId: number,
+    schedule: Partial<Omit<CreateScheduleInputTransformed, "isDefault">>
+  ) {
+    const { availability, overrides } = schedule;
+
+    const updateScheduleData: Prisma.ScheduleUpdateInput = {
+      name: schedule.name,
+      timeZone: schedule.timeZone,
+    };
+
+    const availabilitiesAndOverrides: Prisma.AvailabilityCreateManyInput[] = [];
+
+    const deleteConditions = [];
+    if (availability) {
+      deleteConditions.push({
+        scheduleId: { equals: scheduleId },
+        date: null,
+      });
+    }
+
+    if (overrides) {
+      deleteConditions.push({
+        scheduleId: { equals: scheduleId },
+        NOT: { date: null },
+      });
+    }
+
+    if (availability && availability.length > 0) {
+      availability.forEach((availability) => {
+        availabilitiesAndOverrides.push({
+          days: availability.days,
+          startTime: availability.startTime,
+          endTime: availability.endTime,
+          userId,
+        });
+      });
+    }
+
+    if (overrides && overrides.length > 0) {
+      overrides.forEach((override) => {
+        availabilitiesAndOverrides.push({
+          date: override.date,
+          startTime: override.startTime,
+          endTime: override.endTime,
+          userId,
+        });
+      });
+    }
+
+    if (availabilitiesAndOverrides.length > 0) {
+      updateScheduleData.availability = {
+        deleteMany: deleteConditions,
+        createMany: {
+          data: availabilitiesAndOverrides,
+        },
+      };
+    }
+
+    const updatedSchedule = await this.dbWrite.prisma.schedule.update({
+      where: {
+        id: scheduleId,
+      },
+      data: {
+        ...updateScheduleData,
+      },
+      include: {
+        availability: true,
+      },
+    });
+
+    return updatedSchedule;
   }
 
   async getSchedulesByUserId(userId: number) {

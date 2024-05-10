@@ -2,7 +2,7 @@ import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { IsString, IsBoolean, IsOptional, ValidateNested, IsArray, IsTimeZone } from "class-validator";
 
-import { ScheduleAvailability, ScheduleOverride } from "./create-schedule.input";
+import { ScheduleAvailabilityInput, ScheduleOverrideInput } from "./create-schedule.input";
 
 export class UpdateScheduleInput {
   @IsString()
@@ -17,11 +17,10 @@ export class UpdateScheduleInput {
 
   @IsArray()
   @IsOptional()
-  @IsOptional()
   @ValidateNested({ each: true })
-  @Type(() => ScheduleAvailability)
+  @Type(() => ScheduleAvailabilityInput)
   @ApiProperty()
-  availability?: ScheduleAvailability[];
+  availability?: ScheduleAvailabilityInput[];
 
   @IsBoolean()
   @IsOptional()
@@ -31,7 +30,7 @@ export class UpdateScheduleInput {
   @IsArray()
   @IsOptional()
   @ValidateNested({ each: true })
-  @Type(() => ScheduleOverride)
+  @Type(() => ScheduleOverrideInput)
   @ApiProperty()
-  overrides?: ScheduleOverride[];
+  overrides?: ScheduleOverrideInput[];
 }

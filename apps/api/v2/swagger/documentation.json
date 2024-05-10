@@ -810,6 +810,16 @@
       "post": {
         "operationId": "SchedulesController_createSchedule",
         "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateScheduleInput"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": "",
@@ -852,7 +862,14 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": "Returns the default schedule"
+            "description": "Returns the default schedule",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetDefaultScheduleOutput"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -2834,20 +2851,47 @@
           "data"
         ]
       },
-      "ScheduleAvailability": {
+      "CreateScheduleInput": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "timeZone": {
+            "type": "string"
+          },
+          "availability": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "isDefault": {
+            "type": "boolean"
+          },
+          "overrides": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "name",
+          "timeZone",
+          "availability",
+          "isDefault",
+          "overrides"
+        ]
+      },
+      "ScheduleAvailabilityInput": {
         "type": "object",
         "properties": {
           "days": {
-            "type": "string",
-            "enum": [
-              "Monday",
-              "Tuesday",
-              "Wednesday",
-              "Thursday",
-              "Friday",
-              "Saturday",
-              "Sunday"
-            ]
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
           },
           "startTime": {
             "type": "string",
@@ -2864,7 +2908,7 @@
           "endTime"
         ]
       },
-      "ScheduleOverride": {
+      "ScheduleOverrideInput": {
         "type": "object",
         "properties": {
           "date": {
@@ -2903,7 +2947,7 @@
           "availability": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/ScheduleAvailability"
+              "$ref": "#/components/schemas/ScheduleAvailabilityInput"
             }
           },
           "isDefault": {
@@ -2912,7 +2956,7 @@
           "overrides": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/ScheduleOverride"
+              "$ref": "#/components/schemas/ScheduleOverrideInput"
             }
           }
         },
@@ -2927,6 +2971,26 @@
         ]
       },
       "CreateScheduleOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/ScheduleOutput"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "GetDefaultScheduleOutput": {
         "type": "object",
         "properties": {
           "status": {
@@ -2994,61 +3058,34 @@
       "UpdateScheduleInput": {
         "type": "object",
         "properties": {
+          "name": {
+            "type": "string"
+          },
           "timeZone": {
             "type": "string"
           },
-          "name": {
-            "type": "string"
+          "availability": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           },
           "isDefault": {
             "type": "boolean"
           },
-          "schedule": {
-            "example": [
-              [],
-              [
-                {
-                  "start": "2022-01-01T00:00:00.000Z",
-                  "end": "2022-01-02T00:00:00.000Z"
-                }
-              ],
-              [],
-              [],
-              [],
-              [],
-              []
-            ],
+          "overrides": {
+            "type": "array",
             "items": {
-              "type": "array"
-            },
-            "type": "array"
-          },
-          "dateOverrides": {
-            "example": [
-              [],
-              [
-                {
-                  "start": "2022-01-01T00:00:00.000Z",
-                  "end": "2022-01-02T00:00:00.000Z"
-                }
-              ],
-              [],
-              [],
-              [],
-              [],
-              []
-            ],
-            "items": {
-              "type": "array"
-            },
-            "type": "array"
+              "type": "string"
+            }
           }
         },
         "required": [
-          "timeZone",
           "name",
+          "timeZone",
+          "availability",
           "isDefault",
-          "schedule"
+          "overrides"
         ]
       },
       "UpdateScheduleOutput": {
