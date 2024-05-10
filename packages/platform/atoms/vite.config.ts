@@ -43,7 +43,8 @@ export default defineConfig({
       path: resolve("../../../node_modules/rollup-plugin-node-builtins"),
       os: resolve("../../../node_modules/rollup-plugin-node-builtins"),
       "@": path.resolve(__dirname, "./src"),
-
+      ".prisma/client": path.resolve(__dirname, "../../prisma-client"),
+      "@prisma/client": path.resolve(__dirname, "../../prisma-client"),
       "@calcom/prisma": path.resolve(__dirname, "../../prisma"),
       "@calcom/dayjs": path.resolve(__dirname, "../../dayjs"),
       "@calcom/platform-constants": path.resolve(__dirname, "../constants/index.ts"),
