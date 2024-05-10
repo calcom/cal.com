@@ -272,9 +272,11 @@ function WorkflowPage() {
 
             if (!isEmpty && isVerified) {
               if (values.activeOn) {
-                activeOnIds = values.activeOn.map((option) => {
-                  return parseInt(option.value, 10);
-                });
+                activeOnIds = values.activeOn
+                  .filter((option) => option.value !== "all")
+                  .map((option) => {
+                    return parseInt(option.value, 10);
+                  });
               }
               updateMutation.mutate({
                 id: workflowId,
