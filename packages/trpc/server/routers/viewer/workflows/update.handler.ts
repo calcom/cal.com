@@ -134,7 +134,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       .flat();
 
     //todo: code was changed, make sure this still works as it should
-    newActiveOn = activeOn.filter((eventTypeId) => oldActiveOnEventTypeIds.includes(eventTypeId));
+    newActiveOn = activeOn.filter((eventTypeId) => !oldActiveOnEventTypeIds.includes(eventTypeId));
 
     await isAuthorizedToAddActiveOnIds(newActiveOn, isOrg, userWorkflow?.teamId, userWorkflow?.userId);
 
@@ -192,7 +192,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
     const oldActiveOnTeamIds = oldActiveOnTeams.map((teamRel) => teamRel.teamId);
 
-    newActiveOn = activeOn.filter((teamId) => oldActiveOnTeamIds.includes(teamId));
+    newActiveOn = activeOn.filter((teamId) => !oldActiveOnTeamIds.includes(teamId));
 
     await isAuthorizedToAddActiveOnIds(newActiveOn, isOrg, userWorkflow?.teamId, userWorkflow?.userId);
 
@@ -217,10 +217,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   }
 
   // schedule reminders if there are new activeOn teams or event types
-  const newEventTypes = isOrg ? newActiveOn : [];
-  const newTeams = isOrg ? newActiveOn : [];
-
-  const bookingsForReminders = await getBookingsForReminders(newEventTypes, newTeams);
+  const bookingsForReminders = await getBookingsForReminders(newActiveOn, isOrg);
 
   await scheduleBookingReminders(
     bookingsForReminders,
@@ -291,20 +288,16 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       });
 
       //cancel all reminders of step and create new ones (not for newActiveOn)
-      // todo if I do that before scheduling the new reminders I wouldn't need to care about tahat
+      // todo if I do that before scheduling the new reminders I wouldn't need to care about tahat same i need to do for teams
       const remindersToUpdate = remindersFromStep.filter(
-        (reminder) => reminder.booking?.eventTypeId && !newEventTypes.includes(reminder.booking?.eventTypeId)
+        (reminder) => reminder.booking?.eventTypeId && !newActiveOn.includes(reminder.booking?.eventTypeId)
       );
 
       await deleteAllReminders(remindersToUpdate);
 
       // create new reminders for edited workflows
       const activeOnIdsToUpdateReminders = activeOn.filter((id) => {
-        if (isOrg) {
-          !newTeams.includes(id);
-        } else {
-          !newEventTypes.includes(id);
-        }
+        !activeOn.includes(id);
       });
 
       if (
@@ -313,10 +306,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         newStep.action !== WorkflowActions.SMS_ATTENDEE &&
         newStep.action !== WorkflowActions.WHATSAPP_ATTENDEE
       ) {
-        const bookingsForReminders = await getBookingsForReminders(
-          !isOrg ? activeOnIdsToUpdateReminders : [],
-          isOrg ? activeOnIdsToUpdateReminders : []
-        );
+        const bookingsForReminders = await getBookingsForReminders(activeOnIdsToUpdateReminders, isOrg);
 
         await scheduleBookingReminders(
           bookingsForReminders,
@@ -343,7 +333,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     });
 
   if (addedSteps) {
-    const bookingsForReminders = await getBookingsForReminders(!isOrg ? activeOn : [], isOrg ? activeOn : []);
+    const bookingsForReminders = await getBookingsForReminders(activeOn, isOrg);
 
     //create new steps
     const createdSteps = await Promise.all(

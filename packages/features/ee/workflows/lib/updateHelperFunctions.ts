@@ -226,16 +226,36 @@ export async function deleteRemindersFromRemovedActiveOn(
 }
 
 //probably better to just add a isOrg property
-export async function getBookingsForReminders(newEventTypes: number[], newTeams: number[]) {
-  if (newEventTypes.length > 0) {
+export async function getBookingsForReminders(newActiveOn: number[], isOrg: boolean) {
+  if (newActiveOn.length === 0) return [];
+
+  if (isOrg) {
+    //test this
+    const bookingsForReminders = await prisma.booking.findMany({
+      where: {
+        user: {
+          teams: {
+            some: {
+              teamId: {
+                in: newActiveOn,
+              },
+              accepted: true,
+            },
+          },
+        },
+      },
+      select: bookingSelect,
+    });
+    return bookingsForReminders;
+  } else {
     const bookingsForReminders = await prisma.booking.findMany({
       where: {
         OR: [
-          { eventTypeId: { in: newEventTypes } },
+          { eventTypeId: { in: newActiveOn } },
           {
             eventType: {
               parentId: {
-                in: newEventTypes,
+                in: newActiveOn,
               },
             },
           },
@@ -249,27 +269,6 @@ export async function getBookingsForReminders(newEventTypes: number[], newTeams:
     });
     return bookingsForReminders;
   }
-
-  if (newTeams.length > 0) {
-    //test this
-    const bookingsForReminders = await prisma.booking.findMany({
-      where: {
-        user: {
-          teams: {
-            some: {
-              teamId: {
-                in: newTeams,
-              },
-              accepted: true,
-            },
-          },
-        },
-      },
-      select: bookingSelect,
-    });
-    return bookingsForReminders;
-  }
-  return [];
 }
 
 type UnwrapPromise<T> = T extends Promise<infer U> ? U : T;
