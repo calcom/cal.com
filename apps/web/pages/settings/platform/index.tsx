@@ -96,7 +96,13 @@ export default function Platform() {
 
   return (
     <div>
-      <Shell isPlatformUser={true} hideHeadingOnMobile withoutMain={false} SidebarContainer={<></>}>
+      <Shell
+        // we want to hide org banner and have different sidebar tabs for platform clients
+        // hence we pass isPlatformUser boolean as prop
+        isPlatformUser={true}
+        hideHeadingOnMobile
+        withoutMain={false}
+        SidebarContainer={<></>}>
         You are not subscribed to a Platform plan.
       </Shell>
     </div>
