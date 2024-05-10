@@ -1,11 +1,24 @@
-import { deleteScheduledEmailReminder } from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
-import { deleteScheduledSMSReminder } from "@calcom/features/ee/workflows/lib/reminders/smsReminderManager";
-import { deleteScheduledWhatsappReminder } from "@calcom/features/ee/workflows/lib/reminders/whatsappReminderManager";
+import {
+  deleteScheduledEmailReminder,
+  scheduleEmailReminder,
+} from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
+import {
+  deleteScheduledSMSReminder,
+  scheduleSMSReminder,
+} from "@calcom/features/ee/workflows/lib/reminders/smsReminderManager";
+import {
+  deleteScheduledWhatsappReminder,
+  scheduleWhatsappReminder,
+} from "@calcom/features/ee/workflows/lib/reminders/whatsappReminderManager";
+import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import type { Prisma, WorkflowStep } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/client";
-import { WorkflowMethods } from "@calcom/prisma/enums";
+import type { TimeUnit } from "@calcom/prisma/enums";
+import { WorkflowActions, WorkflowMethods, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { TRPCError } from "@calcom/trpc";
+
+//  move that code to file to util file
 
 const bookingSelect = {
   userPrimaryEmail: true,
@@ -174,4 +187,135 @@ export async function getBookingsForReminders(newEventTypes: number[], newTeams:
     return [];
   }
   return [];
+}
+
+type UnwrapPromise<T> = T extends Promise<infer U> ? U : T;
+
+// Use it to get the actual resolved type of the Promise
+type BookingsReminders = UnwrapPromise<ReturnType<typeof getBookingsForReminders>>;
+
+export async function scheduleBookingReminders(
+  bookingsReminders: BookingsReminders,
+  workflowSteps: Partial<WorkflowStep>[],
+  time: number | null,
+  timeUnit: TimeUnit | null,
+  trigger: WorkflowTriggerEvents,
+  userId: number,
+  teamId: number | null
+) {
+  if (!bookingsReminders.length) return;
+  if (trigger !== WorkflowTriggerEvents.BEFORE_EVENT && trigger !== WorkflowTriggerEvents.AFTER_EVENT)
+    return true;
+
+  //create reminders for all bookings with newEventTypes
+  const promiseSteps = workflowSteps.map(async (step) => {
+    if (step.action !== WorkflowActions.SMS_ATTENDEE && step.action !== WorkflowActions.WHATSAPP_ATTENDEE) {
+      //as we do not have attendees phone number (user is notified about that when setting this action)
+      const promiseScheduleReminders = bookingsReminders.map(async (booking) => {
+        const defaultLocale = "en";
+        const bookingInfo = {
+          uid: booking.uid,
+          attendees: booking.attendees.map((attendee) => {
+            return {
+              name: attendee.name,
+              email: attendee.email,
+              timeZone: attendee.timeZone,
+              language: { locale: attendee.locale || defaultLocale },
+            };
+          }),
+          organizer: booking.user
+            ? {
+                language: { locale: booking.user.locale || defaultLocale },
+                name: booking.user.name || "",
+                email: booking?.userPrimaryEmail ?? booking.user.email,
+                timeZone: booking.user.timeZone,
+                timeFormat: getTimeFormatStringFromUserTimeFormat(booking.user.timeFormat),
+              }
+            : { name: "", email: "", timeZone: "", language: { locale: "" } },
+          startTime: booking.startTime?.toISOString(),
+          endTime: booking.endTime?.toISOString(),
+          title: booking.title,
+          language: { locale: booking?.user?.locale || defaultLocale },
+          eventType: {
+            slug: booking.eventType?.slug,
+          },
+        };
+        if (
+          step.action === WorkflowActions.EMAIL_HOST ||
+          step.action === WorkflowActions.EMAIL_ATTENDEE /*||
+                  step.action === WorkflowActions.EMAIL_ADDRESS*/
+        ) {
+          let sendTo: string[] = [];
+
+          switch (step.action) {
+            case WorkflowActions.EMAIL_HOST:
+              sendTo = [bookingInfo.organizer?.email];
+              break;
+            case WorkflowActions.EMAIL_ATTENDEE:
+              sendTo = bookingInfo.attendees.map((attendee) => attendee.email);
+              break;
+            /*case WorkflowActions.EMAIL_ADDRESS:
+                      sendTo = step.sendTo || "";*/
+          }
+
+          await scheduleEmailReminder({
+            evt: bookingInfo,
+            triggerEvent: trigger,
+            action: step.action,
+            timeSpan: {
+              time,
+              timeUnit,
+            },
+            sendTo,
+            emailSubject: step.emailSubject || "",
+            emailBody: step.reminderBody || "",
+            template: step.template,
+            sender: step.sender, //in  edited step this is senderName --> missing that piece of code
+            // const { senderName, ...newStep } = step;
+            // newStep.sender = getSender({ // do that inside the helper function
+            //   action: newStep.action,
+            //   sender: newStep.sender || null,
+            //   senderName: senderName,
+            // });
+            workflowStepId: step.id,
+          });
+        } else if (step.action === WorkflowActions.SMS_NUMBER && step.sendTo) {
+          await scheduleSMSReminder({
+            evt: bookingInfo,
+            reminderPhone: step.sendTo,
+            triggerEvent: trigger,
+            action: step.action,
+            timeSpan: {
+              time,
+              timeUnit,
+            },
+            message: step.reminderBody || "",
+            workflowStepId: step.id,
+            template: step.template,
+            sender: step.sender,
+            userId: userId,
+            teamId: teamId,
+          });
+        } else if (step.action === WorkflowActions.WHATSAPP_NUMBER && step.sendTo) {
+          await scheduleWhatsappReminder({
+            evt: bookingInfo,
+            reminderPhone: step.sendTo,
+            triggerEvent: trigger,
+            action: step.action,
+            timeSpan: {
+              time,
+              timeUnit,
+            },
+            message: step.reminderBody || "",
+            workflowStepId: step.id || 0,
+            template: step.template,
+            userId: userId,
+            teamId: teamId,
+          });
+        }
+      });
+      await Promise.all(promiseScheduleReminders);
+    }
+  });
+  return Promise.all(promiseSteps);
 }
