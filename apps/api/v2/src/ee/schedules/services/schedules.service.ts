@@ -322,26 +322,26 @@ export class SchedulesService {
 
 function transformDayToNumber(day: WeekDay): number {
   const weekMap: { [key in WeekDay]: number } = {
-    [WeekDay.Sunday]: 0,
-    [WeekDay.Monday]: 1,
-    [WeekDay.Tuesday]: 2,
-    [WeekDay.Wednesday]: 3,
-    [WeekDay.Thursday]: 4,
-    [WeekDay.Friday]: 5,
-    [WeekDay.Saturday]: 6,
+    Sunday: 0,
+    Monday: 1,
+    Tuesday: 2,
+    Wednesday: 3,
+    Thursday: 4,
+    Friday: 5,
+    Saturday: 6,
   };
   return weekMap[day];
 }
 
 function transformNumberToDay(day: number): WeekDay {
   const weekMap: { [key: number]: WeekDay } = {
-    0: WeekDay.Sunday,
-    1: WeekDay.Monday,
-    2: WeekDay.Tuesday,
-    3: WeekDay.Wednesday,
-    4: WeekDay.Thursday,
-    5: WeekDay.Friday,
-    6: WeekDay.Saturday,
+    0: "Sunday",
+    1: "Monday",
+    2: "Tuesday",
+    3: "Wednesday",
+    4: "Thursday",
+    5: "Friday",
+    6: "Saturday",
   };
   return weekMap[day];
 }

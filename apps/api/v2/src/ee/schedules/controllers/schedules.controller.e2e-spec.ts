@@ -23,7 +23,6 @@ import {
   GetSchedulesOutput,
   ScheduleOutput,
   UpdateScheduleOutput,
-  WeekDay,
 } from "@calcom/platform-types";
 import { UpdateScheduleInput } from "@calcom/platform-types";
 
@@ -45,7 +44,7 @@ describe("Schedules Endpoints", () => {
 
     const defaultAvailability: CreateScheduleInput["availability"] = [
       {
-        days: [WeekDay.Monday, WeekDay.Tuesday, WeekDay.Wednesday, WeekDay.Thursday, WeekDay.Friday],
+        days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
         startTime: "09:00",
         endTime: "17:00",
       },

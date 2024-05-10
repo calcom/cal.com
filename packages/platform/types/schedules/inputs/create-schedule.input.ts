@@ -1,7 +1,6 @@
 import { Type } from "class-transformer";
 import {
   IsBoolean,
-  IsEnum,
   IsOptional,
   IsString,
   ValidateNested,
@@ -9,12 +8,15 @@ import {
   Matches,
   IsISO8601,
   IsTimeZone,
+  IsIn,
 } from "class-validator";
 
-import { TIME_FORMAT_HH_MM, WeekDay } from "../constants";
+import type { WeekDay } from "../constants";
+import { TIME_FORMAT_HH_MM, WEEK_DAYS } from "../constants";
 
-class ScheduleAvailability {
-  @IsEnum(WeekDay, { each: true })
+export class ScheduleAvailability {
+  @IsArray()
+  @IsIn(WEEK_DAYS, { each: true })
   days!: WeekDay[];
 
   @IsString()
@@ -26,7 +28,7 @@ class ScheduleAvailability {
   endTime!: string;
 }
 
-class ScheduleOverride {
+export class ScheduleOverride {
   @IsISO8601({ strict: true })
   date!: string;
 
