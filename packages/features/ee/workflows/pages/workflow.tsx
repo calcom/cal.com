@@ -139,10 +139,9 @@ function WorkflowPage() {
       if (isOrg) {
         setSelectedOptions(
           workflow.activeOnTeams.flatMap((active) => {
-            if (workflow.teamId && active.eventType.parentId) return [];
             return {
-              value: String(active.team.id),
-              label: active.team.slug,
+              value: String(active.team.id) || "",
+              label: active.team.slug || "",
             };
           }) || []
         );

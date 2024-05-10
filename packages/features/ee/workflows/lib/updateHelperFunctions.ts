@@ -67,9 +67,8 @@ export async function isAuthorizedToAddActiveOnIds(
           parent: true,
         },
       });
-
       if (newTeam) {
-        if (newTeam.parent !== teamId) {
+        if (newTeam.parent?.id !== teamId) {
           throw new TRPCError({ code: "UNAUTHORIZED" });
         }
       }
