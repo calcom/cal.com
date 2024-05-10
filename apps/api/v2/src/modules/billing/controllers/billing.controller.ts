@@ -46,7 +46,7 @@ export class BillingController {
 
   @Get("/:teamId/check")
   @UseGuards(NextAuthGuard, OrganizationRolesGuard)
-  @Roles(["OWNER", "ADMIN"])
+  @Roles(["OWNER", "ADMIN", "MEMBER"])
   async checkTeamBilling(
     @Param("teamId") teamId: number
   ): Promise<ApiResponse<CheckPlatformBillingResponseDto>> {
