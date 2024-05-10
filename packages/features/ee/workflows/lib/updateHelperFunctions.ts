@@ -51,51 +51,68 @@ const bookingSelect = {
   },
 };
 
-export async function isAuthorizedToAddEventtypes(
-  newActiveEventTypes: number[],
+export async function isAuthorizedToAddActiveOnIds(
+  newActiveIds: number[],
+  isOrg: boolean,
   teamId?: number | null,
   userId?: number | null
 ) {
-  for (const newEventTypeId of newActiveEventTypes) {
-    const newEventType = await prisma.eventType.findFirst({
-      where: {
-        id: newEventTypeId,
-      },
-      include: {
-        users: {
-          select: {
-            id: true,
-          },
+  for (const id of newActiveIds) {
+    if (isOrg) {
+      const newTeam = await prisma.team.findFirst({
+        where: {
+          id,
         },
-        team: {
-          include: {
-            members: true,
-          },
+        select: {
+          parent: true,
         },
-        children: true,
-      },
-    });
+      });
 
-    if (newEventType) {
-      if (teamId && teamId !== newEventType.teamId) {
-        throw new TRPCError({ code: "UNAUTHORIZED" });
+      if (newTeam) {
+        if (newTeam.parent !== teamId) {
+          throw new TRPCError({ code: "UNAUTHORIZED" });
+        }
       }
+    } else {
+      const newEventType = await prisma.eventType.findFirst({
+        where: {
+          id,
+        },
+        include: {
+          users: {
+            select: {
+              id: true,
+            },
+          },
+          team: {
+            include: {
+              members: true,
+            },
+          },
+          children: true,
+        },
+      });
 
-      if (
-        !teamId &&
-        userId &&
-        newEventType.userId !== userId &&
-        !newEventType?.users.find((eventTypeUser) => eventTypeUser.id === userId)
-      ) {
-        throw new TRPCError({ code: "UNAUTHORIZED" });
+      if (newEventType) {
+        if (teamId && teamId !== newEventType.teamId) {
+          throw new TRPCError({ code: "UNAUTHORIZED" });
+        }
+
+        if (
+          !teamId &&
+          userId &&
+          newEventType.userId !== userId &&
+          !newEventType?.users.find((eventTypeUser) => eventTypeUser.id === userId)
+        ) {
+          throw new TRPCError({ code: "UNAUTHORIZED" });
+        }
       }
     }
   }
 }
 
-//what about team id
-async function getRemindersFromRemovedActiveOn(
-  removedEventTypes: number[],
+async function getRemindersFromRemovedTeams(
+  removedTeams: number[],
   workflowSteps: WorkflowStep[],
   userId: number
 ) {
@@ -107,12 +124,22 @@ async function getRemindersFromRemovedActiveOn(
     }[]
   >[] = [];
 
-  removedEventTypes.forEach((eventTypeId) => {
+  removedTeams.forEach((teamId) => {
     const reminderToDelete = prisma.workflowReminder.findMany({
       where: {
         booking: {
-          eventTypeId: eventTypeId,
-          userId,
+          eventType: {
+            OR: [
+              {
+                teamId,
+              },
+              {
+                parent: {
+                  teamId,
+                }, // test if this works as it should for managed event types
+              },
+            ],
+          },
         },
         workflowStepId: {
           in: workflowSteps.map((step) => {
@@ -129,7 +156,44 @@ async function getRemindersFromRemovedActiveOn(
 
     remindersToDeletePromise.push(reminderToDelete);
   });
-  return (await Promise.all(remindersToDeletePromise)).flat();
+  const remindersToDelete = (await Promise.all(remindersToDeletePromise)).flat();
+  return remindersToDelete;
+}
+
+async function getRemindersFromRemovedEventTypes(removedEventTypes: number[], workflowSteps: WorkflowStep[]) {
+  const remindersToDeletePromise: Prisma.PrismaPromise<
+    {
+      id: number;
+      referenceId: string | null;
+      method: string;
+    }[]
+  >[] = [];
+
+  removedEventTypes.forEach((eventTypeId) => {
+    const reminderToDelete = prisma.workflowReminder.findMany({
+      where: {
+        booking: {
+          eventTypeId: eventTypeId,
+          //userId, // test if this is ok
+        },
+        workflowStepId: {
+          in: workflowSteps.map((step) => {
+            return step.id;
+          }),
+        },
+      },
+      select: {
+        id: true,
+        referenceId: true,
+        method: true,
+      },
+    });
+
+    remindersToDeletePromise.push(reminderToDelete);
+  });
+
+  const remindersToDelete = (await Promise.all(remindersToDeletePromise)).flat();
+  return remindersToDelete;
 }
 
 export async function deleteAllReminders(
@@ -151,14 +215,18 @@ export async function deleteAllReminders(
 }
 
 export async function deleteRemindersFromRemovedActiveOn(
-  removedEventTypes: number[],
+  removedActiveOnIds: number[],
   workflowSteps: WorkflowStep[],
-  userId: number
+  userId: number,
+  isOrg: boolean
 ) {
-  const remindersToDelete = await getRemindersFromRemovedActiveOn(removedEventTypes, workflowSteps, userId);
+  const remindersToDelete = isOrg
+    ? await getRemindersFromRemovedEventTypes(removedActiveOnIds, workflowSteps)
+    : await getRemindersFromRemovedTeams(removedActiveOnIds, workflowSteps, userId);
   await deleteAllReminders(remindersToDelete);
 }
 
+//probably better to just add a isOrg property
 export async function getBookingsForReminders(newEventTypes: number[], newTeams: number[]) {
   if (newEventTypes.length > 0) {
     const bookingsForReminders = await prisma.booking.findMany({
@@ -183,8 +251,24 @@ export async function getBookingsForReminders(newEventTypes: number[], newTeams:
     return bookingsForReminders;
   }
 
-  if (newTeams.length) {
-    return [];
+  if (newTeams.length > 0) {
+    //test this
+    const bookingsForReminders = await prisma.booking.findMany({
+      where: {
+        user: {
+          teams: {
+            some: {
+              teamId: {
+                in: newTeams,
+              },
+              accepted: true,
+            },
+          },
+        },
+      },
+      select: bookingSelect,
+    });
+    return bookingsForReminders;
   }
   return [];
 }
