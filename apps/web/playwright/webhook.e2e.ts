@@ -704,6 +704,8 @@ test.describe("FORM_SUBMITTED", async () => {
       ],
     });
 
+    await page.waitForLoadState("networkidle");
+
     await gotoRoutingLink({ page, formId: form.id });
     const fieldName = "name";
     await page.fill(`[data-testid="form-field-${fieldName}"]`, "John Doe");
@@ -762,6 +764,8 @@ test.describe("FORM_SUBMITTED", async () => {
         },
       ],
     });
+
+    await page.waitForLoadState("networkidle");
 
     await gotoRoutingLink({ page, formId: form.id });
     const fieldName = "name";
