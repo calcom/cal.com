@@ -29,7 +29,8 @@ test.describe("Users can impersonate", async () => {
     await page.getByTestId("impersonation-submit").click();
 
     // // Wait for sign in to complete
-    await page.waitForURL("/settings/my-account/profile");
+    await page.waitForURL("/event-types");
+    await page.goto("/settings/profile");
 
     const stopImpersonatingButton = page.getByTestId("stop-impersonating-button");
 

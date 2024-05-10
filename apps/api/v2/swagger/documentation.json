@@ -722,6 +722,7 @@
             "required": false,
             "in": "query",
             "schema": {
+              "nullable": true,
               "type": "string"
             }
           }
@@ -1633,11 +1634,25 @@
           },
           "timeFormat": {
             "type": "number",
-            "example": 12
+            "example": 12,
+            "enum": [
+              12,
+              24
+            ],
+            "description": "Must be 12 or 24"
           },
           "weekStart": {
             "type": "string",
-            "example": "Sunday"
+            "example": "Monday",
+            "enum": [
+              "Monday",
+              "Tuesday",
+              "Wednesday",
+              "Thursday",
+              "Friday",
+              "Saturday",
+              "Sunday"
+            ]
           },
           "timeZone": {
             "type": "string",
@@ -1713,20 +1728,36 @@
       "UpdateManagedUserInput": {
         "type": "object",
         "properties": {
+          "timeFormat": {
+            "type": "number",
+            "example": 12,
+            "enum": [
+              12,
+              24
+            ],
+            "description": "Must be 12 or 24"
+          },
+          "weekStart": {
+            "type": "string",
+            "example": "Monday",
+            "enum": [
+              "Monday",
+              "Tuesday",
+              "Wednesday",
+              "Thursday",
+              "Friday",
+              "Saturday",
+              "Sunday"
+            ]
+          },
           "email": {
             "type": "string"
           },
           "name": {
             "type": "string"
           },
-          "timeFormat": {
-            "type": "number"
-          },
           "defaultScheduleId": {
             "type": "number"
-          },
-          "weekStart": {
-            "type": "string"
           },
           "timeZone": {
             "type": "string"
@@ -3968,6 +3999,9 @@
           },
           "responses": {
             "$ref": "#/components/schemas/Response"
+          },
+          "orgSlug": {
+            "type": "string"
           },
           "locationUrl": {
             "type": "string"
