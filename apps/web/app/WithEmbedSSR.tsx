@@ -3,7 +3,7 @@ import { isNotFoundError } from "next/dist/client/components/not-found";
 import { getURLFromRedirectError, isRedirectError } from "next/dist/client/components/redirect";
 import { notFound, redirect } from "next/navigation";
 
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import { WebAppURL } from "@calcom/lib/WebAppURL";
 
 export type EmbedProps = {
   isEmbed?: boolean;
@@ -28,7 +28,7 @@ export default function withEmbedSsrAppDir<T extends Record<string, any>>(
         let urlPrefix = "";
 
         // Get the URL parsed from URL so that we can reliably read pathname and searchParams from it.
-        const destinationUrlObj = new URL(destinationUrl, WEBAPP_URL);
+        const destinationUrlObj = new WebAppURL(destinationUrl);
 
         // If it's a complete URL, use the origin as the prefix to ensure we redirect to the same domain.
         if (destinationUrl.search(/^(http:|https:).*/) !== -1) {
