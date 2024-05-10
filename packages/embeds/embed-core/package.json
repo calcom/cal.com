@@ -1,6 +1,6 @@
 {
   "name": "@calcom/embed-core",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "description": "This is the vanilla JS core script that embeds Cal Link",
   "main": "./dist/embed/embed.js",
   "types": "./dist/index.d.ts",
