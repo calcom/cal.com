@@ -342,7 +342,8 @@ if (isSAMLLoginEnabled) {
           return null;
         }
 
-        const { id, firstName, lastName, email } = userInfo;
+        const { id, firstName, lastName } = userInfo;
+        const email = userInfo.email.toLowerCase();
         let user = !email
           ? undefined
           : await UserRepository.findByEmailAndIncludeProfilesAndPassword({ email });
