@@ -20,7 +20,6 @@ type SaveKeysOptions = {
 };
 
 export const saveKeysHandler = async ({ ctx, input }: SaveKeysOptions) => {
-  console.log(ctx);
   const keysSchema = appKeysSchemas[input.dirName as keyof typeof appKeysSchemas];
   const keys = keysSchema.parse(input.keys);
 
