@@ -1,6 +1,10 @@
+import { deleteScheduledEmailReminder } from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
+import { deleteScheduledSMSReminder } from "@calcom/features/ee/workflows/lib/reminders/smsReminderManager";
+import { deleteScheduledWhatsappReminder } from "@calcom/features/ee/workflows/lib/reminders/whatsappReminderManager";
 import prisma from "@calcom/prisma";
 import type { Prisma, WorkflowStep } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/client";
+import { WorkflowMethods } from "@calcom/prisma/enums";
 import { TRPCError } from "@calcom/trpc";
 
 const bookingSelect = {
@@ -77,7 +81,7 @@ export async function isAuthorizedToAddEventtypes(
 }
 
 //what about team id
-export async function deleteRemindersFromRemovedEventTypes(
+async function getRemindersFromRemovedActiveOn(
   removedEventTypes: number[],
   workflowSteps: WorkflowStep[],
   userId: number
@@ -87,7 +91,6 @@ export async function deleteRemindersFromRemovedEventTypes(
       id: number;
       referenceId: string | null;
       method: string;
-      scheduled: boolean;
     }[]
   >[] = [];
 
@@ -108,13 +111,39 @@ export async function deleteRemindersFromRemovedEventTypes(
         id: true,
         referenceId: true,
         method: true,
-        scheduled: true,
       },
     });
 
     remindersToDeletePromise.push(reminderToDelete);
   });
   return (await Promise.all(remindersToDeletePromise)).flat();
+}
+
+export async function deleteAllReminders(
+  remindersToDelete: {
+    id: number;
+    referenceId: string | null;
+    method: string;
+  }[]
+) {
+  for (const reminder of remindersToDelete) {
+    if (reminder.method === WorkflowMethods.EMAIL) {
+      deleteScheduledEmailReminder(reminder.id, reminder.referenceId);
+    } else if (reminder.method === WorkflowMethods.SMS) {
+      deleteScheduledSMSReminder(reminder.id, reminder.referenceId);
+    } else if (reminder.method === WorkflowMethods.WHATSAPP) {
+      deleteScheduledWhatsappReminder(reminder.id, reminder.referenceId);
+    }
+  }
+}
+
+export async function deleteRemindersFromRemovedActiveOn(
+  removedEventTypes: number[],
+  workflowSteps: WorkflowStep[],
+  userId: number
+) {
+  const remindersToDelete = await getRemindersFromRemovedActiveOn(removedEventTypes, workflowSteps, userId);
+  await deleteAllReminders(remindersToDelete);
 }
 
 export async function getBookingsForReminders(newEventTypes: number[], newTeams: number[]) {
