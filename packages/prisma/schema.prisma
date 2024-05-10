@@ -523,17 +523,17 @@ enum BookingStatus {
 }
 
 model Booking {
-  id                    Int                  @id @default(autoincrement())
-  uid                   String               @unique
+  id                    Int                        @id @default(autoincrement())
+  uid                   String                     @unique
   // (optional) UID based on slot start/end time & email against duplicates
-  idempotencyKey        String?              @unique
-  user                  User?                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  idempotencyKey        String?                    @unique
+  user                  User?                      @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId                Int?
   // User's email at the time of booking
   /// @zod.email()
   userPrimaryEmail      String?
   references            BookingReference[]
-  eventType             EventType?           @relation(fields: [eventTypeId], references: [id])
+  eventType             EventType?                 @relation(fields: [eventTypeId], references: [id])
   eventTypeId           Int?
   title                 String
   description           String?
@@ -544,12 +544,12 @@ model Booking {
   endTime               DateTime
   attendees             Attendee[]
   location              String?
-  createdAt             DateTime             @default(now())
+  createdAt             DateTime                   @default(now())
   updatedAt             DateTime?
-  status                BookingStatus        @default(ACCEPTED)
-  paid                  Boolean              @default(false)
+  status                BookingStatus              @default(ACCEPTED)
+  paid                  Boolean                    @default(false)
   payment               Payment[]
-  destinationCalendar   DestinationCalendar? @relation(fields: [destinationCalendarId], references: [id])
+  destinationCalendar   DestinationCalendar?       @relation(fields: [destinationCalendarId], references: [id])
   destinationCalendarId Int?
   cancellationReason    String?
   rejectionReason       String?
@@ -560,17 +560,18 @@ model Booking {
   recurringEventId      String?
   smsReminderNumber     String?
   workflowReminders     WorkflowReminder[]
-  scheduledJobs         String[]
+  scheduledJobs         String[] // scheduledJobs is deprecated, please use scheduledTriggers instead
   seatsReferences       BookingSeat[]
   /// @zod.custom(imports.bookingMetadataSchema)
   metadata              Json?
-  isRecorded            Boolean              @default(false)
-  iCalUID               String?              @default("")
-  iCalSequence          Int                  @default(0)
+  isRecorded            Boolean                    @default(false)
+  iCalUID               String?                    @default("")
+  iCalSequence          Int                        @default(0)
   instantMeetingToken   InstantMeetingToken?
   rating                Int?
   ratingFeedback        String?
   noShowHost            Boolean?
+  scheduledTriggers     WebhookScheduledTriggers[]
 
   @@index([eventTypeId])
   @@index([userId])
@@ -1006,14 +1007,17 @@ model WorkflowReminder {
 
 model WebhookScheduledTriggers {
   id            Int       @id @default(autoincrement())
-  jobName       String
+  jobName       String? // jobName is deprecated, not needed when webhook and booking is set
   subscriberUrl String
   payload       String
   startAfter    DateTime
   retryCount    Int       @default(0)
   createdAt     DateTime? @default(now())
+  appId         String?
   webhookId     String?
   webhook       Webhook?  @relation(fields: [webhookId], references: [id], onDelete: Cascade)
+  bookingId     Int?
+  booking       Booking?  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
 }
 
 enum WorkflowTemplates {

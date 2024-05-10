@@ -60,7 +60,6 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
       status: true,
       smsReminderNumber: true,
       endTime: true,
-      scheduledJobs: true,
     },
   });
 

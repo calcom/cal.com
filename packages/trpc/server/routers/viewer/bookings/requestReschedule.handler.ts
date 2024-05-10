@@ -12,7 +12,7 @@ import { deleteScheduledWhatsappReminder } from "@calcom/ee/workflows/lib/remind
 import { sendRequestRescheduleEmail } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
-import { cancelScheduledJobs } from "@calcom/features/webhooks/lib/scheduleTrigger";
+import { deleteWebhookScheduledTriggers } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import { isPrismaObjOrUndefined } from "@calcom/lib";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
@@ -71,7 +71,6 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
       dynamicGroupSlugRef: true,
       destinationCalendar: true,
       smsReminderNumber: true,
-      scheduledJobs: true,
       workflowReminders: true,
       responses: true,
       iCalUID: true,
@@ -149,19 +148,22 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
   });
 
   // delete scheduled jobs of previous booking
-  // FIXME: async fn off into the ether
-  cancelScheduledJobs(bookingToReschedule);
+  const webhookWorkflowPromises = [];
+  webhookWorkflowPromises.push(deleteWebhookScheduledTriggers({ booking: bookingToReschedule }));
 
   //cancel workflow reminders of previous booking
-  // FIXME: more async fns off into the ether
-  bookingToReschedule.workflowReminders.forEach((reminder) => {
+  for (const reminder of bookingToReschedule.workflowReminders) {
     if (reminder.method === WorkflowMethods.EMAIL) {
-      deleteScheduledEmailReminder(reminder.id, reminder.referenceId);
+      webhookWorkflowPromises.push(deleteScheduledEmailReminder(reminder.id, reminder.referenceId));
     } else if (reminder.method === WorkflowMethods.SMS) {
-      deleteScheduledSMSReminder(reminder.id, reminder.referenceId);
+      webhookWorkflowPromises.push(deleteScheduledSMSReminder(reminder.id, reminder.referenceId));
     } else if (reminder.method === WorkflowMethods.WHATSAPP) {
-      deleteScheduledWhatsappReminder(reminder.id, reminder.referenceId);
+      webhookWorkflowPromises.push(deleteScheduledWhatsappReminder(reminder.id, reminder.referenceId));
     }
+  }
+
+  await Promise.all(webhookWorkflowPromises).catch((error) => {
+    log.error("Error while scheduling or canceling webhook triggers", JSON.stringify({ error }));
   });
 
   const [mainAttendee] = bookingToReschedule.attendees;

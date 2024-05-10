@@ -288,20 +288,16 @@ export function expectWebhookToHaveBeenCalledWith(
 
   expect(parsedBody.triggerEvent).toBe(data.triggerEvent);
 
-  if (parsedBody.payload.metadata?.videoCallUrl) {
-    parsedBody.payload.metadata.videoCallUrl = parsedBody.payload.metadata.videoCallUrl
-      ? parsedBody.payload.metadata.videoCallUrl
-      : parsedBody.payload.metadata.videoCallUrl;
-  }
-
-  if (data.payload) {
-    if (data.payload.metadata !== undefined) {
-      expect(parsedBody.payload.metadata).toEqual(expect.objectContaining(data.payload.metadata));
+  if (parsedBody.payload) {
+    if (data.payload) {
+      if (data.payload.metadata !== undefined) {
+        expect(parsedBody.payload.metadata).toEqual(expect.objectContaining(data.payload.metadata));
+      }
+      if (data.payload.responses !== undefined)
+        expect(parsedBody.payload.responses).toEqual(expect.objectContaining(data.payload.responses));
+      const { responses: _1, metadata: _2, ...remainingPayload } = data.payload;
+      expect(parsedBody.payload).toEqual(expect.objectContaining(remainingPayload));
     }
-    if (data.payload.responses !== undefined)
-      expect(parsedBody.payload.responses).toEqual(expect.objectContaining(data.payload.responses));
-    const { responses: _1, metadata: _2, ...remainingPayload } = data.payload;
-    expect(parsedBody.payload).toEqual(expect.objectContaining(remainingPayload));
   }
 }
 

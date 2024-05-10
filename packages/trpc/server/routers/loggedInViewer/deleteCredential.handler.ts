@@ -4,7 +4,7 @@ import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { DailyLocationType } from "@calcom/core/location";
 import { sendCancelledEmails } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
-import { cancelScheduledJobs } from "@calcom/features/webhooks/lib/scheduleTrigger";
+import { deleteWebhookScheduledTriggers } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { deletePayment } from "@calcom/lib/payment/deletePayment";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -318,17 +318,12 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
         appId: "zapier",
       },
     });
-    const bookingsWithScheduledJobs = await prisma.booking.findMany({
-      where: {
-        userId: ctx.user.id,
-        scheduledJobs: {
-          isEmpty: false,
-        },
-      },
+
+    deleteWebhookScheduledTriggers({
+      appId: credential.appId,
+      userId: teamId ? undefined : ctx.user.id,
+      teamId,
     });
-    for (const booking of bookingsWithScheduledJobs) {
-      cancelScheduledJobs(booking, credential.appId);
-    }
   }
 
   // Backwards compatibility. Selected calendars cascade on delete when deleting a credential
