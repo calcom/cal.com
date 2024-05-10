@@ -6,7 +6,7 @@ type AccessibleUsersType = {
   adminUserId: number;
 };
 
-const getAllMemberships = async (
+const getAllOrganizationMemberships = async (
   memberships: {
     userId: number;
     role: MembershipRole;
@@ -74,7 +74,7 @@ export const getAccessibleUsers = async ({
   const orgId = memberships.find((membership) => membership.userId === adminUserId)?.teamId;
   if (!orgId) return [];
 
-  const allAccessibleMemberUserIds = await getAllMemberships(memberships, orgId);
+  const allAccessibleMemberUserIds = await getAllOrganizationMemberships(memberships, orgId);
   const accessibleUserIds = allAccessibleMemberUserIds.filter((userId) => userId !== adminUserId);
   return accessibleUserIds;
 };
@@ -82,9 +82,8 @@ export const getAccessibleUsers = async ({
 export const retrieveOrgScopedAccessibleUsers = async ({ adminId }: { adminId: number }) => {
   const adminMemberships = await getAllAdminMemberships(adminId);
   const organizationId = adminMemberships.find((membership) => membership.team.isOrganization)?.team.id;
-  if (organizationId) {
-    const allMemberships = await getAllOrganizationMembers(organizationId);
-    return allMemberships.map((membership) => membership.userId);
-  }
-  return [];
+  if (!organizationId) return [];
+
+  const allMemberships = await getAllOrganizationMembers(organizationId);
+  return allMemberships.map((membership) => membership.userId);
 };
