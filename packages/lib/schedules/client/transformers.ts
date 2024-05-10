@@ -1,5 +1,6 @@
 import type { Availability as AvailabilityModel, Schedule as ScheduleModel } from "@prisma/client";
 
+import type { ConfigType } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { getWorkingHours } from "@calcom/lib/availability";
 import { yyyymmdd } from "@calcom/lib/date-fns";
@@ -19,7 +20,20 @@ export type ScheduleWithAvailabilitiesForWeb = Pick<ScheduleModel, "id" | "name"
   readOnly: boolean;
 };
 
-export function transformWorkingHoursForClient(schedule: ScheduleWithAvailabilities) {
+type Availability = { userId?: number | null; days: number[]; startTime: ConfigType; endTime: ConfigType }[];
+
+type Override = {
+  userId?: number | null;
+  days: number[];
+  startTime: Date;
+  endTime: Date;
+  date: Date | null;
+}[];
+
+export function transformWorkingHoursForClient(schedule: {
+  timeZone: string | null;
+  availability: Availability;
+}) {
   return getWorkingHours(
     { timeZone: schedule.timeZone || undefined, utcOffset: 0 },
     schedule.availability || []
@@ -37,7 +51,7 @@ export function transformAvailabilityForClient(schedule: {
   );
 }
 
-export function transformDateOverridesForClient(schedule: ScheduleWithAvailabilities, timeZone: string) {
+export function transformDateOverridesForClient(schedule: { availability: Override }, timeZone: string) {
   return schedule.availability.reduce((acc, override) => {
     // only iff future date override
     if (!override.date || dayjs.tz(override.date, timeZone).isBefore(dayjs(), "day")) {

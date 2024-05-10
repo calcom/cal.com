@@ -3028,6 +3028,9 @@
                 "$ref": "#/components/schemas/ScheduleOutput"
               }
             ]
+          },
+          "error": {
+            "type": "object"
           }
         },
         "required": [
@@ -3101,6 +3104,9 @@
           },
           "data": {
             "$ref": "#/components/schemas/ScheduleOutput"
+          },
+          "error": {
+            "type": "object"
           }
         },
         "required": [

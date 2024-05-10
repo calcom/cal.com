@@ -1,8 +1,10 @@
-import type { ScheduleLabelsType } from "@calcom/features/schedules/components/Schedule";
-import type { ScheduleWithAvailabilitiesForWeb, UpdateScheduleOutputType } from "@calcom/platform-libraries";
-import type { ApiErrorResponse, ApiResponse, ApiSuccessResponse } from "@calcom/platform-types";
+import { transformScheduleForAtom } from "lib/getAtomSchedule";
 
-import useClientSchedule from "../../hooks/useClientSchedule";
+import type { ScheduleLabelsType } from "@calcom/features/schedules/components/Schedule";
+import type { UpdateScheduleOutputType } from "@calcom/platform-libraries";
+import type { ApiErrorResponse, ApiResponse } from "@calcom/platform-types";
+
+import { useClientSchedule } from "../../hooks/useClientSchedule";
 import useDeleteSchedule from "../../hooks/useDeleteSchedule";
 import { useMe } from "../../hooks/useMe";
 import useUpdateSchedule from "../../hooks/useUpdateSchedule";
@@ -34,9 +36,8 @@ export const PlatformAvailabilitySettingsWrapper = ({
   onUpdateSuccess,
 }: PlatformAvailabilitySettingsWrapperProps) => {
   const { isLoading, data: schedule } = useClientSchedule(id);
-  const mySchedule = schedule as ApiSuccessResponse<ScheduleWithAvailabilitiesForWeb>;
   const { data: me } = useMe();
-  const userSchedule = mySchedule?.data;
+  const userSchedule = transformScheduleForAtom(schedule);
   const { timeFormat } = me?.data || { timeFormat: null };
   const { toast } = useToast();
 
@@ -81,7 +82,7 @@ export const PlatformAvailabilitySettingsWrapper = ({
           dateOverridesRanges?.ranges?.map((range) => ({ start: range.start, end: range.end })) ?? []
       ) ?? [];
 
-    await updateSchedule({ ...body, scheduleId: id, dateOverrides: transformedDateOverrides });
+    await updateSchedule({ ...body, scheduleId: id, overrides: transformedDateOverrides });
   };
 
   if (isLoading) return <div className="px-10 py-4 text-xl">Loading...</div>;

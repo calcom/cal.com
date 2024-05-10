@@ -18,4 +18,6 @@ export class GetScheduleOutput {
   @ValidateNested()
   @Type(() => ScheduleOutput)
   data!: ScheduleOutput | null;
+
+  error?: Error;
 }
