@@ -369,7 +369,7 @@ const getEventTypes = async (userId: number, teamId?: number) => {
         seatsPerTimeSlot: true,
         slug: true,
       },
-      where: teamId ? { teamId } : { userId },
+      where: teamId ? { teamId } : { userId, teamId: null },
     })
   ).sort((eventTypeA, eventTypeB) => {
     return eventTypeB.position - eventTypeA.position;
