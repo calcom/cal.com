@@ -32,7 +32,9 @@ export default function Platform() {
     data: managedUserData,
     refetch: refetchManagedUsers,
   } = useGetOAuthClientManagedUsers(initialClientId);
-  const { data: userBillingData } = useCheckTeamBilling(user?.organizationId);
+  const { data: userBillingData, isFetching: isUserBillingDataLoading } = useCheckTeamBilling(
+    user?.organizationId
+  );
 
   const isPlatformUser = user?.organization.isPlatform;
   const isPaidUser = userBillingData?.valid;
@@ -55,6 +57,10 @@ export default function Platform() {
   }, [data]);
 
   if (isLoading || isOAuthClientLoading) return <div className="m-5">Loading...</div>;
+
+  if (isUserBillingDataLoading && !userBillingData) {
+    return <div className="m-5">Loading...</div>;
+  }
 
   if (isPlatformUser && !isPaidUser) return <PlatformPricing teamId={user?.organizationId} />;
 
@@ -90,7 +96,7 @@ export default function Platform() {
 
   return (
     <div>
-      <Shell hideHeadingOnMobile withoutMain={false} SidebarContainer={<></>}>
+      <Shell isPlatformUser={true} hideHeadingOnMobile withoutMain={false} SidebarContainer={<></>}>
         You are not subscribed to a Platform plan.
       </Shell>
     </div>
