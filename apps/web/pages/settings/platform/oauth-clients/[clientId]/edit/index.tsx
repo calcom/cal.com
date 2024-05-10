@@ -6,11 +6,10 @@ import { PERMISSIONS_GROUPED_MAP } from "@calcom/platform-constants";
 import { showToast } from "@calcom/ui";
 
 import { useOAuthClient } from "@lib/hooks/settings/platform/oauth-clients/useOAuthClients";
-import { useCheckTeamBilling } from "@lib/hooks/settings/platform/oauth-clients/usePersistOAuthClient";
 import { useUpdateOAuthClient } from "@lib/hooks/settings/platform/oauth-clients/usePersistOAuthClient";
-import useMeQuery from "@lib/hooks/useMeQuery";
 
 import PageWrapper from "@components/PageWrapper";
+import { useGetUserAttributes } from "@components/settings/platform/hooks/useGetUserAttributes";
 import type { FormValues } from "@components/settings/platform/oauth-clients/oauth-client-form";
 import { OAuthClientForm as EditOAuthClientForm } from "@components/settings/platform/oauth-clients/oauth-client-form";
 
@@ -32,12 +31,7 @@ export default function EditOAuthClient() {
   const params = useParams<{ clientId: string }>();
   const clientId = params?.clientId || "";
 
-  const { data: user, isLoading } = useMeQuery();
-  const { data: userBillingData, isPending: isUserBillingDataLoading } = useCheckTeamBilling(
-    user?.organizationId
-  );
-  const isPlatformUser = user?.organization.isPlatform;
-  const isPaidUser = userBillingData?.valid;
+  const { isUserLoading, isPlatformUser, isPaidUser } = useGetUserAttributes();
 
   const { data, isFetched, isFetching, isError, refetch } = useOAuthClient(clientId);
   const { mutateAsync: update, isPending: isUpdating } = useUpdateOAuthClient({
@@ -76,7 +70,7 @@ export default function EditOAuthClient() {
     });
   };
 
-  if (isLoading) return <div className="m-5">Loading...</div>;
+  if (isUserLoading) return <div className="m-5">Loading...</div>;
 
   if (isPlatformUser && isPaidUser) {
     return (

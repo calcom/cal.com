@@ -5,11 +5,10 @@ import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { PERMISSIONS_GROUPED_MAP } from "@calcom/platform-constants/permissions";
 import { showToast } from "@calcom/ui";
 
-import { useCheckTeamBilling } from "@lib/hooks/settings/platform/oauth-clients/usePersistOAuthClient";
 import { useCreateOAuthClient } from "@lib/hooks/settings/platform/oauth-clients/usePersistOAuthClient";
-import useMeQuery from "@lib/hooks/useMeQuery";
 
 import PageWrapper from "@components/PageWrapper";
+import { useGetUserAttributes } from "@components/settings/platform/hooks/useGetUserAttributes";
 import type { FormValues } from "@components/settings/platform/oauth-clients/oauth-client-form";
 import { OAuthClientForm } from "@components/settings/platform/oauth-clients/oauth-client-form";
 
@@ -18,10 +17,7 @@ export default function CreateOAuthClient() {
   const router = useRouter();
   const clientId = searchParams?.get("clientId") || "";
 
-  const { data: user, isLoading } = useMeQuery();
-  const { data: userBillingData } = useCheckTeamBilling(user?.organizationId);
-  const isPlatformUser = user?.organization.isPlatform;
-  const isPaidUser = userBillingData?.valid;
+  const { isUserLoading, isPlatformUser, isPaidUser } = useGetUserAttributes();
 
   const { mutateAsync: save, isPending: isSaving } = useCreateOAuthClient({
     onSuccess: () => {
@@ -58,7 +54,7 @@ export default function CreateOAuthClient() {
     });
   };
 
-  if (isLoading) return <div className="m-5">Loading...</div>;
+  if (isUserLoading) return <div className="m-5">Loading...</div>;
 
   if (isPlatformUser && isPaidUser) {
     return (
