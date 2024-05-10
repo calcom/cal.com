@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import Shell from "@calcom/features/shell/Shell";
+import Shell, { ShellMain } from "@calcom/features/shell/Shell";
 import { classNames } from "@calcom/lib";
 import { SENDER_ID } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -204,124 +204,132 @@ function WorkflowPage() {
   });
 
   return session.data ? (
-    <Form
-      form={form}
-      handleSubmit={async (values) => {
-        let activeOnEventTypeIds: number[] = [];
-        let isEmpty = false;
-        let isVerified = true;
+    <Shell withoutMain backPath="/workflows">
+      <LicenseRequired>
+        <Form
+          form={form}
+          handleSubmit={async (values) => {
+            let activeOnEventTypeIds: number[] = [];
+            let isEmpty = false;
+            let isVerified = true;
 
-        values.steps.forEach((step) => {
-          const strippedHtml = step.reminderBody?.replace(/<[^>]+>/g, "") || "";
+            values.steps.forEach((step) => {
+              const strippedHtml = step.reminderBody?.replace(/<[^>]+>/g, "") || "";
 
-          const isBodyEmpty = !isSMSOrWhatsappAction(step.action) && strippedHtml.length <= 1;
+              const isBodyEmpty = !isSMSOrWhatsappAction(step.action) && strippedHtml.length <= 1;
 
-          if (isBodyEmpty) {
-            form.setError(`steps.${step.stepNumber - 1}.reminderBody`, {
-              type: "custom",
-              message: t("fill_this_field"),
+              if (isBodyEmpty) {
+                form.setError(`steps.${step.stepNumber - 1}.reminderBody`, {
+                  type: "custom",
+                  message: t("fill_this_field"),
+                });
+              }
+
+              if (step.reminderBody) {
+                step.reminderBody = translateVariablesToEnglish(step.reminderBody, {
+                  locale: i18n.language,
+                  t,
+                });
+              }
+              if (step.emailSubject) {
+                step.emailSubject = translateVariablesToEnglish(step.emailSubject, {
+                  locale: i18n.language,
+                  t,
+                });
+              }
+              isEmpty = !isEmpty ? isBodyEmpty : isEmpty;
+
+              //check if phone number is verified
+              if (
+                (step.action === WorkflowActions.SMS_NUMBER ||
+                  step.action === WorkflowActions.WHATSAPP_NUMBER) &&
+                !verifiedNumbers?.find((verifiedNumber) => verifiedNumber.phoneNumber === step.sendTo)
+              ) {
+                isVerified = false;
+
+                form.setError(`steps.${step.stepNumber - 1}.sendTo`, {
+                  type: "custom",
+                  message: t("not_verified"),
+                });
+              }
             });
-          }
 
-          if (step.reminderBody) {
-            step.reminderBody = translateVariablesToEnglish(step.reminderBody, { locale: i18n.language, t });
-          }
-          if (step.emailSubject) {
-            step.emailSubject = translateVariablesToEnglish(step.emailSubject, { locale: i18n.language, t });
-          }
-          isEmpty = !isEmpty ? isBodyEmpty : isEmpty;
-
-          //check if phone number is verified
-          if (
-            (step.action === WorkflowActions.SMS_NUMBER || step.action === WorkflowActions.WHATSAPP_NUMBER) &&
-            !verifiedNumbers?.find((verifiedNumber) => verifiedNumber.phoneNumber === step.sendTo)
-          ) {
-            isVerified = false;
-
-            form.setError(`steps.${step.stepNumber - 1}.sendTo`, {
-              type: "custom",
-              message: t("not_verified"),
-            });
-          }
-        });
-
-        if (!isEmpty && isVerified) {
-          if (values.activeOn) {
-            activeOnEventTypeIds = values.activeOn.map((option) => {
-              return parseInt(option.value, 10);
-            });
-          }
-          updateMutation.mutate({
-            id: workflowId,
-            name: values.name,
-            activeOn: activeOnEventTypeIds,
-            steps: values.steps,
-            trigger: values.trigger,
-            time: values.time || null,
-            timeUnit: values.timeUnit || null,
-          });
-          utils.viewer.workflows.getVerifiedNumbers.invalidate();
-        }
-      }}>
-      <Shell
-        backPath="/workflows"
-        title={workflow && workflow.name ? workflow.name : "Untitled"}
-        CTA={
-          !readOnly && (
-            <div>
-              <Button data-testid="save-workflow" type="submit" loading={updateMutation.isPending}>
-                {t("save")}
-              </Button>
-            </div>
-          )
-        }
-        hideHeadingOnMobile
-        heading={
-          session.data?.hasValidLicense &&
-          isAllDataLoaded && (
-            <div className="flex">
-              <div className={classNames(workflow && !workflow.name ? "text-muted" : "")}>
-                {workflow && workflow.name ? workflow.name : "untitled"}
-              </div>
-              {workflow && workflow.team && (
-                <Badge className="ml-4 mt-1" variant="gray">
-                  {workflow.team.name}
-                </Badge>
-              )}
-              {readOnly && (
-                <Badge className="ml-4 mt-1" variant="gray">
-                  {t("readonly")}
-                </Badge>
-              )}
-            </div>
-          )
-        }>
-        <LicenseRequired>
-          {!isError ? (
-            <>
-              {isAllDataLoaded && user ? (
-                <>
-                  <WorkflowDetailsPage
-                    form={form}
-                    workflowId={+workflowId}
-                    user={user}
-                    selectedEventTypes={selectedEventTypes}
-                    setSelectedEventTypes={setSelectedEventTypes}
-                    teamId={workflow ? workflow.teamId || undefined : undefined}
-                    isMixedEventType={isMixedEventType}
-                    readOnly={readOnly}
-                  />
-                </>
-              ) : (
-                <SkeletonLoader />
-              )}
-            </>
-          ) : (
-            <Alert severity="error" title="Something went wrong" message={error.message} />
-          )}
-        </LicenseRequired>
-      </Shell>
-    </Form>
+            if (!isEmpty && isVerified) {
+              if (values.activeOn) {
+                activeOnEventTypeIds = values.activeOn.map((option) => {
+                  return parseInt(option.value, 10);
+                });
+              }
+              updateMutation.mutate({
+                id: workflowId,
+                name: values.name,
+                activeOn: activeOnEventTypeIds,
+                steps: values.steps,
+                trigger: values.trigger,
+                time: values.time || null,
+                timeUnit: values.timeUnit || null,
+              });
+              utils.viewer.workflows.getVerifiedNumbers.invalidate();
+            }
+          }}>
+          <ShellMain
+            backPath="/workflows"
+            title={workflow && workflow.name ? workflow.name : "Untitled"}
+            CTA={
+              !readOnly && (
+                <div>
+                  <Button data-testid="save-workflow" type="submit" loading={updateMutation.isPending}>
+                    {t("save")}
+                  </Button>
+                </div>
+              )
+            }
+            hideHeadingOnMobile
+            heading={
+              isAllDataLoaded && (
+                <div className="flex">
+                  <div className={classNames(workflow && !workflow.name ? "text-muted" : "")}>
+                    {workflow && workflow.name ? workflow.name : "untitled"}
+                  </div>
+                  {workflow && workflow.team && (
+                    <Badge className="ml-4 mt-1" variant="gray">
+                      {workflow.team.name}
+                    </Badge>
+                  )}
+                  {readOnly && (
+                    <Badge className="ml-4 mt-1" variant="gray">
+                      {t("readonly")}
+                    </Badge>
+                  )}
+                </div>
+              )
+            }>
+            {!isError ? (
+              <>
+                {isAllDataLoaded && user ? (
+                  <>
+                    <WorkflowDetailsPage
+                      form={form}
+                      workflowId={+workflowId}
+                      user={user}
+                      selectedEventTypes={selectedEventTypes}
+                      setSelectedEventTypes={setSelectedEventTypes}
+                      teamId={workflow ? workflow.teamId || undefined : undefined}
+                      isMixedEventType={isMixedEventType}
+                      readOnly={readOnly}
+                    />
+                  </>
+                ) : (
+                  <SkeletonLoader />
+                )}
+              </>
+            ) : (
+              <Alert severity="error" title="Something went wrong" message={error.message} />
+            )}
+          </ShellMain>
+        </Form>
+      </LicenseRequired>
+    </Shell>
   ) : (
     <></>
   );
