@@ -411,8 +411,7 @@ export const EventTeamTab = ({
     const handleRouteChange = (url: string) => {
       const paths = url.split("/");
       if (
-        getValues("hosts").length === 0 &&
-        getValues("children").length === 0 &&
+        eventType.hosts.length === 0 &&
         !leaveWithoutAssigningHosts.current &&
         (url === "/event-types" || paths[1] !== "event-types")
       ) {
