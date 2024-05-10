@@ -2,9 +2,9 @@ import axios from "axios";
 import axiosRetry from "axios-retry";
 
 import { Bookings } from "./endpoints/bookings";
-import { ManagedUsers } from "./endpoints/ee/users";
 import { Events } from "./endpoints/events";
 import { EventTypes } from "./endpoints/events/event-types";
+import { ManagedUsers } from "./endpoints/managed-users";
 import { OAuthFlow } from "./endpoints/oauth-flow";
 import { Schedules } from "./endpoints/schedules";
 import { Slots } from "./endpoints/slots";
@@ -24,7 +24,7 @@ export class CalSdk {
   schedules: Schedules;
   users: ManagedUsers;
 
-  private _secrets: SdkSecrets;
+  private readonly _secrets: SdkSecrets;
 
   constructor(
     public readonly clientId: string,

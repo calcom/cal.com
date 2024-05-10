@@ -17,6 +17,7 @@ import { PlatformOAuthClient, Team, User } from "@prisma/client";
 import * as request from "supertest";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
+import { SchedulesRepositoryFixture } from "test/fixtures/repository/schedules.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 
@@ -75,10 +76,12 @@ describe("OAuth Client Users Endpoints", () => {
     let oauthClientRepositoryFixture: OAuthClientRepositoryFixture;
     let teamRepositoryFixture: TeamRepositoryFixture;
     let eventTypesRepositoryFixture: EventTypesRepositoryFixture;
+    let schedulesRepositoryFixture: SchedulesRepositoryFixture;
 
     let postResponseData: CreateUserResponse;
 
     const userEmail = "oauth-client-user@gmail.com";
+    const userTimeZone = "Europe/Rome";
 
     beforeAll(async () => {
       const moduleRef = await Test.createTestingModule({
@@ -93,6 +96,7 @@ describe("OAuth Client Users Endpoints", () => {
       userRepositoryFixture = new UserRepositoryFixture(moduleRef);
       teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);
       eventTypesRepositoryFixture = new EventTypesRepositoryFixture(moduleRef);
+      schedulesRepositoryFixture = new SchedulesRepositoryFixture(moduleRef);
       organization = await teamRepositoryFixture.create({ name: "organization" });
       oAuthClient = await createOAuthClient(organization.id);
 
@@ -134,6 +138,9 @@ describe("OAuth Client Users Endpoints", () => {
     it(`/POST`, async () => {
       const requestBody: CreateManagedUserInput = {
         email: userEmail,
+        timeZone: userTimeZone,
+        weekStart: "Monday",
+        timeFormat: 24,
       };
 
       const response = await request(app.getHttpServer())
@@ -153,11 +160,15 @@ describe("OAuth Client Users Endpoints", () => {
       expect(responseBody.status).toEqual(SUCCESS_STATUS);
       expect(responseBody.data).toBeDefined();
       expect(responseBody.data.user.email).toEqual(getOAuthUserEmail(oAuthClient.id, requestBody.email));
+      expect(responseBody.data.user.timeZone).toEqual(requestBody.timeZone);
+      expect(responseBody.data.user.weekStart).toEqual(requestBody.weekStart);
+      expect(responseBody.data.user.timeFormat).toEqual(requestBody.timeFormat);
       expect(responseBody.data.accessToken).toBeDefined();
       expect(responseBody.data.refreshToken).toBeDefined();
 
       await userConnectedToOAuth(responseBody.data.user.email);
       await userHasDefaultEventTypes(responseBody.data.user.id);
+      await userHasDefaultSchedule(responseBody.data.user.id, responseBody.data.user.defaultScheduleId);
     });
 
     async function userConnectedToOAuth(userEmail: string) {
@@ -179,6 +190,17 @@ describe("OAuth Client Users Endpoints", () => {
       expect(
         defaultEventTypes?.find((eventType) => eventType.length === DEFAULT_EVENT_TYPES.sixtyMinutes.length)
       ).toBeTruthy();
+    }
+
+    async function userHasDefaultSchedule(userId: number, scheduleId: number | null) {
+      expect(scheduleId).toBeDefined();
+      expect(scheduleId).not.toBeNull();
+
+      const user = await userRepositoryFixture.get(userId);
+      expect(user?.defaultScheduleId).toEqual(scheduleId);
+
+      const schedule = scheduleId ? await schedulesRepositoryFixture.getById(scheduleId) : null;
+      expect(schedule?.userId).toEqual(userId);
     }
 
     it(`/GET: return list of managed users`, async () => {

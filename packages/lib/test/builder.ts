@@ -117,6 +117,7 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     slotInterval: null,
     metadata: null,
     successRedirectUrl: null,
+    forwardParamsSuccessRedirect: true,
     bookingFields: [],
     parentId: null,
     profileId: null,
@@ -239,6 +240,7 @@ type UserPayload = Prisma.UserGetPayload<{
     receiveMonthlyDigestEmail: true;
     movedToProfileId: true;
     isPlatformManaged: true;
+    smsLockState: true;
   };
 }>;
 export const buildUser = <T extends Partial<UserPayload>>(
@@ -246,6 +248,7 @@ export const buildUser = <T extends Partial<UserPayload>>(
 ): UserPayload & { priority: number | null } => {
   return {
     locked: false,
+    smsLockState: "UNLOCKED",
     name: faker.name.firstName(),
     email: faker.internet.email(),
     timeZone: faker.address.timeZone(),

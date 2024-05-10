@@ -48,13 +48,25 @@ export const useIntercom = () => {
         user_name: data?.username,
         link: `${WEBSITE_URL}/${data?.username}`,
         admin_link: `${WEBAPP_URL}/settings/admin/users/${data?.id}/edit`,
+        impersonate_user: `${WEBAPP_URL}/settings/admin/impersonation?username=${
+          data?.email ?? data?.username
+        }`,
         identity_provider: data?.identityProvider,
         timezone: data?.timeZone,
         locale: data?.locale,
         has_paid_plan: hasPaidPlan,
         has_team_plan: hasTeamPlan,
         metadata: data?.metadata,
+        completed_onboarding: data.completedOnboarding,
         is_logged_in: !!data,
+        sum_of_bookings: data?.sumOfBookings,
+        sum_of_calendars: data?.sumOfCalendars,
+        sum_of_teams: data?.sumOfTeams,
+        has_org: !data?.organizationId,
+        organization: data?.organization?.slug,
+        sum_of_event_types: data?.sumOfEventTypes,
+        sum_of_team_event_types: data?.sumOfTeamEventTypes,
+        is_premium: data?.isPremium,
       },
     });
   };
@@ -79,13 +91,25 @@ export const useIntercom = () => {
         user_name: data?.username,
         link: `${WEBSITE_URL}/${data?.username}`,
         admin_link: `${WEBAPP_URL}/settings/admin/users/${data?.id}/edit`,
+        impersonate_user: `${WEBAPP_URL}/settings/admin/impersonation?username=${
+          data?.email ?? data?.username
+        }`,
         identity_provider: data?.identityProvider,
         timezone: data?.timeZone,
         locale: data?.locale,
         has_paid_plan: hasPaidPlan,
         has_team_plan: hasTeamPlan,
         metadata: data?.metadata,
+        completed_onboarding: data?.completedOnboarding,
         is_logged_in: !!data,
+        sum_of_bookings: data?.sumOfBookings,
+        sum_of_calendars: data?.sumOfCalendars,
+        sum_of_teams: data?.sumOfTeams,
+        has_org: !data?.organizationId,
+        organization: data?.organization?.slug,
+        sum_of_event_types: data?.sumOfEventTypes,
+        sum_of_team_event_types: data?.sumOfTeamEventTypes,
+        is_premium: data?.isPremium,
       },
     });
     hookData.show();

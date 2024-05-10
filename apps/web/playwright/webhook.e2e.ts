@@ -427,7 +427,7 @@ test.describe("BOOKING_RESCHEDULED", async () => {
 
     await page.locator('[data-testid="confirm-reschedule-button"]').click();
 
-    await expect(page).toHaveURL(/.*booking/);
+    await expect(page.getByTestId("success-page")).toBeVisible();
 
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const newBooking = await prisma.booking.findFirst({ where: { fromReschedule: booking?.uid } })!;
@@ -494,7 +494,7 @@ test.describe("BOOKING_RESCHEDULED", async () => {
 
     await page.locator('[data-testid="confirm-reschedule-button"]').click();
 
-    await expect(page).toHaveURL(/.*booking/);
+    await expect(page.getByTestId("success-page")).toBeVisible();
 
     const newBooking = await prisma.booking.findFirst({
       where: {
@@ -578,6 +578,8 @@ test.describe("FORM_SUBMITTED", async () => {
       ],
     });
 
+    await page.waitForLoadState("networkidle");
+
     await gotoRoutingLink({ page, formId: form.id });
     const fieldName = "name";
     await page.fill(`[data-testid="form-field-${fieldName}"]`, "John Doe");
@@ -636,6 +638,8 @@ test.describe("FORM_SUBMITTED", async () => {
         },
       ],
     });
+
+    await page.waitForLoadState("networkidle");
 
     await gotoRoutingLink({ page, formId: form.id });
     const fieldName = "name";

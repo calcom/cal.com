@@ -42,6 +42,7 @@ export interface DataTableProps<TData, TValue> {
   CTA?: React.ReactNode;
   tableOverlay?: React.ReactNode;
   variant?: "default" | "compact";
+  "data-testId"?: string;
 }
 
 export function DataTable<TData, TValue>({
@@ -60,6 +61,7 @@ export function DataTable<TData, TValue>({
   onSearch,
   onRowMouseclick,
   onScroll,
+  ...rest
 }: DataTableProps<TData, TValue>) {
   const [rowSelection, setRowSelection] = useState({});
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
@@ -110,8 +112,8 @@ export function DataTable<TData, TValue>({
         onSearch={onSearch}
         tableCTA={tableCTA}
       />
-      <div ref={tableContainerRef} onScroll={onScroll}>
-        <Table>
+      <div ref={tableContainerRef} onScroll={onScroll} data-testId={rest["data-testId"] ?? "data-table"}>
+        <Table data-testId="">
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
