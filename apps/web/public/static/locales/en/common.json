@@ -683,6 +683,7 @@
   "user_from_team": "{{user}} from {{team}}",
   "preview": "Preview",
   "link_copied": "Link copied!",
+  "copied": "Copied!",
   "private_link_copied": "Private link copied!",
   "link_shared": "Link shared!",
   "title": "Title",
