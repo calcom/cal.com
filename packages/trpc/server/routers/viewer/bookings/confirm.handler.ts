@@ -159,6 +159,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       name: attendee.name,
       email: attendee.email,
       timeZone: attendee.timeZone,
+      phoneNumber: attendee.phoneNumber,
       language: {
         translate,
         locale,
