@@ -109,7 +109,6 @@ const checkOrgPublishedTeams = (teams: LoggedInUserType["teams"], isAdmin: boole
 };
 
 const isOrgSlugTaken = async (orgSlug: string) => {
-  // is org slug done here
   const hasAnOrgWithSameSlug = await prisma.team.findFirst({
     where: {
       slug: orgSlug,
@@ -174,6 +173,49 @@ const checkOrgOwnerCreationRequirements = async ({
   return IS_USER_ADMIN;
 };
 
+const sendEmailAndEnrichProfile = async (isOrgOwner: boolean) => {
+  await sendOrganizationCreationEmail({
+    language: inputLanguageTranslation,
+    from: ctx.user.name ?? `${organization.name}'s admin`,
+    to: orgOwnerEmail,
+    ownerNewUsername: ownerProfile.username,
+    ownerOldUsername: nonOrgUsernameForOwner,
+    orgDomain: getOrgFullOrigin(slug, { protocol: false }),
+    orgName: organization.name,
+    prevLink: `${getOrgFullOrigin("", { protocol: true })}/${nonOrgUsernameForOwner}`,
+    newLink: `${getOrgFullOrigin(slug, { protocol: true })}/${ownerProfile.username}`,
+  });
+
+  // start function enrichUserProfile here
+  // this should be handled in persistOrganizationWithExistingUserAsOwner fn
+  if (isOrgOwner) {
+    await createDefaultAvailability();
+  }
+
+  await enrichUserProfile();
+};
+
+const enrichUserProfile = async (organizationId: number, orgOwner: User) => {
+  const user = await UserRepository.enrichUserWithItsProfile({
+    user: { ...orgOwner, organizationId },
+  });
+
+  return {
+    userId: user.id,
+    email: user.email,
+    organizationId: user.organizationId,
+    upId: user.profile.upId,
+  };
+};
+
+const persistOrganizationWithExistingUserAsOwner = () => {
+  // stuff for already existing owner
+};
+
+const persistOrganizationWithNonExistentOwner = () => {
+  // stuff for non existing owner
+};
+
 export const createHandler = async ({ input, ctx }: CreateOptions) => {
   const { slug, name, orgOwnerEmail, seats, pricePerSeat, isPlatform } = input;
 
@@ -209,6 +251,9 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
     },
   });
 
+  // have two separate functions for persist org
+  // persistOrganizationWithNonExistentOwner
+  // persistOrganizationWithExistingUserAsOwner
   // Create a new user and invite them as the owner of the organization
   if (!orgOwner) {
     const data = await OrganizationRepository.createWithNonExistentOwner({
