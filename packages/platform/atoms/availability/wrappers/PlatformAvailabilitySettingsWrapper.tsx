@@ -8,7 +8,7 @@ import { useMe } from "../../hooks/useMe";
 import useUpdateSchedule from "../../hooks/useUpdateSchedule";
 import { AtomsWrapper } from "../../src/components/atoms-wrapper";
 import { useToast } from "../../src/components/ui/use-toast";
-import type { Schedule } from "../AvailabilitySettings";
+import type { Availability } from "../AvailabilitySettings";
 import type { CustomClassNames } from "../AvailabilitySettings";
 import { AvailabilitySettings } from "../AvailabilitySettings";
 import { transformScheduleForAtom } from "../getAtomSchedule";
@@ -36,13 +36,7 @@ export const PlatformAvailabilitySettingsWrapper = ({
 }: PlatformAvailabilitySettingsWrapperProps) => {
   const { isLoading, data: schedule } = useClientSchedule(id);
   const { data: me } = useMe();
-  const userSchedule = transformScheduleForAtom(
-    me?.data || { id: 0, defaultScheduleId: 0, timeZone: "Europe/London" },
-    // note(Lauris): TODO fix
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    schedule!.data!,
-    1
-  );
+  const userSchedule = transformScheduleForAtom(me?.data, schedule, 1);
   const { timeFormat } = me?.data || { timeFormat: null };
   const { toast } = useToast();
 
@@ -124,14 +118,11 @@ export const PlatformAvailabilitySettingsWrapper = ({
           availability: userSchedule.availability,
           schedule:
             userSchedule.schedule.reduce(
-              (
-                acc: Pick<Schedule, "days" | "startTime" | "endTime">[],
-                avail: Pick<Schedule, "days" | "startTime" | "endTime">
-              ) => [
+              (acc: Availability[], avail: Availability) => [
                 ...acc,
-                { ...avail, startTime: new Date(avail.startTime), endTime: new Date(avail.endTime) },
+                { days: avail.days, startTime: new Date(avail.startTime), endTime: new Date(avail.endTime) },
               ],
-              [] as Pick<Schedule, "days" | "startTime" | "endTime">[]
+              []
             ) || [],
         }}
         isDeleting={isDeletionInProgress}

@@ -17,7 +17,7 @@ export const useClientSchedule = (id?: string) => {
     queryFn: () => {
       return http.get<GetScheduleOutput>(pathname).then((res) => {
         if (res.data.status === SUCCESS_STATUS) {
-          return res.data;
+          return res.data.data;
         }
         throw new Error(res.data.error?.message);
       });

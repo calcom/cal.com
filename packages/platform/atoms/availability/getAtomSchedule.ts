@@ -8,10 +8,14 @@ import type { ScheduleOutput } from "@calcom/platform-types";
 import type { User } from "@calcom/prisma/client";
 
 export function transformScheduleForAtom(
-  user: Pick<User, "id" | "defaultScheduleId" | "timeZone">,
-  schedule: ScheduleOutput,
+  user: Pick<User, "id" | "defaultScheduleId" | "timeZone"> | undefined,
+  schedule: ScheduleOutput | null | undefined,
   userSchedulesCount: number
 ) {
+  if (!user || !schedule) {
+    return null;
+  }
+
   const transformedSchedule = transformInputCreateSchedule(schedule);
 
   const combined = [...transformedSchedule.availability, ...transformedSchedule.overrides];
