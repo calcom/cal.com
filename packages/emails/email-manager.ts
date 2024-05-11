@@ -246,6 +246,7 @@ export const sendScheduledSeatsEmails = async (
     );
   }
   await Promise.all(emailsToSend);
+  // TODO
 };
 
 export const sendCancelledSeatEmails = async (calEvent: CalendarEvent, cancelledAttendee: Person) => {
@@ -255,6 +256,7 @@ export const sendCancelledSeatEmails = async (calEvent: CalendarEvent, cancelled
     sendEmail(() => new AttendeeCancelledSeatEmail(clonedCalEvent, cancelledAttendee)),
     sendEmail(() => new OrganizerAttendeeCancelledSeatEmail({ calEvent: formattedCalEvent })),
   ]);
+  // TODO
 };
 
 export const sendOrganizerRequestEmail = async (calEvent: CalendarEvent) => {
@@ -356,7 +358,7 @@ export const sendOrganizerRequestReminderEmail = async (calEvent: CalendarEvent)
   }
 };
 
-export const sendAwaitingPaymentEmail = async (calEvent: CalendarEvent) => {
+export const sendAwaitingPaymentEmailAndSMS = async (calEvent: CalendarEvent) => {
   const emailsToSend: Promise<unknown>[] = [];
 
   emailsToSend.push(
@@ -514,6 +516,7 @@ export const sendDailyVideoRecordingEmails = async (calEvent: CalendarEvent, dow
     );
   }
   await Promise.all(emailsToSend);
+  // TODO
 };
 
 export const sendDailyVideoTranscriptEmails = async (calEvent: CalendarEvent, transcripts: string[]) => {

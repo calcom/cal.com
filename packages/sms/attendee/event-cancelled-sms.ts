@@ -1,6 +1,6 @@
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
-import SMSManager from "./sms-manager";
+import SMSManager from "../sms-manager";
 
 export default class EventCancelledSMS extends SMSManager {
   constructor(calEvent: CalendarEvent) {

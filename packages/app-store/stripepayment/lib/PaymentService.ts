@@ -3,7 +3,7 @@ import Stripe from "stripe";
 import { v4 as uuidv4 } from "uuid";
 import z from "zod";
 
-import { sendAwaitingPaymentEmail } from "@calcom/emails";
+import { sendAwaitingPaymentEmailAndSMS } from "@calcom/emails";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
@@ -338,7 +338,7 @@ export class PaymentService implements IAbstractPaymentService {
     },
     paymentData: Payment
   ): Promise<void> {
-    await sendAwaitingPaymentEmail({
+    await sendAwaitingPaymentEmailAndSMS({
       ...event,
       paymentInfo: {
         link: createPaymentLink({

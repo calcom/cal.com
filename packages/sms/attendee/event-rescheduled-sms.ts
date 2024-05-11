@@ -2,7 +2,7 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
-import SMSManager from "./sms-manager";
+import SMSManager from "../sms-manager";
 
 export default class EventSuccessfullyReScheduledSMS extends SMSManager {
   constructor(calEvent: CalendarEvent) {
