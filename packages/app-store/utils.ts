@@ -162,7 +162,7 @@ export function doesAppSupportTeamInstall({
   );
 }
 
-export function isConfrencing(appCategories: string[]) {
+export function isConferencing(appCategories: string[]) {
   return appCategories.some((category) => category === "conferencing" || category === "video");
 }
 export const defaultVideoAppCategories: AppCategories[] = [

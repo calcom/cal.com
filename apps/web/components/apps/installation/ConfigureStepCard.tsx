@@ -1,24 +1,37 @@
+import { zodResolver } from "@hookform/resolvers/zod";
 import type { TEventType, TEventTypesForm } from "@pages/apps/installation/[[...step]]";
 import { X } from "lucide-react";
 import type { Dispatch, SetStateAction } from "react";
 import type { FC } from "react";
 import React, { forwardRef, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import type { UseFormGetValues, UseFormSetValue, Control, FormState } from "react-hook-form";
 import { useFieldArray, useFormContext } from "react-hook-form";
 import { useForm } from "react-hook-form";
-import type { z } from "zod";
+import { z } from "zod";
 
 import { EventTypeAppSettings } from "@calcom/app-store/_components/EventTypeAppSettingsInterface";
-import type { EventTypeAppsList } from "@calcom/app-store/utils";
+import { type EventTypeAppsList } from "@calcom/app-store/utils";
+import type { LocationObject } from "@calcom/core/location";
+import type { LocationFormValues } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AppCategories } from "@calcom/prisma/enums";
-import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-import { Button, Form } from "@calcom/ui";
+import type { EventTypeMetaDataSchema, eventTypeBookingFields } from "@calcom/prisma/zod-utils";
+import { Button, Form, Skeleton, Label } from "@calcom/ui";
 
 import useAppsData from "@lib/hooks/useAppsData";
 
-type TFormType = {
+import Locations from "@components/eventtype/Locations";
+
+import { locationsResolver } from "~/event-types/views/event-types-single-view";
+
+import type { TEventTypeLocation, TLocationOptions } from "../../eventtype/Locations";
+
+export type TFormType = {
+  id: number;
   metadata: z.infer<typeof EventTypeMetaDataSchema>;
+  locations: LocationObject[];
+  bookingFields: z.infer<typeof eventTypeBookingFields>;
 };
 
 type ConfigureStepCardProps = {
@@ -27,6 +40,7 @@ type ConfigureStepCardProps = {
   categories: AppCategories[];
   credentialId?: number;
   loading?: boolean;
+  isConferencing: boolean;
   formPortalRef: React.RefObject<HTMLDivElement>;
   eventTypes: TEventType[] | undefined;
   setConfigureStep: Dispatch<SetStateAction<boolean>>;
@@ -35,7 +49,7 @@ type ConfigureStepCardProps = {
 
 type EventTypeAppSettingsFormProps = Pick<
   ConfigureStepCardProps,
-  "slug" | "userName" | "categories" | "credentialId" | "loading"
+  "slug" | "userName" | "categories" | "credentialId" | "loading" | "isConferencing"
 > & {
   eventType: TEventType;
   handleDelete: () => void;
@@ -72,23 +86,58 @@ const EventTypeAppSettingsWrapper: FC<EventTypeAppSettingsWrapperProps> = ({
   );
 };
 
+const EventTypeConferencingAppSettings = ({ eventType }: { eventType: TEventType }) => {
+  const { t } = useLocale();
+  const formMethods = useFormContext<TFormType>();
+  return (
+    <div className="mt-2">
+      <Skeleton as={Label} loadingClassName="w-16" htmlFor="locations">
+        {t("location")}
+      </Skeleton>
+      <Locations
+        showAppStoreLink={false}
+        isChildrenManagedEventType={false}
+        isManagedEventType={false}
+        disableLocationProp={false}
+        eventType={eventType as TEventTypeLocation}
+        destinationCalendar={eventType.destinationCalendar}
+        locationOptions={eventType.locationOptions as TLocationOptions}
+        team={null}
+        getValues={formMethods.getValues as unknown as UseFormGetValues<LocationFormValues>}
+        setValue={formMethods.setValue as unknown as UseFormSetValue<LocationFormValues>}
+        control={formMethods.control as unknown as Control<LocationFormValues>}
+        formState={formMethods.formState as unknown as FormState<LocationFormValues>}
+      />
+    </div>
+  );
+};
+
 const EventTypeAppSettingsForm = forwardRef<HTMLButtonElement, EventTypeAppSettingsFormProps>(
   function EventTypeAppSettingsForm(props, ref) {
-    const { handleDelete, onSubmit, eventType, loading } = props;
+    const { handleDelete, onSubmit, eventType, loading, categories, isConferencing } = props;
+    const { t } = useLocale();
 
     const formMethods = useForm<TFormType>({
       defaultValues: {
+        id: eventType.id,
         metadata: eventType?.metadata,
+        locations: eventType?.locations,
+        bookingFields: eventType.bookingFields,
       },
+      resolver: zodResolver(
+        z.object({
+          locations: locationsResolver(t),
+        })
+      ),
     });
 
     return (
       <Form
         form={formMethods}
         id={`eventtype-${eventType.id}`}
-        handleSubmit={() => {
-          const data = formMethods.getValues("metadata");
-          onSubmit(data);
+        handleSubmit={(values) => {
+          // const data = formMethods.getValues("locations");
+          // onSubmit(data);
         }}>
         <div>
           <div className="sm:border-subtle bg-default relative border p-4 dark:bg-black sm:rounded-md">
@@ -98,13 +147,17 @@ const EventTypeAppSettingsForm = forwardRef<HTMLButtonElement, EventTypeAppSetti
                 /{eventType.team ? eventType.team.slug : props.userName}/{eventType.slug}
               </small>
             </div>
-            <EventTypeAppSettingsWrapper {...props} />
+            {isConferencing ? (
+              <EventTypeConferencingAppSettings {...props} />
+            ) : (
+              <EventTypeAppSettingsWrapper {...props} />
+            )}
             <X
               data-testid={`remove-event-type-${eventType.id}`}
               className="absolute right-4 top-4 h-4 w-4 cursor-pointer"
               onClick={() => !loading && handleDelete()}
             />
-            <button type="submit" className="hidden" ref={ref}>
+            <button type="submit" className="hidden" form={`eventtype-${eventType.id}`} ref={ref}>
               Save
             </button>
           </div>

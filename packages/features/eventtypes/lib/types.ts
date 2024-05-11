@@ -104,3 +104,5 @@ export type FormValues = {
   useEventTypeDestinationCalendarEmail: boolean;
   secondaryEmailId?: number;
 };
+
+export type LocationFormValues = Pick<FormValues, "id" | "locations" | "bookingFields">;

@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import { InstallAppButton } from "@calcom/app-store/components";
-import { doesAppSupportTeamInstall, isConfrencing } from "@calcom/app-store/utils";
+import { doesAppSupportTeamInstall, isConferencing } from "@calcom/app-store/utils";
 import type { UserAdminTeams } from "@calcom/features/ee/teams/lib/getUserAdminTeams";
 import { AppOnboardingSteps } from "@calcom/lib/apps/appOnboardingSteps";
 import { getAppOnboardingUrl } from "@calcom/lib/apps/getAppOnboardingUrl";
@@ -46,7 +46,7 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
   }, [app.name, searchText]);
 
   const handleAppInstall = () => {
-    if (isConfrencing(app.categories)) {
+    if (isConferencing(app.categories)) {
       mutation.mutate(
         {
           isOmniInstall: true,

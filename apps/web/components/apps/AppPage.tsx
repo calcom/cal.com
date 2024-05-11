@@ -5,7 +5,7 @@ import React, { useEffect, useState } from "react";
 
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import { AppDependencyComponent, InstallAppButton } from "@calcom/app-store/components";
-import { doesAppSupportTeamInstall, isConfrencing } from "@calcom/app-store/utils";
+import { doesAppSupportTeamInstall, isConferencing } from "@calcom/app-store/utils";
 import DisconnectIntegration from "@calcom/features/apps/components/DisconnectIntegration";
 import { AppOnboardingSteps } from "@calcom/lib/apps/appOnboardingSteps";
 import { getAppOnboardingUrl } from "@calcom/lib/apps/getAppOnboardingUrl";
@@ -90,7 +90,7 @@ export const AppPage = ({
   });
 
   const handleAppInstall = () => {
-    if (isConfrencing(categories)) {
+    if (isConferencing(categories)) {
       mutation.mutate(
         {
           isOmniInstall: true,
