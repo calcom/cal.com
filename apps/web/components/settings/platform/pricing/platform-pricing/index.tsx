@@ -16,7 +16,7 @@ export const PlatformPricing = ({ teamId }: PlatformPricingProps) => {
       router.push(redirectUrl);
     },
     onError: () => {
-      showToast("Internal server error, please try again later", "error");
+      showToast("Unable to subscribe to the platform, please try again later", "error");
     },
     teamId,
   });

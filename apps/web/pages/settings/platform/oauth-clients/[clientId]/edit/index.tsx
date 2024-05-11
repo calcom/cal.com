@@ -41,7 +41,7 @@ export default function EditOAuthClient() {
       router.push("/settings/platform/");
     },
     onError: () => {
-      showToast("Internal server error, please try again later", "error");
+      showToast("There has been an error updating this OAuth client", "error");
     },
     clientId,
   });

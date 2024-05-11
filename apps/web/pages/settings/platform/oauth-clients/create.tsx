@@ -25,7 +25,7 @@ export default function CreateOAuthClient() {
       router.push("/settings/platform/");
     },
     onError: () => {
-      showToast("Internal server error, please try again later", "error");
+      showToast("There has been an error creating this OAuth client", "error");
     },
   });
 
