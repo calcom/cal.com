@@ -8,6 +8,7 @@ import type BaseEmail from "@calcom/emails/templates/_base-email";
 import { formatCalEvent } from "@calcom/lib/formatCalendarEvent";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
+import AwaitingPaymentSMS from "../sms/attendee/awaiting-payment-sms";
 import EventCancelledSMS from "../sms/attendee/event-cancelled-sms";
 import EventDeclinedSMS from "../sms/attendee/event-declined-sms";
 import EventLocationChangedSMS from "../sms/attendee/event-location-changed-sms";
@@ -364,6 +365,8 @@ export const sendAwaitingPaymentEmail = async (calEvent: CalendarEvent) => {
     })
   );
   await Promise.all(emailsToSend);
+  const awaitingPaymentSMS = new AwaitingPaymentSMS(calEvent);
+  await awaitingPaymentSMS.sendSMSToAttendees();
 };
 
 export const sendOrganizerPaymentRefundFailedEmail = async (calEvent: CalendarEvent) => {
