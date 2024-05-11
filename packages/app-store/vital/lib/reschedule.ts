@@ -5,7 +5,7 @@ import { CalendarEventBuilder } from "@calcom/core/builders/CalendarEvent/builde
 import { CalendarEventDirector } from "@calcom/core/builders/CalendarEvent/director";
 import { deleteMeeting } from "@calcom/core/videoClient";
 import dayjs from "@calcom/dayjs";
-import { sendRequestRescheduleEmail } from "@calcom/emails";
+import { sendRequestRescheduleEmailAndSMS } from "@calcom/emails";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
@@ -141,7 +141,7 @@ const Reschedule = async (bookingUid: string, cancellationReason: string) => {
 
     // Send emails
     try {
-      await sendRequestRescheduleEmail(builder.calendarEvent, {
+      await sendRequestRescheduleEmailAndSMS(builder.calendarEvent, {
         rescheduleLink: builder.rescheduleLink,
       });
     } catch (error) {

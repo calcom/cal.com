@@ -8,11 +8,12 @@ import type BaseEmail from "@calcom/emails/templates/_base-email";
 import { formatCalEvent } from "@calcom/lib/formatCalendarEvent";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
-import EventCancelledSMS from "../sms/event-cancelled-sms";
-import EventDeclinedSMS from "../sms/event-declined-sms";
-import EventRequestSMS from "../sms/event-request-sms";
-import EventSuccessfullyReScheduledSMS from "../sms/event-rescheduled-sms";
-import EventSuccessfullyScheduledSMS from "../sms/event-scheduled-sms";
+import EventCancelledSMS from "../sms/attendee/event-cancelled-sms";
+import EventDeclinedSMS from "../sms/attendee/event-declined-sms";
+import EventLocationChangedSMS from "../sms/attendee/event-location-changed-sms";
+import EventRequestSMS from "../sms/attendee/event-request-sms";
+import EventSuccessfullyReScheduledSMS from "../sms/attendee/event-rescheduled-sms";
+import EventSuccessfullyScheduledSMS from "../sms/attendee/event-scheduled-sms";
 import type { MonthlyDigestEmailData } from "./src/templates/MonthlyDigestEmail";
 import type { OrganizationAdminNoSlotsEmailInput } from "./src/templates/OrganizationAdminNoSlots";
 import type { EmailVerifyLink } from "./templates/account-verify-email";
@@ -408,7 +409,7 @@ export const sendChangeOfEmailVerificationLink = async (verificationInput: Chang
   await sendEmail(() => new ChangeOfEmailVerifyEmail(verificationInput));
 };
 
-export const sendRequestRescheduleEmail = async (
+export const sendRequestRescheduleEmailAndSMS = async (
   calEvent: CalendarEvent,
   metadata: { rescheduleLink: string }
 ) => {
@@ -420,9 +421,11 @@ export const sendRequestRescheduleEmail = async (
   emailsToSend.push(sendEmail(() => new AttendeeWasRequestedToRescheduleEmail(calendarEvent, metadata)));
 
   await Promise.all(emailsToSend);
+  const eventRequestToReschedule = EventRequestToRescheduleSMS(calendarEvent);
+  await eventRequestToReschedule.sendSMSToAttendees();
 };
 
-export const sendLocationChangeEmails = async (calEvent: CalendarEvent) => {
+export const sendLocationChangeEmailsAndSMS = async (calEvent: CalendarEvent) => {
   const calendarEvent = formatCalEvent(calEvent);
 
   const emailsToSend: Promise<unknown>[] = [];
@@ -444,6 +447,8 @@ export const sendLocationChangeEmails = async (calEvent: CalendarEvent) => {
   );
 
   await Promise.all(emailsToSend);
+  const eventLocationChangedSMS = EventLocationChangedSMS(calendarEvent);
+  await eventLocationChangedSMS.sendSMSToAttendees();
 };
 export const sendFeedbackEmail = async (feedback: Feedback) => {
   await sendEmail(() => new FeedbackEmail(feedback));
