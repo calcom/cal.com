@@ -403,9 +403,10 @@ export default function Signup({
                     isSubmitting ||
                     usernameTaken
                   }>
-                  {premiumUsername && !usernameTaken
-                    ? `Create Account for ${getPremiumPlanPriceValue()}`
-                    : t("create_account")}
+                  {!loadingSubmitState &&
+                    (premiumUsername && !usernameTaken
+                      ? `Create Account for ${getPremiumPlanPriceValue()}`
+                      : t("create_account"))}
                 </Button>
               </Form>
               {/* Continue with Social Logins - Only for non-invite links */}
