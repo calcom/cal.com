@@ -10,6 +10,7 @@ import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import EventCancelledSMS from "../sms/event-cancelled-sms";
 import EventDeclinedSMS from "../sms/event-declined-sms";
+import EventRequestSMS from "../sms/event-request-sms";
 import EventSuccessfullyReScheduledSMS from "../sms/event-rescheduled-sms";
 import EventSuccessfullyScheduledSMS from "../sms/event-scheduled-sms";
 import type { MonthlyDigestEmailData } from "./src/templates/MonthlyDigestEmail";
@@ -270,9 +271,11 @@ export const sendOrganizerRequestEmail = async (calEvent: CalendarEvent) => {
   await Promise.all(emailsToSend);
 };
 
-export const sendAttendeeRequestEmail = async (calEvent: CalendarEvent, attendee: Person) => {
+export const sendAttendeeRequestEmailAndSMS = async (calEvent: CalendarEvent, attendee: Person) => {
   const calendarEvent = formatCalEvent(calEvent);
   await sendEmail(() => new AttendeeRequestEmail(calendarEvent, attendee));
+  const eventRequestSms = new EventRequestSMS(calendarEvent);
+  await eventRequestSms.sendSMSToAttendee(attendee);
 };
 
 export const sendDeclinedEmailsAndSMS = async (calEvent: CalendarEvent) => {

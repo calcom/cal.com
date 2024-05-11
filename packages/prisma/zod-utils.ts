@@ -118,7 +118,8 @@ export type BookingFieldType = FormBuilderFieldType;
 // Note that this validation runs to validate prefill params as well, so it should consider that partial values can be there. e.g. `name` might be empty string
 export const bookingResponses = z
   .object({
-    email: z.string(),
+    email: z.string().default(""),
+    attendeePhoneNumber: z.string().optional(),
     //TODO: Why don't we move name out of bookingResponses and let it be handled like user fields?
     name: z.union([
       z.string(),

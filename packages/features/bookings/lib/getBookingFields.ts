@@ -135,6 +135,8 @@ export const ensureBookingInputsHaveSystemFields = ({
     });
   });
 
+  const isEmailFieldOptional = !!bookingFields.find((field) => field.name === "email" && !field.required);
+
   // These fields should be added before other user fields
   const systemBeforeFields: typeof bookingFields = [
     {
@@ -157,7 +159,7 @@ export const ensureBookingInputsHaveSystemFields = ({
       defaultLabel: "email_address",
       type: "email",
       name: "email",
-      required: true,
+      required: !isEmailFieldOptional,
       editable: isTeamEvent ? "system-but-optional" : "system",
       sources: [
         {

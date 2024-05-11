@@ -2247,8 +2247,8 @@ describe("handleNewBooking", () => {
                     },
                   ],
                   schedulingType: SchedulingType.ROUND_ROBIN,
-                  bookingFields: getDefaultBookingFields([
-                    {
+                  bookingFields: getDefaultBookingFields({
+                    emailField: {
                       name: "email",
                       type: "email",
                       label: "",
@@ -2259,16 +2259,18 @@ describe("handleNewBooking", () => {
                       placeholder: "",
                       defaultLabel: "email_address",
                     },
-                    {
-                      name: "attendeePhoneNumber",
-                      type: "phone",
-                      hidden: false,
-                      sources: [{ id: "default", type: "default", label: "Default" }],
-                      editable: "system-but-optional",
-                      required: true,
-                      defaultLabel: "attendee_phone_number",
-                    },
-                  ]),
+                    bookingFields: [
+                      {
+                        name: "attendeePhoneNumber",
+                        type: "phone",
+                        hidden: false,
+                        sources: [{ id: "default", type: "default", label: "Default" }],
+                        editable: "system-but-optional",
+                        required: true,
+                        defaultLabel: "attendee_phone_number",
+                      },
+                    ],
+                  }),
                 },
               ],
               bookings: [

@@ -3,6 +3,7 @@ import type z from "zod";
 
 import { SystemField } from "@calcom/features/bookings/lib/SystemField";
 import type { bookingResponsesDbSchema } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
+import { BOOKED_WITH_SMS_EMAIL } from "@calcom/lib/constants";
 import { getBookingWithResponses } from "@calcom/lib/getBooking";
 import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
@@ -58,11 +59,18 @@ export const getCalEventResponses = ({
           isHidden: !!field.hidden,
         };
       }
+
+      const isEmailFieldValueFalsy =
+        field.name === "email" && !field.required && !!!backwardCompatibleResponses[field.name];
+
       calEventResponses[field.name] = {
         label,
-        value: backwardCompatibleResponses[field.name],
+        value: isEmailFieldValueFalsy ? BOOKED_WITH_SMS_EMAIL : backwardCompatibleResponses[field.name],
         isHidden: !!field.hidden,
       };
+      if (isEmailFieldValueFalsy) {
+        responses.email = BOOKED_WITH_SMS_EMAIL;
+      }
     });
   } else {
     // Alternative way to generate for a booking of whose eventType has been deleted

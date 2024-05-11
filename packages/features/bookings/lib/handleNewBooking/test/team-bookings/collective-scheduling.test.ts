@@ -24,6 +24,8 @@ import {
   expectSuccessfulCalendarEventCreationInCalendar,
   expectSuccessfulVideoMeetingCreation,
   expectSMSToBeTriggered,
+  expectBookingRequestedEmails,
+  expectBookingRequestedWebhookToHaveBeenFired,
 } from "@calcom/web/test/utils/bookingScenario/expects";
 import { getMockRequestDataForBooking } from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForBooking";
 import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
@@ -549,7 +551,7 @@ describe("handleNewBooking", () => {
         );
 
         test(
-          `[Event Type with only Attendee Phone number and Email as required fields] succesfully creates a booking when the users are available as per the common schedule selected in the event-type
+          `[Event Type with both Attendee Phone number and Email as required fields] succesfully creates a booking when the users are available as per the common schedule selected in the event-type
           - Destination calendars for event-type and non-first hosts are used to create calendar events
         `,
           async ({ emails, sms }) => {
@@ -635,8 +637,8 @@ describe("handleNewBooking", () => {
                       },
                     ],
                     // Both Email and Attendee Phone Number Fields are required
-                    bookingFields: getDefaultBookingFields([
-                      {
+                    bookingFields: getDefaultBookingFields({
+                      emailField: {
                         name: "email",
                         type: "email",
                         label: "",
@@ -647,16 +649,18 @@ describe("handleNewBooking", () => {
                         placeholder: "",
                         defaultLabel: "email_address",
                       },
-                      {
-                        name: "attendeePhoneNumber",
-                        type: "phone",
-                        hidden: false,
-                        sources: [{ id: "default", type: "default", label: "Default" }],
-                        editable: "system-but-optional",
-                        required: true,
-                        defaultLabel: "attendee_phone_number",
-                      },
-                    ]),
+                      bookingFields: [
+                        {
+                          name: "attendeePhoneNumber",
+                          type: "phone",
+                          hidden: false,
+                          sources: [{ id: "default", type: "default", label: "Default" }],
+                          editable: "system-but-optional",
+                          required: true,
+                          defaultLabel: "attendee_phone_number",
+                        },
+                      ],
+                    }),
                     // Common schedule is the morning shift
                     schedule: TestData.schedules.IstMorningShift,
                     destinationCalendar: {
@@ -864,8 +868,8 @@ describe("handleNewBooking", () => {
                       },
                     ],
                     // Both Email and Attendee Phone Number Fields are required
-                    bookingFields: getDefaultBookingFields([
-                      {
+                    bookingFields: getDefaultBookingFields({
+                      emailField: {
                         name: "email",
                         type: "email",
                         label: "",
@@ -876,16 +880,18 @@ describe("handleNewBooking", () => {
                         placeholder: "",
                         defaultLabel: "email_address",
                       },
-                      {
-                        name: "attendeePhoneNumber",
-                        type: "phone",
-                        hidden: false,
-                        sources: [{ id: "default", type: "default", label: "Default" }],
-                        editable: "system-but-optional",
-                        required: true,
-                        defaultLabel: "attendee_phone_number",
-                      },
-                    ]),
+                      bookingFields: [
+                        {
+                          name: "attendeePhoneNumber",
+                          type: "phone",
+                          hidden: false,
+                          sources: [{ id: "default", type: "default", label: "Default" }],
+                          editable: "system-but-optional",
+                          required: true,
+                          defaultLabel: "attendee_phone_number",
+                        },
+                      ],
+                    }),
                     // Common schedule is the morning shift
                     schedule: TestData.schedules.IstMorningShift,
                     destinationCalendar: {
@@ -1000,6 +1006,195 @@ describe("handleNewBooking", () => {
               videoCallUrl: `${WEBAPP_URL}/video/${createdBooking.uid}`,
               isEmailHidden: true,
               isAttendeePhoneNumberHidden: false,
+            });
+
+            expectSMSToBeTriggered({ sms, toNumber: TEST_ATTENDEE_NUMBER });
+          },
+          timeout
+        );
+        test(
+          `[Event Type that requires confirmation with only Attendee Phone number as required field and Email as optional field] succesfully creates a booking when the users are available as per the common schedule selected in the event-type
+          - Destination calendars for event-type and non-first hosts are used to create calendar events
+        `,
+          async ({ emails, sms }) => {
+            const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+            const subscriberUrl = "http://my-webhook.example.com";
+            const TEST_ATTENDEE_NUMBER = "+918888888888";
+            const booker = getBooker({
+              email: BOOKED_WITH_SMS_EMAIL,
+              name: "Booker",
+              attendeePhoneNumber: TEST_ATTENDEE_NUMBER,
+            });
+
+            const otherTeamMembers = [
+              {
+                name: "Other Team Member 1",
+                username: "other-team-member-1",
+                timeZone: Timezones["+5:30"],
+                defaultScheduleId: null,
+                email: "other-team-member-1@example.com",
+                id: 102,
+                // No user schedules are here
+                schedules: [],
+                credentials: [getGoogleCalendarCredential()],
+                selectedCalendars: [TestData.selectedCalendars.google],
+                destinationCalendar: {
+                  integration: TestData.apps["google-calendar"].type,
+                  externalId: "other-team-member-1@google-calendar.com",
+                },
+              },
+            ];
+
+            const organizer = getOrganizer({
+              name: "Organizer",
+              email: "organizer@example.com",
+              id: 101,
+              defaultScheduleId: null,
+              // No user schedules are here
+              schedules: [],
+              credentials: [getGoogleCalendarCredential()],
+              selectedCalendars: [TestData.selectedCalendars.google],
+              destinationCalendar: {
+                integration: TestData.apps["google-calendar"].type,
+                externalId: "organizer@google-calendar.com",
+              },
+              teams: [
+                {
+                  membership: {
+                    accepted: true,
+                  },
+                  team: {
+                    id: 1,
+                    name: "Team 1",
+                    slug: "team-1",
+                  },
+                },
+              ],
+            });
+
+            const scenarioData = getScenarioData({
+              webhooks: [
+                {
+                  userId: organizer.id,
+                  eventTriggers: ["BOOKING_CREATED"],
+                  subscriberUrl: "http://my-webhook.example.com",
+                  active: true,
+                  eventTypeId: 1,
+                  appId: null,
+                },
+              ],
+              eventTypes: [
+                {
+                  id: 1,
+                  teamId: 1,
+                  slotInterval: 15,
+                  requiresConfirmation: true,
+                  schedulingType: SchedulingType.COLLECTIVE,
+                  length: 15,
+                  users: [
+                    {
+                      id: 101,
+                    },
+                    {
+                      id: 102,
+                    },
+                  ],
+                  // Both Email and Attendee Phone Number Fields are required
+                  bookingFields: getDefaultBookingFields({
+                    emailField: {
+                      name: "email",
+                      type: "email",
+                      label: "",
+                      hidden: true,
+                      sources: [{ id: "default", type: "default", label: "Default" }],
+                      editable: "system-but-optional",
+                      required: false,
+                      placeholder: "",
+                      defaultLabel: "email_address",
+                    },
+                    bookingFields: [
+                      {
+                        name: "attendeePhoneNumber",
+                        type: "phone",
+                        hidden: false,
+                        sources: [{ id: "default", type: "default", label: "Default" }],
+                        editable: "system-but-optional",
+                        required: true,
+                        defaultLabel: "attendee_phone_number",
+                      },
+                    ],
+                  }),
+                  // Common schedule is the morning shift
+                  schedule: TestData.schedules.IstMorningShift,
+                  destinationCalendar: {
+                    integration: TestData.apps["google-calendar"].type,
+                    externalId: "event-type-1@google-calendar.com",
+                  },
+                },
+              ],
+              organizer,
+              usersApartFromOrganizer: otherTeamMembers,
+              apps: [TestData.apps["google-calendar"], TestData.apps["daily-video"]],
+            });
+            await createBookingScenario(scenarioData);
+
+            mockSuccessfulVideoMeetingCreation({
+              metadataLookupKey: appStoreMetadata.dailyvideo.dirName,
+              videoMeetingData: {
+                id: "MOCK_ID",
+                password: "MOCK_PASS",
+                url: `http://mock-dailyvideo.example.com/meeting-1`,
+              },
+            });
+
+            const mockBookingData = getMockRequestDataForBooking({
+              data: {
+                // Try booking the first available free timeslot in both the users' schedules
+                start: `${getDate({ dateIncrement: 1 }).dateString}T11:30:00.000Z`,
+                end: `${getDate({ dateIncrement: 1 }).dateString}T11:45:00.000Z`,
+                eventTypeId: 1,
+                // No Email Passed
+                responses: {
+                  name: booker.name,
+                  attendeePhoneNumber: booker.attendeePhoneNumber,
+                  location: { optionValue: "", value: BookingLocations.CalVideo },
+                },
+              },
+            });
+
+            const { req } = createMockNextJsRequest({
+              method: "POST",
+              body: mockBookingData,
+            });
+
+            const createdBooking = await handleNewBooking(req);
+
+            await expectBookingToBeInDatabase({
+              description: "",
+              location: BookingLocations.CalVideo,
+              responses: expect.objectContaining({
+                attendeePhoneNumber: booker.attendeePhoneNumber,
+                name: booker.name,
+              }),
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+              uid: createdBooking.uid!,
+              eventTypeId: mockBookingData.eventTypeId,
+              status: BookingStatus.PENDING,
+            });
+
+            expectBookingRequestedEmails({
+              booker,
+              organizer,
+              emails,
+            });
+
+            expectBookingRequestedWebhookToHaveBeenFired({
+              booker,
+              organizer,
+              location: BookingLocations.CalVideo,
+              subscriberUrl,
+              eventType: scenarioData.eventTypes[0],
+              isEmailHidden: true,
             });
 
             expectSMSToBeTriggered({ sms, toNumber: TEST_ATTENDEE_NUMBER });
@@ -1668,7 +1863,7 @@ describe("handleNewBooking", () => {
               },
             ],
           });
-          // expectWorkflowToBeTriggered();
+
           expectSuccessfulCalendarEventCreationInCalendar(calendarMock, {
             destinationCalendars: [
               {

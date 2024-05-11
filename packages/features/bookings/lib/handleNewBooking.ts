@@ -20,7 +20,7 @@ import { getEventName } from "@calcom/core/event";
 import dayjs from "@calcom/dayjs";
 import { scheduleMandatoryReminder } from "@calcom/ee/workflows/lib/reminders/scheduleMandatoryReminder";
 import {
-  sendAttendeeRequestEmail,
+  sendAttendeeRequestEmailAndSMS,
   sendOrganizerRequestEmail,
   sendRescheduledEmailsAndSMS,
   sendRoundRobinCancelledEmails,
@@ -1505,7 +1505,7 @@ async function handler(
       })
     );
     await sendOrganizerRequestEmail({ ...evt, additionalNotes });
-    await sendAttendeeRequestEmail({ ...evt, additionalNotes }, attendeesList[0]);
+    await sendAttendeeRequestEmailAndSMS({ ...evt, additionalNotes }, attendeesList[0]);
   }
 
   if (booking.location?.startsWith("http")) {
