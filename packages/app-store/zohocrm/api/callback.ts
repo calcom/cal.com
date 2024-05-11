@@ -15,9 +15,14 @@ let client_id = "";
 let client_secret = "";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const { code } = req.query;
+  const { code, location } = req.query;
   if (code === undefined && typeof code !== "string") {
     res.status(400).json({ message: "`code` must be a string" });
+    return;
+  }
+
+  if (location && typeof location !== "string") {
+    res.status(400).json({ message: "`location` must be a string" });
     return;
   }
 
@@ -48,9 +53,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       "Content-Type": "application/x-www-form-urlencoded;charset=utf-8",
     },
   });
+
+  const server_location = location === "us" ? "com" : location;
   // set expiry date as offset from current time.
   zohoCrmTokenInfo.data.expiryDate = Math.round(Date.now() + 60 * 60);
-  zohoCrmTokenInfo.data.accountServer = req.query["accounts-server"];
+  zohoCrmTokenInfo.data.location = server_location;
 
   await createOAuthAppCredential({ appId: appConfig.slug, type: appConfig.type }, zohoCrmTokenInfo.data, req);
 
