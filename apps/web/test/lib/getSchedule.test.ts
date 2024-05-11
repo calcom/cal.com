@@ -1045,7 +1045,7 @@ describe("getSchedule", () => {
     });
 
     describe("Future Limits", () => {
-      test.only("PeriodType=ROLLING", async () => {
+      test("PeriodType=ROLLING", async () => {
         const { dateString: yesterdayDateString } = getDate({ dateIncrement: -1 });
         const { dateString: todayDateString } = getDate();
         const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
