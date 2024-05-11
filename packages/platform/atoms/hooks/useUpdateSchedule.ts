@@ -2,13 +2,14 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { V2_ENDPOINTS } from "@calcom/platform-constants";
-import type { UpdateScheduleInput, ApiErrorResponse, UpdateScheduleOutput } from "@calcom/platform-types";
+import type { ApiResponse, UpdateScheduleInput, ApiErrorResponse } from "@calcom/platform-types";
+import type { ScheduleOutput } from "@calcom/platform-types";
 
 import http from "../lib/http";
 import { QUERY_KEY as ScheduleQueryKey } from "./useClientSchedule";
 
 interface IPUpdateOAuthClient {
-  onSuccess?: (res: UpdateScheduleOutput) => void;
+  onSuccess?: (res: ApiResponse<ScheduleOutput>) => void;
   onError?: (err: ApiErrorResponse) => void;
 }
 
@@ -24,11 +25,15 @@ const useUpdateSchedule = (
 ) => {
   const queryClient = useQueryClient();
 
-  const mutation = useMutation<UpdateScheduleOutput, unknown, UpdateScheduleInput & { scheduleId: number }>({
+  const mutation = useMutation<
+    ApiResponse<ScheduleOutput>,
+    unknown,
+    UpdateScheduleInput & { scheduleId: number }
+  >({
     mutationFn: (data) => {
       const pathname = `/${V2_ENDPOINTS.availability}/${data.scheduleId}?for=atom`;
 
-      return http.patch<UpdateScheduleOutput>(pathname, data).then((res) => {
+      return http.patch<ApiResponse<ScheduleOutput>>(pathname, data).then((res) => {
         return res.data;
       });
     },

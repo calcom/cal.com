@@ -1,5 +1,3 @@
-import { transformScheduleForAtom } from "lib/getAtomSchedule";
-
 import type { ScheduleLabelsType } from "@calcom/features/schedules/components/Schedule";
 import type { UpdateScheduleOutputType } from "@calcom/platform-libraries";
 import type { ApiErrorResponse, ApiResponse } from "@calcom/platform-types";
@@ -13,6 +11,7 @@ import { useToast } from "../../src/components/ui/use-toast";
 import type { Schedule } from "../AvailabilitySettings";
 import type { CustomClassNames } from "../AvailabilitySettings";
 import { AvailabilitySettings } from "../AvailabilitySettings";
+import { transformScheduleForAtom } from "../getAtomSchedule";
 import type { AvailabilityFormValues } from "../types";
 
 type PlatformAvailabilitySettingsWrapperProps = {
@@ -37,7 +36,13 @@ export const PlatformAvailabilitySettingsWrapper = ({
 }: PlatformAvailabilitySettingsWrapperProps) => {
   const { isLoading, data: schedule } = useClientSchedule(id);
   const { data: me } = useMe();
-  const userSchedule = transformScheduleForAtom(schedule);
+  const userSchedule = transformScheduleForAtom(
+    me?.data || { id: 0, defaultScheduleId: 0, timeZone: "Europe/London" },
+    // note(Lauris): TODO fix
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    schedule!.data!,
+    1
+  );
   const { timeFormat } = me?.data || { timeFormat: null };
   const { toast } = useToast();
 
@@ -58,6 +63,9 @@ export const PlatformAvailabilitySettingsWrapper = ({
 
   const { mutate: updateSchedule, isPending: isSavingInProgress } = useUpdateSchedule({
     onSuccess: (res) => {
+      // note(Lauris): TODO fix
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
       onUpdateSuccess?.(res);
       toast({
         description: "Schedule updated successfully",
@@ -79,7 +87,11 @@ export const PlatformAvailabilitySettingsWrapper = ({
     const transformedDateOverrides =
       body.dateOverrides.flatMap(
         (dateOverridesRanges) =>
-          dateOverridesRanges?.ranges?.map((range) => ({ start: range.start, end: range.end })) ?? []
+          dateOverridesRanges?.ranges?.map((range) => ({
+            date: `${range.start.getUTCFullYear}-${range.start.getUTCMonth}-${range.start.getUTCDate}`,
+            startTime: `${range.start.getUTCHours}-${range.start.getUTCMinutes}`,
+            endTime: `${range.end.getUTCHours}-${range.end.getUTCMinutes}`,
+          })) ?? []
       ) ?? [];
 
     await updateSchedule({ ...body, scheduleId: id, overrides: transformedDateOverrides });
@@ -112,11 +124,14 @@ export const PlatformAvailabilitySettingsWrapper = ({
           availability: userSchedule.availability,
           schedule:
             userSchedule.schedule.reduce(
-              (acc: Schedule[], avail: Schedule) => [
+              (
+                acc: Pick<Schedule, "days" | "startTime" | "endTime">[],
+                avail: Pick<Schedule, "days" | "startTime" | "endTime">
+              ) => [
                 ...acc,
                 { ...avail, startTime: new Date(avail.startTime), endTime: new Date(avail.endTime) },
               ],
-              [] as Schedule[]
+              [] as Pick<Schedule, "days" | "startTime" | "endTime">[]
             ) || [],
         }}
         isDeleting={isDeletionInProgress}

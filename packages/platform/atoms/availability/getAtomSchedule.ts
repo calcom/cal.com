@@ -39,7 +39,7 @@ export function transformScheduleForAtom(
     name: schedule.name,
     isManaged: schedule.ownerId !== user.id,
     workingHours: transformWorkingHoursForClient(atomSchedule),
-    schedule: schedule.availability,
+    schedule: availability,
     availability: transformAvailabilityForClient(atomSchedule),
     timeZone,
     dateOverrides: transformDateOverridesForClient(atomSchedule, timeZone),
