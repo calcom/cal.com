@@ -4,12 +4,12 @@ import { Trans } from "next-i18next";
 import Link from "next/link";
 import type { EventTypeSetupProps } from "pages/event-types/[type]";
 import { useState } from "react";
-import { Controller, useFieldArray, useFormContext } from "react-hook-form";
+import { Controller, useFieldArray } from "react-hook-form";
+import type { UseFormGetValues, UseFormSetValue, Control, FormState } from "react-hook-form";
 
 import type { EventLocationType } from "@calcom/app-store/locations";
 import { getEventLocationType, MeetLocationType } from "@calcom/app-store/locations";
-import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
-import type { FormValues } from "@calcom/features/eventtypes/lib/types";
+import type { LocationFormValues } from "@calcom/features/eventtypes/lib/types";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Icon, Input, PhoneInput, Button, showToast } from "@calcom/ui";
@@ -18,19 +18,26 @@ import CheckboxField from "@components/ui/form/CheckboxField";
 import type { SingleValueLocationOption } from "@components/ui/form/LocationSelect";
 import LocationSelect from "@components/ui/form/LocationSelect";
 
+export type TEventTypeLocation = Pick<EventTypeSetupProps["eventType"], "locations">;
+export type TLocationOptions = Pick<EventTypeSetupProps, "locationOptions">["locationOptions"];
+export type TDestinationCalendar = { integration: string } | null;
+
 type LocationsProps = {
   team: { id: number } | null;
-  destinationCalendar: { integration: string } | null;
+  destinationCalendar: TDestinationCalendar;
   showAppStoreLink: boolean;
   isChildrenManagedEventType?: boolean;
   isManagedEventType?: boolean;
   disableLocationProp?: boolean;
-} & Pick<EventTypeSetupProps, "eventType" | "locationOptions">;
+  getValues: UseFormGetValues<LocationFormValues>;
+  setValue: UseFormSetValue<LocationFormValues>;
+  control: Control<LocationFormValues>;
+  formState: FormState<LocationFormValues>;
+  eventType: TEventTypeLocation;
+  locationOptions: TLocationOptions;
+};
 
-const getLocationFromType = (
-  type: EventLocationType["type"],
-  locationOptions: Pick<EventTypeSetupProps, "locationOptions">["locationOptions"]
-) => {
+const getLocationFromType = (type: EventLocationType["type"], locationOptions: TLocationOptions) => {
   for (const locationOption of locationOptions) {
     const option = locationOption.options.find((option) => option.value === type);
     if (option) {
@@ -42,7 +49,10 @@ const getLocationFromType = (
 const getLocationInfo = ({
   eventType,
   locationOptions,
-}: Pick<EventTypeSetupProps, "eventType" | "locationOptions">) => {
+}: {
+  eventType: TEventTypeLocation;
+  locationOptions: TLocationOptions;
+}) => {
   const locationAvailable =
     eventType.locations &&
     eventType.locations.length > 0 &&
@@ -62,22 +72,32 @@ const getLocationInfo = ({
   return { locationAvailable, locationDetails };
 };
 
-const Locations: React.FC<LocationsProps> = (props) => {
+const Locations: React.FC<LocationsProps> = ({
+  isChildrenManagedEventType,
+  disableLocationProp,
+  isManagedEventType,
+  getValues,
+  setValue,
+  control,
+  formState,
+  team,
+  eventType,
+  ...props
+}) => {
   const { t } = useLocale();
-  const formMethods = useFormContext<FormValues>();
   const {
     fields: locationFields,
     append,
     remove,
     update: updateLocationField,
   } = useFieldArray({
-    control: formMethods.control,
+    control,
     name: "locations",
   });
   const locationOptions = props.locationOptions.map((locationOption) => {
     const options = locationOption.options.filter((option) => {
       // Skip "Organizer's Default App" for non-team members
-      return !props?.team?.id ? option.label !== t("organizer_default_conferencing_app") : true;
+      return team?.id ? option.label !== t("organizer_default_conferencing_app") : true;
     });
 
     return {
@@ -88,23 +108,24 @@ const Locations: React.FC<LocationsProps> = (props) => {
 
   const [animationRef] = useAutoAnimate<HTMLUListElement>();
 
-  const validLocations = formMethods.getValues("locations").filter((location) => {
-    const eventLocation = getEventLocationType(location.type);
-    if (!eventLocation) {
-      // It's possible that the location app in use got uninstalled.
-      return false;
-    }
-    return true;
-  });
+  const validLocations =
+    getValues("locations")?.filter((location) => {
+      const eventLocation = getEventLocationType(location.type);
+      if (!eventLocation) {
+        // It's possible that the location app in use got uninstalled.
+        return false;
+      }
+      return true;
+    }) || [];
 
-  const defaultValue = props.isManagedEventType
+  const defaultValue = isManagedEventType
     ? locationOptions.find((op) => op.label === t("default"))?.options[0]
     : undefined;
 
-  const { locationDetails, locationAvailable } = getLocationInfo(props);
-
-  const { isChildrenManagedEventType, isManagedEventType, shouldLockIndicator, shouldLockDisableProps } =
-    useLockedFieldsManager({ eventType: props.eventType, translate: t, formMethods });
+  const { locationDetails, locationAvailable } = getLocationInfo({
+    eventType,
+    locationOptions: props.locationOptions,
+  });
 
   const LocationInput = (props: {
     eventLocationType: EventLocationType;
@@ -128,7 +149,7 @@ const Locations: React.FC<LocationsProps> = (props) => {
                 required
                 onChange={onChange}
                 value={value}
-                {...(shouldLockDisableProps("locations").disabled ? { disabled: true } : {})}
+                {...(disableLocationProp ? { disabled: true } : {})}
                 className="my-0"
                 {...rest}
               />
@@ -147,7 +168,7 @@ const Locations: React.FC<LocationsProps> = (props) => {
             return (
               <PhoneInput
                 required
-                disabled={shouldLockDisableProps("locations").disabled}
+                disabled={disableLocationProp}
                 placeholder={t(eventLocationType.organizerInputPlaceholder || "")}
                 name={`locations[${index}].${eventLocationType.defaultValueVariable}`}
                 value={value}
@@ -184,7 +205,7 @@ const Locations: React.FC<LocationsProps> = (props) => {
                   name={`locations[${index}].type`}
                   placeholder={t("select")}
                   options={locationOptions}
-                  isDisabled={shouldLockDisableProps("locations").disabled}
+                  isDisabled={disableLocationProp}
                   defaultValue={option}
                   isSearchable={false}
                   className="block min-w-0 flex-1 rounded-sm text-sm"
@@ -199,14 +220,14 @@ const Locations: React.FC<LocationsProps> = (props) => {
                       }
                       const canAddLocation =
                         eventLocationType.organizerInputType ||
-                        !validLocations.find((location) => location.type === newLocationType);
+                        !validLocations?.find((location) => location.type === newLocationType);
 
                       if (canAddLocation) {
                         updateLocationField(index, {
                           type: newLocationType,
                           ...(e.credentialId && {
                             credentialId: e.credentialId,
-                            teamName: e.teamName,
+                            teamName: e.teamName ?? undefined,
                           }),
                         });
                       } else {
@@ -214,14 +235,14 @@ const Locations: React.FC<LocationsProps> = (props) => {
                           type: field.type,
                           ...(field.credentialId && {
                             credentialId: field.credentialId,
-                            teamName: field.teamName,
+                            teamName: field.teamName ?? undefined,
                           }),
                         });
                         showToast(t("location_already_exists"), "warning");
                       }
                       // Whenever location changes, we need to reset the locations item in booking questions list else it overflows
                       // previously added values resulting in wrong behaviour
-                      const existingBookingFields = formMethods.getValues("bookingFields");
+                      const existingBookingFields = getValues("bookingFields");
                       const findLocation = existingBookingFields.findIndex(
                         (field) => field.name === "location"
                       );
@@ -232,14 +253,14 @@ const Locations: React.FC<LocationsProps> = (props) => {
                           label: "",
                           placeholder: "",
                         };
-                        formMethods.setValue("bookingFields", existingBookingFields, {
+                        setValue("bookingFields", existingBookingFields, {
                           shouldDirty: true,
                         });
                       }
                     }
                   }}
                 />
-                {!(shouldLockDisableProps("locations").disabled && isChildrenManagedEventType) && (
+                {!(disableLocationProp && isChildrenManagedEventType) && (
                   <button
                     data-testid={`delete-locations.${index}.type`}
                     className="min-h-9 block h-9 px-2"
@@ -271,7 +292,7 @@ const Locations: React.FC<LocationsProps> = (props) => {
                       />
                     </div>
                     <ErrorMessage
-                      errors={formMethods.formState.errors?.locations?.[index]}
+                      errors={formState.errors?.locations?.[index]}
                       name={eventLocationType.defaultValueVariable}
                       className="text-error my-1 ml-6 text-sm"
                       as="div"
@@ -282,11 +303,11 @@ const Locations: React.FC<LocationsProps> = (props) => {
                     <CheckboxField
                       name={`locations[${index}].displayLocationPublicly`}
                       data-testid="display-location"
-                      disabled={shouldLockDisableProps("locations").disabled}
+                      disabled={disableLocationProp}
                       defaultChecked={defaultLocation?.displayLocationPublicly}
                       description={t("display_location_label")}
                       onChange={(e) => {
-                        const fieldValues = formMethods.getValues("locations")[index];
+                        const fieldValues = getValues("locations")[index];
                         updateLocationField(index, {
                           ...fieldValues,
                           displayLocationPublicly: e.target.checked,
@@ -307,7 +328,7 @@ const Locations: React.FC<LocationsProps> = (props) => {
               placeholder={t("select")}
               options={locationOptions}
               value={selectedNewOption}
-              isDisabled={shouldLockDisableProps("locations").disabled}
+              isDisabled={disableLocationProp}
               defaultValue={defaultValue}
               isSearchable={false}
               className="block w-full min-w-0 flex-1 rounded-sm text-sm"
@@ -330,7 +351,7 @@ const Locations: React.FC<LocationsProps> = (props) => {
                       type: newLocationType,
                       ...(e.credentialId && {
                         credentialId: e.credentialId,
-                        teamName: e.teamName,
+                        teamName: e.teamName ?? undefined,
                       }),
                     });
                     setSelectedNewOption(e);
@@ -356,7 +377,7 @@ const Locations: React.FC<LocationsProps> = (props) => {
                 The “Add to calendar” for this event type needs to be a Google Calendar for Meet to work.
                 Change it{" "}
                 <Link
-                  href={`${WEBAPP_URL}/event-types/${formMethods.getValues("id")}?tabName=advanced`}
+                  href={`${WEBAPP_URL}/event-types/${getValues("id")}?tabName=advanced`}
                   className="underline">
                   here.
                 </Link>{" "}
@@ -372,7 +393,7 @@ const Locations: React.FC<LocationsProps> = (props) => {
             </a>
           </p>
         )}
-        {validLocations.length > 0 && !shouldLockDisableProps("locations").disabled && (
+        {validLocations.length > 0 && !disableLocationProp && (
           //  && !isChildrenManagedEventType : Add this to hide add-location button only when location is disabled by Admin
           <li>
             <Button
@@ -385,15 +406,17 @@ const Locations: React.FC<LocationsProps> = (props) => {
           </li>
         )}
       </ul>
-      <p className="text-default mt-2 text-sm">
-        <Trans i18nKey="cant_find_the_right_video_app_visit_our_app_store">
-          Can&apos;t find the right video app? Visit our
-          <Link className="cursor-pointer text-blue-500 underline" href="/apps/categories/video">
-            App Store
-          </Link>
-          .
-        </Trans>
-      </p>
+      {props.showAppStoreLink && (
+        <p className="text-default mt-2 text-sm">
+          <Trans i18nKey="cant_find_the_right_video_app_visit_our_app_store">
+            Can&apos;t find the right video app? Visit our
+            <Link className="cursor-pointer text-blue-500 underline" href="/apps/categories/video">
+              App Store
+            </Link>
+            .
+          </Trans>
+        </p>
+      )}
     </div>
   );
 };
