@@ -84,6 +84,7 @@ export type FormValues = {
    * Date Range(Applicable only for RANGE period type)
    */
   periodDates: { startDate: Date; endDate: Date };
+  rollingExcludeUnavailableDays: boolean;
 
   seatsPerTimeSlot: number | null;
   seatsShowAttendees: boolean | null;
