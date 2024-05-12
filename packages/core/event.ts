@@ -64,8 +64,7 @@ export function getEventName(eventNameObj: EventNameObjectType, forAttendeeView 
     .replaceAll("{HOST/ATTENDEE}", forAttendeeView ? eventNameObj.host : attendeeName);
 
   if (
-    eventNameObj.bookingFields &&
-    eventNameObj.bookingFields.name &&
+    eventNameObj.bookingFields?.name &&
     typeof eventNameObj.bookingFields.name === "object" &&
     !Array.isArray(eventNameObj.bookingFields.name) &&
     eventNameObj.bookingFields.name.firstName
