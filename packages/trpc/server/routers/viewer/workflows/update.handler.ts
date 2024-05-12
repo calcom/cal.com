@@ -468,7 +468,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       const requiresSender =
         newStep.action === WorkflowActions.SMS_NUMBER ||
         newStep.action === WorkflowActions.WHATSAPP_NUMBER ||
-        WorkflowActions.EMAIL_ADDRESS;
+        newStep.action === WorkflowActions.EMAIL_ADDRESS;
       await ctx.prisma.workflowStep.update({
         where: {
           id: oldStep.id,
