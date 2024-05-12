@@ -2,6 +2,7 @@ import dayjs from "@calcom/dayjs";
 import { getSenderId } from "@calcom/features/ee/workflows/lib/alphanumericSenderIdSupport";
 import * as twilio from "@calcom/features/ee/workflows/lib/reminders/providers/twilioProvider";
 import { SENDER_ID } from "@calcom/lib/constants";
+import { TimeFormat } from "@calcom/lib/timeFormat";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 const handleSendingSMS = ({
@@ -40,7 +41,7 @@ export default abstract class SMSManager {
     time: string,
     format = `dddd, LL | ${TimeFormat.TWELVE_HOUR}`
   ) {
-    return dayjs(time).tz(timeZone).locale(locale).format(format);
+    return dayjs(time).tz(timezone).locale(locale).format(format);
   }
 
   getFormattedDate(timezone: string, locale: string) {
