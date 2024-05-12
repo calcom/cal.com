@@ -9,10 +9,13 @@ export default class EventRequestSMS extends SMSManager {
   }
 
   getMessage(attendee: Person) {
-    return `${attendee.language.translate("booking_submitted", {
+    const t = attendee.language.translate;
+    return `${t("booking_submitted", {
       name: attendee.name,
-    })} . \n\n You can view the booking details and add the event to your calendar from this url ${
-      this.calEvent.bookerUrl ?? WEBAPP_URL
-    }/booking/${this.calEvent.uid} `;
+    })}. ${t("user_needs_to_confirm_or_reject_booking", {
+      user: this.calEvent.organizer.name,
+    })} \n\n ${t("you_can_view_booking_details_with_this_url", {
+      url: `${this.calEvent.bookerUrl ?? WEBAPP_URL}/booking/${this.calEvent.uid}`,
+    })}`;
   }
 }

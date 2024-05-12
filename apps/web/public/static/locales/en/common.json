@@ -42,6 +42,7 @@
   "event_request_cancelled": "Your scheduled event was canceled",
   "organizer": "Organizer",
   "need_to_reschedule_or_cancel": "Need to reschedule or cancel?",
+  "you_can_view_booking_details_with_this_url":"You can view the booking details from this url {{url}} and add the event to your calendar",
   "no_options_available": "No options available",
   "cancellation_reason": "Reason for cancellation (optional)",
   "cancellation_reason_placeholder": "Why are you cancelling?",

@@ -9,10 +9,9 @@ export default class EventLocationChangedSMS extends SMSManager {
   }
 
   getMessage(attendee: Person) {
-    return `${attendee.language.translate(
-      "event_location_changed"
-    )} . \n\n You can Check the event ${attendee.language.translate("need_to_reschedule_or_cancel")} ${
-      this.calEvent.bookerUrl ?? WEBAPP_URL
-    }/booking/${this.calEvent.uid}?changes=true`;
+    const t = attendee.language.translate;
+    return `${t("event_location_changed")} . \n\n ${t("you_can_view_booking_details_with_this_url", {
+      url: `${this.calEvent.bookerUrl ?? WEBAPP_URL}/booking/${this.calEvent.uid}?changes=true`,
+    })}`;
   }
 }

@@ -9,8 +9,12 @@ export default class AwaitingPaymentSMS extends SMSManager {
   }
 
   getMessage(attendee: Person) {
-    return `${attendee.language.translate("meeting_awaiting_payment")} . \n\n You can check the event ${
-      this.calEvent.bookerUrl ?? WEBAPP_URL
-    }/booking/${this.calEvent.uid}?changes=true`;
+    const t = attendee.language.translate;
+    return `${t("meeting_awaiting_payment")}: ${t("complete_your_booking_subject", {
+      title: this.calEvent.title,
+      date: this.getFormattedDate(),
+    })} . \n\n ${t("you_can_view_booking_details_with_this_url", {
+      url: `${this.calEvent.bookerUrl ?? WEBAPP_URL}/booking/${this.calEvent.uid}?changes=true`,
+    })} `;
   }
 }

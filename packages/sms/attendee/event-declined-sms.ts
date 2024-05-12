@@ -7,8 +7,11 @@ export default class EventDeclinedSMS extends SMSManager {
     super(calEvent);
   }
 
-  // TODO: change this message
   getMessage(attendee: Person) {
-    return `Hey ${attendee.name}, Your event request has been declined`;
+    const t = attendee.language.translate;
+    return `Hey ${attendee.name}, ${t("event_request_declined")} ${t("event_declined_subject", {
+      title: this.calEvent.title,
+      date: this.getFormattedDate(attendee.timeZone, attendee.language.locale),
+    })}`;
   }
 }

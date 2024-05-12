@@ -34,8 +34,21 @@ export default abstract class SMSManager {
     this.isTeamEvent = !!calEvent?.team;
   }
 
-  getFormattedTime(attendee: Person, time: string, format: string) {
-    return dayjs(time).tz(attendee.timeZone).locale(attendee.language.locale).format(format);
+  getFormattedTime(
+    timezone: string,
+    locale: string,
+    time: string,
+    format = `dddd, LL | ${TimeFormat.TWELVE_HOUR}`
+  ) {
+    return dayjs(time).tz(timeZone).locale(locale).format(format);
+  }
+
+  getFormattedDate(timezone: string, locale: string) {
+    return `${this.getFormattedTime(timezone, locale, this.calEvent.startTime)} - ${this.getFormattedTime(
+      timezone,
+      locale,
+      this.calEvent.endTime
+    )} (${timezone})`;
   }
 
   abstract getMessage(attendee: Person): string;

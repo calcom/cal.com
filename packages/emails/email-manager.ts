@@ -9,10 +9,12 @@ import { formatCalEvent } from "@calcom/lib/formatCalendarEvent";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import AwaitingPaymentSMS from "../sms/attendee/awaiting-payment-sms";
+import CancelledSeatSMS from "../sms/attendee/cancelled-seat-sms";
 import EventCancelledSMS from "../sms/attendee/event-cancelled-sms";
 import EventDeclinedSMS from "../sms/attendee/event-declined-sms";
 import EventLocationChangedSMS from "../sms/attendee/event-location-changed-sms";
 import EventRequestSMS from "../sms/attendee/event-request-sms";
+import EventRequestToRescheduleSMS from "../sms/attendee/event-request-to-reschedule-sms";
 import EventSuccessfullyReScheduledSMS from "../sms/attendee/event-rescheduled-sms";
 import EventSuccessfullyScheduledSMS from "../sms/attendee/event-scheduled-sms";
 import type { MonthlyDigestEmailData } from "./src/templates/MonthlyDigestEmail";
@@ -206,7 +208,7 @@ export const sendRescheduledSeatEmailAndSMS = async (calEvent: CalendarEvent, at
   await Promise.all(emailsToSend);
 };
 
-export const sendScheduledSeatsEmails = async (
+export const sendScheduledSeatsEmailsAndSMS = async (
   calEvent: CalendarEvent,
   invitee: Person,
   newSeat: boolean,
@@ -246,17 +248,20 @@ export const sendScheduledSeatsEmails = async (
     );
   }
   await Promise.all(emailsToSend);
-  // TODO
+  const eventScheduledSMS = new EventSuccessfullyScheduledSMS(calendarEvent);
+  await eventScheduledSMS.sendSMSToAttendee(invitee);
 };
 
 export const sendCancelledSeatEmails = async (calEvent: CalendarEvent, cancelledAttendee: Person) => {
   const formattedCalEvent = formatCalEvent(calEvent);
   const clonedCalEvent = cloneDeep(formattedCalEvent);
+
   await Promise.all([
     sendEmail(() => new AttendeeCancelledSeatEmail(clonedCalEvent, cancelledAttendee)),
     sendEmail(() => new OrganizerAttendeeCancelledSeatEmail({ calEvent: formattedCalEvent })),
   ]);
-  // TODO
+  const cancelledSeatSMS = new CancelledSeatSMS(clonedCalEvent);
+  await cancelledSeatSMS.sendSMSToAttendee(cancelledAttendee);
 };
 
 export const sendOrganizerRequestEmail = async (calEvent: CalendarEvent) => {
@@ -426,7 +431,7 @@ export const sendRequestRescheduleEmailAndSMS = async (
   emailsToSend.push(sendEmail(() => new AttendeeWasRequestedToRescheduleEmail(calendarEvent, metadata)));
 
   await Promise.all(emailsToSend);
-  const eventRequestToReschedule = EventRequestToRescheduleSMS(calendarEvent);
+  const eventRequestToReschedule = new EventRequestToRescheduleSMS(calendarEvent);
   await eventRequestToReschedule.sendSMSToAttendees();
 };
 
@@ -452,7 +457,7 @@ export const sendLocationChangeEmailsAndSMS = async (calEvent: CalendarEvent) =>
   );
 
   await Promise.all(emailsToSend);
-  const eventLocationChangedSMS = EventLocationChangedSMS(calendarEvent);
+  const eventLocationChangedSMS = new EventLocationChangedSMS(calendarEvent);
   await eventLocationChangedSMS.sendSMSToAttendees();
 };
 export const sendFeedbackEmail = async (feedback: Feedback) => {
@@ -516,7 +521,6 @@ export const sendDailyVideoRecordingEmails = async (calEvent: CalendarEvent, dow
     );
   }
   await Promise.all(emailsToSend);
-  // TODO
 };
 
 export const sendDailyVideoTranscriptEmails = async (calEvent: CalendarEvent, transcripts: string[]) => {
