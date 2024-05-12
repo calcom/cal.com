@@ -3,7 +3,6 @@ import type { AuthOptions, Session } from "next-auth";
 import type { JWT } from "next-auth/jwt";
 import { encode } from "next-auth/jwt";
 import type { Provider } from "next-auth/providers";
-import AzureADProvider from "next-auth/providers/azure-ad";
 import CredentialsProvider from "next-auth/providers/credentials";
 import EmailProvider from "next-auth/providers/email";
 import GoogleProvider from "next-auth/providers/google";
@@ -24,12 +23,10 @@ import { randomString } from "@calcom/lib/random";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { UserRepository } from "@calcom/lib/server/repository/user";
-import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import { IdentityProvider, MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema, userMetadata } from "@calcom/prisma/zod-utils";
-import { uploadAvatar } from "@calcom/trpc/server/routers/loggedInViewer/updateProfile.handler";
 
 import { ErrorCode } from "./ErrorCode";
 import { isPasswordValid } from "./isPasswordValid";
@@ -41,15 +38,7 @@ const GOOGLE_API_CREDENTIALS = process.env.GOOGLE_API_CREDENTIALS || "{}";
 const { client_id: GOOGLE_CLIENT_ID, client_secret: GOOGLE_CLIENT_SECRET } =
   JSON.parse(GOOGLE_API_CREDENTIALS)?.web || {};
 const GOOGLE_LOGIN_ENABLED = process.env.GOOGLE_LOGIN_ENABLED === "true";
-const MICROSOFT_LOGIN_ENABLED = process.env.MICROSOFT_LOGIN_ENABLED === "true";
-const AZURE_AD_CLIENT_ID = process.env.MS_GRAPH_CLIENT_ID;
-const AZURE_AD_CLIENT_SECRET = process.env.MS_GRAPH_CLIENT_SECRET;
 const IS_GOOGLE_LOGIN_ENABLED = !!(GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET && GOOGLE_LOGIN_ENABLED);
-const IS_MICROSOFT_LOGIN_ENABLED = !!(
-  AZURE_AD_CLIENT_ID &&
-  AZURE_AD_CLIENT_SECRET &&
-  MICROSOFT_LOGIN_ENABLED
-);
 const ORGANIZATIONS_AUTOLINK =
   process.env.ORGANIZATIONS_AUTOLINK === "1" || process.env.ORGANIZATIONS_AUTOLINK === "true";
 
@@ -262,16 +251,6 @@ if (IS_GOOGLE_LOGIN_ENABLED) {
   );
 }
 
-if (IS_MICROSOFT_LOGIN_ENABLED) {
-  providers.push(
-    AzureADProvider({
-      clientId: AZURE_AD_CLIENT_ID ?? "",
-      clientSecret: AZURE_AD_CLIENT_SECRET ?? "",
-      authorization: { params: { scope: "user.Read openid profile email" } },
-    })
-  );
-}
-
 if (isSAMLLoginEnabled) {
   providers.push({
     id: "saml",
@@ -423,8 +402,6 @@ const mapIdentityProvider = (providerName: string) => {
     case "saml-idp":
     case "saml":
       return IdentityProvider.SAML;
-    case "azure-ad":
-      return IdentityProvider.MICROSOFT;
     default:
       return IdentityProvider.GOOGLE;
   }
@@ -604,7 +581,7 @@ export const AUTH_OPTIONS: AuthOptions = {
         if (!account.provider || !account.providerAccountId) {
           return token;
         }
-        const idP: IdentityProvider = mapIdentityProvider(account.provider);
+        const idP = account.provider === "saml" ? IdentityProvider.SAML : IdentityProvider.GOOGLE;
 
         const existingUser = await prisma.user.findFirst({
           where: {
@@ -705,16 +682,12 @@ export const AUTH_OPTIONS: AuthOptions = {
       }
       if (account?.provider) {
         const idP: IdentityProvider = mapIdentityProvider(account.provider);
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore-error TODO validate email_verified key on profile
+        user.email_verified = user.email_verified || !!user.emailVerified || profile.email_verified;
 
-        // Azure AD provider does not return email verified field so skipping the check for now
-        if (idP !== "MICROSOFT") {
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore-error TODO validate email_verified key on profile
-          user.email_verified = user.email_verified || !!user.emailVerified || profile.email_verified;
-
-          if (!user.email_verified) {
-            return "/auth/error?error=unverified-email";
-          }
+        if (!user.email_verified) {
+          return "/auth/error?error=unverified-email";
         }
 
         let existingUser = await prisma.user.findFirst({
@@ -763,7 +736,7 @@ export const AUTH_OPTIONS: AuthOptions = {
           // hasn't changed since they last logged in.
           if (existingUser.email === user.email) {
             try {
-              // If old user without Account entry we link their google/microsoft account
+              // If old user without Account entry we link their google account
               if (existingUser.accounts.length === 0) {
                 const linkAccountWithUserData = {
                   ...account,
@@ -866,9 +839,7 @@ export const AUTH_OPTIONS: AuthOptions = {
           // User signs up with email/password and then tries to login with Google/SAML using the same email
           if (
             existingUserWithEmail.identityProvider === IdentityProvider.CAL &&
-            (idP === IdentityProvider.GOOGLE ||
-              idP === IdentityProvider.SAML ||
-              idP === IdentityProvider.MICROSOFT)
+            (idP === IdentityProvider.GOOGLE || idP === IdentityProvider.SAML)
           ) {
             await prisma.user.update({
               where: { email: existingUserWithEmail.email },
@@ -915,7 +886,7 @@ export const AUTH_OPTIONS: AuthOptions = {
             username: orgId ? slugify(orgUsername) : usernameSlug(user.name),
             emailVerified: new Date(Date.now()),
             name: user.name,
-            ...(idP !== "MICROSOFT" && user.image && { avatarUrl: user.image }),
+            ...(user.image && { avatarUrl: user.image }),
             email: user.email,
             identityProvider: idP,
             identityProviderId: account.providerAccountId,
@@ -928,20 +899,6 @@ export const AUTH_OPTIONS: AuthOptions = {
             }),
           },
         });
-
-        // Azure AD provider returns the profile picture in the form of a base64 encoded image string (https://next-auth.js.org/providers/azure-ad#example)
-        if (
-          idP === "MICROSOFT" &&
-          user.image &&
-          (user.image.startsWith("data:image/png;base64,") ||
-            user.image.startsWith("data:image/jpeg;base64,"))
-        ) {
-          const avatarUrl = await uploadAvatar({
-            avatar: await resizeBase64Image(user.image),
-            userId: newUser.id,
-          });
-          await prisma.user.update({ where: { id: newUser.id }, data: { avatarUrl } });
-        }
 
         const linkAccountNewUserData = { ...account, userId: newUser.id, providerEmail: user.email };
         await calcomAdapter.linkAccount(linkAccountNewUserData);

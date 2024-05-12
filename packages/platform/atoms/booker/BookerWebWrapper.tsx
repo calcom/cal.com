@@ -176,14 +176,13 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
       onOverlayClickNoCalendar={() => {
         router.push("/apps/categories/calendar");
       }}
-      onClickOverlayContinue={(provider: "calcom" | "google" | "azure-ad" = "calcom") => {
+      onClickOverlayContinue={(provider: "calcom" | "google" = "calcom") => {
         const currentUrl = new URL(window.location.href);
         currentUrl.searchParams.set("overlayCalendar", "true");
-        if (provider === "google" || provider === "azure-ad") {
+        if (provider === "google") {
           const url = new URL("/getting-started/connected-calendar", window.location.origin);
           url.searchParams.set("callbackUrl", currentUrl.toString());
-          url.searchParams.set("overlayProvider", provider);
-          signIn(provider, { callbackUrl: url.toString() });
+          signIn("google", { callbackUrl: url.toString() });
         } else {
           currentUrl.pathname = "/login/";
           currentUrl.searchParams.set("callbackUrl", window.location.pathname);

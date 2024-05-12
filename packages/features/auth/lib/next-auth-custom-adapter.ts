@@ -33,7 +33,7 @@ export default function CalComAdapter(prismaClient: PrismaClient) {
       // NOTE: this code it's our fallback to users without Account but credentials in User Table
       // We should remove this code after all googles tokens have expired
       const provider = provider_providerAccountId?.provider.toUpperCase() as IdentityProvider;
-      if (["GOOGLE", "SAML", "MICROSOFT"].indexOf(provider) < 0) {
+      if (["GOOGLE", "SAML"].indexOf(provider) < 0) {
         return null;
       }
       const obtainProvider = identityProviderNameMap[provider].toUpperCase() as IdentityProvider;
