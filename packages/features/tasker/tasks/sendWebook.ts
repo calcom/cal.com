@@ -15,11 +15,13 @@ const sendWebhookPayloadSchema = z.object({
   data: z.any(),
 });
 
+type SendWebhookPayload = z.infer<typeof sendWebhookPayloadSchema>;
+
 export async function sendWebhook(payload: string): Promise<void> {
   try {
-    const { secretKey, triggerEvent, createdAt, webhook, data } = sendWebhookPayloadSchema.parse(
-      JSON.parse(payload)
-    );
+    const parsedPayloadObj: SendWebhookPayload = JSON.parse(payload);
+    const { secretKey, triggerEvent, createdAt, webhook, data } =
+      sendWebhookPayloadSchema.parse(parsedPayloadObj);
     await sendPayload(secretKey, triggerEvent, createdAt, webhook, data);
   } catch (error) {
     // ... handle error

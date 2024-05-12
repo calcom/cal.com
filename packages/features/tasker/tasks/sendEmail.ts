@@ -8,9 +8,12 @@ const sendEmailPayloadSchema = z.object({
   payload: z.string(),
 });
 
+type SendEmailPayload = z.infer<typeof sendEmailPayloadSchema>;
+
 export async function sendEmail(payload: string): Promise<void> {
   try {
-    const parsedPayload = sendEmailPayloadSchema.parse(JSON.parse(payload));
+    const parsedPayloadObj: SendEmailPayload = JSON.parse(payload);
+    const parsedPayload = sendEmailPayloadSchema.parse(parsedPayloadObj);
     console.log(parsedPayload);
     const emails = await import("@calcom/emails");
     const email = emails[parsedPayload.template as keyof typeof emails];
