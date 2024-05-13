@@ -46,11 +46,14 @@ export { handleNewRecurringBooking } from "@calcom/features/bookings/lib/handleN
 export { getConnectedDestinationCalendars } from "@calcom/lib/getConnectedDestinationCalendars";
 export type { ConnectedDestinationCalendars } from "@calcom/lib/getConnectedDestinationCalendars";
 export { getBusyCalendarTimes } from "@calcom/core/CalendarManager";
-export * from "./schedules";
+
 export {
   transformWorkingHoursForClient,
   transformAvailabilityForClient,
   transformDateOverridesForClient,
+  transformInputCreateSchedule,
+  transformInputScheduleAvailability,
+  transformInputOverrides,
 } from "@calcom/lib/schedules/client/transformers";
 export type {
   ScheduleWithAvailabilities,

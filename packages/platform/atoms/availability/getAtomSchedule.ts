@@ -3,7 +3,7 @@ import {
   transformDateOverridesForClient,
   transformInputCreateSchedule,
   transformWorkingHoursForClient,
-} from "@calcom/platform-libraries";
+} from "@calcom/lib/schedules/client/transformers";
 import type { ScheduleOutput } from "@calcom/platform-types";
 import type { User } from "@calcom/prisma/client";
 

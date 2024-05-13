@@ -28,7 +28,7 @@ export default defineConfig({
       fileName: "cal-atoms",
     },
     rollupOptions: {
-      external: ["react", "fs", "path", "os", "react-dom"],
+      external: ["react", "fs", "path", "os", "react-dom", "crypto"],
       output: {
         globals: {
           react: "React",
