@@ -413,6 +413,10 @@ export default function Success(props: PageProps) {
                           imageSrc={`${bookingInfo.user.avatarUrl}`}
                         />
                       )}
+                      {giphyImage && !needsConfirmation && !isCancelled && (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={giphyImage} className="w-full rounded-lg" alt="Gif from Giphy" />
+                      )}
                       <div
                         className={classNames(
                           "mx-auto flex h-12 w-12 items-center justify-center rounded-full",
@@ -422,10 +426,6 @@ export default function Success(props: PageProps) {
                           !giphyImage && !isCancelled && needsConfirmation ? "bg-subtle" : "",
                           isCancelled ? "bg-error" : ""
                         )}>
-                        {giphyImage && !needsConfirmation && !isCancelled && (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img src={giphyImage} alt="Gif from Giphy" />
-                        )}
                         {!giphyImage && !needsConfirmation && !isCancelled && (
                           <Icon name="check" className="h-5 w-5 text-green-600 dark:text-green-400" />
                         )}
