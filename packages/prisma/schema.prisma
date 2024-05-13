@@ -997,6 +997,7 @@ model WorkflowReminder {
   cancelled           Boolean?
   seatReferenceId     String?
   isMandatoryReminder Boolean?        @default(false)
+  retryCount          Int             @default(0)
 
   @@index([bookingUid])
   @@index([workflowStepId])
