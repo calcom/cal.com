@@ -31,9 +31,8 @@ export function calculatePeriodLimits({
   periodStartDate,
   periodEndDate,
   /**
-   * These dates will be considered in the same utcOffset as provided
+   * These dates will be considered in the same utfcOffset as provided
    */
-  // TODO: Either bundle utcOffset with allDatesWithBookabilityStatus or make the dates timezone aware
   allDatesWithBookabilityStatus,
   utcOffset,
   /**
@@ -67,14 +66,12 @@ export function calculatePeriodLimits({
       }
 
       if (!allDatesWithBookabilityStatus) {
-        throw new Error(
-          "`allDatesWithBookabilityStatus` is required when `_skipRollingWindowCheck` is falsy"
-        );
+        throw new Error("`allDatesWithBookabilityStatus` is required");
       }
 
       const rollingEndDay = getRollingWindowEndDate({
         startDate: currentTime,
-        daysNeeded: periodDays,
+        daysInFuture: periodDays,
         allDatesWithBookabilityStatus,
         countNonBusinessDays: periodCountCalendarDays,
       });
@@ -83,8 +80,8 @@ export function calculatePeriodLimits({
     }
 
     case PeriodType.RANGE: {
-      const rangeStartDay = dayjs(periodStartDate).utcOffset(utcOffset).endOf("day");
-      const rangeEndDay = dayjs(periodEndDate).utcOffset(utcOffset).endOf("day");
+      const rangeStartDay = dayjs(periodStartDate).endOf("day");
+      const rangeEndDay = dayjs(periodEndDate).endOf("day");
       return {
         rollingEndDay: null,
         rangeStartDay,
@@ -92,6 +89,7 @@ export function calculatePeriodLimits({
       };
     }
   }
+
   return {
     rollingEndDay: null,
     rangeStartDay: null,
@@ -99,25 +97,27 @@ export function calculatePeriodLimits({
   };
 }
 
-/**
- * TODO: Unit Test this function
- */
 export function getRollingWindowEndDate({
   startDate,
-  daysNeeded,
+  daysInFuture,
   allDatesWithBookabilityStatus,
   countNonBusinessDays,
 }: {
   /**
-   * It should be already in the correct timezone. No, utcOffset conversion is done in this function
+   * It should be provided in the same utcOffset as the dates in `allDatesWithBookabilityStatus`
+   * This is because we do a lookup by day in `allDatesWithBookabilityStatus`
    */
   startDate: dayjs.Dayjs;
-  daysNeeded: number;
+  /**
+   * Number of days in the future when the period ends
+   * If it is X, then period will have X + 1(for startDate) number of days
+   */
+  daysInFuture: number;
   allDatesWithBookabilityStatus: Record<string, { isBookable: boolean }>;
   countNonBusinessDays: boolean | null;
 }) {
   const log = logger.getSubLogger({ prefix: ["getRollingWindowEndDate"] });
-  log.debug("called:", safeStringify({ startDay: startDate.format(), daysNeeded }));
+  log.debug("called:", safeStringify({ startDay: startDate.format(), daysInFuture }));
   let counter = 1;
   let rollingEndDay;
   let currentDate = startDate.startOf("day");
@@ -126,8 +126,9 @@ export function getRollingWindowEndDate({
   const maxDaysToCheck = ROLLING_WINDOW_PERIOD_MAX_DAYS_TO_CHECK;
 
   let bookableDaysCount = 0;
+
   // Add periodDays to currentDate, skipping non-bookable days.
-  while (bookableDaysCount < daysNeeded) {
+  while (bookableDaysCount <= daysInFuture) {
     // What if we don't find any bookable days. We should break out of the loop after a certain number of days.
     if (counter > maxDaysToCheck) {
       break;
@@ -160,7 +161,9 @@ export function getRollingWindowEndDate({
    */
   const rollingEndDayOrLastPossibleDayAsPerLimit = rollingEndDay ?? currentDate;
   log.debug("Returning rollingEndDay", rollingEndDayOrLastPossibleDayAsPerLimit.format());
-  return rollingEndDayOrLastPossibleDayAsPerLimit;
+
+  // Return endOfDay so that any timeslot in the last day is considered within bounds
+  return rollingEndDayOrLastPossibleDayAsPerLimit.endOf("day");
 }
 
 /**
@@ -182,6 +185,7 @@ export function isTimeOutOfBounds({
   });
 
   const date = dayjs(time);
+
   guardAgainstBookingInThePast(date.toDate());
 
   if (minimumBookingNotice) {
@@ -225,10 +229,17 @@ export function isDateOutOfBounds({
     })
   );
 
-  const endOfDay = dayjs(dateString).endOf("day");
+  const endOfDay = dayjs(dateString);
 
   if (periodLimits.rollingEndDay) {
-    return endOfDay.isAfter(periodLimits.rollingEndDay);
+    const isAfterRollingEndDay = endOfDay.isAfter(periodLimits.rollingEndDay);
+    log.debug({
+      dateString,
+      endOfDay: endOfDay.format(),
+      isAfterRollingEndDay,
+      rollingEndDay: periodLimits.rollingEndDay.format(),
+    });
+    return isAfterRollingEndDay;
   }
 
   if (periodLimits.rangeStartDay && periodLimits.rangeEndDay) {
@@ -264,6 +275,7 @@ export default function isOutOfBounds(
         periodCountCalendarDays,
         periodStartDate,
         periodEndDate,
+        // Temporary till we find a way to provide allDatesWithBookabilityStatus in handleNewBooking without re-computing availability for the booked timeslot
         allDatesWithBookabilityStatus: null,
         _skipRollingWindowCheck: true,
         utcOffset,

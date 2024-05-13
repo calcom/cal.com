@@ -14,7 +14,7 @@ import { parseBookingLimit, parseDurationLimit } from "@calcom/lib";
 import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
 import { getUTCOffsetByTimezone } from "@calcom/lib/date-fns";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
-import { isDateOutOfBounds, calculatePeriodLimits } from "@calcom/lib/isOutOfBounds";
+import { isDateOutOfBounds, isTimeOutOfBounds, calculatePeriodLimits } from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { performance } from "@calcom/lib/server/perfObserver";
@@ -697,12 +697,17 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
   let foundALimitViolation = false;
   const withinBoundsSlotsMappedToDate = Object.entries(slotsMappedToDate).reduce(
     (withinBoundsSlotsMappedToDate, [date, slots]) => {
+      // If a limit violation has been found, we just consider all slots to be out of bounds beyond that date.
       if (foundALimitViolation) {
         return withinBoundsSlotsMappedToDate;
       }
       const isDateWithinBound = !isDateOutOfBounds({ dateString: date, periodLimits });
       if (isDateWithinBound) {
-        withinBoundsSlotsMappedToDate[date] = slots;
+        // TODO: Slots calculation logic already seems to consider the minimum booking notice and past booking time and thus there shouldn't be need to filter out slots here.
+        withinBoundsSlotsMappedToDate[date] = slots.filter(
+          (slot) =>
+            !isTimeOutOfBounds({ time: slot.time, minimumBookingNotice: eventType.minimumBookingNotice })
+        );
       } else {
         foundALimitViolation = true;
       }

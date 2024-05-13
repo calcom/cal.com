@@ -26,8 +26,9 @@ import CheckboxField from "@components/ui/form/CheckboxField";
 type IPeriodType = (typeof PeriodType)[keyof typeof PeriodType];
 
 /**
- * We technically have a ROLLING_WINDOW future limit option as well but UX is better by providing it as a toggle with ROLLING Limit
+ * We technically have a ROLLING_WINDOW future limit option that isn't shown as a Radio Option. Because UX is better by providing it as a toggle with ROLLING Limit radio option.
  * Also, ROLLING_WINDOW reuses the same `periodDays` field and `periodCountCalendarDays` fields
+ *
  * So we consider `periodType=ROLLING && rollingExcludeUnavailableDays=true` to be the ROLLING_WINDOW option
  * We can't set `periodType=ROLLING_WINDOW` directly because it is not a valid Radio Option in UI
  * So, here we can convert from periodType to uiValue any time.
@@ -171,7 +172,7 @@ function RollingLimitRadioItem({
         <div className="py-2">
           <CheckboxField
             checked={!!rollingExcludeUnavailableDays}
-            description={`Always show ${periodDaysWatch} days`}
+            description={`Always show today plus ${periodDaysWatch} days`}
             onChange={(e) => {
               const isChecked = e.target.checked;
               formMethods.setValue(

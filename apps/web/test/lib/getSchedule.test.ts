@@ -178,16 +178,30 @@ const TestData = {
 
 const expectedSlotsForSchedule = {
   IstWorkHours: {
-    allPossibleSlots: [
-      "04:30:00.000Z",
-      "05:30:00.000Z",
-      "06:30:00.000Z",
-      "07:30:00.000Z",
-      "08:30:00.000Z",
-      "09:30:00.000Z",
-      "10:30:00.000Z",
-      "11:30:00.000Z",
-    ],
+    interval: {
+      "1hr": {
+        allPossibleSlotsStartingAt430: [
+          "04:30:00.000Z",
+          "05:30:00.000Z",
+          "06:30:00.000Z",
+          "07:30:00.000Z",
+          "08:30:00.000Z",
+          "09:30:00.000Z",
+          "10:30:00.000Z",
+          "11:30:00.000Z",
+        ],
+        allPossibleSlotsStartingAt4: [
+          "04:00:00.000Z",
+          "05:00:00.000Z",
+          "06:00:00.000Z",
+          "07:00:00.000Z",
+          "08:00:00.000Z",
+          "09:00:00.000Z",
+          "10:00:00.000Z",
+          "11:00:00.000Z",
+        ],
+      },
+    },
   },
 };
 
@@ -489,22 +503,12 @@ describe("getSchedule", () => {
       );
     });
 
-    // FIXME: Fix minimumBookingNotice is respected test
-    // eslint-disable-next-line playwright/no-skipped-test
-    test.skip("minimumBookingNotice is respected", async () => {
-      vi.useFakeTimers().setSystemTime(
-        (() => {
-          const today = new Date();
-          // Beginning of the day in current timezone of the system
-          return new Date(today.getFullYear(), today.getMonth(), today.getDate());
-        })()
-      );
-
+    test("minimumBookingNotice is respected", async () => {
       await createBookingScenario({
         eventTypes: [
           {
             id: 1,
-            length: 120,
+            length: 2 * 60,
             minimumBookingNotice: 13 * 60, // Would take the minimum bookable time to be 18:30UTC+13 = 7:30AM UTC
             users: [
               {
@@ -514,7 +518,7 @@ describe("getSchedule", () => {
           },
           {
             id: 2,
-            length: 120,
+            length: 2 * 60,
             minimumBookingNotice: 10 * 60, // Would take the minimum bookable time to be 18:30UTC+10 = 4:30AM UTC
             users: [
               {
@@ -531,8 +535,13 @@ describe("getSchedule", () => {
           },
         ],
       });
+
       const { dateString: todayDateString } = getDate();
       const { dateString: minus1DateString } = getDate({ dateIncrement: -1 });
+
+      // Time Travel to the beginning of today after getting all the dates correctly.
+      timeTravelToTheBeginningOfToday({ utcOffsetInHours: 5.5 });
+
       const scheduleForEventWithBookingNotice13Hrs = await getSchedule({
         input: {
           eventTypeId: 1,
@@ -543,9 +552,11 @@ describe("getSchedule", () => {
           isTeamEvent: false,
         },
       });
+
       expect(scheduleForEventWithBookingNotice13Hrs).toHaveTimeSlots(
         [
-          /*`04:00:00.000Z`, `06:00:00.000Z`, - Minimum time slot is 07:30 UTC*/ `08:00:00.000Z`,
+          /*`04:00:00.000Z`, `06:00:00.000Z`, - Minimum time slot is 07:30 UTC which is 13hrs from 18:30*/
+          `08:00:00.000Z`,
           `10:00:00.000Z`,
           `12:00:00.000Z`,
         ],
@@ -566,17 +577,15 @@ describe("getSchedule", () => {
       });
       expect(scheduleForEventWithBookingNotice10Hrs).toHaveTimeSlots(
         [
-          /*`04:00:00.000Z`, - Minimum bookable time slot is 04:30 UTC but next available is 06:00*/
-          `06:00:00.000Z`,
-          `08:00:00.000Z`,
-          `10:00:00.000Z`,
-          `12:00:00.000Z`,
+          /*`04:00:00.000Z`, - Minimum bookable time slot is 04:30 UTC which is 10hrs from 18:30 */
+          `05:00:00.000Z`,
+          `07:00:00.000Z`,
+          `09:00:00.000Z`,
         ],
         {
           dateString: todayDateString,
         }
       );
-      vi.useRealTimers();
     });
 
     test("afterBuffer and beforeBuffer tests - Non Cal Busy Time", async () => {
@@ -1053,7 +1062,7 @@ describe("getSchedule", () => {
         const { dateString: plus3DateString } = getDate({ dateIncrement: 3 });
         const { dateString: plus4DateString } = getDate({ dateIncrement: 4 });
         const { dateString: plus5DateString } = getDate({ dateIncrement: 5 });
-        timeTravelToTheBeginningOfToday();
+        timeTravelToTheBeginningOfToday({ utcOffsetInHours: 5.5 });
 
         const scenarioData = {
           eventTypes: [
@@ -1096,15 +1105,21 @@ describe("getSchedule", () => {
           },
         });
 
-        expect(scheduleForEvent).toHaveTimeSlots(expectedSlotsForSchedule["IstWorkHours"].allPossibleSlots, {
-          dateString: todayDateString,
-          doExactMatch: true,
-        });
+        expect(scheduleForEvent).toHaveTimeSlots(
+          expectedSlotsForSchedule["IstWorkHours"].interval["1hr"].allPossibleSlotsStartingAt430,
+          {
+            dateString: todayDateString,
+            doExactMatch: true,
+          }
+        );
 
-        expect(scheduleForEvent).toHaveTimeSlots(expectedSlotsForSchedule["IstWorkHours"].allPossibleSlots, {
-          dateString: plus1DateString,
-          doExactMatch: true,
-        });
+        expect(scheduleForEvent).toHaveTimeSlots(
+          expectedSlotsForSchedule["IstWorkHours"].interval["1hr"].allPossibleSlotsStartingAt430,
+          {
+            dateString: plus1DateString,
+            doExactMatch: true,
+          }
+        );
 
         // No Timeslots available as plus2Date and futher dates are beyond the rolling period
         expect(scheduleForEvent).toHaveNoTimeSlots({
@@ -1455,10 +1470,6 @@ describe("getSchedule", () => {
   });
 });
 
-function timeTravelToTheBeginningOfDay(yesterdayDateString: string) {
-  vi.setSystemTime(`${yesterdayDateString}T18:30:00.000Z`);
-}
-
 function getPeriodTypeData({
   type,
   periodDays,
@@ -1506,7 +1517,15 @@ function getPeriodTypeData({
   }
 }
 
-function timeTravelToTheBeginningOfToday() {
+function timeTravelToTheBeginningOfToday({ utcOffsetInHours = 0 }: { utcOffsetInHours: number }) {
+  const timeInTheUtcOffsetInHours = 24 - utcOffsetInHours;
+  const timeInTheUtcOffsetInMinutes = timeInTheUtcOffsetInHours * 60;
+  const hours = Math.floor(timeInTheUtcOffsetInMinutes / 60);
+  const hoursString = hours < 10 ? `0${hours}` : `${hours}`;
+  const minutes = timeInTheUtcOffsetInMinutes % 60;
+  const minutesString = minutes < 10 ? `0${minutes}` : `${minutes}`;
+
   const { dateString: yesterdayDateString } = getDate({ dateIncrement: -1 });
-  vi.setSystemTime(`${yesterdayDateString}T18:30:00.000Z`);
+  console.log({ yesterdayDateString, hours, minutes });
+  vi.setSystemTime(`${yesterdayDateString}T${hoursString}:${minutesString}:00.000Z`);
 }

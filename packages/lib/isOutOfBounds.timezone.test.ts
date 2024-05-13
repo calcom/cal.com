@@ -20,20 +20,36 @@ const getDayJsTimeWithUtcOffset = ({
 };
 
 describe("getRollingWindowEndDate", () => {
-  it("should return the startDate itself when that date is bookable and only 1 day is needed", () => {
+  it("should return the startDate itself when that date is bookable and 0 days in future are needed", () => {
     const endDay = getRollingWindowEndDate({
       startDate: getDayJsTimeWithUtcOffset({
         dateStringWithOffset: "2024-05-02T05:09:46+11:00",
         utcOffset: 11,
       }),
-      daysNeeded: 1,
+      daysInFuture: 0,
       allDatesWithBookabilityStatus: {
         "2024-05-02": { isBookable: true },
         "2024-05-03": { isBookable: false },
       },
       countNonBusinessDays: true,
     });
-    expect(endDay?.format()).toEqual("2024-05-02T00:00:00+11:00");
+    expect(endDay?.format()).toEqual("2024-05-02T23:59:59+11:00");
+  });
+
+  it("should return the last possible time of the date so that all the timeslots of the last day are considered within range ", () => {
+    const endDay = getRollingWindowEndDate({
+      startDate: getDayJsTimeWithUtcOffset({
+        dateStringWithOffset: "2024-05-02T05:09:46+11:00",
+        utcOffset: 11,
+      }),
+      daysInFuture: 2,
+      allDatesWithBookabilityStatus: {
+        "2024-05-02": { isBookable: true },
+        "2024-05-03": { isBookable: true },
+      },
+      countNonBusinessDays: true,
+    });
+    expect(endDay?.format()).toEqual("2024-05-03T23:59:59+11:00");
   });
 
   it("Input startDate normalization - should return the startDate with 00:00 time when that date is bookable and only 1 day is needed", () => {
@@ -43,14 +59,14 @@ describe("getRollingWindowEndDate", () => {
         dateStringWithOffset: "2024-05-11T05:09:46+11:00",
         utcOffset: 11,
       }),
-      daysNeeded: 1,
+      daysInFuture: 1,
       allDatesWithBookabilityStatus: {
         "2024-05-10": { isBookable: true },
         "2024-05-11": { isBookable: true },
       },
       countNonBusinessDays: true,
     });
-    expect(endDay?.format()).toEqual("2024-05-11T00:00:00+11:00");
+    expect(endDay?.format()).toEqual("2024-05-11T23:59:59+11:00");
   });
 
   it("should return the first bookable date when only 1 day is needed and the startDate is unavailable", () => {
@@ -59,7 +75,7 @@ describe("getRollingWindowEndDate", () => {
         dateStringWithOffset: "2024-05-02T05:09:46+11:00",
         utcOffset: 11,
       }),
-      daysNeeded: 1,
+      daysInFuture: 1,
       allDatesWithBookabilityStatus: {
         "2024-05-02": { isBookable: false },
         "2024-05-03": { isBookable: false },
@@ -67,10 +83,10 @@ describe("getRollingWindowEndDate", () => {
       },
       countNonBusinessDays: true,
     });
-    expect(endDay?.format()).toEqual("2024-05-04T00:00:00+11:00");
+    expect(endDay?.format()).toEqual("2024-05-04T23:59:59+11:00");
   });
 
-  it("can give endDay farther than daysNeeded if countNonBusinessDays=false", () => {
+  it("can give endDay farther than daysInFuture if countNonBusinessDays=false", () => {
     // 2024-05-02 is Thursday
     // 2024-05-03 is Friday
     // 2024-05-04 is Saturday(Non business Day)
@@ -87,19 +103,22 @@ describe("getRollingWindowEndDate", () => {
           dateStringWithOffset: "2024-05-02T15:09:46+11:00",
           utcOffset: 11,
         }),
-        daysNeeded: 3,
+        daysInFuture: 3,
         allDatesWithBookabilityStatus: {
           "2024-05-02": { isBookable: true },
           "2024-05-03": { isBookable: true },
+          // Skipped
           "2024-05-04": { isBookable: true },
+          // Skipped
           "2024-05-05": { isBookable: true },
           "2024-05-06": { isBookable: true },
+          "2024-05-07": { isBookable: true },
         },
         countNonBusinessDays: false,
       });
 
       // Instead of 4th, it gives 6th because 2 days in b/w are non-business days which aren't counted
-      expect(endDay?.format()).toEqual("2024-05-06T00:00:00+11:00");
+      expect(endDay?.format()).toEqual("2024-05-07T23:59:59+11:00");
     }
 
     function testWhenNonBusinessDaysAreNotBooked() {
@@ -108,7 +127,7 @@ describe("getRollingWindowEndDate", () => {
           dateStringWithOffset: "2024-05-02T15:09:46+11:00",
           utcOffset: 11,
         }),
-        daysNeeded: 3,
+        daysInFuture: 3,
         allDatesWithBookabilityStatus: {
           "2024-05-02": { isBookable: true },
           "2024-05-03": { isBookable: true },
@@ -120,36 +139,37 @@ describe("getRollingWindowEndDate", () => {
       });
 
       // Instead of 4th, it gives 6th because 2 days in b/w are non-business days which aren't counted
-      expect(endDay2?.format()).toEqual("2024-05-06T00:00:00+11:00");
+      expect(endDay2?.format()).toEqual("2024-05-06T23:59:59+11:00");
     }
   });
 
-  it("should return the first `daysNeeded` bookable days", () => {
+  it("should return the first `daysInFuture` + 1 bookable days", () => {
     const endDay = getRollingWindowEndDate({
       startDate: getDayJsTimeWithUtcOffset({
         dateStringWithOffset: "2024-05-02T05:09:46+11:00",
         utcOffset: 11,
       }),
-      daysNeeded: 3,
+      daysInFuture: 3,
       allDatesWithBookabilityStatus: {
         "2024-05-02": { isBookable: false },
         "2024-05-03": { isBookable: false },
         "2024-05-04": { isBookable: true },
         "2024-05-05": { isBookable: true },
         "2024-05-06": { isBookable: true },
+        "2024-05-07": { isBookable: true },
       },
       countNonBusinessDays: true,
     });
-    expect(endDay?.format()).toEqual("2024-05-06T00:00:00+11:00");
+    expect(endDay?.format()).toEqual("2024-05-07T23:59:59+11:00");
   });
 
-  it("should return the last bookable day if enough `daysNeeded` bookable days aren't found", () => {
+  it("should return the last bookable day if enough `daysInFuture` bookable days aren't found", () => {
     const endDay = getRollingWindowEndDate({
       startDate: getDayJsTimeWithUtcOffset({
         dateStringWithOffset: "2024-05-02T05:09:46+11:00",
         utcOffset: 11,
       }),
-      daysNeeded: 30,
+      daysInFuture: 30,
       allDatesWithBookabilityStatus: {
         "2024-05-02": { isBookable: false },
         "2024-05-03": { isBookable: false },
@@ -159,16 +179,16 @@ describe("getRollingWindowEndDate", () => {
       },
       countNonBusinessDays: true,
     });
-    expect(endDay?.format()).toEqual("2024-05-05T00:00:00+11:00");
+    expect(endDay?.format()).toEqual("2024-05-05T23:59:59+11:00");
   });
 
-  it("should treat non existing dates in `allDatesWithBookabilityStatus` as having isBookable:false  the first `daysNeeded` bookable days", () => {
+  it("should treat non existing dates in `allDatesWithBookabilityStatus` as having isBookable:false  the first `daysInFuture` bookable days", () => {
     const endDay = getRollingWindowEndDate({
       startDate: getDayJsTimeWithUtcOffset({
         dateStringWithOffset: "2024-05-02T05:09:46+11:00",
         utcOffset: 11,
       }),
-      daysNeeded: 3,
+      daysInFuture: 3,
       allDatesWithBookabilityStatus: {
         "2024-05-02": { isBookable: true },
         "2024-05-03": { isBookable: false },
@@ -177,7 +197,7 @@ describe("getRollingWindowEndDate", () => {
       },
       countNonBusinessDays: true,
     });
-    expect(endDay?.format()).toEqual("2024-05-07T00:00:00+11:00");
+    expect(endDay?.format()).toEqual("2024-05-07T23:59:59+11:00");
   });
 
   it("should return the last day in maximum window(that would be ROLLING_WINDOW_PERIOD_MAX_DAYS_TO_CHECK days ahead) if no bookable day is found at all", () => {
@@ -186,11 +206,11 @@ describe("getRollingWindowEndDate", () => {
         dateStringWithOffset: "2024-05-02T05:09:46+11:00",
         utcOffset: 11,
       }),
-      daysNeeded: 3,
+      daysInFuture: 3,
       allDatesWithBookabilityStatus: {},
       countNonBusinessDays: true,
     });
-    expect(endDay?.format()).toEqual("2024-07-02T00:00:00+11:00");
+    expect(endDay?.format()).toEqual("2024-07-02T23:59:59+11:00");
   });
 
   it("should should consider the bookable day very close to ROLLING_WINDOW_PERIOD_MAX_DAYS_TO_CHECK but not beyond it", () => {
@@ -199,7 +219,7 @@ describe("getRollingWindowEndDate", () => {
         dateStringWithOffset: "2024-05-02T05:09:46+11:00",
         utcOffset: 11,
       }),
-      daysNeeded: 3,
+      daysInFuture: 3,
       allDatesWithBookabilityStatus: {
         "2024-05-02": { isBookable: true },
         "2024-06-04": { isBookable: true },
@@ -208,6 +228,6 @@ describe("getRollingWindowEndDate", () => {
       },
       countNonBusinessDays: true,
     });
-    expect(endDay?.format()).toEqual("2024-07-01T00:00:00+11:00");
+    expect(endDay?.format()).toEqual("2024-07-01T23:59:59+11:00");
   });
 });
