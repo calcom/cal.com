@@ -22,6 +22,7 @@ import type {
 } from "@calcom/platform-types";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 
+import { useAtomsContext } from "../hooks/useAtomsContext";
 import { useAvailableSlots } from "../hooks/useAvailableSlots";
 import { useCalendarsBusyTimes } from "../hooks/useCalendarsBusyTimes";
 import { useConnectedCalendars } from "../hooks/useConnectedCalendars";
@@ -63,6 +64,7 @@ type BookerPlatformWrapperAtomProps = Omit<BookerProps, "username" | "entity"> &
 };
 
 export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => {
+  const { clientId } = useAtomsContext();
   const [bookerState, setBookerState] = useBookerStore((state) => [state.state, state.setState], shallow);
   const setSelectedDate = useBookerStore((state) => state.setSelectedDate);
   const setSelectedDuration = useBookerStore((state) => state.setSelectedDuration);
@@ -71,7 +73,7 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
   const bookingData = useBookerStore((state) => state.bookingData);
   const setSelectedTimeslot = useBookerStore((state) => state.setSelectedTimeslot);
   const setSelectedMonth = useBookerStore((state) => state.setMonth);
-  const { data: booking } = useGetBookingForReschedule({
+  useGetBookingForReschedule({
     uid: props.rescheduleUid ?? props.bookingUid ?? "",
     onSuccess: (data) => {
       setBookingData(data);
@@ -189,7 +191,10 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
 
   const bookerForm = useBookingForm({
     event: event.data,
-    sessionEmail: session?.data?.email,
+    sessionEmail:
+      session?.data?.email && clientId
+        ? session.data.email.replace(`+${clientId}`, "")
+        : session?.data?.email,
     sessionUsername: session?.data?.username,
     sessionName: session?.data?.username,
     hasSession,
