@@ -172,7 +172,7 @@ function RollingLimitRadioItem({
         <div className="py-2">
           <CheckboxField
             checked={!!rollingExcludeUnavailableDays}
-            description={`Always show today plus ${periodDaysWatch} days`}
+            description={`Always show ${periodDaysWatch + 1} days`}
             onChange={(e) => {
               const isChecked = e.target.checked;
               formMethods.setValue(
