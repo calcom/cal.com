@@ -255,7 +255,7 @@ const Layout = (props: LayoutProps) => {
       <TimezoneChangeDialog />
 
       <div className="flex min-h-screen flex-col">
-        {banners && (
+        {banners && !props.isPlatformUser && (
           <div className="sticky top-0 z-10 w-full divide-y divide-black">
             <UserV2OptInBanner />
             {Object.keys(banners).map((key) => {
@@ -289,7 +289,7 @@ const Layout = (props: LayoutProps) => {
           {props.SidebarContainer ? (
             cloneElement(props.SidebarContainer, { bannersHeight })
           ) : (
-            <SideBarContainer bannersHeight={bannersHeight} />
+            <SideBarContainer isPlatformUser={props.isPlatformUser} bannersHeight={bannersHeight} />
           )}
           <div className="flex w-0 flex-1 flex-col">
             <MainContainer {...props} />
@@ -330,6 +330,7 @@ export type LayoutProps = {
   afterHeading?: ReactNode;
   smallHeading?: boolean;
   hideHeadingOnMobile?: boolean;
+  isPlatformUser?: boolean;
 };
 
 const useAppTheme = () => {
@@ -648,27 +649,66 @@ const navigation: NavigationItemType[] = [
   },
 ];
 
-const moreSeparatorIndex = navigation.findIndex((item) => item.name === MORE_SEPARATOR_NAME);
-// We create all needed navigation items for the different use cases
-const { desktopNavigationItems, mobileNavigationBottomItems, mobileNavigationMoreItems } = navigation.reduce<
-  Record<string, NavigationItemType[]>
->(
-  (items, item, index) => {
-    // We filter out the "more" separator in` desktop navigation
-    if (item.name !== MORE_SEPARATOR_NAME) items.desktopNavigationItems.push(item);
-    // Items for mobile bottom navigation
-    if (index < moreSeparatorIndex + 1 && !item.onlyDesktop) {
-      items.mobileNavigationBottomItems.push(item);
-    } // Items for the "more" menu in mobile navigation
-    else {
-      items.mobileNavigationMoreItems.push(item);
-    }
-    return items;
+const platformNavigation: NavigationItemType[] = [
+  {
+    name: "Dashboard",
+    href: "/settings/platform/",
+    icon: "layout-dashboard",
   },
-  { desktopNavigationItems: [], mobileNavigationBottomItems: [], mobileNavigationMoreItems: [] }
-);
+  {
+    name: "Documentation",
+    href: "https://docs.cal.com/docs/platform",
+    icon: "bar-chart",
+    target: "_blank",
+  },
+  {
+    name: "API reference",
+    href: "https://api.cal.com/v2/docs#/",
+    icon: "terminal",
+    target: "_blank",
+  },
+  {
+    name: "Atoms",
+    href: "https://docs.cal.com/docs/platform#atoms",
+    icon: "atom",
+    target: "_blank",
+  },
+  {
+    name: MORE_SEPARATOR_NAME,
+    href: "https://docs.cal.com/docs/platform/faq",
+    icon: "ellipsis",
+    target: "_blank",
+  },
+];
 
-const Navigation = () => {
+const getDesktopNavigationItems = (isPlatformNavigation = false) => {
+  const navigationType = !isPlatformNavigation ? navigation : platformNavigation;
+  const moreSeparatorIndex = navigationType.findIndex((item) => item.name === MORE_SEPARATOR_NAME);
+
+  const { desktopNavigationItems, mobileNavigationBottomItems, mobileNavigationMoreItems } = (
+    !isPlatformNavigation ? navigation : platformNavigation
+  ).reduce<Record<string, NavigationItemType[]>>(
+    (items, item, index) => {
+      // We filter out the "more" separator in` desktop navigation
+      if (item.name !== MORE_SEPARATOR_NAME) items.desktopNavigationItems.push(item);
+      // Items for mobile bottom navigation
+      if (index < moreSeparatorIndex + 1 && !item.onlyDesktop) {
+        items.mobileNavigationBottomItems.push(item);
+      } // Items for the "more" menu in mobile navigation
+      else {
+        items.mobileNavigationMoreItems.push(item);
+      }
+      return items;
+    },
+    { desktopNavigationItems: [], mobileNavigationBottomItems: [], mobileNavigationMoreItems: [] }
+  );
+
+  return { desktopNavigationItems, mobileNavigationBottomItems, mobileNavigationMoreItems };
+};
+
+const Navigation = ({ isPlatformNavigation = false }: { isPlatformNavigation?: boolean }) => {
+  const { desktopNavigationItems } = getDesktopNavigationItems(isPlatformNavigation);
+
   return (
     <nav className="mt-2 flex-1 md:px-2 lg:mt-4 lg:px-0">
       {desktopNavigationItems.map((item) => (
@@ -712,6 +752,7 @@ const NavigationItem: React.FC<{
           data-test-id={item.name}
           href={item.href}
           aria-label={t(item.name)}
+          target={item.target}
           className={classNames(
             "todesktop:py-[7px] text-default group flex items-center rounded-md px-2 py-1.5 text-sm font-medium transition",
             item.child ? `[&[aria-current='page']]:!bg-transparent` : `[&[aria-current='page']]:bg-emphasis`,
@@ -752,14 +793,15 @@ const NavigationItem: React.FC<{
   );
 };
 
-function MobileNavigationContainer() {
+function MobileNavigationContainer({ isPlatformNavigation = false }: { isPlatformNavigation?: boolean }) {
   const { status } = useSession();
   if (status !== "authenticated") return null;
-  return <MobileNavigation />;
+  return <MobileNavigation isPlatformNavigation={isPlatformNavigation} />;
 }
 
-const MobileNavigation = () => {
+const MobileNavigation = ({ isPlatformNavigation = false }: { isPlatformNavigation?: boolean }) => {
   const isEmbed = useIsEmbed();
+  const { mobileNavigationBottomItems } = getDesktopNavigationItems(isPlatformNavigation);
 
   return (
     <>
@@ -794,6 +836,7 @@ const MobileNavigationItem: React.FC<{
     <Link
       key={item.name}
       href={item.href}
+      target={item.target}
       className="[&[aria-current='page']]:text-emphasis hover:text-default text-muted relative my-2 min-w-0 flex-1 overflow-hidden rounded-md !bg-transparent p-1 text-center text-xs font-medium focus:z-10 sm:text-sm"
       aria-current={current ? "page" : undefined}>
       {item.badge && <div className="absolute right-1 top-1">{item.badge}</div>}
@@ -837,24 +880,26 @@ const MobileNavigationMoreItem: React.FC<{
 
 type SideBarContainerProps = {
   bannersHeight: number;
+  isPlatformUser?: boolean;
 };
 
 type SideBarProps = {
   bannersHeight: number;
   user?: UserAuth | null;
+  isPlatformUser?: boolean;
 };
 
-function SideBarContainer({ bannersHeight }: SideBarContainerProps) {
+function SideBarContainer({ bannersHeight, isPlatformUser = false }: SideBarContainerProps) {
   const { status, data } = useSession();
 
   // Make sure that Sidebar is rendered optimistically so that a refresh of pages when logged in have SideBar from the beginning.
   // This improves the experience of refresh on app store pages(when logged in) which are SSG.
   // Though when logged out, app store pages would temporarily show SideBar until session status is confirmed.
   if (status !== "loading" && status !== "authenticated") return null;
-  return <SideBar bannersHeight={bannersHeight} user={data?.user} />;
+  return <SideBar isPlatformUser={isPlatformUser} bannersHeight={bannersHeight} user={data?.user} />;
 }
 
-function SideBar({ bannersHeight, user }: SideBarProps) {
+function SideBar({ bannersHeight, user, isPlatformUser = false }: SideBarProps) {
   const { t, isLocaleReady } = useLocale();
   const orgBranding = useOrgBranding();
 
@@ -948,54 +993,54 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
               <KBarTrigger />
             </div>
           </header>
-
           {/* logo icon for tablet */}
           <Link href="/event-types" className="text-center md:inline lg:hidden">
             <Logo small icon />
           </Link>
-
-          <Navigation />
+          <Navigation isPlatformNavigation={isPlatformUser} />
         </div>
 
-        <div>
-          <Tips />
-          {bottomNavItems.map((item, index) => (
-            <Tooltip side="right" content={t(item.name)} className="lg:hidden" key={item.name}>
-              <ButtonOrLink
-                id={item.name}
-                href={item.href || undefined}
-                aria-label={t(item.name)}
-                target={item.target}
-                className={classNames(
-                  "text-left",
-                  "[&[aria-current='page']]:bg-emphasis text-default justify-right group flex items-center rounded-md px-2 py-1.5 text-sm font-medium transition",
-                  "[&[aria-current='page']]:text-emphasis mt-0.5 w-full text-sm",
-                  isLocaleReady ? "hover:bg-emphasis hover:text-emphasis" : "",
-                  index === 0 && "mt-3"
-                )}
-                onClick={item.onClick}>
-                {!!item.icon && (
-                  <Icon
-                    name={item.icon}
-                    className={classNames(
-                      "h-4 w-4 flex-shrink-0 [&[aria-current='page']]:text-inherit",
-                      "me-3 md:mx-auto lg:ltr:mr-2 lg:rtl:ml-2"
-                    )}
-                    aria-hidden="true"
-                  />
-                )}
-                {isLocaleReady ? (
-                  <span className="hidden w-full justify-between lg:flex">
-                    <div className="flex">{t(item.name)}</div>
-                  </span>
-                ) : (
-                  <SkeletonText className="h-[20px] w-full" />
-                )}
-              </ButtonOrLink>
-            </Tooltip>
-          ))}
-          {!IS_VISUAL_REGRESSION_TESTING && <Credits />}
-        </div>
+        {!isPlatformUser && (
+          <div>
+            <Tips />
+            {bottomNavItems.map((item, index) => (
+              <Tooltip side="right" content={t(item.name)} className="lg:hidden" key={item.name}>
+                <ButtonOrLink
+                  id={item.name}
+                  href={item.href || undefined}
+                  aria-label={t(item.name)}
+                  target={item.target}
+                  className={classNames(
+                    "text-left",
+                    "[&[aria-current='page']]:bg-emphasis text-default justify-right group flex items-center rounded-md px-2 py-1.5 text-sm font-medium transition",
+                    "[&[aria-current='page']]:text-emphasis mt-0.5 w-full text-sm",
+                    isLocaleReady ? "hover:bg-emphasis hover:text-emphasis" : "",
+                    index === 0 && "mt-3"
+                  )}
+                  onClick={item.onClick}>
+                  {!!item.icon && (
+                    <Icon
+                      name={item.icon}
+                      className={classNames(
+                        "h-4 w-4 flex-shrink-0 [&[aria-current='page']]:text-inherit",
+                        "me-3 md:mx-auto lg:ltr:mr-2 lg:rtl:ml-2"
+                      )}
+                      aria-hidden="true"
+                    />
+                  )}
+                  {isLocaleReady ? (
+                    <span className="hidden w-full justify-between lg:flex">
+                      <div className="flex">{t(item.name)}</div>
+                    </span>
+                  ) : (
+                    <SkeletonText className="h-[20px] w-full" />
+                  )}
+                </ButtonOrLink>
+              </Tooltip>
+            ))}
+            {!IS_VISUAL_REGRESSION_TESTING && <Credits />}
+          </div>
+        )}
       </aside>
     </div>
   );
@@ -1075,7 +1120,10 @@ export function ShellMain(props: LayoutProps) {
 }
 
 function MainContainer({
-  MobileNavigationContainer: MobileNavigationContainerProp = <MobileNavigationContainer />,
+  isPlatformUser,
+  MobileNavigationContainer: MobileNavigationContainerProp = (
+    <MobileNavigationContainer isPlatformNavigation={isPlatformUser} />
+  ),
   TopNavContainer: TopNavContainerProp = <TopNavContainer />,
   ...props
 }: LayoutProps) {
@@ -1128,13 +1176,17 @@ function TopNav() {
   );
 }
 
-export const MobileNavigationMoreItems = () => (
-  <ul className="border-subtle mt-2 rounded-md border">
-    {mobileNavigationMoreItems.map((item) => (
-      <MobileNavigationMoreItem key={item.name} item={item} />
-    ))}
-  </ul>
-);
+export const MobileNavigationMoreItems = () => {
+  const { mobileNavigationMoreItems } = getDesktopNavigationItems();
+
+  return (
+    <ul className="border-subtle mt-2 rounded-md border">
+      {mobileNavigationMoreItems.map((item) => (
+        <MobileNavigationMoreItem key={item.name} item={item} />
+      ))}
+    </ul>
+  );
+};
 
 function ProfileDropdown() {
   const { update, data: sessionData } = useSession();

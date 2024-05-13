@@ -2209,7 +2209,7 @@
   "advanced_managed_events_description": "Adicione um único cartão de crédito para pagar todas as assinaturas da sua equipe",
   "enterprise_description": "Atualize para Enterprise para criar sua organização",
   "create_your_org": "Crie sua organização",
-  "create_your_org_description": "Atualize para Enterprise e receba um subdomínio, faturamento unificado, insights, whitelabeling abrangente e muito mais",
+  "create_your_org_description": "Atualize para Organizations e receba um subdomínio, faturamento unificado, insights, whitelabeling abrangente e muito mais",
   "other_payment_app_enabled": "Você só pode ativar um aplicativo de pagamento por tipo de evento",
   "admin_delete_organization_description": "<ul><li>As equipes que são membros desta organização também serão excluídas junto com seus tipos de eventos</li><li> Os usuários que faziam parte da organização não serão excluídos e seus tipos de eventos também permanecerão intactos.</li><li> Os nomes de usuário seriam alterados para que existam fora da organização</li></ul>",
   "admin_delete_organization_title": "Excluir {{organizationName}} ?",
