@@ -39,7 +39,10 @@ export const publishHandler = async ({ ctx }: PublishOptions) => {
   if (IS_TEAM_BILLING_ENABLED) {
     const checkoutSession = await purchaseTeamOrOrgSubscription({
       teamId: prevTeam.id,
-      seats: Math.max(prevTeam.members.length, metadata.data?.orgSeats ?? 0),
+      seatsUsed: prevTeam.members.length,
+      seatsToChargeFor: metadata.data?.orgSeats
+        ? Math.max(prevTeam.members.length, metadata.data?.orgSeats ?? 0)
+        : null,
       userId: ctx.user.id,
       isOrg: true,
       pricePerSeat: metadata.data?.orgPricePerSeat ?? null,

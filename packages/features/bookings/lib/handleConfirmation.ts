@@ -113,7 +113,6 @@ export async function handleConfirmation(args: {
     }
   }
   let updatedBookings: {
-    scheduledJobs: string[];
     id: number;
     description: string | null;
     location: string | null;
@@ -201,7 +200,6 @@ export async function handleConfirmation(args: {
           smsReminderNumber: true,
           customInputs: true,
           id: true,
-          scheduledJobs: true,
         },
       })
     );
@@ -256,7 +254,6 @@ export async function handleConfirmation(args: {
         location: true,
         customInputs: true,
         id: true,
-        scheduledJobs: true,
       },
     });
     updatedBookings.push(updatedBooking);
@@ -324,16 +321,34 @@ export async function handleConfirmation(args: {
       teamId: booking.eventType?.teamId,
     });
 
+    const scheduleTriggerPromises: Promise<unknown>[] = [];
+
     subscribersMeetingStarted.forEach((subscriber) => {
       updatedBookings.forEach((booking) => {
-        scheduleTrigger(booking, subscriber.subscriberUrl, subscriber, WebhookTriggerEvents.MEETING_STARTED);
+        scheduleTriggerPromises.push(
+          scheduleTrigger({
+            booking,
+            subscriberUrl: subscriber.subscriberUrl,
+            subscriber,
+            triggerEvent: WebhookTriggerEvents.MEETING_STARTED,
+          })
+        );
       });
     });
     subscribersMeetingEnded.forEach((subscriber) => {
       updatedBookings.forEach((booking) => {
-        scheduleTrigger(booking, subscriber.subscriberUrl, subscriber, WebhookTriggerEvents.MEETING_ENDED);
+        scheduleTriggerPromises.push(
+          scheduleTrigger({
+            booking,
+            subscriberUrl: subscriber.subscriberUrl,
+            subscriber,
+            triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
+          })
+        );
       });
     });
+
+    await Promise.all(scheduleTriggerPromises);
 
     const eventTypeInfo: EventTypeInfo = {
       eventTitle: booking.eventType?.title,
