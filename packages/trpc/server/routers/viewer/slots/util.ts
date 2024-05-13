@@ -399,7 +399,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
       if (crmCredential) {
         const crm = new CrmManager(crmCredential);
         const contact = await crm.getContacts(input.bookerEmail, true);
-        if (contact.length > 0) {
+        if (contact?.length) {
           // Since this is enabled for round robin event, we iterate through hosts
           const contactOwner = eventType.hosts.find((host) => host.user.email === contact[0].ownerEmail);
           if (contactOwner) {
@@ -408,8 +408,8 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
               { ...contactOwner.user, isFixed: true },
               ...eventType.hosts.reduce((hostsArray, host) => {
                 if (host.user.email !== contactOwner.user.email) hostsArray.push(host.user);
-                return fixedHosts;
-              }, []),
+                return hostsArray;
+              }, [] as ReturnType<typeof getRegularOrDynamicEventType>["hosts"]),
             ];
           }
         }
