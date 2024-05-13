@@ -993,20 +993,17 @@ export function expectBookingCancelledWebhookToHaveBeenFired({
       ...payload,
       metadata: null,
       responses: {
-        booker: {
-          label: "your_name",
+        name: {
+          label: "name",
           value: booker.name,
-          isHidden: false,
         },
         email: {
-          label: "email_address",
+          label: "email",
           value: booker.email,
-          isHidden: false,
         },
         location: {
           label: "location",
           value: { optionValue: "", value: location },
-          isHidden: false,
         },
       },
     },
