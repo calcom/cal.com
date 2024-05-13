@@ -1349,7 +1349,8 @@ async function handler(
       const luckyUsersFromFirstBooking = luckyUsers
         ? eventTypeWithUsers.users.filter((user) => luckyUsers.find((luckyUserId) => luckyUserId === user.id))
         : [];
-      users = [...fixedUserPool, ...luckyUsersFromFirstBooking];
+      const fixedHosts = eventTypeWithUsers.users.filter((user: IsFixedAwareUser) => user.isFixed);
+      users = [...fixedHosts, ...luckyUsersFromFirstBooking];
     }
   }
 
