@@ -80,8 +80,8 @@ export function calculatePeriodLimits({
     }
 
     case PeriodType.RANGE: {
-      const rangeStartDay = dayjs(periodStartDate).endOf("day");
-      const rangeEndDay = dayjs(periodEndDate).endOf("day");
+      const rangeStartDay = dayjs(periodStartDate).utcOffset(utcOffset).endOf("day");
+      const rangeEndDay = dayjs(periodEndDate).utcOffset(utcOffset).endOf("day");
       return {
         rollingEndDay: null,
         rangeStartDay,
