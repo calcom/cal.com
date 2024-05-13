@@ -462,4 +462,141 @@ describe("handleNewBooking", () => {
     },
     timeout
   );
+
+  describe("Buffers", () => {
+    test(`should throw error when booking is within a before event buffer of an existing booking
+        `, async ({}) => {
+      const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+
+      const booker = getBooker({
+        email: "booker@example.com",
+        name: "Booker",
+      });
+
+      const organizer = getOrganizer({
+        name: "Organizer",
+        email: "organizer@example.com",
+        id: 101,
+        schedules: [TestData.schedules.IstWorkHours],
+      });
+
+      const { dateString: nextDayDateString } = getDate({ dateIncrement: 1 });
+
+      await createBookingScenario(
+        getScenarioData({
+          eventTypes: [
+            {
+              id: 1,
+              slotInterval: 15,
+              length: 15,
+              beforeEventBuffer: 60,
+              users: [
+                {
+                  id: 101,
+                },
+              ],
+            },
+          ],
+          bookings: [
+            {
+              eventTypeId: 1,
+              userId: 101,
+              status: BookingStatus.ACCEPTED,
+              startTime: `${nextDayDateString}T05:00:00.000Z`,
+              endTime: `${nextDayDateString}T05:15:00.000Z`,
+            },
+          ],
+          organizer,
+        })
+      );
+
+      const mockBookingData = getMockRequestDataForBooking({
+        data: {
+          start: `${nextDayDateString}T04:30:00.000Z`,
+          end: `${nextDayDateString}T04:45:00.000Z`,
+          eventTypeId: 1,
+          responses: {
+            email: booker.email,
+            name: booker.name,
+            location: { optionValue: "", value: "New York" },
+          },
+        },
+      });
+
+      const { req } = createMockNextJsRequest({
+        method: "POST",
+        body: mockBookingData,
+      });
+      await expect(async () => await handleNewBooking(req)).rejects.toThrowError(
+        "no_available_users_found_error"
+      );
+    });
+  });
+  test(`should throw error when booking is within a after event buffer of an existing booking
+        `, async ({}) => {
+    const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+
+    const booker = getBooker({
+      email: "booker@example.com",
+      name: "Booker",
+    });
+
+    const organizer = getOrganizer({
+      name: "Organizer",
+      email: "organizer@example.com",
+      id: 101,
+      schedules: [TestData.schedules.IstWorkHours],
+    });
+
+    const { dateString: nextDayDateString } = getDate({ dateIncrement: 1 });
+
+    await createBookingScenario(
+      getScenarioData({
+        eventTypes: [
+          {
+            id: 1,
+            slotInterval: 15,
+            length: 15,
+            afterEventBuffer: 60,
+            users: [
+              {
+                id: 101,
+              },
+            ],
+          },
+        ],
+        bookings: [
+          {
+            eventTypeId: 1,
+            userId: 101,
+            status: BookingStatus.ACCEPTED,
+            startTime: `${nextDayDateString}T05:00:00.000Z`,
+            endTime: `${nextDayDateString}T05:15:00.000Z`,
+          },
+        ],
+        organizer,
+      })
+    );
+
+    const mockBookingData = getMockRequestDataForBooking({
+      data: {
+        start: `${nextDayDateString}T05:30:00.000Z`,
+        end: `${nextDayDateString}T05:45:00.000Z`,
+        eventTypeId: 1,
+        responses: {
+          email: booker.email,
+          name: booker.name,
+          location: { optionValue: "", value: "New York" },
+        },
+      },
+    });
+
+    const { req } = createMockNextJsRequest({
+      method: "POST",
+      body: mockBookingData,
+    });
+    await expect(async () => await handleNewBooking(req)).rejects.toThrowError(
+      "no_available_users_found_error"
+    );
+  });
 });

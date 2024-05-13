@@ -537,6 +537,11 @@ const nextConfig = {
         destination: "/apps/installed/calendar",
         permanent: true,
       },
+      {
+        source: "/settings/organizations/platform/:path*",
+        destination: "/settings/platform",
+        permanent: true,
+      },
       // OAuth callbacks when sent to localhost:3000(w would be expected) should be redirected to corresponding to WEBAPP_URL
       ...(process.env.NODE_ENV === "development" &&
       // Safer to enable the redirect only when the user is opting to test out organizations
