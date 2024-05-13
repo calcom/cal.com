@@ -177,13 +177,6 @@ export function isTimeOutOfBounds({
   time: dayjs.ConfigType;
   minimumBookingNotice?: number;
 }) {
-  const log = logger.getSubLogger({ prefix: ["isTimeOutOfBounds"] });
-
-  log.debug({
-    time,
-    minimumBookingNotice,
-  });
-
   const date = dayjs(time);
 
   guardAgainstBookingInThePast(date.toDate());
