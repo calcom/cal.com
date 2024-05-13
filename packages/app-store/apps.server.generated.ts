@@ -52,6 +52,7 @@ export const apiHandlers = {
   pipedream: import("./pipedream/api"),
   "pipedrive-crm": import("./pipedrive-crm/api"),
   plausible: import("./plausible/api"),
+  posthog: import("./posthog/api"),
   qr_code: import("./qr_code/api"),
   raycast: import("./raycast/api"),
   riverside: import("./riverside/api"),

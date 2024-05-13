@@ -288,20 +288,16 @@ export function expectWebhookToHaveBeenCalledWith(
 
   expect(parsedBody.triggerEvent).toBe(data.triggerEvent);
 
-  if (parsedBody.payload.metadata?.videoCallUrl) {
-    parsedBody.payload.metadata.videoCallUrl = parsedBody.payload.metadata.videoCallUrl
-      ? parsedBody.payload.metadata.videoCallUrl
-      : parsedBody.payload.metadata.videoCallUrl;
-  }
-
-  if (data.payload) {
-    if (data.payload.metadata !== undefined) {
-      expect(parsedBody.payload.metadata).toEqual(expect.objectContaining(data.payload.metadata));
+  if (parsedBody.payload) {
+    if (data.payload) {
+      if (data.payload.metadata !== undefined) {
+        expect(parsedBody.payload.metadata).toEqual(expect.objectContaining(data.payload.metadata));
+      }
+      if (data.payload.responses !== undefined)
+        expect(parsedBody.payload.responses).toEqual(expect.objectContaining(data.payload.responses));
+      const { responses: _1, metadata: _2, ...remainingPayload } = data.payload;
+      expect(parsedBody.payload).toEqual(expect.objectContaining(remainingPayload));
     }
-    if (data.payload.responses !== undefined)
-      expect(parsedBody.payload.responses).toEqual(expect.objectContaining(data.payload.responses));
-    const { responses: _1, metadata: _2, ...remainingPayload } = data.payload;
-    expect(parsedBody.payload).toEqual(expect.objectContaining(remainingPayload));
   }
 }
 
@@ -965,6 +961,44 @@ export function expectBookingRescheduledWebhookToHaveBeenFired({
       responses: {
         name: { label: "your_name", value: booker.name, isHidden: false },
         email: { label: "email_address", value: booker.email, isHidden: false },
+        location: {
+          label: "location",
+          value: { optionValue: "", value: location },
+          isHidden: false,
+        },
+      },
+    },
+  });
+}
+
+export function expectBookingCancelledWebhookToHaveBeenFired({
+  booker,
+  location,
+  subscriberUrl,
+  payload,
+}: {
+  organizer: { email: string; name: string };
+  booker: { email: string; name: string };
+  subscriberUrl: string;
+  location: string;
+  payload?: Record<string, unknown>;
+}) {
+  expectWebhookToHaveBeenCalledWith(subscriberUrl, {
+    triggerEvent: "BOOKING_CANCELLED",
+    payload: {
+      ...payload,
+      metadata: null,
+      responses: {
+        booker: {
+          label: "your_name",
+          value: booker.name,
+          isHidden: false,
+        },
+        email: {
+          label: "email_address",
+          value: booker.email,
+          isHidden: false,
+        },
         location: {
           label: "location",
           value: { optionValue: "", value: location },
