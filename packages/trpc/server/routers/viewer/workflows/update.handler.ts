@@ -1,11 +1,4 @@
 import { isSMSOrWhatsappAction } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
-import {
-  deleteRemindersFromRemovedActiveOn,
-  isAuthorizedToAddActiveOnIds,
-  getBookingsForReminders,
-  deleteAllReminders,
-  scheduleBookingReminders,
-} from "@calcom/features/ee/workflows/lib/updateHelperFunctions";
 import { IS_SELF_HOSTED } from "@calcom/lib/constants";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import type { PrismaClient } from "@calcom/prisma";
@@ -21,6 +14,10 @@ import {
   isAuthorized,
   removeSmsReminderFieldForBooking,
   upsertSmsReminderFieldForBooking,
+  deleteRemindersFromRemovedActiveOn,
+  isAuthorizedToAddActiveOnIds,
+  deleteAllReminders,
+  scheduleWorkflowNotifications,
 } from "./util";
 
 type UpdateOptions = {
@@ -217,10 +214,9 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   }
 
   // schedule reminders if there are new activeOn teams or event types
-  const bookingsForReminders = await getBookingsForReminders(newActiveOn, isOrg);
-
-  await scheduleBookingReminders(
-    bookingsForReminders,
+  await scheduleWorkflowNotifications(
+    newActiveOn,
+    isOrg,
     userWorkflow.steps,
     time,
     timeUnit,
@@ -306,10 +302,9 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         newStep.action !== WorkflowActions.SMS_ATTENDEE &&
         newStep.action !== WorkflowActions.WHATSAPP_ATTENDEE
       ) {
-        const bookingsForReminders = await getBookingsForReminders(activeOnIdsToUpdateReminders, isOrg);
-
-        await scheduleBookingReminders(
-          bookingsForReminders,
+        await scheduleWorkflowNotifications(
+          activeOnIdsToUpdateReminders,
+          isOrg,
           [newStep],
           time,
           timeUnit,
@@ -333,8 +328,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     });
 
   if (addedSteps) {
-    const bookingsForReminders = await getBookingsForReminders(activeOn, isOrg);
-
     //create new steps
     const createdSteps = await Promise.all(
       addedSteps.map((step) =>
@@ -344,8 +337,9 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       )
     );
 
-    await scheduleBookingReminders(
-      bookingsForReminders,
+    await scheduleWorkflowNotifications(
+      activeOn,
+      isOrg,
       createdSteps,
       time,
       timeUnit,
