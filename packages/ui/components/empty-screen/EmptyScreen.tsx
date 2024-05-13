@@ -65,11 +65,7 @@ export function EmptyScreen({
         )}
         {!customIcon ? null : <>{customIcon}</>}
         <div className={`flex ${limitWidth ? "max-w-[420px]" : ""}  flex-col items-center`}>
-          <h2
-            className={classNames(
-              "text-semibold font-cal text-emphasis text-center text-xl",
-              icon && "mt-6"
-            )}>
+          <h2 className={classNames("text-emphasis text-center text-xl font-bold", icon && "mt-6")}>
             {headline}
           </h2>
           {description && (
