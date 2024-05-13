@@ -8,6 +8,7 @@ import { showToast } from "@calcom/ui";
 import { useCreateOAuthClient } from "@lib/hooks/settings/platform/oauth-clients/usePersistOAuthClient";
 
 import PageWrapper from "@components/PageWrapper";
+import { useGetUserAttributes } from "@components/settings/platform/hooks/useGetUserAttributes";
 import type { FormValues } from "@components/settings/platform/oauth-clients/oauth-client-form";
 import { OAuthClientForm } from "@components/settings/platform/oauth-clients/oauth-client-form";
 
@@ -15,6 +16,8 @@ export default function CreateOAuthClient() {
   const searchParams = useCompatSearchParams();
   const router = useRouter();
   const clientId = searchParams?.get("clientId") || "";
+
+  const { isUserLoading, isPlatformUser, isPaidUser } = useGetUserAttributes();
 
   const { mutateAsync: save, isPending: isSaving } = useCreateOAuthClient({
     onSuccess: () => {
@@ -51,22 +54,34 @@ export default function CreateOAuthClient() {
     });
   };
 
+  if (isUserLoading) return <div className="m-5">Loading...</div>;
+
+  if (isPlatformUser && isPaidUser) {
+    return (
+      <div>
+        <Shell title={`OAuth client ${!!clientId ? "updation" : "creation"} form`} isPlatformUser={true}>
+          <div className="m-2 md:mx-14 md:mx-5">
+            <div className="border-subtle mx-auto block justify-between rounded-t-lg border px-4 py-6 sm:flex sm:px-6">
+              <div className="flex w-full flex-col">
+                <h1 className="font-cal text-emphasis mb-1 text-xl font-semibold leading-5 tracking-wide">
+                  OAuth client creation form
+                </h1>
+                <p className="text-default text-sm ltr:mr-4 rtl:ml-4">
+                  This is the form to create a new OAuth client
+                </p>
+              </div>
+            </div>
+            <OAuthClientForm isPending={isSaving} onSubmit={onSubmit} />
+          </div>
+        </Shell>
+      </div>
+    );
+  }
+
   return (
     <div>
-      <Shell title={`OAuth client ${!!clientId ? "updation" : "creation"} form`} isPlatformUser={true}>
-        <div className="m-2 md:mx-14 md:mx-5">
-          <div className="border-subtle mx-auto block justify-between rounded-t-lg border px-4 py-6 sm:flex sm:px-6">
-            <div className="flex w-full flex-col">
-              <h1 className="font-cal text-emphasis mb-1 text-xl font-semibold leading-5 tracking-wide">
-                OAuth client creation form
-              </h1>
-              <p className="text-default text-sm ltr:mr-4 rtl:ml-4">
-                This is the form to create a new OAuth client
-              </p>
-            </div>
-          </div>
-          <OAuthClientForm isPending={isSaving} onSubmit={onSubmit} />
-        </div>
+      <Shell isPlatformUser={true} hideHeadingOnMobile withoutMain={false} SidebarContainer={<></>}>
+        You are not subscribed to a Platform plan.
       </Shell>
     </div>
   );
