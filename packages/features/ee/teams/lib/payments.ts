@@ -81,17 +81,28 @@ export const generateTeamCheckoutSession = async ({
  */
 export const purchaseTeamOrOrgSubscription = async (input: {
   teamId: number;
-  seats: number;
+  /**
+   * The actual number of seats in the team.
+   * The seats that we would charge for could be more than this depending on the MINIMUM_NUMBER_OF_ORG_SEATS in case of an organization
+   * For a team it would be the same as this value
+   */
+  seatsUsed: number;
+  /**
+   * If provided, this is the exact number we would charge for.
+   */
+  seatsToChargeFor?: number | null;
   userId: number;
   isOrg?: boolean;
   pricePerSeat: number | null;
 }) => {
-  const { teamId, seats, userId, isOrg, pricePerSeat } = input;
+  const { teamId, seatsToChargeFor, seatsUsed, userId, isOrg, pricePerSeat } = input;
   const { url } = await checkIfTeamPaymentRequired({ teamId });
   if (url) return { url };
 
-  // For orgs, enforce minimum of 30 seats
-  const quantity = isOrg ? Math.max(seats, MINIMUM_NUMBER_OF_ORG_SEATS) : seats;
+  // For orgs, enforce minimum of MINIMUM_NUMBER_OF_ORG_SEATS seats if `seatsToChargeFor` not set
+  const seats = isOrg ? Math.max(seatsUsed, MINIMUM_NUMBER_OF_ORG_SEATS) : seatsUsed;
+  const quantity = seatsToChargeFor ? seatsToChargeFor : seats;
+
   const customer = await getStripeCustomerIdFromUserId(userId);
 
   const session = await stripe.checkout.sessions.create({
