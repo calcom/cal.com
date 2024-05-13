@@ -68,8 +68,8 @@ export const getCalEventResponses = ({
         value: isEmailFieldValueFalsy ? BOOKED_WITH_SMS_EMAIL : backwardCompatibleResponses[field.name],
         isHidden: !!field.hidden,
       };
-      if (isEmailFieldValueFalsy) {
-        responses.email = BOOKED_WITH_SMS_EMAIL;
+      if (isEmailFieldValueFalsy && responses) {
+        responses["email"] = BOOKED_WITH_SMS_EMAIL;
       }
     });
   } else {
