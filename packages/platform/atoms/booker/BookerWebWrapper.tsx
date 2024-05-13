@@ -137,9 +137,11 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
 
   const verifyCode = useVerifyCode({
     onSuccess: () => {
-      verifyEmail.setVerifiedEmail(bookerForm.formEmail);
-      verifyEmail.setEmailVerificationModalVisible(false);
-      bookings.handleBookEvent();
+      if (bookerForm.formEmail) {
+        verifyEmail.setVerifiedEmail(bookerForm.formEmail);
+        verifyEmail.setEmailVerificationModalVisible(false);
+        bookings.handleBookEvent();
+      }
     },
   });
 

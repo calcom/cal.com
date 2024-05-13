@@ -8,7 +8,7 @@ import { trpc } from "@calcom/trpc";
 import { showToast } from "@calcom/ui";
 
 export interface IUseVerifyEmailProps {
-  email: string;
+  email?: string;
   onVerifyEmail?: () => void;
   name?: string | { firstName: string; lastname?: string };
   requiresBookerEmailVerification?: boolean;
@@ -49,6 +49,7 @@ export const useVerifyEmail = ({
     );
 
   const handleVerifyEmail = () => {
+    if (!email) return;
     onVerifyEmail?.();
 
     sendEmailVerificationByCodeMutation.mutate({
