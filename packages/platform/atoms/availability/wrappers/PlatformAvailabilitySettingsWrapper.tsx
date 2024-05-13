@@ -1,6 +1,5 @@
 import type { ScheduleLabelsType } from "@calcom/features/schedules/components/Schedule";
-import type { UpdateScheduleOutputType } from "@calcom/platform-libraries";
-import type { ApiErrorResponse, ApiResponse } from "@calcom/platform-types";
+import type { ApiErrorResponse, ApiResponse, ScheduleOutput } from "@calcom/platform-types";
 
 import { useClientSchedule } from "../../hooks/useClientSchedule";
 import useDeleteSchedule from "../../hooks/useDeleteSchedule";
@@ -21,7 +20,7 @@ type PlatformAvailabilitySettingsWrapperProps = {
     tooltips: Partial<ScheduleLabelsType>;
   };
   customClassNames?: Partial<CustomClassNames>;
-  onUpdateSuccess?: (res: ApiResponse<UpdateScheduleOutputType>) => void;
+  onUpdateSuccess?: (res: ApiResponse<ScheduleOutput>) => void;
   onUpdateError?: (err: ApiErrorResponse) => void;
   onDeleteSuccess?: (res: ApiResponse) => void;
   onDeleteError?: (err: ApiErrorResponse) => void;
@@ -58,9 +57,6 @@ export const PlatformAvailabilitySettingsWrapper = ({
 
   const { mutate: updateSchedule, isPending: isSavingInProgress } = useUpdateSchedule({
     onSuccess: (res) => {
-      // note(Lauris): TODO fix
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
       onUpdateSuccess?.(res);
       toast({
         description: "Schedule updated successfully",
