@@ -2439,5 +2439,6 @@
   "csat_score": "CSAT Score",
   "lockedSMS": "Locked SMS",
   "signing_up_terms": "By proceeding, you agree to our <1>Terms</1> and <2>Privacy Policy</2>.",
+  "always_show_x_days": "Always {{x}} days available",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
