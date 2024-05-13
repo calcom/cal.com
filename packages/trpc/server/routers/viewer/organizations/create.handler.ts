@@ -1,5 +1,6 @@
 import type { User, Team } from "@prisma/client";
 import { lookup } from "dns";
+import type { TFunction } from "next-i18next";
 
 import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
 import { sendAdminOrganizationNotification, sendOrganizationCreationEmail } from "@calcom/emails";
@@ -173,26 +174,60 @@ const checkOrgOwnerCreationRequirements = async ({
   return IS_USER_ADMIN;
 };
 
-const sendEmailAndEnrichProfile = async (isOrgOwner: boolean) => {
-  await sendOrganizationCreationEmail({
-    language: inputLanguageTranslation,
-    from: ctx.user.name ?? `${organization.name}'s admin`,
-    to: orgOwnerEmail,
-    ownerNewUsername: ownerProfile.username,
-    ownerOldUsername: nonOrgUsernameForOwner,
-    orgDomain: getOrgFullOrigin(slug, { protocol: false }),
-    orgName: organization.name,
-    prevLink: `${getOrgFullOrigin("", { protocol: true })}/${nonOrgUsernameForOwner}`,
-    newLink: `${getOrgFullOrigin(slug, { protocol: true })}/${ownerProfile.username}`,
+type SendEmailAndEnrichProfileProps = {
+  org: { owner: User; id: number; name: string; ownerEmail: string };
+  slug: string;
+  userName: string | null;
+  nonOrgUsernameForOwner: string | null;
+  ownerProfileUsername: string;
+  inputLanguageTranslation: TFunction;
+  isPlatform: boolean;
+};
+
+type Availability = {
+  id: number;
+  userId: number | null;
+  eventTypeId: number | null;
+  days: number[];
+  startTime: Date;
+  endTime: Date;
+  date: Date | null;
+  scheduleId: number | null;
+}[];
+
+const sendEmailAndEnrichProfile = async ({
+  org: { owner: orgOwner, id, name, ownerEmail },
+  slug,
+  userName,
+  nonOrgUsernameForOwner,
+  ownerProfileUsername,
+  inputLanguageTranslation,
+  isPlatform,
+}: SendEmailAndEnrichProfileProps) => {
+  // prevLink, newLink, from and to, orgDomain
+  !isPlatform &&
+    (await sendOrganizationCreationEmail({
+      language: inputLanguageTranslation,
+      from: userName ?? `${name}'s admin`,
+      to: ownerEmail,
+      ownerNewUsername: ownerProfileUsername,
+      ownerOldUsername: nonOrgUsernameForOwner,
+      orgDomain: getOrgFullOrigin(slug, { protocol: false }),
+      orgName: name,
+      prevLink: `${getOrgFullOrigin("", { protocol: true })}/${nonOrgUsernameForOwner}`,
+      newLink: `${getOrgFullOrigin(slug, { protocol: true })}/${ownerProfileUsername}`,
+    }));
+
+  const user = await UserRepository.enrichUserWithItsProfile({
+    user: { ...orgOwner, organizationId: id },
   });
 
-  // start function enrichUserProfile here
-  // this should be handled in persistOrganizationWithExistingUserAsOwner fn
-  if (isOrgOwner) {
-    await createDefaultAvailability();
-  }
-
-  await enrichUserProfile();
+  return {
+    userId: user.id,
+    email: user.email,
+    organizationId: user.organizationId,
+    upId: user.profile.upId,
+  };
 };
 
 const enrichUserProfile = async (organizationId: number, orgOwner: User) => {
@@ -208,12 +243,146 @@ const enrichUserProfile = async (organizationId: number, orgOwner: User) => {
   };
 };
 
-const persistOrganizationWithExistingUserAsOwner = () => {
-  // stuff for already existing owner
+type OrgData = {
+  name: string;
+  slug: string;
+  isOrganizationConfigured: boolean;
+  isOrganizationAdminReviewed: boolean;
+  autoAcceptEmail: string;
+  seats: number | null;
+  pricePerSeat: number | null;
+  isPlatform: boolean;
 };
 
-const persistOrganizationWithNonExistentOwner = () => {
-  // stuff for non existing owner
+type PersistOrgWithExistingOwner = {
+  ownerId: User["id"];
+  ownerUsername: User["username"];
+  orgId: number | null;
+};
+
+type PersistOrganizationWithExistingUserAsOwnerProps = {
+  orgOwner: User;
+  orgData: OrgData;
+  orgOwnerEmail: string;
+  userName: string | null;
+  translation: TFunction;
+  loggedInUserId: number;
+  availability: Availability;
+  existingOwnerDetails: PersistOrgWithExistingOwner;
+};
+
+/*
+ orgOwner: User,
+  orgData: OrgData,
+  orgOwnerEmail: string,
+  userName: string | null,
+  translation: TFunction,
+  { ownerId: orgOwnerId, orgId, ownerUsername }: PersistOrgWithExistingOwner,
+  loggedInUserId: number,
+  availability: Availability
+*/
+
+const persistOrganizationWithExistingUserAsOwner = async ({
+  orgData,
+  orgOwner,
+  orgOwnerEmail,
+  userName,
+  availability,
+  translation,
+  loggedInUserId,
+  existingOwnerDetails: { orgId, ownerId: orgOwnerId, ownerUsername },
+}: PersistOrganizationWithExistingUserAsOwnerProps) => {
+  const isLoggedInUserOrgOwner = orgOwnerId === loggedInUserId;
+  if (orgId && isLoggedInUserOrgOwner) {
+    throw new TRPCError({ code: "FORBIDDEN", message: "User is part of an organization already" });
+  }
+
+  const nonOrgUsernameForOwner = ownerUsername || "";
+  const { organization, ownerProfile } = await OrganizationRepository.createWithExistingUserAsOwner({
+    orgData,
+    owner: {
+      id: orgOwnerId,
+      email: orgOwnerEmail,
+      nonOrgUsername: nonOrgUsernameForOwner,
+    },
+  });
+
+  if (!organization.id) throw Error("User not created");
+
+  const user = await sendEmailAndEnrichProfile({
+    org: { owner: orgOwner, id: organization.id, name: organization.name, ownerEmail: orgOwnerEmail },
+    slug: orgData.slug,
+    userName: userName,
+    ownerProfileUsername: ownerProfile.username,
+    inputLanguageTranslation: translation,
+    nonOrgUsernameForOwner: nonOrgUsernameForOwner,
+    isPlatform: orgData.isPlatform,
+  });
+
+  await prisma.availability.createMany({
+    data: availability.map((schedule) => ({
+      days: schedule.days,
+      startTime: schedule.startTime,
+      endTime: schedule.endTime,
+      userId: user.userId,
+    })),
+  });
+
+  return user;
+};
+
+type PersistOrganizationWithNonExistentOwnerProps = {
+  orgData: OrgData;
+  orgOwner: User | null;
+  orgOwnerEmail: string;
+  userLocale: string;
+  userName: string | null;
+  translation: TFunction;
+};
+
+const persistOrganizationWithNonExistentOwner = async ({
+  orgData,
+  orgOwner,
+  orgOwnerEmail,
+  userLocale,
+  userName,
+  translation,
+}: PersistOrganizationWithNonExistentOwnerProps) => {
+  let organizationOwner = orgOwner;
+  const data = await OrganizationRepository.createWithNonExistentOwner({
+    orgData,
+    owner: {
+      email: orgOwnerEmail,
+    },
+  });
+
+  organizationOwner = data.orgOwner;
+
+  const { organization, ownerProfile } = data;
+
+  !orgData.isPlatform &&
+    (await sendEmailVerification({
+      email: orgOwnerEmail,
+      language: userLocale,
+      username: ownerProfile.username || "",
+    }));
+
+  const user = await sendEmailAndEnrichProfile({
+    org: {
+      owner: organizationOwner,
+      id: organization.id,
+      name: organization.name,
+      ownerEmail: orgOwnerEmail,
+    },
+    slug: orgData.slug,
+    userName: userName,
+    ownerProfileUsername: ownerProfile.username,
+    nonOrgUsernameForOwner: null,
+    inputLanguageTranslation: translation,
+    isPlatform: orgData.isPlatform,
+  });
+
+  return user;
 };
 
 export const createHandler = async ({ input, ctx }: CreateOptions) => {
@@ -245,108 +414,35 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
     isPlatform,
   };
 
-  let orgOwner = await prisma.user.findUnique({
+  const orgOwner = await prisma.user.findUnique({
     where: {
       email: orgOwnerEmail,
     },
   });
 
-  // have two separate functions for persist org
-  // persistOrganizationWithNonExistentOwner
-  // persistOrganizationWithExistingUserAsOwner
-  // Create a new user and invite them as the owner of the organization
-  if (!orgOwner) {
-    const data = await OrganizationRepository.createWithNonExistentOwner({
-      orgData,
-      owner: {
-        email: orgOwnerEmail,
-      },
-    });
-
-    orgOwner = data.orgOwner;
-
-    const { organization, ownerProfile } = data;
-
-    const translation = await getTranslation(input.language ?? "en", "common");
-
-    await sendEmailVerification({
-      email: orgOwnerEmail,
-      language: ctx.user.locale,
-      username: ownerProfile.username || "",
-    });
-
-    await sendOrganizationCreationEmail({
-      language: translation,
-      from: ctx.user.name ?? `${organization.name}'s admin`,
-      to: orgOwnerEmail,
-      ownerNewUsername: ownerProfile.username,
-      ownerOldUsername: null,
-      orgDomain: getOrgFullOrigin(slug, { protocol: false }),
-      orgName: organization.name,
-      prevLink: null,
-      newLink: `${getOrgFullOrigin(slug, { protocol: true })}/${ownerProfile.username}`,
-    });
-
-    const user = await UserRepository.enrichUserWithItsProfile({
-      user: { ...orgOwner, organizationId: organization.id },
-    });
-
-    return {
-      userId: user.id,
-      email: user.email,
-      organizationId: user.organizationId,
-      upId: user.profile.upId,
-    };
-  } else {
-    // If we are making the loggedIn user the owner of the organization and he is already a part of an organization, we don't allow it because multi-org is not supported yet
-    const isLoggedInUserOrgOwner = orgOwner.id === loggedInUser.id;
-    if (ctx.user.profile.organizationId && isLoggedInUserOrgOwner) {
-      throw new TRPCError({ code: "FORBIDDEN", message: "User is part of an organization already" });
-    }
-
-    const nonOrgUsernameForOwner = orgOwner.username || "";
-    const { organization, ownerProfile } = await OrganizationRepository.createWithExistingUserAsOwner({
-      orgData,
-      owner: {
-        id: orgOwner.id,
-        email: orgOwnerEmail,
-        nonOrgUsername: nonOrgUsernameForOwner,
-      },
-    });
-
-    await sendOrganizationCreationEmail({
-      language: inputLanguageTranslation,
-      from: ctx.user.name ?? `${organization.name}'s admin`,
-      to: orgOwnerEmail,
-      ownerNewUsername: ownerProfile.username,
-      ownerOldUsername: nonOrgUsernameForOwner,
-      orgDomain: getOrgFullOrigin(slug, { protocol: false }),
-      orgName: organization.name,
-      prevLink: `${getOrgFullOrigin("", { protocol: true })}/${nonOrgUsernameForOwner}`,
-      newLink: `${getOrgFullOrigin(slug, { protocol: true })}/${ownerProfile.username}`,
-    });
-
-    if (!organization.id) throw Error("User not created");
-    const user = await UserRepository.enrichUserWithItsProfile({
-      user: { ...orgOwner, organizationId: organization.id },
-    });
-
-    await prisma.availability.createMany({
-      data: availability.map((schedule) => ({
-        days: schedule.days,
-        startTime: schedule.startTime,
-        endTime: schedule.endTime,
-        userId: user.id,
-      })),
-    });
-
-    return {
-      userId: user.id,
-      email: user.email,
-      organizationId: user.organizationId,
-      upId: user.profile.upId,
-    };
-  }
+  !orgOwner
+    ? persistOrganizationWithNonExistentOwner({
+        orgData: orgData,
+        orgOwner: orgOwner,
+        orgOwnerEmail: orgOwnerEmail,
+        userLocale: ctx.user.locale,
+        userName: ctx.user.name,
+        translation: inputLanguageTranslation,
+      })
+    : persistOrganizationWithExistingUserAsOwner({
+        orgData: orgData,
+        orgOwner: orgOwner,
+        orgOwnerEmail: orgOwnerEmail,
+        userName: ctx.user.name,
+        existingOwnerDetails: {
+          ownerId: orgOwner.id,
+          orgId: ctx.user.profile.organizationId,
+          ownerUsername: orgOwner.username,
+        },
+        translation: inputLanguageTranslation,
+        loggedInUserId: loggedInUser.id,
+        availability: availability,
+      });
 
   // Sync Services: Close.com
   //closeComUpsertOrganizationUser(createTeam, ctx.user, MembershipRole.OWNER);
