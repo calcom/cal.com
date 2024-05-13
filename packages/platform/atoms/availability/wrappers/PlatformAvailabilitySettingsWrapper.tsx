@@ -11,6 +11,7 @@ import { useToast } from "../../src/components/ui/use-toast";
 import type { Availability } from "../AvailabilitySettings";
 import type { CustomClassNames } from "../AvailabilitySettings";
 import { AvailabilitySettings } from "../AvailabilitySettings";
+import { getApiSchedule } from "../getApiSchedule";
 import { transformScheduleForAtom } from "../getAtomSchedule";
 import type { AvailabilityFormValues } from "../types";
 
@@ -78,17 +79,8 @@ export const PlatformAvailabilitySettingsWrapper = ({
   };
 
   const handleUpdate = async (id: number, body: AvailabilityFormValues) => {
-    const transformedDateOverrides =
-      body.dateOverrides.flatMap(
-        (dateOverridesRanges) =>
-          dateOverridesRanges?.ranges?.map((range) => ({
-            date: `${range.start.getUTCFullYear}-${range.start.getUTCMonth}-${range.start.getUTCDate}`,
-            startTime: `${range.start.getUTCHours}-${range.start.getUTCMinutes}`,
-            endTime: `${range.end.getUTCHours}-${range.end.getUTCMinutes}`,
-          })) ?? []
-      ) ?? [];
-
-    await updateSchedule({ ...body, scheduleId: id, overrides: transformedDateOverrides });
+    const updateBody = getApiSchedule(body);
+    await updateSchedule({ id, ...updateBody });
   };
 
   if (isLoading) return <div className="px-10 py-4 text-xl">Loading...</div>;
