@@ -32,7 +32,12 @@ export const CreateANewOrganizationForm = () => {
   return <CreateANewOrganizationFormChild session={session} />;
 };
 
-const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionContextValue, "data"> }) => {
+const CreateANewOrganizationFormChild = ({
+  session,
+}: {
+  session: Ensure<SessionContextValue, "data">;
+  isPlatformOrg?: boolean;
+}) => {
   const { t } = useLocale();
   const router = useRouter();
   const telemetry = useTelemetry();
@@ -282,13 +287,13 @@ const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionC
   );
 };
 
-function deriveSlugFromEmail(email: string) {
+export function deriveSlugFromEmail(email: string) {
   const domain = extractDomainFromEmail(email);
 
   return domain;
 }
 
-function deriveOrgNameFromEmail(email: string) {
+export function deriveOrgNameFromEmail(email: string) {
   const domain = extractDomainFromEmail(email);
 
   return domain.charAt(0).toUpperCase() + domain.slice(1);
