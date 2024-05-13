@@ -3,7 +3,7 @@ import { ErrorMessage } from "@hookform/error-message";
 import { Trans } from "next-i18next";
 import Link from "next/link";
 import type { EventTypeSetupProps } from "pages/event-types/[type]";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Controller, useFieldArray } from "react-hook-form";
 import type { UseFormGetValues, UseFormSetValue, Control, FormState } from "react-hook-form";
 
@@ -21,6 +21,7 @@ import LocationSelect from "@components/ui/form/LocationSelect";
 export type TEventTypeLocation = Pick<EventTypeSetupProps["eventType"], "locations">;
 export type TLocationOptions = Pick<EventTypeSetupProps, "locationOptions">["locationOptions"];
 export type TDestinationCalendar = { integration: string } | null;
+export type TPrefillLocation = { credentialId: number; type: string };
 
 type LocationsProps = {
   team: { id: number } | null;
@@ -35,6 +36,7 @@ type LocationsProps = {
   formState: FormState<LocationFormValues>;
   eventType: TEventTypeLocation;
   locationOptions: TLocationOptions;
+  prefillLocation?: TPrefillLocation;
 };
 
 const getLocationFromType = (type: EventLocationType["type"], locationOptions: TLocationOptions) => {
@@ -82,6 +84,7 @@ const Locations: React.FC<LocationsProps> = ({
   formState,
   team,
   eventType,
+  prefillLocation,
   ...props
 }) => {
   const { t } = useLocale();
@@ -94,6 +97,16 @@ const Locations: React.FC<LocationsProps> = ({
     control,
     name: "locations",
   });
+
+  useEffect(() => {
+    if (!!prefillLocation) {
+      append({
+        type: prefillLocation.type,
+        credentialId: prefillLocation.credentialId,
+      });
+    }
+  }, [prefillLocation]);
+
   const locationOptions = props.locationOptions.map((locationOption) => {
     const options = locationOption.options.filter((option) => {
       // Skip "Organizer's Default App" for non-team members
@@ -197,7 +210,6 @@ const Locations: React.FC<LocationsProps> = ({
           const defaultLocation = field;
 
           const option = getLocationFromType(field.type, locationOptions);
-
           return (
             <li key={field.id}>
               <div className="flex w-full items-center">
