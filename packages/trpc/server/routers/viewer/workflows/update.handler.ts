@@ -2,7 +2,7 @@ import { isSMSOrWhatsappAction } from "@calcom/features/ee/workflows/lib/actionH
 import { IS_SELF_HOSTED } from "@calcom/lib/constants";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import type { PrismaClient } from "@calcom/prisma";
-import { WorkflowActions, WorkflowTriggerEvents } from "@calcom/prisma/enums";
+import { WorkflowActions } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
@@ -213,11 +213,11 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     });
   }
 
-  // schedule reminders if there are new activeOn teams or event types
+  // schedule reminders for all new activeOn
   await scheduleWorkflowNotifications(
     newActiveOn,
     isOrg,
-    userWorkflow.steps,
+    userWorkflow.steps, // use old steps here, edited and deleted steps are handled below
     time,
     timeUnit,
     trigger,
@@ -232,8 +232,10 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       where: {
         workflowStepId: oldStep.id,
       },
-      include: {
-        booking: true,
+      select: {
+        id: true,
+        referenceId: true,
+        method: true,
       },
     });
     //step was deleted
@@ -283,36 +285,20 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         },
       });
 
-      //cancel all reminders of step and create new ones (not for newActiveOn)
-      // todo if I do that before scheduling the new reminders I wouldn't need to care about tahat same i need to do for teams
-      const remindersToUpdate = remindersFromStep.filter(
-        (reminder) => reminder.booking?.eventTypeId && !newActiveOn.includes(reminder.booking?.eventTypeId)
+      // cancel all notifications of edited step
+      await deleteAllReminders(remindersFromStep);
+
+      // schedule notifications for edited steps
+      await scheduleWorkflowNotifications(
+        activeOn,
+        isOrg,
+        [newStep],
+        time,
+        timeUnit,
+        trigger,
+        user.id,
+        userWorkflow.teamId
       );
-
-      await deleteAllReminders(remindersToUpdate);
-
-      // create new reminders for edited workflows
-      const activeOnIdsToUpdateReminders = activeOn.filter((id) => {
-        !activeOn.includes(id);
-      });
-
-      if (
-        activeOnIdsToUpdateReminders &&
-        (trigger === WorkflowTriggerEvents.BEFORE_EVENT || trigger === WorkflowTriggerEvents.AFTER_EVENT) &&
-        newStep.action !== WorkflowActions.SMS_ATTENDEE &&
-        newStep.action !== WorkflowActions.WHATSAPP_ATTENDEE
-      ) {
-        await scheduleWorkflowNotifications(
-          activeOnIdsToUpdateReminders,
-          isOrg,
-          [newStep],
-          time,
-          timeUnit,
-          trigger,
-          user.id,
-          userWorkflow.teamId
-        );
-      }
     }
   });
 
@@ -337,6 +323,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       )
     );
 
+    // schedule notification for new step
     await scheduleWorkflowNotifications(
       activeOn,
       isOrg,
