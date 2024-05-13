@@ -24,6 +24,7 @@ vi.mock("@calcom/lib/constants", () => ({
   IS_PRODUCTION: true,
   WEBAPP_URL: "http://localhost:3000",
   RESERVED_SUBDOMAINS: ["auth", "docs"],
+  ROLLING_WINDOW_PERIOD_MAX_DAYS_TO_CHECK: 61,
 }));
 
 declare global {
@@ -82,7 +83,7 @@ expect.extend({
     };
   },
 
-  toHaveNoTimeSlots(schedule: { slots: Record<string, Slot[]> }, dateString: string) {
+  toHaveNoTimeSlots(schedule: { slots: Record<string, Slot[]> }, { dateString }: { dateString: string }) {
     if (!schedule.slots[`${dateString}`] || schedule.slots[`${dateString}`].length === 0) {
       return {
         pass: true,
@@ -1054,86 +1055,190 @@ describe("getSchedule", () => {
     });
 
     describe("Future Limits", () => {
-      test("PeriodType=ROLLING", async () => {
-        const { dateString: yesterdayDateString } = getDate({ dateIncrement: -1 });
-        const { dateString: todayDateString } = getDate();
-        const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
-        const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
-        const { dateString: plus3DateString } = getDate({ dateIncrement: 3 });
-        const { dateString: plus4DateString } = getDate({ dateIncrement: 4 });
-        const { dateString: plus5DateString } = getDate({ dateIncrement: 5 });
-        timeTravelToTheBeginningOfToday({ utcOffsetInHours: 5.5 });
+      describe("PeriodType=ROLLING", () => {
+        test("Basic test", async () => {
+          const { dateString: yesterdayDateString } = getDate({ dateIncrement: -1 });
+          const { dateString: todayDateString } = getDate();
+          const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+          const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
+          const { dateString: plus3DateString } = getDate({ dateIncrement: 3 });
+          const { dateString: plus4DateString } = getDate({ dateIncrement: 4 });
+          const { dateString: plus5DateString } = getDate({ dateIncrement: 5 });
+          timeTravelToTheBeginningOfToday({ utcOffsetInHours: 5.5 });
 
-        const scenarioData = {
-          eventTypes: [
-            {
-              id: 1,
-              length: 60,
-              ...getPeriodTypeData({
-                type: "ROLLING",
-                periodDays: 2,
-                periodCountCalendarDays: true,
-              }),
-              users: [
-                {
-                  id: 101,
-                },
-              ],
+          const scenarioData = {
+            eventTypes: [
+              {
+                id: 1,
+                length: 60,
+                ...getPeriodTypeData({
+                  type: "ROLLING",
+                  periodDays: 2,
+                  periodCountCalendarDays: true,
+                }),
+                users: [
+                  {
+                    id: 101,
+                  },
+                ],
+              },
+            ],
+            users: [
+              {
+                ...TestData.users.example,
+                id: 101,
+                schedules: [TestData.schedules.IstWorkHours],
+              },
+            ],
+          } satisfies ScenarioData;
+
+          await createBookingScenario(scenarioData);
+
+          const scheduleForEvent = await getSchedule({
+            input: {
+              eventTypeId: 1,
+              eventTypeSlug: "",
+              usernameList: [],
+              // Because this time is in GMT, it will be 00:00 in IST with todayDateString
+              startTime: `${yesterdayDateString}T18:30:00.000Z`,
+              endTime: `${plus5DateString}T18:29:59.999Z`,
+              timeZone: Timezones["+5:30"],
+              isTeamEvent: false,
             },
-          ],
-          users: [
+          });
+
+          expect(scheduleForEvent).toHaveTimeSlots(
+            expectedSlotsForSchedule["IstWorkHours"].interval["1hr"].allPossibleSlotsStartingAt430,
             {
-              ...TestData.users.example,
-              id: 101,
-              schedules: [TestData.schedules.IstWorkHours],
+              dateString: todayDateString,
+              doExactMatch: true,
+            }
+          );
+
+          expect(scheduleForEvent).toHaveTimeSlots(
+            expectedSlotsForSchedule["IstWorkHours"].interval["1hr"].allPossibleSlotsStartingAt430,
+            {
+              dateString: plus1DateString,
+              doExactMatch: true,
+            }
+          );
+
+          expect(scheduleForEvent).toHaveTimeSlots(
+            expectedSlotsForSchedule["IstWorkHours"].interval["1hr"].allPossibleSlotsStartingAt430,
+            {
+              dateString: plus2DateString,
+              doExactMatch: true,
+            }
+          );
+
+          // No Timeslots beyond plus3Date as beyond the rolling period
+          expect(scheduleForEvent).toHaveNoTimeSlots({
+            dateString: plus3DateString,
+          });
+
+          // No Timeslots beyond plus3Date as beyond the rolling period
+          expect(scheduleForEvent).toHaveNoTimeSlots({
+            dateString: plus4DateString,
+          });
+        });
+      });
+
+      describe("PeriodType=ROLLING_WINDOW", () => {
+        test("Basic test", async () => {
+          const { dateString: yesterdayDateString } = getDate({ dateIncrement: -1 });
+          const { dateString: todayDateString } = getDate();
+          const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+          const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
+          const { dateString: plus3DateString } = getDate({ dateIncrement: 3 });
+          const { dateString: plus4DateString } = getDate({ dateIncrement: 4 });
+          const { dateString: plus5DateString } = getDate({ dateIncrement: 5 });
+          timeTravelToTheBeginningOfToday({ utcOffsetInHours: 5.5 });
+
+          const scenarioData = {
+            eventTypes: [
+              {
+                id: 1,
+                length: 60,
+                ...getPeriodTypeData({
+                  type: "ROLLING_WINDOW",
+                  periodDays: 2,
+                  periodCountCalendarDays: true,
+                }),
+                users: [
+                  {
+                    id: 101,
+                  },
+                ],
+              },
+            ],
+            users: [
+              {
+                ...TestData.users.example,
+                id: 101,
+                schedules: [TestData.schedules.IstWorkHours],
+              },
+            ],
+            bookings: [
+              {
+                userId: 101,
+                eventTypeId: 1,
+                status: "ACCEPTED",
+                // Fully book plus2 Date
+                startTime: `${plus1DateString}T18:30:00.000Z`,
+                endTime: `${plus2DateString}T18:30:00.000Z`,
+              },
+            ],
+          } satisfies ScenarioData;
+
+          await createBookingScenario(scenarioData);
+
+          const scheduleForEvent = await getSchedule({
+            input: {
+              eventTypeId: 1,
+              eventTypeSlug: "",
+              usernameList: [],
+              // Because this time is in GMT, it will be 00:00 in IST with todayDateString
+              startTime: `${yesterdayDateString}T18:30:00.000Z`,
+              endTime: `${plus5DateString}T18:29:59.999Z`,
+              timeZone: Timezones["+5:30"],
+              isTeamEvent: false,
             },
-          ],
-        } satisfies ScenarioData;
+          });
 
-        await createBookingScenario(scenarioData);
+          console.log({ scheduleForEvent });
+          expect(scheduleForEvent).toHaveTimeSlots(
+            expectedSlotsForSchedule["IstWorkHours"].interval["1hr"].allPossibleSlotsStartingAt430,
+            {
+              dateString: todayDateString,
+              doExactMatch: true,
+            }
+          );
 
-        const scheduleForEvent = await getSchedule({
-          input: {
-            eventTypeId: 1,
-            eventTypeSlug: "",
-            usernameList: [],
-            // Because this time is in GMT, it will be 00:00 in IST with todayDateString
-            startTime: `${yesterdayDateString}T18:30:00.000Z`,
-            endTime: `${plus5DateString}T18:29:59.999Z`,
-            timeZone: Timezones["+5:30"],
-            isTeamEvent: false,
-          },
-        });
+          expect(scheduleForEvent).toHaveTimeSlots(
+            expectedSlotsForSchedule["IstWorkHours"].interval["1hr"].allPossibleSlotsStartingAt430,
+            {
+              dateString: plus1DateString,
+              doExactMatch: true,
+            }
+          );
 
-        expect(scheduleForEvent).toHaveTimeSlots(
-          expectedSlotsForSchedule["IstWorkHours"].interval["1hr"].allPossibleSlotsStartingAt430,
-          {
-            dateString: todayDateString,
-            doExactMatch: true,
-          }
-        );
+          // plus2Date is fully booked. So, instead we will have timeslots one day later
+          expect(scheduleForEvent).toHaveNoTimeSlots({
+            dateString: plus2DateString,
+          });
 
-        expect(scheduleForEvent).toHaveTimeSlots(
-          expectedSlotsForSchedule["IstWorkHours"].interval["1hr"].allPossibleSlotsStartingAt430,
-          {
-            dateString: plus1DateString,
-            doExactMatch: true,
-          }
-        );
+          expect(scheduleForEvent).toHaveTimeSlots(
+            expectedSlotsForSchedule["IstWorkHours"].interval["1hr"].allPossibleSlotsStartingAt430,
+            {
+              dateString: plus3DateString,
+              doExactMatch: true,
+            }
+          );
 
-        // No Timeslots available as plus2Date and futher dates are beyond the rolling period
-        expect(scheduleForEvent).toHaveNoTimeSlots({
-          dateString: plus2DateString,
-        });
-
-        // No Timeslots beyond plus2Date as beyond the rolling period
-        expect(scheduleForEvent).toHaveNoTimeSlots({
-          dateString: plus3DateString,
-        });
-
-        // No Timeslots beyond plus2Date as beyond the rolling period
-        expect(scheduleForEvent).toHaveNoTimeSlots({
-          dateString: plus4DateString,
+          // No Timeslots on plus4Date as beyond the rolling period
+          expect(scheduleForEvent).toHaveNoTimeSlots({
+            dateString: plus4DateString,
+          });
         });
       });
     });
