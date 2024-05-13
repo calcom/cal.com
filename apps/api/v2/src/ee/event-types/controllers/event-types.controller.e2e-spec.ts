@@ -208,7 +208,6 @@ describe("Event types Endpoints", () => {
       expect(responseBody.data?.[0]?.title).toEqual(eventType.title);
       expect(responseBody.data?.[0]?.slug).toEqual(eventType.slug);
       expect(responseBody.data?.[0]?.length).toEqual(eventType.length);
-      expect(responseBody.data?.[0]?.length).toEqual(eventType.length);
     });
 
     it(`/GET/:username/:eventSlug/public`, async () => {
