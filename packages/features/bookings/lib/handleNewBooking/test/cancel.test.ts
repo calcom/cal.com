@@ -1,5 +1,6 @@
-import { describe } from "vitest";
+import { describe, expect } from "vitest";
 
+import { BookingStatus } from "@calcom/prisma/enums";
 import { test } from "@calcom/web/test/fixtures/fixtures";
 import {
   BookingLocations,
@@ -13,7 +14,10 @@ import {
   TestData,
 } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
 import { createMockNextJsRequest } from "@calcom/web/test/utils/bookingScenario/createMockNextJsRequest";
-import { expectBookingCancelledWebhookToHaveBeenFired } from "@calcom/web/test/utils/bookingScenario/expects";
+import {
+  expectBookingCancelledWebhookToHaveBeenFired,
+  expectBookingToBeInDatabase,
+} from "@calcom/web/test/utils/bookingScenario/expects";
 import { getMockRequestDataForBooking } from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForBooking";
 import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
 
@@ -95,6 +99,23 @@ describe("Cancel Booking", () => {
       body: mockBookingData,
     });
     const createdBooking = await handleNewBooking(mockCreateBookingReq);
+
+    expect(createdBooking.responses).toContain({
+      email: booker.email,
+      name: booker.name,
+    });
+
+    expect(createdBooking).toContain({
+      location: BookingLocations.CalVideo,
+    });
+
+    await expectBookingToBeInDatabase({
+      description: "",
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      uid: createdBooking.uid!,
+      eventTypeId: mockBookingData.eventTypeId,
+      status: BookingStatus.ACCEPTED,
+    });
 
     const { req } = createMockNextJsRequest({
       method: "POST",
