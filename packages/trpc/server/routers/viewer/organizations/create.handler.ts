@@ -420,7 +420,7 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
     },
   });
 
-  !orgOwner
+  return !orgOwner
     ? persistOrganizationWithNonExistentOwner({
         orgData: orgData,
         orgOwner: orgOwner,
