@@ -484,10 +484,7 @@ export default class GoogleCalendarService implements Calendar {
   async deleteEvent(uid: string, event: CalendarEvent, externalCalendarId?: string | null): Promise<void> {
     const calendar = await this.authedCalendar();
 
-    const selectedCalendar =
-      (externalCalendarId
-        ? event.destinationCalendar?.find((cal) => cal.externalId === externalCalendarId)?.externalId
-        : undefined) || "primary";
+    const selectedCalendar = externalCalendarId || "primary";
 
     try {
       const event = await calendar.events.delete({
