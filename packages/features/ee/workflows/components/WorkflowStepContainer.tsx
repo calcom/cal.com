@@ -759,6 +759,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         const email = form.getValues(`steps.${step.stepNumber - 1}.sendTo`) || "";
                         sendEmailVerificationCodeMutation.mutate({
                           email,
+                          isVerifyingEmail: true,
                         });
                       }}>
                       {t("send_code")}
