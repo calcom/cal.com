@@ -45,7 +45,6 @@ import {
   isAttendeeAction,
   isSMSAction,
   isSMSOrWhatsappAction,
-  isTextMessageToAttendeeAction,
   isWhatsappAction,
 } from "../lib/actionHelperFunctions";
 import { DYNAMIC_TEXT_VARIABLES } from "../lib/constants";
@@ -71,7 +70,7 @@ type WorkflowStepProps = {
 
 export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const { t } = useLocale();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
 
   const { step, form, reload, setReload, teamId } = props;
   const { data: _verifiedNumbers } = trpc.viewer.workflows.getVerifiedNumbers.useQuery(
@@ -118,10 +117,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
 
   const [showTimeSectionAfter, setShowTimeSectionAfter] = useState(
     form.getValues("trigger") === WorkflowTriggerEvents.AFTER_EVENT
-  );
-
-  const [isRequiresConfirmationNeeded, setIsRequiresConfirmationNeeded] = useState(
-    isTextMessageToAttendeeAction(step?.action)
   );
 
   const { data: actionOptions } = trpc.viewer.workflows.getWorkflowActionOptions.useQuery();
@@ -216,6 +211,15 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     onSuccess: async (isVerified) => {
       showToast(isVerified ? t("verified_successfully") : t("wrong_code"), "success");
       setNumberVerified(isVerified);
+      if (
+        step &&
+        form?.formState?.errors?.steps &&
+        form.formState.errors.steps[step.stepNumber - 1]?.sendTo &&
+        isVerified
+      ) {
+        form.clearErrors(`steps.${step.stepNumber - 1}.sendTo`);
+      }
+
       utils.viewer.workflows.getVerifiedNumbers.invalidate();
     },
     onError: (err) => {
@@ -336,7 +340,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
       label: actionString.charAt(0).toUpperCase() + actionString.slice(1),
       value: step.action,
       needsTeamsUpgrade: false,
-      needsOrgsUpgrade: false,
     };
 
     const selectedTemplate = { label: t(`${step.template.toLowerCase()}`), value: step.template };
@@ -454,12 +457,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                               setIsEmailSubjectNeeded(true);
                             }
 
-                            if (isTextMessageToAttendeeAction(val.value)) {
-                              setIsRequiresConfirmationNeeded(true);
-                            } else {
-                              setIsRequiresConfirmationNeeded(false);
-                            }
-
                             if (
                               form.getValues(`steps.${step.stepNumber - 1}.template`) ===
                               WorkflowTemplates.REMINDER
@@ -532,20 +529,11 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           label: string;
                           value: WorkflowActions;
                           needsTeamsUpgrade: boolean;
-                          needsOrgsUpgrade: boolean;
-                        }) => option.needsTeamsUpgrade || option.needsOrgsUpgrade}
+                        }) => option.needsTeamsUpgrade}
                       />
                     );
                   }}
                 />
-                {isRequiresConfirmationNeeded ? (
-                  <div className="text-attention mb-3 mt-2 flex">
-                    <Icon name="info" className="mr-1 mt-0.5 h-4 w-4" />
-                    <p className="text-sm">{t("requires_confirmation_mandatory")}</p>
-                  </div>
-                ) : (
-                  <></>
-                )}
               </div>
               {isPhoneNumberNeeded && (
                 <div className="bg-muted mt-2 rounded-md p-4 pt-0">
@@ -641,10 +629,12 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   {isSenderIsNeeded ? (
                     <>
                       <div className="pt-4">
-                        <div className="flex">
+                        <div className="flex items-center">
                           <Label>{t("sender_id")}</Label>
                           <Tooltip content={t("sender_id_info")}>
-                            <Icon name="info" className="ml-2 mr-1 mt-0.5 h-4 w-4 text-gray-500" />
+                            <span>
+                              <Icon name="info" className="mb-2 ml-2 mr-1 mt-0.5 h-4 w-4 text-gray-500" />
+                            </span>
                           </Tooltip>
                         </div>
                         <Input

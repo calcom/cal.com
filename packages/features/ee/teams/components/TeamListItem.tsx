@@ -44,7 +44,7 @@ interface Props {
 export default function TeamListItem(props: Props) {
   const searchParams = useCompatSearchParams();
   const { t, i18n } = useLocale();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const user = trpc.viewer.me.useQuery().data;
   const team = props.team;
 
@@ -95,7 +95,7 @@ export default function TeamListItem(props: Props) {
     <div className="item-center flex px-5 py-5">
       <Avatar
         size="md"
-        imageSrc={getPlaceholderAvatar(team?.logo || team?.parent?.logo, team?.name as string)}
+        imageSrc={getPlaceholderAvatar(team?.logoUrl || team?.parent?.logoUrl, team?.name as string)}
         alt="Team logo"
         className="inline-flex justify-center"
       />

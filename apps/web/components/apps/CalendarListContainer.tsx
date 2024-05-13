@@ -192,7 +192,7 @@ export function CalendarListContainer(props: { heading?: boolean; fromOnboarding
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const onChanged = () =>
     Promise.allSettled([
       utils.viewer.integrations.invalidate(

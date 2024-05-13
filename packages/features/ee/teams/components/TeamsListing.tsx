@@ -15,7 +15,7 @@ export function TeamsListing() {
   const searchParams = useCompatSearchParams();
   const token = searchParams?.get("token");
   const { t } = useLocale();
-  const trpcContext = trpc.useContext();
+  const trpcContext = trpc.useUtils();
   const router = useRouter();
 
   const [inviteTokenChecked, setInviteTokenChecked] = useState(false);

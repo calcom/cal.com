@@ -23,7 +23,7 @@ const SkeletonLoader = ({ title, description }: { title: string; description: st
 
 const ProfileImpersonationView = ({ user }: { user: RouterOutputs["viewer"]["me"] }) => {
   const { t } = useLocale();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const [disableImpersonation, setDisableImpersonation] = useState<boolean | undefined>(
     user?.disableImpersonation
   );

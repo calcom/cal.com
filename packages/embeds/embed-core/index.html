@@ -20,43 +20,126 @@
       (() => {
         const url = new URL(document.URL);
         // Only run the example specified by only=, avoids distraction and faster to test.
-        const only = (window.only = url.searchParams.get("only"));
+        const only = (window.only = url.searchParams.get("only") || '');
         const elementIdentifier = only !== "all" ? only.replace("ns:", "") : null;
         if (elementIdentifier) {
           location.hash = "#cal-booking-place-" + elementIdentifier + "-iframe";
         }
       })();
+      
+      function addInlineEmbedInNewNamespaceWithoutReload(selector) {
+        Cal("init", "withoutReloadNamespace", {
+          debug: true,
+          calOrigin: "http://localhost:3000",
+        });
+
+        Cal.ns.withoutReloadNamespace("inline", {
+          elementOrSelector: selector,
+          calLink: "pro?case=addInlineEmbedInANewNamespaceWithoutReload",
+        });
+      };
     </script>
     <script>
-      (function (C, A, L) {
+      // Put the snippet in a function so that it can be re-executed for scenario testing
+      // TODO: How to reuse embed-snippet export here?
+      function embedSnippet() {
+        (function (C, A, L) {
         let p = function (a, ar) {
           a.q.push(ar);
         };
         let d = C.document;
-        C.Cal =
-          C.Cal ||
-          function () {
-            let cal = C.Cal;
-            let ar = arguments;
-            if (!cal.loaded) {
-              cal.ns = {};
-              cal.q = cal.q || [];
-              d.head.appendChild(d.createElement("script")).src = A;
-              cal.loaded = true;
-            }
-            if (ar[0] === L) {
-              const api = function () {
-                p(api, arguments);
-              };
-              const namespace = ar[1];
-              api.q = api.q || [];
-              typeof namespace === "string" ? (cal.ns[namespace] = api) && p(api, ar) : p(cal, ar);
-              return;
-            }
-            p(cal, ar);
-          };
-      })(window, "//localhost:3000/embed/embed.js", "init");
-    </script>
+          C.Cal =
+            C.Cal ||
+            function () {
+              let cal = C.Cal;
+              let ar = arguments;
+              if (!cal.loaded) {
+                cal.ns = {};
+                cal.q = cal.q || [];
+                d.head.appendChild(d.createElement("script")).src = A;
+                cal.loaded = true;
+              }
+              if (ar[0] === L) {
+                const api = function () {
+                  p(api, arguments);
+                };
+                const namespace = ar[1];
+                api.q = api.q || [];
+                if (typeof namespace === "string"){
+                  // Make sure that even after re-execution of the snippet, the namespace is not overridden
+                  cal.ns[namespace] = cal.ns[namespace] || api; 
+                  p(cal.ns[namespace], ar); 
+                  p(cal, ['initNamespace', namespace])
+                } else p(cal, ar);
+                return;
+              }
+              p(cal, ar);
+            };
+        })(window, "//localhost:3000/embed/embed.js", "init");
+      }
+      embedSnippet();
+      </script>
+      <script>
+        function doubleInstallSnippetWithInlineEmbedWithNonDefaultNamespace(selector) {
+          Cal("init", "doubleInstall", {
+            debug: true,
+            calOrigin: "http://localhost:3000",
+          });
+          Cal.ns.doubleInstall("inline", {
+            elementOrSelector: selector,
+            calLink: "pro?case=doubleInstallSnippetWithInlineEmbedWithNonDefaultNamespace",
+          });
+          embedSnippet();
+          Cal("init", "doubleInstall", {
+            debug: true,
+            calOrigin: "http://localhost:3000",
+          });
+          Cal.ns.doubleInstall("inline", {
+            elementOrSelector: selector,
+            calLink: "pro",
+          });
+        }
+
+
+        function doubleInstallSnippetWithInlineEmbed(selector) {
+          Cal("init", {
+            debug: true,
+            calOrigin: "http://localhost:3000",
+          });
+          Cal("inline", {
+            elementOrSelector: selector,
+            calLink: "pro?case=doubleInstallSnippetWithInlineEmbed",
+          });
+          embedSnippet();
+          Cal("init", {
+            debug: true,
+            calOrigin: "http://localhost:3000",
+          });
+          Cal("inline", {
+            elementOrSelector: selector,
+            calLink: "pro",
+          });
+        }
+
+        function addTwoInlineEmbedWithTwoDifferentNamespacesWithDifferentInitConfig() {
+          Cal("init", "namespace-init-test-1", {
+            debug: true,
+            calOrigin: "http://localhost:3000",
+          });
+          Cal("init", "namespace-init-test-2", {
+            debug: true,
+            calOrigin: "http://127.0.0.1:3000",
+          });
+          Cal.ns['namespace-init-test-2']("inline", {
+            elementOrSelector: '#two-different-namespace-with-different-init-config-content-2',
+            calLink: "pro",
+          });
+          Cal.ns['namespace-init-test-1']("inline", {
+            elementOrSelector: '#two-different-namespace-with-different-init-config-content-1',
+            calLink: "pro",
+          });
+        }
+      </script>
 
     <style>
       body {
@@ -82,6 +165,25 @@
     </style>
   </head>
   <body>
+    <div>
+      <button id="add-inline-embed-in-a-new-namespace-without-reload-button" onclick="addInlineEmbedInNewNamespaceWithoutReload('#add-inline-embed-in-a-new-namespace-without-reload-button-content')">Add Inline Embed in a new namespace without reload</button>
+      <div id="add-inline-embed-in-a-new-namespace-without-reload-button-content"></div>
+    </div>
+    <div>
+      <button id="double-install-snippet-with-inline-embed-default-namespace-button" onclick="doubleInstallSnippetWithInlineEmbed('#double-install-snippet-with-inline-embed-default-namespace-content')">Double Install Embed Snippet with inline embed - Default Namespace</button>
+      <div id="double-install-snippet-with-inline-embed-default-namespace-content"></div>
+    </div>
+    <div>
+      <button id="double-install-snippet-with-inline-embed-non-default-namespace-button" onclick="doubleInstallSnippetWithInlineEmbedWithNonDefaultNamespace('#double-install-snippet-with-inline-embed-non-default-namespace-content')">Double Install Embed Snippet with inline embed - Non Default Namespace</button>
+      <div id="double-install-snippet-with-inline-embed-non-default-namespace-content"></div>
+    </div>
+    <div>
+      <button id="two-different-namespace-with-different-init-config" onclick="addTwoInlineEmbedWithTwoDifferentNamespacesWithDifferentInitConfig()">Two different namespace with two different config</button>
+      <div id="two-different-namespace-with-different-init-config-area">
+        <div id="two-different-namespace-with-different-init-config-content-1"></div>
+        <div id="two-different-namespace-with-different-init-config-content-2"></div>
+      </div>
+    </div>
     <span style="display: block"><a href="?color-scheme=dark">With Dark Color Scheme for the Page</a></span>
     <span style="display: block"><a href="?nonResponsive">Non responsive version of this page here</a></span>
     <span style="display: block"
@@ -156,7 +258,7 @@
         Book Free Event [Auto Theme][uiConfig.hideEventTypeDetails=true]
       </button>
       <button data-cal-namespace="routingFormAuto" data-cal-link="forms/948ae412-d995-4865-875a-48302588de03">
-        Book through Routing Form [Auto Theme]
+        Book through Routing Form [Auto Theme] - Test for 'routed' event
       </button>
       <button
         data-cal-namespace="routingFormDark"
@@ -170,11 +272,17 @@
       <button data-cal-namespace="popupPaidEvent" data-cal-config='{"layout":"column_view"}' data-cal-link="pro/paid">
         Book Paid Event - column view
       </button>
-      <!-- <div>
-        <h2>Embed for Pages behind authentication</h2>
-        <button data-cal-namespace="upcomingBookings" data-cal-config='{"theme":"dark"}' data-cal-link="bookings/upcoming">Show Upcoming Bookings</button>
-      </div> -->
+
+      <a style="display: block;" data-cal-namespace="childElementTarget" href="javascript:void(0)" data-cal-link="free/30min">
+        I am Anchor
+        <b>[I am Bold inside anchor]</b>
+        <span>
+          I am span inside anchor
+        </span>
+      </a>
+     
     </div>
+    
     <h2>Inline Embed Examples</h2>
     <div id="namespaces-test">
       <div class="inline-embed-container" id="cal-booking-place-default">

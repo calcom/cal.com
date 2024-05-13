@@ -1,5 +1,6 @@
+import { ApiProperty as DocsProperty, ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { IsNumber, IsString, IsBoolean, IsOptional, ValidateNested, IsArray, IsDate } from "class-validator";
+import { IsString, IsBoolean, IsOptional, ValidateNested, IsArray, IsDate } from "class-validator";
 import { DateTime } from "luxon";
 import { z } from "zod";
 
@@ -56,28 +57,59 @@ class DateOverride {
 }
 
 export class UpdateScheduleInput {
-  @IsNumber()
-  scheduleId!: number;
-
   @IsString()
   @IsOptional()
+  @DocsProperty()
   timeZone?: string;
 
   @IsString()
   @IsOptional()
+  @DocsProperty()
   name?: string;
 
   @IsBoolean()
   @IsOptional()
+  @DocsProperty()
   isDefault?: boolean;
 
+  @IsOptional()
   @ValidateNested({ each: true })
   @Type(() => ScheduleItem)
-  schedule!: ScheduleItem[][];
+  @DocsProperty()
+  @IsArray()
+  @ApiProperty({
+    type: [[ScheduleItem]],
+    example: [
+      [],
+      [{ start: "2022-01-01T00:00:00.000Z", end: "2022-01-02T00:00:00.000Z" }],
+      [],
+      [],
+      [],
+      [],
+      [],
+    ],
+    isArray: true,
+  })
+  schedule?: ScheduleItem[][];
 
   @IsOptional()
   @ValidateNested({ each: true })
   @Type(() => DateOverride)
   @IsArray()
+  @DocsProperty()
+  @ApiProperty({
+    type: [DateOverride],
+    example: [
+      [],
+      [{ start: "2022-01-01T00:00:00.000Z", end: "2022-01-02T00:00:00.000Z" }],
+      [],
+      [],
+      [],
+      [],
+      [],
+    ],
+    isArray: true,
+    required: false,
+  })
   dateOverrides?: DateOverride[];
 }

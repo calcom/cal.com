@@ -28,7 +28,7 @@ function RenderIcon({
   return (
     <img
       src={eventLocationType.iconUrl}
-      className={classNames(invertLogoOnDark(eventLocationType?.iconUrl, true), "me-[10px] h-4 w-4")}
+      className={classNames(invertLogoOnDark(eventLocationType?.iconUrl, false), "me-[10px] h-4 w-4")}
       alt={`${eventLocationType.label} icon`}
     />
   );

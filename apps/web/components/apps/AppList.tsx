@@ -33,7 +33,7 @@ interface AppListProps {
 
 export const AppList = ({ data, handleDisconnect, variant, listClassName }: AppListProps) => {
   const { data: defaultConferencingApp } = trpc.viewer.getUsersDefaultConferencingApp.useQuery();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const [bulkUpdateModal, setBulkUpdateModal] = useState(false);
   const [locationType, setLocationType] = useState<(EventLocationType & { slug: string }) | undefined>(
     undefined
@@ -139,7 +139,7 @@ export const AppList = ({ data, handleDisconnect, variant, listClassName }: AppL
               ...app,
               credentialOwner: {
                 name: team.name,
-                avatar: team.logo,
+                avatar: team.logoUrl,
                 teamId: team.teamId,
                 credentialId: team.credentialId,
                 readOnly: !team.isAdmin,
@@ -201,7 +201,7 @@ function ConnectOrDisconnectIntegrationMenuItem(props: {
   const { type, credentialId, isGlobal, installed, handleDisconnect, teamId } = props;
   const { t } = useLocale();
 
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const handleOpenChange = () => {
     utils.viewer.integrations.invalidate();
   };

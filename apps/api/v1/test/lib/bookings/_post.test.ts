@@ -7,7 +7,7 @@ import { createMocks } from "node-mocks-http";
 import { describe, expect, test, vi } from "vitest";
 
 import dayjs from "@calcom/dayjs";
-import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
+import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { buildBooking, buildEventType, buildWebhook } from "@calcom/lib/test/builder";
 import prisma from "@calcom/prisma";

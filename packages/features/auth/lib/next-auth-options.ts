@@ -1,5 +1,4 @@
 import type { Membership, Team, UserPermissionRole } from "@prisma/client";
-import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import type { AuthOptions, Session } from "next-auth";
 import type { JWT } from "next-auth/jwt";
 import { encode } from "next-auth/jwt";
@@ -130,13 +129,10 @@ const providers: Provider[] = [
         identifier: user.email,
       });
 
-      if (user.identityProvider !== IdentityProvider.CAL && !credentials.totpCode) {
-        throw new Error(ErrorCode.ThirdPartyIdentityProviderEnabled);
-      }
-      if (!user.password?.hash && user.identityProvider == IdentityProvider.CAL) {
+      if (!user.password?.hash && user.identityProvider !== IdentityProvider.CAL && !credentials.totpCode) {
         throw new Error(ErrorCode.IncorrectEmailPassword);
       }
-      if (!user.password?.hash && user.identityProvider !== IdentityProvider.CAL && !credentials.totpCode) {
+      if (!user.password?.hash && user.identityProvider == IdentityProvider.CAL) {
         throw new Error(ErrorCode.IncorrectEmailPassword);
       }
 
@@ -346,7 +342,8 @@ if (isSAMLLoginEnabled) {
           return null;
         }
 
-        const { id, firstName, lastName, email } = userInfo;
+        const { id, firstName, lastName } = userInfo;
+        const email = userInfo.email.toLowerCase();
         let user = !email
           ? undefined
           : await UserRepository.findByEmailAndIncludeProfilesAndPassword({ email });
@@ -479,6 +476,7 @@ export const AUTH_OPTIONS: AuthOptions = {
           select: {
             id: true,
             username: true,
+            avatarUrl: true,
             name: true,
             email: true,
             role: true,
@@ -514,6 +512,19 @@ export const AUTH_OPTIONS: AuthOptions = {
         }
 
         const profileOrg = profile?.organization;
+        let orgRole: MembershipRole | undefined;
+        // Get users role of org
+        if (profileOrg) {
+          const membership = await prisma.membership.findUnique({
+            where: {
+              userId_teamId: {
+                teamId: profileOrg.id,
+                userId: existingUser.id,
+              },
+            },
+          });
+          orgRole = membership?.role;
+        }
 
         return {
           ...existingUserWithoutTeamsField,
@@ -528,8 +539,10 @@ export const AUTH_OPTIONS: AuthOptions = {
                 id: profileOrg.id,
                 name: profileOrg.name,
                 slug: profileOrg.slug ?? profileOrg.requestedSlug ?? "",
+                logoUrl: profileOrg.logoUrl,
                 fullDomain: getOrgFullOrigin(profileOrg.slug ?? profileOrg.requestedSlug ?? ""),
                 domainSuffix: subdomainSuffix(),
+                role: orgRole as MembershipRole, // It can't be undefined if we have a profileOrg
               }
             : null,
         } as JWT;
@@ -725,7 +738,11 @@ export const AUTH_OPTIONS: AuthOptions = {
             try {
               // If old user without Account entry we link their google account
               if (existingUser.accounts.length === 0) {
-                const linkAccountWithUserData = { ...account, userId: existingUser.id };
+                const linkAccountWithUserData = {
+                  ...account,
+                  userId: existingUser.id,
+                  providerEmail: user.email,
+                };
                 await calcomAdapter.linkAccount(linkAccountWithUserData);
               }
             } catch (error) {
@@ -824,31 +841,15 @@ export const AUTH_OPTIONS: AuthOptions = {
             existingUserWithEmail.identityProvider === IdentityProvider.CAL &&
             (idP === IdentityProvider.GOOGLE || idP === IdentityProvider.SAML)
           ) {
-            const updatedUser = await prisma.user.update({
+            await prisma.user.update({
               where: { email: existingUserWithEmail.email },
               // also update email to the IdP email
               data: {
-                email: user.email,
+                email: user.email.toLowerCase(),
                 identityProvider: idP,
                 identityProviderId: account.providerAccountId,
               },
             });
-
-            // safely delete password from UserPassword table if it exists
-            try {
-              await prisma.userPassword.delete({
-                where: { userId: updatedUser.id },
-              });
-            } catch (err) {
-              if (
-                err instanceof PrismaClientKnownRequestError &&
-                (err.code === "P2025" || err.code === "P2016")
-              ) {
-                log.warn("UserPassword not found for user", safeStringify(existingUserWithEmail));
-              } else {
-                log.warn("Could not delete UserPassword for user", safeStringify(existingUserWithEmail));
-              }
-            }
 
             if (existingUserWithEmail.twoFactorEnabled) {
               return loginWithTotp(existingUserWithEmail.email);
@@ -857,6 +858,19 @@ export const AUTH_OPTIONS: AuthOptions = {
             }
           } else if (existingUserWithEmail.identityProvider === IdentityProvider.CAL) {
             return "/auth/error?error=use-password-login";
+          } else if (
+            existingUserWithEmail.identityProvider === IdentityProvider.GOOGLE &&
+            idP === IdentityProvider.SAML
+          ) {
+            await prisma.user.update({
+              where: { email: existingUserWithEmail.email },
+              // also update email to the IdP email
+              data: {
+                email: user.email.toLowerCase(),
+                identityProvider: idP,
+                identityProviderId: account.providerAccountId,
+              },
+            });
           }
 
           return "/auth/error?error=use-identity-login";
@@ -886,7 +900,7 @@ export const AUTH_OPTIONS: AuthOptions = {
           },
         });
 
-        const linkAccountNewUserData = { ...account, userId: newUser.id };
+        const linkAccountNewUserData = { ...account, userId: newUser.id, providerEmail: user.email };
         await calcomAdapter.linkAccount(linkAccountNewUserData);
 
         if (account.twoFactorEnabled) {

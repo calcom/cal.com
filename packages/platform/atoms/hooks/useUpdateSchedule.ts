@@ -25,7 +25,11 @@ const useUpdateSchedule = (
 ) => {
   const queryClient = useQueryClient();
 
-  const mutation = useMutation<ApiResponse<UpdateScheduleOutputType>, unknown, UpdateScheduleInput>({
+  const mutation = useMutation<
+    ApiResponse<UpdateScheduleOutputType>,
+    unknown,
+    UpdateScheduleInput & { scheduleId: number }
+  >({
     mutationFn: (data) => {
       const pathname = `/${V2_ENDPOINTS.availability}/${data.scheduleId}?for=atom`;
 

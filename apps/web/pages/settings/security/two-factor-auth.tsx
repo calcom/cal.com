@@ -34,10 +34,10 @@ const SkeletonLoader = ({ title, description }: { title: string; description: st
 };
 
 const TwoFactorAuthView = () => {
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
 
   const { t } = useLocale();
-  const { data: user, isPending } = trpc.viewer.me.useQuery();
+  const { data: user, isPending } = trpc.viewer.me.useQuery({ includePasswordAdded: true });
 
   const [enableModalOpen, setEnableModalOpen] = useState<boolean>(false);
   const [disableModalOpen, setDisableModalOpen] = useState<boolean>(false);
@@ -46,7 +46,7 @@ const TwoFactorAuthView = () => {
     return <SkeletonLoader title={t("2fa")} description={t("set_up_two_factor_authentication")} />;
 
   const isCalProvider = user?.identityProvider === "CAL";
-  const canSetupTwoFactor = !isCalProvider && !user?.twoFactorEnabled;
+  const canSetupTwoFactor = !isCalProvider && !user?.twoFactorEnabled && !user?.passwordAdded;
   return (
     <>
       <Meta title={t("2fa")} description={t("set_up_two_factor_authentication")} borderInShellHeader={true} />

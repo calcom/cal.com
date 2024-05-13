@@ -26,7 +26,7 @@ const SkeletonLoader = ({ title, description }: { title: string; description: st
 const NewWebhookView = () => {
   const searchParams = useCompatSearchParams();
   const { t } = useLocale();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const router = useRouter();
   const session = useSession();
 

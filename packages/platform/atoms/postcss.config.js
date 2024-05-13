@@ -3,6 +3,7 @@ const config = {
     tailwindcss: {},
     autoprefixer: {},
     "postcss-import": {},
+    "postcss-prefixwrap": `.calcom-atoms`,
   },
 };
 

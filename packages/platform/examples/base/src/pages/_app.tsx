@@ -40,7 +40,7 @@ export default function App({ Component, pageProps }: AppProps) {
     });
   }, []);
   return (
-    <div className={`${poppins.className}`}>
+    <div className={`${poppins.className} text-black`}>
       <CalProvider
         accessToken={accessToken}
         // eslint-disable-next-line turbo/no-undeclared-env-vars
