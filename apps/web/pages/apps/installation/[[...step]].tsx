@@ -25,7 +25,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { getTranslation } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
-import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import type { EventTypeMetaDataSchema, eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import type { AppMeta } from "@calcom/types/App";
 import { Form, Steps, showToast } from "@calcom/ui";
@@ -38,12 +38,18 @@ import { AccountsStepCard } from "@components/apps/installation/AccountsStepCard
 import { ConfigureStepCard } from "@components/apps/installation/ConfigureStepCard";
 import { EventTypesStepCard } from "@components/apps/installation/EventTypesStepCard";
 import { StepHeader } from "@components/apps/installation/StepHeader";
+import type { TLocationOptions } from "@components/eventtype/Locations";
 
 export type TEventType = EventTypeAppSettingsComponentProps["eventType"] &
-  Pick<EventTypeModel, "metadata" | "schedulingType" | "slug" | "requiresConfirmation" | "position"> & {
+  Pick<
+    EventTypeModel,
+    "metadata" | "schedulingType" | "slug" | "requiresConfirmation" | "position" | "destinationCalendar"
+  > & {
     selected: boolean;
-  } & LocationFormValues &
-  TLocationOptions;
+    locationOptions?: TLocationOptions;
+    locations: LocationFormValues["locations"];
+    bookingFields?: LocationFormValues["bookingFields"];
+  };
 
 export type TEventTypesForm = {
   eventTypes: TEventType[];
@@ -244,10 +250,26 @@ const OnboardingPage = ({
                     if (value.metadata?.apps?.stripe?.paymentOption === "HOLD" && value.seatsPerTimeSlot) {
                       throw new Error(t("seats_and_no_show_fee_error"));
                     }
-                    return updateMutation.mutateAsync({
-                      id: value.id,
-                      metadata: value.metadata,
-                    });
+                    let updateObject: {
+                      id: number;
+                      metadata?: z.infer<typeof EventTypeMetaDataSchema>;
+                      bookingFields?: z.infer<typeof eventTypeBookingFields>;
+                      locations?: LocationObject[];
+                    } = { id: value.id };
+                    if (isConferencing) {
+                      updateObject = {
+                        ...updateObject,
+                        locations: value.locations,
+                        bookingFields: value.bookingFields ? value.bookingFields : undefined,
+                      };
+                    } else {
+                      updateObject = {
+                        ...updateObject,
+                        metadata: value.metadata,
+                      };
+                    }
+
+                    return updateMutation.mutateAsync(updateObject);
                   });
                 try {
                   await Promise.all(mutationPromises);

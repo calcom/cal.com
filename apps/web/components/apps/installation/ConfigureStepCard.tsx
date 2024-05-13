@@ -3,7 +3,7 @@ import type { TEventType, TEventTypesForm } from "@pages/apps/installation/[[...
 import { X } from "lucide-react";
 import type { Dispatch, SetStateAction } from "react";
 import type { FC } from "react";
-import React, { forwardRef, useEffect, useRef, useState } from "react";
+import React, { forwardRef, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { UseFormGetValues, UseFormSetValue, Control, FormState } from "react-hook-form";
 import { useFieldArray, useFormContext } from "react-hook-form";
@@ -22,10 +22,9 @@ import { Button, Form, Skeleton, Label } from "@calcom/ui";
 import useAppsData from "@lib/hooks/useAppsData";
 
 import Locations from "@components/eventtype/Locations";
+import type { TEventTypeLocation, TPrefillLocation } from "@components/eventtype/Locations";
 
 import { locationsResolver } from "~/event-types/views/event-types-single-view";
-
-import type { TEventTypeLocation, TLocationOptions } from "../../eventtype/Locations";
 
 export type TFormType = {
   id: number;
@@ -53,7 +52,15 @@ type EventTypeAppSettingsFormProps = Pick<
 > & {
   eventType: TEventType;
   handleDelete: () => void;
-  onSubmit: (values: z.infer<typeof EventTypeMetaDataSchema>) => void;
+  onSubmit: ({
+    locations,
+    bookingFields,
+    metadata,
+  }: {
+    metadata?: z.infer<typeof EventTypeMetaDataSchema>;
+    bookingFields?: z.infer<typeof eventTypeBookingFields>;
+    locations?: LocationObject[];
+  }) => void;
 };
 
 type EventTypeAppSettingsWrapperProps = Pick<
@@ -86,9 +93,25 @@ const EventTypeAppSettingsWrapper: FC<EventTypeAppSettingsWrapperProps> = ({
   );
 };
 
-const EventTypeConferencingAppSettings = ({ eventType }: { eventType: TEventType }) => {
+const EventTypeConferencingAppSettings = ({ eventType, slug }: { eventType: TEventType; slug: string }) => {
   const { t } = useLocale();
   const formMethods = useFormContext<TFormType>();
+
+  const prefillLocation = useMemo(() => {
+    let res: TPrefillLocation | undefined = undefined;
+    for (const item of eventType?.locationOptions || []) {
+      for (const option of item.options) {
+        if (option.slug === slug) {
+          res = {
+            type: option.value,
+            credentialId: option.credentialId,
+          };
+        }
+      }
+      return res;
+    }
+  }, [slug, eventType?.locationOptions]);
+
   return (
     <div className="mt-2">
       <Skeleton as={Label} loadingClassName="w-16" htmlFor="locations">
@@ -101,7 +124,8 @@ const EventTypeConferencingAppSettings = ({ eventType }: { eventType: TEventType
         disableLocationProp={false}
         eventType={eventType as TEventTypeLocation}
         destinationCalendar={eventType.destinationCalendar}
-        locationOptions={eventType.locationOptions as TLocationOptions}
+        locationOptions={eventType.locationOptions}
+        prefillLocation={prefillLocation}
         team={null}
         getValues={formMethods.getValues as unknown as UseFormGetValues<LocationFormValues>}
         setValue={formMethods.setValue as unknown as UseFormSetValue<LocationFormValues>}
@@ -122,7 +146,7 @@ const EventTypeAppSettingsForm = forwardRef<HTMLButtonElement, EventTypeAppSetti
         id: eventType.id,
         metadata: eventType?.metadata,
         locations: eventType?.locations,
-        bookingFields: eventType.bookingFields,
+        bookingFields: eventType?.bookingFields,
       },
       resolver: zodResolver(
         z.object({
@@ -135,9 +159,11 @@ const EventTypeAppSettingsForm = forwardRef<HTMLButtonElement, EventTypeAppSetti
       <Form
         form={formMethods}
         id={`eventtype-${eventType.id}`}
-        handleSubmit={(values) => {
-          // const data = formMethods.getValues("locations");
-          // onSubmit(data);
+        handleSubmit={() => {
+          const metadata = formMethods.getValues("metadata");
+          const locations = formMethods.getValues("locations");
+          const bookingFields = formMethods.getValues("bookingFields");
+          onSubmit({ metadata, locations, bookingFields });
         }}>
         <div>
           <div className="sm:border-subtle bg-default relative border p-4 dark:bg-black sm:rounded-md">
@@ -229,7 +255,7 @@ export const ConfigureStepCard: FC<ConfigureStepCardProps> = ({
                     update(index, { ...field, selected: false, metadata: eventMetadataDb });
                   }}
                   onSubmit={(data) => {
-                    update(index, { ...field, metadata: data });
+                    update(index, { ...field, ...data });
                     setUpdatedEventTypesStatus((prev) =>
                       prev.map((item) => (item.id === field.id ? { ...item, updated: true } : item))
                     );
