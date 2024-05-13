@@ -1,11 +1,19 @@
 import prismock from "../../../../../tests/libs/__mocks__/prisma";
 
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi, beforeAll, afterAll } from "vitest";
 
 import stripe from "@calcom/app-store/stripepayment/lib/server";
 
 import { purchaseTeamOrOrgSubscription } from "./payments";
 
+beforeAll(() => {
+  vi.stubEnv("STRIPE_ORG_MONTHLY_PRICE_ID", "STRIPE_ORG_MONTHLY_PRICE_ID");
+  vi.stubEnv("STRIPE_TEAM_MONTHLY_PRICE_ID", "STRIPE_TEAM_MONTHLY_PRICE_ID");
+});
+
+afterAll(() => {
+  vi.unstubAllEnvs();
+});
 vi.mock("@calcom/app-store/stripepayment/lib/customer", () => {
   return {
     getStripeCustomerIdFromUserId: function () {
