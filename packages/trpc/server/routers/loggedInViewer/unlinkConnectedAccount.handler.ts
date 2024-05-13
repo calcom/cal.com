@@ -1,5 +1,15 @@
+import type { GetServerSidePropsContext, NextApiResponse } from "next";
+
 import { prisma } from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
+import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
+
+type UpdateProfileOptions = {
+  ctx: {
+    user: NonNullable<TrpcSessionUser>;
+    res?: NextApiResponse | GetServerSidePropsContext["res"];
+  };
+};
 
 const unlinkConnectedAccount = async ({ ctx }: UpdateProfileOptions) => {
   const { user } = ctx;
@@ -13,18 +23,21 @@ const unlinkConnectedAccount = async ({ ctx }: UpdateProfileOptions) => {
       providerAccountId: user.identityProviderId || "",
     });
   } catch {
-    return { message: "account_unlinked_error" };
+    // Fail silenty if we don't have an record in the account table
   }
   // Fall back to the default identity provider
-  await prisma.user.update({
+  const _user = await prisma.user.update({
     where: {
       id: user.id,
+      identityProvider: IdentityProvider.GOOGLE,
+      identityProviderId: { not: null },
     },
     data: {
       identityProvider: IdentityProvider.CAL,
       identityProviderId: null,
     },
   });
+  if (!_user) return { message: "account_unlinked_error" };
   return { message: "account_unlinked_success" };
 };
 
