@@ -12,6 +12,7 @@
   "have_any_questions": "Have questions? We're here to help.",
   "reset_password_subject": "{{appName}}: Reset password instructions",
   "verify_email_subject": "{{appName}}: Verify your account",
+  "verify_email_subject_verifying_email": "{{appName}}: Verify your email",
   "check_your_email": "Check your email",
   "old_email_address": "Old Email",
   "new_email_address": "New Email",

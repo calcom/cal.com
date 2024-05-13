@@ -1,6 +1,3 @@
--- AlterTable
-ALTER TABLE "PlatformBilling" ALTER COLUMN "plan" DROP DEFAULT;
-
 -- CreateTable
 CREATE TABLE "VerifiedEmail" (
     "id" SERIAL NOT NULL,
