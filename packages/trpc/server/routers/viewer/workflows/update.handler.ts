@@ -226,8 +226,22 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   );
 
   // handle deleted and edited workflow steps
-  userWorkflow.steps.map(async (oldStep) => {
-    const newStep = steps.filter((s) => s.id === oldStep.id)[0];
+  userWorkflow.steps.map(async ({ numberVerificationPending, ...oldStep }) => {
+    const foundStep = steps.find((s) => s.id === oldStep.id);
+    let newStep;
+
+    if (foundStep) {
+      const { senderName, ...rest } = {
+        ...foundStep,
+        sender: getSender({
+          action: foundStep.action,
+          sender: foundStep.sender || null,
+          senderName: foundStep.senderName,
+        }),
+      };
+      newStep = rest;
+    }
+
     const remindersFromStep = await ctx.prisma.workflowReminder.findMany({
       where: {
         workflowStepId: oldStep.id,
@@ -275,11 +289,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           emailSubject: newStep.emailSubject,
           template: newStep.template,
           numberRequired: newStep.numberRequired,
-          sender: getSender({
-            action: newStep.action,
-            sender: newStep.sender || null,
-            senderName: newStep.senderName,
-          }),
+          sender: newStep.sender,
           numberVerificationPending: false,
           includeCalendarEvent: newStep.includeCalendarEvent,
         },
@@ -309,11 +319,24 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       if (isSMSOrWhatsappAction(s.action) && !hasPaidPlan) {
         throw new TRPCError({ code: "UNAUTHORIZED", message: "Not available on free plan" });
       }
-      const { id: _stepId, ...stepToAdd } = s;
+
+      const {
+        id: _stepId,
+        senderName,
+        ...stepToAdd
+      } = {
+        sender: getSender({
+          action: s.action,
+          sender: s.sender || null,
+          senderName: s.senderName,
+        }),
+        ...s,
+      };
+
       return stepToAdd;
     });
 
-  if (addedSteps) {
+  if (addedSteps.length) {
     //create new steps
     const createdSteps = await Promise.all(
       addedSteps.map((step) =>
