@@ -4,8 +4,9 @@ import { CalendarsService } from "@/ee/calendars/services/calendars.service";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
 import { UserWithProfile } from "@/modules/users/users.repository";
-import { Controller, Get, UseGuards, Query, HttpStatus, HttpCode } from "@nestjs/common";
+import { Controller, Get, UseGuards, Query, HttpStatus, HttpCode, Req } from "@nestjs/common";
 import { ApiTags as DocsTags } from "@nestjs/swagger";
+import { Request } from "express";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { CalendarBusyTimesInput } from "@calcom/platform-types";
@@ -58,9 +59,14 @@ export class CalendarsController {
 
   @Get("/office365/connect")
   @HttpCode(HttpStatus.OK)
-  async redirect(): Promise<{ status: "success" }> {
+  async redirect(
+    @Req() req: Request
+  ): Promise<{ status: typeof SUCCESS_STATUS; data: { authUrl: Promise<string> } }> {
+    const redirectUrl = this.calendarsService.getRedirectUrl(req);
+
     return {
       status: SUCCESS_STATUS,
+      data: { authUrl: redirectUrl },
     };
   }
 
