@@ -1,16 +1,11 @@
 import CalendarManagerMock from "../../../../tests/libs/__mocks__/CalendarManager";
-import prismock from "../../../../tests/libs/__mocks__/prisma";
 
-import { diff } from "jest-diff";
-import { describe, expect, vi, beforeEach, afterEach, test } from "vitest";
+import { describe, vi, test } from "vitest";
 
 import dayjs from "@calcom/dayjs";
 import type { BookingStatus } from "@calcom/prisma/enums";
-import { PeriodType } from "@calcom/prisma/enums";
-import type { Slot } from "@calcom/trpc/server/routers/viewer/slots/types";
 import { getAvailableSlots as getSchedule } from "@calcom/trpc/server/routers/viewer/slots/util";
 
-import type { ScenarioData } from "../utils/bookingScenario/bookingScenario";
 import {
   getDate,
   getGoogleCalendarCredential,
@@ -18,214 +13,21 @@ import {
   createOrganization,
   getOrganizer,
   getScenarioData,
+  Timezones,
+  TestData,
 } from "../utils/bookingScenario/bookingScenario";
+import { expect } from "./getSchedule/expects";
+import { setupAndTeardown } from "./getSchedule/setupAndTeardown";
+import { timeTravelToTheBeginningOfToday } from "./getSchedule/utils";
 
 vi.mock("@calcom/lib/constants", () => ({
   IS_PRODUCTION: true,
   WEBAPP_URL: "http://localhost:3000",
   RESERVED_SUBDOMAINS: ["auth", "docs"],
-  ROLLING_WINDOW_PERIOD_MAX_DAYS_TO_CHECK: 61,
 }));
 
-declare global {
-  // eslint-disable-next-line @typescript-eslint/no-namespace
-  namespace jest {
-    interface Matchers<R> {
-      toHaveTimeSlots(expectedSlots: string[], date: { dateString: string; doExactMatch?: boolean }): R;
-      toHaveNoTimeSlots(date: { dateString: string }): R;
-    }
-  }
-}
-
-expect.extend({
-  toHaveTimeSlots(
-    schedule: { slots: Record<string, Slot[]> },
-    expectedSlots: string[],
-    { dateString, doExactMatch }: { dateString: string; doExactMatch: boolean }
-  ) {
-    if (!schedule.slots[`${dateString}`]) {
-      return {
-        pass: false,
-        message: () => `has no timeslots for ${dateString}`,
-      };
-    }
-
-    if (
-      !schedule.slots[`${dateString}`]
-        .map((slot) => slot.time)
-        .every((actualSlotTime, index) => {
-          return `${dateString}T${expectedSlots[index]}` === actualSlotTime;
-        })
-    ) {
-      return {
-        pass: false,
-        message: () =>
-          `has incorrect timeslots for ${dateString}.\n\r ${diff(
-            expectedSlots.map((expectedSlot) => `${dateString}T${expectedSlot}`),
-            schedule.slots[`${dateString}`].map((slot) => slot.time)
-          )}`,
-      };
-    }
-
-    if (doExactMatch) {
-      return {
-        pass: expectedSlots.length === schedule.slots[`${dateString}`].length,
-        message: () =>
-          `number of slots don't match for ${dateString}. Expected ${expectedSlots.length} but got ${
-            schedule.slots[`${dateString}`].length
-          }`,
-      };
-    }
-
-    return {
-      pass: true,
-      message: () => "has correct timeslots ",
-    };
-  },
-
-  toHaveNoTimeSlots(schedule: { slots: Record<string, Slot[]> }, { dateString }: { dateString: string }) {
-    if (!schedule.slots[`${dateString}`] || schedule.slots[`${dateString}`].length === 0) {
-      return {
-        pass: true,
-        message: () => `has no timeslots for ${dateString}`,
-      };
-    }
-    return {
-      pass: false,
-      message: () => `has timeslots for ${dateString}`,
-    };
-  },
-});
-
-const Timezones = {
-  "+5:30": "Asia/Kolkata",
-  "+6:00": "Asia/Dhaka",
-};
-
-const TestData = {
-  selectedCalendars: {
-    google: {
-      integration: "google_calendar",
-      externalId: "john@example.com",
-    },
-  },
-  credentials: {
-    google: getGoogleCalendarCredential(),
-  },
-  schedules: {
-    IstWorkHours: {
-      id: 1,
-      name: "9:30AM to 6PM in India(All Days) - 4:00AM to 12:30PM in GMT",
-      availability: [
-        {
-          userId: null,
-          eventTypeId: null,
-          days: [0, 1, 2, 3, 4, 5, 6],
-          startTime: new Date("1970-01-01T09:30:00.000Z"),
-          endTime: new Date("1970-01-01T18:00:00.000Z"),
-          date: null,
-        },
-      ],
-      timeZone: Timezones["+5:30"],
-    },
-    IstWorkHoursWithDateOverride: (dateString: string) => ({
-      id: 1,
-      name: "9:30AM to 6PM in India - 4:00AM to 12:30PM in GMT but with a Date Override for 2PM to 6PM IST(in GST time it is 8:30AM to 12:30PM)",
-      availability: [
-        {
-          userId: null,
-          eventTypeId: null,
-          days: [0, 1, 2, 3, 4, 5, 6],
-          startTime: new Date("1970-01-01T09:30:00.000Z"),
-          endTime: new Date("1970-01-01T18:00:00.000Z"),
-          date: null,
-        },
-        {
-          userId: null,
-          eventTypeId: null,
-          days: [0, 1, 2, 3, 4, 5, 6],
-          startTime: new Date("1970-01-01T14:00:00.000Z"),
-          endTime: new Date("1970-01-01T18:00:00.000Z"),
-          date: dateString,
-        },
-      ],
-      timeZone: Timezones["+5:30"],
-    }),
-  },
-  users: {
-    example: {
-      name: "Example",
-      username: "example",
-      defaultScheduleId: 1,
-      email: "example@example.com",
-      timeZone: Timezones["+5:30"],
-    },
-  },
-  apps: {
-    googleCalendar: {
-      slug: "google-calendar",
-      dirName: "whatever",
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      //@ts-ignore
-      keys: {
-        expiry_date: Infinity,
-        client_id: "client_id",
-        client_secret: "client_secret",
-        redirect_uris: ["http://localhost:3000/auth/callback"],
-      },
-    },
-  },
-};
-
-const expectedSlotsForSchedule = {
-  IstWorkHours: {
-    interval: {
-      "1hr": {
-        allPossibleSlotsStartingAt430: [
-          "04:30:00.000Z",
-          "05:30:00.000Z",
-          "06:30:00.000Z",
-          "07:30:00.000Z",
-          "08:30:00.000Z",
-          "09:30:00.000Z",
-          "10:30:00.000Z",
-          "11:30:00.000Z",
-        ],
-        allPossibleSlotsStartingAt4: [
-          "04:00:00.000Z",
-          "05:00:00.000Z",
-          "06:00:00.000Z",
-          "07:00:00.000Z",
-          "08:00:00.000Z",
-          "09:00:00.000Z",
-          "10:00:00.000Z",
-          "11:00:00.000Z",
-        ],
-      },
-    },
-  },
-};
-
-const cleanup = async () => {
-  await prismock.eventType.deleteMany();
-  await prismock.user.deleteMany();
-  await prismock.schedule.deleteMany();
-  await prismock.selectedCalendar.deleteMany();
-  await prismock.credential.deleteMany();
-  await prismock.booking.deleteMany();
-  await prismock.app.deleteMany();
-  vi.useRealTimers();
-};
-
-beforeEach(async () => {
-  await cleanup();
-});
-
-afterEach(async () => {
-  await cleanup();
-});
-
 describe("getSchedule", () => {
+  setupAndTeardown();
   describe("Calendar event", () => {
     test("correctly identifies unavailable slots from calendar", async () => {
       const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
@@ -260,7 +62,7 @@ describe("getSchedule", () => {
             selectedCalendars: [TestData.selectedCalendars.google],
           },
         ],
-        apps: [TestData.apps.googleCalendar],
+        apps: [TestData.apps["google-calendar"]],
       };
       // An event with one accepted booking
       await createBookingScenario(scenarioData);
@@ -623,7 +425,7 @@ describe("getSchedule", () => {
             selectedCalendars: [TestData.selectedCalendars.google],
           },
         ],
-        apps: [TestData.apps.googleCalendar],
+        apps: [TestData.apps["google-calendar"]],
       };
 
       await createBookingScenario(scenarioData);
@@ -697,7 +499,7 @@ describe("getSchedule", () => {
             status: "ACCEPTED" as BookingStatus,
           },
         ],
-        apps: [TestData.apps.googleCalendar],
+        apps: [TestData.apps["google-calendar"]],
       };
 
       await createBookingScenario(scenarioData);
@@ -755,7 +557,7 @@ describe("getSchedule", () => {
             selectedCalendars: [TestData.selectedCalendars.google],
           },
         ],
-        apps: [TestData.apps.googleCalendar],
+        apps: [TestData.apps["google-calendar"]],
       };
 
       await createBookingScenario(scenarioData);
@@ -1052,191 +854,6 @@ describe("getSchedule", () => {
         });
       }
       expect(availableSlotsInTz.filter((slot) => slot.format().startsWith(plus2DateString)).length).toBe(23); // 2 booking per day as limit, only one booking on that
-    });
-
-    describe("Future Limits", () => {
-      describe("PeriodType=ROLLING", () => {
-        test("Basic test", async () => {
-          const { dateString: yesterdayDateString } = getDate({ dateIncrement: -1 });
-          const { dateString: todayDateString } = getDate();
-          const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
-          const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
-          const { dateString: plus3DateString } = getDate({ dateIncrement: 3 });
-          const { dateString: plus4DateString } = getDate({ dateIncrement: 4 });
-          const { dateString: plus5DateString } = getDate({ dateIncrement: 5 });
-          timeTravelToTheBeginningOfToday({ utcOffsetInHours: 5.5 });
-
-          const scenarioData = {
-            eventTypes: [
-              {
-                id: 1,
-                length: 60,
-                ...getPeriodTypeData({
-                  type: "ROLLING",
-                  periodDays: 2,
-                  periodCountCalendarDays: true,
-                }),
-                users: [
-                  {
-                    id: 101,
-                  },
-                ],
-              },
-            ],
-            users: [
-              {
-                ...TestData.users.example,
-                id: 101,
-                schedules: [TestData.schedules.IstWorkHours],
-              },
-            ],
-          } satisfies ScenarioData;
-
-          await createBookingScenario(scenarioData);
-
-          const scheduleForEvent = await getSchedule({
-            input: {
-              eventTypeId: 1,
-              eventTypeSlug: "",
-              usernameList: [],
-              // Because this time is in GMT, it will be 00:00 in IST with todayDateString
-              startTime: `${yesterdayDateString}T18:30:00.000Z`,
-              endTime: `${plus5DateString}T18:29:59.999Z`,
-              timeZone: Timezones["+5:30"],
-              isTeamEvent: false,
-            },
-          });
-
-          expect(scheduleForEvent).toHaveTimeSlots(
-            expectedSlotsForSchedule["IstWorkHours"].interval["1hr"].allPossibleSlotsStartingAt430,
-            {
-              dateString: todayDateString,
-              doExactMatch: true,
-            }
-          );
-
-          expect(scheduleForEvent).toHaveTimeSlots(
-            expectedSlotsForSchedule["IstWorkHours"].interval["1hr"].allPossibleSlotsStartingAt430,
-            {
-              dateString: plus1DateString,
-              doExactMatch: true,
-            }
-          );
-
-          // No Timeslots beyond plus1Date as that is beyond the rolling period
-
-          expect(scheduleForEvent).toHaveNoTimeSlots({
-            dateString: plus2DateString,
-          });
-
-          expect(scheduleForEvent).toHaveNoTimeSlots({
-            dateString: plus3DateString,
-          });
-
-          expect(scheduleForEvent).toHaveNoTimeSlots({
-            dateString: plus4DateString,
-          });
-        });
-      });
-
-      describe("PeriodType=ROLLING_WINDOW", () => {
-        test("Basic test", async () => {
-          const { dateString: yesterdayDateString } = getDate({ dateIncrement: -1 });
-          const { dateString: todayDateString } = getDate();
-          const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
-          const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
-          const { dateString: plus3DateString } = getDate({ dateIncrement: 3 });
-          const { dateString: plus4DateString } = getDate({ dateIncrement: 4 });
-          const { dateString: plus5DateString } = getDate({ dateIncrement: 5 });
-          timeTravelToTheBeginningOfToday({ utcOffsetInHours: 5.5 });
-
-          const scenarioData = {
-            eventTypes: [
-              {
-                id: 1,
-                length: 60,
-                ...getPeriodTypeData({
-                  type: "ROLLING_WINDOW",
-                  periodDays: 3,
-                  periodCountCalendarDays: true,
-                }),
-                users: [
-                  {
-                    id: 101,
-                  },
-                ],
-              },
-            ],
-            users: [
-              {
-                ...TestData.users.example,
-                id: 101,
-                schedules: [TestData.schedules.IstWorkHours],
-              },
-            ],
-            bookings: [
-              {
-                userId: 101,
-                eventTypeId: 1,
-                status: "ACCEPTED",
-                // Fully book plus2 Date
-                startTime: `${plus1DateString}T18:30:00.000Z`,
-                endTime: `${plus2DateString}T18:30:00.000Z`,
-              },
-            ],
-          } satisfies ScenarioData;
-
-          await createBookingScenario(scenarioData);
-
-          const scheduleForEvent = await getSchedule({
-            input: {
-              eventTypeId: 1,
-              eventTypeSlug: "",
-              usernameList: [],
-              // Because this time is in GMT, it will be 00:00 in IST with todayDateString
-              startTime: `${yesterdayDateString}T18:30:00.000Z`,
-              endTime: `${plus5DateString}T18:29:59.999Z`,
-              timeZone: Timezones["+5:30"],
-              isTeamEvent: false,
-            },
-          });
-
-          console.log({ scheduleForEvent });
-          expect(scheduleForEvent).toHaveTimeSlots(
-            expectedSlotsForSchedule["IstWorkHours"].interval["1hr"].allPossibleSlotsStartingAt430,
-            {
-              dateString: todayDateString,
-              doExactMatch: true,
-            }
-          );
-
-          expect(scheduleForEvent).toHaveTimeSlots(
-            expectedSlotsForSchedule["IstWorkHours"].interval["1hr"].allPossibleSlotsStartingAt430,
-            {
-              dateString: plus1DateString,
-              doExactMatch: true,
-            }
-          );
-
-          // plus2Date is fully booked. So, instead we will have timeslots one day later
-          expect(scheduleForEvent).toHaveNoTimeSlots({
-            dateString: plus2DateString,
-          });
-
-          expect(scheduleForEvent).toHaveTimeSlots(
-            expectedSlotsForSchedule["IstWorkHours"].interval["1hr"].allPossibleSlotsStartingAt430,
-            {
-              dateString: plus3DateString,
-              doExactMatch: true,
-            }
-          );
-
-          // No Timeslots on plus4Date as beyond the rolling period
-          expect(scheduleForEvent).toHaveNoTimeSlots({
-            dateString: plus4DateString,
-          });
-        });
-      });
     });
   });
 
@@ -1570,63 +1187,3 @@ describe("getSchedule", () => {
     });
   });
 });
-
-function getPeriodTypeData({
-  type,
-  periodDays,
-  periodCountCalendarDays,
-  periodStartDate,
-  periodEndDate,
-}: {
-  type: PeriodType;
-  periodDays?: number;
-  periodCountCalendarDays?: boolean;
-  periodStartDate?: Date;
-  periodEndDate?: Date;
-}) {
-  if (type === PeriodType.ROLLING) {
-    if (!periodCountCalendarDays || !periodDays) {
-      throw new Error("periodCountCalendarDays and periodDays are required for ROLLING period type");
-    }
-    return {
-      periodType: PeriodType.ROLLING,
-      periodDays,
-      periodCountCalendarDays,
-    };
-  }
-
-  if (type === PeriodType.ROLLING_WINDOW) {
-    if (!periodCountCalendarDays || !periodDays) {
-      throw new Error("periodCountCalendarDays and periodDays are required for ROLLING period type");
-    }
-    return {
-      periodType: PeriodType.ROLLING_WINDOW,
-      periodDays,
-      periodCountCalendarDays,
-    };
-  }
-
-  if (type === PeriodType.RANGE) {
-    if (!periodStartDate || !periodEndDate) {
-      throw new Error("periodStartDate and periodEndDate are required for RANGE period type");
-    }
-    return {
-      periodType: PeriodType.RANGE,
-      periodStartDate,
-      periodEndDate,
-    };
-  }
-}
-
-function timeTravelToTheBeginningOfToday({ utcOffsetInHours = 0 }: { utcOffsetInHours: number }) {
-  const timeInTheUtcOffsetInHours = 24 - utcOffsetInHours;
-  const timeInTheUtcOffsetInMinutes = timeInTheUtcOffsetInHours * 60;
-  const hours = Math.floor(timeInTheUtcOffsetInMinutes / 60);
-  const hoursString = hours < 10 ? `0${hours}` : `${hours}`;
-  const minutes = timeInTheUtcOffsetInMinutes % 60;
-  const minutesString = minutes < 10 ? `0${minutes}` : `${minutes}`;
-
-  const { dateString: yesterdayDateString } = getDate({ dateIncrement: -1 });
-  console.log({ yesterdayDateString, hours, minutes });
-  vi.setSystemTime(`${yesterdayDateString}T${hoursString}:${minutesString}:00.000Z`);
-}

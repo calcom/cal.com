@@ -812,6 +812,7 @@ export const TestData = {
   },
   schedules: {
     IstWorkHours: {
+      id: 1,
       name: "9:30AM to 6PM in India - 4:00AM to 12:30PM in GMT",
       availability: [
         {
