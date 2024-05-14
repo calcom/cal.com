@@ -404,6 +404,38 @@
         ]
       }
     },
+    "/v2/oauth-clients/{clientId}/managed-users": {
+      "get": {
+        "operationId": "OAuthClientsController_getOAuthClientManagedUsersById",
+        "summary": "",
+        "description": "⚠️ First, this endpoint requires `Cookie: next-auth.session-token=eyJhbGciOiJ` header. Log into Cal web app using owner of organization that was created after visiting `/settings/organizations/new`, refresh swagger docs, and the cookie will be added to requests automatically to pass the NextAuthGuard.\nSecond, make sure that the logged in user has organizationId set to pass the OrganizationRolesGuard guard.",
+        "parameters": [
+          {
+            "name": "clientId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetManagedUsersOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "OAuth - development only"
+        ]
+      }
+    },
     "/v2/oauth/{clientId}/authorize": {
       "post": {
         "operationId": "OAuthFlowController_authorize",
@@ -2067,6 +2099,9 @@
             "items": {
               "$ref": "#/components/schemas/EventTypeLocation"
             }
+          },
+          "disableGuests": {
+            "type": "boolean"
           }
         },
         "required": [
@@ -2749,6 +2784,9 @@
             "items": {
               "$ref": "#/components/schemas/EventTypeLocation"
             }
+          },
+          "disableGuests": {
+            "type": "boolean"
           }
         }
       },
