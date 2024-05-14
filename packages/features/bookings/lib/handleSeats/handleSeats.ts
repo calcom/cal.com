@@ -1,7 +1,6 @@
 // eslint-disable-next-line no-restricted-imports
-import { handleAuditLogTrigger } from "audit-logs/lib/handleAuditLogTrigger";
-
 import dayjs from "@calcom/dayjs";
+import { handleAuditLogTrigger } from "@calcom/features/audit-logs/lib/handleAuditLogTrigger";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { ErrorCode } from "@calcom/lib/errorCodes";

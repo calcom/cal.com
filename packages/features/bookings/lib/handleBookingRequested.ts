@@ -1,6 +1,5 @@
-import { handleAuditLogTrigger } from "audit-logs/lib/handleAuditLogTrigger";
-
 import { sendAttendeeRequestEmail, sendOrganizerRequestEmail } from "@calcom/emails";
+import { handleAuditLogTrigger } from "@calcom/features/audit-logs/lib/handleAuditLogTrigger";
 import { getWebhookPayloadForBooking } from "@calcom/features/bookings/lib/getWebhookPayloadForBooking";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";

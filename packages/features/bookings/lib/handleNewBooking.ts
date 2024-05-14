@@ -1,4 +1,3 @@
-import { handleAuditLogTrigger } from "@/calcom/features/audit-logs/lib/handleAuditLogTrigger";
 import type { App, DestinationCalendar, EventTypeCustomInput } from "@prisma/client";
 import { Prisma } from "@prisma/client";
 import type { IncomingMessage } from "http";
@@ -38,6 +37,7 @@ import {
   sendScheduledEmails,
 } from "@calcom/emails";
 import getICalUID from "@calcom/emails/lib/getICalUID";
+import { handleAuditLogTrigger } from "@calcom/features/audit-logs/lib/handleAuditLogTrigger";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
