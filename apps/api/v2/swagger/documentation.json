@@ -3051,6 +3051,9 @@
           },
           "data": {
             "$ref": "#/components/schemas/ScheduleOutput"
+          },
+          "error": {
+            "type": "object"
           }
         },
         "required": [

@@ -5,7 +5,7 @@ import { V2_ENDPOINTS } from "@calcom/platform-constants";
 import type { ApiResponse, ApiErrorResponse } from "@calcom/platform-types";
 
 import http from "../../lib/http";
-import { QUERY_KEY } from "./useClientSchedule";
+import { QUERY_KEY } from "./useSchedule";
 
 interface IUseDeleteScheduleProps {
   onSuccess?: (res: ApiResponse) => void;

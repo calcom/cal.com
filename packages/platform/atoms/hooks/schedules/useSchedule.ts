@@ -7,10 +7,8 @@ import http from "../../lib/http";
 
 export const QUERY_KEY = "user-schedule";
 
-export const useClientSchedule = (id?: string) => {
-  const pathname = id
-    ? `/${V2_ENDPOINTS.availability}/${id}?for=atom`
-    : `/${V2_ENDPOINTS.availability}/default?for=atom`;
+export const useSchedule = (id?: string) => {
+  const pathname = id ? `/${V2_ENDPOINTS.availability}/${id}` : `/${V2_ENDPOINTS.availability}/default`;
 
   const { isLoading, error, data } = useQuery({
     queryKey: [QUERY_KEY, id],

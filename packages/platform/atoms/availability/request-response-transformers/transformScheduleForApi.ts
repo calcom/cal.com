@@ -1,8 +1,8 @@
 import type { ScheduleAvailabilityInput, UpdateScheduleInput, WeekDay } from "@calcom/platform-types";
 
-import type { AvailabilityFormValues } from "./types";
+import type { AvailabilityFormValues } from "../types";
 
-export function getApiSchedule(body: AvailabilityFormValues): UpdateScheduleInput {
+export function transformScheduleForApi(body: AvailabilityFormValues): UpdateScheduleInput {
   const { name, schedule, dateOverrides, timeZone, isDefault } = body;
 
   const overrides =

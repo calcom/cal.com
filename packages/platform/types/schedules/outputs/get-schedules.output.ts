@@ -19,4 +19,6 @@ export class GetSchedulesOutput {
   @Type(() => ScheduleOutput)
   @IsArray()
   data!: ScheduleOutput[];
+
+  error?: Error;
 }

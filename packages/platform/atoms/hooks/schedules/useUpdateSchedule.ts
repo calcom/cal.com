@@ -6,7 +6,7 @@ import type { ApiResponse, UpdateScheduleInput, ApiErrorResponse } from "@calcom
 import type { ScheduleOutput } from "@calcom/platform-types";
 
 import http from "../../lib/http";
-import { QUERY_KEY as ScheduleQueryKey } from "./useClientSchedule";
+import { QUERY_KEY as ScheduleQueryKey } from "./useSchedule";
 
 interface IPUpdateOAuthClient {
   onSuccess?: (res: ApiResponse<ScheduleOutput>) => void;

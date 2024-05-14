@@ -1,8 +1,9 @@
 import type { ScheduleLabelsType } from "@calcom/features/schedules/components/Schedule";
 import type { ApiErrorResponse, ApiResponse, ScheduleOutput } from "@calcom/platform-types";
 
-import { useClientSchedule } from "../../hooks/schedules/useClientSchedule";
 import useDeleteSchedule from "../../hooks/schedules/useDeleteSchedule";
+import { useSchedule } from "../../hooks/schedules/useSchedule";
+import { useSchedules } from "../../hooks/schedules/useSchedules";
 import useUpdateSchedule from "../../hooks/schedules/useUpdateSchedule";
 import { useMe } from "../../hooks/useMe";
 import { AtomsWrapper } from "../../src/components/atoms-wrapper";
@@ -10,8 +11,8 @@ import { useToast } from "../../src/components/ui/use-toast";
 import type { Availability } from "../AvailabilitySettings";
 import type { CustomClassNames } from "../AvailabilitySettings";
 import { AvailabilitySettings } from "../AvailabilitySettings";
-import { getApiSchedule } from "../getApiSchedule";
-import { transformScheduleForAtom } from "../getAtomSchedule";
+import { transformScheduleForApi } from "../request-response-transformers/transformScheduleForApi";
+import { transformScheduleForAtom } from "../request-response-transformers/transformScheduleForAtom";
 import type { AvailabilityFormValues } from "../types";
 
 type PlatformAvailabilitySettingsWrapperProps = {
@@ -34,9 +35,10 @@ export const PlatformAvailabilitySettingsWrapper = ({
   onUpdateError,
   onUpdateSuccess,
 }: PlatformAvailabilitySettingsWrapperProps) => {
-  const { isLoading, data: schedule } = useClientSchedule(id);
+  const { isLoading, data: schedule } = useSchedule(id);
+  const { data: schedules } = useSchedules();
   const { data: me } = useMe();
-  const userSchedule = transformScheduleForAtom(me?.data, schedule, 1);
+  const atomSchedule = transformScheduleForAtom(me?.data, schedule, schedules?.length || 0);
   const { timeFormat } = me?.data || { timeFormat: null };
   const { toast } = useToast();
 
@@ -75,37 +77,37 @@ export const PlatformAvailabilitySettingsWrapper = ({
   };
 
   const handleUpdate = async (id: number, body: AvailabilityFormValues) => {
-    const updateBody = getApiSchedule(body);
-    await updateSchedule({ id, ...updateBody });
+    const updateBody = transformScheduleForApi(body);
+    updateSchedule({ id, ...updateBody });
   };
 
   if (isLoading) return <div className="px-10 py-4 text-xl">Loading...</div>;
 
-  if (!userSchedule) return <div className="px-10 py-4 text-xl">No user schedule present</div>;
+  if (!atomSchedule) return <div className="px-10 py-4 text-xl">No user schedule present</div>;
 
   return (
     <AtomsWrapper>
       <AvailabilitySettings
         handleDelete={() => {
-          userSchedule.id && handleDelete(userSchedule.id);
+          atomSchedule.id && handleDelete(atomSchedule.id);
         }}
         handleSubmit={async (data) => {
-          userSchedule.id && handleUpdate(userSchedule.id, data);
+          atomSchedule.id && handleUpdate(atomSchedule.id, data);
         }}
         weekStart="Sunday"
         timeFormat={timeFormat}
         isLoading={isLoading}
         schedule={{
-          name: userSchedule.name,
-          id: userSchedule.id,
-          isLastSchedule: userSchedule.isLastSchedule,
-          isDefault: userSchedule.isDefault,
-          workingHours: userSchedule.workingHours,
-          dateOverrides: userSchedule.dateOverrides,
-          timeZone: userSchedule.timeZone,
-          availability: userSchedule.availability,
+          name: atomSchedule.name,
+          id: atomSchedule.id,
+          isLastSchedule: atomSchedule.isLastSchedule,
+          isDefault: atomSchedule.isDefault,
+          workingHours: atomSchedule.workingHours,
+          dateOverrides: atomSchedule.dateOverrides,
+          timeZone: atomSchedule.timeZone,
+          availability: atomSchedule.availability,
           schedule:
-            userSchedule.schedule.reduce(
+            atomSchedule.schedule.reduce(
               (acc: Availability[], avail: Availability) => [
                 ...acc,
                 { days: avail.days, startTime: new Date(avail.startTime), endTime: new Date(avail.endTime) },
