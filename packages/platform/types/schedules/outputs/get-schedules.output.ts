@@ -11,9 +11,7 @@ export class GetSchedulesOutput {
   @IsEnum([SUCCESS_STATUS, ERROR_STATUS])
   status!: typeof SUCCESS_STATUS | typeof ERROR_STATUS;
 
-  @ApiProperty({
-    type: ScheduleOutput,
-  })
+  @ApiProperty({ type: [ScheduleOutput] })
   @IsNotEmptyObject()
   @ValidateNested({ each: true })
   @Type(() => ScheduleOutput)
