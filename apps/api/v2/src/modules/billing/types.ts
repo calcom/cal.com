@@ -1,5 +1,6 @@
 export enum PlatformPlan {
   STARTER = "STARTER",
   ESSENTIALS = "ESSENTIALS",
+  SCALE = "SCALE",
   ENTERPRISE = "ENTERPRISE",
 }
