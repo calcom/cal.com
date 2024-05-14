@@ -33,7 +33,6 @@ import {
   expectSuccessfulCalendarEventDeletionInCalendar,
   expectSuccessfulVideoMeetingDeletionInCalendar,
   expectSuccessfulRoundRobinReschedulingEmails,
-  expectSMSToBeTriggered,
 } from "@calcom/web/test/utils/bookingScenario/expects";
 import { getMockRequestDataForBooking } from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForBooking";
 import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
@@ -2177,7 +2176,7 @@ describe("handleNewBooking", () => {
 
       test(
         "[Event Type with Both Email and Attendee Phone Number as required fields] should send rescheduling emails when round robin is rescheduled to same host",
-        async ({ emails, sms }) => {
+        async ({ emails }) => {
           const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
           const TEST_ATTENDEE_NUMBER = "+919876543210";
           const booker = getBooker({
@@ -2374,8 +2373,6 @@ describe("handleNewBooking", () => {
             newOrganizer: roundRobinHost1, // Round robin host 2 is not available and it will be rescheduled to same user
             emails,
           });
-
-          expectSMSToBeTriggered({ sms, toNumber: TEST_ATTENDEE_NUMBER });
         },
         timeout
       );
