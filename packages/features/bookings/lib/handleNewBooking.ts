@@ -1,3 +1,4 @@
+import { handleAuditLogTrigger } from "@/calcom/features/audit-logs/lib/handleAuditLogTrigger";
 import type { App, DestinationCalendar, EventTypeCustomInput } from "@prisma/client";
 import { Prisma } from "@prisma/client";
 import type { IncomingMessage } from "http";
@@ -2304,6 +2305,7 @@ async function handler(
 
     // Send Webhook call if hooked to BOOKING_CREATED & BOOKING_RESCHEDULED
     await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData });
+    await handleAuditLogTrigger("New Booking created");
   } else {
     // if eventType requires confirmation we will trigger the BOOKING REQUESTED Webhook
     const eventTrigger: WebhookTriggerEvents = WebhookTriggerEvents.BOOKING_REQUESTED;
