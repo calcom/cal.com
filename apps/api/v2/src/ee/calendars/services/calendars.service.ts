@@ -1,3 +1,4 @@
+import { AppsRepository } from "@/modules/apps/apps.repository";
 import {
   CredentialsRepository,
   CredentialsWithUserEmail,
@@ -12,18 +13,23 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import { User } from "@prisma/client";
+import { Request } from "express";
 import { DateTime } from "luxon";
+import { z } from "zod";
 
 import { getConnectedDestinationCalendars } from "@calcom/platform-libraries";
-import { getBusyCalendarTimes } from "@calcom/platform-libraries";
-import { Calendar } from "@calcom/platform-types";
+import { getBusyCalendarTimes, WEBAPP_URL_FOR_OAUTH } from "@calcom/platform-libraries";
+import { Calendar, IntegrationOAuthCallbackState } from "@calcom/platform-types";
 import { PrismaClient } from "@calcom/prisma";
 
 @Injectable()
 export class CalendarsService {
+  private gcalResponseSchema = z.object({ client_id: z.string(), client_secret: z.string() });
+
   constructor(
     private readonly usersRepository: UsersRepository,
     private readonly credentialsRepository: CredentialsRepository,
+    private readonly appsRepository: AppsRepository,
     private readonly dbRead: PrismaReadService,
     private readonly dbWrite: PrismaWriteService
   ) {}
@@ -109,5 +115,51 @@ export class CalendarsService {
       };
     });
     return composedSelectedCalendars;
+  }
+
+  async getAppKeys() {
+    const app = await this.appsRepository.getAppBySlug("office365-calendar");
+
+    if (!app) {
+      throw new NotFoundException();
+    }
+
+    const { client_id, client_secret } = this.gcalResponseSchema.parse(app.keys);
+
+    if (!client_id) {
+      throw new NotFoundException();
+    }
+
+    return { client_id, client_secret };
+  }
+
+  async encodeOAuthState(req: Request) {
+    if (typeof req.query.state !== "string") {
+      return undefined;
+    }
+    const state: IntegrationOAuthCallbackState = JSON.parse(req.query.state);
+
+    return JSON.stringify(state);
+  }
+
+  async getRedirectUrl(req: Request) {
+    const { client_id } = await this.getAppKeys();
+
+    const scopes = ["User.Read", "Calendars.Read", "Calendars.ReadWrite", "offline_access"];
+    const state = this.encodeOAuthState(req);
+    const params = {
+      response_type: "code",
+      scope: scopes.join(" "),
+      client_id,
+      prompt: "select_account",
+      redirect_uri: `${WEBAPP_URL_FOR_OAUTH}/api/integrations/office365calendar/callback`,
+      state,
+    };
+
+    const query = JSON.stringify(params);
+
+    const url = `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?${query}`;
+
+    return url;
   }
 }
