@@ -271,17 +271,6 @@ type PersistOrganizationWithExistingUserAsOwnerProps = {
   existingOwnerDetails: PersistOrgWithExistingOwner;
 };
 
-/*
- orgOwner: User,
-  orgData: OrgData,
-  orgOwnerEmail: string,
-  userName: string | null,
-  translation: TFunction,
-  { ownerId: orgOwnerId, orgId, ownerUsername }: PersistOrgWithExistingOwner,
-  loggedInUserId: number,
-  availability: Availability
-*/
-
 const persistOrganizationWithExistingUserAsOwner = async ({
   orgData,
   orgOwner,
@@ -385,15 +374,36 @@ const persistOrganizationWithNonExistentOwner = async ({
   return user;
 };
 
-export const createHandler = async ({ input, ctx }: CreateOptions) => {
-  const { slug, name, orgOwnerEmail, seats, pricePerSeat, isPlatform } = input;
+type CreateUserProps = {
+  userId: number;
+  name: string;
+  slug: string;
+  orgOwnerEmail: string;
+  autoAcceptEmail: string;
+  seats?: number;
+  pricePerSeat?: number;
+  inputLanguageTranslation: TFunction;
+  availability: Availability;
+  isPlatform: boolean;
+  ctx: { userLocale: string; userName: string | null; orgId: number | null };
+};
 
-  const inputLanguageTranslation = await getTranslation(input.language ?? "en", "common");
-  const availability = getAvailabilityFromSchedule(DEFAULT_SCHEDULE);
-  const autoAcceptEmail = orgOwnerEmail.split("@")[1];
+const createOrgUser = async ({
+  userId,
+  name,
+  slug,
+  orgOwnerEmail,
+  isPlatform,
+  autoAcceptEmail,
+  seats,
+  pricePerSeat,
+  inputLanguageTranslation,
+  availability,
+  ctx: { userLocale, userName, orgId },
+}: CreateUserProps) => {
+  const loggedInUser = await checkLoginStatus(userId);
 
-  const loggedInUser = await checkLoginStatus(ctx.user.id);
-  const isOrganizationConfigured = isPlatform ? true : await createDomain(slug);
+  const isOrganizationConfigured = await createDomain(slug);
 
   const IS_USER_ADMIN = await checkOrgOwnerCreationRequirements({
     user: { email: loggedInUser.email, role: loggedInUser.role },
@@ -401,7 +411,7 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
     teams: loggedInUser.teams,
   });
 
-  await createOrgDomainAndNotifyAdmins(isOrganizationConfigured, orgOwnerEmail, slug, ctx.user.locale);
+  await createOrgDomainAndNotifyAdmins(isOrganizationConfigured, orgOwnerEmail, slug, userLocale);
 
   const orgData = {
     name,
@@ -425,24 +435,123 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
         orgData: orgData,
         orgOwner: orgOwner,
         orgOwnerEmail: orgOwnerEmail,
-        userLocale: ctx.user.locale,
-        userName: ctx.user.name,
+        userLocale: userLocale,
+        userName: userName,
         translation: inputLanguageTranslation,
       })
     : persistOrganizationWithExistingUserAsOwner({
         orgData: orgData,
         orgOwner: orgOwner,
         orgOwnerEmail: orgOwnerEmail,
-        userName: ctx.user.name,
+        userName: userName,
         existingOwnerDetails: {
           ownerId: orgOwner.id,
-          orgId: ctx.user.profile.organizationId,
+          orgId: orgId,
           ownerUsername: orgOwner.username,
         },
         translation: inputLanguageTranslation,
         loggedInUserId: loggedInUser.id,
         availability: availability,
       });
+};
+
+const createPlatformUser = async ({
+  userId,
+  name,
+  slug,
+  orgOwnerEmail,
+  autoAcceptEmail,
+  seats,
+  pricePerSeat,
+  availability,
+  inputLanguageTranslation,
+  isPlatform,
+  ctx: { userLocale, userName, orgId },
+}: CreateUserProps) => {
+  const loggedInUser = await checkLoginStatus(userId);
+  const isOrganizationConfigured = true;
+  const isOrganizationAdminReviewed = true;
+
+  await isOrgSlugTaken(slug);
+
+  const orgData = {
+    name,
+    slug,
+    isOrganizationConfigured,
+    isOrganizationAdminReviewed: isOrganizationAdminReviewed,
+    autoAcceptEmail,
+    seats: seats ?? null,
+    pricePerSeat: pricePerSeat ?? null,
+    isPlatform,
+  };
+
+  const orgOwner = await prisma.user.findUnique({
+    where: {
+      email: orgOwnerEmail,
+    },
+  });
+
+  return !orgOwner
+    ? persistOrganizationWithNonExistentOwner({
+        orgData: orgData,
+        orgOwner: orgOwner,
+        orgOwnerEmail: orgOwnerEmail,
+        userLocale: userLocale,
+        userName: userName,
+        translation: inputLanguageTranslation,
+      })
+    : persistOrganizationWithExistingUserAsOwner({
+        orgData: orgData,
+        orgOwner: orgOwner,
+        orgOwnerEmail: orgOwnerEmail,
+        userName: userName,
+        existingOwnerDetails: {
+          ownerId: orgOwner.id,
+          orgId: orgId,
+          ownerUsername: orgOwner.username,
+        },
+        translation: inputLanguageTranslation,
+        loggedInUserId: loggedInUser.id,
+        availability: availability,
+      });
+};
+
+export const createHandler = async ({ input, ctx }: CreateOptions) => {
+  const { slug, name, orgOwnerEmail, seats, pricePerSeat, isPlatform } = input;
+
+  const inputLanguageTranslation = await getTranslation(input.language ?? "en", "common");
+  const availability = getAvailabilityFromSchedule(DEFAULT_SCHEDULE);
+  const autoAcceptEmail = orgOwnerEmail.split("@")[1];
+
+  const user = isPlatform
+    ? await createPlatformUser({
+        userId: ctx.user.id,
+        name: name,
+        slug: slug,
+        orgOwnerEmail: orgOwnerEmail,
+        seats: seats,
+        pricePerSeat: pricePerSeat,
+        isPlatform: isPlatform,
+        inputLanguageTranslation: inputLanguageTranslation,
+        availability: availability,
+        autoAcceptEmail: autoAcceptEmail,
+        ctx: { userLocale: ctx.user.locale, userName: ctx.user.name, orgId: ctx.user.profile.organizationId },
+      })
+    : await createOrgUser({
+        userId: ctx.user.id,
+        name: name,
+        slug: slug,
+        orgOwnerEmail: orgOwnerEmail,
+        seats: seats,
+        pricePerSeat: pricePerSeat,
+        isPlatform: isPlatform,
+        inputLanguageTranslation: inputLanguageTranslation,
+        availability: availability,
+        autoAcceptEmail: autoAcceptEmail,
+        ctx: { userLocale: ctx.user.locale, userName: ctx.user.name, orgId: ctx.user.profile.organizationId },
+      });
+
+  return user;
 
   // Sync Services: Close.com
   //closeComUpsertOrganizationUser(createTeam, ctx.user, MembershipRole.OWNER);
