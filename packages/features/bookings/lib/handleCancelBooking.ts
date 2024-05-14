@@ -155,7 +155,23 @@ async function handler(req: CustomRequest) {
   if (!bookingToDelete.userId) {
     throw new HttpError({ statusCode: 400, message: "User not found" });
   }
+  const cancellationTime = dayjs();
+  const bookingStartTime = dayjs(bookingToDelete.startTime);
+  const hoursDifference = bookingStartTime.diff(cancellationTime, 'hours');
+  
+  if (hoursDifference >= 12 && hoursDifference <= 24) {
+    // Perform your cancellation charging logic here
+  }
 
+  // If the booking is a seated event and there is no seatReferenceUid we should validate that logged in user is host
+  if (bookingToDelete.eventType?.seatsPerTimeSlot && !seatReferenceUid) {
+    // Your existing validation logic here...
+  }
+
+  // Your existing code for webhooks, attendees, etc...
+
+  return { message: "Booking successfully cancelled." };
+}
   // If the booking is a seated event and there is no seatReferenceUid we should validate that logged in user is host
   if (bookingToDelete.eventType?.seatsPerTimeSlot && !seatReferenceUid) {
     const userIsHost = bookingToDelete.eventType.hosts.find((host) => {
