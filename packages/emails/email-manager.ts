@@ -126,7 +126,7 @@ export const sendScheduledEmailsAndSMS = async (
 };
 
 // for rescheduled round robin booking that assigned new members
-export const sendRoundRobinScheduledEmails = async (calEvent: CalendarEvent, members: Person[]) => {
+export const sendRoundRobinScheduledEmailsAndSMS = async (calEvent: CalendarEvent, members: Person[]) => {
   const formattedCalEvent = formatCalEvent(calEvent);
   const emailsToSend: Promise<unknown>[] = [];
 
@@ -137,6 +137,8 @@ export const sendRoundRobinScheduledEmails = async (calEvent: CalendarEvent, mem
   }
 
   await Promise.all(emailsToSend);
+  const eventScheduledSMS = new EventSuccessfullyScheduledSMS(calEvent);
+  await eventScheduledSMS.sendSMSToAttendees();
 };
 
 export const sendRoundRobinRescheduledEmailsAndSMS = async (

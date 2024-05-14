@@ -25,7 +25,7 @@ import {
   sendRescheduledEmailsAndSMS,
   sendRoundRobinCancelledEmails,
   sendRoundRobinRescheduledEmailsAndSMS,
-  sendRoundRobinScheduledEmails,
+  sendRoundRobinScheduledEmailsAndSMS,
   sendScheduledEmailsAndSMS,
 } from "@calcom/emails";
 import getICalUID from "@calcom/emails/lib/getICalUID";
@@ -1329,7 +1329,7 @@ async function handler(
         );
 
         sendRoundRobinRescheduledEmailsAndSMS(copyEventAdditionalInfo, rescheduledMembers);
-        sendRoundRobinScheduledEmails(copyEventAdditionalInfo, newBookedMembers);
+        sendRoundRobinScheduledEmailsAndSMS(copyEventAdditionalInfo, newBookedMembers);
         sendRoundRobinCancelledEmails(copyEventAdditionalInfo, cancelledMembers);
       } else {
         // send normal rescheduled emails (non round robin event, where organizers stay the same)
