@@ -132,7 +132,6 @@ const createOrgDomainAndNotifyAdmins = async (
   slug: NonNullable<Team["slug"]>,
   locale: string
 ) => {
-  // start
   const loggedInUserTranslation = await getTranslation(locale, "common");
 
   if (!isOrganizationConfigured) {
@@ -204,7 +203,6 @@ const sendEmailAndEnrichProfile = async ({
   inputLanguageTranslation,
   isPlatform,
 }: SendEmailAndEnrichProfileProps) => {
-  // prevLink, newLink, from and to, orgDomain
   !isPlatform &&
     (await sendOrganizationCreationEmail({
       language: inputLanguageTranslation,
@@ -220,19 +218,6 @@ const sendEmailAndEnrichProfile = async ({
 
   const user = await UserRepository.enrichUserWithItsProfile({
     user: { ...orgOwner, organizationId: id },
-  });
-
-  return {
-    userId: user.id,
-    email: user.email,
-    organizationId: user.organizationId,
-    upId: user.profile.upId,
-  };
-};
-
-const enrichUserProfile = async (organizationId: number, orgOwner: User) => {
-  const user = await UserRepository.enrichUserWithItsProfile({
-    user: { ...orgOwner, organizationId },
   });
 
   return {
