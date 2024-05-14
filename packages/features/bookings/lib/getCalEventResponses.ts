@@ -68,6 +68,10 @@ export const getCalEventResponses = ({
         value: isEmailFieldValueFalsy ? BOOKED_WITH_SMS_EMAIL : backwardCompatibleResponses[field.name],
         isHidden: !!field.hidden,
       };
+
+      if (isEmailFieldValueFalsy && responses) {
+        responses.email = BOOKED_WITH_SMS_EMAIL;
+      }
     });
   } else {
     // Alternative way to generate for a booking of whose eventType has been deleted

@@ -354,8 +354,6 @@ export default function Success(props: PageProps) {
     eventType,
   };
 
-  const isEmailHidden = !!eventType?.bookingFields.find((field) => field.name === "email")?.hidden;
-
   return (
     <div className={isEmbed ? "" : "h-screen"} data-testid="success-page">
       {!isEmbed && !isFeedbackMode && (
