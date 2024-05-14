@@ -52,17 +52,25 @@ export async function handleWebhookScheduledTriggers(prisma: PrismaClient) {
     }
 
     const headers: Record<string, string> = {
-      "Content-Type":
-        !job.payload || jsonParse(job.payload) ? "application/json" : "application/x-www-form-urlencoded",
+      "Content-Type": "application/json",
     };
 
+    const parsedPayload = jsonParse(job.payload);
+
+    const body = JSON.stringify({
+      triggerEvent: parsedPayload.triggerEvent,
+      payload: parsedPayload,
+      createdAt: new Date().toISOString(),
+    });
+
     if (webhook) {
-      headers["X-Cal-Signature-256"] = createWebhookSignature({ secret: webhook.secret, body: job.payload });
+      headers["X-Cal-Signature-256"] = createWebhookSignature({ secret: webhook.secret, body });
     }
+
     fetchPromises.push(
       fetch(job.subscriberUrl, {
         method: "POST",
-        body: job.payload,
+        body,
         headers,
       }).catch((error) => {
         console.error(`Webhook trigger for subscriber url ${job.subscriberUrl} failed with error: ${error}`);
