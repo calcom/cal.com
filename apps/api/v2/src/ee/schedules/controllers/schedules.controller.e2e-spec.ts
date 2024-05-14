@@ -2,7 +2,6 @@ import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
 import { SchedulesModule } from "@/ee/schedules/schedules.module";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
-import { AvailabilitiesModule } from "@/modules/availabilities/availabilities.module";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { TokensModule } from "@/modules/tokens/tokens.module";
 import { UsersModule } from "@/modules/users/users.module";
@@ -56,14 +55,7 @@ describe("Schedules Endpoints", () => {
       const moduleRef = await withAccessTokenAuth(
         userEmail,
         Test.createTestingModule({
-          imports: [
-            AppModule,
-            PrismaModule,
-            AvailabilitiesModule,
-            UsersModule,
-            TokensModule,
-            SchedulesModule,
-          ],
+          imports: [AppModule, PrismaModule, UsersModule, TokensModule, SchedulesModule],
         })
       )
         .overrideGuard(PermissionsGuard)

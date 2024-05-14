@@ -5,7 +5,6 @@ import { GetBookingsOutput } from "@/ee/bookings/outputs/get-bookings.output";
 import { SchedulesModule } from "@/ee/schedules/schedules.module";
 import { SchedulesService } from "@/ee/schedules/services/schedules.service";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
-import { AvailabilitiesModule } from "@/modules/availabilities/availabilities.module";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
@@ -43,7 +42,7 @@ describe("Bookings Endpoints", () => {
       const moduleRef = await withAccessTokenAuth(
         userEmail,
         Test.createTestingModule({
-          imports: [AppModule, PrismaModule, AvailabilitiesModule, UsersModule, SchedulesModule],
+          imports: [AppModule, PrismaModule, UsersModule, SchedulesModule],
         })
       )
         .overrideGuard(PermissionsGuard)

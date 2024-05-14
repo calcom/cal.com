@@ -5,28 +5,28 @@ import { Prisma } from "@prisma/client";
 
 import type { CreateScheduleInput } from "@calcom/platform-types";
 
-type InternalScheduleAvailability = {
+type InputScheduleAvailabilityTransformed = {
   days: number[];
   startTime: Date;
   endTime: Date;
 };
 
-type InternalScheduleOverride = {
+type InputScheduleOverrideTransformed = {
   date: Date;
   startTime: Date;
   endTime: Date;
 };
 
-type Schedule = Omit<CreateScheduleInput, "availability" | "overrides"> & {
-  availability: InternalScheduleAvailability[];
-  overrides: InternalScheduleOverride[];
+type InputScheduleTransformed = Omit<CreateScheduleInput, "availability" | "overrides"> & {
+  availability: InputScheduleAvailabilityTransformed[];
+  overrides: InputScheduleOverrideTransformed[];
 };
 
 @Injectable()
 export class SchedulesRepository {
   constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
 
-  async createSchedule(userId: number, schedule: Omit<Schedule, "isDefault">) {
+  async createSchedule(userId: number, schedule: Omit<InputScheduleTransformed, "isDefault">) {
     const { availability, overrides } = schedule;
 
     const createScheduleData: Prisma.ScheduleCreateInput = {
@@ -96,7 +96,11 @@ export class SchedulesRepository {
     return schedule;
   }
 
-  async updateSchedule(userId: number, scheduleId: number, schedule: Partial<Omit<Schedule, "isDefault">>) {
+  async updateSchedule(
+    userId: number,
+    scheduleId: number,
+    schedule: Partial<Omit<InputScheduleTransformed, "isDefault">>
+  ) {
     const { availability, overrides } = schedule;
 
     const updateScheduleData: Prisma.ScheduleUpdateInput = {
