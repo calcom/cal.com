@@ -1,5 +1,13 @@
 import { Type } from "class-transformer";
-import { IsNumber, IsString, IsOptional, IsArray, ValidateNested, Validate } from "class-validator";
+import {
+  IsNumber,
+  IsString,
+  IsOptional,
+  IsArray,
+  ValidateNested,
+  Validate,
+  IsBoolean,
+} from "class-validator";
 
 import { IsYearMonthDays } from "./validators/isYearMonthDays";
 
@@ -29,4 +37,23 @@ export class CalendarBusyTimesInput {
   @ValidateNested({ each: true })
   @Type(() => Calendar)
   calendarsToLoad!: Calendar[];
+}
+
+export class IntegrationOAuthCallbackState {
+  @IsString()
+  returnTo!: string;
+
+  @IsString()
+  onErrorReturnTo!: string;
+
+  @IsBoolean()
+  fromApp!: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  installGoogleVideo?: boolean;
+
+  @IsNumber()
+  @IsOptional()
+  teamId?: number;
 }
