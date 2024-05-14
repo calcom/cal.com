@@ -173,16 +173,6 @@ const checkOrgOwnerCreationRequirements = async ({
   return IS_USER_ADMIN;
 };
 
-type SendEmailAndEnrichProfileProps = {
-  org: { owner: User; id: number; name: string; ownerEmail: string };
-  slug: string;
-  userName: string | null;
-  nonOrgUsernameForOwner: string | null;
-  ownerProfileUsername: string;
-  inputLanguageTranslation: TFunction;
-  isPlatform: boolean;
-};
-
 type Availability = {
   id: number;
   userId: number | null;
@@ -193,40 +183,6 @@ type Availability = {
   date: Date | null;
   scheduleId: number | null;
 }[];
-
-const sendEmailAndEnrichProfile = async ({
-  org: { owner: orgOwner, id, name, ownerEmail },
-  slug,
-  userName,
-  nonOrgUsernameForOwner,
-  ownerProfileUsername,
-  inputLanguageTranslation,
-  isPlatform,
-}: SendEmailAndEnrichProfileProps) => {
-  !isPlatform &&
-    (await sendOrganizationCreationEmail({
-      language: inputLanguageTranslation,
-      from: userName ?? `${name}'s admin`,
-      to: ownerEmail,
-      ownerNewUsername: ownerProfileUsername,
-      ownerOldUsername: nonOrgUsernameForOwner,
-      orgDomain: getOrgFullOrigin(slug, { protocol: false }),
-      orgName: name,
-      prevLink: `${getOrgFullOrigin("", { protocol: true })}/${nonOrgUsernameForOwner}`,
-      newLink: `${getOrgFullOrigin(slug, { protocol: true })}/${ownerProfileUsername}`,
-    }));
-
-  const user = await UserRepository.enrichUserWithItsProfile({
-    user: { ...orgOwner, organizationId: id },
-  });
-
-  return {
-    userId: user.id,
-    email: user.email,
-    organizationId: user.organizationId,
-    upId: user.profile.upId,
-  };
-};
 
 type OrgData = {
   name: string;
@@ -246,23 +202,15 @@ type PersistOrgWithExistingOwner = {
 };
 
 type PersistOrganizationWithExistingUserAsOwnerProps = {
-  orgOwner: User;
   orgData: OrgData;
   orgOwnerEmail: string;
-  userName: string | null;
-  translation: TFunction;
   loggedInUserId: number;
-  availability: Availability;
   existingOwnerDetails: PersistOrgWithExistingOwner;
 };
 
 const persistOrganizationWithExistingUserAsOwner = async ({
   orgData,
-  orgOwner,
   orgOwnerEmail,
-  userName,
-  availability,
-  translation,
   loggedInUserId,
   existingOwnerDetails: { orgId, ownerId: orgOwnerId, ownerUsername },
 }: PersistOrganizationWithExistingUserAsOwnerProps) => {
@@ -283,46 +231,18 @@ const persistOrganizationWithExistingUserAsOwner = async ({
 
   if (!organization.id) throw Error("User not created");
 
-  const user = await sendEmailAndEnrichProfile({
-    org: { owner: orgOwner, id: organization.id, name: organization.name, ownerEmail: orgOwnerEmail },
-    slug: orgData.slug,
-    userName: userName,
-    ownerProfileUsername: ownerProfile.username,
-    inputLanguageTranslation: translation,
-    nonOrgUsernameForOwner: nonOrgUsernameForOwner,
-    isPlatform: orgData.isPlatform,
-  });
-
-  await prisma.availability.createMany({
-    data: availability.map((schedule) => ({
-      days: schedule.days,
-      startTime: schedule.startTime,
-      endTime: schedule.endTime,
-      userId: user.userId,
-    })),
-  });
-
-  return user;
+  return { organization, ownerProfile };
 };
 
 type PersistOrganizationWithNonExistentOwnerProps = {
   orgData: OrgData;
-  orgOwner: User | null;
   orgOwnerEmail: string;
-  userLocale: string;
-  userName: string | null;
-  translation: TFunction;
 };
 
 const persistOrganizationWithNonExistentOwner = async ({
   orgData,
-  orgOwner,
   orgOwnerEmail,
-  userLocale,
-  userName,
-  translation,
 }: PersistOrganizationWithNonExistentOwnerProps) => {
-  let organizationOwner = orgOwner;
   const data = await OrganizationRepository.createWithNonExistentOwner({
     orgData,
     owner: {
@@ -330,33 +250,9 @@ const persistOrganizationWithNonExistentOwner = async ({
     },
   });
 
-  organizationOwner = data.orgOwner;
-
   const { organization, ownerProfile } = data;
 
-  !orgData.isPlatform &&
-    (await sendEmailVerification({
-      email: orgOwnerEmail,
-      language: userLocale,
-      username: ownerProfile.username || "",
-    }));
-
-  const user = await sendEmailAndEnrichProfile({
-    org: {
-      owner: organizationOwner,
-      id: organization.id,
-      name: organization.name,
-      ownerEmail: orgOwnerEmail,
-    },
-    slug: orgData.slug,
-    userName: userName,
-    ownerProfileUsername: ownerProfile.username,
-    nonOrgUsernameForOwner: null,
-    inputLanguageTranslation: translation,
-    isPlatform: orgData.isPlatform,
-  });
-
-  return user;
+  return { organization, ownerProfile, orgOwner: data.orgOwner };
 };
 
 type CreateUserProps = {
@@ -415,29 +311,88 @@ const createOrgUser = async ({
     },
   });
 
-  return !orgOwner
-    ? persistOrganizationWithNonExistentOwner({
-        orgData: orgData,
-        orgOwner: orgOwner,
-        orgOwnerEmail: orgOwnerEmail,
-        userLocale: userLocale,
-        userName: userName,
-        translation: inputLanguageTranslation,
-      })
-    : persistOrganizationWithExistingUserAsOwner({
-        orgData: orgData,
-        orgOwner: orgOwner,
-        orgOwnerEmail: orgOwnerEmail,
-        userName: userName,
-        existingOwnerDetails: {
-          ownerId: orgOwner.id,
-          orgId: orgId,
-          ownerUsername: orgOwner.username,
-        },
-        translation: inputLanguageTranslation,
-        loggedInUserId: loggedInUser.id,
-        availability: availability,
-      });
+  if (orgOwner) {
+    const { organization, ownerProfile } = await persistOrganizationWithExistingUserAsOwner({
+      orgData: orgData,
+      orgOwnerEmail: orgOwnerEmail,
+      existingOwnerDetails: {
+        ownerId: orgOwner.id,
+        orgId: orgId,
+        ownerUsername: orgOwner.username,
+      },
+      loggedInUserId: loggedInUser.id,
+    });
+
+    await sendOrganizationCreationEmail({
+      language: inputLanguageTranslation,
+      from: userName ?? `${organization.name}'s admin`,
+      to: orgOwnerEmail,
+      ownerNewUsername: ownerProfile.username,
+      ownerOldUsername: null,
+      orgDomain: getOrgFullOrigin(orgData.slug, { protocol: false }),
+      orgName: organization.name,
+      prevLink: `${getOrgFullOrigin("", { protocol: true })}/${null}`,
+      newLink: `${getOrgFullOrigin(orgData.slug, { protocol: true })}/${ownerProfile.username}`,
+    });
+
+    const user = await UserRepository.enrichUserWithItsProfile({
+      user: { ...orgOwner, organizationId: organization.id },
+    });
+
+    await prisma.availability.createMany({
+      data: availability.map((schedule) => ({
+        days: schedule.days,
+        startTime: schedule.startTime,
+        endTime: schedule.endTime,
+        userId: user.id,
+      })),
+    });
+
+    return {
+      userId: user.id,
+      email: user.email,
+      organizationId: user.organizationId,
+      upId: user.profile.upId,
+    };
+  }
+
+  const {
+    organization,
+    ownerProfile,
+    orgOwner: persistOrgWithExistingOwnerOrgOwner,
+  } = await persistOrganizationWithNonExistentOwner({
+    orgData: orgData,
+    orgOwnerEmail: orgOwnerEmail,
+  });
+
+  await sendEmailVerification({
+    email: orgOwnerEmail,
+    language: userLocale,
+    username: ownerProfile.username || "",
+  });
+
+  await sendOrganizationCreationEmail({
+    language: inputLanguageTranslation,
+    from: userName ?? `${organization.name}'s admin`,
+    to: orgOwnerEmail,
+    ownerNewUsername: ownerProfile.username,
+    ownerOldUsername: null,
+    orgDomain: getOrgFullOrigin(orgData.slug, { protocol: false }),
+    orgName: organization.name,
+    prevLink: `${getOrgFullOrigin("", { protocol: true })}/${null}`,
+    newLink: `${getOrgFullOrigin(orgData.slug, { protocol: true })}/${ownerProfile.username}`,
+  });
+
+  const user = await UserRepository.enrichUserWithItsProfile({
+    user: { ...persistOrgWithExistingOwnerOrgOwner, organizationId: organization.id },
+  });
+
+  return {
+    userId: user.id,
+    email: user.email,
+    organizationId: user.organizationId,
+    upId: user.profile.upId,
+  };
 };
 
 const createPlatformUser = async ({
@@ -449,9 +404,8 @@ const createPlatformUser = async ({
   seats,
   pricePerSeat,
   availability,
-  inputLanguageTranslation,
   isPlatform,
-  ctx: { userLocale, userName, orgId },
+  ctx: { orgId },
 }: CreateUserProps) => {
   const loggedInUser = await checkLoginStatus(userId);
   const isOrganizationConfigured = true;
@@ -476,29 +430,55 @@ const createPlatformUser = async ({
     },
   });
 
-  return !orgOwner
-    ? persistOrganizationWithNonExistentOwner({
-        orgData: orgData,
-        orgOwner: orgOwner,
-        orgOwnerEmail: orgOwnerEmail,
-        userLocale: userLocale,
-        userName: userName,
-        translation: inputLanguageTranslation,
-      })
-    : persistOrganizationWithExistingUserAsOwner({
-        orgData: orgData,
-        orgOwner: orgOwner,
-        orgOwnerEmail: orgOwnerEmail,
-        userName: userName,
-        existingOwnerDetails: {
-          ownerId: orgOwner.id,
-          orgId: orgId,
-          ownerUsername: orgOwner.username,
-        },
-        translation: inputLanguageTranslation,
-        loggedInUserId: loggedInUser.id,
-        availability: availability,
-      });
+  if (orgOwner) {
+    const { organization } = await persistOrganizationWithExistingUserAsOwner({
+      orgData: orgData,
+      orgOwnerEmail: orgOwnerEmail,
+      existingOwnerDetails: {
+        ownerId: orgOwner.id,
+        orgId: orgId,
+        ownerUsername: orgOwner.username,
+      },
+      loggedInUserId: loggedInUser.id,
+    });
+
+    const user = await UserRepository.enrichUserWithItsProfile({
+      user: { ...orgOwner, organizationId: organization.id },
+    });
+
+    await prisma.availability.createMany({
+      data: availability.map((schedule) => ({
+        days: schedule.days,
+        startTime: schedule.startTime,
+        endTime: schedule.endTime,
+        userId: user.id,
+      })),
+    });
+
+    return {
+      userId: user.id,
+      email: user.email,
+      organizationId: user.organizationId,
+      upId: user.profile.upId,
+    };
+  }
+
+  const { organization, orgOwner: persistOrgWithExistingOwnerOrgOwner } =
+    await persistOrganizationWithNonExistentOwner({
+      orgData: orgData,
+      orgOwnerEmail: orgOwnerEmail,
+    });
+
+  const user = await UserRepository.enrichUserWithItsProfile({
+    user: { ...persistOrgWithExistingOwnerOrgOwner, organizationId: organization.id },
+  });
+
+  return {
+    userId: user.id,
+    email: user.email,
+    organizationId: user.organizationId,
+    upId: user.profile.upId,
+  };
 };
 
 export const createHandler = async ({ input, ctx }: CreateOptions) => {
@@ -508,33 +488,23 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
   const availability = getAvailabilityFromSchedule(DEFAULT_SCHEDULE);
   const autoAcceptEmail = orgOwnerEmail.split("@")[1];
 
+  const createUserParams = {
+    userId: ctx.user.id,
+    name: name,
+    slug: slug,
+    orgOwnerEmail: orgOwnerEmail,
+    seats: seats,
+    pricePerSeat: pricePerSeat,
+    isPlatform: isPlatform,
+    inputLanguageTranslation: inputLanguageTranslation,
+    availability: availability,
+    autoAcceptEmail: autoAcceptEmail,
+    ctx: { userLocale: ctx.user.locale, userName: ctx.user.name, orgId: ctx.user.profile.organizationId },
+  };
+
   const user = isPlatform
-    ? await createPlatformUser({
-        userId: ctx.user.id,
-        name: name,
-        slug: slug,
-        orgOwnerEmail: orgOwnerEmail,
-        seats: seats,
-        pricePerSeat: pricePerSeat,
-        isPlatform: isPlatform,
-        inputLanguageTranslation: inputLanguageTranslation,
-        availability: availability,
-        autoAcceptEmail: autoAcceptEmail,
-        ctx: { userLocale: ctx.user.locale, userName: ctx.user.name, orgId: ctx.user.profile.organizationId },
-      })
-    : await createOrgUser({
-        userId: ctx.user.id,
-        name: name,
-        slug: slug,
-        orgOwnerEmail: orgOwnerEmail,
-        seats: seats,
-        pricePerSeat: pricePerSeat,
-        isPlatform: isPlatform,
-        inputLanguageTranslation: inputLanguageTranslation,
-        availability: availability,
-        autoAcceptEmail: autoAcceptEmail,
-        ctx: { userLocale: ctx.user.locale, userName: ctx.user.name, orgId: ctx.user.profile.organizationId },
-      });
+    ? await createPlatformUser(createUserParams)
+    : await createOrgUser(createUserParams);
 
   return user;
 
