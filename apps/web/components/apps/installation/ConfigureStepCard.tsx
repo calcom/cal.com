@@ -22,7 +22,8 @@ import { Button, Form, Skeleton, Label } from "@calcom/ui";
 import useAppsData from "@lib/hooks/useAppsData";
 
 import Locations from "@components/eventtype/Locations";
-import type { TEventTypeLocation, TPrefillLocation } from "@components/eventtype/Locations";
+import type { TEventTypeLocation } from "@components/eventtype/Locations";
+import type { SingleValueLocationOption } from "@components/ui/form/LocationSelect";
 
 import { locationsResolver } from "~/event-types/views/event-types-single-view";
 
@@ -99,13 +100,12 @@ const EventTypeConferencingAppSettings = ({ eventType, slug }: { eventType: TEve
   const formMethods = useFormContext<TFormType>();
 
   const prefillLocation = useMemo(() => {
-    let res: TPrefillLocation | undefined = undefined;
+    let res: SingleValueLocationOption | undefined = undefined;
     for (const item of eventType?.locationOptions || []) {
       for (const option of item.options) {
         if (option.slug === slug) {
           res = {
-            type: option.value,
-            credentialId: option.credentialId,
+            ...option,
           };
         }
       }

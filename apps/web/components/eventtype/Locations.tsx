@@ -36,7 +36,7 @@ type LocationsProps = {
   formState: FormState<LocationFormValues>;
   eventType: TEventTypeLocation;
   locationOptions: TLocationOptions;
-  prefillLocation?: TPrefillLocation;
+  prefillLocation?: SingleValueLocationOption;
 };
 
 const getLocationFromType = (type: EventLocationType["type"], locationOptions: TLocationOptions) => {
@@ -97,16 +97,6 @@ const Locations: React.FC<LocationsProps> = ({
     control,
     name: "locations",
   });
-
-  useEffect(() => {
-    if (!!prefillLocation) {
-      append({
-        type: prefillLocation.type,
-        credentialId: prefillLocation?.credentialId,
-      });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [prefillLocation]);
 
   const locationOptions = props.locationOptions.map((locationOption) => {
     const options = locationOption.options.filter((option) => {
@@ -202,6 +192,23 @@ const Locations: React.FC<LocationsProps> = ({
   const [selectedNewOption, setSelectedNewOption] = useState<SingleValueLocationOption | null>(
     defaultInitialLocation
   );
+
+  useEffect(() => {
+    if (!!prefillLocation) {
+      const newLocationType = prefillLocation.value;
+
+      const canAppendLocation = !validLocations.find((location) => location.type === newLocationType);
+
+      if (canAppendLocation) {
+        append({
+          type: newLocationType,
+          credentialId: prefillLocation?.credentialId,
+        });
+        setSelectedNewOption(prefillLocation);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [prefillLocation]);
 
   return (
     <div className="w-full">
