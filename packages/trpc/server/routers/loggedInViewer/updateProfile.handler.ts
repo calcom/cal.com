@@ -19,7 +19,6 @@ import slugify from "@calcom/lib/slugify";
 import { updateWebUser as syncServicesUpdateWebUser } from "@calcom/lib/sync/SyncServiceManager";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import { prisma } from "@calcom/prisma";
-import { IdentityProvider } from "@calcom/prisma/enums";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
@@ -73,9 +72,6 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
 
   const secondaryEmails = input?.secondaryEmails || [];
   delete input.secondaryEmails;
-
-  const unlinkConnectedAccount = input?.unlinkConnectedAccount || false;
-  delete input.unlinkConnectedAccount;
 
   const data: Prisma.UserUpdateInput = {
     ...rest,
@@ -178,22 +174,6 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
       log.warn("Profile Update - Email verification is disabled - Skipping");
       data.emailVerified = null;
     }
-  }
-
-  if (unlinkConnectedAccount) {
-    // Unlink the account
-    const CalComAdapter = (await import("@calcom/features/auth/lib/next-auth-custom-adapter")).default;
-    const calcomAdapter = CalComAdapter(prisma);
-    // If it fails to delete, don't stop because the users login data might not be present
-    try {
-      await calcomAdapter.unlinkAccount({
-        provider: user.identityProvider.toLocaleLowerCase(),
-        providerAccountId: user.identityProviderId || "",
-      });
-    } catch {}
-    // Only validate if we're changing email
-    data.identityProvider = IdentityProvider.CAL;
-    data.identityProviderId = null;
   }
 
   // if defined AND a base 64 string, upload and update the avatar URL
