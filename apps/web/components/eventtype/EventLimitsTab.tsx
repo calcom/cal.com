@@ -155,7 +155,7 @@ function RollingLimitRadioItem({
             placeholder="30"
             disabled={isDisabled}
             min={0}
-            max={rollingExcludeUnavailableDays ? ROLLING_WINDOW_PERIOD_MAX_DAYS_TO_CHECK - 1 : undefined}
+            max={rollingExcludeUnavailableDays ? ROLLING_WINDOW_PERIOD_MAX_DAYS_TO_CHECK : undefined}
             {...formMethods.register("periodDays", { valueAsNumber: true })}
           />
           <Select
@@ -172,6 +172,7 @@ function RollingLimitRadioItem({
         <div className="py-2">
           <CheckboxField
             checked={!!rollingExcludeUnavailableDays}
+            disabled={isDisabled}
             description={t("always_show_x_days", {
               x: periodDaysWatch,
             })}
@@ -179,7 +180,7 @@ function RollingLimitRadioItem({
               const isChecked = e.target.checked;
               formMethods.setValue(
                 "periodDays",
-                Math.min(periodDaysWatch, ROLLING_WINDOW_PERIOD_MAX_DAYS_TO_CHECK - 1)
+                Math.min(periodDaysWatch, ROLLING_WINDOW_PERIOD_MAX_DAYS_TO_CHECK)
               );
               formMethods.setValue(
                 "periodType",
