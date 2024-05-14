@@ -254,5 +254,97 @@ describe("getSchedule", () => {
         });
       });
     });
+
+    describe("PeriodType=RANGE", () => {
+      test("Basic test", async () => {
+        const { dateString: yesterdayDateString } = getDate({ dateIncrement: -1 });
+        const { dateString: todayDateString } = getDate();
+        const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+        const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
+        const { dateString: plus3DateString } = getDate({ dateIncrement: 3 });
+        const { dateString: plus4DateString } = getDate({ dateIncrement: 4 });
+        const { dateString: plus5DateString } = getDate({ dateIncrement: 5 });
+        timeTravelToTheBeginningOfToday({ utcOffsetInHours: 5.5 });
+
+        const scenarioData = {
+          eventTypes: [
+            {
+              id: 1,
+              length: 60,
+              // Makes today and tomorrow only available
+              ...getPeriodTypeData({
+                type: "RANGE",
+                // dayPlus1InIst
+                periodStartDate: new Date(`${todayDateString}T18:30:00.000Z`),
+                // datePlus2InIst
+                periodEndDate: new Date(`${plus1DateString}T18:30:00.000Z`),
+                periodCountCalendarDays: true,
+              }),
+              users: [
+                {
+                  id: 101,
+                },
+              ],
+            },
+          ],
+          users: [
+            {
+              ...TestData.users.example,
+              id: 101,
+              schedules: [TestData.schedules.IstWorkHours],
+            },
+          ],
+        } satisfies ScenarioData;
+
+        await createBookingScenario(scenarioData);
+
+        const scheduleForEvent = await getSchedule({
+          input: {
+            eventTypeId: 1,
+            eventTypeSlug: "",
+            usernameList: [],
+            // Because this time is in GMT, it will be 00:00 in IST with todayDateString
+            startTime: `${yesterdayDateString}T18:30:00.000Z`,
+            endTime: `${plus5DateString}T18:29:59.999Z`,
+            timeZone: Timezones["+5:30"],
+            isTeamEvent: false,
+          },
+        });
+
+        console.log({ scheduleForEvent });
+
+        expect(scheduleForEvent).toHaveNoTimeSlots({
+          dateString: todayDateString,
+        });
+
+        expect(scheduleForEvent).toHaveTimeSlots(
+          expectedSlotsForSchedule["IstWorkHours"].interval["1hr"].allPossibleSlotsStartingAt430,
+          {
+            dateString: plus1DateString,
+            doExactMatch: true,
+          }
+        );
+
+        expect(scheduleForEvent).toHaveTimeSlots(
+          expectedSlotsForSchedule["IstWorkHours"].interval["1hr"].allPossibleSlotsStartingAt430,
+          {
+            dateString: plus2DateString,
+            doExactMatch: true,
+          }
+        );
+
+        expect(scheduleForEvent).toHaveNoTimeSlots({
+          dateString: plus3DateString,
+        });
+
+        expect(scheduleForEvent).toHaveNoTimeSlots({
+          dateString: plus4DateString,
+        });
+
+        expect(scheduleForEvent).toHaveNoTimeSlots({
+          dateString: plus4DateString,
+        });
+      });
+    });
   });
 });

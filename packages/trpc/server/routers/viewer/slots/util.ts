@@ -697,8 +697,9 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
   let foundALimitViolation = false;
   const withinBoundsSlotsMappedToDate = Object.entries(slotsMappedToDate).reduce(
     (withinBoundsSlotsMappedToDate, [date, slots]) => {
-      // If a limit violation has been found, we just consider all slots to be out of bounds beyond that date.
-      if (foundALimitViolation) {
+      // Computation Optimization: If a limit violation has been found, we just consider all slots to be out of bounds beyond that date.
+      // We can't do the same for periodType=RANGE because it can start from a day other than today and today will hit the violation then.
+      if (foundALimitViolation && doesRangeStartFromToday(eventType.periodType)) {
         return withinBoundsSlotsMappedToDate;
       }
       const isDateWithinBound = !isDateOutOfBounds({ dateString: date, periodLimits });
@@ -745,6 +746,10 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
   return {
     slots: withinBoundsSlotsMappedToDate,
   };
+}
+
+function doesRangeStartFromToday(periodType: PeriodType) {
+  return periodType === PeriodType.ROLLING_WINDOW || periodType === PeriodType.ROLLING;
 }
 
 async function getUserIdFromUsername(

@@ -211,19 +211,19 @@ export function isDateOutOfBounds({
   _skipRollingWindowCheck?: boolean;
 }) {
   const log = logger.getSubLogger({ prefix: ["isDateOutOfBounds"] });
+  const endOfDay = dayjs(dateString).endOf("day");
 
   log.debug(
     safeStringify({
       dateString,
+      endOfDay: endOfDay.format(),
       periodLimits: {
-        rollingEndDay: periodLimits.rollingEndDay?.format("YYYY-MM-DD"),
-        rangeStartDay: periodLimits.rangeStartDay?.format("YYYY-MM-DD"),
-        rangeEndDay: periodLimits.rangeEndDay?.format("YYYY-MM-DD"),
+        rollingEndDay: periodLimits.rollingEndDay?.format(),
+        rangeStartDay: periodLimits.rangeStartDay?.format(),
+        rangeEndDay: periodLimits.rangeEndDay?.format(),
       },
     })
   );
-
-  const endOfDay = dayjs(dateString);
 
   if (periodLimits.rollingEndDay) {
     const isAfterRollingEndDay = endOfDay.isAfter(periodLimits.rollingEndDay);
