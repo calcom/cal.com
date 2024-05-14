@@ -5,7 +5,7 @@ import { V2_ENDPOINTS } from "@calcom/platform-constants";
 import type { ApiResponse, UpdateScheduleInput, ApiErrorResponse } from "@calcom/platform-types";
 import type { ScheduleOutput } from "@calcom/platform-types";
 
-import http from "../lib/http";
+import http from "../../lib/http";
 import { QUERY_KEY as ScheduleQueryKey } from "./useClientSchedule";
 
 interface IPUpdateOAuthClient {

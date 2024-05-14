@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { V2_ENDPOINTS, SUCCESS_STATUS } from "@calcom/platform-constants";
 import type { GetScheduleOutput } from "@calcom/platform-types";
 
-import http from "../lib/http";
+import http from "../../lib/http";
 
 export const QUERY_KEY = "user-schedule";
 

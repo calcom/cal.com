@@ -1,10 +1,10 @@
 import type { ScheduleLabelsType } from "@calcom/features/schedules/components/Schedule";
 import type { ApiErrorResponse, ApiResponse, ScheduleOutput } from "@calcom/platform-types";
 
-import { useClientSchedule } from "../../hooks/useClientSchedule";
-import useDeleteSchedule from "../../hooks/useDeleteSchedule";
+import { useClientSchedule } from "../../hooks/schedules/useClientSchedule";
+import useDeleteSchedule from "../../hooks/schedules/useDeleteSchedule";
+import useUpdateSchedule from "../../hooks/schedules/useUpdateSchedule";
 import { useMe } from "../../hooks/useMe";
-import useUpdateSchedule from "../../hooks/useUpdateSchedule";
 import { AtomsWrapper } from "../../src/components/atoms-wrapper";
 import { useToast } from "../../src/components/ui/use-toast";
 import type { Availability } from "../AvailabilitySettings";
