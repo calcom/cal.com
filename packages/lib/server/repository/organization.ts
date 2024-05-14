@@ -116,7 +116,7 @@ export class OrganizationRepository {
       data: {
         name: orgData.name,
         isOrganization: true,
-        ...(!IS_TEAM_BILLING_ENABLED ? { slug: orgData.slug } : {}),
+        ...(!IS_TEAM_BILLING_ENABLED || orgData.isPlatform ? { slug: orgData.slug } : {}),
         organizationSettings: {
           create: {
             isAdminReviewed: orgData.isOrganizationAdminReviewed,
@@ -126,7 +126,7 @@ export class OrganizationRepository {
           },
         },
         metadata: {
-          ...(IS_TEAM_BILLING_ENABLED ? { requestedSlug: orgData.slug } : {}),
+          ...(IS_TEAM_BILLING_ENABLED && !orgData.isPlatform ? { requestedSlug: orgData.slug } : {}),
           orgSeats: orgData.seats,
           orgPricePerSeat: orgData.pricePerSeat,
           isPlatform: orgData.isPlatform,
