@@ -81,6 +81,7 @@ const EventTypeAppSettingsWrapper: FC<EventTypeAppSettingsWrapperProps> = ({
   useEffect(() => {
     const appDataSetter = getAppDataSetter(slug as EventTypeAppsList, categories, credentialId);
     appDataSetter("enabled", true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -138,7 +139,7 @@ const EventTypeConferencingAppSettings = ({ eventType, slug }: { eventType: TEve
 
 const EventTypeAppSettingsForm = forwardRef<HTMLButtonElement, EventTypeAppSettingsFormProps>(
   function EventTypeAppSettingsForm(props, ref) {
-    const { handleDelete, onSubmit, eventType, loading, categories, isConferencing } = props;
+    const { handleDelete, onSubmit, eventType, loading, isConferencing } = props;
     const { t } = useLocale();
 
     const formMethods = useForm<TFormType>({
@@ -227,6 +228,7 @@ export const ConfigureStepCard: FC<ConfigureStepCardProps> = ({
     if (!fields.some((field) => field.selected)) {
       setConfigureStep(false);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fields]);
 
   useEffect(() => {

@@ -105,6 +105,7 @@ const Locations: React.FC<LocationsProps> = ({
         credentialId: prefillLocation?.credentialId,
       });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [prefillLocation]);
 
   const locationOptions = props.locationOptions.map((locationOption) => {

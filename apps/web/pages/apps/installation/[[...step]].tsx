@@ -119,7 +119,6 @@ const OnboardingPage = ({
     },
   } as const;
   const [configureStep, setConfigureStep] = useState(false);
-  const [isSelectingAccount, setIsSelectingAccount] = useState(false);
 
   const currentStep: AppOnboardingSteps = useMemo(() => {
     if (step == AppOnboardingSteps.EVENT_TYPES_STEP && configureStep) {
@@ -142,6 +141,7 @@ const OnboardingPage = ({
 
   useEffect(() => {
     eventTypes && formMethods.setValue("eventTypes", eventTypes);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventTypes]);
 
   const updateMutation = trpc.viewer.eventTypes.update.useMutation({
@@ -289,7 +289,7 @@ const OnboardingPage = ({
                   teams={teams}
                   personalAccount={personalAccount}
                   onSelect={handleSelectAccount}
-                  loading={isSelectingAccount}
+                  loading={mutation.isPending}
                   isConferencing={isConferencing}
                 />
               )}
