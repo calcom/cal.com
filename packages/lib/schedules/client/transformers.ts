@@ -174,11 +174,7 @@ function createDateFromHoursMinutes(hoursMinutes: string): Date {
     throw new Error("Minutes must be a number between 0 and 59.");
   }
 
-  const today = new Date();
-
-  const utcDate = new Date(
-    Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), hours, minutes)
-  );
+  const utcDate = new Date(Date.UTC(1970, 0, 1, hours, minutes));
 
   return utcDate;
 }
