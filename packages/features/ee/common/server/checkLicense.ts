@@ -1,7 +1,6 @@
 import cache from "memory-cache";
 import { z } from "zod";
 
-import { CONSOLE_URL } from "@calcom/lib/constants";
 import type { PrismaClient } from "@calcom/prisma";
 
 const CACHING_TIME = 86400000; // 24 hours in milliseconds
@@ -22,7 +21,13 @@ async function checkLicense(
     licenseKey = deployment?.licenseKey ?? undefined;
   }
   if (!licenseKey) return false;
-  const url = `${CONSOLE_URL}/api/license?key=${schemaLicenseKey.parse(licenseKey)}`;
+
+  /**
+   * The console URL for this will be used for any user that has not upgraded to latest as it proxies
+   * to our private-api
+   * const url = `${CONSOLE_URL}/api/license?key=${schemaLicenseKey.parse(licenseKey)}`;
+   */
+  const url = `${process.env.CALCOM_PRIVATE_API_ROUTE}/api/license/${schemaLicenseKey.parse(licenseKey)}`;
   const cachedResponse = cache.get(url);
   if (cachedResponse) {
     return cachedResponse;
