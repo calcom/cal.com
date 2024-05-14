@@ -245,16 +245,16 @@ async function getRemindersFromRemovedTeams(
       where: {
         booking: {
           eventType: {
-            OR: [
-              {
-                teamId,
+            users: {
+              some: {
+                teams: {
+                  some: {
+                    teamId,
+                    accepted: true,
+                  },
+                },
               },
-              {
-                parent: {
-                  teamId,
-                }, // test if this works as it should for managed event types
-              },
-            ],
+            },
           },
         },
         workflowStepId: {
@@ -336,9 +336,10 @@ export async function deleteRemindersFromRemovedActiveOn(
   userId: number,
   isOrg: boolean
 ) {
-  const remindersToDelete = isOrg
+  const remindersToDelete = !isOrg
     ? await getRemindersFromRemovedEventTypes(removedActiveOnIds, workflowSteps)
     : await getRemindersFromRemovedTeams(removedActiveOnIds, workflowSteps, userId);
+
   await deleteAllReminders(remindersToDelete);
 }
 
