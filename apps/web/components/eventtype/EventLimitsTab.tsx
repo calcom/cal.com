@@ -107,7 +107,6 @@ function RangeLimitRadioItem({
             )}
           />
         </div>
-        <span className="me-2 ms-2">&nbsp;{t("within_date_range")}</span>
       </div>
     </div>
   );
