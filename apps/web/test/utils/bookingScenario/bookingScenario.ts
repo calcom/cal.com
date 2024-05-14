@@ -6,7 +6,6 @@ import type { BookingReference, Attendee, Booking, Membership } from "@prisma/cl
 import type { Prisma } from "@prisma/client";
 import type { WebhookTriggerEvents } from "@prisma/client";
 import type Stripe from "stripe";
-import type { getMockRequestDataForBooking } from "test/utils/bookingScenario/getMockRequestDataForBooking";
 import { v4 as uuidv4 } from "uuid";
 import "vitest-fetch-mock";
 import type { z } from "zod";
@@ -28,6 +27,7 @@ import type { NewCalendarEventType } from "@calcom/types/Calendar";
 import type { EventBusyDate, IntervalLimit } from "@calcom/types/Calendar";
 
 import { getMockPaymentService } from "./MockPaymentService";
+import type { getMockRequestDataForBooking } from "./getMockRequestDataForBooking";
 
 logger.settings.minLevel = 0;
 const log = logger.getSubLogger({ prefix: ["[bookingScenario]"] });

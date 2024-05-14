@@ -1,12 +1,16 @@
+import type { ScenarioData } from "../../utils/bookingScenario/bookingScenario";
+import {
+  TestData,
+  Timezones,
+  getDate,
+  createBookingScenario,
+} from "../../utils/bookingScenario/bookingScenario";
+
 import { describe, expect, vi, test } from "vitest";
 
 import { PeriodType } from "@calcom/prisma/enums";
 import { getAvailableSlots as getSchedule } from "@calcom/trpc/server/routers/viewer/slots/util";
 
-import type { ScenarioData } from "../../utils/bookingScenario/bookingScenario";
-import { TestData } from "../../utils/bookingScenario/bookingScenario";
-import { Timezones } from "../../utils/bookingScenario/bookingScenario";
-import { getDate, createBookingScenario } from "../../utils/bookingScenario/bookingScenario";
 import { expectedSlotsForSchedule } from "./expects";
 import { setupAndTeardown } from "./setupAndTeardown";
 import { timeTravelToTheBeginningOfToday } from "./utils";

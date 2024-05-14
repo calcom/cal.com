@@ -1,11 +1,5 @@
 import CalendarManagerMock from "../../../../tests/libs/__mocks__/CalendarManager";
 
-import { describe, vi, test } from "vitest";
-
-import dayjs from "@calcom/dayjs";
-import type { BookingStatus } from "@calcom/prisma/enums";
-import { getAvailableSlots as getSchedule } from "@calcom/trpc/server/routers/viewer/slots/util";
-
 import {
   getDate,
   getGoogleCalendarCredential,
@@ -16,6 +10,13 @@ import {
   Timezones,
   TestData,
 } from "../utils/bookingScenario/bookingScenario";
+
+import { describe, vi, test } from "vitest";
+
+import dayjs from "@calcom/dayjs";
+import type { BookingStatus } from "@calcom/prisma/enums";
+import { getAvailableSlots as getSchedule } from "@calcom/trpc/server/routers/viewer/slots/util";
+
 import { expect } from "./getSchedule/expects";
 import { setupAndTeardown } from "./getSchedule/setupAndTeardown";
 import { timeTravelToTheBeginningOfToday } from "./getSchedule/utils";
