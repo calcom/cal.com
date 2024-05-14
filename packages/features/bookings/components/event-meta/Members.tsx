@@ -28,19 +28,25 @@ export const EventMembers = ({ schedulingType, users, profile, entity }: EventMe
     !users.length ||
     (profile.name !== users[0].name && schedulingType === SchedulingType.COLLECTIVE);
 
+  const orgAvatarItem = entity.orgSlug
+    ? [
+        {
+          // We don't want booker to be able to see the list of other users or teams inside the embed
+          href: isEmbed ? null : getBookerBaseUrlSync(entity.orgSlug),
+          image: profile.image || "",
+          alt: profile.name || "",
+          title: profile.name || "",
+        },
+      ]
+    : [];
+
   return (
     <>
       <AvatarGroup
         size="sm"
         className="border-muted"
         items={[
-          {
-            // We don't want booker to be able to see the list of other users or teams inside the embed
-            href: isEmbed ? null : getBookerBaseUrlSync(entity.orgSlug),
-            image: profile.image || "",
-            alt: profile.name || "",
-            title: profile.name || "",
-          },
+          ...orgAvatarItem,
           ...shownUsers.map((user) => ({
             href: `${getBookerBaseUrlSync(user.profile?.organization?.slug ?? null)}/${
               user.profile?.username
