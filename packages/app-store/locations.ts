@@ -401,9 +401,9 @@ export function getSuccessPageLocationMessage(
   t: TFunction,
   bookingStatus?: BookingStatus
 ) {
-  const eventLocationType = getEventLocationType(location);
+  const eventLocationType = guessEventLocationType(location);
   let locationToDisplay = location;
-  if (eventLocationType && !eventLocationType.default && eventLocationType.linkType === "dynamic") {
+  if (eventLocationType && !eventLocationType.default) {
     const isConfirmed = bookingStatus === BookingStatus.ACCEPTED;
 
     if (bookingStatus === BookingStatus.CANCELLED || bookingStatus === BookingStatus.REJECTED) {
