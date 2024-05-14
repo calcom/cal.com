@@ -7,7 +7,7 @@ import {
 import type { ScheduleOutput } from "@calcom/platform-types";
 import type { User } from "@calcom/prisma/client";
 
-export function transformScheduleForAtom(
+export function transformApiScheduleForAtom(
   user: Pick<User, "id" | "defaultScheduleId" | "timeZone"> | undefined,
   schedule: ScheduleOutput | null | undefined,
   userSchedulesCount: number

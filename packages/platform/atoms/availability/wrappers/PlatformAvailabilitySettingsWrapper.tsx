@@ -11,8 +11,8 @@ import { useToast } from "../../src/components/ui/use-toast";
 import type { Availability } from "../AvailabilitySettings";
 import type { CustomClassNames } from "../AvailabilitySettings";
 import { AvailabilitySettings } from "../AvailabilitySettings";
-import { transformScheduleForApi } from "../request-response-transformers/transformScheduleForApi";
-import { transformScheduleForAtom } from "../request-response-transformers/transformScheduleForAtom";
+import { transformApiScheduleForAtom } from "../request-response-transformers/transformApiScheduleForAtom";
+import { transformAtomScheduleForApi } from "../request-response-transformers/transformAtomScheduleForApi";
 import type { AvailabilityFormValues } from "../types";
 
 type PlatformAvailabilitySettingsWrapperProps = {
@@ -38,7 +38,7 @@ export const PlatformAvailabilitySettingsWrapper = ({
   const { isLoading, data: schedule } = useSchedule(id);
   const { data: schedules } = useSchedules();
   const { data: me } = useMe();
-  const atomSchedule = transformScheduleForAtom(me?.data, schedule, schedules?.length || 0);
+  const atomSchedule = transformApiScheduleForAtom(me?.data, schedule, schedules?.length || 0);
   const { timeFormat } = me?.data || { timeFormat: null };
   const { toast } = useToast();
 
@@ -77,7 +77,7 @@ export const PlatformAvailabilitySettingsWrapper = ({
   };
 
   const handleUpdate = async (id: number, body: AvailabilityFormValues) => {
-    const updateBody = transformScheduleForApi(body);
+    const updateBody = transformAtomScheduleForApi(body);
     updateSchedule({ id, ...updateBody });
   };
 

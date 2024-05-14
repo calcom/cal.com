@@ -1,7 +1,7 @@
 import type { ScheduleOutput } from "@calcom/platform-types";
 import type { User } from "@calcom/prisma/client";
 
-import { transformScheduleForAtom } from "./transformScheduleForAtom";
+import { transformApiScheduleForAtom } from "./transformApiScheduleForAtom";
 
 const SCHEDULE_OWNER_ID = 256;
 
@@ -33,11 +33,11 @@ describe("transformScheduleForAtom", () => {
       overrides: [],
     };
 
-    expect(transformScheduleForAtom(undefined, schedule, 1)).toBeNull();
+    expect(transformApiScheduleForAtom(undefined, schedule, 1)).toBeNull();
   });
 
   it("should return null if schedule is not provided", () => {
-    expect(transformScheduleForAtom(user, null, 1)).toBeNull();
+    expect(transformApiScheduleForAtom(user, null, 1)).toBeNull();
   });
 
   it("should transform schedule correctly", () => {
@@ -120,7 +120,7 @@ describe("transformScheduleForAtom", () => {
       readOnly: false,
     };
 
-    const result = transformScheduleForAtom(user, schedule, 1);
+    const result = transformApiScheduleForAtom(user, schedule, 1);
 
     expect(result).toEqual(expectedResult);
   });

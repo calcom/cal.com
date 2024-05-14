@@ -2,7 +2,7 @@ import type { ScheduleAvailabilityInput, UpdateScheduleInput, WeekDay } from "@c
 
 import type { AvailabilityFormValues } from "../types";
 
-export function transformScheduleForApi(body: AvailabilityFormValues): UpdateScheduleInput {
+export function transformAtomScheduleForApi(body: AvailabilityFormValues): UpdateScheduleInput {
   const { name, schedule, dateOverrides, timeZone, isDefault } = body;
 
   const overrides =
