@@ -21,7 +21,7 @@ import LocationSelect from "@components/ui/form/LocationSelect";
 export type TEventTypeLocation = Pick<EventTypeSetupProps["eventType"], "locations">;
 export type TLocationOptions = Pick<EventTypeSetupProps, "locationOptions">["locationOptions"];
 export type TDestinationCalendar = { integration: string } | null;
-export type TPrefillLocation = { credentialId: number; type: string };
+export type TPrefillLocation = { credentialId?: number; type: string };
 
 type LocationsProps = {
   team: { id: number } | null;
@@ -102,7 +102,7 @@ const Locations: React.FC<LocationsProps> = ({
     if (!!prefillLocation) {
       append({
         type: prefillLocation.type,
-        credentialId: prefillLocation.credentialId,
+        credentialId: prefillLocation?.credentialId,
       });
     }
   }, [prefillLocation]);

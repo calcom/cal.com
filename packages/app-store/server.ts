@@ -21,6 +21,7 @@ export async function getLocationGroupedOptions(
       disabled?: boolean;
       icon?: string;
       slug?: string;
+      credentialId?: number;
     }[]
   > = {};
 

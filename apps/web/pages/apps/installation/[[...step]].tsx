@@ -25,7 +25,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { getTranslation } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
-import type { EventTypeMetaDataSchema, eventTypeBookingFields } from "@calcom/prisma/zod-utils";
+import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
+import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import type { AppMeta } from "@calcom/types/App";
 import { Form, Steps, showToast } from "@calcom/ui";
@@ -424,6 +425,7 @@ const getEventTypes = async (userId: number, teamId?: number) => {
     URL: `${CAL_URL}/${item.team ? `team/${item.team.slug}` : item?.users?.[0]?.username}/${item.slug}`,
     selected: false,
     locations: item.locations as unknown as LocationObject[],
+    bookingFields: eventTypeBookingFields.parse(item.bookingFields || []),
   }));
 };
 
