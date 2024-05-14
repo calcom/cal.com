@@ -38,7 +38,7 @@ export type AppPageProps = {
   email: string; // required
   tos?: string;
   privacy?: string;
-  licemenseRequired: AppType["licenseRequired"];
+  licenseRequired: AppType["licenseRequired"];
   teamsPlanRequired: AppType["teamsPlanRequired"];
   descriptionItems?: Array<string | { iframe: IframeHTMLAttributes<HTMLIFrameElement> }>;
   isTemplate?: boolean;

@@ -86,6 +86,13 @@ type OnboardingPageProps = {
   isConferencing: boolean;
 };
 
+type TUpdateObject = {
+  id: number;
+  metadata?: z.infer<typeof EventTypeMetaDataSchema>;
+  bookingFields?: z.infer<typeof eventTypeBookingFields>;
+  locations?: LocationObject[];
+};
+
 const OnboardingPage = ({
   step,
   teams,
@@ -251,12 +258,7 @@ const OnboardingPage = ({
                     if (value.metadata?.apps?.stripe?.paymentOption === "HOLD" && value.seatsPerTimeSlot) {
                       throw new Error(t("seats_and_no_show_fee_error"));
                     }
-                    let updateObject: {
-                      id: number;
-                      metadata?: z.infer<typeof EventTypeMetaDataSchema>;
-                      bookingFields?: z.infer<typeof eventTypeBookingFields>;
-                      locations?: LocationObject[];
-                    } = { id: value.id };
+                    let updateObject: TUpdateObject = { id: value.id };
                     if (isConferencing) {
                       updateObject = {
                         ...updateObject,
@@ -498,7 +500,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       }
       eventTypes = await getEventTypes(user.id, parsedTeamIdParam);
       if (isConferencing) {
-        const t = await getTranslation(context.locale ?? "en", "common");
+        const t = await getTranslation(locale ?? "en", "common");
         const locationOptions = await getLocationGroupedOptions({ userId: user.id }, t);
         for (let index = 0; index < eventTypes.length; index++) {
           let eventType = eventTypes[index];
