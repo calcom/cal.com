@@ -4,6 +4,7 @@ import type { EventManagerUser } from "@calcom/core/EventManager";
 import EventManager from "@calcom/core/EventManager";
 import { scheduleMandatoryReminder } from "@calcom/ee/workflows/lib/reminders/scheduleMandatoryReminder";
 import { sendScheduledEmails } from "@calcom/emails";
+import { handleAuditLogTrigger } from "@calcom/features/audit-logs/lib/handleAuditLogTrigger";
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { scheduleTrigger } from "@calcom/features/webhooks/lib/scheduleTrigger";
@@ -303,8 +304,8 @@ export async function handleConfirmation(args: {
       },
     });
 
+    handleAuditLogTrigger("Booking Created");
     const triggerForUser = !teamId || (teamId && booking.eventType?.parentId);
-
     const subscribersBookingCreated = await getWebhooks({
       userId: triggerForUser ? booking.userId : null,
       eventTypeId: booking.eventTypeId,
@@ -364,6 +365,7 @@ export async function handleConfirmation(args: {
     await Promise.all(promises);
 
     if (paid) {
+      await handleAuditLogTrigger("Booking paid");
       let paymentExternalId: string | undefined;
       const subscriberMeetingPaid = await getWebhooks({
         userId: triggerForUser ? booking.userId : null,

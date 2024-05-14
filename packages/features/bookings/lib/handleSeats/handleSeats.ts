@@ -1,4 +1,6 @@
 // eslint-disable-next-line no-restricted-imports
+import { handleAuditLogTrigger } from "audit-logs/lib/handleAuditLogTrigger";
+
 import dayjs from "@calcom/dayjs";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
@@ -133,6 +135,7 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
       smsReminderNumber: seatedBooking?.smsReminderNumber || undefined,
     };
 
+    await handleAuditLogTrigger("Seating?");
     await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData });
   }
 

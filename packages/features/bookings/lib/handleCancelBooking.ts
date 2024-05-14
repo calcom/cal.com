@@ -1,4 +1,5 @@
 import type { Prisma, WorkflowReminder } from "@prisma/client";
+import { handleAuditLogTrigger } from "audit-logs/lib/handleAuditLogTrigger";
 import type { NextApiRequest } from "next";
 
 import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
@@ -193,6 +194,7 @@ async function handler(req: CustomRequest) {
     length: bookingToDelete?.eventType?.length || null,
   };
 
+  handleAuditLogTrigger("Cancelled booking");
   const webhooks = await getWebhooks(subscriberOptions);
 
   const organizer = await prisma.user.findFirstOrThrow({

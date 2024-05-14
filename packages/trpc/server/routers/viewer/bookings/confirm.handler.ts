@@ -4,6 +4,7 @@ import appStore from "@calcom/app-store";
 import { getLocationValueForDB } from "@calcom/app-store/locations";
 import type { LocationObject } from "@calcom/app-store/locations";
 import { sendDeclinedEmails } from "@calcom/emails";
+import { handleAuditLogTrigger } from "@calcom/features/audit-logs/lib/handleAuditLogTrigger";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
@@ -395,6 +396,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       status: BookingStatus.REJECTED,
       smsReminderNumber: booking.smsReminderNumber || undefined,
     };
+    await handleAuditLogTrigger("New Booking created");
     await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData });
   }
 

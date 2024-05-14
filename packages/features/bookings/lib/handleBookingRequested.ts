@@ -1,3 +1,5 @@
+import { handleAuditLogTrigger } from "audit-logs/lib/handleAuditLogTrigger";
+
 import { sendAttendeeRequestEmail, sendOrganizerRequestEmail } from "@calcom/emails";
 import { getWebhookPayloadForBooking } from "@calcom/features/bookings/lib/getWebhookPayloadForBooking";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
@@ -51,6 +53,8 @@ export async function handleBookingRequested(args: {
       booking,
       evt,
     });
+
+    handleAuditLogTrigger("Booking Requested");
 
     const promises = subscribersBookingRequested.map((sub) =>
       sendPayload(

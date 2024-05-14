@@ -3,6 +3,7 @@ import { z } from "zod";
 import appStore from "@calcom/app-store";
 import dayjs from "@calcom/dayjs";
 import { sendNoShowFeeChargedEmail } from "@calcom/emails";
+import { handleAuditLogTrigger } from "@calcom/features/audit-logs/lib/handleAuditLogTrigger";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import sendPayload from "@calcom/lib/server/webhooks/sendPayload";
@@ -130,6 +131,7 @@ export const paymentsRouter = router({
           triggerEvent: WebhookTriggerEvents.BOOKING_PAID,
         };
 
+        handleAuditLogTrigger("Booking Paid");
         const subscribers = await getWebhooks(subscriberOptions);
 
         await Promise.all(

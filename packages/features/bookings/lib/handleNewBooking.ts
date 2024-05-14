@@ -2237,6 +2237,7 @@ async function handler(
       triggerEvent: WebhookTriggerEvents.BOOKING_PAYMENT_INITIATED,
       teamId,
     };
+    await handleAuditLogTrigger("Booking payment initiated");
     await handleWebhookTrigger({
       subscriberOptions: subscriberOptionsPaymentInitiated,
       eventTrigger: WebhookTriggerEvents.BOOKING_PAYMENT_INITIATED,
@@ -2312,6 +2313,7 @@ async function handler(
     subscriberOptions.triggerEvent = eventTrigger;
     webhookData.status = "PENDING";
     await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData });
+    await handleAuditLogTrigger("New Booking Requires Confirmation");
   }
 
   // Avoid passing referencesToCreate with id unique constrain values
