@@ -383,6 +383,11 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           eventType: true,
         },
       },
+      activeOnTeams: {
+        select: {
+          team: true,
+        },
+      },
       team: {
         select: {
           id: true,

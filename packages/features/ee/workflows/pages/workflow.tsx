@@ -131,14 +131,20 @@ function WorkflowPage() {
   const isOrg = workflow?.team?.isOrganization ?? false;
 
   useEffect(() => {
-    if (workflow && !isPending) {
-      if (workflow.userId && workflow.activeOn.find((active) => !!active.eventType.teamId)) {
+    if (!isPending) {
+      setFormData(workflow);
+    }
+  }, [isPending]);
+
+  function setFormData(workflowData: RouterOutputs["viewer"]["workflows"]["get"] | undefined) {
+    if (workflowData) {
+      if (workflowData.userId && workflowData.activeOn.find((active) => !!active.eventType.teamId)) {
         setIsMixedEventType(true);
       }
 
       if (isOrg) {
         setSelectedOptions(
-          workflow.activeOnTeams.flatMap((active) => {
+          workflowData.activeOnTeams.flatMap((active) => {
             return {
               value: String(active.team.id) || "",
               label: active.team.slug || "",
@@ -147,8 +153,8 @@ function WorkflowPage() {
         );
       } else {
         setSelectedOptions(
-          workflow.activeOn.flatMap((active) => {
-            if (workflow.teamId && active.eventType.parentId) return [];
+          workflowData.activeOn.flatMap((active) => {
+            if (workflowData.teamId && active.eventType.parentId) return [];
             return {
               value: String(active.eventType.id),
               label: active.eventType.title,
@@ -157,15 +163,15 @@ function WorkflowPage() {
         );
       }
 
-      const activeOn = workflow.activeOn
-        ? workflow.activeOn.map((active) => ({
+      const activeOn = workflowData.activeOn
+        ? workflowData.activeOn.map((active) => ({
             value: active.eventType.id.toString(),
             label: active.eventType.slug,
           }))
         : undefined;
 
       //translate dynamic variables into local language
-      const steps = workflow.steps.map((step) => {
+      const steps = workflowData.steps.map((step) => {
         const updatedStep = {
           ...step,
           senderName: step.sender,
@@ -186,22 +192,22 @@ function WorkflowPage() {
         return updatedStep;
       });
 
-      form.setValue("name", workflow.name);
+      form.setValue("name", workflowData.name);
       form.setValue("steps", steps);
-      form.setValue("trigger", workflow.trigger);
-      form.setValue("time", workflow.time || undefined);
-      form.setValue("timeUnit", workflow.timeUnit || undefined);
+      form.setValue("trigger", workflowData.trigger);
+      form.setValue("time", workflowData.time || undefined);
+      form.setValue("timeUnit", workflowData.timeUnit || undefined);
       form.setValue("activeOn", activeOn || []);
-      form.setValue("selectAll", workflow.isActiveOnAll ?? false);
+      form.setValue("selectAll", workflowData.isActiveOnAll ?? false);
       setIsAllDataLoaded(true);
     }
-  }, [isPending]);
+  }
 
   const updateMutation = trpc.viewer.workflows.update.useMutation({
     onSuccess: async ({ workflow }) => {
       if (workflow) {
         utils.viewer.workflows.get.setData({ id: +workflow.id }, workflow);
-
+        setFormData(workflow);
         showToast(
           t("workflow_updated_successfully", {
             workflowName: workflow.name,
