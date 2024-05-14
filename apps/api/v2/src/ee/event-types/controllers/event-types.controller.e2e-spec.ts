@@ -131,6 +131,7 @@ describe("Event types Endpoints", () => {
         description: "A description of the test event type.",
         length: 60,
         hidden: false,
+        disableGuests: true,
         locations: [
           {
             type: "Online",
@@ -148,6 +149,7 @@ describe("Event types Endpoints", () => {
           const responseBody: ApiSuccessResponse<EventType> = response.body;
           expect(responseBody.data).toHaveProperty("id");
           expect(responseBody.data.title).toEqual(body.title);
+          expect(responseBody.data.disableGuests).toEqual(body.disableGuests);
           eventType = responseBody.data;
         });
     });
@@ -157,14 +159,19 @@ describe("Event types Endpoints", () => {
 
       const body: UpdateEventTypeInput = {
         title: newTitle,
+        disableGuests: false,
       };
 
       return request(app.getHttpServer())
         .patch(`/api/v2/event-types/${eventType.id}`)
         .send(body)
         .expect(200)
-        .then(async () => {
+        .then(async (response) => {
+          const responseBody: ApiSuccessResponse<EventType> = response.body;
+          expect(responseBody.data.title).toEqual(newTitle);
+          expect(responseBody.data.disableGuests).toEqual(body.disableGuests);
           eventType.title = newTitle;
+          eventType.disableGuests = responseBody.data.disableGuests ?? false;
         });
     });
 

@@ -41,6 +41,10 @@ export class CreateEventTypeInput {
   @IsArray()
   locations?: EventTypeLocation[];
 
+  @IsBoolean()
+  @IsOptional()
+  disableGuests?: boolean;
+
   // @ApiHideProperty()
   // @IsOptional()
   // @IsNumber()
