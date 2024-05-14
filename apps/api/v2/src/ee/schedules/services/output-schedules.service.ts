@@ -1,34 +1,34 @@
 import { UsersRepository } from "@/modules/users/users.repository";
 import { Injectable } from "@nestjs/common";
+import type { Availability, Schedule } from "@prisma/client";
 
-import type { ScheduleWithAvailabilities } from "@calcom/platform-libraries";
 import { WeekDay } from "@calcom/platform-types";
 
 @Injectable()
 export class OutputSchedulesService {
   constructor(private readonly usersRepository: UsersRepository) {}
 
-  async getResponseSchedule(fetchedSchedule: ScheduleWithAvailabilities) {
-    if (!fetchedSchedule.timeZone) {
+  async getResponseSchedule(databaseSchedule: Schedule & { availability: Availability[] }) {
+    if (!databaseSchedule.timeZone) {
       throw new Error("Failed to create schedule because its timezone is not set.");
     }
 
     const ownerDefaultScheduleId = await this.usersRepository.getUserScheduleDefaultId(
-      fetchedSchedule.userId
+      databaseSchedule.userId
     );
 
-    const createdScheduleAvailabilities = fetchedSchedule.availability.filter(
+    const createdScheduleAvailabilities = databaseSchedule.availability.filter(
       (availability) => !!availability.days.length
     );
-    const createdScheduleOverrides = fetchedSchedule.availability.filter(
+    const createdScheduleOverrides = databaseSchedule.availability.filter(
       (availability) => !availability.days.length
     );
 
     return {
-      id: fetchedSchedule.id,
-      ownerId: fetchedSchedule.userId,
-      name: fetchedSchedule.name,
-      timeZone: fetchedSchedule.timeZone,
+      id: databaseSchedule.id,
+      ownerId: databaseSchedule.userId,
+      name: databaseSchedule.name,
+      timeZone: databaseSchedule.timeZone,
       availability: createdScheduleAvailabilities.map((availability) => ({
         days: availability.days.map(transformNumberToDay),
         startTime: this.padHoursMinutesWithZeros(
@@ -38,7 +38,7 @@ export class OutputSchedulesService {
           availability.endTime.getUTCHours() + ":" + availability.endTime.getUTCMinutes()
         ),
       })),
-      isDefault: fetchedSchedule.id === ownerDefaultScheduleId,
+      isDefault: databaseSchedule.id === ownerDefaultScheduleId,
       overrides: createdScheduleOverrides.map((availability) => ({
         date:
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion

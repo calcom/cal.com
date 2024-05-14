@@ -1,9 +1,10 @@
 import {
-  transformAvailabilityForClient,
-  transformDateOverridesForClient,
-  transformInputCreateSchedule,
-  transformWorkingHoursForClient,
-} from "@calcom/lib/schedules/client/transformers";
+  transformAvailabilityForAtom,
+  transformDateOverridesForAtom,
+  transformApiScheduleAvailability,
+  transformApiScheduleOverrides,
+  transformWorkingHoursForAtom,
+} from "@calcom/lib/schedules/transformers";
 import type { ScheduleOutput } from "@calcom/platform-types";
 import type { User } from "@calcom/prisma/client";
 
@@ -16,7 +17,11 @@ export function transformApiScheduleForAtom(
     return null;
   }
 
-  const transformedSchedule = transformInputCreateSchedule(schedule);
+  const transformedSchedule = {
+    ...schedule,
+    availability: transformApiScheduleAvailability(schedule.availability),
+    overrides: transformApiScheduleOverrides(schedule.overrides),
+  };
 
   const combined = [...transformedSchedule.availability, ...transformedSchedule.overrides];
   const availability = combined.map((entry) => {
@@ -42,11 +47,11 @@ export function transformApiScheduleForAtom(
     id: schedule.id,
     name: schedule.name,
     isManaged: schedule.ownerId !== user.id,
-    workingHours: transformWorkingHoursForClient(atomSchedule),
+    workingHours: transformWorkingHoursForAtom(atomSchedule),
     schedule: availability,
-    availability: transformAvailabilityForClient(atomSchedule),
+    availability: transformAvailabilityForAtom(atomSchedule),
     timeZone,
-    dateOverrides: transformDateOverridesForClient(atomSchedule, timeZone),
+    dateOverrides: transformDateOverridesForAtom(atomSchedule, timeZone),
     isDefault: defaultScheduleId === schedule.id,
     isLastSchedule: userSchedulesCount <= 1,
     readOnly: schedule.ownerId !== user.id,
