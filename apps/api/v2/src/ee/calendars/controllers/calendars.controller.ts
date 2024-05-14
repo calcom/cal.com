@@ -4,7 +4,7 @@ import { CalendarsService } from "@/ee/calendars/services/calendars.service";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
 import { UserWithProfile } from "@/modules/users/users.repository";
-import { Controller, Get, UseGuards, Query } from "@nestjs/common";
+import { Controller, Get, UseGuards, Query, HttpStatus, HttpCode } from "@nestjs/common";
 import { ApiTags as DocsTags } from "@nestjs/swagger";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
@@ -53,6 +53,30 @@ export class CalendarsController {
     return {
       status: SUCCESS_STATUS,
       data: calendars,
+    };
+  }
+
+  @Get("/office365/connect")
+  @HttpCode(HttpStatus.OK)
+  async redirect(): Promise<{ status: "success" }> {
+    return {
+      status: SUCCESS_STATUS,
+    };
+  }
+
+  @Get("/office365/save")
+  @HttpCode(HttpStatus.OK)
+  async save(): Promise<{ status: "success" }> {
+    return {
+      status: SUCCESS_STATUS,
+    };
+  }
+
+  @Get("/office365/check")
+  @HttpCode(HttpStatus.OK)
+  async check(): Promise<{ status: "success" }> {
+    return {
+      status: SUCCESS_STATUS,
     };
   }
 }
