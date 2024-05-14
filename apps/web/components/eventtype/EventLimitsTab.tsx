@@ -156,7 +156,7 @@ function RollingLimitRadioItem({
             placeholder="30"
             disabled={isDisabled}
             min={0}
-            max={rollingExcludeUnavailableDays ? ROLLING_WINDOW_PERIOD_MAX_DAYS_TO_CHECK - 1 : undefined}
+            max={rollingExcludeUnavailableDays ? ROLLING_WINDOW_PERIOD_MAX_DAYS_TO_CHECK : undefined}
             {...formMethods.register("periodDays", { valueAsNumber: true })}
           />
           <Select
@@ -174,13 +174,13 @@ function RollingLimitRadioItem({
           <CheckboxField
             checked={!!rollingExcludeUnavailableDays}
             description={t("always_show_x_days", {
-              x: periodDaysWatch + 1,
+              x: periodDaysWatch,
             })}
             onChange={(e) => {
               const isChecked = e.target.checked;
               formMethods.setValue(
                 "periodDays",
-                Math.min(periodDaysWatch, ROLLING_WINDOW_PERIOD_MAX_DAYS_TO_CHECK - 1)
+                Math.min(periodDaysWatch, ROLLING_WINDOW_PERIOD_MAX_DAYS_TO_CHECK)
               );
               formMethods.setValue(
                 "periodType",
@@ -262,7 +262,7 @@ const MinimumBookingNoticeInput = React.forwardRef<
           label={t("minimum_booking_notice")}
           type="number"
           placeholder="0"
-          min={0}
+          min={1}
           className="mb-0 h-9 rounded-[4px] ltr:mr-2 rtl:ml-2"
         />
         <input type="hidden" ref={ref} {...passThroughProps} />

@@ -1123,20 +1123,16 @@ describe("getSchedule", () => {
             }
           );
 
-          expect(scheduleForEvent).toHaveTimeSlots(
-            expectedSlotsForSchedule["IstWorkHours"].interval["1hr"].allPossibleSlotsStartingAt430,
-            {
-              dateString: plus2DateString,
-              doExactMatch: true,
-            }
-          );
+          // No Timeslots beyond plus1Date as that is beyond the rolling period
 
-          // No Timeslots beyond plus3Date as beyond the rolling period
+          expect(scheduleForEvent).toHaveNoTimeSlots({
+            dateString: plus2DateString,
+          });
+
           expect(scheduleForEvent).toHaveNoTimeSlots({
             dateString: plus3DateString,
           });
 
-          // No Timeslots beyond plus3Date as beyond the rolling period
           expect(scheduleForEvent).toHaveNoTimeSlots({
             dateString: plus4DateString,
           });
@@ -1161,7 +1157,7 @@ describe("getSchedule", () => {
                 length: 60,
                 ...getPeriodTypeData({
                   type: "ROLLING_WINDOW",
-                  periodDays: 2,
+                  periodDays: 3,
                   periodCountCalendarDays: true,
                 }),
                 users: [

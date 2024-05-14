@@ -54,9 +54,10 @@ export function calculatePeriodLimits({
 
   switch (periodType) {
     case PeriodType.ROLLING: {
+      // if periodDays is 1, we should return the current day as the end day which happens by adding 0 days to the current day
       const rollingEndDay = periodCountCalendarDays
-        ? currentTime.add(periodDays, "days").endOf("day")
-        : currentTime.businessDaysAdd(periodDays).endOf("day");
+        ? currentTime.add(periodDays - 1, "days").endOf("day")
+        : currentTime.businessDaysAdd(periodDays - 1).endOf("day");
       return { rollingEndDay, rangeStartDay: null, rangeEndDay: null };
     }
 
@@ -71,7 +72,7 @@ export function calculatePeriodLimits({
 
       const rollingEndDay = getRollingWindowEndDate({
         startDate: currentTime,
-        daysInFuture: periodDays,
+        daysNeeded: periodDays,
         allDatesWithBookabilityStatus,
         countNonBusinessDays: periodCountCalendarDays,
       });
@@ -99,7 +100,7 @@ export function calculatePeriodLimits({
 
 export function getRollingWindowEndDate({
   startDate,
-  daysInFuture,
+  daysNeeded,
   allDatesWithBookabilityStatus,
   countNonBusinessDays,
 }: {
@@ -108,16 +109,12 @@ export function getRollingWindowEndDate({
    * This is because we do a lookup by day in `allDatesWithBookabilityStatus`
    */
   startDate: dayjs.Dayjs;
-  /**
-   * Number of days in the future when the period ends
-   * If it is X, then period will have X + 1(for startDate) number of days
-   */
-  daysInFuture: number;
+  daysNeeded: number;
   allDatesWithBookabilityStatus: Record<string, { isBookable: boolean }>;
   countNonBusinessDays: boolean | null;
 }) {
   const log = logger.getSubLogger({ prefix: ["getRollingWindowEndDate"] });
-  log.debug("called:", safeStringify({ startDay: startDate.format(), daysInFuture }));
+  log.debug("called:", safeStringify({ startDay: startDate.format(), daysNeeded }));
   let counter = 1;
   let rollingEndDay;
   let currentDate = startDate.startOf("day");
@@ -128,7 +125,7 @@ export function getRollingWindowEndDate({
   let bookableDaysCount = 0;
 
   // Add periodDays to currentDate, skipping non-bookable days.
-  while (bookableDaysCount <= daysInFuture) {
+  while (bookableDaysCount < daysNeeded) {
     // What if we don't find any bookable days. We should break out of the loop after a certain number of days.
     if (counter > maxDaysToCheck) {
       break;
