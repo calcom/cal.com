@@ -20,9 +20,7 @@ export class OutputSchedulesService {
     const createdScheduleAvailabilities = databaseSchedule.availability.filter(
       (availability) => !!availability.days.length
     );
-    const createdScheduleOverrides = databaseSchedule.availability.filter(
-      (availability) => !availability.days.length
-    );
+    const createdScheduleOverrides = databaseSchedule.availability.filter((override) => !!override.date);
 
     return {
       id: databaseSchedule.id,
@@ -39,21 +37,18 @@ export class OutputSchedulesService {
         ),
       })),
       isDefault: databaseSchedule.id === ownerDefaultScheduleId,
-      overrides: createdScheduleOverrides.map((availability) => ({
+      overrides: createdScheduleOverrides.map((override) => ({
         date:
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          availability.date!.getUTCFullYear() +
+          override.date?.getUTCFullYear() +
           "-" +
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          (availability.date!.getUTCMonth() + 1).toString().padStart(2, "0") +
+          (override.date ? override.date.getUTCMonth() + 1 : "").toString().padStart(2, "0") +
           "-" +
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          availability.date!.getUTCDate().toString().padStart(2, "0"),
+          override.date?.getUTCDate().toString().padStart(2, "0"),
         startTime: this.padHoursMinutesWithZeros(
-          availability.startTime.getUTCHours() + ":" + availability.startTime.getUTCMinutes()
+          override.startTime.getUTCHours() + ":" + override.startTime.getUTCMinutes()
         ),
         endTime: this.padHoursMinutesWithZeros(
-          availability.endTime.getUTCHours() + ":" + availability.endTime.getUTCMinutes()
+          override.endTime.getUTCHours() + ":" + override.endTime.getUTCMinutes()
         ),
       })),
     };
