@@ -50,7 +50,7 @@ export default function JoinCall(props: PageProps) {
       customTrayButtons: {
         transcription: {
           label: "Cal.ai",
-          tooltip: "Enable transcription powered by AI",
+          tooltip: "Toggle real time transcription powered by AI",
           iconPath: `${WEBAPP_URL}/sparkles.svg`,
           iconPathDarkMode: `${WEBAPP_URL}/sparkles.svg`,
         },
