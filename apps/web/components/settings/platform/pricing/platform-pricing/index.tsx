@@ -1,5 +1,6 @@
 import { useRouter } from "next/navigation";
 
+import { ErrorCode } from "@calcom/lib/errorCodes";
 import { showToast } from "@calcom/ui";
 
 import { useSubscribeTeamToStripe } from "@lib/hooks/settings/platform/oauth-clients/usePersistOAuthClient";
@@ -16,7 +17,7 @@ export const PlatformPricing = ({ teamId }: PlatformPricingProps) => {
       router.push(redirectUrl);
     },
     onError: () => {
-      showToast("Internal server error, please try again later", "error");
+      showToast(ErrorCode.UnableToSubscribeToThePlatform, "error");
     },
     teamId,
   });

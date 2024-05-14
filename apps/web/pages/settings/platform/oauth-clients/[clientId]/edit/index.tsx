@@ -2,6 +2,7 @@ import { useParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 
 import Shell from "@calcom/features/shell/Shell";
+import { ErrorCode } from "@calcom/lib/errorCodes";
 import { PERMISSIONS_GROUPED_MAP } from "@calcom/platform-constants";
 import { showToast } from "@calcom/ui";
 
@@ -41,7 +42,7 @@ export default function EditOAuthClient() {
       router.push("/settings/platform/");
     },
     onError: () => {
-      showToast("Internal server error, please try again later", "error");
+      showToast(ErrorCode.UpdatingOauthClientError, "error");
     },
     clientId,
   });
