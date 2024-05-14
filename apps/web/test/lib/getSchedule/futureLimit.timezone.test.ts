@@ -140,12 +140,15 @@ describe("getSchedule", () => {
           }
         );
 
-        // No Timeslots beyond plus1Date as that is beyond the rolling period
+        expect(scheduleForEvent).toHaveTimeSlots(
+          expectedSlotsForSchedule["IstWorkHours"].interval["1hr"].allPossibleSlotsStartingAt430,
+          {
+            dateString: plus2DateString,
+            doExactMatch: true,
+          }
+        );
 
-        expect(scheduleForEvent).toHaveNoTimeSlots({
-          dateString: plus2DateString,
-        });
-
+        // No Timeslots beyond plus2Date as that is beyond the rolling period
         expect(scheduleForEvent).toHaveNoTimeSlots({
           dateString: plus3DateString,
         });

@@ -154,8 +154,8 @@ function RollingLimitRadioItem({
             className="border-default my-0 block w-16 text-sm [appearance:textfield] ltr:mr-2 rtl:ml-2"
             placeholder="30"
             disabled={isDisabled}
-            min={1}
-            max={rollingExcludeUnavailableDays ? ROLLING_WINDOW_PERIOD_MAX_DAYS_TO_CHECK : undefined}
+            min={0}
+            max={rollingExcludeUnavailableDays ? ROLLING_WINDOW_PERIOD_MAX_DAYS_TO_CHECK - 1 : undefined}
             {...formMethods.register("periodDays", { valueAsNumber: true })}
           />
           <Select
@@ -179,7 +179,7 @@ function RollingLimitRadioItem({
               const isChecked = e.target.checked;
               formMethods.setValue(
                 "periodDays",
-                Math.min(periodDaysWatch, ROLLING_WINDOW_PERIOD_MAX_DAYS_TO_CHECK)
+                Math.min(periodDaysWatch, ROLLING_WINDOW_PERIOD_MAX_DAYS_TO_CHECK - 1)
               );
               formMethods.setValue(
                 "periodType",

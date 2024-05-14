@@ -54,14 +54,9 @@ export function calculatePeriodLimits({
 
   switch (periodType) {
     case PeriodType.ROLLING: {
-      // dayjs.add(1, 'days') means 2 days are available in the range(today plus next day). So, we subtract 1 from periodDays.
-      // If periodDays is 0, we still want to show today's availability. Legacy handling.
-      // If periodDays is 1, we want to show just today
-      // If periodDays is 2, we want to show today and tomorrow
-      const periodDaysMinus1 = Math.max(periodDays - 1, 0);
       const rollingEndDay = periodCountCalendarDays
-        ? currentTime.add(periodDaysMinus1, "days").endOf("day")
-        : currentTime.businessDaysAdd(periodDaysMinus1).endOf("day");
+        ? currentTime.add(periodDays, "days").endOf("day")
+        : currentTime.businessDaysAdd(periodDays).endOf("day");
       return { rollingEndDay, rangeStartDay: null, rangeEndDay: null };
     }
 
