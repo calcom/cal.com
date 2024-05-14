@@ -56,6 +56,7 @@ import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { WEBSITE_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { resetTestEmails } from "@calcom/lib/testEmails";
+import { PeriodType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { test } from "@calcom/web/test/fixtures/fixtures";
 
@@ -2176,6 +2177,97 @@ describe("handleNewBooking", () => {
         await createBookingScenario(scenarioData);
 
         await expect(() => handleNewBooking(req)).rejects.toThrowError("book a meeting in the past");
+      },
+      timeout
+    );
+
+    test(
+      `should fail booking if periodType=ROLLING check fails`,
+      async () => {
+        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const booker = getBooker({
+          email: "booker@example.com",
+          name: "Booker",
+        });
+
+        const organizerOtherEmail = "organizer2@example.com";
+        const organizerDestinationCalendarEmailOnEventType = "organizerEventTypeEmail@example.com";
+
+        const organizer = getOrganizer({
+          name: "Organizer",
+          email: "organizer@example.com",
+          id: 101,
+          schedules: [TestData.schedules.IstWorkHours],
+          credentials: [getGoogleCalendarCredential()],
+          selectedCalendars: [TestData.selectedCalendars.google],
+          destinationCalendar: {
+            integration: "google_calendar",
+            externalId: "organizer@google-calendar.com",
+            primaryEmail: organizerOtherEmail,
+          },
+        });
+
+        await createBookingScenario(
+          getScenarioData({
+            eventTypes: [
+              {
+                id: 1,
+                slotInterval: 30,
+                periodType: PeriodType.ROLLING,
+                // Today and plus1
+                periodDays: 2,
+                periodCountCalendarDays: true,
+                length: 30,
+                useEventTypeDestinationCalendarEmail: true,
+                users: [
+                  {
+                    id: 101,
+                  },
+                ],
+              },
+            ],
+            organizer,
+            apps: [],
+          })
+        );
+
+        const plus2DateString = getDate({ dateIncrement: 2 }).dateString;
+        const mockBookingData = getMockRequestDataForBooking({
+          data: {
+            user: organizer.username,
+            // plus2Date timeslot being booked
+            start: `${plus2DateString}T05:00:00.000Z`,
+            end: `${plus2DateString}T05:30:00.000Z`,
+            eventTypeId: 1,
+            responses: {
+              email: booker.email,
+              name: booker.name,
+              location: { optionValue: "", value: BookingLocations.CalVideo },
+            },
+          },
+        });
+
+        const { req } = createMockNextJsRequest({
+          method: "POST",
+          body: mockBookingData,
+        });
+
+        mockCalendarToHaveNoBusySlots("googlecalendar", {
+          create: {
+            id: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
+          },
+        });
+
+        mockSuccessfulVideoMeetingCreation({
+          metadataLookupKey: "dailyvideo",
+          videoMeetingData: {
+            id: "MOCK_ID",
+            password: "MOCK_PASS",
+            url: `http://mock-dailyvideo.example.com/meeting-1`,
+          },
+        });
+
+        expect(() => handleNewBooking(req)).rejects.toThrowError("cannot be booked at this time");
       },
       timeout
     );

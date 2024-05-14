@@ -85,8 +85,9 @@ export function calculatePeriodLimits({
     }
 
     case PeriodType.RANGE: {
-      const rangeStartDay = dayjs(periodStartDate).utcOffset(utcOffset).endOf("day");
+      const rangeStartDay = dayjs(periodStartDate).utcOffset(utcOffset).startOf("day");
       const rangeEndDay = dayjs(periodEndDate).utcOffset(utcOffset).endOf("day");
+
       return {
         rollingEndDay: null,
         rangeStartDay,
@@ -211,12 +212,12 @@ export function isDateOutOfBounds({
   _skipRollingWindowCheck?: boolean;
 }) {
   const log = logger.getSubLogger({ prefix: ["isDateOutOfBounds"] });
-  const endOfDay = dayjs(dateString).endOf("day");
+  const date = dayjs(dateString);
 
   log.debug(
     safeStringify({
       dateString,
-      endOfDay: endOfDay.format(),
+      endOfDay: date.format(),
       periodLimits: {
         rollingEndDay: periodLimits.rollingEndDay?.format(),
         rangeStartDay: periodLimits.rangeStartDay?.format(),
@@ -226,10 +227,10 @@ export function isDateOutOfBounds({
   );
 
   if (periodLimits.rollingEndDay) {
-    const isAfterRollingEndDay = endOfDay.isAfter(periodLimits.rollingEndDay);
+    const isAfterRollingEndDay = date.isAfter(periodLimits.rollingEndDay);
     log.debug({
       dateString,
-      endOfDay: endOfDay.format(),
+      endOfDay: date.format(),
       isAfterRollingEndDay,
       rollingEndDay: periodLimits.rollingEndDay.format(),
     });
@@ -237,7 +238,7 @@ export function isDateOutOfBounds({
   }
 
   if (periodLimits.rangeStartDay && periodLimits.rangeEndDay) {
-    return endOfDay.isBefore(periodLimits.rangeStartDay) || endOfDay.isAfter(periodLimits.rangeEndDay);
+    return date.isBefore(periodLimits.rangeStartDay) || date.isAfter(periodLimits.rangeEndDay);
   }
   return false;
 }
@@ -260,7 +261,7 @@ export default function isOutOfBounds(
   minimumBookingNotice?: number
 ) {
   return (
-    isTimeOutOfBounds({ time, minimumBookingNotice }) &&
+    isTimeOutOfBounds({ time, minimumBookingNotice }) ||
     isDateOutOfBounds({
       dateString: time,
       periodLimits: calculatePeriodLimits({
