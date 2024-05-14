@@ -1,14 +1,13 @@
 "use client";
 
-import { Prisma } from "@prisma/client";
 import type { InferGetStaticPropsType } from "next";
 import Link from "next/link";
 
 import Shell from "@calcom/features/shell/Shell";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import prisma from "@calcom/prisma";
 import { AppCategories } from "@calcom/prisma/enums";
+import { isPrismaAvailableCheck } from "@calcom/prisma/is-prisma-available-check";
 import { AppCard, SkeletonText } from "@calcom/ui";
 
 import { getStaticProps } from "@lib/apps/categories/[category]/getStaticProps";
@@ -26,6 +25,8 @@ export default function Apps({ apps }: PageProps) {
       <Shell
         isPublic
         backPath="/apps"
+        title="Apps Store"
+        description="Connecting people, technology and the workplace."
         smallHeading
         heading={
           <>
@@ -45,7 +46,7 @@ export default function Apps({ apps }: PageProps) {
         <div className="mb-16">
           <div className="grid-col-1 grid grid-cols-1 gap-3 md:grid-cols-3">
             {apps
-              .sort((a, b) => (b.installCount || 0) - (a.installCount || 0))
+              ?.sort((a, b) => (b.installCount || 0) - (a.installCount || 0))
               .map((app) => {
                 return <AppCard key={app.slug} app={app} />;
               })}
@@ -60,19 +61,13 @@ Apps.PageWrapper = PageWrapper;
 
 export const getStaticPaths = async () => {
   const paths = Object.keys(AppCategories);
-
-  try {
-    await prisma.$queryRaw`SELECT 1`;
-  } catch (e: unknown) {
-    if (e instanceof Prisma.PrismaClientInitializationError) {
-      // Database is not available at build time. Make sure we fall back to building these pages on demand
-      return {
-        paths: [],
-        fallback: "blocking",
-      };
-    } else {
-      throw e;
-    }
+  const isPrismaAvailable = await isPrismaAvailableCheck();
+  if (!isPrismaAvailable) {
+    // Database is not available at build time. Make sure we fall back to building these pages on demand
+    return {
+      paths: [],
+      fallback: "blocking",
+    };
   }
 
   return {

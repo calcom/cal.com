@@ -5,8 +5,7 @@ import { useRouter } from "next/navigation";
 import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 
-import { getLayout } from "@calcom/features/MainLayout";
-import { ShellMain } from "@calcom/features/shell/Shell";
+import Shell, { ShellMain } from "@calcom/features/shell/Shell";
 import { classNames } from "@calcom/lib";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -52,50 +51,53 @@ function WorkflowsPage() {
   });
 
   return (
-    <ShellMain
-      heading={t("workflows")}
-      title={t("workflows")}
-      subtitle={t("workflows_to_automate_notifications")}
-      hideHeadingOnMobile
-      CTA={
-        session.data?.hasValidLicense ? (
-          <CreateButtonWithTeamsList
-            subtitle={t("new_workflow_subtitle").toUpperCase()}
-            createFunction={(teamId?: number) => {
-              createMutation.mutate({ teamId });
-            }}
-            isPending={createMutation.isPending}
-            disableMobileButton={true}
-            onlyShowWithNoTeams={true}
-          />
-        ) : null
-      }>
+    <Shell withoutMain>
       <LicenseRequired>
-        <>
-          {queryRes.data?.totalCount ? (
-            <div className="flex">
-              <TeamsFilter />
-              <div className="ml-auto">
-                <CreateButtonWithTeamsList
-                  subtitle={t("new_workflow_subtitle").toUpperCase()}
-                  createFunction={(teamId?: number) => createMutation.mutate({ teamId })}
-                  isPending={createMutation.isPending}
-                  disableMobileButton={true}
-                  onlyShowWithTeams={true}
-                />
+        <ShellMain
+          heading={t("workflows")}
+          subtitle={t("workflows_to_automate_notifications")}
+          title="Workflows"
+          description="Create workflows to automate notifications and reminders."
+          hideHeadingOnMobile
+          CTA={
+            session.data?.hasValidLicense ? (
+              <CreateButtonWithTeamsList
+                subtitle={t("new_workflow_subtitle").toUpperCase()}
+                createFunction={(teamId?: number) => {
+                  createMutation.mutate({ teamId });
+                }}
+                isPending={createMutation.isPending}
+                disableMobileButton={true}
+                onlyShowWithNoTeams={true}
+              />
+            ) : null
+          }>
+          <>
+            {queryRes.data?.totalCount ? (
+              <div className="flex">
+                <TeamsFilter />
+                <div className="ml-auto">
+                  <CreateButtonWithTeamsList
+                    subtitle={t("new_workflow_subtitle").toUpperCase()}
+                    createFunction={(teamId?: number) => createMutation.mutate({ teamId })}
+                    isPending={createMutation.isPending}
+                    disableMobileButton={true}
+                    onlyShowWithTeams={true}
+                  />
+                </div>
               </div>
-            </div>
-          ) : null}
-          <FilterResults
-            queryRes={queryRes}
-            emptyScreen={<EmptyScreen isFilteredView={false} />}
-            noResultsScreen={<EmptyScreen isFilteredView={true} />}
-            SkeletonLoader={SkeletonLoader}>
-            <WorkflowList workflows={queryRes.data?.filtered} />
-          </FilterResults>
-        </>
+            ) : null}
+            <FilterResults
+              queryRes={queryRes}
+              emptyScreen={<EmptyScreen isFilteredView={false} />}
+              noResultsScreen={<EmptyScreen isFilteredView={true} />}
+              SkeletonLoader={SkeletonLoader}>
+              <WorkflowList workflows={queryRes.data?.filtered} />
+            </FilterResults>
+          </>
+        </ShellMain>
       </LicenseRequired>
-    </ShellMain>
+    </Shell>
   );
 }
 
@@ -221,7 +223,5 @@ const Filter = (props: {
     </div>
   );
 };
-
-WorkflowsPage.getLayout = getLayout;
 
 export default WorkflowsPage;

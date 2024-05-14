@@ -13,6 +13,7 @@ export const createEmailsFixture = () => {
   if (IS_MAILHOG_ENABLED) {
     const mailhogAPI = mailhog();
     return {
+      messages: mailhogAPI.messages.bind(mailhogAPI),
       search: (query: string, kind?: string, start?: number, limit?: number) => {
         if (kind === "from" || kind === "to") {
           if (!hasUUID(query)) {
@@ -27,6 +28,7 @@ export const createEmailsFixture = () => {
     };
   } else {
     return {
+      messages: unimplemented,
       search: unimplemented,
       deleteMessage: unimplemented,
     };

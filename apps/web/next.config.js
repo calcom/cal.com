@@ -50,6 +50,10 @@ if (!process.env.EMAIL_FROM) {
 
 // if (!process.env.NEXTAUTH_URL) throw new Error("Please set NEXTAUTH_URL");
 
+if (!process.env.NEXT_PUBLIC_API_V2_URL) {
+  console.error("Please set NEXT_PUBLIC_API_V2_URL");
+}
+
 const validJson = (jsonString) => {
   try {
     const o = JSON.parse(jsonString);
@@ -156,56 +160,8 @@ const matcherConfigUserTypeEmbedRoute = {
 const nextConfig = {
   experimental: {
     // externalize server-side node_modules with size > 1mb, to improve dev mode performance/RAM usage
-    serverComponentsExternalPackages: [
-      "next-i18next",
-      "googleapis",
-      "twilio",
-      "@hubspot",
-      "ews-javascript-api",
-      "typeorm",
-      "cli-highlight",
-      "tedious",
-      "@azure",
-      "date-fns",
-      "react-awesome-query-builder",
-      "node-forge",
-      "@boxyhq",
-      "@redis",
-      "svix",
-      "@tryvital",
-      "handlebars",
-      "libphonenumber-js",
-      "auth0",
-      "mysql2",
-      "city-timezones",
-      "nodemailer",
-      "@js-joda",
-      "prisma",
-      "mongodb",
-      "jsforce",
-      "@aws-sdk",
-      "lodash",
-      "superagent",
-      "openid-client",
-      "@sentry",
-      "@upstash",
-      "utif",
-      "ical.js",
-      "@jimp",
-      "har-validator",
-      "sshpk",
-      "jose",
-      "entities",
-      "google-auth-library",
-      "fetch",
-      "markdown-it",
-      "stripe",
-      "bluebird",
-      "request",
-      "raw-body",
-      "iconv-lite",
-      "xml2js",
-    ],
+    serverComponentsExternalPackages: ["next-i18next"],
+    optimizePackageImports: ["@calcom/ui"],
   },
   i18n: {
     ...i18n,
@@ -236,10 +192,6 @@ const nextConfig = {
     "lucide-react",
   ],
   modularizeImports: {
-    "@calcom/ui/components/icon": {
-      transform: "lucide-react/dist/esm/icons/{{ kebabCase member }}",
-      preventFullImport: true,
-    },
     "@calcom/features/insights/components": {
       transform: "@calcom/features/insights/components/{{member}}",
       skipDefaultConversion: true,
@@ -256,7 +208,17 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  webpack: (config, { webpack, buildId }) => {
+  webpack: (config, { webpack, buildId, isServer }) => {
+    if (isServer) {
+      // Module not found fix @see https://github.com/boxyhq/jackson/issues/1535#issuecomment-1704381612
+      config.plugins.push(
+        new webpack.IgnorePlugin({
+          resourceRegExp:
+            /(^@google-cloud\/spanner|^@mongodb-js\/zstd|^@sap\/hana-client\/extension\/Stream$|^@sap\/hana-client|^@sap\/hana-client$|^aws-crt|^aws4$|^better-sqlite3$|^bson-ext$|^cardinal$|^cloudflare:sockets$|^hdb-pool$|^ioredis$|^kerberos$|^mongodb-client-encryption$|^mysql$|^oracledb$|^pg-native$|^pg-query-stream$|^react-native-sqlite-storage$|^snappy\/package\.json$|^snappy$|^sql.js$|^sqlite3$|^typeorm-aurora-data-api-driver$)/,
+        })
+      );
+    }
+
     config.plugins.push(
       new CopyWebpackPlugin({
         patterns: [
@@ -342,6 +304,10 @@ const nextConfig = {
     ];
 
     let afterFiles = [
+      {
+        source: "/api/v2/:path*",
+        destination: `${process.env.NEXT_PUBLIC_API_V2_URL}/:path*`,
+      },
       {
         source: "/org/:slug",
         destination: "/team/:slug",
@@ -569,6 +535,11 @@ const nextConfig = {
       {
         source: "/apps/installed",
         destination: "/apps/installed/calendar",
+        permanent: true,
+      },
+      {
+        source: "/settings/organizations/platform/:path*",
+        destination: "/settings/platform",
         permanent: true,
       },
       // OAuth callbacks when sent to localhost:3000(w would be expected) should be redirected to corresponding to WEBAPP_URL

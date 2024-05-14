@@ -10,14 +10,13 @@ import { FilterToggle } from "@calcom/features/bookings/components/FilterToggle"
 import { FiltersContainer } from "@calcom/features/bookings/components/FiltersContainer";
 import type { filterQuerySchema } from "@calcom/features/bookings/lib/useFilterQuery";
 import { useFilterQuery } from "@calcom/features/bookings/lib/useFilterQuery";
-import { ShellMain } from "@calcom/features/shell/Shell";
+import Shell from "@calcom/features/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { HorizontalTabItemProps, VerticalTabItemProps } from "@calcom/ui";
 import { Alert, Button, EmptyScreen, HorizontalTabs } from "@calcom/ui";
-import { Calendar } from "@calcom/ui/components/icon";
 
 import { useInViewObserver } from "@lib/hooks/useInViewObserver";
 import useMeQuery from "@lib/hooks/useMeQuery";
@@ -147,7 +146,13 @@ export default function Bookings() {
   const [animationParentRef] = useAutoAnimate<HTMLDivElement>();
 
   return (
-    <ShellMain hideHeadingOnMobile heading={t("bookings")} subtitle={t("bookings_description")}>
+    <Shell
+      withoutMain={false}
+      hideHeadingOnMobile
+      heading={t("bookings")}
+      subtitle={t("bookings_description")}
+      title="Bookings"
+      description="Create events to share for people to book on your calendar.">
       <div className="flex flex-col">
         <div className="flex flex-row flex-wrap justify-between">
           <HorizontalTabs tabs={tabs} />
@@ -235,7 +240,7 @@ export default function Bookings() {
             {query.status === "success" && isEmpty && (
               <div className="flex items-center justify-center pt-2 xl:pt-0">
                 <EmptyScreen
-                  Icon={Calendar}
+                  Icon="calendar"
                   headline={t("no_status_bookings_yet", { status: t(status).toLowerCase() })}
                   description={t("no_status_bookings_yet_description", {
                     status: t(status).toLowerCase(),
@@ -247,6 +252,6 @@ export default function Bookings() {
           </div>
         </main>
       </div>
-    </ShellMain>
+    </Shell>
   );
 }

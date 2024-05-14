@@ -1,18 +1,20 @@
 import { expect } from "@playwright/test";
+import { JSDOM } from "jsdom";
 
 import { randomString } from "@calcom/lib/random";
 import { SchedulingType } from "@calcom/prisma/client";
 import type { Schedule, TimeRange } from "@calcom/types/schedule";
 
 import { test } from "./lib/fixtures";
+import { testBothFutureAndLegacyRoutes } from "./lib/future-legacy-routes";
 import {
   bookFirstEvent,
   bookOptinEvent,
   bookTimeSlot,
-  expectEmailsToHaveSubject,
   selectFirstAvailableTimeSlotNextMonth,
   testEmail,
   testName,
+  todo,
 } from "./lib/testUtils";
 
 const freeUserObj = { name: `Free-user-${randomString(3)}` };
@@ -21,7 +23,37 @@ test.afterEach(async ({ users }) => {
   await users.deleteAll();
 });
 
-test.describe("free user", () => {
+test("check SSR and OG - User Event Type", async ({ page, users }) => {
+  const name = "Test User";
+  const user = await users.create({
+    name,
+  });
+  const [response] = await Promise.all([
+    // This promise resolves to the main resource response
+    page.waitForResponse(
+      (response) => response.url().includes(`/${user.username}/30-min`) && response.status() === 200
+    ),
+
+    // Trigger the page navigation
+    page.goto(`/${user.username}/30-min`),
+  ]);
+  const ssrResponse = await response.text();
+  const document = new JSDOM(ssrResponse).window.document;
+
+  const titleText = document.querySelector("title")?.textContent;
+  const ogImage = document.querySelector('meta[property="og:image"]')?.getAttribute("content");
+  expect(titleText).toContain(name);
+  // Verify that there is correct URL that would generate the awesome OG image
+  expect(ogImage).toContain(
+    "/_next/image?w=1200&q=100&url=%2Fapi%2Fsocial%2Fog%2Fimage%3Ftype%3Dmeeting%26title%3D"
+  );
+  // Verify Organizer Name in the URL
+  expect(ogImage).toContain("meetingProfileName%3DTest%2520User%26");
+});
+
+todo("check SSR and OG - Team Event Type");
+
+testBothFutureAndLegacyRoutes.describe("free user", () => {
   test.beforeEach(async ({ page, users }) => {
     const free = await users.create(freeUserObj);
     await page.goto(`/${free.username}`);
@@ -29,6 +61,7 @@ test.describe("free user", () => {
 
   test("cannot book same slot multiple times", async ({ page, users, emails }) => {
     const [user] = users.get();
+
     const bookerObj = {
       email: users.trackEmail({ username: "testEmail", domain: "example.com" }),
       name: "testBooker",
@@ -47,12 +80,6 @@ test.describe("free user", () => {
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
     const { title: eventTitle } = await user.getFirstEventAsOwner();
 
-    await expectEmailsToHaveSubject({
-      emails,
-      organizer: user,
-      booker: bookerObj,
-      eventTitle,
-    });
     await page.goto(bookingUrl);
 
     // book same time spot again
@@ -62,7 +89,7 @@ test.describe("free user", () => {
   });
 });
 
-test.describe("pro user", () => {
+testBothFutureAndLegacyRoutes.describe("pro user", () => {
   test.beforeEach(async ({ page, users }) => {
     const pro = await users.create();
     await page.goto(`/${pro.username}`);
@@ -97,6 +124,21 @@ test.describe("pro user", () => {
     await page.waitForURL((url) => {
       return url.pathname.startsWith("/booking");
     });
+  });
+
+  test("it redirects when a rescheduleUid does not match the current event type", async ({
+    page,
+    users,
+    bookings,
+  }) => {
+    const [pro] = users.get();
+    const [eventType] = pro.eventTypes;
+    const bookingFixture = await bookings.create(pro.id, pro.username, eventType.id);
+
+    // open the wrong eventType (rescheduleUid created for /30min event)
+    await page.goto(`${pro.username}/${pro.eventTypes[1].slug}?rescheduleUid=${bookingFixture.uid}`);
+
+    await expect(page).toHaveURL(new RegExp(`${pro.username}/${eventType.slug}`));
   });
 
   test("Can cancel the recently created booking and rebook the same timeslot", async ({
@@ -172,6 +214,35 @@ test.describe("pro user", () => {
     ]);
     // This is the only booking in there that needed confirmation and now it should be empty screen
     await expect(page.locator('[data-testid="empty-screen"]')).toBeVisible();
+  });
+
+  test("can book an unconfirmed event multiple times", async ({ page, users }) => {
+    await page.locator('[data-testid="event-type-link"]:has-text("Opt in")').click();
+    await selectFirstAvailableTimeSlotNextMonth(page);
+
+    const pageUrl = page.url();
+
+    await bookTimeSlot(page);
+    await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+
+    // go back to the booking page to re-book.
+    await page.goto(pageUrl);
+    await bookTimeSlot(page, { email: "test2@example.com" });
+    await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+  });
+
+  test("cannot book an unconfirmed event multiple times with the same email", async ({ page, users }) => {
+    await page.locator('[data-testid="event-type-link"]:has-text("Opt in")').click();
+    await selectFirstAvailableTimeSlotNextMonth(page);
+
+    const pageUrl = page.url();
+
+    await bookTimeSlot(page);
+    // go back to the booking page to re-book.
+    await page.goto(pageUrl);
+
+    await bookTimeSlot(page);
+    await expect(page.getByText("Could not book the meeting.")).toBeVisible();
   });
 
   test("can book with multiple guests", async ({ page, users }) => {
@@ -262,7 +333,7 @@ test.describe("pro user", () => {
   });
 });
 
-test.describe("prefill", () => {
+testBothFutureAndLegacyRoutes.describe("prefill", () => {
   test("logged in", async ({ page, users }) => {
     const prefill = await users.create({ name: "Prefill User" });
     await prefill.apiLogin();
@@ -319,7 +390,7 @@ test.describe("prefill", () => {
   });
 });
 
-test.describe("Booking on different layouts", () => {
+testBothFutureAndLegacyRoutes.describe("Booking on different layouts", () => {
   test.beforeEach(async ({ page, users }) => {
     const user = await users.create();
     await page.goto(`/${user.username}`);
@@ -376,7 +447,7 @@ test.describe("Booking on different layouts", () => {
   });
 });
 
-test.describe("Booking round robin event", () => {
+testBothFutureAndLegacyRoutes.describe("Booking round robin event", () => {
   test.beforeEach(async ({ page, users }) => {
     const teamMatesObj = [{ name: "teammate-1" }];
 
@@ -388,7 +459,7 @@ test.describe("Booking round robin event", () => {
     const schedule: Schedule = [[], [dateRanges], [dateRanges], [dateRanges], [dateRanges], [dateRanges], []];
 
     const testUser = await users.create(
-      { username: "test-user", name: "Test User", email: "testuser@example.com", schedule },
+      { schedule },
       {
         hasTeam: true,
         schedulingType: SchedulingType.ROUND_ROBIN,
@@ -402,7 +473,7 @@ test.describe("Booking round robin event", () => {
 
   test("Does not book round robin host outside availability with date override", async ({ page, users }) => {
     const [testUser] = users.get();
-    testUser.apiLogin();
+    await testUser.apiLogin();
 
     const team = await testUser.getFirstTeamMembership();
 
@@ -429,7 +500,7 @@ test.describe("Booking round robin event", () => {
 
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
 
-    const host = await page.locator('[data-testid="booking-host-name"]');
+    const host = page.locator('[data-testid="booking-host-name"]');
     const hostName = await host.innerText();
 
     //expect teammate-1 to be booked, test-user is not available at this time
@@ -459,7 +530,7 @@ test.describe("Booking round robin event", () => {
 
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
 
-    const hostSecondBooking = await page.locator('[data-testid="booking-host-name"]');
+    const hostSecondBooking = page.locator('[data-testid="booking-host-name"]');
     const hostNameSecondBooking = await hostSecondBooking.innerText();
     expect(hostNameSecondBooking).toBe("teammate-1"); // teammate-1 should be booked again
   });

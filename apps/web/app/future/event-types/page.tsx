@@ -1,8 +1,6 @@
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 
-import { getLayout } from "@calcom/features/MainLayoutAppDir";
-
 import EventTypes from "~/event-types/views/event-types-listing-view";
 
 export const generateMetadata = async () =>
@@ -11,4 +9,4 @@ export const generateMetadata = async () =>
     (t) => t("event_types_page_subtitle")
   );
 
-export default WithLayout({ getLayout, Page: EventTypes })<"P">;
+export default WithLayout({ getLayout: null, Page: EventTypes })<"P">;

@@ -1,5 +1,6 @@
-import { isOrganization, withRoleCanCreateEntity } from "@calcom/lib/entityPermissionUtils";
-import { getTeamAvatarUrl, getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
+import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
+import { withRoleCanCreateEntity } from "@calcom/lib/entityPermissionUtils";
+import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import type { PrismaClient } from "@calcom/prisma";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
@@ -21,10 +22,10 @@ export const teamsAndUserProfilesQuery = async ({ ctx }: TeamsAndUserProfileOpti
       id: ctx.user.id,
     },
     select: {
+      avatarUrl: true,
       id: true,
       username: true,
       name: true,
-      avatar: true,
       teams: {
         where: {
           accepted: true,
@@ -34,6 +35,8 @@ export const teamsAndUserProfilesQuery = async ({ ctx }: TeamsAndUserProfileOpti
           team: {
             select: {
               id: true,
+              isOrganization: true,
+              logoUrl: true,
               name: true,
               slug: true,
               metadata: true,
@@ -47,7 +50,6 @@ export const teamsAndUserProfilesQuery = async ({ ctx }: TeamsAndUserProfileOpti
           },
         },
       },
-      organizationId: true,
     },
   });
   if (!user) {
@@ -55,7 +57,7 @@ export const teamsAndUserProfilesQuery = async ({ ctx }: TeamsAndUserProfileOpti
   }
 
   const nonOrgTeams = user.teams
-    .filter((membership) => !isOrganization({ team: membership.team }))
+    .filter((membership) => !membership.team.isOrganization)
     .map((membership) => ({
       ...membership,
       team: {
@@ -69,18 +71,16 @@ export const teamsAndUserProfilesQuery = async ({ ctx }: TeamsAndUserProfileOpti
       teamId: null,
       name: user.name,
       slug: user.username,
-      image: getUserAvatarUrl(user),
+      image: getUserAvatarUrl({
+        avatarUrl: user.avatarUrl,
+      }),
       readOnly: false,
     },
     ...nonOrgTeams.map((membership) => ({
       teamId: membership.team.id,
       name: membership.team.name,
       slug: membership.team.slug ? `team/${membership.team.slug}` : null,
-      image: getTeamAvatarUrl({
-        slug: membership.team.slug,
-        requestedSlug: membership.team.metadata?.requestedSlug ?? null,
-        organizationId: membership.team.parentId,
-      }),
+      image: getPlaceholderAvatar(membership.team.logoUrl, membership.team.name),
       role: membership.role,
       readOnly: !withRoleCanCreateEntity(membership.role),
     })),

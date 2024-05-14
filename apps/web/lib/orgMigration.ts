@@ -3,6 +3,7 @@ import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomai
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import prisma from "@calcom/prisma";
 import type { Team, User } from "@calcom/prisma/client";
 import { RedirectType } from "@calcom/prisma/client";
@@ -46,7 +47,7 @@ export async function moveUserToOrg({
 
   const teamMetadata = teamMetadataSchema.parse(team?.metadata);
 
-  if (!teamMetadata?.isOrganization) {
+  if (!team.isOrganization) {
     throw new Error(`Team with ID:${targetOrgId} is not an Org`);
   }
 
@@ -60,7 +61,7 @@ export async function moveUserToOrg({
   if (!targetOrgUsername) {
     targetOrgUsername = getOrgUsernameFromEmail(
       userToMoveToOrg.email,
-      targetOrganization.metadata.orgAutoAcceptEmail || ""
+      targetOrganization.organizationSettings?.orgAutoAcceptEmail || ""
     );
   }
 
@@ -195,7 +196,7 @@ export async function moveTeamToOrg({
 
   const teamMetadata = teamMetadataSchema.parse(possibleOrg?.metadata);
 
-  if (!teamMetadata?.isOrganization) {
+  if (!possibleOrg.isOrganization) {
     throw new Error(`${targetOrg.id} is not an Org`);
   }
 
@@ -204,7 +205,7 @@ export async function moveTeamToOrg({
   await addTeamRedirect({
     oldTeamSlug,
     teamSlug: updatedTeam.slug,
-    orgSlug: targetOrganization.slug || orgMetadata.requestedSlug || null,
+    orgSlug: targetOrganization.slug || orgMetadata?.requestedSlug || null,
   });
   await setOrgSlugIfNotSet({ slug: targetOrganization.slug }, orgMetadata, targetOrg.id);
   if (moveMembers) {
@@ -327,14 +328,15 @@ async function setOrgSlugIfNotSet(
     slug: string | null;
   },
   orgMetadata: {
-    requestedSlug?: string | undefined;
-  },
+    requestedSlug?: string | null | undefined;
+  } | null,
   targetOrgId: number
 ) {
   if (targetOrganization.slug) {
     return;
   }
-  if (!orgMetadata.requestedSlug) {
+
+  if (!orgMetadata?.requestedSlug) {
     throw new HttpError({
       statusCode: 400,
       message: `Org with id: ${targetOrgId} doesn't have a slug. Tried using requestedSlug but that's also not present. So, all migration done but failed to set the Organization slug. Please set it manually`,
@@ -348,7 +350,7 @@ async function setOrgSlugIfNotSet(
 
 function assertUserPartOfOrgAndRemigrationAllowed(
   userToMoveToOrg: {
-    organizationId: User["organizationId"];
+    organizationId: number | null;
   },
   targetOrgId: number,
   targetOrgUsername: string,
@@ -371,6 +373,9 @@ async function getTeamOrThrowError(targetOrgId: number) {
     where: {
       id: targetOrgId,
     },
+    include: {
+      organizationSettings: true,
+    },
   });
 
   if (!team) {
@@ -384,7 +389,7 @@ async function getTeamOrThrowError(targetOrgId: number) {
 
 function assertUserPartOfOtherOrg(
   userToMoveToOrg: {
-    organizationId: User["organizationId"];
+    organizationId: number | null;
   } | null,
   userName: string | undefined,
   userId: number | undefined,
@@ -594,6 +599,35 @@ async function dbMoveUserToOrg({
       },
     },
   });
+
+  await prisma.profile.upsert({
+    create: {
+      uid: ProfileRepository.generateProfileUid(),
+      userId: userToMoveToOrg.id,
+      organizationId: targetOrgId,
+      username: targetOrgUsername,
+      movedFromUser: {
+        connect: {
+          id: userToMoveToOrg.id,
+        },
+      },
+    },
+    update: {
+      organizationId: targetOrgId,
+      username: targetOrgUsername,
+      movedFromUser: {
+        connect: {
+          id: userToMoveToOrg.id,
+        },
+      },
+    },
+    where: {
+      userId_organizationId: {
+        userId: userToMoveToOrg.id,
+        organizationId: targetOrgId,
+      },
+    },
+  });
 }
 
 async function moveTeamsWithoutMembersToOrg({
@@ -620,6 +654,7 @@ async function moveTeamsWithoutMembersToOrg({
       id: true,
       slug: true,
       metadata: true,
+      isOrganization: true,
     },
   });
 
@@ -631,7 +666,7 @@ async function moveTeamsWithoutMembersToOrg({
       };
     })
     // Remove Orgs from the list
-    .filter((team) => !team.metadata?.isOrganization);
+    .filter((team) => !team.isOrganization);
 
   const teamIdsToBeMovedToOrg = teamsToBeMovedToOrg.map((t) => t.id);
 
@@ -784,6 +819,7 @@ async function removeTeamsWithoutItsMemberFromOrg({ userToRemoveFromOrg }: { use
       id: true,
       slug: true,
       metadata: true,
+      isOrganization: true,
     },
   });
 
@@ -795,7 +831,7 @@ async function removeTeamsWithoutItsMemberFromOrg({ userToRemoveFromOrg }: { use
       };
     })
     // Remove Orgs from the list
-    .filter((team) => !team.metadata?.isOrganization);
+    .filter((team) => !team.isOrganization);
 
   const teamIdsToBeRemovedFromOrg = teamsToBeRemovedFromOrg.map((t) => t.id);
 
@@ -840,6 +876,10 @@ async function dbRemoveUserFromOrg({
         },
       },
     },
+  });
+
+  await ProfileRepository.deleteMany({
+    userIds: [userToRemoveFromOrg.id],
   });
 }
 

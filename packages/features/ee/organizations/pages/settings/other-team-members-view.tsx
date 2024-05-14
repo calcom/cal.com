@@ -66,7 +66,7 @@ const MembersView = () => {
   const params = useParamsWithFallback();
   const teamId = Number(params.id);
   const session = useSession();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   // const [query, setQuery] = useState<string | undefined>("");
   // const [queryToFetch, setQueryToFetch] = useState<string | undefined>("");
   const limit = 20;
@@ -117,16 +117,7 @@ const MembersView = () => {
         router.push("/settings");
       }
     },
-    [otherMembersError, otherTeamError]
-  );
-
-  useEffect(
-    function refactorMeWithoutEffect() {
-      if (data) {
-        router.push("/settings");
-      }
-    },
-    [data]
+    [router, otherMembersError, otherTeamError]
   );
 
   const isPending = isTeamLoading || isOrgListLoading;
@@ -153,7 +144,7 @@ const MembersView = () => {
         //     <Button
         //       type="button"
         //       color="primary"
-        //       StartIcon={Plus}
+        //       StartIcon={"plus"}
         //       className="ml-auto"
         //       onClick={() => setShowMemberInvitationModal(true)}
         //       data-testid="new-member-button">

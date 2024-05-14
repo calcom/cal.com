@@ -1,7 +1,6 @@
 import { keepPreviousData } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
-import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
-import { useMemo, useRef, useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { APP_NAME } from "@calcom/lib/constants";
@@ -9,11 +8,11 @@ import type { DateRange } from "@calcom/lib/date-ranges";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
-import { Button, ButtonGroup, DataTable } from "@calcom/ui";
-import { UserAvatar } from "@calcom/ui";
+import type { UserProfile } from "@calcom/types/UserProfile";
+import { Button, ButtonGroup, DataTable, UserAvatar } from "@calcom/ui";
 
 import { UpgradeTip } from "../../tips/UpgradeTip";
-import { TBContext, createTimezoneBuddyStore } from "../store";
+import { createTimezoneBuddyStore, TBContext } from "../store";
 import { AvailabilityEditSheet } from "./AvailabilityEditSheet";
 import { TimeDial } from "./TimeDial";
 
@@ -22,11 +21,13 @@ export interface SliderUser {
   username: string | null;
   name: string | null;
   organizationId: number;
+  avatarUrl: string | null;
   email: string;
   timeZone: string;
   role: MembershipRole;
   defaultScheduleId: number | null;
   dateRanges: DateRange[];
+  profile: UserProfile;
 }
 
 function UpgradeTeamTip() {
@@ -40,7 +41,7 @@ function UpgradeTeamTip() {
       background="/tips/teams"
       features={[]}
       buttons={
-        <div className="space-y-2 rtl:space-x-reverse sm:space-x-2">
+        <div className="space-y-2 sm:space-x-2 rtl:space-x-reverse">
           <ButtonGroup>
             {/* <Button color="primary" href={`${WEBAPP_URL}/settings/teams/new`}>
               {t("create_team")}
@@ -56,8 +57,7 @@ function UpgradeTeamTip() {
   );
 }
 
-export function AvailabilitySliderTable() {
-  const { t } = useLocale();
+export function AvailabilitySliderTable(props: { userTimeFormat: number | null }) {
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const [browsingDate, setBrowsingDate] = useState(dayjs());
   const [editSheetOpen, setEditSheetOpen] = useState(false);
@@ -83,15 +83,16 @@ export function AvailabilitySliderTable() {
         accessorFn: (data) => data.email,
         header: "Member",
         cell: ({ row }) => {
-          const { username, email, timeZone, name, organizationId } = row.original;
+          const { username, email, timeZone, name, avatarUrl, profile } = row.original;
           return (
-            <div className="max-w-64 flex flex-shrink-0 items-center gap-2 overflow-hidden">
+            <div className="flex max-w-64 flex-shrink-0 items-center gap-2 overflow-hidden">
               <UserAvatar
                 size="sm"
                 user={{
                   username,
                   name,
-                  organizationId,
+                  avatarUrl,
+                  profile,
                 }}
               />
               <div className="">
@@ -136,13 +137,13 @@ export function AvailabilitySliderTable() {
                 <Button
                   color="minimal"
                   variant="icon"
-                  StartIcon={ChevronLeftIcon}
+                  StartIcon="chevron-left"
                   onClick={() => setBrowsingDate(browsingDate.subtract(1, "day"))}
                 />
                 <Button
                   onClick={() => setBrowsingDate(browsingDate.add(1, "day"))}
                   color="minimal"
-                  StartIcon={ChevronRightIcon}
+                  StartIcon="chevron-right"
                   variant="icon"
                 />
               </ButtonGroup>

@@ -6,11 +6,12 @@ import { v5 as uuidv5 } from "uuid";
 
 import { createInstantMeetingWithCalVideo } from "@calcom/core/videoClient";
 import dayjs from "@calcom/dayjs";
+import getBookingDataSchema from "@calcom/features/bookings/lib/getBookingDataSchema";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import {
-  getEventTypesFromDB,
   getBookingData,
   getCustomInputsResponses,
+  getEventTypesFromDB,
 } from "@calcom/features/bookings/lib/handleNewBooking";
 import { getFullName } from "@calcom/features/form-builder/utils";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
@@ -83,10 +84,14 @@ async function handler(req: NextApiRequest) {
     throw new Error("Only Team Event Types are supported for Instant Meeting");
   }
 
+  const schema = getBookingDataSchema({
+    view: req.body?.rescheduleUid ? "reschedule" : "booking",
+    bookingFields: eventType.bookingFields,
+  });
   const reqBody = await getBookingData({
     req,
-    isNotAnApiCall: true,
     eventType,
+    schema,
   });
   const { email: bookerEmail, name: bookerName } = reqBody;
 
@@ -127,7 +132,6 @@ async function handler(req: NextApiRequest) {
     throw new Error("Cal Video Meeting Creation Failed");
   }
 
-  eventType.team.id;
   const bookingReferenceToCreate = [
     {
       type: calVideoMeeting.type,
@@ -196,7 +200,6 @@ async function handler(req: NextApiRequest) {
   });
 
   // Trigger Webhook
-
   const webhookData = {
     triggerEvent: WebhookTriggerEvents.INSTANT_MEETING,
     uid: newBooking.uid,

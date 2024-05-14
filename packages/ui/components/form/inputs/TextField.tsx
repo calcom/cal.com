@@ -3,8 +3,7 @@ import React, { forwardRef, useId, useState } from "react";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-import { Skeleton } from "../../..";
-import { X } from "../../icon";
+import { Icon, Skeleton } from "../../..";
 import { HintsOrErrors } from "./HintOrErrors";
 import { Label } from "./Label";
 import type { InputFieldProps, InputProps } from "./types";
@@ -18,7 +17,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
       {...props}
       ref={ref}
       className={classNames(
-        "hover:border-emphasis dark:focus:border-emphasis border-default bg-default placeholder:text-muted text-emphasis disabled:hover:border-default disabled:bg-subtle focus:ring-brand-default mb-2 block h-9 rounded-md border px-3 py-2 text-sm leading-4 transition focus:border-neutral-300 focus:outline-none focus:ring-2 disabled:cursor-not-allowed",
+        "hover:border-emphasis dark:focus:border-emphasis border-default bg-default placeholder:text-muted text-emphasis disabled:hover:border-default disabled:bg-subtle focus:ring-brand-default focus:border-subtle mb-2 block h-9 rounded-md border px-3 py-2 text-sm leading-4 transition focus:outline-none focus:ring-2 disabled:cursor-not-allowed",
         isFullWidth && "w-full",
         props.className
       )}
@@ -45,10 +44,19 @@ const Addon = ({ isFilled, children, className, error, onClickAddon }: AddonProp
     )}>
     <div
       className={classNames(
-        "min-h-9 flex flex-col justify-center text-sm leading-7",
+        "flex min-h-9 flex-col justify-center text-sm leading-7",
         error ? "text-error" : "text-default"
       )}>
-      <span className="flex whitespace-nowrap">{children}</span>
+      <span
+        className="flex max-w-2xl overflow-y-auto whitespace-nowrap"
+        style={{
+          WebkitOverflowScrolling: "touch",
+          scrollbarWidth: "none",
+          overflow: "-ms-scroll-chaining",
+          msOverflowStyle: "-ms-autohiding-scrollbar",
+        }}>
+        {children}
+      </span>
     </div>
   </div>
 );
@@ -81,6 +89,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
     onClickAddon,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     t: __t,
+    dataTestid,
     ...passThrough
   } = props;
 
@@ -114,6 +123,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
             </Addon>
           )}
           <Input
+            data-testid={`${dataTestid}-input` ?? "input-field"}
             id={id}
             type={type}
             placeholder={placeholder}
@@ -146,7 +156,8 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
             </Addon>
           )}
           {type === "search" && inputValue?.toString().length > 0 && (
-            <X
+            <Icon
+              name="x"
               className="text-subtle absolute top-2.5 h-4 w-4 cursor-pointer ltr:right-2 rtl:left-2"
               onClick={(e) => {
                 setInputValue("");

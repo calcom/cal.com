@@ -282,7 +282,7 @@ test.describe("authorized user sees correct translations (pt-br)", async () => {
   test("should return correct translations and html attributes", async ({ page, users }) => {
     await test.step("should create a pt-br user", async () => {
       const user = await users.create({
-        locale: "pt-br",
+        locale: "pt-BR",
       });
       await user.apiLogin();
     });

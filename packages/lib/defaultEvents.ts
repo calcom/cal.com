@@ -49,7 +49,7 @@ const user: User & { credentials: CredentialPayload[] } = {
   darkBrandColor: "#efefef",
   allowDynamicBooking: true,
   timeFormat: 12,
-  organizationId: null,
+  travelSchedules: [],
 };
 
 const customInputs: CustomInputSchema[] = [];
@@ -72,6 +72,7 @@ const commons = {
   schedule: null,
   timeZone: null,
   successRedirectUrl: "",
+  forwardParamsSuccessRedirect: true,
   teamId: null,
   scheduleId: null,
   availability: [],
@@ -101,6 +102,10 @@ const commons = {
   hosts: [],
   metadata: EventTypeMetaDataSchema.parse({}),
   bookingFields: [],
+  assignAllTeamMembers: false,
+  useEventTypeDestinationCalendarEmail: false,
+  secondaryEmailId: null,
+  secondaryEmail: null,
 };
 
 const dynamicEvent = {
@@ -112,6 +117,7 @@ const dynamicEvent = {
   descriptionAsSafeHTML: "",
   position: 0,
   ...commons,
+  metadata: EventTypeMetaDataSchema.parse({ multipleDuration: [15, 30, 60, 90] }),
 };
 
 const defaultEvents = [dynamicEvent];

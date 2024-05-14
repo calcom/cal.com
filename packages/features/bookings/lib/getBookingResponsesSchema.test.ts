@@ -15,25 +15,23 @@ const ZOD_REQUIRED_FIELD_ERROR_MSG = "Required";
 describe("getBookingResponsesSchema", () => {
   test(`should parse booking responses`, async ({}) => {
     const schema = getBookingResponsesSchema({
-      eventType: {
-        bookingFields: [
-          {
-            name: "name",
-            type: "name",
-            required: true,
-          },
-          {
-            name: "email",
-            type: "email",
-            required: true,
-          },
-          {
-            name: "testField",
-            type: "text",
-            required: true,
-          },
-        ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
-      },
+      bookingFields: [
+        {
+          name: "name",
+          type: "name",
+          required: true,
+        },
+        {
+          name: "email",
+          type: "email",
+          required: true,
+        },
+        {
+          name: "testField",
+          type: "text",
+          required: true,
+        },
+      ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
       view: "ALL_VIEWS",
     });
     const parsedResponses = await schema.parseAsync({
@@ -52,25 +50,23 @@ describe("getBookingResponsesSchema", () => {
 
   test(`should error if required fields are missing`, async ({}) => {
     const schema = getBookingResponsesSchema({
-      eventType: {
-        bookingFields: [
-          {
-            name: "name",
-            type: "name",
-            required: true,
-          },
-          {
-            name: "email",
-            type: "email",
-            required: true,
-          },
-          {
-            name: "testField",
-            type: "text",
-            required: true,
-          },
-        ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
-      },
+      bookingFields: [
+        {
+          name: "name",
+          type: "name",
+          required: true,
+        },
+        {
+          name: "email",
+          type: "email",
+          required: true,
+        },
+        {
+          name: "testField",
+          type: "text",
+          required: true,
+        },
+      ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
       view: "ALL_VIEWS",
     });
     const parsedResponses = await schema.safeParseAsync({
@@ -92,25 +88,23 @@ describe("getBookingResponsesSchema", () => {
     describe(`'name' and 'email' must be considered as required fields`, () => {
       test(`'name' and 'email' must be considered as required fields `, async ({}) => {
         const schema = getBookingResponsesSchema({
-          eventType: {
-            bookingFields: [
-              {
-                name: "name",
-                type: "name",
-                required: true,
-              },
-              {
-                name: "email",
-                type: "email",
-                required: true,
-              },
-              {
-                name: "testField",
-                type: "text",
-                required: false,
-              },
-            ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
-          },
+          bookingFields: [
+            {
+              name: "name",
+              type: "name",
+              required: true,
+            },
+            {
+              name: "email",
+              type: "email",
+              required: true,
+            },
+            {
+              name: "testField",
+              type: "text",
+              required: false,
+            },
+          ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
           view: "ALL_VIEWS",
         });
         const parsedResponsesWithJustName = await schema.safeParseAsync({
@@ -143,25 +137,23 @@ describe("getBookingResponsesSchema", () => {
 
       test(`'email' must be validated `, async () => {
         const schema = getBookingResponsesSchema({
-          eventType: {
-            bookingFields: [
-              {
-                name: "name",
-                type: "name",
-                required: true,
-              },
-              {
-                name: "email",
-                type: "email",
-                required: true,
-              },
-              {
-                name: "testField",
-                type: "text",
-                required: false,
-              },
-            ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
-          },
+          bookingFields: [
+            {
+              name: "name",
+              type: "name",
+              required: true,
+            },
+            {
+              name: "email",
+              type: "email",
+              required: true,
+            },
+            {
+              name: "testField",
+              type: "text",
+              required: false,
+            },
+          ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
           view: "ALL_VIEWS",
         });
         const parsedResponses = await schema.safeParseAsync({
@@ -183,26 +175,24 @@ describe("getBookingResponsesSchema", () => {
 
       test(`firstName is required and lastName is optional by default`, async () => {
         const schema = getBookingResponsesSchema({
-          eventType: {
-            bookingFields: [
-              {
-                name: "name",
-                type: "name",
-                required: true,
-                variant: "firstAndLastName",
-              },
-              {
-                name: "email",
-                type: "email",
-                required: true,
-              },
-              {
-                name: "testField",
-                type: "text",
-                required: false,
-              },
-            ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
-          },
+          bookingFields: [
+            {
+              name: "name",
+              type: "name",
+              required: true,
+              variant: "firstAndLastName",
+            },
+            {
+              name: "email",
+              type: "email",
+              required: true,
+            },
+            {
+              name: "testField",
+              type: "text",
+              required: false,
+            },
+          ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
           view: "ALL_VIEWS",
         });
         const parsedResponses = await schema.safeParseAsync({
@@ -226,25 +216,23 @@ describe("getBookingResponsesSchema", () => {
 
       test(`should reject empty fullname`, async ({}) => {
         const schema = getBookingResponsesSchema({
-          eventType: {
-            bookingFields: [
-              {
-                name: "name",
-                type: "name",
-                required: true,
-              },
-              {
-                name: "email",
-                type: "email",
-                required: true,
-              },
-              {
-                name: "testField",
-                type: "text",
-                required: true,
-              },
-            ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
-          },
+          bookingFields: [
+            {
+              name: "name",
+              type: "name",
+              required: true,
+            },
+            {
+              name: "email",
+              type: "email",
+              required: true,
+            },
+            {
+              name: "testField",
+              type: "text",
+              required: true,
+            },
+          ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
           view: "ALL_VIEWS",
         });
         const parsedResponses = await schema.safeParseAsync({
@@ -268,26 +256,24 @@ describe("getBookingResponsesSchema", () => {
 
       test(`should reject empty firstName`, async ({}) => {
         const schema = getBookingResponsesSchema({
-          eventType: {
-            bookingFields: [
-              {
-                name: "name",
-                type: "name",
-                required: true,
-                variant: "firstAndLastName",
-              },
-              {
-                name: "email",
-                type: "email",
-                required: true,
-              },
-              {
-                name: "testField",
-                type: "text",
-                required: true,
-              },
-            ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
-          },
+          bookingFields: [
+            {
+              name: "name",
+              type: "name",
+              required: true,
+              variant: "firstAndLastName",
+            },
+            {
+              name: "email",
+              type: "email",
+              required: true,
+            },
+            {
+              name: "testField",
+              type: "text",
+              required: true,
+            },
+          ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
           view: "ALL_VIEWS",
         });
         const parsedResponses = await schema.safeParseAsync({
@@ -312,26 +298,24 @@ describe("getBookingResponsesSchema", () => {
 
       test(`should accept empty lastname`, async ({}) => {
         const schema = getBookingResponsesSchema({
-          eventType: {
-            bookingFields: [
-              {
-                name: "name",
-                type: "name",
-                required: true,
-                variant: "firstAndLastName",
-              },
-              {
-                name: "email",
-                type: "email",
-                required: true,
-              },
-              {
-                name: "testField",
-                type: "text",
-                required: true,
-              },
-            ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
-          },
+          bookingFields: [
+            {
+              name: "name",
+              type: "name",
+              required: true,
+              variant: "firstAndLastName",
+            },
+            {
+              name: "email",
+              type: "email",
+              required: true,
+            },
+            {
+              name: "testField",
+              type: "text",
+              required: true,
+            },
+          ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
           view: "ALL_VIEWS",
         });
         const parsedResponses = await schema.parseAsync({
@@ -356,25 +340,23 @@ describe("getBookingResponsesSchema", () => {
       describe(`'name' can be transformed from one variant to other `, () => {
         test("`firstAndLastName` variant to `fullName`", async () => {
           const schema = getBookingResponsesSchema({
-            eventType: {
-              bookingFields: [
-                {
-                  name: "name",
-                  type: "name",
-                  required: true,
-                },
-                {
-                  name: "email",
-                  type: "email",
-                  required: true,
-                },
-                {
-                  name: "testField",
-                  type: "text",
-                  required: false,
-                },
-              ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
-            },
+            bookingFields: [
+              {
+                name: "name",
+                type: "name",
+                required: true,
+              },
+              {
+                name: "email",
+                type: "email",
+                required: true,
+              },
+              {
+                name: "testField",
+                type: "text",
+                required: false,
+              },
+            ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
             view: "ALL_VIEWS",
           });
           const parsedResponses = await schema.safeParseAsync({
@@ -400,26 +382,24 @@ describe("getBookingResponsesSchema", () => {
 
         test("`fullName` to `firstAndLastName` when there is a lastName(separated by space)", async () => {
           const schema = getBookingResponsesSchema({
-            eventType: {
-              bookingFields: [
-                {
-                  name: "name",
-                  type: "name",
-                  required: true,
-                  variant: "firstAndLastName",
-                },
-                {
-                  name: "email",
-                  type: "email",
-                  required: true,
-                },
-                {
-                  name: "testField",
-                  type: "text",
-                  required: false,
-                },
-              ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
-            },
+            bookingFields: [
+              {
+                name: "name",
+                type: "name",
+                required: true,
+                variant: "firstAndLastName",
+              },
+              {
+                name: "email",
+                type: "email",
+                required: true,
+              },
+              {
+                name: "testField",
+                type: "text",
+                required: false,
+              },
+            ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
             view: "ALL_VIEWS",
           });
           const parsedResponses = await schema.safeParseAsync({
@@ -444,26 +424,24 @@ describe("getBookingResponsesSchema", () => {
         });
         test("`fullName` to `firstAndLastName` when there is no lastName(separated by space)", async () => {
           const schema = getBookingResponsesSchema({
-            eventType: {
-              bookingFields: [
-                {
-                  name: "name",
-                  type: "name",
-                  required: true,
-                  variant: "firstAndLastName",
-                },
-                {
-                  name: "email",
-                  type: "email",
-                  required: true,
-                },
-                {
-                  name: "testField",
-                  type: "text",
-                  required: false,
-                },
-              ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
-            },
+            bookingFields: [
+              {
+                name: "name",
+                type: "name",
+                required: true,
+                variant: "firstAndLastName",
+              },
+              {
+                name: "email",
+                type: "email",
+                required: true,
+              },
+              {
+                name: "testField",
+                type: "text",
+                required: false,
+              },
+            ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
             view: "ALL_VIEWS",
           });
           const parsedResponses = await schema.safeParseAsync({
@@ -493,25 +471,23 @@ describe("getBookingResponsesSchema", () => {
   describe("validate phone type field", () => {
     test(`should fail parsing if invalid phone provided`, async ({}) => {
       const schema = getBookingResponsesSchema({
-        eventType: {
-          bookingFields: [
-            {
-              name: "name",
-              type: "name",
-              required: true,
-            },
-            {
-              name: "email",
-              type: "email",
-              required: true,
-            },
-            {
-              name: "testPhone",
-              type: "phone",
-              required: true,
-            },
-          ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
-        },
+        bookingFields: [
+          {
+            name: "name",
+            type: "name",
+            required: true,
+          },
+          {
+            name: "email",
+            type: "email",
+            required: true,
+          },
+          {
+            name: "testPhone",
+            type: "phone",
+            required: true,
+          },
+        ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
         view: "ALL_VIEWS",
       });
       const parsedResponses = await schema.safeParseAsync({
@@ -532,25 +508,23 @@ describe("getBookingResponsesSchema", () => {
     });
     test(`should succesfull give responses if phone type field value is valid`, async ({}) => {
       const schema = getBookingResponsesSchema({
-        eventType: {
-          bookingFields: [
-            {
-              name: "name",
-              type: "name",
-              required: true,
-            },
-            {
-              name: "email",
-              type: "email",
-              required: true,
-            },
-            {
-              name: "testPhone",
-              type: "phone",
-              required: true,
-            },
-          ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
-        },
+        bookingFields: [
+          {
+            name: "name",
+            type: "name",
+            required: true,
+          },
+          {
+            name: "email",
+            type: "email",
+            required: true,
+          },
+          {
+            name: "testPhone",
+            type: "phone",
+            required: true,
+          },
+        ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
         view: "ALL_VIEWS",
       });
       const parsedResponses = await schema.safeParseAsync({
@@ -571,25 +545,23 @@ describe("getBookingResponsesSchema", () => {
 
     test("should fail parsing if phone field value is empty", async ({}) => {
       const schema = getBookingResponsesSchema({
-        eventType: {
-          bookingFields: [
-            {
-              name: "name",
-              type: "name",
-              required: true,
-            },
-            {
-              name: "email",
-              type: "email",
-              required: true,
-            },
-            {
-              name: "testPhone",
-              type: "phone",
-              required: true,
-            },
-          ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
-        },
+        bookingFields: [
+          {
+            name: "name",
+            type: "name",
+            required: true,
+          },
+          {
+            name: "email",
+            type: "email",
+            required: true,
+          },
+          {
+            name: "testPhone",
+            type: "phone",
+            required: true,
+          },
+        ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
         view: "ALL_VIEWS",
       });
       const parsedResponses = await schema.safeParseAsync({
@@ -612,25 +584,23 @@ describe("getBookingResponsesSchema", () => {
 
     test("should fail parsing if phone field value isn't provided", async ({}) => {
       const schema = getBookingResponsesSchema({
-        eventType: {
-          bookingFields: [
-            {
-              name: "name",
-              type: "name",
-              required: true,
-            },
-            {
-              name: "email",
-              type: "email",
-              required: true,
-            },
-            {
-              name: "testPhone",
-              type: "phone",
-              required: true,
-            },
-          ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
-        },
+        bookingFields: [
+          {
+            name: "name",
+            type: "name",
+            required: true,
+          },
+          {
+            name: "email",
+            type: "email",
+            required: true,
+          },
+          {
+            name: "testPhone",
+            type: "phone",
+            required: true,
+          },
+        ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
         view: "ALL_VIEWS",
       });
       const parsedResponses = await schema.safeParseAsync({
@@ -653,25 +623,23 @@ describe("getBookingResponsesSchema", () => {
 
   test("should fail parsing when invalid field type is provided", async () => {
     const schema = getBookingResponsesSchema({
-      eventType: {
-        bookingFields: [
-          {
-            name: "name",
-            type: "name",
-            required: true,
-          },
-          {
-            name: "email",
-            type: "email",
-            required: true,
-          },
-          {
-            name: "invalidField",
-            type: "unknown-field-type",
-            required: true,
-          },
-        ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
-      },
+      bookingFields: [
+        {
+          name: "name",
+          type: "name",
+          required: true,
+        },
+        {
+          name: "email",
+          type: "email",
+          required: true,
+        },
+        {
+          name: "invalidField",
+          type: "unknown-field-type",
+          required: true,
+        },
+      ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
       view: "ALL_VIEWS",
     });
     const parsedResponses = await schema.safeParseAsync({
@@ -694,25 +662,23 @@ describe("getBookingResponsesSchema", () => {
   describe("multiemail field type", () => {
     test("should succesfully parse a multiemail type field", async () => {
       const schema = getBookingResponsesSchema({
-        eventType: {
-          bookingFields: [
-            {
-              name: "name",
-              type: "name",
-              required: true,
-            },
-            {
-              name: "email",
-              type: "email",
-              required: true,
-            },
-            {
-              name: "testEmailsList",
-              type: "multiemail",
-              required: true,
-            },
-          ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
-        },
+        bookingFields: [
+          {
+            name: "name",
+            type: "name",
+            required: true,
+          },
+          {
+            name: "email",
+            type: "email",
+            required: true,
+          },
+          {
+            name: "testEmailsList",
+            type: "multiemail",
+            required: true,
+          },
+        ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
         view: "ALL_VIEWS",
       });
       const parsedResponses = await schema.safeParseAsync({
@@ -734,25 +700,23 @@ describe("getBookingResponsesSchema", () => {
 
     test("should fail parsing when one of the emails is invalid", async () => {
       const schema = getBookingResponsesSchema({
-        eventType: {
-          bookingFields: [
-            {
-              name: "name",
-              type: "name",
-              required: true,
-            },
-            {
-              name: "email",
-              type: "email",
-              required: true,
-            },
-            {
-              name: "testEmailsList",
-              type: "multiemail",
-              required: true,
-            },
-          ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
-        },
+        bookingFields: [
+          {
+            name: "name",
+            type: "name",
+            required: true,
+          },
+          {
+            name: "email",
+            type: "email",
+            required: true,
+          },
+          {
+            name: "testEmailsList",
+            type: "multiemail",
+            required: true,
+          },
+        ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
         view: "ALL_VIEWS",
       });
       const parsedResponses = await schema.safeParseAsync({
@@ -775,25 +739,23 @@ describe("getBookingResponsesSchema", () => {
 
     test("should succesfully parse a multiemail type field response, even when the value is just a string[Prefill needs it]", async () => {
       const schema = getBookingResponsesSchema({
-        eventType: {
-          bookingFields: [
-            {
-              name: "name",
-              type: "name",
-              required: true,
-            },
-            {
-              name: "email",
-              type: "email",
-              required: true,
-            },
-            {
-              name: "testEmailsList",
-              type: "multiemail",
-              required: true,
-            },
-          ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
-        },
+        bookingFields: [
+          {
+            name: "name",
+            type: "name",
+            required: true,
+          },
+          {
+            name: "email",
+            type: "email",
+            required: true,
+          },
+          {
+            name: "testEmailsList",
+            type: "multiemail",
+            required: true,
+          },
+        ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
         view: "ALL_VIEWS",
       });
       const parsedResponses = await schema.safeParseAsync({
@@ -816,25 +778,23 @@ describe("getBookingResponsesSchema", () => {
   describe("multiselect field type", () => {
     test("should succesfully parse a multiselect type field", async () => {
       const schema = getBookingResponsesSchema({
-        eventType: {
-          bookingFields: [
-            {
-              name: "name",
-              type: "name",
-              required: true,
-            },
-            {
-              name: "email",
-              type: "email",
-              required: true,
-            },
-            {
-              name: "testMultiselect",
-              type: "multiselect",
-              required: true,
-            },
-          ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
-        },
+        bookingFields: [
+          {
+            name: "name",
+            type: "name",
+            required: true,
+          },
+          {
+            name: "email",
+            type: "email",
+            required: true,
+          },
+          {
+            name: "testMultiselect",
+            type: "multiselect",
+            required: true,
+          },
+        ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
         view: "ALL_VIEWS",
       });
       const parsedResponses = await schema.safeParseAsync({
@@ -855,25 +815,23 @@ describe("getBookingResponsesSchema", () => {
     });
     test("should succesfully parse a multiselect type field", async () => {
       const schema = getBookingResponsesSchema({
-        eventType: {
-          bookingFields: [
-            {
-              name: "name",
-              type: "name",
-              required: true,
-            },
-            {
-              name: "email",
-              type: "email",
-              required: true,
-            },
-            {
-              name: "testMultiselect",
-              type: "multiselect",
-              required: true,
-            },
-          ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
-        },
+        bookingFields: [
+          {
+            name: "name",
+            type: "name",
+            required: true,
+          },
+          {
+            name: "email",
+            type: "email",
+            required: true,
+          },
+          {
+            name: "testMultiselect",
+            type: "multiselect",
+            required: true,
+          },
+        ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
         view: "ALL_VIEWS",
       });
       const parsedResponses = await schema.safeParseAsync({
@@ -894,25 +852,23 @@ describe("getBookingResponsesSchema", () => {
     });
     test("should fail parsing if selected options aren't strings", async () => {
       const schema = getBookingResponsesSchema({
-        eventType: {
-          bookingFields: [
-            {
-              name: "name",
-              type: "name",
-              required: true,
-            },
-            {
-              name: "email",
-              type: "email",
-              required: true,
-            },
-            {
-              name: "testMultiselect",
-              type: "multiselect",
-              required: true,
-            },
-          ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
-        },
+        bookingFields: [
+          {
+            name: "name",
+            type: "name",
+            required: true,
+          },
+          {
+            name: "email",
+            type: "email",
+            required: true,
+          },
+          {
+            name: "testMultiselect",
+            type: "multiselect",
+            required: true,
+          },
+        ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
         view: "ALL_VIEWS",
       });
       const parsedResponses = await schema.safeParseAsync({
@@ -939,25 +895,23 @@ describe("getBookingResponsesSchema", () => {
   describe("multiselect field type", () => {
     test("should succesfully parse a multiselect type field", async () => {
       const schema = getBookingResponsesSchema({
-        eventType: {
-          bookingFields: [
-            {
-              name: "name",
-              type: "name",
-              required: true,
-            },
-            {
-              name: "email",
-              type: "email",
-              required: true,
-            },
-            {
-              name: "testMultiselect",
-              type: "multiselect",
-              required: true,
-            },
-          ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
-        },
+        bookingFields: [
+          {
+            name: "name",
+            type: "name",
+            required: true,
+          },
+          {
+            name: "email",
+            type: "email",
+            required: true,
+          },
+          {
+            name: "testMultiselect",
+            type: "multiselect",
+            required: true,
+          },
+        ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
         view: "ALL_VIEWS",
       });
       const parsedResponses = await schema.safeParseAsync({
@@ -990,25 +944,23 @@ describe("getBookingResponsesSchema", () => {
 describe("getBookingResponsesPartialSchema - Prefill validation", () => {
   test(`should be able to get fields prefilled even when name is empty string`, async ({}) => {
     const schema = getBookingResponsesPartialSchema({
-      eventType: {
-        bookingFields: [
-          {
-            name: "name",
-            type: "name",
-            required: true,
-          },
-          {
-            name: "email",
-            type: "email",
-            required: true,
-          },
-          {
-            name: "testField",
-            type: "text",
-            required: true,
-          },
-        ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
-      },
+      bookingFields: [
+        {
+          name: "name",
+          type: "name",
+          required: true,
+        },
+        {
+          name: "email",
+          type: "email",
+          required: true,
+        },
+        {
+          name: "testField",
+          type: "text",
+          required: true,
+        },
+      ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
       view: "ALL_VIEWS",
     });
     const parsedResponses = await schema.parseAsync({

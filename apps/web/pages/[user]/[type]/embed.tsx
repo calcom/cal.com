@@ -1,11 +1,18 @@
+import { type AppProps } from "@lib/app-providers";
 import withEmbedSsr from "@lib/withEmbedSsr";
 
-import { getServerSideProps as _getServerSideProps } from "../[type]";
+import PageWrapper, { type CalPageWrapper } from "@components/PageWrapper";
 
-export { default } from "../[type]";
+import TypePage from "~/users/views/users-type-public-view";
+import { getServerSideProps as _getServerSideProps } from "~/users/views/users-type-public-view.getServerSideProps";
 
-// Somehow these types don't accept the {notFound: true} return type.
-// Probably still need to fix this. I don't know why this isn't allowed yet.
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
 export const getServerSideProps = withEmbedSsr(_getServerSideProps);
+
+const Type = TypePage as unknown as CalPageWrapper & {
+  isBookingPage: AppProps["Component"]["isBookingPage"];
+};
+
+Type.isBookingPage = true;
+Type.PageWrapper = PageWrapper;
+
+export default Type;

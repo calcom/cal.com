@@ -1,13 +1,11 @@
+import { compareMembership } from "@calcom/lib/event-types/getEventTypesByViewer";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import { prisma } from "@calcom/prisma";
 import type { Webhook } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
-import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
-
-import { compareMembership } from "../eventTypes/getByViewer.handler";
 
 type GetByViewerOptions = {
   ctx: {
@@ -55,10 +53,9 @@ export const getByViewerHandler = async ({ ctx }: GetByViewerOptions) => {
     },
     select: {
       username: true,
-      avatar: true,
+      avatarUrl: true,
       name: true,
       webhooks: true,
-      organizationId: true,
       teams: {
         where: {
           accepted: true,
@@ -68,6 +65,7 @@ export const getByViewerHandler = async ({ ctx }: GetByViewerOptions) => {
           team: {
             select: {
               id: true,
+              isOrganization: true,
               name: true,
               slug: true,
               parentId: true,
@@ -92,7 +90,7 @@ export const getByViewerHandler = async ({ ctx }: GetByViewerOptions) => {
   let userWebhooks = user.webhooks;
   userWebhooks = userWebhooks.filter(filterWebhooks);
   let webhookGroups: WebhookGroup[] = [];
-  const bookerUrl = await getBookerBaseUrl(user);
+  const bookerUrl = await getBookerBaseUrl(ctx.user.profile?.organizationId ?? null);
 
   const image = user?.username ? `${bookerUrl}/${user.username}/avatar.png` : undefined;
   webhookGroups.push({
@@ -115,8 +113,7 @@ export const getByViewerHandler = async ({ ctx }: GetByViewerOptions) => {
 
   const teamWebhookGroups: WebhookGroup[] = user.teams
     .filter((mmship) => {
-      const metadata = teamMetadataSchema.parse(mmship.team.metadata);
-      return !metadata?.isOrganization;
+      return !mmship.team.isOrganization;
     })
     .map((membership) => {
       const orgMembership = teamMemberships.find(
@@ -147,6 +144,24 @@ export const getByViewerHandler = async ({ ctx }: GetByViewerOptions) => {
     });
 
   webhookGroups = webhookGroups.concat(teamWebhookGroups);
+
+  if (ctx.user.role === "ADMIN") {
+    const platformWebhooks = await prisma.webhook.findMany({
+      where: { platform: true },
+    });
+    webhookGroups.push({
+      teamId: null,
+      profile: {
+        slug: "Platform",
+        name: "Platform",
+        image,
+      },
+      webhooks: platformWebhooks,
+      metadata: {
+        readOnly: false,
+      },
+    });
+  }
 
   return {
     webhookGroups: webhookGroups.filter((groupBy) => !!groupBy.webhooks?.length),

@@ -12,6 +12,7 @@ it("correctly handles 1 day", async () => {
     endTime: new Date(Date.UTC(1970, 1, 1, 17, 0, 0, 0)),
     date: null,
     scheduleId: 1,
+    profileId: null,
   };
 
   const result = availabilityAsString(availability, {
@@ -32,6 +33,7 @@ it("correctly handles all days", async () => {
     endTime: new Date(Date.UTC(1970, 1, 1, 17, 0, 0, 0)),
     date: null,
     scheduleId: 1,
+    profileId: null,
   };
 
   const result = availabilityAsString(availability, {
@@ -52,6 +54,7 @@ it("correctly handles staggered days", async () => {
     endTime: new Date(Date.UTC(1970, 1, 1, 17, 0, 0, 0)),
     date: null,
     scheduleId: 1,
+    profileId: null,
   };
 
   const result = availabilityAsString(availability, {
@@ -72,6 +75,7 @@ it("correctly produces days and times - 12 hours", async () => {
     endTime: new Date(Date.UTC(1970, 1, 1, 17, 0, 0, 0)),
     date: null,
     scheduleId: 1,
+    profileId: null,
   };
 
   const result = availabilityAsString(availability, {
@@ -92,6 +96,7 @@ it("correctly produces days and times - 24 hours", async () => {
     endTime: new Date(Date.UTC(1970, 1, 1, 17, 0, 0, 0)),
     date: null,
     scheduleId: 1,
+    profileId: null,
   };
 
   const result = availabilityAsString(availability, {

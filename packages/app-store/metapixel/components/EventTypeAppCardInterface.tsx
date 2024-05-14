@@ -13,11 +13,13 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
 
   return (
     <AppCard
+      hideSettingsIcon
       app={app}
       switchOnClick={updateEnabled}
       switchChecked={enabled}
       teamId={eventType.team?.id || undefined}>
       <TextField
+        dataTestid={app.slug}
         name="Pixel ID"
         value={trackingId}
         disabled={disabled}

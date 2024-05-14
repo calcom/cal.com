@@ -4,7 +4,7 @@ import { describe, expect } from "vitest";
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { OrganizerDefaultConferencingAppType } from "@calcom/app-store/locations";
-import { CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
+import { WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -1486,7 +1486,7 @@ describe("handleNewBooking", () => {
               booking: {
                 uid: createdBooking.uid!,
                 // All booking links are of WEBAPP_URL and not of the org because the team isn't part of the org
-                urlOrigin: CAL_URL,
+                urlOrigin: WEBSITE_URL,
               },
               booker,
               organizer,

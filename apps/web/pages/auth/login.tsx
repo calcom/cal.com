@@ -7,7 +7,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
-import { FaGoogle } from "react-icons/fa";
 import { z } from "zod";
 
 import { SAMLLogin } from "@calcom/features/auth/SAMLLogin";
@@ -19,7 +18,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { trpc } from "@calcom/trpc/react";
 import { Alert, Button, EmailField, PasswordField } from "@calcom/ui";
-import { ArrowLeft, Lock } from "@calcom/ui/components/icon";
 
 import AddToHomescreen from "@components/AddToHomescreen";
 import PageWrapper from "@components/PageWrapper";
@@ -36,6 +34,10 @@ interface LoginValues {
   backupCode: string;
   csrfToken: string;
 }
+
+const GoogleIcon = () => (
+  <img className="text-subtle mr-2 h-4 w-4 dark:invert" src="/google-icon.svg" alt="" />
+);
 export default function Login({
   csrfToken,
   isGoogleLoginEnabled,
@@ -53,7 +55,7 @@ export default function Login({
         .string()
         .min(1, `${t("error_required_field")}`)
         .email(`${t("enter_valid_email")}`),
-      password: !!totpEmail ? z.literal("") : z.string().min(1, `${t("error_required_field")}`),
+      ...(!!totpEmail ? {} : { password: z.string().min(1, `${t("error_required_field")}`) }),
     })
     // Passthrough other fields like totpCode
     .passthrough();
@@ -106,7 +108,7 @@ export default function Login({
           }
           setErrorMessage(null);
         }}
-        StartIcon={ArrowLeft}
+        StartIcon="arrow-left"
         color="minimal">
         {t("go_back")}
       </Button>
@@ -117,7 +119,7 @@ export default function Login({
             setErrorMessage(null);
             methods.setValue("totpCode", "");
           }}
-          StartIcon={Lock}
+          StartIcon="lock"
           color="minimal">
           {t("lost_access")}
         </Button>
@@ -240,7 +242,7 @@ export default function Login({
                     className="w-full justify-center"
                     disabled={formState.isSubmitting}
                     data-testid="google"
-                    StartIcon={FaGoogle}
+                    CustomStartIcon={<GoogleIcon />}
                     onClick={async (e) => {
                       e.preventDefault();
                       await signIn("google");

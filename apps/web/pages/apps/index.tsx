@@ -3,7 +3,7 @@
 import type { ChangeEventHandler } from "react";
 import { useState } from "react";
 
-import { getLayout } from "@calcom/features/MainLayout";
+import Shell from "@calcom/features/shell/Shell";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
@@ -16,7 +16,7 @@ import {
   PopularAppsSlider,
   RecentAppsSlider,
 } from "@calcom/ui";
-import { Search } from "@calcom/ui/components/icon";
+import { Icon } from "@calcom/ui";
 
 import { getServerSideProps } from "@lib/apps/getServerSideProps";
 
@@ -45,7 +45,7 @@ function AppsSearch({
   return (
     <TextField
       className="bg-subtle !border-muted !pl-0 focus:!ring-offset-0"
-      addOnLeading={<Search className="text-subtle h-4 w-4" />}
+      addOnLeading={<Icon name="search" className="text-subtle h-4 w-4" />}
       addOnClassname="!border-muted"
       containerClassName={classNames("focus:!ring-offset-0 m-1", className)}
       type="search"
@@ -71,7 +71,7 @@ export default function Apps({
       subtitle={t("app_store_description")}
       actions={(className) => (
         <div className="flex w-full flex-col pt-4 md:flex-row md:justify-between md:pt-0 lg:w-auto">
-          <div className="ltr:mr-2 rtl:ml-2 lg:hidden">
+          <div className="lg:hidden ltr:mr-2 rtl:ml-2">
             <HorizontalTabs tabs={tabs} />
           </div>
           <div>
@@ -103,4 +103,14 @@ export default function Apps({
 export { getServerSideProps };
 
 Apps.PageWrapper = PageWrapper;
-Apps.getLayout = getLayout;
+Apps.getLayout = (page: React.ReactElement) => {
+  return (
+    <Shell
+      title="Apps Store"
+      description="Create forms to direct attendees to the correct destinations."
+      withoutMain={true}
+      hideHeadingOnMobile>
+      {page}
+    </Shell>
+  );
+};

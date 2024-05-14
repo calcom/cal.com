@@ -4,13 +4,13 @@ import type { UseFormReturn } from "react-hook-form";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import {
   Dropdown,
+  DropdownItem,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownItem,
   DropdownMenuTrigger,
+  Icon,
   TextField,
 } from "@calcom/ui";
-import { ChevronDown } from "@calcom/ui/components/icon";
 
 import { getWorkflowTimeUnitOptions } from "../lib/getOptions";
 import type { FormValues } from "../pages/workflow";
@@ -46,7 +46,7 @@ export const TimeTimeUnitInput = (props: Props) => {
                     {timeUnit ? t(`${timeUnit.toLowerCase()}_timeUnit`) : "undefined"}{" "}
                   </div>
                   <div className="w-1/4 pt-1">
-                    <ChevronDown />
+                    <Icon name="chevron-down" />
                   </div>
                 </button>
               </DropdownMenuTrigger>

@@ -22,7 +22,7 @@ export const updateUserDefaultConferencingAppHandler = async ({
   input,
 }: UpdateUserDefaultConferencingAppOptions) => {
   const currentMetadata = userMetadata.parse(ctx.user.metadata);
-  const credentials = await getUsersCredentials(ctx.user.id);
+  const credentials = await getUsersCredentials(ctx.user);
   const foundApp = getApps(credentials, true).filter((app) => app.slug === input.appSlug)[0];
   const appLocation = foundApp?.appData?.location;
 

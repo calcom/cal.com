@@ -696,7 +696,7 @@ describe("orgMigration", () => {
     });
 
     describe("when user email matches orgAutoAcceptEmail", () => {
-      const orgMetadata = {
+      const orgSettings = {
         orgAutoAcceptEmail: "org1.com",
       } as const;
 
@@ -725,8 +725,10 @@ describe("orgMigration", () => {
         const dbOrg = await createOrg({
           slug: data.targetOrg.slug,
           name: data.targetOrg.name,
-          metadata: {
-            ...orgMetadata,
+          organizationSettings: {
+            create: {
+              ...orgSettings,
+            },
           },
         });
 
@@ -784,8 +786,10 @@ describe("orgMigration", () => {
         const dbOrg = await createOrg({
           slug: data.targetOrg.slug,
           name: data.targetOrg.name,
-          metadata: {
-            ...orgMetadata,
+          organizationSettings: {
+            create: {
+              ...orgSettings,
+            },
           },
         });
 
@@ -837,7 +841,11 @@ describe("orgMigration", () => {
           name: data.targetOrg.name,
           metadata: {
             requestedSlug: data.targetOrg.requestedSlug,
-            ...orgMetadata,
+          },
+          organizationSettings: {
+            create: {
+              ...orgSettings,
+            },
           },
         });
 
@@ -901,9 +909,7 @@ describe("orgMigration", () => {
           id: data.targetOrg.id,
           slug: data.targetOrg.slug,
           name: data.targetOrg.name,
-          metadata: {
-            isOrganization: true,
-          },
+          isOrganization: true,
         },
       });
 
@@ -1564,9 +1570,9 @@ async function createOrg(
   return await prismock.team.create({
     data: {
       ...data,
+      isOrganization: true,
       metadata: {
         ...(data.metadata || {}),
-        isOrganization: true,
       },
     },
   });
@@ -1589,17 +1595,20 @@ async function createTeamOutsideOrg(
   });
 }
 
-async function createUserOutsideOrg(data: Omit<Prisma.UserCreateArgs["data"], "organization">) {
+async function createUserOutsideOrg(
+  data: Omit<Prisma.UserCreateArgs["data"], "organization" | "movedToProfile">
+) {
   return await prismock.user.create({
     data: {
       ...data,
+      movedToProfileId: null,
       organizationId: null,
     },
   });
 }
 
 async function createUserInsideTheOrg(
-  data: Omit<Prisma.UserUncheckedCreateInput, "organization" | "organizationId" | "id">,
+  data: Omit<Prisma.UserUncheckedCreateInput, "organization" | "organizationId" | "id" | "movedToProfileId">,
   orgId: number
 ) {
   const org = await prismock.team.findUnique({

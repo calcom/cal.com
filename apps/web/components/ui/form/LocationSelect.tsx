@@ -34,6 +34,7 @@ export default function LocationSelect(props: Props<LocationOption, false, Group
     <Select<LocationOption>
       name="location"
       id="location-select"
+      data-testid="location-select"
       components={{
         Option: (props) => {
           return (

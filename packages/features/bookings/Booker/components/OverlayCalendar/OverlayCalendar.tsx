@@ -11,7 +11,12 @@ type OverlayCalendarProps = Pick<
   | "onToggleCalendar"
   | "loadingConnectedCalendar"
   | "isOverlayCalendarEnabled"
-> & { handleClickNoCalendar: () => void };
+> & {
+  handleClickNoCalendar: () => void;
+  hasSession: boolean;
+  handleClickContinue: () => void;
+  handleSwitchStateChange: (state: boolean) => void;
+};
 
 export const OverlayCalendar = ({
   connectedCalendars,
@@ -20,6 +25,9 @@ export const OverlayCalendar = ({
   isOverlayCalendarEnabled,
   loadingConnectedCalendar,
   handleClickNoCalendar,
+  handleSwitchStateChange,
+  handleClickContinue,
+  hasSession,
 }: OverlayCalendarProps) => {
   const {
     handleCloseContinueModal,
@@ -31,8 +39,16 @@ export const OverlayCalendar = ({
   } = useOverlayCalendar({ connectedCalendars, overlayBusyDates, onToggleCalendar });
   return (
     <>
-      <OverlayCalendarSwitch enabled={isOverlayCalendarEnabled} />
-      <OverlayCalendarContinueModal open={isOpenOverlayContinueModal} onClose={handleCloseContinueModal} />
+      <OverlayCalendarSwitch
+        enabled={isOverlayCalendarEnabled}
+        hasSession={hasSession}
+        onStateChange={handleSwitchStateChange}
+      />
+      <OverlayCalendarContinueModal
+        open={isOpenOverlayContinueModal}
+        onClose={handleCloseContinueModal}
+        onContinue={handleClickContinue}
+      />
       <OverlayCalendarSettingsModal
         connectedCalendars={connectedCalendars}
         open={isOpenOverlaySettingsModal}

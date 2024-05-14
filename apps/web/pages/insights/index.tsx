@@ -1,6 +1,5 @@
 "use client";
 
-import { getLayout } from "@calcom/features/MainLayout";
 import {
   AverageEventDurationChart,
   BookingKPICards,
@@ -8,15 +7,19 @@ import {
   LeastBookedTeamMembersTable,
   MostBookedTeamMembersTable,
   PopularEventsTable,
+  HighestNoShowHostTable,
+  RecentFeedbackTable,
+  HighestRatedMembersTable,
+  LowestRatedMembersTable,
 } from "@calcom/features/insights/components";
 import { FiltersProvider } from "@calcom/features/insights/context/FiltersProvider";
 import { Filters } from "@calcom/features/insights/filters";
-import { ShellMain } from "@calcom/features/shell/Shell";
+import Shell from "@calcom/features/shell/Shell";
 import { UpgradeTip } from "@calcom/features/tips";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import { Button, ButtonGroup } from "@calcom/ui";
-import { RefreshCcw, UserPlus, Users } from "@calcom/ui/components/icon";
+import { Icon } from "@calcom/ui";
 
 import { getServerSideProps } from "@lib/insights/getServerSideProps";
 
@@ -28,17 +31,17 @@ export default function InsightsPage() {
 
   const features = [
     {
-      icon: <Users className="h-5 w-5" />,
+      icon: <Icon name="users" className="h-5 w-5" />,
       title: t("view_bookings_across"),
       description: t("view_bookings_across_description"),
     },
     {
-      icon: <RefreshCcw className="h-5 w-5" />,
+      icon: <Icon name="refresh-ccw" className="h-5 w-5" />,
       title: t("identify_booking_trends"),
       description: t("identify_booking_trends_description"),
     },
     {
-      icon: <UserPlus className="h-5 w-5" />,
+      icon: <Icon name="user-plus" className="h-5 w-5" />,
       title: t("spot_popular_event_types"),
       description: t("spot_popular_event_types_description"),
     },
@@ -46,7 +49,12 @@ export default function InsightsPage() {
 
   return (
     <div>
-      <ShellMain heading="Insights" subtitle={t("insights_subtitle")}>
+      <Shell
+        withoutMain={false}
+        heading="Insights"
+        subtitle={t("insights_subtitle")}
+        title="Insights"
+        description="View booking insights across your events.">
         <UpgradeTip
           plan="team"
           title={t("make_informed_decisions")}
@@ -54,7 +62,7 @@ export default function InsightsPage() {
           features={features}
           background="/tips/insights"
           buttons={
-            <div className="space-y-2 rtl:space-x-reverse sm:space-x-2">
+            <div className="space-y-2 sm:space-x-2 rtl:space-x-reverse">
               <ButtonGroup>
                 {/* <Button color="primary" href={`${WEBAPP_URL}/settings/teams/new`}>
                   {t("create_team")}
@@ -85,6 +93,12 @@ export default function InsightsPage() {
                   <MostBookedTeamMembersTable />
                   <LeastBookedTeamMembersTable />
                 </div>
+                <RecentFeedbackTable />
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <HighestNoShowHostTable />
+                  <HighestRatedMembersTable />
+                  <LowestRatedMembersTable />
+                </div>
                 <small className="text-default block text-center">
                   {t("looking_for_more_insights")}{" "}
                   <a
@@ -98,12 +112,11 @@ export default function InsightsPage() {
             </FiltersProvider>
           )}
         </UpgradeTip>
-      </ShellMain>
+      </Shell>
     </div>
   );
 }
 
 InsightsPage.PageWrapper = PageWrapper;
-InsightsPage.getLayout = getLayout;
 
 export { getServerSideProps };

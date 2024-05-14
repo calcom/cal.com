@@ -1,7 +1,5 @@
 import type { GetStaticPaths } from "next";
 
-import { getLayout } from "@calcom/features/MainLayout";
-
 import PageWrapper from "@components/PageWrapper";
 
 import { validStatuses } from "~/bookings/lib/validStatuses";
@@ -12,11 +10,9 @@ export { getStaticProps } from "~/bookings/views/bookings-listing-view.getStatic
 const BookingsListingPage = new Proxy<{
   (): JSX.Element;
   PageWrapper?: typeof PageWrapper;
-  getLayout?: typeof getLayout;
 }>(BookingsListingView, {});
 
 BookingsListingPage.PageWrapper = PageWrapper;
-BookingsListingPage.getLayout = getLayout;
 
 export const getStaticPaths: GetStaticPaths = () => {
   return {

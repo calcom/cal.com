@@ -13,6 +13,8 @@ import type { useEventReturnType } from "../../utils/event";
 import { validateLayout } from "../../utils/layout";
 import { getQueryParam } from "../../utils/query-param";
 
+export type UseBookerLayoutType = ReturnType<typeof useBookerLayout>;
+
 export const useBookerLayout = (event: useEventReturnType["data"]) => {
   const [_layout, setLayout] = useBookerStore((state) => [state.layout, state.setLayout], shallow);
   const isEmbed = useIsEmbed();

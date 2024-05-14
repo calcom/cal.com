@@ -35,8 +35,45 @@ const workspaces = packagedEmbedTestsOnly
       {
         test: {
           include: ["packages/**/*.{test,spec}.{ts,js}", "apps/**/*.{test,spec}.{ts,js}"],
-          // TODO: Ignore the api until tests are fixed
-          exclude: ["**/node_modules/**/*", "packages/embeds/**/*", "packages/lib/hooks/**/*"],
+          exclude: [
+            "**/node_modules/**/*",
+            "**/.next/**/*",
+            "packages/embeds/**/*",
+            "packages/lib/hooks/**/*",
+            "packages/platform/**/*",
+            "apps/api/v1/**/*",
+            "apps/api/v2/**/*",
+          ],
+          name: "@calcom/core",
+          setupFiles: ["setupVitest.ts"],
+        },
+      },
+      {
+        test: {
+          include: ["apps/api/v1/**/*.{test,spec}.{ts,js}"],
+          exclude: [
+            "**/node_modules/**/*",
+            "**/.next/**/*",
+            "packages/embeds/**/*",
+            "packages/lib/hooks/**/*",
+            "packages/platform/**/*",
+            "apps/api/v2/**/*",
+          ],
+          name: "@calcom/api",
+          setupFiles: ["setupVitest.ts"],
+        },
+        resolve: {
+          alias: {
+            "~": new URL("./apps/api/v1", import.meta.url).pathname,
+          },
+        },
+      },
+      {
+        test: {
+          globals: true,
+          name: "@calcom/features",
+          include: ["packages/features/**/*.{test,spec}.tsx"],
+          environment: "jsdom",
           setupFiles: ["setupVitest.ts"],
         },
       },
@@ -52,8 +89,8 @@ const workspaces = packagedEmbedTestsOnly
       {
         test: {
           globals: true,
-          name: "ui/components",
-          include: ["packages/ui/components/**/*.{test,spec}.{ts,js,tsx}"],
+          name: "@calcom/ui",
+          include: ["packages/ui/components/**/*.{test,spec}.[jt]s?(x)"],
           environment: "jsdom",
           setupFiles: ["packages/ui/components/test-setup.ts"],
         },
@@ -62,7 +99,7 @@ const workspaces = packagedEmbedTestsOnly
         test: {
           globals: true,
           name: "EventTypeAppCardInterface components",
-          include: ["packages/app-store/_components/**/*.{test,spec}.{ts,js,tsx}"],
+          include: ["packages/app-store/_components/**/*.{test,spec}.[jt]s?(x)"],
           environment: "jsdom",
           setupFiles: ["packages/app-store/test-setup.ts"],
         },

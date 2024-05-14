@@ -2,7 +2,7 @@ import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import { getBookingWithResponses } from "@calcom/features/bookings/lib/get-booking";
+import getBookingInfo from "@calcom/features/bookings/lib/getBookingInfo";
 import { parseRecurringEvent } from "@calcom/lib";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import { maybeGetBookingUidFromSeat } from "@calcom/lib/server/maybeGetBookingUidFromSeat";
@@ -56,60 +56,15 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const parsedQuery = querySchema.safeParse(context.query);
 
   if (!parsedQuery.success) return { notFound: true } as const;
-  const { uid, eventTypeSlug, seatReferenceUid } = parsedQuery.data;
+  const { eventTypeSlug } = parsedQuery.data;
+  let { uid, seatReferenceUid } = parsedQuery.data;
 
-  const { uid: maybeUid } = await maybeGetBookingUidFromSeat(prisma, uid);
-  const bookingInfoRaw = await prisma.booking.findFirst({
-    where: {
-      uid: maybeUid,
-    },
-    select: {
-      title: true,
-      id: true,
-      uid: true,
-      description: true,
-      customInputs: true,
-      smsReminderNumber: true,
-      recurringEventId: true,
-      startTime: true,
-      endTime: true,
-      location: true,
-      status: true,
-      metadata: true,
-      cancellationReason: true,
-      responses: true,
-      rejectionReason: true,
-      user: {
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          username: true,
-          timeZone: true,
-        },
-      },
-      attendees: {
-        select: {
-          name: true,
-          email: true,
-          timeZone: true,
-        },
-      },
-      eventTypeId: true,
-      eventType: {
-        select: {
-          eventName: true,
-          slug: true,
-          timeZone: true,
-        },
-      },
-      seatsReferences: {
-        select: {
-          referenceUid: true,
-        },
-      },
-    },
-  });
+  const maybeBookingUidFromSeat = await maybeGetBookingUidFromSeat(prisma, uid);
+  if (maybeBookingUidFromSeat.uid) uid = maybeBookingUidFromSeat.uid;
+  if (maybeBookingUidFromSeat.seatReferenceUid) seatReferenceUid = maybeBookingUidFromSeat.seatReferenceUid;
+
+  const { bookingInfoRaw, bookingInfo } = await getBookingInfo(uid);
+
   if (!bookingInfoRaw) {
     return {
       notFound: true,
@@ -129,7 +84,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     requiresLoginToUpdate = true;
   }
 
-  const bookingInfo = getBookingWithResponses(bookingInfoRaw);
   // @NOTE: had to do this because Server side cant return [Object objects]
   // probably fixable with json.stringify -> json.parse
   bookingInfo["startTime"] = (bookingInfo?.startTime as Date)?.toISOString() as unknown as Date;
@@ -168,7 +122,12 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   };
 
   if (bookingInfo !== null && eventType.seatsPerTimeSlot) {
-    await handleSeatsEventTypeOnBooking(eventType, bookingInfo, seatReferenceUid, session?.user.id);
+    await handleSeatsEventTypeOnBooking(
+      eventType,
+      bookingInfo,
+      seatReferenceUid,
+      session?.user.id === eventType.userId
+    );
   }
 
   const payment = await prisma.payment.findFirst({
@@ -183,6 +142,22 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       paymentOption: true,
     },
   });
+
+  const userId = session?.user?.id;
+  const isLoggedInUserHost =
+    userId &&
+    (eventType.users.some((user) => user.id === userId) ||
+      eventType.hosts.some(({ user }) => user.id === userId));
+
+  if (!isLoggedInUserHost) {
+    // Removing hidden fields from responses
+    for (const key in bookingInfo.responses) {
+      const field = eventTypeRaw.bookingFields.find((field) => field.name === key);
+      if (field && !!field.hidden) {
+        delete bookingInfo.responses[key];
+      }
+    }
+  }
 
   return {
     props: {

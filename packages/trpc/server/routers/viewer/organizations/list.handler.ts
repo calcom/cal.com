@@ -29,6 +29,17 @@ export const listHandler = async ({ ctx }: ListHandlerInput) => {
     },
   });
 
+  const organizationSettings = await ctx.prisma.organizationSettings.findUnique({
+    where: {
+      organizationId: ctx.user.organization.id,
+    },
+    select: {
+      lockEventTypeCreationForUsers: true,
+      adminGetsNoSlotsNotification: true,
+      isAdminReviewed: true,
+    },
+  });
+
   if (!membership) {
     throw new TRPCError({
       code: "BAD_REQUEST",
@@ -39,6 +50,11 @@ export const listHandler = async ({ ctx }: ListHandlerInput) => {
   const metadata = teamMetadataSchema.parse(membership?.team.metadata);
 
   return {
+    canAdminImpersonate: !!organizationSettings?.isAdminReviewed,
+    organizationSettings: {
+      lockEventTypeCreationForUsers: organizationSettings?.lockEventTypeCreationForUsers,
+      adminGetsNoSlotsNotification: organizationSettings?.adminGetsNoSlotsNotification,
+    },
     user: {
       role: membership?.role,
       accepted: membership?.accepted,

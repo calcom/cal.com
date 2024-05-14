@@ -162,6 +162,7 @@ const translateAbleKeys = [
   "attendee_phone_number",
   "link_meeting",
   "organizer_phone_number",
+  "organizer_default_conferencing_app",
 ];
 
 export type LocationObject = {
@@ -345,6 +346,7 @@ export const getLocationValueForDB = (
 ) => {
   let bookingLocation = bookingLocationTypeOrValue;
   let conferenceCredentialId = undefined;
+
   eventLocations.forEach((location) => {
     if (location.type === bookingLocationTypeOrValue) {
       const eventLocationType = getEventLocationType(bookingLocationTypeOrValue);
@@ -361,6 +363,11 @@ export const getLocationValueForDB = (
       bookingLocation = location[eventLocationType.defaultValueVariable] || bookingLocation;
     }
   });
+
+  if (bookingLocation.trim().length === 0) {
+    bookingLocation = DailyLocationType;
+  }
+
   return { bookingLocation, conferenceCredentialId };
 };
 

@@ -31,7 +31,7 @@ type BookerLayoutSelectorProps = {
    * to this boolean.
    */
   isDark?: boolean;
-
+  isLoading?: boolean;
   isDisabled?: boolean;
   isOuterBorder?: boolean;
 };
@@ -46,6 +46,7 @@ export const BookerLayoutSelector = ({
   isDark,
   isDisabled = false,
   isOuterBorder = false,
+  isLoading = false,
 }: BookerLayoutSelectorProps) => {
   const { control, getValues } = useFormContext();
   const { t } = useLocale();
@@ -79,7 +80,7 @@ export const BookerLayoutSelector = ({
             />
             {!isOuterBorder && (
               <SectionBottomActions align="end">
-                <Button type="submit" disabled={isDisabled} color="primary">
+                <Button loading={isLoading} type="submit" disabled={isDisabled} color="primary">
                   {t("update")}
                 </Button>
               </SectionBottomActions>

@@ -38,6 +38,8 @@ export const buildBooking = (booking?: Partial<Booking>): Booking => {
     uid,
     userId: null,
     eventTypeId: null,
+    idempotencyKey: null,
+    userPrimaryEmail: null,
     title: faker.lorem.sentence(),
     description: faker.lorem.paragraph(),
     customInputs: null,
@@ -63,6 +65,9 @@ export const buildBooking = (booking?: Partial<Booking>): Booking => {
     isRecorded: false,
     iCalUID: getICalUID({ uid }),
     iCalSequence: 0,
+    rating: null,
+    noShowHost: null,
+    ratingFeedback: null,
     ...booking,
   };
 };
@@ -82,6 +87,7 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     userId: null,
     teamId: null,
     requiresBookerEmailVerification: false,
+    useEventTypeDestinationCalendarEmail: false,
     eventName: faker.lorem.words(),
     timeZone: null,
     periodType: "UNLIMITED",
@@ -105,13 +111,17 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     scheduleId: null,
     bookingLimits: null,
     durationLimits: null,
+    assignAllTeamMembers: false,
     price: 0,
     currency: "usd",
     slotInterval: null,
     metadata: null,
     successRedirectUrl: null,
+    forwardParamsSuccessRedirect: true,
     bookingFields: [],
     parentId: null,
+    profileId: null,
+    secondaryEmailId: null,
     ...eventType,
   };
 };
@@ -130,6 +140,7 @@ export const buildWebhook = (webhook?: Partial<Webhook>): Webhook => {
     eventTriggers: [],
     teamId: null,
     ...webhook,
+    platform: false,
   };
 };
 
@@ -159,7 +170,10 @@ export const buildSubscriberEvent = (booking?: Partial<Booking>) => {
   };
 };
 
-export const buildCalendarEvent = (event?: Partial<CalendarEvent>): CalendarEvent => {
+export const buildCalendarEvent = (
+  event?: Partial<CalendarEvent>,
+  omitVideoCallData?: boolean
+): CalendarEvent => {
   const uid = faker.datatype.uuid();
   return {
     uid,
@@ -174,23 +188,67 @@ export const buildCalendarEvent = (event?: Partial<CalendarEvent>): CalendarEven
     customInputs: {},
     additionalNotes: faker.lorem.paragraph(),
     organizer: buildPerson(),
-    videoCallData: buildVideoCallData(),
+    ...(!omitVideoCallData && { videoCallData: buildVideoCallData() }),
     ...event,
   };
 };
 
 type UserPayload = Prisma.UserGetPayload<{
-  include: {
+  select: {
+    locked: true;
+    name: true;
+    email: true;
+    timeZone: true;
+    username: true;
+    id: true;
+    allowDynamicBooking: true;
     credentials: true;
     destinationCalendar: true;
     availability: true;
     selectedCalendars: true;
     schedules: true;
+    avatarUrl: true;
+    backupCodes: true;
+    bio: true;
+    brandColor: true;
+    completedOnboarding: true;
+    createdDate: true;
+    bufferTime: true;
+    darkBrandColor: true;
+    defaultScheduleId: true;
+    disableImpersonation: true;
+    emailVerified: true;
+    endTime: true;
+    hideBranding: true;
+    identityProvider: true;
+    identityProviderId: true;
+    invitedTo: true;
+    locale: true;
+    metadata: true;
+    role: true;
+    startTime: true;
+    theme: true;
+    appTheme: true;
+    timeFormat: true;
+    trialEndsAt: true;
+    twoFactorEnabled: true;
+    twoFactorSecret: true;
+    verified: true;
+    weekStart: true;
+    organizationId: true;
+    allowSEOIndexing: true;
+    receiveMonthlyDigestEmail: true;
+    movedToProfileId: true;
+    isPlatformManaged: true;
+    smsLockState: true;
   };
 }>;
-export const buildUser = <T extends Partial<UserPayload>>(user?: T): UserPayload => {
+export const buildUser = <T extends Partial<UserPayload>>(
+  user?: T & { priority?: number }
+): UserPayload & { priority: number | null } => {
   return {
     locked: false,
+    smsLockState: "UNLOCKED",
     name: faker.name.firstName(),
     email: faker.internet.email(),
     timeZone: faker.address.timeZone(),
@@ -198,9 +256,7 @@ export const buildUser = <T extends Partial<UserPayload>>(user?: T): UserPayload
     id: 0,
     allowDynamicBooking: true,
     availability: [],
-    avatar: "",
     avatarUrl: "",
-    away: false,
     backupCodes: null,
     bio: null,
     brandColor: "#292929",
@@ -220,12 +276,12 @@ export const buildUser = <T extends Partial<UserPayload>>(user?: T): UserPayload
     invitedTo: null,
     locale: "en",
     metadata: null,
-    password: null,
     role: "USER",
     schedules: [],
     selectedCalendars: [],
     startTime: 0,
     theme: null,
+    appTheme: null,
     timeFormat: null,
     trialEndsAt: null,
     twoFactorEnabled: false,
@@ -235,6 +291,9 @@ export const buildUser = <T extends Partial<UserPayload>>(user?: T): UserPayload
     organizationId: null,
     allowSEOIndexing: null,
     receiveMonthlyDigestEmail: null,
+    movedToProfileId: null,
+    priority: user?.priority ?? null,
+    isPlatformManaged: false,
     funnelHubUserId: "0",
     ...user,
   };

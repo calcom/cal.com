@@ -9,13 +9,13 @@ import {
   Badge,
   Button,
   Dropdown,
+  DropdownItem,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownItem,
   DropdownMenuTrigger,
+  Icon,
   showToast,
 } from "@calcom/ui";
-import { Globe, MoreHorizontal, Trash, Star, Copy } from "@calcom/ui/components/icon";
 
 export function ScheduleListItem({
   schedule,
@@ -41,7 +41,7 @@ export function ScheduleListItem({
 
   return (
     <li key={schedule.id}>
-      <div className="hover:bg-muted flex items-center justify-between py-5 transition ltr:pl-4 rtl:pr-4 sm:ltr:pl-0 sm:rtl:pr-0">
+      <div className="hover:bg-muted flex items-center justify-between py-5 transition ltr:pl-4 sm:ltr:pl-0 rtl:pr-4 sm:rtl:pr-0">
         <div className="group flex w-full items-center justify-between sm:px-6">
           <Link
             href={`/availability/${schedule.id}`}
@@ -69,7 +69,7 @@ export function ScheduleListItem({
                 ))}
               {(schedule.timeZone || displayOptions?.timeZone) && (
                 <p className="my-1 flex items-center first-letter:text-xs">
-                  <Globe className="h-3.5 w-3.5" />
+                  <Icon name="globe" className="h-3.5 w-3.5" />
                   &nbsp;{schedule.timeZone ?? displayOptions?.timeZone}
                 </p>
               )}
@@ -84,16 +84,16 @@ export function ScheduleListItem({
               type="button"
               variant="icon"
               color="secondary"
-              StartIcon={MoreHorizontal}
+              StartIcon="ellipsis"
             />
           </DropdownMenuTrigger>
           {!isPending && data && (
             <DropdownMenuContent>
-              <DropdownMenuItem className="min-w-40 focus:ring-muted">
+              <DropdownMenuItem className="focus:ring-muted min-w-40">
                 {!schedule.isDefault && (
                   <DropdownItem
                     type="button"
-                    StartIcon={Star}
+                    StartIcon="star"
                     onClick={() => {
                       updateDefault({
                         scheduleId: schedule.id,
@@ -108,7 +108,7 @@ export function ScheduleListItem({
                 <DropdownItem
                   type="button"
                   data-testid={`schedule-duplicate${schedule.id}`}
-                  StartIcon={Copy}
+                  StartIcon="copy"
                   onClick={() => {
                     duplicateFunction({
                       scheduleId: schedule.id,
@@ -117,11 +117,11 @@ export function ScheduleListItem({
                   {t("duplicate")}
                 </DropdownItem>
               </DropdownMenuItem>
-              <DropdownMenuItem className="min-w-40 focus:ring-muted">
+              <DropdownMenuItem className="focus:ring-muted min-w-40">
                 <DropdownItem
                   type="button"
                   color="destructive"
-                  StartIcon={Trash}
+                  StartIcon="trash"
                   data-testid="delete-schedule"
                   onClick={() => {
                     if (!isDeletable) {

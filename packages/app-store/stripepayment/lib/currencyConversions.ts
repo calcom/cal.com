@@ -22,7 +22,7 @@ const zeroDecimalCurrencies = [
 
 export const convertToSmallestCurrencyUnit = (amount: number, currency: string) => {
   // Special cases
-  if (zeroDecimalCurrencies.includes(currency)) {
+  if (zeroDecimalCurrencies.includes(currency.toUpperCase())) {
     return amount;
   }
   return Math.round(amount * 100);
@@ -30,7 +30,7 @@ export const convertToSmallestCurrencyUnit = (amount: number, currency: string) 
 
 export const convertFromSmallestToPresentableCurrencyUnit = (amount: number, currency: string) => {
   // Special cases
-  if (zeroDecimalCurrencies.includes(currency)) {
+  if (zeroDecimalCurrencies.includes(currency.toUpperCase())) {
     return amount;
   }
   return amount / 100;

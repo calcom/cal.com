@@ -5,13 +5,14 @@ import type { Prisma } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useLayoutEffect, useState, useEffect } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
+import { trackFormbricksAction } from "@calcom/lib/formbricks-client";
 import { getTeamUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
@@ -33,13 +34,12 @@ import {
   LinkIconButton,
   Meta,
   showToast,
+  SkeletonAvatar,
+  SkeletonButton,
   SkeletonContainer,
   SkeletonText,
   TextField,
-  SkeletonAvatar,
-  SkeletonButton,
 } from "@calcom/ui";
-import { ExternalLink, Link as LinkIcon } from "@calcom/ui/components/icon";
 
 import { getLayout } from "../../../settings/layouts/SettingsLayout";
 
@@ -83,7 +83,7 @@ const ProfileView = () => {
   const teamId = Number(params.id);
   const { t } = useLocale();
   const router = useRouter();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const session = useSession();
 
   useLayoutEffect(() => {
@@ -95,7 +95,7 @@ const ProfileView = () => {
     isPending,
     error,
   } = trpc.viewer.teams.get.useQuery(
-    { teamId, includeTeamLogo: true },
+    { teamId },
     {
       enabled: !!teamId,
     }
@@ -121,6 +121,7 @@ const ProfileView = () => {
       await utils.viewer.teams.list.invalidate();
       showToast(t("your_team_disbanded_successfully"), "success");
       router.push(`${WEBAPP_URL}/teams`);
+      trackFormbricksAction("team_disbanded");
     },
   });
 
@@ -177,10 +178,10 @@ const ProfileView = () => {
           </div>
           <div>
             <Link href={permalink} passHref={true} target="_blank">
-              <LinkIconButton Icon={ExternalLink}>{t("preview")}</LinkIconButton>
+              <LinkIconButton Icon="external-link">{t("preview")}</LinkIconButton>
             </Link>
             <LinkIconButton
-              Icon={LinkIcon}
+              Icon="link"
               onClick={() => {
                 navigator.clipboard.writeText(permalink);
                 showToast("Copied to clipboard", "success");
@@ -204,7 +205,7 @@ const ProfileView = () => {
               <Button
                 color="destructive"
                 className="border"
-                StartIcon={Trash2}
+                StartIcon="trash-2"
                 data-testid="disband-team-button">
                 {t("disband_team")}
               </Button>
@@ -214,7 +215,9 @@ const ProfileView = () => {
             variety="danger"
             title={t("disband_team")}
             confirmBtnText={t("confirm_disband_team")}
-            onConfirm={deleteTeam}>
+            onConfirm={() => {
+              deleteTeam();
+            }}>
             {t("disband_team_confirmation_message")}
           </ConfirmationDialogContent>
         </Dialog>
@@ -222,7 +225,7 @@ const ProfileView = () => {
         <Dialog>
           <SectionBottomActions align="end">
             <DialogTrigger asChild>
-              <Button color="destructive" className="border" StartIcon={LogOut}>
+              <Button color="destructive" className="border" StartIcon="log-out">
                 {t("leave_team")}
               </Button>
             </DialogTrigger>
@@ -243,7 +246,7 @@ const ProfileView = () => {
 export type TeamProfileFormProps = { team: RouterOutputs["viewer"]["teams"]["get"] };
 
 const TeamProfileForm = ({ team }: TeamProfileFormProps) => {
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const { t } = useLocale();
   const router = useRouter();
 
@@ -253,12 +256,14 @@ const TeamProfileForm = ({ team }: TeamProfileFormProps) => {
     },
     async onSuccess(res) {
       reset({
-        logo: (res?.logo || "") as string,
+        logo: res?.logoUrl,
         name: (res?.name || "") as string,
         bio: (res?.bio || "") as string,
         slug: res?.slug as string,
       });
       await utils.viewer.teams.get.invalidate();
+      // TODO: Not all changes require list invalidation
+      await utils.viewer.teams.list.invalidate();
       showToast(t("your_team_updated_successfully"), "success");
     },
   });
@@ -314,37 +319,32 @@ const TeamProfileForm = ({ team }: TeamProfileFormProps) => {
       }}>
       <div className="border-subtle border-x px-4 py-8 sm:px-6">
         {!team.parent && (
-          <div className="flex items-center">
+          <div className="flex items-center pb-8">
             <Controller
               control={form.control}
               name="logo"
-              render={({ field: { value } }) => {
+              render={({ field: { value, onChange } }) => {
                 const showRemoveLogoButton = !!value;
 
                 return (
                   <>
                     <Avatar
-                      alt={defaultValues.name || ""}
-                      imageSrc={getPlaceholderAvatar(value, team?.name as string)}
+                      alt={form.getValues("name")}
+                      data-testid="profile-upload-logo"
+                      imageSrc={getPlaceholderAvatar(value, form.getValues("name"))}
                       size="lg"
                     />
                     <div className="ms-4 flex gap-2">
                       <ImageUploader
-                        target="avatar"
+                        target="logo"
                         id="avatar-upload"
                         buttonMsg={t("upload_logo")}
-                        handleAvatarChange={(newLogo) => {
-                          form.setValue("logo", newLogo, { shouldDirty: true });
-                        }}
+                        handleAvatarChange={onChange}
                         triggerButtonColor={showRemoveLogoButton ? "secondary" : "primary"}
-                        imageSrc={value ?? undefined}
+                        imageSrc={getPlaceholderAvatar(value, form.getValues("name"))}
                       />
                       {showRemoveLogoButton && (
-                        <Button
-                          color="secondary"
-                          onClick={() => {
-                            form.setValue("logo", null, { shouldDirty: true });
-                          }}>
+                        <Button color="secondary" onClick={() => onChange(null)}>
                           {t("remove")}
                         </Button>
                       )}
@@ -359,17 +359,13 @@ const TeamProfileForm = ({ team }: TeamProfileFormProps) => {
         <Controller
           control={form.control}
           name="name"
-          render={({ field: { value } }) => (
-            <div className="mt-8">
-              <TextField
-                name="name"
-                label={t("team_name")}
-                value={value}
-                onChange={(e) => {
-                  form.setValue("name", e?.target.value, { shouldDirty: true });
-                }}
-              />
-            </div>
+          render={({ field: { name, value, onChange } }) => (
+            <TextField
+              name={name}
+              label={t("team_name")}
+              value={value}
+              onChange={(e) => onChange(e?.target.value)}
+            />
           )}
         />
         <Controller

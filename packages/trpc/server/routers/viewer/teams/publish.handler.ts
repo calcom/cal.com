@@ -2,7 +2,7 @@ import type { Prisma } from "@prisma/client";
 
 import { getRequestedSlugError } from "@calcom/app-store/stripepayment/lib/team-billing";
 import {
-  purchaseTeamSubscription,
+  purchaseTeamOrOrgSubscription,
   updateQuantitySubscriptionFromStripe,
 } from "@calcom/features/ee/teams/lib/payments";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
@@ -43,10 +43,11 @@ const generateCheckoutSession = async ({
 }) => {
   if (!IS_TEAM_BILLING_ENABLED) return;
 
-  const checkoutSession = await purchaseTeamSubscription({
+  const checkoutSession = await purchaseTeamOrOrgSubscription({
     teamId,
-    seats,
+    seatsUsed: seats,
     userId,
+    pricePerSeat: null,
   });
   if (!checkoutSession.url)
     throw new TRPCError({
@@ -57,13 +58,13 @@ const generateCheckoutSession = async ({
 };
 
 const publishOrganizationTeamHandler = async ({ ctx, input }: PublishOptions) => {
-  if (!ctx.user.organizationId) throw new TRPCError({ code: "UNAUTHORIZED" });
+  if (!ctx.user.profile?.organizationId) throw new TRPCError({ code: "UNAUTHORIZED" });
 
-  if (!isOrganisationAdmin(ctx.user.id, ctx.user?.organizationId))
+  if (!isOrganisationAdmin(ctx.user.id, ctx.user?.profile.organizationId))
     throw new TRPCError({ code: "UNAUTHORIZED" });
 
   const createdTeam = await prisma.team.findFirst({
-    where: { id: input.teamId, parentId: ctx.user.organizationId },
+    where: { id: input.teamId, parentId: ctx.user.profile?.organizationId },
     include: {
       parent: {
         include: {
@@ -109,7 +110,7 @@ const publishOrganizationTeamHandler = async ({ ctx, input }: PublishOptions) =>
 };
 
 export const publishHandler = async ({ ctx, input }: PublishOptions) => {
-  if (ctx.user.organizationId) return publishOrganizationTeamHandler({ ctx, input });
+  if (ctx.user.profile?.organizationId) return publishOrganizationTeamHandler({ ctx, input });
 
   if (!(await isTeamAdmin(ctx.user.id, input.teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
   const { teamId: id } = input;

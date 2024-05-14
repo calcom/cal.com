@@ -9,6 +9,7 @@ import type Stripe from "stripe";
 import type { getMockRequestDataForBooking } from "test/utils/bookingScenario/getMockRequestDataForBooking";
 import { v4 as uuidv4 } from "uuid";
 import "vitest-fetch-mock";
+import type { z } from "zod";
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { handleStripePaymentSuccess } from "@calcom/features/ee/payments/api/webhook";
@@ -16,9 +17,11 @@ import { weekdayToWeekIndex, type WeekDays } from "@calcom/lib/date-fns";
 import type { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import type { WorkflowActions, WorkflowTemplates, WorkflowTriggerEvents } from "@calcom/prisma/client";
-import type { SchedulingType } from "@calcom/prisma/enums";
+import type { SchedulingType, SMSLockState } from "@calcom/prisma/enums";
 import type { BookingStatus } from "@calcom/prisma/enums";
+import type { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { userMetadataType } from "@calcom/prisma/zod-utils";
 import type { AppMeta } from "@calcom/types/App";
 import type { NewCalendarEventType } from "@calcom/types/Calendar";
@@ -48,11 +51,15 @@ type InputWorkflow = {
   action: WorkflowActions;
   template: WorkflowTemplates;
 };
+
+type InputHost = {
+  userId: number;
+  isFixed?: boolean;
+};
 /**
  * Data to be mocked
  */
 export type ScenarioData = {
-  // hosts: { id: number; eventTypeId?: number; userId?: number; isFixed?: boolean }[];
   /**
    * Prisma would return these eventTypes
    */
@@ -104,6 +111,7 @@ type InputUser = Omit<typeof TestData.users.example, "defaultScheduleId"> & {
   }[];
   destinationCalendar?: Prisma.DestinationCalendarCreateInput;
   weekStart?: string;
+  profiles?: Prisma.ProfileUncheckedCreateWithoutUserInput[];
 };
 
 export type InputEventType = {
@@ -117,7 +125,7 @@ export type InputEventType = {
    * These user ids are `ScenarioData["users"]["id"]`
    */
   users?: { id: number }[];
-  hosts?: { id: number }[];
+  hosts?: InputHost[];
   schedulingType?: SchedulingType;
   beforeEventBuffer?: number;
   afterEventBuffer?: number;
@@ -158,6 +166,20 @@ export const Timezones = {
   "+5:30": "Asia/Kolkata",
   "+6:00": "Asia/Dhaka",
 };
+
+async function addHostsToDb(eventTypes: InputEventType[]) {
+  for (const eventType of eventTypes) {
+    if (eventType.hosts && eventType.hosts.length > 0) {
+      await prismock.host.createMany({
+        data: eventType.hosts.map((host) => ({
+          userId: host.userId,
+          eventTypeId: eventType.id,
+          isFixed: host.isFixed ?? false,
+        })),
+      });
+    }
+  }
+}
 
 async function addEventTypesToDb(
   eventTypes: (Omit<
@@ -281,6 +303,7 @@ async function addEventTypes(eventTypes: InputEventType[], usersStore: InputUser
           }
         : eventType.schedule,
       owner: eventType.owner ? { connect: { id: eventType.owner } } : undefined,
+      schedulingType: eventType.schedulingType,
     };
   });
   log.silly("TestData: Creating EventType", JSON.stringify(eventTypesWithUsers));
@@ -455,6 +478,7 @@ async function addUsersToDb(users: (Prisma.UserCreateInput & { schedules: Prisma
         include: {
           credentials: true,
           teams: true,
+          profiles: true,
           schedules: {
             include: {
               availability: true,
@@ -545,6 +569,15 @@ async function addUsers(users: InputUser[]) {
         },
       };
     }
+    if (user.profiles) {
+      newUser.profiles = {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-expect-error Not sure why this is not working
+        createMany: {
+          data: user.profiles,
+        },
+      };
+    }
 
     prismaUsersCreate.push(newUser);
   }
@@ -574,6 +607,7 @@ export async function createBookingScenario(data: ScenarioData) {
     );
   }
   const eventTypes = await addEventTypes(data.eventTypes, data.users);
+  await addHostsToDb(data.eventTypes);
 
   data.bookings = data.bookings || [];
   // allowSuccessfulBookingCreation();
@@ -588,11 +622,19 @@ export async function createBookingScenario(data: ScenarioData) {
   };
 }
 
-export async function createOrganization(orgData: { name: string; slug: string }) {
+export async function createOrganization(orgData: {
+  name: string;
+  slug: string;
+  metadata?: z.infer<typeof teamMetadataSchema>;
+}) {
   const org = await prismock.team.create({
     data: {
       name: orgData.name,
       slug: orgData.slug,
+      metadata: {
+        ...(orgData.metadata || {}),
+        isOrganization: true,
+      },
     },
   });
   return org;
@@ -717,6 +759,15 @@ export function getGoogleCalendarCredential() {
     key: {
       scope:
         "https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.readonly",
+    },
+  });
+}
+
+export function getGoogleMeetCredential() {
+  return getMockedCredential({
+    metadataLookupKey: "googlevideo",
+    key: {
+      scope: "",
     },
   });
 }
@@ -848,6 +899,17 @@ export const TestData = {
         redirect_uris: ["http://localhost:3000/auth/callback"],
       },
     },
+    "google-meet": {
+      ...appStoreMetadata.googlevideo,
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      //@ts-ignore
+      keys: {
+        expiry_date: Infinity,
+        client_id: "client_id",
+        client_secret: "client_secret",
+        redirect_uris: ["http://localhost:3000/auth/callback"],
+      },
+    },
     "daily-video": {
       ...appStoreMetadata.dailyvideo,
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -910,6 +972,7 @@ export function getOrganizer({
   teams,
   organizationId,
   metadata,
+  smsLockState,
 }: {
   name: string;
   email: string;
@@ -923,6 +986,7 @@ export function getOrganizer({
   weekStart?: WeekDays;
   teams?: InputUser["teams"];
   metadata?: userMetadataType;
+  smsLockState?: SMSLockState;
 }) {
   return {
     ...TestData.users.example,
@@ -937,7 +1001,9 @@ export function getOrganizer({
     weekStart,
     teams,
     organizationId,
+    profiles: [],
     metadata,
+    smsLockState,
   };
 }
 
@@ -950,8 +1016,7 @@ export function getScenarioData(
     webhooks,
     workflows,
     bookings,
-  }: // hosts = [],
-  {
+  }: {
     organizer: ReturnType<typeof getOrganizer>;
     eventTypes: ScenarioData["eventTypes"];
     apps?: ScenarioData["apps"];
@@ -959,14 +1024,23 @@ export function getScenarioData(
     webhooks?: ScenarioData["webhooks"];
     workflows?: ScenarioData["workflows"];
     bookings?: ScenarioData["bookings"];
-    // hosts?: ScenarioData["hosts"];
   },
   org?: { id: number | null } | undefined | null
 ) {
   const users = [organizer, ...usersApartFromOrganizer];
   if (org) {
+    const orgId = org.id;
+    if (!orgId) {
+      throw new Error("If org is specified org.id is required");
+    }
     users.forEach((user) => {
-      user.organizationId = org.id;
+      user.profiles = [
+        {
+          organizationId: orgId,
+          username: user.username || "",
+          uid: ProfileRepository.generateProfileUid(),
+        },
+      ];
     });
   }
 
@@ -980,7 +1054,6 @@ export function getScenarioData(
     }
   });
   return {
-    // hosts: [...hosts],
     eventTypes: eventTypes.map((eventType, index) => {
       return {
         ...eventType,
@@ -1029,6 +1102,12 @@ export function mockNoTranslations() {
       resolve(identityFn);
     });
   });
+}
+
+export const enum BookingLocations {
+  CalVideo = "integrations:daily",
+  ZoomVideo = "integrations:zoom",
+  GoogleMeet = "integrations:google:meet",
 }
 
 /**
@@ -1111,6 +1190,7 @@ export function mockCalendar(
               log.silly("mockCalendar.updateEvent", JSON.stringify({ uid, event, externalCalendarId }));
               // eslint-disable-next-line prefer-rest-params
               updateEventCalls.push(rest);
+              const isGoogleMeetLocation = event.location === BookingLocations.GoogleMeet;
               return Promise.resolve({
                 type: app.type,
                 additionalInfo: {},
@@ -1122,6 +1202,9 @@ export function mockCalendar(
                 // Password and URL seems useless for CalendarService, plan to remove them if that's the case
                 password: "MOCK_PASSWORD",
                 url: "https://UNUSED_URL",
+                location: isGoogleMeetLocation ? "https://UNUSED_URL" : undefined,
+                hangoutLink: isGoogleMeetLocation ? "https://UNUSED_URL" : undefined,
+                conferenceData: isGoogleMeetLocation ? event.conferenceData : undefined,
               });
             },
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -1434,19 +1517,16 @@ export function getMockBookingAttendee(
   };
 }
 
-export const enum BookingLocations {
-  CalVideo = "integrations:daily",
-  ZoomVideo = "integrations:zoom",
-}
-
 const getMockAppStatus = ({
   slug,
   failures,
   success,
+  overrideName,
 }: {
   slug: string;
   failures: number;
   success: number;
+  overrideName?: string;
 }) => {
   const foundEntry = Object.entries(appStoreMetadata).find(([, app]) => {
     return app.slug === slug;
@@ -1456,7 +1536,7 @@ const getMockAppStatus = ({
   }
   const foundApp = foundEntry[1];
   return {
-    appName: foundApp.slug,
+    appName: overrideName ?? foundApp.slug,
     type: foundApp.type,
     failures,
     success,
@@ -1467,6 +1547,6 @@ export const getMockFailingAppStatus = ({ slug }: { slug: string }) => {
   return getMockAppStatus({ slug, failures: 1, success: 0 });
 };
 
-export const getMockPassingAppStatus = ({ slug }: { slug: string }) => {
-  return getMockAppStatus({ slug, failures: 0, success: 1 });
+export const getMockPassingAppStatus = ({ slug, overrideName }: { slug: string; overrideName?: string }) => {
+  return getMockAppStatus({ slug, overrideName, failures: 0, success: 1 });
 };

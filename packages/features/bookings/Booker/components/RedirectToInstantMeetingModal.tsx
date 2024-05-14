@@ -1,3 +1,4 @@
+import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 
 import dayjs from "@calcom/dayjs";
@@ -5,19 +6,27 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Dialog, DialogContent } from "@calcom/ui";
 import { Button } from "@calcom/ui";
 
+const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+  const message = "/o";
+  event.returnValue = message; // Standard for most browsers
+  return message; // For some older browsers
+};
+
 export const RedirectToInstantMeetingModal = ({
-  hasInstantMeetingTokenExpired,
   bookingId,
   onGoBack,
   expiryTime,
+  instantVideoMeetingUrl,
 }: {
-  hasInstantMeetingTokenExpired: boolean;
   bookingId: number;
   onGoBack: () => void;
   expiryTime?: Date;
+  instantVideoMeetingUrl?: string;
 }) => {
   const { t } = useLocale();
   const [timeRemaining, setTimeRemaining] = useState(calculateTimeRemaining());
+  const [hasInstantMeetingTokenExpired, setHasInstantMeetingTokenExpired] = useState(false);
+  const router = useRouter();
 
   function calculateTimeRemaining() {
     const now = dayjs();
@@ -31,6 +40,7 @@ export const RedirectToInstantMeetingModal = ({
 
     const timer = setInterval(() => {
       setTimeRemaining(calculateTimeRemaining());
+      setHasInstantMeetingTokenExpired(expiryTime && new Date(expiryTime) < new Date());
     }, 1000);
 
     return () => {
@@ -47,19 +57,23 @@ export const RedirectToInstantMeetingModal = ({
   };
 
   useEffect(() => {
-    if (hasInstantMeetingTokenExpired) return;
-
-    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
-      const message = "/o";
-      event.returnValue = message; // Standard for most browsers
-      return message; // For some older browsers
-    };
+    if (!expiryTime || hasInstantMeetingTokenExpired || !!instantVideoMeetingUrl) {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      return;
+    }
 
     window.addEventListener("beforeunload", handleBeforeUnload);
     return () => {
       window.removeEventListener("beforeunload", handleBeforeUnload);
     };
-  }, [hasInstantMeetingTokenExpired]);
+  }, [expiryTime, hasInstantMeetingTokenExpired, instantVideoMeetingUrl]);
+
+  useEffect(() => {
+    if (!!instantVideoMeetingUrl) {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      router.push(instantVideoMeetingUrl);
+    }
+  }, [instantVideoMeetingUrl]);
 
   return (
     <Dialog open={!!bookingId && !!expiryTime}>

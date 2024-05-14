@@ -28,8 +28,9 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
     eventTypeId,
     subscriberOptions,
     eventTrigger,
+    evt,
   } = newSeatedBookingObject;
-  const { evt } = newSeatedBookingObject;
+
   const loggerWithEventDetails = createLoggerWithEventDetails(eventType.id, reqBodyUser, eventType.slug);
 
   let resultBooking: HandleSeatsResultBooking = null;
@@ -40,9 +41,10 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
         {
           uid: rescheduleUid || reqBookingUid,
         },
+
         {
           eventTypeId: eventType.id,
-          startTime: evt.startTime,
+          startTime: new Date(evt.startTime),
         },
       ],
       status: BookingStatus.ACCEPTED,
@@ -58,12 +60,16 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
       status: true,
       smsReminderNumber: true,
       endTime: true,
-      scheduledJobs: true,
     },
   });
 
-  if (!seatedBooking) {
+  if (!seatedBooking && rescheduleUid) {
     throw new HttpError({ statusCode: 404, message: ErrorCode.BookingNotFound });
+  }
+
+  // We might be trying to create a new booking
+  if (!seatedBooking) {
+    return;
   }
 
   // See if attendee is already signed up for timeslot
@@ -89,8 +95,10 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
 
   // If the resultBooking is defined we should trigger workflows else, trigger in handleNewBooking
   if (resultBooking) {
-    // Obtain event metadata that includes videoCallUrl
-    const metadata = evt.videoCallData?.url ? { videoCallUrl: evt.videoCallData.url } : undefined;
+    const metadata = {
+      ...(typeof resultBooking.metadata === "object" && resultBooking.metadata),
+      ...reqBodyMetadata,
+    };
     try {
       await scheduleWorkflowReminders({
         workflows: eventType.workflows,
@@ -101,7 +109,6 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
         isFirstRecurringEvent: true,
         emailAttendeeSendToOverride: bookerEmail,
         seatReferenceUid: evt.attendeeSeatId,
-        eventTypeRequiresConfirmation: eventType.requiresConfirmation,
       });
     } catch (error) {
       loggerWithEventDetails.error("Error while scheduling workflow reminders", JSON.stringify({ error }));
@@ -119,7 +126,7 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
       rescheduleEndTime: originalRescheduledBooking?.endTime
         ? dayjs(originalRescheduledBooking?.endTime).utc().format()
         : undefined,
-      metadata: { ...metadata, ...reqBodyMetadata },
+      metadata,
       eventTypeId,
       status: "ACCEPTED",
       smsReminderNumber: seatedBooking?.smsReminderNumber || undefined,

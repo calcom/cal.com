@@ -8,10 +8,8 @@ import { md } from "@calcom/lib/markdownIt";
 import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import turndown from "@calcom/lib/turndownService";
 import { trpc } from "@calcom/trpc/react";
-import type { Ensure } from "@calcom/types/utils";
 import { Button, Editor, ImageUploader, Label, showToast } from "@calcom/ui";
 import { UserAvatar } from "@calcom/ui";
-import { ArrowRight } from "@calcom/ui/components/icon";
 
 type FormData = {
   bio: string;
@@ -27,7 +25,7 @@ const UserProfile = () => {
 
   const { data: eventTypes } = trpc.viewer.eventTypes.list.useQuery();
   const [imageSrc, setImageSrc] = useState<string>(user?.avatar || "");
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const router = useRouter();
   const createEventType = trpc.viewer.eventTypes.create.useMutation();
   const telemetry = useTelemetry();
@@ -35,10 +33,10 @@ const UserProfile = () => {
 
   const mutation = trpc.viewer.updateProfile.useMutation({
     onSuccess: async (_data, context) => {
-      if (context.avatar) {
+      if (context.avatarUrl) {
         showToast(t("your_user_profile_updated_successfully"), "success");
         await utils.viewer.me.refetch();
-      } else {
+      } else
         try {
           if (eventTypes?.length === 0) {
             await Promise.all(
@@ -51,9 +49,11 @@ const UserProfile = () => {
           console.error(error);
         }
 
-        await utils.viewer.me.refetch();
-        router.push("/");
-      }
+      await utils.viewer.me.refetch();
+      const redirectUrl = localStorage.getItem("onBoardingRedirect");
+      localStorage.removeItem("onBoardingRedirect");
+
+      redirectUrl ? router.push(redirectUrl) : router.push("/");
     },
     onError: () => {
       showToast(t("problem_saving_user_profile"), "error");
@@ -74,7 +74,7 @@ const UserProfile = () => {
     event.preventDefault();
     const enteredAvatar = avatarRef.current?.value;
     mutation.mutate({
-      avatar: enteredAvatar,
+      avatarUrl: enteredAvatar,
     });
   }
 
@@ -97,18 +97,10 @@ const UserProfile = () => {
     },
   ];
 
-  const organization =
-    user.organization && user.organization.id
-      ? {
-          ...(user.organization as Ensure<typeof user.organization, "id">),
-          slug: user.organization.slug || null,
-          requestedSlug: user.organization.metadata?.requestedSlug || null,
-        }
-      : null;
   return (
     <form onSubmit={onSubmit}>
       <div className="flex flex-row items-center justify-start rtl:justify-end">
-        {user && <UserAvatar size="lg" user={user} previewSrc={imageSrc} organization={organization} />}
+        {user && <UserAvatar size="lg" user={user} previewSrc={imageSrc} />}
         <input
           ref={avatarRef}
           type="hidden"
@@ -152,7 +144,11 @@ const UserProfile = () => {
         />
         <p className="text-default mt-2 font-sans text-sm font-normal">{t("few_sentences_about_yourself")}</p>
       </fieldset>
-      <Button EndIcon={ArrowRight} type="submit" className="mt-8 w-full items-center justify-center">
+      <Button
+        loading={mutation.isPending}
+        EndIcon="arrow-right"
+        type="submit"
+        className="mt-8 w-full items-center justify-center">
         {t("finish")}
       </Button>
     </form>

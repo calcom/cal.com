@@ -1,10 +1,12 @@
 import type { Calendar as OfficeCalendar } from "@microsoft/microsoft-graph-types-beta";
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import { renewSelectedCalendarCredentialId } from "@calcom/lib/connectedCalendar";
+import { WEBAPP_URL, WEBAPP_URL_FOR_OAUTH } from "@calcom/lib/constants";
 import { handleErrorsJson } from "@calcom/lib/errors";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import prisma from "@calcom/prisma";
+import { Prisma } from "@calcom/prisma/client";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
@@ -17,8 +19,17 @@ let client_secret = "";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { code } = req.query;
+  const state = decodeOAuthState(req);
 
   if (typeof code !== "string") {
+    if (state?.onErrorReturnTo || state?.returnTo) {
+      res.redirect(
+        getSafeRedirectUrl(state.onErrorReturnTo) ??
+          getSafeRedirectUrl(state?.returnTo) ??
+          `${WEBAPP_URL}/apps/installed`
+      );
+      return;
+    }
     res.status(400).json({ message: "No code returned" });
     return;
   }
@@ -39,7 +50,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     grant_type: "authorization_code",
     code,
     scope: scopes.join(" "),
-    redirect_uri: `${WEBAPP_URL}/api/integrations/office365calendar/callback`,
+    redirect_uri: `${WEBAPP_URL_FOR_OAUTH}/api/integrations/office365calendar/callback`,
     client_secret,
   });
 
@@ -66,15 +77,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   responseBody.email = graphUser.mail ?? graphUser.userPrincipalName;
   responseBody.expiry_date = Math.round(+new Date() / 1000 + responseBody.expires_in); // set expiry date in seconds
   delete responseBody.expires_in;
-
-  const credential = await prisma.credential.create({
-    data: {
-      type: "office365_calendar",
-      key: responseBody,
-      userId: req.session?.user.id,
-      appId: "office365-calendar",
-    },
-  });
 
   // Set the isDefaultCalendar as selectedCalendar
   // If a user has multiple calendars, keep on making calls until we find the default calendar
@@ -110,19 +112,57 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (defaultCalendar?.id && req.session?.user?.id) {
-    await prisma.selectedCalendar.create({
+    const credential = await prisma.credential.create({
       data: {
+        type: "office365_calendar",
+        key: responseBody,
         userId: req.session?.user.id,
-        integration: "office365_calendar",
-        externalId: defaultCalendar.id,
-        credentialId: credential.id,
+        appId: "office365-calendar",
       },
     });
+    const selectedCalendarWhereUnique = {
+      userId: req.session?.user.id,
+      integration: "office365_calendar",
+      externalId: defaultCalendar.id,
+    };
+    // Wrapping in a try/catch to reduce chance of race conditions-
+    // also this improves performance for most of the happy-paths.
+    try {
+      await prisma.selectedCalendar.create({
+        data: {
+          ...selectedCalendarWhereUnique,
+          credentialId: credential.id,
+        },
+      });
+    } catch (error) {
+      let errorMessage = "something_went_wrong";
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+        // it is possible a selectedCalendar was orphaned, in this situation-
+        // we want to recover by connecting the existing selectedCalendar to the new Credential.
+        if (await renewSelectedCalendarCredentialId(selectedCalendarWhereUnique, credential.id)) {
+          res.redirect(
+            getSafeRedirectUrl(state?.returnTo) ??
+              getInstalledAppPath({ variant: "calendar", slug: "office365-calendar" })
+          );
+          return;
+        }
+        // else
+        errorMessage = "account_already_linked";
+      }
+      await prisma.credential.delete({ where: { id: credential.id } });
+      res.redirect(
+        `${
+          getSafeRedirectUrl(state?.onErrorReturnTo) ??
+          getInstalledAppPath({ variant: "calendar", slug: "office365-calendar" })
+        }?error=${errorMessage}`
+      );
+      return;
+    }
   }
 
-  const state = decodeOAuthState(req);
-  return res.redirect(
+  res.redirect(
     getSafeRedirectUrl(state?.returnTo) ??
       getInstalledAppPath({ variant: "calendar", slug: "office365-calendar" })
   );
+  return;
 }

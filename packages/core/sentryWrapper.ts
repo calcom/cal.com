@@ -1,4 +1,4 @@
-import * as Sentry from "@sentry/nextjs";
+import { getCurrentHub, startTransaction, captureException } from "@sentry/nextjs";
 import type { Span, Transaction } from "@sentry/types";
 
 /*
@@ -13,11 +13,11 @@ considering that a million monitored iterations only took roughly 8 seconds when
 
 const setUpMonitoring = (name: string) => {
   // Attempt to retrieve the current transaction from Sentry's scope
-  let transaction = Sentry.getCurrentHub().getScope()?.getTransaction();
+  let transaction = getCurrentHub().getScope()?.getTransaction();
 
   // Check if there's an existing transaction, if not, start a new one
   if (!transaction) {
-    transaction = Sentry.startTransaction({
+    transaction = startTransaction({
       op: name,
       name: name,
     });
@@ -37,7 +37,7 @@ const finishMonitoring = (transaction: Transaction | Span, span: Span) => {
   span.finish();
 
   // If this was a new transaction, finish it
-  if (!Sentry.getCurrentHub().getScope()?.getTransaction()) {
+  if (!getCurrentHub().getScope()?.getTransaction()) {
     transaction.finish();
   }
 };
@@ -55,7 +55,7 @@ const monitorCallbackAsync = async <T extends (...args: any[]) => any>(
     const result = await cb(...args);
     return result as ReturnType<T>;
   } catch (error) {
-    Sentry.captureException(error);
+    captureException(error);
     throw error;
   } finally {
     finishMonitoring(transaction, span);
@@ -75,7 +75,7 @@ const monitorCallbackSync = <T extends (...args: any[]) => any>(
     const result = cb(...args);
     return result as ReturnType<T>;
   } catch (error) {
-    Sentry.captureException(error);
+    captureException(error);
     throw error;
   } finally {
     finishMonitoring(transaction, span);

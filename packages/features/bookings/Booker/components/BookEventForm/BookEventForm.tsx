@@ -1,19 +1,17 @@
 import type { TFunction } from "next-i18next";
 import { Trans } from "next-i18next";
 import Link from "next/link";
-import { useState, useMemo } from "react";
+import { useMemo, useState } from "react";
 import type { FieldError } from "react-hook-form";
 
-import { WEBSITE_URL } from "@calcom/lib/constants";
+import { IS_CALCOM, WEBSITE_URL } from "@calcom/lib/constants";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { Alert, Button, EmptyScreen, Form } from "@calcom/ui";
-import { Calendar } from "@calcom/ui/components/icon";
 
 import { useBookerStore } from "../../store";
 import type { useEventReturnType } from "../../utils/event";
-import type { useBookingFormReturnType } from "../hooks/useBookingForm";
+import type { UseBookingFormReturnType } from "../hooks/useBookingForm";
 import type { IUseBookingErrors, IUseBookingLoadingStates } from "../hooks/useBookings";
 import { BookingFields } from "./BookingFields";
 import { FormSkeleton } from "./Skeleton";
@@ -22,11 +20,13 @@ type BookEventFormProps = {
   onCancel?: () => void;
   onSubmit: () => void;
   errorRef: React.RefObject<HTMLDivElement>;
-  errors: useBookingFormReturnType["errors"] & IUseBookingErrors;
+  errors: UseBookingFormReturnType["errors"] & IUseBookingErrors;
   loadingStates: IUseBookingLoadingStates;
   children?: React.ReactNode;
-  bookingForm: useBookingFormReturnType["bookingForm"];
+  bookingForm: UseBookingFormReturnType["bookingForm"];
   renderConfirmNotVerifyEmailButtonCond: boolean;
+  extraOptions: Record<string, string | string[]>;
+  isPlatform?: boolean;
 };
 
 export const BookEventForm = ({
@@ -40,18 +40,18 @@ export const BookEventForm = ({
   renderConfirmNotVerifyEmailButtonCond,
   bookingForm,
   children,
+  extraOptions,
+  isPlatform = false,
 }: Omit<BookEventFormProps, "event"> & {
   eventQuery: useEventReturnType;
   rescheduleUid: string | null;
 }) => {
   const eventType = eventQuery.data;
-  const routerQuery = useRouterQuery();
   const setFormValues = useBookerStore((state) => state.setFormValues);
   const bookingData = useBookerStore((state) => state.bookingData);
   const timeslot = useBookerStore((state) => state.selectedTimeslot);
   const username = useBookerStore((state) => state.username);
   const isInstantMeeting = useBookerStore((state) => state.isInstantMeeting);
-  const [expiryTime, setExpiryTime] = useState<Date | undefined>();
 
   const [responseVercelIdHeader] = useState<string | null>(null);
   const { t } = useLocale();
@@ -59,7 +59,7 @@ export const BookEventForm = ({
   const isPaidEvent = useMemo(() => {
     if (!eventType?.price) return false;
     const paymentAppData = getPaymentAppData(eventType);
-    return eventType?.price > 0 || paymentAppData.price > 0;
+    return eventType?.price > 0 && !Number.isNaN(paymentAppData.price) && paymentAppData.price > 0;
   }, [eventType]);
 
   if (eventQuery.isError) return <Alert severity="warning" message={t("error_booking_event")} />;
@@ -69,14 +69,14 @@ export const BookEventForm = ({
       <EmptyScreen
         headline={t("timeslot_missing_title")}
         description={t("timeslot_missing_description")}
-        Icon={Calendar}
+        Icon="calendar"
         buttonText={t("timeslot_missing_cta")}
         buttonOnClick={onCancel}
       />
     );
 
   if (!eventType) {
-    console.warn("No event type found for event", routerQuery);
+    console.warn("No event type found for event", extraOptions);
     return <Alert severity="warning" message={t("error_booking_event")} />;
   }
 
@@ -112,19 +112,21 @@ export const BookEventForm = ({
             />
           </div>
         )}
-        <div className="text-subtle my-3 w-full text-xs opacity-80">
-          <Trans i18nKey="signing_up_terms">
-            By proceeding, you agree to our{" "}
-            <Link className="text-emphasis hover:underline" href={`${WEBSITE_URL}/terms`} target="_blank">
-              <a>Terms</a>
-            </Link>{" "}
-            and{" "}
-            <Link className="text-emphasis hover:underline" href={`${WEBSITE_URL}/privacy`} target="_blank">
-              <a>Privacy Policy</a>
-            </Link>
-            .
-          </Trans>
-        </div>
+        {!isPlatform && IS_CALCOM && (
+          <div className="text-subtle my-3 w-full text-xs opacity-80">
+            <Trans i18nKey="signing_up_terms">
+              By proceeding, you agree to our{" "}
+              <Link className="text-emphasis hover:underline" href={`${WEBSITE_URL}/terms`} target="_blank">
+                <a>Terms</a>
+              </Link>{" "}
+              and{" "}
+              <Link className="text-emphasis hover:underline" href={`${WEBSITE_URL}/privacy`} target="_blank">
+                <a>Privacy Policy</a>
+              </Link>
+              .
+            </Trans>
+          </div>
+        )}
         <div className="modalsticky mt-auto flex justify-end space-x-2 rtl:space-x-reverse">
           {isInstantMeeting ? (
             <Button type="submit" color="primary" loading={loadingStates.creatingInstantBooking}>
@@ -171,11 +173,11 @@ const getError = (
   t: TFunction,
   responseVercelIdHeader: string | null
 ) => {
-  if (globalError) return globalError.message;
+  if (globalError) return globalError?.message;
 
   const error = dataError;
 
-  return error.message ? (
+  return error?.message ? (
     <>
       {responseVercelIdHeader ?? ""} {t(error.message)}
     </>

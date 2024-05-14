@@ -6,11 +6,12 @@ const subtleColor = "#E5E7EB";
 module.exports = {
   content: [
     "./pages/**/*.{js,ts,jsx,tsx}",
+    "./modules/**/*.{js,ts,jsx,tsx}",
     "./components/**/*.{js,ts,jsx,tsx}",
     "../../packages/app-store/**/*{components,pages}/**/*.{js,ts,jsx,tsx}",
     "../../packages/features/**/*.{js,ts,jsx,tsx}",
     "../../packages/ui/**/*.{js,ts,jsx,tsx}",
-    "../../packages/atoms/**/*.{js,ts,jsx,tsx}",
+    "../../packages/platform/atoms/**/*.{js,ts,jsx,tsx}",
   ],
   darkMode: "class",
   theme: {
@@ -65,6 +66,9 @@ module.exports = {
         muted: "var(--cal-border-muted, #F3F4F6)",
         booker: `var(--cal-border-booker, ${subtleColor})`,
         error: "var(--cal-border-error, #AA2E26)",
+        focus: "var(--cal-border-focus, #1A1A1A)",
+        "cal-bg": "var(--cal-bg, white)",
+        "cal-bg-muted": "var(--cal-bg-muted)",
       },
       textColor: {
         emphasis: "var(--cal-text-emphasis, #111827)",

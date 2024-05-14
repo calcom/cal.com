@@ -29,7 +29,14 @@ export const paymentsRouter = router({
         },
         include: {
           payment: true,
-          user: true,
+          user: {
+            select: {
+              email: true,
+              locale: true,
+              name: true,
+              timeZone: true,
+            },
+          },
           attendees: true,
           eventType: true,
         },

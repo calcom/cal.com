@@ -1,5 +1,6 @@
 import type { UseMutationOptions } from "@tanstack/react-query";
 import { useMutation } from "@tanstack/react-query";
+import { usePathname } from "next/navigation";
 
 import type { IntegrationOAuthCallbackState } from "@calcom/app-store/types";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -26,8 +27,20 @@ type UseAddAppMutationOptions = CustomUseMutationOptions & {
   returnTo?: string;
 };
 
+type useAddAppMutationVariables = {
+  type?: App["type"];
+  variant?: string;
+  slug?: string;
+  isOmniInstall?: boolean;
+  teamId?: number;
+  onErrorReturnTo?: string;
+};
+
 function useAddAppMutation(_type: App["type"] | null, allOptions?: UseAddAppMutationOptions) {
   const { returnTo, ...options } = allOptions || {};
+  const pathname = usePathname();
+  const onErrorReturnTo = `${WEBAPP_URL}${pathname}`;
+
   const mutation = useMutation<
     AddAppMutationData,
     Error,
@@ -59,6 +72,8 @@ function useAddAppMutation(_type: App["type"] | null, allOptions?: UseAddAppMuta
               { variant: variables && variables.variant, slug: variables && variables.slug },
               location.search
             ),
+        onErrorReturnTo,
+        fromApp: true,
         ...(type === "google_calendar" && { installGoogleVideo: options?.installGoogleVideo }),
         ...(teamId && { teamId }),
       };

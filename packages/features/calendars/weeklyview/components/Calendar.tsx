@@ -15,14 +15,14 @@ import { SchedulerColumns } from "./grid";
 import { SchedulerHeading } from "./heading/SchedulerHeading";
 import { HorizontalLines } from "./horizontalLines";
 import { Spinner } from "./spinner/Spinner";
-import { VeritcalLines } from "./verticalLines";
+import { VerticalLines } from "./verticalLines";
 
 export function Calendar(props: CalendarComponentProps) {
   const container = useRef<HTMLDivElement | null>(null);
   const containerNav = useRef<HTMLDivElement | null>(null);
   const containerOffset = useRef<HTMLDivElement | null>(null);
   const schedulerGrid = useRef<HTMLOListElement | null>(null);
-  const initalState = useCalendarStore((state) => state.initState);
+  const initialState = useCalendarStore((state) => state.initState);
   const { timezone } = useTimePreferences();
 
   const startDate = useCalendarStore((state) => state.startDate);
@@ -42,10 +42,10 @@ export function Calendar(props: CalendarComponentProps) {
   const numberOfGridStopsPerDay = hours.length * usersCellsStopsPerHour;
   const hourSize = 58;
 
-  // Initalise State on inital mount
+  // Initalise State on initial mount
   useEffect(() => {
-    initalState(props);
-  }, [props, initalState]);
+    initialState(props);
+  }, [props, initialState]);
 
   return (
     <MobileNotSupported>
@@ -66,7 +66,7 @@ export function Calendar(props: CalendarComponentProps) {
             style={{ width: "165%" }}
             className="flex h-full max-w-full flex-none flex-col sm:max-w-none md:max-w-full">
             <DateValues containerNavRef={containerNav} days={days} />
-            <div className="relative flex flex-auto h-screen overflow-y-auto">
+            <div className="relative flex flex-auto">
               <CurrentTime />
               <div className="bg-default dark:bg-muted ring-muted border-default sticky left-0 z-10 w-14 flex-none border-l border-r ring-1" />
               <div
@@ -81,7 +81,7 @@ export function Calendar(props: CalendarComponentProps) {
                   numberOfGridStopsPerCell={usersCellsStopsPerHour}
                   containerOffsetRef={containerOffset}
                 />
-                <VeritcalLines days={days} />
+                <VerticalLines days={days} />
 
                 <SchedulerColumns
                   offsetHeight={containerOffset.current?.offsetHeight}

@@ -1,10 +1,8 @@
 "use client";
 
-import { getLayout } from "@calcom/features/MainLayout";
 import { TeamsListing } from "@calcom/features/ee/teams/components";
-import { ShellMain } from "@calcom/features/shell/Shell";
+import Shell from "@calcom/features/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc } from "@calcom/trpc/react";
 
 import PageWrapper from "@components/PageWrapper";
 
@@ -12,11 +10,13 @@ export { getServerSideProps } from "@lib/teams/getServerSideProps";
 
 function Teams() {
   const { t } = useLocale();
-  const [user] = trpc.viewer.me.useSuspenseQuery();
 
   return (
-    <ShellMain
+    <Shell
+      withoutMain={false}
       heading={t("teams")}
+      title="Teams"
+      description="Create and manage teams to use collaborative features."
       hideHeadingOnMobile
       subtitle={t("create_manage_teams_collaborative")}
       // CTA={
@@ -24,7 +24,7 @@ function Teams() {
       //     <Button
       //       data-testid="new-team-btn"
       //       variant="fab"
-      //       StartIcon={Plus}
+      //       StartIcon={"plus"}
       //       type="button"
       //       href={`${WEBAPP_URL}/settings/teams/new?returnTo=${WEBAPP_URL}/teams`}>
       //       {t("new")}
@@ -33,11 +33,10 @@ function Teams() {
       // }>
     >
       <TeamsListing />
-    </ShellMain>
+    </Shell>
   );
 }
 
 Teams.requiresLicense = false;
 Teams.PageWrapper = PageWrapper;
-Teams.getLayout = getLayout;
 export default Teams;

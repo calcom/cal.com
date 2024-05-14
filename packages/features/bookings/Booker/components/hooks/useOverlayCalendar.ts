@@ -8,6 +8,8 @@ import { useOverlayCalendarStore } from "../OverlayCalendar/store";
 import type { UseCalendarsReturnType } from "./useCalendars";
 import { useLocalSet } from "./useLocalSet";
 
+export type UseOverlayCalendarReturnType = ReturnType<typeof useOverlayCalendar>;
+
 export const useOverlayCalendar = ({
   connectedCalendars,
   overlayBusyDates,

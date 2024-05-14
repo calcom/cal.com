@@ -1,5 +1,4 @@
 import type { DefaultSeoProps, NextSeoProps } from "next-seo";
-import type { Router } from "next/router";
 
 import { APP_NAME, SEO_IMG_DEFAULT, SEO_IMG_OGIMG } from "@calcom/lib/constants";
 
@@ -47,12 +46,6 @@ export const seoConfig: {
  * @param path NextJS' useRouter().asPath
  * @returns
  */
-export const buildCanonical = ({
-  origin,
-  path,
-}: {
-  origin: Location["origin"];
-  path: Router["asPath"] | null;
-}) => {
+export const buildCanonical = ({ origin, path }: { origin: Location["origin"]; path: string | null }) => {
   return `${origin}${path === "/" ? "" : path}`.split("?")[0];
 };

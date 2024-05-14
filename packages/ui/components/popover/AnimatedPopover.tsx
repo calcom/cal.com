@@ -4,7 +4,7 @@ import React from "react";
 import { classNames } from "@calcom/lib";
 import { Tooltip } from "@calcom/ui";
 
-import { ChevronDown } from "../icon";
+import { Icon } from "../..";
 
 export const AnimatedPopover = ({
   text,
@@ -59,7 +59,7 @@ export const AnimatedPopover = ({
           {Trigger ? (
             Trigger
           ) : (
-            <div className="max-w-36 flex items-center">
+            <div className="flex max-w-36 items-center">
               <Tooltip content={`${prefix}${text}`}>
                 <div className="flex select-none truncate font-medium">
                   {prefix && <span className="text-subtle">{prefix}&nbsp;</span>}
@@ -72,7 +72,8 @@ export const AnimatedPopover = ({
                   )}
                 </div>
               </Tooltip>
-              <ChevronDown
+              <Icon
+                name="chevron-down"
                 className={classNames("ml-2 w-4 transition-transform duration-150", open && "rotate-180")}
               />
             </div>

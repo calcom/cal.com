@@ -19,7 +19,7 @@ export interface LinkSettingsForm {
 
 export default function InviteLinkSettingsModal(props: InvitationLinkSettingsModalProps) {
   const { t } = useLocale();
-  const trpcContext = trpc.useContext();
+  const trpcContext = trpc.useUtils();
 
   const deleteInviteMutation = trpc.viewer.teams.deleteInvite.useMutation({
     onSuccess: () => {

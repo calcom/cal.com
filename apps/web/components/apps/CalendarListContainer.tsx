@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Fragment } from "react";
+import { Fragment, useEffect } from "react";
 
 import { InstallAppButton } from "@calcom/app-store/components";
 import DisconnectIntegration from "@calcom/features/apps/components/DisconnectIntegration";
@@ -11,14 +11,15 @@ import {
   Alert,
   Button,
   EmptyScreen,
-  List,
-  AppSkeletonLoader as SkeletonLoader,
-  ShellSubHeading,
   Label,
+  List,
+  ShellSubHeading,
+  AppSkeletonLoader as SkeletonLoader,
+  showToast,
 } from "@calcom/ui";
-import { Calendar } from "@calcom/ui/components/icon";
 
 import { QueryCell } from "@lib/QueryCell";
+import useRouterQuery from "@lib/hooks/useRouterQuery";
 
 import AppListCard from "@components/AppListCard";
 import AdditionalCalendarSelector from "@components/apps/AdditionalCalendarSelector";
@@ -182,7 +183,16 @@ function ConnectedCalendarsList(props: Props) {
 export function CalendarListContainer(props: { heading?: boolean; fromOnboarding?: boolean }) {
   const { t } = useLocale();
   const { heading = true, fromOnboarding } = props;
-  const utils = trpc.useContext();
+  const { error, setQuery: setError } = useRouterQuery("error");
+
+  useEffect(() => {
+    if (error === "account_already_linked") {
+      showToast(t(error), "error", { id: error });
+      setError(undefined);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const utils = trpc.useUtils();
   const onChanged = () =>
     Promise.allSettled([
       utils.viewer.integrations.invalidate(
@@ -256,7 +266,7 @@ export function CalendarListContainer(props: { heading?: boolean; fromOnboarding
               </>
             ) : (
               <EmptyScreen
-                Icon={Calendar}
+                Icon="calendar"
                 headline={t("no_category_apps", {
                   category: t("calendar").toLowerCase(),
                 })}
