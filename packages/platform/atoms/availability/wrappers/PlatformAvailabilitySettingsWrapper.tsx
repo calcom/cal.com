@@ -11,8 +11,8 @@ import { useToast } from "../../src/components/ui/use-toast";
 import type { Availability } from "../AvailabilitySettings";
 import type { CustomClassNames } from "../AvailabilitySettings";
 import { AvailabilitySettings } from "../AvailabilitySettings";
-import { transformApiScheduleForAtom } from "../request-response-transformers/transformApiScheduleForAtom";
-import { transformAtomScheduleForApi } from "../request-response-transformers/transformAtomScheduleForApi";
+import { transformApiScheduleForAtom } from "../atom-api-transformers/transformApiScheduleForAtom";
+import { transformAtomScheduleForApi } from "../atom-api-transformers/transformAtomScheduleForApi";
 import type { AvailabilityFormValues } from "../types";
 
 type PlatformAvailabilitySettingsWrapperProps = {
