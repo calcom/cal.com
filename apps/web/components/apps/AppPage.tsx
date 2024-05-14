@@ -25,7 +25,6 @@ export type AppPageProps = {
   isGlobal?: AppType["isGlobal"];
   logo: string;
   slug: string;
-  dirName: string | undefined;
   variant: string;
   body: React.ReactNode;
   categories: string[];
@@ -39,7 +38,7 @@ export type AppPageProps = {
   email: string; // required
   tos?: string;
   privacy?: string;
-  licenseRequired: AppType["licenseRequired"];
+  licemenseRequired: AppType["licenseRequired"];
   teamsPlanRequired: AppType["teamsPlanRequired"];
   descriptionItems?: Array<string | { iframe: IframeHTMLAttributes<HTMLIFrameElement> }>;
   isTemplate?: boolean;
@@ -73,7 +72,6 @@ export const AppPage = ({
   dependencies,
   concurrentMeetings,
   paid,
-  dirName,
 }: AppPageProps) => {
   const { t, i18n } = useLocale();
   const router = useRouter();

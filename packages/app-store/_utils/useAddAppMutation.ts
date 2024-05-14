@@ -27,15 +27,6 @@ type UseAddAppMutationOptions = CustomUseMutationOptions & {
   returnTo?: string;
 };
 
-type useAddAppMutationVariables = {
-  type?: App["type"];
-  variant?: string;
-  slug?: string;
-  isOmniInstall?: boolean;
-  teamId?: number;
-  onErrorReturnTo?: string;
-};
-
 function useAddAppMutation(_type: App["type"] | null, allOptions?: UseAddAppMutationOptions) {
   const { returnTo, ...options } = allOptions || {};
   const pathname = usePathname();
