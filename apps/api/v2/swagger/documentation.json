@@ -2099,6 +2099,9 @@
             "items": {
               "$ref": "#/components/schemas/EventTypeLocation"
             }
+          },
+          "disableGuests": {
+            "type": "boolean"
           }
         },
         "required": [
@@ -2781,6 +2784,9 @@
             "items": {
               "$ref": "#/components/schemas/EventTypeLocation"
             }
+          },
+          "disableGuests": {
+            "type": "boolean"
           }
         }
       },

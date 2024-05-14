@@ -322,9 +322,9 @@ export class UpdateEventTypeInput {
   // @IsOptional()
   // recurringEvent?: RecurringEvent;
 
-  // @IsBoolean()
-  // @IsOptional()
-  // disableGuests?: boolean;
+  @IsBoolean()
+  @IsOptional()
+  disableGuests?: boolean;
 
   // @IsBoolean()
   // @IsOptional()
