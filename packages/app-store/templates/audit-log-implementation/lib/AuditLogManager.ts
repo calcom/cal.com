@@ -1,4 +1,4 @@
-import type { AuditLogsManager } from "@calcom/features/audit-logs/types";
+import type { AuditLogEvent, AuditLogsManager } from "@calcom/features/audit-logs/types";
 import logger from "@calcom/lib/logger";
 
 import type { AppKeys } from "../zod";
@@ -26,24 +26,7 @@ export default class GenericAuditLogManager implements AuditLogsManager {
     };
   }
 
-  public async report(input: string) {
-    const event = {
-      action: "bookings.event.created",
-      teamId: "My Rad Customer",
-      crud: "c" as const,
-      source_ip: "GET IP",
-      actor: {
-        id: "121",
-        name: "Sam Graham",
-      },
-      target: {
-        id: "test",
-        name: "TEST",
-        url: "https://customertowne.xyz/records/",
-      },
-      input,
-    };
-
+  public async report(event: AuditLogEvent) {
     this.client?.reportEvent(event);
   }
 }
