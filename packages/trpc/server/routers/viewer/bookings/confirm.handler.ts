@@ -99,7 +99,6 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       recurringEventId: true,
       status: true,
       smsReminderNumber: true,
-      scheduledJobs: true,
     },
   });
 

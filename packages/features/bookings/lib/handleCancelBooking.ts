@@ -13,12 +13,13 @@ import { sendCancelledReminders } from "@calcom/features/ee/workflows/lib/remind
 import { deleteScheduledSMSReminder } from "@calcom/features/ee/workflows/lib/reminders/smsReminderManager";
 import { deleteScheduledWhatsappReminder } from "@calcom/features/ee/workflows/lib/reminders/whatsappReminderManager";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
-import { cancelScheduledJobs } from "@calcom/features/webhooks/lib/scheduleTrigger";
+import { deleteWebhookScheduledTriggers } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { HttpError } from "@calcom/lib/http-error";
+import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
@@ -30,6 +31,8 @@ import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { getAllCredentials } from "./getAllCredentialsForUsersOnEvent/getAllCredentials";
 import cancelAttendeeSeat from "./handleSeats/cancel/cancelAttendeeSeat";
+
+const log = logger.getSubLogger({ prefix: ["handleCancelBooking"] });
 
 async function getBookingToDelete(id: number | undefined, uid: string | undefined) {
   return await prisma.booking.findUnique({
@@ -114,7 +117,6 @@ async function getBookingToDelete(id: number | undefined, uid: string | undefine
       destinationCalendar: true,
       smsReminderNumber: true,
       workflowReminders: true,
-      scheduledJobs: true,
       seatsReferences: true,
       responses: true,
       iCalUID: true,
@@ -326,9 +328,9 @@ async function handler(req: CustomRequest) {
   }
 
   let updatedBookings: {
+    id: number;
     uid: string;
     workflowReminders: WorkflowReminder[];
-    scheduledJobs: string[];
     references: {
       type: string;
       credentialId: number | null;
@@ -364,6 +366,7 @@ async function handler(req: CustomRequest) {
         },
       },
       select: {
+        id: true,
         startTime: true,
         endTime: true,
         references: {
@@ -376,7 +379,6 @@ async function handler(req: CustomRequest) {
         },
         workflowReminders: true,
         uid: true,
-        scheduledJobs: true,
       },
     });
     updatedBookings = updatedBookings.concat(allUpdatedBookings);
@@ -400,6 +402,7 @@ async function handler(req: CustomRequest) {
         iCalSequence: evt.iCalSequence || 100,
       },
       select: {
+        id: true,
         startTime: true,
         endTime: true,
         references: {
@@ -412,7 +415,6 @@ async function handler(req: CustomRequest) {
         },
         workflowReminders: true,
         uid: true,
-        scheduledJobs: true,
       },
     });
     updatedBookings.push(updatedBooking);
@@ -443,24 +445,27 @@ async function handler(req: CustomRequest) {
     },
   });
 
-  // delete scheduled jobs of cancelled bookings
-  // FIXME: async calls into ether
-  updatedBookings.forEach((booking) => {
-    cancelScheduledJobs(booking);
-  });
+  const webhookTriggerPromises = [];
+  const workflowReminderPromises = [];
 
-  //Workflows - cancel all reminders for cancelled bookings
-  // FIXME: async calls into ether
-  updatedBookings.forEach((booking) => {
-    booking.workflowReminders.forEach((reminder) => {
+  for (const booking of updatedBookings) {
+    // delete scheduled webhook triggers of cancelled bookings
+    webhookTriggerPromises.push(deleteWebhookScheduledTriggers({ booking }));
+
+    //Workflows - cancel all reminders for cancelled bookings
+    for (const reminder of booking.workflowReminders) {
       if (reminder.method === WorkflowMethods.EMAIL) {
-        deleteScheduledEmailReminder(reminder.id, reminder.referenceId);
+        workflowReminderPromises.push(deleteScheduledEmailReminder(reminder.id, reminder.referenceId));
       } else if (reminder.method === WorkflowMethods.SMS) {
-        deleteScheduledSMSReminder(reminder.id, reminder.referenceId);
+        workflowReminderPromises.push(deleteScheduledSMSReminder(reminder.id, reminder.referenceId));
       } else if (reminder.method === WorkflowMethods.WHATSAPP) {
-        deleteScheduledWhatsappReminder(reminder.id, reminder.referenceId);
+        workflowReminderPromises.push(deleteScheduledWhatsappReminder(reminder.id, reminder.referenceId));
       }
-    });
+    }
+  }
+
+  await Promise.all([...webhookTriggerPromises, ...workflowReminderPromises]).catch((error) => {
+    log.error("An error occurred when deleting workflow reminders and webhook triggers", error);
   });
 
   const prismaPromises: Promise<unknown>[] = [bookingReferenceDeletes];
