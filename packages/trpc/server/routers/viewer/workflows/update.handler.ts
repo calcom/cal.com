@@ -73,7 +73,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     const { hasTeamPlan } = await hasTeamPlanHandler({ ctx });
     isTeamsPlan = !!hasTeamPlan;
   }
-  const hasPaidPlan = IS_SELF_HOSTED || isCurrentUsernamePremium || isTeamsPlan || isOrg;
+  const hasPaidPlan = IS_SELF_HOSTED || isCurrentUsernamePremium || isTeamsPlan;
 
   const where: { id?: { in: number[] } } = {};
 
