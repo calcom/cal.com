@@ -6,7 +6,7 @@ import { Toaster } from "react-hot-toast";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { showToast } from "@calcom/ui";
 
-export const CalAiTransctibe = () => {
+export const CalAiTranscribe = () => {
   const daily = useDaily();
   const { t } = useLocale();
 

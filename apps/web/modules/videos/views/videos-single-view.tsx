@@ -14,13 +14,13 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { Icon } from "@calcom/ui";
 
-import { CalAiTransctibe } from "~/videos/ai/ai-transcribe";
+import { CalAiTranscribe } from "~/videos/ai/ai-transcribe";
 
 import { type PageProps } from "./videos-single-view.getServerSideProps";
 
 export default function JoinCall(props: PageProps) {
   const { t } = useLocale();
-  const { meetingUrl, meetingPassword, booking } = props;
+  const { meetingUrl, meetingPassword, booking, hasTeamPlan } = props;
   const [daily, setDaily] = useState<DailyCall | null>(null);
 
   useEffect(() => {
@@ -47,14 +47,16 @@ export default function JoinCall(props: PageProps) {
       },
       url: meetingUrl,
       ...(typeof meetingPassword === "string" && { token: meetingPassword }),
-      customTrayButtons: {
-        transcription: {
-          label: "Cal.ai",
-          tooltip: "Toggle real time transcription powered by AI",
-          iconPath: `${WEBAPP_URL}/sparkles.svg`,
-          iconPathDarkMode: `${WEBAPP_URL}/sparkles.svg`,
+      ...(hasTeamPlan && {
+        customTrayButtons: {
+          transcription: {
+            label: "Cal.ai",
+            tooltip: "Toggle real time transcription powered by AI",
+            iconPath: `${WEBAPP_URL}/sparkles.svg`,
+            iconPathDarkMode: `${WEBAPP_URL}/sparkles.svg`,
+          },
         },
-      },
+      }),
     });
 
     setDaily(callFrame);
@@ -86,7 +88,7 @@ export default function JoinCall(props: PageProps) {
       </Head>
       <DailyProvider callObject={daily}>
         <div className="mx-auto" style={{ zIndex: 2, position: "absolute", bottom: 60, width: "100%" }}>
-          <CalAiTransctibe />
+          <CalAiTranscribe />
         </div>
         <div style={{ zIndex: 2, position: "relative" }}>
           {booking?.user?.organization?.calVideoLogo ? (
