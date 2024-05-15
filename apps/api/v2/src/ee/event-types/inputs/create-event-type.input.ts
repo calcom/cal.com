@@ -1,7 +1,16 @@
 import { EventTypeLocation } from "@/ee/event-types/inputs/event-type-location.input";
 import { ApiProperty as DocsProperty, ApiHideProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { IsString, IsNumber, IsBoolean, IsOptional, ValidateNested, Min, IsArray } from "class-validator";
+import {
+  IsString,
+  IsNumber,
+  IsBoolean,
+  IsOptional,
+  ValidateNested,
+  Min,
+  IsArray,
+  IsInt,
+} from "class-validator";
 
 export const CREATE_EVENT_LENGTH_EXAMPLE = 60;
 export const CREATE_EVENT_SLUG_EXAMPLE = "cooking-class";
@@ -44,6 +53,23 @@ export class CreateEventTypeInput {
   @IsBoolean()
   @IsOptional()
   disableGuests?: boolean;
+
+  @IsInt()
+  @IsOptional()
+  slotInterval?: number;
+
+  @IsInt()
+  @Min(0)
+  @IsOptional()
+  minimumBookingNotice?: number;
+
+  @IsInt()
+  @IsOptional()
+  beforeEventBuffer?: number;
+
+  @IsInt()
+  @IsOptional()
+  afterEventBuffer?: number;
 
   // @ApiHideProperty()
   // @IsOptional()
