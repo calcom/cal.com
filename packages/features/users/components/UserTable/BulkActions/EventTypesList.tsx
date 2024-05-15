@@ -29,7 +29,7 @@ interface Props {
   teams: RouterOutputs["viewer"]["organizations"]["getTeams"] | undefined;
 }
 
-export function EventListBulkAction({ table, teams }: Props) {
+export function EventTypesList({ table, teams }: Props) {
   const { t } = useLocale();
   const utils = trpc.useUtils();
   const teamIds = teams?.map((team) => team.id);
