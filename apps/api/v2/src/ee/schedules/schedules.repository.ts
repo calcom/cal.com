@@ -112,6 +112,9 @@ export class SchedulesRepository {
 
     const deleteConditions = [];
     if (availability) {
+      // note(Lauris): availabilities and overrides are stored in the same "Availability" table,
+      // but availabilities have "date" field as null, while overrides have it as not null, so delete
+      // condition below results in deleting only rows from Availability table that are availabilities.
       deleteConditions.push({
         scheduleId: { equals: scheduleId },
         date: null,
@@ -119,6 +122,9 @@ export class SchedulesRepository {
     }
 
     if (overrides) {
+      // note(Lauris): availabilities and overrides are stored in the same "Availability" table,
+      // but overrides have "date" field as not-null, while availabilities have it as null, so delete
+      // condition below results in deleting only rows from Availability table that are overrides.
       deleteConditions.push({
         scheduleId: { equals: scheduleId },
         NOT: { date: null },
