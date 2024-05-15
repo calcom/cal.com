@@ -102,6 +102,7 @@ export type FormValues = {
   users: EventTypeSetup["users"];
   assignAllTeamMembers: boolean;
   useEventTypeDestinationCalendarEmail: boolean;
+  forwardParamsSuccessRedirect: boolean | null;
   secondaryEmailId?: number;
 };
 
