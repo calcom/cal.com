@@ -20,6 +20,7 @@ export default class GenericAuditLogManager implements AuditLogsManager {
         apiKey: appKeys.apiKey,
         projectId: appKeys.projectId,
       },
+
       async reportEvent(event: any) {
         console.log(event);
       },
@@ -27,6 +28,8 @@ export default class GenericAuditLogManager implements AuditLogsManager {
   }
 
   public async report(event: AuditLogEvent) {
-    this.client?.reportEvent(event);
+    // Here you can intercept the event before its sent by your client.
+    event.crud = "d";
+    await this.client?.reportEvent(event);
   }
 }
