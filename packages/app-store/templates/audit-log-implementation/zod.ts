@@ -9,8 +9,10 @@ export const appSettingsSchema = z.object({
 });
 
 export const appKeysSchema = z.object({
-  api_key: z.string().min(1),
-  project_Id: z.string().min(1),
+  apiKey: z.string().min(1),
+  projectId: z.string().min(1),
 });
+
+export type AppKeys = z.infer<typeof appKeysSchema>;
 
 export const appDataSchema = z.object({});
