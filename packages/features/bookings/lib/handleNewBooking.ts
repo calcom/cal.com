@@ -2240,7 +2240,19 @@ async function handler(
       triggerEvent: WebhookTriggerEvents.BOOKING_PAYMENT_INITIATED,
       teamId,
     };
-    await handleAuditLogTrigger("Booking payment initiated");
+    await handleAuditLogTrigger({
+      action: "booking.payment.initiated",
+      eventTypeId: booking.eventTypeId?.toString() ?? "",
+      crud: "c",
+      created: Date.now().toString(),
+      actor: {
+        id: booking.userId?.toString() || "0",
+      },
+      target: {
+        name: "payment",
+        type: "Booking",
+      },
+    });
     await handleWebhookTrigger({
       subscriberOptions: subscriberOptionsPaymentInitiated,
       eventTrigger: WebhookTriggerEvents.BOOKING_PAYMENT_INITIATED,
@@ -2320,14 +2332,38 @@ async function handler(
 
     // Send Webhook call if hooked to BOOKING_CREATED & BOOKING_RESCHEDULED
     await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData });
-    await handleAuditLogTrigger("New Booking created");
+    await handleAuditLogTrigger({
+      action: "booking.created",
+      eventTypeId: eventTypeId?.toString() ?? "",
+      crud: "c",
+      created: Date.now().toString(),
+      actor: {
+        id: booking.userId?.toString() || "0",
+      },
+      target: {
+        name: "created",
+        type: "Booking",
+      },
+    });
   } else {
     // if eventType requires confirmation we will trigger the BOOKING REQUESTED Webhook
     const eventTrigger: WebhookTriggerEvents = WebhookTriggerEvents.BOOKING_REQUESTED;
     subscriberOptions.triggerEvent = eventTrigger;
     webhookData.status = "PENDING";
     await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData });
-    await handleAuditLogTrigger("New Booking Requires Confirmation");
+    await handleAuditLogTrigger({
+      action: "booking.created",
+      eventTypeId: eventTypeId?.toString() ?? "",
+      crud: "c",
+      created: Date.now().toString(),
+      actor: {
+        id: booking.userId?.toString() || "0",
+      },
+      target: {
+        name: "created",
+        type: "Booking",
+      },
+    });
   }
 
   // Avoid passing referencesToCreate with id unique constrain values

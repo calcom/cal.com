@@ -87,6 +87,7 @@ export const bookingsRouter = router({
 
     return UNSTABLE_HANDLER_CACHE.confirm({
       ctx,
+      sourceIp: ctx.sourceIp ?? "",
       input,
     });
   }),

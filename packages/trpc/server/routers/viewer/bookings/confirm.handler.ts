@@ -31,9 +31,10 @@ type ConfirmOptions = {
     user: NonNullable<TrpcSessionUser>;
   } & BookingsProcedureContext;
   input: TConfirmInputSchema;
+  sourceIp: string;
 };
 
-export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
+export const confirmHandler = async ({ ctx, input, sourceIp }: ConfirmOptions) => {
   const { user } = ctx;
   const { bookingId, recurringEventId, reason: rejectionReason, confirmed } = input;
 
@@ -395,7 +396,22 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       status: BookingStatus.REJECTED,
       smsReminderNumber: booking.smsReminderNumber || undefined,
     };
-    await handleAuditLogTrigger("New Booking created");
+
+    await handleAuditLogTrigger({
+      action: "booking.created",
+      eventTypeId: booking.eventTypeId,
+      crud: "c",
+      created: Date.now(),
+      source_ip: sourceIp,
+      actor: {
+        id: ctx.user.id || 0,
+        name: ctx.user.name || "",
+      },
+      target: {
+        name: "payment",
+        type: "Booking",
+      },
+    });
     await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData });
   }
 

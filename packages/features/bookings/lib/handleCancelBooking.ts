@@ -196,7 +196,19 @@ async function handler(req: CustomRequest) {
     length: bookingToDelete?.eventType?.length || null,
   };
 
-  handleAuditLogTrigger("Cancelled booking");
+  await handleAuditLogTrigger({
+    action: "booking.cancelled",
+    eventTypeId: bookingToDelete.eventTypeId?.toString() ?? "",
+    crud: "c",
+    created: Date.now().toString(),
+    actor: {
+      id: bookingToDelete.userId?.toString() || "0",
+    },
+    target: {
+      name: "cancelled",
+      type: "Booking",
+    },
+  });
   const webhooks = await getWebhooks(subscriberOptions);
 
   const organizer = await prisma.user.findFirstOrThrow({

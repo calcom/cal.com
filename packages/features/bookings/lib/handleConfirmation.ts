@@ -301,7 +301,20 @@ export async function handleConfirmation(args: {
       },
     });
 
-    handleAuditLogTrigger("Booking Created");
+    await handleAuditLogTrigger({
+      action: "booking.created",
+      eventTypeId: booking.eventTypeId?.toString() ?? "",
+      crud: "c",
+      created: Date.now().toString(),
+      actor: {
+        id: user.credentials[0].userId?.toString() || "0",
+        name: user.username || "",
+      },
+      target: {
+        name: "create",
+        type: "Booking",
+      },
+    });
     const triggerForUser = !teamId || (teamId && booking.eventType?.parentId);
     const subscribersBookingCreated = await getWebhooks({
       userId: triggerForUser ? booking.userId : null,
@@ -380,7 +393,21 @@ export async function handleConfirmation(args: {
     await Promise.all(promises);
 
     if (paid) {
-      await handleAuditLogTrigger("Booking paid");
+      await handleAuditLogTrigger({
+        action: "booking.paid",
+        eventTypeId: booking.eventTypeId,
+        crud: "c",
+        created: Date.now().toString(),
+        source_ip: sourceIp,
+        actor: {
+          id: user.credentials[0].toString() || "0",
+          name: user.username || "",
+        },
+        target: {
+          name: "payment",
+          type: "Booking",
+        },
+      });
       let paymentExternalId: string | undefined;
       const subscriberMeetingPaid = await getWebhooks({
         userId: triggerForUser ? booking.userId : null,

@@ -133,7 +133,19 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
       smsReminderNumber: seatedBooking?.smsReminderNumber || undefined,
     };
 
-    await handleAuditLogTrigger("Seating?");
+    await handleAuditLogTrigger({
+      action: "booking.seating",
+      eventTypeId: eventTypeId?.toString() ?? "",
+      crud: "c",
+      created: Date.now().toString(),
+      actor: {
+        id: seatedBooking.userId?.toString() || "0",
+      },
+      target: {
+        name: "seating",
+        type: "Booking",
+      },
+    });
     await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData });
   }
 

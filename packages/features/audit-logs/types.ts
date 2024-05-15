@@ -4,14 +4,15 @@ export interface AuditLogsManager {
 
 export type AuditLogEvent = {
   action: string;
+  eventTypeId?: string;
   group?: {
-    id: string;
+    id?: string;
     name?: string;
   };
   crud?: string;
-  created?: Date;
+  created?: string;
   actor?: {
-    id: string;
+    id?: string;
     name?: string;
     href?: string;
     fields?: {
@@ -19,7 +20,7 @@ export type AuditLogEvent = {
     };
   };
   target?: {
-    id: string;
+    id?: string;
     name?: string;
     href?: string;
     type?: string;

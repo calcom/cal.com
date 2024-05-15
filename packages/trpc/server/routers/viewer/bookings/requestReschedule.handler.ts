@@ -299,7 +299,20 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
     triggerEvent: eventTrigger,
     teamId,
   };
-  handleAuditLogTrigger("Booking Cancelled");
+  await handleAuditLogTrigger({
+    action: "booking.cancelled",
+    eventTypeId: bookingToReschedule.eventTypeId,
+    crud: "c",
+    created: Date.now().toString(),
+    actor: {
+      id: user.id || "0",
+      name: user.username || "",
+    },
+    target: {
+      name: "cancelled",
+      type: "Booking",
+    },
+  });
   const webhooks = await getWebhooks(subscriberOptions);
   const promises = webhooks.map((webhook) =>
     sendPayload(webhook.secret, eventTrigger, new Date().toISOString(), webhook, {

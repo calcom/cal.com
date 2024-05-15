@@ -53,7 +53,19 @@ export async function handleBookingRequested(args: {
       evt,
     });
 
-    handleAuditLogTrigger("Booking Requested");
+    await handleAuditLogTrigger({
+      action: "booking.requested",
+      eventTypeId: booking.eventTypeId?.toString() ?? "",
+      crud: "c",
+      created: Date.now().toString(),
+      actor: {
+        id: booking.userId?.toString() || "0",
+      },
+      target: {
+        name: "request",
+        type: "Booking",
+      },
+    });
 
     const promises = subscribersBookingRequested.map((sub) =>
       sendPayload(
