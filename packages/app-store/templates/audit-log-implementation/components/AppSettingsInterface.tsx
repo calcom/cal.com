@@ -130,8 +130,8 @@ export default function AppSettings() {
             dirName: "audit-log-implementation",
             type: "auditLogs",
             keys: {
-              api_key: apiKey,
-              project_Id: projectId,
+              apiKey: apiKey,
+              projectId: projectId,
             },
           });
         }}>
