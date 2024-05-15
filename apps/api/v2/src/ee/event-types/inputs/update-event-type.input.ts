@@ -330,18 +330,18 @@ export class UpdateEventTypeInput {
   // @IsOptional()
   // hideCalendarNotes?: boolean;
 
-  // @IsInt()
-  // @Min(0)
-  // @IsOptional()
-  // minimumBookingNotice?: number;
+  @IsInt()
+  @Min(0)
+  @IsOptional()
+  minimumBookingNotice?: number;
 
-  // @IsInt()
-  // @IsOptional()
-  // beforeEventBuffer?: number;
+  @IsInt()
+  @IsOptional()
+  beforeEventBuffer?: number;
 
-  // @IsInt()
-  // @IsOptional()
-  // afterEventBuffer?: number;
+  @IsInt()
+  @IsOptional()
+  afterEventBuffer?: number;
 
   // @IsInt()
   // @IsOptional()
@@ -375,9 +375,9 @@ export class UpdateEventTypeInput {
   // @IsOptional()
   // currency?: string;
 
-  // @IsInt()
-  // @IsOptional()
-  // slotInterval?: number;
+  @IsInt()
+  @IsOptional()
+  slotInterval?: number;
 
   // @IsString()
   // @IsOptional()
