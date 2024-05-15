@@ -60,8 +60,8 @@ export const getAccessibleUsers = async ({
     where: {
       team: {
         isOrganization: true,
-        accepted: true,
       },
+      accepted: true,
       OR: [
         { userId: { in: memberUserIds } },
         { userId: adminUserId, role: { in: [MembershipRole.OWNER, MembershipRole.ADMIN] } },
