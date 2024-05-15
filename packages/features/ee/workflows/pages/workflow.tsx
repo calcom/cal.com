@@ -20,6 +20,7 @@ import {
   WorkflowTriggerEvents,
 } from "@calcom/prisma/enums";
 import { stringOrNumber } from "@calcom/prisma/zod-utils";
+import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui";
@@ -141,16 +142,16 @@ function WorkflowPage() {
       if (workflowData.userId && workflowData.activeOn.find((active) => !!active.eventType.teamId)) {
         setIsMixedEventType(true);
       }
+      let activeOn;
 
       if (isOrg) {
-        setSelectedOptions(
-          workflowData.activeOnTeams.flatMap((active) => {
-            return {
-              value: String(active.team.id) || "",
-              label: active.team.slug || "",
-            };
-          }) || []
-        );
+        activeOn = workflowData.activeOnTeams.flatMap((active) => {
+          return {
+            value: String(active.team.id) || "",
+            label: active.team.slug || "",
+          };
+        });
+        setSelectedOptions(activeOn || []);
       } else {
         setSelectedOptions(
           workflowData.activeOn.flatMap((active) => {
@@ -161,14 +162,13 @@ function WorkflowPage() {
             };
           }) || []
         );
+        activeOn = workflowData.activeOn
+          ? workflowData.activeOn.map((active) => ({
+              value: active.eventType.id.toString(),
+              label: active.eventType.slug,
+            }))
+          : undefined;
       }
-
-      const activeOn = workflowData.activeOn
-        ? workflowData.activeOn.map((active) => ({
-            value: active.eventType.id.toString(),
-            label: active.eventType.slug,
-          }))
-        : undefined;
 
       //translate dynamic variables into local language
       const steps = workflowData.steps.map((step) => {
