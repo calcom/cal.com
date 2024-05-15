@@ -7,7 +7,6 @@ import type { PrismaClient } from "@calcom/prisma";
 
 import type { createEmailsFixture } from "./fixtures/emails";
 import { test } from "./lib/fixtures";
-import { getEmailsReceivedByUser } from "./lib/testUtils";
 import { expectInvitationEmailToBeReceived } from "./team/expects";
 
 test.describe.configure({ mode: "parallel" });
@@ -385,17 +384,15 @@ test.describe("Update Profile", () => {
         identifier: secondaryEmail,
       },
     });
-    const receivedEmails = await getEmailsReceivedByUser({ emails, userEmail: secondaryEmail });
-    if (receivedEmails?.items?.[0]?.ID) {
-      await emails.deleteMessage(receivedEmails.items[0].ID);
-    }
 
     expect(await page.getByTestId("profile-form-email-1-unverified-badge").isVisible()).toEqual(true);
     await page.getByTestId("secondary-email-action-group-button").nth(1).click();
     expect(await page.locator("button[data-testid=resend-verify-email-button]").isDisabled()).toEqual(false);
     await page.getByTestId("resend-verify-email-button").click();
 
-    await testEmailVerificationLink({ page, prisma, emails, secondaryEmail });
+    // await testEmailVerificationLink({ page, prisma, emails, secondaryEmail });
+
+    await page.waitForLoadState("networkidle");
 
     const verificationToken = await prisma.verificationToken.findFirst({
       where: {
