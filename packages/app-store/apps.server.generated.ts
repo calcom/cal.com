@@ -68,6 +68,7 @@ export const apiHandlers = {
   sylapsvideo: import("./sylapsvideo/api"),
   tandemvideo: import("./tandemvideo/api"),
   telegram: import("./telegram/api"),
+  "audit-log-implementation": import("./templates/audit-log-implementation/api"),
   basic: import("./templates/basic/api"),
   "booking-pages-tag": import("./templates/booking-pages-tag/api"),
   "event-type-app-card": import("./templates/event-type-app-card/api"),

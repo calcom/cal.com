@@ -68,6 +68,7 @@ import { metadata as stripepayment__metadata_ts } from "./stripepayment/_metadat
 import sylapsvideo_config_json from "./sylapsvideo/config.json";
 import { metadata as tandemvideo__metadata_ts } from "./tandemvideo/_metadata";
 import telegram_config_json from "./telegram/config.json";
+import audit_log_implementation_config_json from "./templates/audit-log-implementation/config.json";
 import basic_config_json from "./templates/basic/config.json";
 import booking_pages_tag_config_json from "./templates/booking-pages-tag/config.json";
 import event_type_app_card_config_json from "./templates/event-type-app-card/config.json";
@@ -156,6 +157,7 @@ export const appStoreMetadata = {
   sylapsvideo: sylapsvideo_config_json,
   tandemvideo: tandemvideo__metadata_ts,
   telegram: telegram_config_json,
+  "audit-log-implementation": audit_log_implementation_config_json,
   basic: basic_config_json,
   "booking-pages-tag": booking_pages_tag_config_json,
   "event-type-app-card": event_type_app_card_config_json,

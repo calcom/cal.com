@@ -12,6 +12,9 @@ export const InstallAppButtonMap = {
 };
 export const AppSettingsComponentsMap = {
   "cal-ai": dynamic(() => import("./cal-ai/components/AppSettingsInterface")),
+  "audit-log-implementation": dynamic(() =>
+    import("./templates/audit-log-implementation/components/AppSettingsInterface")
+  ),
   "general-app-settings": dynamic(() =>
     import("./templates/general-app-settings/components/AppSettingsInterface")
   ),
