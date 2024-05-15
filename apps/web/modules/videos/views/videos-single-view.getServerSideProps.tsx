@@ -60,6 +60,17 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     };
   }
 
+  const hasTeamPlan = await prisma.membership.findFirst({
+    where: {
+      userId: booking.user.id,
+      team: {
+        slug: {
+          not: null,
+        },
+      },
+    },
+  });
+
   const profile = booking.user
     ? (
         await UserRepository.enrichUserWithItsProfile({
@@ -114,6 +125,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
             }
           : bookingObj.user,
       },
+      hasTeamPlan: !!hasTeamPlan,
       trpcState: ssr.dehydrate(),
     },
   };
