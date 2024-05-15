@@ -60,16 +60,18 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     };
   }
 
-  const hasTeamPlan = await prisma.membership.findFirst({
-    where: {
-      userId: booking.user.id,
-      team: {
-        slug: {
-          not: null,
+  const hasTeamPlan = booking.user?.id
+    ? await prisma.membership.findFirst({
+        where: {
+          userId: booking.user.id,
+          team: {
+            slug: {
+              not: null,
+            },
+          },
         },
-      },
-    },
-  });
+      })
+    : false;
 
   const profile = booking.user
     ? (
