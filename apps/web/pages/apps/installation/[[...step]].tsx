@@ -412,7 +412,11 @@ const getEventTypes = async (userId: number, teamId?: number) => {
         destinationCalendar: true,
         bookingFields: true,
       },
-      where: teamId ? { teamId } : { userId },
+      /**
+       * filter out managed events for now
+       *  @todo: can install apps to managed event types
+       */
+      where: teamId ? { teamId } : { userId, parent: null, teamId: null },
     })
   ).sort((eventTypeA, eventTypeB) => {
     return eventTypeB.position - eventTypeA.position;
