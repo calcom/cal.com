@@ -506,7 +506,7 @@ describe("getBookingResponsesSchema", () => {
         })
       );
     });
-    test(`should successful give responses if phone type field value is valid`, async ({}) => {
+    test(`should successfully give responses if phone type field value is valid`, async ({}) => {
       const schema = getBookingResponsesSchema({
         bookingFields: [
           {
