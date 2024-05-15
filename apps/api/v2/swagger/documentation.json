@@ -2102,6 +2102,19 @@
           },
           "disableGuests": {
             "type": "boolean"
+          },
+          "slotInterval": {
+            "type": "number"
+          },
+          "minimumBookingNotice": {
+            "type": "number",
+            "minimum": 0
+          },
+          "beforeEventBuffer": {
+            "type": "number"
+          },
+          "afterEventBuffer": {
+            "type": "number"
           }
         },
         "required": [
@@ -2787,6 +2800,19 @@
           },
           "disableGuests": {
             "type": "boolean"
+          },
+          "minimumBookingNotice": {
+            "type": "number",
+            "minimum": 0
+          },
+          "beforeEventBuffer": {
+            "type": "number"
+          },
+          "afterEventBuffer": {
+            "type": "number"
+          },
+          "slotInterval": {
+            "type": "number"
           }
         }
       },
